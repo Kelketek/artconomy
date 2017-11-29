@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-12">
+                <a href="{% url 'sales:orders' username=request.user.username %}">Your orders</a>
+                <br />
+                <a href="{% url 'sales:sales' username=request.user.username %}">Your sales</a>
+                <br />
+                 <a href="{% url "profiles:characters" username=request.user.username %}">Your characters</a>
+                <br />
+                <a href="{% url "sales:shop" username=request.user.username %}">Your shop.</a>
+            </div>
+            {% if not target_user.dwolla_url %}
+                <div class="col-sm-12">
+                    <a href="{{ dwolla_setup_link }}">Set your Dwolla account up to receive funds for your art.</a>
+                </div>
+            {% else %}
+                <div class="col-sm-12">
+                    Your Dwolla account has been set up.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

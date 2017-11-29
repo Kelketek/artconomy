@@ -1,0 +1,216 @@
+{% load sekizai_tags vuestrap %}
+{% addtoblock 'vue_templates' %}
+    {% vuestrap card_form "ac-card-form" %}
+    <script type="text/x-template" id="saved-card-template">
+        <div class="row">
+            <div class="col-sm-12 col-lg-6">
+                {% verbatim %}
+                    <input :disabled="changing" type="radio" :id="'saved_card_' + card.id" name="card" :value="card.id" :checked="card.id === value" class="mr-1" @input="updateSelect()"/>
+                    <label :for="'saved_card' + card.id"><i class="fa" :class="class_obj()"></i> {{ issuer.name }} Ending in {{ card.last_four }}</label>
+                {% endverbatim %}
+            </div>
+            <div class="col-sm-6 col-lg-4 text-center">
+                <b-button v-if="card.primary" variant="success" size="sm" :disabled="changing">Primary Card</b-button>
+                <b-button v-else variant="primary" size="sm" :disabled="changing" @click="makePrimary">Make Primary</b-button>
+            </div>
+            <div class="col-sm-6 col-lg-2">
+                <b-button variant="danger" @click="deleteCard()" size="sm" :disabled="changing"><i class="fa fa-trash-o"></i></b-button>
+            </div>
+        </div>
+    </script>
+    <script type="text/x-template" id="charge-card-template">
+        <form>
+            <b-modal ref="paymentModal" title="Payment Information">
+                <div v-if="paying">
+                    <div class="text-center" style="width:100%"><i class="fa fa-spin fa-spinner fa-4x"></i></div>
+                </div>
+                <div v-else-if="paid">
+                    <div class="text-center" style="width:100%"><i class="fa fa-check-circle-o fa-4x"></i></div>
+                    <p class="text-center">We have received your payment, and your order has been put in the artist's queue!</p>
+                </div>
+                <b-tabs v-model="tabIndex" v-else>
+                    <b-tab title="Saved Cards">
+                        <div v-if="error" class="alert alert-danger">
+                            <a class="close" @click="dismissError">&times;</a>
+                            {% verbatim %}<span>{{ error }}</span>{% endverbatim %}
+                        </div>
+                        <ac-saved-card v-for="card in cards"
+                             :card="card"
+                             :key="card.id"
+                             :cards="cards"
+                             :customer="customer"
+                             v-model="selected_card"
+                             v-if="cards && cards.length !== 0"
+                        >
+                        </ac-saved-card>
+                        {# This should be possible with v-else, but for some reason it's not working. #}
+                        <p v-if="cards && cards.length === 0">You do not have any saved cards. Please add a new one in the New Cards tab.</p>
+                    </b-tab>
+                    <b-tab title="New Card">
+                        <ac-card-form :container="this" ref="cardForm" :url="'/sales/api/' + customer + '/cards/'"></ac-card-form>
+                    </b-tab>
+                </b-tabs>
+                <p v-if="!paying && !paid">{% verbatim %}Your card will be charged in the amount of {{ order.price() }}.{% endverbatim %}</p>
+                <div slot="modal-footer">
+                    <b-button @click="$refs.paymentModal.hide()" :disabled="paying" v-if="!paid">Cancel</b-button>
+                    <b-button variant="success" @click.prevent="submit" type="submit" :disabled="paying" v-if="!paid">Pay</b-button>
+                    <b-button variant="primary" @click.prevent="$refs.paymentModal.hide()" v-if="paid">Ok</b-button>
+                </div>
+            </b-modal>
+        </form>
+    </script>
+{% endaddtoblock %}
+<script type="text/javascript">
+    AcCardForm[1].methods.success = function (response) {
+        var top = this.container;
+        top.savedIndex = top.tabIndex;
+        if (top.tabIndex === 1) {
+            top.cards.push(response);
+            top.tabIndex = 0;
+            top.card_selection = response.id;
+        }
+        $(this.$el).find('input').val('');
+        // Now charge the card.
+        this.container.submit();
+    };
+    AcCardForm[1].methods.failure = function () {
+        this.container.paying = false;
+    };
+    var ISSUERS = {
+        1: {'name': 'Visa', 'icon': 'fa-cc-visa'},
+        2: {'name': 'Mastercard', 'icon': 'fa-cc-mastercard'},
+        3: {'name': 'American Express', 'icon': 'fa-cc-amex'},
+        4: {'name': 'Discover', 'icon': 'fa-cc-discover'},
+        5: {'name': "Diner's Club", 'icon': 'fa-cc-diners-club'}
+    };
+    Vue.component.apply(Vue, AcCardForm);
+    Vue.component('ac-saved-card', {
+        'template': fetchTemplate('saved-card-template'),
+        'props': ['cards', 'value', 'card', 'customer'],
+        'methods': {
+            'class_obj': function () {
+                var key = this.issuer.icon;
+                var result = {'fa-lg': true};
+                result[key] = true;
+                return result
+            },
+            'updateSelect': function () {
+                return this.$emit('input', this.card.id);
+            },
+            'postDelete': function () {
+                var index = this.cards.indexOf(this.card);
+                this.cards.splice(index, 1);
+            },
+            'deleteCard': function () {
+                this.changing = true;
+                artCall(
+                    '/sales/api/' + this.customer + '/cards/' + this.card.id + '/',
+                    'DELETE', {}, this.postDelete
+                )
+            },
+            'makePrimary': function () {
+                this.changing = true;
+                artCall(
+                    '/sales/api/' + this.customer + '/cards/' + this.card.id + '/primary/',
+                    'POST', {}, this.postPrimary
+                )
+            },
+            'postPrimary': function () {
+                for (var card in this.cards) {
+                    if (!this.cards.hasOwnProperty(card)) {
+                        continue
+                    }
+                    this.cards[card].primary = false
+                }
+                this.card.primary = true;
+                this.changing = false;
+                this.updateSelect()
+            }
+
+        },
+        'data': function () {
+            return {'changing': false}
+        },
+        'computed': {
+            'issuer': function () {
+                return ISSUERS[this.card.card_type]
+            }
+        }
+    });
+    Vue.component('ac-charge-card', {
+        'template': fetchTemplate('charge-card-template'),
+        'props': ['order', 'customer'],
+        'data': function () {
+            return {
+                'card_selection': null,
+                'cards': this.$root.$data.cardList,
+                'tabIndex': this.$root.$data.cardList.length ? 0 : 1,
+                'savedIndex': null,
+                'error': null,
+                'paying': false,
+                'paid': false
+            }
+        },
+        'methods': {
+            'submit': function () {
+                this.error = null;
+                this.paying = true;
+                if (this.tabIndex === 1) {
+                    this.$refs.cardForm.submit();
+                } else {
+                    artCall(
+                        '/sales/api/order/' + this.order.order.id + '/pay/', 'POST',
+                        {'card_id': this.selected_card, 'amount': this.order.price()},
+                        this.handlePayment
+                    ).fail(this.handleFailure)
+                }
+            },
+            'handlePayment': function (response) {
+                this.paying = false;
+                this.order.order = response;
+                this.paid = true;
+            },
+            'handleFailure': function (response) {
+                if (response.hasOwnProperty('responseJSON')) {
+                    this.error = response.responseJSON.error;
+                } else {
+                    this.error = "We had trouble contacting the server. Please try again later."
+                }
+                this.paying = false;
+            },
+            'dismissError': function () {
+                this.error = null;
+            }
+        },
+        'computed': {
+            'selected_card': {
+                'get': function () {
+                    if (this.$data.cards === null) {
+                        return null
+                    } else if (this.$data.cards.length === 0) {
+                        return null
+                    }
+                    if (this.$data.card_selection) {
+                        return this.$data.card_selection
+                    }
+                    // The API always return the first card as primary.
+                    return this.$data.cards[0].id
+                },
+                'set': function (value) {
+                    this.$data.card_selection = value;
+                }
+            }
+        },
+        'watch': {
+            'cards': function () {
+                if (!this.cards) {
+                    this.tabIndex = 1;
+                    return
+                }
+                if (this.cards.length === 0) {
+                    this.tabIndex = 1;
+                }
+            }
+        }
+    })
+</script>

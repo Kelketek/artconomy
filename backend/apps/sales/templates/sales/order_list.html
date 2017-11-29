@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% load static sekizai_tags %}
+{% block vue_scripts %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/markdown-it/8.3.2/markdown-it.min.js"></script>
+    <script src="{% static 'js/URI.min.js' %}"></script>
+    <script>
+        var md = markdownit();
+        artconomy_params.data.orderList = null;
+        artconomy_params.data.controls = false;
+        function populate_orders(response) {
+            artconomy.$data.orderList = response;
+            Vue.nextTick(function () {artconomy.loaded = true});
+        }
+        artCall('{{ fetch_url }}', 'GET', undefined, populate_orders);
+        var status_map = {
+            1: 'New Order',
+            2: 'Payment Pending',
+            3: 'Queued',
+            6: 'Cancelled',
+            7: 'Disputed'
+        };
+        Vue.component(
+            'ac-order-preview',
+            {
+                'props': ['order'],
+                'template': fetchTemplate('order-preview-template'),
+                'methods': {
+                    'parseProductDesc': function () {
+                        return md.render(this.order.product.description)
+                    },
+                    'parseDetails': function () {
+                        return md.render(this.order.details)
+                    },
+                    'loadProduct': function () {
+                        window.location = '/sales/' + this.order.seller.username + '/products/' + this.order.product.id + '/'
+                    },
+                    'loadDetail': function () {
+                        window.location = '/sales/order/' + this.order.id + '/'
+                    },
+                    'price': function () {
+                        return "$" + (Number(this.order.product.price) + this.order.adjustment).toFixed(2)
+                    }
+                },
+                'data': function () {
+                    return {
+                        'status_map': status_map
+                    }
+                },
+                'computed': {
+                    'new_order': function () {
+                        return this.order.status === 1;
+                    },
+                    'payment_pending': function () {
+                        return this.order.status === 2;
+                    },
+                    'queued': function () {
+                        return this.order.status === 3;
+                    },
+                    'cancelled': function () {
+                        return this.order.status === 6;
+                    }
+                }
+            }
+        );
+    </script>
+    {% include "profiles/includes/character.html" %}
+    {% addtoblock "vue_templates" %}
+        <script type="text/x-template" id="order-preview-template">
+            <div class="card order-preview col-md-6 col-lg-4 col-sm-12">
+                {% verbatim %}<div class="card-header">Order #{{ order.id }}, {{ order.product.name }}</div>{% endverbatim %}
+                <div class="card-block" v-html="parseProductDesc()"></div>
+                <div class="card-header">Customer Notes</div>
+                <div class="card-block" v-html="parseDetails()"></div>
+                <div class="card-header">{% verbatim %}{{ price() }}{% endverbatim %}</div>
+                <div class="card-header">Characters:</div>
+                <div class="card-block">
+                    <ul>
+                        <li v-for="char in order.characters">
+                            {% verbatim %}{{ char.name }} ({{ char.user.username }}) {% endverbatim %}
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-block">
+                    {% verbatim %}<p>Status: {{ status_map[order.status] }}</p>{% endverbatim %}
+                    <b-button v-if="!$root.detail" @click="loadDetail" variant="primary"><i class="fa fa-list-alt"></i> Order Details</b-button>
+                    <b-button v-if="!$root.detail" @click="loadProduct" variant="primary"><i class="fa fa-list-alt"></i> Product Listing</b-button>
+                </div>
+            </div>
+        </script>
+    {% endaddtoblock %}
+{% endblock %}
+{% block content %}
+    <div class="container">
+        <div class="row" v-if="orderList !== null">
+            <ac-order-preview v-for="order in orderList" :key="order.id" :order="order"></ac-order-preview>
+        </div>
+        <div v-else class="text-center" style="width:100%"><i class="fa fa-spin fa-spinner fa-5x"></i></div>
+        <div class="m-5"></div>
+    </div>
+{% endblock %}

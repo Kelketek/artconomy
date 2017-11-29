@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+{% load render_bundle from webpack_loader %}
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>webpack-vue-django</title>
+    </head>
+    <body>
+        <div id="app"></div>
+        {% if not debug %}
+            {% render_bundle 'manifest' 'js' %}
+            {% render_bundle 'vendor' 'js' %}
+        {% endif %}
+        {% render_bundle 'app' %}
+    </body>
+</html>

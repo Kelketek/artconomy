@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load bootstrap static sekizai_tags vuestrap %}
+{% block vue_scripts %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/markdown-it/8.3.2/markdown-it.min.js"></script>
+    <script src="{% static 'js/URI.min.js' %}"></script>
+    <script>
+        var md = markdownit();
+    </script>
+    {% include 'profiles/includes/character.html' %}
+    {% include 'profiles/includes/character_management.html' %}
+    {% include 'profiles/includes/image_edit.html' %}
+    {% include 'profiles/includes/asset_upload.html' %}
+    {% include 'profiles/includes/asset_update.html' %}
+    <script>
+        artconomy_params.data.characterList = null;
+        artconomy_params.data.controls = {{ controls|lower }};
+    </script>
+{% endblock %}
+{% block title %}{{ target_user.username }}'s characters.{% endblock %}
+{% block scripts %}
+{% endblock %}
+{% block content %}
+{% endblock %}

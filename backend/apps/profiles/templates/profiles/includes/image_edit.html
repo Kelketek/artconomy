@@ -1,0 +1,13 @@
+{% load vuestrap %}
+{% vuestrap edit_asset_form "ac-image-edit" formless=True %}
+<script>
+    AcImageEdit[1].props.method.default = 'PATCH';
+    AcImageEdit[1].props.character = {};
+    AcImageEdit[1].props.current = {};
+    AcImageEdit[1].methods.success = function (response, event) {
+        var index = this.character.assets.indexOf(this.current);
+        Vue.set(this.character.assets, index, response);
+        this.$root.$emit("update-image")
+    };
+    Vue.component.apply(Vue, AcImageEdit);
+</script>

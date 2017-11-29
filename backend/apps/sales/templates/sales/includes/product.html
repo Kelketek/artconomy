@@ -1,0 +1,135 @@
+{% load sekizai_tags vuestrap %}
+{% addtoblock "vue_templates" %}
+    {% vuestrap order_form "ac-order-form" %}
+    <script type="text/x-template" id="new-order">
+        <form>
+            <b-modal ref="newOrderModal" title="Order a commission">
+                <ac-order-form ref="newOrderForm" :url="'/sales/api/{{ target_user.username }}/products/' + product.id + '/order/'"></ac-order-form>
+                <div class="agreement-window">
+                    {% include "sales/agreement.html" %}
+                </div>
+                <div>By placing this order, you confirm you have read and will abide by the above agreement.</div>
+                <div slot="modal-footer">
+                    <b-button @click="hideNewOrder">Cancel</b-button>
+                    <b-button variant="primary" @click.prevent="submit" type="submit">Buy</b-button>
+                </div>
+            </b-modal>
+        </form>
+    </script>
+    <script type="text/x-template" id="product-template">
+        <div :class="{'col-sm-12': true, 'col-md-6': !$root.detail, 'col-lg-4': !$root.detail}">
+            <div class="product-container card" :id="'product-' + product.id">
+                {% verbatim %}
+                <div class="card-header" role="tab" :id="'heading' + product.id">
+                    <h5 class="mb-0">{{ product.name }}</h5>
+                </div>
+                {% endverbatim %}
+
+                <div :id="'product' + product.id" role="tabpanel" aria-labelledby="'heading' + .id">
+                    <div class="card-block">
+                        <div class="pt-1">
+                            <div class="product-preview-container text-center">
+                                <img class="product-preview" :src="product.file"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-block product-price alert alert-success" :id="'price-product' + product.id">Starting from ${% verbatim %}{{ product.price }}{% endverbatim %}<sup>*</sup></div>
+                    <div class="card-block product-description" v-html="parseDesc()"></div>
+                    <b-popover :target="'price-product' + product.id"
+                               triggers="hover focus"
+                               placement="top"
+                               content="Special requirements or constraints in commissioned work may result in negotiated changes in price.">
+                    </b-popover>
+                    <div class="card-block product-tools">
+                        <div class="text-center">
+                            <div class="btn-group-vertical">
+                                <b-button v-if="$root.controls && !$root.detail" variant="danger" @click="deleteProduct"><i class="fa fa-trash-o fa-lg"></i> Delete Product</b-button>
+                                <b-button v-if="$root.controls" variant="secondary" @click="editProduct"><i class="fa fa-trash-o fa-lg"></i> Edit Product</b-button>
+                                <b-button v-if="!$root.detail" @click="loadDetail" variant="primary"><i class="fa fa-list-alt"></i> Details</b-button>
+                                <b-button @click="" @click="newOrder"><i class="fa fa-shopping-bag"></i> Buy</b-button>
+                            </div>
+                        </div>
+                        <ac-product-edit ref="productEdit" :product="product" :container="this"></ac-product-edit>
+                        <ac-new-order ref="newOrder" :product="product" container="this"></ac-new-order>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </script>
+{% endaddtoblock %}
+<script>
+    Vue.component(
+        'ac-product', {
+            'props': ['product'],
+            'template': fetchTemplate("product-template"),
+            'methods': {
+                'parseDesc': function() {
+                    return md.render(this.product.description)
+                },
+                'deleteProduct': function() {
+                    artCall(
+                        '/sales/api/{{ target_user.username }}/products/' + this.product.id + '/',
+                        'DELETE',
+                        null,
+                        this.postDelete
+                    )
+                },
+                'editProduct': function() {
+                    this.$refs.productEdit.$refs.editProductModal.show();
+                },
+                'postDelete': function(result) {
+                    var index = this.$root.productList.indexOf(this.product);
+                    this.$root.productList.splice(index, 1);
+                },
+                'showUpdater': function() {
+                    this.$refs.updater.showUpdater();
+                },
+                'loadDetail': function () {
+                    window.location = '/sales/{{ target_user.username }}/products/' + this.product.id + '/'
+                },
+                'newOrder': function () {
+                    this.$refs.newOrder.$refs.newOrderModal.show();
+                },
+                'rating': function (rate) {
+                    return {
+                        0: 'Clean/Safe for work',
+                        1: 'Risque/mature',
+                        2: 'Adult'
+                    }[rate]
+                }
+            },
+            'created': function () {
+                this.$on('product-edited', function () {
+                    this.$refs.editProductModal.hide()
+                })
+            }
+        }
+    );
+    var AcNewOrderSettings = {
+        'props': ['product'],
+        'template': fetchTemplate('new-order'),
+        'methods': {
+            'showNewOrder': function () {
+                this.$refs.newOrderModal.show()
+            },
+            'hideNewOrder': function () {
+                this.$refs.newOrderModal.hide()
+            }
+        },
+        'created': function () {
+            this.$root.$on('submit-order', this.hideNewOrder)
+        },
+        'destroyed': function () {
+            this.$root.$off('submit-order', this.hideNewOrder)
+        }
+    };
+    $.extend(AcNewOrderSettings.methods, ComponentHelpers());
+    AcNewOrderSettings.methods.submit = function () {
+        this.$refs.newOrderForm.submit();
+    };
+    Vue.component('ac-new-order', AcNewOrderSettings);
+    AcOrderForm[1]['methods'].success = function(response) {
+        window.location = '/sales/order/' + response.id + '/';
+    };
+    Vue.component.apply(Vue, AcOrderForm);
+</script>

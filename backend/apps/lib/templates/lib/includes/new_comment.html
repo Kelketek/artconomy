@@ -1,0 +1,56 @@
+{% load sekizai_tags staticfiles %}
+{% addtoblock "vue_templates" %}
+    <script type="text/x-template" id="new-comment-template">
+        <div class="new-comment">
+            <div v-if="!editing" class="card-block text-center"><b-button @click="editing=true;">Add a comment</b-button></div>
+            <div class="new-comment-block card-block">
+                <div class="card-block" v-if="editing && !edit_preview"><textarea :disabled="edit_disabled" v-model="draft" class="comment-field" contenteditable="true"></textarea></div>
+                <div class="card-block" v-if="editing && edit_preview" v-html="parseDraft()"></div>
+                <div>
+                    <div class="text-left pull-left preview-button-container" v-if="editing">
+                        <b-button v-if="edit_preview" variant="info" @click="edit_preview=false;"><i class="fa fa-eye"></i></b-button>
+                        <b-button v-else @click="edit_preview=true;"><i class="fa fa-eye"></i></b-button>
+                        <small class="ml-2">Markdown Syntax Supported</small>
+                    </div>
+                    <div v-if="editing" class="text-right comment-actions pull-right">
+                        <b-button @click="editing=false;" variant="danger"><i class="fa fa-times"></i></b-button>
+                        <b-button @click="save()" variant="success"><i class="fa fa-save"></i></b-button>
+                    </div>
+                </div>
+                <div class="clear"></div>
+            </div>
+        </div>
+    </script>
+{% endaddtoblock %}
+<script src="{% static 'js/moment.min.js' %}"></script>
+<script>
+    Vue.component('ac-new-comment', {
+        'props': ['parent', 'url'],
+        'template': fetchTemplate('new-comment-template'),
+        'methods': {
+            'parseDraft': function () {
+                return md.render(this.draft)
+            },
+            'addComment': function (response) {
+                this.draft = '';
+                this.editing = false;
+                this.edit_disabled = false;
+                this.parent.addComment(response);
+            },
+            'save': function () {
+                this.edit_disabled = true;
+                artCall(
+                    this.url, 'POST', {'text': this.draft}, this.addComment
+                );
+            }
+        },
+        'data': function () {
+            return {
+                'draft': '',
+                'editing': false,
+                'edit_preview': false,
+                'edit_disabled': false
+            }
+        }
+    })
+</script>

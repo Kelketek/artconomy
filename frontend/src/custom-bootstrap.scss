@@ -1,0 +1,273 @@
+// Override / set color variables
+
+// Original values for Bootstrap
+$dark-blue: #004C70;
+$light-blue: #0093D1;
+$red: #F2635F;
+$yellow: #F4D00C;
+$orange: #E0A025;
+$white: #fff;
+
+// Artconomy colors
+$dark-purple: #3F1556;
+$light-purple: #5e548e;
+$red-purple: #82204A;
+$black-purple: #130331;
+$vivid-purple: #402462;
+$gentle-purple: #352A50;
+$eggshell: #EAEAD6;
+$dark-beige: #B8B8A9;
+
+// Set brand colors
+$primary: $dark-purple;
+$secondary: $red-purple;
+$success: $vivid-purple;
+$info: $yellow;
+$warning: $orange;
+$danger: $red;
+$light: $gentle-purple;
+$dark: $dark-purple;
+$body-bg: $eggshell;
+$body-color: $dark-purple;
+
+// Override info button color
+$btn-info-color: darken($info, 25);
+
+// Override info alert background color
+$state-info-bg: lighten($info, 45);
+
+// Override Modal options
+$modal-content-bg: $eggshell;
+$modal-header-border-width: 0;
+$modal-footer-border-width: 0;
+
+// Override fonts
+$font-family-sans-serif: 'Raleway', sans-serif;
+$font-family-serif: Georgia, "Times New Roman", Times, serif !default;
+$font-family-monospace: Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !default;
+$font-family-base: $font-family-sans-serif !default;
+
+// Set global options
+$enable-shadows: true;
+$enable-gradients: false;
+$enable-rounded: false;
+
+$card-cap-bg: $dark-purple;
+$card-cap-fg: $eggshell;
+$card-bg: $eggshell;
+$jumbotron-bg: $dark-beige;
+
+// Ensure spacing for top bar.
+@media (min-width: 979px) {
+  body {
+    padding-top: 60px;
+  }
+}
+
+$container-max-widths: (
+  sm: 540px,
+  md: 720px,
+  lg: 960px,
+  xl: 1300px
+) !default;
+
+
+.text-section {
+  background-color: $dark-beige;
+}
+
+.shadowed {
+  box-shadow: #858571 0 6px 5px 2px;
+}
+
+// Force light colored text
+.fg-light {
+  color: $white;
+}
+
+// Force dark colored text
+.fg-dark {
+  color: $dark-purple;
+}
+
+// Centered row
+/* centered columns styles */
+.row-centered {
+  text-align:center;
+}
+.col-centered {
+  display:inline-block;
+  float:none;
+  /* reset the text-align */
+  text-align:left;
+  /* inline-block space fix */
+  margin-right:-4px;
+}
+
+// Cards
+.card-header h1 {
+  font-size: 1.5rem;
+}
+
+// Interfaces
+.clickable {
+  cursor: pointer;
+}
+
+// Custom forms
+
+.name-edit {
+  font-size: 2.5rem;
+  input {
+    font-size: 2.5rem;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    background-color: $eggshell;
+  }
+}
+
+// Character listing
+.card-header.character-name-tag {
+  position: absolute;
+  bottom: 0;
+  max-width: 75%;
+  max-height: 3em;
+  opacity: .75;
+  overflow: hidden;
+  white-space:nowrap;
+  transition: max-width .25s, width .25s, opacity .25s;
+}
+
+.character-preview .card-img-top {
+  object-fit: cover;
+  height: 15rem;
+  width: 15rem;
+  object-position: center top;
+}
+
+.character-preview:hover .character-name-tag {
+  max-width: 100%;
+  width: 100%;
+  opacity: 1;
+  pointer-events: none;
+  transition: max-width .25s, width .25s, opacity .25s;
+}
+
+// Form controls
+.vue-form-generator .form-control {
+  border-radius: 0;
+  border: 0;
+  background-color: $dark-beige;
+}
+
+.vue-checkbox .field-wrap {
+  display: inline-block;
+  padding-left: 1em;
+}
+
+// Character page
+.image-showcase {
+  max-height: 47rem !important;
+  min-height: 47rem !important;
+}
+.image-showcase img {
+  max-width: 100%;
+  max-height: 100%;
+  object-position: center;
+}
+
+.character-panel-preview img {
+  width: 100%;
+  height: 25em;
+  object-fit: cover;
+  object-position: top;
+}
+
+// Asset page'
+.featured-character-wrapper {
+  text-align: center;
+  width: 10rem;
+  .featured-character-img-wrapper {
+    height: 10rem;
+    width: 10rem;
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top;
+    }
+  }
+}
+
+// Old character CSS
+.character-panel {
+  background-color: #222;
+}
+
+.character-refsheet-container img {
+  max-width: 100%;
+}
+
+/* Character listing page. */
+.image_selected img{
+  border: 3px yellow;
+}
+
+input:invalid {
+  box-shadow:none !important;
+}
+
+.product-preview {
+  max-width: 100%;
+}
+
+.agreement-window {
+  max-height: 15em;
+  overflow-y: scroll;
+  border: 1px solid gray;
+  padding: 1em;
+}
+
+.agreement-window h1 {
+  font-size: 150%;
+}
+
+.agreement-window h2 {
+  font-size: 125%;
+  font-weight: bold;
+}
+
+.comment-block {
+
+}
+
+.comment-field {
+  width: 100%;
+}
+
+.clear {
+  clear: both;
+}
+
+.preview-button-container {
+  padding-left: 1.25rem;
+}
+
+.comment-actions {
+  padding-right: 1.25rem;
+}
+
+.underlined {
+  text-decoration: underline;
+}
+
+.comment-block {
+  background-color: $dark-beige;
+  width: 100%;
+  padding: 1rem;
+}
+
+.comment-block .alternate {
+  background-color: $eggshell;
+}

@@ -1,0 +1,183 @@
+{% load sekizai_tags %}
+{% addtoblock "vue_templates" %}
+    <script type="text/x-template" id="character-template">
+        <div class="character-container card" :id="'character-' + character.id">
+            {% verbatim %}
+            <div class="card-header" v-b-toggle="'collapse' + character.id" role="tab" :id="'heading' + character.id">
+                <h5 class="mb-0">
+                    {{ character.name }}
+                </h5>
+            </div>
+            {% endverbatim %}
+
+            <b-collapse v-model="expand" :id="'collapse' + character.id">
+                <div class="card-block row">
+                    <div class="jumbotron col-sm-12 pt-1">
+                        <div class="character-refsheet-container text-center">
+                            <img class="character-refsheet" v-if="current" :src="current.file"/>
+                        </div>
+                    </div>
+                </div>
+                <div v-if="current" class="card-block row">
+                    <div class="asset-info-container col-sm-12 col-md-8">
+                        <div class="card character-panel">
+                            <div class="card-header">{% verbatim %}{{ current.title }}{% endverbatim %}</div>
+                            <div class="card-block" v-html="parseAssetDesc()"></div>
+                        </div>
+                    </div>
+                    <div class="asset-options-container col-sm-12 col-md-4">
+                        <div class="card character-panel text-right">
+                            <div class="card-header">Piece Info</div>
+                            <div class="card-block">
+                                <div v-if="$root.controls">
+                                    <div class="btn-group-vertical asset-controls">
+                                        <b-button v-if="character.primary_asset == current.id" variant="primary" disabled="disabled"><i class="fa fa-check fa-lg"></i> Showcased</b-button>
+                                        <b-button v-else variant="primary" @click="showcase(current)"><i class="fa fa-certificate fa-lg"></i> Showcase Piece</b-button>
+                                        <b-button variant="alternate" @click="showUpdater"><i class="fa fa-trash-o fa-lg"></i> Edit Piece</b-button>
+                                        <b-button variant="danger" @click="removeAsset(current)"><i class="fa fa-trash-o fa-lg"></i> Delete Piece</b-button>
+                                    </div>
+                                    <ac-asset-update :character="character" :current="current" ref="updater" :initial="current" class="text-left"></ac-asset-update>
+                                </div>
+                                {% verbatim %}<p>Uploaded by: {{ current.uploaded_by }}</p>{% endverbatim %}
+                                {% verbatim %}<p>Rating: {{ rating(current.rating) }}</p>{% endverbatim %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-header">Images</div>
+                <div class="card-block image-panel row character-gallery">
+                    <div v-for="(asset, key, index) in character.assets" :data-index="key" class="col-sm-6 col-md-3 col-lg-2 character-gallery-image" v-bind:class="{image_selected: key == selected_index}" :id="'asset-' + key" @click="setIndex(key)">
+                        <img :src="asset.file" style="max-width: 100%;">
+                    </div>
+                    <div v-if="$root.controls">
+                        <ac-asset-upload :character="character" :container="this"></ac-asset-upload>
+                    </div>
+                </div>
+                <div class="card-block row">
+                    <div class="col-sm-12 col-md-8">
+                        <div class="card character-panel">
+                            <div class="card-header">{% verbatim %}About {{ character.name }}{% endverbatim %}</div>
+                            <div class="card-block character-description" v-html="parseDesc()"></div>
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-4">
+                        <div class="card character-panel character-tools">
+                            <div class="card-header">Tools</div>
+                            <div v-if="$root.controls" class="card-block text-right">
+                                <div class="btn-group-vertical">
+                                    <b-button variant="danger" @click="deleteCharacter"><i class="fa fa-trash-o fa-lg"></i> Delete Character</b-button>
+                                    <b-button varient="alternate" @click="editCharacter"><i class="fa fa-trash-o fa-lg"></i> Edit Character</b-button>
+                                </div>
+                                <ac-character-edit ref="charEdit" :character="character" :container="this"></ac-character-edit>
+                            </div>
+                            <div v-else class="card-block text-right">
+                                Tools coming soon.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </b-collapse>
+        </div>
+    </script>
+{% endaddtoblock %}
+<script>
+    Vue.component(
+        'ac-character', {
+            'props': ['character', 'expanded'],
+            'template': fetchTemplate("character-template"),
+            'methods': {
+                'parseDesc': function() {
+                    return md.render(this.character.description)
+                },
+                'parseAssetDesc': function () {
+                    return md.render(this.current.caption)
+                },
+                'setIndex': function(key) {
+                    this.$data.selected_index = key;
+                    var heading = $('#heading' + this.character.id);
+                    $("html, body").animate({ scrollTop: heading.offset().top }, 200)
+                },
+                'deleteCharacter': function() {
+                    artCall(
+                        '/profiles/api/{{ target_user.username }}/characters/' + encodeURIComponent(this.character.name) + '/',
+                        'DELETE',
+                        null,
+                        this.postDelete
+                    )
+                },
+                'editCharacter': function() {
+                    this.$refs.charEdit.$refs.editCharModal.show();
+                },
+                'postDelete': function(result) {
+                    var index = this.$root.characterList.indexOf(this.character);
+                    this.$root.characterList.splice(index, 1);
+                },
+                'showcase': function (asset) {
+                    artCall(
+                        '/profiles/api/{{ target_user.username }}/characters/' + encodeURIComponent(this.character.name) + '/asset/primary/' + asset.id + '/',
+                        'POST',
+                        null,
+                        this.postPrimary(asset.id)
+                    )
+                },
+                'removeAsset': function (asset) {
+                    artCall(
+                        '/profiles/api/{{ target_user.username }}/characters/' + encodeURIComponent(this.character.name) + '/asset/' + asset.id + '/',
+                        'DELETE',
+                        null,
+                        this.postAssetDelete(asset)
+                    )
+                },
+                'postPrimary': function(asset_id) {
+                    var self = this;
+                    return function() {
+                        self.character.primary_asset = asset_id;
+                    }
+                },
+                'postAssetDelete': function(asset) {
+                    var self = this;
+                    return function () {
+                        var index = self.character.assets.indexOf(asset);
+                        self.character.assets.splice(index, 1);
+                        if (self.selected_index >= index) {
+                            self.selected_index -= 1;
+                        }
+                    }
+                },
+                'showUpdater': function() {
+                    this.$refs.updater.showUpdater();
+                },
+                'rating': function (rate) {
+                    return {
+                        0: 'Clean/Safe for work',
+                        1: 'Risque/mature',
+                        2: 'Adult'
+                    }[rate]
+                }
+            },
+            'data': function() {
+                var selected_index = 0;
+                for (var index in this.character.assets) {
+                    if (this.character.assets[index].id === this.character.primary_asset) {
+                        selected_index = index;
+                        break;
+                    }
+                }
+                return {
+                    'selected_index': selected_index,
+                    'expand': this.expanded
+                }
+            },
+            'computed': {
+                'current': function() {
+                    return this.character.assets[this.selected_index]
+                }
+            },
+            'created': function () {
+                this.$on('character-edited', function () {
+                    this.$refs.editCharModal.hide()
+                })
+            }
+        }
+    );
+</script>
