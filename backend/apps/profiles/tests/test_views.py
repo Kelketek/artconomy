@@ -25,12 +25,12 @@ class APITestCase(TestCase):
 class CharacterAPITestCase(APITestCase):
     def test_character_listing(self):
         characters = gen_characters(self.user)
-        response = self.client.get('/profiles/api/{}/characters/'.format(self.user.username))
-        self.assertEqual(len(response.data), 5)
+        response = self.client.get('/api/profiles/v1/{}/characters/'.format(self.user.username))
+        self.assertEqual(len(response.data['results']), 5)
         for key, value in characters.items():
             self.assertIn(
                 serialize_char(key, value),
-                response.data
+                response.data['results']
             )
 
     def test_no_list_private(self):
@@ -40,14 +40,14 @@ class CharacterAPITestCase(APITestCase):
         private_character.save()
 
         # Should fail for unregistered user
-        response = self.client.get('/profiles/api/{}/characters/'.format(self.user.username))
-        self.assertEqual(len(response.data), 4)
-        self.assertNotIn(serialize_char(private_character, characters[private_character]), response.data)
+        response = self.client.get('/api/profiles/v1/{}/characters/'.format(self.user.username))
+        self.assertEqual(len(response.data['results']), 4)
+        self.assertNotIn(serialize_char(private_character, characters[private_character]), response.data['results'])
 
         # Should fail for unprivileged user
         self.login(self.user2)
-        self.assertEqual(len(response.data), 4)
-        self.assertNotIn(serialize_char(private_character, characters[private_character]), response.data)
+        self.assertEqual(len(response.data['results']), 4)
+        self.assertNotIn(serialize_char(private_character, characters[private_character]), response.data['results'])
 
     def test_list_private_for_privileged(self):
         characters = gen_characters(self.user)
@@ -57,15 +57,15 @@ class CharacterAPITestCase(APITestCase):
 
         # Should work for character owner.
         self.login(self.user)
-        response = self.client.get('/profiles/api/{}/characters/'.format(self.user.username))
-        self.assertEqual(len(response.data), 5)
-        self.assertIn(serialize_char(private_character, characters[private_character]), response.data)
+        response = self.client.get('/api/profiles/v1/{}/characters/'.format(self.user.username))
+        self.assertEqual(len(response.data['results']), 5)
+        self.assertIn(serialize_char(private_character, characters[private_character]), response.data['results'])
 
         # Should work for staff, too.
         self.login(self.staffer)
-        response = self.client.get('/profiles/api/{}/characters/'.format(self.user.username))
-        self.assertEqual(len(response.data), 5)
-        self.assertIn(serialize_char(private_character, characters[private_character]), response.data)
+        response = self.client.get('/api/profiles/v1/{}/characters/'.format(self.user.username))
+        self.assertEqual(len(response.data['results']), 5)
+        self.assertIn(serialize_char(private_character, characters[private_character]), response.data['results'])
 
     def test_new_character(self):
         self.login(self.user)
@@ -88,7 +88,7 @@ class CharacterAPITestCase(APITestCase):
         # Should work for staffer.
         self.login(self.staffer)
         response = self.client.post(
-            '/profiles/api/{}/characters/'.format(self.user.username), {
+            '/api/profiles/v1/{}/characters/'.format(self.user.username), {
                 'name': 'Rain',
                 'description': 'Heart breaker',
                 'private': True,
@@ -107,7 +107,7 @@ class CharacterAPITestCase(APITestCase):
         self.login(self.user)
         char = CharacterFactory.create(user=self.user)
         response = self.client.patch(
-            '/profiles/api/{}/characters/{}/'.format(self.user.username, char.name),
+            '/api/profiles/v1/{}/characters/{}/'.format(self.user.username, char.name),
             {
                 'name': 'Terrence',
                 'description': 'Positively foxy.'
@@ -121,7 +121,7 @@ class CharacterAPITestCase(APITestCase):
         # Should work for staff, too.
         self.login(self.staffer)
         response = self.client.patch(
-            '/profiles/api/{}/characters/{}/'.format(self.user.username, char.name),
+            '/api/profiles/v1/{}/characters/{}/'.format(self.user.username, char.name),
             {
                 'name': 'Rain',
                 'description': 'Supremely foxy.'
@@ -136,7 +136,7 @@ class CharacterAPITestCase(APITestCase):
         char = CharacterFactory.create(user=self.user)
         self.login(self.user2)
         response = self.client.patch(
-            '/profiles/api/{}/characters/{}/'.format(self.user.username, char.name),
+            '/api/profiles/v1/{}/characters/{}/'.format(self.user.username, char.name),
             {
                 'name': 'Terrence',
                 'description': 'Positively foxy.'
@@ -147,7 +147,7 @@ class CharacterAPITestCase(APITestCase):
     def test_delete_character(self):
         self.login(self.user)
         char = CharacterFactory.create(user=self.user)
-        response = self.client.delete('/profiles/api/{}/characters/{}/'.format(self.user.username, char.name))
+        response = self.client.delete('/api/profiles/v1/{}/characters/{}/'.format(self.user.username, char.name))
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertRaises(Character.DoesNotExist, char.refresh_from_db)
 
@@ -156,7 +156,7 @@ class CharacterAPITestCase(APITestCase):
         # Verify recreation worked.
         char.refresh_from_db()
 
-        response = self.client.delete('/profiles/api/{}/characters/{}/'.format(self.user.username, char.name))
+        response = self.client.delete('/api/profiles/v1/{}/characters/{}/'.format(self.user.username, char.name))
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertRaises(Character.DoesNotExist, char.refresh_from_db)
 
@@ -169,7 +169,7 @@ class CharacterAPITestCase(APITestCase):
         self.assertIsNone(char.primary_asset)
 
         response = self.client.post(
-            '/profiles/api/{}/characters/{}/asset/primary/{}/'.format(self.user.username, char.name, asset.id),
+            '/api/profiles/v1/{}/characters/{}/asset/primary/{}/'.format(self.user.username, char.name, asset.id),
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         char.refresh_from_db()
@@ -181,7 +181,7 @@ class CharacterAPITestCase(APITestCase):
 
         self.login(self.staffer)
         response = self.client.post(
-            '/profiles/api/{}/characters/{}/asset/primary/{}/'.format(self.user.username, char.name, asset2.id),
+            '/api/profiles/v1/{}/characters/{}/asset/primary/{}/'.format(self.user.username, char.name, asset2.id),
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         char.refresh_from_db()
@@ -196,7 +196,7 @@ class CharacterAPITestCase(APITestCase):
         self.assertIsNone(char.primary_asset)
 
         response = self.client.post(
-            '/profiles/api/{}/characters/{}/asset/primary/{}/'.format(self.user.username, char.name, asset.id),
+            '/api/profiles/v1/{}/characters/{}/asset/primary/{}/'.format(self.user.username, char.name, asset.id),
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -205,7 +205,7 @@ class CharacterAPITestCase(APITestCase):
         char = CharacterFactory.create(user=self.user)
         uploaded = SimpleUploadedFile('bloo-oo.jpg', gen_image())
         response = self.client.post(
-            '/profiles/api/{}/characters/{}/asset/'.format(self.user.username, char.name),
+            '/api/profiles/v1/{}/characters/{}/asset/'.format(self.user.username, char.name),
             {
                 'title': 'Blooo',
                 'caption': "A sea of blue.",
@@ -227,7 +227,7 @@ class CharacterAPITestCase(APITestCase):
         self.login(self.staffer)
         uploaded = SimpleUploadedFile('gree-een.jpg', gen_image(color='green'))
         response = self.client.post(
-            '/profiles/api/{}/characters/{}/asset/'.format(self.user.username, char.name),
+            '/api/profiles/v1/{}/characters/{}/asset/'.format(self.user.username, char.name),
             {
                 'title': 'Green',
                 'caption': "A sea of green.",
@@ -249,7 +249,7 @@ class CharacterAPITestCase(APITestCase):
         char = CharacterFactory.create(user=self.user)
         uploaded = SimpleUploadedFile('bloo-oo.jpg', gen_image())
         response = self.client.post(
-            '/profiles/api/{}/characters/{}/asset/'.format(self.user.username, char.name),
+            '/api/profiles/v1/{}/characters/{}/asset/'.format(self.user.username, char.name),
             {
                 'title': 'Blooo',
                 'caption': "A sea of blue.",
@@ -266,7 +266,7 @@ class CharacterAPITestCase(APITestCase):
         asset = ImageAssetFactory.create(uploaded_by=self.user)
         asset.characters.add(char)
         response = self.client.patch(
-            '/profiles/api/{}/characters/{}/asset/{}/'.format(self.user.username, char.name, asset.id),
+            '/api/profiles/v1/{}/characters/{}/asset/{}/'.format(self.user.username, char.name, asset.id),
             {
                 'title': 'Porn',
                 'caption': 'Shameless porn.',
@@ -284,7 +284,7 @@ class CharacterAPITestCase(APITestCase):
         # Should work for staffer, too.
         self.login(self.staffer)
         response = self.client.patch(
-            '/profiles/api/{}/characters/{}/asset/{}/'.format(self.user.username, char.name, asset.id),
+            '/api/profiles/v1/{}/characters/{}/asset/{}/'.format(self.user.username, char.name, asset.id),
             {
                 'title': 'Smut',
                 'caption': 'Use the proper rating!',
@@ -305,7 +305,7 @@ class CharacterAPITestCase(APITestCase):
         asset = ImageAssetFactory.create(uploaded_by=self.user)
         asset.characters.add(char)
         response = self.client.patch(
-            '/profiles/api/{}/characters/{}/asset/{}/'.format(self.user.username, char.name, asset.id),
+            '/api/profiles/v1/{}/characters/{}/asset/{}/'.format(self.user.username, char.name, asset.id),
             {
                 'title': 'Porn',
                 'caption': 'Shameless porn.',
@@ -320,7 +320,7 @@ class TestSettings(APITestCase):
     def test_settings_post(self):
         self.login(self.user)
         response = self.client.patch(
-            '/profiles/api/{}/settings/'.format(self.user.username), {
+            '/api/profiles/v1/{}/settings/'.format(self.user.username), {
                 'rating': ADULT,
                 'max_load': 5,
                 'use_load_tracker': False,
@@ -340,7 +340,7 @@ class TestSettings(APITestCase):
     def test_credentials_post_username(self):
         self.login(self.user)
         response = self.client.patch(
-            '/profiles/api/{}/credentials/'.format(self.user.username),
+            '/api/profiles/v1/{}/credentials/'.format(self.user.username),
             {'username': 'NewName', 'current_password': 'Test'}
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -350,7 +350,7 @@ class TestSettings(APITestCase):
     def test_credentials_username_no_password(self):
         self.login(self.user)
         response = self.client.patch(
-            '/profiles/api/{}/credentials/'.format(self.user.username),
+            '/api/profiles/v1/{}/credentials/'.format(self.user.username),
             {'username': 'NewName'}
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -361,7 +361,7 @@ class TestSettings(APITestCase):
     def test_credentials_username_wrong_password(self):
         self.login(self.user)
         response = self.client.patch(
-            '/profiles/api/{}/credentials/'.format(self.user.username),
+            '/api/profiles/v1/{}/credentials/'.format(self.user.username),
             {'username': 'NewName', 'current_password': 'password'}
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -372,7 +372,7 @@ class TestSettings(APITestCase):
     def test_credentials_change_password(self):
         self.login(self.user)
         response = self.client.patch(
-            '/profiles/api/{}/credentials/'.format(self.user.username),
+            '/api/profiles/v1/{}/credentials/'.format(self.user.username),
             {
                 'username': 'NewName',
                 'current_password': 'Test',
@@ -388,7 +388,7 @@ class TestSettings(APITestCase):
     def test_credentials_test_password_mismatch(self):
         self.login(self.user)
         response = self.client.patch(
-            '/profiles/api/{}/credentials/'.format(self.user.username),
+            '/api/profiles/v1/{}/credentials/'.format(self.user.username),
             {
                 'username': 'NewName',
                 'current_password': 'Test',
@@ -404,7 +404,7 @@ class TestSettings(APITestCase):
     def test_credentials_wrong_password(self):
         self.login(self.user)
         response = self.client.patch(
-            '/profiles/api/{}/credentials/'.format(self.user.username),
+            '/api/profiles/v1/{}/credentials/'.format(self.user.username),
             {
                 'username': 'NewName',
                 'current_password': 'password',

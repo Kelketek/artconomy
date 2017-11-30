@@ -17,7 +17,7 @@ from decimal import Decimal
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 BACKEND_ROOT = os.path.join(BASE_DIR, 'backend')
-os.sys.path.append(BACKEND_ROOT)
+os.sys.path = [BACKEND_ROOT] + os.sys.path
 
 
 # Quick-start development settings - unsuitable for production

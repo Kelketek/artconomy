@@ -36,4 +36,4 @@ def register_dwolla(request):
     result.raise_for_status()
     request.user.dwolla_url = result.json()['_links']['account']['href']
     request.user.save()
-    return redirect('profiles:dashboard', username=request.user.username)
+    return redirect('/profiles/{}/'.format(request.user.username))
