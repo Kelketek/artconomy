@@ -3,7 +3,7 @@
       <div class="card">
         <router-link :to="{name: 'Character', params: {username: character.user.username, character: character.name}}">
           <img v-if="character.primary_asset && character.primary_asset.id" class="card-img-top" :src="character.primary_asset.file" />
-          <img v-else class="card-img-top" src="~static/images/default-avatar.png" />
+          <img v-else class="card-img-top" src="/static/images/default-avatar.png" />
         </router-link>
         <div class="bg-primary card-header character-name-tag fg-light">{{ character.name }}</div>
       </div>
