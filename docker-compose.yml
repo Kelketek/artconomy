@@ -5,7 +5,7 @@ services:
     image: postgres
   web:
     build: .
-    entrypoint: /code/docker-entrypoint.sh
+    entrypoint: /app/docker-entrypoint.sh
     command: python3 manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/code
@@ -14,4 +14,4 @@ services:
     depends_on:
       - db
     volumes:
-      - ./backend:/app
+      - ./:/app
