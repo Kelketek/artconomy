@@ -3,14 +3,24 @@ version: '3'
 services:
   db:
     image: postgres
+  nginx:
+    image: nginx:latest
+    container_name: ng01
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./config/nginx:/etc/nginx/conf.d
+    depends_on:
+      - web
   web:
     build: .
     entrypoint: /app/docker-entrypoint.sh
-    command: python3 manage.py runserver 0.0.0.0:8000
+    command: python3 manage.py runserver 0.0.0.0:8002
     volumes:
       - .:/code
     ports:
-      - "8000:8000"
+      - "8001:8001"
+      - "8002:8002"
     depends_on:
       - db
     volumes:

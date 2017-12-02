@@ -10,6 +10,14 @@ from apps.profiles.models import Character, ImageAsset, User
 
 
 class RegisterSerializer(serializers.ModelSerializer):
+    csrftoken = serializers.SerializerMethodField()
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request')
+        super().__init__(*args, **kwargs)
+
+    def get_csrftoken(self, value):
+        return get_token(self.request)
 
     def validate_email(self, value):
         if User.objects.filter(email__iexact=value).exists():

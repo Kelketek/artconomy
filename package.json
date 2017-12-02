@@ -5,7 +5,7 @@
   "author": "Fox Piacenti <fox@vulpinity.com>",
   "private": true,
   "scripts": {
-    "dev": "webpack-dev-server --inline --progress --config frontend/build/webpack.dev.conf.js",
+    "dev": "webpack-dev-server --inline --progress --host 0.0.0.0 --config frontend/build/webpack.dev.conf.js",
     "start": "npm run dev",
     "unit": "jest test/unit/specs --coverage",
     "test": "npm run unit",

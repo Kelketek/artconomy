@@ -27,6 +27,9 @@ class Register(CreateAPIView):
         serializer.save()
         login(self.request, serializer.instance)
 
+    def get_serializer(self, instance=None, data=None, many=False, partial=False):
+        return self.serializer_class(instance=instance, data=data, many=many, partial=partial, request=self.request)
+
 
 class Dashboard(View):
     def get(self, request, username):
