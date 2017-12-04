@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.contrib.auth.password_validation import validate_password
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import connection
@@ -108,7 +109,7 @@ class CharacterSerializer(serializers.ModelSerializer):
 
 class ImageAssetManagementSerializer(serializers.ModelSerializer):
     uploaded_by = serializers.SlugRelatedField(slug_field='username', read_only=True)
-    characters = CharacterSerializer(many=True)
+    characters = CharacterSerializer(many=True, read_only=True)
 
     def get_thumbnail_url(self, obj):
         return self.context['request'].build_absolute_uri(obj.file.url)
@@ -123,6 +124,68 @@ class SettingsSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             'commissions_closed', 'rating', 'sfw_mode', 'max_load'
+        )
+
+
+class CorrectPasswordValidator(object):
+    """
+    Validates that the correct password was entered.
+    """
+    def set_context(self, serializer_field):
+        self.instance = serializer_field.parent.instance
+
+    def __call__(self, value):
+        if not self.instance.check_password(value):
+            raise ValidationError("That is not the correct password for this account.")
+
+
+class FieldUniqueValidator(object):
+    """
+    Validates that a field is unique. Model field name can be a Django queryset API keyword, such as username__iexact.
+    """
+
+    def __init__(self, model_field_name, error_msg, model=None):
+        self.model = model
+        self.model_field_name = model_field_name
+        self.error_msg = error_msg
+
+    def set_context(self, serializer_field):
+        self.instance = serializer_field.parent.instance
+
+    def __call__(self, value):
+        kwargs = {'pk': self.instance.pk}
+        kwargs[self.model_field_name] = value
+        if self.model.objects.filter(**kwargs).exists():
+            # This is already the current value.
+            return
+        if self.model.objects.filter(**{self.model_field_name: value}).exists():
+            raise ValidationError(self.error_msg)
+
+
+class CredentialsSerializer(serializers.ModelSerializer):
+    username = serializers.SlugField(
+        validators=[FieldUniqueValidator('username__iexact', 'This username is already taken.', User)],
+        required=False
+    )
+    # Confirmation of new password should be done on client-side and refuse to send unless verified.
+    new_password = serializers.CharField(write_only=True, required=False, validators=[validate_password])
+    current_password = serializers.CharField(write_only=True, validators=[CorrectPasswordValidator()])
+    email = serializers.EmailField(
+        validators=[FieldUniqueValidator('email__iexact', 'This email address is already taken.', User)],
+        required=False,
+    )
+
+    def update(self, instance, validated_data):
+        instance = super(CredentialsSerializer, self).update(instance, validated_data)
+        if 'new_password' in validated_data and validated_data['new_password']:
+            instance.set_password(validated_data['new_password'])
+            instance.save()
+        return instance
+
+    class Meta:
+        model = User
+        fields = (
+            'username', 'current_password', 'new_password', 'email'
         )
 
 

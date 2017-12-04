@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from apps.profiles.models import Character, ImageAsset
-from apps.lib.abstract_models import MATURE, ADULT
+from apps.lib.abstract_models import MATURE, ADULT, GENERAL
 from apps.profiles.tests.factories import UserFactory, CharacterFactory, ImageAssetFactory
 from apps.profiles.tests.helpers import gen_characters, serialize_char, gen_image
 
@@ -205,7 +205,7 @@ class CharacterAPITestCase(APITestCase):
         char = CharacterFactory.create(user=self.user)
         uploaded = SimpleUploadedFile('bloo-oo.jpg', gen_image())
         response = self.client.post(
-            '/api/profiles/v1/{}/characters/{}/asset/'.format(self.user.username, char.name),
+            '/api/profiles/v1/{}/asset/'.format(self.user.username, char.name),
             {
                 'title': 'Blooo',
                 'caption': "A sea of blue.",
@@ -266,7 +266,7 @@ class CharacterAPITestCase(APITestCase):
         asset = ImageAssetFactory.create(uploaded_by=self.user)
         asset.characters.add(char)
         response = self.client.patch(
-            '/api/profiles/v1/{}/characters/{}/asset/{}/'.format(self.user.username, char.name, asset.id),
+            '/api/profiles/v1/asset/{}/'.format(asset.id),
             {
                 'title': 'Porn',
                 'caption': 'Shameless porn.',
@@ -284,7 +284,7 @@ class CharacterAPITestCase(APITestCase):
         # Should work for staffer, too.
         self.login(self.staffer)
         response = self.client.patch(
-            '/api/profiles/v1/{}/characters/{}/asset/{}/'.format(self.user.username, char.name, asset.id),
+            '/api/profiles/v1/asset/{}/'.format(asset.id),
             {
                 'title': 'Smut',
                 'caption': 'Use the proper rating!',
@@ -305,7 +305,7 @@ class CharacterAPITestCase(APITestCase):
         asset = ImageAssetFactory.create(uploaded_by=self.user)
         asset.characters.add(char)
         response = self.client.patch(
-            '/api/profiles/v1/{}/characters/{}/asset/{}/'.format(self.user.username, char.name, asset.id),
+            '/api/profiles/v1/asset/{}/'.format(asset.id),
             {
                 'title': 'Porn',
                 'caption': 'Shameless porn.',
@@ -336,10 +336,23 @@ class TestSettings(APITestCase):
                 'max_load': 5
             }
         )
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.rating, ADULT)
+
+    def test_settings_wrong_user(self):
+        self.login(UserFactory.create())
+        response = self.client.patch(
+            '/api/profiles/v1/{}/settings/'.format(self.user.username), {
+                'rating': ADULT,
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.rating, GENERAL)
 
     def test_credentials_post_username(self):
         self.login(self.user)
-        response = self.client.patch(
+        response = self.client.post(
             '/api/profiles/v1/{}/credentials/'.format(self.user.username),
             {'username': 'NewName', 'current_password': 'Test'}
         )
@@ -347,9 +360,57 @@ class TestSettings(APITestCase):
         self.user.refresh_from_db()
         self.assertEqual(self.user.username, 'NewName')
 
+    def test_credentials_username_taken(self):
+        self.login(self.user)
+        conflicting = UserFactory.create()
+        response = self.client.post(
+            '/api/profiles/v1/{}/credentials/'.format(self.user.username),
+            {'username': conflicting.username, 'current_password': 'Test'}
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        old_name = self.user.username
+        self.user.refresh_from_db()
+        self.assertNotEqual(self.user.username, conflicting.username)
+        self.assertEqual(self.user.username, old_name)
+
+    def test_credentials_wrong_user(self):
+        self.login(UserFactory.create())
+        response = self.client.post(
+            '/api/profiles/v1/{}/credentials/'.format(self.user.username),
+            {'username': 'NewName', 'current_password': 'Test'}
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        old_username = self.user.username
+        self.user.refresh_from_db()
+        self.assertNotEqual(self.user.username, 'NewName')
+        self.assertEqual(self.user.username, old_username)
+
+    def test_credentials_email_change(self):
+        self.login(self.user)
+        response = self.client.post(
+            '/api/profiles/v1/{}/credentials/'.format(self.user.username),
+            {'current_password': 'Test', 'email': 'changed_email@example.com'}
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.email, 'changed_email@example.com')
+
+    def test_credentials_email_taken(self):
+        self.login(self.user)
+        conflicting = UserFactory.create()
+        response = self.client.post(
+            '/api/profiles/v1/{}/credentials/'.format(self.user.username),
+            {'current_password': 'Test', 'email': conflicting.email}
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        old_email = self.user.email
+        self.user.refresh_from_db()
+        self.assertNotEqual(self.user.email, conflicting.email)
+        self.assertEqual(self.user.email, old_email)
+
     def test_credentials_username_no_password(self):
         self.login(self.user)
-        response = self.client.patch(
+        response = self.client.post(
             '/api/profiles/v1/{}/credentials/'.format(self.user.username),
             {'username': 'NewName'}
         )
@@ -360,7 +421,7 @@ class TestSettings(APITestCase):
 
     def test_credentials_username_wrong_password(self):
         self.login(self.user)
-        response = self.client.patch(
+        response = self.client.post(
             '/api/profiles/v1/{}/credentials/'.format(self.user.username),
             {'username': 'NewName', 'current_password': 'password'}
         )
@@ -371,48 +432,50 @@ class TestSettings(APITestCase):
 
     def test_credentials_change_password(self):
         self.login(self.user)
-        response = self.client.patch(
+        response = self.client.post(
             '/api/profiles/v1/{}/credentials/'.format(self.user.username),
             {
-                'username': 'NewName',
                 'current_password': 'Test',
-                'new_password1': '1234',
-                'new_password2': '1234',
+                'new_password': '1234TestABC',
             }
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.user.refresh_from_db()
         self.assertFalse(self.user.check_password('Test'))
-        self.assertTrue(self.user.check_password('1234'))
-
-    def test_credentials_test_password_mismatch(self):
-        self.login(self.user)
-        response = self.client.patch(
-            '/api/profiles/v1/{}/credentials/'.format(self.user.username),
-            {
-                'username': 'NewName',
-                'current_password': 'Test',
-                'new_password1': '1234',
-                'new_password2': '',
-            }
-        )
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.user.refresh_from_db()
-        self.assertFalse(self.user.check_password('1234'))
-        self.assertTrue(self.user.check_password('Test'))
+        self.assertTrue(self.user.check_password('1234TestABC'))
 
     def test_credentials_wrong_password(self):
         self.login(self.user)
-        response = self.client.patch(
+        response = self.client.post(
             '/api/profiles/v1/{}/credentials/'.format(self.user.username),
             {
-                'username': 'NewName',
                 'current_password': 'password',
-                'new_password1': '1234',
-                'new_password2': '1234',
+                'new_password': '1234TestABC',
             }
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.user.refresh_from_db()
         self.assertFalse(self.user.check_password('1234'))
         self.assertTrue(self.user.check_password('Test'))
+
+
+class ValidatorChecks(TestCase):
+    def setUp(self):
+        super().setUp()
+        self.client = APIClient()
+
+    def test_username_validator_taken(self):
+        UserFactory.create(username='testola')
+        response = self.client.get('/api/profiles/v1/form-validators/username/', {'username': 'testola'}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data['available'])
+
+    def test_username_validator_bad_request(self):
+        response = self.client.get('/api/profiles/v1/form-validators/username/', format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['error'], 'No username provided.')
+
+    def test_username_validator_available(self):
+        response = self.client.get('/api/profiles/v1/form-validators/username/', {'username': 'stuff'}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['available'])

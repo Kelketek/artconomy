@@ -12,5 +12,7 @@ RUN apt-get install python3-pip python3-dev build-essential npm -y
 RUN pip3 install --upgrade pip
 RUN pip3 install -r requirements.txt
 RUN npm install
-RUN ./manage.py migrate
+RUN npm run build
 RUN ./manage.py collectstatic -v0 --noinput
+RUN ls -la
+RUN mv node_modules /root

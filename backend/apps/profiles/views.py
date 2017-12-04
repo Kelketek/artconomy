@@ -1,23 +1,22 @@
 from datetime import date
 
 from django.conf import settings
-from django.contrib.auth import login, get_user_model, authenticate, logout
-from django.shortcuts import render, get_object_or_404
-from django.views import View
+from django.contrib.auth import login, get_user_model, authenticate, logout, update_session_auth_hash
+from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.exceptions import ValidationError, PermissionDenied
-from rest_framework.generics import ListCreateAPIView, CreateAPIView, RetrieveUpdateDestroyAPIView, UpdateAPIView
+from rest_framework.generics import ListCreateAPIView, CreateAPIView, RetrieveUpdateDestroyAPIView, UpdateAPIView, \
+    GenericAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.accounts.apis import dwolla_setup_link
 from apps.lib.serializers import CommentSerializer
 from apps.profiles.models import User, Character, ImageAsset
 from apps.profiles.permissions import ObjectControls, UserControls, AssetViewPermission
 from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer, SettingsSerializer, UserSerializer, \
-    RegisterSerializer, ImageAssetManagementSerializer
+    RegisterSerializer, ImageAssetManagementSerializer, CredentialsSerializer
 
 
 class Register(CreateAPIView):
@@ -31,17 +30,6 @@ class Register(CreateAPIView):
         return self.serializer_class(instance=instance, data=data, many=many, partial=partial, request=self.request)
 
 
-class Dashboard(View):
-    def get(self, request, username):
-        target_user = get_object_or_404(User, username=username)
-        return render(
-            request, 'profiles/dashboard.html', {
-                'dwolla_setup_link': dwolla_setup_link(),
-                'target_user': target_user
-            }
-        )
-
-
 class SettingsAPI(UpdateAPIView):
     serializer_class = SettingsSerializer
     permission_classes = [UserControls]
@@ -50,6 +38,28 @@ class SettingsAPI(UpdateAPIView):
         user = get_object_or_404(User, username__iexact=self.kwargs['username'])
         self.check_object_permissions(self.request, user)
         return user
+
+
+class CredentialsAPI(GenericAPIView):
+    serializer_class = CredentialsSerializer
+    permission_classes = [UserControls]
+
+    def get_object(self):
+        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        self.check_object_permissions(self.request, user)
+        return user
+
+    def post(self, request, **kwargs):
+        user = self.get_object()
+        self.check_object_permissions(request, user)
+        serializer = self.get_serializer(data=request.data, instance=user)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        if request.user == serializer.instance:
+            # make sure the user stays logged in
+            update_session_auth_hash(request, request.user)
+
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
 
 
 class CharacterListAPI(ListCreateAPIView):

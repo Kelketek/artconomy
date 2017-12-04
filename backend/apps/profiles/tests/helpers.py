@@ -30,6 +30,8 @@ def serialize_char(key, value):
             'file': 'http://testserver' + key.primary_asset.file.url,
             'title': key.primary_asset.title,
             'caption': key.primary_asset.caption,
+            'comment_count': key.primary_asset.comments.count(),
+            'favorite_count': 0,
             'private': key.primary_asset.private,
             'rating': key.primary_asset.rating,
             'created_on': key.primary_asset.created_on.isoformat().replace('+00:00', 'Z'),
@@ -42,18 +44,6 @@ def serialize_char(key, value):
             'username': key.user.username,
             'id': key.user.id
         },
-        'assets': [
-            {
-                'id': asset.id,
-                'file': 'http://testserver' + asset.file.url,
-                'title': asset.title,
-                'caption': asset.caption,
-                'private': asset.private,
-                'rating': asset.rating,
-                'created_on': asset.created_on.isoformat().replace('+00:00', 'Z'),
-                'uploaded_by': key.user.username
-            } for asset in value
-        ]
     }
 
 

@@ -4,7 +4,7 @@
 pip3 install -r requirements.txt
 if [[ ! -d node_modules ]]
    then
-   npm install
+   cp -a /root/node_modules /app/
    npm rebuild node-sass --force
    ./manage.py collectstatic -v0 --noinput
 fi
