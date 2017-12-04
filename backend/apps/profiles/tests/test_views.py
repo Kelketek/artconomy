@@ -71,7 +71,7 @@ class CharacterAPITestCase(APITestCase):
     def test_new_character(self):
         self.login(self.user)
         response = self.client.post(
-            '/profiles/api/{}/characters/'.format(self.user.username), {
+            '/api/profiles/v1/{}/characters/'.format(self.user.username), {
                 'name': 'Fern',
                 'description': 'The best of both worlds',
                 'private': True,
@@ -206,7 +206,7 @@ class CharacterAPITestCase(APITestCase):
         char = CharacterFactory.create(user=self.user)
         uploaded = SimpleUploadedFile('bloo-oo.jpg', gen_image())
         response = self.client.post(
-            '/api/profiles/v1/{}/asset/'.format(self.user.username, char.name),
+            '/api/profiles/v1/{}/characters/{}/assets/'.format(self.user.username, char.name),
             {
                 'title': 'Blooo',
                 'caption': "A sea of blue.",
@@ -228,7 +228,7 @@ class CharacterAPITestCase(APITestCase):
         self.login(self.staffer)
         uploaded = SimpleUploadedFile('gree-een.jpg', gen_image(color='green'))
         response = self.client.post(
-            '/api/profiles/v1/{}/characters/{}/asset/'.format(self.user.username, char.name),
+            '/api/profiles/v1/{}/characters/{}/assets/'.format(self.user.username, char.name),
             {
                 'title': 'Green',
                 'caption': "A sea of green.",
@@ -250,7 +250,7 @@ class CharacterAPITestCase(APITestCase):
         char = CharacterFactory.create(user=self.user)
         uploaded = SimpleUploadedFile('bloo-oo.jpg', gen_image())
         response = self.client.post(
-            '/api/profiles/v1/{}/characters/{}/asset/'.format(self.user.username, char.name),
+            '/api/profiles/v1/{}/characters/{}/assets/'.format(self.user.username, char.name),
             {
                 'title': 'Blooo',
                 'caption': "A sea of blue.",
