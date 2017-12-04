@@ -1,6 +1,6 @@
 from bok_choy.javascript import js_defined
 
-from tests.test_resources import BaseTestPage
+from apps.lib.test_resources import BaseTestPage
 
 
 class Asset(BaseTestPage):

@@ -153,8 +153,7 @@ class FieldUniqueValidator(object):
         self.instance = serializer_field.parent.instance
 
     def __call__(self, value):
-        kwargs = {'pk': self.instance.pk}
-        kwargs[self.model_field_name] = value
+        kwargs = {'pk': self.instance.pk, self.model_field_name: value}
         if self.model.objects.filter(**kwargs).exists():
             # This is already the current value.
             return

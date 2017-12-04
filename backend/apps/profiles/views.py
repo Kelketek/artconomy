@@ -1,8 +1,11 @@
 from datetime import date
 
+import requests
 from django.conf import settings
 from django.contrib.auth import login, get_user_model, authenticate, logout, update_session_auth_hash
-from django.shortcuts import get_object_or_404
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -17,6 +20,7 @@ from apps.profiles.models import User, Character, ImageAsset
 from apps.profiles.permissions import ObjectControls, UserControls, AssetViewPermission
 from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer, SettingsSerializer, UserSerializer, \
     RegisterSerializer, ImageAssetManagementSerializer, CredentialsSerializer
+from shortcuts import make_url
 
 
 class Register(CreateAPIView):
@@ -197,6 +201,33 @@ class UserInfo(APIView):
         else:
             data = {}
         return Response(data=data, status=status.HTTP_200_OK)
+
+
+def register_dwolla(request):
+    """
+    Gets the return code from a Dwolla registration and applies it to a user.
+    """
+    if not request.user.is_authenticated:
+        return HttpResponse(
+            status=status.HTTP_403_FORBIDDEN, content="Please log in and then re-attempt to link your account."
+        )
+    code = request.GET.get('code', '')
+    if not code:
+        return Response(status=status.HTTP_400_BAD_REQUEST, data="Code not provided.")
+    result = requests.post(
+        'https://{}.dwolla.com/oauth/v2/token'.format('sandbox' if settings.SANDBOX_APIS else 'www'),
+        json={
+            'client_id': settings.DWOLLA_KEY,
+            'client_secret': settings.DWOLLA_SECRET,
+            'code': code,
+            "grant_type": "authorization_code",
+            "redirect_uri": make_url(reverse('profiles:register_dwolla')),
+        }
+    )
+    result.raise_for_status()
+    request.user.dwolla_url = result.json()['_links']['account']['href']
+    request.user.save()
+    return redirect('/profiles/{}/'.format(request.user.username))
 
 
 @api_view(['GET'])

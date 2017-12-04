@@ -3,10 +3,11 @@
 from django.conf.urls import url
 
 from apps.profiles.views import Register, CharacterListAPI, ImageAssetListAPI, \
-    CharacterManager, AssetManager, MakePrimary, SettingsAPI, UserInfo, AssetComments, CredentialsAPI
+    CharacterManager, AssetManager, MakePrimary, SettingsAPI, UserInfo, AssetComments, CredentialsAPI, register_dwolla
 from apps.profiles.views import check_username, check_email, perform_login, perform_logout
 
 urlpatterns = [
+    url('^v1/register_dwolla/', register_dwolla, name='register_dwolla'),
     url(r'^v1/form-validators/username/', check_username, name='username_validator'),
     url(r'^v1/form-validators/email/', check_email, name='email_validator'),
     url(r'^v1/login/', perform_login, name='login'),

@@ -1,10 +1,3 @@
-from ddt import ddt, data
-
-from apps.profiles.tests.factories import UserFactory
-from apps.profiles.tests.helpers import gen_characters
-from apps.profiles.tests.pages import CharacterListPage
-from tests.test_resources import BaseWebAppTest
-
 #
 # @ddt
 # class TestCharacterList(BaseWebAppTest):
