@@ -6,6 +6,6 @@ describe('Home.vue', () => {
     const Constructor = Vue.extend(Home)
     const vm = new Constructor().$mount()
     expect(vm.$el.querySelector('.home p').textContent)
-    .toEqual('Welcome to Artconomy!')
+    .to.equal('Welcome to Artconomy!')
   })
 })
