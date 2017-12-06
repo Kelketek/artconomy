@@ -16,13 +16,17 @@
         <!-- Right aligned nav items -->
         <b-navbar-nav class="ml-auto" v-if="user !== null">
           <!-- Navbar dropdowns -->
-          <b-nav-item v-if="user.username" :to="{name: 'Profile', params: {username: user.username}}">{{ user.username }}</b-nav-item>
+          <b-nav-item v-if="user.username" :to="{name: 'Profile', params: {username: user.username}}">
+            <span class="nav-login-item">{{ user.username }}</span>
+          </b-nav-item>
           <b-nav-item-dropdown v-if="user.username" text="<i class='fa fa-gear'></i>" right>
             <b-dropdown-item :to="{name: 'Profile', params: {username: user.username}}"><i
               class="fa fa-gear"></i> Profile</b-dropdown-item>
             <b-dropdown-item v-if="user.username" @click.prevent="logout()">Signout</b-dropdown-item>
           </b-nav-item-dropdown>
-          <b-nav-item v-else @click="$refs.loginModal.show()">Login</b-nav-item>
+          <b-nav-item v-else @click="$refs.loginModal.show()">
+            <span class="nav-login-item">Login</span>
+          </b-nav-item>
         </b-navbar-nav>
       </b-collapse>
     </b-navbar>
