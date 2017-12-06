@@ -12,7 +12,8 @@ module.exports = {
 
     // Paths
     assetsSubDirectory: 'static',
-    assetsPublicPath: '/dist/',
+    assetsPublicPath: '/',
+    publicPath: 'artconomy.vulpinity.com',
     proxyTable: {},
 
     // Various Dev Server settings
