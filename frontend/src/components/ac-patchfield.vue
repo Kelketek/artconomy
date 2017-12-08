@@ -1,7 +1,9 @@
 <template>
     <div class="patchfield-wrapper" :class="classes()">
-      <div v-if="editing"><input type="text" ref="field" v-focus="true" :value="value" @blur="save" @keyup.enter="save" @keyup.escape="reset" :disabled="disabled"></div>
-      <div v-else-if="editmode" @click="editing=true"><div class="patchfield-preview" tabindex="0" @focus="editing=true" @input="update">{{ value }}</div><i class="fa fa-pencil" style="padding-left: 1em;"></i></div>
+      <div v-if="editing && multiline"><textarea style="width: 100%;" class="patchfield-multiline-editor" @keydown="handleMultilineInput" ref="field" @input="resizer" v-focus="true" :value="value" @blur="save" @keyup.escape="reset" :disabled="disabled"></textarea></div>
+      <div v-else-if="editing"><input type="text" ref="field" @keyup.enter="save" v-focus="true" :value="value" @blur="save" @keyup.escape="reset" :disabled="disabled"></div>
+      <div v-else-if="editmode" @click="startEditing"><div class="patchfield-preview" :class="{'patchfield-preview-multiline': multiline}" tabindex="0" @focus="startEditing" @input="update" v-html="$root.md.render(value)"></div><i class="fa fa-pencil" style="padding-left: 1em;"></i></div>
+      <div v-else-if="multiline" class="patchfield-normal" v-html="$root.md.render(value)">{{ value }}</div>
       <div v-else class="patchfield-normal">{{ value }}</div>
     </div>
 </template>
@@ -9,11 +11,13 @@
 <script>
   import { focus } from 'vue-focus'
   import {artCall} from '../lib'
+  import autosize from 'autosize'
+  import Vue from 'vue'
 
   export default {
     name: 'ac-patchfield',
     directives: { focus: focus },
-    props: ['value', 'editmode', 'name', 'styleclass', 'url', 'callback'],
+    props: ['value', 'editmode', 'name', 'styleclass', 'url', 'callback', 'multiline'],
     data: function () {
       return {
         editing: false,
@@ -24,6 +28,16 @@
     methods: {
       update () {
         this.$emit('input', this.$refs.field.value)
+      },
+      resizer () {
+        autosize(this.$refs.field)
+      },
+      startEditing () {
+        this.editing = true
+        let self = this
+        Vue.nextTick(() => {
+          self.resizer()
+        })
       },
       reset () {
         this.$refs.field.value = this.original
@@ -41,6 +55,18 @@
         data[this.name] = this.$refs.field.value
         artCall(this.url, 'PATCH', data, this.postSave)
       },
+      handleMultilineInput (event) {
+        if (event.keyCode === 13) {
+          if (!this.multiline) {
+            event.preventDefault()
+            this.save()
+          } else if (event.shiftKey) {
+          } else {
+            event.preventDefault()
+            this.save()
+          }
+        }
+      },
       postSave () {
         this.editing = false
         this.original = this.value
@@ -50,11 +76,14 @@
         }
       },
       classes () {
-        if (this.styleclass) {
-          let styles = {}
-          styles[this.styleclass] = true
-          return styles
+        let styles = {}
+        if (this.multiline) {
+          styles['patchfield-multiline-wrapper'] = true
         }
+        if (this.styleclass) {
+          styles[this.styleclass] = true
+        }
+        return styles
       }
     }
   }
@@ -65,7 +94,15 @@
     display: inline-block;
     border-bottom: solid 1px black;
   }
+  textarea.patchfield-multiline-editor {
+    width: 100%;
+    height: 100%;
+  }
   .patchfield-wrapper {
     display: inline-block;
+  }
+  .patchfield-multiline-wrapper {
+    width: 100%;
+    height: available;
   }
 </style>

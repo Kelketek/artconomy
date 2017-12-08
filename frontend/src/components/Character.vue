@@ -28,7 +28,7 @@
           About {{ character.name }}
         </h2>
         <div class="card-block">
-          <div class="card-block character-description" v-html="parseDesc()"></div>
+          <div class="card-block character-description"><ac-patchfield v-model="character.description" name="description" :multiline="true" :editmode="editing" :url="url"></ac-patchfield></div>
         </div>
       </div>
       <div class="col-md-4 col-sm-12 text-section pt-3 pl-4">
@@ -60,6 +60,12 @@
     </div>
   </div>
 </template>
+
+<style scoped>
+  .character-description {
+    width: 100%
+  }
+</style>
 
 <script>
   import {artCall} from '../lib'

@@ -7,43 +7,40 @@ Vue.use(BootstrapVue)
 Vue.use(VueFormGenerator)
 
 describe('NavBar.vue', () => {
-  it('should wait until the user is populated to show contents/', done => {
+  it('should wait until the user is populated to show contents/', async () => {
     const Constructor = Vue.extend(NavBar)
     const vm = new Constructor(
       {
         propsData: {user: null}
       }
     ).$mount()
-    Vue.nextTick(() => {
-      expect(vm.$el.querySelector('#nav_collapse').textContent)
-        .to.equal('')
-      done()
-    })
+    await Vue.nextTick()
+    expect(vm.$el.querySelector('#nav_collapse').textContent)
+      .to.equal('')
   })
-  it('should show a login button when logged out', done => {
+  it('should show a login button when logged out', async () => {
     const Constructor = Vue.extend(NavBar)
     const vm = new Constructor(
       {
         propsData: {user: {}}
       }
     ).$mount()
-    Vue.nextTick(() => {
-      expect(vm.$el.querySelector('#navbar .nav-login-item').textContent)
-        .to.equal('Login')
-      done()
-    })
+    await Vue.nextTick()
+    expect(vm.$el.querySelector('#navbar .nav-login-item').textContent)
+      .to.equal('Login')
   })
-  it("Should show the logged in user's name when logged in.", done => {
+  it("Should show the logged in user's name when logged in.", async () => {
     const Constructor = Vue.extend(NavBar)
     const vm = new Constructor(
       {
         propsData: {user: {username: 'Jimmy'}}
       }
     ).$mount()
-    Vue.nextTick(() => {
-      expect(vm.$el.querySelector('#navbar .nav-login-item').textContent)
-        .to.equal('Jimmy')
-      done()
-    })
+    await Vue.nextTick()
+    expect(vm.$el.querySelector('#navbar .nav-login-item').textContent)
+      .to.equal('Jimmy')
+  })
+  it('Should display a login modal when clicking the login button.', async () => {
+    console.log('I ran!')
   })
 })

@@ -27,8 +27,10 @@ class Register(CreateAPIView):
     serializer_class = RegisterSerializer
 
     def perform_create(self, serializer):
-        serializer.save()
-        login(self.request, serializer.instance)
+        instance = serializer.save()
+        instance.set_password(instance.password)
+        instance.save()
+        login(self.request, instance)
 
     def get_serializer(self, instance=None, data=None, many=False, partial=False):
         return self.serializer_class(instance=instance, data=data, many=many, partial=partial, request=self.request)

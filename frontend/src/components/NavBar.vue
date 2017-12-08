@@ -47,7 +47,7 @@
           </b-tab>
         </b-tabs>
         <div slot="modal-footer">
-          <b-button>Cancel</b-button>
+          <b-button @click="$refs.loginModal.hide()">Cancel</b-button>
           <b-button type="submit" variant="primary" @click.prevent="sendLogin">
             {{ tab.label }}
           </b-button>
@@ -144,8 +144,7 @@
       }
     },
     methods: {
-      sendLogin (event) {
-        event.preventDefault()
+      sendLogin () {
         artCall(
           this.tab.url,
           'POST',
