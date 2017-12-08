@@ -11,7 +11,8 @@ import Vue from 'vue'
 import App from './App'
 import NavBar from './components/NavBar'
 import { artCall } from './lib'
-import router from './router'
+import {router} from './router'
+import Router from 'vue-router/types/index'
 
 // export for others scripts to use
 window.$ = $
@@ -19,6 +20,7 @@ window.jQuery = jQuery
 
 let CACHE_TIMEOUT = 1800
 
+Vue.use(Router)
 Vue.use(BootstrapVue)
 Vue.use(VueFormGenerator)
 Vue.config.productionTip = false
