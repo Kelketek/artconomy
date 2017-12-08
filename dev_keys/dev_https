@@ -1,0 +1,11 @@
+pid=
+
+cert = dev_keys/stunnel.pem
+sslVersion = TLSv1.2
+foreground = yes
+output = stunnel.log
+
+[https]
+accept=8443
+connect=8000
+TIMEOUTclose=1

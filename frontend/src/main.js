@@ -8,11 +8,11 @@ import { $, jQuery } from 'jquery'
 import MarkDownIt from 'markdown-it'
 import BootstrapVue from 'bootstrap-vue'
 import Vue from 'vue'
+import VueRouter from 'vue-router'
 import App from './App'
 import NavBar from './components/NavBar'
 import { artCall } from './lib'
 import {router} from './router'
-import Router from 'vue-router/types/index'
 
 // export for others scripts to use
 window.$ = $
@@ -20,7 +20,7 @@ window.jQuery = jQuery
 
 let CACHE_TIMEOUT = 1800
 
-Vue.use(Router)
+Vue.use(VueRouter)
 Vue.use(BootstrapVue)
 Vue.use(VueFormGenerator)
 Vue.config.productionTip = false

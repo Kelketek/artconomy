@@ -18,7 +18,7 @@
       <div class="col-lg-4 p-0 section-text">
         <div class="character-panel-preview text-center">
           <img class="character-refsheet" v-if="character.primary_asset && character.primary_asset.id" :src="character.primary_asset.file"/>
-          <img class="character-refsheet" v-else src="~static/images/default-avatar.png"/>
+          <img class="character-refsheet" v-else src="/static/images/default-avatar.png"/>
         </div>
       </div>
     </div>

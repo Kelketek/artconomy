@@ -10,11 +10,14 @@ services:
       - "8000:8000"
     volumes:
       - ./config/nginx:/etc/nginx/conf.d
+      - ./dev_keys:/etc/nginx/dev_keys
     depends_on:
       - web
   web:
     build: .
     entrypoint: /app/docker-entrypoint.sh
+    environment:
+      - HTTPS=1
     command: python3 manage.py runserver 0.0.0.0:8002
     volumes:
       - .:/code
