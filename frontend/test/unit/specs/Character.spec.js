@@ -1,5 +1,5 @@
 import Character from '@/components/Character'
-import { shallow, createLocalVue } from 'vue-test-utils'
+import { mount, createLocalVue } from 'vue-test-utils'
 import MarkDownIt from 'markdown-it'
 import sinon from 'sinon'
 
@@ -16,7 +16,7 @@ describe('Character.vue', () => {
     server.restore()
   })
   it('Grabs and populates the initial character data and renders it.', async() => {
-    let wrapper = shallow(Character, {
+    let wrapper = mount(Character, {
       localVue,
       stubs: ['router-link', 'router-view'],
       mocks: {
@@ -85,10 +85,8 @@ describe('Character.vue', () => {
         }
       )
     )
-    let result = await localVue.nextTick()
-    console.log(result)
-    expect(wrapper.find('.character-description').html()).to.equal(
-      '<div class="card-block character-description"><p>A very <strong>testy</strong> character</p>\n</div>')
+    await localVue.nextTick()
+    expect(wrapper.find('.character-description').text()).to.equal('A very testy character')
     expect(wrapper.find('.character-panel-preview img').element.getAttribute('src')).to.equal('/test_asset1.jpg')
   })
 })

@@ -7,8 +7,10 @@ ENV PYTHONUNBUFFERED 1
 RUN mkdir /app
 WORKDIR /app
 ADD . .
+RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add -
+RUN echo 'deb http://dl.google.com/linux/chrome/deb/ stable main' >> /etc/apt/sources.list
 RUN apt-get update
-RUN apt-get install python3-pip python3-dev build-essential npm -y
+RUN apt-get install python3-pip python3-dev build-essential npm google-chrome-stable -y
 RUN pip3 install --upgrade pip
 RUN pip3 install -r requirements.txt
 RUN npm install
