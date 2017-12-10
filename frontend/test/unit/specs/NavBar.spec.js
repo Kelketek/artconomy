@@ -40,7 +40,4 @@ describe('NavBar.vue', () => {
     expect(vm.$el.querySelector('#navbar .nav-login-item').textContent)
       .to.equal('Jimmy')
   })
-  it('Should display a login modal when clicking the login button.', async () => {
-    console.log('I ran!')
-  })
 })

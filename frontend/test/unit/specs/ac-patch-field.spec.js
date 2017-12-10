@@ -1,12 +1,11 @@
 import Simple from '../fixtures/ac-patch-field/Simple'
 import { mount, createLocalVue } from 'vue-test-utils'
 import MarkDownIt from 'markdown-it'
-import $ from 'jquery'
 import sinon from 'sinon'
 
 let server, localVue
 
-describe('Character.vue', () => {
+describe('ac-patch-field.vue', () => {
   before(function () {
     server = sinon.fakeServer.create()
     localVue = createLocalVue()
@@ -90,7 +89,36 @@ describe('Character.vue', () => {
     expect(wrapper.find('input').exists()).to.equal(true)
     expect(wrapper.find('input').element.value).to.equal('TestValue')
   })
-  it('Does not submit a change and becomes uneditable if blurred after clicked without an edit..', async() => {
+  it('Becomes editable for multi line if clicked on when edit mode is enabled.', async() => {
+    let wrapper = mount(Simple, {
+      localVue,
+      propsData: {
+        multiline: true,
+        value: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. \n\n' +
+        'Duis ac libero facilisis, hendrerit risus in, pulvinar ex. Ut placerat mi odio, eget \n\n' +
+        'iaculis lectus volutpat ullamcorper. Etiam ut eros at massa porttitor faucibus sit',
+        editing: true
+      }
+    })
+    expect(wrapper.text()).to.equal(
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n' +
+      'Duis ac libero facilisis, hendrerit risus in, pulvinar ex. Ut placerat mi odio, eget\n' +
+      'iaculis lectus volutpat ullamcorper. Etiam ut eros at massa porttitor faucibus sit'
+    )
+    expect(wrapper.find('textarea').exists()).to.equal(false)
+    expect(wrapper.find('.patchfield-normal').exists()).to.equal(false)
+    let field = wrapper.find('.patchfield-preview')
+    expect(field.exists()).to.equal(true)
+    field.trigger('click')
+    await localVue.nextTick()
+    expect(wrapper.find('textarea').exists()).to.equal(true)
+    expect(wrapper.find('textarea').element.value).to.equal(
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. \n\n' +
+      'Duis ac libero facilisis, hendrerit risus in, pulvinar ex. Ut placerat mi odio, eget \n\n' +
+      'iaculis lectus volutpat ullamcorper. Etiam ut eros at massa porttitor faucibus sit'
+    )
+  })
+  it('Does not submit a change and becomes uneditable if blurred after clicked without an edit (single line).', async() => {
     let wrapper = mount(Simple, {
       localVue,
       propsData: {
@@ -102,10 +130,35 @@ describe('Character.vue', () => {
     field.trigger('click')
     await localVue.nextTick()
     // jQuery's click is more reliable for sending blurs.
-    $(field.element).blur()
+    wrapper.find('input').trigger('blur')
     await localVue.nextTick()
     expect(server.requests.length).to.equal(0)
     expect(wrapper.find('input').exists()).to.equal(false)
     expect(wrapper.text()).to.equal('TestValue')
+  })
+  it('Does not submit a change and becomes uneditable if blurred after clicked without an edit (multi line).', async() => {
+    let wrapper = mount(Simple, {
+      localVue,
+      propsData: {
+        multiline: true,
+        value: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. \n\n' +
+        'Duis ac libero facilisis, hendrerit risus in, pulvinar ex. Ut placerat mi odio, eget \n\n' +
+        'iaculis lectus volutpat ullamcorper. Etiam ut eros at massa porttitor faucibus sit',
+        editing: true
+      }
+    })
+    let field = wrapper.find('.patchfield-preview')
+    field.trigger('click')
+    await localVue.nextTick()
+    // jQuery's click is more reliable for sending blurs.
+    wrapper.find('textarea').trigger('blur')
+    await localVue.nextTick()
+    expect(server.requests.length).to.equal(0)
+    expect(wrapper.find('textarea').exists()).to.equal(false)
+    expect(wrapper.text()).to.equal(
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n' +
+      'Duis ac libero facilisis, hendrerit risus in, pulvinar ex. Ut placerat mi odio, eget\n' +
+      'iaculis lectus volutpat ullamcorper. Etiam ut eros at massa porttitor faucibus sit'
+    )
   })
 })

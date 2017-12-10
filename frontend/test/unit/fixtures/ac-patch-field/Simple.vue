@@ -1,8 +1,5 @@
 <template>
-  <div>
-    <div class="something-else" style="height: 10em;width:10em;">Test.</div>
-    <ac-patchfield v-model="value" :multiline="multiline" :name="name" :styleclass="doStyle && style" :editmode="editing" :callback="callback && callbackMethod" :url="url"></ac-patchfield>
-  </div>
+  <ac-patchfield v-model="value" :multiline="multiline" :name="name" :styleclass="doStyle && style" :editmode="editing" :callback="callback && callbackMethod" :url="url"></ac-patchfield>
 </template>
 
 <script>
