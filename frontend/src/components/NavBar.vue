@@ -35,20 +35,20 @@
         ref="loginModal" id="loginModal" class="inverse"
       >
         <b-tabs class="inverse" v-model="loginTab">
-          <b-tab title="Login">
+          <b-tab title="Login" id="loginTab">
             <div class="pt-2"></div>
-            <vue-form-generator ref="loginForm" :schema="loginSchema" :model="loginModel"
+            <vue-form-generator id="loginForm" ref="loginForm" :schema="loginSchema" :model="loginModel"
                                 :options="loginOptions"></vue-form-generator>
           </b-tab>
-          <b-tab title="Register">
+          <b-tab title="Register" id="registerTab">
             <div class="pt-2"></div>
-            <vue-form-generator ref="registerForm" :schema="registerSchema" :model="loginModel"
+            <vue-form-generator id="registerForm" ref="registerForm" :schema="registerSchema" :model="loginModel"
                                 :options="loginOptions"></vue-form-generator>
           </b-tab>
         </b-tabs>
         <div slot="modal-footer">
-          <b-button @click="$refs.loginModal.hide()">Cancel</b-button>
-          <b-button type="submit" variant="primary" @click.prevent="sendLogin">
+          <b-button @click="$refs.loginModal.hide()" id="loginCancel">Cancel</b-button>
+          <b-button type="submit" id="loginSubmit" variant="primary" @click.prevent="sendLogin">
             {{ tab.label }}
           </b-button>
         </div>

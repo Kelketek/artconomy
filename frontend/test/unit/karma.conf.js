@@ -13,7 +13,9 @@ module.exports = function (config) {
     browsers: ['FirefoxHeadless'],
     frameworks: ['mocha', 'sinon-chai', 'phantomjs-shim', 'polyfill'],
     reporters: ['spec', 'coverage'],
-    files: ['./index.js'],
+    files: [
+      './index.js'
+    ],
     polyfill: ['Promise'],
     preprocessors: {
       './index.js': ['webpack', 'sourcemap'],
