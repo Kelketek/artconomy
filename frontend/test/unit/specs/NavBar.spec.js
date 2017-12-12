@@ -10,13 +10,13 @@ import { checkJson, isVisible, waitFor } from '../helpers'
 let server, localVue
 
 describe('NavBar.vue', () => {
-  before(function () {
+  beforeEach(function () {
     server = sinon.fakeServer.create()
     localVue = createLocalVue()
     localVue.use(BootstrapVue)
     localVue.use(VueFormGenerator)
   })
-  after(function () {
+  afterEach(function () {
     server.restore()
   })
   it('should wait until the user is populated to show contents/', async () => {
@@ -99,6 +99,8 @@ describe('NavBar.vue', () => {
     await localVue.nextTick()
     wrapper.find('#registerTab___BV_tab_button__').trigger('click')
     await localVue.nextTick()
+    // Force evaluation of computed properties, not running in test for some reason.
+    wrapper.vm.$forceUpdate()
     let registerSubmit = wrapper.find('#loginSubmit')
     expect(registerSubmit.text()).to.equal('Register')
     expect(isVisible(wrapper.find('#loginTab'))).to.equal(false)

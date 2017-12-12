@@ -8,6 +8,7 @@
     "dev": "webpack-dev-server --inline --progress --host 0.0.0.0 --config frontend/build/webpack.dev.conf.js",
     "start": "npm run dev",
     "unit": "cross-env BABEL_ENV=test karma start frontend/test/unit/karma.conf.js --single-run",
+    "testdev": "cross-env BABEL_ENV=test karma start frontend/test/unit/karma.conf.js --browsers=Firefox --debug",
     "test": "npm run unit",
     "lint": "eslint --ext .js,.vue src frontend/test/unit/specs",
     "build": "node frontend/build/build.js"

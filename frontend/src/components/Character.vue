@@ -14,6 +14,24 @@
               <div class="text-left" slot="confirmation-text">Are you sure you wish to delete this character? This cannot be undone!</div>
             </ac-action>
           </div>
+        <div class="row">
+          <div class="col-sm-6">
+            <div class="statline">
+              <strong>Species:</strong> <ac-patchfield v-model="character.species" name="species" :editmode="editing" :url="url"></ac-patchfield>
+            </div>
+            <div class="statline">
+              <strong>Gender:</strong> <ac-patchfield v-model="character.gender" name="gender" :editmode="editing" :url="url"></ac-patchfield>
+            </div>
+          </div>
+          <div class="col-sm-6 pull-right">
+            <div class="statline">
+              <strong>Species:</strong> <ac-patchfield v-model="character.species" name="species" :editmode="editing" :url="url"></ac-patchfield>
+            </div>
+            <div class="statline">
+              <strong>Gender:</strong> <ac-patchfield v-model="character.gender" name="gender" :editmode="editing" :url="url"></ac-patchfield>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="col-lg-4 p-0 section-text">
         <div class="character-panel-preview text-center">
@@ -36,7 +54,7 @@
       </div>
     </div>
     <div class="row mb-3" v-if="character">
-      <div class="col-sm-12 col-md-9 text-center image-showcase">
+      <div class="col-sm-12 col-md-9 text-center image-showcase" v-if="assets && assets.length">
         <router-link v-if="character.primary_asset && character.primary_asset.id" :to="{name: 'Submission', params: {assetID: character.primary_asset.id}}">
           <img class="character-refsheet mb-2 shadowed" :src="character.primary_asset.file"/>
           <div class="character-gallery-title text-center">{{ character.primary_asset.title }}</div>
@@ -61,9 +79,14 @@
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
+  @import '../custom-bootstrap';
   .character-description {
     width: 100%
+  }
+  .statline p{
+    margin-bottom: .5rem;
+    border-bottom: 1px solid $dark-purple;
   }
 </style>
 

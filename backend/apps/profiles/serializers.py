@@ -103,7 +103,7 @@ class CharacterSerializer(serializers.ModelSerializer):
         model = Character
         fields = (
             'id', 'name', 'description', 'private', 'open_requests', 'open_requests_restrictions', 'user',
-            'primary_asset', 'primary_asset_id'
+            'primary_asset', 'primary_asset_id', 'species', 'gender'
         )
 
 

@@ -85,6 +85,8 @@ class Character(Model):
     primary_asset = ForeignKey('ImageAsset', null=True)
     user = ForeignKey(settings.AUTH_USER_MODEL, related_name='characters')
     created_on = DateTimeField(auto_now_add=True)
+    species = CharField(max_length=150, blank=True, default='')
+    gender = CharField(max_length=50, blank=True, default='')
 
     def __str__(self):
         return self.name
@@ -93,5 +95,23 @@ class Character(Model):
         unique_together = (('name', 'user'),)
 
 
+class RefColor(Model):
+    """
+    Stores a reference color for a character.
+    """
+    name = CharField(max_length=50)
+    color = CharField(max_length=6)
+    note = CharField(max_length=100)
+    character = ForeignKey(Character)
+
+
+class Category(Model):
+    name = CharField(max_length=50)
+    rating = IntegerField(choices=RATINGS)
+    description = CharField(max_length=250, default='')
+
+
 class Tag(Model):
     name = SlugField(db_index=True)
+    category = ForeignKey(Category, null=True, blank=True)
+    description = CharField(max_length=250, default='')

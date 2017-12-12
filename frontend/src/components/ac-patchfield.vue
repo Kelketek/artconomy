@@ -1,10 +1,10 @@
 <template>
     <div class="patchfield-wrapper" :class="classes()">
       <div v-if="editing && multiline"><textarea style="width: 100%;" class="patchfield-multiline-editor" @keydown="handleMultilineInput" ref="field" @input="resizer" v-focus="true" :value="value" @blur="save" @keyup.escape="reset" :disabled="disabled"></textarea></div>
-      <div v-else-if="editing"><input type="text" ref="field" @keyup.enter="save" v-focus="true" :value="value" @blur="save" @keyup.escape="reset" :disabled="disabled"></div>
-      <div v-else-if="editmode" @click="startEditing"><div class="patchfield-preview" :class="{'patchfield-preview-multiline': multiline}" tabindex="0" @focus="startEditing" @input="update" v-html="$root.md.render(value)"></div><i class="fa fa-pencil" style="padding-left: 1em;"></i></div>
-      <div v-else-if="multiline" class="patchfield-normal" v-html="$root.md.render(value)">{{ value }}</div>
-      <div v-else class="patchfield-normal">{{ value }}</div>
+      <div v-else-if="editing"><input type="text" class="patch-input" ref="field" @keyup.enter="save" v-focus="true" :value="value" @blur="save" @keyup.escape="reset" :disabled="disabled"></div>
+      <div v-else-if="editmode" @click="startEditing"><div class="patchfield-preview" :class="{'patchfield-preview-multiline': multiline}" tabindex="0" @focus="startEditing" @input="update" v-html="preview"></div><i class="fa fa-pencil" style="padding-left: 1em;"></i></div>
+      <div v-else-if="multiline" class="patchfield-normal">{{ preview }}</div>
+      <div v-else class="patchfield-normal">{{ preview }}</div>
     </div>
 </template>
 
@@ -23,6 +23,18 @@
         editing: false,
         original: this.value,
         disabled: false
+      }
+    },
+    computed: {
+      preview: function () {
+        let initial = this.$root.md.render(this.value)
+        if (this.multiline) {
+          return initial
+        } else {
+          let container = document.createElement('div')
+          container.innerHTML = initial
+          return container.firstChild.innerHTML
+        }
       }
     },
     methods: {
@@ -89,10 +101,21 @@
   }
 </script>
 
-<style>
+<style lang="scss">
+  @import '../custom-bootstrap';
   .patchfield-preview {
     display: inline-block;
-    border-bottom: solid 1px black;
+  }
+  input.patch-input {
+    padding: 0;
+    margin: 0;
+    background-color: $light-gray;
+    border-color: $dark-purple;
+    border-top: none;
+    border-right: none;
+    border-left: none;
+    height: 1em;
+    box-sizing: border-box;
   }
   textarea.patchfield-multiline-editor {
     width: 100%;

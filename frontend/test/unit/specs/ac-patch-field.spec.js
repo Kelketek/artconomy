@@ -6,12 +6,12 @@ import sinon from 'sinon'
 let server, localVue
 
 describe('ac-patch-field.vue', () => {
-  before(function () {
+  beforeEach(function () {
     server = sinon.fakeServer.create()
     localVue = createLocalVue()
     localVue.prototype.md = MarkDownIt()
   })
-  after(function () {
+  afterEach(function () {
     server.restore()
   })
   it('Displays normal information for single line.', async() => {
@@ -129,7 +129,6 @@ describe('ac-patch-field.vue', () => {
     let field = wrapper.find('.patchfield-preview')
     field.trigger('click')
     await localVue.nextTick()
-    // jQuery's click is more reliable for sending blurs.
     wrapper.find('input').trigger('blur')
     await localVue.nextTick()
     expect(server.requests.length).to.equal(0)
@@ -150,7 +149,6 @@ describe('ac-patch-field.vue', () => {
     let field = wrapper.find('.patchfield-preview')
     field.trigger('click')
     await localVue.nextTick()
-    // jQuery's click is more reliable for sending blurs.
     wrapper.find('textarea').trigger('blur')
     await localVue.nextTick()
     expect(server.requests.length).to.equal(0)
@@ -160,5 +158,61 @@ describe('ac-patch-field.vue', () => {
       'Duis ac libero facilisis, hendrerit risus in, pulvinar ex. Ut placerat mi odio, eget\n' +
       'iaculis lectus volutpat ullamcorper. Etiam ut eros at massa porttitor faucibus sit'
     )
+  })
+  it('Submits a change and becomes uneditable if blurred after clicked with an edit (single line).', async() => {
+    let wrapper = mount(Simple, {
+      localVue,
+      propsData: {
+        value: 'TestValue',
+        editing: true,
+        name: 'test'
+      }
+    })
+    let field = wrapper.find('.patchfield-preview')
+    field.trigger('click')
+    await localVue.nextTick()
+    let input = wrapper.find('input')
+    input.element.value = 'New Value'
+    wrapper.find('input').trigger('blur')
+    await localVue.nextTick()
+    expect(server.requests.length).to.equal(1)
+    expect(input.element.getAttribute('disabled')).to.equal('disabled')
+    server.requests[0].respond(
+      200,
+      { 'Content-Type': 'application/json' },
+      JSON.stringify({'test': 'New Value'})
+    )
+    await localVue.nextTick()
+    expect(wrapper.find('input').exists()).to.equal(false)
+    expect(wrapper.text()).to.equal('New Value')
+  })
+  it('Submits a change and becomes uneditable if blurred after clicked with an edit (multi line).', async() => {
+    let wrapper = mount(Simple, {
+      localVue,
+      propsData: {
+        multiline: true,
+        value: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. \n\n' +
+        'Duis ac libero facilisis, hendrerit risus in, pulvinar ex. Ut placerat mi odio, eget \n\n' +
+        'iaculis lectus volutpat ullamcorper. Etiam ut eros at massa porttitor faucibus sit',
+        editing: true
+      }
+    })
+    let field = wrapper.find('.patchfield-preview')
+    field.trigger('click')
+    await localVue.nextTick()
+    let input = wrapper.find('textarea')
+    input.element.value = 'New Value'
+    wrapper.find('textarea').trigger('blur')
+    await localVue.nextTick()
+    expect(server.requests.length).to.equal(1)
+    expect(input.element.getAttribute('disabled')).to.equal('disabled')
+    server.requests[0].respond(
+      200,
+      { 'Content-Type': 'application/json' },
+      JSON.stringify({'test': 'New Value'})
+    )
+    await localVue.nextTick()
+    expect(wrapper.find('textarea').exists()).to.equal(false)
+    expect(wrapper.text()).to.equal('New Value')
   })
 })

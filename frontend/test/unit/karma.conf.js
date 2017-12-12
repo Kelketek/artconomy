@@ -5,6 +5,16 @@
 
 var webpackConfig = require('../../build/webpack.test.conf')
 
+// function isDebug (argument) {
+//   return argument === '--debug'
+// }
+
+let sourcePreprocessors = ['webpack', 'sourcemap']
+
+// if (process.argv.some(isDebug)) {
+//   sourcePreprocessors = []
+// }
+
 module.exports = function (config) {
   config.set({
     // to run in additional browsers:
@@ -18,7 +28,7 @@ module.exports = function (config) {
     ],
     polyfill: ['Promise'],
     preprocessors: {
-      './index.js': ['webpack', 'sourcemap'],
+      './index.js': sourcePreprocessors
     },
     webpack: webpackConfig,
     webpackMiddleware: {
