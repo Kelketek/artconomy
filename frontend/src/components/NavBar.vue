@@ -4,7 +4,7 @@
 
       <b-navbar-toggle target="nav_collapse"></b-navbar-toggle>
 
-      <b-navbar-brand to="/">Artconomy</b-navbar-brand>
+      <b-navbar-brand to="/"><img src="/static/images/logo.svg" class="header-logo"/><div class="logo-header-text">rtconomy</div></b-navbar-brand>
 
       <b-collapse is-nav id="nav_collapse">
 
@@ -57,6 +57,17 @@
     </form>
   </div>
 </template>
+
+<style>
+  .header-logo {
+    height: 1.5rem;
+    margin-top: -.20rem;
+  }
+  .logo-header-text {
+    margin-left: -.35rem;
+    display: inline-block;
+  }
+</style>
 
 <script>
   import VueFormGenerator from 'vue-form-generator'

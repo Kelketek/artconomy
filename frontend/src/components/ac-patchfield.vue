@@ -27,13 +27,10 @@
     },
     computed: {
       preview: function () {
-        let initial = this.$root.md.render(this.value)
         if (this.multiline) {
-          return initial
+          return this.$root.md.render(this.value)
         } else {
-          let container = document.createElement('div')
-          container.innerHTML = initial
-          return container.firstChild.innerHTML
+          return this.$root.md.renderInline(this.value)
         }
       }
     },

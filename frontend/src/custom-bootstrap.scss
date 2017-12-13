@@ -66,6 +66,11 @@ $jumbotron-bg: $dark-beige;
   }
 }
 
+// Ensure spacing for top bar.
+body {
+  padding-top: 60px;
+}
+
 $container-max-widths: (
   sm: 540px,
   md: 720px,

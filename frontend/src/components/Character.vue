@@ -67,11 +67,11 @@
           <div class="character-gallery-title text-center">{{ assets[0].title }}</div>
         </router-link>
         <div class="more">
-          <b-button v-if="controls && !showUpload" variant="primary" @click="showUpload=true">Upload a new picture of {{ character.name }}</b-button> <b-button v-if="assets && moreToLoad" variant="primary">See all uploads of {{ character.name }}</b-button>
+          <b-button v-if="controls && !showUpload" variant="primary" @click="displayUploader">Upload a new picture of {{ character.name }}</b-button> <b-button v-if="assets && moreToLoad" variant="primary">See all uploads of {{ character.name }}</b-button>
         </div>
       </div>
       <div class="col-sm-12 text-center" v-else>
-        <b-button v-if="controls && !showUpload" variant="primary" @click="showUpload=true">Upload a new picture of {{ character.name }}</b-button>
+        <b-button v-if="controls && !showUpload" variant="primary" @click="displayUploader">Upload a new picture of {{ character.name }}</b-button>
       </div>
       <div class="col-sm-12 col-md-3 character-gallery" v-if="assets != null">
         <ac-gallery-preview v-for="(asset, key, index) in assets"
@@ -108,6 +108,8 @@
 </style>
 
 <script>
+  import $ from 'jquery'
+  import Vue from 'vue'
   import VueFormGenerator from 'vue-form-generator'
   import { artCall, ratings } from '../lib'
   import Perms from '../mixins/permissions'
@@ -190,6 +192,12 @@
       },
       loadCharacter (response) {
         this.character = response
+      },
+      displayUploader () {
+        this.showUpload = true
+        Vue.nextTick(function () {
+          $('html, body').animate({ scrollTop: $('#title').offset().top - 100 }, 200)
+        })
       },
       loadAssets (response) {
         this.totalPieces = response.count
