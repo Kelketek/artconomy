@@ -31,7 +31,7 @@ describe('Character.vue', () => {
     let assetReq = server.requests[1]
     expect(charReq.url).to.equal('/api/profiles/v1/testusername/characters/testcharacter/')
     expect(charReq.method).to.equal('GET')
-    expect(assetReq.url).to.equal('/api/profiles/v1/testusername/characters/testcharacter/assets/')
+    expect(assetReq.url).to.equal('/api/profiles/v1/testusername/characters/testcharacter/assets/?size=4')
     expect(assetReq.method).to.equal('GET')
     charReq.respond(
       200,

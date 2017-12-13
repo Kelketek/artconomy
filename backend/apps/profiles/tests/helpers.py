@@ -25,6 +25,8 @@ def serialize_char(key, value):
         'id': key.id,
         'name': key.name,
         'description': key.description,
+        'gender': key.gender,
+        'species': key.species,
         'primary_asset': {
             'id': key.primary_asset.id,
             'file': 'http://testserver' + key.primary_asset.file.url,
@@ -35,7 +37,7 @@ def serialize_char(key, value):
             'private': key.primary_asset.private,
             'rating': key.primary_asset.rating,
             'created_on': key.primary_asset.created_on.isoformat().replace('+00:00', 'Z'),
-            'uploaded_by': key.user.username
+            'uploaded_by': {'username': key.user.username, 'id': key.user.id}
         },
         'private': key.private,
         'open_requests': key.open_requests,
