@@ -1,6 +1,9 @@
 import jquery from 'jquery'
+import MarkDownIt from 'markdown-it'
 
 const $ = jquery
+
+export const md = MarkDownIt()
 
 export function getCookie (name) {
   let cookieValue = null
@@ -71,4 +74,28 @@ export function artCall (url, method, data, success, error) {
     success,
     error
   })
+}
+
+export function ratings () {
+  return [
+    {id: 0, name: 'Clean/Safe for work'},
+    {id: 1, name: 'Risque/mature, not adult content but not safe for work'},
+    {id: 2, name: 'Adult content, not safe for work'}
+  ]
+}
+
+export function textualize (markdown) {
+  let container = document.createElement('div')
+  container.innerHTML = md.render(markdown)
+  return container.textContent.trim()
+}
+
+export function setMetaContent (tagname, value) {
+  let desctag = document.head.querySelector(`meta[name=${tagname}]`)
+  if (!desctag) {
+    desctag = document.createElement('meta')
+    desctag.setAttribute('name', tagname)
+    document.head.appendChild(desctag)
+  }
+  desctag.content = value
 }

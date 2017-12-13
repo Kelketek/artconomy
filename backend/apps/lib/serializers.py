@@ -1,3 +1,6 @@
+import base64, uuid
+
+from django.core.files.base import ContentFile
 from rest_framework import serializers
 
 from apps.lib.models import Comment
@@ -9,6 +12,18 @@ class RelatedUserSerializer(serializers.ModelSerializer):
         model = User
         fields = ('id', 'username')
         read_only_fields = ('id', 'username')
+
+
+# Custom image field - handles base 64 encoded images
+class Base64ImageField(serializers.ImageField):
+    def to_internal_value(self, data):
+        if isinstance(data, str) and data.startswith('data:image'):
+            # base64 encoded image - decode
+            fmt, image_string = data.split(';base64,')  # format ~= data:image/X,
+            ext = fmt.split('/')[-1]  # guess file extension
+            auto_id = uuid.uuid4()
+            data = ContentFile(base64.b64decode(image_string), name=auto_id.urn[9:] + '.' + ext)
+        return super(Base64ImageField, self).to_internal_value(data)
 
 
 class RecursiveField(serializers.Serializer):

@@ -6,7 +6,7 @@ from django.db import connection
 from django.middleware.csrf import get_token
 from rest_framework import serializers
 
-from apps.lib.serializers import RelatedUserSerializer
+from apps.lib.serializers import RelatedUserSerializer, Base64ImageField
 from apps.profiles.models import Character, ImageAsset, User
 
 
@@ -49,9 +49,10 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 
 class ImageAssetSerializer(serializers.ModelSerializer):
-    uploaded_by = serializers.SlugRelatedField(slug_field='username', read_only=True)
+    uploaded_by = RelatedUserSerializer(read_only=True)
     comment_count = serializers.SerializerMethodField()
     favorite_count = serializers.SerializerMethodField()
+    file = Base64ImageField()
 
     def get_comment_count(self, obj):
         with connection.cursor() as cursor:
@@ -108,7 +109,7 @@ class CharacterSerializer(serializers.ModelSerializer):
 
 
 class ImageAssetManagementSerializer(serializers.ModelSerializer):
-    uploaded_by = serializers.SlugRelatedField(slug_field='username', read_only=True)
+    uploaded_by = RelatedUserSerializer(read_only=True)
     characters = CharacterSerializer(many=True, read_only=True)
 
     def get_thumbnail_url(self, obj):

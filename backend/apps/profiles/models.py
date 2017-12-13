@@ -6,7 +6,7 @@ from custom_user.models import AbstractEmailUser
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.validators import MinValueValidator
 from django.db.models import Model, CharField, ForeignKey, IntegerField, BooleanField, ManyToManyField, DateTimeField, \
-    URLField, SlugField
+    URLField, SlugField, SET_NULL
 
 from apps.lib.abstract_models import GENERAL, RATINGS, ImageModel
 from apps.lib.models import Comment
@@ -82,7 +82,7 @@ class Character(Model):
         blank=True,
         default=''
     )
-    primary_asset = ForeignKey('ImageAsset', null=True)
+    primary_asset = ForeignKey('ImageAsset', null=True, on_delete=SET_NULL)
     user = ForeignKey(settings.AUTH_USER_MODEL, related_name='characters')
     created_on = DateTimeField(auto_now_add=True)
     species = CharField(max_length=150, blank=True, default='')

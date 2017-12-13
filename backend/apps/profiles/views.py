@@ -17,7 +17,7 @@ from rest_framework.views import APIView
 
 from apps.lib.serializers import CommentSerializer
 from apps.profiles.models import User, Character, ImageAsset
-from apps.profiles.permissions import ObjectControls, UserControls, AssetViewPermission
+from apps.profiles.permissions import ObjectControls, UserControls, AssetViewPermission, AssetControls
 from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer, SettingsSerializer, UserSerializer, \
     RegisterSerializer, ImageAssetManagementSerializer, CredentialsSerializer
 from shortcuts import make_url
@@ -110,6 +110,9 @@ class ImageAssetListAPI(ListCreateAPIView):
         self.check_object_permissions(self.request, character)
         asset = serializer.save(uploaded_by=self.request.user)
         asset.characters.add(character)
+        if character.primary_asset is None:
+            character.primary_asset = asset
+            character.save()
         return asset
 
 
@@ -151,7 +154,7 @@ class MakePrimary(APIView):
 
 class AssetManager(RetrieveUpdateDestroyAPIView):
     serializer_class = ImageAssetManagementSerializer
-    permission_classes = [ObjectControls]
+    permission_classes = [AssetControls]
 
     def get_object(self):
         asset = get_object_or_404(
@@ -166,14 +169,8 @@ class AssetManager(RetrieveUpdateDestroyAPIView):
 
     def destroy(self, request, *args, **kwargs):
         asset = self.get_object()
-        char = get_object_or_404(Character, user__username=self.kwargs['username'], name=self.kwargs['character'])
-        self.check_object_permissions(request, char)
-        if char.primary_asset == asset:
-            char.primary_asset = None
-        char.save()
-        asset.characters.remove(char)
-        if (asset.characters.all().count() == 0) or (self.request.user == asset.uploaded_by):
-            self.perform_destroy(asset)
+        self.check_object_permissions(request, asset)
+        asset.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 

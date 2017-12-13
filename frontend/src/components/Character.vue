@@ -61,11 +61,17 @@
         </router-link>
         <router-link v-else-if="assets && assets[0]" :to="{name: 'Submission', params: {assetID: assets[0].id}}">
           <img class="character-refsheet shadowed" :src="assets[0].file"/>
+          <div class="gallery-image-overlay">
+            <div class="gallery-image-stats"><i class="fa fa-star"></i> {{ asset.favorite_count }} <i class="fa fa-comment"></i> {{ asset.comment_count }}</div>
+          </div>
           <div class="character-gallery-title text-center">{{ assets[0].title }}</div>
         </router-link>
         <div class="more">
-          <b-button variant="primary">See all uploads of {{ character.name }}</b-button>
+          <b-button v-if="controls && !showUpload" variant="primary" @click="showUpload=true">Upload a new picture of {{ character.name }}</b-button> <b-button v-if="assets && moreToLoad" variant="primary">See all uploads of {{ character.name }}</b-button>
         </div>
+      </div>
+      <div class="col-sm-12 text-center" v-else>
+        <b-button v-if="controls && !showUpload" variant="primary" @click="showUpload=true">Upload a new picture of {{ character.name }}</b-button>
       </div>
       <div class="col-sm-12 col-md-3 character-gallery" v-if="assets != null">
         <ac-gallery-preview v-for="(asset, key, index) in assets"
@@ -74,6 +80,17 @@
              :asset="asset"
         >
         </ac-gallery-preview>
+      </div>
+      <div class="col-sm-12" v-if="showUpload">
+        <form>
+          <ac-form-container ref="newUploadForm" :schema="newUploadSchema" :model="newUploadModel"
+                             :options="newUploadOptions" :success="addUpload"
+                             :url="`/api/profiles/v1/${user.username}/characters/${character.name}/assets/`"
+          >
+            <b-button @click="showUpload=false">Cancel</b-button>
+            <b-button type="submit" variant="primary" @click.prevent="$refs.newUploadForm.submit">Create</b-button>
+          </ac-form-container>
+        </form>
       </div>
     </div>
   </div>
@@ -91,19 +108,23 @@
 </style>
 
 <script>
-  import {artCall} from '../lib'
+  import VueFormGenerator from 'vue-form-generator'
+  import { artCall, ratings } from '../lib'
   import Perms from '../mixins/permissions'
+  import Editable from '../mixins/editable'
   import AcAction from './ac-action'
+  import AcFormContainer from './ac-form-container'
   import AcPatchfield from './ac-patchfield'
   import AcGalleryPreview from './ac-gallery-preview'
 
   export default {
     name: 'Character',
-    mixins: [Perms],
+    mixins: [Perms, Editable],
     components: {
       AcGalleryPreview,
       AcPatchfield,
-      AcAction
+      AcAction,
+      AcFormContainer
     },
     methods: {
       parseDesc: function () {
@@ -111,12 +132,6 @@
       },
       setIndex: function (key) {
         this.$data.selectedIndex = key
-      },
-      edit: function () {
-        this.$router.replace({query: Object.assign({}, this.$route.query, { editing: true })})
-      },
-      lock: function () {
-        this.$router.replace({query: {}})
       },
       goToListing: function () {
         this.$router.history.push({name: 'Characters', params: {username: this.user.username}})
@@ -177,7 +192,13 @@
         this.character = response
       },
       loadAssets (response) {
+        this.totalPieces = response.count
         this.assets = response.results
+      },
+      addUpload (response) {
+        this.$router.history.push(
+          {name: 'Submission', params: {assetID: response.id}}
+        )
       }
     },
     data () {
@@ -186,7 +207,68 @@
         expand: this.expanded,
         character: null,
         assets: null,
-        url: `/api/profiles/v1/${this.$route.params.username}/characters/${this.$route.params.character}/`
+        totalPieces: 0,
+        url: `/api/profiles/v1/${this.$route.params.username}/characters/${this.$route.params.character}/`,
+        newUploadModel: {
+          title: '',
+          caption: '',
+          private: false,
+          rating: 0,
+          file: ''
+        },
+        showUpload: false,
+        newUploadSchema: {
+          fields: [{
+            type: 'input',
+            inputType: 'text',
+            label: 'Title',
+            model: 'title',
+            featured: true,
+            required: true,
+            validator: VueFormGenerator.validators.string
+          },
+          {
+            type: 'textArea',
+            label: 'Caption',
+            model: 'caption',
+            featured: true,
+            required: true,
+            validator: VueFormGenerator.validators.string
+          },
+          {
+            type: 'input',
+            styleClasses: ['vue-checkbox'],
+            inputType: 'checkbox',
+            label: 'Private Upload?',
+            model: 'private',
+            required: false,
+            validator: VueFormGenerator.validators.boolean,
+            hint: 'Only shows this piece to people you have explicitly shared it to.'
+          },
+          {
+            type: 'select',
+            label: 'Rating',
+            model: 'rating',
+            featured: true,
+            required: true,
+            values: ratings,
+            selectOptions: {
+              hideNoneSelectedText: true
+            },
+            validator: VueFormGenerator.validators.required
+          },
+          {
+            type: 'image',
+            id: 'file',
+            label: 'File',
+            model: 'file',
+            required: true
+          }]
+        },
+        newUploadOptions: {
+          validateAfterLoad: false,
+          validateAfterChanged: true
+        }
       }
     },
     computed: {
@@ -201,11 +283,14 @@
         } else {
           return null
         }
+      },
+      moreToLoad () {
+        return this.totalPieces > 4
       }
     },
     created () {
       artCall(this.url, 'GET', null, this.loadCharacter)
-      artCall(this.url + 'assets/', 'GET', null, this.loadAssets)
+      artCall(this.url + 'assets/?size=4', 'GET', null, this.loadAssets)
     }
   }
 </script>

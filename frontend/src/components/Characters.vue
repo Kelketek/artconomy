@@ -24,12 +24,12 @@
                                 :options="newCharOptions" :success="addCharacter"
                                :url="`/api/profiles/v1/${this.user.username}/characters/`"
             >
-              <b-button @click="showNew = false;">Cancel</b-button>
+              <b-button @click="showNew=false">Cancel</b-button>
               <b-button type="submit" variant="primary" @click.prevent="$refs.newCharForm.submit">Create</b-button>
             </ac-form-container>
           </form>
         </div>
-        <b-button v-else variant="primary" size="lg" @click="showNew=true;" id="new-char-button">Add a new character</b-button>
+        <b-button v-else variant="primary" size="lg" @click="showNew=true" id="new-char-button">Add a new character</b-button>
       </div>
     </div>
     <div class="m-2"></div>

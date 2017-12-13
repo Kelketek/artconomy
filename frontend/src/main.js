@@ -5,13 +5,12 @@ import 'bootstrap-vue/dist/bootstrap-vue.css'
 import VueFormGenerator from 'vue-form-generator'
 import 'vue-form-generator/dist/vfg.css'  // optional full css additions
 import { $, jQuery } from 'jquery'
-import MarkDownIt from 'markdown-it'
 import BootstrapVue from 'bootstrap-vue'
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import App from './App'
 import NavBar from './components/NavBar'
-import { artCall } from './lib'
+import { artCall, md } from './lib'
 import {router} from './router'
 
 // export for others scripts to use
@@ -35,7 +34,7 @@ new Vue({
   data: {
     user: null,
     usercache: {},
-    md: MarkDownIt()
+    md: md
   },
   methods: {
     log (data) {
