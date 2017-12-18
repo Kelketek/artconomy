@@ -222,7 +222,8 @@
           caption: '',
           private: false,
           rating: 0,
-          file: ''
+          file: '',
+          comments_disabled: false
         },
         showUpload: false,
         newUploadSchema: {
@@ -244,14 +245,22 @@
             validator: VueFormGenerator.validators.string
           },
           {
-            type: 'input',
+            type: 'checkbox',
             styleClasses: ['vue-checkbox'],
-            inputType: 'checkbox',
             label: 'Private Upload?',
             model: 'private',
             required: false,
             validator: VueFormGenerator.validators.boolean,
             hint: 'Only shows this piece to people you have explicitly shared it to.'
+          },
+          {
+            type: 'checkbox',
+            styleClasses: ['vue-checkbox'],
+            label: 'Comments disabled?',
+            model: 'comments_disabled',
+            required: false,
+            validator: VueFormGenerator.validators.boolean,
+            hint: 'Prevents people from commenting on this piece.'
           },
           {
             type: 'select',

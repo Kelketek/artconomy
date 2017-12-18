@@ -82,7 +82,7 @@ class ImageAssetSerializer(serializers.ModelSerializer):
         model = ImageAsset
         fields = (
             'id', 'title', 'caption', 'rating', 'file', 'private', 'created_on', 'uploaded_by', 'comment_count',
-            'favorite_count',
+            'favorite_count', 'comments_disabled',
         )
 
 
@@ -117,7 +117,10 @@ class ImageAssetManagementSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ImageAsset
-        fields = ('id', 'title', 'caption', 'rating', 'file', 'private', 'created_on', 'uploaded_by', 'characters')
+        fields = (
+            'id', 'title', 'caption', 'rating', 'file', 'private', 'created_on', 'uploaded_by', 'characters',
+            'comments_disabled'
+        )
 
 
 class SettingsSerializer(serializers.ModelSerializer):

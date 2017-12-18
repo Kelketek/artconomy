@@ -33,7 +33,14 @@
       >
       </ac-character-preview>
     </div>
-    <ac-comment-section :commenturl="commenturl" :nesting="true"></ac-comment-section>
+    <div class="mb-5">
+      <ac-comment-section v-if="submission" :commenturl="commenturl" :nesting="true" :locked="submission.comments_disabled"></ac-comment-section>
+      <div class="row shadowed" v-if="submission && controls && editing">
+        <div class="col-sm-12 text-section text-center">
+          <ac-patchbutton :url="url" name="comments_disabled" v-model="submission.comments_disabled" true-text="Disable Commments" false-text="Enable Comments"></ac-patchbutton>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -42,11 +49,12 @@
   import AcCharacterPreview from './ac-character-preview'
   import Editable from '../mixins/editable'
   import AcPatchfield from './ac-patchfield'
+  import AcPatchbutton from './ac-patchbutton'
   import AcCommentSection from './ac-comment-section'
 
   export default {
     name: 'Home',
-    components: {AcCharacterPreview, AcPatchfield, AcCommentSection},
+    components: {AcCharacterPreview, AcPatchfield, AcCommentSection, AcPatchbutton},
     mixins: [Editable],
     data () {
       return {

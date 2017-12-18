@@ -176,7 +176,7 @@ class AssetManager(RetrieveUpdateDestroyAPIView):
 
 
 class AssetComments(ListCreateAPIView):
-    permission_classes = ImageAsset.comment_permissions
+    permission_classes = [AssetViewPermission]
     serializer_class = CommentSerializer
 
     def get_queryset(self):
