@@ -34,6 +34,7 @@ class CommentViewPermission(BasePermission):
         target = obj.content_object
         if not all((perm().has_object_permission(request, view, target) for perm in target.comment_permissions)):
             return False
+        return True
 
 
 class CommentDepthPermission(BasePermission):

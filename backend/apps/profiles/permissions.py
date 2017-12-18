@@ -38,6 +38,17 @@ class AssetViewPermission(BasePermission):
             return True
         if obj.private:
             return False
+        return True
+
+
+class AssetCommentPermission(BasePermission):
+    """
+    Checks to see if comments are disabled for an asset.
+    """
+    def has_object_permission(self, request, view, obj):
+        if obj.comments_disabled:
+            return False
+        return True
 
 
 class UserControls(BasePermission):

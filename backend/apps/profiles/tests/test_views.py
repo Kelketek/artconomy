@@ -6,21 +6,9 @@ from rest_framework.test import APIClient
 
 from apps.profiles.models import Character, ImageAsset
 from apps.lib.abstract_models import MATURE, ADULT, GENERAL
+from apps.lib.test_resources import APITestCase
 from apps.profiles.tests.factories import UserFactory, CharacterFactory, ImageAssetFactory
 from apps.profiles.tests.helpers import gen_characters, serialize_char, gen_image
-
-
-class APITestCase(TestCase):
-    def setUp(self):
-        super().setUp()
-        self.client = APIClient()
-        self.user = UserFactory.create()
-        self.user2 = UserFactory.create()
-        self.staffer = UserFactory.create(is_staff=True)
-
-    def login(self, user):
-        result = self.client.login(email=user.email, password='Test')
-        self.assertIs(result, True)
 
 
 class CharacterAPITestCase(APITestCase):

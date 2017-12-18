@@ -8,11 +8,14 @@ from bok_choy.promise import EmptyPromise, BrokenPromise, Promise
 from bok_choy.web_app_test import WebAppTest
 from django.conf import settings
 from django.forms import CheckboxInput, RadioSelect
-from django.test import LiveServerTestCase
+from django.test import LiveServerTestCase, TestCase
 from django.urls import reverse
 from needle.driver import NeedleFirefox
 from pyvirtualdisplay import Display
+from rest_framework.test import APIClient
 from seleniumrequests import RequestMixin
+
+from apps.profiles.tests.factories import UserFactory
 
 
 class BaseWebAppTest(LiveServerTestCase, WebAppTest):
@@ -430,3 +433,16 @@ class FixtureMixin(object):
 
 class FFRequestsWebDriver(NeedleFirefox, RequestMixin):
     pass
+
+
+class APITestCase(TestCase):
+    def setUp(self):
+        super().setUp()
+        self.client = APIClient()
+        self.user = UserFactory.create()
+        self.user2 = UserFactory.create()
+        self.staffer = UserFactory.create(is_staff=True)
+
+    def login(self, user):
+        result = self.client.login(email=user.email, password='Test')
+        self.assertIs(result, True)

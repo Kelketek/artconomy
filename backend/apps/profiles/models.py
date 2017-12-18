@@ -10,6 +10,7 @@ from django.db.models import Model, CharField, ForeignKey, IntegerField, Boolean
 
 from apps.lib.abstract_models import GENERAL, RATINGS, ImageModel
 from apps.lib.models import Comment
+from apps.profiles.permissions import AssetViewPermission, AssetCommentPermission
 
 
 class User(AbstractEmailUser):
@@ -60,6 +61,9 @@ class ImageAsset(ImageModel):
     comments = GenericRelation(
         Comment, related_query_name='order', content_type_field='content_type', object_id_field='object_id'
     )
+    comments_disabled = BooleanField(default=False)
+
+    comment_permissions = [AssetViewPermission, AssetCommentPermission]
 
 
 class Character(Model):

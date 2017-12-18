@@ -33,44 +33,26 @@
       >
       </ac-character-preview>
     </div>
-    <div class="row shadowed">
-      <ac-comment
-          v-for="comment in growing"
-          :commentobj="comment"
-          :key="comment.id"
-          :reader="$root.user"
-          v-if="growing !== null"
-          :nesting="true"
-          :toplevel="true"
-      >
-      </ac-comment>
-      <div v-else class="text-center" style="width:100%"><i class="fa fa-spin fa-spinner fa-5x"></i></div>
-      <div v-if="growing !== null" v-observe-visibility="moreComments"></div>
-      <div v-if="fetching"><i class="fa fa-spin fa-spinner fa-5x"></i></div>
-      <ac-new-comment v-if="(growing !== null && !fetching)" :parent="this" :url="commentURL"></ac-new-comment>
-    </div>
+    <ac-comment-section :commenturl="commenturl" :nesting="true"></ac-comment-section>
   </div>
 </template>
 
 <script>
-  import { ObserveVisibility } from 'vue-observe-visibility'
   import { artCall, setMetaContent, textualize } from '../lib'
   import AcCharacterPreview from './ac-character-preview'
-  import AcComment from './ac-comment'
-  import AcNewComment from './ac-new-comment'
-  import Paginated from '../mixins/paginated'
   import Editable from '../mixins/editable'
   import AcPatchfield from './ac-patchfield'
+  import AcCommentSection from './ac-comment-section'
 
   export default {
     name: 'Home',
-    components: {AcCharacterPreview, AcComment, AcNewComment, AcPatchfield},
-    directives: {'observe-visibility': ObserveVisibility},
-    mixins: [Paginated, Editable],
+    components: {AcCharacterPreview, AcPatchfield, AcCommentSection},
+    mixins: [Editable],
     data () {
       return {
         submission: null,
-        url: `/api/profiles/v1/asset/${this.$route.params.assetID}/`
+        url: `/api/profiles/v1/asset/${this.$route.params.assetID}/`,
+        commenturl: `/api/profiles/v1/asset/${this.$route.params.assetID}/comments/`
       }
     },
     computed: {
@@ -87,30 +69,16 @@
         document.title = `${this.submission.title} -- by ${this.submission.uploaded_by.username}`
         setMetaContent('description', textualize(this.submission.caption).slice(0, 160))
       },
-      populateComments (response) {
-        this.response = response
-        this.growing = response.results
-      },
-      addComment (comment) {
-        this.comments.push(comment)
-      },
       goBack () {
         if (this.$router.history.length) {
           this.$router.go(-1)
         } else {
           this.$router.history.push({name: 'Profile', params: {username: this.submission.uploaded_by.username}})
         }
-      },
-      moreComments (isVisible) {
-        if (isVisible) {
-          this.loadMore()
-        }
       }
     },
     created () {
-      this.commentURL = `/api/profiles/v1/asset/${this.$route.params.assetID}/comments/`
       artCall(`/api/profiles/v1/asset/${this.$route.params.assetID}/`, 'GET', undefined, this.populateSubmission)
-      artCall(this.commentURL, 'GET', undefined, this.populateComments)
     }
   }
 </script>

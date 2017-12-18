@@ -6,13 +6,13 @@ import sinon from 'sinon'
 let server, localVue
 
 describe('Character.vue', () => {
-  before(function () {
+  beforeEach(function () {
     server = sinon.fakeServer.create()
     localVue = createLocalVue()
     localVue.prototype.setUser = function () {}
     localVue.prototype.md = MarkDownIt()
   })
-  after(function () {
+  afterEach(function () {
     server.restore()
   })
   it('Grabs and populates the initial character data and renders it.', async() => {

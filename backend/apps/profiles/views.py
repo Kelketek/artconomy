@@ -17,7 +17,8 @@ from rest_framework.views import APIView
 
 from apps.lib.serializers import CommentSerializer
 from apps.profiles.models import User, Character, ImageAsset
-from apps.profiles.permissions import ObjectControls, UserControls, AssetViewPermission, AssetControls
+from apps.profiles.permissions import ObjectControls, UserControls, AssetViewPermission, AssetControls, \
+    AssetCommentPermission
 from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer, SettingsSerializer, UserSerializer, \
     RegisterSerializer, ImageAssetManagementSerializer, CredentialsSerializer
 from shortcuts import make_url
@@ -175,7 +176,7 @@ class AssetManager(RetrieveUpdateDestroyAPIView):
 
 
 class AssetComments(ListCreateAPIView):
-    permission_classes = [AssetViewPermission]
+    permission_classes = ImageAsset.comment_permissions
     serializer_class = CommentSerializer
 
     def get_queryset(self):
