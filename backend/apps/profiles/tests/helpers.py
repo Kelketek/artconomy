@@ -37,7 +37,8 @@ def serialize_char(key, value):
             'private': key.primary_asset.private,
             'rating': key.primary_asset.rating,
             'created_on': key.primary_asset.created_on.isoformat().replace('+00:00', 'Z'),
-            'uploaded_by': {'username': key.user.username, 'id': key.user.id}
+            'uploaded_by': {'username': key.user.username, 'id': key.user.id},
+            'comments_disabled': key.primary_asset.comments_disabled,
         },
         'private': key.private,
         'open_requests': key.open_requests,

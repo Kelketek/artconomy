@@ -3,7 +3,8 @@
 from django.conf.urls import url
 
 from apps.profiles.views import Register, CharacterListAPI, ImageAssetListAPI, \
-    CharacterManager, AssetManager, MakePrimary, SettingsAPI, UserInfo, AssetComments, CredentialsAPI, register_dwolla
+    CharacterManager, AssetManager, MakePrimary, SettingsAPI, UserInfo, AssetComments, CredentialsAPI, register_dwolla, \
+    NotificationsList
 from apps.profiles.views import check_username, check_email, perform_login, perform_logout
 
 urlpatterns = [
@@ -14,6 +15,7 @@ urlpatterns = [
     url(r'^v1/logout/', perform_logout, name='logout'),
     url(r'^v1/register/$', Register.as_view(), name='register'),
     url(r'^v1/data/requester/$', UserInfo.as_view(), name='userinfo'),
+    url(r'^v1/data/notifications/$', NotificationsList.as_view(), name='notifications'),
     url(r'^v1/(?P<username>[-\w]+)/settings/$', SettingsAPI.as_view(), name='settings_update'),
     url(r'^v1/(?P<username>[-\w]+)/credentials/$', CredentialsAPI.as_view(), name='credentials'),
     url(

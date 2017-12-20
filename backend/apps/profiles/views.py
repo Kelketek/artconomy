@@ -11,11 +11,12 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.exceptions import ValidationError, PermissionDenied
 from rest_framework.generics import ListCreateAPIView, CreateAPIView, RetrieveUpdateDestroyAPIView, UpdateAPIView, \
-    GenericAPIView
+    GenericAPIView, ListAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.lib.serializers import CommentSerializer
+from apps.lib.models import Notification
+from apps.lib.serializers import CommentSerializer, NotificationSerializer
 from apps.profiles.models import User, Character, ImageAsset
 from apps.profiles.permissions import ObjectControls, UserControls, AssetViewPermission, AssetControls, \
     AssetCommentPermission
@@ -201,6 +202,15 @@ class UserInfo(APIView):
         else:
             data = {}
         return Response(data=data, status=status.HTTP_200_OK)
+
+
+class NotificationsList(ListAPIView):
+    serializer_class = NotificationSerializer
+
+    def get_queryset(self):
+        if not self.request.user.is_authenticated():
+            return PermissionDenied("You must be authenticated to view notifications.")
+        return Notification.objects.filter(user=self.request.user).select_related('event').order_by('event__date')
 
 
 def register_dwolla(request):

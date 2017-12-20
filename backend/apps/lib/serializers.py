@@ -3,8 +3,8 @@ import base64, uuid
 from django.core.files.base import ContentFile
 from rest_framework import serializers
 
-from apps.lib.models import Comment
-from apps.profiles.models import User
+from apps.lib.models import Comment, Notification, Event
+from apps.profiles.models import User, ImageAsset
 
 
 class RelatedUserSerializer(serializers.ModelSerializer):
@@ -41,3 +41,31 @@ class CommentSerializer(serializers.ModelSerializer):
         fields = ('id', 'text', 'created_on', 'edited_on', 'user', 'children', 'edited', 'deleted')
         read_only_fields = ('id', 'created_on', 'edited_on', 'user', 'children', 'edited', 'deleted')
 
+
+class EventRelatedField(serializers.RelatedField):
+    def to_representation(self, value):
+        # Avoid circular imports.
+        from apps.profiles.serializers import ImageAssetSerializer
+        if isinstance(value, User):
+            return RelatedUserSerializer(value)
+        if isinstance(value, ImageAsset):
+            ImageAssetSerializer(value)
+        return str(value)
+
+
+class EventSerializer(serializers.ModelSerializer):
+    target = EventRelatedField(read_only=True)
+
+    class Meta:
+        model = Event
+        fields = ('id', 'type', 'data', 'date', 'target')
+        read_only_fields = fields
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+    event = EventSerializer(read_only=True)
+
+    class Meta:
+        model = Notification
+        fields = ('event', 'read')
+        read_only_fields = ('event',)

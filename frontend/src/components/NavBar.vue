@@ -19,7 +19,10 @@
           <b-nav-item v-if="user.username" :to="{name: 'Profile', params: {username: user.username}}">
             <span class="nav-login-item">{{ user.username }}</span>
           </b-nav-item>
-          <b-nav-item-dropdown v-if="user.username" text="<i class='fa fa-gear'></i>" right>
+          <b-nav-item v-if="user.username" :to="{name: 'Notifications'}">
+            <span><i class="fa fa-bell"></i></span>
+          </b-nav-item>
+          <b-nav-item-dropdown v-if="user.username" text="<i class='fa fa-ellipsis-h'></i>" right>
             <b-dropdown-item :to="{name: 'Profile', params: {username: user.username}}"><i
               class="fa fa-gear"></i> Profile</b-dropdown-item>
             <b-dropdown-item v-if="user.username" @click.prevent="logout()">Signout</b-dropdown-item>

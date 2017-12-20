@@ -43,6 +43,7 @@ class User(AbstractEmailUser):
         help_text="Enable this to only display clean art. "
                   "Useful if temporarily browsing from a location where adult content is not appropriate."
     )
+    notifications = ManyToManyField('lib.Event', through='lib.Notification')
 
     def save(self, *args, **kwargs):
         self.email = self.email and self.email.lower()

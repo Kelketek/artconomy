@@ -1,5 +1,6 @@
 import Router from 'vue-router'
 import Home from '@/components/Home'
+import NotificationCenter from '@/components/NotificationCenter'
 import Profile from '@/components/Profile'
 import Characters from '@/components/Characters'
 import Character from '@/components/Character'
@@ -11,6 +12,11 @@ export const routes = [
     path: '/',
     name: 'Home',
     component: Home
+  },
+  {
+    path: '/notifications/',
+    name: 'Notifications',
+    component: NotificationCenter
   },
   {
     path: '/profile/:username/',
