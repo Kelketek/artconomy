@@ -75,6 +75,8 @@
             this.model[key] = defaults[key]
           }
         }
+        // Make sure we don't screw up our 'saved' setting.
+        this.oldValue = defaults
       },
       // To fix this properly I would need to make an update upstream. If it becomes enough of an issue, I might.
       // For now, jQuery will do.
@@ -90,6 +92,11 @@
         this.successes = []
         this.warnings = []
         let self = this
+        this.$refs.form.validate()
+        if (this.$refs.form.errors.length) {
+          this.enable()
+          return
+        }
         $.ajax({
           url: self.url,
           method: self.method,
@@ -134,13 +141,27 @@
         saved: false,
         defaults: function () {
           return {}
-        }
+        },
+        oldValue: {}
       }
     },
     watch: {
       model: {
-        handler () {
-          this.saved = false
+        handler (newValue) {
+          // Vue has a limitation where objects may be marked as changed when they have not always been
+          let changed = false
+          for (let key of Object.keys(newValue)) {
+            if (newValue[key] !== this.oldValue[key]) {
+              changed = true
+              this.saved = false
+              break
+            }
+          }
+          // Make a copy of the old object. Don't do this unless we've detected a change or it can cause the watcher
+          // to think another change has been made in a weird way. Not sure why.
+          if (changed) {
+            this.oldValue = JSON.parse(JSON.stringify(newValue))
+          }
         },
         deep: true,
         immediate: true

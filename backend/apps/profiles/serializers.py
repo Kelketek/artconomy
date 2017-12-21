@@ -85,6 +85,18 @@ class ImageAssetSerializer(serializers.ModelSerializer):
             'id', 'title', 'caption', 'rating', 'file', 'private', 'created_on', 'uploaded_by', 'comment_count',
             'favorite_count', 'comments_disabled',
         )
+        write_only_fields = (
+            'file',
+        )
+
+
+class AvatarSerializer(serializers.Serializer):
+    avatar = Base64ImageField()
+
+    class Meta:
+        fields = (
+            'avatar',
+        )
 
 
 class CharacterSerializer(serializers.ModelSerializer):
@@ -172,7 +184,9 @@ class CredentialsSerializer(serializers.ModelSerializer):
         required=False
     )
     # Confirmation of new password should be done on client-side and refuse to send unless verified.
-    new_password = serializers.CharField(write_only=True, required=False, validators=[validate_password])
+    new_password = serializers.CharField(
+        write_only=True, required=False, allow_blank=True, validators=[validate_password]
+    )
     current_password = serializers.CharField(write_only=True, validators=[CorrectPasswordValidator()])
     email = serializers.EmailField(
         validators=[FieldUniqueValidator('email__iexact', 'This email address is already taken.', User)],
@@ -215,6 +229,6 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             'commissions_closed', 'rating', 'sfw_mode', 'max_load', 'username', 'id', 'is_staff', 'is_superuser',
-            'dwolla_configured', 'csrftoken', 'avatar_url'
+            'dwolla_configured', 'csrftoken', 'avatar_url', 'email'
         )
         read_only_fields = fields

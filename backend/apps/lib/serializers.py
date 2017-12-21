@@ -29,7 +29,8 @@ class Base64ImageField(serializers.ImageField):
             ext = fmt.split('/')[-1]  # guess file extension
             auto_id = uuid.uuid4()
             data = ContentFile(base64.b64decode(image_string), name=auto_id.urn[9:] + '.' + ext)
-        return super(Base64ImageField, self).to_internal_value(data)
+        result = super(Base64ImageField, self).to_internal_value(data)
+        return result
 
 
 class RecursiveField(serializers.Serializer):

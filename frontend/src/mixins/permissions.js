@@ -7,7 +7,16 @@ export default {
     }
   },
   created () {
-    this.$root.setUser(this.user.username, this)
+    this.configureUser()
+  },
+  methods: {
+    configureUser () {
+      this.$root.setUser(this.user.username, this)
+    },
+    refreshUser () {
+      delete this.$root.usercache[this.user.username]
+      this.configureUser()
+    }
   },
   computed: {
     controls: function () {
@@ -15,6 +24,9 @@ export default {
     },
     viewer: function () {
       return this.$root.user
+    },
+    is_current: function () {
+      return this.user.username === this.viewer.username
     }
   }
 }

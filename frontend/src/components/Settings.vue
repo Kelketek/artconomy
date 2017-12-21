@@ -2,27 +2,68 @@
   <div class="settings-center container">
     <div class="row">
       <div class="main-settings col-sm-12" v-if="$root.user.username">
-        <form>
-          <ac-form-container ref="settingsForm" :schema="settingsSchema" :model="settingsModel"
-                             :options="settingsOptions" :success="updateUser"
-                             :url="`/api/profiles/v1/${this.user.username}/settings/`"
-                             method="PATCH"
-                             :reset-after="false"
-          >
-            <b-button type="submit" variant="primary" @click.prevent="$refs.settingsForm.submit">Update</b-button>
-            <i v-if="$refs.settingsForm && $refs.settingsForm.saved" class="fa fa-check" style="color: green"></i>
-          </ac-form-container>
-        </form>
+        <b-tabs v-model="tab">
+          <b-tab title="<i class='fa fa-sliders'></i> Options">
+            <form class="mt-3">
+              <ac-form-container ref="settingsForm" :schema="settingsSchema" :model="settingsModel"
+                                 :options="settingsOptions" :success="updateUser"
+                                 :url="`/api/profiles/v1/${this.user.username}/settings/`"
+                                 method="PATCH"
+                                 :reset-after="false"
+              >
+                <b-button type="submit" variant="primary" @click.prevent="$refs.settingsForm.submit">Update</b-button>
+                <i v-if="$refs.settingsForm && $refs.settingsForm.saved" class="fa fa-check" style="color: green"></i>
+              </ac-form-container>
+            </form>
+          </b-tab>
+          <b-tab title="<i class='fa fa-id-card-o'></i> Credentials">
+            <form class="mt-3">
+              <ac-form-container ref="credentialsForm" :schema="credentialsSchema" :model="credentialsModel"
+                                 :options="credentialsOptions" :success="updateCredentials"
+                                 :url="`/api/profiles/v1/${this.user.username}/credentials/`"
+                                 :reset-after="false"
+              >
+                <b-button type="submit" variant="primary" @click.prevent="$refs.credentialsForm.submit">Update</b-button>
+                <i v-if="$refs.credentialsForm && $refs.credentialsForm.saved" class="fa fa-check" style="color: green"></i>
+              </ac-form-container>
+            </form>
+          </b-tab>
+          <b-tab title="<i class='fa fa-image'></i> Avatar">
+            <div class="text-center mt-3">
+              <p>Current Avatar:</p>
+              <img class="avatar-preview shadowed mb-3" :src="this.user.avatar_url" />
+              <p v-if="user.avatar_url.indexOf('gravatar') > -1">Default avatars provided by <a href="http://en.gravatar.com/">Gravatar</a></p>
+            </div>
+            <form class="mt-3">
+              <legend>Upload a new avatar</legend>
+              <ac-form-container ref="avatarForm" :schema="avatarSchema" :model="avatarModel"
+                                 :options="avatarOptions" :success="updateAvatar"
+                                 :url="`/api/profiles/v1/${this.user.username}/avatar/`"
+              >
+                <b-button type="submit" variant="primary" @click.prevent="$refs.avatarForm.submit">Upload</b-button>
+                <i v-if="$refs.avatarForm && $refs.avatarForm.saved" class="fa fa-check" style="color: green"></i>
+              </ac-form-container>
+            </form>
+          </b-tab>
+          <b-tab title="<i class='fa fa-money'></i> Payment">
+          </b-tab>
+        </b-tabs>
       </div>
     </div>
   </div>
 </template>
 
+<style>
+  .avatar-preview {
+    border: 1px solid black;
+  }
+</style>
+
 <script>
   import VueFormGenerator from 'vue-form-generator'
   import AcFormContainer from './ac-form-container'
   import Permissions from '../mixins/permissions'
-  import { ratings, setMetaContent } from '../lib'
+  import { inputMatches, qsHandleInt, ratings, setMetaContent } from '../lib'
 
   export default {
     components: {AcFormContainer},
@@ -31,6 +72,35 @@
       updateUser () {
         // The arguments pushed to the success function evaluate as true, so we have to make sure none are passed.
         this.$root.loadUser()
+      },
+      updateCredentials () {
+        this.credentialsModel.current_password = ''
+        this.credentialsModel.new_password = ''
+        this.credentialsModel.new_password2 = ''
+        if (this.user.username !== this.credentialsModel.username) {
+          this.$router.replace(
+            {
+              name: this.$route.name,
+              params: Object.assign({}, this.$route.params, {username: this.credentialsModel.username}),
+              query: this.$route.query
+            }
+          )
+          this.user.username = this.credentialsModel.username
+          this.refreshUser()
+          this.refreshUser()
+          if (this.is_current) {
+            this.$root.loadUser()
+          }
+        }
+        // Fool form into thinking nothing has changed.
+        this.$refs.credentialsForm.oldValue = JSON.parse(JSON.stringify(this.credentialsModel))
+        this.$refs.credentialsForm.saved = true
+      },
+      updateAvatar () {
+        this.refreshUser()
+        if (this.is_current) {
+          this.$root.loadUser()
+        }
       }
     },
     data () {
@@ -38,9 +108,11 @@
         settingsModel: JSON.parse(JSON.stringify(this.$root.user)),
         settingsUpdated: false,
         credentialsModel: {
-          username: '',
-          password: '',
-          password2: ''
+          username: this.$root.user.username,
+          email: this.$root.user.email,
+          current_password: '',
+          new_password: '',
+          new_password2: ''
         },
         settingsSchema: {
           fields: [{
@@ -80,12 +152,84 @@
         settingsOptions: {
           validateAfterLoad: false,
           validateAfterChanged: true
+        },
+        credentialsSchema: {
+          fields: [{
+            type: 'input',
+            inputType: 'text',
+            label: 'Username',
+            model: 'username',
+            placeholder: '',
+            featured: true,
+            required: true,
+            hint: 'Warning: This will change all URLs for your profile and all of your submissions. This will affect SEO and bookmarks.',
+            validator: VueFormGenerator.validators.string
+          }, {
+            type: 'input',
+            inputType: 'text',
+            label: 'Email',
+            model: 'email',
+            placeholder: 'example@example.com',
+            featured: true,
+            required: true,
+            validator: VueFormGenerator.validators.email
+          }, {
+            type: 'input',
+            inputType: 'password',
+            label: 'Current Password',
+            model: 'current_password',
+            min: 8,
+            required: true,
+            featured: true,
+            validator: VueFormGenerator.validators.string
+          }, {
+            type: 'input',
+            inputType: 'password',
+            label: 'New Password',
+            model: 'new_password',
+            min: 8,
+            required: false,
+            featured: false,
+            validator: VueFormGenerator.validators.string
+          }, {
+            type: 'input',
+            inputType: 'password',
+            label: 'New Password (again)',
+            model: 'new_password2',
+            min: 8,
+            required: false,
+            featured: false,
+            validator: inputMatches('new_password', 'Passwords do not match')
+          }]
+        },
+        credentialsOptions: {
+          validateAfterLoad: false,
+          validateAfterChanged: true
+        },
+        avatarModel: {
+          avatar: ''
+        },
+        avatarOptions: {
+          validateAfterLoad: false,
+          validateAfterChanged: true
+        },
+        avatarSchema: {
+          fields: [{
+            type: 'image',
+            id: 'avatar',
+            label: 'File',
+            model: 'avatar',
+            required: true
+          }]
         }
       }
     },
     created () {
       document.title = `Account settings for ${this.$route.params.username}`
       setMetaContent('description', 'Configure your account settings for Artconomy.')
+    },
+    computed: {
+      tab: qsHandleInt('tab', true)
     }
   }
 </script>

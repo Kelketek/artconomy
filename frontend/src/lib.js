@@ -99,3 +99,32 @@ export function setMetaContent (tagname, value) {
   }
   desctag.content = value
 }
+
+export function qsHandleInt (handleName) {
+  return {
+    get () {
+      let val = parseInt(this.$route.query[handleName])
+      if (isNaN(val)) {
+        val = 0
+      }
+      return val
+    },
+    set (value) {
+      let query = {}
+      query[handleName] = value
+      this.$router.history.replace({query: Object.assign({}, this.$route.query, query)})
+    }
+  }
+}
+
+export function inputMatches (inputName, errorText) {
+  return (value, field, model) => {
+    if (value !== model[inputName]) {
+      console.log(value)
+      console.log(model[inputName])
+      return [errorText]
+    } else {
+      return []
+    }
+  }
+}

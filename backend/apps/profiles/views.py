@@ -1,6 +1,6 @@
-from datetime import date
-
 import requests
+from avatar.models import Avatar
+from avatar.signals import avatar_updated
 from django.conf import settings
 from django.contrib.auth import login, get_user_model, authenticate, logout, update_session_auth_hash
 from django.http import HttpResponse
@@ -16,12 +16,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.lib.models import Notification
-from apps.lib.serializers import CommentSerializer, NotificationSerializer
+from apps.lib.serializers import CommentSerializer, NotificationSerializer, Base64ImageField, RelatedUserSerializer
 from apps.profiles.models import User, Character, ImageAsset
-from apps.profiles.permissions import ObjectControls, UserControls, AssetViewPermission, AssetControls, \
-    AssetCommentPermission
+from apps.profiles.permissions import ObjectControls, UserControls, AssetViewPermission, AssetControls
 from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer, SettingsSerializer, UserSerializer, \
-    RegisterSerializer, ImageAssetManagementSerializer, CredentialsSerializer
+    RegisterSerializer, ImageAssetManagementSerializer, CredentialsSerializer, AvatarSerializer
 from shortcuts import make_url
 
 
@@ -65,7 +64,7 @@ class CredentialsAPI(GenericAPIView):
         serializer.save()
         if request.user == serializer.instance:
             # make sure the user stays logged in
-            update_session_auth_hash(request, request.user)
+            update_session_auth_hash(request, serializer.instance)
 
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
@@ -194,14 +193,55 @@ class AssetComments(ListCreateAPIView):
         pass
 
 
+class SetAvatar(GenericAPIView):
+    serializer_class = AvatarSerializer
+    permission_classes = [UserControls]
+
+    def post(self, request, username):
+        user = get_object_or_404(User, username=username)
+        self.check_object_permissions(request, user)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        avatar = Avatar(user=request.user, primary=True)
+        image_file = Base64ImageField().to_internal_value(request.data['avatar'])
+        avatar.avatar.save(image_file.name, image_file)
+        avatar.save()
+        avatar_updated.send(sender=Avatar, user=request.user, avatar=avatar)
+        Avatar.objects.filter(user=request.user).exclude(id=avatar.id).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 class UserInfo(APIView):
-    def get(self, request):
-        if request.user.is_authenticated():
-            serializer = UserSerializer(request.user, request=request)
+    def get_serializer(self, user):
+        if self.request.user.is_staff:
+            return UserSerializer
+        if self.request.user == user:
+            return UserSerializer
+        else:
+            return RelatedUserSerializer
+
+    def get_user(self):
+        return get_object_or_404(User, username=self.kwargs.get('username'))
+
+    def get(self, request, **kwargs):
+        user = self.get_user()
+        if user:
+            serializer = self.get_serializer(user)(request.user, request=request)
             data = serializer.data
         else:
             data = {}
         return Response(data=data, status=status.HTTP_200_OK)
+
+
+class CurrentUserInfo(UserInfo):
+    def get_user(self):
+        if self.request.user.is_authenticated():
+            return self.request.user
+        else:
+            return
+
+    def get_serializer(self, user):
+        return UserSerializer
 
 
 class NotificationsList(ListAPIView):
@@ -290,9 +330,6 @@ def perform_login(request):
             # If the account is valid and active, we can log the user in.
             # We'll send the user to their account.
             login(request, user)
-            user = get_user_model().objects.get(id=user.id)
-            user.last_action_date = date.today()
-            user.save()
         else:
             # An inactive account was used - no logging in!
             logout(request)
