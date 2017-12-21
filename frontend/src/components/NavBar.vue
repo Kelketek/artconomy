@@ -17,14 +17,16 @@
         <b-navbar-nav class="ml-auto" v-if="user !== null">
           <!-- Navbar dropdowns -->
           <b-nav-item v-if="user.username" :to="{name: 'Profile', params: {username: user.username}}">
-            <span class="nav-login-item">{{ user.username }}</span>
+            <span class="nav-login-item">
+              <img style="height:1.5rem" :src="user.avatar_url"> {{ user.username }}
+            </span>
           </b-nav-item>
           <b-nav-item v-if="user.username" :to="{name: 'Notifications'}">
             <span><i class="fa fa-bell"></i></span>
           </b-nav-item>
           <b-nav-item-dropdown v-if="user.username" text="<i class='fa fa-ellipsis-h'></i>" right>
-            <b-dropdown-item :to="{name: 'Profile', params: {username: user.username}}"><i
-              class="fa fa-gear"></i> Profile</b-dropdown-item>
+            <b-dropdown-item :to="{name: 'Settings', params: {username: user.username}}"><i
+              class="fa fa-gear"></i> Settings</b-dropdown-item>
             <b-dropdown-item v-if="user.username" @click.prevent="logout()">Signout</b-dropdown-item>
           </b-nav-item-dropdown>
           <b-nav-item v-else @click="$refs.loginModal.show()">

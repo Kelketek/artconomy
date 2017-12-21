@@ -9,7 +9,7 @@
         <div class="card-block submission-description"><ac-patchfield v-model="submission.caption" name="caption" :multiline="true" :editmode="editing" :url="url"></ac-patchfield></div>
       </div>
       <div class="col-sm-12 col-md-4 text-section pt-3 pl-4">
-        <h3>By <router-link :to="{name: 'Profile', params: {username: submission.uploaded_by.username}}">{{ submission.uploaded_by.username }}</router-link></h3>
+        <ac-avatar :user="submission.uploaded_by"></ac-avatar>
         <i v-if="controls && !editing" class="ml-2 fa fa-2x fa-lock clickable pull-right" @click="edit"></i>
         <i v-if="controls && editing" class="ml-2 fa fa-2x fa-unlock clickable pull-right" @click="lock"></i>
         <div v-if="controls" class="pull-right">
@@ -51,10 +51,11 @@
   import AcPatchfield from './ac-patchfield'
   import AcPatchbutton from './ac-patchbutton'
   import AcCommentSection from './ac-comment-section'
+  import AcAvatar from './ac-avatar'
 
   export default {
     name: 'Home',
-    components: {AcCharacterPreview, AcPatchfield, AcCommentSection, AcPatchbutton},
+    components: {AcCharacterPreview, AcPatchfield, AcCommentSection, AcPatchbutton, AcAvatar},
     mixins: [Editable],
     data () {
       return {

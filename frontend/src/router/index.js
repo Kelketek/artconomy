@@ -2,6 +2,7 @@ import Router from 'vue-router'
 import Home from '@/components/Home'
 import NotificationCenter from '@/components/NotificationCenter'
 import Profile from '@/components/Profile'
+import Settings from '@/components/Settings'
 import Characters from '@/components/Characters'
 import Character from '@/components/Character'
 import Submission from '@/components/Submission'
@@ -22,6 +23,11 @@ export const routes = [
     path: '/profile/:username/',
     name: 'Profile',
     component: Profile
+  },
+  {
+    path: '/profile/:username/settings/',
+    name: 'Settings',
+    component: Settings
   },
   {
     path: '/profile/:username/characters/',

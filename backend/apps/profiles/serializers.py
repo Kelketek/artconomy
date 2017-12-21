@@ -1,3 +1,4 @@
+from avatar.templatetags.avatar_tags import avatar_url
 from django.conf import settings
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.contenttypes.models import ContentType
@@ -195,6 +196,7 @@ class CredentialsSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     dwolla_configured = serializers.SerializerMethodField()
     csrftoken = serializers.SerializerMethodField()
+    avatar_url = serializers.SerializerMethodField()
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request')
@@ -206,10 +208,13 @@ class UserSerializer(serializers.ModelSerializer):
     def get_csrftoken(self, value):
         return get_token(self.request)
 
+    def get_avatar_url(self, obj):
+        return avatar_url(obj)
+
     class Meta:
         model = User
         fields = (
             'commissions_closed', 'rating', 'sfw_mode', 'max_load', 'username', 'id', 'is_staff', 'is_superuser',
-            'dwolla_configured', 'csrftoken',
+            'dwolla_configured', 'csrftoken', 'avatar_url'
         )
         read_only_fields = fields

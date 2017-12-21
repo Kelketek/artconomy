@@ -58,7 +58,14 @@
         default: function () {
           return {}
         }
-      }
+      },
+      resetAfter: {
+        type: Boolean,
+        default: function () {
+          return true
+        }
+      },
+      value: {}
     },
     methods: {
       reset: function () {
@@ -77,37 +84,6 @@
       enable: function () {
         $(this.$el).find('fieldset').attr('disabled', false)
       },
-      // serialize: function () {
-      //   return new FormData(this.getForm())
-      // },
-      // getForm: function () {
-      //   let $el = $(this.$el);
-      //   if (!(this.$el.tagName === 'FORM')) {
-      //     let candidate = $el.parents('form')
-      //     if (candidate.length === 0) {
-      //       $el = $el.find('form')
-      //     } else {
-      //       $el = candidate
-      //     }
-      //   }
-      //   let $cloned = $el.clone();
-      //   // get original selects into a jq object
-      //   let $originalSelects = $el.find('select')
-      //   $cloned.find('select').each(function (index, item) {
-      //     // set new select to value of old select
-      //     $(item).val($originalSelects.eq(index).val())
-      //   })
-      //   $el = $cloned
-      //
-      //   // Normal file fields. May no longer be needed.
-      //   $el.find('input[type=file]').each(function () {
-      //     let field = $(this)
-      //     if (!field.val()) {
-      //       field.remove()
-      //     }
-      //   })
-      //   return $el[0]
-      // },
       submit: function () {
         this.disable()
         this.errors = []
@@ -127,7 +103,10 @@
       },
       success_hook: function (response, event) {
         this.success(response)
-        this.reset()
+        if (this.resetAfter) {
+          this.reset()
+        }
+        this.saved = true
         this.enable()
       },
       failure_hook: function (response, event) {
@@ -152,9 +131,19 @@
         successes: [],
         errors: [],
         warnings: [],
+        saved: false,
         defaults: function () {
           return {}
         }
+      }
+    },
+    watch: {
+      model: {
+        handler () {
+          this.saved = false
+        },
+        deep: true,
+        immediate: true
       }
     }
   }

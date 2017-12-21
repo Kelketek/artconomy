@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'custom_user',
     'easy_thumbnails',
     'djmoney',
+    'avatar',
     'apps.profiles.apps.ProfilesConfig',
     'apps.sales.apps.SalesConfig',
     'apps.lib',

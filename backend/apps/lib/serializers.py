@@ -1,5 +1,6 @@
 import base64, uuid
 
+from avatar.templatetags.avatar_tags import avatar_url
 from django.core.files.base import ContentFile
 from rest_framework import serializers
 
@@ -8,10 +9,15 @@ from apps.profiles.models import User, ImageAsset
 
 
 class RelatedUserSerializer(serializers.ModelSerializer):
+    avatar_url = serializers.SerializerMethodField()
+
+    def get_avatar_url(self, obj):
+        return avatar_url(obj)
+
     class Meta:
         model = User
-        fields = ('id', 'username')
-        read_only_fields = ('id', 'username')
+        fields = ('id', 'username', 'avatar_url')
+        read_only_fields = ('id', 'username', 'avatar_url')
 
 
 # Custom image field - handles base 64 encoded images

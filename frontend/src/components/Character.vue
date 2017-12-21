@@ -50,7 +50,7 @@
         </div>
       </div>
       <div class="col-md-4 col-sm-12 text-section pt-3 pl-4">
-        <h3 class="mb-0">By <router-link :to="{name: 'Profile', params: {username: character.user.username}}">{{ character.user.username }}</router-link></h3>
+        <ac-avatar :user="character.user"></ac-avatar>
       </div>
     </div>
     <div class="row mb-3" v-if="character">
@@ -118,6 +118,7 @@
   import AcFormContainer from './ac-form-container'
   import AcPatchfield from './ac-patchfield'
   import AcGalleryPreview from './ac-gallery-preview'
+  import AcAvatar from './ac-avatar'
 
   export default {
     name: 'Character',
@@ -126,7 +127,8 @@
       AcGalleryPreview,
       AcPatchfield,
       AcAction,
-      AcFormContainer
+      AcFormContainer,
+      AcAvatar
     },
     methods: {
       parseDesc: function () {
