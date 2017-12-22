@@ -49,7 +49,7 @@
           <div class="card-block character-description"><ac-patchfield v-model="character.description" name="description" :multiline="true" :editmode="editing" :url="url"></ac-patchfield></div>
         </div>
       </div>
-      <div class="col-md-4 col-sm-12 text-section pt-3 pl-4">
+      <div class="col-md-4 col-sm-12 text-section text-center pt-3 pl-4">
         <ac-avatar :user="character.user"></ac-avatar>
       </div>
     </div>

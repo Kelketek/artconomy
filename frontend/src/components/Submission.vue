@@ -9,7 +9,7 @@
         <div class="card-block submission-description"><ac-patchfield v-model="submission.caption" name="caption" :multiline="true" :editmode="editing" :url="url"></ac-patchfield></div>
       </div>
       <div class="col-sm-12 col-md-4 text-section pt-3 pl-4">
-        <ac-avatar :user="submission.uploaded_by"></ac-avatar>
+        <div class="text-center"><ac-avatar :user="submission.uploaded_by"></ac-avatar></div>
         <i v-if="controls && !editing" class="ml-2 fa fa-2x fa-lock clickable pull-right" @click="edit"></i>
         <i v-if="controls && editing" class="ml-2 fa fa-2x fa-unlock clickable pull-right" @click="lock"></i>
         <div v-if="controls" class="pull-right">
