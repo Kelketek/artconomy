@@ -46,14 +46,25 @@
             </form>
           </b-tab>
           <b-tab title="<i class='fa fa-money'></i> Payment">
-            <div class="text-center mt-3">
-              <p v-if="user.dwolla_configured">
-                Your Dwolla account has been set up.
-              </p>
-              <p v-else>
-                You must set up a Dwolla account before you can sell on Artconomy. <a :href="user.dwolla_setup_url">Click here</a> to set up your dwolla account.
-              </p>
-            </div>
+            <b-tabs pills>
+              <b-tab title="<i class='fa fa-credit-card'></i> Payment Methods">
+                <div class="row mt-3">
+                  <div class="col-lg-4 col-md-6 col-sm-12">
+                    <ac-card-manager :username="user.username"></ac-card-manager>
+                  </div>
+                </div>
+              </b-tab>
+              <b-tab title="<i class='fa fa-usd'></i> Deposit Accounts">
+                <div class="text-center mt-3">
+                  <p v-if="user.dwolla_configured">
+                    Your Dwolla account has been set up.
+                  </p>
+                  <p v-else>
+                    You must set up a Dwolla account before you can sell on Artconomy. <a :href="user.dwolla_setup_url">Click here</a> to set up your dwolla account.
+                  </p>
+                </div>
+              </b-tab>
+            </b-tabs>
           </b-tab>
         </b-tabs>
       </div>
@@ -73,6 +84,7 @@
   import Viewer from '../mixins/viewer'
   import Perms from '../mixins/permissions'
   import { inputMatches, paramHandleMap, ratings, setMetaContent } from '../lib'
+  import AcCardManager from './ac-card-manager'
 
   const TabMap = {
     options: 0,
@@ -82,7 +94,9 @@
   }
 
   export default {
-    components: {AcFormContainer},
+    components: {
+      AcCardManager,
+      AcFormContainer},
     mixins: [Viewer, Perms],
     methods: {
       updateUser () {

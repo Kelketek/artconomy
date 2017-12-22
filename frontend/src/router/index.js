@@ -28,7 +28,7 @@ export const routes = [
     props: true
   },
   {
-    path: '/profile/:username/settings/:tabName?/',
+    path: '/profile/:username/settings/:tabName?/:subTabName?/',
     name: 'Settings',
     component: Settings,
     props: true

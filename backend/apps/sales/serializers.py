@@ -84,15 +84,7 @@ class NewCardSerializer(serializers.Serializer):
     card_number = serializers.CharField(max_length=25)
     # If this code lasts long enough for this to be a problem, I will be both surprised and happy.
     exp_date = serializers.CharField(max_length=5, min_length=5)
-    address = serializers.CharField(
-        max_length=60
-    )
     security_code = serializers.CharField(max_length=4, min_length=3, validators=[RegexValidator(r'\d+')])
-    city = serializers.CharField(max_length=40)
-    country = serializers.ChoiceField(choices=country_choices())
-    state = serializers.CharField(
-        max_length=3, required=False,
-    )
     zip = serializers.CharField(max_length=20, required=False)
 
     def validate_exp_date(self, value):
@@ -121,15 +113,6 @@ class NewCardSerializer(serializers.Serializer):
                 raise serializers.ValidationError("Please check the card number.")
             return value
         raise serializers.ValidationError("A card number must be at least 13 digits long and at most 19.")
-
-    def validate(self, attrs):
-        if 'country' not in attrs:
-            return attrs
-        if attrs['country'] != 'US':
-            return attrs
-        if not attrs.get('zip'):
-            raise serializers.ValidationError("US Addresses must have a zip code.")
-        return attrs
 
 
 class PaymentSerializer(serializers.Serializer):

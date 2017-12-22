@@ -10,5 +10,5 @@ urlpatterns = [
     url(
         r'^v1/comment/(?P<comment_id>\d+)/reply/$', CommentReply.as_view(),
         name='comment'
-    )
+    ),
 ]

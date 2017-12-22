@@ -9,16 +9,19 @@
       <div class="col-sm-12 text-section pt-2 mb-2">
         <h2>Characters</h2>
       </div>
-      <Characters embedded="true"></Characters>
+      <Characters :username="username" embedded="true"></Characters>
     </div>
   </div>
 </template>
 
 <script>
+  import Viewer from '../mixins/viewer'
+  import Perms from '../mixins/permissions'
   import Characters from './Characters'
 
   export default {
     name: 'Profile',
+    mixins: [Viewer, Perms],
     components: {Characters},
     data: function () {
       return {

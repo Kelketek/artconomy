@@ -15,6 +15,7 @@ from rest_framework.views import APIView
 
 from apps.lib.permissions import ObjectStatus
 from apps.lib.serializers import CommentSerializer
+from apps.lib.utils import country_choices, country_map, subdivision_map
 from apps.profiles.models import User
 from apps.profiles.permissions import ObjectControls, UserControls
 from apps.sales.permissions import OrderViewPermission, OrderSellerPermission, OrderBuyerPermission
@@ -240,10 +241,10 @@ class CardList(ListCreateAPIView):
         data = serializer.validated_data
         user = get_object_or_404(User, username=self.kwargs['username'])
         self.check_object_permissions(self.request, user)
-        address = {'street': data['address'], 'city': data['city'], 'state': data['state'], 'zip_code': data['zip']}
         return CreditCardToken.create(
-            user=user, address=address, exp_month=data['exp_date'].month, exp_year=data['exp_date'].year,
-            first_name='', last_name='', security_code=data['security_code'], number=data['card_number']
+            user=user, exp_month=data['exp_date'].month, exp_year=data['exp_date'].year,
+            security_code=data['security_code'], number=data['card_number'],
+            zip_code=data['zip']
         )
 
 
@@ -255,7 +256,7 @@ class CardManager(RetrieveUpdateDestroyAPIView):
         card = get_object_or_404(
             CreditCardToken, user__username=self.kwargs['username'], id=self.kwargs['card_id'], active=True
         )
-        self.check_object_permissions(self.request, card.user)
+        self.check_object_permissions(self.request, card)
         return card
 
     def perform_destroy(self, instance):

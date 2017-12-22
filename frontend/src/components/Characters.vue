@@ -93,11 +93,11 @@
       },
       addCharacter (response) {
         this.$router.history.push(
-          {name: 'Character', params: {user: this.user.username, character: response.name}, query: {editing: true}}
+          {name: 'Character', params: {user: this.username, character: response.name}, query: {editing: true}}
         )
       },
       fetchCharacters (pageNum) {
-        let url = `/api/profiles/v1/${this.user.username}/characters/?page=${this.currentPage}`
+        let url = `/api/profiles/v1/${this.username}/characters/?page=${this.currentPage}`
         artCall(url, 'GET', undefined, this.populateCharacters)
       }
     },

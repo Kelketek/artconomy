@@ -54,7 +54,7 @@ $enable-shadows: true;
 $enable-gradients: false;
 $enable-rounded: false;
 
-$card-cap-bg: $dark-purple;
+$card-cap-bg: $dark-gray;
 $card-cap-fg: $eggshell;
 $card-bg: $eggshell;
 $jumbotron-bg: $dark-beige;
@@ -195,7 +195,7 @@ $container-max-widths: (
   object-position: top;
 }
 
-// Asset page'
+// Asset page
 .featured-character-wrapper {
   text-align: center;
   width: 10rem;

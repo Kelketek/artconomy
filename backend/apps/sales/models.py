@@ -320,25 +320,20 @@ class CreditCardToken(Model):
         self.save()
 
     @classmethod
-    def authorize_card(cls, number, exp_year, exp_month, security_code,
-                       first_name, last_name, address):
-        card = CreditCard(
-            number, exp_year, exp_month, security_code, first_name, last_name)
+    def authorize_card(cls, number, exp_year, exp_month, security_code, zip_code):
+        card = CreditCard(number, exp_year, exp_month, security_code, '', '')
 
         card_type = CreditCardToken.TYPE_TRANSLATION[card.card_type]
 
-        address = Address(**address)
+        address = Address(street='', city='', state='', zip_code=zip_code)
         saved_card = sauce.card(card, address).save()
 
         return saved_card, card_type, number[:4]
 
     @classmethod
-    def create(cls, user, number, exp_year, exp_month, security_code,
-               first_name, last_name, address):
+    def create(cls, user, number, exp_year, exp_month, security_code, zip_code):
 
-        saved_card, card_type, last_four = cls.authorize_card(
-            number, exp_year, exp_month, security_code, first_name, last_name,
-            address)
+        saved_card, card_type, last_four = cls.authorize_card(number, exp_year, exp_month, security_code, zip_code)
 
         token = cls(
             user=user, card_type=card_type, last_four=number[:4],
