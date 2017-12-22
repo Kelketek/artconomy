@@ -87,6 +87,5 @@ describe('Character.vue', () => {
     )
     await localVue.nextTick()
     expect(wrapper.find('.character-description').text()).to.equal('A very testy character')
-    expect(wrapper.find('.character-panel-preview img').element.getAttribute('src')).to.equal('/test_asset1.jpg')
   })
 })

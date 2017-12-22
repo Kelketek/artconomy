@@ -12,12 +12,11 @@ from rest_framework.decorators import api_view
 from rest_framework.exceptions import ValidationError, PermissionDenied
 from rest_framework.generics import ListCreateAPIView, CreateAPIView, RetrieveUpdateDestroyAPIView, UpdateAPIView, \
     GenericAPIView, ListAPIView
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.lib.models import Notification
-from apps.lib.permissions import Any, All
+from apps.lib.permissions import Any, All, IsSafeMethod
 from apps.lib.serializers import CommentSerializer, NotificationSerializer, Base64ImageField, RelatedUserSerializer
 from apps.profiles.models import User, Character, ImageAsset
 from apps.profiles.permissions import ObjectControls, UserControls, AssetViewPermission, AssetControls, NonPrivate
@@ -121,7 +120,7 @@ class ImageAssetListAPI(ListCreateAPIView):
 
 class CharacterManager(RetrieveUpdateDestroyAPIView):
     serializer_class = CharacterSerializer
-    permission_classes = [Any([All([IsAuthenticatedOrReadOnly, NonPrivate]), ObjectControls])]
+    permission_classes = [Any([All([IsSafeMethod, NonPrivate]), ObjectControls])]
 
     def get_object(self):
         character = get_object_or_404(Character, user__username=self.kwargs['username'], name=self.kwargs['character'])
@@ -157,7 +156,7 @@ class MakePrimary(APIView):
 
 class AssetManager(RetrieveUpdateDestroyAPIView):
     serializer_class = ImageAssetManagementSerializer
-    permission_classes = [Any([All([IsAuthenticatedOrReadOnly, NonPrivate]), AssetControls])]
+    permission_classes = [Any([All([IsSafeMethod, NonPrivate]), AssetControls])]
 
     def get_object(self):
         asset = get_object_or_404(

@@ -1,7 +1,6 @@
 from logging import getLogger
 
-from rest_framework.permissions import BasePermission
-
+from rest_framework.permissions import BasePermission, SAFE_METHODS
 
 logger = getLogger(__name__)
 
@@ -65,6 +64,18 @@ def ObjectStatus(status, message):
 class IsStaff(BasePermission):
     def has_object_permission(self, request, view, obj):
         return request.user.is_staff
+
+
+class IsSafeMethod(BasePermission):
+    """
+    Is a read-only request.
+    """
+
+    def has_permission(self, request, view):
+        return request.method in SAFE_METHODS
+
+    def has_object_permission(self, request, view, obj):
+        return self.has_permission(request, view)
 
 
 def Any(perms):

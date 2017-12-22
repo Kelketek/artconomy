@@ -1,6 +1,7 @@
 from io import BytesIO
 
 from PIL import Image
+from avatar.templatetags.avatar_tags import avatar_url
 
 from apps.profiles.tests.factories import CharacterFactory, ImageAssetFactory
 
@@ -37,7 +38,11 @@ def serialize_char(key, value):
             'private': key.primary_asset.private,
             'rating': key.primary_asset.rating,
             'created_on': key.primary_asset.created_on.isoformat().replace('+00:00', 'Z'),
-            'uploaded_by': {'username': key.user.username, 'id': key.user.id},
+            'uploaded_by': {
+                'username': key.user.username,
+                'id': key.user.id,
+                'avatar_url': avatar_url(key.user)
+            },
             'comments_disabled': key.primary_asset.comments_disabled,
         },
         'private': key.private,
@@ -45,7 +50,8 @@ def serialize_char(key, value):
         'open_requests_restrictions': key.open_requests_restrictions,
         'user': {
             'username': key.user.username,
-            'id': key.user.id
+            'id': key.user.id,
+            'avatar_url': avatar_url(key.user)
         },
     }
 

@@ -49,7 +49,6 @@ class CharacterAPITestCase(APITestCase):
         response = self.client.get('/api/profiles/v1/{}/characters/'.format(self.user.username))
         self.assertEqual(len(response.data['results']), 5)
         self.assertIn(serialize_char(private_character, characters[private_character]), response.data['results'])
-
         # Should work for staff, too.
         self.login(self.staffer)
         response = self.client.get('/api/profiles/v1/{}/characters/'.format(self.user.username))

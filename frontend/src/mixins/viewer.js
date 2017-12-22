@@ -1,9 +1,9 @@
 export default {
   computed: {
     rating: function () {
-      let rating = 0
+      let contentRating = 0
       if (this.viewer.sfw_mode) {
-        return rating
+        return contentRating
       } else {
         return this.viewer.rating || 0
       }
