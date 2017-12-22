@@ -35,7 +35,9 @@
       </div>
       <div class="col-lg-4 p-0 section-text">
         <div class="character-panel-preview text-center">
-          <ac-asset img-class="character-refsheet" v-if="character.primary_asset && character.primary_asset.id" :asset="character.primary_asset"></ac-asset>
+          <router-link v-if="character.primary_asset && character.primary_asset.id" :to="{name: 'Submission', params: {assetID: character.primary_asset.id}}">
+            <ac-asset img-class="character-refsheet" :asset="character.primary_asset"></ac-asset>
+          </router-link>
           <img class="character-refsheet" v-else src="/static/images/default-avatar.png"/>
         </div>
       </div>
