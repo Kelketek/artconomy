@@ -46,6 +46,14 @@
             </form>
           </b-tab>
           <b-tab title="<i class='fa fa-money'></i> Payment">
+            <div class="text-center mt-3">
+              <p v-if="user.dwolla_configured">
+                Your Dwolla account has been set up.
+              </p>
+              <p v-else>
+                You must set up a Dwolla account before you can sell on Artconomy. <a :href="user.dwolla_setup_url">Click here</a> to set up your dwolla account.
+              </p>
+            </div>
           </b-tab>
         </b-tabs>
       </div>
@@ -62,12 +70,13 @@
 <script>
   import VueFormGenerator from 'vue-form-generator'
   import AcFormContainer from './ac-form-container'
-  import Permissions from '../mixins/permissions'
+  import Viewer from '../mixins/viewer'
+  import Perms from '../mixins/permissions'
   import { inputMatches, qsHandleInt, ratings, setMetaContent } from '../lib'
 
   export default {
     components: {AcFormContainer},
-    mixins: [Permissions],
+    mixins: [Viewer, Perms],
     methods: {
       updateUser () {
         // The arguments pushed to the success function evaluate as true, so we have to make sure none are passed.
@@ -138,6 +147,9 @@
             required: false,
             validator: VueFormGenerator.validators.boolean,
             hint: 'By setting this value, you are affirming that the content this rating represents is legal to view in your area and you meet all legal qualifications (such as age) to view it.',
+            selectOptions: {
+              hideNoneSelectedText: true
+            },
             values: ratings
           }, {
             type: 'checkbox',

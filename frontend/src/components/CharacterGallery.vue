@@ -39,6 +39,7 @@
 <script>
   import Perms from '../mixins/permissions'
   import Paginated from '../mixins/paginated'
+  import Viewer from '../mixins/viewer'
   import VueFormGenerator from 'vue-form-generator'
   import {artCall} from '../lib'
   import AcFormContainer from './ac-form-container'
@@ -47,7 +48,7 @@
   export default {
     components: {AcFormContainer, AcCharacterPreview},
     name: 'Characters',
-    mixins: [Perms, Paginated],
+    mixins: [Viewer, Perms, Paginated],
     props: ['embedded'],
     data: function () {
       return {

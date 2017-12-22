@@ -22,9 +22,6 @@ export default {
     controls: function () {
       return this.viewer.is_staff || (this.user.username === this.viewer.username)
     },
-    viewer: function () {
-      return this.$root.user
-    },
     is_current: function () {
       return this.user.username === this.viewer.username
     }

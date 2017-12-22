@@ -2,7 +2,7 @@
   <div class="container">
     <div class="row shadowed" v-if="submission">
       <div class="col-sm-12 character-refsheet-container text-center text-section">
-        <img :src="submission.file">
+        <ac-asset :asset="submission" :rating="rating"></ac-asset>
       </div>
       <div class="col-sm-12 col-md-8 text-section pt-3 pl-4">
         <ac-patchfield v-model="submission.title" name="title" styleclass="name-edit" :editmode="editing" :url="url"></ac-patchfield>
@@ -48,15 +48,17 @@
   import { artCall, setMetaContent, textualize } from '../lib'
   import AcCharacterPreview from './ac-character-preview'
   import Editable from '../mixins/editable'
+  import Viewer from '../mixins/viewer'
   import AcPatchfield from './ac-patchfield'
   import AcPatchbutton from './ac-patchbutton'
   import AcCommentSection from './ac-comment-section'
   import AcAvatar from './ac-avatar'
+  import AcAsset from './ac-asset'
 
   export default {
     name: 'Home',
-    components: {AcCharacterPreview, AcPatchfield, AcCommentSection, AcPatchbutton, AcAvatar},
-    mixins: [Editable],
+    components: {AcCharacterPreview, AcPatchfield, AcCommentSection, AcPatchbutton, AcAvatar, AcAsset},
+    mixins: [Viewer, Editable],
     data () {
       return {
         submission: null,

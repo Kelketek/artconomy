@@ -1,7 +1,7 @@
 <template>
     <div class="patchfield-wrapper" :class="classes">
-      <b-button :disabled="disabled" :variant="trueVariant" v-if="value" @click="save">{{ falseText }}</b-button>
-      <b-button :variant="falseVariant" v-else @click="save">{{ trueText }}</b-button>
+      <b-button :disabled="disabled" :variant="trueVariant" v-if="value" @click="save" :class="classes">{{ falseText }}</b-button>
+      <b-button :disabled="disabled" :class="classes" :variant="falseVariant" v-else @click="save">{{ trueText }}</b-button>
     </div>
 </template>
 
@@ -10,7 +10,7 @@
 
   export default {
     name: 'ac-patchbutton',
-    props: ['value', 'name', 'trueText', 'falseText', 'callback', 'classes', 'trueVariant', 'falseVariant', 'url'],
+    props: ['value', 'name', 'trueText', 'falseText', 'callback', 'classes', 'trueVariant', 'falseVariant', 'url', 'classes'],
     data: function () {
       return {
         disabled: false

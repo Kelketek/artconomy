@@ -11,6 +11,10 @@ from apps.profiles.models import User, ImageAsset
 class RelatedUserSerializer(serializers.ModelSerializer):
     avatar_url = serializers.SerializerMethodField()
 
+    def __init__(self, request=None, *args, **kwargs):
+        # For compatibility with main User serializer
+        super().__init__(*args, **kwargs)
+
     def get_avatar_url(self, obj):
         return avatar_url(obj)
 

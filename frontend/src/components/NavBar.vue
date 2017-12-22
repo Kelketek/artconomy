@@ -21,6 +21,7 @@
               <img style="height:1.5rem" :src="user.avatar_url"> {{ user.username }}
             </span>
           </b-nav-item>
+          <ac-patchbutton v-if="user.username && user.rating > 0" :url="`/api/profiles/v1/${this.user.username}/settings/`" :classes="{'btn-sm': true, 'm-0': true}" name="sfw_mode" v-model="user.sfw_mode" true-text="NSFW" true-variant="success" false-text="SFW"></ac-patchbutton>
           <b-nav-item v-if="user.username" :to="{name: 'Notifications'}">
             <span><i class="fa fa-bell"></i></span>
           </b-nav-item>
@@ -77,6 +78,7 @@
 <script>
   import VueFormGenerator from 'vue-form-generator'
   import { artCall, setErrors, setCookie } from '../lib'
+  import AcPatchbutton from './ac-patchbutton'
 
   const TAB_MAP = {
     0: {url: '/api/profiles/v1/login/', label: 'Login', form: 'loginForm'},
@@ -92,6 +94,7 @@
   }
 
   export default {
+    components: {AcPatchbutton},
     name: 'NavBar',
     props: ['user'],
     data () {

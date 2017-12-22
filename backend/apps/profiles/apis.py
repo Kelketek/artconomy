@@ -25,7 +25,7 @@ def dwolla_setup_link():
     ).format(
         mode="sandbox" if settings.SANDBOX_APIS else "www",
         client_id=client.id,
-        redirect_uri=make_url(reverse('accounts:register_dwolla')),
+        redirect_uri=make_url(reverse('profiles:register_dwolla')),
     )
 
 authorize_api = AuthorizeClient(

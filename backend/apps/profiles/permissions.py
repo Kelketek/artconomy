@@ -61,3 +61,11 @@ class UserControls(BasePermission):
             return True
         if request.user == obj:
             return True
+
+
+class NonPrivate(BasePermission):
+    """
+    Checks to see whether this object has its private field set True.
+    """
+    def has_object_permission(self, request, view, obj):
+        return not obj.private

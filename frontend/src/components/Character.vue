@@ -114,6 +114,7 @@
   import { artCall, ratings } from '../lib'
   import Perms from '../mixins/permissions'
   import Editable from '../mixins/editable'
+  import Viewer from '../mixins/viewer'
   import AcAction from './ac-action'
   import AcFormContainer from './ac-form-container'
   import AcPatchfield from './ac-patchfield'
@@ -122,7 +123,7 @@
 
   export default {
     name: 'Character',
-    mixins: [Perms, Editable],
+    mixins: [Viewer, Perms, Editable],
     components: {
       AcGalleryPreview,
       AcPatchfield,
@@ -200,6 +201,9 @@
         Vue.nextTick(function () {
           $('html, body').animate({ scrollTop: $('#title').offset().top - 100 }, 200)
         })
+      },
+      fetchAssets () {
+        artCall(this.url + 'assets/?size=4', 'GET', null, this.loadAssets)
       },
       loadAssets (response) {
         this.totalPieces = response.count
@@ -309,7 +313,12 @@
     },
     created () {
       artCall(this.url, 'GET', null, this.loadCharacter)
-      artCall(this.url + 'assets/?size=4', 'GET', null, this.loadAssets)
+      this.fetchAssets()
+    },
+    watch: {
+      rating () {
+        this.fetchAssets()
+      }
     }
   }
 </script>

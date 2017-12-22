@@ -8,6 +8,7 @@ from django.middleware.csrf import get_token
 from rest_framework import serializers
 
 from apps.lib.serializers import RelatedUserSerializer, Base64ImageField
+from apps.profiles.apis import dwolla_setup_link
 from apps.profiles.models import Character, ImageAsset, User
 
 
@@ -211,6 +212,7 @@ class UserSerializer(serializers.ModelSerializer):
     dwolla_configured = serializers.SerializerMethodField()
     csrftoken = serializers.SerializerMethodField()
     avatar_url = serializers.SerializerMethodField()
+    dwolla_setup_url = serializers.SerializerMethodField()
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request')
@@ -218,6 +220,9 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_dwolla_configured(self, obj):
         return bool(obj.dwolla_url)
+
+    def get_dwolla_setup_url(self, obj):
+        return dwolla_setup_link()
 
     def get_csrftoken(self, value):
         return get_token(self.request)
@@ -229,6 +234,6 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             'commissions_closed', 'rating', 'sfw_mode', 'max_load', 'username', 'id', 'is_staff', 'is_superuser',
-            'dwolla_configured', 'csrftoken', 'avatar_url', 'email'
+            'dwolla_configured', 'dwolla_setup_url', 'csrftoken', 'avatar_url', 'email'
         )
         read_only_fields = fields
