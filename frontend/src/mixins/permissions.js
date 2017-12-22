@@ -1,9 +1,10 @@
 // This mixin can only be used on views that have a definitive controlling user,
 // such as a user's profile or settings page. The username must be in the route params.
 export default {
+  props: ['username'],
   data: function () {
     return {
-      user: {username: this.$route.params.username}
+      user: {username: this.username}
     }
   },
   created () {

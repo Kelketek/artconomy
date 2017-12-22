@@ -72,7 +72,14 @@
   import AcFormContainer from './ac-form-container'
   import Viewer from '../mixins/viewer'
   import Perms from '../mixins/permissions'
-  import { inputMatches, qsHandleInt, ratings, setMetaContent } from '../lib'
+  import { inputMatches, paramHandleMap, ratings, setMetaContent } from '../lib'
+
+  const TabMap = {
+    options: 0,
+    credentials: 1,
+    avatar: 2,
+    payment: 3
+  }
 
   export default {
     components: {AcFormContainer},
@@ -241,7 +248,7 @@
       setMetaContent('description', 'Configure your account settings for Artconomy.')
     },
     computed: {
-      tab: qsHandleInt('tab', true)
+      tab: paramHandleMap('tabName', TabMap)
     }
   }
 </script>

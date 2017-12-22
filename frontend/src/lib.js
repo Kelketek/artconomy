@@ -100,19 +100,24 @@ export function setMetaContent (tagname, value) {
   desctag.content = value
 }
 
-export function qsHandleInt (handleName) {
+export function paramHandleMap (handleName, tabMap) {
+  const numMap = {}
+
+  for (let key of Object.keys(tabMap)) {
+    numMap[tabMap[key]] = key
+  }
   return {
     get () {
-      let val = parseInt(this.$route.query[handleName])
-      if (isNaN(val)) {
+      let val = tabMap[this.$route.params[handleName]]
+      if (val === undefined) {
         val = 0
       }
       return val
     },
     set (value) {
-      let query = {}
-      query[handleName] = value
-      this.$router.history.replace({query: Object.assign({}, this.$route.query, query)})
+      let params = {}
+      params[handleName] = numMap[value]
+      this.$router.history.replace({params: Object.assign({}, this.$route.params, params)})
     }
   }
 }

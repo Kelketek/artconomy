@@ -12,42 +12,50 @@ export const routes = [
   {
     path: '/',
     name: 'Home',
-    component: Home
+    component: Home,
+    props: true
   },
   {
     path: '/notifications/',
     name: 'Notifications',
-    component: NotificationCenter
+    component: NotificationCenter,
+    props: true
   },
   {
     path: '/profile/:username/',
     name: 'Profile',
-    component: Profile
+    component: Profile,
+    props: true
   },
   {
-    path: '/profile/:username/settings/',
+    path: '/profile/:username/settings/:tabName?/',
     name: 'Settings',
-    component: Settings
+    component: Settings,
+    props: true
   },
   {
     path: '/profile/:username/characters/',
     name: 'Characters',
-    component: Characters
+    component: Characters,
+    props: true
   },
   {
     path: '/profile/:username/characters/:character/',
     name: 'Character',
-    component: Character
+    component: Character,
+    props: true
   },
   {
     path: '/profile/:username/characters/:character/gallery/',
     name: 'CharacterGallery',
-    component: CharacterGallery
+    component: CharacterGallery,
+    props: true
   },
   {
     path: '/submissions/:assetID/',
     name: 'Submission',
-    component: Submission
+    component: Submission,
+    props: true
   }
 ]
 
