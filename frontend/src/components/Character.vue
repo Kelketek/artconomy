@@ -35,7 +35,7 @@
       </div>
       <div class="col-lg-4 p-0 section-text">
         <div class="character-panel-preview text-center">
-          <img class="character-refsheet" v-if="character.primary_asset && character.primary_asset.id" :src="character.primary_asset.file"/>
+          <ac-asset img-class="character-refsheet" v-if="character.primary_asset && character.primary_asset.id" :asset="character.primary_asset"></ac-asset>
           <img class="character-refsheet" v-else src="/static/images/default-avatar.png"/>
         </div>
       </div>
@@ -120,6 +120,7 @@
   import AcPatchfield from './ac-patchfield'
   import AcGalleryPreview from './ac-gallery-preview'
   import AcAvatar from './ac-avatar'
+  import AcAsset from './ac-asset'
 
   export default {
     name: 'Character',
@@ -129,7 +130,8 @@
       AcPatchfield,
       AcAction,
       AcFormContainer,
-      AcAvatar
+      AcAvatar,
+      AcAsset
     },
     methods: {
       parseDesc: function () {

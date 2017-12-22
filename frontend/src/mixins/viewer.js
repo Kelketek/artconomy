@@ -5,7 +5,7 @@ export default {
       if (this.viewer.sfw_mode) {
         return rating
       } else {
-        return this.viewer.rating
+        return this.viewer.rating || 0
       }
     },
     viewer: function () {
