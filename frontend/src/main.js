@@ -10,6 +10,7 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import App from './App'
 import NavBar from './components/NavBar'
+import fieldCharacterSearch from './components/fieldCharacterSearch'
 import { artCall, md } from './lib'
 import {router} from './router'
 
@@ -24,6 +25,7 @@ Vue.use(BootstrapVue)
 Vue.use(VueFormGenerator)
 Vue.config.productionTip = false
 Vue.component('ac-navbar', NavBar)
+Vue.component('fieldCharacterSearch', fieldCharacterSearch)
 
 /* eslint-disable no-new */
 new Vue({

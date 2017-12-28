@@ -65,10 +65,13 @@ export function setErrors (form, errors) {
 }
 
 export function artCall (url, method, data, success, error) {
+  if (method !== 'GET') {
+    data = data ? JSON.stringify(data) : undefined
+  }
   return $.ajax({
     url,
     method,
-    data: data ? JSON.stringify(data) : undefined,
+    data: data,
     contentType: 'application/json; charset=utf-8',
     dataType: 'json',
     success,
