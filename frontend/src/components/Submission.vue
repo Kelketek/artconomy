@@ -2,7 +2,7 @@
   <div class="container">
     <div class="row shadowed" v-if="submission">
       <div class="col-sm-12 character-refsheet-container text-center text-section">
-        <ac-asset :asset="submission" :rating="rating"></ac-asset>
+        <ac-asset :asset="submission" thumb-name="gallery" :rating="rating"></ac-asset>
       </div>
       <div class="col-sm-12 col-md-8 text-section pt-3 pl-4">
         <ac-patchfield v-model="submission.title" name="title" styleclass="name-edit" :editmode="editing" :url="url"></ac-patchfield>

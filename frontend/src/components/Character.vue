@@ -36,7 +36,7 @@
       <div class="col-lg-4 p-0 section-text">
         <div class="character-panel-preview text-center">
           <router-link v-if="character.primary_asset && character.primary_asset.id" :to="{name: 'Submission', params: {assetID: character.primary_asset.id}}">
-            <ac-asset img-class="character-refsheet" :asset="character.primary_asset"></ac-asset>
+            <ac-asset img-class="character-refsheet" thumb-name="gallery" :asset="character.primary_asset"></ac-asset>
           </router-link>
           <img class="character-refsheet" v-else src="/static/images/default-avatar.png"/>
         </div>
@@ -58,11 +58,11 @@
     <div class="row mb-3" v-if="character">
       <div class="col-sm-12 col-md-9 text-center image-showcase" v-if="assets && assets.length">
         <router-link v-if="character.primary_asset && character.primary_asset.id" :to="{name: 'Submission', params: {assetID: character.primary_asset.id}}">
-          <img class="character-refsheet mb-2 shadowed" :src="character.primary_asset.file"/>
+          <img class="character-refsheet mb-2 shadowed" :src="character.primary_asset.file.gallery"/>
           <div class="character-gallery-title text-center">{{ character.primary_asset.title }}</div>
         </router-link>
         <router-link v-else-if="assets && assets[0]" :to="{name: 'Submission', params: {assetID: assets[0].id}}">
-          <img class="character-refsheet shadowed" :src="assets[0].file"/>
+          <img class="character-refsheet shadowed" :src="assets[0].file.gallery"/>
           <div class="gallery-image-overlay">
             <div class="gallery-image-stats"><i class="fa fa-star"></i> {{ asset.favorite_count }} <i class="fa fa-comment"></i> {{ asset.comment_count }}</div>
           </div>
@@ -135,6 +135,7 @@
       AcAvatar,
       AcAsset
     },
+    props: ['characterName'],
     methods: {
       parseDesc: function () {
         return this.$root.md.render(this.character.description)
@@ -180,13 +181,6 @@
       showUpdater: function () {
         this.$refs.updater.showUpdater()
       },
-      rating: function (rate) {
-        return {
-          0: 'Clean/Safe for work',
-          1: 'Risque/mature',
-          2: 'Adult'
-        }[rate]
-      },
       nameUpdate () {
         this.$router.history.replace(
           {
@@ -195,7 +189,7 @@
             'query': {'editing': true}
           }
         )
-        this.url = `/api/profiles/v1/${this.$route.params.username}/characters/${this.$route.params.character}/`
+        this.url = `/api/profiles/v1/${this.username}/characters/${this.characterName}/`
       },
       loadCharacter (response) {
         this.character = response
@@ -226,7 +220,7 @@
         character: null,
         assets: null,
         totalPieces: 0,
-        url: `/api/profiles/v1/${this.$route.params.username}/characters/${this.$route.params.character}/`,
+        url: `/api/profiles/v1/${this.username}/characters/${this.characterName}/`,
         newUploadModel: {
           title: '',
           caption: '',

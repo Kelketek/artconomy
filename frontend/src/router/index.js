@@ -3,6 +3,7 @@ import Home from '@/components/Home'
 import NotificationCenter from '@/components/NotificationCenter'
 import Profile from '@/components/Profile'
 import Store from '@/components/Store'
+import Product from '@/components/Product'
 import Settings from '@/components/Settings'
 import Characters from '@/components/Characters'
 import Character from '@/components/Character'
@@ -32,7 +33,12 @@ export const routes = [
     path: '/store/:username/',
     name: 'Store',
     component: Store,
-    props: true
+    props (route) {
+      return {
+        username: route.params.username,
+        url: `/api/sales/v1/${route.params.username}/products/`
+      }
+    }
   },
   {
     path: '/profile/:username/settings/:tabName?/:subTabName?/',
@@ -47,7 +53,7 @@ export const routes = [
     props: true
   },
   {
-    path: '/profile/:username/characters/:character/',
+    path: '/profile/:username/characters/:characterName/',
     name: 'Character',
     component: Character,
     props: true
@@ -62,6 +68,12 @@ export const routes = [
     path: '/submissions/:assetID/',
     name: 'Submission',
     component: Submission,
+    props: true
+  },
+  {
+    path: '/store/:username/product/:productID/',
+    name: 'Product',
+    component: Product,
     props: true
   }
 ]

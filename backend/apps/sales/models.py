@@ -23,22 +23,22 @@ class Product(ImageModel):
     """
     Product on offer by an art seller.
     """
-    SKETCH = 1
-    FULLBODY = 2
-    REFERENCE = 3
-    BADGE = 4
-    ICON = 5
-    ICON_SET = 6
-    HEADSHOT = 7
-    CHIBI = 8
-    GAME_ASSET = 9
-    THREE_D = 10
-    ANIMATION_2D = 11
-    ANIMATION_3D = 12
-    STORY_SHORT = 13
-    STORY_LONG = 14
-    MUSIC = 15
-    OTHER = 16
+    SKETCH = 0
+    FULLBODY = 1
+    REFERENCE = 2
+    BADGE = 3
+    ICON = 4
+    ICON_SET = 5
+    HEADSHOT = 6
+    CHIBI = 7
+    GAME_ASSET = 8
+    THREE_D = 9
+    ANIMATION_2D = 10
+    ANIMATION_3D = 11
+    STORY_SHORT = 12
+    STORY_LONG = 13
+    MUSIC = 14
+    OTHER = 15
 
     CATEGORIES = (
         (SKETCH, "Sketch"),
@@ -79,9 +79,8 @@ class Product(ImageModel):
     max_parallel = IntegerField(
         validators=[MinValueValidator(1)], help_text="How many of these you are willing to have in your "
                                                      "backlog at one time.",
-        null=True,
         blank=True,
-        default=None
+        default=0
     )
     task_weight = IntegerField(
         validators=[MinValueValidator(1)]

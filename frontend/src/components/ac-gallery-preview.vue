@@ -2,7 +2,7 @@
     <div class="character-gallery-image-container">
       <router-link :to="{name: 'Submission', params: {assetID: asset.id}}">
         <div class="character-gallery-image shadowed">
-          <img :src="asset.file">
+          <img :src="asset.file.thumbnail">
           <div class="gallery-image-overlay">
             <div class="gallery-image-stats"><i class="fa fa-star"></i> {{ asset.favorite_count }} <i class="fa fa-comment"></i> {{ asset.comment_count }}</div>
           </div>

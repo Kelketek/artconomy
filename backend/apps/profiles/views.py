@@ -3,6 +3,7 @@ from avatar.models import Avatar
 from avatar.signals import avatar_updated
 from django.conf import settings
 from django.contrib.auth import login, get_user_model, authenticate, logout, update_session_auth_hash
+from django.db.models import Q, Case, When, Value, IntegerField, F
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
@@ -244,6 +245,37 @@ class CurrentUserInfo(UserInfo):
 
     def get_serializer(self, user):
         return UserSerializer
+
+
+class CharacterSearch(ListAPIView):
+    serializer_class = CharacterSerializer
+
+    def get_queryset(self):
+        query = self.request.GET.get('q', '')
+        try:
+            commissions = int(self.request.GET.get('new_order', '0'))
+        except ValueError:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={'errors': ['New Order must be an integer.']})
+        exclude = Q(private=True)
+        if commissions:
+            exclude |= Q(open_requests=False)
+        # If staffer, allow search on behalf of user.
+        if self.request.user.is_staff:
+            user = get_object_or_404(User, id=self.request.GET.get('user', self.request.user.id))
+        else:
+            user = self.request.user
+        if self.request.user.is_authenticated():
+            return Character.objects.filter(
+                name__istartswith=query
+            ).exclude(exclude & ~Q(user=user)).annotate(
+                # Make target user characters negative so they're always first.
+                mine=Case(
+                    When(user_id=user.id, then=0-F('id')),
+                    default=F('id'),
+                    output_field=IntegerField(),
+                )
+            ).order_by('mine')
+        return Character.objects.filter(name__istartswith=query).exclude(private=True).order_by('id')
 
 
 class NotificationsList(ListAPIView):

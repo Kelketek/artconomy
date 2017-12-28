@@ -1,6 +1,7 @@
 import base64, uuid
 
 from avatar.templatetags.avatar_tags import avatar_url
+from django.conf import settings
 from django.core.files.base import ContentFile
 from rest_framework import serializers
 
@@ -26,6 +27,10 @@ class RelatedUserSerializer(serializers.ModelSerializer):
 
 # Custom image field - handles base 64 encoded images
 class Base64ImageField(serializers.ImageField):
+    def __init__(self, *args, **kwargs):
+        self.thumbnail_namespace = kwargs.pop('thumbnail_namespace', '')
+        super().__init__(*args, **kwargs)
+
     def to_internal_value(self, data):
         if isinstance(data, str) and data.startswith('data:image'):
             # base64 encoded image - decode
@@ -35,6 +40,24 @@ class Base64ImageField(serializers.ImageField):
             data = ContentFile(base64.b64decode(image_string), name=auto_id.urn[9:] + '.' + ext)
         result = super(Base64ImageField, self).to_internal_value(data)
         return result
+
+    def to_representation(self, value):
+        if not value:
+            return None
+        values = {}
+
+        for key in settings.THUMBNAIL_ALIASES[self.thumbnail_namespace]:
+            values[key] = value[key].url
+
+        values['full'] = value.url
+
+        request = self.context.get('request', None)
+        if request is not None:
+            values = {
+                key: request.build_absolute_uri(value) for key, value in values.items()
+            }
+
+        return values
 
 
 class RecursiveField(serializers.Serializer):

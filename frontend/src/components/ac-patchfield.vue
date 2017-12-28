@@ -1,8 +1,16 @@
 <template>
     <div class="patchfield-wrapper" :class="classes()">
-      <div v-if="editing && multiline"><textarea style="width: 100%;" class="patchfield-multiline-editor" @keydown="handleMultilineInput" ref="field" @input="resizer" v-focus="true" :value="value" @blur="save" @keyup.escape="reset" :disabled="disabled"></textarea></div>
-      <div v-else-if="editing"><input type="text" class="patch-input" ref="field" @keyup.enter="save" v-focus="true" :value="value" @blur="save" @keyup.escape="reset" :disabled="disabled"></div>
-      <div v-else-if="editmode" @click="startEditing"><div class="patchfield-preview" :class="{'patchfield-preview-multiline': multiline}" tabindex="0" @focus="startEditing" @input="update" v-html="preview"></div><i class="fa fa-pencil" style="padding-left: 1em;"></i></div>
+      <div v-if="editing && multiline">
+        <textarea style="width: 100%;" class="patchfield-multiline-editor" @keydown="handleMultilineInput" ref="field" @input="resizer" v-focus="true" :value="value" @blur="save" @keyup.escape="reset" :disabled="disabled"></textarea>
+      </div>
+      <div v-else-if="editing">
+        <input type="text" class="patch-input" ref="field" @keyup.enter="save" v-focus="true" :value="value" @blur="save" @keyup.escape="reset" :disabled="disabled">
+      </div>
+      <div v-else-if="editmode" @click="startEditing">
+        <div class="patchfield-preview" :class="{'patchfield-preview-multiline': multiline}" tabindex="0" @focus="startEditing" @input="update" v-html="preview"></div>
+        <span v-if="errors.length"><i v-b-popover.hover="formatErrors()" class="fa fa-times error-marker"></i></span>
+        <i class="fa fa-pencil pl-1"></i>
+      </div>
       <div v-else-if="multiline" class="patchfield-normal" v-html="preview"></div>
       <div v-else class="patchfield-normal" v-html="preview"></div>
     </div>
@@ -22,15 +30,16 @@
       return {
         editing: false,
         original: this.value,
-        disabled: false
+        disabled: false,
+        errors: []
       }
     },
     computed: {
       preview: function () {
         if (this.multiline) {
-          return this.$root.md.render(this.value)
+          return this.$root.md.render(this.value + '')
         } else {
-          return this.$root.md.renderInline(this.value)
+          return this.$root.md.renderInline(this.value + '')
         }
       }
     },
@@ -40,6 +49,16 @@
       },
       resizer () {
         autosize(this.$refs.field)
+      },
+      formatErrors () {
+        let errors = ''
+        for (let [index, error] of Array.entries(this.errors)) {
+          errors += error
+          if (index + 1 < errors.length) {
+            errors += '\n'
+          }
+        }
+        return errors
       },
       startEditing () {
         this.editing = true
@@ -54,6 +73,7 @@
         this.editing = false
       },
       save () {
+        this.errors = []
         if (this.original === this.$refs.field.value) {
           this.editing = false
           return
@@ -62,7 +82,7 @@
         let data = {}
         this.disabled = true
         data[this.name] = this.$refs.field.value
-        artCall(this.url, 'PATCH', data, this.postSave)
+        artCall(this.url, 'PATCH', data, this.postSave, this.postFail)
       },
       handleMultilineInput (event) {
         if (event.keyCode === 13) {
@@ -82,6 +102,15 @@
         this.disabled = false
         if (this.callback) {
           this.callback()
+        }
+      },
+      postFail (response) {
+        this.editing = false
+        this.disabled = false
+        if (response.responseJSON) {
+          this.errors = response.responseJSON[this.name]
+        } else {
+          this.errors = ['There was an issue while saving. Please try again later.']
         }
       },
       classes () {
@@ -120,6 +149,9 @@
   }
   .patchfield-wrapper {
     display: inline-block;
+  }
+  .error-marker {
+    color: red;
   }
   .patchfield-multiline-wrapper {
     width: 100%;

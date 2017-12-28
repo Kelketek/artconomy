@@ -93,7 +93,7 @@
       },
       addCharacter (response) {
         this.$router.history.push(
-          {name: 'Character', params: {user: this.user.username, character: response.name}, query: {editing: true}}
+          {name: 'Character', params: {user: this.user.username, characterName: response.name}, query: {editing: true}}
         )
       },
       fetchCharacters (pageNum) {

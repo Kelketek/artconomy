@@ -7,7 +7,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import SerializerMethodField, DecimalField, IntegerField
 
-from apps.lib.serializers import RelatedUserSerializer
+from apps.lib.serializers import RelatedUserSerializer, Base64ImageField
 from apps.lib.utils import country_choices
 from apps.profiles.serializers import CharacterSerializer
 from apps.sales.models import Product, Order, CreditCardToken, Revision
@@ -15,6 +15,7 @@ from apps.sales.models import Product, Order, CreditCardToken, Revision
 
 class ProductSerializer(serializers.ModelSerializer):
     user = RelatedUserSerializer(read_only=True)
+    file = Base64ImageField(thumbnail_namespace='sales.Product.file')
 
     def get_thumbnail_url(self, obj):
         return self.context['request'].build_absolute_uri(obj.file.url)
@@ -22,7 +23,7 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = (
-            'id', 'name', 'description', 'category', 'revisions', 'hidden', 'task_weight',
+            'id', 'name', 'description', 'category', 'revisions', 'hidden', 'max_parallel', 'task_weight',
             'expected_turnaround', 'user', 'file', 'rating', 'price'
         )
 

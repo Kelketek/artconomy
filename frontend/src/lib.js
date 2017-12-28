@@ -76,12 +76,46 @@ export function artCall (url, method, data, success, error) {
   })
 }
 
+export const RATINGS = {
+  0: 'Clean/Safe for work',
+  1: 'Risque/mature, not adult content but not safe for work',
+  2: 'Adult content, not safe for work',
+  3: 'Offensive/Disturbing to most viewers, not safe for work'
+}
+
+export const PRODUCT_TYPES = {
+  0: 'Sketch',
+  1: 'Full Body',
+  2: 'Reference Sheet',
+  3: 'Convention badge/button/card',
+  4: 'Single Icon',
+  5: 'Icon/Sticker set',
+  6: 'Headshot',
+  7: 'Chibi',
+  8: 'Game asset/skin',
+  9: '3D Rendered Image',
+  10: 'Animated (2D)',
+  11: 'Animated (3D)',
+  12: 'Short Story',
+  13: 'Long story',
+  14: 'Music',
+  15: 'Other'
+}
+
+function genOptions (enumerable) {
+  let contentRatings = []
+  for (let key in Object.keys(enumerable)) {
+    contentRatings.push({id: key, name: enumerable[key]})
+  }
+  return contentRatings
+}
+
 export function ratings () {
-  return [
-    {id: 0, name: 'Clean/Safe for work'},
-    {id: 1, name: 'Risque/mature, not adult content but not safe for work'},
-    {id: 2, name: 'Adult content, not safe for work'}
-  ]
+  return genOptions(RATINGS)
+}
+
+export function productTypes () {
+  return genOptions(PRODUCT_TYPES)
 }
 
 export function textualize (markdown) {

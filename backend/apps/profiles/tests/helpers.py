@@ -21,16 +21,20 @@ def gen_characters(user, count=5, asset_count=3):
     return characters
 
 
-def serialize_char(key, value):
+def serialize_char(key):
     return {
         'id': key.id,
         'name': key.name,
         'description': key.description,
         'gender': key.gender,
         'species': key.species,
-        'primary_asset': {
+        'primary_asset': key.primary_asset and {
             'id': key.primary_asset.id,
-            'file': 'http://testserver' + key.primary_asset.file.url,
+            'file': {
+                'full': 'http://testserver' + key.primary_asset.file.url,
+                'thumbnail': 'http://testserver' + key.primary_asset.file['thumbnail'].url,
+                'gallery': 'http://testserver' + key.primary_asset.file['gallery'].url,
+            },
             'title': key.primary_asset.title,
             'caption': key.primary_asset.caption,
             'comment_count': key.primary_asset.comments.count(),

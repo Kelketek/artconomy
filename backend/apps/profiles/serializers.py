@@ -54,7 +54,7 @@ class ImageAssetSerializer(serializers.ModelSerializer):
     uploaded_by = RelatedUserSerializer(read_only=True)
     comment_count = serializers.SerializerMethodField()
     favorite_count = serializers.SerializerMethodField()
-    file = Base64ImageField()
+    file = Base64ImageField(thumbnail_namespace='profiles.ImageAsset.file')
 
     def get_comment_count(self, obj):
         with connection.cursor() as cursor:
@@ -125,6 +125,7 @@ class CharacterSerializer(serializers.ModelSerializer):
 class ImageAssetManagementSerializer(serializers.ModelSerializer):
     uploaded_by = RelatedUserSerializer(read_only=True)
     characters = CharacterSerializer(many=True, read_only=True)
+    file = Base64ImageField(read_only=True, thumbnail_namespace='profiles.ImageAsset.file')
 
     def get_thumbnail_url(self, obj):
         return self.context['request'].build_absolute_uri(obj.file.url)

@@ -144,6 +144,18 @@ WEBPACK_LOADER = {
     }
 }
 
+THUMBNAIL_ALIASES = {
+    'profiles.ImageAsset.file': {
+        'thumbnail': {'size': (300, 300), 'crop': ',0'},
+        'gallery': {'size': (1000, 700)}
+    },
+    'sales.Product.file': {
+        'thumbnail': {'size': (300, 300), 'crop': False},
+        'preview': {'size': (500, 500), 'crop': False}
+    },
+    '': {}
+}
+
 DWOLLA_KEY = 'sUNuwIxg71Pbb1IplwysLTDN7tQZS4qRsN9h6W3RQgEeW3z6W4'
 DWOLLA_SECRET = 'fLdkagXI9ECOqkXM7o7afX0mTO8h4yLw4HSMklYCXmVpW84tku'
 

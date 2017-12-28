@@ -18,7 +18,7 @@ class CharacterAPITestCase(APITestCase):
         self.assertEqual(len(response.data['results']), 5)
         for key, value in characters.items():
             self.assertIn(
-                serialize_char(key, value),
+                serialize_char(key),
                 response.data['results']
             )
 
@@ -31,12 +31,12 @@ class CharacterAPITestCase(APITestCase):
         # Should fail for unregistered user
         response = self.client.get('/api/profiles/v1/{}/characters/'.format(self.user.username))
         self.assertEqual(len(response.data['results']), 4)
-        self.assertNotIn(serialize_char(private_character, characters[private_character]), response.data['results'])
+        self.assertNotIn(serialize_char(private_character), response.data['results'])
 
         # Should fail for unprivileged user
         self.login(self.user2)
         self.assertEqual(len(response.data['results']), 4)
-        self.assertNotIn(serialize_char(private_character, characters[private_character]), response.data['results'])
+        self.assertNotIn(serialize_char(private_character), response.data['results'])
 
     def test_list_private_for_privileged(self):
         characters = gen_characters(self.user)
@@ -48,12 +48,12 @@ class CharacterAPITestCase(APITestCase):
         self.login(self.user)
         response = self.client.get('/api/profiles/v1/{}/characters/'.format(self.user.username))
         self.assertEqual(len(response.data['results']), 5)
-        self.assertIn(serialize_char(private_character, characters[private_character]), response.data['results'])
+        self.assertIn(serialize_char(private_character), response.data['results'])
         # Should work for staff, too.
         self.login(self.staffer)
         response = self.client.get('/api/profiles/v1/{}/characters/'.format(self.user.username))
         self.assertEqual(len(response.data['results']), 5)
-        self.assertIn(serialize_char(private_character, characters[private_character]), response.data['results'])
+        self.assertIn(serialize_char(private_character), response.data['results'])
 
     def test_new_character(self):
         self.login(self.user)
@@ -505,3 +505,58 @@ class RegisterDwollaTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(response.content, b'Please log in and then re-attempt to link your account.')
         self.assertFalse(mock_post.called)
+
+
+class TestCharacterSearch(APITestCase):
+    def test_query_not_logged_in(self):
+        char = CharacterFactory.create(name='Terrybutt')
+        char2 = CharacterFactory.create(name='Terrencia', open_requests=False)
+        CharacterFactory.create(name='Terrence', private=True)
+        CharacterFactory.create(name='wutwut')
+        CharacterFactory.create(name='Stuff')
+        response = self.client.get('/api/profiles/v1/search/character/?q=terr')
+        self.assertEqual(len(response.data['results']), 2)
+        self.assertIn(serialize_char(char), response.data['results'])
+        self.assertIn(serialize_char(char2), response.data['results'])
+
+    def test_query_logged_in(self):
+        visible = CharacterFactory.create(name='Terrybutt', user=self.user)
+        visible2 = CharacterFactory.create(name='Terrencia', user=self.user2, open_requests=False)
+        visible_private = CharacterFactory.create(name='Terrence', private=True, user=self.user)
+        CharacterFactory.create(name='Terryvix', private=True, user=self.user2)
+        CharacterFactory.create(name='Stuff')
+        self.login(self.user)
+        response = self.client.get('/api/profiles/v1/search/character/?q=terr')
+        self.assertEqual(len(response.data['results']), 3)
+        self.assertIn(serialize_char(visible), response.data['results'])
+        self.assertIn(serialize_char(visible2), response.data['results'])
+        self.assertIn(serialize_char(visible_private), response.data['results'])
+        self.assertEqual(serialize_char(visible2), response.data['results'][2])
+
+    def test_query_logged_in_commission(self):
+        visible = CharacterFactory.create(name='Terrybutt', user=self.user)
+        visible2 = CharacterFactory.create(name='Terrencia', user=self.user2)
+        visible_private = CharacterFactory.create(name='Terrence', private=True, user=self.user)
+        CharacterFactory.create(name='Terryvix', private=True, user=self.user2)
+        CharacterFactory.create(name='Terrible', open_requests=False, user=self.user2)
+        CharacterFactory.create(name='Stuff')
+        self.login(self.user)
+        response = self.client.get('/api/profiles/v1/search/character/?q=terr&new_order=1')
+        self.assertEqual(len(response.data['results']), 3)
+        self.assertIn(serialize_char(visible), response.data['results'])
+        self.assertIn(serialize_char(visible_private), response.data['results'])
+        self.assertEqual(serialize_char(visible2), response.data['results'][2])
+
+    def test_query_logged_in_staffer(self):
+        visible = CharacterFactory.create(name='Terrybutt', user=self.user)
+        visible2 = CharacterFactory.create(name='Terrencia', user=self.user2)
+        visible_private = CharacterFactory.create(name='Terrence', private=True, user=self.user)
+        CharacterFactory.create(name='Terryvix', private=True, user=self.user2)
+        CharacterFactory.create(name='Terrible', open_requests=False, user=self.user2)
+        CharacterFactory.create(name='Stuff')
+        self.login(self.staffer)
+        response = self.client.get('/api/profiles/v1/search/character/?q=terr&new_order=1&user={}'.format(self.user.id))
+        self.assertEqual(len(response.data['results']), 3)
+        self.assertIn(serialize_char(visible), response.data['results'])
+        self.assertIn(serialize_char(visible_private), response.data['results'])
+        self.assertEqual(serialize_char(visible2), response.data['results'][2])

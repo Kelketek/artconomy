@@ -24,6 +24,9 @@ describe('Character.vue', () => {
           params: {character: 'testcharacter', username: 'testusername'},
           query: {}
         }
+      },
+      propsData: {
+        username: 'testusername', characterName: 'testcharacter'
       }
     })
     expect(server.requests.length).to.equal(2)

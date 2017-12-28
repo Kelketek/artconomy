@@ -6,10 +6,12 @@ from easy_thumbnails.fields import ThumbnailerImageField
 GENERAL = 0
 MATURE = 1
 ADULT = 2
+EXTREME = 3
 RATINGS = (
     (GENERAL, 'Clean/Safe for work'),
     (MATURE, 'Risque/mature, not adult content but not safe for work'),
     (ADULT, 'Adult content, not safe for work'),
+    (EXTREME, 'Offensive/Disturbing to most viewers, not safe for work'),
 )
 
 

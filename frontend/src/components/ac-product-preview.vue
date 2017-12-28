@@ -1,31 +1,42 @@
 <template>
   <div class="col-lg-3 product-preview">
     <div class="card">
-      <img class="card-img-top" :src="product.file">
+      <router-link :to="{name: 'Product', params: {username: product.user.username, productID: product.id}}">
+        <ac-asset :asset="product" thumb-name="thumbnail" :terse="true" imgClass="card-img-top"></ac-asset>
+      </router-link>
       <div class="card-header">
-        {{ product.name }} by <router-link :to="{name: 'Profile', params: {username: product.user.username}}">{{ product.user.username }}</router-link>
+        <router-link :to="{name: 'Product', params: {username: product.user.username, productID: product.id}}">
+          {{ product.name }}
+        </router-link> by
+        <router-link :to="{name: 'Profile', params: {username: product.user.username}}">
+          {{ product.user.username }}
+        </router-link>
       </div>
-      <div class="card-block product-info">
-        <div class="extra-details text-center">
-          <div class="full-width">
-            <strong class="day-count">{{product.expected_turnaround}}</strong> days <br />
-            turnaround
+      <router-link :to="{name: 'Product', params: {username: product.user.username, productID: product.id}}">
+        <div class="card-block product-info">
+          <div class="extra-details text-center">
+            <div class="full-width">
+              <strong class="day-count">{{product.expected_turnaround}}</strong> days <br />
+              turnaround
+            </div>
+          </div>
+          <div class="price-container text-center mt-2">
+            Starting at
+            <div class="price-highlight">
+              <sup class="mini-dollar">$</sup>{{ product.price }}
+            </div>
           </div>
         </div>
-        <div class="price-container text-center mt-2">
-          Starting at
-          <div class="price-highlight">
-            <sup class="mini-dollar">$</sup>{{ product.price }}
-          </div>
-        </div>
-      </div>
+      </router-link>
     </div>
   </div>
 </template>
 
 <script>
+  import AcAsset from './ac-asset'
   export default {
-    props: ['product']
+    props: ['product'],
+    components: {AcAsset}
   }
 </script>
 
