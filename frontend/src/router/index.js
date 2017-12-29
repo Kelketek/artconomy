@@ -4,6 +4,7 @@ import NotificationCenter from '@/components/NotificationCenter'
 import Profile from '@/components/Profile'
 import Store from '@/components/Store'
 import Product from '@/components/Product'
+import Order from '@/components/Order'
 import Settings from '@/components/Settings'
 import Characters from '@/components/Characters'
 import Character from '@/components/Character'
@@ -74,6 +75,12 @@ export const routes = [
     path: '/store/:username/product/:productID/',
     name: 'Product',
     component: Product,
+    props: true
+  },
+  {
+    path: '/store/order/:orderID/',
+    name: 'Order',
+    component: Order,
     props: true
   }
 ]

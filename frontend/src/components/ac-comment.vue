@@ -74,7 +74,7 @@
             class="fa fa-edit"></i></b-button>
         <b-button v-if="editing && !comment.children.length" @click="save()" :disabled="edit_disabled"
                   variant="success"><i class="fa fa-save"></i></b-button>
-        <b-button v-if="toplevel && !replying && !locked" @click="replying=true" variant="info"><i class="fa fa-reply"></i>
+        <b-button v-if="toplevel && nesting && !replying && !locked" @click="replying=true" variant="info"><i class="fa fa-reply"></i>
         </b-button>
         <b-button v-if="replying" @click="replying=false" variant="danger"><i class="fa fa-times"></i></b-button>
         <b-button v-if="replying" @click="postReply()" :disabled="reply_disabled" variant="success"><i
