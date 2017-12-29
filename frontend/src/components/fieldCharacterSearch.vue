@@ -1,6 +1,6 @@
 <template>
   <div class="wrapper">
-    <input ref="searchField" v-model="query" class="form-control" @input="runQuery" @keyup.enter="grabFirst" :placeholder="schema.placeholder" />
+    <input ref="searchField" v-model="query" class="form-control" @input="runQuery" @keyup.enter.capture="grabFirst" :placeholder="schema.placeholder" />
     <div class="mb-2 mt-2">
       <div v-if="characterIDs.length === 0">Click a character to add them.</div>
       <div v-else><div class="char-name" v-for="char in characters" :key="char.id"><span v-if="char.user.username !== viewer.username">({{char.user.username}}) </span>{{char.name}} <i class="fa fa-times" @click="delChar(char)"></i></div></div>
@@ -84,10 +84,12 @@
           this.characters.splice(index, 1)
         }
       },
-      grabFirst () {
+      grabFirst (event) {
+        console.log(event)
         if (this.response && this.response.results.length) {
           this.addChar(this.response.results[0])
         }
+        event.preventDefault()
       }
     }
   }

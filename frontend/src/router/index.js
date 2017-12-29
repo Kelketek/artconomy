@@ -5,6 +5,7 @@ import Profile from '@/components/Profile'
 import Store from '@/components/Store'
 import Product from '@/components/Product'
 import Order from '@/components/Order'
+import Orders from '@/components/Orders'
 import Settings from '@/components/Settings'
 import Characters from '@/components/Characters'
 import Character from '@/components/Character'
@@ -78,10 +79,40 @@ export const routes = [
     props: true
   },
   {
-    path: '/store/order/:orderID/',
+    path: '/orders/:username/:orderID/',
     name: 'Order',
     component: Order,
     props: true
+  },
+  {
+    path: '/sales/:username/:orderID/',
+    name: 'Sale',
+    component: Order,
+    props: true
+  },
+  {
+    path: '/orders/:username/',
+    name: 'Orders',
+    component: Orders,
+    props (route) {
+      return {
+        username: route.params.username,
+        url: `/api/sales/v1/${route.params.username}/orders/`,
+        buyer: true
+      }
+    }
+  },
+  {
+    path: '/sales/:username/',
+    name: 'Sales',
+    component: Orders,
+    props (route) {
+      return {
+        username: route.params.username,
+        url: `/api/sales/v1/${route.params.username}/sales/`,
+        buyer: false
+      }
+    }
   }
 ]
 

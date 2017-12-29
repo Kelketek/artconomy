@@ -102,7 +102,7 @@
       },
       goToOrder (response) {
         this.$router.history.push(
-          {name: 'Order', params: {orderID: response.id}, query: {editing: true}}
+          {name: 'Order', params: {username: response.buyer.username, orderID: response.id}, query: {editing: true}}
         )
       }
     },

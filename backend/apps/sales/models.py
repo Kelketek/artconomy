@@ -184,7 +184,7 @@ class Order(Model):
     )
     revisions_completed = IntegerField(default=0)
     details = CharField(max_length=5000)
-    adjustment = MoneyField(max_digits=4, decimal_places=2, default_currency='USD', blank=True, null=True)
+    adjustment = MoneyField(max_digits=4, decimal_places=2, default_currency='USD', blank=True, default=0)
     placed_on = DateTimeField(auto_now_add=True, db_index=True)
     characters = ManyToManyField('profiles.Character')
     comments = GenericRelation(

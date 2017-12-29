@@ -9,9 +9,10 @@
       <b-collapse is-nav id="nav_collapse">
 
         <b-navbar-nav v-if="user !== null && user.username">
-          <b-nav-item :to="{name: 'Characters', params: {'username': user.username}}">Characters</b-nav-item>
-          <b-nav-item disabled>Orders</b-nav-item>
-          <b-nav-item :to="{name: 'Store', params: {'username': user.username}}">Store</b-nav-item>
+          <b-nav-item :to="{name: 'Characters', params: {username: user.username}}">Characters</b-nav-item>
+          <b-nav-item :to="{name: 'Orders', params: {username: user.username}}">Orders</b-nav-item>
+          <b-nav-item :to="{name: 'Sales', params: {username: user.username}}">Sales</b-nav-item>
+          <b-nav-item :to="{name: 'Store', params: {username: user.username}}">Store</b-nav-item>
         </b-navbar-nav>
 
 

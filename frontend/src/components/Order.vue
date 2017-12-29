@@ -6,49 +6,58 @@
           <ac-asset :asset="order.product" thumb-name="preview" img-class="bound-image"></ac-asset>
         </div>
         <div class="col-md-6 col-sm-12 text-section pt-3">
-          <h1>{{order.product.name}}</h1>
+          <h1 v-html="md.renderInline(order.product.name)"></h1>
           <h2>Order #{{order.id}}</h2>
-          <div>{{order.product.description}}</div>
+          <div v-html="md.render(order.product.description)"></div>
+          <div>
+            <h4>Details:</h4>
+            <div v-html="md.render(order.details)"></div>
+          </div>
+        </div>
+        <div class="col-sm-12 col-lg-2 text-section text-center pt-3">
           <div class="text-center">
             <h3>Ordered By</h3>
             <ac-avatar :user="order.buyer"></ac-avatar>
-          </div>
-          <div>
-            <h4>Details:</h4>
-            {{order.details}}
-          </div>
-        </div>
-        <div class="col-md-6 col-sm-12 col-lg-2 text-section text-center pt-3">
-          <h4>Seller:</h4>
-          <div class="avatar-container">
-            <ac-avatar :user="order.seller"></ac-avatar>
-          </div>
-          <div class="extra-details">
-            <div class="full-width">
-              <strong class="day-count"><ac-patchfield v-model="order.product.expected_turnaround" name="expected_turnaround" styleclass="day-count"></ac-patchfield></strong> days
-              turnaround
-            </div>
-            <div class="full-width">
-              <strong><ac-patchfield styleclass="revision-count" v-model="order.product.revisions" name="revisions" :editmode="false"></ac-patchfield></strong> included revision<span v-if="order.product.revisions > 1">s</span>
-            </div>
-          </div>
-          <div class="price-container">
-            Starting at
-            <div class="price-highlight">
-              <sup class="mini-dollar">$</sup><ac-patchfield v-model="order.product.price" name="price" :editmode="false"></ac-patchfield>
-            </div>
           </div>
         </div>
         <div class="col-sm-12 text-section mb-2">
           <h2>Characters</h2>
         </div>
-        <ac-character-preview
-            v-for="char in order.characters"
-            v-bind:character="char"
-            v-bind:expanded="true"
-            v-bind:key="char.id"
-        >
-        </ac-character-preview>
+        <div class="col-sm-12">
+          <ac-character-preview
+              v-for="char in order.characters"
+              v-bind:character="char"
+              v-bind:expanded="true"
+              v-bind:key="char.id"
+          ></ac-character-preview>
+        </div>
+        <div class="col-lg-3 col-md-6 col-sm-12 text-section text-center pt-2">
+          <h3>Seller:</h3>
+          <ac-avatar :user="order.seller"></ac-avatar>
+        </div>
+        <div class="col-lg-6 col-md-6 col-sm-12 text-section text-center pt-2">
+          <div class="pricing-container">
+            <p v-if="order.status < 2">Price may be adjusted by the seller before finalization.</p>
+            <span v-html="md.renderInline(order.product.name)"></span>: ${{order.product.price}}<br />
+            <span v-if="order.adjustment < 0">Discount: </span>
+            <span v-else-if="order.adjustment > 0">Custom requirements: </span>
+            <span v-if="parseFloat(order.adjustment) !== 0">${{order.adjustment}}</span>
+            <hr />
+            <strong>Total: {{price}}</strong>
+          </div>
+        </div>
+        <div class="col-lg-3 col-sm-12 text-section pt-2">
+          <div v-if="buyer && newOrder">
+            <p>
+              <strong>The artist has been notified of your order, and will respond soon!</strong>
+            </p>
+            <p>We will notify you once the artist has completed their review.</p>
+          </div>
+          <div v-if="seller && (newOrder)">
+            <p><strong>Make any Price adjustments here, and then accept or reject the order.</strong></p>
+            <p>Be sure to comment on the order about your price adjustments so the buyer will know the reasoning behind them.</p>
+          </div>
+        </div>
       </div>
       <div class="mb-5">
         <ac-comment-section :commenturl="commenturl" :nesting="false"></ac-comment-section>
@@ -68,7 +77,7 @@
   import AcAsset from './ac-asset'
   import Viewer from '../mixins/viewer'
   import Perms from '../mixins/permissions'
-  import { artCall } from '../lib'
+  import { artCall, md } from '../lib'
 
   export default {
     props: ['orderID'],
@@ -82,10 +91,35 @@
         this.$router.push({name: 'Profile', params: {username: this.viewer.username}})
       }
     },
+    computed: {
+      newOrder () {
+        return this.order.status === 1
+      },
+      paymentPending () {
+        return this.order.status === 2
+      },
+      queued () {
+        return this.order.status === 3
+      },
+      cancelled () {
+        return this.order.status === 6
+      },
+      price () {
+        console.log(this.order)
+        return this.order.product.price
+      },
+      buyer () {
+        return ((this.viewer.username === this.order.buyer.username) || this.viewer.is_staff)
+      },
+      seller () {
+        return ((this.viewer.username === this.order.seller.username) || this.viewer.is_staff)
+      }
+    },
     data () {
       return {
         order: null,
-        commenturl: `/api/sales/v1/order/${this.orderID}/comments/`
+        commenturl: `/api/sales/v1/order/${this.orderID}/comments/`,
+        md: md
       }
     },
     created () {
@@ -98,4 +132,8 @@
    .v-align-middle {
      vertical-align: middle;
    }
+  .pricing-container {
+    display: inline-block;
+    text-align: left;
+  }
 </style>
