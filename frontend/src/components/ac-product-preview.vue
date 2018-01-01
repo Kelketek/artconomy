@@ -35,6 +35,7 @@
 <script>
   import AcAsset from './ac-asset'
   export default {
+    name: 'ac-product-preview',
     props: ['product'],
     components: {AcAsset}
   }

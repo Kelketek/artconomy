@@ -108,6 +108,7 @@
     },
     data () {
       return {
+        name: 'Product',
         product: null,
         url: `/api/sales/v1/${this.username}/products/${this.productID}/`,
         showOrder: false,

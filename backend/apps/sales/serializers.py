@@ -44,11 +44,19 @@ class OrderViewSerializer(serializers.ModelSerializer):
     seller = RelatedUserSerializer(read_only=True)
     buyer = RelatedUserSerializer(read_only=True)
     characters = CharacterSerializer(many=True, read_only=True)
+    price = SerializerMethodField()
     product = ProductSerializer()
+
+    def get_price(self, obj):
+        if not obj.price:
+            return obj.product.price.amount
+        return obj.price.amount
 
     class Meta:
         model = Order
-        fields = ('id', 'placed_on', 'status', 'product', 'details', 'seller', 'buyer', 'adjustment', 'characters')
+        fields = (
+            'id', 'placed_on', 'status', 'price', 'product', 'details', 'seller', 'buyer', 'adjustment', 'characters'
+        )
         read_only_fields = fields
 
 

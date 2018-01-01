@@ -94,6 +94,7 @@
   }
 
   export default {
+    name: 'Settings',
     components: {
       AcCardManager,
       AcFormContainer},

@@ -40,6 +40,7 @@
   import VueFormGenerator from 'vue-form-generator'
   import { artCall } from '../lib'
   export default {
+    name: 'ac-card-manager',
     props: ['username'],
     mixins: [Viewer, Perms, Paginated],
     components: {AcFormContainer, AcSavedCard},

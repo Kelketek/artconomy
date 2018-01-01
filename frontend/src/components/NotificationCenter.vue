@@ -14,6 +14,7 @@
   import { ObserveVisibility } from 'vue-observe-visibility'
 
   export default {
+    name: 'NotificationCenter',
     mixins: [Paginated],
     directives: {'observe-visibility': ObserveVisibility},
     methods: {
@@ -30,7 +31,7 @@
     },
     created () {
       this.fetching = true
-      artCall('/api/profiles/v1/data/notifications/', 'GET', undefined, this.populateNotifications)
+      artCall('/api/profiles/v1/data/notifications/', 'GET', undefined, this.populateNotifications, this.$error)
     }
   }
 </script>

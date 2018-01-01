@@ -38,15 +38,30 @@
         <div class="col-lg-6 col-md-6 col-sm-12 text-section text-center pt-2">
           <div class="pricing-container">
             <p v-if="order.status < 2">Price may be adjusted by the seller before finalization.</p>
-            <span v-html="md.renderInline(order.product.name)"></span>: ${{order.product.price}}<br />
-            <span v-if="order.adjustment < 0">Discount: </span>
-            <span v-else-if="order.adjustment > 0">Custom requirements: </span>
-            <span v-if="parseFloat(order.adjustment) !== 0">${{order.adjustment}}</span>
+            <span v-html="md.renderInline(order.product.name)"></span>: ${{order.price}}<br />
+            <span v-if="adjustmentModel.adjustment < 0">Discount: </span>
+            <span v-else-if="adjustmentModel.adjustment > 0">Custom requirements: </span>
+            <span v-if="parseFloat(adjustmentModel.adjustment) !== 0">${{parseFloat(adjustmentModel.adjustment).toFixed(2)}}</span>
             <hr />
-            <strong>Total: {{price}}</strong>
+            <strong>Total: ${{price}}</strong>
+            <div v-if="seller && sellerData.user.fee !== null">
+              Artconomy service fee: -${{ fee }} <br />
+              <strong>Your payout: ${{ payout }}</strong>
+            </div>
         </div>
-          <div class="pricing-container" v-if="seller">
-            <p>
+          <div class="pricing-container mt-2" v-if="seller && (newOrder || paymentPending) && (sellerData.user.fee !== null)">
+            <ac-form-container
+                ref="adjustmentForm"
+                :schema="adjustmentSchema"
+                :model="adjustmentModel"
+                :url="`${url}adjust/`"
+                method="PATCH"
+                :reset-after="false">
+            </ac-form-container>
+            <div class="text-center">
+              <b-button type="submit" variant="primary" @click.prevent="$refs.adjustmentForm.submit">Adjust price</b-button><i v-if="$refs.adjustmentForm && $refs.adjustmentForm.saved" class="fa fa-check" style="color: green"></i>
+            </div>
+            <p class="mt-2">
               <strong>Note:</strong> Only one adjustment may be used. Therefore, please include all
               discounts and increases in the adjustment price. Be sure to comment so that the commissioner
               will see your reasoning. Do not approve a request until you have added your adjustment, as that
@@ -65,8 +80,25 @@
             <p><strong>Make any Price adjustments here, and then accept or reject the order.</strong></p>
             <p>Be sure to comment on the order about your price adjustments so the buyer will know the reasoning behind them.</p>
           </div>
-          <div v-if="newOrder || paymentPending">
+          <div v-if="seller && paymentPending">
+            <p><strong>We've notified the commissioner of your acceptance!</strong></p>
+            <p>We will notify you once they have paid for the commission. You are advised not to begin work until payment has been received. If needed, you may adjust the pricing until the comissioner pays.</p>
+          </div>
+          <div v-if="buyer && paymentPending">
+            <p><strong>The artist has accepted your commission! Please pay below.</strong></p>
+            <p>Review the price and pay below. Once your payment has been received, your commission will be placed in the artist's queue.</p>
+          </div>
+          <div class="text-center mb-3" v-if="newOrder || paymentPending">
             <ac-action :url="`${this.url}cancel/`" variant="danger" :success="populateOrder">Cancel</ac-action>
+            <ac-action v-if="newOrder" :confirm="true" :url="`${this.url}accept/`" variant="success" :success="populateOrder">
+              Approve order
+              <div class="text-left" slot="confirmation-text">
+                <p>
+                  Are you sure you understand the commissioner's requirements? By accepting this order, you are confirming you
+                  understand and agree to the <router-link :to="{name: 'CommissionAgreement'}">Commission Agreement.</router-link>
+                </p>
+              </div>
+            </ac-action>
           </div>
           <div v-if="cancelled">
             <strong>This order has been cancelled.</strong>
@@ -93,17 +125,29 @@
   import Viewer from '../mixins/viewer'
   import Perms from '../mixins/permissions'
   import { artCall, md } from '../lib'
+  import AcFormContainer from './ac-form-container'
 
   export default {
+    name: 'Order',
     props: ['orderID'],
-    components: {AcCharacterPreview, AcAvatar, AcPatchfield, AcAsset, AcCommentSection, AcAction},
+    components: {
+      AcFormContainer,
+      AcCharacterPreview,
+      AcAvatar,
+      AcPatchfield,
+      AcAsset,
+      AcCommentSection,
+      AcAction
+    },
     mixins: [Viewer, Perms],
     methods: {
       populateOrder (response) {
+        let oldAdjustment = this.order && this.order.adjustment
         this.order = response
-      },
-      goToProfile () {
-        this.$router.push({name: 'Profile', params: {username: this.viewer.username}})
+        if (oldAdjustment === null) {
+          this.adjustmentModel.adjustment = response.adjustment
+        }
+        this.$root.setUser(response.seller.username, this.sellerData, this.$error)
       }
     },
     computed: {
@@ -120,14 +164,19 @@
         return this.order.status === 6
       },
       price () {
-        console.log(this.order)
-        return this.order.product.price
+        return (parseFloat(this.order.price) + parseFloat(this.adjustmentModel.adjustment)).toFixed(2)
       },
       buyer () {
         return ((this.viewer.username === this.order.buyer.username) || this.viewer.is_staff)
       },
       seller () {
         return ((this.viewer.username === this.order.seller.username) || this.viewer.is_staff)
+      },
+      fee () {
+        return (this.price * (this.sellerData.user.fee).toFixed(2)).toFixed(2)
+      },
+      payout () {
+        return (this.price - this.fee).toFixed(2)
       }
     },
     data () {
@@ -135,11 +184,25 @@
         order: null,
         commenturl: `/api/sales/v1/order/${this.orderID}/comments/`,
         url: `/api/sales/v1/order/${this.orderID}/`,
-        md: md
+        md: md,
+        sellerData: {user: {fee: null}},
+        adjustmentModel: {
+          adjustment: 0.00
+        },
+        adjustmentSchema: {
+          fields: [{
+            type: 'input',
+            inputType: 'number',
+            step: '.01',
+            model: 'adjustment',
+            label: 'Adjustment (USD)',
+            featured: true
+          }]
+        }
       }
     },
     created () {
-      artCall(this.url, 'GET', undefined, this.populateOrder)
+      artCall(this.url, 'GET', undefined, this.populateOrder, this.$error)
     }
   }
 </script>
@@ -151,5 +214,8 @@
   .pricing-container {
     display: inline-block;
     text-align: left;
+  }
+  .max-width {
+    width: 100%;
   }
 </style>

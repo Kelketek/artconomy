@@ -41,6 +41,7 @@
     5: {'name': "Diner's Club", 'icon': 'fa-cc-diners-club'}
   }
   export default {
+    name: 'ac-saved-card',
     props: ['cards', 'value', 'card', 'selectable'],
     mixins: [Viewer, Perms],
     methods: {

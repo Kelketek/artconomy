@@ -13,6 +13,7 @@
 <script>
   import AcAsset from './ac-asset'
   export default {
+    name: 'ac-character-preview',
     components: {AcAsset},
     props: ['character']
   }

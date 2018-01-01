@@ -34,6 +34,7 @@
   import Perms from '../mixins/permissions'
   import Viewer from '../mixins/viewer'
   export default {
+    name: 'ac-order-preview',
     mixins: [Viewer, Perms],
     components: {AcAsset},
     props: ['buyer', 'order', 'username'],

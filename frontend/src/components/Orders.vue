@@ -21,7 +21,7 @@
   import { artCall } from '../lib'
 
   export default {
-    name: 'orders',
+    name: 'Orders',
     mixins: [Viewer, Perms, Paginated],
     components: {AcOrderPreview},
     props: ['url', 'buyer'],

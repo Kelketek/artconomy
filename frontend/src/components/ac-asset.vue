@@ -31,6 +31,7 @@
   import Viewer from '../mixins/viewer'
   import { RATINGS } from '../lib'
   export default {
+    name: 'ac-asset',
     mixins: [Viewer],
     props: ['asset', 'imgClass', 'terse', 'thumbName'],
     computed: {

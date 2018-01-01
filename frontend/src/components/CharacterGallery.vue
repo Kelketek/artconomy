@@ -47,7 +47,7 @@
 
   export default {
     components: {AcFormContainer, AcCharacterPreview},
-    name: 'Characters',
+    name: 'CharacterGallery',
     mixins: [Viewer, Perms, Paginated],
     props: ['embedded'],
     data: function () {

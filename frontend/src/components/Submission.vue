@@ -56,7 +56,7 @@
   import AcAsset from './ac-asset'
 
   export default {
-    name: 'Home',
+    name: 'Submission',
     components: {AcCharacterPreview, AcPatchfield, AcCommentSection, AcPatchbutton, AcAvatar, AcAsset},
     mixins: [Viewer, Editable],
     data () {
@@ -89,7 +89,7 @@
       }
     },
     created () {
-      artCall(`/api/profiles/v1/asset/${this.$route.params.assetID}/`, 'GET', undefined, this.populateSubmission)
+      artCall(`/api/profiles/v1/asset/${this.$route.params.assetID}/`, 'GET', undefined, this.populateSubmission, this.$error)
     }
   }
 </script>

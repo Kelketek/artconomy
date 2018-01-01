@@ -71,6 +71,10 @@ body {
   padding-top: 60px;
 }
 
+p a {
+  text-decoration: underline;
+}
+
 $container-max-widths: (
   sm: 540px,
   md: 720px,
@@ -166,6 +170,10 @@ $container-max-widths: (
   border-radius: 0;
   border: 0;
   background-color: $light-gray;
+}
+
+.text-section .vue-form-generator .form-control {
+  background-color: $white;
 }
 
 .vue-form-generator .form-control:focus {

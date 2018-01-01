@@ -48,6 +48,7 @@
   import { artCall, productTypes, ratings } from '../lib'
 
   export default {
+    name: 'Store',
     components: {AcProductPreview, AcFormContainer},
     props: ['url'],
     mixins: [Viewer, Perms, Paginated],
@@ -219,7 +220,7 @@
       }
     },
     created () {
-      artCall(this.url, 'GET', undefined, this.populateProducts)
+      artCall(this.url, 'GET', undefined, this.populateProducts, this.$error)
     }
   }
 </script>

@@ -12,6 +12,7 @@
 
 <script>
   export default {
+    name: 'ac-avatar',
     props: ['user']
   }
 </script>

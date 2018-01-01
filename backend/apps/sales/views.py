@@ -15,7 +15,6 @@ from rest_framework.views import APIView
 
 from apps.lib.permissions import ObjectStatus
 from apps.lib.serializers import CommentSerializer
-from apps.lib.utils import country_choices, country_map, subdivision_map
 from apps.profiles.models import User
 from apps.profiles.permissions import ObjectControls, UserControls
 from apps.sales.permissions import OrderViewPermission, OrderSellerPermission, OrderBuyerPermission
@@ -108,26 +107,6 @@ class OrderCancel(GenericAPIView):
         data = self.serializer_class(instance=order).data
         return Response(data)
 
-# TODO: Add in refund view.
-
-
-class Orders(View):
-    def get(self, request, username):
-        target_user = get_object_or_404(User, username=username)
-        return render(
-            request, 'sales/order_list.html',
-            {'target_user': target_user, 'fetch_url': reverse('sales:list_orders', kwargs={'username': username})}
-        )
-
-
-class Sales(View):
-    def get(self, request, username):
-        target_user = get_object_or_404(User, username=username)
-        return render(
-            request, 'sales/order_list.html',
-            {'target_user': target_user, 'fetch_url': reverse('sales:list_sales', kwargs={'username': username})}
-        )
-
 
 class OrderComments(ListCreateAPIView):
     permission_classes = [OrderViewPermission]
@@ -177,7 +156,13 @@ class OrderList(ListCreateAPIView):
     def get_queryset(self):
         self.user = get_object_or_404(User, username=self.kwargs['username'])
         self.check_object_permissions(self.request, self.user)
-        return self.user.buys.all()
+        cancelled = self.request.GET.get('cancelled', False)
+        qs = self.user.buys.all()
+        if not cancelled:
+            qs = qs.exclude(status=Order.CANCELLED)
+        else:
+            qs = qs.filter(status=Order.CANCELLED)
+        return qs
 
 
 class AdjustOrder(UpdateAPIView):
@@ -199,7 +184,13 @@ class SalesList(ListAPIView):
     def get_queryset(self):
         self.user = get_object_or_404(User, username=self.kwargs['username'])
         self.check_object_permissions(self.request, self.user)
-        return self.user.sales.all()
+        cancelled = self.request.GET.get('cancelled', False)
+        qs = self.user.sales.all()
+        if not cancelled:
+            qs = qs.exclude(status=Order.CANCELLED)
+        else:
+            qs = qs.filter(status=Order.CANCELLED)
+        return qs
 
 
 class CardList(ListCreateAPIView):

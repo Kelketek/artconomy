@@ -49,6 +49,7 @@
 
   export default {
     components: {AcCharacterPreview},
+    name: 'fieldCharacterSearch',
     mixins: [ Viewer, abstractField ],
     data () {
       return {

@@ -4,7 +4,7 @@
 
 <script>
   export default {
-    name: 'error-page',
+    name: 'NotFound',
     data () {
       return {}
     },

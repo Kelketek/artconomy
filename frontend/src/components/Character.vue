@@ -215,6 +215,7 @@
     },
     data () {
       return {
+        name: 'haracter',
         selectedIndex: null,
         expand: this.expanded,
         character: null,

@@ -50,7 +50,7 @@ window.artconomy = new Vue({
     userSaver (target, response) {
       response.timestamp = moment.now()
       this.usercache[response.username] = response
-      target.user = response
+      Vue.set(target, 'user', response)
     },
     saveCachedUser (target) {
       let self = this
@@ -80,7 +80,7 @@ window.artconomy = new Vue({
           self.$router.push({name: 'Profile', params: {username: self.user.username}})
         }
       }
-      artCall('/api/profiles/v1/data/requester/', 'GET', undefined, loadLoggedIn)
+      artCall('/api/profiles/v1/data/requester/', 'GET', undefined, loadLoggedIn, this.$error)
     }
   },
   created () {

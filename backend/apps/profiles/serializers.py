@@ -214,6 +214,7 @@ class UserSerializer(serializers.ModelSerializer):
     csrftoken = serializers.SerializerMethodField()
     avatar_url = serializers.SerializerMethodField()
     dwolla_setup_url = serializers.SerializerMethodField()
+    fee = serializers.SerializerMethodField()
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request')
@@ -231,10 +232,13 @@ class UserSerializer(serializers.ModelSerializer):
     def get_avatar_url(self, obj):
         return avatar_url(obj)
 
+    def get_fee(self, obj):
+        return .1
+
     class Meta:
         model = User
         fields = (
             'commissions_closed', 'rating', 'sfw_mode', 'max_load', 'username', 'id', 'is_staff', 'is_superuser',
-            'dwolla_configured', 'dwolla_setup_url', 'csrftoken', 'avatar_url', 'email'
+            'dwolla_configured', 'dwolla_setup_url', 'csrftoken', 'avatar_url', 'email', 'fee'
         )
         read_only_fields = fields
