@@ -1,6 +1,6 @@
 <template>
   <div class="ac-action-container">
-    <b-button v-if="button" :variant="variant" :type="type" @click="performAction"><slot></slot></b-button>
+    <b-button v-if="button" :variant="variant" :disabled="isDisabled" :type="type" @click="performAction"><slot></slot></b-button>
     <div v-else class="ac-action-div" @click="performAction"><slot @click="performAction"></slot></div>
     <b-modal ref="confModal" v-if="confirm" ok_button_text="Yes, I am sure" @ok="submit">
       <slot name="confirmation-text">
@@ -40,6 +40,11 @@
         type: String,
         default: 'POST'
       },
+      disabled: {
+        // Only works for button mode at the moment.
+        type: Boolean,
+        default: false
+      },
       send: {},
       success: {
         type: Function,
@@ -54,14 +59,24 @@
         }
         this.submit()
       },
-      callback (response) {
+      successCallback (response) {
         if (this.confirm) {
           this.$refs.confModal.hide()
         }
+        this.sending = false
         this.success(response)
       },
+      failCallback (response) {
+        this.sending = false
+      },
       submit () {
-        artCall(this.url, this.method, this.send, this.callback)
+        this.sending = true
+        artCall(this.url, this.method, this.send, this.successCallback, this.failCallback)
+      }
+    },
+    computed: {
+      isDisabled () {
+        return this.disabled || this.sending
       }
     }
   }

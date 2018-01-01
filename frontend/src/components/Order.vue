@@ -35,7 +35,7 @@
           <h3>Seller:</h3>
           <ac-avatar :user="order.seller"></ac-avatar>
         </div>
-        <div class="col-lg-6 col-md-6 col-sm-12 text-section text-center pt-2">
+        <div class="col-lg-6 col-md-6 col-sm-12 text-section text-center pt-2" v-if="paymentDetail">
           <div class="pricing-container">
             <p v-if="order.status < 2">Price may be adjusted by the seller before finalization.</p>
             <span v-html="md.renderInline(order.product.name)"></span>: ${{order.price}}<br />
@@ -69,7 +69,7 @@
             </p>
           </div>
         </div>
-        <div class="col-lg-3 col-sm-12 text-section pt-2">
+        <div :class="{'col-lg-3': paymentDetail, 'col-sm-12': true, 'text-section': true, 'pt-2': true, 'col-md-6': !paymentDetail}">
           <div v-if="buyer && newOrder">
             <p>
               <strong>The artist has been notified of your order, and will respond soon!</strong>
@@ -88,6 +88,14 @@
             <p><strong>The artist has accepted your commission! Please pay below.</strong></p>
             <p>Review the price and pay below. Once your payment has been received, your commission will be placed in the artist's queue.</p>
           </div>
+          <div v-if="seller && queued">
+            <p><strong>Awesome! The commissioner has sent payment.</strong></p>
+            <p>You should start work on the commission as soon as you can. If there are revisions to upload, you may upload them (and the final, when ready) below.</p>
+          </div>
+          <div v-if="buyer && queued && !justPaid">
+            <p><strong>Your art is on the way!</strong></p>
+            <p>We've received your payment and your work is now in the artist's queue. They'll start on it as soon as they're able, and will upload any agreed upon revisions for your review soon, or the final once it's ready.</p>
+          </div>
           <div class="text-center mb-3" v-if="newOrder || paymentPending">
             <ac-action :url="`${this.url}cancel/`" variant="danger" :success="populateOrder">Cancel</ac-action>
             <ac-action v-if="newOrder" :confirm="true" :url="`${this.url}accept/`" variant="success" :success="populateOrder">
@@ -103,6 +111,32 @@
           <div v-if="cancelled">
             <strong>This order has been cancelled.</strong>
           </div>
+        </div>
+        <div class="col-md-6 col-sm-12 text-section" v-if="buyer && paymentPending">
+          <ac-card-manager :payment="true" :username="order.buyer.username" v-model="selectedCard"></ac-card-manager>
+        </div>
+        <div class="col-md-6 col-sm-12 mt-3 mb-3 text-center" v-if="buyer && paymentPending">
+          <p><strong>Add a card or select a saved one on the left.</strong></p>
+          <p>Once you've selected a card, you may click the pay button below to put the commission in the artist's queue.
+            By paying, you are agreeing to the <router-link :to="{name: 'CommissionAgreement'}">Commission Agreement.</router-link></p>
+          <div class="pricing-container">
+            <p v-if="order.status < 2">Price may be adjusted by the seller before finalization.</p>
+            <span v-html="md.renderInline(order.product.name)"></span>: ${{order.price}}<br />
+            <span v-if="adjustmentModel.adjustment < 0">Discount: </span>
+            <span v-else-if="adjustmentModel.adjustment > 0">Custom requirements: </span>
+            <span v-if="parseFloat(adjustmentModel.adjustment) !== 0">${{parseFloat(adjustmentModel.adjustment).toFixed(2)}}</span>
+            <hr />
+            <strong>Total: ${{price}}</strong>
+            <div class="mt-2 text-center">
+              <ac-action :disabled="selectedCard === null" :url="`${url}pay/`" variant="success" :send="paymentData" :success="postPay">Submit</ac-action>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-12 text-center" v-if="justPaid">
+          <i class="fa fa-5x fa-check-circle"></i><br />
+          <p><strong>Your payment has been received!</strong></p>
+          <p>We've received your payment and your work is now in the artist's queue. They'll start on it as soon as
+            they're able, and will upload any agreed upon revisions for your review soon, or the final once it's ready.</p>
         </div>
       </div>
       <div class="mb-5">
@@ -126,11 +160,13 @@
   import Perms from '../mixins/permissions'
   import { artCall, md } from '../lib'
   import AcFormContainer from './ac-form-container'
+  import AcCardManager from './ac-card-manager'
 
   export default {
     name: 'Order',
     props: ['orderID'],
     components: {
+      AcCardManager,
       AcFormContainer,
       AcCharacterPreview,
       AcAvatar,
@@ -148,6 +184,10 @@
           this.adjustmentModel.adjustment = response.adjustment
         }
         this.$root.setUser(response.seller.username, this.sellerData, this.$error)
+      },
+      postPay (response) {
+        this.justPaid = true
+        this.populateOrder(response)
       }
     },
     computed: {
@@ -163,6 +203,9 @@
       cancelled () {
         return this.order.status === 6
       },
+      paymentDetail () {
+        return this.seller || this.newOrder
+      },
       price () {
         return (parseFloat(this.order.price) + parseFloat(this.adjustmentModel.adjustment)).toFixed(2)
       },
@@ -177,6 +220,12 @@
       },
       payout () {
         return (this.price - this.fee).toFixed(2)
+      },
+      paymentData () {
+        return {
+          card_id: this.selectedCard,
+          amount: this.price
+        }
       }
     },
     data () {
@@ -186,6 +235,8 @@
         url: `/api/sales/v1/order/${this.orderID}/`,
         md: md,
         sellerData: {user: {fee: null}},
+        selectedCard: null,
+        justPaid: false,
         adjustmentModel: {
           adjustment: 0.00
         },

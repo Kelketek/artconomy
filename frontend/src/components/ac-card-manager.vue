@@ -11,12 +11,14 @@
                     :card="card"
                     :cards="growing"
                     :username="user.username"
+                    :selectable="payment"
+                    v-model="selectedCard"
                 >
                   {{card}}
                 </ac-saved-card>
               </div>
           </b-tab>
-          <b-tab title="Add a card">
+          <b-tab title="New Card">
             <form>
               <ac-form-container ref="newCardForm" :schema="newCardSchema" :model="newCardModel"
                                  :options="newCardOptions" :success="addCard"
@@ -41,12 +43,13 @@
   import { artCall } from '../lib'
   export default {
     name: 'ac-card-manager',
-    props: ['username'],
+    props: ['username', 'payment', 'value'],
     mixins: [Viewer, Perms, Paginated],
     components: {AcFormContainer, AcSavedCard},
     data () {
       return {
         currentTab: 0,
+        selectedCard: this.value,
         newCardModel: {
           card_number: '',
           exp_date: '',
@@ -111,6 +114,19 @@
       addCard (response) {
         this.growing.push(response)
         this.currentTab = 0
+        this.selectedCard = response.id
+      }
+    },
+    watch: {
+      selectedCard (newValue) {
+        if (newValue === null) {
+          if (this.growing.length === 0) {
+            this.currentTab = 1
+          } else {
+            this.selectedCard = this.growing[0].id
+          }
+        }
+        this.$emit('input', this.selectedCard)
       }
     },
     created () {

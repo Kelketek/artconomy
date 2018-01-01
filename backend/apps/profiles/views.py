@@ -3,7 +3,7 @@ from avatar.models import Avatar
 from avatar.signals import avatar_updated
 from django.conf import settings
 from django.contrib.auth import login, get_user_model, authenticate, logout, update_session_auth_hash
-from django.db.models import Q, Case, When, Value, IntegerField, F
+from django.db.models import Q, Case, When, IntegerField, F
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse

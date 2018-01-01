@@ -57,6 +57,9 @@
       postDelete () {
         let index = this.cards.indexOf(this.card)
         this.cards.splice(index, 1)
+        if (this.value === this.card.id) {
+          return this.$emit('input', null)
+        }
       },
       deleteCard () {
         this.changing = true
@@ -89,6 +92,11 @@
       return {
         changing: false,
         inputType: this.selectable ? 'radio' : 'hidden'
+      }
+    },
+    created () {
+      if (this.value === null && this.card.primary) {
+        this.updateSelect()
       }
     },
     computed: {

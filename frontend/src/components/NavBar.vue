@@ -12,7 +12,7 @@
           <b-nav-item :to="{name: 'Characters', params: {username: user.username}}">Characters</b-nav-item>
           <b-nav-item :to="{name: 'Orders', params: {username: user.username}}">Orders</b-nav-item>
           <b-nav-item :to="{name: 'Sales', params: {username: user.username}}">Sales</b-nav-item>
-          <b-nav-item :to="{name: 'Store', params: {username: user.username}}">Store</b-nav-item>
+          <b-nav-item :to="{name: 'Store', params: {username: user.username}}">Sell</b-nav-item>
         </b-navbar-nav>
 
 
