@@ -11,6 +11,8 @@ import Characters from '@/components/Characters'
 import Character from '@/components/Character'
 import Submission from '@/components/Submission'
 import CharacterGallery from '@/components/CharacterGallery'
+import NotFound from '@/components/NotFound'
+import {ErrorHandler} from '@/plugins/error'
 
 export const routes = [
   {
@@ -113,6 +115,11 @@ export const routes = [
         buyer: false
       }
     }
+  },
+  {
+    path: '*',
+    name: 'NotFound',
+    component: NotFound
   }
 ]
 
@@ -121,3 +128,5 @@ export const router = new Router({
   strict: true,
   routes
 })
+
+router.beforeEach(ErrorHandler.clearError)

@@ -310,7 +310,7 @@
       }
     },
     created () {
-      artCall(this.url, 'GET', null, this.loadCharacter)
+      artCall(this.url, 'GET', null, this.loadCharacter, this.$error)
       this.fetchAssets()
     },
     watch: {

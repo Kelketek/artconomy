@@ -44,6 +44,14 @@
             <span v-if="parseFloat(order.adjustment) !== 0">${{order.adjustment}}</span>
             <hr />
             <strong>Total: {{price}}</strong>
+        </div>
+          <div class="pricing-container" v-if="seller">
+            <p>
+              <strong>Note:</strong> Only one adjustment may be used. Therefore, please include all
+              discounts and increases in the adjustment price. Be sure to comment so that the commissioner
+              will see your reasoning. Do not approve a request until you have added your adjustment, as that
+              will finalize the price.
+            </p>
           </div>
         </div>
         <div class="col-lg-3 col-sm-12 text-section pt-2">
@@ -56,6 +64,12 @@
           <div v-if="seller && (newOrder)">
             <p><strong>Make any Price adjustments here, and then accept or reject the order.</strong></p>
             <p>Be sure to comment on the order about your price adjustments so the buyer will know the reasoning behind them.</p>
+          </div>
+          <div v-if="newOrder || paymentPending">
+            <ac-action :url="`${this.url}cancel/`" variant="danger" :success="populateOrder">Cancel</ac-action>
+          </div>
+          <div v-if="cancelled">
+            <strong>This order has been cancelled.</strong>
           </div>
         </div>
       </div>
@@ -71,6 +85,7 @@
 
 <script>
   import AcCharacterPreview from './ac-character-preview'
+  import AcAction from './ac-action'
   import AcCommentSection from './ac-comment-section'
   import AcAvatar from './ac-avatar'
   import AcPatchfield from './ac-patchfield'
@@ -81,7 +96,7 @@
 
   export default {
     props: ['orderID'],
-    components: {AcCharacterPreview, AcAvatar, AcPatchfield, AcAsset, AcCommentSection},
+    components: {AcCharacterPreview, AcAvatar, AcPatchfield, AcAsset, AcCommentSection, AcAction},
     mixins: [Viewer, Perms],
     methods: {
       populateOrder (response) {
@@ -119,11 +134,12 @@
       return {
         order: null,
         commenturl: `/api/sales/v1/order/${this.orderID}/comments/`,
+        url: `/api/sales/v1/order/${this.orderID}/`,
         md: md
       }
     },
     created () {
-      artCall(`/api/sales/v1/order/${this.orderID}/`, 'GET', undefined, this.populateOrder)
+      artCall(this.url, 'GET', undefined, this.populateOrder)
     }
   }
 </script>

@@ -12,6 +12,7 @@ import App from './App'
 import NavBar from './components/NavBar'
 import fieldCharacterSearch from './components/fieldCharacterSearch'
 import { artCall, md } from './lib'
+import {ErrorHandler} from './plugins/error'
 import {router} from './router'
 
 // export for others scripts to use
@@ -23,12 +24,13 @@ let CACHE_TIMEOUT = 1800
 Vue.use(VueRouter)
 Vue.use(BootstrapVue)
 Vue.use(VueFormGenerator)
+Vue.use(ErrorHandler)
 Vue.config.productionTip = false
 Vue.component('ac-navbar', NavBar)
 Vue.component('fieldCharacterSearch', fieldCharacterSearch)
 
 /* eslint-disable no-new */
-new Vue({
+window.artconomy = new Vue({
   el: '#app',
   router,
   template: '<App :user="user"/>',
@@ -36,7 +38,8 @@ new Vue({
   data: {
     user: null,
     usercache: {},
-    md: md
+    md: md,
+    errorCode: null
   },
   methods: {
     log (data) {
@@ -56,7 +59,7 @@ new Vue({
       }
     },
     cacheUser (username, target) {
-      artCall(`/api/profiles/v1/data/user/${username}/`, 'GET', undefined, this.saveCachedUser(target))
+      artCall(`/api/profiles/v1/data/user/${username}/`, 'GET', undefined, this.saveCachedUser(target), this.$error)
     },
     setUser (username, target) {
       if (this.usercache[username]) {
