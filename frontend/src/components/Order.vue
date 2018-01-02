@@ -54,6 +54,7 @@
                 ref="adjustmentForm"
                 :schema="adjustmentSchema"
                 :model="adjustmentModel"
+                :options="adjustmentOptions"
                 :url="`${url}adjust/`"
                 method="PATCH"
                 :reset-after="false">
@@ -69,7 +70,7 @@
             </p>
           </div>
         </div>
-        <div :class="{'col-lg-3': paymentDetail, 'col-sm-12': true, 'text-section': true, 'pt-2': true, 'col-md-6': !paymentDetail}">
+        <div :class="{'col-lg-3': paymentDetail, 'col-sm-12': true, 'text-section': true, 'pt-2': true, 'pb-3': true, 'col-md-6': !paymentDetail}">
           <div v-if="buyer && newOrder">
             <p>
               <strong>The artist has been notified of your order, and will respond soon!</strong>
@@ -93,10 +94,10 @@
             <p>You should start work on the commission as soon as you can. If there are revisions to upload, you may upload them (and the final, when ready) below.</p>
           </div>
           <div v-if="buyer && queued && !justPaid">
-            <p><strong>Your art is on the way!</strong></p>
+            <p><strong>Your art has been queued!</strong></p>
             <p>We've received your payment and your work is now in the artist's queue. They'll start on it as soon as they're able, and will upload any agreed upon revisions for your review soon, or the final once it's ready.</p>
           </div>
-          <div class="text-center mb-3" v-if="newOrder || paymentPending">
+          <div class="text-center" v-if="newOrder || paymentPending">
             <ac-action :url="`${this.url}cancel/`" variant="danger" :success="populateOrder">Cancel</ac-action>
             <ac-action v-if="newOrder" :confirm="true" :url="`${this.url}accept/`" variant="success" :success="populateOrder">
               Approve order
@@ -107,6 +108,31 @@
                 </p>
               </div>
             </ac-action>
+          </div>
+          <div v-if="inProgress && seller">
+            <p><strong>Here we go!</strong></p>
+            You've begun work on this piece. We've notified the commissioner that their piece is in progress and have sent them the link to your stream if you set one.
+          </div>
+          <div v-if="inProgress && buyer">
+            <p><strong>Your art is on the way!</strong></p>
+            <p>The artist has begun work on your commission. <a :href="order.stream_link" v-if="order.stream_link">They are streaming your piece here!</a></p>
+          </div>
+          <div v-if="(queued || inProgress) && seller">
+            <form>
+              <ac-form-container
+                  method="PATCH"
+                  ref="streamForm"
+                  :url="`${this.url}start/`"
+                  :model="streamModel"
+                  :options="streamOptions"
+                  :schema="streamSchema"
+                  :success="populateOrder"
+                  :reset-after="false">
+              </ac-form-container>
+              <div class="text-center">
+                <b-button type="submit" variant="primary" @click.prevent="$refs.streamForm.submit"><span v-if="queued">Mark as In Progress</span><span v-else>Update Stream Link</span></b-button><i v-if="$refs.streamForm && $refs.streamForm.saved" class="fa fa-check" style="color: green"></i>
+              </div>
+            </form>
           </div>
           <div v-if="cancelled">
             <strong>This order has been cancelled.</strong>
@@ -150,6 +176,7 @@
 </template>
 
 <script>
+  import VueFormGenerator from 'vue-form-generator'
   import AcCharacterPreview from './ac-character-preview'
   import AcAction from './ac-action'
   import AcCommentSection from './ac-comment-section'
@@ -179,9 +206,13 @@
     methods: {
       populateOrder (response) {
         let oldAdjustment = this.order && this.order.adjustment
+        let oldStream = this.order && this.order.stream_link
         this.order = response
         if (oldAdjustment === null) {
           this.adjustmentModel.adjustment = response.adjustment
+        }
+        if (oldStream === null) {
+          this.streamModel.stream_link = response.stream_link
         }
         this.$root.setUser(response.seller.username, this.sellerData, this.$error)
       },
@@ -199,6 +230,9 @@
       },
       queued () {
         return this.order.status === 3
+      },
+      inProgress () {
+        return this.order.status === 4
       },
       cancelled () {
         return this.order.status === 6
@@ -240,6 +274,19 @@
         adjustmentModel: {
           adjustment: 0.00
         },
+        streamModel: {
+          stream_link: null
+        },
+        streamSchema: {
+          fields: [{
+            type: 'input',
+            inputType: 'text',
+            model: 'stream_link',
+            label: 'Link to stream (if applicable)',
+            featured: true,
+            validator: VueFormGenerator.validators.url
+          }]
+        },
         adjustmentSchema: {
           fields: [{
             type: 'input',
@@ -249,6 +296,14 @@
             label: 'Adjustment (USD)',
             featured: true
           }]
+        },
+        adjustmentOptions: {
+          validateAfterLoad: false,
+          validateAfterChanged: true
+        },
+        streamOptions: {
+          validateAfterLoad: false,
+          validateAfterChanged: true
         }
       }
     },

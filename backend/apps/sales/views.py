@@ -3,9 +3,6 @@ from django.db.models import When, F, Case, BooleanField
 from django.shortcuts import render, get_object_or_404
 
 # Create your views here.
-from django.conf import settings
-from django.urls import reverse
-from django.views import View
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, CreateAPIView, RetrieveAPIView, \
@@ -20,7 +17,7 @@ from apps.profiles.permissions import ObjectControls, UserControls
 from apps.sales.permissions import OrderViewPermission, OrderSellerPermission, OrderBuyerPermission
 from apps.sales.models import Product, Order, CreditCardToken, PaymentRecord, Revision
 from apps.sales.serializers import ProductSerializer, ProductNewOrderSerializer, OrderViewSerializer, CardSerializer, \
-    NewCardSerializer, OrderAdjustSerializer, PaymentSerializer, RevisionSerializer
+    NewCardSerializer, OrderAdjustSerializer, PaymentSerializer, RevisionSerializer, OrderStartedSerializer
 
 
 class ProductListAPI(ListCreateAPIView):
@@ -76,16 +73,32 @@ class OrderAccept(GenericAPIView):
     def get_object(self):
         return get_object_or_404(Order, id=self.kwargs['order_id'])
 
-    def post(self, request, order_id):
+    def post(self, request, _order_id):
         order = self.get_object()
         self.check_object_permissions(request, order)
         if order.status != Order.NEW:
-            return Response({'error': "Approval can only be applied to new orders."}, status=400)
+            return Response(
+                {'error': "Approval can only be applied to new orders."}, status=status.HTTP_400_BAD_REQUEST
+            )
         order.status = Order.PAYMENT_PENDING
         order.price = order.product.price
         order.save()
         data = self.serializer_class(instance=order).data
         return Response(data)
+
+
+class OrderStart(UpdateAPIView):
+    permission_classes = [OrderSellerPermission]
+    serializer_class = OrderStartedSerializer
+
+    def get_object(self):
+        return get_object_or_404(Order, id=self.kwargs['order_id'])
+
+    def perform_update(self, serializer):
+        if serializer.instance.status not in (Order.QUEUED, Order.IN_PROGRESS):
+            return Response({'error': 'You can only start orders that are queued.'}, status=status.HTTP_400_BAD_REQUEST)
+        serializer.save(status=Order.IN_PROGRESS)
+        return Response(serializer.data)
 
 
 class OrderCancel(GenericAPIView):

@@ -4,7 +4,7 @@ from django.conf.urls import url
 
 from apps.sales.views import ProductListAPI, ProductManager, PlaceOrder, \
     OrderRetrieve, OrderAccept, OrderCancel, OrderList, SalesList, OrderComments, CardList, CardManager, \
-    MakePrimary, AdjustOrder, MakePayment, OrderRevisions, DeleteOrderRevision
+    MakePrimary, AdjustOrder, MakePayment, OrderRevisions, DeleteOrderRevision, OrderStart
 
 urlpatterns = [
     url(r'^v1/(?P<username>[-\w]+)/products/$', ProductListAPI.as_view(), name='product_list'),
@@ -24,6 +24,7 @@ urlpatterns = [
         name='delete_revision'
     ),
     url(r'^v1/order/(?P<order_id>\d+)/accept/$', OrderAccept.as_view(), name='accept_order'),
+    url(r'^v1/order/(?P<order_id>\d+)/start/$', OrderStart.as_view(), name='start_order'),
     url(r'^v1/order/(?P<order_id>\d+)/adjust/$', AdjustOrder.as_view(), name='adjust_order'),
     url(r'^v1/order/(?P<order_id>\d+)/cancel/$', OrderCancel.as_view(), name='cancel_order'),
     url(r'^v1/order/(?P<order_id>\d+)/pay/$', MakePayment.as_view(), name='make_payment'),

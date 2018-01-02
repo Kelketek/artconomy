@@ -55,9 +55,17 @@ class OrderViewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = (
-            'id', 'placed_on', 'status', 'price', 'product', 'details', 'seller', 'buyer', 'adjustment', 'characters'
+            'id', 'placed_on', 'status', 'price', 'product', 'details', 'seller', 'buyer', 'adjustment', 'characters',
+            'stream_link'
         )
         read_only_fields = fields
+
+
+class OrderStartedSerializer(OrderViewSerializer):
+    class Meta:
+        model = Order
+        fields = OrderViewSerializer.Meta.fields
+        read_only_fields = tuple(field for field in OrderViewSerializer.Meta.read_only_fields if field != 'stream_link')
 
 
 class OrderAdjustSerializer(OrderViewSerializer):
@@ -101,7 +109,7 @@ class NewCardSerializer(serializers.Serializer):
         if len(params) != 2:
             raise serializers.ValidationError("Date must be in the format MM/YY.")
         try:
-            # Avoid Y2K problem while still supporting two digit year.
+            # Avoid Y3K problem while still supporting two digit year.
             month = int(params[0])
             year = int(params[1])
             hundreds = datetime.today().year // 100

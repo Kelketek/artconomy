@@ -21,12 +21,14 @@ from django.contrib import admin
 
 import backend.views
 
+
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^api/profiles/', include('apps.profiles.urls', namespace='profiles')),
     url(r'^api/sales/', include('apps.sales.urls', namespace='sales')),
     url(r'^api/lib/', include('apps.lib.urls', namespace='lib')),
+    url(r'^api/', backend.views.bad_endpoint, name='api404')
 ]
 
 if settings.DEBUG:

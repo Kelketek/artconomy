@@ -7,7 +7,7 @@ from django.contrib.contenttypes.fields import GenericRelation, GenericForeignKe
 from django.contrib.contenttypes.models import ContentType
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models import Model, CharField, ForeignKey, IntegerField, BooleanField, DateTimeField, ManyToManyField, \
-    TextField, SET_NULL, PositiveIntegerField
+    TextField, SET_NULL, PositiveIntegerField, URLField
 
 # Create your models here.
 from djmoney.models.fields import MoneyField
@@ -186,6 +186,7 @@ class Order(Model):
     details = CharField(max_length=5000)
     adjustment = MoneyField(max_digits=4, decimal_places=2, default_currency='USD', blank=True, default=0)
     placed_on = DateTimeField(auto_now_add=True, db_index=True)
+    stream_link = URLField(blank=True, default='')
     characters = ManyToManyField('profiles.Character')
     comments = GenericRelation(
         Comment, related_query_name='order', content_type_field='content_type', object_id_field='object_id'
