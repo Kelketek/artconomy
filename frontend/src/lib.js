@@ -1,3 +1,4 @@
+import moment from 'moment'
 import jquery from 'jquery'
 import MarkDownIt from 'markdown-it'
 
@@ -19,6 +20,10 @@ export function getCookie (name) {
     }
   }
   return cookieValue
+}
+
+export function formatDate (dateString) {
+  return moment(dateString).format('MMMM Do YYYY, h:mm:ss a')
 }
 
 // https://stackoverflow.com/questions/14573223/set-cookie-and-get-cookie-with-javascript

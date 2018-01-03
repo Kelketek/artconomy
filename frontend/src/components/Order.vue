@@ -165,8 +165,84 @@
             they're able, and will upload any agreed upon revisions for your review soon, or the final once it's ready.</p>
         </div>
       </div>
-      <div class="mb-5">
-        <ac-comment-section :commenturl="commenturl" :nesting="false"></ac-comment-section>
+      <div class="row-centered shadowed mt-3 pb-3" v-if="revisionsLimited.length">
+        <div class="col-sm-12">
+          <h2>Revisions</h2>
+        </div>
+        <div v-for="(revision, index) in revisionsLimited"
+             class="col-sm-12 col-md-6 col-lg-4 col-centered text-center"
+             v-bind:key="revision.id">
+          <ac-asset thumb-name="preview" img-class="max-width" :asset="revision"></ac-asset>
+          <div class="text-center text-section p-3 mt-2">
+            Revision {{ index + 1 }} on {{ formatDate(revision.created_on) }}
+            <ac-action
+                v-if="seller && (index === revisionsLimited.length - 1) && !final"
+                variant="danger"
+                method="DELETE"
+                :url="`${url}/revisions/${revision.id}/`"
+                :success="reload"
+            >
+              <i class="fa fa-trash-o"></i>
+            </ac-action>
+          </div>
+        </div>
+      </div>
+      <div class="row shadowed mt-3 pb-3" v-if="final">
+        <div class="col-sm-12 text-center">
+          <h2>Final</h2>
+        </div>
+        <div class="col-sm-12 text-center">
+          <ac-asset thumb-name="preview" img-class="max-width" :asset="final"></ac-asset>
+          <div class="text-center text-section pb-2">
+            Final delivered {{ formatDate(final.created_on)}}
+            <ac-action
+                v-if="seller && review"
+                variant="danger"
+                method="DELETE"
+                :url="`${this.url}revisions/${final.id}/`"
+                :success="reload"
+            >
+              <i class="fa fa-trash-o"></i>
+            </ac-action>
+            <p v-if="review && seller">
+              Waiting on the commissioner to approve the final result.
+            </p>
+            <div v-if="review && buyer">
+              <ac-action
+                  variant="success"
+                  method="POST"
+                  :url="`${this.url}approve/`"
+                  :success="newSubmission"
+              >
+              Approve Result
+              </ac-action>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row-centered mt-3 shadowed text-center pb-3" v-if="seller && revisionsRemain">
+        <div class="col-sm-12 col-md-6 col-centered">
+          <form>
+            <ac-form-container
+                method="POST"
+                ref="revisionForm"
+                :url="`${this.url}revisions/`"
+                :model="revisionModel"
+                :options="revisionOptions"
+                :schema="revisionSchema"
+                :success="reload"
+                v-if="seller && inProgress && revisionsRemain">
+            </ac-form-container>
+            <div class="text-center">
+              <b-button type="submit" variant="primary" v-if="seller && inProgress && revisionsRemain" @click.prevent="$refs.revisionForm.submit"><span v-if="(revisions.length < order.revisions)">Upload Revision</span><span v-else>Upload Final</span></b-button>
+            </div>
+          </form>
+        </div>
+      </div>
+      <div class="row shadowed mt-3">
+        <div class="col-sm-12">
+          <ac-comment-section :commenturl="commenturl" :nesting="false"></ac-comment-section>
+        </div>
       </div>
     </div>
     <div class="row" v-else>
@@ -185,7 +261,7 @@
   import AcAsset from './ac-asset'
   import Viewer from '../mixins/viewer'
   import Perms from '../mixins/permissions'
-  import { artCall, md } from '../lib'
+  import { artCall, md, ratings, formatDate } from '../lib'
   import AcFormContainer from './ac-form-container'
   import AcCardManager from './ac-card-manager'
 
@@ -216,10 +292,24 @@
         }
         this.$root.setUser(response.seller.username, this.sellerData, this.$error)
       },
+      populateRevisions (response) {
+        this.revisions = response.results
+      },
+      reload () {
+        // The number of revisions can have effects on the order's status. Safer to let the server handle it.
+        artCall(this.url, 'GET', undefined, this.populateOrder, this.$error)
+        artCall(`${this.url}revisions/`, 'GET', undefined, this.populateRevisions, this.$error)
+      },
       postPay (response) {
         this.justPaid = true
         this.populateOrder(response)
-      }
+      },
+      newSubmission (response) {
+        this.$router.push({name: 'Submission', params: {'assetID': response.outputs[0].id}, query: {editing: 1}})
+        this.populateOrder(response)
+        console.log(response)
+      },
+      formatDate
     },
     computed: {
       newOrder () {
@@ -236,6 +326,31 @@
       },
       cancelled () {
         return this.order.status === 6
+      },
+      review () {
+        return this.order.status === 5
+      },
+      revisionsLimited () {
+        if (this.revisionsRemain) {
+          return this.revisions
+        } else if (this.finalUploaded) {
+          return this.revisions.slice(0, -1)
+        } else {
+          return this.revisions
+        }
+      },
+      final () {
+        if (this.finalUploaded) {
+          return this.revisions[this.revisions.length - 1]
+        } else {
+          return null
+        }
+      },
+      finalUploaded () {
+        return (this.revisions.length > this.order.revisions)
+      },
+      revisionsRemain () {
+        return (this.revisions.length <= this.order.revisions)
       },
       paymentDetail () {
         return this.seller || this.newOrder
@@ -271,11 +386,38 @@
         sellerData: {user: {fee: null}},
         selectedCard: null,
         justPaid: false,
+        revisions: null,
         adjustmentModel: {
           adjustment: 0.00
         },
+        revisionModel: {
+          file: '',
+          rating: 0
+        },
         streamModel: {
           stream_link: null
+        },
+        revisionSchema: {
+          fields: [{
+            type: 'select',
+            label: 'Rating',
+            model: 'rating',
+            featured: true,
+            required: true,
+            values: ratings,
+            hint: 'The content rating of this revision',
+            selectOptions: {
+              hideNoneSelectedText: true
+            },
+            validator: VueFormGenerator.validators.required
+          }, {
+            type: 'image',
+            id: 'file',
+            label: 'File',
+            model: 'file',
+            required: true,
+            validator: VueFormGenerator.validators.required
+          }]
         },
         streamSchema: {
           fields: [{
@@ -301,6 +443,10 @@
           validateAfterLoad: false,
           validateAfterChanged: true
         },
+        revisionOptions: {
+          validateAfterLoad: false,
+          validateAfterChanged: true
+        },
         streamOptions: {
           validateAfterLoad: false,
           validateAfterChanged: true
@@ -308,12 +454,12 @@
       }
     },
     created () {
-      artCall(this.url, 'GET', undefined, this.populateOrder, this.$error)
+      this.reload()
     }
   }
 </script>
 
-<style scoped>
+<style>
    .v-align-middle {
      vertical-align: middle;
    }

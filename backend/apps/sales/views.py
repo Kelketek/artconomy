@@ -1,5 +1,9 @@
+from uuid import uuid4
+
 from authorize import AuthorizeError
+from django.core.files.base import ContentFile
 from django.db.models import When, F, Case, BooleanField
+from django.db.transaction import atomic
 from django.shortcuts import render, get_object_or_404
 
 # Create your views here.
@@ -12,7 +16,7 @@ from rest_framework.views import APIView
 
 from apps.lib.permissions import ObjectStatus
 from apps.lib.serializers import CommentSerializer
-from apps.profiles.models import User
+from apps.profiles.models import User, ImageAsset
 from apps.profiles.permissions import ObjectControls, UserControls
 from apps.sales.permissions import OrderViewPermission, OrderSellerPermission, OrderBuyerPermission
 from apps.sales.models import Product, Order, CreditCardToken, PaymentRecord, Revision
@@ -82,6 +86,7 @@ class OrderAccept(GenericAPIView):
             )
         order.status = Order.PAYMENT_PENDING
         order.price = order.product.price
+        order.revisions = order.product.revisions
         order.save()
         data = self.serializer_class(instance=order).data
         return Response(data)
@@ -147,9 +152,16 @@ class OrderRevisions(ListCreateAPIView):
 
     def perform_create(self, serializer):
         order = get_object_or_404(Order, id=self.kwargs['order_id'])
+        if order.revision_set.all().count() >= order.revisions + 1:
+            raise PermissionDenied("The maximum number of revisions for this order has already been reached.")
         if not (self.request.user.is_staff or self.request.user == order.seller):
             raise PermissionDenied("You are not the seller on this order.")
-        return serializer.save(order=order, uploaded_by=self.request.user)
+        revision = serializer.save(order=order, uploaded_by=self.request.user)
+        order.refresh_from_db()
+        if (order.revision_set.all().count() >= order.revisions + 1) and (order.status == Order.IN_PROGRESS):
+            order.status = Order.REVIEW
+            order.save()
+        return revision
 
 
 class DeleteOrderRevision(DestroyAPIView):
@@ -157,9 +169,71 @@ class DeleteOrderRevision(DestroyAPIView):
     serializer_class = RevisionSerializer
 
     def get_object(self):
+        order = get_object_or_404(Order, id=self.kwargs['order_id'])
+        if order.status not in [Order.REVIEW, Order.IN_PROGRESS]:
+            raise PermissionDenied("This order's revisions are locked.")
         revision = get_object_or_404(Revision, id=self.kwargs['revision_id'], order_id=self.kwargs['order_id'])
         self.check_object_permissions(self.request, revision)
         return revision
+
+    def perform_destroy(self, instance):
+        super(DeleteOrderRevision, self).perform_destroy(instance)
+        order = Order.objects.get(id=self.kwargs['order_id'])
+        if order.status == Order.REVIEW:
+            order.status = Order.IN_PROGRESS
+            order.save()
+
+
+class ApproveFinal(GenericAPIView):
+    permission_classes = [OrderBuyerPermission]
+    serializer_class = OrderViewSerializer
+
+    def get_object(self):
+        return get_object_or_404(Order, id=self.kwargs['order_id'])
+
+    def post(self, _request, *_args, **_kwargs):
+        order = self.get_object()
+        self.check_object_permissions(self.request, order)
+        if order.status not in [Order.REVIEW, Order.DISPUTED]:
+            raise PermissionDenied('This order is not in an approvable state.')
+        with atomic():
+            order.status = order.COMPLETED
+            order.save()
+            final = order.revision_set.last()
+            submission = ImageAsset(
+                artist=order.seller, uploaded_by=order.seller, order=order,
+                rating=final.rating
+            )
+            new_file = ContentFile(final.file.read())
+            new_file.name = final.file.name
+            submission.file = new_file
+            submission.save()
+            submission.characters.add(*order.characters.all())
+            PaymentRecord(
+                payer=None,
+                amount=order.price + order.adjustment,
+                payee=order.seller,
+                source=PaymentRecord.ESCROW,
+                txn_id=str(uuid4()),
+                content_object=order,
+                payment_type=PaymentRecord.TRANSFER,
+                status=PaymentRecord.SUCCESS,
+                response_code='OdrFnl',
+                response_message='Order finalized.'
+            ).save()
+            PaymentRecord(
+                payer=order.seller,
+                amount=(order.price + order.adjustment) * order.seller.fee,
+                payee=None,
+                source=PaymentRecord.ACCOUNT,
+                txn_id=str(uuid4()),
+                content_object=order,
+                payment_type=PaymentRecord.TRANSFER,
+                status=PaymentRecord.SUCCESS,
+                response_code='OdrFee',
+                response_message='Artconomy Service Fee'
+            ).save()
+        return Response(status=status.HTTP_200_OK, data=OrderViewSerializer(instance=order).data)
 
 
 class OrderList(ListCreateAPIView):

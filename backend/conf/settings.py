@@ -153,6 +153,9 @@ THUMBNAIL_ALIASES = {
         'thumbnail': {'size': (300, 300), 'crop': False},
         'preview': {'size': (500, 500), 'crop': False}
     },
+    'sales.Revision.file': {
+        'preview': {'size': (500, 500), 'crop': False}
+    },
     '': {}
 }
 

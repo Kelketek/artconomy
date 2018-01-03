@@ -45,6 +45,10 @@ class User(AbstractEmailUser):
     )
     notifications = ManyToManyField('lib.Event', through='lib.Notification')
 
+    @property
+    def fee(self):
+        return .1
+
     def save(self, *args, **kwargs):
         self.email = self.email and self.email.lower()
         super().save(*args, **kwargs)
@@ -63,6 +67,8 @@ class ImageAsset(ImageModel):
         Comment, related_query_name='order', content_type_field='content_type', object_id_field='object_id'
     )
     comments_disabled = BooleanField(default=False)
+    artist = ForeignKey('User', related_name='art', null=True, blank=True)
+    order = ForeignKey('sales.Order', null=True, blank=True, on_delete=SET_NULL, related_name='outputs')
 
     comment_permissions = [AssetViewPermission, AssetCommentPermission]
 

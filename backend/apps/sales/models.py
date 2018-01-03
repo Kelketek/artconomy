@@ -75,7 +75,7 @@ class Product(ImageModel):
     user = ForeignKey(settings.AUTH_USER_MODEL)
     created_on = DateTimeField(auto_now_add=True)
     shippable = BooleanField(default=False)
-    revisions = IntegerField(validators=[MinValueValidator(1), MaxValueValidator(10)])
+    revisions = IntegerField(validators=[MinValueValidator(0), MaxValueValidator(10)])
     max_parallel = IntegerField(
         validators=[MinValueValidator(1)], help_text="How many of these you are willing to have in your "
                                                      "backlog at one time.",
@@ -182,7 +182,7 @@ class Order(Model):
         max_digits=4, decimal_places=2, default_currency='USD',
         blank=True, null=True, validators=[MinValueValidator(settings.MINIMUM_PRICE)]
     )
-    revisions_completed = IntegerField(default=0)
+    revisions = IntegerField(default=0)
     details = CharField(max_length=5000)
     adjustment = MoneyField(max_digits=4, decimal_places=2, default_currency='USD', blank=True, default=0)
     placed_on = DateTimeField(auto_now_add=True, db_index=True)
@@ -355,10 +355,13 @@ class PaymentRecord(Model):
 
     CARD = 100
     ACH = 101
+    ESCROW = 102
+    ACCOUNT = 103
 
     SALE = 200
     DISBURSEMENT = 201
     REFUND = 202
+    TRANSFER = 203
 
     STATUSES = (
         (SUCCESS, 'SUCCESS'),
@@ -368,10 +371,13 @@ class PaymentRecord(Model):
     PAYMENT_SOURCES = (
         (CARD, 'Credit Card'),
         (ACH, 'Bank Transfer'),
+        (ESCROW, 'Escrow Holdings'),
+        (ACCOUNT, 'Cash Holdings'),
     )
 
     TYPES = (
         (SALE, 'Sale of good or service'),
+        (TRANSFER, 'Internal Transfer'),
         (DISBURSEMENT, 'Disbursement to account'),
         (REFUND, 'Refund')
     )
@@ -384,7 +390,7 @@ class PaymentRecord(Model):
     payee = ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='paid')
     escrow_for = ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='escrow_hold')
     amount = MoneyField(max_digits=4, decimal_places=2, default_currency='USD')
-    txn_id = CharField(max_length=30)
+    txn_id = CharField(max_length=40)
     created_on = DateTimeField(auto_now_add=True, db_index=True)
     response_code = CharField(max_length=10)
     response_message = TextField()
@@ -403,3 +409,6 @@ class PaymentRecord(Model):
 
 class Revision(ImageModel):
     order = ForeignKey(Order)
+
+    class Meta:
+        ordering = ['created_on']

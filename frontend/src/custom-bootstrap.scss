@@ -105,6 +105,8 @@ $container-max-widths: (
 /* centered columns styles */
 .row-centered {
   text-align:center;
+  margin-right: -15px;
+  margin-left: -15px;
 }
 .col-centered {
   display:inline-block;

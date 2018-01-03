@@ -9,7 +9,7 @@ from rest_framework.fields import SerializerMethodField, DecimalField, IntegerFi
 
 from apps.lib.serializers import RelatedUserSerializer, Base64ImageField
 from apps.lib.utils import country_choices
-from apps.profiles.serializers import CharacterSerializer
+from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer
 from apps.sales.models import Product, Order, CreditCardToken, Revision
 
 
@@ -46,6 +46,7 @@ class OrderViewSerializer(serializers.ModelSerializer):
     characters = CharacterSerializer(many=True, read_only=True)
     price = SerializerMethodField()
     product = ProductSerializer()
+    outputs = ImageAssetSerializer(many=True, read_only=True)
 
     def get_price(self, obj):
         if not obj.price:
@@ -56,7 +57,7 @@ class OrderViewSerializer(serializers.ModelSerializer):
         model = Order
         fields = (
             'id', 'placed_on', 'status', 'price', 'product', 'details', 'seller', 'buyer', 'adjustment', 'characters',
-            'stream_link'
+            'stream_link', 'revisions', 'outputs'
         )
         read_only_fields = fields
 
@@ -69,7 +70,6 @@ class OrderStartedSerializer(OrderViewSerializer):
 
 
 class OrderAdjustSerializer(OrderViewSerializer):
-
     def validate(self, attrs):
         if attrs['adjustment'] is None:
             return attrs
@@ -145,6 +145,7 @@ class RevisionSerializer(serializers.ModelSerializer):
     Serializer for order revisions.
     """
     uploaded_by = serializers.SlugRelatedField(slug_field='username', read_only=True)
+    file = Base64ImageField(thumbnail_namespace='sales.Revision.file')
 
     def get_thumbnail_url(self, obj):
         return self.context['request'].build_absolute_uri(obj.file.url)
