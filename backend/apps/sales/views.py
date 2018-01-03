@@ -360,7 +360,7 @@ class CardList(ListCreateAPIView):
         return CreditCardToken.create(
             user=user, exp_month=data['exp_date'].month, exp_year=data['exp_date'].year,
             security_code=data['security_code'], number=data['card_number'],
-            zip_code=data['zip']
+            zip_code=data.get('zip')
         )
 
 

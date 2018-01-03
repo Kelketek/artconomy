@@ -3,7 +3,7 @@ from factory.django import DjangoModelFactory, ImageField
 from moneyed import Money
 
 from apps.profiles.tests.factories import UserFactory
-from apps.sales.models import Order, Product
+from apps.sales.models import Order, Product, CreditCardToken
 
 
 class ProductFactory(DjangoModelFactory):
@@ -29,3 +29,12 @@ class OrderFactory(DjangoModelFactory):
     buyer = SubFactory(UserFactory)
     seller = SelfAttribute('product.user')
     product = SubFactory(ProductFactory)
+
+
+class CreditCardTokenFactory(DjangoModelFactory):
+    last_four = Sequence(lambda x: '{}'.format(x).zfill(4))
+    payment_id = Sequence(lambda x: '{}|0000'.format(x).zfill(9))
+    user = SubFactory(UserFactory)
+
+    class Meta:
+        model = CreditCardToken
