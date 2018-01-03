@@ -1,13 +1,13 @@
 <template>
   <div class="container">
     <b-tabs v-model="tab">
-      <b-tab title="Current">
+      <b-tab title="<i class='fa fa-tasks'></i> Current">
         <ac-order-list :url="`${url}current/`" :buyer="buyer" :username="username" />
       </b-tab>
-      <b-tab title="Archived">
+      <b-tab title="<i class='fa fa-archive'></i> Archived">
         <ac-order-list :url="`${url}archived/`" :buyer="buyer" :username="username" />
       </b-tab>
-      <b-tab title="Cancelled">
+      <b-tab title="<i class='fa fa-ban'></i> Cancelled">
         <ac-order-list :url="`${url}cancelled/`" :buyer="buyer" :username="username" />
       </b-tab>
     </b-tabs>

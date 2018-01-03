@@ -1,6 +1,11 @@
 <template>
   <div class="container">
     <div class="row-centered" v-if="response !== null">
+      <b-pagination-nav
+          align="center" :use-router="true" :base-url="baseURL" :link-gen="linkGen"
+          v-model="currentPage" :per-page="pageSize" :number-of-pages="totalPages"
+          v-if="totalPages > 1"
+      ></b-pagination-nav>
       <ac-character-preview
         v-for="char in response.results"
         v-bind:character="char"
@@ -11,6 +16,7 @@
       <b-pagination-nav
           align="center" :use-router="true" :base-url="baseURL" :link-gen="linkGen"
           v-model="currentPage" :per-page="pageSize" :number-of-pages="totalPages"
+          v-if="totalPages > 1"
       ></b-pagination-nav>
     </div>
     <div class="row" v-else>

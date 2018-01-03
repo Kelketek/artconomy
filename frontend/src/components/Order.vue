@@ -137,6 +137,18 @@
           <div v-if="cancelled">
             <strong>This order has been cancelled.</strong>
           </div>
+          <div v-if="completed && buyer">
+            <strong>Congratulations! Your order is complete</strong>
+            <p>You can revisit this page at any time for your records.</p>
+          </div>
+          <div v-if="completed && seller">
+            <strong>Congratulations! You've completed the order</strong>
+            <p>You can revisit this page at any time for your records.</p>
+          </div>
+          <div v-if="disputed">
+            <strong>This order is under dispute</strong>
+            <p>An Artconomy staff member will assist in dispute resolution. Please await further instruction in the comments.</p>
+          </div>
         </div>
         <div class="col-md-6 col-sm-12 text-section" v-if="buyer && paymentPending">
           <ac-card-manager :payment="true" :username="order.buyer.username" v-model="selectedCard"></ac-card-manager>
@@ -310,7 +322,6 @@
       newSubmission (response) {
         this.$router.push({name: 'Submission', params: {'assetID': response.outputs[0].id}, query: {editing: 1}})
         this.populateOrder(response)
-        console.log(response)
       },
       formatDate
     },
@@ -327,11 +338,17 @@
       inProgress () {
         return this.order.status === 4
       },
+      review () {
+        return this.order.status === 5
+      },
       cancelled () {
         return this.order.status === 6
       },
-      review () {
-        return this.order.status === 5
+      disputed () {
+        return this.order.status === 7
+      },
+      completed () {
+        return this.order.status === 8
       },
       output () {
         return this.order.outputs[0]
