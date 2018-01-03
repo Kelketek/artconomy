@@ -34,9 +34,9 @@ class ProductNewOrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ('id', 'placed_on', 'status', 'product', 'details', 'seller', 'buyer', 'characters')
+        fields = ('id', 'created_on', 'status', 'product', 'details', 'seller', 'buyer', 'characters')
         read_only_fields = (
-            'status', 'id', 'placed_on'
+            'status', 'id', 'created_on'
         )
 
 
@@ -56,7 +56,7 @@ class OrderViewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = (
-            'id', 'placed_on', 'status', 'price', 'product', 'details', 'seller', 'buyer', 'adjustment', 'characters',
+            'id', 'created_on', 'status', 'price', 'product', 'details', 'seller', 'buyer', 'adjustment', 'characters',
             'stream_link', 'revisions', 'outputs'
         )
         read_only_fields = fields

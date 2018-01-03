@@ -1,6 +1,7 @@
 import inspect
 import json
 import os
+from pprint import pformat
 
 from bok_choy.browser import BROWSERS
 from bok_choy.page_object import PageObject, unguarded
@@ -446,3 +447,14 @@ class APITestCase(TestCase):
     def login(self, user):
         result = self.client.login(email=user.email, password='Test')
         self.assertIs(result, True)
+
+    @staticmethod
+    def assertIDInList(member, container):
+        for item in container:
+            if item['id'] == member.id:
+                break
+        else:
+            raise AssertionError("ID {} not found in: {}".format(
+                member.id,
+                '[' + ',\n'.join([pformat(item) for item in container]) + ']')
+            )

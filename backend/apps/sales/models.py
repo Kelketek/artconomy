@@ -144,7 +144,7 @@ class Bid(Model):
     placeholder = ForeignKey('Placeholder')
     bid = MoneyField(max_digits=4, decimal_places=2, default_currency='USD', db_index=True)
     max_bid = MoneyField(max_digits=4, decimal_places=2, default_currency='USD', db_index=True)
-    placed_on = DateTimeField(auto_now_add=True)
+    created_on = DateTimeField(auto_now_add=True)
 
 
 class Order(Model):
@@ -185,7 +185,7 @@ class Order(Model):
     revisions = IntegerField(default=0)
     details = CharField(max_length=5000)
     adjustment = MoneyField(max_digits=4, decimal_places=2, default_currency='USD', blank=True, default=0)
-    placed_on = DateTimeField(auto_now_add=True, db_index=True)
+    created_on = DateTimeField(auto_now_add=True, db_index=True)
     stream_link = URLField(blank=True, default='')
     characters = ManyToManyField('profiles.Character')
     comments = GenericRelation(
@@ -200,6 +200,9 @@ class Order(Model):
 
     def __str__(self):
         return "#{} {} for {} by {}".format(self.id, self.product.name, self.buyer, self.seller)
+
+    class Meta:
+        ordering = ['created_on']
 
 
 class RatingSet(Model):

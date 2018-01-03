@@ -10,7 +10,8 @@ class ObjectControls(BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.user.is_staff:
             return True
-        if obj.user == request.user:
+        user = getattr(obj, 'user', obj)
+        if user == request.user:
             return True
 
 
