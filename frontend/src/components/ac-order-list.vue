@@ -34,8 +34,10 @@
     mixins: [Viewer, Perms, Paginated],
     components: {AcOrderPreview},
     props: ['url', 'buyer'],
-    data: {
-      baseUrl: this.url,
+    data () {
+      return {
+        baseURL: this.url
+      }
     },
     methods: {
       populateOrders (response) {

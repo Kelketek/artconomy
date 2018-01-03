@@ -75,6 +75,7 @@ class Product(ImageModel):
     user = ForeignKey(settings.AUTH_USER_MODEL)
     created_on = DateTimeField(auto_now_add=True)
     shippable = BooleanField(default=False)
+    active = BooleanField(default=True, db_index=True)
     revisions = IntegerField(validators=[MinValueValidator(0), MaxValueValidator(10)])
     max_parallel = IntegerField(
         validators=[MinValueValidator(1)], help_text="How many of these you are willing to have in your "
@@ -85,6 +86,13 @@ class Product(ImageModel):
     task_weight = IntegerField(
         validators=[MinValueValidator(1)]
     )
+
+    def delete(self, using=None, keep_parents=False):
+        if self.order_set.all().count():
+            self.active = False
+            self.save()
+        else:
+            super().delete(using=using, keep_parents=keep_parents)
 
     def __str__(self):
         return "{} offered by {} at {}".format(self.name, self.user.username, self.price)

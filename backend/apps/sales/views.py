@@ -2,7 +2,7 @@ from uuid import uuid4
 
 from authorize import AuthorizeError
 from django.core.files.base import ContentFile
-from django.db.models import When, F, Case, BooleanField
+from django.db.models import When, F, Case, BooleanField, Q
 from django.db.transaction import atomic
 from django.shortcuts import render, get_object_or_404
 
@@ -11,12 +11,13 @@ from rest_framework import status
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, CreateAPIView, RetrieveAPIView, \
     GenericAPIView, ListAPIView, UpdateAPIView, DestroyAPIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.lib.permissions import ObjectStatus
 from apps.lib.serializers import CommentSerializer
-from apps.profiles.models import User, ImageAsset
+from apps.profiles.models import User, ImageAsset, Character
 from apps.profiles.permissions import ObjectControls, UserControls
 from apps.sales.permissions import OrderViewPermission, OrderSellerPermission, OrderBuyerPermission
 from apps.sales.models import Product, Order, CreditCardToken, PaymentRecord, Revision
@@ -30,13 +31,13 @@ class ProductListAPI(ListCreateAPIView):
     def perform_create(self, serializer):
         user = get_object_or_404(User, username__iexact=self.kwargs['username'])
         if not (self.request.user.is_staff or self.request.user == user):
-            raise PermissionDenied("You do not have permission to create characters for that user.")
+            raise PermissionDenied("You do not have permission to create products for that user.")
         product = serializer.save(uploaded_by=self.request.user, user=user)
         return product
 
     def get_queryset(self):
         username = self.kwargs['username']
-        qs = Product.objects.filter(user__username__iexact=self.kwargs['username'])
+        qs = Product.objects.filter(user__username__iexact=self.kwargs['username'], active=True)
         if not (self.request.user.username.lower() == username or self.request.user.is_staff):
             qs = qs.exclude(hidden=True)
         qs = qs.order_by('created_on')
@@ -55,9 +56,13 @@ class ProductManager(RetrieveUpdateDestroyAPIView):
 
 class PlaceOrder(CreateAPIView):
     serializer_class = ProductNewOrderSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_serializer(self, instance=None, data=None, many=False, partial=False):
+        return self.serializer_class(instance=instance, data=data, many=many, partial=partial, request=self.request)
 
     def perform_create(self, serializer):
-        product = get_object_or_404(Product, id=self.kwargs['product'])
+        product = get_object_or_404(Product, id=self.kwargs['product'], hidden=False)
         order = serializer.save(product=product, buyer=self.request.user, seller=product.user)
         return order
 

@@ -1,11 +1,14 @@
 from ddt import data, unpack, ddt
+from django.core.files.uploadedfile import SimpleUploadedFile
 from freezegun import freeze_time
-from mock import patch, Mock
+from mock import patch
 from rest_framework import status
 
 from apps.lib.test_resources import APITestCase
-from apps.sales.models import Order, CreditCardToken
-from apps.sales.tests.factories import OrderFactory, CreditCardTokenFactory
+from apps.profiles.tests.factories import CharacterFactory
+from apps.profiles.tests.helpers import gen_image
+from apps.sales.models import Order, CreditCardToken, Product
+from apps.sales.tests.factories import OrderFactory, CreditCardTokenFactory, ProductFactory
 
 order_scenarios = (
     {
@@ -296,3 +299,302 @@ class TestCardManagement(APITestCase):
         self.assertEqual(cards[2].active, False)
         cards[0].refresh_from_db()
         self.assertEqual(cards[0].active, True)
+
+
+class TestProduct(APITestCase):
+    def test_product_listing_logged_in(self):
+        self.login(self.user)
+        products = [ProductFactory.create(user=self.user) for __ in range(3)]
+        hidden = ProductFactory.create(user=self.user, hidden=True)
+        ProductFactory.create(user=self.user, active=False)
+        response = self.client.get('/api/sales/v1/{}/products/'.format(self.user.username))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['results']), 4)
+        for product in products:
+            self.assertIDInList(product, response.data['results'])
+        self.assertIDInList(hidden, response.data['results'])
+
+    def test_create_product(self):
+        self.login(self.user)
+        response = self.client.post(
+            '/api/sales/v1/{}/products/'.format(self.user.username),
+            {
+                'category': Product.REFERENCE,
+                'description': 'I will draw you a porn.',
+                'file': SimpleUploadedFile('bloo-oo.jpg', gen_image()),
+                'name': 'Pornographic refsheet',
+                'revisions': 2,
+                'task_weight': 2,
+                'expected_turnaround': 3,
+            }
+        )
+        result = response.data
+        self.assertEqual(result['description'], 'I will draw you a porn.')
+        self.assertEqual(result['name'], 'Pornographic refsheet')
+        self.assertEqual(result['revisions'], 2)
+        self.assertEqual(result['task_weight'], 2)
+        self.assertEqual(result['expected_turnaround'], 3)
+        self.assertEqual(result['category'], Product.REFERENCE)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_create_product_not_logged_in(self):
+        response = self.client.post(
+            '/api/sales/v1/{}/products/'.format(self.user.username),
+            {
+                'category': Product.REFERENCE,
+                'description': 'I will draw you a porn.',
+                'file': SimpleUploadedFile('bloo-oo.jpg', gen_image()),
+                'name': 'Pornographic refsheet',
+                'revisions': 2,
+                'task_weight': 2,
+                'expected_turnaround': 3,
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_create_product_wrong_user(self):
+        self.login(self.user2)
+        response = self.client.post(
+            '/api/sales/v1/{}/products/'.format(self.user.username),
+            {
+                'category': Product.REFERENCE,
+                'description': 'I will draw you a porn.',
+                'file': SimpleUploadedFile('bloo-oo.jpg', gen_image()),
+                'name': 'Pornographic refsheet',
+                'revisions': 2,
+                'task_weight': 2,
+                'expected_turnaround': 3,
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_create_product_staff(self):
+        self.login(self.staffer)
+        response = self.client.post(
+            '/api/sales/v1/{}/products/'.format(self.user.username),
+            {
+                'category': Product.REFERENCE,
+                'description': 'I will draw you a porn.',
+                'file': SimpleUploadedFile('bloo-oo.jpg', gen_image()),
+                'name': 'Pornographic refsheet',
+                'revisions': 2,
+                'task_weight': 2,
+                'expected_turnaround': 3,
+            }
+        )
+        result = response.data
+        self.assertEqual(result['description'], 'I will draw you a porn.')
+        self.assertEqual(result['name'], 'Pornographic refsheet')
+        self.assertEqual(result['revisions'], 2)
+        self.assertEqual(result['task_weight'], 2)
+        self.assertEqual(result['expected_turnaround'], 3)
+        self.assertEqual(result['category'], Product.REFERENCE)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_product_listing_not_logged_in(self):
+        products = [ProductFactory.create(user=self.user) for __ in range(3)]
+        ProductFactory.create(user=self.user, hidden=True)
+        ProductFactory.create(user=self.user, active=False)
+        response = self.client.get('/api/sales/v1/{}/products/'.format(self.user.username))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['results']), 3)
+        for product in products:
+            self.assertIDInList(product, response.data['results'])
+
+    def test_product_listing_other_user(self):
+        self.login(self.user2)
+        products = [ProductFactory.create(user=self.user) for __ in range(3)]
+        ProductFactory.create(user=self.user, hidden=True)
+        ProductFactory.create(user=self.user, active=False)
+        response = self.client.get('/api/sales/v1/{}/products/'.format(self.user.username))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['results']), 3)
+        for product in products:
+            self.assertIDInList(product, response.data['results'])
+
+    def test_product_listing_staff(self):
+        self.login(self.staffer)
+        products = [ProductFactory.create(user=self.user) for __ in range(3)]
+        hidden = ProductFactory.create(user=self.user, hidden=True)
+        ProductFactory.create(user=self.user, active=False)
+        response = self.client.get('/api/sales/v1/{}/products/'.format(self.user.username))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['results']), 4)
+        for product in products:
+            self.assertIDInList(product, response.data['results'])
+        self.assertIDInList(hidden, response.data['results'])
+
+    def test_product_delete(self):
+        self.login(self.user)
+        products = [ProductFactory.create(user=self.user) for __ in range(3)]
+        OrderFactory.create(product=products[1])
+        self.assertTrue(products[1].active)
+        response = self.client.delete('/api/sales/v1/{}/products/{}/'.format(self.user.username, products[1].id))
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        response = self.client.delete('/api/sales/v1/{}/products/{}/'.format(self.user.username, products[2].id))
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        products[1].refresh_from_db()
+        self.assertFalse(products[1].active)
+        self.assertEqual(Product.objects.filter(id=products[2].id).count(), 0)
+
+    def test_product_delete_not_logged_in(self):
+        products = [ProductFactory.create(user=self.user) for __ in range(3)]
+        OrderFactory.create(product=products[1])
+        self.assertTrue(products[1].active)
+        response = self.client.delete('/api/sales/v1/{}/products/{}/'.format(self.user.username, products[1].id))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        response = self.client.delete('/api/sales/v1/{}/products/{}/'.format(self.user.username, products[2].id))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        products[1].refresh_from_db()
+        self.assertTrue(products[1].active)
+        self.assertEqual(Product.objects.filter(id=products[2].id).count(), 1)
+
+    def test_product_delete_wrong_user(self):
+        self.login(self.user2)
+        products = [ProductFactory.create(user=self.user) for __ in range(3)]
+        OrderFactory.create(product=products[1])
+        self.assertTrue(products[1].active)
+        response = self.client.delete('/api/sales/v1/{}/products/{}/'.format(self.user.username, products[1].id))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        response = self.client.delete('/api/sales/v1/{}/products/{}/'.format(self.user.username, products[2].id))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        products[1].refresh_from_db()
+        self.assertTrue(products[1].active)
+        self.assertEqual(Product.objects.filter(id=products[2].id).count(), 1)
+
+    def test_product_delete_wrong_product(self):
+        self.login(self.user)
+        products = [ProductFactory.create(user=self.user2) for __ in range(3)]
+        OrderFactory.create(product=products[1])
+        self.assertTrue(products[1].active)
+        response = self.client.delete('/api/sales/v1/{}/products/{}/'.format(self.user.username, products[1].id))
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        response = self.client.delete('/api/sales/v1/{}/products/{}/'.format(self.user.username, products[2].id))
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        products[1].refresh_from_db()
+        self.assertTrue(products[1].active)
+        self.assertEqual(Product.objects.filter(id=products[2].id).count(), 1)
+
+    def test_product_delete_staffer(self):
+        self.login(self.staffer)
+        products = [ProductFactory.create(user=self.user) for __ in range(3)]
+        OrderFactory.create(product=products[1])
+        self.assertTrue(products[1].active)
+        response = self.client.delete('/api/sales/v1/{}/products/{}/'.format(self.user.username, products[1].id))
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        response = self.client.delete('/api/sales/v1/{}/products/{}/'.format(self.user.username, products[2].id))
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        products[1].refresh_from_db()
+        self.assertFalse(products[1].active)
+        self.assertEqual(Product.objects.filter(id=products[2].id).count(), 0)
+
+
+class TestOrder(APITestCase):
+    def test_place_order(self):
+        self.login(self.user)
+        characters = [
+            CharacterFactory.create(user=self.user).id,
+            CharacterFactory.create(user=self.user, private=True).id,
+            CharacterFactory.create(user=self.user2, open_requests=True).id
+        ]
+        product = ProductFactory.create()
+        response = self.client.post(
+            '/api/sales/v1/{}/products/{}/order/'.format(product.user.username, product.id),
+            {
+                'details': 'Draw me some porn!',
+                'characters': characters
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['details'], 'Draw me some porn!')
+        self.assertEqual(response.data['characters'], characters)
+        self.assertEqual(response.data['product'], product.id)
+        self.assertEqual(response.data['status'], Order.NEW)
+
+    def test_place_order_hidden(self):
+        self.login(self.user)
+        characters = [
+            CharacterFactory.create(user=self.user).id,
+            CharacterFactory.create(user=self.user, private=True).id,
+            CharacterFactory.create(user=self.user2, open_requests=True).id
+        ]
+        product = ProductFactory.create(hidden=True)
+        response = self.client.post(
+            '/api/sales/v1/{}/products/{}/order/'.format(product.user.username, product.id),
+            {
+                'details': 'Draw me some porn!',
+                'characters': characters
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_adjust_order(self):
+        raise AssertionError
+
+    def test_adjust_order_buyer_fail(self):
+        raise AssertionError
+
+    def test_adjust_order_wrong_user(self):
+        raise AssertionError
+
+    def test_adjust_order_staff(self):
+        raise AssertionError
+
+    def test_accept_order(self):
+        raise AssertionError
+
+    def test_accept_order_buyer_fail(self):
+        raise AssertionError
+
+    def test_accept_order_wrong_user(self):
+        raise AssertionError
+
+    def test_accept_order_staffer(self):
+        raise AssertionError
+
+    def test_pay_order_amount_changed(self):
+        raise AssertionError
+
+    def test_pay_order_wrong_user(self):
+        raise AssertionError
+
+    def test_pay_order_seller_fail(self):
+        raise AssertionError
+
+    def test_pay_order_staffer(self):
+        raise AssertionError
+
+    def test_in_progress_buyer_fail(self):
+        raise AssertionError
+
+    def test_in_progress_wrong_user(self):
+        raise AssertionError
+
+    def test_place_order_unpermitted_character(self):
+        self.login(self.user)
+        characters = [
+            CharacterFactory.create(user=self.user2, private=True).id,
+        ]
+        product = ProductFactory.create()
+        response = self.client.post(
+            '/api/sales/v1/{}/products/{}/order/'.format(product.user.username, product.id),
+            {
+                'details': 'Draw me some porn!',
+                'characters': characters
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_place_order_not_logged_in(self):
+        characters = [
+            CharacterFactory.create(user=self.user2, private=True).id,
+        ]
+        product = ProductFactory.create()
+        response = self.client.post(
+            '/api/sales/v1/{}/products/{}/order/'.format(product.user.username, product.id),
+            {
+                'details': 'Draw me some porn!',
+                'characters': characters
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

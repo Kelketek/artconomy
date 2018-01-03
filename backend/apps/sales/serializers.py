@@ -2,6 +2,7 @@ from datetime import datetime, date
 
 from django.conf import settings
 from django.core.validators import RegexValidator
+from django.db.models import Q
 from luhn import verify
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -9,6 +10,7 @@ from rest_framework.fields import SerializerMethodField, DecimalField, IntegerFi
 
 from apps.lib.serializers import RelatedUserSerializer, Base64ImageField
 from apps.lib.utils import country_choices
+from apps.profiles.models import Character
 from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer
 from apps.sales.models import Product, Order, CreditCardToken, Revision
 
@@ -31,6 +33,20 @@ class ProductSerializer(serializers.ModelSerializer):
 class ProductNewOrderSerializer(serializers.ModelSerializer):
     seller = RelatedUserSerializer(read_only=True)
     buyer = RelatedUserSerializer(read_only=True)
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request')
+        super().__init__(*args, **kwargs)
+
+    def validate_characters(self, value):
+        for character in value:
+            if not (self.request.user.is_staff or character.user == self.request.user):
+                if character.private or not character.open_requests:
+                    raise serializers.ValidationError(
+                        'You are not permitted to commission pieces for all of the characters you have specified, or '
+                        'one or more characters you specified does not exist.'
+                    )
+        return value
 
     class Meta:
         model = Order
