@@ -236,20 +236,74 @@ class ApproveFinal(GenericAPIView):
         return Response(status=status.HTTP_200_OK, data=OrderViewSerializer(instance=order).data)
 
 
-class OrderList(ListCreateAPIView):
+class CurrentMixin(object):
+    @staticmethod
+    def extra_filter(qs):
+        return qs.exclude(status__in=[Order.COMPLETED, Order.CANCELLED])
+
+
+class ArchivedMixin(object):
+    @staticmethod
+    def extra_filter(qs):
+        return qs.filter(status=Order.COMPLETED)
+
+
+class CancelledMixin(object):
+    @staticmethod
+    def extra_filter(qs):
+        return qs.filter(status=Order.CANCELLED)
+
+
+class OrderListBase(ListCreateAPIView):
     permission_classes = [ObjectControls]
     serializer_class = OrderViewSerializer
+
+    @staticmethod
+    def extra_filter(qs):
+        return qs
 
     def get_queryset(self):
         self.user = get_object_or_404(User, username=self.kwargs['username'])
         self.check_object_permissions(self.request, self.user)
-        cancelled = self.request.GET.get('cancelled', False)
-        qs = self.user.buys.all()
-        if not cancelled:
-            qs = qs.exclude(status=Order.CANCELLED)
-        else:
-            qs = qs.filter(status=Order.CANCELLED)
+        return self.extra_filter(self.user.buys.all())
+
+
+class CurrentOrderList(CurrentMixin, OrderListBase):
+    pass
+
+
+class ArchivedOrderList(ArchivedMixin, OrderListBase):
+    pass
+
+
+class CancelledOrderList(CancelledMixin, OrderListBase):
+    pass
+
+
+class SalesListBase(ListAPIView):
+    permission_classes = [ObjectControls]
+    serializer_class = OrderViewSerializer
+
+    @staticmethod
+    def extra_filter(qs):
         return qs
+
+    def get_queryset(self):
+        self.user = get_object_or_404(User, username=self.kwargs['username'])
+        self.check_object_permissions(self.request, self.user)
+        return self.extra_filter(self.user.sales.all())
+
+
+class CurrentSalesList(CurrentMixin, SalesListBase):
+    pass
+
+
+class ArchivedSalesList(ArchivedMixin, SalesListBase):
+    pass
+
+
+class CancelledSalesList(CancelledMixin, SalesListBase):
+    pass
 
 
 class AdjustOrder(UpdateAPIView):
@@ -262,22 +316,6 @@ class AdjustOrder(UpdateAPIView):
         order = get_object_or_404(Order, id=self.kwargs['order_id'])
         self.check_object_permissions(self.request, order)
         return order
-
-
-class SalesList(ListAPIView):
-    permission_classes = [ObjectControls]
-    serializer_class = OrderViewSerializer
-
-    def get_queryset(self):
-        self.user = get_object_or_404(User, username=self.kwargs['username'])
-        self.check_object_permissions(self.request, self.user)
-        cancelled = self.request.GET.get('cancelled', False)
-        qs = self.user.sales.all()
-        if not cancelled:
-            qs = qs.exclude(status=Order.CANCELLED)
-        else:
-            qs = qs.filter(status=Order.CANCELLED)
-        return qs
 
 
 class CardList(ListCreateAPIView):

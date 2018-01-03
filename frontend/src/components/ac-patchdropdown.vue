@@ -1,34 +1,48 @@
 <template>
-    <div class="patchbutton-wrapper" :class="classes">
-      <b-button :disabled="disabled" :variant="trueVariant" v-if="value" @click="save" :class="classes">{{ falseText }}</b-button>
-      <b-button :disabled="disabled" :class="classes" :variant="falseVariant" v-else @click="save">{{ trueText }}</b-button>
-    </div>
+  <div class="patchdropdown-wrapper" :class="classes">
+    <b-dropdown :disabled="disabled" :text="selected" class="m-md-2" v-if="editmode">
+      <b-dropdown-item v-for="option in options" v-if="value + '' !== option.id" :key="option.id" @click="select(option.id)">
+        {{ option.name }}
+      </b-dropdown-item>
+    </b-dropdown>
+    <span v-else class="patchdropdown-preview" :class="classes">
+      {{ selected }}
+    </span>
+  </div>
 </template>
 
 <script>
   import {artCall} from '../lib'
 
   export default {
-    name: 'ac-patchbutton',
-    props: ['value', 'name', 'trueText', 'falseText', 'callback', 'classes', 'trueVariant', 'falseVariant', 'url', 'classes'],
+    name: 'ac-patchdropdown',
+    props: ['value', 'name', 'options', 'classes', 'callback', 'url', 'editmode'],
     data: function () {
       return {
-        disabled: false
+        disabled: false,
+        newValue: this.value
+      }
+    },
+    computed: {
+      selected () {
+        let value = this.value + ''
+        for (let option of this.options) {
+          if (option['id'] === value) {
+            return option['name']
+          }
+        }
       }
     },
     methods: {
-      update () {
-        this.$emit('input', !this.value)
-      },
-      save () {
-        if (this.original === this.value) {
-          this.editing = false
-          return
-        }
+      select (value) {
+        this.newValue = value
         let data = {}
         this.disabled = true
-        data[this.name] = !this.value
+        data[this.name] = value
         artCall(this.url, 'PATCH', data, this.postSave)
+      },
+      update () {
+        this.$emit('input', this.newValue)
       },
       postSave () {
         this.update()

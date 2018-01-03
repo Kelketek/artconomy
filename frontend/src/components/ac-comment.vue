@@ -1,9 +1,10 @@
 <template>
   <div :id="'comment-' + comment.id" class="comment-block"
        :class="{'my-comment': myComment, 'alternate': alternate}">
-    <div>{{ comment.user.username }} <span class="underlined"
-                                                               :id="'comment-' + comment.id + '-created_on'">commented</span>
-      <span :id="'comment-' + comment.id + '-edited_on'" class="underlined" v-if="comment.edited"><small>(edited)</small></span>
+    <div class="text-center comment-info">
+      <ac-avatar :user="comment.user"></ac-avatar><br />
+      <span class="underlined" :id="'comment-' + comment.id + '-created_on'">commented</span>
+      <span :id="'comment-' + comment.id + '-edited_on'" class="underlined" v-if="comment.edited"><small><br />(edited)</small></span>
     </div>
     <b-popover :target="'comment-' + comment.id + '-created_on'"
                triggers="hover focus"
@@ -16,8 +17,8 @@
                :content="format_time(comment.edited_on)"
                v-if="comment.edited">
     </b-popover>
-    <div v-html="parseContent()" v-if="!editing && !comment.deleted"></div>
-    <div v-if="comment.deleted">[This comment has been deleted]</div>
+    <div class="comment-content" v-html="parseContent()" v-if="!editing && !comment.deleted"></div>
+    <div class="comment-content" v-if="comment.deleted">[This comment has been deleted]</div>
     <div v-if="editing && !edit_preview"><textarea :disabled="edit_disabled" v-model="draft"
                                                                       class="comment-field"
                                                                       contenteditable="true"></textarea></div>
@@ -86,11 +87,24 @@
   </div>
 </template>
 
+<style>
+  .comment-info, .comment-content {
+    display: inline-block;
+    line-height: 1rem;
+  }
+  .comment-content {
+    margin-left: 1rem;
+    vertical-align: middle;
+  }
+</style>
+
 <script>
-  import { artCall } from '../lib'
+  import { artCall, md } from '../lib'
   import moment from 'moment'
+  import AcAvatar from './ac-avatar'
 
   export default {
+    components: {AcAvatar},
     name: 'ac-comment',
     props: {
       commentobj: {},
@@ -103,13 +117,13 @@
     },
     methods: {
       parseContent () {
-        return this.$root.md.render(this.comment.text)
+        return md.render(this.comment.text)
       },
       parseDraft () {
-        return this.$root.md.render(this.draft)
+        return md.render(this.draft)
       },
       parseReply () {
-        return this.$root.md.render(this.reply)
+        return md.render(this.reply)
       },
       reloadComment (response) {
         this.comment = response

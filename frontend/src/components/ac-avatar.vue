@@ -20,6 +20,7 @@
 <style>
   .avatar-container{
     display: inline-block;
+    line-height: 1.5rem;
   }
   .avatar-image-container {
     border: 1px solid black;

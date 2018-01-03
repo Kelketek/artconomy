@@ -5,11 +5,27 @@
         <ac-asset :asset="submission" thumb-name="gallery" :rating="rating"></ac-asset>
       </div>
       <div class="col-sm-12 col-md-8 text-section pt-3 pl-4">
-        <ac-patchfield v-model="submission.title" name="title" styleclass="name-edit" :editmode="editing" :url="url"></ac-patchfield>
-        <div class="card-block submission-description"><ac-patchfield v-model="submission.caption" name="caption" :multiline="true" :editmode="editing" :url="url"></ac-patchfield></div>
+        <ac-patchfield v-model="submission.title" name="title" styleclass="name-edit" placeholder="Set the title" :editmode="editing" :url="url"></ac-patchfield>
+        <div class="card-block submission-description"><ac-patchfield v-model="submission.caption" name="caption" placeholder="Add a caption" :multiline="true" :editmode="editing" :url="url"></ac-patchfield></div>
       </div>
-      <div class="col-sm-12 col-md-4 text-section pt-3 pl-4">
-        <div class="text-center"><ac-avatar :user="submission.uploaded_by"></ac-avatar></div>
+      <div class="col-sm-12 col-md-4 text-section pt-3 pl-4 text-center">
+        <div class="info-block" v-if="!ownWork">
+          <h4>Added By</h4>
+          <ac-avatar :user="submission.uploaded_by"></ac-avatar>
+        </div>
+        <div v-if="submission.artist" class="info-block">
+          <h4>Artist</h4>
+          <ac-avatar :user="submission.artist"></ac-avatar>
+        </div>
+        <div>
+          <ac-patchdropdown v-model="submission.rating" :editmode="editing" :options="ratingsShort()" :url="url" name="rating"></ac-patchdropdown>
+        </div>
+        <p v-if="controls && submission.order" class="mb-0">
+          From <router-link :to="{name: 'Order', params: {orderID: submission.order, username: submission.uploaded_by.username}}">Order {{submission.order}}</router-link>
+        </p>
+        <p v-if="controls || (submission.order && submission.artist.username === viewer.username )" class="mb-0">
+          From <router-link :to="{name: 'Sale', params: {orderID: submission.order, username: submission.artist.username}}">Sale {{submission.order}}</router-link>
+        </p>
         <i v-if="controls && !editing" class="ml-2 fa fa-2x fa-lock clickable pull-right" @click="edit"></i>
         <i v-if="controls && editing" class="ml-2 fa fa-2x fa-unlock clickable pull-right" @click="lock"></i>
         <div v-if="controls" class="pull-right">
@@ -44,8 +60,15 @@
   </div>
 </template>
 
+<style>
+  .info-block {
+    display: inline-block;
+    text-align: center;
+  }
+</style>
+
 <script>
-  import { artCall, setMetaContent, textualize } from '../lib'
+  import { artCall, setMetaContent, textualize, ratingsShort } from '../lib'
   import AcCharacterPreview from './ac-character-preview'
   import Editable from '../mixins/editable'
   import Viewer from '../mixins/viewer'
@@ -54,10 +77,12 @@
   import AcCommentSection from './ac-comment-section'
   import AcAvatar from './ac-avatar'
   import AcAsset from './ac-asset'
+  import AcPatchdropdown from './ac-patchdropdown'
 
   export default {
     name: 'Submission',
-    components: {AcCharacterPreview, AcPatchfield, AcCommentSection, AcPatchbutton, AcAvatar, AcAsset},
+    components: {
+      AcPatchdropdown, AcCharacterPreview, AcPatchfield, AcCommentSection, AcPatchbutton, AcAvatar, AcAsset},
     mixins: [Viewer, Editable],
     data () {
       return {
@@ -69,6 +94,9 @@
     computed: {
       controls () {
         return this.submission.uploaded_by.username === this.$root.user.username
+      },
+      ownWork () {
+        return this.submission.uploaded_by.username === (this.submission.artist && this.submission.artist.username)
       }
     },
     methods: {
@@ -86,10 +114,11 @@
         } else {
           this.$router.history.push({name: 'Profile', params: {username: this.submission.uploaded_by.username}})
         }
-      }
+      },
+      ratingsShort
     },
     created () {
-      artCall(`/api/profiles/v1/asset/${this.$route.params.assetID}/`, 'GET', undefined, this.populateSubmission, this.$error)
+      artCall(this.url, 'GET', undefined, this.populateSubmission, this.$error)
     }
   }
 </script>

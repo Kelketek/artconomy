@@ -91,6 +91,13 @@ export const RATINGS = {
   3: 'Offensive/Disturbing to most viewers, not safe for work'
 }
 
+export const RATINGS_SHORT = {
+  0: 'Clean/Safe',
+  1: 'Risque',
+  2: 'Adult content',
+  3: 'Offensive/Disturbing'
+}
+
 export const PRODUCT_TYPES = {
   0: 'Sketch',
   1: 'Full Body',
@@ -120,6 +127,10 @@ function genOptions (enumerable) {
 
 export function ratings () {
   return genOptions(RATINGS)
+}
+
+export function ratingsShort () {
+  return genOptions(RATINGS_SHORT)
 }
 
 export function productTypes () {

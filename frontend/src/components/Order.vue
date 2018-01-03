@@ -192,7 +192,10 @@
           <h2>Final</h2>
         </div>
         <div class="col-sm-12 text-center">
-          <ac-asset thumb-name="preview" img-class="max-width" :asset="final"></ac-asset>
+          <router-link v-if="output" :to="{name: 'Submission', params: {assetID: output.id}}">
+            <ac-asset thumb-name="preview" img-class="max-width" :asset="final"></ac-asset>
+          </router-link>
+          <ac-asset v-else thumb-name="preview" img-class="max-width" :asset="final"></ac-asset>
           <div class="text-center text-section pb-2">
             Final delivered {{ formatDate(final.created_on)}}
             <ac-action
@@ -329,6 +332,9 @@
       },
       review () {
         return this.order.status === 5
+      },
+      output () {
+        return this.order.outputs[0]
       },
       revisionsLimited () {
         if (this.revisionsRemain) {

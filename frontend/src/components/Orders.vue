@@ -1,15 +1,16 @@
 <template>
-  <div class="container order-list">
-    <div class="row">
-      <ac-order-preview
-          v-for="order in growing"
-          :key="order.id"
-          v-if="growing !== null"
-          :order="order"
-          :buyer="buyer"
-          :username="username"
-      ></ac-order-preview>
-    </div>
+  <div class="container">
+    <b-tabs v-model="tab">
+      <b-tab title="Current">
+        <ac-order-list :url="`${url}current/`" :buyer="buyer" :username="username" />
+      </b-tab>
+      <b-tab title="Archived">
+        <ac-order-list :url="`${url}archived/`" :buyer="buyer" :username="username" />
+      </b-tab>
+      <b-tab title="Cancelled">
+        <ac-order-list :url="`${url}cancelled/`" :buyer="buyer" :username="username" />
+      </b-tab>
+    </b-tabs>
   </div>
 </template>
 
@@ -18,12 +19,22 @@
   import Perms from '../mixins/permissions'
   import Paginated from '../mixins/paginated'
   import AcOrderPreview from './ac-order-preview'
-  import { artCall } from '../lib'
+  import { paramHandleMap } from '../lib'
+  import AcOrderList from './ac-order-list'
+
+  const TabMap = {
+    current: 0,
+    archived: 1,
+    cancelled: 2
+  }
 
   export default {
     name: 'Orders',
     mixins: [Viewer, Perms, Paginated],
-    components: {AcOrderPreview},
+    components: {
+      AcOrderList,
+      AcOrderPreview
+    },
     props: ['url', 'buyer'],
     methods: {
       populateOrders (response) {
@@ -31,8 +42,8 @@
         this.growing = response.results
       }
     },
-    created () {
-      artCall(this.url, 'GET', undefined, this.populateOrders)
+    computed: {
+      tab: paramHandleMap('tabName', TabMap)
     }
   }
 </script>

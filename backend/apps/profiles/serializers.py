@@ -124,6 +124,7 @@ class CharacterSerializer(serializers.ModelSerializer):
 
 class ImageAssetManagementSerializer(serializers.ModelSerializer):
     uploaded_by = RelatedUserSerializer(read_only=True)
+    artist = RelatedUserSerializer(read_only=True)
     characters = CharacterSerializer(many=True, read_only=True)
     file = Base64ImageField(read_only=True, thumbnail_namespace='profiles.ImageAsset.file')
 
@@ -133,8 +134,8 @@ class ImageAssetManagementSerializer(serializers.ModelSerializer):
     class Meta:
         model = ImageAsset
         fields = (
-            'id', 'title', 'caption', 'rating', 'file', 'private', 'created_on', 'uploaded_by', 'characters',
-            'comments_disabled'
+            'id', 'title', 'caption', 'rating', 'file', 'private', 'created_on', 'order', 'uploaded_by', 'characters',
+            'comments_disabled', 'artist'
         )
 
 

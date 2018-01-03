@@ -6,6 +6,10 @@ from rest_framework.response import Response
 
 
 def index(request):
+    if request.method != 'GET':
+        return bad_endpoint(request)
+    if request.content_type == 'application/json':
+        return bad_endpoint(request)
     return render(request, 'index.html', {'debug': settings.DEBUG})
 
 
