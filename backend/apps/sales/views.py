@@ -181,7 +181,7 @@ class DeleteOrderRevision(DestroyAPIView):
         if order.status not in [Order.REVIEW, Order.IN_PROGRESS]:
             raise PermissionDenied("This order's revisions are locked.")
         revision = get_object_or_404(Revision, id=self.kwargs['revision_id'], order_id=self.kwargs['order_id'])
-        self.check_object_permissions(self.request, revision)
+        self.check_object_permissions(self.request, order)
         return revision
 
     def perform_destroy(self, instance):

@@ -6,7 +6,9 @@ from mock import patch
 from moneyed import Money
 from rest_framework import status
 
+from apps.lib.abstract_models import ADULT, MATURE
 from apps.lib.test_resources import APITestCase
+from apps.profiles.models import ImageAsset
 from apps.profiles.tests.factories import CharacterFactory, UserFactory
 from apps.profiles.tests.helpers import gen_image
 from apps.sales.models import Order, CreditCardToken, Product, PaymentRecord
@@ -381,6 +383,7 @@ class TestProduct(APITestCase):
                 'name': 'Pornographic refsheet',
                 'revisions': 2,
                 'task_weight': 2,
+                'rating': MATURE,
                 'expected_turnaround': 3,
             }
         )
@@ -390,6 +393,7 @@ class TestProduct(APITestCase):
         self.assertEqual(result['revisions'], 2)
         self.assertEqual(result['task_weight'], 2)
         self.assertEqual(result['expected_turnaround'], 3)
+        self.assertEqual(result['rating'], MATURE)
         self.assertEqual(result['category'], Product.REFERENCE)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -664,6 +668,189 @@ class TestOrder(APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+    def test_revision_upload(self):
+        self.login(self.user)
+        order = OrderFactory.create(seller=self.user, status=Order.IN_PROGRESS)
+        response = self.client.post(
+            '/api/sales/v1/order/{}/revisions/'.format(order.id),
+            {
+                'file': SimpleUploadedFile('bloo-oo.jpg', gen_image()),
+                'rating': ADULT,
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['order'], order.id)
+        self.assertEqual(response.data['uploaded_by'], self.user.username)
+        self.assertEqual(response.data['rating'], ADULT)
+
+    def test_revision_upload_buyer_fail(self):
+        self.login(self.user)
+        order = OrderFactory.create(buyer=self.user, status=Order.IN_PROGRESS)
+        response = self.client.post(
+            '/api/sales/v1/order/{}/revisions/'.format(order.id),
+            {
+                'file': SimpleUploadedFile('bloo-oo.jpg', gen_image()),
+                'rating': ADULT,
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_revision_upload_outsider_fail(self):
+        self.login(self.user)
+        order = OrderFactory.create(status=Order.IN_PROGRESS)
+        response = self.client.post(
+            '/api/sales/v1/order/{}/revisions/'.format(order.id),
+            {
+                'file': SimpleUploadedFile('bloo-oo.jpg', gen_image()),
+                'rating': ADULT,
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_revision_upload_staffer(self):
+        self.login(self.staffer)
+        order = OrderFactory.create(seller=self.user, status=Order.IN_PROGRESS)
+        response = self.client.post(
+            '/api/sales/v1/order/{}/revisions/'.format(order.id),
+            {
+                'file': SimpleUploadedFile('bloo-oo.jpg', gen_image()),
+                'rating': ADULT,
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['order'], order.id)
+        self.assertEqual(response.data['uploaded_by'], self.staffer.username)
+        self.assertEqual(response.data['rating'], ADULT)
+
+    def test_revision_upload_final(self):
+        self.login(self.user)
+        order = OrderFactory.create(seller=self.user, status=Order.IN_PROGRESS, revisions=2)
+        response = self.client.post(
+            '/api/sales/v1/order/{}/revisions/'.format(order.id),
+            {
+                'file': SimpleUploadedFile('bloo-oo.jpg', gen_image()),
+                'rating': ADULT,
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        order.refresh_from_db()
+        self.assertEqual(order.status, Order.IN_PROGRESS)
+        response = self.client.post(
+            '/api/sales/v1/order/{}/revisions/'.format(order.id),
+            {
+                'file': SimpleUploadedFile('bloo-oo.jpg', gen_image()),
+                'rating': ADULT,
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        order.refresh_from_db()
+        self.assertEqual(order.status, Order.IN_PROGRESS)
+        response = self.client.post(
+            '/api/sales/v1/order/{}/revisions/'.format(order.id),
+            {
+                'file': SimpleUploadedFile('bloo-oo.jpg', gen_image()),
+                'rating': ADULT,
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        order.refresh_from_db()
+        self.assertEqual(order.status, Order.REVIEW)
+        response = self.client.post(
+            '/api/sales/v1/order/{}/revisions/'.format(order.id),
+            {
+                'file': SimpleUploadedFile('bloo-oo.jpg', gen_image()),
+                'rating': ADULT,
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        order.refresh_from_db()
+        self.assertEqual(order.status, Order.REVIEW)
+
+    def test_delete_revision(self):
+        self.login(self.user)
+        order = OrderFactory.create(seller=self.user, status=Order.IN_PROGRESS)
+        revision = RevisionFactory.create(order=order)
+        self.assertEqual(order.revision_set.all().count(), 1)
+        response = self.client.delete(
+            '/api/sales/v1/order/{}/revisions/{}/'.format(order.id, revision.id)
+        )
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        order.refresh_from_db()
+        self.assertEqual(order.revision_set.all().count(), 0)
+
+    def test_delete_revision_reactivate(self):
+        self.login(self.user)
+        order = OrderFactory.create(seller=self.user, status=Order.REVIEW)
+        revision = RevisionFactory.create(order=order)
+        response = self.client.delete(
+            '/api/sales/v1/order/{}/revisions/{}/'.format(order.id, revision.id)
+        )
+        order.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(order.status, Order.IN_PROGRESS)
+
+    def test_delete_revision_locked(self):
+        self.login(self.user)
+        order = OrderFactory.create(seller=self.user, status=Order.COMPLETED)
+        revision = RevisionFactory.create(order=order)
+        response = self.client.delete(
+            '/api/sales/v1/order/{}/revisions/{}/'.format(order.id, revision.id)
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        order.status = Order.DISPUTED
+        order.save()
+        response = self.client.delete(
+            '/api/sales/v1/order/{}/revisions/{}/'.format(order.id, revision.id)
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_delete_revision_buyer_fail(self):
+        self.login(self.user)
+        order = OrderFactory.create(buyer=self.user, status=Order.IN_PROGRESS)
+        revision = RevisionFactory.create(order=order)
+        self.assertEqual(order.revision_set.all().count(), 1)
+        response = self.client.delete(
+            '/api/sales/v1/order/{}/revisions/{}/'.format(order.id, revision.id)
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        order.refresh_from_db()
+        self.assertEqual(order.revision_set.all().count(), 1)
+
+    def test_delete_revision_outsider_fail(self):
+        self.login(self.user)
+        order = OrderFactory.create(status=Order.IN_PROGRESS)
+        revision = RevisionFactory.create(order=order)
+        self.assertEqual(order.revision_set.all().count(), 1)
+        response = self.client.delete(
+            '/api/sales/v1/order/{}/revisions/{}/'.format(order.id, revision.id)
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        order.refresh_from_db()
+        self.assertEqual(order.revision_set.all().count(), 1)
+
+    def test_delete_revision_not_logged_in_fail(self):
+        order = OrderFactory.create(status=Order.IN_PROGRESS)
+        revision = RevisionFactory.create(order=order)
+        self.assertEqual(order.revision_set.all().count(), 1)
+        response = self.client.delete(
+            '/api/sales/v1/order/{}/revisions/{}/'.format(order.id, revision.id)
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        order.refresh_from_db()
+        self.assertEqual(order.revision_set.all().count(), 1)
+
+    def test_delete_revision_staffer(self):
+        self.login(self.staffer)
+        order = OrderFactory.create(seller=self.user, status=Order.IN_PROGRESS)
+        revision = RevisionFactory.create(order=order)
+        self.assertEqual(order.revision_set.all().count(), 1)
+        response = self.client.delete(
+            '/api/sales/v1/order/{}/revisions/{}/'.format(order.id, revision.id)
+        )
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        order.refresh_from_db()
+        self.assertEqual(order.revision_set.all().count(), 0)
+
     @patch('apps.sales.models.sauce')
     def test_pay_order(self, card_api):
         self.login(self.user)
@@ -849,7 +1036,7 @@ class TestOrderStateChange(APITestCase):
         self.seller = self.user
         self.buyer = self.user2
         self.order = OrderFactory.create(seller=self.user, buyer=self.buyer, price=Money('5.00', 'USD'))
-        self.final = RevisionFactory.create(order=self.order)
+        self.final = RevisionFactory.create(order=self.order, rating=ADULT)
         self.url = '/api/sales/v1/order/{}/'.format(self.order.id)
 
     def state_assertion(self, user_attr, url_ext='', target_response_code=status.HTTP_200_OK, initial_status=None):
@@ -900,6 +1087,9 @@ class TestOrderStateChange(APITestCase):
         self.assertEqual(payment.escrow_for, None)
         self.assertEqual(payment.status, PaymentRecord.SUCCESS)
         self.assertEqual(payment.source, PaymentRecord.ESCROW)
+        asset = ImageAsset.objects.get(order=self.order)
+        self.assertEqual(asset.rating, ADULT)
+        self.assertEqual(asset.order, self.order)
 
     def test_approve_order_seller_fail(self):
         self.state_assertion('seller', 'approve/', status.HTTP_403_FORBIDDEN, initial_status=Order.REVIEW)
