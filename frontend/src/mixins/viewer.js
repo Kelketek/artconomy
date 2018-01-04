@@ -1,3 +1,4 @@
+// This module should no longer be needed since we're now using the UserHandler plugin.
 export default {
   computed: {
     rating: function () {

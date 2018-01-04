@@ -113,7 +113,7 @@ describe('ac-comment-section.vue', () => {
   beforeEach(function () {
     server = sinon.fakeServer.create()
     localVue = createLocalVue()
-    localVue.prototype.setUser = function () {}
+    localVue.prototype.$setUser = function () {}
     localVue.prototype.md = MarkDownIt()
     localVue.prototype.user = {
       username: 'Kelketek',

@@ -9,7 +9,7 @@ describe('Character.vue', () => {
   beforeEach(function () {
     server = sinon.fakeServer.create()
     localVue = createLocalVue()
-    localVue.prototype.setUser = function () {}
+    localVue.prototype.$setUser = function () {}
     localVue.prototype.md = MarkDownIt()
   })
   afterEach(function () {

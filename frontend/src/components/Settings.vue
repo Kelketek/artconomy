@@ -102,7 +102,7 @@
     methods: {
       updateUser () {
         // The arguments pushed to the success function evaluate as true, so we have to make sure none are passed.
-        this.$root.loadUser()
+        this.$root.$loadUser()
       },
       updateCredentials () {
         this.credentialsModel.current_password = ''
@@ -120,7 +120,7 @@
           this.refreshUser()
           this.refreshUser()
           if (this.is_current) {
-            this.$root.loadUser()
+            this.$root.$loadUser()
           }
         }
         // Fool form into thinking nothing has changed.
@@ -130,7 +130,7 @@
       updateAvatar () {
         this.refreshUser()
         if (this.is_current) {
-          this.$root.loadUser()
+          this.$root.$loadUser()
         }
       }
     },

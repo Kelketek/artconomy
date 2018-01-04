@@ -305,7 +305,7 @@
         if (oldStream === null) {
           this.streamModel.stream_link = response.stream_link
         }
-        this.$root.setUser(response.seller.username, this.sellerData, this.$error)
+        this.$root.$setUser(response.seller.username, this.sellerData, this.$error)
       },
       populateRevisions (response) {
         this.revisions = response.results

@@ -8,30 +8,30 @@
 
       <b-collapse is-nav id="nav_collapse">
 
-        <b-navbar-nav v-if="user !== null && user.username">
-          <b-nav-item :to="{name: 'Characters', params: {username: user.username}}">Characters</b-nav-item>
-          <b-nav-item :to="{name: 'Orders', params: {username: user.username}}">Orders</b-nav-item>
-          <b-nav-item :to="{name: 'Sales', params: {username: user.username}}">Sales</b-nav-item>
-          <b-nav-item :to="{name: 'Store', params: {username: user.username}}">Sell</b-nav-item>
+        <b-navbar-nav v-if="viewer !== null && viewer.username">
+          <b-nav-item :to="{name: 'Characters', params: {username: viewer.username}}">Characters</b-nav-item>
+          <b-nav-item :to="{name: 'Orders', params: {username: viewer.username}}">Orders</b-nav-item>
+          <b-nav-item :to="{name: 'Sales', params: {username: viewer.username}}">Sales</b-nav-item>
+          <b-nav-item :to="{name: 'Store', params: {username: viewer.username}}">Sell</b-nav-item>
         </b-navbar-nav>
 
 
         <!-- Right aligned nav items -->
-        <b-navbar-nav class="ml-auto" v-if="user !== null">
+        <b-navbar-nav class="ml-auto" v-if="viewer !== null">
           <!-- Navbar dropdowns -->
-          <b-nav-item v-if="user.username" :to="{name: 'Profile', params: {username: user.username}}">
+          <b-nav-item v-if="viewer.username" :to="{name: 'Profile', params: {username: viewer.username}}">
             <span class="nav-login-item">
-              <img style="height:1.5rem" :src="user.avatar_url"> {{ user.username }}
+              <img style="height:1.5rem" :src="viewer.avatar_url"> {{ viewer.username }}
             </span>
           </b-nav-item>
-          <ac-patchbutton v-if="user.username && user.rating > 0" :url="`/api/profiles/v1/${this.user.username}/settings/`" :classes="{'btn-sm': true, 'm-0': true}" name="sfw_mode" v-model="user.sfw_mode" true-text="NSFW" true-variant="success" false-text="SFW"></ac-patchbutton>
-          <b-nav-item v-if="user.username" :to="{name: 'Notifications'}">
+          <ac-patchbutton v-if="viewer.username && viewer.rating > 0" :url="`/api/profiles/v1/${this.viewer.username}/settings/`" :classes="{'btn-sm': true, 'm-0': true}" name="sfw_mode" v-model="viewer.sfw_mode" true-text="NSFW" true-variant="success" false-text="SFW"></ac-patchbutton>
+          <b-nav-item v-if="viewer.username" :to="{name: 'Notifications'}">
             <span><i class="fa fa-bell"></i></span>
           </b-nav-item>
-          <b-nav-item-dropdown v-if="user.username" text="<i class='fa fa-ellipsis-h'></i>" right>
-            <b-dropdown-item :to="{name: 'Settings', params: {username: user.username}}"><i
+          <b-nav-item-dropdown v-if="viewer.username" text="<i class='fa fa-ellipsis-h'></i>" right>
+            <b-dropdown-item :to="{name: 'Settings', params: {username: viewer.username}}"><i
               class="fa fa-gear"></i> Settings</b-dropdown-item>
-            <b-dropdown-item v-if="user.username" @click.prevent="logout()">Signout</b-dropdown-item>
+            <b-dropdown-item v-if="viewer.username" @click.prevent="logout()">Signout</b-dropdown-item>
           </b-nav-item-dropdown>
           <b-nav-item v-else @click="$refs.loginModal.show()">
             <span class="nav-login-item">Login</span>
@@ -63,6 +63,7 @@
         </div>
         <div slot="modal-header"></div>
       </b-modal>
+
     </form>
   </div>
 </template>
@@ -99,7 +100,6 @@
   export default {
     components: {AcPatchbutton},
     name: 'NavBar',
-    props: ['user'],
     data () {
       return {
         loginModel: loginDefault(),
@@ -179,7 +179,7 @@
         setCookie('csrftoken', response.csrftoken)
         this.$refs.loginModal.hide()
         this.loginTab = 0
-        this.$root.loadUser(true)
+        this.$root.$loadUser(true)
         this.loginModel = loginDefault()
       },
       logoutHandler () {

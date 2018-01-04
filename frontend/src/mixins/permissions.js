@@ -12,7 +12,7 @@ export default {
   },
   methods: {
     configureUser () {
-      this.$root.setUser(this.user.username, this)
+      this.$root.$setUser(this.user.username, this)
     },
     refreshUser () {
       delete this.$root.usercache[this.user.username]

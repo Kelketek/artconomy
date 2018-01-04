@@ -23,7 +23,7 @@
         <p v-if="controls && submission.order" class="mb-0">
           From <router-link :to="{name: 'Order', params: {orderID: submission.order, username: submission.uploaded_by.username}}">Order {{submission.order}}</router-link>
         </p>
-        <p v-if="controls || (submission.order && submission.artist.username === viewer.username )" class="mb-0">
+        <p v-if="(submission.order && submission.artist.username === viewer.username ) || controls && (submission.order)" class="mb-0">
           From <router-link :to="{name: 'Sale', params: {orderID: submission.order, username: submission.artist.username}}">Sale {{submission.order}}</router-link>
         </p>
         <i v-if="controls && !editing" class="ml-2 fa fa-2x fa-lock clickable pull-right" @click="edit"></i>

@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <ac-navbar :user="user"></ac-navbar>
+    <ac-navbar />
     <div v-if="$root.errorCode !== null" class="container error-container">
       <div class="row">
         <div class="col-sm-12 text-center">
