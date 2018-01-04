@@ -82,7 +82,7 @@ class OrderAccept(GenericAPIView):
     def get_object(self):
         return get_object_or_404(Order, id=self.kwargs['order_id'])
 
-    def post(self, request, _order_id):
+    def post(self, request, **_kwargs):
         order = self.get_object()
         self.check_object_permissions(request, order)
         if order.status != Order.NEW:
@@ -102,11 +102,13 @@ class OrderStart(UpdateAPIView):
     serializer_class = OrderStartedSerializer
 
     def get_object(self):
-        return get_object_or_404(Order, id=self.kwargs['order_id'])
+        order = get_object_or_404(Order, id=self.kwargs['order_id'])
+        self.check_object_permissions(self.request, order)
+        if order.status not in (Order.QUEUED, Order.IN_PROGRESS):
+            raise PermissionDenied('You can only start orders that are queued.')
+        return order
 
     def perform_update(self, serializer):
-        if serializer.instance.status not in (Order.QUEUED, Order.IN_PROGRESS):
-            return Response({'error': 'You can only start orders that are queued.'}, status=status.HTTP_400_BAD_REQUEST)
         serializer.save(status=Order.IN_PROGRESS)
         return Response(serializer.data)
 
@@ -116,15 +118,16 @@ class OrderCancel(GenericAPIView):
     serializer_class = OrderViewSerializer
 
     def get_object(self):
-        return get_object_or_404(Order, id=self.kwargs['order_id'])
+        order = get_object_or_404(Order, id=self.kwargs['order_id'])
+        self.check_object_permissions(self.request, order)
+        if order.status not in [Order.NEW, Order.PAYMENT_PENDING]:
+            raise PermissionDenied(
+                "You cannot cancel this order. It is either already cancelled or must be refunded instead."
+            )
+        return order
 
     def post(self, request, order_id):
         order = self.get_object()
-        self.check_object_permissions(request, order)
-        if order.status not in [Order.NEW, Order.PAYMENT_PENDING]:
-            return Response(
-                {'error': "You cannot cancel this order. It is either already cancelled or must be refunded instead."}
-            )
         order.status = Order.CANCELLED
         order.save()
         data = self.serializer_class(instance=order).data

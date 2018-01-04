@@ -1,14 +1,16 @@
+from authorize import AuthorizeError
 from ddt import data, unpack, ddt
 from django.core.files.uploadedfile import SimpleUploadedFile
 from freezegun import freeze_time
 from mock import patch
+from moneyed import Money
 from rest_framework import status
 
 from apps.lib.test_resources import APITestCase
-from apps.profiles.tests.factories import CharacterFactory
+from apps.profiles.tests.factories import CharacterFactory, UserFactory
 from apps.profiles.tests.helpers import gen_image
-from apps.sales.models import Order, CreditCardToken, Product
-from apps.sales.tests.factories import OrderFactory, CreditCardTokenFactory, ProductFactory
+from apps.sales.models import Order, CreditCardToken, Product, PaymentRecord
+from apps.sales.tests.factories import OrderFactory, CreditCardTokenFactory, ProductFactory, RevisionFactory
 
 order_scenarios = (
     {
@@ -51,7 +53,7 @@ class TestOrderListBase(object):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     @data(*categories)
-    def test_wrong_user(self, category):
+    def test_outsider(self, category):
         self.login(self.user2)
         response = self.client.get('/api/sales/v1/{}/orders/{}/'.format(self.user.username, category))
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -168,7 +170,7 @@ class TestCardManagement(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     @patch('apps.sales.models.sauce')
-    def test_add_card_wrong_user(self, card_api):
+    def test_add_card_outsider(self, card_api):
         self.login(self.user2)
         primary_card = CreditCardTokenFactory(user=self.user)
         self.user.primary_card = primary_card
@@ -224,7 +226,7 @@ class TestCardManagement(APITestCase):
         response = self.client.post('/api/sales/v1/{}/cards/{}/primary/'.format(self.user.username, cards[2].id))
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_make_primary_wrong_user(self):
+    def test_make_primary_outsider(self):
         self.login(self.user2)
         cards = [CreditCardTokenFactory(user=self.user) for __ in range(4)]
         response = self.client.post('/api/sales/v1/{}/cards/{}/primary/'.format(self.user.username, cards[2].id))
@@ -279,7 +281,7 @@ class TestCardManagement(APITestCase):
         cards[2].refresh_from_db()
         self.assertEqual(cards[2].active, True)
 
-    def test_card_removal_wrong_user(self):
+    def test_card_removal_outsider(self):
         self.login(self.user2)
         cards = [CreditCardTokenFactory(user=self.user) for __ in range(4)]
         self.assertEqual(cards[2].active, True)
@@ -352,7 +354,7 @@ class TestProduct(APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_create_product_wrong_user(self):
+    def test_create_product_outsider(self):
         self.login(self.user2)
         response = self.client.post(
             '/api/sales/v1/{}/products/'.format(self.user.username),
@@ -449,7 +451,7 @@ class TestProduct(APITestCase):
         self.assertTrue(products[1].active)
         self.assertEqual(Product.objects.filter(id=products[2].id).count(), 1)
 
-    def test_product_delete_wrong_user(self):
+    def test_product_delete_outsider(self):
         self.login(self.user2)
         products = [ProductFactory.create(user=self.user) for __ in range(3)]
         OrderFactory.create(product=products[1])
@@ -529,46 +531,286 @@ class TestOrder(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_adjust_order(self):
-        raise AssertionError
+        self.login(self.user)
+        order = OrderFactory.create(seller=self.user)
+        response = self.client.patch(
+            '/api/sales/v1/order/{}/adjust/'.format(order.id),
+            {
+                'adjustment': '2.03'
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        order.refresh_from_db()
+        self.assertEqual(order.adjustment, Money('2.03', 'USD'))
+
+    def test_adjust_order_too_low(self):
+        self.login(self.user)
+        order = OrderFactory.create(seller=self.user, product__price=Money('15.00', 'USD'))
+        response = self.client.patch(
+            '/api/sales/v1/order/{}/adjust/'.format(order.id),
+            {
+                'adjustment': '-14.50'
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        order.refresh_from_db()
+        self.assertEqual(order.adjustment, Money('0', 'USD'))
 
     def test_adjust_order_buyer_fail(self):
-        raise AssertionError
+        self.login(self.user)
+        order = OrderFactory.create(seller=self.user2, buyer=self.user)
+        response = self.client.patch(
+            '/api/sales/v1/order/{}/adjust/'.format(order.id),
+            {
+                'adjustment': '2.03'
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_adjust_order_wrong_user(self):
-        raise AssertionError
+    def test_adjust_order_outsider(self):
+        self.login(self.user)
+        order = OrderFactory.create(seller=self.user2)
+        response = self.client.patch(
+            '/api/sales/v1/order/{}/adjust/'.format(order.id),
+            {
+                'adjustment': '2.03'
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_adjust_order_not_logged_in(self):
+        order = OrderFactory.create(seller=self.user)
+        response = self.client.patch(
+            '/api/sales/v1/order/{}/adjust/'.format(order.id),
+            {
+                'adjustment': '2.03'
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_adjust_order_staff(self):
-        raise AssertionError
+        self.login(self.staffer)
+        order = OrderFactory.create(seller=self.user)
+        response = self.client.patch(
+            '/api/sales/v1/order/{}/adjust/'.format(order.id),
+            {
+                'adjustment': '2.03'
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        order.refresh_from_db()
+        self.assertEqual(order.adjustment, Money('2.03', 'USD'))
 
-    def test_accept_order(self):
-        raise AssertionError
-
-    def test_accept_order_buyer_fail(self):
-        raise AssertionError
-
-    def test_accept_order_wrong_user(self):
-        raise AssertionError
-
-    def test_accept_order_staffer(self):
-        raise AssertionError
-
-    def test_pay_order_amount_changed(self):
-        raise AssertionError
-
-    def test_pay_order_wrong_user(self):
-        raise AssertionError
-
-    def test_pay_order_seller_fail(self):
-        raise AssertionError
-
-    def test_pay_order_staffer(self):
-        raise AssertionError
+    def test_in_progress(self):
+        self.login(self.user)
+        order = OrderFactory.create(seller=self.user, status=Order.QUEUED)
+        response = self.client.patch(
+            '/api/sales/v1/order/{}/start/'.format(order.id),
+            {
+                'stream_link': 'https://streaming.artconomy.com/'
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        order.refresh_from_db()
+        self.assertEqual(order.stream_link, 'https://streaming.artconomy.com/')
 
     def test_in_progress_buyer_fail(self):
-        raise AssertionError
+        self.login(self.user)
+        order = OrderFactory.create(seller=self.user2, buyer=self.user, status=Order.QUEUED)
+        response = self.client.patch(
+            '/api/sales/v1/order/{}/start/'.format(order.id),
+            {
+                'stream_link': 'https://streaming.artconomy.com/'
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        order.refresh_from_db()
+        self.assertEqual(order.stream_link, '')
 
-    def test_in_progress_wrong_user(self):
-        raise AssertionError
+    def test_in_progress_outsider_fail(self):
+        self.login(self.user)
+        order = OrderFactory.create(status=Order.QUEUED)
+        response = self.client.patch(
+            '/api/sales/v1/order/{}/start/'.format(order.id),
+            {
+                'stream_link': 'https://streaming.artconomy.com/'
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        order.refresh_from_db()
+        self.assertEqual(order.stream_link, '')
+
+    def test_in_progress_staffer(self):
+        self.login(self.staffer)
+        order = OrderFactory.create(status=Order.QUEUED)
+        response = self.client.patch(
+            '/api/sales/v1/order/{}/start/'.format(order.id),
+            {
+                'stream_link': 'https://streaming.artconomy.com/'
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        order.refresh_from_db()
+        self.assertEqual(order.stream_link, 'https://streaming.artconomy.com/')
+
+    def test_no_cancel_queued(self):
+        self.login(self.user)
+        order = OrderFactory.create(seller=self.user, status=Order.QUEUED)
+        response = self.client.post(
+            '/api/sales/v1/order/{}/cancel/'.format(order.id),
+            {
+                'stream_link': 'https://streaming.artconomy.com/'
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    @patch('apps.sales.models.sauce')
+    def test_pay_order(self, card_api):
+        self.login(self.user)
+        order = OrderFactory.create(
+            buyer=self.user, status=Order.QUEUED, price=Money('10.00', 'USD'),
+            adjustment=Money('2.00', 'USD')
+        )
+        card_api.saved_card.return_value.capture.return_value.uid = 'Trans123'
+        response = self.client.post(
+            '/api/sales/v1/order/{}/pay/'.format(order.id),
+            {
+                'card_id': CreditCardTokenFactory.create(user=self.user).id,
+                'amount': '12.00'
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        record = PaymentRecord.objects.get(txn_id='Trans123')
+        self.assertEqual(record.status, PaymentRecord.SUCCESS)
+        self.assertEqual(record.source, PaymentRecord.CARD)
+        self.assertEqual(record.escrow_for, order.seller)
+        self.assertEqual(record.content_object, order)
+        self.assertEqual(record.amount, Money('12.00', 'USD'))
+        self.assertEqual(record.payer, self.user)
+        self.assertEqual(record.payee, None)
+
+    @patch('apps.sales.models.sauce')
+    def test_pay_order_failed_transaction(self, card_api):
+        self.login(self.user)
+        order = OrderFactory.create(
+            buyer=self.user, status=Order.QUEUED, price=Money('10.00', 'USD'),
+            adjustment=Money('2.00', 'USD')
+        )
+        card_api.saved_card.return_value.capture.side_effect = AuthorizeError("It failed!")
+        response = self.client.post(
+            '/api/sales/v1/order/{}/pay/'.format(order.id),
+            {
+                'card_id': CreditCardTokenFactory.create(user=self.user).id,
+                'amount': '12.00'
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        record = PaymentRecord.objects.get(object_id=order.id)
+        self.assertEqual(record.status, PaymentRecord.FAILURE)
+        self.assertEqual(record.source, PaymentRecord.CARD)
+        self.assertEqual(record.escrow_for, order.seller)
+        self.assertEqual(record.content_object, order)
+        self.assertEqual(record.amount, Money('12.00', 'USD'))
+        self.assertEqual(record.payer, self.user)
+        self.assertEqual(record.response_message, "It failed!")
+        self.assertEqual(record.payee, None)
+
+    @patch('apps.sales.models.sauce')
+    def test_pay_order_amount_changed(self, card_api):
+        self.login(self.user)
+        order = OrderFactory.create(
+            buyer=self.user, status=Order.QUEUED, price=Money('10.00', 'USD'),
+            adjustment=Money('2.00', 'USD')
+        )
+        card_api.saved_card.return_value.capture.return_value.uid = 'Trans123'
+        response = self.client.post(
+            '/api/sales/v1/order/{}/pay/'.format(order.id),
+            {
+                'card_id': CreditCardTokenFactory.create(user=self.user).id,
+                'amount': '10.00'
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(PaymentRecord.objects.all().count(), 0)
+
+    @patch('apps.sales.models.sauce')
+    def test_pay_order_wrong_card(self, card_api):
+        self.login(self.user)
+        order = OrderFactory.create(
+            buyer=self.user, status=Order.QUEUED, price=Money('10.00', 'USD'),
+            adjustment=Money('2.00', 'USD')
+        )
+        card_api.saved_card.return_value.capture.return_value.uid = 'Trans123'
+        response = self.client.post(
+            '/api/sales/v1/order/{}/pay/'.format(order.id),
+            {
+                'card_id': CreditCardTokenFactory.create().id,
+                'amount': '12.00'
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(PaymentRecord.objects.all().count(), 0)
+
+    @patch('apps.sales.models.sauce')
+    def test_pay_order_outsider(self, card_api):
+        self.login(self.user2)
+        order = OrderFactory.create(
+            buyer=self.user, status=Order.QUEUED, price=Money('10.00', 'USD'),
+            adjustment=Money('2.00', 'USD')
+        )
+        card_api.saved_card.return_value.capture.return_value.uid = 'Trans123'
+        response = self.client.post(
+            '/api/sales/v1/order/{}/pay/'.format(order.id),
+            {
+                'card_id': CreditCardTokenFactory.create(user=self.user).id,
+                'amount': '12.00'
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(PaymentRecord.objects.all().count(), 0)
+
+    @patch('apps.sales.models.sauce')
+    def test_pay_order_seller_fail(self, card_api):
+        self.login(self.user2)
+        order = OrderFactory.create(
+            buyer=self.user, status=Order.QUEUED, price=Money('10.00', 'USD'),
+            adjustment=Money('2.00', 'USD'), seller=self.user2,
+        )
+        card_api.saved_card.return_value.capture.return_value.uid = 'Trans123'
+        response = self.client.post(
+            '/api/sales/v1/order/{}/pay/'.format(order.id),
+            {
+                'card_id': CreditCardTokenFactory.create(user=self.user).id,
+                'amount': '12.00'
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(PaymentRecord.objects.all().count(), 0)
+
+    @patch('apps.sales.models.sauce')
+    def test_pay_order_staffer(self, card_api):
+        self.login(self.user)
+        order = OrderFactory.create(
+            buyer=self.user, status=Order.QUEUED, price=Money('10.00', 'USD'),
+            adjustment=Money('2.00', 'USD')
+        )
+        card_api.saved_card.return_value.capture.return_value.uid = 'Trans123'
+        response = self.client.post(
+            '/api/sales/v1/order/{}/pay/'.format(order.id),
+            {
+                'card_id': CreditCardTokenFactory.create(user=self.user).id,
+                'amount': '12.00'
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        record = PaymentRecord.objects.get(txn_id='Trans123')
+        self.assertEqual(record.status, PaymentRecord.SUCCESS)
+        self.assertEqual(record.source, PaymentRecord.CARD)
+        self.assertEqual(record.escrow_for, order.seller)
+        self.assertEqual(record.content_object, order)
+        self.assertEqual(record.amount, Money('12.00', 'USD'))
+        self.assertEqual(record.payer, self.user)
+        self.assertEqual(record.payee, None)
 
     def test_place_order_unpermitted_character(self):
         self.login(self.user)
@@ -598,3 +840,61 @@ class TestOrder(APITestCase):
             }
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_approval_transactions(self):
+        pass
+
+
+class TestOrderStateChange(APITestCase):
+    def setUp(self):
+        super().setUp()
+        self.outsider = UserFactory.create()
+        self.seller = self.user
+        self.buyer = self.user2
+        self.order = OrderFactory.create(seller=self.user, buyer=self.buyer, price=Money('5.00', 'USD'))
+        self.final = RevisionFactory.create(order=self.order)
+        self.url = '/api/sales/v1/order/{}/'.format(self.order.id)
+
+    def state_assertion(self, user_attr, url_ext='', target_response_code=status.HTTP_200_OK, initial_status=None):
+        if initial_status is not None:
+            self.order.status = initial_status
+            self.order.save()
+        self.login(getattr(self, user_attr))
+        response = self.client.post(self.url + url_ext)
+        self.assertEqual(response.status_code, target_response_code)
+
+    def test_accept_order(self):
+        self.state_assertion('seller', 'accept/')
+
+    def test_accept_order_buyer_fail(self):
+        self.state_assertion('buyer', 'accept/', status.HTTP_403_FORBIDDEN)
+
+    def test_accept_order_outsider(self):
+        self.state_assertion('outsider', 'accept/', status.HTTP_403_FORBIDDEN)
+
+    def test_accept_order_staffer(self):
+        self.state_assertion('staffer', 'accept/')
+
+    def test_cancel_order(self):
+        self.state_assertion('seller', 'cancel/', initial_status=Order.NEW)
+
+    def test_cancel_order_buyer(self):
+        self.state_assertion('buyer', 'cancel/', initial_status=Order.PAYMENT_PENDING)
+
+    def test_cancel_order_outsider_fail(self):
+        self.state_assertion('outsider', 'cancel/', status.HTTP_403_FORBIDDEN, initial_status=Order.PAYMENT_PENDING)
+
+    def test_cancel_order_staffer(self):
+        self.state_assertion('staffer', 'cancel/', initial_status=Order.PAYMENT_PENDING)
+
+    def test_approve_order_buyer(self):
+        self.state_assertion('buyer', 'approve/', initial_status=Order.REVIEW)
+
+    def test_approve_order_seller_fail(self):
+        self.state_assertion('seller', 'approve/', status.HTTP_403_FORBIDDEN, initial_status=Order.REVIEW)
+
+    def test_approve_order_outsider_fail(self):
+        self.state_assertion('outsider', 'approve/', status.HTTP_403_FORBIDDEN, initial_status=Order.REVIEW)
+
+    def test_approve_order_seller(self):
+        self.state_assertion('buyer', 'approve/', initial_status=Order.REVIEW)

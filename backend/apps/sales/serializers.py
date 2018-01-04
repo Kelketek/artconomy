@@ -87,7 +87,7 @@ class OrderStartedSerializer(OrderViewSerializer):
 
 class OrderAdjustSerializer(OrderViewSerializer):
     def validate(self, attrs):
-        if attrs['adjustment'] is None:
+        if attrs.get('adjustment') is None:
             return attrs
         if self.instance.product.price.amount + attrs['adjustment'] < settings.MINIMUM_PRICE:
             raise ValidationError("The total price may not be less than ${}".format(settings.MINIMUM_PRICE))

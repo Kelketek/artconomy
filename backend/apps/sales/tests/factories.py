@@ -3,7 +3,7 @@ from factory.django import DjangoModelFactory, ImageField
 from moneyed import Money
 
 from apps.profiles.tests.factories import UserFactory
-from apps.sales.models import Order, Product, CreditCardToken
+from apps.sales.models import Order, Product, CreditCardToken, Revision
 
 
 class ProductFactory(DjangoModelFactory):
@@ -38,3 +38,12 @@ class CreditCardTokenFactory(DjangoModelFactory):
 
     class Meta:
         model = CreditCardToken
+
+
+class RevisionFactory(DjangoModelFactory):
+    file = ImageField(color='blue')
+    order = SubFactory(OrderFactory)
+    uploaded_by = SelfAttribute('order.seller')
+
+    class Meta:
+        model = Revision
