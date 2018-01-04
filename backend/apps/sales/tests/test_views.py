@@ -841,9 +841,6 @@ class TestOrder(APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_approval_transactions(self):
-        pass
-
 
 class TestOrderStateChange(APITestCase):
     def setUp(self):
@@ -889,6 +886,20 @@ class TestOrderStateChange(APITestCase):
 
     def test_approve_order_buyer(self):
         self.state_assertion('buyer', 'approve/', initial_status=Order.REVIEW)
+        records = PaymentRecord.objects.all()
+        self.assertEqual(records.count(), 2)
+        fee = records.get(payee=None)
+        self.assertEqual(fee.amount, Money('.50', 'USD'))
+        self.assertEqual(fee.payer, self.order.seller)
+        self.assertEqual(fee.escrow_for, None)
+        self.assertEqual(fee.status, PaymentRecord.SUCCESS)
+        self.assertEqual(fee.source, PaymentRecord.ACCOUNT)
+        payment = records.get(payee=self.order.seller)
+        self.assertEqual(payment.amount, Money('5.00', 'USD'))
+        self.assertEqual(payment.payer, None)
+        self.assertEqual(payment.escrow_for, None)
+        self.assertEqual(payment.status, PaymentRecord.SUCCESS)
+        self.assertEqual(payment.source, PaymentRecord.ESCROW)
 
     def test_approve_order_seller_fail(self):
         self.state_assertion('seller', 'approve/', status.HTTP_403_FORBIDDEN, initial_status=Order.REVIEW)
@@ -897,4 +908,7 @@ class TestOrderStateChange(APITestCase):
         self.state_assertion('outsider', 'approve/', status.HTTP_403_FORBIDDEN, initial_status=Order.REVIEW)
 
     def test_approve_order_seller(self):
-        self.state_assertion('buyer', 'approve/', initial_status=Order.REVIEW)
+        self.state_assertion('seller', 'approve/', status.HTTP_403_FORBIDDEN, initial_status=Order.REVIEW)
+
+    def test_approve_order_staffer(self):
+        self.state_assertion('staffer', 'approve/', initial_status=Order.REVIEW)
