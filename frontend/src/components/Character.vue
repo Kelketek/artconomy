@@ -69,7 +69,12 @@
           <div class="character-gallery-title text-center">{{ assets[0].title }}</div>
         </router-link>
         <div class="more">
-          <b-button v-if="controls && !showUpload" variant="primary" @click="displayUploader">Upload a new picture of {{ character.name }}</b-button> <b-button v-if="assets && moreToLoad" variant="primary">See all uploads of {{ character.name }}</b-button>
+          <b-button v-if="controls && !showUpload" variant="primary" @click="displayUploader">Upload a new picture of {{ character.name }}</b-button>
+          <router-link :to="{name: 'CharacterGallery', params: {username: username, characterName: characterName}}">
+            <b-button v-if="assets && moreToLoad" variant="primary">
+              See all uploads of {{ character.name }}
+            </b-button>
+          </router-link>
         </div>
       </div>
       <div class="col-sm-12 text-center" v-else>

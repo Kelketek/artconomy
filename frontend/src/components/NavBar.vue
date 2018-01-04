@@ -185,7 +185,7 @@
       logoutHandler () {
         this.$root.user = {}
         this.$router.push({'name': 'Home'})
-        this.$root.usercache = {}
+        this.$root.userCache = {}
       },
       loginFailure (response) {
         let form = this.$refs[this.tab.form]

@@ -46,8 +46,14 @@
           </div>
         </div>
       </div>
-      <div class="row-centered" v-if="controls">
-        <div class="col-sm-12 pt-3 col-md-8 col-centered text-center">
+      <ac-asset-gallery class="text-section shadowed" ref="assetGallery" :endpoint="`${url}examples/`" :limit="5" >
+        <div slot="header" class="col-sm-12 text-center">
+          <h3>Samples</h3>
+          <hr />
+        </div>
+      </ac-asset-gallery>
+      <div class="row-centered">
+        <div class="col-sm-12 pt-3 col-md-8 col-centered text-center mb-3">
           <div v-if="showOrder">
             <form>
               <ac-form-container ref="newOrderForm" :schema="newOrderSchema" :model="newOrderModel"
@@ -81,11 +87,13 @@
   import AcPatchbutton from './ac-patchbutton'
   import AcFormContainer from './ac-form-container'
   import AcAvatar from './ac-avatar'
+  import AcAssetGallery from './ac-asset-gallery'
 
   export default {
     props: ['productID'],
     mixins: [Viewer, Perms, Editable],
     components: {
+      AcAssetGallery,
       AcAvatar,
       AcPatchfield,
       AcAsset,

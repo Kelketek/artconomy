@@ -69,7 +69,7 @@ export const routes = [
     props: true
   },
   {
-    path: '/profile/:username/characters/:character/gallery/',
+    path: '/profile/:username/characters/:characterName/gallery/',
     name: 'CharacterGallery',
     component: CharacterGallery,
     props: true

@@ -47,7 +47,6 @@
   import Paginated from '../mixins/paginated'
   import Viewer from '../mixins/viewer'
   import VueFormGenerator from 'vue-form-generator'
-  import {artCall} from '../lib'
   import AcFormContainer from './ac-form-container'
   import AcCharacterPreview from './ac-character-preview'
 
@@ -65,6 +64,7 @@
           open_requests: true,
           open_requests_restrictions: ''
         },
+        url: `/api/profiles/v1/${this.username}/characters/`,
         showNew: false,
         newCharSchema: {
           fields: [{
@@ -94,26 +94,14 @@
       }
     },
     methods: {
-      populateCharacters (response) {
-        this.response = response
-      },
       addCharacter (response) {
         this.$router.history.push(
-          {name: 'Character', params: {user: this.username, character: response.name}, query: {editing: true}}
+          {name: 'Character', params: {user: this.username, characterName: response.name}, query: {editing: true}}
         )
-      },
-      fetchCharacters (pageNum) {
-        let url = `/api/profiles/v1/${this.username}/characters/?page=${this.currentPage}`
-        artCall(url, 'GET', undefined, this.populateCharacters)
       }
     },
     created () {
-      this.fetchCharacters()
-    },
-    watch: {
-      currentPage () {
-        this.fetchCharacters()
-      }
+      this.fetchItems()
     }
   }
 </script>

@@ -35,7 +35,7 @@ window.artconomy = new Vue({
   template: '<App :user="user"/>',
   components: {App, NavBar},
   data: {
-    usercache: {},
+    userCache: {},
     md: md,
     errorCode: null,
     fetchStarted: false

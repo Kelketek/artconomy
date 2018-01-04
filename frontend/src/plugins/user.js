@@ -10,7 +10,7 @@ export const UserHandler = {
         if (this.user === undefined) {
           return {
             user: null,
-            usercache: this.$root.usercache || {}
+            userCache: this.$root.userCache || {}
           }
         }
         return {}
@@ -18,7 +18,7 @@ export const UserHandler = {
       methods: {
         $userSaver (target, response) {
           response.timestamp = moment.now()
-          this.$root.usercache[response.username] = response
+          this.$root.userCache[response.username] = response
           Vue.set(target, 'user', response)
         },
         $forceUser (userdata) {
@@ -31,7 +31,7 @@ export const UserHandler = {
             userdata.timestamp = moment.now()
           }
           if (userdata.username) {
-            this.$root.usercache[userdata.username] = userdata
+            this.$root.userCache[userdata.username] = userdata
           }
           this.$root.user = userdata
         },
@@ -45,18 +45,17 @@ export const UserHandler = {
           artCall(`/api/profiles/v1/data/user/${username}/`, 'GET', undefined, this.$saveCachedUser(target), this.$error)
         },
         $setUser (username, target) {
-          if (this.$root.usercache[username]) {
-            if (this.$root.usercache[username].timestamp.seconds > CACHE_TIMEOUT) {
+          if (this.$root.userCache[username]) {
+            if (this.$root.userCache[username].timestamp.seconds > CACHE_TIMEOUT) {
               this.$cacheUser(username, target)
             } else {
-              target.user = this.$root.usercache[username]
+              target.user = this.$root.userCache[username]
             }
           } else {
             this.$cacheUser(username, target)
           }
         },
         $loadUser (loadProfile) {
-          console.log('Loading user...')
           let self = this
           function loadLoggedIn (response) {
             self.$userSaver(self, response)

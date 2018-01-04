@@ -19,6 +19,7 @@ from apps.lib.permissions import ObjectStatus
 from apps.lib.serializers import CommentSerializer
 from apps.profiles.models import User, ImageAsset, Character
 from apps.profiles.permissions import ObjectControls, UserControls
+from apps.profiles.serializers import ImageAssetSerializer
 from apps.sales.permissions import OrderViewPermission, OrderSellerPermission, OrderBuyerPermission
 from apps.sales.models import Product, Order, CreditCardToken, PaymentRecord, Revision
 from apps.sales.serializers import ProductSerializer, ProductNewOrderSerializer, OrderViewSerializer, CardSerializer, \
@@ -49,9 +50,22 @@ class ProductManager(RetrieveUpdateDestroyAPIView):
     permission_classes = [ObjectControls]
 
     def get_object(self):
-        character = get_object_or_404(Product, user__username=self.kwargs['username'], id=self.kwargs['product'])
-        self.check_object_permissions(self.request, character)
-        return character
+        product = get_object_or_404(Product, user__username=self.kwargs['username'], id=self.kwargs['product'])
+        self.check_object_permissions(self.request, product)
+        return product
+
+
+class ProductExamples(ListAPIView):
+    serializer_class = ImageAssetSerializer
+
+    def get_queryset(self):
+        product = get_object_or_404(Product, user__username=self.kwargs['username'], id=self.kwargs['product'])
+        qs = ImageAsset.objects.filter(order__product=product, rating__lte=self.request.max_rating)
+        if not (self.request.user == product.user or self.request.user.is_staff):
+            if product.hidden:
+                raise PermissionDenied('Example listings for this product are hidden.')
+            qs = qs.exclude(private=True)
+        return qs
 
 
 class PlaceOrder(CreateAPIView):

@@ -34,7 +34,6 @@
     position: relative;
     z-index: 2;
   }
-
   .character-gallery-title {
     font-weight: bold;
     margin-bottom: .5rem;
