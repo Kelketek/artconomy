@@ -37,6 +37,7 @@ window.artconomy = new Vue({
   data: {
     userCache: {},
     md: md,
+    $unread: 0,
     errorCode: null,
     fetchStarted: false
   },

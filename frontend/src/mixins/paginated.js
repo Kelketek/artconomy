@@ -16,18 +16,13 @@ export default {
       url: '/api/v1/paginated/',
       response: null,
       growing: null,
+      growMode: false,
       fetching: false
     }
   },
   methods: {
     linkGen (pageNum) {
       return {path: this.baseURL, query: {page: pageNum}}
-    },
-    growList (response) {
-      console.log('Growing.')
-      this.response = response
-      this.growing.push.apply(this.growing, this.response.results)
-      this.fetching = false
     },
     loadMore () {
       if (this.currentPage >= this.totalPages) {
@@ -39,9 +34,16 @@ export default {
     },
     populateResponse (response) {
       this.response = response
+      if (this.growMode) {
+        this.growing.push(response.results)
+      } else {
+        this.growing = response.results
+      }
+      this.fetching = false
     },
     fetchItems (pageNum) {
       let url = `${this.url}?page=${this.currentPage}&size=${this.pageSize}`
+      this.fetching = true
       artCall(url, 'GET', undefined, this.populateResponse)
     }
   },

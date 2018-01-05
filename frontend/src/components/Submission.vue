@@ -19,6 +19,18 @@
         </div>
         <div>
           <ac-patchdropdown v-model="submission.rating" :editmode="editing" :options="ratingsShort()" :url="url" name="rating"></ac-patchdropdown>
+          <ac-action v-if="editing" :url="url" method="PATCH" :send="{private: !submission.private}" :success="populateSubmission">
+            <span v-if="submission.private"><i class="fa fa-eye-slash"></i> Hide submission</span>
+            <span v-else><i class="fa fa-eye"></i> Unhide submission</span>
+          </ac-action>
+          <div v-else-if="controls" class="text-center">
+            <span v-if="submission.private"><i class="fa fa-eye"></i> Submission is public</span>
+            <span v-else><i class="fa fa-eye-slash"></i> Submission is private</span>
+          </div>
+          <ac-action :url="`${url}favorite/`" :success="populateSubmission">
+            <span v-if="submission.favorite"><i class="fa fa-heart-o"></i> Remove from Favorites</span>
+            <span v-else><i class="fa fa-heart"></i> Add to Favorites</span>
+          </ac-action>
         </div>
         <p v-if="controls && submission.order" class="mb-0">
           From <router-link :to="{name: 'Order', params: {orderID: submission.order, username: submission.uploaded_by.username}}">Order {{submission.order}}</router-link>

@@ -4,6 +4,7 @@ from mock import Mock, patch
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from apps.lib.models import FAVORITE, Subscription
 from apps.profiles.models import Character, ImageAsset
 from apps.lib.abstract_models import MATURE, ADULT, GENERAL
 from apps.lib.test_resources import APITestCase
@@ -209,8 +210,9 @@ class CharacterAPITestCase(APITestCase):
         self.assertFalse(asset.private)
         self.assertEqual(asset.rating, ADULT)
         self.assertIn('bloo-oo', asset.file.url)
+        self.assertEqual(Subscription.objects.filter(type=FAVORITE).count(), 1)
         asset.delete()
-
+        self.assertEqual(Subscription.objects.filter(type=FAVORITE).count(), 0)
         # Should work for staffer, too.
         self.login(self.staffer)
         uploaded = SimpleUploadedFile('gree-een.jpg', gen_image(color='green'))

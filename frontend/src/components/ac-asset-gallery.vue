@@ -22,6 +22,7 @@
           v-if="totalPages > 1"
       ></b-pagination-nav>
     </div>
+
   </div>
 </template>
 

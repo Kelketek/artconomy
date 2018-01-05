@@ -33,7 +33,7 @@ class ProductListAPI(ListCreateAPIView):
         user = get_object_or_404(User, username__iexact=self.kwargs['username'])
         if not (self.request.user.is_staff or self.request.user == user):
             raise PermissionDenied("You do not have permission to create products for that user.")
-        product = serializer.save(uploaded_by=self.request.user, user=user)
+        product = serializer.save(uploaded_by=user, user=user)
         return product
 
     def get_queryset(self):

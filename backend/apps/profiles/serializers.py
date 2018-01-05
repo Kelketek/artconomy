@@ -53,7 +53,6 @@ class RegisterSerializer(serializers.ModelSerializer):
 class ImageAssetSerializer(serializers.ModelSerializer):
     uploaded_by = RelatedUserSerializer(read_only=True)
     comment_count = serializers.SerializerMethodField()
-    favorite_count = serializers.SerializerMethodField()
     file = Base64ImageField(thumbnail_namespace='profiles.ImageAsset.file')
 
     def get_comment_count(self, obj):
@@ -72,10 +71,6 @@ class ImageAssetSerializer(serializers.ModelSerializer):
                 [obj.id, ContentType.objects.get(app_label="profiles", model="imageasset").id]
             )
             return cursor.fetchone()[0]
-
-    def get_favorite_count(self, obj):
-        # Placeholder
-        return 0
 
     def get_thumbnail_url(self, obj):
         return self.context['request'].build_absolute_uri(obj.file.url)
@@ -127,6 +122,16 @@ class ImageAssetManagementSerializer(serializers.ModelSerializer):
     artist = RelatedUserSerializer(read_only=True)
     characters = CharacterSerializer(many=True, read_only=True)
     file = Base64ImageField(read_only=True, thumbnail_namespace='profiles.ImageAsset.file')
+    favorite = serializers.SerializerMethodField()
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+
+    def get_favorite(self, obj):
+        if not self.request and not self.request.user.is_authenticated():
+            return None
+        return self.request.user.favorites.filter(id=obj.id).exists()
 
     def get_thumbnail_url(self, obj):
         return self.context['request'].build_absolute_uri(obj.file.url)
@@ -135,7 +140,7 @@ class ImageAssetManagementSerializer(serializers.ModelSerializer):
         model = ImageAsset
         fields = (
             'id', 'title', 'caption', 'rating', 'file', 'private', 'created_on', 'order', 'uploaded_by', 'characters',
-            'comments_disabled', 'artist'
+            'comments_disabled', 'favorite_count', 'favorite', 'artist'
         )
 
 

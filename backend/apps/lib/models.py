@@ -1,9 +1,9 @@
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.db.models import DateTimeField
-from rest_framework.fields import JSONField
 
 
 class Comment(models.Model):
@@ -44,6 +44,7 @@ SUBMISSION_TAG = 10
 NEW_AUCTION = 11
 ANNOUNCEMENT = 12
 SYSTEM_ANNOUNCEMENT = 13
+FAVORITE = 14
 
 
 EVENT_TYPES = (
@@ -58,6 +59,7 @@ EVENT_TYPES = (
     (NEW_AUCTION, 'New Auction'),
     (NEW_CHAR_SUBMISSION, 'New Submission of Character'),
     (NEW_PORTFOLIO_ITEM, 'New Portfolio Item'),
+    (FAVORITE, 'New Favorite'),
     (SUBMISSION_TAG, 'Submission Tag Approval'),
     (ANNOUNCEMENT, 'Announcement'),
     (SYSTEM_ANNOUNCEMENT, 'System-wide announcement'),
@@ -66,11 +68,12 @@ EVENT_TYPES = (
 
 class Event(models.Model):
     type = models.IntegerField(db_index=True, choices=EVENT_TYPES)
-    data = JSONField()
+    data = JSONField(default=None)
     date = models.DateTimeField(auto_now_add=True)
     object_id = models.PositiveIntegerField(null=True, blank=True, db_index=True)
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True)
     target = GenericForeignKey('content_type', 'object_id')
+    recalled = models.BooleanField(default=False, db_index=True)
 
 
 class Subscription(models.Model):
@@ -79,6 +82,11 @@ class Subscription(models.Model):
     object_id = models.PositiveIntegerField(null=True, blank=True, db_index=True)
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True, db_index=True)
     target = GenericForeignKey('content_type', 'object_id')
+    implicit = models.BooleanField(default=True, db_index=True)
+    removed = models.BooleanField(default=False, db_index=True)
+
+    class Meta:
+        unique_together = ('type', 'subscriber', 'object_id', 'content_type')
 
 
 class Notification(models.Model):

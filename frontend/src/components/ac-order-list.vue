@@ -33,10 +33,11 @@
     name: 'ac-order-list',
     mixins: [Viewer, Perms, Paginated],
     components: {AcOrderPreview},
-    props: ['url', 'buyer'],
+    props: ['buyer', 'endpoint'],
     data () {
       return {
-        baseURL: this.url
+        url: this.endpoint,
+        baseURL: this.$router.path
       }
     },
     methods: {

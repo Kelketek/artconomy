@@ -24,9 +24,12 @@
               <img style="height:1.5rem" :src="viewer.avatar_url"> {{ viewer.username }}
             </span>
           </b-nav-item>
-          <ac-patchbutton v-if="viewer.username && viewer.rating > 0" :url="`/api/profiles/v1/${this.viewer.username}/settings/`" :classes="{'btn-sm': true, 'm-0': true}" name="sfw_mode" v-model="viewer.sfw_mode" true-text="NSFW" true-variant="success" false-text="SFW"></ac-patchbutton>
-          <b-nav-item v-if="viewer.username" :to="{name: 'Notifications'}">
-            <span><i class="fa fa-bell"></i></span>
+          <ac-patchbutton v-if="viewer.username && viewer.rating > 0" :url="`/api/profiles/v1/${this.viewer.username}/settings/`" :classes="{'btn-sm': true, 'm-0': true}" name="sfw_mode" v-model="viewer.sfw_mode" true-text="NSFW" true-variant="success" false-text="SFW" />
+          <b-nav-item class="mr-3" v-if="viewer.username" :to="{name: 'Notifications'}">
+            <span><i class="fa fa-bell"></i><div class="notification-count" v-if="unread">
+              <span v-if="unread < 999">{{unread}}</span>
+              <span v-else>*</span>
+            </div></span>
           </b-nav-item>
           <b-nav-item-dropdown v-if="viewer.username" text="<i class='fa fa-ellipsis-h'></i>" right>
             <b-dropdown-item :to="{name: 'Settings', params: {username: viewer.username}}"><i
@@ -47,12 +50,12 @@
           <b-tab title="Login" id="loginTab">
             <div class="pt-2"></div>
             <vue-form-generator id="loginForm" ref="loginForm" :schema="loginSchema" :model="loginModel"
-                                :options="loginOptions"></vue-form-generator>
+                                :options="loginOptions" />
           </b-tab>
           <b-tab title="Register" id="registerTab">
             <div class="pt-2"></div>
             <vue-form-generator id="registerForm" ref="registerForm" :schema="registerSchema" :model="loginModel"
-                                :options="loginOptions"></vue-form-generator>
+                                :options="loginOptions" />
           </b-tab>
         </b-tabs>
         <div slot="modal-footer">
@@ -72,6 +75,16 @@
   .header-logo {
     height: 1.5rem;
     margin-top: -.20rem;
+  }
+  .notification-count {
+    background-color: #fa3e3e;
+    color: white;
+    position: absolute;
+    display: inline-block;
+    font-size: 1rem;
+    line-height: 1rem;
+    border-radius: 2px;
+    padding: 1px 3px
   }
   .logo-header-text {
     margin-left: -.35rem;
@@ -103,6 +116,8 @@
     data () {
       return {
         loginModel: loginDefault(),
+        loopNotifications: false,
+        unread: 0,
         loginSchema: {
           fields: [{
             type: 'input',
@@ -175,6 +190,17 @@
           this.loginFailure
         )
       },
+      setNotificationStats (response) {
+        if (this.loopNotifications) {
+          this.unread = response.count
+          setTimeout(this.monitorNotifications, 10000)
+        }
+      },
+      monitorNotifications () {
+        if (this.loopNotifications) {
+          artCall('/api/profiles/v1/data/notifications/?unread=1&size=0', 'GET', undefined, this.setNotificationStats)
+        }
+      },
       loginHandler (response) {
         setCookie('csrftoken', response.csrftoken)
         this.$refs.loginModal.hide()
@@ -199,6 +225,18 @@
           undefined,
           this.logoutHandler
         )
+      }
+    },
+    watch: {
+      viewer (newValue) {
+        if (newValue && newValue.username) {
+          if (!this.loopNotifications) {
+            this.loopNotifications = true
+            this.monitorNotifications()
+          }
+        } else {
+          this.loopNotifications = false
+        }
       }
     }
   }

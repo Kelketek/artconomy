@@ -13,12 +13,14 @@ from rest_framework.decorators import api_view
 from rest_framework.exceptions import ValidationError, PermissionDenied
 from rest_framework.generics import ListCreateAPIView, CreateAPIView, RetrieveUpdateDestroyAPIView, UpdateAPIView, \
     GenericAPIView, ListAPIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.lib.models import Notification
+from apps.lib.models import Notification, FAVORITE
 from apps.lib.permissions import Any, All, IsSafeMethod
 from apps.lib.serializers import CommentSerializer, NotificationSerializer, Base64ImageField, RelatedUserSerializer
+from apps.lib.utils import recall_notification, notify
 from apps.profiles.models import User, Character, ImageAsset
 from apps.profiles.permissions import ObjectControls, UserControls, AssetViewPermission, AssetControls, NonPrivate
 from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer, SettingsSerializer, UserSerializer, \
@@ -159,6 +161,9 @@ class AssetManager(RetrieveUpdateDestroyAPIView):
     serializer_class = ImageAssetManagementSerializer
     permission_classes = [Any([All([IsSafeMethod, NonPrivate]), AssetControls])]
 
+    def get_serializer(self, *args, **kwargs):
+        return self.serializer_class(request=self.request, *args, **kwargs)
+
     def get_object(self):
         asset = get_object_or_404(
             ImageAsset, id=self.kwargs['asset_id'],
@@ -278,13 +283,43 @@ class CharacterSearch(ListAPIView):
         return Character.objects.filter(name__istartswith=query).exclude(private=True).order_by('id')
 
 
+class AssetFavorite(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ImageAssetManagementSerializer
+
+    def get_serializer(self, *args, **kwargs):
+        return self.serializer_class(request=self.request, *args, **kwargs)
+
+    def get_object(self):
+        asset = get_object_or_404(ImageAsset, id=self.kwargs['asset_id'])
+        if asset.private and not asset.uploaded_by == self.request.user:
+            raise PermissionDenied('This submission is private.')
+        return asset
+
+    def post(self, request, **_kwargs):
+        asset = self.get_object()
+        self.check_object_permissions(request, asset)
+        if self.request.user.favorites.filter(id=asset.id).exists():
+            self.request.user.favorites.remove(asset)
+            recall_notification(FAVORITE, asset, {'user_id': self.request.user.id}, unique_data=True)
+        else:
+            self.request.user.favorites.add(asset)
+            notify(FAVORITE, asset, {'user_id': self.request.user.id}, unique_data=True)
+        serializer = self.get_serializer()
+        serializer.instance = asset
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
+
+
 class NotificationsList(ListAPIView):
     serializer_class = NotificationSerializer
 
     def get_queryset(self):
         if not self.request.user.is_authenticated():
             return PermissionDenied("You must be authenticated to view notifications.")
-        return Notification.objects.filter(user=self.request.user).select_related('event').order_by('event__date')
+        qs = Notification.objects.filter(user=self.request.user).exclude(event__recalled=True)
+        if self.request.GET.get('unread'):
+            qs = qs.filter(read=False)
+        return qs.select_related('event').order_by('event__date')
 
 
 def register_dwolla(request):

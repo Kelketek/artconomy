@@ -4,12 +4,15 @@ Models dealing primarily with user preferences and personalization.
 from django.conf import settings
 from custom_user.models import AbstractEmailUser
 from django.contrib.contenttypes.fields import GenericRelation
+from django.contrib.contenttypes.models import ContentType, ContentTypeManager
 from django.core.validators import MinValueValidator
 from django.db.models import Model, CharField, ForeignKey, IntegerField, BooleanField, ManyToManyField, DateTimeField, \
     URLField, SlugField, SET_NULL
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
 
 from apps.lib.abstract_models import GENERAL, RATINGS, ImageModel
-from apps.lib.models import Comment
+from apps.lib.models import Comment, Subscription, FAVORITE
 from apps.profiles.permissions import AssetViewPermission, AssetCommentPermission
 
 
@@ -21,6 +24,7 @@ class User(AbstractEmailUser):
     primary_character = ForeignKey('Character', blank=True, null=True, related_name='+')
     primary_card = ForeignKey('sales.CreditCardToken', null=True, blank=True, related_name='+')
     dwolla_url = URLField(blank=True, default='')
+    favorites = ManyToManyField('ImageAsset', blank=True, related_name='favorited_by')
     commissions_closed = BooleanField(
         default=True, db_index=True,
         help_text="When enabled, no one may commission you."
@@ -71,6 +75,29 @@ class ImageAsset(ImageModel):
     order = ForeignKey('sales.Order', null=True, blank=True, on_delete=SET_NULL, related_name='outputs')
 
     comment_permissions = [AssetViewPermission, AssetCommentPermission]
+
+    def favorite_count(self):
+        return self.favorited_by.all().count()
+
+
+@receiver(post_save, sender=ImageAsset)
+def auto_subscribe(sender, instance, **kwargs):
+    Subscription.objects.get_or_create(
+        subscriber=instance.uploaded_by,
+        content_type=ContentType.objects.get_for_model(model=sender),
+        object_id=instance.id,
+        type=FAVORITE
+    )
+
+
+@receiver(post_delete, sender=ImageAsset)
+def auto_remove(sender, instance, **kwargs):
+    Subscription.objects.filter(
+        subscriber=instance.uploaded_by,
+        content_type=ContentType.objects.get_for_model(model=sender),
+        object_id=instance.id,
+        type=FAVORITE
+    ).delete()
 
 
 class Character(Model):

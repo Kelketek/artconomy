@@ -24,11 +24,13 @@
             </div>
           </div>
           <div class="col-sm-6 pull-right">
-            <div class="statline">
-              <strong>Species:</strong> <ac-patchfield v-model="character.species" name="species" :editmode="editing" :url="url"></ac-patchfield>
-            </div>
-            <div class="statline">
-              <strong>Gender:</strong> <ac-patchfield v-model="character.gender" name="gender" :editmode="editing" :url="url"></ac-patchfield>
+            <ac-action v-if="editing" class="text-center" style="display:block" :url="url" method="PATCH" :send="{private: !character.private}" :success="loadCharacter">
+              <span v-if="character.private"><i class="fa fa-eye-slash"></i> Hide character</span>
+              <span v-else><i class="fa fa-eye"></i> Unhide character</span>
+            </ac-action>
+            <div v-else-if="controls" class="text-center">
+              <span v-if="character.private"><i class="fa fa-eye"></i> Character is public</span>
+              <span v-else><i class="fa fa-eye-slash"></i> Character is private</span>
             </div>
           </div>
         </div>
