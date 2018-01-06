@@ -45,6 +45,7 @@ NEW_AUCTION = 11
 ANNOUNCEMENT = 12
 SYSTEM_ANNOUNCEMENT = 13
 FAVORITE = 14
+DISPUTE = 15
 
 
 EVENT_TYPES = (
@@ -57,6 +58,7 @@ EVENT_TYPES = (
     (COMMISSIONS_OPEN, 'Commission Slots Available'),
     (NEW_PRODUCT, 'New Product'),
     (NEW_AUCTION, 'New Auction'),
+    (DISPUTE, 'Dispute Filed'),
     (NEW_CHAR_SUBMISSION, 'New Submission of Character'),
     (NEW_PORTFOLIO_ITEM, 'New Portfolio Item'),
     (FAVORITE, 'New Favorite'),

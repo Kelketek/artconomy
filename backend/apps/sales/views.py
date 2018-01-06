@@ -1,12 +1,15 @@
 from uuid import uuid4
 
 from authorize import AuthorizeError
+from dateutil.relativedelta import relativedelta
 from django.core.files.base import ContentFile
-from django.db.models import When, F, Case, BooleanField, Q
+from django.db.models import When, F, Case, BooleanField
 from django.db.transaction import atomic
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import get_object_or_404
+from django.utils import timezone
 
 # Create your views here.
+from math import ceil
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, CreateAPIView, RetrieveAPIView, \
@@ -15,8 +18,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.lib.models import DISPUTE
 from apps.lib.permissions import ObjectStatus
 from apps.lib.serializers import CommentSerializer
+from apps.lib.utils import notify
 from apps.profiles.models import User, ImageAsset, Character
 from apps.profiles.permissions import ObjectControls, UserControls
 from apps.profiles.serializers import ImageAssetSerializer
@@ -204,6 +209,30 @@ class DeleteOrderRevision(DestroyAPIView):
         if order.status == Order.REVIEW:
             order.status = Order.IN_PROGRESS
             order.save()
+
+
+class StartDispute(GenericAPIView):
+    permission_classes = [OrderBuyerPermission]
+    serializer_class = OrderViewSerializer
+
+    def get_object(self):
+        return get_object_or_404(Order, id=self.kwargs['order_id'])
+
+    def post(self, _request, *_args, **_kwargs):
+        order = self.get_object()
+        self.check_object_permissions(self.request, order)
+        if order.status not in [Order.IN_PROGRESS, Order.QUEUED, Order.REVIEW]:
+            raise PermissionDenied('This order is not in a disputable state.')
+        if order.status in [Order.IN_PROGRESS, Order.QUEUED]:
+            turnaround = order.product.expected_turnaround
+            dispute_date = order.created_on + relativedelta(days=ceil(turnaround * 1.2))
+            if dispute_date < timezone.now():
+                raise PermissionDenied(
+                    "This order is not old enough to dispute. You can dispute it on {}".format(dispute_date)
+                )
+        order.status = Order.DISPUTED
+        order.save()
+        notify(DISPUTE, order, unique=True)
 
 
 class ApproveFinal(GenericAPIView):

@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
+from django.db.models import Q
 from django.db.transaction import atomic
 from django.utils import timezone
 from pycountry import countries, subdivisions
@@ -44,8 +45,9 @@ for code, name in ('AE', 'AA', 'AP'):
 
 
 def recall_notification(event_type, target, data=None, unique_data=False):
-    content_type = ContentType.objects.get_for_model(target)
-    events = get_matching_events(event_type, content_type, target, data, unique_data)
+    content_type = target and ContentType.objects.get_for_model(target)
+    object_id = target and target.id
+    events = get_matching_events(event_type, content_type, object_id, data, unique_data)
     events.update(recalled=True)
 
 
@@ -60,28 +62,44 @@ def update_event(event, data, subscriptions, mark_unread, time_override=None):
         Notification.objects.filter(user__in=subscribers, event=event).update(read=False)
 
 
-def get_matching_events(event_type, content_type, target, data, unique_data=False):
-    kwargs = {'type': event_type, 'content_type': content_type, 'object_id': target.id}
+def target_params(object_id, content_type):
+    query = Q(object_id__isnull=True, content_type__isnull=True)
+    if content_type:
+        query |= Q(object_id=object_id, content_type=content_type)
+    return query
+
+
+def get_matching_subscriptions(event_type, object_id, content_type):
+    return Subscription.objects.filter(
+        Q(type=event_type, removed=False) & target_params(object_id, content_type)
+    )
+
+
+def get_matching_events(event_type, content_type, object_id, data, unique_data=False):
+    query = Q(type=event_type)
+    query &= target_params(object_id, content_type)
     if unique_data:
-        kwargs['data'] = data
-    return Event.objects.filter(**kwargs)
+        query &= Q(data=data)
+    return Event.objects.filter(query)
 
 
 @atomic
-def notify(event_type, target, data=None, unique=False, unique_data=False, mark_unread=False, time_override=None):
-    content_type = ContentType.objects.get_for_model(target)
-    subscriptions = Subscription.objects.filter(
-        type=event_type, object_id=target.id, content_type=content_type,
-        removed=False
-    )
+def notify(
+        event_type, target, data=None, unique=False, unique_data=False, mark_unread=False, time_override=None
+):
+    content_type = target and ContentType.objects.get_for_model(target)
+    object_id = target and target.id
+    subscriptions = get_matching_subscriptions(event_type, object_id, content_type)
     if not subscriptions.exists():
         return
     if unique or unique_data:
-        events = get_matching_events(event_type, content_type, target, data, unique_data)
+        events = get_matching_events(event_type, content_type, object_id, data, unique_data)
         if events.exists():
             update_event(events[0], data, subscriptions, mark_unread=mark_unread, time_override=time_override)
             return
-    event = Event.objects.create(type=event_type, object_id=target.id, content_type=content_type, data=data)
+    event = Event.objects.create(
+        type=event_type, object_id=target and target.id, content_type=content_type, data=data
+    )
     Notification.objects.bulk_create(
         (
             Notification(

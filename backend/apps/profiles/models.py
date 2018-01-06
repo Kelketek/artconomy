@@ -12,7 +12,7 @@ from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 
 from apps.lib.abstract_models import GENERAL, RATINGS, ImageModel
-from apps.lib.models import Comment, Subscription, FAVORITE
+from apps.lib.models import Comment, Subscription, FAVORITE, SYSTEM_ANNOUNCEMENT, DISPUTE
 from apps.profiles.permissions import AssetViewPermission, AssetCommentPermission
 
 
@@ -58,6 +58,24 @@ class User(AbstractEmailUser):
         super().save(*args, **kwargs)
 
 
+@receiver(post_save, sender=User)
+def auto_subscribe(sender, instance, created=False, **_kwargs):
+    if created:
+        Subscription.objects.create(
+            subscriber=instance,
+            content_type=None,
+            object_id=None,
+            type=SYSTEM_ANNOUNCEMENT
+        )
+    if instance.is_staff:
+        Subscription.objects.get_or_create(
+            subscriber=instance,
+            content_type=None,
+            object_id=None,
+            type=DISPUTE
+        )
+
+
 class ImageAsset(ImageModel):
     """
     Uploaded image for either commission deliveries or
@@ -81,13 +99,14 @@ class ImageAsset(ImageModel):
 
 
 @receiver(post_save, sender=ImageAsset)
-def auto_subscribe(sender, instance, **kwargs):
-    Subscription.objects.get_or_create(
-        subscriber=instance.uploaded_by,
-        content_type=ContentType.objects.get_for_model(model=sender),
-        object_id=instance.id,
-        type=FAVORITE
-    )
+def auto_subscribe_image(sender, instance, created=False, **_kwargs):
+    if created:
+        Subscription.objects.create(
+            subscriber=instance.uploaded_by,
+            content_type=ContentType.objects.get_for_model(model=sender),
+            object_id=instance.id,
+            type=FAVORITE
+        )
 
 
 @receiver(post_delete, sender=ImageAsset)
