@@ -193,7 +193,7 @@
       setNotificationStats (response) {
         if (this.loopNotifications) {
           this.unread = response.count
-          setTimeout(this.monitorNotifications, 10000)
+          this.$setTimer('getUnreadNotifications', this.monitorNotifications, 10000)
         }
       },
       monitorNotifications () {

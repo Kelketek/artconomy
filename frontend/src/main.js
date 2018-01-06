@@ -14,6 +14,7 @@ import { md } from './lib'
 import {ErrorHandler} from './plugins/error'
 import {router} from './router'
 import { UserHandler } from './plugins/user'
+import { Timer } from './plugins/timer'
 
 // export for others scripts to use
 window.$ = $
@@ -24,6 +25,7 @@ Vue.use(UserHandler)
 Vue.use(BootstrapVue)
 Vue.use(VueFormGenerator)
 Vue.use(ErrorHandler)
+Vue.use(Timer)
 Vue.config.productionTip = false
 Vue.component('ac-navbar', NavBar)
 Vue.component('fieldCharacterSearch', fieldCharacterSearch)

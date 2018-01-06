@@ -69,31 +69,32 @@
         }
       },
       readMonitor () {
-        if (this.loopNotifications && !this.marking.length) {
+        if (this.loopNotifications && this.toMark.length && !this.marking.length) {
           this.marking = this.toMark
-          artCall(`${this.url}/mark-read/`, 'POST', this.toMark, this.postMark, this.clearMarking)
+          artCall(`${this.url}mark-read/`, 'PATCH', this.marking, this.postMark, this.clearMarking)
         }
         if (this.loopNotifications) {
-          setTimeout(this.readMonitor, 10000)
+          this.$setTimer('markNotificationsRead', this.readMonitor, 5000)
+        }
+      },
+      startMonitoring () {
+        if (this.viewer && this.viewer.username) {
+          if (!this.loopNotifications) {
+            this.loopNotifications = true
+            this.readMonitor()
+          }
+        } else {
+          this.loopNotifications = false
         }
       }
     },
     created () {
       this.fetchItems()
+      this.startMonitoring()
     },
     watch: {
-      viewer (newValue) {
-        console.log('Watcher ran')
-        if (newValue && newValue.username) {
-          if (!this.loopNotifications) {
-            console.log('Starting loop')
-            this.loopNotifications = true
-            this.readMonitor()
-          }
-        } else {
-          console.log('Stopping loop')
-          this.loopNotifications = false
-        }
+      viewer () {
+        this.startMonitoring()
       }
     }
   }

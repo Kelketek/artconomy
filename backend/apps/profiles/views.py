@@ -16,10 +16,12 @@ from rest_framework.generics import ListCreateAPIView, CreateAPIView, RetrieveUp
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_bulk import BulkUpdateAPIView
 
 from apps.lib.models import Notification, FAVORITE
 from apps.lib.permissions import Any, All, IsSafeMethod
-from apps.lib.serializers import CommentSerializer, NotificationSerializer, Base64ImageField, RelatedUserSerializer
+from apps.lib.serializers import CommentSerializer, NotificationSerializer, Base64ImageField, RelatedUserSerializer, \
+    BulkNotificationSerializer
 from apps.lib.utils import recall_notification, notify
 from apps.profiles.models import User, Character, ImageAsset
 from apps.profiles.permissions import ObjectControls, UserControls, AssetViewPermission, AssetControls, NonPrivate
@@ -320,6 +322,14 @@ class NotificationsList(ListAPIView):
         if self.request.GET.get('unread'):
             qs = qs.filter(read=False)
         return qs.select_related('event').order_by('event__date')
+
+
+class MarkNotificationsRead(BulkUpdateAPIView):
+    serializer_class = BulkNotificationSerializer
+    queryset = Notification.objects.all()
+
+    def filter_queryset(self, queryset):
+        return queryset.filter(user=self.request.user)
 
 
 def register_dwolla(request):

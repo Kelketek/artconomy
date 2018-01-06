@@ -4,6 +4,7 @@ from avatar.templatetags.avatar_tags import avatar_url
 from django.conf import settings
 from django.core.files.base import ContentFile
 from rest_framework import serializers
+from rest_framework_bulk import BulkSerializerMixin, BulkListSerializer
 
 from apps.lib.models import Comment, Notification, Event
 from apps.profiles.models import User, ImageAsset
@@ -103,3 +104,13 @@ class NotificationSerializer(serializers.ModelSerializer):
         model = Notification
         fields = ('event', 'read', 'id')
         read_only_fields = ('event', 'id')
+
+
+class BulkNotificationSerializer(BulkSerializerMixin, serializers.ModelSerializer):
+    event = EventSerializer(read_only=True)
+
+    class Meta:
+        model = Notification
+        fields = ('event', 'read', 'id')
+        read_only_fields = ('event', 'id')
+        list_serializer_class = BulkListSerializer
