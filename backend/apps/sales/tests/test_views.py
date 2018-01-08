@@ -1,12 +1,14 @@
 from authorize import AuthorizeError
 from ddt import data, unpack, ddt
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.utils import timezone
 from freezegun import freeze_time
 from mock import patch
 from moneyed import Money
 from rest_framework import status
 
 from apps.lib.abstract_models import ADULT, MATURE
+from apps.lib.models import DISPUTE
 from apps.lib.test_resources import APITestCase
 from apps.profiles.models import ImageAsset
 from apps.profiles.tests.factories import CharacterFactory, UserFactory
@@ -1090,6 +1092,26 @@ class TestOrderStateChange(APITestCase):
         asset = ImageAsset.objects.get(order=self.order)
         self.assertEqual(asset.rating, ADULT)
         self.assertEqual(asset.order, self.order)
+
+    @patch('apps.sales.views.recall_notification')
+    def test_approve_order_recall_notification(self, mock_recall):
+        target_time = timezone.now()
+        self.order.disputed_on = target_time
+        self.order.save()
+        self.state_assertion('buyer', 'approve/', initial_status=Order.DISPUTED)
+        mock_recall.assert_called_with(DISPUTE, self.order)
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.disputed_on, None)
+
+    @patch('apps.sales.views.recall_notification')
+    def test_approve_order_staffer_no_recall_notification(self, mock_recall):
+        target_time = timezone.now()
+        self.order.disputed_on = target_time
+        self.order.save()
+        self.state_assertion('staffer', 'approve/', initial_status=Order.DISPUTED)
+        mock_recall.assert_not_called()
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.disputed_on, target_time)
 
     def test_approve_order_seller_fail(self):
         self.state_assertion('seller', 'approve/', status.HTTP_403_FORBIDDEN, initial_status=Order.REVIEW)

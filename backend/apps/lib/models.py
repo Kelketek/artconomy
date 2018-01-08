@@ -70,7 +70,7 @@ EVENT_TYPES = (
 
 class Event(models.Model):
     type = models.IntegerField(db_index=True, choices=EVENT_TYPES)
-    data = JSONField(default=None)
+    data = JSONField(default=dict)
     date = models.DateTimeField(auto_now_add=True)
     object_id = models.PositiveIntegerField(null=True, blank=True, db_index=True)
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True)

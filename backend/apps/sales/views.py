@@ -21,7 +21,7 @@ from rest_framework.views import APIView
 from apps.lib.models import DISPUTE
 from apps.lib.permissions import ObjectStatus
 from apps.lib.serializers import CommentSerializer
-from apps.lib.utils import notify
+from apps.lib.utils import notify, recall_notification
 from apps.profiles.models import User, ImageAsset, Character
 from apps.profiles.permissions import ObjectControls, UserControls
 from apps.profiles.serializers import ImageAssetSerializer
@@ -231,8 +231,12 @@ class StartDispute(GenericAPIView):
                     "This order is not old enough to dispute. You can dispute it on {}".format(dispute_date)
                 )
         order.status = Order.DISPUTED
+        order.disputed_on = timezone.now()
         order.save()
-        notify(DISPUTE, order, unique=True)
+        notify(DISPUTE, order, unique=True, mark_unread=True)
+        serializer = self.get_serializer()
+        serializer.instance = order
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
 
 
 class ApproveFinal(GenericAPIView):
@@ -242,12 +246,17 @@ class ApproveFinal(GenericAPIView):
     def get_object(self):
         return get_object_or_404(Order, id=self.kwargs['order_id'])
 
-    def post(self, _request, *_args, **_kwargs):
+    def post(self, request, *_args, **_kwargs):
         order = self.get_object()
         self.check_object_permissions(self.request, order)
         if order.status not in [Order.REVIEW, Order.DISPUTED]:
             raise PermissionDenied('This order is not in an approvable state.')
         with atomic():
+            if order.status == order.DISPUTED and request.user == order.buyer:
+                # User is rescinding dispute.
+                recall_notification(DISPUTE, order)
+                # We'll pretend this never happened.
+                order.disputed_on = None
             order.status = order.COMPLETED
             order.save()
             final = order.revision_set.last()

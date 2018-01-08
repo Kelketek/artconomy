@@ -3,7 +3,7 @@
     <div v-if="order" class="container">
       <div class="row shadowed">
         <div class="col-lg-4 col-sm-12 col-md-6 text-section text-center">
-          <ac-asset :asset="order.product" thumb-name="preview" img-class="bound-image"></ac-asset>
+          <ac-asset :asset="order.product" thumb-name="preview" img-class="bound-image" />
         </div>
         <div class="col-md-6 col-sm-12 text-section pt-3">
           <h1 v-html="md.renderInline(order.product.name)"></h1>
@@ -17,7 +17,7 @@
         <div class="col-sm-12 col-lg-2 text-section text-center pt-3">
           <div class="text-center">
             <h3>Ordered By</h3>
-            <ac-avatar :user="order.buyer"></ac-avatar>
+            <ac-avatar :user="order.buyer" />
           </div>
         </div>
         <div class="col-sm-12 text-section mb-2">
@@ -29,11 +29,11 @@
               v-bind:character="char"
               v-bind:expanded="true"
               v-bind:key="char.id"
-          ></ac-character-preview>
+          />
         </div>
         <div class="col-lg-3 col-md-6 col-sm-12 text-section text-center pt-2">
           <h3>Seller:</h3>
-          <ac-avatar :user="order.seller"></ac-avatar>
+          <ac-avatar :user="order.seller" />
         </div>
         <div class="col-lg-6 col-md-6 col-sm-12 text-section text-center pt-2" v-if="paymentDetail">
           <div class="pricing-container">
@@ -151,7 +151,7 @@
           </div>
         </div>
         <div class="col-md-6 col-sm-12 text-section" v-if="buyer && paymentPending">
-          <ac-card-manager :payment="true" :username="order.buyer.username" v-model="selectedCard"></ac-card-manager>
+          <ac-card-manager :payment="true" :username="order.buyer.username" v-model="selectedCard" />
         </div>
         <div class="col-md-6 col-sm-12 mt-3 mb-3 text-center" v-if="buyer && paymentPending">
           <p><strong>Add a card or select a saved one on the left.</strong></p>
@@ -184,7 +184,7 @@
         <div v-for="(revision, index) in revisionsLimited"
              class="col-sm-12 col-md-6 col-lg-4 col-centered text-center"
              v-bind:key="revision.id">
-          <ac-asset thumb-name="preview" img-class="max-width" :asset="revision"></ac-asset>
+          <ac-asset thumb-name="preview" img-class="max-width" :asset="revision" />
           <div class="text-center text-section p-3 mt-2">
             Revision {{ index + 1 }} on {{ formatDate(revision.created_on) }}
             <ac-action
@@ -205,9 +205,9 @@
         </div>
         <div class="col-sm-12 text-center">
           <router-link v-if="output" :to="{name: 'Submission', params: {assetID: output.id}}">
-            <ac-asset thumb-name="preview" img-class="max-width" :asset="final"></ac-asset>
+            <ac-asset thumb-name="preview" img-class="max-width" :asset="final" />
           </router-link>
-          <ac-asset v-else thumb-name="preview" img-class="max-width" :asset="final"></ac-asset>
+          <ac-asset v-else thumb-name="preview" img-class="max-width" :asset="final" />
           <div class="text-center text-section pb-2">
             Final delivered {{ formatDate(final.created_on)}}
             <ac-action
@@ -222,7 +222,7 @@
             <p v-if="review && seller">
               Waiting on the commissioner to approve the final result.
             </p>
-            <div v-if="review && buyer">
+            <div v-if="(review || disputed) && buyer">
               <ac-action
                   variant="success"
                   method="POST"
@@ -231,11 +231,31 @@
               >
               Approve Result
               </ac-action>
+              <ac-action
+                variant="danger"
+                method="POST"
+                :url="`${this.url}dispute/`"
+                :success="populateOrder"
+                v-if="!disputed"
+                >
+                File Dispute
+              </ac-action>
+              <div v-else class="mt-2">
+                <p>
+                  We're sorry you are not satisfied. Our staff has been contacted about your dispute.
+                  They will comment once they have reviewed your case. Please follow their instructions to allow for
+                  a prompt resolution.
+                </p>
+                <p>
+                  If you started this dispute in error, or if the artist has resolved the issues you have raised, you
+                  may hit the approve button above to close the dispute early.
+                </p>
+              </div>
             </div>
           </div>
         </div>
       </div>
-      <div class="row-centered mt-3 shadowed text-center pb-3" v-if="seller && revisionsRemain">
+      <div class="row-centered mt-3 shadowed text-center pb-3" v-if="seller && revisionsRemain && !queued">
         <div class="col-sm-12 col-md-6 col-centered">
           <form>
             <ac-form-container
@@ -256,7 +276,7 @@
       </div>
       <div class="row shadowed mt-3">
         <div class="col-sm-12">
-          <ac-comment-section :commenturl="commenturl" :nesting="false"></ac-comment-section>
+          <ac-comment-section :commenturl="commenturl" :nesting="false" />
         </div>
       </div>
     </div>

@@ -10,10 +10,12 @@ from django.db.models import Model, CharField, ForeignKey, IntegerField, Boolean
     TextField, SET_NULL, PositiveIntegerField, URLField
 
 # Create your models here.
+from django.db.models.signals import post_delete, post_save
+from django.dispatch import receiver
 from djmoney.models.fields import MoneyField
 from moneyed import Money
 
-from apps.lib.models import Comment
+from apps.lib.models import Comment, Subscription, DISPUTE
 from apps.lib.abstract_models import ImageModel
 from apps.sales.permissions import OrderViewPermission
 from apps.sales.sauce import sauce
@@ -194,6 +196,7 @@ class Order(Model):
     details = CharField(max_length=5000)
     adjustment = MoneyField(max_digits=4, decimal_places=2, default_currency='USD', blank=True, default=0)
     created_on = DateTimeField(auto_now_add=True, db_index=True)
+    disputed_on = DateTimeField(blank=True, null=True, db_index=True)
     stream_link = URLField(blank=True, default='')
     characters = ManyToManyField('profiles.Character')
     comments = GenericRelation(
@@ -211,6 +214,27 @@ class Order(Model):
 
     class Meta:
         ordering = ['created_on']
+
+
+@receiver(post_save, sender=Order)
+def auto_subscribe_image(sender, instance, created=False, **_kwargs):
+    if created:
+        Subscription.objects.create(
+            subscriber=instance.seller,
+            content_type=ContentType.objects.get_for_model(model=sender),
+            object_id=instance.id,
+            type=DISPUTE
+        )
+
+
+@receiver(post_delete, sender=Order)
+def auto_remove(sender, instance, **_kwargs):
+    Subscription.objects.filter(
+        subscriber=instance.seller,
+        content_type=ContentType.objects.get_for_model(model=sender),
+        object_id=instance.id,
+        type=DISPUTE
+    ).delete()
 
 
 class RatingSet(Model):

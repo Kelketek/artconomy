@@ -87,6 +87,8 @@ def get_matching_events(event_type, content_type, object_id, data, unique_data=F
 def notify(
         event_type, target, data=None, unique=False, unique_data=False, mark_unread=False, time_override=None
 ):
+    if data is None:
+        data = {}
     content_type = target and ContentType.objects.get_for_model(target)
     object_id = target and target.id
     subscriptions = get_matching_subscriptions(event_type, object_id, content_type)
