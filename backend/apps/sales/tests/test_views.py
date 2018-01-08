@@ -45,7 +45,9 @@ class TestOrderListBase(object):
     @data(*order_scenarios)
     def test_fetch_orders(self, category, included, excluded):
         self.login(self.user)
-        included_orders = [OrderFactory.create(status=order_status, **self.factory_kwargs()) for order_status in included]
+        included_orders = [
+            OrderFactory.create(status=order_status, **self.factory_kwargs()) for order_status in included
+        ]
         [OrderFactory.create(status=order_status, **self.factory_kwargs()) for order_status in excluded]
         response = self.client.get(self.make_url(category))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -85,6 +87,16 @@ class TestSalesLists(TestOrderListBase, APITestCase):
 
     def factory_kwargs(self):
         return {'seller': self.user}
+
+
+class TestCasesLists(TestOrderListBase, APITestCase):
+    def make_url(self, category):
+        return '/api/sales/v1/{}/cases/{}/'.format(self.user.username, category)
+
+    def factory_kwargs(self):
+        self.user.is_staff = True
+        self.user.save()
+        return {'arbitrator': self.user}
 
 
 class TestCardManagement(APITestCase):
@@ -1187,3 +1199,22 @@ class TestOrderStateChange(APITestCase):
 
     def test_approve_order_staffer(self):
         self.state_assertion('staffer', 'approve/', initial_status=Order.REVIEW)
+
+    def test_claim_order_staffer(self):
+        self.state_assertion('staffer', 'claim/', initial_status=Order.DISPUTED)
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.arbitrator, self.staffer)
+
+    def test_claim_order_staffer_claimed_already(self):
+        arbitrator = UserFactory.create(is_staff=True)
+        self.order.arbitrator = arbitrator
+        self.order.save()
+        self.state_assertion('staffer', 'claim/', status.HTTP_403_FORBIDDEN, initial_status=Order.DISPUTED)
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.arbitrator, arbitrator)
+
+    def test_claim_order_buyer(self):
+        self.state_assertion('buyer', 'claim/', status.HTTP_403_FORBIDDEN, initial_status=Order.DISPUTED)
+
+    def test_claim_order_seller(self):
+        self.state_assertion('seller', 'claim/', status.HTTP_403_FORBIDDEN, initial_status=Order.DISPUTED)

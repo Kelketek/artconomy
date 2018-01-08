@@ -12,7 +12,7 @@ from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 
 from apps.lib.abstract_models import GENERAL, RATINGS, ImageModel
-from apps.lib.models import Comment, Subscription, FAVORITE, SYSTEM_ANNOUNCEMENT, DISPUTE, REFUND
+from apps.lib.models import Comment, Subscription, FAVORITE, SYSTEM_ANNOUNCEMENT, DISPUTE, REFUND, Event
 from apps.profiles.permissions import AssetViewPermission, AssetCommentPermission
 
 
@@ -128,6 +128,12 @@ def auto_remove(sender, instance, **kwargs):
         object_id=instance.id,
         type=FAVORITE
     ).delete()
+    Event.objects.filter(
+        content_type=ContentType.objects.get_for_model(model=sender),
+        object_id=instance.id,
+        type=FAVORITE,
+        recalled=True
+    )
 
 
 class Character(Model):

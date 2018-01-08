@@ -137,6 +137,12 @@ export function productTypes () {
   return genOptions(PRODUCT_TYPES)
 }
 
+export const NOTIFICATION_MAPPING = {
+  '14': 'ac-favorite',
+  '15': 'ac-dispute',
+  '16': 'ac-refund'
+}
+
 export function textualize (markdown) {
   let container = document.createElement('div')
   container.innerHTML = md.render(markdown)

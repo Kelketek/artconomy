@@ -12,6 +12,7 @@
           <b-nav-item :to="{name: 'Characters', params: {username: viewer.username}}">Characters</b-nav-item>
           <b-nav-item :to="{name: 'Orders', params: {username: viewer.username}}">Orders</b-nav-item>
           <b-nav-item :to="{name: 'Sales', params: {username: viewer.username}}">Sales</b-nav-item>
+          <b-nav-item v-if="viewer.is_staff" :to="{name: 'Cases', params: {username: viewer.username}}">Cases</b-nav-item>
           <b-nav-item :to="{name: 'Store', params: {username: viewer.username}}">Sell</b-nav-item>
         </b-navbar-nav>
 

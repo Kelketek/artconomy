@@ -99,6 +99,12 @@ export const routes = [
     props: true
   },
   {
+    path: '/cases/:username/sale/:orderID/',
+    name: 'Case',
+    component: Order,
+    props: true
+  },
+  {
     path: '/orders/:username/:tabName?/',
     name: 'Orders',
     component: Orders,
@@ -119,6 +125,18 @@ export const routes = [
         username: route.params.username,
         url: `/api/sales/v1/${route.params.username}/sales/`,
         buyer: false
+      }
+    }
+  },
+  {
+    path: '/cases/:username/:tabName?/',
+    name: 'Cases',
+    component: Orders,
+    props (route) {
+      return {
+        username: route.params.username,
+        url: `/api/sales/v1/${route.params.username}/cases/`,
+        buyer: true
       }
     }
   },

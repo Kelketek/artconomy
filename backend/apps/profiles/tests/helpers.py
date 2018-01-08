@@ -34,6 +34,7 @@ def serialize_char(key):
                 'full': 'http://testserver' + key.primary_asset.file.url,
                 'thumbnail': 'http://testserver' + key.primary_asset.file['thumbnail'].url,
                 'gallery': 'http://testserver' + key.primary_asset.file['gallery'].url,
+                'notification': 'http://testserver' + key.primary_asset.file['notification'].url,
             },
             'title': key.primary_asset.title,
             'caption': key.primary_asset.caption,

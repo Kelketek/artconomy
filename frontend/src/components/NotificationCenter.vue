@@ -1,19 +1,23 @@
 <template>
   <div class="notifications-center container">
-    <div class="row">
-      <div v-if="response !== null && !growing.length" class="col-sm-12 text-center">
+    <div v-if="response !== null && !growing.length" class="row">
+      <div class=" col-sm-12 text-center">
         <p>You do not have any notifications at this time.</p>
       </div>
-      <div v-else>
-        <div
-            v-for="notification in growing"
-            :key="notification.id"
-            :notification="notification"
-            v-observe-visibility="markRead(notification.id)"
-            class="col-sm-12">
-          {{notification}}
-        </div>
+    </div>
+    <div v-else>
+      <div class="row mt-3">
+        <h3>Your Notifications</h3>
       </div>
+      <div
+          v-for="notification in growing"
+          :key="notification.id"
+          v-observe-visibility="markRead(notification.id)"
+          class="notification" :class="{'unread': !notification.read}">
+        <component :is="dynamicComponent(notification.event.type)" :event="notification.event" />
+      </div>
+    </div>
+    <div class="row">
       <div class="col-sm-12 text-center">
         <div v-if="growing !== null" v-observe-visibility="moreNotifications"></div>
         <div v-if="fetching"><i class="fa fa-spin fa-spinner fa-5x"></i></div>
@@ -22,14 +26,28 @@
   </div>
 </template>
 
+<style scoped lang="scss">
+  @import '../custom-bootstrap';
+  .notification {
+    border-bottom: 1px solid $dark-gray;
+    .unread {
+      background-color: #ffefff;
+    }
+  }
+</style>
+
 <script>
   import Paginated from '../mixins/paginated'
+  import AcRefund from './notifications/ac-refund'
+  import AcDispute from './notifications/ac-dispute'
+  import AcFavorite from './notifications/ac-favorite'
   import { ObserveVisibility } from 'vue-observe-visibility'
-  import { artCall } from '../lib'
+  import { artCall, NOTIFICATION_MAPPING } from '../lib'
 
   export default {
     name: 'NotificationCenter',
     mixins: [Paginated],
+    components: {AcRefund, AcDispute, AcFavorite},
     directives: {'observe-visibility': ObserveVisibility},
     data () {
       return {
@@ -44,6 +62,9 @@
         if (isVisible) {
           this.loadMore()
         }
+      },
+      dynamicComponent (type) {
+        return NOTIFICATION_MAPPING[type + '']
       },
       populateNotifications (response) {
         this.response = response

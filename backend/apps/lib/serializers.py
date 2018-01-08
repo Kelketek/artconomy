@@ -37,6 +37,8 @@ class EventTargetRelatedField(serializers.RelatedField):
         """
         Serialize tagged objects to a simple textual representation.
         """
+        if value is None:
+            return None
         return value.notification_serialize()
 
 

@@ -22,8 +22,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.lib.models import DISPUTE, REFUND
-from apps.lib.permissions import ObjectStatus
+from apps.lib.models import DISPUTE, REFUND, COMMENT, Subscription
+from apps.lib.permissions import ObjectStatus, IsStaff
 from apps.lib.serializers import CommentSerializer
 from apps.lib.utils import notify, recall_notification
 from apps.profiles.models import User, ImageAsset
@@ -243,6 +243,31 @@ class StartDispute(GenericAPIView):
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
 
+class ClaimDispute(GenericAPIView):
+    permission_classes = [IsStaff]
+    serializer_class = OrderViewSerializer
+
+    def get_object(self):
+        return get_object_or_404(Order, id=self.kwargs['order_id'])
+
+    def post(self, request, order_id):
+        obj = self.get_object()
+        self.check_object_permissions(request, obj)
+        if obj.arbitrator and obj.arbitrator != request.user:
+            raise PermissionDenied("An arbitrator has already been assigned to this dispute.")
+        obj.arbitrator = request.user
+        obj.save()
+        Subscription.objects.get_or_create(
+            type=COMMENT,
+            object_id=obj.id,
+            content_type=ContentType.objects.get_for_model(obj),
+            subscriber=request.user
+        )
+        serializer = self.get_serializer()
+        serializer.instance = obj
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
+
+
 class OrderRefund(GenericAPIView):
     permission_classes = [OrderSellerPermission]
     serializer_class = OrderViewSerializer
@@ -409,6 +434,32 @@ class ArchivedSalesList(ArchivedMixin, SalesListBase):
 
 
 class CancelledSalesList(CancelledMixin, SalesListBase):
+    pass
+
+
+class CasesListBase(ListAPIView):
+    permission_classes = [ObjectControls, IsStaff]
+    serializer_class = OrderViewSerializer
+
+    @staticmethod
+    def extra_filter(qs):
+        return qs
+
+    def get_queryset(self):
+        self.user = get_object_or_404(User, username=self.kwargs['username'])
+        self.check_object_permissions(self.request, self.user)
+        return self.extra_filter(self.user.cases.all())
+
+
+class CurrentCasesList(CurrentMixin, CasesListBase):
+    pass
+
+
+class ArchivedCasesList(ArchivedMixin, CasesListBase):
+    pass
+
+
+class CancelledCasesList(CancelledMixin, CasesListBase):
     pass
 
 

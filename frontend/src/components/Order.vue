@@ -191,7 +191,7 @@
             they're able, and will upload any agreed upon revisions for your review soon, or the final once it's ready.</p>
         </div>
       </div>
-      <div class="row-centered shadowed mt-3 pb-3" v-if="revisionsLimited.length">
+      <div class="row-centered shadowed mt-3 pb-3" v-if="revisionsLimited && revisionsLimited.length">
         <div class="col-sm-12">
           <h2>Revisions</h2>
         </div>
@@ -423,10 +423,10 @@
         }
       },
       finalUploaded () {
-        return (this.revisions.length > this.order.revisions)
+        return (this.revisions && (this.revisions.length > this.order.revisions))
       },
       revisionsRemain () {
-        return (this.revisions.length <= this.order.revisions)
+        return (this.revisions && (this.revisions.length <= this.order.revisions))
       },
       paymentDetail () {
         return this.seller || this.newOrder

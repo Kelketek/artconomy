@@ -199,6 +199,7 @@ class Order(Model):
     adjustment = MoneyField(max_digits=4, decimal_places=2, default_currency='USD', blank=True, default=0)
     created_on = DateTimeField(auto_now_add=True, db_index=True)
     disputed_on = DateTimeField(blank=True, null=True, db_index=True)
+    arbitrator = ForeignKey(settings.AUTH_USER_MODEL, related_name='cases', null=True, blank=True)
     stream_link = URLField(blank=True, default='')
     characters = ManyToManyField('profiles.Character')
     comments = GenericRelation(
