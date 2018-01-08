@@ -92,6 +92,15 @@
           <div v-if="seller && queued">
             <p><strong>Awesome! The commissioner has sent payment.</strong></p>
             <p>You should start work on the commission as soon as you can. If there are revisions to upload, you may upload them (and the final, when ready) below.</p>
+            <p>If for some reason you need to refund the customer, you may do so below. Note that refunding a customer has a $2 to cover costs with our payment processor.</p>
+            <ac-action
+                variant="danger"
+                method="POST"
+                :url="`${this.url}refund/`"
+                :success="populateOrder"
+            >
+              Refund
+            </ac-action>
           </div>
           <div v-if="buyer && queued && !justPaid">
             <p><strong>Your art has been queued!</strong></p>
@@ -111,7 +120,16 @@
           </div>
           <div v-if="inProgress && seller">
             <p><strong>Here we go!</strong></p>
-            You've begun work on this piece. We've notified the commissioner that their piece is in progress and have sent them the link to your stream if you set one.
+            <p>You've begun work on this piece. We've notified the commissioner that their piece is in progress and have sent them the link to your stream if you set one.</p>
+            <p>If for some reason you need to refund the customer, you may do so below. Note that refunding a customer has a $2 to cover costs with our payment processor.</p>
+            <ac-action
+                variant="danger"
+                method="POST"
+                :url="`${this.url}refund/`"
+                :success="populateOrder"
+            >
+              Refund
+            </ac-action>
           </div>
           <div v-if="inProgress && buyer">
             <p><strong>Your art is on the way!</strong></p>
@@ -144,10 +162,6 @@
           <div v-if="completed && seller">
             <strong>Congratulations! You've completed the order</strong>
             <p>You can revisit this page at any time for your records.</p>
-          </div>
-          <div v-if="disputed">
-            <strong>This order is under dispute</strong>
-            <p>An Artconomy staff member will assist in dispute resolution. Please await further instruction in the comments.</p>
           </div>
         </div>
         <div class="col-md-6 col-sm-12 text-section" v-if="buyer && paymentPending">
@@ -219,18 +233,26 @@
             >
               <i class="fa fa-trash-o"></i>
             </ac-action>
-            <p v-if="review && seller">
-              Waiting on the commissioner to approve the final result.
-            </p>
+            <div v-if="(review || disputed) && seller">
+              <p v-if="review">
+                Waiting on the commissioner to approve the final result.
+              </p>
+              <div v-if="disputed">
+                <strong>This order is under dispute</strong>
+                <p>An Artconomy staff member will assist in dispute resolution. Please await further instruction in the comments.</p>
+                <p>You may elect to refund to close the dispute early. We recommend waiting for our staff to review, however.</p>
+                <p>Refunding a transaction has a fee of $2.00 to cover costs with our payment processor.</p>
+                <ac-action
+                    variant="danger"
+                    method="POST"
+                    :url="`${this.url}refund/`"
+                    :success="populateOrder"
+                >
+                  Refund
+                </ac-action>
+              </div>
+            </div>
             <div v-if="(review || disputed) && buyer">
-              <ac-action
-                  variant="success"
-                  method="POST"
-                  :url="`${this.url}approve/`"
-                  :success="newSubmission"
-              >
-              Approve Result
-              </ac-action>
               <ac-action
                 variant="danger"
                 method="POST"
@@ -248,14 +270,22 @@
                 </p>
                 <p>
                   If you started this dispute in error, or if the artist has resolved the issues you have raised, you
-                  may hit the approve button above to close the dispute early.
+                  may hit the approve button to close the dispute early.
                 </p>
+                <ac-action
+                    variant="success"
+                    method="POST"
+                    :url="`${this.url}approve/`"
+                    :success="newSubmission"
+                >
+                  Approve Result
+                </ac-action>
               </div>
             </div>
           </div>
         </div>
       </div>
-      <div class="row-centered mt-3 shadowed text-center pb-3" v-if="seller && revisionsRemain && !queued">
+      <div class="row-centered mt-3 shadowed text-center pb-3" v-if="showRevisionPanel">
         <div class="col-sm-12 col-md-6 col-centered">
           <form>
             <ac-form-container
@@ -372,6 +402,9 @@
       },
       output () {
         return this.order.outputs[0]
+      },
+      showRevisionPanel () {
+        return this.seller && this.revisionsRemain && !this.queued && !this.newOrder && !this.paymentPending
       },
       revisionsLimited () {
         if (this.revisionsRemain) {

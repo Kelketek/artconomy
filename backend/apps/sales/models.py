@@ -169,6 +169,7 @@ class Order(Model):
     CANCELLED = 6
     DISPUTED = 7
     COMPLETED = 8
+    REFUNDED = 9
 
     STATUSES = (
         (NEW, 'New'),
@@ -178,7 +179,8 @@ class Order(Model):
         (REVIEW, 'Review'),
         (CANCELLED, 'Cancelled'),
         (DISPUTED, 'Disputed'),
-        (COMPLETED, 'Completed')
+        (COMPLETED, 'Completed'),
+        (REFUNDED, 'Refunded'),
     )
 
     comment_permissions = [OrderViewPermission]
@@ -208,6 +210,10 @@ class Order(Model):
         if price is None:
             price = self.product.price
         return price + (self.adjustment or Money(0, 'USD'))
+
+    def notification_serialize(self):
+        from .serializers import OrderViewSerializer
+        return OrderViewSerializer(instance=self).data
 
     def __str__(self):
         return "#{} {} for {} by {}".format(self.id, self.product.name, self.buyer, self.seller)
@@ -440,6 +446,59 @@ class PaymentRecord(Model):
             self.payer or '(Artconomy)',
             self.payee or '(Artconomy)',
         )
+
+    def refund_card(self):
+        if self.escrow_for:
+            source = PaymentRecord.ESCROW
+        else:
+            source = PaymentRecord.ACCOUNT
+        record = PaymentRecord(
+            source=source,
+            status=PaymentRecord.FAILURE,
+            payment_type=PaymentRecord.REFUND,
+            payer=self.payee,
+            payee=self.payer,
+            content_type=self.content_type,
+            object_id=self.object_id,
+            amount=self.amount,
+            response_message="Failed when contacting Authorize.net."
+        )
+        transaction = sauce.transaction(self.txn_id)
+        try:
+            response = transaction.credit(self.card.last_four, self.amount.amount)
+            record.txn_id = response.uid
+            record.status = PaymentRecord.SUCCESS
+            record.save()
+        except AuthorizeError as err:
+            if hasattr(err, 'full_response') and 'response_reason_text' in err.full_response:
+                record.response_message = err.full_response['response_reason_text']
+                # Probably tried to refund too early.
+                if err.full_response['response_reason_code'] == '54':
+                    record.response_message = (
+                        'This transaction cannot be refunded. It may not yet have posted. '
+                        'Please try again tomorrow, and contact support if it still fails.'
+                    )
+            else:
+                record.response_message = str(err)
+            record.save()
+        return record
+
+    def refund_account(self):
+        raise NotImplementedError("Account refunds are not yet implemented.")
+
+    def refund(self):
+        if self.status != PaymentRecord.SUCCESS:
+            raise ValueError("Cannot refund a failed transaction.")
+        if self.source == PaymentRecord.CARD:
+            return self.refund_card()
+        elif self.source == PaymentRecord.ACH:
+            raise NotImplementedError("ACH Refunds are not implemented.")
+        elif self.source == PaymentRecord.ESCROW:
+            raise ValueError(
+                "Cannot refund an escrow sourced payment. Are you sure you grabbed the right payment object?"
+            )
+        else:
+            return self.refund_account()
 
 
 class Revision(ImageModel):

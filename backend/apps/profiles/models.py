@@ -12,7 +12,7 @@ from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 
 from apps.lib.abstract_models import GENERAL, RATINGS, ImageModel
-from apps.lib.models import Comment, Subscription, FAVORITE, SYSTEM_ANNOUNCEMENT, DISPUTE
+from apps.lib.models import Comment, Subscription, FAVORITE, SYSTEM_ANNOUNCEMENT, DISPUTE, REFUND
 from apps.profiles.permissions import AssetViewPermission, AssetCommentPermission
 
 
@@ -74,6 +74,13 @@ def auto_subscribe(sender, instance, created=False, **_kwargs):
             object_id=None,
             type=DISPUTE
         )
+    if instance.is_superuser:
+        Subscription.objects.get_or_create(
+            subscriber=instance,
+            content_type=None,
+            object_id=None,
+            type=REFUND
+        )
 
 
 class ImageAsset(ImageModel):
@@ -93,6 +100,10 @@ class ImageAsset(ImageModel):
     order = ForeignKey('sales.Order', null=True, blank=True, on_delete=SET_NULL, related_name='outputs')
 
     comment_permissions = [AssetViewPermission, AssetCommentPermission]
+
+    def notification_serialize(self):
+        from .serializers import ImageAssetSerializer
+        return ImageAssetSerializer(instance=self).data
 
     def favorite_count(self):
         return self.favorited_by.all().count()

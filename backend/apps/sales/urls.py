@@ -5,7 +5,8 @@ from django.conf.urls import url
 from apps.sales.views import ProductListAPI, ProductManager, PlaceOrder, \
     OrderRetrieve, OrderAccept, OrderCancel, CurrentOrderList, CurrentSalesList, OrderComments, CardList, CardManager, \
     MakePrimary, AdjustOrder, MakePayment, OrderRevisions, DeleteOrderRevision, OrderStart, ApproveFinal, \
-    ArchivedOrderList, CancelledOrderList, ArchivedSalesList, CancelledSalesList, ProductExamples, StartDispute
+    ArchivedOrderList, CancelledOrderList, ArchivedSalesList, CancelledSalesList, ProductExamples, StartDispute, \
+    OrderRefund
 
 urlpatterns = [
     url(r'^v1/order/(?P<order_id>\d+)/$', OrderRetrieve.as_view(), name='order'),
@@ -23,6 +24,7 @@ urlpatterns = [
     url(r'^v1/order/(?P<order_id>\d+)/pay/$', MakePayment.as_view(), name='make_payment'),
     url(r'^v1/order/(?P<order_id>\d+)/approve/$', ApproveFinal.as_view(), name='approve_final'),
     url(r'^v1/order/(?P<order_id>\d+)/dispute/$', StartDispute.as_view(), name='approve_final'),
+    url(r'^v1/order/(?P<order_id>\d+)/refund/$', OrderRefund.as_view(), name='order_refund'),
     url(r'^v1/(?P<username>[-\w]+)/products/$', ProductListAPI.as_view(), name='product_list'),
     url(r'^v1/(?P<username>[-\w]+)/products/(?P<product>\d+)/$', ProductManager.as_view(), name='product_manager'),
     url(

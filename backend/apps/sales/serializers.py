@@ -2,15 +2,12 @@ from datetime import datetime, date
 
 from django.conf import settings
 from django.core.validators import RegexValidator
-from django.db.models import Q
 from luhn import verify
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import SerializerMethodField, DecimalField, IntegerField
 
 from apps.lib.serializers import RelatedUserSerializer, Base64ImageField
-from apps.lib.utils import country_choices
-from apps.profiles.models import Character
 from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer
 from apps.sales.models import Product, Order, CreditCardToken, Revision
 

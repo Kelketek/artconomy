@@ -46,6 +46,7 @@ ANNOUNCEMENT = 12
 SYSTEM_ANNOUNCEMENT = 13
 FAVORITE = 14
 DISPUTE = 15
+REFUND = 16
 
 
 EVENT_TYPES = (
@@ -59,6 +60,7 @@ EVENT_TYPES = (
     (NEW_PRODUCT, 'New Product'),
     (NEW_AUCTION, 'New Auction'),
     (DISPUTE, 'Dispute Filed'),
+    (REFUND, 'Refund Processed'),
     (NEW_CHAR_SUBMISSION, 'New Submission of Character'),
     (NEW_PORTFOLIO_ITEM, 'New Portfolio Item'),
     (FAVORITE, 'New Favorite'),

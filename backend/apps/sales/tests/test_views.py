@@ -1,10 +1,11 @@
 from authorize import AuthorizeError
 from ddt import data, unpack, ddt
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import override_settings
 from django.utils import timezone
 from freezegun import freeze_time
 from mock import patch
-from moneyed import Money
+from moneyed import Money, Decimal
 from rest_framework import status
 
 from apps.lib.abstract_models import ADULT, MATURE
@@ -14,22 +15,23 @@ from apps.profiles.models import ImageAsset
 from apps.profiles.tests.factories import CharacterFactory, UserFactory
 from apps.profiles.tests.helpers import gen_image
 from apps.sales.models import Order, CreditCardToken, Product, PaymentRecord
-from apps.sales.tests.factories import OrderFactory, CreditCardTokenFactory, ProductFactory, RevisionFactory
+from apps.sales.tests.factories import OrderFactory, CreditCardTokenFactory, ProductFactory, RevisionFactory, \
+    PaymentRecordFactory
 
 order_scenarios = (
     {
         'category': 'current',
         'included': (Order.NEW, Order.IN_PROGRESS, Order.DISPUTED, Order.REVIEW),
-        'excluded': (Order.CANCELLED, Order.COMPLETED)
+        'excluded': (Order.CANCELLED, Order.COMPLETED, Order.REFUNDED)
     },
     {
         'category': 'archived',
         'included': (Order.COMPLETED, Order.COMPLETED),
-        'excluded': (Order.NEW, Order.IN_PROGRESS, Order.DISPUTED, Order.REVIEW, Order.CANCELLED)
+        'excluded': (Order.NEW, Order.IN_PROGRESS, Order.DISPUTED, Order.REVIEW, Order.CANCELLED, Order.REFUNDED)
     },
     {
         'category': 'cancelled',
-        'included': (Order.CANCELLED, Order.CANCELLED),
+        'included': (Order.REFUNDED, Order.CANCELLED),
         'excluded': (Order.NEW, Order.IN_PROGRESS, Order.COMPLETED, Order.REVIEW, Order.DISPUTED)
     }
 )
@@ -1112,6 +1114,67 @@ class TestOrderStateChange(APITestCase):
         mock_recall.assert_not_called()
         self.order.refresh_from_db()
         self.assertEqual(self.order.disputed_on, target_time)
+
+    @patch('apps.sales.models.sauce')
+    @override_settings(REFUND_FEE=Decimal('5.00'))
+    def test_refund_card_seller(self, mock_sauce):
+        PaymentRecordFactory.create(
+            content_object=self.order,
+            payee=None,
+            payer=self.order.buyer,
+            escrow_for=self.order.seller,
+            amount=Money('15.00', 'USD')
+        )
+        mock_sauce.transaction.return_value.credit.return_value.uid = '123'
+        self.state_assertion('seller', 'refund/', initial_status=Order.DISPUTED)
+        PaymentRecord.objects.get(
+            status=PaymentRecord.SUCCESS,
+            payee=self.order.buyer, payer=None,
+            source=PaymentRecord.ESCROW,
+            payment_type=PaymentRecord.REFUND,
+            amount=Money('15.00', 'USD')
+        )
+        PaymentRecord.objects.get(
+            status=PaymentRecord.SUCCESS,
+            payee=None, payer=self.order.seller,
+            amount=Money('5.00', 'USD')
+        )
+
+    @patch('apps.sales.models.sauce')
+    def test_refund_card_seller_error(self, mock_sauce):
+        PaymentRecordFactory.create(
+            content_object=self.order,
+            payee=None,
+            payer=self.order.buyer,
+            escrow_for=self.order.seller
+        )
+        mock_sauce.transaction.return_value.credit.side_effect = AuthorizeError(
+            "It failed"
+        )
+        self.state_assertion('seller', 'refund/', status.HTTP_400_BAD_REQUEST, initial_status=Order.DISPUTED)
+        PaymentRecord.objects.get(
+            response_message="It failed", status=PaymentRecord.FAILURE,
+            payee=self.order.buyer, payer=None,
+            source=PaymentRecord.ESCROW,
+            payment_type=PaymentRecord.REFUND,
+        )
+
+    def test_refund_card_buyer(self):
+        self.state_assertion('buyer', 'refund/', status.HTTP_403_FORBIDDEN, initial_status=Order.DISPUTED)
+
+    def test_refund_card_outsider(self):
+        self.state_assertion('outsider', 'refund/', status.HTTP_403_FORBIDDEN, initial_status=Order.DISPUTED)
+
+    @patch('apps.sales.models.sauce')
+    def test_refund_card_staffer(self, mock_sauce):
+        PaymentRecordFactory.create(
+            content_object=self.order,
+            payee=None,
+            payer=self.order.buyer,
+            escrow_for=self.order.seller,
+        )
+        mock_sauce.transaction.return_value.credit.return_value.uid = '123'
+        self.state_assertion('staffer', 'refund/', initial_status=Order.DISPUTED)
 
     def test_approve_order_seller_fail(self):
         self.state_assertion('seller', 'approve/', status.HTTP_403_FORBIDDEN, initial_status=Order.REVIEW)

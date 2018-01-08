@@ -1,9 +1,10 @@
-from factory import Sequence, PostGenerationMethodCall, SubFactory, SelfAttribute
+from django.contrib.contenttypes.models import ContentType
+from factory import Sequence, PostGenerationMethodCall, SubFactory, SelfAttribute, LazyAttribute
 from factory.django import DjangoModelFactory, ImageField
 from moneyed import Money
 
 from apps.profiles.tests.factories import UserFactory
-from apps.sales.models import Order, Product, CreditCardToken, Revision
+from apps.sales.models import Order, Product, CreditCardToken, Revision, PaymentRecord
 
 
 class ProductFactory(DjangoModelFactory):
@@ -47,3 +48,20 @@ class RevisionFactory(DjangoModelFactory):
 
     class Meta:
         model = Revision
+
+
+class PaymentRecordFactory(DjangoModelFactory):
+    card = SubFactory(CreditCardTokenFactory)
+    status = PaymentRecord.SUCCESS
+    txn_id = Sequence(lambda x: '{}'.format(x))
+    response_message = 'Payment happened.'
+    response_code = 'PMT'
+    source = PaymentRecord.CARD
+    payer = SubFactory(UserFactory)
+    payee = SubFactory(UserFactory)
+    content_object = SubFactory(OrderFactory)
+    payment_type = PaymentRecord.SALE
+    amount = Money('10.00', 'USD')
+
+    class Meta:
+        model = PaymentRecord

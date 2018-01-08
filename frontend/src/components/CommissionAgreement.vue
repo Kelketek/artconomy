@@ -38,7 +38,12 @@
           <li>Artist has taken longer than is reasonable to complete deliverables</li>
           <li>The deliverables deviate from the product's description and the customer's provided details for the order, as could be reasonably understood</li>
         </ul>
-        <p>The commissioner and artist agree to consider the determination of Artconomy in disputes to be binding and final.</p>
+        <p>
+          The artist and the commissioner both agree that no damages will be sought over the amount paid for the commission. Commissions are to be considered 'as-is', and not to be warranted for any specific purpose.
+        </p>
+        <p>
+          The commissioner and artist agree to consider the determination of Artconomy in disputes to be binding and final.
+        </p>
         <h2>Intellectual Property and Liability</h2>
         <p>
           The commissioner hereby certifies that they hold or have otherwise obtained any required permissions or licensing to use any trademark, copyrighted work or other form of intellectual property requested for the deliverable, and that the work being commissioned is otherwise legal to purchase within the legal framework to which they are subjected. The commissioner assumes liability for these licenses and further certifies that neither Artconomy nor the Artist shall be held liable if these requirements have not been met.

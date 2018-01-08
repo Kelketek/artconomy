@@ -26,6 +26,20 @@ class RelatedUserSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'username', 'avatar_url')
 
 
+class EventTargetRelatedField(serializers.RelatedField):
+    """
+    A custom field to use for the `content_object` generic relationship.
+
+    Invokes the notification_serialize function on the target.
+    """
+
+    def to_representation(self, value):
+        """
+        Serialize tagged objects to a simple textual representation.
+        """
+        return value.notification_serialize()
+
+
 # Custom image field - handles base 64 encoded images
 class Base64ImageField(serializers.ImageField):
     def __init__(self, *args, **kwargs):
@@ -77,19 +91,8 @@ class CommentSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'created_on', 'edited_on', 'user', 'children', 'edited', 'deleted')
 
 
-class EventRelatedField(serializers.RelatedField):
-    def to_representation(self, value):
-        # Avoid circular imports.
-        from apps.profiles.serializers import ImageAssetSerializer
-        if isinstance(value, User):
-            return RelatedUserSerializer(value)
-        if isinstance(value, ImageAsset):
-            ImageAssetSerializer(value)
-        return str(value)
-
-
 class EventSerializer(serializers.ModelSerializer):
-    target = EventRelatedField(read_only=True)
+    target = EventTargetRelatedField(read_only=True)
 
     class Meta:
         model = Event

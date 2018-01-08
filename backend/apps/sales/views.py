@@ -2,6 +2,8 @@ from uuid import uuid4
 
 from authorize import AuthorizeError
 from dateutil.relativedelta import relativedelta
+from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
 from django.core.files.base import ContentFile
 from django.db.models import When, F, Case, BooleanField
 from django.db.transaction import atomic
@@ -10,6 +12,8 @@ from django.utils import timezone
 
 # Create your views here.
 from math import ceil
+
+from moneyed import Money
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, CreateAPIView, RetrieveAPIView, \
@@ -18,11 +22,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.lib.models import DISPUTE
+from apps.lib.models import DISPUTE, REFUND
 from apps.lib.permissions import ObjectStatus
 from apps.lib.serializers import CommentSerializer
 from apps.lib.utils import notify, recall_notification
-from apps.profiles.models import User, ImageAsset, Character
+from apps.profiles.models import User, ImageAsset
 from apps.profiles.permissions import ObjectControls, UserControls
 from apps.profiles.serializers import ImageAssetSerializer
 from apps.sales.permissions import OrderViewPermission, OrderSellerPermission, OrderBuyerPermission
@@ -239,6 +243,48 @@ class StartDispute(GenericAPIView):
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
 
+class OrderRefund(GenericAPIView):
+    permission_classes = [OrderSellerPermission]
+    serializer_class = OrderViewSerializer
+
+    def get_object(self):
+        return get_object_or_404(Order, id=self.kwargs['order_id'])
+
+    def post(self, _request, *_args, **_kwargs):
+        order = self.get_object()
+        self.check_object_permissions(self.request, order)
+        if order.status not in [Order.QUEUED, Order.IN_PROGRESS, Order.REVIEW, Order.DISPUTED]:
+            raise PermissionDenied('This order is not in a refundable state.')
+        record = PaymentRecord.objects.get(
+            status=PaymentRecord.SUCCESS,
+            object_id=order.id,
+            content_type=ContentType.objects.get_for_model(order),
+            payer=order.buyer,
+            payee=None
+        )
+        record = record.refund()
+        if record.status == PaymentRecord.FAILURE:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={'error': record.response_message})
+        order.status = Order.REFUNDED
+        order.save()
+        PaymentRecord.objects.create(
+            payer=order.seller,
+            amount=Money(settings.REFUND_FEE, 'USD'),
+            payee=None,
+            source=PaymentRecord.ACCOUNT,
+            txn_id=str(uuid4()),
+            content_object=order,
+            payment_type=PaymentRecord.TRANSFER,
+            status=PaymentRecord.SUCCESS,
+            response_code='RfndFee',
+            response_message='Artconomy Refund Fee'
+        )
+        notify(REFUND, order, unique=True, mark_unread=True)
+        serializer = self.get_serializer()
+        serializer.instance = order
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
+
+
 class ApproveFinal(GenericAPIView):
     permission_classes = [OrderBuyerPermission]
     serializer_class = OrderViewSerializer
@@ -269,7 +315,7 @@ class ApproveFinal(GenericAPIView):
             submission.file = new_file
             submission.save()
             submission.characters.add(*order.characters.all())
-            PaymentRecord(
+            PaymentRecord.objects.create(
                 payer=None,
                 amount=order.price + order.adjustment,
                 payee=order.seller,
@@ -280,8 +326,8 @@ class ApproveFinal(GenericAPIView):
                 status=PaymentRecord.SUCCESS,
                 response_code='OdrFnl',
                 response_message='Order finalized.'
-            ).save()
-            PaymentRecord(
+            )
+            PaymentRecord.objects.create(
                 payer=order.seller,
                 amount=(order.price + order.adjustment) * order.seller.fee,
                 payee=None,
@@ -292,14 +338,14 @@ class ApproveFinal(GenericAPIView):
                 status=PaymentRecord.SUCCESS,
                 response_code='OdrFee',
                 response_message='Artconomy Service Fee'
-            ).save()
+            )
         return Response(status=status.HTTP_200_OK, data=OrderViewSerializer(instance=order).data)
 
 
 class CurrentMixin(object):
     @staticmethod
     def extra_filter(qs):
-        return qs.exclude(status__in=[Order.COMPLETED, Order.CANCELLED])
+        return qs.exclude(status__in=[Order.COMPLETED, Order.CANCELLED, Order.REFUNDED])
 
 
 class ArchivedMixin(object):
@@ -311,7 +357,7 @@ class ArchivedMixin(object):
 class CancelledMixin(object):
     @staticmethod
     def extra_filter(qs):
-        return qs.filter(status=Order.CANCELLED)
+        return qs.filter(status__in=[Order.CANCELLED, Order.REFUNDED])
 
 
 class OrderListBase(ListCreateAPIView):

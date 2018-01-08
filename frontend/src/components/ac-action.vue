@@ -7,6 +7,9 @@
         Are you sure?
       </slot>
     </b-modal>
+    <div v-if="error" class="ac-action-error">
+      <p><strong>ERROR: </strong>{{error}}</p>
+    </div>
   </div>
 </template>
 
@@ -51,6 +54,12 @@
         default: function () {}
       }
     },
+    data () {
+      return {
+        sending: false,
+        error: ''
+      }
+    },
     methods: {
       performAction () {
         if (this.confirm) {
@@ -68,9 +77,13 @@
       },
       failCallback (response) {
         this.sending = false
+        if (response.responseJSON && response.responseJSON['error']) {
+          this.error = response.responseJSON['error']
+        }
       },
       submit () {
         this.sending = true
+        this.error = ''
         artCall(this.url, this.method, this.send, this.successCallback, this.failCallback)
       }
     },
