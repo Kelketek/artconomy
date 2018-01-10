@@ -426,11 +426,11 @@ class PaymentRecord(Model):
 
     source = IntegerField(choices=PAYMENT_SOURCES, db_index=True)
     status = IntegerField(choices=STATUSES, db_index=True)
-    payment_type = IntegerField(choices=TYPES, db_index=True)
+    type = IntegerField(choices=TYPES, db_index=True)
     card = ForeignKey(CreditCardToken, null=True, blank=True, on_delete=SET_NULL)
-    payer = ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='paid_for')
-    payee = ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='paid')
-    escrow_for = ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='escrow_hold')
+    payer = ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='debits')
+    payee = ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='credits')
+    escrow_for = ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='escrow_holdings')
     amount = MoneyField(max_digits=4, decimal_places=2, default_currency='USD')
     txn_id = CharField(max_length=40)
     created_on = DateTimeField(auto_now_add=True, db_index=True)
@@ -438,7 +438,7 @@ class PaymentRecord(Model):
     response_message = TextField()
     object_id = PositiveIntegerField(null=True, blank=True, db_index=True)
     content_type = ForeignKey(ContentType, on_delete=SET_NULL, null=True, blank=True)
-    content_object = GenericForeignKey('content_type', 'object_id')
+    target = GenericForeignKey('content_type', 'object_id')
 
     def __str__(self):
         return "{}{} from {} to {}".format(
@@ -456,7 +456,7 @@ class PaymentRecord(Model):
         record = PaymentRecord(
             source=source,
             status=PaymentRecord.FAILURE,
-            payment_type=PaymentRecord.REFUND,
+            type=PaymentRecord.REFUND,
             payer=self.payee,
             payee=self.payer,
             content_type=self.content_type,

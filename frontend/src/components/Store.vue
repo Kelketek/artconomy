@@ -9,7 +9,7 @@
       ></ac-product-preview>
       <div class="col-sm-12" v-if="is_current && !setUp">
         <p>To open a store, you must first set up your
-          <router-link :to="{name: 'Settings', params: {tabName: 'payment', 'username': this.viewer.username}}">
+          <router-link :to="{name: 'Settings', params: {tabName: 'payment', 'username': this.viewer.username, 'subTabName': 'disbursement'}}">
             deposit account.
           </router-link>
         </p>

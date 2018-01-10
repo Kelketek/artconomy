@@ -11,7 +11,7 @@
           <div v-html="md.render(order.product.description)"></div>
           <div>
             <h4>Details:</h4>
-            <div v-html="md.render(order.details)"></div>
+            <div class="order-details" v-html="md.render(order.details)"></div>
           </div>
         </div>
         <div class="col-sm-12 col-lg-2 text-section text-center pt-3">

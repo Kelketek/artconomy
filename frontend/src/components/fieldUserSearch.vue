@@ -1,18 +1,18 @@
 <template>
   <div class="wrapper">
-    <input ref="searchField" v-model="query" class="form-control" @input="runQuery" @keydown.enter.prevent="grabFirst" :placeholder="schema.placeholder" />
+    <input ref="searchField" v-model="query" class="form-control" @input="runQuery" @keyup.enter.capture="grabFirst" :placeholder="schema.placeholder" />
     <div class="mb-2 mt-2">
-      <div v-if="characterIDs.length === 0">Click a character to add them.</div>
-      <div v-else><div class="char-name" v-for="char in characters" :key="char.id"><span v-if="char.user.username !== viewer.username">({{char.user.username}}) </span>{{char.name}} <i class="fa fa-times" @click="delChar(char)"></i></div></div>
+      <div v-if="userIDs.length === 0">Click a character to add them.</div>
+      <div v-else><div class="char-name" v-for="user in users" :key="char.id">({user.username}}) <i class="fa fa-times" @click="delChar(user)"></i></div></div>
     </div>
       <div v-if="response" class="char-search-results">
-        <ac-character-preview
+        <ac-avatar
             v-for="char in response.results"
             v-bind:character="char"
             v-bind:expanded="true"
             v-bind:key="char.id"
-            @click.native.prevent.capture="addChar(char)"
-        ></ac-character-preview>
+            @click.native.prevent.capture="delUser(char)"
+        />
       </div>
   </div>
 </template>
@@ -38,55 +38,58 @@
   import Viewer from '../mixins/viewer'
   import AcCharacterPreview from './ac-character-preview'
   import { artCall } from '../lib'
+  import AcAvatar from './ac-avatar'
 
   export default {
-    components: {AcCharacterPreview},
+    components: {
+      AcAvatar
+    },
     name: 'fieldCharacterSearch',
     mixins: [ Viewer, abstractField ],
     data () {
       return {
         query: '',
         response: null,
-        characters: [],
-        characterIDs: this.value
+        users: [],
+        userIDs: this.value
       }
     },
     methods: {
       runQuery () {
-        artCall(
-          `/api/profiles/v1/search/character/`, 'GET', {q: this.query, new_order: 1, size: 9}, this.populateResponse
-        )
+        artCall(`/api/profiles/v1/search/user/`, 'GET', {q: this.query, size: 9}, this.populateResponse)
       },
       populateResponse (response) {
         this.response = response
       },
-      addChar (char) {
-        if (this.characterIDs.indexOf(char.id) === -1) {
+      delUser (char) {
+        if (this.userIDs.indexOf(char.id) === -1) {
           this.characters.push(char)
-          this.characterIDs.push(char.id)
-          this.$emit('input', this.characterIDs)
+          this.userIDs.push(char.id)
+          this.$emit('input', this.userIDs)
           this.query = ''
           this.response = null
         }
       },
       delChar (char) {
-        let index = this.characterIDs.indexOf(char.id)
+        let index = this.userIDs.indexOf(char.id)
         if (index > -1) {
-          this.characterIDs.splice(index, 1)
+          this.userIDs.splice(index, 1)
         }
         index = this.characters.indexOf(char)
         if (index > -1) {
           this.characters.splice(index, 1)
         }
       },
-      grabFirst () {
-        if (this.query === '') {
-          this.$parent.$parent.submit()
-        }
+      grabFirst (event) {
+        console.log(event)
         if (this.response && this.response.results.length) {
-          this.addChar(this.response.results[0])
+          this.delUser(this.response.results[0])
         }
+        event.preventDefault()
       }
+    },
+    created () {
+      window.field = this
     }
   }
 </script>

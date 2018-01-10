@@ -6,7 +6,7 @@ from apps.sales.views import ProductListAPI, ProductManager, PlaceOrder, \
     OrderRetrieve, OrderAccept, OrderCancel, CurrentOrderList, CurrentSalesList, OrderComments, CardList, CardManager, \
     MakePrimary, AdjustOrder, MakePayment, OrderRevisions, DeleteOrderRevision, OrderStart, ApproveFinal, \
     ArchivedOrderList, CancelledOrderList, ArchivedSalesList, CancelledSalesList, ProductExamples, StartDispute, \
-    OrderRefund, ClaimDispute, CurrentCasesList, ArchivedCasesList, CancelledCasesList
+    OrderRefund, ClaimDispute, CurrentCasesList, ArchivedCasesList, CancelledCasesList, AccountBalance, FundingSources
 
 urlpatterns = [
     url(r'^v1/order/(?P<order_id>\d+)/$', OrderRetrieve.as_view(), name='order'),
@@ -47,4 +47,6 @@ urlpatterns = [
     url(r'^v1/(?P<username>[-\w]+)/cards/$', CardList.as_view(), name='list_cards'),
     url(r'^v1/(?P<username>[-\w]+)/cards/(?P<card_id>\d+)/$', CardManager.as_view(), name='card_manager'),
     url(r'^v1/(?P<username>[-\w]+)/cards/(?P<card_id>\d+)/primary/$', MakePrimary.as_view(), name='card_primary'),
+    url(r'^v1/(?P<username>[-\w]+)/balance/$', AccountBalance.as_view(), name='account_balance'),
+    url(r'^v1/(?P<username>[-\w]+)/accounts/$', FundingSources.as_view(), name='account_balance'),
 ]

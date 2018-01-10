@@ -8,17 +8,20 @@ export default {
     pageReload: {default: true}
   },
   data: function () {
-    return {
+    let defaults = {
       currentPage: parseInt(this.$route.query.page || 1),
       // Display page path.
       baseURL: this.$route.path,
-      // The URL of the API endpoint.
-      url: '/api/v1/paginated/',
       response: null,
       growing: null,
       growMode: false,
       fetching: false
     }
+    if (this.url === undefined) {
+      // The URL of the API endpoint. Sometimes this is a prop, so conditionally provide it.
+      defaults.url = 'api/v1/paginated/'
+    }
+    return defaults
   },
   methods: {
     linkGen (pageNum) {

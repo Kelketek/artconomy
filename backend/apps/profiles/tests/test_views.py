@@ -498,7 +498,7 @@ class RegisterDwollaTestCase(TestCase):
             }
         )
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, '/profiles/{}/'.format(user.username))
+        self.assertEqual(response.url, '/profile/{}/settings/payment/disbursements'.format(user.username))
         self.assertEqual(user.dwolla_url, 'https://example.com/account_id_here')
 
     @patch('requests.post')

@@ -3,11 +3,13 @@ Models dealing primarily with user preferences and personalization.
 """
 from django.conf import settings
 from custom_user.models import AbstractEmailUser
-from django.contrib.contenttypes.fields import GenericRelation
+from django.contrib.contenttypes.fields import GenericRelation, GenericForeignKey
 from django.contrib.contenttypes.models import ContentType, ContentTypeManager
+from django.contrib.postgres.fields import JSONField
 from django.core.validators import MinValueValidator
+from django.db import models
 from django.db.models import Model, CharField, ForeignKey, IntegerField, BooleanField, ManyToManyField, DateTimeField, \
-    URLField, SlugField, SET_NULL
+    URLField, SlugField, SET_NULL, PositiveIntegerField
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 

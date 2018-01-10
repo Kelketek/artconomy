@@ -27,7 +27,6 @@ Vue.use(VueFormGenerator)
 Vue.use(ErrorHandler)
 Vue.use(Timer)
 Vue.config.productionTip = false
-Vue.component('ac-navbar', NavBar)
 Vue.component('fieldCharacterSearch', fieldCharacterSearch)
 
 /* eslint-disable no-new */

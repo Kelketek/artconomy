@@ -254,35 +254,72 @@ class CurrentUserInfo(UserInfo):
         return UserSerializer
 
 
+def char_ordering(qs, requester):
+    return qs.annotate(
+        # Make target user characters negative so they're always first.
+        mine=Case(
+            When(user_id=requester.id, then=0-F('id')),
+            default=F('id'),
+            output_field=IntegerField(),
+        )
+    ).order_by('mine')
+
+
+def available_chars(requester, query='', commissions=False, ordering=True):
+    exclude = Q(private=True)
+    if commissions:
+        exclude |= Q(open_requests=False)
+    qs = Character.objects.filter(
+        name__istartswith=query
+    ).exclude(exclude & ~Q(user=requester))
+
+    if ordering:
+        qs = char_ordering(qs, requester)
+    return qs
+
+
 class CharacterSearch(ListAPIView):
     serializer_class = CharacterSerializer
 
     def get_queryset(self):
         query = self.request.GET.get('q', '')
         try:
-            commissions = int(self.request.GET.get('new_order', '0'))
+            commissions = bool(int(self.request.GET.get('new_order', '0')))
         except ValueError:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'errors': ['New Order must be an integer.']})
-        exclude = Q(private=True)
-        if commissions:
-            exclude |= Q(open_requests=False)
+
         # If staffer, allow search on behalf of user.
         if self.request.user.is_staff:
             user = get_object_or_404(User, id=self.request.GET.get('user', self.request.user.id))
         else:
             user = self.request.user
         if self.request.user.is_authenticated():
-            return Character.objects.filter(
-                name__istartswith=query
-            ).exclude(exclude & ~Q(user=user)).annotate(
-                # Make target user characters negative so they're always first.
-                mine=Case(
-                    When(user_id=user.id, then=0-F('id')),
-                    default=F('id'),
-                    output_field=IntegerField(),
-                )
-            ).order_by('mine')
+            return available_chars(user, query=query, commissions=commissions)
         return Character.objects.filter(name__istartswith=query).exclude(private=True).order_by('id')
+
+
+class UserSearch(ListAPIView):
+    serializer_class = RelatedUserSerializer
+
+    def get_queryset(self):
+        query = self.request.GET.get('q', '')
+        return User.objects.filter(name__istartswith=query)
+
+
+class AssetTagCharacter(APIView):
+    permission_classes = [IsAuthenticated, AssetViewPermission]
+
+    def post(self, request, asset_id):
+        asset = get_object_or_404(ImageAsset, id=asset_id)
+        self.check_object_permissions(request, asset)
+        if 'characters' not in request.data:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={'characters': ['This field is required.']})
+        id_list = request.data['characters']
+        qs = available_chars(request.user, commissions=False, ordering=False).filter(id__in=id_list)
+
+        return Response(status=status.HTTP_200_OK, data=[
+            CharacterSerializer(instance=char).data for char in qs
+        ])
 
 
 class AssetFavorite(GenericAPIView):
@@ -356,7 +393,7 @@ def register_dwolla(request):
     result.raise_for_status()
     request.user.dwolla_url = result.json()['_links']['account']['href']
     request.user.save()
-    return redirect('/profiles/{}/'.format(request.user.username))
+    return redirect('/profile/{}/settings/payment/disbursements'.format(request.user.username))
 
 
 @api_view(['GET'])

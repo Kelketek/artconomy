@@ -26,13 +26,15 @@ from apps.lib.models import DISPUTE, REFUND, COMMENT, Subscription
 from apps.lib.permissions import ObjectStatus, IsStaff
 from apps.lib.serializers import CommentSerializer
 from apps.lib.utils import notify, recall_notification
+from apps.profiles.apis import dwolla_api
 from apps.profiles.models import User, ImageAsset
 from apps.profiles.permissions import ObjectControls, UserControls
 from apps.profiles.serializers import ImageAssetSerializer
 from apps.sales.permissions import OrderViewPermission, OrderSellerPermission, OrderBuyerPermission
 from apps.sales.models import Product, Order, CreditCardToken, PaymentRecord, Revision
 from apps.sales.serializers import ProductSerializer, ProductNewOrderSerializer, OrderViewSerializer, CardSerializer, \
-    NewCardSerializer, OrderAdjustSerializer, PaymentSerializer, RevisionSerializer, OrderStartedSerializer
+    NewCardSerializer, OrderAdjustSerializer, PaymentSerializer, RevisionSerializer, OrderStartedSerializer, \
+    AccountBalanceSerializer
 
 
 class ProductListAPI(ListCreateAPIView):
@@ -169,7 +171,7 @@ class OrderComments(ListCreateAPIView):
     def perform_create(self, serializer):
         order = get_object_or_404(Order, id=self.kwargs['order_id'])
         self.check_object_permissions(self.request, order)
-        serializer.save(user=self.request.user, content_object=order)
+        serializer.save(user=self.request.user, target=order)
 
 
 class OrderRevisions(ListCreateAPIView):
@@ -298,8 +300,8 @@ class OrderRefund(GenericAPIView):
             payee=None,
             source=PaymentRecord.ACCOUNT,
             txn_id=str(uuid4()),
-            content_object=order,
-            payment_type=PaymentRecord.TRANSFER,
+            target=order,
+            type=PaymentRecord.TRANSFER,
             status=PaymentRecord.SUCCESS,
             response_code='RfndFee',
             response_message='Artconomy Refund Fee'
@@ -346,8 +348,8 @@ class ApproveFinal(GenericAPIView):
                 payee=order.seller,
                 source=PaymentRecord.ESCROW,
                 txn_id=str(uuid4()),
-                content_object=order,
-                payment_type=PaymentRecord.TRANSFER,
+                target=order,
+                type=PaymentRecord.TRANSFER,
                 status=PaymentRecord.SUCCESS,
                 response_code='OdrFnl',
                 response_message='Order finalized.'
@@ -358,8 +360,8 @@ class ApproveFinal(GenericAPIView):
                 payee=None,
                 source=PaymentRecord.ACCOUNT,
                 txn_id=str(uuid4()),
-                content_object=order,
-                payment_type=PaymentRecord.TRANSFER,
+                target=order,
+                type=PaymentRecord.TRANSFER,
                 status=PaymentRecord.SUCCESS,
                 response_code='OdrFee',
                 response_message='Artconomy Service Fee'
@@ -581,10 +583,10 @@ class MakePayment(GenericAPIView):
             escrow_for=order.seller,
             status=PaymentRecord.FAILURE,
             source=PaymentRecord.CARD,
-            payment_type=PaymentRecord.SALE,
+            type=PaymentRecord.SALE,
             amount=attempt['amount'],
             response_message="Failed when contacting Authorize.net.",
-            content_object=order,
+            target=order,
         )
         code = status.HTTP_400_BAD_REQUEST
         data = {'error': record.response_message}
@@ -603,3 +605,32 @@ class MakePayment(GenericAPIView):
             data = OrderViewSerializer(instance=order).data
         record.save()
         return Response(status=code, data=data)
+
+
+class AccountBalance(RetrieveAPIView):
+    permission_classes = [UserControls]
+    serializer_class = AccountBalanceSerializer
+
+    def get_object(self):
+        user = get_object_or_404(User, username=self.kwargs['username'])
+        self.check_object_permissions(self.request, user)
+        return user
+
+
+class FundingSources(GenericAPIView):
+    permission_classes = [UserControls]
+
+    def get_object(self):
+        user = get_object_or_404(User, username=self.kwargs['username'])
+        self.check_object_permissions(self.request, user)
+        return user
+
+    def get(self, request, username):
+        user = self.get_object()
+        if not user.dwolla_url:
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST, data={'error': 'You must set up your dwolla account first.'}
+            )
+        return Response(
+            status=status.HTTP_200_OK, data=dwolla_api.get('{}/funding-sources'.format(user.dwolla_url)).body
+        )

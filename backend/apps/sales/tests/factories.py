@@ -59,8 +59,8 @@ class PaymentRecordFactory(DjangoModelFactory):
     source = PaymentRecord.CARD
     payer = SubFactory(UserFactory)
     payee = SubFactory(UserFactory)
-    content_object = SubFactory(OrderFactory)
-    payment_type = PaymentRecord.SALE
+    target = SubFactory(OrderFactory)
+    type = PaymentRecord.SALE
     amount = Money('10.00', 'USD')
 
     class Meta:

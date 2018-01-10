@@ -1,15 +1,19 @@
+from _decimal import InvalidOperation, Decimal
 from datetime import datetime, date
 
 from django.conf import settings
 from django.core.validators import RegexValidator
+from django.db.models import Sum
 from luhn import verify
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import SerializerMethodField, DecimalField, IntegerField
 
 from apps.lib.serializers import RelatedUserSerializer, Base64ImageField
+from apps.profiles.models import User
 from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer
-from apps.sales.models import Product, Order, CreditCardToken, Revision
+from apps.sales.models import Product, Order, CreditCardToken, Revision, PaymentRecord
+from apps.sales.utils import escrow_balance, available_balance
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -167,3 +171,18 @@ class RevisionSerializer(serializers.ModelSerializer):
         model = Revision
         fields = ('id', 'rating', 'file', 'created_on', 'uploaded_by', 'order')
         read_only_fields = ('id', 'order', 'uploaded_by')
+
+
+class AccountBalanceSerializer(serializers.ModelSerializer):
+    escrow = serializers.SerializerMethodField()
+    available = serializers.SerializerMethodField()
+
+    def get_escrow(self, obj):
+        return escrow_balance(obj)
+
+    def get_available(self, obj):
+        return available_balance(obj)
+
+    class Meta:
+        model = User
+        fields = ('escrow', 'available')

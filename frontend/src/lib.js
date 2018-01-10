@@ -159,8 +159,9 @@ export function setMetaContent (tagname, value) {
   desctag.content = value
 }
 
-export function paramHandleMap (handleName, tabMap) {
+export function paramHandleMap (handleName, tabMap, clearList) {
   const numMap = {}
+  clearList = clearList || []
 
   for (let key of Object.keys(tabMap)) {
     numMap[tabMap[key]] = key
@@ -176,7 +177,11 @@ export function paramHandleMap (handleName, tabMap) {
     set (value) {
       let params = {}
       params[handleName] = numMap[value]
-      this.$router.history.replace({params: Object.assign({}, this.$route.params, params)})
+      let newParams = Object.assign({}, this.$route.params, params)
+      for (let param of clearList) {
+        delete newParams[param]
+      }
+      this.$router.history.replace({name: this.$route.name, params: newParams})
     }
   }
 }

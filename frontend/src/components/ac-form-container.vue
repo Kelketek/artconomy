@@ -59,6 +59,13 @@
           return {}
         }
       },
+      preSend: {
+        // For modifying the data before it goes out.
+        type: Function,
+        default: function (data) {
+          return data
+        }
+      },
       resetAfter: {
         type: Boolean,
         default: function () {
@@ -100,7 +107,7 @@
         $.ajax({
           url: self.url,
           method: self.method,
-          data: JSON.stringify(self.model),
+          data: JSON.stringify(this.preSend(self.model)),
           processData: true,
           contentType: 'application/json; charset=utf-8',
           dataType: 'json',
@@ -121,7 +128,7 @@
         this.enable()
       }
     },
-    created: function () {
+    created () {
       let defaults = {}
       for (let key in this.model) {
         if (this.model.hasOwnProperty(key)) {

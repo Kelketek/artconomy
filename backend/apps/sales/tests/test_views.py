@@ -887,7 +887,7 @@ class TestOrder(APITestCase):
         self.assertEqual(record.status, PaymentRecord.SUCCESS)
         self.assertEqual(record.source, PaymentRecord.CARD)
         self.assertEqual(record.escrow_for, order.seller)
-        self.assertEqual(record.content_object, order)
+        self.assertEqual(record.target, order)
         self.assertEqual(record.amount, Money('12.00', 'USD'))
         self.assertEqual(record.payer, self.user)
         self.assertEqual(record.payee, None)
@@ -912,7 +912,7 @@ class TestOrder(APITestCase):
         self.assertEqual(record.status, PaymentRecord.FAILURE)
         self.assertEqual(record.source, PaymentRecord.CARD)
         self.assertEqual(record.escrow_for, order.seller)
-        self.assertEqual(record.content_object, order)
+        self.assertEqual(record.target, order)
         self.assertEqual(record.amount, Money('12.00', 'USD'))
         self.assertEqual(record.payer, self.user)
         self.assertEqual(record.response_message, "It failed!")
@@ -1010,7 +1010,7 @@ class TestOrder(APITestCase):
         self.assertEqual(record.status, PaymentRecord.SUCCESS)
         self.assertEqual(record.source, PaymentRecord.CARD)
         self.assertEqual(record.escrow_for, order.seller)
-        self.assertEqual(record.content_object, order)
+        self.assertEqual(record.target, order)
         self.assertEqual(record.amount, Money('12.00', 'USD'))
         self.assertEqual(record.payer, self.user)
         self.assertEqual(record.payee, None)
@@ -1131,7 +1131,7 @@ class TestOrderStateChange(APITestCase):
     @override_settings(REFUND_FEE=Decimal('5.00'))
     def test_refund_card_seller(self, mock_sauce):
         PaymentRecordFactory.create(
-            content_object=self.order,
+            target=self.order,
             payee=None,
             payer=self.order.buyer,
             escrow_for=self.order.seller,
@@ -1143,7 +1143,7 @@ class TestOrderStateChange(APITestCase):
             status=PaymentRecord.SUCCESS,
             payee=self.order.buyer, payer=None,
             source=PaymentRecord.ESCROW,
-            payment_type=PaymentRecord.REFUND,
+            type=PaymentRecord.REFUND,
             amount=Money('15.00', 'USD')
         )
         PaymentRecord.objects.get(
@@ -1155,7 +1155,7 @@ class TestOrderStateChange(APITestCase):
     @patch('apps.sales.models.sauce')
     def test_refund_card_seller_error(self, mock_sauce):
         PaymentRecordFactory.create(
-            content_object=self.order,
+            target=self.order,
             payee=None,
             payer=self.order.buyer,
             escrow_for=self.order.seller
@@ -1168,7 +1168,7 @@ class TestOrderStateChange(APITestCase):
             response_message="It failed", status=PaymentRecord.FAILURE,
             payee=self.order.buyer, payer=None,
             source=PaymentRecord.ESCROW,
-            payment_type=PaymentRecord.REFUND,
+            type=PaymentRecord.REFUND,
         )
 
     def test_refund_card_buyer(self):
@@ -1180,7 +1180,7 @@ class TestOrderStateChange(APITestCase):
     @patch('apps.sales.models.sauce')
     def test_refund_card_staffer(self, mock_sauce):
         PaymentRecordFactory.create(
-            content_object=self.order,
+            target=self.order,
             payee=None,
             payer=self.order.buyer,
             escrow_for=self.order.seller,

@@ -121,6 +121,7 @@ class ImageAssetManagementSerializer(serializers.ModelSerializer):
     uploaded_by = RelatedUserSerializer(read_only=True)
     artist = RelatedUserSerializer(read_only=True)
     characters = CharacterSerializer(many=True, read_only=True)
+    pending_characters = serializers.SerializerMethodField(read_only=True)
     file = Base64ImageField(read_only=True, thumbnail_namespace='profiles.ImageAsset.file')
     favorite = serializers.SerializerMethodField()
 
@@ -140,7 +141,7 @@ class ImageAssetManagementSerializer(serializers.ModelSerializer):
         model = ImageAsset
         fields = (
             'id', 'title', 'caption', 'rating', 'file', 'private', 'created_on', 'order', 'uploaded_by', 'characters',
-            'comments_disabled', 'favorite_count', 'favorite', 'artist'
+            'comments_disabled', 'favorite_count', 'favorite', 'artist', 'pending_characters'
         )
 
 

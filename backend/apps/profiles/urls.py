@@ -5,7 +5,7 @@ from django.conf.urls import url
 from apps.profiles.views import Register, CharacterListAPI, ImageAssetListAPI, \
     CharacterManager, AssetManager, MakePrimary, SettingsAPI, CurrentUserInfo, AssetComments, CredentialsAPI, \
     register_dwolla, \
-    NotificationsList, SetAvatar, UserInfo, CharacterSearch, AssetFavorite, MarkNotificationsRead
+    NotificationsList, SetAvatar, UserInfo, CharacterSearch, AssetFavorite, MarkNotificationsRead, AssetTagCharacter
 from apps.profiles.views import check_username, check_email, perform_login, perform_logout
 
 urlpatterns = [
@@ -30,6 +30,10 @@ urlpatterns = [
     url(
         r'^v1/asset/(?P<asset_id>\d+)/$',
         AssetManager.as_view(), name='asset_manager'
+    ),
+    url(
+        r'^v1/asset/(?P<asset_id>\d+)/tag-characters/$',
+        AssetTagCharacter.as_view(), name='asset_character_tag'
     ),
     url(
         r'^v1/asset/(?P<asset_id>\d+)/comments/$',

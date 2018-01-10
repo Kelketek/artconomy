@@ -2,23 +2,23 @@
   <div class="container">
     <div class="row shadowed" v-if="submission">
       <div class="col-sm-12 character-refsheet-container text-center text-section">
-        <ac-asset :asset="submission" thumb-name="gallery" :rating="rating"></ac-asset>
+        <ac-asset :asset="submission" thumb-name="gallery" :rating="rating" />
       </div>
       <div class="col-sm-12 col-md-8 text-section pt-3 pl-4">
-        <ac-patchfield v-model="submission.title" name="title" styleclass="name-edit" placeholder="Set the title" :editmode="editing" :url="url"></ac-patchfield>
-        <div class="card-block submission-description"><ac-patchfield v-model="submission.caption" name="caption" placeholder="Add a caption" :multiline="true" :editmode="editing" :url="url"></ac-patchfield></div>
+        <ac-patchfield v-model="submission.title" name="title" styleclass="name-edit" placeholder="Set the title" :editmode="editing" :url="url" />
+        <div class="card-block submission-description"><ac-patchfield v-model="submission.caption" name="caption" placeholder="Add a caption" :multiline="true" :editmode="editing" :url="url" /></div>
       </div>
       <div class="col-sm-12 col-md-4 text-section pt-3 pl-4 text-center">
         <div class="info-block" v-if="!ownWork">
           <h4>Added By</h4>
-          <ac-avatar :user="submission.uploaded_by"></ac-avatar>
+          <ac-avatar :user="submission.uploaded_by" />
         </div>
         <div v-if="submission.artist" class="info-block">
           <h4>Artist</h4>
-          <ac-avatar :user="submission.artist"></ac-avatar>
+          <ac-avatar :user="submission.artist" />
         </div>
         <div>
-          <ac-patchdropdown v-model="submission.rating" :editmode="editing" :options="ratingsShort()" :url="url" name="rating"></ac-patchdropdown>
+          <ac-patchdropdown v-model="submission.rating" :editmode="editing" :options="ratingsShort()" :url="url" name="rating" />
           <ac-action v-if="editing" :url="url" method="PATCH" :send="{private: !submission.private}" :success="populateSubmission">
             <span v-if="submission.private"><i class="fa fa-eye-slash"></i> Hide submission</span>
             <span v-else><i class="fa fa-eye"></i> Unhide submission</span>
@@ -60,12 +60,29 @@
           v-bind:key="char.id"
       >
       </ac-character-preview>
+      <div class="col-sm-12 text-center mb-2">
+        <b-button v-if="!showCharacterTagging" @click="showCharacterTagging=true">Tag Characters</b-button>
+        <div v-else>
+          <form>
+            <ac-form-container
+                ref="characterTaggingForm"
+                :url="`${this.url}tag-characters/`"
+                :schema="characterTaggingSchema"
+                :options="characterTaggingOptions"
+                :model="characterTaggingModel"
+                :success="postTag"
+            />
+            <b-button variant="danger" @click.prevent="showCharacterTagging=false">Cancel</b-button>
+            <b-button type="submit" @click.prevent="$refs.characterTaggingForm.submit">Tag!</b-button>
+          </form>
+        </div>
+      </div>
     </div>
     <div class="mb-5">
-      <ac-comment-section v-if="submission" :commenturl="commenturl" :nesting="true" :locked="submission.comments_disabled"></ac-comment-section>
+      <ac-comment-section v-if="submission" :commenturl="commenturl" :nesting="true" :locked="submission.comments_disabled" />
       <div class="row shadowed" v-if="submission && controls && editing">
         <div class="col-sm-12 text-section text-center">
-          <ac-patchbutton :url="url" name="comments_disabled" v-model="submission.comments_disabled" true-text="Disable Commments" false-text="Enable Comments"></ac-patchbutton>
+          <ac-patchbutton :url="url" name="comments_disabled" v-model="submission.comments_disabled" true-text="Disable Commments" false-text="Enable Comments" />
         </div>
       </div>
     </div>
@@ -90,17 +107,48 @@
   import AcAvatar from './ac-avatar'
   import AcAsset from './ac-asset'
   import AcPatchdropdown from './ac-patchdropdown'
+  import AcAction from './ac-action'
+  import AcFormContainer from './ac-form-container'
 
   export default {
     name: 'Submission',
     components: {
-      AcPatchdropdown, AcCharacterPreview, AcPatchfield, AcCommentSection, AcPatchbutton, AcAvatar, AcAsset},
+      AcFormContainer,
+      AcPatchdropdown,
+      AcCharacterPreview,
+      AcPatchfield,
+      AcCommentSection,
+      AcPatchbutton,
+      AcAvatar,
+      AcAsset,
+      AcAction
+    },
     mixins: [Viewer, Editable],
     data () {
       return {
         submission: null,
         url: `/api/profiles/v1/asset/${this.$route.params.assetID}/`,
-        commenturl: `/api/profiles/v1/asset/${this.$route.params.assetID}/comments/`
+        commenturl: `/api/profiles/v1/asset/${this.$route.params.assetID}/comments/`,
+        showCharacterTagging: false,
+        characterTaggingModel: {
+          characters: []
+        },
+        characterTaggingSchema: {
+          fields: [
+            {
+              type: 'character-search',
+              model: 'characters',
+              label: 'Characters',
+              featured: true,
+              placeholder: 'Search characters',
+              styleClasses: 'field-input'
+            }
+          ]
+        },
+        characterTaggingOptions: {
+          validateAfterLoad: false,
+          validateAfterChanged: true
+        }
       }
     },
     computed: {
@@ -126,6 +174,11 @@
         } else {
           this.$router.history.push({name: 'Profile', params: {username: this.submission.uploaded_by.username}})
         }
+      },
+      postTag (response) {
+        console.log(response)
+        // this.populateSubmission(response)
+        // this.showCharacterTagging = false
       },
       ratingsShort
     },

@@ -38,7 +38,7 @@
       <div class="col-lg-4 p-0 section-text">
         <div class="character-panel-preview text-center">
           <router-link v-if="character.primary_asset && character.primary_asset.id" :to="{name: 'Submission', params: {assetID: character.primary_asset.id}}">
-            <ac-asset img-class="character-refsheet" thumb-name="gallery" :asset="character.primary_asset"></ac-asset>
+            <ac-asset img-class="character-refsheet" thumb-name="gallery" :asset="character.primary_asset" />
           </router-link>
           <img class="character-refsheet" v-else src="/static/images/default-avatar.png"/>
         </div>
@@ -50,11 +50,11 @@
           About {{ character.name }}
         </h2>
         <div class="card-block">
-          <div class="card-block character-description"><ac-patchfield v-model="character.description" name="description" :multiline="true" :editmode="editing" :url="url"></ac-patchfield></div>
+          <div class="card-block character-description"><ac-patchfield v-model="character.description" name="description" :multiline="true" :editmode="editing" :url="url" /></div>
         </div>
       </div>
       <div class="col-md-4 col-sm-12 text-section text-center pt-3 pl-4">
-        <ac-avatar :user="character.user"></ac-avatar>
+        <ac-avatar :user="character.user" />
       </div>
     </div>
     <div class="row mb-3" v-if="character">
@@ -65,10 +65,7 @@
         </router-link>
         <router-link v-else-if="assets && assets[0]" :to="{name: 'Submission', params: {assetID: assets[0].id}}">
           <img class="character-refsheet shadowed" :src="assets[0].file.gallery"/>
-          <div class="gallery-image-overlay">
-            <div class="gallery-image-stats"><i class="fa fa-star"></i> {{ asset.favorite_count }} <i class="fa fa-comment"></i> {{ asset.comment_count }}</div>
-          </div>
-          <div class="character-gallery-title text-center">{{ assets[0].title }}</div>
+          <div class="character-gallery-title text-center">{{ assets[0].title }} <i class="fa fa-star"></i> {{ assets[0].favorite_count }} <i class="fa fa-comment"></i> {{ assets[0].comment_count }}</div>
         </router-link>
         <div class="more">
           <b-button v-if="controls && !showUpload" variant="primary" @click="displayUploader">Upload a new picture of {{ character.name }}</b-button>

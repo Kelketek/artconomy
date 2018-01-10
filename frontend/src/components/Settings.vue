@@ -46,7 +46,7 @@
             </form>
           </b-tab>
           <b-tab title="<i class='fa fa-money'></i> Payment">
-            <b-tabs pills>
+            <b-tabs pills v-model="paymentTab">
               <b-tab title="<i class='fa fa-credit-card'></i> Payment Methods">
                 <div class="row mt-3">
                   <div class="col-lg-4 col-md-6 col-sm-12">
@@ -54,8 +54,9 @@
                   </div>
                 </div>
               </b-tab>
-              <b-tab title="<i class='fa fa-usd'></i> Deposit Accounts">
+              <b-tab title="<i class='fa fa-usd'></i> Payout Accounts">
                 <div class="text-center mt-3">
+                  <ac-account-balance :username="user.username"/>
                   <p v-if="user.dwolla_configured">
                     Your Dwolla account has been set up.
                   </p>
@@ -85,6 +86,7 @@
   import Perms from '../mixins/permissions'
   import { inputMatches, paramHandleMap, ratings, setMetaContent } from '../lib'
   import AcCardManager from './ac-card-manager'
+  import AcAccountBalance from './ac-account-balance'
 
   const TabMap = {
     options: 0,
@@ -92,12 +94,18 @@
     avatar: 2,
     payment: 3
   }
+  const PaymentTabMap = {
+    methods: 0,
+    disbursements: 1
+  }
 
   export default {
     name: 'Settings',
     components: {
       AcCardManager,
-      AcFormContainer},
+      AcFormContainer,
+      AcAccountBalance
+    },
     mixins: [Viewer, Perms],
     methods: {
       updateUser () {
@@ -263,7 +271,8 @@
       setMetaContent('description', 'Configure your account settings for Artconomy.')
     },
     computed: {
-      tab: paramHandleMap('tabName', TabMap)
+      tab: paramHandleMap('tabName', TabMap, ['subTabName']),
+      paymentTab: paramHandleMap('subTabName', PaymentTabMap)
     }
   }
 </script>

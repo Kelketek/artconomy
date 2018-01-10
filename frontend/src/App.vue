@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <ac-navbar />
+    <nav-bar />
     <div v-if="$root.errorCode !== null" class="container error-container">
       <div class="row">
         <div class="col-sm-12 text-center">
@@ -26,14 +26,16 @@
         </div>
       </div>
     </div>
-    <router-view v-else-if="$root.user !== null"></router-view>
+    <router-view v-else-if="$root.user !== null" />
     <div v-else class="text-center" style="width:100%"><i class="fa fa-spin fa-spinner fa-5x"></i></div>
   </div>
 </template>
 
 <script>
+  import NavBar from './components/NavBar'
   export default {
     name: 'app',
+    components: {NavBar},
     props: ['user']
   }
 </script>
