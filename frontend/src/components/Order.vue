@@ -70,7 +70,7 @@
             </p>
           </div>
         </div>
-        <div :class="{'col-lg-3': paymentDetail, 'col-sm-12': true, 'text-section': true, 'pt-2': true, 'pb-3': true, 'col-md-6': !paymentDetail}">
+        <div :class="{'col-lg-3': paymentDetail, 'col-sm-12': true, 'text-section': true, 'pt-2': true, 'pb-3': true, 'col-md-9': !paymentDetail, 'text-center': !paymentDetail}">
           <div v-if="buyer && newOrder">
             <p>
               <strong>The artist has been notified of your order, and will respond soon!</strong>
@@ -98,6 +98,7 @@
                 method="POST"
                 :url="`${this.url}refund/`"
                 :success="populateOrder"
+                class="refund-button"
             >
               Refund
             </ac-action>
@@ -107,9 +108,9 @@
             <p>We've received your payment and your work is now in the artist's queue. They'll start on it as soon as they're able, and will upload any agreed upon revisions for your review soon, or the final once it's ready.</p>
           </div>
           <div class="text-center" v-if="newOrder || paymentPending">
-            <ac-action :url="`${this.url}cancel/`" variant="danger" :success="populateOrder">Cancel</ac-action>
-            <ac-action v-if="newOrder" :confirm="true" :url="`${this.url}accept/`" variant="success" :success="populateOrder">
-              Approve order
+            <ac-action class="cancel-order-button" :url="`${this.url}cancel/`" variant="danger" :success="populateOrder">Cancel</ac-action>
+            <ac-action class="accept-order-btn" v-if="newOrder && seller" :confirm="true" :url="`${this.url}accept/`" variant="success" :success="populateOrder">
+              Accept order
               <div class="text-left" slot="confirmation-text">
                 <p>
                   Are you sure you understand the commissioner's requirements? By accepting this order, you are confirming you
@@ -127,6 +128,7 @@
                 method="POST"
                 :url="`${this.url}refund/`"
                 :success="populateOrder"
+                class="refund-button"
             >
               Refund
             </ac-action>
@@ -180,7 +182,7 @@
             <hr />
             <strong>Total: ${{price}}</strong>
             <div class="mt-2 text-center">
-              <ac-action :disabled="selectedCard === null" :url="`${url}pay/`" variant="success" :send="paymentData" :success="postPay">Submit</ac-action>
+              <ac-action class="pay-button" :disabled="selectedCard === null" :url="`${url}pay/`" variant="success" :send="paymentData" :success="postPay">Submit</ac-action>
             </div>
           </div>
         </div>
@@ -191,12 +193,12 @@
             they're able, and will upload any agreed upon revisions for your review soon, or the final once it's ready.</p>
         </div>
       </div>
-      <div class="row-centered shadowed mt-3 pb-3" v-if="revisionsLimited && revisionsLimited.length">
+      <div class="row-centered shadowed mt-3 pb-3 revisions-section" v-if="revisionsLimited && revisionsLimited.length">
         <div class="col-sm-12">
           <h2>Revisions</h2>
         </div>
         <div v-for="(revision, index) in revisionsLimited"
-             class="col-sm-12 col-md-6 col-lg-4 col-centered text-center"
+             class="col-sm-12 col-md-6 col-lg-4 col-centered text-center order-revision"
              v-bind:key="revision.id">
           <ac-asset thumb-name="preview" img-class="max-width" :asset="revision" />
           <div class="text-center text-section p-3 mt-2">
@@ -219,9 +221,9 @@
         </div>
         <div class="col-sm-12 text-center">
           <router-link v-if="output" :to="{name: 'Submission', params: {assetID: output.id}}">
-            <ac-asset thumb-name="preview" img-class="max-width" :asset="final" />
+            <ac-asset class="final-preview" thumb-name="preview" img-class="max-width" :asset="final" />
           </router-link>
-          <ac-asset v-else thumb-name="preview" img-class="max-width" :asset="final" />
+          <ac-asset class="final-preview" v-else thumb-name="preview" img-class="max-width" :asset="final" />
           <div class="text-center text-section pb-2">
             Final delivered {{ formatDate(final.created_on)}}
             <ac-action
@@ -247,6 +249,7 @@
                     method="POST"
                     :url="`${this.url}refund/`"
                     :success="populateOrder"
+                    class="refund-button"
                 >
                   Refund
                 </ac-action>
@@ -259,6 +262,7 @@
                 :url="`${this.url}dispute/`"
                 :success="populateOrder"
                 v-if="!disputed"
+                class="dispute-button"
                 >
                 File Dispute
               </ac-action>
@@ -272,15 +276,16 @@
                   If you started this dispute in error, or if the artist has resolved the issues you have raised, you
                   may hit the approve button to close the dispute early.
                 </p>
-                <ac-action
-                    variant="success"
-                    method="POST"
-                    :url="`${this.url}approve/`"
-                    :success="newSubmission"
-                >
-                  Approve Result
-                </ac-action>
               </div>
+              <ac-action
+                  variant="success"
+                  method="POST"
+                  :url="`${this.url}approve/`"
+                  :success="newSubmission"
+                  class="approve-button"
+              >
+                Approve Result
+              </ac-action>
             </div>
           </div>
         </div>
@@ -531,6 +536,7 @@
     },
     created () {
       this.reload()
+      window.order = this
     }
   }
 </script>

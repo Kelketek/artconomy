@@ -12,14 +12,11 @@ import easy_thumbnails.fields
 
 class Migration(migrations.Migration):
 
-    replaces = [('profiles', '0001_initial'), ('profiles', '0002_user_primary_card'), ('profiles', '0003_auto_20171212_2143'), ('profiles', '0004_auto_20171212_2302'), ('profiles', '0005_auto_20171218_1734'), ('profiles', '0006_user_notifications'), ('profiles', '0007_auto_20180102_2215'), ('profiles', '0008_user_favorites'), ('profiles', '0009_permrequest'), ('profiles', '0010_auto_20180110_2117'), ('profiles', '0011_auto_20180110_2147'), ('profiles', '0012_auto_20180110_2157')]
+    replaces = [('profiles', '0001_initial'), ('profiles', '0003_auto_20171212_2143'), ('profiles', '0004_auto_20171212_2302'), ('profiles', '0005_auto_20171218_1734'), ('profiles', '0007_auto_20180102_2215'), ('profiles', '0008_user_favorites'), ('profiles', '0009_permrequest'), ('profiles', '0010_auto_20180110_2117'), ('profiles', '0011_auto_20180110_2147'), ('profiles', '0012_auto_20180110_2157')]
 
     dependencies = [
-        ('lib', '0006_auto_20171219_2223'),
         ('auth', '0008_alter_user_username_max_length'),
-        ('sales', '0006_creditcardtoken'),
         ('contenttypes', '0002_remove_content_type_name'),
-        ('sales', '0017_auto_20180102_2215'),
     ]
 
     operations = [
@@ -129,11 +126,6 @@ class Migration(migrations.Migration):
             name='character',
             unique_together=set([('name', 'user')]),
         ),
-        migrations.AddField(
-            model_name='user',
-            name='primary_card',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='+', to='sales.CreditCardToken'),
-        ),
         migrations.AlterModelOptions(
             name='imageasset',
             options={'ordering': ('created_on',)},
@@ -173,19 +165,9 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='profiles.ImageAsset'),
         ),
         migrations.AddField(
-            model_name='user',
-            name='notifications',
-            field=models.ManyToManyField(through='lib.Notification', to='lib.Event'),
-        ),
-        migrations.AddField(
             model_name='imageasset',
             name='artist',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='art', to=settings.AUTH_USER_MODEL),
-        ),
-        migrations.AddField(
-            model_name='imageasset',
-            name='order',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='outputs', to='sales.Order'),
         ),
         migrations.AlterField(
             model_name='imageasset',

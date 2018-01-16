@@ -55,9 +55,12 @@
       </div>
       <ac-character-preview
           v-for="char in submission.characters"
-          v-bind:character="char"
-          v-bind:expanded="true"
-          v-bind:key="char.id"
+          :character="char"
+          :expanded="true"
+          :key="char.id"
+          :remove-url="`${url}tag-characters/`"
+          :removable="(char.user.username === viewer.username) || controls"
+          :callback="populateSubmission"
       >
       </ac-character-preview>
       <div class="col-sm-12 text-center mb-2">
@@ -176,9 +179,8 @@
         }
       },
       postTag (response) {
-        console.log(response)
-        // this.populateSubmission(response)
-        // this.showCharacterTagging = false
+        this.populateSubmission(response)
+        this.showCharacterTagging = false
       },
       ratingsShort
     },

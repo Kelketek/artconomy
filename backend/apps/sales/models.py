@@ -80,7 +80,7 @@ class Product(ImageModel):
     active = BooleanField(default=True, db_index=True)
     revisions = IntegerField(validators=[MinValueValidator(0), MaxValueValidator(10)])
     max_parallel = IntegerField(
-        validators=[MinValueValidator(1)], help_text="How many of these you are willing to have in your "
+        validators=[MinValueValidator(0)], help_text="How many of these you are willing to have in your "
                                                      "backlog at one time.",
         blank=True,
         default=0

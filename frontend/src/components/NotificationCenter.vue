@@ -42,7 +42,7 @@
   import AcDispute from './notifications/ac-dispute'
   import AcFavorite from './notifications/ac-favorite'
   import { ObserveVisibility } from 'vue-observe-visibility'
-  import { artCall, NOTIFICATION_MAPPING } from '../lib'
+  import { artCall, NOTIFICATION_MAPPING, EventBus } from '../lib'
 
   export default {
     name: 'NotificationCenter',
@@ -88,6 +88,7 @@
             this.toMark.splice(index, 1)
           }
         }
+        EventBus.$emit('notifications-updated')
       },
       readMonitor () {
         if (this.loopNotifications && this.toMark.length && !this.marking.length) {
@@ -95,7 +96,7 @@
           artCall(`${this.url}mark-read/`, 'PATCH', this.marking, this.postMark, this.clearMarking)
         }
         if (this.loopNotifications) {
-          this.$setTimer('markNotificationsRead', this.readMonitor, 5000)
+          this.$setTimer('markNotificationsRead', this.readMonitor, 3000)
         }
       },
       startMonitoring () {

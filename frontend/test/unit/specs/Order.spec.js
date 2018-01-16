@@ -5,14 +5,69 @@ import sinon from 'sinon'
 import VueRouter from 'vue-router'
 import { router } from '../../../src/router'
 import { UserHandler } from '../../../src/plugins/user'
+import VueFormGenerator from 'vue-form-generator'
+import BootstrapVue from 'bootstrap-vue'
 
 let server, localVue
+
+function genRevisions () {
+  return [
+    {
+      'id': 6,
+      'rating': 0,
+      'file': {
+        'preview': 'https://artconomy.vulpinity.com/media/art/2018/01/02/edb1cd8e-e8b3-4ef5-afb2-69c16e69ff4b.jpeg.500x500_q85.jpg',
+        'notification': 'https://artconomy.vulpinity.com/media/art/2018/01/02/edb1cd8e-e8b3-4ef5-afb2-69c16e69ff4b.jpeg.80x80_q85.jpg',
+        'full': 'https://artconomy.vulpinity.com/media/art/2018/01/02/edb1cd8e-e8b3-4ef5-afb2-69c16e69ff4b.jpeg'
+      },
+      'created_on': '2018-01-02T20:49:30.777699Z',
+      'uploaded_by': 'Fox',
+      'order': 1
+    },
+    {
+      'id': 7,
+      'rating': 2,
+      'file': {
+        'preview': 'https://artconomy.vulpinity.com/media/art/2018/01/02/9aecfcc8-aa30-4cd1-aadb-5fdc20927ea2.jpeg.500x500_q85.jpg',
+        'notification': 'https://artconomy.vulpinity.com/media/art/2018/01/02/9aecfcc8-aa30-4cd1-aadb-5fdc20927ea2.jpeg.80x80_q85.jpg',
+        'full': 'https://artconomy.vulpinity.com/media/art/2018/01/02/9aecfcc8-aa30-4cd1-aadb-5fdc20927ea2.jpeg'
+      },
+      'created_on': '2018-01-02T20:49:40.521880Z',
+      'uploaded_by': 'Fox',
+      'order': 1
+    },
+    {
+      'id': 8,
+      'rating': 0,
+      'file': {
+        'preview': 'https://artconomy.vulpinity.com/media/art/2018/01/02/86ed4fcf-d0c1-4d54-aabb-711180037222.png.500x500_q85.jpg',
+        'notification': 'https://artconomy.vulpinity.com/media/art/2018/01/02/86ed4fcf-d0c1-4d54-aabb-711180037222.png.80x80_q85.jpg',
+        'full': 'https://artconomy.vulpinity.com/media/art/2018/01/02/86ed4fcf-d0c1-4d54-aabb-711180037222.png'
+      },
+      'created_on': '2018-01-02T20:49:47.771963Z',
+      'uploaded_by': 'Fox',
+      'order': 1
+    },
+    {
+      'id': 11,
+      'rating': 2,
+      'file': {
+        'preview': 'https://artconomy.vulpinity.com/media/art/2018/01/02/5fbd090a-af0c-42e4-ae7d-b584ef92e8dd.jpeg.500x500_q85.jpg',
+        'notification': 'https://artconomy.vulpinity.com/media/art/2018/01/02/5fbd090a-af0c-42e4-ae7d-b584ef92e8dd.jpeg.80x80_q85.jpg',
+        'full': 'https://artconomy.vulpinity.com/media/art/2018/01/02/5fbd090a-af0c-42e4-ae7d-b584ef92e8dd.jpeg'
+      },
+      'created_on': '2018-01-02T21:18:48.284490Z',
+      'uploaded_by': 'Fox',
+      'order': 1
+    }
+  ]
+}
 
 function genOrder () {
   return {
     'id': 1,
     'created_on': '2017-12-28T21:56:03.560910Z',
-    'status': 8,
+    'status': 1,
     'price': 3.0,
     'product': {
       'id': 2,
@@ -46,8 +101,8 @@ function genOrder () {
     },
     'buyer': {
       'id': 1,
-      'username': 'Fox',
-      'avatar_url': '/media/avatars/fox%40vulpinity.com/resized/80/41b0fbde-0fbc-409f-b848-57ac4db98957.png'
+      'username': 'Cat',
+      'avatar_url': '/media/avatars/cat%40vulpinity.com/resized/80/41b0fbde-0fbc-409f-b848-57ac4db98957.png'
     },
     'adjustment': '12.00',
     'characters': [
@@ -60,8 +115,8 @@ function genOrder () {
         'open_requests_restrictions': '',
         'user': {
           'id': 1,
-          'username': 'Fox',
-          'avatar_url': '/media/avatars/fox%40vulpinity.com/resized/80/41b0fbde-0fbc-409f-b848-57ac4db98957.png'
+          'username': 'Cat',
+          'avatar_url': '/media/avatars/cat%40vulpinity.com/resized/80/41b0fbde-0fbc-409f-b848-57ac4db98957.png'
         },
         'primary_asset': null,
         'species': '',
@@ -141,21 +196,78 @@ describe('Order.vue', () => {
     localVue.prototype.md = MarkDownIt()
     localVue.use(VueRouter)
     localVue.use(UserHandler)
+    localVue.use(BootstrapVue)
+    localVue.use(VueFormGenerator)
   })
   afterEach(function () {
     server.restore()
   })
-  it('Grabs and populates the initial order data and renders it.', async() => {
-    router.replace({name: 'Order', params: {username: 'testusername', orderID: 4}})
+
+  function sellerBootstrap (order, revisions) {
+    router.replace({name: 'Order', params: {username: 'Fox', orderID: 4}})
     let wrapper = mount(Order, {
       localVue,
       router,
       propsData: {
-        username: 'testusername',
+        username: 'Fox',
         orderID: 4
       }
     })
-    wrapper.vm.$forceUser({username: 'testusername'})
+    wrapper.vm.$forceUser({username: 'Fox', fee: 0.01})
+    if (order) {
+      let orderReq = server.requests[1]
+      orderReq.respond(
+        200,
+        { 'Content-Type': 'application/json' },
+        JSON.stringify(
+          order
+        )
+      )
+    }
+    if (revisions) {
+      let revisionsReq = server.requests[2]
+      revisionsReq.respond(
+        200,
+        { 'Content-Type': 'application/json' },
+        JSON.stringify({results: revisions})
+      )
+    }
+    return wrapper
+  }
+  function buyerBootstrap (order, revisions) {
+    router.replace({name: 'Order', params: {username: 'Cat', orderID: 4}})
+    let wrapper = mount(Order, {
+      localVue,
+      router,
+      propsData: {
+        username: 'Cat',
+        orderID: 4
+      }
+    })
+    wrapper.vm.$forceUser({username: 'Cat'})
+    if (order) {
+      let orderReq = server.requests[1]
+      orderReq.respond(
+        200,
+        { 'Content-Type': 'application/json' },
+        JSON.stringify(
+          order
+        )
+      )
+    }
+    if (revisions) {
+      let revisionsReq = server.requests[2]
+      revisionsReq.respond(
+        200,
+        { 'Content-Type': 'application/json' },
+        JSON.stringify({results: revisions})
+      )
+    }
+    return wrapper
+  }
+
+  it('Grabs and populates the initial order data and renders it for seller.', async() => {
+    let wrapper = sellerBootstrap()
     expect(server.requests.length).to.equal(3)
     let orderReq = server.requests[1]
     let revisionsReq = server.requests[2]
@@ -169,7 +281,270 @@ describe('Order.vue', () => {
       )
     )
     expect(revisionsReq.url).to.equal('/api/sales/v1/order/4/revisions/')
+    revisionsReq.respond(
+      200,
+      { 'Content-Type': 'application/json' },
+      JSON.stringify([])
+    )
     await localVue.nextTick()
     expect(wrapper.find('.order-details').text()).to.equal('Make Kai give Terry paw rubs!')
+    expect(wrapper.find('.cancel-order-button').exists()).to.equal(true)
+    expect(wrapper.find('.accept-order-btn').exists()).to.equal(true)
+    expect(wrapper.find('.pay-button').exists()).to.equal(false)
+    expect(wrapper.find('.refund-button').exists()).to.equal(false)
+    expect(wrapper.find('#rating').exists()).to.equal(false)
+    expect(wrapper.find('.revisions-section').exists()).to.equal(false)
+    expect(wrapper.find('.final-preview').exists()).to.equal(false)
+    expect(wrapper.find('.dispute-button').exists()).to.equal(false)
+    expect(wrapper.find('.approve-button').exists()).to.equal(false)
+  })
+  it('Grabs and populates the initial order data and renders it for the buyer.', async() => {
+    let wrapper = buyerBootstrap()
+    expect(server.requests.length).to.equal(3)
+    let orderReq = server.requests[1]
+    let revisionsReq = server.requests[2]
+    expect(orderReq.url).to.equal('/api/sales/v1/order/4/')
+    expect(orderReq.method).to.equal('GET')
+    orderReq.respond(
+      200,
+      { 'Content-Type': 'application/json' },
+      JSON.stringify(
+        genOrder()
+      )
+    )
+    expect(revisionsReq.url).to.equal('/api/sales/v1/order/4/revisions/')
+    revisionsReq.respond(
+      200,
+      { 'Content-Type': 'application/json' },
+      JSON.stringify({results: []})
+    )
+    await localVue.nextTick()
+    expect(wrapper.find('.order-details').text()).to.equal('Make Kai give Terry paw rubs!')
+    expect(wrapper.find('.cancel-order-button').exists()).to.equal(true)
+    expect(wrapper.find('.accept-order-btn').exists()).to.equal(false)
+    expect(wrapper.find('.pay-button').exists()).to.equal(false)
+    expect(wrapper.find('.refund-button').exists()).to.equal(false)
+    expect(wrapper.find('#rating').exists()).to.equal(false)
+    expect(wrapper.find('.revisions-section').exists()).to.equal(false)
+    expect(wrapper.find('.final-preview').exists()).to.equal(false)
+    expect(wrapper.find('.dispute-button').exists()).to.equal(false)
+    expect(wrapper.find('.approve-button').exists()).to.equal(false)
+  })
+  it('Asks buyer for card info once an order is accepted.', async() => {
+    let order = genOrder()
+    // Payment Pending
+    order.status = 2
+    let wrapper = buyerBootstrap(order, [])
+    await localVue.nextTick()
+    expect(wrapper.find('.order-details').text()).to.equal('Make Kai give Terry paw rubs!')
+    expect(wrapper.find('.cancel-order-button').exists()).to.equal(true)
+    expect(wrapper.find('.accept-order-btn').exists()).to.equal(false)
+    expect(wrapper.find('.pay-button').exists()).to.equal(true)
+    expect(wrapper.find('.refund-button').exists()).to.equal(false)
+    expect(wrapper.find('#rating').exists()).to.equal(false)
+    expect(wrapper.find('.revisions-section').exists()).to.equal(false)
+    expect(wrapper.find('.final-preview').exists()).to.equal(false)
+    expect(wrapper.find('.dispute-button').exists()).to.equal(false)
+    expect(wrapper.find('.approve-button').exists()).to.equal(false)
+  })
+  it('Stands by for seller when an order is accepted.', async() => {
+    let order = genOrder()
+    // Payment Pending
+    order.status = 2
+    let wrapper = sellerBootstrap(order, [])
+    await localVue.nextTick()
+    expect(wrapper.find('.order-details').text()).to.equal('Make Kai give Terry paw rubs!')
+    expect(wrapper.find('.cancel-order-button').exists()).to.equal(true)
+    expect(wrapper.find('.accept-order-btn').exists()).to.equal(false)
+    expect(wrapper.find('.pay-button').exists()).to.equal(false)
+    expect(wrapper.find('.refund-button').exists()).to.equal(false)
+    expect(wrapper.find('#rating').exists()).to.equal(false)
+    expect(wrapper.find('.revisions-section').exists()).to.equal(false)
+    expect(wrapper.find('.final-preview').exists()).to.equal(false)
+    expect(wrapper.find('.dispute-button').exists()).to.equal(false)
+    expect(wrapper.find('.approve-button').exists()).to.equal(false)
+  })
+  it('Lets the seller know once it is paid.', async() => {
+    let order = genOrder()
+    // Payment Pending
+    order.status = 3
+    let wrapper = sellerBootstrap(order, [])
+    await localVue.nextTick()
+    expect(wrapper.find('.order-details').text()).to.equal('Make Kai give Terry paw rubs!')
+    expect(wrapper.find('.cancel-order-button').exists()).to.equal(false)
+    expect(wrapper.find('.accept-order-btn').exists()).to.equal(false)
+    expect(wrapper.find('.pay-button').exists()).to.equal(false)
+    expect(wrapper.find('.refund-button').exists()).to.equal(true)
+    expect(wrapper.find('#rating').exists()).to.equal(false)
+    expect(wrapper.find('.revisions-section').exists()).to.equal(false)
+    expect(wrapper.find('.final-preview').exists()).to.equal(false)
+    expect(wrapper.find('.dispute-button').exists()).to.equal(false)
+    expect(wrapper.find('.approve-button').exists()).to.equal(false)
+  })
+  it('Stands by for the buyer once it is queued.', async() => {
+    let order = genOrder()
+    // Payment Pending
+    order.status = 3
+    let wrapper = buyerBootstrap(order, [])
+    await localVue.nextTick()
+    expect(wrapper.find('.order-details').text()).to.equal('Make Kai give Terry paw rubs!')
+    expect(wrapper.find('.cancel-order-button').exists()).to.equal(false)
+    expect(wrapper.find('.accept-order-btn').exists()).to.equal(false)
+    expect(wrapper.find('.pay-button').exists()).to.equal(false)
+    expect(wrapper.find('.refund-button').exists()).to.equal(false)
+    expect(wrapper.find('#rating').exists()).to.equal(false)
+    expect(wrapper.find('.revisions-section').exists()).to.equal(false)
+    expect(wrapper.find('.final-preview').exists()).to.equal(false)
+    expect(wrapper.find('.dispute-button').exists()).to.equal(false)
+    expect(wrapper.find('.approve-button').exists()).to.equal(false)
+  })
+  it('Stands by for the buyer once it is in progress.', async() => {
+    let order = genOrder()
+    // Payment Pending
+    order.status = 4
+    let wrapper = buyerBootstrap(order, [])
+    await localVue.nextTick()
+    expect(wrapper.find('.order-details').text()).to.equal('Make Kai give Terry paw rubs!')
+    expect(wrapper.find('.cancel-order-button').exists()).to.equal(false)
+    expect(wrapper.find('.accept-order-btn').exists()).to.equal(false)
+    expect(wrapper.find('.pay-button').exists()).to.equal(false)
+    expect(wrapper.find('.refund-button').exists()).to.equal(false)
+    expect(wrapper.find('#rating').exists()).to.equal(false)
+    expect(wrapper.find('.revisions-section').exists()).to.equal(false)
+    expect(wrapper.find('.final-preview').exists()).to.equal(false)
+    expect(wrapper.find('.dispute-button').exists()).to.equal(false)
+    expect(wrapper.find('.approve-button').exists()).to.equal(false)
+  })
+  it('Gives upload interfaces to the seller once it is in progress.', async() => {
+    let order = genOrder()
+    // Payment Pending
+    order.status = 4
+    let wrapper = sellerBootstrap(order, [])
+    await localVue.nextTick()
+    expect(wrapper.find('.order-details').text()).to.equal('Make Kai give Terry paw rubs!')
+    expect(wrapper.find('.cancel-order-button').exists()).to.equal(false)
+    expect(wrapper.find('.accept-order-btn').exists()).to.equal(false)
+    expect(wrapper.find('.pay-button').exists()).to.equal(false)
+    expect(wrapper.find('.refund-button').exists()).to.equal(true)
+    expect(wrapper.find('#rating').exists()).to.equal(true)
+    expect(wrapper.find('.revisions-section').exists()).to.equal(false)
+    expect(wrapper.find('.final-preview').exists()).to.equal(false)
+    expect(wrapper.find('.dispute-button').exists()).to.equal(false)
+    expect(wrapper.find('.approve-button').exists()).to.equal(false)
+  })
+  it('Shows revisions to the buyer when in progress.', async() => {
+    let order = genOrder()
+    // Payment Pending
+    order.status = 4
+    let revisions = genRevisions()
+    revisions.pop()
+    let wrapper = buyerBootstrap(order, revisions)
+    await localVue.nextTick()
+    expect(wrapper.find('.order-details').text()).to.equal('Make Kai give Terry paw rubs!')
+    expect(wrapper.find('.cancel-order-button').exists()).to.equal(false)
+    expect(wrapper.find('.accept-order-btn').exists()).to.equal(false)
+    expect(wrapper.find('.pay-button').exists()).to.equal(false)
+    expect(wrapper.find('.refund-button').exists()).to.equal(false)
+    expect(wrapper.find('#rating').exists()).to.equal(false)
+    expect(wrapper.find('.revisions-section').exists()).to.equal(true)
+    expect(wrapper.findAll('.order-revision').length).to.equal(3)
+    expect(wrapper.findAll('.order-revision .fa-trash-o').length).to.equal(0)
+    expect(wrapper.find('.final-preview').exists()).to.equal(false)
+    expect(wrapper.find('.dispute-button').exists()).to.equal(false)
+    expect(wrapper.find('.approve-button').exists()).to.equal(false)
+  })
+  it('Shows revisions to the seller when in progress.', async() => {
+    let order = genOrder()
+    // Payment Pending
+    order.status = 4
+    let revisions = genRevisions()
+    revisions.pop()
+    let wrapper = sellerBootstrap(order, revisions)
+    await localVue.nextTick()
+    expect(wrapper.find('.order-details').text()).to.equal('Make Kai give Terry paw rubs!')
+    expect(wrapper.find('.cancel-order-button').exists()).to.equal(false)
+    expect(wrapper.find('.accept-order-btn').exists()).to.equal(false)
+    expect(wrapper.find('.pay-button').exists()).to.equal(false)
+    expect(wrapper.find('.refund-button').exists()).to.equal(true)
+    expect(wrapper.find('#rating').exists()).to.equal(true)
+    expect(wrapper.find('.revisions-section').exists()).to.equal(true)
+    expect(wrapper.findAll('.order-revision').length).to.equal(3)
+    // Only the last one should show a delete button.
+    expect(wrapper.findAll('.order-revision .fa-trash-o').length).to.equal(1)
+    expect(wrapper.find('.final-preview').exists()).to.equal(false)
+    expect(wrapper.find('.dispute-button').exists()).to.equal(false)
+    expect(wrapper.find('.approve-button').exists()).to.equal(false)
+  })
+  it('Shows the final to the buyer when in review.', async() => {
+    let order = genOrder()
+    // Payment Pending
+    order.status = 5
+    let wrapper = buyerBootstrap(order, genRevisions())
+    await localVue.nextTick()
+    expect(wrapper.find('.order-details').text()).to.equal('Make Kai give Terry paw rubs!')
+    expect(wrapper.find('.cancel-order-button').exists()).to.equal(false)
+    expect(wrapper.find('.accept-order-btn').exists()).to.equal(false)
+    expect(wrapper.find('.pay-button').exists()).to.equal(false)
+    expect(wrapper.find('.refund-button').exists()).to.equal(false)
+    expect(wrapper.find('#rating').exists()).to.equal(false)
+    expect(wrapper.find('.revisions-section').exists()).to.equal(true)
+    expect(wrapper.findAll('.order-revision').length).to.equal(3)
+    expect(wrapper.find('.final-preview').exists()).to.equal(true)
+    expect(wrapper.find('.dispute-button').exists()).to.equal(true)
+    expect(wrapper.find('.approve-button').exists()).to.equal(true)
+  })
+  it('Stands by for the seller when in review.', async() => {
+    let order = genOrder()
+    // Payment Pending
+    order.status = 5
+    let wrapper = sellerBootstrap(order, genRevisions())
+    await localVue.nextTick()
+    expect(wrapper.find('.order-details').text()).to.equal('Make Kai give Terry paw rubs!')
+    expect(wrapper.find('.cancel-order-button').exists()).to.equal(false)
+    expect(wrapper.find('.accept-order-btn').exists()).to.equal(false)
+    expect(wrapper.find('.pay-button').exists()).to.equal(false)
+    expect(wrapper.find('.refund-button').exists()).to.equal(false)
+    expect(wrapper.find('#rating').exists()).to.equal(false)
+    expect(wrapper.find('.revisions-section').exists()).to.equal(true)
+    expect(wrapper.findAll('.order-revision').length).to.equal(3)
+    expect(wrapper.find('.final-preview').exists()).to.equal(true)
+    expect(wrapper.find('.dispute-button').exists()).to.equal(false)
+    expect(wrapper.find('.approve-button').exists()).to.equal(false)
+  })
+  it('Stands by for the seller when in dispute.', async() => {
+    let order = genOrder()
+    // Payment Pending
+    order.status = 7
+    let wrapper = sellerBootstrap(order, genRevisions())
+    await localVue.nextTick()
+    expect(wrapper.find('.order-details').text()).to.equal('Make Kai give Terry paw rubs!')
+    expect(wrapper.find('.cancel-order-button').exists()).to.equal(false)
+    expect(wrapper.find('.accept-order-btn').exists()).to.equal(false)
+    expect(wrapper.find('.pay-button').exists()).to.equal(false)
+    expect(wrapper.find('.refund-button').exists()).to.equal(true)
+    expect(wrapper.find('#rating').exists()).to.equal(false)
+    expect(wrapper.find('.revisions-section').exists()).to.equal(true)
+    expect(wrapper.findAll('.order-revision').length).to.equal(3)
+    expect(wrapper.find('.final-preview').exists()).to.equal(true)
+    expect(wrapper.find('.dispute-button').exists()).to.equal(false)
+    expect(wrapper.find('.approve-button').exists()).to.equal(false)
+  })
+  it('Stands by for the buyer when in dispute.', async() => {
+    let order = genOrder()
+    // Payment Pending
+    order.status = 7
+    let wrapper = buyerBootstrap(order, genRevisions())
+    await localVue.nextTick()
+    expect(wrapper.find('.order-details').text()).to.equal('Make Kai give Terry paw rubs!')
+    expect(wrapper.find('.cancel-order-button').exists()).to.equal(false)
+    expect(wrapper.find('.accept-order-btn').exists()).to.equal(false)
+    expect(wrapper.find('.pay-button').exists()).to.equal(false)
+    expect(wrapper.find('.refund-button').exists()).to.equal(false)
+    expect(wrapper.find('#rating').exists()).to.equal(false)
+    expect(wrapper.find('.revisions-section').exists()).to.equal(true)
+    expect(wrapper.findAll('.order-revision').length).to.equal(3)
+    expect(wrapper.find('.final-preview').exists()).to.equal(true)
+    expect(wrapper.find('.dispute-button').exists()).to.equal(false)
+    expect(wrapper.find('.approve-button').exists()).to.equal(true)
   })
 })

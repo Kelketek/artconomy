@@ -14,7 +14,8 @@ from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 
 from apps.lib.abstract_models import GENERAL, RATINGS, ImageModel
-from apps.lib.models import Comment, Subscription, FAVORITE, SYSTEM_ANNOUNCEMENT, DISPUTE, REFUND, Event
+from apps.lib.models import Comment, Subscription, FAVORITE, SYSTEM_ANNOUNCEMENT, DISPUTE, REFUND, Event, \
+    SUBMISSION_CHAR_TAG, CHAR_TAG
 from apps.profiles.permissions import AssetViewPermission, AssetCommentPermission
 
 
@@ -120,6 +121,12 @@ def auto_subscribe_image(sender, instance, created=False, **_kwargs):
             object_id=instance.id,
             type=FAVORITE
         )
+        Subscription.objects.create(
+            subscriber=instance.uploaded_by,
+            content_type=ContentType.objects.get_for_model(model=sender),
+            object_id=instance.id,
+            type=SUBMISSION_CHAR_TAG
+        )
 
 
 @receiver(post_delete, sender=ImageAsset)
@@ -134,6 +141,12 @@ def auto_remove(sender, instance, **kwargs):
         content_type=ContentType.objects.get_for_model(model=sender),
         object_id=instance.id,
         type=FAVORITE,
+        recalled=True
+    )
+    Event.objects.filter(
+        content_type=ContentType.objects.get_for_model(model=sender),
+        object_id=instance.id,
+        type=SUBMISSION_CHAR_TAG,
         recalled=True
     )
 
@@ -169,6 +182,46 @@ class Character(Model):
 
     class Meta:
         unique_together = (('name', 'user'),)
+
+
+@receiver(post_save, sender=Character)
+def auto_subscribe_image(sender, instance, created=False, **_kwargs):
+    if created:
+        Subscription.objects.create(
+            subscriber=instance.uploaded_by,
+            content_type=ContentType.objects.get_for_model(model=sender),
+            object_id=instance.id,
+            type=CHAR_TAG
+        )
+        Subscription.objects.create(
+            subscriber=instance.uploaded_by,
+            content_type=ContentType.objects.get_for_model(model=sender),
+            object_id=instance.id,
+            type=SUBMISSION_CHAR_TAG
+        )
+
+
+@receiver(post_delete, sender=Character)
+def auto_remove(sender, instance, **kwargs):
+    Subscription.objects.filter(
+        subscriber=instance.uploaded_by,
+        content_type=ContentType.objects.get_for_model(model=sender),
+        object_id=instance.id,
+        type=CHAR_TAG
+    ).delete()
+    Event.objects.filter(
+        content_type=ContentType.objects.get_for_model(model=sender),
+        object_id=instance.id,
+        type=CHAR_TAG,
+        recalled=True
+    )
+    Event.objects.filter(
+        content_type=ContentType.objects.get_for_model(model=sender),
+        object_id=instance.id,
+        data__character=instance.id,
+        type=SUBMISSION_CHAR_TAG,
+        recalled=True
+    )
 
 
 class RefColor(Model):

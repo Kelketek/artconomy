@@ -1,6 +1,7 @@
 import moment from 'moment'
 import jquery from 'jquery'
 import MarkDownIt from 'markdown-it'
+import Vue from 'vue'
 
 const $ = jquery
 
@@ -197,3 +198,5 @@ export function inputMatches (inputName, errorText) {
     }
   }
 }
+
+export const EventBus = new Vue()

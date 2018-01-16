@@ -47,13 +47,14 @@ SYSTEM_ANNOUNCEMENT = 13
 FAVORITE = 14
 DISPUTE = 15
 REFUND = 16
+SUBMISSION_CHAR_TAG = 17
 
 
 EVENT_TYPES = (
     (NEW_CHARACTER, 'New Submission'),
     (FOLLOWING, 'New Follower'),
     (CHAR_TRANSFER, 'Character Transfer Request'),
-    (CHAR_TAG, 'Character Tag Approval'),
+    (CHAR_TAG, 'Character Tagged'),
     (COMMENT, 'New Comment'),
     (CHAR_CREATION, 'New Character'),
     (COMMISSIONS_OPEN, 'Commission Slots Available'),
@@ -64,7 +65,8 @@ EVENT_TYPES = (
     (NEW_CHAR_SUBMISSION, 'New Submission of Character'),
     (NEW_PORTFOLIO_ITEM, 'New Portfolio Item'),
     (FAVORITE, 'New Favorite'),
-    (SUBMISSION_TAG, 'Submission Tag Approval'),
+    (SUBMISSION_TAG, 'Submission Tagged'),
+    (SUBMISSION_CHAR_TAG, 'Submission tagged with Character'),
     (ANNOUNCEMENT, 'Announcement'),
     (SYSTEM_ANNOUNCEMENT, 'System-wide announcement'),
 )

@@ -33,10 +33,9 @@
     name: 'ac-order-list',
     mixins: [Viewer, Perms, Paginated],
     components: {AcOrderPreview},
-    props: ['buyer', 'endpoint'],
+    props: ['buyer', 'url'],
     data () {
       return {
-        url: this.endpoint,
         baseURL: this.$router.path
       }
     },
@@ -44,10 +43,20 @@
       populateOrders (response) {
         this.response = response
         this.growing = response.results
+      },
+      bootstrap () {
+        this.response = null
+        this.growing = null
+        artCall(this.url, 'GET', undefined, this.populateOrders, this.$error)
       }
     },
     created () {
-      artCall(this.url, 'GET', undefined, this.populateOrders, this.$error)
+      this.bootstrap()
+    },
+    watch: {
+      url () {
+        this.bootstrap()
+      }
     }
   }
 </script>

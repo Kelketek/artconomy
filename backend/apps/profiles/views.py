@@ -3,7 +3,6 @@ from avatar.models import Avatar
 from avatar.signals import avatar_updated
 from django.conf import settings
 from django.contrib.auth import login, get_user_model, authenticate, logout, update_session_auth_hash
-from django.db.models import Q, Case, When, IntegerField, F
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
@@ -18,7 +17,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_bulk import BulkUpdateAPIView
 
-from apps.lib.models import Notification, FAVORITE
+from apps.lib.models import Notification, FAVORITE, CHAR_TAG, SUBMISSION_CHAR_TAG
 from apps.lib.permissions import Any, All, IsSafeMethod
 from apps.lib.serializers import CommentSerializer, NotificationSerializer, Base64ImageField, RelatedUserSerializer, \
     BulkNotificationSerializer
@@ -27,6 +26,7 @@ from apps.profiles.models import User, Character, ImageAsset
 from apps.profiles.permissions import ObjectControls, UserControls, AssetViewPermission, AssetControls, NonPrivate
 from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer, SettingsSerializer, UserSerializer, \
     RegisterSerializer, ImageAssetManagementSerializer, CredentialsSerializer, AvatarSerializer
+from apps.profiles.utils import available_chars, char_ordering
 from shortcuts import make_url
 
 
@@ -254,30 +254,6 @@ class CurrentUserInfo(UserInfo):
         return UserSerializer
 
 
-def char_ordering(qs, requester):
-    return qs.annotate(
-        # Make target user characters negative so they're always first.
-        mine=Case(
-            When(user_id=requester.id, then=0-F('id')),
-            default=F('id'),
-            output_field=IntegerField(),
-        )
-    ).order_by('mine')
-
-
-def available_chars(requester, query='', commissions=False, ordering=True):
-    exclude = Q(private=True)
-    if commissions:
-        exclude |= Q(open_requests=False)
-    qs = Character.objects.filter(
-        name__istartswith=query
-    ).exclude(exclude & ~Q(user=requester))
-
-    if ordering:
-        qs = char_ordering(qs, requester)
-    return qs
-
-
 class CharacterSearch(ListAPIView):
     serializer_class = CharacterSerializer
 
@@ -294,7 +270,7 @@ class CharacterSearch(ListAPIView):
         else:
             user = self.request.user
         if self.request.user.is_authenticated():
-            return available_chars(user, query=query, commissions=commissions)
+            return char_ordering(available_chars(user, query=query, commissions=commissions), user)
         return Character.objects.filter(name__istartswith=query).exclude(private=True).order_by('id')
 
 
@@ -308,6 +284,38 @@ class UserSearch(ListAPIView):
 
 class AssetTagCharacter(APIView):
     permission_classes = [IsAuthenticated, AssetViewPermission]
+    delete_permission_classes = [ObjectControls]
+
+    def delete(self, request, asset_id):
+        asset = get_object_or_404(ImageAsset, id=asset_id)
+        self.check_object_permissions(request, asset)
+        # Check has to be different here.
+        # Might find a way to better simplify this sort of permission checking if
+        # we end up doing it a lot.
+        if 'characters' not in request.data:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={'characters': ['This field is required.']})
+        id_list = request.data['characters']
+        qs = Character.objects.filter(id__in=id_list)
+        if (asset.uploaded_by == request.user) or request.user.is_staff:
+            asset.characters.remove(*qs)
+            return Response(
+                status=status.HTTP_200_OK,
+                data=ImageAssetManagementSerializer(instance=asset, request=self.request).data
+            )
+        else:
+            qs = qs.filter(user=request.user)
+        if not qs.exists():
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST,
+                data={'characters': [
+                    'No characters specified. Those IDs do not exist, or you do not have permission '
+                    'to remove any of them.'
+                ]}
+            )
+        asset.characters.remove(*qs)
+        return Response(
+            status=status.HTTP_200_OK, data=ImageAssetManagementSerializer(instance=asset, request=request).data
+        )
 
     def post(self, request, asset_id):
         asset = get_object_or_404(ImageAsset, id=asset_id)
@@ -315,11 +323,20 @@ class AssetTagCharacter(APIView):
         if 'characters' not in request.data:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'characters': ['This field is required.']})
         id_list = request.data['characters']
-        qs = available_chars(request.user, commissions=False, ordering=False).filter(id__in=id_list)
+        qs = available_chars(request.user, commissions=False).filter(id__in=id_list)
+        qs = qs.exclude(id__in=asset.characters.all().values_list('id', flat=True))
 
-        return Response(status=status.HTTP_200_OK, data=[
-            CharacterSerializer(instance=char).data for char in qs
-        ])
+        for character in qs:
+            if (character.user != request.user) and asset.uploaded_by != request.user:
+                notify(
+                    CHAR_TAG, character, data={'user': request.user.id, 'asset': asset.id},
+                    unique=True, mark_unread=True
+                )
+                notify(SUBMISSION_CHAR_TAG, asset, data={'user': request.user.id, 'character': character.id})
+        asset.characters.add(*qs)
+        return Response(
+            status=status.HTTP_200_OK, data=ImageAssetManagementSerializer(instance=asset, request=self.request).data
+        )
 
 
 class AssetFavorite(GenericAPIView):

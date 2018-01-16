@@ -95,7 +95,7 @@
 
 <script>
   import VueFormGenerator from 'vue-form-generator'
-  import { artCall, setErrors, setCookie } from '../lib'
+  import { artCall, setErrors, setCookie, EventBus } from '../lib'
   import AcPatchbutton from './ac-patchbutton'
 
   const TAB_MAP = {
@@ -194,7 +194,7 @@
       setNotificationStats (response) {
         if (this.loopNotifications) {
           this.unread = response.count
-          this.$setTimer('getUnreadNotifications', this.monitorNotifications, 10000)
+          this.$setTimer('getUnreadNotifications', this.monitorNotifications, 30000)
         }
       },
       monitorNotifications () {
@@ -239,6 +239,9 @@
           this.loopNotifications = false
         }
       }
+    },
+    created () {
+      EventBus.$on('notifications-updated', this.monitorNotifications)
     }
   }
 </script>

@@ -140,33 +140,6 @@ $container-max-widths: (
   }
 }
 
-// Character listing
-.card-header.character-name-tag {
-  position: absolute;
-  bottom: 0;
-  max-width: 75%;
-  max-height: 3em;
-  opacity: .75;
-  overflow: hidden;
-  white-space:nowrap;
-  transition: max-width .25s, width .25s, opacity .25s;
-}
-
-.character-preview .card-img-top {
-  object-fit: cover;
-  height: 15rem;
-  width: 15rem;
-  object-position: center top;
-}
-
-.character-preview:hover .character-name-tag {
-  max-width: 100%;
-  width: 100%;
-  opacity: 1;
-  pointer-events: none;
-  transition: max-width .25s, width .25s, opacity .25s;
-}
-
 // Form controls
 .vue-form-generator .form-control {
   border-radius: 0;
