@@ -30,9 +30,9 @@
   @import '../custom-bootstrap';
   .notification {
     border-bottom: 1px solid $dark-gray;
-    .unread {
-      background-color: #ffefff;
-    }
+  }
+  .unread {
+    background-color: #ffefff;
   }
 </style>
 
@@ -41,13 +41,15 @@
   import AcRefund from './notifications/ac-refund'
   import AcDispute from './notifications/ac-dispute'
   import AcFavorite from './notifications/ac-favorite'
+  import AcSaleUpdate from './notifications/ac-sale-update'
+  import AcOrderUpdate from './notifications/ac-order-update'
   import { ObserveVisibility } from 'vue-observe-visibility'
   import { artCall, NOTIFICATION_MAPPING, EventBus } from '../lib'
 
   export default {
     name: 'NotificationCenter',
     mixins: [Paginated],
-    components: {AcRefund, AcDispute, AcFavorite},
+    components: {AcRefund, AcDispute, AcFavorite, AcSaleUpdate, AcOrderUpdate},
     directives: {'observe-visibility': ObserveVisibility},
     data () {
       return {

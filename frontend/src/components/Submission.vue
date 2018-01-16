@@ -28,8 +28,8 @@
             <span v-else><i class="fa fa-eye-slash"></i> Submission is private</span>
           </div>
           <ac-action :url="`${url}favorite/`" :success="populateSubmission">
-            <span v-if="submission.favorite"><i class="fa fa-heart-o"></i> Remove from Favorites</span>
-            <span v-else><i class="fa fa-heart"></i> Add to Favorites</span>
+            <span v-if="submission.favorite"><i class="fa fa-heart-o"></i> Remove from Favorites ({{ submission.favorite_count }})</span>
+            <span v-else><i class="fa fa-heart"></i> Add to Favorites ({{ submission.favorite_count }})</span>
           </ac-action>
         </div>
         <p v-if="controls && submission.order" class="mb-0">

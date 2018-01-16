@@ -259,6 +259,8 @@ class CharacterSearch(ListAPIView):
 
     def get_queryset(self):
         query = self.request.GET.get('q', '')
+        if not query:
+            return Character.objects.none()
         try:
             commissions = bool(int(self.request.GET.get('new_order', '0')))
         except ValueError:

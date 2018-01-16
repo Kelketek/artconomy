@@ -48,6 +48,8 @@ FAVORITE = 14
 DISPUTE = 15
 REFUND = 16
 SUBMISSION_CHAR_TAG = 17
+ORDER_UPDATE = 18
+SALE_UPDATE = 19
 
 
 EVENT_TYPES = (
@@ -60,6 +62,8 @@ EVENT_TYPES = (
     (COMMISSIONS_OPEN, 'Commission Slots Available'),
     (NEW_PRODUCT, 'New Product'),
     (NEW_AUCTION, 'New Auction'),
+    (ORDER_UPDATE, 'Order Update'),
+    (SALE_UPDATE, 'Sale Update'),
     (DISPUTE, 'Dispute Filed'),
     (REFUND, 'Refund Processed'),
     (NEW_CHAR_SUBMISSION, 'New Submission of Character'),

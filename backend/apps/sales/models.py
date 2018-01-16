@@ -15,7 +15,7 @@ from django.dispatch import receiver
 from djmoney.models.fields import MoneyField
 from moneyed import Money
 
-from apps.lib.models import Comment, Subscription, DISPUTE
+from apps.lib.models import Comment, Subscription, DISPUTE, SALE_UPDATE, ORDER_UPDATE
 from apps.lib.abstract_models import ImageModel
 from apps.sales.permissions import OrderViewPermission
 from apps.sales.sauce import sauce
@@ -224,23 +224,35 @@ class Order(Model):
 
 
 @receiver(post_save, sender=Order)
-def auto_subscribe_image(sender, instance, created=False, **_kwargs):
+def auto_subscribe_order(sender, instance, created=False, **_kwargs):
     if created:
         Subscription.objects.create(
             subscriber=instance.seller,
             content_type=ContentType.objects.get_for_model(model=sender),
             object_id=instance.id,
-            type=DISPUTE
+            type=SALE_UPDATE
+        )
+        Subscription.objects.create(
+            subscriber=instance.buyer,
+            content_type=ContentType.objects.get_for_model(model=sender),
+            object_id=instance.id,
+            type=ORDER_UPDATE
         )
 
 
 @receiver(post_delete, sender=Order)
-def auto_remove(sender, instance, **_kwargs):
+def auto_remove_order(sender, instance, **_kwargs):
     Subscription.objects.filter(
         subscriber=instance.seller,
         content_type=ContentType.objects.get_for_model(model=sender),
         object_id=instance.id,
-        type=DISPUTE
+        type=SALE_UPDATE
+    ).delete()
+    Subscription.objects.filter(
+        subscriber=instance.buyer,
+        content_type=ContentType.objects.get_for_model(model=sender),
+        object_id=instance.id,
+        type=ORDER_UPDATE
     ).delete()
 
 

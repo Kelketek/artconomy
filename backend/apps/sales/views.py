@@ -22,8 +22,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.lib.models import DISPUTE, REFUND, COMMENT, Subscription
-from apps.lib.permissions import ObjectStatus, IsStaff
+from apps.lib.models import DISPUTE, REFUND, COMMENT, Subscription, ORDER_UPDATE, SALE_UPDATE
+from apps.lib.permissions import ObjectStatus, IsStaff, IsSafeMethod, Any
 from apps.lib.serializers import CommentSerializer
 from apps.lib.utils import notify, recall_notification
 from apps.profiles.apis import dwolla_api
@@ -58,7 +58,7 @@ class ProductListAPI(ListCreateAPIView):
 
 class ProductManager(RetrieveUpdateDestroyAPIView):
     serializer_class = ProductSerializer
-    permission_classes = [ObjectControls]
+    permission_classes = [Any([IsSafeMethod, ObjectControls])]
 
     def get_object(self):
         product = get_object_or_404(Product, user__username=self.kwargs['username'], id=self.kwargs['product'])
@@ -89,6 +89,7 @@ class PlaceOrder(CreateAPIView):
     def perform_create(self, serializer):
         product = get_object_or_404(Product, id=self.kwargs['product'], hidden=False)
         order = serializer.save(product=product, buyer=self.request.user, seller=product.user)
+        notify(SALE_UPDATE, order, unique=True, mark_unread=True)
         return order
 
 
@@ -119,6 +120,7 @@ class OrderAccept(GenericAPIView):
         order.revisions = order.product.revisions
         order.save()
         data = self.serializer_class(instance=order).data
+        notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
         return Response(data)
 
 
@@ -134,7 +136,8 @@ class OrderStart(UpdateAPIView):
         return order
 
     def perform_update(self, serializer):
-        serializer.save(status=Order.IN_PROGRESS)
+        order = serializer.save(status=Order.IN_PROGRESS)
+        notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
         return Response(serializer.data)
 
 
@@ -145,6 +148,10 @@ class OrderCancel(GenericAPIView):
     def get_object(self):
         order = get_object_or_404(Order, id=self.kwargs['order_id'])
         self.check_object_permissions(self.request, order)
+        if self.request.user != order.seller:
+            notify(SALE_UPDATE, order, unique=True, mark_unread=True)
+        if self.request.user != order.buyer:
+            notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
         if order.status not in [Order.NEW, Order.PAYMENT_PENDING]:
             raise PermissionDenied(
                 "You cannot cancel this order. It is either already cancelled or must be refunded instead."
@@ -240,6 +247,7 @@ class StartDispute(GenericAPIView):
         order.disputed_on = timezone.now()
         order.save()
         notify(DISPUTE, order, unique=True, mark_unread=True)
+        notify(SALE_UPDATE, order, unique=True, mark_unread=True)
         serializer = self.get_serializer()
         serializer.instance = order
         return Response(status=status.HTTP_200_OK, data=serializer.data)
@@ -277,7 +285,7 @@ class OrderRefund(GenericAPIView):
     def get_object(self):
         return get_object_or_404(Order, id=self.kwargs['order_id'])
 
-    def post(self, _request, *_args, **_kwargs):
+    def post(self, request, *_args, **_kwargs):
         order = self.get_object()
         self.check_object_permissions(self.request, order)
         if order.status not in [Order.QUEUED, Order.IN_PROGRESS, Order.REVIEW, Order.DISPUTED]:
@@ -307,6 +315,9 @@ class OrderRefund(GenericAPIView):
             response_message='Artconomy Refund Fee'
         )
         notify(REFUND, order, unique=True, mark_unread=True)
+        notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
+        if request.user != order.seller:
+            notify(SALE_UPDATE, order, unique=True, mark_unread=True)
         serializer = self.get_serializer()
         serializer.instance = order
         return Response(status=status.HTTP_200_OK, data=serializer.data)
@@ -332,6 +343,7 @@ class ApproveFinal(GenericAPIView):
                 order.disputed_on = None
             order.status = order.COMPLETED
             order.save()
+            notify(SALE_UPDATE, order, unique=True, mark_unread=True)
             final = order.revision_set.last()
             submission = ImageAsset(
                 artist=order.seller, uploaded_by=order.seller, order=order,
@@ -602,6 +614,7 @@ class MakePayment(GenericAPIView):
             code = status.HTTP_202_ACCEPTED
             order.status = Order.QUEUED
             order.save()
+            notify(SALE_UPDATE, order, unique=True, mark_unread=True)
             data = OrderViewSerializer(instance=order).data
         record.save()
         return Response(status=code, data=data)

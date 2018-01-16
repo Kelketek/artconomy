@@ -184,37 +184,4 @@ class Migration(migrations.Migration):
             name='favorites',
             field=models.ManyToManyField(blank=True, related_name='favorited_by', to='profiles.ImageAsset'),
         ),
-        migrations.CreateModel(
-            name='PermRequest',
-            fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('type', models.IntegerField(choices=[(0, 'Asset tag'), (1, 'Artist tag'), (2, 'Character tag'), (3, 'Character transfer')], db_index=True)),
-                ('created_on', models.DateTimeField(auto_now_add=True, db_index=True)),
-                ('object_id', models.PositiveIntegerField(blank=True, db_index=True, null=True)),
-                ('content_type', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='+', to='contenttypes.ContentType')),
-                ('requester', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
-                ('payload_content_type', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='+', to='contenttypes.ContentType')),
-                ('payload_object_id', models.PositiveIntegerField(blank=True, db_index=True, null=True)),
-                ('status', models.IntegerField(choices=[(100, 'Pending'), (101, 'Approved'), (102, 'Rejected')], db_index=True, default=100)),
-            ],
-        ),
-        migrations.AlterUniqueTogether(
-            name='permrequest',
-            unique_together=set([]),
-        ),
-        migrations.RemoveField(
-            model_name='permrequest',
-            name='content_type',
-        ),
-        migrations.RemoveField(
-            model_name='permrequest',
-            name='payload_content_type',
-        ),
-        migrations.RemoveField(
-            model_name='permrequest',
-            name='requester',
-        ),
-        migrations.DeleteModel(
-            name='PermRequest',
-        ),
     ]

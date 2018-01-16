@@ -185,16 +185,16 @@ class Character(Model):
 
 
 @receiver(post_save, sender=Character)
-def auto_subscribe_image(sender, instance, created=False, **_kwargs):
+def auto_subscribe_character(sender, instance, created=False, **_kwargs):
     if created:
         Subscription.objects.create(
-            subscriber=instance.uploaded_by,
+            subscriber=instance.user,
             content_type=ContentType.objects.get_for_model(model=sender),
             object_id=instance.id,
             type=CHAR_TAG
         )
         Subscription.objects.create(
-            subscriber=instance.uploaded_by,
+            subscriber=instance.user,
             content_type=ContentType.objects.get_for_model(model=sender),
             object_id=instance.id,
             type=SUBMISSION_CHAR_TAG
@@ -202,12 +202,18 @@ def auto_subscribe_image(sender, instance, created=False, **_kwargs):
 
 
 @receiver(post_delete, sender=Character)
-def auto_remove(sender, instance, **kwargs):
+def auto_remove_character(sender, instance, **kwargs):
     Subscription.objects.filter(
-        subscriber=instance.uploaded_by,
+        subscriber=instance.user,
         content_type=ContentType.objects.get_for_model(model=sender),
         object_id=instance.id,
         type=CHAR_TAG
+    ).delete()
+    Subscription.objects.filter(
+        subscriber=instance.user,
+        content_type=ContentType.objects.get_for_model(model=sender),
+        object_id=instance.id,
+        type=SUBMISSION_CHAR_TAG
     ).delete()
     Event.objects.filter(
         content_type=ContentType.objects.get_for_model(model=sender),

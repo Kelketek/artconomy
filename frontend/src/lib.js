@@ -141,7 +141,21 @@ export function productTypes () {
 export const NOTIFICATION_MAPPING = {
   '14': 'ac-favorite',
   '15': 'ac-dispute',
-  '16': 'ac-refund'
+  '16': 'ac-refund',
+  '18': 'ac-order-update',
+  '19': 'ac-sale-update'
+}
+
+export const ORDER_STATUSES = {
+  '1': 'has been placed, and needs your acceptance!',
+  '2': 'requires payment to continue.',
+  '3': 'has been added to your queue.',
+  '4': 'is currently in progress!',
+  '5': 'is waiting for your review.',
+  '6': 'has been cancelled.',
+  '7': 'has been placed under dispute.',
+  '8': 'has been completed!',
+  '9': 'has been refunded.'
 }
 
 export function textualize (markdown) {
