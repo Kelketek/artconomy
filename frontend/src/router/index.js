@@ -11,6 +11,7 @@ import Settings from '@/components/Settings'
 import Characters from '@/components/Characters'
 import Character from '@/components/Character'
 import Submission from '@/components/Submission'
+import Search from '@/components/Search'
 import CharacterGallery from '@/components/CharacterGallery'
 import NotFound from '@/components/NotFound'
 import {ErrorHandler} from '@/plugins/error'
@@ -139,6 +140,12 @@ export const routes = [
         buyer: true
       }
     }
+  },
+  {
+    path: '/search/:tabName?/',
+    name: 'Search',
+    component: Search,
+    props: true
   },
   {
     path: '*',

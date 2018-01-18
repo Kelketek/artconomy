@@ -8,7 +8,7 @@
           <div v-if="controls" class="pull-right">
             <ac-action :button="false"
                        variant="danger" :confirm="true" :success="goToListing"
-                       :url="`/api/profiles/v1/${this.user.username}/characters/${this.character.name}/`"
+                       :url="`/api/profiles/v1/account/${this.user.username}/characters/${this.character.name}/`"
                        method="DELETE" class="fg-dark"
             ><i class="fg-light fa fa-trash-o fa-2x"></i>
               <div class="text-left" slot="confirmation-text">Are you sure you wish to delete this character? This cannot be undone!</div>
@@ -193,7 +193,7 @@
             'query': {'editing': true}
           }
         )
-        this.url = `/api/profiles/v1/${this.username}/characters/${this.characterName}/`
+        this.url = `/api/profiles/v1/account/${this.username}/characters/${this.characterName}/`
       },
       loadCharacter (response) {
         this.character = response
@@ -225,7 +225,7 @@
         character: null,
         assets: null,
         totalPieces: 0,
-        url: `/api/profiles/v1/${this.username}/characters/${this.characterName}/`,
+        url: `/api/profiles/v1/account/${this.username}/characters/${this.characterName}/`,
         newUploadModel: {
           title: '',
           caption: '',

@@ -22,7 +22,8 @@
 
 <script>
   import $ from 'jquery'
-  import {setErrors} from '../lib'
+  import deepEqual from 'deep-equal'
+  import { setErrors } from '../lib'
 
   export default {
     name: 'ac-form-container',
@@ -116,11 +117,11 @@
         })
       },
       success_hook: function (response, event) {
-        this.success(response)
         if (this.resetAfter) {
           this.reset()
         }
         this.saved = true
+        this.success(response)
         this.enable()
       },
       failure_hook: function (response, event) {
@@ -129,12 +130,7 @@
       }
     },
     created () {
-      let defaults = {}
-      for (let key in this.model) {
-        if (this.model.hasOwnProperty(key)) {
-          defaults[key] = this.model[key]
-        }
-      }
+      let defaults = JSON.parse(JSON.stringify(this.model))
       function genDefaults () {
         return {...defaults}
       }
@@ -155,18 +151,11 @@
     watch: {
       model: {
         handler (newValue) {
-          // Vue has a limitation where objects may be marked as changed when they have not always been
-          let changed = false
-          for (let key of Object.keys(newValue)) {
-            if (newValue[key] !== this.oldValue[key]) {
-              changed = true
-              this.saved = false
-              break
-            }
-          }
+          let changed = !deepEqual(this.oldValue, newValue)
           // Make a copy of the old object. Don't do this unless we've detected a change or it can cause the watcher
           // to think another change has been made in a weird way. Not sure why.
           if (changed) {
+            this.saved = false
             this.oldValue = JSON.parse(JSON.stringify(newValue))
           }
         },

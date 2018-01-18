@@ -19,13 +19,16 @@
 
         <!-- Right aligned nav items -->
         <b-navbar-nav class="ml-auto" v-if="viewer !== null">
+          <div class="form-inline">
+            <input class="mr-sm-2 form-control form-control-sm" type="text" v-model="query" @input="performSearch" placeholder="Search"/>
+          </div>
           <!-- Navbar dropdowns -->
           <b-nav-item v-if="viewer.username" :to="{name: 'Profile', params: {username: viewer.username}}">
             <span class="nav-login-item">
               <img style="height:1.5rem" :src="viewer.avatar_url"> {{ viewer.username }}
             </span>
           </b-nav-item>
-          <ac-patchbutton v-if="viewer.username && viewer.rating > 0" :url="`/api/profiles/v1/${this.viewer.username}/settings/`" :classes="{'btn-sm': true, 'm-0': true}" name="sfw_mode" v-model="viewer.sfw_mode" true-text="NSFW" true-variant="success" false-text="SFW" />
+          <ac-patchbutton v-if="viewer.username && viewer.rating > 0" :url="`/api/profiles/v1/account/${this.viewer.username}/settings/`" :classes="{'btn-sm': true, 'm-0': true}" name="sfw_mode" v-model="viewer.sfw_mode" true-text="NSFW" true-variant="success" false-text="SFW" />
           <b-nav-item class="mr-3" v-if="viewer.username" :to="{name: 'Notifications'}">
             <span><i class="fa fa-bell"></i><div class="notification-count" v-if="unread">
               <span v-if="unread < 999">{{unread}}</span>
@@ -115,10 +118,11 @@
     components: {AcPatchbutton},
     name: 'NavBar',
     data () {
-      return {
+      let data = {
         loginModel: loginDefault(),
         loopNotifications: false,
         unread: 0,
+        queryData: [],
         loginSchema: {
           fields: [{
             type: 'input',
@@ -175,10 +179,22 @@
         },
         loginTab: 0
       }
+      if (this.$route.name === 'Search') {
+        data.queryData = this.$route.query.q || []
+      }
+      return data
     },
     computed: {
       tab: function () {
         return TAB_MAP[this.loginTab]
+      },
+      query: {
+        get () {
+          return this.queryData.join(' ')
+        },
+        set (value) {
+          this.queryData = value.split(' ')
+        }
       }
     },
     methods: {
@@ -190,6 +206,15 @@
           this.loginHandler,
           this.loginFailure
         )
+      },
+      performSearch () {
+        let query = []
+        for (let val of this.queryData) {
+          if (val !== '') {
+            query.push(val)
+          }
+        }
+        this.$router.history.push({name: 'Search', query: {q: query}})
       },
       setNotificationStats (response) {
         if (this.loopNotifications) {

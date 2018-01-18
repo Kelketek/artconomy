@@ -9,7 +9,7 @@ from rest_framework import serializers
 
 from apps.lib.serializers import RelatedUserSerializer, Base64ImageField
 from apps.profiles.apis import dwolla_setup_link
-from apps.profiles.models import Character, ImageAsset, User
+from apps.profiles.models import Character, ImageAsset, User, Tag
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -117,12 +117,21 @@ class CharacterSerializer(serializers.ModelSerializer):
         )
 
 
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = (
+            'name',
+        )
+
+
 class ImageAssetManagementSerializer(serializers.ModelSerializer):
     uploaded_by = RelatedUserSerializer(read_only=True)
     artists = RelatedUserSerializer(read_only=True, many=True)
     characters = CharacterSerializer(many=True, read_only=True)
     file = Base64ImageField(read_only=True, thumbnail_namespace='profiles.ImageAsset.file')
     favorite = serializers.SerializerMethodField()
+    tags = TagSerializer(many=True, read_only=True)
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
@@ -140,7 +149,7 @@ class ImageAssetManagementSerializer(serializers.ModelSerializer):
         model = ImageAsset
         fields = (
             'id', 'title', 'caption', 'rating', 'file', 'private', 'created_on', 'order', 'uploaded_by', 'characters',
-            'comments_disabled', 'favorite_count', 'favorite', 'artists'
+            'comments_disabled', 'favorite_count', 'favorite', 'artists', 'tags'
         )
 
 

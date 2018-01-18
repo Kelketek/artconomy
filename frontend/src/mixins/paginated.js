@@ -1,11 +1,13 @@
-import {artCall} from '../lib'
+import deepEqual from 'deep-equal'
+import { artCall, buildQueryString } from '../lib'
 // For use with paginated Django views.
 export default {
   props: {
     startingPage: {default: 1},
     limit: {default: 10},
     // Set false to use the never ending mode via the growing list.
-    pageReload: {default: true}
+    pageReload: {default: true},
+    queryData: {default () { return {} }}
   },
   data: function () {
     let defaults = {
@@ -15,7 +17,8 @@ export default {
       response: null,
       growing: null,
       growMode: false,
-      fetching: false
+      fetching: false,
+      oldQueryData: JSON.parse(JSON.stringify(this.queryData))
     }
     if (this.url === undefined) {
       // The URL of the API endpoint. Sometimes this is a prop, so conditionally provide it.
@@ -25,7 +28,9 @@ export default {
   },
   methods: {
     linkGen (pageNum) {
-      return {path: this.baseURL, query: {page: pageNum}}
+      let query = JSON.parse(JSON.stringify(this.queryData))
+      query.page = pageNum
+      return {path: this.baseURL, query: query}
     },
     loadMore () {
       if (this.currentPage >= this.totalPages) {
@@ -45,7 +50,11 @@ export default {
       this.fetching = false
     },
     fetchItems (pageNum) {
-      let url = `${this.url}?page=${this.currentPage}&size=${this.pageSize}`
+      let queryData = JSON.parse(JSON.stringify(this.queryData))
+      queryData.page = this.currentPage
+      queryData.size = this.pageSize
+      let qs = buildQueryString(queryData)
+      let url = `${this.url}?${qs}`
       this.fetching = true
       artCall(url, 'GET', undefined, this.populateResponse)
     }
@@ -76,6 +85,13 @@ export default {
     currentPage () {
       if (this.pageReload) {
         this.fetchItems()
+      }
+    },
+    queryData (newValue) {
+      if (!deepEqual(this.oldQueryData, newValue)) {
+        this.currentPage = 1
+        this.fetchItems()
+        this.oldQueryData = JSON.parse(JSON.stringify(newValue))
       }
     }
   }

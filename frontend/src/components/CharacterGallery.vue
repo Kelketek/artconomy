@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <ac-asset-gallery :endpoint="`/api/profiles/v1/${this.username}/characters/${this.characterName}/assets/`" :limit="4" />
+    <ac-asset-gallery :endpoint="`/api/profiles/v1/account/${this.username}/characters/${this.characterName}/assets/`" :limit="4" />
   </div>
 </template>
 

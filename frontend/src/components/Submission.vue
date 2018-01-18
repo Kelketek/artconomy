@@ -4,7 +4,35 @@
       <div class="col-sm-12 character-refsheet-container text-center text-section">
         <ac-asset :asset="submission" thumb-name="gallery" :rating="rating" />
       </div>
-      <div class="col-sm-12 col-md-8 text-section pt-3 pl-4">
+      <div class="col-md-3 col-sm-12 text-section pt-3 pl-4">
+        <h3>Tags</h3>
+        <ac-tag
+            v-for="tag in submission.tags"
+            :tag="tag"
+            :key="tag.name"
+            :removable="controls"
+            :remove-url="`${url}tag/`"
+            :callback="populateSubmission"
+        />
+        <div class="pt-2 pb-2">
+          <b-button v-if="!showTagging" @click="showTagging=true">Add Tags</b-button>
+          <div v-else>
+            <form>
+              <ac-form-container
+                  ref="taggingForm"
+                  :url="`${this.url}tag/`"
+                  :schema="taggingSchema"
+                  :options="taggingOptions"
+                  :model="taggingModel"
+                  :success="postTag"
+              />
+              <b-button variant="danger" @click.prevent="showTagging=false">Cancel</b-button>
+              <b-button type="submit" @click.prevent="$refs.taggingForm.submit">Tag!</b-button>
+            </form>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-12 col-md-5 text-section pt-3 pl-4">
         <ac-patchfield v-model="submission.title" name="title" styleclass="name-edit" placeholder="Set the title" :editmode="editing" :url="url" />
         <div class="card-block submission-description"><ac-patchfield v-model="submission.caption" name="caption" placeholder="Add a caption" :multiline="true" :editmode="editing" :url="url" /></div>
       </div>
@@ -100,7 +128,7 @@
                 :schema="characterTaggingSchema"
                 :options="characterTaggingOptions"
                 :model="characterTaggingModel"
-                :success="postTag"
+                :success="postCharacterTag"
             />
             <b-button variant="danger" @click.prevent="showCharacterTagging=false">Cancel</b-button>
             <b-button type="submit" @click.prevent="$refs.characterTaggingForm.submit">Tag!</b-button>
@@ -139,10 +167,12 @@
   import AcPatchdropdown from './ac-patchdropdown'
   import AcAction from './ac-action'
   import AcFormContainer from './ac-form-container'
+  import AcTag from './ac-tag'
 
   export default {
     name: 'Submission',
     components: {
+      AcTag,
       AcFormContainer,
       AcPatchdropdown,
       AcCharacterPreview,
@@ -161,6 +191,7 @@
         commenturl: `/api/profiles/v1/asset/${this.$route.params.assetID}/comments/`,
         showCharacterTagging: false,
         showArtistTagging: false,
+        showTagging: false,
         characterTaggingModel: {
           characters: []
         },
@@ -196,6 +227,25 @@
           ]
         },
         artistTaggingOptions: {
+          validateAfterLoad: false,
+          validateAfterChanged: true
+        },
+        taggingModel: {
+          tags: []
+        },
+        taggingSchema: {
+          fields: [
+            {
+              type: 'tag-search',
+              model: 'tags',
+              label: 'tags',
+              featured: true,
+              placeholder: 'Search tags',
+              styleClasses: 'field-input'
+            }
+          ]
+        },
+        taggingOptions: {
           validateAfterLoad: false,
           validateAfterChanged: true
         }
@@ -241,6 +291,10 @@
         this.showArtistTagging = false
       },
       postTag (response) {
+        this.populateSubmission(response)
+        this.showTagging = false
+      },
+      postCharacterTag (response) {
         this.populateSubmission(response)
         this.showCharacterTagging = false
       },

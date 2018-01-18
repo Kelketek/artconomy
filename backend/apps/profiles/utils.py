@@ -1,6 +1,6 @@
 from django.db.models import Case, When, F, IntegerField, Q
 
-from apps.profiles.models import Character
+from apps.profiles.models import Character, ImageAsset
 
 
 def char_ordering(qs, requester):
@@ -25,3 +25,10 @@ def available_chars(requester, query='', commissions=False, ordering=True):
     if ordering:
         qs = char_ordering(qs, requester)
     return qs
+
+
+def available_assets(request, requester):
+    exclude = Q(private=True)
+    if request.user.is_authenticated():
+        exclude &= ~Q(uploaded_by=requester)
+    return ImageAsset.objects.exclude(exclude).exclude(rating__gt=request.max_rating)

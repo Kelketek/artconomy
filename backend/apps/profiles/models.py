@@ -95,6 +95,7 @@ class ImageAsset(ImageModel):
     characters = ManyToManyField('Character', related_name='assets')
     characters__max = 50
     tags = ManyToManyField('Tag', related_name='assets', blank=True)
+    tags__max = 200
     comments = GenericRelation(
         Comment, related_query_name='order', content_type_field='content_type', object_id_field='object_id'
     )
@@ -241,13 +242,5 @@ class RefColor(Model):
     character = ForeignKey(Character)
 
 
-class Category(Model):
-    name = CharField(max_length=50)
-    rating = IntegerField(choices=RATINGS)
-    description = CharField(max_length=250, default='')
-
-
 class Tag(Model):
-    name = SlugField(db_index=True)
-    category = ForeignKey(Category, null=True, blank=True)
-    description = CharField(max_length=250, default='')
+    name = SlugField(db_index=True, unique=True, primary_key=True)

@@ -7,7 +7,7 @@
             <form class="mt-3">
               <ac-form-container ref="settingsForm" :schema="settingsSchema" :model="settingsModel"
                                  :options="settingsOptions" :success="updateUser"
-                                 :url="`/api/profiles/v1/${this.user.username}/settings/`"
+                                 :url="`/api/profiles/v1/account/${this.user.username}/settings/`"
                                  method="PATCH"
                                  :reset-after="false"
               >
@@ -20,7 +20,7 @@
             <form class="mt-3">
               <ac-form-container ref="credentialsForm" :schema="credentialsSchema" :model="credentialsModel"
                                  :options="credentialsOptions" :success="updateCredentials"
-                                 :url="`/api/profiles/v1/${this.user.username}/credentials/`"
+                                 :url="`/api/profiles/v1/account/${this.user.username}/credentials/`"
                                  :reset-after="false"
               >
                 <b-button type="submit" variant="primary" @click.prevent="$refs.credentialsForm.submit">Update</b-button>
@@ -38,7 +38,7 @@
               <legend>Upload a new avatar</legend>
               <ac-form-container ref="avatarForm" :schema="avatarSchema" :model="avatarModel"
                                  :options="avatarOptions" :success="updateAvatar"
-                                 :url="`/api/profiles/v1/${this.user.username}/avatar/`"
+                                 :url="`/api/profiles/v1/account/${this.user.username}/avatar/`"
               >
                 <b-button type="submit" variant="primary" @click.prevent="$refs.avatarForm.submit">Upload</b-button>
                 <i v-if="$refs.avatarForm && $refs.avatarForm.saved" class="fa fa-check" style="color: green"></i>

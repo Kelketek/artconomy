@@ -11,6 +11,7 @@ import App from './App'
 import NavBar from './components/NavBar'
 import fieldCharacterSearch from './components/fieldCharacterSearch'
 import fieldUserSearch from './components/fieldUserSearch'
+import fieldTagSearch from './components/fieldTagSearch'
 import { md } from './lib'
 import {ErrorHandler} from './plugins/error'
 import {router} from './router'
@@ -30,6 +31,7 @@ Vue.use(Timer)
 Vue.config.productionTip = false
 Vue.component('fieldCharacterSearch', fieldCharacterSearch)
 Vue.component('fieldUserSearch', fieldUserSearch)
+Vue.component('fieldTagSearch', fieldTagSearch)
 
 /* eslint-disable no-new */
 window.artconomy = new Vue({

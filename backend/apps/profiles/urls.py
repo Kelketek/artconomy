@@ -6,7 +6,7 @@ from apps.profiles.views import Register, CharacterListAPI, ImageAssetListAPI, \
     CharacterManager, AssetManager, MakePrimary, SettingsAPI, CurrentUserInfo, AssetComments, CredentialsAPI, \
     register_dwolla, \
     NotificationsList, SetAvatar, UserInfo, CharacterSearch, AssetFavorite, MarkNotificationsRead, AssetTagCharacter, \
-    UserSearch, AssetTagArtist
+    UserSearch, AssetTagArtist, TagSearch, AssetTag, AssetSearch
 from apps.profiles.views import check_username, check_email, perform_login, perform_logout
 
 urlpatterns = [
@@ -22,11 +22,13 @@ urlpatterns = [
     url(r'^v1/data/user/(?P<username>[-\w]+)/', UserInfo.as_view(), name='user_info'),
     url(r'^v1/search/character/', CharacterSearch.as_view(), name='character_search'),
     url(r'^v1/search/user/', UserSearch.as_view(), name='character_search'),
-    url(r'^v1/(?P<username>[-\w]+)/settings/$', SettingsAPI.as_view(), name='settings_update'),
-    url(r'^v1/(?P<username>[-\w]+)/credentials/$', CredentialsAPI.as_view(), name='credentials'),
-    url(r'^v1/(?P<username>[-\w]+)/avatar/$', SetAvatar.as_view(), name='avatar'),
+    url(r'^v1/search/tag/', TagSearch.as_view(), name='tag_search'),
+    url(r'^v1/search/asset', AssetSearch.as_view(), name='asset_search'),
+    url(r'^v1/account/(?P<username>[-\w]+)/settings/$', SettingsAPI.as_view(), name='settings_update'),
+    url(r'^v1/account/(?P<username>[-\w]+)/credentials/$', CredentialsAPI.as_view(), name='credentials'),
+    url(r'^v1/account/(?P<username>[-\w]+)/avatar/$', SetAvatar.as_view(), name='avatar'),
     url(
-        r'^v1/(?P<username>[-\w]+)/characters/(?P<character>[-\w\s]+)/asset/primary/(?P<asset_id>\d+)/$',
+        r'^v1/account/(?P<username>[-\w]+)/characters/(?P<character>[-\w\s]+)/asset/primary/(?P<asset_id>\d+)/$',
         MakePrimary.as_view(), name='asset_primary'
     ),
     url(
@@ -42,6 +44,10 @@ urlpatterns = [
         AssetTagArtist.as_view(), name='asset_artist_tag'
     ),
     url(
+        r'^v1/asset/(?P<asset_id>\d+)/tag/$',
+        AssetTag.as_view(), name='asset_tag'
+    ),
+    url(
         r'^v1/asset/(?P<asset_id>\d+)/comments/$',
         AssetComments.as_view(),
         name='asset_comments'
@@ -52,9 +58,9 @@ urlpatterns = [
         name='asset_favorite'
     ),
     url(
-        r'^v1/(?P<username>[-\w]+)/characters/(?P<character>[-\w\s]+)/assets/$',
+        r'^v1/account/(?P<username>[-\w]+)/characters/(?P<character>[-\w\s]+)/assets/$',
         ImageAssetListAPI.as_view(), name='asset_upload'
     ),
-    url(r'^v1/(?P<username>[-\w]+)/characters/$', CharacterListAPI.as_view(), name='character_list'),
-    url(r'^v1/(?P<username>[-\w]+)/characters/(?P<character>[-\w\s]+)/$', CharacterManager.as_view(), name='character'),
+    url(r'^v1/account/(?P<username>[-\w]+)/characters/$', CharacterListAPI.as_view(), name='character_list'),
+    url(r'^v1/account/(?P<username>[-\w]+)/characters/(?P<character>[-\w\s]+)/$', CharacterManager.as_view(), name='character'),
 ]

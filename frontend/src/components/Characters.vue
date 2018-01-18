@@ -28,7 +28,7 @@
           <form>
             <ac-form-container ref="newCharForm" :schema="newCharSchema" :model="newCharModel"
                                 :options="newCharOptions" :success="addCharacter"
-                               :url="`/api/profiles/v1/${this.user.username}/characters/`"
+                               :url="`/api/profiles/v1/account/${this.user.username}/characters/`"
             >
               <b-button @click="showNew=false">Cancel</b-button>
               <b-button type="submit" variant="primary" @click.prevent="$refs.newCharForm.submit">Create</b-button>
@@ -64,7 +64,7 @@
           open_requests: true,
           open_requests_restrictions: ''
         },
-        url: `/api/profiles/v1/${this.username}/characters/`,
+        url: `/api/profiles/v1/account/${this.username}/characters/`,
         showNew: false,
         newCharSchema: {
           fields: [{

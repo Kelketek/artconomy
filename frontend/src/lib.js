@@ -204,13 +204,25 @@ export function paramHandleMap (handleName, tabMap, clearList) {
 export function inputMatches (inputName, errorText) {
   return (value, field, model) => {
     if (value !== model[inputName]) {
-      console.log(value)
-      console.log(model[inputName])
       return [errorText]
     } else {
       return []
     }
   }
+}
+
+export function buildQueryString (obj) {
+  let str = []
+  for (let p of Object.keys(obj)) {
+    if (Array.isArray(obj[p])) {
+      for (let entry of obj[p]) {
+        str.push(encodeURIComponent(p) + '=' + encodeURIComponent(entry))
+      }
+      continue
+    }
+    str.push(encodeURIComponent(p) + '=' + encodeURIComponent(obj[p]))
+  }
+  return str.join('&')
 }
 
 export const EventBus = new Vue()
