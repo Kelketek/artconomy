@@ -9,13 +9,25 @@
         <div class="card-block submission-description"><ac-patchfield v-model="submission.caption" name="caption" placeholder="Add a caption" :multiline="true" :editmode="editing" :url="url" /></div>
       </div>
       <div class="col-sm-12 col-md-4 text-section pt-3 pl-4 text-center">
-        <div class="info-block" v-if="!ownWork">
+        <div class="info-block" v-if="!artistUploader">
           <h4>Added By</h4>
           <ac-avatar :user="submission.uploaded_by" />
         </div>
-        <div v-if="submission.artist" class="info-block">
-          <h4>Artist</h4>
-          <ac-avatar :user="submission.artist" />
+        <div
+            v-if="submission.artists.length"
+            class="info-block"
+        >
+          <h4 v-if="submission.artists.length === 1">Artist</h4>
+          <h4 v-else>Artists</h4>
+          <ac-avatar
+              v-for="artist in submission.artists"
+              :key="artist.id"
+              :user="artist"
+              :removable="(artist.username === viewer.username) || controls"
+              :remove-url="`${url}tag-artists/`"
+              field-name="artists"
+              :callback="populateSubmission"
+          />
         </div>
         <div>
           <ac-patchdropdown v-model="submission.rating" :editmode="editing" :options="ratingsShort()" :url="url" name="rating" />
@@ -31,12 +43,27 @@
             <span v-if="submission.favorite"><i class="fa fa-heart-o"></i> Remove from Favorites ({{ submission.favorite_count }})</span>
             <span v-else><i class="fa fa-heart"></i> Add to Favorites ({{ submission.favorite_count }})</span>
           </ac-action>
+          <b-button v-if="!showArtistTagging" @click="showArtistTagging=true">Tag Artists</b-button>
+          <div v-else>
+            <form>
+              <ac-form-container
+                  ref="artistTaggingForm"
+                  :url="`${this.url}tag-artists/`"
+                  :schema="artistTaggingSchema"
+                  :options="artistTaggingOptions"
+                  :model="artistTaggingModel"
+                  :success="postArtistTag"
+              />
+              <b-button variant="danger" @click.prevent="showArtistTagging=false">Cancel</b-button>
+              <b-button type="submit" @click.prevent="$refs.artistTaggingForm.submit">Tag!</b-button>
+            </form>
+          </div>
         </div>
         <p v-if="controls && submission.order" class="mb-0">
           From <router-link :to="{name: 'Order', params: {orderID: submission.order, username: submission.uploaded_by.username}}">Order {{submission.order}}</router-link>
         </p>
-        <p v-if="(submission.order && submission.artist.username === viewer.username ) || controls && (submission.order)" class="mb-0">
-          From <router-link :to="{name: 'Sale', params: {orderID: submission.order, username: submission.artist.username}}">Sale {{submission.order}}</router-link>
+        <p v-if="(submission.order && ownWork ) || controls && (submission.order)" class="mb-0">
+          From <router-link :to="{name: 'Sale', params: {orderID: submission.order, username: viewer.username}}">Sale {{submission.order}}</router-link>
         </p>
         <i v-if="controls && !editing" class="ml-2 fa fa-2x fa-lock clickable pull-right" @click="edit"></i>
         <i v-if="controls && editing" class="ml-2 fa fa-2x fa-unlock clickable pull-right" @click="lock"></i>
@@ -133,6 +160,7 @@
         url: `/api/profiles/v1/asset/${this.$route.params.assetID}/`,
         commenturl: `/api/profiles/v1/asset/${this.$route.params.assetID}/comments/`,
         showCharacterTagging: false,
+        showArtistTagging: false,
         characterTaggingModel: {
           characters: []
         },
@@ -151,6 +179,25 @@
         characterTaggingOptions: {
           validateAfterLoad: false,
           validateAfterChanged: true
+        },
+        artistTaggingModel: {
+          artists: []
+        },
+        artistTaggingSchema: {
+          fields: [
+            {
+              type: 'user-search',
+              model: 'artists',
+              label: 'Artists',
+              featured: true,
+              placeholder: 'Search artists',
+              styleClasses: 'field-input'
+            }
+          ]
+        },
+        artistTaggingOptions: {
+          validateAfterLoad: false,
+          validateAfterChanged: true
         }
       }
     },
@@ -158,8 +205,11 @@
       controls () {
         return this.submission.uploaded_by.username === this.$root.user.username
       },
+      artistUploader () {
+        return this.isArtist(this.submission.uploaded_by.username)
+      },
       ownWork () {
-        return this.submission.uploaded_by.username === (this.submission.artist && this.submission.artist.username)
+        return this.isArtist(this.viewer.username)
       }
     },
     methods: {
@@ -177,6 +227,18 @@
         } else {
           this.$router.history.push({name: 'Profile', params: {username: this.submission.uploaded_by.username}})
         }
+      },
+      isArtist (username) {
+        for (let artist of this.submission.artists) {
+          if (artist.username === username) {
+            return true
+          }
+        }
+        return false
+      },
+      postArtistTag (response) {
+        this.populateSubmission(response)
+        this.showArtistTagging = false
       },
       postTag (response) {
         this.populateSubmission(response)

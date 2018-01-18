@@ -50,6 +50,8 @@ REFUND = 16
 SUBMISSION_CHAR_TAG = 17
 ORDER_UPDATE = 18
 SALE_UPDATE = 19
+ARTIST_TAG = 20
+SUBMISSION_ARTIST_TAG = 21
 
 
 EVENT_TYPES = (
@@ -71,6 +73,8 @@ EVENT_TYPES = (
     (FAVORITE, 'New Favorite'),
     (SUBMISSION_TAG, 'Submission Tagged'),
     (SUBMISSION_CHAR_TAG, 'Submission tagged with Character'),
+    (ARTIST_TAG, 'Tagged as the artist of a submission'),
+    (SUBMISSION_ARTIST_TAG, 'Tagged the artist of a submission'),
     (ANNOUNCEMENT, 'Announcement'),
     (SYSTEM_ANNOUNCEMENT, 'System-wide announcement'),
 )

@@ -1,24 +1,27 @@
 <template>
   <div class="wrapper">
-    <input ref="searchField" v-model="query" class="form-control" @input="runQuery" @keyup.enter.capture="grabFirst" :placeholder="schema.placeholder" />
+    <input ref="searchField" v-model="query" class="form-control" @input="runQuery" @keydown.enter.prevent="grabFirst" :placeholder="schema.placeholder" />
     <div class="mb-2 mt-2">
-      <div v-if="userIDs.length === 0">Click a character to add them.</div>
-      <div v-else><div class="char-name" v-for="user in users" :key="char.id">({user.username}}) <i class="fa fa-times" @click="delChar(user)"></i></div></div>
+      <div v-if="userIDs.length === 0">Click a user to add them.</div>
+      <div v-else><div class="user-name" v-for="user in users" :key="user.id">{{user.username}} <i class="fa fa-times" @click="delUser(user)"></i></div></div>
     </div>
-      <div v-if="response" class="char-search-results">
-        <ac-avatar
-            v-for="char in response.results"
-            v-bind:character="char"
-            v-bind:expanded="true"
-            v-bind:key="char.id"
-            @click.native.prevent.capture="delUser(char)"
-        />
+      <div v-if="response" class="user-search-results">
+        <div style="display:inline-block"
+             v-for="user in response.results"
+             :user="user"
+             :key="user.id"
+        >
+          <ac-avatar
+              :user="user"
+              @click.native.prevent.capture="addUser(user)"
+          />
+        </div>
       </div>
   </div>
 </template>
 
 <style scoped>
-  .char-name {
+  .user-name {
     display: inline-block;
     padding-left: .5rem;
     padding-right: .5rem;
@@ -28,7 +31,7 @@
     margin-left: .1rem;
     margin-right: .1rem;
   }
-  .character-preview:first-child {
+  .user-preview:first-child {
     background-color: #dffffc;
   }
 </style>
@@ -36,7 +39,6 @@
 <script>
   import { abstractField } from 'vue-form-generator'
   import Viewer from '../mixins/viewer'
-  import AcCharacterPreview from './ac-character-preview'
   import { artCall } from '../lib'
   import AcAvatar from './ac-avatar'
 
@@ -44,7 +46,7 @@
     components: {
       AcAvatar
     },
-    name: 'fieldCharacterSearch',
+    name: 'fieldUserSearch',
     mixins: [ Viewer, abstractField ],
     data () {
       return {
@@ -61,35 +63,33 @@
       populateResponse (response) {
         this.response = response
       },
-      delUser (char) {
-        if (this.userIDs.indexOf(char.id) === -1) {
-          this.characters.push(char)
-          this.userIDs.push(char.id)
+      addUser (user) {
+        if (this.userIDs.indexOf(user.id) === -1) {
+          this.users.push(user)
+          this.userIDs.push(user.id)
           this.$emit('input', this.userIDs)
           this.query = ''
           this.response = null
         }
       },
-      delChar (char) {
-        let index = this.userIDs.indexOf(char.id)
+      delUser (user) {
+        let index = this.userIDs.indexOf(user.id)
         if (index > -1) {
           this.userIDs.splice(index, 1)
         }
-        index = this.characters.indexOf(char)
+        index = this.users.indexOf(user)
         if (index > -1) {
-          this.characters.splice(index, 1)
+          this.users.splice(index, 1)
         }
       },
-      grabFirst (event) {
-        console.log(event)
-        if (this.response && this.response.results.length) {
-          this.delUser(this.response.results[0])
+      grabFirst () {
+        if (this.query === '') {
+          this.$parent.$parent.submit()
         }
-        event.preventDefault()
+        if (this.response && this.response.results.length) {
+          this.addUser(this.response.results[0])
+        }
       }
-    },
-    created () {
-      window.field = this
     }
   }
 </script>

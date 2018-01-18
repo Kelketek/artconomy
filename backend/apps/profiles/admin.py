@@ -6,7 +6,9 @@ from django.contrib import admin
 #
 # from apps.profiles.models import User
 #
+from django.contrib.admin import ModelAdmin
 
-from apps.profiles.models import User
+from apps.profiles.models import User, ImageAsset
 
 admin.site.register(User, EmailUserAdmin)
+admin.site.register(ImageAsset, ModelAdmin)

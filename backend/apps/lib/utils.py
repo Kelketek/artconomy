@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.db.transaction import atomic
 from django.utils import timezone
@@ -111,3 +112,21 @@ def notify(
         ),
         batch_size=1000
     )
+
+
+def add_check(instance, field_name, *args):
+    if not args:
+        raise TypeError('Items to add must be specified.')
+    args_length = len(args)
+    max_length = getattr(instance, field_name + '__max')
+    current_length = getattr(instance, field_name).all().count()
+    proposed = args_length + current_length
+    if proposed > max_length:
+        raise ValidationError(
+            'This would exceed the maximum number of entries for this relation. {} > {}'.format(proposed, max_length)
+        )
+
+
+def safe_add(instance, field_name, *args):
+    add_check(instance, field_name, *args)
+    getattr(instance, field_name).add(*args)

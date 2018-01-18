@@ -3,13 +3,12 @@ Models dealing primarily with user preferences and personalization.
 """
 from django.conf import settings
 from custom_user.models import AbstractEmailUser
-from django.contrib.contenttypes.fields import GenericRelation, GenericForeignKey
-from django.contrib.contenttypes.models import ContentType, ContentTypeManager
-from django.contrib.postgres.fields import JSONField
+from django.contrib.auth.validators import UnicodeUsernameValidator
+from django.contrib.contenttypes.fields import GenericRelation
+from django.contrib.contenttypes.models import ContentType
 from django.core.validators import MinValueValidator
-from django.db import models
-from django.db.models import Model, CharField, ForeignKey, IntegerField, BooleanField, ManyToManyField, DateTimeField, \
-    URLField, SlugField, SET_NULL, PositiveIntegerField
+from django.db.models import Model, CharField, ForeignKey, IntegerField, BooleanField, DateTimeField, \
+    URLField, SlugField, SET_NULL, ManyToManyField
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 
@@ -23,7 +22,7 @@ class User(AbstractEmailUser):
     """
     User model for Artconomy.
     """
-    username = CharField(max_length=30, unique=True, db_index=True)
+    username = CharField(max_length=30, unique=True, db_index=True, validators=[UnicodeUsernameValidator()])
     primary_character = ForeignKey('Character', blank=True, null=True, related_name='+')
     primary_card = ForeignKey('sales.CreditCardToken', null=True, blank=True, related_name='+')
     dwolla_url = URLField(blank=True, default='')
@@ -94,12 +93,14 @@ class ImageAsset(ImageModel):
     caption = CharField(blank=True, default='', max_length=2000)
     private = BooleanField(default=False, help_text="Only show this to people I have explicitly shared it to.")
     characters = ManyToManyField('Character', related_name='assets')
-    tags = ManyToManyField('Tag', related_name='assets')
+    characters__max = 50
+    tags = ManyToManyField('Tag', related_name='assets', blank=True)
     comments = GenericRelation(
         Comment, related_query_name='order', content_type_field='content_type', object_id_field='object_id'
     )
     comments_disabled = BooleanField(default=False)
-    artist = ForeignKey('User', related_name='art', null=True, blank=True)
+    artists = ManyToManyField('User', related_name='art', blank=True)
+    artists__max = 10
     order = ForeignKey('sales.Order', null=True, blank=True, on_delete=SET_NULL, related_name='outputs')
 
     comment_permissions = [AssetViewPermission, AssetCommentPermission]

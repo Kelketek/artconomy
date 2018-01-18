@@ -46,7 +46,7 @@ describe('Submission.vue', () => {
             thumbnail: '/test_asset1.thumbnail.jpg',
             full: '/test_asset1.jpg'
           },
-          artist: null,
+          artists: [],
           characters: []
         }
       )

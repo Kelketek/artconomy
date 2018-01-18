@@ -17,11 +17,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_bulk import BulkUpdateAPIView
 
-from apps.lib.models import Notification, FAVORITE, CHAR_TAG, SUBMISSION_CHAR_TAG
+from apps.lib.models import Notification, FAVORITE, CHAR_TAG, SUBMISSION_CHAR_TAG, SUBMISSION_ARTIST_TAG, ARTIST_TAG
 from apps.lib.permissions import Any, All, IsSafeMethod
 from apps.lib.serializers import CommentSerializer, NotificationSerializer, Base64ImageField, RelatedUserSerializer, \
     BulkNotificationSerializer
-from apps.lib.utils import recall_notification, notify
+from apps.lib.utils import recall_notification, notify, safe_add
 from apps.profiles.models import User, Character, ImageAsset
 from apps.profiles.permissions import ObjectControls, UserControls, AssetViewPermission, AssetControls, NonPrivate
 from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer, SettingsSerializer, UserSerializer, \
@@ -116,7 +116,7 @@ class ImageAssetListAPI(ListCreateAPIView):
         )
         self.check_object_permissions(self.request, character)
         asset = serializer.save(uploaded_by=self.request.user)
-        asset.characters.add(character)
+        safe_add(asset, 'characters', character)
         if character.primary_asset is None:
             character.primary_asset = asset
             character.save()
@@ -281,7 +281,7 @@ class UserSearch(ListAPIView):
 
     def get_queryset(self):
         query = self.request.GET.get('q', '')
-        return User.objects.filter(name__istartswith=query)
+        return User.objects.filter(username__istartswith=query)
 
 
 class AssetTagCharacter(APIView):
@@ -335,10 +335,70 @@ class AssetTagCharacter(APIView):
                     unique=True, mark_unread=True
                 )
                 notify(SUBMISSION_CHAR_TAG, asset, data={'user': request.user.id, 'character': character.id})
-        asset.characters.add(*qs)
+        print(qs)
+        safe_add(asset, 'characters', *qs)
         return Response(
             status=status.HTTP_200_OK, data=ImageAssetManagementSerializer(instance=asset, request=self.request).data
         )
+
+
+class AssetTagArtist(APIView):
+    permission_classes = [IsAuthenticated, AssetViewPermission]
+    delete_permission_classes = [ObjectControls]
+
+    def delete(self, request, asset_id):
+        asset = get_object_or_404(ImageAsset, id=asset_id)
+        self.check_object_permissions(request, asset)
+        # Check has to be different here.
+        # Might find a way to better simplify this sort of permission checking if
+        # we end up doing it a lot.
+        if 'artists' not in request.data:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={'artists': ['This field is required.']})
+        id_list = request.data['artists']
+        qs = User.objects.filter(id__in=id_list)
+        if (asset.uploaded_by == request.user) or request.user.is_staff:
+            asset.artists.remove(*qs)
+            return Response(
+                status=status.HTTP_200_OK,
+                data=ImageAssetManagementSerializer(instance=asset, request=self.request).data
+            )
+        else:
+            qs = qs.filter(id=request.user.id)
+        if not qs.exists():
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST,
+                data={'artists': [
+                    'No artists specified. Those IDs do not exist, or you do not have permission '
+                    'to remove any of them.'
+                ]}
+            )
+        asset.artists.remove(*qs)
+        return Response(
+            status=status.HTTP_200_OK, data=ImageAssetManagementSerializer(instance=asset, request=request).data
+        )
+
+    def post(self, request, asset_id):
+        asset = get_object_or_404(ImageAsset, id=asset_id)
+        self.check_object_permissions(request, asset)
+        if 'artists' not in request.data:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={'artists': ['This field is required.']})
+        id_list = request.data['artists']
+        qs = User.objects.filter(id__in=id_list)
+        qs = qs.exclude(id__in=asset.artists.all().values_list('id', flat=True))
+
+        for user in qs:
+            if user != request.user:
+                notify(
+                    ARTIST_TAG, user, data={'user': request.user.id, 'asset': asset.id},
+                    unique=True, mark_unread=True
+                )
+            if user != asset.uploaded_by:
+                notify(SUBMISSION_ARTIST_TAG, asset, data={'user': request.user.id, 'artist': user.id})
+        safe_add(asset, 'artists', *qs)
+        return Response(
+            status=status.HTTP_200_OK, data=ImageAssetManagementSerializer(instance=asset, request=self.request).data
+        )
+
 
 
 class AssetFavorite(GenericAPIView):

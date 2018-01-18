@@ -346,7 +346,7 @@ class ApproveFinal(GenericAPIView):
             notify(SALE_UPDATE, order, unique=True, mark_unread=True)
             final = order.revision_set.last()
             submission = ImageAsset(
-                artist=order.seller, uploaded_by=order.seller, order=order,
+                uploaded_by=order.seller, order=order,
                 rating=final.rating
             )
             new_file = ContentFile(final.file.read())
@@ -354,6 +354,7 @@ class ApproveFinal(GenericAPIView):
             submission.file = new_file
             submission.save()
             submission.characters.add(*order.characters.all())
+            submission.artists.add(order.seller)
             PaymentRecord.objects.create(
                 payer=None,
                 amount=order.price + order.adjustment,

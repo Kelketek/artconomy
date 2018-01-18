@@ -5,7 +5,8 @@ from django.conf.urls import url
 from apps.profiles.views import Register, CharacterListAPI, ImageAssetListAPI, \
     CharacterManager, AssetManager, MakePrimary, SettingsAPI, CurrentUserInfo, AssetComments, CredentialsAPI, \
     register_dwolla, \
-    NotificationsList, SetAvatar, UserInfo, CharacterSearch, AssetFavorite, MarkNotificationsRead, AssetTagCharacter
+    NotificationsList, SetAvatar, UserInfo, CharacterSearch, AssetFavorite, MarkNotificationsRead, AssetTagCharacter, \
+    UserSearch, AssetTagArtist
 from apps.profiles.views import check_username, check_email, perform_login, perform_logout
 
 urlpatterns = [
@@ -20,6 +21,7 @@ urlpatterns = [
     url(r'^v1/data/notifications/mark-read/$', MarkNotificationsRead.as_view(), name='mark_read'),
     url(r'^v1/data/user/(?P<username>[-\w]+)/', UserInfo.as_view(), name='user_info'),
     url(r'^v1/search/character/', CharacterSearch.as_view(), name='character_search'),
+    url(r'^v1/search/user/', UserSearch.as_view(), name='character_search'),
     url(r'^v1/(?P<username>[-\w]+)/settings/$', SettingsAPI.as_view(), name='settings_update'),
     url(r'^v1/(?P<username>[-\w]+)/credentials/$', CredentialsAPI.as_view(), name='credentials'),
     url(r'^v1/(?P<username>[-\w]+)/avatar/$', SetAvatar.as_view(), name='avatar'),
@@ -34,6 +36,10 @@ urlpatterns = [
     url(
         r'^v1/asset/(?P<asset_id>\d+)/tag-characters/$',
         AssetTagCharacter.as_view(), name='asset_character_tag'
+    ),
+    url(
+        r'^v1/asset/(?P<asset_id>\d+)/tag-artists/$',
+        AssetTagArtist.as_view(), name='asset_artist_tag'
     ),
     url(
         r'^v1/asset/(?P<asset_id>\d+)/comments/$',
