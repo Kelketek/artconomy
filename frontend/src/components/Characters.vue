@@ -23,7 +23,7 @@
       <div class="text-center" style="width:100%"><i class="fa fa-spin fa-spinner fa-5x"></i></div>
     </div>
     <div class="row-centered" v-if="controls">
-      <div class="col-sm-12 pt-3 col-md-4 col-centered text-center">
+      <div class="col-12 pt-3 col-md-4 col-centered text-center">
         <div v-if="showNew">
           <form>
             <ac-form-container ref="newCharForm" :schema="newCharSchema" :model="newCharModel"
@@ -38,7 +38,6 @@
         <b-button v-else variant="primary" size="lg" @click="showNew=true" id="new-char-button">Add a new character</b-button>
       </div>
     </div>
-    <div class="m-2"></div>
   </div>
 </template>
 

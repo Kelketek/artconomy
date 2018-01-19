@@ -1,12 +1,12 @@
 <template>
   <div class="container">
     <div class="row">
-      <div class="col-sm-12">
+      <div class="col-12">
         <p>{{ user.username }}'s profile.</p>
       </div>
     </div>
     <div class="row shadowed">
-      <div class="col-sm-12 text-section pt-2 mb-2">
+      <div class="col-12 text-section pt-2 mb-2">
         <h2>Characters</h2>
       </div>
       <Characters :username="username" embedded="true" :limit="5"></Characters>

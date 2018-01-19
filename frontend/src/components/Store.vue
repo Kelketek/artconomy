@@ -7,7 +7,7 @@
         v-if="growing !== null && setUp"
         :product="product"
       ></ac-product-preview>
-      <div class="col-sm-12" v-if="is_current && !setUp">
+      <div class="col-12" v-if="is_current && !setUp">
         <p>To open a store, you must first set up your
           <router-link :to="{name: 'Settings', params: {tabName: 'payment', 'username': this.viewer.username, 'subTabName': 'disbursements'}}">
             deposit account.
@@ -16,7 +16,7 @@
       </div>
     </div>
     <div class="row-centered" v-if="controls">
-      <div class="col-sm-12 pt-3 col-md-4 col-centered text-center">
+      <div class="col-12 pt-3 col-md-4 col-centered text-center">
         <div v-if="showNew">
           <form>
             <ac-form-container ref="newProdForm" :schema="newProdSchema" :model="newProdModel"

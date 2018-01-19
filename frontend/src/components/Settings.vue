@@ -1,7 +1,7 @@
 <template>
   <div class="settings-center container">
     <div class="row">
-      <div class="main-settings col-sm-12" v-if="$root.user.username">
+      <div class="main-settings col-12" v-if="$root.user.username">
         <b-tabs v-model="tab">
           <b-tab title="<i class='fa fa-sliders'></i> Options">
             <form class="mt-3">
@@ -49,7 +49,7 @@
             <b-tabs pills v-model="paymentTab">
               <b-tab title="<i class='fa fa-credit-card'></i> Payment Methods">
                 <div class="row mt-3">
-                  <div class="col-lg-4 col-md-6 col-sm-12">
+                  <div class="col-lg-4 col-md-6 col-12">
                     <ac-card-manager :username="user.username"></ac-card-manager>
                   </div>
                 </div>

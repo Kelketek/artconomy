@@ -1,10 +1,10 @@
 <template>
   <div class="container">
     <div class="row shadowed" v-if="submission">
-      <div class="col-sm-12 character-refsheet-container text-center text-section">
+      <div class="col-12 character-refsheet-container text-center text-section">
         <ac-asset :asset="submission" thumb-name="gallery" :rating="rating" />
       </div>
-      <div class="col-md-3 col-sm-12 text-section pt-3 pl-4">
+      <div class="col-md-3 col-12 text-section pt-3 pl-4">
         <h3>Tags</h3>
         <ac-tag
             v-for="tag in submission.tags"
@@ -33,11 +33,11 @@
           </div>
         </div>
       </div>
-      <div class="col-sm-12 col-md-5 text-section pt-3 pl-4">
+      <div class="col-12 col-md-5 text-section pt-3 pl-4">
         <ac-patchfield v-model="submission.title" name="title" styleclass="name-edit" placeholder="Set the title" :editmode="editing" :url="url" />
         <div class="card-block submission-description"><ac-patchfield v-model="submission.caption" name="caption" placeholder="Add a caption" :multiline="true" :editmode="editing" :url="url" /></div>
       </div>
-      <div class="col-sm-12 col-md-4 text-section pt-3 pl-4 text-center">
+      <div class="col-12 col-md-4 text-section pt-3 pl-4 text-center">
         <div class="info-block" v-if="!artistUploader">
           <h4>Added By</h4>
           <ac-avatar :user="submission.uploaded_by" />
@@ -106,7 +106,7 @@
           </ac-action>
         </div>
       </div>
-      <div class="col-sm-12 text-section mb-2">
+      <div class="col-12 text-section mb-2">
         <h2>Featuring</h2>
       </div>
       <ac-character-preview
@@ -119,7 +119,7 @@
           :callback="populateSubmission"
       >
       </ac-character-preview>
-      <div class="col-sm-12 text-center mb-2">
+      <div class="col-12 text-center mb-2">
         <b-button v-if="!showCharacterTagging" @click="showCharacterTagging=true">Tag Characters</b-button>
         <div v-else>
           <form>
@@ -140,7 +140,7 @@
     <div class="mb-5">
       <ac-comment-section v-if="submission" :commenturl="commenturl" :nesting="true" :locked="submission.comments_disabled" />
       <div class="row shadowed" v-if="submission && controls && editing">
-        <div class="col-sm-12 text-section text-center">
+        <div class="col-12 text-section text-center">
           <ac-patchbutton :url="url" name="comments_disabled" v-model="submission.comments_disabled" true-text="Disable Commments" false-text="Enable Comments" />
         </div>
       </div>

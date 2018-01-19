@@ -1,5 +1,5 @@
 <template>
-  <div class="col-sm-4">
+  <div class="col-4">
     <ac-asset :terse="true" :asset="event.target"></ac-asset>
   </div>
 </template>

@@ -2,10 +2,10 @@
   <div class="container product-container">
     <div v-if="product">
       <div class="row shadowed">
-        <div class="col-lg-4 col-sm-12 col-md-6 text-section text-center">
+        <div class="col-lg-4 col-12 col-md-6 text-section text-center">
           <ac-asset :asset="product" thumb-name="preview" img-class="bound-image"></ac-asset>
         </div>
-        <div class="col-md-6 col-sm-12 text-section pt-3">
+        <div class="col-md-6 col-12 text-section pt-3">
           <i v-if="controls && !editing" class="ml-2 fa fa-2x fa-lock clickable pull-right" @click="edit"></i>
           <i v-if="controls && editing" class="ml-2 fa fa-2x fa-unlock clickable pull-right" @click="lock"></i>
           <div v-if="controls" class="pull-right">
@@ -20,7 +20,7 @@
           <ac-patchfield v-model="product.name" name="name" :editmode="editing" styleclass="h1" :url="url"></ac-patchfield> <i v-if="product.hidden" class="fa fa-2x fa-eye-slash"></i>
           <ac-patchfield v-model="product.description" name="description" :multiline="true" :editmode="editing" :url="url"></ac-patchfield>
         </div>
-        <div class="col-md-6 col-sm-12 col-lg-2 text-section text-center pt-3">
+        <div class="col-md-6 col-12 col-lg-2 text-section text-center pt-3">
           <div class="avatar-container">
             <ac-avatar :user="product.user"></ac-avatar>
           </div>
@@ -47,13 +47,13 @@
         </div>
       </div>
       <ac-asset-gallery class="text-section shadowed" ref="assetGallery" :endpoint="`${url}examples/`" :limit="5" >
-        <div slot="header" class="col-sm-12 text-center">
+        <div slot="header" class="col-12 text-center">
           <h3>Samples</h3>
           <hr />
         </div>
       </ac-asset-gallery>
       <div class="row-centered">
-        <div class="col-sm-12 pt-3 col-md-8 col-centered text-center mb-3">
+        <div class="col-12 pt-3 col-md-8 col-centered text-center mb-3">
           <div v-if="showOrder">
             <form>
               <ac-form-container ref="newOrderForm" :schema="newOrderSchema" :model="newOrderModel"

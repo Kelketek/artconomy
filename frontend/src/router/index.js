@@ -1,8 +1,11 @@
 import Router from 'vue-router'
 import Home from '@/components/Home'
 import CommissionAgreement from '@/components/CommissionAgreement'
+import RefundPolicy from '@/components/RefundPolicy'
 import NotificationCenter from '@/components/NotificationCenter'
 import Profile from '@/components/Profile'
+import Policies from '@/components/Policies'
+import Contact from '@/components/Contact'
 import Store from '@/components/Store'
 import Product from '@/components/Product'
 import Order from '@/components/Order'
@@ -24,9 +27,24 @@ export const routes = [
     props: true
   },
   {
-    path: '/legal/commission-agreement/',
+    path: '/legal-and-policies/',
+    name: 'Policies',
+    component: Policies
+  },
+  {
+    path: '/legal-and-policies/commission-agreement/',
     name: 'CommissionAgreement',
     component: CommissionAgreement
+  },
+  {
+    path: '/legal-and-policies/refund-policy/',
+    name: 'RefundPolicy',
+    component: RefundPolicy
+  },
+  {
+    path: '/contact/',
+    name: 'Contact',
+    component: Contact
   },
   {
     path: '/notifications/',

@@ -59,20 +59,24 @@ $card-cap-fg: $eggshell;
 $card-bg: $eggshell;
 $jumbotron-bg: $dark-beige;
 
-// Ensure spacing for top bar.
-@media (min-width: 979px) {
-  body {
-    padding-top: 60px;
-  }
+html {
+  height:100vh;
+  margin:0;
+  padding:0;
 }
 
-// Ensure spacing for top bar.
 body {
-  padding-top: 60px;
+  height:100vh;
 }
 
 p a {
   text-decoration: underline;
+}
+
+#app {
+  padding-top: 60px;
+  min-height:100vh;
+  position: relative;
 }
 
 $container-max-widths: (

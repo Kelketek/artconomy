@@ -2,10 +2,10 @@
   <div>
     <div v-if="order" class="container">
       <div class="row shadowed">
-        <div class="col-lg-4 col-sm-12 col-md-6 text-section text-center">
+        <div class="col-lg-4 col-12 col-md-6 text-section text-center">
           <ac-asset :asset="order.product" thumb-name="preview" img-class="bound-image" />
         </div>
-        <div class="col-md-6 col-sm-12 text-section pt-3">
+        <div class="col-md-6 col-12 text-section pt-3">
           <h1 v-html="md.renderInline(order.product.name)"></h1>
           <h2>Order #{{order.id}}</h2>
           <div v-html="md.render(order.product.description)"></div>
@@ -14,16 +14,16 @@
             <div class="order-details" v-html="md.render(order.details)"></div>
           </div>
         </div>
-        <div class="col-sm-12 col-lg-2 text-section text-center pt-3">
+        <div class="col-12 col-lg-2 text-section text-center pt-3">
           <div class="text-center">
             <h3>Ordered By</h3>
             <ac-avatar :user="order.buyer" />
           </div>
         </div>
-        <div class="col-sm-12 text-section mb-2">
+        <div class="col-12 text-section mb-2">
           <h2>Characters</h2>
         </div>
-        <div class="col-sm-12">
+        <div class="col-12">
           <ac-character-preview
               v-for="char in order.characters"
               v-bind:character="char"
@@ -31,11 +31,11 @@
               v-bind:key="char.id"
           />
         </div>
-        <div class="col-lg-3 col-md-6 col-sm-12 text-section text-center pt-2">
+        <div class="col-lg-3 col-md-6 col-12 text-section text-center pt-2">
           <h3>Seller:</h3>
           <ac-avatar :user="order.seller" />
         </div>
-        <div class="col-lg-6 col-md-6 col-sm-12 text-section text-center pt-2" v-if="paymentDetail">
+        <div class="col-lg-6 col-md-6 col-12 text-section text-center pt-2" v-if="paymentDetail">
           <div class="pricing-container">
             <p v-if="order.status < 2">Price may be adjusted by the seller before finalization.</p>
             <span v-html="md.renderInline(order.product.name)"></span>: ${{order.price}}<br />
@@ -70,7 +70,7 @@
             </p>
           </div>
         </div>
-        <div :class="{'col-lg-3': paymentDetail, 'col-sm-12': true, 'text-section': true, 'pt-2': true, 'pb-3': true, 'col-md-9': !paymentDetail, 'text-center': !paymentDetail}">
+        <div :class="{'col-lg-3': paymentDetail, 'col-12': true, 'text-section': true, 'pt-2': true, 'pb-3': true, 'col-md-9': !paymentDetail, 'text-center': !paymentDetail}">
           <div v-if="buyer && newOrder">
             <p>
               <strong>The artist has been notified of your order, and will respond soon!</strong>
@@ -166,13 +166,14 @@
             <p>You can revisit this page at any time for your records.</p>
           </div>
         </div>
-        <div class="col-md-6 col-sm-12 text-section" v-if="buyer && paymentPending">
+        <div class="col-md-6 col-12 text-section" v-if="buyer && paymentPending">
           <ac-card-manager :payment="true" :username="order.buyer.username" v-model="selectedCard" />
         </div>
-        <div class="col-md-6 col-sm-12 mt-3 mb-3 text-center" v-if="buyer && paymentPending">
+        <div class="col-md-6 col-12 mt-3 mb-3 text-center" v-if="buyer && paymentPending">
           <p><strong>Add a card or select a saved one on the left.</strong></p>
           <p>Once you've selected a card, you may click the pay button below to put the commission in the artist's queue.
             By paying, you are agreeing to the <router-link :to="{name: 'CommissionAgreement'}">Commission Agreement.</router-link></p>
+          <p>Artconomy is based in the United States of America</p>
           <div class="pricing-container">
             <p v-if="order.status < 2">Price may be adjusted by the seller before finalization.</p>
             <span v-html="md.renderInline(order.product.name)"></span>: ${{order.price}}<br />
@@ -186,7 +187,7 @@
             </div>
           </div>
         </div>
-        <div class="col-sm-12 text-center" v-if="justPaid">
+        <div class="col-12 text-center" v-if="justPaid">
           <i class="fa fa-5x fa-check-circle"></i><br />
           <p><strong>Your payment has been received!</strong></p>
           <p>We've received your payment and your work is now in the artist's queue. They'll start on it as soon as
@@ -194,11 +195,11 @@
         </div>
       </div>
       <div class="row-centered shadowed mt-3 pb-3 revisions-section" v-if="revisionsLimited && revisionsLimited.length">
-        <div class="col-sm-12">
+        <div class="col-12">
           <h2>Revisions</h2>
         </div>
         <div v-for="(revision, index) in revisionsLimited"
-             class="col-sm-12 col-md-6 col-lg-4 col-centered text-center order-revision"
+             class="col-12 col-md-6 col-lg-4 col-centered text-center order-revision"
              v-bind:key="revision.id">
           <ac-asset thumb-name="preview" img-class="max-width" :asset="revision" />
           <div class="text-center text-section p-3 mt-2">
@@ -216,10 +217,10 @@
         </div>
       </div>
       <div class="row shadowed mt-3 pb-3" v-if="final">
-        <div class="col-sm-12 text-center">
+        <div class="col-12 text-center">
           <h2>Final</h2>
         </div>
-        <div class="col-sm-12 text-center">
+        <div class="col-12 text-center">
           <router-link v-if="output" :to="{name: 'Submission', params: {assetID: output.id}}">
             <ac-asset class="final-preview" thumb-name="preview" img-class="max-width" :asset="final" />
           </router-link>
@@ -291,7 +292,7 @@
         </div>
       </div>
       <div class="row-centered mt-3 shadowed text-center pb-3" v-if="showRevisionPanel">
-        <div class="col-sm-12 col-md-6 col-centered">
+        <div class="col-12 col-md-6 col-centered">
           <form>
             <ac-form-container
                 method="POST"
@@ -310,7 +311,7 @@
         </div>
       </div>
       <div class="row shadowed mt-3">
-        <div class="col-sm-12">
+        <div class="col-12">
           <ac-comment-section :commenturl="commenturl" :nesting="false" />
         </div>
       </div>

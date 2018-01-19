@@ -1,10 +1,10 @@
 <template>
   <router-link :to="{name: 'Submission', params: {'assetID': event.target.id}}">
     <div class="row">
-      <div class="col-sm-4 col-lg-2">
+      <div class="col-4 col-lg-2">
         <ac-asset class="p-2" :terse="true" :asset="event.target" thumb-name="notification" />
       </div>
-      <div class="col-sm-6">
+      <div class="col-6">
         <div class="p2">
           <p><strong>Your commission has been favorited!</strong></p>
         </div>

@@ -1,11 +1,11 @@
 <template>
     <div class="row">
-      <div class="col-sm-4 col-lg-2">
+      <div class="col-4 col-lg-2">
         <router-link :to="{name: 'Case', params: {orderID: event.target.id, username: viewer.username}}">
           <ac-asset class="p-2" :terse="true" :asset="event.target.product" thumb-name="notification" />
         </router-link>
       </div>
-      <div class="col-sm-6">
+      <div class="col-6">
         <div class="pt-1 pb-1">
           <p><strong>A Dispute has been filed for Order #{{event.target.id}}.</strong></p>
           <ac-action

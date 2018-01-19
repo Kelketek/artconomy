@@ -1,27 +1,27 @@
 <template>
   <div class="container home">
     <div class="row">
-      <div class="col-sm-12 text-center">
+      <div class="col-12 text-center">
         <img class="home-logo" src="/static/images/logo.svg"/>
       </div>
-      <div class="col-sm-12 text-center home-title">
+      <div class="col-12 text-center home-title">
         <h1>Welcome to Artconomy</h1>
       </div>
     </div>
     <div class="row">
-      <div class="col-sm-12 col-md-6 text-center">
+      <div class="col-12 col-md-6 text-center">
         <h3>Upload and catalog your characters</h3>
         <p>Have a character you want to show off? Now you have the tools to do it, for free!</p>
       </div>
-      <div class="col-sm-12 col-md-6 text-center">
+      <div class="col-12 col-md-6 text-center">
         <img class="demo-img" src="/static/images/characterbrowse.jpg" />
       </div>
-      <div class="col-sm-12 col-md-6 text-center">
+      <div class="col-12 col-md-6 text-center">
         <h3>Commission Artists</h3>
         <p>Have a character in mind but need help bringing it to life? Have an artist make a reference sheet, and many more to stylize your characters as much as you please.</p>
         <p>See artists by rating and pricing, and commission with confidence.</p>
       </div>
-      <div class="col-sm-12 col-sm-12 text-center">
+      <div class="col-12 col-12 text-center">
         <h3>Are you an artist?</h3>
         <p>Get a free shop where people can commission you!</p>
         <p>Use built-in communications tools for helping clients keep track of your progress.</p>

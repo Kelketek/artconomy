@@ -15,7 +15,7 @@
             </ac-action>
           </div>
         <div class="row">
-          <div class="col-sm-6">
+          <div class="col-6">
             <div class="statline">
               <strong>Species:</strong> <ac-patchfield v-model="character.species" name="species" :editmode="editing" :url="url"></ac-patchfield>
             </div>
@@ -23,7 +23,7 @@
               <strong>Gender:</strong> <ac-patchfield v-model="character.gender" name="gender" :editmode="editing" :url="url"></ac-patchfield>
             </div>
           </div>
-          <div class="col-sm-6 pull-right">
+          <div class="col-6 pull-right">
             <ac-action v-if="editing" class="text-center" style="display:block" :url="url" method="PATCH" :send="{private: !character.private}" :success="loadCharacter">
               <span v-if="character.private"><i class="fa fa-eye-slash"></i> Hide character</span>
               <span v-else><i class="fa fa-eye"></i> Unhide character</span>
@@ -45,7 +45,7 @@
       </div>
     </div>
     <div class="row mb-3 shadowed" v-if="character">
-      <div class="col-md-8 col-sm-12 text-section pt-3 pl-4">
+      <div class="col-md-8 col-12 text-section pt-3 pl-4">
         <h2 class="mb-0">
           About {{ character.name }}
         </h2>
@@ -53,12 +53,12 @@
           <div class="card-block character-description"><ac-patchfield v-model="character.description" name="description" :multiline="true" :editmode="editing" :url="url" /></div>
         </div>
       </div>
-      <div class="col-md-4 col-sm-12 text-section text-center pt-3 pl-4">
+      <div class="col-md-4 col-12 text-section text-center pt-3 pl-4">
         <ac-avatar :user="character.user" />
       </div>
     </div>
     <div class="row mb-3" v-if="character">
-      <div class="col-sm-12 col-md-9 text-center image-showcase" v-if="assets && assets.length">
+      <div class="col-12 col-md-9 text-center image-showcase" v-if="assets && assets.length">
         <router-link v-if="character.primary_asset && character.primary_asset.id" :to="{name: 'Submission', params: {assetID: character.primary_asset.id}}">
           <img class="character-refsheet mb-2 shadowed" :src="character.primary_asset.file.gallery"/>
           <div class="character-gallery-title text-center">{{ character.primary_asset.title }}</div>
@@ -76,10 +76,10 @@
           </router-link>
         </div>
       </div>
-      <div class="col-sm-12 text-center" v-else>
+      <div class="col-12 text-center" v-else>
         <b-button v-if="controls && !showUpload" variant="primary" @click="displayUploader">Upload a new picture of {{ character.name }}</b-button>
       </div>
-      <div class="col-sm-12 col-md-3 character-gallery" v-if="assets != null">
+      <div class="col-12 col-md-3 character-gallery" v-if="assets != null">
         <ac-gallery-preview v-for="(asset, key, index) in assets"
              :key="key" :id="'asset-' + key"
              v-if="asset.id !== displayedId"
@@ -87,7 +87,7 @@
         >
         </ac-gallery-preview>
       </div>
-      <div class="col-sm-12" v-if="showUpload">
+      <div class="col-12" v-if="showUpload">
         <form>
           <ac-form-container ref="newUploadForm" :schema="newUploadSchema" :model="newUploadModel"
                              :options="newUploadOptions" :success="addUpload"

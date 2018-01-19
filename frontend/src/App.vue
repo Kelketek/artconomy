@@ -3,10 +3,10 @@
     <nav-bar />
     <div v-if="$root.errorCode !== null" class="container error-container">
       <div class="row">
-        <div class="col-sm-12 text-center">
+        <div class="col-12 text-center">
           <img class="error-logo" src="/static/images/logo.svg"/>
         </div>
-        <div class="col-sm-12 text-center home-title">
+        <div class="col-12 text-center home-title">
           <h1>Whoops!</h1>
           <p v-if="$root.errorCode === 500">
             Something went wrong. We've notified our developers and will get it fixed as soon as we can!
@@ -26,16 +26,20 @@
         </div>
       </div>
     </div>
-    <router-view v-else-if="$root.user !== null" />
+    <router-view class="pb-10 pt-3" v-else-if="$root.user !== null" />
     <div v-else class="text-center" style="width:100%"><i class="fa fa-spin fa-spinner fa-5x"></i></div>
+    <ac-footer />
   </div>
 </template>
 
 <script>
   import NavBar from './components/NavBar'
+  import AcFooter from './components/ac-footer'
   export default {
     name: 'app',
-    components: {NavBar},
+    components: {
+      AcFooter,
+      NavBar},
     props: ['user']
   }
 </script>
@@ -46,6 +50,9 @@
   .error-logo {
     width: 25%;
     margin-bottom: 2rem;
+  }
+  .pb-10 {
+    padding-bottom: 6rem !important;
   }
   .error-title {
     margin-bottom: 2rem;

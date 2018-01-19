@@ -13,7 +13,7 @@
         :buyer="buyer"
         :username="username"
     />
-    <div class="col-sm-12">
+    <div class="col-12">
       <b-pagination-nav
           align="center" :use-router="true" :base-url="baseURL" :link-gen="linkGen"
           v-model="currentPage" :per-page="pageSize" :number-of-pages="totalPages"
