@@ -1,5 +1,7 @@
 import NavBar from '@/components/NavBar'
 import VueFormGenerator from 'vue-form-generator'
+import VueRouter from 'vue-router'
+import { router } from '../../../src/router'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 import 'vue-form-generator/dist/vfg.css'  // optional full css additions
 import BootstrapVue from 'bootstrap-vue'
@@ -14,6 +16,7 @@ describe('NavBar.vue', () => {
   beforeEach(function () {
     server = sinon.fakeServer.create()
     localVue = createLocalVue()
+    localVue.use(VueRouter)
     localVue.use(BootstrapVue)
     localVue.use(UserHandler)
     localVue.use(VueFormGenerator)
@@ -21,28 +24,43 @@ describe('NavBar.vue', () => {
   afterEach(function () {
     server.restore()
   })
-  it('should wait until the user is populated to show contents/', async () => {
-    let wrapper = mount(NavBar, {localVue})
+  it('should wait until the user is populated to show contents', async () => {
+    let wrapper = mount(
+      NavBar, {
+        localVue,
+        router
+      })
     wrapper.vm.$forceUser(null)
+    await localVue.nextTick()
     expect(wrapper.find('#nav_collapse').text())
       .to.equal('')
   })
   it('should show a login button when logged out', async () => {
-    let wrapper = mount(NavBar, {localVue})
+    let wrapper = mount(
+      NavBar, {
+        localVue,
+        router
+      })
     wrapper.vm.$forceUser({})
     await localVue.nextTick()
     expect(wrapper.find('#nav_collapse').text())
       .to.equal('Login')
   })
   it("Should show the logged in user's name when logged in.", async () => {
-    let wrapper = mount(NavBar, {localVue})
+    let wrapper = mount(NavBar, {
+      localVue,
+      router
+    })
     wrapper.vm.$forceUser({username: 'Jimmy'})
     await localVue.nextTick()
     expect(wrapper.find('#navbar .nav-login-item').text())
       .to.equal('Jimmy')
   })
   it('Should show a login modal when the login button is clicked.', async () => {
-    let wrapper = mount(NavBar, {localVue})
+    let wrapper = mount(NavBar, {
+      localVue,
+      router
+    })
     wrapper.vm.$forceUser({})
     await localVue.nextTick()
     let loginModal = wrapper.find('#loginModal')
@@ -54,7 +72,10 @@ describe('NavBar.vue', () => {
     expect(isVisible(loginModal)).to.equal(true)
   })
   it('Should send login information when filling out the login form and hitting the login button.', async () => {
-    let wrapper = mount(NavBar, {localVue})
+    let wrapper = mount(NavBar, {
+      localVue,
+      router
+    })
     wrapper.vm.$forceUser({})
     await localVue.nextTick()
     wrapper.find('#navbar .nav-login-item').trigger('click')
@@ -81,7 +102,10 @@ describe('NavBar.vue', () => {
       })
   })
   it('Should send registration information when filling out the login form and hitting the register button.', async () => {
-    let wrapper = mount(NavBar, {localVue})
+    let wrapper = mount(NavBar, {
+      localVue,
+      router
+    })
     wrapper.vm.$forceUser({})
     await localVue.nextTick()
     wrapper.find('#navbar .nav-login-item').trigger('click')

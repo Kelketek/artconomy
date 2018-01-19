@@ -20,7 +20,7 @@
         <!-- Right aligned nav items -->
         <b-navbar-nav class="ml-auto" v-if="viewer !== null">
           <div class="form-inline">
-            <input class="mr-sm-2 form-control form-control-sm" type="text" v-model="query" @input="performSearch" placeholder="Search"/>
+            <input class="mr-sm-2 form-control form-control-sm" type="text" v-model="query" @input="performSearch" @keydown.enter="performSearch" placeholder="Search"/>
           </div>
           <!-- Navbar dropdowns -->
           <b-nav-item v-if="viewer.username" :to="{name: 'Profile', params: {username: viewer.username}}">
@@ -181,6 +181,9 @@
       }
       if (this.$route.name === 'Search') {
         data.queryData = this.$route.query.q || []
+        if (!Array.isArray(data.queryData)) {
+          data.queryData = [data.queryData]
+        }
       }
       return data
     },
@@ -241,7 +244,6 @@
       },
       loginFailure (response) {
         let form = this.$refs[this.tab.form]
-        console.log(response.responseJSON)
         setErrors(form, response.responseJSON)
       },
       logout () {

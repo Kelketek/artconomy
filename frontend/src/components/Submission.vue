@@ -13,6 +13,7 @@
             :removable="controls"
             :remove-url="`${url}tag/`"
             :callback="populateSubmission"
+            tab-name="submissions"
         />
         <div class="pt-2 pb-2">
           <b-button v-if="!showTagging" @click="showTagging=true">Add Tags</b-button>

@@ -1,5 +1,13 @@
 <template>
-  <div class="tag">{{tag.name}} <span v-if="removable" @click="remove"><i class="fa fa-times"></i></span></div>
+  <div class="tag">
+    <router-link v-if="tabName" :to="{name: 'Search', params: {tabName: tabName}, query: {q: [tag.name]}}">
+      {{tag.name}}
+    </router-link>
+    <span v-else>
+      {{tag.name}}
+    </span>
+    <span v-if="removable" @click="remove"><i class="fa fa-times"></i></span>
+  </div>
 </template>
 
 <style>
@@ -30,12 +38,16 @@
       removeUrl: {},
       callback: {
         default: function () {}
-      }
+      },
+      tabName: {}
     },
     methods: {
       remove () {
         artCall(this.removeUrl, 'DELETE', {'tags': [this.tag.name]}, this.callback)
       }
+    },
+    created () {
+      console.log(this.tabName)
     }
   }
 </script>

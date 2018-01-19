@@ -318,6 +318,14 @@ class AssetSearch(ListAPIView):
                 qs = qs.filter(tags__name__iexact=q)
         return qs.distinct()
 
+    def get(self, *args, **kwargs):
+        query = self.request.GET.getlist('q', [])
+        if len(query) > 10:
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST, data={'error': 'You cannot use more than 10 search terms at once.'}
+            )
+        return super().get(*args, **kwargs)
+
 
 class AssetTagCharacter(APIView):
     permission_classes = [IsAuthenticated, AssetViewPermission]
@@ -474,7 +482,7 @@ class AssetTag(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'tags': ['This field is required.']})
         tag_list = request.data['tags']
         # Slugify, but also do a few tricks to reduce the incidence rate of duplicates.
-        tag_list = [slugify(str(tag).lower().replace(' ', '').replace('-', '_'))[:50] for tag in tag_list]
+        tag_list = [slugify(str(tag).lower().replace(' ', '')).replace('-', '_')[:50] for tag in tag_list]
         tag_list = list({tag for tag in tag_list if tag})
         try:
             add_check(asset, 'tags', *tag_list)

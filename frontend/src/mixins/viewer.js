@@ -10,6 +10,10 @@ export default {
       }
     },
     viewer: function () {
+      if (this.$root.user === undefined) {
+        // This can happen during testing.
+        return null
+      }
       return this.$root.user
     }
   }

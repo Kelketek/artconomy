@@ -18,6 +18,7 @@ export default {
       growing: null,
       growMode: false,
       fetching: false,
+      error: '',
       oldQueryData: JSON.parse(JSON.stringify(this.queryData))
     }
     if (this.url === undefined) {
@@ -48,6 +49,19 @@ export default {
         this.growing = response.results
       }
       this.fetching = false
+      if (this.growing.length === 0 && this.queryData.q && this.queryData.q.length) {
+        this.error = 'We could not find anything which matched your request.'
+      }
+    },
+    populateError (response) {
+      console.log(response)
+      if (response.status === 400) {
+        if (response.responseJSON && response.responseJSON.error) {
+          this.error = response.responseJSON.error
+        } else {
+          this.$error(response)
+        }
+      }
     },
     fetchItems (pageNum) {
       let queryData = JSON.parse(JSON.stringify(this.queryData))
@@ -56,7 +70,8 @@ export default {
       let qs = buildQueryString(queryData)
       let url = `${this.url}?${qs}`
       this.fetching = true
-      artCall(url, 'GET', undefined, this.populateResponse)
+      this.error = ''
+      artCall(url, 'GET', undefined, this.populateResponse, this.populateError)
     }
   },
   computed: {
