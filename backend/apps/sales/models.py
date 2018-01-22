@@ -15,7 +15,7 @@ from django.dispatch import receiver
 from djmoney.models.fields import MoneyField
 from moneyed import Money
 
-from apps.lib.models import Comment, Subscription, DISPUTE, SALE_UPDATE, ORDER_UPDATE
+from apps.lib.models import Comment, Subscription, SALE_UPDATE, ORDER_UPDATE
 from apps.lib.abstract_models import ImageModel
 from apps.sales.permissions import OrderViewPermission
 from apps.sales.sauce import sauce
@@ -482,17 +482,9 @@ class PaymentRecord(Model):
             record.txn_id = response.uid
             record.status = PaymentRecord.SUCCESS
             record.save()
-        except AuthorizeError as err:
-            if hasattr(err, 'full_response') and 'response_reason_text' in err.full_response:
-                record.response_message = err.full_response['response_reason_text']
-                # Probably tried to refund too early.
-                if err.full_response['response_reason_code'] == '54':
-                    record.response_message = (
-                        'This transaction cannot be refunded. It may not yet have posted. '
-                        'Please try again tomorrow, and contact support if it still fails.'
-                    )
-            else:
-                record.response_message = str(err)
+        except Exception as err:
+            from apps.sales.utils import translate_authnet_error
+            record.response_message = translate_authnet_error(err)
             record.save()
         return record
 

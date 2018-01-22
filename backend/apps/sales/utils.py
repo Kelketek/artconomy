@@ -42,3 +42,28 @@ def available_balance(user):
         credit = Decimal('0.00')
 
     return credit - debit
+
+
+def translate_authnet_error(err):
+    response = str(err)
+    if hasattr(err, 'full_response'):
+        # API is inconsistent in how it returns error info.
+        if 'response_reason_text' in err.full_response:
+            response = err.full_response['response_reason_text']
+        if 'response_text' in err.full_response:
+            response = err.full_response['response_text']
+        if 'response_reason_code' in err.full_response:
+            response = RESPONSE_TRANSLATORS.get(err.full_response['response_reason_code'], response)
+        if 'response_code' in err.full_response:
+            response = RESPONSE_TRANSLATORS.get(err.full_response['response_code'], response)
+    print(err.full_response)
+    return response
+
+
+RESPONSE_TRANSLATORS = {
+    '54': 'This transaction cannot be refunded. It may not yet have posted. '
+          'Please try again tomorrow, and contact support if it still fails.',
+    'E00027': "The zip or address we have on file for your card is either incorrect or has changed. Please remove the "
+          "card and add it again with updated information.",
+    'E00040': "Something is wrong in our records with the card you've added. Please remove the card and re-add it."
+}

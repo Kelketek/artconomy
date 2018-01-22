@@ -73,6 +73,7 @@
       <div class="text-center" style="width:100%"><i class="fa fa-spin fa-spinner fa-5x"></i></div>
     </div>
   </div>
+
 </template>
 
 <script>

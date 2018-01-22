@@ -454,6 +454,13 @@ class AssetTag(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'tags': ['This field is required.']})
         tag_list = request.data['tags']
         qs = Tag.objects.filter(name__in=tag_list)
+        if not qs.exists():
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST,
+                data={'tags': [
+                    'No tags specified, or the requested tags do not exist.'
+                ]}
+            )
         if (asset.uploaded_by == request.user) or request.user.is_staff:
             asset.tags.remove(*qs)
             return Response(
@@ -462,18 +469,6 @@ class AssetTag(APIView):
             )
         else:
             raise PermissionDenied("You do not have permission to remove tags on this ")
-        if not qs.exists():
-            return Response(
-                status=status.HTTP_400_BAD_REQUEST,
-                data={'artists': [
-                    'No artists specified. Those IDs do not exist, or you do not have permission '
-                    'to remove any of them.'
-                ]}
-            )
-        asset.artists.remove(*qs)
-        return Response(
-            status=status.HTTP_200_OK, data=ImageAssetManagementSerializer(instance=asset, request=request).data
-        )
 
     def post(self, request, asset_id):
         asset = get_object_or_404(ImageAsset, id=asset_id)

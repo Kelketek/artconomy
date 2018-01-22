@@ -35,6 +35,7 @@ from apps.sales.models import Product, Order, CreditCardToken, PaymentRecord, Re
 from apps.sales.serializers import ProductSerializer, ProductNewOrderSerializer, OrderViewSerializer, CardSerializer, \
     NewCardSerializer, OrderAdjustSerializer, PaymentSerializer, RevisionSerializer, OrderStartedSerializer, \
     AccountBalanceSerializer
+from apps.sales.utils import translate_authnet_error
 
 
 class ProductListAPI(ListCreateAPIView):
@@ -605,8 +606,8 @@ class MakePayment(GenericAPIView):
         data = {'error': record.response_message}
         try:
             result = card.api.capture(attempt['amount'])
-        except AuthorizeError as err:
-            record.response_message = str(err)
+        except Exception as err:
+            record.response_message = translate_authnet_error(err)
             data['error'] = record.response_message
         else:
             record.status = PaymentRecord.SUCCESS

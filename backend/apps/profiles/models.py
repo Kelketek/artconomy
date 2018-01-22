@@ -178,6 +178,8 @@ class Character(Model):
     created_on = DateTimeField(auto_now_add=True)
     species = CharField(max_length=150, blank=True, default='')
     gender = CharField(max_length=50, blank=True, default='')
+    tags = ManyToManyField('Tag')
+    tags__max = 100
 
     def __str__(self):
         return self.name
