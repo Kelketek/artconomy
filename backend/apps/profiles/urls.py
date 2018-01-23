@@ -6,7 +6,7 @@ from apps.profiles.views import Register, CharacterListAPI, ImageAssetListAPI, \
     CharacterManager, AssetManager, MakePrimary, SettingsAPI, CurrentUserInfo, AssetComments, CredentialsAPI, \
     register_dwolla, \
     NotificationsList, SetAvatar, UserInfo, CharacterSearch, AssetFavorite, MarkNotificationsRead, AssetTagCharacter, \
-    UserSearch, AssetTagArtist, TagSearch, AssetTag, AssetSearch
+    UserSearch, AssetTagArtist, TagSearch, AssetTag, AssetSearch, CharacterTag
 from apps.profiles.views import check_username, check_email, perform_login, perform_logout
 
 urlpatterns = [
@@ -27,10 +27,6 @@ urlpatterns = [
     url(r'^v1/account/(?P<username>[-\w]+)/settings/$', SettingsAPI.as_view(), name='settings_update'),
     url(r'^v1/account/(?P<username>[-\w]+)/credentials/$', CredentialsAPI.as_view(), name='credentials'),
     url(r'^v1/account/(?P<username>[-\w]+)/avatar/$', SetAvatar.as_view(), name='avatar'),
-    url(
-        r'^v1/account/(?P<username>[-\w]+)/characters/(?P<character>[-\w\s]+)/asset/primary/(?P<asset_id>\d+)/$',
-        MakePrimary.as_view(), name='asset_primary'
-    ),
     url(
         r'^v1/asset/(?P<asset_id>\d+)/$',
         AssetManager.as_view(), name='asset_manager'
@@ -62,5 +58,19 @@ urlpatterns = [
         ImageAssetListAPI.as_view(), name='asset_upload'
     ),
     url(r'^v1/account/(?P<username>[-\w]+)/characters/$', CharacterListAPI.as_view(), name='character_list'),
-    url(r'^v1/account/(?P<username>[-\w]+)/characters/(?P<character>[-\w\s]+)/$', CharacterManager.as_view(), name='character'),
+    url(
+        r'^v1/account/(?P<username>[-\w]+)/characters/(?P<character>[-\w\s]+)/$',
+        CharacterManager.as_view(),
+        name='character'
+    ),
+    url(
+        r'^v1/account/(?P<username>[-\w]+)/characters/(?P<character>[-\w\s]+)/tag/$',
+        CharacterTag.as_view(),
+        name='character_tag'
+    ),
+    url(
+        r'^v1/account/(?P<username>[-\w]+)/characters/(?P<character>[-\w\s]+)/asset/primary/(?P<asset_id>\d+)/$',
+        MakePrimary.as_view(), name='asset_primary'
+    ),
+
 ]

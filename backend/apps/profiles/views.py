@@ -1,16 +1,11 @@
-from functools import reduce
-
 import requests
 from avatar.models import Avatar
 from avatar.signals import avatar_updated
 from django.conf import settings
 from django.contrib.auth import login, get_user_model, authenticate, logout, update_session_auth_hash
-from django.db import connection
-from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
-from django.utils.text import slugify
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -31,8 +26,8 @@ from apps.lib.utils import recall_notification, notify, safe_add, add_check
 from apps.profiles.models import User, Character, ImageAsset, Tag
 from apps.profiles.permissions import ObjectControls, UserControls, AssetViewPermission, AssetControls, NonPrivate
 from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer, SettingsSerializer, UserSerializer, \
-    RegisterSerializer, ImageAssetManagementSerializer, CredentialsSerializer, AvatarSerializer, TagSerializer
-from apps.profiles.utils import available_chars, char_ordering, available_assets
+    RegisterSerializer, ImageAssetManagementSerializer, CredentialsSerializer, AvatarSerializer
+from apps.profiles.utils import available_chars, char_ordering, available_assets, tag_list_cleaner, ensure_tags
 from shortcuts import make_url
 
 
@@ -151,10 +146,15 @@ class MakePrimary(APIView):
     permission_classes = [ObjectControls]
 
     def get_object(self):
-        return get_object_or_404(
-            ImageAsset, id=self.kwargs['asset_id'], characters__user__username=self.kwargs['username'],
-            characters__name=self.kwargs['character']
+        asset = get_object_or_404(
+            ImageAsset, id=self.kwargs['asset_id']
         )
+        get_object_or_404(
+            Character, assets=asset.id, name=self.kwargs['character'], user__username=self.kwargs['username']
+        )
+        if asset.private:
+            self.check_object_permissions(self.request, asset)
+        return asset
 
     def post(self, *args, **kwargs):
         asset = self.get_object()
@@ -162,7 +162,9 @@ class MakePrimary(APIView):
         self.check_object_permissions(self.request, char)
         char.primary_asset = asset
         char.save()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(
+            status=status.HTTP_200_OK, data=ImageAssetManagementSerializer(request=self.request, instance=asset).data
+        )
 
 
 class AssetManager(RetrieveUpdateDestroyAPIView):
@@ -477,36 +479,70 @@ class AssetTag(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'tags': ['This field is required.']})
         tag_list = request.data['tags']
         # Slugify, but also do a few tricks to reduce the incidence rate of duplicates.
-        tag_list = [slugify(str(tag).lower().replace(' ', '')).replace('-', '_')[:50] for tag in tag_list]
-        tag_list = list({tag for tag in tag_list if tag})
+        tag_list = tag_list_cleaner(tag_list)
         try:
             add_check(asset, 'tags', *tag_list)
         except ValueError as err:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'tags': [str(err)]})
-        with connection.cursor() as cursor:
-            # Bulk get or create
-            # Django's query prepper automatically wraps our arrays in parens, but we need to have them
-            # act as individual values, so we have to custom build our placeholders here.
-            statement = """
-                INSERT INTO profiles_tag (name)
-                (
-                         SELECT i.name
-                         FROM (VALUES {}) AS i(name)
-                         LEFT JOIN profiles_tag as existing
-                                 ON (existing.name = i.name)
-                         WHERE existing.name IS NULL
-                )
-                """.format(('%s, ' * len(tag_list)).rsplit(',', 1)[0])
-            cursor.execute(statement, [*tuple((tag,) for tag in tag_list)])
+        ensure_tags(tag_list)
         asset.tags.add(*Tag.objects.filter(name__in=tag_list))
 
         if asset.uploaded_by != request.user:
             notify(
-                SUBMISSION_TAG, asset, data={'user': request.user.id},
-                unique=True, unique_data=True, mark_unread=False
+                SUBMISSION_TAG, asset, data={
+                    'user': request.user.id,
+                    'tags': tag_list
+                },
+                unique=True, unique_data=True, mark_unread=False,
             )
         return Response(
             status=status.HTTP_200_OK, data=ImageAssetManagementSerializer(instance=asset, request=self.request).data
+        )
+
+
+class CharacterTag(APIView):
+    permission_classes = [IsAuthenticated, ObjectControls]
+
+    def delete(self, request, username,  character):
+        character = get_object_or_404(Character, user__username__iexact=username, name=character)
+        self.check_object_permissions(request, character)
+        # Check has to be different here.
+        # Might find a way to better simplify this sort of permission checking if
+        # we end up doing it a lot.
+        if 'tags' not in request.data:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={'tags': ['This field is required.']})
+        tag_list = request.data['tags']
+        qs = Tag.objects.filter(name__in=tag_list)
+        if not qs.exists():
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST,
+                data={'tags': [
+                    'No tags specified, or the requested tags do not exist.'
+                ]}
+            )
+        character.tags.remove(*qs)
+        return Response(
+            status=status.HTTP_200_OK,
+            data=CharacterSerializer(instance=character).data
+        )
+
+    def post(self, request, username, character):
+        character = get_object_or_404(Character, user__username__iexact=username, name=character)
+        self.check_object_permissions(request, character)
+        if 'tags' not in request.data:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={'tags': ['This field is required.']})
+        tag_list = request.data['tags']
+        # Slugify, but also do a few tricks to reduce the incidence rate of duplicates.
+        tag_list = tag_list_cleaner(tag_list)
+        try:
+            add_check(character, 'tags', *tag_list)
+        except ValueError as err:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={'tags': [str(err)]})
+        ensure_tags(tag_list)
+        character.tags.add(*Tag.objects.filter(name__in=tag_list))
+
+        return Response(
+            status=status.HTTP_200_OK, data=CharacterSerializer(instance=character).data
         )
 
 

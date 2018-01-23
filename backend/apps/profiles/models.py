@@ -14,7 +14,7 @@ from django.dispatch import receiver
 
 from apps.lib.abstract_models import GENERAL, RATINGS, ImageModel
 from apps.lib.models import Comment, Subscription, FAVORITE, SYSTEM_ANNOUNCEMENT, DISPUTE, REFUND, Event, \
-    SUBMISSION_CHAR_TAG, CHAR_TAG
+    SUBMISSION_CHAR_TAG, CHAR_TAG, SUBMISSION_TAG
 from apps.profiles.permissions import AssetViewPermission, AssetCommentPermission
 
 
@@ -107,8 +107,8 @@ class ImageAsset(ImageModel):
     comment_permissions = [AssetViewPermission, AssetCommentPermission]
 
     def notification_serialize(self):
-        from .serializers import ImageAssetSerializer
-        return ImageAssetSerializer(instance=self).data
+        from .serializers import ImageAssetNotificationSerializer
+        return ImageAssetNotificationSerializer(instance=self).data
 
     def favorite_count(self):
         return self.favorited_by.all().count()
@@ -128,6 +128,12 @@ def auto_subscribe_image(sender, instance, created=False, **_kwargs):
             content_type=ContentType.objects.get_for_model(model=sender),
             object_id=instance.id,
             type=SUBMISSION_CHAR_TAG
+        )
+        Subscription.objects.create(
+            subscriber=instance.uploaded_by,
+            content_type=ContentType.objects.get_for_model(model=sender),
+            object_id=instance.id,
+            type=SUBMISSION_TAG
         )
 
 

@@ -160,7 +160,7 @@ class CharacterAPITestCase(APITestCase):
         response = self.client.post(
             '/api/profiles/v1/account/{}/characters/{}/asset/primary/{}/'.format(self.user.username, char.name, asset.id),
         )
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         char.refresh_from_db()
         self.assertEqual(char.primary_asset, asset)
 
@@ -172,7 +172,7 @@ class CharacterAPITestCase(APITestCase):
         response = self.client.post(
             '/api/profiles/v1/account/{}/characters/{}/asset/primary/{}/'.format(self.user.username, char.name, asset2.id),
         )
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         char.refresh_from_db()
         self.assertEqual(char.primary_asset, asset2)
 

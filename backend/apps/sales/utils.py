@@ -56,7 +56,6 @@ def translate_authnet_error(err):
             response = RESPONSE_TRANSLATORS.get(err.full_response['response_reason_code'], response)
         if 'response_code' in err.full_response:
             response = RESPONSE_TRANSLATORS.get(err.full_response['response_code'], response)
-    print(err.full_response)
     return response
 
 

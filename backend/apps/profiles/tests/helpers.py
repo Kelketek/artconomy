@@ -53,6 +53,7 @@ def serialize_char(key):
         'private': key.private,
         'open_requests': key.open_requests,
         'open_requests_restrictions': key.open_requests_restrictions,
+        'tags': [{'name': tag.name} for tag in key.tags.all()],
         'user': {
             'username': key.user.username,
             'id': key.user.id,

@@ -115,8 +115,6 @@ def notify(
 
 
 def add_check(instance, field_name, *args):
-    if not args:
-        raise TypeError('Items to add must be specified.')
     args_length = len(args)
     max_length = getattr(instance, field_name + '__max')
     current_length = getattr(instance, field_name).all().count()

@@ -72,9 +72,6 @@ class ImageAssetSerializer(serializers.ModelSerializer):
             )
             return cursor.fetchone()[0]
 
-    def get_thumbnail_url(self, obj):
-        return self.context['request'].build_absolute_uri(obj.file.url)
-
     class Meta:
         model = ImageAsset
         fields = (
@@ -95,10 +92,35 @@ class AvatarSerializer(serializers.Serializer):
         )
 
 
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = (
+            'name',
+        )
+
+
+class ImageAssetNotificationSerializer(serializers.ModelSerializer):
+    uploaded_by = RelatedUserSerializer(read_only=True)
+    tags = TagSerializer(many=True, read_only=True)
+    file = Base64ImageField(thumbnail_namespace='profiles.ImageAsset.file')
+
+    class Meta:
+        model = ImageAsset
+        fields = (
+            'id', 'title', 'caption', 'rating', 'file', 'private', 'created_on', 'uploaded_by',
+            'favorite_count', 'comments_disabled', 'tags'
+        )
+        write_only_fields = (
+            'file',
+        )
+
+
 class CharacterSerializer(serializers.ModelSerializer):
     user = RelatedUserSerializer(read_only=True)
     primary_asset = ImageAssetSerializer(required=False)
     primary_asset_id = serializers.IntegerField(write_only=True, required=False)
+    tags = TagSerializer(many=True, read_only=True)
 
     def validate_primary_asset_id(self, value):
         if value is None:
@@ -113,15 +135,7 @@ class CharacterSerializer(serializers.ModelSerializer):
         model = Character
         fields = (
             'id', 'name', 'description', 'private', 'open_requests', 'open_requests_restrictions', 'user',
-            'primary_asset', 'primary_asset_id', 'species', 'gender'
-        )
-
-
-class TagSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Tag
-        fields = (
-            'name',
+            'primary_asset', 'primary_asset_id', 'species', 'gender', 'tags'
         )
 
 
