@@ -227,7 +227,9 @@
       },
       monitorNotifications () {
         if (this.loopNotifications) {
-          artCall('/api/profiles/v1/data/notifications/?unread=1&size=0', 'GET', undefined, this.setNotificationStats)
+          artCall('/api/profiles/v1/data/notifications/?unread=1&size=0',
+            'GET', undefined, this.setNotificationStats,
+            () => { this.$setTimer('getUnreadNotifications', this.monitorNotifications, 30000) })
         }
       },
       loginHandler (response) {

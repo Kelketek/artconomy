@@ -45,11 +45,23 @@
   import AcOrderUpdate from './notifications/ac-order-update'
   import { ObserveVisibility } from 'vue-observe-visibility'
   import { artCall, NOTIFICATION_MAPPING, EventBus } from '../lib'
+  import AcSubmissionTag from './notifications/ac-submission-tag'
+  import AcCharTag from './notifications/ac-char-tag'
+  import AcSubmissionCharTag from './notifications/ac-submission-char-tag'
 
   export default {
     name: 'NotificationCenter',
     mixins: [Paginated],
-    components: {AcRefund, AcDispute, AcFavorite, AcSaleUpdate, AcOrderUpdate},
+    components: {
+      AcSubmissionCharTag,
+      AcCharTag,
+      AcSubmissionTag,
+      AcRefund,
+      AcDispute,
+      AcFavorite,
+      AcSaleUpdate,
+      AcOrderUpdate
+    },
     directives: {'observe-visibility': ObserveVisibility},
     data () {
       return {

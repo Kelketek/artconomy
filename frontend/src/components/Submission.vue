@@ -5,33 +5,13 @@
         <ac-asset :asset="submission" thumb-name="gallery" :rating="rating" />
       </div>
       <div class="col-md-3 col-12 text-section pt-3 pl-4">
-        <h3>Tags</h3>
-        <ac-tag
-            v-for="tag in submission.tags"
-            :tag="tag"
-            :key="tag.name"
-            :removable="controls"
-            :remove-url="`${url}tag/`"
+        <ac-tag-display
+            :editable="true"
+            :url="url"
             :callback="populateSubmission"
-            tab-name="submissions"
+            :tag-list="submission.tags"
+            :controls="controls"
         />
-        <div class="pt-2 pb-2">
-          <b-button v-if="!showTagging" @click="showTagging=true">Add Tags</b-button>
-          <div v-else>
-            <form>
-              <ac-form-container
-                  ref="taggingForm"
-                  :url="`${this.url}tag/`"
-                  :schema="taggingSchema"
-                  :options="taggingOptions"
-                  :model="taggingModel"
-                  :success="postTag"
-              />
-              <b-button variant="danger" @click.prevent="showTagging=false">Cancel</b-button>
-              <b-button type="submit" @click.prevent="$refs.taggingForm.submit">Tag!</b-button>
-            </form>
-          </div>
-        </div>
       </div>
       <div class="col-12 col-md-5 text-section pt-3 pl-4">
         <ac-patchfield v-model="submission.title" name="title" styleclass="name-edit" placeholder="Set the title" :editmode="editing" :url="url" />
@@ -117,6 +97,8 @@
           :remove-url="`${url}tag-characters/`"
           :removable="(char.user.username === viewer.username) || controls"
           :callback="populateSubmission"
+          :can-showcase="controls"
+          :asset-id="submission.id"
       >
       </ac-character-preview>
       <div class="col-12 text-center mb-2">
@@ -169,10 +151,12 @@
   import AcAction from './ac-action'
   import AcFormContainer from './ac-form-container'
   import AcTag from './ac-tag'
+  import AcTagDisplay from './ac-tag-display'
 
   export default {
     name: 'Submission',
     components: {
+      AcTagDisplay,
       AcTag,
       AcFormContainer,
       AcPatchdropdown,
@@ -192,7 +176,6 @@
         commenturl: `/api/profiles/v1/asset/${this.$route.params.assetID}/comments/`,
         showCharacterTagging: false,
         showArtistTagging: false,
-        showTagging: false,
         characterTaggingModel: {
           characters: []
         },
@@ -228,25 +211,6 @@
           ]
         },
         artistTaggingOptions: {
-          validateAfterLoad: false,
-          validateAfterChanged: true
-        },
-        taggingModel: {
-          tags: []
-        },
-        taggingSchema: {
-          fields: [
-            {
-              type: 'tag-search',
-              model: 'tags',
-              label: 'tags',
-              featured: true,
-              placeholder: 'Search tags',
-              styleClasses: 'field-input'
-            }
-          ]
-        },
-        taggingOptions: {
           validateAfterLoad: false,
           validateAfterChanged: true
         }
@@ -290,10 +254,6 @@
       postArtistTag (response) {
         this.populateSubmission(response)
         this.showArtistTagging = false
-      },
-      postTag (response) {
-        this.populateSubmission(response)
-        this.showTagging = false
       },
       postCharacterTag (response) {
         this.populateSubmission(response)

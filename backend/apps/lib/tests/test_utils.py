@@ -59,6 +59,28 @@ class NotificationsTestCase(TestCase):
             self.assertTrue(notification.read)
 
     @freeze_time('2018-01-01')
+    def test_transform(self):
+        asset = ImageAssetFactory.create()
+        notify(FAVORITE, target=asset, data={'users': [1, 2, 3]})
+        notification = Notification.objects.get(user=asset.uploaded_by)
+        event = notification.event
+        notification.read = True
+        notification.save()
+        self.assertEqual(event.date.year, 2018)
+        self.assertEqual(event.data, {'users': [1, 2, 3]})
+
+        def transform(old_data, new_data):
+            return {'users': old_data['users'] + new_data['users']}
+
+        with freeze_time('2012-08-04'):
+            notify(FAVORITE, target=asset, data={'users': [4, 5, 6]}, unique=True, transform=transform)
+            event.refresh_from_db()
+            notification.refresh_from_db()
+            self.assertEqual(event.date.year, 2018)
+            self.assertEqual(event.data, {'users': [1, 2, 3, 4, 5, 6]})
+            self.assertTrue(notification.read)
+
+    @freeze_time('2018-01-01')
     def test_unique_mark_unread(self):
         asset = ImageAssetFactory.create()
         notify(FAVORITE, target=asset, data={'users': []})
@@ -94,6 +116,27 @@ class NotificationsTestCase(TestCase):
             notification.refresh_from_db()
             self.assertEqual(event.date.year, 2018)
             self.assertEqual(event.data, {'users': []})
+            self.assertTrue(notification.read)
+            self.assertFalse(event.recalled)
+
+    def test_unique_data_query(self):
+        asset = ImageAssetFactory.create()
+        notify(FAVORITE, target=asset, data={'users': []})
+        notification = Notification.objects.get(user=asset.uploaded_by)
+        event = notification.event
+        notification.read = True
+        notification.save()
+        # Unique data primarily for singleton events.
+        event.recalled = True
+        event.save()
+        self.assertEqual(event.date.year, 2018)
+        self.assertEqual(event.data, {'users': []})
+        with freeze_time('2012-08-04'):
+            notify(FAVORITE, target=asset, data={'users': [1]}, unique_data={'users': []})
+            event.refresh_from_db()
+            notification.refresh_from_db()
+            self.assertEqual(event.date.year, 2018)
+            self.assertEqual(event.data, {'users': [1]})
             self.assertTrue(notification.read)
             self.assertFalse(event.recalled)
 

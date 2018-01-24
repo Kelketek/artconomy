@@ -52,10 +52,12 @@ def recall_notification(event_type, target, data=None, unique_data=False):
     events.update(recalled=True)
 
 
-def update_event(event, data, subscriptions, mark_unread, time_override=None):
+def update_event(event, data, subscriptions, mark_unread, time_override=None, transform=None):
     event.recalled = False
     if mark_unread or time_override:
         event.date = time_override or timezone.now()
+    if transform:
+        data = transform(event.data, data)
     event.data = data
     event.save()
     if mark_unread:
@@ -76,17 +78,22 @@ def get_matching_subscriptions(event_type, object_id, content_type):
     )
 
 
-def get_matching_events(event_type, content_type, object_id, data, unique_data=False):
+def get_matching_events(event_type, content_type, object_id, data, unique_data=None):
     query = Q(type=event_type)
     query &= target_params(object_id, content_type)
     if unique_data:
-        query &= Q(data=data)
+        if unique_data is True:
+            query &= Q(data=data)
+        else:
+            kwargs = {'data__' + key: value for key, value in unique_data.items()}
+            query &= Q(**kwargs)
     return Event.objects.filter(query)
 
 
 @atomic
 def notify(
-        event_type, target, data=None, unique=False, unique_data=False, mark_unread=False, time_override=None
+        event_type, target, data=None, unique=False, unique_data=None, mark_unread=False, time_override=None,
+        transform=None
 ):
     if data is None:
         data = {}
@@ -98,7 +105,12 @@ def notify(
     if unique or unique_data:
         events = get_matching_events(event_type, content_type, object_id, data, unique_data)
         if events.exists():
-            update_event(events[0], data, subscriptions, mark_unread=mark_unread, time_override=time_override)
+            update_event(
+                events[0], data, subscriptions,
+                mark_unread=mark_unread,
+                time_override=time_override,
+                transform=transform
+            )
             return
     event = Event.objects.create(
         type=event_type, object_id=target and target.id, content_type=content_type, data=data

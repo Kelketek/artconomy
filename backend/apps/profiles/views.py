@@ -373,11 +373,12 @@ class AssetTagCharacter(APIView):
         qs = qs.exclude(id__in=asset.characters.all().values_list('id', flat=True))
 
         for character in qs:
-            if (character.user != request.user) and asset.uploaded_by != request.user:
+            if character.user != request.user:
                 notify(
                     CHAR_TAG, character, data={'user': request.user.id, 'asset': asset.id},
                     unique=True, mark_unread=True
                 )
+            if asset.uploaded_by != request.user:
                 notify(SUBMISSION_CHAR_TAG, asset, data={'user': request.user.id, 'character': character.id})
         if qs.exists():
             safe_add(asset, 'characters', *qs)
@@ -487,13 +488,20 @@ class AssetTag(APIView):
         ensure_tags(tag_list)
         asset.tags.add(*Tag.objects.filter(name__in=tag_list))
 
+        def transform(old_data, new_data):
+            return {
+                'users': list(set(old_data['users'] + new_data['users'])),
+                'tags': list(set(old_data['tags'] + new_data['tags']))
+            }
+
         if asset.uploaded_by != request.user:
             notify(
                 SUBMISSION_TAG, asset, data={
-                    'user': request.user.id,
+                    'users': [request.user.id],
                     'tags': tag_list
                 },
-                unique=True, unique_data=True, mark_unread=False,
+                unique=True, mark_unread=True,
+                transform=transform
             )
         return Response(
             status=status.HTTP_200_OK, data=ImageAssetManagementSerializer(instance=asset, request=self.request).data

@@ -45,9 +45,6 @@
       remove () {
         artCall(this.removeUrl, 'DELETE', {'tags': [this.tag.name]}, this.callback)
       }
-    },
-    created () {
-      console.log(this.tabName)
     }
   }
 </script>

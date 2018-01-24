@@ -193,6 +193,10 @@ class Character(Model):
     class Meta:
         unique_together = (('name', 'user'),)
 
+    def notification_serialize(self):
+        from .serializers import CharacterSerializer
+        return CharacterSerializer(instance=self).data
+
 
 @receiver(post_save, sender=Character)
 def auto_subscribe_character(sender, instance, created=False, **_kwargs):
@@ -203,12 +207,6 @@ def auto_subscribe_character(sender, instance, created=False, **_kwargs):
             object_id=instance.id,
             type=CHAR_TAG
         )
-        Subscription.objects.create(
-            subscriber=instance.user,
-            content_type=ContentType.objects.get_for_model(model=sender),
-            object_id=instance.id,
-            type=SUBMISSION_CHAR_TAG
-        )
 
 
 @receiver(post_delete, sender=Character)
@@ -218,12 +216,6 @@ def auto_remove_character(sender, instance, **kwargs):
         content_type=ContentType.objects.get_for_model(model=sender),
         object_id=instance.id,
         type=CHAR_TAG
-    ).delete()
-    Subscription.objects.filter(
-        subscriber=instance.user,
-        content_type=ContentType.objects.get_for_model(model=sender),
-        object_id=instance.id,
-        type=SUBMISSION_CHAR_TAG
     ).delete()
     Event.objects.filter(
         content_type=ContentType.objects.get_for_model(model=sender),

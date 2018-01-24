@@ -139,9 +139,12 @@ export function productTypes () {
 }
 
 export const NOTIFICATION_MAPPING = {
+  '3': 'ac-char-tag',
+  '10': 'ac-submission-tag',
   '14': 'ac-favorite',
   '15': 'ac-dispute',
   '16': 'ac-refund',
+  '17': 'ac-submission-char-tag',
   '18': 'ac-order-update',
   '19': 'ac-sale-update'
 }

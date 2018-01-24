@@ -4,10 +4,11 @@ from avatar.templatetags.avatar_tags import avatar_url
 from django.conf import settings
 from django.core.files.base import ContentFile
 from rest_framework import serializers
+from rest_framework.fields import SerializerMethodField
 from rest_framework_bulk import BulkSerializerMixin, BulkListSerializer
 
-from apps.lib.models import Comment, Notification, Event
-from apps.profiles.models import User, ImageAsset
+from apps.lib.models import Comment, Notification, Event, CHAR_TAG, SUBMISSION_CHAR_TAG
+from apps.profiles.models import User, ImageAsset, Character
 
 
 class RelatedUserSerializer(serializers.ModelSerializer):
@@ -39,7 +40,9 @@ class EventTargetRelatedField(serializers.RelatedField):
         """
         if value is None:
             return None
-        return value.notification_serialize()
+        if hasattr(value, 'notification_serialize'):
+            return value.notification_serialize()
+        return {value.__class__.__name__: value.id}
 
 
 # Custom image field - handles base 64 encoded images
@@ -93,8 +96,50 @@ class CommentSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'created_on', 'edited_on', 'user', 'children', 'edited', 'deleted')
 
 
+def get_user(user_id):
+    try:
+        return RelatedUserSerializer(instance=User.objects.get(id=user_id)).data
+    except User.DoesNotExist:
+        return None
+
+
+def char_tag(obj):
+    value = obj.data
+    from apps.profiles.serializers import ImageAssetSerializer
+    try:
+        asset = ImageAssetSerializer(instance=ImageAsset.objects.get(id=value['asset'])).data
+    except ImageAsset.DoesNotExist:
+        asset = None
+    try:
+        user = RelatedUserSerializer(instance=User.objects.get(id=value['user'])).data
+    except User.DoesNotExist:
+        user = None
+    return {'user': user, 'asset': asset}
+
+
+def submission_char_tag(obj):
+    value = obj.data
+    from apps.profiles.serializers import CharacterSerializer
+    try:
+        character = CharacterSerializer(instance=Character.objects.get(id=value['character'])).data
+    except Character.DoesNotExist:
+        character = None
+    user = get_user(value['user'])
+    return {'character': character, 'user': user}
+
+
+TYPE_MAP = {
+    CHAR_TAG: char_tag,
+    SUBMISSION_CHAR_TAG: submission_char_tag
+}
+
+
 class EventSerializer(serializers.ModelSerializer):
     target = EventTargetRelatedField(read_only=True)
+    data = SerializerMethodField(read_only=True)
+
+    def get_data(self, obj):
+        return TYPE_MAP.get(obj.type, lambda x: x.data)(obj)
 
     class Meta:
         model = Event

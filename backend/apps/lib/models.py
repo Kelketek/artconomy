@@ -33,6 +33,7 @@ class Comment(models.Model):
 NEW_CHARACTER = 0
 FOLLOWING = 1
 CHAR_TRANSFER = 2
+# Character tagged on submission, sent on character listener
 CHAR_TAG = 3
 COMMENT = 4
 CHAR_CREATION = 5
@@ -47,6 +48,7 @@ SYSTEM_ANNOUNCEMENT = 13
 FAVORITE = 14
 DISPUTE = 15
 REFUND = 16
+# Character tagged on submission, sent on submission listener
 SUBMISSION_CHAR_TAG = 17
 ORDER_UPDATE = 18
 SALE_UPDATE = 19

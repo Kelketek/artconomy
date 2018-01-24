@@ -54,7 +54,6 @@ export default {
       }
     },
     populateError (response) {
-      console.log(response)
       if (response.status === 400) {
         if (response.responseJSON && response.responseJSON.error) {
           this.error = response.responseJSON.error

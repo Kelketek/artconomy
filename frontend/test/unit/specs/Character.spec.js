@@ -55,7 +55,8 @@ describe('Character.vue', () => {
             primary_asset: false,
             favorite_count: 3,
             comment_count: 2
-          }
+          },
+          tags: []
         }
       )
     )

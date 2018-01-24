@@ -16,21 +16,26 @@
           </div>
         <div class="row">
           <div class="col-6">
-            <div class="statline">
-              <strong>Species:</strong> <ac-patchfield v-model="character.species" name="species" :editmode="editing" :url="url"></ac-patchfield>
-            </div>
-            <div class="statline">
-              <strong>Gender:</strong> <ac-patchfield v-model="character.gender" name="gender" :editmode="editing" :url="url"></ac-patchfield>
-            </div>
+            <p v-if="(character.tags.length === 0) && editing">
+              Add some tags to describe your character. Try tagging their species, gender or things they're commonly found doing.
+            </p>
+            <ac-tag-display
+                :editable="editing"
+                :url="url"
+                :callback="loadCharacter"
+                :tag-list="character.tags"
+                :controls="controls"
+                v-if="character.tags.length || editing"
+            />
           </div>
           <div class="col-6 pull-right">
             <ac-action v-if="editing" class="text-center" style="display:block" :url="url" method="PATCH" :send="{private: !character.private}" :success="loadCharacter">
-              <span v-if="character.private"><i class="fa fa-eye-slash"></i> Hide character</span>
-              <span v-else><i class="fa fa-eye"></i> Unhide character</span>
+              <span v-if="character.private"><i class="fa fa-eye"></i> Unhide character</span>
+              <span v-else><i class="fa fa-eye-slash"></i> Hide character</span>
             </ac-action>
             <div v-else-if="controls" class="text-center">
-              <span v-if="character.private"><i class="fa fa-eye"></i> Character is public</span>
-              <span v-else><i class="fa fa-eye-slash"></i> Character is private</span>
+              <span v-if="character.private"><i class="fa fa-eye-slash"></i> Character is private</span>
+              <span v-else><i class="fa fa-eye"></i> Character is public</span>
             </div>
           </div>
         </div>
@@ -91,7 +96,7 @@
         <form>
           <ac-form-container ref="newUploadForm" :schema="newUploadSchema" :model="newUploadModel"
                              :options="newUploadOptions" :success="addUpload"
-                             :url="`/api/profiles/v1/${user.username}/characters/${character.name}/assets/`"
+                             :url="`/api/profiles/v1/account/${user.username}/characters/${character.name}/assets/`"
           >
             <b-button @click="showUpload=false">Cancel</b-button>
             <b-button type="submit" variant="primary" @click.prevent="$refs.newUploadForm.submit">Create</b-button>
@@ -127,11 +132,13 @@
   import AcGalleryPreview from './ac-gallery-preview'
   import AcAvatar from './ac-avatar'
   import AcAsset from './ac-asset'
+  import AcTagDisplay from './ac-tag-display'
 
   export default {
     name: 'Character',
     mixins: [Viewer, Perms, Editable],
     components: {
+      AcTagDisplay,
       AcGalleryPreview,
       AcPatchfield,
       AcAction,
@@ -149,14 +156,6 @@
       },
       goToListing: function () {
         this.$router.history.push({name: 'Characters', params: {username: this.user.username}})
-      },
-      showcase: function (asset) {
-        artCall(
-          `${this.url}/asset/primary/${asset.id}/`,
-          'POST',
-          null,
-          this.postPrimary(asset.id)
-        )
       },
       removeAsset: function (asset) {
         artCall(
