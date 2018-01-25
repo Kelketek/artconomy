@@ -1,5 +1,5 @@
 import deepEqual from 'deep-equal'
-import { artCall, buildQueryString } from '../lib'
+import { artCall, buildQueryString, EventBus } from '../lib'
 // For use with paginated Django views.
 export default {
   props: {
@@ -7,7 +7,8 @@ export default {
     limit: {default: 10},
     // Set false to use the never ending mode via the growing list.
     pageReload: {default: true},
-    queryData: {default () { return {} }}
+    queryData: {default () { return {} }},
+    counterName: {default: 'counter'}
   },
   data: function () {
     let defaults = {
@@ -42,6 +43,7 @@ export default {
       artCall(this.$router.resolve(this.linkGen(this.currentPage)).route.fullPath, 'GET', undefined, this.growList)
     },
     populateResponse (response) {
+      this.error = ''
       this.response = response
       if (this.growMode) {
         this.growing.push(response.results)
@@ -52,6 +54,7 @@ export default {
       if (this.growing.length === 0 && this.queryData.q && this.queryData.q.length) {
         this.error = 'We could not find anything which matched your request.'
       }
+      EventBus.$emit('result-count', {name: this.counterName, count: this.count})
     },
     populateError (response) {
       if (response.status === 400) {
@@ -69,7 +72,6 @@ export default {
       let qs = buildQueryString(queryData)
       let url = `${this.url}?${qs}`
       this.fetching = true
-      this.error = ''
       artCall(url, 'GET', undefined, this.populateResponse, this.populateError)
     }
   },
@@ -93,6 +95,9 @@ export default {
         return false
       }
       return true
+    },
+    count () {
+      return this.response && this.response.count
     }
   },
   watch: {
@@ -104,6 +109,7 @@ export default {
     queryData (newValue) {
       if (!deepEqual(this.oldQueryData, newValue)) {
         this.currentPage = 1
+        this.error = ''
         this.fetchItems()
         this.oldQueryData = JSON.parse(JSON.stringify(newValue))
       }

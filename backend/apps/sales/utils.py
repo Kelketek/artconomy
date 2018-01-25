@@ -1,8 +1,8 @@
 from decimal import Decimal, InvalidOperation
 
-from django.db.models import Sum
+from django.db.models import Sum, Q, IntegerField, Case, When, F
 
-from apps.sales.models import PaymentRecord
+from apps.sales.models import PaymentRecord, Product
 
 
 def escrow_balance(user):
@@ -57,6 +57,31 @@ def translate_authnet_error(err):
         if 'response_code' in err.full_response:
             response = RESPONSE_TRANSLATORS.get(err.full_response['response_code'], response)
     return response
+
+
+def product_ordering(qs, requester, query=''):
+    return qs.annotate(
+        matches=Case(
+            When(name__iexact=query, then=0),
+            default=1,
+            output_field=IntegerField()
+        ),
+        tag_matches=Case(
+            When(tags__name__iexact=query, then=0),
+            default=1,
+            output_field=IntegerField()
+        )
+    ).order_by('matches', 'tag_matches')
+
+
+def available_products(requester, query='', ordering=True):
+    exclude = Q(hidden=True)
+    q = Q(name__istartswith=query) | Q(tags__name__iexact=query)
+    qs = Product.objects.filter(q).exclude(exclude & ~Q(user=requester))
+
+    if ordering:
+        qs = product_ordering(qs, requester, query=query)
+    return qs
 
 
 RESPONSE_TRANSLATORS = {

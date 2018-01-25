@@ -12,6 +12,10 @@ export default {
   },
   methods: {
     configureUser () {
+      if (this.user.username === undefined) {
+        // Some components are variably user-centric.
+        return
+      }
       this.$root.$setUser(this.user.username, this)
     },
     refreshUser () {
@@ -21,9 +25,15 @@ export default {
   },
   computed: {
     controls: function () {
+      if (this.user.username === undefined) {
+        return false
+      }
       return this.viewer.is_staff || (this.user.username === this.viewer.username)
     },
     is_current: function () {
+      if (this.user.username === undefined) {
+        return false
+      }
       return this.user.username === this.viewer.username
     }
   }

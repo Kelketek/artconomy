@@ -1,33 +1,29 @@
 <template>
-  <div>
-    <div class="row" v-if="error">
-      <div class="col-12 text-center">
-        <p>{{error}}</p>
-      </div>
+  <div class="row">
+    <div class="col-12 text-center" v-if="error">
+      <p>{{error}}</p>
     </div>
-    <div class="row" v-if="response !== null && nonEmpty">
-      <slot name="header"></slot>
-      <div class="col-12">
-        <b-pagination-nav
-            align="center" :use-router="true" :base-url="baseURL" :link-gen="linkGen"
-            v-model="currentPage" :per-page="pageSize" :number-of-pages="totalPages"
-            v-if="totalPages > 1"
-        ></b-pagination-nav>
-      </div>
-      <div class="col-6 col-md-6 col-lg-3"
-           v-for="(asset, key, index) in response.results"
-           :key="key" :id="'asset-' + key"
-           :asset="asset"
-      >
+    <slot name="header" v-if="show" />
+    <div class="col-12" v-if="show">
+      <b-pagination-nav
+          align="center" :use-router="true" :base-url="baseURL" :link-gen="linkGen"
+          v-model="currentPage" :per-page="pageSize" :number-of-pages="totalPages"
+          v-if="totalPages > 1"
+      ></b-pagination-nav>
+    </div>
+    <div class="col-6 col-md-6 col-lg-3"
+         v-for="(asset, key, index) in results"
+         :key="key" :id="'asset-' + key"
+         :asset="asset"
+    >
         <ac-gallery-preview :asset="asset" />
-      </div>
-      <div class="col-12">
-        <b-pagination-nav
-            align="center" :use-router="true" :base-url="baseURL" :link-gen="linkGen"
-            v-model="currentPage" :per-page="pageSize" :number-of-pages="totalPages"
-            v-if="totalPages > 1"
-        ></b-pagination-nav>
-      </div>
+    </div>
+    <div class="col-12" v-if="show">
+      <b-pagination-nav
+          align="center" :use-router="true" :base-url="baseURL" :link-gen="linkGen"
+          v-model="currentPage" :per-page="pageSize" :number-of-pages="totalPages"
+          v-if="totalPages > 1"
+      ></b-pagination-nav>
     </div>
   </div>
 </template>
@@ -52,7 +48,19 @@
       }
     },
     name: 'ac-asset-gallery',
-    mixins: [Paginated]
+    mixins: [Paginated],
+    computed: {
+      show () {
+        return this.response !== null && this.nonEmpty
+      },
+      results () {
+        if (this.response === null) {
+          return []
+        } else {
+          return this.response.results
+        }
+      }
+    }
   }
 </script>
 

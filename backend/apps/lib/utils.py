@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
+from django.db import connection
 from django.db.models import Q
 from django.db.transaction import atomic
 from django.utils import timezone
@@ -140,3 +141,23 @@ def add_check(instance, field_name, *args):
 def safe_add(instance, field_name, *args):
     add_check(instance, field_name, *args)
     getattr(instance, field_name).add(*args)
+
+
+def ensure_tags(tag_list):
+    if not tag_list:
+        return
+    with connection.cursor() as cursor:
+        # Bulk get or create
+        # Django's query prepper automatically wraps our arrays in parens, but we need to have them
+        # act as individual values, so we have to custom build our placeholders here.
+        statement = """
+                    INSERT INTO lib_tag (name)
+                    (
+                             SELECT i.name
+                             FROM (VALUES {}) AS i(name)
+                             LEFT JOIN lib_tag as existing
+                                     ON (existing.name = i.name)
+                             WHERE existing.name IS NULL
+                    )
+                    """.format(('%s, ' * len(tag_list)).rsplit(',', 1)[0])
+        cursor.execute(statement, [*tuple((tag,) for tag in tag_list)])

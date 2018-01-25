@@ -34,6 +34,12 @@
       AcOrderList,
       AcOrderPreview
     },
+    data () {
+      return {
+        // Used by tab mapper
+        query: null
+      }
+    },
     props: ['url', 'buyer'],
     computed: {
       tab: paramHandleMap('tabName', TabMap)

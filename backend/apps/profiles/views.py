@@ -3,6 +3,7 @@ from avatar.models import Avatar
 from avatar.signals import avatar_updated
 from django.conf import settings
 from django.contrib.auth import login, get_user_model, authenticate, logout, update_session_auth_hash
+from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
@@ -18,16 +19,16 @@ from rest_framework.views import APIView
 from rest_framework_bulk import BulkUpdateAPIView
 
 from apps.lib.models import Notification, FAVORITE, CHAR_TAG, SUBMISSION_CHAR_TAG, SUBMISSION_ARTIST_TAG, ARTIST_TAG, \
-    SUBMISSION_TAG
+    SUBMISSION_TAG, Tag
 from apps.lib.permissions import Any, All, IsSafeMethod
 from apps.lib.serializers import CommentSerializer, NotificationSerializer, Base64ImageField, RelatedUserSerializer, \
     BulkNotificationSerializer
-from apps.lib.utils import recall_notification, notify, safe_add, add_check
-from apps.profiles.models import User, Character, ImageAsset, Tag
+from apps.lib.utils import recall_notification, notify, safe_add, add_check, ensure_tags
+from apps.profiles.models import User, Character, ImageAsset
 from apps.profiles.permissions import ObjectControls, UserControls, AssetViewPermission, AssetControls, NonPrivate
 from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer, SettingsSerializer, UserSerializer, \
     RegisterSerializer, ImageAssetManagementSerializer, CredentialsSerializer, AvatarSerializer
-from apps.profiles.utils import available_chars, char_ordering, available_assets, tag_list_cleaner, ensure_tags
+from apps.profiles.utils import available_chars, char_ordering, available_assets, tag_list_cleaner
 from shortcuts import make_url
 
 
@@ -280,8 +281,9 @@ class CharacterSearch(ListAPIView):
         else:
             user = self.request.user
         if self.request.user.is_authenticated():
-            return char_ordering(available_chars(user, query=query, commissions=commissions), user)
-        return Character.objects.filter(name__istartswith=query).exclude(private=True).order_by('id')
+            return char_ordering(available_chars(user, query=query, commissions=commissions), user, query=query)
+        q = Q(name__istartswith=query) | Q(tags__name__iexact=query)
+        return Character.objects.filter(q).exclude(private=True).distinct().order_by('id')
 
 
 class UserSearch(ListAPIView):
@@ -509,7 +511,7 @@ class AssetTag(APIView):
 
 
 class CharacterTag(APIView):
-    permission_classes = [IsAuthenticated, ObjectControls]
+    permission_classes = [ObjectControls]
 
     def delete(self, request, username,  character):
         character = get_object_or_404(Character, user__username__iexact=username, name=character)

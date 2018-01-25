@@ -1,6 +1,9 @@
 <template>
   <div class="container">
     <div class="row-centered" v-if="response !== null">
+      <div class="col-12 text-center" v-if="error">
+        <p>{{error}}</p>
+      </div>
       <b-pagination-nav
           align="center" :use-router="true" :base-url="baseURL" :link-gen="linkGen"
           v-model="currentPage" :per-page="pageSize" :number-of-pages="totalPages"
@@ -53,7 +56,7 @@
     components: {AcFormContainer, AcCharacterPreview},
     name: 'Characters',
     mixins: [Viewer, Perms, Paginated],
-    props: ['embedded'],
+    props: ['embedded', 'endpoint'],
     data: function () {
       return {
         newCharModel: {
@@ -63,7 +66,7 @@
           open_requests: true,
           open_requests_restrictions: ''
         },
-        url: `/api/profiles/v1/account/${this.username}/characters/`,
+        url: this.endpoint,
         showNew: false,
         newCharSchema: {
           fields: [{

@@ -8,7 +8,7 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.core.validators import MinValueValidator
 from django.db.models import Model, CharField, ForeignKey, IntegerField, BooleanField, DateTimeField, \
-    URLField, SlugField, SET_NULL, ManyToManyField
+    URLField, SET_NULL, ManyToManyField
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 
@@ -94,7 +94,7 @@ class ImageAsset(ImageModel):
     private = BooleanField(default=False, help_text="Only show this to people I have explicitly shared it to.")
     characters = ManyToManyField('Character', related_name='assets')
     characters__max = 50
-    tags = ManyToManyField('Tag', related_name='assets', blank=True)
+    tags = ManyToManyField('lib.Tag', related_name='assets', blank=True)
     tags__max = 200
     comments = GenericRelation(
         Comment, related_query_name='order', content_type_field='content_type', object_id_field='object_id'
@@ -184,7 +184,7 @@ class Character(Model):
     created_on = DateTimeField(auto_now_add=True)
     species = CharField(max_length=150, blank=True, default='')
     gender = CharField(max_length=50, blank=True, default='')
-    tags = ManyToManyField('Tag')
+    tags = ManyToManyField('lib.Tag', related_name='characters', blank=True)
     tags__max = 100
 
     def __str__(self):
@@ -240,7 +240,3 @@ class RefColor(Model):
     color = CharField(max_length=6)
     note = CharField(max_length=100)
     character = ForeignKey(Character)
-
-
-class Tag(Model):
-    name = SlugField(db_index=True, unique=True, primary_key=True)

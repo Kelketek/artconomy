@@ -9,7 +9,11 @@
       <div class="col-12 text-section pt-2 mb-2">
         <h2>Characters</h2>
       </div>
-      <Characters :username="username" embedded="true" :limit="5"></Characters>
+      <Characters
+          :username="username"
+          embedded="true"
+          :limit="5"
+          :endpoint="`/api/profiles/v1/account/${username}/characters/`" />
     </div>
   </div>
 </template>

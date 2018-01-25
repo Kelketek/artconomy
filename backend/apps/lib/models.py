@@ -3,7 +3,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import JSONField
 from django.db import models
-from django.db.models import DateTimeField
+from django.db.models import DateTimeField, Model, SlugField
 
 
 class Comment(models.Model):
@@ -109,3 +109,7 @@ class Notification(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
     event = models.ForeignKey(Event)
     read = models.BooleanField(default=False, db_index=True)
+
+
+class Tag(Model):
+    name = SlugField(db_index=True, unique=True, primary_key=True)

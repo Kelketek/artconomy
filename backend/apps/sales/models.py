@@ -73,6 +73,8 @@ class Product(ImageModel):
         max_digits=6, decimal_places=2, default_currency='USD',
         db_index=True, validators=[MinValueValidator(settings.MINIMUM_PRICE)]
     )
+    tags = ManyToManyField('lib.Tag', related_name='products', blank=True)
+    tags__max = 200
     hidden = BooleanField(default=False, help_text="Whether this product is visible.", db_index=True)
     user = ForeignKey(settings.AUTH_USER_MODEL)
     created_on = DateTimeField(auto_now_add=True)

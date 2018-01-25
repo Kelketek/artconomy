@@ -20,6 +20,13 @@
           </b-tab>
           <b-tab title="New Card">
             <form>
+              <div class="card-type-selector text-center">
+                <i class="fa fa-2x fa-cc-visa" :class="{picked: cardSelected('visa')}"></i>
+                <i class="fa fa-2x fa-cc-mastercard" :class="{picked: cardSelected('mastercard')}"></i>
+                <i class="fa fa-2x fa-cc-discover" :class="{picked: cardSelected('discover')}"></i>
+                <i class="fa fa-2x fa-cc-amex" :class="{picked: cardSelected('amex')}"></i>
+                <i class="fa fa-2x fa-cc-diners-club" :class="{picked: cardSelected('diners-club')}"></i>
+              </div>
               <ac-form-container ref="newCardForm" :schema="newCardSchema" :model="newCardModel"
                                  :options="newCardOptions" :success="addCard"
                                  :url="`/api/sales/v1/${this.username}/cards/`"
@@ -33,6 +40,15 @@
     </div>
 </template>
 
+<style scoped>
+  .card-type-selector .fa {
+    opacity: .5;
+  }
+  .card-type-selector .fa.picked {
+    opacity: 1;
+  }
+</style>
+
 <script>
   import Perms from '../mixins/permissions'
   import Viewer from '../mixins/viewer'
@@ -40,7 +56,13 @@
   import AcFormContainer from './ac-form-container'
   import AcSavedCard from './ac-saved-card'
   import VueFormGenerator from 'vue-form-generator'
-  import { artCall } from '../lib'
+  import { artCall, EventBus } from '../lib'
+
+  function cardSelectValidator (value) {
+    EventBus.$emit('card-number', value)
+    return VueFormGenerator.validators.creditCard(value)
+  }
+
   export default {
     name: 'ac-card-manager',
     props: ['username', 'payment', 'value'],
@@ -57,6 +79,7 @@
           zip: ''
         },
         showNew: false,
+        cardType: 'unknown',
         newCardSchema: {
           fields: [{
             type: 'input',
@@ -66,7 +89,7 @@
             placeholder: '5555 5555 5555 5555',
             featured: true,
             required: true,
-            validator: VueFormGenerator.validators.creditCard
+            validator: cardSelectValidator
           }, {
             type: 'input',
             inputType: 'text',
@@ -111,6 +134,26 @@
           this.currentTab = 1
         }
       },
+      cardSelected (value) {
+        return value === this.cardType
+      },
+      selectCard (value) {
+        // start without knowing the credit card type
+        let result = 'unknown'
+        // first check for MasterCard
+        if (/^5[1-5]/.test(value)) {
+          result = 'mastercard'
+        } else if (/^4/.test(value)) {
+          result = 'visa'
+        } else if (/^3[47]/.test(value)) {
+          result = 'amex'
+        } else if (/^6011/.test(value)) {
+          result = 'discover'
+        } else if (/^30[1-5]/.test(value)) {
+          result = 'diners'
+        }
+        this.cardType = result
+      },
       addCard (response) {
         this.growing.push(response)
         this.currentTab = 0
@@ -131,6 +174,7 @@
     },
     created () {
       artCall(`/api/sales/v1/${this.username}/cards/`, 'GET', undefined, this.populateCards)
+      EventBus.$on('card-number', this.selectCard)
     }
   }
 </script>

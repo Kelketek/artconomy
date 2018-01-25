@@ -146,6 +146,8 @@
       return {
         settingsModel: JSON.parse(JSON.stringify(this.$root.user)),
         settingsUpdated: false,
+        // Used by Tab mapper
+        query: null,
         credentialsModel: {
           username: this.$root.user.username,
           email: this.$root.user.email,

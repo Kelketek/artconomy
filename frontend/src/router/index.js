@@ -65,7 +65,7 @@ export const routes = [
     props (route) {
       return {
         username: route.params.username,
-        url: `/api/sales/v1/${route.params.username}/products/`
+        endpoint: `/api/sales/v1/${route.params.username}/products/`
       }
     }
   },
@@ -79,7 +79,12 @@ export const routes = [
     path: '/profile/:username/characters/',
     name: 'Characters',
     component: Characters,
-    props: true
+    props (route) {
+      return {
+        username: route.params.username,
+        endpoint: `/api/profiles/v1/account/${route.params.username}/characters/`
+      }
+    }
   },
   {
     path: '/profile/:username/characters/:characterName/',

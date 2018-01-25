@@ -7,7 +7,7 @@ from rest_framework import serializers
 from rest_framework.fields import SerializerMethodField
 from rest_framework_bulk import BulkSerializerMixin, BulkListSerializer
 
-from apps.lib.models import Comment, Notification, Event, CHAR_TAG, SUBMISSION_CHAR_TAG
+from apps.lib.models import Comment, Notification, Event, CHAR_TAG, SUBMISSION_CHAR_TAG, Tag
 from apps.profiles.models import User, ImageAsset, Character
 
 
@@ -164,3 +164,11 @@ class BulkNotificationSerializer(BulkSerializerMixin, serializers.ModelSerialize
         fields = ('event', 'read', 'id')
         read_only_fields = ('event', 'id')
         list_serializer_class = BulkListSerializer
+
+
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = (
+            'name',
+        )

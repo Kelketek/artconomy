@@ -199,7 +199,8 @@ export function paramHandleMap (handleName, tabMap, clearList) {
       for (let param of clearList) {
         delete newParams[param]
       }
-      this.$router.history.replace({name: this.$route.name, params: newParams})
+      let newPath = {name: this.$route.name, params: newParams, query: this.query}
+      this.$router.history.replace(newPath)
     }
   }
 }

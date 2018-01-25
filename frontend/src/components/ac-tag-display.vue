@@ -4,11 +4,11 @@
     <ac-tag
         v-for="tag in tagList"
         :tag="tag"
-        :key="tag.name"
+        :key="tag"
         :removable="controls"
         :remove-url="`${url}tag/`"
         :callback="callback"
-        tab-name="submissions"
+        :tab-name="tabName"
     />
     <div class="pt-2 pb-2" v-if="editable">
       <b-button v-if="!showTagging" @click="showTagging=true">Add Tags</b-button>
@@ -23,7 +23,7 @@
               :success="postTag"
           />
           <b-button variant="danger" @click.prevent="showTagging=false">Cancel</b-button>
-          <b-button type="submit" @click.prevent="$refs.taggingForm.submit">Tag!</b-button>
+          <b-button class="pulse" type="submit" @click.prevent="$refs.taggingForm.submit">Tag!</b-button>
         </form>
       </div>
     </div>
@@ -40,7 +40,10 @@
       editable: false,
       url: {},
       tagList: {},
-      controls: {}
+      controls: {},
+      tabName: {
+        default: 'submissions'
+      }
     },
     data () {
       return {
@@ -80,6 +83,16 @@
   }
 </script>
 
-<style scoped>
-
+<style scoped lang="scss">
+  @import '../custom-bootstrap';
+  .pulse {
+    animation: pulse_animation 2s infinite;
+  }
+  @keyframes pulse_animation {
+    0% { background-color: $primary; }
+    25% {background-color: lighten($primary, 20)}
+    50% { background-color: $secondary; }
+    75% {background-color: lighten($secondary, 20)}
+    100% { background-color: $primary; }
+  }
 </style>

@@ -12,7 +12,7 @@
              :key="tag"
         >
           <ac-tag
-              :tag="{name: tag}" @click.native.prevent.capture="addTag(tag)"
+              :tag="tag" @click.native.prevent.capture="addTag(tag)"
           />
         </div>
       </div>

@@ -1,6 +1,9 @@
 <template>
   <div class="storefront container">
     <div class="row">
+      <div class="col-12 text-center" v-if="error">
+        <p>{{error}}</p>
+      </div>
       <ac-product-preview
         v-for="product in growing"
         :key="product.id"
@@ -45,16 +48,17 @@
   import AcProductPreview from './ac-product-preview'
   import AcFormContainer from './ac-form-container'
   import VueFormGenerator from 'vue-form-generator'
-  import { artCall, productTypes, ratings } from '../lib'
+  import { productTypes, ratings } from '../lib'
 
   export default {
     name: 'Store',
     components: {AcProductPreview, AcFormContainer},
-    props: ['url'],
+    props: ['endpoint'],
     mixins: [Viewer, Perms, Paginated],
     data () {
       return {
         showNew: false,
+        url: this.endpoint,
         newProdModel: {
           name: '',
           category: 0,
@@ -201,10 +205,6 @@
       }
     },
     methods: {
-      populateProducts (response) {
-        this.response = response
-        this.growing = response.results
-      },
       addProduct (response) {
         this.$router.history.push(
           {name: 'Product', params: {username: this.user.username, productID: response.id}, query: {editing: true}}
@@ -220,7 +220,7 @@
       }
     },
     created () {
-      artCall(this.url, 'GET', undefined, this.populateProducts, this.$error)
+      this.fetchItems()
     }
   }
 </script>

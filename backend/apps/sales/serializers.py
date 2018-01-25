@@ -27,7 +27,7 @@ class ProductSerializer(serializers.ModelSerializer):
         model = Product
         fields = (
             'id', 'name', 'description', 'category', 'revisions', 'hidden', 'max_parallel', 'task_weight',
-            'expected_turnaround', 'user', 'file', 'rating', 'price'
+            'expected_turnaround', 'user', 'file', 'rating', 'price', 'tags'
         )
 
 

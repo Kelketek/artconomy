@@ -7,9 +7,9 @@ from django.db import connection
 from django.middleware.csrf import get_token
 from rest_framework import serializers
 
-from apps.lib.serializers import RelatedUserSerializer, Base64ImageField
+from apps.lib.serializers import RelatedUserSerializer, Base64ImageField, TagSerializer
 from apps.profiles.apis import dwolla_setup_link
-from apps.profiles.models import Character, ImageAsset, User, Tag
+from apps.profiles.models import Character, ImageAsset, User
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -92,14 +92,6 @@ class AvatarSerializer(serializers.Serializer):
         )
 
 
-class TagSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Tag
-        fields = (
-            'name',
-        )
-
-
 class ImageAssetNotificationSerializer(serializers.ModelSerializer):
     uploaded_by = RelatedUserSerializer(read_only=True)
     tags = TagSerializer(many=True, read_only=True)
@@ -120,7 +112,6 @@ class CharacterSerializer(serializers.ModelSerializer):
     user = RelatedUserSerializer(read_only=True)
     primary_asset = ImageAssetSerializer(required=False)
     primary_asset_id = serializers.IntegerField(write_only=True, required=False)
-    tags = TagSerializer(many=True, read_only=True)
 
     def validate_primary_asset_id(self, value):
         if value is None:
@@ -145,7 +136,6 @@ class ImageAssetManagementSerializer(serializers.ModelSerializer):
     characters = CharacterSerializer(many=True, read_only=True)
     file = Base64ImageField(read_only=True, thumbnail_namespace='profiles.ImageAsset.file')
     favorite = serializers.SerializerMethodField()
-    tags = TagSerializer(many=True, read_only=True)
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
