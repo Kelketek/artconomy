@@ -19,7 +19,7 @@
               </div>
           </b-tab>
           <b-tab title="New Card">
-            <form>
+            <form autocomplete="off">
               <div class="card-type-selector text-center">
                 <i class="fa fa-2x fa-cc-visa" :class="{picked: cardSelected('visa')}"></i>
                 <i class="fa fa-2x fa-cc-mastercard" :class="{picked: cardSelected('mastercard')}"></i>

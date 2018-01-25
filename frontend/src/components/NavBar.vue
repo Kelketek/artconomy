@@ -40,38 +40,12 @@
               class="fa fa-gear"></i> Settings</b-dropdown-item>
             <b-dropdown-item v-if="viewer.username" @click.prevent="logout()">Signout</b-dropdown-item>
           </b-nav-item-dropdown>
-          <b-nav-item v-else @click="$refs.loginModal.show()">
+          <b-nav-item :to="{name: 'Login'}" v-else>
             <span class="nav-login-item">Login</span>
           </b-nav-item>
         </b-navbar-nav>
       </b-collapse>
     </b-navbar>
-    <form>
-      <b-modal
-        ref="loginModal" id="loginModal" class="inverse"
-      >
-        <b-tabs class="inverse" v-model="loginTab">
-          <b-tab title="Login" id="loginTab">
-            <div class="pt-2"></div>
-            <vue-form-generator id="loginForm" ref="loginForm" :schema="loginSchema" :model="loginModel"
-                                :options="loginOptions" />
-          </b-tab>
-          <b-tab title="Register" id="registerTab">
-            <div class="pt-2"></div>
-            <vue-form-generator id="registerForm" ref="registerForm" :schema="registerSchema" :model="loginModel"
-                                :options="loginOptions" />
-          </b-tab>
-        </b-tabs>
-        <div slot="modal-footer">
-          <b-button @click="$refs.loginModal.hide()" id="loginCancel">Cancel</b-button>
-          <b-button type="submit" id="loginSubmit" variant="primary" @click.prevent="sendLogin">
-            {{ tab.label }}
-          </b-button>
-        </div>
-        <div slot="modal-header"></div>
-      </b-modal>
-
-    </form>
   </div>
 </template>
 
@@ -97,87 +71,18 @@
 </style>
 
 <script>
-  import VueFormGenerator from 'vue-form-generator'
-  import { artCall, setErrors, setCookie, EventBus } from '../lib'
+  import { artCall, EventBus } from '../lib'
   import AcPatchbutton from './ac-patchbutton'
-
-  const TAB_MAP = {
-    0: {url: '/api/profiles/v1/login/', label: 'Login', form: 'loginForm'},
-    1: {url: '/api/profiles/v1/register/', label: 'Register', form: 'registerForm'}
-  }
-
-  function loginDefault () {
-    return {
-      email: '',
-      username: '',
-      password: ''
-    }
-  }
 
   export default {
     components: {AcPatchbutton},
     name: 'NavBar',
     data () {
       let data = {
-        loginModel: loginDefault(),
         loopNotifications: false,
         unread: 0,
         queryData: [],
-        loginSchema: {
-          fields: [{
-            type: 'input',
-            inputType: 'text',
-            label: 'Email',
-            model: 'email',
-            placeholder: 'example@example.com',
-            featured: true,
-            required: true,
-            validator: VueFormGenerator.validators.email
-          }, {
-            type: 'input',
-            inputType: 'password',
-            label: 'Password',
-            model: 'password',
-            required: true,
-            featured: true,
-            validator: VueFormGenerator.validators.string
-          }]
-        },
-        registerSchema: {
-          fields: [{
-            type: 'input',
-            inputType: 'text',
-            label: 'Username',
-            model: 'username',
-            placeholder: '',
-            featured: true,
-            required: true,
-            validator: VueFormGenerator.validators.string
-          }, {
-            type: 'input',
-            inputType: 'text',
-            label: 'Email',
-            model: 'email',
-            placeholder: 'example@example.com',
-            featured: true,
-            required: true,
-            validator: VueFormGenerator.validators.email
-          }, {
-            type: 'input',
-            inputType: 'password',
-            label: 'Password',
-            model: 'password',
-            min: 8,
-            required: true,
-            featured: true,
-            validator: VueFormGenerator.validators.string
-          }]
-        },
-        loginOptions: {
-          validateAfterLoad: false,
-          validateAfterChanged: true
-        },
-        loginTab: 0
+
       }
       if (this.$route.name === 'Search') {
         data.queryData = this.$route.query.q || []
@@ -188,9 +93,6 @@
       return data
     },
     computed: {
-      tab: function () {
-        return TAB_MAP[this.loginTab]
-      },
       query: {
         get () {
           return this.queryData.join(' ')
@@ -201,15 +103,6 @@
       }
     },
     methods: {
-      sendLogin () {
-        artCall(
-          this.tab.url,
-          'POST',
-          this.loginModel,
-          this.loginHandler,
-          this.loginFailure
-        )
-      },
       performSearch () {
         let query = []
         for (let val of this.queryData) {
@@ -231,22 +124,6 @@
             'GET', undefined, this.setNotificationStats,
             () => { this.$setTimer('getUnreadNotifications', this.monitorNotifications, 30000) })
         }
-      },
-      loginHandler (response) {
-        setCookie('csrftoken', response.csrftoken)
-        this.$refs.loginModal.hide()
-        this.loginTab = 0
-        this.$root.$loadUser(true)
-        this.loginModel = loginDefault()
-      },
-      logoutHandler () {
-        this.$root.user = {}
-        this.$router.push({'name': 'Home'})
-        this.$root.userCache = {}
-      },
-      loginFailure (response) {
-        let form = this.$refs[this.tab.form]
-        setErrors(form, response.responseJSON)
       },
       logout () {
         artCall(

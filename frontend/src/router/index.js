@@ -1,5 +1,6 @@
 import Router from 'vue-router'
 import Home from '@/components/Home'
+import Login from '@/components/Login'
 import CommissionAgreement from '@/components/CommissionAgreement'
 import RefundPolicy from '@/components/RefundPolicy'
 import NotificationCenter from '@/components/NotificationCenter'
@@ -25,6 +26,11 @@ export const routes = [
     name: 'Home',
     component: Home,
     props: true
+  },
+  {
+    path: '/login/',
+    name: 'Login',
+    component: Login
   },
   {
     path: '/legal-and-policies/',
