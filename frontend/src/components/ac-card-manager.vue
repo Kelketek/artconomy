@@ -175,6 +175,9 @@
     created () {
       artCall(`/api/sales/v1/${this.username}/cards/`, 'GET', undefined, this.populateCards)
       EventBus.$on('card-number', this.selectCard)
+    },
+    destroyed () {
+      EventBus.$off('card-number', this.selectCard)
     }
   }
 </script>

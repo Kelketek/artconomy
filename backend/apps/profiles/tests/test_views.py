@@ -67,7 +67,6 @@ class CharacterAPITestCase(APITestCase):
                 'open_requests_restrictions': 'Must be foxy.',
             }
         )
-        print(response.content)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         char = Character.objects.get(name='Fern')
         self.assertEqual(char.description, 'The best of both worlds')

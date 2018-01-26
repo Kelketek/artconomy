@@ -12,6 +12,7 @@ import NavBar from './components/NavBar'
 import fieldCharacterSearch from './components/fieldCharacterSearch'
 import fieldUserSearch from './components/fieldUserSearch'
 import fieldTagSearch from './components/fieldTagSearch'
+import fieldRecaptcha from './components/fieldRecaptcha'
 import { md } from './lib'
 import {ErrorHandler} from './plugins/error'
 import {router} from './router'
@@ -32,6 +33,7 @@ Vue.config.productionTip = false
 Vue.component('fieldCharacterSearch', fieldCharacterSearch)
 Vue.component('fieldUserSearch', fieldUserSearch)
 Vue.component('fieldTagSearch', fieldTagSearch)
+Vue.component('fieldRecaptcha', fieldRecaptcha)
 
 /* eslint-disable no-new */
 window.artconomy = new Vue({

@@ -81,8 +81,7 @@
       let data = {
         loopNotifications: false,
         unread: 0,
-        queryData: [],
-
+        queryData: []
       }
       if (this.$route.name === 'Search') {
         data.queryData = this.$route.query.q || []
@@ -125,6 +124,11 @@
             () => { this.$setTimer('getUnreadNotifications', this.monitorNotifications, 30000) })
         }
       },
+      logoutHandler () {
+        this.$root.user = {}
+        this.$router.push({'name': 'Home'})
+        this.$root.userCache = {}
+      },
       logout () {
         artCall(
           '/api/profiles/v1/logout/',
@@ -148,6 +152,9 @@
     },
     created () {
       EventBus.$on('notifications-updated', this.monitorNotifications)
+    },
+    destroyed () {
+      EventBus.$off('notifications-updated', this.monitorNotifications)
     }
   }
 </script>

@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'easy_thumbnails',
     'djmoney',
     'avatar',
+    'recaptcha',
     'apps.profiles.apps.ProfilesConfig',
     'apps.sales.apps.SalesConfig',
     'apps.lib',
@@ -194,3 +195,7 @@ REST_FRAMEWORK = {
   'DEFAULT_PAGINATION_CLASS': 'apps.lib.middleware.ResizablePagination',
   'PAGE_SIZE': 50,
 }
+
+GR_CAPTCHA_SECRET_KEY = '6LdDkkIUAAAAAL1ekZxQwQD2KnWItTmZi_Zs58sC'
+
+GR_CAPTCHA_PUBLIC_KEY = '6LdDkkIUAAAAAFyNzBAPKEDkxwYrQ3aZdVb1NKPw'

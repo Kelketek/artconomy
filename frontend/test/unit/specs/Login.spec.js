@@ -45,7 +45,7 @@ describe('Login.vue', () => {
     checkJson(
       server.requests[0], {
         'data': {
-          'email': 'jimbob@example.com', 'password': 'hunter2', 'username': ''
+          'email': 'jimbob@example.com', 'password': 'hunter2', 'username': '', 'recaptcha': ''
         },
         'url': '/api/profiles/v1/login/',
         'method': 'POST'
@@ -74,7 +74,7 @@ describe('Login.vue', () => {
     checkJson(
       server.requests[0], {
         'data': {
-          'email': 'jimbob@example.com', 'password': 'hunter2', 'username': 'jimbob'
+          'email': 'jimbob@example.com', 'password': 'hunter2', 'username': 'jimbob', 'recaptcha': ''
         },
         'url': '/api/profiles/v1/register/',
         'method': 'POST'

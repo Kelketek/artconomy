@@ -5,6 +5,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import connection
 from django.middleware.csrf import get_token
+from recaptcha.fields import ReCaptchaField
 from rest_framework import serializers
 
 from apps.lib.serializers import RelatedUserSerializer, Base64ImageField, TagSerializer
@@ -14,6 +15,11 @@ from apps.profiles.models import Character, ImageAsset, User
 
 class RegisterSerializer(serializers.ModelSerializer):
     csrftoken = serializers.SerializerMethodField()
+    recaptcha = ReCaptchaField(write_only=True)
+
+    def create(self, validated_data):
+        validated_data = {key: value for key, value in validated_data.items() if key != 'recaptcha'}
+        return super(RegisterSerializer, self).create(validated_data)
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request')
@@ -40,7 +46,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'username', 'email', 'password', 'csrftoken'
+            'username', 'email', 'password', 'csrftoken', 'recaptcha'
         )
         read_only_fields = (
             'csrftoken',
@@ -233,6 +239,7 @@ class UserSerializer(serializers.ModelSerializer):
     csrftoken = serializers.SerializerMethodField()
     avatar_url = serializers.SerializerMethodField()
     dwolla_setup_url = serializers.SerializerMethodField()
+    recaptcha_public_key = serializers.SerializerMethodField()
     fee = serializers.SerializerMethodField()
 
     def __init__(self, *args, **kwargs):
@@ -254,10 +261,13 @@ class UserSerializer(serializers.ModelSerializer):
     def get_fee(self, obj):
         return .1
 
+    def get_recaptcha_public_key(self):
+        return settings.GR_CAPTCHA_PUBLIC_KEY
+
     class Meta:
         model = User
         fields = (
             'commissions_closed', 'rating', 'sfw_mode', 'max_load', 'username', 'id', 'is_staff', 'is_superuser',
-            'dwolla_configured', 'dwolla_setup_url', 'csrftoken', 'avatar_url', 'email', 'fee'
+            'dwolla_configured', 'dwolla_setup_url', 'csrftoken', 'avatar_url', 'email', 'fee', 'recaptcha_public_key'
         )
         read_only_fields = fields

@@ -28,7 +28,7 @@
 
 <script>
   import VueFormGenerator from 'vue-form-generator'
-  import { artCall, setCookie, setErrors } from '../lib'
+  import { artCall, recaptchaSiteKey, setCookie, setErrors } from '../lib'
 
   const TAB_MAP = {
     0: {url: '/api/profiles/v1/login/', label: 'Login', form: 'loginForm'},
@@ -39,7 +39,8 @@
     return {
       email: '',
       username: '',
-      password: ''
+      password: '',
+      recaptcha: ''
     }
   }
 
@@ -100,6 +101,14 @@
             required: true,
             featured: true,
             validator: VueFormGenerator.validators.string
+          }, {
+            type: 'recaptcha',
+            model: 'recaptcha',
+            label: "Prove you're human",
+            required: true,
+            featured: true,
+            siteKey: recaptchaSiteKey,
+            validator: VueFormGenerator.validators.string
           }]
         },
         loginTab: 0
@@ -135,6 +144,9 @@
       tab: function () {
         return TAB_MAP[this.loginTab]
       }
+    },
+    created () {
+      window.login = this
     }
   }
 </script>

@@ -59,13 +59,16 @@ function findField (fieldname) {
 
 export function setErrors (form, errors) {
   const errorSet = []
-  for (const fieldname in errors) {
+  for (const fieldname of Object.keys(errors)) {
     let targetField = form.fields.find(findField(fieldname))
     if (targetField) {
-      for (const error in errors[fieldname]) {
+      for (const error of Object.keys(errors[fieldname])) {
         errorSet.push({field: targetField, error: errors[fieldname][error]})
       }
     }
+  }
+  if (errorSet.length) {
+    EventBus.$emit('form-failure', errorSet)
   }
   form.errors = errorSet
 }
@@ -230,3 +233,5 @@ export function buildQueryString (obj) {
 }
 
 export const EventBus = new Vue()
+
+export const recaptchaSiteKey = '6LdDkkIUAAAAAFyNzBAPKEDkxwYrQ3aZdVb1NKPw'
