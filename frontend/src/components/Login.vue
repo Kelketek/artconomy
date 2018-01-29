@@ -117,6 +117,7 @@
     methods: {
       loginHandler (response) {
         setCookie('csrftoken', response.csrftoken)
+        setCookie('authtoken', response.authtoken)
         this.loginTab = 0
         this.$root.$loadUser(true)
         this.loginModel = loginDefault()

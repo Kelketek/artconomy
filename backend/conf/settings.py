@@ -42,6 +42,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'webpack_loader',
     'rest_framework',
+    'rest_framework.authtoken',
+    'oauth2_provider',
+    'deux',
     'custom_user',
     'easy_thumbnails',
     'djmoney',
@@ -194,6 +197,11 @@ COUNTRIES_NOT_SERVED = (
 REST_FRAMEWORK = {
   'DEFAULT_PAGINATION_CLASS': 'apps.lib.middleware.ResizablePagination',
   'PAGE_SIZE': 50,
+  'DEFAULT_AUTHENTICATION_CLASSES': (
+      'rest_framework.authentication.BasicAuthentication',
+      'rest_framework.authentication.SessionAuthentication',
+      'rest_framework.authentication.SessionAuthentication',
+  )
 }
 
 GR_CAPTCHA_SECRET_KEY = '6LdDkkIUAAAAAL1ekZxQwQD2KnWItTmZi_Zs58sC'

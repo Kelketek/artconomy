@@ -7,6 +7,7 @@ from django.db import connection
 from django.middleware.csrf import get_token
 from recaptcha.fields import ReCaptchaField
 from rest_framework import serializers
+from rest_framework.authtoken.models import Token
 
 from apps.lib.serializers import RelatedUserSerializer, Base64ImageField, TagSerializer
 from apps.profiles.apis import dwolla_setup_link
@@ -237,9 +238,9 @@ class CredentialsSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     dwolla_configured = serializers.SerializerMethodField()
     csrftoken = serializers.SerializerMethodField()
+    authtoken = serializers.SerializerMethodField()
     avatar_url = serializers.SerializerMethodField()
     dwolla_setup_url = serializers.SerializerMethodField()
-    recaptcha_public_key = serializers.SerializerMethodField()
     fee = serializers.SerializerMethodField()
 
     def __init__(self, *args, **kwargs):
@@ -261,13 +262,13 @@ class UserSerializer(serializers.ModelSerializer):
     def get_fee(self, obj):
         return .1
 
-    def get_recaptcha_public_key(self):
-        return settings.GR_CAPTCHA_PUBLIC_KEY
+    def get_authtoken(self, obj):
+        return Token.objects.get(user_id=obj.id).key
 
     class Meta:
         model = User
         fields = (
             'commissions_closed', 'rating', 'sfw_mode', 'max_load', 'username', 'id', 'is_staff', 'is_superuser',
-            'dwolla_configured', 'dwolla_setup_url', 'csrftoken', 'avatar_url', 'email', 'fee', 'recaptcha_public_key'
+            'dwolla_configured', 'dwolla_setup_url', 'csrftoken', 'avatar_url', 'email', 'fee', 'authtoken'
         )
         read_only_fields = fields

@@ -1,6 +1,6 @@
 """artconomy URL Configuration
 """
-from django.conf.urls import url
+from django.conf.urls import url, include
 
 from apps.profiles.views import Register, CharacterListAPI, ImageAssetListAPI, \
     CharacterManager, AssetManager, MakePrimary, SettingsAPI, CurrentUserInfo, AssetComments, CredentialsAPI, \
@@ -72,5 +72,6 @@ urlpatterns = [
         r'^v1/account/(?P<username>[-\w]+)/characters/(?P<character>[-\w\s]+)/asset/primary/(?P<asset_id>\d+)/$',
         MakePrimary.as_view(), name='asset_primary'
     ),
-
+    url(r"^mfa/", include("deux.urls", namespace="mfa")),
+    url(r"^mfa/authtoken/", include("deux.authtoken.urls", namespace="mfa-authtoken:login")),
 ]

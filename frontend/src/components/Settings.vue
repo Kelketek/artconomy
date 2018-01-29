@@ -17,16 +17,23 @@
             </form>
           </b-tab>
           <b-tab title="<i class='fa fa-id-card-o'></i> Credentials">
-            <form class="mt-3">
-              <ac-form-container ref="credentialsForm" :schema="credentialsSchema" :model="credentialsModel"
-                                 :options="credentialsOptions" :success="updateCredentials"
-                                 :url="`/api/profiles/v1/account/${this.user.username}/credentials/`"
-                                 :reset-after="false"
-              >
-                <b-button type="submit" variant="primary" @click.prevent="$refs.credentialsForm.submit">Update</b-button>
-                <i v-if="$refs.credentialsForm && $refs.credentialsForm.saved" class="fa fa-check" style="color: green"></i>
-              </ac-form-container>
-            </form>
+            <b-tabs pills v-model="credentialsTab">
+              <b-tab title="<i class='fa fa-lock'></i> Authentication Details">
+                <form class="mt-3">
+                  <ac-form-container ref="credentialsForm" :schema="credentialsSchema" :model="credentialsModel"
+                                     :options="credentialsOptions" :success="updateCredentials"
+                                     :url="`/api/profiles/v1/account/${this.user.username}/credentials/`"
+                                     :reset-after="false"
+                  >
+                    <b-button type="submit" variant="primary" @click.prevent="$refs.credentialsForm.submit">Update</b-button>
+                    <i v-if="$refs.credentialsForm && $refs.credentialsForm.saved" class="fa fa-check" style="color: green"></i>
+                  </ac-form-container>
+                </form>
+              </b-tab>
+              <b-tab title="<i class='fa fa-shield'></i> Two factor Authentication">
+                <ac-setup-two-factor></ac-setup-two-factor>
+              </b-tab>
+            </b-tabs>
           </b-tab>
           <b-tab title="<i class='fa fa-image'></i> Avatar">
             <div class="text-center mt-3">
@@ -87,6 +94,7 @@
   import { inputMatches, paramHandleMap, ratings, setMetaContent } from '../lib'
   import AcCardManager from './ac-card-manager'
   import AcAccountBalance from './ac-account-balance'
+  import AcSetupTwoFactor from './ac-setup-two-factor'
 
   const TabMap = {
     options: 0,
@@ -98,10 +106,15 @@
     methods: 0,
     disbursements: 1
   }
+  const credentialsTabMap = {
+    details: 0,
+    'two-factor': 1
+  }
 
   export default {
     name: 'Settings',
     components: {
+      AcSetupTwoFactor,
       AcCardManager,
       AcFormContainer,
       AcAccountBalance
@@ -274,7 +287,8 @@
     },
     computed: {
       tab: paramHandleMap('tabName', TabMap, ['subTabName']),
-      paymentTab: paramHandleMap('subTabName', PaymentTabMap)
+      paymentTab: paramHandleMap('subTabName', PaymentTabMap),
+      credentialsTab: paramHandleMap('subTabName', credentialsTabMap)
     }
   }
 </script>

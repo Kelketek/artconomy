@@ -11,6 +11,7 @@ from django.db.models import Model, CharField, ForeignKey, IntegerField, Boolean
     URLField, SET_NULL, ManyToManyField
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
+from rest_framework.authtoken.models import Token
 
 from apps.lib.abstract_models import GENERAL, RATINGS, ImageModel
 from apps.lib.models import Comment, Subscription, FAVORITE, SYSTEM_ANNOUNCEMENT, DISPUTE, REFUND, Event, \
@@ -69,6 +70,7 @@ def auto_subscribe(sender, instance, created=False, **_kwargs):
             object_id=None,
             type=SYSTEM_ANNOUNCEMENT
         )
+        Token.objects.create(user_id=instance.id)
     if instance.is_staff:
         Subscription.objects.get_or_create(
             subscriber=instance,
