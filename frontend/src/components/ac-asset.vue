@@ -62,6 +62,13 @@
         return this.asset.tags.concat(this.addedTags)
       },
       blacklisted () {
+        let blacklist = this.viewer.blacklist
+        if (blacklist === undefined) {
+          blacklist = []
+        }
+        if (this.asset.tags === undefined) {
+          return []
+        }
         return this.tags.filter((n) => this.viewer.blacklist.includes(n))
       },
       permittedRating () {

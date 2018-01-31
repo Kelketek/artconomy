@@ -22,7 +22,7 @@ function genRevisions () {
       },
       'created_on': '2018-01-02T20:49:30.777699Z',
       'uploaded_by': 'Fox',
-      'order': 1
+      'order': 1,
     },
     {
       'id': 7,
@@ -34,7 +34,7 @@ function genRevisions () {
       },
       'created_on': '2018-01-02T20:49:40.521880Z',
       'uploaded_by': 'Fox',
-      'order': 1
+      'order': 1,
     },
     {
       'id': 8,
@@ -69,6 +69,7 @@ function genOrder () {
     'created_on': '2017-12-28T21:56:03.560910Z',
     'status': 1,
     'price': 3.0,
+    'private': false,
     'product': {
       'id': 2,
       'name': 'Test Product',
@@ -78,6 +79,7 @@ function genOrder () {
       'hidden': false,
       'max_parallel': 0,
       'task_weight': 1,
+      'tags': [],
       'expected_turnaround': 3,
       'user': {
         'id': 1,
@@ -139,6 +141,7 @@ function genOrder () {
           'title': 'Terrence Doing someone',
           'caption': 'Breeding',
           'rating': 2,
+          'tags': ['fox'],
           'file': {
             'notification': 'https://artconomy.vulpinity.com/media/art/2017/12/25/1e725d30-a873-42b8-9267-a9ce73a5d6ff.jpeg.80x80_q85.jpg',
             'thumbnail': 'https://artconomy.vulpinity.com/media/art/2017/12/25/1e725d30-a873-42b8-9267-a9ce73a5d6ff.jpeg.300x300_q85_crop-%2C0.jpg',
@@ -167,6 +170,7 @@ function genOrder () {
         'id': 29,
         'title': 'Stuff her gooood!',
         'caption': 'Hell yeah!',
+        'tags': [],
         'rating': 2,
         'file': {
           'notification': 'https://artconomy.vulpinity.com/media/art/2018/01/02/art/2018/01/02/5fbd090a-af0c-42e4-ae7d-b584ef92e8dd_RtuACZj.jpeg.80x80_q85.jpg',

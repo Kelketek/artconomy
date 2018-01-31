@@ -7,7 +7,6 @@ import 'vue-form-generator/dist/vfg.css'  // optional full css additions
 import BootstrapVue from 'bootstrap-vue'
 import { mount, createLocalVue } from 'vue-test-utils'
 import sinon from 'sinon'
-import { checkJson, isVisible, waitFor } from '../helpers'
 import { UserHandler } from '../../../src/plugins/user'
 
 let server, localVue

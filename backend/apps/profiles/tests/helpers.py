@@ -49,6 +49,7 @@ def serialize_char(key):
                 'avatar_url': avatar_url(key.user)
             },
             'comments_disabled': key.primary_asset.comments_disabled,
+            'tags': []
         },
         'private': key.private,
         'open_requests': key.open_requests,
