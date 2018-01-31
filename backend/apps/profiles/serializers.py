@@ -83,7 +83,7 @@ class ImageAssetSerializer(serializers.ModelSerializer):
         model = ImageAsset
         fields = (
             'id', 'title', 'caption', 'rating', 'file', 'private', 'created_on', 'uploaded_by', 'comment_count',
-            'favorite_count', 'comments_disabled',
+            'favorite_count', 'comments_disabled', 'tags'
         )
         write_only_fields = (
             'file',
@@ -269,6 +269,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             'commissions_closed', 'rating', 'sfw_mode', 'max_load', 'username', 'id', 'is_staff', 'is_superuser',
-            'dwolla_configured', 'dwolla_setup_url', 'csrftoken', 'avatar_url', 'email', 'fee', 'authtoken'
+            'dwolla_configured', 'dwolla_setup_url', 'csrftoken', 'avatar_url', 'email', 'fee', 'authtoken',
+            'blacklist'
         )
         read_only_fields = fields

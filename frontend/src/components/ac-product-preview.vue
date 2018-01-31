@@ -2,7 +2,12 @@
   <div class="col-lg-3 product-preview">
     <div class="card">
       <router-link :to="{name: 'Product', params: {username: product.user.username, productID: product.id}}">
-        <ac-asset :asset="product" thumb-name="thumbnail" :terse="true" imgClass="card-img-top"></ac-asset>
+        <ac-asset
+            :asset="product"
+            thumb-name="thumbnail"
+            :terse="true"
+            imgClass="card-img-top"
+        ></ac-asset>
       </router-link>
       <div class="card-header">
         <router-link :to="{name: 'Product', params: {username: product.user.username, productID: product.id}}">

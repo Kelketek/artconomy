@@ -24,12 +24,12 @@ from rest_framework.views import APIView
 from apps.lib.models import DISPUTE, REFUND, COMMENT, Subscription, ORDER_UPDATE, SALE_UPDATE, Tag
 from apps.lib.permissions import ObjectStatus, IsStaff, IsSafeMethod, Any
 from apps.lib.serializers import CommentSerializer
-from apps.lib.utils import notify, recall_notification, add_check, ensure_tags
+from apps.lib.utils import notify, recall_notification, add_check, ensure_tags, tag_list_cleaner, add_tags
+from apps.lib.views import BaseTagView
 from apps.profiles.apis import dwolla_api
 from apps.profiles.models import User, ImageAsset
 from apps.profiles.permissions import ObjectControls, UserControls
 from apps.profiles.serializers import ImageAssetSerializer
-from apps.profiles.utils import tag_list_cleaner
 from apps.sales.permissions import OrderViewPermission, OrderSellerPermission, OrderBuyerPermission
 from apps.sales.models import Product, Order, CreditCardToken, PaymentRecord, Revision
 from apps.sales.serializers import ProductSerializer, ProductNewOrderSerializer, OrderViewSerializer, CardSerializer, \
@@ -658,47 +658,19 @@ class FundingSources(GenericAPIView):
         )
 
 
-class ProductTag(APIView):
+class ProductTag(BaseTagView):
     permission_classes = [ObjectControls]
 
-    def delete(self, request, username, product):
-        product = get_object_or_404(Product, user__username__iexact=username, id=product)
-        self.check_object_permissions(request, product)
-        # Check has to be different here.
-        # Might find a way to better simplify this sort of permission checking if
-        # we end up doing it a lot.
-        if 'tags' not in request.data:
-            return Response(status=status.HTTP_400_BAD_REQUEST, data={'tags': ['This field is required.']})
-        tag_list = request.data['tags']
-        qs = Tag.objects.filter(name__in=tag_list)
-        if not qs.exists():
-            return Response(
-                status=status.HTTP_400_BAD_REQUEST,
-                data={'tags': [
-                    'No tags specified, or the requested tags do not exist.'
-                ]}
-            )
-        product.tags.remove(*qs)
+    def get_object(self):
+        return get_object_or_404(Product, user__username__iexact=self.kwargs['username'], id=self.kwargs['product'])
+
+    def post_delete(self, product, qs):
         return Response(
             status=status.HTTP_200_OK,
             data=ProductSerializer(instance=product).data
         )
 
-    def post(self, request, username, product):
-        product = get_object_or_404(Product, user__username__iexact=username, id=product)
-        self.check_object_permissions(request, product)
-        if 'tags' not in request.data:
-            return Response(status=status.HTTP_400_BAD_REQUEST, data={'tags': ['This field is required.']})
-        tag_list = request.data['tags']
-        # Slugify, but also do a few tricks to reduce the incidence rate of duplicates.
-        tag_list = tag_list_cleaner(tag_list)
-        try:
-            add_check(product, 'tags', *tag_list)
-        except ValueError as err:
-            return Response(status=status.HTTP_400_BAD_REQUEST, data={'tags': [str(err)]})
-        ensure_tags(tag_list)
-        product.tags.add(*Tag.objects.filter(name__in=tag_list))
-
+    def post_post(self, product, tag_list):
         return Response(
             status=status.HTTP_200_OK, data=ProductSerializer(instance=product).data
         )

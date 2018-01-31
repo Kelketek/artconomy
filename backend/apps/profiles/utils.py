@@ -1,5 +1,4 @@
 from django.db.models import Case, When, F, IntegerField, Q
-from django.utils.text import slugify
 
 from apps.profiles.models import Character, ImageAsset
 
@@ -31,7 +30,7 @@ def available_chars(requester, query='', commissions=False, ordering=True):
         exclude |= Q(open_requests=False)
     q = Q(name__istartswith=query) | Q(tags__name__iexact=query)
     qs = Character.objects.filter(q).exclude(exclude & ~Q(user=requester))
-
+    qs = qs.exclude(tags__in=requester.blacklist.all())
     if ordering:
         qs = char_ordering(qs, requester, query=query)
     return qs.distinct()
@@ -41,9 +40,4 @@ def available_assets(request, requester):
     exclude = Q(private=True)
     if request.user.is_authenticated():
         exclude &= ~Q(uploaded_by=requester)
-    return ImageAsset.objects.exclude(exclude).exclude(rating__gt=request.max_rating)
-
-
-def tag_list_cleaner(tag_list):
-    tag_list = [slugify(str(tag).lower().replace(' ', '')).replace('-', '_')[:50] for tag in tag_list]
-    return list({tag for tag in tag_list if tag})
+    return ImageAsset.objects.exclude(exclude).exclude(rating__gt=request.max_rating).exclude(tags__in=request.blacklist)

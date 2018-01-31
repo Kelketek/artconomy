@@ -34,9 +34,6 @@
   export default {
     components: {AcAsset},
     name: 'ac-submission-char-tag',
-    props: ['event'],
-    created () {
-      console.log(this.event)
-    }
+    props: ['event']
   }
 </script>

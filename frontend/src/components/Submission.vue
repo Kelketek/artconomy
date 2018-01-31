@@ -7,7 +7,7 @@
       <div class="col-md-3 col-12 text-section pt-3 pl-4">
         <ac-tag-display
             :editable="true"
-            :url="url"
+            :url="`${url}/tag/`"
             :callback="populateSubmission"
             :tag-list="submission.tags"
             :controls="controls"

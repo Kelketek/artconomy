@@ -5,9 +5,12 @@ from django.db import connection
 from django.db.models import Q
 from django.db.transaction import atomic
 from django.utils import timezone
+from django.utils.text import slugify
 from pycountry import countries, subdivisions
+from rest_framework import status
+from rest_framework.response import Response
 
-from apps.lib.models import Subscription, Event, Notification
+from apps.lib.models import Subscription, Event, Notification, Tag
 
 
 def countries_tweaked():
@@ -161,3 +164,39 @@ def ensure_tags(tag_list):
                     )
                     """.format(('%s, ' * len(tag_list)).rsplit(',', 1)[0])
         cursor.execute(statement, [*tuple((tag,) for tag in tag_list)])
+
+
+def tag_list_cleaner(tag_list):
+    tag_list = [slugify(str(tag).lower().replace(' ', '')).replace('-', '_')[:50] for tag in tag_list]
+    return list({tag for tag in tag_list if tag})
+
+
+def add_tags(request, target, field_name='tags'):
+    if 'tags' not in request.data:
+        return False, Response(status=status.HTTP_400_BAD_REQUEST, data={'tags': ['This field is required.']})
+    tag_list = request.data['tags']
+    # Slugify, but also do a few tricks to reduce the incidence rate of duplicates.
+    tag_list = tag_list_cleaner(tag_list)
+    try:
+        add_check(target, field_name, *tag_list)
+    except ValueError as err:
+        return False, Response(status=status.HTTP_400_BAD_REQUEST, data={'tags': [str(err)]})
+    ensure_tags(tag_list)
+    getattr(target, field_name).add(*Tag.objects.filter(name__in=tag_list))
+    return True, tag_list
+
+
+def remove_tags(request, target, field_name='tags'):
+    if 'tags' not in request.data:
+        return Response(status=status.HTTP_400_BAD_REQUEST, data={'tags': ['This field is required.']})
+    tag_list = request.data['tags']
+    qs = Tag.objects.filter(name__in=tag_list)
+    if not qs.exists():
+        return False, Response(
+            status=status.HTTP_400_BAD_REQUEST,
+            data={'tags': [
+                'No tags specified, or the requested tags do not exist.'
+            ]}
+        )
+    getattr(target, field_name).remove(*qs)
+    return True, qs

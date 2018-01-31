@@ -9,10 +9,13 @@ def rating_middleware(get_response):
         # the view (and later middleware) are called.
 
         rating = GENERAL
+        blacklist= []
         if request.user.is_authenticated():
             if not request.user.sfw_mode:
                 rating = request.user.rating
+                blacklist = request.user.blacklist.all()
         request.max_rating = rating
+        request.blacklist = blacklist
 
         response = get_response(request)
 

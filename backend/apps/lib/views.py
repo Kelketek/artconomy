@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 from apps.lib.models import Comment
 from apps.lib.permissions import CommentEditPermission, CommentViewPermission, CommentDepthPermission
 from apps.lib.serializers import CommentSerializer
-from apps.lib.utils import countries_tweaked
+from apps.lib.utils import countries_tweaked, remove_tags, add_tags
 
 
 class CommentUpdate(RetrieveUpdateDestroyAPIView):
@@ -49,3 +49,40 @@ class CommentReply(CreateAPIView):
 class CountryListing(APIView):
     def get(self, _request):
         return Response(status=status.HTTP_200_OK, data=OrderedDict(countries_tweaked()))
+
+
+class BaseTagView(APIView):
+    field_name = 'tags'
+
+    def get_object(self):
+        """
+        Override this method with whatever is needed to get the target for tagging.
+        """
+        raise NotImplementedError
+
+    def post_delete(self, target, result):
+        """
+        Override this method with whatever is needed after deleting tags.
+        """
+        raise NotImplementedError
+
+    def delete(self, request, *args, **kwargs):
+        target = self.get_object()
+        self.check_object_permissions(request, target)
+        success, result = remove_tags(request, target, field_name=self.field_name)
+        if not success:
+            return result
+
+        return self.post_delete(target, result)
+
+    def post_post(self, target, result):
+        raise NotImplementedError
+
+    def post(self, request, *args, **kwargs):
+        target = self.get_object()
+        self.check_object_permissions(request, target)
+        success, result = add_tags(request, target, field_name=self.field_name)
+        if not success:
+            return result
+
+        return self.post_post(target, result)

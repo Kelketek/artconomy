@@ -36,5 +36,12 @@ export default {
       }
       return this.user.username === this.viewer.username
     }
+  },
+  watch: {
+    '$root.user': function (val) {
+      if (val.username && this.user.username) {
+        this.user = this.$root.user
+      }
+    }
   }
 }

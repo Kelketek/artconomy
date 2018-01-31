@@ -78,7 +78,6 @@
     },
     created () {
       EventBus.$on('result-count', this.setCounter)
-      console.log(this.tabName)
     }
   }
 </script>

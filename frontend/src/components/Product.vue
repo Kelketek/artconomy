@@ -24,7 +24,7 @@
           </p>
           <ac-tag-display
               :editable="editing"
-              :url="url"
+              :url="`${url}tag/`"
               :callback="setProduct"
               :tag-list="product.tags"
               :controls="controls"

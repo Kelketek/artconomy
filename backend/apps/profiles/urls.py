@@ -6,7 +6,7 @@ from apps.profiles.views import Register, CharacterListAPI, ImageAssetListAPI, \
     CharacterManager, AssetManager, MakePrimary, SettingsAPI, CurrentUserInfo, AssetComments, CredentialsAPI, \
     register_dwolla, \
     NotificationsList, SetAvatar, UserInfo, CharacterSearch, AssetFavorite, MarkNotificationsRead, AssetTagCharacter, \
-    UserSearch, AssetTagArtist, TagSearch, AssetTag, AssetSearch, CharacterTag
+    UserSearch, AssetTagArtist, TagSearch, AssetTag, AssetSearch, CharacterTag, UserBlacklist
 from apps.profiles.views import check_username, check_email, perform_login, perform_logout
 
 urlpatterns = [
@@ -27,6 +27,7 @@ urlpatterns = [
     url(r'^v1/account/(?P<username>[-\w]+)/settings/$', SettingsAPI.as_view(), name='settings_update'),
     url(r'^v1/account/(?P<username>[-\w]+)/credentials/$', CredentialsAPI.as_view(), name='credentials'),
     url(r'^v1/account/(?P<username>[-\w]+)/avatar/$', SetAvatar.as_view(), name='avatar'),
+    url(r'^v1/account/(?P<username>[-\w]+)/blacklist/$', UserBlacklist.as_view(), name='user_blacklist'),
     url(
         r'^v1/asset/(?P<asset_id>\d+)/$',
         AssetManager.as_view(), name='asset_manager'

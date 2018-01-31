@@ -1,21 +1,28 @@
 <template>
   <div class="asset-container">
     <div v-if="asset">
-      <a :href="asset.file.full" v-if="asset.rating <= rating"><img :class="imgClass" :src="asset.file[thumbName]"></a>
+      <a :href="asset.file.full" v-if="canDisplay"><img :class="imgClass" :src="asset.file[thumbName]"></a>
       <div v-else>
         <div class="text-center" v-if="!terse">
           <i class="fa fa-ban fa-5x mt-4 mb-4"></i>
-          <p>This piece exceeds your current content rating settings.</p>
-          <p v-if="viewer.rating && (asset.rating <= viewer.rating)">Please toggle SFW mode off to see this piece.</p>
-          <p v-else-if="viewer.username === undefined">Registered users can customize their content rating settings.</p>
-          <p v-else>
-            This piece is rated '{{ ratingText }}'. <br />
-            You can change your content rating settings in the <router-link :to="{name: 'Settings', params: {username: viewer.username}}">settings panel.</router-link>
-          </p>
+          <div v-if="!permittedRating">
+            <p>This piece exceeds your current content rating settings.</p>
+            <p v-if="viewer.rating && (asset.rating <= viewer.rating)">Please toggle SFW mode off to see this piece.</p>
+            <p v-else-if="viewer.username === undefined">Registered users can customize their content rating settings.</p>
+            <p v-else>
+              This piece is rated '{{ ratingText }}'. <br />
+              You can change your content rating settings in the <router-link :to="{name: 'Settings', params: {username: viewer.username}}">settings panel.</router-link>
+            </p>
+          </div>
+          <div v-if="blacklisted.length" class="p-2">
+            This piece contains these blacklisted tags:
+            <span v-for="tag in this.blacklisted" :key="tag">{{tag}} </span>
+          </div>
         </div>
         <div v-else class="text-center terse-container" :class="imgClass">
           <i class="fa fa-ban fa-5x mb-3 mt-3"></i>
-          <p>This piece exceeds your current content rating settings.</p>
+          <p v-if="!permittedRating">This piece exceeds your current content rating settings.</p>
+          <p v-if="blacklisted.length">This piece contains tags on your blacklist.</p>
         </div>
       </div>
     </div>
@@ -40,10 +47,32 @@
   import { RATINGS } from '../lib'
   export default {
     name: 'ac-asset',
-    props: ['asset', 'imgClass', 'terse', 'thumbName'],
+    props: {
+      'asset': {},
+      'imgClass': {},
+      'terse': {},
+      'thumbName': {},
+      'addedTags': {default () { return [] }}
+    },
     computed: {
       ratingText () {
         return RATINGS[this.asset.rating]
+      },
+      tags () {
+        return this.asset.tags.concat(this.addedTags)
+      },
+      blacklisted () {
+        return this.tags.filter((n) => this.viewer.blacklist.includes(n))
+      },
+      permittedRating () {
+        return this.asset.rating <= this.rating
+      },
+      canDisplay () {
+        if (this.permittedRating) {
+          if (!this.blacklisted.length) {
+            return true
+          }
+        }
       },
       defaultClass () {
         let classes = {}

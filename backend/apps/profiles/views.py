@@ -23,12 +23,14 @@ from apps.lib.models import Notification, FAVORITE, CHAR_TAG, SUBMISSION_CHAR_TA
 from apps.lib.permissions import Any, All, IsSafeMethod
 from apps.lib.serializers import CommentSerializer, NotificationSerializer, Base64ImageField, RelatedUserSerializer, \
     BulkNotificationSerializer
-from apps.lib.utils import recall_notification, notify, safe_add, add_check, ensure_tags
+from apps.lib.utils import recall_notification, notify, safe_add, add_check, ensure_tags, tag_list_cleaner, add_tags, \
+    remove_tags
+from apps.lib.views import BaseTagView
 from apps.profiles.models import User, Character, ImageAsset
 from apps.profiles.permissions import ObjectControls, UserControls, AssetViewPermission, AssetControls, NonPrivate
 from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer, SettingsSerializer, UserSerializer, \
     RegisterSerializer, ImageAssetManagementSerializer, CredentialsSerializer, AvatarSerializer
-from apps.profiles.utils import available_chars, char_ordering, available_assets, tag_list_cleaner
+from apps.profiles.utils import available_chars, char_ordering, available_assets
 from shortcuts import make_url
 
 
@@ -110,7 +112,7 @@ class ImageAssetListAPI(ListCreateAPIView):
         char = get_object_or_404(
             Character, user__username__iexact=self.kwargs['username'], name=self.kwargs['character']
         )
-        return char.assets.filter(rating__lte=self.request.max_rating)
+        return char.assets.filter(rating__lte=self.request.max_rating).exclude(tags__in=self.request.blacklist)
 
     def perform_create(self, serializer):
         character = get_object_or_404(
@@ -446,60 +448,29 @@ class AssetTagArtist(APIView):
         )
 
 
-class AssetTag(APIView):
+class AssetTag(BaseTagView):
     permission_classes = [IsAuthenticated, AssetViewPermission]
 
-    def delete(self, request, asset_id):
-        asset = get_object_or_404(ImageAsset, id=asset_id)
-        self.check_object_permissions(request, asset)
-        # Check has to be different here.
-        # Might find a way to better simplify this sort of permission checking if
-        # we end up doing it a lot.
-        if 'tags' not in request.data:
-            return Response(status=status.HTTP_400_BAD_REQUEST, data={'tags': ['This field is required.']})
-        tag_list = request.data['tags']
-        qs = Tag.objects.filter(name__in=tag_list)
-        if not qs.exists():
-            return Response(
-                status=status.HTTP_400_BAD_REQUEST,
-                data={'tags': [
-                    'No tags specified, or the requested tags do not exist.'
-                ]}
-            )
-        if (asset.uploaded_by == request.user) or request.user.is_staff:
-            asset.tags.remove(*qs)
-            return Response(
-                status=status.HTTP_200_OK,
-                data=ImageAssetManagementSerializer(instance=asset, request=self.request).data
-            )
-        else:
-            raise PermissionDenied("You do not have permission to remove tags on this ")
+    def get_object(self):
+        return get_object_or_404(ImageAsset, id=self.kwargs['asset_id'])
 
-    def post(self, request, asset_id):
-        asset = get_object_or_404(ImageAsset, id=asset_id)
-        self.check_object_permissions(request, asset)
-        if 'tags' not in request.data:
-            return Response(status=status.HTTP_400_BAD_REQUEST, data={'tags': ['This field is required.']})
-        tag_list = request.data['tags']
-        # Slugify, but also do a few tricks to reduce the incidence rate of duplicates.
-        tag_list = tag_list_cleaner(tag_list)
-        try:
-            add_check(asset, 'tags', *tag_list)
-        except ValueError as err:
-            return Response(status=status.HTTP_400_BAD_REQUEST, data={'tags': [str(err)]})
-        ensure_tags(tag_list)
-        asset.tags.add(*Tag.objects.filter(name__in=tag_list))
+    def post_delete(self, asset, qs):
+        return Response(
+            status=status.HTTP_200_OK,
+            data=ImageAssetManagementSerializer(instance=asset, request=self.request).data
+        )
 
+    def post_post(self, asset, tag_list):
         def transform(old_data, new_data):
             return {
                 'users': list(set(old_data['users'] + new_data['users'])),
                 'tags': list(set(old_data['tags'] + new_data['tags']))
             }
 
-        if asset.uploaded_by != request.user:
+        if asset.uploaded_by != self.request.user:
             notify(
                 SUBMISSION_TAG, asset, data={
-                    'users': [request.user.id],
+                    'users': [self.request.user.id],
                     'tags': tag_list
                 },
                 unique=True, mark_unread=True,
@@ -510,49 +481,43 @@ class AssetTag(APIView):
         )
 
 
-class CharacterTag(APIView):
+class CharacterTag(BaseTagView):
     permission_classes = [ObjectControls]
 
-    def delete(self, request, username,  character):
-        character = get_object_or_404(Character, user__username__iexact=username, name=character)
-        self.check_object_permissions(request, character)
-        # Check has to be different here.
-        # Might find a way to better simplify this sort of permission checking if
-        # we end up doing it a lot.
-        if 'tags' not in request.data:
-            return Response(status=status.HTTP_400_BAD_REQUEST, data={'tags': ['This field is required.']})
-        tag_list = request.data['tags']
-        qs = Tag.objects.filter(name__in=tag_list)
-        if not qs.exists():
-            return Response(
-                status=status.HTTP_400_BAD_REQUEST,
-                data={'tags': [
-                    'No tags specified, or the requested tags do not exist.'
-                ]}
-            )
-        character.tags.remove(*qs)
+    def get_object(self):
+        return get_object_or_404(
+            Character, user__username__iexact=self.kwargs['username'], name=self.kwargs['character']
+        )
+
+    def post_delete(self, character, _tags):
         return Response(
             status=status.HTTP_200_OK,
             data=CharacterSerializer(instance=character).data
         )
 
-    def post(self, request, username, character):
-        character = get_object_or_404(Character, user__username__iexact=username, name=character)
-        self.check_object_permissions(request, character)
-        if 'tags' not in request.data:
-            return Response(status=status.HTTP_400_BAD_REQUEST, data={'tags': ['This field is required.']})
-        tag_list = request.data['tags']
-        # Slugify, but also do a few tricks to reduce the incidence rate of duplicates.
-        tag_list = tag_list_cleaner(tag_list)
-        try:
-            add_check(character, 'tags', *tag_list)
-        except ValueError as err:
-            return Response(status=status.HTTP_400_BAD_REQUEST, data={'tags': [str(err)]})
-        ensure_tags(tag_list)
-        character.tags.add(*Tag.objects.filter(name__in=tag_list))
-
+    def post_post(self, character, _qs):
         return Response(
             status=status.HTTP_200_OK, data=CharacterSerializer(instance=character).data
+        )
+
+
+class UserBlacklist(BaseTagView):
+    field_name = 'blacklist'
+    permission_classes = [ObjectControls]
+
+    def get_object(self):
+        return User.objects.get(username__iexact=self.kwargs['username'])
+
+    def post_delete(self, user, result):
+        return Response(
+            status=status.HTTP_200_OK,
+            data=UserSerializer(instance=user, request=self.request).data
+        )
+
+    def post_post(self, user, result):
+        return Response(
+            status=status.HTTP_200_OK,
+            data=UserSerializer(instance=user, request=self.request).data
         )
 
 

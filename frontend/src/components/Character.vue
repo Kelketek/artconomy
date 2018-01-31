@@ -21,7 +21,7 @@
             </p>
             <ac-tag-display
                 :editable="editing"
-                :url="url"
+                :url="`${url}tag/`"
                 :callback="loadCharacter"
                 :tag-list="character.tags"
                 :controls="controls"
@@ -43,7 +43,11 @@
       <div class="col-lg-4 p-0 section-text">
         <div class="character-panel-preview text-center">
           <router-link v-if="character.primary_asset && character.primary_asset.id" :to="{name: 'Submission', params: {assetID: character.primary_asset.id}}">
-            <ac-asset img-class="character-refsheet" thumb-name="gallery" :asset="character.primary_asset" />
+            <ac-asset
+                img-class="character-refsheet"
+                thumb-name="gallery"
+                :asset="character.primary_asset"
+            />
           </router-link>
           <img class="character-refsheet" v-else src="/static/images/default-avatar.png"/>
         </div>
@@ -65,7 +69,7 @@
     <div class="row mb-3" v-if="character">
       <div class="col-12 col-md-9 text-center image-showcase" v-if="assets && assets.length">
         <router-link v-if="character.primary_asset && character.primary_asset.id" :to="{name: 'Submission', params: {assetID: character.primary_asset.id}}">
-          <img class="character-refsheet mb-2 shadowed" :src="character.primary_asset.file.gallery"/>
+          <ac-asset class="mb-2 shadowed" :asset="character.primary_asset" thumb-name="gallery" img-class="character-refsheet" />
           <div class="character-gallery-title text-center">{{ character.primary_asset.title }}</div>
         </router-link>
         <router-link v-else-if="assets && assets[0]" :to="{name: 'Submission', params: {assetID: assets[0].id}}">

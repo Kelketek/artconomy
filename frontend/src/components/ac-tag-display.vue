@@ -1,12 +1,12 @@
 <template>
   <div class="tag-display">
-    <h3>Tags</h3>
+    <h3 v-if="!hideTitle">Tags</h3>
     <ac-tag
         v-for="tag in tagList"
         :tag="tag"
         :key="tag"
         :removable="controls"
-        :remove-url="`${url}tag/`"
+        :remove-url="url"
         :callback="callback"
         :tab-name="tabName"
     />
@@ -16,7 +16,7 @@
         <form>
           <ac-form-container
               ref="taggingForm"
-              :url="`${this.url}tag/`"
+              :url="url"
               :schema="taggingSchema"
               :options="taggingOptions"
               :model="taggingModel"
@@ -43,6 +43,9 @@
       controls: {},
       tabName: {
         default: 'submissions'
+      },
+      hideTitle: {
+        default: false
       }
     },
     data () {

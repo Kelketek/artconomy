@@ -50,6 +50,8 @@ class User(AbstractEmailUser):
         help_text="Enable this to only display clean art. "
                   "Useful if temporarily browsing from a location where adult content is not appropriate."
     )
+    blacklist = ManyToManyField('lib.Tag', blank=True)
+    blacklist__max = 500
     notifications = ManyToManyField('lib.Event', through='lib.Notification')
 
     @property

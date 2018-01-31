@@ -1,7 +1,7 @@
 <template>
   <div class="settings-center container">
     <div class="row">
-      <div class="main-settings col-12" v-if="$root.user.username">
+      <div class="main-settings col-12" v-if="user.username">
         <b-tabs v-model="tab">
           <b-tab title="<i class='fa fa-sliders'></i> Options">
             <form class="mt-3">
@@ -15,6 +15,18 @@
                 <i v-if="$refs.settingsForm && $refs.settingsForm.saved" class="fa fa-check" style="color: green"></i>
               </ac-form-container>
             </form>
+            <div class="pt-2">
+              <h2>Blacklist</h2>
+              <p>Any submissions which contain content with blacklisted tags will be hidden.</p>
+              <ac-tag-display
+                  :editable="true"
+                  :url="`/api/profiles/v1/account/${this.user.username}/blacklist/`"
+                  :callback="updateUser"
+                  :tag-list="user.blacklist"
+                  :controls="true"
+                  :hide-title="true"
+              />
+            </div>
           </b-tab>
           <b-tab title="<i class='fa fa-id-card-o'></i> Credentials">
             <b-tabs pills v-model="credentialsTab">
@@ -95,6 +107,7 @@
   import AcCardManager from './ac-card-manager'
   import AcAccountBalance from './ac-account-balance'
   import AcSetupTwoFactor from './ac-setup-two-factor'
+  import AcTagDisplay from './ac-tag-display'
 
   const TabMap = {
     options: 0,
@@ -114,6 +127,7 @@
   export default {
     name: 'Settings',
     components: {
+      AcTagDisplay,
       AcSetupTwoFactor,
       AcCardManager,
       AcFormContainer,
