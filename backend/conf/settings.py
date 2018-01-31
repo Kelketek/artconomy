@@ -191,7 +191,8 @@ REFUND_FEE = Decimal('2.00')
 
 COUNTRIES_NOT_SERVED = (
   'NK',
-  'IR'
+  'IR',
+  'NG'
 )
 
 REST_FRAMEWORK = {

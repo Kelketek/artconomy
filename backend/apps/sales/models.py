@@ -204,6 +204,7 @@ class Order(Model):
     arbitrator = ForeignKey(settings.AUTH_USER_MODEL, related_name='cases', null=True, blank=True)
     stream_link = URLField(blank=True, default='')
     characters = ManyToManyField('profiles.Character')
+    private = BooleanField(default=False)
     comments = GenericRelation(
         Comment, related_query_name='order', content_type_field='content_type', object_id_field='object_id'
     )
@@ -327,7 +328,8 @@ class CreditCardToken(Model):
     card_type = IntegerField(choices=CARD_TYPES, default=VISA_TYPE)
     last_four = CharField(max_length=4)
     payment_id = CharField(max_length=50)
-    active = BooleanField(default=True)
+    active = BooleanField(default=True, db_index=True)
+    cvv_verified = BooleanField(default=False, db_index=True)
 
     def __init__(self, *args, **kwargs):
         super(CreditCardToken, self).__init__(*args, **kwargs)
@@ -376,23 +378,32 @@ class CreditCardToken(Model):
         self.save()
 
     @classmethod
-    def authorize_card(cls, number, exp_year, exp_month, security_code, zip_code):
-        card = CreditCard(number, exp_year, exp_month, security_code, '', '')
+    def authorize_card(cls, first_name, last_name, number, exp_year, exp_month, country, zip_code):
+        card = CreditCard(
+            card_number=number,
+            exp_year=exp_year,
+            exp_month=exp_month,
+            cvv='000',  # We won't be validating a CVV until at least the first transaction.
+            first_name=first_name,
+            last_name=last_name
+        )
 
         card_type = CreditCardToken.TYPE_TRANSLATION[card.card_type]
 
-        address = Address(street='', city='', state='', zip_code=zip_code)
+        address = Address(street='', city='', state='', zip_code=zip_code, country=country)
         saved_card = sauce.card(card, address).save()
 
         return saved_card, card_type, number[:4]
 
     @classmethod
-    def create(cls, user, number, exp_year, exp_month, security_code, zip_code):
+    def create(cls, user, first_name, last_name, card_number, exp_year, exp_month, country, zip_code):
 
-        saved_card, card_type, last_four = cls.authorize_card(number, exp_year, exp_month, security_code, zip_code)
+        saved_card, card_type, last_four = cls.authorize_card(
+            first_name, last_name, card_number, exp_year, exp_month, country, zip_code
+        )
 
         token = cls(
-            user=user, card_type=card_type, last_four=number[:4],
+            user=user, card_type=card_type, last_four=card_number[:4],
             payment_id=saved_card.uid)
 
         token.save()

@@ -1,8 +1,14 @@
+from collections import OrderedDict
+
+from rest_framework import status
 from rest_framework.generics import RetrieveUpdateDestroyAPIView, get_object_or_404, CreateAPIView
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from apps.lib.models import Comment
 from apps.lib.permissions import CommentEditPermission, CommentViewPermission, CommentDepthPermission
 from apps.lib.serializers import CommentSerializer
+from apps.lib.utils import countries_tweaked
 
 
 class CommentUpdate(RetrieveUpdateDestroyAPIView):
@@ -38,3 +44,8 @@ class CommentReply(CreateAPIView):
         parent = self.get_object()
         self.check_object_permissions(self.request, parent)
         return serializer.save(parent=parent, user=self.request.user)
+
+
+class CountryListing(APIView):
+    def get(self, _request):
+        return Response(status=status.HTTP_200_OK, data=OrderedDict(countries_tweaked()))

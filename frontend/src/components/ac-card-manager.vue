@@ -56,7 +56,7 @@
   import AcFormContainer from './ac-form-container'
   import AcSavedCard from './ac-saved-card'
   import VueFormGenerator from 'vue-form-generator'
-  import { artCall, EventBus } from '../lib'
+  import { artCall, EventBus, genOptions } from '../lib'
 
   function cardSelectValidator (value) {
     EventBus.$emit('card-number', value)
@@ -73,6 +73,9 @@
         currentTab: 0,
         selectedCard: this.value,
         newCardModel: {
+          first_name: '',
+          last_name: '',
+          country: 'US',
           card_number: '',
           exp_date: '',
           security_code: '',
@@ -82,6 +85,23 @@
         cardType: 'unknown',
         newCardSchema: {
           fields: [{
+            type: 'input',
+            inputType: 'text',
+            label: 'First Name',
+            model: 'first_name',
+            featured: true,
+            required: true,
+            validator: VueFormGenerator.validators.string
+          },
+          {
+            type: 'input',
+            inputType: 'text',
+            label: 'Last Name',
+            model: 'last_name',
+            featured: true,
+            required: true,
+            validator: VueFormGenerator.validators.string
+          }, {
             type: 'input',
             inputType: 'text',
             label: 'Card Number',
@@ -100,17 +120,15 @@
             required: true,
             validator: VueFormGenerator.validators.string
           }, {
-            type: 'input',
-            inputType: 'text',
-            label: 'Security Code (CVV)',
-            model: 'security_code',
-            placeholder: '555',
-            featured: true,
+            type: 'select',
+            model: 'country',
+            values: [],
             required: true,
-            hint: 'Three to four digit number, on the front of American Express cards, and on the back of all other cards.',
-            validator: VueFormGenerator.validators.string
-          },
-          {
+            label: 'Country',
+            selectOptions: {
+              hideNoneSelectedText: true
+            }
+          }, {
             type: 'input',
             inputType: 'text',
             label: 'Zip/Postal Code',
@@ -158,6 +176,12 @@
         this.growing.push(response)
         this.currentTab = 0
         this.selectedCard = response.id
+      },
+      populateCountries (response) {
+        let countryField = this.newCardSchema.fields.filter((field) => { return field.model === 'country' })[0]
+        countryField.values = () => {
+          return genOptions(response)
+        }
       }
     },
     watch: {
@@ -172,8 +196,17 @@
         this.$emit('input', this.selectedCard)
       }
     },
+    computed: {
+      selectedCardModel () {
+        if (!this.selectedCard) {
+          return null
+        }
+        return this.growing.filter((card) => { return card.id === this.selectedCard })[0]
+      }
+    },
     created () {
       artCall(`/api/sales/v1/${this.username}/cards/`, 'GET', undefined, this.populateCards)
+      artCall('/api/lib/v1/countries/', 'GET', undefined, this.populateCountries)
       EventBus.$on('card-number', this.selectCard)
     },
     destroyed () {

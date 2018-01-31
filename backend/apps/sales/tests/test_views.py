@@ -58,7 +58,7 @@ class TestOrderListBase(object):
     @data(*categories)
     def test_not_logged_in(self, category):
         response = self.client.get('/api/sales/v1/{}/orders/{}/'.format(self.user.username, category))
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     @data(*categories)
     def test_outsider(self, category):
@@ -108,6 +108,9 @@ class TestCardManagement(APITestCase):
         response = self.client.post(
             '/api/sales/v1/{}/cards/'.format(self.user.username),
             {
+                'first_name': 'Jim',
+                'last_name': 'Bob',
+                'country': 'US',
                 'card_number': '4111 1111 1111 1111',
                 'exp_date': '02/34',
                 'security_code': '555',
@@ -131,6 +134,9 @@ class TestCardManagement(APITestCase):
         response = self.client.post(
             '/api/sales/v1/{}/cards/'.format(self.user.username),
             {
+                'first_name': 'Jim',
+                'last_name': 'Bob',
+                'country': 'US',
                 'card_number': '4111 1111 1111 1111',
                 'exp_date': '02/34',
                 'security_code': '555',
@@ -156,6 +162,9 @@ class TestCardManagement(APITestCase):
         response = self.client.post(
             '/api/sales/v1/{}/cards/'.format(self.user.username),
             {
+                'first_name': 'Jim',
+                'last_name': 'Bob',
+                'country': 'US',
                 'card_number': '4111 1111 1111 1111',
                 'exp_date': '02/34',
                 'security_code': '555',
@@ -179,13 +188,16 @@ class TestCardManagement(APITestCase):
         response = self.client.post(
             '/api/sales/v1/{}/cards/'.format(self.user.username),
             {
+                'first_name': 'Jim',
+                'last_name': 'Bob',
+                'country': 'US',
                 'card_number': '4111 1111 1111 1111',
                 'exp_date': '02/34',
                 'security_code': '555',
                 'zip': '44444'
             }
         )
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     @patch('apps.sales.models.sauce')
     def test_add_card_outsider(self, card_api):
@@ -197,6 +209,9 @@ class TestCardManagement(APITestCase):
         response = self.client.post(
             '/api/sales/v1/{}/cards/'.format(self.user.username),
             {
+                'first_name': 'Jim',
+                'last_name': 'Bob',
+                'country': 'US',
                 'card_number': '4111 1111 1111 1111',
                 'exp_date': '02/34',
                 'security_code': '555',
@@ -213,6 +228,9 @@ class TestCardManagement(APITestCase):
         response = self.client.post(
             '/api/sales/v1/{}/cards/'.format(self.user.username),
             {
+                'first_name': 'Jim',
+                'last_name': 'Bob',
+                'country': 'US',
                 'card_number': '4111 1111 1111 1111',
                 'exp_date': '02/34',
                 'security_code': '555',
@@ -242,7 +260,7 @@ class TestCardManagement(APITestCase):
     def test_make_primary_not_logged_in(self):
         cards = [CreditCardTokenFactory(user=self.user) for __ in range(4)]
         response = self.client.post('/api/sales/v1/{}/cards/{}/primary/'.format(self.user.username, cards[2].id))
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_make_primary_outsider(self):
         self.login(self.user2)
@@ -269,7 +287,7 @@ class TestCardManagement(APITestCase):
 
     def test_card_listing_not_logged_in(self):
         response = self.client.get('/api/sales/v1/{}/cards/'.format(self.user.username))
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_card_listing_staffer(self):
         self.login(self.staffer)
@@ -295,7 +313,7 @@ class TestCardManagement(APITestCase):
         cards = [CreditCardTokenFactory(user=self.user) for __ in range(4)]
         self.assertEqual(cards[2].active, True)
         response = self.client.delete('/api/sales/v1/{}/cards/{}/'.format(self.user.username, cards[2].id))
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         cards[2].refresh_from_db()
         self.assertEqual(cards[2].active, True)
 
@@ -464,9 +482,9 @@ class TestProduct(APITestCase):
         OrderFactory.create(product=products[1])
         self.assertTrue(products[1].active)
         response = self.client.delete('/api/sales/v1/{}/products/{}/'.format(self.user.username, products[1].id))
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         response = self.client.delete('/api/sales/v1/{}/products/{}/'.format(self.user.username, products[2].id))
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         products[1].refresh_from_db()
         self.assertTrue(products[1].active)
         self.assertEqual(Product.objects.filter(id=products[2].id).count(), 1)
@@ -606,7 +624,7 @@ class TestOrder(APITestCase):
                 'adjustment': '2.03'
             }
         )
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_adjust_order_staff(self):
         self.login(self.staffer)
@@ -851,7 +869,7 @@ class TestOrder(APITestCase):
         response = self.client.delete(
             '/api/sales/v1/order/{}/revisions/{}/'.format(order.id, revision.id)
         )
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         order.refresh_from_db()
         self.assertEqual(order.revision_set.all().count(), 1)
 
@@ -879,7 +897,52 @@ class TestOrder(APITestCase):
             '/api/sales/v1/order/{}/pay/'.format(order.id),
             {
                 'card_id': CreditCardTokenFactory.create(user=self.user).id,
-                'amount': '12.00'
+                'amount': '12.00',
+                'cvv': '100'
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        record = PaymentRecord.objects.get(txn_id='Trans123')
+        self.assertEqual(record.status, PaymentRecord.SUCCESS)
+        self.assertEqual(record.source, PaymentRecord.CARD)
+        self.assertEqual(record.escrow_for, order.seller)
+        self.assertEqual(record.target, order)
+        self.assertEqual(record.amount, Money('12.00', 'USD'))
+        self.assertEqual(record.payer, self.user)
+        self.assertEqual(record.payee, None)
+
+    @patch('apps.sales.models.sauce')
+    def test_pay_order_cvv_missing(self, card_api):
+        self.login(self.user)
+        order = OrderFactory.create(
+            buyer=self.user, status=Order.QUEUED, price=Money('10.00', 'USD'),
+            adjustment=Money('2.00', 'USD')
+        )
+        card_api.saved_card.return_value.capture.return_value.uid = 'Trans123'
+        response = self.client.post(
+            '/api/sales/v1/order/{}/pay/'.format(order.id),
+            {
+                'card_id': CreditCardTokenFactory.create(user=self.user).id,
+                'amount': '12.00',
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertRaises(PaymentRecord.DoesNotExist, PaymentRecord.objects.get, txn_id='Trans123')
+
+    @patch('apps.sales.models.sauce')
+    def test_pay_order_cvv_already_verified(self, card_api):
+        self.login(self.user)
+        order = OrderFactory.create(
+            buyer=self.user, status=Order.QUEUED, price=Money('10.00', 'USD'),
+            adjustment=Money('2.00', 'USD')
+        )
+        card_api.saved_card.return_value.capture.return_value.uid = 'Trans123'
+        response = self.client.post(
+            '/api/sales/v1/order/{}/pay/'.format(order.id),
+            {
+                'card_id': CreditCardTokenFactory.create(user=self.user, cvv_verified=True).id,
+                'amount': '12.00',
+                'cvv': '100'
             }
         )
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
@@ -904,7 +967,8 @@ class TestOrder(APITestCase):
             '/api/sales/v1/order/{}/pay/'.format(order.id),
             {
                 'card_id': CreditCardTokenFactory.create(user=self.user).id,
-                'amount': '12.00'
+                'amount': '12.00',
+                'cvv': '123'
             }
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -930,7 +994,8 @@ class TestOrder(APITestCase):
             '/api/sales/v1/order/{}/pay/'.format(order.id),
             {
                 'card_id': CreditCardTokenFactory.create(user=self.user).id,
-                'amount': '10.00'
+                'amount': '10.00',
+                'cvv': '234'
             }
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -948,7 +1013,8 @@ class TestOrder(APITestCase):
             '/api/sales/v1/order/{}/pay/'.format(order.id),
             {
                 'card_id': CreditCardTokenFactory.create().id,
-                'amount': '12.00'
+                'amount': '12.00',
+                'cvv': '345'
             }
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -966,7 +1032,8 @@ class TestOrder(APITestCase):
             '/api/sales/v1/order/{}/pay/'.format(order.id),
             {
                 'card_id': CreditCardTokenFactory.create(user=self.user).id,
-                'amount': '12.00'
+                'amount': '12.00',
+                'cvv': '123'
             }
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -984,7 +1051,8 @@ class TestOrder(APITestCase):
             '/api/sales/v1/order/{}/pay/'.format(order.id),
             {
                 'card_id': CreditCardTokenFactory.create(user=self.user).id,
-                'amount': '12.00'
+                'amount': '12.00',
+                'cvv': '567'
             }
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -1002,7 +1070,8 @@ class TestOrder(APITestCase):
             '/api/sales/v1/order/{}/pay/'.format(order.id),
             {
                 'card_id': CreditCardTokenFactory.create(user=self.user).id,
-                'amount': '12.00'
+                'amount': '12.00',
+                'cvv': '467'
             }
         )
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
@@ -1042,7 +1111,7 @@ class TestOrder(APITestCase):
                 'characters': characters
             }
         )
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
 class TestOrderStateChange(APITestCase):

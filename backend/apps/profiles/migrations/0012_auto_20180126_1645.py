@@ -9,7 +9,7 @@ from rest_framework.authtoken.models import Token
 def gen_tokens(apps, schema):
     user_cls = apps.get_model('profiles.User')
     for user in user_cls.objects.all():
-        Token.objects.create(user_id=user.id)
+        Token.objects.get_or_create(user_id=user.id)
 
 
 class Migration(migrations.Migration):

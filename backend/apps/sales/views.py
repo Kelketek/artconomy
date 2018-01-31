@@ -353,6 +353,7 @@ class ApproveFinal(GenericAPIView):
             new_file = ContentFile(final.file.read())
             new_file.name = final.file.name
             submission.file = new_file
+            submission.private = order.private
             submission.save()
             submission.characters.add(*order.characters.all())
             submission.artists.add(order.seller)
@@ -531,9 +532,9 @@ class CardList(ListCreateAPIView):
         user = get_object_or_404(User, username=self.kwargs['username'])
         self.check_object_permissions(self.request, user)
         return CreditCardToken.create(
+            first_name=data['first_name'], last_name=data['last_name'], country=data['country'],
             user=user, exp_month=data['exp_date'].month, exp_year=data['exp_date'].year,
-            security_code=data['security_code'], number=data['card_number'],
-            zip_code=data.get('zip')
+            card_number=data['card_number'], zip_code=data.get('zip')
         )
 
 
@@ -589,6 +590,10 @@ class MakePayment(GenericAPIView):
                 status=status.HTTP_400_BAD_REQUEST, data={'error': 'The price has changed. Please refresh the page.'}
             )
         card = get_object_or_404(CreditCardToken, id=attempt['card_id'], active=True, user=order.buyer)
+        if not card.cvv_verified and not attempt['cvv']:
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST, data={'error': 'You must enter the security code for this card.'}
+            )
         record = PaymentRecord.objects.create(
             card=card,
             payer=order.buyer,
@@ -605,7 +610,7 @@ class MakePayment(GenericAPIView):
         code = status.HTTP_400_BAD_REQUEST
         data = {'error': record.response_message}
         try:
-            result = card.api.capture(attempt['amount'])
+            result = card.api.capture(attempt['amount'], cvv=attempt['cvv'] or None)
         except Exception as err:
             record.response_message = translate_authnet_error(err)
             data['error'] = record.response_message
@@ -616,6 +621,8 @@ class MakePayment(GenericAPIView):
             code = status.HTTP_202_ACCEPTED
             order.status = Order.QUEUED
             order.save()
+            card.cvv_verified = True
+            card.save()
             notify(SALE_UPDATE, order, unique=True, mark_unread=True)
             data = OrderViewSerializer(instance=order).data
         record.save()

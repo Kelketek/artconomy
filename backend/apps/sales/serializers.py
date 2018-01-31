@@ -10,6 +10,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.fields import SerializerMethodField, DecimalField, IntegerField
 
 from apps.lib.serializers import RelatedUserSerializer, Base64ImageField
+from apps.lib.utils import country_choices
 from apps.profiles.models import User
 from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer
 from apps.sales.models import Product, Order, CreditCardToken, Revision, PaymentRecord
@@ -51,7 +52,7 @@ class ProductNewOrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ('id', 'created_on', 'status', 'product', 'details', 'seller', 'buyer', 'characters')
+        fields = ('id', 'created_on', 'status', 'product', 'details', 'seller', 'buyer', 'characters', 'private')
         read_only_fields = (
             'status', 'id', 'created_on'
         )
@@ -74,7 +75,7 @@ class OrderViewSerializer(serializers.ModelSerializer):
         model = Order
         fields = (
             'id', 'created_on', 'status', 'price', 'product', 'details', 'seller', 'buyer', 'adjustment', 'characters',
-            'stream_link', 'revisions', 'outputs'
+            'stream_link', 'revisions', 'outputs', 'private'
         )
         read_only_fields = fields
 
@@ -107,7 +108,7 @@ class CardSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CreditCardToken
-        fields = ('id', 'user', 'last_four', 'card_type', 'primary')
+        fields = ('id', 'user', 'last_four', 'card_type', 'primary', 'cvv_verified')
         read_only_fields = fields
 
 
@@ -115,10 +116,11 @@ class NewCardSerializer(serializers.Serializer):
     """
     Form for getting and saving a credit card.
     """
+    first_name = serializers.CharField(max_length=50)
+    last_name = serializers.CharField(max_length=50)
+    country = serializers.ChoiceField(choices=country_choices())
     card_number = serializers.CharField(max_length=25)
-    # If this code lasts long enough for this to be a problem, I will be both surprised and happy.
     exp_date = serializers.CharField(max_length=5, min_length=5)
-    security_code = serializers.CharField(max_length=4, min_length=3, validators=[RegexValidator(r'\d+')])
     zip = serializers.CharField(max_length=20, required=False)
 
     def validate_exp_date(self, value):
@@ -155,6 +157,7 @@ class PaymentSerializer(serializers.Serializer):
     """
     card_id = IntegerField()
     amount = DecimalField(max_digits=4, min_value=settings.MINIMUM_PRICE, decimal_places=2)
+    cvv = serializers.CharField(validators=[RegexValidator(r'^\d{3,4}$')], required=False, default='')
 
 
 class RevisionSerializer(serializers.ModelSerializer):

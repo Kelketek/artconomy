@@ -27,9 +27,3 @@ def dwolla_setup_link():
         client_id=client.id,
         redirect_uri=make_url(reverse('profiles:register_dwolla')),
     )
-
-authorize_api = AuthorizeClient(
-    settings.AUTHORIZE_KEY,
-    settings.AUTHORIZE_SECRET,
-    debug=settings.SANDBOX_APIS,
-)

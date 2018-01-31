@@ -122,12 +122,12 @@ export const PRODUCT_TYPES = {
   15: 'Other'
 }
 
-function genOptions (enumerable) {
-  let contentRatings = []
-  for (let key in Object.keys(enumerable)) {
-    contentRatings.push({id: key, name: enumerable[key]})
+export function genOptions (enumerable) {
+  let options = []
+  for (let key of Object.keys(enumerable)) {
+    options.push({id: key, name: enumerable[key]})
   }
-  return contentRatings
+  return options
 }
 
 export function ratings () {

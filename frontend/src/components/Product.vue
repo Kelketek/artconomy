@@ -136,6 +136,7 @@
         showOrder: false,
         newOrderModel: {
           details: '',
+          private: false,
           characters: []
         },
         newOrderSchema: {
@@ -146,6 +147,19 @@
             featured: true,
             placeholder: 'Search characters',
             styleClasses: 'field-input'
+          }, {
+            type: 'input',
+            styleClasses: ['vue-checkbox'],
+            inputType: 'checkbox',
+            label: 'Private order?',
+            model: 'private',
+            required: false,
+            validator: VueFormGenerator.validators.boolean,
+            hint: (
+              'Hides the resulting submission from public view and tells the artist you want this commission to ' +
+              'be private. The artist may charge an additional fee, since they will not be able to use the piece ' +
+              'in their portfolio.'
+            )
           }, {
             type: 'textArea',
             label: 'Details',

@@ -9,7 +9,7 @@ djangorestframework-bulk==0.2.1
 django-rest-recaptcha==1.0.1
 django_money==0.11.4
 django-custom-user==0.7
--e git+https://github.com/robinhood/deux.git@5b1e774beba7d63b73b5a3f3c1e16afa54706363#egg=duex
+git+https://github.com/robinhood/deux.git@5b1e774beba7d63b73b5a3f3c1e16afa54706363#egg=duex
 dwollav2==1.2.4
 easy_thumbnails==2.4.1
 factory_boy==2.8.1

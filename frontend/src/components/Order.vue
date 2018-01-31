@@ -13,6 +13,9 @@
             <h4>Details:</h4>
             <div class="order-details" v-html="md.render(order.details)"></div>
           </div>
+          <div v-if="order.private">
+            <p><strong>PRIVATE ORDER</strong></p>
+          </div>
         </div>
         <div class="col-12 col-lg-2 text-section text-center pt-3">
           <div class="text-center">
@@ -138,6 +141,12 @@
             <p>The artist has begun work on your commission. <a :href="order.stream_link" v-if="order.stream_link">They are streaming your piece here!</a></p>
           </div>
           <div v-if="(queued || inProgress) && seller">
+            <div v-if="order.private">
+              <p>
+                <strong>WARNING:</strong>
+                This order was marked as <strong>PRIVATE</strong>. Make sure any stream link you give is not publicly viewable! Be sure to add any extra access information in the comments.
+              </p>
+            </div>
             <form>
               <ac-form-container
                   method="PATCH"
@@ -167,7 +176,7 @@
           </div>
         </div>
         <div class="col-md-6 col-12 text-section" v-if="buyer && paymentPending">
-          <ac-card-manager :payment="true" :username="order.buyer.username" v-model="selectedCard" />
+          <ac-card-manager ref="cardManager" :payment="true" :username="order.buyer.username" v-model="selectedCard" />
         </div>
         <div class="col-md-6 col-12 mt-3 mb-3 text-center" v-if="buyer && paymentPending">
           <p><strong>Add a card or select a saved one on the left.</strong></p>
@@ -182,8 +191,12 @@
             <span v-if="parseFloat(adjustmentModel.adjustment) !== 0">${{parseFloat(adjustmentModel.adjustment).toFixed(2)}}</span>
             <hr />
             <strong>Total: ${{price}}</strong>
+            <div v-if="selectedCard && this.$refs.cardManager.selectedCardModel.cvv_verified === false">
+              <strong>Card Security code (CVV): </strong><input v-model="cvv" /> <br />
+              <small>Three to four digit number, on the front of American Express cards, and on the back of all other cards.</small>
+            </div>
             <div class="mt-2 text-center">
-              <ac-action class="pay-button" :disabled="selectedCard === null" :url="`${url}pay/`" variant="success" :send="paymentData" :success="postPay">Submit</ac-action>
+              <ac-action class="pay-button" :disabled="selectedCard === null || !validCVV" :url="`${url}pay/`" variant="success" :send="paymentData" :success="postPay">Submit</ac-action>
             </div>
           </div>
         </div>
@@ -434,6 +447,9 @@
       revisionsRemain () {
         return (this.revisions && (this.revisions.length <= this.order.revisions))
       },
+      validCVV () {
+        return RegExp('^\\d{3,4}$').test(this.cvv)
+      },
       paymentDetail () {
         return this.seller || this.newOrder
       },
@@ -455,7 +471,8 @@
       paymentData () {
         return {
           card_id: this.selectedCard,
-          amount: this.price
+          amount: this.price,
+          cvv: this.cvv
         }
       }
     },
@@ -469,6 +486,7 @@
         selectedCard: null,
         justPaid: false,
         revisions: null,
+        cvv: '',
         adjustmentModel: {
           adjustment: 0.00
         },
