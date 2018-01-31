@@ -6,7 +6,7 @@ from custom_user.models import AbstractEmailUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, RegexValidator
 from django.db.models import Model, CharField, ForeignKey, IntegerField, BooleanField, DateTimeField, \
     URLField, SET_NULL, ManyToManyField
 from django.db.models.signals import post_save, post_delete
@@ -240,7 +240,6 @@ class RefColor(Model):
     """
     Stores a reference color for a character.
     """
-    name = CharField(max_length=50)
-    color = CharField(max_length=6)
+    color = CharField(max_length=6, validators=[RegexValidator(r'^[0-9a-f]{6}$')])
     note = CharField(max_length=100)
-    character = ForeignKey(Character)
+    character = ForeignKey(Character, related_name='colors')

@@ -11,7 +11,7 @@ from rest_framework.authtoken.models import Token
 
 from apps.lib.serializers import RelatedUserSerializer, Base64ImageField, TagSerializer
 from apps.profiles.apis import dwolla_setup_link
-from apps.profiles.models import Character, ImageAsset, User
+from apps.profiles.models import Character, ImageAsset, User, RefColor
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -115,10 +115,17 @@ class ImageAssetNotificationSerializer(serializers.ModelSerializer):
         )
 
 
+class RefColorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RefColor
+        fields = ('color', 'notes')
+
+
 class CharacterSerializer(serializers.ModelSerializer):
     user = RelatedUserSerializer(read_only=True)
     primary_asset = ImageAssetSerializer(required=False)
     primary_asset_id = serializers.IntegerField(write_only=True, required=False)
+    colors = RefColorSerializer(many=True, read_only=True)
 
     def validate_primary_asset_id(self, value):
         if value is None:
@@ -133,7 +140,7 @@ class CharacterSerializer(serializers.ModelSerializer):
         model = Character
         fields = (
             'id', 'name', 'description', 'private', 'open_requests', 'open_requests_restrictions', 'user',
-            'primary_asset', 'primary_asset_id', 'species', 'gender', 'tags'
+            'primary_asset', 'primary_asset_id', 'species', 'gender', 'tags', 'colors'
         )
 
 
