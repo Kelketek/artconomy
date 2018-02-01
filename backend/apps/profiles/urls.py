@@ -7,11 +7,14 @@ from apps.profiles.views import Register, CharacterListAPI, ImageAssetListAPI, \
     register_dwolla, \
     NotificationsList, SetAvatar, UserInfo, CharacterSearch, AssetFavorite, MarkNotificationsRead, AssetTagCharacter, \
     UserSearch, AssetTagArtist, TagSearch, AssetTag, AssetSearch, CharacterTag, UserBlacklist, RefColorList, \
-    RefColorManager
+    RefColorManager, RecentSubmissions, RecentCommissions, NewCharacters
 from apps.profiles.views import check_username, check_email, perform_login, perform_logout
 
 urlpatterns = [
-    url('^v1/register_dwolla/', register_dwolla, name='register_dwolla'),
+    url(r'^v1/register_dwolla/$', register_dwolla, name='register_dwolla'),
+    url(r'^v1/recent-submissions/$', RecentSubmissions.as_view(), name='recent_submissions'),
+    url(r'^v1/recent-commissions/$', RecentCommissions.as_view(), name='recent_commissions'),
+    url(r'^v1/new-characters/$', NewCharacters.as_view(), name='new_characters'),
     url(r'^v1/form-validators/username/', check_username, name='username_validator'),
     url(r'^v1/form-validators/email/', check_email, name='email_validator'),
     url(r'^v1/login/', perform_login, name='login'),

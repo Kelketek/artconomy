@@ -598,6 +598,30 @@ class MarkNotificationsRead(BulkUpdateAPIView):
         return queryset.filter(user=self.request.user)
 
 
+class RecentCommissions(ListAPIView):
+    serializer_class = ImageAssetSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return available_assets(self.request, self.request.user).filter(order__isnull=False).order_by('created_on')
+
+
+class RecentSubmissions(ListAPIView):
+    serializer_class = ImageAssetSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return available_assets(self.request, self.request.user).filter(order__isnull=True).order_by('created_on')
+
+
+class NewCharacters(ListAPIView):
+    serializer_class = CharacterSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return available_chars(self.request.user).filter(primary_asset__isnull=False).order_by('created_on')
+
+
 def register_dwolla(request):
     """
     Gets the return code from a Dwolla registration and applies it to a user.
