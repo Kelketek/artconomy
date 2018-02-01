@@ -28,7 +28,7 @@ from apps.lib.utils import recall_notification, notify, safe_add, add_check, ens
 from apps.lib.views import BaseTagView
 from apps.profiles.models import User, Character, ImageAsset, RefColor
 from apps.profiles.permissions import ObjectControls, UserControls, AssetViewPermission, AssetControls, NonPrivate, \
-    ColorControls
+    ColorControls, ColorLimit
 from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer, SettingsSerializer, UserSerializer, \
     RegisterSerializer, ImageAssetManagementSerializer, CredentialsSerializer, AvatarSerializer, RefColorSerializer
 from apps.profiles.utils import available_chars, char_ordering, available_assets
@@ -563,9 +563,11 @@ class NotificationsList(ListAPIView):
 
 class RefColorList(ListCreateAPIView):
     serializer_class = RefColorSerializer
-    permission_classes = [ColorControls]
+    permission_classes = [All([ColorControls, ColorLimit])]
 
     def get_queryset(self):
+        character = get_object_or_404(Character, name=self.kwargs['character'], user__username=self.kwargs['username'])
+        self.check_object_permissions(self.request, character)
         return RefColor.objects.filter(
             character__name=self.kwargs['character'], character__user__username=self.kwargs['username']
         )
@@ -574,6 +576,7 @@ class RefColorList(ListCreateAPIView):
         character = get_object_or_404(
             Character, name=self.kwargs['character'], user__username=self.kwargs['username']
         )
+        self.check_object_permissions(self.request, character)
         return serializer.save(character=character)
 
 

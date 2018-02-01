@@ -77,7 +77,7 @@
           :url="`/api/profiles/v1/account/${user.username}/characters/${character.name}/colors/${refColor.id}/`"
       />
       <div class="col-12 mt-2 mb-2">
-        <div class="row-centered">
+        <div class="row-centered" v-if="character.colors.length < 10">
           <div class="col-12 col-md-6 col-centered text-center">
             <b-button v-if="controls && editing && !showNewColor" variant="primary" @click="showNewColor = true">Add a color reference</b-button>
             <div v-if="showNewColor && editing">

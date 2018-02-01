@@ -190,6 +190,7 @@ class Character(Model):
     gender = CharField(max_length=50, blank=True, default='')
     tags = ManyToManyField('lib.Tag', related_name='characters', blank=True)
     tags__max = 100
+    colors__max = 10
 
     def __str__(self):
         return self.name
