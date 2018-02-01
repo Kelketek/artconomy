@@ -66,6 +66,34 @@
         <ac-avatar :user="character.user" />
       </div>
     </div>
+    <div class="row mb-3 shadowed text-section pt-2" v-if="character && (character.colors.length || editing)">
+      <div class="col-12 text-center"><h3>Colors</h3></div>
+      <ac-ref-color
+          v-for="refColor in character.colors"
+          :key="refColor.id"
+          :ref-color="refColor"
+          :editing="editing"
+          :callback="fetchCharacter"
+          :url="`/api/profiles/v1/account/${user.username}/characters/${character.name}/colors/${refColor.id}/`"
+      />
+      <div class="col-12 mt-2 mb-2">
+        <div class="row-centered">
+          <div class="col-12 col-md-6 col-centered text-center">
+            <b-button v-if="controls && editing && !showNewColor" variant="primary" @click="showNewColor = true">Add a color reference</b-button>
+            <div v-if="showNewColor && editing">
+              <ac-form-container
+                  ref="newColorForm" :schema="newColorSchema" :model="newColorModel"
+                  class="text-center"
+                  :options="newUploadOptions" :success="addColor"
+                  :url="`/api/profiles/v1/account/${user.username}/characters/${character.name}/colors/`"
+              />
+              <b-button @click="showNewColor=false">Cancel</b-button>
+              <b-button type="submit" variant="primary" @click.prevent="$refs.newColorForm.submit">Add Color</b-button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="row mb-3" v-if="character">
       <div class="col-12 col-md-9 text-center image-showcase" v-if="assets && assets.length">
         <router-link v-if="character.primary_asset && character.primary_asset.id" :to="{name: 'Submission', params: {assetID: character.primary_asset.id}}">
@@ -111,7 +139,7 @@
   </div>
 </template>
 
-<style scoped lang="scss">
+<style lang="scss">
   @import '../custom-bootstrap';
   .character-description {
     width: 100%
@@ -119,6 +147,9 @@
   .statline p{
     margin-bottom: .5rem;
     border-bottom: 1px solid $dark-purple;
+  }
+  .vue-form-generator .wrapper input[type="color"] {
+    display: inline-block;
   }
 </style>
 
@@ -137,11 +168,13 @@
   import AcAvatar from './ac-avatar'
   import AcAsset from './ac-asset'
   import AcTagDisplay from './ac-tag-display'
+  import AcRefColor from './ac-ref-color'
 
   export default {
     name: 'Character',
     mixins: [Viewer, Perms, Editable],
     components: {
+      AcRefColor,
       AcTagDisplay,
       AcGalleryPreview,
       AcPatchfield,
@@ -207,8 +240,14 @@
           $('html, body').animate({ scrollTop: $('#title').offset().top - 100 }, 200)
         })
       },
+      addColor (response) {
+        this.character.colors.push(response)
+      },
       fetchAssets () {
         artCall(this.url + 'assets/?size=4', 'GET', null, this.loadAssets)
+      },
+      fetchCharacter () {
+        artCall(this.url, 'GET', null, this.loadCharacter, this.$error)
       },
       loadAssets (response) {
         this.totalPieces = response.count
@@ -236,6 +275,33 @@
           rating: 0,
           file: '',
           comments_disabled: false
+        },
+        showNewColor: false,
+        newColorModel: {
+          color: '#ffffff',
+          note: ''
+        },
+        newColorSchema: {
+          fields: [{
+            type: 'input',
+            inputType: 'text',
+            label: 'Note',
+            placeholder: 'Fur color',
+            model: 'note',
+            featured: true,
+            required: true,
+            validator: VueFormGenerator.validators.string
+          }, {
+            type: 'input',
+            inputType: 'color',
+            label: 'Color',
+            model: 'color',
+            required: true,
+            featured: true,
+            colorOptions: {
+              preferredFormat: 'rgb'
+            }
+          }]
         },
         showUpload: false,
         newUploadSchema: {
@@ -318,7 +384,7 @@
       }
     },
     created () {
-      artCall(this.url, 'GET', null, this.loadCharacter, this.$error)
+      this.fetchCharacter()
       this.fetchAssets()
     },
     watch: {

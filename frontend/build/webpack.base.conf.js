@@ -24,6 +24,9 @@ module.exports = {
   plugins: [
     new BundleTracker({filename: './webpack-stats.json'}),
   ],
+  node: {
+    fs: 'empty'
+  },
   resolve: {
     extensions: ['.js', '.vue', '.json'],
     alias: {

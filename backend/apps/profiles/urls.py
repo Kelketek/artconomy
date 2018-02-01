@@ -6,7 +6,8 @@ from apps.profiles.views import Register, CharacterListAPI, ImageAssetListAPI, \
     CharacterManager, AssetManager, MakePrimary, SettingsAPI, CurrentUserInfo, AssetComments, CredentialsAPI, \
     register_dwolla, \
     NotificationsList, SetAvatar, UserInfo, CharacterSearch, AssetFavorite, MarkNotificationsRead, AssetTagCharacter, \
-    UserSearch, AssetTagArtist, TagSearch, AssetTag, AssetSearch, CharacterTag, UserBlacklist
+    UserSearch, AssetTagArtist, TagSearch, AssetTag, AssetSearch, CharacterTag, UserBlacklist, RefColorList, \
+    RefColorManager
 from apps.profiles.views import check_username, check_email, perform_login, perform_logout
 
 urlpatterns = [
@@ -68,6 +69,16 @@ urlpatterns = [
         r'^v1/account/(?P<username>[-\w]+)/characters/(?P<character>[-\w\s]+)/tag/$',
         CharacterTag.as_view(),
         name='character_tag'
+    ),
+    url(
+        r'^v1/account/(?P<username>[-\w]+)/characters/(?P<character>[-\w\s]+)/colors/$',
+        RefColorList.as_view(),
+        name='character_colors'
+    ),
+    url(
+        r'^v1/account/(?P<username>[-\w]+)/characters/(?P<character>[-\w\s]+)/colors/(?P<ref_color_id>\d+)/$',
+        RefColorManager.as_view(),
+        name='color_manager'
     ),
     url(
         r'^v1/account/(?P<username>[-\w]+)/characters/(?P<character>[-\w\s]+)/asset/primary/(?P<asset_id>\d+)/$',

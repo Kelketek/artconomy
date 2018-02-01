@@ -118,7 +118,7 @@ class ImageAssetNotificationSerializer(serializers.ModelSerializer):
 class RefColorSerializer(serializers.ModelSerializer):
     class Meta:
         model = RefColor
-        fields = ('color', 'notes')
+        fields = ('id', 'color', 'note')
 
 
 class CharacterSerializer(serializers.ModelSerializer):

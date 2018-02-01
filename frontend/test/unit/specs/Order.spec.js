@@ -22,7 +22,7 @@ function genRevisions () {
       },
       'created_on': '2018-01-02T20:49:30.777699Z',
       'uploaded_by': 'Fox',
-      'order': 1,
+      'order': 1
     },
     {
       'id': 7,

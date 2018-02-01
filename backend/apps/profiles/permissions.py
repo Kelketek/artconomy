@@ -70,3 +70,15 @@ class NonPrivate(BasePermission):
     """
     def has_object_permission(self, request, view, obj):
         return not obj.private
+
+
+class ColorControls(BasePermission):
+    """
+    Checks to see whether this is a staffer or the color belongs to a character the user owns.
+    """
+
+    def has_object_permission(self, request, view, obj):
+        if request.user.is_staff:
+            return True
+        if request.user == obj.character.user:
+            return True

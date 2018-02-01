@@ -26,10 +26,11 @@ from apps.lib.serializers import CommentSerializer, NotificationSerializer, Base
 from apps.lib.utils import recall_notification, notify, safe_add, add_check, ensure_tags, tag_list_cleaner, add_tags, \
     remove_tags
 from apps.lib.views import BaseTagView
-from apps.profiles.models import User, Character, ImageAsset
-from apps.profiles.permissions import ObjectControls, UserControls, AssetViewPermission, AssetControls, NonPrivate
+from apps.profiles.models import User, Character, ImageAsset, RefColor
+from apps.profiles.permissions import ObjectControls, UserControls, AssetViewPermission, AssetControls, NonPrivate, \
+    ColorControls
 from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer, SettingsSerializer, UserSerializer, \
-    RegisterSerializer, ImageAssetManagementSerializer, CredentialsSerializer, AvatarSerializer
+    RegisterSerializer, ImageAssetManagementSerializer, CredentialsSerializer, AvatarSerializer, RefColorSerializer
 from apps.profiles.utils import available_chars, char_ordering, available_assets
 from shortcuts import make_url
 
@@ -558,6 +559,32 @@ class NotificationsList(ListAPIView):
         if self.request.GET.get('unread'):
             qs = qs.filter(read=False)
         return qs.select_related('event').order_by('event__date')
+
+
+class RefColorList(ListCreateAPIView):
+    serializer_class = RefColorSerializer
+    permission_classes = [ColorControls]
+
+    def get_queryset(self):
+        return RefColor.objects.filter(
+            character__name=self.kwargs['character'], character__user__username=self.kwargs['username']
+        )
+
+    def perform_create(self, serializer):
+        character = get_object_or_404(
+            Character, name=self.kwargs['character'], user__username=self.kwargs['username']
+        )
+        return serializer.save(character=character)
+
+
+class RefColorManager(RetrieveUpdateDestroyAPIView):
+    serializer_class = RefColorSerializer
+    permission_classes = [ColorControls]
+
+    def get_object(self):
+        obj = get_object_or_404(RefColor, id=self.kwargs['ref_color_id'])
+        self.check_object_permissions(self.request, obj)
+        return obj
 
 
 class MarkNotificationsRead(BulkUpdateAPIView):

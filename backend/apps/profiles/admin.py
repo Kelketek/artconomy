@@ -8,7 +8,8 @@ from django.contrib import admin
 #
 from django.contrib.admin import ModelAdmin
 
-from apps.profiles.models import User, ImageAsset
+from apps.profiles.models import User, ImageAsset, RefColor
 
 admin.site.register(User, EmailUserAdmin)
 admin.site.register(ImageAsset, ModelAdmin)
+admin.site.register(RefColor, ModelAdmin)

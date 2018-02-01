@@ -47,6 +47,7 @@ describe('Character.vue', () => {
             id: 1,
             username: 'testusername'
           },
+          colors: [],
           primary_asset: {
             id: 1,
             file: '/test_asset1.jpg',

@@ -240,6 +240,6 @@ class RefColor(Model):
     """
     Stores a reference color for a character.
     """
-    color = CharField(max_length=6, validators=[RegexValidator(r'^[0-9a-f]{6}$')])
+    color = CharField(max_length=7, validators=[RegexValidator(r'^#[0-9a-f]{6}$')])
     note = CharField(max_length=100)
     character = ForeignKey(Character, related_name='colors')
