@@ -11,6 +11,22 @@ from apps.lib.models import Comment, Notification, Event, CHAR_TAG, SUBMISSION_C
 from apps.profiles.models import User, ImageAsset, Character
 
 
+class UserInfoSerializer(serializers.ModelSerializer):
+    avatar_url = serializers.SerializerMethodField()
+
+    def __init__(self, request=None, *args, **kwargs):
+        # For compatibility with main User serializer
+        super().__init__(*args, **kwargs)
+
+    def get_avatar_url(self, obj):
+        return avatar_url(obj)
+
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'avatar_url', 'biography')
+        read_only_fields = ('id', 'username', 'avatar_url')
+
+
 class RelatedUserSerializer(serializers.ModelSerializer):
     avatar_url = serializers.SerializerMethodField()
 

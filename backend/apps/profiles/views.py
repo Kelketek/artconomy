@@ -22,7 +22,7 @@ from apps.lib.models import Notification, FAVORITE, CHAR_TAG, SUBMISSION_CHAR_TA
     SUBMISSION_TAG, Tag
 from apps.lib.permissions import Any, All, IsSafeMethod
 from apps.lib.serializers import CommentSerializer, NotificationSerializer, Base64ImageField, RelatedUserSerializer, \
-    BulkNotificationSerializer
+    BulkNotificationSerializer, UserInfoSerializer
 from apps.lib.utils import recall_notification, notify, safe_add, add_check, ensure_tags, tag_list_cleaner, add_tags, \
     remove_tags
 from apps.lib.views import BaseTagView
@@ -233,16 +233,18 @@ class SetAvatar(GenericAPIView):
 
 
 class UserInfo(APIView):
+    permission_classes = [Any([IsSafeMethod, ObjectControls])]
+
     def get_serializer(self, user):
         if self.request.user.is_staff:
             return UserSerializer
         if self.request.user == user:
             return UserSerializer
         else:
-            return RelatedUserSerializer
+            return UserInfoSerializer
 
     def get_user(self):
-        return get_object_or_404(User, username=self.kwargs.get('username'))
+        return get_object_or_404(User, username__iexact=self.kwargs.get('username'))
 
     def get(self, request, **kwargs):
         user = self.get_user()
@@ -251,8 +253,17 @@ class UserInfo(APIView):
             serializer = serializer_class(instance=user, request=request)
             data = serializer.data
         else:
-            data = {}
+            data = {'blacklist': []}
         return Response(data=data, status=status.HTTP_200_OK)
+
+    def patch(self, request, **kwargs):
+        user = self.get_user()
+        self.check_object_permissions(request, user)
+        serializer_class = self.get_serializer(user)
+        serializer = serializer_class(instance=user, request=request, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
 
 
 class CurrentUserInfo(UserInfo):

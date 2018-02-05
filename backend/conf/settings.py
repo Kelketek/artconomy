@@ -199,8 +199,6 @@ REST_FRAMEWORK = {
   'DEFAULT_PAGINATION_CLASS': 'apps.lib.middleware.ResizablePagination',
   'PAGE_SIZE': 50,
   'DEFAULT_AUTHENTICATION_CLASSES': (
-      'rest_framework.authentication.BasicAuthentication',
-      'rest_framework.authentication.SessionAuthentication',
       'rest_framework.authentication.SessionAuthentication',
   )
 }

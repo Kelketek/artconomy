@@ -52,6 +52,7 @@ class User(AbstractEmailUser):
     )
     blacklist = ManyToManyField('lib.Tag', blank=True)
     blacklist__max = 500
+    biography = CharField(max_length=5000, blank=True, default='')
     notifications = ManyToManyField('lib.Event', through='lib.Notification')
 
     @property

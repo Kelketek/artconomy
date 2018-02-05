@@ -1,8 +1,22 @@
 <template>
   <div class="container">
-    <div class="row">
-      <div class="col-12">
-        <p>{{ user.username }}'s profile.</p>
+    <div class="row shadowed">
+      <div class="col-2 text-section pt-2">
+        <ac-avatar :user="user" />
+      </div>
+      <div class="text-section col-7 pt-2">
+        <h3>About {{user.username}}</h3>
+        <ac-patchfield
+            v-model="user.biography"
+            name="biography"
+            :multiline="true"
+            :editmode="controls"
+            :url="url"
+            placeholder="Write a bit about yourself!"
+        />
+      </div>
+      <div class="col-3 text-section pt-2">
+
       </div>
     </div>
     <div class="row shadowed pb-2">
@@ -21,15 +35,24 @@
 <script>
   import Viewer from '../mixins/viewer'
   import Perms from '../mixins/permissions'
+  import Editable from '../mixins/editable'
   import Characters from './Characters'
+  import AcAvatar from './ac-avatar'
+  import AcPatchfield from './ac-patchfield'
 
   export default {
     name: 'Profile',
     mixins: [Viewer, Perms],
-    components: {Characters},
+    components: {
+      AcPatchfield,
+      AcAvatar,
+      Characters,
+      Editable
+    },
     data: function () {
       return {
-        user: {username: this.$route.params['username']}
+        user: {username: this.username},
+        url: `/api/profiles/v1/data/user/${this.username}/`
       }
     },
     computed: {

@@ -448,6 +448,9 @@
         return (this.revisions && (this.revisions.length <= this.order.revisions))
       },
       validCVV () {
+        if (this.$refs.cardManager.selectedCardModel.cvv_verified === true) {
+          return true
+        }
         return RegExp('^\\d{3,4}$').test(this.cvv)
       },
       paymentDetail () {

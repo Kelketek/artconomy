@@ -3,7 +3,6 @@ from datetime import datetime, date
 
 from django.conf import settings
 from django.core.validators import RegexValidator
-from django.db.models import Sum
 from luhn import verify
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -157,7 +156,7 @@ class PaymentSerializer(serializers.Serializer):
     """
     card_id = IntegerField()
     amount = DecimalField(max_digits=4, min_value=settings.MINIMUM_PRICE, decimal_places=2)
-    cvv = serializers.CharField(validators=[RegexValidator(r'^\d{3,4}$')], required=False, default='')
+    cvv = serializers.CharField(validators=[RegexValidator(r'^\d{3,4}$')], required=False, default='', allow_blank=True)
 
 
 class RevisionSerializer(serializers.ModelSerializer):

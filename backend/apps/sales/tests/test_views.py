@@ -58,7 +58,7 @@ class TestOrderListBase(object):
     @data(*categories)
     def test_not_logged_in(self, category):
         response = self.client.get('/api/sales/v1/{}/orders/{}/'.format(self.user.username, category))
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     @data(*categories)
     def test_outsider(self, category):
@@ -197,7 +197,7 @@ class TestCardManagement(APITestCase):
                 'zip': '44444'
             }
         )
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     @patch('apps.sales.models.sauce')
     def test_add_card_outsider(self, card_api):
@@ -260,7 +260,7 @@ class TestCardManagement(APITestCase):
     def test_make_primary_not_logged_in(self):
         cards = [CreditCardTokenFactory(user=self.user) for __ in range(4)]
         response = self.client.post('/api/sales/v1/{}/cards/{}/primary/'.format(self.user.username, cards[2].id))
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_make_primary_outsider(self):
         self.login(self.user2)
@@ -287,7 +287,7 @@ class TestCardManagement(APITestCase):
 
     def test_card_listing_not_logged_in(self):
         response = self.client.get('/api/sales/v1/{}/cards/'.format(self.user.username))
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_card_listing_staffer(self):
         self.login(self.staffer)
@@ -313,7 +313,7 @@ class TestCardManagement(APITestCase):
         cards = [CreditCardTokenFactory(user=self.user) for __ in range(4)]
         self.assertEqual(cards[2].active, True)
         response = self.client.delete('/api/sales/v1/{}/cards/{}/'.format(self.user.username, cards[2].id))
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         cards[2].refresh_from_db()
         self.assertEqual(cards[2].active, True)
 
@@ -482,9 +482,9 @@ class TestProduct(APITestCase):
         OrderFactory.create(product=products[1])
         self.assertTrue(products[1].active)
         response = self.client.delete('/api/sales/v1/{}/products/{}/'.format(self.user.username, products[1].id))
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         response = self.client.delete('/api/sales/v1/{}/products/{}/'.format(self.user.username, products[2].id))
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         products[1].refresh_from_db()
         self.assertTrue(products[1].active)
         self.assertEqual(Product.objects.filter(id=products[2].id).count(), 1)
@@ -624,7 +624,7 @@ class TestOrder(APITestCase):
                 'adjustment': '2.03'
             }
         )
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_adjust_order_staff(self):
         self.login(self.staffer)
@@ -869,7 +869,7 @@ class TestOrder(APITestCase):
         response = self.client.delete(
             '/api/sales/v1/order/{}/revisions/{}/'.format(order.id, revision.id)
         )
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         order.refresh_from_db()
         self.assertEqual(order.revision_set.all().count(), 1)
 
@@ -1111,7 +1111,7 @@ class TestOrder(APITestCase):
                 'characters': characters
             }
         )
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
 class TestOrderStateChange(APITestCase):

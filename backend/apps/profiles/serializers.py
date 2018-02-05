@@ -156,7 +156,9 @@ class ImageAssetManagementSerializer(serializers.ModelSerializer):
         super().__init__(*args, **kwargs)
 
     def get_favorite(self, obj):
-        if not self.request and not self.request.user.is_authenticated():
+        if not self.request:
+            return None
+        if not self.request.user.is_authenticated():
             return None
         return self.request.user.favorites.filter(id=obj.id).exists()
 
@@ -277,6 +279,6 @@ class UserSerializer(serializers.ModelSerializer):
         fields = (
             'commissions_closed', 'rating', 'sfw_mode', 'max_load', 'username', 'id', 'is_staff', 'is_superuser',
             'dwolla_configured', 'dwolla_setup_url', 'csrftoken', 'avatar_url', 'email', 'fee', 'authtoken',
-            'blacklist'
+            'blacklist', 'biography'
         )
         read_only_fields = fields

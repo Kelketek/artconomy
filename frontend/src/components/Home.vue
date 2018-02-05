@@ -30,7 +30,7 @@
         </div>
       </div>
     </div>
-    <div class="home-main">
+    <div v-else class="home-main">
       <div class="row">
         <div class="col-12">
           <h2>Recent Submissions</h2>
