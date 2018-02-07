@@ -21,10 +21,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.lib.models import DISPUTE, REFUND, COMMENT, Subscription, ORDER_UPDATE, SALE_UPDATE, Tag
+from apps.lib.models import DISPUTE, REFUND, COMMENT, Subscription, ORDER_UPDATE, SALE_UPDATE, REVISION_UPLOADED
 from apps.lib.permissions import ObjectStatus, IsStaff, IsSafeMethod, Any
 from apps.lib.serializers import CommentSerializer
-from apps.lib.utils import notify, recall_notification, add_check, ensure_tags, tag_list_cleaner, add_tags
+from apps.lib.utils import notify, recall_notification
 from apps.lib.views import BaseTagView
 from apps.profiles.apis import dwolla_api
 from apps.profiles.models import User, ImageAsset
@@ -204,6 +204,9 @@ class OrderRevisions(ListCreateAPIView):
         if (order.revision_set.all().count() >= order.revisions + 1) and (order.status == Order.IN_PROGRESS):
             order.status = Order.REVIEW
             order.save()
+            notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
+        else:
+            notify(REVISION_UPLOADED, order, data={'revision': revision.id}, unique_data=True, mark_unread=True)
         return revision
 
 
@@ -220,8 +223,10 @@ class DeleteOrderRevision(DestroyAPIView):
         return revision
 
     def perform_destroy(self, instance):
+        revision_id = instance.id
         super(DeleteOrderRevision, self).perform_destroy(instance)
         order = Order.objects.get(id=self.kwargs['order_id'])
+        recall_notification(REVISION_UPLOADED, order, data={'revision': revision_id}, unique_data=True)
         if order.status == Order.REVIEW:
             order.status = Order.IN_PROGRESS
             order.save()

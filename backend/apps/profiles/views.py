@@ -23,8 +23,7 @@ from apps.lib.models import Notification, FAVORITE, CHAR_TAG, SUBMISSION_CHAR_TA
 from apps.lib.permissions import Any, All, IsSafeMethod
 from apps.lib.serializers import CommentSerializer, NotificationSerializer, Base64ImageField, RelatedUserSerializer, \
     BulkNotificationSerializer, UserInfoSerializer
-from apps.lib.utils import recall_notification, notify, safe_add, add_check, ensure_tags, tag_list_cleaner, add_tags, \
-    remove_tags
+from apps.lib.utils import recall_notification, notify, safe_add
 from apps.lib.views import BaseTagView
 from apps.profiles.models import User, Character, ImageAsset, RefColor
 from apps.profiles.permissions import ObjectControls, UserControls, AssetViewPermission, AssetControls, NonPrivate, \
@@ -569,7 +568,7 @@ class NotificationsList(ListAPIView):
         qs = Notification.objects.filter(user=self.request.user).exclude(event__recalled=True)
         if self.request.GET.get('unread'):
             qs = qs.filter(read=False)
-        return qs.select_related('event').order_by('event__date')
+        return qs.select_related('event').order_by('-event__date')
 
 
 class RefColorList(ListCreateAPIView):

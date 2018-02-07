@@ -48,11 +48,13 @@
   import AcSubmissionTag from './notifications/ac-submission-tag'
   import AcCharTag from './notifications/ac-char-tag'
   import AcSubmissionCharTag from './notifications/ac-submission-char-tag'
+  import AcRevisionUploaded from './notifications/ac-revision-uploaded'
 
   export default {
     name: 'NotificationCenter',
     mixins: [Paginated],
     components: {
+      AcRevisionUploaded,
       AcSubmissionCharTag,
       AcCharTag,
       AcSubmissionTag,

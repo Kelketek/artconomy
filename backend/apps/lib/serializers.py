@@ -7,8 +7,10 @@ from rest_framework import serializers
 from rest_framework.fields import SerializerMethodField
 from rest_framework_bulk import BulkSerializerMixin, BulkListSerializer
 
-from apps.lib.models import Comment, Notification, Event, CHAR_TAG, SUBMISSION_CHAR_TAG, Tag
+from apps.lib.models import Comment, Notification, Event, CHAR_TAG, SUBMISSION_CHAR_TAG, Tag, REVISION_UPLOADED, \
+    ORDER_UPDATE, SALE_UPDATE
 from apps.profiles.models import User, ImageAsset, Character
+from apps.sales.models import Revision
 
 
 class UserInfoSerializer(serializers.ModelSerializer):
@@ -144,9 +146,32 @@ def submission_char_tag(obj):
     return {'character': character, 'user': user}
 
 
+def revision_uploaded(obj):
+    value = obj.data
+    from apps.sales.serializers import RevisionSerializer
+    try:
+        revision = RevisionSerializer(instance=Revision.objects.get(id=value['revision'])).data
+    except Revision.DoesNotExist:
+        revision = None
+    return {'revision': revision}
+
+
+def order_update(obj):
+    from apps.sales.serializers import RevisionSerializer, ProductSerializer
+    revision = obj.target.revision_set.all().last()
+    if revision is None:
+        display = ProductSerializer(instance=obj.target.product).data
+    else:
+        display = RevisionSerializer(instance=revision).data
+    return {'display': display}
+
+
 TYPE_MAP = {
     CHAR_TAG: char_tag,
-    SUBMISSION_CHAR_TAG: submission_char_tag
+    ORDER_UPDATE: order_update,
+    SALE_UPDATE: order_update,
+    SUBMISSION_CHAR_TAG: submission_char_tag,
+    REVISION_UPLOADED: revision_uploaded,
 }
 
 

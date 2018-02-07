@@ -1,7 +1,7 @@
 <template>
   <div class="saved-card">
     <div class="credit-card-info">
-      <input :disabled="changing" :type="inputType" :id="'saved_card_' + card.id" name="card" :value="card.id" :checked="card.id === value" class="mr-1" @input="updateSelect()"/>
+      <input :disabled="changing" :type="inputType" :id="'saved_card_' + card.id" name="card" :value="card.id" :checked="card.id === value" class="mr-1" @change="updateSelect"/>
       <label :for="'saved_card' + card.id"><i class="fa" :class="class_obj()"></i> {{ issuer.name }} x{{ card.last_four }}</label>
     </div>
     <div class="credit-card-buttons">

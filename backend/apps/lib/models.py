@@ -54,6 +54,7 @@ ORDER_UPDATE = 18
 SALE_UPDATE = 19
 ARTIST_TAG = 20
 SUBMISSION_ARTIST_TAG = 21
+REVISION_UPLOADED = 22
 
 
 EVENT_TYPES = (
@@ -67,6 +68,7 @@ EVENT_TYPES = (
     (NEW_PRODUCT, 'New Product'),
     (NEW_AUCTION, 'New Auction'),
     (ORDER_UPDATE, 'Order Update'),
+    (REVISION_UPLOADED, 'Revision Uploaded'),
     (SALE_UPDATE, 'Sale Update'),
     (DISPUTE, 'Dispute Filed'),
     (REFUND, 'Refund Processed'),

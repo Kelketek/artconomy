@@ -150,7 +150,8 @@ export const NOTIFICATION_MAPPING = {
   '16': 'ac-refund',
   '17': 'ac-submission-char-tag',
   '18': 'ac-order-update',
-  '19': 'ac-sale-update'
+  '19': 'ac-sale-update',
+  '22': 'ac-revision-uploaded'
 }
 
 export const ORDER_STATUSES = {

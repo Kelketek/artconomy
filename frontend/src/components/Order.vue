@@ -176,14 +176,19 @@
           </div>
         </div>
         <div class="col-md-6 col-12 text-section" v-if="buyer && paymentPending">
-          <ac-card-manager ref="cardManager" :payment="true" :username="order.buyer.username" v-model="selectedCard" />
+          <ac-card-manager
+              ref="cardManager"
+              :payment="true"
+              :username="order.buyer.username"
+              v-model="selectedCard"
+          />
         </div>
         <div class="col-md-6 col-12 mt-3 mb-3 text-center" v-if="buyer && paymentPending">
           <p><strong>Add a card or select a saved one on the left.</strong></p>
           <p>Once you've selected a card, you may click the pay button below to put the commission in the artist's queue.
             By paying, you are agreeing to the <router-link :to="{name: 'CommissionAgreement'}">Commission Agreement.</router-link></p>
           <p>Artconomy is based in the United States of America</p>
-          <div class="pricing-container">
+          <div class="pricing-container" :class="{'text-center': buyer && paymentPending}">
             <p v-if="order.status < 2">Price may be adjusted by the seller before finalization.</p>
             <span v-html="md.renderInline(order.product.name)"></span>: ${{order.price}}<br />
             <span v-if="adjustmentModel.adjustment < 0">Discount: </span>
@@ -191,7 +196,7 @@
             <span v-if="parseFloat(adjustmentModel.adjustment) !== 0">${{parseFloat(adjustmentModel.adjustment).toFixed(2)}}</span>
             <hr />
             <strong>Total: ${{price}}</strong>
-            <div v-if="selectedCard && this.$refs.cardManager.selectedCardModel.cvv_verified === false">
+            <div v-if="selectedCardModel && selectedCardModel.cvv_verified === false">
               <strong>Card Security code (CVV): </strong><input v-model="cvv" /> <br />
               <small>Three to four digit number, on the front of American Express cards, and on the back of all other cards.</small>
             </div>
@@ -487,6 +492,7 @@
         md: md,
         sellerData: {user: {fee: null}},
         selectedCard: null,
+        selectedCardModel: null,
         justPaid: false,
         revisions: null,
         cvv: '',
@@ -554,6 +560,11 @@
           validateAfterLoad: false,
           validateAfterChanged: true
         }
+      }
+    },
+    watch: {
+      selectedCard () {
+        this.selectedCardModel = this.$refs.cardManager.selectedCardModel
       }
     },
     created () {

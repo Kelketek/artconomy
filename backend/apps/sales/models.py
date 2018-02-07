@@ -15,7 +15,7 @@ from django.dispatch import receiver
 from djmoney.models.fields import MoneyField
 from moneyed import Money
 
-from apps.lib.models import Comment, Subscription, SALE_UPDATE, ORDER_UPDATE
+from apps.lib.models import Comment, Subscription, SALE_UPDATE, ORDER_UPDATE, REVISION_UPLOADED, COMMENT
 from apps.lib.abstract_models import ImageModel
 from apps.sales.permissions import OrderViewPermission
 from apps.sales.sauce import sauce
@@ -241,6 +241,24 @@ def auto_subscribe_order(sender, instance, created=False, **_kwargs):
             object_id=instance.id,
             type=ORDER_UPDATE
         )
+        Subscription.objects.create(
+            subscriber=instance.buyer,
+            content_type=ContentType.objects.get_for_model(model=sender),
+            object_id=instance.id,
+            type=REVISION_UPLOADED
+        )
+        Subscription.objects.create(
+            subscriber=instance.buyer,
+            content_type=ContentType.objects.get_for_model(model=sender),
+            object_id=instance.id,
+            type=COMMENT
+        )
+        Subscription.objects.create(
+            subscriber=instance.seller,
+            content_type=ContentType.objects.get_for_model(model=sender),
+            object_id=instance.id,
+            type=COMMENT
+        )
 
 
 @receiver(post_delete, sender=Order)
@@ -256,6 +274,24 @@ def auto_remove_order(sender, instance, **_kwargs):
         content_type=ContentType.objects.get_for_model(model=sender),
         object_id=instance.id,
         type=ORDER_UPDATE
+    ).delete()
+    Subscription.objects.filter(
+        subscriber=instance.buyer,
+        content_type=ContentType.objects.get_for_model(model=sender),
+        object_id=instance.id,
+        type=REVISION_UPLOADED
+    ).delete()
+    Subscription.objects.filter(
+        subscriber=instance.buyer,
+        content_type=ContentType.objects.get_for_model(model=sender),
+        object_id=instance.id,
+        type=COMMENT
+    ).delete()
+    Subscription.objects.filter(
+        subscriber=instance.seller,
+        content_type=ContentType.objects.get_for_model(model=sender),
+        object_id=instance.id,
+        type=COMMENT
     ).delete()
 
 
