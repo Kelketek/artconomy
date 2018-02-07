@@ -58,9 +58,9 @@
   import VueFormGenerator from 'vue-form-generator'
   import { artCall, EventBus, genOptions } from '../lib'
 
-  function cardSelectValidator (value) {
+  function cardSelectValidator (value, field) {
     EventBus.$emit('card-number', value)
-    return VueFormGenerator.validators.creditCard(value)
+    return VueFormGenerator.validators.creditCard(value, field)
   }
 
   export default {

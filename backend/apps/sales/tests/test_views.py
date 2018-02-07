@@ -9,10 +9,10 @@ from moneyed import Money, Decimal
 from rest_framework import status
 
 from apps.lib.abstract_models import ADULT, MATURE
-from apps.lib.models import DISPUTE
+from apps.lib.models import DISPUTE, Comment
 from apps.lib.test_resources import APITestCase
 from apps.profiles.models import ImageAsset
-from apps.profiles.tests.factories import CharacterFactory, UserFactory
+from apps.profiles.tests.factories import CharacterFactory, UserFactory, ImageAssetFactory
 from apps.profiles.tests.helpers import gen_image
 from apps.sales.models import Order, CreditCardToken, Product, PaymentRecord
 from apps.sales.tests.factories import OrderFactory, CreditCardTokenFactory, ProductFactory, RevisionFactory, \
@@ -1120,7 +1120,13 @@ class TestOrderStateChange(APITestCase):
         self.outsider = UserFactory.create()
         self.seller = self.user
         self.buyer = self.user2
+        characters = [
+            CharacterFactory.create(user=self.buyer, name='Pictured', primary_asset=ImageAssetFactory.create()),
+            CharacterFactory.create(user=self.buyer, private=True, name='Unpictured1', primary_asset=None),
+            CharacterFactory.create(user=self.buyer, open_requests=True, name='Unpictured2', primary_asset=None),
+        ]
         self.order = OrderFactory.create(seller=self.user, buyer=self.buyer, price=Money('5.00', 'USD'))
+        self.order.characters.add(*characters)
         self.final = RevisionFactory.create(order=self.order, rating=ADULT)
         self.url = '/api/sales/v1/order/{}/'.format(self.order.id)
 
@@ -1175,6 +1181,37 @@ class TestOrderStateChange(APITestCase):
         asset = ImageAsset.objects.get(order=self.order)
         self.assertEqual(asset.rating, ADULT)
         self.assertEqual(asset.order, self.order)
+        self.assertEqual(asset.uploaded_by, self.order.buyer)
+        self.assertEqual(self.order.characters.get(name='Unpictured1').primary_asset, asset)
+        self.assertEqual(self.order.characters.get(name='Unpictured2').primary_asset, asset)
+        self.assertNotEqual(self.order.characters.get(name='Pictured').primary_asset, asset)
+
+    def test_approve_order_buyer_hidden(self):
+        self.order.private = True
+        self.order.save()
+        self.state_assertion('buyer', 'approve/', initial_status=Order.REVIEW)
+        records = PaymentRecord.objects.all()
+        self.assertEqual(records.count(), 2)
+        fee = records.get(payee=None)
+        self.assertEqual(fee.amount, Money('.50', 'USD'))
+        self.assertEqual(fee.payer, self.order.seller)
+        self.assertEqual(fee.escrow_for, None)
+        self.assertEqual(fee.status, PaymentRecord.SUCCESS)
+        self.assertEqual(fee.source, PaymentRecord.ACCOUNT)
+        payment = records.get(payee=self.order.seller)
+        self.assertEqual(payment.amount, Money('5.00', 'USD'))
+        self.assertEqual(payment.payer, None)
+        self.assertEqual(payment.escrow_for, None)
+        self.assertEqual(payment.status, PaymentRecord.SUCCESS)
+        self.assertEqual(payment.source, PaymentRecord.ESCROW)
+        asset = ImageAsset.objects.get(order=self.order)
+        self.assertEqual(asset.rating, ADULT)
+        self.assertEqual(asset.order, self.order)
+        self.assertEqual(asset.uploaded_by, self.order.buyer)
+        self.assertEqual(asset.private, True)
+        self.assertEqual(self.order.characters.get(name='Unpictured1').primary_asset, None)
+        self.assertEqual(self.order.characters.get(name='Unpictured2').primary_asset, None)
+        self.assertNotEqual(self.order.characters.get(name='Pictured').primary_asset, asset)
 
     @patch('apps.sales.views.recall_notification')
     def test_approve_order_recall_notification(self, mock_recall):
@@ -1287,3 +1324,18 @@ class TestOrderStateChange(APITestCase):
 
     def test_claim_order_seller(self):
         self.state_assertion('seller', 'claim/', status.HTTP_403_FORBIDDEN, initial_status=Order.DISPUTED)
+
+
+class TestComment(APITestCase):
+    def test_make_comment(self):
+        order = OrderFactory.create()
+        self.login(order.buyer)
+        response = self.client.post(
+            '/api/sales/v1/order/{}/comments/'.format(order.id),
+            {'text': 'test comment'}
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        comment = response.data
+        self.assertEqual(comment['text'], 'test comment')
+        self.assertEqual(comment['user']['username'], order.buyer.username)
+        Comment.objects.get(id=comment['id'])

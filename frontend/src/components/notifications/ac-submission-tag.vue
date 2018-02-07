@@ -14,7 +14,7 @@
           <p v-if="tags.length">
             <ac-tag
                 v-for="tag in event.data.tags"
-                :tag="{name: tag}"
+                :tag="tag"
                 :key="tag"
             />
           </p>

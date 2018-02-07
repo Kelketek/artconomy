@@ -179,7 +179,9 @@ class OrderComments(ListCreateAPIView):
     def perform_create(self, serializer):
         order = get_object_or_404(Order, id=self.kwargs['order_id'])
         self.check_object_permissions(self.request, order)
-        serializer.save(user=self.request.user, target=order)
+        serializer.save(
+            user=self.request.user, object_id=order.id, content_type=ContentType.objects.get_for_model(order)
+        )
 
 
 class OrderRevisions(ListCreateAPIView):
@@ -347,7 +349,7 @@ class ApproveFinal(GenericAPIView):
             notify(SALE_UPDATE, order, unique=True, mark_unread=True)
             final = order.revision_set.last()
             submission = ImageAsset(
-                uploaded_by=order.seller, order=order,
+                uploaded_by=order.buyer, order=order,
                 rating=final.rating
             )
             new_file = ContentFile(final.file.read())
@@ -357,6 +359,11 @@ class ApproveFinal(GenericAPIView):
             submission.save()
             submission.characters.add(*order.characters.all())
             submission.artists.add(order.seller)
+            if not order.private:
+                for character in order.characters.all():
+                    if not character.primary_asset:
+                        character.primary_asset = submission
+                        character.save()
             PaymentRecord.objects.create(
                 payer=None,
                 amount=order.price + order.adjustment,
