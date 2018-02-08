@@ -666,7 +666,7 @@ class FundingSources(GenericAPIView):
                 status=status.HTTP_400_BAD_REQUEST, data={'error': 'You must set up your dwolla account first.'}
             )
         return Response(
-            status=status.HTTP_200_OK, data=dwolla_api.get('{}/funding-sources'.format(user.dwolla_url)).body
+            status=status.HTTP_200_OK, data=dwolla_api().get('{}/funding-sources'.format(user.dwolla_url)).body
         )
 
 

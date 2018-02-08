@@ -562,3 +562,58 @@ class TestCharacterSearch(APITestCase):
         self.assertIn(serialize_char(visible), response.data['results'])
         self.assertIn(serialize_char(visible_private), response.data['results'])
         self.assertEqual(serialize_char(visible2), response.data['results'][2])
+
+
+class TestRefColor(APITestCase):
+    def test_add_refcolor(self):
+        char = CharacterFactory.create()
+        self.login(char.user)
+        response = self.client.post(
+            '/api/profiles/v1/account/{}/characters/{}/colors/'.format(char.user.username, char.name),
+            {
+                'color': '#456234',
+                'note': 'Stuff'
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['color'], '#456234')
+        self.assertEqual(response.data['note'], 'Stuff')
+
+    def test_add_refcolor_staff(self):
+        char = CharacterFactory.create()
+        staffer = UserFactory.create(is_staff=True)
+        self.login(staffer)
+        response = self.client.post(
+            '/api/profiles/v1/account/{}/characters/{}/colors/'.format(char.user.username, char.name),
+            {
+                'color': '#456234',
+                'note': 'Stuff'
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['color'], '#456234')
+        self.assertEqual(response.data['note'], 'Stuff')
+
+    def test_add_refcolor_wrong_user(self):
+        char = CharacterFactory.create()
+        wrong_user = UserFactory.create()
+        self.login(wrong_user)
+        response = self.client.post(
+            '/api/profiles/v1/account/{}/characters/{}/colors/'.format(char.user.username, char.name),
+            {
+                'color': '#456234',
+                'note': 'Stuff'
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_add_color_not_logged_in(self):
+        char = CharacterFactory.create()
+        response = self.client.post(
+            '/api/profiles/v1/account/{}/characters/{}/colors/'.format(char.user.username, char.name),
+            {
+                'color': '#456234',
+                'note': 'Stuff'
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

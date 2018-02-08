@@ -564,7 +564,7 @@ class NotificationsList(ListAPIView):
 
     def get_queryset(self):
         if not self.request.user.is_authenticated():
-            return PermissionDenied("You must be authenticated to view notifications.")
+            raise PermissionDenied("You must be authenticated to view notifications.")
         qs = Notification.objects.filter(user=self.request.user).exclude(event__recalled=True)
         if self.request.GET.get('unread'):
             qs = qs.filter(read=False)

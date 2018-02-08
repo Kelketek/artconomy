@@ -1,5 +1,4 @@
 import dwollav2
-from authorize import AuthorizeClient
 from django.conf import settings
 from rest_framework.reverse import reverse
 
@@ -11,7 +10,9 @@ client = dwollav2.Client(
     environment='sandbox'
 )
 
-dwolla_api = client.Auth.client()
+
+def dwolla_api():
+    return client.Auth.client()
 
 
 def dwolla_setup_link():

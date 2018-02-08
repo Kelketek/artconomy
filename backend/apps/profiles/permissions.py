@@ -80,6 +80,10 @@ class ColorControls(BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.user.is_staff:
             return True
+        if hasattr(obj, 'user'):
+            if request.user == obj.user:
+                return True
+            return False
         if request.user == obj.character.user:
             return True
 
@@ -88,6 +92,4 @@ class ColorLimit(BasePermission):
     def has_object_permission(self, request, view, obj):
         from .models import Character
         if obj.colors.all().count() < Character.colors__max:
-            print("We're good!")
             return True
-        print("We're not good!")

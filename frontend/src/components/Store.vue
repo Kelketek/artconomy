@@ -18,7 +18,7 @@
         </p>
       </div>
     </div>
-    <div class="row-centered" v-if="controls">
+    <div class="row-centered" v-if="controls && setUp">
       <div class="col-12 pt-3 col-md-4 col-centered text-center">
         <div v-if="showNew">
           <form>
@@ -26,7 +26,7 @@
                                :options="newProdOptions" :success="addProduct"
                                :url="`/api/sales/v1/${this.username}/products/`"
             >
-              <b-button @click="showNew = false;">Cancel</b-button>
+              <b-button @click="showNew = false">Cancel</b-button>
               <b-button type="submit" variant="primary" @click.prevent="$refs.newProdForm.submit">Create</b-button>
             </ac-form-container>
           </form>

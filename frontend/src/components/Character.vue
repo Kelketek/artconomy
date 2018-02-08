@@ -2,18 +2,24 @@
   <div class="container">
     <div class="row mb-3 shadowed" v-if="character">
       <div class="col-lg-8 text-section pt-3 pl-4">
-        <ac-patchfield v-model="character.name" name="name" styleclass="name-edit" :editmode="editing" :callback="nameUpdate" :url="url"></ac-patchfield>
-          <i v-if="controls && !editing" class="ml-2 fa fa-2x fa-lock clickable pull-right" @click="edit"></i>
-          <i v-if="controls && editing" class="ml-2 fa fa-2x fa-unlock clickable pull-right" @click="lock"></i>
-          <div v-if="controls" class="pull-right">
-            <ac-action :button="false"
-                       variant="danger" :confirm="true" :success="goToListing"
-                       :url="`/api/profiles/v1/account/${this.user.username}/characters/${this.character.name}/`"
-                       method="DELETE" class="fg-dark"
-            ><i class="fg-light fa fa-trash-o fa-2x"></i>
-              <div class="text-left" slot="confirmation-text">Are you sure you wish to delete this character? This cannot be undone!</div>
-            </ac-action>
+        <div class="row">
+          <div class="col-10">
+            <ac-patchfield v-model="character.name" name="name" styleclass="name-edit" :editmode="editing" :callback="nameUpdate" :url="url"></ac-patchfield>
           </div>
+          <div class="col-2">
+            <i v-if="controls && !editing" class="ml-2 fa fa-2x fa-lock clickable pull-right" @click="edit"></i>
+            <i v-if="controls && editing" class="ml-2 fa fa-2x fa-unlock clickable pull-right" @click="lock"></i>
+            <div v-if="controls" class="pull-right">
+              <ac-action :button="false"
+                         variant="danger" :confirm="true" :success="goToListing"
+                         :url="`/api/profiles/v1/account/${this.user.username}/characters/${this.character.name}/`"
+                         method="DELETE" class="fg-dark"
+              ><i class="fg-light fa fa-trash-o fa-2x"></i>
+                <div class="text-left" slot="confirmation-text">Are you sure you wish to delete this character? This cannot be undone!</div>
+              </ac-action>
+            </div>
+          </div>
+        </div>
         <div class="row">
           <div class="col-6">
             <p v-if="(character.tags.length === 0) && editing">
