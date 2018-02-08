@@ -30,7 +30,7 @@ def available_balance(user):
             str(user.debits.filter(
                 status=PaymentRecord.SUCCESS,
                 source=PaymentRecord.ACCOUNT,
-                type=PaymentRecord.DISBURSEMENT,
+                type__in=[PaymentRecord.DISBURSEMENT, PaymentRecord.TRANSFER],
             ).aggregate(Sum('amount'))['amount__sum'])
         )
     except InvalidOperation:
@@ -59,7 +59,7 @@ def translate_authnet_error(err):
     return response
 
 
-def product_ordering(qs, requester, query=''):
+def product_ordering(qs, query=''):
     return qs.annotate(
         matches=Case(
             When(name__iexact=query, then=0),
@@ -71,17 +71,16 @@ def product_ordering(qs, requester, query=''):
             default=1,
             output_field=IntegerField()
         )
-    ).order_by('matches', 'tag_matches')
+        # How can we make it distinct on id while making matches and tag_matches priority ordering?
+    ).order_by('id', 'matches', 'tag_matches').distinct('id')
 
 
-def available_products(requester, query='', ordering=True):
+def available_products(requester, query=''):
     exclude = Q(hidden=True)
     q = Q(name__istartswith=query) | Q(tags__name__iexact=query)
     qs = Product.objects.filter(q).exclude(exclude & ~Q(user=requester))
 
-    if ordering:
-        qs = product_ordering(qs, requester, query=query)
-    return qs
+    return product_ordering(qs, query)
 
 
 RESPONSE_TRANSLATORS = {

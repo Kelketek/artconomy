@@ -31,6 +31,7 @@
                 :callback="loadCharacter"
                 :tag-list="character.tags"
                 :controls="controls"
+                tab-name="characters"
                 v-if="character.tags.length || editing"
             />
           </div>

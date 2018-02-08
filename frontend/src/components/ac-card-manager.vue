@@ -115,7 +115,7 @@
             inputType: 'text',
             label: 'Expiration Date',
             model: 'exp_date',
-            placeholder: '01/25',
+            placeholder: 'MM/YY',
             featured: true,
             required: true,
             validator: VueFormGenerator.validators.string

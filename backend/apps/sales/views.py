@@ -702,6 +702,6 @@ class ProductSearch(ListAPIView):
         else:
             user = self.request.user
         if self.request.user.is_authenticated():
-            return product_ordering(available_products(user, query=query), user, query=query)
+            return available_products(user, query=query)
         q = Q(name__istartswith=query) | Q(tags__name__iexact=query)
-        return Product.objects.filter(q).exclude(hiddent=True).order_by('id')
+        return Product.objects.filter(q).exclude(hiddent=True).distinct('id').order_by('id')

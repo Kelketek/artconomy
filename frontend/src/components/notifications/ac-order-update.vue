@@ -12,7 +12,7 @@
           </div>
         </router-link>
         <p v-if="streamingLink">
-          <a :href="streamingLink">Your artist is streaming this commission! Click here!</a>
+          <a target="_blank" :href="streamingLink">Your artist is streaming this commission! Click here!</a>
         </p>
       </div>
     </div>

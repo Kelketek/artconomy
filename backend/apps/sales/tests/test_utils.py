@@ -167,3 +167,14 @@ class BalanceTestCase(TestCase):
         self.assertEqual(available_balance(self.user), Decimal('20.00'))
         self.assertEqual(available_balance(self.user2), Decimal('0.00'))
         self.assertEqual(available_balance(self.user3), Decimal('0.00'))
+        PaymentRecordFactory.create(
+            payee=None,
+            payer=self.user,
+            status=PaymentRecord.SUCCESS,
+            source=PaymentRecord.ACCOUNT,
+            type=PaymentRecord.TRANSFER,
+            amount=Money('5.00', 'USD')
+        )
+        self.assertEqual(available_balance(self.user), Decimal('15.00'))
+        self.assertEqual(available_balance(self.user2), Decimal('0.00'))
+        self.assertEqual(available_balance(self.user3), Decimal('0.00'))
