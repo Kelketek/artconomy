@@ -109,7 +109,10 @@
             query.push(val)
           }
         }
-        this.$router.history.push({name: 'Search', query: {q: query}})
+        if (this.$route.name !== 'Search') {
+          this.$router.history.push({name: 'Search'})
+        }
+        this.$router.history.replace({name: 'Search', query: {q: query}})
       },
       setNotificationStats (response) {
         if (this.loopNotifications) {
