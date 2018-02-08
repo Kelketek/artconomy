@@ -704,4 +704,4 @@ class ProductSearch(ListAPIView):
         if self.request.user.is_authenticated():
             return available_products(user, query=query)
         q = Q(name__istartswith=query) | Q(tags__name__iexact=query)
-        return Product.objects.filter(q).exclude(hiddent=True).distinct('id').order_by('id')
+        return Product.objects.filter(q).exclude(hidden=True).distinct('id').order_by('id')
