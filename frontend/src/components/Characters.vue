@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <div class="row-centered" v-if="response !== null">
-      <div class="col-12 text-center" v-if="error">
+      <div class="col-12 text-xs-center" v-if="error">
         <p>{{error}}</p>
       </div>
       <b-pagination-nav
@@ -23,10 +23,10 @@
       ></b-pagination-nav>
     </div>
     <div class="row" v-else>
-      <div class="text-center" style="width:100%"><i class="fa fa-spin fa-spinner fa-5x"></i></div>
+      <div class="text-xs-center" style="width:100%"><i class="fa fa-spin fa-spinner fa-5x"></i></div>
     </div>
     <div class="row-centered" v-if="controls">
-      <div class="col-12 pt-3 col-md-4 col-centered text-center">
+      <div class="col-12 pt-3 col-md-4 col-centered text-xs-center">
         <div v-if="showNew">
           <form>
             <ac-form-container ref="newCharForm" :schema="newCharSchema" :model="newCharModel"

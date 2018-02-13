@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <div class="row-centered">
-      <div class="col-12 col-md-6 col-lg-4 col-centered text-center">
+      <div class="col-12 col-md-6 col-lg-4 col-centered text-xs-center">
         <form>
           <b-tabs class="inverse" v-model="loginTab">
             <b-tab title="Login" id="loginTab">

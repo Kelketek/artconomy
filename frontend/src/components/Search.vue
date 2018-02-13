@@ -1,28 +1,37 @@
 <template>
   <div>
-    <div class="container">
-      <b-tabs v-model="tab">
-        <b-tab :title="faIcon('gift') + 'Products' + tabCounter('productCount')">
-          <div v-if="query.q.length === 0" class="text-center pt-2">
+      <v-tabs v-model="tab" fixed-tabs>
+        <v-tab href="#tab-products" key="product">
+          <v-icon>shopping_basket</v-icon>&nbsp;Products <strong>{{tabCounter('productCount')}}</strong>
+        </v-tab>
+        <v-tab href="#tab-assets" key="submissions">
+          <v-icon>image</v-icon>&nbsp;Submissions <strong>{{tabCounter('assetCount')}}</strong>
+        </v-tab>
+        <v-tab href="#tab-characters" key="characters">
+          <v-icon>people</v-icon>&nbsp;Characters <strong>{{tabCounter('characterCount')}}</strong>
+        </v-tab>
+      </v-tabs>
+      <v-tabs-items v-model="tab">
+        <v-tab-item id="tab-products">
+          <div v-if="query.q.length === 0" class="text-xs-center pt-2">
             <p>Enter tags to search for in the search bar above</p>
           </div>
           <store ref="productSearch" class="pt-2" counter-name="productCount" endpoint="/api/sales/v1/search/product/" :query-data="query" />
-        </b-tab>
-        <b-tab :title="faIcon('picture-o') + 'Submissions' + tabCounter('assetCount')">
-          <div v-if="query.q.length === 0" class="text-center pt-2">
+        </v-tab-item>
+        <v-tab-item id="tab-assets">
+          <div v-if="query.q.length === 0" class="text-xs-center pt-2">
             <p>Enter tags to search for in the search bar above</p>
           </div>
           <ac-asset-gallery ref="assetSearch" counter-name="assetCount" class="pt-2" endpoint="/api/profiles/v1/search/asset/" :query-data="query" />
-        </b-tab>
-        <b-tab :title="faIcon('users') + 'Characters' + tabCounter('characterCount')">
-          <div v-if="query.q.length === 0" class="text-center pt-2">
+        </v-tab-item>
+        <v-tab-item id="tab-characters">
+          <div v-if="query.q.length === 0" class="text-xs-center pt-2">
             <p>Enter tags to search for in the search bar above</p>
           </div>
           <characters ref="characterSearch" counter-name="characterCount" class="pt-2" endpoint="/api/profiles/v1/search/character/" :query-data="query" />
-        </b-tab>
-      </b-tabs>
+        </v-tab-item>
+      </v-tabs-items>
     </div>
-  </div>
 </template>
 
 <script>
@@ -30,12 +39,6 @@
   import { paramHandleMap, EventBus } from '../lib'
   import Characters from './Characters'
   import Store from './Store'
-
-  let TabMap = {
-    products: 0,
-    submissions: 1,
-    characters: 2
-  }
 
   export default {
     components: {
@@ -58,12 +61,9 @@
       setCounter (counterData) {
         this[counterData.name] = counterData.count
       },
-      faIcon (iconName) {
-        return `<i class='fa fa-${iconName}'></i> `
-      },
       tabCounter (propName) {
         if (this[propName]) {
-          return ` <strong>(${this[propName]})</strong>`
+          return `(${this[propName]})`
         }
         return ''
       }
@@ -74,9 +74,12 @@
           return {q: this.$route.query['q'] || []}
         }
       },
-      tab: paramHandleMap('tabName', TabMap, undefined)
+      tab: paramHandleMap('tabName')
     },
     created () {
+      if (this.tab === 'tab-undefined') {
+        this.tab = 'tab-products'
+      }
       EventBus.$on('result-count', this.setCounter)
     }
   }

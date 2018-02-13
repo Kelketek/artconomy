@@ -1,5 +1,5 @@
 <template>
-  <div class="tag">
+  <v-chip>
     <router-link v-if="tabName" :to="{name: 'Search', params: {tabName: tabName}, query: {q: [tag]}}">
       {{tag}}
     </router-link>
@@ -7,7 +7,7 @@
       {{tag}}
     </span>
     <span v-if="removable" @click="remove"><i class="fa fa-times"></i></span>
-  </div>
+  </v-chip>
 </template>
 
 <style>

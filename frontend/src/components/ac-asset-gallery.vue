@@ -1,6 +1,6 @@
 <template>
   <div class="row">
-    <div class="col-12 text-center" v-if="error">
+    <div class="col-12 text-xs-center" v-if="error">
       <p>{{error}}</p>
     </div>
     <slot name="header" v-if="show" />

@@ -19,13 +19,13 @@
       </div>
       <router-link :to="{name: 'Product', params: {username: product.user.username, productID: product.id}}">
         <div class="card-block product-info">
-          <div class="extra-details text-center">
+          <div class="extra-details text-xs-center">
             <div class="full-width">
               <strong class="day-count">{{product.expected_turnaround}}</strong> days <br />
               turnaround
             </div>
           </div>
-          <div class="price-container text-center mt-2">
+          <div class="price-container text-xs-center mt-2">
             Starting at
             <div class="price-highlight">
               <sup class="mini-dollar">$</sup>{{ product.price }}

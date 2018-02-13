@@ -2,7 +2,7 @@
   <div class="container product-container">
     <div v-if="product">
       <div class="row shadowed">
-        <div class="col-lg-4 col-12 col-md-6 text-section text-center">
+        <div class="col-lg-4 col-12 col-md-6 text-section text-xs-center">
           <ac-asset :asset="product" thumb-name="preview" img-class="bound-image" />
         </div>
         <div class="col-md-6 col-12 text-section pt-3">
@@ -31,7 +31,7 @@
               v-if="product.tags.length || editing"
           />
         </div>
-        <div class="col-md-6 col-12 col-lg-2 text-section text-center pt-3">
+        <div class="col-md-6 col-12 col-lg-2 text-section text-xs-center pt-3">
           <div class="avatar-container">
             <ac-avatar :user="product.user"></ac-avatar>
           </div>
@@ -58,13 +58,13 @@
         </div>
       </div>
       <ac-asset-gallery class="row text-section shadowed" ref="assetGallery" :endpoint="`${url}examples/`" :limit="5" >
-        <div slot="header" class="col-12 text-center">
+        <div slot="header" class="col-12 text-xs-center">
           <h3>Samples</h3>
           <hr />
         </div>
       </ac-asset-gallery>
       <div class="row-centered">
-        <div class="col-12 pt-3 col-md-8 col-centered text-center mb-3">
+        <div class="col-12 pt-3 col-md-8 col-centered text-xs-center mb-3">
           <div v-if="showOrder">
             <form>
               <ac-form-container ref="newOrderForm" :schema="newOrderSchema" :model="newOrderModel"
@@ -81,7 +81,7 @@
       </div>
     </div>
     <div class="row" v-else>
-      <div class="text-center" style="width:100%"><i class="fa fa-spin fa-spinner fa-5x"></i></div>
+      <div class="text-xs-center" style="width:100%"><i class="fa fa-spin fa-spinner fa-5x"></i></div>
     </div>
   </div>
 

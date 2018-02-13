@@ -2,8 +2,22 @@
   <div class="settings-center container">
     <div class="row">
       <div class="main-settings col-12" v-if="user.username">
-        <b-tabs v-model="tab">
-          <b-tab title="<i class='fa fa-sliders'></i> Options">
+        <v-tabs v-model="tab" fixed-tabs>
+          <v-tab href="#tab-options">
+            <v-icon>build</v-icon>&nbsp;Options
+          </v-tab>
+          <v-tab href="#tab-credentials">
+            <v-icon>lock</v-icon>&nbsp;Credentials
+          </v-tab>
+          <v-tab href="#tab-avatar">
+            <v-icon>person</v-icon>&nbsp;Avatar
+          </v-tab>
+          <v-tab href="#tab-payment">
+            <v-icon>attach_money</v-icon>&nbsp;Payment
+          </v-tab>
+        </v-tabs>
+        <v-tabs-items v-model="tab">
+          <v-tab-item id="tab-options">
             <form class="mt-3">
               <ac-form-container ref="settingsForm" :schema="settingsSchema" :model="settingsModel"
                                  :options="settingsOptions" :success="updateUser"
@@ -27,10 +41,18 @@
                   :hide-title="true"
               />
             </div>
-          </b-tab>
-          <b-tab title="<i class='fa fa-id-card-o'></i> Credentials">
-            <b-tabs pills v-model="credentialsTab">
-              <b-tab title="<i class='fa fa-lock'></i> Authentication Details">
+          </v-tab-item>
+          <v-tab-item id="tab-credentials">
+            <v-tabs v-model="credentialsTab">
+              <v-tab href="#tab-authentication">
+                <v-icon>lock_outline</v-icon>&nbsp;Authentication Details
+              </v-tab>
+              <v-tab href="#tab-two-factor">
+                <v-icon>phonelink_lock</v-icon>&nbsp;Two factor Authentication
+              </v-tab>
+            </v-tabs>
+            <v-tabs-items v-model="credentialsTab">
+              <v-tab-item id="tab-authentication">
                 <form class="mt-3">
                   <ac-form-container ref="credentialsForm" :schema="credentialsSchema" :model="credentialsModel"
                                      :options="credentialsOptions" :success="updateCredentials"
@@ -41,14 +63,14 @@
                     <i v-if="$refs.credentialsForm && $refs.credentialsForm.saved" class="fa fa-check" style="color: green"></i>
                   </ac-form-container>
                 </form>
-              </b-tab>
-              <b-tab title="<i class='fa fa-shield'></i> Two factor Authentication">
-                <ac-setup-two-factor></ac-setup-two-factor>
-              </b-tab>
-            </b-tabs>
-          </b-tab>
-          <b-tab title="<i class='fa fa-image'></i> Avatar">
-            <div class="text-center mt-3">
+              </v-tab-item>
+              <v-tab-item id="tab-two-factor">
+                <ac-setup-two-factor />
+              </v-tab-item>
+            </v-tabs-items>
+          </v-tab-item>
+          <v-tab-item id="tab-avatar">
+            <div class="text-xs-center mt-3">
               <p>Current Avatar:</p>
               <img class="avatar-preview shadowed mb-3" :src="this.user.avatar_url" />
               <p v-if="user.avatar_url.indexOf('gravatar') > -1">Default avatars provided by <a href="http://en.gravatar.com/">Gravatar</a></p>
@@ -63,18 +85,26 @@
                 <i v-if="$refs.avatarForm && $refs.avatarForm.saved" class="fa fa-check" style="color: green"></i>
               </ac-form-container>
             </form>
-          </b-tab>
-          <b-tab title="<i class='fa fa-money'></i> Payment">
-            <b-tabs pills v-model="paymentTab">
-              <b-tab title="<i class='fa fa-credit-card'></i> Payment Methods">
+          </v-tab-item>
+          <v-tab-item id="tab-payment">
+            <v-tabs v-model="paymentTab" fixed-tabs>
+              <v-tab href="#tab-purchase">
+                <v-icon>credit_card</v-icon>&nbsp;Payment Methods
+              </v-tab>
+              <v-tab href="#tab-disbursement">
+                <v-icon>account_balance_wallet</v-icon>&nbsp;Payout Accounts
+              </v-tab>
+            </v-tabs>
+            <v-tabs-items v-model="paymentTab">
+              <v-tab-item id="tab-purchase">
                 <div class="row mt-3">
                   <div class="col-lg-4 col-md-6 col-12">
-                    <ac-card-manager :username="user.username"></ac-card-manager>
+                    <ac-card-manager :username="user.username" />
                   </div>
                 </div>
-              </b-tab>
-              <b-tab title="<i class='fa fa-usd'></i> Payout Accounts">
-                <div class="text-center mt-3">
+              </v-tab-item>
+              <v-tab-item id="tab-disbursement">
+                <div class="text-xs-center mt-3">
                   <ac-account-balance :username="user.username"/>
                   <p v-if="user.dwolla_configured">
                     Your Dwolla account has been set up.
@@ -83,10 +113,10 @@
                     You must set up a Dwolla account before you can sell on Artconomy. <a :href="user.dwolla_setup_url">Click here</a> to set up your dwolla account.
                   </p>
                 </div>
-              </b-tab>
-            </b-tabs>
-          </b-tab>
-        </b-tabs>
+              </v-tab-item>
+            </v-tabs-items>
+          </v-tab-item>
+        </v-tabs-items>
       </div>
     </div>
   </div>
@@ -108,21 +138,6 @@
   import AcAccountBalance from './ac-account-balance'
   import AcSetupTwoFactor from './ac-setup-two-factor'
   import AcTagDisplay from './ac-tag-display'
-
-  const TabMap = {
-    options: 0,
-    credentials: 1,
-    avatar: 2,
-    payment: 3
-  }
-  const PaymentTabMap = {
-    methods: 0,
-    disbursements: 1
-  }
-  const credentialsTabMap = {
-    details: 0,
-    'two-factor': 1
-  }
 
   export default {
     name: 'Settings',
@@ -300,9 +315,9 @@
       setMetaContent('description', 'Configure your account settings for Artconomy.')
     },
     computed: {
-      tab: paramHandleMap('tabName', TabMap, ['subTabName']),
-      paymentTab: paramHandleMap('subTabName', PaymentTabMap),
-      credentialsTab: paramHandleMap('subTabName', credentialsTabMap)
+      tab: paramHandleMap('tabName', ['subTabName']),
+      paymentTab: paramHandleMap('subTabName', undefined, ['tab-purchase', 'tab-disbursement'], 'tab-purchase'),
+      credentialsTab: paramHandleMap('subTabName', undefined, ['tab-authentication', 'tab-two-factor'], 'tab-authentication')
     }
   }
 </script>

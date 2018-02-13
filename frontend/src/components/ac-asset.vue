@@ -3,7 +3,7 @@
     <div v-if="asset">
       <a :href="asset.file.full" v-if="canDisplay"><img :class="imgClass" :src="asset.file[thumbName]"></a>
       <div v-else>
-        <div class="text-center" v-if="!terse">
+        <div class="text-xs-center" v-if="!terse">
           <i class="fa fa-ban fa-5x mt-4 mb-4"></i>
           <div v-if="!permittedRating">
             <p>This piece exceeds your current content rating settings.</p>
@@ -19,7 +19,7 @@
             <span v-for="tag in this.blacklisted" :key="tag">{{tag}} </span>
           </div>
         </div>
-        <div v-else class="text-center terse-container" :class="imgClass">
+        <div v-else class="text-xs-center terse-container" :class="imgClass">
           <i class="fa fa-ban fa-5x mb-3 mt-3"></i>
           <p v-if="!permittedRating">This piece exceeds your current content rating settings.</p>
           <p v-if="blacklisted.length">This piece contains tags on your blacklist.</p>

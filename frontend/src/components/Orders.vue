@@ -1,16 +1,27 @@
 <template>
-  <div class="container">
-    <b-tabs v-model="tab">
-      <b-tab title="<i class='fa fa-tasks'></i> Current">
+  <div>
+    <v-tabs v-model="tab" fixed-tabs>
+      <v-tab href="#tab-current" key="current">
+        <v-icon>list</v-icon>&nbsp;Current
+      </v-tab>
+      <v-tab href="#tab-archived" key="archived">
+        <v-icon>archive</v-icon>&nbsp;Archived
+      </v-tab>
+      <v-tab href="#tab-cancelled" key="cancelled">
+        <v-icon>do_not_disturb</v-icon>&nbsp;Cancelled
+      </v-tab>
+    </v-tabs>
+    <v-tabs-items v-model="tab">
+      <v-tab-item id="tab-current">
         <ac-order-list :url="`${url}current/`" :buyer="buyer" :username="username" />
-      </b-tab>
-      <b-tab title="<i class='fa fa-archive'></i> Archived">
+      </v-tab-item>
+      <v-tab-item id="tab-archived">
         <ac-order-list :url="`${url}archived/`" :buyer="buyer" :username="username" />
-      </b-tab>
-      <b-tab title="<i class='fa fa-ban'></i> Cancelled">
+      </v-tab-item>
+      <v-tab-item id="tab-cancelled">
         <ac-order-list :url="`${url}cancelled/`" :buyer="buyer" :username="username" />
-      </b-tab>
-    </b-tabs>
+      </v-tab-item>
+    </v-tabs-items>
   </div>
 </template>
 
@@ -20,12 +31,6 @@
   import AcOrderPreview from './ac-order-preview'
   import { paramHandleMap } from '../lib'
   import AcOrderList from './ac-order-list'
-
-  const TabMap = {
-    current: 0,
-    archived: 1,
-    cancelled: 2
-  }
 
   export default {
     name: 'Orders',
@@ -42,7 +47,7 @@
     },
     props: ['url', 'buyer'],
     computed: {
-      tab: paramHandleMap('tabName', TabMap)
+      tab: paramHandleMap('tabName', undefined, undefined, 'tab-current')
     }
   }
 </script>

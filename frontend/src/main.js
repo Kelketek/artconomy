@@ -1,9 +1,10 @@
 // The Vue build version to load with the `import` command
 // (runtime-only or standalone) has been set in webpack.base.conf with an alias.
-import 'bootstrap-vue/dist/bootstrap-vue.css'
 import VueFormGenerator from 'vue-form-generator'
 import 'vue-form-generator/dist/vfg.css'  // optional full css additions
+import 'vuetify/dist/vuetify.min.css'
 import { $, jQuery } from 'jquery'
+import Vuetify from 'vuetify'
 import BootstrapVue from 'bootstrap-vue'
 import Vue from 'vue'
 import VueRouter from 'vue-router'
@@ -18,6 +19,7 @@ import {ErrorHandler} from './plugins/error'
 import {router} from './router'
 import { UserHandler } from './plugins/user'
 import { Timer } from './plugins/timer'
+import { Shortcuts } from './plugins/shortcuts'
 
 // export for others scripts to use
 window.$ = $
@@ -29,6 +31,8 @@ Vue.use(BootstrapVue)
 Vue.use(VueFormGenerator)
 Vue.use(ErrorHandler)
 Vue.use(Timer)
+Vue.use(Shortcuts)
+Vue.use(Vuetify)
 Vue.config.productionTip = false
 Vue.component('fieldCharacterSearch', fieldCharacterSearch)
 Vue.component('fieldUserSearch', fieldUserSearch)

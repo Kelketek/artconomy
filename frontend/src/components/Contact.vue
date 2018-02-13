@@ -1,7 +1,7 @@
 <template>
    <div class="container">
      <div class="row-centered">
-       <div class="col-centered col-12 col-md-6 pt-5 pb-5 text-center">
+       <div class="col-centered col-12 col-md-6 pt-5 pb-5 text-xs-center">
          <h1>Artconomy</h1>
          <address>
            3233 Mangum Rd<br />

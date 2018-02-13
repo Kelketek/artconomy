@@ -7,7 +7,7 @@
             <div class="gallery-image-stats"><i class="fa fa-star"></i> {{ asset.favorite_count }} <i class="fa fa-comment"></i> {{ asset.comment_count }}</div>
           </div>
         </div>
-        <div class="character-gallery-title text-center">{{ asset.title }}</div>
+        <div class="character-gallery-title text-xs-center">{{ asset.title }}</div>
       </router-link>
     </div>
 </template>

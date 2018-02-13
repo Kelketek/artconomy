@@ -10,7 +10,7 @@
         </span>
       </div>
       <div class="col-6">
-        <div class="swatch text-center" :style="swatchStyle"><div class="ref-container">{{refColor.color}}</div></div>
+        <div class="swatch text-xs-center" :style="swatchStyle"><div class="ref-container">{{refColor.color}}</div></div>
       </div>
     </div>
   </div>

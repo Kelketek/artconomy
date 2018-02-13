@@ -1,13 +1,13 @@
 <template>
   <div class="avatar-container">
-      <div class="text-center avatar-image-wrapper">
+      <div class="text-xs-center avatar-image-wrapper">
         <router-link :to="{name: 'Profile', params: {username: user.username}}">
-          <div class="shadowed avatar-image-container">
+          <v-avatar>
             <img :src="user.avatar_url">
-          </div>
+          </v-avatar>
         </router-link>
+        <div class="avatar-username text-xs-center"><router-link :to="{name: 'Profile', params: {username: user.username}}">{{ user.username }}</router-link> <span v-if="removable" @click="remove"><i class="fa fa-times"></i></span></div>
       </div>
-    <div class="avatar-username text-center"><router-link :to="{name: 'Profile', params: {username: user.username}}">{{ user.username }}</router-link> <span v-if="removable" @click="remove"><i class="fa fa-times"></i></span></div>
   </div>
 </template>
 

@@ -11,11 +11,11 @@
         :locked="locked"
     >
     </ac-comment>
-    <div v-else class="text-center" style="width:100%"><i class="fa fa-spin fa-spinner fa-5x"></i></div>
+    <div v-else class="text-xs-center" style="width:100%"><i class="fa fa-spin fa-spinner fa-5x"></i></div>
     <div v-if="growing !== null" v-observe-visibility="moreComments"></div>
     <div v-if="fetching"><i class="fa fa-spin fa-spinner fa-5x"></i></div>
     <ac-new-comment ref="newComment" v-if="(growing !== null && !fetching && !locked)" :parent="this" :url="commenturl"></ac-new-comment>
-    <div v-else-if="locked" class="col-12 text-section text-center">Comments have been locked.</div>
+    <div v-else-if="locked" class="col-12 text-section text-xs-center">Comments have been locked.</div>
   </div>
 </template>
 

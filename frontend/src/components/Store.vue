@@ -1,7 +1,7 @@
 <template>
   <div class="storefront container">
     <div class="row">
-      <div class="col-12 text-center" v-if="error">
+      <div class="col-12 text-xs-center" v-if="error">
         <p>{{error}}</p>
       </div>
       <ac-product-preview
@@ -19,7 +19,7 @@
       </div>
     </div>
     <div class="row-centered" v-if="controls && setUp">
-      <div class="col-12 pt-3 col-md-4 col-centered text-center">
+      <div class="col-12 pt-3 col-md-4 col-centered text-xs-center">
         <div v-if="showNew">
           <form>
             <ac-form-container ref="newProdForm" :schema="newProdSchema" :model="newProdModel"

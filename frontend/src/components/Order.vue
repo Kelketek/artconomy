@@ -2,7 +2,7 @@
   <div>
     <div v-if="order" class="container">
       <div class="row shadowed">
-        <div class="col-lg-4 col-12 col-md-6 text-section text-center">
+        <div class="col-lg-4 col-12 col-md-6 text-section text-xs-center">
           <ac-asset :asset="order.product" thumb-name="preview" img-class="bound-image" />
         </div>
         <div class="col-md-6 col-12 text-section pt-3">
@@ -17,8 +17,8 @@
             <p><strong>PRIVATE ORDER</strong></p>
           </div>
         </div>
-        <div class="col-12 col-lg-2 text-section text-center pt-3">
-          <div class="text-center">
+        <div class="col-12 col-lg-2 text-section text-xs-center pt-3">
+          <div class="text-xs-center">
             <h3>Ordered By</h3>
             <ac-avatar :user="order.buyer" />
           </div>
@@ -34,11 +34,11 @@
               v-bind:key="char.id"
           />
         </div>
-        <div class="col-lg-3 col-md-6 col-12 text-section text-center pt-2">
+        <div class="col-lg-3 col-md-6 col-12 text-section text-xs-center pt-2">
           <h3>Seller:</h3>
           <ac-avatar :user="order.seller" />
         </div>
-        <div class="col-lg-6 col-md-6 col-12 text-section text-center pt-2" v-if="paymentDetail">
+        <div class="col-lg-6 col-md-6 col-12 text-section text-xs-center pt-2" v-if="paymentDetail">
           <div class="pricing-container">
             <p v-if="order.status < 2">Price may be adjusted by the seller before finalization.</p>
             <span v-html="md.renderInline(order.product.name)"></span>: ${{order.price}}<br />
@@ -62,7 +62,7 @@
                 method="PATCH"
                 :reset-after="false">
             </ac-form-container>
-            <div class="text-center">
+            <div class="text-xs-center">
               <b-button type="submit" variant="primary" @click.prevent="$refs.adjustmentForm.submit">Adjust price</b-button><i v-if="$refs.adjustmentForm && $refs.adjustmentForm.saved" class="fa fa-check" style="color: green"></i>
             </div>
             <p class="mt-2">
@@ -73,7 +73,7 @@
             </p>
           </div>
         </div>
-        <div :class="{'col-lg-3': paymentDetail, 'col-12': true, 'text-section': true, 'pt-2': true, 'pb-3': true, 'col-md-9': !paymentDetail, 'text-center': !paymentDetail}">
+        <div :class="{'col-lg-3': paymentDetail, 'col-12': true, 'text-section': true, 'pt-2': true, 'pb-3': true, 'col-md-9': !paymentDetail, 'text-xs-center': !paymentDetail}">
           <div v-if="buyer && newOrder">
             <p>
               <strong>The artist has been notified of your order, and will respond soon!</strong>
@@ -110,7 +110,7 @@
             <p><strong>Your art has been queued!</strong></p>
             <p>We've received your payment and your work is now in the artist's queue. They'll start on it as soon as they're able, and will upload any agreed upon revisions for your review soon, or the final once it's ready.</p>
           </div>
-          <div class="text-center" v-if="newOrder || paymentPending">
+          <div class="text-xs-center" v-if="newOrder || paymentPending">
             <ac-action class="cancel-order-button" :url="`${this.url}cancel/`" variant="danger" :success="populateOrder">Cancel</ac-action>
             <ac-action class="accept-order-btn" v-if="newOrder && seller" :confirm="true" :url="`${this.url}accept/`" variant="success" :success="populateOrder">
               Accept order
@@ -158,7 +158,7 @@
                   :success="populateOrder"
                   :reset-after="false">
               </ac-form-container>
-              <div class="text-center">
+              <div class="text-xs-center">
                 <b-button type="submit" variant="primary" @click.prevent="$refs.streamForm.submit"><span v-if="queued">Mark as In Progress</span><span v-else>Update Stream Link</span></b-button><i v-if="$refs.streamForm && $refs.streamForm.saved" class="fa fa-check" style="color: green"></i>
               </div>
             </form>
@@ -183,12 +183,12 @@
               v-model="selectedCard"
           />
         </div>
-        <div class="col-md-6 col-12 mt-3 mb-3 text-center" v-if="buyer && paymentPending">
+        <div class="col-md-6 col-12 mt-3 mb-3 text-xs-center" v-if="buyer && paymentPending">
           <p><strong>Add a card or select a saved one on the left.</strong></p>
           <p>Once you've selected a card, you may click the pay button below to put the commission in the artist's queue.
             By paying, you are agreeing to the <router-link :to="{name: 'CommissionAgreement'}">Commission Agreement.</router-link></p>
           <p>Artconomy is based in the United States of America</p>
-          <div class="pricing-container" :class="{'text-center': buyer && paymentPending}">
+          <div class="pricing-container" :class="{'text-xs-center': buyer && paymentPending}">
             <p v-if="order.status < 2">Price may be adjusted by the seller before finalization.</p>
             <span v-html="md.renderInline(order.product.name)"></span>: ${{order.price}}<br />
             <span v-if="adjustmentModel.adjustment < 0">Discount: </span>
@@ -200,12 +200,12 @@
               <strong>Card Security code (CVV): </strong><input v-model="cvv" /> <br />
               <small>Three to four digit number, on the front of American Express cards, and on the back of all other cards.</small>
             </div>
-            <div class="mt-2 text-center">
+            <div class="mt-2 text-xs-center">
               <ac-action class="pay-button" :disabled="selectedCard === null || !validCVV" :url="`${url}pay/`" variant="success" :send="paymentData" :success="postPay">Submit</ac-action>
             </div>
           </div>
         </div>
-        <div class="col-12 text-center" v-if="justPaid">
+        <div class="col-12 text-xs-center" v-if="justPaid">
           <i class="fa fa-5x fa-check-circle"></i><br />
           <p><strong>Your payment has been received!</strong></p>
           <p>We've received your payment and your work is now in the artist's queue. They'll start on it as soon as
@@ -217,10 +217,10 @@
           <h2>Revisions</h2>
         </div>
         <div v-for="(revision, index) in revisionsLimited"
-             class="col-12 col-md-6 col-lg-4 col-centered text-center order-revision"
+             class="col-12 col-md-6 col-lg-4 col-centered text-xs-center order-revision"
              v-bind:key="revision.id">
           <ac-asset thumb-name="preview" img-class="max-width" :asset="revision" />
-          <div class="text-center text-section p-3 mt-2">
+          <div class="text-xs-center text-section p-3 mt-2">
             Revision {{ index + 1 }} on {{ formatDate(revision.created_on) }}
             <ac-action
                 v-if="seller && (index === revisionsLimited.length - 1) && !final"
@@ -235,15 +235,15 @@
         </div>
       </div>
       <div class="row shadowed mt-3 pb-3" v-if="final">
-        <div class="col-12 text-center">
+        <div class="col-12 text-xs-center">
           <h2>Final</h2>
         </div>
-        <div class="col-12 text-center">
+        <div class="col-12 text-xs-center">
           <router-link v-if="output" :to="{name: 'Submission', params: {assetID: output.id}}">
             <ac-asset class="final-preview" thumb-name="preview" img-class="max-width" :asset="final" />
           </router-link>
           <ac-asset class="final-preview" v-else thumb-name="preview" img-class="max-width" :asset="final" />
-          <div class="text-center text-section pb-2">
+          <div class="text-xs-center text-section pb-2">
             Final delivered {{ formatDate(final.created_on)}}
             <ac-action
                 v-if="seller && review"
@@ -309,7 +309,7 @@
           </div>
         </div>
       </div>
-      <div class="row-centered mt-3 shadowed text-center pb-3" v-if="showRevisionPanel">
+      <div class="row-centered mt-3 shadowed text-xs-center pb-3" v-if="showRevisionPanel">
         <div class="col-12 col-md-6 col-centered">
           <form>
             <ac-form-container
@@ -322,7 +322,7 @@
                 :success="reload"
                 v-if="seller && inProgress && revisionsRemain">
             </ac-form-container>
-            <div class="text-center">
+            <div class="text-xs-center">
               <b-button type="submit" variant="primary" v-if="seller && inProgress && revisionsRemain" @click.prevent="$refs.revisionForm.submit"><span v-if="(revisions.length < order.revisions)">Upload Revision</span><span v-else>Upload Final</span></b-button>
             </div>
           </form>
@@ -335,7 +335,7 @@
       </div>
     </div>
     <div class="row" v-else>
-      <div class="text-center" style="width:100%"><i class="fa fa-spin fa-spinner fa-5x"></i></div>
+      <div class="text-xs-center" style="width:100%"><i class="fa fa-spin fa-spinner fa-5x"></i></div>
     </div>
   </div>
 </template>

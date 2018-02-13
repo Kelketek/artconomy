@@ -182,24 +182,24 @@ export function setMetaContent (tagname, value) {
   desctag.content = value
 }
 
-export function paramHandleMap (handleName, tabMap, clearList) {
-  const numMap = {}
+export function paramHandleMap (handleName, clearList, permittedNames, defaultTab) {
   clearList = clearList || []
-
-  for (let key of Object.keys(tabMap)) {
-    numMap[tabMap[key]] = key
-  }
   return {
     get () {
-      let val = tabMap[this.$route.params[handleName]]
-      if (val === undefined) {
-        val = 0
+      let tab = 'tab-' + this.$route.params[handleName]
+      if (tab === 'tab-undefined') {
+        return defaultTab
       }
-      return val
+      if (permittedNames !== undefined) {
+        if (permittedNames.indexOf(tab) === -1) {
+          return defaultTab
+        }
+      }
+      return tab
     },
     set (value) {
       let params = {}
-      params[handleName] = numMap[value]
+      params[handleName] = value.replace(/^tab-/, '')
       let newParams = Object.assign({}, this.$route.params, params)
       for (let param of clearList) {
         delete newParams[param]

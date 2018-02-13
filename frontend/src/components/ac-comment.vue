@@ -1,7 +1,7 @@
 <template>
   <div :id="'comment-' + comment.id" class="comment-block"
        :class="{'my-comment': myComment, 'alternate': alternate}">
-    <div class="text-center comment-info">
+    <div class="text-xs-center comment-info">
       <ac-avatar :user="comment.user"></ac-avatar><br />
       <span class="underlined" :id="'comment-' + comment.id + '-created_on'">commented</span>
       <span :id="'comment-' + comment.id + '-edited_on'" class="underlined" v-if="comment.edited"><small><br />(edited)</small></span>

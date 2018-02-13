@@ -36,11 +36,11 @@
             />
           </div>
           <div class="col-6 pull-right">
-            <ac-action v-if="editing" class="text-center" style="display:block" :url="url" method="PATCH" :send="{private: !character.private}" :success="loadCharacter">
+            <ac-action v-if="editing" class="text-xs-center" style="display:block" :url="url" method="PATCH" :send="{private: !character.private}" :success="loadCharacter">
               <span v-if="character.private"><i class="fa fa-eye"></i> Unhide character</span>
               <span v-else><i class="fa fa-eye-slash"></i> Hide character</span>
             </ac-action>
-            <div v-else-if="controls" class="text-center">
+            <div v-else-if="controls" class="text-xs-center">
               <span v-if="character.private"><i class="fa fa-eye-slash"></i> Character is private</span>
               <span v-else><i class="fa fa-eye"></i> Character is public</span>
             </div>
@@ -48,7 +48,7 @@
         </div>
       </div>
       <div class="col-lg-4 p-0 section-text">
-        <div class="character-panel-preview text-center">
+        <div class="character-panel-preview text-xs-center">
           <router-link v-if="character.primary_asset && character.primary_asset.id" :to="{name: 'Submission', params: {assetID: character.primary_asset.id}}">
             <ac-asset
                 img-class="character-refsheet"
@@ -69,12 +69,12 @@
           <div class="card-block character-description"><ac-patchfield v-model="character.description" name="description" :multiline="true" :editmode="editing" :url="url" /></div>
         </div>
       </div>
-      <div class="col-md-4 col-12 text-section text-center pt-3 pl-4">
+      <div class="col-md-4 col-12 text-section text-xs-center pt-3 pl-4">
         <ac-avatar :user="character.user" />
       </div>
     </div>
     <div class="row mb-3 shadowed text-section pt-2" v-if="character && (character.colors.length || editing)">
-      <div class="col-12 text-center"><h3>Colors</h3></div>
+      <div class="col-12 text-xs-center"><h3>Colors</h3></div>
       <ac-ref-color
           v-for="refColor in character.colors"
           :key="refColor.id"
@@ -85,12 +85,12 @@
       />
       <div class="col-12 mt-2 mb-2">
         <div class="row-centered" v-if="character.colors.length < 10">
-          <div class="col-12 col-md-6 col-centered text-center">
+          <div class="col-12 col-md-6 col-centered text-xs-center">
             <b-button v-if="controls && editing && !showNewColor" variant="primary" @click="showNewColor = true">Add a color reference</b-button>
             <div v-if="showNewColor && editing">
               <ac-form-container
                   ref="newColorForm" :schema="newColorSchema" :model="newColorModel"
-                  class="text-center"
+                  class="text-xs-center"
                   :options="newUploadOptions" :success="addColor"
                   :url="`/api/profiles/v1/account/${user.username}/characters/${character.name}/colors/`"
               />
@@ -102,14 +102,14 @@
       </div>
     </div>
     <div class="row mb-3" v-if="character">
-      <div class="col-12 col-md-9 text-center image-showcase" v-if="assets && assets.length">
+      <div class="col-12 col-md-9 text-xs-center image-showcase" v-if="assets && assets.length">
         <router-link v-if="character.primary_asset && character.primary_asset.id" :to="{name: 'Submission', params: {assetID: character.primary_asset.id}}">
           <ac-asset class="mb-2 shadowed" :asset="character.primary_asset" thumb-name="gallery" img-class="character-refsheet" />
-          <div class="character-gallery-title text-center">{{ character.primary_asset.title }}</div>
+          <div class="character-gallery-title text-xs-center">{{ character.primary_asset.title }}</div>
         </router-link>
         <router-link v-else-if="assets && assets[0]" :to="{name: 'Submission', params: {assetID: assets[0].id}}">
           <img class="character-refsheet shadowed" :src="assets[0].file.gallery"/>
-          <div class="character-gallery-title text-center">{{ assets[0].title }} <i class="fa fa-star"></i> {{ assets[0].favorite_count }} <i class="fa fa-comment"></i> {{ assets[0].comment_count }}</div>
+          <div class="character-gallery-title text-xs-center">{{ assets[0].title }} <i class="fa fa-star"></i> {{ assets[0].favorite_count }} <i class="fa fa-comment"></i> {{ assets[0].comment_count }}</div>
         </router-link>
         <div class="more">
           <b-button v-if="controls && !showUpload" variant="primary" @click="displayUploader">Upload a new picture of {{ character.name }}</b-button>
@@ -120,7 +120,7 @@
           </router-link>
         </div>
       </div>
-      <div class="col-12 text-center" v-else>
+      <div class="col-12 text-xs-center" v-else>
         <b-button v-if="controls && !showUpload" variant="primary" @click="displayUploader">Upload a new picture of {{ character.name }}</b-button>
       </div>
       <div class="col-12 col-md-3 character-gallery" v-if="assets != null">

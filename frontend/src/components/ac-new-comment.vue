@@ -1,6 +1,6 @@
 <template>
   <div class="comment-block new-comment-component">
-    <div v-if="!editing" class="text-center">
+    <div v-if="!editing" class="text-xs-center">
       <b-button @click="editing=true" class="new-comment-button">Add a comment</b-button>
     </div>
     <div class="new-comment-block">

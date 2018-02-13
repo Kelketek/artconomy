@@ -1,7 +1,7 @@
 <template>
   <div class="notifications-center container">
     <div v-if="response !== null && !growing.length" class="row">
-      <div class=" col-12 text-center">
+      <div class=" col-12 text-xs-center">
         <p>You do not have any notifications at this time.</p>
       </div>
     </div>
@@ -18,7 +18,7 @@
       </div>
     </div>
     <div class="row">
-      <div class="col-12 text-center">
+      <div class="col-12 text-xs-center">
         <div v-if="growing !== null" v-observe-visibility="moreNotifications"></div>
         <div v-if="fetching"><i class="fa fa-spin fa-spinner fa-5x"></i></div>
       </div>
