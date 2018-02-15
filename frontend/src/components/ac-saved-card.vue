@@ -5,9 +5,9 @@
       <label :for="'saved_card' + card.id"><i class="fa" :class="class_obj()"></i> {{ issuer.name }} x{{ card.last_four }}</label>
     </div>
     <div class="credit-card-buttons">
-      <b-button v-if="card.primary" variant="success" size="sm" :disabled="changing">Primary Card</b-button>
-      <b-button v-else variant="primary" size="sm" :disabled="changing" @click="makePrimary">Make Primary</b-button>
-      <b-button variant="danger" @click="deleteCard()" size="sm" :disabled="changing"><i class="fa fa-trash-o"></i></b-button>
+      <v-btn v-if="card.primary" color="success" size="sm" :disabled="changing">Primary Card</v-btn>
+      <v-btn v-else color="primary" size="sm" :disabled="changing" @click="makePrimary">Make Primary</v-btn>
+      <v-btn color="error" @click="deleteCard()" size="sm" :disabled="changing"><i class="fa fa-trash-o"></i></v-btn>
     </div>
     <div class="clear"></div>
     <div class="mb-2"></div>

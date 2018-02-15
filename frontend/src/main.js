@@ -1,8 +1,8 @@
 // The Vue build version to load with the `import` command
 // (runtime-only or standalone) has been set in webpack.base.conf with an alias.
 import VueFormGenerator from 'vue-form-generator'
-import 'vue-form-generator/dist/vfg.css'  // optional full css additions
 import 'vuetify/dist/vuetify.min.css'
+import './artconomy.css'
 import { $, jQuery } from 'jquery'
 import Vuetify from 'vuetify'
 import BootstrapVue from 'bootstrap-vue'
@@ -10,10 +10,12 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import App from './App'
 import NavBar from './components/NavBar'
-import fieldCharacterSearch from './components/fieldCharacterSearch'
-import fieldUserSearch from './components/fieldUserSearch'
-import fieldTagSearch from './components/fieldTagSearch'
-import fieldRecaptcha from './components/fieldRecaptcha'
+import fieldCharacterSearch from './components/fields/fieldCharacterSearch'
+import fieldUserSearch from './components/fields/fieldUserSearch'
+import fieldTagSearch from './components/fields/fieldTagSearch'
+import fieldRecaptcha from './components/fields/fieldRecaptcha'
+import fieldVText from './components/fields/fieldVText'
+import fieldVCheckbox from './components/fields/fieldVCheckbox'
 import { md } from './lib'
 import {ErrorHandler} from './plugins/error'
 import {router} from './router'
@@ -38,6 +40,8 @@ Vue.component('fieldCharacterSearch', fieldCharacterSearch)
 Vue.component('fieldUserSearch', fieldUserSearch)
 Vue.component('fieldTagSearch', fieldTagSearch)
 Vue.component('fieldRecaptcha', fieldRecaptcha)
+Vue.component('fieldVText', fieldVText)
+Vue.component('fieldVCheckbox', fieldVCheckbox)
 
 /* eslint-disable no-new */
 window.artconomy = new Vue({

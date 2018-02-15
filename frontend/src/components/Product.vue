@@ -71,12 +71,12 @@
                                  :options="newOrderOptions" :success="goToOrder"
                                  :url="`/api/sales/v1/${username}/products/${productID}/order/`"
               >
-                <b-button @click="showOrder = false">Cancel</b-button>
-                <b-button type="submit" variant="primary" @click.prevent="$refs.newOrderForm.submit">Submit</b-button>
+                <v-btn @click="showOrder = false">Cancel</v-btn>
+                <v-btn type="submit" color="primary" @click.prevent="$refs.newOrderForm.submit">Submit</v-btn>
               </ac-form-container>
             </form>
           </div>
-          <b-button v-else variant="primary" size="lg" @click="showOrder=true" id="new-char-button">Order</b-button>
+          <v-btn v-else color="primary" size="lg" @click="showOrder=true" id="new-char-button">Order</v-btn>
         </div>
       </div>
     </div>

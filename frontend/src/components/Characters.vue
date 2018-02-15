@@ -33,12 +33,12 @@
                                 :options="newCharOptions" :success="addCharacter"
                                :url="`/api/profiles/v1/account/${this.user.username}/characters/`"
             >
-              <b-button @click="showNew=false">Cancel</b-button>
-              <b-button type="submit" variant="primary" @click.prevent="$refs.newCharForm.submit">Create</b-button>
+              <v-btn @click="showNew=false">Cancel</v-btn>
+              <v-btn type="submit" color="primary" @click.prevent="$refs.newCharForm.submit">Create</v-btn>
             </ac-form-container>
           </form>
         </div>
-        <b-button v-else variant="primary" size="lg" @click="showNew=true" id="new-char-button">Add a new character</b-button>
+        <v-btn v-else color="primary" size="lg" @click="showNew=true" id="new-char-button">Add a new character</v-btn>
       </div>
     </div>
   </div>
@@ -70,18 +70,17 @@
         showNew: false,
         newCharSchema: {
           fields: [{
-            type: 'input',
-            inputType: 'text',
+            type: 'v-text',
             label: 'Character name',
             model: 'name',
             placeholder: 'My character',
             featured: true,
             required: true,
-            validator: VueFormGenerator.validators.string
+            hint: 'This is some help text',
+            validator: VueFormGenerator.validators.required
           }, {
-            type: 'input',
+            type: 'v-checkbox',
             styleClasses: ['vue-checkbox'],
-            inputType: 'checkbox',
             label: 'Private Character?',
             model: 'private',
             required: false,

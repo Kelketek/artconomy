@@ -25,7 +25,7 @@
                                  method="PATCH"
                                  :reset-after="false"
               >
-                <b-button type="submit" variant="primary" @click.prevent="$refs.settingsForm.submit">Update</b-button>
+                <v-btn type="submit" color="primary" @click.prevent="$refs.settingsForm.submit">Update</v-btn>
                 <i v-if="$refs.settingsForm && $refs.settingsForm.saved" class="fa fa-check" style="color: green"></i>
               </ac-form-container>
             </form>
@@ -59,7 +59,7 @@
                                      :url="`/api/profiles/v1/account/${this.user.username}/credentials/`"
                                      :reset-after="false"
                   >
-                    <b-button type="submit" variant="primary" @click.prevent="$refs.credentialsForm.submit">Update</b-button>
+                    <v-btn type="submit" color="primary" @click.prevent="$refs.credentialsForm.submit">Update</v-btn>
                     <i v-if="$refs.credentialsForm && $refs.credentialsForm.saved" class="fa fa-check" style="color: green"></i>
                   </ac-form-container>
                 </form>
@@ -81,7 +81,7 @@
                                  :options="avatarOptions" :success="updateAvatar"
                                  :url="`/api/profiles/v1/account/${this.user.username}/avatar/`"
               >
-                <b-button type="submit" variant="primary" @click.prevent="$refs.avatarForm.submit">Upload</b-button>
+                <v-btn type="submit" variant="primary" @click.prevent="$refs.avatarForm.submit">Upload</v-btn>
                 <i v-if="$refs.avatarForm && $refs.avatarForm.saved" class="fa fa-check" style="color: green"></i>
               </ac-form-container>
             </form>

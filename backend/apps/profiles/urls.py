@@ -59,7 +59,7 @@ urlpatterns = [
         name='asset_favorite'
     ),
     url(
-        r'^v1/account/(?P<username>[-\w]+)/characters/(?P<character>[-\w\s]+)/assets/$',
+        r'^v1/account/(?P<username>[-\w]+)/characters/(?P<character>[^/]+)/assets/$',
         ImageAssetListAPI.as_view(), name='asset_upload'
     ),
     url(r'^v1/account/(?P<username>[-\w]+)/characters/$', CharacterListAPI.as_view(), name='character_list'),

@@ -8,7 +8,7 @@
         v-if="viewer && viewer.username"
     >
       <v-list dense>
-        <v-list v-if="viewer !== null && viewer.username">
+        <v-list v-if="viewer && viewer.username">
           <v-list-tile :to="{name: 'Characters', params: {username: viewer.username}}">Characters</v-list-tile>
           <v-list-tile :to="{name: 'Orders', params: {username: viewer.username}}">Orders</v-list-tile>
           <v-list-tile :to="{name: 'Sales', params: {username: viewer.username}}">Sales</v-list-tile>
@@ -38,9 +38,9 @@
     >
       <v-toolbar-side-icon v-if="viewer && viewer.username" @click.stop="drawer = !drawer" />
       <v-toolbar-title class="mr-5 align-center">
-        <router-link to="/">
+        <v-btn flat to="/">
           <img src="/static/images/logo.svg" class="header-logo"/><div class="title">rtconomy</div>
-        </router-link>
+        </v-btn>
       </v-toolbar-title>
       <v-layout row justify-center>
         <v-text-field
@@ -55,15 +55,24 @@
             hide-details
         />
       </v-layout>
-        <v-spacer />
-        <ac-patchbutton v-if="viewer.username && viewer.rating > 0" :url="`/api/profiles/v1/account/${this.viewer.username}/settings/`" :classes="{'btn-sm': true, 'm-0': true}" name="sfw_mode" v-model="viewer.sfw_mode" true-text="NSFW" true-variant="success" false-text="SFW" />
-        <v-avatar v-if="viewer && viewer.username" size="32px">
-          <img :src="viewer.avatar_url">
-        </v-avatar>
-        <router-link :to="{name: 'Login'}" v-else>
-          <span class="nav-login-item">Login</span>
-        </router-link>
-        <div style="padding-left: 1rem;" v-if="viewer && viewer.username">{{ viewer.username }}</div>
+      <v-spacer />
+      <ac-patchbutton v-if="viewer && viewer.username && viewer.rating > 0" :url="`/api/profiles/v1/account/${this.viewer.username}/settings/`" :classes="{'btn-sm': true, 'm-0': true}" name="sfw_mode" v-model="viewer.sfw_mode" true-text="NSFW" true-variant="success" false-text="SFW" />
+      <v-toolbar-items>
+        <v-btn flat v-if="viewer && viewer.username" :to="{name: 'Notifications'}">
+          <v-badge overlap right color="red">
+            <span slot="badge" v-if="unread && unread < 1000">{{unread}}</span>
+            <span slot="badge" v-else-if="unread > 999">*</span>
+            <v-icon large>notifications</v-icon>
+          </v-badge>
+        </v-btn>
+        <v-btn flat v-if="viewer && viewer.username" :to="{name: 'Profile', params: {username: viewer.username}}">
+          <v-avatar size="32px">
+            <img :src="viewer.avatar_url">
+          </v-avatar>
+          <div style="padding-left: 1rem;" v-if="viewer && viewer.username">{{ viewer.username }}</div>
+        </v-btn>
+        <v-btn v-else flat :to="{name: 'Login'}">Login</v-btn>
+      </v-toolbar-items>
     </v-toolbar>
   </div>
 </template>
@@ -90,55 +99,6 @@
 </style>
 
 <script>
-  /* <div class="container" id="navbar">
-    <b-navbar toggleable type="dark" class="fixed-top" variant="primary">
-
-      <b-navbar-toggle target="nav_collapse"></b-navbar-toggle>
-
-      <b-navbar-brand to="/"><img src="/static/images/logo.svg" class="header-logo"/><div class="logo-header-text">rtconomy</div></b-navbar-brand>
-
-      <b-collapse is-nav id="nav_collapse">
-
-        <b-navbar-nav v-if="viewer !== null && viewer.username">
-          <b-nav-item :to="{name: 'Characters', params: {username: viewer.username}}">Characters</b-nav-item>
-          <b-nav-item :to="{name: 'Orders', params: {username: viewer.username}}">Orders</b-nav-item>
-          <b-nav-item :to="{name: 'Sales', params: {username: viewer.username}}">Sales</b-nav-item>
-          <b-nav-item v-if="viewer.is_staff" :to="{name: 'Cases', params: {username: viewer.username}}">Cases</b-nav-item>
-          <b-nav-item :to="{name: 'Store', params: {username: viewer.username}}">Sell</b-nav-item>
-        </b-navbar-nav>
-// eslint-disable-next-line no-multiple-empty-lines
-
-
-        <!-- Right aligned nav items -->
-        <b-navbar-nav class="ml-auto" v-if="viewer !== null">
-          <div class="form-inline">
-            <input class="mr-sm-2 form-control form-control-sm" type="text" v-model="query" @input="performSearch" @keydown.enter="performSearch" placeholder="Search"/>
-          </div>
-          <!-- Navbar dropdowns -->
-          <b-nav-item v-if="viewer.username" :to="{name: 'Profile', params: {username: viewer.username}}">
-            <span class="nav-login-item">
-              <img style="height:1.5rem" :src="viewer.avatar_url"> {{ viewer.username }}
-            </span>
-          </b-nav-item>
-          <ac-patchbutton v-if="viewer.username && viewer.rating > 0" :url="`/api/profiles/v1/account/${this.viewer.username}/settings/`" :classes="{'btn-sm': true, 'm-0': true}" name="sfw_mode" v-model="viewer.sfw_mode" true-text="NSFW" true-variant="success" false-text="SFW" />
-          <b-nav-item class="mr-3" v-if="viewer.username" :to="{name: 'Notifications'}">
-            <span><i class="fa fa-bell"></i><div class="notification-count" v-if="unread">
-              <span v-if="unread < 999">{{unread}}</span>
-              <span v-else>*</span>
-            </div></span>
-          </b-nav-item>
-          <b-nav-item-dropdown v-if="viewer.username" text="<i class='fa fa-ellipsis-h'></i>" right>
-            <b-dropdown-item :to="{name: 'Settings', params: {username: viewer.username}}"><i
-              class="fa fa-gear"></i> Settings</b-dropdown-item>
-            <b-dropdown-item v-if="viewer.username" @click.prevent="logout()">Signout</b-dropdown-item>
-          </b-nav-item-dropdown>
-          <b-nav-item :to="{name: 'Login'}" v-else>
-            <span class="nav-login-item">Login</span>
-          </b-nav-item>
-        </b-navbar-nav>
-      </b-collapse>
-    </b-navbar>
-  </div> */
   import { artCall, EventBus } from '../lib'
   import AcPatchbutton from './ac-patchbutton'
 
@@ -150,7 +110,7 @@
         loopNotifications: false,
         unread: 0,
         queryData: [],
-        drawer: true
+        drawer: false
       }
       if (this.$route.name === 'Search') {
         data.queryData = this.$route.query.q || []

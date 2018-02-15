@@ -1,0 +1,11 @@
+fieldset {
+  border: 0
+}
+
+.vue-form-generator .error {
+  background-color: transparent !important;
+}
+
+.vue-form-generator .form-group > label:first-child, .vue-form-generator .hint, .vue-form-generator .errors {
+  display: none
+}

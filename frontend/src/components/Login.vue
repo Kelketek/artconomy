@@ -3,22 +3,33 @@
     <div class="row-centered">
       <div class="col-12 col-md-6 col-lg-4 col-centered text-xs-center">
         <form>
-          <b-tabs class="inverse" v-model="loginTab">
-            <b-tab title="Login" id="loginTab">
+          <v-tabs class="inverse" v-model="loginTab">
+            <v-tab href="#tab-login">
+              Login
+            </v-tab>
+            <v-tab href="#tab-register">
+              Register
+            </v-tab>
+          </v-tabs>
+          <v-tabs-items v-model="loginTab">
+            <v-tab-item id="tab-login">
               <div class="pt-2"></div>
               <vue-form-generator id="loginForm" ref="loginForm" :schema="loginSchema" :model="loginModel"
                                   :options="loginOptions" />
-            </b-tab>
-            <b-tab title="Register" id="registerTab">
+              <v-btn type="submit" color="primary" @click.prevent="sendLogin">
+                Login
+              </v-btn>
+            </v-tab-item>
+            <v-tab-item id="tab-register">
               <div class="pt-2"></div>
               <vue-form-generator id="registerForm" ref="registerForm" :schema="registerSchema" :model="loginModel"
                                   :options="loginOptions" />
-            </b-tab>
-          </b-tabs>
+              <v-btn type="submit" color="primary" @click.prevent="sendLogin">
+                Register
+              </v-btn>
+            </v-tab-item>
+          </v-tabs-items>
           <div>
-            <b-button type="submit" id="loginSubmit" variant="primary" @click.prevent="sendLogin">
-              {{ tab.label }}
-            </b-button>
           </div>
         </form>
       </div>
@@ -31,8 +42,8 @@
   import { artCall, recaptchaSiteKey, setCookie, setErrors } from '../lib'
 
   const TAB_MAP = {
-    0: {url: '/api/profiles/v1/login/', label: 'Login', form: 'loginForm'},
-    1: {url: '/api/profiles/v1/register/', label: 'Register', form: 'registerForm'}
+    'tab-login': {url: '/api/profiles/v1/login/', label: 'Login', form: 'loginForm'},
+    'tab-register': {url: '/api/profiles/v1/register/', label: 'Register', form: 'registerForm'}
   }
 
   function loginDefault () {
@@ -51,7 +62,7 @@
         loginModel: loginDefault(),
         loginSchema: {
           fields: [{
-            type: 'input',
+            type: 'v-text',
             inputType: 'text',
             label: 'Email',
             model: 'email',
@@ -60,7 +71,7 @@
             required: true,
             validator: VueFormGenerator.validators.email
           }, {
-            type: 'input',
+            type: 'v-text',
             inputType: 'password',
             label: 'Password',
             model: 'password',

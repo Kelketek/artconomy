@@ -86,7 +86,7 @@
       <div class="col-12 mt-2 mb-2">
         <div class="row-centered" v-if="character.colors.length < 10">
           <div class="col-12 col-md-6 col-centered text-xs-center">
-            <b-button v-if="controls && editing && !showNewColor" variant="primary" @click="showNewColor = true">Add a color reference</b-button>
+            <v-btn v-if="controls && editing && !showNewColor" color="primary" @click="showNewColor = true">Add a color reference</v-btn>
             <div v-if="showNewColor && editing">
               <ac-form-container
                   ref="newColorForm" :schema="newColorSchema" :model="newColorModel"
@@ -94,8 +94,8 @@
                   :options="newUploadOptions" :success="addColor"
                   :url="`/api/profiles/v1/account/${user.username}/characters/${character.name}/colors/`"
               />
-              <b-button @click="showNewColor=false">Cancel</b-button>
-              <b-button type="submit" variant="primary" @click.prevent="$refs.newColorForm.submit">Add Color</b-button>
+              <v-btn @click="showNewColor=false">Cancel</v-btn>
+              <v-btn type="submit" color="primary" @click.prevent="$refs.newColorForm.submit">Add Color</v-btn>
             </div>
           </div>
         </div>
@@ -112,16 +112,16 @@
           <div class="character-gallery-title text-xs-center">{{ assets[0].title }} <i class="fa fa-star"></i> {{ assets[0].favorite_count }} <i class="fa fa-comment"></i> {{ assets[0].comment_count }}</div>
         </router-link>
         <div class="more">
-          <b-button v-if="controls && !showUpload" variant="primary" @click="displayUploader">Upload a new picture of {{ character.name }}</b-button>
+          <v-btn v-if="controls && !showUpload" color="primary" @click="displayUploader">Upload a new picture of {{ character.name }}</v-btn>
           <router-link :to="{name: 'CharacterGallery', params: {username: username, characterName: characterName}}">
-            <b-button v-if="assets && moreToLoad" variant="primary">
+            <v-btn v-if="assets && moreToLoad" color="primary">
               See all uploads of {{ character.name }}
-            </b-button>
+            </v-btn>
           </router-link>
         </div>
       </div>
       <div class="col-12 text-xs-center" v-else>
-        <b-button v-if="controls && !showUpload" variant="primary" @click="displayUploader">Upload a new picture of {{ character.name }}</b-button>
+        <v-btn v-if="controls && !showUpload" color="primary" @click="displayUploader">Upload a new picture of {{ character.name }}</v-btn>
       </div>
       <div class="col-12 col-md-3 character-gallery" v-if="assets != null">
         <ac-gallery-preview v-for="(asset, key, index) in assets"
@@ -137,8 +137,8 @@
                              :options="newUploadOptions" :success="addUpload"
                              :url="`/api/profiles/v1/account/${user.username}/characters/${character.name}/assets/`"
           >
-            <b-button @click="showUpload=false">Cancel</b-button>
-            <b-button type="submit" variant="primary" @click.prevent="$refs.newUploadForm.submit">Create</b-button>
+            <v-btn @click="showUpload=false">Cancel</v-btn>
+            <v-btn type="submit" color="primary" @click.prevent="$refs.newUploadForm.submit">Create</v-btn>
           </ac-form-container>
         </form>
       </div>

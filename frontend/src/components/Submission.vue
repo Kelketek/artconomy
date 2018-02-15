@@ -52,7 +52,7 @@
             <span v-if="submission.favorite"><i class="fa fa-heart-o"></i> Remove from Favorites ({{ submission.favorite_count }})</span>
             <span v-else><i class="fa fa-heart"></i> Add to Favorites ({{ submission.favorite_count }})</span>
           </ac-action>
-          <b-button v-if="!showArtistTagging" @click="showArtistTagging=true">Tag Artists</b-button>
+          <v-btn v-if="!showArtistTagging" @click="showArtistTagging=true">Tag Artists</v-btn>
           <div v-else>
             <form>
               <ac-form-container
@@ -63,8 +63,8 @@
                   :model="artistTaggingModel"
                   :success="postArtistTag"
               />
-              <b-button variant="danger" @click.prevent="showArtistTagging=false">Cancel</b-button>
-              <b-button type="submit" @click.prevent="$refs.artistTaggingForm.submit">Tag!</b-button>
+              <v-btn variant="danger" @click.prevent="showArtistTagging=false">Cancel</v-btn>
+              <v-btn type="submit" @click.prevent="$refs.artistTaggingForm.submit">Tag!</v-btn>
             </form>
           </div>
         </div>
@@ -102,7 +102,7 @@
       >
       </ac-character-preview>
       <div class="col-12 text-xs-center mb-2">
-        <b-button v-if="!showCharacterTagging" @click="showCharacterTagging=true">Tag Characters</b-button>
+        <v-btn v-if="!showCharacterTagging" @click="showCharacterTagging=true">Tag Characters</v-btn>
         <div v-else>
           <form>
             <ac-form-container
@@ -113,8 +113,8 @@
                 :model="characterTaggingModel"
                 :success="postCharacterTag"
             />
-            <b-button variant="danger" @click.prevent="showCharacterTagging=false">Cancel</b-button>
-            <b-button type="submit" @click.prevent="$refs.characterTaggingForm.submit">Tag!</b-button>
+            <v-btn variant="danger" @click.prevent="showCharacterTagging=false">Cancel</v-btn>
+            <v-btn type="submit" @click.prevent="$refs.characterTaggingForm.submit">Tag!</v-btn>
           </form>
         </div>
       </div>

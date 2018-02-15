@@ -25,17 +25,17 @@
     <div v-if="editing && edit_preview" v-html="parseDraft()"></div>
     <div>
       <div class="text-right pull-right comment-actions" v-if="comment.children.length && !comment.deleted">
-        <b-button v-if="myComment && !editing" @click="deleteComment()" variant="danger"><i class="fa fa-trash-o"></i>
-        </b-button>
-        <b-button v-if="myComment && editing" @click="editing=false" variant="danger"><i class="fa fa-times"></i>
-        </b-button>
-        <b-button v-if="myComment && !editing && !locked" @click="editing=true" variant="warning"><i class="fa fa-edit"></i>
-        </b-button>
-        <b-button v-if="editing" @click="save()" variant="success"><i class="fa fa-save"></i></b-button>
+        <v-btn v-if="myComment && !editing" @click="deleteComment()" color="error"><i class="fa fa-trash-o"></i>
+        </v-btn>
+        <v-btn v-if="myComment && editing" @click="editing=false" color="error"><i class="fa fa-times"></i>
+        </v-btn>
+        <v-btn v-if="myComment && !editing && !locked" @click="editing=true" color="warning"><i class="fa fa-edit"></i>
+        </v-btn>
+        <v-btn v-if="editing" @click="save()" color="success"><i class="fa fa-save"></i></v-btn>
       </div>
       <div class="text-left pull-left preview-button-container" v-if="comment.children.length && editing">
-        <b-button v-if="edit_preview" variant="info" @click="edit_preview=false"><i class="fa fa-eye"></i></b-button>
-        <b-button v-else @click="edit_preview=true"><i class="fa fa-eye"></i></b-button>
+        <v-btn v-if="edit_preview" variant="info" @click="edit_preview=false"><i class="fa fa-eye"></i></v-btn>
+        <v-btn v-else @click="edit_preview=true"><i class="fa fa-eye"></i></v-btn>
         <small class="ml-2">Markdown Syntax Supported</small>
       </div>
     </div>
@@ -57,29 +57,29 @@
     <div v-if="replying && reply_preview" v-html="parseReply()"></div>
     <div v-if="!comment.deleted">
       <div class="text-left pull-left preview-button-container" v-if="!comment.children.length && editing">
-        <b-button v-if="edit_preview" variant="info" @click="edit_preview=false"><i class="fa fa-eye"></i></b-button>
-        <b-button v-else @click="edit_preview=true"><i class="fa fa-eye"></i></b-button>
+        <v-btn v-if="edit_preview" color="info" @click="edit_preview=false"><i class="fa fa-eye"></i></v-btn>
+        <v-btn v-else @click="edit_preview=true"><i class="fa fa-eye"></i></v-btn>
         <small class="ml-2">Markdown Syntax Supported</small>
       </div>
       <div class="text-left pull-left preview-button-container" v-if="replying">
-        <b-button v-if="reply_preview" variant="info" @click="reply_preview=false"><i class="fa fa-eye"></i></b-button>
-        <b-button v-else @click="reply_preview=true"><i class="fa fa-eye"></i></b-button>
+        <v-btn v-if="reply_preview" color="info" @click="reply_preview=false"><i class="fa fa-eye"></i></v-btn>
+        <v-btn v-else @click="reply_preview=true"><i class="fa fa-eye"></i></v-btn>
         <small class="ml-2">Markdown Syntax Supported</small>
       </div>
       <div class="text-right comment-actions pull-right">
-        <b-button v-if="myComment && !comment.children.length && !editing" @click="deleteComment()" variant="danger"><i
-            class="fa fa-trash-o"></i></b-button>
-        <b-button v-if="myComment && !comment.children.length && editing" @click="editing=false" variant="danger"><i
-            class="fa fa-times"></i></b-button>
-        <b-button v-if="myComment && !editing && !comment.children.length && !locked" variant="warning" @click="editing=true"><i
-            class="fa fa-edit"></i></b-button>
-        <b-button v-if="editing && !comment.children.length" @click="save()" :disabled="edit_disabled"
-                  variant="success"><i class="fa fa-save"></i></b-button>
-        <b-button v-if="toplevel && nesting && !replying && !locked" @click="replying=true" variant="info"><i class="fa fa-reply"></i>
-        </b-button>
-        <b-button v-if="replying" @click="replying=false" variant="danger"><i class="fa fa-times"></i></b-button>
-        <b-button v-if="replying" @click="postReply()" :disabled="reply_disabled" variant="success"><i
-            class="fa fa-save"></i></b-button>
+        <v-btn v-if="myComment && !comment.children.length && !editing" @click="deleteComment()" color="error"><i
+            class="fa fa-trash-o"></i></v-btn>
+        <v-btn v-if="myComment && !comment.children.length && editing" @click="editing=false" color="error"><i
+            class="fa fa-times"></i></v-btn>
+        <v-btn v-if="myComment && !editing && !comment.children.length && !locked" color="warning" @click="editing=true"><i
+            class="fa fa-edit"></i></v-btn>
+        <v-btn v-if="editing && !comment.children.length" @click="save()" :disabled="edit_disabled"
+                  color="success"><i class="fa fa-save"></i></v-btn>
+        <v-btn v-if="toplevel && nesting && !replying && !locked" @click="replying=true" color="info"><i class="fa fa-reply"></i>
+        </v-btn>
+        <v-btn v-if="replying" @click="replying=false" color="danger"><i class="fa fa-times"></i></v-btn>
+        <v-btn v-if="replying" @click="postReply()" :disabled="reply_disabled" color="success"><i
+            class="fa fa-save"></i></v-btn>
         <div v-if="editing && reply_preview" v-html="parseReply()"></div>
       </div>
     </div>

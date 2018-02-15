@@ -31,7 +31,7 @@
                                  :options="newCardOptions" :success="addCard"
                                  :url="`/api/sales/v1/${this.username}/cards/`"
               >
-                <b-button type="submit" variant="primary" @click.prevent="$refs.newCardForm.submit">Add Card</b-button>
+                <v-btn type="submit" color="primary" @click.prevent="$refs.newCardForm.submit">Add Card</v-btn>
               </ac-form-container>
             </form>
           </b-tab>

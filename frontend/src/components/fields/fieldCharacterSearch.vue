@@ -35,9 +35,9 @@
 
 <script>
   import { abstractField } from 'vue-form-generator'
-  import Viewer from '../mixins/viewer'
-  import AcCharacterPreview from './ac-character-preview'
-  import { artCall } from '../lib'
+  import Viewer from '../../mixins/viewer'
+  import AcCharacterPreview from '../ac-character-preview'
+  import { artCall } from '../../lib'
 
   export default {
     components: {AcCharacterPreview},

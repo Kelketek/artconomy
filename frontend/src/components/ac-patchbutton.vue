@@ -1,7 +1,7 @@
 <template>
     <div class="patchbutton-wrapper" :class="classes">
-      <b-button :disabled="disabled" :variant="trueVariant" v-if="value" @click="save" :class="classes">{{ falseText }}</b-button>
-      <b-button :disabled="disabled" :class="classes" :variant="falseVariant" v-else @click="save">{{ trueText }}</b-button>
+      <v-btn :disabled="disabled" :color="trueVariant" v-if="value" @click="save" :class="classes">{{ falseText }}</v-btn>
+      <v-btn :disabled="disabled" :class="classes" :color="falseVariant" v-else @click="save">{{ trueText }}</v-btn>
     </div>
 </template>
 

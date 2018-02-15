@@ -1,7 +1,7 @@
 <template>
   <div class="comment-block new-comment-component">
     <div v-if="!editing" class="text-xs-center">
-      <b-button @click="editing=true" class="new-comment-button">Add a comment</b-button>
+      <v-btn @click="editing=true" class="new-comment-button">Add a comment</v-btn>
     </div>
     <div class="new-comment-block">
       <div v-if="editing && !edit_preview"><textarea :disabled="edit_disabled" v-model="draft"
@@ -10,13 +10,13 @@
       <div v-if="editing && edit_preview" v-html="parseDraft()"></div>
       <div>
         <div class="text-left pull-left preview-button-container" v-if="editing">
-          <b-button v-if="edit_preview" variant="info" @click="edit_preview=false"><i class="fa fa-eye"></i></b-button>
-          <b-button v-else @click="edit_preview=true"><i class="fa fa-eye"></i></b-button>
+          <v-btn v-if="edit_preview" color="info" @click="edit_preview=false"><i class="fa fa-eye"></i></v-btn>
+          <v-btn v-else @click="edit_preview=true"><i class="fa fa-eye"></i></v-btn>
           <small class="ml-2">Markdown Syntax Supported</small>
         </div>
         <div v-if="editing" class="text-right comment-actions pull-right">
-          <b-button @click="editing=false" variant="danger"><i class="fa fa-times"></i></b-button>
-          <b-button @click="save()" variant="success"><i class="fa fa-save"></i></b-button>
+          <v-btn @click="editing=false" color="danger"><i class="fa fa-times"></i></v-btn>
+          <v-btn @click="save()" color="success"><i class="fa fa-save"></i></v-btn>
         </div>
       </div>
       <div class="clear"></div>

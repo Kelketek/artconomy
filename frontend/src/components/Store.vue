@@ -26,12 +26,12 @@
                                :options="newProdOptions" :success="addProduct"
                                :url="`/api/sales/v1/${this.username}/products/`"
             >
-              <b-button @click="showNew = false">Cancel</b-button>
-              <b-button type="submit" variant="primary" @click.prevent="$refs.newProdForm.submit">Create</b-button>
+              <v-btn @click="showNew = false">Cancel</v-btn>
+              <v-btn type="submit" color="primary" @click.prevent="$refs.newProdForm.submit">Create</v-btn>
             </ac-form-container>
           </form>
         </div>
-        <b-button v-else variant="primary" size="lg" @click="showNew=true" id="new-char-button">Add a new product</b-button>
+        <v-btn v-else variant="primary" size="lg" @click="showNew=true" id="new-char-button">Add a new product</v-btn>
       </div>
     </div>
   </div>

@@ -63,7 +63,7 @@
                 :reset-after="false">
             </ac-form-container>
             <div class="text-xs-center">
-              <b-button type="submit" variant="primary" @click.prevent="$refs.adjustmentForm.submit">Adjust price</b-button><i v-if="$refs.adjustmentForm && $refs.adjustmentForm.saved" class="fa fa-check" style="color: green"></i>
+              <v-btn type="submit" color="primary" @click.prevent="$refs.adjustmentForm.submit">Adjust price</v-btn><i v-if="$refs.adjustmentForm && $refs.adjustmentForm.saved" class="fa fa-check" style="color: green"></i>
             </div>
             <p class="mt-2">
               <strong>Note:</strong> Only one adjustment may be used. Therefore, please include all
@@ -159,7 +159,7 @@
                   :reset-after="false">
               </ac-form-container>
               <div class="text-xs-center">
-                <b-button type="submit" variant="primary" @click.prevent="$refs.streamForm.submit"><span v-if="queued">Mark as In Progress</span><span v-else>Update Stream Link</span></b-button><i v-if="$refs.streamForm && $refs.streamForm.saved" class="fa fa-check" style="color: green"></i>
+                <v-btn type="submit" color="primary" @click.prevent="$refs.streamForm.submit"><span v-if="queued">Mark as In Progress</span><span v-else>Update Stream Link</span></v-btn><i v-if="$refs.streamForm && $refs.streamForm.saved" class="fa fa-check" style="color: green"></i>
               </div>
             </form>
           </div>
@@ -323,7 +323,7 @@
                 v-if="seller && inProgress && revisionsRemain">
             </ac-form-container>
             <div class="text-xs-center">
-              <b-button type="submit" variant="primary" v-if="seller && inProgress && revisionsRemain" @click.prevent="$refs.revisionForm.submit"><span v-if="(revisions.length < order.revisions)">Upload Revision</span><span v-else>Upload Final</span></b-button>
+              <v-btn type="submit" color="primary" v-if="seller && inProgress && revisionsRemain" @click.prevent="$refs.revisionForm.submit"><span v-if="(revisions.length < order.revisions)">Upload Revision</span><span v-else>Upload Final</span></v-btn>
             </div>
           </form>
         </div>

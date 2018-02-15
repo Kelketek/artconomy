@@ -40,9 +40,7 @@
   export default {
     name: 'app',
     data () {
-      return {
-        drawer: true
-      }
+      return {}
     },
     components: {
       AcFooter,

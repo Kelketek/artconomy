@@ -12,8 +12,9 @@
       <a class="close" @click="dismiss_warning">&times;</a>
       {% verbatim %}<span v-for="warning in warnings">{{ warning }}</span>{% endverbatim %}
     </div>
+
     <vue-form-generator ref="form" :schema="schema" :model="model"
-                        :options="options"></vue-form-generator>
+                        :options="options" />
     <fieldset>
       <slot></slot>
     </fieldset>

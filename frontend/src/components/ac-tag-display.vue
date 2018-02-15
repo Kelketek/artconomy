@@ -11,7 +11,7 @@
         :tab-name="tabName"
     />
     <div class="pt-2 pb-2" v-if="editable">
-      <b-button v-if="!showTagging" @click="showTagging=true">Add Tags</b-button>
+      <v-btn v-if="!showTagging" @click="showTagging=true">Add Tags</v-btn>
       <div v-else>
         <form>
           <ac-form-container
@@ -22,8 +22,8 @@
               :model="taggingModel"
               :success="postTag"
           />
-          <b-button variant="danger" @click.prevent="showTagging=false">Cancel</b-button>
-          <b-button class="pulse" type="submit" @click.prevent="$refs.taggingForm.submit">Tag!</b-button>
+          <v-btn color="danger" @click.prevent="showTagging=false">Cancel</v-btn>
+          <v-btn class="pulse" type="submit" @click.prevent="$refs.taggingForm.submit">Tag!</v-btn>
         </form>
       </div>
     </div>

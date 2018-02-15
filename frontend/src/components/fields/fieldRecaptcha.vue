@@ -10,7 +10,7 @@
 <script>
   import { abstractField } from 'vue-form-generator'
   import VueRecaptcha from 'vue-recaptcha'
-  import { EventBus } from '../lib'
+  import { EventBus } from '../../lib'
 
   export default {
     components: {VueRecaptcha},
