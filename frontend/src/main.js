@@ -16,6 +16,7 @@ import fieldTagSearch from './components/fields/fieldTagSearch'
 import fieldRecaptcha from './components/fields/fieldRecaptcha'
 import fieldVText from './components/fields/fieldVText'
 import fieldVCheckbox from './components/fields/fieldVCheckbox'
+import fieldVSelect from './components/fields/fieldVSelect'
 import { md } from './lib'
 import {ErrorHandler} from './plugins/error'
 import {router} from './router'
@@ -42,6 +43,7 @@ Vue.component('fieldTagSearch', fieldTagSearch)
 Vue.component('fieldRecaptcha', fieldRecaptcha)
 Vue.component('fieldVText', fieldVText)
 Vue.component('fieldVCheckbox', fieldVCheckbox)
+Vue.component('fieldVSelect', fieldVSelect)
 
 /* eslint-disable no-new */
 window.artconomy = new Vue({

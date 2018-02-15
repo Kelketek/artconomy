@@ -48,7 +48,7 @@
   import AcProductPreview from './ac-product-preview'
   import AcFormContainer from './ac-form-container'
   import VueFormGenerator from 'vue-form-generator'
-  import { productTypes, ratings } from '../lib'
+  import { ratings } from '../lib'
 
   export default {
     name: 'Store',
@@ -64,7 +64,7 @@
           category: 0,
           description: '',
           hidden: false,
-          rating: 0,
+          rating: '0',
           task_weight: 1,
           revisions: 1,
           max_parallel: 0,
@@ -74,31 +74,15 @@
         },
         newProdSchema: {
           fields: [{
-            type: 'input',
-            inputType: 'text',
+            type: 'v-text',
             label: 'Product Name',
             model: 'name',
-            price: 0,
-            task_weight: 1,
-            revisions: 1,
             featured: true,
             required: true,
             validator: VueFormGenerator.validators.string
           },
           {
-            type: 'select',
-            label: 'Category',
-            model: 'category',
-            featured: true,
-            required: true,
-            values: productTypes,
-            hint: 'The medium of the product you are offering',
-            selectOptions: {
-              hideNoneSelectedText: true
-            },
-            validator: VueFormGenerator.validators.required
-          }, {
-            type: 'input',
+            type: 'v-text',
             inputType: 'number',
             label: 'Price (USD)',
             model: 'price',
@@ -108,7 +92,7 @@
             required: true
           },
           {
-            type: 'input',
+            type: 'v-text',
             inputType: 'number',
             label: 'Revisions',
             model: 'revisions',
@@ -118,7 +102,7 @@
             featured: true,
             required: true
           }, {
-            type: 'input',
+            type: 'v-text',
             inputType: 'number',
             label: 'Expected Turnaround (days)',
             model: 'expected_turnaround',
@@ -134,7 +118,7 @@
             featured: true,
             required: true
           }, {
-            type: 'input',
+            type: 'v-text',
             inputType: 'number',
             label: 'Task Weight',
             model: 'task_weight',
@@ -148,7 +132,7 @@
             featured: true,
             required: true
           }, {
-            type: 'input',
+            type: 'v-text',
             inputType: 'number',
             label: 'Max Parallel',
             model: 'max_parallel',
@@ -164,14 +148,15 @@
             featured: true,
             required: true
           }, {
-            type: 'textArea',
+            type: 'v-text',
             label: 'Description',
             model: 'description',
+            multiLine: true,
             featured: true,
             required: true,
             validator: VueFormGenerator.validators.string
           }, {
-            type: 'checkbox',
+            type: 'v-checkbox',
             styleClasses: ['vue-checkbox'],
             label: 'Hidden?',
             model: 'hidden',
@@ -179,7 +164,7 @@
             validator: VueFormGenerator.validators.boolean,
             hint: 'This product will not be visible on your storefront.'
           }, {
-            type: 'select',
+            type: 'v-select',
             label: 'Rating',
             model: 'rating',
             featured: true,

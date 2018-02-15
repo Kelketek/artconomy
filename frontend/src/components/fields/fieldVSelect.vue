@@ -1,7 +1,8 @@
 <template>
   <div>
-    <v-checkbox
+    <v-select
         v-model="value"
+        :items="schema.values()"
         :label="schema.label"
         :rules="validators"
         :required="schema.required"
@@ -16,7 +17,10 @@
   import materialField from './materialField'
 
   export default {
-    name: 'fieldVCheckbox',
-    mixins: [ abstractField, materialField ]
+    name: 'fieldVSelect',
+    mixins: [ abstractField, materialField ],
+    created () {
+      window.select = this
+    }
   }
 </script>

@@ -42,30 +42,8 @@ class Product(ImageModel):
     MUSIC = 14
     OTHER = 15
 
-    CATEGORIES = (
-        (SKETCH, "Sketch"),
-        (FULLBODY, "Full Body"),
-        (REFERENCE, "Reference Sheet"),
-        (BADGE, "Convention badge/button/card"),
-        (ICON, "Single Icon"),
-        (ICON_SET, "Icon/Sticker set"),
-        (HEADSHOT, "Headshot"),
-        (CHIBI, "Chibi"),
-        (GAME_ASSET, "Game asset/skin"),
-        (THREE_D, "3D Rendered Image"),
-        (ANIMATION_2D, "Animated (2D)"),
-        (ANIMATION_3D, "Animated (3D)"),
-        (STORY_SHORT, "Short Story"),
-        (STORY_LONG, "Long story"),
-        (MUSIC, "Music"),
-        (OTHER, "Other"),
-    )
-
     name = CharField(max_length=250)
     description = CharField(max_length=5000)
-    category = IntegerField(
-        choices=CATEGORIES,
-    )
     expected_turnaround = IntegerField(
         validators=[MinValueValidator(1)], help_text="Number of days completion is expected to take."
     )

@@ -3,11 +3,15 @@
     <v-text-field
         v-model="value"
         :label="schema.label"
-        :type="schema.inputType || false"
+        :type="schema.inputType"
         :rules="validators"
         :required="schema.required"
         :error-messages="errors"
         :hint="schema.hint"
+        :multi-line="schema.multiLine"
+        :step="schema.step"
+        :min="schema.min"
+        :max="schema.max"
         persistent-hint
     />
   </div>
@@ -19,9 +23,6 @@
 
   export default {
     name: 'fieldVText',
-    mixins: [ abstractField, materialField ],
-    created () {
-      window.schema = this.schema
-    }
+    mixins: [ abstractField, materialField ]
   }
 </script>

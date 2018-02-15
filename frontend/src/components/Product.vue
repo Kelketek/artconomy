@@ -148,9 +148,8 @@
             placeholder: 'Search characters',
             styleClasses: 'field-input'
           }, {
-            type: 'input',
+            type: 'v-checkbox',
             styleClasses: ['vue-checkbox'],
-            inputType: 'checkbox',
             label: 'Private order?',
             model: 'private',
             required: false,
@@ -161,9 +160,10 @@
               'in their portfolio.'
             )
           }, {
-            type: 'textArea',
+            type: 'v-text',
             label: 'Details',
             model: 'details',
+            multiLine: true,
             featured: true,
             required: true,
             validator: VueFormGenerator.validators.string,

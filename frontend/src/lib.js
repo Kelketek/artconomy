@@ -103,29 +103,10 @@ export const RATINGS_SHORT = {
   3: 'Offensive/Disturbing'
 }
 
-export const PRODUCT_TYPES = {
-  0: 'Sketch',
-  1: 'Full Body',
-  2: 'Reference Sheet',
-  3: 'Convention badge/button/card',
-  4: 'Single Icon',
-  5: 'Icon/Sticker set',
-  6: 'Headshot',
-  7: 'Chibi',
-  8: 'Game asset/skin',
-  9: '3D Rendered Image',
-  10: 'Animated (2D)',
-  11: 'Animated (3D)',
-  12: 'Short Story',
-  13: 'Long story',
-  14: 'Music',
-  15: 'Other'
-}
-
 export function genOptions (enumerable) {
   let options = []
   for (let key of Object.keys(enumerable)) {
-    options.push({id: key, name: enumerable[key]})
+    options.push({value: key, text: enumerable[key]})
   }
   return options
 }
@@ -136,10 +117,6 @@ export function ratings () {
 
 export function ratingsShort () {
   return genOptions(RATINGS_SHORT)
-}
-
-export function productTypes () {
-  return genOptions(PRODUCT_TYPES)
 }
 
 export const NOTIFICATION_MAPPING = {
