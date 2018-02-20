@@ -1,31 +1,31 @@
 <template>
-  <div class="row">
-    <div class="col-12 text-xs-center" v-if="error">
+  <v-card>
+    <v-flex xs-12 text-xs-center v-if="error">
       <p>{{error}}</p>
-    </div>
+    </v-flex>
     <slot name="header" v-if="show" />
-    <div class="col-12" v-if="show">
+    <v-flex xs-12 v-if="show">
       <b-pagination-nav
           align="center" :use-router="true" :base-url="baseURL" :link-gen="linkGen"
           v-model="currentPage" :per-page="pageSize" :number-of-pages="totalPages"
           v-if="totalPages > 1"
       ></b-pagination-nav>
-    </div>
-    <div class="col-6 col-md-6 col-lg-3"
+    </v-flex>
+    <v-flex xs-6 md-6 lg-3
          v-for="(asset, key, index) in results"
          :key="key" :id="'asset-' + key"
          :asset="asset"
     >
         <ac-gallery-preview :asset="asset" />
-    </div>
-    <div class="col-12" v-if="show">
+    </v-flex>
+    <v-flex xs-12 v-if="show">
       <b-pagination-nav
           align="center" :use-router="true" :base-url="baseURL" :link-gen="linkGen"
           v-model="currentPage" :per-page="pageSize" :number-of-pages="totalPages"
           v-if="totalPages > 1"
       ></b-pagination-nav>
-    </div>
-  </div>
+    </v-flex>
+  </v-card>
 </template>
 
 <script>

@@ -1,12 +1,35 @@
 <template>
   <div class="ac-action-container">
-    <v-btn v-if="button" :color="variant" :disabled="isDisabled" :type="type" @click="performAction"><slot></slot></v-btn>
-    <div v-else class="ac-action-div" @click="performAction"><slot @click="performAction"></slot></div>
-    <b-modal ref="confModal" v-if="confirm" ok_button_text="Yes, I am sure" @ok="submit">
-      <slot name="confirmation-text">
-        Are you sure?
-      </slot>
-    </b-modal>
+    <v-btn
+        :disabled="isDisabled"
+        :type="type"
+        @click.native.stop="performAction"
+        :dark="dark"
+        :fixed="fixed"
+        :color="color || variant"
+        :bottom="bottom"
+        :small="small"
+        :top="top"
+        :left="left"
+        :right="right"
+        :fab="fab"
+    >
+      <slot />
+    </v-btn>
+    <v-dialog v-model="showModal" max-width="500px" v-if="confirm">
+      <v-card>
+        <v-card-title>
+          <slot name="confirmation-text">
+            Are you sure?
+          </slot>
+          <v-spacer />
+        </v-card-title>
+        <v-card-actions right>
+          <v-btn flat @click.stop="showModal=false">Cancel</v-btn>
+          <v-btn flat color="red" @click.stop="submit">Yes, I am sure.</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <div v-if="error" class="ac-action-error">
       <p><strong>ERROR: </strong>{{error}}</p>
     </div>
@@ -49,6 +72,15 @@
         default: false
       },
       send: {},
+      dark: {},
+      fixed: {},
+      color: {},
+      bottom: {},
+      right: {},
+      left: {},
+      fab: {},
+      top: {},
+      small: {},
       success: {
         type: Function,
         default: function () {}
@@ -57,20 +89,21 @@
     data () {
       return {
         sending: false,
-        error: ''
+        error: '',
+        showModal: false
       }
     },
     methods: {
       performAction () {
         if (this.confirm) {
-          this.$refs.confModal.show()
+          this.showModal = true
           return
         }
         this.submit()
       },
       successCallback (response) {
         if (this.confirm) {
-          this.$refs.confModal.hide()
+          this.showModal = false
         }
         this.sending = false
         this.success(response)

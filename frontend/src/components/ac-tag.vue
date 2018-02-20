@@ -1,12 +1,11 @@
 <template>
-  <v-chip>
+  <v-chip :close="removable" @input="remove">
     <router-link v-if="tabName" :to="{name: 'Search', params: {tabName: tabName}, query: {q: [tag]}}">
       {{tag}}
     </router-link>
     <span v-else>
       {{tag}}
     </span>
-    <span v-if="removable" @click="remove"><i class="fa fa-times"></i></span>
   </v-chip>
 </template>
 

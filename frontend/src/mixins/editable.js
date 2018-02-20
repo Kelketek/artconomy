@@ -13,11 +13,27 @@ export default {
     },
     lock: function () {
       this.$router.history.replace({query: {}})
+    },
+    toggleEdit: function () {
+      if (this.editing) {
+        this.lock()
+      } else {
+        this.edit()
+      }
     }
   },
   computed: {
-    editing () {
-      return this.controls && this.$route.query.editing
+    editing: {
+      get () {
+        return this.controls && this.$route.query.editing
+      },
+      set (value) {
+        if (value) {
+          this.edit()
+        } else {
+          this.lock()
+        }
+      }
     }
   }
 }

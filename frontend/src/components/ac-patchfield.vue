@@ -9,7 +9,7 @@
       <div v-else-if="editmode" @click="startEditing">
         <div class="patchfield-preview" :class="{'patchfield-preview-multiline': multiline}" tabindex="0" @focus="startEditing" @input="update" v-html="preview"></div>
         <span v-if="errors.length"><i v-b-popover.hover="formatErrors()" class="fa fa-times error-marker"></i></span>
-        <i class="fa fa-pencil pl-1"></i>
+        <v-icon>edit</v-icon>
       </div>
       <div v-else-if="multiline" class="patchfield-normal" v-html="preview"></div>
       <div v-else class="patchfield-normal" v-html="preview"></div>
