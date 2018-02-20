@@ -9,7 +9,7 @@ export default {
   methods: {
     fetchErrors (errorSets) {
       for (let error of errorSets) {
-        if (error.fieldName === this.schema.name) {
+        if (error.field.model === this.schema.model) {
           this.errors.push(error.error)
         }
       }

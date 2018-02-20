@@ -16,7 +16,7 @@
     <vue-form-generator ref="form" :schema="schema" :model="model"
                         :options="options" />
     <fieldset>
-      <slot></slot>
+      <slot />
     </fieldset>
   </div>
 </template>
@@ -106,13 +106,24 @@
           this.enable()
           return
         }
+        let form = new FormData()
+        let data = this.getData()
+        for (let [field, value] of Object.entries(data)) {
+          if (Array.isArray(value)) {
+            for (let item of value) {
+              form.append(field, item)
+            }
+          } else {
+            form.append(field, value)
+          }
+        }
         $.ajax({
           url: self.url,
           method: self.method,
-          data: JSON.stringify(this.preSend(self.model)),
-          processData: true,
-          contentType: 'application/json; charset=utf-8',
-          dataType: 'json',
+          data: form,
+          cache: false,
+          contentType: false,
+          processData: false,
           success: self.success_hook,
           error: self.failure_hook
         })
@@ -124,6 +135,19 @@
         this.saved = true
         this.success(response)
         this.enable()
+      },
+      getData () {
+        let data = {...this.model}
+        for (let field of this.schema.fields) {
+          if (field.type === 'v-file-upload') {
+            let result = []
+            for (let file of data[field.model]) {
+              result.push(file.file)
+            }
+            data[field.model] = result
+          }
+        }
+        return data
       },
       failure_hook: function (response, event) {
         setErrors(this.$refs.form, response.responseJSON)

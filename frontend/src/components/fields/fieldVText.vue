@@ -12,7 +12,7 @@
         :step="schema.step"
         :min="schema.min"
         :max="schema.max"
-        persistent-hint
+        :persistent-hint="true"
     />
   </div>
 </template>

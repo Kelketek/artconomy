@@ -211,6 +211,26 @@ export function buildQueryString (obj) {
   return str.join('&')
 }
 
+export function validateNonEmpty (value) {
+  if (!value.length) {
+    return 'This field is required!'
+  }
+}
+
+// From vue upload component
+export function formatSize (size) {
+  if (size > 1024 * 1024 * 1024 * 1024) {
+    return (size / 1024 / 1024 / 1024 / 1024).toFixed(2) + ' TB'
+  } else if (size > 1024 * 1024 * 1024) {
+    return (size / 1024 / 1024 / 1024).toFixed(2) + ' GB'
+  } else if (size > 1024 * 1024) {
+    return (size / 1024 / 1024).toFixed(2) + ' MB'
+  } else if (size > 1024) {
+    return (size / 1024).toFixed(2) + ' KB'
+  }
+  return size.toString() + ' B'
+}
+
 export const EventBus = new Vue()
 
 export const recaptchaSiteKey = '6LdDkkIUAAAAAFyNzBAPKEDkxwYrQ3aZdVb1NKPw'

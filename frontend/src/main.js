@@ -17,7 +17,8 @@ import fieldRecaptcha from './components/fields/fieldRecaptcha'
 import fieldVText from './components/fields/fieldVText'
 import fieldVCheckbox from './components/fields/fieldVCheckbox'
 import fieldVSelect from './components/fields/fieldVSelect'
-import { md } from './lib'
+import fieldVFileUpload from './components/fields/fieldVFileUpload'
+import { md, formatSize } from './lib'
 import {ErrorHandler} from './plugins/error'
 import {router} from './router'
 import { UserHandler } from './plugins/user'
@@ -44,6 +45,9 @@ Vue.component('fieldRecaptcha', fieldRecaptcha)
 Vue.component('fieldVText', fieldVText)
 Vue.component('fieldVCheckbox', fieldVCheckbox)
 Vue.component('fieldVSelect', fieldVSelect)
+Vue.component('fieldVFileUpload', fieldVFileUpload)
+
+Vue.filter('formatSize', formatSize)
 
 /* eslint-disable no-new */
 window.artconomy = new Vue({

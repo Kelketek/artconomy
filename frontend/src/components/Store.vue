@@ -9,7 +9,7 @@
         :key="product.id"
         v-if="growing !== null && setUp"
         :product="product"
-      ></ac-product-preview>
+      />
       <div class="col-12" v-if="is_current && !setUp">
         <p>To open a store, you must first set up your
           <router-link :to="{name: 'Settings', params: {tabName: 'payment', 'username': this.viewer.username, 'subTabName': 'disbursements'}}">
@@ -48,7 +48,7 @@
   import AcProductPreview from './ac-product-preview'
   import AcFormContainer from './ac-form-container'
   import VueFormGenerator from 'vue-form-generator'
-  import { ratings } from '../lib'
+  import { ratings, validateNonEmpty } from '../lib'
 
   export default {
     name: 'Store',
@@ -70,7 +70,7 @@
           max_parallel: 0,
           expected_turnaround: 3,
           price: 0,
-          file: ''
+          file: []
         },
         newProdSchema: {
           fields: [{
@@ -176,11 +176,13 @@
             },
             validator: VueFormGenerator.validators.required
           }, {
-            type: 'image',
+            type: 'v-file-upload',
             id: 'file',
             label: 'File',
             model: 'file',
-            required: true
+            uniqueId: 'productFile',
+            required: true,
+            validator: validateNonEmpty
           }]
         },
         newProdOptions: {
