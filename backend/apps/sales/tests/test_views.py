@@ -372,7 +372,6 @@ class TestProduct(APITestCase):
         self.assertEqual(result['revisions'], 2)
         self.assertEqual(result['task_weight'], 2)
         self.assertEqual(result['expected_turnaround'], 3)
-        self.assertEqual(result['category'], Product.REFERENCE)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_create_product_not_logged_in(self):
@@ -428,7 +427,6 @@ class TestProduct(APITestCase):
         self.assertEqual(result['task_weight'], 2)
         self.assertEqual(result['expected_turnaround'], 3)
         self.assertEqual(result['rating'], MATURE)
-        self.assertEqual(result['category'], Product.REFERENCE)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_product_listing_not_logged_in(self):

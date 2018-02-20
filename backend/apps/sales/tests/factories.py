@@ -9,7 +9,6 @@ from apps.sales.models import Order, Product, CreditCardToken, Revision, Payment
 
 class ProductFactory(DjangoModelFactory):
     user = SubFactory(UserFactory)
-    category = Product.REFERENCE
     expected_turnaround = 3
     revisions = 4
     task_weight = 2
