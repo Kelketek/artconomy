@@ -1,7 +1,16 @@
 <template>
-    <div class="patchbutton-wrapper" :class="classes">
-      <v-btn :disabled="disabled" :color="trueVariant" v-if="value" @click="save" :class="classes">{{ falseText }}</v-btn>
-      <v-btn :disabled="disabled" :class="classes" :color="falseVariant" v-else @click="save">{{ trueText }}</v-btn>
+    <div>
+      <div v-if="toggle">
+        <v-switch
+            :label="value? falseText : trueText"
+            @click="save"
+            v-model="model"
+        />
+      </div>
+      <div v-else class="patchbutton-wrapper" :class="classes">
+        <v-btn :disabled="disabled" :color="trueVariant" v-if="value" @click="save" :class="classes">{{ falseText }}</v-btn>
+        <v-btn :disabled="disabled" :class="classes" :color="falseVariant" v-else @click="save">{{ trueText }}</v-btn>
+      </div>
     </div>
 </template>
 
@@ -10,7 +19,19 @@
 
   export default {
     name: 'ac-patchbutton',
-    props: ['value', 'name', 'trueText', 'falseText', 'callback', 'classes', 'trueVariant', 'falseVariant', 'url', 'classes'],
+    props: [
+      'value',
+      'name',
+      'trueText',
+      'falseText',
+      'callback',
+      'classes',
+      'trueVariant',
+      'falseVariant',
+      'url',
+      'classes',
+      'toggle'
+    ],
     data: function () {
       return {
         disabled: false
@@ -36,6 +57,16 @@
           this.callback()
         }
         this.disabled = false
+      }
+    },
+    computed: {
+      model: {
+        get () {
+          return this.value
+        },
+        set () {
+          this.save()
+        }
       }
     }
   }

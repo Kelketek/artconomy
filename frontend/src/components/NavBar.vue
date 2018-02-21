@@ -14,7 +14,21 @@
           <v-list-tile :to="{name: 'Sales', params: {username: viewer.username}}">Sales</v-list-tile>
           <v-list-tile v-if="viewer.is_staff" :to="{name: 'Cases', params: {username: viewer.username}}">Cases</v-list-tile>
           <v-list-tile :to="{name: 'Store', params: {username: viewer.username}}">Sell</v-list-tile>
+          <v-list-tile class="hidden-md-and-up" :to="{name: 'Search'}">Search</v-list-tile>
         </v-list>
+        <ac-patchbutton
+            class="hidden-sm-and-up"
+            v-if="viewer && viewer.username && viewer.rating > 0"
+            :url="`/api/profiles/v1/account/${this.viewer.username}/settings/`"
+            :classes="{'btn-sm': true, 'm-0': true}"
+            name="sfw_mode"
+            v-model="viewer.sfw_mode"
+            true-text="NSFW"
+            true-variant="success"
+            false-text="SFW"
+            :toggle="true"
+            style="padding-left: 16px"
+        />
         <v-list-tile class="mt-3" :to="{name: 'Settings', params: {'username': viewer.username}}">
           <v-list-tile-action>
             <v-icon>settings</v-icon>
@@ -37,12 +51,14 @@
         app
     >
       <v-toolbar-side-icon v-if="viewer && viewer.username" @click.stop="drawer = !drawer" />
-      <v-toolbar-title class="mr-5 align-center">
-        <v-btn flat to="/">
-          <img src="/static/images/logo.svg" class="header-logo"/><div class="title">rtconomy</div>
-        </v-btn>
-      </v-toolbar-title>
-      <v-layout row justify-center>
+      <v-layout hidden-xs-only>
+        <v-toolbar-title class="mr-5 align-center hide-sm hide-xs">
+          <v-btn flat to="/">
+            <img src="/static/images/logo.svg" class="header-logo"/><div class="title">rtconomy</div>
+          </v-btn>
+        </v-toolbar-title>
+      </v-layout>
+      <v-layout hidden-sm-and-down row justify-center>
         <v-text-field
             placeholder="Search..."
             single-line
@@ -56,7 +72,17 @@
         />
       </v-layout>
       <v-spacer />
-      <ac-patchbutton v-if="viewer && viewer.username && viewer.rating > 0" :url="`/api/profiles/v1/account/${this.viewer.username}/settings/`" :classes="{'btn-sm': true, 'm-0': true}" name="sfw_mode" v-model="viewer.sfw_mode" true-text="NSFW" true-variant="success" false-text="SFW" />
+      <ac-patchbutton
+          class="hidden-xs-only"
+          v-if="viewer && viewer.username && viewer.rating > 0"
+          :url="`/api/profiles/v1/account/${this.viewer.username}/settings/`"
+          :classes="{'btn-sm': true, 'm-0': true}"
+          name="sfw_mode"
+          v-model="viewer.sfw_mode"
+          true-text="NSFW"
+          true-variant="success"
+          false-text="SFW"
+      />
       <v-toolbar-items>
         <v-btn flat v-if="viewer && viewer.username" :to="{name: 'Notifications'}">
           <v-badge overlap right color="red">
@@ -81,6 +107,9 @@
   .header-logo {
     height: 1.75rem;
     vertical-align: middle;
+  }
+  .mini-logo {
+    height: 100%
   }
   .title {
     display: inline-block;
@@ -180,6 +209,9 @@
         } else {
           this.loopNotifications = false
         }
+      },
+      '$route.query.q': function (val) {
+        this.queryData = val
       }
     },
     created () {
