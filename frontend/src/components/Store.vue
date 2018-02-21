@@ -49,7 +49,7 @@
           <form>
             <ac-form-container ref="newProdForm" :schema="newProdSchema" :model="newProdModel"
                                :options="newProdOptions" :success="addProduct"
-                               :url="`/api/sales/v1/${this.username}/products/`"
+                               :url="`/api/sales/v1/account/${this.username}/products/`"
             />
           </form>
         </v-card-text>

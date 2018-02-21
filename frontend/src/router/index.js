@@ -71,7 +71,7 @@ export const routes = [
     props (route) {
       return {
         username: route.params.username,
-        endpoint: `/api/sales/v1/${route.params.username}/products/`
+        endpoint: `/api/sales/v1/account/${route.params.username}/products/`
       }
     }
   },
@@ -141,7 +141,7 @@ export const routes = [
     props (route) {
       return {
         username: route.params.username,
-        url: `/api/sales/v1/${route.params.username}/orders/`,
+        url: `/api/sales/v1/account/${route.params.username}/orders/`,
         buyer: true
       }
     }
@@ -153,7 +153,7 @@ export const routes = [
     props (route) {
       return {
         username: route.params.username,
-        url: `/api/sales/v1/${route.params.username}/sales/`,
+        url: `/api/sales/v1/account/${route.params.username}/sales/`,
         buyer: false
       }
     }
@@ -165,7 +165,7 @@ export const routes = [
     props (route) {
       return {
         username: route.params.username,
-        url: `/api/sales/v1/${route.params.username}/cases/`,
+        url: `/api/sales/v1/account/${route.params.username}/cases/`,
         buyer: true
       }
     }

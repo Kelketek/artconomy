@@ -3,12 +3,12 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import JSONField
 from django.db import models
-from django.db.models import DateTimeField, Model, SlugField
+from django.db.models import DateTimeField, Model, SlugField, CASCADE
 
 
 class Comment(models.Model):
     deleted = models.BooleanField(default=False, db_index=True)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=CASCADE)
     text = models.CharField(max_length=8000)
     created_on = DateTimeField(auto_now_add=True)
     edited_on = DateTimeField(auto_now=True)
@@ -96,7 +96,7 @@ class Event(models.Model):
 
 class Subscription(models.Model):
     type = models.IntegerField(db_index=True, choices=EVENT_TYPES)
-    subscriber = models.ForeignKey(settings.AUTH_USER_MODEL)
+    subscriber = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=CASCADE)
     object_id = models.PositiveIntegerField(null=True, blank=True, db_index=True)
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True, db_index=True)
     target = GenericForeignKey('content_type', 'object_id')
@@ -108,8 +108,8 @@ class Subscription(models.Model):
 
 
 class Notification(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL)
-    event = models.ForeignKey(Event)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=CASCADE)
+    event = models.ForeignKey(Event, on_delete=CASCADE)
     read = models.BooleanField(default=False, db_index=True)
 
 

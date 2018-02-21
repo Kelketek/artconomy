@@ -1,17 +1,19 @@
-from django.conf.urls import url
+from django.urls import path
 
 from apps.lib.views import CommentUpdate, CommentReply, CountryListing
 
+app_name = 'lib'
+
 urlpatterns = [
-    url(
-        r'^v1/comment/(?P<comment_id>\d+)/$', CommentUpdate.as_view(),
+    path(
+        'v1/comment/<int:comment_id>/', CommentUpdate.as_view(),
         name='comment'
     ),
-    url(
-        r'^v1/comment/(?P<comment_id>\d+)/reply/$', CommentReply.as_view(),
+    path(
+        'v1/comment/<int:comment_id>/reply/', CommentReply.as_view(),
         name='comment'
     ),
-    url(
-        r'^v1/countries/$', CountryListing.as_view(), name='country_listing'
+    path(
+        'v1/countries/', CountryListing.as_view(), name='country_listing'
     )
 ]

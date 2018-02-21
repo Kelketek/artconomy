@@ -8,7 +8,7 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db.models import Model, CharField, ForeignKey, IntegerField, BooleanField, DateTimeField, \
-    URLField, SET_NULL, ManyToManyField
+    URLField, SET_NULL, ManyToManyField, CASCADE
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from rest_framework.authtoken.models import Token
@@ -24,8 +24,8 @@ class User(AbstractEmailUser):
     User model for Artconomy.
     """
     username = CharField(max_length=30, unique=True, db_index=True, validators=[UnicodeUsernameValidator()])
-    primary_character = ForeignKey('Character', blank=True, null=True, related_name='+')
-    primary_card = ForeignKey('sales.CreditCardToken', null=True, blank=True, related_name='+')
+    primary_character = ForeignKey('Character', blank=True, null=True, related_name='+', on_delete=SET_NULL)
+    primary_card = ForeignKey('sales.CreditCardToken', null=True, blank=True, related_name='+', on_delete=SET_NULL)
     dwolla_url = URLField(blank=True, default='')
     favorites = ManyToManyField('ImageAsset', blank=True, related_name='favorited_by')
     commissions_closed = BooleanField(
@@ -185,7 +185,7 @@ class Character(Model):
         default=''
     )
     primary_asset = ForeignKey('ImageAsset', null=True, on_delete=SET_NULL)
-    user = ForeignKey(settings.AUTH_USER_MODEL, related_name='characters')
+    user = ForeignKey(settings.AUTH_USER_MODEL, related_name='characters', on_delete=CASCADE)
     created_on = DateTimeField(auto_now_add=True)
     species = CharField(max_length=150, blank=True, default='')
     gender = CharField(max_length=50, blank=True, default='')
@@ -244,4 +244,4 @@ class RefColor(Model):
     """
     color = CharField(max_length=7, validators=[RegexValidator(r'^#[0-9a-f]{6}$')])
     note = CharField(max_length=100)
-    character = ForeignKey(Character, related_name='colors')
+    character = ForeignKey(Character, related_name='colors', on_delete=CASCADE)

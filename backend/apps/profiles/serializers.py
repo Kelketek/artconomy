@@ -158,7 +158,7 @@ class ImageAssetManagementSerializer(serializers.ModelSerializer):
     def get_favorite(self, obj):
         if not self.request:
             return None
-        if not self.request.user.is_authenticated():
+        if not self.request.user.is_authenticated:
             return None
         return self.request.user.favorites.filter(id=obj.id).exists()
 

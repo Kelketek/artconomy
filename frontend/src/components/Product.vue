@@ -15,7 +15,7 @@
         </v-btn>
         <ac-action
             variant="danger" :confirm="true" :success="goToStore"
-            :url="`/api/sales/v1/${this.username}/products/${this.product.id}/`"
+            :url="`/api/sales/v1/account/${this.username}/products/${this.product.id}/`"
             method="DELETE"
             dark small color="red" fab
         ><v-icon>delete</v-icon>
@@ -111,7 +111,7 @@
             <form>
               <ac-form-container ref="newOrderForm" :schema="newOrderSchema" :model="newOrderModel"
                                  :options="newOrderOptions" :success="goToOrder"
-                                 :url="`/api/sales/v1/${username}/products/${productID}/order/`"
+                                 :url="`/api/sales/v1/account/${username}/products/${productID}/order/`"
               />
             </form>
           </v-card-text>
@@ -170,7 +170,7 @@
       return {
         name: 'Product',
         product: null,
-        url: `/api/sales/v1/${this.username}/products/${this.productID}/`,
+        url: `/api/sales/v1/account/${this.username}/products/${this.productID}/`,
         showOrder: false,
         newOrderModel: {
           details: '',

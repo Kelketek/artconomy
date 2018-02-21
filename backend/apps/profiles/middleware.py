@@ -10,7 +10,7 @@ def rating_middleware(get_response):
 
         rating = GENERAL
         blacklist= []
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             if not request.user.sfw_mode:
                 rating = request.user.rating
                 blacklist = request.user.blacklist.all()

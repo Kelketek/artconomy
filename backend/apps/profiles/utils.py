@@ -41,7 +41,7 @@ def available_chars(requester, query='', commissions=False, ordering=True):
 
 def available_assets(request, requester):
     exclude = Q(private=True)
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         exclude &= ~Q(uploaded_by=requester)
     return ImageAsset.objects.exclude(exclude).exclude(
         rating__gt=request.max_rating

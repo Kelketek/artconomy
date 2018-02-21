@@ -7,7 +7,7 @@ from django.contrib.contenttypes.fields import GenericRelation, GenericForeignKe
 from django.contrib.contenttypes.models import ContentType
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models import Model, CharField, ForeignKey, IntegerField, BooleanField, DateTimeField, ManyToManyField, \
-    TextField, SET_NULL, PositiveIntegerField, URLField
+    TextField, SET_NULL, PositiveIntegerField, URLField, CASCADE
 
 # Create your models here.
 from django.db.models.signals import post_delete, post_save
@@ -54,7 +54,7 @@ class Product(ImageModel):
     tags = ManyToManyField('lib.Tag', related_name='products', blank=True)
     tags__max = 200
     hidden = BooleanField(default=False, help_text="Whether this product is visible.", db_index=True)
-    user = ForeignKey(settings.AUTH_USER_MODEL)
+    user = ForeignKey(settings.AUTH_USER_MODEL, on_delete=CASCADE)
     created_on = DateTimeField(auto_now_add=True)
     shippable = BooleanField(default=False)
     active = BooleanField(default=True, db_index=True)
@@ -113,7 +113,7 @@ class Placeholder(Model):
     )
 
     status = IntegerField(choices=STATUSES, db_index=True)
-    auction = ForeignKey('Auction')
+    auction = ForeignKey('Auction', on_delete=CASCADE)
     description = CharField(max_length=2000)
     buy_now_price = MoneyField(
         max_digits=4, decimal_places=2, default_currency='USD', blank=True, null=True, db_index=True
@@ -130,8 +130,8 @@ class Bid(Model):
     """
     A bid placed by a user on an Auction.
     """
-    user = ForeignKey(settings.AUTH_USER_MODEL)
-    placeholder = ForeignKey('Placeholder')
+    user = ForeignKey(settings.AUTH_USER_MODEL, on_delete=CASCADE)
+    placeholder = ForeignKey('Placeholder', on_delete=CASCADE)
     bid = MoneyField(max_digits=4, decimal_places=2, default_currency='USD', db_index=True)
     max_bid = MoneyField(max_digits=4, decimal_places=2, default_currency='USD', db_index=True)
     created_on = DateTimeField(auto_now_add=True)
@@ -166,10 +166,10 @@ class Order(Model):
     comment_permissions = [OrderViewPermission]
 
     status = IntegerField(choices=STATUSES, default=NEW, db_index=True)
-    product = ForeignKey('Product', null=True, blank=True)
-    auction = ForeignKey('Auction', null=True, blank=True)
-    seller = ForeignKey(settings.AUTH_USER_MODEL, related_name='sales')
-    buyer = ForeignKey(settings.AUTH_USER_MODEL, related_name='buys')
+    product = ForeignKey('Product', null=True, blank=True, on_delete=CASCADE)
+    auction = ForeignKey('Auction', null=True, blank=True, on_delete=CASCADE)
+    seller = ForeignKey(settings.AUTH_USER_MODEL, related_name='sales', on_delete=CASCADE)
+    buyer = ForeignKey(settings.AUTH_USER_MODEL, related_name='buys', on_delete=CASCADE)
     price = MoneyField(
         max_digits=4, decimal_places=2, default_currency='USD',
         blank=True, null=True, validators=[MinValueValidator(settings.MINIMUM_PRICE)]
@@ -179,7 +179,7 @@ class Order(Model):
     adjustment = MoneyField(max_digits=4, decimal_places=2, default_currency='USD', blank=True, default=0)
     created_on = DateTimeField(auto_now_add=True, db_index=True)
     disputed_on = DateTimeField(blank=True, null=True, db_index=True)
-    arbitrator = ForeignKey(settings.AUTH_USER_MODEL, related_name='cases', null=True, blank=True)
+    arbitrator = ForeignKey(settings.AUTH_USER_MODEL, related_name='cases', null=True, blank=True, on_delete=SET_NULL)
     stream_link = URLField(blank=True, default='')
     characters = ManyToManyField('profiles.Character')
     private = BooleanField(default=False)
@@ -288,8 +288,8 @@ class RatingSet(Model):
         ]
     }
 
-    rater = ForeignKey(settings.AUTH_USER_MODEL, related_name='submitted_ratings')
-    target = ForeignKey(settings.AUTH_USER_MODEL, related_name='received_ratings')
+    rater = ForeignKey(settings.AUTH_USER_MODEL, related_name='submitted_ratings', on_delete=CASCADE)
+    target = ForeignKey(settings.AUTH_USER_MODEL, related_name='received_ratings', on_delete=CASCADE)
     transaction_type = IntegerField(choices=TYPES)
 
 
@@ -299,7 +299,7 @@ class Rating(Model):
     """
     stars = IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
     category = CharField(max_length=100, db_index=True)
-    rating_set = ForeignKey('RatingSet')
+    rating_set = ForeignKey('RatingSet', on_delete=CASCADE)
     comments = CharField(max_length=1000, blank=True, default='')
 
 
@@ -338,7 +338,7 @@ class CreditCardToken(Model):
         'visa': VISA_TYPE
     }
 
-    user = ForeignKey(settings.AUTH_USER_MODEL, related_name='credit_cards')
+    user = ForeignKey(settings.AUTH_USER_MODEL, related_name='credit_cards', on_delete=CASCADE)
     card_type = IntegerField(choices=CARD_TYPES, default=VISA_TYPE)
     last_four = CharField(max_length=4)
     payment_id = CharField(max_length=50)
@@ -467,9 +467,11 @@ class PaymentRecord(Model):
     status = IntegerField(choices=STATUSES, db_index=True)
     type = IntegerField(choices=TYPES, db_index=True)
     card = ForeignKey(CreditCardToken, null=True, blank=True, on_delete=SET_NULL)
-    payer = ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='debits')
-    payee = ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='credits')
-    escrow_for = ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='escrow_holdings')
+    payer = ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='debits', on_delete=CASCADE)
+    payee = ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='credits', on_delete=CASCADE)
+    escrow_for = ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, related_name='escrow_holdings', on_delete=CASCADE
+    )
     amount = MoneyField(max_digits=4, decimal_places=2, default_currency='USD')
     txn_id = CharField(max_length=40)
     created_on = DateTimeField(auto_now_add=True, db_index=True)
@@ -534,7 +536,7 @@ class PaymentRecord(Model):
 
 
 class Revision(ImageModel):
-    order = ForeignKey(Order)
+    order = ForeignKey(Order, on_delete=CASCADE)
 
     class Meta:
         ordering = ['created_on']

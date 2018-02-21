@@ -26,8 +26,8 @@
       }
     },
     created () {
-      artCall(`/api/sales/v1/${this.username}/balance/`, 'GET', undefined, this.populateBalance)
-      artCall(`/api/sales/v1/${this.username}/accounts/`, 'GET', undefined, this.populateBanks)
+      artCall(`/api/sales/v1/account/${this.username}/balance/`, 'GET', undefined, this.populateBalance)
+      artCall(`/api/sales/v1/account/${this.username}/accounts/`, 'GET', undefined, this.populateBanks)
     }
   }
 </script>

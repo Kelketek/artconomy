@@ -267,7 +267,7 @@ class UserInfo(APIView):
 
 class CurrentUserInfo(UserInfo):
     def get_user(self):
-        if self.request.user.is_authenticated():
+        if self.request.user.is_authenticated:
             return self.request.user
         else:
             return
@@ -293,7 +293,7 @@ class CharacterSearch(ListAPIView):
             user = get_object_or_404(User, id=self.request.GET.get('user', self.request.user.id))
         else:
             user = self.request.user
-        if self.request.user.is_authenticated():
+        if self.request.user.is_authenticated:
             return char_ordering(available_chars(user, query=query, commissions=commissions), user, query=query)
         q = Q(name__istartswith=query) | Q(tags__name__iexact=query)
         return Character.objects.filter(q).exclude(private=True).distinct().order_by('id')
@@ -563,7 +563,7 @@ class NotificationsList(ListAPIView):
     serializer_class = NotificationSerializer
 
     def get_queryset(self):
-        if not self.request.user.is_authenticated():
+        if not self.request.user.is_authenticated:
             raise PermissionDenied("You must be authenticated to view notifications.")
         qs = Notification.objects.filter(user=self.request.user).exclude(event__recalled=True)
         if self.request.GET.get('unread'):

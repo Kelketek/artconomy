@@ -29,7 +29,7 @@
               </div>
               <ac-form-container ref="newCardForm" :schema="newCardSchema" :model="newCardModel"
                                  :options="newCardOptions" :success="addCard"
-                                 :url="`/api/sales/v1/${this.username}/cards/`"
+                                 :url="`/api/sales/v1/account/${this.username}/cards/`"
               >
                 <v-btn type="submit" color="primary" @click.prevent="$refs.newCardForm.submit">Add Card</v-btn>
               </ac-form-container>
@@ -205,7 +205,7 @@
       }
     },
     created () {
-      artCall(`/api/sales/v1/${this.username}/cards/`, 'GET', undefined, this.populateCards)
+      artCall(`/api/sales/v1/account/${this.username}/cards/`, 'GET', undefined, this.populateCards)
       artCall('/api/lib/v1/countries/', 'GET', undefined, this.populateCountries)
       EventBus.$on('card-number', this.selectCard)
     },

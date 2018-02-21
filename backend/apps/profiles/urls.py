@@ -1,6 +1,7 @@
 """artconomy URL Configuration
 """
-from django.conf.urls import url, include
+from django.conf.urls import include
+from django.urls import path
 
 from apps.profiles.views import Register, CharacterListAPI, ImageAssetListAPI, \
     CharacterManager, AssetManager, MakePrimary, SettingsAPI, CurrentUserInfo, AssetComments, CredentialsAPI, \
@@ -9,84 +10,88 @@ from apps.profiles.views import Register, CharacterListAPI, ImageAssetListAPI, \
     UserSearch, AssetTagArtist, TagSearch, AssetTag, AssetSearch, CharacterTag, UserBlacklist, RefColorList, \
     RefColorManager, RecentSubmissions, RecentCommissions, NewCharacters
 from apps.profiles.views import check_username, check_email, perform_login, perform_logout
+from deux.urls import urlpatterns as duex_patterns
+
+app_name = "profiles"
+
+duex_patterns = (duex_patterns, 'duex')
 
 urlpatterns = [
-    url(r'^v1/register_dwolla/$', register_dwolla, name='register_dwolla'),
-    url(r'^v1/recent-submissions/$', RecentSubmissions.as_view(), name='recent_submissions'),
-    url(r'^v1/recent-commissions/$', RecentCommissions.as_view(), name='recent_commissions'),
-    url(r'^v1/new-characters/$', NewCharacters.as_view(), name='new_characters'),
-    url(r'^v1/form-validators/username/', check_username, name='username_validator'),
-    url(r'^v1/form-validators/email/', check_email, name='email_validator'),
-    url(r'^v1/login/', perform_login, name='login'),
-    url(r'^v1/logout/', perform_logout, name='logout'),
-    url(r'^v1/register/$', Register.as_view(), name='register'),
-    url(r'^v1/data/requester/$', CurrentUserInfo.as_view(), name='current_user_info'),
-    url(r'^v1/data/notifications/$', NotificationsList.as_view(), name='notifications'),
-    url(r'^v1/data/notifications/mark-read/$', MarkNotificationsRead.as_view(), name='mark_read'),
-    url(r'^v1/data/user/(?P<username>[-\w]+)/', UserInfo.as_view(), name='user_info'),
-    url(r'^v1/search/character/$', CharacterSearch.as_view(), name='character_search'),
-    url(r'^v1/search/user/$', UserSearch.as_view(), name='character_search'),
-    url(r'^v1/search/tag/$', TagSearch.as_view(), name='tag_search'),
-    url(r'^v1/search/asset/$', AssetSearch.as_view(), name='asset_search'),
-    url(r'^v1/account/(?P<username>[-\w]+)/settings/$', SettingsAPI.as_view(), name='settings_update'),
-    url(r'^v1/account/(?P<username>[-\w]+)/credentials/$', CredentialsAPI.as_view(), name='credentials'),
-    url(r'^v1/account/(?P<username>[-\w]+)/avatar/$', SetAvatar.as_view(), name='avatar'),
-    url(r'^v1/account/(?P<username>[-\w]+)/blacklist/$', UserBlacklist.as_view(), name='user_blacklist'),
-    url(
-        r'^v1/asset/(?P<asset_id>\d+)/$',
-        AssetManager.as_view(), name='asset_manager'
-    ),
-    url(
-        r'^v1/asset/(?P<asset_id>\d+)/tag-characters/$',
+    path('v1/register_dwolla/', register_dwolla, name='register_dwolla'),
+    path('v1/recent-submissions/', RecentSubmissions.as_view(), name='recent_submissions'),
+    path('v1/recent-commissions/', RecentCommissions.as_view(), name='recent_commissions'),
+    path('v1/new-characters/', NewCharacters.as_view(), name='new_characters'),
+    path('v1/form-validators/username/', check_username, name='username_validator'),
+    path('v1/form-validators/email/', check_email, name='email_validator'),
+    path('v1/login/', perform_login, name='login'),
+    path('v1/logout/', perform_logout, name='logout'),
+    path('v1/register/', Register.as_view(), name='register'),
+    path('v1/data/requester/', CurrentUserInfo.as_view(), name='current_user_info'),
+    path('v1/data/notifications/mark-read/', MarkNotificationsRead.as_view(), name='mark_read'),
+    path('v1/data/notifications/', NotificationsList.as_view(), name='notifications'),
+    path('v1/data/user/<username>/', UserInfo.as_view(), name='user_info'),
+    path('v1/search/character/', CharacterSearch.as_view(), name='character_search'),
+    path('v1/search/user/', UserSearch.as_view(), name='character_search'),
+    path('v1/search/tag/', TagSearch.as_view(), name='tag_search'),
+    path('v1/search/asset/', AssetSearch.as_view(), name='asset_search'),
+    path('v1/account/<username>/settings/', SettingsAPI.as_view(), name='settings_update'),
+    path('v1/account/<username>/credentials/', CredentialsAPI.as_view(), name='credentials'),
+    path('v1/account/<username>/avatar/', SetAvatar.as_view(), name='avatar'),
+    path('v1/account/<username>/blacklist/', UserBlacklist.as_view(), name='user_blacklist'),
+    path(
+        r'v1/asset/<int:asset_id>/tag-characters/',
         AssetTagCharacter.as_view(), name='asset_character_tag'
     ),
-    url(
-        r'^v1/asset/(?P<asset_id>\d+)/tag-artists/$',
+    path(
+        r'v1/asset/<int:asset_id>/tag-artists/',
         AssetTagArtist.as_view(), name='asset_artist_tag'
     ),
-    url(
-        r'^v1/asset/(?P<asset_id>\d+)/tag/$',
+    path(
+        'v1/asset/<int:asset_id>/tag/',
         AssetTag.as_view(), name='asset_tag'
     ),
-    url(
-        r'^v1/asset/(?P<asset_id>\d+)/comments/$',
+    path(
+        'v1/asset/<int:asset_id>/comments/',
         AssetComments.as_view(),
         name='asset_comments'
     ),
-    url(
-        r'^v1/asset/(?P<asset_id>\d+)/favorite/$',
+    path(
+        'v1/asset/<int:asset_id>/favorite/',
         AssetFavorite.as_view(),
         name='asset_favorite'
     ),
-    url(
-        r'^v1/account/(?P<username>[-\w]+)/characters/(?P<character>[^/]+)/assets/$',
+    path(
+        'v1/asset/<int:asset_id>/',
+        AssetManager.as_view(), name='asset_manager'
+    ),
+    path(
+        'v1/account/<username>/characters/<character>/assets/',
         ImageAssetListAPI.as_view(), name='asset_upload'
     ),
-    url(r'^v1/account/(?P<username>[-\w]+)/characters/$', CharacterListAPI.as_view(), name='character_list'),
-    url(
-        r'^v1/account/(?P<username>[-\w]+)/characters/(?P<character>[-\w\s]+)/$',
-        CharacterManager.as_view(),
-        name='character'
-    ),
-    url(
-        r'^v1/account/(?P<username>[-\w]+)/characters/(?P<character>[-\w\s]+)/tag/$',
+    path(
+        'v1/account/<username>/characters/<character>/tag/',
         CharacterTag.as_view(),
         name='character_tag'
     ),
-    url(
-        r'^v1/account/(?P<username>[-\w]+)/characters/(?P<character>[-\w\s]+)/colors/$',
+    path(
+        'v1/account/<username>/characters/<character>/colors/',
         RefColorList.as_view(),
         name='character_colors'
     ),
-    url(
-        r'^v1/account/(?P<username>[-\w]+)/characters/(?P<character>[-\w\s]+)/colors/(?P<ref_color_id>\d+)/$',
+    path(
+        'v1/account/<username>/characters/<character>/colors/<int:ref_color_id>/',
         RefColorManager.as_view(),
         name='color_manager'
     ),
-    url(
-        r'^v1/account/(?P<username>[-\w]+)/characters/(?P<character>[-\w\s]+)/asset/primary/(?P<asset_id>\d+)/$',
+    path(
+        'v1/account/<username>/characters/<character>/asset/primary/<int:asset_id>/',
         MakePrimary.as_view(), name='asset_primary'
     ),
-    url(r"^mfa/", include("deux.urls", namespace="mfa")),
-    url(r"^mfa/authtoken/", include("deux.authtoken.urls", namespace="mfa-authtoken:login")),
+    path(
+        'v1/account/<username>/characters/<character>/',
+        CharacterManager.as_view(),
+        name='character'
+    ),
+    path(r'v1/account/<username>/characters/', CharacterListAPI.as_view(), name='character_list'),
+    path('mfa/', include(duex_patterns)),
 ]

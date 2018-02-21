@@ -64,14 +64,14 @@
       deleteCard () {
         this.changing = true
         artCall(
-          `/api/sales/v1/${this.user.username}/cards/${this.card.id}/`,
+          `/api/sales/v1/account/${this.user.username}/cards/${this.card.id}/`,
           'DELETE', {}, this.postDelete
         )
       },
       makePrimary () {
         this.changing = true
         artCall(
-          `/api/sales/v1/${this.user.username}/cards/${this.card.id}/primary/`,
+          `/api/sales/v1/account/${this.user.username}/cards/${this.card.id}/primary/`,
           'POST', {}, this.postPrimary
         )
       },
