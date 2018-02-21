@@ -1,30 +1,34 @@
 <template>
-  <v-card>
-    <v-flex xs-12 text-xs-center v-if="error">
-      <p>{{error}}</p>
-    </v-flex>
-    <slot name="header" v-if="show" />
-    <v-flex xs-12 v-if="show">
-      <b-pagination-nav
-          align="center" :use-router="true" :base-url="baseURL" :link-gen="linkGen"
-          v-model="currentPage" :per-page="pageSize" :number-of-pages="totalPages"
-          v-if="totalPages > 1"
-      ></b-pagination-nav>
-    </v-flex>
-    <v-flex xs-6 md-6 lg-3
-         v-for="(asset, key, index) in results"
-         :key="key" :id="'asset-' + key"
-         :asset="asset"
-    >
-        <ac-gallery-preview :asset="asset" />
-    </v-flex>
-    <v-flex xs-12 v-if="show">
-      <b-pagination-nav
-          align="center" :use-router="true" :base-url="baseURL" :link-gen="linkGen"
-          v-model="currentPage" :per-page="pageSize" :number-of-pages="totalPages"
-          v-if="totalPages > 1"
-      ></b-pagination-nav>
-    </v-flex>
+  <v-card v-if="results.length">
+    <v-container>
+      <v-layout row wrap>
+        <v-layout xs12 text-xs-center v-if="error">
+          <p>{{error}}</p>
+        </v-layout>
+        <slot name="header" v-if="show" />
+        <v-flex xs12 v-if="show">
+          <b-pagination-nav
+              align="center" :use-router="true" :base-url="baseURL" :link-gen="linkGen"
+              v-model="currentPage" :per-page="pageSize" :number-of-pages="totalPages"
+              v-if="totalPages > 1"
+          ></b-pagination-nav>
+        </v-flex>
+        <v-flex xs6 md6 lg3
+             v-for="(asset, key, index) in results"
+             :key="key" :id="'asset-' + key"
+             :asset="asset"
+        >
+            <ac-gallery-preview :asset="asset" />
+        </v-flex>
+        <v-flex xs12 v-if="show">
+          <b-pagination-nav
+              align="center" :use-router="true" :base-url="baseURL" :link-gen="linkGen"
+              v-model="currentPage" :per-page="pageSize" :number-of-pages="totalPages"
+              v-if="totalPages > 1"
+          ></b-pagination-nav>
+        </v-flex>
+      </v-layout>
+    </v-container>
   </v-card>
 </template>
 

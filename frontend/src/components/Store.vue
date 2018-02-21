@@ -1,40 +1,61 @@
 <template>
-  <div class="storefront container">
-    <div class="row">
-      <div class="col-12 text-xs-center" v-if="error">
+  <v-container grid-list-lg class="storefront">
+    <v-layout row wrap>
+      <v-flex xs12 text-xs-center v-if="error">
         <p>{{error}}</p>
-      </div>
+      </v-flex>
+    </v-layout>
+    <v-layout row wrap>
       <ac-product-preview
         v-for="product in growing"
         :key="product.id"
         v-if="growing !== null && setUp"
         :product="product"
       />
-      <div class="col-12" v-if="is_current && !setUp">
+    </v-layout>
+    <v-layout row wrap>
+      <v-flex xs12 v-if="is_current && !setUp">
         <p>To open a store, you must first set up your
           <router-link :to="{name: 'Settings', params: {tabName: 'payment', 'username': this.viewer.username, 'subTabName': 'disbursements'}}">
             deposit account.
           </router-link>
         </p>
-      </div>
-    </div>
+      </v-flex>
+    </v-layout>
     <div class="row-centered" v-if="controls && setUp">
       <div class="col-12 pt-3 col-md-4 col-centered text-xs-center">
-        <div v-if="showNew">
+        <v-btn color="primary" size="lg" @click="showNew=true" id="new-char-button">Add a new product</v-btn>
+      </div>
+    </div>
+    <v-dialog
+        v-model="showNew"
+        fullscreen
+        transition="dialog-bottom-transition"
+        :overlay="false"
+        scrollable
+    >
+      <v-card tile>
+        <v-toolbar card dark color="primary">
+          <v-btn icon @click.native="showNew = false" dark>
+            <v-icon>close</v-icon>
+          </v-btn>
+          <v-toolbar-title>New Product</v-toolbar-title>
+          <v-spacer />
+          <v-toolbar-items>
+            <v-btn dark flat @click.prevent="$refs.newProdForm.submit">Create</v-btn>
+          </v-toolbar-items>
+        </v-toolbar>
+        <v-card-text>
           <form>
             <ac-form-container ref="newProdForm" :schema="newProdSchema" :model="newProdModel"
                                :options="newProdOptions" :success="addProduct"
                                :url="`/api/sales/v1/${this.username}/products/`"
-            >
-              <v-btn @click="showNew = false">Cancel</v-btn>
-              <v-btn type="submit" color="primary" @click.prevent="$refs.newProdForm.submit">Create</v-btn>
-            </ac-form-container>
+            />
           </form>
-        </div>
-        <v-btn v-else variant="primary" size="lg" @click="showNew=true" id="new-char-button">Add a new product</v-btn>
-      </div>
-    </div>
-  </div>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+  </v-container>
 </template>
 
 <style scoped>

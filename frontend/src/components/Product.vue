@@ -29,10 +29,10 @@
             grid-list-lg
         >
           <v-layout row wrap>
-            <v-flex xs-12 md-6 lg-4 class="text-xs-center">
+            <v-flex xs12 md6 lg4 class="text-xs-center">
               <ac-asset :asset="product" thumb-name="preview" img-class="bound-image" />
             </v-flex>
-            <v-flex xs-12 md-6 class="pt-3">
+            <v-flex xs12 md6 class="pt-3">
               <div class="pull-right">
 
               </div>
@@ -50,7 +50,7 @@
                   v-if="product.tags.length || editing"
               />
             </v-flex>
-            <v-flex md-6 xs-12 lg-2 class="text-xs-center pt-3">
+            <v-flex md6 xs12 lg2 class="text-xs-center pt-3">
               <div class="avatar-container">
                 <ac-avatar :user="product.user" />
               </div>
@@ -78,29 +78,45 @@
           </v-layout>
         </v-container>
       </v-card>
-      <v-spacer />
+      <div class="mt-3"></div>
       <ac-asset-gallery ref="assetGallery" :endpoint="`${url}examples/`" :limit="5" >
         <div slot="header" class="col-12 text-xs-center">
-          <h3>Samples</h3>
-          <hr />
+          <v-flex xs12><h2>Samples</h2></v-flex>
         </div>
       </ac-asset-gallery>
       <div class="row-centered">
         <div class="col-12 pt-3 col-md-8 col-centered text-xs-center mb-3">
-          <div v-if="showOrder">
+          <v-btn color="primary" size="lg" @click="showOrder = true">Order</v-btn>
+        </div>
+      </div>
+      <v-dialog
+          v-model="showOrder"
+          fullscreen
+          transition="dialog-bottom-transition"
+          :overlay="false"
+          scrollable
+      >
+        <v-card tile>
+          <v-toolbar card dark color="primary">
+            <v-btn icon @click.native="showOrder = false" dark>
+              <v-icon>close</v-icon>
+            </v-btn>
+            <v-toolbar-title>New Order</v-toolbar-title>
+            <v-spacer />
+            <v-toolbar-items>
+              <v-btn dark flat @click.prevent="$refs.newOrderForm.submit">Submit</v-btn>
+            </v-toolbar-items>
+          </v-toolbar>
+          <v-card-text>
             <form>
               <ac-form-container ref="newOrderForm" :schema="newOrderSchema" :model="newOrderModel"
                                  :options="newOrderOptions" :success="goToOrder"
                                  :url="`/api/sales/v1/${username}/products/${productID}/order/`"
-              >
-                <v-btn @click="showOrder = false">Cancel</v-btn>
-                <v-btn type="submit" color="primary" @click.prevent="$refs.newOrderForm.submit">Submit</v-btn>
-              </ac-form-container>
+              />
             </form>
-          </div>
-          <v-btn v-else color="primary" size="lg" @click="showOrder=true" id="new-char-button">Order</v-btn>
-        </div>
-      </div>
+          </v-card-text>
+        </v-card>
+      </v-dialog>
     </div>
     <div class="row" v-else>
       <div class="text-xs-center" style="width:100%"><i class="fa fa-spin fa-spinner fa-5x"></i></div>

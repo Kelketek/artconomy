@@ -4,6 +4,12 @@ export const Shortcuts = {
       methods: {
         $go (route) {
           this.$router.history.push(route)
+        },
+        $img (asset, thumbName) {
+          if (!asset) {
+            return '/static/images/default-avatar.png'
+          }
+          return asset.file[thumbName]
         }
       }
     })

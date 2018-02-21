@@ -1,10 +1,10 @@
 <template>
   <div class="asset-container">
     <div v-if="asset">
-      <a :href="asset.file.full" v-if="canDisplay"><img :class="imgClass" :src="asset.file[thumbName]"></a>
-      <div v-else>
+      <a :href="asset.file.full" v-if="canDisplay && !textOnly"><img :class="imgClass" :src="asset.file[thumbName]"></a>
+      <div v-else-if="!canDisplay">
         <div class="text-xs-center" v-if="!terse">
-          <i class="fa fa-ban fa-5x mt-4 mb-4"></i>
+          <v-icon x-large>block</v-icon>
           <div v-if="!permittedRating">
             <p>This piece exceeds your current content rating settings.</p>
             <p v-if="viewer.rating && (asset.rating <= viewer.rating)">Please toggle SFW mode off to see this piece.</p>
@@ -20,15 +20,16 @@
           </div>
         </div>
         <div v-else class="text-xs-center terse-container" :class="imgClass">
-          <i class="fa fa-ban fa-5x mb-3 mt-3"></i>
+          <v-icon x-large>block</v-icon>
           <p v-if="!permittedRating">This piece exceeds your current content rating settings.</p>
           <p v-if="blacklisted.length">This piece contains tags on your blacklist.</p>
         </div>
       </div>
     </div>
-    <div v-else>
+    <div v-else-if="!asset && !textOnly">
       <img :class="defaultClass" src="/static/images/default-avatar.png" />
     </div>
+    <div v-if="asset && textOnly" style="min-height: 15em;"></div>
   </div>
 </template>
 
@@ -52,6 +53,7 @@
       'imgClass': {},
       'terse': {},
       'thumbName': {},
+      'textOnly': {},
       'addedTags': {default () { return [] }}
     },
     computed: {

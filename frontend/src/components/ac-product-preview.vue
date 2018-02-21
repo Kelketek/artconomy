@@ -1,22 +1,28 @@
 <template>
-  <div class="col-lg-3 product-preview">
-    <div class="card">
+  <v-flex xs12 md4 lg3 class="product-preview">
+    <v-card>
       <router-link :to="{name: 'Product', params: {username: product.user.username, productID: product.id}}">
-        <ac-asset
-            :asset="product"
-            thumb-name="thumbnail"
-            :terse="true"
-            imgClass="card-img-top"
-        ></ac-asset>
+        <v-card-media
+            :src="$img(product, 'thumbnail')"
+        >
+            <ac-asset
+                :asset="product"
+                thumb-name="thumbnail"
+                :terse="true"
+                :text-only="true"
+            />
+        </v-card-media>
       </router-link>
-      <div class="card-header">
-        <router-link :to="{name: 'Product', params: {username: product.user.username, productID: product.id}}">
-          {{ product.name }}
-        </router-link> by
-        <router-link :to="{name: 'Profile', params: {username: product.user.username}}">
-          {{ product.user.username }}
-        </router-link>
-      </div>
+      <v-card-title>
+        <div>
+          <router-link :to="{name: 'Product', params: {username: product.user.username, productID: product.id}}">
+            {{ product.name }}
+          </router-link> by
+          <router-link :to="{name: 'Profile', params: {username: product.user.username}}">
+            {{ product.user.username }}
+          </router-link>
+        </div>
+      </v-card-title>
       <router-link :to="{name: 'Product', params: {username: product.user.username, productID: product.id}}">
         <div class="card-block product-info">
           <div class="extra-details text-xs-center">
@@ -33,8 +39,8 @@
           </div>
         </div>
       </router-link>
-    </div>
-  </div>
+    </v-card>
+  </v-flex>
 </template>
 
 <script>
