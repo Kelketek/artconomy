@@ -4,7 +4,7 @@
       <div class="col-lg-8 text-section pt-3 pl-4">
         <div class="row">
           <div class="col-10">
-            <ac-patchfield v-model="character.name" name="name" styleclass="name-edit" :editmode="editing" :callback="nameUpdate" :url="url"></ac-patchfield>
+            <ac-patchfield v-model="character.name" name="name" styleclass="name-edit" :editmode="editing" :callback="nameUpdate" :url="url" />
           </div>
           <div class="col-2">
             <i v-if="controls && !editing" class="ml-2 fa fa-2x fa-lock clickable pull-right" @click="edit"></i>

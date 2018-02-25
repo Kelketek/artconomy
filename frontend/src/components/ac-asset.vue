@@ -29,7 +29,7 @@
     <div v-else-if="!asset && !textOnly">
       <img :class="defaultClass" src="/static/images/default-avatar.png" />
     </div>
-    <div v-if="asset && textOnly" style="min-height: 15em;"></div>
+    <div v-if="textOnly" style="min-height: 15em;">&nbsp;</div>
   </div>
 </template>
 

@@ -79,9 +79,15 @@
         </v-container>
       </v-card>
       <div class="mt-3"></div>
-      <ac-asset-gallery ref="assetGallery" :endpoint="`${url}examples/`" :limit="5" >
-        <div slot="header" class="col-12 text-xs-center">
-          <v-flex xs12><h2>Samples</h2></v-flex>
+      <ac-asset-gallery ref="assetGallery" :endpoint="`${url}examples/`" :limit="5" :header="true">
+        <div slot="header" class="col-12 text-xs-center mb-2">
+          <v-card>
+            <v-layout row wrap>
+              <v-flex xs12>
+                <h2>Samples</h2>
+              </v-flex>
+            </v-layout>
+          </v-card>
         </div>
       </ac-asset-gallery>
       <div class="row-centered">

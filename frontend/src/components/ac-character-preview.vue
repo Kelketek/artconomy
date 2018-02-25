@@ -1,20 +1,22 @@
 <template>
   <v-flex xs12 md4 lg3 class="character-preview clickable">
-    <v-card class="card character-card">
-      <v-card-media
-          :src="$img(character.primary_asset, 'thumbnail')"
-      >
-        <router-link :to="{name: 'Character', params: {username: character.user.username, characterName: character.name}}">
-          <ac-asset
-              :asset="character"
-              thumb-name="thumbnail"
-              :terse="true"
-              :text-only="true"
-          />
-        </router-link>
-      </v-card-media>
+    <v-card class="character-card">
+      <router-link :to="{name: 'Character', params: {username: character.user.username, characterName: character.name}}">
+        <v-card-media
+            :src="$img(character.primary_asset, 'thumbnail')"
+        >
+            <ac-asset
+                :asset="character.primary_asset"
+                thumb-name="thumbnail"
+                :terse="true"
+                :text-only="true"
+            />
+        </v-card-media>
+      </router-link>
       <v-card-title>
-        {{ character.name }}
+          <router-link :to="{name: 'Character', params: {username: character.user.username, characterName: character.name}}">
+            {{ character.name }}
+          </router-link>
         <span v-if="removable" @click="remove"><i class="fa fa-times"></i></span>
       </v-card-title>
     </v-card>

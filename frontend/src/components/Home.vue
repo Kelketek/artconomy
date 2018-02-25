@@ -31,27 +31,33 @@
       </div>
     </div>
     <div v-else class="home-main">
-      <div class="row">
-        <div class="col-12">
-          <h2>Recent Submissions</h2>
-        </div>
-      </div>
+      <v-card>
+        <v-layout row wrap>
+          <v-flex xs12 class="pl-2">
+            <h2>Recent Submissions</h2>
+          </v-flex>
+        </v-layout>
+      </v-card>
       <ac-asset-gallery
           endpoint="/api/profiles/v1/recent-submissions/" :limit="4"
       />
-      <div class="row">
-        <div class="col-12">
+      <v-card>
+        <v-layout row wrap>
+          <v-flex xs12 class="pl-2">
           <h2>Recent Commissions</h2>
-        </div>
-      </div>
+          </v-flex>
+        </v-layout>
+      </v-card>
       <ac-asset-gallery
           endpoint="/api/profiles/v1/recent-commissions/" :limit="4"
       />
-      <div class="row">
-        <div class="col-12">
-          <h2>New Characters</h2>
-        </div>
-      </div>
+      <v-card>
+        <v-layout row wrap>
+          <v-flex xs12 class="pl-2">
+            <h2>New Characters</h2>
+          </v-flex>
+        </v-layout>
+      </v-card>
       <characters
           endpoint="/api/profiles/v1/new-characters/" :limit="4"
       />
