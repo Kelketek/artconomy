@@ -29,20 +29,9 @@
     <div v-else-if="!asset && !textOnly">
       <img :class="defaultClass" src="/static/images/default-avatar.png" />
     </div>
-    <div v-if="textOnly" style="min-height: 15em;">&nbsp;</div>
+    <div v-if="textOnly" :style="containerStyle">&nbsp;</div>
   </div>
 </template>
-
-<style>
-  .asset-container {
-    display: inline-block;
-    vertical-align: middle;
-  }
-  .asset-notification {
-    width: 80px;
-    height: 80px;
-  }
-</style>
 
 <script>
   import { RATINGS } from '../lib'
@@ -54,6 +43,9 @@
       'terse': {},
       'thumbName': {},
       'textOnly': {},
+      'containerStyle': {
+        default: 'min-height: 15rem;'
+      },
       'addedTags': {default () { return [] }}
     },
     computed: {

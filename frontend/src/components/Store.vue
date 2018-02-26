@@ -53,7 +53,7 @@
           </v-toolbar-items>
         </v-toolbar>
         <v-card-text>
-          <form>
+          <form @submit.prevent="$refs.newProdForm.submit">
             <ac-form-container ref="newProdForm" :schema="newProdSchema" :model="newProdModel"
                                :options="newProdOptions" :success="addProduct"
                                :url="`/api/sales/v1/account/${this.username}/products/`"

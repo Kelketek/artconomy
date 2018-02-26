@@ -2,14 +2,17 @@
   <div class="mb-3 mt-3 text-xs-center">
     <div class="upload" :class="{'error--text': errors.length}">
       <div v-if="value.length">
-        <img :src="getUrl(value[0])" style="max-width: 15rem;max-height: 15rem">
+        <v-btn v-if="value.length" color="normal" @click="value = []">Reset</v-btn>
         <div>
-          <span>{{value[0].name}}</span> -
-          <span>{{value[0].size | formatSize}}</span>
-          <span v-if="value[0].error">{{value[0].error}}</span>
-          <span v-else-if="value[0].success">success</span>
-          <span v-else-if="value[0].active">active</span>
-          <span v-else-if="value[0].active">active</span>
+          <img :src="getUrl(value[0])" style="max-width: 15rem;max-height: 15rem">
+          <div>
+            <span>{{value[0].name}}</span> -
+            <span>{{value[0].size | formatSize}}</span>
+            <span v-if="value[0].error">{{value[0].error}}</span>
+            <span v-else-if="value[0].success">success</span>
+            <span v-else-if="value[0].active">active</span>
+            <span v-else-if="value[0].active">active</span>
+          </div>
         </div>
       </div>
       <div v-else class="text-xs-center p-5">
@@ -34,7 +37,6 @@
           Select file
         </file-upload>
       </div>
-      <v-btn v-if="value.length" color="normal" @click="value = []">Reset</v-btn>
       <div v-if="schema.hint" class="input-group__messages input-group__hint">{{hint}}</div>
       <div v-if="errors.length" class="input-group__messages input-group__error">{{errors.join(', ')}}</div>
     </div>

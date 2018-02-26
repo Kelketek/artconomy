@@ -3,10 +3,10 @@
     <input ref="searchField" v-model="query" class="form-control" @input="runQuery" @keydown.enter.prevent="grabFirst" @keydown.space.prevent="literalTag" :placeholder="schema.placeholder" />
     <div class="mb-2 mt-2">
       <div v-if="value.length === 0">Click a tag to add it, or press enter to select the first one. Press space to create a new tag if the first option doesn't exist or match.</div>
-      <div v-else><div class="tag-name" v-for="tag in value" :key="tag">{{tag}} <i class="fa fa-times" @click="delTag(tag)"></i></div></div>
+      <div v-else><ac-tag v-for="tag in value" :key="tag" :tag="tag" @click="delTag(tag)"/></div>
     </div>
       <div v-if="response" class="tag-search-results">
-        <div style="display:inline-block" class="tag-preview"
+        <div style="display:inline-block"
              v-for="tag in response"
              :tag="tag"
              :key="tag"

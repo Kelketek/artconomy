@@ -1,11 +1,11 @@
 <template>
-    <v-flex xs12 md4 lg3>
+    <v-flex v-bind="$attrs">
       <v-card>
         <router-link :to="{name: 'Submission', params: {assetID: asset.id}}">
           <v-card-media
-              :src="$img(asset, 'thumbnail')"
+              :src="$img(asset, thumbName)"
           >
-            <ac-asset :asset="asset" :text-only="true" thumb-name="thumbnail" />
+            <ac-asset :asset="asset" :text-only="true" :thumb-name="thumbName" :container-style="containerStyle" />
           </v-card-media>
         </router-link>
         <v-card-title>
@@ -24,17 +24,15 @@
   export default {
     components: {AcAsset},
     name: 'ac-gallery-preview',
-    props: ['asset']
+    props: {
+      asset: {},
+      containerStyle: {},
+      thumbName: {
+        default: 'thumbnail'
+      }
+    },
+    created () {
+      console.log(this.thumbName)
+    }
   }
 </script>
-
-<style>
-  .character-gallery-image img {
-    max-width: 100%;
-    width: 100%;
-    min-height: 100%;
-    object-fit: cover;
-    position: relative;
-    z-index: 2;
-  }
-</style>

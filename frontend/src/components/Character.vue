@@ -42,11 +42,9 @@
           <v-icon>file_upload</v-icon>
         </v-btn>
       </v-speed-dial>
-      <v-layout row wrapped>
-        <v-flex xs10 class="pl-2">
-            <h1>{{ character.name }}</h1>
-        </v-flex>
-        <div class="row">
+      <v-layout row wrap>
+        <v-flex xs12 sm6 md7 lg8 class="pl-3 pt-3">
+          <h1>{{ character.name }}</h1>
           <div class="col-6">
             <p v-if="(character.tags.length === 0) && editing">
               Add some tags to describe your character. Try tagging their species, gender or things they're commonly found doing.
@@ -61,45 +59,37 @@
                 v-if="character.tags.length || editing"
             />
           </div>
-          <div class="col-6 pull-right">
-            <ac-action v-if="editing" class="text-xs-center" style="display:block" :url="url" method="PATCH" :send="{private: !character.private}" :success="loadCharacter">
-              <span v-if="character.private"><i class="fa fa-eye"></i> Unhide character</span>
-              <span v-else><i class="fa fa-eye-slash"></i> Hide character</span>
-            </ac-action>
-            <div v-else-if="controls" class="text-xs-center">
-              <span v-if="character.private"><i class="fa fa-eye-slash"></i> Character is private</span>
-              <span v-else><i class="fa fa-eye"></i> Character is public</span>
-            </div>
+        </v-flex>
+        <v-flex xs12 sm6 md5 lg4>
+          <div class="character-panel-preview text-xs-center">
+            <router-link v-if="character.primary_asset && character.primary_asset.id" :to="{name: 'Submission', params: {assetID: character.primary_asset.id}}">
+              <ac-asset
+                  img-class="character-refsheet"
+                  thumb-name="gallery"
+                  :asset="character.primary_asset"
+              />
+            </router-link>
+            <img class="character-refsheet" v-else src="/static/images/default-avatar.png"/>
           </div>
-        </div>
+        </v-flex>
       </v-layout>
-      <div class="col-lg-4 p-0 section-text">
-        <div class="character-panel-preview text-xs-center">
-          <router-link v-if="character.primary_asset && character.primary_asset.id" :to="{name: 'Submission', params: {assetID: character.primary_asset.id}}">
-            <ac-asset
-                img-class="character-refsheet"
-                thumb-name="gallery"
-                :asset="character.primary_asset"
-            />
-          </router-link>
-          <img class="character-refsheet" v-else src="/static/images/default-avatar.png"/>
-        </div>
-      </div>
     </v-card>
-    <v-card class="row mb-3" v-if="character">
-      <div class="col-md-8 col-12 text-section pt-3 pl-4">
-        <h2 class="mb-0">
-          About {{ character.name }}
-        </h2>
-        <div class="card-block">
-          <div class="card-block character-description"><ac-patchfield v-model="character.description" name="description" :multiline="true" :editmode="editing" :url="url" /></div>
-        </div>
-      </div>
-      <div class="col-md-4 col-12 text-section text-xs-center pt-3 pl-4">
-        <ac-avatar :user="character.user" />
-      </div>
+    <v-card class="row mb-3 mt-3" v-if="character">
+      <v-layout row wrap class="pt-3 pl-4 pr-4">
+        <v-flex xs12 md9>
+          <h2 class="mb-0">
+            About {{ character.name }}
+          </h2>
+          <div class="card-block">
+            <div class="card-block character-description"><ac-patchfield v-model="character.description" name="description" :multiline="true" :editmode="editing" :url="url" /></div>
+          </div>
+        </v-flex>
+        <v-flex md3 xs12 class="text-xs-center">
+          <ac-avatar :user="character.user" />
+        </v-flex>
+      </v-layout>
     </v-card>
-    <div class="row mb-3 shadowed text-section pt-2" v-if="character && (character.colors.length || editing)">
+    <v-card class="row mb-3 shadowed text-section pt-2" v-if="character && (character.colors.length || editing)">
       <div class="col-12 text-xs-center"><h3>Colors</h3></div>
       <ac-ref-color
           v-for="refColor in character.colors"
@@ -126,37 +116,6 @@
           </div>
         </div>
       </div>
-    </div>
-    <v-card class="row mb-3" v-if="character">
-      <div class="col-12 col-md-9 text-xs-center image-showcase" v-if="assets && assets.length">
-        <router-link v-if="character.primary_asset && character.primary_asset.id" :to="{name: 'Submission', params: {assetID: character.primary_asset.id}}">
-          <ac-asset class="mb-2 shadowed" :asset="character.primary_asset" thumb-name="gallery" img-class="character-refsheet" />
-          <div class="character-gallery-title text-xs-center">{{ character.primary_asset.title }}</div>
-        </router-link>
-        <router-link v-else-if="assets && assets[0]" :to="{name: 'Submission', params: {assetID: assets[0].id}}">
-          <img class="character-refsheet shadowed" :src="assets[0].file.gallery"/>
-          <div class="character-gallery-title text-xs-center">{{ assets[0].title }} <i class="fa fa-star"></i> {{ assets[0].favorite_count }} <i class="fa fa-comment"></i> {{ assets[0].comment_count }}</div>
-        </router-link>
-        <div class="more">
-          <v-btn v-if="controls && !showUpload" color="primary" @click="displayUploader">Upload a new picture of {{ character.name }}</v-btn>
-          <router-link :to="{name: 'CharacterGallery', params: {username: username, characterName: characterName}}">
-            <v-btn v-if="assets && moreToLoad" color="primary">
-              See all uploads of {{ character.name }}
-            </v-btn>
-          </router-link>
-        </div>
-      </div>
-      <div class="col-12 text-xs-center" v-else>
-        <v-btn v-if="controls && !showUpload" color="primary" @click="displayUploader">Upload a new picture of {{ character.name }}</v-btn>
-      </div>
-      <div class="col-12 col-md-3 character-gallery" v-if="assets != null">
-        <ac-gallery-preview v-for="(asset, key, index) in assets"
-             :key="key" :id="'asset-' + key"
-             v-if="asset.id !== displayedId"
-             :asset="asset"
-        >
-        </ac-gallery-preview>
-      </div>
       <v-dialog
           v-model="showUpload"
           fullscreen
@@ -176,7 +135,7 @@
             </v-toolbar-items>
           </v-toolbar>
           <v-card-text>
-            <form>
+            <form @submit.prevent="$refs.newUploadForm.submit">
               <ac-form-container ref="newUploadForm" :schema="newUploadSchema" :model="newUploadModel"
                                  :options="newUploadOptions" :success="addUpload"
                                  :url="`/api/profiles/v1/account/${user.username}/characters/${character.name}/assets/`"
@@ -185,35 +144,73 @@
           </v-card-text>
         </v-card>
       </v-dialog>
-      <form @keydown.enter="$refs.settingsForm.submit">
-        <v-dialog
-            v-model="showSettings"
-            fullscreen
-            transition="dialog-bottom-transition"
-            :overlay="false"
-            scrollable
-        >
-          <v-card tile>
-            <v-toolbar card dark color="primary">
-              <v-btn icon @click.native="showSettings = false" dark>
-                <v-icon>close</v-icon>
+      <v-dialog
+          v-model="showSettings"
+          fullscreen
+          transition="dialog-bottom-transition"
+          :overlay="false"
+          scrollable
+      >
+        <v-card tile>
+          <v-toolbar card dark color="primary">
+            <v-btn icon @click.native="showSettings = false" dark>
+              <v-icon>close</v-icon>
+            </v-btn>
+            <v-toolbar-title>Character Settings</v-toolbar-title>
+            <v-spacer />
+            <v-toolbar-items>
+              <v-btn dark flat submit @click.prevent="$refs.settingsForm.submit">Save Settings</v-btn>
+            </v-toolbar-items>
+          </v-toolbar>
+          <v-card-text>
+            <form @submit.prevent="$refs.settingsForm.submit">
+              <ac-form-container ref="settingsForm" :schema="settingsSchema" :model="settingsModel"
+                                 :options="newUploadOptions" :success="updateSettings"
+                                 method="PATCH"
+                                 :url="url"
+              />
+            </form>
+          </v-card-text>
+        </v-card>
+      </v-dialog>
+    </v-card>
+    <v-card v-if="character">
+      <v-layout row wrap>
+        <v-flex xs12 lg9 class="pl-2 pr-2 pt-3 pb-3">
+          <ac-gallery-preview
+              v-if="character.primary_asset && character.primary_asset.id"
+              :asset="character.primary_asset"
+              containerStyle="min-height: 50rem;"
+              thumb-name="gallery"
+          />
+          <v-flex class="text-xs-center mt-4 hidden-md-and-down">
+            <router-link :to="{name: 'CharacterGallery', params: {username: username, characterName: characterName}}">
+              <v-btn v-if="assets && moreToLoad" color="primary">
+                See all uploads of {{ character.name }}
               </v-btn>
-              <v-toolbar-title>Character Settings</v-toolbar-title>
-              <v-spacer />
-              <v-toolbar-items>
-                <v-btn dark flat submit @click.prevent="$refs.settingsForm.submit">Save Settings</v-btn>
-              </v-toolbar-items>
-            </v-toolbar>
-            <v-card-text>
-                <ac-form-container ref="settingsForm" :schema="settingsSchema" :model="settingsModel"
-                                   :options="newUploadOptions" :success="updateSettings"
-                                   method="PATCH"
-                                   :url="url"
-                />
-            </v-card-text>
-          </v-card>
-        </v-dialog>
-      </form>
+            </router-link>
+          </v-flex>
+        </v-flex>
+        <v-flex sm12 lg3 class="pl-2 pr-2 pt-3 pb-3">
+          <v-layout row wrap>
+            <ac-gallery-preview v-for="(asset, key, index) in assets"
+                                :key="key" :id="'asset-' + key"
+                                v-if="asset.id !== displayedId"
+                                :asset="asset"
+                                lg12 md4 sm6 xs12
+                                class="pr-1 pl-1"
+            >
+            </ac-gallery-preview>
+          </v-layout>
+        </v-flex>
+        <v-flex xs12 class="text-xs-center mb-2 hidden-lg-and-up">
+          <router-link :to="{name: 'CharacterGallery', params: {username: username, characterName: characterName}}">
+            <v-btn v-if="assets && moreToLoad" color="primary">
+              See all uploads of {{ character.name }}
+            </v-btn>
+          </router-link>
+        </v-flex>
+      </v-layout>
     </v-card>
   </v-container>
 </template>
@@ -496,7 +493,7 @@
           {
             'name': 'Character',
             'params': {'username': this.user.username, 'characterName': value},
-            'query': {'editing': true}
+            'query': {'editing': this.editing}
           }
         )
         this.url = `/api/profiles/v1/account/${this.username}/characters/${value}/`

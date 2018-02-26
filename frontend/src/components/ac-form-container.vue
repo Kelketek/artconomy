@@ -96,6 +96,9 @@
         $(this.$el).find('fieldset').attr('disabled', false)
       },
       submit: function () {
+        if (this.disabled) {
+          return
+        }
         this.disable()
         this.errors = []
         this.successes = []

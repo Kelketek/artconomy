@@ -75,8 +75,8 @@
               <img class="avatar-preview shadowed mb-3" :src="this.user.avatar_url" />
               <p v-if="user.avatar_url.indexOf('gravatar') > -1">Default avatars provided by <a href="http://en.gravatar.com/">Gravatar</a></p>
             </div>
-            <form class="mt-3">
-              <legend>Upload a new avatar</legend>
+            <form class="mt-3 text-xs-center">
+              <h3>Upload a new avatar</h3>
               <ac-form-container ref="avatarForm" :schema="avatarSchema" :model="avatarModel"
                                  :options="avatarOptions" :success="updateAvatar"
                                  :url="`/api/profiles/v1/account/${this.user.username}/avatar/`"
@@ -199,7 +199,7 @@
         },
         settingsSchema: {
           fields: [{
-            type: 'checkbox',
+            type: 'v-checkbox',
             styleClasses: ['vue-checkbox'],
             label: 'Comissions closed?',
             model: 'commissions_closed',
@@ -207,7 +207,7 @@
             validator: VueFormGenerator.validators.boolean,
             hint: 'Prevents orders from being placed in your store.'
           }, {
-            type: 'input',
+            type: 'v-text',
             inputType: 'number',
             label: 'Maximum Load',
             model: 'max_load',
@@ -215,7 +215,7 @@
             validator: VueFormGenerator.validators.boolean,
             hint: 'Commissions are automatically closed when the total load points of all open orders exceeds this amount.'
           }, {
-            type: 'select',
+            type: 'v-select',
             label: 'Max Content Rating',
             model: 'rating',
             required: false,
@@ -226,7 +226,7 @@
             },
             values: ratings
           }, {
-            type: 'checkbox',
+            type: 'v-checkbox',
             styleClasses: ['vue-checkbox'],
             label: 'Safe For Work Mode',
             model: 'sfw_mode',
@@ -241,8 +241,7 @@
         },
         credentialsSchema: {
           fields: [{
-            type: 'input',
-            inputType: 'text',
+            type: 'v-text',
             label: 'Username',
             model: 'username',
             placeholder: '',
@@ -251,8 +250,8 @@
             hint: 'Warning: This will change all URLs for your profile and all of your submissions. This will affect SEO and bookmarks.',
             validator: VueFormGenerator.validators.string
           }, {
-            type: 'input',
-            inputType: 'text',
+            type: 'v-text',
+            inputType: 'email',
             label: 'Email',
             model: 'email',
             placeholder: 'example@example.com',
@@ -260,7 +259,7 @@
             required: true,
             validator: VueFormGenerator.validators.email
           }, {
-            type: 'input',
+            type: 'v-text',
             inputType: 'password',
             label: 'Current Password',
             model: 'current_password',
@@ -269,7 +268,7 @@
             featured: true,
             validator: VueFormGenerator.validators.string
           }, {
-            type: 'input',
+            type: 'v-text',
             inputType: 'password',
             label: 'New Password',
             model: 'new_password',
@@ -278,7 +277,7 @@
             featured: false,
             validator: VueFormGenerator.validators.string
           }, {
-            type: 'input',
+            type: 'v-text',
             inputType: 'password',
             label: 'New Password (again)',
             model: 'new_password2',
@@ -301,7 +300,7 @@
         },
         avatarSchema: {
           fields: [{
-            type: 'image',
+            type: 'v-file-upload',
             id: 'avatar',
             label: 'File',
             model: 'avatar',
