@@ -13,3 +13,8 @@ fieldset {
 img {
   max-width: 100%;
 }
+
+#app a {
+  color: #fff;
+  font-weight: bold
+}

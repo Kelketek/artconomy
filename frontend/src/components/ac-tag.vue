@@ -1,6 +1,6 @@
 <template>
   <v-chip :close="removable" @input="remove">
-    <router-link v-if="tabName" :to="{name: 'Search', params: {tabName: tabName}, query: {q: [tag]}}">
+    <router-link class="primary--text" v-if="tabName" :to="{name: 'Search', params: {tabName: tabName}, query: {q: [tag]}}">
       {{tag}}
     </router-link>
     <span v-else>

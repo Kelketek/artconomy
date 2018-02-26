@@ -1,25 +1,51 @@
 <template>
-  <div class="container">
-    <div class="row mb-3 shadowed" v-if="character">
-      <div class="col-lg-8 text-section pt-3 pl-4">
-        <div class="row">
-          <div class="col-10">
-            <ac-patchfield v-model="character.name" name="name" styleclass="name-edit" :editmode="editing" :callback="nameUpdate" :url="url" />
-          </div>
-          <div class="col-2">
-            <i v-if="controls && !editing" class="ml-2 fa fa-2x fa-lock clickable pull-right" @click="edit"></i>
-            <i v-if="controls && editing" class="ml-2 fa fa-2x fa-unlock clickable pull-right" @click="lock"></i>
-            <div v-if="controls" class="pull-right">
-              <ac-action :button="false"
-                         variant="danger" :confirm="true" :success="goToListing"
-                         :url="`/api/profiles/v1/account/${this.user.username}/characters/${this.character.name}/`"
-                         method="DELETE" class="fg-dark"
-              ><i class="fg-light fa fa-trash-o fa-2x"></i>
-                <div class="text-left" slot="confirmation-text">Are you sure you wish to delete this character? This cannot be undone!</div>
-              </ac-action>
-            </div>
-          </div>
-        </div>
+  <v-container>
+    <v-card v-if="character">
+      <v-speed-dial v-if="controls" bottom right fixed v-model="editing" elevation-10 style="z-index: 4">
+        <v-btn v-if="controls"
+               dark
+               color="blue"
+               fab
+               hover
+               slot="activator"
+               v-model="editing"
+        >
+          <v-icon>lock</v-icon>
+          <v-icon>lock_open</v-icon>
+        </v-btn>
+        <ac-action
+            variant="danger" :confirm="true" :success="goToListing"
+            :url="`/api/profiles/v1/account/${this.user.username}/characters/${this.character.name}/`"
+            method="DELETE"
+            dark small color="red" fab
+        ><v-icon>delete</v-icon>
+          <div class="text-left" slot="confirmation-text">Are you sure you wish to delete this character? This cannot be undone!</div>
+        </ac-action>
+        <v-btn v-if="controls"
+               dark
+               color="orange"
+               fab
+               hover
+               small
+               @click="showSettings=true"
+        >
+          <v-icon>settings</v-icon>
+        </v-btn>
+        <v-btn v-if="controls"
+               dark
+               color="green"
+               fab
+               hover
+               small
+               @click="showUpload=true"
+        >
+          <v-icon>file_upload</v-icon>
+        </v-btn>
+      </v-speed-dial>
+      <v-layout row wrapped>
+        <v-flex xs10 class="pl-2">
+            <h1>{{ character.name }}</h1>
+        </v-flex>
         <div class="row">
           <div class="col-6">
             <p v-if="(character.tags.length === 0) && editing">
@@ -46,7 +72,7 @@
             </div>
           </div>
         </div>
-      </div>
+      </v-layout>
       <div class="col-lg-4 p-0 section-text">
         <div class="character-panel-preview text-xs-center">
           <router-link v-if="character.primary_asset && character.primary_asset.id" :to="{name: 'Submission', params: {assetID: character.primary_asset.id}}">
@@ -59,8 +85,8 @@
           <img class="character-refsheet" v-else src="/static/images/default-avatar.png"/>
         </div>
       </div>
-    </div>
-    <div class="row mb-3 shadowed" v-if="character">
+    </v-card>
+    <v-card class="row mb-3" v-if="character">
       <div class="col-md-8 col-12 text-section pt-3 pl-4">
         <h2 class="mb-0">
           About {{ character.name }}
@@ -72,7 +98,7 @@
       <div class="col-md-4 col-12 text-section text-xs-center pt-3 pl-4">
         <ac-avatar :user="character.user" />
       </div>
-    </div>
+    </v-card>
     <div class="row mb-3 shadowed text-section pt-2" v-if="character && (character.colors.length || editing)">
       <div class="col-12 text-xs-center"><h3>Colors</h3></div>
       <ac-ref-color
@@ -101,7 +127,7 @@
         </div>
       </div>
     </div>
-    <div class="row mb-3" v-if="character">
+    <v-card class="row mb-3" v-if="character">
       <div class="col-12 col-md-9 text-xs-center image-showcase" v-if="assets && assets.length">
         <router-link v-if="character.primary_asset && character.primary_asset.id" :to="{name: 'Submission', params: {assetID: character.primary_asset.id}}">
           <ac-asset class="mb-2 shadowed" :asset="character.primary_asset" thumb-name="gallery" img-class="character-refsheet" />
@@ -131,19 +157,65 @@
         >
         </ac-gallery-preview>
       </div>
-      <div class="col-12" v-if="showUpload">
-        <form>
-          <ac-form-container ref="newUploadForm" :schema="newUploadSchema" :model="newUploadModel"
-                             :options="newUploadOptions" :success="addUpload"
-                             :url="`/api/profiles/v1/account/${user.username}/characters/${character.name}/assets/`"
-          >
-            <v-btn @click="showUpload=false">Cancel</v-btn>
-            <v-btn type="submit" color="primary" @click.prevent="$refs.newUploadForm.submit">Create</v-btn>
-          </ac-form-container>
-        </form>
-      </div>
-    </div>
-  </div>
+      <v-dialog
+          v-model="showUpload"
+          fullscreen
+          transition="dialog-bottom-transition"
+          :overlay="false"
+          scrollable
+      >
+        <v-card tile>
+          <v-toolbar card dark color="primary">
+            <v-btn icon @click.native="showUpload = false" dark>
+              <v-icon>close</v-icon>
+            </v-btn>
+            <v-toolbar-title>New Upload</v-toolbar-title>
+            <v-spacer />
+            <v-toolbar-items>
+              <v-btn dark flat @click.prevent="$refs.newUploadForm.submit">Upload</v-btn>
+            </v-toolbar-items>
+          </v-toolbar>
+          <v-card-text>
+            <form>
+              <ac-form-container ref="newUploadForm" :schema="newUploadSchema" :model="newUploadModel"
+                                 :options="newUploadOptions" :success="addUpload"
+                                 :url="`/api/profiles/v1/account/${user.username}/characters/${character.name}/assets/`"
+              />
+            </form>
+          </v-card-text>
+        </v-card>
+      </v-dialog>
+      <form @keydown.enter="$refs.settingsForm.submit">
+        <v-dialog
+            v-model="showSettings"
+            fullscreen
+            transition="dialog-bottom-transition"
+            :overlay="false"
+            scrollable
+        >
+          <v-card tile>
+            <v-toolbar card dark color="primary">
+              <v-btn icon @click.native="showSettings = false" dark>
+                <v-icon>close</v-icon>
+              </v-btn>
+              <v-toolbar-title>Character Settings</v-toolbar-title>
+              <v-spacer />
+              <v-toolbar-items>
+                <v-btn dark flat submit @click.prevent="$refs.settingsForm.submit">Save Settings</v-btn>
+              </v-toolbar-items>
+            </v-toolbar>
+            <v-card-text>
+                <ac-form-container ref="settingsForm" :schema="settingsSchema" :model="settingsModel"
+                                   :options="newUploadOptions" :success="updateSettings"
+                                   method="PATCH"
+                                   :url="url"
+                />
+            </v-card-text>
+          </v-card>
+        </v-dialog>
+      </form>
+    </v-card>
+  </v-container>
 </template>
 
 <style lang="scss">
@@ -228,18 +300,14 @@
       showUpdater: function () {
         this.$refs.updater.showUpdater()
       },
-      nameUpdate () {
-        this.$router.history.replace(
-          {
-            'name': 'Character',
-            'params': {'username': this.user.username, 'character': this.character.name},
-            'query': {'editing': true}
-          }
-        )
-        this.url = `/api/profiles/v1/account/${this.username}/characters/${this.characterName}/`
+      updateSettings (response) {
+        console.log('I ran!')
+        this.loadCharacter(response)
       },
       loadCharacter (response) {
         this.character = response
+        this.settingsModel = JSON.parse(JSON.stringify(response))
+        this.showSettings = false
       },
       displayUploader () {
         this.showUpload = true
@@ -268,7 +336,7 @@
     },
     data () {
       return {
-        name: 'haracter',
+        name: 'character',
         selectedIndex: null,
         expand: this.expanded,
         character: null,
@@ -280,7 +348,7 @@
           caption: '',
           private: false,
           rating: 0,
-          file: '',
+          file: [],
           comments_disabled: false
         },
         showNewColor: false,
@@ -290,7 +358,7 @@
         },
         newColorSchema: {
           fields: [{
-            type: 'input',
+            type: 'v-text',
             inputType: 'text',
             label: 'Note',
             placeholder: 'Fur color',
@@ -310,10 +378,37 @@
             }
           }]
         },
+        showSettings: false,
+        settingsModel: {
+          name: '',
+          open_comissions: false,
+          private: false
+        },
+        settingsSchema: {
+          fields: [{
+            type: 'v-text',
+            label: 'Name',
+            hint: "This will change the URL of your character's page. Any existing links to them may be broken.",
+            model: 'name'
+          }, {
+            type: 'v-checkbox',
+            label: 'Open Commissions',
+            hint: 'Write any particular conditions or requests to be considered when someone else is ' +
+                  'commissioning a piece with this character. ' +
+                  'For example, "This character should only be drawn in Safe for Work Pieces."',
+            model: 'open_commissions'
+          }, {
+            type: 'v-checkbox',
+            label: 'Private',
+            hint: 'Hides your character from public listings and prevents anyone with whom they have not been ' +
+                  'explicitly shared from viewing it.',
+            model: 'private'
+          }]
+        },
         showUpload: false,
         newUploadSchema: {
           fields: [{
-            type: 'input',
+            type: 'v-text',
             inputType: 'text',
             label: 'Title',
             model: 'title',
@@ -322,15 +417,16 @@
             validator: VueFormGenerator.validators.string
           },
           {
-            type: 'textArea',
+            type: 'v-text',
             label: 'Caption',
             model: 'caption',
             featured: true,
+            multiline: true,
             required: true,
             validator: VueFormGenerator.validators.string
           },
           {
-            type: 'checkbox',
+            type: 'v-checkbox',
             styleClasses: ['vue-checkbox'],
             label: 'Private Upload?',
             model: 'private',
@@ -339,7 +435,7 @@
             hint: 'Only shows this piece to people you have explicitly shared it to.'
           },
           {
-            type: 'checkbox',
+            type: 'v-checkbox',
             styleClasses: ['vue-checkbox'],
             label: 'Comments disabled?',
             model: 'comments_disabled',
@@ -348,7 +444,7 @@
             hint: 'Prevents people from commenting on this piece.'
           },
           {
-            type: 'select',
+            type: 'v-select',
             label: 'Rating',
             model: 'rating',
             featured: true,
@@ -360,7 +456,7 @@
             validator: VueFormGenerator.validators.required
           },
           {
-            type: 'image',
+            type: 'v-file-upload',
             id: 'file',
             label: 'File',
             model: 'file',
@@ -374,9 +470,6 @@
       }
     },
     computed: {
-      editing () {
-        return this.controls && this.$route.query.editing
-      },
       displayedId () {
         if (this.character.primary_asset) {
           return this.character.primary_asset.id
@@ -397,6 +490,16 @@
     watch: {
       rating () {
         this.fetchAssets()
+      },
+      'character.name': function (value) {
+        this.$router.history.replace(
+          {
+            'name': 'Character',
+            'params': {'username': this.user.username, 'characterName': value},
+            'query': {'editing': true}
+          }
+        )
+        this.url = `/api/profiles/v1/account/${this.username}/characters/${value}/`
       }
     }
   }

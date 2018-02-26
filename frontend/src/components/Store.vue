@@ -1,5 +1,17 @@
 <template>
   <v-container grid-list-lg class="storefront">
+    <v-btn v-if="controls && setUp"
+           dark
+           color="green"
+           fab
+           hover
+           fixed
+           right
+           bottom
+           @click="showNew=true"
+    >
+      <v-icon large>add</v-icon>
+    </v-btn>
     <v-layout row wrap>
       <v-flex xs12 text-xs-center v-if="error">
         <p>{{error}}</p>
@@ -22,11 +34,6 @@
         </p>
       </v-flex>
     </v-layout>
-    <div class="row-centered" v-if="controls && setUp">
-      <div class="col-12 pt-3 col-md-4 col-centered text-xs-center">
-        <v-btn color="primary" size="lg" @click="showNew=true" id="new-char-button">Add a new product</v-btn>
-      </div>
-    </div>
     <v-dialog
         v-model="showNew"
         fullscreen

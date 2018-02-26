@@ -64,7 +64,7 @@
             single-line
             v-model="query"
             @input="performSearch"
-            @keydown.enter="performSearch"
+            @keyup.enter="performSearch"
             append-icon="search"
             :append-icon-cb="() => {}"
             color="white"
@@ -211,7 +211,10 @@
         }
       },
       '$route.query.q': function (val) {
-        this.queryData = val
+        if (val !== undefined) {
+          // Not sure why this happens.
+          this.queryData = val
+        }
       }
     },
     created () {
