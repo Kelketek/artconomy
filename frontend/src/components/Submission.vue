@@ -76,8 +76,8 @@
             <div>
               {{ ratingText }}
               <div v-if="controls" class="text-xs-center">
-                <span v-if="submission.private"><i class="fa fa-eye"></i> Submission is public</span>
-                <span v-else><i class="fa fa-eye-slash"></i> Submission is private</span>
+                <span v-if="submission.private"><v-icon>visibility_off</v-icon> Submission is private</span>
+                <span v-else><v-icon>visibility</v-icon> Submission is public</span>
               </div>
               <ac-action :url="`${url}favorite/`" :success="populateSubmission">
                 <span v-if="submission.favorite"><v-icon>favorite_outline</v-icon> Remove from Favorites ({{ submission.favorite_count }})</span>
@@ -149,6 +149,35 @@
             </div>
           </v-flex>
       </v-layout>
+      <v-dialog
+          v-model="showSettings"
+          fullscreen
+          transition="dialog-bottom-transition"
+          :overlay="false"
+          scrollable
+      >
+        <v-card tile>
+          <v-toolbar card dark color="primary">
+            <v-btn icon @click.native="showSettings = false" dark>
+              <v-icon>close</v-icon>
+            </v-btn>
+            <v-toolbar-title>Submission Settings</v-toolbar-title>
+            <v-spacer />
+            <v-toolbar-items>
+              <v-btn dark flat @click.prevent="$refs.settingsForm.submit">Save Settings</v-btn>
+            </v-toolbar-items>
+          </v-toolbar>
+          <v-card-text>
+            <v-form @submit.prevent="$refs.settingsForm.submit">
+              <ac-form-container ref="settingsForm" :schema="settingsSchema" :model="settingsModel"
+                                 :options="artistTaggingOptions" :success="populateSubmission"
+                                 method="PATCH"
+                                 :url="url"
+              />
+            </v-form>
+          </v-card-text>
+        </v-card>
+      </v-dialog>
     </v-container>
     <div class="mb-5">
       <ac-comment-section v-if="submission" :commenturl="commenturl" :nesting="true" :locked="submission.comments_disabled" />
@@ -175,7 +204,7 @@
 </style>
 
 <script>
-  import { artCall, setMetaContent, textualize, ratingsShort, RATINGS_SHORT } from '../lib'
+  import { artCall, setMetaContent, textualize, ratingsShort, RATINGS_SHORT, ratings } from '../lib'
   import AcCharacterPreview from './ac-character-preview'
   import Editable from '../mixins/editable'
   import Viewer from '../mixins/viewer'
@@ -213,8 +242,37 @@
         commenturl: `/api/profiles/v1/asset/${this.$route.params.assetID}/comments/`,
         showCharacterTagging: false,
         showArtistTagging: false,
+        showSettings: false,
         characterTaggingModel: {
           characters: []
+        },
+        settingsModel: {
+          private: false,
+          comments_disabled: false,
+          rating: 0
+        },
+        settingsSchema: {
+          fields: [{
+            type: 'v-checkbox',
+            label: 'Private',
+            hint: 'If this is checked, the submission will not be visible except to those you explicitly share it with.',
+            model: 'private'
+          }, {
+            type: 'v-checkbox',
+            label: 'Comments Disabled',
+            hint: "Don't allow comments on this submission.",
+            model: 'comments_disabled'
+          }, {
+            type: 'v-select',
+            label: 'Rating',
+            model: 'rating',
+            featured: true,
+            required: true,
+            values: ratings,
+            selectOptions: {
+              hideNoneSelectedText: true
+            }
+          }]
         },
         characterTaggingSchema: {
           fields: [
@@ -270,6 +328,12 @@
     methods: {
       populateSubmission (response) {
         this.submission = response
+        let newSettings = {}
+        for (let key of Object.keys(this.settingsModel)) {
+          newSettings[key] = response[key]
+        }
+        this.settingsModel = newSettings
+        this.showSettings = false
         this.setMeta()
       },
       setMeta () {
@@ -299,10 +363,13 @@
         this.populateSubmission(response)
         this.showCharacterTagging = false
       },
+      fetchSubmission () {
+        artCall(this.url, 'GET', undefined, this.populateSubmission, this.$error)
+      },
       ratingsShort
     },
     created () {
-      artCall(this.url, 'GET', undefined, this.populateSubmission, this.$error)
+      this.fetchSubmission()
     }
   }
 </script>
