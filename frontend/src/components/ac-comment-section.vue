@@ -1,5 +1,5 @@
 <template>
-  <div class="row shadowed comment-section">
+  <v-container>
     <ac-comment
         v-for="comment in growing"
         :commentobj="comment"
@@ -11,12 +11,18 @@
         :locked="locked"
     >
     </ac-comment>
-    <div v-else class="text-xs-center" style="width:100%"><i class="fa fa-spin fa-spinner fa-5x"></i></div>
-    <div v-if="growing !== null" v-observe-visibility="moreComments"></div>
-    <div v-if="fetching"><i class="fa fa-spin fa-spinner fa-5x"></i></div>
-    <ac-new-comment ref="newComment" v-if="(growing !== null && !fetching && !locked)" :parent="this" :url="commenturl"></ac-new-comment>
-    <div v-else-if="locked" class="col-12 text-section text-xs-center">Comments have been locked.</div>
-  </div>
+    <v-layout v-else row wrap>
+      <v-flex xs12 class="text-xs-center" style="width:100%"><i class="fa fa-spin fa-spinner fa-5x"></i></v-flex>
+    </v-layout>
+    <v-layout row wrap>
+      <v-flex xs12 v-if="growing !== null" v-observe-visibility="moreComments">&nbsp</v-flex>
+      <v-flex xs12 v-if="fetching" text-xs-center><i class="fa fa-spin fa-spinner fa-5x"></i></v-flex>
+    </v-layout>
+    <ac-new-comment ref="newComment" v-if="(growing !== null && !fetching && !locked)" :parent="this" :url="commenturl" />
+    <v-layout v-else-if="locked" row wrap>
+      <v-flex xs12 class="col-12 text-section text-xs-center">Comments have been locked.</v-flex>
+    </v-layout>
+  </v-container>
 </template>
 
 <script>

@@ -1,29 +1,47 @@
 <template>
-  <div class="comment-block new-comment-component">
-    <div v-if="!editing" class="text-xs-center">
-      <v-btn @click="editing=true" class="new-comment-button">Add a comment</v-btn>
-    </div>
-    <div class="new-comment-block">
-      <div v-if="editing && !edit_preview"><textarea :disabled="edit_disabled" v-model="draft"
-                                                                        class="comment-field new-comment-field"
-                                                                        contenteditable="true"></textarea></div>
-      <div v-if="editing && edit_preview" v-html="parseDraft()"></div>
-      <div>
-        <div class="text-left pull-left preview-button-container" v-if="editing">
-          <v-btn v-if="edit_preview" color="info" @click="edit_preview=false"><i class="fa fa-eye"></i></v-btn>
-          <v-btn v-else @click="edit_preview=true"><i class="fa fa-eye"></i></v-btn>
+  <v-card class="comment-block new-comment-component pt-2">
+    <v-layout row wrap>
+      <v-flex xs12 text-xs-center v-if="!editing">
+        <v-btn @click="editing=true" class="new-comment-button">Add a comment</v-btn>
+      </v-flex>
+      <v-flex xs12 class="pl-2 pr-2" v-if="editing && !edit_preview">
+        <textarea
+            :disabled="edit_disabled"
+            v-model="draft"
+            class="comment-field new-comment-field"
+            contenteditable="true"
+        ></textarea>
+      </v-flex>
+      <v-flex xs12 v-if="edit_preview" class="pl-2 pr-2" v-html="parseDraft()" />
+      <v-flex xs12 md4 text-xs-right v-if="editing">
+        <div class="preview-block">
+          <div class="text-xs-center">
+          <v-btn small v-if="edit_preview" color="info" @click="edit_preview=false"><i class="fa fa-eye"></i></v-btn>
+          <v-btn small v-else @click="edit_preview=true"><i class="fa fa-eye"></i></v-btn><br />
           <small class="ml-2">Markdown Syntax Supported</small>
+          </div>
         </div>
-        <div v-if="editing" class="text-right comment-actions pull-right">
-          <v-btn @click="editing=false" color="danger"><i class="fa fa-times"></i></v-btn>
-          <v-btn @click="save()" color="success"><i class="fa fa-save"></i></v-btn>
-        </div>
-      </div>
-      <div class="clear"></div>
-    </div>
-  </div>
+      </v-flex>
+      <v-flex v-if="editing" text-xs-right>
+        <v-btn small @click="editing=false" color="danger"><i class="fa fa-times"></i></v-btn>
+        <v-btn small @click="save()" color="success"><i class="fa fa-save"></i></v-btn>
+      </v-flex>
+    </v-layout>
+  </v-card>
 </template>
 
+<style>
+  .comment-field {
+    width: 100%;
+    border: 1px solid grey;
+  }
+  .preview-block {
+    display: inline-block;
+  }
+  .comment-block {
+    word-wrap: break-word;
+  }
+</style>
 
 <script>
   import { artCall } from '../lib'

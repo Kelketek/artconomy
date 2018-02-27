@@ -1,100 +1,103 @@
 <template>
-  <div :id="'comment-' + comment.id" class="comment-block"
-       :class="{'my-comment': myComment, 'alternate': alternate}">
-    <div class="text-xs-center comment-info">
-      <ac-avatar :user="comment.user"></ac-avatar><br />
-      <span class="underlined" :id="'comment-' + comment.id + '-created_on'">commented</span>
-      <span :id="'comment-' + comment.id + '-edited_on'" class="underlined" v-if="comment.edited"><small><br />(edited)</small></span>
-    </div>
-    <b-popover :target="'comment-' + comment.id + '-created_on'"
-               triggers="hover focus"
-               placement="top"
-               :content="format_time(comment.created_on)">
-    </b-popover>
-    <b-popover :target="'comment-' + comment.id + '-edited_on'"
-               triggers="hover focus"
-               placement="top"
-               :content="format_time(comment.edited_on)"
-               v-if="comment.edited">
-    </b-popover>
-    <div class="comment-content" v-html="parseContent()" v-if="!editing && !comment.deleted"></div>
-    <div class="comment-content" v-if="comment.deleted">[This comment has been deleted]</div>
-    <div v-if="editing && !edit_preview"><textarea :disabled="edit_disabled" v-model="draft"
-                                                                      class="comment-field"
-                                                                      contenteditable="true"></textarea></div>
-    <div v-if="editing && edit_preview" v-html="parseDraft()"></div>
-    <div>
-      <div class="text-right pull-right comment-actions" v-if="comment.children.length && !comment.deleted">
-        <v-btn v-if="myComment && !editing" @click="deleteComment()" color="error"><i class="fa fa-trash-o"></i>
+  <v-card :id="'comment-' + comment.id" class="comment-block"
+       :class="{'my-comment': myComment, 'elevation-3': alternate, 'pt-2': true, 'mb-2': true}">
+    <v-layout row wrap>
+      <v-flex xs12 sm2 class="text-xs-center comment-info pb-2">
+        <ac-avatar :user="comment.user" /><br />
+        <v-tooltip bottom>
+          <span slot="activator" class="underlined" :id="'comment-' + comment.id + '-created_on'">
+            commented
+            <span :id="'comment-' + comment.id + '-edited_on'" class="underlined" v-if="comment.edited"><small>(edited)</small></span>
+          </span>
+          {{format_time(comment.created_on)}}
+          <span v-if="comment.edited"><br />Edited: {{format_time(comment.edited_on)}}</span>
+        </v-tooltip>
+      </v-flex>
+      <v-flex xs12 md10 class="comment-content pl-2 pr-2" v-html="parseContent()" v-if="!editing && !comment.deleted" />
+      <v-flex xs12 md10 class="comment-content pl-2 pr-2" v-if="comment.deleted">[This comment has been deleted]</v-flex>
+      <v-flex xs12 md10 v-if="editing && !edit_preview"><textarea :disabled="edit_disabled" v-model="draft"
+                                                                        class="comment-field pl-2 pr-2"
+                                                                        contenteditable="true"></textarea></v-flex>
+      <v-flex xs12 md10 v-if="editing && edit_preview" v-html="parseDraft()" />
+      <v-flex xs12 md4 text-xs-right v-if="comment.children.length && editing">
+        <div class="preview-block">
+          <div class="text-xs-center">
+            <v-btn small v-if="edit_preview" variant="info" @click="edit_preview=false"><i class="fa fa-eye"></i></v-btn>
+            <v-btn small v-else @click="edit_preview=true"><i class="fa fa-eye"></i></v-btn><br />
+            <small class="ml-2">Markdown Syntax Supported</small>
+          </div>
+        </div>
+      </v-flex>
+      <v-flex text-xs-right v-if="comment.children.length && !comment.deleted">
+        <v-btn small v-if="myComment && !editing" @click="deleteComment()" color="error"><i class="fa fa-trash-o"></i>
         </v-btn>
-        <v-btn v-if="myComment && editing" @click="editing=false" color="error"><i class="fa fa-times"></i>
+        <v-btn small v-if="myComment && editing" @click="editing=false" color="error"><i class="fa fa-times"></i>
         </v-btn>
-        <v-btn v-if="myComment && !editing && !locked" @click="editing=true" color="warning"><i class="fa fa-edit"></i>
+        <v-btn small v-if="myComment && !editing && !locked" @click="editing=true" color="warning"><i class="fa fa-edit"></i>
         </v-btn>
-        <v-btn v-if="editing" @click="save()" color="success"><i class="fa fa-save"></i></v-btn>
-      </div>
-      <div class="text-left pull-left preview-button-container" v-if="comment.children.length && editing">
-        <v-btn v-if="edit_preview" variant="info" @click="edit_preview=false"><i class="fa fa-eye"></i></v-btn>
-        <v-btn v-else @click="edit_preview=true"><i class="fa fa-eye"></i></v-btn>
-        <small class="ml-2">Markdown Syntax Supported</small>
-      </div>
-    </div>
-    <div class="clear"></div>
-    <ac-comment
-        v-for="comm in comment.children"
-        :commentobj="comm"
-        :key="comm.id"
-        :reader="reader"
-        :toplevel="false"
-        :parent="comment"
-        v-if="comment.children !== []"
-        :alternate="!alternate"
-        :locked="locked"
-    ></ac-comment>
-    <div class="card-block" v-if="replying && !reply_preview"><textarea :disabled="reply_disabled" v-model="reply"
-                                                                        class="comment-field"
-                                                                        contenteditable="true"></textarea></div>
-    <div v-if="replying && reply_preview" v-html="parseReply()"></div>
-    <div v-if="!comment.deleted">
-      <div class="text-left pull-left preview-button-container" v-if="!comment.children.length && editing">
-        <v-btn v-if="edit_preview" color="info" @click="edit_preview=false"><i class="fa fa-eye"></i></v-btn>
-        <v-btn v-else @click="edit_preview=true"><i class="fa fa-eye"></i></v-btn>
-        <small class="ml-2">Markdown Syntax Supported</small>
-      </div>
-      <div class="text-left pull-left preview-button-container" v-if="replying">
-        <v-btn v-if="reply_preview" color="info" @click="reply_preview=false"><i class="fa fa-eye"></i></v-btn>
-        <v-btn v-else @click="reply_preview=true"><i class="fa fa-eye"></i></v-btn>
-        <small class="ml-2">Markdown Syntax Supported</small>
-      </div>
-      <div class="text-right comment-actions pull-right">
-        <v-btn v-if="myComment && !comment.children.length && !editing" @click="deleteComment()" color="error"><i
+        <v-btn small v-if="editing" @click="save()" color="success"><i class="fa fa-save"></i></v-btn>
+      </v-flex>
+      <v-flex xs11 offset-xs1>
+        <ac-comment
+            v-for="comm in comment.children"
+            :commentobj="comm"
+            :key="comm.id"
+            :reader="reader"
+            :toplevel="false"
+            :parent="comment"
+            v-if="comment.children !== []"
+            :alternate="!alternate"
+            :locked="locked"
+        />
+      </v-flex>
+      <v-flex xs11 offset-xs1 class="pr-1" v-if="replying && !reply_preview"><textarea :disabled="reply_disabled" v-model="reply"
+                                                                          class="comment-field"
+                                                                          contenteditable="true"></textarea></v-flex>
+      <v-flex xs11 offset-xs1 v-if="replying && reply_preview" v-html="parseReply()" />
+      <v-flex xs12 md4 text-xs-right v-if="!comment.children.length && editing && !comment.deleted">
+        <div class="preview-block">
+          <div class="text-xs-center">
+            <v-btn small v-if="edit_preview" color="info" @click="edit_preview=false"><i class="fa fa-eye"></i></v-btn>
+            <v-btn small v-else @click="edit_preview=true"><i class="fa fa-eye"></i></v-btn><br />
+            <small class="ml-2">Markdown Syntax Supported</small>
+          </div>
+        </div>
+      </v-flex>
+      <v-flex xs12 md3 text-xs-right v-if="replying && !comment.deleted">
+        <div class="preview-block">
+          <div class="text-xs-center">
+          <v-btn small v-if="reply_preview" color="info" @click="reply_preview=false"><i class="fa fa-eye"></i></v-btn>
+          <v-btn small v-else @click="reply_preview=true"><i class="fa fa-eye"></i></v-btn><br />
+          <small class="ml-2">Markdown Syntax Supported</small>
+          </div>
+        </div>
+      </v-flex>
+      <v-flex class="text-xs-right comment-actions" v-if="!comment.deleted">
+        <v-btn small v-if="myComment && !comment.children.length && !editing" @click="deleteComment()" color="error"><i
             class="fa fa-trash-o"></i></v-btn>
-        <v-btn v-if="myComment && !comment.children.length && editing" @click="editing=false" color="error"><i
+        <v-btn small v-if="myComment && !comment.children.length && editing" @click="editing=false" color="error"><i
             class="fa fa-times"></i></v-btn>
-        <v-btn v-if="myComment && !editing && !comment.children.length && !locked" color="warning" @click="editing=true"><i
+        <v-btn small v-if="myComment && !editing && !comment.children.length && !locked" color="warning" @click="editing=true"><i
             class="fa fa-edit"></i></v-btn>
-        <v-btn v-if="editing && !comment.children.length" @click="save()" :disabled="edit_disabled"
+        <v-btn small v-if="editing && !comment.children.length" @click="save()" :disabled="edit_disabled"
                   color="success"><i class="fa fa-save"></i></v-btn>
-        <v-btn v-if="toplevel && nesting && !replying && !locked" @click="replying=true" color="info"><i class="fa fa-reply"></i>
+        <v-btn small v-if="toplevel && nesting && !replying && !locked" @click="replying=true" color="info"><i class="fa fa-reply"></i>
         </v-btn>
-        <v-btn v-if="replying" @click="replying=false" color="danger"><i class="fa fa-times"></i></v-btn>
-        <v-btn v-if="replying" @click="postReply()" :disabled="reply_disabled" color="success"><i
+        <v-btn small v-if="replying" @click="replying=false" color="danger"><i class="fa fa-times"></i></v-btn>
+        <v-btn small v-if="replying" @click="postReply()" :disabled="reply_disabled" color="success"><i
             class="fa fa-save"></i></v-btn>
         <div v-if="editing && reply_preview" v-html="parseReply()"></div>
-      </div>
-    </div>
-    <div class="clear"></div>
-  </div>
+      </v-flex>
+    </v-layout>
+  </v-card>
 </template>
 
-<style>
-  .comment-info, .comment-content {
+<style scoped>
+  .preview-block {
     display: inline-block;
-    line-height: 1rem;
   }
-  .comment-content {
-    margin-left: 1rem;
-    vertical-align: middle;
+  .comment-block {
+    word-wrap: break-word;
   }
 </style>
 
