@@ -1,40 +1,26 @@
 <template>
   <div class="wrapper">
-    <input ref="searchField" v-model="query" class="form-control" @input="runQuery" @keydown.enter.prevent="grabFirst" :placeholder="schema.placeholder" />
+    <v-text-field ref="searchField" v-model="query" class="form-control" @input="runQuery" @keydown.enter.prevent.native="grabFirst" :placeholder="schema.placeholder" />
     <div class="mb-2 mt-2">
       <div v-if="userIDs.length === 0">Click a user to add them.</div>
-      <div v-else><div class="user-name" v-for="user in users" :key="user.id">{{user.username}} <i class="fa fa-times" @click="delUser(user)"></i></div></div>
+      <div v-else><v-chip close v-for="user in users" :key="user.id" :user="user" @input="delUser(user)" >{{user.username}}</v-chip></div>
     </div>
       <div v-if="response" class="user-search-results">
         <div style="display:inline-block"
-             v-for="user in response.results"
+             v-for="(user, index) in response.results"
              :user="user"
              :key="user.id"
         >
           <ac-avatar
               :user="user"
               @click.native.prevent.capture="addUser(user)"
+              class="pt-1"
+              :class="{primary: index === 0}"
           />
         </div>
       </div>
   </div>
 </template>
-
-<style scoped>
-  .user-name {
-    display: inline-block;
-    padding-left: .5rem;
-    padding-right: .5rem;
-    background-color: #dffffc;
-    border-radius: .25rem;
-    border: solid 1px black;
-    margin-left: .1rem;
-    margin-right: .1rem;
-  }
-  .user-preview:first-child {
-    background-color: #dffffc;
-  }
-</style>
 
 <script>
   import { abstractField } from 'vue-form-generator'

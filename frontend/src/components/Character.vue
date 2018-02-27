@@ -106,12 +106,12 @@
             </v-toolbar-items>
           </v-toolbar>
           <v-card-text>
-            <form @submit.prevent="$refs.newUploadForm.submit">
+            <v-form @submit.prevent="$refs.newUploadForm.submit">
               <ac-form-container ref="newUploadForm" :schema="newUploadSchema" :model="newUploadModel"
                                  :options="newUploadOptions" :success="addUpload"
                                  :url="`/api/profiles/v1/account/${user.username}/characters/${character.name}/assets/`"
               />
-            </form>
+            </v-form>
           </v-card-text>
         </v-card>
       </v-dialog>
@@ -134,13 +134,13 @@
             </v-toolbar-items>
           </v-toolbar>
           <v-card-text>
-            <form @submit.prevent="$refs.settingsForm.submit">
+            <v-form @submit.prevent="$refs.settingsForm.submit">
               <ac-form-container ref="settingsForm" :schema="settingsSchema" :model="settingsModel"
                                  :options="newUploadOptions" :success="updateSettings"
                                  method="PATCH"
                                  :url="url"
               />
-            </form>
+            </v-form>
           </v-card-text>
         </v-card>
       </v-dialog>
@@ -423,8 +423,11 @@
           fields: [{
             type: 'v-text',
             label: 'Name',
+            required: true,
+            featured: true,
             hint: "This will change the URL of your character's page. Any existing links to them may be broken.",
-            model: 'name'
+            model: 'name',
+            validator: VueFormGenerator.validators.string
           }, {
             type: 'v-checkbox',
             label: 'Open Requests',
@@ -495,7 +498,8 @@
             label: 'File',
             model: 'file',
             required: true
-          }]
+          }
+          ]
         },
         newUploadOptions: {
           validateAfterLoad: false,

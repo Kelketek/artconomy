@@ -85,7 +85,7 @@
         cardType: 'unknown',
         newCardSchema: {
           fields: [{
-            type: 'input',
+            type: 'v-text',
             inputType: 'text',
             label: 'First Name',
             model: 'first_name',
@@ -94,7 +94,7 @@
             validator: VueFormGenerator.validators.string
           },
           {
-            type: 'input',
+            type: 'v-text',
             inputType: 'text',
             label: 'Last Name',
             model: 'last_name',
@@ -102,7 +102,7 @@
             required: true,
             validator: VueFormGenerator.validators.string
           }, {
-            type: 'input',
+            type: 'v-text',
             inputType: 'text',
             label: 'Card Number',
             model: 'card_number',
@@ -111,7 +111,7 @@
             required: true,
             validator: cardSelectValidator
           }, {
-            type: 'input',
+            type: 'v-text',
             inputType: 'text',
             label: 'Expiration Date',
             model: 'exp_date',
@@ -120,7 +120,7 @@
             required: true,
             validator: VueFormGenerator.validators.string
           }, {
-            type: 'select',
+            type: 'v-select',
             model: 'country',
             values: [],
             required: true,
@@ -129,7 +129,7 @@
               hideNoneSelectedText: true
             }
           }, {
-            type: 'input',
+            type: 'v-text',
             inputType: 'text',
             label: 'Zip/Postal Code',
             model: 'zip',

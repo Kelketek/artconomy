@@ -32,7 +32,7 @@
     "vue-recaptcha": "^1.1.0",
     "vue-router": "^3.0.1",
     "vue-upload-component": "^2.8.3",
-    "vuetify": "^1.0.2"
+    "vuetify": "^1.0.4"
   },
   "devDependencies": {
     "autoprefixer": "^7.1.2",

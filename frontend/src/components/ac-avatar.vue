@@ -6,7 +6,7 @@
             <img :src="user.avatar_url">
           </v-avatar>
         </router-link>
-        <div class="avatar-username text-xs-center"><router-link :to="{name: 'Profile', params: {username: user.username}}">{{ user.username }}</router-link> <span v-if="removable" @click="remove"><i class="fa fa-times"></i></span></div>
+        <div class="avatar-username text-xs-center"><router-link :to="{name: 'Profile', params: {username: user.username}}">{{ user.username }}</router-link> <v-icon small v-if="removable" @click="remove">close</v-icon></div>
       </div>
   </div>
 </template>

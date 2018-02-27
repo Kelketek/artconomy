@@ -1,28 +1,23 @@
 <template>
-  <v-container v-if="results.length">
+  <v-container v-if="results.length" grid-list-md>
     <slot name="header" v-if="show && header" />
     <v-layout row wrap>
-      <v-layout xs12 text-xs-center v-if="error">
+      <v-flex xs12 text-xs-center v-if="error">
         <p>{{error}}</p>
-      </v-layout>
-      <v-flex xs12 v-if="show">
-        <b-pagination-nav
-            align="center" :use-router="true" :base-url="baseURL" :link-gen="linkGen"
-            v-model="currentPage" :per-page="pageSize" :number-of-pages="totalPages"
-            v-if="totalPages > 1"
-        ></b-pagination-nav>
+      </v-flex>
+    </v-layout>
+    <v-layout row wrap>
+      <v-flex xs12 text-xs-center v-if="show">
+        <v-pagination v-model="currentPage" :length="totalPages" v-if="totalPages > 1" />
       </v-flex>
       <ac-gallery-preview
           :asset="asset"
           v-for="(asset, key, index) in results"
           :key="key" :id="'asset-' + key"
+          xs12 sm4 lg3
       />
-      <v-flex xs12 v-if="show">
-        <b-pagination-nav
-            align="center" :use-router="true" :base-url="baseURL" :link-gen="linkGen"
-            v-model="currentPage" :per-page="pageSize" :number-of-pages="totalPages"
-            v-if="totalPages > 1"
-        ></b-pagination-nav>
+      <v-flex xs12 text-xs-center v-if="show">
+        <v-pagination v-model="currentPage" :length="totalPages" v-if="totalPages > 1" />
       </v-flex>
     </v-layout>
   </v-container>

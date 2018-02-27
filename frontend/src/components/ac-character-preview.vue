@@ -1,5 +1,5 @@
 <template>
-  <v-flex xs12 md4 lg3 class="character-preview clickable">
+  <v-flex v-bind="$attrs">
     <v-card class="character-card">
       <router-link :to="{name: 'Character', params: {username: character.user.username, characterName: character.name}}">
         <v-card-media
@@ -17,7 +17,7 @@
           <router-link :to="{name: 'Character', params: {username: character.user.username, characterName: character.name}}">
             {{ character.name }}
           </router-link>
-        <span v-if="removable" @click="remove"><i class="fa fa-times"></i></span>
+        <span v-if="removable" @click="remove"><v-icon>close</v-icon></span>
       </v-card-title>
     </v-card>
     <div class="showcase-button-container" v-if="canShowcase">

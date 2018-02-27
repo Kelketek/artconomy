@@ -1,136 +1,173 @@
 <template>
-  <div class="container">
-    <div class="row shadowed" v-if="submission">
-      <div class="col-12 character-refsheet-container text-xs-center text-section">
-        <ac-asset :asset="submission" thumb-name="gallery" :rating="rating" />
-      </div>
-      <div class="col-md-3 col-12 text-section pt-3 pl-4">
-        <ac-tag-display
-            :editable="true"
-            :url="`${url}/tag/`"
-            :callback="populateSubmission"
-            :tag-list="submission.tags"
-            :controls="controls"
-        />
-      </div>
-      <div class="col-12 col-md-5 text-section pt-3 pl-4">
-        <ac-patchfield v-model="submission.title" name="title" styleclass="name-edit" placeholder="Set the title" :editmode="editing" :url="url" />
-        <div class="card-block submission-description"><ac-patchfield v-model="submission.caption" name="caption" placeholder="Add a caption" :multiline="true" :editmode="editing" :url="url" /></div>
-      </div>
-      <div class="col-12 col-md-4 text-section pt-3 pl-4 text-xs-center">
-        <div class="info-block" v-if="!artistUploader">
-          <h4>Added By</h4>
-          <ac-avatar :user="submission.uploaded_by" />
-        </div>
-        <div
-            v-if="submission.artists.length"
-            class="info-block"
-        >
-          <h4 v-if="submission.artists.length === 1">Artist</h4>
-          <h4 v-else>Artists</h4>
-          <ac-avatar
-              v-for="artist in submission.artists"
-              :key="artist.id"
-              :user="artist"
-              :removable="(artist.username === viewer.username) || controls"
-              :remove-url="`${url}tag-artists/`"
-              field-name="artists"
-              :callback="populateSubmission"
-          />
-        </div>
-        <div>
-          <ac-patchdropdown v-model="submission.rating" :editmode="editing" :options="ratingsShort()" :url="url" name="rating" />
-          <ac-action v-if="editing" :url="url" method="PATCH" :send="{private: !submission.private}" :success="populateSubmission">
-            <span v-if="submission.private"><i class="fa fa-eye-slash"></i> Hide submission</span>
-            <span v-else><i class="fa fa-eye"></i> Unhide submission</span>
-          </ac-action>
-          <div v-else-if="controls" class="text-xs-center">
-            <span v-if="submission.private"><i class="fa fa-eye"></i> Submission is public</span>
-            <span v-else><i class="fa fa-eye-slash"></i> Submission is private</span>
-          </div>
-          <ac-action :url="`${url}favorite/`" :success="populateSubmission">
-            <span v-if="submission.favorite"><i class="fa fa-heart-o"></i> Remove from Favorites ({{ submission.favorite_count }})</span>
-            <span v-else><i class="fa fa-heart"></i> Add to Favorites ({{ submission.favorite_count }})</span>
-          </ac-action>
-          <v-btn v-if="!showArtistTagging" @click="showArtistTagging=true">Tag Artists</v-btn>
-          <div v-else>
-            <form>
-              <ac-form-container
-                  ref="artistTaggingForm"
-                  :url="`${this.url}tag-artists/`"
-                  :schema="artistTaggingSchema"
-                  :options="artistTaggingOptions"
-                  :model="artistTaggingModel"
-                  :success="postArtistTag"
-              />
-              <v-btn variant="danger" @click.prevent="showArtistTagging=false">Cancel</v-btn>
-              <v-btn type="submit" @click.prevent="$refs.artistTaggingForm.submit">Tag!</v-btn>
-            </form>
-          </div>
-        </div>
-        <p v-if="controls && submission.order" class="mb-0">
-          From <router-link :to="{name: 'Order', params: {orderID: submission.order, username: submission.uploaded_by.username}}">Order {{submission.order}}</router-link>
-        </p>
-        <p v-if="(submission.order && ownWork ) || controls && (submission.order)" class="mb-0">
-          From <router-link :to="{name: 'Sale', params: {orderID: submission.order, username: viewer.username}}">Sale {{submission.order}}</router-link>
-        </p>
-        <i v-if="controls && !editing" class="ml-2 fa fa-2x fa-lock clickable pull-right" @click="edit"></i>
-        <i v-if="controls && editing" class="ml-2 fa fa-2x fa-unlock clickable pull-right" @click="lock"></i>
-        <div v-if="controls" class="pull-right">
-          <ac-action :button="false"
-                     variant="danger" :confirm="true" :success="goBack"
-                     :url="`/api/profiles/v1/asset/${submission.id}/`"
-                     method="DELETE" class="fg-dark"
-          ><i class="fg-light fa fa-trash-o fa-2x"></i>
+  <div>
+    <v-container v-if="submission">
+      <v-layout row wrap>
+        <v-flex text-xs-center xs12>
+          <ac-asset :asset="submission" thumb-name="gallery" :rating="rating" />
+        </v-flex>
+      </v-layout>
+      <v-card v-if="submission">
+        <v-speed-dial v-if="controls" bottom right fixed v-model="editing" elevation-10 style="z-index: 4">
+          <v-btn v-if="controls"
+                 dark
+                 color="blue"
+                 fab
+                 hover
+                 slot="activator"
+                 v-model="editing"
+          >
+            <v-icon>lock</v-icon>
+            <v-icon>lock_open</v-icon>
+          </v-btn>
+          <ac-action
+              variant="danger" :confirm="true" :success="goBack"
+              :url="url"
+              method="DELETE"
+              dark small color="red" fab
+          ><v-icon>delete</v-icon>
             <div class="text-left" slot="confirmation-text">Are you sure you wish to delete this submission? This cannot be undone!</div>
           </ac-action>
-        </div>
-      </div>
-      <div class="col-12 text-section mb-2">
-        <h2>Featuring</h2>
-      </div>
-      <ac-character-preview
-          v-for="char in submission.characters"
-          :character="char"
-          :expanded="true"
-          :key="char.id"
-          :remove-url="`${url}tag-characters/`"
-          :removable="(char.user.username === viewer.username) || controls"
-          :callback="populateSubmission"
-          :can-showcase="controls"
-          :asset-id="submission.id"
-      >
-      </ac-character-preview>
-      <div class="col-12 text-xs-center mb-2">
-        <v-btn v-if="!showCharacterTagging" @click="showCharacterTagging=true">Tag Characters</v-btn>
-        <div v-else>
-          <form>
-            <ac-form-container
-                ref="characterTaggingForm"
-                :url="`${this.url}tag-characters/`"
-                :schema="characterTaggingSchema"
-                :options="characterTaggingOptions"
-                :model="characterTaggingModel"
-                :success="postCharacterTag"
+          <v-btn v-if="controls"
+                 dark
+                 color="orange"
+                 fab
+                 hover
+                 small
+                 @click="showSettings=true"
+          >
+            <v-icon>settings</v-icon>
+          </v-btn>
+        </v-speed-dial>
+        <v-layout row wrap>
+          <v-flex xs12 md3 class="pt-3 pl-4">
+            <ac-tag-display
+                :editable="true"
+                :url="`${url}/tag/`"
+                :callback="populateSubmission"
+                :tag-list="submission.tags"
+                :controls="controls"
             />
-            <v-btn variant="danger" @click.prevent="showCharacterTagging=false">Cancel</v-btn>
-            <v-btn type="submit" @click.prevent="$refs.characterTaggingForm.submit">Tag!</v-btn>
-          </form>
-        </div>
-      </div>
-    </div>
+          </v-flex>
+          <v-flex xs12 md5 class="pt-3 pl-4">
+            <h1><ac-patchfield v-model="submission.title" name="title" styleclass="name-edit" placeholder="Set the title" :editmode="editing" :url="url" /></h1>
+            <div class="card-block submission-description"><ac-patchfield v-model="submission.caption" name="caption" placeholder="Add a caption" :multiline="true" :editmode="editing" :url="url" /></div>
+          </v-flex>
+          <v-flex xs12 md4 text-xs-center class="pt-3 pl-4">
+            <div class="info-block" v-if="!artistUploader">
+              <h4>Added By</h4>
+              <ac-avatar :user="submission.uploaded_by" />
+            </div>
+            <div
+                v-if="submission.artists.length"
+                class="info-block"
+            >
+              <h4 v-if="submission.artists.length === 1">Artist</h4>
+              <h4 v-else>Artists</h4>
+              <ac-avatar
+                  v-for="artist in submission.artists"
+                  :key="artist.id"
+                  :user="artist"
+                  :removable="(artist.username === viewer.username) || controls"
+                  :remove-url="`${url}tag-artists/`"
+                  field-name="artists"
+                  :callback="populateSubmission"
+              />
+            </div>
+            <div>
+              {{ ratingText }}
+              <div v-if="controls" class="text-xs-center">
+                <span v-if="submission.private"><i class="fa fa-eye"></i> Submission is public</span>
+                <span v-else><i class="fa fa-eye-slash"></i> Submission is private</span>
+              </div>
+              <ac-action :url="`${url}favorite/`" :success="populateSubmission">
+                <span v-if="submission.favorite"><v-icon>favorite_outline</v-icon> Remove from Favorites ({{ submission.favorite_count }})</span>
+                <span v-else><v-icon>favorite</v-icon> Add to Favorites ({{ submission.favorite_count }})</span>
+              </ac-action>
+              <v-btn v-if="!showArtistTagging" @click="showArtistTagging=true">Tag Artists</v-btn>
+              <div v-else>
+                <form>
+                  <ac-form-container
+                      ref="artistTaggingForm"
+                      :url="`${this.url}tag-artists/`"
+                      :schema="artistTaggingSchema"
+                      :options="artistTaggingOptions"
+                      :model="artistTaggingModel"
+                      :success="postArtistTag"
+                  />
+                  <v-btn variant="danger" @click.prevent="showArtistTagging=false">Cancel</v-btn>
+                  <v-btn type="submit" @click.prevent="$refs.artistTaggingForm.submit" class="pulse">Tag!</v-btn>
+                </form>
+              </div>
+            </div>
+            <p v-if="controls && submission.order" class="mb-0">
+              From <router-link :to="{name: 'Order', params: {orderID: submission.order, username: submission.uploaded_by.username}}">Order {{submission.order}}</router-link>
+            </p>
+            <p v-if="(submission.order && ownWork ) || controls && (submission.order)" class="mb-0">
+              From <router-link :to="{name: 'Sale', params: {orderID: submission.order, username: viewer.username}}">Sale {{submission.order}}</router-link>
+            </p>
+          </v-flex>
+        </v-layout>
+      </v-card>
+      <v-card class="mt-3">
+        <v-layout>
+          <v-flex xs12 class="pl-2">
+            <h2>Featuring</h2>
+          </v-flex>
+        </v-layout>
+      </v-card>
+    </v-container>
+    <v-container grid-list-md v-if="submission">
+      <v-layout row wrap>
+          <ac-character-preview
+              v-for="char in submission.characters"
+              :character="char"
+              :expanded="true"
+              :key="char.id"
+              :remove-url="`${url}tag-characters/`"
+              :removable="(char.user.username === viewer.username) || controls"
+              :callback="populateSubmission"
+              :can-showcase="controls"
+              :asset-id="submission.id"
+              xs12 sm4 lg3
+          >
+          </ac-character-preview>
+          <v-flex xs12 class="text-xs-center">
+            <v-btn v-if="!showCharacterTagging" @click="showCharacterTagging=true">Tag Characters</v-btn>
+            <div v-else>
+              <form>
+                <ac-form-container
+                    ref="characterTaggingForm"
+                    :url="`${this.url}tag-characters/`"
+                    :schema="characterTaggingSchema"
+                    :options="characterTaggingOptions"
+                    :model="characterTaggingModel"
+                    :success="postCharacterTag"
+                />
+                <v-btn variant="danger" @click.prevent="showCharacterTagging=false">Cancel</v-btn>
+                <v-btn type="submit" @click.prevent="$refs.characterTaggingForm.submit" class="pulse">Tag!</v-btn>
+              </form>
+            </div>
+          </v-flex>
+      </v-layout>
+    </v-container>
     <div class="mb-5">
       <ac-comment-section v-if="submission" :commenturl="commenturl" :nesting="true" :locked="submission.comments_disabled" />
-      <div class="row shadowed" v-if="submission && controls && editing">
-        <div class="col-12 text-section text-xs-center">
-          <ac-patchbutton :url="url" name="comments_disabled" v-model="submission.comments_disabled" true-text="Disable Commments" false-text="Enable Comments" />
-        </div>
-      </div>
     </div>
   </div>
 </template>
 
-<style>
+<style scoped lang="scss">
+  @import '../custom-bootstrap';
+  .pulse {
+    animation: pulse_animation 2s infinite;
+  }
+  @keyframes pulse_animation {
+    0% { background-color: $primary; }
+    25% {background-color: lighten($primary, 20)}
+    50% { background-color: $secondary; }
+    75% {background-color: lighten($secondary, 20)}
+    100% { background-color: $primary; }
+  }
   .info-block {
     display: inline-block;
     text-align: center;
@@ -138,7 +175,7 @@
 </style>
 
 <script>
-  import { artCall, setMetaContent, textualize, ratingsShort } from '../lib'
+  import { artCall, setMetaContent, textualize, ratingsShort, RATINGS_SHORT } from '../lib'
   import AcCharacterPreview from './ac-character-preview'
   import Editable from '../mixins/editable'
   import Viewer from '../mixins/viewer'
@@ -225,6 +262,9 @@
       },
       ownWork () {
         return this.isArtist(this.viewer.username)
+      },
+      ratingText () {
+        return RATINGS_SHORT[this.submission.rating]
       }
     },
     methods: {

@@ -1,27 +1,24 @@
 <template>
-  <div class="container">
-    <div class="row-centered" v-if="response !== null">
-      <div class="col-12 text-xs-center" v-if="error">
+  <v-container grid-list-md>
+    <v-layout row wrap text-xs-centered v-if="response !== null">
+      <v-flex xs12 v-if="error">
         <p>{{error}}</p>
-      </div>
-      <b-pagination-nav
-          align="center" :use-router="true" :base-url="baseURL" :link-gen="linkGen"
-          v-model="currentPage" :per-page="pageSize" :number-of-pages="totalPages"
-          v-if="totalPages > 1"
-      ></b-pagination-nav>
+      </v-flex>
+      <v-flex xs12>
+        <v-pagination v-model="currentPage" :length="totalPages" v-if="totalPages > 1" />
+      </v-flex>
       <ac-character-preview
         v-for="char in response.results"
         v-bind:character="char"
         v-bind:expanded="true"
         v-bind:key="char.id"
+        xs12 sm4 lg3
       >
       </ac-character-preview>
-      <b-pagination-nav
-          align="center" :use-router="true" :base-url="baseURL" :link-gen="linkGen"
-          v-model="currentPage" :per-page="pageSize" :number-of-pages="totalPages"
-          v-if="totalPages > 1"
-      ></b-pagination-nav>
-    </div>
+      <v-flex xs12>
+        <v-pagination v-model="currentPage" :length="totalPages" v-if="totalPages > 1" />
+      </v-flex>
+    </v-layout>
     <div class="row" v-else>
       <div class="text-xs-center" style="width:100%"><i class="fa fa-spin fa-spinner fa-5x"></i></div>
     </div>
@@ -41,7 +38,7 @@
         <v-btn v-else color="primary" size="lg" @click="showNew=true" id="new-char-button">Add a new character</v-btn>
       </div>
     </div>
-  </div>
+  </v-container>
 </template>
 
 <script>

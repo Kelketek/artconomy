@@ -312,6 +312,7 @@
     created () {
       document.title = `Account settings for ${this.$route.params.username}`
       setMetaContent('description', 'Configure your account settings for Artconomy.')
+      window.settings = this
     },
     computed: {
       tab: paramHandleMap('tabName', ['subTabName']),

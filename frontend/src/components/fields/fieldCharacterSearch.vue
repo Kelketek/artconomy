@@ -1,37 +1,23 @@
 <template>
   <div class="wrapper">
-    <input ref="searchField" v-model="query" class="form-control" @input="runQuery" @keydown.enter.prevent="grabFirst" :placeholder="schema.placeholder" />
+    <v-text-field ref="searchField" v-model="query" class="form-control" @input.native="runQuery" @keydown.enter.prevent.native="grabFirst" :placeholder="schema.placeholder" />
     <div class="mb-2 mt-2">
       <div v-if="characterIDs.length === 0">Click a character to add them.</div>
-      <div v-else><div class="char-name" v-for="char in characters" :key="char.id"><span v-if="char.user.username !== viewer.username">({{char.user.username}}) </span>{{char.name}} <i class="fa fa-times" @click="delChar(char)"></i></div></div>
+      <div v-else><v-chip close @input="delChar(char)" class="char-name" v-for="char in characters" :key="char.id"><span v-if="char.user.username !== viewer.username">({{char.user.username}}) </span>{{char.name}}</v-chip></div>
     </div>
       <div v-if="response" class="char-search-results">
         <ac-character-preview
-            v-for="char in response.results"
+            v-for="(char, index) in response.results"
             v-bind:character="char"
             v-bind:expanded="true"
             v-bind:key="char.id"
             @click.native.prevent.capture="addChar(char)"
-        ></ac-character-preview>
+            xs12 sm4 lg3
+            :class="{primary: index === 0}"
+        />
       </div>
   </div>
 </template>
-
-<style scoped>
-  .char-name {
-    display: inline-block;
-    padding-left: .5rem;
-    padding-right: .5rem;
-    background-color: #dffffc;
-    border-radius: .25rem;
-    border: solid 1px black;
-    margin-left: .1rem;
-    margin-right: .1rem;
-  }
-  .character-preview:first-child {
-    background-color: #dffffc;
-  }
-</style>
 
 <script>
   import { abstractField } from 'vue-form-generator'
