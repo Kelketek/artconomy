@@ -25,7 +25,7 @@ export default {
   computed: {
     editing: {
       get () {
-        return this.controls && this.$route.query.editing
+        return Boolean(this.controls && this.$route.query.editing)
       },
       set (value) {
         if (value) {

@@ -30,9 +30,6 @@
       thumbName: {
         default: 'thumbnail'
       }
-    },
-    created () {
-      console.log(this.thumbName)
     }
   }
 </script>

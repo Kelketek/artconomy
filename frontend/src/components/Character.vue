@@ -54,7 +54,7 @@
                 :url="`${url}tag/`"
                 :callback="loadCharacter"
                 :tag-list="character.tags"
-                :controls="controls"
+                :controls="controls && editing"
                 tab-name="characters"
                 v-if="character.tags.length || editing"
             />
@@ -130,7 +130,7 @@
             <v-toolbar-title>Character Settings</v-toolbar-title>
             <v-spacer />
             <v-toolbar-items>
-              <v-btn dark flat submit @click.prevent="$refs.settingsForm.submit">Save Settings</v-btn>
+              <v-btn dark flat @click.prevent="$refs.settingsForm.submit">Save Settings</v-btn>
             </v-toolbar-items>
           </v-toolbar>
           <v-card-text>
@@ -189,8 +189,30 @@
         </v-expansion-panel-content>
       </v-expansion-panel>
     </div>
-    <v-card v-if="assets && assets.length">
-      <v-layout row wrap>
+    <v-card v-if="character && character.open_requests && (character.open_requests_restrictions|| editing)" class="mb-3">
+      <v-layout row wrap class="pt-3 pl-4 pr-4 pb-3">
+        <v-flex xs12>
+          <h2 class="mb-0">
+            Commission Restrictions
+          </h2>
+        </v-flex>
+        <v-flex xs12>
+          <ac-patchfield v-model="character.open_requests_restrictions" name="open_requests_restrictions" :multiline="true" :editmode="editing" :url="url" />
+        </v-flex>
+      </v-layout>
+    </v-card>
+    <v-card v-if="character && assets && assets.length">
+      <v-layout v-if="assets.length === 1" row wrap>
+        <v-flex xs12  class="pl-2 pr-2 pt-3 pb-3">
+          <ac-gallery-preview
+              v-if="character.primary_asset && character.primary_asset.id"
+              :asset="character.primary_asset"
+              containerStyle="min-height: 50rem;"
+              thumb-name="gallery"
+          />
+        </v-flex>
+      </v-layout>
+      <v-layout v-else row wrap>
         <v-flex xs12 lg9 class="pl-2 pr-2 pt-3 pb-3">
           <ac-gallery-preview
               v-if="character.primary_asset && character.primary_asset.id"
@@ -316,7 +338,6 @@
         this.$refs.updater.showUpdater()
       },
       updateSettings (response) {
-        console.log('I ran!')
         this.loadCharacter(response)
       },
       loadCharacter (response) {
@@ -406,10 +427,10 @@
             model: 'name'
           }, {
             type: 'v-checkbox',
-            label: 'Open Commissions',
+            label: 'Open Requests',
             hint: 'Allow other people to commission pieces of your character. You ' +
                   'can specify restrictions for commissions after this is enabled.',
-            model: 'open_commissions'
+            model: 'open_requests'
           }, {
             type: 'v-checkbox',
             label: 'Private',
