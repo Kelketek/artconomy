@@ -61,16 +61,15 @@
           </div>
         </v-flex>
         <v-flex xs12 sm6 md5 lg4>
-          <div class="character-panel-preview text-xs-center">
-            <router-link v-if="character.primary_asset && character.primary_asset.id" :to="{name: 'Submission', params: {assetID: character.primary_asset.id}}">
-              <ac-asset
-                  img-class="character-refsheet"
-                  thumb-name="gallery"
-                  :asset="character.primary_asset"
-              />
-            </router-link>
-            <img class="character-refsheet" v-else src="/static/images/default-avatar.png"/>
-          </div>
+          <router-link v-if="character.primary_asset && character.primary_asset.id" :to="{name: 'Submission', params: {assetID: character.primary_asset.id}}">
+            <v-card-media :src="$img(character.primary_asset, 'thumbnail')">
+              <ac-asset :asset="character.primary_asset" thumbnail="thumbnail" :text-only="true" />
+            </v-card-media>
+          </router-link>
+          <!-- Will render placeholder. -->
+          <v-card-media v-else :src="$img(character.primary_asset, 'thumbnail')">
+            <ac-asset :asset="character.primary_asset" thumbnail="thumbnail" :text-only="true" />
+          </v-card-media>
         </v-flex>
       </v-layout>
     </v-card>
@@ -88,34 +87,6 @@
           <ac-avatar :user="character.user" />
         </v-flex>
       </v-layout>
-    </v-card>
-    <v-card class="row mb-3 shadowed text-section pt-2" v-if="character && (character.colors.length || editing)">
-      <div class="col-12 text-xs-center"><h3>Colors</h3></div>
-      <ac-ref-color
-          v-for="refColor in character.colors"
-          :key="refColor.id"
-          :ref-color="refColor"
-          :editing="editing"
-          :callback="fetchCharacter"
-          :url="`/api/profiles/v1/account/${user.username}/characters/${character.name}/colors/${refColor.id}/`"
-      />
-      <div class="col-12 mt-2 mb-2">
-        <div class="row-centered" v-if="character.colors.length < 10">
-          <div class="col-12 col-md-6 col-centered text-xs-center">
-            <v-btn v-if="controls && editing && !showNewColor" color="primary" @click="showNewColor = true">Add a color reference</v-btn>
-            <div v-if="showNewColor && editing">
-              <ac-form-container
-                  ref="newColorForm" :schema="newColorSchema" :model="newColorModel"
-                  class="text-xs-center"
-                  :options="newUploadOptions" :success="addColor"
-                  :url="`/api/profiles/v1/account/${user.username}/characters/${character.name}/colors/`"
-              />
-              <v-btn @click="showNewColor=false">Cancel</v-btn>
-              <v-btn type="submit" color="primary" @click.prevent="$refs.newColorForm.submit">Add Color</v-btn>
-            </div>
-          </div>
-        </div>
-      </div>
       <v-dialog
           v-model="showUpload"
           fullscreen
@@ -174,7 +145,51 @@
         </v-card>
       </v-dialog>
     </v-card>
-    <v-card v-if="character">
+    <div v-if="character" class="color-section">
+      <v-layout row>
+        <v-flex
+            v-for="refColor in character.colors"
+            :key="refColor.id"
+            :style="'background-color: ' + refColor.color + ';' + 'height: 3rem;'" />
+      </v-layout>
+      <v-expansion-panel v-if="character.colors.length || editing" class="mb-3">
+        <v-expansion-panel-content>
+          <div slot="header" class="text-xs-center"><v-icon>palette</v-icon></div>
+          <v-card class="row mb-3 pl-2 pr-2 shadowed text-section pt-2" v-if="character && (character.colors.length || editing)">
+            <div v-for="(refColor, index) in character.colors" :key="refColor.id">
+              <ac-ref-color
+                  :ref-color="refColor"
+                  :editing="editing"
+                  :callback="fetchCharacter"
+                  :url="`/api/profiles/v1/account/${user.username}/characters/${character.name}/colors/${refColor.id}/`"
+                  class="mb-1 mt-1"
+              />
+              <v-divider v-if="index + 1 < character.colors.length" :key="`divider-${index}`" />
+            </div>
+            <div class="col-12 mt-2 mb-2">
+              <div class="row-centered" v-if="character.colors.length < 10">
+                <div class="col-12 col-md-6 col-centered text-xs-center">
+                  <v-btn v-if="controls && editing && !showNewColor" color="primary" @click="showNewColor = true">Add a color reference</v-btn>
+                  <div v-if="showNewColor && editing">
+                    <form @submit.prevent="$refs.newColorForm.submit">
+                      <ac-form-container
+                          ref="newColorForm" :schema="newColorSchema" :model="newColorModel"
+                          class="text-xs-center"
+                          :options="newUploadOptions" :success="addColor"
+                          :url="`/api/profiles/v1/account/${user.username}/characters/${character.name}/colors/`"
+                      />
+                      <v-btn @click="showNewColor=false">Cancel</v-btn>
+                      <v-btn type="submit" color="primary">Add Color</v-btn>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </v-card>
+        </v-expansion-panel-content>
+      </v-expansion-panel>
+    </div>
+    <v-card v-if="assets && assets.length">
       <v-layout row wrap>
         <v-flex xs12 lg9 class="pl-2 pr-2 pt-3 pb-3">
           <ac-gallery-preview
@@ -226,6 +241,9 @@
   }
   .vue-form-generator .wrapper input[type="color"] {
     display: inline-block;
+  }
+  .color-section .header__icon {
+    display: none;
   }
 </style>
 
@@ -364,8 +382,7 @@
             required: true,
             validator: VueFormGenerator.validators.string
           }, {
-            type: 'input',
-            inputType: 'color',
+            type: 'v-color',
             label: 'Color',
             model: 'color',
             required: true,
@@ -390,9 +407,8 @@
           }, {
             type: 'v-checkbox',
             label: 'Open Commissions',
-            hint: 'Write any particular conditions or requests to be considered when someone else is ' +
-                  'commissioning a piece with this character. ' +
-                  'For example, "This character should only be drawn in Safe for Work Pieces."',
+            hint: 'Allow other people to commission pieces of your character. You ' +
+                  'can specify restrictions for commissions after this is enabled.',
             model: 'open_commissions'
           }, {
             type: 'v-checkbox',

@@ -18,6 +18,7 @@ import fieldVText from './components/fields/fieldVText'
 import fieldVCheckbox from './components/fields/fieldVCheckbox'
 import fieldVSelect from './components/fields/fieldVSelect'
 import fieldVFileUpload from './components/fields/fieldVFileUpload'
+import fieldVColor from './components/fields/fieldVColor'
 import { md, formatSize } from './lib'
 import {ErrorHandler} from './plugins/error'
 import {router} from './router'
@@ -46,6 +47,7 @@ Vue.component('fieldVText', fieldVText)
 Vue.component('fieldVCheckbox', fieldVCheckbox)
 Vue.component('fieldVSelect', fieldVSelect)
 Vue.component('fieldVFileUpload', fieldVFileUpload)
+Vue.component('fieldVColor', fieldVColor)
 
 Vue.filter('formatSize', formatSize)
 

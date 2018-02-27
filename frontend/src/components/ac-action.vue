@@ -1,6 +1,7 @@
 <template>
   <div class="ac-action-container">
     <v-btn
+        v-if="button"
         :disabled="isDisabled"
         :type="type"
         @click.native.stop="performAction"
@@ -16,6 +17,7 @@
     >
       <slot />
     </v-btn>
+    <div v-else @click="performAction" class="clickable"><slot /></div>
     <v-dialog v-model="showModal" max-width="500px" v-if="confirm">
       <v-card>
         <v-card-title>

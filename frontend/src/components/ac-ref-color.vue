@@ -1,19 +1,19 @@
 <template>
-  <div class="col-6 color-reference">
-    <div class="row">
-      <div class="col-3 text-right">
-        {{refColor.note}}
-        <span v-if="editing">&nbsp;
-          <ac-action :url="url" :success="callback" method="DELETE" variant="danger">
-            <i class="fa fa-trash-o"></i>
-          </ac-action>
-        </span>
-      </div>
-      <div class="col-6">
-        <div class="swatch text-xs-center" :style="swatchStyle"><div class="ref-container">{{refColor.color}}</div></div>
-      </div>
-    </div>
-  </div>
+  <v-layout row class="pl-2 pr-2">
+    <v-flex xs3>
+      {{refColor.note}}
+    </v-flex>
+    <v-flex xs6 class="text-xs-center color-notation">
+      {{refColor.color}}
+    </v-flex>
+    <v-flex xs2 v-if="editing" :style="'background-color: ' + refColor.color">&nbsp;</v-flex>
+    <v-flex xs3 v-else :style="'background-color: ' + refColor.color">
+      &nbsp;
+    </v-flex>
+    <v-flex xs1 v-if="editing" class="text-xs-center">
+      <ac-action :success="callback" method="DELETE" :url="url" :button="false"><v-icon>delete</v-icon></ac-action>
+    </v-flex>
+  </v-layout>
 </template>
 <style scoped lang="scss">
   @import '../custom-bootstrap';
@@ -30,6 +30,10 @@
     background-color: $dark-beige;
     color: $dark-purple;
     opacity: 1;
+  }
+  .color-notation {
+    font-family: monospace;
+    text-transform: uppercase;
   }
 </style>
 <script>

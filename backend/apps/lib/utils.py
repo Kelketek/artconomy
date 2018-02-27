@@ -174,7 +174,7 @@ def tag_list_cleaner(tag_list):
 def add_tags(request, target, field_name='tags'):
     if 'tags' not in request.data:
         return False, Response(status=status.HTTP_400_BAD_REQUEST, data={'tags': ['This field is required.']})
-    tag_list = request.data['tags']
+    tag_list = request.POST.getlist('tags')
     # Slugify, but also do a few tricks to reduce the incidence rate of duplicates.
     tag_list = tag_list_cleaner(tag_list)
     try:

@@ -1,6 +1,5 @@
 from django.contrib.contenttypes.models import ContentType
-from django.db import connection
-from django.test import TestCase, override_settings
+from django.test import TestCase
 from django.utils import timezone
 from freezegun import freeze_time
 

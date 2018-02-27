@@ -29,7 +29,7 @@ class User(AbstractEmailUser):
     dwolla_url = URLField(blank=True, default='')
     favorites = ManyToManyField('ImageAsset', blank=True, related_name='favorited_by')
     commissions_closed = BooleanField(
-        default=True, db_index=True,
+        default=False, db_index=True,
         help_text="When enabled, no one may commission you."
     )
     use_load_tracker = BooleanField(
