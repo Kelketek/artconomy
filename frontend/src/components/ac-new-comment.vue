@@ -16,15 +16,15 @@
       <v-flex xs12 md4 text-xs-right v-if="editing">
         <div class="preview-block">
           <div class="text-xs-center">
-          <v-btn small v-if="edit_preview" color="info" @click="edit_preview=false"><i class="fa fa-eye"></i></v-btn>
-          <v-btn small v-else @click="edit_preview=true"><i class="fa fa-eye"></i></v-btn><br />
+          <v-btn small v-if="edit_preview" color="info" @click="edit_preview=false"><v-icon>visibility</v-icon></v-btn>
+          <v-btn small v-else @click="edit_preview=true"><v-icon>visibility</v-icon></v-btn><br />
           <small class="ml-2">Markdown Syntax Supported</small>
           </div>
         </div>
       </v-flex>
       <v-flex v-if="editing" text-xs-right>
-        <v-btn small @click="editing=false" color="danger"><i class="fa fa-times"></i></v-btn>
-        <v-btn small @click="save()" color="success"><i class="fa fa-save"></i></v-btn>
+        <v-btn small @click="editing=false" color="danger"><v-icon>close</v-icon></v-btn>
+        <v-btn small @click="save()" color="success"><v-icon>save</v-icon></v-btn>
       </v-flex>
     </v-layout>
   </v-card>

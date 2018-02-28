@@ -22,20 +22,20 @@
       <v-flex xs12 md4 text-xs-right v-if="comment.children.length && editing">
         <div class="preview-block">
           <div class="text-xs-center">
-            <v-btn small v-if="edit_preview" variant="info" @click="edit_preview=false"><i class="fa fa-eye"></i></v-btn>
-            <v-btn small v-else @click="edit_preview=true"><i class="fa fa-eye"></i></v-btn><br />
+            <v-btn small v-if="edit_preview" variant="info" @click="edit_preview=false"><v-icon>visibility</v-icon></v-btn>
+            <v-btn small v-else @click="edit_preview=true"><v-icon>visibility</v-icon></v-btn><br />
             <small class="ml-2">Markdown Syntax Supported</small>
           </div>
         </div>
       </v-flex>
       <v-flex text-xs-right v-if="comment.children.length && !comment.deleted">
-        <v-btn small v-if="myComment && !editing" @click="deleteComment()" color="error"><i class="fa fa-trash-o"></i>
+        <v-btn small v-if="myComment && !editing" @click="deleteComment()" color="error"><v-icon>delete</v-icon>
         </v-btn>
-        <v-btn small v-if="myComment && editing" @click="editing=false" color="error"><i class="fa fa-times"></i>
+        <v-btn small v-if="myComment && editing" @click="editing=false" color="error"><v-icon>close</v-icon>
         </v-btn>
-        <v-btn small v-if="myComment && !editing && !locked" @click="editing=true" color="warning"><i class="fa fa-edit"></i>
+        <v-btn small v-if="myComment && !editing && !locked" @click="editing=true" color="warning"><v-icon>edit</v-icon>
         </v-btn>
-        <v-btn small v-if="editing" @click="save()" color="success"><i class="fa fa-save"></i></v-btn>
+        <v-btn small v-if="editing" @click="save()" color="success"><v-icon>save</v-icon></v-btn>
       </v-flex>
       <v-flex xs11 offset-xs1>
         <ac-comment
@@ -57,8 +57,8 @@
       <v-flex xs12 md4 text-xs-right v-if="!comment.children.length && editing && !comment.deleted">
         <div class="preview-block">
           <div class="text-xs-center">
-            <v-btn small v-if="edit_preview" color="info" @click="edit_preview=false"><i class="fa fa-eye"></i></v-btn>
-            <v-btn small v-else @click="edit_preview=true"><i class="fa fa-eye"></i></v-btn><br />
+            <v-btn small v-if="edit_preview" color="info" @click="edit_preview=false"><v-icon>visibility</v-icon></v-btn>
+            <v-btn small v-else @click="edit_preview=true"><v-icon>visibility</v-icon></v-btn><br />
             <small class="ml-2">Markdown Syntax Supported</small>
           </div>
         </div>
@@ -66,26 +66,35 @@
       <v-flex xs12 md3 text-xs-right v-if="replying && !comment.deleted">
         <div class="preview-block">
           <div class="text-xs-center">
-          <v-btn small v-if="reply_preview" color="info" @click="reply_preview=false"><i class="fa fa-eye"></i></v-btn>
-          <v-btn small v-else @click="reply_preview=true"><i class="fa fa-eye"></i></v-btn><br />
+          <v-btn small v-if="reply_preview" color="info" @click="reply_preview=false"><v-icon>visibility</v-icon></v-btn>
+          <v-btn small v-else @click="reply_preview=true"><v-icon>visibility</v-icon></v-btn><br />
           <small class="ml-2">Markdown Syntax Supported</small>
           </div>
         </div>
       </v-flex>
       <v-flex class="text-xs-right comment-actions" v-if="!comment.deleted">
-        <v-btn small v-if="myComment && !comment.children.length && !editing" @click="deleteComment()" color="error"><i
-            class="fa fa-trash-o"></i></v-btn>
-        <v-btn small v-if="myComment && !comment.children.length && editing" @click="editing=false" color="error"><i
-            class="fa fa-times"></i></v-btn>
-        <v-btn small v-if="myComment && !editing && !comment.children.length && !locked" color="warning" @click="editing=true"><i
-            class="fa fa-edit"></i></v-btn>
-        <v-btn small v-if="editing && !comment.children.length" @click="save()" :disabled="edit_disabled"
-                  color="success"><i class="fa fa-save"></i></v-btn>
-        <v-btn small v-if="toplevel && nesting && !replying && !locked" @click="replying=true" color="info"><i class="fa fa-reply"></i>
+        <v-btn small v-if="myComment && !comment.children.length && !editing" @click="deleteComment()" color="error">
+          <v-icon>delete</v-icon>
         </v-btn>
-        <v-btn small v-if="replying" @click="replying=false" color="danger"><i class="fa fa-times"></i></v-btn>
-        <v-btn small v-if="replying" @click="postReply()" :disabled="reply_disabled" color="success"><i
-            class="fa fa-save"></i></v-btn>
+        <v-btn small v-if="myComment && !comment.children.length && editing" @click="editing=false" color="error">
+          <v-icon>close</v-icon>
+        </v-btn>
+        <v-btn small v-if="myComment && !editing && !comment.children.length && !locked" color="warning" @click="editing=true">
+          <v-icon>edit</v-icon>
+        </v-btn>
+        <v-btn small v-if="editing && !comment.children.length" @click="save()" :disabled="edit_disabled"
+                  color="success">
+          <v-icon>save</v-icon>
+        </v-btn>
+        <v-btn small v-if="toplevel && nesting && !replying && !locked" @click="replying=true" color="info">
+          <v-icon>reply</v-icon>
+        </v-btn>
+        <v-btn small v-if="replying" @click="replying=false" color="danger">
+          <v-icon>close</v-icon>
+        </v-btn>
+        <v-btn small v-if="replying" @click="postReply()" :disabled="reply_disabled" color="success">
+          <v-icon>save</v-icon>
+        </v-btn>
         <div v-if="editing && reply_preview" v-html="parseReply()"></div>
       </v-flex>
     </v-layout>
