@@ -67,7 +67,7 @@
             </v-card-media>
           </router-link>
           <!-- Will render placeholder. -->
-          <v-card-media v-else :src="$img(character.primary_asset, 'thumbnail')" :contain="true">
+          <v-card-media v-else :src="$img(character.primary_asset, 'thumbnail')">
             <ac-asset :asset="character.primary_asset" thumbnail="thumbnail" :text-only="true" />
           </v-card-media>
         </v-flex>
@@ -96,6 +96,8 @@
         <ac-form-dialog ref="settingsForm" :schema="settingsSchema" :model="settingsModel"
                            :options="newUploadOptions" :success="updateSettings"
                            method="PATCH"
+                           submit-text="Save"
+                           title="Character Settings"
                            :url="url"
                            v-model="showSettings"
         />

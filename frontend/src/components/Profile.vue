@@ -1,35 +1,38 @@
 <template>
-  <div class="container">
-    <div class="row shadowed">
-      <div class="col-2 text-section pt-2">
-        <ac-avatar :user="user" />
-      </div>
-      <div class="text-section col-7 pt-2">
-        <h3>About {{user.username}}</h3>
-        <ac-patchfield
-            v-model="user.biography"
-            name="biography"
-            :multiline="true"
-            :editmode="controls"
-            :url="url"
-            placeholder="Write a bit about yourself!"
-        />
-      </div>
-      <div class="col-3 text-section pt-2">
-
-      </div>
-    </div>
-    <div class="row shadowed pb-2">
-      <div class="col-12 text-section pt-2 mb-2">
-        <h2>Characters</h2>
-      </div>
-      <Characters
-          :username="username"
-          embedded="true"
-          :limit="5"
-          :endpoint="`/api/profiles/v1/account/${username}/characters/`" />
-    </div>
-  </div>
+  <v-container>
+    <v-card>
+      <v-layout row wrap class="mb-4">
+        <v-flex xs1 class="pt-2">
+          <ac-avatar :user="user" />
+        </v-flex>
+        <v-flex xs7 class="pt-2">
+          <h3>About {{user.username}}</h3>
+          <ac-patchfield
+              v-model="user.biography"
+              name="biography"
+              :multiline="true"
+              :editmode="controls"
+              :url="url"
+              placeholder="Write a bit about yourself!"
+          />
+        </v-flex>
+        <v-flex xs3>
+        </v-flex>
+      </v-layout>
+    </v-card>
+    <v-card>
+      <v-layout row wrap>
+        <v-flex xs12 class="pl-2">
+          <h2>Characters</h2>
+        </v-flex>
+      </v-layout>
+    </v-card>
+    <Characters
+        :username="username"
+        embedded="true"
+        :limit="5"
+        :endpoint="`/api/profiles/v1/account/${username}/characters/`" />
+  </v-container>
 </template>
 
 <script>

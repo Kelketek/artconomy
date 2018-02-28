@@ -174,7 +174,7 @@ class Character(Model):
         default=False, help_text="Only show this character to people I have explicitly shared it to."
     )
     open_requests = BooleanField(
-        default=True, help_text="Allow others to request commissions with my character, such as for gifts."
+        default=False, help_text="Allow others to request commissions with my character, such as for gifts."
     )
     open_requests_restrictions = CharField(
         max_length=2000,

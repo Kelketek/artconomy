@@ -29,6 +29,7 @@
     </div>
     <ac-form-dialog ref="newCharForm" :schema="newCharSchema" :model="newCharModel"
                        :options="newCharOptions" :success="addCharacter"
+                       title="New Character"
                        :url="`/api/profiles/v1/account/${this.user.username}/characters/`"
                        v-model="showNew"
     />

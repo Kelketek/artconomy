@@ -11,10 +11,10 @@
         <v-btn icon @click.native="toggle = false" dark>
           <v-icon>close</v-icon>
         </v-btn>
-        <v-toolbar-title>New Product</v-toolbar-title>
+        <v-toolbar-title>{{title}}</v-toolbar-title>
         <v-spacer />
         <v-toolbar-items>
-          <v-btn dark flat @click.prevent="$refs.form.submit">Create</v-btn>
+          <v-btn dark flat @click.prevent="$refs.form.submit">{{ submitText }}</v-btn>
         </v-toolbar-items>
       </v-toolbar>
       <v-card-text>
