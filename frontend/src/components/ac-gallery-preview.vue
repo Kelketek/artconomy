@@ -4,6 +4,7 @@
         <router-link :to="{name: 'Submission', params: {assetID: asset.id}}">
           <v-card-media
               :src="$img(asset, thumbName)"
+              :contain="contain"
           >
             <ac-asset :asset="asset" :text-only="true" :thumb-name="thumbName" :container-style="containerStyle" />
           </v-card-media>
@@ -29,6 +30,9 @@
       containerStyle: {},
       thumbName: {
         default: 'thumbnail'
+      },
+      contain: {
+        default: false
       }
     }
   }

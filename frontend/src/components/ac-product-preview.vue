@@ -3,6 +3,7 @@
     <v-card>
       <router-link :to="{name: 'Product', params: {username: product.user.username, productID: product.id}}">
         <v-card-media
+            :contain="contain"
             :src="$img(product, 'thumbnail')"
         >
             <ac-asset
@@ -47,7 +48,7 @@
   import AcAsset from './ac-asset'
   export default {
     name: 'ac-product-preview',
-    props: ['product'],
+    props: ['product', 'contain'],
     components: {AcAsset}
   }
 </script>

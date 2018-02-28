@@ -3,7 +3,7 @@
     <v-select
         v-model="selection"
         :id="'field-' + schema.model"
-        :items="schema.values()"
+        :items="items"
         :label="schema.label"
         :rules="validators"
         :required="schema.required"
@@ -30,13 +30,13 @@
         },
         set (value) {
           this.value = value
-        },
-        items () {
-          if (Array.isArray(this.schema.values)) {
-            return this.schema.values
-          }
-          return this.schema.values()
         }
+      },
+      items () {
+        if (Array.isArray(this.schema.values)) {
+          return this.schema.values
+        }
+        return this.schema.values()
       }
     },
     created () {

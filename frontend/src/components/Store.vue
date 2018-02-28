@@ -34,34 +34,11 @@
         </p>
       </v-flex>
     </v-layout>
-    <v-dialog
-        v-model="showNew"
-        fullscreen
-        transition="dialog-bottom-transition"
-        :overlay="false"
-        scrollable
-    >
-      <v-card tile>
-        <v-toolbar card dark color="primary">
-          <v-btn icon @click.native="showNew = false" dark>
-            <v-icon>close</v-icon>
-          </v-btn>
-          <v-toolbar-title>New Product</v-toolbar-title>
-          <v-spacer />
-          <v-toolbar-items>
-            <v-btn dark flat @click.prevent="$refs.newProdForm.submit">Create</v-btn>
-          </v-toolbar-items>
-        </v-toolbar>
-        <v-card-text>
-          <form @submit.prevent="$refs.newProdForm.submit">
-            <ac-form-container ref="newProdForm" :schema="newProdSchema" :model="newProdModel"
-                               :options="newProdOptions" :success="addProduct"
-                               :url="`/api/sales/v1/account/${this.username}/products/`"
-            />
-          </form>
-        </v-card-text>
-      </v-card>
-    </v-dialog>
+    <ac-form-dialog title="New Product" submit-text="Create" v-model="showNew"
+                    ref="newProdForm" :schema="newProdSchema" :model="newProdModel"
+                         :options="newProdOptions" :success="addProduct"
+                         :url="`/api/sales/v1/account/${this.username}/products/`"
+      />
   </v-container>
 </template>
 
@@ -77,10 +54,15 @@
   import AcFormContainer from './ac-form-container'
   import VueFormGenerator from 'vue-form-generator'
   import { ratings, validateNonEmpty } from '../lib'
+  import AcFormDialog from './ac-form-dialog'
 
   export default {
     name: 'Store',
-    components: {AcProductPreview, AcFormContainer},
+    components: {
+      AcFormDialog,
+      AcProductPreview,
+      AcFormContainer
+    },
     props: ['endpoint'],
     mixins: [Viewer, Perms, Paginated],
     data () {

@@ -1,21 +1,26 @@
 <template>
-    <div class="row">
-      <div class="col-4 col-lg-2">
-        <router-link :to="{name: 'Sale', params: {orderID: event.target.id, username: viewer.username}}">
-          <ac-asset class="p-2" :terse="true" :asset="event.data.display" thumb-name="notification" />
-        </router-link>
-      </div>
-      <div class="col-6">
-        <router-link :to="{name: 'Sale', params: {orderID: event.target.id, username: viewer.username}}">
-          <div class="pt-1 pb-1">
-            <p><strong>Sale #{{event.target.id}} {{message}}</strong></p>
-          </div>
-        </router-link>
-      </div>
-    </div>
+  <v-list-tile>
+    <router-link :to="{name: 'Sale', params: {orderID: event.target.id, username: viewer.username}}">
+      <v-badge left overlap>
+        <span slot="badge" v-if="notification.unread">*</span>
+        <v-list-tile-avatar>
+          <img :src="$img(event.data.display, 'notification')" >
+        </v-list-tile-avatar>
+      </v-badge>
+    </router-link>
+    <v-list-tile-content>
+      <router-link :to="{name: 'Sale', params: {orderID: event.target.id, username: viewer.username}}">
+        <strong>Sale #{{event.target.id}} {{message}}</strong>
+      </router-link>
+    </v-list-tile-content>
+  </v-list-tile>
 </template>
 
 <style scoped>
+  .notification-asset img {
+    max-width: 100%;
+    max-height: 100%;
+  }
 </style>
 
 <script>
@@ -36,7 +41,7 @@
   export default {
     name: 'ac-sale-update',
     components: {AcAsset, AcAction},
-    props: ['event'],
+    props: ['notification'],
     data () {
       return {}
     },
@@ -52,6 +57,9 @@
           return this.event.target.stream_link
         }
         return ''
+      },
+      event () {
+        return this.notification.event
       }
     }
   }

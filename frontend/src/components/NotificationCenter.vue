@@ -1,40 +1,40 @@
 <template>
-  <div class="notifications-center container">
-    <div v-if="response !== null && !growing.length" class="row">
-      <div class=" col-12 text-xs-center">
+  <v-container class="notifications-center container">
+    <v-layout row wrap v-if="response !== null && !growing.length">
+      <v-flex xs12 text-xs-center>
         <p>You do not have any notifications at this time.</p>
-      </div>
-    </div>
-    <div v-else>
-      <div class="row mt-3">
-        <h3>Your Notifications</h3>
-      </div>
-      <div
-          v-for="notification in growing"
-          :key="notification.id"
-          v-observe-visibility="markRead(notification.id)"
-          class="notification" :class="{'unread': !notification.read}">
-        <component :is="dynamicComponent(notification.event.type)" :event="notification.event" />
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-12 text-xs-center">
+      </v-flex>
+    </v-layout>
+    <v-layout row wrap v-else>
+      <v-flex xs12>
+        <v-card>
+          <v-flex xs12 class="pl-2 mb-2">
+            <h3>Your Notifications</h3>
+          </v-flex>
+        </v-card>
+      </v-flex>
+      <v-flex xs12>
+        <v-card>
+          <v-list two-line>
+            <template v-for="(notification, index) in growing">
+              <component :is="dynamicComponent(notification.event.type)"
+                         :key="notification.id" v-observe-visibility="markRead(notification.id)"
+                         class="notification" :notification="notification"
+              />
+              <v-divider v-if="index + 1 < growing.length" :key="`divider-${index}`" />
+            </template>
+          </v-list>
+        </v-card>
+      </v-flex>
+    </v-layout>
+    <v-layout row wrap>
+      <v-flex xs12 text-xs-center>
         <div v-if="growing !== null" v-observe-visibility="moreNotifications"></div>
         <div v-if="fetching"><i class="fa fa-spin fa-spinner fa-5x"></i></div>
-      </div>
-    </div>
-  </div>
+      </v-flex>
+    </v-layout>
+  </v-container>
 </template>
-
-<style scoped lang="scss">
-  @import '../custom-bootstrap';
-  .notification {
-    border-bottom: 1px solid $dark-gray;
-  }
-  .unread {
-    background-color: #ffefff;
-  }
-</style>
 
 <script>
   import Paginated from '../mixins/paginated'

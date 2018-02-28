@@ -3,6 +3,7 @@
     <v-card class="character-card">
       <router-link :to="{name: 'Character', params: {username: character.user.username, characterName: character.name}}">
         <v-card-media
+            :contain="contain"
             :src="$img(character.primary_asset, 'thumbnail')"
         >
             <ac-asset
@@ -92,6 +93,9 @@
       },
       assetId: {
         default: 0
+      },
+      contain: {
+        default: false
       }
     },
     computed: {

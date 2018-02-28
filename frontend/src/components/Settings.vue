@@ -292,7 +292,7 @@
           validateAfterChanged: true
         },
         avatarModel: {
-          avatar: ''
+          avatar: []
         },
         avatarOptions: {
           validateAfterLoad: false,

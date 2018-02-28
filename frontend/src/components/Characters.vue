@@ -19,25 +19,31 @@
         <v-pagination v-model="currentPage" :length="totalPages" v-if="totalPages > 1" />
       </v-flex>
     </v-layout>
-    <div class="row" v-else>
-      <div class="text-xs-center" style="width:100%"><i class="fa fa-spin fa-spinner fa-5x"></i></div>
-    </div>
-    <div class="row-centered" v-if="controls">
+    <v-layout row wrapped v-else>
+      <v-flex xs12 text-xs-center><i class="fa fa-spin fa-spinner fa-5x"></i></v-flex>
+    </v-layout>
+    <div class="row-centered" v-if="controls && embedded">
       <div class="col-12 pt-3 col-md-4 col-centered text-xs-center">
-        <div v-if="showNew">
-          <form>
-            <ac-form-container ref="newCharForm" :schema="newCharSchema" :model="newCharModel"
-                                :options="newCharOptions" :success="addCharacter"
-                               :url="`/api/profiles/v1/account/${this.user.username}/characters/`"
-            >
-              <v-btn @click="showNew=false">Cancel</v-btn>
-              <v-btn type="submit" color="primary" @click.prevent="$refs.newCharForm.submit">Create</v-btn>
-            </ac-form-container>
-          </form>
-        </div>
-        <v-btn v-else color="primary" size="lg" @click="showNew=true" id="new-char-button">Add a new character</v-btn>
+        <v-btn color="primary" size="lg" @click="showNew=true" id="new-char-button">Add a new character</v-btn>
       </div>
     </div>
+    <ac-form-dialog ref="newCharForm" :schema="newCharSchema" :model="newCharModel"
+                       :options="newCharOptions" :success="addCharacter"
+                       :url="`/api/profiles/v1/account/${this.user.username}/characters/`"
+                       v-model="showNew"
+    />
+    <v-btn v-if="controls && !embedded"
+           dark
+           color="green"
+           fab
+           hover
+           fixed
+           right
+           bottom
+           @click="showNew=true"
+    >
+      <v-icon large>add</v-icon>
+    </v-btn>
   </v-container>
 </template>
 
@@ -48,9 +54,10 @@
   import VueFormGenerator from 'vue-form-generator'
   import AcFormContainer from './ac-form-container'
   import AcCharacterPreview from './ac-character-preview'
+  import AcFormDialog from './ac-form-dialog'
 
   export default {
-    components: {AcFormContainer, AcCharacterPreview},
+    components: {AcFormDialog, AcFormContainer, AcCharacterPreview},
     name: 'Characters',
     mixins: [Viewer, Perms, Paginated],
     props: ['embedded', 'endpoint'],

@@ -67,7 +67,7 @@
             </v-card-media>
           </router-link>
           <!-- Will render placeholder. -->
-          <v-card-media v-else :src="$img(character.primary_asset, 'thumbnail')">
+          <v-card-media v-else :src="$img(character.primary_asset, 'thumbnail')" :contain="true">
             <ac-asset :asset="character.primary_asset" thumbnail="thumbnail" :text-only="true" />
           </v-card-media>
         </v-flex>
@@ -87,63 +87,18 @@
           <ac-avatar :user="character.user" />
         </v-flex>
       </v-layout>
-      <v-dialog
-          v-model="showUpload"
-          fullscreen
-          transition="dialog-bottom-transition"
-          :overlay="false"
-          scrollable
-      >
-        <v-card tile>
-          <v-toolbar card dark color="primary">
-            <v-btn icon @click.native="showUpload = false" dark>
-              <v-icon>close</v-icon>
-            </v-btn>
-            <v-toolbar-title>New Upload</v-toolbar-title>
-            <v-spacer />
-            <v-toolbar-items>
-              <v-btn dark flat @click.prevent="$refs.newUploadForm.submit">Upload</v-btn>
-            </v-toolbar-items>
-          </v-toolbar>
-          <v-card-text>
-            <v-form @submit.prevent="$refs.newUploadForm.submit">
-              <ac-form-container ref="newUploadForm" :schema="newUploadSchema" :model="newUploadModel"
-                                 :options="newUploadOptions" :success="addUpload"
-                                 :url="`/api/profiles/v1/account/${user.username}/characters/${character.name}/assets/`"
-              />
-            </v-form>
-          </v-card-text>
-        </v-card>
-      </v-dialog>
-      <v-dialog
-          v-model="showSettings"
-          fullscreen
-          transition="dialog-bottom-transition"
-          :overlay="false"
-          scrollable
-      >
-        <v-card tile>
-          <v-toolbar card dark color="primary">
-            <v-btn icon @click.native="showSettings = false" dark>
-              <v-icon>close</v-icon>
-            </v-btn>
-            <v-toolbar-title>Character Settings</v-toolbar-title>
-            <v-spacer />
-            <v-toolbar-items>
-              <v-btn dark flat @click.prevent="$refs.settingsForm.submit">Save Settings</v-btn>
-            </v-toolbar-items>
-          </v-toolbar>
-          <v-card-text>
-            <v-form @submit.prevent="$refs.settingsForm.submit">
-              <ac-form-container ref="settingsForm" :schema="settingsSchema" :model="settingsModel"
-                                 :options="newUploadOptions" :success="updateSettings"
-                                 method="PATCH"
-                                 :url="url"
-              />
-            </v-form>
-          </v-card-text>
-        </v-card>
-      </v-dialog>
+        <ac-form-dialog ref="newUploadForm" :schema="newUploadSchema" :model="newUploadModel"
+                           :options="newUploadOptions" :success="addUpload"
+                           v-model="showUpload"
+                           :url="`/api/profiles/v1/account/${user.username}/characters/${character.name}/assets/`"
+        />
+
+        <ac-form-dialog ref="settingsForm" :schema="settingsSchema" :model="settingsModel"
+                           :options="newUploadOptions" :success="updateSettings"
+                           method="PATCH"
+                           :url="url"
+                           v-model="showSettings"
+        />
     </v-card>
     <div v-if="character" class="color-section">
       <v-layout row>
@@ -209,6 +164,7 @@
               :asset="character.primary_asset"
               containerStyle="min-height: 50rem;"
               thumb-name="gallery"
+              :contain="true"
           />
         </v-flex>
       </v-layout>
@@ -219,6 +175,7 @@
               :asset="character.primary_asset"
               containerStyle="min-height: 50rem;"
               thumb-name="gallery"
+              :contain="true"
           />
           <v-flex class="text-xs-center mt-4 hidden-md-and-down">
             <router-link :to="{name: 'CharacterGallery', params: {username: username, characterName: characterName}}">
@@ -285,11 +242,13 @@
   import AcAsset from './ac-asset'
   import AcTagDisplay from './ac-tag-display'
   import AcRefColor from './ac-ref-color'
+  import AcFormDialog from './ac-form-dialog'
 
   export default {
     name: 'Character',
     mixins: [Viewer, Perms, Editable],
     components: {
+      AcFormDialog,
       AcRefColor,
       AcTagDisplay,
       AcGalleryPreview,
@@ -383,7 +342,7 @@
           title: '',
           caption: '',
           private: false,
-          rating: 0,
+          rating: null,
           file: [],
           comments_disabled: false
         },
