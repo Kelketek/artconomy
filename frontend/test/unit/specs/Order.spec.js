@@ -34,7 +34,7 @@ function genRevisions () {
       },
       'created_on': '2018-01-02T20:49:40.521880Z',
       'uploaded_by': 'Fox',
-      'order': 1,
+      'order': 1
     },
     {
       'id': 8,
@@ -431,7 +431,7 @@ describe('Order.vue', () => {
     expect(wrapper.find('.pay-button').exists()).to.equal(false)
     expect(wrapper.find('.refund-button').exists()).to.equal(true)
     expect(wrapper.find('#rating').exists()).to.equal(true)
-    expect(wrapper.find('.revisions-section').exists()).to.equal(false)
+    expect(wrapper.find('.revisions-section').exists()).to.equal(true)
     expect(wrapper.find('.final-preview').exists()).to.equal(false)
     expect(wrapper.find('.dispute-button').exists()).to.equal(false)
     expect(wrapper.find('.approve-button').exists()).to.equal(false)

@@ -1,20 +1,23 @@
 <template>
-  <v-list-tile>
+  <v-list-tile avatar>
     <router-link :to="{name: 'Order', params: {orderID: event.target.id, username: viewer.username}}">
       <v-badge left overlap>
         <span slot="badge" v-if="!notification.read">*</span>
         <v-list-tile-avatar>
-          <img :src="$img(event.data.display, 'notification')" >
+          <img :src="$img(event.data.display, 'notification', true)" >
         </v-list-tile-avatar>
       </v-badge>
     </router-link>
     <v-list-tile-content>
       <router-link :to="{name: 'Order', params: {orderID: event.target.id, username: viewer.username}}">
-        <strong>Order #{{event.target.id}} {{message}}</strong>
+        <v-list-tile-title>Order #{{event.target.id}}</v-list-tile-title>
       </router-link>
-      <p v-if="streamingLink">
-        <a target="_blank" :href="streamingLink">Your artist is streaming this commission! Click here!</a>
-      </p>
+      <v-list-tile-sub-title>
+        {{ message }}
+      </v-list-tile-sub-title>
+      <v-list-tile-sub-title v-if="streamingLink">
+        <a target="_blank" :href="streamingLink">Click here for stream!</a>
+      </v-list-tile-sub-title>
     </v-list-tile-content>
   </v-list-tile>
 </template>

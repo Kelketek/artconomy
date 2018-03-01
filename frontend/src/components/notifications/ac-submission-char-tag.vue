@@ -1,31 +1,36 @@
 <template>
-  <div class="row">
-    <div class="col-4 col-lg-2" v-if="event.target">
-      <router-link :to="{name: 'Submission', params: {assetID: event.target.id}}">
-        <ac-asset class="p-2" :terse="true" :asset="event.target" thumb-name="notification" />
+  <v-list-tile avatar>
+    <router-link v-if="event.data.character" :to="{name: 'Submission', params: {assetID: event.target.id}}">
+      <v-badge left overlap>
+        <span slot="badge" v-if="!notification.read">*</span>
+        <v-list-tile-avatar>
+          <img :src="$img(event.target, 'notification', true)" >
+        </v-list-tile-avatar>
+      </v-badge>
+    </router-link>
+    <v-badge left v-else overlap>
+      <span slot="badge" v-if="!notification.read">*</span>
+      <v-list-tile-avatar>
+        <img :src="$img(event.target.primary_asset, 'notification', true)" >
+      </v-list-tile-avatar>
+    </v-badge>
+    <v-list-tile-content>
+      <v-list-tile-title>
+        <span v-if="event.data.character">{{event.data.character.name}}</span>
+        <span v-else>A removed character</span>
+      </v-list-tile-title>
+      <v-list-tile-sub-title>
+        was tagged in your submission titled '{{event.target.title}}'
+      </v-list-tile-sub-title>
+    </v-list-tile-content>
+    <v-list-tile-action>
+      <router-link :to="{name: 'Character', params: {character: event.data.character.name, username: event.data.character.user.username}}">
+        <v-avatar>
+          <img :src="$img(event.data.character.primary_asset, 'notification', true)">
+        </v-avatar>
       </router-link>
-    </div>
-    <div class="col-6">
-      <div class="p2">
-        <p>
-            <span v-if="event.data.character">{{event.data.character.name}}</span>
-            <span v-else>A removed character</span>
-            was tagged in your submission titled '{{event.target.title}}'
-          <span v-if="event.data.user">by
-            <strong>
-              <router-link :to="{name: 'Profile', params: {username: event.data.user.username}}">{{event.data.user.username}}</router-link>.
-            </strong>
-          </span>
-            <span v-else>by a removed user.</span>
-        </p>
-        <p v-if="event.data.character">
-          <router-link :to="{name: 'Character', params: {character: event.data.character.name, username: event.data.character.user.username}}">
-            <ac-asset :terse="true" :asset="event.data.character.primary_asset" thumb-name="notification" />
-          </router-link>
-        </p>
-      </div>
-    </div>
-  </div>
+    </v-list-tile-action>
+  </v-list-tile>
 </template>
 
 <script>

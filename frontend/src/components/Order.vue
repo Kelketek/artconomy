@@ -351,15 +351,19 @@
           </form>
         </v-flex>
       </v-layout>
+    </v-container>
+    <v-container fluid>
       <v-layout row wrap class="mt-3">
         <v-flex xs12>
           <ac-comment-section :commenturl="commenturl" :nesting="false" />
         </v-flex>
       </v-layout>
     </v-container>
-    <v-layout row wrap class="row" v-if="!order">
-      <v-flex xs12 text-xs-center><i class="fa fa-spin fa-spinner fa-5x"></i></v-flex>
-    </v-layout>
+    <v-container>
+      <v-layout row wrap class="row" v-if="!order">
+        <v-flex xs12 text-xs-center><i class="fa fa-spin fa-spinner fa-5x"></i></v-flex>
+      </v-layout>
+    </v-container>
   </div>
 </template>
 

@@ -1,30 +1,36 @@
 <template>
-  <router-link :to="{name: 'Submission', params: {'assetID': event.target.id}}">
-    <div class="row">
-      <div class="col-4 col-lg-2">
-        <ac-asset class="p-2" :terse="true" :asset="event.target" thumb-name="notification" />
-      </div>
-      <div class="col-6">
-        <div class="p2">
-          <p>
-            <strong>
-              Tags have been added to your submission<span v-if="event.target.title"> titled '{{event.target.title}}'</span>!
-            </strong>
-          </p>
-          <p v-if="tags.length">
-            <ac-tag
-                v-for="tag in event.data.tags"
-                :tag="tag"
-                :key="tag"
-            />
-          </p>
-          <p v-else>
-            The tags appear to have since been removed.
-          </p>
-        </div>
-      </div>
-    </div>
-  </router-link>
+  <v-list-tile avatar>
+    <router-link :to="{name: 'Submission', params: {assetID: event.target.id}}">
+      <v-badge left overlap>
+        <span slot="badge" v-if="!notification.read">*</span>
+        <v-list-tile-avatar>
+          <img :src="$img(event.target, 'notification', true)" >
+        </v-list-tile-avatar>
+      </v-badge>
+    </router-link>
+    <v-list-tile-content>
+      <v-list-tile-title>
+        Tags have been added
+      </v-list-tile-title>
+      <v-list-tile-sub-title>
+          to your submission<span v-if="event.target.title"> titled
+          <router-link :to="{name: 'Submission', params: {'assetID': event.target.id}}">
+            '{{event.target.title}}'
+          </router-link>:
+      </span>
+      </v-list-tile-sub-title>
+      <v-list-tile-sub-title>
+        <span v-if="tags.length">
+          <span
+              v-for="tag in event.data.tags"
+          >{{tag}}</span>
+        </span>
+        <span v-else>
+          The tags appear to have since been removed.
+        </span>
+      </v-list-tile-sub-title>
+    </v-list-tile-content>
+  </v-list-tile>
 </template>
 
 <script>

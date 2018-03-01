@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container fluid>
     <ac-comment
         v-for="comment in growing"
         :commentobj="comment"

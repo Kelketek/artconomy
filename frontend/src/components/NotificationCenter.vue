@@ -1,39 +1,37 @@
 <template>
-  <v-container class="notifications-center container">
-    <v-layout row wrap v-if="response !== null && !growing.length">
+  <div>
+    <v-layout wrap v-if="response !== null && !growing.length">
       <v-flex xs12 text-xs-center>
         <p>You do not have any notifications at this time.</p>
       </v-flex>
     </v-layout>
-    <v-layout row wrap v-else>
-      <v-flex xs12>
-        <v-card>
+    <v-layout row v-else>
+      <v-flex xs12 md10 offset-md1>
           <v-flex xs12 class="pl-2 mb-2">
             <h3>Your Notifications</h3>
           </v-flex>
-        </v-card>
-      </v-flex>
-      <v-flex xs12>
-        <v-card v-if="growing">
-          <v-list two-line>
-            <template v-for="(notification, index) in growing">
-              <component :is="dynamicComponent(notification.event.type)"
-                         :key="notification.id" v-observe-visibility="markRead(notification.id)"
-                         class="notification" :notification="notification"
-              />
-              <v-divider v-if="index + 1 < growing.length" :key="`divider-${index}`" />
-            </template>
-          </v-list>
-        </v-card>
       </v-flex>
     </v-layout>
-    <v-layout row wrap>
+    <v-layout row>
+      <v-flex xs12 md10 offset-md1 v-if="growing">
+        <v-list three-line>
+          <template v-for="(notification, index) in growing">
+            <component :is="dynamicComponent(notification.event.type)"
+                       :key="notification.id" v-observe-visibility="markRead(notification.id)"
+                       class="notification" :notification="notification"
+            />
+            <v-divider v-if="index + 1 < growing.length" :key="`divider-${index}`" />
+          </template>
+        </v-list>
+      </v-flex>
+    </v-layout>
+    <v-layout row>
       <v-flex xs12 text-xs-center>
         <div v-if="growing !== null" v-observe-visibility="moreNotifications"></div>
         <div v-if="fetching"><i class="fa fa-spin fa-spinner fa-5x"></i></div>
       </v-flex>
     </v-layout>
-  </v-container>
+  </div>
 </template>
 
 <script>

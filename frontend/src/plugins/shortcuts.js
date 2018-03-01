@@ -5,9 +5,15 @@ export const Shortcuts = {
         $go (route) {
           this.$router.history.push(route)
         },
-        $img (asset, thumbName) {
+        $img (asset, thumbName, fallback) {
           if (!asset) {
             return '/static/images/default-avatar.png'
+          }
+          if (asset.rating > this.rating) {
+            if (fallback) {
+              return '/static/images/default-avatar.png'
+            }
+            return ''
           }
           return asset.file[thumbName]
         }

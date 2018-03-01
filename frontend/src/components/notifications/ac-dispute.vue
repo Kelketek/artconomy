@@ -1,21 +1,24 @@
 <template>
-    <div class="row">
-      <div class="col-4 col-lg-2">
-        <router-link :to="{name: 'Case', params: {orderID: event.target.id, username: viewer.username}}">
-          <ac-asset class="p-2" :terse="true" :asset="event.target.product" thumb-name="notification" />
-        </router-link>
-      </div>
-      <div class="col-6">
-        <div class="pt-1 pb-1">
-          <p><strong>A Dispute has been filed for Order #{{event.target.id}}.</strong></p>
-          <ac-action
-              method="POST"
-              :url="`${this.url}claim/`"
-              :success="visitOrder"
-          >Claim</ac-action>
-        </div>
-      </div>
-    </div>
+  <v-list-tile avatar>
+    <v-list-tile-content>
+      <router-link :to="{name: 'Case', params: {orderID: event.target.id, username: viewer.username}}">
+        <v-list-tile-avatar>
+          <img :src="$img(event.target.product, 'notification', true)" />
+        </v-list-tile-avatar>
+      </router-link>
+      <v-list-tile-title>
+        A Dispute has been filed for Order #{{event.target.id}}.
+      </v-list-tile-title>
+    </v-list-tile-content>
+    <v-list-tile-action>
+      <ac-action
+          method="POST"
+          :url="`${this.url}claim/`"
+          :success="visitOrder"
+          small
+      >Claim</ac-action>
+    </v-list-tile-action>
+  </v-list-tile>
 </template>
 
 <style scoped>

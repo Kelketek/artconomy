@@ -31,8 +31,8 @@ describe('Login.vue', () => {
     })
     wrapper.vm.$forceUser({})
     await localVue.nextTick()
-    expect(wrapper.find('input[id="email"]').exists()).to.equal(true)
-    expect(wrapper.find('input[id="password"]').exists()).to.equal(true)
+    expect(wrapper.find('input[id="field-email"]').exists()).to.equal(true)
+    expect(wrapper.find('input[id="field-password"]').exists()).to.equal(true)
     expect(isVisible(wrapper.find('#loginTab'))).to.equal(true)
     expect(isVisible(wrapper.find('#registerTab'))).to.equal(false)
     wrapper.vm.loginModel.email = 'jimbob@example.com'

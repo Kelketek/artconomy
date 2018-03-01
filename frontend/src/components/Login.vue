@@ -86,7 +86,7 @@
         },
         registerSchema: {
           fields: [{
-            type: 'input',
+            type: 'v-text',
             inputType: 'text',
             label: 'Username',
             model: 'username',
@@ -95,7 +95,7 @@
             required: true,
             validator: VueFormGenerator.validators.string
           }, {
-            type: 'input',
+            type: 'v-text',
             inputType: 'text',
             label: 'Email',
             model: 'email',
@@ -104,7 +104,7 @@
             required: true,
             validator: VueFormGenerator.validators.email
           }, {
-            type: 'input',
+            type: 'v-text',
             inputType: 'password',
             label: 'Password',
             model: 'password',

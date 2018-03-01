@@ -1,11 +1,11 @@
 <template>
-  <v-container>
+  <v-container fluid>
     <v-card>
       <v-layout row wrap class="mb-4">
-        <v-flex xs1 class="pt-2">
+        <v-flex xs12 sm2  text-xs-center text-sm-left class="pt-2">
           <ac-avatar :user="user" />
         </v-flex>
-        <v-flex xs7 class="pt-2">
+        <v-flex xs12 sm10 class="pt-2 pl-2 pr-2">
           <h3>About {{user.username}}</h3>
           <ac-patchfield
               v-model="user.biography"
@@ -16,7 +16,7 @@
               placeholder="Write a bit about yourself!"
           />
         </v-flex>
-        <v-flex xs3>
+        <v-flex sm3 class="hidden-sm-and-down">
         </v-flex>
       </v-layout>
     </v-card>

@@ -201,8 +201,13 @@ describe('ac-patch-field.vue', () => {
     field.trigger('click')
     await localVue.nextTick()
     let input = wrapper.find('textarea')
+    console.log(wrapper.vm.value)
+    wrapper.vm.input = 'New Value'
     input.element.value = 'New Value'
-    wrapper.find('textarea').trigger('blur')
+    await localVue.nextTick()
+    console.log('====')
+    console.log(input.element.value)
+    input.trigger('blur')
     await localVue.nextTick()
     expect(server.requests.length).to.equal(1)
     expect(input.element.getAttribute('disabled')).to.equal('disabled')
