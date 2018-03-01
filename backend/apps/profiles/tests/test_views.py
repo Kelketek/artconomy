@@ -320,7 +320,7 @@ class TestSettings(APITestCase):
         self.assertEqual(
             response.data,
             {
-                'commissions_closed': True,
+                'commissions_closed': False,
                 'rating': ADULT,
                 'sfw_mode': False,
                 'max_load': 5
@@ -536,12 +536,12 @@ class TestCharacterSearch(APITestCase):
         self.assertEqual(serialize_char(visible2), response.data['results'][2])
 
     def test_query_logged_in_commission(self):
-        visible = CharacterFactory.create(name='Terrybutt', user=self.user)
-        visible2 = CharacterFactory.create(name='Terrencia', user=self.user2)
-        visible_private = CharacterFactory.create(name='Terrence', private=True, user=self.user)
-        CharacterFactory.create(name='Terryvix', private=True, user=self.user2)
+        visible = CharacterFactory.create(name='Terrybutt', open_requests=True, user=self.user)
+        visible2 = CharacterFactory.create(name='Terrencia', open_requests=True, user=self.user2)
+        visible_private = CharacterFactory.create(name='Terrence', private=True, open_requests=True, user=self.user)
+        CharacterFactory.create(name='Terryvix', private=True, open_requests=True, user=self.user2)
         CharacterFactory.create(name='Terrible', open_requests=False, user=self.user2)
-        CharacterFactory.create(name='Stuff')
+        CharacterFactory.create(name='Stuff', open_requests=True)
         self.login(self.user)
         response = self.client.get('/api/profiles/v1/search/character/?q=terr&new_order=1')
         self.assertEqual(len(response.data['results']), 3)
@@ -550,12 +550,12 @@ class TestCharacterSearch(APITestCase):
         self.assertEqual(serialize_char(visible2), response.data['results'][2])
 
     def test_query_logged_in_staffer(self):
-        visible = CharacterFactory.create(name='Terrybutt', user=self.user)
-        visible2 = CharacterFactory.create(name='Terrencia', user=self.user2)
+        visible = CharacterFactory.create(name='Terrybutt', open_requests=True, user=self.user)
+        visible2 = CharacterFactory.create(name='Terrencia', open_requests=True, user=self.user2)
         visible_private = CharacterFactory.create(name='Terrence', private=True, user=self.user)
-        CharacterFactory.create(name='Terryvix', private=True, user=self.user2)
+        CharacterFactory.create(name='Terryvix', open_requests=True, private=True, user=self.user2)
         CharacterFactory.create(name='Terrible', open_requests=False, user=self.user2)
-        CharacterFactory.create(name='Stuff')
+        CharacterFactory.create(name='Stuff', open_requests=True)
         self.login(self.staffer)
         response = self.client.get('/api/profiles/v1/search/character/?q=terr&new_order=1&user={}'.format(self.user.id))
         self.assertEqual(len(response.data['results']), 3)

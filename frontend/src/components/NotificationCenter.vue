@@ -14,7 +14,7 @@
         </v-card>
       </v-flex>
       <v-flex xs12>
-        <v-card>
+        <v-card v-if="growing">
           <v-list two-line>
             <template v-for="(notification, index) in growing">
               <component :is="dynamicComponent(notification.event.type)"

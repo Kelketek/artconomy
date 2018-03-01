@@ -6,9 +6,10 @@
 
 <script>
   import AcAsset from '../ac-asset'
+  import Notification from '../../mixins/notification'
   export default {
     name: 'ac-refund',
-    props: ['event'],
+    mixins: [Notification],
     components: {AcAsset},
     data () {
       return {}

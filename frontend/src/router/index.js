@@ -1,5 +1,6 @@
 import Router from 'vue-router'
 import Home from '@/components/Home'
+import Reload from '@/components/Reload'
 import Login from '@/components/Login'
 import CommissionAgreement from '@/components/CommissionAgreement'
 import RefundPolicy from '@/components/RefundPolicy'
@@ -26,6 +27,10 @@ export const routes = [
     name: 'Home',
     component: Home,
     props: true
+  },
+  { path: '/Reload/:path',
+    name: 'Reload',
+    component: Reload
   },
   {
     path: '/login/',

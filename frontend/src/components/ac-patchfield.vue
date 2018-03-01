@@ -1,10 +1,10 @@
 <template>
     <div class="patchfield-wrapper" :class="classes()">
       <div v-if="editing && multiline">
-        <textarea style="width: 100%;" class="patchfield-multiline-editor" @keydown="handleMultilineInput" ref="field" @input="resizer" v-focus="true" :value="value" @blur="save" @keyup.escape="reset" :disabled="disabled"></textarea>
+        <textarea style="width: 100%;" class="patchfield-multiline-editor" @keydown="handleMultilineInput" v-model="input" @input="resizer" v-focus="true" @blur="save" @keyup.escape="reset" :disabled="disabled"></textarea>
       </div>
       <div v-else-if="editing">
-        <input type="text" class="patch-input" ref="field" @keyup.enter="save" v-focus="true" :value="value" @blur="save" @keyup.escape="reset" :disabled="disabled">
+        <v-text-field type="text" class="patch-input" v-model="input" @keyup.enter.native="save" v-focus="true" :value="value" @blur="save" @keyup.escape.native="reset" :disabled="disabled" />
       </div>
       <div v-else-if="editmode" @click="startEditing">
         <div class="patchfield-preview" :class="{'patchfield-preview-multiline': multiline}" tabindex="0" @focus="startEditing" @input="update" v-html="preview"></div>
@@ -31,7 +31,8 @@
         editing: false,
         original: this.value,
         disabled: false,
-        errors: []
+        errors: [],
+        input: this.value
       }
     },
     computed: {
@@ -49,7 +50,7 @@
     },
     methods: {
       update () {
-        this.$emit('input', this.$refs.field.value)
+        this.$emit('input', this.input)
       },
       resizer () {
         autosize(this.$refs.field)
@@ -78,14 +79,14 @@
       },
       save () {
         this.errors = []
-        if (this.original === this.$refs.field.value) {
+        if (this.original === this.input) {
           this.editing = false
           return
         }
         this.update()
         let data = {}
         this.disabled = true
-        data[this.name] = this.$refs.field.value
+        data[this.name] = this.input
         artCall(this.url, 'PATCH', data, this.postSave, this.postFail)
       },
       handleMultilineInput (event) {
@@ -127,20 +128,22 @@
         }
         return styles
       }
+    },
+    watch: {
+      value (value) {
+        this.input = value
+      }
     }
   }
 </script>
 
-<style lang="scss">
-  @import '../custom-bootstrap';
+<style>
   .patchfield-preview {
     display: inline-block;
   }
   input.patch-input {
     padding: 0;
     margin: 0;
-    background-color: $light-gray;
-    border-color: $dark-purple;
     border-top: none;
     border-right: none;
     border-left: none;

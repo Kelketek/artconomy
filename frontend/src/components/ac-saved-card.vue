@@ -1,32 +1,21 @@
 <template>
-  <div class="saved-card">
-    <div class="credit-card-info">
-      <input :disabled="changing" :type="inputType" :id="'saved_card_' + card.id" name="card" :value="card.id" :checked="card.id === value" class="mr-1" @change="updateSelect"/>
-      <label :for="'saved_card' + card.id"><i class="fa" :class="class_obj()"></i> {{ issuer.name }} x{{ card.last_four }}</label>
-    </div>
-    <div class="credit-card-buttons">
-      <v-btn v-if="card.primary" color="success" size="sm" :disabled="changing">Primary Card</v-btn>
-      <v-btn v-else color="primary" size="sm" :disabled="changing" @click="makePrimary">Make Primary</v-btn>
-      <v-btn color="error" @click="deleteCard()" size="sm" :disabled="changing"><i class="fa fa-trash-o"></i></v-btn>
-    </div>
-    <div class="clear"></div>
-    <div class="mb-2"></div>
-  </div>
+  <v-layout row wrap>
+    <v-flex xs5 class="pt-1">
+        <v-radio :disabled="changing"
+                 :type="inputType"
+                 :label="issuer.name + ' x' + card.last_four" :id="'saved_card_' + card.id"
+                 name="card"
+                 :value="card.id"
+                 class="mr-1"
+        />
+    </v-flex>
+    <v-flex xs7 text-xs-right>
+        <v-btn small v-if="card.primary" color="success" size="sm" :disabled="changing">Primary Card</v-btn>
+        <v-btn small v-else color="primary" size="sm" :disabled="changing" @click="makePrimary">Make Primary</v-btn>
+        <v-btn small color="error" @click="deleteCard()" size="sm" :disabled="changing"><i class="fa fa-trash-o"></i></v-btn>
+    </v-flex>
+  </v-layout>
 </template>
-
-<style scoped>
-  .credit-card-info {
-    display: block;
-    float: left;
-  }
-  .credit-card-buttons {
-    display: block;
-    float: right;
-  }
-  .clear {
-    clear: both;
-  }
-</style>
 
 <script>
   import Viewer from '../mixins/viewer'
@@ -50,9 +39,6 @@
         let result = {'fa-lg': true}
         result[key] = true
         return result
-      },
-      updateSelect () {
-        return this.$emit('input', this.card.id)
       },
       postDelete () {
         let index = this.cards.indexOf(this.card)
@@ -100,7 +86,7 @@
       }
     },
     computed: {
-      'issuer': function () {
+      issuer () {
         return ISSUERS[this.card.card_type]
       }
     }

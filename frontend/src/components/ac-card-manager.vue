@@ -1,43 +1,52 @@
 <template>
-  <div class="card-manager">
-      <div class="card">
-        <b-tabs card v-model="currentTab">
-          <b-tab title="Saved Cards">
-              <div class="card-body">
-                <ac-saved-card
-                    v-for="card in growing"
-                    :key="card.id"
-                    v-if="growing !== null"
-                    :card="card"
-                    :cards="growing"
-                    :username="user.username"
-                    :selectable="payment"
-                    v-model="selectedCard"
-                >
-                  {{card}}
-                </ac-saved-card>
-              </div>
-          </b-tab>
-          <b-tab title="New Card">
-            <form autocomplete="off">
-              <div class="card-type-selector text-xs-center">
-                <i class="fa fa-2x fa-cc-visa" :class="{picked: cardSelected('visa')}"></i>
-                <i class="fa fa-2x fa-cc-mastercard" :class="{picked: cardSelected('mastercard')}"></i>
-                <i class="fa fa-2x fa-cc-discover" :class="{picked: cardSelected('discover')}"></i>
-                <i class="fa fa-2x fa-cc-amex" :class="{picked: cardSelected('amex')}"></i>
-                <i class="fa fa-2x fa-cc-diners-club" :class="{picked: cardSelected('diners-club')}"></i>
-              </div>
-              <ac-form-container ref="newCardForm" :schema="newCardSchema" :model="newCardModel"
-                                 :options="newCardOptions" :success="addCard"
-                                 :url="`/api/sales/v1/account/${this.username}/cards/`"
-              >
-                <v-btn type="submit" color="primary" @click.prevent="$refs.newCardForm.submit">Add Card</v-btn>
-              </ac-form-container>
-            </form>
-          </b-tab>
-        </b-tabs>
-      </div>
-    </div>
+  <v-card class="card-manager pr-2 pl-2">
+    <v-tabs card v-model="currentTab">
+      <v-tab href="#tab-saved-card">
+        <v-icon>save</v-icon>&nbsp;Saved Cards
+      </v-tab>
+      <v-tab href="#tab-new-card">
+        <v-icon>credit_card</v-icon>&nbsp;New Card
+      </v-tab>
+    </v-tabs>
+    <v-tabs-items v-model="currentTab">
+      <v-tab-item id="tab-saved-card">
+        <v-radio-group v-model="selectedCard">
+          <template v-for="(card, index) in growing">
+            <ac-saved-card
+
+                :key="card.id"
+                v-if="growing !== null"
+                :card="card"
+                :cards="growing"
+                :username="user.username"
+                :selectable="payment"
+                v-model="selectedCard"
+            >
+              {{card}}
+            </ac-saved-card>
+            <v-divider v-if="index + 1 < growing.length" :key="index" />
+          </template>
+        </v-radio-group>
+      </v-tab-item>
+      <v-tab-item id="tab-new-card" class="pt-2 pl-2 pb-2 pr-2">
+        <form autocomplete="off">
+          <div class="card-type-selector text-xs-center">
+            <i class="fa fa-2x fa-cc-visa" :class="{picked: cardSelected('visa')}"></i>
+            <i class="fa fa-2x fa-cc-mastercard" :class="{picked: cardSelected('mastercard')}"></i>
+            <i class="fa fa-2x fa-cc-discover" :class="{picked: cardSelected('discover')}"></i>
+            <i class="fa fa-2x fa-cc-amex" :class="{picked: cardSelected('amex')}"></i>
+            <i class="fa fa-2x fa-cc-diners-club" :class="{picked: cardSelected('diners-club')}"></i>
+          </div>
+          <ac-form-container ref="newCardForm" :schema="newCardSchema" :model="newCardModel"
+                             :options="newCardOptions" :success="addCard"
+                             :url="`/api/sales/v1/account/${this.username}/cards/`"
+          >
+            <v-btn type="submit" color="primary" @click.prevent="$refs.newCardForm.submit">Add Card</v-btn>
+          </ac-form-container>
+        </form>
+      </v-tab-item>
+    </v-tabs-items>
+  </v-card>
 </template>
 
 <style scoped>
@@ -107,6 +116,7 @@
             label: 'Card Number',
             model: 'card_number',
             placeholder: '5555 5555 5555 5555',
+            mask: '#### - #### - #### - ####',
             featured: true,
             required: true,
             validator: cardSelectValidator
@@ -116,6 +126,7 @@
             label: 'Expiration Date',
             model: 'exp_date',
             placeholder: 'MM/YY',
+            mask: '##/##',
             featured: true,
             required: true,
             validator: VueFormGenerator.validators.string

@@ -10,6 +10,8 @@
         :error-messages="errors"
         :hint="schema.hint"
         :multi-line="schema.multiLine"
+        :placeholder="schema.placeholder"
+        :mask="schema.mask"
         :step="schema.step"
         :min="schema.min"
         :max="schema.max"

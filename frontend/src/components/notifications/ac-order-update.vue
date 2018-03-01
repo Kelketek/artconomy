@@ -1,21 +1,22 @@
 <template>
-    <div class="row">
-      <div class="col-4 col-lg-2">
-        <router-link :to="{name: 'Order', params: {orderID: event.target.id, username: viewer.username}}">
-          <ac-asset class="p-2" :terse="true" :asset="event.data.display" thumb-name="notification" />
-        </router-link>
-      </div>
-      <div class="col-6">
-        <router-link :to="{name: 'Order', params: {orderID: event.target.id, username: viewer.username}}">
-          <div class="pt-1 pb-1">
-            <p><strong>Sale #{{event.target.id}} {{message}}</strong></p>
-          </div>
-        </router-link>
-        <p v-if="streamingLink">
-          <a target="_blank" :href="streamingLink">Your artist is streaming this commission! Click here!</a>
-        </p>
-      </div>
-    </div>
+  <v-list-tile>
+    <router-link :to="{name: 'Order', params: {orderID: event.target.id, username: viewer.username}}">
+      <v-badge left overlap>
+        <span slot="badge" v-if="!notification.read">*</span>
+        <v-list-tile-avatar>
+          <img :src="$img(event.data.display, 'notification')" >
+        </v-list-tile-avatar>
+      </v-badge>
+    </router-link>
+    <v-list-tile-content>
+      <router-link :to="{name: 'Order', params: {orderID: event.target.id, username: viewer.username}}">
+        <strong>Order #{{event.target.id}} {{message}}</strong>
+      </router-link>
+      <p v-if="streamingLink">
+        <a target="_blank" :href="streamingLink">Your artist is streaming this commission! Click here!</a>
+      </p>
+    </v-list-tile-content>
+  </v-list-tile>
 </template>
 
 <style scoped>
@@ -24,6 +25,7 @@
 <script>
   import AcAsset from '../ac-asset'
   import AcAction from '../ac-action'
+  import Notification from '../../mixins/notification'
 
   const ORDER_STATUSES = {
     '1': 'has been placed, and is waiting for the artist to accept.',
@@ -40,7 +42,7 @@
   export default {
     name: 'ac-order-update',
     components: {AcAsset, AcAction},
-    props: ['event'],
+    mixins: [Notification],
     data () {
       return {}
     },

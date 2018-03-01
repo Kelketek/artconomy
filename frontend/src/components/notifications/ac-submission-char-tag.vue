@@ -30,10 +30,11 @@
 
 <script>
   import AcAsset from '../ac-asset'
+  import Notification from '../../mixins/notification'
 
   export default {
     components: {AcAsset},
     name: 'ac-submission-char-tag',
-    props: ['event']
+    mixins: [Notification]
   }
 </script>

@@ -84,7 +84,7 @@
           false-text="SFW"
       />
       <v-toolbar-items>
-        <v-btn flat v-if="viewer && viewer.username" :to="{name: 'Notifications'}">
+        <v-btn flat v-if="viewer && viewer.username" @click="notificationLoad">
           <v-badge overlap right color="red">
             <span slot="badge" v-if="unread && unread < 1000">{{unread}}</span>
             <span slot="badge" v-else-if="unread > 999">*</span>
@@ -171,6 +171,13 @@
           this.$router.history.push({name: 'Search', params: {tabName: 'products'}})
         }
         this.$router.history.replace({name: 'Search', query: {q: query}, params: this.$route.params})
+      },
+      notificationLoad () {
+        if (this.$route.name === 'Notifications') {
+          this.$router.replace(`Reload${this.$route.path}`)
+        } else {
+          this.$router.push({name: 'Notifications'})
+        }
       },
       setNotificationStats (response) {
         if (this.loopNotifications) {

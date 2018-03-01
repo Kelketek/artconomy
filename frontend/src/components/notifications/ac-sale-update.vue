@@ -26,6 +26,7 @@
 <script>
   import AcAsset from '../ac-asset'
   import AcAction from '../ac-action'
+  import Notification from '../../mixins/notification'
   const ORDER_STATUSES = {
     '1': 'has been placed, and is awaiting your acceptance!',
     '2': 'is waiting on the commissioner to pay.',
@@ -41,7 +42,7 @@
   export default {
     name: 'ac-sale-update',
     components: {AcAsset, AcAction},
-    props: ['notification'],
+    mixins: [Notification],
     data () {
       return {}
     },
@@ -57,9 +58,6 @@
           return this.event.target.stream_link
         }
         return ''
-      },
-      event () {
-        return this.notification.event
       }
     }
   }

@@ -1,18 +1,21 @@
 <template>
-    <div class="row">
-      <div class="col-4 col-lg-2">
-        <router-link :to="{name: 'Order', params: {orderID: event.target.id, username: viewer.username}}">
-          <ac-asset class="p-2" :terse="true" :asset="event.data.revision" thumb-name="notification" />
-        </router-link>
-      </div>
-      <div class="col-6">
-        <router-link :to="{name: 'Order', params: {orderID: event.target.id, username: viewer.username}}">
-          <div class="pt-1 pb-1">
-            <p><strong>A revision has been uploaded for Order #{{event.target.id}}</strong></p>
-          </div>
-        </router-link>
-      </div>
-    </div>
+  <v-list-tile>
+    <router-link :to="{name: 'Order', params: {orderID: event.target.id, username: viewer.username}}">
+      <v-badge left overlap>
+        <span slot="badge" v-if="!notification.read">*</span>
+        <v-list-tile-avatar>
+          <img :src="$img(event.data.revision, 'notification')" >
+        </v-list-tile-avatar>
+      </v-badge>
+    </router-link>
+    <v-list-tile-content>
+      <router-link :to="{name: 'Order', params: {orderID: event.target.id, username: viewer.username}}">
+        <div class="pt-1 pb-1">
+          <p><strong>A revision has been uploaded for Order #{{event.target.id}}</strong></p>
+        </div>
+      </router-link>
+    </v-list-tile-content>
+  </v-list-tile>
 </template>
 
 <style scoped>
@@ -21,11 +24,12 @@
 <script>
   import AcAsset from '../ac-asset'
   import AcAction from '../ac-action'
+  import Notification from '../../mixins/notification'
 
   export default {
     name: 'ac-revision-uploaded',
     components: {AcAsset, AcAction},
-    props: ['event'],
+    mixins: [Notification],
     data () {
       return {}
     },

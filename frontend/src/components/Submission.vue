@@ -49,7 +49,7 @@
             />
           </v-flex>
           <v-flex xs12 md5 class="pt-3 pl-4">
-            <h1><ac-patchfield v-model="submission.title" name="title" styleclass="name-edit" placeholder="Set the title" :editmode="editing" :url="url" /></h1>
+            <h1><ac-patchfield v-model="submission.title" name="title" placeholder="Set the title" :editmode="editing" :url="url" /></h1>
             <div class="card-block submission-description"><ac-patchfield v-model="submission.caption" name="caption" placeholder="Add a caption" :multiline="true" :editmode="editing" :url="url" /></div>
           </v-flex>
           <v-flex xs12 md4 text-xs-center class="pt-3 pl-4">

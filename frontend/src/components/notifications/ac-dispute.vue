@@ -24,10 +24,11 @@
 <script>
   import AcAsset from '../ac-asset'
   import AcAction from '../ac-action'
+  import Notification from '../../mixins/notification'
   export default {
     name: 'ac-dispute',
     components: {AcAsset, AcAction},
-    props: ['event'],
+    mixins: [Notification],
     data () {
       return {}
     },

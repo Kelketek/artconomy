@@ -27,22 +27,17 @@
   </router-link>
 </template>
 
-<style scoped>
-  .hidden {
-    border-bottom: 0;
-  }
-</style>
-
 <script>
   import AcAsset from '../ac-asset'
   import AcTag from '../ac-tag'
+  import Notification from '../../mixins/notification'
   export default {
     name: 'ac-submission-tag',
     components: {
       AcTag,
       AcAsset
     },
-    props: ['event'],
+    mixins: [Notification],
     data () {
       return {}
     },

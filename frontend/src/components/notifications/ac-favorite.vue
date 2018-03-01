@@ -15,10 +15,11 @@
 
 <script>
   import AcAsset from '../ac-asset'
+  import Notification from '../../mixins/notification'
   export default {
     name: 'ac-favorite',
     components: {AcAsset},
-    props: ['event'],
+    mixins: [Notification],
     data () {
       return {}
     }

@@ -119,11 +119,12 @@ class NewCardSerializer(serializers.Serializer):
     last_name = serializers.CharField(max_length=50)
     country = serializers.ChoiceField(choices=country_choices())
     card_number = serializers.CharField(max_length=25)
-    exp_date = serializers.CharField(max_length=5, min_length=5)
+    exp_date = serializers.CharField(max_length=5, min_length=4)
     zip = serializers.CharField(max_length=20, required=False)
 
     def validate_exp_date(self, value):
-        params = value.split('/')
+        value = value.replace('/', '')
+        params = [val for val in [value[:2], value[2:]] if val]
         if len(params) != 2:
             raise serializers.ValidationError("Date must be in the format MM/YY.")
         try:
