@@ -22,11 +22,11 @@ img {
 .clickable {
   cursor: pointer;
 }
-
-@media screen and (max-width: 960px) {
-  .container.fluid {
-    padding-left: 0;
-    padding-right: 0;
-    max-width: 100%;
-  }
+.content--wrap .container.fluid:first-child {
+  padding-top: 48px;
+}
+.container.fluid {
+  padding-left: 0;
+  padding-right: 0;
+  max-width: 100%;
 }

@@ -33,7 +33,7 @@ export const routes = [
     component: Reload
   },
   {
-    path: '/login/',
+    path: '/auth/:tabName?/',
     name: 'Login',
     component: Login
   },

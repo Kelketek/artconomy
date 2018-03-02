@@ -1,67 +1,82 @@
 <template>
-  <div class="container home">
-    <div class="intro" v-if="viewer !== null && !viewer.username">
-      <div class="row">
-        <div class="col-12 text-xs-center">
+  <div>
+    <v-container fluid v-if="viewer !== null && !viewer.username" style="margin-top: -48px">
+      <v-layout row wrap class="intro">
+        <v-jumbotron class="home-banner darken-3">
+          <v-container fluid fill-height>
+            <v-layout align-center row wrap>
+              <v-flex xs12 md10 offset-md1>
+                <h1>Bring your characters to life</h1>
+                <h2>by commissioning artists</h2>
+                <v-btn color="primary" class="mt-2" :to="{name: 'Login', params: {tabName: 'register'}}">Get Started</v-btn>
+              </v-flex>
+            </v-layout>
+          </v-container>
+        </v-jumbotron>
+      </v-layout>
+    </v-container>
+    <v-container v-if="viewer !== null && !viewer.username">
+      <v-layout row wrap>
+        <v-flex xs12 text-xs-center>
           <img class="home-logo" src="/static/images/logo.svg"/>
-        </div>
-        <div class="col-12 text-xs-center home-title">
+        </v-flex>
+        <v-flex xs12 text-xs-center class="home-title">
           <h1>Welcome to Artconomy</h1>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-12 col-md-6 text-xs-center">
+        </v-flex>
+      </v-layout>
+      <v-layout row wrap>
+        <v-flex xs12 md6 text-xs-center>
           <h3>Upload and catalog your characters</h3>
           <p>Have a character you want to show off? Now you have the tools to do it, for free!</p>
-        </div>
-        <div class="col-12 col-md-6 text-xs-center">
+        </v-flex>
+        <v-flex xs12 md6 text-xs-center>
           <img class="demo-img" src="/static/images/characterbrowse.jpg" />
-        </div>
-        <div class="col-12 col-md-6 text-xs-center">
+        </v-flex>
+        <v-flex xs12 md6 text-xs-center>
           <h3>Commission Artists</h3>
           <p>Have a character in mind but need help bringing it to life? Have an artist make a reference sheet, and many more to stylize your characters as much as you please.</p>
           <p>See artists by rating and pricing, and commission with confidence.</p>
-        </div>
-        <div class="col-12 col-12 text-xs-center">
+        </v-flex>
+        <v-flex xs12 text-xs-center>
           <h3>Are you an artist?</h3>
           <p>Get a free shop where people can commission you!</p>
           <p>Use built-in communications tools for helping clients keep track of your progress.</p>
           <p>Have the safety and assurance of contracts and escrow payments-- no more worrying about getting paid!</p>
-        </div>
-      </div>
-    </div>
-    <div v-else class="home-main">
-      <v-card>
-        <v-layout row wrap>
-          <v-flex xs12 class="pl-2">
-            <h2>Recent Submissions</h2>
-          </v-flex>
-        </v-layout>
-      </v-card>
-      <ac-asset-gallery
-          endpoint="/api/profiles/v1/recent-submissions/" :limit="4"
-      />
-      <v-card>
-        <v-layout row wrap>
-          <v-flex xs12 class="pl-2">
-          <h2>Recent Commissions</h2>
-          </v-flex>
-        </v-layout>
-      </v-card>
-      <ac-asset-gallery
-          endpoint="/api/profiles/v1/recent-commissions/" :limit="4"
-      />
-      <v-card>
-        <v-layout row wrap>
-          <v-flex xs12 class="pl-2">
-            <h2>New Characters</h2>
-          </v-flex>
-        </v-layout>
-      </v-card>
-      <characters
-          endpoint="/api/profiles/v1/new-characters/" :limit="4"
-      />
-    </div>
+        </v-flex>
+      </v-layout>
+  </v-container>
+  <v-container v-else class="home-main">
+    <v-card>
+      <v-layout row wrap>
+        <v-flex xs12 class="pl-2">
+          <h2>Recent Submissions</h2>
+        </v-flex>
+      </v-layout>
+    </v-card>
+    <ac-asset-gallery
+        endpoint="/api/profiles/v1/recent-submissions/" :limit="4"
+    />
+    <v-card>
+      <v-layout row wrap>
+        <v-flex xs12 class="pl-2">
+        <h2>Recent Commissions</h2>
+        </v-flex>
+      </v-layout>
+    </v-card>
+    <ac-asset-gallery
+        endpoint="/api/profiles/v1/recent-commissions/" :limit="4"
+    />
+    <v-card>
+      <v-layout row wrap>
+        <v-flex xs12 class="pl-2">
+          <h2>New Characters</h2>
+        </v-flex>
+      </v-layout>
+    </v-card>
+    <characters
+        endpoint="/api/profiles/v1/new-characters/" :limit="4"
+    />
+    </v-container>
   </div>
 </template>
 
@@ -75,6 +90,18 @@
   }
   img.demo-img {
     width: 100%;
+  }
+  .home-banner {
+    background-size: cover;
+    background: url("/static/images/banner.jpg") fixed center;
+  }
+  .home-banner h1 {
+    font-size: 4rem;
+    font-weight: lighter;
+  }
+  .home-banner h2 {
+    font-size: 2rem;
+    font-weight: normal;
   }
 </style>
 

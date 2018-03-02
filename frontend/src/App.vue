@@ -1,7 +1,7 @@
 <template>
   <v-app dark>
     <nav-bar />
-    <v-content>
+    <v-content style="padding:0;">
       <v-container fluid>
         <div v-if="$root.errorCode !== null" class="container error-container">
           <div class="row">
@@ -28,7 +28,7 @@
             </div>
           </div>
         </div>
-        <router-view class="pt-10" v-else-if="$root.user !== null" />
+        <router-view v-else-if="$root.user !== null" />
       </v-container>
     </v-content>
   </v-app>

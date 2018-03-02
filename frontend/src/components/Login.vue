@@ -39,7 +39,7 @@
 
 <script>
   import VueFormGenerator from 'vue-form-generator'
-  import { artCall, recaptchaSiteKey, setCookie, setErrors } from '../lib'
+  import { artCall, paramHandleMap, recaptchaSiteKey, setCookie, setErrors } from '../lib'
 
   const TAB_MAP = {
     'tab-login': {url: '/api/profiles/v1/login/', label: 'Login', form: 'loginForm'},
@@ -104,7 +104,7 @@
             required: true,
             validator: VueFormGenerator.validators.email
           }, {
-            type: 'v-text',
+            type: '',
             inputType: 'password',
             label: 'Password',
             model: 'password',
@@ -121,8 +121,7 @@
             siteKey: recaptchaSiteKey,
             validator: VueFormGenerator.validators.string
           }]
-        },
-        loginTab: 0
+        }
       }
     },
     methods: {
@@ -155,7 +154,8 @@
     computed: {
       tab: function () {
         return TAB_MAP[this.loginTab]
-      }
+      },
+      loginTab: paramHandleMap('tabName')
     },
     created () {
       window.login = this
