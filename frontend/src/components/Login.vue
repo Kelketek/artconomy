@@ -4,10 +4,10 @@
       <div class="col-12 col-md-6 col-lg-4 col-centered text-xs-center">
         <form>
           <v-tabs class="inverse" v-model="loginTab">
-            <v-tab href="#tab-login">
+            <v-tab href="#tab-login" id="set-login">
               Login
             </v-tab>
-            <v-tab href="#tab-register">
+            <v-tab href="#tab-register" id="set-register">
               Register
             </v-tab>
           </v-tabs>
@@ -16,7 +16,7 @@
               <div class="pt-2"></div>
               <vue-form-generator id="loginForm" ref="loginForm" :schema="loginSchema" :model="loginModel"
                                   :options="loginOptions" />
-              <v-btn type="submit" color="primary" @click.prevent="sendLogin">
+              <v-btn type="submit" id="loginSubmit" color="primary" @click.prevent="sendLogin">
                 Login
               </v-btn>
             </v-tab-item>
@@ -24,7 +24,7 @@
               <div class="pt-2"></div>
               <vue-form-generator id="registerForm" ref="registerForm" :schema="registerSchema" :model="loginModel"
                                   :options="loginOptions" />
-              <v-btn type="submit" color="primary" @click.prevent="sendLogin">
+              <v-btn type="submit" id="registerSubmit" color="primary" @click.prevent="sendLogin">
                 Register
               </v-btn>
             </v-tab-item>
@@ -104,7 +104,7 @@
             required: true,
             validator: VueFormGenerator.validators.email
           }, {
-            type: '',
+            type: 'v-text',
             inputType: 'password',
             label: 'Password',
             model: 'password',
@@ -128,7 +128,6 @@
       loginHandler (response) {
         setCookie('csrftoken', response.csrftoken)
         setCookie('authtoken', response.authtoken)
-        this.loginTab = 0
         this.$root.$loadUser(true)
         this.loginModel = loginDefault()
       },

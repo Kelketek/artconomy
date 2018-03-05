@@ -22,9 +22,11 @@ img {
 .clickable {
   cursor: pointer;
 }
+
 .content--wrap .container.fluid:first-child {
   padding-top: 48px;
 }
+
 .container.fluid {
   padding-left: 0;
   padding-right: 0;

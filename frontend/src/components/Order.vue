@@ -332,7 +332,7 @@
           </div>
         </v-flex>
       </v-layout>
-      <v-layout row wrap text-xs-center class="mt-3 pb-3" v-if="showRevisionPanel">
+      <v-layout row wrap text-xs-center class="mt-3 pb-3 revision-upload" v-if="showRevisionPanel">
         <v-flex xs12 md6 offset-md3>
           <form>
             <ac-form-container

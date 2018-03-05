@@ -7,6 +7,9 @@ import { router } from '../../../src/router'
 import { UserHandler } from '../../../src/plugins/user'
 import VueFormGenerator from 'vue-form-generator'
 import BootstrapVue from 'bootstrap-vue'
+import { Shortcuts } from '../../../src/plugins/shortcuts'
+import { installFields } from '../helpers'
+import Vuetify from 'vuetify'
 
 let server, localVue
 
@@ -202,6 +205,9 @@ describe('Order.vue', () => {
     localVue.use(UserHandler)
     localVue.use(BootstrapVue)
     localVue.use(VueFormGenerator)
+    localVue.use(Shortcuts)
+    localVue.use(Vuetify)
+    installFields(localVue)
   })
   afterEach(function () {
     server.restore()
@@ -217,7 +223,7 @@ describe('Order.vue', () => {
         orderID: 4
       }
     })
-    wrapper.vm.$forceUser({username: 'Fox', fee: 0.01})
+    wrapper.vm.$forceUser({username: 'Fox', fee: 0.01, blacklist: []})
     if (order) {
       let orderReq = server.requests[1]
       orderReq.respond(
@@ -248,7 +254,7 @@ describe('Order.vue', () => {
         orderID: 4
       }
     })
-    wrapper.vm.$forceUser({username: 'Cat'})
+    wrapper.vm.$forceUser({username: 'Cat', blacklist: []})
     if (order) {
       let orderReq = server.requests[1]
       orderReq.respond(
@@ -272,7 +278,7 @@ describe('Order.vue', () => {
 
   it('Grabs and populates the initial order data and renders it for seller.', async() => {
     let wrapper = sellerBootstrap()
-    expect(server.requests.length).to.equal(3)
+    expect(server.requests.length).to.equal(4)
     let orderReq = server.requests[1]
     let revisionsReq = server.requests[2]
     expect(orderReq.url).to.equal('/api/sales/v1/order/4/')
@@ -296,15 +302,16 @@ describe('Order.vue', () => {
     expect(wrapper.find('.accept-order-btn').exists()).to.equal(true)
     expect(wrapper.find('.pay-button').exists()).to.equal(false)
     expect(wrapper.find('.refund-button').exists()).to.equal(false)
-    expect(wrapper.find('#rating').exists()).to.equal(false)
+    expect(wrapper.find('#field-rating').exists()).to.equal(false)
     expect(wrapper.find('.revisions-section').exists()).to.equal(false)
+    expect(wrapper.find('.revision-upload').exists()).to.equal(false)
     expect(wrapper.find('.final-preview').exists()).to.equal(false)
     expect(wrapper.find('.dispute-button').exists()).to.equal(false)
     expect(wrapper.find('.approve-button').exists()).to.equal(false)
   })
   it('Grabs and populates the initial order data and renders it for the buyer.', async() => {
     let wrapper = buyerBootstrap()
-    expect(server.requests.length).to.equal(3)
+    expect(server.requests.length).to.equal(4)
     let orderReq = server.requests[1]
     let revisionsReq = server.requests[2]
     expect(orderReq.url).to.equal('/api/sales/v1/order/4/')
@@ -328,8 +335,9 @@ describe('Order.vue', () => {
     expect(wrapper.find('.accept-order-btn').exists()).to.equal(false)
     expect(wrapper.find('.pay-button').exists()).to.equal(false)
     expect(wrapper.find('.refund-button').exists()).to.equal(false)
-    expect(wrapper.find('#rating').exists()).to.equal(false)
+    expect(wrapper.find('#field-rating').exists()).to.equal(false)
     expect(wrapper.find('.revisions-section').exists()).to.equal(false)
+    expect(wrapper.find('.revision-upload').exists()).to.equal(false)
     expect(wrapper.find('.final-preview').exists()).to.equal(false)
     expect(wrapper.find('.dispute-button').exists()).to.equal(false)
     expect(wrapper.find('.approve-button').exists()).to.equal(false)
@@ -345,8 +353,9 @@ describe('Order.vue', () => {
     expect(wrapper.find('.accept-order-btn').exists()).to.equal(false)
     expect(wrapper.find('.pay-button').exists()).to.equal(true)
     expect(wrapper.find('.refund-button').exists()).to.equal(false)
-    expect(wrapper.find('#rating').exists()).to.equal(false)
+    expect(wrapper.find('#field-rating').exists()).to.equal(false)
     expect(wrapper.find('.revisions-section').exists()).to.equal(false)
+    expect(wrapper.find('.revision-upload').exists()).to.equal(false)
     expect(wrapper.find('.final-preview').exists()).to.equal(false)
     expect(wrapper.find('.dispute-button').exists()).to.equal(false)
     expect(wrapper.find('.approve-button').exists()).to.equal(false)
@@ -362,8 +371,9 @@ describe('Order.vue', () => {
     expect(wrapper.find('.accept-order-btn').exists()).to.equal(false)
     expect(wrapper.find('.pay-button').exists()).to.equal(false)
     expect(wrapper.find('.refund-button').exists()).to.equal(false)
-    expect(wrapper.find('#rating').exists()).to.equal(false)
+    expect(wrapper.find('#field-rating').exists()).to.equal(false)
     expect(wrapper.find('.revisions-section').exists()).to.equal(false)
+    expect(wrapper.find('.revision-upload').exists()).to.equal(false)
     expect(wrapper.find('.final-preview').exists()).to.equal(false)
     expect(wrapper.find('.dispute-button').exists()).to.equal(false)
     expect(wrapper.find('.approve-button').exists()).to.equal(false)
@@ -379,8 +389,9 @@ describe('Order.vue', () => {
     expect(wrapper.find('.accept-order-btn').exists()).to.equal(false)
     expect(wrapper.find('.pay-button').exists()).to.equal(false)
     expect(wrapper.find('.refund-button').exists()).to.equal(true)
-    expect(wrapper.find('#rating').exists()).to.equal(false)
+    expect(wrapper.find('#field-rating').exists()).to.equal(false)
     expect(wrapper.find('.revisions-section').exists()).to.equal(false)
+    expect(wrapper.find('.revision-upload').exists()).to.equal(false)
     expect(wrapper.find('.final-preview').exists()).to.equal(false)
     expect(wrapper.find('.dispute-button').exists()).to.equal(false)
     expect(wrapper.find('.approve-button').exists()).to.equal(false)
@@ -396,8 +407,9 @@ describe('Order.vue', () => {
     expect(wrapper.find('.accept-order-btn').exists()).to.equal(false)
     expect(wrapper.find('.pay-button').exists()).to.equal(false)
     expect(wrapper.find('.refund-button').exists()).to.equal(false)
-    expect(wrapper.find('#rating').exists()).to.equal(false)
+    expect(wrapper.find('#field-rating').exists()).to.equal(false)
     expect(wrapper.find('.revisions-section').exists()).to.equal(false)
+    expect(wrapper.find('.revision-upload').exists()).to.equal(false)
     expect(wrapper.find('.final-preview').exists()).to.equal(false)
     expect(wrapper.find('.dispute-button').exists()).to.equal(false)
     expect(wrapper.find('.approve-button').exists()).to.equal(false)
@@ -413,8 +425,9 @@ describe('Order.vue', () => {
     expect(wrapper.find('.accept-order-btn').exists()).to.equal(false)
     expect(wrapper.find('.pay-button').exists()).to.equal(false)
     expect(wrapper.find('.refund-button').exists()).to.equal(false)
-    expect(wrapper.find('#rating').exists()).to.equal(false)
+    expect(wrapper.find('#field-rating').exists()).to.equal(false)
     expect(wrapper.find('.revisions-section').exists()).to.equal(false)
+    expect(wrapper.find('.revision-upload').exists()).to.equal(false)
     expect(wrapper.find('.final-preview').exists()).to.equal(false)
     expect(wrapper.find('.dispute-button').exists()).to.equal(false)
     expect(wrapper.find('.approve-button').exists()).to.equal(false)
@@ -430,8 +443,9 @@ describe('Order.vue', () => {
     expect(wrapper.find('.accept-order-btn').exists()).to.equal(false)
     expect(wrapper.find('.pay-button').exists()).to.equal(false)
     expect(wrapper.find('.refund-button').exists()).to.equal(true)
-    expect(wrapper.find('#rating').exists()).to.equal(true)
-    expect(wrapper.find('.revisions-section').exists()).to.equal(true)
+    expect(wrapper.find('#field-rating').exists()).to.equal(true)
+    expect(wrapper.find('.revisions-section').exists()).to.equal(false)
+    expect(wrapper.find('.revision-upload').exists()).to.equal(true)
     expect(wrapper.find('.final-preview').exists()).to.equal(false)
     expect(wrapper.find('.dispute-button').exists()).to.equal(false)
     expect(wrapper.find('.approve-button').exists()).to.equal(false)
@@ -449,8 +463,9 @@ describe('Order.vue', () => {
     expect(wrapper.find('.accept-order-btn').exists()).to.equal(false)
     expect(wrapper.find('.pay-button').exists()).to.equal(false)
     expect(wrapper.find('.refund-button').exists()).to.equal(false)
-    expect(wrapper.find('#rating').exists()).to.equal(false)
+    expect(wrapper.find('#field-rating').exists()).to.equal(false)
     expect(wrapper.find('.revisions-section').exists()).to.equal(true)
+    expect(wrapper.find('.revision-upload').exists()).to.equal(false)
     expect(wrapper.findAll('.order-revision').length).to.equal(3)
     expect(wrapper.findAll('.order-revision .fa-trash-o').length).to.equal(0)
     expect(wrapper.find('.final-preview').exists()).to.equal(false)
@@ -470,8 +485,9 @@ describe('Order.vue', () => {
     expect(wrapper.find('.accept-order-btn').exists()).to.equal(false)
     expect(wrapper.find('.pay-button').exists()).to.equal(false)
     expect(wrapper.find('.refund-button').exists()).to.equal(true)
-    expect(wrapper.find('#rating').exists()).to.equal(true)
+    expect(wrapper.find('#field-rating').exists()).to.equal(true)
     expect(wrapper.find('.revisions-section').exists()).to.equal(true)
+    expect(wrapper.find('.revision-upload').exists()).to.equal(true)
     expect(wrapper.findAll('.order-revision').length).to.equal(3)
     // Only the last one should show a delete button.
     expect(wrapper.findAll('.order-revision .fa-trash-o').length).to.equal(1)
@@ -490,8 +506,9 @@ describe('Order.vue', () => {
     expect(wrapper.find('.accept-order-btn').exists()).to.equal(false)
     expect(wrapper.find('.pay-button').exists()).to.equal(false)
     expect(wrapper.find('.refund-button').exists()).to.equal(false)
-    expect(wrapper.find('#rating').exists()).to.equal(false)
+    expect(wrapper.find('#field-rating').exists()).to.equal(false)
     expect(wrapper.find('.revisions-section').exists()).to.equal(true)
+    expect(wrapper.find('.revision-upload').exists()).to.equal(false)
     expect(wrapper.findAll('.order-revision').length).to.equal(3)
     expect(wrapper.find('.final-preview').exists()).to.equal(true)
     expect(wrapper.find('.dispute-button').exists()).to.equal(true)
@@ -508,8 +525,9 @@ describe('Order.vue', () => {
     expect(wrapper.find('.accept-order-btn').exists()).to.equal(false)
     expect(wrapper.find('.pay-button').exists()).to.equal(false)
     expect(wrapper.find('.refund-button').exists()).to.equal(false)
-    expect(wrapper.find('#rating').exists()).to.equal(false)
+    expect(wrapper.find('#field-rating').exists()).to.equal(false)
     expect(wrapper.find('.revisions-section').exists()).to.equal(true)
+    expect(wrapper.find('.revision-upload').exists()).to.equal(false)
     expect(wrapper.findAll('.order-revision').length).to.equal(3)
     expect(wrapper.find('.final-preview').exists()).to.equal(true)
     expect(wrapper.find('.dispute-button').exists()).to.equal(false)
@@ -526,8 +544,9 @@ describe('Order.vue', () => {
     expect(wrapper.find('.accept-order-btn').exists()).to.equal(false)
     expect(wrapper.find('.pay-button').exists()).to.equal(false)
     expect(wrapper.find('.refund-button').exists()).to.equal(true)
-    expect(wrapper.find('#rating').exists()).to.equal(false)
+    expect(wrapper.find('#field-rating').exists()).to.equal(false)
     expect(wrapper.find('.revisions-section').exists()).to.equal(true)
+    expect(wrapper.find('.revision-upload').exists()).to.equal(false)
     expect(wrapper.findAll('.order-revision').length).to.equal(3)
     expect(wrapper.find('.final-preview').exists()).to.equal(true)
     expect(wrapper.find('.dispute-button').exists()).to.equal(false)
@@ -544,8 +563,9 @@ describe('Order.vue', () => {
     expect(wrapper.find('.accept-order-btn').exists()).to.equal(false)
     expect(wrapper.find('.pay-button').exists()).to.equal(false)
     expect(wrapper.find('.refund-button').exists()).to.equal(false)
-    expect(wrapper.find('#rating').exists()).to.equal(false)
+    expect(wrapper.find('#field-rating').exists()).to.equal(false)
     expect(wrapper.find('.revisions-section').exists()).to.equal(true)
+    expect(wrapper.find('.revision-upload').exists()).to.equal(false)
     expect(wrapper.findAll('.order-revision').length).to.equal(3)
     expect(wrapper.find('.final-preview').exists()).to.equal(true)
     expect(wrapper.find('.dispute-button').exists()).to.equal(false)

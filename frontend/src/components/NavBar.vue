@@ -91,13 +91,14 @@
             <v-icon large>notifications</v-icon>
           </v-badge>
         </v-btn>
-        <v-btn flat v-if="viewer && viewer.username" :to="{name: 'Profile', params: {username: viewer.username}}">
+        <v-btn class="nav-login-item" flat v-if="viewer && viewer.username" :to="{name: 'Profile', params: {username: viewer.username}}">
           <v-avatar size="32px">
             <img :src="viewer.avatar_url">
           </v-avatar>
           <div style="padding-left: 1rem;" v-if="viewer && viewer.username">{{ viewer.username }}</div>
         </v-btn>
-        <v-btn v-else flat :to="{name: 'Login'}">Login</v-btn>
+        <v-btn v-else-if="viewer" class="nav-login-item" flat :to="{name: 'Login'}">Login</v-btn>
+        <v-btn v-else class="nav-login-item" />
       </v-toolbar-items>
     </v-toolbar>
   </div>

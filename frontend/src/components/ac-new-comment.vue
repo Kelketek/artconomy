@@ -24,7 +24,7 @@
       </v-flex>
       <v-flex v-if="editing" text-xs-right>
         <v-btn small @click="editing=false" color="danger"><v-icon>close</v-icon></v-btn>
-        <v-btn small @click="save()" color="success"><v-icon>save</v-icon></v-btn>
+        <v-btn small @click="save()" color="success" class="comment-save"><v-icon>save</v-icon></v-btn>
       </v-flex>
     </v-layout>
   </v-card>

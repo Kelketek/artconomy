@@ -31,7 +31,7 @@ describe('NavBar.vue', () => {
       })
     wrapper.vm.$forceUser(null)
     await localVue.nextTick()
-    expect(wrapper.find('#nav_collapse').text())
+    expect(wrapper.find('.nav-login-item').text())
       .to.equal('')
   })
   it('should show a login button when logged out', async () => {
@@ -42,7 +42,7 @@ describe('NavBar.vue', () => {
       })
     wrapper.vm.$forceUser({})
     await localVue.nextTick()
-    expect(wrapper.find('#nav_collapse').text())
+    expect(wrapper.find('.nav-login-item').text())
       .to.equal('Login')
   })
   it("Should show the logged in user's name when logged in.", async () => {
@@ -52,7 +52,7 @@ describe('NavBar.vue', () => {
     })
     wrapper.vm.$forceUser({username: 'Jimmy'})
     await localVue.nextTick()
-    expect(wrapper.find('#navbar .nav-login-item').text())
+    expect(wrapper.find('.nav-login-item').text())
       .to.equal('Jimmy')
   })
 })

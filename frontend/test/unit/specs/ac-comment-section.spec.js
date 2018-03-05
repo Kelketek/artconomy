@@ -1,8 +1,12 @@
 import AcCommentSection from '@/components/ac-comment-section'
 import { mount, createLocalVue } from 'vue-test-utils'
-import MarkDownIt from 'markdown-it'
 import sinon from 'sinon'
-import { checkJson } from '../helpers'
+import { checkJson, installFields } from '../helpers'
+import VueFormGenerator from 'vue-form-generator'
+import { UserHandler } from '../../../src/plugins/user'
+import VueRouter from 'vue-router'
+import { router } from '../../../src/router'
+import Vuetify from 'vuetify'
 
 let server, localVue
 
@@ -113,8 +117,11 @@ describe('ac-comment-section.vue', () => {
   beforeEach(function () {
     server = sinon.fakeServer.create()
     localVue = createLocalVue()
-    localVue.prototype.$setUser = function () {}
-    localVue.prototype.md = MarkDownIt()
+    localVue.use(VueRouter)
+    localVue.use(UserHandler)
+    localVue.use(VueFormGenerator)
+    localVue.use(Vuetify)
+    installFields(localVue)
     localVue.prototype.user = {
       username: 'Kelketek',
       id: 1
@@ -123,19 +130,15 @@ describe('ac-comment-section.vue', () => {
   afterEach(function () {
     server.restore()
   })
-  it('Grabs and populates the initial character data and renders it.', async () => {
+  it('Grabs and populates the initial comments and renders them.', async () => {
     let wrapper = mount(AcCommentSection, {
       localVue,
+      router,
       stubs: ['router-link', 'router-view'],
       propsData: {
         commenturl: '/test/comments/',
         nesting: true,
         locked: false
-      },
-      mocks: {
-        $route: {
-          query: {}
-        }
       }
     })
     expect(server.requests.length).to.equal(1)
@@ -149,23 +152,19 @@ describe('ac-comment-section.vue', () => {
     await localVue.nextTick()
     // Must include new comment field.
     expect(wrapper.findAll('.comment-block').length).to.equal(8)
-    expect(wrapper.find('.new-comment-block').exists()).to.equal(true)
-    expect(wrapper.findAll('.fa-edit').length).to.equal(6)
-    expect(wrapper.findAll('.fa-reply').length).to.equal(5)
+    expect(wrapper.find('.new-comment-component').exists()).to.equal(true)
+    expect(wrapper.findAll('.comment-edit').length).to.equal(6)
+    expect(wrapper.findAll('.comment-reply').length).to.equal(5)
   })
   it('Does not show a new/edit capabilitiees if comments are disabled.', async () => {
     let wrapper = mount(AcCommentSection, {
       localVue,
+      router,
       stubs: ['router-link', 'router-view'],
       propsData: {
         commenturl: '/test/comments/',
         nesting: true,
         locked: true
-      },
-      mocks: {
-        $route: {
-          query: {}
-        }
       }
     })
     expect(server.requests.length).to.equal(1)
@@ -179,23 +178,19 @@ describe('ac-comment-section.vue', () => {
     await localVue.nextTick()
     // Must include new comment field.
     expect(wrapper.findAll('.comment-block').length).to.equal(7)
-    expect(wrapper.find('.new-comment-block').exists()).to.equal(false)
-    expect(wrapper.findAll('.fa-edit').length).to.equal(0)
-    expect(wrapper.findAll('.fa-reply').length).to.equal(0)
+    expect(wrapper.find('.new-comment-component').exists()).to.equal(false)
+    expect(wrapper.findAll('.comment-edit').length).to.equal(0)
+    expect(wrapper.findAll('.comment-reply').length).to.equal(0)
   })
   it('Adds a new root-level comment', async () => {
     let wrapper = mount(AcCommentSection, {
       localVue,
+      router,
       stubs: ['router-link', 'router-view'],
       propsData: {
         commenturl: '/test/comments/',
         nesting: true,
         locked: false
-      },
-      mocks: {
-        $route: {
-          query: {}
-        }
       }
     })
     expect(server.requests.length).to.equal(1)
@@ -211,7 +206,7 @@ describe('ac-comment-section.vue', () => {
     wrapper.find('.new-comment-button').trigger('click')
     await localVue.nextTick()
     expect(wrapper.find('.new-comment-field').exists()).to.equal(true)
-    let saveButton = wrapper.find('.new-comment-block').find('.fa-save')
+    let saveButton = wrapper.find('.new-comment-component').find('.comment-save')
     expect(saveButton.exists())
     wrapper.vm.$refs.newComment.draft = 'This is a test comment'
     saveButton.trigger('click')
@@ -246,8 +241,8 @@ describe('ac-comment-section.vue', () => {
     )
     await localVue.nextTick()
     expect(wrapper.findAll('.comment-block').length).to.equal(9)
-    expect(wrapper.find('.new-comment-block').exists()).to.equal(true)
-    expect(wrapper.findAll('.fa-edit').length).to.equal(7)
-    expect(wrapper.findAll('.fa-reply').length).to.equal(6)
+    expect(wrapper.find('.new-comment-component').exists()).to.equal(true)
+    expect(wrapper.findAll('.comment-edit').length).to.equal(7)
+    expect(wrapper.findAll('.comment-reply').length).to.equal(6)
   })
 })

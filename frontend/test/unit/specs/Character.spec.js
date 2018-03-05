@@ -2,6 +2,11 @@ import Character from '@/components/Character'
 import { mount, createLocalVue } from 'vue-test-utils'
 import MarkDownIt from 'markdown-it'
 import sinon from 'sinon'
+import VueRouter from 'vue-router'
+import { router } from '../../../src/router'
+import { UserHandler } from '../../../src/plugins/user'
+import VueFormGenerator from 'vue-form-generator'
+import { Shortcuts } from '../../../src/plugins/shortcuts'
 
 let server, localVue
 
@@ -9,29 +14,29 @@ describe('Character.vue', () => {
   beforeEach(function () {
     server = sinon.fakeServer.create()
     localVue = createLocalVue()
-    localVue.prototype.$setUser = function () {}
     localVue.prototype.md = MarkDownIt()
+    localVue.use(VueRouter)
+    localVue.use(UserHandler)
+    localVue.use(VueFormGenerator)
+    localVue.use(Shortcuts)
   })
   afterEach(function () {
     server.restore()
   })
   it('Grabs and populates the initial character data and renders it.', async() => {
+    router.replace({name: 'Character', params: {username: 'testusername', characterName: 'testcharacter'}})
     let wrapper = mount(Character, {
       localVue,
+      router,
       stubs: ['router-link', 'router-view'],
-      mocks: {
-        $route: {
-          params: {character: 'testcharacter', username: 'testusername'},
-          query: {}
-        }
-      },
       propsData: {
         username: 'testusername', characterName: 'testcharacter'
       }
     })
-    expect(server.requests.length).to.equal(2)
-    let charReq = server.requests[0]
-    let assetReq = server.requests[1]
+    wrapper.vm.$forceUser({username: 'Fox', rating: 3})
+    expect(server.requests.length).to.equal(3)
+    let charReq = server.requests[1]
+    let assetReq = server.requests[2]
     expect(charReq.url).to.equal('/api/profiles/v1/account/testusername/characters/testcharacter/')
     expect(charReq.method).to.equal('GET')
     expect(assetReq.url).to.equal('/api/profiles/v1/account/testusername/characters/testcharacter/assets/?size=4')

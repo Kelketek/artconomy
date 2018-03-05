@@ -24,7 +24,8 @@ module.exports = function (config) {
     frameworks: ['mocha', 'sinon-chai', 'phantomjs-shim', 'polyfill'],
     reporters: ['spec', 'coverage'],
     files: [
-      './index.js'
+      './index.js',
+      '../../../node_modules/vuetify/dist/vuetify.min.css'
     ],
     polyfill: ['Promise'],
     preprocessors: {

@@ -33,9 +33,9 @@
         </v-btn>
         <v-btn small v-if="myComment && editing" @click="editing=false" color="error"><v-icon>close</v-icon>
         </v-btn>
-        <v-btn small v-if="myComment && !editing && !locked" @click="editing=true" color="warning"><v-icon>edit</v-icon>
+        <v-btn small v-if="myComment && !editing && !locked" @click="editing=true" class="comment-edit" color="warning"><v-icon>edit</v-icon>
         </v-btn>
-        <v-btn small v-if="editing" @click="save()" color="success"><v-icon>save</v-icon></v-btn>
+        <v-btn class="comment-save" small v-if="editing" @click="save()" color="success"><v-icon>save</v-icon></v-btn>
       </v-flex>
       <v-flex xs11 offset-xs1>
         <ac-comment
@@ -79,20 +79,20 @@
         <v-btn small v-if="myComment && !comment.children.length && editing" @click="editing=false" color="error">
           <v-icon>close</v-icon>
         </v-btn>
-        <v-btn small v-if="myComment && !editing && !comment.children.length && !locked" color="warning" @click="editing=true">
+        <v-btn small v-if="myComment && !editing && !comment.children.length && !locked" color="warning" @click="editing=true" class="comment-edit">
           <v-icon>edit</v-icon>
         </v-btn>
-        <v-btn small v-if="editing && !comment.children.length" @click="save()" :disabled="edit_disabled"
+        <v-btn class="comment-save" small v-if="editing && !comment.children.length" @click="save()" :disabled="edit_disabled"
                   color="success">
           <v-icon>save</v-icon>
         </v-btn>
-        <v-btn small v-if="toplevel && nesting && !replying && !locked" @click="replying=true" color="info">
+        <v-btn small v-if="toplevel && nesting && !replying && !locked" @click="replying=true" color="info" class="comment-reply">
           <v-icon>reply</v-icon>
         </v-btn>
         <v-btn small v-if="replying" @click="replying=false" color="danger">
           <v-icon>close</v-icon>
         </v-btn>
-        <v-btn small v-if="replying" @click="postReply()" :disabled="reply_disabled" color="success">
+        <v-btn class="comment-save" small v-if="replying" @click="postReply()" :disabled="reply_disabled" color="success">
           <v-icon>save</v-icon>
         </v-btn>
         <div v-if="editing && reply_preview" v-html="parseReply()"></div>
