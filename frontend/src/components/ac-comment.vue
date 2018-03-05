@@ -13,12 +13,12 @@
           <span v-if="comment.edited"><br />Edited: {{format_time(comment.edited_on)}}</span>
         </v-tooltip>
       </v-flex>
-      <v-flex xs12 md10 class="comment-content pl-2 pr-2" v-html="parseContent()" v-if="!editing && !comment.deleted" />
-      <v-flex xs12 md10 class="comment-content pl-2 pr-2" v-if="comment.deleted">[This comment has been deleted]</v-flex>
-      <v-flex xs12 md10 v-if="editing && !edit_preview"><textarea :disabled="edit_disabled" v-model="draft"
+      <v-flex xs12 md9 class="comment-content pl-2 pr-2" v-html="parseContent()" v-if="!editing && !comment.deleted" />
+      <v-flex xs12 md9 class="comment-content pl-2 pr-2" v-if="comment.deleted">[This comment has been deleted]</v-flex>
+      <v-flex xs12 md9 v-if="editing && !edit_preview"><textarea :disabled="edit_disabled" v-model="draft"
                                                                         class="comment-field pl-2 pr-2"
                                                                         contenteditable="true"></textarea></v-flex>
-      <v-flex xs12 md10 v-if="editing && edit_preview" v-html="parseDraft()" />
+      <v-flex xs12 md9 v-if="editing && edit_preview" v-html="parseDraft()" />
       <v-flex xs12 md4 text-xs-right v-if="comment.children.length && editing">
         <div class="preview-block">
           <div class="text-xs-center">
@@ -50,7 +50,7 @@
             :locked="locked"
         />
       </v-flex>
-      <v-flex xs11 offset-xs1 class="pr-1" v-if="replying && !reply_preview"><textarea :disabled="reply_disabled" v-model="reply"
+      <v-flex xs11 md10 offset-xs1 class="pr-1" v-if="replying && !reply_preview"><textarea :disabled="reply_disabled" v-model="reply"
                                                                           class="comment-field"
                                                                           contenteditable="true"></textarea></v-flex>
       <v-flex xs11 offset-xs1 v-if="replying && reply_preview" v-html="parseReply()" />
@@ -72,7 +72,7 @@
           </div>
         </div>
       </v-flex>
-      <v-flex class="text-xs-right comment-actions" v-if="!comment.deleted">
+      <v-flex md10 class="text-xs-right comment-actions" v-if="!comment.deleted">
         <v-btn small v-if="myComment && !comment.children.length && !editing" @click="deleteComment()" color="error">
           <v-icon>delete</v-icon>
         </v-btn>

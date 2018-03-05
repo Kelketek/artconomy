@@ -10,6 +10,7 @@
         :toplevel="true"
         :locked="locked"
     >
+
     </ac-comment>
     <v-layout v-else row wrap>
       <v-flex xs12 class="text-xs-center" style="width:100%"><i class="fa fa-spin fa-spinner fa-5x"></i></v-flex>

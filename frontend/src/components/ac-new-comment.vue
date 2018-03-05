@@ -4,7 +4,7 @@
       <v-flex xs12 text-xs-center v-if="!editing">
         <v-btn @click="editing=true" class="new-comment-button">Add a comment</v-btn>
       </v-flex>
-      <v-flex xs12 class="pl-2 pr-2" v-if="editing && !edit_preview">
+      <v-flex xs12 md10 offset-md1 class="pl-2 pr-2" v-if="editing && !edit_preview">
         <textarea
             :disabled="edit_disabled"
             v-model="draft"
@@ -12,7 +12,7 @@
             contenteditable="true"
         ></textarea>
       </v-flex>
-      <v-flex xs12 v-if="edit_preview" class="pl-2 pr-2" v-html="parseDraft()" />
+      <v-flex xs12 md10 offset-md1 v-if="edit_preview" class="pl-2 pr-2" v-html="parseDraft()" />
       <v-flex xs12 md4 text-xs-right v-if="editing">
         <div class="preview-block">
           <div class="text-xs-center">
@@ -22,7 +22,7 @@
           </div>
         </div>
       </v-flex>
-      <v-flex v-if="editing" text-xs-right>
+      <v-flex v-if="editing" text-xs-right md6>
         <v-btn small @click="editing=false" color="danger"><v-icon>close</v-icon></v-btn>
         <v-btn small @click="save()" color="success" class="comment-save"><v-icon>save</v-icon></v-btn>
       </v-flex>
