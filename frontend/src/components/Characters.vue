@@ -15,6 +15,18 @@
         xs12 sm4 lg3
       >
       </ac-character-preview>
+      <v-jumbotron v-if="response.results.length === 0 && controls" color="grey darken-3">
+        <v-container fill-height>
+          <v-layout align-center>
+            <v-flex>
+              <h3 class="display-3">Add a character!</h3>
+              <span class="subheading">Set up your first character in Artconomy, make a gallery for them, and commission artists.</span>
+              <v-divider class="my-3" />
+              <v-btn large color="primary" class="mx-0" @click="showNew = true">Start Now</v-btn>
+            </v-flex>
+          </v-layout>
+        </v-container>
+      </v-jumbotron>
       <v-flex xs12>
         <v-pagination v-model="currentPage" :length="totalPages" v-if="totalPages > 1" />
       </v-flex>
@@ -22,7 +34,7 @@
     <v-layout row wrapped v-else>
       <v-flex xs12 text-xs-center><i class="fa fa-spin fa-spinner fa-5x"></i></v-flex>
     </v-layout>
-    <div class="row-centered" v-if="controls && embedded">
+    <div class="row-centered" v-if="controls && embedded && response !== null && response.results.length !== 0">
       <div class="col-12 pt-3 col-md-4 col-centered text-xs-center">
         <v-btn color="primary" size="lg" @click="showNew=true" id="new-char-button">Add a new character</v-btn>
       </div>

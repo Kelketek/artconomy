@@ -23,60 +23,51 @@
         </ac-action>
       </v-speed-dial>
       <v-card elevation-1>
-        <v-container
-            fluid
-            style="min-height: 0;"
-            grid-list-lg
-        >
-          <v-layout row wrap>
-            <v-flex xs12 md6 lg4 class="text-xs-center">
-              <ac-asset :asset="product" thumb-name="preview" img-class="bound-image" />
-            </v-flex>
-            <v-flex xs12 md6 class="pt-3">
-              <div class="pull-right">
-
+        <v-layout row wrap>
+          <v-flex xs12 md6 lg4 class="text-xs-center pr-1 pl-2 pt-1">
+            <ac-asset :asset="product" thumb-name="preview" img-class="bound-image" />
+          </v-flex>
+          <v-flex xs12 md6 class="pt-3 pl-2">
+            <h1><ac-patchfield v-model="product.name" name="name" :editmode="editing" styleclass="h1" :url="url" /> <v-icon v-if="product.hidden">visibility_off</v-icon></h1>
+            <ac-patchfield v-model="product.description" name="description" :multiline="true" :editmode="editing" :url="url" />
+            <p v-if="(product.tags.length === 0) && editing">
+              Add some tags to describe your product. This helps your product get found in search results.
+            </p>
+            <ac-tag-display
+                :editable="editing"
+                :url="`${url}tag/`"
+                :callback="setProduct"
+                :tag-list="product.tags"
+                :controls="controls && editing"
+                v-if="product.tags.length || editing"
+            />
+          </v-flex>
+          <v-flex md6 xs12 lg2 class="text-xs-center pt-3 pl-2">
+            <div class="avatar-container">
+              <ac-avatar :user="product.user" />
+            </div>
+            <div class="extra-details">
+              <div class="full-width">
+                <strong class="day-count"><ac-patchfield v-model="product.expected_turnaround" name="expected_turnaround" :editmode="editing" styleclass="day-count" :url="url" /></strong> days
+                turnaround
               </div>
-              <ac-patchfield v-model="product.name" name="name" :editmode="editing" styleclass="h1" :url="url" /> <v-icon v-if="product.hidden">visibility_off</v-icon>
-              <ac-patchfield v-model="product.description" name="description" :multiline="true" :editmode="editing" :url="url" />
-              <p v-if="(product.tags.length === 0) && editing">
-                Add some tags to describe your product. This helps your product get found in search results.
-              </p>
-              <ac-tag-display
-                  :editable="editing"
-                  :url="`${url}tag/`"
-                  :callback="setProduct"
-                  :tag-list="product.tags"
-                  :controls="controls && editing"
-                  v-if="product.tags.length || editing"
-              />
-            </v-flex>
-            <v-flex md6 xs12 lg2 class="text-xs-center pt-3">
-              <div class="avatar-container">
-                <ac-avatar :user="product.user" />
+              <div class="full-width">
+                <strong><ac-patchfield styleclass="revision-count" v-model="product.revisions" name="revisions" :editmode="editing" :url="url" /></strong> included revision<span v-if="product.revisions > 1">s</span>
               </div>
-              <div class="extra-details">
-                <div class="full-width">
-                  <strong class="day-count"><ac-patchfield v-model="product.expected_turnaround" name="expected_turnaround" :editmode="editing" styleclass="day-count" :url="url" /></strong> days
-                  turnaround
-                </div>
-                <div class="full-width">
-                  <strong><ac-patchfield styleclass="revision-count" v-model="product.revisions" name="revisions" :editmode="editing" :url="url" /></strong> included revision<span v-if="product.revisions > 1">s</span>
-                </div>
+            </div>
+            <div class="price-container">
+              Starting at
+              <div class="price-highlight">
+                <sup class="mini-dollar">$</sup><ac-patchfield v-model="product.price" name="price" :editmode="editing" :url="url" />
               </div>
-              <div class="price-container">
-                Starting at
-                <div class="price-highlight">
-                  <sup class="mini-dollar">$</sup><ac-patchfield v-model="product.price" name="price" :editmode="editing" :url="url" />
-                </div>
-              </div>
-              <div v-if="editing">
-                Task weight: <ac-patchfield v-model="product.task_weight" name="task_weight" :editmode="editing" :url="url" /><br />
-                Max parallel: <ac-patchfield v-model="product.max_parallel" name="max_parallel" :editmode="editing" :url="url" /><br />
-                <ac-patchbutton v-if="user.username && user.rating > 0" :url="url" :classes="{'btn-sm': true, 'm-0': true}" name="sfw_mode" v-model="product.hidden" true-text="Hide Product" true-variant="success" false-text="Unhide Product" />
-              </div>
-            </v-flex>
-          </v-layout>
-        </v-container>
+            </div>
+            <div v-if="editing">
+              Task weight: <ac-patchfield v-model="product.task_weight" name="task_weight" :editmode="editing" :url="url" /><br />
+              Max parallel: <ac-patchfield v-model="product.max_parallel" name="max_parallel" :editmode="editing" :url="url" /><br />
+              <ac-patchbutton v-if="user.username && user.rating > 0" :url="url" :classes="{'btn-sm': true, 'm-0': true}" name="sfw_mode" v-model="product.hidden" true-text="Hide Product" true-variant="success" false-text="Unhide Product" />
+            </div>
+          </v-flex>
+        </v-layout>
       </v-card>
       <div class="mt-3"></div>
       <ac-asset-gallery ref="assetGallery" :endpoint="`${url}examples/`" :limit="5" :header="true">

@@ -656,7 +656,7 @@ def register_dwolla(request):
     result.raise_for_status()
     request.user.dwolla_url = result.json()['_links']['account']['href']
     request.user.save()
-    return redirect('/profile/{}/settings/payment/disbursements'.format(request.user.username))
+    return redirect('/profile/{}/settings/payment/disbursement'.format(request.user.username))
 
 
 @api_view(['GET'])

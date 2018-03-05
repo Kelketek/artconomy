@@ -24,11 +24,24 @@
         v-if="growing !== null && setUp"
         :product="product"
       />
+      <v-jumbotron v-if="is_current && (growing !== null) && (growing.length === 0)" color="grey darken-3">
+        <v-container fill-height>
+          <v-layout align-center>
+            <v-flex>
+              <h3 class="display-3">Sell your art!</h3>
+              <span class="subheading">Now that you have your disbursement account set up, you can create products to sell on Artconomy.</span>
+              <v-divider class="my-3" />
+              <div class="mb-3"><span class="title">Create your first product now:</span></div>
+              <v-btn large color="primary" class="mx-0" @click="showNew = true">New Product</v-btn>
+            </v-flex>
+          </v-layout>
+        </v-container>
+      </v-jumbotron>
     </v-layout>
     <v-layout row wrap>
       <v-flex xs12 v-if="is_current && !setUp">
         <p>To open a store, you must first set up your
-          <router-link :to="{name: 'Settings', params: {tabName: 'payment', 'username': this.viewer.username, 'subTabName': 'disbursements'}}">
+          <router-link :to="{name: 'Settings', params: {tabName: 'payment', 'username': this.viewer.username, 'subTabName': 'disbursement'}}">
             deposit account.
           </router-link>
         </p>
