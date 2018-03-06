@@ -4,7 +4,7 @@
         <textarea style="width: 100%;" class="patchfield-multiline-editor" @keydown="handleMultilineInput" v-model="input" @input="resizer" v-focus="true" @blur="save" @keyup.escape="reset" :disabled="disabled"></textarea>
       </div>
       <div v-else-if="editing">
-        <v-text-field type="text" class="patch-input" v-model="input" @keyup.enter.native="save" v-focus="true" :value="value" @blur="save" @keyup.escape.native="reset" :disabled="disabled" />
+        <v-text-field type="text" ref="field" class="patch-input" v-model="input" @keyup.enter.native="save" v-focus="true" :autofocus="true" @focus="setAtEnd" :value="value" @blur="save" @keyup.escape.native="reset" :disabled="disabled" />
       </div>
       <div v-else-if="editmode" @click="startEditing">
         <div class="patchfield-preview" :class="{'patchfield-preview-multiline': multiline}" tabindex="0" @focus="startEditing" @input="update" v-html="preview"></div>
@@ -54,6 +54,12 @@
       },
       resizer () {
         autosize(this.$refs.field)
+      },
+      setAtEnd () {
+        // By resetting the value to a blank string and then re-setting it, we force the cursor at the end of the field.
+        let value = this.$refs.field.value
+        this.$refs.field.$refs.input.value = ''
+        this.$refs.field.$refs.input.value = value
       },
       formatErrors () {
         let errors = ''
