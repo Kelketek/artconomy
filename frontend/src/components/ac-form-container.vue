@@ -24,7 +24,7 @@
 <script>
   import $ from 'jquery'
   import deepEqual from 'deep-equal'
-  import { setErrors } from '../lib'
+  import { setErrors, EventBus } from '../lib'
 
   export default {
     name: 'ac-form-container',
@@ -82,6 +82,8 @@
         for (let key in defaults) {
           if (defaults.hasOwnProperty(key)) {
             this.model[key] = defaults[key]
+            console.log('Emitting ' + 'reset-field-' + key)
+            EventBus.$emit('reset-field-' + key, defaults[key])
           }
         }
         // Make sure we don't screw up our 'saved' setting.

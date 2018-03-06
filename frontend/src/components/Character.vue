@@ -361,8 +361,7 @@
             placeholder: 'Fur color',
             model: 'note',
             featured: true,
-            required: true,
-            validator: VueFormGenerator.validators.string
+            validator: VueFormGenerator.validators.required
           }, {
             type: 'v-color',
             label: 'Color',
