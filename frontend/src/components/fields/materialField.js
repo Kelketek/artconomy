@@ -46,7 +46,6 @@ export default {
   },
   created () {
     EventBus.$on('form-failure', this.fetchErrors)
-    console.log('Listening on ' + 'reset-field-' + this.schema.model)
     EventBus.$on('reset-field-' + this.schema.model, this.clearErrors)
   },
   destroyed () {

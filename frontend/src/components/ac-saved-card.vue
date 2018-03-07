@@ -70,7 +70,6 @@
         }
         this.card.primary = true
         this.changing = false
-        this.updateSelect()
       }
 
     },
@@ -81,9 +80,6 @@
       }
     },
     created () {
-      if (this.value === null && this.card.primary) {
-        this.updateSelect()
-      }
     },
     computed: {
       issuer () {

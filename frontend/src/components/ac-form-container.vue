@@ -109,6 +109,7 @@
         this.$refs.form.validate()
         if (this.$refs.form.errors.length) {
           this.enable()
+          EventBus.$emit('form-error', this)
           return
         }
         let form = new FormData()

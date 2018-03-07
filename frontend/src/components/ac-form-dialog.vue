@@ -2,6 +2,7 @@
   <v-dialog
       v-model="toggle"
       fullscreen
+      ref="dialog"
       transition="dialog-bottom-transition"
       :overlay="false"
       scrollable
@@ -42,6 +43,8 @@
 
 <script>
   import AcFormContainer from './ac-form-container'
+  import { EventBus } from '../lib'
+  import Vue from 'vue'
 
   export default {
     components: {AcFormContainer},
@@ -108,6 +111,22 @@
           this.$emit('input', value)
         }
       }
+    },
+    methods: {
+      scrollToErrors (event) {
+        Vue.nextTick(() => {
+          console.log('Scrolling!')
+          this.$refs.dialog.$vuetify.goTo('.form-group.error')
+        })
+      }
+    },
+    created () {
+      EventBus.$on('form-error', this.scrollToErrors)
+      EventBus.$on('form-failure', this.scrollToErrors)
+    },
+    destroyed () {
+      EventBus.$off('form-error', this.scrollToErrors)
+      EventBus.$off('form-failure', this.scrollToErrors)
     }
   }
 </script>

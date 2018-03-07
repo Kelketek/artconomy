@@ -211,7 +211,7 @@
               <hr />
               <strong>Total: ${{price}}</strong>
               <div v-if="selectedCardModel && selectedCardModel.cvv_verified === false">
-                <strong>Card Security code (CVV): </strong><v-text-field v-model="cvv" /> <br />
+                <strong>Card Security code (CVV): </strong><v-text-field :autofocus="true" v-model="cvv" /> <br />
                 <small>Three to four digit number, on the front of American Express cards, and on the back of all other cards.</small>
               </div>
               <div class="mt-2 text-xs-center">
@@ -480,7 +480,7 @@
         return (this.revisions && (this.revisions.length <= this.order.revisions))
       },
       validCVV () {
-        if (this.$refs.cardManager.selectedCardModel.cvv_verified === true) {
+        if (this.$refs.cardManager.selectedCardModel && this.$refs.cardManager.selectedCardModel.cvv_verified === true) {
           return true
         }
         return RegExp('^\\d{3,4}$').test(this.cvv)

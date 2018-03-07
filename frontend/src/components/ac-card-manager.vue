@@ -13,7 +13,6 @@
         <v-radio-group v-model="selectedCard">
           <template v-for="(card, index) in growing">
             <ac-saved-card
-
                 :key="card.id"
                 v-if="growing !== null"
                 :card="card"
@@ -79,8 +78,9 @@
     components: {AcFormContainer, AcSavedCard},
     data () {
       return {
-        currentTab: 0,
+        currentTab: 'tab-saved-card',
         selectedCard: this.value,
+        oldSelectedCard: this.value,
         newCardModel: {
           first_name: '',
           last_name: '',
@@ -160,8 +160,16 @@
         this.response = response
         this.growing = response.results
         if (this.growing.length === 0) {
-          this.currentTab = 1
+          this.currentTab = 'tab-new-card'
+          return
         }
+        for (let card of this.growing) {
+          if (card.primary) {
+            this.selectedCard = card.id
+            return
+          }
+        }
+        this.selectedCard = this.growing[0].id
       },
       cardSelected (value) {
         return value === this.cardType
@@ -197,14 +205,16 @@
     },
     watch: {
       selectedCard (newValue) {
-        if (newValue === null) {
-          if (this.growing.length === 0) {
-            this.currentTab = 1
-          } else {
-            this.selectedCard = this.growing[0].id
-          }
-        }
         this.$emit('input', this.selectedCard)
+      },
+      currentTab (newValue) {
+        if (newValue === 'tab-new-card') {
+          this.oldSelectedCard = this.selectedCard
+          this.selectedCard = null
+          console.log('Set!')
+        } else {
+          this.selectedCard = this.oldSelectedCard
+        }
       }
     },
     computed: {
