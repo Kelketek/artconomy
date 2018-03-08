@@ -1,5 +1,8 @@
 <template>
   <div class="form-container">
+    <div class="loading-overlay" v-if="sending">
+        <div class="spinner-holder"><i class="fa fa-spinner fa-5x fa-spin"></i></div>
+    </div>
     <div v-if="errors.length" class="alert alert-danger">
       <a class="close" @click="dismiss_error">&times;</a>
       {% verbatim %}<span v-for="error in errors">{{ error }}</span>{% endverbatim %}
@@ -20,6 +23,35 @@
     </fieldset>
   </div>
 </template>
+
+<style scoped>
+  .loading-overlay {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    width: 100%;
+    z-index: 1;
+    background-color: black;
+    vertical-align: center;
+    opacity: .5;
+    box-shadow: 0 0 0 .20em black;
+  }
+  .form-container {
+    position: relative;
+  }
+  .spinner-holder {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    text-align: center;
+    height: 30%;
+    margin: auto;
+  }
+</style>
 
 <script>
   import $ from 'jquery'
@@ -93,9 +125,11 @@
       // For now, jQuery will do.
       disable: function () {
         $(this.$el).find('fieldset').attr('disabled', true)
+        this.sending = true
       },
       enable: function () {
         $(this.$el).find('fieldset').attr('disabled', false)
+        this.sending = false
       },
       submit: function () {
         if (this.disabled) {
@@ -176,7 +210,8 @@
         defaults: function () {
           return {}
         },
-        oldValue: {}
+        oldValue: {},
+        sending: false
       }
     },
     watch: {

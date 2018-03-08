@@ -78,10 +78,7 @@
       return {
         newCharModel: {
           name: '',
-          description: '',
-          private: false,
-          open_requests: true,
-          open_requests_restrictions: ''
+          private: false
         },
         url: this.endpoint,
         showNew: false,

@@ -129,7 +129,6 @@
         setCookie('csrftoken', response.csrftoken)
         setCookie('authtoken', response.authtoken)
         this.$root.$loadUser(true)
-        this.loginModel = loginDefault()
       },
       logoutHandler () {
         this.$root.user = {}
