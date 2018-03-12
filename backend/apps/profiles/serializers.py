@@ -10,7 +10,6 @@ from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 
 from apps.lib.serializers import RelatedUserSerializer, Base64ImageField, TagSerializer
-from apps.profiles.apis import dwolla_setup_link
 from apps.profiles.models import Character, ImageAsset, User, RefColor
 
 
@@ -249,7 +248,6 @@ class UserSerializer(serializers.ModelSerializer):
     csrftoken = serializers.SerializerMethodField()
     authtoken = serializers.SerializerMethodField()
     avatar_url = serializers.SerializerMethodField()
-    dwolla_setup_url = serializers.SerializerMethodField()
     fee = serializers.SerializerMethodField()
 
     def __init__(self, *args, **kwargs):
@@ -258,9 +256,6 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_dwolla_configured(self, obj):
         return bool(obj.dwolla_url)
-
-    def get_dwolla_setup_url(self, obj):
-        return dwolla_setup_link()
 
     def get_csrftoken(self, value):
         return get_token(self.request)
@@ -278,7 +273,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             'commissions_closed', 'rating', 'sfw_mode', 'max_load', 'username', 'id', 'is_staff', 'is_superuser',
-            'dwolla_configured', 'dwolla_setup_url', 'csrftoken', 'avatar_url', 'email', 'fee', 'authtoken',
+            'dwolla_configured', 'csrftoken', 'avatar_url', 'email', 'fee', 'authtoken',
             'blacklist', 'biography'
         )
         read_only_fields = fields

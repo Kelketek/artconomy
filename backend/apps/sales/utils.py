@@ -17,7 +17,14 @@ def escrow_balance(user):
         debit = Decimal('0.00')
     try:
         credit = Decimal(
-            str(user.escrow_holdings.filter(status=PaymentRecord.SUCCESS).aggregate(Sum('amount'))['amount__sum']))
+            str(user.escrow_holdings.filter(
+                status=PaymentRecord.SUCCESS).exclude(
+                type__in=[
+                    PaymentRecord.DISBURSEMENT_SENT,
+                    PaymentRecord.DISBURSEMENT_RETURNED,
+                    PaymentRecord.DISBURSEMENT_FAILED
+                ]
+            ).aggregate(Sum('amount'))['amount__sum']))
     except InvalidOperation:
         credit = Decimal('0.00')
 
@@ -30,7 +37,9 @@ def available_balance(user):
             str(user.debits.filter(
                 status=PaymentRecord.SUCCESS,
                 source=PaymentRecord.ACCOUNT,
-                type__in=[PaymentRecord.DISBURSEMENT, PaymentRecord.TRANSFER],
+                # In the case of disbursement failed, we use success by default since it's a record from Dwolla, not
+                # us.
+                type__in=[PaymentRecord.DISBURSEMENT_SENT, PaymentRecord.TRANSFER, PaymentRecord.DISBURSEMENT_RETURNED],
             ).aggregate(Sum('amount'))['amount__sum'])
         )
     except InvalidOperation:

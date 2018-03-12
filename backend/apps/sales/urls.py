@@ -7,7 +7,7 @@ from apps.sales.views import ProductListAPI, ProductManager, PlaceOrder, \
     MakePrimary, AdjustOrder, MakePayment, OrderRevisions, DeleteOrderRevision, OrderStart, ApproveFinal, \
     ArchivedOrderList, CancelledOrderList, ArchivedSalesList, CancelledSalesList, ProductExamples, StartDispute, \
     OrderRefund, ClaimDispute, CurrentCasesList, ArchivedCasesList, CancelledCasesList, AccountBalance, \
-    FundingSources, ProductTag, ProductSearch
+    BankAccounts, ProductTag, ProductSearch
 
 app_name = 'sales'
 
@@ -53,5 +53,5 @@ urlpatterns = [
     path('v1/account/<username>/cards/<int:card_id>/', CardManager.as_view(), name='card_manager'),
     path('v1/account/<username>/cards/<int:card_id>/primary/', MakePrimary.as_view(), name='card_primary'),
     path('v1/account/<username>/balance/', AccountBalance.as_view(), name='account_balance'),
-    path('v1/account/<username>/accounts/', FundingSources.as_view(), name='account_balance'),
+    path('v1/account/<username>/banks/', BankAccounts.as_view(), name='account_balance'),
 ]

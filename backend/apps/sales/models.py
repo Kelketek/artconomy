@@ -18,7 +18,7 @@ from moneyed import Money
 from apps.lib.models import Comment, Subscription, SALE_UPDATE, ORDER_UPDATE, REVISION_UPLOADED, COMMENT
 from apps.lib.abstract_models import ImageModel
 from apps.sales.permissions import OrderViewPermission
-from apps.sales.sauce import sauce
+from apps.sales.apis import sauce
 
 
 class Product(ImageModel):
@@ -440,9 +440,11 @@ class PaymentRecord(Model):
     ACCOUNT = 103
 
     SALE = 200
-    DISBURSEMENT = 201
-    REFUND = 202
-    TRANSFER = 203
+    DISBURSEMENT_SENT = 201
+    DISBURSEMENT_RETURNED = 202
+    DISBURSEMENT_FAILED = 203
+    REFUND = 204
+    TRANSFER = 205
 
     STATUSES = (
         (SUCCESS, 'SUCCESS'),
@@ -459,7 +461,8 @@ class PaymentRecord(Model):
     TYPES = (
         (SALE, 'Sale of good or service'),
         (TRANSFER, 'Internal Transfer'),
-        (DISBURSEMENT, 'Disbursement to account'),
+        (DISBURSEMENT_SENT, 'Initiated Disbersement'),
+        (DISBURSEMENT_RETURNED, 'Disbursement completed'),
         (REFUND, 'Refund')
     )
 
@@ -477,6 +480,9 @@ class PaymentRecord(Model):
     created_on = DateTimeField(auto_now_add=True, db_index=True)
     response_code = CharField(max_length=10)
     response_message = TextField()
+    # Needed for async checks against ACH transfers. Set false when we need to query periodically about the status
+    # of this transfer.
+    finalized = BooleanField(default=True, db_index=True)
     object_id = PositiveIntegerField(null=True, blank=True, db_index=True)
     content_type = ForeignKey(ContentType, on_delete=SET_NULL, null=True, blank=True)
     target = GenericForeignKey('content_type', 'object_id')
@@ -540,3 +546,16 @@ class Revision(ImageModel):
 
     class Meta:
         ordering = ['created_on']
+
+
+class BankAccount(Model):
+    CHECKING = 0
+    SAVINGS = 1
+    ACCOUNT_TYPES = (
+        (CHECKING, 'Checking'),
+        (SAVINGS, 'Savings')
+    )
+    user = ForeignKey(settings.AUTH_USER_MODEL, on_delete=CASCADE)
+    url = URLField()
+    last_four = CharField(max_length=4)
+    type = IntegerField(choices=ACCOUNT_TYPES)

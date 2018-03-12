@@ -26,16 +26,16 @@ from apps.lib.permissions import ObjectStatus, IsStaff, IsSafeMethod, Any
 from apps.lib.serializers import CommentSerializer
 from apps.lib.utils import notify, recall_notification
 from apps.lib.views import BaseTagView
-from apps.profiles.apis import dwolla_api
 from apps.profiles.models import User, ImageAsset
 from apps.profiles.permissions import ObjectControls, UserControls
 from apps.profiles.serializers import ImageAssetSerializer
+from apps.sales.dwolla import add_bank_account
 from apps.sales.permissions import OrderViewPermission, OrderSellerPermission, OrderBuyerPermission
-from apps.sales.models import Product, Order, CreditCardToken, PaymentRecord, Revision
+from apps.sales.models import Product, Order, CreditCardToken, PaymentRecord, Revision, BankAccount
 from apps.sales.serializers import ProductSerializer, ProductNewOrderSerializer, OrderViewSerializer, CardSerializer, \
     NewCardSerializer, OrderAdjustSerializer, PaymentSerializer, RevisionSerializer, OrderStartedSerializer, \
-    AccountBalanceSerializer
-from apps.sales.utils import translate_authnet_error, product_ordering, available_products
+    AccountBalanceSerializer, BankAccountSerializer
+from apps.sales.utils import translate_authnet_error, available_products
 
 
 class ProductListAPI(ListCreateAPIView):
@@ -651,23 +651,24 @@ class AccountBalance(RetrieveAPIView):
         return user
 
 
-class FundingSources(GenericAPIView):
+class BankAccounts(ListCreateAPIView):
     permission_classes = [UserControls]
+    serializer_class = BankAccountSerializer
 
-    def get_object(self):
+    def get_queryset(self):
         user = get_object_or_404(User, username=self.kwargs['username'])
         self.check_object_permissions(self.request, user)
-        return user
+        return BankAccount.objects.filter(user=user)
 
-    def get(self, request, username):
-        user = self.get_object()
-        if not user.dwolla_url:
-            return Response(
-                status=status.HTTP_400_BAD_REQUEST, data={'error': 'You must set up your dwolla account first.'}
-            )
-        return Response(
-            status=status.HTTP_200_OK, data=dwolla_api().get('{}/funding-sources'.format(user.dwolla_url)).body
-        )
+    def perform_create(self, serializer):
+        user = get_object_or_404(User, username=self.kwargs['username'])
+        data = serializer.data
+        print(data)
+        user.first_name = data['first_name']
+        user.last_name = data['last_name']
+        user.save()
+        account = add_bank_account(user, data['account_number'], data['routing_number'], data['type'])
+        return account
 
 
 class ProductTag(BaseTagView):

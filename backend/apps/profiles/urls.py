@@ -5,7 +5,6 @@ from django.urls import path
 
 from apps.profiles.views import Register, CharacterListAPI, ImageAssetListAPI, \
     CharacterManager, AssetManager, MakePrimary, SettingsAPI, CurrentUserInfo, AssetComments, CredentialsAPI, \
-    register_dwolla, \
     NotificationsList, SetAvatar, UserInfo, CharacterSearch, AssetFavorite, MarkNotificationsRead, AssetTagCharacter, \
     UserSearch, AssetTagArtist, TagSearch, AssetTag, AssetSearch, CharacterTag, UserBlacklist, RefColorList, \
     RefColorManager, RecentSubmissions, RecentCommissions, NewCharacters
@@ -17,7 +16,6 @@ app_name = "profiles"
 duex_patterns = (duex_patterns, 'duex')
 
 urlpatterns = [
-    path('v1/register_dwolla/', register_dwolla, name='register_dwolla'),
     path('v1/recent-submissions/', RecentSubmissions.as_view(), name='recent_submissions'),
     path('v1/recent-commissions/', RecentCommissions.as_view(), name='recent_commissions'),
     path('v1/new-characters/', NewCharacters.as_view(), name='new_characters'),

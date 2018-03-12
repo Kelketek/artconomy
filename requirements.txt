@@ -4,6 +4,7 @@ bok_choy==0.7.1
 ddt==1.1.1
 Django>=2.0.0,<2.1.0
 django-avatar==4.1.0
+django-ipware==2.0.1
 djangorestframework==3.7.7
 djangorestframework-bulk==0.2.1
 django-rest-recaptcha==1.0.1

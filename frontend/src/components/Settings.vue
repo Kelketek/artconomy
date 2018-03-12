@@ -107,11 +107,26 @@
                 <div class="text-xs-center mt-3">
                   <ac-account-balance :username="user.username"/>
                   <p v-if="user.dwolla_configured">
-                    Your Dwolla account has been set up.
+                    Your payout information has been set up.
                   </p>
-                  <p v-else>
-                    You must set up a Dwolla account before you can sell on Artconomy. <a :href="user.dwolla_setup_url">Click here</a> to set up your dwolla account.
-                  </p>
+                  <v-jumbotron v-else color="grey darken-3">
+                    <v-container fill-height>
+                      <v-layout align-center>
+                        <v-flex>
+                          <h3 class="display-3">Add a bank account!</h3>
+                          <span class="subheading">Add your account information so that we can send you the money you earn through Artconomy.</span>
+                          <v-divider class="my-3" />
+                          <v-btn large color="primary" class="mx-0" @click="showNewBank = true">Get Started</v-btn>
+                        </v-flex>
+                      </v-layout>
+                    </v-container>
+                  </v-jumbotron>
+                  <ac-form-dialog ref="bankForm" :schema="bankSchema" :model="bankModel"
+                                  :options="credentialsOptions" :success="addBank"
+                                  title="Add Bank"
+                                  :url="`/api/sales/v1/account/${this.user.username}/banks/`"
+                                  v-model="showNewBank"
+                  />
                 </div>
               </v-tab-item>
             </v-tabs-items>
@@ -133,15 +148,17 @@
   import AcFormContainer from './ac-form-container'
   import Viewer from '../mixins/viewer'
   import Perms from '../mixins/permissions'
-  import { inputMatches, paramHandleMap, ratings, setMetaContent } from '../lib'
+  import { accountTypes, inputMatches, paramHandleMap, ratings, setMetaContent } from '../lib'
   import AcCardManager from './ac-card-manager'
   import AcAccountBalance from './ac-account-balance'
   import AcSetupTwoFactor from './ac-setup-two-factor'
   import AcTagDisplay from './ac-tag-display'
+  import AcFormDialog from './ac-form-dialog'
 
   export default {
     name: 'Settings',
     components: {
+      AcFormDialog,
       AcTagDisplay,
       AcSetupTwoFactor,
       AcCardManager,
@@ -182,6 +199,9 @@
         if (this.is_current) {
           this.$root.$loadUser()
         }
+      },
+      addBank (response) {
+        console.log(response)
       }
     },
     data () {
@@ -197,6 +217,7 @@
           new_password: '',
           new_password2: ''
         },
+        showNewBank: false,
         settingsSchema: {
           fields: [{
             type: 'v-checkbox',
@@ -290,6 +311,49 @@
         credentialsOptions: {
           validateAfterLoad: false,
           validateAfterChanged: true
+        },
+        bankModel: {
+          first_name: '',
+          last_name: '',
+          type: '0',
+          account_number: '',
+          routing_number: ''
+        },
+        bankSchema: {
+          fields: [{
+            type: 'v-text',
+            label: 'First Name',
+            model: 'first_name',
+            featured: true,
+            validator: VueFormGenerator.validators.required
+          }, {
+            type: 'v-text',
+            label: 'Last Name',
+            model: 'last_name',
+            featured: true,
+            validator: VueFormGenerator.validators.required
+          }, {
+            type: 'v-select',
+            label: 'Account Type',
+            model: 'type',
+            values: accountTypes,
+            selectOptions: {
+              hideNoneSelectedText: true
+            }
+          }, {
+            type: 'v-text',
+            label: 'Account Number',
+            model: 'account_number',
+            featured: true,
+            validator: VueFormGenerator.validators.required
+          }, {
+            type: 'v-text',
+            label: 'Routing Number',
+            model: 'routing_number',
+            placeholder: '',
+            featured: true,
+            validator: VueFormGenerator.validators.required
+          }]
         },
         avatarModel: {
           avatar: []

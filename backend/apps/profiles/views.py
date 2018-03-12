@@ -632,33 +632,6 @@ class NewCharacters(ListAPIView):
         return available_chars(self.request.user).filter(primary_asset__isnull=False).order_by('created_on')
 
 
-def register_dwolla(request):
-    """
-    Gets the return code from a Dwolla registration and applies it to a user.
-    """
-    if not request.user.is_authenticated:
-        return HttpResponse(
-            status=status.HTTP_403_FORBIDDEN, content="Please log in and then re-attempt to link your account."
-        )
-    code = request.GET.get('code', '')
-    if not code:
-        return Response(status=status.HTTP_400_BAD_REQUEST, data="Code not provided.")
-    result = requests.post(
-        'https://{}.dwolla.com/oauth/v2/token'.format('sandbox' if settings.SANDBOX_APIS else 'www'),
-        json={
-            'client_id': settings.DWOLLA_KEY,
-            'client_secret': settings.DWOLLA_SECRET,
-            'code': code,
-            "grant_type": "authorization_code",
-            "redirect_uri": make_url(reverse('profiles:register_dwolla')),
-        }
-    )
-    result.raise_for_status()
-    request.user.dwolla_url = result.json()['_links']['account']['href']
-    request.user.save()
-    return redirect('/profile/{}/settings/payment/disbursement'.format(request.user.username))
-
-
 @api_view(['GET'])
 def check_username(request):
     username = request.GET.get('username')

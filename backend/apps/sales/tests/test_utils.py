@@ -73,7 +73,7 @@ class BalanceTestCase(TestCase):
             payee=None,
             status=PaymentRecord.SUCCESS,
             source=PaymentRecord.ACCOUNT,
-            type=PaymentRecord.DISBURSEMENT,
+            type=PaymentRecord.DISBURSEMENT_SENT,
             amount=Money('15.00', 'USD')
         )
         self.assertEqual(escrow_balance(self.user), Decimal('5.00'))
@@ -83,7 +83,18 @@ class BalanceTestCase(TestCase):
             payee=None,
             status=PaymentRecord.FAILURE,
             source=PaymentRecord.ACCOUNT,
-            type=PaymentRecord.DISBURSEMENT,
+            type=PaymentRecord.DISBURSEMENT_SENT,
+            amount=Money('8.00', 'USD')
+        )
+        self.assertEqual(escrow_balance(self.user), Decimal('5.00'))
+        self.assertEqual(escrow_balance(self.user2), Decimal('0.00'))
+        self.assertEqual(escrow_balance(self.user3), Decimal('0.00'))
+        PaymentRecordFactory.create(
+            payee=None,
+            payer=self.user,
+            status=PaymentRecord.SUCCESS,
+            source=PaymentRecord.ACCOUNT,
+            type=PaymentRecord.DISBURSEMENT_RETURNED,
             amount=Money('8.00', 'USD')
         )
         self.assertEqual(escrow_balance(self.user), Decimal('5.00'))
@@ -151,20 +162,32 @@ class BalanceTestCase(TestCase):
             payee=None,
             status=PaymentRecord.SUCCESS,
             source=PaymentRecord.ACCOUNT,
-            type=PaymentRecord.DISBURSEMENT,
+            type=PaymentRecord.DISBURSEMENT_SENT,
             amount=Money('15.00', 'USD')
         )
         self.assertEqual(available_balance(self.user), Decimal('20.00'))
         self.assertEqual(available_balance(self.user2), Decimal('0.00'))
         self.assertEqual(available_balance(self.user3), Decimal('0.00'))
         PaymentRecordFactory.create(
+            payer=self.user,
             payee=None,
             status=PaymentRecord.FAILURE,
             source=PaymentRecord.ACCOUNT,
-            type=PaymentRecord.DISBURSEMENT,
+            type=PaymentRecord.DISBURSEMENT_SENT,
             amount=Money('8.00', 'USD')
         )
         self.assertEqual(available_balance(self.user), Decimal('20.00'))
+        self.assertEqual(available_balance(self.user2), Decimal('0.00'))
+        self.assertEqual(available_balance(self.user3), Decimal('0.00'))
+        PaymentRecordFactory.create(
+            payee=self.user,
+            payer=None,
+            status=PaymentRecord.SUCCESS,
+            source=PaymentRecord.ACCOUNT,
+            type=PaymentRecord.DISBURSEMENT_RETURNED,
+            amount=Money('5.00', 'USD')
+        )
+        self.assertEqual(available_balance(self.user), Decimal('25.00'))
         self.assertEqual(available_balance(self.user2), Decimal('0.00'))
         self.assertEqual(available_balance(self.user3), Decimal('0.00'))
         PaymentRecordFactory.create(
@@ -175,6 +198,6 @@ class BalanceTestCase(TestCase):
             type=PaymentRecord.TRANSFER,
             amount=Money('5.00', 'USD')
         )
-        self.assertEqual(available_balance(self.user), Decimal('15.00'))
+        self.assertEqual(available_balance(self.user), Decimal('20.00'))
         self.assertEqual(available_balance(self.user2), Decimal('0.00'))
         self.assertEqual(available_balance(self.user3), Decimal('0.00'))

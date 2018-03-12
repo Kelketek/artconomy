@@ -143,6 +143,15 @@ export const ORDER_STATUSES = {
   '9': 'has been refunded.'
 }
 
+export const ACCOUNT_TYPES = {
+  '0': 'Checking',
+  '1': 'Savings'
+}
+
+export function accountTypes () {
+  return genOptions(ACCOUNT_TYPES)
+}
+
 export function textualize (markdown) {
   let container = document.createElement('div')
   container.innerHTML = md.render(markdown)

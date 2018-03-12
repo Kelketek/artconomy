@@ -114,7 +114,6 @@
         for (let key in defaults) {
           if (defaults.hasOwnProperty(key)) {
             this.model[key] = defaults[key]
-            console.log('Emitting ' + 'reset-field-' + key)
             EventBus.$emit('reset-field-' + key, defaults[key])
           }
         }

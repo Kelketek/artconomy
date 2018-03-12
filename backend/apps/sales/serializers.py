@@ -12,7 +12,7 @@ from apps.lib.serializers import RelatedUserSerializer, Base64ImageField
 from apps.lib.utils import country_choices
 from apps.profiles.models import User
 from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer
-from apps.sales.models import Product, Order, CreditCardToken, Revision, PaymentRecord
+from apps.sales.models import Product, Order, CreditCardToken, Revision, PaymentRecord, BankAccount
 from apps.sales.utils import escrow_balance, available_balance
 
 
@@ -189,3 +189,15 @@ class AccountBalanceSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('escrow', 'available')
+
+
+class BankAccountSerializer(serializers.ModelSerializer):
+    first_name = serializers.CharField(write_only=True)
+    last_name = serializers.CharField(write_only=True)
+    account_number = serializers.CharField(write_only=True)
+    routing_number = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = BankAccount
+        fields = ('first_name', 'last_name', 'last_four', 'account_number', 'routing_number', 'type')
+        read_only_fields = ('last_four',)
