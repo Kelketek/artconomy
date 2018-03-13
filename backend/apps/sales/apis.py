@@ -25,12 +25,7 @@ class DwollaContext:
 
     @lazy
     def funding_url(self):
-        response = self.dwolla_api.get(
-            '%s/funding-sources' % self.account_url
-        )
-        from pprint import pprint
-        pprint(response.body['_embedded']['funding-sources'][0]['_links']['self']['href'])
-        return response.body['_embedded']['funding-sources'][0]['_links']['self']['href']
+        return settings.DWOLLA_FUNDING_SOURCE
 
     @lazy
     def account_url(self):

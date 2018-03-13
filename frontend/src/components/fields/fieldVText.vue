@@ -16,6 +16,7 @@
         :min="schema.min"
         :max="schema.max"
         :persistent-hint="true"
+        :counter="schema.counter"
     />
   </div>
 </template>

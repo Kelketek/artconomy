@@ -14,7 +14,7 @@ from math import ceil
 
 from moneyed import Money
 from rest_framework import status
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, CreateAPIView, RetrieveAPIView, \
     GenericAPIView, ListAPIView, UpdateAPIView, DestroyAPIView
 from rest_framework.permissions import IsAuthenticated
@@ -29,12 +29,13 @@ from apps.lib.views import BaseTagView
 from apps.profiles.models import User, ImageAsset
 from apps.profiles.permissions import ObjectControls, UserControls
 from apps.profiles.serializers import ImageAssetSerializer
-from apps.sales.dwolla import add_bank_account
+from apps.sales.dwolla import add_bank_account, initiate_withdrawal, perform_transfer, make_dwolla_account, \
+    destroy_bank_account
 from apps.sales.permissions import OrderViewPermission, OrderSellerPermission, OrderBuyerPermission
 from apps.sales.models import Product, Order, CreditCardToken, PaymentRecord, Revision, BankAccount
 from apps.sales.serializers import ProductSerializer, ProductNewOrderSerializer, OrderViewSerializer, CardSerializer, \
     NewCardSerializer, OrderAdjustSerializer, PaymentSerializer, RevisionSerializer, OrderStartedSerializer, \
-    AccountBalanceSerializer, BankAccountSerializer
+    AccountBalanceSerializer, BankAccountSerializer, WithdrawSerializer
 from apps.sales.utils import translate_authnet_error, available_products
 
 
@@ -658,17 +659,58 @@ class BankAccounts(ListCreateAPIView):
     def get_queryset(self):
         user = get_object_or_404(User, username=self.kwargs['username'])
         self.check_object_permissions(self.request, user)
-        return BankAccount.objects.filter(user=user)
+        return BankAccount.objects.filter(user=user).exclude(deleted=True).order_by('-id')
 
     def perform_create(self, serializer):
         user = get_object_or_404(User, username=self.kwargs['username'])
-        data = serializer.data
-        print(data)
+        # validated_data will have the additional fields, whereas data only contains fields for model creation.
+        data = serializer.validated_data
         user.first_name = data['first_name']
         user.last_name = data['last_name']
         user.save()
+        make_dwolla_account(self.request, user)
         account = add_bank_account(user, data['account_number'], data['routing_number'], data['type'])
         return account
+
+
+class BankManager(DestroyAPIView):
+    permission_classes = [ObjectControls]
+    serializer_class = BankAccountSerializer
+
+    def get_object(self):
+        bank = get_object_or_404(BankAccount, user__username=self.kwargs['username'], id=self.kwargs['account'])
+        self.check_object_permissions(self.request, bank)
+        return bank
+
+    def perform_destroy(self, instance):
+        destroy_bank_account(instance)
+
+
+class PerformWithdraw(APIView):
+    permission_classes = [ObjectControls]
+    serializer_class = WithdrawSerializer
+
+    def post(self, request, username):
+        errors = {}
+        user = get_object_or_404(User, username=username)
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        bank = None
+        try:
+            bank = BankAccount.objects.get(id=serializer.data['bank'])
+            if not bank.user == user or bank.deleted:
+                errors['account'] = ['The user has no such account.']
+        except BankAccount.DoesNotExist:
+            errors['account'] = ['The user has no such account.']
+        self.check_object_permissions(request, bank)
+        try:
+            record = initiate_withdrawal(user, bank, Money(serializer.data['amount'], 'USD'), test_only=errors)
+        except ValidationError as err:
+            errors.update(err.detail)
+        if errors:
+            return Response(data=errors, status=status.HTTP_400_BAD_REQUEST)
+        perform_transfer(record, note='Disbursement')
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ProductTag(BaseTagView):

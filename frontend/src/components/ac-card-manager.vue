@@ -211,7 +211,6 @@
         if (newValue === 'tab-new-card') {
           this.oldSelectedCard = this.selectedCard
           this.selectedCard = null
-          console.log('Set!')
         } else {
           this.selectedCard = this.oldSelectedCard
         }

@@ -241,6 +241,21 @@ export function formatSize (size) {
   return size.toString() + ' B'
 }
 
+// The Vue form generator number validator doesn't always seem to work right. Here's our own implementation.
+export function validNumber (value, schema) {
+  if (isNaN(value)) {
+    return ['That is not a number']
+  }
+  // Might be best to use type coercion here and set min and max as a string so that it displays without extra digits.
+  if (schema.max !== undefined && (Number(value) > Number(schema.max))) {
+    return ['This number cannot be greater than ' + schema.max]
+  }
+  if (schema.min !== undefined && (Number(value) < Number(schema.min))) {
+    return ['This number cannot be less than ' + schema.min]
+  }
+  return true
+}
+
 export const EventBus = new Vue()
 
 export const recaptchaSiteKey = '6LdDkkIUAAAAAFyNzBAPKEDkxwYrQ3aZdVb1NKPw'

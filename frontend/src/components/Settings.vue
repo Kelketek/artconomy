@@ -104,30 +104,7 @@
                 </div>
               </v-tab-item>
               <v-tab-item id="tab-disbursement">
-                <div class="text-xs-center mt-3">
-                  <ac-account-balance :username="user.username"/>
-                  <p v-if="user.dwolla_configured">
-                    Your payout information has been set up.
-                  </p>
-                  <v-jumbotron v-else color="grey darken-3">
-                    <v-container fill-height>
-                      <v-layout align-center>
-                        <v-flex>
-                          <h3 class="display-3">Add a bank account!</h3>
-                          <span class="subheading">Add your account information so that we can send you the money you earn through Artconomy.</span>
-                          <v-divider class="my-3" />
-                          <v-btn large color="primary" class="mx-0" @click="showNewBank = true">Get Started</v-btn>
-                        </v-flex>
-                      </v-layout>
-                    </v-container>
-                  </v-jumbotron>
-                  <ac-form-dialog ref="bankForm" :schema="bankSchema" :model="bankModel"
-                                  :options="credentialsOptions" :success="addBank"
-                                  title="Add Bank"
-                                  :url="`/api/sales/v1/account/${this.user.username}/banks/`"
-                                  v-model="showNewBank"
-                  />
-                </div>
+                <ac-account-balance :username="user.username"/>
               </v-tab-item>
             </v-tabs-items>
           </v-tab-item>
@@ -148,7 +125,7 @@
   import AcFormContainer from './ac-form-container'
   import Viewer from '../mixins/viewer'
   import Perms from '../mixins/permissions'
-  import { accountTypes, inputMatches, paramHandleMap, ratings, setMetaContent } from '../lib'
+  import { inputMatches, paramHandleMap, ratings, setMetaContent } from '../lib'
   import AcCardManager from './ac-card-manager'
   import AcAccountBalance from './ac-account-balance'
   import AcSetupTwoFactor from './ac-setup-two-factor'
@@ -199,9 +176,6 @@
         if (this.is_current) {
           this.$root.$loadUser()
         }
-      },
-      addBank (response) {
-        console.log(response)
       }
     },
     data () {
@@ -217,7 +191,6 @@
           new_password: '',
           new_password2: ''
         },
-        showNewBank: false,
         settingsSchema: {
           fields: [{
             type: 'v-checkbox',
@@ -311,49 +284,6 @@
         credentialsOptions: {
           validateAfterLoad: false,
           validateAfterChanged: true
-        },
-        bankModel: {
-          first_name: '',
-          last_name: '',
-          type: '0',
-          account_number: '',
-          routing_number: ''
-        },
-        bankSchema: {
-          fields: [{
-            type: 'v-text',
-            label: 'First Name',
-            model: 'first_name',
-            featured: true,
-            validator: VueFormGenerator.validators.required
-          }, {
-            type: 'v-text',
-            label: 'Last Name',
-            model: 'last_name',
-            featured: true,
-            validator: VueFormGenerator.validators.required
-          }, {
-            type: 'v-select',
-            label: 'Account Type',
-            model: 'type',
-            values: accountTypes,
-            selectOptions: {
-              hideNoneSelectedText: true
-            }
-          }, {
-            type: 'v-text',
-            label: 'Account Number',
-            model: 'account_number',
-            featured: true,
-            validator: VueFormGenerator.validators.required
-          }, {
-            type: 'v-text',
-            label: 'Routing Number',
-            model: 'routing_number',
-            placeholder: '',
-            featured: true,
-            validator: VueFormGenerator.validators.required
-          }]
         },
         avatarModel: {
           avatar: []

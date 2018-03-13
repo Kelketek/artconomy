@@ -559,3 +559,4 @@ class BankAccount(Model):
     url = URLField()
     last_four = CharField(max_length=4)
     type = IntegerField(choices=ACCOUNT_TYPES)
+    deleted = BooleanField(default=False)

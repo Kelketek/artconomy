@@ -195,9 +195,14 @@ class BankAccountSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(write_only=True)
     last_name = serializers.CharField(write_only=True)
     account_number = serializers.CharField(write_only=True)
-    routing_number = serializers.CharField(write_only=True)
+    routing_number = serializers.CharField(write_only=True, max_length=9, min_length=9)
 
     class Meta:
         model = BankAccount
-        fields = ('first_name', 'last_name', 'last_four', 'account_number', 'routing_number', 'type')
+        fields = ('first_name', 'last_name', 'last_four', 'account_number', 'routing_number', 'type', 'id')
         read_only_fields = ('last_four',)
+
+
+class WithdrawSerializer(serializers.Serializer):
+    bank = serializers.IntegerField()
+    amount = serializers.DecimalField(6, decimal_places=2)

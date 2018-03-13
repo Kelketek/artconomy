@@ -34,9 +34,21 @@ export default {
       let validators = []
       if (this.schema.validator) {
         validators.push((value) => {
-          let err = this.schema.validator(value, this.schema, this.value)
-          if (err && err.length) {
-            return err.join(', ')
+          let sourceValidators = []
+          if (Array.isArray(this.schema.validator)) {
+            sourceValidators = this.schema.validator
+          } else {
+            sourceValidators.push(this.schema.validator)
+          }
+          let errors = []
+          for (let validator of sourceValidators) {
+            let err = validator(value, this.schema, this.value)
+            if (err && err.length) {
+              errors = errors.concat(err)
+            }
+          }
+          if (errors.length) {
+            return errors.join(', ')
           }
           return true
         })

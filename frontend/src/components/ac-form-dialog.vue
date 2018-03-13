@@ -20,6 +20,7 @@
       </v-toolbar>
       <v-card-text>
         <v-form @submit.prevent="$refs.form.submit">
+          <slot name="header" />
           <ac-form-container
               ref="form" v-bind="$attrs"
               :schema="schema" :model="model"
@@ -115,8 +116,7 @@
     methods: {
       scrollToErrors (event) {
         Vue.nextTick(() => {
-          console.log('Scrolling!')
-          this.$refs.dialog.$vuetify.goTo('.form-group.error')
+          this.$refs.dialog.$vuetify.goTo('.error--text')
         })
       }
     },
