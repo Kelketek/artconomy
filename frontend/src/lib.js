@@ -148,6 +148,14 @@ export const ACCOUNT_TYPES = {
   '1': 'Savings'
 }
 
+export const ISSUERS = {
+  1: {'name': 'Visa', 'icon': 'fa-cc-visa'},
+  2: {'name': 'Mastercard', 'icon': 'fa-cc-mastercard'},
+  3: {'name': 'American Express', 'icon': 'fa-cc-amex'},
+  4: {'name': 'Discover', 'icon': 'fa-cc-discover'},
+  5: {'name': "Diner's Club", 'icon': 'fa-cc-diners-club'}
+}
+
 export function accountTypes () {
   return genOptions(ACCOUNT_TYPES)
 }
@@ -185,7 +193,6 @@ export function paramHandleMap (handleName, clearList, permittedNames, defaultTa
     },
     set (value) {
       let params = {}
-      console.log(value)
       params[handleName] = value.replace(/^tab-/, '')
       let newParams = Object.assign({}, this.$route.params, params)
       for (let param of clearList) {

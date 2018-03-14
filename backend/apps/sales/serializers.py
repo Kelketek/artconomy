@@ -1,4 +1,3 @@
-from _decimal import InvalidOperation, Decimal
 from datetime import datetime, date
 
 from django.conf import settings
@@ -8,7 +7,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import SerializerMethodField, DecimalField, IntegerField
 
-from apps.lib.serializers import RelatedUserSerializer, Base64ImageField
+from apps.lib.serializers import RelatedUserSerializer, Base64ImageField, EventTargetRelatedField
 from apps.lib.utils import country_choices
 from apps.profiles.models import User
 from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer
@@ -206,3 +205,30 @@ class BankAccountSerializer(serializers.ModelSerializer):
 class WithdrawSerializer(serializers.Serializer):
     bank = serializers.IntegerField()
     amount = serializers.DecimalField(6, decimal_places=2)
+
+
+class PaymentRecordSerializer(serializers.ModelSerializer):
+    payer = RelatedUserSerializer(read_only=True)
+    payee = RelatedUserSerializer(read_only=True)
+    escrow_for = RelatedUserSerializer(read_only=True)
+    target = EventTargetRelatedField(read_only=True)
+    card = CardSerializer(read_only=True)
+    
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user')
+        super(PaymentRecordSerializer, self).__init__(*args, **kwargs)
+
+    def to_representation(self, instance):
+        result = super().to_representation(instance)
+        if instance.payer != self.user:
+            # In this case the user should not have access to the card information.
+            result['card'] = None
+        return result
+
+    class Meta:
+        model = PaymentRecord
+        fields = (
+            'id', 'source', 'status', 'type', 'card', 'payer', 'payee', 'escrow_for', 'amount', 'txn_id', 'created_on',
+            'response_code', 'response_message', 'finalized', 'target'
+        )
+        read_only_fields = fields

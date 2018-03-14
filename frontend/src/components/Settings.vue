@@ -94,6 +94,9 @@
               <v-tab href="#tab-disbursement">
                 <v-icon>account_balance_wallet</v-icon>&nbsp;Payout Accounts
               </v-tab>
+              <v-tab href="#tab-transactions">
+                <v-icon>list</v-icon> Transaction History
+              </v-tab>
             </v-tabs>
             <v-tabs-items v-model="paymentTab">
               <v-tab-item id="tab-purchase">
@@ -105,6 +108,9 @@
               </v-tab-item>
               <v-tab-item id="tab-disbursement">
                 <ac-account-balance :username="user.username"/>
+              </v-tab-item>
+              <v-tab-item id="tab-transactions">
+                <ac-transaction-history :endpoint="`/api/sales/v1/account/${user.username}/transactions/`" :username="user.username" />
               </v-tab-item>
             </v-tabs-items>
           </v-tab-item>
@@ -131,10 +137,12 @@
   import AcSetupTwoFactor from './ac-setup-two-factor'
   import AcTagDisplay from './ac-tag-display'
   import AcFormDialog from './ac-form-dialog'
+  import AcTransactionHistory from './ac-transaction-history'
 
   export default {
     name: 'Settings',
     components: {
+      AcTransactionHistory,
       AcFormDialog,
       AcTagDisplay,
       AcSetupTwoFactor,
@@ -310,7 +318,7 @@
     },
     computed: {
       tab: paramHandleMap('tabName', ['subTabName']),
-      paymentTab: paramHandleMap('subTabName', undefined, ['tab-purchase', 'tab-disbursement'], 'tab-purchase'),
+      paymentTab: paramHandleMap('subTabName', undefined, ['tab-purchase', 'tab-disbursement', 'tab-transactions'], 'tab-purchase'),
       credentialsTab: paramHandleMap('subTabName', undefined, ['tab-authentication', 'tab-two-factor'], 'tab-authentication')
     }
   }

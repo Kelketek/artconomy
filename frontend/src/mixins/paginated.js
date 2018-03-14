@@ -65,7 +65,7 @@ export default {
         }
       }
     },
-    fetchItems (pageNum) {
+    fetchItems () {
       let queryData = JSON.parse(JSON.stringify(this.queryData))
       queryData.page = this.currentPage
       queryData.size = this.pageSize

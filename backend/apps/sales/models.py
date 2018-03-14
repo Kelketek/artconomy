@@ -442,7 +442,6 @@ class PaymentRecord(Model):
     SALE = 200
     DISBURSEMENT_SENT = 201
     DISBURSEMENT_RETURNED = 202
-    DISBURSEMENT_FAILED = 203
     REFUND = 204
     TRANSFER = 205
 
@@ -482,6 +481,7 @@ class PaymentRecord(Model):
     response_message = TextField()
     # Needed for async checks against ACH transfers. Set false when we need to query periodically about the status
     # of this transfer.
+    # Also used for checking if an escrow payment has been released.
     finalized = BooleanField(default=True, db_index=True)
     object_id = PositiveIntegerField(null=True, blank=True, db_index=True)
     content_type = ForeignKey(ContentType, on_delete=SET_NULL, null=True, blank=True)
@@ -560,3 +560,7 @@ class BankAccount(Model):
     last_four = CharField(max_length=4)
     type = IntegerField(choices=ACCOUNT_TYPES)
     deleted = BooleanField(default=False)
+
+    def notification_serialize(self):
+        from .serializers import BankAccountSerializer
+        return BankAccountSerializer(instance=self).data

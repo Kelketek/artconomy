@@ -53,7 +53,7 @@
 </template>
 
 <script>
-  import { artCall, accountTypes, ACCOUNT_TYPES, validNumber } from '../lib'
+  import { artCall, accountTypes, ACCOUNT_TYPES, validNumber, EventBus } from '../lib'
   import Perms from '../mixins/permissions'
   import AcFormDialog from './ac-form-dialog'
   import VueFormGenerator from 'vue-form-generator'
@@ -168,6 +168,7 @@
       postWithdraw () {
         this.fetchBalance()
         this.showWithdraw = false
+        EventBus.$emit('updated-transactions')
       },
       addBank (response) {
         this.showNewBank = false

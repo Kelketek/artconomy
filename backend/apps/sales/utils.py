@@ -22,7 +22,6 @@ def escrow_balance(user):
                 type__in=[
                     PaymentRecord.DISBURSEMENT_SENT,
                     PaymentRecord.DISBURSEMENT_RETURNED,
-                    PaymentRecord.DISBURSEMENT_FAILED
                 ]
             ).aggregate(Sum('amount'))['amount__sum']))
     except InvalidOperation:

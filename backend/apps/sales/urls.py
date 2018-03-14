@@ -7,7 +7,7 @@ from apps.sales.views import ProductListAPI, ProductManager, PlaceOrder, \
     MakePrimary, AdjustOrder, MakePayment, OrderRevisions, DeleteOrderRevision, OrderStart, ApproveFinal, \
     ArchivedOrderList, CancelledOrderList, ArchivedSalesList, CancelledSalesList, ProductExamples, StartDispute, \
     OrderRefund, ClaimDispute, CurrentCasesList, ArchivedCasesList, CancelledCasesList, AccountBalance, \
-    BankAccounts, ProductTag, ProductSearch, PerformWithdraw, BankManager
+    BankAccounts, ProductTag, ProductSearch, PerformWithdraw, BankManager, TransactionHistory
 
 app_name = 'sales'
 
@@ -55,5 +55,6 @@ urlpatterns = [
     path('v1/account/<username>/balance/', AccountBalance.as_view(), name='account_balance'),
     path('v1/account/<username>/banks/', BankAccounts.as_view(), name='account_balance'),
     path('v1/account/<username>/banks/<int:account>/', BankManager.as_view(), name='bank_manager'),
-    path('v1/account/<username>/withdraw/', PerformWithdraw.as_view(), name='perform_withdraw')
+    path('v1/account/<username>/withdraw/', PerformWithdraw.as_view(), name='perform_withdraw'),
+    path('v1/account/<username>/transactions/', TransactionHistory.as_view(), name='transaction_history'),
 ]

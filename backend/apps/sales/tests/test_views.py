@@ -1161,10 +1161,20 @@ class TestOrderStateChange(APITestCase):
         self.state_assertion('staffer', 'cancel/', initial_status=Order.PAYMENT_PENDING)
 
     def test_approve_order_buyer(self):
+        record = PaymentRecordFactory.create(
+            target=self.order,
+            payee=None,
+            payer=self.order.buyer,
+            escrow_for=self.order.seller,
+            amount=Money('15.00', 'USD'),
+            finalized=False,
+        )
         self.state_assertion('buyer', 'approve/', initial_status=Order.REVIEW)
+        record.refresh_from_db()
+        self.assertTrue(record.finalized)
         records = PaymentRecord.objects.all()
-        self.assertEqual(records.count(), 2)
-        fee = records.get(payee=None)
+        self.assertEqual(records.count(), 3)
+        fee = records.get(payee=None, escrow_for__isnull=True)
         self.assertEqual(fee.amount, Money('.50', 'USD'))
         self.assertEqual(fee.payer, self.order.seller)
         self.assertEqual(fee.escrow_for, None)
@@ -1187,10 +1197,20 @@ class TestOrderStateChange(APITestCase):
     def test_approve_order_buyer_hidden(self):
         self.order.private = True
         self.order.save()
+        record = PaymentRecordFactory.create(
+            target=self.order,
+            payee=None,
+            payer=self.order.buyer,
+            escrow_for=self.order.seller,
+            amount=Money('15.00', 'USD'),
+            finalized=False,
+        )
         self.state_assertion('buyer', 'approve/', initial_status=Order.REVIEW)
         records = PaymentRecord.objects.all()
-        self.assertEqual(records.count(), 2)
-        fee = records.get(payee=None)
+        self.assertEqual(records.count(), 3)
+        record.refresh_from_db()
+        self.assertTrue(record.finalized)
+        fee = records.get(payee=None, escrow_for__isnull=True)
         self.assertEqual(fee.amount, Money('.50', 'USD'))
         self.assertEqual(fee.payer, self.order.seller)
         self.assertEqual(fee.escrow_for, None)
@@ -1216,13 +1236,31 @@ class TestOrderStateChange(APITestCase):
         target_time = timezone.now()
         self.order.disputed_on = target_time
         self.order.save()
+        record = PaymentRecordFactory.create(
+            target=self.order,
+            payee=None,
+            payer=self.order.buyer,
+            escrow_for=self.order.seller,
+            amount=Money('15.00', 'USD'),
+            finalized=False,
+        )
         self.state_assertion('buyer', 'approve/', initial_status=Order.DISPUTED)
         mock_recall.assert_called_with(DISPUTE, self.order)
         self.order.refresh_from_db()
         self.assertEqual(self.order.disputed_on, None)
+        record.refresh_from_db()
+        self.assertTrue(record.finalized)
 
     @patch('apps.sales.views.recall_notification')
     def test_approve_order_staffer_no_recall_notification(self, mock_recall):
+        record = PaymentRecordFactory.create(
+            target=self.order,
+            payee=None,
+            payer=self.order.buyer,
+            escrow_for=self.order.seller,
+            amount=Money('15.00', 'USD'),
+            finalized=False,
+        )
         target_time = timezone.now()
         self.order.disputed_on = target_time
         self.order.save()
@@ -1230,19 +1268,24 @@ class TestOrderStateChange(APITestCase):
         mock_recall.assert_not_called()
         self.order.refresh_from_db()
         self.assertEqual(self.order.disputed_on, target_time)
+        record.refresh_from_db()
+        self.assertTrue(record.finalized)
 
     @patch('apps.sales.models.sauce')
     @override_settings(REFUND_FEE=Decimal('5.00'))
     def test_refund_card_seller(self, mock_sauce):
-        PaymentRecordFactory.create(
+        record = PaymentRecordFactory.create(
             target=self.order,
             payee=None,
             payer=self.order.buyer,
             escrow_for=self.order.seller,
-            amount=Money('15.00', 'USD')
+            amount=Money('15.00', 'USD'),
+            finalized=False,
         )
         mock_sauce.transaction.return_value.credit.return_value.uid = '123'
         self.state_assertion('seller', 'refund/', initial_status=Order.DISPUTED)
+        record.refresh_from_db()
+        self.assertTrue(record.finalized)
         PaymentRecord.objects.get(
             status=PaymentRecord.SUCCESS,
             payee=self.order.buyer, payer=None,
@@ -1255,6 +1298,7 @@ class TestOrderStateChange(APITestCase):
             payee=None, payer=self.order.seller,
             amount=Money('5.00', 'USD')
         )
+
 
     @patch('apps.sales.models.sauce')
     def test_refund_card_seller_error(self, mock_sauce):
@@ -1283,14 +1327,17 @@ class TestOrderStateChange(APITestCase):
 
     @patch('apps.sales.models.sauce')
     def test_refund_card_staffer(self, mock_sauce):
-        PaymentRecordFactory.create(
+        record = PaymentRecordFactory.create(
             target=self.order,
             payee=None,
             payer=self.order.buyer,
             escrow_for=self.order.seller,
+            finalized=False,
         )
         mock_sauce.transaction.return_value.credit.return_value.uid = '123'
         self.state_assertion('staffer', 'refund/', initial_status=Order.DISPUTED)
+        record.refresh_from_db()
+        self.assertTrue(record.finalized)
 
     def test_approve_order_seller_fail(self):
         self.state_assertion('seller', 'approve/', status.HTTP_403_FORBIDDEN, initial_status=Order.REVIEW)
@@ -1302,7 +1349,17 @@ class TestOrderStateChange(APITestCase):
         self.state_assertion('seller', 'approve/', status.HTTP_403_FORBIDDEN, initial_status=Order.REVIEW)
 
     def test_approve_order_staffer(self):
+        record = PaymentRecordFactory.create(
+            target=self.order,
+            payee=None,
+            payer=self.order.buyer,
+            escrow_for=self.order.seller,
+            amount=Money('15.00', 'USD'),
+            finalized=False,
+        )
         self.state_assertion('staffer', 'approve/', initial_status=Order.REVIEW)
+        record.refresh_from_db()
+        self.assertTrue(record.finalized)
 
     def test_claim_order_staffer(self):
         self.state_assertion('staffer', 'claim/', initial_status=Order.DISPUTED)

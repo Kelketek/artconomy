@@ -81,11 +81,14 @@ def initiate_withdrawal(user, bank, amount, test_only):
         payer=user,
         # We will flip this if there's any issue. For now, we need to make sure there is not a chance for someone
         # to withdraw within the next milisecond.
+        # If there's a bug in the code between here and then, these funds will be inaccessible and it will be
+        # a customer service issue.
         status=PaymentRecord.SUCCESS,
         amount=amount,
         source=PaymentRecord.ACCOUNT,
         txn_id='N/A',
-        target=bank
+        target=bank,
+        finalized=False
     )
     record.save()
     return record
@@ -114,8 +117,10 @@ def perform_transfer(record, note='Disbursement'):
         try:
             transfer = api.post('transfers', transfer_request)
             record.txn_id = transfer.headers['location'].split('/transfers/')[-1].strip('/')
+            record.save()
         except Exception:
             record.status = PaymentRecord.FAILURE
+            record.finalized = True
             record.save()
             raise
         return record

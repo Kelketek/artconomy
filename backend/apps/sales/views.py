@@ -35,7 +35,7 @@ from apps.sales.permissions import OrderViewPermission, OrderSellerPermission, O
 from apps.sales.models import Product, Order, CreditCardToken, PaymentRecord, Revision, BankAccount
 from apps.sales.serializers import ProductSerializer, ProductNewOrderSerializer, OrderViewSerializer, CardSerializer, \
     NewCardSerializer, OrderAdjustSerializer, PaymentSerializer, RevisionSerializer, OrderStartedSerializer, \
-    AccountBalanceSerializer, BankAccountSerializer, WithdrawSerializer
+    AccountBalanceSerializer, BankAccountSerializer, WithdrawSerializer, PaymentRecordSerializer
 from apps.sales.utils import translate_authnet_error, available_products
 
 
@@ -299,6 +299,12 @@ class OrderRefund(GenericAPIView):
         self.check_object_permissions(self.request, order)
         if order.status not in [Order.QUEUED, Order.IN_PROGRESS, Order.REVIEW, Order.DISPUTED]:
             raise PermissionDenied('This order is not in a refundable state.')
+        old_transaction = PaymentRecord.objects.get(
+            object_id=order.id, content_type=ContentType.objects.get_for_model(order), payer=order.buyer,
+            type=PaymentRecord.SALE
+        )
+        old_transaction.finalized = True
+        old_transaction.save()
         record = PaymentRecord.objects.get(
             status=PaymentRecord.SUCCESS,
             object_id=order.id,
@@ -382,6 +388,12 @@ class ApproveFinal(GenericAPIView):
                 response_code='OdrFnl',
                 response_message='Order finalized.'
             )
+            old_transaction = PaymentRecord.objects.get(
+                object_id=order.id, content_type=ContentType.objects.get_for_model(order), payer=order.buyer,
+                type=PaymentRecord.SALE
+            )
+            old_transaction.finalized = True
+            old_transaction.save()
             PaymentRecord.objects.create(
                 payer=order.seller,
                 amount=(order.price + order.adjustment) * order.seller.fee,
@@ -630,6 +642,7 @@ class MakePayment(GenericAPIView):
         else:
             record.status = PaymentRecord.SUCCESS
             record.txn_id = result.uid
+            record.finalized = False
             record.response_message = ''
             code = status.HTTP_202_ACCEPTED
             order.status = Order.QUEUED
@@ -748,3 +761,18 @@ class ProductSearch(ListAPIView):
             return available_products(user, query=query)
         q = Q(name__istartswith=query) | Q(tags__name__iexact=query)
         return Product.objects.filter(q).exclude(hidden=True).distinct('id').order_by('id')
+
+
+class TransactionHistory(ListAPIView):
+    permission_classes = [UserControls]
+    serializer_class = PaymentRecordSerializer
+
+    def get_serializer(self, *args, **kwargs):
+        return self.serializer_class(user=self.user, *args, **kwargs)
+
+    def get_queryset(self):
+        self.user = get_object_or_404(User, username=self.kwargs['username'])
+        self.check_object_permissions(self.request, self.user)
+        return PaymentRecord.objects.filter(
+            Q(payee=self.user) | Q(payer=self.user) | Q(escrow_for=self.user)
+        ).order_by('-id').distinct('id')
