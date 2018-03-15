@@ -1,20 +1,11 @@
 <template>
   <v-list-tile>
     <v-list-tile-content>
-      <v-list-tile-title v-if="isPayer">
-        {{failedIndicator}} {{paidAction}} of ${{transaction.amount}}
+      <v-list-tile-title>
+        {{failedIndicator}} {{sign}}${{transaction.amount}} <router-link :to="link" v-if="link">{{action}}</router-link><span v-else>{{action}}</span>
       </v-list-tile-title>
-      <v-list-tile-title v-if="isPayee">
-        {{failedIndicator}} {{receivedAction}} of ${{transaction.amount}}
-      </v-list-tile-title>
-      <v-list-tile-title v-if="isEscrowFor">
-        {{failedIndicator}} {{paidAction}} of ${{transaction.amount}}
-      </v-list-tile-title>
-      <v-list-tile-sub-title v-if="isEscrowFor || isPayee">
-        from {{payer.username}}
-      </v-list-tile-sub-title>
-      <v-list-tile-sub-title v-else>
-        to {{payee.username}}
+      <v-list-tile-sub-title>
+        {{direction }} {{other.username}}
       </v-list-tile-sub-title>
       <v-list-tile-sub-title>
         {{formatDate(transaction.created_on)}}
@@ -63,7 +54,7 @@
   }
 
   export default {
-    props: ['transaction'],
+    props: ['transaction', 'escrow'],
     mixins: [Viewer, Perms],
     data () {
       return {
@@ -83,8 +74,41 @@
       isEscrowFor () {
         return this.transaction.escrow_for && this.transaction.escrow_for.username === this.user.username
       },
+      other () {
+        if (this.transaction.type === TYPES.DISBURSEMENT_SENT || this.transaction.type === TYPES.DISBURSEMENT_FAILED) {
+          if (this.transaction.target === null) {
+            return {username: '[Unknown]'}
+          }
+          let bank = ACCOUNT_TYPES[this.transaction.target.type] + ' x' + this.transaction.target.last_four + ''
+          return {
+            username: bank
+          }
+        }
+        if (this.transaction.payer === null && this.escrow) {
+          return {username: 'Available'}
+        }
+        if (this.transaction.escrow_for !== null && this.escrow) {
+          return this.transaction.payer
+        }
+        if (this.transaction.payer === null && !this.escrow) {
+          return {username: 'Escrow'}
+        }
+        if (this.transaction.payee === null && this.transaction.escrow_for) {
+          return this.transaction.escrow_for
+        }
+        if (this.transaction.payee === null) {
+          return {username: 'Artconomy'}
+        }
+        if (this.transaction.payee) {
+          return this.transaction.payee
+        }
+        return {username: 'Unknown'}
+      },
       payer () {
         if (this.transaction.type === TYPES.DISBURSEMENT_SENT || this.transaction.type === TYPES.DISBURSEMENT_FAILED) {
+          if (this.transaction.target === null) {
+            return {username: '[Unknown]'}
+          }
           let bank = ACCOUNT_TYPES[this.transaction.target.type] + ' x' + this.transaction.target.last_four + ''
           return {
             username: bank
@@ -95,9 +119,34 @@
           return {username: 'Artconomy'}
         }
       },
+      sign () {
+        if (this.escrow && this.isPayee) {
+          return '-'
+        }
+        if (this.isPayer) {
+          return '-'
+        }
+        return ''
+      },
+      direction () {
+        if (this.sign === '-') {
+          return 'to'
+        } else {
+          return 'from'
+        }
+      },
       payee () {
+        if (this.transaction.type === TYPES.DISBURSEMENT_SENT || this.transaction.type === TYPES.DISBURSEMENT_FAILED) {
+          if (this.transaction.target === null) {
+            return {username: '[Unknown]'}
+          }
+          let bank = ACCOUNT_TYPES[this.transaction.target.type] + ' x' + this.transaction.target.last_four + ''
+          return {
+            username: bank
+          }
+        }
         if (this.transaction.escrow_for !== null) {
-          return this.transaction.escrow_for
+          return {username: 'Escrow'}
         } else if (this.transaction.payee === null) {
           return {username: 'Artconomy'}
         } else {
@@ -106,7 +155,11 @@
       },
       paidAction () {
         if (this.transaction.type === TYPES.SALE) {
-          return 'Escrow hold'
+          if (this.transaction.escrow_for.username === this.username) {
+            return 'Escrow hold: Sale #' + this.transaction.target.id
+          } else {
+            return 'Order #' + this.transaction.target.id
+          }
         } else if (this.transaction.type === TYPES.DISBURSEMENT_SENT) {
           return 'Withdraw'
         } else if (this.transaction.type === TYPES.DISBURSEMENT_RETURNED) {
@@ -133,12 +186,36 @@
       receivedAction () {
         if (this.transaction.type === TYPES.TRANSFER) {
           if (this.transaction.payer === null) {
-            return 'Escrow release'
+            return 'Payout: Sale #' + this.transaction.target.id
           } else {
             return 'Transfer'
           }
         }
         return 'Unknown rcpt type ' + this.transaction.type
+      },
+      link () {
+        if (!this.transaction.target) {
+          return ''
+        }
+        if (this.transaction.type === TYPES.SALE) {
+          // Check for Escrow here in the case the user purchases something from themselves.
+          if (this.transaction.payer.username === this.username && !this.escrow) {
+            return `/orders/${this.username}/order/${this.transaction.target.id}`
+          }
+          if (this.transaction.escrow_for.username === this.username) {
+            return `/sales/${this.username}/sale/${this.transaction.target.id}`
+          }
+        }
+        if (this.transaction.type === TYPES.TRANSFER) {
+          return `/sales/${this.username}/sale/${this.transaction.target.id}`
+        }
+      },
+      action () {
+        if (this.isPayer || this.isEscrowFor) {
+          return this.paidAction
+        } else {
+          return this.receivedAction
+        }
       },
       status () {
         if (this.transaction.status) {

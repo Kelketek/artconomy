@@ -81,7 +81,7 @@ export const routes = [
     }
   },
   {
-    path: '/profile/:username/settings/:tabName?/:subTabName?/',
+    path: '/profile/:username/settings/:tabName?/:subTabName?/:tertiaryTabName?/',
     name: 'Settings',
     component: Settings,
     props: true

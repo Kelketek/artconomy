@@ -763,7 +763,7 @@ class ProductSearch(ListAPIView):
         return Product.objects.filter(q).exclude(hidden=True).distinct('id').order_by('id')
 
 
-class TransactionHistory(ListAPIView):
+class PurchaseHistory(ListAPIView):
     permission_classes = [UserControls]
     serializer_class = PaymentRecordSerializer
 
@@ -774,5 +774,37 @@ class TransactionHistory(ListAPIView):
         self.user = get_object_or_404(User, username=self.kwargs['username'])
         self.check_object_permissions(self.request, self.user)
         return PaymentRecord.objects.filter(
-            Q(payee=self.user) | Q(payer=self.user) | Q(escrow_for=self.user)
+            payer=self.user
+        ).exclude(type__in=[PaymentRecord.DISBURSEMENT_SENT, PaymentRecord.TRANSFER]).order_by('-id').distinct('id')
+
+
+class EscrowHistory(ListAPIView):
+    permission_classes = [UserControls]
+    serializer_class = PaymentRecordSerializer
+
+    def get_serializer(self, *args, **kwargs):
+        return self.serializer_class(user=self.user, *args, **kwargs)
+
+    def get_queryset(self):
+        self.user = get_object_or_404(User, username=self.kwargs['username'])
+        self.check_object_permissions(self.request, self.user)
+        return PaymentRecord.objects.filter(
+            Q(payee=self.user, source=PaymentRecord.ESCROW) | Q(escrow_for=self.user)
+        ).order_by('-id').distinct('id')
+
+
+class AvailableHistory(ListAPIView):
+    permission_classes = [UserControls]
+    serializer_class = PaymentRecordSerializer
+
+    def get_serializer(self, *args, **kwargs):
+        return self.serializer_class(user=self.user, *args, **kwargs)
+
+    def get_queryset(self):
+        self.user = get_object_or_404(User, username=self.kwargs['username'])
+        self.check_object_permissions(self.request, self.user)
+        return PaymentRecord.objects.filter(
+            Q(payee=self.user, source=PaymentRecord.ESCROW) | Q(payer=self.user, type=PaymentRecord.DISBURSEMENT_SENT) |
+            Q(payee=self.user, type=PaymentRecord.DISBURSEMENT_RETURNED) |
+            Q(payer=self.user, type=PaymentRecord.TRANSFER)
         ).order_by('-id').distinct('id')

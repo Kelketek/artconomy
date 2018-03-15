@@ -1,18 +1,28 @@
 <template>
-  <v-layout row wrapped text-xs-center>
-    <v-flex xs12>
-      <v-card v-if="growing && growing.length">
-        <v-pagination v-model="currentPage" :length="totalPages" v-if="totalPages > 1" />
-        <v-list three-line>
-          <template v-for="(transaction, index) in growing">
-            <ac-transaction :key="transaction.id" :transaction="transaction" :username="user.username" />
-            <v-divider v-if="index + 1 < growing.length" :key="`divider-${index}`" />
-          </template>
-        </v-list>
-        <v-pagination v-model="currentPage" :length="totalPages" v-if="totalPages > 1" />
-      </v-card>
-    </v-flex>
-  </v-layout>
+  <div>
+    <v-tabs v-model="tab" fixed-tabs>
+      <v-tab href="#tab-purchases">
+        <v-icon>shopping_cart</v-icon> Purchases
+      </v-tab>
+      <v-tab href="#tab-escrow">
+       <v-icon>lock</v-icon> Escrow
+      </v-tab>
+      <v-tab href="#tab-available">
+        <v-icon>attach_money</v-icon> Available
+      </v-tab>
+    </v-tabs>
+    <v-tabs-items v-model="tab">
+      <v-tab-item id="tab-purchases">
+        <ac-transaction-listing :endpoint="`${url}purchases/`" :username="username" />
+      </v-tab-item>
+      <v-tab-item id="tab-escrow">
+        <ac-transaction-listing :endpoint="`${url}escrow/`" :username="username" :escrow="true" />
+      </v-tab-item>
+      <v-tab-item id="tab-available">
+        <ac-transaction-listing :endpoint="`${url}available/`" :username="username" />
+      </v-tab-item>
+    </v-tabs-items>
+  </div>
 </template>
 
 <script>
@@ -20,10 +30,13 @@
   import AcTransaction from './ac-transaction'
   import Viewer from '../mixins/viewer'
   import Perms from '../mixins/permissions'
-  import {EventBus} from '../lib'
+  import { paramHandleMap } from '../lib'
+  import AcTransactionListing from './ac-transaction-listing'
 
   export default {
-    components: {AcTransaction},
+    components: {
+      AcTransactionListing,
+      AcTransaction},
     mixins: [Viewer, Perms, Paginated],
     props: ['endpoint'],
     data () {
@@ -31,19 +44,8 @@
         url: this.endpoint
       }
     },
-    methods: {
-      resetTransactions () {
-        this.response = null
-        this.growing = null
-        this.fetchItems()
-      }
-    },
-    created () {
-      EventBus.$on('updated-transactions', this.resetTransactions)
-      this.fetchItems()
-    },
-    destroyed () {
-      EventBus.$off('updated-transactions', this.resetTransactions)
+    computed: {
+      tab: paramHandleMap('tertiaryTabName', undefined, ['tab-purchases', 'tab-escrow', 'tab-available'], 'tab-purchases')
     }
   }
 </script>
