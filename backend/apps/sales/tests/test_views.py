@@ -1398,7 +1398,7 @@ class TestComment(APITestCase):
 
 class TestHistoryViews(APITestCase):
     def setUp(self):
-        super(TestHistoryViews, self).setUp()
+        super().setUp()
         self.account = BankAccountFactory.create(user=self.user)
         self.card = CreditCardTokenFactory.create()
         self.orders = [OrderFactory.create(buyer=self.user2, seller=self.user) for i in range(3)]
@@ -1453,6 +1453,10 @@ class TestHistoryViews(APITestCase):
         response = self.client.get('/api/sales/v1/account/{}/transactions/purchases/'.format(self.user2.username))
         self.assertEqual(response.status_code, 403)
 
+    def test_purchase_history_not_logged_in(self):
+        response = self.client.get('/api/sales/v1/account/{}/transactions/purchases/'.format(self.user2.username))
+        self.assertEqual(response.status_code, 403)
+
     def test_purchase_history_staff(self):
         self.login(self.staffer)
         response = self.client.get('/api/sales/v1/account/{}/transactions/purchases/'.format(self.user.username))
@@ -1478,6 +1482,10 @@ class TestHistoryViews(APITestCase):
 
     def test_escrow_history_wrong_user(self):
         self.login(self.user)
+        response = self.client.get('/api/sales/v1/account/{}/transactions/escrow/'.format(self.user2.username))
+        self.assertEqual(response.status_code, 403)
+
+    def test_escrow_history_wrong_not_logged_in(self):
         response = self.client.get('/api/sales/v1/account/{}/transactions/escrow/'.format(self.user2.username))
         self.assertEqual(response.status_code, 403)
 
@@ -1507,6 +1515,10 @@ class TestHistoryViews(APITestCase):
         response = self.client.get('/api/sales/v1/account/{}/transactions/available/'.format(self.user2.username))
         self.assertEqual(response.status_code, 403)
 
+    def test_available_history_not_logged_in(self):
+        response = self.client.get('/api/sales/v1/account/{}/transactions/available/'.format(self.user2.username))
+        self.assertEqual(response.status_code, 403)
+
     def test_available_history_staff(self):
         self.login(self.staffer)
         response = self.client.get('/api/sales/v1/account/{}/transactions/available/'.format(self.user.username))
@@ -1515,3 +1527,141 @@ class TestHistoryViews(APITestCase):
         response = self.client.get('/api/sales/v1/account/{}/transactions/available/'.format(self.user2.username))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['results']), 0)
+
+
+@patch('apps.sales.views.initiate_withdraw')
+@patch('apps.sales.views.perform_transfer')
+class TestPerformWithdraw(APITestCase):
+    def setUp(self):
+        super().setUp()
+        self.account = BankAccountFactory.create(user=self.user)
+        PaymentRecordFactory.create(
+            payee=self.user,
+            payer=None,
+            amount=Money('20.00', 'USD'),
+            type=PaymentRecord.TRANSFER,
+            source=PaymentRecord.ESCROW
+        )
+
+    def test_withdraw(self, _mock_transfer, _mock_withdraw):
+        self.login(self.user)
+        response = self.client.post(
+            '/api/sales/v1/account/{}/withdraw/'.format(self.user.username),
+            {'bank': self.account.id, 'amount': '5.00'}
+        )
+        self.assertEqual(response.status_code, 204)
+
+    def test_withdraw_wrong_account(self, _mock_transfer, _mock_withdraw):
+        self.login(self.user)
+        response = self.client.post(
+            '/api/sales/v1/account/{}/withdraw/'.format(self.user.username),
+            {'bank': BankAccountFactory.create().id, 'amount': '5.00'}
+        )
+        self.assertEqual(response.status_code, 403)
+
+    def test_withdraw_deleted_account(self, _mock_transfer, _mock_withdraw):
+        self.account.deleted = True
+        self.account.save()
+        self.login(self.user)
+        response = self.client.post(
+            '/api/sales/v1/account/{}/withdraw/'.format(self.user.username),
+            {'bank': self.account.id, 'amount': '5.00'}
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def test_withdraw_not_logged_in(self, _mock_transfer, _mock_withdraw):
+        response = self.client.post(
+            '/api/sales/v1/account/{}/withdraw/'.format(self.user.username),
+            {'bank': BankAccountFactory.create().id, 'amount': '5.00'}
+        )
+        self.assertEqual(response.status_code, 403)
+
+    def test_withdraw_too_little(self, _mock_transfer, _mock_withdraw):
+        # Checking for too much is tested in initiate_withdraw
+        self.login(self.user)
+        response = self.client.post(
+            '/api/sales/v1/account/{}/withdraw/'.format(self.user.username),
+            {'bank': self.account.id, 'amount': '0.50'}
+        )
+        self.assertEqual(response.status_code, 400)
+
+
+class TestBankAccounts(APITestCase):
+    def test_bank_listing(self):
+        accounts = [BankAccountFactory.create(user=self.user) for _ in range(3)]
+        BankAccountFactory.create(user=self.user, deleted=True)
+        [BankAccountFactory.create() for _ in range(3)]
+        self.login(self.user)
+        response = self.client.get('/api/sales/v1/account/{}/banks/'.format(self.user.username))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), len(accounts))
+
+    def test_bank_listing_staff(self):
+        self.login(self.staffer)
+        response = self.client.get('/api/sales/v1/account/{}/banks/'.format(self.user.username))
+        self.assertEqual(response.status_code, 200)
+
+    def test_bank_listing_wrong_user(self):
+        self.login(self.user2)
+        response = self.client.get('/api/sales/v1/account/{}/banks/'.format(self.user.username))
+        self.assertEqual(response.status_code, 403)
+
+
+class TestBankManager(APITestCase):
+    def setUp(self):
+        super().setUp()
+        self.account = BankAccountFactory.create(user=self.user)
+
+    @patch('apps.sales.views.destroy_bank_account')
+    def test_bank_account_destroy(self, _mock_destroy_account):
+        self.login(self.user)
+        response = self.client.delete('/api/sales/v1/account/{}/banks/{}/'.format(self.user.username, self.account.id))
+        self.assertEqual(response.status_code, 204)
+
+    def test_bank_account_destroy_wrong_user(self):
+        self.login(self.user2)
+        response = self.client.delete('/api/sales/v1/account/{}/banks/{}/'.format(self.user.username, self.account.id))
+        self.assertEqual(response.status_code, 403)
+
+    @patch('apps.sales.views.destroy_bank_account')
+    def test_bank_account_destroy_staffer(self, _mock_destroy_account):
+        self.login(self.staffer)
+        response = self.client.delete('/api/sales/v1/account/{}/banks/{}/'.format(self.user.username, self.account.id))
+        self.assertEqual(response.status_code, 204)
+
+    def test_bank_account_destroy_not_logged_in(self):
+        response = self.client.delete('/api/sales/v1/account/{}/banks/{}/'.format(self.user.username, self.account.id))
+        self.assertEqual(response.status_code, 403)
+
+
+class TestAccountBalance(APITestCase):
+    @patch('apps.sales.serializers.available_balance')
+    @patch('apps.sales.serializers.escrow_balance')
+    def test_account_balance(self, mock_escrow_balance, mock_available_balance):
+        self.login(self.user)
+        mock_available_balance.return_value = Decimal('100.00')
+        mock_escrow_balance.return_value = Decimal('50.00')
+        response = self.client.get('/api/sales/v1/account/{}/balance/'.format(self.user.username))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['available'], 100)
+        self.assertEqual(response.data['escrow'], 50)
+
+    @patch('apps.sales.serializers.available_balance')
+    @patch('apps.sales.serializers.escrow_balance')
+    def test_account_balance_staff(self, mock_escrow_balance, mock_available_balance):
+        self.login(self.staffer)
+        mock_available_balance.return_value = Decimal('100.00')
+        mock_escrow_balance.return_value = Decimal('50.00')
+        response = self.client.get('/api/sales/v1/account/{}/balance/'.format(self.user.username))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['available'], 100)
+        self.assertEqual(response.data['escrow'], 50)
+
+    def test_account_balance_wrong_user(self):
+        self.login(self.user2)
+        response = self.client.get('/api/sales/v1/account/{}/balance/'.format(self.user.username))
+        self.assertEqual(response.status_code, 403)
+
+    def test_account_balance_not_logged_in(self):
+        response = self.client.get('/api/sales/v1/account/{}/balance/'.format(self.user.username))
+        self.assertEqual(response.status_code, 403)

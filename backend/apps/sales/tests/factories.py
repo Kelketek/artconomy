@@ -69,6 +69,7 @@ class PaymentRecordFactory(DjangoModelFactory):
 class BankAccountFactory(DjangoModelFactory):
     user = SubFactory(UserFactory)
     type = BankAccount.CHECKING
+    last_four = Sequence(lambda x: '{}'.format(x).zfill(4))
     url = Sequence(lambda x: 'https://example.com/funding-sources/{}'.format(x))
 
     class Meta:
