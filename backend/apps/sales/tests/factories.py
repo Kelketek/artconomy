@@ -4,7 +4,7 @@ from factory.django import DjangoModelFactory, ImageField
 from moneyed import Money
 
 from apps.profiles.tests.factories import UserFactory
-from apps.sales.models import Order, Product, CreditCardToken, Revision, PaymentRecord
+from apps.sales.models import Order, Product, CreditCardToken, Revision, PaymentRecord, BankAccount
 
 
 class ProductFactory(DjangoModelFactory):
@@ -64,3 +64,12 @@ class PaymentRecordFactory(DjangoModelFactory):
 
     class Meta:
         model = PaymentRecord
+
+
+class BankAccountFactory(DjangoModelFactory):
+    user = SubFactory(UserFactory)
+    type = BankAccount.CHECKING
+    url = Sequence(lambda x: 'https://example.com/funding-sources/{}'.format(x))
+
+    class Meta:
+        model = BankAccount

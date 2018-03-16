@@ -29,7 +29,7 @@ from apps.lib.views import BaseTagView
 from apps.profiles.models import User, ImageAsset
 from apps.profiles.permissions import ObjectControls, UserControls
 from apps.profiles.serializers import ImageAssetSerializer
-from apps.sales.dwolla import add_bank_account, initiate_withdrawal, perform_transfer, make_dwolla_account, \
+from apps.sales.dwolla import add_bank_account, initiate_withdraw, perform_transfer, make_dwolla_account, \
     destroy_bank_account
 from apps.sales.permissions import OrderViewPermission, OrderSellerPermission, OrderBuyerPermission
 from apps.sales.models import Product, Order, CreditCardToken, PaymentRecord, Revision, BankAccount
@@ -678,10 +678,7 @@ class BankAccounts(ListCreateAPIView):
         user = get_object_or_404(User, username=self.kwargs['username'])
         # validated_data will have the additional fields, whereas data only contains fields for model creation.
         data = serializer.validated_data
-        user.first_name = data['first_name']
-        user.last_name = data['last_name']
-        user.save()
-        make_dwolla_account(self.request, user)
+        make_dwolla_account(self.request, user, data['first_name'], data['last_name'])
         account = add_bank_account(user, data['account_number'], data['routing_number'], data['type'])
         return account
 
@@ -717,7 +714,7 @@ class PerformWithdraw(APIView):
             errors['account'] = ['The user has no such account.']
         self.check_object_permissions(request, bank)
         try:
-            record = initiate_withdrawal(user, bank, Money(serializer.data['amount'], 'USD'), test_only=errors)
+            record = initiate_withdraw(user, bank, Money(serializer.data['amount'], 'USD'), test_only=errors)
         except ValidationError as err:
             errors.update(err.detail)
         if errors:

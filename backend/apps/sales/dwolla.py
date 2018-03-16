@@ -10,16 +10,16 @@ from apps.sales.models import BankAccount, PaymentRecord
 from apps.sales.utils import available_balance
 
 
-def make_dwolla_account(request, user):
-    request_body = {
-        'firstName': user.first_name,
-        'lastName': user.last_name,
-        'email': user.email,
-        'ipAddress': get_client_ip(request)
-    }
-
+def make_dwolla_account(request, user, first_name, last_name):
     if user.dwolla_url:
         return user.dwolla_url
+
+    request_body = {
+        'firstName': first_name,
+        'lastName': last_name,
+        'email': user.email,
+        'ipAddress': get_client_ip(request)[0]
+    }
 
     with dwolla as api:
         user.dwolla_url = api.post('customers', request_body).headers['location']
@@ -39,7 +39,9 @@ def add_bank_account(user, account_number, routing_number, account_type):
         'routingNumber': routing_number,
         'accountNumber': account_number,
         'bankAccountType': type_label,
-        'name': '{} - {} {}'.format(user.get_full_name(), type_label.title(), account_number[:4])
+        'name': '{} - {} {}'.format(
+            '{} (ID: {})'.format(user.username, user.id), type_label.title(), account_number[-4:]
+        )
     }
     with dwolla as api:
         try:
@@ -54,7 +56,7 @@ def add_bank_account(user, account_number, routing_number, account_type):
                     errors[field] = [err['message']]
             raise ValidationError(errors)
 
-    account = BankAccount(user=user, last_four=account_number[:4], type=account_type, url=response.headers['location'])
+    account = BankAccount(user=user, last_four=account_number[-4:], type=account_type, url=response.headers['location'])
     account.save()
 
     return account
@@ -69,7 +71,7 @@ def destroy_bank_account(account):
 
 @transaction.atomic
 @require_lock(PaymentRecord, 'ACCESS EXCLUSIVE')
-def initiate_withdrawal(user, bank, amount, test_only):
+def initiate_withdraw(user, bank, amount, test_only=True):
     balance = available_balance(user)
     if amount.amount > balance:
         raise ValidationError({'amount': ['Amount cannot be greater than current balance of {}.'.format(balance)]})
@@ -80,7 +82,7 @@ def initiate_withdrawal(user, bank, amount, test_only):
         payee=None,
         payer=user,
         # We will flip this if there's any issue. For now, we need to make sure there is not a chance for someone
-        # to withdraw within the next milisecond.
+        # to withdraw within the next millisecond.
         # If there's a bug in the code between here and then, these funds will be inaccessible and it will be
         # a customer service issue.
         status=PaymentRecord.SUCCESS,

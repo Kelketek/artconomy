@@ -204,7 +204,7 @@ class BankAccountSerializer(serializers.ModelSerializer):
 
 class WithdrawSerializer(serializers.Serializer):
     bank = serializers.IntegerField()
-    amount = serializers.DecimalField(6, decimal_places=2)
+    amount = serializers.DecimalField(6, decimal_places=2, min_value=1)
 
 
 class PaymentRecordSerializer(serializers.ModelSerializer):
