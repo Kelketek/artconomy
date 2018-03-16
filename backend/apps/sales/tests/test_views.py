@@ -1400,6 +1400,7 @@ class TestHistoryViews(APITestCase):
     def setUp(self):
         super(TestHistoryViews, self).setUp()
         self.account = BankAccountFactory.create(user=self.user)
+        self.card = CreditCardTokenFactory.create()
         self.orders = [OrderFactory.create(buyer=self.user2, seller=self.user) for i in range(3)]
         self.escrow_holds = [
             PaymentRecordFactory.create(
@@ -1408,6 +1409,7 @@ class TestHistoryViews(APITestCase):
                 payer=self.user2,
                 payee=None,
                 source=PaymentRecord.CARD,
+                card=self.card,
                 escrow_for=self.user,
             )
             for amount, order in zip(('5.00', '10.00', '15.00'), self.orders)
@@ -1443,6 +1445,8 @@ class TestHistoryViews(APITestCase):
         response = self.client.get('/api/sales/v1/account/{}/transactions/purchases/'.format(self.user2.username))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['results']), 3)
+        for result in response.data['results']:
+            self.assertEqual(result['card']['id'], self.card.id)
 
     def test_purchase_history_wrong_user(self):
         self.login(self.user)
@@ -1457,12 +1461,16 @@ class TestHistoryViews(APITestCase):
         response = self.client.get('/api/sales/v1/account/{}/transactions/purchases/'.format(self.user2.username))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['results']), 3)
+        for result in response.data['results']:
+            self.assertEqual(result['card']['id'], self.card.id)
 
     def test_escrow_history(self):
         self.login(self.user)
         response = self.client.get('/api/sales/v1/account/{}/transactions/escrow/'.format(self.user.username))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['results']), 5)
+        for result in response.data['results']:
+            self.assertIsNone(result['card'])
         self.login(self.user2)
         response = self.client.get('/api/sales/v1/account/{}/transactions/escrow/'.format(self.user2.username))
         self.assertEqual(response.status_code, 200)
@@ -1478,6 +1486,8 @@ class TestHistoryViews(APITestCase):
         response = self.client.get('/api/sales/v1/account/{}/transactions/escrow/'.format(self.user.username))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['results']), 5)
+        for result in response.data['results']:
+            self.assertIsNone(result['card'])
         response = self.client.get('/api/sales/v1/account/{}/transactions/escrow/'.format(self.user2.username))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['results']), 0)
