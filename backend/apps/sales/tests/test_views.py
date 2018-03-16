@@ -16,7 +16,7 @@ from apps.profiles.tests.factories import CharacterFactory, UserFactory, ImageAs
 from apps.profiles.tests.helpers import gen_image
 from apps.sales.models import Order, CreditCardToken, Product, PaymentRecord
 from apps.sales.tests.factories import OrderFactory, CreditCardTokenFactory, ProductFactory, RevisionFactory, \
-    PaymentRecordFactory
+    PaymentRecordFactory, BankAccountFactory
 
 order_scenarios = (
     {
@@ -1394,3 +1394,114 @@ class TestComment(APITestCase):
         self.assertEqual(comment['text'], 'test comment')
         self.assertEqual(comment['user']['username'], order.buyer.username)
         Comment.objects.get(id=comment['id'])
+
+
+class TestHistoryViews(APITestCase):
+    def setUp(self):
+        super(TestHistoryViews, self).setUp()
+        self.account = BankAccountFactory.create(user=self.user)
+        self.orders = [OrderFactory.create(buyer=self.user2, seller=self.user) for i in range(3)]
+        self.escrow_holds = [
+            PaymentRecordFactory.create(
+                amount=Money(amount, 'USD'),
+                type=PaymentRecord.SALE,
+                payer=self.user2,
+                payee=None,
+                source=PaymentRecord.CARD,
+                escrow_for=self.user,
+            )
+            for amount, order in zip(('5.00', '10.00', '15.00'), self.orders)
+        ]
+        self.escrow_releases = [
+            PaymentRecordFactory.create(
+                amount=Money(amount, 'USD'),
+                payer=None,
+                payee=self.user,
+                source=PaymentRecord.ESCROW,
+                type=PaymentRecord.TRANSFER,
+            )
+            for amount, order in zip(('5.00', '10.00'), self.orders)
+        ]
+        self.withdraws = [
+            PaymentRecordFactory.create(
+                amount=Money(amount, 'USD'),
+                payer=self.user,
+                payee=None,
+                target=self.account,
+                source=PaymentRecord.ACCOUNT,
+                type=PaymentRecord.DISBURSEMENT_SENT,
+            )
+            for amount in (1, 2, 3, 4)
+        ]
+
+    def test_purchase_history(self):
+        self.login(self.user)
+        response = self.client.get('/api/sales/v1/account/{}/transactions/purchases/'.format(self.user.username))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 0)
+        self.login(self.user2)
+        response = self.client.get('/api/sales/v1/account/{}/transactions/purchases/'.format(self.user2.username))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 3)
+
+    def test_purchase_history_wrong_user(self):
+        self.login(self.user)
+        response = self.client.get('/api/sales/v1/account/{}/transactions/purchases/'.format(self.user2.username))
+        self.assertEqual(response.status_code, 403)
+
+    def test_purchase_history_staff(self):
+        self.login(self.staffer)
+        response = self.client.get('/api/sales/v1/account/{}/transactions/purchases/'.format(self.user.username))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 0)
+        response = self.client.get('/api/sales/v1/account/{}/transactions/purchases/'.format(self.user2.username))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 3)
+
+    def test_escrow_history(self):
+        self.login(self.user)
+        response = self.client.get('/api/sales/v1/account/{}/transactions/escrow/'.format(self.user.username))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 5)
+        self.login(self.user2)
+        response = self.client.get('/api/sales/v1/account/{}/transactions/escrow/'.format(self.user2.username))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 0)
+
+    def test_escrow_history_wrong_user(self):
+        self.login(self.user)
+        response = self.client.get('/api/sales/v1/account/{}/transactions/escrow/'.format(self.user2.username))
+        self.assertEqual(response.status_code, 403)
+
+    def test_escrow_history_staff(self):
+        self.login(self.staffer)
+        response = self.client.get('/api/sales/v1/account/{}/transactions/escrow/'.format(self.user.username))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 5)
+        response = self.client.get('/api/sales/v1/account/{}/transactions/escrow/'.format(self.user2.username))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 0)
+
+    def test_available_history(self):
+        self.login(self.user)
+        response = self.client.get('/api/sales/v1/account/{}/transactions/available/'.format(self.user.username))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 6)
+        self.login(self.user2)
+        response = self.client.get('/api/sales/v1/account/{}/transactions/available/'.format(self.user2.username))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 0)
+
+    def test_available_history_wrong_user(self):
+        self.login(self.user)
+        response = self.client.get('/api/sales/v1/account/{}/transactions/available/'.format(self.user2.username))
+        self.assertEqual(response.status_code, 403)
+
+    def test_available_history_staff(self):
+        self.login(self.staffer)
+        response = self.client.get('/api/sales/v1/account/{}/transactions/available/'.format(self.user.username))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 6)
+        response = self.client.get('/api/sales/v1/account/{}/transactions/available/'.format(self.user2.username))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 0)
