@@ -126,3 +126,35 @@ def perform_transfer(record, note='Disbursement'):
             record.save()
             raise
         return record
+
+
+@require_lock(PaymentRecord, 'ACCESS EXCLUSIVE')
+@transaction.atomic
+def refund_transfer(record):
+    if PaymentRecord.objects.filter(txn_id=record.txn_id, type=PaymentRecord.DISBURSEMENT_RETURNED).count():
+        return
+    PaymentRecord(
+        status=PaymentRecord.SUCCESS,
+        type=PaymentRecord.DISBURSEMENT_RETURNED,
+        amount=record.amount,
+        payer=None,
+        payee=record.payer,
+        source=PaymentRecord.ACH,
+        txn_id=record.txn_id
+    ).save()
+
+
+def update_transfer_status(record):
+    with dwolla as api:
+        try:
+            status = api.get('https://api.dwolla.com/transfers/{}'.format(record.txn_id))
+            if status.body['status'] == 'processed':
+                record.finalized = True
+                record.save()
+            if status.body['status'] == 'cancelled':
+                refund_transfer(record)
+                record.finalized = True
+                record.save()
+        except Exception as err:
+            # Will need to figure out what to do with this more properly once we get around to celery implementation.
+            print(err)

@@ -1,13 +1,12 @@
 from unittest.mock import Mock, patch, PropertyMock
 
 from django.test import TestCase, override_settings
-from dwollav2 import InvalidResourceStateError
 from moneyed import Money, Decimal
 from rest_framework.exceptions import ValidationError
 
 from apps.profiles.tests.factories import UserFactory
 from apps.sales.dwolla import make_dwolla_account, add_bank_account, destroy_bank_account, initiate_withdraw, \
-    perform_transfer
+    perform_transfer, refund_transfer, update_transfer_status
 from apps.sales.models import BankAccount, PaymentRecord
 from apps.sales.tests.factories import BankAccountFactory, PaymentRecordFactory
 
@@ -136,3 +135,70 @@ class DwollaTestCase(TestCase):
         record.refresh_from_db()
         self.assertEqual(record.txn_id, 'N/A')
         self.assertEqual(record.status, PaymentRecord.FAILURE)
+
+
+class TestRefundTransfer(TestCase):
+    def test_refund_transfer(self):
+        record = PaymentRecordFactory.create(
+            payee=None,
+            payer=UserFactory.create(),
+            type=PaymentRecord.DISBURSEMENT_SENT,
+            source=PaymentRecord.ACCOUNT,
+            txn_id='1234'
+        )
+        refund_transfer(record)
+        PaymentRecord.objects.get(type=PaymentRecord.DISBURSEMENT_RETURNED, txn_id='1234')
+        self.assertEqual(PaymentRecord.objects.all().count(), 2)
+
+    def test_refund_transfer_no_duplicates(self):
+        record = PaymentRecordFactory.create(
+            payee=None,
+            payer=UserFactory.create(),
+            type=PaymentRecord.DISBURSEMENT_SENT,
+            source=PaymentRecord.ACCOUNT,
+            txn_id='1234',
+            finalized=False,
+        )
+        refund_transfer(record)
+        PaymentRecord.objects.get(type=PaymentRecord.DISBURSEMENT_RETURNED, txn_id='1234')
+        self.assertEqual(PaymentRecord.objects.all().count(), 2)
+        refund_transfer(record)
+        self.assertEqual(PaymentRecord.objects.all().count(), 2)
+
+
+@patch('apps.sales.apis.DwollaContext.dwolla_api', new_callable=PropertyMock)
+@patch('apps.sales.dwolla.refund_transfer')
+class TestUpdateTransaction(TestCase):
+    def setUp(self):
+        super().setUp()
+        self.record = PaymentRecordFactory.create(
+            payee=None,
+            payer=UserFactory.create(),
+            type=PaymentRecord.DISBURSEMENT_SENT,
+            source=PaymentRecord.ACCOUNT,
+            txn_id='1234',
+            finalized=False,
+        )
+
+    def test_check_transaction_status_no_change(self, _mock_refund, _mock_api):
+        _mock_api.return_value.get.return_value.body = {'status': 'pending'}
+        update_transfer_status(self.record)
+        self.assertEqual(PaymentRecord.objects.all().count(), 1)
+        self.record.refresh_from_db()
+        self.assertEqual(self.record.finalized, False)
+
+    def test_check_transaction_status_cancelled(self, _mock_refund, _mock_api):
+        _mock_api.return_value.get.return_value.body = {'status': 'cancelled'}
+        update_transfer_status(self.record)
+        self.assertEqual(PaymentRecord.objects.all().count(), 1)
+        self.record.refresh_from_db()
+        _mock_refund.assert_called_with(self.record)
+        self.assertEqual(self.record.finalized, True)
+
+    def test_check_transaction_status_processed(self, _mock_refund, _mock_api):
+        _mock_api.return_value.get.return_value.body = {'status': 'processed'}
+        update_transfer_status(self.record)
+        self.assertEqual(PaymentRecord.objects.all().count(), 1)
+        self.record.refresh_from_db()
+        _mock_refund.assert_not_called()
+        self.assertEqual(self.record.finalized, True)
