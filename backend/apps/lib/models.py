@@ -4,6 +4,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.db.models import DateTimeField, Model, SlugField, CASCADE
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 
 class Comment(models.Model):
@@ -118,3 +120,52 @@ class Tag(Model):
 
     def notification_serialize(self):
         return self.name
+
+
+def _comment_transform(old_data, new_data):
+    return {
+        'users': list(set(old_data['users'] + new_data['users'])),
+    }
+
+
+@receiver(post_save, sender=Comment)
+def auto_subscribe_thread(sender, instance, created=False, **_kwargs):
+    if created:
+        Subscription.objects.create(
+            subscriber=instance.user,
+            content_type=ContentType.objects.get_for_model(model=instance),
+            object_id=instance.id,
+            type=COMMENT,
+        )
+        if instance.parent:
+            Subscription.objects.get_or_create(
+                subscriber=instance.user,
+                content_type=ContentType.objects.get_for_model(model=instance),
+                object_id=instance.id,
+                type=COMMENT,
+            )
+        from apps.lib.utils import notify
+        primary_target = instance.parent or instance.content_object
+        # Notify who is subscribed to the parent comment or the top level if there isn't one.
+        notify(
+            COMMENT, primary_target, data={
+                'users': [instance.user.id],
+            },
+            unique=True, mark_unread=True,
+            transform=_comment_transform,
+            exclude=[instance.user]
+        )
+        # Notify whoever is subscribed to top level, if that's not what we already notified.
+        target = instance
+        while target.parent:
+            target = instance.parent
+        target = target.content_object
+        if target != primary_target:
+            notify(
+                COMMENT, target, data={
+                    'users': [instance.user.id],
+                },
+                unique=True, mark_unread=True,
+                transform=_comment_transform,
+                exclude=[instance.user]
+            )

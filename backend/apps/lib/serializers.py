@@ -8,7 +8,7 @@ from rest_framework.fields import SerializerMethodField
 from rest_framework_bulk import BulkSerializerMixin, BulkListSerializer
 
 from apps.lib.models import Comment, Notification, Event, CHAR_TAG, SUBMISSION_CHAR_TAG, Tag, REVISION_UPLOADED, \
-    ORDER_UPDATE, SALE_UPDATE
+    ORDER_UPDATE, SALE_UPDATE, COMMENT
 from apps.profiles.models import User, ImageAsset, Character
 from apps.sales.models import Revision
 
@@ -166,12 +166,17 @@ def order_update(obj):
     return {'display': display}
 
 
+def comment_made(obj):
+    return {}
+
+
 TYPE_MAP = {
     CHAR_TAG: char_tag,
     ORDER_UPDATE: order_update,
     SALE_UPDATE: order_update,
     SUBMISSION_CHAR_TAG: submission_char_tag,
     REVISION_UPLOADED: revision_uploaded,
+    COMMENT: comment_made,
 }
 
 

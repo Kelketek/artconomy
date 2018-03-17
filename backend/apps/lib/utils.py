@@ -76,10 +76,11 @@ def target_params(object_id, content_type):
     return query
 
 
-def get_matching_subscriptions(event_type, object_id, content_type):
+def get_matching_subscriptions(event_type, object_id, content_type, exclude=None):
+    exclude = exclude or []
     return Subscription.objects.filter(
         Q(type=event_type, removed=False) & target_params(object_id, content_type)
-    )
+    ).exclude(subscriber__in=exclude)
 
 
 def get_matching_events(event_type, content_type, object_id, data, unique_data=None):
@@ -97,13 +98,13 @@ def get_matching_events(event_type, content_type, object_id, data, unique_data=N
 @atomic
 def notify(
         event_type, target, data=None, unique=False, unique_data=None, mark_unread=False, time_override=None,
-        transform=None
+        transform=None, exclude=None
 ):
     if data is None:
         data = {}
     content_type = target and ContentType.objects.get_for_model(target)
     object_id = target and target.id
-    subscriptions = get_matching_subscriptions(event_type, object_id, content_type)
+    subscriptions = get_matching_subscriptions(event_type, object_id, content_type, exclude)
     if not subscriptions.exists():
         return
     if unique or unique_data:

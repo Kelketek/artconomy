@@ -263,7 +263,7 @@
       <v-layout row wrap class="mt-3 pb-3" v-if="final">
         <v-flex xs12 text-xs-center>
           <router-link v-if="output" :to="{name: 'Submission', params: {assetID: output.id}}">
-            <ac-asset class="final-preview" thumb-name="gallery" :asset="final" />
+            <ac-asset class="final-preview" thumb-name="preview" :asset="final" />
           </router-link>
           <ac-asset class="final-preview" v-else thumb-name="preview" :asset="final" />
           <div class="text-xs-center text-section pb-2">
@@ -468,6 +468,7 @@
       },
       final () {
         if (this.finalUploaded) {
+          console.log(this.revisions[this.revisions.length - 1])
           return this.revisions[this.revisions.length - 1]
         } else {
           return null

@@ -15,7 +15,7 @@ from rest_framework.authtoken.models import Token
 
 from apps.lib.abstract_models import GENERAL, RATINGS, ImageModel
 from apps.lib.models import Comment, Subscription, FAVORITE, SYSTEM_ANNOUNCEMENT, DISPUTE, REFUND, Event, \
-    SUBMISSION_CHAR_TAG, CHAR_TAG, SUBMISSION_TAG
+    SUBMISSION_CHAR_TAG, CHAR_TAG, SUBMISSION_TAG, COMMENT
 from apps.profiles.permissions import AssetViewPermission, AssetCommentPermission
 
 
@@ -140,6 +140,12 @@ def auto_subscribe_image(sender, instance, created=False, **_kwargs):
             object_id=instance.id,
             type=SUBMISSION_TAG
         )
+        Subscription.objects.create(
+            subscriber=instance.uploaded_by,
+            content_type=ContentType.objects.get_for_model(model=sender),
+            object_id=instance.id,
+            type=COMMENT,
+        )
 
 
 @receiver(post_delete, sender=ImageAsset)
@@ -150,18 +156,33 @@ def auto_remove(sender, instance, **kwargs):
         object_id=instance.id,
         type=FAVORITE
     ).delete()
+    Subscription.objects.filter(
+        subscriber=instance.uploaded_by,
+        content_type=ContentType.objects.get_for_model(model=sender),
+        object_id=instance.id,
+        type=SUBMISSION_CHAR_TAG
+    ).delete()
+    Subscription.objects.filter(
+        subscriber=instance.uploaded_by,
+        content_type=ContentType.objects.get_for_model(model=sender),
+        object_id=instance.id,
+        type=COMMENT
+    ).delete()
     Event.objects.filter(
         content_type=ContentType.objects.get_for_model(model=sender),
         object_id=instance.id,
         type=FAVORITE,
-        recalled=True
-    )
+    ).delete()
     Event.objects.filter(
         content_type=ContentType.objects.get_for_model(model=sender),
         object_id=instance.id,
         type=SUBMISSION_CHAR_TAG,
-        recalled=True
-    )
+    ).delete()
+    Event.objects.filter(
+        content_type=ContentType.objects.get_for_model(model=sender),
+        object_id=instance.id,
+        type=COMMENT,
+    ).delete()
 
 
 class Character(Model):

@@ -116,7 +116,9 @@
     methods: {
       scrollToErrors (event) {
         Vue.nextTick(() => {
-          this.$refs.dialog.$vuetify.goTo('.error--text')
+          if (document.querySelector('.error--text')) {
+            this.$refs.dialog.$vuetify.goTo('.error--text')
+          }
         })
       }
     },

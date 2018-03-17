@@ -19,7 +19,13 @@
             <component :is="dynamicComponent(notification.event.type)"
                        :key="notification.id" v-observe-visibility="markRead(notification.id)"
                        class="notification" :notification="notification"
+                       v-if="dynamicComponent(notification.event.type)"
             />
+            <v-list-tile v-else>
+              <v-list-tile-content>
+                {{notification}}
+              </v-list-tile-content>
+            </v-list-tile>
             <v-divider v-if="index + 1 < growing.length" :key="`divider-${index}`" />
           </template>
         </v-list>

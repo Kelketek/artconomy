@@ -1,10 +1,10 @@
+from django.contrib.contenttypes.models import ContentType
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase, override_settings
-from mock import Mock, patch
+from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from apps.lib.models import FAVORITE, Subscription
+from apps.lib.models import FAVORITE, Subscription, COMMENT
 from apps.profiles.models import Character, ImageAsset
 from apps.lib.abstract_models import MATURE, ADULT, GENERAL
 from apps.lib.test_resources import APITestCase
@@ -233,6 +233,11 @@ class CharacterAPITestCase(APITestCase):
         self.assertFalse(asset.private)
         self.assertEqual(asset.rating, ADULT)
         self.assertIn('gree-een', asset.file.url)
+        Subscription.objects.get(
+            object_id=asset.id, content_type=ContentType.objects.get_for_model(asset),
+            type=COMMENT,
+            subscriber=asset.uploaded_by
+        )
 
     def test_asset_upload_forbidden(self):
         self.login(self.user2)

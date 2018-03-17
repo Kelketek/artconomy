@@ -3,7 +3,7 @@ from django.test import TestCase
 from django.utils import timezone
 from freezegun import freeze_time
 
-from apps.lib.models import FAVORITE, Notification, SYSTEM_ANNOUNCEMENT, Event
+from apps.lib.models import FAVORITE, Notification, SYSTEM_ANNOUNCEMENT, Event, Subscription
 from apps.lib.utils import notify, recall_notification
 from apps.profiles.models import ImageAsset
 from apps.profiles.tests.factories import ImageAssetFactory, UserFactory
@@ -180,6 +180,19 @@ class NotificationsTestCase(TestCase):
             self.assertEqual(event.date.day, 10)
             self.assertEqual(event.data, {'users': [1, 2, 3]})
             self.assertTrue(notification.read)
+
+    def test_exclude(self):
+        asset = ImageAssetFactory.create()
+        user = UserFactory.create()
+        Subscription.objects.create(
+            type=FAVORITE, subscriber=user, object_id=asset.id, content_type=ContentType.objects.get_for_model(asset)
+        )
+        notify(FAVORITE, target=asset, data={'users': []})
+        notifications = Notification.objects.filter(user__in=[asset.uploaded_by, user])
+        self.assertEqual(notifications.count(), 2)
+        notify(FAVORITE, target=asset, data={'users': []}, exclude=[user])
+        notifications = Notification.objects.filter(user__in=[asset.uploaded_by, user])
+        self.assertEqual(notifications.count(), 3)
 
     def test_recall_notification(self):
         asset = ImageAssetFactory.create()
