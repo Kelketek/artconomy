@@ -45,6 +45,39 @@ class RelatedUserSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'username', 'avatar_url')
 
 
+def notification_serialize(obj):
+    if obj is None:
+        return None
+    if hasattr(obj, 'notification_serialize'):
+        return obj.notification_serialize()
+    return {obj.__class__.__name__: obj.id}
+
+
+def notification_display(obj):
+    """
+    For determining which icon is used in the notification area.
+    """
+    if hasattr(obj, 'notification_display'):
+        return obj.notification_display()
+    return notification_serialize(obj)
+
+
+def get_link(obj, request):
+    if obj is None:
+        return None
+    if hasattr(obj, 'notification_link'):
+        return obj.notification_link(request)
+    return None
+
+
+def get_display_name(obj, request):
+    if obj is None:
+        return '<removed>'
+    if hasattr(obj, 'notification_name'):
+            return obj.notification_name(request) or 'Untitled'
+    return 'Unknown'
+
+
 class EventTargetRelatedField(serializers.RelatedField):
     """
     A custom field to use for the `content_object` generic relationship.
@@ -56,11 +89,7 @@ class EventTargetRelatedField(serializers.RelatedField):
         """
         Serialize tagged objects to a simple textual representation.
         """
-        if value is None:
-            return None
-        if hasattr(value, 'notification_serialize'):
-            return value.notification_serialize()
-        return {value.__class__.__name__: value.id}
+        return notification_serialize(value)
 
 
 # Custom image field - handles base 64 encoded images
@@ -121,7 +150,7 @@ def get_user(user_id):
         return None
 
 
-def char_tag(obj):
+def char_tag(obj, _):
     value = obj.data
     from apps.profiles.serializers import ImageAssetSerializer
     try:
@@ -135,7 +164,7 @@ def char_tag(obj):
     return {'user': user, 'asset': asset}
 
 
-def submission_char_tag(obj):
+def submission_char_tag(obj, _):
     value = obj.data
     from apps.profiles.serializers import CharacterSerializer
     try:
@@ -146,7 +175,7 @@ def submission_char_tag(obj):
     return {'character': character, 'user': user}
 
 
-def revision_uploaded(obj):
+def revision_uploaded(obj, _):
     value = obj.data
     from apps.sales.serializers import RevisionSerializer
     try:
@@ -156,7 +185,7 @@ def revision_uploaded(obj):
     return {'revision': revision}
 
 
-def order_update(obj):
+def order_update(obj, _):
     from apps.sales.serializers import RevisionSerializer, ProductSerializer
     revision = obj.target.revision_set.all().last()
     if revision is None:
@@ -166,8 +195,29 @@ def order_update(obj):
     return {'display': display}
 
 
-def comment_made(obj):
-    return {}
+def comment_made(obj, context):
+    comment = Comment.objects.filter(id__in=obj.data['comments']).order_by('-id').first()
+    top = comment
+    while top.parent:
+        top = top.parent
+    target = top.content_object
+    is_thread = bool((not comment.content_object) and comment.parent)
+    commenters = Comment.objects.filter(
+        id__in=obj.data['comments'] + obj.data['subcomments']).order_by('user__username').distinct('user__username')
+
+    if commenters.count() > 3:
+        additional = commenters.count() - 3
+    else:
+        additional = 0
+    return {
+        'top': notification_serialize(top),
+        'commenters': commenters[:3].values_list('user__username', flat=True),
+        'additional': additional,
+        'is_thread': is_thread,
+        'display': notification_display(target),
+        'link': get_link(target, context['request']),
+        'name': get_display_name(target, context['request'])
+    }
 
 
 TYPE_MAP = {
@@ -185,7 +235,7 @@ class EventSerializer(serializers.ModelSerializer):
     data = SerializerMethodField(read_only=True)
 
     def get_data(self, obj):
-        return TYPE_MAP.get(obj.type, lambda x: x.data)(obj)
+        return TYPE_MAP.get(obj.type, lambda x: x.data)(obj, self.context)
 
     class Meta:
         model = Event

@@ -10,13 +10,14 @@ from django.db.models import Model, CharField, ForeignKey, IntegerField, Boolean
     TextField, SET_NULL, PositiveIntegerField, URLField, CASCADE
 
 # Create your models here.
-from django.db.models.signals import post_delete, post_save
+from django.db.models.signals import post_delete, post_save, pre_delete
 from django.dispatch import receiver
 from djmoney.models.fields import MoneyField
 from moneyed import Money
 
 from apps.lib.models import Comment, Subscription, SALE_UPDATE, ORDER_UPDATE, REVISION_UPLOADED, COMMENT
 from apps.lib.abstract_models import ImageModel
+from apps.lib.utils import clear_events
 from apps.sales.permissions import OrderViewPermission
 from apps.sales.apis import sauce
 
@@ -197,6 +198,29 @@ class Order(Model):
         from .serializers import OrderViewSerializer
         return OrderViewSerializer(instance=self).data
 
+    def notification_display(self):
+        from .serializers import ProductSerializer
+        return ProductSerializer(instance=self.product).data
+
+    def notification_name(self, request):
+        if request.user == self.seller:
+            return "Sale #{}".format(self.id)
+        if request.user == self.arbitrator:
+            return "Case #{}".format(self.id)
+        return "Order #{}".format(self.id)
+
+    def notification_link(self, request):
+        data = {'params': {'orderID': self.id}}
+        # Doing early returns here so we match name, rather than overwriting.
+        if request.user == self.seller:
+            data['name'] = 'Sale'
+            return data
+        if request.user == self.arbitrator:
+            data['name'] = 'Case'
+            return data
+        data['name'] = 'Order'
+        return data
+
     def __str__(self):
         return "#{} {} for {} by {}".format(self.id, self.product.name, self.buyer, self.seller)
 
@@ -271,6 +295,9 @@ def auto_remove_order(sender, instance, **_kwargs):
         object_id=instance.id,
         type=COMMENT
     ).delete()
+
+
+remove_order_events = receiver(pre_delete, sender=Order)(clear_events)
 
 
 class RatingSet(Model):

@@ -124,7 +124,8 @@ class Tag(Model):
 
 def _comment_transform(old_data, new_data):
     return {
-        'users': list(set(old_data['users'] + new_data['users'])),
+        'comments': old_data['comments'] + new_data['comments'],
+        'subcomments': old_data['comments'] + new_data['subcomments']
     }
 
 
@@ -149,7 +150,8 @@ def auto_subscribe_thread(sender, instance, created=False, **_kwargs):
         # Notify who is subscribed to the parent comment or the top level if there isn't one.
         notify(
             COMMENT, primary_target, data={
-                'users': [instance.user.id],
+                'comments': [instance.id],
+                'subcomments': []
             },
             unique=True, mark_unread=True,
             transform=_comment_transform,
@@ -163,9 +165,13 @@ def auto_subscribe_thread(sender, instance, created=False, **_kwargs):
         if target != primary_target:
             notify(
                 COMMENT, target, data={
-                    'users': [instance.user.id],
+                    # Subcomment, so not marking a direct comment.
+                    'comments': [],
+                    'subcomments': [instance.id]
                 },
                 unique=True, mark_unread=True,
                 transform=_comment_transform,
                 exclude=[instance.user]
             )
+
+# Additional signal for comment in utils, pre_save, since it would be recursive otherwise.

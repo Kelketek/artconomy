@@ -3,14 +3,16 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import connection
 from django.db.models import Q
+from django.db.models.signals import pre_delete
 from django.db.transaction import atomic
+from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.text import slugify
 from pycountry import countries, subdivisions
 from rest_framework import status
 from rest_framework.response import Response
 
-from apps.lib.models import Subscription, Event, Notification, Tag
+from apps.lib.models import Subscription, Event, Notification, Tag, Comment, COMMENT
 
 
 def countries_tweaked():
@@ -49,6 +51,17 @@ for code, name in ('AE', 'AA', 'AP'):
     subdivision_map['US'][code] = code
 
 
+class RecallNotification(Exception):
+    """
+    Used during a transform function to recall a notification.
+    For instance, if we're tracking all of the people who commented on a submission
+    and the only person who commented removed their comment, we'd want to recall the event altogether.
+    """
+    def __init__(self, *args, **kwargs):
+        self.data = kwargs.pop('data')
+        super(*args, **kwargs)
+
+
 def recall_notification(event_type, target, data=None, unique_data=False):
     content_type = target and ContentType.objects.get_for_model(target)
     object_id = target and target.id
@@ -61,7 +74,13 @@ def update_event(event, data, subscriptions, mark_unread, time_override=None, tr
     if mark_unread or time_override:
         event.date = time_override or timezone.now()
     if transform:
-        data = transform(event.data, data)
+        try:
+            data = transform(event.data, data)
+        except RecallNotification as err:
+            event.recalled = True
+            event.data = err.data
+            event.save()
+            return
     event.data = data
     event.save()
     if mark_unread:
@@ -129,6 +148,48 @@ def notify(
         ),
         batch_size=1000
     )
+
+
+def clear_events(sender, instance, **_kwargs):
+    """
+    To be used as a signal handler elsewhere on models to make sure any events that existed with this
+    instance as the target are removed. Use in pre_delete.
+    """
+    Event.objects.filter(object_id=instance.id, content_type=ContentType.objects.get_for_model(instance)).delete()
+
+
+# This receiver is not in models where it would normally be, since we want to have clear_events available in utils
+# in a manner which my IDE will pull them in.
+
+# ...Yeah, that sounds kinda dumb, maybe I'll change it later if it trips me up.
+remove_order_events = receiver(pre_delete, sender=Comment)(clear_events)
+
+
+def _comment_filter(old_data, comment_id):
+    comments = [comment for comment in old_data['comments'] if comment != comment_id]
+    subcomments = [comment for comment in old_data['subcomments'] if comment != comment_id]
+    data = {
+        'comments': comments,
+        'subcomments': subcomments
+    }
+    if not comments:
+        raise RecallNotification(data=data)
+    return {
+        'comments': comments,
+        'subcomments': subcomments
+    }
+
+
+def remove_comment(comment_id):
+    """
+    Removes all notifications for a comment.
+    """
+    events = Event.objects.filter(type=COMMENT).filter(
+        Q(data__comments__contains=comment_id) | Q(data__subcomments__contains=comment_id)
+    )
+    data = comment_id
+    for event in events:
+        update_event(event, data, False, Subscription.objects.none(), transform=_comment_filter)
 
 
 def add_check(instance, field_name, *args):

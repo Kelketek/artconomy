@@ -186,6 +186,8 @@ CARD_TEST = True
 
 MIN_PASS_LENGTH = 8
 
+BANNED_USERNAMES = ['artconomy']
+
 MINIMUM_PRICE = Decimal('1.10')
 
 REFUND_FEE = Decimal('2.00')

@@ -53,11 +53,13 @@
   import AcCharTag from './notifications/ac-char-tag'
   import AcSubmissionCharTag from './notifications/ac-submission-char-tag'
   import AcRevisionUploaded from './notifications/ac-revision-uploaded'
+  import AcCommentNotification from './notifications/ac-comment-notification'
 
   export default {
     name: 'NotificationCenter',
     mixins: [Paginated],
     components: {
+      AcCommentNotification,
       AcRevisionUploaded,
       AcSubmissionCharTag,
       AcCharTag,

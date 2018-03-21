@@ -6,24 +6,33 @@ from custom_user.models import AbstractEmailUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db.models import Model, CharField, ForeignKey, IntegerField, BooleanField, DateTimeField, \
     URLField, SET_NULL, ManyToManyField, CASCADE
-from django.db.models.signals import post_save, post_delete
+from django.db.models.signals import post_save, post_delete, pre_delete
 from django.dispatch import receiver
 from rest_framework.authtoken.models import Token
 
 from apps.lib.abstract_models import GENERAL, RATINGS, ImageModel
 from apps.lib.models import Comment, Subscription, FAVORITE, SYSTEM_ANNOUNCEMENT, DISPUTE, REFUND, Event, \
     SUBMISSION_CHAR_TAG, CHAR_TAG, SUBMISSION_TAG, COMMENT
+from apps.lib.utils import clear_events
 from apps.profiles.permissions import AssetViewPermission, AssetCommentPermission
+
+
+def banned_named_validator(value):
+    if value.lower() in settings.BANNED_USERNAMES:
+        raise ValidationError('This name is not permitted', code='invalid')
 
 
 class User(AbstractEmailUser):
     """
     User model for Artconomy.
     """
-    username = CharField(max_length=30, unique=True, db_index=True, validators=[UnicodeUsernameValidator()])
+    username = CharField(
+        max_length=30, unique=True, db_index=True, validators=[UnicodeUsernameValidator(), banned_named_validator]
+    )
     primary_character = ForeignKey('Character', blank=True, null=True, related_name='+', on_delete=SET_NULL)
     primary_card = ForeignKey('sales.CreditCardToken', null=True, blank=True, related_name='+', on_delete=SET_NULL)
     dwolla_url = URLField(blank=True, default='')
@@ -62,6 +71,10 @@ class User(AbstractEmailUser):
     def save(self, *args, **kwargs):
         self.email = self.email and self.email.lower()
         super().save(*args, **kwargs)
+
+    def notification_serialize(self):
+        from .serializers import RelatedUserSerializer
+        return RelatedUserSerializer(instance=self).data
 
 
 @receiver(post_save, sender=User)
@@ -114,6 +127,12 @@ class ImageAsset(ImageModel):
     def notification_serialize(self):
         from .serializers import ImageAssetNotificationSerializer
         return ImageAssetNotificationSerializer(instance=self).data
+
+    def notification_name(self, request):
+        return self.title
+
+    def notification_link(self, request):
+        return {'name': 'Submission', 'params': {'assetID': self.id}}
 
     def favorite_count(self):
         return self.favorited_by.all().count()
@@ -183,6 +202,9 @@ def auto_remove(sender, instance, **kwargs):
         object_id=instance.id,
         type=COMMENT,
     ).delete()
+
+
+remove_asset_events = receiver(pre_delete, sender=ImageAsset)(clear_events)
 
 
 class Character(Model):
@@ -257,6 +279,9 @@ def auto_remove_character(sender, instance, **kwargs):
         type=SUBMISSION_CHAR_TAG,
         recalled=True
     )
+
+
+remove_order_events = receiver(pre_delete, sender=Character)(clear_events)
 
 
 class RefColor(Model):

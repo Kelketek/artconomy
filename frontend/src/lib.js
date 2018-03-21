@@ -121,6 +121,7 @@ export function ratingsShort () {
 
 export const NOTIFICATION_MAPPING = {
   '3': 'ac-char-tag',
+  '4': 'ac-comment-notification',
   '10': 'ac-submission-tag',
   '14': 'ac-favorite',
   '15': 'ac-dispute',

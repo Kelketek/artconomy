@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 from apps.lib.models import Comment
 from apps.lib.permissions import CommentEditPermission, CommentViewPermission, CommentDepthPermission
 from apps.lib.serializers import CommentSerializer
-from apps.lib.utils import countries_tweaked, remove_tags, add_tags
+from apps.lib.utils import countries_tweaked, remove_tags, add_tags, remove_comment
 
 
 class CommentUpdate(RetrieveUpdateDestroyAPIView):
@@ -23,6 +23,7 @@ class CommentUpdate(RetrieveUpdateDestroyAPIView):
         return comment
 
     def perform_destroy(self, instance):
+        remove_comment(instance.id)
         if not instance.children.all():
             instance.delete()
         else:
