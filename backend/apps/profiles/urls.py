@@ -7,7 +7,7 @@ from apps.profiles.views import Register, CharacterListAPI, ImageAssetListAPI, \
     CharacterManager, AssetManager, MakePrimary, SettingsAPI, CurrentUserInfo, AssetComments, CredentialsAPI, \
     NotificationsList, SetAvatar, UserInfo, CharacterSearch, AssetFavorite, MarkNotificationsRead, AssetTagCharacter, \
     UserSearch, AssetTagArtist, TagSearch, AssetTag, AssetSearch, CharacterTag, UserBlacklist, RefColorList, \
-    RefColorManager, RecentSubmissions, RecentCommissions, NewCharacters
+    RefColorManager, RecentSubmissions, RecentCommissions, NewCharacters, FavoritesList, GalleryList
 from apps.profiles.views import check_username, check_email, perform_login, perform_logout
 from deux.urls import urlpatterns as duex_patterns
 
@@ -36,6 +36,8 @@ urlpatterns = [
     path('v1/account/<username>/credentials/', CredentialsAPI.as_view(), name='credentials'),
     path('v1/account/<username>/avatar/', SetAvatar.as_view(), name='avatar'),
     path('v1/account/<username>/blacklist/', UserBlacklist.as_view(), name='user_blacklist'),
+    path('v1/account/<username>/favorites/', FavoritesList.as_view(), name='favorites_list'),
+    path('v1/account/<username>/gallery/', GalleryList.as_view(), name='gallery_list'),
     path(
         r'v1/asset/<int:asset_id>/tag-characters/',
         AssetTagCharacter.as_view(), name='asset_character_tag'

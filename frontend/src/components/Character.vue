@@ -158,56 +158,14 @@
         </v-flex>
       </v-layout>
     </v-card>
-    <v-card v-if="character && assets && assets.length">
-      <v-layout v-if="assets.length === 1" row wrap>
-        <v-flex xs12  class="pl-2 pr-2 pt-3 pb-3">
-          <ac-gallery-preview
-              v-if="character.primary_asset && character.primary_asset.id"
-              :asset="character.primary_asset"
-              containerStyle="min-height: 50rem;"
-              thumb-name="gallery"
-              :contain="true"
-          />
-        </v-flex>
-      </v-layout>
-      <v-layout v-else row wrap>
-        <v-flex xs12 lg9 class="pl-2 pr-2 pt-3 pb-3">
-          <ac-gallery-preview
-              v-if="character.primary_asset && character.primary_asset.id"
-              :asset="character.primary_asset"
-              containerStyle="min-height: 50rem;"
-              thumb-name="gallery"
-              :contain="true"
-          />
-          <v-flex class="text-xs-center mt-4 hidden-md-and-down">
-            <router-link :to="{name: 'CharacterGallery', params: {username: username, characterName: characterName}}">
-              <v-btn v-if="assets && moreToLoad" color="primary">
-                See all uploads of {{ character.name }}
-              </v-btn>
-            </router-link>
-          </v-flex>
-        </v-flex>
-        <v-flex sm12 lg3 class="pl-2 pr-2 pt-3 pb-3">
-          <v-layout row wrap>
-            <ac-gallery-preview v-for="(asset, key, index) in assets"
-                                :key="key" :id="'asset-' + key"
-                                v-if="asset.id !== displayedId"
-                                :asset="asset"
-                                lg12 md4 sm6 xs12
-                                class="pr-1 pl-1"
-            >
-            </ac-gallery-preview>
-          </v-layout>
-        </v-flex>
-        <v-flex xs12 class="text-xs-center mb-2 hidden-lg-and-up">
-          <router-link :to="{name: 'CharacterGallery', params: {username: username, characterName: characterName}}">
-            <v-btn v-if="assets && moreToLoad" color="primary">
-              See all uploads of {{ character.name }}
-            </v-btn>
-          </router-link>
-        </v-flex>
-      </v-layout>
-    </v-card>
+    <ac-context-gallery
+        v-if="character && assets && assets.length"
+        :to="{name: 'CharacterGallery', params: {username: username, characterName: characterName}}"
+        :showcased="character.primary_asset"
+        :assets="assets"
+        :totalPieces="totalPieces"
+        :see-more-text="`See all uploads of ${character.name}`"
+    />
   </v-container>
 </template>
 
@@ -245,11 +203,13 @@
   import AcTagDisplay from './ac-tag-display'
   import AcRefColor from './ac-ref-color'
   import AcFormDialog from './ac-form-dialog'
+  import AcContextGallery from './ac-context-gallery'
 
   export default {
     name: 'Character',
     mixins: [Viewer, Perms, Editable],
     components: {
+      AcContextGallery,
       AcFormDialog,
       AcRefColor,
       AcTagDisplay,

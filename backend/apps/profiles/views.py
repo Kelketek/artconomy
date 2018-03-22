@@ -27,7 +27,7 @@ from apps.lib.utils import recall_notification, notify, safe_add
 from apps.lib.views import BaseTagView
 from apps.profiles.models import User, Character, ImageAsset, RefColor
 from apps.profiles.permissions import ObjectControls, UserControls, AssetViewPermission, AssetControls, NonPrivate, \
-    ColorControls, ColorLimit
+    ColorControls, ColorLimit, ViewFavorites
 from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer, SettingsSerializer, UserSerializer, \
     RegisterSerializer, ImageAssetManagementSerializer, CredentialsSerializer, AvatarSerializer, RefColorSerializer
 from apps.profiles.utils import available_chars, char_ordering, available_assets
@@ -697,6 +697,34 @@ def perform_login(request):
             'password': [error_message],
         }
     )
+
+
+class FavoritesList(ListAPIView):
+    permission_classes = [ViewFavorites]
+    serializer_class = ImageAssetSerializer
+
+    def get_queryset(self):
+        user = get_object_or_404(User, username=self.kwargs['username'])
+        self.check_object_permissions(self.request, user)
+        return available_assets(self.request, user).filter(favorited_by=user)
+
+
+class GalleryList(ListAPIView):
+    serializer_class = ImageAssetSerializer
+
+    def get_queryset(self):
+        user = get_object_or_404(User, username=self.kwargs['username'])
+        return available_assets(self.request, user).filter(artists=user)
+
+
+class SubmissionsList(ListAPIView):
+    serializer_class = ImageAssetSerializer
+
+    def get_queryset(self):
+        user = get_object_or_404(User, username=self.kwargs['username'])
+        return available_assets(
+            self.request, user
+        ).filter(uploaded_by=user).exclude(artists=user).exclude(characters__user=user)
 
 
 @csrf_exempt

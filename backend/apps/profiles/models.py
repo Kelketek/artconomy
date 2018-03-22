@@ -228,6 +228,7 @@ class Character(Model):
         default=''
     )
     primary_asset = ForeignKey('ImageAsset', null=True, on_delete=SET_NULL)
+    favorites_hidden = BooleanField(default=False)
     user = ForeignKey(settings.AUTH_USER_MODEL, related_name='characters', on_delete=CASCADE)
     created_on = DateTimeField(auto_now_add=True)
     species = CharField(max_length=150, blank=True, default='')

@@ -16,6 +16,7 @@ import Settings from '@/components/Settings'
 import Characters from '@/components/Characters'
 import Character from '@/components/Character'
 import Submission from '@/components/Submission'
+import Gallery from '@/components/Gallery'
 import Search from '@/components/Search'
 import CharacterGallery from '@/components/CharacterGallery'
 import NotFound from '@/components/NotFound'
@@ -108,6 +109,30 @@ export const routes = [
     name: 'CharacterGallery',
     component: CharacterGallery,
     props: true
+  },
+  {
+    path: '/profile/:username/gallery/',
+    name: 'Gallery',
+    component: Gallery,
+    props (route) {
+      return {
+        username: route.params.username,
+        endpoint: `/api/profiles/v1/account/${route.params.username}/gallery/`,
+        title: 'Gallery'
+      }
+    }
+  },
+  {
+    path: '/profile/:username/favorites/',
+    name: 'Favorites',
+    component: Gallery,
+    props (route) {
+      return {
+        username: route.params.username,
+        endpoint: `/api/profiles/v1/account/${route.params.username}/favorites/`,
+        title: 'Favorites'
+      }
+    }
   },
   {
     path: '/submissions/:assetID/',

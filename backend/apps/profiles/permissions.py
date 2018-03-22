@@ -93,3 +93,13 @@ class ColorLimit(BasePermission):
         from .models import Character
         if obj.colors.all().count() < Character.colors__max:
             return True
+
+
+class ViewFavorites(BasePermission):
+    def has_object_permission(self, request, view, obj):
+        if obj == request.user:
+            return True
+        if request.user.is_staff:
+            return True
+        if obj.favorites_hidden:
+            return False

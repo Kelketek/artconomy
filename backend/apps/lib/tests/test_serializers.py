@@ -18,7 +18,7 @@ class TestComments(APITestCase):
         context = {'request': request}
         data = comment_made(notification.event, context)
         self.assertEqual(data['additional'], 2)
-        self.assertEqual(data['commenters'], [comment.user.username for comment in comments[:3]])
+        self.assertEqual(data['commenters'], sorted([comment.user.username for comment in comments])[:3])
         self.assertEqual(data['display']['id'], asset.id)
         self.assertEqual(data['display']['caption'], asset.caption)
         self.assertEqual(data['is_thread'], False)
