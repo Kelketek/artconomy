@@ -1,6 +1,6 @@
 <template>
-  <v-card :id="'comment-' + comment.id" class="comment-block"
-       :class="{'my-comment': myComment, 'elevation-3': alternate, 'pt-2': true, 'mb-2': true}">
+  <v-card :id="'comment-' + comment.id" class="comment-block pt-2 mb-2"
+       :class="{'my-comment': myComment, 'elevation-3': alternate, 'grey': this.selected, 'darken-2': this.selected}">
     <v-layout row wrap>
       <v-flex xs12 sm2 class="text-xs-center comment-info pb-2">
         <ac-avatar :user="comment.user" /><br />
@@ -114,6 +114,7 @@
   import { artCall, md } from '../lib'
   import moment from 'moment'
   import AcAvatar from './ac-avatar'
+  import Vue from 'vue'
 
   export default {
     components: {AcAvatar},
@@ -188,13 +189,29 @@
         reply_disabled: false,
         edit_disabled: false,
         comment: this.commentobj,
+        scrolled: false,
         url: '/api/lib/v1/comment/' + this.commentobj.id + '/'
       }
     },
     computed: {
       myComment () {
         return this.comment.user.username === this.reader.username
+      },
+      selected () {
+        if (this.$route.query && this.$route.query['commentID']) {
+          if (this.$route.query['commentID'] === this.comment.id + '') {
+            return true
+          }
+        }
       }
+    },
+    mounted () {
+      Vue.nextTick(() => {
+        if (this.selected && !this.scrolled) {
+          this.$vuetify.goTo('#comment-' + this.comment.id)
+          this.scrolled = true
+        }
+      })
     }
   }
 </script>

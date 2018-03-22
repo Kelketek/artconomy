@@ -10,12 +10,10 @@
     </v-list-tile-avatar>
     <v-list-tile-content>
       <v-list-tile-title>
-        <span v-if="event.data.is_thread">
-          A comment has been added to a thread.
-        </span>
-        <span v-else>
-          A comment has been added
-        </span>
+        <router-link :to="event.data.link" v-if="event.data.link">
+          {{titleText}}
+        </router-link>
+        <span v-else>{{titleText}}</span>
       </v-list-tile-title>
       <v-list-tile-sub-title>
         on <router-link :to="event.data.link" v-if="event.data.link">{{event.data.name}}</router-link><span v-else>'{{event.data.name}}'</span>
@@ -50,6 +48,12 @@
           }
         }
         return commenters
+      },
+      titleText () {
+        if (this.event.data.is_thread) {
+          return 'A comment has been added to a thread'
+        }
+        return 'A comment has been added'
       }
     }
   }

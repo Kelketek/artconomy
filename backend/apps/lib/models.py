@@ -125,7 +125,7 @@ class Tag(Model):
 def _comment_transform(old_data, new_data):
     return {
         'comments': old_data['comments'] + new_data['comments'],
-        'subcomments': old_data['comments'] + new_data['subcomments']
+        'subcomments': old_data['subcomments'] + new_data['subcomments']
     }
 
 
@@ -160,7 +160,7 @@ def auto_subscribe_thread(sender, instance, created=False, **_kwargs):
         # Notify whoever is subscribed to top level, if that's not what we already notified.
         target = instance
         while target.parent:
-            target = instance.parent
+            target = target.parent
         target = target.content_object
         if target != primary_target:
             notify(

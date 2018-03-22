@@ -128,10 +128,10 @@ class ImageAsset(ImageModel):
         from .serializers import ImageAssetNotificationSerializer
         return ImageAssetNotificationSerializer(instance=self).data
 
-    def notification_name(self, request):
+    def notification_name(self, context):
         return self.title
 
-    def notification_link(self, request):
+    def notification_link(self, context):
         return {'name': 'Submission', 'params': {'assetID': self.id}}
 
     def favorite_count(self):

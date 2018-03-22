@@ -209,14 +209,21 @@ def comment_made(obj, context):
         additional = commenters.count() - 3
     else:
         additional = 0
+    context = dict(**context)
+    link = get_link(target, context)
+    if link:
+        if 'query' in link:
+            link['query']['commentID'] = comment.id
+        else:
+            link['query'] = {'commentID': comment.id}
     return {
         'top': notification_serialize(top),
         'commenters': commenters[:3].values_list('user__username', flat=True),
         'additional': additional,
         'is_thread': is_thread,
         'display': notification_display(target),
-        'link': get_link(target, context['request']),
-        'name': get_display_name(target, context['request'])
+        'link': link,
+        'name': get_display_name(target, context),
     }
 
 

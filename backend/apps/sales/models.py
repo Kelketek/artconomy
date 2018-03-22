@@ -202,14 +202,16 @@ class Order(Model):
         from .serializers import ProductSerializer
         return ProductSerializer(instance=self.product).data
 
-    def notification_name(self, request):
+    def notification_name(self, context):
+        request = context['request']
         if request.user == self.seller:
             return "Sale #{}".format(self.id)
         if request.user == self.arbitrator:
             return "Case #{}".format(self.id)
         return "Order #{}".format(self.id)
 
-    def notification_link(self, request):
+    def notification_link(self, context):
+        request = context['request']
         data = {'params': {'orderID': self.id}}
         # Doing early returns here so we match name, rather than overwriting.
         if request.user == self.seller:
