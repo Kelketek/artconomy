@@ -37,8 +37,7 @@
     },
     computed: {
       commenters () {
-        let commenters = this.event.data.commenters.filter((commenter) => { return commenter !== this.username })
-        commenters = commenters.join(', ')
+        let commenters = this.event.data.commenters.join(', ')
         if (this.event.data.additional) {
           commenters += ' and ' + this.event.data.additional
           if (this.event.data.additional === 1) {

@@ -203,7 +203,8 @@ def comment_made(obj, context):
     target = top.content_object
     is_thread = bool((not comment.content_object) and comment.parent)
     commenters = Comment.objects.filter(
-        id__in=obj.data['comments'] + obj.data['subcomments']).order_by('user__username').distinct('user__username')
+        id__in=obj.data['comments'] + obj.data['subcomments']
+    ).exclude(user=context['request'].user).order_by('user__username').distinct('user__username')
 
     if commenters.count() > 3:
         additional = commenters.count() - 3
@@ -218,7 +219,7 @@ def comment_made(obj, context):
             link['query'] = {'commentID': comment.id}
     return {
         'top': notification_serialize(top),
-        'commenters': commenters[:3].values_list('user__username', flat=True),
+        'commenters': list(commenters[:3].values_list('user__username', flat=True)),
         'additional': additional,
         'is_thread': is_thread,
         'display': notification_display(target),

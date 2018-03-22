@@ -1,10 +1,11 @@
+from unittest.mock import patch
+
 from authorize import AuthorizeError
 from ddt import data, unpack, ddt
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings
 from django.utils import timezone
 from freezegun import freeze_time
-from mock import patch
 from moneyed import Money, Decimal
 from rest_framework import status
 
