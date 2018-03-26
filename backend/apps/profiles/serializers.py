@@ -87,6 +87,9 @@ class ImageAssetSerializer(serializers.ModelSerializer):
         write_only_fields = (
             'file',
         )
+        read_only_fields = (
+            'tags',
+        )
 
 
 class AvatarSerializer(serializers.Serializer):
@@ -176,7 +179,7 @@ class SettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'commissions_closed', 'rating', 'sfw_mode', 'max_load'
+            'commissions_closed', 'rating', 'sfw_mode', 'max_load', 'favorites_hidden'
         )
 
 
@@ -249,6 +252,7 @@ class UserSerializer(serializers.ModelSerializer):
     authtoken = serializers.SerializerMethodField()
     avatar_url = serializers.SerializerMethodField()
     fee = serializers.SerializerMethodField()
+    has_products = serializers.SerializerMethodField()
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request')
@@ -269,11 +273,14 @@ class UserSerializer(serializers.ModelSerializer):
     def get_authtoken(self, obj):
         return Token.objects.get(user_id=obj.id).key
 
+    def get_has_products(self, obj):
+        return obj.products.all().exists()
+
     class Meta:
         model = User
         fields = (
             'commissions_closed', 'rating', 'sfw_mode', 'max_load', 'username', 'id', 'is_staff', 'is_superuser',
-            'dwolla_configured', 'csrftoken', 'avatar_url', 'email', 'fee', 'authtoken',
-            'blacklist', 'biography'
+            'dwolla_configured', 'csrftoken', 'avatar_url', 'email', 'fee', 'authtoken', 'favorites_hidden',
+            'blacklist', 'biography', 'has_products'
         )
         read_only_fields = fields

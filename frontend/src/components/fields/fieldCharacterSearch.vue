@@ -40,7 +40,7 @@
     methods: {
       runQuery () {
         artCall(
-          `/api/profiles/v1/search/character/`, 'GET', {q: this.query, new_order: 1, size: 9}, this.populateResponse
+          `/api/profiles/v1/search/character/`, 'GET', {q: this.query, new_order: this.schema.commission, size: 9}, this.populateResponse
         )
       },
       populateResponse (response) {

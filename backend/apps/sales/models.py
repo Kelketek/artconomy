@@ -55,7 +55,7 @@ class Product(ImageModel):
     tags = ManyToManyField('lib.Tag', related_name='products', blank=True)
     tags__max = 200
     hidden = BooleanField(default=False, help_text="Whether this product is visible.", db_index=True)
-    user = ForeignKey(settings.AUTH_USER_MODEL, on_delete=CASCADE)
+    user = ForeignKey(settings.AUTH_USER_MODEL, on_delete=CASCADE, related_name='products')
     created_on = DateTimeField(auto_now_add=True)
     shippable = BooleanField(default=False)
     active = BooleanField(default=True, db_index=True)

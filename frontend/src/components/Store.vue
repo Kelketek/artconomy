@@ -1,6 +1,6 @@
 <template>
   <v-container grid-list-lg class="storefront">
-    <v-btn v-if="controls && setUp"
+    <v-btn v-if="controls && setUp && !embedded"
            dark
            color="green"
            fab
@@ -24,7 +24,7 @@
         v-if="growing !== null && setUp"
         :product="product"
       />
-      <v-jumbotron v-if="is_current && (growing !== null) && (growing.length === 0)" color="grey darken-3">
+      <v-jumbotron v-if="setUp && is_current && (growing !== null) && (growing.length === 0)" color="grey darken-3">
         <v-container fill-height>
           <v-layout align-center>
             <v-flex>
@@ -39,12 +39,17 @@
       </v-jumbotron>
     </v-layout>
     <v-layout row wrap>
-      <v-flex xs12 v-if="is_current && !setUp">
+      <v-flex xs12 v-if="is_current && !setUp && !embedded">
         <p>To open a store, you must first set up your
           <router-link :to="{name: 'Settings', params: {tabName: 'payment', 'username': this.viewer.username, 'subTabName': 'disbursement'}}">
             deposit account.
           </router-link>
         </p>
+      </v-flex>
+    </v-layout>
+    <v-layout row wrap>
+      <v-flex xs12 v-if="is_current && setUp && embedded" text-xs-center>
+        <v-btn large color="primary" class="mx-0" @click="showNew = true">New Product</v-btn>
       </v-flex>
     </v-layout>
     <ac-form-dialog title="New Product" submit-text="Create" v-model="showNew"
@@ -76,7 +81,7 @@
       AcProductPreview,
       AcFormContainer
     },
-    props: ['endpoint'],
+    props: ['endpoint', 'embedded'],
     mixins: [Viewer, Perms, Paginated],
     data () {
       return {
@@ -89,6 +94,7 @@
           hidden: false,
           rating: '0',
           task_weight: 1,
+          favorites_hidden: false,
           revisions: 1,
           max_parallel: 0,
           expected_turnaround: 3,
@@ -157,7 +163,7 @@
           }, {
             type: 'v-text',
             inputType: 'number',
-            label: 'Max Parallel',
+            label: 'Max at Once',
             model: 'max_parallel',
             step: '1',
             min: '0',

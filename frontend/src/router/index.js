@@ -65,7 +65,7 @@ export const routes = [
     props: true
   },
   {
-    path: '/profile/:username/',
+    path: '/profile/:username/:tabName?/',
     name: 'Profile',
     component: Profile,
     props: true

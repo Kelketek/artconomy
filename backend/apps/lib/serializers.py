@@ -9,24 +9,29 @@ from rest_framework_bulk import BulkSerializerMixin, BulkListSerializer
 
 from apps.lib.models import Comment, Notification, Event, CHAR_TAG, SUBMISSION_CHAR_TAG, Tag, REVISION_UPLOADED, \
     ORDER_UPDATE, SALE_UPDATE, COMMENT
+from apps.lib.utils import tag_list_cleaner, ensure_tags
 from apps.profiles.models import User, ImageAsset, Character
 from apps.sales.models import Revision
 
 
 class UserInfoSerializer(serializers.ModelSerializer):
     avatar_url = serializers.SerializerMethodField()
+    has_products = serializers.SerializerMethodField()
 
     def __init__(self, request=None, *args, **kwargs):
         # For compatibility with main User serializer
         super().__init__(*args, **kwargs)
+
+    def get_has_products(self, obj):
+        return obj.products.all().exists()
 
     def get_avatar_url(self, obj):
         return avatar_url(obj)
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'avatar_url', 'biography')
-        read_only_fields = ('id', 'username', 'avatar_url')
+        fields = ('id', 'username', 'avatar_url', 'biography', 'has_products', 'favorites_hidden')
+        read_only_fields = ('id', 'username', 'avatar_url', 'has_products', 'favorites_hidden')
 
 
 class RelatedUserSerializer(serializers.ModelSerializer):
@@ -62,19 +67,19 @@ def notification_display(obj):
     return notification_serialize(obj)
 
 
-def get_link(obj, request):
+def get_link(obj, context):
     if obj is None:
         return None
     if hasattr(obj, 'notification_link'):
-        return obj.notification_link(request)
+        return obj.notification_link(context)
     return None
 
 
-def get_display_name(obj, request):
+def get_display_name(obj, context):
     if obj is None:
         return '<removed>'
     if hasattr(obj, 'notification_name'):
-            return obj.notification_name(request) or 'Untitled'
+            return obj.notification_name(context) or 'Untitled'
     return 'Unknown'
 
 
@@ -243,7 +248,7 @@ class EventSerializer(serializers.ModelSerializer):
     data = SerializerMethodField(read_only=True)
 
     def get_data(self, obj):
-        return TYPE_MAP.get(obj.type, lambda x: x.data)(obj, self.context)
+        return TYPE_MAP.get(obj.type, lambda x, _: x.data)(obj, self.context)
 
     class Meta:
         model = Event

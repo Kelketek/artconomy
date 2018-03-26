@@ -20,41 +20,72 @@
         </v-flex>
       </v-layout>
     </v-card>
-    <ac-context-gallery
-        :to="{name: 'Gallery', params: {username}}"
-        :assets="assets"
-        :total-pieces="count"
-        see-more-text="View full gallery"
-        v-if="assets && assets.length"
-        class="mb-2"
-    />
-    <v-card>
-      <v-layout row wrap>
-        <v-flex xs12 class="pl-2">
-          <h2>Characters</h2>
+    <v-tabs v-model="tab" fixed-tabs>
+      <v-tab href="#tab-products" v-if="user.has_products"><v-icon>shopping_basket</v-icon>&nbsp;Products</v-tab>
+      <v-tab href="#tab-characters"><v-icon>people</v-icon>&nbsp;Characters</v-tab>
+      <v-tab href="#tab-gallery"><v-icon>image</v-icon>&nbsp;Gallery</v-tab>
+      <v-tab href="#tab-favorites" v-if="!user.favorites_hidden || controls"><v-icon>favorite</v-icon>&nbsp;Favorites<span v-if="user.favorites_hidden">&nbsp;<v-icon>visibility_off</v-icon></span></v-tab>
+      <v-tab href="#tab-other"><v-icon>more</v-icon>&nbsp;Other Submissions</v-tab>
+    </v-tabs>
+    <v-tabs-items v-model="tab" class="min-height">
+      <v-tab-item id="tab-products" :class="{'tab-shown': shownTab('tab-products')}">
+        <store :endpoint="`/api/sales/v1/account/${username}/products/`" :username="username"/>
+      </v-tab-item>
+      <v-tab-item id="tab-characters" :class="{'tab-shown': shownTab('tab-characters')}">
+        <Characters
+            :username="username"
+            :endpoint="`/api/profiles/v1/account/${username}/characters/`" />
+      </v-tab-item>
+      <v-tab-item id="tab-gallery" :class="{'tab-shown': shownTab('tab-gallery')}">
+        <ac-asset-gallery
+            :endpoint="`/api/profiles/v1/account/${username}/gallery/`"
+        />
+        <v-flex v-if="controls" text-xs-center>
+          <v-btn color="primary" @click="showUpload=true" >Upload Art</v-btn>
         </v-flex>
-      </v-layout>
-    </v-card>
-    <Characters
-        :username="username"
-        embedded="true"
-        :limit="5"
-        :endpoint="`/api/profiles/v1/account/${username}/characters/`" />
-    <v-card>
-      <v-layout row wrap>
-        <v-flex xs12 class="pl-2">
-          <h2>Favorites</h2>
-        </v-flex>
-      </v-layout>
-    </v-card>
-    <ac-asset-gallery
-        :endpoint="`/api/profiles/v1/account/${username}/favorites/`"
-        :no-pagination="true"
-        :to="{name: 'Gallery', params: {username}}"
-        see-more-text="See all favorites"
-    />
+        <ac-form-dialog ref="newUploadForm" :schema="newUploadSchema" :model="newUploadModel"
+                        :options="newUploadOptions" :success="addUpload"
+                        v-model="showUpload"
+                        :url="`/api/profiles/v1/account/${user.username}/gallery/`"
+        />
+      </v-tab-item>
+      <v-tab-item id="tab-favorites" v-if="!user.favorites_hidden || controls">
+        <ac-asset-gallery
+            :endpoint="`/api/profiles/v1/account/${username}/favorites/`"
+        />
+      </v-tab-item>
+      <v-tab-item id="tab-other" :class="{'tab-shown': shownTab('tab-other')}">
+        <ac-asset-gallery
+            :endpoint="`/api/profiles/v1/account/${username}/submissions/`"
+        />
+      </v-tab-item>
+    </v-tabs-items>
   </v-container>
 </template>
+
+<style scoped>
+  .min-height {
+    min-height: 25rem;
+  }
+</style>
+
+<style>
+  @keyframes delay-display {
+    0% { opacity: 0 }
+    99% { opacity: 0 }
+    100% { opacity: 1 }
+  }
+  .btn--floating {
+    visibility: hidden;
+    opacity: 0;
+    transition: none;
+  }
+  .tab-shown .btn--floating {
+    visibility: visible;
+    opacity: 1;
+    animation: delay-display 1s;
+  }
+</style>
 
 <script>
   import Viewer from '../mixins/viewer'
@@ -64,13 +95,18 @@
   import AcAvatar from './ac-avatar'
   import AcPatchfield from './ac-patchfield'
   import AcAssetGallery from './ac-asset-gallery'
-  import { artCall } from '../lib'
+  import { paramHandleMap, ratings } from '../lib'
   import AcContextGallery from './ac-context-gallery'
+  import Store from './Store'
+  import VueFormGenerator from 'vue-form-generator'
+  import AcFormDialog from './ac-form-dialog'
 
   export default {
     name: 'Profile',
     mixins: [Viewer, Perms],
     components: {
+      AcFormDialog,
+      Store,
       AcContextGallery,
       AcAssetGallery,
       AcPatchfield,
@@ -78,27 +114,119 @@
       Characters,
       Editable
     },
+    methods: {
+      shownTab (tabName) {
+        if (tabName === this.tab) {
+          return true
+        }
+      },
+      addUpload (response) {
+        this.$router.history.push({name: 'Submission', params: {assetID: response.id}})
+      }
+    },
     data: function () {
       return {
         user: {username: this.username},
         url: `/api/profiles/v1/data/user/${this.username}/`,
         count: 0,
-        assets: null
-      }
-    },
-    methods: {
-      populateGallery (response) {
-        this.assets = response.results
-        this.count = response.count
+        assets: null,
+        showUpload: false,
+        newUploadModel: {
+          title: '',
+          caption: '',
+          private: false,
+          rating: null,
+          file: [],
+          comments_disabled: false,
+          characters: [],
+          tags: []
+        },
+        newUploadSchema: {
+          fields: [{
+            type: 'v-text',
+            inputType: 'text',
+            label: 'Title',
+            model: 'title',
+            featured: true,
+            required: true,
+            validator: VueFormGenerator.validators.string
+          },
+          {
+            type: 'v-text',
+            label: 'Caption',
+            model: 'caption',
+            featured: true,
+            multiline: true,
+            required: true,
+            validator: VueFormGenerator.validators.string
+          },
+          {
+            type: 'character-search',
+            model: 'characters',
+            label: 'Characters',
+            featured: true,
+            commission: false,
+            placeholder: 'Search characters',
+            styleClasses: 'field-input'
+          },
+          {
+            type: 'tag-search',
+            model: 'tags',
+            label: 'tags',
+            featured: true,
+            placeholder: 'Search tags',
+            styleClasses: 'field-input'
+          },
+          {
+            type: 'v-checkbox',
+            styleClasses: ['vue-checkbox'],
+            label: 'Private Upload?',
+            model: 'private',
+            required: false,
+            validator: VueFormGenerator.validators.boolean,
+            hint: 'Only shows this piece to people you have explicitly shared it to.'
+          },
+          {
+            type: 'v-checkbox',
+            styleClasses: ['vue-checkbox'],
+            label: 'Comments disabled?',
+            model: 'comments_disabled',
+            required: false,
+            validator: VueFormGenerator.validators.boolean,
+            hint: 'Prevents people from commenting on this piece.'
+          },
+          {
+            type: 'v-select',
+            label: 'Rating',
+            model: 'rating',
+            featured: true,
+            required: true,
+            values: ratings,
+            selectOptions: {
+              hideNoneSelectedText: true
+            },
+            validator: VueFormGenerator.validators.required
+          },
+          {
+            type: 'v-file-upload',
+            id: 'file',
+            label: 'File',
+            model: 'file',
+            required: true
+          }
+          ]
+        },
+        newUploadOptions: {
+          validateAfterLoad: false,
+          validateAfterChanged: true
+        }
       }
     },
     computed: {
       controls: function () {
         return this.$root.user.is_staff || (this.user.username === this.$root.user.username)
-      }
-    },
-    created () {
-      artCall(`/api/profiles/v1/account/${this.username}/gallery/`, 'GET', undefined, this.populateGallery)
+      },
+      tab: paramHandleMap('tabName')
     }
   }
 </script>

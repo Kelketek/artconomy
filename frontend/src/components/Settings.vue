@@ -203,11 +203,19 @@
           fields: [{
             type: 'v-checkbox',
             styleClasses: ['vue-checkbox'],
-            label: 'Comissions closed?',
+            label: 'Comissions closed',
             model: 'commissions_closed',
             required: false,
             validator: VueFormGenerator.validators.boolean,
             hint: 'Prevents orders from being placed in your store.'
+          }, {
+            type: 'v-checkbox',
+            styleClasses: ['vue-checkbox'],
+            label: 'Favorites hidden',
+            model: 'favorites_hidden',
+            required: false,
+            validator: VueFormGenerator.validators.boolean,
+            hint: 'If checked, hides your favorites list from public view.'
           }, {
             type: 'v-text',
             inputType: 'number',

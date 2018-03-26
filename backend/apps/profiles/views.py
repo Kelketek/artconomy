@@ -1,12 +1,10 @@
-import requests
 from avatar.models import Avatar
 from avatar.signals import avatar_updated
 from django.conf import settings
 from django.contrib.auth import login, get_user_model, authenticate, logout, update_session_auth_hash
 from django.db.models import Q
-from django.http import HttpResponse
-from django.shortcuts import get_object_or_404, redirect
-from django.urls import reverse
+from django.db.transaction import atomic
+from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -15,6 +13,7 @@ from rest_framework.generics import ListCreateAPIView, CreateAPIView, RetrieveUp
     GenericAPIView, ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.utils import json
 from rest_framework.views import APIView
 from rest_framework_bulk import BulkUpdateAPIView
 
@@ -23,7 +22,7 @@ from apps.lib.models import Notification, FAVORITE, CHAR_TAG, SUBMISSION_CHAR_TA
 from apps.lib.permissions import Any, All, IsSafeMethod
 from apps.lib.serializers import CommentSerializer, NotificationSerializer, Base64ImageField, RelatedUserSerializer, \
     BulkNotificationSerializer, UserInfoSerializer
-from apps.lib.utils import recall_notification, notify, safe_add
+from apps.lib.utils import recall_notification, notify, safe_add, add_tags
 from apps.lib.views import BaseTagView
 from apps.profiles.models import User, Character, ImageAsset, RefColor
 from apps.profiles.permissions import ObjectControls, UserControls, AssetViewPermission, AssetControls, NonPrivate, \
@@ -284,9 +283,9 @@ class CharacterSearch(ListAPIView):
         if not query:
             return Character.objects.none()
         try:
-            commissions = bool(int(self.request.GET.get('new_order', '0')))
+            commissions = json.loads(self.request.query_params.get('new_order', True))
         except ValueError:
-            return Response(status=status.HTTP_400_BAD_REQUEST, data={'errors': ['New Order must be an integer.']})
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={'errors': ['New Order must be a boolean.']})
 
         # If staffer, allow search on behalf of user.
         if self.request.user.is_staff:
@@ -709,15 +708,25 @@ class FavoritesList(ListAPIView):
         return available_assets(self.request, user).filter(favorited_by=user)
 
 
-class GalleryList(ListAPIView):
+class GalleryList(ListCreateAPIView):
     serializer_class = ImageAssetSerializer
 
     def get_queryset(self):
         user = get_object_or_404(User, username=self.kwargs['username'])
         return available_assets(self.request, user).filter(artists=user)
 
+    @atomic
+    def perform_create(self, serializer):
+        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        if not self.request.user.is_staff:
+            if not user == self.request.user:
+                raise PermissionDenied("You are not permitted to add to this user's gallery.")
+        instance = serializer.save(uploaded_by=user, artists=[user])
+        add_tags(self.request, instance)
+        return instance
 
-class SubmissionsList(ListAPIView):
+
+class SubmissionList(ListAPIView):
     serializer_class = ImageAssetSerializer
 
     def get_queryset(self):

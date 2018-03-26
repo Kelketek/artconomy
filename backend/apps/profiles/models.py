@@ -41,6 +41,7 @@ class User(AbstractEmailUser):
         default=False, db_index=True,
         help_text="When enabled, no one may commission you."
     )
+    favorites_hidden = BooleanField(default=False)
     use_load_tracker = BooleanField(
         default=True,
         help_text="Whether to use load tracking to automatically open or close commissions."
@@ -110,7 +111,7 @@ class ImageAsset(ImageModel):
     title = CharField(blank=True, default='', max_length=100)
     caption = CharField(blank=True, default='', max_length=2000)
     private = BooleanField(default=False, help_text="Only show this to people I have explicitly shared it to.")
-    characters = ManyToManyField('Character', related_name='assets')
+    characters = ManyToManyField('Character', related_name='assets', blank=True)
     characters__max = 50
     tags = ManyToManyField('lib.Tag', related_name='assets', blank=True)
     tags__max = 200
@@ -228,7 +229,6 @@ class Character(Model):
         default=''
     )
     primary_asset = ForeignKey('ImageAsset', null=True, on_delete=SET_NULL)
-    favorites_hidden = BooleanField(default=False)
     user = ForeignKey(settings.AUTH_USER_MODEL, related_name='characters', on_delete=CASCADE)
     created_on = DateTimeField(auto_now_add=True)
     species = CharField(max_length=150, blank=True, default='')

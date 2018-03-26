@@ -1,5 +1,5 @@
 <template>
-  <v-container v-if="results.length" grid-list-md>
+  <v-container v-if="response" grid-list-md>
     <slot name="header" v-if="show && header" />
     <v-layout row wrap>
       <v-flex xs12 text-xs-center v-if="error">

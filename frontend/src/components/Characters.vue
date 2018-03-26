@@ -1,7 +1,7 @@
 <template>
   <v-container grid-list-md>
     <v-layout row wrap text-xs-centered v-if="response !== null">
-      <v-flex xs12 v-if="error">
+      <v-flex xs12 v-if="error" text-xs-center>
         <p>{{error}}</p>
       </v-flex>
       <v-flex xs12>

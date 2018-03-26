@@ -181,6 +181,7 @@
             label: 'Characters',
             featured: true,
             placeholder: 'Search characters',
+            commission: true,
             styleClasses: 'field-input'
           }, {
             type: 'v-checkbox',
