@@ -51,15 +51,18 @@ class RegisterSerializer(serializers.ModelSerializer):
         read_only_fields = (
             'csrftoken',
         )
-        write_only_fields = (
-            'username', 'email', 'password'
-        )
+        extra_kwargs = {
+            'username': {'write_only': True},
+            'email': {'write_only': True},
+            'password': {'write_only': True}
+        }
 
 
 class ImageAssetSerializer(serializers.ModelSerializer):
     uploaded_by = RelatedUserSerializer(read_only=True)
     comment_count = serializers.SerializerMethodField()
     file = Base64ImageField(thumbnail_namespace='profiles.ImageAsset.file')
+    is_artist = serializers.BooleanField(write_only=True)
 
     def get_comment_count(self, obj):
         with connection.cursor() as cursor:
@@ -78,15 +81,25 @@ class ImageAssetSerializer(serializers.ModelSerializer):
             )
             return cursor.fetchone()[0]
 
+    def create(self, validated_data):
+        data = dict(**validated_data)
+        # Remove all of the data we need to handle specially in the view.
+        data.pop('is_artist', None)
+        data.pop('characters', None)
+        data.pop('artists', None)
+        return super().create(data)
+
     class Meta:
         model = ImageAsset
         fields = (
             'id', 'title', 'caption', 'rating', 'file', 'private', 'created_on', 'uploaded_by', 'comment_count',
-            'favorite_count', 'comments_disabled', 'tags'
+            'favorite_count', 'comments_disabled', 'tags', 'is_artist', 'characters', 'artists'
         )
-        write_only_fields = (
-            'file',
-        )
+        extra_kwargs = {
+            'file': {'write_only': True},
+            'characters': {'write_only': True},
+            'artists': {'write_only': True}
+        }
         read_only_fields = (
             'tags',
         )
@@ -112,6 +125,9 @@ class ImageAssetNotificationSerializer(serializers.ModelSerializer):
             'id', 'title', 'caption', 'rating', 'file', 'private', 'created_on', 'uploaded_by',
             'favorite_count', 'comments_disabled', 'tags'
         )
+        extra_kwargs = {
+            'file': {'write_only': True}
+        }
         write_only_fields = (
             'file',
         )
@@ -142,7 +158,7 @@ class CharacterSerializer(serializers.ModelSerializer):
         model = Character
         fields = (
             'id', 'name', 'description', 'private', 'open_requests', 'open_requests_restrictions', 'user',
-            'primary_asset', 'primary_asset_id', 'species', 'gender', 'tags', 'colors'
+            'primary_asset', 'primary_asset_id', 'tags', 'colors'
         )
 
 

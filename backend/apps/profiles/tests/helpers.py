@@ -25,9 +25,6 @@ def serialize_char(key):
     return {
         'id': key.id,
         'name': key.name,
-        'description': key.description,
-        'gender': key.gender,
-        'species': key.species,
         'primary_asset': key.primary_asset and {
             'id': key.primary_asset.id,
             'file': {
@@ -52,6 +49,7 @@ def serialize_char(key):
             'tags': [],
         },
         'private': key.private,
+        'description': key.description,
         'open_requests': key.open_requests,
         'open_requests_restrictions': key.open_requests_restrictions,
         'tags': [{'name': tag.name} for tag in key.tags.all()],

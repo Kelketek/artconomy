@@ -328,6 +328,7 @@ class TestSettings(APITestCase):
                 'commissions_closed': False,
                 'rating': ADULT,
                 'sfw_mode': False,
+                'favorites_hidden': False,
                 'max_load': 5
             }
         )
@@ -485,8 +486,8 @@ class TestCharacterSearch(APITestCase):
         CharacterFactory.create(name='Stuff')
         response = self.client.get('/api/profiles/v1/search/character/?q=terr')
         self.assertEqual(len(response.data['results']), 2)
-        self.assertIn(serialize_char(char), response.data['results'])
-        self.assertIn(serialize_char(char2), response.data['results'])
+        self.assertIDInList(char, response.data['results'])
+        self.assertIDInList(char2, response.data['results'])
 
     def test_query_logged_in(self):
         visible = CharacterFactory.create(name='Terrybutt', user=self.user)
@@ -497,10 +498,10 @@ class TestCharacterSearch(APITestCase):
         self.login(self.user)
         response = self.client.get('/api/profiles/v1/search/character/?q=terr')
         self.assertEqual(len(response.data['results']), 3)
-        self.assertIn(serialize_char(visible), response.data['results'])
-        self.assertIn(serialize_char(visible2), response.data['results'])
-        self.assertIn(serialize_char(visible_private), response.data['results'])
-        self.assertEqual(serialize_char(visible2), response.data['results'][2])
+        self.assertIDInList(visible, response.data['results'])
+        self.assertIDInList(visible2, response.data['results'])
+        self.assertIDInList(visible_private, response.data['results'])
+        self.assertEqual(visible2.id, response.data['results'][2]['id'])
 
     def test_query_logged_in_commission(self):
         visible = CharacterFactory.create(name='Terrybutt', open_requests=True, user=self.user)
@@ -512,9 +513,9 @@ class TestCharacterSearch(APITestCase):
         self.login(self.user)
         response = self.client.get('/api/profiles/v1/search/character/?q=terr&new_order=1')
         self.assertEqual(len(response.data['results']), 3)
-        self.assertIn(serialize_char(visible), response.data['results'])
-        self.assertIn(serialize_char(visible_private), response.data['results'])
-        self.assertEqual(serialize_char(visible2), response.data['results'][2])
+        self.assertIDInList(visible, response.data['results'])
+        self.assertIDInList(visible_private, response.data['results'])
+        self.assertEqual(visible2.id, response.data['results'][2]['id'])
 
     def test_query_logged_in_staffer(self):
         visible = CharacterFactory.create(name='Terrybutt', open_requests=True, user=self.user)
@@ -526,9 +527,9 @@ class TestCharacterSearch(APITestCase):
         self.login(self.staffer)
         response = self.client.get('/api/profiles/v1/search/character/?q=terr&new_order=1&user={}'.format(self.user.id))
         self.assertEqual(len(response.data['results']), 3)
-        self.assertIn(serialize_char(visible), response.data['results'])
-        self.assertIn(serialize_char(visible_private), response.data['results'])
-        self.assertEqual(serialize_char(visible2), response.data['results'][2])
+        self.assertIDInList(visible, response.data['results'])
+        self.assertIDInList(visible_private, response.data['results'])
+        self.assertEqual(visible2.id, response.data['results'][2]['id'])
 
 
 class TestRefColor(APITestCase):

@@ -1,6 +1,6 @@
 from django.db.models import Case, When, F, IntegerField, Q
 
-from apps.profiles.models import Character, ImageAsset
+from apps.profiles.models import Character, ImageAsset, User
 
 
 def char_ordering(qs, requester, query=''):
@@ -37,6 +37,10 @@ def available_chars(requester, query='', commissions=False, ordering=True):
     if ordering:
         qs = char_ordering(qs, requester, query=query)
     return qs.distinct()
+
+
+def available_artists(requester):
+    return User.objects.filter(Q(id=requester.id) | Q(artist_tagging_disabled=False))
 
 
 def available_assets(request, requester):

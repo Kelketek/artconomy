@@ -88,17 +88,6 @@ export const routes = [
     props: true
   },
   {
-    path: '/profile/:username/characters/',
-    name: 'Characters',
-    component: Characters,
-    props (route) {
-      return {
-        username: route.params.username,
-        endpoint: `/api/profiles/v1/account/${route.params.username}/characters/`
-      }
-    }
-  },
-  {
     path: '/profile/:username/characters/:characterName/',
     name: 'Character',
     component: Character,
@@ -109,30 +98,6 @@ export const routes = [
     name: 'CharacterGallery',
     component: CharacterGallery,
     props: true
-  },
-  {
-    path: '/profile/:username/gallery/',
-    name: 'Gallery',
-    component: Gallery,
-    props (route) {
-      return {
-        username: route.params.username,
-        endpoint: `/api/profiles/v1/account/${route.params.username}/gallery/`,
-        title: 'Gallery'
-      }
-    }
-  },
-  {
-    path: '/profile/:username/favorites/',
-    name: 'Favorites',
-    component: Gallery,
-    props (route) {
-      return {
-        username: route.params.username,
-        endpoint: `/api/profiles/v1/account/${route.params.username}/favorites/`,
-        title: 'Favorites'
-      }
-    }
   },
   {
     path: '/submissions/:assetID/',

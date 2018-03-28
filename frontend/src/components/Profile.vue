@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container class="account-profile">
     <v-card>
       <v-layout row wrap class="mb-4">
         <v-flex xs12 sm2  text-xs-center text-sm-left class="pt-2">
@@ -40,14 +40,18 @@
         <ac-asset-gallery
             :endpoint="`/api/profiles/v1/account/${username}/gallery/`"
         />
-        <v-flex v-if="controls" text-xs-center>
-          <v-btn color="primary" @click="showUpload=true" >Upload Art</v-btn>
-        </v-flex>
-        <ac-form-dialog ref="newUploadForm" :schema="newUploadSchema" :model="newUploadModel"
-                        :options="newUploadOptions" :success="addUpload"
-                        v-model="showUpload"
-                        :url="`/api/profiles/v1/account/${user.username}/gallery/`"
-        />
+        <v-btn v-if="controls"
+               dark
+               color="green"
+               fab
+               hover
+               fixed
+               right
+               bottom
+               @click="newUploadModel.is_artist=true; showUpload=true"
+        >
+          <v-icon large>add</v-icon>
+        </v-btn>
       </v-tab-item>
       <v-tab-item id="tab-favorites" v-if="!user.favorites_hidden || controls">
         <ac-asset-gallery
@@ -58,8 +62,25 @@
         <ac-asset-gallery
             :endpoint="`/api/profiles/v1/account/${username}/submissions/`"
         />
+        <v-btn v-if="controls"
+               dark
+               color="green"
+               fab
+               hover
+               fixed
+               right
+               bottom
+               @click="newUploadModel.is_artist=false; showUpload=true"
+        >
+          <v-icon large>add</v-icon>
+        </v-btn>
       </v-tab-item>
     </v-tabs-items>
+    <ac-form-dialog ref="newUploadForm" :schema="newUploadSchema" :model="newUploadModel"
+                    :options="newUploadOptions" :success="addUpload"
+                    v-model="showUpload"
+                    :url="`/api/profiles/v1/account/${user.username}/gallery/`"
+    />
   </v-container>
 </template>
 
@@ -75,12 +96,12 @@
     99% { opacity: 0 }
     100% { opacity: 1 }
   }
-  .btn--floating {
+  .account-profile .btn--floating {
     visibility: hidden;
     opacity: 0;
     transition: none;
   }
-  .tab-shown .btn--floating {
+  .account-profile .tab-shown .btn--floating {
     visibility: visible;
     opacity: 1;
     animation: delay-display 1s;
@@ -139,6 +160,8 @@
           file: [],
           comments_disabled: false,
           characters: [],
+          is_artist: false,
+          artists: [],
           tags: []
         },
         newUploadSchema: {
@@ -175,6 +198,25 @@
             label: 'tags',
             featured: true,
             placeholder: 'Search tags',
+            styleClasses: 'field-input'
+          },
+          {
+            type: 'v-checkbox',
+            styleClasses: ['vue-checkbox'],
+            label: 'I am an Artist who worked on this piece',
+            model: 'is_artist',
+            required: false,
+            validator: VueFormGenerator.validators.boolean,
+            hint: 'If checked, this submission will be shown in your gallery. If not, it will be ' +
+            "displayed in the galleries of any characters you own and have tagged, or in the 'Other Submissions' " +
+            'section of your profile.'
+          },
+          {
+            type: 'user-search',
+            model: 'artists',
+            label: 'Other Artists',
+            featured: true,
+            placeholder: 'Search artists',
             styleClasses: 'field-input'
           },
           {

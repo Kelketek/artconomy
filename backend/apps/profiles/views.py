@@ -29,7 +29,7 @@ from apps.profiles.permissions import ObjectControls, UserControls, AssetViewPer
     ColorControls, ColorLimit, ViewFavorites
 from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer, SettingsSerializer, UserSerializer, \
     RegisterSerializer, ImageAssetManagementSerializer, CredentialsSerializer, AvatarSerializer, RefColorSerializer
-from apps.profiles.utils import available_chars, char_ordering, available_assets
+from apps.profiles.utils import available_chars, char_ordering, available_assets, available_artists
 from shortcuts import make_url
 
 
@@ -283,7 +283,7 @@ class CharacterSearch(ListAPIView):
         if not query:
             return Character.objects.none()
         try:
-            commissions = json.loads(self.request.query_params.get('new_order', True))
+            commissions = json.loads(self.request.query_params.get('new_order', 'false'))
         except ValueError:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'errors': ['New Order must be a boolean.']})
 
@@ -721,12 +721,23 @@ class GalleryList(ListCreateAPIView):
         if not self.request.user.is_staff:
             if not user == self.request.user:
                 raise PermissionDenied("You are not permitted to add to this user's gallery.")
-        instance = serializer.save(uploaded_by=user, artists=[user])
+        char_pks = [char.pk for char in serializer.validated_data.get('characters', []) or []]
+        artist_pks = [artist.pk for artist in serializer.validated_data.get('artists', []) or []]
+        is_artist = serializer.validated_data.get('is_artist')
+        instance = serializer.save(uploaded_by=user)
+        if is_artist:
+            instance.artists.add(user)
         add_tags(self.request, instance)
+        instance.artists.add(*available_artists(user).filter(pk__in=artist_pks))
+        instance.characters.add(*available_chars(user, ordering=False).filter(pk__in=char_pks))
         return instance
 
 
 class SubmissionList(ListAPIView):
+    """
+    Shows all items which are uploaded by the user but in which they are not tagged as the artist.
+    The creation function for this list is actually handled by GalleryList, since they are so similar.
+    """
     serializer_class = ImageAssetSerializer
 
     def get_queryset(self):

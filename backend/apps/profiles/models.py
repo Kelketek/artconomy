@@ -42,6 +42,7 @@ class User(AbstractEmailUser):
         help_text="When enabled, no one may commission you."
     )
     favorites_hidden = BooleanField(default=False)
+    artist_tagging_disabled = BooleanField(default=False, db_index=True)
     use_load_tracker = BooleanField(
         default=True,
         help_text="Whether to use load tracking to automatically open or close commissions."
@@ -231,8 +232,6 @@ class Character(Model):
     primary_asset = ForeignKey('ImageAsset', null=True, on_delete=SET_NULL)
     user = ForeignKey(settings.AUTH_USER_MODEL, related_name='characters', on_delete=CASCADE)
     created_on = DateTimeField(auto_now_add=True)
-    species = CharField(max_length=150, blank=True, default='')
-    gender = CharField(max_length=50, blank=True, default='')
     tags = ManyToManyField('lib.Tag', related_name='characters', blank=True)
     tags__max = 100
     colors__max = 10
