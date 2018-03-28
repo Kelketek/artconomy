@@ -4,11 +4,13 @@ import { artCall, buildQueryString, EventBus } from '../lib'
 export default {
   props: {
     startingPage: {default: 1},
-    limit: {default: 10},
+    limit: {default: 5},
     // Set false to use the never ending mode via the growing list.
     pageReload: {default: true},
     queryData: {default () { return {} }},
-    counterName: {default: 'counter'}
+    counterName: {default: 'counter'},
+    trackPages: {default: false},
+    tabName: {}
   },
   data: function () {
     let defaults = {
@@ -73,6 +75,16 @@ export default {
       let url = `${this.url}?${qs}`
       this.fetching = true
       artCall(url, 'GET', undefined, this.populateResponse, this.populateError)
+    },
+    setPageQuery (value) {
+      let query = {query: {page: value}}
+      let newQuery = Object.assign({}, this.$route, query)
+      this.$router.history.replace(newQuery)
+    },
+    checkPageQuery (tabName) {
+      if (this.tabName === tabName && this.trackPages) {
+        this.setPageQuery(this.currentPage)
+      }
     }
   },
   computed: {
@@ -101,9 +113,12 @@ export default {
     }
   },
   watch: {
-    currentPage () {
+    currentPage (value) {
       if (this.pageReload) {
         this.fetchItems()
+      }
+      if (this.trackPages) {
+        this.setPageQuery(value)
       }
     },
     queryData (newValue) {
@@ -114,5 +129,11 @@ export default {
         this.oldQueryData = JSON.parse(JSON.stringify(newValue))
       }
     }
+  },
+  created () {
+    EventBus.$on('tab-shown', this.checkPageQuery)
+  },
+  destroyed () {
+    EventBus.$off('tab-shown', this.checkPageQuery)
   }
 }

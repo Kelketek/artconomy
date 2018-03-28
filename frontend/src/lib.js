@@ -199,7 +199,9 @@ export function paramHandleMap (handleName, clearList, permittedNames, defaultTa
       for (let param of clearList) {
         delete newParams[param]
       }
-      let newPath = {name: this.$route.name, params: newParams, query: this.$route.query}
+      let newQuery = Object.assign({}, this.$route.query)
+      delete newQuery['page']
+      let newPath = {name: this.$route.name, params: newParams, query: newQuery}
       this.$router.history.replace(newPath)
     }
   }

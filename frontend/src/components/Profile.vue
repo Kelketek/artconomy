@@ -29,16 +29,16 @@
     </v-tabs>
     <v-tabs-items v-model="tab" class="min-height">
       <v-tab-item id="tab-products" :class="{'tab-shown': shownTab('tab-products')}">
-        <store :endpoint="`/api/sales/v1/account/${username}/products/`" :username="username"/>
+        <store :endpoint="`/api/sales/v1/account/${username}/products/`" :username="username" :track-pages="true" tab-name="tab-store"/>
       </v-tab-item>
       <v-tab-item id="tab-characters" :class="{'tab-shown': shownTab('tab-characters')}">
         <Characters
             :username="username"
-            :endpoint="`/api/profiles/v1/account/${username}/characters/`" />
+            :endpoint="`/api/profiles/v1/account/${username}/characters/`" :track-pages="true" tab-name="tab-characters" />
       </v-tab-item>
       <v-tab-item id="tab-gallery" :class="{'tab-shown': shownTab('tab-gallery')}">
         <ac-asset-gallery
-            :endpoint="`/api/profiles/v1/account/${username}/gallery/`"
+            :endpoint="`/api/profiles/v1/account/${username}/gallery/`" :track-pages="true" tab-name="tab-gallery"
         />
         <v-btn v-if="controls"
                dark
@@ -55,12 +55,12 @@
       </v-tab-item>
       <v-tab-item id="tab-favorites" v-if="!user.favorites_hidden || controls">
         <ac-asset-gallery
-            :endpoint="`/api/profiles/v1/account/${username}/favorites/`"
+            :endpoint="`/api/profiles/v1/account/${username}/favorites/`" :track-pages="true" tab-name="tab-favorites"
         />
       </v-tab-item>
       <v-tab-item id="tab-other" :class="{'tab-shown': shownTab('tab-other')}">
         <ac-asset-gallery
-            :endpoint="`/api/profiles/v1/account/${username}/submissions/`"
+            :endpoint="`/api/profiles/v1/account/${username}/submissions/`" :track-pages="true" tab-name="tab-other"
         />
         <v-btn v-if="controls"
                dark
@@ -116,7 +116,7 @@
   import AcAvatar from './ac-avatar'
   import AcPatchfield from './ac-patchfield'
   import AcAssetGallery from './ac-asset-gallery'
-  import { paramHandleMap, ratings } from '../lib'
+  import { paramHandleMap, ratings, EventBus } from '../lib'
   import AcContextGallery from './ac-context-gallery'
   import Store from './Store'
   import VueFormGenerator from 'vue-form-generator'
@@ -138,6 +138,7 @@
     methods: {
       shownTab (tabName) {
         if (tabName === this.tab) {
+          EventBus.$emit('tab-shown', tabName)
           return true
         }
       },
