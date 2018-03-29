@@ -107,7 +107,7 @@ def auto_subscribe(sender, instance, created=False, **_kwargs):
 
 class ImageAsset(ImageModel):
     """
-    Uploaded image for either commission deliveries or
+    Uploaded submission
     """
     title = CharField(blank=True, default='', max_length=100)
     caption = CharField(blank=True, default='', max_length=2000)
@@ -123,6 +123,7 @@ class ImageAsset(ImageModel):
     artists = ManyToManyField('User', related_name='art', blank=True)
     artists__max = 10
     order = ForeignKey('sales.Order', null=True, blank=True, on_delete=SET_NULL, related_name='outputs')
+    subscriptions = GenericRelation('lib.Subscription')
 
     comment_permissions = [AssetViewPermission, AssetCommentPermission]
 

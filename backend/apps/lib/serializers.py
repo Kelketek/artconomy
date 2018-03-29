@@ -174,6 +174,8 @@ class SubscribedField(serializers.Field):
         super().__init__(*args, **kwargs)
 
     def get_attribute(self, instance):
+        if not self.context['request'].user.is_authenticated:
+            return False
         return getattr(instance, self.related_name).filter(
             subscriber=self.context['request'].user, removed=False, **self.extra_args
         ).exists()

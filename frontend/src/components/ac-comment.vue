@@ -49,7 +49,7 @@
             :key="comm.id"
             :reader="reader"
             :toplevel="false"
-            :parent="comment"
+            :parent="this"
             v-if="comment.children !== []"
             :alternate="!alternate"
             :locked="locked"
@@ -150,16 +150,25 @@
       setSubscription (response) {
         this.comment = response
       },
-      reloadComment (response) {
+      replaceComment (response) {
         this.comment = response
         this.editing = false
         this.edit_preview = false
         this.edit_disabled = false
       },
+      reloadComment (response) {
+        this.comment = response
+        this.replying = false
+        this.reply_disabled = false
+        this.reply = ''
+      },
+      addReply () {
+        artCall(this.url, 'GET', undefined, this.reloadComment)
+      },
       save () {
         this.edit_disabled = true
         artCall(
-          this.url, 'PATCH', {'text': this.draft}, this.reloadComment
+          this.url, 'PATCH', {'text': this.draft}, this.replaceComment
         )
       },
       deleteComment () {
@@ -174,11 +183,6 @@
         this.replying = false
         this.comment.deleted = true
         this.comment.text = ''
-      },
-      addReply (response) {
-        this.comment.children.push(response)
-        this.replying = false
-        this.reply_disabled = false
       },
       postReply () {
         this.reply_disabled = true

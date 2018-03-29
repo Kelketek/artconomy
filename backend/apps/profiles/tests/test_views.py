@@ -9,7 +9,7 @@ from apps.profiles.models import Character, ImageAsset
 from apps.lib.abstract_models import MATURE, ADULT, GENERAL
 from apps.lib.test_resources import APITestCase
 from apps.profiles.tests.factories import UserFactory, CharacterFactory, ImageAssetFactory
-from apps.profiles.tests.helpers import gen_characters, serialize_char, gen_image
+from apps.profiles.tests.helpers import gen_characters, gen_image
 
 
 class CharacterAPITestCase(APITestCase):
@@ -18,8 +18,8 @@ class CharacterAPITestCase(APITestCase):
         response = self.client.get('/api/profiles/v1/account/{}/characters/'.format(self.user.username))
         self.assertEqual(len(response.data['results']), 5)
         for key, value in characters.items():
-            self.assertIn(
-                serialize_char(key),
+            self.assertIDInList(
+                key,
                 response.data['results']
             )
 
@@ -32,12 +32,12 @@ class CharacterAPITestCase(APITestCase):
         # Should fail for unregistered user
         response = self.client.get('/api/profiles/v1/account/{}/characters/'.format(self.user.username))
         self.assertEqual(len(response.data['results']), 4)
-        self.assertNotIn(serialize_char(private_character), response.data['results'])
+        self.assertNotIn(private_character.id, [result['id'] for result in response.data['results']])
 
         # Should fail for unprivileged user
         self.login(self.user2)
         self.assertEqual(len(response.data['results']), 4)
-        self.assertNotIn(serialize_char(private_character), response.data['results'])
+        self.assertNotIn(private_character.id, [result['id'] for result in response.data['results']])
 
     def test_list_private_for_privileged(self):
         characters = gen_characters(self.user)
@@ -49,12 +49,12 @@ class CharacterAPITestCase(APITestCase):
         self.login(self.user)
         response = self.client.get('/api/profiles/v1/account/{}/characters/'.format(self.user.username))
         self.assertEqual(len(response.data['results']), 5)
-        self.assertIn(serialize_char(private_character), response.data['results'])
+        self.assertIDInList(private_character, response.data['results'])
         # Should work for staff, too.
         self.login(self.staffer)
         response = self.client.get('/api/profiles/v1/account/{}/characters/'.format(self.user.username))
         self.assertEqual(len(response.data['results']), 5)
-        self.assertIn(serialize_char(private_character), response.data['results'])
+        self.assertIDInList(private_character, response.data['results'])
 
     def test_new_character(self):
         self.login(self.user)

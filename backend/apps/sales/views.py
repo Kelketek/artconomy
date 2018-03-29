@@ -86,7 +86,10 @@ class PlaceOrder(CreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_serializer(self, instance=None, data=None, many=False, partial=False):
-        return self.serializer_class(instance=instance, data=data, many=many, partial=partial, request=self.request)
+        return self.serializer_class(
+            instance=instance, data=data, many=many, partial=partial, request=self.request,
+            context=self.get_serializer_context()
+        )
 
     def perform_create(self, serializer):
         product = get_object_or_404(Product, id=self.kwargs['product'], hidden=False)
@@ -121,7 +124,7 @@ class OrderAccept(GenericAPIView):
         order.price = order.product.price
         order.revisions = order.product.revisions
         order.save()
-        data = self.serializer_class(instance=order).data
+        data = self.serializer_class(instance=order, context=self.get_serializer_context()).data
         notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
         return Response(data)
 
@@ -164,7 +167,7 @@ class OrderCancel(GenericAPIView):
         order = self.get_object()
         order.status = Order.CANCELLED
         order.save()
-        data = self.serializer_class(instance=order).data
+        data = self.serializer_class(instance=order, context=self.get_serializer_context()).data
         return Response(data)
 
 
@@ -406,7 +409,10 @@ class ApproveFinal(GenericAPIView):
                 response_code='OdrFee',
                 response_message='Artconomy Service Fee'
             )
-        return Response(status=status.HTTP_200_OK, data=OrderViewSerializer(instance=order).data)
+        return Response(
+            status=status.HTTP_200_OK,
+            data=OrderViewSerializer(instance=order, context=self.get_serializer_context()).data
+        )
 
 
 class CurrentMixin(object):

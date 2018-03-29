@@ -9,7 +9,7 @@ from recaptcha.fields import ReCaptchaField
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 
-from apps.lib.serializers import RelatedUserSerializer, Base64ImageField, TagSerializer
+from apps.lib.serializers import RelatedUserSerializer, Base64ImageField, TagSerializer, SubscribedField
 from apps.profiles.models import Character, ImageAsset, User, RefColor
 
 
@@ -63,6 +63,7 @@ class ImageAssetSerializer(serializers.ModelSerializer):
     comment_count = serializers.SerializerMethodField()
     file = Base64ImageField(thumbnail_namespace='profiles.ImageAsset.file')
     is_artist = serializers.BooleanField(write_only=True)
+    subscribed = SubscribedField(required=False)
 
     def get_comment_count(self, obj):
         with connection.cursor() as cursor:
@@ -93,7 +94,7 @@ class ImageAssetSerializer(serializers.ModelSerializer):
         model = ImageAsset
         fields = (
             'id', 'title', 'caption', 'rating', 'file', 'private', 'created_on', 'uploaded_by', 'comment_count',
-            'favorite_count', 'comments_disabled', 'tags', 'is_artist', 'characters', 'artists'
+            'favorite_count', 'comments_disabled', 'tags', 'is_artist', 'characters', 'artists', 'subscribed'
         )
         extra_kwargs = {
             'file': {'write_only': True},
@@ -168,6 +169,7 @@ class ImageAssetManagementSerializer(serializers.ModelSerializer):
     characters = CharacterSerializer(many=True, read_only=True)
     file = Base64ImageField(read_only=True, thumbnail_namespace='profiles.ImageAsset.file')
     favorite = serializers.SerializerMethodField()
+    subscribed = SubscribedField(required=False)
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
@@ -187,7 +189,7 @@ class ImageAssetManagementSerializer(serializers.ModelSerializer):
         model = ImageAsset
         fields = (
             'id', 'title', 'caption', 'rating', 'file', 'private', 'created_on', 'order', 'uploaded_by', 'characters',
-            'comments_disabled', 'favorite_count', 'favorite', 'artists', 'tags'
+            'comments_disabled', 'favorite_count', 'favorite', 'artists', 'tags', 'subscribed'
         )
 
 

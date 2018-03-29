@@ -7,14 +7,20 @@ from rest_framework.views import APIView
 
 from apps.lib.models import Comment
 from apps.lib.permissions import CommentEditPermission, CommentViewPermission, CommentDepthPermission, Any, All, \
-    IsMethod
+    IsMethod, IsSafeMethod
 from apps.lib.serializers import CommentSerializer, CommentSubscriptionSerializer
 from apps.lib.utils import countries_tweaked, remove_tags, add_tags, remove_comment
 
 
 class CommentUpdate(RetrieveUpdateDestroyAPIView):
     serializer_class = CommentSerializer
-    permission_classes = [Any(CommentEditPermission, All(IsMethod('PUT'), CommentViewPermission))]
+    permission_classes = [
+        Any(
+            CommentEditPermission,
+            All(IsMethod('PUT'), CommentViewPermission),
+            All(IsSafeMethod, CommentViewPermission)
+        )
+    ]
 
     def get_object(self):
         comment = get_object_or_404(

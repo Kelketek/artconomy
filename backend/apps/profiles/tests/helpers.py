@@ -21,47 +21,6 @@ def gen_characters(user, count=5, asset_count=3):
     return characters
 
 
-def serialize_char(key):
-    return {
-        'id': key.id,
-        'name': key.name,
-        'primary_asset': key.primary_asset and {
-            'id': key.primary_asset.id,
-            'file': {
-                'full': 'http://testserver' + key.primary_asset.file.url,
-                'thumbnail': 'http://testserver' + key.primary_asset.file['thumbnail'].url,
-                'gallery': 'http://testserver' + key.primary_asset.file['gallery'].url,
-                'notification': 'http://testserver' + key.primary_asset.file['notification'].url,
-            },
-            'title': key.primary_asset.title,
-            'caption': key.primary_asset.caption,
-            'comment_count': key.primary_asset.comments.count(),
-            'favorite_count': 0,
-            'private': key.primary_asset.private,
-            'rating': key.primary_asset.rating,
-            'created_on': key.primary_asset.created_on.isoformat().replace('+00:00', 'Z'),
-            'uploaded_by': {
-                'username': key.user.username,
-                'id': key.user.id,
-                'avatar_url': avatar_url(key.user)
-            },
-            'comments_disabled': key.primary_asset.comments_disabled,
-            'tags': [],
-        },
-        'private': key.private,
-        'description': key.description,
-        'open_requests': key.open_requests,
-        'open_requests_restrictions': key.open_requests_restrictions,
-        'tags': [{'name': tag.name} for tag in key.tags.all()],
-        'colors': [],
-        'user': {
-            'username': key.user.username,
-            'id': key.user.id,
-            'avatar_url': avatar_url(key.user)
-        },
-    }
-
-
 def gen_image(**params):
     width = params.get('width', 100)
     height = params.get('height', width)

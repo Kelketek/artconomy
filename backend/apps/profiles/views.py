@@ -164,7 +164,10 @@ class MakePrimary(APIView):
         char.primary_asset = asset
         char.save()
         return Response(
-            status=status.HTTP_200_OK, data=ImageAssetManagementSerializer(request=self.request, instance=asset).data
+            status=status.HTTP_200_OK,
+            data=ImageAssetManagementSerializer(
+                request=self.request, instance=asset, context={'request': self.request}
+            ).data
         )
 
 
@@ -173,7 +176,7 @@ class AssetManager(RetrieveUpdateDestroyAPIView):
     permission_classes = [Any(All(IsSafeMethod, NonPrivate), AssetControls)]
 
     def get_serializer(self, *args, **kwargs):
-        return self.serializer_class(request=self.request, *args, **kwargs)
+        return self.serializer_class(request=self.request, context=self.get_serializer_context(), *args, **kwargs)
 
     def get_object(self):
         asset = get_object_or_404(
