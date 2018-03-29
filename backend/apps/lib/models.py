@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import JSONField
 from django.db import models
@@ -19,6 +19,7 @@ class Comment(models.Model):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True, db_index=True)
     content_object = GenericForeignKey('content_type', 'object_id')
     parent = models.ForeignKey('Comment', related_name='children', null=True, blank=True, on_delete=models.CASCADE)
+    subscriptions = GenericRelation('lib.Subscription')
 
     def save(self, *args, **kwargs):
         if self.id is not None:
@@ -111,7 +112,7 @@ class Subscription(models.Model):
 
 class Notification(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=CASCADE)
-    event = models.ForeignKey(Event, on_delete=CASCADE)
+    event = models.ForeignKey(Event, on_delete=CASCADE, related_name='notifications')
     read = models.BooleanField(default=False, db_index=True)
 
 
@@ -139,12 +140,15 @@ def auto_subscribe_thread(sender, instance, created=False, **_kwargs):
             type=COMMENT,
         )
         if instance.parent:
-            Subscription.objects.get_or_create(
+            subscription, created = Subscription.objects.get_or_create(
                 subscriber=instance.user,
                 content_type=ContentType.objects.get_for_model(model=instance),
-                object_id=instance.id,
+                object_id=instance.parent.id,
                 type=COMMENT,
             )
+            subscription.removed = False
+            subscription.implicit = True
+            subscription.save()
         from apps.lib.utils import notify
         primary_target = instance.parent or instance.content_object
         # Notify who is subscribed to the parent comment or the top level if there isn't one.
@@ -155,7 +159,8 @@ def auto_subscribe_thread(sender, instance, created=False, **_kwargs):
             },
             unique=True, mark_unread=True,
             transform=_comment_transform,
-            exclude=[instance.user]
+            exclude=[instance.user],
+            force_create=True,
         )
         # Notify whoever is subscribed to top level, if that's not what we already notified.
         target = instance
@@ -171,7 +176,8 @@ def auto_subscribe_thread(sender, instance, created=False, **_kwargs):
                 },
                 unique=True, mark_unread=True,
                 transform=_comment_transform,
-                exclude=[instance.user]
+                exclude=[instance.user],
+                force_create=True,
             )
 
 # Additional signal for comment in utils, pre_save, since it would be recursive otherwise.

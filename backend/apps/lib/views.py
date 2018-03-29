@@ -1,19 +1,20 @@
 from collections import OrderedDict
 
 from rest_framework import status
-from rest_framework.generics import RetrieveUpdateDestroyAPIView, get_object_or_404, CreateAPIView
+from rest_framework.generics import RetrieveUpdateDestroyAPIView, get_object_or_404, CreateAPIView, UpdateAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.lib.models import Comment
-from apps.lib.permissions import CommentEditPermission, CommentViewPermission, CommentDepthPermission
-from apps.lib.serializers import CommentSerializer
+from apps.lib.permissions import CommentEditPermission, CommentViewPermission, CommentDepthPermission, Any, All, \
+    IsMethod
+from apps.lib.serializers import CommentSerializer, CommentSubscriptionSerializer
 from apps.lib.utils import countries_tweaked, remove_tags, add_tags, remove_comment
 
 
 class CommentUpdate(RetrieveUpdateDestroyAPIView):
     serializer_class = CommentSerializer
-    permission_classes = [CommentEditPermission]
+    permission_classes = [Any(CommentEditPermission, All(IsMethod('PUT'), CommentViewPermission))]
 
     def get_object(self):
         comment = get_object_or_404(
@@ -30,6 +31,14 @@ class CommentUpdate(RetrieveUpdateDestroyAPIView):
             instance.text = ''
             instance.deleted = True
             instance.save()
+
+    def put(self, request, *args, **kwargs):
+        instance = self.get_object()
+        data = {'subscribed': request.data.get('subscribed')}
+        serializer = CommentSubscriptionSerializer(instance=instance, data=data, context=self.get_serializer_context())
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
 
 
 class CommentReply(CreateAPIView):

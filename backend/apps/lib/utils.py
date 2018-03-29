@@ -117,28 +117,35 @@ def get_matching_events(event_type, content_type, object_id, data, unique_data=N
 @atomic
 def notify(
         event_type, target, data=None, unique=False, unique_data=None, mark_unread=False, time_override=None,
-        transform=None, exclude=None
+        transform=None, exclude=None, force_create=False
 ):
     if data is None:
         data = {}
     content_type = target and ContentType.objects.get_for_model(target)
     object_id = target and target.id
     subscriptions = get_matching_subscriptions(event_type, object_id, content_type, exclude)
-    if not subscriptions.exists():
+    if not subscriptions.exists() and not force_create:
         return
+    event = None
     if unique or unique_data:
         events = get_matching_events(event_type, content_type, object_id, data, unique_data)
         if events.exists():
+            event = events[0]
             update_event(
-                events[0], data, subscriptions,
+                event, data, subscriptions,
                 mark_unread=mark_unread,
                 time_override=time_override,
                 transform=transform
             )
-            return
-    event = Event.objects.create(
-        type=event_type, object_id=target and target.id, content_type=content_type, data=data
-    )
+    if not event:
+        event = Event.objects.create(
+            type=event_type, object_id=target and target.id, content_type=content_type, data=data
+        )
+    # We need to make sure anyone who was previously ineligible for a notification who is now eligible can get one.
+    # To do that, we must avoid creating any that already exist if we want to leverage bulk_create. This should
+    # be a minority case that won't require too much overhead when it happens, but I suppose we will see.
+    existing = Notification.objects.filter(event=event.id).values_list('user_id', flat=True)
+    subscriptions = subscriptions.exclude(subscriber_id__in=existing)
     Notification.objects.bulk_create(
         (
             Notification(

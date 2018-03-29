@@ -21,6 +21,7 @@ export default {
       growing: null,
       growMode: false,
       fetching: false,
+      furtherPagination: true,
       error: '',
       oldQueryData: JSON.parse(JSON.stringify(this.queryData))
     }
@@ -42,13 +43,21 @@ export default {
       }
       this.fetching = true
       this.currentPage += 1
-      artCall(this.$router.resolve(this.linkGen(this.currentPage)).route.fullPath, 'GET', undefined, this.growList)
+      artCall(this.$router.resolve(this.linkGen(this.currentPage)).route.fullPath, 'GET', undefined, this.populateResponse, this.cease)
+    },
+    cease () {
+      this.furtherPagination = false
+      this.fetching = false
     },
     populateResponse (response) {
       this.error = ''
       this.response = response
       if (this.growMode) {
-        this.growing.push(response.results)
+        if (this.growing === null) {
+          this.growing = response.results
+        } else {
+          this.growing.concat(response.results)
+        }
       } else {
         this.growing = response.results
       }

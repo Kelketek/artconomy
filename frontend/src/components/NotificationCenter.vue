@@ -23,6 +23,7 @@
             />
             <v-list-tile v-else>
               <v-list-tile-content>
+                {{$root.log(notification)}}
                 {{notification}}
               </v-list-tile-content>
             </v-list-tile>
@@ -33,7 +34,7 @@
     </v-layout>
     <v-layout row>
       <v-flex xs12 text-xs-center>
-        <div v-if="growing !== null" v-observe-visibility="moreNotifications"></div>
+        <div v-if="(growing !== null) && furtherPagination" v-observe-visibility="moreNotifications"></div>
         <div v-if="fetching"><i class="fa fa-spin fa-spinner fa-5x"></i></div>
       </v-flex>
     </v-layout>
@@ -76,7 +77,8 @@
         url: '/api/profiles/v1/data/notifications/',
         toMark: [],
         marking: [],
-        loopNotifications: false
+        loopNotifications: false,
+        growMode: true
       }
     },
     methods: {

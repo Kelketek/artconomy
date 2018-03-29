@@ -2,7 +2,7 @@ from avatar.models import Avatar
 from avatar.signals import avatar_updated
 from django.conf import settings
 from django.contrib.auth import login, get_user_model, authenticate, logout, update_session_auth_hash
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.db.transaction import atomic
 from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
@@ -30,7 +30,6 @@ from apps.profiles.permissions import ObjectControls, UserControls, AssetViewPer
 from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer, SettingsSerializer, UserSerializer, \
     RegisterSerializer, ImageAssetManagementSerializer, CredentialsSerializer, AvatarSerializer, RefColorSerializer
 from apps.profiles.utils import available_chars, char_ordering, available_assets, available_artists
-from shortcuts import make_url
 
 
 class Register(CreateAPIView):
@@ -128,7 +127,7 @@ class ImageAssetListAPI(ListCreateAPIView):
 
 class CharacterManager(RetrieveUpdateDestroyAPIView):
     serializer_class = CharacterSerializer
-    permission_classes = [Any([All([IsSafeMethod, NonPrivate]), ObjectControls])]
+    permission_classes = [Any(All(IsSafeMethod, NonPrivate), ObjectControls)]
 
     def get_object(self):
         character = get_object_or_404(Character, user__username=self.kwargs['username'], name=self.kwargs['character'])
@@ -171,7 +170,7 @@ class MakePrimary(APIView):
 
 class AssetManager(RetrieveUpdateDestroyAPIView):
     serializer_class = ImageAssetManagementSerializer
-    permission_classes = [Any([All([IsSafeMethod, NonPrivate]), AssetControls])]
+    permission_classes = [Any(All(IsSafeMethod, NonPrivate), AssetControls)]
 
     def get_serializer(self, *args, **kwargs):
         return self.serializer_class(request=self.request, *args, **kwargs)
@@ -231,7 +230,7 @@ class SetAvatar(GenericAPIView):
 
 
 class UserInfo(APIView):
-    permission_classes = [Any([IsSafeMethod, ObjectControls])]
+    permission_classes = [Any(IsSafeMethod, ObjectControls)]
 
     def get_serializer(self, user):
         if self.request.user.is_staff:
@@ -572,7 +571,7 @@ class NotificationsList(ListAPIView):
 
 class RefColorList(ListCreateAPIView):
     serializer_class = RefColorSerializer
-    permission_classes = [All([ColorControls, ColorLimit])]
+    permission_classes = [All(ColorControls, ColorLimit)]
 
     def get_queryset(self):
         character = get_object_or_404(Character, name=self.kwargs['character'], user__username=self.kwargs['username'])

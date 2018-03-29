@@ -12,6 +12,11 @@
           {{format_time(comment.created_on)}}
           <span v-if="comment.edited"><br />Edited: {{format_time(comment.edited_on)}}</span>
         </v-tooltip>
+        <v-flex text-xs-center v-if="toplevel">
+          <ac-action :url="url" :send="{subscribed: !comment.subscribed}" method="PUT" :success="setSubscription">
+            <v-icon v-if="comment.subscribed">volume_up</v-icon><v-icon v-else>volume_off</v-icon>
+          </ac-action>
+        </v-flex>
       </v-flex>
       <v-flex xs12 md9 class="comment-content pl-2 pr-2" v-html="parseContent()" v-if="!editing && !comment.deleted" />
       <v-flex xs12 md9 class="comment-content pl-2 pr-2" v-if="comment.deleted">[This comment has been deleted]</v-flex>
@@ -54,21 +59,19 @@
                                                                           class="comment-field"
                                                                           contenteditable="true"></textarea></v-flex>
       <v-flex xs11 offset-xs1 v-if="replying && reply_preview" v-html="parseReply()" />
-      <v-flex xs12 md4 text-xs-right v-if="!comment.children.length && editing && !comment.deleted">
+      <v-flex xs12 md2 text-xs-right v-if="!comment.children.length && editing && !comment.deleted">
         <div class="preview-block">
           <div class="text-xs-center">
             <v-btn small v-if="edit_preview" color="info" @click="edit_preview=false"><v-icon>visibility</v-icon></v-btn>
             <v-btn small v-else @click="edit_preview=true"><v-icon>visibility</v-icon></v-btn><br />
-            <small class="ml-2">Markdown Syntax Supported</small>
           </div>
         </div>
       </v-flex>
       <v-flex xs12 md3 text-xs-right v-if="replying && !comment.deleted">
         <div class="preview-block">
           <div class="text-xs-center">
-          <v-btn small v-if="reply_preview" color="info" @click="reply_preview=false"><v-icon>visibility</v-icon></v-btn>
-          <v-btn small v-else @click="reply_preview=true"><v-icon>visibility</v-icon></v-btn><br />
-          <small class="ml-2">Markdown Syntax Supported</small>
+            <v-btn small v-if="reply_preview" color="info" @click="reply_preview=false"><v-icon>visibility</v-icon></v-btn>
+            <v-btn small v-else @click="reply_preview=true"><v-icon>visibility</v-icon></v-btn><br />
           </div>
         </div>
       </v-flex>
@@ -86,7 +89,7 @@
                   color="success">
           <v-icon>save</v-icon>
         </v-btn>
-        <v-btn small v-if="toplevel && nesting && !replying && !locked" @click="replying=true" color="info" class="comment-reply">
+        <v-btn small v-if="toplevel && nesting && !replying && !locked && !editing" @click="replying=true" color="info" class="comment-reply">
           <v-icon>reply</v-icon>
         </v-btn>
         <v-btn small v-if="replying" @click="replying=false" color="danger">
@@ -108,6 +111,9 @@
   .comment-block {
     word-wrap: break-word;
   }
+  .comment-block .btn {
+    min-width: 0;
+  }
 </style>
 
 <script>
@@ -115,9 +121,12 @@
   import moment from 'moment'
   import AcAvatar from './ac-avatar'
   import Vue from 'vue'
+  import AcAction from './ac-action'
 
   export default {
-    components: {AcAvatar},
+    components: {
+      AcAction,
+      AcAvatar},
     name: 'ac-comment',
     props: {
       commentobj: {},
@@ -137,6 +146,9 @@
       },
       parseReply () {
         return md.render(this.reply)
+      },
+      setSubscription (response) {
+        this.comment = response
       },
       reloadComment (response) {
         this.comment = response

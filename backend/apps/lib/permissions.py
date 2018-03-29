@@ -78,7 +78,17 @@ class IsSafeMethod(BasePermission):
         return self.has_permission(request, view)
 
 
-def Any(perms):
+def IsMethod(*method_list):
+    class MethodCheck(BasePermission):
+        def has_permission(self, request, view):
+            return request.method in method_list
+
+        def has_object_permission(self, request, view, obj):
+            return self.has_permission(request, view)
+    return MethodCheck
+
+
+def Any(*perms):
     perms = [perm() for perm in perms]
 
     class AnyPerm(BasePermission):
@@ -87,7 +97,7 @@ def Any(perms):
     return AnyPerm
 
 
-def All(perms):
+def All(*perms):
     perms = [perm() for perm in perms]
 
     class AllPerms(BasePermission):

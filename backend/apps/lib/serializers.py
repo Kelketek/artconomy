@@ -2,13 +2,14 @@ import base64, uuid
 
 from avatar.templatetags.avatar_tags import avatar_url
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
 from django.core.files.base import ContentFile
 from rest_framework import serializers
 from rest_framework.fields import SerializerMethodField
 from rest_framework_bulk import BulkSerializerMixin, BulkListSerializer
 
 from apps.lib.models import Comment, Notification, Event, CHAR_TAG, SUBMISSION_CHAR_TAG, Tag, REVISION_UPLOADED, \
-    ORDER_UPDATE, SALE_UPDATE, COMMENT
+    ORDER_UPDATE, SALE_UPDATE, COMMENT, Subscription
 from apps.lib.utils import tag_list_cleaner, ensure_tags
 from apps.profiles.models import User, ImageAsset, Character
 from apps.sales.models import Revision
@@ -138,14 +139,74 @@ class RecursiveField(serializers.Serializer):
         return serializer.data
 
 
-class CommentSerializer(serializers.ModelSerializer):
+class SubscribeMixin(object):
+    subscription_type = COMMENT
+
+    def update(self, instance, validated_data, **kwargs):
+        data = dict(**validated_data)
+        subscribed = data.pop('subscribed')
+        if data:
+            # Only call super if we're editing something other than subscription.
+            # This prevents us from changing the edited timestamp.
+            super().update(instance, data, **kwargs)
+        if subscribed is None:
+            return instance
+        subscription, created = Subscription.objects.get_or_create(
+            subscriber=self.context['request'].user, type=self.subscription_type,
+            object_id=instance.id, content_type=ContentType.objects.get_for_model(instance)
+        )
+        if subscribed:
+            subscription.removed = False
+            subscription.save()
+            return instance
+        if created:
+            subscription.delete()
+            return instance
+        subscription.removed = True
+        subscription.save()
+        return instance
+
+
+class SubscribedField(serializers.Field):
+    def __init__(self, related_name='subscriptions', extra_args=None, *args, **kwargs):
+        self.extra_args = extra_args or {}
+        self.related_name = related_name
+        super().__init__(*args, **kwargs)
+
+    def get_attribute(self, instance):
+        return getattr(instance, self.related_name).filter(
+            subscriber=self.context['request'].user, removed=False, **self.extra_args
+        ).exists()
+
+    def to_representation(self, value):
+        return value
+
+    def to_internal_value(self, data):
+        if data is None:
+            return
+        return bool(data)
+
+
+class CommentSerializer(SubscribeMixin, serializers.ModelSerializer):
     user = RelatedUserSerializer(read_only=True)
     children = RecursiveField(many=True, read_only=True)
+    subscribed = SubscribedField(required=False)
 
     class Meta:
         model = Comment
-        fields = ('id', 'text', 'created_on', 'edited_on', 'user', 'children', 'edited', 'deleted')
+        fields = ('id', 'text', 'created_on', 'edited_on', 'user', 'children', 'edited', 'deleted', 'subscribed')
         read_only_fields = ('id', 'created_on', 'edited_on', 'user', 'children', 'edited', 'deleted')
+
+
+class CommentSubscriptionSerializer(SubscribeMixin, serializers.ModelSerializer):
+    user = RelatedUserSerializer(read_only=True)
+    children = RecursiveField(many=True, read_only=True)
+    subscribed = SubscribedField(required=True)
+
+    class Meta:
+        model = Comment
+        fields = ('id', 'text', 'created_on', 'edited_on', 'user', 'children', 'edited', 'deleted', 'subscribed')
+        read_only_fields = ('id', 'text', 'created_on', 'edited_on', 'user', 'children', 'edited', 'deleted')
 
 
 def get_user(user_id):

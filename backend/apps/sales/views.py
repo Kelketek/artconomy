@@ -60,7 +60,7 @@ class ProductListAPI(ListCreateAPIView):
 
 class ProductManager(RetrieveUpdateDestroyAPIView):
     serializer_class = ProductSerializer
-    permission_classes = [Any([IsSafeMethod, ObjectControls])]
+    permission_classes = [Any(IsSafeMethod, ObjectControls)]
 
     def get_object(self):
         product = get_object_or_404(Product, user__username=self.kwargs['username'], id=self.kwargs['product'])

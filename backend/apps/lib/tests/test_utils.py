@@ -194,6 +194,20 @@ class NotificationsTestCase(TestCase):
         notifications = Notification.objects.filter(user__in=[asset.uploaded_by, user])
         self.assertEqual(notifications.count(), 3)
 
+    def test_exclude_remediate(self):
+        asset = ImageAssetFactory.create()
+        user = UserFactory.create()
+        Subscription.objects.create(
+            type=FAVORITE, subscriber=user, object_id=asset.id,
+            content_type=ContentType.objects.get_for_model(asset)
+        )
+        notify(FAVORITE, target=asset, data={'users': []}, exclude=[user], unique=True)
+        notifications = Notification.objects.filter(user__in=[asset.uploaded_by, user])
+        self.assertEqual(notifications.count(), 1)
+        notify(FAVORITE, target=asset, data={'users': []}, unique=True)
+        notifications = Notification.objects.filter(user__in=[asset.uploaded_by, user])
+        self.assertEqual(notifications.count(), 2)
+
     def test_recall_notification(self):
         asset = ImageAssetFactory.create()
         notify(FAVORITE, target=asset, data={'users': []})

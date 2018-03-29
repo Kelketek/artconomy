@@ -18,7 +18,6 @@
           <div class="text-xs-center">
           <v-btn small v-if="edit_preview" color="info" @click="edit_preview=false"><v-icon>visibility</v-icon></v-btn>
           <v-btn small v-else @click="edit_preview=true"><v-icon>visibility</v-icon></v-btn><br />
-          <small class="ml-2">Markdown Syntax Supported</small>
           </div>
         </div>
       </v-flex>
@@ -40,6 +39,9 @@
   }
   .comment-block {
     word-wrap: break-word;
+  }
+  .comment-block .btn {
+    min-width: 0;
   }
 </style>
 
