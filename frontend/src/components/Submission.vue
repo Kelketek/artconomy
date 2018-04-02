@@ -74,17 +74,20 @@
               />
             </div>
             <div>
-              {{ ratingText }}
+              Rating: {{ ratingText }}
               <div v-if="controls" class="text-xs-center">
                 <span v-if="submission.private"><v-icon>visibility_off</v-icon> Submission is private</span>
                 <span v-else><v-icon>visibility</v-icon> Submission is public</span>
               </div>
-              <ac-action :url="`${url}favorite/`" :success="populateSubmission">
+              <ac-action :url="url" :send="{subscribed: !submission.subscribed}" method="PUT" :success="populateSubmission">
+                <v-icon v-if="submission.subscribed">volume_up</v-icon><v-icon v-else>volume_off</v-icon>
+              </ac-action>
+              <ac-action :url="`${url}favorite/`" :success="populateSubmission" v-if="isLoggedIn">
                 <span v-if="submission.favorite"><v-icon>favorite_outline</v-icon> Remove from Favorites ({{ submission.favorite_count }})</span>
                 <span v-else><v-icon>favorite</v-icon> Add to Favorites ({{ submission.favorite_count }})</span>
               </ac-action>
-              <v-btn v-if="!showArtistTagging" @click="showArtistTagging=true">Tag Artists</v-btn>
-              <div v-else>
+              <v-btn v-if="!showArtistTagging && isLoggedIn" @click="showArtistTagging=true">Tag Artists</v-btn>
+              <div v-else-if="isLoggedIn">
                 <form>
                   <ac-form-container
                       ref="artistTaggingForm"

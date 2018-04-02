@@ -74,7 +74,7 @@ class User(AbstractEmailUser):
         self.email = self.email and self.email.lower()
         super().save(*args, **kwargs)
 
-    def notification_serialize(self):
+    def notification_serialize(self, context):
         from .serializers import RelatedUserSerializer
         return RelatedUserSerializer(instance=self).data
 
@@ -127,7 +127,7 @@ class ImageAsset(ImageModel):
 
     comment_permissions = [AssetViewPermission, AssetCommentPermission]
 
-    def notification_serialize(self):
+    def notification_serialize(self, context):
         from .serializers import ImageAssetNotificationSerializer
         return ImageAssetNotificationSerializer(instance=self).data
 
@@ -243,7 +243,7 @@ class Character(Model):
     class Meta:
         unique_together = (('name', 'user'),)
 
-    def notification_serialize(self):
+    def notification_serialize(self, context):
         from .serializers import CharacterSerializer
         return CharacterSerializer(instance=self).data
 

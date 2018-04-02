@@ -23,6 +23,11 @@
               <h3>Ordered By</h3>
               <ac-avatar :user="order.buyer" />
             </div>
+            <div class="text-xs-center" v-if="orderClosed">
+              <ac-action :url="url" :send="{subscribed: !order.subscribed}" method="PUT" :success="populateOrder">
+                <v-icon v-if="order.subscribed">volume_up</v-icon><v-icon v-else>volume_off</v-icon>
+              </ac-action>
+            </div>
           </v-flex>
         </v-layout>
       </v-card>
@@ -450,6 +455,9 @@
       },
       completed () {
         return this.order.status === 8
+      },
+      orderClosed () {
+        return (this.completed || this.cancelled)
       },
       output () {
         return this.order.outputs[0]

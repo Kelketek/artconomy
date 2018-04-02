@@ -19,7 +19,7 @@ from rest_framework_bulk import BulkUpdateAPIView
 
 from apps.lib.models import Notification, FAVORITE, CHAR_TAG, SUBMISSION_CHAR_TAG, SUBMISSION_ARTIST_TAG, ARTIST_TAG, \
     SUBMISSION_TAG, Tag
-from apps.lib.permissions import Any, All, IsSafeMethod
+from apps.lib.permissions import Any, All, IsSafeMethod, IsMethod
 from apps.lib.serializers import CommentSerializer, NotificationSerializer, Base64ImageField, RelatedUserSerializer, \
     BulkNotificationSerializer, UserInfoSerializer
 from apps.lib.utils import recall_notification, notify, safe_add, add_tags
@@ -173,7 +173,7 @@ class MakePrimary(APIView):
 
 class AssetManager(RetrieveUpdateDestroyAPIView):
     serializer_class = ImageAssetManagementSerializer
-    permission_classes = [Any(All(IsSafeMethod, NonPrivate), AssetControls)]
+    permission_classes = [Any(All(Any(IsSafeMethod, IsMethod('PUT')), NonPrivate), AssetControls)]
 
     def get_serializer(self, *args, **kwargs):
         return self.serializer_class(request=self.request, context=self.get_serializer_context(), *args, **kwargs)
@@ -194,6 +194,14 @@ class AssetManager(RetrieveUpdateDestroyAPIView):
         self.check_object_permissions(request, asset)
         asset.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def put(self, request, *args, **kwargs):
+        asset = self.get_object()
+        data = {'subscribed': request.data.get('subscribed')}
+        serializer = self.get_serializer(instance=asset, data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
 
 
 class AssetComments(ListCreateAPIView):

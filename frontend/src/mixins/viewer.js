@@ -1,7 +1,7 @@
 // This module should no longer be needed since we're now using the UserHandler plugin.
 export default {
   computed: {
-    rating: function () {
+    rating () {
       let contentRating = 0
       if (this.viewer.sfw_mode) {
         return contentRating
@@ -9,12 +9,20 @@ export default {
         return this.viewer.rating || 0
       }
     },
-    viewer: function () {
+    viewer () {
       if (this.$root.user === undefined) {
         // This can happen during testing.
         return null
       }
       return this.$root.user
+    },
+    isLoggedIn () {
+      if (!this.viewer) {
+        return false
+      }
+      if (this.viewer.username) {
+        return true
+      }
     }
   }
 }

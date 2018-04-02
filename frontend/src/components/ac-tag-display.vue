@@ -11,8 +11,8 @@
         :tab-name="tabName"
     />
     <div class="pt-2 pb-2" v-if="editable">
-      <v-btn v-if="!showTagging" @click="showTagging=true">Add Tags</v-btn>
-      <div v-else>
+      <v-btn v-if="!showTagging && isLoggedIn" @click="showTagging=true">Add Tags</v-btn>
+      <div v-else-if="isLoggedIn">
         <form>
           <ac-form-container
               ref="taggingForm"
@@ -33,6 +33,7 @@
 <script>
   import AcTag from './ac-tag'
   import AcFormContainer from './ac-form-container'
+  import Viewer from '../mixins/viewer'
 
   export default {
     props: {
@@ -48,6 +49,7 @@
         default: false
       }
     },
+    mixins: [Viewer],
     data () {
       return {
         taggingSchema: {

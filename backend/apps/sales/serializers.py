@@ -7,7 +7,8 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import SerializerMethodField, DecimalField, IntegerField
 
-from apps.lib.serializers import RelatedUserSerializer, Base64ImageField, EventTargetRelatedField
+from apps.lib.serializers import RelatedUserSerializer, Base64ImageField, EventTargetRelatedField, SubscribedField, \
+    SubscribeMixin
 from apps.lib.utils import country_choices
 from apps.profiles.models import User
 from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer
@@ -56,13 +57,14 @@ class ProductNewOrderSerializer(serializers.ModelSerializer):
         )
 
 
-class OrderViewSerializer(serializers.ModelSerializer):
+class OrderViewSerializer(SubscribeMixin, serializers.ModelSerializer):
     seller = RelatedUserSerializer(read_only=True)
     buyer = RelatedUserSerializer(read_only=True)
     characters = CharacterSerializer(many=True, read_only=True)
     price = SerializerMethodField()
-    product = ProductSerializer()
+    product = ProductSerializer(read_only=True)
     outputs = ImageAssetSerializer(many=True, read_only=True)
+    subscribed = SubscribedField()
 
     def get_price(self, obj):
         if not obj.price:
@@ -73,7 +75,7 @@ class OrderViewSerializer(serializers.ModelSerializer):
         model = Order
         fields = (
             'id', 'created_on', 'status', 'price', 'product', 'details', 'seller', 'buyer', 'adjustment', 'characters',
-            'stream_link', 'revisions', 'outputs', 'private'
+            'stream_link', 'revisions', 'outputs', 'private', 'subscribed'
         )
         read_only_fields = fields
 

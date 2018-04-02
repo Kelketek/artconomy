@@ -119,7 +119,7 @@ class Notification(models.Model):
 class Tag(Model):
     name = SlugField(db_index=True, unique=True, primary_key=True)
 
-    def notification_serialize(self):
+    def notification_serialize(self, context):
         return self.name
 
 

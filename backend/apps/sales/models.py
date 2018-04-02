@@ -187,6 +187,7 @@ class Order(Model):
     comments = GenericRelation(
         Comment, related_query_name='order', content_type_field='content_type', object_id_field='object_id'
     )
+    subscriptions = GenericRelation('lib.Subscription')
 
     def total(self):
         price = self.price
@@ -194,11 +195,11 @@ class Order(Model):
             price = self.product.price
         return price + (self.adjustment or Money(0, 'USD'))
 
-    def notification_serialize(self):
+    def notification_serialize(self, context):
         from .serializers import OrderViewSerializer
-        return OrderViewSerializer(instance=self).data
+        return OrderViewSerializer(instance=self, context=context).data
 
-    def notification_display(self):
+    def notification_display(self, context):
         from .serializers import ProductSerializer
         return ProductSerializer(instance=self.product).data
 
@@ -590,6 +591,6 @@ class BankAccount(Model):
     type = IntegerField(choices=ACCOUNT_TYPES)
     deleted = BooleanField(default=False)
 
-    def notification_serialize(self):
+    def notification_serialize(self, context):
         from .serializers import BankAccountSerializer
         return BankAccountSerializer(instance=self).data

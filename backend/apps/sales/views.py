@@ -105,6 +105,14 @@ class OrderRetrieve(RetrieveAPIView):
     def get_object(self):
         return get_object_or_404(Order, id=self.kwargs['order_id'])
 
+    def put(self, request, *args, **kwargs):
+        order = self.get_object()
+        data = {'subscribed': request.data.get('subscribed')}
+        serializer = self.get_serializer(instance=order, data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
+
 
 class OrderAccept(GenericAPIView):
     permission_classes = [OrderSellerPermission]
@@ -613,7 +621,7 @@ class MakePayment(GenericAPIView):
 
     def post(self, *args, **kwargs):
         order = self.get_object()
-        attempt = self.get_serializer(data=self.request.data)
+        attempt = self.get_serializer(data=self.request.data, context=self.get_serializer_context())
         attempt.is_valid(raise_exception=True)
         attempt = attempt.validated_data
         if attempt['amount'] != order.total().amount:
@@ -656,7 +664,7 @@ class MakePayment(GenericAPIView):
             card.cvv_verified = True
             card.save()
             notify(SALE_UPDATE, order, unique=True, mark_unread=True)
-            data = OrderViewSerializer(instance=order).data
+            data = OrderViewSerializer(instance=order, context=self.get_serializer_context()).data
         record.save()
         return Response(status=code, data=data)
 
@@ -771,7 +779,7 @@ class PurchaseHistory(ListAPIView):
     serializer_class = PaymentRecordSerializer
 
     def get_serializer(self, *args, **kwargs):
-        return self.serializer_class(user=self.user, *args, **kwargs)
+        return self.serializer_class(user=self.user, context=self.get_serializer_context(), *args, **kwargs)
 
     def get_queryset(self):
         self.user = get_object_or_404(User, username=self.kwargs['username'])
@@ -786,7 +794,7 @@ class EscrowHistory(ListAPIView):
     serializer_class = PaymentRecordSerializer
 
     def get_serializer(self, *args, **kwargs):
-        return self.serializer_class(user=self.user, *args, **kwargs)
+        return self.serializer_class(user=self.user, context=self.get_serializer_context(), *args, **kwargs)
 
     def get_queryset(self):
         self.user = get_object_or_404(User, username=self.kwargs['username'])
@@ -801,7 +809,7 @@ class AvailableHistory(ListAPIView):
     serializer_class = PaymentRecordSerializer
 
     def get_serializer(self, *args, **kwargs):
-        return self.serializer_class(user=self.user, *args, **kwargs)
+        return self.serializer_class(user=self.user, context=self.get_serializer_context(), *args, **kwargs)
 
     def get_queryset(self):
         self.user = get_object_or_404(User, username=self.kwargs['username'])

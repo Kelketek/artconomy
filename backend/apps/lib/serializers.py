@@ -51,21 +51,21 @@ class RelatedUserSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'username', 'avatar_url')
 
 
-def notification_serialize(obj):
+def notification_serialize(obj, context):
     if obj is None:
         return None
     if hasattr(obj, 'notification_serialize'):
-        return obj.notification_serialize()
+        return obj.notification_serialize(context)
     return {obj.__class__.__name__: obj.id}
 
 
-def notification_display(obj):
+def notification_display(obj, context):
     """
     For determining which icon is used in the notification area.
     """
     if hasattr(obj, 'notification_display'):
-        return obj.notification_display()
-    return notification_serialize(obj)
+        return obj.notification_display(context)
+    return notification_serialize(obj, context)
 
 
 def get_link(obj, context):
@@ -95,7 +95,7 @@ class EventTargetRelatedField(serializers.RelatedField):
         """
         Serialize tagged objects to a simple textual representation.
         """
-        return notification_serialize(value)
+        return notification_serialize(value, self.context)
 
 
 # Custom image field - handles base 64 encoded images
@@ -144,7 +144,7 @@ class SubscribeMixin(object):
 
     def update(self, instance, validated_data, **kwargs):
         data = dict(**validated_data)
-        subscribed = data.pop('subscribed')
+        subscribed = data.pop('subscribed', None)
         if data:
             # Only call super if we're editing something other than subscription.
             # This prevents us from changing the edited timestamp.
@@ -177,7 +177,12 @@ class SubscribedField(serializers.Field):
         if not self.context['request'].user.is_authenticated:
             return False
         return getattr(instance, self.related_name).filter(
-            subscriber=self.context['request'].user, removed=False, **self.extra_args
+            subscriber=self.context['request'].user,
+            object_id=instance.id,
+            content_type=ContentType.objects.get_for_model(instance),
+            type=COMMENT,
+            removed=False,
+            **self.extra_args
         ).exists()
 
     def to_representation(self, value):
@@ -286,11 +291,11 @@ def comment_made(obj, context):
         else:
             link['query'] = {'commentID': comment.id}
     return {
-        'top': notification_serialize(top),
+        'top': notification_serialize(top, context),
         'commenters': list(commenters[:3].values_list('user__username', flat=True)),
         'additional': additional,
         'is_thread': is_thread,
-        'display': notification_display(target),
+        'display': notification_display(target, context),
         'link': link,
         'name': get_display_name(target, context),
     }

@@ -9,7 +9,7 @@ from recaptcha.fields import ReCaptchaField
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 
-from apps.lib.serializers import RelatedUserSerializer, Base64ImageField, TagSerializer, SubscribedField
+from apps.lib.serializers import RelatedUserSerializer, Base64ImageField, TagSerializer, SubscribedField, SubscribeMixin
 from apps.profiles.models import Character, ImageAsset, User, RefColor
 
 
@@ -163,7 +163,7 @@ class CharacterSerializer(serializers.ModelSerializer):
         )
 
 
-class ImageAssetManagementSerializer(serializers.ModelSerializer):
+class ImageAssetManagementSerializer(SubscribeMixin, serializers.ModelSerializer):
     uploaded_by = RelatedUserSerializer(read_only=True)
     artists = RelatedUserSerializer(read_only=True, many=True)
     characters = CharacterSerializer(many=True, read_only=True)
