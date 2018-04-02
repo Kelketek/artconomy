@@ -11,7 +11,11 @@
                       title="Withdraw Funds"
                       :url="`/api/sales/v1/account/${user.username}/withdraw/`"
                       v-model="showWithdraw"
-      />
+      >
+        <v-flex slot="header" text-xs-center>
+          <strong>Available Balance: ${{response.available}}</strong>
+        </v-flex>
+      </ac-form-dialog>
     </v-flex>
     <v-flex xs12 v-if="accounts !== null && accounts.length">
       <v-list>
@@ -46,7 +50,7 @@
                     v-model="showNewBank"
     >
       <v-flex slot="header" text-xs-center xs12>
-        <strong>Available Balance: {{response.available}}</strong>
+        <strong>Only US Banks are supported at this time.</strong>
       </v-flex>
     </ac-form-dialog>
   </v-layout>

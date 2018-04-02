@@ -21,6 +21,7 @@ export default {
       growing: null,
       growMode: false,
       fetching: false,
+      promise: null,
       furtherPagination: true,
       error: '',
       oldQueryData: JSON.parse(JSON.stringify(this.queryData))
@@ -50,6 +51,7 @@ export default {
       this.fetching = false
     },
     populateResponse (response) {
+      this.promise = null
       this.error = ''
       this.response = response
       if (this.growMode) {
@@ -68,6 +70,7 @@ export default {
       EventBus.$emit('result-count', {name: this.counterName, count: this.count})
     },
     populateError (response) {
+      this.promise = null
       if (response.status === 400) {
         if (response.responseJSON && response.responseJSON.error) {
           this.error = response.responseJSON.error
@@ -77,13 +80,17 @@ export default {
       }
     },
     fetchItems () {
+      if (this.promise) {
+        this.promise.abort()
+        this.promise = null
+      }
       let queryData = JSON.parse(JSON.stringify(this.queryData))
       queryData.page = this.currentPage
       queryData.size = this.pageSize
       let qs = buildQueryString(queryData)
       let url = `${this.url}?${qs}`
       this.fetching = true
-      artCall(url, 'GET', undefined, this.populateResponse, this.populateError)
+      this.promise = artCall(url, 'GET', undefined, this.populateResponse, this.populateError)
     },
     setPageQuery (value) {
       let query = {query: {page: value}}
