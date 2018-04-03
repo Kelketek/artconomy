@@ -130,6 +130,8 @@ class OrderAccept(GenericAPIView):
             )
         order.status = Order.PAYMENT_PENDING
         order.price = order.product.price
+        order.task_weight = order.product.task_weight
+        order.expected_turnaround = order.product.expected_turnaround
         order.revisions = order.product.revisions
         order.save()
         data = self.serializer_class(instance=order, context=self.get_serializer_context()).data
@@ -660,6 +662,8 @@ class MakePayment(GenericAPIView):
             record.response_message = ''
             code = status.HTTP_202_ACCEPTED
             order.status = Order.QUEUED
+            order.task_weight = order.task_weight + order.adjustment_task_weight
+            order.expected_turnaround = order.expected_turnaround + order.expected_turnaround
             order.save()
             card.cvv_verified = True
             card.save()

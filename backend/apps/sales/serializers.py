@@ -75,7 +75,8 @@ class OrderViewSerializer(SubscribeMixin, serializers.ModelSerializer):
         model = Order
         fields = (
             'id', 'created_on', 'status', 'price', 'product', 'details', 'seller', 'buyer', 'adjustment', 'characters',
-            'stream_link', 'revisions', 'outputs', 'private', 'subscribed'
+            'stream_link', 'revisions', 'outputs', 'private', 'subscribed', 'adjustment_task_weight',
+            'adjustment_expected_turnaround', 'expected_turnaround', 'task_weight'
         )
         read_only_fields = fields
 
@@ -89,14 +90,33 @@ class OrderStartedSerializer(OrderViewSerializer):
 
 class OrderAdjustSerializer(OrderViewSerializer):
     def validate(self, attrs):
-        if attrs.get('adjustment') is None:
-            return attrs
-        if self.instance.product.price.amount + attrs['adjustment'] < settings.MINIMUM_PRICE:
-            raise ValidationError("The total price may not be less than ${}".format(settings.MINIMUM_PRICE))
+        errors = {}
+        print(attrs)
+        if attrs.get('adjustment'):
+            if self.instance.product.price.amount + attrs['adjustment'] < settings.MINIMUM_PRICE:
+                errors['adjustment'] = "The total price may not be less than ${}".format(settings.MINIMUM_PRICE)
+        if attrs.get('adjustment_task_weight'):
+            if self.instance.product.task_weight + attrs['adjustment_task_weight'] < 1:
+                errors['adjustment_task_weight'] = 'Task weight may not be less than 1.'
+        if attrs.get('adjustment_expected_turnaround'):
+            if (
+                    self.instance.product.expected_turnaround
+                    + attrs['adjustment_expected_turnaround'] < settings.MINIMUM_TURNAROUND
+            ):
+                errors['adjustment_expected_turnaround'] = 'Expected turnaround may not be less than {}'.format(
+                    settings.MINIMUM_TURNAROUND
+                )
+        if errors:
+            raise ValidationError(errors)
+
         return attrs
 
     class Meta(OrderViewSerializer.Meta):
-        read_only_fields = tuple(field for field in OrderViewSerializer.Meta.read_only_fields if field != 'adjustment')
+        read_only_fields = tuple(
+            field for field in OrderViewSerializer.Meta.read_only_fields if field not in [
+                'adjustment', 'adjustment_expected_turnaround', 'adjustment_task_weight'
+            ]
+        )
 
 
 class CardSerializer(serializers.ModelSerializer):

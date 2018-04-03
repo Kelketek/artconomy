@@ -48,7 +48,7 @@
             </div>
             <div class="extra-details">
               <div class="full-width">
-                <strong class="day-count"><ac-patchfield v-model="product.expected_turnaround" name="expected_turnaround" :editmode="editing" styleclass="day-count" :url="url" /></strong> days
+                <strong class="day-count"><ac-patchfield v-model="product.expected_turnaround" :display-value="turnaround" name="expected_turnaround" :editmode="editing" styleclass="day-count" :url="url" /></strong> days
                 turnaround
               </div>
               <div class="full-width">
@@ -161,6 +161,11 @@
         this.$router.history.push(
           {name: 'Order', params: {username: response.buyer.username, orderID: response.id}, query: {editing: true}}
         )
+      }
+    },
+    computed: {
+      turnaround () {
+        return Math.ceil(this.product.expected_turnaround)
       }
     },
     data () {

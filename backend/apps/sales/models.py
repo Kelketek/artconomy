@@ -1,3 +1,4 @@
+from decimal import Decimal
 from urllib.error import URLError
 
 from authorize import AuthorizeError, Address
@@ -7,7 +8,7 @@ from django.contrib.contenttypes.fields import GenericRelation, GenericForeignKe
 from django.contrib.contenttypes.models import ContentType
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models import Model, CharField, ForeignKey, IntegerField, BooleanField, DateTimeField, ManyToManyField, \
-    TextField, SET_NULL, PositiveIntegerField, URLField, CASCADE
+    TextField, SET_NULL, PositiveIntegerField, URLField, CASCADE, DecimalField
 
 # Create your models here.
 from django.db.models.signals import post_delete, post_save, pre_delete
@@ -45,8 +46,9 @@ class Product(ImageModel):
 
     name = CharField(max_length=250)
     description = CharField(max_length=5000)
-    expected_turnaround = IntegerField(
-        validators=[MinValueValidator(1)], help_text="Number of days completion is expected to take."
+    expected_turnaround = DecimalField(
+        validators=[MinValueValidator(settings.MINIMUM_TURNAROUND)], help_text="Number of days completion is expected to take.",
+        max_digits=5, decimal_places=2
     )
     price = MoneyField(
         max_digits=6, decimal_places=2, default_currency='USD',
@@ -178,6 +180,10 @@ class Order(Model):
     revisions = IntegerField(default=0)
     details = CharField(max_length=5000)
     adjustment = MoneyField(max_digits=4, decimal_places=2, default_currency='USD', blank=True, default=0)
+    adjustment_expected_turnaround = DecimalField(default=0, max_digits=5, decimal_places=2)
+    adjustment_task_weight = IntegerField(default=0)
+    task_weight = IntegerField(default=0)
+    expected_turnaround = IntegerField(default=0)
     created_on = DateTimeField(auto_now_add=True, db_index=True)
     disputed_on = DateTimeField(blank=True, null=True, db_index=True)
     arbitrator = ForeignKey(settings.AUTH_USER_MODEL, related_name='cases', null=True, blank=True, on_delete=SET_NULL)

@@ -25,7 +25,7 @@
   export default {
     name: 'ac-patchfield',
     directives: { focus: focus },
-    props: ['value', 'editmode', 'name', 'styleclass', 'url', 'callback', 'multiline', 'placeholder'],
+    props: ['value', 'editmode', 'name', 'styleclass', 'url', 'callback', 'multiline', 'placeholder', 'displayValue'],
     data: function () {
       return {
         editing: false,
@@ -38,6 +38,9 @@
     computed: {
       preview: function () {
         let value = this.value
+        if (this.displayValue !== undefined) {
+          value = this.displayValue
+        }
         if (!value && this.editmode) {
           value = this.placeholder ? this.placeholder : ''
         }

@@ -28,7 +28,7 @@
         <div class="card-block product-info">
           <div class="extra-details text-xs-center">
             <div class="full-width">
-              <strong class="day-count">{{product.expected_turnaround}}</strong> days <br />
+              <strong class="day-count">{{turnaround}}</strong> days <br />
               turnaround
             </div>
           </div>
@@ -49,6 +49,11 @@
   export default {
     name: 'ac-product-preview',
     props: ['product', 'contain'],
+    computed: {
+      turnaround () {
+        return Math.ceil(this.product.expected_turnaround)
+      }
+    },
     components: {AcAsset}
   }
 </script>

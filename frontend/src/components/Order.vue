@@ -61,10 +61,12 @@
               <span v-else-if="adjustmentModel.adjustment > 0">Custom requirements: </span>
               <span v-if="parseFloat(adjustmentModel.adjustment || '0') !== 0">${{parseFloat(adjustmentModel.adjustment).toFixed(2)}}</span>
               <hr />
-              <strong>Total: ${{price}}</strong>
+              <strong>Total: ${{price}}</strong> <br />
+              <strong>Expected Turnaround: {{turnaround}} days</strong>
               <div v-if="seller && sellerData.user.fee !== null">
                 Artconomy service fee: -${{ fee }} <br />
-                <strong>Your payout: ${{ payout }}</strong>
+                <strong>Your payout: ${{ payout }}</strong> <br />
+                <strong>Task weight: {{ weight }}</strong>
               </div>
             </div>
             <div class="pricing-container mt-2 pl-3 pr-3" v-if="seller && (newOrder || paymentPending) && (sellerData.user.fee !== null)">
@@ -78,7 +80,7 @@
                   :reset-after="false">
               </ac-form-container>
               <div class="text-xs-center">
-                <v-btn type="submit" color="primary" @click.prevent="$refs.adjustmentForm.submit">Adjust price</v-btn><i v-if="$refs.adjustmentForm && $refs.adjustmentForm.saved" class="fa fa-check" style="color: green"></i>
+                <v-btn type="submit" color="primary" @click.prevent="$refs.adjustmentForm.submit">Save Adjustments</v-btn><i v-if="$refs.adjustmentForm && $refs.adjustmentForm.saved" class="fa fa-check" style="color: green"></i>
               </div>
               <p class="mt-2">
                 <strong>Note:</strong> Only one adjustment may be used. Therefore, please include all
@@ -214,7 +216,13 @@
               <span v-else-if="adjustmentModel.adjustment > 0">Custom requirements: </span>
               <span v-if="parseFloat(adjustmentModel.adjustment) !== 0">${{parseFloat(adjustmentModel.adjustment).toFixed(2)}}</span>
               <hr />
-              <strong>Total: ${{price}}</strong>
+              <strong>Total: ${{price}}</strong> <br />
+              <strong>Expected Turnaround: {{turnaround}} days
+                <span v-if="daysDifference"> ({{daysDifference}} days
+                  <span v-if="daysDifference > 0">added</span>
+                  <span v-else>removed</span>)
+                </span>
+              </strong>
               <div v-if="selectedCardModel && selectedCardModel.cvv_verified === false">
                 <strong>Card Security code (CVV): </strong><v-text-field :autofocus="true" v-model="cvv" /> <br />
                 <small>Three to four digit number, on the front of American Express cards, and on the back of all other cards.</small>
@@ -402,13 +410,12 @@
     mixins: [Viewer, Perms],
     methods: {
       populateOrder (response) {
-        let oldAdjustment = this.order && this.order.adjustment
-        let oldStream = this.order && this.order.stream_link
+        let oldOrder = this.order
         this.order = response
-        if (oldAdjustment === null) {
+        if (oldOrder === null) {
           this.adjustmentModel.adjustment = response.adjustment
-        }
-        if (oldStream === null) {
+          this.adjustmentModel.adjustment_expected_turnaround = response.adjustment_expected_turnaround
+          this.adjustmentModel.adjustment_task_weight = response.adjustment_task_weight
           this.streamModel.stream_link = response.stream_link
         }
         this.$root.$setUser(response.seller.username, this.sellerData, this.$error)
@@ -512,6 +519,17 @@
       payout () {
         return (this.price - this.fee).toFixed(2)
       },
+      weight () {
+        let weight = this.order.task_weight || this.order.product.task_weight
+        return parseInt(weight) + parseInt(this.adjustmentModel.adjustment_task_weight || '0')
+      },
+      turnaround () {
+        let turnaround = this.order.expected_turnaround || this.order.product.expected_turnaround
+        return Math.ceil(parseFloat(turnaround) + parseFloat(this.adjustmentModel.adjustment_expected_turnaround || '0'))
+      },
+      daysDifference () {
+        return this.turnaround - Math.ceil(this.order.expected_turnaround || this.order.product.expected_turnaround)
+      },
       paymentData () {
         return {
           card_id: this.selectedCard,
@@ -533,7 +551,9 @@
         revisions: null,
         cvv: '',
         adjustmentModel: {
-          adjustment: 0.00
+          adjustment: 0.00,
+          adjustment_expected_turnaround: 0.00,
+          adjustment_task_weight: 0
         },
         revisionModel: {
           file: [],
@@ -580,7 +600,22 @@
             inputType: 'number',
             step: '.01',
             model: 'adjustment',
-            label: 'Adjustment (USD)',
+            label: 'Adjust price (USD)',
+            featured: true
+          }, {
+            type: 'v-text',
+            inputType: 'number',
+            step: '.01',
+            model: 'adjustment_expected_turnaround',
+            label: 'Adjust expected turnaround',
+            featured: true,
+            hint: 'Value is always rounded up when displaying to customer'
+          }, {
+            type: 'v-text',
+            inputType: 'number',
+            step: 1,
+            model: 'adjustment_task_weight',
+            label: 'Adjust task weight',
             featured: true
           }]
         },

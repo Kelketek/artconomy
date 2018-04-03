@@ -189,6 +189,7 @@ MIN_PASS_LENGTH = 8
 BANNED_USERNAMES = ['artconomy']
 
 MINIMUM_PRICE = Decimal('1.10')
+MINIMUM_TURNAROUND = Decimal('.01')
 
 REFUND_FEE = Decimal('2.00')
 
