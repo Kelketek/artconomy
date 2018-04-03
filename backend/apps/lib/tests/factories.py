@@ -1,7 +1,7 @@
 from factory import SubFactory, Sequence
 from factory.django import DjangoModelFactory
 
-from apps.lib.models import Comment
+from apps.lib.models import Comment, Tag
 from apps.profiles.tests.factories import UserFactory
 
 
@@ -11,3 +11,10 @@ class CommentFactory(DjangoModelFactory):
 
     class Meta:
         model = Comment
+
+
+class TagFactory(DjangoModelFactory):
+    name = Sequence(lambda n: 'Tag {}'.format(n))
+
+    class Meta:
+        model = Tag

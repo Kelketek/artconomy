@@ -86,8 +86,14 @@ def product_ordering(qs, query=''):
 def available_products(requester, query=''):
     exclude = Q(hidden=True)
     q = Q(name__istartswith=query) | Q(tags__name__iexact=query)
-    qs = Product.objects.filter(q).exclude(exclude & ~Q(user=requester))
-
+    if requester.is_authenticated:
+        qs = Product.objects.filter(q).exclude(exclude & ~Q(user=requester))
+        qs = qs.exclude(Q(task_weight__gt=F('user__max_load')-F('user__load')) & ~Q(user=requester))
+        qs = qs.filter(Q(max_parallel=0) | Q(parallel__lt=F('max_parallel')) | Q(user=requester))
+    else:
+        qs = Product.objects.filter(q).exclude(exclude)
+        qs = qs.exclude(Q(task_weight__gt=F('user__max_load')-F('user__load')))
+        qs = qs.filter(Q(max_parallel=0) | Q(parallel__lt=F('max_parallel')))
     return product_ordering(qs, query)
 
 

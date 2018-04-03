@@ -8,7 +8,7 @@ from django.contrib.contenttypes.fields import GenericRelation, GenericForeignKe
 from django.contrib.contenttypes.models import ContentType
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models import Model, CharField, ForeignKey, IntegerField, BooleanField, DateTimeField, ManyToManyField, \
-    TextField, SET_NULL, PositiveIntegerField, URLField, CASCADE, DecimalField
+    TextField, SET_NULL, PositiveIntegerField, URLField, CASCADE, DecimalField, Sum
 
 # Create your models here.
 from django.db.models.signals import post_delete, post_save, pre_delete
@@ -68,6 +68,7 @@ class Product(ImageModel):
         blank=True,
         default=0
     )
+    parallel = IntegerField(default=0, blank=True)
     task_weight = IntegerField(
         validators=[MinValueValidator(1)]
     )
@@ -307,6 +308,18 @@ def auto_remove_order(sender, instance, **_kwargs):
 
 
 remove_order_events = receiver(pre_delete, sender=Order)(clear_events)
+
+
+@receiver(post_save, sender=Order)
+def update_artist_load(sender, instance, created=False, **_kwargs):
+    weighted_statuses = [Order.IN_PROGRESS, Order.PAYMENT_PENDING, Order.QUEUED]
+    result = Order.objects.filter(
+        seller=instance.seller, status__in=weighted_statuses
+    ).aggregate(base_load=Sum('task_weight'), added_load=Sum('adjustment_task_weight'))
+    instance.seller.load = (result['base_load'] or 0) + (result['added_load'] or 0)
+    instance.seller.save()
+    instance.product.parallel = Order.objects.filter(product=instance.product, status__in=weighted_statuses).count()
+    instance.product.save()
 
 
 class RatingSet(Model):

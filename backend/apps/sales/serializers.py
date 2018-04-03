@@ -91,7 +91,6 @@ class OrderStartedSerializer(OrderViewSerializer):
 class OrderAdjustSerializer(OrderViewSerializer):
     def validate(self, attrs):
         errors = {}
-        print(attrs)
         if attrs.get('adjustment'):
             if self.instance.product.price.amount + attrs['adjustment'] < settings.MINIMUM_PRICE:
                 errors['adjustment'] = "The total price may not be less than ${}".format(settings.MINIMUM_PRICE)

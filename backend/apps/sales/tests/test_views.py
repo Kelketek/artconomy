@@ -12,6 +12,7 @@ from rest_framework import status
 from apps.lib.abstract_models import ADULT, MATURE
 from apps.lib.models import DISPUTE, Comment
 from apps.lib.test_resources import APITestCase
+from apps.lib.tests.factories import TagFactory
 from apps.profiles.models import ImageAsset
 from apps.profiles.tests.factories import CharacterFactory, UserFactory, ImageAssetFactory
 from apps.profiles.tests.helpers import gen_image
@@ -1666,3 +1667,79 @@ class TestAccountBalance(APITestCase):
     def test_account_balance_not_logged_in(self):
         response = self.client.get('/api/sales/v1/account/{}/balance/'.format(self.user.username))
         self.assertEqual(response.status_code, 403)
+
+
+class TestProductSearch(APITestCase):
+    def test_query_not_logged_in(self):
+        # Search term matches.
+        product1 = ProductFactory.create(name='Test1')
+        product2 = ProductFactory.create(name='Wat')
+        tag = TagFactory.create(name='test')
+        product2.tags.add(tag)
+        product3 = ProductFactory.create(name='Test3', task_weight=5, user__load=2, user__max_load=10)
+        # Hidden products
+        ProductFactory.create(name='Test3', hidden=True)
+        hidden = ProductFactory.create(name='Wat2', hidden=True)
+        hidden.tags.add(tag)
+        ProductFactory.create(name='Test4', task_weight=5, user__load=10, user__max_load=10)
+        overloaded = ProductFactory.create(name='Test5', max_parallel=2)
+        OrderFactory.create(product=overloaded, status=Order.IN_PROGRESS)
+        OrderFactory.create(product=overloaded, status=Order.QUEUED)
+
+        response = self.client.get('/api/sales/v1/search/product/', {'q': 'test'})
+        self.assertIDInList(product1, response.data['results'])
+        self.assertIDInList(product2, response.data['results'])
+        self.assertIDInList(product3, response.data['results'])
+        self.assertEqual(len(response.data['results']), 3)
+
+    def test_query_logged_in(self):
+        # Search term matches.
+        product1 = ProductFactory.create(name='Test1')
+        product2 = ProductFactory.create(name='Wat')
+        tag = TagFactory.create(name='test')
+        product2.tags.add(tag)
+        product3 = ProductFactory.create(name='Test3', task_weight=5)
+        product4 = ProductFactory.create(name='Test4', hidden=True, user=self.user)
+        product5 = ProductFactory.create(name='Wat2', hidden=True, user=self.user)
+        product5.tags.add(tag)
+        product6 = ProductFactory.create(name='Test5', task_weight=100, user=self.user)
+        product7 = ProductFactory.create(name='Test7', max_parallel=2, user=self.user)
+        OrderFactory.create(product=product7)
+        OrderFactory.create(product=product7)
+
+        self.user.max_load = 10
+        self.user.load = 2
+        self.user.save()
+        self.login(self.user)
+        response = self.client.get('/api/sales/v1/search/product/', {'q': 'test'})
+        self.assertIDInList(product1, response.data['results'])
+        self.assertIDInList(product2, response.data['results'])
+        self.assertIDInList(product3, response.data['results'])
+        self.assertIDInList(product4, response.data['results'])
+        self.assertIDInList(product5, response.data['results'])
+        self.assertIDInList(product6, response.data['results'])
+        self.assertIDInList(product7, response.data['results'])
+        self.assertEqual(len(response.data['results']), 7)
+
+    def test_query_different_user(self):
+        # Search term matches.
+        product1 = ProductFactory.create(name='Test1')
+        product2 = ProductFactory.create(name='Wat')
+        tag = TagFactory.create(name='test')
+        product2.tags.add(tag)
+        product3 = ProductFactory.create(name='Test3', task_weight=5, user__load=2, user__max_load=10)
+        # Hidden products
+        ProductFactory.create(name='Test3', hidden=True)
+        hidden = ProductFactory.create(name='Wat2', hidden=True)
+        hidden.tags.add(tag)
+        ProductFactory.create(name='Test4', task_weight=5, user__load=8, user__max_load=10)
+        overloaded = ProductFactory.create(name='Test5', max_parallel=2)
+        OrderFactory.create(product=overloaded, status=Order.IN_PROGRESS)
+        OrderFactory.create(product=overloaded, status=Order.QUEUED)
+
+        self.login(self.user2)
+        response = self.client.get('/api/sales/v1/search/product/', {'q': 'test'})
+        self.assertIDInList(product1, response.data['results'])
+        self.assertIDInList(product2, response.data['results'])
+        self.assertIDInList(product3, response.data['results'])
+        self.assertEqual(len(response.data['results']), 3)

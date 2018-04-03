@@ -54,6 +54,7 @@ class ProductListAPI(ListCreateAPIView):
         qs = Product.objects.filter(user__username__iexact=self.kwargs['username'], active=True)
         if not (self.request.user.username.lower() == username or self.request.user.is_staff):
             qs = qs.exclude(hidden=True)
+            qs.exclude(task_weight__gt=F('user__max_load') - F('user__load'))
         qs = qs.order_by('created_on')
         return qs
 
@@ -523,7 +524,9 @@ class CancelledCasesList(CancelledMixin, CasesListBase):
 
 class AdjustOrder(UpdateAPIView):
     permission_classes = [
-        OrderSellerPermission, ObjectStatus(Order.NEW, "You may not adjust the price of a confirmed order.")
+        OrderSellerPermission, ObjectStatus(
+            [Order.NEW, Order.PAYMENT_PENDING], "You may not adjust the price of a confirmed order."
+        )
     ]
     serializer_class = OrderAdjustSerializer
 
@@ -772,10 +775,7 @@ class ProductSearch(ListAPIView):
             user = get_object_or_404(User, id=self.request.GET.get('user', self.request.user.id))
         else:
             user = self.request.user
-        if self.request.user.is_authenticated:
-            return available_products(user, query=query)
-        q = Q(name__istartswith=query) | Q(tags__name__iexact=query)
-        return Product.objects.filter(q).exclude(hidden=True).distinct('id').order_by('id')
+        return available_products(user, query=query)
 
 
 class PurchaseHistory(ListAPIView):

@@ -65,6 +65,7 @@ class User(AbstractEmailUser):
     blacklist__max = 500
     biography = CharField(max_length=5000, blank=True, default='')
     notifications = ManyToManyField('lib.Event', through='lib.Notification')
+    load = IntegerField(default=0)
 
     @property
     def fee(self):

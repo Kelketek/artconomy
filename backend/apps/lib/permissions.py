@@ -47,15 +47,15 @@ class CommentDepthPermission(BasePermission):
 
 
 # Use CamelCase since it outputs custom class.
-def ObjectStatus(status, message):
+def ObjectStatus(statuses, message):
     class PermClass(BasePermission):
         def has_object_permission(self, request, view, obj):
-            if obj.status == self.status:
+            if obj.status in self.statuses:
                 return True
             return False
 
     # Scoping doesn't work when assigning in the definition.
-    PermClass.status = status
+    PermClass.statuses = statuses
     PermClass.message = message
 
     return PermClass
