@@ -24,7 +24,7 @@ def char_ordering(qs, requester, query=''):
     ).order_by('matches', 'mine', 'tag_matches')
 
 
-def available_chars(requester, query='', commissions=False, ordering=True):
+def available_chars(requester, query='', commissions=False, tagging=False):
     exclude = Q(private=True)
     if commissions:
         exclude |= Q(open_requests=False)
@@ -34,8 +34,8 @@ def available_chars(requester, query='', commissions=False, ordering=True):
         q = Q()
     qs = Character.objects.filter(q).exclude(exclude & ~Q(user=requester))
     qs = qs.exclude(tags__in=requester.blacklist.all())
-    if ordering:
-        qs = char_ordering(qs, requester, query=query)
+    if tagging:
+        qs = qs.exclude(Q(taggable=False) & ~Q(user=requester))
     return qs.distinct()
 
 

@@ -290,6 +290,7 @@ class CharacterSearch(ListAPIView):
 
     def get_queryset(self):
         query = self.request.GET.get('q', '')
+        tagging = self.request.GET.get('tagging', False)
         if not query:
             return Character.objects.none()
         try:
@@ -303,9 +304,11 @@ class CharacterSearch(ListAPIView):
         else:
             user = self.request.user
         if self.request.user.is_authenticated:
-            return char_ordering(available_chars(user, query=query, commissions=commissions), user, query=query)
+            return char_ordering(
+                available_chars(user, query=query, commissions=commissions, tagging=tagging), user, query=query
+            )
         q = Q(name__istartswith=query) | Q(tags__name__iexact=query)
-        return Character.objects.filter(q).exclude(private=True).distinct().order_by('id')
+        return Character.objects.filter(q).exclude(private=True).exclude(taggable=False).distinct().order_by('id')
 
 
 class UserSearch(ListAPIView):
@@ -313,9 +316,15 @@ class UserSearch(ListAPIView):
 
     def get_queryset(self):
         query = self.request.GET.get('q', '')
+        tagging = self.request.GET.get('tagging', False)
         if not query:
             return User.objects.none()
-        return User.objects.filter(username__istartswith=query)
+        qs = User.objects.filter(username__istartswith=query)
+        if tagging and self.request.user.is_authenticated:
+            qs = qs.filter(Q(taggable=True) | Q(id=self.request.user.id))
+        elif tagging:
+            qs = qs.filter(taggable=True)
+        return qs
 
 
 class TagSearch(APIView):
@@ -393,7 +402,7 @@ class AssetTagCharacter(APIView):
         if 'characters' not in request.data:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'characters': ['This field is required.']})
         id_list = request.data['characters']
-        qs = available_chars(request.user, commissions=False).filter(id__in=id_list)
+        qs = available_chars(request.user, commissions=False, tagging=True).filter(id__in=id_list)
         qs = qs.exclude(id__in=asset.characters.all().values_list('id', flat=True))
 
         for character in qs:
@@ -739,7 +748,7 @@ class GalleryList(ListCreateAPIView):
             instance.artists.add(user)
         add_tags(self.request, instance)
         instance.artists.add(*available_artists(user).filter(pk__in=artist_pks))
-        instance.characters.add(*available_chars(user, ordering=False).filter(pk__in=char_pks))
+        instance.characters.add(*available_chars(user, tagging=True).filter(pk__in=char_pks))
         return instance
 
 

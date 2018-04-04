@@ -44,7 +44,7 @@
     },
     methods: {
       runQuery () {
-        artCall(`/api/profiles/v1/search/user/`, 'GET', {q: this.query, size: 9}, this.populateResponse)
+        artCall(`/api/profiles/v1/search/user/`, 'GET', {q: this.query, size: 9, tagging: this.schema.tagging}, this.populateResponse)
       },
       populateResponse (response) {
         this.response = response

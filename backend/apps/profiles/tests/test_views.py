@@ -329,7 +329,8 @@ class TestSettings(APITestCase):
                 'rating': ADULT,
                 'sfw_mode': False,
                 'favorites_hidden': False,
-                'max_load': 5
+                'max_load': 5,
+                'taggable': True
             }
         )
         self.user.refresh_from_db()
@@ -484,7 +485,8 @@ class TestCharacterSearch(APITestCase):
         CharacterFactory.create(name='Terrence', private=True)
         CharacterFactory.create(name='wutwut')
         CharacterFactory.create(name='Stuff')
-        response = self.client.get('/api/profiles/v1/search/character/?q=terr')
+        CharacterFactory.create(name='Terrifying', taggable=False)
+        response = self.client.get('/api/profiles/v1/search/character/?q=terr&tagging=true')
         self.assertEqual(len(response.data['results']), 2)
         self.assertIDInList(char, response.data['results'])
         self.assertIDInList(char2, response.data['results'])
@@ -494,42 +496,52 @@ class TestCharacterSearch(APITestCase):
         visible2 = CharacterFactory.create(name='Terrencia', user=self.user2, open_requests=False)
         visible_private = CharacterFactory.create(name='Terrence', private=True, user=self.user)
         CharacterFactory.create(name='Terryvix', private=True, user=self.user2)
+        visible_non_taggable = CharacterFactory.create(name='Terrifying', taggable=False, user=self.user)
         CharacterFactory.create(name='Stuff')
+        CharacterFactory.create(name='Terrible', taggable=False, user=self.user2)
         self.login(self.user)
-        response = self.client.get('/api/profiles/v1/search/character/?q=terr')
-        self.assertEqual(len(response.data['results']), 3)
+        response = self.client.get('/api/profiles/v1/search/character/?q=terr&tagging=true')
+        self.assertEqual(len(response.data['results']), 4)
         self.assertIDInList(visible, response.data['results'])
         self.assertIDInList(visible2, response.data['results'])
+        self.assertIDInList(visible_non_taggable, response.data['results'])
         self.assertIDInList(visible_private, response.data['results'])
-        self.assertEqual(visible2.id, response.data['results'][2]['id'])
+        self.assertEqual(visible2.id, response.data['results'][3]['id'])
 
     def test_query_logged_in_commission(self):
         visible = CharacterFactory.create(name='Terrybutt', open_requests=True, user=self.user)
         visible2 = CharacterFactory.create(name='Terrencia', open_requests=True, user=self.user2)
+        visible3 = CharacterFactory.create(name='Terrifying', taggable=False, open_requests=True, user=self.user2)
         visible_private = CharacterFactory.create(name='Terrence', private=True, open_requests=True, user=self.user)
         CharacterFactory.create(name='Terryvix', private=True, open_requests=True, user=self.user2)
         CharacterFactory.create(name='Terrible', open_requests=False, user=self.user2)
+        CharacterFactory.create(name='Terrp', taggable=True, open_requests=False, user=self.user2)
         CharacterFactory.create(name='Stuff', open_requests=True)
         self.login(self.user)
         response = self.client.get('/api/profiles/v1/search/character/?q=terr&new_order=1')
-        self.assertEqual(len(response.data['results']), 3)
+        self.assertEqual(len(response.data['results']), 4)
         self.assertIDInList(visible, response.data['results'])
         self.assertIDInList(visible_private, response.data['results'])
+        self.assertIDInList(visible3, response.data['results'])
         self.assertEqual(visible2.id, response.data['results'][2]['id'])
 
     def test_query_logged_in_staffer(self):
         visible = CharacterFactory.create(name='Terrybutt', open_requests=True, user=self.user)
         visible2 = CharacterFactory.create(name='Terrencia', open_requests=True, user=self.user2)
         visible_private = CharacterFactory.create(name='Terrence', private=True, user=self.user)
+        visible_non_taggable = CharacterFactory.create(name='Terrifying', taggable=False, user=self.user)
         CharacterFactory.create(name='Terryvix', open_requests=True, private=True, user=self.user2)
         CharacterFactory.create(name='Terrible', open_requests=False, user=self.user2)
         CharacterFactory.create(name='Stuff', open_requests=True)
         self.login(self.staffer)
-        response = self.client.get('/api/profiles/v1/search/character/?q=terr&new_order=1&user={}'.format(self.user.id))
-        self.assertEqual(len(response.data['results']), 3)
+        response = self.client.get(
+            '/api/profiles/v1/search/character/?q=terr&new_order=1&user={}&tagging=true'.format(self.user.id)
+        )
+        self.assertEqual(len(response.data['results']), 4)
         self.assertIDInList(visible, response.data['results'])
         self.assertIDInList(visible_private, response.data['results'])
-        self.assertEqual(visible2.id, response.data['results'][2]['id'])
+        self.assertIDInList(visible_non_taggable, response.data['results'])
+        self.assertEqual(visible2.id, response.data['results'][3]['id'])
 
 
 class TestRefColor(APITestCase):

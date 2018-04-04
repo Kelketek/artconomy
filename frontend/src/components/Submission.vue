@@ -283,6 +283,7 @@
               type: 'character-search',
               model: 'characters',
               label: 'Characters',
+              tagging: true,
               featured: true,
               placeholder: 'Search characters',
               styleClasses: 'field-input'
@@ -303,6 +304,7 @@
               model: 'artists',
               label: 'Artists',
               featured: true,
+              tagging: true,
               placeholder: 'Search artists',
               styleClasses: 'field-input'
             }

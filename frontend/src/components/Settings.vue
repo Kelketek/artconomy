@@ -217,6 +217,14 @@
             validator: VueFormGenerator.validators.boolean,
             hint: 'If checked, hides your favorites list from public view.'
           }, {
+            type: 'v-checkbox',
+            styleClasses: ['vue-checkbox'],
+            label: 'Taggable',
+            model: 'taggable',
+            required: false,
+            validator: VueFormGenerator.validators.boolean,
+            hint: 'If unchecked, prevents others from tagging you as an artist in a submission.'
+          }, {
             type: 'v-text',
             inputType: 'number',
             label: 'Maximum Load',

@@ -159,7 +159,7 @@ class CharacterSerializer(serializers.ModelSerializer):
         model = Character
         fields = (
             'id', 'name', 'description', 'private', 'open_requests', 'open_requests_restrictions', 'user',
-            'primary_asset', 'primary_asset_id', 'tags', 'colors'
+            'primary_asset', 'primary_asset_id', 'tags', 'colors', 'taggable'
         )
 
 
@@ -197,7 +197,7 @@ class SettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'commissions_closed', 'rating', 'sfw_mode', 'max_load', 'favorites_hidden'
+            'commissions_closed', 'rating', 'sfw_mode', 'max_load', 'favorites_hidden', 'taggable'
         )
 
 
@@ -299,6 +299,6 @@ class UserSerializer(serializers.ModelSerializer):
         fields = (
             'commissions_closed', 'rating', 'sfw_mode', 'max_load', 'username', 'id', 'is_staff', 'is_superuser',
             'dwolla_configured', 'csrftoken', 'avatar_url', 'email', 'fee', 'authtoken', 'favorites_hidden',
-            'blacklist', 'biography', 'has_products'
+            'blacklist', 'biography', 'has_products', 'taggable'
         )
         read_only_fields = fields

@@ -337,7 +337,8 @@
         settingsModel: {
           name: '',
           open_comissions: false,
-          private: false
+          private: false,
+          taggable: true
         },
         settingsSchema: {
           fields: [{
@@ -360,6 +361,11 @@
             hint: 'Hides your character from public listings and prevents anyone with whom they have not been ' +
                   'explicitly shared from viewing it.',
             model: 'private'
+          }, {
+            type: 'v-checkbox',
+            label: 'Taggable',
+            hint: 'If unchecked, this character cannot be tagged by others.',
+            model: 'taggable'
           }]
         },
         showUpload: false,

@@ -42,6 +42,7 @@ class User(AbstractEmailUser):
         help_text="When enabled, no one may commission you."
     )
     favorites_hidden = BooleanField(default=False)
+    taggable = BooleanField(default=True, db_index=True)
     artist_tagging_disabled = BooleanField(default=False, db_index=True)
     use_load_tracker = BooleanField(
         default=True,
@@ -232,6 +233,7 @@ class Character(Model):
         default=''
     )
     primary_asset = ForeignKey('ImageAsset', null=True, on_delete=SET_NULL)
+    taggable = BooleanField(default=True, db_index=True)
     user = ForeignKey(settings.AUTH_USER_MODEL, related_name='characters', on_delete=CASCADE)
     created_on = DateTimeField(auto_now_add=True)
     tags = ManyToManyField('lib.Tag', related_name='characters', blank=True)

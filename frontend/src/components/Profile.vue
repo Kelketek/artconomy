@@ -217,6 +217,7 @@
             model: 'artists',
             label: 'Other Artists',
             featured: true,
+            tagging: true,
             placeholder: 'Search artists',
             styleClasses: 'field-input'
           },
