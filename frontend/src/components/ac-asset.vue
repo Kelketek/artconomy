@@ -1,7 +1,10 @@
 <template>
   <div class="asset-container">
     <div v-if="asset">
-      <a :href="asset.file.full" v-if="canDisplay && !textOnly"><img :class="imgClass" :src="asset.file[thumbName]"></a>
+      <img :class="imgClass" :src="asset.file[thumbName]" v-if="canDisplay && !textOnly" @click="fullscreen=true">
+      <div v-if="fullscreen" class="fullscreen-container" @click="fullscreen=false">
+        <img :class="imgClass" :src="asset.file.full" v-if="canDisplay && !textOnly">
+      </div>
       <div v-else-if="!canDisplay">
         <div class="text-xs-center" v-if="!terse">
           <v-icon x-large>block</v-icon>
@@ -33,6 +36,22 @@
   </div>
 </template>
 
+<style scoped>
+  .fullscreen-container {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: 100;
+    background-color: #303030;
+  }
+  .fullscreen-container img {
+    max-height: 100%;
+    max-width: 100%;
+  }
+</style>
+
 <script>
   import { RATINGS } from '../lib'
   export default {
@@ -47,6 +66,11 @@
         default: 'min-height: 15rem;'
       },
       'addedTags': {default () { return [] }}
+    },
+    data () {
+      return {
+        fullscreen: false
+      }
     },
     computed: {
       ratingText () {
