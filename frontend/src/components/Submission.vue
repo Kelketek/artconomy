@@ -55,7 +55,7 @@
           <v-flex xs12 md4 text-xs-center class="pt-3 pl-4">
             <div class="info-block" v-if="!artistUploader">
               <h4>Added By</h4>
-              <ac-avatar :user="submission.uploaded_by" />
+              <ac-avatar :user="submission.owner" />
             </div>
             <div
                 v-if="submission.artists.length"
@@ -103,7 +103,7 @@
               </div>
             </div>
             <p v-if="controls && submission.order" class="mb-0">
-              From <router-link :to="{name: 'Order', params: {orderID: submission.order, username: submission.uploaded_by.username}}">Order {{submission.order}}</router-link>
+              From <router-link :to="{name: 'Order', params: {orderID: submission.order, username: submission.owner.username}}">Order {{submission.order}}</router-link>
             </p>
             <p v-if="(submission.order && ownWork ) || controls && (submission.order)" class="mb-0">
               From <router-link :to="{name: 'Sale', params: {orderID: submission.order, username: viewer.username}}">Sale {{submission.order}}</router-link>
@@ -318,10 +318,10 @@
     },
     computed: {
       controls () {
-        return this.submission.uploaded_by.username === this.$root.user.username
+        return this.submission.owner.username === this.$root.user.username
       },
       artistUploader () {
-        return this.isArtist(this.submission.uploaded_by.username)
+        return this.isArtist(this.submission.owner.username)
       },
       ownWork () {
         return this.isArtist(this.viewer.username)
@@ -342,14 +342,14 @@
         this.setMeta()
       },
       setMeta () {
-        document.title = `${this.submission.title} -- by ${this.submission.uploaded_by.username}`
+        document.title = `${this.submission.title} -- by ${this.submission.owner.username}`
         setMetaContent('description', textualize(this.submission.caption).slice(0, 160))
       },
       goBack () {
         if (this.$router.history.length) {
           this.$router.go(-1)
         } else {
-          this.$router.history.push({name: 'Profile', params: {username: this.submission.uploaded_by.username}})
+          this.$router.history.push({name: 'Profile', params: {username: this.submission.owner.username}})
         }
       },
       isArtist (username) {

@@ -184,7 +184,7 @@ class RevisionSerializer(serializers.ModelSerializer):
     """
     Serializer for order revisions.
     """
-    uploaded_by = serializers.SlugRelatedField(slug_field='username', read_only=True)
+    owner = serializers.SlugRelatedField(slug_field='username', read_only=True)
     file = Base64ImageField(thumbnail_namespace='sales.Revision.file')
 
     def get_thumbnail_url(self, obj):
@@ -192,8 +192,8 @@ class RevisionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Revision
-        fields = ('id', 'rating', 'file', 'created_on', 'uploaded_by', 'order')
-        read_only_fields = ('id', 'order', 'uploaded_by')
+        fields = ('id', 'rating', 'file', 'created_on', 'owner', 'order')
+        read_only_fields = ('id', 'order', 'owner')
 
 
 class AccountBalanceSerializer(serializers.ModelSerializer):

@@ -12,7 +12,7 @@ class ProductFactory(DjangoModelFactory):
     expected_turnaround = 3
     revisions = 4
     task_weight = 2
-    uploaded_by = SelfAttribute('user')
+    owner = SelfAttribute('user')
     price = Money('15.00', 'USD')
     name = Sequence(lambda n: 'Product id {0}'.format(n))
     description = 'Product description'
@@ -43,7 +43,7 @@ class CreditCardTokenFactory(DjangoModelFactory):
 class RevisionFactory(DjangoModelFactory):
     file = ImageField(color='blue')
     order = SubFactory(OrderFactory)
-    uploaded_by = SelfAttribute('order.seller')
+    owner = SelfAttribute('order.seller')
 
     class Meta:
         model = Revision

@@ -714,7 +714,7 @@ class TestOrder(APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['order'], order.id)
-        self.assertEqual(response.data['uploaded_by'], self.user.username)
+        self.assertEqual(response.data['owner'], self.user.username)
         self.assertEqual(response.data['rating'], ADULT)
 
     def test_revision_upload_buyer_fail(self):
@@ -753,7 +753,7 @@ class TestOrder(APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['order'], order.id)
-        self.assertEqual(response.data['uploaded_by'], self.staffer.username)
+        self.assertEqual(response.data['owner'], self.staffer.username)
         self.assertEqual(response.data['rating'], ADULT)
 
     def test_revision_upload_final(self):
@@ -1191,7 +1191,7 @@ class TestOrderStateChange(APITestCase):
         asset = ImageAsset.objects.get(order=self.order)
         self.assertEqual(asset.rating, ADULT)
         self.assertEqual(asset.order, self.order)
-        self.assertEqual(asset.uploaded_by, self.order.buyer)
+        self.assertEqual(asset.owner, self.order.buyer)
         self.assertEqual(self.order.characters.get(name='Unpictured1').primary_asset, asset)
         self.assertEqual(self.order.characters.get(name='Unpictured2').primary_asset, asset)
         self.assertNotEqual(self.order.characters.get(name='Pictured').primary_asset, asset)
@@ -1227,7 +1227,7 @@ class TestOrderStateChange(APITestCase):
         asset = ImageAsset.objects.get(order=self.order)
         self.assertEqual(asset.rating, ADULT)
         self.assertEqual(asset.order, self.order)
-        self.assertEqual(asset.uploaded_by, self.order.buyer)
+        self.assertEqual(asset.owner, self.order.buyer)
         self.assertEqual(asset.private, True)
         self.assertEqual(self.order.characters.get(name='Unpictured1').primary_asset, None)
         self.assertEqual(self.order.characters.get(name='Unpictured2').primary_asset, None)

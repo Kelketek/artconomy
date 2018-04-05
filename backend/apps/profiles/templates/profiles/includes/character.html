@@ -38,7 +38,7 @@
                                     </div>
                                     <ac-asset-update :character="character" :current="current" ref="updater" :initial="current" class="text-left"></ac-asset-update>
                                 </div>
-                                {% verbatim %}<p>Uploaded by: {{ current.uploaded_by }}</p>{% endverbatim %}
+                                {% verbatim %}<p>Uploaded by: {{ current.owner }}</p>{% endverbatim %}
                                 {% verbatim %}<p>Rating: {{ rating(current.rating) }}</p>{% endverbatim %}
                             </div>
                         </div>

@@ -30,4 +30,4 @@ class ImageAssetFactory(DjangoModelFactory):
     file = ImageField(color='blue')
     title = Sequence(lambda n: 'Image {0}'.format(n))
     caption = Sequence(lambda n: 'This is image {0}'.format(n))
-    uploaded_by = SubFactory(UserFactory)
+    owner = SubFactory(UserFactory)

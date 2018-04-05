@@ -24,7 +24,7 @@ function genRevisions () {
         'full': 'https://artconomy.vulpinity.com/media/art/2018/01/02/edb1cd8e-e8b3-4ef5-afb2-69c16e69ff4b.jpeg'
       },
       'created_on': '2018-01-02T20:49:30.777699Z',
-      'uploaded_by': 'Fox',
+      'owner': 'Fox',
       'order': 1
     },
     {
@@ -36,7 +36,7 @@ function genRevisions () {
         'full': 'https://artconomy.vulpinity.com/media/art/2018/01/02/9aecfcc8-aa30-4cd1-aadb-5fdc20927ea2.jpeg'
       },
       'created_on': '2018-01-02T20:49:40.521880Z',
-      'uploaded_by': 'Fox',
+      'owner': 'Fox',
       'order': 1
     },
     {
@@ -48,7 +48,7 @@ function genRevisions () {
         'full': 'https://artconomy.vulpinity.com/media/art/2018/01/02/86ed4fcf-d0c1-4d54-aabb-711180037222.png'
       },
       'created_on': '2018-01-02T20:49:47.771963Z',
-      'uploaded_by': 'Fox',
+      'owner': 'Fox',
       'order': 1
     },
     {
@@ -60,7 +60,7 @@ function genRevisions () {
         'full': 'https://artconomy.vulpinity.com/media/art/2018/01/02/5fbd090a-af0c-42e4-ae7d-b584ef92e8dd.jpeg'
       },
       'created_on': '2018-01-02T21:18:48.284490Z',
-      'uploaded_by': 'Fox',
+      'owner': 'Fox',
       'order': 1
     }
   ]
@@ -153,7 +153,7 @@ function genOrder () {
           },
           'private': false,
           'created_on': '2017-12-25T02:50:31.800125Z',
-          'uploaded_by': {
+          'owner': {
             'id': 3,
             'username': 'Foxie',
             'avatar_url': 'https://www.gravatar.com/avatar/95cbb0e4d2935fedbe8ed95e8b7fd3f7/?s=80'
@@ -183,7 +183,7 @@ function genOrder () {
         },
         'private': false,
         'created_on': '2018-01-02T22:46:06.813423Z',
-        'uploaded_by': {
+        'owner': {
           'id': 1,
           'username': 'Fox',
           'avatar_url': '/media/avatars/fox%40vulpinity.com/resized/80/41b0fbde-0fbc-409f-b848-57ac4db98957.png'

@@ -118,7 +118,7 @@ class ImageAssetListAPI(ListCreateAPIView):
             Character, user__username=self.kwargs['username'], name=self.kwargs['character']
         )
         self.check_object_permissions(self.request, character)
-        asset = serializer.save(uploaded_by=self.request.user)
+        asset = serializer.save(owner=self.request.user)
         safe_add(asset, 'characters', character)
         if character.primary_asset is None:
             character.primary_asset = asset
@@ -183,7 +183,7 @@ class AssetManager(RetrieveUpdateDestroyAPIView):
         asset = get_object_or_404(
             ImageAsset, id=self.kwargs['asset_id'],
         )
-        if not (self.request.user.is_staff or asset.uploaded_by == self.request.user):
+        if not (self.request.user.is_staff or asset.owner == self.request.user):
             if self.request.method != 'GET':
                 raise PermissionDenied("You do not have permission to edit this asset.")
             if asset.private:
@@ -376,7 +376,7 @@ class AssetTagCharacter(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'characters': ['This field is required.']})
         id_list = request.data['characters']
         qs = Character.objects.filter(id__in=id_list)
-        if (asset.uploaded_by == request.user) or request.user.is_staff:
+        if (asset.owner == request.user) or request.user.is_staff:
             asset.characters.remove(*qs)
             return Response(
                 status=status.HTTP_200_OK,
@@ -412,7 +412,7 @@ class AssetTagCharacter(APIView):
                     CHAR_TAG, character, data={'user': request.user.id, 'asset': asset.id},
                     unique=True, mark_unread=True
                 )
-            if asset.uploaded_by != request.user:
+            if asset.owner != request.user:
                 notify(SUBMISSION_CHAR_TAG, asset, data={'user': request.user.id, 'character': character.id})
         if qs.exists():
             safe_add(asset, 'characters', *qs)
@@ -424,6 +424,9 @@ class AssetTagCharacter(APIView):
 class AssetTagArtist(APIView):
     permission_classes = [IsAuthenticated, AssetViewPermission]
 
+    def get_serializer_context(self):
+        return {'request': self.request}
+
     def delete(self, request, asset_id):
         asset = get_object_or_404(ImageAsset, id=asset_id)
         self.check_object_permissions(request, asset)
@@ -434,11 +437,13 @@ class AssetTagArtist(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'artists': ['This field is required.']})
         id_list = request.data['artists']
         qs = User.objects.filter(id__in=id_list)
-        if (asset.uploaded_by == request.user) or request.user.is_staff:
+        if (asset.owner == request.user) or request.user.is_staff:
             asset.artists.remove(*qs)
             return Response(
                 status=status.HTTP_200_OK,
-                data=ImageAssetManagementSerializer(instance=asset, request=self.request).data
+                data=ImageAssetManagementSerializer(
+                    instance=asset, request=self.request, context=self.get_serializer_context()
+                ).data
             )
         else:
             qs = qs.filter(id=request.user.id)
@@ -452,7 +457,9 @@ class AssetTagArtist(APIView):
             )
         asset.artists.remove(*qs)
         return Response(
-            status=status.HTTP_200_OK, data=ImageAssetManagementSerializer(instance=asset, request=request).data
+            status=status.HTTP_200_OK, data=ImageAssetManagementSerializer(
+                instance=asset, request=request, context=self.get_serializer_context()
+            ).data
         )
 
     def post(self, request, asset_id):
@@ -470,11 +477,13 @@ class AssetTagArtist(APIView):
                     ARTIST_TAG, user, data={'user': request.user.id, 'asset': asset.id},
                     unique=True, mark_unread=True
                 )
-            if user != asset.uploaded_by:
+            if user != asset.owner:
                 notify(SUBMISSION_ARTIST_TAG, asset, data={'user': request.user.id, 'artist': user.id})
         safe_add(asset, 'artists', *qs)
         return Response(
-            status=status.HTTP_200_OK, data=ImageAssetManagementSerializer(instance=asset, request=self.request).data
+            status=status.HTTP_200_OK, data=ImageAssetManagementSerializer(
+                instance=asset, request=self.request, context=self.get_serializer_context()
+            ).data
         )
 
 
@@ -497,7 +506,7 @@ class AssetTag(BaseTagView):
                 'tags': list(set(old_data['tags'] + new_data['tags']))
             }
 
-        if asset.uploaded_by != self.request.user:
+        if asset.owner != self.request.user:
             notify(
                 SUBMISSION_TAG, asset, data={
                     'users': [self.request.user.id],
@@ -615,7 +624,7 @@ class AssetFavorite(GenericAPIView):
 
     def get_object(self):
         asset = get_object_or_404(ImageAsset, id=self.kwargs['asset_id'])
-        if asset.private and not asset.uploaded_by == self.request.user:
+        if asset.private and not asset.owner == self.request.user:
             raise PermissionDenied('This submission is private.')
         return asset
 
@@ -799,7 +808,7 @@ class GalleryList(ListCreateAPIView):
         char_pks = [char.pk for char in serializer.validated_data.get('characters', []) or []]
         artist_pks = [artist.pk for artist in serializer.validated_data.get('artists', []) or []]
         is_artist = serializer.validated_data.get('is_artist')
-        instance = serializer.save(uploaded_by=user)
+        instance = serializer.save(owner=user)
         if is_artist:
             instance.artists.add(user)
         add_tags(self.request, instance)
@@ -819,7 +828,7 @@ class SubmissionList(ListAPIView):
         user = get_object_or_404(User, username=self.kwargs['username'])
         return available_assets(
             self.request, user
-        ).filter(uploaded_by=user).exclude(artists=user).exclude(characters__user=user)
+        ).filter(owner=user).exclude(artists=user).exclude(characters__user=user)
 
 
 @csrf_exempt

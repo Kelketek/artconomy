@@ -37,7 +37,7 @@ describe('Submission.vue', () => {
         {
           title: 'Test Submission',
           caption: 'A very **testy** submission',
-          uploaded_by: {
+          owner: {
             id: 1,
             username: 'testusername'
           },

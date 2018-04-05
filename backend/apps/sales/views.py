@@ -46,7 +46,7 @@ class ProductListAPI(ListCreateAPIView):
         user = get_object_or_404(User, username__iexact=self.kwargs['username'])
         if not (self.request.user.is_staff or self.request.user == user):
             raise PermissionDenied("You do not have permission to create products for that user.")
-        product = serializer.save(uploaded_by=user, user=user)
+        product = serializer.save(owner=user, user=user)
         return product
 
     def get_queryset(self):
@@ -214,7 +214,7 @@ class OrderRevisions(ListCreateAPIView):
             raise PermissionDenied("The maximum number of revisions for this order has already been reached.")
         if not (self.request.user.is_staff or self.request.user == order.seller):
             raise PermissionDenied("You are not the seller on this order.")
-        revision = serializer.save(order=order, uploaded_by=self.request.user)
+        revision = serializer.save(order=order, owner=self.request.user)
         order.refresh_from_db()
         if (order.revision_set.all().count() >= order.revisions + 1) and (order.status == Order.IN_PROGRESS):
             order.status = Order.REVIEW
@@ -375,7 +375,7 @@ class ApproveFinal(GenericAPIView):
             notify(SALE_UPDATE, order, unique=True, mark_unread=True)
             final = order.revision_set.last()
             submission = ImageAsset(
-                uploaded_by=order.buyer, order=order,
+                owner=order.buyer, order=order,
                 rating=final.rating
             )
             new_file = ContentFile(final.file.read())

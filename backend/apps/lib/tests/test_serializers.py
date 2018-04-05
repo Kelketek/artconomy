@@ -14,7 +14,7 @@ class TestComments(APITestCase):
         self.assertEqual(Notification.objects.all().count(), 1)
         notification = Notification.objects.first()
         request = Mock()
-        request.user = asset.uploaded_by
+        request.user = asset.owner
         context = {'request': request}
         data = comment_made(notification.event, context)
         self.assertEqual(data['additional'], 2)

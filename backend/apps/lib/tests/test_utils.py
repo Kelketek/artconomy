@@ -32,7 +32,7 @@ class NotificationsTestCase(TestCase):
         # Implicitly creates subscription for uploader.
         asset = ImageAssetFactory.create()
         notify(FAVORITE, target=asset, data={'users': []})
-        notification = Notification.objects.get(user=asset.uploaded_by)
+        notification = Notification.objects.get(user=asset.owner)
         self.assertEqual(notification.event.type, FAVORITE)
         self.assertEqual(notification.read, False)
         self.assertEqual(notification.event.content_type, ContentType.objects.get_for_model(ImageAsset))
@@ -43,7 +43,7 @@ class NotificationsTestCase(TestCase):
     def test_unique(self):
         asset = ImageAssetFactory.create()
         notify(FAVORITE, target=asset, data={'users': []})
-        notification = Notification.objects.get(user=asset.uploaded_by)
+        notification = Notification.objects.get(user=asset.owner)
         event = notification.event
         notification.read = True
         notification.save()
@@ -61,7 +61,7 @@ class NotificationsTestCase(TestCase):
     def test_transform(self):
         asset = ImageAssetFactory.create()
         notify(FAVORITE, target=asset, data={'users': [1, 2, 3]})
-        notification = Notification.objects.get(user=asset.uploaded_by)
+        notification = Notification.objects.get(user=asset.owner)
         event = notification.event
         notification.read = True
         notification.save()
@@ -83,7 +83,7 @@ class NotificationsTestCase(TestCase):
     def test_unique_mark_unread(self):
         asset = ImageAssetFactory.create()
         notify(FAVORITE, target=asset, data={'users': []})
-        notification = Notification.objects.get(user=asset.uploaded_by)
+        notification = Notification.objects.get(user=asset.owner)
         notification.read = True
         notification.save()
         event = notification.event
@@ -100,7 +100,7 @@ class NotificationsTestCase(TestCase):
     def test_unique_data(self):
         asset = ImageAssetFactory.create()
         notify(FAVORITE, target=asset, data={'users': []})
-        notification = Notification.objects.get(user=asset.uploaded_by)
+        notification = Notification.objects.get(user=asset.owner)
         event = notification.event
         notification.read = True
         notification.save()
@@ -121,7 +121,7 @@ class NotificationsTestCase(TestCase):
     def test_unique_data_query(self):
         asset = ImageAssetFactory.create()
         notify(FAVORITE, target=asset, data={'users': []})
-        notification = Notification.objects.get(user=asset.uploaded_by)
+        notification = Notification.objects.get(user=asset.owner)
         event = notification.event
         notification.read = True
         notification.save()
@@ -142,7 +142,7 @@ class NotificationsTestCase(TestCase):
     def test_unique_data_no_update_nonmatch(self):
         asset = ImageAssetFactory.create()
         notify(FAVORITE, target=asset, data={'users': []})
-        notification = Notification.objects.get(user=asset.uploaded_by)
+        notification = Notification.objects.get(user=asset.owner)
         event = notification.event
         notification.read = True
         notification.save()
@@ -163,7 +163,7 @@ class NotificationsTestCase(TestCase):
     def test_time_override(self):
         asset = ImageAssetFactory.create()
         notify(FAVORITE, target=asset, data={'users': []})
-        notification = Notification.objects.get(user=asset.uploaded_by)
+        notification = Notification.objects.get(user=asset.owner)
         event = notification.event
         notification.read = True
         notification.save()
@@ -188,10 +188,10 @@ class NotificationsTestCase(TestCase):
             type=FAVORITE, subscriber=user, object_id=asset.id, content_type=ContentType.objects.get_for_model(asset)
         )
         notify(FAVORITE, target=asset, data={'users': []})
-        notifications = Notification.objects.filter(user__in=[asset.uploaded_by, user])
+        notifications = Notification.objects.filter(user__in=[asset.owner, user])
         self.assertEqual(notifications.count(), 2)
         notify(FAVORITE, target=asset, data={'users': []}, exclude=[user])
-        notifications = Notification.objects.filter(user__in=[asset.uploaded_by, user])
+        notifications = Notification.objects.filter(user__in=[asset.owner, user])
         self.assertEqual(notifications.count(), 3)
 
     def test_exclude_remediate(self):
@@ -202,16 +202,16 @@ class NotificationsTestCase(TestCase):
             content_type=ContentType.objects.get_for_model(asset)
         )
         notify(FAVORITE, target=asset, data={'users': []}, exclude=[user], unique=True)
-        notifications = Notification.objects.filter(user__in=[asset.uploaded_by, user])
+        notifications = Notification.objects.filter(user__in=[asset.owner, user])
         self.assertEqual(notifications.count(), 1)
         notify(FAVORITE, target=asset, data={'users': []}, unique=True)
-        notifications = Notification.objects.filter(user__in=[asset.uploaded_by, user])
+        notifications = Notification.objects.filter(user__in=[asset.owner, user])
         self.assertEqual(notifications.count(), 2)
 
     def test_recall_notification(self):
         asset = ImageAssetFactory.create()
         notify(FAVORITE, target=asset, data={'users': []})
-        notification = Notification.objects.get(user=asset.uploaded_by)
+        notification = Notification.objects.get(user=asset.owner)
         self.assertEqual(notification.event.recalled, False)
         recall_notification(FAVORITE, target=asset)
         notification.event.refresh_from_db()
@@ -239,4 +239,4 @@ class NotificationsTestCase(TestCase):
     def test_global_event_broadcast_specific_too(self):
         asset = ImageAssetFactory.create()
         notify(FAVORITE, target=asset, data={'users': []})
-        self.assertEqual(Notification.objects.filter(user=asset.uploaded_by).count(), 1)
+        self.assertEqual(Notification.objects.filter(user=asset.owner).count(), 1)

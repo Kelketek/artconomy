@@ -23,7 +23,7 @@ class AssetControls(BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.user.is_staff:
             return True
-        if obj.uploaded_by == request.user:
+        if obj.owner == request.user:
             return True
 
 
@@ -35,7 +35,7 @@ class AssetViewPermission(BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.user.is_staff:
             return True
-        if obj.uploaded_by == request.user:
+        if obj.owner == request.user:
             return True
         if obj.private:
             return False

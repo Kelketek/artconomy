@@ -152,7 +152,7 @@ class CharacterAPITestCase(APITestCase):
     def test_primary_asset(self):
         self.login(self.user)
         char = CharacterFactory.create(user=self.user)
-        asset = ImageAssetFactory.create(uploaded_by=self.user)
+        asset = ImageAssetFactory.create(owner=self.user)
         asset.characters.add(char)
         char.refresh_from_db()
         self.assertIsNone(char.primary_asset)
@@ -165,7 +165,7 @@ class CharacterAPITestCase(APITestCase):
         self.assertEqual(char.primary_asset, asset)
 
         # Should work for staff, too.
-        asset2 = ImageAssetFactory.create(uploaded_by=self.staffer)
+        asset2 = ImageAssetFactory.create(owner=self.staffer)
         asset2.characters.add(char)
 
         self.login(self.staffer)
@@ -179,7 +179,7 @@ class CharacterAPITestCase(APITestCase):
     def test_primary_asset_forbidden(self):
         self.login(self.user2)
         char = CharacterFactory.create(user=self.user)
-        asset = ImageAssetFactory.create(uploaded_by=self.user)
+        asset = ImageAssetFactory.create(owner=self.user)
         asset.characters.add(char)
         char.refresh_from_db()
         self.assertIsNone(char.primary_asset)
@@ -236,7 +236,7 @@ class CharacterAPITestCase(APITestCase):
         Subscription.objects.get(
             object_id=asset.id, content_type=ContentType.objects.get_for_model(asset),
             type=COMMENT,
-            subscriber=asset.uploaded_by
+            subscriber=asset.owner
         )
 
     def test_asset_upload_forbidden(self):
@@ -258,7 +258,7 @@ class CharacterAPITestCase(APITestCase):
     def test_asset_edit(self):
         self.login(self.user)
         char = CharacterFactory.create(user=self.user)
-        asset = ImageAssetFactory.create(uploaded_by=self.user)
+        asset = ImageAssetFactory.create(owner=self.user)
         asset.characters.add(char)
         response = self.client.patch(
             '/api/profiles/v1/asset/{}/'.format(asset.id),
@@ -297,7 +297,7 @@ class CharacterAPITestCase(APITestCase):
     def test_asset_edit_forbidden(self):
         self.login(self.user2)
         char = CharacterFactory.create(user=self.user)
-        asset = ImageAssetFactory.create(uploaded_by=self.user)
+        asset = ImageAssetFactory.create(owner=self.user)
         asset.characters.add(char)
         response = self.client.patch(
             '/api/profiles/v1/asset/{}/'.format(asset.id),

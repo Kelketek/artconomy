@@ -12,7 +12,7 @@ def gen_characters(user, count=5, asset_count=3):
         character = CharacterFactory.create(user=user)
         characters[character] = []
         for i_index in range(asset_count):
-            asset = ImageAssetFactory.create(uploaded_by=user)
+            asset = ImageAssetFactory.create(owner=user)
             asset.characters.add(character)
             if i_index == 0:
                 character.primary_asset = asset

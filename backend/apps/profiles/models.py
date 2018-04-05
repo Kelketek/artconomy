@@ -147,25 +147,25 @@ class ImageAsset(ImageModel):
 def auto_subscribe_image(sender, instance, created=False, **_kwargs):
     if created:
         Subscription.objects.create(
-            subscriber=instance.uploaded_by,
+            subscriber=instance.owner,
             content_type=ContentType.objects.get_for_model(model=sender),
             object_id=instance.id,
             type=FAVORITE
         )
         Subscription.objects.create(
-            subscriber=instance.uploaded_by,
+            subscriber=instance.owner,
             content_type=ContentType.objects.get_for_model(model=sender),
             object_id=instance.id,
             type=SUBMISSION_CHAR_TAG
         )
         Subscription.objects.create(
-            subscriber=instance.uploaded_by,
+            subscriber=instance.owner,
             content_type=ContentType.objects.get_for_model(model=sender),
             object_id=instance.id,
             type=SUBMISSION_TAG
         )
         Subscription.objects.create(
-            subscriber=instance.uploaded_by,
+            subscriber=instance.owner,
             content_type=ContentType.objects.get_for_model(model=sender),
             object_id=instance.id,
             type=COMMENT,
@@ -175,19 +175,19 @@ def auto_subscribe_image(sender, instance, created=False, **_kwargs):
 @receiver(post_delete, sender=ImageAsset)
 def auto_remove(sender, instance, **kwargs):
     Subscription.objects.filter(
-        subscriber=instance.uploaded_by,
+        subscriber=instance.owner,
         content_type=ContentType.objects.get_for_model(model=sender),
         object_id=instance.id,
         type=FAVORITE
     ).delete()
     Subscription.objects.filter(
-        subscriber=instance.uploaded_by,
+        subscriber=instance.owner,
         content_type=ContentType.objects.get_for_model(model=sender),
         object_id=instance.id,
         type=SUBMISSION_CHAR_TAG
     ).delete()
     Subscription.objects.filter(
-        subscriber=instance.uploaded_by,
+        subscriber=instance.owner,
         content_type=ContentType.objects.get_for_model(model=sender),
         object_id=instance.id,
         type=COMMENT

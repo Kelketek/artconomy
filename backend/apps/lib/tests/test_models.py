@@ -15,7 +15,7 @@ class TestComments(APITestCase):
         notifications = Notification.objects.all()
         self.assertEqual(notifications.count(), 1)
         notification = notifications[0]
-        self.assertEqual(notification.user, asset.uploaded_by)
+        self.assertEqual(notification.user, asset.owner)
         self.assertEqual(notification.event.data['comments'], [comment.id])
         self.assertEqual(notification.event.data['subcomments'], [])
         self.assertEqual(notification.event.target, asset)
