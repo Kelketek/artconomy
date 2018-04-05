@@ -7,6 +7,7 @@ from django.db.models.signals import pre_delete
 from django.db.transaction import atomic
 from django.dispatch import receiver
 from django.utils import timezone
+from django.utils.deconstruct import deconstructible
 from django.utils.text import slugify
 from pycountry import countries, subdivisions
 from rest_framework import status
@@ -324,3 +325,15 @@ def translate_related_names(names):
         base_name += '_set'
         new_names.append(base_name)
     return new_names
+
+
+@deconstructible
+class MinimumOrZero:
+    def __init__(self, limit):
+        self.limit = limit
+
+    def __call__(self, value):
+        if value == 0:
+            return True
+        if value < self.limit:
+            raise ValidationError('Must be zero, or greater than or equal to {}'.format(self.limit))

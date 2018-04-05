@@ -1,4 +1,3 @@
-from decimal import Decimal
 from urllib.error import URLError
 
 from authorize import AuthorizeError, Address
@@ -18,7 +17,7 @@ from moneyed import Money
 
 from apps.lib.models import Comment, Subscription, SALE_UPDATE, ORDER_UPDATE, REVISION_UPLOADED, COMMENT
 from apps.lib.abstract_models import ImageModel
-from apps.lib.utils import clear_events
+from apps.lib.utils import clear_events, MinimumOrZero
 from apps.sales.permissions import OrderViewPermission
 from apps.sales.apis import sauce
 
@@ -613,3 +612,24 @@ class BankAccount(Model):
     def notification_serialize(self, context):
         from .serializers import BankAccountSerializer
         return BankAccountSerializer(instance=self).data
+
+
+class CharacterTransfer(Model):
+    NEW = 0
+    COMPLETED = 1
+    CANCELLED = 2
+    REJECTED = 3
+    STATUSES = (
+        (NEW, 'New'),
+        (COMPLETED, 'Completed'),
+        (CANCELLED, 'Cancelled'),
+        (REJECTED, 'Rejected'),
+    )
+    status = IntegerField(choices=STATUSES)
+    created_on = DateTimeField(auto_now_add=True)
+    character = ForeignKey('profiles.Character', on_delete=CASCADE)
+    include_assets = BooleanField(default=False)
+    price = MoneyField(
+        max_digits=6, decimal_places=2, default_currency='USD',
+        db_index=True, validators=[MinimumOrZero(settings.MINIMUM_PRICE)]
+    )
