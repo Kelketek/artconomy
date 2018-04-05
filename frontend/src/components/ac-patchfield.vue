@@ -1,19 +1,22 @@
 <template>
-    <div class="patchfield-wrapper" :class="classes()">
-      <div v-if="editing && multiline">
+    <v-flex class="patchfield-wrapper" :class="classes()">
+      <v-flex v-if="editing && multiline">
         <textarea style="width: 100%;" class="patchfield-multiline-editor" @keydown="handleMultilineInput" v-model="input" @input="resizer" v-focus="true" @blur="save" @keyup.escape="reset" :disabled="disabled"></textarea>
-      </div>
-      <div v-else-if="editing">
+      </v-flex>
+      <v-flex v-else-if="editing">
         <v-text-field type="text" ref="field" class="patch-input" v-model="input" @keyup.enter.native="save" v-focus="true" :autofocus="true" @focus="setAtEnd" :value="value" @blur="save" @keyup.escape.native="reset" :disabled="disabled" />
-      </div>
-      <div v-else-if="editmode" @click="startEditing">
-        <div class="patchfield-preview" :class="{'patchfield-preview-multiline': multiline}" tabindex="0" @focus="startEditing" @input="update" v-html="preview"></div>
-        <span v-if="errors.length"><i v-b-popover.hover="formatErrors()" class="fa fa-times error-marker"></i></span>
+      </v-flex>
+      <v-flex v-else-if="editmode" @click="startEditing">
+        <v-flex class="patchfield-preview" :class="{'patchfield-preview-multiline': multiline}" tabindex="0" @focus="startEditing" @input="update" v-html="preview"></v-flex>
+        <v-tooltip bottom v-if="errors.length">
+          <i slot="activator" class="fa fa-times error-marker"></i>
+          <span v-html="formatErrors()"></span>
+        </v-tooltip>
         <v-icon>edit</v-icon>
-      </div>
-      <div v-else-if="multiline" class="patchfield-normal" v-html="preview"></div>
-      <div v-else class="patchfield-normal" v-html="preview"></div>
-    </div>
+      </v-flex>
+      <v-flex v-else-if="multiline" class="patchfield-normal" v-html="preview"></v-flex>
+      <v-flex v-else class="patchfield-normal" v-html="preview"></v-flex>
+    </v-flex>
 </template>
 
 <script>
@@ -121,8 +124,9 @@
       postFail (response) {
         this.editing = false
         this.disabled = false
-        if (response.responseJSON) {
-          this.errors = response.responseJSON[this.name]
+        console.log('I ran!')
+        if (response.responseJSON && response.responseJSON !== undefined) {
+          this.errors = response.responseJSON[this.name] || ['There was an issue while saving. Please try again later.']
         } else {
           this.errors = ['There was an issue while saving. Please try again later.']
         }
@@ -150,21 +154,25 @@
   .patchfield-preview {
     display: inline-block;
   }
-  input.patch-input {
-    padding: 0;
-    margin: 0;
-    border-top: none;
-    border-right: none;
-    border-left: none;
-    height: 1em;
-    box-sizing: border-box;
-  }
   textarea.patchfield-multiline-editor {
     width: 100%;
     height: 100%;
   }
   .patchfield-wrapper {
     display: inline-block;
+  }
+  .patchfield-wrapper .input-group__details {
+    display: none
+  }
+  .patch-input {
+    padding-top: 0;
+    padding-bottom: 0;
+    padding-left: 0;
+    padding-right: 0;
+    max-height: 1em;
+  }
+  .patch-input input {
+    font-size: inherit;
   }
   .error-marker {
     color: red;

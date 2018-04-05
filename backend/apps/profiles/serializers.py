@@ -10,7 +10,7 @@ from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 
 from apps.lib.serializers import RelatedUserSerializer, Base64ImageField, TagSerializer, SubscribedField, SubscribeMixin
-from apps.profiles.models import Character, ImageAsset, User, RefColor
+from apps.profiles.models import Character, ImageAsset, User, RefColor, Attribute
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -140,11 +140,19 @@ class RefColorSerializer(serializers.ModelSerializer):
         fields = ('id', 'color', 'note')
 
 
+class AttributeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Attribute
+        fields = ('id', 'key', 'value', 'sticky')
+        read_only_fields = ('sticky',)
+
+
 class CharacterSerializer(serializers.ModelSerializer):
     user = RelatedUserSerializer(read_only=True)
     primary_asset = ImageAssetSerializer(required=False)
     primary_asset_id = serializers.IntegerField(write_only=True, required=False)
     colors = RefColorSerializer(many=True, read_only=True)
+    attributes = AttributeSerializer(many=True, read_only=True)
 
     def validate_primary_asset_id(self, value):
         if value is None:
@@ -159,7 +167,7 @@ class CharacterSerializer(serializers.ModelSerializer):
         model = Character
         fields = (
             'id', 'name', 'description', 'private', 'open_requests', 'open_requests_restrictions', 'user',
-            'primary_asset', 'primary_asset_id', 'tags', 'colors', 'taggable'
+            'primary_asset', 'primary_asset_id', 'tags', 'colors', 'taggable', 'attributes'
         )
 
 

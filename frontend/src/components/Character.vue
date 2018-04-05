@@ -43,24 +43,23 @@
         </v-btn>
       </v-speed-dial>
       <v-layout row wrap>
-        <v-flex xs12 sm6 md7 lg8 class="pl-3 pt-3">
+        <v-flex xs12 sm6 md7 lg7 class="pl-3 pt-3">
           <h1>{{ character.name }}</h1>
-          <div class="col-6">
-            <p v-if="(character.tags.length === 0) && editing">
-              Add some tags to describe your character. Try tagging their species, gender or things they're commonly found doing.
-            </p>
-            <ac-tag-display
-                :editable="editing"
-                :url="`${url}tag/`"
-                :callback="loadCharacter"
-                :tag-list="character.tags"
-                :controls="controls && editing"
-                tab-name="characters"
-                v-if="character.tags.length || editing"
-            />
-          </div>
+          <ac-attributes :attributes="character.attributes" :url="`${url}attributes/`" :edit-mode="editing" :success="fetchCharacter"/>
+          <p v-if="(character.tags.length === 0) && editing">
+            Add some tags to describe your character. Try tagging their species, gender or things they're commonly found doing.
+          </p>
+          <ac-tag-display
+              :editable="editing"
+              :url="`${url}tag/`"
+              :callback="loadCharacter"
+              :tag-list="character.tags"
+              :controls="controls && editing"
+              tab-name="characters"
+              v-if="character.tags.length || editing"
+          />
         </v-flex>
-        <v-flex xs12 sm6 md5 lg4>
+        <v-flex xs12 sm6 md5 lg4 offset-lg1>
           <router-link v-if="character.primary_asset && character.primary_asset.id" :to="{name: 'Submission', params: {assetID: character.primary_asset.id}}">
             <v-card-media :src="$img(character.primary_asset, 'thumbnail')">
               <ac-asset :asset="character.primary_asset" thumbnail="thumbnail" :text-only="true" />
@@ -204,11 +203,13 @@
   import AcRefColor from './ac-ref-color'
   import AcFormDialog from './ac-form-dialog'
   import AcContextGallery from './ac-context-gallery'
+  import AcAttributes from './ac-attributes'
 
   export default {
     name: 'Character',
     mixins: [Viewer, Perms, Editable],
     components: {
+      AcAttributes,
       AcContextGallery,
       AcFormDialog,
       AcRefColor,

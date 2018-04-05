@@ -16,8 +16,8 @@ from rest_framework.authtoken.models import Token
 
 from apps.lib.abstract_models import GENERAL, RATINGS, ImageModel
 from apps.lib.models import Comment, Subscription, FAVORITE, SYSTEM_ANNOUNCEMENT, DISPUTE, REFUND, Event, \
-    SUBMISSION_CHAR_TAG, CHAR_TAG, SUBMISSION_TAG, COMMENT
-from apps.lib.utils import clear_events
+    SUBMISSION_CHAR_TAG, CHAR_TAG, SUBMISSION_TAG, COMMENT, Tag
+from apps.lib.utils import clear_events, tag_list_cleaner
 from apps.profiles.permissions import AssetViewPermission, AssetCommentPermission
 
 
@@ -251,6 +251,38 @@ class Character(Model):
         return CharacterSerializer(instance=self).data
 
 
+class Attribute(Model):
+    key = CharField(max_length=50, db_index=True)
+    value = CharField(max_length=100, default='')
+    sticky = BooleanField(db_index=True, default=False)
+    character = ForeignKey(Character, on_delete=CASCADE, related_name='attributes')
+
+    class Meta:
+        unique_together = (('key', 'character'),)
+        ordering = ['id']
+
+    def update_tag(self):
+        old = Attribute.objects.get(id=self.id)
+        if old.value == self.value:
+            return
+        if old.value:
+            tag_name = tag_list_cleaner([old.value])[0]
+            tags = self.character.tags.filter(name=tag_name)
+            if tags.exists():
+                self.character.tags.remove(*tags)
+                tag = tags[0]
+                tag.self_clean()
+        if self.value:
+            tag_name = tag_list_cleaner([self.value])[0]
+            tag, _ = Tag.objects.get_or_create(name=tag_name)
+            self.character.tags.add(tag)
+
+    def save(self, *args, **kwargs):
+        if self.id and self.sticky:
+            self.update_tag()
+        super().save(*args, **kwargs)
+
+
 @receiver(post_save, sender=Character)
 def auto_subscribe_character(sender, instance, created=False, **_kwargs):
     if created:
@@ -283,6 +315,23 @@ def auto_remove_character(sender, instance, **kwargs):
         type=SUBMISSION_CHAR_TAG,
         recalled=True
     )
+
+
+@receiver(post_save, sender=Character)
+def auto_add_attrs(sender, instance, created=False, **_kwargs):
+    if created:
+        Attribute.objects.create(
+            key='sex',
+            value='',
+            sticky=True,
+            character=instance
+        )
+        Attribute.objects.create(
+            key='species',
+            value='',
+            sticky=True,
+            character=instance
+        )
 
 
 remove_order_events = receiver(pre_delete, sender=Character)(clear_events)

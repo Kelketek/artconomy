@@ -236,7 +236,7 @@ def ensure_tags(tag_list):
 
 
 def tag_list_cleaner(tag_list):
-    tag_list = [slugify(str(tag).lower().replace(' ', '')).replace('-', '_')[:50] for tag in tag_list]
+    tag_list = [slugify(str(tag).lower().replace(' ', '_')).replace('-', '_')[:50] for tag in tag_list]
     return list({tag for tag in tag_list if tag})
 
 
@@ -268,7 +268,9 @@ def remove_tags(request, target, field_name='tags'):
             ]}
         )
     getattr(target, field_name).remove(*qs)
-    return True, qs
+    for tag in qs:
+        tag.self_clean()
+    return True, None
 
 
 # https://www.caktusgroup.com/blog/2009/05/26/explicit-table-locking-with-postgresql-and-django/
@@ -309,3 +311,16 @@ def require_lock(model, lock):
             return view_func(*args, **kwargs)
         return wrapper
     return require_lock_decorator
+
+
+def translate_related_names(names):
+    new_names = []
+    for name in names:
+        if not name.endswith('+'):
+            new_names.append(name)
+            continue
+        base_name = name.split('_')[0]
+        base_name = base_name.lower()
+        base_name += '_set'
+        new_names.append(base_name)
+    return new_names

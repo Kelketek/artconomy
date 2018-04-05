@@ -24,11 +24,12 @@ from apps.lib.serializers import CommentSerializer, NotificationSerializer, Base
     BulkNotificationSerializer, UserInfoSerializer
 from apps.lib.utils import recall_notification, notify, safe_add, add_tags
 from apps.lib.views import BaseTagView
-from apps.profiles.models import User, Character, ImageAsset, RefColor
+from apps.profiles.models import User, Character, ImageAsset, RefColor, Attribute
 from apps.profiles.permissions import ObjectControls, UserControls, AssetViewPermission, AssetControls, NonPrivate, \
     ColorControls, ColorLimit, ViewFavorites
 from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer, SettingsSerializer, UserSerializer, \
-    RegisterSerializer, ImageAssetManagementSerializer, CredentialsSerializer, AvatarSerializer, RefColorSerializer
+    RegisterSerializer, ImageAssetManagementSerializer, CredentialsSerializer, AvatarSerializer, RefColorSerializer, \
+    AttributeSerializer
 from apps.profiles.utils import available_chars, char_ordering, available_assets, available_artists
 
 
@@ -528,6 +529,61 @@ class CharacterTag(BaseTagView):
         return Response(
             status=status.HTTP_200_OK, data=CharacterSerializer(instance=character).data
         )
+
+
+class AttributeList(ListCreateAPIView):
+    permission_classes = [ObjectControls]
+    serializer_class = AttributeSerializer
+
+    def get_character(self):
+        return get_object_or_404(Character, name=self.kwargs['character'], user__username=self.kwargs['username'])
+
+    def get_queryset(self):
+        character = self.get_character()
+        self.check_object_permissions(self.request, character)
+        return character.attributes.all()
+
+    def perform_create(self, serializer):
+        character = self.get_character()
+        if character.attributes.all().count() >= settings.MAX_ATTRS:
+            raise PermissionDenied(
+                "You may not have more than {} attributes on one character.".format(settings.MAX_ATTRS)
+            )
+        if character.attributes.filter(key__iexact=serializer.validated_data['key']).exists():
+            raise ValidationError({'key': ['There is already an attribute with this name.']})
+        serializer.save(character=character)
+
+
+class AttributeManager(RetrieveUpdateDestroyAPIView):
+    permission_classes = [ObjectControls]
+    serializer_class = AttributeSerializer
+
+    def get_object(self):
+        attr = get_object_or_404(
+            Attribute, character__name=self.kwargs['character'], character__user__username=self.kwargs['username'],
+            id=self.kwargs['attribute_id']
+        )
+        self.check_object_permissions(self.request, attr.character)
+        return attr
+
+    def mod_values(self):
+        instance = self.get_object()
+        if instance.sticky:
+            self.request.data.pop('key', None)
+
+    def patch(self, *args, **kwargs):
+        self.mod_values()
+        return super().patch(*args, **kwargs)
+
+    def put(self, *args, **kwargs):
+        self.mod_values()
+        return super().put(*args, **kwargs)
+
+    def destroy(self, *args, **kwargs):
+        instance = self.get_object()
+        if instance.sticky:
+            raise PermissionDenied("You may not remove sticky attributes.")
+        return super().destroy(*args, **kwargs)
 
 
 class UserBlacklist(BaseTagView):

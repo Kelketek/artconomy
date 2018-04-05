@@ -179,6 +179,7 @@ DEFAULT_DOMAIN = 'artconomy.vulpinity.com'
 SANDBOX_APIS = True
 
 MAX_CHARACTER_COUNT = 30
+MAX_ATTRS = 10
 
 HIDE_TEST_BROWSER = True
 

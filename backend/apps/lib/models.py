@@ -119,6 +119,14 @@ class Notification(models.Model):
 class Tag(Model):
     name = SlugField(db_index=True, unique=True, primary_key=True)
 
+    def self_clean(self):
+        from apps.lib.utils import translate_related_names
+        fields = self._meta.get_fields()
+        names = [field.related_name for field in fields if getattr(field, 'related_name', None)]
+        names = translate_related_names(names)
+        if not any([getattr(self, name).all().exists() for name in names]):
+            self.delete()
+
     def notification_serialize(self, context):
         return self.name
 
