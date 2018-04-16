@@ -81,6 +81,9 @@
         return this.asset.tags.concat(this.addedTags)
       },
       blacklisted () {
+        if (!this.asset) {
+          return false
+        }
         let blacklist = this.viewer.blacklist
         if (blacklist === undefined) {
           blacklist = []
@@ -91,6 +94,9 @@
         return this.tags.filter((n) => this.viewer.blacklist.includes(n))
       },
       permittedRating () {
+        if (!this.asset) {
+          return true
+        }
         return this.asset.rating <= this.rating
       },
       canDisplay () {
