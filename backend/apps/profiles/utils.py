@@ -36,6 +36,7 @@ def available_chars(requester, query='', commissions=False, tagging=False):
     qs = qs.exclude(tags__in=requester.blacklist.all())
     if tagging:
         qs = qs.exclude(Q(taggable=False) & ~Q(user=requester))
+        qs.exclude(transfer__isnull=False)
     return qs.distinct()
 
 

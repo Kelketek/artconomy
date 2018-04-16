@@ -10,7 +10,6 @@ from rest_framework_bulk import BulkSerializerMixin, BulkListSerializer
 
 from apps.lib.models import Comment, Notification, Event, CHAR_TAG, SUBMISSION_CHAR_TAG, Tag, REVISION_UPLOADED, \
     ORDER_UPDATE, SALE_UPDATE, COMMENT, Subscription
-from apps.lib.utils import tag_list_cleaner, ensure_tags
 from apps.profiles.models import User, ImageAsset, Character
 from apps.sales.models import Revision
 
@@ -48,7 +47,7 @@ class RelatedUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'username', 'avatar_url')
-        read_only_fields = ('id', 'username', 'avatar_url')
+        read_only_fields = ('username', 'avatar_url')
 
 
 def notification_serialize(obj, context):

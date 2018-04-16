@@ -1,27 +1,30 @@
 <template>
   <v-container>
     <v-card v-if="character">
-      <v-speed-dial v-if="controls" bottom right fixed v-model="editing" elevation-10 style="z-index: 4">
-        <v-btn v-if="controls"
+      <v-speed-dial v-if="controls" bottom right fixed v-model="speedDial" elevation-10 style="z-index: 4">
+        <v-btn
+          dark
+          color="purple"
+          fab
+          hover
+          slot="activator"
+          v-model="speedDial"
+        >
+          <v-icon>menu</v-icon>
+        </v-btn>
+        <v-btn
                dark
                color="blue"
                fab
                hover
-               slot="activator"
+               small
                v-model="editing"
+               @click="editing = !editing"
         >
           <v-icon>lock</v-icon>
           <v-icon>lock_open</v-icon>
         </v-btn>
-        <ac-action
-            variant="danger" :confirm="true" :success="goToListing"
-            :url="`/api/profiles/v1/account/${this.user.username}/characters/${this.character.name}/`"
-            method="DELETE"
-            dark small color="red" fab
-        ><v-icon>delete</v-icon>
-          <div class="text-left" slot="confirmation-text">Are you sure you wish to delete this character? This cannot be undone!</div>
-        </ac-action>
-        <v-btn v-if="controls"
+        <v-btn
                dark
                color="orange"
                fab
@@ -31,7 +34,7 @@
         >
           <v-icon>settings</v-icon>
         </v-btn>
-        <v-btn v-if="controls"
+        <v-btn
                dark
                color="green"
                fab
@@ -86,20 +89,48 @@
           <ac-avatar :user="character.user" />
         </v-flex>
       </v-layout>
-        <ac-form-dialog ref="newUploadForm" :schema="newUploadSchema" :model="newUploadModel"
-                           :options="newUploadOptions" :success="addUpload"
-                           v-model="showUpload"
-                           :url="`/api/profiles/v1/account/${user.username}/characters/${character.name}/assets/`"
-        />
+      <ac-form-dialog ref="newUploadForm" :schema="newUploadSchema" :model="newUploadModel"
+                         :options="newUploadOptions" :success="addUpload"
+                         v-model="showUpload"
+                         :url="`/api/profiles/v1/account/${user.username}/characters/${character.name}/assets/`"
+      />
 
-        <ac-form-dialog ref="settingsForm" :schema="settingsSchema" :model="settingsModel"
-                           :options="newUploadOptions" :success="updateSettings"
-                           method="PATCH"
-                           submit-text="Save"
-                           title="Character Settings"
-                           :url="url"
-                           v-model="showSettings"
-        />
+      <ac-form-dialog ref="settingsForm" :schema="settingsSchema" :model="settingsModel"
+                         :options="newUploadOptions" :success="updateSettings"
+                         method="PATCH"
+                         submit-text="Save"
+                         title="Character Settings"
+                         :url="url"
+                         v-model="showSettings"
+      >
+        <v-layout slot="header" row wrap text-xs-center>
+          <v-flex>
+            <ac-action
+                variant="danger" :confirm="true" :success="goToListing"
+                :url="`/api/profiles/v1/account/${this.user.username}/characters/${this.character.name}/`"
+                method="DELETE"
+                dark color="red"
+            ><v-icon>delete</v-icon> Delete
+              <div class="text-left" slot="confirmation-text">Are you sure you wish to delete this character? This cannot be undone!</div>
+            </ac-action>
+          </v-flex>
+          <v-flex>
+            <v-btn @click="showTransfer" color="purple"><v-icon>compare_arrows</v-icon> Transfer</v-btn>
+          </v-flex>
+        </v-layout>
+      </ac-form-dialog>
+      <ac-form-dialog ref="transferForm" :schema="transferSchema" :model="transferModel"
+                      :options="newUploadOptions" :success="postTransfer"
+                      method="POST"
+                      submit-text="Save"
+                      title="Transfer Character"
+                      :url="`/api/sales/v1/account/${user.username}/transfer/character/${character.name}/`"
+                      v-model="transferVisible"
+      >
+        <v-flex slot="header">
+          All transfers are subject to the <router-link :to="{name: 'CharacterTransferAgreement'}">Character Transfer Agreement</router-link>
+        </v-flex>
+      </ac-form-dialog>
     </v-card>
     <div v-if="character" class="color-section">
       <v-layout row>
@@ -189,7 +220,7 @@
   import $ from 'jquery'
   import Vue from 'vue'
   import VueFormGenerator from 'vue-form-generator'
-  import { artCall, ratings } from '../lib'
+  import {artCall, minimumOrZero, ratings, validNumber} from '../lib'
   import Perms from '../mixins/permissions'
   import Editable from '../mixins/editable'
   import Viewer from '../mixins/viewer'
@@ -256,6 +287,9 @@
           }
         }
       },
+      postTransfer (response) {
+        this.$router.history.push({name: 'CharacterTransfer', params: {'transferID': response.id, username: this.username}})
+      },
       showUpdater: function () {
         this.$refs.updater.showUpdater()
       },
@@ -290,6 +324,14 @@
         this.$router.history.push(
           {name: 'Submission', params: {assetID: response.id}}
         )
+      },
+      showTransfer () {
+        if (!this.character.transfer) {
+          this.transferVisible = true
+        } else {
+          this.$router.history.push(
+            {name: 'CharacterTransfer', params: {transferID: this.character.transfer, username: this.username}})
+        }
       }
     },
     data () {
@@ -300,6 +342,7 @@
         character: null,
         assets: null,
         totalPieces: 0,
+        speedDial: false,
         url: `/api/profiles/v1/account/${this.username}/characters/${this.characterName}/`,
         newUploadModel: {
           title: '',
@@ -425,12 +468,45 @@
             label: 'File',
             model: 'file',
             required: true
-          }
-          ]
+          }]
         },
         newUploadOptions: {
           validateAfterLoad: false,
           validateAfterChanged: true
+        },
+        transferModel: {
+          buyer: null,
+          price: 0,
+          include_assets: false
+        },
+        transferVisible: false,
+        transferSchema: {
+          fields: [{
+            type: 'user-search',
+            label: 'Transferee',
+            model: 'buyer',
+            hint: 'The person who will receive the transfer. Transferees must accept the transfer to receive the character.'
+          }, {
+            type: 'v-checkbox',
+            label: 'Include Submissions',
+            model: 'include_assets',
+            hint: 'Also transfer over any pieces you own in which this character is tagged. Note: ' +
+                  'This also includes pieces where other characters are tagged.'
+          }, {
+            type: 'v-text',
+            inputType: 'number',
+            label: 'Price (USD)',
+            model: 'price',
+            step: '.01',
+            min: '0.00',
+            validator: [minimumOrZero, validNumber],
+            hint: 'Optionally, require payment for this transfer.'
+          }, {
+            type: 'v-checkbox',
+            label: 'I agree to the Character Transfer Agreement',
+            model: 'read_agreement',
+            hint: 'I have read and understood the Character Transfer Agreement and agree to it'
+          }]
         }
       }
     },

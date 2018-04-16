@@ -120,6 +120,7 @@ export function ratingsShort () {
 }
 
 export const NOTIFICATION_MAPPING = {
+  '2': 'ac-char-transfer',
   '3': 'ac-char-tag',
   '4': 'ac-comment-notification',
   '10': 'ac-submission-tag',
@@ -264,6 +265,15 @@ export function validNumber (value, schema) {
     return ['This number cannot be less than ' + schema.min]
   }
   return true
+}
+
+export function minimumOrZero (value, schema) {
+  if (value === 0) {
+    return true
+  }
+  if (value < schema.min) {
+    return ['Value must be either 0 or ' + schema.min]
+  }
 }
 
 export const EventBus = new Vue()

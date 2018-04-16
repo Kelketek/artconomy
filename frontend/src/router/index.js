@@ -3,12 +3,14 @@ import Home from '@/components/Home'
 import Reload from '@/components/Reload'
 import Login from '@/components/Login'
 import CommissionAgreement from '@/components/CommissionAgreement'
+import CharacterTransferAgreement from '@/components/CharacterTransferAgreement'
 import RefundPolicy from '@/components/RefundPolicy'
 import NotificationCenter from '@/components/NotificationCenter'
 import Profile from '@/components/Profile'
 import Policies from '@/components/Policies'
 import Contact from '@/components/Contact'
 import Store from '@/components/Store'
+import Transfers from '@/components/Transfers'
 import Product from '@/components/Product'
 import Order from '@/components/Order'
 import Orders from '@/components/Orders'
@@ -17,6 +19,7 @@ import Character from '@/components/Character'
 import Submission from '@/components/Submission'
 import Search from '@/components/Search'
 import CharacterGallery from '@/components/CharacterGallery'
+import CharacterTransfer from '@/components/CharacterTransfer'
 import NotFound from '@/components/NotFound'
 import {ErrorHandler} from '@/plugins/error'
 
@@ -40,6 +43,11 @@ export const routes = [
     path: '/legal-and-policies/',
     name: 'Policies',
     component: Policies
+  },
+  {
+    path: '/legal-and-policies/character-transfer-agreement/',
+    name: 'CharacterTransferAgreement',
+    component: CharacterTransferAgreement
   },
   {
     path: '/legal-and-policies/commission-agreement/',
@@ -162,6 +170,18 @@ export const routes = [
         buyer: true
       }
     }
+  },
+  {
+    path: '/transfers/:username/:tabName?/',
+    name: 'Transfers',
+    component: Transfers,
+    props: true
+  },
+  {
+    path: '/transfers/:username/characters/:transferID/',
+    name: 'CharacterTransfer',
+    component: CharacterTransfer,
+    props: true
   },
   {
     path: '/search/:tabName?/',

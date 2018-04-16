@@ -7,13 +7,23 @@
         </v-flex>
       </v-layout>
       <v-card v-if="submission">
-        <v-speed-dial v-if="controls" bottom right fixed v-model="editing" elevation-10 style="z-index: 4">
+        <v-speed-dial v-if="controls" bottom right fixed elevation-10 style="z-index: 4">
+          <v-btn v-if="controls"
+                 dark
+                 color="purple"
+                 fab
+                 hover
+                 slot="activator"
+          >
+            <v-icon>menu</v-icon>
+          </v-btn>
           <v-btn v-if="controls"
                  dark
                  color="blue"
                  fab
                  hover
-                 slot="activator"
+                 small
+                 @click="editing = !editing"
                  v-model="editing"
           >
             <v-icon>lock</v-icon>
@@ -127,7 +137,7 @@
               :expanded="true"
               :key="char.id"
               :remove-url="`${url}tag-characters/`"
-              :removable="(char.user.username === viewer.username) || controls"
+              :removable="((char.user.username === viewer.username) || controls) && !char.transfer"
               :callback="populateSubmission"
               :can-showcase="controls"
               :asset-id="submission.id"
@@ -305,6 +315,7 @@
               label: 'Artists',
               featured: true,
               tagging: true,
+              multiple: true,
               placeholder: 'Search artists',
               styleClasses: 'field-input'
             }

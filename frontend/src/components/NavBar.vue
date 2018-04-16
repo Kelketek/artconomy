@@ -13,6 +13,7 @@
           <v-list-tile :to="{name: 'Sales', params: {username: viewer.username}}">Sales</v-list-tile>
           <v-list-tile v-if="viewer.is_staff" :to="{name: 'Cases', params: {username: viewer.username}}">Cases</v-list-tile>
           <v-list-tile :to="{name: 'Store', params: {username: viewer.username}}">Sell</v-list-tile>
+          <v-list-tile :to="{name: 'Transfers', params: {username: viewer.username}}">Transfers</v-list-tile>
           <v-list-tile class="hidden-md-and-up" :to="{name: 'Search'}">Search</v-list-tile>
         </v-list>
         <ac-patchbutton
@@ -39,6 +40,12 @@
             <v-icon>exit_to_app</v-icon>
           </v-list-tile-action>
           <v-list-tile-title>Log out</v-list-tile-title>
+        </v-list-tile>
+        <v-list-tile class="mt-3" :to="{name: 'Policies'}">
+          <v-list-tile-action>
+            <v-icon>info</v-icon>
+          </v-list-tile-action>
+          <v-list-tile-title>Legal/Policies</v-list-tile-title>
         </v-list-tile>
       </v-list>
     </v-navigation-drawer>

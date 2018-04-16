@@ -5,7 +5,8 @@
       <div v-if="fullscreen" class="fullscreen-container" @click="fullscreen=false">
         <img :class="imgClass" :src="asset.file.full" v-if="canDisplay && !textOnly">
       </div>
-      <div v-else-if="!canDisplay">
+      <div v-else-if="!canDisplay" :style="style">
+        <div style="min-height: 20%;">&nbsp;</div>
         <div class="text-xs-center" v-if="!terse">
           <v-icon x-large>block</v-icon>
           <div v-if="!permittedRating">
@@ -32,7 +33,7 @@
     <div v-else-if="!asset && !textOnly">
       <img :class="defaultClass" src="/static/images/default-avatar.png" />
     </div>
-    <div v-if="textOnly" :style="containerStyle">&nbsp;</div>
+    <div v-if="textOnly && canDisplay" :style="containerStyle">&nbsp;</div>
   </div>
 </template>
 
@@ -104,6 +105,15 @@
         classes['asset-' + this.thumbName] = true
         classes[this.imgClass] = true
         return classes
+      },
+      style () {
+        if (!this.containerStyle) {
+          return {
+            default: 'min-height: 15rem;'
+          }
+        } else {
+          return this.containerStyle
+        }
       }
     }
   }

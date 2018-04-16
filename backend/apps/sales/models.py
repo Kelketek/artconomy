@@ -1,3 +1,4 @@
+from django.db.utils import IntegrityError
 from urllib.error import URLError
 
 from authorize import AuthorizeError, Address
@@ -625,11 +626,33 @@ class CharacterTransfer(Model):
         (CANCELLED, 'Cancelled'),
         (REJECTED, 'Rejected'),
     )
-    status = IntegerField(choices=STATUSES)
+    status = IntegerField(choices=STATUSES, db_index=True)
     created_on = DateTimeField(auto_now_add=True)
-    character = ForeignKey('profiles.Character', on_delete=CASCADE)
+    seller = ForeignKey('profiles.User', on_delete=CASCADE, related_name='character_transfers_outbound')
+    buyer = ForeignKey('profiles.User', on_delete=CASCADE, related_name='character_transfers_inbound')
+    character = ForeignKey('profiles.Character', on_delete=SET_NULL, null=True, blank=True)
+    saved_name = CharField(blank=True, default='', max_length=150)
     include_assets = BooleanField(default=False)
     price = MoneyField(
         max_digits=6, decimal_places=2, default_currency='USD',
         db_index=True, validators=[MinimumOrZero(settings.MINIMUM_PRICE)]
     )
+
+    def save(self, *args, **kwargs):
+        if self.character.transfer and self.character.transfer != self:
+            raise IntegrityError("There is already a transfer for this character.")
+        super().save()
+
+    def notification_serialize(self, context):
+        from apps.sales.serializers import CharacterTransferSerializer
+        return CharacterTransferSerializer(instance=self, context=context).data
+
+
+@receiver(post_save, sender=CharacterTransfer)
+def auto_set_transfer(sender, instance, **_kwargs):
+    if instance.status == CharacterTransfer.NEW:
+        instance.character.transfer = instance
+        instance.character.save()
+    else:
+        instance.character.transfer = None
+        instance.character.save()

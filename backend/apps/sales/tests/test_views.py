@@ -1743,3 +1743,21 @@ class TestProductSearch(APITestCase):
         self.assertIDInList(product2, response.data['results'])
         self.assertIDInList(product3, response.data['results'])
         self.assertEqual(len(response.data['results']), 3)
+
+
+class TestCreateTransfer(APITestCase):
+    def test_transfer(self):
+        character = CharacterFactory.create(user=self.user)
+        self.login(self.user)
+        response = self.client.post(
+            '/api/sales/v1/account/{}/transfer/character/{}/'.format(
+                self.user.username,
+                character.name
+            ),
+            {
+                'buyer': self.user2.id,
+                'price': 0
+            },
+            format='json'
+        )
+        self.assertEqual(response.status_code, 201)

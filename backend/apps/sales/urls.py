@@ -8,7 +8,8 @@ from apps.sales.views import ProductListAPI, ProductManager, PlaceOrder, \
     ArchivedOrderList, CancelledOrderList, ArchivedSalesList, CancelledSalesList, ProductExamples, StartDispute, \
     OrderRefund, ClaimDispute, CurrentCasesList, ArchivedCasesList, CancelledCasesList, AccountBalance, \
     BankAccounts, ProductTag, ProductSearch, PerformWithdraw, BankManager, PurchaseHistory, EscrowHistory, \
-    AvailableHistory
+    AvailableHistory, CreateCharacterTransfer, RetrieveCharacterTransfer, CharacterTransferAssets, AcceptCharTransfer, \
+    CancelCharTransfer, CharactersInbound, CharactersOutbound, CharactersArchive
 
 app_name = 'sales'
 
@@ -60,4 +61,44 @@ urlpatterns = [
     path('v1/account/<username>/transactions/purchases/', PurchaseHistory.as_view(), name='purchase_history'),
     path('v1/account/<username>/transactions/escrow/', EscrowHistory.as_view(), name='escrow_history'),
     path('v1/account/<username>/transactions/available/', AvailableHistory.as_view(), name='available_history'),
+    path(
+        'v1/account/<username>/transfer/character/<character>/',
+        CreateCharacterTransfer.as_view(),
+        name='character_transfer_create'
+    ),
+    path(
+        'v1/account/<username>/transfers/character/inbound/',
+        CharactersInbound.as_view(),
+        name='characters_inbound'
+    ),
+    path(
+        'v1/account/<username>/transfers/character/outbound/',
+        CharactersOutbound.as_view(),
+        name='characters_outbound'
+    ),
+    path(
+        'v1/account/<username>/transfers/character/archive/',
+        CharactersArchive.as_view(),
+        name='characters_archive'
+    ),
+    path(
+        'v1/transfer/character/<int:transfer_id>/',
+        RetrieveCharacterTransfer.as_view(),
+        name='retrieve_character_transfer'
+    ),
+    path(
+        'v1/transfer/character/<int:transfer_id>/pay/',
+        AcceptCharTransfer.as_view(),
+        name='accept_character_transfer'
+    ),
+    path(
+        'v1/transfer/character/<int:transfer_id>/cancel/',
+        CancelCharTransfer.as_view(),
+        name='accept_character_transfer'
+    ),
+    path(
+        'v1/transfer/character/<int:transfer_id>/assets/',
+        CharacterTransferAssets.as_view(),
+        name='character_transfer_assets'
+    ),
 ]

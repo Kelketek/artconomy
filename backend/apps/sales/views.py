@@ -21,21 +21,23 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.lib.models import DISPUTE, REFUND, COMMENT, Subscription, ORDER_UPDATE, SALE_UPDATE, REVISION_UPLOADED
+from apps.lib.models import DISPUTE, REFUND, COMMENT, Subscription, ORDER_UPDATE, SALE_UPDATE, REVISION_UPLOADED, \
+    CHAR_TRANSFER
 from apps.lib.permissions import ObjectStatus, IsStaff, IsSafeMethod, Any
 from apps.lib.serializers import CommentSerializer
-from apps.lib.utils import notify, recall_notification
+from apps.lib.utils import notify, recall_notification, subscribe
 from apps.lib.views import BaseTagView
-from apps.profiles.models import User, ImageAsset
+from apps.profiles.models import User, ImageAsset, Character
 from apps.profiles.permissions import ObjectControls, UserControls
-from apps.profiles.serializers import ImageAssetSerializer
+from apps.profiles.serializers import ImageAssetSerializer, CharacterSerializer
 from apps.sales.dwolla import add_bank_account, initiate_withdraw, perform_transfer, make_dwolla_account, \
     destroy_bank_account
 from apps.sales.permissions import OrderViewPermission, OrderSellerPermission, OrderBuyerPermission
-from apps.sales.models import Product, Order, CreditCardToken, PaymentRecord, Revision, BankAccount
+from apps.sales.models import Product, Order, CreditCardToken, PaymentRecord, Revision, BankAccount, CharacterTransfer
 from apps.sales.serializers import ProductSerializer, ProductNewOrderSerializer, OrderViewSerializer, CardSerializer, \
     NewCardSerializer, OrderAdjustSerializer, PaymentSerializer, RevisionSerializer, OrderStartedSerializer, \
-    AccountBalanceSerializer, BankAccountSerializer, WithdrawSerializer, PaymentRecordSerializer
+    AccountBalanceSerializer, BankAccountSerializer, WithdrawSerializer, PaymentRecordSerializer, \
+    CharacterTransferSerializer
 from apps.sales.utils import translate_authnet_error, available_products
 
 
@@ -823,3 +825,224 @@ class AvailableHistory(ListAPIView):
             Q(payee=self.user, type=PaymentRecord.DISBURSEMENT_RETURNED) |
             Q(payer=self.user, type=PaymentRecord.TRANSFER)
         ).order_by('-id').distinct('id')
+
+
+class CreateCharacterTransfer(CreateAPIView):
+    serializer_class = CharacterTransferSerializer
+    permission_classes = [ObjectControls]
+
+    def post(self, *args, **kwargs):
+        errors = {}
+        try:
+            if not self.request.data.get('buyer'):
+                raise ValueError
+            self.buyer = User.objects.get(id=self.request.data.get('buyer'))
+        except User.DoesNotExist:
+            errors = {'buyer': 'That user does not exist.'}
+        except ValueError:
+            errors = {'buyer': 'This field is required.'}
+        serializer = self.get_serializer(data=self.request.data, context=self.get_serializer_context())
+        try:
+            serializer.is_valid(raise_exception=True)
+        except ValidationError as err:
+            err.detail.update(errors)
+            raise
+        if errors:
+            raise ValidationError(errors)
+        return super().post(*args, **kwargs)
+
+    def perform_create(self, serializer):
+        character = get_object_or_404(
+            Character, user__username__iexact=self.kwargs['username'], name=self.kwargs['character']
+        )
+        self.check_object_permissions(self.request, character)
+        instance = serializer.save(
+            character=character, seller=character.user, status=CharacterTransfer.NEW, buyer=self.buyer
+        )
+        # event_type, target, data=None, unique=False, unique_data=None, mark_unread=False, time_override=None,
+        # transform=None, exclude=None, force_create=False
+        subscribe(CHAR_TRANSFER, instance.buyer, instance)
+        subscribe(CHAR_TRANSFER, instance.seller, instance)
+        notify(CHAR_TRANSFER, instance, unique=True, exclude=[instance.seller])
+        return instance
+
+
+class RetrieveCharacterTransfer(RetrieveAPIView):
+    serializer_class = CharacterTransferSerializer
+    permission_classes = [OrderViewPermission]
+
+    def get_object(self):
+        transfer = get_object_or_404(CharacterTransfer, id=self.kwargs['transfer_id'])
+        self.check_object_permissions(self.request, transfer)
+        return transfer
+
+
+class CancelCharTransfer(GenericAPIView):
+    serializer_class = CharacterTransferSerializer
+    permission_classes = [OrderViewPermission]
+
+    def get_object(self):
+        transfer = get_object_or_404(CharacterTransfer, id=self.kwargs['transfer_id'])
+        self.check_object_permissions(self.request, transfer)
+        return transfer
+
+    def post(self, request, *args, **kwargs):
+        transfer = self.get_object()
+        if transfer.status != CharacterTransfer.NEW:
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST, data={
+                    'error': 'This character transfer has already been closed.'
+                }
+            )
+        if request.user == transfer.buyer:
+            transfer.status = CharacterTransfer.REJECTED
+        else:
+            transfer.status = CharacterTransfer.CANCELLED
+        transfer.save()
+        transfer.character.transfer = None
+        transfer.character.save()
+        notify(CHAR_TRANSFER, transfer, unique=True, exclude=[request.user])
+        return Response(status=status.HTTP_200_OK, data=self.get_serializer(instance=transfer).data)
+
+
+class AcceptCharTransfer(GenericAPIView):
+    serializer_class = PaymentSerializer
+    permission_classes = [OrderBuyerPermission]
+
+    def get_object(self):
+        transfer = get_object_or_404(CharacterTransfer, id=self.kwargs['transfer_id'])
+        self.check_object_permissions(self.request, transfer)
+        return transfer
+
+    def mark_transfer_completed(self, transfer):
+        transfer.status = CharacterTransfer.COMPLETED
+        transfer.saved_name = transfer.character.name
+        transfer.save()
+        transfer.character.user = transfer.buyer
+        transfer.character.transfer = None
+        transfer.character.save()
+        if transfer.include_assets:
+            transfer.character.assets.filter(owner=transfer.seller).update(owner=transfer.buyer)
+        notify(CHAR_TRANSFER, transfer, unique=True, exclude=[transfer.buyer])
+
+    def post(self, *args, **kwargs):
+        transfer = self.get_object()
+        if transfer.status != CharacterTransfer.NEW:
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST, data={
+                    'error': 'This character transfer has already been closed.'
+                }
+            )
+        if transfer.buyer.characters.filter(name=transfer.character.name).exists():
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST, data={
+                    'error': 'You already have a character with that name. '
+                             'Please rename or remove the existing character.'
+                }
+            )
+        if not transfer.price:
+            self.mark_transfer_completed(transfer)
+            return Response(
+                status=status.HTTP_200_OK, data=CharacterTransferSerializer(
+                    instance=transfer, context=self.get_serializer_context()
+                ).data
+            )
+        attempt = self.get_serializer(data=self.request.data, context=self.get_serializer_context())
+        attempt.is_valid(raise_exception=True)
+        attempt = attempt.validated_data
+        if attempt['amount'] != transfer.price.amount:
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST, data={'error': 'The price has changed. Please refresh the page.'}
+            )
+        card = get_object_or_404(CreditCardToken, id=attempt['card_id'], active=True, user=transfer.buyer)
+        if not card.cvv_verified and not attempt['cvv']:
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST, data={'error': 'You must enter the security code for this card.'}
+            )
+        record = PaymentRecord.objects.create(
+            card=card,
+            payer=transfer.buyer,
+            payee=transfer.seller,
+            escrow_for=transfer.seller,
+            status=PaymentRecord.FAILURE,
+            source=PaymentRecord.CARD,
+            type=PaymentRecord.SALE,
+            amount=attempt['amount'],
+            response_message="Failed when contacting Authorize.net.",
+            target=transfer,
+        )
+        code = status.HTTP_400_BAD_REQUEST
+        data = {'error': record.response_message}
+        try:
+            result = card.api.capture(attempt['amount'], cvv=attempt['cvv'] or None)
+        except Exception as err:
+            record.response_message = translate_authnet_error(err)
+            data['error'] = record.response_message
+        else:
+            record.status = PaymentRecord.SUCCESS
+            record.txn_id = result.uid
+            record.finalized = False
+            record.response_message = ''
+            code = status.HTTP_202_ACCEPTED
+            self.mark_transfer_completed(transfer)
+            card.cvv_verified = True
+            card.save()
+            notify(SALE_UPDATE, transfer, unique=True, mark_unread=True)
+            data = CharacterTransferSerializer(instance=transfer, context=self.get_serializer_context()).data
+            PaymentRecord.objects.create(
+                payer=transfer.seller,
+                amount=transfer.price * transfer.seller.fee,
+                payee=None,
+                source=PaymentRecord.ACCOUNT,
+                txn_id=str(uuid4()),
+                target=transfer,
+                type=PaymentRecord.TRANSFER,
+                status=PaymentRecord.SUCCESS,
+                response_code='ChrTrFee',
+                response_message='Artconomy Service Fee'
+            )
+        record.save()
+        return Response(status=code, data=data)
+
+
+class CharacterTransferAssets(ListAPIView):
+    serializer_class = ImageAssetSerializer
+    permission_classes = [OrderViewPermission]
+
+    def get_queryset(self):
+        transfer = get_object_or_404(CharacterTransfer, id=self.kwargs['transfer_id'])
+        self.check_object_permissions(self.request, transfer)
+        if transfer.status == CharacterTransfer.NEW and transfer.include_assets:
+            return transfer.character.assets.filter(owner=transfer.seller)
+        else:
+            return ImageAsset.objects.none()
+
+
+class CharactersInbound(ListAPIView):
+    serializer_class = CharacterTransferSerializer
+    permission_classes = [UserControls]
+
+    def get_queryset(self):
+        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        self.check_object_permissions(self.request, user)
+        return CharacterTransfer.objects.filter(buyer=user, status=CharacterTransfer.NEW)
+
+
+class CharactersOutbound(ListAPIView):
+    serializer_class = CharacterTransferSerializer
+    permission_classes = [UserControls]
+
+    def get_queryset(self):
+        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        self.check_object_permissions(self.request, user)
+        return CharacterTransfer.objects.filter(seller=user, status=CharacterTransfer.NEW)
+
+
+class CharactersArchive(ListAPIView):
+    serializer_class = CharacterTransferSerializer
+    permission_classes = [UserControls]
+
+    def get_queryset(self):
+        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        self.check_object_permissions(self.request, user)
+        return CharacterTransfer.objects.filter(Q(seller=user)|Q(buyer=user)).exclude(status=CharacterTransfer.NEW)

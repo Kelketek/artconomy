@@ -12,7 +12,7 @@ from apps.lib.serializers import RelatedUserSerializer, Base64ImageField, EventT
 from apps.lib.utils import country_choices
 from apps.profiles.models import User
 from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer
-from apps.sales.models import Product, Order, CreditCardToken, Revision, PaymentRecord, BankAccount
+from apps.sales.models import Product, Order, CreditCardToken, Revision, PaymentRecord, BankAccount, CharacterTransfer
 from apps.sales.utils import escrow_balance, available_balance
 
 
@@ -253,3 +253,17 @@ class PaymentRecordSerializer(serializers.ModelSerializer):
             'response_code', 'response_message', 'finalized', 'target'
         )
         read_only_fields = fields
+
+
+class CharacterTransferSerializer(serializers.ModelSerializer):
+    character = CharacterSerializer(read_only=True)
+    seller = RelatedUserSerializer(read_only=True)
+    buyer = RelatedUserSerializer(read_only=True)
+
+    class Meta:
+        model = CharacterTransfer
+        fields = (
+            'status', 'created_on', 'buyer', 'seller', 'character', 'price', 'include_assets', 'id',
+            'saved_name'
+        )
+        read_only_fields = ('seller', 'character', 'created_on', 'status', 'buyer', 'id', 'saved_name')

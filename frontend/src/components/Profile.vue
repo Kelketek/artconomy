@@ -219,7 +219,8 @@
             featured: true,
             tagging: true,
             placeholder: 'Search artists',
-            styleClasses: 'field-input'
+            styleClasses: 'field-input',
+            multiple: true
           },
           {
             type: 'v-checkbox',

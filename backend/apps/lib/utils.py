@@ -158,6 +158,16 @@ def notify(
     )
 
 
+def subscribe(event_type, user, target, implicit=True):
+    subscription, created = Subscription.objects.get_or_create(
+        type=event_type, subscriber=user, content_type=ContentType.objects.get_for_model(target),
+        object_id=target.id
+    )
+    subscription.implicit = implicit
+    subscription.save()
+    return subscription, created
+
+
 def clear_events(sender, instance, **_kwargs):
     """
     To be used as a signal handler elsewhere on models to make sure any events that existed with this

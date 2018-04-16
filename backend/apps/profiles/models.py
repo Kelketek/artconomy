@@ -16,7 +16,7 @@ from rest_framework.authtoken.models import Token
 
 from apps.lib.abstract_models import GENERAL, RATINGS, ImageModel
 from apps.lib.models import Comment, Subscription, FAVORITE, SYSTEM_ANNOUNCEMENT, DISPUTE, REFUND, Event, \
-    SUBMISSION_CHAR_TAG, CHAR_TAG, SUBMISSION_TAG, COMMENT, Tag
+    SUBMISSION_CHAR_TAG, CHAR_TAG, SUBMISSION_TAG, COMMENT, Tag, CHAR_TRANSFER
 from apps.lib.utils import clear_events, tag_list_cleaner
 from apps.profiles.permissions import AssetViewPermission, AssetCommentPermission
 
@@ -236,6 +236,7 @@ class Character(Model):
     taggable = BooleanField(default=True, db_index=True)
     user = ForeignKey(settings.AUTH_USER_MODEL, related_name='characters', on_delete=CASCADE)
     created_on = DateTimeField(auto_now_add=True)
+    transfer = ForeignKey('sales.CharacterTransfer', on_delete=SET_NULL, null=True, blank=True, related_name='+')
     tags = ManyToManyField('lib.Tag', related_name='characters', blank=True)
     tags__max = 100
     colors__max = 10
@@ -278,6 +279,7 @@ class Attribute(Model):
             self.character.tags.add(tag)
 
     def save(self, *args, **kwargs):
+        self.key = self.key.lower()
         if self.id and self.sticky:
             self.update_tag()
         super().save(*args, **kwargs)
@@ -292,6 +294,21 @@ def auto_subscribe_character(sender, instance, created=False, **_kwargs):
             object_id=instance.id,
             type=CHAR_TAG
         )
+
+
+@receiver(pre_delete, sender=Character)
+def auto_recall_character(sender, instance, **kwargs):
+    from apps.sales.models import CharacterTransfer
+    for transfer in CharacterTransfer.objects.filter(character=instance):
+        Event.objects.filter(
+            content_type=ContentType.objects.get_for_model(model=sender),
+            object_id=instance.id,
+            type=CHAR_TRANSFER,
+            recalled=True
+        )
+        if transfer.status == CharacterTransfer.NEW:
+            transfer.status = CharacterTransfer.CANCELLED
+            transfer.save()
 
 
 @receiver(post_delete, sender=Character)

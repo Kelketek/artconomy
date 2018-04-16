@@ -35,12 +35,18 @@
     name: 'fieldUserSearch',
     mixins: [ Viewer, abstractField ],
     data () {
-      return {
+      let data = {
         query: '',
-        response: null,
-        users: [],
-        userIDs: this.value
+        response: null
       }
+      if (this.schema.multiple) {
+        data.users = []
+        data.userIDs = this.value
+      } else {
+        data.users = []
+        data.userIDs = this.value ? [this.value] : []
+      }
+      return data
     },
     methods: {
       runQuery () {
@@ -51,9 +57,17 @@
       },
       addUser (user) {
         if (this.userIDs.indexOf(user.id) === -1) {
-          this.users.push(user)
-          this.userIDs.push(user.id)
-          this.$emit('input', this.userIDs)
+          if (this.schema.multiple) {
+            this.users.push(user)
+            this.userIDs.push(user.id)
+            this.$emit('input', this.userIDs)
+            this.value = this.userIDs
+          } else {
+            this.users = [user]
+            this.userIDs = [user.id]
+            this.$emit('input', this.userIDs[0])
+            this.value = user.id
+          }
           this.query = ''
           this.response = null
         }
