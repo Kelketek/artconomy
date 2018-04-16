@@ -626,7 +626,7 @@ class CharacterTransfer(Model):
         (CANCELLED, 'Cancelled'),
         (REJECTED, 'Rejected'),
     )
-    status = IntegerField(choices=STATUSES, db_index=True)
+    status = IntegerField(choices=STATUSES, db_index=True, default=NEW)
     created_on = DateTimeField(auto_now_add=True)
     seller = ForeignKey('profiles.User', on_delete=CASCADE, related_name='character_transfers_outbound')
     buyer = ForeignKey('profiles.User', on_delete=CASCADE, related_name='character_transfers_inbound')

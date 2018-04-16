@@ -3,8 +3,8 @@ from factory import Sequence, PostGenerationMethodCall, SubFactory, SelfAttribut
 from factory.django import DjangoModelFactory, ImageField
 from moneyed import Money
 
-from apps.profiles.tests.factories import UserFactory
-from apps.sales.models import Order, Product, CreditCardToken, Revision, PaymentRecord, BankAccount
+from apps.profiles.tests.factories import UserFactory, CharacterFactory
+from apps.sales.models import Order, Product, CreditCardToken, Revision, PaymentRecord, BankAccount, CharacterTransfer
 
 
 class ProductFactory(DjangoModelFactory):
@@ -74,3 +74,13 @@ class BankAccountFactory(DjangoModelFactory):
 
     class Meta:
         model = BankAccount
+
+
+class CharacterTransferFactory(DjangoModelFactory):
+    seller = SubFactory(UserFactory)
+    buyer = SubFactory(UserFactory)
+    character = SubFactory(CharacterFactory)
+    price = Money('15.00')
+
+    class Meta:
+        model = CharacterTransfer

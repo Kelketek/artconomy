@@ -18,7 +18,7 @@ from apps.profiles.tests.factories import CharacterFactory, UserFactory, ImageAs
 from apps.profiles.tests.helpers import gen_image
 from apps.sales.models import Order, CreditCardToken, Product, PaymentRecord
 from apps.sales.tests.factories import OrderFactory, CreditCardTokenFactory, ProductFactory, RevisionFactory, \
-    PaymentRecordFactory, BankAccountFactory
+    PaymentRecordFactory, BankAccountFactory, CharacterTransferFactory
 
 order_scenarios = (
     {
@@ -1745,8 +1745,8 @@ class TestProductSearch(APITestCase):
         self.assertEqual(len(response.data['results']), 3)
 
 
-class TestCreateTransfer(APITestCase):
-    def test_transfer(self):
+class TestTransfer(APITestCase):
+    def test_create_transfer(self):
         character = CharacterFactory.create(user=self.user)
         self.login(self.user)
         response = self.client.post(
@@ -1761,3 +1761,37 @@ class TestCreateTransfer(APITestCase):
             format='json'
         )
         self.assertEqual(response.status_code, 201)
+
+    @patch('apps.sales.models.sauce')
+    def test_character_transfer_pay(self, card_api):
+        transfer = CharacterTransferFactory.create()
+        card = CreditCardTokenFactory.create(user=transfer.buyer, cvv_verified=True)
+        self.login(transfer.buyer)
+        card_api.saved_card.return_value.capture.return_value.uid = 'Trans123'
+        response = self.client.post(
+            '/api/sales/v1/transfer/character/{}/pay/'.format(transfer.id),
+            {
+                'amount': transfer.price.amount,
+                'card_id': card.id,
+                'cvv': ''
+            },
+            format='json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+
+    @patch('apps.sales.models.sauce')
+    def test_character_transfer_pay_fail_seller(self, card_api):
+        transfer = CharacterTransferFactory.create()
+        card = CreditCardTokenFactory.create(user=transfer.buyer, cvv_verified=True)
+        self.login(transfer.seller)
+        card_api.saved_card.return_value.capture.return_value.uid = 'Trans123'
+        response = self.client.post(
+            '/api/sales/v1/transfer/character/{}/pay/'.format(transfer.id),
+            {
+                'amount': transfer.price.amount,
+                'card_id': card.id,
+                'cvv': ''
+            },
+            format='json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
