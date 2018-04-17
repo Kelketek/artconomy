@@ -244,6 +244,7 @@ yarn-error.log*
 frontend/test/unit/coverage/
 frontend/test/e2e/reports/
 selenium-debug.log
+package-lock.json
 
 # Editor directories and files
 .idea
@@ -253,3 +254,8 @@ selenium-debug.log
 *.njsproj
 *.sln
 webpack-stats.json
+
+# Ansible
+ansible/keys
+ansible/keys/
+*.retry

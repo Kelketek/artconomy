@@ -1,0 +1,22 @@
+---
+- name: Install postgres
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - postgresql
+    - python-psycopg2
+
+- name: Load app settings
+  include_vars: "keys/{{env_prefix}}/app_settings.yml"
+
+- name: Create DB User
+  become: yes
+  become_user: postgres
+  postgresql_user: name="{{ app_settings['DATABASES']['default']['USER'] }}" state=present password="{{ app_settings['DATABASES']['default']['PASSWORD'] }}"
+                   role_attr_flags=CREATEDB,LOGIN encrypted=yes
+
+- name: Create DB
+  become: yes
+  become_user: postgres
+  postgresql_db: owner="{{ app_settings['DATABASES']['default']['USER'] }}" name="{{ app_settings['DATABASES']['default']['NAME'] }}" state=present template=template0

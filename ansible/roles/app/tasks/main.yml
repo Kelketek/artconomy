@@ -1,0 +1,137 @@
+---
+- name: Install base requirements
+  apt:
+    name: "{{ item }}"
+  with_items:
+    - python3-dev
+    - autoconf
+    - libtool
+    - python3-pip
+    - python-virtualenv
+    - uwsgi
+    - git
+    - uwsgi-plugin-python3
+
+- name: Load app settings
+  include_vars: "keys/{{env_prefix}}/app_settings.yml"
+
+- name: Install NPM repos
+  shell: "curl -sL https://deb.nodesource.com/setup_9.x | sudo -E bash -"
+  args:
+    creates: /etc/apt/sources.list.d/nodesource.list
+    warn: false
+
+- name: Install NPM
+  apt:
+    name: nodejs
+    state: present
+
+- name: Add app user
+  user:
+    name: "{{ env_prefix }}"
+    group: www-data
+    shell: /bin/bash
+
+- set_fact:
+    home: "/home/{{env_prefix}}"
+
+- name: Ensure proper home directory ownership
+  file:
+    path: "{{ home }}"
+    owner: "{{env_prefix}}"
+    group: www-data
+    state: directory
+
+- name: Create user environment files
+  become: yes
+  become_user: "{{ env_prefix }}"
+  template: src="{{ item.src }}" dest="{{ home }}/{{ item.dest }}"
+  with_items:
+    - {src: "templates/bash/.profile", dest: ".profile"}
+    - {src: "templates/bash/.bashrc", dest: ".bashrc"}
+
+- name: Copy deployment key
+  copy: src="keys/{{ env_prefix }}/.ssh" dest="{{ home }}/" owner="{{ env_prefix }}" mode=0600 directory_mode=0700 force=yes
+
+- name: Clone source
+  become: yes
+  become_user: "{{ env_prefix }}"
+  git: repo="git@github.com:Vulpinity/artconomy.git" version="{{ app_version }}" dest="{{ home }}/artconomy" accept_hostkey=yes key_file="{{ home }}/.ssh/id_rsa" force=yes update=yes
+  notify:
+    - collect static assets
+    - restart uwsgi
+
+- name: Initialize virtual environment
+  become: yes
+  become_user: "{{ env_prefix }}"
+  shell: "virtualenv ~ -p /usr/bin/python3"
+  args:
+    executable: "/bin/bash"
+    creates: "{{ home }}/bin/activate"
+
+- name: Install NPM packages
+  become: yes
+  become_user: "{{ env_prefix }}"
+  npm: registry=http://registry.npmjs.org/ path="{{ home }}/artconomy"
+  notify:
+    - collect static assets
+
+- name: Install a sufficiently high version of pip.
+  become: yes
+  become_user: "{{ env_prefix }}"
+  pip: name=pip state=latest virtualenv="{{ home }}"
+
+- name: Install app requirements by calling pip on requirements.txt
+  become: yes
+  become_user: "{{ env_prefix }}"
+  pip: requirements="{{ home }}/artconomy/requirements.txt" virtualenv="{{ home }}"
+  notify:
+    - collect static assets
+    - restart uwsgi
+
+- name: Set app configuration
+  become: yes
+  become_user: "{{ env_prefix }}"
+  template: src="templates/settings.json.j2" dest="{{ home }}/settings.json"
+  notify:
+    - collect static assets
+    - restart uwsgi
+
+- name: Configure uwsgi
+  template: src="templates/uwsgi/app.ini" dest="/etc/uwsgi/apps-available/artconomy.ini" owner=root group=root mode=0600
+  notify:
+    - restart uwsgi
+
+- name: Create app log folder
+  file: path="{{ home }}/logs/" owner="{{ env_prefix }}" mode=700 state=directory
+
+- name: Check for static collection
+  become: yes
+  become_user: root
+  check_git_revision_changed:
+      directory: "{{ home }}/artconomy/"
+      hash_file: "{{ home }}/.static_hash"
+  register: static_status
+  notify:
+    - collect static assets
+
+- name: Check for new migrations
+  become: yes
+  become_user: root
+  check_migrations_changed:
+      directory: "{{ home }}/artconomy/backend/apps/"
+      hash_file: "{{ home }}/.migrations_hash"
+  register: migrations_status
+  notify:
+    - migrator
+
+- name: Enable app
+  file: src="/etc/uwsgi/apps-available/artconomy.ini" dest="/etc/uwsgi/apps-enabled/artconomy.ini" state=link
+  notify:
+    - restart uwsgi
+
+- name: Enable uwsgi service
+  service: name=uwsgi enabled=true
+
+- name: Start uwsgi service
+  service: name=uwsgi state=started

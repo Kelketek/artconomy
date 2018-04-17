@@ -1,0 +1,17 @@
+- name: Allow ssh
+  ufw:
+    rule: allow
+    name: OpenSSH
+
+- name: Set default policy for firewall to deny.
+  ufw:
+    state: enabled
+    policy: deny
+
+- name: Open firewall for HTTP(S)
+  ufw:
+   rule: allow
+   port: "{{ item }}"
+  with_items:
+   - 80
+   - 443

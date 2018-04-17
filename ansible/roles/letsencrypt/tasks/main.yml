@@ -1,0 +1,16 @@
+---
+- name: Install Letsencrypt
+  apt:
+    name: letsencrypt
+    state: present
+
+- name: Generate certificates
+  command: "letsencrypt --email {{ admin_email }} --agree-tos{% for name in domains %} -d {{name}}{% endfor %} certonly"
+  args:
+    creates: "/etc/letsencrypt/live/*"
+
+- name: Set up cron job
+  template:
+    src: "letsencrypt"
+    dest: "/etc/cron.monthly/letsencrypt"
+    mode: 0755

@@ -1,0 +1,14 @@
+---
+- name: Artconomy Stage Deployment
+  become: true
+  become_user: root
+  hosts: stage
+
+  roles:
+    - sysconfig
+    - postfix
+    - firewall
+    - postgres
+    - letsencrypt
+    - nginx
+    - app

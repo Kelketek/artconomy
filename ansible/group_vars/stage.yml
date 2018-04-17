@@ -1,0 +1,9 @@
+ansible_ssh_user: root
+perform_upgrades: true
+env_prefix: stage
+admin_email: fox@vulpinity.com
+domains:
+ - stage.artconomy.com
+app_version: ansible
+host_color: green
+password_protect: true

@@ -1,0 +1,17 @@
+# Bootstrap configuration file for the application.
+# You should change things in the includes rather than here, where possible.
+
+include includes/backends.conf;
+
+server {
+    listen 80;
+    server_name {% for name in domains %} {{ name }}{% endfor %};
+    rewrite     ^(.*)   https://{{ domains[0] }}$1 permanent;
+}
+
+server {
+    listen 443;
+    include includes/ssl.conf;
+    include includes/upstream.conf;
+}
+include includes/extra.conf;

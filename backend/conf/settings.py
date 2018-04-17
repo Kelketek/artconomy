@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 
 import os
 
+import json
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 from decimal import Decimal
 
@@ -19,17 +21,19 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 BACKEND_ROOT = os.path.join(BASE_DIR, 'backend')
 os.sys.path = [BACKEND_ROOT] + os.sys.path
 
+with open(os.path.join(BASE_DIR, "..", "settings.json")) as env_file:
+    ENV_TOKENS = json.load(env_file)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'sdfbv804jrg23945g890efnvdscviu7ndor8tyh0345hwub')
+SECRET_KEY = ENV_TOKENS.get('DJANGO_SECRET_KEY', '')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = ENV_TOKENS.get('DEBUG', True)
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ENV_TOKENS.get('ALLOWED_HOSTS', ['artconomy.vulpinity.com'])
 
 # Application definition
 
@@ -43,8 +47,6 @@ INSTALLED_APPS = [
     'webpack_loader',
     'rest_framework',
     'rest_framework.authtoken',
-    'oauth2_provider',
-    'deux',
     'custom_user',
     'easy_thumbnails',
     'djmoney',
@@ -66,7 +68,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'backend.conf.urls'
+ROOT_URLCONF = 'conf.urls'
 
 TEMPLATES = [
     {
@@ -89,15 +91,17 @@ WSGI_APPLICATION = 'wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
-        'USER': 'postgres',
-        'HOST': 'db',
-        'PORT': 5432,
+DATABASES = ENV_TOKENS.get(
+    'DATABASES', {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'postgres',
+            'USER': 'postgres',
+            'HOST': 'db',
+            'PORT': 5432,
+        }
     }
-}
+)
 
 # Password validation
 # https://docs.djangoproject.com/en/1.10/ref/settings/#auth-password-validators
@@ -131,13 +135,13 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = ENV_TOKENS.get('STATIC_URL', '/static/')
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
-STATIC_ROOT = os.path.join(BASE_DIR, 'public')
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+STATIC_ROOT = ENV_TOKENS.get('STATIC_ROOT', os.path.join(BASE_DIR, 'public'))
+MEDIA_URL = ENV_TOKENS.get('MEDIA_ROOT', '/media/')
+MEDIA_ROOT = ENV_TOKENS.get('MEDIA_ROOT', os.path.join(BASE_DIR, 'media'))
 
 
 WEBPACK_LOADER = {
@@ -166,38 +170,43 @@ THUMBNAIL_ALIASES = {
     '': {}
 }
 
-DWOLLA_KEY = 'sUNuwIxg71Pbb1IplwysLTDN7tQZS4qRsN9h6W3RQgEeW3z6W4'
-DWOLLA_SECRET = 'fLdkagXI9ECOqkXM7o7afX0mTO8h4yLw4HSMklYCXmVpW84tku'
-DWOLLA_FUNDING_SOURCE = 'https://api-sandbox.dwolla.com/funding-sources/fd18e5b7-29f1-4b89-955e-ac271ea3fa9b'
+DWOLLA_KEY = ENV_TOKENS.get('DWOLLA_KEY', '')
+DWOLLA_SECRET = ENV_TOKENS.get('DWOLLA_SECRET', '')
+DWOLLA_FUNDING_SOURCE = ENV_TOKENS.get(
+    'DWOLLA_FUNDING_SOURCE', ''
+)
 
-AUTHORIZE_KEY = '497HxDC9yd'
-AUTHORIZE_SECRET = '3n69vX6qXA7j248x'
+AUTHORIZE_KEY = ENV_TOKENS.get('AUTHORIZE_KEY', '')
+AUTHORIZE_SECRET = ENV_TOKENS.get('AUTHORIZE_SECRET', '')
 
-DEFAULT_PROTOCOL = 'https'
-DEFAULT_DOMAIN = 'artconomy.vulpinity.com'
+DEFAULT_PROTOCOL = ENV_TOKENS.get('DEFAULT_PROTOCOL', 'https')
+DEFAULT_DOMAIN = ENV_TOKENS.get('DEFAULT_DOMAIN', 'artconomy.vulpinity.com')
 
-SANDBOX_APIS = True
+SANDBOX_APIS = ENV_TOKENS.get('SANDBOX_APIS', True)
 
-MAX_CHARACTER_COUNT = 30
-MAX_ATTRS = 10
+MAX_CHARACTER_COUNT = ENV_TOKENS.get('MAX_CHARACTER_COUNT', 30)
+MAX_ATTRS = ENV_TOKENS.get('MAX_ATTRS', 10)
 
-HIDE_TEST_BROWSER = True
+HIDE_TEST_BROWSER = ENV_TOKENS.get('HIDE_TEST_BROWSER', True)
 
-CARD_TEST = True
+CARD_TEST = ENV_TOKENS.get('CARD_TEST', True)
 
-MIN_PASS_LENGTH = 8
+MIN_PASS_LENGTH = ENV_TOKENS.get('MIN_PASS_LENGTH', 8)
 
-BANNED_USERNAMES = ['artconomy']
+BANNED_USERNAMES = ENV_TOKENS.get('BANNED_USERNAMES', ['artconomy'])
 
-MINIMUM_PRICE = Decimal('1.10')
-MINIMUM_TURNAROUND = Decimal('.01')
+MINIMUM_PRICE = ENV_TOKENS.get('MINIMUM_PRICE', Decimal('1.10'))
+MINIMUM_TURNAROUND = ENV_TOKENS.get('MINIMUM_TURNAROUND', Decimal('.01'))
 
-REFUND_FEE = Decimal('2.00')
+REFUND_FEE = ENV_TOKENS.get('REFUND_FEE', Decimal('2.00'))
 
-COUNTRIES_NOT_SERVED = (
-  'NK',
-  'IR',
-  'NG'
+COUNTRIES_NOT_SERVED = ENV_TOKENS.get(
+    'COUNTRIES_NOT_SERVED',
+    (
+      'NK',
+      'IR',
+      'NG'
+    )
 )
 
 REST_FRAMEWORK = {
@@ -208,6 +217,6 @@ REST_FRAMEWORK = {
   )
 }
 
-GR_CAPTCHA_SECRET_KEY = '6LdDkkIUAAAAAL1ekZxQwQD2KnWItTmZi_Zs58sC'
+GR_CAPTCHA_SECRET_KEY = ENV_TOKENS.get('GR_CAPTCHA_SECRET_KEY', '')
 
-GR_CAPTCHA_PUBLIC_KEY = '6LdDkkIUAAAAAFyNzBAPKEDkxwYrQ3aZdVb1NKPw'
+GR_CAPTCHA_PUBLIC_KEY = ENV_TOKENS.get('GR_CAPTCHA_PUBLIC_KEY', '')
