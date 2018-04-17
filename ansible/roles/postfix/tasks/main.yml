@@ -1,0 +1,30 @@
+---
+- name: Install postfix
+  apt:
+    name: postfix
+    state: present
+
+- name: Set postfix host name
+  lineinfile:
+    path: /etc/postfix/main.cf
+    regexp: '^myhostname'
+    line: 'myhostname = {{ inventory_hostname }}'
+
+- name: Add header checks to postfix configuration
+  lineinfile:
+    path: /etc/postfix/main.cf
+    line: 'header_checks = regexp:/etc/postfix/header_checks'
+
+- name: Ensure header checks configuration file
+  file:
+    path: /etc/postfix/header_checks
+    state: touch
+  changed_when: false
+
+- name: Add subject logging via header checks
+  lineinfile:
+    path: /etc/postfix/header_checks
+    line: '/^Subject:/     WARN'
+  notify:
+    - postmap
+    - reload postfix

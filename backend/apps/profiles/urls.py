@@ -10,11 +10,9 @@ from apps.profiles.views import Register, CharacterListAPI, ImageAssetListAPI, \
     RefColorManager, RecentSubmissions, RecentCommissions, NewCharacters, FavoritesList, GalleryList, SubmissionList, \
     AttributeManager, AttributeList
 from apps.profiles.views import check_username, check_email, perform_login, perform_logout
-from deux.urls import urlpatterns as duex_patterns
 
 app_name = "profiles"
 
-duex_patterns = (duex_patterns, 'duex')
 
 urlpatterns = [
     path('v1/recent-submissions/', RecentSubmissions.as_view(), name='recent_submissions'),
@@ -103,5 +101,4 @@ urlpatterns = [
         name='character'
     ),
     path(r'v1/account/<username>/characters/', CharacterListAPI.as_view(), name='character_list'),
-    path('mfa/', include(duex_patterns)),
 ]

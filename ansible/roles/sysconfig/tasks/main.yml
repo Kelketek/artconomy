@@ -1,0 +1,28 @@
+- hostname:
+    name: "{{ inventory_hostname.split('.')[0] }}"
+
+- name: Add hostname to hosts file
+  lineinfile:
+    line: "127.0.0.1 {{ inventory_hostname }}"
+    path: /etc/hosts
+
+- name: Add shortname to hosts file
+  lineinfile:
+    line: "127.0.0.1 {{ inventory_hostname.split('.')[0] }}"
+    path: /etc/hosts
+
+- name: Update Packages
+  apt:
+    cache_valid_time: 8400
+    update_cache: yes
+    upgrade: yes
+  when: perform_upgrades
+
+- name: Install utils
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - screen
+    - vim
+    - build-essential

@@ -1,0 +1,54 @@
+---
+- name: Install NginX
+  apt:
+    name: nginx
+    state: present
+
+- name: Link ssl certs
+  file:
+    path: /etc/nginx/ssl
+    state: link
+    src: /etc/letsencrypt/live/{{ domains[0] }}
+
+- name: Create include file directory
+  file: path=/etc/nginx/includes state=directory
+
+- name: Create special file directory
+  file: path="/home/{{env_prefix}}/static/" state=directory
+
+- name: Copy base NginX configuration
+  template: src="templates/server_base" dest="/etc/nginx/sites-available/artconomy"
+  notify:
+    - reload nginx
+
+- name: Add NginX configuration templates
+  template: src=templates/includes/{{ item }}.conf dest=/etc/nginx/includes/{{ item }}.conf
+            owner=root group=root mode=0600
+  with_items:
+    - backends
+    - extra
+    - ssl
+    - upstream
+  notify:
+    - reload nginx
+
+- name: Remove default host
+  file: path="/etc/nginx/sites-available/default" state=absent
+  notify:
+    - reload nginx
+
+- name: Ensure sites-enabled directory
+  file: path="/etc/nginx/sites-enabled" state=directory
+  notify:
+    - reload nginx
+
+- name: Enable vhost for app
+  file: src="/etc/nginx/sites-available/artconomy" dest="/etc/nginx/sites-enabled/artconomy" state=link
+  notify:
+    - reload nginx
+
+- name: Ensure NginX is running
+  service:
+    name: nginx
+    enabled: yes
+    state: started

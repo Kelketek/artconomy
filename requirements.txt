@@ -1,3 +1,4 @@
+ansible==2.5.0
 pycountry
 authorizesauce==0.5.0
 bok_choy==0.7.1
@@ -10,7 +11,6 @@ djangorestframework-bulk==0.2.1
 django-rest-recaptcha==1.0.1
 django_money==0.11.4
 django-custom-user==0.7
-git+https://github.com/robinhood/deux.git@5b1e774beba7d63b73b5a3f3c1e16afa54706363#egg=deux
 dwollav2==1.2.4
 easy_thumbnails==2.5
 factory_boy==2.8.1

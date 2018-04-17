@@ -1,0 +1,3 @@
+#! /bin/bash
+letsencrypt --agree-tos --webroot --force --webroot-path /home/{{ env_prefix }}/static/ {% for name in domains %}-d {{ name }} {% endfor %} --email {{ admin_email }} certonly &> /dev/null
+/etc/init.d/nginx reload &> /dev/null

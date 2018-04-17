@@ -19,7 +19,7 @@ from django.conf.urls import url, include
 from django.conf.urls.static import static
 from django.contrib import admin
 
-import backend.views
+import views
 
 
 urlpatterns = [
@@ -28,7 +28,7 @@ urlpatterns = [
     url(r'^api/profiles/', include('apps.profiles.urls', namespace='profiles')),
     url(r'^api/sales/', include('apps.sales.urls', namespace='sales')),
     url(r'^api/lib/', include('apps.lib.urls', namespace='lib')),
-    url(r'^api/', backend.views.bad_endpoint, name='api404')
+    url(r'^api/', views.bad_endpoint, name='api404')
 ]
 
 if settings.DEBUG:
@@ -36,4 +36,4 @@ if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if 'test' not in sys.argv:
-    urlpatterns += [url(r'^', backend.views.index)]
+    urlpatterns += [url(r'^', views.index)]

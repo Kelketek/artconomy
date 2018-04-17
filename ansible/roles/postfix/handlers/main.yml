@@ -1,0 +1,6 @@
+---
+- name: postmap
+  command: "postmap /etc/postfix/header_checks"
+
+- name: reload postfix
+  command: "postfix reload"

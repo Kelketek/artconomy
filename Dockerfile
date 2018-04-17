@@ -16,5 +16,6 @@ RUN pip3 install --upgrade pip
 RUN pip3 install -r requirements.txt
 RUN npm install
 RUN npm run build
+RUN ln -s /app/dev_settings.json /settings.json
 RUN ./manage.py collectstatic -v0 --noinput
 RUN mv node_modules /root
