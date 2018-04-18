@@ -1,7 +1,8 @@
 from collections import OrderedDict
 
 from rest_framework import status
-from rest_framework.generics import RetrieveUpdateDestroyAPIView, get_object_or_404, CreateAPIView, UpdateAPIView
+from rest_framework.generics import RetrieveUpdateDestroyAPIView, get_object_or_404, CreateAPIView, UpdateAPIView, \
+    GenericAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -67,7 +68,7 @@ class CountryListing(APIView):
         return Response(status=status.HTTP_200_OK, data=OrderedDict(countries_tweaked()))
 
 
-class BaseTagView(APIView):
+class BaseTagView(GenericAPIView):
     field_name = 'tags'
 
     def get_object(self):

@@ -531,12 +531,14 @@ class CharacterTag(BaseTagView):
     def post_delete(self, character, _tags):
         return Response(
             status=status.HTTP_200_OK,
-            data=CharacterSerializer(instance=character).data
+            data=CharacterSerializer(instance=character, context=self.get_serializer_context()).data
         )
 
     def post_post(self, character, _qs):
         return Response(
-            status=status.HTTP_200_OK, data=CharacterSerializer(instance=character).data
+            status=status.HTTP_200_OK, data=CharacterSerializer(
+                instance=character, context=self.get_serializer_context()
+            ).data
         )
 
 
