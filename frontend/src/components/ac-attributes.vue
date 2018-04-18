@@ -2,15 +2,15 @@
   <v-layout row wrap class="attr-set">
     <template v-for="attribute in stickyAttributes">
       <v-flex xs3 :key="attribute.id" class="attr-key attr-sticky">{{attribute.key}}</v-flex>
-      <v-flex xs9>
-        <ac-patchfield v-model="attribute.value" name="value" :editmode="editMode" :url="`${url}${attribute.id}/`" :callback="success"></ac-patchfield>
+      <v-flex xs8>
+        <ac-patchfield v-model="attribute.value" name="value" :editmode="editMode" :url="`${url}${attribute.id}/`" :callback="success" class="attr-value"></ac-patchfield>
       </v-flex>
       <v-flex xs12><v-divider></v-divider></v-flex>
     </template>
     <template v-for="attribute in unstickyAttributes">
       <v-flex xs3 :key="attribute.id" class="attr-key"><ac-patchfield v-model="attribute.key" name="key" :editmode="editMode" :url="`${url}${attribute.id}/`" :callback="success" /></v-flex>
       <v-flex xs8>
-        <ac-patchfield v-model="attribute.value" name="value" :editmode="editMode" :url="`${url}${attribute.id}/`" :callback="success" />
+        <ac-patchfield v-model="attribute.value" name="value" :editmode="editMode" :url="`${url}${attribute.id}/`" :callback="success" class="attr-value" />
       </v-flex>
       <v-flex xs1 v-if="editMode">
         <ac-action :url="`${url}${attribute.id}/`" :button="false" :success="success" method="DELETE">
@@ -25,13 +25,18 @@
           placeholder="Attribute"
           v-model="newKey"
           :class="{'input-group--error': errors.key.length, 'error--text': errors.key.length}"
+          append-icon="edit"
+          :append-icon-cb="focusKey"
       >
       </v-text-field>
     </v-flex>
     <v-flex xs8 class="new-attr" v-if="editMode && canAdd" @keydown.enter="save">
       <v-text-field
+          ref="valueField"
           v-model="newValue"
           placeholder="Value"
+          append-icon="edit"
+          :append-icon-cb="focusValue"
           :class="{'input-group--error': errors.value.length, 'error--text': errors.value.length}"
       ></v-text-field>
     </v-flex>
@@ -66,6 +71,12 @@
           return
         }
         artCall(this.url, 'POST', {key: this.newKey, value: this.newValue}, this.postSave, this.fail)
+      },
+      focusKey () {
+        this.$refs.keyField.focus()
+      },
+      focusValue () {
+        this.$refs.valueField.focus()
       },
       postSave () {
         this.$refs.keyField.$refs.input.focus()
@@ -123,7 +134,9 @@
   .attr-key .input-group input {
     text-transform: uppercase;
   }
-
+  .patchfield-wrapper.attr-value {
+    width: 100%;
+  }
   .new-attr .input-group__details {
     display: none;
   }

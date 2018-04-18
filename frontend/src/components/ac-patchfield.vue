@@ -1,18 +1,10 @@
 <template>
     <v-flex class="patchfield-wrapper" :class="classes()">
-      <v-flex v-if="editing && multiline">
-        <textarea style="width: 100%;" class="patchfield-multiline-editor" @keydown="handleMultilineInput" v-model="input" @input="resizer" v-focus="true" @blur="save" @keyup.escape="reset" :disabled="disabled"></textarea>
-      </v-flex>
-      <v-flex v-else-if="editing">
-        <v-text-field type="text" ref="field" class="patch-input" v-model="input" @keyup.enter.native="save" v-focus="true" :autofocus="true" @focus="setAtEnd" :value="value" @blur="save" @keyup.escape.native="reset" :disabled="disabled" />
+      <v-flex v-if="editmode && multiline" @click="startEditing">
+        <v-text-field ref="field" :multi-line="true" @keydown="handleMultilineInput" append-icon="edit" :append-icon-cb="focusField" v-model="input" @input="resizer" :v-focus="true" @blur="save" @keyup.escape="reset" :disabled="disabled"></v-text-field>
       </v-flex>
       <v-flex v-else-if="editmode" @click="startEditing">
-        <v-flex class="patchfield-preview" :class="{'patchfield-preview-multiline': multiline}" tabindex="0" @focus="startEditing" @input="update" v-html="preview"></v-flex>
-        <v-tooltip bottom v-if="errors.length">
-          <i slot="activator" class="fa fa-times error-marker"></i>
-          <span v-html="formatErrors()"></span>
-        </v-tooltip>
-        <v-icon>edit</v-icon>
+        <v-text-field type="text" ref="field" class="patch-input" append-icon="edit" :append-icon-cb="focusField" v-model="input" @keyup.enter.native="save" :autofocus="true" @focus="setAtEnd" :value="value" @blur="save" @keyup.escape.native="reset" :disabled="disabled" />
       </v-flex>
       <v-flex v-else-if="multiline" class="patchfield-normal" v-html="preview"></v-flex>
       <v-flex v-else class="patchfield-normal" v-html="preview"></v-flex>
@@ -55,6 +47,9 @@
       }
     },
     methods: {
+      focusField () {
+        this.$refs.field.focus()
+      },
       update () {
         this.$emit('input', this.input)
       },
