@@ -246,3 +246,7 @@ logging.config.dictConfig({
         },
     },
 })
+
+AVATAR_EXPOSE_USERNAMES = False
+
+AVATAR_THUMB_FORMAT = 'PNG'

@@ -2,7 +2,7 @@ from avatar.models import Avatar
 from avatar.signals import avatar_updated
 from django.conf import settings
 from django.contrib.auth import login, get_user_model, authenticate, logout, update_session_auth_hash
-from django.db.models import Q, Count
+from django.db.models import Q
 from django.db.transaction import atomic
 from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
