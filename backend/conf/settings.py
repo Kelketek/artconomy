@@ -220,3 +220,29 @@ REST_FRAMEWORK = {
 GR_CAPTCHA_SECRET_KEY = ENV_TOKENS.get('GR_CAPTCHA_SECRET_KEY', '')
 
 GR_CAPTCHA_PUBLIC_KEY = ENV_TOKENS.get('GR_CAPTCHA_PUBLIC_KEY', '')
+
+import logging.config
+LOGGING_CONFIG = None
+logging.config.dictConfig({
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'console': {
+            # exact format is not important, this is the minimum information
+            'format': '%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'console',
+        },
+    },
+    'loggers': {
+        # root logger
+        '': {
+            'level': 'WARNING',
+            'handlers': ['console'],
+        },
+    },
+})
