@@ -4,6 +4,6 @@ env_prefix: stage
 admin_email: fox@vulpinity.com
 domains:
  - stage.artconomy.com
-app_version: ansible
+app_version: master
 host_color: green
 password_protect: true
