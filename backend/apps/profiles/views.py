@@ -711,7 +711,7 @@ class RecentCommissions(ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return available_assets(self.request, self.request.user).filter(order__isnull=False).order_by('created_on')
+        return available_assets(self.request, self.request.user).filter(order__isnull=False).order_by('-created_on')
 
 
 class RecentSubmissions(ListAPIView):
@@ -719,7 +719,7 @@ class RecentSubmissions(ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return available_assets(self.request, self.request.user).filter(order__isnull=True).order_by('created_on')
+        return available_assets(self.request, self.request.user).filter(order__isnull=True).order_by('-created_on')
 
 
 class NewCharacters(ListAPIView):
@@ -727,7 +727,7 @@ class NewCharacters(ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return available_chars(self.request.user).filter(primary_asset__isnull=False).order_by('created_on')
+        return available_chars(self.request.user).filter(primary_asset__isnull=False).order_by('-created_on')
 
 
 @api_view(['GET'])
