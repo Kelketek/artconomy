@@ -139,7 +139,7 @@
               :remove-url="`${url}tag-characters/`"
               :removable="((char.user.username === viewer.username) || controls) && !char.transfer"
               :callback="populateSubmission"
-              :can-showcase="controls"
+              :can-showcase="char.user.username === viewer.username"
               :asset-id="submission.id"
               xs12 sm4 lg3
           >
