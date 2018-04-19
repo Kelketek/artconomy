@@ -222,48 +222,48 @@ def get_user(user_id):
         return None
 
 
-def char_tag(obj, _):
+def char_tag(obj, context):
     value = obj.data
     from apps.profiles.serializers import ImageAssetSerializer
     try:
-        asset = ImageAssetSerializer(instance=ImageAsset.objects.get(id=value['asset'])).data
+        asset = ImageAssetSerializer(instance=ImageAsset.objects.get(id=value['asset']), context=context).data
     except ImageAsset.DoesNotExist:
         asset = None
     try:
-        user = RelatedUserSerializer(instance=User.objects.get(id=value['user'])).data
+        user = RelatedUserSerializer(instance=User.objects.get(id=value['user']), context=context).data
     except User.DoesNotExist:
         user = None
     return {'user': user, 'asset': asset}
 
 
-def submission_char_tag(obj, _):
+def submission_char_tag(obj, context):
     value = obj.data
     from apps.profiles.serializers import CharacterSerializer
     try:
-        character = CharacterSerializer(instance=Character.objects.get(id=value['character'])).data
+        character = CharacterSerializer(instance=Character.objects.get(id=value['character']), context=context).data
     except Character.DoesNotExist:
         character = None
     user = get_user(value['user'])
     return {'character': character, 'user': user}
 
 
-def revision_uploaded(obj, _):
+def revision_uploaded(obj, context):
     value = obj.data
     from apps.sales.serializers import RevisionSerializer
     try:
-        revision = RevisionSerializer(instance=Revision.objects.get(id=value['revision'])).data
+        revision = RevisionSerializer(instance=Revision.objects.get(id=value['revision']), context=context).data
     except Revision.DoesNotExist:
         revision = None
     return {'revision': revision}
 
 
-def order_update(obj, _):
+def order_update(obj, context):
     from apps.sales.serializers import RevisionSerializer, ProductSerializer
     revision = obj.target.revision_set.all().last()
     if revision is None:
-        display = ProductSerializer(instance=obj.target.product).data
+        display = ProductSerializer(instance=obj.target.product, context=context).data
     else:
-        display = RevisionSerializer(instance=revision).data
+        display = RevisionSerializer(instance=revision, context=context).data
     return {'display': display}
 
 
