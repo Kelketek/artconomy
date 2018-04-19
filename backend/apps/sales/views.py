@@ -1046,3 +1046,13 @@ class CharactersArchive(ListAPIView):
         user = get_object_or_404(User, username__iexact=self.kwargs['username'])
         self.check_object_permissions(self.request, user)
         return CharacterTransfer.objects.filter(Q(seller=user)|Q(buyer=user)).exclude(status=CharacterTransfer.NEW)
+
+
+class NewProducts(ListAPIView):
+    serializer_class = ProductSerializer
+    permission_classes = []
+
+    def get_queryset(self):
+        return available_products(
+            self.request.user, ordering=False
+        ).order_by('-created_on')
