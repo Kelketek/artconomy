@@ -73,6 +73,7 @@ class CharacterAPITestCase(APITestCase):
         self.assertEqual(char.private, True)
         self.assertEqual(char.open_requests, False)
         self.assertEqual(char.open_requests_restrictions, 'Must be foxy.')
+        self.assertEqual(char.taggable, True)
 
         # Should work for staffer.
         self.login(self.staffer)
@@ -83,6 +84,7 @@ class CharacterAPITestCase(APITestCase):
                 'private': True,
                 'open_requests': False,
                 'open_requests_restrictions': 'Must be really foxy.',
+                'taggable': False,
             }
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -90,6 +92,7 @@ class CharacterAPITestCase(APITestCase):
         self.assertEqual(char.description, 'Heart breaker')
         self.assertEqual(char.private, True)
         self.assertEqual(char.open_requests, False)
+        self.assertEqual(char.taggable, False)
         self.assertEqual(char.open_requests_restrictions, 'Must be really foxy.')
 
     def test_edit_character(self):
