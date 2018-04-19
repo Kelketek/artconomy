@@ -505,7 +505,9 @@ class AssetTag(BaseTagView):
     def post_delete(self, asset, qs):
         return Response(
             status=status.HTTP_200_OK,
-            data=ImageAssetManagementSerializer(instance=asset, request=self.request).data
+            data=ImageAssetManagementSerializer(
+                instance=asset, request=self.request, context=self.get_serializer_context()
+            ).data
         )
 
     def post_post(self, asset, tag_list):
@@ -525,7 +527,9 @@ class AssetTag(BaseTagView):
                 transform=transform
             )
         return Response(
-            status=status.HTTP_200_OK, data=ImageAssetManagementSerializer(instance=asset, request=self.request).data
+            status=status.HTTP_200_OK, data=ImageAssetManagementSerializer(
+                instance=asset, request=self.request, context=self.get_serializer_context()
+            ).data
         )
 
 
