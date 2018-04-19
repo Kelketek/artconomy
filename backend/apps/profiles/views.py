@@ -380,7 +380,10 @@ class AssetTagCharacter(APIView):
             asset.characters.remove(*qs)
             return Response(
                 status=status.HTTP_200_OK,
-                data=ImageAssetManagementSerializer(instance=asset, request=self.request).data
+                data=ImageAssetManagementSerializer(
+                    instance=asset, request=self.request,
+                    context={'request': self.request}
+                ).data
             )
         else:
             qs = qs.filter(user=request.user)
@@ -394,7 +397,10 @@ class AssetTagCharacter(APIView):
             )
         asset.characters.remove(*qs)
         return Response(
-            status=status.HTTP_200_OK, data=ImageAssetManagementSerializer(instance=asset, request=request).data
+            status=status.HTTP_200_OK, data=ImageAssetManagementSerializer(
+                instance=asset, request=request,
+                context={'request': self.request}
+            ).data
         )
 
     def post(self, request, asset_id):
@@ -417,7 +423,10 @@ class AssetTagCharacter(APIView):
         if qs.exists():
             safe_add(asset, 'characters', *qs)
         return Response(
-            status=status.HTTP_200_OK, data=ImageAssetManagementSerializer(instance=asset, request=self.request).data
+            status=status.HTTP_200_OK,
+            data=ImageAssetManagementSerializer(
+                instance=asset, request=self.request, context={'request': self.request}
+            ).data,
         )
 
 
