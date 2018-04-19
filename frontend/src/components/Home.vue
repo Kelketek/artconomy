@@ -69,6 +69,14 @@
     <v-card>
       <v-layout row wrap>
         <v-flex xs12 class="pl-2">
+          <h2>New Products</h2>
+        </v-flex>
+      </v-layout>
+    </v-card>
+    <store ref="productSearch" class="pt-2" endpoint="/api/sales/v1/new-products/" />
+    <v-card>
+      <v-layout row wrap>
+        <v-flex xs12 class="pl-2">
           <h2>New Characters</h2>
         </v-flex>
       </v-layout>
@@ -109,9 +117,11 @@
   import { setMetaContent } from '../lib'
   import AcAssetGallery from './ac-asset-gallery'
   import Characters from './Characters'
+  import Store from './Store'
 
   export default {
     components: {
+      Store,
       Characters,
       AcAssetGallery},
     name: 'Home',

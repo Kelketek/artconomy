@@ -83,7 +83,7 @@ def product_ordering(qs, query=''):
     ).order_by('id', 'matches', 'tag_matches').distinct('id')
 
 
-def available_products(requester, query=''):
+def available_products(requester, query='', ordering=True):
     exclude = Q(hidden=True)
     q = Q(name__istartswith=query) | Q(tags__name__iexact=query)
     if requester.is_authenticated:
@@ -94,7 +94,9 @@ def available_products(requester, query=''):
         qs = Product.objects.filter(q).exclude(exclude)
         qs = qs.exclude(Q(task_weight__gt=F('user__max_load')-F('user__load')))
         qs = qs.filter(Q(max_parallel=0) | Q(parallel__lt=F('max_parallel')))
-    return product_ordering(qs, query)
+    if ordering:
+        return product_ordering(qs, query)
+    return qs
 
 
 RESPONSE_TRANSLATORS = {
