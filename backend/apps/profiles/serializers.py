@@ -153,6 +153,7 @@ class CharacterSerializer(serializers.ModelSerializer):
     primary_asset_id = serializers.IntegerField(write_only=True, required=False)
     colors = RefColorSerializer(many=True, read_only=True)
     attributes = AttributeSerializer(many=True, read_only=True)
+    taggable = serializers.BooleanField(default=True)
 
     def validate_primary_asset_id(self, value):
         if value is None:
