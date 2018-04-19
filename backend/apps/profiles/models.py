@@ -249,7 +249,7 @@ class Character(Model):
 
     def notification_serialize(self, context):
         from .serializers import CharacterSerializer
-        return CharacterSerializer(instance=self).data
+        return CharacterSerializer(instance=self, context=context).data
 
 
 class Attribute(Model):
