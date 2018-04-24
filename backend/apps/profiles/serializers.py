@@ -9,6 +9,7 @@ from recaptcha.fields import ReCaptchaField
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 
+from apps.lib.abstract_models import RATINGS
 from apps.lib.serializers import RelatedUserSerializer, Base64ImageField, TagSerializer, SubscribedField, SubscribeMixin
 from apps.profiles.models import Character, ImageAsset, User, RefColor, Attribute
 
@@ -311,3 +312,7 @@ class UserSerializer(serializers.ModelSerializer):
             'blacklist', 'biography', 'has_products', 'taggable'
         )
         read_only_fields = fields
+
+
+class SessionSettingsSerializer(serializers.Serializer):
+    rating = serializers.ChoiceField(choices=RATINGS)

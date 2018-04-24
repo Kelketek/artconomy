@@ -21,6 +21,7 @@ import Search from '@/components/Search'
 import CharacterGallery from '@/components/CharacterGallery'
 import CharacterTransfer from '@/components/CharacterTransfer'
 import NotFound from '@/components/NotFound'
+import SessionSettings from '@/components/SessionSettings.vue'
 import {ErrorHandler} from '@/plugins/error'
 import {setMetaContent} from '../lib'
 
@@ -189,6 +190,11 @@ export const routes = [
     name: 'Search',
     component: Search,
     props: true
+  },
+  {
+    path: '/session/settings/',
+    name: 'SessionSettings',
+    component: SessionSettings
   },
   {
     path: '*',

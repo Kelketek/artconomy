@@ -19,7 +19,7 @@ from rest_framework_bulk import BulkUpdateAPIView
 
 from apps.lib.models import Notification, FAVORITE, CHAR_TAG, SUBMISSION_CHAR_TAG, SUBMISSION_ARTIST_TAG, ARTIST_TAG, \
     SUBMISSION_TAG, Tag
-from apps.lib.permissions import Any, All, IsSafeMethod, IsMethod
+from apps.lib.permissions import Any, All, IsSafeMethod, IsMethod, IsAnonymous
 from apps.lib.serializers import CommentSerializer, NotificationSerializer, Base64ImageField, RelatedUserSerializer, \
     BulkNotificationSerializer, UserInfoSerializer
 from apps.lib.utils import recall_notification, notify, safe_add, add_tags
@@ -29,7 +29,7 @@ from apps.profiles.permissions import ObjectControls, UserControls, AssetViewPer
     ColorControls, ColorLimit, ViewFavorites
 from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer, SettingsSerializer, UserSerializer, \
     RegisterSerializer, ImageAssetManagementSerializer, CredentialsSerializer, AvatarSerializer, RefColorSerializer, \
-    AttributeSerializer
+    AttributeSerializer, SessionSettingsSerializer
 from apps.profiles.utils import available_chars, char_ordering, available_assets, available_artists
 
 
@@ -39,6 +39,7 @@ class Register(CreateAPIView):
     def perform_create(self, serializer):
         instance = serializer.save()
         instance.set_password(instance.password)
+        instance.rating = self.request.max_rating
         instance.save()
         login(self.request, instance)
 
@@ -262,7 +263,7 @@ class UserInfo(APIView):
             serializer = serializer_class(instance=user, request=request)
             data = serializer.data
         else:
-            data = {'blacklist': []}
+            data = {'blacklist': [], 'rating': request.max_rating}
         return Response(data=data, status=status.HTTP_200_OK)
 
     def patch(self, request, **kwargs):
@@ -273,6 +274,21 @@ class UserInfo(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(data=serializer.data, status=status.HTTP_200_OK)
+
+
+class SessionSettings(APIView):
+    permission_classes = [IsAnonymous]
+
+    def get(self, request):
+        self.check_permissions(request)
+        return Response(status=status.HTTP_200_OK, data={'rating': request.max_rating})
+
+    def patch(self, request):
+        self.check_permissions(request)
+        serializer = SessionSettingsSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        request.session.update(serializer.data)
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
 
 
 class CurrentUserInfo(UserInfo):

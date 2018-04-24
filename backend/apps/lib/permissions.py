@@ -66,6 +66,11 @@ class IsStaff(BasePermission):
         return request.user.is_staff
 
 
+class IsAnonymous(BasePermission):
+    def has_permission(self, request, view):
+        return not request.user.is_authenticated
+
+
 class IsSafeMethod(BasePermission):
     """
     Is a read-only request.
