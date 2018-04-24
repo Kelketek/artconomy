@@ -9,7 +9,7 @@
     </div>
     <div v-if="successes.length" class="alert alert-success">
       <a class="close" @click="dismiss_success">&times;</a>
-      {% verbatim %}<span v-for="success in successes">{{ success }}</span>{% endverbatim %}
+      {% verbatim %}<span v-for="sucMsg in successes">{{ sucMsg }}</span>{% endverbatim %}
     </div>
     <div v-if="warnings.length" class="alert alert-warning">
       <a class="close" @click="dismiss_warning">&times;</a>

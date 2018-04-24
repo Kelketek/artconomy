@@ -8,13 +8,14 @@ from apps.profiles.views import Register, CharacterListAPI, ImageAssetListAPI, \
     NotificationsList, SetAvatar, UserInfo, CharacterSearch, AssetFavorite, MarkNotificationsRead, AssetTagCharacter, \
     UserSearch, AssetTagArtist, TagSearch, AssetTag, AssetSearch, CharacterTag, UserBlacklist, RefColorList, \
     RefColorManager, RecentSubmissions, RecentCommissions, NewCharacters, FavoritesList, GalleryList, SubmissionList, \
-    AttributeManager, AttributeList
+    AttributeManager, AttributeList, SessionSettings
 from apps.profiles.views import check_username, check_email, perform_login, perform_logout
 
 app_name = "profiles"
 
 
 urlpatterns = [
+    path('v1/session/settings/', SessionSettings.as_view(), name='session_settings'),
     path('v1/recent-submissions/', RecentSubmissions.as_view(), name='recent_submissions'),
     path('v1/recent-commissions/', RecentCommissions.as_view(), name='recent_commissions'),
     path('v1/new-characters/', NewCharacters.as_view(), name='new_characters'),

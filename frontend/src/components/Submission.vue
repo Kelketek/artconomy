@@ -5,6 +5,25 @@
         <v-flex text-xs-center xs12>
           <ac-asset :asset="submission" thumb-name="gallery" :rating="rating" />
         </v-flex>
+        <v-flex text-xs-center xs12 v-if="!viewer.username">
+          <v-btn @click="showRatingSettings = true">Adjust my content rating settings</v-btn>
+          <ac-form-dialog ref="ratingSettingsForm" :schema="ratingSettingsSchema" :model="ratingSettingsModel"
+                             :options="settingsOptions" :success="updateSession"
+                             :url="`/api/profiles/v1/session/settings/`"
+                             method="PATCH"
+                             title="Adjust Content Settings"
+                             :reset-after="false"
+                             v-model="showRatingSettings"
+          >
+            <v-flex slot="header" text-xs-center>
+              <p>
+                <router-link :to="{name: 'Login', params: {tabName: 'register'}}">Registered users</router-link>
+                can save and fine tune their content settings.
+                <router-link :to="{name: 'Login', params: {tabName: 'register'}}">Consider registering today!</router-link>
+              <p/>
+            </v-flex>
+          </ac-form-dialog>
+        </v-flex>
       </v-layout>
       <v-card v-if="submission">
         <v-speed-dial v-if="controls" bottom right fixed elevation-10 style="z-index: 4">
@@ -231,10 +250,12 @@
   import AcFormContainer from './ac-form-container'
   import AcTag from './ac-tag'
   import AcTagDisplay from './ac-tag-display'
+  import AcFormDialog from './ac-form-dialog'
 
   export default {
     name: 'Submission',
     components: {
+      AcFormDialog,
       AcTagDisplay,
       AcTag,
       AcFormContainer,
@@ -256,6 +277,7 @@
         showCharacterTagging: false,
         showArtistTagging: false,
         showSettings: false,
+        showRatingSettings: false,
         characterTaggingModel: {
           characters: []
         },
@@ -324,6 +346,26 @@
         artistTaggingOptions: {
           validateAfterLoad: false,
           validateAfterChanged: true
+        },
+        ratingSettingsModel: {
+          rating: 0
+        },
+        ratingSettingsSchema: {
+          fields: [{
+            type: 'v-select',
+            label: 'Max Content Rating',
+            model: 'rating',
+            required: false,
+            hint: 'By setting this value, you are affirming that the content this rating represents is legal to view in your area and you meet all legal qualifications (such as age) to view it.',
+            selectOptions: {
+              hideNoneSelectedText: true
+            },
+            values: ratings
+          }]
+        },
+        settingsOptions: {
+          validateAfterLoad: false,
+          validateAfterChanged: true
         }
       }
     },
@@ -350,6 +392,7 @@
         }
         this.settingsModel = newSettings
         this.showSettings = false
+        this.ratingSettingsModel.rating = this.viewer.rating
         this.setMeta()
       },
       setMeta () {
@@ -362,6 +405,12 @@
         } else {
           this.$router.history.push({name: 'Profile', params: {username: this.submission.owner.username}})
         }
+      },
+      updateSession (response) {
+        for (let key of Object.keys(response)) {
+          this.$root.user[key] = response[key]
+        }
+        this.showRatingSettings = false
       },
       isArtist (username) {
         for (let artist of this.submission.artists) {
