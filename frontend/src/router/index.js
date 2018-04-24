@@ -22,6 +22,7 @@ import CharacterGallery from '@/components/CharacterGallery'
 import CharacterTransfer from '@/components/CharacterTransfer'
 import NotFound from '@/components/NotFound'
 import {ErrorHandler} from '@/plugins/error'
+import {setMetaContent} from '../lib'
 
 export const routes = [
   {
@@ -203,3 +204,11 @@ export const router = new Router({
 })
 
 router.beforeEach(ErrorHandler.clearError)
+
+router.beforeEach((to, from, next) => {
+  if (from.name !== to.name) {
+    document.title = 'Artconomy-- Where artists and commissioners meet!'
+    setMetaContent('description', 'Artconomy lets you find artists to draw your personal characters.')
+  }
+  next()
+})
