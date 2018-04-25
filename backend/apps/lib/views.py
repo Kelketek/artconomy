@@ -1,8 +1,9 @@
 from collections import OrderedDict
 
 from rest_framework import status
-from rest_framework.generics import RetrieveUpdateDestroyAPIView, get_object_or_404, CreateAPIView, UpdateAPIView, \
+from rest_framework.generics import RetrieveUpdateDestroyAPIView, get_object_or_404, CreateAPIView, \
     GenericAPIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -10,7 +11,9 @@ from apps.lib.models import Comment
 from apps.lib.permissions import CommentEditPermission, CommentViewPermission, CommentDepthPermission, Any, All, \
     IsMethod, IsSafeMethod
 from apps.lib.serializers import CommentSerializer, CommentSubscriptionSerializer
-from apps.lib.utils import countries_tweaked, remove_tags, add_tags, remove_comment
+from apps.lib.utils import countries_tweaked, remove_tags, add_tags, remove_comment, safe_add
+from apps.profiles.models import User, ImageAsset
+from apps.profiles.permissions import ObjectControls
 
 
 class CommentUpdate(RetrieveUpdateDestroyAPIView):
@@ -103,3 +106,83 @@ class BaseTagView(GenericAPIView):
             return result
 
         return self.post_post(target, result)
+
+
+class BaseUserTagView(GenericAPIView):
+    field_name = 'shared_with'
+    permission_classes = [IsAuthenticated, ObjectControls]
+
+    def get_target(self):
+        raise NotImplementedError()
+
+    def get_serializer_context(self):
+        return {'request': self.request}
+
+    def notify(self, user, target):
+        raise NotImplementedError()
+
+    def recall(self, target, qs):
+        raise NotImplementedError()
+
+    def free_delete_check(self, target):
+        raise NotImplementedError()
+
+    def delete(self, request, *args, **kwargs):
+        target = self.get_target()
+        self.check_object_permissions(request, target)
+        # Check has to be different here.
+        # Might find a way to better simplify this sort of permission checking if
+        # we end up doing it a lot.
+        if self.field_name not in request.data:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={self.field_name: ['This field is required.']})
+        try:
+            id_list = request.data.getlist(self.field_name)
+        except AttributeError:
+            id_list = request.data.get(self.field_name)
+        qs = User.objects.filter(id__in=id_list)
+        if self.free_delete_check(target):
+            getattr(target, self.field_name).remove(*qs)
+            self.recall(target, qs)
+            return Response(
+                status=status.HTTP_200_OK,
+                data=self.serializer_class(
+                    instance=target, request=self.request, context=self.get_serializer_context()
+                ).data
+            )
+        else:
+            qs = qs.filter(id=request.user.id)
+        if not qs.exists():
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST,
+                data={'artists': [
+                    'No users specified. Those IDs do not exist, or you do not have permission '
+                    'to remove any of them.'
+                ]}
+            )
+        getattr(target, self.field_name).remove(*qs)
+        return Response(
+            status=status.HTTP_200_OK, data=self.serializer_class(
+                instance=target, request=request, context=self.get_serializer_context()
+            ).data
+        )
+
+    def post(self, request, asset_id):
+        target = get_object_or_404(ImageAsset, id=asset_id)
+        self.check_object_permissions(request, target)
+        if self.field_name not in request.data:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={self.field_name: ['This field is required.']})
+        try:
+            id_list = request.data.getlist(self.field_name)
+        except AttributeError:
+            id_list = request.data.get(self.field_name)
+        qs = User.objects.filter(id__in=id_list)
+        qs = qs.exclude(id__in=getattr(target, self.field_name).all().values_list('id', flat=True))
+
+        for user in qs:
+            self.notify(user, target)
+        safe_add(target, self.field_name, *qs)
+        return Response(
+            status=status.HTTP_200_OK, data=self.serializer_class(
+                instance=target, request=self.request, context=self.get_serializer_context()
+            ).data
+        )

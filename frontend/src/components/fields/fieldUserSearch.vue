@@ -48,6 +48,14 @@
       }
       return data
     },
+    watch: {
+      value (oldVal, newVal) {
+        if (Array.isArray(newVal) && newVal.length === 0) {
+          this.users = []
+          this.userIDs = newVal
+        }
+      }
+    },
     methods: {
       runQuery () {
         artCall(`/api/profiles/v1/search/user/`, 'GET', {q: this.query, size: 9, tagging: this.schema.tagging}, this.populateResponse)

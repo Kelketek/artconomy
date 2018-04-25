@@ -47,7 +47,7 @@ def available_artists(requester):
 def available_assets(request, requester):
     exclude = Q(private=True)
     if request.user.is_authenticated:
-        exclude &= ~Q(owner=requester)
+        exclude &= ~(Q(owner=requester) | Q(shared_with=requester))
     return ImageAsset.objects.exclude(exclude).exclude(
         rating__gt=request.max_rating
     ).exclude(tags__in=request.blacklist)

@@ -18,12 +18,12 @@ from rest_framework.views import APIView
 from rest_framework_bulk import BulkUpdateAPIView
 
 from apps.lib.models import Notification, FAVORITE, CHAR_TAG, SUBMISSION_CHAR_TAG, SUBMISSION_ARTIST_TAG, ARTIST_TAG, \
-    SUBMISSION_TAG, Tag
+    SUBMISSION_TAG, Tag, ASSET_SHARED
 from apps.lib.permissions import Any, All, IsSafeMethod, IsMethod, IsAnonymous
 from apps.lib.serializers import CommentSerializer, NotificationSerializer, Base64ImageField, RelatedUserSerializer, \
     BulkNotificationSerializer, UserInfoSerializer
 from apps.lib.utils import recall_notification, notify, safe_add, add_tags
-from apps.lib.views import BaseTagView
+from apps.lib.views import BaseTagView, BaseUserTagView
 from apps.profiles.models import User, Character, ImageAsset, RefColor, Attribute
 from apps.profiles.permissions import ObjectControls, UserControls, AssetViewPermission, AssetControls, NonPrivate, \
     ColorControls, ColorLimit, ViewFavorites
@@ -175,7 +175,7 @@ class MakePrimary(APIView):
 
 class AssetManager(RetrieveUpdateDestroyAPIView):
     serializer_class = ImageAssetManagementSerializer
-    permission_classes = [Any(All(Any(IsSafeMethod, IsMethod('PUT')), NonPrivate), AssetControls)]
+    permission_classes = [Any(All(Any(IsSafeMethod, IsMethod('PUT')), AssetViewPermission), AssetControls)]
 
     def get_serializer(self, *args, **kwargs):
         return self.serializer_class(request=self.request, context=self.get_serializer_context(), *args, **kwargs)
@@ -184,11 +184,7 @@ class AssetManager(RetrieveUpdateDestroyAPIView):
         asset = get_object_or_404(
             ImageAsset, id=self.kwargs['asset_id'],
         )
-        if not (self.request.user.is_staff or asset.owner == self.request.user):
-            if self.request.method != 'GET':
-                raise PermissionDenied("You do not have permission to edit this asset.")
-            if asset.private:
-                raise PermissionDenied("You do not have permission to view this submission.")
+        self.check_object_permissions(self.request, asset)
         return asset
 
     def destroy(self, request, *args, **kwargs):
@@ -446,70 +442,34 @@ class AssetTagCharacter(APIView):
         )
 
 
-class AssetTagArtist(APIView):
+class AssetTagArtist(BaseUserTagView):
+    field_name = 'artists'
     permission_classes = [IsAuthenticated, AssetViewPermission]
+    serializer_class = ImageAssetManagementSerializer
 
-    def get_serializer_context(self):
-        return {'request': self.request}
+    def get_target(self):
+        return ImageAsset.objects.get(id=self.kwargs['asset_id'])
 
-    def delete(self, request, asset_id):
-        asset = get_object_or_404(ImageAsset, id=asset_id)
-        self.check_object_permissions(request, asset)
-        # Check has to be different here.
-        # Might find a way to better simplify this sort of permission checking if
-        # we end up doing it a lot.
-        if 'artists' not in request.data:
-            return Response(status=status.HTTP_400_BAD_REQUEST, data={'artists': ['This field is required.']})
-        id_list = request.data['artists']
-        qs = User.objects.filter(id__in=id_list)
-        if (asset.owner == request.user) or request.user.is_staff:
-            asset.artists.remove(*qs)
-            return Response(
-                status=status.HTTP_200_OK,
-                data=ImageAssetManagementSerializer(
-                    instance=asset, request=self.request, context=self.get_serializer_context()
-                ).data
+    def free_delete_check(self, target):
+        return (target.owner == self.request.user) or self.request.user.is_staff
+
+    def notify(self, user, target):
+        if user != self.request.user:
+            notify(
+                ARTIST_TAG, user, data={'user': self.request.user.id, 'asset': target.id},
+                unique=True, mark_unread=True
             )
-        else:
-            qs = qs.filter(id=request.user.id)
-        if not qs.exists():
-            return Response(
-                status=status.HTTP_400_BAD_REQUEST,
-                data={'artists': [
-                    'No artists specified. Those IDs do not exist, or you do not have permission '
-                    'to remove any of them.'
-                ]}
-            )
-        asset.artists.remove(*qs)
-        return Response(
-            status=status.HTTP_200_OK, data=ImageAssetManagementSerializer(
-                instance=asset, request=request, context=self.get_serializer_context()
-            ).data
-        )
+        if user != target.owner:
+            notify(SUBMISSION_ARTIST_TAG, target, data={'user': self.request.user.id, 'artist': user.id})
 
-    def post(self, request, asset_id):
-        asset = get_object_or_404(ImageAsset, id=asset_id)
-        self.check_object_permissions(request, asset)
-        if 'artists' not in request.data:
-            return Response(status=status.HTTP_400_BAD_REQUEST, data={'artists': ['This field is required.']})
-        id_list = request.data['artists']
-        qs = User.objects.filter(id__in=id_list)
-        qs = qs.exclude(id__in=asset.artists.all().values_list('id', flat=True))
-
+    def recall(self, target, qs):
         for user in qs:
-            if user != request.user:
-                notify(
-                    ARTIST_TAG, user, data={'user': request.user.id, 'asset': asset.id},
-                    unique=True, mark_unread=True
-                )
-            if user != asset.owner:
-                notify(SUBMISSION_ARTIST_TAG, asset, data={'user': request.user.id, 'artist': user.id})
-        safe_add(asset, 'artists', *qs)
-        return Response(
-            status=status.HTTP_200_OK, data=ImageAssetManagementSerializer(
-                instance=asset, request=self.request, context=self.get_serializer_context()
-            ).data
-        )
+            recall_notification(
+                ARTIST_TAG, user, data={'asset': target.id}
+            )
+            recall_notification(
+                SUBMISSION_ARTIST_TAG, target,
+            )
 
 
 class AssetTag(BaseTagView):
@@ -860,6 +820,31 @@ class SubmissionList(ListAPIView):
         return available_assets(
             self.request, user
         ).filter(owner=user).exclude(artists=user).exclude(characters__user=user)
+
+
+class AssetShare(BaseUserTagView):
+    field_name = 'shared_with'
+    permission_classes = [IsAuthenticated, ObjectControls]
+    serializer_class = ImageAssetManagementSerializer
+
+    def get_target(self):
+        return ImageAsset.objects.get(id=self.kwargs['asset_id'])
+
+    def free_delete_check(self, target):
+        return (target.owner == self.request.user) or self.request.user.is_staff
+
+    def recall(self, target, qs):
+        for user in qs:
+            recall_notification(
+                ASSET_SHARED, user, data={'asset': target.id}
+            )
+
+    def notify(self, user, target):
+        if user != self.request.user:
+            notify(
+                ASSET_SHARED, user, data={'user': self.request.user.id, 'asset': target.id},
+                unique=True, mark_unread=True
+            )
 
 
 @csrf_exempt

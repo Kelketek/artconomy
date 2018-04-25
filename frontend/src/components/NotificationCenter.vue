@@ -56,11 +56,13 @@
   import AcRevisionUploaded from './notifications/ac-revision-uploaded'
   import AcCommentNotification from './notifications/ac-comment-notification'
   import AcCharTransfer from './notifications/ac-char-transfer'
+  import AcAssetShared from './notifications/ac-asset-shared'
 
   export default {
     name: 'NotificationCenter',
     mixins: [Paginated],
     components: {
+      AcAssetShared,
       AcCharTransfer,
       AcCommentNotification,
       AcRevisionUploaded,

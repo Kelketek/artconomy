@@ -29,6 +29,7 @@
               :url="url" :pre-send="preSend"
               :reset-after="resetAfter"
           />
+          <slot name="footer" />
           <v-btn type="submit" class="hidden" />
         </v-form>
       </v-card-text>
