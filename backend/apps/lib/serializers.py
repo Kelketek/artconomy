@@ -9,7 +9,7 @@ from rest_framework.fields import SerializerMethodField
 from rest_framework_bulk import BulkSerializerMixin, BulkListSerializer
 
 from apps.lib.models import Comment, Notification, Event, CHAR_TAG, SUBMISSION_CHAR_TAG, Tag, REVISION_UPLOADED, \
-    ORDER_UPDATE, SALE_UPDATE, COMMENT, Subscription
+    ORDER_UPDATE, SALE_UPDATE, COMMENT, Subscription, ASSET_SHARED
 from apps.profiles.models import User, ImageAsset, Character
 from apps.sales.models import Revision
 
@@ -300,6 +300,24 @@ def comment_made(obj, context):
     }
 
 
+def asset_shared(obj, context):
+    try:
+        asset = ImageAsset.objects.get(id=obj.data['asset'])
+    except ImageAsset.DoesNotExist:
+        asset = None
+
+    try:
+        user = User.objects.get(id=obj.data['user'])
+    except User.DoesNotExist:
+        user = None
+
+    return {
+        'asset': notification_display(asset, context),
+        'display': notification_display(asset, context),
+        'user': notification_display(user, context),
+    }
+
+
 TYPE_MAP = {
     CHAR_TAG: char_tag,
     ORDER_UPDATE: order_update,
@@ -307,6 +325,7 @@ TYPE_MAP = {
     SUBMISSION_CHAR_TAG: submission_char_tag,
     REVISION_UPLOADED: revision_uploaded,
     COMMENT: comment_made,
+    ASSET_SHARED: asset_shared,
 }
 
 

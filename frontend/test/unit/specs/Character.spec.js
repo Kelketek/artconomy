@@ -1,5 +1,5 @@
 import Character from '@/components/Character'
-import { mount, createLocalVue } from 'vue-test-utils'
+import { mount, createLocalVue } from '@vue/test-utils'
 import MarkDownIt from 'markdown-it'
 import sinon from 'sinon'
 import VueRouter from 'vue-router'
@@ -7,6 +7,7 @@ import { router } from '../../../src/router'
 import { UserHandler } from '../../../src/plugins/user'
 import VueFormGenerator from 'vue-form-generator'
 import { Shortcuts } from '../../../src/plugins/shortcuts'
+import Vuetify from 'vuetify'
 
 let server, localVue
 
@@ -19,6 +20,7 @@ describe('Character.vue', () => {
     localVue.use(UserHandler)
     localVue.use(VueFormGenerator)
     localVue.use(Shortcuts)
+    localVue.use(Vuetify)
   })
   afterEach(function () {
     server.restore()

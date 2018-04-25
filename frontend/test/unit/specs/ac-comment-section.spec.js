@@ -1,5 +1,5 @@
 import AcCommentSection from '@/components/ac-comment-section'
-import { mount, createLocalVue } from 'vue-test-utils'
+import { mount, createLocalVue } from '@vue/test-utils'
 import sinon from 'sinon'
 import { checkJson, installFields } from '../helpers'
 import VueFormGenerator from 'vue-form-generator'

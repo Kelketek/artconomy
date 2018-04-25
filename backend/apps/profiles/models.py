@@ -16,7 +16,7 @@ from rest_framework.authtoken.models import Token
 
 from apps.lib.abstract_models import GENERAL, RATINGS, ImageModel
 from apps.lib.models import Comment, Subscription, FAVORITE, SYSTEM_ANNOUNCEMENT, DISPUTE, REFUND, Event, \
-    SUBMISSION_CHAR_TAG, CHAR_TAG, SUBMISSION_TAG, COMMENT, Tag, CHAR_TRANSFER
+    SUBMISSION_CHAR_TAG, CHAR_TAG, SUBMISSION_TAG, COMMENT, Tag, CHAR_TRANSFER, ASSET_SHARED, CHAR_SHARED
 from apps.lib.utils import clear_events, tag_list_cleaner
 from apps.profiles.permissions import AssetViewPermission, AssetCommentPermission
 
@@ -91,6 +91,18 @@ def auto_subscribe(sender, instance, created=False, **_kwargs):
             type=SYSTEM_ANNOUNCEMENT
         )
         Token.objects.create(user_id=instance.id)
+        Subscription.objects.create(
+            subscriber=instance,
+            content_type=ContentType.objects.get_for_model(model=instance),
+            object_id=instance.id,
+            type=ASSET_SHARED
+        )
+        Subscription.objects.create(
+            subscriber=instance,
+            content_type=ContentType.objects.get_for_model(model=instance),
+            object_id=instance.id,
+            type=CHAR_SHARED
+        )
     if instance.is_staff:
         Subscription.objects.get_or_create(
             subscriber=instance,
@@ -126,6 +138,8 @@ class ImageAsset(ImageModel):
     artists__max = 10
     order = ForeignKey('sales.Order', null=True, blank=True, on_delete=SET_NULL, related_name='outputs')
     subscriptions = GenericRelation('lib.Subscription')
+    shared_with = ManyToManyField('User', related_name='shared_assets', blank=True)
+    shared_with__max = 150  # Dunbar limit
 
     comment_permissions = [AssetViewPermission, AssetCommentPermission]
 
@@ -238,8 +252,10 @@ class Character(Model):
     created_on = DateTimeField(auto_now_add=True)
     transfer = ForeignKey('sales.CharacterTransfer', on_delete=SET_NULL, null=True, blank=True, related_name='+')
     tags = ManyToManyField('lib.Tag', related_name='characters', blank=True)
+    shared_with = ManyToManyField('User', related_name='shared_characters', blank=True)
     tags__max = 100
     colors__max = 10
+    shared_with__max = 150  # Dunbar limit
 
     def __str__(self):
         return self.name

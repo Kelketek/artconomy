@@ -8,7 +8,7 @@ from apps.profiles.views import Register, CharacterListAPI, ImageAssetListAPI, \
     NotificationsList, SetAvatar, UserInfo, CharacterSearch, AssetFavorite, MarkNotificationsRead, AssetTagCharacter, \
     UserSearch, AssetTagArtist, TagSearch, AssetTag, AssetSearch, CharacterTag, UserBlacklist, RefColorList, \
     RefColorManager, RecentSubmissions, RecentCommissions, NewCharacters, FavoritesList, GalleryList, SubmissionList, \
-    AttributeManager, AttributeList, SessionSettings
+    AttributeManager, AttributeList, SessionSettings, AssetShare
 from apps.profiles.views import check_username, check_email, perform_login, perform_logout
 
 app_name = "profiles"
@@ -46,6 +46,10 @@ urlpatterns = [
     path(
         r'v1/asset/<int:asset_id>/tag-artists/',
         AssetTagArtist.as_view(), name='asset_artist_tag'
+    ),
+    path(
+        r'v1/asset/<int:asset_id>/share/',
+        AssetShare.as_view(), name='asset_share'
     ),
     path(
         'v1/asset/<int:asset_id>/tag/',

@@ -129,7 +129,8 @@ export const NOTIFICATION_MAPPING = {
   '17': 'ac-submission-char-tag',
   '18': 'ac-order-update',
   '19': 'ac-sale-update',
-  '22': 'ac-revision-uploaded'
+  '22': 'ac-revision-uploaded',
+  '23': 'ac-asset-shared'
 }
 
 export const ORDER_STATUSES = {

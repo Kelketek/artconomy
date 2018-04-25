@@ -1,7 +1,8 @@
 import Simple from '../fixtures/ac-patch-field/Simple'
-import { mount, createLocalVue } from 'vue-test-utils'
+import { mount, createLocalVue } from '@vue/test-utils'
 import MarkDownIt from 'markdown-it'
 import sinon from 'sinon'
+import Vuetify from 'vuetify'
 
 let server, localVue
 
@@ -9,6 +10,7 @@ describe('ac-patch-field.vue', () => {
   beforeEach(function () {
     server = sinon.fakeServer.create()
     localVue = createLocalVue()
+    localVue.use(Vuetify)
     localVue.prototype.md = MarkDownIt()
   })
   afterEach(function () {

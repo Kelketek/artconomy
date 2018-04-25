@@ -4,7 +4,7 @@ from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from apps.lib.models import FAVORITE, Subscription, COMMENT
+from apps.lib.models import FAVORITE, Subscription, COMMENT, Notification, ASSET_SHARED
 from apps.profiles.models import Character, ImageAsset
 from apps.lib.abstract_models import MATURE, ADULT, GENERAL
 from apps.lib.test_resources import APITestCase
@@ -600,3 +600,178 @@ class TestRefColor(APITestCase):
             }
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class TestTagArtist(APITestCase):
+    def test_logged_in(self):
+        asset = ImageAssetFactory.create()
+        self.login(asset.owner)
+        response = self.client.post(
+            '/api/profiles/v1/asset/{}/tag-artists/'.format(asset.id),
+            {'artists': [self.user.id, self.user2.id]}
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['id'], asset.id)
+        asset.refresh_from_db()
+        self.assertEqual(sorted(list(asset.artists.all().values_list('id', flat=True))), [self.user.id, self.user2.id])
+
+    def test_not_logged_in(self):
+        asset = ImageAssetFactory.create()
+        response = self.client.post(
+            '/api/profiles/v1/asset/{}/tag-artists/'.format(asset.id),
+            {'artists': [self.user.id, self.user2.id]}
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_logged_in_different_user(self):
+        asset = ImageAssetFactory.create()
+        self.login(self.user)
+        response = self.client.post(
+            '/api/profiles/v1/asset/{}/tag-artists/'.format(asset.id),
+            {'artists': [self.user.id, self.user2.id]}
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['id'], asset.id)
+        asset.refresh_from_db()
+        self.assertEqual(sorted(list(asset.artists.all().values_list('id', flat=True))), [self.user.id, self.user2.id])
+
+    def test_delete_logged_in(self):
+        asset = ImageAssetFactory.create()
+        asset.artists.add(self.user, self.user2, asset.owner)
+        self.login(asset.owner)
+        response = self.client.delete(
+            '/api/profiles/v1/asset/{}/tag-artists/'.format(asset.id),
+            {'artists': [self.user.id, self.user2.id]}
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['id'], asset.id)
+        asset.refresh_from_db()
+        self.assertEqual(list(asset.artists.all().values_list('id', flat=True)), [asset.owner.id])
+
+    def test_delete_not_logged_in(self):
+        asset = ImageAssetFactory.create()
+        asset.artists.add(self.user, self.user2, asset.owner)
+        response = self.client.delete(
+            '/api/profiles/v1/asset/{}/tag-artists/'.format(asset.id),
+            {'artists': [self.user.id, self.user2.id]}
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_delete_wrong_user(self):
+        asset = ImageAssetFactory.create()
+        asset.artists.add(self.user, self.user2, asset.owner)
+        self.login(UserFactory.create())
+        response = self.client.delete(
+            '/api/profiles/v1/asset/{}/tag-artists/'.format(asset.id),
+            {'artists': [self.user.id, self.user2.id]}
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_delete_other_user_tagged(self):
+        asset = ImageAssetFactory.create()
+        asset.artists.add(self.user, self.user2, asset.owner)
+        self.login(self.user)
+        response = self.client.delete(
+            '/api/profiles/v1/asset/{}/tag-artists/'.format(asset.id),
+            {'artists': [self.user.id, self.user2.id]}
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        asset.refresh_from_db()
+        self.assertEqual(
+            sorted(list(asset.artists.all().values_list('id', flat=True))), [self.user2.id, asset.owner.id]
+        )
+
+
+class TestShareAsset(APITestCase):
+    def test_logged_in(self):
+        asset = ImageAssetFactory.create()
+        self.login(asset.owner)
+        response = self.client.post(
+            '/api/profiles/v1/asset/{}/share/'.format(asset.id),
+            {'shared_with': [self.user.id, self.user2.id]}
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['id'], asset.id)
+        asset.refresh_from_db()
+        self.assertEqual(
+            sorted(list(asset.shared_with.all().values_list('id', flat=True))), [self.user.id, self.user2.id]
+        )
+        notification1 = Notification.objects.get(event__type=ASSET_SHARED, user=self.user)
+        notification2 = Notification.objects.get(event__type=ASSET_SHARED, user=self.user)
+        self.assertEqual(notification1.event.data['user'], asset.owner.id)
+        self.assertEqual(notification2.event, notification1.event)
+        self.assertEqual(notification1.event.data['asset'], asset.id)
+        self.assertEqual(notification2.event, notification1.event)
+
+    def test_not_logged_in(self):
+        asset = ImageAssetFactory.create()
+        response = self.client.post(
+            '/api/profiles/v1/asset/{}/share/'.format(asset.id),
+            {'shared_with': [self.user.id, self.user2.id]}
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_logged_in_different_user(self):
+        asset = ImageAssetFactory.create()
+        self.login(self.user)
+        response = self.client.post(
+            '/api/profiles/v1/asset/{}/share/'.format(asset.id),
+            {'shared_with': [self.user.id, self.user2.id]}
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_delete_logged_in(self):
+        asset = ImageAssetFactory.create()
+        asset.shared_with.add(self.user, self.user2, asset.owner)
+        self.login(asset.owner)
+        response = self.client.delete(
+            '/api/profiles/v1/asset/{}/share/'.format(asset.id),
+            {'shared_with': [self.user.id, self.user2.id]}
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['id'], asset.id)
+        asset.refresh_from_db()
+        self.assertEqual(list(asset.shared_with.all().values_list('id', flat=True)), [asset.owner.id])
+
+    def test_delete_not_logged_in(self):
+        asset = ImageAssetFactory.create()
+        asset.shared_with.add(self.user, self.user2, asset.owner)
+        response = self.client.delete(
+            '/api/profiles/v1/asset/{}/share/'.format(asset.id),
+            {'shared_with': [self.user.id, self.user2.id]}
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_delete_wrong_user(self):
+        asset = ImageAssetFactory.create()
+        asset.artists.add(self.user, self.user2, asset.owner)
+        self.login(UserFactory.create())
+        response = self.client.delete(
+            '/api/profiles/v1/asset/{}/share/'.format(asset.id),
+            {'shared_with': [self.user.id, self.user2.id]}
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_delete_other_user_tagged(self):
+        asset = ImageAssetFactory.create()
+        asset.shared_with.add(self.user, self.user2, asset.owner)
+        self.login(self.user)
+        response = self.client.delete(
+            '/api/profiles/v1/asset/{}/share/'.format(asset.id),
+            {'shared_with': [self.user.id, self.user2.id]}
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_notification_deleted(self):
+        asset = ImageAssetFactory.create()
+        self.login(asset.owner)
+        self.client.post(
+            '/api/profiles/v1/asset/{}/share/'.format(asset.id),
+            {'shared_with': [self.user.id]}
+        )
+        self.client.delete(
+            '/api/profiles/v1/asset/{}/share/'.format(asset.id),
+            {'shared_with': [self.user.id]}
+        )
+        notification = Notification.objects.get(event__type=ASSET_SHARED, user=self.user)
+        self.assertTrue(notification.event.recalled)

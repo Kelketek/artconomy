@@ -171,6 +171,7 @@ class CharacterSerializer(serializers.ModelSerializer):
             'id', 'name', 'description', 'private', 'open_requests', 'open_requests_restrictions', 'user',
             'primary_asset', 'primary_asset_id', 'tags', 'colors', 'taggable', 'attributes', 'transfer'
         )
+        read_only_fields = ('transfer',)
 
 
 class ImageAssetManagementSerializer(SubscribeMixin, serializers.ModelSerializer):
@@ -180,6 +181,7 @@ class ImageAssetManagementSerializer(SubscribeMixin, serializers.ModelSerializer
     file = Base64ImageField(read_only=True, thumbnail_namespace='profiles.ImageAsset.file')
     favorite = serializers.SerializerMethodField()
     subscribed = SubscribedField(required=False)
+    shared_with = RelatedUserSerializer(read_only=True, many=True)
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
@@ -199,7 +201,7 @@ class ImageAssetManagementSerializer(SubscribeMixin, serializers.ModelSerializer
         model = ImageAsset
         fields = (
             'id', 'title', 'caption', 'rating', 'file', 'private', 'created_on', 'order', 'owner', 'characters',
-            'comments_disabled', 'favorite_count', 'favorite', 'artists', 'tags', 'subscribed'
+            'comments_disabled', 'favorite_count', 'favorite', 'artists', 'tags', 'subscribed', 'shared_with'
         )
 
 

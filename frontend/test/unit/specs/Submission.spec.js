@@ -1,9 +1,10 @@
 import Submission from '@/components/Submission'
-import { mount, createLocalVue } from 'vue-test-utils'
+import { mount, createLocalVue } from '@vue/test-utils'
 import MarkDownIt from 'markdown-it'
 import sinon from 'sinon'
 import VueRouter from 'vue-router'
 import { router } from '../../../src/router'
+import Vuetify from 'vuetify'
 import { UserHandler } from '../../../src/plugins/user'
 
 let server, localVue
@@ -15,6 +16,7 @@ describe('Submission.vue', () => {
     localVue.prototype.md = MarkDownIt()
     localVue.use(VueRouter)
     localVue.use(UserHandler)
+    localVue.use(Vuetify)
   })
   afterEach(function () {
     server.restore()

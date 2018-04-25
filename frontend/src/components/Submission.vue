@@ -181,35 +181,55 @@
             </div>
           </v-flex>
       </v-layout>
-      <v-dialog
+      <ac-form-dialog
           v-model="showSettings"
-          fullscreen
-          transition="dialog-bottom-transition"
-          :overlay="false"
-          scrollable
+          title="Submission Settings"
+          :model="settingsModel"
+          :options="artistTaggingOptions"
+          :schema="settingsSchema"
+          :success="populateSubmission"
+          method="PATCH"
+          :url="url"
+          submit-text="Save Settings"
       >
-        <v-card tile>
-          <v-toolbar card dark color="primary">
-            <v-btn icon @click.native="showSettings = false" dark>
-              <v-icon>close</v-icon>
-            </v-btn>
-            <v-toolbar-title>Submission Settings</v-toolbar-title>
-            <v-spacer />
-            <v-toolbar-items>
-              <v-btn dark flat @click.prevent="$refs.settingsForm.submit">Save Settings</v-btn>
-            </v-toolbar-items>
-          </v-toolbar>
-          <v-card-text>
-            <v-form @submit.prevent="$refs.settingsForm.submit">
-              <ac-form-container ref="settingsForm" :schema="settingsSchema" :model="settingsModel"
-                                 :options="artistTaggingOptions" :success="populateSubmission"
-                                 method="PATCH"
-                                 :url="url"
+        <v-flex slot="header" text-xs-center>
+          <v-btn color="primary" @click="showShare = true">
+            Share with...
+          </v-btn>
+        </v-flex>
+      </ac-form-dialog>
+      <ac-form-dialog
+        v-model="showShare"
+        :title="`Share ${submission.title}`"
+        submit-text="Save"
+        :model="shareModel"
+        :options="artistTaggingOptions"
+        :schema="shareSchema"
+        method="POST"
+        :url="`${url}share/`"
+        :success="populateSubmission"
+      >
+        <v-container slot="footer" grid-list-lg>
+          <v-layout row wrap>
+            <v-flex xs12 text-xs-center>
+              <p><strong>Currently shared with...</strong></p>
+              <p><small>Click the x next to a name to stop sharing with this person.</small></p>
+
+            </v-flex>
+            <v-flex lg2 xs6 md4>
+              <ac-avatar
+                  v-for="user in submission.shared_with"
+                  :key="user.id"
+                  :user="user"
+                  :removable="controls"
+                  :remove-url="`${url}share/`"
+                  field-name="shared_with"
+                  :callback="reloadSubmission"
               />
-            </v-form>
-          </v-card-text>
-        </v-card>
-      </v-dialog>
+            </v-flex>
+          </v-layout>
+        </v-container>
+      </ac-form-dialog>
     </v-container>
     <div class="mb-5">
       <ac-comment-section v-if="submission" :commenturl="commenturl" :nesting="true" :locked="submission.comments_disabled" />
@@ -278,6 +298,7 @@
         showArtistTagging: false,
         showSettings: false,
         showRatingSettings: false,
+        showShare: false,
         characterTaggingModel: {
           characters: []
         },
@@ -347,6 +368,23 @@
           validateAfterLoad: false,
           validateAfterChanged: true
         },
+        shareModel: {
+          shared_with: []
+        },
+        shareSchema: {
+          fields: [
+            {
+              type: 'user-search',
+              model: 'shared_with',
+              label: 'Share with',
+              featured: true,
+              tagging: true,
+              multiple: true,
+              placeholder: 'Search users',
+              styleClasses: 'field-input'
+            }
+          ]
+        },
         ratingSettingsModel: {
           rating: 0
         },
@@ -384,16 +422,21 @@
       }
     },
     methods: {
-      populateSubmission (response) {
+      reloadSubmission (response) {
         this.submission = response
         let newSettings = {}
         for (let key of Object.keys(this.settingsModel)) {
           newSettings[key] = response[key]
         }
         this.settingsModel = newSettings
-        this.showSettings = false
         this.ratingSettingsModel.rating = this.viewer.rating
         this.setMeta()
+      },
+      populateSubmission (response) {
+        this.reloadSubmission(response)
+        this.showSettings = false
+        this.showShare = false
+        this.shareModel.shared_with = []
       },
       setMeta () {
         document.title = `${this.submission.title} -- by ${this.submission.owner.username}`

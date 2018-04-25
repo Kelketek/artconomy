@@ -3,7 +3,7 @@ from rest_framework.permissions import BasePermission
 
 class ObjectControls(BasePermission):
     """
-    Checks to make sure a user has permission to edit attributes of this character.
+    Checks to make sure a user has permission to edit this object.
     """
     message = 'You are not authorized to edit this character.'
 
@@ -13,6 +13,9 @@ class ObjectControls(BasePermission):
         user = getattr(obj, 'user', obj)
         if user == request.user:
             return True
+        if hasattr(obj, 'owner'):
+            if obj.owner == request.user:
+                return True
 
 
 class AssetControls(BasePermission):
@@ -37,6 +40,9 @@ class AssetViewPermission(BasePermission):
             return True
         if obj.owner == request.user:
             return True
+        if request.user.is_authenticated:
+            if obj.shared_with.filter(id=request.user.id).exists():
+                return True
         if obj.private:
             return False
         return True

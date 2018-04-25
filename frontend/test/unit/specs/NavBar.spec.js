@@ -5,8 +5,9 @@ import { router } from '../../../src/router'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 import 'vue-form-generator/dist/vfg.css'  // optional full css additions
 import BootstrapVue from 'bootstrap-vue'
-import { mount, createLocalVue } from 'vue-test-utils'
+import { mount, createLocalVue } from '@vue/test-utils'
 import sinon from 'sinon'
+import Vuetify from 'vuetify'
 import { UserHandler } from '../../../src/plugins/user'
 
 let server, localVue
@@ -18,6 +19,7 @@ describe('NavBar.vue', () => {
     localVue.use(VueRouter)
     localVue.use(BootstrapVue)
     localVue.use(UserHandler)
+    localVue.use(Vuetify)
     localVue.use(VueFormGenerator)
   })
   afterEach(function () {
