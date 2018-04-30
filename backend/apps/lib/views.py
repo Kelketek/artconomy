@@ -146,7 +146,7 @@ class BaseUserTagView(GenericAPIView):
             return Response(
                 status=status.HTTP_200_OK,
                 data=self.serializer_class(
-                    instance=target, request=self.request, context=self.get_serializer_context()
+                    instance=target, context=self.get_serializer_context()
                 ).data
             )
         else:
@@ -162,12 +162,12 @@ class BaseUserTagView(GenericAPIView):
         getattr(target, self.field_name).remove(*qs)
         return Response(
             status=status.HTTP_200_OK, data=self.serializer_class(
-                instance=target, request=request, context=self.get_serializer_context()
+                instance=target, context=self.get_serializer_context()
             ).data
         )
 
-    def post(self, request, asset_id):
-        target = get_object_or_404(ImageAsset, id=asset_id)
+    def post(self, request, *args, **kwargs):
+        target = self.get_target()
         self.check_object_permissions(request, target)
         if self.field_name not in request.data:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={self.field_name: ['This field is required.']})
@@ -183,6 +183,6 @@ class BaseUserTagView(GenericAPIView):
         safe_add(target, self.field_name, *qs)
         return Response(
             status=status.HTTP_200_OK, data=self.serializer_class(
-                instance=target, request=self.request, context=self.get_serializer_context()
+                instance=target, context=self.get_serializer_context()
             ).data
         )

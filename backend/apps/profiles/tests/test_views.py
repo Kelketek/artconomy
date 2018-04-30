@@ -4,7 +4,7 @@ from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from apps.lib.models import FAVORITE, Subscription, COMMENT, Notification, ASSET_SHARED
+from apps.lib.models import FAVORITE, Subscription, COMMENT, Notification, ASSET_SHARED, CHAR_SHARED
 from apps.profiles.models import Character, ImageAsset
 from apps.lib.abstract_models import MATURE, ADULT, GENERAL
 from apps.lib.test_resources import APITestCase
@@ -774,4 +774,99 @@ class TestShareAsset(APITestCase):
             {'shared_with': [self.user.id]}
         )
         notification = Notification.objects.get(event__type=ASSET_SHARED, user=self.user)
+        self.assertTrue(notification.event.recalled)
+
+
+class TestShareCharacter(APITestCase):
+    def test_logged_in(self):
+        character = CharacterFactory.create()
+        self.login(character.user)
+        response = self.client.post(
+            '/api/profiles/v1/account/{}/characters/{}/share/'.format(character.user.username, character.name),
+            {'shared_with': [self.user.id, self.user2.id]}
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['id'], character.id)
+        character.refresh_from_db()
+        self.assertEqual(
+            sorted(list(character.shared_with.all().values_list('id', flat=True))), [self.user.id, self.user2.id]
+        )
+        notification1 = Notification.objects.get(event__type=CHAR_SHARED, user=self.user)
+        notification2 = Notification.objects.get(event__type=CHAR_SHARED, user=self.user)
+        self.assertEqual(notification1.event.data['user'], character.user.id)
+        self.assertEqual(notification2.event, notification1.event)
+        self.assertEqual(notification1.event.data['character'], character.id)
+        self.assertEqual(notification2.event, notification1.event)
+
+    def test_not_logged_in(self):
+        character = CharacterFactory.create()
+        response = self.client.post(
+            '/api/profiles/v1/account/{}/characters/{}/share/'.format(character.user.username, character.name),
+            {'shared_with': [self.user.id, self.user2.id]}
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_logged_in_different_user(self):
+        character = CharacterFactory.create()
+        self.login(self.user)
+        response = self.client.post(
+            '/api/profiles/v1/account/{}/characters/{}/share/'.format(character.user.username, character.name),
+            {'shared_with': [self.user.id, self.user2.id]}
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_delete_logged_in(self):
+        character = CharacterFactory.create()
+        character.shared_with.add(self.user, self.user2, character.user)
+        self.login(character.user)
+        response = self.client.delete(
+            '/api/profiles/v1/account/{}/characters/{}/share/'.format(character.user.username, character.name),
+            {'shared_with': [self.user.id, self.user2.id]}
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['id'], character.id)
+        character.refresh_from_db()
+        self.assertEqual(list(character.shared_with.all().values_list('id', flat=True)), [character.user.id])
+
+    def test_delete_not_logged_in(self):
+        character = CharacterFactory.create()
+        character.shared_with.add(self.user, self.user2, character.user)
+        response = self.client.delete(
+            '/api/profiles/v1/account/{}/characters/{}/share/'.format(character.user.username, character.name),
+            {'shared_with': [self.user.id, self.user2.id]}
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_delete_wrong_user(self):
+        character = CharacterFactory.create()
+        character.shared_with.add(self.user, self.user2, character.user)
+        self.login(UserFactory.create())
+        response = self.client.delete(
+            '/api/profiles/v1/account/{}/characters/{}/share/'.format(character.user.username, character.name),
+            {'shared_with': [self.user.id, self.user2.id]}
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_delete_other_user_tagged(self):
+        character = CharacterFactory.create()
+        character.shared_with.add(self.user, self.user2, character.user)
+        self.login(self.user)
+        response = self.client.delete(
+            '/api/profiles/v1/account/{}/characters/{}/share/'.format(character.user.username, character.name),
+            {'shared_with': [self.user.id, self.user2.id]}
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_notification_deleted(self):
+        character = CharacterFactory.create()
+        self.login(character.user)
+        self.client.post(
+            '/api/profiles/v1/account/{}/characters/{}/share/'.format(character.user.username, character.name),
+            {'shared_with': [self.user.id]}
+        )
+        self.client.delete(
+            '/api/profiles/v1/account/{}/characters/{}/share/'.format(character.user.username, character.name),
+            {'shared_with': [self.user.id]}
+        )
+        notification = Notification.objects.get(event__type=CHAR_SHARED, user=self.user)
         self.assertTrue(notification.event.recalled)

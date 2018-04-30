@@ -18,7 +18,7 @@ from rest_framework.views import APIView
 from rest_framework_bulk import BulkUpdateAPIView
 
 from apps.lib.models import Notification, FAVORITE, CHAR_TAG, SUBMISSION_CHAR_TAG, SUBMISSION_ARTIST_TAG, ARTIST_TAG, \
-    SUBMISSION_TAG, Tag, ASSET_SHARED
+    SUBMISSION_TAG, Tag, ASSET_SHARED, CHAR_SHARED
 from apps.lib.permissions import Any, All, IsSafeMethod, IsMethod, IsAnonymous
 from apps.lib.serializers import CommentSerializer, NotificationSerializer, Base64ImageField, RelatedUserSerializer, \
     BulkNotificationSerializer, UserInfoSerializer
@@ -26,7 +26,7 @@ from apps.lib.utils import recall_notification, notify, safe_add, add_tags
 from apps.lib.views import BaseTagView, BaseUserTagView
 from apps.profiles.models import User, Character, ImageAsset, RefColor, Attribute
 from apps.profiles.permissions import ObjectControls, UserControls, AssetViewPermission, AssetControls, NonPrivate, \
-    ColorControls, ColorLimit, ViewFavorites
+    ColorControls, ColorLimit, ViewFavorites, SharedWith
 from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer, SettingsSerializer, UserSerializer, \
     RegisterSerializer, ImageAssetManagementSerializer, CredentialsSerializer, AvatarSerializer, RefColorSerializer, \
     AttributeSerializer, SessionSettingsSerializer
@@ -44,7 +44,9 @@ class Register(CreateAPIView):
         login(self.request, instance)
 
     def get_serializer(self, instance=None, data=None, many=False, partial=False):
-        return self.serializer_class(instance=instance, data=data, many=many, partial=partial, request=self.request)
+        return self.serializer_class(
+            instance=instance, data=data, many=many, partial=partial, context=self.get_serializer_context()
+        )
 
 
 class SettingsAPI(UpdateAPIView):
@@ -84,9 +86,13 @@ class CharacterListAPI(ListCreateAPIView):
 
     def get_queryset(self):
         username = self.kwargs['username']
-        qs = Character.objects.filter(user__username__iexact=self.kwargs['username'])
-        if not (self.request.user.username.lower() == username or self.request.user.is_staff):
-            qs = qs.exclude(private=True)
+        user = get_object_or_404(User, username__iexact=username)
+        if self.request.user.is_staff:
+            requester = user
+        else:
+            requester = self.request.user
+        self_search = requester == user
+        qs = available_chars(requester, self_search=self_search).filter(user=user)
         qs = qs.order_by('created_on')
         return qs
 
@@ -129,7 +135,7 @@ class ImageAssetListAPI(ListCreateAPIView):
 
 class CharacterManager(RetrieveUpdateDestroyAPIView):
     serializer_class = CharacterSerializer
-    permission_classes = [Any(All(IsSafeMethod, NonPrivate), ObjectControls)]
+    permission_classes = [Any(All(IsSafeMethod, SharedWith), ObjectControls)]
 
     def get_object(self):
         character = get_object_or_404(Character, user__username=self.kwargs['username'], name=self.kwargs['character'])
@@ -168,7 +174,7 @@ class MakePrimary(APIView):
         return Response(
             status=status.HTTP_200_OK,
             data=ImageAssetManagementSerializer(
-                request=self.request, instance=asset, context={'request': self.request}
+                instance=asset, context={'request': self.request}
             ).data
         )
 
@@ -176,9 +182,6 @@ class MakePrimary(APIView):
 class AssetManager(RetrieveUpdateDestroyAPIView):
     serializer_class = ImageAssetManagementSerializer
     permission_classes = [Any(All(Any(IsSafeMethod, IsMethod('PUT')), AssetViewPermission), AssetControls)]
-
-    def get_serializer(self, *args, **kwargs):
-        return self.serializer_class(request=self.request, context=self.get_serializer_context(), *args, **kwargs)
 
     def get_object(self):
         asset = get_object_or_404(
@@ -393,7 +396,7 @@ class AssetTagCharacter(APIView):
             return Response(
                 status=status.HTTP_200_OK,
                 data=ImageAssetManagementSerializer(
-                    instance=asset, request=self.request,
+                    instance=asset,
                     context={'request': self.request}
                 ).data
             )
@@ -437,7 +440,7 @@ class AssetTagCharacter(APIView):
         return Response(
             status=status.HTTP_200_OK,
             data=ImageAssetManagementSerializer(
-                instance=asset, request=self.request, context={'request': self.request}
+                instance=asset, context={'request': self.request}
             ).data,
         )
 
@@ -482,7 +485,7 @@ class AssetTag(BaseTagView):
         return Response(
             status=status.HTTP_200_OK,
             data=ImageAssetManagementSerializer(
-                instance=asset, request=self.request, context=self.get_serializer_context()
+                instance=asset, context=self.get_serializer_context()
             ).data
         )
 
@@ -843,7 +846,32 @@ class AssetShare(BaseUserTagView):
         if user != self.request.user:
             notify(
                 ASSET_SHARED, user, data={'user': self.request.user.id, 'asset': target.id},
-                unique=True, mark_unread=True
+                unique_data=True, mark_unread=True
+            )
+
+
+class CharacterShare(BaseUserTagView):
+    field_name = 'shared_with'
+    permission_classes = [IsAuthenticated, ObjectControls]
+    serializer_class = CharacterSerializer
+
+    def get_target(self):
+        return Character.objects.get(user__username=self.kwargs['username'], name=self.kwargs['character'])
+
+    def free_delete_check(self, target):
+        return (target.user == self.request.user) or self.request.user.is_staff
+
+    def recall(self, target, qs):
+        for user in qs:
+            recall_notification(
+                CHAR_SHARED, user, data={'character': target.id}
+            )
+
+    def notify(self, user, target):
+        if user != self.request.user:
+            notify(
+                CHAR_SHARED, user, data={'user': self.request.user.id, 'character': target.id},
+                unique_data=True, mark_unread=True
             )
 
 

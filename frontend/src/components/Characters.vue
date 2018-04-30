@@ -99,7 +99,9 @@
             model: 'private',
             required: false,
             validator: VueFormGenerator.validators.boolean,
-            hint: 'Only shows this character to people you have explicitly shared them to.'
+            hint: 'Only shows this character to people you have explicitly shared them to. ' +
+            'Note that this prevents your character from showing up in searches and lists, but does not hide ' +
+            'submissions which are marked public.'
           }]
         },
         newCharOptions: {

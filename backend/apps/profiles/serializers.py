@@ -22,12 +22,8 @@ class RegisterSerializer(serializers.ModelSerializer):
         validated_data = {key: value for key, value in validated_data.items() if key != 'recaptcha'}
         return super(RegisterSerializer, self).create(validated_data)
 
-    def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop('request')
-        super().__init__(*args, **kwargs)
-
     def get_csrftoken(self, value):
-        return get_token(self.request)
+        return get_token(self.context['request'])
 
     def validate_email(self, value):
         if User.objects.filter(email__iexact=value).exists():
@@ -155,6 +151,7 @@ class CharacterSerializer(serializers.ModelSerializer):
     colors = RefColorSerializer(many=True, read_only=True)
     attributes = AttributeSerializer(many=True, read_only=True)
     taggable = serializers.BooleanField(default=True)
+    shared_with = RelatedUserSerializer(many=True, read_only=True)
 
     def validate_primary_asset_id(self, value):
         if value is None:
@@ -169,7 +166,8 @@ class CharacterSerializer(serializers.ModelSerializer):
         model = Character
         fields = (
             'id', 'name', 'description', 'private', 'open_requests', 'open_requests_restrictions', 'user',
-            'primary_asset', 'primary_asset_id', 'tags', 'colors', 'taggable', 'attributes', 'transfer'
+            'primary_asset', 'primary_asset_id', 'tags', 'colors', 'taggable', 'attributes', 'transfer',
+            'shared_with'
         )
         read_only_fields = ('transfer',)
 
@@ -183,16 +181,13 @@ class ImageAssetManagementSerializer(SubscribeMixin, serializers.ModelSerializer
     subscribed = SubscribedField(required=False)
     shared_with = RelatedUserSerializer(read_only=True, many=True)
 
-    def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop('request', None)
-        super().__init__(*args, **kwargs)
-
     def get_favorite(self, obj):
-        if not self.request:
+        request = self.context.get('request')
+        if not request:
             return None
-        if not self.request.user.is_authenticated:
+        if not request.user.is_authenticated:
             return None
-        return self.request.user.favorites.filter(id=obj.id).exists()
+        return request.user.favorites.filter(id=obj.id).exists()
 
     def get_thumbnail_url(self, obj):
         return self.context['request'].build_absolute_uri(obj.file.url)

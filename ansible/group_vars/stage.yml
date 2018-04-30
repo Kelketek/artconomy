@@ -6,4 +6,4 @@ domains:
  - stage.artconomy.com
 app_version: master
 host_color: green
-password_protect: true
+password_protect: false

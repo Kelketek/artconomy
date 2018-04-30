@@ -117,6 +117,9 @@
           <v-flex>
             <v-btn @click="showTransfer" color="purple"><v-icon>compare_arrows</v-icon> Transfer</v-btn>
           </v-flex>
+          <v-flex>
+            <v-btn @click="showShare=true" color="primary"><v-icon>share</v-icon> Share</v-btn>
+          </v-flex>
         </v-layout>
       </ac-form-dialog>
       <ac-form-dialog ref="transferForm" :schema="transferSchema" :model="transferModel"
@@ -196,6 +199,39 @@
         :totalPieces="totalPieces"
         :see-more-text="`See all uploads of ${character.name}`"
     />
+    <ac-form-dialog
+        v-model="showShare"
+        :title="`Share ${character.name}`"
+        submit-text="Save"
+        :model="shareModel"
+        :options="newUploadOptions"
+        :schema="shareSchema"
+        method="POST"
+        :url="`${url}share/`"
+        :success="loadCharacter"
+        v-if="character && controls"
+    >
+      <v-container slot="footer" grid-list-lg>
+        <v-layout row wrap>
+          <v-flex xs12 text-xs-center>
+            <p><strong>Currently shared with...</strong></p>
+            <p><small>Click the x next to a name to stop sharing with this person.</small></p>
+
+          </v-flex>
+          <v-flex lg2 xs6 md4>
+            <ac-avatar
+                v-for="user in character.shared_with"
+                :key="user.id"
+                :user="user"
+                :removable="controls"
+                :remove-url="`${url}share/`"
+                field-name="shared_with"
+                :callback="setCharacter"
+            />
+          </v-flex>
+        </v-layout>
+      </v-container>
+    </ac-form-dialog>
   </v-container>
 </template>
 
@@ -296,10 +332,15 @@
       updateSettings (response) {
         this.loadCharacter(response)
       },
-      loadCharacter (response) {
+      setCharacter (response) {
         this.character = response
         this.settingsModel = JSON.parse(JSON.stringify(response))
+      },
+      loadCharacter (response) {
+        this.setCharacter(response)
         this.showSettings = false
+        this.showShare = false
+        this.shareModel.shared_with = []
       },
       displayUploader () {
         this.showUpload = true
@@ -344,6 +385,7 @@
         totalPieces: 0,
         speedDial: false,
         url: `/api/profiles/v1/account/${this.username}/characters/${this.characterName}/`,
+        showShare: false,
         newUploadModel: {
           title: '',
           caption: '',
@@ -397,7 +439,9 @@
             type: 'v-checkbox',
             label: 'Open Requests',
             hint: 'Allow other people to commission pieces of your character. You ' +
-                  'can specify restrictions for commissions after this is enabled.',
+                  'can specify restrictions for commissions after this is enabled. Note: If this character is private, ' +
+            'and this checkbox is checked, anyone you have shared this character with will be able to share the ' +
+            'character with an artist when placing a commission.',
             model: 'open_requests'
           }, {
             type: 'v-checkbox',
@@ -473,6 +517,23 @@
         newUploadOptions: {
           validateAfterLoad: false,
           validateAfterChanged: true
+        },
+        shareModel: {
+          shared_with: []
+        },
+        shareSchema: {
+          fields: [
+            {
+              type: 'user-search',
+              model: 'shared_with',
+              label: 'Share with',
+              featured: true,
+              tagging: true,
+              multiple: true,
+              placeholder: 'Search users',
+              styleClasses: 'field-input'
+            }
+          ]
         },
         transferModel: {
           buyer: null,

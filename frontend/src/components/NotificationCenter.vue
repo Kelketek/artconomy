@@ -57,11 +57,13 @@
   import AcCommentNotification from './notifications/ac-comment-notification'
   import AcCharTransfer from './notifications/ac-char-transfer'
   import AcAssetShared from './notifications/ac-asset-shared'
+  import AcCharShared from './notifications/ac-char-shared'
 
   export default {
     name: 'NotificationCenter',
     mixins: [Paginated],
     components: {
+      AcCharShared,
       AcAssetShared,
       AcCharTransfer,
       AcCommentNotification,

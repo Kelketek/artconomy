@@ -533,21 +533,24 @@ class TestOrder(APITestCase):
     def test_place_order(self):
         self.login(self.user)
         characters = [
-            CharacterFactory.create(user=self.user).id,
-            CharacterFactory.create(user=self.user, private=True).id,
-            CharacterFactory.create(user=self.user2, open_requests=True).id
+            CharacterFactory.create(user=self.user),
+            CharacterFactory.create(user=self.user, private=True),
+            CharacterFactory.create(user=self.user2, open_requests=True)
         ]
+        character_ids = [character.id for character in characters]
         product = ProductFactory.create()
         response = self.client.post(
             '/api/sales/v1/account/{}/products/{}/order/'.format(product.user.username, product.id),
             {
                 'details': 'Draw me some porn!',
-                'characters': characters
+                'characters': character_ids
             }
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['details'], 'Draw me some porn!')
-        self.assertEqual(response.data['characters'], characters)
+        self.assertEqual(response.data['characters'], character_ids)
+        for character in characters:
+            self.assertTrue(character.shared_with.filter(username=response.data['seller']['username']).exists())
         self.assertEqual(response.data['product'], product.id)
         self.assertEqual(response.data['status'], Order.NEW)
 

@@ -194,7 +194,7 @@
       >
         <v-flex slot="header" text-xs-center>
           <v-btn color="primary" @click="showShare = true">
-            Share with...
+            <v-icon>share</v-icon> Share
           </v-btn>
         </v-flex>
       </ac-form-dialog>
