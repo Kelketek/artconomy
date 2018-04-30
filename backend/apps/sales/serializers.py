@@ -42,7 +42,8 @@ class ProductNewOrderSerializer(serializers.ModelSerializer):
     def validate_characters(self, value):
         for character in value:
             if not (self.request.user.is_staff or character.user == self.request.user):
-                if character.private or not character.open_requests:
+                private = character.private and not character.shared_with.filter(id=self.request.user.id)
+                if private or not character.open_requests:
                     raise serializers.ValidationError(
                         'You are not permitted to commission pieces for all of the characters you have specified, or '
                         'one or more characters you specified does not exist.'

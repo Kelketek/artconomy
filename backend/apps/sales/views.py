@@ -97,6 +97,8 @@ class PlaceOrder(CreateAPIView):
     def perform_create(self, serializer):
         product = get_object_or_404(Product, id=self.kwargs['product'], hidden=False)
         order = serializer.save(product=product, buyer=self.request.user, seller=product.user)
+        for character in order.characters.all():
+            character.shared_with.add(order.seller)
         notify(SALE_UPDATE, order, unique=True, mark_unread=True)
         return order
 

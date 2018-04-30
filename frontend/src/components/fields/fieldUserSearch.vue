@@ -49,7 +49,7 @@
       return data
     },
     watch: {
-      value (oldVal, newVal) {
+      value (newVal) {
         if (Array.isArray(newVal) && newVal.length === 0) {
           this.users = []
           this.userIDs = newVal

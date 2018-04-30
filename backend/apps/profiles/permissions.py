@@ -18,6 +18,20 @@ class ObjectControls(BasePermission):
                 return True
 
 
+class SharedWith(BasePermission):
+    """
+    Checks to make sure a user has permission to view a particular asset.
+    """
+
+    def has_object_permission(self, request, view, obj):
+        if request.user.is_authenticated:
+            if obj.shared_with.filter(id=request.user.id).exists():
+                return True
+        if obj.private:
+            return False
+        return True
+
+
 class AssetControls(BasePermission):
     """
     Checks to make sure a user has permission to edit a particular asset.

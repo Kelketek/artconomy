@@ -1,8 +1,11 @@
 ---
 - name: Install NginX
   apt:
-    name: nginx
+    name: "{{ item }}"
     state: present
+  with_items:
+    - nginx
+    - nginx-extras
 
 - name: Link ssl certs
   file:
@@ -21,7 +24,7 @@
   notify:
     - reload nginx
 
-- name: Add NginX configuration templates
+- name: Add NginX site configuration templates
   template: src=templates/includes/{{ item }}.conf dest=/etc/nginx/includes/{{ item }}.conf
             owner=root group=root mode=0600
   with_items:
@@ -29,6 +32,13 @@
     - extra
     - ssl
     - upstream
+  notify:
+    - reload nginx
+
+- name: Add NginX extra configuration templates
+  template: src=templates/conf.d/{{ item }}.conf dest=/etc/nginx/conf.d/{{ item }}.conf
+  with_items:
+    - pci
   notify:
     - reload nginx
 
