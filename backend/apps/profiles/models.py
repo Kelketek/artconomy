@@ -44,6 +44,7 @@ class User(AbstractEmailUser):
     favorites_hidden = BooleanField(default=False)
     taggable = BooleanField(default=True, db_index=True)
     artist_tagging_disabled = BooleanField(default=False, db_index=True)
+    watching = ManyToManyField('User', symmetrical=False, related_name='watched_by', blank=True)
     use_load_tracker = BooleanField(
         default=True,
         help_text="Whether to use load tracking to automatically open or close commissions."

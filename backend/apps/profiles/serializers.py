@@ -278,16 +278,13 @@ class UserSerializer(serializers.ModelSerializer):
     avatar_url = serializers.SerializerMethodField()
     fee = serializers.SerializerMethodField()
     has_products = serializers.SerializerMethodField()
-
-    def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop('request')
-        super().__init__(*args, **kwargs)
+    watching = serializers.SerializerMethodField()
 
     def get_dwolla_configured(self, obj):
         return bool(obj.dwolla_url)
 
     def get_csrftoken(self, value):
-        return get_token(self.request)
+        return get_token(self.context['request'])
 
     def get_avatar_url(self, obj):
         return avatar_url(obj)
@@ -301,12 +298,20 @@ class UserSerializer(serializers.ModelSerializer):
     def get_has_products(self, obj):
         return obj.products.all().exists()
 
+    def get_watching(self, obj):
+        request = self.context.get('request')
+        if not request:
+            return None
+        if not request.user.is_authenticated:
+            return None
+        return request.user.watching.filter(id=obj.id).exists()
+
     class Meta:
         model = User
         fields = (
             'commissions_closed', 'rating', 'sfw_mode', 'max_load', 'username', 'id', 'is_staff', 'is_superuser',
             'dwolla_configured', 'csrftoken', 'avatar_url', 'email', 'fee', 'authtoken', 'favorites_hidden',
-            'blacklist', 'biography', 'has_products', 'taggable'
+            'blacklist', 'biography', 'has_products', 'taggable', 'watching'
         )
         read_only_fields = fields
 

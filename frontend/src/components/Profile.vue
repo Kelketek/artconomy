@@ -3,7 +3,17 @@
     <v-card>
       <v-layout row wrap class="mb-4">
         <v-flex xs12 sm2  text-xs-center text-sm-left class="pt-2">
-          <ac-avatar :user="user" />
+          <v-layout row wrap>
+            <v-flex xs12 text-xs-center>
+              <ac-avatar :user="user" />
+            </v-flex>
+            <v-flex xs12 text-xs-center>
+              <ac-action :url="`/api/profiles/v1/account/${username}/watch/`" :success="replaceUser" v-if="isLoggedIn">
+                <span v-if="user.watching"><v-icon>favorite_outline</v-icon> Stop Watching</span>
+                <span v-else><v-icon>favorite</v-icon> Watch</span>
+              </ac-action>
+            </v-flex>
+          </v-layout>
         </v-flex>
         <v-flex xs12 sm10 class="pt-2 pl-2 pr-2">
           <h3>About {{user.username}}</h3>
@@ -121,11 +131,13 @@
   import Store from './Store'
   import VueFormGenerator from 'vue-form-generator'
   import AcFormDialog from './ac-form-dialog'
+  import AcAction from './ac-action'
 
   export default {
     name: 'Profile',
     mixins: [Viewer, Perms],
     components: {
+      AcAction,
       AcFormDialog,
       Store,
       AcContextGallery,
@@ -144,6 +156,10 @@
       },
       addUpload (response) {
         this.$router.history.push({name: 'Submission', params: {assetID: response.id}})
+      },
+      replaceUser (response) {
+        this.$setUser(response.username, response)
+        this.user = response
       }
     },
     data: function () {

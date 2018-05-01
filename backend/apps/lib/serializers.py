@@ -17,6 +17,7 @@ from apps.sales.models import Revision
 class UserInfoSerializer(serializers.ModelSerializer):
     avatar_url = serializers.SerializerMethodField()
     has_products = serializers.SerializerMethodField()
+    watching = serializers.SerializerMethodField()
 
     def __init__(self, request=None, *args, **kwargs):
         # For compatibility with main User serializer
@@ -28,10 +29,18 @@ class UserInfoSerializer(serializers.ModelSerializer):
     def get_avatar_url(self, obj):
         return avatar_url(obj)
 
+    def get_watching(self, obj):
+        request = self.context.get('request')
+        if not request:
+            return None
+        if not request.user.is_authenticated:
+            return None
+        return request.user.watching.filter(id=obj.id).exists()
+
     class Meta:
         model = User
-        fields = ('id', 'username', 'avatar_url', 'biography', 'has_products', 'favorites_hidden')
-        read_only_fields = ('id', 'username', 'avatar_url', 'has_products', 'favorites_hidden')
+        fields = ('id', 'username', 'avatar_url', 'biography', 'has_products', 'favorites_hidden', 'watching')
+        read_only_fields = ('id', 'username', 'avatar_url', 'has_products', 'favorites_hidden', 'watching')
 
 
 class RelatedUserSerializer(serializers.ModelSerializer):
