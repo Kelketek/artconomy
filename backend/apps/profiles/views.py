@@ -18,11 +18,12 @@ from rest_framework.views import APIView
 from rest_framework_bulk import BulkUpdateAPIView
 
 from apps.lib.models import Notification, FAVORITE, CHAR_TAG, SUBMISSION_CHAR_TAG, SUBMISSION_ARTIST_TAG, ARTIST_TAG, \
-    SUBMISSION_TAG, Tag, ASSET_SHARED, CHAR_SHARED
+    SUBMISSION_TAG, Tag, ASSET_SHARED, CHAR_SHARED, WATCHING
 from apps.lib.permissions import Any, All, IsSafeMethod, IsMethod, IsAnonymous
 from apps.lib.serializers import CommentSerializer, NotificationSerializer, Base64ImageField, RelatedUserSerializer, \
     BulkNotificationSerializer, UserInfoSerializer
-from apps.lib.utils import recall_notification, notify, safe_add, add_tags
+from apps.lib.utils import recall_notification, notify, safe_add, add_tags, remove_watch_subscriptions, \
+    watch_subscriptions
 from apps.lib.views import BaseTagView, BaseUserTagView
 from apps.profiles.models import User, Character, ImageAsset, RefColor, Attribute
 from apps.profiles.permissions import ObjectControls, UserControls, AssetViewPermission, AssetControls, NonPrivate, \
@@ -255,11 +256,14 @@ class UserInfo(APIView):
     def get_user(self):
         return get_object_or_404(User, username__iexact=self.kwargs.get('username'))
 
+    def get_serializer_context(self):
+        return {'request': self.request}
+
     def get(self, request, **kwargs):
         user = self.get_user()
         if user:
             serializer_class = self.get_serializer(user)
-            serializer = serializer_class(instance=user, request=request)
+            serializer = serializer_class(instance=user, context=self.get_serializer_context())
             data = serializer.data
         else:
             data = {'blacklist': [], 'rating': request.max_rating}
@@ -269,7 +273,7 @@ class UserInfo(APIView):
         user = self.get_user()
         self.check_object_permissions(request, user)
         serializer_class = self.get_serializer(user)
-        serializer = serializer_class(instance=user, request=request, data=request.data)
+        serializer = serializer_class(instance=user, data=request.data, context=self.get_serializer_context())
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(data=serializer.data, status=status.HTTP_200_OK)
@@ -599,13 +603,13 @@ class UserBlacklist(BaseTagView):
     def post_delete(self, user, result):
         return Response(
             status=status.HTTP_200_OK,
-            data=UserSerializer(instance=user, request=self.request).data
+            data=UserSerializer(instance=user, context=self.get_serializer_context()).data
         )
 
     def post_post(self, user, result):
         return Response(
             status=status.HTTP_200_OK,
-            data=UserSerializer(instance=user, request=self.request).data
+            data=UserSerializer(instance=user, context=self.get_serializer_context()).data
         )
 
 
@@ -613,12 +617,10 @@ class AssetFavorite(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ImageAssetManagementSerializer
 
-    def get_serializer(self, *args, **kwargs):
-        return self.serializer_class(request=self.request, *args, **kwargs)
-
     def get_object(self):
         asset = get_object_or_404(ImageAsset, id=self.kwargs['asset_id'])
-        if asset.private and not asset.owner == self.request.user:
+        private = asset.private and not asset.shared_with.filter(id=self.request.user.id)
+        if private and not asset.owner == self.request.user:
             raise PermissionDenied('This submission is private.')
         return asset
 
@@ -633,6 +635,35 @@ class AssetFavorite(GenericAPIView):
             notify(FAVORITE, asset, {'user_id': self.request.user.id}, unique_data=True)
         serializer = self.get_serializer()
         serializer.instance = asset
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
+
+
+class UserWatch(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_serializer(self, user):
+        if self.request.user.is_staff:
+            return UserSerializer
+        if self.request.user == user:
+            return UserSerializer
+        else:
+            return UserInfoSerializer
+
+    def get_object(self):
+        return get_object_or_404(User, username=self.kwargs['username'])
+
+    def post(self, request, **_kwargs):
+        user = self.get_object()
+        self.check_object_permissions(request, user)
+        if self.request.user.watching.filter(id=user.id).exists():
+            self.request.user.watching.remove(user)
+            remove_watch_subscriptions(self.request.user, user)
+            recall_notification(WATCHING, user, {'user_id': self.request.user.id}, unique_data=True)
+        else:
+            self.request.user.watching.add(user)
+            watch_subscriptions(self.request.user, user)
+            notify(WATCHING, user, {'user_id': self.request.user.id}, unique_data=True)
+        serializer = self.get_serializer(user)(instance=user, context=self.get_serializer_context())
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
 

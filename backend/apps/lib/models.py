@@ -34,7 +34,7 @@ class Comment(models.Model):
 
 
 NEW_CHARACTER = 0
-FOLLOWING = 1
+WATCHING = 1
 CHAR_TRANSFER = 2
 # Character tagged on submission, sent on character listener
 CHAR_TAG = 3
@@ -64,7 +64,7 @@ CHAR_SHARED = 24
 
 EVENT_TYPES = (
     (NEW_CHARACTER, 'New Submission'),
-    (FOLLOWING, 'New Follower'),
+    (WATCHING, 'New Watcher'),
     (CHAR_TRANSFER, 'Character Transfer Request'),
     (CHAR_TAG, 'Character Tagged'),
     (COMMENT, 'New Comment'),

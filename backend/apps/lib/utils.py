@@ -13,7 +13,8 @@ from pycountry import countries, subdivisions
 from rest_framework import status
 from rest_framework.response import Response
 
-from apps.lib.models import Subscription, Event, Notification, Tag, Comment, COMMENT
+from apps.lib.models import Subscription, Event, Notification, Tag, Comment, COMMENT, NEW_CHAR_SUBMISSION, \
+    NEW_PORTFOLIO_ITEM, NEW_PRODUCT, NEW_AUCTION, COMMISSIONS_OPEN
 
 
 def countries_tweaked():
@@ -113,6 +114,70 @@ def get_matching_events(event_type, content_type, object_id, data, unique_data=N
             kwargs = {'data__' + key: value for key, value in unique_data.items()}
             query &= Q(**kwargs)
     return Event.objects.filter(query)
+
+
+def watch_subscriptions(watcher, watched):
+    # To be implemented when paid service is in place.
+    #(COMMISSIONS_OPEN, 'Commission Slots Available'),
+    content_type = ContentType.objects.get_for_model(watched)
+    Subscription.objects.get_or_create(
+        subscriber=watcher,
+        content_type=content_type,
+        object_id=watched.id,
+        type=NEW_CHAR_SUBMISSION
+    )
+    Subscription.objects.get_or_create(
+        subscriber=watcher,
+        content_type=content_type,
+        object_id=watched.id,
+        type=NEW_PORTFOLIO_ITEM
+    )
+    Subscription.objects.get_or_create(
+        subscriber=watcher,
+        content_type=content_type,
+        object_id=watched.id,
+        type=NEW_PRODUCT
+    )
+    Subscription.objects.get_or_create(
+        subscriber=watcher,
+        content_type=content_type,
+        object_id=watched.id,
+        type=NEW_AUCTION
+    )
+
+
+def remove_watch_subscriptions(watcher, watched):
+    content_type = ContentType.objects.get_for_model(watched)
+    Subscription.objects.filter(
+        subscriber=watcher,
+        content_type=content_type,
+        object_id=watched.id,
+        type=NEW_CHAR_SUBMISSION
+    ).delete()
+    Subscription.objects.filter(
+        subscriber=watcher,
+        content_type=content_type,
+        object_id=watched.id,
+        type=NEW_PORTFOLIO_ITEM
+    ).delete()
+    Subscription.objects.filter(
+        subscriber=watcher,
+        content_type=content_type,
+        object_id=watched.id,
+        type=NEW_PRODUCT
+    ).delete()
+    Subscription.objects.filter(
+        subscriber=watcher,
+        content_type=content_type,
+        object_id=watched.id,
+        type=COMMISSIONS_OPEN
+    ).delete()
+    Subscription.objects.filter(
+        subscriber=watcher,
+        content_type=content_type,
+        object_id=watched.id,
+        type=NEW_AUCTION
+    ).delete()
 
 
 @atomic

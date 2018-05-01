@@ -1,15 +1,21 @@
+import logging
+
 from django.contrib.contenttypes.models import ContentType
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from apps.lib.models import FAVORITE, Subscription, COMMENT, Notification, ASSET_SHARED, CHAR_SHARED
+from apps.lib.models import FAVORITE, Subscription, COMMENT, Notification, ASSET_SHARED, CHAR_SHARED, \
+    NEW_CHAR_SUBMISSION, NEW_PORTFOLIO_ITEM, NEW_PRODUCT, NEW_AUCTION
 from apps.profiles.models import Character, ImageAsset
 from apps.lib.abstract_models import MATURE, ADULT, GENERAL
 from apps.lib.test_resources import APITestCase
 from apps.profiles.tests.factories import UserFactory, CharacterFactory, ImageAssetFactory
 from apps.profiles.tests.helpers import gen_characters, gen_image
+
+
+logger = logging.getLogger(__name__)
 
 
 class CharacterAPITestCase(APITestCase):
@@ -870,3 +876,90 @@ class TestShareCharacter(APITestCase):
         )
         notification = Notification.objects.get(event__type=CHAR_SHARED, user=self.user)
         self.assertTrue(notification.event.recalled)
+
+
+class TestWatch(APITestCase):
+    def test_watch_user(self):
+        self.login(self.user)
+        response = self.client.post(
+            '/api/profiles/v1/account/{}/watch/'.format(self.user2.username),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.user.watching.all().count(), 1)
+        self.assertEqual(self.user.watching.all()[0], self.user2)
+        event_types = [NEW_CHAR_SUBMISSION, NEW_PORTFOLIO_ITEM, NEW_PRODUCT, NEW_AUCTION]
+        for event_type in event_types:
+            logger.info('Checking {}'.format(event_type))
+            self.assertTrue(Subscription.objects.filter(
+                subscriber=self.user,
+                content_type=ContentType.objects.get_for_model(self.user2),
+                object_id=self.user2.id,
+                type=event_type
+            ).exists())
+        response = self.client.post(
+            '/api/profiles/v1/account/{}/watch/'.format(self.user2.username),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.user.watching.all().count(), 0)
+        for event_type in event_types:
+            logger.info('Checking {}'.format(event_type))
+            self.assertFalse(Subscription.objects.filter(
+                subscriber=self.user,
+                content_type=ContentType.objects.get_for_model(self.user2),
+                object_id=self.user2.id,
+                type=event_type
+            ).exists())
+
+    def test_watch_user_no_login(self):
+        response = self.client.post(
+            '/api/profiles/v1/account/{}/watch/'.format(self.user2.username),
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class TestFavorite(APITestCase):
+    def test_favorite_asset(self):
+        asset = ImageAssetFactory.create()
+        self.login(self.user)
+        response = self.client.post(
+            '/api/profiles/v1/asset/{}/favorite/'.format(asset.id)
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.user.favorites.all().count(), 1)
+        self.assertEqual(self.user.favorites.all()[0], asset)
+        response = self.client.post(
+            '/api/profiles/v1/asset/{}/favorite/'.format(asset.id)
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.user.favorites.all().count(), 0)
+
+    def test_favorite_asset_hidden_failure(self):
+        asset = ImageAssetFactory.create(private=True)
+        self.login(self.user)
+        response = self.client.post(
+            '/api/profiles/v1/asset/{}/favorite/'.format(asset.id)
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_favorite_asset_hidden_shared(self):
+        asset = ImageAssetFactory.create(private=True)
+        asset.shared_with.add(self.user)
+        self.login(self.user)
+        response = self.client.post(
+            '/api/profiles/v1/asset/{}/favorite/'.format(asset.id)
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.user.favorites.all().count(), 1)
+        self.assertEqual(self.user.favorites.all()[0], asset)
+        response = self.client.post(
+            '/api/profiles/v1/asset/{}/favorite/'.format(asset.id)
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.user.favorites.all().count(), 0)
+
+    def test_favorite_asset_no_login(self):
+        asset = ImageAssetFactory.create()
+        response = self.client.post(
+            '/api/profiles/v1/asset/{}/favorite/'.format(asset.id)
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
