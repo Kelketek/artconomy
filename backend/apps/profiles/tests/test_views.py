@@ -7,7 +7,8 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from apps.lib.models import FAVORITE, Subscription, COMMENT, Notification, ASSET_SHARED, CHAR_SHARED, \
-    NEW_CHAR_SUBMISSION, NEW_PORTFOLIO_ITEM, NEW_PRODUCT, NEW_AUCTION
+    NEW_PORTFOLIO_ITEM, NEW_PRODUCT, NEW_AUCTION, NEW_CHARACTER
+from apps.lib.utils import watch_subscriptions
 from apps.profiles.models import Character, ImageAsset
 from apps.lib.abstract_models import MATURE, ADULT, GENERAL
 from apps.lib.test_resources import APITestCase
@@ -64,11 +65,12 @@ class CharacterAPITestCase(APITestCase):
 
     def test_new_character(self):
         self.login(self.user)
+        watch_subscriptions(self.user2, self.user)
         response = self.client.post(
             '/api/profiles/v1/account/{}/characters/'.format(self.user.username), {
                 'name': 'Fern',
                 'description': 'The best of both worlds',
-                'private': True,
+                'private': False,
                 'open_requests': False,
                 'open_requests_restrictions': 'Must be foxy.',
             }
@@ -76,10 +78,15 @@ class CharacterAPITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         char = Character.objects.get(name='Fern')
         self.assertEqual(char.description, 'The best of both worlds')
-        self.assertEqual(char.private, True)
+        self.assertEqual(char.private, False)
         self.assertEqual(char.open_requests, False)
         self.assertEqual(char.open_requests_restrictions, 'Must be foxy.')
         self.assertEqual(char.taggable, True)
+        notifications = Notification.objects.filter(event__type=NEW_CHARACTER)
+        self.assertEqual(notifications.count(), 1)
+        notification = notifications[0]
+        self.assertEqual(notification.user, self.user2)
+        self.assertEqual(notification.event.data, {'character': char.id})
 
         # Should work for staffer.
         self.login(self.staffer)
@@ -94,27 +101,45 @@ class CharacterAPITestCase(APITestCase):
             }
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        char = Character.objects.get(name='Rain')
-        self.assertEqual(char.description, 'Heart breaker')
-        self.assertEqual(char.private, True)
-        self.assertEqual(char.open_requests, False)
-        self.assertEqual(char.taggable, False)
-        self.assertEqual(char.open_requests_restrictions, 'Must be really foxy.')
+        char2 = Character.objects.get(name='Rain')
+        self.assertEqual(char2.user, self.user)
+        self.assertEqual(char2.description, 'Heart breaker')
+        self.assertEqual(char2.private, True)
+        self.assertEqual(char2.open_requests, False)
+        self.assertEqual(char2.taggable, False)
+        self.assertEqual(char2.open_requests_restrictions, 'Must be really foxy.')
+        # No new notifications should have been created, since this character is private.
+        notifications = Notification.objects.filter(event__type=NEW_CHARACTER)
+        self.assertEqual(notifications.count(), 1)
+        notification = notifications[0]
+        self.assertEqual(notification.user, self.user2)
+        self.assertEqual(notification.event.data, {'character': char.id})
 
     def test_edit_character(self):
         self.login(self.user)
+        watch_subscriptions(self.user2, self.user)
         char = CharacterFactory.create(user=self.user)
+        notifications = Notification.objects.filter(event__type=NEW_CHARACTER)
+        self.assertEqual(notifications.count(), 1)
+        notification = notifications[0]
+        self.assertEqual(notification.user, self.user2)
+        self.assertEqual(notification.event.data, {'character': char.id})
+        self.assertFalse(notification.event.recalled)
         response = self.client.patch(
             '/api/profiles/v1/account/{}/characters/{}/'.format(self.user.username, char.name),
             {
                 'name': 'Terrence',
-                'description': 'Positively foxy.'
+                'description': 'Positively foxy.',
+                'private': True
             }
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         char.refresh_from_db()
         self.assertEqual(char.name, 'Terrence')
         self.assertEqual(char.description, 'Positively foxy.')
+        notification.event.refresh_from_db()
+        notification.refresh_from_db()
+        self.assertTrue(notification.event.recalled)
 
         # Should work for staff, too.
         self.login(self.staffer)
@@ -145,16 +170,18 @@ class CharacterAPITestCase(APITestCase):
     def test_delete_character(self):
         self.login(self.user)
         char = CharacterFactory.create(user=self.user)
-        response = self.client.delete('/api/profiles/v1/account/{}/characters/{}/'.format(self.user.username, char.name))
+        response = self.client.delete(
+            '/api/profiles/v1/account/{}/characters/{}/'.format(self.user.username, char.name)
+        )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertRaises(Character.DoesNotExist, char.refresh_from_db)
 
-        # Force recreation, then test for staff.
-        char.save()
-        # Verify recreation worked.
-        char.refresh_from_db()
+        # Test for staff.
+        char = CharacterFactory.create(user=self.user)
 
-        response = self.client.delete('/api/profiles/v1/account/{}/characters/{}/'.format(self.user.username, char.name))
+        response = self.client.delete(
+            '/api/profiles/v1/account/{}/characters/{}/'.format(self.user.username, char.name)
+        )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertRaises(Character.DoesNotExist, char.refresh_from_db)
 
@@ -887,7 +914,7 @@ class TestWatch(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.user.watching.all().count(), 1)
         self.assertEqual(self.user.watching.all()[0], self.user2)
-        event_types = [NEW_CHAR_SUBMISSION, NEW_PORTFOLIO_ITEM, NEW_PRODUCT, NEW_AUCTION]
+        event_types = [NEW_CHARACTER, NEW_PORTFOLIO_ITEM, NEW_PRODUCT, NEW_AUCTION]
         for event_type in event_types:
             logger.info('Checking {}'.format(event_type))
             self.assertTrue(Subscription.objects.filter(

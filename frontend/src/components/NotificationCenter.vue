@@ -58,6 +58,7 @@
   import AcCharTransfer from './notifications/ac-char-transfer'
   import AcAssetShared from './notifications/ac-asset-shared'
   import AcCharShared from './notifications/ac-char-shared'
+  import AcNewCharacter from './notifications/ac-new-character'
 
   export default {
     name: 'NotificationCenter',
@@ -75,7 +76,8 @@
       AcDispute,
       AcFavorite,
       AcSaleUpdate,
-      AcOrderUpdate
+      AcOrderUpdate,
+      AcNewCharacter
     },
     directives: {'observe-visibility': ObserveVisibility},
     data () {

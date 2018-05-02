@@ -14,7 +14,7 @@ from rest_framework import status
 from rest_framework.response import Response
 
 from apps.lib.models import Subscription, Event, Notification, Tag, Comment, COMMENT, NEW_CHAR_SUBMISSION, \
-    NEW_PORTFOLIO_ITEM, NEW_PRODUCT, NEW_AUCTION, COMMISSIONS_OPEN
+    NEW_PORTFOLIO_ITEM, NEW_PRODUCT, NEW_AUCTION, COMMISSIONS_OPEN, NEW_CHARACTER
 
 
 def countries_tweaked():
@@ -124,7 +124,7 @@ def watch_subscriptions(watcher, watched):
         subscriber=watcher,
         content_type=content_type,
         object_id=watched.id,
-        type=NEW_CHAR_SUBMISSION
+        type=NEW_CHARACTER
     )
     Subscription.objects.get_or_create(
         subscriber=watcher,
@@ -152,7 +152,7 @@ def remove_watch_subscriptions(watcher, watched):
         subscriber=watcher,
         content_type=content_type,
         object_id=watched.id,
-        type=NEW_CHAR_SUBMISSION
+        type=NEW_CHARACTER
     ).delete()
     Subscription.objects.filter(
         subscriber=watcher,

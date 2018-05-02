@@ -39,7 +39,6 @@ CHAR_TRANSFER = 2
 # Character tagged on submission, sent on character listener
 CHAR_TAG = 3
 COMMENT = 4
-CHAR_CREATION = 5
 NEW_PRODUCT = 6
 COMMISSIONS_OPEN = 7
 NEW_CHAR_SUBMISSION = 8
@@ -63,12 +62,11 @@ CHAR_SHARED = 24
 
 
 EVENT_TYPES = (
-    (NEW_CHARACTER, 'New Submission'),
+    (NEW_CHARACTER, 'New Character'),
     (WATCHING, 'New Watcher'),
     (CHAR_TRANSFER, 'Character Transfer Request'),
     (CHAR_TAG, 'Character Tagged'),
     (COMMENT, 'New Comment'),
-    (CHAR_CREATION, 'New Character'),
     (COMMISSIONS_OPEN, 'Commission Slots Available'),
     (NEW_PRODUCT, 'New Product'),
     (NEW_AUCTION, 'New Auction'),

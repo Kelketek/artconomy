@@ -119,6 +119,7 @@ export function ratingsShort () {
 }
 
 export const NOTIFICATION_MAPPING = {
+  '0': 'ac-new-character',
   '2': 'ac-char-transfer',
   '3': 'ac-char-tag',
   '4': 'ac-comment-notification',
