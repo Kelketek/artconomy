@@ -10,14 +10,15 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db.models import Model, CharField, ForeignKey, IntegerField, BooleanField, DateTimeField, \
     URLField, SET_NULL, ManyToManyField, CASCADE
-from django.db.models.signals import post_save, post_delete, pre_delete
+from django.db.models.signals import post_save, post_delete, pre_delete, pre_save
 from django.dispatch import receiver
 from rest_framework.authtoken.models import Token
 
 from apps.lib.abstract_models import GENERAL, RATINGS, ImageModel
 from apps.lib.models import Comment, Subscription, FAVORITE, SYSTEM_ANNOUNCEMENT, DISPUTE, REFUND, Event, \
-    SUBMISSION_CHAR_TAG, CHAR_TAG, SUBMISSION_TAG, COMMENT, Tag, CHAR_TRANSFER, ASSET_SHARED, CHAR_SHARED
-from apps.lib.utils import clear_events, tag_list_cleaner
+    SUBMISSION_CHAR_TAG, CHAR_TAG, SUBMISSION_TAG, COMMENT, Tag, CHAR_TRANSFER, ASSET_SHARED, CHAR_SHARED, \
+    NEW_CHAR_SUBMISSION, NEW_CHARACTER
+from apps.lib.utils import clear_events, tag_list_cleaner, notify, recall_notification
 from apps.profiles.permissions import AssetViewPermission, AssetCommentPermission
 
 
@@ -268,6 +269,23 @@ class Character(Model):
         from .serializers import CharacterSerializer
         return CharacterSerializer(instance=self, context=context).data
 
+    def wrap_operation(self, function, *args, **kwargs):
+        do_recall = False
+        if self.pk:
+            old = Character.objects.get(pk=self.pk)
+            if self.private and not old.private:
+                do_recall = True
+        result = function(*args, **kwargs)
+        if do_recall:
+            recall_notification(NEW_CHARACTER, self.user, {'character': self.pk}, unique_data=True)
+        return result
+
+    def delete(self, *args, **kwargs):
+        self.wrap_operation(super().delete, *args, **kwargs)
+
+    def save(self, *args, **kwargs):
+        self.wrap_operation(super().save, *args, **kwargs)
+
 
 class Attribute(Model):
     key = CharField(max_length=50, db_index=True)
@@ -353,19 +371,29 @@ def auto_remove_character(sender, instance, **kwargs):
 
 @receiver(post_save, sender=Character)
 def auto_add_attrs(sender, instance, created=False, **_kwargs):
-    if created:
-        Attribute.objects.create(
-            key='sex',
-            value='',
-            sticky=True,
-            character=instance
-        )
-        Attribute.objects.create(
-            key='species',
-            value='',
-            sticky=True,
-            character=instance
-        )
+    if not created:
+        return
+    Attribute.objects.create(
+        key='sex',
+        value='',
+        sticky=True,
+        character=instance
+    )
+    Attribute.objects.create(
+        key='species',
+        value='',
+        sticky=True,
+        character=instance
+    )
+
+
+@receiver(post_save, sender=Character)
+def auto_notify_watchers(sender, instance, created=False, **kwargs):
+    if not created:
+        return
+    if instance.private:
+        return
+    notify(NEW_CHARACTER, instance.user, {'character': instance.id}, unique_data=True)
 
 
 remove_order_events = receiver(pre_delete, sender=Character)(clear_events)
