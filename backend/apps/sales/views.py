@@ -22,7 +22,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.lib.models import DISPUTE, REFUND, COMMENT, Subscription, ORDER_UPDATE, SALE_UPDATE, REVISION_UPLOADED, \
-    CHAR_TRANSFER
+    CHAR_TRANSFER, NEW_PORTFOLIO_ITEM, NEW_PRODUCT
 from apps.lib.permissions import ObjectStatus, IsStaff, IsSafeMethod, Any
 from apps.lib.serializers import CommentSerializer
 from apps.lib.utils import notify, recall_notification, subscribe
@@ -41,7 +41,7 @@ from apps.sales.serializers import ProductSerializer, ProductNewOrderSerializer,
 from apps.sales.utils import translate_authnet_error, available_products
 
 
-class ProductListAPI(ListCreateAPIView):
+class ProductList(ListCreateAPIView):
     serializer_class = ProductSerializer
 
     def perform_create(self, serializer):
@@ -49,6 +49,8 @@ class ProductListAPI(ListCreateAPIView):
         if not (self.request.user.is_staff or self.request.user == user):
             raise PermissionDenied("You do not have permission to create products for that user.")
         product = serializer.save(owner=user, user=user)
+        if not product.hidden:
+            notify(NEW_PRODUCT, user, data={'product': product.id}, unique_data=True)
         return product
 
     def get_queryset(self):
@@ -394,6 +396,7 @@ class ApproveFinal(GenericAPIView):
                     if not character.primary_asset:
                         character.primary_asset = submission
                         character.save()
+                notify(NEW_PORTFOLIO_ITEM, order.seller, data={'asset': submission.id}, unique_data=True)
             PaymentRecord.objects.create(
                 payer=None,
                 amount=order.price + order.adjustment,

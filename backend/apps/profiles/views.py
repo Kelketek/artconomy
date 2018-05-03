@@ -18,7 +18,7 @@ from rest_framework.views import APIView
 from rest_framework_bulk import BulkUpdateAPIView
 
 from apps.lib.models import Notification, FAVORITE, CHAR_TAG, SUBMISSION_CHAR_TAG, SUBMISSION_ARTIST_TAG, ARTIST_TAG, \
-    SUBMISSION_TAG, Tag, ASSET_SHARED, CHAR_SHARED, WATCHING
+    SUBMISSION_TAG, Tag, ASSET_SHARED, CHAR_SHARED, WATCHING, NEW_PORTFOLIO_ITEM
 from apps.lib.permissions import Any, All, IsSafeMethod, IsMethod, IsAnonymous
 from apps.lib.serializers import CommentSerializer, NotificationSerializer, Base64ImageField, RelatedUserSerializer, \
     BulkNotificationSerializer, UserInfoSerializer
@@ -111,7 +111,7 @@ class CharacterListAPI(ListCreateAPIView):
         return serializer.save(user=user)
 
 
-class ImageAssetListAPI(ListCreateAPIView):
+class CharacterAssets(ListCreateAPIView):
     serializer_class = ImageAssetSerializer
     permission_classes = [ObjectControls]
 
@@ -131,6 +131,12 @@ class ImageAssetListAPI(ListCreateAPIView):
         if character.primary_asset is None:
             character.primary_asset = asset
             character.save()
+        if serializer.validated_data.get('is_artist'):
+            asset.artists.add(self.request.user)
+            notify(
+                NEW_PORTFOLIO_ITEM, self.request.user,
+                data={'asset': asset.id}, unique_data=True
+            )
         return asset
 
 
@@ -836,6 +842,11 @@ class GalleryList(ListCreateAPIView):
         instance = serializer.save(owner=user)
         if is_artist:
             instance.artists.add(user)
+            if not instance.private:
+                notify(
+                    NEW_PORTFOLIO_ITEM, user,
+                    data={'asset': instance.id}, unique_data=True
+                )
         add_tags(self.request, instance)
         instance.artists.add(*available_artists(user).filter(pk__in=artist_pks))
         instance.characters.add(*available_chars(user, tagging=True).filter(pk__in=char_pks))

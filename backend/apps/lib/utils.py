@@ -119,6 +119,7 @@ def get_matching_events(event_type, content_type, object_id, data, unique_data=N
 def watch_subscriptions(watcher, watched):
     # To be implemented when paid service is in place.
     #(COMMISSIONS_OPEN, 'Commission Slots Available'),
+    #(NEW_AUCTION, 'New Action'),
     content_type = ContentType.objects.get_for_model(watched)
     Subscription.objects.get_or_create(
         subscriber=watcher,
@@ -138,13 +139,6 @@ def watch_subscriptions(watcher, watched):
         object_id=watched.id,
         type=NEW_PRODUCT
     )
-    Subscription.objects.get_or_create(
-        subscriber=watcher,
-        content_type=content_type,
-        object_id=watched.id,
-        type=NEW_AUCTION
-    )
-
 
 def remove_watch_subscriptions(watcher, watched):
     content_type = ContentType.objects.get_for_model(watched)
@@ -171,12 +165,6 @@ def remove_watch_subscriptions(watcher, watched):
         content_type=content_type,
         object_id=watched.id,
         type=COMMISSIONS_OPEN
-    ).delete()
-    Subscription.objects.filter(
-        subscriber=watcher,
-        content_type=content_type,
-        object_id=watched.id,
-        type=NEW_AUCTION
     ).delete()
 
 
