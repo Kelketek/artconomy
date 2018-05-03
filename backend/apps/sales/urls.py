@@ -2,7 +2,7 @@
 """
 from django.urls import path
 
-from apps.sales.views import ProductListAPI, ProductManager, PlaceOrder, \
+from apps.sales.views import ProductList, ProductManager, PlaceOrder, \
     OrderRetrieve, OrderAccept, OrderCancel, CurrentOrderList, CurrentSalesList, OrderComments, CardList, CardManager, \
     MakePrimary, AdjustOrder, MakePayment, OrderRevisions, DeleteOrderRevision, OrderStart, ApproveFinal, \
     ArchivedOrderList, CancelledOrderList, ArchivedSalesList, CancelledSalesList, ProductExamples, StartDispute, \
@@ -33,7 +33,7 @@ urlpatterns = [
     path('v1/order/<int:order_id>/refund/', OrderRefund.as_view(), name='order_refund'),
     path('v1/order/<int:order_id>/', OrderRetrieve.as_view(), name='order'),
     path('v1/search/product/', ProductSearch.as_view(), name='product_search'),
-    path('v1/account/<username>/products/', ProductListAPI.as_view(), name='product_list'),
+    path('v1/account/<username>/products/', ProductList.as_view(), name='product_list'),
     path('v1/account/<username>/products/<int:product>/', ProductManager.as_view(), name='product_manager'),
     path('v1/account/<username>/products/<int:product>/tag/', ProductTag.as_view(), name='product_tag'),
     path(

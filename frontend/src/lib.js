@@ -123,6 +123,8 @@ export const NOTIFICATION_MAPPING = {
   '2': 'ac-char-transfer',
   '3': 'ac-char-tag',
   '4': 'ac-comment-notification',
+  '6': 'ac-new-product',
+  '9': 'ac-new-portfolio-item',
   '10': 'ac-submission-tag',
   '14': 'ac-favorite',
   '15': 'ac-dispute',

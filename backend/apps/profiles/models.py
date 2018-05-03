@@ -17,7 +17,7 @@ from rest_framework.authtoken.models import Token
 from apps.lib.abstract_models import GENERAL, RATINGS, ImageModel
 from apps.lib.models import Comment, Subscription, FAVORITE, SYSTEM_ANNOUNCEMENT, DISPUTE, REFUND, Event, \
     SUBMISSION_CHAR_TAG, CHAR_TAG, SUBMISSION_TAG, COMMENT, Tag, CHAR_TRANSFER, ASSET_SHARED, CHAR_SHARED, \
-    NEW_CHAR_SUBMISSION, NEW_CHARACTER
+    NEW_CHAR_SUBMISSION, NEW_CHARACTER, NEW_PORTFOLIO_ITEM
 from apps.lib.utils import clear_events, tag_list_cleaner, notify, recall_notification
 from apps.profiles.permissions import AssetViewPermission, AssetCommentPermission
 
@@ -158,6 +158,27 @@ class ImageAsset(ImageModel):
     def favorite_count(self):
         return self.favorited_by.all().count()
 
+    def wrap_operation(self, function, always=False, *args, **kwargs):
+        do_recall = False
+        artists = []
+        pk = self.pk
+        if self.pk:
+            artists = list(self.artists.all())
+            old = ImageAsset.objects.get(pk=self.pk)
+            if not always and self.private and not old.private:
+                do_recall = True
+        result = function(*args, **kwargs)
+        if do_recall or always:
+            for artist in artists:
+                recall_notification(NEW_PORTFOLIO_ITEM, artist, {'asset': pk}, unique_data=True)
+        return result
+
+    def delete(self, *args, **kwargs):
+        return self.wrap_operation(super().delete, always=True, *args, **kwargs)
+
+    def save(self, *args, **kwargs):
+        return self.wrap_operation(super().save, *args, **kwargs)
+
 
 @receiver(post_save, sender=ImageAsset)
 def auto_subscribe_image(sender, instance, created=False, **_kwargs):
@@ -269,22 +290,23 @@ class Character(Model):
         from .serializers import CharacterSerializer
         return CharacterSerializer(instance=self, context=context).data
 
-    def wrap_operation(self, function, *args, **kwargs):
+    def wrap_operation(self, function, always=False, *args, **kwargs):
         do_recall = False
-        if self.pk:
+        pk = self.pk
+        if self.pk and not always:
             old = Character.objects.get(pk=self.pk)
             if self.private and not old.private:
                 do_recall = True
         result = function(*args, **kwargs)
-        if do_recall:
-            recall_notification(NEW_CHARACTER, self.user, {'character': self.pk}, unique_data=True)
+        if do_recall or always:
+            recall_notification(NEW_CHARACTER, self.user, {'character': pk}, unique_data=True)
         return result
 
     def delete(self, *args, **kwargs):
-        self.wrap_operation(super().delete, *args, **kwargs)
+        return self.wrap_operation(super().delete, always=True, *args, **kwargs)
 
     def save(self, *args, **kwargs):
-        self.wrap_operation(super().save, *args, **kwargs)
+        return self.wrap_operation(super().save, *args, **kwargs)
 
 
 class Attribute(Model):

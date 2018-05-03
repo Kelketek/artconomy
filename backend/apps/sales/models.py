@@ -16,9 +16,9 @@ from django.dispatch import receiver
 from djmoney.models.fields import MoneyField
 from moneyed import Money
 
-from apps.lib.models import Comment, Subscription, SALE_UPDATE, ORDER_UPDATE, REVISION_UPLOADED, COMMENT
+from apps.lib.models import Comment, Subscription, SALE_UPDATE, ORDER_UPDATE, REVISION_UPLOADED, COMMENT, NEW_PRODUCT
 from apps.lib.abstract_models import ImageModel
-from apps.lib.utils import clear_events, MinimumOrZero
+from apps.lib.utils import clear_events, MinimumOrZero, recall_notification
 from apps.sales.permissions import OrderViewPermission
 from apps.sales.apis import sauce
 
@@ -73,12 +73,34 @@ class Product(ImageModel):
         validators=[MinValueValidator(1)]
     )
 
-    def delete(self, using=None, keep_parents=False):
+    def proto_delete(self, *args, **kwargs):
         if self.order_set.all().count():
             self.active = False
             self.save()
         else:
-            super().delete(using=using, keep_parents=keep_parents)
+            super().delete(*args, **kwargs)
+
+    def wrap_operation(self, function, always=False, *args, **kwargs):
+        do_recall = False
+        pk = self.pk
+        if self.pk and not always:
+            old = Product.objects.get(pk=self.pk)
+            if self.hidden and not old.hidden:
+                do_recall = True
+        result = function(*args, **kwargs)
+        if do_recall or always:
+            recall_notification(NEW_PRODUCT, self.user, {'product': pk}, unique_data=True)
+        return result
+
+    def delete(self, *args, **kwargs):
+        return self.wrap_operation(self.proto_delete, always=True, *args, **kwargs)
+
+    def save(self, *args, **kwargs):
+        return self.wrap_operation(super().save, *args, **kwargs)
+
+    def notification_display(self, context):
+        from .serializers import ProductSerializer
+        return ProductSerializer(instance=self).data
 
     def __str__(self):
         return "{} offered by {} at {}".format(self.name, self.user.username, self.price)

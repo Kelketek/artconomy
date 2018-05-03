@@ -3,7 +3,7 @@
 from django.conf.urls import include
 from django.urls import path
 
-from apps.profiles.views import Register, CharacterListAPI, ImageAssetListAPI, \
+from apps.profiles.views import Register, CharacterListAPI, CharacterAssets, \
     CharacterManager, AssetManager, MakePrimary, SettingsAPI, CurrentUserInfo, AssetComments, CredentialsAPI, \
     NotificationsList, SetAvatar, UserInfo, CharacterSearch, AssetFavorite, MarkNotificationsRead, AssetTagCharacter, \
     UserSearch, AssetTagArtist, TagSearch, AssetTag, AssetSearch, CharacterTag, UserBlacklist, RefColorList, \
@@ -71,7 +71,7 @@ urlpatterns = [
     ),
     path(
         'v1/account/<username>/characters/<character>/assets/',
-        ImageAssetListAPI.as_view(), name='asset_upload'
+        CharacterAssets.as_view(), name='asset_upload'
     ),
     path(
         'v1/account/<username>/characters/<character>/tag/',

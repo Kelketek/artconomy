@@ -228,6 +228,7 @@ class CharacterAPITestCase(APITestCase):
     def test_asset_upload(self):
         self.login(self.user)
         char = CharacterFactory.create(user=self.user)
+        watch_subscriptions(self.user2, self.user)
         uploaded = SimpleUploadedFile('bloo-oo.jpg', gen_image())
         response = self.client.post(
             '/api/profiles/v1/account/{}/characters/{}/assets/'.format(self.user.username, char.name),
@@ -237,6 +238,7 @@ class CharacterAPITestCase(APITestCase):
                 'private': False,
                 'rating': ADULT,  # Such a sexy color!
                 'file': uploaded,
+                'is_artist': True
             }
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -245,9 +247,17 @@ class CharacterAPITestCase(APITestCase):
         self.assertEqual(asset.caption, 'A sea of blue.')
         self.assertFalse(asset.private)
         self.assertEqual(asset.rating, ADULT)
+        self.assertEqual(asset.artists.all()[0], self.user)
         self.assertIn('bloo-oo', asset.file.url)
         self.assertEqual(Subscription.objects.filter(type=FAVORITE).count(), 1)
+        notifications = Notification.objects.filter(event__type=NEW_PORTFOLIO_ITEM)
+        self.assertEqual(notifications.count(), 1)
+        notification = notifications[0]
+        self.assertEqual(notification.user, self.user2)
         asset.delete()
+        notification.event.refresh_from_db()
+        notification.refresh_from_db()
+        self.assertEqual(notification.event.recalled, True)
         self.assertEqual(Subscription.objects.filter(type=FAVORITE).count(), 0)
         # Should work for staffer, too.
         self.login(self.staffer)
