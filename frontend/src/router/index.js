@@ -10,6 +10,7 @@ import Profile from '@/components/Profile'
 import Policies from '@/components/Policies'
 import Contact from '@/components/Contact'
 import Store from '@/components/Store'
+import WhoIsOpen from '@/components/WhoIsOpen'
 import Transfers from '@/components/Transfers'
 import Product from '@/components/Product'
 import Order from '@/components/Order'
@@ -88,6 +89,11 @@ export const routes = [
         endpoint: `/api/sales/v1/account/${route.params.username}/products/`
       }
     }
+  },
+  {
+    path: '/who-is-open/',
+    name: 'WhoIsOpen',
+    component: WhoIsOpen
   },
   {
     path: '/profile/:username/settings/:tabName?/:subTabName?/:tertiaryTabName?/',

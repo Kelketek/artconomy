@@ -1061,3 +1061,13 @@ class NewProducts(ListAPIView):
         return available_products(
             self.request.user, ordering=False
         ).order_by('-created_on')
+
+
+class WhoIsOpen(ListAPIView):
+    serializer_class = ProductSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return available_products(
+            self.request.user, ordering=False
+        ).filter(user__in=self.request.user.watching.all()).order_by('user')

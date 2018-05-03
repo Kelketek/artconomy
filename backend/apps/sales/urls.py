@@ -9,12 +9,13 @@ from apps.sales.views import ProductList, ProductManager, PlaceOrder, \
     OrderRefund, ClaimDispute, CurrentCasesList, ArchivedCasesList, CancelledCasesList, AccountBalance, \
     BankAccounts, ProductTag, ProductSearch, PerformWithdraw, BankManager, PurchaseHistory, EscrowHistory, \
     AvailableHistory, CreateCharacterTransfer, RetrieveCharacterTransfer, CharacterTransferAssets, AcceptCharTransfer, \
-    CancelCharTransfer, CharactersInbound, CharactersOutbound, CharactersArchive, NewProducts
+    CancelCharTransfer, CharactersInbound, CharactersOutbound, CharactersArchive, NewProducts, WhoIsOpen
 
 app_name = 'sales'
 
 urlpatterns = [
     path('v1/new-products/', NewProducts.as_view(), name='new_products'),
+    path('v1/who-is-open/', WhoIsOpen.as_view(), name='who_is_open'),
     path('v1/order/<int:order_id>/comments/', OrderComments.as_view(), name='order_comments'),
     path('v1/order/<int:order_id>/revisions/', OrderRevisions.as_view(), name='order_revisions'),
     path(
