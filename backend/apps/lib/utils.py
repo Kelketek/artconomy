@@ -140,6 +140,7 @@ def watch_subscriptions(watcher, watched):
         type=NEW_PRODUCT
     )
 
+
 def remove_watch_subscriptions(watcher, watched):
     content_type = ContentType.objects.get_for_model(watched)
     Subscription.objects.filter(
