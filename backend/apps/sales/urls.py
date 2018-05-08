@@ -9,7 +9,8 @@ from apps.sales.views import ProductList, ProductManager, PlaceOrder, \
     OrderRefund, ClaimDispute, CurrentCasesList, ArchivedCasesList, CancelledCasesList, AccountBalance, \
     BankAccounts, ProductTag, ProductSearch, PerformWithdraw, BankManager, PurchaseHistory, EscrowHistory, \
     AvailableHistory, CreateCharacterTransfer, RetrieveCharacterTransfer, CharacterTransferAssets, AcceptCharTransfer, \
-    CancelCharTransfer, CharactersInbound, CharactersOutbound, CharactersArchive, NewProducts, WhoIsOpen
+    CancelCharTransfer, CharactersInbound, CharactersOutbound, CharactersArchive, NewProducts, WhoIsOpen, \
+    CurrentPlaceholderSalesList, PlaceholderManager
 
 app_name = 'sales'
 
@@ -49,6 +50,21 @@ urlpatterns = [
     path('v1/account/<username>/sales/current/', CurrentSalesList.as_view(), name='current_sales'),
     path('v1/account/<username>/sales/archived/', ArchivedSalesList.as_view(), name='archived_sales'),
     path('v1/account/<username>/sales/cancelled/', CancelledSalesList.as_view(), name='cancelled_sales'),
+    path(
+        'v1/account/<username>/sales/current/placeholders/',
+        CurrentPlaceholderSalesList.as_view(),
+        name='current_placeholder_sales'
+    ),
+    path(
+        'v1/account/<username>/sales/archived/placeholders/',
+        ArchivedOrderList.as_view(),
+        name='archived_placeholder_sales'
+    ),
+    path(
+        'v1/account/<username>/sales/placeholder/<int:placeholder_id>/',
+        PlaceholderManager.as_view(),
+        name='placeholder_manager'
+    ),
     path('v1/account/<username>/cases/current/', CurrentCasesList.as_view(), name='current_cases'),
     path('v1/account/<username>/cases/archived/', ArchivedCasesList.as_view(), name='archived_cases'),
     path('v1/account/<username>/cases/cancelled/', CancelledCasesList.as_view(), name='cancelled_cases'),

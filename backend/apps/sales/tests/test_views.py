@@ -18,7 +18,7 @@ from apps.profiles.tests.factories import CharacterFactory, UserFactory, ImageAs
 from apps.profiles.tests.helpers import gen_image
 from apps.sales.models import Order, CreditCardToken, Product, PaymentRecord
 from apps.sales.tests.factories import OrderFactory, CreditCardTokenFactory, ProductFactory, RevisionFactory, \
-    PaymentRecordFactory, BankAccountFactory, CharacterTransferFactory
+    PaymentRecordFactory, BankAccountFactory, CharacterTransferFactory, PlaceholderSaleFactory
 
 order_scenarios = (
     {
@@ -1685,9 +1685,12 @@ class TestProductSearch(APITestCase):
         hidden = ProductFactory.create(name='Wat2', hidden=True)
         hidden.tags.add(tag)
         ProductFactory.create(name='Test4', task_weight=5, user__load=10, user__max_load=10)
-        overloaded = ProductFactory.create(name='Test5', max_parallel=2)
-        OrderFactory.create(product=overloaded, status=Order.IN_PROGRESS)
-        OrderFactory.create(product=overloaded, status=Order.QUEUED)
+        maxed = ProductFactory.create(name='Test5', max_parallel=2)
+        OrderFactory.create(product=maxed, status=Order.IN_PROGRESS)
+        OrderFactory.create(product=maxed, status=Order.QUEUED)
+        overloaded = ProductFactory.create(name='Test6', task_weight=1, user__max_load=5)
+        PlaceholderSaleFactory.create(task_weight=5, seller=overloaded.user)
+        overloaded.user.refresh_from_db()
 
         response = self.client.get('/api/sales/v1/search/product/', {'q': 'test'})
         self.assertIDInList(product1, response.data['results'])
@@ -1709,6 +1712,7 @@ class TestProductSearch(APITestCase):
         product7 = ProductFactory.create(name='Test7', max_parallel=2, user=self.user)
         OrderFactory.create(product=product7)
         OrderFactory.create(product=product7)
+        PlaceholderSaleFactory.create(task_weight=1, seller=self.user)
 
         self.user.max_load = 10
         self.user.load = 2

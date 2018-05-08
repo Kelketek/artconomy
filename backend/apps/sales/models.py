@@ -47,7 +47,8 @@ class Product(ImageModel):
     name = CharField(max_length=250)
     description = CharField(max_length=5000)
     expected_turnaround = DecimalField(
-        validators=[MinValueValidator(settings.MINIMUM_TURNAROUND)], help_text="Number of days completion is expected to take.",
+        validators=[MinValueValidator(settings.MINIMUM_TURNAROUND)],
+        help_text="Number of days completion is expected to take.",
         max_digits=5, decimal_places=2
     )
     price = MoneyField(
@@ -206,7 +207,12 @@ class Order(Model):
     adjustment_expected_turnaround = DecimalField(default=0, max_digits=5, decimal_places=2)
     adjustment_task_weight = IntegerField(default=0)
     task_weight = IntegerField(default=0)
-    expected_turnaround = IntegerField(default=0)
+    expected_turnaround = DecimalField(
+        validators=[MinValueValidator(settings.MINIMUM_TURNAROUND)],
+        help_text="Number of days completion is expected to take.",
+        max_digits=5, decimal_places=2,
+        default=0
+    )
     created_on = DateTimeField(auto_now_add=True, db_index=True)
     disputed_on = DateTimeField(blank=True, null=True, db_index=True)
     arbitrator = ForeignKey(settings.AUTH_USER_MODEL, related_name='cases', null=True, blank=True, on_delete=SET_NULL)
@@ -332,16 +338,47 @@ def auto_remove_order(sender, instance, **_kwargs):
 remove_order_events = receiver(pre_delete, sender=Order)(clear_events)
 
 
-@receiver(post_save, sender=Order)
 def update_artist_load(sender, instance, created=False, **_kwargs):
     weighted_statuses = [Order.IN_PROGRESS, Order.PAYMENT_PENDING, Order.QUEUED]
     result = Order.objects.filter(
         seller=instance.seller, status__in=weighted_statuses
     ).aggregate(base_load=Sum('task_weight'), added_load=Sum('adjustment_task_weight'))
-    instance.seller.load = (result['base_load'] or 0) + (result['added_load'] or 0)
+    load = (result['base_load'] or 0) + (result['added_load'] or 0)
+    result = PlaceholderSale.objects.filter(
+        seller=instance.seller, status__in=weighted_statuses
+    ).aggregate(load=Sum('task_weight'))
+    load += (result['load'] or 0)
+    instance.seller.load = load
     instance.seller.save()
-    instance.product.parallel = Order.objects.filter(product=instance.product, status__in=weighted_statuses).count()
-    instance.product.save()
+    if isinstance(instance, Order):
+        instance.product.parallel = Order.objects.filter(product=instance.product, status__in=weighted_statuses).count()
+        instance.product.save()
+
+
+order_load_check = receiver(post_save, sender=Order)(update_artist_load)
+
+
+class PlaceholderSale(Model):
+
+    STATUSES = (
+        (Order.IN_PROGRESS, 'In Progress'),
+        (Order.COMPLETED, 'Completed'),
+    )
+
+    title = CharField(max_length=150)
+    status = IntegerField(choices=Order.STATUSES, default=Order.IN_PROGRESS, db_index=True)
+    seller = ForeignKey(settings.AUTH_USER_MODEL, related_name='placeholder_sales', on_delete=CASCADE)
+    task_weight = IntegerField(default=0)
+    expected_turnaround = DecimalField(
+        validators=[MinValueValidator(settings.MINIMUM_TURNAROUND)],
+        help_text="Number of days completion is expected to take.",
+        max_digits=5, decimal_places=2
+    )
+    created_on = DateTimeField(auto_now_add=True, db_index=True)
+    description = CharField(max_length=5000)
+
+
+placeholder_load_check = receiver(post_save, sender=PlaceholderSale)(update_artist_load)
 
 
 class RatingSet(Model):
