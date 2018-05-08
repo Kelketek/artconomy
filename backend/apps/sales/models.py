@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.db.utils import IntegrityError
 from urllib.error import URLError
 
@@ -18,7 +19,8 @@ from moneyed import Money
 
 from apps.lib.models import Comment, Subscription, SALE_UPDATE, ORDER_UPDATE, REVISION_UPLOADED, COMMENT, NEW_PRODUCT
 from apps.lib.abstract_models import ImageModel
-from apps.lib.utils import clear_events, MinimumOrZero, recall_notification
+from apps.lib.utils import clear_events, MinimumOrZero, recall_notification, require_lock
+from apps.profiles.models import User
 from apps.sales.permissions import OrderViewPermission
 from apps.sales.apis import sauce
 
@@ -338,26 +340,6 @@ def auto_remove_order(sender, instance, **_kwargs):
 remove_order_events = receiver(pre_delete, sender=Order)(clear_events)
 
 
-def update_artist_load(sender, instance, created=False, **_kwargs):
-    weighted_statuses = [Order.IN_PROGRESS, Order.PAYMENT_PENDING, Order.QUEUED]
-    result = Order.objects.filter(
-        seller=instance.seller, status__in=weighted_statuses
-    ).aggregate(base_load=Sum('task_weight'), added_load=Sum('adjustment_task_weight'))
-    load = (result['base_load'] or 0) + (result['added_load'] or 0)
-    result = PlaceholderSale.objects.filter(
-        seller=instance.seller, status__in=weighted_statuses
-    ).aggregate(load=Sum('task_weight'))
-    load += (result['load'] or 0)
-    instance.seller.load = load
-    instance.seller.save()
-    if isinstance(instance, Order):
-        instance.product.parallel = Order.objects.filter(product=instance.product, status__in=weighted_statuses).count()
-        instance.product.save()
-
-
-order_load_check = receiver(post_save, sender=Order)(update_artist_load)
-
-
 class PlaceholderSale(Model):
 
     STATUSES = (
@@ -378,6 +360,33 @@ class PlaceholderSale(Model):
     description = CharField(max_length=5000)
 
 
+@transaction.atomic
+@require_lock(User, 'ACCESS EXCLUSIVE')
+@require_lock(Order, 'ACCESS EXCLUSIVE')
+@require_lock(PlaceholderSale, 'ACCESS EXCLUSIVE')
+def update_artist_load(sender, instance, created=False, **_kwargs):
+    weighted_statuses = [Order.IN_PROGRESS, Order.PAYMENT_PENDING, Order.QUEUED]
+    result = Order.objects.filter(
+        seller=instance.seller, status__in=weighted_statuses
+    ).aggregate(base_load=Sum('task_weight'), added_load=Sum('adjustment_task_weight'))
+    load = (result['base_load'] or 0) + (result['added_load'] or 0)
+    result = PlaceholderSale.objects.filter(
+        seller=instance.seller, status__in=weighted_statuses
+    ).aggregate(load=Sum('task_weight'))
+    load += (result['load'] or 0)
+    if (instance.seller.load >= instance.seller.max_load) and load < instance.seller.max_load:
+        if instance.seller.sales.filter(status=Order.NEW):
+            instance.seller.commissions_disabled = True
+    if not instance.seller.sales.filter(status=Order.NEW).exists():
+        instance.seller.commissions_disabled = False
+    instance.seller.load = load
+    instance.seller.save()
+    if isinstance(instance, Order):
+        instance.product.parallel = Order.objects.filter(product=instance.product, status__in=weighted_statuses).count()
+        instance.product.save()
+
+
+order_load_check = receiver(post_save, sender=Order)(update_artist_load)
 placeholder_load_check = receiver(post_save, sender=PlaceholderSale)(update_artist_load)
 
 
