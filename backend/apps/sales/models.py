@@ -368,6 +368,7 @@ class PlaceholderSale(Model):
 @require_lock(Order, 'ACCESS EXCLUSIVE')
 @require_lock(PlaceholderSale, 'ACCESS EXCLUSIVE')
 def update_artist_load(sender, instance, **_kwargs):
+    print("I ran!")
     result = Order.objects.filter(
         seller=instance.seller, status__in=WEIGHTED_STATUSES
     ).aggregate(base_load=Sum('task_weight'), added_load=Sum('adjustment_task_weight'))
