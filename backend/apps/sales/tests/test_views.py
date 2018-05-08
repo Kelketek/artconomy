@@ -3,7 +3,7 @@ from unittest.mock import patch
 from authorize import AuthorizeError
 from ddt import data, unpack, ddt
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import override_settings
+from django.test import override_settings, TestCase
 from django.utils import timezone
 from freezegun import freeze_time
 from moneyed import Money, Decimal
@@ -1690,6 +1690,8 @@ class TestProductSearch(APITestCase):
         OrderFactory.create(product=maxed, status=Order.QUEUED)
         overloaded = ProductFactory.create(name='Test6', task_weight=1, user__max_load=5)
         PlaceholderSaleFactory.create(task_weight=5, seller=overloaded.user)
+        ProductFactory.create(user__commissions_closed=True)
+        ProductFactory.create(user__commissions_disabled=True)
         overloaded.user.refresh_from_db()
 
         response = self.client.get('/api/sales/v1/search/product/', {'q': 'test'})
@@ -1712,6 +1714,8 @@ class TestProductSearch(APITestCase):
         product7 = ProductFactory.create(name='Test7', max_parallel=2, user=self.user)
         OrderFactory.create(product=product7)
         OrderFactory.create(product=product7)
+        ProductFactory.create(user__commissions_closed=True)
+        ProductFactory.create(user__commissions_disabled=True)
         PlaceholderSaleFactory.create(task_weight=1, seller=self.user)
 
         self.user.max_load = 10
@@ -1741,6 +1745,8 @@ class TestProductSearch(APITestCase):
         hidden.tags.add(tag)
         ProductFactory.create(name='Test4', task_weight=5, user__load=8, user__max_load=10)
         overloaded = ProductFactory.create(name='Test5', max_parallel=2)
+        ProductFactory.create(user__commissions_closed=True)
+        ProductFactory.create(user__commissions_disabled=True)
         OrderFactory.create(product=overloaded, status=Order.IN_PROGRESS)
         OrderFactory.create(product=overloaded, status=Order.QUEUED)
 
@@ -1802,3 +1808,42 @@ class TestTransfer(APITestCase):
             format='json'
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class TestLoadAdjustment(TestCase):
+    def test_load_changes(self):
+        user = UserFactory.create(max_load=10)
+        OrderFactory.create(task_weight=5, status=Order.QUEUED, product__user=user)
+        user.refresh_from_db()
+        self.assertEqual(user.load, 5)
+        self.assertFalse(user.commissions_disabled)
+        self.assertFalse(user.commissions_closed)
+        order = OrderFactory.create(task_weight=5, status=Order.NEW, product__user=user)
+        user.refresh_from_db()
+        self.assertEqual(user.load, 5)
+        self.assertFalse(user.commissions_disabled)
+        self.assertFalse(user.commissions_closed)
+        order.status = Order.QUEUED
+        order.save()
+        user.refresh_from_db()
+        self.assertEqual(user.load, 10)
+        self.assertFalse(user.commissions_disabled)
+        self.assertFalse(user.commissions_closed)
+        order2 = OrderFactory.create(task_weight=5, status=Order.NEW, product__user=user)
+        user.refresh_from_db()
+        self.assertEqual(user.load, 10)
+        self.assertFalse(user.commissions_disabled)
+        self.assertFalse(user.commissions_closed)
+        order.status = Order.COMPLETED
+        order.save()
+        user.refresh_from_db()
+        self.assertEqual(user.load, 5)
+        self.assertTrue(user.commissions_disabled)
+        self.assertFalse(user.commissions_closed)
+        order2.status = Order.CANCELLED
+        order2.save()
+        order.save()
+        user.refresh_from_db()
+        self.assertEqual(user.load, 5)
+        self.assertFalse(user.commissions_disabled)
+        self.assertFalse(user.commissions_closed)

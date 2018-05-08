@@ -94,6 +94,7 @@ def available_products(requester, query='', ordering=True):
         qs = Product.objects.filter(q).exclude(exclude)
         qs = qs.exclude(Q(task_weight__gt=F('user__max_load')-F('user__load')))
         qs = qs.filter(Q(max_parallel=0) | Q(parallel__lt=F('max_parallel')))
+    qs = qs.exclude(user__commissions_closed=True).exclude(user__commissions_disabled=True)
     if ordering:
         return product_ordering(qs, query)
     return qs

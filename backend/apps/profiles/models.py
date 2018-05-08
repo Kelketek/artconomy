@@ -42,6 +42,10 @@ class User(AbstractEmailUser):
         default=False, db_index=True,
         help_text="When enabled, no one may commission you."
     )
+    commissions_disabled = BooleanField(
+        default=False, db_index=True,
+        help_text="Internal check for commissions that prevents taking on more work when max load is exceeded."
+    )
     favorites_hidden = BooleanField(default=False)
     taggable = BooleanField(default=True, db_index=True)
     artist_tagging_disabled = BooleanField(default=False, db_index=True)

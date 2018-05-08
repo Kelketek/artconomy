@@ -13,8 +13,8 @@ from pycountry import countries, subdivisions
 from rest_framework import status
 from rest_framework.response import Response
 
-from apps.lib.models import Subscription, Event, Notification, Tag, Comment, COMMENT, NEW_CHAR_SUBMISSION, \
-    NEW_PORTFOLIO_ITEM, NEW_PRODUCT, NEW_AUCTION, COMMISSIONS_OPEN, NEW_CHARACTER
+from apps.lib.models import Subscription, Event, Notification, Tag, Comment, COMMENT, \
+    NEW_PORTFOLIO_ITEM, NEW_PRODUCT, COMMISSIONS_OPEN, NEW_CHARACTER
 
 
 def countries_tweaked():
