@@ -102,7 +102,7 @@
   import Paginated from '../mixins/paginated'
   import AcPatchfield from './ac-patchfield'
   import Editable from '../mixins/editable'
-  import {md} from '../lib'
+  import {md, EventBus} from '../lib'
   import VueFormGenerator from 'vue-form-generator'
   import AcFormDialog from './ac-form-dialog'
   export default {
@@ -182,6 +182,7 @@
         this.growing.push(response)
         this.currentPlaceholder = this.growing[this.growing.length - 1]
         this.showNew = false
+        EventBus.$emit('refresh-sales-stats')
       },
       postDelete () {
         let index = this.growing.indexOf(this.currentPlaceholder)
@@ -190,6 +191,7 @@
         }
         this.showDialog = false
         this.currentPlaceholder = null
+        EventBus.$emit('refresh-sales-stats')
       }
     },
     created () {

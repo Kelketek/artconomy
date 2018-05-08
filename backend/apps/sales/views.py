@@ -34,7 +34,7 @@ from apps.sales.dwolla import add_bank_account, initiate_withdraw, perform_trans
     destroy_bank_account
 from apps.sales.permissions import OrderViewPermission, OrderSellerPermission, OrderBuyerPermission
 from apps.sales.models import Product, Order, CreditCardToken, PaymentRecord, Revision, BankAccount, CharacterTransfer, \
-    PlaceholderSale
+    PlaceholderSale, WEIGHTED_STATUSES
 from apps.sales.serializers import ProductSerializer, ProductNewOrderSerializer, OrderViewSerializer, CardSerializer, \
     NewCardSerializer, OrderAdjustSerializer, PaymentSerializer, RevisionSerializer, OrderStartedSerializer, \
     AccountBalanceSerializer, BankAccountSerializer, WithdrawSerializer, PaymentRecordSerializer, \
@@ -1108,3 +1108,20 @@ class WhoIsOpen(ListAPIView):
         return available_products(
             self.request.user, ordering=False
         ).filter(user__in=self.request.user.watching.all()).order_by('user')
+
+
+class SalesStats(APIView):
+    permission_classes = [ObjectControls]
+
+    def get(self, request, **kwargs):
+        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        self.check_object_permissions(request, user)
+        data = {
+            'load': user.load,
+            'max_load': user.max_load,
+            'commissions_closed': user.commissions_closed,
+            'commissions_disabled': user.commissions_disabled,
+            'active_orders': user.sales.filter(status__in=WEIGHTED_STATUSES).count(),
+            'new_orders': user.sales.filter(status=Order.NEW).count(),
+        }
+        return Response(status=status.HTTP_200_OK, data=data)
