@@ -7,10 +7,10 @@
             <v-flex xs12 text-xs-center>
               <ac-avatar :user="user" />
             </v-flex>
-            <v-flex xs12 text-xs-center>
+            <v-flex xs12 text-xs-center v-if="!is_current">
               <ac-action :url="`/api/profiles/v1/account/${username}/watch/`" :success="replaceUser" v-if="isLoggedIn">
-                <span v-if="user.watching"><v-icon>favorite_outline</v-icon> Stop Watching</span>
-                <span v-else><v-icon>favorite</v-icon> Watch</span>
+                <span v-if="user.watching"><v-icon>visibility_off</v-icon> Stop Watching</span>
+                <span v-else><v-icon>visibility</v-icon> Watch</span>
               </ac-action>
             </v-flex>
           </v-layout>
@@ -36,6 +36,7 @@
       <v-tab href="#tab-gallery"><v-icon>image</v-icon>&nbsp;Gallery</v-tab>
       <v-tab href="#tab-favorites" v-if="!user.favorites_hidden || controls"><v-icon>favorite</v-icon>&nbsp;Favorites<span v-if="user.favorites_hidden">&nbsp;<v-icon>visibility_off</v-icon></span></v-tab>
       <v-tab href="#tab-other"><v-icon>more</v-icon>&nbsp;Other Submissions</v-tab>
+      <v-tab href="#tab-watchlists"><v-icon>visibility</v-icon>&nbsp;Watchlists</v-tab>
     </v-tabs>
     <v-tabs-items v-model="tab" class="min-height">
       <v-tab-item id="tab-products" :class="{'tab-shown': shownTab('tab-products')}">
@@ -85,6 +86,20 @@
           <v-icon large>add</v-icon>
         </v-btn>
       </v-tab-item>
+      <v-tab-item id="tab-watchlists">
+        <v-tabs v-model="watchTab" fixed-tabs>
+          <v-tab href="#tab-watchers">Watchers</v-tab>
+          <v-tab href="#tab-watching">Watching</v-tab>
+        </v-tabs>
+        <v-tabs-items v-model="watchTab">
+          <v-tab-item id="tab-watchers">
+            <ac-user-gallery :endpoint="`/api/profiles/v1/account/${username}/watchers/`" />
+          </v-tab-item>
+          <v-tab-item id="tab-watching">
+            <ac-user-gallery :endpoint="`/api/profiles/v1/account/${username}/watching/`" />
+          </v-tab-item>
+        </v-tabs-items>
+      </v-tab-item>
     </v-tabs-items>
     <ac-form-dialog ref="newUploadForm" :schema="newUploadSchema" :model="newUploadModel"
                     :options="newUploadOptions" :success="addUpload"
@@ -132,11 +147,13 @@
   import VueFormGenerator from 'vue-form-generator'
   import AcFormDialog from './ac-form-dialog'
   import AcAction from './ac-action'
+  import AcUserGallery from './ac-user-gallery'
 
   export default {
     name: 'Profile',
     mixins: [Viewer, Perms],
     components: {
+      AcUserGallery,
       AcAction,
       AcFormDialog,
       Store,
@@ -287,7 +304,8 @@
       controls: function () {
         return this.$root.user.is_staff || (this.user.username === this.$root.user.username)
       },
-      tab: paramHandleMap('tabName')
+      tab: paramHandleMap('tabName'),
+      watchTab: paramHandleMap('subTabName', undefined, ['tab-watchers', 'tab-watching'], 'tab-watchers')
     }
   }
 </script>

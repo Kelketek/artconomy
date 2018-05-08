@@ -898,7 +898,7 @@ class CharacterShare(BaseUserTagView):
     serializer_class = CharacterSerializer
 
     def get_target(self):
-        return Character.objects.get(user__username=self.kwargs['username'], name=self.kwargs['character'])
+        return Character.objects.get(user__username__iexact=self.kwargs['username'], name=self.kwargs['character'])
 
     def free_delete_check(self, target):
         return (target.user == self.request.user) or self.request.user.is_staff
@@ -915,6 +915,23 @@ class CharacterShare(BaseUserTagView):
                 CHAR_SHARED, user, data={'user': self.request.user.id, 'character': target.id},
                 unique_data=True, mark_unread=True
             )
+
+
+class Watchers(ListAPIView):
+    serializer_class = RelatedUserSerializer
+
+    def get_queryset(self):
+        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        return user.watched_by.all()
+
+
+class Watching(ListAPIView):
+    serializer_class = RelatedUserSerializer
+
+    def get_queryset(self):
+        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        return user.watching.all()
+
 
 
 @csrf_exempt

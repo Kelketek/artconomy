@@ -74,12 +74,6 @@ export const routes = [
     props: true
   },
   {
-    path: '/profile/:username/:tabName?/',
-    name: 'Profile',
-    component: Profile,
-    props: true
-  },
-  {
     path: '/store/:username/',
     name: 'Store',
     component: Store,
@@ -111,6 +105,12 @@ export const routes = [
     path: '/profile/:username/characters/:characterName/gallery/',
     name: 'CharacterGallery',
     component: CharacterGallery,
+    props: true
+  },
+  {
+    path: '/profile/:username/:tabName?/:subTabName?/',
+    name: 'Profile',
+    component: Profile,
     props: true
   },
   {
