@@ -14,12 +14,16 @@
         </v-layout>
       </v-flex>
       <v-flex xs12 md6 v-if="closed">
-        <p><strong>You are currently unable to take new commisions because:</strong></p>
+        <strong>You are currently unable to take new commisions because:</strong>
         <ul>
           <li v-if="stats.commissions_closed">You have set your 'commissions closed' setting.</li>
           <li v-if="stats.load >= stats.max_load">You have met or exceeded your maximum load. You can increase your maximum load setting to take on more commissions at one time.</li>
           <li v-if="stats.commissions_disabled && stats.new_orders">You have outstanding new orders to process. Please accept or reject the outstanding orders. Outstanding orders must be handled before you are opened up for new commissions.</li>
         </ul>
+      </v-flex>
+      <v-flex v-else>
+        You are currently able to take commissions.
+          <router-link :to="{name: 'Store', params: {username: this.username}}">Manage your store here.</router-link>
       </v-flex>
     </v-layout>
     <v-tabs v-model="tab" fixed-tabs>
