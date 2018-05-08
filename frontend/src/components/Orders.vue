@@ -1,5 +1,27 @@
 <template>
   <div class="order-list">
+    <v-layout row wrap text-xs-center v-if="stats && !buyer" class="mt-2 mb-2">
+      <v-flex xs12 md6>
+        <v-layout row wrap>
+          <v-flex xs6>Max Load:</v-flex>
+          <v-flex xs6>{{stats.max_load}}</v-flex>
+          <v-flex xs6>Current Load:</v-flex>
+          <v-flex xs6>{{stats.load}}</v-flex>
+          <v-flex xs6>Active Orders:</v-flex>
+          <v-flex xs6>{{stats.active_orders}}</v-flex>
+          <v-flex xs6>New Orders:</v-flex>
+          <v-flex xs6>{{stats.new_orders}}</v-flex>
+        </v-layout>
+      </v-flex>
+      <v-flex xs12 md6 v-if="closed">
+        <p><strong>You are currently unable to take new commisions because:</strong></p>
+        <ul>
+          <li v-if="stats.commissions_closed">You have set your 'commissions closed' setting.</li>
+          <li v-if="stats.load >= stats.max_load">You have met or exceeded your maximum load. You can increase your maximum load setting to take on more commissions at one time.</li>
+          <li v-if="stats.commissions_disabled && stats.new_orders">You have outstanding new orders to process. Please accept or reject the outstanding orders. Outstanding orders must be handled before you are opened up for new commissions.</li>
+        </ul>
+      </v-flex>
+    </v-layout>
     <v-tabs v-model="tab" fixed-tabs>
       <v-tab href="#tab-current" key="current">
         <v-icon>list</v-icon>&nbsp;Current
@@ -58,7 +80,7 @@
   import Viewer from '../mixins/viewer'
   import Perms from '../mixins/permissions'
   import AcOrderPreview from './ac-order-preview'
-  import { paramHandleMap, EventBus } from '../lib'
+  import { paramHandleMap, EventBus, artCall } from '../lib'
   import AcOrderList from './ac-order-list'
   import AcPlaceholderList from './ac-placeholder-list'
 
@@ -73,7 +95,8 @@
     data () {
       return {
         // Used by tab mapper
-        query: null
+        query: null,
+        stats: null
       }
     },
     methods: {
@@ -82,7 +105,20 @@
           EventBus.$emit('tab-shown', tabName)
           return true
         }
+      },
+      setStats (response) {
+        this.stats = response
+      },
+      refreshStats () {
+        if (this.buyer) {
+          return
+        }
+        artCall(`${this.url}stats/`, 'GET', undefined, this.setStats)
       }
+    },
+    created () {
+      EventBus.$on('refresh-sales-stats', this.refreshStats)
+      this.refreshStats()
     },
     props: ['url', 'buyer'],
     computed: {
@@ -91,6 +127,9 @@
       archiveTab: paramHandleMap('subTabName', undefined, ['tab-store', 'tab-placeholders'], 'tab-store'),
       extended () {
         return this.url.indexOf('sales') !== -1
+      },
+      closed () {
+        return this.stats.commissions_closed || this.stats.commissions_disabled || this.stats.load >= this.stats.max_load
       }
     }
   }

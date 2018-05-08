@@ -10,7 +10,7 @@ from apps.sales.views import ProductList, ProductManager, PlaceOrder, \
     BankAccounts, ProductTag, ProductSearch, PerformWithdraw, BankManager, PurchaseHistory, EscrowHistory, \
     AvailableHistory, CreateCharacterTransfer, RetrieveCharacterTransfer, CharacterTransferAssets, AcceptCharTransfer, \
     CancelCharTransfer, CharactersInbound, CharactersOutbound, CharactersArchive, NewProducts, WhoIsOpen, \
-    CurrentPlaceholderSalesList, PlaceholderManager
+    CurrentPlaceholderSalesList, PlaceholderManager, SalesStats
 
 app_name = 'sales'
 
@@ -47,6 +47,7 @@ urlpatterns = [
     path('v1/account/<username>/orders/current/', CurrentOrderList.as_view(), name='current_orders'),
     path('v1/account/<username>/orders/archived/', ArchivedOrderList.as_view(), name='archived_orders'),
     path('v1/account/<username>/orders/cancelled/', CancelledOrderList.as_view(), name='archived_orders'),
+    path('v1/account/<username>/sales/stats/', SalesStats.as_view(), name='sales_stats'),
     path('v1/account/<username>/sales/current/', CurrentSalesList.as_view(), name='current_sales'),
     path('v1/account/<username>/sales/archived/', ArchivedSalesList.as_view(), name='archived_sales'),
     path('v1/account/<username>/sales/cancelled/', CancelledSalesList.as_view(), name='cancelled_sales'),
@@ -68,7 +69,6 @@ urlpatterns = [
     path('v1/account/<username>/cases/current/', CurrentCasesList.as_view(), name='current_cases'),
     path('v1/account/<username>/cases/archived/', ArchivedCasesList.as_view(), name='archived_cases'),
     path('v1/account/<username>/cases/cancelled/', CancelledCasesList.as_view(), name='cancelled_cases'),
-    path('v1/account/<username>/sales/', CurrentSalesList.as_view(), name='current_sales'),
     path('v1/account/<username>/cards/', CardList.as_view(), name='list_cards'),
     path('v1/account/<username>/cards/<int:card_id>/', CardManager.as_view(), name='card_manager'),
     path('v1/account/<username>/cards/<int:card_id>/primary/', MakePrimary.as_view(), name='card_primary'),

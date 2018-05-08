@@ -303,6 +303,9 @@ def auto_subscribe_order(sender, instance, created=False, **_kwargs):
         )
 
 
+WEIGHTED_STATUSES = [Order.IN_PROGRESS, Order.PAYMENT_PENDING, Order.QUEUED]
+
+
 @receiver(post_delete, sender=Order)
 def auto_remove_order(sender, instance, **_kwargs):
     Subscription.objects.filter(
@@ -364,30 +367,30 @@ class PlaceholderSale(Model):
 @require_lock(User, 'ACCESS EXCLUSIVE')
 @require_lock(Order, 'ACCESS EXCLUSIVE')
 @require_lock(PlaceholderSale, 'ACCESS EXCLUSIVE')
-def update_artist_load(sender, instance, created=False, **_kwargs):
-    weighted_statuses = [Order.IN_PROGRESS, Order.PAYMENT_PENDING, Order.QUEUED]
+def update_artist_load(sender, instance, **_kwargs):
     result = Order.objects.filter(
-        seller=instance.seller, status__in=weighted_statuses
+        seller=instance.seller, status__in=WEIGHTED_STATUSES
     ).aggregate(base_load=Sum('task_weight'), added_load=Sum('adjustment_task_weight'))
     load = (result['base_load'] or 0) + (result['added_load'] or 0)
     result = PlaceholderSale.objects.filter(
-        seller=instance.seller, status__in=weighted_statuses
+        seller=instance.seller, status__in=WEIGHTED_STATUSES
     ).aggregate(load=Sum('task_weight'))
     load += (result['load'] or 0)
-    if (instance.seller.load >= instance.seller.max_load) and load < instance.seller.max_load:
-        if instance.seller.sales.filter(status=Order.NEW):
-            instance.seller.commissions_disabled = True
-    if not instance.seller.sales.filter(status=Order.NEW).exists():
+    if load >= instance.seller.max_load:
+        instance.seller.commissions_disabled = True
+    elif not instance.seller.sales.filter(status=Order.NEW).exists():
         instance.seller.commissions_disabled = False
     instance.seller.load = load
     instance.seller.save()
     if isinstance(instance, Order):
-        instance.product.parallel = Order.objects.filter(product=instance.product, status__in=weighted_statuses).count()
+        instance.product.parallel = Order.objects.filter(product=instance.product, status__in=WEIGHTED_STATUSES).count()
         instance.product.save()
 
 
 order_load_check = receiver(post_save, sender=Order)(update_artist_load)
+order_load_check_delete = receiver(post_delete, sender=Order)(update_artist_load)
 placeholder_load_check = receiver(post_save, sender=PlaceholderSale)(update_artist_load)
+placeholder_load_check_delete = receiver(post_delete, sender=PlaceholderSale)(update_artist_load)
 
 
 class RatingSet(Model):
