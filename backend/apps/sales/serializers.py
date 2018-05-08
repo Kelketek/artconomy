@@ -12,7 +12,8 @@ from apps.lib.serializers import RelatedUserSerializer, Base64ImageField, EventT
 from apps.lib.utils import country_choices
 from apps.profiles.models import User
 from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer
-from apps.sales.models import Product, Order, CreditCardToken, Revision, PaymentRecord, BankAccount, CharacterTransfer
+from apps.sales.models import Product, Order, CreditCardToken, Revision, PaymentRecord, BankAccount, CharacterTransfer, \
+    PlaceholderSale
 from apps.sales.utils import escrow_balance, available_balance
 
 
@@ -268,3 +269,11 @@ class CharacterTransferSerializer(serializers.ModelSerializer):
             'saved_name'
         )
         read_only_fields = ('seller', 'character', 'created_on', 'status', 'buyer', 'id', 'saved_name')
+
+
+class PlaceholderSaleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PlaceholderSale
+        fields = (
+            'id', 'title', 'status', 'task_weight', 'description', 'expected_turnaround'
+        )

@@ -106,7 +106,7 @@
         <v-layout slot="header" row wrap text-xs-center>
           <v-flex>
             <ac-action
-                variant="danger" :confirm="true" :success="goToListing"
+                variant="danger" :confirm="true" :success="goBack"
                 :url="`/api/profiles/v1/account/${this.user.username}/characters/${this.character.name}/`"
                 method="DELETE"
                 dark color="red"
@@ -296,9 +296,6 @@
       setIndex: function (key) {
         this.$data.selectedIndex = key
       },
-      goToListing: function () {
-        this.$router.history.push({name: 'Characters', params: {username: this.user.username}})
-      },
       removeAsset: function (asset) {
         artCall(
           `${this.url}/asset/${asset.id}/`,
@@ -321,6 +318,13 @@
           if (self.selectedIndex >= index) {
             self.selectedIndex -= 1
           }
+        }
+      },
+      goBack () {
+        if (this.$router.history.length) {
+          this.$router.go(-1)
+        } else {
+          this.$router.history.push({name: 'Profile', params: {username: this.username}})
         }
       },
       postTransfer (response) {

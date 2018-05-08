@@ -33,11 +33,12 @@ from apps.profiles.serializers import ImageAssetSerializer, CharacterSerializer
 from apps.sales.dwolla import add_bank_account, initiate_withdraw, perform_transfer, make_dwolla_account, \
     destroy_bank_account
 from apps.sales.permissions import OrderViewPermission, OrderSellerPermission, OrderBuyerPermission
-from apps.sales.models import Product, Order, CreditCardToken, PaymentRecord, Revision, BankAccount, CharacterTransfer
+from apps.sales.models import Product, Order, CreditCardToken, PaymentRecord, Revision, BankAccount, CharacterTransfer, \
+    PlaceholderSale
 from apps.sales.serializers import ProductSerializer, ProductNewOrderSerializer, OrderViewSerializer, CardSerializer, \
     NewCardSerializer, OrderAdjustSerializer, PaymentSerializer, RevisionSerializer, OrderStartedSerializer, \
     AccountBalanceSerializer, BankAccountSerializer, WithdrawSerializer, PaymentRecordSerializer, \
-    CharacterTransferSerializer
+    CharacterTransferSerializer, PlaceholderSaleSerializer
 from apps.sales.utils import translate_authnet_error, available_products
 
 
@@ -501,6 +502,42 @@ class ArchivedSalesList(ArchivedMixin, SalesListBase):
 
 class CancelledSalesList(CancelledMixin, SalesListBase):
     pass
+
+
+class PlaceholderSalesListBase(ListCreateAPIView):
+    permission_classes = [ObjectControls]
+    serializer_class = PlaceholderSaleSerializer
+
+    @staticmethod
+    def extra_filter(qs):
+        return qs
+
+    def get_queryset(self):
+        self.user = get_object_or_404(User, username=self.kwargs['username'])
+        self.check_object_permissions(self.request, self.user)
+        return self.extra_filter(self.user.placeholder_sales.all())
+
+
+class CurrentPlaceholderSalesList(CurrentMixin, PlaceholderSalesListBase):
+    def perform_create(self, serializer):
+        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        return serializer.save(seller=user)
+
+
+class ArchivedPlaceholderSalesList(ArchivedMixin, PlaceholderSalesListBase):
+    pass
+
+
+class PlaceholderManager(RetrieveUpdateDestroyAPIView):
+    permission_classes = [OrderSellerPermission]
+    serializer_class = PlaceholderSaleSerializer
+
+    def get_object(self):
+        placeholder = get_object_or_404(
+            PlaceholderSale, id=self.kwargs['placeholder_id'], seller__username__iexact=self.kwargs['username']
+        )
+        self.check_object_permissions(self.request, placeholder)
+        return placeholder
 
 
 class CasesListBase(ListAPIView):

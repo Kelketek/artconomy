@@ -1,10 +1,10 @@
-from django.contrib.contenttypes.models import ContentType
-from factory import Sequence, PostGenerationMethodCall, SubFactory, SelfAttribute, LazyAttribute
+from factory import Sequence, SubFactory, SelfAttribute
 from factory.django import DjangoModelFactory, ImageField
 from moneyed import Money
 
 from apps.profiles.tests.factories import UserFactory, CharacterFactory
-from apps.sales.models import Order, Product, CreditCardToken, Revision, PaymentRecord, BankAccount, CharacterTransfer
+from apps.sales.models import Order, Product, CreditCardToken, Revision, PaymentRecord, BankAccount, \
+    CharacterTransfer, PlaceholderSale
 
 
 class ProductFactory(DjangoModelFactory):
@@ -14,7 +14,7 @@ class ProductFactory(DjangoModelFactory):
     task_weight = 2
     owner = SelfAttribute('user')
     price = Money('15.00', 'USD')
-    name = Sequence(lambda n: 'Product id {0}'.format(n))
+    name = Sequence(lambda n: 'Product {0}'.format(n))
     description = 'Product description'
     file = ImageField(color='blue')
 
@@ -29,6 +29,15 @@ class OrderFactory(DjangoModelFactory):
     buyer = SubFactory(UserFactory)
     seller = SelfAttribute('product.user')
     product = SubFactory(ProductFactory)
+
+
+class PlaceholderSaleFactory(DjangoModelFactory):
+    class Meta:
+        model = PlaceholderSale
+    title = Sequence(lambda n: 'Placeholder {0}'.format(n))
+    seller = SubFactory(UserFactory)
+    task_weight = 5
+    expected_turnaround = 1
 
 
 class CreditCardTokenFactory(DjangoModelFactory):

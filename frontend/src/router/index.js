@@ -138,7 +138,7 @@ export const routes = [
     props: true
   },
   {
-    path: '/cases/:username/sale/:orderID/',
+    path: '/cases/:username/case/:orderID/',
     name: 'Case',
     component: Order,
     props: true
@@ -156,7 +156,7 @@ export const routes = [
     }
   },
   {
-    path: '/sales/:username/:tabName?/',
+    path: '/sales/:username/:tabName?/:subTabName?/',
     name: 'Sales',
     component: Orders,
     props (route) {
