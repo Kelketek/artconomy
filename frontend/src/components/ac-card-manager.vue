@@ -66,6 +66,13 @@
   import VueFormGenerator from 'vue-form-generator'
   import { artCall, EventBus, genOptions } from '../lib'
 
+  function validCVV (value) {
+    if (RegExp('^\\d{3,4}$').test(value)) {
+      return
+    }
+    return ['Invalid CVV. Please check your card.']
+  }
+
   function cardSelectValidator (value, field) {
     EventBus.$emit('card-number', value)
     return VueFormGenerator.validators.creditCard(value, field)
@@ -80,7 +87,6 @@
       return {
         currentTab: 'tab-saved-card',
         selectedCard: this.value,
-        oldSelectedCard: this.value,
         newCardModel: {
           first_name: '',
           last_name: '',
@@ -88,7 +94,8 @@
           card_number: '',
           exp_date: '',
           security_code: '',
-          zip: ''
+          zip: '',
+          cvv: ''
         },
         showNew: false,
         cardType: 'unknown',
@@ -120,6 +127,16 @@
             featured: true,
             required: true,
             validator: cardSelectValidator
+          }, {
+            type: 'v-text',
+            inputType: 'text',
+            label: 'CVV',
+            model: 'cvv',
+            placeholder: 'XXX',
+            hint: 'Three digit number on the back of most cards, four digit number on the front of American Express',
+            featured: true,
+            required: true,
+            validator: validCVV
           }, {
             type: 'v-text',
             inputType: 'text',
@@ -160,7 +177,6 @@
         this.response = response
         this.growing = response.results
         if (this.growing.length === 0) {
-          this.currentTab = 'tab-new-card'
           return
         }
         for (let card of this.growing) {
@@ -193,7 +209,6 @@
       },
       addCard (response) {
         this.growing.push(response)
-        this.currentTab = 0
         this.selectedCard = response.id
       },
       populateCountries (response) {
@@ -204,15 +219,20 @@
       }
     },
     watch: {
-      selectedCard (newValue) {
-        this.$emit('input', this.selectedCard)
+      selectedCard (newValue, oldValue) {
+        this.$emit('input', newValue)
+        this.currentTab = 'tab-saved-card'
       },
       currentTab (newValue) {
         if (newValue === 'tab-new-card') {
-          this.oldSelectedCard = this.selectedCard
-          this.selectedCard = null
+          this.$emit('input', null)
         } else {
-          this.selectedCard = this.oldSelectedCard
+          this.$emit('input', this.selectedCard)
+        }
+      },
+      growing (newValue) {
+        if (newValue.length === 0) {
+          this.currentTab = 'tab-new-card'
         }
       }
     },

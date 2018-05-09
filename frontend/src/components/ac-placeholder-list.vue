@@ -1,7 +1,7 @@
 <template>
   <v-container grid-list-lg class="placeholder-list">
     <v-layout row wrap>
-      <v-flex xs12 md4 lg3
+      <v-flex xs12 sm4 lg3
               v-for="placeholder in growing"
               :key="placeholder.id"
               @click="currentPlaceholder = placeholder"
@@ -88,7 +88,7 @@
     >
       <v-icon large>add</v-icon>
     </v-btn>
-    <ac-form-dialog title="New Product" submit-text="Create" v-model="showNew"
+    <ac-form-dialog title="New Placeholder Sale" submit-text="Create" v-model="showNew"
                     ref="newPlaceholderForm" :schema="newPlaceholderSchema" :model="newPlaceholderModel"
                     :options="newPlaceholderOptions" :success="addPlaceholder"
                     :url="url"
