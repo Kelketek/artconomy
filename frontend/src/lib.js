@@ -57,7 +57,7 @@ function findField (fieldname) {
   }
 }
 
-export function setErrors (form, errors) {
+export function setErrors (form, errors, extra) {
   const errorSet = []
   for (const fieldname of Object.keys(errors)) {
     let targetField = form.fields.find(findField(fieldname))
@@ -69,6 +69,15 @@ export function setErrors (form, errors) {
   }
   if (errorSet.length) {
     EventBus.$emit('form-failure', errorSet)
+  }
+  if (errors.errors) {
+    if (Array.isArray(extra)) {
+      // Make sure our errors are cleared out in a way Vue can track.
+      while (extra.length > 0) {
+        extra.pop()
+      }
+      extra.push(...errors.errors)
+    }
   }
   form.errors = errorSet
 }

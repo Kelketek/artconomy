@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.db import transaction
 from django.db.utils import IntegrityError
 from urllib.error import URLError
@@ -512,12 +514,12 @@ class CreditCardToken(Model):
         self.save()
 
     @classmethod
-    def authorize_card(cls, first_name, last_name, number, exp_year, exp_month, country, zip_code):
+    def authorize_card(cls, first_name, last_name, number, cvv, exp_year, exp_month, country, zip_code):
         card = CreditCard(
             card_number=number,
             exp_year=exp_year,
             exp_month=exp_month,
-            cvv='000',  # We won't be validating a CVV until at least the first transaction.
+            cvv=cvv,
             first_name=first_name,
             last_name=last_name
         )
@@ -525,20 +527,23 @@ class CreditCardToken(Model):
         card_type = CreditCardToken.TYPE_TRANSLATION[card.card_type]
 
         address = Address(street='', city='', state='', zip_code=zip_code, country=country)
-        saved_card = sauce.card(card, address).save()
+        compiled_card = sauce.card(card, address)
+        # Send along an authorization containing the CVV to verify the card.
+        compiled_card.auth(1)
+        saved_card = compiled_card.save()
 
         return saved_card, card_type, number[:4]
 
     @classmethod
-    def create(cls, user, first_name, last_name, card_number, exp_year, exp_month, country, zip_code):
+    def create(cls, user, first_name, last_name, card_number, cvv, exp_year, exp_month, country, zip_code):
 
         saved_card, card_type, last_four = cls.authorize_card(
-            first_name, last_name, card_number, exp_year, exp_month, country, zip_code
+            first_name, last_name, card_number, cvv, exp_year, exp_month, country, zip_code
         )
 
         token = cls(
             user=user, card_type=card_type, last_four=card_number[:4],
-            payment_id=saved_card.uid)
+            payment_id=saved_card.uid, cvv_verified=True)
 
         token.save()
         if not token.user.primary_card:

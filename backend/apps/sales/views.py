@@ -1,5 +1,6 @@
 from uuid import uuid4
 
+from authorize import AuthorizeResponseError
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
@@ -610,7 +611,10 @@ class CardList(ListCreateAPIView):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        token = self.perform_create(serializer)
+        try:
+            token = self.perform_create(serializer)
+        except AuthorizeResponseError as err:
+            return Response(data={'errors': [translate_authnet_error(err)]}, status=status.HTTP_400_BAD_REQUEST)
         serializer = CardSerializer(instance=token)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
@@ -622,7 +626,7 @@ class CardList(ListCreateAPIView):
         return CreditCardToken.create(
             first_name=data['first_name'], last_name=data['last_name'], country=data['country'],
             user=user, exp_month=data['exp_date'].month, exp_year=data['exp_date'].year,
-            card_number=data['card_number'], zip_code=data.get('zip')
+            card_number=data['card_number'], cvv=data['cvv'], zip_code=data.get('zip')
         )
 
 

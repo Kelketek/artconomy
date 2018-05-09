@@ -3,21 +3,11 @@
     <div class="loading-overlay" v-if="sending">
         <div class="spinner-holder"><i class="fa fa-spinner fa-5x fa-spin"></i></div>
     </div>
-    <div v-if="errors.length" class="alert alert-danger">
-      <a class="close" @click="dismiss_error">&times;</a>
-      {% verbatim %}<span v-for="error in errors">{{ error }}</span>{% endverbatim %}
-    </div>
-    <div v-if="successes.length" class="alert alert-success">
-      <a class="close" @click="dismiss_success">&times;</a>
-      {% verbatim %}<span v-for="sucMsg in successes">{{ sucMsg }}</span>{% endverbatim %}
-    </div>
-    <div v-if="warnings.length" class="alert alert-warning">
-      <a class="close" @click="dismiss_warning">&times;</a>
-      {% verbatim %}<span v-for="warning in warnings">{{ warning }}</span>{% endverbatim %}
-    </div>
-
     <vue-form-generator ref="form" :schema="schema" :model="model"
                         :options="options" />
+    <v-alert value="error" v-for="error in errors" v-if="errors.length" type="error" :key="error">
+      {{error}}<div class="error-right"><a class="close" @click="dismissError"><v-icon>close</v-icon></a></div>
+    </v-alert>
     <fieldset>
       <slot />
     </fieldset>
@@ -50,6 +40,10 @@
     text-align: center;
     height: 30%;
     margin: auto;
+  }
+  .error-right {
+    float: right;
+    display: inline-block
   }
 </style>
 
@@ -120,17 +114,20 @@
         // Make sure we don't screw up our 'saved' setting.
         this.oldValue = defaults
       },
+      dismissError () {
+        this.errors = []
+      },
       // To fix this properly I would need to make an update upstream. If it becomes enough of an issue, I might.
       // For now, jQuery will do.
-      disable: function () {
+      disable () {
         $(this.$el).find('fieldset').attr('disabled', true)
         this.sending = true
       },
-      enable: function () {
+      enable () {
         $(this.$el).find('fieldset').attr('disabled', false)
         this.sending = false
       },
-      submit: function () {
+      submit () {
         if (this.disabled) {
           return
         }
@@ -167,7 +164,7 @@
           error: self.failure_hook
         })
       },
-      success_hook: function (response, event) {
+      success_hook (response, event) {
         if (this.resetAfter) {
           this.reset()
         }
@@ -188,8 +185,8 @@
         }
         return data
       },
-      failure_hook: function (response, event) {
-        setErrors(this.$refs.form, response.responseJSON)
+      failure_hook (response, event) {
+        setErrors(this.$refs.form, response.responseJSON, this.errors)
         this.enable()
       }
     },
@@ -200,7 +197,7 @@
       }
       this.defaults = genDefaults
     },
-    data: function () {
+    data () {
       return {
         successes: [],
         errors: [],
