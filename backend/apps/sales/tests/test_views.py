@@ -116,7 +116,8 @@ class TestCardManagement(APITestCase):
                 'card_number': '4111 1111 1111 1111',
                 'exp_date': '02/34',
                 'security_code': '555',
-                'zip': '44444'
+                'zip': '44444',
+                'cvv': '555',
             }
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -142,7 +143,8 @@ class TestCardManagement(APITestCase):
                 'card_number': '4111 1111 1111 1111',
                 'exp_date': '02/34',
                 'security_code': '555',
-                'zip': '44444'
+                'zip': '44444',
+                'cvv': '555',
             }
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -170,7 +172,8 @@ class TestCardManagement(APITestCase):
                 'card_number': '4111 1111 1111 1111',
                 'exp_date': '02/34',
                 'security_code': '555',
-                'zip': '44444'
+                'zip': '44444',
+                'cvv': '555',
             }
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -196,7 +199,8 @@ class TestCardManagement(APITestCase):
                 'card_number': '4111 1111 1111 1111',
                 'exp_date': '02/34',
                 'security_code': '555',
-                'zip': '44444'
+                'zip': '44444',
+                'cvv': '555',
             }
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -217,7 +221,8 @@ class TestCardManagement(APITestCase):
                 'card_number': '4111 1111 1111 1111',
                 'exp_date': '02/34',
                 'security_code': '555',
-                'zip': '44444'
+                'zip': '44444',
+                'cvv': '555',
             }
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -236,7 +241,8 @@ class TestCardManagement(APITestCase):
                 'card_number': '4111 1111 1111 1111',
                 'exp_date': '02/34',
                 'security_code': '555',
-                'zip': '44444'
+                'zip': '44444',
+                'cvv': '555',
             }
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
