@@ -11,7 +11,7 @@ from rest_framework.authtoken.models import Token
 
 from apps.lib.abstract_models import RATINGS
 from apps.lib.serializers import RelatedUserSerializer, Base64ImageField, TagSerializer, SubscribedField, SubscribeMixin
-from apps.profiles.models import Character, ImageAsset, User, RefColor, Attribute
+from apps.profiles.models import Character, ImageAsset, User, RefColor, Attribute, Message, MessageRecipientRelationship
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -318,3 +318,23 @@ class UserSerializer(serializers.ModelSerializer):
 
 class SessionSettingsSerializer(serializers.Serializer):
     rating = serializers.ChoiceField(choices=RATINGS)
+
+
+class MessageSerializer(serializers.ModelSerializer):
+    recipients = RelatedUserSerializer(read_only=True, many=True)
+    sender = RelatedUserSerializer(read_only=True)
+    read = serializers.SerializerMethodField()
+
+    def get_read(self, obj):
+        user = self.context['request'].user
+        if user == obj.sender:
+            return True
+        if not MessageRecipientRelationship.objects.filter(user=user, message=obj, read=False).exists():
+            return True
+        return False
+
+    class Meta:
+        model = Message
+        fields = (
+            'id', 'recipients', 'sender', 'subject', 'body', 'created_on', 'edited_on', 'read'
+        )

@@ -25,12 +25,12 @@ from apps.lib.serializers import CommentSerializer, NotificationSerializer, Base
 from apps.lib.utils import recall_notification, notify, safe_add, add_tags, remove_watch_subscriptions, \
     watch_subscriptions
 from apps.lib.views import BaseTagView, BaseUserTagView
-from apps.profiles.models import User, Character, ImageAsset, RefColor, Attribute
+from apps.profiles.models import User, Character, ImageAsset, RefColor, Attribute, Message
 from apps.profiles.permissions import ObjectControls, UserControls, AssetViewPermission, AssetControls, NonPrivate, \
-    ColorControls, ColorLimit, ViewFavorites, SharedWith
+    ColorControls, ColorLimit, ViewFavorites, SharedWith, MessageReadPermission, MessageControls, IsUser
 from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer, SettingsSerializer, UserSerializer, \
     RegisterSerializer, ImageAssetManagementSerializer, CredentialsSerializer, AvatarSerializer, RefColorSerializer, \
-    AttributeSerializer, SessionSettingsSerializer
+    AttributeSerializer, SessionSettingsSerializer, MessageSerializer
 from apps.profiles.utils import available_chars, char_ordering, available_assets, available_artists
 
 
@@ -932,6 +932,53 @@ class Watching(ListAPIView):
         user = get_object_or_404(User, username__iexact=self.kwargs['username'])
         return user.watching.all()
 
+
+class MessagesFrom(ListCreateAPIView):
+    permission_classes = [IsUser]
+    serializer_class = MessageSerializer
+
+    def get_queryset(self):
+        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        self.check_object_permissions(self.request, user)
+        return user.sent_messages.filter(sender_left=False)
+
+
+class MessagesTo(ListAPIView):
+    permission_classes = [IsUser]
+    serializer_class = MessageSerializer
+
+    def get_queryset(self):
+        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        self.check_object_permissions(self.request, user)
+        return user.received_messages.all()
+
+
+class MessageManager(RetrieveUpdateDestroyAPIView):
+    permission_classes = [Any(All(Any(IsSafeMethod, IsMethod('PUT')), MessageReadPermission), MessageControls)]
+    serializer_class = MessageSerializer
+
+    def get_object(self):
+        message = get_object_or_404(Message, id=self.kwargs['message_id'])
+        self.check_object_permissions(self.request, message)
+        return message
+
+
+class MessageComments(ListCreateAPIView):
+    permission_classes = [MessageReadPermission]
+    serializer_class = CommentSerializer
+
+    def get_queryset(self):
+        message = get_object_or_404(Message, id=self.kwargs['message_id'])
+        self.check_object_permissions(self.request, message)
+        return message.comments.all()
+
+    def perform_create(self, serializer):
+        asset = get_object_or_404(Message, id=self.kwargs['message_id'])
+        self.check_object_permissions(self.request, asset)
+        serializer.save(user=self.request.user, content_object=asset)
+
+    class Meta:
+        pass
 
 
 @csrf_exempt

@@ -12,6 +12,7 @@ class Comment(models.Model):
     deleted = models.BooleanField(default=False, db_index=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=CASCADE)
     text = models.CharField(max_length=8000)
+    system = models.BooleanField(default=False, db_index=True)
     created_on = DateTimeField(auto_now_add=True)
     edited_on = DateTimeField(auto_now=True)
     edited = models.BooleanField(default=False)
@@ -140,7 +141,7 @@ def _comment_transform(old_data, new_data):
 
 @receiver(post_save, sender=Comment)
 def auto_subscribe_thread(sender, instance, created=False, **_kwargs):
-    if created:
+    if created and not instance.system:
         Subscription.objects.create(
             subscriber=instance.user,
             content_type=ContentType.objects.get_for_model(model=instance),
