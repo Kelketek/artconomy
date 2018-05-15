@@ -19,7 +19,7 @@ from apps.lib.models import Comment, Subscription, FAVORITE, SYSTEM_ANNOUNCEMENT
     SUBMISSION_CHAR_TAG, CHAR_TAG, SUBMISSION_TAG, COMMENT, Tag, CHAR_TRANSFER, ASSET_SHARED, CHAR_SHARED, \
     NEW_CHAR_SUBMISSION, NEW_CHARACTER, NEW_PORTFOLIO_ITEM
 from apps.lib.utils import clear_events, tag_list_cleaner, notify, recall_notification
-from apps.profiles.permissions import AssetViewPermission, AssetCommentPermission
+from apps.profiles.permissions import AssetViewPermission, AssetCommentPermission, MessageReadPermission
 
 
 def banned_named_validator(value):
@@ -432,3 +432,30 @@ class RefColor(Model):
     color = CharField(max_length=7, validators=[RegexValidator(r'^#[0-9a-f]{6}$')])
     note = CharField(max_length=100)
     character = ForeignKey(Character, related_name='colors', on_delete=CASCADE)
+
+
+class MessageRecipientRelationship(Model):
+    """
+    Leaf table for tracking read status of messages.
+    """
+    user = ForeignKey(User, related_name='message_record', on_delete=CASCADE)
+    message = ForeignKey('Message', related_name='message_record', on_delete=CASCADE)
+    read = BooleanField(default=False, db_index=True)
+
+
+class Message(Model):
+    """
+    Model for private messages.
+    """
+    sender = ForeignKey(User, on_delete=CASCADE, related_name='sent_messages')
+    sender_left = BooleanField(default=False, db_index=True)
+    recipients = ManyToManyField(User, related_name='received_messages', through=MessageRecipientRelationship)
+    subject = CharField(max_length=150)
+    body = CharField(max_length=5000)
+    created_on = DateTimeField(auto_now_add=True)
+    edited_on = DateTimeField(auto_now=True)
+    recipients__max = 20
+    comments = GenericRelation(
+        Comment, related_query_name='message', content_type_field='content_type', object_id_field='object_id'
+    )
+    comment_permissions = [MessageReadPermission]

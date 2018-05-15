@@ -123,3 +123,30 @@ class ViewFavorites(BasePermission):
             return True
         if obj.favorites_hidden:
             return False
+
+
+class MessageReadPermission(BasePermission):
+    def has_object_permission(self, request, view, obj):
+        # These are private messages. Unless there's a real need let's keep this to Superusers for now.
+        if request.user.is_superuser:
+            return True
+        if obj.sender == request.user and not obj.sender_left:
+            return True
+        if obj.recipients.all().filter(id=request.user.id):
+            return True
+
+
+class MessageControls(BasePermission):
+    def has_object_permission(self, request, view, obj):
+        if request.user == obj.sender:
+            return True
+        if request.user.is_superuser:
+            return True
+
+
+class IsUser(BasePermission):
+    def has_object_permission(self, request, view, obj):
+        if request.user == obj:
+            return True
+        if request.user.is_superuser:
+            return True

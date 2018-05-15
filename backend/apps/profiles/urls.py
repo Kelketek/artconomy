@@ -8,7 +8,8 @@ from apps.profiles.views import Register, CharacterListAPI, CharacterAssets, \
     NotificationsList, SetAvatar, UserInfo, CharacterSearch, AssetFavorite, MarkNotificationsRead, AssetTagCharacter, \
     UserSearch, AssetTagArtist, TagSearch, AssetTag, AssetSearch, CharacterTag, UserBlacklist, RefColorList, \
     RefColorManager, RecentSubmissions, RecentCommissions, NewCharacters, FavoritesList, GalleryList, SubmissionList, \
-    AttributeManager, AttributeList, SessionSettings, AssetShare, CharacterShare, UserWatch, Watching, Watchers
+    AttributeManager, AttributeList, SessionSettings, AssetShare, CharacterShare, UserWatch, Watching, Watchers, \
+    MessagesTo, MessagesFrom, MessageManager, MessageComments
 from apps.profiles.views import check_username, check_email, perform_login, perform_logout
 
 app_name = "profiles"
@@ -40,7 +41,10 @@ urlpatterns = [
     path('v1/account/<username>/blacklist/', UserBlacklist.as_view(), name='user_blacklist'),
     path('v1/account/<username>/favorites/', FavoritesList.as_view(), name='favorites_list'),
     path('v1/account/<username>/gallery/', GalleryList.as_view(), name='gallery_list'),
-    path('v1/account/<username>/submissions/', SubmissionList.as_view(), name='submission_list'),
+    path('v1/account/<username>/messages/inbox/', MessagesTo.as_view(), name='messages_to'),
+    path('v1/account/<username>/messages/sent/', MessagesFrom.as_view(), name='messages_from'),
+    path('v1/messages/<int:message_id>/', MessageManager.as_view(), name='message_manager'),
+    path('v1/messages/<int:message_id>/comments/', MessageComments.as_view(), name='message_comments'),
     path(
         r'v1/asset/<int:asset_id>/tag-characters/',
         AssetTagCharacter.as_view(), name='asset_character_tag'

@@ -23,6 +23,8 @@ import CharacterGallery from '@/components/CharacterGallery'
 import CharacterTransfer from '@/components/CharacterTransfer'
 import NotFound from '@/components/NotFound'
 import SessionSettings from '@/components/SessionSettings.vue'
+import Messages from '@/components/Messages.vue'
+import Message from '@/components/Message.vue'
 import {ErrorHandler} from '@/plugins/error'
 import {setMetaContent} from '../lib'
 
@@ -201,6 +203,18 @@ export const routes = [
     path: '/session/settings/',
     name: 'SessionSettings',
     component: SessionSettings
+  },
+  {
+    path: '/messages/:username/:tabName?/',
+    name: 'Messages',
+    component: Messages,
+    props: true
+  },
+  {
+    path: '/messages/:username/message/:messageID/',
+    name: 'Message',
+    component: Message,
+    props: true
   },
   {
     path: '*',
