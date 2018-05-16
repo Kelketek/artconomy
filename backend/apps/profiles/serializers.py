@@ -321,6 +321,33 @@ class SessionSettingsSerializer(serializers.Serializer):
 
 
 class MessageSerializer(serializers.ModelSerializer):
+    sender = RelatedUserSerializer(read_only=True)
+    read = serializers.SerializerMethodField()
+
+    def get_read(self, obj):
+        user = self.context['request'].user
+        if user == obj.sender:
+            return obj.sender_read
+        if not MessageRecipientRelationship.objects.filter(user=user, message=obj, read=False).exists():
+            return True
+        return False
+
+    def create(self, validated_data):
+        data = dict(**validated_data)
+        data.pop('recipients', None)
+        return super().create(data)
+
+    class Meta:
+        model = Message
+        fields = (
+            'id', 'recipients', 'sender', 'subject', 'body', 'created_on', 'edited_on', 'read'
+        )
+        extra_kwargs = {
+            'recipients': {'write_only': True, 'queryset': User.objects.all(), 'read_only': False}
+        }
+
+
+class MessageManagementSerializer(serializers.ModelSerializer):
     recipients = RelatedUserSerializer(read_only=True, many=True)
     sender = RelatedUserSerializer(read_only=True)
     read = serializers.SerializerMethodField()
@@ -328,7 +355,7 @@ class MessageSerializer(serializers.ModelSerializer):
     def get_read(self, obj):
         user = self.context['request'].user
         if user == obj.sender:
-            return True
+            return obj.sender_read
         if not MessageRecipientRelationship.objects.filter(user=user, message=obj, read=False).exists():
             return True
         return False

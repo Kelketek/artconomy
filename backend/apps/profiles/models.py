@@ -1,6 +1,7 @@
 """
 Models dealing primarily with user preferences and personalization.
 """
+from avatar.templatetags.avatar_tags import avatar_url
 from django.conf import settings
 from custom_user.models import AbstractEmailUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
@@ -12,12 +13,13 @@ from django.db.models import Model, CharField, ForeignKey, IntegerField, Boolean
     URLField, SET_NULL, ManyToManyField, CASCADE
 from django.db.models.signals import post_save, post_delete, pre_delete, pre_save
 from django.dispatch import receiver
+from django.utils.datetime_safe import datetime
 from rest_framework.authtoken.models import Token
 
 from apps.lib.abstract_models import GENERAL, RATINGS, ImageModel
 from apps.lib.models import Comment, Subscription, FAVORITE, SYSTEM_ANNOUNCEMENT, DISPUTE, REFUND, Event, \
     SUBMISSION_CHAR_TAG, CHAR_TAG, SUBMISSION_TAG, COMMENT, Tag, CHAR_TRANSFER, ASSET_SHARED, CHAR_SHARED, \
-    NEW_CHAR_SUBMISSION, NEW_CHARACTER, NEW_PORTFOLIO_ITEM
+    NEW_CHARACTER, NEW_PORTFOLIO_ITEM, NEW_PM
 from apps.lib.utils import clear_events, tag_list_cleaner, notify, recall_notification
 from apps.profiles.permissions import AssetViewPermission, AssetCommentPermission, MessageReadPermission
 
@@ -71,6 +73,7 @@ class User(AbstractEmailUser):
     blacklist = ManyToManyField('lib.Tag', blank=True)
     blacklist__max = 500
     biography = CharField(max_length=5000, blank=True, default='')
+    blocking = ManyToManyField('User', symmetrical=False, related_name='blocked_by', blank=True)
     notifications = ManyToManyField('lib.Event', through='lib.Notification')
     load = IntegerField(default=0)
 
@@ -84,7 +87,7 @@ class User(AbstractEmailUser):
 
     def notification_serialize(self, context):
         from .serializers import RelatedUserSerializer
-        return RelatedUserSerializer(instance=self).data
+        return RelatedUserSerializer(instance=self, context=context).data
 
 
 @receiver(post_save, sender=User)
@@ -449,13 +452,38 @@ class Message(Model):
     """
     sender = ForeignKey(User, on_delete=CASCADE, related_name='sent_messages')
     sender_left = BooleanField(default=False, db_index=True)
-    recipients = ManyToManyField(User, related_name='received_messages', through=MessageRecipientRelationship)
+    recipients = ManyToManyField(
+        User, related_name='received_messages', through=MessageRecipientRelationship, blank=True
+    )
     subject = CharField(max_length=150)
     body = CharField(max_length=5000)
-    created_on = DateTimeField(auto_now_add=True)
+    created_on = DateTimeField(auto_now_add=True, db_index=True)
+    last_activity = DateTimeField(auto_now_add=True, db_index=True)
+    sender_read = BooleanField(default=True)
     edited_on = DateTimeField(auto_now=True)
     recipients__max = 20
     comments = GenericRelation(
         Comment, related_query_name='message', content_type_field='content_type', object_id_field='object_id'
     )
     comment_permissions = [MessageReadPermission]
+
+    def new_comment(self, comment):
+        print('I ran!')
+        self.last_activity = datetime.now()
+        if comment.user != self.sender:
+            self.sender_read = False
+            self.save()
+        MessageRecipientRelationship.objects.filter(message=self).exclude(user=comment.user).update(read=False)
+
+    def notification_name(self, context):
+        return "Message with subject: {}".format(self.subject)
+
+    def notification_link(self, context):
+        return {'name': 'Message', 'params': {'messageID': self.id, 'username': context['request'].user.username}}
+
+    def notification_serialize(self, context):
+        from .serializers import MessageManagementSerializer
+        return MessageManagementSerializer(instance=self, context=context).data
+
+    def notification_display(self, context):
+        return {'file': {'notification': avatar_url(self.sender)}}

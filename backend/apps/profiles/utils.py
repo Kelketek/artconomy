@@ -57,3 +57,9 @@ def available_assets(request, requester):
     return ImageAsset.objects.exclude(exclude).exclude(
         rating__gt=request.max_rating
     ).exclude(tags__in=request.blacklist)
+
+
+def available_users(request):
+    if request.user.is_staff:
+        return User.objects.all()
+    return User.objects.exclude(id__in=request.user.blocked_by.all().values('id'))

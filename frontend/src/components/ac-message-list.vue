@@ -17,13 +17,15 @@
                 <v-list-tile-avatar>
                   <v-badge left overlap>
                     <span slot="badge" v-if="!message.read">*</span>
-                    <ac-avatar :user="message.sender" />
+                    <v-avatar>
+                      <img :src="message.sender.avatar_url">
+                    </v-avatar>
                   </v-badge>
                 </v-list-tile-avatar>
                 <v-list-tile-content>
                   <v-list-tile-title>Subject: {{message.subject}}</v-list-tile-title>
                   <v-list-tile-sub-title>
-                    On {{formatDate(message.created_on)}}
+                    From {{message.sender.username }} On {{formatDate(message.created_on)}}
                   </v-list-tile-sub-title>
                 </v-list-tile-content>
               </v-list-tile>

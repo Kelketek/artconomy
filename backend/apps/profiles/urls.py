@@ -9,7 +9,7 @@ from apps.profiles.views import Register, CharacterListAPI, CharacterAssets, \
     UserSearch, AssetTagArtist, TagSearch, AssetTag, AssetSearch, CharacterTag, UserBlacklist, RefColorList, \
     RefColorManager, RecentSubmissions, RecentCommissions, NewCharacters, FavoritesList, GalleryList, SubmissionList, \
     AttributeManager, AttributeList, SessionSettings, AssetShare, CharacterShare, UserWatch, Watching, Watchers, \
-    MessagesTo, MessagesFrom, MessageManager, MessageComments
+    MessagesTo, MessagesFrom, MessageManager, MessageComments, LeaveConversation
 from apps.profiles.views import check_username, check_email, perform_login, perform_logout
 
 app_name = "profiles"
@@ -44,6 +44,7 @@ urlpatterns = [
     path('v1/account/<username>/messages/inbox/', MessagesTo.as_view(), name='messages_to'),
     path('v1/account/<username>/messages/sent/', MessagesFrom.as_view(), name='messages_from'),
     path('v1/messages/<int:message_id>/', MessageManager.as_view(), name='message_manager'),
+    path('v1/messages/<int:message_id>/leave/', LeaveConversation.as_view(), name='leave_conversation'),
     path('v1/messages/<int:message_id>/comments/', MessageComments.as_view(), name='message_comments'),
     path(
         r'v1/asset/<int:asset_id>/tag-characters/',

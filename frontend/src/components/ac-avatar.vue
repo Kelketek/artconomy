@@ -6,7 +6,7 @@
             <img :src="user.avatar_url">
           </v-avatar>
         </router-link>
-        <div class="avatar-username text-xs-center"><router-link :to="{name: 'Profile', params: {username: user.username}}">{{ user.username }}</router-link> <v-icon small v-if="removable" @click="remove">close</v-icon></div>
+        <div v-if="showName" class="avatar-username text-xs-center"><router-link :to="{name: 'Profile', params: {username: user.username}}">{{ user.username }}</router-link> <v-icon small v-if="removable" @click="remove">close</v-icon></div>
       </div>
   </div>
 </template>
@@ -22,6 +22,7 @@
       removable: {
         default: false
       },
+      showName: {default: true},
       fieldName: {},
       removeUrl: {},
       callback: {

@@ -1,7 +1,7 @@
 <template>
   <v-card :id="'comment-' + comment.id" class="comment-block pt-2 mb-2"
        :class="{'my-comment': myComment, 'elevation-3': alternate, 'grey': this.selected, 'darken-2': this.selected}">
-    <v-layout row wrap>
+    <v-layout row wrap v-if="!comment.system">
       <v-flex xs12 sm2 class="text-xs-center comment-info pb-2">
         <ac-avatar :user="comment.user" /><br />
         <v-tooltip bottom>
@@ -12,7 +12,7 @@
           {{formatDate(comment.created_on)}}
           <span v-if="comment.edited"><br />Edited: {{formatDate(comment.edited_on)}}</span>
         </v-tooltip>
-        <v-flex text-xs-center v-if="toplevel">
+        <v-flex text-xs-center v-if="toplevel && nesting">
           <ac-action :url="url" :send="{subscribed: !comment.subscribed}" method="PUT" :success="setSubscription">
             <v-icon v-if="comment.subscribed">volume_up</v-icon><v-icon v-else>volume_off</v-icon>
           </ac-action>
@@ -100,6 +100,10 @@
         </v-btn>
         <div v-if="editing && reply_preview" v-html="parseReply()"></div>
       </v-flex>
+    </v-layout>
+    <v-layout v-else>
+        <v-flex text-xs-right><ac-avatar :user="comment.user"/></v-flex>
+        <v-flex text-xs-left v-html="parseContent()" class="pt-5"></v-flex>
     </v-layout>
   </v-card>
 </template>
