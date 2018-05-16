@@ -143,7 +143,8 @@ export const NOTIFICATION_MAPPING = {
   '19': 'ac-sale-update',
   '22': 'ac-revision-uploaded',
   '23': 'ac-asset-shared',
-  '24': 'ac-char-shared'
+  '24': 'ac-char-shared',
+  '25': 'ac-new-pm'
 }
 
 export const ORDER_STATUSES = {

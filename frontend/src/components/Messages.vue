@@ -12,6 +12,24 @@
         <ac-message-list :endpoint="`${url}sent/`" :username="username" />
       </v-tab-item>
     </v-tabs-items>
+    <ac-form-dialog ref="newMessageForm" :schema="newMessageSchema" :model="newMessageModel"
+                    :options="newMessageOptions" :success="goToMessage"
+                    title="New Message"
+                    :url="`${url}sent/`"
+                    v-model="showNew"
+    />
+    <v-btn
+           dark
+           color="green"
+           fab
+           hover
+           fixed
+           right
+           bottom
+           @click="showNew=true"
+    >
+      <v-icon large>add</v-icon>
+    </v-btn>
   </v-container>
 </template>
 
@@ -20,11 +38,61 @@
   import Viewer from '../mixins/viewer'
   import Perms from '../mixins/permissions'
   import AcMessageList from './ac-message-list'
+  import AcFormDialog from './ac-form-dialog'
+  import VueFormGenerator from 'vue-form-generator'
 
   export default {
     name: 'Messages',
-    components: {AcMessageList},
+    components: {AcFormDialog, AcMessageList},
     mixins: [Viewer, Perms],
+    data () {
+      return {
+        showNew: false,
+        newMessageModel: {
+          subject: '',
+          body: '',
+          recipients: []
+        },
+        newMessageSchema: {
+          fields: [{
+            type: 'user-search',
+            model: 'recipients',
+            label: 'Recipients',
+            featured: true,
+            tagging: true,
+            placeholder: 'Search users',
+            styleClasses: 'field-input',
+            multiple: true
+          }, {
+            type: 'v-text',
+            inputType: 'text',
+            label: 'Subject',
+            model: 'subject',
+            featured: true,
+            required: true,
+            validator: VueFormGenerator.validators.string
+          },
+          {
+            type: 'v-text',
+            label: 'Body',
+            model: 'body',
+            featured: true,
+            multiline: true,
+            required: true,
+            validator: VueFormGenerator.validators.string
+          }]
+        },
+        newMessageOptions: {
+          validateAfterLoad: false,
+          validateAfterChanged: true
+        }
+      }
+    },
+    methods: {
+      goToMessage (response) {
+        this.$router.push({name: 'Message', params: {messageID: response.id, username: response.sender.username}})
+      }
+    },
     computed: {
       tab: paramHandleMap('tabName', undefined, undefined, 'tab-inbox'),
       url () {

@@ -26,6 +26,8 @@ class CommentViewPermission(BasePermission):
             # Can't comment on something which doesn't exist. Also, log this.
             logger.debug("Attempted to comment on non-existent object. Comment ID was %s", obj.id)
             return False
+        if obj.system:
+            return False
         if request.user.is_staff:
             return True
         if not hasattr(obj.content_object, 'comment_permissions'):

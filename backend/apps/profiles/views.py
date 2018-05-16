@@ -2,13 +2,14 @@ from avatar.models import Avatar
 from avatar.signals import avatar_updated
 from django.conf import settings
 from django.contrib.auth import login, get_user_model, authenticate, logout, update_session_auth_hash
+from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from django.db.transaction import atomic
 from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import status
 from rest_framework.decorators import api_view
-from rest_framework.exceptions import ValidationError, PermissionDenied
+from rest_framework.exceptions import ValidationError, PermissionDenied, APIException
 from rest_framework.generics import ListCreateAPIView, CreateAPIView, RetrieveUpdateDestroyAPIView, UpdateAPIView, \
     GenericAPIView, ListAPIView
 from rest_framework.permissions import IsAuthenticated
@@ -18,20 +19,20 @@ from rest_framework.views import APIView
 from rest_framework_bulk import BulkUpdateAPIView
 
 from apps.lib.models import Notification, FAVORITE, CHAR_TAG, SUBMISSION_CHAR_TAG, SUBMISSION_ARTIST_TAG, ARTIST_TAG, \
-    SUBMISSION_TAG, Tag, ASSET_SHARED, CHAR_SHARED, WATCHING, NEW_PORTFOLIO_ITEM
+    SUBMISSION_TAG, Tag, ASSET_SHARED, CHAR_SHARED, WATCHING, NEW_PORTFOLIO_ITEM, Comment, NEW_PM, Subscription, COMMENT
 from apps.lib.permissions import Any, All, IsSafeMethod, IsMethod, IsAnonymous
 from apps.lib.serializers import CommentSerializer, NotificationSerializer, Base64ImageField, RelatedUserSerializer, \
     BulkNotificationSerializer, UserInfoSerializer
 from apps.lib.utils import recall_notification, notify, safe_add, add_tags, remove_watch_subscriptions, \
-    watch_subscriptions
+    watch_subscriptions, add_check
 from apps.lib.views import BaseTagView, BaseUserTagView
-from apps.profiles.models import User, Character, ImageAsset, RefColor, Attribute, Message
+from apps.profiles.models import User, Character, ImageAsset, RefColor, Attribute, Message, MessageRecipientRelationship
 from apps.profiles.permissions import ObjectControls, UserControls, AssetViewPermission, AssetControls, NonPrivate, \
     ColorControls, ColorLimit, ViewFavorites, SharedWith, MessageReadPermission, MessageControls, IsUser
 from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer, SettingsSerializer, UserSerializer, \
     RegisterSerializer, ImageAssetManagementSerializer, CredentialsSerializer, AvatarSerializer, RefColorSerializer, \
-    AttributeSerializer, SessionSettingsSerializer, MessageSerializer
-from apps.profiles.utils import available_chars, char_ordering, available_assets, available_artists
+    AttributeSerializer, SessionSettingsSerializer, MessageManagementSerializer, MessageSerializer
+from apps.profiles.utils import available_chars, char_ordering, available_assets, available_artists, available_users
 
 
 class Register(CreateAPIView):
@@ -937,29 +938,72 @@ class MessagesFrom(ListCreateAPIView):
     permission_classes = [IsUser]
     serializer_class = MessageSerializer
 
+    def perform_create(self, serializer):
+        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        message = serializer.save(sender=user)
+        recipient_pks = [artist.pk for artist in serializer.validated_data.get('recipients', []) or []]
+        print(serializer.validated_data)
+        users = available_users(self.request).filter(id__in=recipient_pks)
+        if not users:
+            message.delete()
+            raise ValidationError({'recipients': "No valid recipients provided."})
+        try:
+            add_check(message, 'recipients', users)
+        except ValidationError:
+            raise ValidationError({'recipients': "Too many recipients."})
+        MessageRecipientRelationship.objects.bulk_create(
+            MessageRecipientRelationship(message=message, user=user) for user in users
+        )
+        for user in users:
+            Subscription.objects.create(
+                subscriber=user,
+                content_type=ContentType.objects.get_for_model(model=message),
+                object_id=message.id,
+                type=COMMENT,
+            )
+            Subscription.objects.create(
+                subscriber=user,
+                content_type=ContentType.objects.get_for_model(model=message),
+                object_id=message.id,
+                type=NEW_PM,
+            )
+        Subscription.objects.get_or_create(
+            subscriber=message.sender,
+            content_type=ContentType.objects.get_for_model(model=message),
+            object_id=message.id,
+            type=COMMENT,
+        )
+        notify(NEW_PM, target=message)
+        return message
+
     def get_queryset(self):
         user = get_object_or_404(User, username__iexact=self.kwargs['username'])
         self.check_object_permissions(self.request, user)
-        return user.sent_messages.filter(sender_left=False)
+        return user.sent_messages.filter(sender_left=False).order_by('-last_activity')
 
 
 class MessagesTo(ListAPIView):
     permission_classes = [IsUser]
-    serializer_class = MessageSerializer
+    serializer_class = MessageManagementSerializer
 
     def get_queryset(self):
         user = get_object_or_404(User, username__iexact=self.kwargs['username'])
         self.check_object_permissions(self.request, user)
-        return user.received_messages.all()
+        return user.received_messages.all().order_by('-last_activity')
 
 
 class MessageManager(RetrieveUpdateDestroyAPIView):
     permission_classes = [Any(All(Any(IsSafeMethod, IsMethod('PUT')), MessageReadPermission), MessageControls)]
-    serializer_class = MessageSerializer
+    serializer_class = MessageManagementSerializer
 
     def get_object(self):
         message = get_object_or_404(Message, id=self.kwargs['message_id'])
         self.check_object_permissions(self.request, message)
+        if self.request.user == message.sender:
+            message.sender_read = True
+            message.save()
+        else:
+            MessageRecipientRelationship.objects.filter(user=self.request.user, message=message).update(read=True)
         return message
 
 
@@ -973,12 +1017,31 @@ class MessageComments(ListCreateAPIView):
         return message.comments.all()
 
     def perform_create(self, serializer):
-        asset = get_object_or_404(Message, id=self.kwargs['message_id'])
-        self.check_object_permissions(self.request, asset)
-        serializer.save(user=self.request.user, content_object=asset)
+        message = get_object_or_404(Message, id=self.kwargs['message_id'])
+        self.check_object_permissions(self.request, message)
+        serializer.save(user=self.request.user, content_object=message)
 
     class Meta:
         pass
+
+
+class LeaveConversation(APIView):
+    permission_classes = [MessageReadPermission]
+
+    def post(self, request, message_id):
+        message = get_object_or_404(Message, id=message_id)
+        self.check_object_permissions(self.request, message)
+        if message.sender == request.user:
+            message.sender_left = True
+            message.save()
+        MessageRecipientRelationship.objects.filter(user=request.user, message=message).delete()
+        if (not message.recipients.all().exists()) and message.sender_left:
+            recall_notification(NEW_PM, message)
+            recall_notification(COMMENT, message)
+            message.delete()
+        else:
+            Comment(user=self.request.user, system=True, content_object=message, text='left the conversation.').save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @csrf_exempt

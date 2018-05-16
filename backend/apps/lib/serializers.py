@@ -210,8 +210,10 @@ class CommentSerializer(SubscribeMixin, serializers.ModelSerializer):
 
     class Meta:
         model = Comment
-        fields = ('id', 'text', 'created_on', 'edited_on', 'user', 'children', 'edited', 'deleted', 'subscribed')
-        read_only_fields = ('id', 'created_on', 'edited_on', 'user', 'children', 'edited', 'deleted')
+        fields = (
+            'id', 'text', 'created_on', 'edited_on', 'user', 'children', 'edited', 'deleted', 'subscribed', 'system'
+        )
+        read_only_fields = ('id', 'created_on', 'edited_on', 'user', 'children', 'edited', 'deleted', 'system')
 
 
 class CommentSubscriptionSerializer(SubscribeMixin, serializers.ModelSerializer):
@@ -221,8 +223,10 @@ class CommentSubscriptionSerializer(SubscribeMixin, serializers.ModelSerializer)
 
     class Meta:
         model = Comment
-        fields = ('id', 'text', 'created_on', 'edited_on', 'user', 'children', 'edited', 'deleted', 'subscribed')
-        read_only_fields = ('id', 'text', 'created_on', 'edited_on', 'user', 'children', 'edited', 'deleted')
+        fields = (
+            'id', 'text', 'created_on', 'edited_on', 'user', 'children', 'edited', 'deleted', 'subscribed', 'system'
+        )
+        read_only_fields = ('id', 'text', 'created_on', 'edited_on', 'user', 'children', 'edited', 'deleted', 'system')
 
 
 def get_user(user_id):

@@ -60,6 +60,7 @@ SUBMISSION_ARTIST_TAG = 21
 REVISION_UPLOADED = 22
 ASSET_SHARED = 23
 CHAR_SHARED = 24
+NEW_PM = 25
 
 
 EVENT_TYPES = (
@@ -188,5 +189,7 @@ def auto_subscribe_thread(sender, instance, created=False, **_kwargs):
                 exclude=[instance.user],
                 force_create=True,
             )
+        if hasattr(target, 'new_comment'):
+            target.new_comment(instance)
 
 # Additional signal for comment in utils, pre_save, since it would be recursive otherwise.
