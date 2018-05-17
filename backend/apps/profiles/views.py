@@ -940,9 +940,9 @@ class MessagesFrom(ListCreateAPIView):
 
     def perform_create(self, serializer):
         user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        self.check_object_permissions(self.request, user)
         message = serializer.save(sender=user)
         recipient_pks = [artist.pk for artist in serializer.validated_data.get('recipients', []) or []]
-        print(serializer.validated_data)
         users = available_users(self.request).filter(id__in=recipient_pks)
         if not users:
             message.delete()
@@ -1035,6 +1035,10 @@ class LeaveConversation(APIView):
             message.sender_left = True
             message.save()
         MessageRecipientRelationship.objects.filter(user=request.user, message=message).delete()
+        Subscription.objects.filter(
+            subscriber=request.user, content_type=ContentType.objects.get_for_model(message),
+            object_id=message.id
+        ).delete()
         if (not message.recipients.all().exists()) and message.sender_left:
             recall_notification(NEW_PM, message)
             recall_notification(COMMENT, message)

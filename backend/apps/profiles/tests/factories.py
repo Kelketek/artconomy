@@ -2,7 +2,7 @@ from factory import Sequence, PostGenerationMethodCall, SubFactory
 from factory.django import DjangoModelFactory, ImageField
 from django.conf import settings
 
-from apps.profiles.models import Character, ImageAsset
+from apps.profiles.models import Character, ImageAsset, Message, MessageRecipientRelationship
 
 
 class UserFactory(DjangoModelFactory):
@@ -31,3 +31,20 @@ class ImageAssetFactory(DjangoModelFactory):
     title = Sequence(lambda n: 'Image {0}'.format(n))
     caption = Sequence(lambda n: 'This is image {0}'.format(n))
     owner = SubFactory(UserFactory)
+
+
+class MessageFactory(DjangoModelFactory):
+    sender = SubFactory(UserFactory)
+    subject = Sequence(lambda n: 'Message {}'.format(n))
+    body = Sequence(lambda n: 'Body {}'.format(n))
+
+    class Meta:
+        model = Message
+
+
+class MessageRecipientRelationshipFactory(DjangoModelFactory):
+    user = SubFactory(UserFactory)
+    message = SubFactory(MessageFactory)
+
+    class Meta:
+        model = MessageRecipientRelationship
