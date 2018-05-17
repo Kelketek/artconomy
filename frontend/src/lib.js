@@ -290,6 +290,10 @@ export function minimumOrZero (value, schema) {
   }
 }
 
+export function isMobileDevice () {
+  return (typeof window.orientation !== 'undefined') || (navigator.userAgent.indexOf('IEMobile') !== -1)
+}
+
 export const EventBus = new Vue()
 
 export const recaptchaSiteKey = '6LdDkkIUAAAAAFyNzBAPKEDkxwYrQ3aZdVb1NKPw'
