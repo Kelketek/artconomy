@@ -7,12 +7,13 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from apps.lib.models import FAVORITE, Subscription, COMMENT, Notification, ASSET_SHARED, CHAR_SHARED, \
-    NEW_PORTFOLIO_ITEM, NEW_PRODUCT, NEW_AUCTION, NEW_CHARACTER
+    NEW_PORTFOLIO_ITEM, NEW_PRODUCT, NEW_CHARACTER, NEW_PM
 from apps.lib.utils import watch_subscriptions
-from apps.profiles.models import Character, ImageAsset
+from apps.profiles.models import Character, ImageAsset, Message
 from apps.lib.abstract_models import MATURE, ADULT, GENERAL
 from apps.lib.test_resources import APITestCase
-from apps.profiles.tests.factories import UserFactory, CharacterFactory, ImageAssetFactory
+from apps.profiles.tests.factories import UserFactory, CharacterFactory, ImageAssetFactory, \
+    MessageRecipientRelationshipFactory
 from apps.profiles.tests.helpers import gen_characters, gen_image
 
 
@@ -1000,3 +1001,136 @@ class TestFavorite(APITestCase):
             '/api/profiles/v1/asset/{}/favorite/'.format(asset.id)
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class TestPrivateMessages(APITestCase):
+    def test_create_message(self):
+        self.login(self.user)
+        response = self.client.post(
+            '/api/profiles/v1/account/{}/messages/sent/'.format(self.user.username),
+            {
+                'subject': 'This is a test',
+                'body': 'O hai',
+                'recipients': [self.user2.id]
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        message_id = response.data['id']
+        response = self.client.get(
+            '/api/profiles/v1/messages/{}/'.format(message_id)
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['body'], 'O hai')
+        self.assertEqual(response.data['subject'], 'This is a test')
+        self.assertEqual(response.data['recipients'][0]['id'], self.user2.id)
+        self.assertEqual(response.data['sender']['id'], self.user.id)
+
+        self.login(self.user2)
+        response = self.client.get(
+            '/api/profiles/v1/messages/{}/'.format(message_id)
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['body'], 'O hai')
+        self.assertEqual(response.data['subject'], 'This is a test')
+        self.assertEqual(response.data['recipients'][0]['id'], self.user2.id)
+        self.assertEqual(response.data['sender']['id'], self.user.id)
+
+        user3 = UserFactory.create()
+        self.login(user3)
+        response = self.client.get(
+            '/api/profiles/v1/messages/{}/'.format(message_id)
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        subscriptions = Subscription.objects.filter(type=NEW_PM)
+        self.assertEqual(subscriptions.count(), 1)
+        self.assertEqual(subscriptions[0].subscriber, self.user2)
+
+        subscriptions = Subscription.objects.filter(
+            type=COMMENT, content_type=ContentType.objects.get_for_model(Message),
+            object_id=message_id
+        )
+        self.assertEqual(subscriptions.count(), 2)
+        self.assertTrue(subscriptions.filter(subscriber=self.user).exists())
+        self.assertTrue(subscriptions.filter(subscriber=self.user2).exists())
+
+    def test_list_from(self):
+        relationships = [MessageRecipientRelationshipFactory.create(message__sender=self.user) for _ in range(3)]
+        self.login(self.user)
+        response = self.client.get('/api/profiles/v1/account/{}/messages/sent/'.format(self.user.username))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['results']), len(relationships))
+        for relationship in relationships:
+            self.assertIDInList(relationship.message, response.data['results'])
+
+        self.login(self.user2)
+        response = self.client.get('/api/profiles/v1/account/{}/messages/sent/'.format(self.user.username))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.login(self.staffer)
+        response = self.client.get('/api/profiles/v1/account/{}/messages/sent/'.format(self.user.username))
+        # Even staffers can't just go browsing.
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_list_to(self):
+        relationships = [MessageRecipientRelationshipFactory.create(user=self.user) for _ in range(3)]
+        self.login(self.user)
+        response = self.client.get('/api/profiles/v1/account/{}/messages/inbox/'.format(self.user.username))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['results']), len(relationships))
+        for relationship in relationships:
+            self.assertIDInList(relationship.message, response.data['results'])
+
+        self.login(self.user2)
+        response = self.client.get('/api/profiles/v1/account/{}/messages/inbox/'.format(self.user.username))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.login(self.staffer)
+        response = self.client.get('/api/profiles/v1/account/{}/messages/inbox/'.format(self.user.username))
+        # Even staffers can't just go browsing.
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_leave_conversation(self):
+        # The view creates the subscriptions, so use it for this test.
+        self.login(self.user)
+        response = self.client.post(
+            '/api/profiles/v1/account/{}/messages/sent/'.format(self.user.username),
+            {
+                'subject': 'This is a test',
+                'body': 'O hai',
+                'recipients': [self.user2.id]
+            }
+        )
+        message = Message.objects.get(id=response.data['id'])
+        subscriptions = Subscription.objects.filter(
+            type=COMMENT, content_type=ContentType.objects.get_for_model(Message),
+            object_id=message.id
+        )
+        self.assertEqual(subscriptions.count(), 2)
+
+        self.login(self.user)
+        response = self.client.post('/api/profiles/v1/messages/{}/leave/'.format(message.id))
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        subscriptions = Subscription.objects.filter(
+            type=COMMENT, content_type=ContentType.objects.get_for_model(Message),
+            object_id=message.id
+        )
+        self.assertEqual(subscriptions.count(), 1)
+
+        message.refresh_from_db()
+        self.assertTrue(message.sender_left)
+        self.login(self.user2)
+        response = self.client.post('/api/profiles/v1/messages/{}/leave/'.format(message.id))
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertRaises(Message.DoesNotExist, Message.objects.get, id=message.id)
+
+        subscriptions = Subscription.objects.filter(
+            type=COMMENT, content_type=ContentType.objects.get_for_model(Message),
+            object_id=message.id
+        )
+        self.assertEqual(subscriptions.count(), 0)
+
+        subscriptions = Subscription.objects.filter(
+            type=NEW_PM, content_type=ContentType.objects.get_for_model(Message),
+            object_id=message.id
+        )
+        self.assertEqual(subscriptions.count(), 0)
