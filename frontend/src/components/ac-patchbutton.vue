@@ -3,7 +3,6 @@
       <div v-if="toggle">
         <v-switch
             :label="value? falseText : trueText"
-            @click="save"
             v-model="model"
         />
       </div>

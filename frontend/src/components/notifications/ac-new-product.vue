@@ -18,7 +18,8 @@
           return {
             name: 'Product',
             params: {
-              productID: this.event.data.product.id
+              productID: this.event.data.product.id,
+              username: this.event.data.product.user.username
             }
           }
         }
