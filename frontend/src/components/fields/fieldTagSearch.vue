@@ -1,6 +1,6 @@
 <template>
   <div class="wrapper">
-    <v-text-field ref="searchField" v-model="query" class="form-control" @input="runQuery" @keydown.enter.prevent.native="grabFirst" @keydown.space.prevent.native="literalTag" :placeholder="schema.placeholder" />
+    <v-text-field ref="searchField" v-model="query" class="form-control" @input="runQuery" @keydown.enter.prevent.native="grabFirst" @keydown.space.prevent.native="literalTag" @blur="blurHandler" :placeholder="schema.placeholder" />
     <div class="mb-2 mt-2">
       <div v-if="value.length === 0">Click a tag to add it, or press enter to select the first one. Press space to create a new tag if the first option doesn't exist or match.</div>
       <div v-else><v-chip close v-for="tag in value" :key="tag" :tag="tag" @input="delTag(tag)">{{tag}}</v-chip></div>
@@ -23,7 +23,7 @@
 <script>
   import { abstractField } from 'vue-form-generator'
   import Viewer from '../../mixins/viewer'
-  import { artCall } from '../../lib'
+  import {artCall} from '../../lib'
   import AcAvatar from '../ac-avatar'
   import AcTag from '../ac-tag'
 
@@ -68,6 +68,14 @@
           this.tags.splice(index, 1)
         }
         this.$emit('input', this.tags)
+      },
+      defaultSelect () {
+        if (this.query) {
+          this.literalTag()
+        }
+      },
+      blurHandler () {
+        setTimeout(this.defaultSelect, 250)
       },
       literalTag () {
         this.addTag(this.query)
