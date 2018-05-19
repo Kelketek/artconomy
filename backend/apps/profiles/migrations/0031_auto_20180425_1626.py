@@ -15,7 +15,7 @@ def add_share_subscriptions(apps, schema):
     for user in User.objects.all():
         Subscription.objects.get_or_create(
             subscriber=user,
-            content_type=content_type,
+            content_type_id=content_type.id,
             object_id=user.id,
             type=ASSET_SHARED
         )
