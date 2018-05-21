@@ -442,7 +442,7 @@ class APITestCase(TestCase):
         self.client = APIClient()
         self.user = UserFactory.create()
         self.user2 = UserFactory.create()
-        self.staffer = UserFactory.create(is_staff=True)
+        self.staffer = UserFactory.create(username='staffer', is_staff=True, email='staff@example.com')
 
     def login(self, user):
         result = self.client.login(email=user.email, password='Test')

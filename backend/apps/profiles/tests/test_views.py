@@ -544,6 +544,8 @@ class TestCharacterSearch(APITestCase):
         visible_private = CharacterFactory.create(name='Terrence', private=True, user=self.user)
         CharacterFactory.create(name='Terryvix', private=True, user=self.user2)
         visible_non_taggable = CharacterFactory.create(name='Terrifying', taggable=False, user=self.user)
+        blocked_character = CharacterFactory.create(name='Terrific')
+        blocked_character.user.blocking.add(self.user)
         CharacterFactory.create(name='Stuff')
         CharacterFactory.create(name='Terrible', taggable=False, user=self.user2)
         self.login(self.user)
@@ -580,6 +582,8 @@ class TestCharacterSearch(APITestCase):
         CharacterFactory.create(name='Terryvix', open_requests=True, private=True, user=self.user2)
         CharacterFactory.create(name='Terrible', open_requests=False, user=self.user2)
         CharacterFactory.create(name='Stuff', open_requests=True)
+        blocked_character = CharacterFactory.create(name='Terrific', open_requests=True)
+        blocked_character.user.blocking.add(self.user)
         self.login(self.staffer)
         response = self.client.get(
             '/api/profiles/v1/search/character/?q=terr&new_order=1&user={}&tagging=true'.format(self.user.id)

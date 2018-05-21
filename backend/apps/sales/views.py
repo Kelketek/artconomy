@@ -33,7 +33,8 @@ from apps.profiles.permissions import ObjectControls, UserControls
 from apps.profiles.serializers import ImageAssetSerializer, CharacterSerializer
 from apps.sales.dwolla import add_bank_account, initiate_withdraw, perform_transfer, make_dwolla_account, \
     destroy_bank_account
-from apps.sales.permissions import OrderViewPermission, OrderSellerPermission, OrderBuyerPermission
+from apps.sales.permissions import OrderViewPermission, OrderSellerPermission, OrderBuyerPermission, \
+    OrderPlacePermission
 from apps.sales.models import Product, Order, CreditCardToken, PaymentRecord, Revision, BankAccount, CharacterTransfer, \
     PlaceholderSale, WEIGHTED_STATUSES
 from apps.sales.serializers import ProductSerializer, ProductNewOrderSerializer, OrderViewSerializer, CardSerializer, \
@@ -90,7 +91,7 @@ class ProductExamples(ListAPIView):
 
 class PlaceOrder(CreateAPIView):
     serializer_class = ProductNewOrderSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, OrderPlacePermission]
 
     def get_serializer(self, instance=None, data=None, many=False, partial=False):
         return self.serializer_class(
