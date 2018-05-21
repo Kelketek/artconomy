@@ -52,7 +52,8 @@ class UserInfoSerializer(UserInfoMixin, serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'id', 'username', 'avatar_url', 'biography', 'has_products', 'favorites_hidden', 'watching', 'blocked'
+            'id', 'username', 'avatar_url', 'biography', 'has_products', 'favorites_hidden', 'watching', 'blocked',
+            'commission_info'
         )
         read_only_fields = fields
 

@@ -96,6 +96,11 @@
           </v-card>
         </div>
       </ac-asset-gallery>
+      <v-card>
+        <v-layout row wrap v-if="product.user.commission_info">
+          <v-flex xs12 v-html="md.render(product.user.commission_info)" class="pl-2 pr-2"></v-flex>
+        </v-layout>
+      </v-card>
       <div class="row-centered">
         <div class="col-12 pt-3 col-md-8 col-centered text-xs-center mb-3">
           <v-btn color="primary" size="lg" @click="showOrder = true">Order</v-btn>
@@ -144,7 +149,7 @@
   import Editable from '../mixins/editable'
   import AcAsset from '../components/ac-asset'
   import AcAction from '../components/ac-action'
-  import { artCall } from '../lib'
+  import { artCall, md } from '../lib'
   import AcPatchfield from './ac-patchfield'
   import AcPatchbutton from './ac-patchbutton'
   import AcFormContainer from './ac-form-container'
@@ -189,6 +194,7 @@
         product: null,
         url: `/api/sales/v1/account/${this.username}/products/${this.productID}/`,
         showOrder: false,
+        md: md,
         newOrderModel: {
           details: '',
           private: false,

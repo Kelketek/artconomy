@@ -75,6 +75,7 @@ class User(AbstractEmailUser):
     biography = CharField(max_length=5000, blank=True, default='')
     blocking = ManyToManyField('User', symmetrical=False, related_name='blocked_by', blank=True)
     notifications = ManyToManyField('lib.Event', through='lib.Notification')
+    commission_info = CharField(max_length=5000, blank=True, default='')
     load = IntegerField(default=0)
 
     @property

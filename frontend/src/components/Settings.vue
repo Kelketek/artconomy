@@ -233,6 +233,14 @@
             validator: VueFormGenerator.validators.boolean,
             hint: 'Commissions are automatically closed when the total load points of all open orders exceeds this amount.'
           }, {
+            type: 'v-text',
+            multiLine: true,
+            label: 'Commission Info',
+            model: 'commission_info',
+            hint: 'This text is shown on all products and orders as general information commissioners should know, such ' +
+            'as terms of service you wish to provide, contact information, or other expectations you wish to set during ' +
+            'the commissioning process.'
+          }, {
             type: 'v-select',
             label: 'Max Content Rating',
             model: 'rating',
