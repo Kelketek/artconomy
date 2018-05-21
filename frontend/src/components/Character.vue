@@ -345,6 +345,7 @@
         this.showSettings = false
         this.showShare = false
         this.shareModel.shared_with = []
+        this.newUploadModel.private = response.private
       },
       displayUploader () {
         this.showUpload = true
