@@ -645,9 +645,7 @@ class AssetFavorite(GenericAPIView):
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
 
-class UserWatch(GenericAPIView):
-    permission_classes = [IsAuthenticated]
-
+class UserSerializerView:
     def get_serializer(self, user):
         if self.request.user.is_staff:
             return UserSerializer
@@ -655,6 +653,10 @@ class UserWatch(GenericAPIView):
             return UserSerializer
         else:
             return UserInfoSerializer
+
+
+class WatchUser(UserSerializerView, GenericAPIView):
+    permission_classes = [IsAuthenticated]
 
     def get_object(self):
         return get_object_or_404(User, username=self.kwargs['username'])
@@ -670,6 +672,19 @@ class UserWatch(GenericAPIView):
             self.request.user.watching.add(user)
             watch_subscriptions(self.request.user, user)
             notify(WATCHING, user, {'user_id': self.request.user.id}, unique_data=True)
+        serializer = self.get_serializer(user)(instance=user, context=self.get_serializer_context())
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
+
+
+class BlockUser(UserSerializerView, GenericAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, username):
+        user = get_object_or_404(User, username__iexact=username)
+        if request.user.blocking.filter(id=user.id):
+            request.user.blocking.remove(user)
+        else:
+            request.user.blocking.add(user)
         serializer = self.get_serializer(user)(instance=user, context=self.get_serializer_context())
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 

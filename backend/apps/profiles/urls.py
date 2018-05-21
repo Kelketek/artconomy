@@ -8,8 +8,8 @@ from apps.profiles.views import Register, CharacterListAPI, CharacterAssets, \
     NotificationsList, SetAvatar, UserInfo, CharacterSearch, AssetFavorite, MarkNotificationsRead, AssetTagCharacter, \
     UserSearch, AssetTagArtist, TagSearch, AssetTag, AssetSearch, CharacterTag, UserBlacklist, RefColorList, \
     RefColorManager, RecentSubmissions, RecentCommissions, NewCharacters, FavoritesList, GalleryList, SubmissionList, \
-    AttributeManager, AttributeList, SessionSettings, AssetShare, CharacterShare, UserWatch, Watching, Watchers, \
-    MessagesTo, MessagesFrom, MessageManager, MessageComments, LeaveConversation
+    AttributeManager, AttributeList, SessionSettings, AssetShare, CharacterShare, WatchUser, Watching, Watchers, \
+    MessagesTo, MessagesFrom, MessageManager, MessageComments, LeaveConversation, BlockUser
 from apps.profiles.views import check_username, check_email, perform_login, perform_logout
 
 app_name = "profiles"
@@ -118,5 +118,6 @@ urlpatterns = [
         name='character'
     ),
     path(r'v1/account/<username>/characters/', CharacterListAPI.as_view(), name='character_list'),
-    path(r'v1/account/<username>/watch/', UserWatch.as_view(), name='user_watch')
+    path(r'v1/account/<username>/watch/', WatchUser.as_view(), name='watch_user'),
+    path(r'v1/account/<username>/block/', BlockUser.as_view(), name='block_user')
 ]
