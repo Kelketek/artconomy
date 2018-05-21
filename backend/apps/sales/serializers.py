@@ -8,7 +8,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.fields import SerializerMethodField, DecimalField, IntegerField
 
 from apps.lib.serializers import RelatedUserSerializer, Base64ImageField, EventTargetRelatedField, SubscribedField, \
-    SubscribeMixin
+    SubscribeMixin, UserInfoSerializer
 from apps.lib.utils import country_choices
 from apps.profiles.models import User
 from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer
@@ -18,7 +18,7 @@ from apps.sales.utils import escrow_balance, available_balance
 
 
 class ProductSerializer(serializers.ModelSerializer):
-    user = RelatedUserSerializer(read_only=True)
+    user = UserInfoSerializer(read_only=True)
     file = Base64ImageField(thumbnail_namespace='sales.Product.file')
 
     def get_thumbnail_url(self, obj):

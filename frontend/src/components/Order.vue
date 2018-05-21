@@ -46,6 +46,13 @@
         />
       </v-layout>
     </v-container>
+    <v-container v-if="order && order.product.user.commission_info">
+      <v-card>
+        <v-layout row wrap>
+          <v-flex xs12 v-html="md.render(order.product.user.commission_info)" class="pl-2 pr-2"></v-flex>
+        </v-layout>
+      </v-card>
+    </v-container>
     <v-container v-if="order">
       <v-card>
         <v-layout row wrap>
