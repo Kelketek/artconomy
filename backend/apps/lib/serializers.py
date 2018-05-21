@@ -15,15 +15,7 @@ from apps.profiles.models import User, ImageAsset, Character
 from apps.sales.models import Revision, Product
 
 
-class UserInfoSerializer(serializers.ModelSerializer):
-    avatar_url = serializers.SerializerMethodField()
-    has_products = serializers.SerializerMethodField()
-    watching = serializers.SerializerMethodField()
-
-    def __init__(self, request=None, *args, **kwargs):
-        # For compatibility with main User serializer
-        super().__init__(*args, **kwargs)
-
+class UserInfoMixin:
     def get_has_products(self, obj):
         return obj.products.all().exists()
 
@@ -38,10 +30,31 @@ class UserInfoSerializer(serializers.ModelSerializer):
             return None
         return request.user.watching.filter(id=obj.id).exists()
 
+    def get_blocked(self, obj):
+        request = self.context.get('request')
+        if not request:
+            return None
+        if not request.user.is_authenticated:
+            return None
+        return request.user.blocking.filter(id=obj.id).exists()
+
+
+class UserInfoSerializer(UserInfoMixin, serializers.ModelSerializer):
+    avatar_url = serializers.SerializerMethodField()
+    has_products = serializers.SerializerMethodField()
+    watching = serializers.SerializerMethodField()
+    blocked = serializers.SerializerMethodField()
+
+    def __init__(self, request=None, *args, **kwargs):
+        # For compatibility with main User serializer
+        super().__init__(*args, **kwargs)
+
     class Meta:
         model = User
-        fields = ('id', 'username', 'avatar_url', 'biography', 'has_products', 'favorites_hidden', 'watching')
-        read_only_fields = ('id', 'username', 'avatar_url', 'has_products', 'favorites_hidden', 'watching')
+        fields = (
+            'id', 'username', 'avatar_url', 'biography', 'has_products', 'favorites_hidden', 'watching', 'blocked'
+        )
+        read_only_fields = fields
 
 
 class RelatedUserSerializer(serializers.ModelSerializer):

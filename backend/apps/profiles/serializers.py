@@ -10,7 +10,8 @@ from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 
 from apps.lib.abstract_models import RATINGS
-from apps.lib.serializers import RelatedUserSerializer, Base64ImageField, TagSerializer, SubscribedField, SubscribeMixin
+from apps.lib.serializers import RelatedUserSerializer, Base64ImageField, TagSerializer, SubscribedField, \
+    SubscribeMixin, UserInfoMixin
 from apps.profiles.models import Character, ImageAsset, User, RefColor, Attribute, Message, MessageRecipientRelationship
 
 
@@ -271,7 +272,7 @@ class CredentialsSerializer(serializers.ModelSerializer):
         )
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserSerializer(UserInfoMixin, serializers.ModelSerializer):
     dwolla_configured = serializers.SerializerMethodField()
     csrftoken = serializers.SerializerMethodField()
     authtoken = serializers.SerializerMethodField()
@@ -279,6 +280,7 @@ class UserSerializer(serializers.ModelSerializer):
     fee = serializers.SerializerMethodField()
     has_products = serializers.SerializerMethodField()
     watching = serializers.SerializerMethodField()
+    blocked = serializers.SerializerMethodField()
 
     def get_dwolla_configured(self, obj):
         return bool(obj.dwolla_url)
@@ -293,25 +295,19 @@ class UserSerializer(serializers.ModelSerializer):
         return .1
 
     def get_authtoken(self, obj):
-        return Token.objects.get(user_id=obj.id).key
-
-    def get_has_products(self, obj):
-        return obj.products.all().exists()
-
-    def get_watching(self, obj):
         request = self.context.get('request')
         if not request:
             return None
-        if not request.user.is_authenticated:
+        if not request.user == obj:
             return None
-        return request.user.watching.filter(id=obj.id).exists()
+        return Token.objects.get(user_id=obj.id).key
 
     class Meta:
         model = User
         fields = (
             'commissions_closed', 'rating', 'sfw_mode', 'max_load', 'username', 'id', 'is_staff', 'is_superuser',
             'dwolla_configured', 'csrftoken', 'avatar_url', 'email', 'fee', 'authtoken', 'favorites_hidden',
-            'blacklist', 'biography', 'has_products', 'taggable', 'watching'
+            'blacklist', 'biography', 'has_products', 'taggable', 'watching', 'blocked'
         )
         read_only_fields = fields
 

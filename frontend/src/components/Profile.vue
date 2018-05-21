@@ -9,8 +9,14 @@
             </v-flex>
             <v-flex xs12 text-xs-center v-if="!is_current">
               <ac-action :url="`/api/profiles/v1/account/${username}/watch/`" :success="replaceUser" v-if="isLoggedIn">
-                <span v-if="user.watching"><v-icon>visibility_off</v-icon> Stop Watching</span>
-                <span v-else><v-icon>visibility</v-icon> Watch</span>
+                <span v-if="user.watching"><v-icon>visibility_off</v-icon>&nbsp;Stop Watching</span>
+                <span v-else><v-icon>visibility</v-icon>&nbsp;Watch</span>
+              </ac-action>
+            </v-flex>
+            <v-flex xs12 text-xs-center v-if="!is_current">
+              <ac-action :url="`/api/profiles/v1/account/${username}/block/`" :success="replaceUser" v-if="isLoggedIn">
+                <v-icon>block</v-icon>
+                <span v-if="user.blocked">&nbsp;Unblock</span><span v-else>&nbsp;Block</span>
               </ac-action>
             </v-flex>
           </v-layout>
