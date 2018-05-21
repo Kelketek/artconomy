@@ -69,6 +69,8 @@ class AssetCommentPermission(BasePermission):
     def has_object_permission(self, request, view, obj):
         if obj.comments_disabled:
             return False
+        if obj.owner.blocking.filter(id=request.user.id).exists() and not request.user.is_staff:
+            return False
         return True
 
 

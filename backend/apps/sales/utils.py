@@ -90,6 +90,8 @@ def available_products(requester, query='', ordering=True):
         qs = Product.objects.filter(q).exclude(exclude & ~Q(user=requester))
         qs = qs.exclude(Q(task_weight__gt=F('user__max_load')-F('user__load')) & ~Q(user=requester))
         qs = qs.filter(Q(max_parallel=0) | Q(parallel__lt=F('max_parallel')) | Q(user=requester))
+        if not requester.is_staff:
+            qs = qs.exclude(user__blocking=requester)
     else:
         qs = Product.objects.filter(q).exclude(exclude)
         qs = qs.exclude(Q(task_weight__gt=F('user__max_load')-F('user__load')))

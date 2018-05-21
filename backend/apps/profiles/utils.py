@@ -26,6 +26,8 @@ def char_ordering(qs, requester, query=''):
 
 def available_chars(requester, query='', commissions=False, tagging=False, self_search=False):
     exclude = Q(private=True)
+    if (not requester.is_staff) and requester.is_authenticated:
+        exclude |= Q(user__blocking=requester)
     if commissions:
         exclude |= Q(open_requests=False)
     if query:
@@ -47,11 +49,16 @@ def available_chars(requester, query='', commissions=False, tagging=False, self_
 
 
 def available_artists(requester):
-    return User.objects.filter(Q(id=requester.id) | Q(artist_tagging_disabled=False))
+    qs = User.objects.filter(Q(id=requester.id) | Q(artist_tagging_disabled=False))
+    if not requester.is_staff and requester.is_authenticated:
+        qs = qs.exclude(blocking=requester)
+    return qs
 
 
 def available_assets(request, requester):
     exclude = Q(private=True)
+    if not request.user.is_staff and request.user.is_authenticated:
+        exclude |= Q(owner__blocking=requester)
     if request.user.is_authenticated:
         exclude &= ~(Q(owner=requester) | Q(shared_with=requester))
     return ImageAsset.objects.exclude(exclude).exclude(
@@ -60,6 +67,6 @@ def available_assets(request, requester):
 
 
 def available_users(request):
-    if request.user.is_staff:
+    if request.user.is_staff or not request.user.is_authenticated:
         return User.objects.all()
     return User.objects.exclude(id__in=request.user.blocked_by.all().values('id'))
