@@ -1,10 +1,22 @@
 <template>
   <v-list-tile avatar>
-    <router-link :to="assetLink">
+    <a :href="hrefLink" v-if="hrefLink">
       <v-badge left overlap>
         <span slot="badge" v-if="notification.unread">*</span>
         <v-list-tile-avatar>
-          <img :src="$img(event.data.display, 'notification', true)" >
+          <slot name="avatar">
+            <img :src="$img(event.data.display, 'notification', true)" >
+          </slot>
+        </v-list-tile-avatar>
+      </v-badge>
+    </a>
+    <router-link :to="assetLink" v-else>
+      <v-badge left overlap>
+        <span slot="badge" v-if="notification.unread">*</span>
+        <v-list-tile-avatar>
+          <slot name="avatar">
+            <img :src="$img(event.data.display, 'notification', true)" >
+          </slot>
         </v-list-tile-avatar>
       </v-badge>
     </router-link>
@@ -24,7 +36,7 @@
   export default {
     name: 'ac-base-notification',
     mixins: [Notification],
-    props: ['assetLink']
+    props: ['assetLink', 'hrefLink']
   }
 </script>
 

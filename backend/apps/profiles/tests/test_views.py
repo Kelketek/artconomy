@@ -377,7 +377,8 @@ class TestSettings(APITestCase):
                 'sfw_mode': False,
                 'favorites_hidden': False,
                 'max_load': 5,
-                'taggable': True
+                'taggable': True,
+                'commission_info': '',
             }
         )
         self.user.refresh_from_db()

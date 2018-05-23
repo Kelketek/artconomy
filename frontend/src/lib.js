@@ -144,7 +144,8 @@ export const NOTIFICATION_MAPPING = {
   '22': 'ac-revision-uploaded',
   '23': 'ac-asset-shared',
   '24': 'ac-char-shared',
-  '25': 'ac-new-pm'
+  '25': 'ac-new-pm',
+  '26': 'ac-streaming'
 }
 
 export const ORDER_STATUSES = {

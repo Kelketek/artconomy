@@ -23,14 +23,14 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.lib.models import DISPUTE, REFUND, COMMENT, Subscription, ORDER_UPDATE, SALE_UPDATE, REVISION_UPLOADED, \
-    CHAR_TRANSFER, NEW_PORTFOLIO_ITEM, NEW_PRODUCT
+    CHAR_TRANSFER, NEW_PORTFOLIO_ITEM, NEW_PRODUCT, STREAMING
 from apps.lib.permissions import ObjectStatus, IsStaff, IsSafeMethod, Any
 from apps.lib.serializers import CommentSerializer
 from apps.lib.utils import notify, recall_notification, subscribe
 from apps.lib.views import BaseTagView
 from apps.profiles.models import User, ImageAsset, Character
 from apps.profiles.permissions import ObjectControls, UserControls
-from apps.profiles.serializers import ImageAssetSerializer, CharacterSerializer
+from apps.profiles.serializers import ImageAssetSerializer
 from apps.sales.dwolla import add_bank_account, initiate_withdraw, perform_transfer, make_dwolla_account, \
     destroy_bank_account
 from apps.sales.permissions import OrderViewPermission, OrderSellerPermission, OrderBuyerPermission, \
@@ -163,6 +163,12 @@ class OrderStart(UpdateAPIView):
     def perform_update(self, serializer):
         order = serializer.save(status=Order.IN_PROGRESS)
         notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
+        if not order.private and order.stream_link:
+            notify(
+                STREAMING, order.seller,
+                data={'order': order.id}, unique_data=True,
+                exclude=[order.buyer, order.seller]
+            )
         return Response(serializer.data)
 
 
@@ -231,6 +237,7 @@ class OrderRevisions(ListCreateAPIView):
             notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
         else:
             notify(REVISION_UPLOADED, order, data={'revision': revision.id}, unique_data=True, mark_unread=True)
+        recall_notification(STREAMING, order.seller, data={'order': order.id})
         return revision
 
 

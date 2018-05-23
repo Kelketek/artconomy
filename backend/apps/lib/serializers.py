@@ -10,9 +10,9 @@ from rest_framework_bulk import BulkSerializerMixin, BulkListSerializer
 
 from apps.lib.models import Comment, Notification, Event, CHAR_TAG, SUBMISSION_CHAR_TAG, Tag, REVISION_UPLOADED, \
     ORDER_UPDATE, SALE_UPDATE, COMMENT, Subscription, ASSET_SHARED, CHAR_SHARED, NEW_CHARACTER, NEW_PORTFOLIO_ITEM, \
-    NEW_PRODUCT
+    NEW_PRODUCT, STREAMING
 from apps.profiles.models import User, ImageAsset, Character
-from apps.sales.models import Revision, Product
+from apps.sales.models import Revision, Product, Order
 
 
 class UserInfoMixin:
@@ -406,6 +406,17 @@ def new_product(obj, context):
     }
 
 
+def streaming(obj, context):
+    order = Order.objects.get(id=obj.data['order'])
+    user_data = notification_display(order.seller, context)
+    # Don't want to use full order here, would have too much info sent.
+    return {
+        'order': {
+            'stream_link': order.stream_link,
+            'seller': user_data
+        }
+    }
+
 
 TYPE_MAP = {
     CHAR_TAG: char_tag,
@@ -419,6 +430,7 @@ TYPE_MAP = {
     NEW_CHARACTER: new_char,
     NEW_PORTFOLIO_ITEM: new_portfolio_item,
     NEW_PRODUCT: new_product,
+    STREAMING: streaming,
 }
 
 

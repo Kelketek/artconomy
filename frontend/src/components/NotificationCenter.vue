@@ -62,11 +62,13 @@
   import AcNewPortfolioItem from './notifications/ac-new-portfolio-item'
   import AcNewProduct from './notifications/ac-new-product'
   import AcNewPm from './notifications/ac-new-pm'
+  import AcStreaming from './notifications/ac-streaming'
 
   export default {
     name: 'NotificationCenter',
     mixins: [Paginated],
     components: {
+      AcStreaming,
       AcNewPm,
       AcCharShared,
       AcAssetShared,
