@@ -1,6 +1,8 @@
 """
 Models dealing primarily with user preferences and personalization.
 """
+import uuid
+
 from avatar.templatetags.avatar_tags import avatar_url
 from django.conf import settings
 from custom_user.models import AbstractEmailUser
@@ -19,7 +21,7 @@ from rest_framework.authtoken.models import Token
 from apps.lib.abstract_models import GENERAL, RATINGS, ImageModel
 from apps.lib.models import Comment, Subscription, FAVORITE, SYSTEM_ANNOUNCEMENT, DISPUTE, REFUND, Event, \
     SUBMISSION_CHAR_TAG, CHAR_TAG, SUBMISSION_TAG, COMMENT, Tag, CHAR_TRANSFER, ASSET_SHARED, CHAR_SHARED, \
-    NEW_CHARACTER, NEW_PORTFOLIO_ITEM, NEW_PM
+    NEW_CHARACTER, NEW_PORTFOLIO_ITEM
 from apps.lib.utils import clear_events, tag_list_cleaner, notify, recall_notification
 from apps.profiles.permissions import AssetViewPermission, AssetCommentPermission, MessageReadPermission
 
@@ -76,6 +78,10 @@ class User(AbstractEmailUser):
     blocking = ManyToManyField('User', symmetrical=False, related_name='blocked_by', blank=True)
     notifications = ManyToManyField('lib.Event', through='lib.Notification')
     commission_info = CharField(max_length=5000, blank=True, default='')
+    # Random default value to make extra sure it will never be invoked by mistake.
+    reset_token = CharField(max_length=36, blank=True, default=uuid.uuid4)
+    # Auto now add to avoid problems when filtering where 'null' is considered less than something else.
+    token_expiry = DateTimeField(auto_now_add=True)
     load = IntegerField(default=0)
 
     @property

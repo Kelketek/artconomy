@@ -1,15 +1,21 @@
+import uuid
+
 from avatar.models import Avatar
 from avatar.signals import avatar_updated
+from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.auth import login, get_user_model, authenticate, logout, update_session_auth_hash
 from django.contrib.contenttypes.models import ContentType
+from django.core.mail import EmailMessage
 from django.db.models import Q
 from django.db.transaction import atomic
 from django.shortcuts import get_object_or_404
+from django.template.loader import get_template
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import status
 from rest_framework.decorators import api_view
-from rest_framework.exceptions import ValidationError, PermissionDenied, APIException
+from rest_framework.exceptions import ValidationError, PermissionDenied
 from rest_framework.generics import ListCreateAPIView, CreateAPIView, RetrieveUpdateDestroyAPIView, UpdateAPIView, \
     GenericAPIView, ListAPIView
 from rest_framework.permissions import IsAuthenticated
@@ -27,11 +33,12 @@ from apps.lib.utils import recall_notification, notify, safe_add, add_tags, remo
     watch_subscriptions, add_check
 from apps.lib.views import BaseTagView, BaseUserTagView
 from apps.profiles.models import User, Character, ImageAsset, RefColor, Attribute, Message, MessageRecipientRelationship
-from apps.profiles.permissions import ObjectControls, UserControls, AssetViewPermission, AssetControls, NonPrivate, \
+from apps.profiles.permissions import ObjectControls, UserControls, AssetViewPermission, AssetControls, \
     ColorControls, ColorLimit, ViewFavorites, SharedWith, MessageReadPermission, MessageControls, IsUser
 from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer, SettingsSerializer, UserSerializer, \
     RegisterSerializer, ImageAssetManagementSerializer, CredentialsSerializer, AvatarSerializer, RefColorSerializer, \
-    AttributeSerializer, SessionSettingsSerializer, MessageManagementSerializer, MessageSerializer
+    AttributeSerializer, SessionSettingsSerializer, MessageManagementSerializer, MessageSerializer, \
+    PasswordResetSerializer
 from apps.profiles.utils import available_chars, char_ordering, available_assets, available_artists, available_users
 
 
@@ -1061,6 +1068,80 @@ class LeaveConversation(APIView):
         else:
             Comment(user=self.request.user, system=True, content_object=message, text='left the conversation.').save()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class StartPasswordReset(APIView):
+    permission_classes = [IsAnonymous]
+
+    def post(self, request):
+        identifier = request.data.get('email')
+        if not identifier:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={'email': ['This field is required.']})
+        try:
+            user = User.objects.get(email=identifier)
+        except User.DoesNotExist:
+            try:
+                user = User.objects.get(username__iexact=identifier)
+            except User.DoesNotExist:
+                return Response(
+                    status=status.HTTP_400_BAD_REQUEST,
+                    data={
+                        'email': [
+                            'We could not find this username or email address in our records. Please contact support.'
+                        ]
+                    }
+                )
+        user.reset_token = uuid.uuid4()
+        user.token_expiry = timezone.now() + relativedelta(days=1)
+        user.save()
+        subject = "Password reset request"
+        to = [user.email]
+        from_email = settings.DEFAULT_FROM_EMAIL
+        ctx = {
+            'user': user,
+        }
+        message = get_template('profiles/email/password_reset.html').render(ctx)
+        msg = EmailMessage(subject, message, to=to, from_email=from_email)
+        msg.content_subtype = 'html'
+        msg.send()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class TokenValidator(APIView):
+    def get(self, request, username, reset_token):
+        get_object_or_404(User, username__iexact=username, reset_token=reset_token, token_expiry__gte=timezone.now())
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class PasswordReset(GenericAPIView):
+    serializer_class = PasswordResetSerializer
+
+    def get_object(self):
+        try:
+            user = User.objects.get(
+                username__iexact=self.kwargs['username'], reset_token=self.kwargs['reset_token'],
+                token_expiry__gte=timezone.now()
+            )
+        except User.DoesNotExist:
+            raise ValidationError(
+                {'detail': ['This user does not exist or the token has expired. Please request a new reset link.']}
+            )
+        return user
+
+    def post(self, request, **_kwargs):
+        user = self.get_object()
+        serializer = self.get_serializer(instance=user, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        # Force login of user.
+        login(self.request, serializer.instance)
+        user.refresh_from_db()
+        # Make sure there's no default value in case there's a bug here.
+        user.reset_token = uuid.uuid4()
+        user.token_expiry = timezone.now() - relativedelta(days=100)
+        user.save()
+        user.credit_cards.all().update(cvv_verified=False)
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
 
 
 @csrf_exempt

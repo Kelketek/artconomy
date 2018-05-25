@@ -18,3 +18,7 @@ def bad_endpoint(request):
     return Response(
         status=status.HTTP_404_NOT_FOUND, data={'error': '{} is not a valid API Endpoint.'.format(request.path)}
     )
+
+
+def force_error_email(request):
+    return 1 / 0

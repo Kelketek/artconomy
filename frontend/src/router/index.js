@@ -25,6 +25,7 @@ import NotFound from '@/components/NotFound'
 import SessionSettings from '@/components/SessionSettings.vue'
 import Messages from '@/components/Messages.vue'
 import Message from '@/components/Message.vue'
+import PasswordReset from '@/components/PasswordReset.vue'
 import {ErrorHandler} from '@/plugins/error'
 import {setMetaContent} from '../lib'
 
@@ -43,6 +44,11 @@ export const routes = [
     path: '/auth/:tabName?/',
     name: 'Login',
     component: Login
+  },
+  {
+    path: '/set-password/:username/:resetToken/',
+    props: true,
+    component: PasswordReset
   },
   {
     path: '/legal-and-policies/',

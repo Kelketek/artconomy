@@ -10,6 +10,9 @@
             <v-tab href="#tab-register" id="set-register">
               Register
             </v-tab>
+            <v-tab href="#tab-forgot" id="set-forgot">
+              Forgot
+            </v-tab>
           </v-tabs>
           <v-tabs-items v-model="loginTab">
             <v-tab-item id="tab-login">
@@ -28,6 +31,18 @@
                 Register
               </v-btn>
             </v-tab-item>
+            <v-tab-item id="tab-forgot">
+              <div class="pt-2"></div>
+              <p>Enter your username or email address below, and we will send you a link to reset your password.</p>
+              <vue-form-generator id="forgotForm" ref="forgotForm" :schema="forgotSchema" :model="loginModel"
+                                  :options="loginOptions" />
+              <div v-if="resetSent" class="email-sent">
+                Email sent! Please check your inbox!
+              </div>
+              <v-btn type="submit" id="forgotSubmit" color="primary" @click.prevent="sendLogin">
+                Reset
+              </v-btn>
+            </v-tab-item>
           </v-tabs-items>
           <div>
           </div>
@@ -37,13 +52,21 @@
   </div>
 </template>
 
+<style scoped>
+  .email-sent {
+    color: red;
+    text-align: center;
+  }
+</style>
+
 <script>
   import VueFormGenerator from 'vue-form-generator'
   import { artCall, paramHandleMap, recaptchaSiteKey, setCookie, setErrors } from '../lib'
 
   const TAB_MAP = {
     'tab-login': {url: '/api/profiles/v1/login/', label: 'Login', form: 'loginForm'},
-    'tab-register': {url: '/api/profiles/v1/register/', label: 'Register', form: 'registerForm'}
+    'tab-register': {url: '/api/profiles/v1/register/', label: 'Register', form: 'registerForm'},
+    'tab-forgot': {url: '/api/profiles/v1/forgot-password/', label: 'Reset', form: 'forgotForm'}
   }
 
   function loginDefault () {
@@ -59,6 +82,7 @@
     name: 'Login',
     data () {
       return {
+        resetSent: false,
         loginModel: loginDefault(),
         loginSchema: {
           fields: [{
@@ -83,6 +107,18 @@
         loginOptions: {
           validateAfterLoad: false,
           validateAfterChanged: true
+        },
+        forgotSchema: {
+          fields: [{
+            type: 'v-text',
+            inputType: 'text',
+            label: 'Username or Email',
+            model: 'email',
+            placeholder: 'example@example.com',
+            featured: true,
+            required: true,
+            validator: VueFormGenerator.validators.string
+          }]
         },
         registerSchema: {
           fields: [{
@@ -139,12 +175,15 @@
         let form = this.$refs[this.tab.form]
         setErrors(form, response.responseJSON)
       },
+      forgotHandler (response) {
+        this.resetSent = true
+      },
       sendLogin () {
         artCall(
           this.tab.url,
           'POST',
           this.loginModel,
-          this.loginHandler,
+          this.successHandler,
           this.loginFailure
         )
       }
@@ -153,7 +192,14 @@
       tab: function () {
         return TAB_MAP[this.loginTab]
       },
-      loginTab: paramHandleMap('tabName')
+      loginTab: paramHandleMap('tabName'),
+      successHandler () {
+        if (this.loginTab === 'tab-forgot') {
+          return this.forgotHandler
+        } else {
+          return this.loginHandler
+        }
+      }
     },
     created () {
       window.login = this

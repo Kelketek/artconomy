@@ -42,7 +42,7 @@ export default {
           }
           let errors = []
           for (let validator of sourceValidators) {
-            let err = validator(value, this.schema, this.value)
+            let err = validator(value, this.schema, this.model)
             if (err && err.length) {
               errors = errors.concat(err)
             }

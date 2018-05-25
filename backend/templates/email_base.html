@@ -1,0 +1,167 @@
+{% load premailer %}
+
+{% premailer %}
+<html>
+<style type="text/css">
+  body {
+    background-color:#eee;
+    color:#333;
+    font-family:Helvetica, Arial, sans-serif;
+    line-height:1.25;
+    -webkit-text-size-adjust:100%;
+  }
+  .table-base {
+    padding: 0;
+    border-spacing: 0;
+    border-collapse: collapse;
+  }
+  .body-table {
+    border: 0;
+    height: 100%;
+    width: 100%;
+  }
+  .header-td {
+    text-align: center;
+    vertical-align: top;
+  }
+  .outer-email-container {
+    width: 600px;
+    padding: 20px;
+    border-collapse: collapse;
+    border: 0;
+  }
+  .inner-email-container {
+    background-color:#fff;
+    width: 100%;
+  }
+  .centered {
+    text-align: center;
+    vertical-align: middle;
+  }
+  .email-logo-container {
+    height: 90px;
+    width: 100%;
+    background-color: #ffffff;
+  }
+  .email-logo {
+    width: 100px;
+    height: 100px;
+  }
+  .underline {
+    width: 600px;
+    background-color: #eeeeee;
+  }
+  .underline-container {
+    height: 1px;
+    width: 100%;
+  }
+  .email-header, .email-content, .email-action {
+    width: 100%;
+  }
+  .email-action {
+    border-top: 1px solid #eee;
+  }
+  .message {
+    text-align:left;
+    padding:0 20px 20px;
+    font-size:14px;
+    line-height:1.5;
+    width:80%;
+  }
+</style>
+<body>
+<table class="body-table table-base">
+  <tr>
+    <td class="header-td">
+      <table class="outer-email-container">
+        <tr>
+          <td class="header-td">
+            <table class="inner-email-container" >
+              <!-- Email Logo -->
+              <tr>
+                <td class="header-td">
+                  <table class="email-logo-container table-base" >
+                    <tr>
+                      <td class="centered">
+                        <a href="/"><img src="/static/images/logo.png" class="email-logo" alt=""></a>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+              <tr>
+                <td class="centered">
+                  <table class="underline-container">
+                    <tr>
+                      <td class="underline centered"></td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+              <!-- Email Logo -->
+
+
+              <!-- Email Header -->
+              <tr>
+                <td class="centered">
+                  <table class="table-base email-header">
+                    <tr>
+                      <td class="centered">
+                        <div class="header-message">
+                          {% block header_message %}
+                            New message from Artconomy!
+                          {% endblock %}
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+              <tr>
+                <td class="centered">
+                  <table class="table-base email-content">
+                    <tr>
+                      <td class="centered">
+                        <div class="message">
+                            {% block message %}
+                              <p>
+                                You have a new message at <a href="/">Artconomy!</a>
+                              </p>
+                            {% endblock %}
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+              <!-- Email Content -->
+
+              <!-- Email Action -->
+              <tr>
+                <td class="centered">
+                  <table class="email-action">
+                    <tr>
+                      <td class="centered">
+                        <div>
+                          {% block action %}
+                            <a href="/">Visit Artconomy!</a>
+                          {% endblock %}
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+              <!-- Email Action -->
+
+            </table>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+
+</body>
+</html>
+{% endpremailer %}
