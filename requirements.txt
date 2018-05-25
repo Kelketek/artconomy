@@ -10,7 +10,7 @@ djangorestframework==3.7.7
 djangorestframework-bulk==0.2.1
 django-rest-recaptcha==1.0.1
 django_money==0.11.4
-django-premailer=0.2.0
+django-premailer==0.2.0
 django-custom-user==0.7
 dwollav2==1.2.4
 easy_thumbnails==2.5
