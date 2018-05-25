@@ -361,3 +361,21 @@ class MessageManagementSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'recipients', 'sender', 'subject', 'body', 'created_on', 'edited_on', 'read'
         )
+
+
+class PasswordResetSerializer(serializers.ModelSerializer):
+    # Confirmation of new password should be done on client-side and refuse to send unless verified.
+    new_password = serializers.CharField(
+        write_only=True, validators=[validate_password]
+    )
+
+    def update(self, instance, validated_data):
+        instance.set_password(validated_data['new_password'])
+        instance.save()
+        return instance
+
+    class Meta:
+        model = User
+        fields = (
+            'new_password',
+        )

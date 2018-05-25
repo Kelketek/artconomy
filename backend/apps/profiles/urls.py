@@ -9,7 +9,8 @@ from apps.profiles.views import Register, CharacterListAPI, CharacterAssets, \
     UserSearch, AssetTagArtist, TagSearch, AssetTag, AssetSearch, CharacterTag, UserBlacklist, RefColorList, \
     RefColorManager, RecentSubmissions, RecentCommissions, NewCharacters, FavoritesList, GalleryList, SubmissionList, \
     AttributeManager, AttributeList, SessionSettings, AssetShare, CharacterShare, WatchUser, Watching, Watchers, \
-    MessagesTo, MessagesFrom, MessageManager, MessageComments, LeaveConversation, BlockUser
+    MessagesTo, MessagesFrom, MessageManager, MessageComments, LeaveConversation, BlockUser, StartPasswordReset, \
+    TokenValidator, PasswordReset
 from apps.profiles.views import check_username, check_email, perform_login, perform_logout
 
 app_name = "profiles"
@@ -25,6 +26,13 @@ urlpatterns = [
     path('v1/login/', perform_login, name='login'),
     path('v1/logout/', perform_logout, name='logout'),
     path('v1/register/', Register.as_view(), name='register'),
+    path(
+        'v1/forgot-password/token-check/<username>/<reset_token>/', TokenValidator.as_view(), name='reset_token_check'
+    ),
+    path(
+        'v1/forgot-password/perform-reset/<username>/<reset_token>/', PasswordReset.as_view(), name='perform_reset'
+    ),
+    path('v1/forgot-password/', StartPasswordReset.as_view(), name='password_reset_start'),
     path('v1/data/requester/', CurrentUserInfo.as_view(), name='current_user_info'),
     path('v1/data/notifications/mark-read/', MarkNotificationsRead.as_view(), name='mark_read'),
     path('v1/data/notifications/', NotificationsList.as_view(), name='notifications'),

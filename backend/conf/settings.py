@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_premailer',
     'webpack_loader',
     'rest_framework',
     'rest_framework.authtoken',
@@ -181,6 +182,12 @@ AUTHORIZE_SECRET = ENV_TOKENS.get('AUTHORIZE_SECRET', '')
 
 DEFAULT_PROTOCOL = ENV_TOKENS.get('DEFAULT_PROTOCOL', 'https')
 DEFAULT_DOMAIN = ENV_TOKENS.get('DEFAULT_DOMAIN', 'artconomy.vulpinity.com')
+PREMAILER_OPTIONS = ENV_TOKENS.get(
+    'PREMAILER_OPTIONS', {'base_url': '{}://{}'.format(DEFAULT_PROTOCOL, DEFAULT_DOMAIN), 'remove_classes': False}
+)
+
+EMAIL_BACKEND = ENV_TOKENS.get('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+DEFAULT_FROM_EMAIL = ENV_TOKENS.get('DEFAULT_FROM_EMAIL', 'Artconomy <noreply@artconomy.com>')
 
 SANDBOX_APIS = ENV_TOKENS.get('SANDBOX_APIS', True)
 
