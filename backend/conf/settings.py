@@ -190,6 +190,7 @@ PREMAILER_OPTIONS = ENV_TOKENS.get(
 
 EMAIL_BACKEND = ENV_TOKENS.get('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
 DEFAULT_FROM_EMAIL = ENV_TOKENS.get('DEFAULT_FROM_EMAIL', 'Artconomy <noreply@artconomy.com>')
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 SANDBOX_APIS = ENV_TOKENS.get('SANDBOX_APIS', True)
 
