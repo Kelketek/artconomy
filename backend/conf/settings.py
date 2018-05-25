@@ -251,12 +251,16 @@ if 'test' not in argv:
                 'class': 'logging.StreamHandler',
                 'formatter': 'console',
             },
+            'mail_admins': {
+                'level': 'ERROR',
+                'class': 'django.utils.log.AdminEmailHandler',
+            }
         },
         'loggers': {
             # root logger
             '': {
                 'level': 'WARNING',
-                'handlers': ['console'],
+                'handlers': ['console', 'mail_admins'],
             },
         },
     })
