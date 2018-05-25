@@ -27,6 +27,8 @@ with open(os.path.join(BASE_DIR, "..", "settings.json")) as env_file:
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
 
+ADMINS = ENV_TOKENS.get('ADMINS', [('Fox', 'fox@vulpinity.com')])
+
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = ENV_TOKENS.get('DJANGO_SECRET_KEY', '')
 
