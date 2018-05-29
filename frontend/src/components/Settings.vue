@@ -177,6 +177,7 @@
         }
         // Fool form into thinking nothing has changed.
         this.$refs.credentialsForm.oldValue = JSON.parse(JSON.stringify(this.credentialsModel))
+        this.$refs.credentialsForm.resetFieldErrors()
         this.$refs.credentialsForm.saved = true
       },
       updateAvatar () {
