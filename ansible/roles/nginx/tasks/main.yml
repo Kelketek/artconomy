@@ -42,13 +42,24 @@
   notify:
     - reload nginx
 
-- name: Remove default host
-  file: path="/etc/nginx/sites-available/default" state=absent
+- name: Set default host
+  copy:
+    src: files/default
+    dest: /etc/nginx/sites-available
   notify:
     - reload nginx
 
 - name: Ensure sites-enabled directory
   file: path="/etc/nginx/sites-enabled" state=directory
+  notify:
+    - reload nginx
+
+
+- name: Ensure link to default host
+  file:
+    dest: /etc/nginx/sites-enabled/default
+    src: /etc/nginx/sites-available/default
+    state: link
   notify:
     - reload nginx
 
