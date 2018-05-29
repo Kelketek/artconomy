@@ -104,15 +104,22 @@
     },
     methods: {
       reset: function () {
+        let saved = this.saved
         let defaults = this.defaults()
         for (let key in defaults) {
           if (defaults.hasOwnProperty(key)) {
             this.model[key] = defaults[key]
-            EventBus.$emit('reset-field-' + key, defaults[key])
           }
         }
         // Make sure we don't screw up our 'saved' setting.
         this.oldValue = defaults
+        this.resetFieldErrors()
+        this.saved = saved
+      },
+      resetFieldErrors () {
+        for (let key in this.model) {
+          EventBus.$emit('reset-field-' + key)
+        }
       },
       dismissError () {
         this.errors = []
