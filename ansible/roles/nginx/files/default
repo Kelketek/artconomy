@@ -1,0 +1,18 @@
+server {
+
+	listen *:80 default_server;
+	listen [::]:80 default_server ipv6only=on;
+	listen *:443 default_server;
+	listen [::]:443 default_server ipv6only=on;
+
+	server_name _;
+
+	access_log  /var/log/nginx/default.access.log;
+	error_log  /var/log/nginx/default.error.log;
+
+        # This cert is not valid for a nothing domain, but this should be the only site on this server, keeping the IP
+        # to a single cert.
+        include includes/ssl.conf;
+
+	return 444;
+}
