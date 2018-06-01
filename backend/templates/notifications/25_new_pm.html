@@ -1,0 +1,9 @@
+{% extends 'email_base.html' %}
+{% block header_message %}New Private Message!{% endblock %}
+{% block message %}
+You have a new private message from {{ target.sender.username }}
+{% endblock message %}
+
+{% block action %}
+<a href="/messages/{{user.username}}/message/{{target.id}}/">View your new message here!</a>
+{% endblock %}

@@ -344,7 +344,7 @@ def asset_shared(obj, context):
     return {
         'asset': serialized,
         'display': serialized,
-        'user': serialized,
+        'user': notification_display(user, context),
     }
 
 
@@ -418,7 +418,7 @@ def streaming(obj, context):
     }
 
 
-TYPE_MAP = {
+NOTIFICATION_TYPE_MAP = {
     CHAR_TAG: char_tag,
     ORDER_UPDATE: order_update,
     SALE_UPDATE: order_update,
@@ -439,7 +439,7 @@ class EventSerializer(serializers.ModelSerializer):
     data = SerializerMethodField(read_only=True)
 
     def get_data(self, obj):
-        return TYPE_MAP.get(obj.type, lambda x, _: x.data)(obj, self.context)
+        return NOTIFICATION_TYPE_MAP.get(obj.type, lambda x, _: x.data)(obj, self.context)
 
     class Meta:
         model = Event

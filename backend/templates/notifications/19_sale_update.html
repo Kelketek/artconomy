@@ -1,0 +1,23 @@
+{% extends 'email_base.html' %}
+{% block header_message %}{% if target.status == 1 %}New Sale!{% else %}Sale update!{% endif %} #{{target.id}}{% endblock %}
+{% block message %}
+{% if target.status == 1 %}
+You have a new sale on Artconomy
+{% elif target.status == 3 %}
+The buyer has submitted payment and the sale has been added to your queue.
+{% elif target.status == 6 %}
+This sale has been cancelled.
+{% elif target.status == 7 %}
+This sale has been disputed!
+{% elif target.status == 8 %}
+This sale has been finalized! Congratulations!
+{% elif target.status == 9 %}
+This sale has been refunded.
+{% else %}
+Your sale has been updated!
+{% endif %}
+{% endblock message %}
+
+{% block action %}
+<a href="/orders/{{target.buyer.username}}/order/{{target.id}}/">View your sale here!</a>
+{% endblock %}

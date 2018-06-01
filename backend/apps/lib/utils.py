@@ -1,11 +1,17 @@
+import os
+from pathlib import Path
+
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
+from django.core.mail import EmailMessage
 from django.db import connection
 from django.db.models import Q
 from django.db.models.signals import pre_delete
 from django.db.transaction import atomic
 from django.dispatch import receiver
+from django.template import Template, Context
+from django.template.loader import get_template
 from django.utils import timezone
 from django.utils.deconstruct import deconstructible
 from django.utils.text import slugify
@@ -14,7 +20,8 @@ from rest_framework import status
 from rest_framework.response import Response
 
 from apps.lib.models import Subscription, Event, Notification, Tag, Comment, COMMENT, \
-    NEW_PORTFOLIO_ITEM, NEW_PRODUCT, COMMISSIONS_OPEN, NEW_CHARACTER, STREAMING
+    NEW_PORTFOLIO_ITEM, NEW_PRODUCT, COMMISSIONS_OPEN, NEW_CHARACTER, STREAMING, EMAIL_SUBJECTS
+from shortcuts import make_url
 
 
 def countries_tweaked():
@@ -181,18 +188,31 @@ def remove_watch_subscriptions(watcher, watched):
     ).delete()
 
 
+class FakeRequest:
+    def __init__(self, user):
+        self.user = user
+
+    def build_absolute_uri(self, value):
+        return make_url(value)
+
+
 @atomic
 def notify(
         event_type, target, data=None, unique=False, unique_data=None, mark_unread=False, time_override=None,
         transform=None, exclude=None, force_create=False
 ):
+    from apps.lib.serializers import NOTIFICATION_TYPE_MAP
+    from apps.lib.serializers import notification_serialize
+
     if data is None:
         data = {}
     content_type = target and ContentType.objects.get_for_model(target)
     object_id = target and target.id
     subscriptions = get_matching_subscriptions(event_type, object_id, content_type, exclude)
+
     if not subscriptions.exists() and not force_create:
         return
+
     event = None
     if unique or unique_data:
         events = get_matching_events(event_type, content_type, object_id, data, unique_data)
@@ -208,6 +228,28 @@ def notify(
         event = Event.objects.create(
             type=event_type, object_id=target and target.id, content_type=content_type, data=data
         )
+
+    # Send email notifications if needed.
+    email_subscriptions = subscriptions.filter(email=True)
+    if email_subscriptions.exists():
+        path = Path(settings.BACKEND_ROOT) / 'templates' / 'notifications'
+        template = [file for file in os.listdir(str(path)) if file.startswith(str(event_type))][0]
+        template_path = path / template
+        for subscription in email_subscriptions:
+            subject = EMAIL_SUBJECTS[event_type]
+            req_context = {'request': FakeRequest(subscription.subscriber)}
+            ctx = {
+                'data': NOTIFICATION_TYPE_MAP.get(event_type, lambda x, _: x.data)(event, req_context),
+                'target': notification_serialize(event.target, req_context), 'user': subscription.subscriber
+            }
+            subject = Template(subject).render(Context(ctx))
+            to = [subscription.subscriber.email]
+            from_email = settings.DEFAULT_FROM_EMAIL
+            message = get_template(template_path).render(ctx)
+            msg = EmailMessage(subject, message, to=to, from_email=from_email)
+            msg.content_subtype = 'html'
+            msg.send()
+
     # We need to make sure anyone who was previously ineligible for a notification who is now eligible can get one.
     # To do that, we must avoid creating any that already exist if we want to leverage bulk_create. This should
     # be a minority case that won't require too much overhead when it happens, but I suppose we will see.
