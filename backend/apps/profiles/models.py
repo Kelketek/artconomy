@@ -127,12 +127,14 @@ def auto_subscribe(sender, instance, created=False, **_kwargs):
             type=DISPUTE
         )
     if instance.is_superuser:
-        Subscription.objects.get_or_create(
+        subscription, _ = Subscription.objects.get_or_create(
             subscriber=instance,
             content_type=None,
             object_id=None,
             type=REFUND
         )
+        subscription.email = True
+        subscription.save()
 
 
 class ImageAsset(ImageModel):
@@ -475,7 +477,6 @@ class Message(Model):
     comment_permissions = [MessageReadPermission]
 
     def new_comment(self, comment):
-        print('I ran!')
         self.last_activity = datetime.now()
         if comment.user != self.sender:
             self.sender_read = False

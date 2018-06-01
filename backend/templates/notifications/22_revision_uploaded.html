@@ -1,0 +1,9 @@
+{% extends 'email_base.html' %}
+{% block header_message %}Order Update!{% endblock %}
+{% block message %}
+A new revision has been added to your order!
+{% endblock message %}
+
+{% block action %}
+<a href="/orders/{{target.buyer.username}}/order/{{target.id}}/">View your order here!</a>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends 'email_base.html' %}
+{% block header_message %}New Comment on {{ name }}{% endblock %}
+{% block message %}
+There is a new comment on {{ name }}.
+{% endblock message %}
+
+{% block action %}
+{% if data.link.name == 'Message' %}
+    <a href="/messages/{{user.username}}/message/{{data.link.params.messageID}}/">View your message here!</a>
+{% elif data.link.name == 'Order' %}
+    <a href="/orders/{{target.buyer.username}}/order/{{data.link.params.orderID}}/">View your sale here!</a>
+{% elif data.link.name == 'Sale' %}
+    <a href="/sales/{{target.buyer.username}}/sale/{{data.link.params.orderID}}/">View your sale here!</a>
+{% endif %}}
+{% endblock %}

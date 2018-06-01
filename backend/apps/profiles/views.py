@@ -982,17 +982,20 @@ class MessagesFrom(ListCreateAPIView):
                 content_type=ContentType.objects.get_for_model(model=message),
                 object_id=message.id,
                 type=COMMENT,
+                email=True,
             )
             Subscription.objects.create(
                 subscriber=user,
                 content_type=ContentType.objects.get_for_model(model=message),
                 object_id=message.id,
                 type=NEW_PM,
+                email=True,
             )
         Subscription.objects.get_or_create(
             subscriber=message.sender,
             content_type=ContentType.objects.get_for_model(model=message),
             object_id=message.id,
+            email=True,
             type=COMMENT,
         )
         notify(NEW_PM, target=message)

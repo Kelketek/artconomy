@@ -89,6 +89,17 @@ EVENT_TYPES = (
     (SYSTEM_ANNOUNCEMENT, 'System-wide announcement'),
 )
 
+EMAIL_SUBJECTS = {
+    COMMISSIONS_OPEN: 'Commissions are open for {{ target.username }}!',
+    ORDER_UPDATE: 'Order #{{ target.id}} has been updated!',
+    REVISION_UPLOADED: 'New revision for order #{{ target.id }}!',
+    SALE_UPDATE: '{% if target.status == 1 %}New Sale!{% else %}Sale #{{ target.id }} has been updated!{% endif %}'
+                 ' #{{target.id}}',
+    REFUND: 'A refund was issued for Order #{{ target.id }}',
+    NEW_PM: 'You have a new private message from {{ target.sender.username }}!',
+    COMMENT: 'New comment on {{ name }}',
+}
+
 
 class Event(models.Model):
     type = models.IntegerField(db_index=True, choices=EVENT_TYPES)
@@ -107,6 +118,7 @@ class Subscription(models.Model):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True, db_index=True)
     target = GenericForeignKey('content_type', 'object_id')
     implicit = models.BooleanField(default=True, db_index=True)
+    email = models.BooleanField(default=False)
     removed = models.BooleanField(default=False, db_index=True)
 
     class Meta:

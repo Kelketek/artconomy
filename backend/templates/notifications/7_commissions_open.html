@@ -1,0 +1,9 @@
+{% extends 'email_base.html' %}
+{% block header_message %}Order Update!{% endblock %}
+{% block message %}
+Commissions are now open for {{target.username}}!
+{% endblock message %}
+
+{% block action %}
+<a href="/profile/{{target.username}}/products/">Browse their products here!</a>
+{% endblock %}

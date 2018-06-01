@@ -10,7 +10,7 @@ from moneyed import Money, Decimal
 from rest_framework import status
 
 from apps.lib.abstract_models import ADULT, MATURE
-from apps.lib.models import DISPUTE, Comment
+from apps.lib.models import DISPUTE, Comment, Subscription, SALE_UPDATE
 from apps.lib.test_resources import APITestCase
 from apps.lib.tests.factories import TagFactory
 from apps.profiles.models import ImageAsset
@@ -256,24 +256,32 @@ class TestCardManagement(APITestCase):
         cards = [CreditCardTokenFactory(user=self.user) for __ in range(4)]
         self.login(self.user)
         self.user.refresh_from_db()
-        response = self.client.post('/api/sales/v1/account/{}/cards/{}/primary/'.format(self.user.username, cards[2].id))
+        response = self.client.post(
+            '/api/sales/v1/account/{}/cards/{}/primary/'.format(self.user.username, cards[2].id)
+        )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.user.refresh_from_db()
         self.assertEqual(self.user.primary_card.id, cards[2].id)
-        response = self.client.post('/api/sales/v1/account/{}/cards/{}/primary/'.format(self.user.username, cards[3].id))
+        response = self.client.post('/api/sales/v1/account/{}/cards/{}/primary/'.format(
+            self.user.username, cards[3].id)
+        )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.user.refresh_from_db()
         self.assertEqual(self.user.primary_card.id, cards[3].id)
 
     def test_make_primary_not_logged_in(self):
         cards = [CreditCardTokenFactory(user=self.user) for __ in range(4)]
-        response = self.client.post('/api/sales/v1/account/{}/cards/{}/primary/'.format(self.user.username, cards[2].id))
+        response = self.client.post(
+            '/api/sales/v1/account/{}/cards/{}/primary/'.format(self.user.username, cards[2].id)
+        )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_make_primary_outsider(self):
         self.login(self.user2)
         cards = [CreditCardTokenFactory(user=self.user) for __ in range(4)]
-        response = self.client.post('/api/sales/v1/account/{}/cards/{}/primary/'.format(self.user.username, cards[2].id))
+        response = self.client.post(
+            '/api/sales/v1/account/{}/cards/{}/primary/'.format(self.user.username, cards[2].id)
+        )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_make_primary_wrong_card(self):
@@ -526,9 +534,13 @@ class TestProduct(APITestCase):
         products = [ProductFactory.create(user=self.user) for __ in range(3)]
         OrderFactory.create(product=products[1])
         self.assertTrue(products[1].active)
-        response = self.client.delete('/api/sales/v1/account/{}/products/{}/'.format(self.user.username, products[1].id))
+        response = self.client.delete(
+            '/api/sales/v1/account/{}/products/{}/'.format(self.user.username, products[1].id)
+        )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        response = self.client.delete('/api/sales/v1/account/{}/products/{}/'.format(self.user.username, products[2].id))
+        response = self.client.delete(
+            '/api/sales/v1/account/{}/products/{}/'.format(self.user.username, products[2].id)
+        )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         products[1].refresh_from_db()
         self.assertFalse(products[1].active)
@@ -901,6 +913,8 @@ class TestOrder(APITestCase):
             buyer=self.user, status=Order.QUEUED, price=Money('10.00', 'USD'),
             adjustment=Money('2.00', 'USD')
         )
+        subscription = Subscription.objects.get(subscriber=order.seller, type=SALE_UPDATE)
+        self.assertTrue(subscription.email)
         card_api.saved_card.return_value.capture.return_value.uid = 'Trans123'
         response = self.client.post(
             '/api/sales/v1/order/{}/pay/'.format(order.id),

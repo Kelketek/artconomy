@@ -273,31 +273,35 @@ class Order(Model):
 @receiver(post_save, sender=Order)
 def auto_subscribe_order(sender, instance, created=False, **_kwargs):
     if created:
-        Subscription.objects.get_or_create(
+        Subscription.objects.create(
             subscriber=instance.seller,
             content_type=ContentType.objects.get_for_model(model=sender),
             object_id=instance.id,
+            email=True,
             type=SALE_UPDATE
         )
-        Subscription.objects.get_or_create(
+        Subscription.objects.create(
             subscriber=instance.buyer,
             content_type=ContentType.objects.get_for_model(model=sender),
             object_id=instance.id,
-            type=ORDER_UPDATE
+            email=True,
+            type=ORDER_UPDATE,
         )
-        Subscription.objects.get_or_create(
+        Subscription.objects.create(
             subscriber=instance.buyer,
             content_type=ContentType.objects.get_for_model(model=sender),
             object_id=instance.id,
+            email=True,
             type=REVISION_UPLOADED
         )
-        Subscription.objects.get_or_create(
+        Subscription.objects.create(
             subscriber=instance.buyer,
             content_type=ContentType.objects.get_for_model(model=sender),
             object_id=instance.id,
+            email=True,
             type=COMMENT
         )
-        Subscription.objects.get_or_create(
+        Subscription.objects.create(
             subscriber=instance.seller,
             content_type=ContentType.objects.get_for_model(model=sender),
             object_id=instance.id,
