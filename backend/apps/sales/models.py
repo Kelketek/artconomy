@@ -1,3 +1,4 @@
+import socket
 from decimal import Decimal
 
 from django.db import transaction
@@ -399,34 +400,17 @@ placeholder_load_check = receiver(post_save, sender=PlaceholderSale)(update_arti
 placeholder_load_check_delete = receiver(post_delete, sender=PlaceholderSale)(update_artist_load)
 
 
-class RatingSet(Model):
-    BUYER = 1
-    SELLER = 2
-
-    TYPES = (
-        (BUYER, 'Buyer'),
-        (SELLER, 'Seller')
-    )
-
-    RATE_MAPPING = {
-        BUYER: [
-            ''
-        ]
-    }
-
-    rater = ForeignKey(settings.AUTH_USER_MODEL, related_name='submitted_ratings', on_delete=CASCADE)
-    target = ForeignKey(settings.AUTH_USER_MODEL, related_name='received_ratings', on_delete=CASCADE)
-    transaction_type = IntegerField(choices=TYPES)
-
-
 class Rating(Model):
     """
     An individual star rating for a category.
     """
     stars = IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
-    category = CharField(max_length=100, db_index=True)
-    rating_set = ForeignKey('RatingSet', on_delete=CASCADE)
     comments = CharField(max_length=1000, blank=True, default='')
+    object_id = PositiveIntegerField(null=True, blank=True, db_index=True)
+    content_type = ForeignKey(ContentType, on_delete=SET_NULL, null=True, blank=True)
+    content_object = GenericForeignKey('content_type', 'object_id')
+    target = ForeignKey('profiles.User', related_name='ratings', on_delete=CASCADE)
+    rater = ForeignKey('profiles.User', related_name='ratings_received', on_delete=CASCADE)
 
 
 class CreditCardToken(Model):
@@ -507,7 +491,7 @@ class CreditCardToken(Model):
         """
         try:
             self.api.delete()
-        except (AuthorizeError, URLError):
+        except (AuthorizeError, URLError, socket.timeout):
             # There may be older cards which aren't truly in place anyway.
             # Better to not crash when they're removed.
             pass

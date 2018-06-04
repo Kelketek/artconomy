@@ -1211,47 +1211,43 @@ class TestOrderStateChange(APITestCase):
         self.assertEqual(payment.escrow_for, None)
         self.assertEqual(payment.status, PaymentRecord.SUCCESS)
         self.assertEqual(payment.source, PaymentRecord.ESCROW)
+
+    def test_publish_order(self):
+        self.order.status = Order.COMPLETED
+        self.order.save()
+        self.login(self.buyer)
+        response = self.client.post(
+            self.url + 'publish/',
+            {'title': 'This is a test', 'caption': 'A testy test'}
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         asset = ImageAsset.objects.get(order=self.order)
         self.assertEqual(asset.rating, ADULT)
         self.assertEqual(asset.order, self.order)
         self.assertEqual(asset.owner, self.order.buyer)
+        self.assertEqual(asset.title, 'This is a test')
+        self.assertEqual(asset.caption, 'A testy test')
         self.assertEqual(self.order.characters.get(name='Unpictured1').primary_asset, asset)
         self.assertEqual(self.order.characters.get(name='Unpictured2').primary_asset, asset)
         self.assertNotEqual(self.order.characters.get(name='Pictured').primary_asset, asset)
 
-    def test_approve_order_buyer_hidden(self):
+    def test_publish_order_buyer_hidden(self):
         self.order.private = True
+        self.order.status = Order.COMPLETED
         self.order.save()
-        record = PaymentRecordFactory.create(
-            target=self.order,
-            payee=None,
-            payer=self.order.buyer,
-            escrow_for=self.order.seller,
-            amount=Money('15.00', 'USD'),
-            finalized=False,
+        self.login(self.buyer)
+        response = self.client.post(
+            self.url + 'publish/',
+            {'title': 'This is a test', 'caption': 'A testy test'}
         )
-        self.state_assertion('buyer', 'approve/', initial_status=Order.REVIEW)
-        records = PaymentRecord.objects.all()
-        self.assertEqual(records.count(), 3)
-        record.refresh_from_db()
-        self.assertTrue(record.finalized)
-        fee = records.get(payee=None, escrow_for__isnull=True)
-        self.assertEqual(fee.amount, Money('.50', 'USD'))
-        self.assertEqual(fee.payer, self.order.seller)
-        self.assertEqual(fee.escrow_for, None)
-        self.assertEqual(fee.status, PaymentRecord.SUCCESS)
-        self.assertEqual(fee.source, PaymentRecord.ACCOUNT)
-        payment = records.get(payee=self.order.seller)
-        self.assertEqual(payment.amount, Money('5.00', 'USD'))
-        self.assertEqual(payment.payer, None)
-        self.assertEqual(payment.escrow_for, None)
-        self.assertEqual(payment.status, PaymentRecord.SUCCESS)
-        self.assertEqual(payment.source, PaymentRecord.ESCROW)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         asset = ImageAsset.objects.get(order=self.order)
         self.assertEqual(asset.rating, ADULT)
         self.assertEqual(asset.order, self.order)
         self.assertEqual(asset.owner, self.order.buyer)
         self.assertEqual(asset.private, True)
+        self.assertEqual(asset.title, 'This is a test')
+        self.assertEqual(asset.caption, 'A testy test')
         self.assertEqual(self.order.characters.get(name='Unpictured1').primary_asset, None)
         self.assertEqual(self.order.characters.get(name='Unpictured2').primary_asset, None)
         self.assertNotEqual(self.order.characters.get(name='Pictured').primary_asset, asset)

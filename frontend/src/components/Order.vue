@@ -343,11 +343,23 @@
                   variant="success"
                   method="POST"
                   :url="`${this.url}approve/`"
-                  :success="newSubmission"
+                  :success="populateOrder"
                   class="approve-button"
               >
                 Approve Result
               </ac-action>
+            </div>
+            <div v-if="completed && buyer && !order.outputs.length">
+              <v-btn @click="showPublish = true" color="primary">Add to Gallery!</v-btn>
+              <ac-form-dialog
+                  ref="publishForm" :schema="publishSchema" :model="publishModel"
+                  :options="revisionOptions" :success="newSubmission"
+                  v-model="showPublish"
+                  :url="`/api/sales/v1/order/${order.id}/publish/`"
+              />
+            </div>
+            <div v-else-if="order.outputs.length">
+              <v-btn color="primary" :to="{name: 'Submission', params: {assetID: order.outputs[0].id}}">Visit Submission</v-btn>
             </div>
           </div>
         </v-flex>
@@ -400,11 +412,13 @@
   import { artCall, md, ratings, formatDate } from '../lib'
   import AcFormContainer from './ac-form-container'
   import AcCardManager from './ac-card-manager'
+  import AcFormDialog from './ac-form-dialog'
 
   export default {
     name: 'Order',
     props: ['orderID'],
     components: {
+      AcFormDialog,
       AcCardManager,
       AcFormContainer,
       AcCharacterPreview,
@@ -557,6 +571,31 @@
         justPaid: false,
         revisions: null,
         cvv: '',
+        publishModel: {
+          title: '',
+          caption: ''
+        },
+        showPublish: false,
+        publishSchema: {
+          fields: [{
+            type: 'v-text',
+            inputType: 'text',
+            label: 'Title',
+            model: 'title',
+            featured: true,
+            required: true,
+            validator: VueFormGenerator.validators.string
+          },
+          {
+            type: 'v-text',
+            label: 'Caption',
+            model: 'caption',
+            featured: true,
+            multiLine: true,
+            required: true,
+            validator: VueFormGenerator.validators.string
+          }]
+        },
         adjustmentModel: {
           adjustment: 0.00,
           adjustment_expected_turnaround: 0.00,
