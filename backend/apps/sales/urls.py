@@ -10,7 +10,7 @@ from apps.sales.views import ProductList, ProductManager, PlaceOrder, \
     BankAccounts, ProductTag, ProductSearch, PerformWithdraw, BankManager, PurchaseHistory, EscrowHistory, \
     AvailableHistory, CreateCharacterTransfer, RetrieveCharacterTransfer, CharacterTransferAssets, AcceptCharTransfer, \
     CancelCharTransfer, CharactersInbound, CharactersOutbound, CharactersArchive, NewProducts, WhoIsOpen, \
-    CurrentPlaceholderSalesList, PlaceholderManager, SalesStats
+    CurrentPlaceholderSalesList, PlaceholderManager, SalesStats, PublishFinal
 
 app_name = 'sales'
 
@@ -33,6 +33,7 @@ urlpatterns = [
     path('v1/order/<int:order_id>/dispute/', StartDispute.as_view(), name='approve_final'),
     path('v1/order/<int:order_id>/claim/', ClaimDispute.as_view(), name='order_claim'),
     path('v1/order/<int:order_id>/refund/', OrderRefund.as_view(), name='order_refund'),
+    path('v1/order/<int:order_id>/publish/', PublishFinal.as_view(), name='order_publish'),
     path('v1/order/<int:order_id>/', OrderRetrieve.as_view(), name='order'),
     path('v1/search/product/', ProductSearch.as_view(), name='product_search'),
     path('v1/account/<username>/products/', ProductList.as_view(), name='product_list'),

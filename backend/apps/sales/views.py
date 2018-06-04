@@ -40,7 +40,7 @@ from apps.sales.models import Product, Order, CreditCardToken, PaymentRecord, Re
 from apps.sales.serializers import ProductSerializer, ProductNewOrderSerializer, OrderViewSerializer, CardSerializer, \
     NewCardSerializer, OrderAdjustSerializer, PaymentSerializer, RevisionSerializer, OrderStartedSerializer, \
     AccountBalanceSerializer, BankAccountSerializer, WithdrawSerializer, PaymentRecordSerializer, \
-    CharacterTransferSerializer, PlaceholderSaleSerializer
+    CharacterTransferSerializer, PlaceholderSaleSerializer, PublishFinalSerializer
 from apps.sales.utils import translate_authnet_error, available_products
 
 
@@ -389,24 +389,6 @@ class ApproveFinal(GenericAPIView):
             order.status = order.COMPLETED
             order.save()
             notify(SALE_UPDATE, order, unique=True, mark_unread=True)
-            final = order.revision_set.last()
-            submission = ImageAsset(
-                owner=order.buyer, order=order,
-                rating=final.rating
-            )
-            new_file = ContentFile(final.file.read())
-            new_file.name = final.file.name
-            submission.file = new_file
-            submission.private = order.private
-            submission.save()
-            submission.characters.add(*order.characters.all())
-            submission.artists.add(order.seller)
-            if not order.private:
-                for character in order.characters.all():
-                    if not character.primary_asset:
-                        character.primary_asset = submission
-                        character.save()
-                notify(NEW_PORTFOLIO_ITEM, order.seller, data={'asset': submission.id}, unique_data=True)
             PaymentRecord.objects.create(
                 payer=None,
                 amount=order.price + order.adjustment,
@@ -436,6 +418,50 @@ class ApproveFinal(GenericAPIView):
                 status=PaymentRecord.SUCCESS,
                 response_code='OdrFee',
                 response_message='Artconomy Service Fee'
+            )
+        return Response(
+            status=status.HTTP_200_OK,
+            data=OrderViewSerializer(instance=order, context=self.get_serializer_context()).data
+        )
+
+
+class PublishFinal(GenericAPIView):
+    permission_classes = [OrderBuyerPermission]
+    serializer_class = PublishFinalSerializer
+
+    def get_object(self):
+        return get_object_or_404(Order, id=self.kwargs['order_id'])
+
+    def post(self, request, *args, **kwargs):
+        order = self.get_object()
+        self.check_object_permissions(request, order)
+        if order.outputs.exists():
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST, data={'errors': ['A submission for this order already exists.']}
+            )
+        if not order.status == Order.COMPLETED:
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST, data={'errors': ['Order not yet completed, or it is cancelled.']}
+            )
+        final = order.revision_set.last()
+        serializer = self.get_serializer(data=self.request.data)
+        serializer.is_valid(raise_exception=True)
+        new_file = ContentFile(final.file.read())
+        new_file.name = final.file.name
+        submission = serializer.save(
+            owner=order.buyer, order=order,
+            rating=final.rating,
+            file=new_file, private=order.private
+        )
+        submission.characters.add(*order.characters.all())
+        submission.artists.add(order.seller)
+        if not order.private:
+            for character in order.characters.all():
+                if not character.primary_asset:
+                    character.primary_asset = submission
+                    character.save()
+            notify(
+                NEW_PORTFOLIO_ITEM, order.seller, data={'asset': submission.id}, unique_data=True, exclude=[order.buyer]
             )
         return Response(
             status=status.HTTP_200_OK,
