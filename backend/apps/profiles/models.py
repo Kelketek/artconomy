@@ -12,7 +12,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db.models import Model, CharField, ForeignKey, IntegerField, BooleanField, DateTimeField, \
-    URLField, SET_NULL, ManyToManyField, CASCADE
+    URLField, SET_NULL, ManyToManyField, CASCADE, DecimalField
 from django.db.models.signals import post_save, post_delete, pre_delete, pre_save
 from django.dispatch import receiver
 from django.utils.datetime_safe import datetime
@@ -67,6 +67,7 @@ class User(AbstractEmailUser):
         help_text="Shows the maximum rating to display. By setting this to anything other than general, you certify "
                   "that you are of legal age to view adult content in your country."
     )
+    stars = DecimalField(default=None, null=True, blank=True, max_digits=3, decimal_places=2)
     sfw_mode = BooleanField(
         default=False,
         help_text="Enable this to only display clean art. "

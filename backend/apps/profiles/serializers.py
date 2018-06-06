@@ -307,7 +307,8 @@ class UserSerializer(UserInfoMixin, serializers.ModelSerializer):
         fields = (
             'commissions_closed', 'rating', 'sfw_mode', 'max_load', 'username', 'id', 'is_staff', 'is_superuser',
             'dwolla_configured', 'csrftoken', 'avatar_url', 'email', 'fee', 'authtoken', 'favorites_hidden',
-            'blacklist', 'biography', 'has_products', 'taggable', 'watching', 'blocked',  'commission_info'
+            'blacklist', 'biography', 'has_products', 'taggable', 'watching', 'blocked',  'commission_info',
+            'stars'
         )
         read_only_fields = fields
 

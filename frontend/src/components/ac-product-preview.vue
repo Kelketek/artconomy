@@ -19,8 +19,11 @@
           <router-link :to="{name: 'Product', params: {username: product.user.username, productID: product.id}}">
             {{ product.name }}
           </router-link> by
-          <router-link :to="{name: 'Profile', params: {username: product.user.username}}">
+          <router-link :to="{name: 'Profile', params: {username: product.user.username, tabName: 'products'}}">
             {{ product.user.username }}
+          </router-link>
+          <router-link :to="{name: 'Ratings', params: {username: product.user.username}}" v-if="product.user.stars">
+            <ac-rating :value="product.user.stars" class="highlight-icon"></ac-rating>
           </router-link>
         </div>
       </v-card-title>
@@ -46,6 +49,7 @@
 
 <script>
   import AcAsset from './ac-asset'
+  import AcRating from './ac-rating'
   export default {
     name: 'ac-product-preview',
     props: ['product', 'contain'],
@@ -54,7 +58,7 @@
         return Math.ceil(this.product.expected_turnaround)
       }
     },
-    components: {AcAsset}
+    components: {AcRating, AcAsset}
   }
 </script>
 

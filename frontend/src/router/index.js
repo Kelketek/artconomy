@@ -10,6 +10,7 @@ import Profile from '@/components/Profile'
 import Policies from '@/components/Policies'
 import Contact from '@/components/Contact'
 import Store from '@/components/Store'
+import Ratings from '@/components/Ratings'
 import WhoIsOpen from '@/components/WhoIsOpen'
 import Transfers from '@/components/Transfers'
 import Product from '@/components/Product'
@@ -101,6 +102,12 @@ export const routes = [
     path: '/profile/:username/settings/:tabName?/:subTabName?/:tertiaryTabName?/',
     name: 'Settings',
     component: Settings,
+    props: true
+  },
+  {
+    path: '/profile/:username/ratings/',
+    name: 'Ratings',
+    component: Ratings,
     props: true
   },
   {
