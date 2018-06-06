@@ -21,7 +21,7 @@
           <v-flex xs12 lg2 text-xs-center class="pt-3">
             <div class="text-xs-center">
               <h3>Ordered By</h3>
-              <ac-avatar :user="order.buyer" />
+              <ac-avatar :user="order.buyer" :show-rating="true" />
             </div>
             <div class="text-xs-center" v-if="orderClosed">
               <ac-action :url="url" :send="{subscribed: !order.subscribed}" method="PUT" :success="populateOrder">
@@ -58,7 +58,7 @@
         <v-layout row wrap>
           <v-flex xs12 md6 lg2 text-xs-center class="pt-2">
             <h3>Seller:</h3>
-            <ac-avatar :user="order.seller" />
+            <ac-avatar :user="order.seller" :show-rating="true" />
           </v-flex>
           <v-flex xs12 md6 text-xs-center class="pt-2" v-if="paymentDetail">
             <div class="pricing-container">
@@ -349,6 +349,23 @@
                 Approve Result
               </ac-action>
             </div>
+            <v-expansion-panel expand>
+              <v-expansion-panel-content v-model="expandRating" class="text-xs-center">
+                <div slot="header">Rate Performance</div>
+                <v-card v-if="completed" class="mb-2">
+                  <v-card-text class="pb-2">
+                    <v-flex v-if="buyer">
+                      <h2>Rate {{order.buyer.username}}!</h2>
+                      <ac-rating :url="`/api/sales/v1/order/${order.id}/rating/?end=buyer`" />
+                    </v-flex>
+                    <v-flex v-if="seller">
+                      <h2>Rate your {{order.seller.username}}!</h2>
+                      <ac-rating :url="`/api/sales/v1/order/${order.id}/rating/?end=seller`" />
+                    </v-flex>
+                  </v-card-text>
+                </v-card>
+              </v-expansion-panel-content>
+            </v-expansion-panel>
             <div v-if="completed && buyer && !order.outputs.length">
               <v-btn @click="showPublish = true" color="primary">Add to Gallery!</v-btn>
               <ac-form-dialog
@@ -409,15 +426,17 @@
   import AcAsset from './ac-asset'
   import Viewer from '../mixins/viewer'
   import Perms from '../mixins/permissions'
-  import { artCall, md, ratings, formatDate } from '../lib'
+  import {artCall, md, ratings, formatDate, EventBus} from '../lib'
   import AcFormContainer from './ac-form-container'
   import AcCardManager from './ac-card-manager'
   import AcFormDialog from './ac-form-dialog'
+  import AcRating from './ac-rating'
 
   export default {
     name: 'Order',
     props: ['orderID'],
     components: {
+      AcRating,
       AcFormDialog,
       AcCardManager,
       AcFormContainer,
@@ -440,6 +459,9 @@
           this.streamModel.stream_link = response.stream_link
         }
         this.$root.$setUser(response.seller.username, this.sellerData, this.$error)
+      },
+      ratingClose () {
+        this.expandRating = false
       },
       populateRevisions (response) {
         this.revisions = response.results
@@ -570,6 +592,7 @@
         selectedCardModel: null,
         justPaid: false,
         revisions: null,
+        expandRating: true,
         cvv: '',
         publishModel: {
           title: '',
@@ -686,7 +709,10 @@
     },
     created () {
       this.reload()
-      window.order = this
+      EventBus.$on('rating-submitted', this.ratingClose)
+    },
+    destroyed () {
+      EventBus.$off('rating-submitted', this.ratingClose)
     }
   }
 </script>

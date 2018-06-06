@@ -13,7 +13,7 @@ from apps.lib.utils import country_choices
 from apps.profiles.models import User, ImageAsset
 from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer
 from apps.sales.models import Product, Order, CreditCardToken, Revision, PaymentRecord, BankAccount, CharacterTransfer, \
-    PlaceholderSale
+    PlaceholderSale, Rating
 from apps.sales.utils import escrow_balance, available_balance
 
 
@@ -286,3 +286,17 @@ class PublishFinalSerializer(serializers.ModelSerializer):
         fields = (
             'title', 'caption'
         )
+
+
+class RatingSerializer(serializers.ModelSerializer):
+    rater = RelatedUserSerializer(read_only=True)
+
+    class Meta:
+        model = Rating
+        fields = (
+            'stars',
+            'comments',
+            'rater',
+            'id'
+        )
+        read_only_fields = ('rater', 'id')

@@ -5,7 +5,7 @@
         <v-flex xs12 sm2  text-xs-center text-sm-left class="pt-2">
           <v-layout row wrap>
             <v-flex xs12 text-xs-center>
-              <ac-avatar :user="user" />
+              <ac-avatar :user="user" :show-rating="true" :no-link="true" />
             </v-flex>
             <v-flex xs12 text-xs-center v-if="!is_current">
               <ac-action :url="`/api/profiles/v1/account/${username}/watch/`" :success="replaceUser" v-if="isLoggedIn">

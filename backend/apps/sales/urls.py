@@ -10,7 +10,7 @@ from apps.sales.views import ProductList, ProductManager, PlaceOrder, \
     BankAccounts, ProductTag, ProductSearch, PerformWithdraw, BankManager, PurchaseHistory, EscrowHistory, \
     AvailableHistory, CreateCharacterTransfer, RetrieveCharacterTransfer, CharacterTransferAssets, AcceptCharTransfer, \
     CancelCharTransfer, CharactersInbound, CharactersOutbound, CharactersArchive, NewProducts, WhoIsOpen, \
-    CurrentPlaceholderSalesList, PlaceholderManager, SalesStats, PublishFinal
+    CurrentPlaceholderSalesList, PlaceholderManager, SalesStats, PublishFinal, RateOrder, RatingList
 
 app_name = 'sales'
 
@@ -34,6 +34,7 @@ urlpatterns = [
     path('v1/order/<int:order_id>/claim/', ClaimDispute.as_view(), name='order_claim'),
     path('v1/order/<int:order_id>/refund/', OrderRefund.as_view(), name='order_refund'),
     path('v1/order/<int:order_id>/publish/', PublishFinal.as_view(), name='order_publish'),
+    path('v1/order/<int:order_id>/rating/', RateOrder.as_view(), name='order_rate'),
     path('v1/order/<int:order_id>/', OrderRetrieve.as_view(), name='order'),
     path('v1/search/product/', ProductSearch.as_view(), name='product_search'),
     path('v1/account/<username>/products/', ProductList.as_view(), name='product_list'),
@@ -44,6 +45,7 @@ urlpatterns = [
         ProductExamples.as_view(),
         name='product_examples'
     ),
+    path('v1/account/<username>/ratings/', RatingList.as_view(), name='rating_list'),
     path('v1/account/<username>/products/<int:product>/order/', PlaceOrder.as_view(), name='place_order'),
     path('v1/account/<username>/orders/current/', CurrentOrderList.as_view(), name='current_orders'),
     path('v1/account/<username>/orders/archived/', ArchivedOrderList.as_view(), name='archived_orders'),

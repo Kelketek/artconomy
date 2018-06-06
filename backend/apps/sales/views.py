@@ -36,11 +36,11 @@ from apps.sales.dwolla import add_bank_account, initiate_withdraw, perform_trans
 from apps.sales.permissions import OrderViewPermission, OrderSellerPermission, OrderBuyerPermission, \
     OrderPlacePermission
 from apps.sales.models import Product, Order, CreditCardToken, PaymentRecord, Revision, BankAccount, CharacterTransfer, \
-    PlaceholderSale, WEIGHTED_STATUSES
+    PlaceholderSale, WEIGHTED_STATUSES, Rating
 from apps.sales.serializers import ProductSerializer, ProductNewOrderSerializer, OrderViewSerializer, CardSerializer, \
     NewCardSerializer, OrderAdjustSerializer, PaymentSerializer, RevisionSerializer, OrderStartedSerializer, \
     AccountBalanceSerializer, BankAccountSerializer, WithdrawSerializer, PaymentRecordSerializer, \
-    CharacterTransferSerializer, PlaceholderSaleSerializer, PublishFinalSerializer
+    CharacterTransferSerializer, PlaceholderSaleSerializer, PublishFinalSerializer, RatingSerializer
 from apps.sales.utils import translate_authnet_error, available_products
 
 
@@ -1163,3 +1163,69 @@ class SalesStats(APIView):
             'new_orders': user.sales.filter(status=Order.NEW).count(),
         }
         return Response(status=status.HTTP_200_OK, data=data)
+
+
+class RateOrder(GenericAPIView):
+    serializer_class = RatingSerializer
+    permission_classes = [OrderViewPermission]
+
+    def get_object(self):
+        order = get_object_or_404(Order, id=self.kwargs['order_id'])
+        self.check_object_permissions(self.request, order)
+        return order
+
+    def get_target(self, order):
+        target = None
+        if order.seller == self.request.user:
+            target = order.buyer
+        elif order.buyer == self.request.user:
+            target = order.seller
+        elif self.request.GET('end'):
+            end = self.request.GET('end')
+            if end in ['buyer', 'seller']:
+                target = getattr(order, end)
+        return target
+
+    def get_rating(self, order, target):
+        ratings = Rating.objects.filter(
+            object_id=order.id, content_type=ContentType.objects.get_for_model(order), rater=self.request.user,
+            target=target
+        )
+        if ratings:
+            return ratings[0]
+        return None
+
+    def get(self, request, **_kwargs):
+        order = self.get_object()
+        target = self.get_target(order)
+        if target is None:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={'stars': 'Target could not be determined.'})
+        rating = self.get_rating(order, target)
+        if rating is None:
+            return Response(status=status.HTTP_200_OK, data={'stars': None})
+        serializer = self.get_serializer(instance=rating)
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
+
+    def post(self, request, **_kwargs):
+        order = self.get_object()
+        target = self.get_target(order)
+        if target is None:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={'stars': 'Target could not be determined.'})
+        if target == request.user:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={'stars': 'You may not rate yourself.'})
+        rating = self.get_rating(order, target)
+        serializer = self.get_serializer(instance=rating, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(
+            rater=request.user, object_id=order.id, content_type=ContentType.objects.get_for_model(order),
+            target=target
+        )
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
+
+
+class RatingList(ListAPIView):
+    serializer_class = RatingSerializer
+
+    def get_queryset(self):
+        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        return user.ratings.all().order_by('-created_on')

@@ -12,7 +12,7 @@ from django.contrib.contenttypes.fields import GenericRelation, GenericForeignKe
 from django.contrib.contenttypes.models import ContentType
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models import Model, CharField, ForeignKey, IntegerField, BooleanField, DateTimeField, ManyToManyField, \
-    TextField, SET_NULL, PositiveIntegerField, URLField, CASCADE, DecimalField, Sum
+    TextField, SET_NULL, PositiveIntegerField, URLField, CASCADE, DecimalField, Sum, Avg
 
 # Create your models here.
 from django.db.models.signals import post_delete, post_save, pre_delete
@@ -411,6 +411,13 @@ class Rating(Model):
     content_object = GenericForeignKey('content_type', 'object_id')
     target = ForeignKey('profiles.User', related_name='ratings', on_delete=CASCADE)
     rater = ForeignKey('profiles.User', related_name='ratings_received', on_delete=CASCADE)
+    created_on = DateTimeField(auto_now_add=True, db_index=True)
+
+
+@receiver(post_save, sender=Rating)
+def tabulate_stars(sender, instance, **_kwargs):
+    instance.target.stars = instance.target.ratings.all().aggregate(Avg('stars'))['stars__avg']
+    instance.target.save()
 
 
 class CreditCardToken(Model):
