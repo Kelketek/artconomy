@@ -1213,6 +1213,10 @@ class RateOrder(GenericAPIView):
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'stars': 'Target could not be determined.'})
         if target == request.user:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'stars': 'You may not rate yourself.'})
+        if order.total() <= Money(0, 'USD'):
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST, data={'stars': 'You may not rate an order that was free.'}
+            )
         rating = self.get_rating(order, target)
         serializer = self.get_serializer(instance=rating, data=request.data)
         serializer.is_valid(raise_exception=True)

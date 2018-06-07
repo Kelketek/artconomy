@@ -352,14 +352,14 @@
             <v-expansion-panel expand>
               <v-expansion-panel-content v-model="expandRating" class="text-xs-center">
                 <div slot="header">Rate Performance</div>
-                <v-card v-if="completed" class="mb-2">
+                <v-card v-if="completed && !(price <= 0)" class="mb-2">
                   <v-card-text class="pb-2">
                     <v-flex v-if="buyer">
-                      <h2>Rate {{order.buyer.username}}!</h2>
+                      <h2>Rate {{order.seller.username}}!</h2>
                       <ac-rating :url="`/api/sales/v1/order/${order.id}/rating/?end=buyer`" />
                     </v-flex>
                     <v-flex v-if="seller">
-                      <h2>Rate your {{order.seller.username}}!</h2>
+                      <h2>Rate your {{order.buyer.username}}!</h2>
                       <ac-rating :url="`/api/sales/v1/order/${order.id}/rating/?end=seller`" />
                     </v-flex>
                   </v-card-text>
