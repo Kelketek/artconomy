@@ -29,7 +29,8 @@ urlpatterns = [
     url(r'^api/sales/', include('apps.sales.urls', namespace='sales')),
     url(r'^api/lib/', include('apps.lib.urls', namespace='lib')),
     url(r'^api/', views.bad_endpoint, name='api404'),
-    url(r'^force-error-email/', views.force_error_email, name='force_error')
+    url(r'^force-error-email/', views.force_error_email, name='force_error'),
+    url(r'^test-telegram/', views.test_telegram, name='test_telegram')
 ]
 
 if settings.DEBUG:

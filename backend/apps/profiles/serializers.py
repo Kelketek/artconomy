@@ -1,3 +1,5 @@
+from urllib.parse import quote_plus
+
 from avatar.templatetags.avatar_tags import avatar_url
 from django.conf import settings
 from django.contrib.auth.password_validation import validate_password
@@ -277,7 +279,11 @@ class UserSerializer(UserInfoMixin, serializers.ModelSerializer):
     csrftoken = serializers.SerializerMethodField()
     authtoken = serializers.SerializerMethodField()
     avatar_url = serializers.SerializerMethodField()
-    fee = serializers.SerializerMethodField()
+    percentage_fee = serializers.DecimalField(decimal_places=2, max_digits=3)
+    static_fee = serializers.DecimalField(decimal_places=2, max_digits=5)
+    portrait_paid_through = serializers.DateField(read_only=True)
+    landscape_paid_through = serializers.DateField(read_only=True)
+    telegram_link = serializers.SerializerMethodField()
     has_products = serializers.SerializerMethodField()
     watching = serializers.SerializerMethodField()
     blocked = serializers.SerializerMethodField()
@@ -285,14 +291,18 @@ class UserSerializer(UserInfoMixin, serializers.ModelSerializer):
     def get_dwolla_configured(self, obj):
         return bool(obj.dwolla_url)
 
-    def get_csrftoken(self, value):
+    def get_csrftoken(self, obj):
+        # This will be the CSRFToken of the requesting user rather than the target user-- not a security risk,
+        # but also not intuitively clear that it's not the right data if someone were trying to attack.
         return get_token(self.context['request'])
+
+    def get_telegram_link(self, obj):
+        return 'https://t.me/{}/?start={}%3A{}'.format(
+            settings.TELEGRAM_BOT_USERNAME, quote_plus(obj.username), obj.tg_key
+        )
 
     def get_avatar_url(self, obj):
         return avatar_url(obj)
-
-    def get_fee(self, obj):
-        return .1
 
     def get_authtoken(self, obj):
         request = self.context.get('request')
@@ -306,9 +316,10 @@ class UserSerializer(UserInfoMixin, serializers.ModelSerializer):
         model = User
         fields = (
             'commissions_closed', 'rating', 'sfw_mode', 'max_load', 'username', 'id', 'is_staff', 'is_superuser',
-            'dwolla_configured', 'csrftoken', 'avatar_url', 'email', 'fee', 'authtoken', 'favorites_hidden',
+            'dwolla_configured', 'csrftoken', 'avatar_url', 'email', 'authtoken', 'favorites_hidden',
             'blacklist', 'biography', 'has_products', 'taggable', 'watching', 'blocked',  'commission_info',
-            'stars'
+            'stars', 'percentage_fee', 'static_fee', 'portrait', 'portrait_enabled', 'portrait_paid_through',
+            'landscape', 'landscape_enabled', 'landscape_paid_through', 'telegram_link'
         )
         read_only_fields = fields
 

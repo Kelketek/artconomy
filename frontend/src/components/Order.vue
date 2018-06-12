@@ -70,13 +70,13 @@
               <hr />
               <strong>Total: ${{price}}</strong> <br />
               <strong>Expected Turnaround: {{turnaround}} days</strong>
-              <div v-if="seller && sellerData.user.fee !== null">
+              <div v-if="seller && sellerData.user.percentage_fee !== null">
                 Artconomy service fee: -${{ fee }} <br />
                 <strong>Your payout: ${{ payout }}</strong> <br />
                 <strong>Task weight: {{ weight }}</strong>
               </div>
             </div>
-            <div class="pricing-container mt-2 pl-3 pr-3" v-if="seller && (newOrder || paymentPending) && (sellerData.user.fee !== null)">
+            <div class="pricing-container mt-2 pl-3 pr-3" v-if="seller && (newOrder || paymentPending) && (sellerData.user.percentage_fee !== null)">
               <ac-form-container
                   ref="adjustmentForm"
                   :schema="adjustmentSchema"
@@ -557,7 +557,7 @@
         return ((this.viewer.username === this.order.seller.username) || this.viewer.is_staff)
       },
       fee () {
-        return (this.price * (this.sellerData.user.fee).toFixed(2)).toFixed(2)
+        return ((this.price * this.sellerData.user.percentage_fee) + parseFloat(this.sellerData.user.static_fee)).toFixed(2)
       },
       payout () {
         return (this.price - this.fee).toFixed(2)

@@ -12,10 +12,10 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db.models import Model, CharField, ForeignKey, IntegerField, BooleanField, DateTimeField, \
-    URLField, SET_NULL, ManyToManyField, CASCADE, DecimalField
+    URLField, SET_NULL, ManyToManyField, CASCADE, DecimalField, DateField
 from django.db.models.signals import post_save, post_delete, pre_delete, pre_save
 from django.dispatch import receiver
-from django.utils.datetime_safe import datetime
+from django.utils.datetime_safe import datetime, date
 from rest_framework.authtoken.models import Token
 
 from apps.lib.abstract_models import GENERAL, RATINGS, ImageModel
@@ -29,6 +29,10 @@ from apps.profiles.permissions import AssetViewPermission, AssetCommentPermissio
 def banned_named_validator(value):
     if value.lower() in settings.BANNED_USERNAMES:
         raise ValidationError('This name is not permitted', code='invalid')
+
+
+def tg_key_gen():
+    return str(uuid.uuid4())[:30]
 
 
 class User(AbstractEmailUser):
@@ -58,6 +62,12 @@ class User(AbstractEmailUser):
         default=True,
         help_text="Whether to use load tracking to automatically open or close commissions."
     )
+    landscape_enabled = BooleanField(default=False, db_index=True)
+    landscape_paid_through = DateField(null=True, default=None, blank=True, db_index=True)
+    portrait_enabled = BooleanField(default=False, db_index=True)
+    portrait_paid_through = DateField(null=True, default=None, blank=True, db_index=True)
+    tg_key = CharField(db_index=True, default=tg_key_gen, max_length=30)
+    tg_chat_id = CharField(db_index=True, default='', max_length=30)
     max_load = IntegerField(
         validators=[MinValueValidator(1)], default=10,
         help_text="How much work you're willing to take on at once (for artists)"
@@ -86,8 +96,26 @@ class User(AbstractEmailUser):
     load = IntegerField(default=0)
 
     @property
-    def fee(self):
-        return .1
+    def landscape(self):
+        return self.landscape_paid_through and self.landscape_paid_through >= date.today()
+
+    @property
+    def portrait(self):
+        return self.landscape or (self.portrait_paid_through and self.portrait_paid_through >= date.today())
+
+    @property
+    def percentage_fee(self):
+        if self.landscape:
+            return settings.PREMIUM_PERCENTAGE_FEE
+        else:
+            return settings.STANDARD_PERCENTAGE_FEE
+
+    @property
+    def static_fee(self):
+        if self.landscape:
+            return settings.PREMIUM_STATIC_FEE
+        else:
+            return settings.STANDARD_STATIC_FEE
 
     def save(self, *args, **kwargs):
         self.email = self.email and self.email.lower()
