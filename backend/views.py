@@ -3,6 +3,7 @@ from django.shortcuts import render
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from telegram import Bot
 
 
 def index(request):
@@ -22,3 +23,20 @@ def bad_endpoint(request):
 
 def force_error_email(request):
     return 1 / 0
+
+
+@api_view(('GET',))
+def test_telegram(request):
+    if not request.user.is_authenticated:
+        return Response(
+            status=status.HTTP_400_BAD_REQUEST, data={'error': 'You must be logged in to use this feature.'}
+        )
+    if not request.user.tg_chat_id:
+        return Response(
+            status=status.HTTP_400_BAD_REQUEST, data={'error': 'You have not connected via Telegram.'}
+        )
+    bot = Bot(token=settings.TELEGRAM_BOT_KEY)
+    bot.send_message(chat_id=request.user.tg_chat_id, text='This is a test message.')
+    return Response(
+        status=status.HTTP_204_NO_CONTENT
+    )

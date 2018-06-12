@@ -1185,6 +1185,7 @@ class TestOrderStateChange(APITestCase):
     def test_cancel_order_staffer(self):
         self.state_assertion('staffer', 'cancel/', initial_status=Order.PAYMENT_PENDING)
 
+    @override_settings(STANDARD_PERCENTAGE_FEE=Decimal('.1'), STANDARD_STATIC_FEE=Decimal('1.00'))
     def test_approve_order_buyer(self):
         record = PaymentRecordFactory.create(
             target=self.order,
@@ -1200,7 +1201,7 @@ class TestOrderStateChange(APITestCase):
         records = PaymentRecord.objects.all()
         self.assertEqual(records.count(), 3)
         fee = records.get(payee=None, escrow_for__isnull=True)
-        self.assertEqual(fee.amount, Money('.50', 'USD'))
+        self.assertEqual(fee.amount, Money('1.50', 'USD'))
         self.assertEqual(fee.payer, self.order.seller)
         self.assertEqual(fee.escrow_for, None)
         self.assertEqual(fee.status, PaymentRecord.SUCCESS)

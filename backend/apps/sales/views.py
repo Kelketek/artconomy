@@ -409,7 +409,10 @@ class ApproveFinal(GenericAPIView):
             old_transaction.save()
             PaymentRecord.objects.create(
                 payer=order.seller,
-                amount=(order.price + order.adjustment) * order.seller.fee,
+                amount=(
+                    ((order.price + order.adjustment) * order.seller.percentage_fee)
+                    + Money(order.seller.static_fee, 'USD')
+                ),
                 payee=None,
                 source=PaymentRecord.ACCOUNT,
                 txn_id=str(uuid4()),
@@ -1071,7 +1074,7 @@ class AcceptCharTransfer(GenericAPIView):
             data = CharacterTransferSerializer(instance=transfer, context=self.get_serializer_context()).data
             PaymentRecord.objects.create(
                 payer=transfer.seller,
-                amount=transfer.price * transfer.seller.fee,
+                amount=(transfer.price * transfer.seller.percentage_fee) + Money(transfer.seller.static_fee, 'USD'),
                 payee=None,
                 source=PaymentRecord.ACCOUNT,
                 txn_id=str(uuid4()),

@@ -89,7 +89,7 @@ class CharacterTransferFactory(DjangoModelFactory):
     seller = SubFactory(UserFactory)
     buyer = SubFactory(UserFactory)
     character = SubFactory(CharacterFactory)
-    price = Money('15.00')
+    price = Money('15.00', 'USD')
 
     class Meta:
         model = CharacterTransfer

@@ -15,6 +15,12 @@
           <v-tab href="#tab-payment">
             <v-icon>attach_money</v-icon>&nbsp;Payment
           </v-tab>
+          <v-tab href="#tab-portrait">
+            <v-icon>portrait</v-icon>&nbsp;Portrait&nbsp;<v-icon>stars</v-icon>
+          </v-tab>
+          <v-tab href="#tab-landscape">
+            <v-icon>landscape</v-icon>&nbsp;Landscape&nbsp;<v-icon>stars</v-icon>
+          </v-tab>
         </v-tabs>
         <v-tabs-items v-model="tab">
           <v-tab-item id="tab-options">
@@ -113,6 +119,34 @@
                 <ac-transaction-history :endpoint="`/api/sales/v1/account/${user.username}/transactions/`" :username="user.username" />
               </v-tab-item>
             </v-tabs-items>
+          </v-tab-item>
+          <v-tab-item id="tab-portrait">
+            <v-jumbotron v-if="newPortrait" color="grey darken-3">
+              <v-container fill-height>
+                <v-layout align-center>
+                  <v-flex>
+                    <h3 class="display-3">Try Artconomy Portrait!</h3>
+                    <span class="subheading">Know when your favorite artists are open with Artconomy Portrait!</span>
+                    <v-divider class="my-3" />
+                    <v-btn large color="primary" class="mx-0">Notify Me!</v-btn>
+                  </v-flex>
+                </v-layout>
+              </v-container>
+            </v-jumbotron>
+          </v-tab-item>
+          <v-tab-item id="tab-landscape">
+            <v-jumbotron v-if="newLandscape" color="grey darken-3">
+              <v-container fill-height>
+                <v-layout align-center>
+                  <v-flex>
+                    <h3 class="display-3">Try Artconomy Landscape!</h3>
+                    <span class="subheading">Lower your fees for commissions, and be the first to try new features!</span>
+                    <v-divider class="my-3" />
+                    <v-btn large color="primary" class="mx-0">Go for it!</v-btn>
+                  </v-flex>
+                </v-layout>
+              </v-container>
+            </v-jumbotron>
           </v-tab-item>
         </v-tabs-items>
       </div>
@@ -344,7 +378,13 @@
     computed: {
       tab: paramHandleMap('tabName', ['subTabName']),
       paymentTab: paramHandleMap('subTabName', undefined, ['tab-purchase', 'tab-disbursement', 'tab-transactions'], 'tab-purchase'),
-      credentialsTab: paramHandleMap('subTabName', undefined, ['tab-authentication', 'tab-two-factor'], 'tab-authentication')
+      credentialsTab: paramHandleMap('subTabName', undefined, ['tab-authentication', 'tab-two-factor'], 'tab-authentication'),
+      newPortrait () {
+        return (!this.user.portrait_enabled) && (this.user.portrait_paid_through === null)
+      },
+      newLandscape () {
+        return (!this.user.landscape_enabled) && (this.user.landscape_paid_through === null)
+      }
     }
   }
 </script>
