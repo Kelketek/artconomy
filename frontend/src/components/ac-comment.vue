@@ -9,8 +9,8 @@
             commented
             <span :id="'comment-' + comment.id + '-edited_on'" class="underlined" v-if="comment.edited"><small>(edited)</small></span>
           </span>
-          {{formatDate(comment.created_on)}}
-          <span v-if="comment.edited"><br />Edited: {{formatDate(comment.edited_on)}}</span>
+          {{formatDateTime(comment.created_on)}}
+          <span v-if="comment.edited"><br />Edited: {{formatDateTime(comment.edited_on)}}</span>
         </v-tooltip>
         <v-flex text-xs-center v-if="toplevel && nesting">
           <ac-action :url="url" :send="{subscribed: !comment.subscribed}" method="PUT" :success="setSubscription">
@@ -121,7 +121,7 @@
 </style>
 
 <script>
-  import { artCall, md, formatDate } from '../lib'
+  import { artCall, md, formatDateTime } from '../lib'
   import AcAvatar from './ac-avatar'
   import Vue from 'vue'
   import AcAction from './ac-action'
@@ -193,7 +193,7 @@
           this.url + 'reply/', 'POST', {'text': this.reply, 'parent': this.comment.id}, this.addReply
         )
       },
-      formatDate
+      formatDateTime: formatDateTime
     },
     data () {
       return {

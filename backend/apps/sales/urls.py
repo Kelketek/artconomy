@@ -11,7 +11,7 @@ from apps.sales.views import ProductList, ProductManager, PlaceOrder, \
     AvailableHistory, CreateCharacterTransfer, RetrieveCharacterTransfer, CharacterTransferAssets, AcceptCharTransfer, \
     CancelCharTransfer, CharactersInbound, CharactersOutbound, CharactersArchive, NewProducts, WhoIsOpen, \
     CurrentPlaceholderSalesList, PlaceholderManager, SalesStats, PublishFinal, RateOrder, RatingList, PremiumInfo, \
-    Premium
+    Premium, CancelPremium
 
 app_name = 'sales'
 
@@ -20,6 +20,7 @@ urlpatterns = [
     path('v1/who-is-open/', WhoIsOpen.as_view(), name='who_is_open'),
     path('v1/pricing-info/', PremiumInfo.as_view(), name='pricing_info'),
     path('v1/premium/', Premium.as_view(), name='premium'),
+    path('v1/cancel-premium/', CancelPremium.as_view(), name='cancel_premium'),
     path('v1/order/<int:order_id>/comments/', OrderComments.as_view(), name='order_comments'),
     path('v1/order/<int:order_id>/revisions/', OrderRevisions.as_view(), name='order_revisions'),
     path(

@@ -4,7 +4,7 @@
       <v-flex xs12 v-if="error" text-xs-center>
         <p>{{error}}</p>
       </v-flex>
-      <v-flex xs12>
+      <v-flex xs12 text-xs-center>
         <v-pagination v-model="currentPage" :length="totalPages" v-if="totalPages > 1" />
       </v-flex>
       <ac-character-preview
@@ -27,7 +27,7 @@
           </v-layout>
         </v-container>
       </v-jumbotron>
-      <v-flex xs12>
+      <v-flex xs12 text-xs-center>
         <v-pagination v-model="currentPage" :length="totalPages" v-if="totalPages > 1" />
       </v-flex>
     </v-layout>

@@ -4,6 +4,7 @@ Models dealing primarily with user preferences and personalization.
 import uuid
 
 from avatar.templatetags.avatar_tags import avatar_url
+from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from custom_user.models import AbstractEmailUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
@@ -13,7 +14,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db.models import Model, CharField, ForeignKey, IntegerField, BooleanField, DateTimeField, \
     URLField, SET_NULL, ManyToManyField, CASCADE, DecimalField, DateField
-from django.db.models.signals import post_save, post_delete, pre_delete, pre_save
+from django.db.models.signals import post_save, post_delete, pre_delete
 from django.dispatch import receiver
 from django.utils.datetime_safe import datetime, date
 from rest_framework.authtoken.models import Token
@@ -44,7 +45,6 @@ class User(AbstractEmailUser):
     )
     primary_character = ForeignKey('Character', blank=True, null=True, related_name='+', on_delete=SET_NULL)
     primary_card = ForeignKey('sales.CreditCardToken', null=True, blank=True, related_name='+', on_delete=SET_NULL)
-    service_card = ForeignKey('sales.CreditCardToken', null=True, blank=True, related_name='+', on_delete=SET_NULL)
     dwolla_url = URLField(blank=True, default='')
     favorites = ManyToManyField('ImageAsset', blank=True, related_name='favorited_by')
     commissions_closed = BooleanField(
@@ -98,11 +98,14 @@ class User(AbstractEmailUser):
 
     @property
     def landscape(self):
-        return self.landscape_paid_through and self.landscape_paid_through >= date.today()
+        return self.landscape_paid_through and (self.landscape_paid_through + relativedelta(days=3)) >= date.today()
 
     @property
     def portrait(self):
-        return self.landscape or (self.portrait_paid_through and self.portrait_paid_through >= date.today())
+        return (
+            self.landscape
+            or (self.portrait_paid_through and (self.portrait_paid_through + relativedelta(days=3)) >= date.today())
+        )
 
     @property
     def percentage_fee(self):

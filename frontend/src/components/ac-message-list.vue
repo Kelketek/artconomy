@@ -25,7 +25,7 @@
                 <v-list-tile-content>
                   <v-list-tile-title>Subject: {{message.subject}}</v-list-tile-title>
                   <v-list-tile-sub-title>
-                    From {{message.sender.username }} On {{formatDate(message.created_on)}}
+                    From {{message.sender.username }} On {{formatDateTime(message.created_on)}}
                   </v-list-tile-sub-title>
                 </v-list-tile-content>
               </v-list-tile>
@@ -44,7 +44,7 @@
 <script>
   import Paginated from '../mixins/paginated'
   import AcAvatar from './ac-avatar'
-  import {formatDate} from '../lib'
+  import {formatDateTime} from '../lib'
   import Viewer from '../mixins/viewer'
   import Perms from '../mixins/permissions'
   export default {
@@ -61,7 +61,7 @@
           this.loadMore()
         }
       },
-      formatDate
+      formatDateTime: formatDateTime
     },
     created () {
       this.fetchItems()
