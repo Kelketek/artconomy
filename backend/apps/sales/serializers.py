@@ -183,6 +183,16 @@ class PaymentSerializer(serializers.Serializer):
     cvv = serializers.CharField(validators=[RegexValidator(r'^\d{3,4}$')], required=False, default='', allow_blank=True)
 
 
+class ServicePaymentSerializer(serializers.Serializer):
+    """
+    Serializer for taking payments
+    """
+    card_id = IntegerField()
+    service = serializers.ChoiceField(choices=('portrait', 'landscape'))
+    cvv = serializers.CharField(validators=[RegexValidator(r'^\d{3,4}$')], required=False, default='', allow_blank=True)
+
+
+
 class RevisionSerializer(serializers.ModelSerializer):
     """
     Serializer for order revisions.

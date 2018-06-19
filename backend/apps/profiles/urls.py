@@ -1,6 +1,5 @@
 """artconomy URL Configuration
 """
-from django.conf.urls import include
 from django.urls import path
 
 from apps.profiles.views import Register, CharacterListAPI, CharacterAssets, \
@@ -49,6 +48,7 @@ urlpatterns = [
     path('v1/account/<username>/blacklist/', UserBlacklist.as_view(), name='user_blacklist'),
     path('v1/account/<username>/favorites/', FavoritesList.as_view(), name='favorites_list'),
     path('v1/account/<username>/gallery/', GalleryList.as_view(), name='gallery_list'),
+    path('v1/account/<username>/submissions/', SubmissionList.as_view(), name='submission_list'),
     path('v1/account/<username>/messages/inbox/', MessagesTo.as_view(), name='messages_to'),
     path('v1/account/<username>/messages/sent/', MessagesFrom.as_view(), name='messages_from'),
     path('v1/messages/<int:message_id>/', MessageManager.as_view(), name='message_manager'),

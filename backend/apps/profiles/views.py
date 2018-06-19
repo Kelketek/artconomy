@@ -525,7 +525,7 @@ class AssetTag(BaseTagView):
             )
         return Response(
             status=status.HTTP_200_OK, data=ImageAssetManagementSerializer(
-                instance=asset, request=self.request, context=self.get_serializer_context()
+                instance=asset, context=self.get_serializer_context()
             ).data
         )
 

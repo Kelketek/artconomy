@@ -279,8 +279,8 @@ class UserSerializer(UserInfoMixin, serializers.ModelSerializer):
     csrftoken = serializers.SerializerMethodField()
     authtoken = serializers.SerializerMethodField()
     avatar_url = serializers.SerializerMethodField()
-    percentage_fee = serializers.DecimalField(decimal_places=2, max_digits=3)
-    static_fee = serializers.DecimalField(decimal_places=2, max_digits=5)
+    percentage_fee = serializers.DecimalField(decimal_places=2, max_digits=3, read_only=True)
+    static_fee = serializers.DecimalField(decimal_places=2, max_digits=5, read_only=True)
     portrait_paid_through = serializers.DateField(read_only=True)
     landscape_paid_through = serializers.DateField(read_only=True)
     telegram_link = serializers.SerializerMethodField()
@@ -297,7 +297,7 @@ class UserSerializer(UserInfoMixin, serializers.ModelSerializer):
         return get_token(self.context['request'])
 
     def get_telegram_link(self, obj):
-        return 'https://t.me/{}/?start={}%3A{}'.format(
+        return 'https://t.me/{}/?start={}_{}'.format(
             settings.TELEGRAM_BOT_USERNAME, quote_plus(obj.username), obj.tg_key
         )
 

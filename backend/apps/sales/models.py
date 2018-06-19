@@ -629,7 +629,7 @@ class PaymentRecord(Model):
             content_type=self.content_type,
             object_id=self.object_id,
             amount=self.amount,
-            response_message="Failed when contacting Authorize.net."
+            response_message="Failed when contacting payment processor."
         )
         transaction = sauce.transaction(self.txn_id)
         try:

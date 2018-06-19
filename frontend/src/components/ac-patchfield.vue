@@ -119,7 +119,6 @@
       postFail (response) {
         this.editing = false
         this.disabled = false
-        console.log('I ran!')
         if (response.responseJSON && response.responseJSON !== undefined) {
           this.errors = response.responseJSON[this.name] || ['There was an issue while saving. Please try again later.']
         } else {

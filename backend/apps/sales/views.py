@@ -1,3 +1,4 @@
+from datetime import date
 from uuid import uuid4
 
 from authorize import AuthorizeResponseError
@@ -30,7 +31,7 @@ from apps.lib.utils import notify, recall_notification, subscribe
 from apps.lib.views import BaseTagView
 from apps.profiles.models import User, ImageAsset, Character
 from apps.profiles.permissions import ObjectControls, UserControls
-from apps.profiles.serializers import ImageAssetSerializer
+from apps.profiles.serializers import ImageAssetSerializer, UserSerializer
 from apps.sales.dwolla import add_bank_account, initiate_withdraw, perform_transfer, make_dwolla_account, \
     destroy_bank_account
 from apps.sales.permissions import OrderViewPermission, OrderSellerPermission, OrderBuyerPermission, \
@@ -40,7 +41,8 @@ from apps.sales.models import Product, Order, CreditCardToken, PaymentRecord, Re
 from apps.sales.serializers import ProductSerializer, ProductNewOrderSerializer, OrderViewSerializer, CardSerializer, \
     NewCardSerializer, OrderAdjustSerializer, PaymentSerializer, RevisionSerializer, OrderStartedSerializer, \
     AccountBalanceSerializer, BankAccountSerializer, WithdrawSerializer, PaymentRecordSerializer, \
-    CharacterTransferSerializer, PlaceholderSaleSerializer, PublishFinalSerializer, RatingSerializer
+    CharacterTransferSerializer, PlaceholderSaleSerializer, PublishFinalSerializer, RatingSerializer, \
+    ServicePaymentSerializer
 from apps.sales.utils import translate_authnet_error, available_products
 
 
@@ -733,7 +735,7 @@ class MakePayment(GenericAPIView):
             source=PaymentRecord.CARD,
             type=PaymentRecord.SALE,
             amount=attempt['amount'],
-            response_message="Failed when contacting Authorize.net.",
+            response_message="Failed when contacting payment processor.",
             target=order,
         )
         code = status.HTTP_400_BAD_REQUEST
@@ -1051,7 +1053,7 @@ class AcceptCharTransfer(GenericAPIView):
             source=PaymentRecord.CARD,
             type=PaymentRecord.SALE,
             amount=attempt['amount'],
-            response_message="Failed when contacting Authorize.net.",
+            response_message="Failed when contacting payment processor.",
             target=transfer,
         )
         code = status.HTTP_400_BAD_REQUEST
@@ -1236,3 +1238,106 @@ class RatingList(ListAPIView):
     def get_queryset(self):
         user = get_object_or_404(User, username__iexact=self.kwargs['username'])
         return user.ratings.all().order_by('-created_on')
+
+
+class PremiumInfo(APIView):
+    def get(self, _request):
+        return Response(
+            status=status.HTTP_200_OK,
+            data={
+                'landscape_percentage': str(settings.PREMIUM_PERCENTAGE_FEE),
+                'landscape_static': str(settings.PREMIUM_STATIC_FEE),
+                'landscape_price': str(settings.LANDSCAPE_PRICE),
+                'standard_percentage': str(settings.STANDARD_PERCENTAGE_FEE),
+                'standard_static': str(settings.STANDARD_STATIC_FEE),
+                'portrait_price': str(settings.PORTRAIT_PRICE)
+            }
+        )
+
+
+def check_charge_required(user, service):
+    if service == 'portrait':
+        if user.portrait_paid_through:
+            if user.portrait_paid_through >= date.today():
+                return False
+        if user.landscape_paid_through:
+            if user.landscape_paid_through >= date.today():
+                return False
+    else:
+        if user.landscape_paid_through:
+            if user.landscape_paid_through >= date.today():
+                return False
+    return True
+
+
+def set_service(user, service, target_date=None):
+    if service == 'portrait':
+        user.portrait_enabled = True
+        user.landscape_enabled = False
+    else:
+        user.landscape_enabled = True
+        user.portrait_enabled = False
+    if target_date:
+        setattr(user, service + '_paid_through', target_date)
+    user.save()
+
+
+def service_price(user, service):
+    price = Money(getattr(settings, service.upper() + '_PRICE'), 'USD')
+    if service == 'landscape':
+        if user.portrait_paid_through >= date.today():
+            price -= Money(settings.PORTRAIT_PRICE, 'USD')
+    return price
+
+
+class Premium(GenericAPIView):
+    serializer_class = ServicePaymentSerializer
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        attempt = self.get_serializer(data=self.request.data, context=self.get_serializer_context())
+        attempt.is_valid(raise_exception=True)
+        attempt = attempt.validated_data
+        card = get_object_or_404(CreditCardToken, id=attempt['card_id'], active=True, user=request.user)
+        if not card.cvv_verified and not attempt['cvv']:
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST, data={'error': 'You must enter the security code for this card.'}
+            )
+        charge_required = check_charge_required(self.request.user, attempt['service'])
+        if not charge_required:
+            set_service(request.user, attempt['service'])
+            return Response(
+                status=status.HTTP_200_OK,
+                data=UserSerializer(instance=self.request.user, context=self.get_serializer_context()).data
+            )
+        price = service_price(request.user, attempt['service'])
+        record = PaymentRecord.objects.create(
+            card=card,
+            payer=self.request.user,
+            payee=None,
+            status=PaymentRecord.FAILURE,
+            source=PaymentRecord.CARD,
+            type=PaymentRecord.SALE,
+            amount=price,
+            response_message="Failed when contacting payment processor.",
+            target=request.user,
+        )
+        code = status.HTTP_400_BAD_REQUEST
+        data = {'error': record.response_message}
+        try:
+            result = card.api.capture(price.amount, cvv=attempt['cvv'] or None)
+        except Exception as err:
+            record.response_message = translate_authnet_error(err)
+            data['error'] = record.response_message
+        else:
+            record.status = PaymentRecord.SUCCESS
+            record.txn_id = result.uid
+            record.finalized = True
+            record.response_message = 'Upgraded to {}'.format(attempt['service'])
+            code = status.HTTP_202_ACCEPTED
+            card.cvv_verified = True
+            card.save()
+            set_service(request.user, attempt['service'], target_date=date.today() + relativedelta(months=1))
+            data = UserSerializer(instance=request.user, context=self.get_serializer_context()).data
+        record.save()
+        return Response(status=code, data=data)

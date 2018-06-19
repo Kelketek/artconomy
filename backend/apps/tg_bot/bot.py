@@ -4,10 +4,11 @@ from apps.profiles.models import User, tg_key_gen
 
 
 def start(bot, update, args):
-    if User.objects.filter(tg_chat_id=update.message.chat_id).exclude(tg_chat_id='').exists():
+    existing = User.objects.filter(tg_chat_id=update.message.chat_id).exclude(tg_chat_id='')
+    if existing:
         bot.send_message(
             chat_id=update.message.chat_id,
-            text="Welcome back! Your messages from Artconomy will continue now."
+            text="Welcome back! Your messages from Artconomy for {} will continue now.".format(existing[0].username)
         )
         return
     if not args:
@@ -17,7 +18,7 @@ def start(bot, update, args):
                  "Portrait tab in your settings to send a starting message with your key."
         )
         return
-    args = args[0].split(':')
+    args = args[0].rsplit('_')
     if len(args) != 2:
         bot.send_message(
             chat_id=update.message.chat_id,
@@ -40,23 +41,22 @@ def start(bot, update, args):
     bot.send_message(chat_id=update.message.chat_id, text="Welcome to the Artconomy bot!")
 
 
-def echo(bot, update):
-    bot.send_message(chat_id=update.message.chat_id, text=update.message.text)
-
-
-def unknown(bot, update):
-    bot.send_message(chat_id=update.message.chat_id, text="Sorry, I didn't understand that command.")
+def help_message(bot, update):
+    bot.send_message(
+        chat_id=update.message.chat_id,
+        text="Sorry, I didn't understand that. If you're having trouble, please contact support@artconomy.com."
+    )
 
 
 start_handler = CommandHandler('start', start, pass_args=True)
-echo_handler = MessageHandler(Filters.text, echo)
-unknown_handler = MessageHandler(Filters.command, unknown)
+help_handler = MessageHandler(Filters.text, help_message)
+unknown_handler = MessageHandler(Filters.command, help_message)
 
 
 def init(api_key):
     updater = Updater(token=api_key)
     dispatcher = updater.dispatcher
     dispatcher.add_handler(start_handler)
-    dispatcher.add_handler(echo_handler)
+    dispatcher.add_handler(help_handler)
     dispatcher.add_handler(unknown_handler)
     return updater

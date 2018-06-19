@@ -16,6 +16,7 @@ import Transfers from '@/components/Transfers'
 import Product from '@/components/Product'
 import Order from '@/components/Order'
 import Orders from '@/components/Orders'
+import Upgrade from '@/components/Upgrade'
 import Settings from '@/components/Settings'
 import Character from '@/components/Character'
 import Submission from '@/components/Submission'
@@ -92,6 +93,12 @@ export const routes = [
         endpoint: `/api/sales/v1/account/${route.params.username}/products/`
       }
     }
+  },
+  {
+    path: '/upgrade/',
+    name: 'Upgrade',
+    component: Upgrade,
+    props: true
   },
   {
     path: '/who-is-open/',

@@ -19,6 +19,10 @@
                 <span v-if="user.blocked">&nbsp;Unblock</span><span v-else>&nbsp;Block</span>
               </ac-action>
             </v-flex>
+            <v-flex v-if="!is_current" text-xs-center>
+              <v-btn v-if="isLoggedIn && !portrait" color="purple" :to="{name: 'Upgrade'}">Alert when open</v-btn>
+              <span v-if="portrait && user.watching">You will be alerted when this artist is open.</span>
+            </v-flex>
           </v-layout>
         </v-flex>
         <v-flex xs12 sm10 class="pt-2 pl-2 pr-2">

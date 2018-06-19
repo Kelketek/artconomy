@@ -44,6 +44,7 @@ class User(AbstractEmailUser):
     )
     primary_character = ForeignKey('Character', blank=True, null=True, related_name='+', on_delete=SET_NULL)
     primary_card = ForeignKey('sales.CreditCardToken', null=True, blank=True, related_name='+', on_delete=SET_NULL)
+    service_card = ForeignKey('sales.CreditCardToken', null=True, blank=True, related_name='+', on_delete=SET_NULL)
     dwolla_url = URLField(blank=True, default='')
     favorites = ManyToManyField('ImageAsset', blank=True, related_name='favorited_by')
     commissions_closed = BooleanField(
