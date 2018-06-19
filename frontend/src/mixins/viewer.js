@@ -1,4 +1,6 @@
 // This module should no longer be needed since we're now using the UserHandler plugin.
+import moment from 'moment/moment'
+
 export default {
   computed: {
     rating () {
@@ -23,6 +25,27 @@ export default {
       if (this.viewer.username) {
         return true
       }
+    },
+    landscape () {
+      if (!this.viewer) {
+        return false
+      }
+      if (this.viewer.landscape_paid_through) {
+        return moment(this.viewer.landscape_paid_through) >= moment.now()
+      }
+      return false
+    },
+    portrait () {
+      if (!this.viewer) {
+        return false
+      }
+      if (this.landscape) {
+        return true
+      }
+      if (this.viewer.portrait_paid_through) {
+        return moment(this.viewer.portrait_paid_through) >= moment.now()
+      }
+      return false
     }
   }
 }

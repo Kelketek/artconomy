@@ -126,13 +126,33 @@
                 <v-layout align-center>
                   <v-flex>
                     <h3 class="display-3">Try Artconomy Portrait!</h3>
-                    <span class="subheading">Know when your favorite artists are open with Artconomy Portrait!</span>
+                    <span class="subheading">Know when your favorite artists are open with Artconomy Portrait</span>
                     <v-divider class="my-3" />
                     <v-btn large color="primary" class="mx-0">Notify Me!</v-btn>
                   </v-flex>
                 </v-layout>
               </v-container>
             </v-jumbotron>
+            <v-card v-else>
+              <v-card-text>
+                <v-layout row wrap>
+                  <v-flex text-xs-center xs12>
+                    <v-jumbotron color="grey darken-3">
+                      <v-container fill-height>
+                        <v-layout align-center>
+                          <v-flex>
+                            <h3 class="display-3">Welcome to Artconomy Portrait!</h3>
+                            <span class="subheading">You are currently receiving emails for your watchlist. If you'd like to get messages via Telegram, click the button below.</span>
+                            <v-divider class="my-3" />
+                            <v-btn large color="primary" :href="user.telegram_link" class="mx-0" target="_blank"><v-icon>fa-telegram</v-icon>&nbsp;Notify me via Telegram!</v-btn>
+                          </v-flex>
+                        </v-layout>
+                      </v-container>
+                    </v-jumbotron>
+                  </v-flex>
+                </v-layout>
+              </v-card-text>
+            </v-card>
           </v-tab-item>
           <v-tab-item id="tab-landscape">
             <v-jumbotron v-if="newLandscape" color="grey darken-3">
@@ -147,6 +167,15 @@
                 </v-layout>
               </v-container>
             </v-jumbotron>
+            <v-card v-else-if="pricing">
+              <v-card-text>
+                <v-layout row wrap>
+                  <v-flex xs12>
+                    Landscape activated.
+                  </v-flex>
+                </v-layout>
+              </v-card-text>
+            </v-card>
           </v-tab-item>
         </v-tabs-items>
       </div>
@@ -165,7 +194,7 @@
   import AcFormContainer from './ac-form-container'
   import Viewer from '../mixins/viewer'
   import Perms from '../mixins/permissions'
-  import { inputMatches, paramHandleMap, ratings, setMetaContent } from '../lib'
+  import {artCall, inputMatches, paramHandleMap, ratings, setMetaContent} from '../lib'
   import AcCardManager from './ac-card-manager'
   import AcAccountBalance from './ac-account-balance'
   import AcSetupTwoFactor from './ac-setup-two-factor'
@@ -189,6 +218,9 @@
       updateUser () {
         // The arguments pushed to the success function evaluate as true, so we have to make sure none are passed.
         this.$root.$loadUser()
+      },
+      loadPricing (response) {
+        this.pricing = response
       },
       updateCredentials () {
         this.credentialsModel.current_password = ''
@@ -227,6 +259,7 @@
         settingsUpdated: false,
         // Used by Tab mapper
         query: null,
+        pricing: null,
         credentialsModel: {
           username: this.$root.user.username,
           email: this.$root.user.email,
@@ -371,9 +404,10 @@
       }
     },
     created () {
-      document.title = `Account settings for ${this.$route.params.username}`
+      document.title = `Settings for ${this.$route.params.username}`
       setMetaContent('description', 'Configure your account settings for Artconomy.')
       window.settings = this
+      artCall('/api/sales/v1/pricing-info/', 'GET', undefined, this.loadPricing, this.$error)
     },
     computed: {
       tab: paramHandleMap('tabName', ['subTabName']),

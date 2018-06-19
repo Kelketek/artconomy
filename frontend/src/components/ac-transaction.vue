@@ -155,6 +155,9 @@
       },
       paidAction () {
         if (this.transaction.type === TYPES.SALE) {
+          if (this.transaction.escrow_for === null) {
+            return 'Service Payment to Artconomy'
+          }
           if (this.transaction.escrow_for.username === this.username) {
             return 'Escrow hold: Sale #' + this.transaction.target.id
           } else {

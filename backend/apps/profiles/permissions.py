@@ -125,6 +125,7 @@ class ViewFavorites(BasePermission):
             return True
         if obj.favorites_hidden:
             return False
+        return True
 
 
 class MessageReadPermission(BasePermission):

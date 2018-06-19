@@ -37,6 +37,12 @@
           </v-list-tile-action>
           <v-list-tile-title>Settings</v-list-tile-title>
         </v-list-tile>
+        <v-list-tile :to="{name: 'Upgrade'}" v-if="!landscape">
+          <v-list-tile-action>
+            <v-icon>arrow_upward</v-icon>
+          </v-list-tile-action>
+          <v-list-tile-title>Upgrade!</v-list-tile-title>
+        </v-list-tile>
         <v-list-tile @click.prevent="logout()">
           <v-list-tile-action>
             <v-icon>exit_to_app</v-icon>
@@ -139,9 +145,11 @@
 <script>
   import { artCall, EventBus } from '../lib'
   import AcPatchbutton from './ac-patchbutton'
+  import Viewer from '../mixins/viewer'
 
   export default {
     components: {AcPatchbutton},
+    mixins: [Viewer],
     name: 'NavBar',
     data () {
       let data = {
