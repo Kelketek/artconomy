@@ -107,6 +107,16 @@
             <div v-if="seller && (newOrder)">
               <p><strong>Make any Price adjustments here, and then accept or reject the order.</strong></p>
               <p>Be sure to comment on the order about your price adjustments so the buyer will know the reasoning behind them.</p>
+              <div v-if="pricing">
+                <div v-if="!landscape">
+                  You'll earn <strong>${{landscapeDifference}}</strong> more from this commission if you upgrade to Artconomy Landscape!
+                  <br />
+                  <v-btn :to="{name: 'Upgrade'}" color="purple">Upgrade Now!</v-btn>
+                </div>
+                <div v-else>
+                  Your Landscape subscription earns you <strong>${{landscapeDifference}}</strong> more than you would have earned on this commission otherwise!
+                </div>
+              </div>
             </div>
             <div v-if="seller && paymentPending">
               <p><strong>We've notified the commissioner of your acceptance!</strong></p>
@@ -466,10 +476,14 @@
       populateRevisions (response) {
         this.revisions = response.results
       },
+      loadPricing (response) {
+        this.pricing = response
+      },
       reload () {
         // The number of revisions can have effects on the order's status. Safer to let the server handle it.
         artCall(this.url, 'GET', undefined, this.populateOrder, this.$error)
         artCall(`${this.url}revisions/`, 'GET', undefined, this.populateRevisions, this.$error)
+        artCall('/api/sales/v1/pricing-info/', 'GET', undefined, this.loadPricing)
       },
       postPay (response) {
         this.justPaid = true
@@ -557,10 +571,17 @@
         return ((this.viewer.username === this.order.seller.username) || this.viewer.is_staff)
       },
       fee () {
-        return ((this.price * this.sellerData.user.percentage_fee) + parseFloat(this.sellerData.user.static_fee)).toFixed(2)
+        return ((this.price * (this.sellerData.user.percentage_fee * 0.01)) + parseFloat(this.sellerData.user.static_fee)).toFixed(2)
       },
       payout () {
         return (this.price - this.fee).toFixed(2)
+      },
+      landscapeDifference () {
+        let standardFee = ((this.price * (this.pricing.standard_percentage * 0.01)) + parseFloat(this.pricing.standard_static)).toFixed(2)
+        let landscapeFee = ((this.price * (this.pricing.landscape_percentage * 0.01)) + parseFloat(this.pricing.landscape_static)).toFixed(2)
+        console.log(standardFee)
+        console.log(landscapeFee)
+        return (parseFloat(standardFee) - parseFloat(landscapeFee)).toFixed(2)
       },
       weight () {
         let weight = this.order.task_weight || this.order.product.task_weight
@@ -598,6 +619,7 @@
           title: '',
           caption: ''
         },
+        pricing: null,
         showPublish: false,
         publishSchema: {
           fields: [{
