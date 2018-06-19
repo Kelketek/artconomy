@@ -24,7 +24,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.lib.models import DISPUTE, REFUND, COMMENT, Subscription, ORDER_UPDATE, SALE_UPDATE, REVISION_UPLOADED, \
-    CHAR_TRANSFER, NEW_PORTFOLIO_ITEM, NEW_PRODUCT, STREAMING
+    CHAR_TRANSFER, NEW_PORTFOLIO_ITEM, NEW_PRODUCT, STREAMING, COMMISSIONS_OPEN
 from apps.lib.permissions import ObjectStatus, IsStaff, IsSafeMethod, Any
 from apps.lib.serializers import CommentSerializer
 from apps.lib.utils import notify, recall_notification, subscribe
@@ -1279,6 +1279,18 @@ def set_service(user, service, target_date=None):
         user.portrait_enabled = False
     if target_date:
         setattr(user, service + '_paid_through', target_date)
+        for watched in user.watching.all():
+            content_type = ContentType.objects.get_for_model(watched)
+            sub, _ = Subscription.objects.get_or_create(
+                subscriber=user,
+                content_type=content_type,
+                object_id=watched.id,
+                type=COMMISSIONS_OPEN
+            )
+            sub.until = target_date
+            sub.telegram = True
+            sub.email = True
+            sub.save()
     user.save()
 
 
