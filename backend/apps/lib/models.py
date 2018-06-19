@@ -118,8 +118,10 @@ class Subscription(models.Model):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True, db_index=True)
     target = GenericForeignKey('content_type', 'object_id')
     implicit = models.BooleanField(default=True, db_index=True)
-    email = models.BooleanField(default=False)
+    email = models.BooleanField(default=False, db_index=True)
+    telegram = models.BooleanField(default=False, db_index=True)
     removed = models.BooleanField(default=False, db_index=True)
+    until = models.DateField(null=True, db_index=True)
 
     class Meta:
         unique_together = ('type', 'subscriber', 'object_id', 'content_type')

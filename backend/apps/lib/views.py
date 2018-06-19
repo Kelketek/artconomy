@@ -12,7 +12,7 @@ from apps.lib.permissions import CommentEditPermission, CommentViewPermission, C
     IsMethod, IsSafeMethod
 from apps.lib.serializers import CommentSerializer, CommentSubscriptionSerializer
 from apps.lib.utils import countries_tweaked, remove_tags, add_tags, remove_comment, safe_add
-from apps.profiles.models import User, ImageAsset
+from apps.profiles.models import User
 from apps.profiles.permissions import ObjectControls
 
 

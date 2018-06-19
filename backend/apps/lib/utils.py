@@ -1,6 +1,9 @@
+import logging
 import os
+from datetime import date
 from pathlib import Path
 
+from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
@@ -18,10 +21,22 @@ from django.utils.text import slugify
 from pycountry import countries, subdivisions
 from rest_framework import status
 from rest_framework.response import Response
+from telegram import Bot
 
 from apps.lib.models import Subscription, Event, Notification, Tag, Comment, COMMENT, \
     NEW_PORTFOLIO_ITEM, NEW_PRODUCT, COMMISSIONS_OPEN, NEW_CHARACTER, STREAMING, EMAIL_SUBJECTS
 from shortcuts import make_url
+
+
+BOT = None
+logger = logging.getLogger(__name__)
+
+
+def get_bot():
+    global BOT
+    if not BOT:
+        BOT = Bot(settings.TELEGRAM_BOT_KEY)
+    return BOT
 
 
 def countries_tweaked():
@@ -108,7 +123,7 @@ def get_matching_subscriptions(event_type, object_id, content_type, exclude=None
     exclude = exclude or []
     return Subscription.objects.filter(
         Q(type=event_type, removed=False) & target_params(object_id, content_type)
-    ).exclude(subscriber__in=exclude)
+    ).exclude(subscriber__in=exclude).filter(Q(until__isnull=True) | Q(until__gte=date.today()))
 
 
 def get_matching_events(event_type, content_type, object_id, data, unique_data=None):
@@ -125,9 +140,21 @@ def get_matching_events(event_type, content_type, object_id, data, unique_data=N
 
 def watch_subscriptions(watcher, watched):
     # To be implemented when paid service is in place.
-    #(COMMISSIONS_OPEN, 'Commission Slots Available'),
-    #(NEW_AUCTION, 'New Action'),
+    target_date = (
+        watcher.portrait_paid_through or watcher.landscape_paid_through or (date.today() - relativedelta(days=5))
+    )
+    #(NEW_AUCTION, 'New Auction'),
     content_type = ContentType.objects.get_for_model(watched)
+    sub, _ = Subscription.objects.get_or_create(
+        subscriber=watcher,
+        content_type=content_type,
+        object_id=watched.id,
+        type=COMMISSIONS_OPEN
+    )
+    sub.until = target_date
+    sub.telegram = True
+    sub.email = True
+    sub.save()
     Subscription.objects.get_or_create(
         subscriber=watcher,
         content_type=content_type,
@@ -249,6 +276,25 @@ def notify(
             msg = EmailMessage(subject, message, to=to, from_email=from_email)
             msg.content_subtype = 'html'
             msg.send()
+
+    telegram_subscriptions = subscriptions.filter(telegram=True)
+    if telegram_subscriptions.exists():
+        path = Path(settings.BACKEND_ROOT) / 'templates' / 'notifications'
+        template = [file for file in os.listdir(str(path)) if file.startswith('TG_' + str(event_type))][0]
+        template_path = path / template
+        for subscription in telegram_subscriptions:
+            if not subscription.subscriber.tg_chat_id:
+                continue
+            req_context = {'request': FakeRequest(subscription.subscriber)}
+            ctx = {
+                'data': NOTIFICATION_TYPE_MAP.get(event_type, lambda x, _: x.data)(event, req_context),
+                'target': notification_serialize(event.target, req_context), 'user': subscription.subscriber
+            }
+            message = get_template(template_path).render(ctx)
+            try:
+                get_bot().send_message(chat_id=subscription.subscriber.tg_chat_id, parse_mode='Markdown', text=message)
+            except Exception as err:
+                logger.exception(err)
 
     # We need to make sure anyone who was previously ineligible for a notification who is now eligible can get one.
     # To do that, we must avoid creating any that already exist if we want to leverage bulk_create. This should

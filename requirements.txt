@@ -3,13 +3,13 @@ pycountry
 authorizesauce==0.5.0
 bok_choy==0.7.1
 ddt==1.1.1
-Django>=2.0.0,<2.1.0
+Django>=2.0.6,<2.1.0
 django-avatar==4.1.0
 django-ipware==2.0.1
 djangorestframework==3.7.7
 djangorestframework-bulk==0.2.1
 django-rest-recaptcha==1.0.1
-django_money==0.11.4
+django_money==0.14
 django-premailer==0.2.0
 django-custom-user==0.7
 dwollav2==1.2.4

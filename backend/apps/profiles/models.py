@@ -98,13 +98,13 @@ class User(AbstractEmailUser):
 
     @property
     def landscape(self):
-        return self.landscape_paid_through and (self.landscape_paid_through + relativedelta(days=3)) >= date.today()
+        return self.landscape_paid_through and self.landscape_paid_through >= date.today()
 
     @property
     def portrait(self):
         return (
             self.landscape
-            or (self.portrait_paid_through and (self.portrait_paid_through + relativedelta(days=3)) >= date.today())
+            or (self.portrait_paid_through and self.portrait_paid_through >= date.today())
         )
 
     @property

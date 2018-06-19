@@ -594,7 +594,7 @@ class PaymentRecord(Model):
     escrow_for = ForeignKey(
         settings.AUTH_USER_MODEL, null=True, blank=True, related_name='escrow_holdings', on_delete=CASCADE
     )
-    amount = MoneyField(max_digits=4, decimal_places=2, default_currency='USD')
+    amount = MoneyField(max_digits=6, decimal_places=2, default_currency='USD')
     txn_id = CharField(max_length=40)
     created_on = DateTimeField(auto_now_add=True, db_index=True)
     response_code = CharField(max_length=10)
