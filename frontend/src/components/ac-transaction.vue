@@ -8,7 +8,7 @@
         {{direction }} {{other.username}}
       </v-list-tile-sub-title>
       <v-list-tile-sub-title>
-        {{formatDate(transaction.created_on)}}
+        {{formatDateTime(transaction.created_on)}}
       </v-list-tile-sub-title>
     </v-list-tile-content>
     <v-list-tile-action>
@@ -42,7 +42,7 @@
 <script>
   import Viewer from '../mixins/viewer'
   import Perms from '../mixins/permissions'
-  import { ACCOUNT_TYPES, formatDate, ISSUERS } from '../lib'
+  import { ACCOUNT_TYPES, formatDateTime, ISSUERS } from '../lib'
 
   const TYPES = {
     SALE: 200,
@@ -62,7 +62,7 @@
       }
     },
     methods: {
-      formatDate
+      formatDateTime: formatDateTime
     },
     computed: {
       isPayer () {

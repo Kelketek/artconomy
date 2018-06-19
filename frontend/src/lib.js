@@ -23,8 +23,12 @@ export function getCookie (name) {
   return cookieValue
 }
 
-export function formatDate (dateString) {
+export function formatDateTime (dateString) {
   return moment(dateString).format('MMMM Do YYYY, h:mm:ss a')
+}
+
+export function formatDate (dateString) {
+  return moment(dateString).format('MMMM Do YYYY')
 }
 
 // https://stackoverflow.com/questions/14573223/set-cookie-and-get-cookie-with-javascript

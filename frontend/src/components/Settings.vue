@@ -133,7 +133,7 @@
                 </v-layout>
               </v-container>
             </v-jumbotron>
-            <v-card v-else>
+            <v-layout v-else>
               <v-card-text>
                 <v-layout row wrap>
                   <v-flex text-xs-center xs12>
@@ -150,9 +150,30 @@
                       </v-container>
                     </v-jumbotron>
                   </v-flex>
+                  <v-flex xs12 text-xs-center class="pt-3">
+                    <v-card>
+                      <v-card-text v-if="portraitLimited">
+                        <p>You are paid through {{formatDate(user.portrait_paid_through)}}.</p>
+                      </v-card-text>
+                      <v-card-text v-else-if="user.landscape_enabled">
+                        You are receiving portrait features as part of your landscape subscription.
+                        Your landscape subscription is paid through {{formatDate(user.landscape_paid_through)}}.
+                      </v-card-text>
+                      <v-card-text>
+                        <ac-action
+                            color="red" v-if="user.portrait_enabled || user.landscape_enabled" url="/api/sales/v1/cancel-premium/" :success="updateUser"
+                            :confirm="true"
+                        >
+                          <div class="text-left" slot="confirmation-text">Are you sure you wish to cancel your subscription? Note: You will be able to use the extra features until your current term ends.</div>
+                          Cancel Subscription
+                        </ac-action>
+                        <v-btn v-else color="primary" :to="{name: 'Upgrade'}">Restart Subscription</v-btn>
+                      </v-card-text>
+                    </v-card>
+                  </v-flex>
                 </v-layout>
               </v-card-text>
-            </v-card>
+            </v-layout>
           </v-tab-item>
           <v-tab-item id="tab-landscape">
             <v-jumbotron v-if="newLandscape" color="grey darken-3">
@@ -162,20 +183,54 @@
                     <h3 class="display-3">Try Artconomy Landscape!</h3>
                     <span class="subheading">Lower your fees for commissions, and be the first to try new features!</span>
                     <v-divider class="my-3" />
-                    <v-btn large color="primary" class="mx-0">Go for it!</v-btn>
+                    <v-btn large color="primary" class="mx-0" :to="{name: 'Upgrade'}">Go for it!</v-btn>
                   </v-flex>
                 </v-layout>
               </v-container>
             </v-jumbotron>
-            <v-card v-else-if="pricing">
+            <v-layout v-else-if="pricing">
               <v-card-text>
                 <v-layout row wrap>
                   <v-flex xs12>
-                    Landscape activated.
+                    <v-jumbotron color="grey darken-3">
+                      <v-container fill-height>
+                        <v-layout align-center>
+                          <v-flex>
+                            <h3 class="display-3">Welcome to Artconomy Landscape!</h3>
+                            <span class="subheading">
+                              Your commission percentage fee is now {{ pricing.landscape_percentage }}%
+                              (down from {{pricing.standard_percentage}}%) and your per-sale fee is
+                              ${{pricing.landscape_static}} (down from ${{pricing.standard_static}})
+                            </span>
+                            <br />
+                            <span class="subheading">
+                              You will also be first to receive previews for new Artconomy Features, and have access to Portrait features.
+                            </span>
+                          </v-flex>
+                        </v-layout>
+                      </v-container>
+                    </v-jumbotron>
+                  </v-flex>
+                  <v-flex xs12 text-xs-center class="pt-3">
+                    <v-card>
+                      <v-card-text>
+                        You are paid through {{formatDate(user.landscape_paid_through)}}.
+                      </v-card-text>
+                      <v-card-text>
+                        <ac-action
+                            color="red" v-if="user.portrait_enabled || user.landscape_enabled" url="/api/sales/v1/cancel-premium/" :success="updateUser"
+                            :confirm="true"
+                        >
+                          <div class="text-left" slot="confirmation-text">Are you sure you wish to cancel your subscription? Note: You will be able to use the extra features until your current term ends.</div>
+                          Cancel Subscription
+                        </ac-action>
+                        <v-btn v-else color="primary" :to="{name: 'Upgrade'}">Restart Subscription</v-btn>
+                      </v-card-text>
+                    </v-card>
                   </v-flex>
                 </v-layout>
               </v-card-text>
-            </v-card>
+            </v-layout>
           </v-tab-item>
         </v-tabs-items>
       </div>
@@ -190,21 +245,24 @@
 </style>
 
 <script>
+  import moment from 'moment'
   import VueFormGenerator from 'vue-form-generator'
   import AcFormContainer from './ac-form-container'
   import Viewer from '../mixins/viewer'
   import Perms from '../mixins/permissions'
-  import {artCall, inputMatches, paramHandleMap, ratings, setMetaContent} from '../lib'
+  import {artCall, formatDate, inputMatches, paramHandleMap, ratings, setMetaContent} from '../lib'
   import AcCardManager from './ac-card-manager'
   import AcAccountBalance from './ac-account-balance'
   import AcSetupTwoFactor from './ac-setup-two-factor'
   import AcTagDisplay from './ac-tag-display'
   import AcFormDialog from './ac-form-dialog'
   import AcTransactionHistory from './ac-transaction-history'
+  import AcAction from './ac-action'
 
   export default {
     name: 'Settings',
     components: {
+      AcAction,
       AcTransactionHistory,
       AcFormDialog,
       AcTagDisplay,
@@ -260,6 +318,7 @@
         // Used by Tab mapper
         query: null,
         pricing: null,
+        formatDate: formatDate,
         credentialsModel: {
           username: this.$root.user.username,
           email: this.$root.user.email,
@@ -414,10 +473,15 @@
       paymentTab: paramHandleMap('subTabName', undefined, ['tab-purchase', 'tab-disbursement', 'tab-transactions'], 'tab-purchase'),
       credentialsTab: paramHandleMap('subTabName', undefined, ['tab-authentication', 'tab-two-factor'], 'tab-authentication'),
       newPortrait () {
-        return (!this.user.portrait_enabled) && (this.user.portrait_paid_through === null)
+        return (!this.user.portrait_enabled) && (
+          (this.user.portrait_paid_through === null) || (moment(this.user.portrait_paid_through) <= moment.now()))
       },
       newLandscape () {
-        return (!this.user.landscape_enabled) && (this.user.landscape_paid_through === null)
+        return (!this.user.landscape_enabled) && (
+          (this.user.landscape_paid_through === null) || (moment(this.user.landscape_paid_through) <= moment.now()))
+      },
+      portraitLimited () {
+        return !this.user.landscape_enabled && this.user.landscape_enabled
       }
     }
   }

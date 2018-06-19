@@ -260,7 +260,7 @@
              v-bind:key="revision.id">
           <ac-asset thumb-name="preview" img-class="max-width" :asset="revision" />
           <div class="text-xs-center text-section p-3 mt-2">
-            Revision {{ index + 1 }} on {{ formatDate(revision.created_on) }}
+            Revision {{ index + 1 }} on {{ formatDateTime(revision.created_on) }}
             <ac-action
                 v-if="seller && (index === revisionsLimited.length - 1) && !final"
                 variant="danger"
@@ -287,7 +287,7 @@
           </router-link>
           <ac-asset class="final-preview" v-else thumb-name="preview" :asset="final" />
           <div class="text-xs-center text-section pb-2">
-            Final delivered {{ formatDate(final.created_on)}}
+            Final delivered {{ formatDateTime(final.created_on)}}
             <ac-action
                 v-if="seller && review"
                 variant="danger"
@@ -426,7 +426,7 @@
   import AcAsset from './ac-asset'
   import Viewer from '../mixins/viewer'
   import Perms from '../mixins/permissions'
-  import {artCall, md, ratings, formatDate, EventBus} from '../lib'
+  import {artCall, md, ratings, formatDateTime, EventBus} from '../lib'
   import AcFormContainer from './ac-form-container'
   import AcCardManager from './ac-card-manager'
   import AcFormDialog from './ac-form-dialog'
@@ -479,7 +479,7 @@
         this.$router.push({name: 'Submission', params: {'assetID': response.outputs[0].id}, query: {editing: 1}})
         this.populateOrder(response)
       },
-      formatDate
+      formatDateTime: formatDateTime
     },
     computed: {
       newOrder () {

@@ -28,7 +28,7 @@
                 </v-layout>
               </v-card-text>
               <v-card-text class="card-bottom text-xs-center">
-                <v-btn color="primary" v-if="!portrait" @click="selection='portrait'">Get Portrait!</v-btn>
+                <v-btn color="primary" v-if="!viewer.landscape_enabled && !viewer.portrait_enabled" @click="selection='portrait'">Get Portrait!</v-btn>
                 <v-btn v-else :to="{name: 'Settings', params: {username: viewer.username, tabName: 'portrait'}}">Manage Portrait</v-btn>
               </v-card-text>
             </v-card>
@@ -53,7 +53,7 @@
                 </v-layout>
               </v-card-text>
               <v-card-text class="card-bottom text-xs-center">
-                <v-btn color="primary" v-if="!landscape" @click="selection='landscape'">Get Landscape!</v-btn>
+                <v-btn color="primary" v-if="!viewer.landscape_enabled" @click="selection='landscape'">Get Landscape!</v-btn>
                 <v-btn v-else :to="{name: 'Settings', params: {username: viewer.username, tabName: 'landscape'}}">Manage Landscape</v-btn>
               </v-card-text>
             </v-card>

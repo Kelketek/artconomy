@@ -1341,3 +1341,17 @@ class Premium(GenericAPIView):
             data = UserSerializer(instance=request.user, context=self.get_serializer_context()).data
         record.save()
         return Response(status=code, data=data)
+
+
+class CancelPremium(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        self.check_permissions(request)
+        request.user.portrait_enabled = False
+        request.user.landscape_enabled = False
+        request.user.save()
+        return Response(
+            status=status.HTTP_200_OK,
+            data=UserSerializer(context={'request': request}, instance=self.request.user).data
+        )
