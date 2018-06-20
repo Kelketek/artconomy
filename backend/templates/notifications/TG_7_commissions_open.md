@@ -1,1 +1,1 @@
-{{target.username}} is open for commissions! [Browse their products here!](/profile/{{target.username}}/products/)
+{{target.username}} is open for commissions! [Browse their products here!]({{base_url}}/profile/{{target.username}}/products/)

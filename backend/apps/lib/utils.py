@@ -288,7 +288,8 @@ def notify(
             req_context = {'request': FakeRequest(subscription.subscriber)}
             ctx = {
                 'data': NOTIFICATION_TYPE_MAP.get(event_type, lambda x, _: x.data)(event, req_context),
-                'target': notification_serialize(event.target, req_context), 'user': subscription.subscriber
+                'target': notification_serialize(event.target, req_context), 'user': subscription.subscriber,
+                'base_url': make_url('')
             }
             message = get_template(template_path).render(ctx)
             try:
@@ -467,7 +468,7 @@ def require_lock(model, lock):
     def require_lock_decorator(view_func):
         def wrapper(*args, **kwargs):
             if lock not in LOCK_MODES:
-                raise ValueError('%s is not a PostgreSQL supported lock mode.')
+                raise ValueError('%s is not a PostgreSQL supported lock mode.' % lock)
             from django.db import connection
             cursor = connection.cursor()
             cursor.execute(

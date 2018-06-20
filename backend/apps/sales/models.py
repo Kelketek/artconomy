@@ -1,5 +1,4 @@
 import socket
-from decimal import Decimal
 
 from django.db import transaction
 from django.db.utils import IntegrityError
@@ -12,7 +11,7 @@ from django.contrib.contenttypes.fields import GenericRelation, GenericForeignKe
 from django.contrib.contenttypes.models import ContentType
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models import Model, CharField, ForeignKey, IntegerField, BooleanField, DateTimeField, ManyToManyField, \
-    TextField, SET_NULL, PositiveIntegerField, URLField, CASCADE, DecimalField, Sum, Avg
+    TextField, SET_NULL, PositiveIntegerField, URLField, CASCADE, DecimalField, Sum, Avg, Q, F
 
 # Create your models here.
 from django.db.models.signals import post_delete, post_save, pre_delete
@@ -20,9 +19,10 @@ from django.dispatch import receiver
 from djmoney.models.fields import MoneyField
 from moneyed import Money
 
-from apps.lib.models import Comment, Subscription, SALE_UPDATE, ORDER_UPDATE, REVISION_UPLOADED, COMMENT, NEW_PRODUCT
+from apps.lib.models import Comment, Subscription, SALE_UPDATE, ORDER_UPDATE, REVISION_UPLOADED, COMMENT, NEW_PRODUCT, \
+    COMMISSIONS_OPEN
 from apps.lib.abstract_models import ImageModel
-from apps.lib.utils import clear_events, MinimumOrZero, recall_notification, require_lock
+from apps.lib.utils import clear_events, MinimumOrZero, recall_notification, require_lock, notify
 from apps.profiles.models import User
 from apps.sales.permissions import OrderViewPermission
 from apps.sales.apis import sauce
@@ -370,10 +370,38 @@ class PlaceholderSale(Model):
     description = CharField(max_length=5000)
 
 
+# Primitive recursion check lock.
+UPDATING = {}
+
+
+def update_availability(seller, load, current_closed_status):
+    global UPDATING
+    if seller in UPDATING:
+        return
+    UPDATING[seller] = True
+    available_products = Product.objects.filter(user=seller, active=True, hidden=False).exclude(
+        task_weight__gt=seller.max_load - load
+    ).exclude(Q(parallel__gte=F('max_parallel')) & ~Q(max_parallel=0))
+    if seller.commissions_closed:
+        seller.commissions_disabled = True
+    elif not available_products.exists():
+        seller.commissions_disabled = True
+    elif load >= seller.max_load:
+        seller.commissions_disabled = True
+    elif not seller.sales.filter(status=Order.NEW).exists():
+        seller.commissions_disabled = False
+    seller.load = load
+    seller.save()
+    if current_closed_status and not seller.commissions_disabled:
+        notify(COMMISSIONS_OPEN, seller)
+    del UPDATING[seller]
+
+
 @transaction.atomic
 @require_lock(User, 'ACCESS EXCLUSIVE')
 @require_lock(Order, 'ACCESS EXCLUSIVE')
 @require_lock(PlaceholderSale, 'ACCESS EXCLUSIVE')
+@require_lock(Product, 'ACCESS EXCLUSIVE')
 def update_artist_load(sender, instance, **_kwargs):
     result = Order.objects.filter(
         seller=instance.seller, status__in=WEIGHTED_STATUSES
@@ -383,21 +411,50 @@ def update_artist_load(sender, instance, **_kwargs):
         seller=instance.seller, status__in=WEIGHTED_STATUSES
     ).aggregate(load=Sum('task_weight'))
     load += (result['load'] or 0)
-    if load >= instance.seller.max_load:
-        instance.seller.commissions_disabled = True
-    elif not instance.seller.sales.filter(status=Order.NEW).exists():
-        instance.seller.commissions_disabled = False
-    instance.seller.load = load
-    instance.seller.save()
     if isinstance(instance, Order):
         instance.product.parallel = Order.objects.filter(product=instance.product, status__in=WEIGHTED_STATUSES).count()
         instance.product.save()
+    # Availability update could be recursive, so get the latest version of the user.
+    seller = User.objects.get(id=instance.seller.id)
+    update_availability(seller, load, seller.commissions_disabled)
 
 
-order_load_check = receiver(post_save, sender=Order)(update_artist_load)
-order_load_check_delete = receiver(post_delete, sender=Order)(update_artist_load)
-placeholder_load_check = receiver(post_save, sender=PlaceholderSale)(update_artist_load)
-placeholder_load_check_delete = receiver(post_delete, sender=PlaceholderSale)(update_artist_load)
+order_load_check = receiver(post_save, sender=Order, dispatch_uid='load')(update_artist_load)
+order_load_check_delete = receiver(post_delete, sender=Order, dispatch_uid='load')(update_artist_load)
+placeholder_load_check = receiver(post_save, sender=PlaceholderSale, dispatch_uid='load')(update_artist_load)
+placeholder_load_check_delete = receiver(
+    post_delete, sender=PlaceholderSale, dispatch_uid='load'
+)(update_artist_load)
+
+
+@transaction.atomic
+@require_lock(User, 'ACCESS EXCLUSIVE')
+@require_lock(Order, 'ACCESS EXCLUSIVE')
+@require_lock(PlaceholderSale, 'ACCESS EXCLUSIVE')
+@require_lock(Product, 'ACCESS EXCLUSIVE')
+def update_product_availability(sender, instance, **kwargs):
+    update_availability(instance.user, instance.user.load, instance.user.commissions_disabled)
+
+
+@transaction.atomic
+@require_lock(User, 'ACCESS EXCLUSIVE')
+@require_lock(Order, 'ACCESS EXCLUSIVE')
+@require_lock(PlaceholderSale, 'ACCESS EXCLUSIVE')
+@require_lock(Product, 'ACCESS EXCLUSIVE')
+def update_user_availability(sender, instance, **kwargs):
+    update_availability(instance, instance.load, instance.commissions_disabled)
+
+
+product_availability_check_save = receiver(
+    post_save, sender=Product, dispatch_uid='load'
+)(update_product_availability)
+product_availability_check_delete = receiver(
+    post_delete, sender=Product, dispatch_uid='load'
+)(update_product_availability)
+
+user_availability_check_save = receiver(
+    post_save, sender=User, dispatch_uid='load'
+)(update_user_availability)
 
 
 class Rating(Model):
