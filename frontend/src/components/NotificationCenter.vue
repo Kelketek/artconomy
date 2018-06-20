@@ -63,11 +63,13 @@
   import AcNewProduct from './notifications/ac-new-product'
   import AcNewPm from './notifications/ac-new-pm'
   import AcStreaming from './notifications/ac-streaming'
+  import AcCommissionsOpen from './notifications/ac-commissions-open'
 
   export default {
     name: 'NotificationCenter',
     mixins: [Paginated],
     components: {
+      AcCommissionsOpen,
       AcStreaming,
       AcNewPm,
       AcCharShared,

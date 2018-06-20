@@ -1,7 +1,6 @@
-from datetime import datetime, date
-
 from django.conf import settings
 from django.core.validators import RegexValidator
+from django.utils.datetime_safe import datetime, date
 from luhn import verify
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError

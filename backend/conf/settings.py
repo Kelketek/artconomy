@@ -243,7 +243,7 @@ import logging.config
 
 from sys import argv
 
-if 'test' not in argv:
+if 'test' not in argv and 'runserver' not in argv:
 
     LOGGING_CONFIG = None
     logging.config.dictConfig({

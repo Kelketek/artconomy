@@ -9,7 +9,7 @@
   import AcBaseNotification from './ac-base-notification'
   import Notifiction from '../../mixins/notification'
   export default {
-    name: 'ac-new-character',
+    name: 'ac-new-portfolio-item',
     components: {AcBaseNotification},
     mixins: [Notifiction],
     computed: {
@@ -21,6 +21,8 @@
               assetID: this.event.data.asset.id
             }
           }
+        } else {
+          return {}
         }
       }
     }

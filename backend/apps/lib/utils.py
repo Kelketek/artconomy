@@ -1,6 +1,5 @@
 import logging
 import os
-from datetime import date
 from pathlib import Path
 
 from dateutil.relativedelta import relativedelta
@@ -16,6 +15,7 @@ from django.dispatch import receiver
 from django.template import Template, Context
 from django.template.loader import get_template
 from django.utils import timezone
+from django.utils.datetime_safe import date
 from django.utils.deconstruct import deconstructible
 from django.utils.text import slugify
 from pycountry import countries, subdivisions
@@ -226,7 +226,7 @@ class FakeRequest:
 @atomic
 def notify(
         event_type, target, data=None, unique=False, unique_data=None, mark_unread=False, time_override=None,
-        transform=None, exclude=None, force_create=False
+        transform=None, exclude=None, force_create=False, silent_broadcast=False
 ):
     from apps.lib.serializers import NOTIFICATION_TYPE_MAP
     from apps.lib.serializers import notification_serialize
@@ -258,7 +258,7 @@ def notify(
 
     # Send email notifications if needed.
     email_subscriptions = subscriptions.filter(email=True)
-    if email_subscriptions.exists():
+    if not silent_broadcast and email_subscriptions.exists():
         path = Path(settings.BACKEND_ROOT) / 'templates' / 'notifications'
         template = [file for file in os.listdir(str(path)) if file.startswith(str(event_type))][0]
         template_path = path / template
@@ -278,7 +278,7 @@ def notify(
             msg.send()
 
     telegram_subscriptions = subscriptions.filter(telegram=True)
-    if telegram_subscriptions.exists():
+    if not silent_broadcast and telegram_subscriptions.exists():
         path = Path(settings.BACKEND_ROOT) / 'templates' / 'notifications'
         template = [file for file in os.listdir(str(path)) if file.startswith('TG_' + str(event_type))][0]
         template_path = path / template

@@ -78,7 +78,7 @@
                 <ac-patchfield v-model="product.max_parallel" name="max_parallel" :editmode="editing" :url="url" />
               </v-flex>
               <v-flex xs12 v-if="editing">
-                <ac-patchbutton v-if="user.username && user.rating > 0" :url="url" :classes="{'btn-sm': true, 'm-0': true}" name="sfw_mode" v-model="product.hidden" true-text="Hide Product" true-variant="success" false-text="Unhide Product" />
+                <ac-patchbutton :url="url" :classes="{'btn-sm': true, 'm-0': true}" name="hidden" v-model="product.hidden" true-text="Hide Product" true-variant="success" false-text="Unhide Product" />
               </v-flex>
             </v-layout>
           </v-flex>

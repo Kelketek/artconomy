@@ -1,4 +1,3 @@
-from datetime import date
 from uuid import uuid4
 
 from authorize import AuthorizeResponseError
@@ -14,6 +13,7 @@ from django.utils import timezone
 # Create your views here.
 from math import ceil
 
+from django.utils.datetime_safe import date
 from moneyed import Money
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied, ValidationError
@@ -1258,17 +1258,17 @@ class PremiumInfo(APIView):
 
 def check_charge_required(user, service):
     if service == 'portrait':
-        if user.portrait_paid_through:
-            if user.portrait_paid_through >= date.today():
-                return False
         if user.landscape_paid_through:
             if user.landscape_paid_through >= date.today():
-                return False
+                return False, user.landscape_paid_through
+        if user.portrait_paid_through:
+            if user.portrait_paid_through >= date.today():
+                return False, user.portrait_paid_through
     else:
         if user.landscape_paid_through:
             if user.landscape_paid_through >= date.today():
-                return False
-    return True
+                return False, user.landscape_paid_through
+    return True, None
 
 
 def set_service(user, service, target_date=None):
@@ -1298,7 +1298,7 @@ def set_service(user, service, target_date=None):
 def service_price(user, service):
     price = Money(getattr(settings, service.upper() + '_PRICE'), 'USD')
     if service == 'landscape':
-        if user.portrait_paid_through >= date.today():
+        if user.portrait_paid_through and user.portrait_paid_through >= date.today():
             price -= Money(settings.PORTRAIT_PRICE, 'USD')
     return price
 
@@ -1316,9 +1316,9 @@ class Premium(GenericAPIView):
             return Response(
                 status=status.HTTP_400_BAD_REQUEST, data={'error': 'You must enter the security code for this card.'}
             )
-        charge_required = check_charge_required(self.request.user, attempt['service'])
+        charge_required, target_date = check_charge_required(self.request.user, attempt['service'])
         if not charge_required:
-            set_service(request.user, attempt['service'])
+            set_service(request.user, attempt['service'], target_date=target_date)
             return Response(
                 status=status.HTTP_200_OK,
                 data=UserSerializer(instance=self.request.user, context=self.get_serializer_context()).data
