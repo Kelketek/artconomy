@@ -16,11 +16,13 @@ from django.db.models import Model, CharField, ForeignKey, IntegerField, Boolean
 # Create your models here.
 from django.db.models.signals import post_delete, post_save, pre_delete
 from django.dispatch import receiver
+from django.utils import timezone
+from django.utils.datetime_safe import datetime
 from djmoney.models.fields import MoneyField
 from moneyed import Money
 
 from apps.lib.models import Comment, Subscription, SALE_UPDATE, ORDER_UPDATE, REVISION_UPLOADED, COMMENT, NEW_PRODUCT, \
-    COMMISSIONS_OPEN
+    COMMISSIONS_OPEN, Event
 from apps.lib.abstract_models import ImageModel
 from apps.lib.utils import clear_events, MinimumOrZero, recall_notification, require_lock, notify
 from apps.profiles.models import User
@@ -393,7 +395,15 @@ def update_availability(seller, load, current_closed_status):
     seller.load = load
     seller.save()
     if current_closed_status and not seller.commissions_disabled:
-        notify(COMMISSIONS_OPEN, seller)
+        previous = Event.objects.filter(
+            type=COMMISSIONS_OPEN, content_type=ContentType.objects.get_for_model(User), object_id=seller.id,
+            date__gte=timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        )
+        notify(
+            COMMISSIONS_OPEN, seller, unique=True, mark_unread=not previous.exists(), silent_broadcast=previous.exists()
+        )
+    elif seller.commissions_disabled:
+        recall_notification(COMMISSIONS_OPEN, seller)
     del UPDATING[seller]
 
 
@@ -420,7 +430,7 @@ def update_artist_load(sender, instance, **_kwargs):
 
 
 order_load_check = receiver(post_save, sender=Order, dispatch_uid='load')(update_artist_load)
-order_load_check_delete = receiver(post_delete, sender=Order, dispatch_uid='load')(update_artist_load)
+# No need for delete check-- orders are only ever archived, not deleted.
 placeholder_load_check = receiver(post_save, sender=PlaceholderSale, dispatch_uid='load')(update_artist_load)
 placeholder_load_check_delete = receiver(
     post_delete, sender=PlaceholderSale, dispatch_uid='load'

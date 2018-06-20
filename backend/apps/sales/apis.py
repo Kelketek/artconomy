@@ -1,13 +1,10 @@
-from datetime import datetime
-
 import dwollav2
 from authorize import AuthorizeClient
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
-from rest_framework.reverse import reverse
+from django.utils.datetime_safe import datetime
 from lazy import lazy
 
-from shortcuts import make_url
 
 sauce = AuthorizeClient(settings.AUTHORIZE_KEY, settings.AUTHORIZE_SECRET, debug=settings.SANDBOX_APIS)
 client = dwollav2.Client(

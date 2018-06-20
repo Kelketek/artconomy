@@ -1,10 +1,12 @@
 from unittest.mock import patch
 
 from authorize import AuthorizeError
+from dateutil.relativedelta import relativedelta
 from ddt import data, unpack, ddt
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings, TestCase
 from django.utils import timezone
+from django.utils.datetime_safe import date
 from freezegun import freeze_time
 from moneyed import Money, Decimal
 from rest_framework import status
@@ -1843,24 +1845,168 @@ class TestLoadAdjustment(TestCase):
         order.status = Order.QUEUED
         order.save()
         user.refresh_from_db()
+        # Max load reached.
         self.assertEqual(user.load, 10)
         self.assertTrue(user.commissions_disabled)
         self.assertFalse(user.commissions_closed)
         order2 = OrderFactory.create(task_weight=5, status=Order.NEW, product__user=user)
         user.refresh_from_db()
+        # Now we have an order in a new state. This shouldn't undo the disability.
         self.assertEqual(user.load, 10)
         self.assertTrue(user.commissions_disabled)
         self.assertFalse(user.commissions_closed)
         order.status = Order.COMPLETED
         order.save()
         user.refresh_from_db()
+        # We have reduced the load, but never took care of the new order, so commissions are still disabled.
         self.assertEqual(user.load, 5)
         self.assertTrue(user.commissions_disabled)
         self.assertFalse(user.commissions_closed)
         order2.status = Order.CANCELLED
         order2.save()
         order.save()
+        # Cancalled the new order, so now the load is within parameters and there are no outstanding new orders.
         user.refresh_from_db()
         self.assertEqual(user.load, 5)
         self.assertFalse(user.commissions_disabled)
         self.assertFalse(user.commissions_closed)
+        # Closing commissions should disable them as well.
+        user.commissions_closed = True
+        user.save()
+        self.assertTrue(user.commissions_closed)
+        self.assertTrue(user.commissions_disabled)
+        user.commissions_closed = False
+        order.status = Order.NEW
+        order.save()
+        # Unclosing commissions shouldn't enable commissions if they still have an outstanding order.
+        user.refresh_from_db()
+        user.commissions_closed = False
+        user.save()
+        self.assertFalse(user.commissions_closed)
+        self.assertTrue(user.commissions_disabled)
+        order.status = Order.CANCELLED
+        order.save()
+        # We should be clear again.
+        user.refresh_from_db()
+        self.assertFalse(user.commissions_closed)
+        self.assertFalse(user.commissions_disabled)
+        Product.objects.all().delete()
+        # Make a product too big for the user to complete. Should close the user.
+        product = ProductFactory.create(user=user, task_weight=20)
+        user.refresh_from_db()
+        self.assertFalse(user.commissions_closed)
+        self.assertTrue(user.commissions_disabled)
+        # And dropping it should open them back up.
+        product.task_weight = 1
+        product.save()
+        user.refresh_from_db()
+        self.assertFalse(user.commissions_closed)
+        self.assertFalse(user.commissions_disabled)
+
+
+class TestPremium(APITestCase):
+    @override_settings(PORTRAIT_PRICE=Decimal('2.00'))
+    @freeze_time('2017-11-10')
+    @patch('apps.sales.models.sauce')
+    def test_portrait(self, mock_sauce):
+        self.login(self.user)
+        card = CreditCardTokenFactory.create(user=self.user, cvv_verified=True)
+        mock_sauce.saved_card.return_value.capture.return_value.uid = 'Trans123'
+        response = self.client.post('/api/sales/v1/premium/', {'service': 'portrait', 'card_id': card.id})
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.portrait_enabled)
+        self.assertEqual(self.user.portrait_paid_through, date(2017, 12, 10))
+        self.assertFalse(self.user.landscape_enabled)
+        self.assertIsNone(self.user.landscape_paid_through)
+        mock_sauce.saved_card.return_value.capture.assert_called_with(Decimal('2.00'), cvv=None)
+
+    @freeze_time('2017-11-10')
+    @override_settings(LANDSCAPE_PRICE=Decimal('6.00'))
+    @patch('apps.sales.models.sauce')
+    def test_landscape(self, mock_sauce):
+        self.login(self.user)
+        card = CreditCardTokenFactory.create(user=self.user, cvv_verified=True)
+        mock_sauce.saved_card.return_value.capture.return_value.uid = 'Trans123'
+        response = self.client.post('/api/sales/v1/premium/', {'service': 'landscape', 'card_id': card.id})
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        self.user.refresh_from_db()
+        self.assertFalse(self.user.portrait_enabled)
+        self.assertIsNone(self.user.portrait_paid_through)
+        self.assertTrue(self.user.landscape_enabled)
+        self.assertEqual(self.user.landscape_paid_through, date(2017, 12, 10))
+        mock_sauce.saved_card.return_value.capture.assert_called_with(Decimal('6.00'), cvv=None)
+
+    @freeze_time('2017-11-10')
+    @override_settings(LANDSCAPE_PRICE=Decimal('6.00'), PORTRAIT_PRICE=Decimal('2.00'))
+    @patch('apps.sales.models.sauce')
+    def test_upgrade(self, mock_sauce):
+        self.login(self.user)
+        self.user.portrait_paid_through = date(2017, 11, 15)
+        self.user.portrait_enabled = True
+        self.user.save()
+        card = CreditCardTokenFactory.create(user=self.user, cvv_verified=True)
+        mock_sauce.saved_card.return_value.capture.return_value.uid = 'Trans123'
+        response = self.client.post('/api/sales/v1/premium/', {'service': 'landscape', 'card_id': card.id})
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        self.user.refresh_from_db()
+        self.assertFalse(self.user.portrait_enabled)
+        self.assertEqual(self.user.portrait_paid_through, date(2017, 11, 15))
+        self.assertTrue(self.user.landscape_enabled)
+        self.assertEqual(self.user.landscape_paid_through, date(2017, 12, 10))
+        mock_sauce.saved_card.return_value.capture.assert_called_with(Decimal('4.00'), cvv=None)
+
+    @freeze_time('2017-11-10')
+    @override_settings(PORTRAIT_PRICE=Decimal('2.00'))
+    @patch('apps.sales.models.sauce')
+    def test_reenable_portrait(self, mock_sauce):
+        self.login(self.user)
+        self.user.portrait_paid_through = date(2017, 11, 15)
+        self.user.portrait_enabled = False
+        self.user.save()
+        card = CreditCardTokenFactory.create(user=self.user, cvv_verified=True)
+        mock_sauce.saved_card.return_value.capture.return_value.uid = 'Trans123'
+        response = self.client.post('/api/sales/v1/premium/', {'service': 'portrait', 'card_id': card.id})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.portrait_enabled)
+        self.assertEqual(self.user.portrait_paid_through, date(2017, 11, 15))
+        self.assertFalse(self.user.landscape_enabled)
+        self.assertIsNone(self.user.landscape_paid_through)
+        mock_sauce.saved_card.return_value.capture.assert_not_called()
+
+    @freeze_time('2017-11-10')
+    @override_settings(PORTRAIT_PRICE=Decimal('2.00'))
+    @patch('apps.sales.models.sauce')
+    def test_enable_portrait_after_landscape(self, mock_sauce):
+        self.login(self.user)
+        self.user.landscape_paid_through = date(2017, 11, 15)
+        self.user.landscape_enabled = False
+        self.user.save()
+        card = CreditCardTokenFactory.create(user=self.user, cvv_verified=True)
+        mock_sauce.saved_card.return_value.capture.return_value.uid = 'Trans123'
+        response = self.client.post('/api/sales/v1/premium/', {'service': 'portrait', 'card_id': card.id})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.portrait_enabled)
+        self.assertEqual(self.user.portrait_paid_through, date(2017, 11, 15))
+        self.assertFalse(self.user.landscape_enabled)
+        self.assertEqual(self.user.landscape_paid_through, date(2017, 11, 15))
+        mock_sauce.saved_card.return_value.capture.assert_not_called()
+
+
+class TestCancelPremium(APITestCase):
+    def test_cancel(self):
+        self.login(self.user)
+        self.user.portrait_paid_through = date(2017, 11, 15)
+        self.user.landscape_enabled = True
+        self.user.portrait_enabled = True
+        self.user.landscape_paid_through = date(2017, 11, 18)
+        self.user.save()
+        response = self.client.post('/api/sales/v1/cancel-premium/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.user.refresh_from_db()
+        self.assertFalse(self.user.portrait_enabled)
+        self.assertFalse(self.user.landscape_enabled)
+        self.assertEqual(self.user.portrait_paid_through, date(2017, 11, 15))
+        self.assertEqual(self.user.landscape_paid_through, date(2017, 11, 18))

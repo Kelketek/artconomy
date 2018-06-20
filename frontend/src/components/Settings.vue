@@ -145,6 +145,7 @@
                             <span class="subheading">You are currently receiving emails for your watchlist. If you'd like to get messages via Telegram, click the button below.</span>
                             <v-divider class="my-3" />
                             <v-btn large color="primary" :href="user.telegram_link" class="mx-0" target="_blank"><v-icon>fa-telegram</v-icon>&nbsp;Notify me via Telegram!</v-btn>
+                            <p><strong>Note:</strong> Notifications will not be sent more than once for each artist on a given day to prevent spamming.</p>
                           </v-flex>
                         </v-layout>
                       </v-container>
