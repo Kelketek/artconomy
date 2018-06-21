@@ -1,6 +1,6 @@
 from rest_framework import status
 
-from apps.lib.models import Subscription, Notification, Comment
+from apps.lib.models import Notification
 from apps.lib.test_resources import APITestCase
 from apps.lib.tests.factories import CommentFactory
 from apps.profiles.tests.factories import ImageAssetFactory
