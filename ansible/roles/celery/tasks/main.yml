@@ -5,7 +5,6 @@
 ---
 - name: configure celery defaults
   template: src=templates/celeryd_defaults dest=/etc/default/celeryd
-  when: celery_host
   register: celerybeat_installed
   notify:
     - restart celery
@@ -13,7 +12,6 @@
 
 - name: install celery init.d script
   template: src=templates/celeryd dest=/etc/init.d/celeryd mode=0755
-  when: celery_host
   register: celeryd_installed
   notify:
     - restart celery
