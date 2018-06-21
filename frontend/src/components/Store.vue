@@ -235,6 +235,12 @@
         return this.user.dwolla_configured
       }
     },
+    watch: {
+      endpoint () {
+        this.url = this.endpoint
+        this.fetchItems()
+      }
+    },
     created () {
       this.fetchItems()
     }

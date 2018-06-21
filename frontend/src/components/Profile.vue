@@ -1,5 +1,5 @@
 <template>
-  <v-container class="account-profile">
+  <v-container class="account-profile" :key="username">
     <v-card>
       <v-layout row wrap class="mb-4">
         <v-flex xs12 sm2  text-xs-center text-sm-left class="pt-2">
@@ -192,7 +192,6 @@
     data: function () {
       return {
         user: {username: this.username},
-        url: `/api/profiles/v1/data/user/${this.username}/`,
         count: 0,
         assets: null,
         showUpload: false,
@@ -310,9 +309,18 @@
         }
       }
     },
+    watch: {
+      username () {
+        this.user = {username: this.username}
+        this.refreshUser()
+      }
+    },
     computed: {
       controls: function () {
-        return this.$root.user.is_staff || (this.user.username === this.$root.user.username)
+        return this.$root.user.is_staff || (this.username === this.$root.user.username)
+      },
+      url () {
+        return `/api/profiles/v1/data/user/${this.username}/`
       },
       tab: paramHandleMap('tabName'),
       watchTab: paramHandleMap('subTabName', undefined, ['tab-watchers', 'tab-watching'], 'tab-watchers')
