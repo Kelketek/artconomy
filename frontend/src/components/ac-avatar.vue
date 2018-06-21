@@ -1,12 +1,19 @@
 <template>
   <div class="avatar-container">
       <div class="text-xs-center avatar-image-wrapper">
-        <router-link :to="link">
+        <v-avatar v-if="noLink">
+          <img :src="user.avatar_url">
+        </v-avatar>
+        <router-link v-else :to="{name: 'Profile', params: {username: this.user.username}}">
           <v-avatar>
             <img :src="user.avatar_url">
           </v-avatar>
         </router-link>
-        <div v-if="showName" class="text-xs-center" :class="{'mb-2': !showRating}"><router-link :to="{name: 'Profile', params: {username: user.username}}">{{ user.username }}</router-link> <v-icon small v-if="removable" @click="remove">close</v-icon></div>
+        <div v-if="showName" class="text-xs-center" :class="{'mb-2': !showRating}">
+          <span v-if="noLink">{{user.username}}</span>
+          <router-link :to="{name: 'Profile', params: {username: user.username}}" v-else>{{ user.username }}</router-link>
+          <v-icon small v-if="removable" @click="remove">close</v-icon>
+        </div>
         <router-link :to="{name: 'Ratings', params: {username: user.username}}" v-if="showRating && user.stars">
           <ac-rating :value="user.stars" :small="true" class="mb-2 highlight-icon" />
         </router-link>

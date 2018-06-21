@@ -43,6 +43,10 @@
     watch: {
       rating () {
         this.fetchItems()
+      },
+      endpoint () {
+        this.url = this.endpoint
+        this.fetchItems()
       }
     },
     name: 'ac-user-gallery',
