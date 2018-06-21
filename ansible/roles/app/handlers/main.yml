@@ -22,3 +22,5 @@
   become: yes
   become_user: "{{ env_prefix }}"
   shell: "source ~/.profile && source ~/bin/activate && cd ~/artconomy && ./manage.py set_webhook"
+  args:
+    executable: "/bin/bash"
