@@ -289,9 +289,9 @@ RABBIT_PORT = ENV_TOKENS.get('RABBIT_PORT', 5672)
 CELERY_ALWAYS_EAGER = ENV_TOKENS.get('CELERY_ALWAYS_EAGER', False)
 
 
-CELERYBEAT_SCHEDULE = {
-    'send_test': {
-        'task': 'apps.lib.tasks.test_email',
-        'schedule': crontab(),
-    }
-}
+# CELERYBEAT_SCHEDULE = {
+#     'send_test': {
+#         'task': 'apps.lib.tasks.test_email',
+#         'schedule': crontab(),
+#     }
+# }
