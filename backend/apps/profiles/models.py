@@ -4,7 +4,6 @@ Models dealing primarily with user preferences and personalization.
 import uuid
 
 from avatar.templatetags.avatar_tags import avatar_url
-from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from custom_user.models import AbstractEmailUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
@@ -302,7 +301,11 @@ class Character(Model):
     """
     For storing information about Characters for commissioning
     """
-    name = CharField(max_length=150)
+    name = CharField(
+        max_length=150, validators=[
+            RegexValidator(r'^[^/\\?%&+#]+$', message='Names may not contain /, \\, ?, #, or &.')
+        ]
+    )
     description = CharField(max_length=5000, blank=True, default='')
     private = BooleanField(
         default=False, help_text="Only show this character to people I have explicitly shared it to."
@@ -436,6 +439,13 @@ def auto_remove_character(sender, instance, **kwargs):
         object_id=instance.id,
         data__character=instance.id,
         type=SUBMISSION_CHAR_TAG,
+        recalled=True
+    )
+    Event.objects.filter(
+        content_type=ContentType.objects.get_for_model(model=sender),
+        object_id=instance.id,
+        data__character=instance.id,
+        type=NEW_CHARACTER,
         recalled=True
     )
 
