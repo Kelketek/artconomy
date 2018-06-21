@@ -17,6 +17,8 @@ import json
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 from decimal import Decimal
 
+from celery.schedules import crontab
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 BACKEND_ROOT = os.path.join(BASE_DIR, 'backend')
 os.sys.path = [BACKEND_ROOT] + os.sys.path
@@ -285,3 +287,11 @@ RABBIT_HOST = ENV_TOKENS.get('RABBIT_HOST', 'rabbit')
 RABBIT_PORT = ENV_TOKENS.get('RABBIT_PORT', 5672)
 
 CELERY_ALWAYS_EAGER = ENV_TOKENS.get('CELERY_ALWAYS_EAGER', False)
+
+
+CELERYBEAT_SCHEDULE = {
+    'send_test': {
+        'task': 'apps.lib.tasks.test_email',
+        'schedule': crontab(),
+    }
+}
