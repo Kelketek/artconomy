@@ -96,6 +96,7 @@
   notify:
     - collect static assets
     - restart uwsgi
+    - set tg webhook
 
 - name: Configure uwsgi
   template: src="templates/uwsgi/app.ini" dest="/etc/uwsgi/apps-available/artconomy.ini" owner=root group=root mode=0600

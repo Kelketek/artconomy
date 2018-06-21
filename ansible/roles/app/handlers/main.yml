@@ -17,3 +17,8 @@
   shell: "source ~/.profile && source ~/bin/activate && cd ~/artconomy && yes no | ./manage.py migrate && echo '{{ migrations_status.digest }}' > ~/.migrations_hash"
   args:
     executable: "/bin/bash"
+
+- name: set tg webhook
+  become: yes
+  become_user: "{{ env_prefix }}"
+  shell: "source ~/.profile && source ~/bin/activate && cd ~/artconomy && ./manage.py set_webhook"
