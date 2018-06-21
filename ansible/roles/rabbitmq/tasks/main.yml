@@ -1,0 +1,25 @@
+# NOTE: RabbitMQ is open source message broker software (sometimes called message-
+# oriented middleware) that implements the Advanced Message Queuing Protocol (AMQP)
+
+---
+- name: Let there be a RabbitMQ installation (use apt to install the package)
+  apt: name="rabbitmq-server" state=present
+
+- name: Let RabbitMQ be enabled.
+  service: name="rabbitmq-server" state=started enabled=yes
+
+- name: Load app settings
+  include_vars: "keys/{{env_prefix}}/app_settings.yml"
+
+- name: Let there be a RabbitMQ Vhost for an app
+  rabbitmq_vhost: name="{{ app_user }}" state=present
+
+- name: Add RabbitMQ user id
+  rabbitmq_user:
+    user: "{{ app_user }}"
+    password: "{{ app_settings['CELERY_PW'] }}"
+    vhost: "{{ app_user }}"
+    configure_priv: ".*"
+    read_priv: ".*"
+    write_priv: ".*"
+    state: present

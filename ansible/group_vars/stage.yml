@@ -1,6 +1,8 @@
 ansible_ssh_user: root
 perform_upgrades: true
 env_prefix: stage
+app_user: stage
+cron_enabled: true
 admin_email: fox@vulpinity.com
 domains:
  - stage.artconomy.com
