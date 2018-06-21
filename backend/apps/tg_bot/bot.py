@@ -38,7 +38,10 @@ def start(bot, update, args):
     user.tg_chat_id = '171085739'
     user.tg_key = tg_key_gen()
     user.save()
-    bot.send_message(chat_id=update.message.chat_id, text="Welcome to the Artconomy bot!")
+    bot.send_message(
+        chat_id=update.message.chat_id,
+        text="Hi! I'm the Artconomy bot. I'll send messages for {}'s watchlist when artists become available."
+    )
 
 
 def help_message(bot, update):
