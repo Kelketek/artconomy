@@ -838,6 +838,33 @@ class TestShareAsset(APITestCase):
         self.assertTrue(notification.event.recalled)
 
 
+class TestCharacterTag(APITestCase):
+    def test_tag_user(self):
+        self.login(self.user)
+        char = CharacterFactory.create(user=self.user)
+        response = self.client.post(
+            '/api/profiles/v1/account/{}/characters/{}/tag/'.format(self.user.username, char.name),
+            {'tags': ['sexy', 'vix']}
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        char.refresh_from_db()
+        self.assertEqual(sorted(list(char.tags.all().values_list('name', flat=True))), ['sexy', 'vix'])
+
+
+class TestAssetTag(APITestCase):
+    def test_tag_user(self):
+        self.login(self.user)
+        asset = ImageAssetFactory.create(owner=self.user)
+        response = self.client.post(
+            '/api/profiles/v1/asset/{}/tag/'.format(asset.id),
+            {'tags': ['sexy', 'vix']}
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        asset.refresh_from_db()
+        self.assertEqual(sorted(list(asset.tags.all().values_list('name', flat=True))), ['sexy', 'vix'])
+
+
+
 class TestShareCharacter(APITestCase):
     def test_logged_in(self):
         character = CharacterFactory.create()
