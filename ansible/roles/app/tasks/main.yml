@@ -60,6 +60,8 @@
   notify:
     - collect static assets
     - restart uwsgi
+    - restart celery
+    - restart celerybeat
 
 - name: Initialize virtual environment
   become: yes
@@ -88,6 +90,8 @@
   notify:
     - collect static assets
     - restart uwsgi
+    - restart celery
+    - restart celerybeat
 
 - name: Set app configuration
   become: yes
@@ -97,6 +101,8 @@
     - collect static assets
     - restart uwsgi
     - set tg webhook
+    - restart celery
+    - restart celerybeat
 
 - name: Configure uwsgi
   template: src="templates/uwsgi/app.ini" dest="/etc/uwsgi/apps-available/artconomy.ini" owner=root group=root mode=0600
