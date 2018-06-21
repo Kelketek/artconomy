@@ -1,0 +1,44 @@
+# NOTE: Celery is an open source asynchronous task queue or job queue which is
+# based on distributed message passing. While it supports scheduling its focus is
+# on operations in real time.
+
+---
+- name: configure celery defaults
+  template: src=templates/celeryd_defaults dest=/etc/default/celeryd
+  when: celery_host
+  register: celerybeat_installed
+  notify:
+    - restart celery
+    - restart celerybeat
+
+- name: install celery init.d script
+  template: src=templates/celeryd dest=/etc/init.d/celeryd mode=0755
+  when: celery_host
+  register: celeryd_installed
+  notify:
+    - restart celery
+    - restart celerybeat
+
+- name: Reload services.
+  shell: "/bin/systemctl daemon-reload"
+  args:
+    executable: "/bin/bash"
+  when: celeryd_installed.changed or celerybeat_installed.changed
+
+- name: install celerybeat init.d script
+  template: src=templates/celerybeat dest=/etc/init.d/celerybeat mode=0755
+
+- name: Create celery log directory
+  file: path=/var/log/celery/ owner={{ app_user }} mode=700 state=directory
+
+- name: Create celery run status directory
+  file: path=/var/run/celery/ owner={{ app_user }} mode=700 state=directory
+
+- name: Ensure correct permissions for celery log directory.
+  file: path=/var/log/celery/ owner={{ app_user }} mode=700 state=directory
+
+- name: Enable Celeryd
+  service: name="celeryd" state=started enabled=yes
+
+- name: Enable Celerybeat
+  service: name="celerybeat" state="{% if cron_enabled %}started{% else %}stopped{% endif %}" enabled="{{ cron_enabled }}"

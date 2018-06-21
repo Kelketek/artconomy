@@ -13,6 +13,8 @@ services:
       - ./dev_keys:/etc/nginx/dev_keys
     depends_on:
       - web
+  rabbit:
+    image: rabbitmq
   web:
     build: .
     entrypoint: /app/docker-entrypoint.sh
@@ -26,5 +28,6 @@ services:
       - "8002:8002"
     depends_on:
       - db
+      - rabbit
     volumes:
       - ./:/app
