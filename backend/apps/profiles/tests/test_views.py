@@ -504,6 +504,18 @@ class TestSettings(APITestCase):
         self.assertTrue(self.user.check_password('Test'))
 
 
+class TestSetBiography(APITestCase):
+    def test_set_biography(self):
+        self.login(self.user)
+        response = self.client.patch(
+            '/api/profiles/v1/data/user/{}/'.format(self.user.username),
+            {
+                'biography': 'test'
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
 class ValidatorChecks(TestCase):
     def setUp(self):
         super().setUp()
