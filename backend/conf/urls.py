@@ -28,6 +28,7 @@ urlpatterns = [
     url(r'^api/profiles/', include('apps.profiles.urls', namespace='profiles')),
     url(r'^api/sales/', include('apps.sales.urls', namespace='sales')),
     url(r'^api/lib/', include('apps.lib.urls', namespace='lib')),
+    url(r'^api/tg_bot/', include('apps.tg_bot.urls', namespace='tg_bot')),
     url(r'^api/', views.bad_endpoint, name='api404'),
     url(r'^force-error-email/', views.force_error_email, name='force_error'),
     url(r'^test-telegram/', views.test_telegram, name='test_telegram')

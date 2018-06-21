@@ -864,7 +864,6 @@ class TestAssetTag(APITestCase):
         self.assertEqual(sorted(list(asset.tags.all().values_list('name', flat=True))), ['sexy', 'vix'])
 
 
-
 class TestShareCharacter(APITestCase):
     def test_logged_in(self):
         character = CharacterFactory.create()
