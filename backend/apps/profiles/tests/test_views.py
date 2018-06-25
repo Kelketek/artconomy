@@ -514,6 +514,7 @@ class TestSetBiography(APITestCase):
             }
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['biography'], 'test')
 
 
 class ValidatorChecks(TestCase):

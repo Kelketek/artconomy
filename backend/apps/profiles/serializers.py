@@ -321,7 +321,7 @@ class UserSerializer(UserInfoMixin, serializers.ModelSerializer):
             'stars', 'percentage_fee', 'static_fee', 'portrait', 'portrait_enabled', 'portrait_paid_through',
             'landscape', 'landscape_enabled', 'landscape_paid_through', 'telegram_link'
         )
-        read_only_fields = fields
+        read_only_fields = [field for field in fields if field not in ['biography']]
 
 
 class SessionSettingsSerializer(serializers.Serializer):
