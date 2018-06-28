@@ -62,6 +62,8 @@ ASSET_SHARED = 23
 CHAR_SHARED = 24
 NEW_PM = 25
 STREAMING = 26
+RENEWAL_FAILURE = 27
+SUBSCRIPTION_DEACTIVATED = 28
 
 
 EVENT_TYPES = (
@@ -87,6 +89,8 @@ EVENT_TYPES = (
     (SUBMISSION_ARTIST_TAG, 'Tagged the artist of a submission'),
     (ANNOUNCEMENT, 'Announcement'),
     (SYSTEM_ANNOUNCEMENT, 'System-wide announcement'),
+    (RENEWAL_FAILURE, 'Renewal Failure'),
+    (SUBSCRIPTION_DEACTIVATED, 'Subscription Deactivated')
 )
 
 EMAIL_SUBJECTS = {
@@ -98,6 +102,8 @@ EMAIL_SUBJECTS = {
     REFUND: 'A refund was issued for Order #{{ target.id }}',
     NEW_PM: 'You have a new private message from {{ target.sender.username }}!',
     COMMENT: 'New comment on {{ name }}',
+    RENEWAL_FAILURE: 'Issue with your subscription',
+    SUBSCRIPTION_DEACTIVATED: 'Your subscription has been deactivated.'
 }
 
 

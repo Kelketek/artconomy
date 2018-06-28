@@ -1,0 +1,14 @@
+{% extends 'email_base.html' %}
+{% block header_message %}Your subscription has been deactivated{% endblock %}
+{% block message %}
+<p>
+We've been unable to renew your subscription, so it has been deactivated.
+</p>
+<p>
+  Here's the error we got: {{ data.error }}
+</p>
+{% endblock message %}
+
+{% block action %}
+<a href="/profile/{{target.username}}/settings/payment/purchase/">Update your payment information here!</a>
+{% endblock %}

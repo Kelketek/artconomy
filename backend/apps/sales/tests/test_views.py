@@ -1,7 +1,6 @@
 from unittest.mock import patch
 
 from authorize import AuthorizeError
-from dateutil.relativedelta import relativedelta
 from ddt import data, unpack, ddt
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings, TestCase
@@ -1932,7 +1931,7 @@ class TestPremium(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
         self.user.refresh_from_db()
         self.assertFalse(self.user.portrait_enabled)
-        self.assertIsNone(self.user.portrait_paid_through)
+        self.assertEqual(self.user.portrait_paid_through, date(2017, 12, 10))
         self.assertTrue(self.user.landscape_enabled)
         self.assertEqual(self.user.landscape_paid_through, date(2017, 12, 10))
         mock_sauce.saved_card.return_value.capture.assert_called_with(Decimal('6.00'), cvv=None)
@@ -1951,7 +1950,7 @@ class TestPremium(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
         self.user.refresh_from_db()
         self.assertFalse(self.user.portrait_enabled)
-        self.assertEqual(self.user.portrait_paid_through, date(2017, 11, 15))
+        self.assertEqual(self.user.portrait_paid_through, date(2017, 12, 10))
         self.assertTrue(self.user.landscape_enabled)
         self.assertEqual(self.user.landscape_paid_through, date(2017, 12, 10))
         mock_sauce.saved_card.return_value.capture.assert_called_with(Decimal('4.00'), cvv=None)

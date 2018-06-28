@@ -43,7 +43,7 @@ from apps.sales.serializers import ProductSerializer, ProductNewOrderSerializer,
     AccountBalanceSerializer, BankAccountSerializer, WithdrawSerializer, PaymentRecordSerializer, \
     CharacterTransferSerializer, PlaceholderSaleSerializer, PublishFinalSerializer, RatingSerializer, \
     ServicePaymentSerializer
-from apps.sales.utils import translate_authnet_error, available_products
+from apps.sales.utils import translate_authnet_error, available_products, service_price
 
 
 class ProductList(ListCreateAPIView):
@@ -640,7 +640,7 @@ class CardList(ListCreateAPIView):
                 output_field=BooleanField()
             )
         )
-        return qs.order_by('-primary')
+        return qs.order_by('-primary', '-created_on')
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
@@ -1280,6 +1280,8 @@ def set_service(user, service, target_date=None):
         user.portrait_enabled = False
     if target_date:
         setattr(user, service + '_paid_through', target_date)
+        # Landscape includes portrait, so this is always set regardless.
+        user.portrait_paid_through = target_date
         for watched in user.watching.all():
             content_type = ContentType.objects.get_for_model(watched)
             sub, _ = Subscription.objects.get_or_create(
@@ -1293,14 +1295,6 @@ def set_service(user, service, target_date=None):
             sub.email = True
             sub.save()
     user.save()
-
-
-def service_price(user, service):
-    price = Money(getattr(settings, service.upper() + '_PRICE'), 'USD')
-    if service == 'landscape':
-        if user.portrait_paid_through and user.portrait_paid_through >= date.today():
-            price -= Money(settings.PORTRAIT_PRICE, 'USD')
-    return price
 
 
 class Premium(GenericAPIView):

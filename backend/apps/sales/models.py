@@ -528,6 +528,7 @@ class CreditCardToken(Model):
     payment_id = CharField(max_length=50)
     active = BooleanField(default=True, db_index=True)
     cvv_verified = BooleanField(default=False, db_index=True)
+    created_on = DateTimeField(auto_now_add=True, db_index=True)
 
     def __init__(self, *args, **kwargs):
         super(CreditCardToken, self).__init__(*args, **kwargs)
@@ -673,6 +674,7 @@ class PaymentRecord(Model):
     object_id = PositiveIntegerField(null=True, blank=True, db_index=True)
     content_type = ForeignKey(ContentType, on_delete=SET_NULL, null=True, blank=True)
     target = GenericForeignKey('content_type', 'object_id')
+    note = TextField(default='', blank=True)
 
     def __str__(self):
         return "{}{} from {} to {}".format(
