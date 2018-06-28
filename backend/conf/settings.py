@@ -133,7 +133,7 @@ AUTH_USER_MODEL = 'profiles.User'
 # https://docs.djangoproject.com/en/1.10/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+TIME_ZONE = ENV_TOKENS.get('TIME_ZONE', 'America/Chicago')
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
@@ -191,9 +191,15 @@ PREMAILER_OPTIONS = ENV_TOKENS.get(
     'PREMAILER_OPTIONS', {'base_url': '{}://{}'.format(DEFAULT_PROTOCOL, DEFAULT_DOMAIN), 'remove_classes': False}
 )
 
-EMAIL_BACKEND = ENV_TOKENS.get('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+EMAIL_BACKEND = 'djcelery_email.backends.CeleryEmailBackend'
+CELERY_EMAIL_BACKEND = ENV_TOKENS.get('CELERY_EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
 DEFAULT_FROM_EMAIL = ENV_TOKENS.get('DEFAULT_FROM_EMAIL', 'Artconomy <noreply@artconomy.com>')
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
+
+CELERY_EMAIL_TASK_CONFIG = {
+    'queue': 'email',
+    'rate_limit': '50/m',
+}
 
 SANDBOX_APIS = ENV_TOKENS.get('SANDBOX_APIS', True)
 
@@ -289,9 +295,9 @@ RABBIT_PORT = ENV_TOKENS.get('RABBIT_PORT', 5672)
 CELERY_ALWAYS_EAGER = ENV_TOKENS.get('CELERY_ALWAYS_EAGER', False)
 
 
-# CELERYBEAT_SCHEDULE = {
-#     'send_test': {
-#         'task': 'apps.lib.tasks.test_email',
-#         'schedule': crontab(),
-#     }
-# }
+CELERYBEAT_SCHEDULE = {
+    'run_billing': {
+        'task': 'apps.sales.tasks.run_billing',
+        'schedule': crontab(minute=0, hour=0),
+    }
+}

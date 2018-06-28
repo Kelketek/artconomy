@@ -21,7 +21,7 @@ from rest_framework.authtoken.models import Token
 from apps.lib.abstract_models import GENERAL, RATINGS, ImageModel
 from apps.lib.models import Comment, Subscription, FAVORITE, SYSTEM_ANNOUNCEMENT, DISPUTE, REFUND, Event, \
     SUBMISSION_CHAR_TAG, CHAR_TAG, SUBMISSION_TAG, COMMENT, Tag, CHAR_TRANSFER, ASSET_SHARED, CHAR_SHARED, \
-    NEW_CHARACTER, NEW_PORTFOLIO_ITEM
+    NEW_CHARACTER, NEW_PORTFOLIO_ITEM, RENEWAL_FAILURE, SUBSCRIPTION_DEACTIVATED
 from apps.lib.utils import clear_events, tag_list_cleaner, notify, recall_notification
 from apps.profiles.permissions import AssetViewPermission, AssetCommentPermission, MessageReadPermission
 
@@ -150,6 +150,20 @@ def auto_subscribe(sender, instance, created=False, **_kwargs):
             content_type=ContentType.objects.get_for_model(model=instance),
             object_id=instance.id,
             type=CHAR_SHARED
+        )
+        Subscription.objects.create(
+            subscriber=instance,
+            content_type=ContentType.objects.get_for_model(model=instance),
+            object_id=instance.id,
+            type=RENEWAL_FAILURE,
+            email=True,
+        )
+        Subscription.objects.create(
+            subscriber=instance,
+            content_type=ContentType.objects.get_for_model(model=instance),
+            object_id=instance.id,
+            type=SUBSCRIPTION_DEACTIVATED,
+            email=True,
         )
     if instance.is_staff:
         Subscription.objects.get_or_create(

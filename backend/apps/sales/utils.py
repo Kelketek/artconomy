@@ -1,6 +1,9 @@
 from decimal import Decimal, InvalidOperation
 
+from django.conf import settings
 from django.db.models import Sum, Q, IntegerField, Case, When, F
+from django.utils.datetime_safe import date
+from moneyed import Money
 
 from apps.sales.models import PaymentRecord, Product
 
@@ -109,3 +112,11 @@ RESPONSE_TRANSLATORS = {
           "card and add it again with updated information.",
     'E00040': "Something is wrong in our records with the card you've added. Please remove the card and re-add it."
 }
+
+
+def service_price(user, service):
+    price = Money(getattr(settings, service.upper() + '_PRICE'), 'USD')
+    if service == 'landscape':
+        if user.portrait_paid_through and user.portrait_paid_through >= date.today():
+            price -= Money(settings.PORTRAIT_PRICE, 'USD')
+    return price
