@@ -159,9 +159,8 @@ class TestCardManagement(APITestCase):
     @patch('apps.sales.models.sauce')
     def test_add_card_new_primary(self, card_api):
         self.login(self.user)
-        CreditCardTokenFactory(user=self.user)
-        # Side effect may create primary card. Manually set None.
-        self.user.primary_card = None
+        card = CreditCardTokenFactory(user=self.user)
+        self.user.primary_card = card
         self.user.save()
         card_api.card.return_value.save.return_value.uid = '12345|6789'
         response = self.client.post(
@@ -175,6 +174,7 @@ class TestCardManagement(APITestCase):
                 'security_code': '555',
                 'zip': '44444',
                 'cvv': '555',
+                'make_primary': True
             }
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)

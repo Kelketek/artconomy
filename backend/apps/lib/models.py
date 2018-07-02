@@ -64,6 +64,7 @@ NEW_PM = 25
 STREAMING = 26
 RENEWAL_FAILURE = 27
 SUBSCRIPTION_DEACTIVATED = 28
+RENEWAL_FIXED = 29
 
 
 EVENT_TYPES = (
@@ -103,7 +104,8 @@ EMAIL_SUBJECTS = {
     NEW_PM: 'You have a new private message from {{ target.sender.username }}!',
     COMMENT: 'New comment on {{ name }}',
     RENEWAL_FAILURE: 'Issue with your subscription',
-    SUBSCRIPTION_DEACTIVATED: 'Your subscription has been deactivated.'
+    SUBSCRIPTION_DEACTIVATED: 'Your subscription has been deactivated.',
+    RENEWAL_FIXED: 'Subscription renewed successfully'
 }
 
 

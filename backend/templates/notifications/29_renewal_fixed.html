@@ -1,0 +1,11 @@
+{% extends 'email_base.html' %}
+{% block header_message %}Your subscription was renewed successfully{% endblock %}
+{% block message %}
+<p>
+  We were able to renew your subscription successfully. You may check your transaction history following the link below.
+</p>
+{% endblock message %}
+
+{% block action %}
+<a href="/profile/{{target.username}}/settings/payment/transactions">Visit your transaction history!</a>
+{% endblock %}

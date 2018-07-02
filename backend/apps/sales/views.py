@@ -666,7 +666,8 @@ class CardList(ListCreateAPIView):
         return CreditCardToken.create(
             first_name=data['first_name'], last_name=data['last_name'], country=data['country'],
             user=user, exp_month=data['exp_date'].month, exp_year=data['exp_date'].year,
-            card_number=data['card_number'], cvv=data['cvv'], zip_code=data.get('zip')
+            card_number=data['card_number'], cvv=data['cvv'], zip_code=data.get('zip'),
+            make_primary=data['make_primary']
         )
 
 
