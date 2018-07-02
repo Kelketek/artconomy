@@ -296,5 +296,9 @@ CELERYBEAT_SCHEDULE = {
     'run_billing': {
         'task': 'apps.sales.tasks.run_billing',
         'schedule': crontab(minute=0, hour=0),
+    },
+    'check_transactions': {
+        'task': 'apps.sales.tasks.check_transactions',
+        'schedule': crontab(minute=30)
     }
 }

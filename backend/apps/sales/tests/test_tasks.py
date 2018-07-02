@@ -1,6 +1,6 @@
 from datetime import date
 from decimal import Decimal
-from unittest.mock import patch, call
+from unittest.mock import patch, call, PropertyMock
 
 from authorize import AuthorizeError
 from django.core import mail
@@ -11,8 +11,8 @@ from freezegun import freeze_time
 from apps.lib.models import SUBSCRIPTION_DEACTIVATED, Notification, RENEWAL_FAILURE, RENEWAL_FIXED
 from apps.profiles.tests.factories import UserFactory
 from apps.sales.models import PaymentRecord
-from apps.sales.tasks import run_billing, renew
-from apps.sales.tests.factories import CreditCardTokenFactory
+from apps.sales.tasks import run_billing, renew, update_transfer_status
+from apps.sales.tests.factories import CreditCardTokenFactory, PaymentRecordFactory
 
 
 class TestAutoRenewal(TestCase):
@@ -159,3 +159,41 @@ class TestAutoRenewal(TestCase):
         self.assertEqual(Notification.objects.filter(event__type=RENEWAL_FIXED).count(), 1)
         self.assertEqual(len(mail.outbox), 1)
         self.assertEqual(mail.outbox[0].subject, 'Subscription renewed successfully')
+
+
+@patch('apps.sales.apis.DwollaContext.dwolla_api', new_callable=PropertyMock)
+@patch('apps.sales.tasks.refund_transfer')
+class TestUpdateTransaction(TestCase):
+    def setUp(self):
+        super().setUp()
+        self.record = PaymentRecordFactory.create(
+            payee=None,
+            payer=UserFactory.create(),
+            type=PaymentRecord.DISBURSEMENT_SENT,
+            source=PaymentRecord.ACCOUNT,
+            txn_id='1234',
+            finalized=False,
+        )
+
+    def test_check_transaction_status_no_change(self, _mock_refund, _mock_api):
+        _mock_api.return_value.get.return_value.body = {'status': 'pending'}
+        update_transfer_status(self.record.id)
+        self.assertEqual(PaymentRecord.objects.all().count(), 1)
+        self.record.refresh_from_db()
+        self.assertEqual(self.record.finalized, False)
+
+    def test_check_transaction_status_cancelled(self, _mock_refund, _mock_api):
+        _mock_api.return_value.get.return_value.body = {'status': 'cancelled'}
+        update_transfer_status(self.record.id)
+        self.assertEqual(PaymentRecord.objects.all().count(), 1)
+        self.record.refresh_from_db()
+        _mock_refund.assert_called_with(self.record)
+        self.assertEqual(self.record.finalized, True)
+
+    def test_check_transaction_status_processed(self, _mock_refund, _mock_api):
+        _mock_api.return_value.get.return_value.body = {'status': 'processed'}
+        update_transfer_status(self.record.id)
+        self.assertEqual(PaymentRecord.objects.all().count(), 1)
+        self.record.refresh_from_db()
+        _mock_refund.assert_not_called()
+        self.assertEqual(self.record.finalized, True)
