@@ -150,7 +150,10 @@ export const NOTIFICATION_MAPPING = {
   '23': 'ac-asset-shared',
   '24': 'ac-char-shared',
   '25': 'ac-new-pm',
-  '26': 'ac-streaming'
+  '26': 'ac-streaming',
+  '27': 'ac-renewal-failure',
+  '28': 'ac-subscription-deactivated',
+  '29': 'ac-renewal-fixed'
 }
 
 export const ORDER_STATUSES = {

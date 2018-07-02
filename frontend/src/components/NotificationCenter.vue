@@ -64,11 +64,17 @@
   import AcNewPm from './notifications/ac-new-pm'
   import AcStreaming from './notifications/ac-streaming'
   import AcCommissionsOpen from './notifications/ac-commissions-open'
+  import AcRenewalFixed from './notifications/ac-renewal-fixed'
+  import AcRenewalFailure from './notifications/ac-renewal-failure'
+  import AcSubscriptionDeactivated from './notifications/ac-subscription-deactivated'
 
   export default {
     name: 'NotificationCenter',
     mixins: [Paginated],
     components: {
+      AcSubscriptionDeactivated,
+      AcRenewalFailure,
+      AcRenewalFixed,
       AcCommissionsOpen,
       AcStreaming,
       AcNewPm,

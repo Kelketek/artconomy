@@ -10,12 +10,12 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
-import os
-
 import json
-
+import logging.config
+import os
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 from decimal import Decimal
+from sys import argv
 
 from celery.schedules import crontab
 
@@ -149,7 +149,6 @@ STATIC_ROOT = ENV_TOKENS.get('STATIC_ROOT', os.path.join(BASE_DIR, 'public'))
 MEDIA_URL = ENV_TOKENS.get('MEDIA_ROOT', '/media/')
 MEDIA_ROOT = ENV_TOKENS.get('MEDIA_ROOT', os.path.join(BASE_DIR, 'media'))
 
-
 WEBPACK_LOADER = {
     'DEFAULT': {
         'BUNDLE_DIR_NAME': '',
@@ -229,27 +228,24 @@ REFUND_FEE = ENV_TOKENS.get('REFUND_FEE', Decimal('2.00'))
 COUNTRIES_NOT_SERVED = ENV_TOKENS.get(
     'COUNTRIES_NOT_SERVED',
     (
-      'NK',
-      'IR',
-      'NG'
+        'NK',
+        'IR',
+        'NG'
     )
 )
 
 REST_FRAMEWORK = {
-  'DEFAULT_PAGINATION_CLASS': 'apps.lib.middleware.ResizablePagination',
-  'PAGE_SIZE': 50,
-  'DEFAULT_AUTHENTICATION_CLASSES': (
-      'rest_framework.authentication.SessionAuthentication',
-  )
+    'DEFAULT_PAGINATION_CLASS': 'apps.lib.middleware.ResizablePagination',
+    'PAGE_SIZE': 50,
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.SessionAuthentication',
+    )
 }
 
 GR_CAPTCHA_SECRET_KEY = ENV_TOKENS.get('GR_CAPTCHA_SECRET_KEY', '')
 
 GR_CAPTCHA_PUBLIC_KEY = ENV_TOKENS.get('GR_CAPTCHA_PUBLIC_KEY', '')
 
-import logging.config
-
-from sys import argv
 
 if 'test' not in argv and 'runserver' not in argv:
 
@@ -294,6 +290,7 @@ RABBIT_PORT = ENV_TOKENS.get('RABBIT_PORT', 5672)
 
 CELERY_ALWAYS_EAGER = ENV_TOKENS.get('CELERY_ALWAYS_EAGER', False)
 
+CELERY_BROKER_CONNECTION_RETRY = ENV_TOKENS.get('CELERY_BROKER_CONNECTION_RETRY', True)
 
 CELERYBEAT_SCHEDULE = {
     'run_billing': {
