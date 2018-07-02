@@ -143,6 +143,7 @@ class NewCardSerializer(serializers.Serializer):
     exp_date = serializers.CharField(max_length=5, min_length=4)
     zip = serializers.CharField(max_length=20, required=False)
     cvv = serializers.CharField(max_length=4, min_length=3, validators=[RegexValidator(r'^[0-9]{3,4}$')])
+    make_primary = serializers.BooleanField()
 
     def validate_exp_date(self, value):
         value = value.replace('/', '')

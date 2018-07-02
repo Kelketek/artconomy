@@ -5,10 +5,10 @@ from dateutil.relativedelta import relativedelta
 from django.db.models import Q
 from django.utils.datetime_safe import date
 
-from apps.lib.models import RENEWAL_FAILURE, SUBSCRIPTION_DEACTIVATED
+from apps.lib.models import RENEWAL_FAILURE, SUBSCRIPTION_DEACTIVATED, RENEWAL_FIXED
 from apps.lib.utils import notify
 from apps.profiles.models import User
-from apps.sales.models import PaymentRecord
+from apps.sales.models import PaymentRecord, CreditCardToken
 from apps.sales.utils import service_price, translate_authnet_error
 from apps.sales.views import set_service
 from conf.celery_config import celery_app
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 @celery_app.task
-def renew(user_id, service):
+def renew(user_id, service, card_id=None):
     user = User.objects.get(id=user_id)
     enabled = getattr(user, service + '_enabled')
     paid_through = getattr(user, service + '_paid_through')
@@ -32,7 +32,10 @@ def renew(user_id, service):
     if not (enabled and old):
         # Fixed between when this task was added and it was executed.
         return
-    card = user.primary_card
+    if card_id:
+        card = CreditCardToken.objects.get(id=card_id, user=user, active=True)
+    else:
+        card = user.primary_card
     if card is None:
         cards = User.credit_cards.filter(active=True).order_by('-primary', '-created_on')
         if not cards.exists():
@@ -70,6 +73,11 @@ def renew(user_id, service):
         card.save()
         set_service(user, service, target_date=date.today() + relativedelta(months=1))
         record.save()
+        if card_id or (paid_through < date.today()):
+            # This was called manually or a previous attempt should have been made and there may have been a gap
+            # in coverage. In this case, let's inform the user the renewal was successful instead of silently
+            # succeeding.
+            notify(RENEWAL_FIXED, user, unique=True)
 
 
 @celery_app.task
@@ -81,7 +89,7 @@ def run_billing():
     )
     for user in users:
         logger.info('Deactivated {}({})'.format(user.username, user.id))
-        notify(SUBSCRIPTION_DEACTIVATED, user)
+        notify(SUBSCRIPTION_DEACTIVATED, user, unique=True)
         user.portrait_enabled = False
         user.landscape_enabled = False
         user.save()

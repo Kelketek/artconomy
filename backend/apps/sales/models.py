@@ -598,7 +598,9 @@ class CreditCardToken(Model):
         return saved_card, card_type, number[:4]
 
     @classmethod
-    def create(cls, user, first_name, last_name, card_number, cvv, exp_year, exp_month, country, zip_code):
+    def create(
+            cls, user, first_name, last_name, card_number, cvv, exp_year, exp_month, country, zip_code, make_primary
+    ):
 
         saved_card, card_type, last_four = cls.authorize_card(
             first_name, last_name, card_number, cvv, exp_year, exp_month, country, zip_code
@@ -609,7 +611,7 @@ class CreditCardToken(Model):
             payment_id=saved_card.uid, cvv_verified=True)
 
         token.save()
-        if not token.user.primary_card:
+        if (not token.user.primary_card) or make_primary:
             token.user.primary_card = token
             token.user.save()
         return token

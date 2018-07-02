@@ -23,7 +23,7 @@
             >
               {{card}}
             </ac-saved-card>
-            <v-divider v-if="index + 1 < growing.length" :key="index" />
+            <v-divider v-if="index + 1 < growing.length" :key="index + '-d'" />
           </template>
         </v-radio-group>
       </v-tab-item>
@@ -95,7 +95,8 @@
           exp_date: '',
           security_code: '',
           zip: '',
-          cvv: ''
+          cvv: '',
+          make_primary: true
         },
         showNew: false,
         cardType: 'unknown',
@@ -164,6 +165,11 @@
             placeholder: '55555',
             featured: true,
             validator: VueFormGenerator.validators.string
+          }, {
+            type: 'v-checkbox',
+            label: 'Make this my primary card',
+            hint: 'If checked, this card will be used by default for future transactions and payments.',
+            model: 'make_primary'
           }]
         },
         newCardOptions: {
@@ -208,8 +214,16 @@
         this.cardType = result
       },
       addCard (response) {
-        this.growing.push(response)
+        if (response.primary) {
+          for (let card of this.growing) {
+            card.primary = false
+          }
+          this.growing.unshift(response)
+        } else {
+          this.growing.push(response)
+        }
         this.selectedCard = response.id
+        EventBus.$emit('card-number', '')
       },
       populateCountries (response) {
         let countryField = this.newCardSchema.fields.filter((field) => { return field.model === 'country' })[0]
