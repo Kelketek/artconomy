@@ -24,7 +24,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.lib.models import DISPUTE, REFUND, COMMENT, Subscription, ORDER_UPDATE, SALE_UPDATE, REVISION_UPLOADED, \
-    CHAR_TRANSFER, NEW_PORTFOLIO_ITEM, NEW_PRODUCT, STREAMING, COMMISSIONS_OPEN
+    CHAR_TRANSFER, NEW_PORTFOLIO_ITEM, NEW_PRODUCT, STREAMING
 from apps.lib.permissions import ObjectStatus, IsStaff, IsSafeMethod, Any
 from apps.lib.serializers import CommentSerializer
 from apps.lib.utils import notify, recall_notification, subscribe
@@ -43,7 +43,9 @@ from apps.sales.serializers import ProductSerializer, ProductNewOrderSerializer,
     AccountBalanceSerializer, BankAccountSerializer, WithdrawSerializer, PaymentRecordSerializer, \
     CharacterTransferSerializer, PlaceholderSaleSerializer, PublishFinalSerializer, RatingSerializer, \
     ServicePaymentSerializer
-from apps.sales.utils import translate_authnet_error, available_products, service_price
+from apps.sales.utils import translate_authnet_error, available_products, service_price, set_service, \
+    check_charge_required
+from apps.sales.tasks import renew
 
 
 class ProductList(ListCreateAPIView):
@@ -655,6 +657,10 @@ class CardList(ListCreateAPIView):
             token = self.perform_create(serializer)
         except AuthorizeResponseError as err:
             return Response(data={'errors': [translate_authnet_error(err)]}, status=status.HTTP_400_BAD_REQUEST)
+        if token.user.portrait_enabled:
+            renew.delay(token.user.id, 'portrait')
+        elif token.user.landscape_enabled:
+            renew.delay(token.user.id, 'landscape')
         serializer = CardSerializer(instance=token)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
@@ -1255,47 +1261,6 @@ class PremiumInfo(APIView):
                 'portrait_price': str(settings.PORTRAIT_PRICE)
             }
         )
-
-
-def check_charge_required(user, service):
-    if service == 'portrait':
-        if user.landscape_paid_through:
-            if user.landscape_paid_through >= date.today():
-                return False, user.landscape_paid_through
-        if user.portrait_paid_through:
-            if user.portrait_paid_through >= date.today():
-                return False, user.portrait_paid_through
-    else:
-        if user.landscape_paid_through:
-            if user.landscape_paid_through >= date.today():
-                return False, user.landscape_paid_through
-    return True, None
-
-
-def set_service(user, service, target_date=None):
-    if service == 'portrait':
-        user.portrait_enabled = True
-        user.landscape_enabled = False
-    else:
-        user.landscape_enabled = True
-        user.portrait_enabled = False
-    if target_date:
-        setattr(user, service + '_paid_through', target_date)
-        # Landscape includes portrait, so this is always set regardless.
-        user.portrait_paid_through = target_date
-        for watched in user.watching.all():
-            content_type = ContentType.objects.get_for_model(watched)
-            sub, _ = Subscription.objects.get_or_create(
-                subscriber=user,
-                content_type=content_type,
-                object_id=watched.id,
-                type=COMMISSIONS_OPEN
-            )
-            sub.until = target_date
-            sub.telegram = True
-            sub.email = True
-            sub.save()
-    user.save()
 
 
 class Premium(GenericAPIView):

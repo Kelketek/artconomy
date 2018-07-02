@@ -1,10 +1,12 @@
 from decimal import Decimal, InvalidOperation
 
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
 from django.db.models import Sum, Q, IntegerField, Case, When, F
 from django.utils.datetime_safe import date
 from moneyed import Money
 
+from apps.lib.models import Subscription, COMMISSIONS_OPEN
 from apps.sales.models import PaymentRecord, Product
 
 
@@ -120,3 +122,44 @@ def service_price(user, service):
         if user.portrait_paid_through and user.portrait_paid_through >= date.today():
             price -= Money(settings.PORTRAIT_PRICE, 'USD')
     return price
+
+
+def set_service(user, service, target_date=None):
+    if service == 'portrait':
+        user.portrait_enabled = True
+        user.landscape_enabled = False
+    else:
+        user.landscape_enabled = True
+        user.portrait_enabled = False
+    if target_date:
+        setattr(user, service + '_paid_through', target_date)
+        # Landscape includes portrait, so this is always set regardless.
+        user.portrait_paid_through = target_date
+        for watched in user.watching.all():
+            content_type = ContentType.objects.get_for_model(watched)
+            sub, _ = Subscription.objects.get_or_create(
+                subscriber=user,
+                content_type=content_type,
+                object_id=watched.id,
+                type=COMMISSIONS_OPEN
+            )
+            sub.until = target_date
+            sub.telegram = True
+            sub.email = True
+            sub.save()
+    user.save()
+
+
+def check_charge_required(user, service):
+    if service == 'portrait':
+        if user.landscape_paid_through:
+            if user.landscape_paid_through >= date.today():
+                return False, user.landscape_paid_through
+        if user.portrait_paid_through:
+            if user.portrait_paid_through >= date.today():
+                return False, user.portrait_paid_through
+    else:
+        if user.landscape_paid_through:
+            if user.landscape_paid_through >= date.today():
+                return False, user.landscape_paid_through
+    return True, None

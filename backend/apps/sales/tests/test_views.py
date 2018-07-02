@@ -253,6 +253,30 @@ class TestCardManagement(APITestCase):
         card = CreditCardToken.objects.get(user=self.user)
         self.assertEqual(card.payment_id, '12345|6789')
 
+    @freeze_time('2018-01-01')
+    @patch('apps.sales.models.sauce')
+    @patch('apps.sales.views.renew')
+    def test_add_card_renew(self, mock_renew, card_api):
+        self.user.portrait_enabled = True
+        self.user.save()
+        self.login(self.user)
+        card_api.card.return_value.save.return_value.uid = '12345|6789'
+        response = self.client.post(
+            '/api/sales/v1/account/{}/cards/'.format(self.user.username),
+            {
+                'first_name': 'Jim',
+                'last_name': 'Bob',
+                'country': 'US',
+                'card_number': '4111 1111 1111 1111',
+                'exp_date': '02/34',
+                'security_code': '555',
+                'zip': '44444',
+                'cvv': '555',
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        mock_renew.delay.assert_called_with(self.user.id, 'portrait')
+
     def test_make_primary(self):
         cards = [CreditCardTokenFactory(user=self.user) for __ in range(4)]
         self.login(self.user)
