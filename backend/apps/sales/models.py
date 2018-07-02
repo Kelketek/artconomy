@@ -304,7 +304,8 @@ def auto_subscribe_order(sender, instance, created=False, **_kwargs):
             email=True,
             type=COMMENT
         )
-        Subscription.objects.create(
+        # In the off chance the seller and buyer are the same.
+        Subscription.objects.get_or_create(
             subscriber=instance.seller,
             content_type=ContentType.objects.get_for_model(model=sender),
             object_id=instance.id,
@@ -572,6 +573,9 @@ class CreditCardToken(Model):
             pass
         if self.user.primary_card == self:
             self.user.primary_card = None
+            cards = self.user.credit_cards.filter(active=True).order_by('-created_on')
+            if cards:
+                self.user.primary_card = cards[0]
             self.user.save()
         self.active = False
         self.save()

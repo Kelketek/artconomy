@@ -7,7 +7,9 @@
                  name="card"
                  :value="card.id"
                  class="mr-1"
+                 v-if="selectable"
         />
+      <label v-else>{{issuer.name + ' x' + card.last_four}}</label>
     </v-flex>
     <v-flex xs7 text-xs-right>
         <v-btn small v-if="card.primary" color="success" size="sm" :disabled="changing">Primary Card</v-btn>
@@ -37,7 +39,12 @@
         let index = this.cards.indexOf(this.card)
         this.cards.splice(index, 1)
         if (this.value === this.card.id) {
-          return this.$emit('input', null)
+          if (this.cards.length) {
+            this.cards[0].primary = true
+            this.$emit('input', this.cards[0].id)
+          } else {
+            this.$emit('input', null)
+          }
         }
       },
       deleteCard () {

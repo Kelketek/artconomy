@@ -477,7 +477,7 @@
             label: 'Caption',
             model: 'caption',
             featured: true,
-            multiline: true,
+            multiLine: true,
             required: true,
             validator: VueFormGenerator.validators.string
           },

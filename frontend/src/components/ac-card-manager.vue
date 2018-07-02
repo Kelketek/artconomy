@@ -168,7 +168,8 @@
           }, {
             type: 'v-checkbox',
             label: 'Make this my primary card',
-            hint: 'If checked, this card will be used by default for future transactions and payments.',
+            hint: 'If checked, this card will be used by default for future transactions and payments. ' +
+                  'If this is your first card, this card will be your primary card whether or not this box is checked.',
             model: 'make_primary'
           }]
         },
