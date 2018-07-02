@@ -9,8 +9,7 @@ from apps.lib.models import RENEWAL_FAILURE, SUBSCRIPTION_DEACTIVATED, RENEWAL_F
 from apps.lib.utils import notify
 from apps.profiles.models import User
 from apps.sales.models import PaymentRecord, CreditCardToken
-from apps.sales.utils import service_price, translate_authnet_error
-from apps.sales.views import set_service
+from apps.sales.utils import service_price, translate_authnet_error, set_service
 from conf.celery_config import celery_app
 
 
