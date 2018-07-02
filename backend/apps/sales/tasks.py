@@ -8,6 +8,8 @@ from django.utils.datetime_safe import date
 from apps.lib.models import RENEWAL_FAILURE, SUBSCRIPTION_DEACTIVATED, RENEWAL_FIXED
 from apps.lib.utils import notify
 from apps.profiles.models import User
+from apps.sales.apis import dwolla
+from apps.sales.dwolla import refund_transfer
 from apps.sales.models import PaymentRecord, CreditCardToken
 from apps.sales.utils import service_price, translate_authnet_error, set_service
 from conf.celery_config import celery_app
@@ -98,3 +100,27 @@ def run_billing():
     users = User.objects.filter(landscape_enabled=True, landscape_paid_through__lte=date.today())
     for user in users:
         renew.delay(user.id, 'landscape')
+
+
+@celery_app.task
+def check_transactions():
+    """
+    Task to be run periodically to update the status of transfers on Dwolla.
+    """
+    records = PaymentRecord.objects.filter(finalized=False, type=PaymentRecord.DISBURSEMENT_SENT)
+    for record in records:
+        update_transfer_status.delay(record.id)
+
+
+@celery_app.task
+def update_transfer_status(record_id):
+    record = PaymentRecord.objects.get(id=record_id)
+    with dwolla as api:
+        status = api.get('https://api.dwolla.com/transfers/{}'.format(record.txn_id))
+        if status.body['status'] == 'processed':
+            record.finalized = True
+            record.save()
+        if status.body['status'] == 'cancelled':
+            refund_transfer(record)
+            record.finalized = True
+            record.save()
