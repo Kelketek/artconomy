@@ -11,7 +11,9 @@ def index(request):
         return bad_endpoint(request)
     if request.content_type == 'application/json':
         return bad_endpoint(request)
-    return render(request, 'index.html', {'debug': settings.DEBUG})
+    return render(
+        request, 'index.html', {'debug': settings.DEBUG, 'env_file': 'envs/{}.html'.format(settings.ENV_NAME)}
+    )
 
 
 @api_view(('GET', 'POST', 'PATCH', 'PUT', 'HEAD', 'DELETE', 'OPTIONS'))

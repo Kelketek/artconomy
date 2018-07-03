@@ -302,3 +302,5 @@ CELERYBEAT_SCHEDULE = {
         'schedule': crontab(minute=30)
     }
 }
+
+ENV_NAME = ENV_TOKENS.get('ENV_NAME', 'dev')
