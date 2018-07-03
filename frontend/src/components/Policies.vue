@@ -43,24 +43,22 @@
       </v-flex>
       <v-flex xs12 md3>
         <v-card>
-          <v-card-title>Privacy Policy</v-card-title>
-          <v-card-text class="card-block pt-2 pb-2">
-            <h6 class="card-subtitle mb-2 text-muted">To Be Written</h6>
-            <p class="card-text">
-              Read how we use your data, and how we do not.
-            </p>
-          </v-card-text>
+          <router-link :to="{name: 'PrivacyPolicy'}">
+            <v-card-title>Privacy Policy</v-card-title>
+            <v-card-text>
+              <p>Read how we use your data, and how we do not.</p>
+            </v-card-text>
+          </router-link>
         </v-card>
       </v-flex>
       <v-flex xs12 md3>
         <v-card>
-          <v-card-title>Terms of Service</v-card-title>
-          <v-card-text class="card-block pt-2 pb-2">
-            <h6 class="card-subtitle mb-2 text-muted">To Be Written</h6>
-            <p class="card-text">
-              Read our site-wide terms of service.
-            </p>
-          </v-card-text>
+          <router-link :to="{name: 'TermsOfService'}">
+            <v-card-title>Terms of Service</v-card-title>
+            <v-card-text>
+              <p>Read our site-wide terms of service.</p>
+            </v-card-text>
+          </router-link>
         </v-card>
       </v-flex>
     </v-layout>
