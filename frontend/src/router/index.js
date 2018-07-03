@@ -5,6 +5,8 @@ import Login from '@/components/Login'
 import CommissionAgreement from '@/components/CommissionAgreement'
 import CharacterTransferAgreement from '@/components/CharacterTransferAgreement'
 import RefundPolicy from '@/components/RefundPolicy'
+import TermsOfService from '@/components/TermsOfService'
+import PrivacyPolicy from '@/components/PrivacyPolicy'
 import NotificationCenter from '@/components/NotificationCenter'
 import Profile from '@/components/Profile'
 import Policies from '@/components/Policies'
@@ -71,6 +73,16 @@ export const routes = [
     path: '/legal-and-policies/refund-policy/',
     name: 'RefundPolicy',
     component: RefundPolicy
+  },
+  {
+    path: '/legal-and-policies/terms-of-service/',
+    name: 'TermsOfService',
+    component: TermsOfService
+  },
+  {
+    path: '/legal-and-policies/privacy-policy/',
+    name: 'PrivacyPolicy',
+    component: PrivacyPolicy
   },
   {
     path: '/contact/',
