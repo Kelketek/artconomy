@@ -865,6 +865,21 @@ class TestAssetTag(APITestCase):
         self.assertEqual(sorted(list(asset.tags.all().values_list('name', flat=True))), ['sexy', 'vix'])
 
 
+class TestTagCharacter(APITestCase):
+    def test_tag_character(self):
+        self.login(self.user)
+        character = CharacterFactory.create(name='Gooby')
+        asset = ImageAssetFactory.create()
+        response = self.client.post(
+            '/api/profiles/v1/asset/{}/tag-characters/'.format(asset.id),
+            {'characters': [character.id]}
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        asset.refresh_from_db()
+        self.assertEqual(asset.characters.all().count(), 1)
+        self.assertEqual(asset.characters.all()[0], character)
+
+
 class TestShareCharacter(APITestCase):
     def test_logged_in(self):
         character = CharacterFactory.create()

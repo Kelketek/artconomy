@@ -441,7 +441,7 @@ class AssetTagCharacter(APIView):
         self.check_object_permissions(request, asset)
         if 'characters' not in request.data:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'characters': ['This field is required.']})
-        id_list = request.data['characters']
+        id_list = request.data.getlist('characters')
         qs = available_chars(request.user, commissions=False, tagging=True).filter(id__in=id_list)
         qs = qs.exclude(id__in=asset.characters.all().values_list('id', flat=True))
 
