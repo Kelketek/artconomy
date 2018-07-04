@@ -10,6 +10,7 @@
         </div>
       </div>
       <div class="col-12-sm">
+        <p><strong>Last updated: July 03, 2018</strong></p>
         <p>
           This is an agreement between commissioner, artist, and the intermediary, henceforth known as Artconomy.
         </p>
@@ -53,6 +54,9 @@
         </p>
         <p>
           If no other terms are specified in the order description, the intellectual property rights of the deliverables will be assigned to the commissioner, and the commissioner hereby grants a universal, worldwide, non-revokable license to the artist to transmit, store, transcode, display, and resell the resulting work and any derivitives.
+        </p>
+        <p>
+          If the commissioner has specified via the standard order form that the commission is a private commission, the artist will NOT be granted any license to use the resulting work unless explicitly authorized by the commissioner, other than what is required to deliver it to the commissioner.
         </p>
         <p>
           The commissioner and artist grant any applicable worldwide, universal, non-revokable license required for Artconomy to store, transmit, and transcode the resulting work in order to fulfill its functions as an intermediary and provide portfolio services to the commissioner and artist. Artconomy may not sell or use in advertising the resulting deliverables without explicit written permission from applicable rightsholders.
