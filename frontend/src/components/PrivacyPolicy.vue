@@ -13,7 +13,7 @@
         <h1>Privacy Policy</h1>
 
 
-        <p>Effective date: July 03, 2018</p>
+        <p><strong>Last updated: July 03, 2018</strong></p>
 
 
         <p>Artconomy ("us", "we", or "our") operates the https://artconomy.com/ website (the "Service").</p>
