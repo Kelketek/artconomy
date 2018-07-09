@@ -16,6 +16,7 @@ from django.db.models import Model, CharField, ForeignKey, IntegerField, Boolean
 from django.db.models.signals import post_save, post_delete, pre_delete
 from django.dispatch import receiver
 from django.utils.datetime_safe import datetime, date
+from easy_thumbnails.fields import ThumbnailerImageField
 from rest_framework.authtoken.models import Token
 
 from apps.lib.abstract_models import GENERAL, RATINGS, ImageModel

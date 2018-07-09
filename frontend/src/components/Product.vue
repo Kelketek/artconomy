@@ -80,10 +80,25 @@
               <v-flex xs12 v-if="editing">
                 <ac-patchbutton :url="url" :classes="{'btn-sm': true, 'm-0': true}" name="hidden" v-model="product.hidden" true-text="Hide Product" true-variant="success" false-text="Unhide Product" />
               </v-flex>
+              <v-flex xs12 v-if="editing">
+                <v-btn @click="showImageUpdate = true">Update Images</v-btn>
+              </v-flex>
             </v-layout>
           </v-flex>
         </v-layout>
       </v-card>
+      <ac-form-dialog
+          v-model="showImageUpdate"
+          :title="`Update images for ${product.name}`"
+          submit-text="Save"
+          :model="imageModel"
+          :options="newOrderOptions"
+          :schema="imageUpdateSchema"
+          method="PATCH"
+          :url="url"
+          :success="setProduct"
+      >
+      </ac-form-dialog>
       <div class="mt-3"></div>
       <ac-asset-gallery ref="assetGallery" :endpoint="`${url}examples/`" :limit="5" :header="true">
         <div slot="header" class="col-12 text-xs-center mb-2">
@@ -156,11 +171,13 @@
   import AcAvatar from './ac-avatar'
   import AcAssetGallery from './ac-asset-gallery'
   import AcTagDisplay from './ac-tag-display'
+  import AcFormDialog from './ac-form-dialog'
 
   export default {
     props: ['productID'],
     mixins: [Viewer, Perms, Editable],
     components: {
+      AcFormDialog,
       AcTagDisplay,
       AcAssetGallery,
       AcAvatar,
@@ -173,6 +190,7 @@
     methods: {
       setProduct (response) {
         this.product = response
+        this.showImageUpdate = false
       },
       goToStore: function () {
         this.$router.history.push({name: 'Store', params: {username: this.username}})
@@ -194,11 +212,33 @@
         product: null,
         url: `/api/sales/v1/account/${this.username}/products/${this.productID}/`,
         showOrder: false,
+        showImageUpdate: false,
         md: md,
         newOrderModel: {
           details: '',
           private: false,
           characters: []
+        },
+        imageModel: {
+          file: [],
+          preview: []
+        },
+        imageUpdateSchema: {
+          fields: [
+            {
+              type: 'v-file-upload',
+              id: 'file',
+              label: 'Replace File',
+              model: 'file',
+              required: false
+            },
+            {
+              type: 'v-file-upload',
+              id: 'preview',
+              label: 'Replace Preview Image/Thumbnail',
+              model: 'preview',
+              required: false
+            }]
         },
         newOrderSchema: {
           fields: [{

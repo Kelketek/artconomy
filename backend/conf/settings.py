@@ -163,13 +163,25 @@ THUMBNAIL_ALIASES = {
         'gallery': {'size': (1000, 700)},
         'notification': {'size': (80, 80)}
     },
+    'profiles.ImageAsset.preview': {
+        'thumbnail': {'size': (300, 300), 'crop': False},
+        'notification': {'size': (80, 80)}
+    },
     'sales.Product.file': {
         'thumbnail': {'size': (300, 300), 'crop': False},
         'preview': {'size': (500, 500), 'crop': False},
         'notification': {'size': (80, 80)}
     },
+    'sales.Product.preview': {
+        'thumbnail': {'size': (300, 300), 'crop': False},
+        'notification': {'size': (80, 80)}
+    },
     'sales.Revision.file': {
         'preview': {'size': (500, 500), 'crop': False},
+        'notification': {'size': (80, 80)}
+    },
+    'sales.Revision.preview': {
+        'thumbnail': {'size': (300, 300), 'crop': False},
         'notification': {'size': (80, 80)}
     },
     '': {}

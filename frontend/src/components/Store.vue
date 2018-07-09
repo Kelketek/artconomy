@@ -99,7 +99,8 @@
           max_parallel: 0,
           expected_turnaround: 3,
           price: 0,
-          file: []
+          file: [],
+          preview: []
         },
         newProdSchema: {
           fields: [{
@@ -212,6 +213,13 @@
             uniqueId: 'productFile',
             required: true,
             validator: validateNonEmpty
+          },
+          {
+            type: 'v-file-upload',
+            id: 'preview',
+            label: 'Preview Image/Thumbnail',
+            model: 'preview',
+            required: false
           }]
         },
         newProdOptions: {
