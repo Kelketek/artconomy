@@ -201,6 +201,7 @@
           private: false,
           rating: null,
           file: [],
+          preview: [],
           comments_disabled: false,
           characters: [],
           is_artist: false,
@@ -222,7 +223,7 @@
             label: 'Caption',
             model: 'caption',
             featured: true,
-            multiline: true,
+            multiLine: true,
             required: true,
             validator: VueFormGenerator.validators.string
           },
@@ -300,6 +301,13 @@
             label: 'File',
             model: 'file',
             required: true
+          },
+          {
+            type: 'v-file-upload',
+            id: 'preview',
+            label: 'Preview Image/Thumbnail',
+            model: 'preview',
+            required: false
           }
           ]
         },

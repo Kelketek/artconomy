@@ -19,6 +19,7 @@ from apps.sales.utils import escrow_balance, available_balance
 class ProductSerializer(serializers.ModelSerializer):
     user = UserInfoSerializer(read_only=True)
     file = Base64ImageField(thumbnail_namespace='sales.Product.file')
+    preview = Base64ImageField(thumbnail_namespace='profiles.ImageAsset.preview', required=False)
 
     def get_thumbnail_url(self, obj):
         return self.context['request'].build_absolute_uri(obj.file.url)
@@ -27,7 +28,7 @@ class ProductSerializer(serializers.ModelSerializer):
         model = Product
         fields = (
             'id', 'name', 'description', 'revisions', 'hidden', 'max_parallel', 'task_weight',
-            'expected_turnaround', 'user', 'file', 'rating', 'price', 'tags'
+            'expected_turnaround', 'user', 'file', 'rating', 'price', 'tags', 'preview'
         )
 
 
@@ -291,10 +292,12 @@ class PlaceholderSaleSerializer(serializers.ModelSerializer):
 
 
 class PublishFinalSerializer(serializers.ModelSerializer):
+    preview = Base64ImageField(thumbnail_namespace='profiles.ImageAsset.preview', required=False)
+
     class Meta:
         model = ImageAsset
         fields = (
-            'title', 'caption'
+            'title', 'caption', 'preview'
         )
 
 

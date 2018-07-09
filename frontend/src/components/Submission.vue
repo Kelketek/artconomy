@@ -20,7 +20,7 @@
                 <router-link :to="{name: 'Login', params: {tabName: 'register'}}">Registered users</router-link>
                 can save and fine tune their content settings.
                 <router-link :to="{name: 'Login', params: {tabName: 'register'}}">Consider registering today!</router-link>
-              <p/>
+              </p>
             </v-flex>
           </ac-form-dialog>
         </v-flex>
@@ -305,7 +305,9 @@
         settingsModel: {
           private: false,
           comments_disabled: false,
-          rating: 0
+          rating: 0,
+          file: [],
+          preview: []
         },
         settingsSchema: {
           fields: [{
@@ -328,6 +330,20 @@
             selectOptions: {
               hideNoneSelectedText: true
             }
+          },
+          {
+            type: 'v-file-upload',
+            id: 'file',
+            label: 'Replace File',
+            model: 'file',
+            required: false
+          },
+          {
+            type: 'v-file-upload',
+            id: 'preview',
+            label: 'Replace Preview Image/Thumbnail',
+            model: 'preview',
+            required: false
           }]
         },
         characterTaggingSchema: {
@@ -428,6 +444,8 @@
         for (let key of Object.keys(this.settingsModel)) {
           newSettings[key] = response[key]
         }
+        newSettings.file = []
+        newSettings.preview = []
         this.settingsModel = newSettings
         this.ratingSettingsModel.rating = this.viewer.rating
         this.setMeta()

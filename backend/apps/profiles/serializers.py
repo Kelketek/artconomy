@@ -62,6 +62,7 @@ class ImageAssetSerializer(serializers.ModelSerializer):
     owner = RelatedUserSerializer(read_only=True)
     comment_count = serializers.SerializerMethodField()
     file = Base64ImageField(thumbnail_namespace='profiles.ImageAsset.file')
+    preview = Base64ImageField(thumbnail_namespace='profiles.ImageAsset.preview', required=False)
     is_artist = serializers.BooleanField(write_only=True)
     subscribed = SubscribedField(required=False)
 
@@ -94,7 +95,8 @@ class ImageAssetSerializer(serializers.ModelSerializer):
         model = ImageAsset
         fields = (
             'id', 'title', 'caption', 'rating', 'file', 'private', 'created_on', 'owner', 'comment_count',
-            'favorite_count', 'comments_disabled', 'tags', 'is_artist', 'characters', 'artists', 'subscribed'
+            'favorite_count', 'comments_disabled', 'tags', 'is_artist', 'characters', 'artists', 'subscribed',
+            'preview'
         )
         extra_kwargs = {
             'file': {'write_only': True},
@@ -119,12 +121,13 @@ class ImageAssetNotificationSerializer(serializers.ModelSerializer):
     owner = RelatedUserSerializer(read_only=True)
     tags = TagSerializer(many=True, read_only=True)
     file = Base64ImageField(thumbnail_namespace='profiles.ImageAsset.file')
+    preview = Base64ImageField(thumbnail_namespace='profiles.ImageAsset.preview', required=False)
 
     class Meta:
         model = ImageAsset
         fields = (
             'id', 'title', 'caption', 'rating', 'file', 'private', 'created_on', 'owner',
-            'favorite_count', 'comments_disabled', 'tags'
+            'favorite_count', 'comments_disabled', 'tags', 'preview'
         )
         extra_kwargs = {
             'file': {'write_only': True}
@@ -179,7 +182,8 @@ class ImageAssetManagementSerializer(SubscribeMixin, serializers.ModelSerializer
     owner = RelatedUserSerializer(read_only=True)
     artists = RelatedUserSerializer(read_only=True, many=True)
     characters = CharacterSerializer(many=True, read_only=True)
-    file = Base64ImageField(read_only=True, thumbnail_namespace='profiles.ImageAsset.file')
+    file = Base64ImageField(thumbnail_namespace='profiles.ImageAsset.file')
+    preview = Base64ImageField(thumbnail_namespace='profiles.ImageAsset.preview', required=False)
     favorite = serializers.SerializerMethodField()
     subscribed = SubscribedField(required=False)
     shared_with = RelatedUserSerializer(read_only=True, many=True)
@@ -199,7 +203,8 @@ class ImageAssetManagementSerializer(SubscribeMixin, serializers.ModelSerializer
         model = ImageAsset
         fields = (
             'id', 'title', 'caption', 'rating', 'file', 'private', 'created_on', 'order', 'owner', 'characters',
-            'comments_disabled', 'favorite_count', 'favorite', 'artists', 'tags', 'subscribed', 'shared_with'
+            'comments_disabled', 'favorite_count', 'favorite', 'artists', 'tags', 'subscribed', 'shared_with',
+            'preview'
         )
 
 

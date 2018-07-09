@@ -15,6 +15,14 @@ export const Shortcuts = {
             }
             return ''
           }
+          return this.$displayImage(asset, thumbName)
+        },
+        $displayImage (asset, thumbName) {
+          if (['gallery', 'full', 'preview'].indexOf(thumbName) === -1) {
+            if (asset.preview) {
+              return asset.preview.thumbnail
+            }
+          }
           return asset.file[thumbName]
         }
       }

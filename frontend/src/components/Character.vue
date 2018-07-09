@@ -397,6 +397,7 @@
           private: false,
           rating: null,
           file: [],
+          preview: [],
           comments_disabled: false
         },
         showNewColor: false,
@@ -514,9 +515,16 @@
           {
             type: 'v-file-upload',
             id: 'file',
-            label: 'File',
+            label: 'Full File',
             model: 'file',
             required: true
+          },
+          {
+            type: 'v-file-upload',
+            id: 'preview',
+            label: 'Preview Image/Thumbnail',
+            model: 'preview',
+            required: false
           }]
         },
         newUploadOptions: {

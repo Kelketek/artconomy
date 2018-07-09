@@ -18,6 +18,7 @@ RATINGS = (
 class ImageModel(models.Model):
     rating = models.IntegerField(choices=RATINGS, db_index=True, default=GENERAL)
     file = ThumbnailerImageField(upload_to='art/%Y/%m/%d/')
+    preview = ThumbnailerImageField(upload_to='thumbs/%Y/%m/%d/', blank=True, null=True, default='')
     created_on = DateTimeField(auto_now_add=True)
     owner = ForeignKey(
         settings.AUTH_USER_MODEL, related_name='owned_%(app_label)s_%(class)s', on_delete=CASCADE

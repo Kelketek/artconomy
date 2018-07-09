@@ -1,5 +1,6 @@
 <template>
   <div class="mb-3 mt-3 text-xs-center">
+    <p><label :for="schema.id">{{schema.label}}</label></p>
     <div class="upload" :class="{'error--text': errors.length}">
       <div v-if="value.length">
         <v-btn v-if="value.length" color="normal" @click="value = []">Reset</v-btn>
@@ -17,7 +18,7 @@
       </div>
       <div v-else class="text-xs-center p-5">
         <h4>Drop value anywhere to upload<br/>or</h4>
-        <label for="file" class="btn primary"><div class="btn__content">Select File</div></label>
+        <label :for="schema.id" class="btn primary"><div class="btn__content">Select File</div></label>
       </div>
 
       <div v-show="$refs.upload && $refs.upload.dropActive" class="drop-active">
@@ -32,6 +33,7 @@
             :drop="true"
             :data="formData"
             v-model="value"
+            :inputId="schema.id"
             ref="upload">
           <i class="fa fa-plus"></i>
           Select file

@@ -1,7 +1,7 @@
 <template>
   <div class="asset-container">
     <div v-if="asset">
-      <img :class="imgClass" :src="asset.file[thumbName]" v-if="canDisplay && !textOnly" @click="fullscreen=true">
+      <img :class="imgClass" :src="displayImage" v-if="canDisplay && !textOnly" @click="fullscreen=true">
       <div v-if="fullscreen" class="fullscreen-container" @click="fullscreen=false">
         <img :class="imgClass" :src="asset.file.full" v-if="canDisplay && !textOnly">
       </div>
@@ -79,6 +79,14 @@
       },
       tags () {
         return this.asset.tags.concat(this.addedTags)
+      },
+      displayImage () {
+        if (['gallery', 'full', 'preview'].indexOf(this.thumbName) === -1) {
+          if (this.asset.preview) {
+            return this.asset.preview.thumbnail
+          }
+        }
+        return this.asset.file[this.thumbName]
       },
       blacklisted () {
         if (!this.asset) {
