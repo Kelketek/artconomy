@@ -1,10 +1,10 @@
 <template>
     <v-flex class="patchfield-wrapper" :class="classes()">
       <v-flex v-if="editmode && multiline" @click="startEditing">
-        <v-text-field ref="field" :multi-line="true" @keydown="handleMultilineInput" append-icon="edit" :append-icon-cb="focusField" v-model="input" @input="resizer" :v-focus="true" @blur="save" @keyup.escape="reset" :disabled="disabled"></v-text-field>
+        <v-textarea ref="field" @keydown="handleMultilineInput" append-icon="edit" @click:append="focusField" v-model="input" @input="resizer" :v-focus="true" @blur="save" @keyup.escape="reset" :disabled="disabled"></v-textarea>
       </v-flex>
       <v-flex v-else-if="editmode" @click="startEditing">
-        <v-text-field type="text" ref="field" class="patch-input" append-icon="edit" :append-icon-cb="focusField" v-model="input" @keyup.enter.native="save" :autofocus="true" @focus="setAtEnd" :value="value" @blur="save" @keyup.escape.native="reset" :disabled="disabled" />
+        <v-text-field type="text" ref="field" class="patch-input" append-icon="edit" @click:append="focusField" v-model="input" @keyup.enter.native="save" :autofocus="true" @focus="setAtEnd" :value="value" @blur="save" @keyup.escape.native="reset" :disabled="disabled" />
       </v-flex>
       <v-flex v-else-if="multiline" class="patchfield-normal" v-html="preview"></v-flex>
       <v-flex v-else class="patchfield-normal" v-html="preview"></v-flex>

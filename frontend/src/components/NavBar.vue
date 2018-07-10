@@ -13,7 +13,7 @@
           <v-list-tile :to="{name: 'Orders', params: {username: viewer.username}}">Orders</v-list-tile>
           <v-list-tile :to="{name: 'Sales', params: {username: viewer.username}}">Sales</v-list-tile>
           <v-list-tile v-if="viewer.is_staff" :to="{name: 'Cases', params: {username: viewer.username}}">Cases</v-list-tile>
-          <v-list-tile :to="{name: 'Store', params: {username: viewer.username}}">Sell</v-list-tile>
+          <v-list-tile :to="{name: 'Store', params: {username: viewer.username}}">My Products</v-list-tile>
           <v-list-tile :to="{name: 'Transfers', params: {username: viewer.username}}">Transfers</v-list-tile>
           <v-list-tile :to="{name: 'Messages', params: {username: viewer.username}}">Private Messages</v-list-tile>
           <v-list-tile class="hidden-md-and-up" :to="{name: 'Search'}">Search</v-list-tile>
@@ -42,6 +42,12 @@
             <v-icon>arrow_upward</v-icon>
           </v-list-tile-action>
           <v-list-tile-title>Upgrade!</v-list-tile-title>
+        </v-list-tile>
+        <v-list-tile :to="{name: 'FAQ'}">
+          <v-list-tile-action>
+            <v-icon>question_answer</v-icon>
+          </v-list-tile-action>
+          <v-list-tile-title>FAQ</v-list-tile-title>
         </v-list-tile>
         <v-list-tile @click.prevent="logout()">
           <v-list-tile-action>
@@ -80,7 +86,7 @@
             @input="performSearch"
             @keyup.enter="performSearch"
             append-icon="search"
-            :append-icon-cb="() => {}"
+            @click:append="() => {}"
             color="white"
             hide-details
         />
@@ -242,6 +248,15 @@
       }
     },
     created () {
+      // https://stackoverflow.com/questions/3437786/get-the-size-of-the-screen-current-web-page-and-browser-window
+      let w = window
+      let d = document
+      let e = d.documentElement
+      let g = d.getElementsByTagName('body')[0]
+      let x = w.innerWidth || e.clientWidth || g.clientWidth
+      if (x >= 960) {
+        this.drawer = true
+      }
       EventBus.$on('notifications-updated', this.monitorNotifications)
     },
     destroyed () {

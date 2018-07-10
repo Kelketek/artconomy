@@ -6,7 +6,7 @@
           single-line
           v-model="queryField"
           append-icon="search"
-          :append-icon-cb="() => {}"
+          @click:append="() => {}"
           color="white"
           hide-details
       />
