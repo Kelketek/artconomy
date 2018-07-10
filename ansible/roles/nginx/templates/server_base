@@ -6,11 +6,15 @@ include includes/backends.conf;
 server {
     listen 80;
     server_name {% for name in domains %} {{ name }}{% endfor %};
+    set $special_root /home/{{env_prefix}}/static/;
+    location /.well-known/ {
+        alias $special_root/.well-known/;
+    }
     rewrite     ^(.*)   https://{{ domains[0] }}$1 permanent;
 }
 
 server {
-    listen 443;
+    listen 443 ssl;
     include includes/ssl.conf;
     include includes/upstream.conf;
 }

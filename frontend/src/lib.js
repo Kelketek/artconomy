@@ -231,6 +231,29 @@ export function paramHandleMap (handleName, clearList, permittedNames, defaultTa
   }
 }
 
+export function paramHandleArray (handleName, nameArray) {
+  return {
+    get () {
+      if (this.$route.params[handleName] === undefined) {
+        console.log(0)
+        return 0
+      }
+      console.log(nameArray.indexOf(this.$route.params[handleName]))
+      return nameArray.indexOf(this.$route.params[handleName])
+    },
+    set (value) {
+      let params = {}
+      params[handleName] = nameArray[value]
+      let newParams = Object.assign({}, this.$route.params, params)
+      let newQuery = Object.assign({}, this.$route.query)
+      delete newQuery['page']
+      let newPath = {name: this.$route.name, params: newParams, query: newQuery}
+      console.log(newPath)
+      this.$router.history.replace(newPath)
+    }
+  }
+}
+
 export function inputMatches (inputName, errorText) {
   return (value, field, model) => {
     if (value !== model[inputName]) {

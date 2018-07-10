@@ -26,7 +26,7 @@
           v-model="newKey"
           :class="{'input-group--error': errors.key.length, 'error--text': errors.key.length}"
           append-icon="edit"
-          :append-icon-cb="focusKey"
+          @click:append="focusKey"
       >
       </v-text-field>
     </v-flex>
@@ -36,7 +36,7 @@
           v-model="newValue"
           placeholder="Value"
           append-icon="edit"
-          :append-icon-cb="focusValue"
+          @click:append="focusValue"
           :class="{'input-group--error': errors.value.length, 'error--text': errors.value.length}"
       ></v-text-field>
     </v-flex>
