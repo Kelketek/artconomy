@@ -74,7 +74,7 @@
               <v-flex xs6 v-if="editing">
                 <strong>Max at once:</strong>
               </v-flex>
-              <v-flex xs6>
+              <v-flex xs6 v-if="editing">
                 <ac-patchfield v-model="product.max_parallel" name="max_parallel" :editmode="editing" :url="url" />
               </v-flex>
               <v-flex xs12 v-if="editing">

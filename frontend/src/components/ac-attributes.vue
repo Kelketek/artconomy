@@ -125,19 +125,29 @@
     text-transform: uppercase;
     font-weight: bold;
   }
-  .new-attr .input-group, .new-attr.input-group {
+  .new-attr .v-input, .new-attr.input-group {
     padding: 0;
   }
-  .new-attr .input-group .input-group__input input {
+  .new-attr .v-input {
+    font-size: inherit;
+    margin: 0;
+  }
+  .new-attr .v-input__slot {
+    padding: 0;
+    margin: 0;
+  }
+  .new-attr .v-text-field__slot input {
     font-size: inherit;
   }
-  .attr-key .input-group input {
+  .attr-key .v-input input {
     text-transform: uppercase;
+    margin-top: 0;
+    margin-bottom: 0;
   }
   .patchfield-wrapper.attr-value {
     width: 100%;
   }
-  .new-attr .input-group__details {
+  .new-attr .v-text-field__details {
     display: none;
   }
   .attr-set .error--text input {
