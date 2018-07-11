@@ -1,7 +1,7 @@
 <template>
   <v-app dark>
     <nav-bar />
-    <v-content style="padding-top: 0">
+    <v-content>
       <v-container fluid>
         <div v-if="$root.errorCode !== null" class="container error-container">
           <div class="row">

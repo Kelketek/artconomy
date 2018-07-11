@@ -158,15 +158,22 @@
   .patchfield-wrapper .input-group__details {
     display: none
   }
-  .patch-input {
+  .patch-input, .patch-input .v-input__control{
     padding-top: 0;
     padding-bottom: 0;
     padding-left: 0;
     padding-right: 0;
+    margin-top: 0;
+    margin-bottom: 0;
     max-height: 1em;
+  }
+  .patchfield-wrapper .v-input {
+    font-size: inherit
   }
   .patch-input input {
     font-size: inherit;
+    padding-top: 0;
+    padding-bottom: 0;
   }
   .error-marker {
     color: red;
