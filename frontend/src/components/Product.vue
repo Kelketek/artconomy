@@ -118,7 +118,8 @@
       </v-card>
       <div class="row-centered">
         <div class="col-12 pt-3 col-md-8 col-centered text-xs-center mb-3">
-          <v-btn color="primary" size="lg" @click="showOrder = true">Order</v-btn>
+          <v-btn color="primary" size="lg" @click="showOrder = true" v-if="viewer.username">Order</v-btn>
+          <v-btn color="primary" size="lg" :to="{name: 'Login'}" v-else>Login or Register to Order this Product!</v-btn>
         </div>
       </div>
       <v-dialog
