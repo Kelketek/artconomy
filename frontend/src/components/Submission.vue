@@ -163,7 +163,7 @@
               xs12 sm4 lg3
           >
           </ac-character-preview>
-          <v-flex xs12 class="text-xs-center">
+          <v-flex xs12 class="text-xs-center" v-if="viewer.username">
             <v-btn v-if="!showCharacterTagging" @click="showCharacterTagging=true">Tag Characters</v-btn>
             <div v-else>
               <form>

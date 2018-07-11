@@ -2,7 +2,8 @@
   <v-card class="comment-block new-comment-component pt-2">
     <v-layout row wrap>
       <v-flex xs12 text-xs-center v-if="!editing">
-        <v-btn @click="editing=true" class="new-comment-button">Add a comment</v-btn>
+        <v-btn @click="editing=true" class="new-comment-button" v-if="viewer.username">Add a comment</v-btn>
+        <v-btn @click="editing=true" class="new-comment-button" :to="{name: 'Login'}" v-else>Log in or Register to Comment!</v-btn>
       </v-flex>
       <v-flex xs12 md10 offset-md1 class="pl-2 pr-2" v-if="editing && !edit_preview">
         <textarea

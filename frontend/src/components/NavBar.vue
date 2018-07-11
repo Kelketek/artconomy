@@ -62,6 +62,25 @@
           <v-list-tile-title>Legal/Policies</v-list-tile-title>
         </v-list-tile>
       </v-list>
+      <v-bottom-nav
+      >
+        <v-btn
+            flat
+            href="https://twitter.com/ArtconomyArt/"
+            target="_blank"
+        >
+          <span>Twitter</span>
+          <v-icon>fa-twitter</v-icon>
+        </v-btn>
+        <v-btn
+            flat
+            href="https://facebook.com/ArtconomyArt/"
+            target="_blank"
+        >
+          <span>Facebook</span>
+          <v-icon>fa-facebook</v-icon>
+        </v-btn>
+      </v-bottom-nav>
     </v-navigation-drawer>
     <v-toolbar
         color="purple"
