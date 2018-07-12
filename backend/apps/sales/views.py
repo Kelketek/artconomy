@@ -44,7 +44,7 @@ from apps.sales.serializers import ProductSerializer, ProductNewOrderSerializer,
     CharacterTransferSerializer, PlaceholderSaleSerializer, PublishFinalSerializer, RatingSerializer, \
     ServicePaymentSerializer
 from apps.sales.utils import translate_authnet_error, available_products, service_price, set_service, \
-    check_charge_required
+    check_charge_required, available_products_by_load
 from apps.sales.tasks import renew
 
 
@@ -1167,14 +1167,17 @@ class SalesStats(APIView):
     def get(self, request, **kwargs):
         user = get_object_or_404(User, username__iexact=self.kwargs['username'])
         self.check_object_permissions(request, user)
+        products_available = available_products_by_load(user).count()
         data = {
             'load': user.load,
             'max_load': user.max_load,
             'commissions_closed': user.commissions_closed,
             'commissions_disabled': user.commissions_disabled,
+            'products_available': products_available,
             'active_orders': user.sales.filter(status__in=WEIGHTED_STATUSES).count(),
             'new_orders': user.sales.filter(status=Order.NEW).count(),
         }
+        print(data)
         return Response(status=status.HTTP_200_OK, data=data)
 
 
