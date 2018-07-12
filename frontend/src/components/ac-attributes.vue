@@ -128,6 +128,9 @@
   .new-attr .v-input, .new-attr.input-group {
     padding: 0;
   }
+  .attr-set .v-text-field .v-input__slot::after, .attr-set .v-text-field .v-input__slot::before {
+    display: none;
+  }
   .new-attr .v-input {
     font-size: inherit;
     margin: 0;
@@ -138,6 +141,7 @@
   }
   .new-attr .v-text-field__slot input {
     font-size: inherit;
+    padding: 0;
   }
   .attr-key .v-input input {
     text-transform: uppercase;

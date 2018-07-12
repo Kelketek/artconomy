@@ -18,6 +18,7 @@
         <ul>
           <li v-if="stats.commissions_closed">You have set your 'commissions closed' setting.</li>
           <li v-if="stats.load >= stats.max_load">You have met or exceeded your maximum load. You can increase your maximum load setting to take on more commissions at one time.</li>
+          <li v-else-if="stats.products_available === 0">You have no products available for customers to purchase. This may mean there are none, they are hidden, they have reached their 'Max at Once' level, or you do not have enough load remaining to take any of your existing products on.</li>
           <li v-if="stats.commissions_disabled && stats.new_orders">You have outstanding new orders to process. Please accept or reject the outstanding orders. Outstanding orders must be handled before you are opened up for new commissions.</li>
         </ul>
       </v-flex>

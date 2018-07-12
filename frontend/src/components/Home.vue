@@ -15,37 +15,7 @@
         </v-jumbotron>
       </v-layout>
     </v-container>
-    <v-container v-if="viewer !== null && !viewer.username">
-      <v-layout row wrap>
-        <v-flex xs12 text-xs-center>
-          <img class="home-logo" src="/static/images/logo.svg"/>
-        </v-flex>
-        <v-flex xs12 text-xs-center class="home-title">
-          <h1>Welcome to Artconomy</h1>
-        </v-flex>
-      </v-layout>
-      <v-layout row wrap>
-        <v-flex xs12 md6 text-xs-center>
-          <h3>Upload and catalog your characters</h3>
-          <p>Have a character you want to show off? Now you have the tools to do it, for free!</p>
-        </v-flex>
-        <v-flex xs12 md6 text-xs-center>
-          <img class="demo-img" src="/static/images/characterbrowse.jpg" />
-        </v-flex>
-        <v-flex xs12 md6 text-xs-center>
-          <h3>Commission Artists</h3>
-          <p>Have a character in mind but need help bringing it to life? Have an artist make a reference sheet, and many more to stylize your characters as much as you please.</p>
-          <p>See artists by rating and pricing, and commission with confidence.</p>
-        </v-flex>
-        <v-flex xs12 text-xs-center>
-          <h3>Are you an artist?</h3>
-          <p>Get a free shop where people can commission you!</p>
-          <p>Use built-in communications tools for helping clients keep track of your progress.</p>
-          <p>Have the safety and assurance of contracts and escrow payments-- no more worrying about getting paid!</p>
-        </v-flex>
-      </v-layout>
-  </v-container>
-  <v-container v-else class="home-main">
+  <v-container class="home-main">
     <v-card>
       <v-layout row wrap>
         <v-flex xs12 class="pl-2">
@@ -85,6 +55,48 @@
         endpoint="/api/profiles/v1/recent-submissions/" :limit="4"
     />
     </v-container>
+    <v-container v-if="viewer !== null && !viewer.username">
+      <v-layout row wrap>
+        <v-flex xs12 text-xs-center>
+          <img class="home-logo" src="/static/images/logo.svg"/>
+        </v-flex>
+        <v-flex xs12 text-xs-center class="home-title">
+          <h1>Welcome to Artconomy</h1>
+        </v-flex>
+      </v-layout>
+      <v-layout row wrap>
+        <v-flex xs12 md6 text-xs-center>
+          <h3>Upload and catalog your characters</h3>
+          <p>Have a character you want to show off? Now you have the tools to do it, for free!</p>
+        </v-flex>
+        <v-flex xs12 md6 text-xs-center>
+          <img class="demo-img" src="/static/images/characterbrowse.png" />
+        </v-flex>
+      </v-layout>
+      <v-layout row wrap>
+        <v-flex xs12 md6 text-xs-center order-sm-2>
+          <h3>Commission Artists</h3>
+          <p>Have a character in mind but need help bringing it to life? Have an artist make a reference sheet, and many more to stylize your characters as much as you please.</p>
+          <p>See artists by rating and pricing, and commission with confidence.</p>
+          <h3>Are you an artist?</h3>
+          <p>Get a free shop where people can commission you!</p>
+          <p>Use built-in communications tools for helping clients keep track of your progress.</p>
+          <p>Have the safety and assurance of contracts and escrow payments-- no more worrying about getting paid!</p>
+        </v-flex>
+        <v-flex xs12 md6 text-xs-center>
+          <img class="demo-img-sm" src="/static/images/product.png" />
+        </v-flex>
+      </v-layout>
+      <v-layout row wrap>
+        <v-flex xs12 sm5 text-xs-center text-sm-right>
+          <v-btn color="primary" :to="{name: 'FAQ'}">Read our FAQ</v-btn>
+        </v-flex>
+        <v-flex xs12 sm2 text-xs-center text-sm-center pt-2><strong>OR</strong></v-flex>
+        <v-flex xs12 sm5 text-xs-center text-sm-left>
+          <v-btn color="purple" :to="{name: 'Login', params: {tabName: 'register'}}">Get Started!</v-btn>
+        </v-flex>
+      </v-layout>
+    </v-container>
   </div>
 </template>
 
@@ -97,7 +109,10 @@
     margin-bottom: 2rem;
   }
   img.demo-img {
-    width: 100%;
+    max-width: 100%;
+  }
+  img.demo-img-sm {
+    max-width: 50%;
   }
   .home-banner {
     background-size: cover;

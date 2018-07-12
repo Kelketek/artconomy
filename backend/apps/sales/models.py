@@ -11,23 +11,21 @@ from django.contrib.contenttypes.fields import GenericRelation, GenericForeignKe
 from django.contrib.contenttypes.models import ContentType
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models import Model, CharField, ForeignKey, IntegerField, BooleanField, DateTimeField, ManyToManyField, \
-    TextField, SET_NULL, PositiveIntegerField, URLField, CASCADE, DecimalField, Sum, Avg, Q, F
+    TextField, SET_NULL, PositiveIntegerField, URLField, CASCADE, DecimalField, Sum, Avg
 
 # Create your models here.
 from django.db.models.signals import post_delete, post_save, pre_delete
 from django.dispatch import receiver
-from django.utils import timezone
-from django.utils.datetime_safe import datetime
 from djmoney.models.fields import MoneyField
 from moneyed import Money
 
-from apps.lib.models import Comment, Subscription, SALE_UPDATE, ORDER_UPDATE, REVISION_UPLOADED, COMMENT, NEW_PRODUCT, \
-    COMMISSIONS_OPEN, Event
+from apps.lib.models import Comment, Subscription, SALE_UPDATE, ORDER_UPDATE, REVISION_UPLOADED, COMMENT, NEW_PRODUCT
 from apps.lib.abstract_models import ImageModel
-from apps.lib.utils import clear_events, MinimumOrZero, recall_notification, require_lock, notify
+from apps.lib.utils import clear_events, MinimumOrZero, recall_notification, require_lock
 from apps.profiles.models import User
 from apps.sales.permissions import OrderViewPermission
 from apps.sales.apis import sauce
+from apps.sales.utils import update_availability
 
 
 class Product(ImageModel):
@@ -371,41 +369,6 @@ class PlaceholderSale(Model):
     )
     created_on = DateTimeField(auto_now_add=True, db_index=True)
     description = CharField(max_length=5000)
-
-
-# Primitive recursion check lock.
-UPDATING = {}
-
-
-def update_availability(seller, load, current_closed_status):
-    global UPDATING
-    if seller in UPDATING:
-        return
-    UPDATING[seller] = True
-    available_products = Product.objects.filter(user=seller, active=True, hidden=False).exclude(
-        task_weight__gt=seller.max_load - load
-    ).exclude(Q(parallel__gte=F('max_parallel')) & ~Q(max_parallel=0))
-    if seller.commissions_closed:
-        seller.commissions_disabled = True
-    elif not available_products.exists():
-        seller.commissions_disabled = True
-    elif load >= seller.max_load:
-        seller.commissions_disabled = True
-    elif not seller.sales.filter(status=Order.NEW).exists():
-        seller.commissions_disabled = False
-    seller.load = load
-    seller.save()
-    if current_closed_status and not seller.commissions_disabled:
-        previous = Event.objects.filter(
-            type=COMMISSIONS_OPEN, content_type=ContentType.objects.get_for_model(User), object_id=seller.id,
-            date__gte=timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
-        )
-        notify(
-            COMMISSIONS_OPEN, seller, unique=True, mark_unread=not previous.exists(), silent_broadcast=previous.exists()
-        )
-    elif seller.commissions_disabled:
-        recall_notification(COMMISSIONS_OPEN, seller)
-    del UPDATING[seller]
 
 
 @transaction.atomic

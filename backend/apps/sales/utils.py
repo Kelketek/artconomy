@@ -3,14 +3,17 @@ from decimal import Decimal, InvalidOperation
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Sum, Q, IntegerField, Case, When, F
+from django.utils import timezone
 from django.utils.datetime_safe import date
 from moneyed import Money
 
-from apps.lib.models import Subscription, COMMISSIONS_OPEN
-from apps.sales.models import PaymentRecord, Product
+from apps.lib.models import Subscription, COMMISSIONS_OPEN, Event
+from apps.lib.utils import notify, recall_notification
+from apps.profiles.models import User
 
 
 def escrow_balance(user):
+    from apps.sales.models import PaymentRecord
     try:
         debit = Decimal(
             str(user.credits.filter(
@@ -36,6 +39,7 @@ def escrow_balance(user):
 
 
 def available_balance(user):
+    from apps.sales.models import PaymentRecord
     try:
         debit = Decimal(
             str(user.debits.filter(
@@ -89,6 +93,7 @@ def product_ordering(qs, query=''):
 
 
 def available_products(requester, query='', ordering=True):
+    from apps.sales.models import Product
     exclude = Q(hidden=True)
     q = Q(name__istartswith=query) | Q(tags__name__iexact=query)
     if requester.is_authenticated:
@@ -163,3 +168,48 @@ def check_charge_required(user, service):
             if user.landscape_paid_through >= date.today():
                 return False, user.landscape_paid_through
     return True, None
+
+
+def available_products_by_load(seller, load=None):
+    from apps.sales.models import Product
+    if load is None:
+        load = seller.load
+    return Product.objects.filter(user=seller, active=True, hidden=False).exclude(
+        task_weight__gt=seller.max_load - load
+    ).exclude(Q(parallel__gte=F('max_parallel')) & ~Q(max_parallel=0))
+
+
+# Primitive recursion check lock.
+UPDATING = {}
+
+
+def update_availability(seller, load, current_closed_status):
+    from apps.sales.models import Product, Order
+    global UPDATING
+    if seller in UPDATING:
+        return
+    UPDATING[seller] = True
+    try:
+        products = available_products_by_load(seller, load)
+        if seller.commissions_closed:
+            seller.commissions_disabled = True
+        elif not products.exists():
+            seller.commissions_disabled = True
+        elif load >= seller.max_load:
+            seller.commissions_disabled = True
+        elif not seller.sales.filter(status=Order.NEW).exists():
+            seller.commissions_disabled = False
+        seller.load = load
+        seller.save()
+        if current_closed_status and not seller.commissions_disabled:
+            previous = Event.objects.filter(
+                type=COMMISSIONS_OPEN, content_type=ContentType.objects.get_for_model(User), object_id=seller.id,
+                date__gte=timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+            )
+            notify(
+                COMMISSIONS_OPEN, seller, unique=True, mark_unread=not previous.exists(), silent_broadcast=previous.exists()
+            )
+        elif seller.commissions_disabled:
+            recall_notification(COMMISSIONS_OPEN, seller)
+    finally:
+        del UPDATING[seller]
