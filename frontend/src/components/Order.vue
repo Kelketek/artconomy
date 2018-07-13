@@ -208,6 +208,43 @@
               <strong>Congratulations! You've completed the order</strong>
               <p>You can revisit this page at any time for your records.</p>
             </div>
+            <div v-if="showDisputePeriod">
+              <p>You may dispute this order for non-completion on {{formatDate(order.dispute_available_on)}}</p>
+            </div>
+            <div v-if="showDisputeForTime">
+              <p>You may dispute this order for non-completion.</p>
+              <ac-action
+                  variant="danger"
+                  method="POST"
+                  color="red"
+                  :url="`${this.url}dispute/`"
+                  :success="populateOrder"
+                  v-if="!disputed"
+                  class="dispute-button"
+              >
+                File Dispute
+              </ac-action>
+            </div>
+            <div v-if="disputed && !finalUploaded">
+              <strong>This order is under dispute</strong>
+              <p>An Artconomy staff member will assist in dispute resolution. Please await further instruction in the comments.</p>
+              <p>You may elect to refund to close the dispute early. We recommend waiting for our staff to review, however.</p>
+              <p>Refunding a transaction has a fee of $2.00 to cover costs with our payment processor.</p>
+              <p>
+                <strong>Note:</strong>
+                <span v-if="order.started_on">Work on this order started on {{formatDate(order.started_on)}}</span>
+                <span v-else>Work has not started on this order.</span>
+              </p>
+              <ac-action
+                  variant="danger"
+                  method="POST"
+                  :url="`${this.url}refund/`"
+                  :success="populateOrder"
+                  class="refund-button"
+              >
+                Refund
+              </ac-action>
+            </div>
           </v-flex>
         </v-layout>
       </v-card>
@@ -316,6 +353,11 @@
                 <p>An Artconomy staff member will assist in dispute resolution. Please await further instruction in the comments.</p>
                 <p>You may elect to refund to close the dispute early. We recommend waiting for our staff to review, however.</p>
                 <p>Refunding a transaction has a fee of $2.00 to cover costs with our payment processor.</p>
+                <p>
+                  <strong>Note:</strong>
+                  <span v-if="order.started_on">Work on this order started on {{formatDate(order.started_on)}}</span>
+                  <span v-else>Work has not started on this order.</span>
+                </p>
                 <ac-action
                     variant="danger"
                     method="POST"
@@ -331,6 +373,7 @@
               <ac-action
                 variant="danger"
                 method="POST"
+                color="red"
                 :url="`${this.url}dispute/`"
                 :success="populateOrder"
                 v-if="!disputed"
@@ -358,11 +401,12 @@
               >
                 Approve Result
               </ac-action>
+              <p v-if="review">This order will auto-finalize on {{formatDate(order.auto_finalize_on)}}.</p>
             </div>
-            <v-expansion-panel expand>
-              <v-expansion-panel-content v-model="expandRating" class="text-xs-center">
+            <v-expansion-panel v-model="expandRating" v-if="completed && !(price <= 0)">
+              <v-expansion-panel-content class="text-xs-center">
                 <div slot="header">Rate Performance</div>
-                <v-card v-if="completed && !(price <= 0)" class="mb-2">
+                <v-card class="mb-2">
                   <v-card-text class="pb-2">
                     <v-flex v-if="buyer">
                       <h2>Rate {{order.seller.username}}!</h2>
@@ -402,10 +446,10 @@
                 :options="revisionOptions"
                 :schema="revisionSchema"
                 :success="reload"
-                v-if="seller && inProgress && revisionsRemain">
+                v-if="seller && (inProgress || disputed) && revisionsRemain">
             </ac-form-container>
             <div class="text-xs-center">
-              <v-btn type="submit" color="primary" v-if="seller && inProgress && revisionsRemain" @click.prevent="$refs.revisionForm.submit"><span v-if="(revisions.length < order.revisions)">Upload Revision</span><span v-else>Upload Final</span></v-btn>
+              <v-btn type="submit" color="primary" v-if="seller && (inProgress || disputed) && revisionsRemain" @click.prevent="$refs.revisionForm.submit"><span v-if="(revisions.length < order.revisions)">Upload Revision</span><span v-else>Upload Final</span></v-btn>
             </div>
           </form>
         </v-flex>
@@ -436,11 +480,12 @@
   import AcAsset from './ac-asset'
   import Viewer from '../mixins/viewer'
   import Perms from '../mixins/permissions'
-  import {artCall, md, ratings, formatDateTime, EventBus} from '../lib'
+  import {artCall, md, ratings, formatDateTime, EventBus, formatDate} from '../lib'
   import AcFormContainer from './ac-form-container'
   import AcCardManager from './ac-card-manager'
   import AcFormDialog from './ac-form-dialog'
   import AcRating from './ac-rating'
+  import moment from 'moment'
 
   export default {
     name: 'Order',
@@ -492,8 +537,7 @@
       newSubmission (response) {
         this.$router.push({name: 'Submission', params: {'assetID': response.outputs[0].id}, query: {editing: 1}})
         this.populateOrder(response)
-      },
-      formatDateTime: formatDateTime
+      }
     },
     computed: {
       newOrder () {
@@ -525,6 +569,24 @@
       },
       output () {
         return this.order.outputs[0]
+      },
+      disputeTimePossible () {
+        if (!this.buyer) {
+          return false
+        }
+        return (this.inProgress || this.queued)
+      },
+      showDisputePeriod () {
+        if (!this.disputeTimePossible) {
+          return false
+        }
+        return moment() < moment(this.order.dispute_available_on)
+      },
+      showDisputeForTime () {
+        if (!this.disputeTimePossible) {
+          return false
+        }
+        return moment() >= moment(this.order.dispute_available_on)
       },
       showRevisionPanel () {
         return this.seller && this.revisionsRemain && !this.queued && !this.newOrder && !this.paymentPending
@@ -608,6 +670,8 @@
         commenturl: `/api/sales/v1/order/${this.orderID}/comments/`,
         url: `/api/sales/v1/order/${this.orderID}/`,
         md: md,
+        formatDateTime,
+        formatDate,
         sellerData: {user: {fee: null}},
         selectedCard: null,
         selectedCardModel: null,

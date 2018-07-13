@@ -15,8 +15,9 @@
       <v-list-tile-sub-title>
         {{ message }}
       </v-list-tile-sub-title>
-      <v-list-tile-sub-title v-if="streamingLink">
-        <a target="_blank" :href="streamingLink">Click here for stream!</a>
+      <v-list-tile-sub-title>
+        <a target="_blank" :href="streamingLink" v-if="streamingLink">Click here for stream!</a>
+        <span v-if="autofinalizeDisplay">Will autofinalize on {{formatDate(event.target.auto_finalize_on)}}.</span>
       </v-list-tile-sub-title>
     </v-list-tile-content>
   </v-list-tile>
@@ -29,6 +30,7 @@
   import AcAsset from '../ac-asset'
   import AcAction from '../ac-action'
   import Notification from '../../mixins/notification'
+  import {formatDate} from '../../lib'
 
   const ORDER_STATUSES = {
     '1': 'has been placed, and is waiting for the artist to accept.',
@@ -47,7 +49,9 @@
     components: {AcAsset, AcAction},
     mixins: [Notification],
     data () {
-      return {}
+      return {
+        formatDate
+      }
     },
     computed: {
       url () {
@@ -61,6 +65,9 @@
           return this.event.target.stream_link
         }
         return ''
+      },
+      autofinalizeDisplay () {
+        return this.event.target.status === '8'
       }
     }
   }

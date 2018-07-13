@@ -8,7 +8,7 @@ The artist has begun work on your order.
 {% elif target.status == 5 %}
 Your order is ready for review!
 {% elif target.status == 8 %}
-Your order has been completed!
+Your order has been completed! It will autofinalize on {{ target.auto_finalize_on|date:"M d, Y" }}
 {% elif target.status == 9%}
 Your order has been refunded.
 {% else %}
