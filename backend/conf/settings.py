@@ -259,10 +259,11 @@ GR_CAPTCHA_SECRET_KEY = ENV_TOKENS.get('GR_CAPTCHA_SECRET_KEY', '')
 GR_CAPTCHA_PUBLIC_KEY = ENV_TOKENS.get('GR_CAPTCHA_PUBLIC_KEY', '')
 
 
-if 'test' not in argv and 'runserver' not in argv:
+LOGGING_CONFIG = None
 
-    LOGGING_CONFIG = None
-    logging.config.dictConfig({
+if ('test' not in argv) and ('runserver' not in argv):
+
+    LOGGING_CONFIG = logging.config.dictConfig({
         'version': 1,
         'disable_existing_loggers': False,
         'formatters': {
