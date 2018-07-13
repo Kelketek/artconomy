@@ -66,11 +66,11 @@
       </v-layout>
       <v-layout row wrap>
         <v-flex xs12 md6 text-xs-center>
-          <h3>Upload and catalog your characters</h3>
-          <p>Have a character you want to show off? Now you have the tools to do it, for free!</p>
+          <img class="demo-img" src="/static/images/characterbrowse.png" />
         </v-flex>
         <v-flex xs12 md6 text-xs-center>
-          <img class="demo-img" src="/static/images/characterbrowse.png" />
+          <h3>Upload and catalog your characters</h3>
+          <p>Have a character you want to show off? Now you have the tools to do it, for free!</p>
         </v-flex>
       </v-layout>
       <v-layout row wrap>
