@@ -1,13 +1,15 @@
 from decimal import Decimal, InvalidOperation
+from uuid import uuid4
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Sum, Q, IntegerField, Case, When, F
+from django.db.transaction import atomic
 from django.utils import timezone
 from django.utils.datetime_safe import date
 from moneyed import Money
 
-from apps.lib.models import Subscription, COMMISSIONS_OPEN, Event
+from apps.lib.models import Subscription, COMMISSIONS_OPEN, Event, DISPUTE, SALE_UPDATE
 from apps.lib.utils import notify, recall_notification
 from apps.profiles.models import User
 
@@ -213,3 +215,49 @@ def update_availability(seller, load, current_closed_status):
             recall_notification(COMMISSIONS_OPEN, seller)
     finally:
         del UPDATING[seller]
+
+
+def finalize_order(order, user=None):
+    from apps.sales.models import PaymentRecord
+    with atomic():
+        if order.status == order.DISPUTED and user == order.buyer:
+            # User is rescinding dispute. d
+            recall_notification(DISPUTE, order)
+            # We'll pretend this never happened.
+            order.disputed_on = None
+        order.status = order.COMPLETED
+        order.save()
+        notify(SALE_UPDATE, order, unique=True, mark_unread=True)
+        PaymentRecord.objects.create(
+            payer=None,
+            amount=order.price + order.adjustment,
+            payee=order.seller,
+            source=PaymentRecord.ESCROW,
+            txn_id=str(uuid4()),
+            target=order,
+            type=PaymentRecord.TRANSFER,
+            status=PaymentRecord.SUCCESS,
+            response_code='OdrFnl',
+            response_message='Order finalized.'
+        )
+        old_transaction = PaymentRecord.objects.get(
+            object_id=order.id, content_type=ContentType.objects.get_for_model(order), payer=order.buyer,
+            type=PaymentRecord.SALE
+        )
+        old_transaction.finalized = True
+        old_transaction.save()
+        PaymentRecord.objects.create(
+            payer=order.seller,
+            amount=(
+                    ((order.price + order.adjustment) * order.seller.percentage_fee)
+                    + Money(order.seller.static_fee, 'USD')
+            ),
+            payee=None,
+            source=PaymentRecord.ACCOUNT,
+            txn_id=str(uuid4()),
+            target=order,
+            type=PaymentRecord.TRANSFER,
+            status=PaymentRecord.SUCCESS,
+            response_code='OdrFee',
+            response_message='Artconomy Service Fee'
+        )

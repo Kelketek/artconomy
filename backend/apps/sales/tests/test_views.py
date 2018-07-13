@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import patch, call
 
 from authorize import AuthorizeError
 from ddt import data, unpack, ddt
@@ -1278,7 +1278,7 @@ class TestOrderStateChange(APITestCase):
         self.assertEqual(self.order.characters.get(name='Unpictured2').primary_asset, None)
         self.assertNotEqual(self.order.characters.get(name='Pictured').primary_asset, asset)
 
-    @patch('apps.sales.views.recall_notification')
+    @patch('apps.sales.utils.recall_notification')
     def test_approve_order_recall_notification(self, mock_recall):
         target_time = timezone.now()
         self.order.disputed_on = target_time
@@ -1292,13 +1292,13 @@ class TestOrderStateChange(APITestCase):
             finalized=False,
         )
         self.state_assertion('buyer', 'approve/', initial_status=Order.DISPUTED)
-        mock_recall.assert_called_with(DISPUTE, self.order)
+        mock_recall.assert_has_calls([call(DISPUTE, self.order)])
         self.order.refresh_from_db()
         self.assertEqual(self.order.disputed_on, None)
         record.refresh_from_db()
         self.assertTrue(record.finalized)
 
-    @patch('apps.sales.views.recall_notification')
+    @patch('apps.sales.utils.recall_notification')
     def test_approve_order_staffer_no_recall_notification(self, mock_recall):
         record = PaymentRecordFactory.create(
             target=self.order,
@@ -1312,7 +1312,8 @@ class TestOrderStateChange(APITestCase):
         self.order.disputed_on = target_time
         self.order.save()
         self.state_assertion('staffer', 'approve/', initial_status=Order.DISPUTED)
-        mock_recall.assert_not_called()
+        for mock_call in mock_recall.call_args_list:
+            self.assertNotEqual(mock_call[0], DISPUTE)
         self.order.refresh_from_db()
         self.assertEqual(self.order.disputed_on, target_time)
         record.refresh_from_db()

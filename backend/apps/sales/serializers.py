@@ -78,7 +78,8 @@ class OrderViewSerializer(SubscribeMixin, serializers.ModelSerializer):
         fields = (
             'id', 'created_on', 'status', 'price', 'product', 'details', 'seller', 'buyer', 'adjustment', 'characters',
             'stream_link', 'revisions', 'outputs', 'private', 'subscribed', 'adjustment_task_weight',
-            'adjustment_expected_turnaround', 'expected_turnaround', 'task_weight'
+            'adjustment_expected_turnaround', 'expected_turnaround', 'task_weight', 'paid_on', 'dispute_available_on',
+            'auto_finalize_on', 'started_on'
         )
         read_only_fields = fields
 

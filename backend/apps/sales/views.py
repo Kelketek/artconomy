@@ -15,6 +15,8 @@ from math import ceil
 
 from django.utils.datetime_safe import date
 from moneyed import Money
+# BDay is business day, not birthday...
+from pandas.tseries.offsets import BDay
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, CreateAPIView, RetrieveAPIView, \
@@ -44,7 +46,7 @@ from apps.sales.serializers import ProductSerializer, ProductNewOrderSerializer,
     CharacterTransferSerializer, PlaceholderSaleSerializer, PublishFinalSerializer, RatingSerializer, \
     ServicePaymentSerializer
 from apps.sales.utils import translate_authnet_error, available_products, service_price, set_service, \
-    check_charge_required, available_products_by_load
+    check_charge_required, available_products_by_load, finalize_order
 from apps.sales.tasks import renew
 
 
@@ -166,7 +168,7 @@ class OrderStart(UpdateAPIView):
         return order
 
     def perform_update(self, serializer):
-        order = serializer.save(status=Order.IN_PROGRESS)
+        order = serializer.save(status=Order.IN_PROGRESS, started_on=timezone.now())
         notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
         if not order.private and order.stream_link:
             notify(
@@ -239,6 +241,7 @@ class OrderRevisions(ListCreateAPIView):
         if (order.revision_set.all().count() >= order.revisions + 1) and (order.status == Order.IN_PROGRESS):
             order.status = Order.REVIEW
             order.save()
+            order.auto_finalize_on = (timezone.now() + relativedelta(days=5)).date()
             notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
         else:
             notify(REVISION_UPLOADED, order, data={'revision': revision.id}, unique_data=True, mark_unread=True)
@@ -264,6 +267,7 @@ class DeleteOrderRevision(DestroyAPIView):
         order = Order.objects.get(id=self.kwargs['order_id'])
         recall_notification(REVISION_UPLOADED, order, data={'revision': revision_id}, unique_data=True)
         if order.status == Order.REVIEW:
+            order.auto_finalize_on = None
             order.status = Order.IN_PROGRESS
             order.save()
 
@@ -281,11 +285,11 @@ class StartDispute(GenericAPIView):
         if order.status not in [Order.IN_PROGRESS, Order.QUEUED, Order.REVIEW]:
             raise PermissionDenied('This order is not in a disputable state.')
         if order.status in [Order.IN_PROGRESS, Order.QUEUED]:
-            turnaround = order.product.expected_turnaround
-            dispute_date = order.created_on + relativedelta(days=ceil(turnaround * 1.2))
-            if dispute_date < timezone.now():
+            if order.dispute_available_on < timezone.now().date():
                 raise PermissionDenied(
-                    "This order is not old enough to dispute. You can dispute it on {}".format(dispute_date)
+                    "This order is not old enough to dispute. You can dispute it on {}".format(
+                        order.dispute_available_on
+                    )
                 )
         order.status = Order.DISPUTED
         order.disputed_on = timezone.now()
@@ -385,48 +389,7 @@ class ApproveFinal(GenericAPIView):
         self.check_object_permissions(self.request, order)
         if order.status not in [Order.REVIEW, Order.DISPUTED]:
             raise PermissionDenied('This order is not in an approvable state.')
-        with atomic():
-            if order.status == order.DISPUTED and request.user == order.buyer:
-                # User is rescinding dispute.
-                recall_notification(DISPUTE, order)
-                # We'll pretend this never happened.
-                order.disputed_on = None
-            order.status = order.COMPLETED
-            order.save()
-            notify(SALE_UPDATE, order, unique=True, mark_unread=True)
-            PaymentRecord.objects.create(
-                payer=None,
-                amount=order.price + order.adjustment,
-                payee=order.seller,
-                source=PaymentRecord.ESCROW,
-                txn_id=str(uuid4()),
-                target=order,
-                type=PaymentRecord.TRANSFER,
-                status=PaymentRecord.SUCCESS,
-                response_code='OdrFnl',
-                response_message='Order finalized.'
-            )
-            old_transaction = PaymentRecord.objects.get(
-                object_id=order.id, content_type=ContentType.objects.get_for_model(order), payer=order.buyer,
-                type=PaymentRecord.SALE
-            )
-            old_transaction.finalized = True
-            old_transaction.save()
-            PaymentRecord.objects.create(
-                payer=order.seller,
-                amount=(
-                    ((order.price + order.adjustment) * order.seller.percentage_fee)
-                    + Money(order.seller.static_fee, 'USD')
-                ),
-                payee=None,
-                source=PaymentRecord.ACCOUNT,
-                txn_id=str(uuid4()),
-                target=order,
-                type=PaymentRecord.TRANSFER,
-                status=PaymentRecord.SUCCESS,
-                response_code='OdrFee',
-                response_message='Artconomy Service Fee'
-            )
+        finalize_order(order, request.user)
         return Response(
             status=status.HTTP_200_OK,
             data=OrderViewSerializer(instance=order, context=self.get_serializer_context()).data
@@ -762,6 +725,8 @@ class MakePayment(GenericAPIView):
             order.status = Order.QUEUED
             order.task_weight = order.task_weight + order.adjustment_task_weight
             order.expected_turnaround = order.expected_turnaround + order.expected_turnaround
+            order.dispute_available_on = (timezone.now() + BDay(ceil(ceil(order.expected_turnaround) * 1.25))).date()
+            order.paid_on = timezone.now()
             order.save()
             card.cvv_verified = True
             card.save()
@@ -1177,7 +1142,6 @@ class SalesStats(APIView):
             'active_orders': user.sales.filter(status__in=WEIGHTED_STATUSES).count(),
             'new_orders': user.sales.filter(status=Order.NEW).count(),
         }
-        print(data)
         return Response(status=status.HTTP_200_OK, data=data)
 
 

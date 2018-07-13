@@ -312,6 +312,10 @@ CELERYBEAT_SCHEDULE = {
     'check_transactions': {
         'task': 'apps.sales.tasks.check_transactions',
         'schedule': crontab(minute=30)
+    },
+    'auto_finalize_run': {
+        'task': 'apps.sales.tasks.auto_finalize_run',
+        'schedule': crontab(hour=1, minute=0)
     }
 }
 

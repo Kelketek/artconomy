@@ -11,7 +11,7 @@ from django.contrib.contenttypes.fields import GenericRelation, GenericForeignKe
 from django.contrib.contenttypes.models import ContentType
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models import Model, CharField, ForeignKey, IntegerField, BooleanField, DateTimeField, ManyToManyField, \
-    TextField, SET_NULL, PositiveIntegerField, URLField, CASCADE, DecimalField, Sum, Avg
+    TextField, SET_NULL, PositiveIntegerField, URLField, CASCADE, DecimalField, Sum, Avg, DateField
 
 # Create your models here.
 from django.db.models.signals import post_delete, post_save, pre_delete
@@ -220,6 +220,10 @@ class Order(Model):
     )
     created_on = DateTimeField(auto_now_add=True, db_index=True)
     disputed_on = DateTimeField(blank=True, null=True, db_index=True)
+    started_on = DateTimeField(blank=True, null=True)
+    paid_on = DateTimeField(blank=True, null=True, db_index=True)
+    dispute_available_on = DateField(blank=True, null=True)
+    auto_finalize_on = DateField(blank=True, null=True, db_index=True)
     arbitrator = ForeignKey(settings.AUTH_USER_MODEL, related_name='cases', null=True, blank=True, on_delete=SET_NULL)
     stream_link = URLField(blank=True, default='')
     characters = ManyToManyField('profiles.Character')

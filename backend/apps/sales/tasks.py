@@ -3,6 +3,7 @@ import logging
 from authorize import AuthorizeError
 from dateutil.relativedelta import relativedelta
 from django.db.models import Q
+from django.utils import timezone
 from django.utils.datetime_safe import date
 
 from apps.lib.models import RENEWAL_FAILURE, SUBSCRIPTION_DEACTIVATED, RENEWAL_FIXED
@@ -10,8 +11,8 @@ from apps.lib.utils import notify
 from apps.profiles.models import User
 from apps.sales.apis import dwolla
 from apps.sales.dwolla import refund_transfer
-from apps.sales.models import PaymentRecord, CreditCardToken
-from apps.sales.utils import service_price, translate_authnet_error, set_service
+from apps.sales.models import PaymentRecord, CreditCardToken, Order
+from apps.sales.utils import service_price, translate_authnet_error, set_service, finalize_order
 from conf.celery_config import celery_app
 
 
@@ -124,3 +125,24 @@ def update_transfer_status(record_id):
             refund_transfer(record)
             record.finalized = True
             record.save()
+
+
+@celery_app.task
+def auto_finalize(order_id):
+    order = Order.objects.get(id=order_id)
+    if not order.status == Order.REVIEW:
+        # Was disputed in the interim.
+        return
+    if not order.auto_finalize_on:
+        # Order had final revision removed in the interim.
+        return
+    if order.auto_finalize_on > timezone.now().date():
+        # Order finalize date has been moved up.
+        return
+    finalize_order(order)
+
+
+@celery_app.task
+def auto_finalize_run():
+    for order in Order.objects.filter(status=Order.REVIEW, auto_finalize_on__lte=timezone.now().date()):
+        auto_finalize.delay(order.id)
