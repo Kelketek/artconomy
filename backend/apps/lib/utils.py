@@ -24,7 +24,7 @@ from rest_framework.response import Response
 from telegram import Bot
 
 from apps.lib.models import Subscription, Event, Notification, Tag, Comment, COMMENT, \
-    NEW_PORTFOLIO_ITEM, NEW_PRODUCT, COMMISSIONS_OPEN, NEW_CHARACTER, STREAMING, EMAIL_SUBJECTS
+    NEW_PORTFOLIO_ITEM, NEW_PRODUCT, COMMISSIONS_OPEN, NEW_CHARACTER, STREAMING, EMAIL_SUBJECTS, NEW_JOURNAL
 from shortcuts import make_url
 
 
@@ -179,6 +179,12 @@ def watch_subscriptions(watcher, watched):
         object_id=watched.id,
         type=STREAMING
     )
+    Subscription.objects.get_or_create(
+        subscriber=watcher,
+        content_type=content_type,
+        object_id=watched.id,
+        type=NEW_JOURNAL
+    )
 
 
 def remove_watch_subscriptions(watcher, watched):
@@ -212,6 +218,12 @@ def remove_watch_subscriptions(watcher, watched):
         content_type=content_type,
         object_id=watched.id,
         type=STREAMING
+    ).delete()
+    Subscription.objects.filter(
+        subscriber=watcher,
+        content_type=content_type,
+        object_id=watched.id,
+        type=NEW_JOURNAL
     ).delete()
 
 

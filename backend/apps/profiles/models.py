@@ -24,7 +24,8 @@ from apps.lib.models import Comment, Subscription, FAVORITE, SYSTEM_ANNOUNCEMENT
     SUBMISSION_CHAR_TAG, CHAR_TAG, SUBMISSION_TAG, COMMENT, Tag, CHAR_TRANSFER, ASSET_SHARED, CHAR_SHARED, \
     NEW_CHARACTER, NEW_PORTFOLIO_ITEM, RENEWAL_FAILURE, SUBSCRIPTION_DEACTIVATED, RENEWAL_FIXED
 from apps.lib.utils import clear_events, tag_list_cleaner, notify, recall_notification
-from apps.profiles.permissions import AssetViewPermission, AssetCommentPermission, MessageReadPermission
+from apps.profiles.permissions import AssetViewPermission, AssetCommentPermission, MessageReadPermission, \
+    JournalCommentPermission
 
 
 def banned_named_validator(value):
@@ -560,3 +561,20 @@ class Message(Model):
 
     def notification_display(self, context):
         return {'file': {'notification': avatar_url(self.sender)}}
+
+
+class Journal(Model):
+    """
+    Model for private messages.
+    """
+    user = ForeignKey(User, on_delete=CASCADE, related_name='journals')
+    subject = CharField(max_length=150)
+    body = CharField(max_length=5000)
+    created_on = DateTimeField(auto_now_add=True, db_index=True)
+    edited_on = DateTimeField(auto_now=True)
+    comments_disabled = BooleanField(default=False)
+    comments = GenericRelation(
+        Comment, related_query_name='message', content_type_field='content_type', object_id_field='object_id'
+    )
+    subscriptions = GenericRelation('lib.Subscription')
+    comment_permissions = [JournalCommentPermission]

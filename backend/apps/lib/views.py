@@ -45,7 +45,9 @@ class CommentUpdate(RetrieveUpdateDestroyAPIView):
     def put(self, request, *args, **kwargs):
         instance = self.get_object()
         data = {'subscribed': request.data.get('subscribed')}
-        serializer = CommentSubscriptionSerializer(instance=instance, data=data, context=self.get_serializer_context())
+        serializer = CommentSubscriptionSerializer(
+            instance=instance, data=data, context=self.get_serializer_context(), partial=True
+        )
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(status=status.HTTP_200_OK, data=serializer.data)

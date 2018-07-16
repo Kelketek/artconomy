@@ -30,7 +30,7 @@ export default {
       }
       return this.viewer.is_staff || (this.user.username === this.viewer.username)
     },
-    is_current: function () {
+    isCurrent: function () {
       if (this.user.username === undefined) {
         return false
       }

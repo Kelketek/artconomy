@@ -25,20 +25,23 @@ from rest_framework.views import APIView
 from rest_framework_bulk import BulkUpdateAPIView
 
 from apps.lib.models import Notification, FAVORITE, CHAR_TAG, SUBMISSION_CHAR_TAG, SUBMISSION_ARTIST_TAG, ARTIST_TAG, \
-    SUBMISSION_TAG, Tag, ASSET_SHARED, CHAR_SHARED, WATCHING, NEW_PORTFOLIO_ITEM, Comment, NEW_PM, Subscription, COMMENT
+    SUBMISSION_TAG, Tag, ASSET_SHARED, CHAR_SHARED, WATCHING, NEW_PORTFOLIO_ITEM, Comment, NEW_PM, Subscription, \
+    COMMENT, NEW_JOURNAL
 from apps.lib.permissions import Any, All, IsSafeMethod, IsMethod, IsAnonymous
 from apps.lib.serializers import CommentSerializer, NotificationSerializer, Base64ImageField, RelatedUserSerializer, \
     BulkNotificationSerializer, UserInfoSerializer
 from apps.lib.utils import recall_notification, notify, safe_add, add_tags, remove_watch_subscriptions, \
     watch_subscriptions, add_check
 from apps.lib.views import BaseTagView, BaseUserTagView
-from apps.profiles.models import User, Character, ImageAsset, RefColor, Attribute, Message, MessageRecipientRelationship
+from apps.profiles.models import User, Character, ImageAsset, RefColor, Attribute, Message, \
+    MessageRecipientRelationship, Journal
 from apps.profiles.permissions import ObjectControls, UserControls, AssetViewPermission, AssetControls, \
-    ColorControls, ColorLimit, ViewFavorites, SharedWith, MessageReadPermission, MessageControls, IsUser
+    ColorControls, ColorLimit, ViewFavorites, SharedWith, MessageReadPermission, MessageControls, IsUser, \
+    JournalCommentPermission
 from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer, SettingsSerializer, UserSerializer, \
     RegisterSerializer, ImageAssetManagementSerializer, CredentialsSerializer, AvatarSerializer, RefColorSerializer, \
     AttributeSerializer, SessionSettingsSerializer, MessageManagementSerializer, MessageSerializer, \
-    PasswordResetSerializer
+    PasswordResetSerializer, JournalSerializer
 from apps.profiles.utils import available_chars, char_ordering, available_assets, available_artists, available_users
 
 
@@ -214,7 +217,7 @@ class AssetManager(RetrieveUpdateDestroyAPIView):
     def put(self, request, *args, **kwargs):
         asset = self.get_object()
         data = {'subscribed': request.data.get('subscribed')}
-        serializer = self.get_serializer(instance=asset, data=data)
+        serializer = self.get_serializer(instance=asset, data=data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(status=status.HTTP_200_OK, data=serializer.data)
@@ -1143,6 +1146,70 @@ class PasswordReset(GenericAPIView):
         user.credit_cards.all().update(cvv_verified=False)
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
+
+class Journals(ListCreateAPIView):
+    serializer_class = JournalSerializer
+
+    def get_queryset(self):
+        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        return Journal.objects.filter(user=user)
+
+    def perform_create(self, serializer):
+        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        if self.request.user != user:
+            raise ValidationError({'errors': ['You may not speak for someone else. Are you still logged in?']})
+        journal = serializer.save(user=user)
+        notify(NEW_JOURNAL, user, data={'journal_id': journal.id})
+        Subscription.objects.create(
+            type=COMMENT,
+            subscriber=user,
+            object_id=journal.id,
+            content_type=ContentType.objects.get_for_model(Journal)
+        )
+        return journal
+
+
+class JournalManager(RetrieveUpdateDestroyAPIView):
+    serializer_class = JournalSerializer
+    permission_classes = [ObjectControls]
+
+    def get_object(self):
+        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        return get_object_or_404(Journal, user=user, id=self.kwargs['journal_id'])
+
+    def perform_destroy(self, instance):
+        recall_notification(NEW_JOURNAL, instance.user, data={'journal_id': instance.id})
+        Subscription.objects.filter(
+            type=COMMENT,
+            object_id=instance.id,
+            content_type=ContentType.objects.get_for_model(Journal)
+        ).delete()
+
+    def put(self, request, *args, **kwargs):
+        journal = self.get_object()
+        data = {'subscribed': request.data.get('subscribed')}
+        serializer = self.get_serializer(instance=journal, data=data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
+
+
+class JournalComments(ListCreateAPIView):
+    permission_classes = [JournalCommentPermission]
+    serializer_class = CommentSerializer
+
+    def get_queryset(self):
+        journal = get_object_or_404(Journal, id=self.kwargs['journal_id'], user__username=self.kwargs['username'])
+        self.check_object_permissions(self.request, journal)
+        return journal.comments.all()
+
+    def perform_create(self, serializer):
+        journal = get_object_or_404(Journal, id=self.kwargs['journal_id'], user__username=self.kwargs['username'])
+        self.check_object_permissions(self.request, journal)
+        serializer.save(user=self.request.user, content_object=journal)
+
+    class Meta:
+        pass
 
 @csrf_exempt
 @api_view(['POST'])

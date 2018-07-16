@@ -24,7 +24,7 @@
         v-if="growing !== null && setUp"
         :product="product"
       />
-      <v-jumbotron v-if="setUp && is_current && (growing !== null) && (growing.length === 0)" color="grey darken-3">
+      <v-jumbotron v-if="setUp && isCurrent && (growing !== null) && (growing.length === 0)" color="grey darken-3">
         <v-container fill-height>
           <v-layout align-center>
             <v-flex>
@@ -39,7 +39,7 @@
       </v-jumbotron>
     </v-layout>
     <v-layout row wrap>
-      <v-flex xs12 v-if="is_current && !setUp && !embedded">
+      <v-flex xs12 v-if="isCurrent && !setUp && !embedded">
         <p>To open a store, you must first set up your
           <router-link :to="{name: 'Settings', params: {tabName: 'payment', 'username': this.viewer.username, 'subTabName': 'disbursement'}}">
             deposit account.
@@ -48,7 +48,7 @@
       </v-flex>
     </v-layout>
     <v-layout row wrap>
-      <v-flex xs12 v-if="is_current && setUp && embedded" text-xs-center>
+      <v-flex xs12 v-if="isCurrent && setUp && embedded" text-xs-center>
         <v-btn large color="primary" class="mx-0" @click="showNew = true">New Product</v-btn>
       </v-flex>
     </v-layout>
@@ -237,7 +237,7 @@
     },
     computed: {
       setUp () {
-        if (!this.is_current) {
+        if (!this.isCurrent) {
           return true
         }
         return this.user.dwolla_configured
