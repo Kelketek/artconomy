@@ -22,7 +22,7 @@ from rest_framework.authtoken.models import Token
 from apps.lib.abstract_models import GENERAL, RATINGS, ImageModel
 from apps.lib.models import Comment, Subscription, FAVORITE, SYSTEM_ANNOUNCEMENT, DISPUTE, REFUND, Event, \
     SUBMISSION_CHAR_TAG, CHAR_TAG, SUBMISSION_TAG, COMMENT, Tag, CHAR_TRANSFER, ASSET_SHARED, CHAR_SHARED, \
-    NEW_CHARACTER, NEW_PORTFOLIO_ITEM, RENEWAL_FAILURE, SUBSCRIPTION_DEACTIVATED, RENEWAL_FIXED
+    NEW_CHARACTER, NEW_PORTFOLIO_ITEM, RENEWAL_FAILURE, SUBSCRIPTION_DEACTIVATED, RENEWAL_FIXED, NEW_JOURNAL
 from apps.lib.utils import clear_events, tag_list_cleaner, notify, recall_notification
 from apps.profiles.permissions import AssetViewPermission, AssetCommentPermission, MessageReadPermission, \
     JournalCommentPermission
@@ -578,3 +578,30 @@ class Journal(Model):
     )
     subscriptions = GenericRelation('lib.Subscription')
     comment_permissions = [JournalCommentPermission]
+
+    def notification_serialize(self, context):
+        from .serializers import JournalSerializer
+        return JournalSerializer(instance=self, context=context).data
+
+
+@receiver(post_save, sender=Journal)
+def auto_subscribe_journal(sender, instance, created=False, **kwargs):
+    if not created:
+        return
+    notify(NEW_JOURNAL, instance.user, data={'journal': instance.id})
+    Subscription.objects.create(
+        type=COMMENT,
+        subscriber=instance.user,
+        object_id=instance.id,
+        content_type=ContentType.objects.get_for_model(Journal)
+    )
+
+
+@receiver(post_delete, sender=Journal)
+def auto_unsubscribe_journal(sender, instance, **kwargs):
+    recall_notification(NEW_JOURNAL, instance.user, data={'journal': instance.id})
+    Subscription.objects.filter(
+        type=COMMENT,
+        object_id=instance.id,
+        content_type=ContentType.objects.get_for_model(Journal)
+    ).delete()

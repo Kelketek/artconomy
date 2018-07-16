@@ -10,8 +10,8 @@ from rest_framework_bulk import BulkSerializerMixin, BulkListSerializer
 
 from apps.lib.models import Comment, Notification, Event, CHAR_TAG, SUBMISSION_CHAR_TAG, Tag, REVISION_UPLOADED, \
     ORDER_UPDATE, SALE_UPDATE, COMMENT, Subscription, ASSET_SHARED, CHAR_SHARED, NEW_CHARACTER, NEW_PORTFOLIO_ITEM, \
-    NEW_PRODUCT, STREAMING
-from apps.profiles.models import User, ImageAsset, Character
+    NEW_PRODUCT, STREAMING, NEW_JOURNAL
+from apps.profiles.models import User, ImageAsset, Character, Journal
 from apps.sales.models import Revision, Product, Order
 
 
@@ -409,8 +409,16 @@ def streaming(obj, context):
     return {
         'order': {
             'stream_link': order.stream_link,
-            'seller': user_data
+            'seller': user_data,
         }
+    }
+
+
+def new_journal(obj, context):
+    journal = Journal.objects.get(id=obj.data['journal'])
+    return {
+        'display': notification_display(journal.user, context),
+        'journal': notification_serialize(journal, context),
     }
 
 
@@ -427,6 +435,7 @@ NOTIFICATION_TYPE_MAP = {
     NEW_PORTFOLIO_ITEM: new_portfolio_item,
     NEW_PRODUCT: new_product,
     STREAMING: streaming,
+    NEW_JOURNAL: new_journal
 }
 
 

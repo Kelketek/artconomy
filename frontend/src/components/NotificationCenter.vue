@@ -67,11 +67,13 @@
   import AcRenewalFixed from './notifications/ac-renewal-fixed'
   import AcRenewalFailure from './notifications/ac-renewal-failure'
   import AcSubscriptionDeactivated from './notifications/ac-subscription-deactivated'
+  import AcNewJournal from './notifications/ac-new-journal'
 
   export default {
     name: 'NotificationCenter',
     mixins: [Paginated],
     components: {
+      AcNewJournal,
       AcSubscriptionDeactivated,
       AcRenewalFailure,
       AcRenewalFixed,
