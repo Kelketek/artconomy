@@ -13,6 +13,7 @@ import Policies from '@/components/Policies'
 import Contact from '@/components/Contact'
 import Store from '@/components/Store'
 import Ratings from '@/components/Ratings'
+import Journal from '@/components/Journal'
 import WhoIsOpen from '@/components/WhoIsOpen'
 import Transfers from '@/components/Transfers'
 import Product from '@/components/Product'
@@ -134,6 +135,12 @@ export const routes = [
     path: '/profile/:username/ratings/',
     name: 'Ratings',
     component: Ratings,
+    props: true
+  },
+  {
+    path: '/profile/:username/journals/:journalID/',
+    name: 'Journal',
+    component: Journal,
     props: true
   },
   {

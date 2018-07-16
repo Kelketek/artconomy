@@ -14,7 +14,8 @@ from rest_framework.authtoken.models import Token
 from apps.lib.abstract_models import RATINGS
 from apps.lib.serializers import RelatedUserSerializer, Base64ImageField, TagSerializer, SubscribedField, \
     SubscribeMixin, UserInfoMixin
-from apps.profiles.models import Character, ImageAsset, User, RefColor, Attribute, Message, MessageRecipientRelationship
+from apps.profiles.models import Character, ImageAsset, User, RefColor, Attribute, Message, \
+    MessageRecipientRelationship, Journal
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -395,4 +396,18 @@ class PasswordResetSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             'new_password',
+        )
+
+
+class JournalSerializer(SubscribeMixin, serializers.ModelSerializer):
+    user = RelatedUserSerializer(read_only=True)
+    subscribed = SubscribedField(required=False)
+
+    class Meta:
+        model = Journal
+        fields = (
+            'id', 'user', 'subject', 'body', 'created_on', 'edited_on', 'comments_disabled', 'subscribed'
+        )
+        read_only_fields = (
+            'id', 'created_on', 'edited_on'
         )

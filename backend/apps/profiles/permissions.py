@@ -153,3 +153,14 @@ class IsUser(BasePermission):
             return True
         if request.user.is_superuser:
             return True
+
+
+class JournalCommentPermission(BasePermission):
+    def has_object_permission(self, request, view, obj):
+        if obj.comments_disabled:
+            return False
+        if obj.user.is_staff:
+            return True
+        if obj.user.blocking.filter(id=request.user.id):
+            return False
+        return True

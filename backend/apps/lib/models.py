@@ -65,6 +65,7 @@ STREAMING = 26
 RENEWAL_FAILURE = 27
 SUBSCRIPTION_DEACTIVATED = 28
 RENEWAL_FIXED = 29
+NEW_JOURNAL = 30
 
 
 EVENT_TYPES = (
@@ -91,7 +92,8 @@ EVENT_TYPES = (
     (ANNOUNCEMENT, 'Announcement'),
     (SYSTEM_ANNOUNCEMENT, 'System-wide announcement'),
     (RENEWAL_FAILURE, 'Renewal Failure'),
-    (SUBSCRIPTION_DEACTIVATED, 'Subscription Deactivated')
+    (SUBSCRIPTION_DEACTIVATED, 'Subscription Deactivated'),
+    (NEW_JOURNAL, 'New Journal Posted'),
 )
 
 EMAIL_SUBJECTS = {

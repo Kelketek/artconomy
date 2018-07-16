@@ -9,7 +9,7 @@ from apps.profiles.views import Register, CharacterListAPI, CharacterAssets, \
     RefColorManager, RecentSubmissions, RecentCommissions, NewCharacters, FavoritesList, GalleryList, SubmissionList, \
     AttributeManager, AttributeList, SessionSettings, AssetShare, CharacterShare, WatchUser, Watching, Watchers, \
     MessagesTo, MessagesFrom, MessageManager, MessageComments, LeaveConversation, BlockUser, StartPasswordReset, \
-    TokenValidator, PasswordReset
+    TokenValidator, PasswordReset, Journals, JournalManager, JournalComments
 from apps.profiles.views import check_username, check_email, perform_login, perform_logout
 
 app_name = "profiles"
@@ -48,6 +48,11 @@ urlpatterns = [
     path('v1/account/<username>/blacklist/', UserBlacklist.as_view(), name='user_blacklist'),
     path('v1/account/<username>/favorites/', FavoritesList.as_view(), name='favorites_list'),
     path('v1/account/<username>/gallery/', GalleryList.as_view(), name='gallery_list'),
+    path('v1/account/<username>/journals/', Journals.as_view(), name='journal_list'),
+    path('v1/account/<username>/journals/<int:journal_id>/', JournalManager.as_view(), name='journal'),
+    path(
+        'v1/account/<username>/journals/<int:journal_id>/comments/', JournalComments.as_view(), name='journal_comments'
+    ),
     path('v1/account/<username>/submissions/', SubmissionList.as_view(), name='submission_list'),
     path('v1/account/<username>/messages/inbox/', MessagesTo.as_view(), name='messages_to'),
     path('v1/account/<username>/messages/sent/', MessagesFrom.as_view(), name='messages_from'),

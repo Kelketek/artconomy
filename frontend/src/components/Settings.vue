@@ -296,7 +296,7 @@
           this.user.username = this.credentialsModel.username
           this.refreshUser()
           this.refreshUser()
-          if (this.is_current) {
+          if (this.isCurrent) {
             this.$root.$loadUser()
           }
         }
@@ -307,7 +307,7 @@
       },
       updateAvatar () {
         this.refreshUser()
-        if (this.is_current) {
+        if (this.isCurrent) {
           this.$root.$loadUser()
         }
       }

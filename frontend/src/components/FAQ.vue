@@ -59,11 +59,11 @@
               <v-card-text>
                 <p>Our team consists of people who are passionate about art.</p>
                 <h3>CEO and Lead Developer: Fox Danger Piacenti</h3>
-                <p>Fox Piacenti is a long term online role player who has had a passion to see characters
+                <p>Fox is a long term online role player who has had a passion to see characters
                   come alive online. He has worked as a lead developer, administrator, and director in the recreational
                   and professional spheres.</p>
-                <p>Fox began work on Artconomy upon observing the difficulties encountered when commissioning online, and
-                  realizing that he rarely commissioned in person but frequently did at creative conventions,
+                <p>Fox began work on Artconomy upon observing the difficulties encountered when commissioning, and
+                  realizing that he rarely commissioned online but frequently did at creative conventions,
                   where one could meet face-to-face with artists. He wanted to create a service where it was as easy
                   to commission online as it was in person.</p>
                 <h3>Marketing and Public Relations Director: Eris Autumn Griffon</h3>

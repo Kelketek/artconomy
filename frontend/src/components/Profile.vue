@@ -7,19 +7,19 @@
             <v-flex xs12 text-xs-center>
               <ac-avatar :user="user" :show-rating="true" :no-link="true" />
             </v-flex>
-            <v-flex xs12 text-xs-center v-if="!is_current">
+            <v-flex xs12 text-xs-center v-if="!isCurrent">
               <ac-action :url="`/api/profiles/v1/account/${username}/watch/`" :success="replaceUser" v-if="isLoggedIn">
                 <span v-if="user.watching"><v-icon>visibility_off</v-icon>&nbsp;Stop Watching</span>
                 <span v-else><v-icon>visibility</v-icon>&nbsp;Watch</span>
               </ac-action>
             </v-flex>
-            <v-flex xs12 text-xs-center v-if="!is_current">
+            <v-flex xs12 text-xs-center v-if="!isCurrent">
               <ac-action :url="`/api/profiles/v1/account/${username}/block/`" :success="replaceUser" v-if="isLoggedIn">
                 <v-icon>block</v-icon>
                 <span v-if="user.blocked">&nbsp;Unblock</span><span v-else>&nbsp;Block</span>
               </ac-action>
             </v-flex>
-            <v-flex v-if="!is_current && user.watching" text-xs-center>
+            <v-flex v-if="!isCurrent && user.watching" text-xs-center>
               <v-btn v-if="isLoggedIn && !portrait" color="purple" :to="{name: 'Upgrade'}">Alert when open</v-btn>
               <span v-if="portrait && user.watching">You will be alerted when this artist is open.</span>
             </v-flex>
@@ -40,6 +40,7 @@
         </v-flex>
       </v-layout>
     </v-card>
+    <ac-journals :username="username" :limit="3" class="mb-3"/>
     <v-tabs v-model="tab" fixed-tabs>
       <v-tab href="#tab-products" v-if="user.has_products"><v-icon>shopping_basket</v-icon>&nbsp;Products</v-tab>
       <v-tab href="#tab-characters"><v-icon>people</v-icon>&nbsp;Characters</v-tab>
@@ -158,11 +159,13 @@
   import AcFormDialog from './ac-form-dialog'
   import AcAction from './ac-action'
   import AcUserGallery from './ac-user-gallery'
+  import AcJournals from './ac-journals'
 
   export default {
     name: 'Profile',
     mixins: [Viewer, Perms],
     components: {
+      AcJournals,
       AcUserGallery,
       AcAction,
       AcFormDialog,
@@ -195,6 +198,7 @@
         count: 0,
         assets: null,
         showUpload: false,
+        journals: null,
         newUploadModel: {
           title: '',
           caption: '',

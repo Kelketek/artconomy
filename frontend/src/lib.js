@@ -326,6 +326,28 @@ export function isMobileDevice () {
   return (typeof window.orientation !== 'undefined') || (navigator.userAgent.indexOf('IEMobile') !== -1)
 }
 
+export function truncateText (text, maxLength) {
+  if (text.length <= maxLength) {
+    return text
+  }
+  let newText = text.slice(0, maxLength)
+  if ([' ', '\n', '\r', '\t'].indexOf(text[maxLength + 1]) === -1) {
+    return newText + '...'
+  }
+  let iterator = 1
+  // Find the first space break before that point.
+  while (iterator < newText.length) {
+    let testText = newText.slice(0, newText.length - iterator)
+    if (![' ', '\n', '\r', '\t'].indexOf(testText[testText.length - 1] === -1)) {
+      testText = testText.slice(0, testText.length - 1)
+      return testText + '...'
+    }
+    iterator += 1
+  }
+  // Super long word for some reason.
+  return newText + '...'
+}
+
 export const EventBus = new Vue()
 
 export const recaptchaSiteKey = '6LdDkkIUAAAAAFyNzBAPKEDkxwYrQ3aZdVb1NKPw'

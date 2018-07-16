@@ -125,7 +125,7 @@ class OrderRetrieve(RetrieveAPIView):
     def put(self, request, *args, **kwargs):
         order = self.get_object()
         data = {'subscribed': request.data.get('subscribed')}
-        serializer = self.get_serializer(instance=order, data=data)
+        serializer = self.get_serializer(instance=order, data=data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(status=status.HTTP_200_OK, data=serializer.data)
