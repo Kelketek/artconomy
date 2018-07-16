@@ -75,8 +75,7 @@
     mixins: [Paginated, Viewer, Perms],
     methods: {
       addJournal (response) {
-        this.currentJournal = response
-        this.showNew = false
+        this.$router.history.push({name: 'Journal', params: {username: this.username, journalID: response.id}})
       }
     },
     data () {

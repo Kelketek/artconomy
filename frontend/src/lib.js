@@ -153,7 +153,8 @@ export const NOTIFICATION_MAPPING = {
   '26': 'ac-streaming',
   '27': 'ac-renewal-failure',
   '28': 'ac-subscription-deactivated',
-  '29': 'ac-renewal-fixed'
+  '29': 'ac-renewal-fixed',
+  '30': 'ac-new-journal'
 }
 
 export const ORDER_STATUSES = {

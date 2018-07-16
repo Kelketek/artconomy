@@ -1159,13 +1159,6 @@ class Journals(ListCreateAPIView):
         if self.request.user != user:
             raise ValidationError({'errors': ['You may not speak for someone else. Are you still logged in?']})
         journal = serializer.save(user=user)
-        notify(NEW_JOURNAL, user, data={'journal_id': journal.id})
-        Subscription.objects.create(
-            type=COMMENT,
-            subscriber=user,
-            object_id=journal.id,
-            content_type=ContentType.objects.get_for_model(Journal)
-        )
         return journal
 
 
@@ -1176,14 +1169,6 @@ class JournalManager(RetrieveUpdateDestroyAPIView):
     def get_object(self):
         user = get_object_or_404(User, username__iexact=self.kwargs['username'])
         return get_object_or_404(Journal, user=user, id=self.kwargs['journal_id'])
-
-    def perform_destroy(self, instance):
-        recall_notification(NEW_JOURNAL, instance.user, data={'journal_id': instance.id})
-        Subscription.objects.filter(
-            type=COMMENT,
-            object_id=instance.id,
-            content_type=ContentType.objects.get_for_model(Journal)
-        ).delete()
 
     def put(self, request, *args, **kwargs):
         journal = self.get_object()
@@ -1210,6 +1195,7 @@ class JournalComments(ListCreateAPIView):
 
     class Meta:
         pass
+
 
 @csrf_exempt
 @api_view(['POST'])

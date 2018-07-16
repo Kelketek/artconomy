@@ -5,7 +5,8 @@
         <span slot="badge" v-if="notification.unread">*</span>
         <v-list-tile-avatar>
           <slot name="avatar">
-            <img :src="$img(event.data.display, 'notification', true)" >
+            <img :src="event.data.display.avatar_url" v-if="event.data.display && event.data.display.avatar_url">
+            <img :src="$img(event.data.display, 'notification', true)" v-else>
           </slot>
         </v-list-tile-avatar>
       </v-badge>
@@ -15,7 +16,8 @@
         <span slot="badge" v-if="notification.unread">*</span>
         <v-list-tile-avatar>
           <slot name="avatar">
-            <img :src="$img(event.data.display, 'notification', true)" >
+            <img :src="event.data.display.avatar_url" v-if="event.data.display && event.data.display.avatar_url">
+            <img :src="$img(event.data.display, 'notification', true)" v-else>
           </slot>
         </v-list-tile-avatar>
       </v-badge>
