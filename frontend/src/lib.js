@@ -127,6 +127,12 @@ export function ratings () {
   return genOptions(RATINGS)
 }
 
+export function ratingsNonExtreme () {
+  let nonExtreme = {...RATINGS}
+  delete nonExtreme[3]
+  return genOptions(nonExtreme)
+}
+
 export function ratingsShort () {
   return genOptions(RATINGS_SHORT)
 }

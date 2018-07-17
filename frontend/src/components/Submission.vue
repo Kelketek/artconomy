@@ -6,7 +6,7 @@
           <ac-asset :asset="submission" thumb-name="gallery" :rating="rating" />
         </v-flex>
         <v-flex text-xs-center xs12 v-if="!viewer.username">
-          <v-btn @click="showRatingSettings = true">Adjust my content rating settings</v-btn>
+          <v-btn @click="showRatingSettings = true" v-if="!extreme">Adjust my content rating settings</v-btn>
           <ac-form-dialog ref="ratingSettingsForm" :schema="ratingSettingsSchema" :model="ratingSettingsModel"
                              :options="settingsOptions" :success="updateSession"
                              :url="`/api/profiles/v1/session/settings/`"
@@ -14,6 +14,7 @@
                              title="Adjust Content Settings"
                              :reset-after="false"
                              v-model="showRatingSettings"
+                             v-if="!extreme"
           >
             <v-flex slot="header" text-xs-center>
               <p>
@@ -23,6 +24,13 @@
               </p>
             </v-flex>
           </ac-form-dialog>
+          <div v-if="!viewer.username && extreme">
+            <p>
+              Content of this rating may only be viewed by registered users.
+              <router-link :to="{name: 'Login', params: {tabName: 'register'}}">Consider registering today!
+              </router-link>
+            </p>
+          </div>
         </v-flex>
       </v-layout>
       <v-card v-if="submission">
@@ -256,7 +264,7 @@
 </style>
 
 <script>
-  import { artCall, setMetaContent, textualize, ratingsShort, RATINGS_SHORT, ratings } from '../lib'
+  import {artCall, setMetaContent, textualize, ratingsShort, RATINGS_SHORT, ratings, ratingsNonExtreme} from '../lib'
   import AcCharacterPreview from './ac-character-preview'
   import Editable from '../mixins/editable'
   import Viewer from '../mixins/viewer'
@@ -414,7 +422,7 @@
             selectOptions: {
               hideNoneSelectedText: true
             },
-            values: ratings
+            values: ratingsNonExtreme
           }]
         },
         settingsOptions: {
@@ -435,6 +443,10 @@
       },
       ratingText () {
         return RATINGS_SHORT[this.submission.rating]
+      },
+      extreme () {
+        console.log(this.submission.rating)
+        return this.submission.rating === 3
       }
     },
     methods: {
