@@ -259,11 +259,11 @@ GR_CAPTCHA_SECRET_KEY = ENV_TOKENS.get('GR_CAPTCHA_SECRET_KEY', '')
 GR_CAPTCHA_PUBLIC_KEY = ENV_TOKENS.get('GR_CAPTCHA_PUBLIC_KEY', '')
 
 
-LOGGING_CONFIG = None
+LOGGING = None
 
 if ('test' not in argv) and ('runserver' not in argv):
 
-    LOGGING_CONFIG = logging.config.dictConfig({
+    LOGGING = {
         'version': 1,
         'disable_existing_loggers': False,
         'formatters': {
@@ -289,7 +289,7 @@ if ('test' not in argv) and ('runserver' not in argv):
                 'handlers': ['console', 'mail_admins'],
             },
         },
-    })
+    }
 
 AVATAR_EXPOSE_USERNAMES = False
 
