@@ -4,12 +4,14 @@ from django.urls import path
 
 from apps.profiles.views import Register, CharacterListAPI, CharacterAssets, \
     CharacterManager, AssetManager, MakePrimary, SettingsAPI, CurrentUserInfo, AssetComments, CredentialsAPI, \
-    NotificationsList, SetAvatar, UserInfo, CharacterSearch, AssetFavorite, MarkNotificationsRead, AssetTagCharacter, \
+    CommunityNotificationsList, SetAvatar, UserInfo, CharacterSearch, AssetFavorite, MarkNotificationsRead, \
+    AssetTagCharacter, \
     UserSearch, AssetTagArtist, TagSearch, AssetTag, AssetSearch, CharacterTag, UserBlacklist, RefColorList, \
     RefColorManager, RecentSubmissions, RecentCommissions, NewCharacters, FavoritesList, GalleryList, SubmissionList, \
     AttributeManager, AttributeList, SessionSettings, AssetShare, CharacterShare, WatchUser, Watching, Watchers, \
     MessagesTo, MessagesFrom, MessageManager, MessageComments, LeaveConversation, BlockUser, StartPasswordReset, \
-    TokenValidator, PasswordReset, Journals, JournalManager, JournalComments
+    TokenValidator, PasswordReset, Journals, JournalManager, JournalComments, NotificationsList, SalesNotificationsList, \
+    UnreadNotifications
 from apps.profiles.views import check_username, check_email, perform_login, perform_logout
 
 app_name = "profiles"
@@ -33,8 +35,10 @@ urlpatterns = [
     ),
     path('v1/forgot-password/', StartPasswordReset.as_view(), name='password_reset_start'),
     path('v1/data/requester/', CurrentUserInfo.as_view(), name='current_user_info'),
+    path('v1/data/notifications/unread/', UnreadNotifications.as_view(), name='unread_notifications'),
     path('v1/data/notifications/mark-read/', MarkNotificationsRead.as_view(), name='mark_read'),
-    path('v1/data/notifications/', NotificationsList.as_view(), name='notifications'),
+    path('v1/data/notifications/community/', CommunityNotificationsList.as_view(), name='community_notifications'),
+    path('v1/data/notifications/sales/', SalesNotificationsList.as_view(), name='sales_notifications'),
     path('v1/data/user/<username>/', UserInfo.as_view(), name='user_info'),
     path('v1/search/character/', CharacterSearch.as_view(), name='character_search'),
     path('v1/search/user/', UserSearch.as_view(), name='character_search'),

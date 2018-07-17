@@ -2,7 +2,7 @@
   <v-list-tile avatar>
     <router-link :to="assetLink">
       <v-badge left overlap>
-        <span slot="badge" v-if="notification.unread">*</span>
+        <span slot="badge" v-if="!notification.read">*</span>
         <v-list-tile-avatar>
           <img :src="$img(event.data.display, 'notification', true)" >
         </v-list-tile-avatar>

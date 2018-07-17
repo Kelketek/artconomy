@@ -222,7 +222,7 @@
       },
       notificationLoad () {
         if (this.$route.name === 'Notifications') {
-          this.$router.replace(`Reload${this.$route.path}`)
+          this.$router.replace({name: 'Reload', params: {path: this.$route.path}})
         } else {
           this.$router.push({name: 'Notifications'})
         }
@@ -230,12 +230,13 @@
       setNotificationStats (response) {
         if (this.loopNotifications) {
           this.unread = response.count
+          EventBus.$emit('notification-count', response)
           this.$setTimer('getUnreadNotifications', this.monitorNotifications, 10000)
         }
       },
       monitorNotifications () {
         if (this.loopNotifications) {
-          artCall('/api/profiles/v1/data/notifications/?unread=1&size=0',
+          artCall('/api/profiles/v1/data/notifications/unread/',
             'GET', undefined, this.setNotificationStats,
             () => { this.$setTimer('getUnreadNotifications', this.monitorNotifications, 10000) })
         }

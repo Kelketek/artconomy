@@ -2,7 +2,7 @@
   <v-list-tile avatar>
     <router-link :to="pmLink">
       <v-badge left overlap>
-        <span slot="badge" v-if="notification.unread">*</span>
+        <span slot="badge" v-if="!notification.read">*</span>
         <v-list-tile-avatar>
           <img :src="event.target.sender.avatar_url" >
         </v-list-tile-avatar>

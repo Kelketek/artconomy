@@ -255,7 +255,7 @@
       },
       loadPricing (response) {
         this.pricing = response
-      },
+      }
     },
     computed: {
       setUp () {
