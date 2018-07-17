@@ -136,7 +136,7 @@
           </v-avatar>
           <div style="padding-left: 1rem;" v-if="viewer && viewer.username">{{ viewer.username }}</div>
         </v-btn>
-        <v-btn v-else-if="viewer" class="nav-login-item" flat :to="{name: 'Login'}">Login</v-btn>
+        <v-btn v-else-if="viewer" class="nav-login-item" flat :to="loginLink">Login</v-btn>
         <v-btn v-else class="nav-login-item" />
       </v-toolbar-items>
     </v-toolbar>
@@ -199,6 +199,12 @@
         set (value) {
           this.queryData = value.split(' ')
         }
+      },
+      loginLink () {
+        if (this.$route.name === 'Login') {
+          return {name: 'Login', params: {tabName: 'login'}}
+        }
+        return {name: 'Login', params: {tabName: 'login'}, query: {next: this.$route.path}}
       }
     },
     methods: {
