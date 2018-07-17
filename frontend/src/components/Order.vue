@@ -602,7 +602,6 @@
       },
       final () {
         if (this.finalUploaded) {
-          console.log(this.revisions[this.revisions.length - 1])
           return this.revisions[this.revisions.length - 1]
         } else {
           return null
@@ -641,8 +640,6 @@
       landscapeDifference () {
         let standardFee = ((this.price * (this.pricing.standard_percentage * 0.01)) + parseFloat(this.pricing.standard_static)).toFixed(2)
         let landscapeFee = ((this.price * (this.pricing.landscape_percentage * 0.01)) + parseFloat(this.pricing.landscape_static)).toFixed(2)
-        console.log(standardFee)
-        console.log(landscapeFee)
         return (parseFloat(standardFee) - parseFloat(landscapeFee)).toFixed(2)
       },
       weight () {
