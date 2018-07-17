@@ -64,8 +64,8 @@
   import { artCall, paramHandleMap, recaptchaSiteKey, setCookie, setErrors } from '../lib'
 
   const TAB_MAP = {
-    'tab-login': {url: '/api/profiles/v1/login/', label: 'Login', form: 'loginForm'},
-    'tab-register': {url: '/api/profiles/v1/register/', label: 'Register', form: 'registerForm'},
+    'tab-login': {url: '/api/profiles/v1/login/', label: 'Login', form: 'loginForm', sendToProfile: false},
+    'tab-register': {url: '/api/profiles/v1/register/', label: 'Register', form: 'registerForm', sendToProfile: true},
     'tab-forgot': {url: '/api/profiles/v1/forgot-password/', label: 'Reset', form: 'forgotForm'}
   }
 
@@ -164,7 +164,13 @@
       loginHandler (response) {
         setCookie('csrftoken', response.csrftoken)
         setCookie('authtoken', response.authtoken)
-        this.$root.$loadUser(true)
+        if (this.tab.sendToProfile) {
+          this.$root.$loadUser(true)
+        } else if (this.$route.query.next) {
+          this.$router.push(this.$route.query.next)
+        } else {
+          this.$router.push({'name': 'Home'})
+        }
       },
       logoutHandler () {
         this.$root.user = {}
