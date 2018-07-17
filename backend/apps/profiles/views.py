@@ -26,7 +26,7 @@ from rest_framework_bulk import BulkUpdateAPIView
 
 from apps.lib.models import Notification, FAVORITE, CHAR_TAG, SUBMISSION_CHAR_TAG, SUBMISSION_ARTIST_TAG, ARTIST_TAG, \
     SUBMISSION_TAG, Tag, ASSET_SHARED, CHAR_SHARED, WATCHING, NEW_PORTFOLIO_ITEM, Comment, NEW_PM, Subscription, \
-    COMMENT, NEW_JOURNAL
+    COMMENT, NEW_JOURNAL, ORDER_NOTIFICATION_TYPES, SUBMISSION_NOTIFICATION_TYPES
 from apps.lib.permissions import Any, All, IsSafeMethod, IsMethod, IsAnonymous
 from apps.lib.serializers import CommentSerializer, NotificationSerializer, Base64ImageField, RelatedUserSerializer, \
     BulkNotificationSerializer, UserInfoSerializer
@@ -699,6 +699,37 @@ class BlockUser(UserSerializerView, GenericAPIView):
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
 
+class UnreadNotifications(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        return Response(
+            status=200,
+            data={
+                'count': Notification.objects.filter(
+                    user=self.request.user, read=False
+                ).exclude(event__recalled=True).count(),
+                'art_count': Notification.objects.filter(
+                    user=self.request.user, read=False
+                ).exclude(event__recalled=True).filter(
+                    event__type__in=SUBMISSION_NOTIFICATION_TYPES
+                ).count(),
+                'community_count': Notification.objects.filter(
+                    user=self.request.user, read=False
+                ).exclude(
+                    event__recalled=True
+                ).exclude(
+                    event__type__in=ORDER_NOTIFICATION_TYPES + SUBMISSION_NOTIFICATION_TYPES
+                ).count(),
+                'sales_count': Notification.objects.filter(
+                    user=self.request.user, read=False,
+                ).exclude(event__recalled=True).filter(
+                    event__type__in=ORDER_NOTIFICATION_TYPES
+                ).count()
+            }
+        )
+
+
 class NotificationsList(ListAPIView):
     serializer_class = NotificationSerializer
 
@@ -706,6 +737,48 @@ class NotificationsList(ListAPIView):
         if not self.request.user.is_authenticated:
             raise PermissionDenied("You must be authenticated to view notifications.")
         qs = Notification.objects.filter(user=self.request.user).exclude(event__recalled=True)
+        if self.request.GET.get('unread'):
+            qs = qs.filter(read=False)
+        return qs.select_related('event').order_by('-event__date')
+
+
+class CommunityNotificationsList(ListAPIView):
+    serializer_class = NotificationSerializer
+
+    def get_queryset(self):
+        if not self.request.user.is_authenticated:
+            raise PermissionDenied("You must be authenticated to view notifications.")
+        qs = Notification.objects.filter(user=self.request.user).exclude(event__recalled=True).exclude(
+            event__type__in=ORDER_NOTIFICATION_TYPES + SUBMISSION_NOTIFICATION_TYPES
+        )
+        if self.request.GET.get('unread'):
+            qs = qs.filter(read=False)
+        return qs.select_related('event').order_by('-event__date')
+
+
+class ArtNotificationsList(ListAPIView):
+    serializer_class = NotificationSerializer
+
+    def get_queryset(self):
+        if not self.request.user.is_authenticated:
+            raise PermissionDenied("You must be authenticated to view notifications.")
+        qs = Notification.objects.filter(user=self.request.user).exclude(event__recalled=True).filter(
+            event__type__in=SUBMISSION_NOTIFICATION_TYPES
+        )
+        if self.request.GET.get('unread'):
+            qs = qs.filter(read=False)
+        return qs.select_related('event').order_by('-event__date')
+
+
+class SalesNotificationsList(ListAPIView):
+    serializer_class = NotificationSerializer
+
+    def get_queryset(self):
+        if not self.request.user.is_authenticated:
+            raise PermissionDenied("You must be authenticated to view notifications.")
+        qs = Notification.objects.filter(user=self.request.user).exclude(event__recalled=True).filter(
+            event__type__in=ORDER_NOTIFICATION_TYPES
+        )
         if self.request.GET.get('unread'):
             qs = qs.filter(read=False)
         return qs.select_related('event').order_by('-event__date')

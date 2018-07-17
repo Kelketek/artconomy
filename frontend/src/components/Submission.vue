@@ -445,7 +445,6 @@
         return RATINGS_SHORT[this.submission.rating]
       },
       extreme () {
-        console.log(this.submission.rating)
         return this.submission.rating === 3
       }
     },

@@ -242,10 +242,8 @@ export function paramHandleArray (handleName, nameArray) {
   return {
     get () {
       if (this.$route.params[handleName] === undefined) {
-        console.log(0)
         return 0
       }
-      console.log(nameArray.indexOf(this.$route.params[handleName]))
       return nameArray.indexOf(this.$route.params[handleName])
     },
     set (value) {
@@ -255,7 +253,6 @@ export function paramHandleArray (handleName, nameArray) {
       let newQuery = Object.assign({}, this.$route.query)
       delete newQuery['page']
       let newPath = {name: this.$route.name, params: newParams, query: newQuery}
-      console.log(newPath)
       this.$router.history.replace(newPath)
     }
   }

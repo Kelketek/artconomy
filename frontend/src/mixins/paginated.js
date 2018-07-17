@@ -44,7 +44,7 @@ export default {
       }
       this.fetching = true
       this.currentPage += 1
-      artCall(this.$router.resolve(this.linkGen(this.currentPage)).route.fullPath, 'GET', undefined, this.populateResponse, this.cease)
+      // artCall(this.url + '?page=' + this.currentPage, 'GET', undefined, this.populateResponse, this.cease)
     },
     cease () {
       this.furtherPagination = false
@@ -58,7 +58,7 @@ export default {
         if (this.growing === null) {
           this.growing = response.results
         } else {
-          this.growing.concat(response.results)
+          this.growing.push(...response.results)
         }
       } else {
         this.growing = response.results
@@ -71,10 +71,12 @@ export default {
     },
     populateError (response) {
       this.promise = null
+      this.fetching = false
       if (response.status === 400) {
         if (response.responseJSON && response.responseJSON.error) {
           this.error = response.responseJSON.error
         } else {
+          console.log('Erroring out.')
           this.$error(response)
         }
       }

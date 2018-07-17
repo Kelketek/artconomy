@@ -1,13 +1,19 @@
 <template>
   <v-list-tile avatar>
     <router-link :to="event.data.link" v-if="event.data.link">
-      <v-list-tile-avatar>
-          <img :src="$img(event.data.display, 'notification', true)" />
-      </v-list-tile-avatar>
+      <v-badge left overlap>
+        <span slot="badge" v-if="!notification.read">*</span>
+        <v-list-tile-avatar>
+          <img :src="$img(event.data.display, 'notification', true)" >
+        </v-list-tile-avatar>
+      </v-badge>
     </router-link>
-    <v-list-tile-avatar v-else>
-      <img :src="$img(event.data.display, 'notification', true)"/>
-    </v-list-tile-avatar>
+    <v-badge v-else left overlap>
+      <span slot="badge" v-if="!notification.read">*</span>
+      <v-list-tile-avatar>
+        <img :src="$img(event.data.display, 'notification', true)" >
+      </v-list-tile-avatar>
+    </v-badge>
     <v-list-tile-content>
       <v-list-tile-title>
         <router-link :to="event.data.link" v-if="event.data.link">

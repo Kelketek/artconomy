@@ -92,7 +92,7 @@ export const routes = [
     component: Contact
   },
   {
-    path: '/notifications/',
+    path: '/notifications/:tabName?/',
     name: 'Notifications',
     component: NotificationCenter,
     props: true

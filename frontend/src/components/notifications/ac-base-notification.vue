@@ -2,7 +2,7 @@
   <v-list-tile avatar>
     <a :href="hrefLink" v-if="hrefLink">
       <v-badge left overlap>
-        <span slot="badge" v-if="notification.unread">*</span>
+        <span slot="badge" v-if="!notification.read">*</span>
         <v-list-tile-avatar>
           <slot name="avatar">
             <img :src="event.data.display.avatar_url" v-if="event.data.display && event.data.display.avatar_url">
@@ -13,7 +13,7 @@
     </a>
     <router-link :to="assetLink" v-else>
       <v-badge left overlap>
-        <span slot="badge" v-if="notification.unread">*</span>
+        <span slot="badge" v-if="!notification.read">*</span>
         <v-list-tile-avatar>
           <slot name="avatar">
             <img :src="event.data.display.avatar_url" v-if="event.data.display && event.data.display.avatar_url">
