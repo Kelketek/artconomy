@@ -167,8 +167,10 @@
         if (this.tab.sendToProfile) {
           this.$root.$loadUser(true)
         } else if (this.$route.query.next) {
+          this.$root.$loadUser()
           this.$router.push(this.$route.query.next)
         } else {
+          this.$root.$loadUser()
           this.$router.push({'name': 'Home'})
         }
       },
