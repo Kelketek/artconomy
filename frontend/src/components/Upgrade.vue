@@ -46,8 +46,6 @@
                     <v-divider />
                     <v-list-tile>Drop the per-commission static fee of ${{pricing.standard_static}} down to ${{pricing.landscape_static}}</v-list-tile>
                     <v-divider />
-                    <v-list-tile>Be the first to try new features</v-list-tile>
-                    <v-divider />
                     <v-list-tile>...All for ${{pricing.landscape_price}}/Month!</v-list-tile>
                   </v-list>
                 </v-layout>
