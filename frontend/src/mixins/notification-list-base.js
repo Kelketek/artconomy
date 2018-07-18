@@ -1,7 +1,7 @@
 import {artCall, NOTIFICATION_MAPPING, EventBus} from '../lib'
 
 export default {
-  props: ['subset', 'hostTab'],
+  props: ['subset', 'hostTab', 'autoRead'],
   data () {
     return {
       baseUrl: '/api/profiles/v1/data/notifications/',
@@ -29,7 +29,17 @@ export default {
       this.growing = response.results
       this.fetching = false
     },
+    clickRead (notification) {
+      if (this.autoRead) {
+        return
+      }
+      notification.read = true
+      artCall(`${this.baseUrl}mark-read/`, 'PATCH', [{id: notification.id, read: true}], this.sendUpdateEvent)
+    },
     markRead (notification) {
+      if (!this.autoRead) {
+        return () => {}
+      }
       return () => {
         let self = this
         if (notification.read) {
@@ -47,6 +57,9 @@ export default {
     clearMarking () {
       // In case of failure, allow to try again.
       this.marking = []
+    },
+    sendUpdateEvent () {
+      EventBus.$emit('notifications-updated')
     },
     postMark () {
       for (let notification of this.marking) {
@@ -79,7 +92,7 @@ export default {
   },
   watch: {
     hostTab (value) {
-      if (this.subset === value) {
+      if ((this.subset === value && this.autoRead)) {
         this.startMonitoring()
       } else {
         this.stopMonitoring()
@@ -96,7 +109,7 @@ export default {
   },
   created () {
     this.fetchItems()
-    if (this.loopNotifications) {
+    if (this.loopNotifications && this.autoRead) {
       this.startMonitoring()
     }
   }

@@ -11,7 +11,6 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import json
-import logging.config
 import os
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 from decimal import Decimal
@@ -285,8 +284,8 @@ if ('test' not in argv) and ('runserver' not in argv):
         'loggers': {
             # root logger
             '': {
-                'level': 'WARNING',
-                'handlers': ['console', 'mail_admins'],
+                'level': 'ERROR',
+                'handlers': ['console'],
             },
         },
     }

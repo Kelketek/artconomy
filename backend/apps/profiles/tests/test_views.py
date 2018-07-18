@@ -7,7 +7,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from apps.lib.models import FAVORITE, Subscription, COMMENT, Notification, ASSET_SHARED, CHAR_SHARED, \
-    NEW_PORTFOLIO_ITEM, NEW_PRODUCT, NEW_CHARACTER, NEW_PM
+    NEW_PRODUCT, NEW_CHARACTER, NEW_PM
 from apps.lib.utils import watch_subscriptions
 from apps.profiles.models import Character, ImageAsset, Message
 from apps.lib.abstract_models import MATURE, ADULT, GENERAL
@@ -251,14 +251,7 @@ class CharacterAPITestCase(APITestCase):
         self.assertEqual(asset.artists.all()[0], self.user)
         self.assertIn('bloo-oo', asset.file.url)
         self.assertEqual(Subscription.objects.filter(type=FAVORITE).count(), 1)
-        notifications = Notification.objects.filter(event__type=NEW_PORTFOLIO_ITEM)
-        self.assertEqual(notifications.count(), 1)
-        notification = notifications[0]
-        self.assertEqual(notification.user, self.user2)
         asset.delete()
-        notification.event.refresh_from_db()
-        notification.refresh_from_db()
-        self.assertEqual(notification.event.recalled, True)
         self.assertEqual(Subscription.objects.filter(type=FAVORITE).count(), 0)
         # Should work for staffer, too.
         self.login(self.staffer)
@@ -984,7 +977,7 @@ class TestWatch(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.user.watching.all().count(), 1)
         self.assertEqual(self.user.watching.all()[0], self.user2)
-        event_types = [NEW_CHARACTER, NEW_PORTFOLIO_ITEM, NEW_PRODUCT]
+        event_types = [NEW_CHARACTER, NEW_PRODUCT]
         for event_type in event_types:
             logger.info('Checking {}'.format(event_type))
             self.assertTrue(Subscription.objects.filter(

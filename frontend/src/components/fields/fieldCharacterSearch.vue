@@ -1,6 +1,14 @@
 <template>
   <div class="wrapper">
-    <v-text-field ref="searchField" v-model="query" class="form-control" @input.native="runQuery" @keydown.enter.prevent.native="grabFirst" :placeholder="schema.placeholder" />
+    <v-text-field
+        ref="searchField"
+        v-model="query"
+        class="form-control"
+        @input.native="runQuery"
+        @keydown.enter.prevent.native="grabFirst"
+        :placeholder="schema.placeholder"
+        :error-messages="errors"
+    />
     <div class="mb-2 mt-2">
       <div v-if="characterIDs.length === 0">Click a character to add them.</div>
       <div v-else><v-chip close @input="delChar(char)" class="char-name" v-for="char in characters" :key="char.id"><span v-if="char.user.username !== viewer.username">({{char.user.username}}) </span>{{char.name}}</v-chip></div>
@@ -16,19 +24,23 @@
             :class="{primary: index === 0}"
         />
       </div>
+      <div v-if="query && response && response.results.length === 0" class="error--text">
+        <p>No characters could be found by that name. Have you added this character to your profile?</p>
+      </div>
   </div>
 </template>
 
 <script>
   import { abstractField } from 'vue-form-generator'
   import Viewer from '../../mixins/viewer'
+  import materialField from './materialField'
   import AcCharacterPreview from '../ac-character-preview'
   import { artCall } from '../../lib'
 
   export default {
     components: {AcCharacterPreview},
     name: 'fieldCharacterSearch',
-    mixins: [ Viewer, abstractField ],
+    mixins: [ Viewer, abstractField, materialField ],
     data () {
       return {
         query: '',

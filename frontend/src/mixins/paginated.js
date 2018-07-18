@@ -4,7 +4,7 @@ import { artCall, buildQueryString, EventBus } from '../lib'
 export default {
   props: {
     startingPage: {default: 1},
-    limit: {default: 5},
+    limit: {default: 24},
     // Set false to use the never ending mode via the growing list.
     pageReload: {default: true},
     queryData: {default () { return {} }},
@@ -44,7 +44,6 @@ export default {
       }
       this.fetching = true
       this.currentPage += 1
-      // artCall(this.url + '?page=' + this.currentPage, 'GET', undefined, this.populateResponse, this.cease)
     },
     cease () {
       this.furtherPagination = false

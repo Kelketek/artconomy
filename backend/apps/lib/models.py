@@ -43,7 +43,6 @@ COMMENT = 4
 NEW_PRODUCT = 6
 COMMISSIONS_OPEN = 7
 NEW_CHAR_SUBMISSION = 8
-NEW_PORTFOLIO_ITEM = 9
 SUBMISSION_TAG = 10
 NEW_AUCTION = 11
 ANNOUNCEMENT = 12
@@ -72,10 +71,6 @@ ORDER_NOTIFICATION_TYPES = (
     CHAR_TRANSFER, REVISION_UPLOADED
 )
 
-SUBMISSION_NOTIFICATION_TYPES = (
-    NEW_PORTFOLIO_ITEM,
-)
-
 
 EVENT_TYPES = (
     (NEW_CHARACTER, 'New Character'),
@@ -92,7 +87,6 @@ EVENT_TYPES = (
     (DISPUTE, 'Dispute Filed'),
     (REFUND, 'Refund Processed'),
     (NEW_CHAR_SUBMISSION, 'New Submission of Character'),
-    (NEW_PORTFOLIO_ITEM, 'New Portfolio Item'),
     (FAVORITE, 'New Favorite'),
     (SUBMISSION_TAG, 'Submission Tagged'),
     (SUBMISSION_CHAR_TAG, 'Submission tagged with Character'),

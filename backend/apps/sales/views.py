@@ -26,7 +26,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.lib.models import DISPUTE, REFUND, COMMENT, Subscription, ORDER_UPDATE, SALE_UPDATE, REVISION_UPLOADED, \
-    CHAR_TRANSFER, NEW_PORTFOLIO_ITEM, NEW_PRODUCT, STREAMING
+    CHAR_TRANSFER, NEW_PRODUCT, STREAMING
 from apps.lib.permissions import ObjectStatus, IsStaff, IsSafeMethod, Any
 from apps.lib.serializers import CommentSerializer
 from apps.lib.utils import notify, recall_notification, subscribe
@@ -431,9 +431,6 @@ class PublishFinal(GenericAPIView):
                 if not character.primary_asset:
                     character.primary_asset = submission
                     character.save()
-            notify(
-                NEW_PORTFOLIO_ITEM, order.seller, data={'asset': submission.id}, unique_data=True, exclude=[order.buyer]
-            )
         return Response(
             status=status.HTTP_200_OK,
             data=OrderViewSerializer(instance=order, context=self.get_serializer_context()).data

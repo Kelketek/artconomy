@@ -22,6 +22,7 @@ import Orders from '@/components/Orders'
 import Upgrade from '@/components/Upgrade'
 import FAQ from '@/components/FAQ'
 import Settings from '@/components/Settings'
+import WatchListSubmissions from '@/components/WatchListSubmissions'
 import Character from '@/components/Character'
 import Submission from '@/components/Submission'
 import Search from '@/components/Search'
@@ -60,6 +61,11 @@ export const routes = [
     path: '/legal-and-policies/',
     name: 'Policies',
     component: Policies
+  },
+  {
+    path: '/watch-list/',
+    name: 'WatchListSubmissions',
+    component: WatchListSubmissions
   },
   {
     path: '/legal-and-policies/character-transfer-agreement/',

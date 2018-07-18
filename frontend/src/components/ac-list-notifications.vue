@@ -5,15 +5,20 @@
         <p>You do not have any notifications at this time.</p>
       </v-flex>
     </v-layout>
-    <v-layout row>
+    <v-layout row v-if="growing && growing.length">
       <v-flex xs12 md10 offset-md1 v-if="growing">
         <v-list three-line>
           <template v-for="(notification, index) in growing">
-            <component :is="dynamicComponent(notification.event.type)"
-                       :key="notification.id" v-observe-visibility="markRead(notification)"
-                       class="notification" :notification="notification"
-                       v-if="dynamicComponent(notification.event.type)"
-            />
+            <div
+                v-if="dynamicComponent(notification.event.type)"
+                @click.left="clickRead(notification)"
+                @click.middle="clickRead(notification)"
+            >
+              <component :is="dynamicComponent(notification.event.type)"
+                         :key="notification.id" v-observe-visibility="markRead(notification)"
+                         class="notification" :notification="notification"
+              />
+            </div>
             <v-list-tile v-else>
               <v-list-tile-content>
                 {{$root.log(notification)}}
@@ -51,7 +56,6 @@
   import AcAssetShared from './notifications/ac-asset-shared'
   import AcCharShared from './notifications/ac-char-shared'
   import AcNewCharacter from './notifications/ac-new-character'
-  import AcNewPortfolioItem from './notifications/ac-new-portfolio-item'
   import AcNewProduct from './notifications/ac-new-product'
   import AcNewPm from './notifications/ac-new-pm'
   import AcStreaming from './notifications/ac-streaming'
@@ -87,7 +91,6 @@
       AcSaleUpdate,
       AcOrderUpdate,
       AcNewCharacter,
-      AcNewPortfolioItem,
       AcNewProduct
     },
     directives: {'observe-visibility': ObserveVisibility}

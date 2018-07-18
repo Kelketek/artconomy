@@ -9,7 +9,7 @@ from rest_framework.fields import SerializerMethodField
 from rest_framework_bulk import BulkSerializerMixin, BulkListSerializer
 
 from apps.lib.models import Comment, Notification, Event, CHAR_TAG, SUBMISSION_CHAR_TAG, Tag, REVISION_UPLOADED, \
-    ORDER_UPDATE, SALE_UPDATE, COMMENT, Subscription, ASSET_SHARED, CHAR_SHARED, NEW_CHARACTER, NEW_PORTFOLIO_ITEM, \
+    ORDER_UPDATE, SALE_UPDATE, COMMENT, Subscription, ASSET_SHARED, CHAR_SHARED, NEW_CHARACTER, \
     NEW_PRODUCT, STREAMING, NEW_JOURNAL
 from apps.profiles.models import User, ImageAsset, Character, Journal
 from apps.sales.models import Revision, Product, Order
@@ -374,20 +374,6 @@ def new_char(obj, context):
     }
 
 
-def new_portfolio_item(obj, context):
-    try:
-        asset = ImageAsset.objects.get(id=obj.data['asset'])
-    except ImageAsset.DoesNotExist:
-        asset = None
-
-    serialized = notification_display(asset, context)
-
-    return {
-        'asset': serialized,
-        'display': serialized,
-    }
-
-
 def new_product(obj, context):
     try:
         product = Product.objects.get(id=obj.data['product'])
@@ -432,7 +418,6 @@ NOTIFICATION_TYPE_MAP = {
     ASSET_SHARED: asset_shared,
     CHAR_SHARED: char_shared,
     NEW_CHARACTER: new_char,
-    NEW_PORTFOLIO_ITEM: new_portfolio_item,
     NEW_PRODUCT: new_product,
     STREAMING: streaming,
     NEW_JOURNAL: new_journal
