@@ -1110,7 +1110,7 @@ class NewProducts(ListAPIView):
     def get_queryset(self):
         return available_products(
             self.request.user, ordering=False
-        ).order_by('-created_on')
+        ).order_by('-id').distinct('id')
 
 
 class WhoIsOpen(ListAPIView):
