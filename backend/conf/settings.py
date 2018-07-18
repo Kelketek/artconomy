@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_premailer',
+    'djcelery_email',
     'webpack_loader',
     'rest_framework',
     'rest_framework.authtoken',
@@ -207,7 +208,6 @@ DEFAULT_FROM_EMAIL = ENV_TOKENS.get('DEFAULT_FROM_EMAIL', 'Artconomy <noreply@ar
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 CELERY_EMAIL_TASK_CONFIG = {
-    'queue': 'email',
     'rate_limit': '50/m',
 }
 
