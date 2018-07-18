@@ -6,3 +6,7 @@ from conf.celery_config import celery_app
 @celery_app.task
 def test_email():
     mail_admins('Test email', 'This is a test message.')
+
+
+def test_print():
+    print('This is a test.')

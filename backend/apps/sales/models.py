@@ -257,7 +257,7 @@ class Order(Model):
 
     def notification_link(self, context):
         request = context['request']
-        data = {'params': {'orderID': self.id}}
+        data = {'params': {'orderID': self.id, 'username': context['request'].user.username}}
         # Doing early returns here so we match name, rather than overwriting.
         if request.user == self.seller:
             data['name'] = 'Sale'

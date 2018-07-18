@@ -25,8 +25,8 @@ from rest_framework.views import APIView
 from rest_framework_bulk import BulkUpdateAPIView
 
 from apps.lib.models import Notification, FAVORITE, CHAR_TAG, SUBMISSION_CHAR_TAG, SUBMISSION_ARTIST_TAG, ARTIST_TAG, \
-    SUBMISSION_TAG, Tag, ASSET_SHARED, CHAR_SHARED, WATCHING, NEW_PORTFOLIO_ITEM, Comment, NEW_PM, Subscription, \
-    COMMENT, NEW_JOURNAL, ORDER_NOTIFICATION_TYPES, SUBMISSION_NOTIFICATION_TYPES
+    SUBMISSION_TAG, Tag, ASSET_SHARED, CHAR_SHARED, WATCHING, Comment, NEW_PM, Subscription, \
+    COMMENT, ORDER_NOTIFICATION_TYPES
 from apps.lib.permissions import Any, All, IsSafeMethod, IsMethod, IsAnonymous
 from apps.lib.serializers import CommentSerializer, NotificationSerializer, Base64ImageField, RelatedUserSerializer, \
     BulkNotificationSerializer, UserInfoSerializer
@@ -41,8 +41,9 @@ from apps.profiles.permissions import ObjectControls, UserControls, AssetViewPer
 from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer, SettingsSerializer, UserSerializer, \
     RegisterSerializer, ImageAssetManagementSerializer, CredentialsSerializer, AvatarSerializer, RefColorSerializer, \
     AttributeSerializer, SessionSettingsSerializer, MessageManagementSerializer, MessageSerializer, \
-    PasswordResetSerializer, JournalSerializer
+    PasswordResetSerializer, JournalSerializer, ImageAssetArtNotificationSerializer
 from apps.profiles.utils import available_chars, char_ordering, available_assets, available_artists, available_users
+from apps.sales.models import Order
 
 
 class Register(CreateAPIView):
@@ -144,10 +145,6 @@ class CharacterAssets(ListCreateAPIView):
             character.save()
         if serializer.validated_data.get('is_artist'):
             asset.artists.add(self.request.user)
-            notify(
-                NEW_PORTFOLIO_ITEM, self.request.user,
-                data={'asset': asset.id}, unique_data=True
-            )
         return asset
 
 
@@ -709,75 +706,48 @@ class UnreadNotifications(APIView):
                 'count': Notification.objects.filter(
                     user=self.request.user, read=False
                 ).exclude(event__recalled=True).count(),
-                'art_count': Notification.objects.filter(
-                    user=self.request.user, read=False
-                ).exclude(event__recalled=True).filter(
-                    event__type__in=SUBMISSION_NOTIFICATION_TYPES
-                ).count(),
                 'community_count': Notification.objects.filter(
                     user=self.request.user, read=False
                 ).exclude(
                     event__recalled=True
                 ).exclude(
-                    event__type__in=ORDER_NOTIFICATION_TYPES + SUBMISSION_NOTIFICATION_TYPES
+                    event__type__in=ORDER_NOTIFICATION_TYPES
+                ).exclude(
+                    event__type=COMMENT, event__content_type=ContentType.objects.get_for_model(Order)
                 ).count(),
                 'sales_count': Notification.objects.filter(
                     user=self.request.user, read=False,
                 ).exclude(event__recalled=True).filter(
-                    event__type__in=ORDER_NOTIFICATION_TYPES
+                    Q(event__type__in=ORDER_NOTIFICATION_TYPES) |
+                    Q(event__type=COMMENT, event__content_type=ContentType.objects.get_for_model(Order))
                 ).count()
             }
         )
 
 
-class NotificationsList(ListAPIView):
-    serializer_class = NotificationSerializer
-
-    def get_queryset(self):
-        if not self.request.user.is_authenticated:
-            raise PermissionDenied("You must be authenticated to view notifications.")
-        qs = Notification.objects.filter(user=self.request.user).exclude(event__recalled=True)
-        if self.request.GET.get('unread'):
-            qs = qs.filter(read=False)
-        return qs.select_related('event').order_by('-event__date')
-
-
 class CommunityNotificationsList(ListAPIView):
     serializer_class = NotificationSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        if not self.request.user.is_authenticated:
-            raise PermissionDenied("You must be authenticated to view notifications.")
         qs = Notification.objects.filter(user=self.request.user).exclude(event__recalled=True).exclude(
-            event__type__in=ORDER_NOTIFICATION_TYPES + SUBMISSION_NOTIFICATION_TYPES
+            event__type__in=ORDER_NOTIFICATION_TYPES
+        ).exclude(
+            event__type=COMMENT, event__content_type=ContentType.objects.get_for_model(Order)
         )
         if self.request.GET.get('unread'):
             qs = qs.filter(read=False)
-        return qs.select_related('event').order_by('-event__date')
-
-
-class ArtNotificationsList(ListAPIView):
-    serializer_class = NotificationSerializer
-
-    def get_queryset(self):
-        if not self.request.user.is_authenticated:
-            raise PermissionDenied("You must be authenticated to view notifications.")
-        qs = Notification.objects.filter(user=self.request.user).exclude(event__recalled=True).filter(
-            event__type__in=SUBMISSION_NOTIFICATION_TYPES
-        )
-        if self.request.GET.get('unread'):
-            qs = qs.filter(read=False)
-        return qs.select_related('event').order_by('-event__date')
+        return qs.prefetch_related('event').order_by('-event__date')
 
 
 class SalesNotificationsList(ListAPIView):
     serializer_class = NotificationSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        if not self.request.user.is_authenticated:
-            raise PermissionDenied("You must be authenticated to view notifications.")
         qs = Notification.objects.filter(user=self.request.user).exclude(event__recalled=True).filter(
-            event__type__in=ORDER_NOTIFICATION_TYPES
+            Q(event__type__in=ORDER_NOTIFICATION_TYPES) |
+            Q(event__type=COMMENT, event__content_type=ContentType.objects.get_for_model(Order))
         )
         if self.request.GET.get('unread'):
             qs = qs.filter(read=False)
@@ -819,6 +789,16 @@ class MarkNotificationsRead(BulkUpdateAPIView):
 
     def filter_queryset(self, queryset):
         return queryset.filter(user=self.request.user)
+
+
+class WatchListSubmissions(ListAPIView):
+    serializer_class = ImageAssetSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return available_assets(self.request, self.request.user).filter(
+            artists__in=self.request.user.watching.all()
+        ).order_by('-created_on')
 
 
 class RecentCommissions(ListAPIView):
@@ -938,11 +918,6 @@ class GalleryList(ListCreateAPIView):
         instance = serializer.save(owner=user)
         if is_artist:
             instance.artists.add(user)
-            if not instance.private:
-                notify(
-                    NEW_PORTFOLIO_ITEM, user,
-                    data={'asset': instance.id}, unique_data=True
-                )
         add_tags(self.request, instance)
         instance.artists.add(*available_artists(user).filter(pk__in=artist_pks))
         instance.characters.add(*available_chars(user, tagging=True).filter(pk__in=char_pks))

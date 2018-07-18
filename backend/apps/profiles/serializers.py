@@ -138,6 +138,18 @@ class ImageAssetNotificationSerializer(serializers.ModelSerializer):
         )
 
 
+class ImageAssetArtNotificationSerializer(serializers.ModelSerializer):
+    file = Base64ImageField(thumbnail_namespace='profiles.ImageAsset.file')
+    preview = Base64ImageField(thumbnail_namespace='profiles.ImageAsset.preview', required=False)
+
+    class Meta:
+        model = ImageAsset
+        fields = (
+            'id', 'title', 'rating', 'file', 'private', 'preview', 'created_on'
+        )
+        read_only_fields = fields
+
+
 class RefColorSerializer(serializers.ModelSerializer):
     class Meta:
         model = RefColor

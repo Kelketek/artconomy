@@ -144,7 +144,6 @@ export const NOTIFICATION_MAPPING = {
   '4': 'ac-comment-notification',
   '6': 'ac-new-product',
   '7': 'ac-commissions-open',
-  '9': 'ac-new-portfolio-item',
   '10': 'ac-submission-tag',
   '14': 'ac-favorite',
   '15': 'ac-dispute',

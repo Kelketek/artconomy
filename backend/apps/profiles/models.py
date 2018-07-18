@@ -16,13 +16,12 @@ from django.db.models import Model, CharField, ForeignKey, IntegerField, Boolean
 from django.db.models.signals import post_save, post_delete, pre_delete
 from django.dispatch import receiver
 from django.utils.datetime_safe import datetime, date
-from easy_thumbnails.fields import ThumbnailerImageField
 from rest_framework.authtoken.models import Token
 
 from apps.lib.abstract_models import GENERAL, RATINGS, ImageModel
 from apps.lib.models import Comment, Subscription, FAVORITE, SYSTEM_ANNOUNCEMENT, DISPUTE, REFUND, Event, \
     SUBMISSION_CHAR_TAG, CHAR_TAG, SUBMISSION_TAG, COMMENT, Tag, CHAR_TRANSFER, ASSET_SHARED, CHAR_SHARED, \
-    NEW_CHARACTER, NEW_PORTFOLIO_ITEM, RENEWAL_FAILURE, SUBSCRIPTION_DEACTIVATED, RENEWAL_FIXED, NEW_JOURNAL
+    NEW_CHARACTER, RENEWAL_FAILURE, SUBSCRIPTION_DEACTIVATED, RENEWAL_FIXED, NEW_JOURNAL
 from apps.lib.utils import clear_events, tag_list_cleaner, notify, recall_notification
 from apps.profiles.permissions import AssetViewPermission, AssetCommentPermission, MessageReadPermission, \
     JournalCommentPermission
@@ -229,27 +228,6 @@ class ImageAsset(ImageModel):
     def favorite_count(self):
         return self.favorited_by.all().count()
 
-    def wrap_operation(self, function, always=False, *args, **kwargs):
-        do_recall = False
-        artists = []
-        pk = self.pk
-        if self.pk:
-            artists = list(self.artists.all())
-            old = ImageAsset.objects.get(pk=self.pk)
-            if not always and self.private and not old.private:
-                do_recall = True
-        result = function(*args, **kwargs)
-        if do_recall or always:
-            for artist in artists:
-                recall_notification(NEW_PORTFOLIO_ITEM, artist, {'asset': pk}, unique_data=True)
-        return result
-
-    def delete(self, *args, **kwargs):
-        return self.wrap_operation(super().delete, always=True, *args, **kwargs)
-
-    def save(self, *args, **kwargs):
-        return self.wrap_operation(super().save, *args, **kwargs)
-
 
 @receiver(post_save, sender=ImageAsset)
 def auto_subscribe_image(sender, instance, created=False, **_kwargs):
@@ -314,6 +292,9 @@ def auto_remove(sender, instance, **kwargs):
         content_type=ContentType.objects.get_for_model(model=sender),
         object_id=instance.id,
         type=COMMENT,
+    ).delete()
+    Event.objects.filter(
+        data__asset=instance.id
     ).delete()
 
 
