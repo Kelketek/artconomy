@@ -8,5 +8,6 @@ def test_email():
     mail_admins('Test email', 'This is a test message.')
 
 
+@celery_app.task
 def test_print():
     print('This is a test.')
