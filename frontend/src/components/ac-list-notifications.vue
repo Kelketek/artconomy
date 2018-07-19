@@ -65,11 +65,13 @@
   import AcSubscriptionDeactivated from './notifications/ac-subscription-deactivated'
   import AcNewJournal from './notifications/ac-new-journal'
   import NotificationListBase from '../mixins/notification-list-base'
+  import AcOrderTokenIssued from './notifications/ac-order-token-issued'
 
   export default {
     name: 'ac-list-notifications',
     mixins: [Paginated, NotificationListBase],
     components: {
+      AcOrderTokenIssued,
       AcNewJournal,
       AcSubscriptionDeactivated,
       AcRenewalFailure,

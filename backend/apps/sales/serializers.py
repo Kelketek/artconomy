@@ -12,7 +12,7 @@ from apps.lib.utils import country_choices
 from apps.profiles.models import User, ImageAsset
 from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer
 from apps.sales.models import Product, Order, CreditCardToken, Revision, PaymentRecord, BankAccount, CharacterTransfer, \
-    PlaceholderSale, Rating
+    PlaceholderSale, Rating, OrderToken
 from apps.sales.utils import escrow_balance, available_balance
 
 
@@ -35,6 +35,7 @@ class ProductSerializer(serializers.ModelSerializer):
 class ProductNewOrderSerializer(serializers.ModelSerializer):
     seller = RelatedUserSerializer(read_only=True)
     buyer = RelatedUserSerializer(read_only=True)
+    token = serializers.CharField(max_length=8, required=False)
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request')
@@ -51,9 +52,19 @@ class ProductNewOrderSerializer(serializers.ModelSerializer):
                     )
         return value
 
+    def create(self, validated_data):
+        data = dict(**validated_data)
+        data.pop('token', None)
+        return super().create(data)
+
     class Meta:
         model = Order
-        fields = ('id', 'created_on', 'status', 'product', 'details', 'seller', 'buyer', 'characters', 'private')
+        fields = (
+            'id', 'created_on', 'status', 'product', 'details', 'seller', 'buyer', 'characters', 'private', 'token'
+        )
+        extra_kwargs = {
+            'token': {'write_only': True, 'read_only': False}
+        }
         read_only_fields = (
             'status', 'id', 'created_on'
         )
@@ -314,3 +325,16 @@ class RatingSerializer(serializers.ModelSerializer):
             'id'
         )
         read_only_fields = ('rater', 'id')
+
+
+class OrderTokenSerializer(serializers.ModelSerializer):
+    product = ProductSerializer(read_only=True)
+
+    class Meta:
+        model = OrderToken
+        fields = (
+            'product',
+            'activation_code',
+            'expires_on',
+            'email'
+        )

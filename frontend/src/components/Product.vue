@@ -218,7 +218,8 @@
         newOrderModel: {
           details: '',
           private: false,
-          characters: []
+          characters: [],
+          order_token: this.$route.query.order_token || ''
         },
         imageModel: {
           file: [],
@@ -264,6 +265,13 @@
             )
           }, {
             type: 'v-text',
+            label: 'Order Token',
+            model: 'order_token',
+            placeholder: '',
+            featured: true,
+            hint: "This may have been given to you by the artist. If you don't have one, leave this blank.",
+          }, {
+            type: 'v-text',
             label: 'Details',
             model: 'details',
             multiLine: true,
@@ -285,7 +293,7 @@
       }
     },
     created () {
-      artCall(this.url, 'GET', undefined, this.setProduct)
+      artCall(this.url, 'GET', this.$route.query, this.setProduct)
     }
   }
 </script>

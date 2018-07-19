@@ -1,5 +1,10 @@
 import socket
+import uuid
+from pathlib import Path
 
+from dateutil.relativedelta import relativedelta
+from django.contrib.auth.models import AnonymousUser
+from django.core.mail import EmailMessage
 from django.db import transaction
 from django.db.utils import IntegrityError
 from urllib.error import URLError
@@ -11,17 +16,21 @@ from django.contrib.contenttypes.fields import GenericRelation, GenericForeignKe
 from django.contrib.contenttypes.models import ContentType
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models import Model, CharField, ForeignKey, IntegerField, BooleanField, DateTimeField, ManyToManyField, \
-    TextField, SET_NULL, PositiveIntegerField, URLField, CASCADE, DecimalField, Sum, Avg, DateField
+    TextField, SET_NULL, PositiveIntegerField, URLField, CASCADE, DecimalField, Sum, Avg, DateField, EmailField
 
 # Create your models here.
 from django.db.models.signals import post_delete, post_save, pre_delete
 from django.dispatch import receiver
+from django.template import Context, Template
+from django.template.loader import get_template
+from django.utils import timezone
 from djmoney.models.fields import MoneyField
 from moneyed import Money
 
-from apps.lib.models import Comment, Subscription, SALE_UPDATE, ORDER_UPDATE, REVISION_UPLOADED, COMMENT, NEW_PRODUCT
+from apps.lib.models import Comment, Subscription, SALE_UPDATE, ORDER_UPDATE, REVISION_UPLOADED, COMMENT, NEW_PRODUCT, \
+    Event, ORDER_TOKEN_ISSUED, EMAIL_SUBJECTS
 from apps.lib.abstract_models import ImageModel
-from apps.lib.utils import clear_events, MinimumOrZero, recall_notification, require_lock
+from apps.lib.utils import clear_events, MinimumOrZero, recall_notification, require_lock, notify, FakeRequest
 from apps.profiles.models import User
 from apps.sales.permissions import OrderViewPermission
 from apps.sales.apis import sauce
@@ -83,6 +92,7 @@ class Product(ImageModel):
         if self.order_set.all().count():
             self.active = False
             self.save()
+            auto_remove_product_notifiations(Product, self)
         else:
             super().delete(*args, **kwargs)
 
@@ -112,61 +122,9 @@ class Product(ImageModel):
         return "{} offered by {} at {}".format(self.name, self.user.username, self.price)
 
 
-class Auction(Model):
-    """
-    YCH or other Auction. One-off, not a repeatable product
-    """
-
-    OPEN = 1
-    CLOSED = 2
-    CANCELLED = 3
-
-    status = IntegerField(
-        choices=(
-            (OPEN, 'Open'),
-            (CLOSED, 'Closed'),
-            (CANCELLED, 'Cancelled'),
-        )
-    )
-    created_on = DateTimeField(auto_now_add=True)
-    ends_on = DateTimeField()
-
-
-class Placeholder(Model):
-    """
-    Multiple placeholders per auction can be bid on.
-    """
-    OPEN = 1
-    CLOSED = 2
-
-    STATUSES = (
-        (OPEN, 'Open'),
-        (CLOSED, 'Closed')
-    )
-
-    status = IntegerField(choices=STATUSES, db_index=True)
-    auction = ForeignKey('Auction', on_delete=CASCADE)
-    description = CharField(max_length=2000)
-    buy_now_price = MoneyField(
-        max_digits=4, decimal_places=2, default_currency='USD', blank=True, null=True, db_index=True
-    )
-    start_price = MoneyField(
-        max_digits=4, decimal_places=2, default_currency='USD', default=5, validators=[MinValueValidator(5)]
-    )
-    reserve_price = MoneyField(
-        max_digits=4, decimal_places=2, default_currency='USD', default=5, validators=[MinValueValidator(5)]
-    )
-
-
-class Bid(Model):
-    """
-    A bid placed by a user on an Auction.
-    """
-    user = ForeignKey(settings.AUTH_USER_MODEL, on_delete=CASCADE)
-    placeholder = ForeignKey('Placeholder', on_delete=CASCADE)
-    bid = MoneyField(max_digits=4, decimal_places=2, default_currency='USD', db_index=True)
-    max_bid = MoneyField(max_digits=4, decimal_places=2, default_currency='USD', db_index=True)
-    created_on = DateTimeField(auto_now_add=True)
+@receiver(post_delete, sender=Product)
+def auto_remove_product_notifiations(sender, instance, **kwargs):
+    Event.objects.filter(data__product=instance.id).delete()
 
 
 class Order(Model):
@@ -199,7 +157,6 @@ class Order(Model):
 
     status = IntegerField(choices=STATUSES, default=NEW, db_index=True)
     product = ForeignKey('Product', null=True, blank=True, on_delete=CASCADE)
-    auction = ForeignKey('Auction', null=True, blank=True, on_delete=CASCADE)
     seller = ForeignKey(settings.AUTH_USER_MODEL, related_name='sales', on_delete=CASCADE)
     buyer = ForeignKey(settings.AUTH_USER_MODEL, related_name='buys', on_delete=CASCADE)
     price = MoneyField(
@@ -769,3 +726,53 @@ def auto_set_transfer(sender, instance, **_kwargs):
     else:
         instance.character.transfer = None
         instance.character.save()
+
+
+def mini_key():
+    return str(uuid.uuid4())[:8]
+
+
+def tomorrow():
+    return timezone.now() + relativedelta(days=1)
+
+
+class OrderToken(Model):
+    product = ForeignKey(Product, on_delete=CASCADE, related_name='tokens')
+    activation_code = CharField(max_length=8, default=mini_key)
+    expires_on = DateTimeField(db_index=True, default=tomorrow)
+    email = EmailField()
+
+    def notification_serialize(self, context):
+        from .serializers import OrderTokenSerializer
+        return OrderTokenSerializer(instance=self, context=context).data
+
+
+@receiver(post_save, sender=OrderToken)
+def send_token_info(sender, instance, created=False, **kwargs):
+    if not created:
+        return
+    try:
+        user = User.objects.get(email__iexact=instance.email)
+        notify(ORDER_TOKEN_ISSUED, user, data={'order_token': instance.id, 'product': instance.product.id})
+    except User.DoesNotExist:
+        from apps.sales.serializers import OrderTokenSerializer
+        template_path = Path(settings.BACKEND_ROOT) / 'templates' / 'notifications' / '31_order_token_issued.html'
+        subject = EMAIL_SUBJECTS[ORDER_TOKEN_ISSUED]
+        req_context = {'request': FakeRequest(AnonymousUser())}
+        ctx = {
+            'data': {
+                'token': OrderTokenSerializer(instance=instance, context=req_context).data
+            }
+        }
+        subject = Template(subject).render(Context(ctx))
+        to = [instance.email]
+        from_email = settings.DEFAULT_FROM_EMAIL
+        message = get_template(template_path).render(ctx)
+        msg = EmailMessage(subject, message, to=to, from_email=from_email)
+        msg.content_subtype = 'html'
+        msg.send()
+
+
+@receiver(post_delete, sender=OrderToken)
+def revoke_token_info(sender, instance, **kwargs):
+    Event.objects.filter(data__order_token=instance.id).delete()

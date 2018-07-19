@@ -202,8 +202,8 @@ PREMAILER_OPTIONS = ENV_TOKENS.get(
     'PREMAILER_OPTIONS', {'base_url': '{}://{}'.format(DEFAULT_PROTOCOL, DEFAULT_DOMAIN), 'remove_classes': False}
 )
 
-EMAIL_BACKEND = 'djcelery_email.backends.CeleryEmailBackend'
-CELERY_EMAIL_BACKEND = ENV_TOKENS.get('CELERY_EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+EMAIL_BACKEND = ENV_TOKENS.get('EMAIL_BACKEND', 'djcelery_email.backends.CeleryEmailBackend')
+CELERY_EMAIL_BACKEND = ENV_TOKENS.get('CELERY_EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
 DEFAULT_FROM_EMAIL = ENV_TOKENS.get('DEFAULT_FROM_EMAIL', 'Artconomy <noreply@artconomy.com>')
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
 

@@ -10,5 +10,6 @@
   "TELEGRAM_BOT_KEY": "605537825:AAHPOwXeSDxxNNN3M2p8U_5mWOWJyOOO5-g",
   "TELEGRAM_BOT_USERNAME": "ArtconomyDevBot",
   "CELERY_ALWAYS_EAGER": true,
-  "CELERY_BROKER_CONNECTION_RETRY": false
+  "CELERY_BROKER_CONNECTION_RETRY": false,
+  "EMAIL_BACKEND": "django.core.mail.backends.console.EmailBackend"
 }

@@ -4,7 +4,7 @@ from moneyed import Money
 
 from apps.profiles.tests.factories import UserFactory, CharacterFactory
 from apps.sales.models import Order, Product, CreditCardToken, Revision, PaymentRecord, BankAccount, \
-    CharacterTransfer, PlaceholderSale
+    CharacterTransfer, PlaceholderSale, OrderToken
 
 
 class ProductFactory(DjangoModelFactory):
@@ -93,3 +93,11 @@ class CharacterTransferFactory(DjangoModelFactory):
 
     class Meta:
         model = CharacterTransfer
+
+
+class OrderTokenFactory(DjangoModelFactory):
+    product = SubFactory(ProductFactory)
+    email = Sequence(lambda n: '{0}@example.com'.format(n))
+
+    class Meta:
+        model = OrderToken

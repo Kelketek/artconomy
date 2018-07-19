@@ -65,10 +65,11 @@ RENEWAL_FAILURE = 27
 SUBSCRIPTION_DEACTIVATED = 28
 RENEWAL_FIXED = 29
 NEW_JOURNAL = 30
+ORDER_TOKEN_ISSUED = 31
 
 ORDER_NOTIFICATION_TYPES = (
     DISPUTE, SALE_UPDATE, ORDER_UPDATE, RENEWAL_FIXED, RENEWAL_FAILURE, SUBSCRIPTION_DEACTIVATED,
-    CHAR_TRANSFER, REVISION_UPLOADED
+    CHAR_TRANSFER, REVISION_UPLOADED, ORDER_TOKEN_ISSUED
 )
 
 
@@ -97,6 +98,7 @@ EVENT_TYPES = (
     (RENEWAL_FAILURE, 'Renewal Failure'),
     (SUBSCRIPTION_DEACTIVATED, 'Subscription Deactivated'),
     (NEW_JOURNAL, 'New Journal Posted'),
+    (ORDER_TOKEN_ISSUED, 'Order Token Issued'),
 )
 
 EMAIL_SUBJECTS = {
@@ -110,7 +112,8 @@ EMAIL_SUBJECTS = {
     COMMENT: 'New comment on {{ name }}',
     RENEWAL_FAILURE: 'Issue with your subscription',
     SUBSCRIPTION_DEACTIVATED: 'Your subscription has been deactivated.',
-    RENEWAL_FIXED: 'Subscription renewed successfully'
+    RENEWAL_FIXED: 'Subscription renewed successfully',
+    ORDER_TOKEN_ISSUED: 'A special order token has been issued to you!',
 }
 
 
