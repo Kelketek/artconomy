@@ -10,9 +10,9 @@ from rest_framework_bulk import BulkSerializerMixin, BulkListSerializer
 
 from apps.lib.models import Comment, Notification, Event, CHAR_TAG, SUBMISSION_CHAR_TAG, Tag, REVISION_UPLOADED, \
     ORDER_UPDATE, SALE_UPDATE, COMMENT, Subscription, ASSET_SHARED, CHAR_SHARED, NEW_CHARACTER, \
-    NEW_PRODUCT, STREAMING, NEW_JOURNAL
+    NEW_PRODUCT, STREAMING, NEW_JOURNAL, ORDER_TOKEN_ISSUED
 from apps.profiles.models import User, ImageAsset, Character, Journal
-from apps.sales.models import Revision, Product, Order
+from apps.sales.models import Revision, Product, Order, OrderToken
 
 
 class UserInfoMixin:
@@ -408,6 +408,15 @@ def new_journal(obj, context):
     }
 
 
+def order_token_issued(obj, context):
+    token = OrderToken.objects.get(id=obj.data['order_token'])
+    token_data = notification_display(token, context)
+    return {
+        'token': token_data,
+        'display': token_data['product'],
+    }
+
+
 NOTIFICATION_TYPE_MAP = {
     CHAR_TAG: char_tag,
     ORDER_UPDATE: order_update,
@@ -420,7 +429,8 @@ NOTIFICATION_TYPE_MAP = {
     NEW_CHARACTER: new_char,
     NEW_PRODUCT: new_product,
     STREAMING: streaming,
-    NEW_JOURNAL: new_journal
+    NEW_JOURNAL: new_journal,
+    ORDER_TOKEN_ISSUED: order_token_issued,
 }
 
 

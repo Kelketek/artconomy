@@ -39,7 +39,7 @@ from apps.sales.dwolla import add_bank_account, initiate_withdraw, perform_trans
 from apps.sales.permissions import OrderViewPermission, OrderSellerPermission, OrderBuyerPermission, \
     OrderPlacePermission
 from apps.sales.models import Product, Order, CreditCardToken, PaymentRecord, Revision, BankAccount, CharacterTransfer, \
-    PlaceholderSale, WEIGHTED_STATUSES, Rating
+    PlaceholderSale, WEIGHTED_STATUSES, Rating, OrderToken
 from apps.sales.serializers import ProductSerializer, ProductNewOrderSerializer, OrderViewSerializer, CardSerializer, \
     NewCardSerializer, OrderAdjustSerializer, PaymentSerializer, RevisionSerializer, OrderStartedSerializer, \
     AccountBalanceSerializer, BankAccountSerializer, WithdrawSerializer, PaymentRecordSerializer, \
@@ -106,9 +106,31 @@ class PlaceOrder(CreateAPIView):
             context=self.get_serializer_context()
         )
 
+    def can_create(self, product, serializer):
+        if self.request.user == product.user:
+            return False, 'You cannot order your own products. Use a placeholder order instead.', None
+        token = serializer.validated_data.get('token')
+        token_failed = False
+        if token:
+            tokens = product.tokens.filter(activation_code=token, expires_on__gte=timezone.now())
+            if tokens.exists():
+                return True, '', tokens[0]
+            else:
+                token_failed = True
+        if available_products_by_load(product.user).filter(id=product.id).exists():
+            return True, '', None
+        if token_failed:
+            return False, 'The order token you provided is either expired or invalid.', None
+        return False, 'This product is not available at this time.', None
+
     def perform_create(self, serializer):
         product = get_object_or_404(Product, id=self.kwargs['product'], hidden=False)
+        can_order, message, token = self.can_create(product, serializer)
+        if not can_order:
+            raise ValidationError({'errors': [message]})
         order = serializer.save(product=product, buyer=self.request.user, seller=product.user)
+        if token:
+            token.delete()
         for character in order.characters.all():
             character.shared_with.add(order.seller)
         notify(SALE_UPDATE, order, unique=True, mark_unread=True)

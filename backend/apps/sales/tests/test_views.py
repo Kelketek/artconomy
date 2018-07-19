@@ -17,9 +17,9 @@ from apps.lib.tests.factories import TagFactory
 from apps.profiles.models import ImageAsset
 from apps.profiles.tests.factories import CharacterFactory, UserFactory, ImageAssetFactory
 from apps.profiles.tests.helpers import gen_image
-from apps.sales.models import Order, CreditCardToken, Product, PaymentRecord
+from apps.sales.models import Order, CreditCardToken, Product, PaymentRecord, OrderToken
 from apps.sales.tests.factories import OrderFactory, CreditCardTokenFactory, ProductFactory, RevisionFactory, \
-    PaymentRecordFactory, BankAccountFactory, CharacterTransferFactory, PlaceholderSaleFactory
+    PaymentRecordFactory, BankAccountFactory, CharacterTransferFactory, PlaceholderSaleFactory, OrderTokenFactory
 
 order_scenarios = (
     {
@@ -596,6 +596,72 @@ class TestOrder(APITestCase):
             self.assertTrue(character.shared_with.filter(username=response.data['seller']['username']).exists())
         self.assertEqual(response.data['product'], product.id)
         self.assertEqual(response.data['status'], Order.NEW)
+
+    def test_place_order_unavailable(self):
+        self.login(self.user)
+        characters = [
+            CharacterFactory.create(user=self.user).id,
+            CharacterFactory.create(user=self.user, private=True).id,
+            CharacterFactory.create(user=self.user2, open_requests=True).id
+        ]
+        product = ProductFactory.create(task_weight=500)
+        response = self.client.post(
+            '/api/sales/v1/account/{}/products/{}/order/'.format(product.user.username, product.id),
+            {
+                'details': 'Draw me some porn!',
+                'characters': characters
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['errors'][0], 'This product is not available at this time.')
+
+    def test_place_order_token(self):
+        self.login(self.user)
+        characters = [
+            CharacterFactory.create(user=self.user),
+            CharacterFactory.create(user=self.user, private=True),
+            CharacterFactory.create(user=self.user2, open_requests=True)
+        ]
+        character_ids = [character.id for character in characters]
+        token = OrderTokenFactory.create(product__task_weight=500)
+        product = token.product
+        response = self.client.post(
+            '/api/sales/v1/account/{}/products/{}/order/'.format(
+                product.user.username, product.id, token.activation_code
+            ),
+            {
+                'details': 'Draw me some porn!',
+                'characters': character_ids,
+                'token': token.activation_code,
+            },
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['details'], 'Draw me some porn!')
+        self.assertEqual(response.data['characters'], character_ids)
+        for character in characters:
+            self.assertTrue(character.shared_with.filter(username=response.data['seller']['username']).exists())
+        self.assertEqual(response.data['product'], product.id)
+        self.assertEqual(response.data['status'], Order.NEW)
+        self.assertRaises(OrderToken.DoesNotExist, token.refresh_from_db)
+
+    def test_place_order_token_failure(self):
+        self.login(self.user)
+        characters = [
+            CharacterFactory.create(user=self.user).id,
+            CharacterFactory.create(user=self.user, private=True).id,
+            CharacterFactory.create(user=self.user2, open_requests=True).id
+        ]
+        product = ProductFactory.create(task_weight=500)
+        response = self.client.post(
+            '/api/sales/v1/account/{}/products/{}/order/?order_token=123'.format(product.user.username, product.id),
+            {
+                'details': 'Draw me some porn!',
+                'characters': characters,
+                'token': '123'
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['errors'][0], 'The order token you provided is either expired or invalid.')
 
     def test_place_order_hidden(self):
         self.login(self.user)

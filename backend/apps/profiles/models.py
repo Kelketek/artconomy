@@ -21,7 +21,7 @@ from rest_framework.authtoken.models import Token
 from apps.lib.abstract_models import GENERAL, RATINGS, ImageModel
 from apps.lib.models import Comment, Subscription, FAVORITE, SYSTEM_ANNOUNCEMENT, DISPUTE, REFUND, Event, \
     SUBMISSION_CHAR_TAG, CHAR_TAG, SUBMISSION_TAG, COMMENT, Tag, CHAR_TRANSFER, ASSET_SHARED, CHAR_SHARED, \
-    NEW_CHARACTER, RENEWAL_FAILURE, SUBSCRIPTION_DEACTIVATED, RENEWAL_FIXED, NEW_JOURNAL
+    NEW_CHARACTER, RENEWAL_FAILURE, SUBSCRIPTION_DEACTIVATED, RENEWAL_FIXED, NEW_JOURNAL, ORDER_TOKEN_ISSUED
 from apps.lib.utils import clear_events, tag_list_cleaner, notify, recall_notification
 from apps.profiles.permissions import AssetViewPermission, AssetCommentPermission, MessageReadPermission, \
     JournalCommentPermission
@@ -171,6 +171,13 @@ def auto_subscribe(sender, instance, created=False, **_kwargs):
             content_type=ContentType.objects.get_for_model(model=instance),
             object_id=instance.id,
             type=RENEWAL_FIXED,
+            email=True,
+        )
+        Subscription.objects.create(
+            subscriber=instance,
+            content_type=ContentType.objects.get_for_model(model=instance),
+            object_id=instance.id,
+            type=ORDER_TOKEN_ISSUED,
             email=True,
         )
     if instance.is_staff:
