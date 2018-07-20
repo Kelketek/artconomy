@@ -13,7 +13,7 @@ from apps.profiles.models import User, ImageAsset
 from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer
 from apps.sales.models import Product, Order, CreditCardToken, Revision, PaymentRecord, BankAccount, CharacterTransfer, \
     PlaceholderSale, Rating, OrderToken
-from apps.sales.utils import escrow_balance, available_balance
+from apps.sales.utils import escrow_balance, available_balance, available_products_from_user
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -30,6 +30,17 @@ class ProductSerializer(serializers.ModelSerializer):
             'id', 'name', 'description', 'revisions', 'hidden', 'max_parallel', 'task_weight',
             'expected_turnaround', 'user', 'file', 'rating', 'price', 'tags', 'preview'
         )
+
+
+class ProductDetailSerializer(ProductSerializer):
+    available = serializers.SerializerMethodField()
+
+    def get_available(self, obj):
+        return available_products_from_user(obj.user).filter(id=obj.id).exists()
+
+    class Meta:
+        model = Product
+        fields = ProductSerializer.Meta.fields + ('available',)
 
 
 class ProductNewOrderSerializer(serializers.ModelSerializer):
@@ -333,8 +344,15 @@ class OrderTokenSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderToken
         fields = (
+            'id',
             'product',
             'activation_code',
             'expires_on',
             'email'
+        )
+        read_only_fields = (
+            'id',
+            'product',
+            'activation_code',
+            'expires_on',
         )

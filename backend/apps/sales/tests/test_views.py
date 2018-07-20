@@ -661,7 +661,7 @@ class TestOrder(APITestCase):
             }
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['errors'][0], 'The order token you provided is either expired or invalid.')
+        self.assertEqual(response.data['errors'][0], 'The order token you provided is expired, revoked, or invalid.')
 
     def test_place_order_hidden(self):
         self.login(self.user)

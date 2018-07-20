@@ -393,7 +393,7 @@
                   always be practical.
                 </p>
                 <p>
-                  Artconomy does not have this problem. As each commission is tied to a specific seller who pays
+                  Artconomy does not have this problem, as each commission is tied to a specific seller who pays
                   individually for their pieces. Thankfully one does not need to exclusively use Patreon or Artconomy.
                   Artconomy is able to handle workload management from your Patreon via the use of Placeholder Orders.
                 </p>

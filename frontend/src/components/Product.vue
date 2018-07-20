@@ -118,7 +118,19 @@
       </v-card>
       <div class="row-centered">
         <div class="col-12 pt-3 col-md-8 col-centered text-xs-center mb-3">
-          <v-btn color="primary" size="lg" @click="showOrder = true" v-if="viewer.username">Order</v-btn>
+          <v-flex v-if="isCurrent">
+            <p>
+              Customers may view your product using this link if it is not hidden. If you need to allow a customer to
+              order even if this product is not normally available, add an order token below.
+            </p>
+            <p>
+              This product is currently
+              <span v-if="product.available">available.</span>
+              <span v-else>unavailable.</span>
+            </p>
+          </v-flex>
+          <p v-else-if="!product.available">This product is not available at this time.</p>
+          <v-btn color="primary" size="lg" @click="showOrder = true" v-else-if="viewer.username">Order</v-btn>
           <v-btn color="primary" size="lg" :to="{name: 'Login'}" v-else>Login or Register to Order this Product!</v-btn>
         </div>
       </div>
@@ -151,9 +163,10 @@
         </v-card>
       </v-dialog>
     </div>
-    <div class="row" v-else>
-      <div class="text-xs-center" style="width:100%"><i class="fa fa-spin fa-spinner fa-5x"></i></div>
-    </div>
+    <v-layout row wrapped v-else>
+      <v-flex class="text-xs-center" style="width:100%"><i class="fa fa-spin fa-spinner fa-5x"></i></v-flex>
+    </v-layout>
+    <ac-tokens-list :endpoint="`${url}tokens/`" v-if="isCurrent" :show-loading="product" />
   </v-container>
 
 </template>
@@ -165,7 +178,7 @@
   import Editable from '../mixins/editable'
   import AcAsset from '../components/ac-asset'
   import AcAction from '../components/ac-action'
-  import { artCall, md } from '../lib'
+  import {artCall, md} from '../lib'
   import AcPatchfield from './ac-patchfield'
   import AcPatchbutton from './ac-patchbutton'
   import AcFormContainer from './ac-form-container'
@@ -173,11 +186,13 @@
   import AcAssetGallery from './ac-asset-gallery'
   import AcTagDisplay from './ac-tag-display'
   import AcFormDialog from './ac-form-dialog'
+  import AcTokensList from './ac-tokens-list'
 
   export default {
     props: ['productID'],
     mixins: [Viewer, Perms, Editable],
     components: {
+      AcTokensList,
       AcFormDialog,
       AcTagDisplay,
       AcAssetGallery,
@@ -269,7 +284,7 @@
             model: 'order_token',
             placeholder: '',
             featured: true,
-            hint: "This may have been given to you by the artist. If you don't have one, leave this blank.",
+            hint: "This may have been given to you by the artist. If you don't have one, leave this blank."
           }, {
             type: 'v-text',
             label: 'Details',
@@ -293,7 +308,7 @@
       }
     },
     created () {
-      artCall(this.url, 'GET', this.$route.query, this.setProduct)
+      artCall(this.url, 'GET', this.$route.query, this.setProduct, this.$error)
     }
   }
 </script>

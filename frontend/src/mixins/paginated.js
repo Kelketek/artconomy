@@ -38,6 +38,11 @@ export default {
       query.page = pageNum
       return {path: this.baseURL, query: query}
     },
+    restart () {
+      this.growing = []
+      this.currentPage = 1
+      this.fetchItems()
+    },
     loadMore () {
       if (this.currentPage >= this.totalPages) {
         return
