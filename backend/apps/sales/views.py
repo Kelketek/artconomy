@@ -6,7 +6,6 @@ from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.files.base import ContentFile
 from django.db.models import When, F, Case, BooleanField, Q
-from django.db.transaction import atomic
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
@@ -44,9 +43,9 @@ from apps.sales.serializers import ProductSerializer, ProductNewOrderSerializer,
     NewCardSerializer, OrderAdjustSerializer, PaymentSerializer, RevisionSerializer, OrderStartedSerializer, \
     AccountBalanceSerializer, BankAccountSerializer, WithdrawSerializer, PaymentRecordSerializer, \
     CharacterTransferSerializer, PlaceholderSaleSerializer, PublishFinalSerializer, RatingSerializer, \
-    ServicePaymentSerializer
+    ServicePaymentSerializer, ProductDetailSerializer, OrderTokenSerializer
 from apps.sales.utils import translate_authnet_error, available_products, service_price, set_service, \
-    check_charge_required, available_products_by_load, finalize_order
+    check_charge_required, available_products_by_load, finalize_order, available_products_from_user
 from apps.sales.tasks import renew
 
 
@@ -74,20 +73,55 @@ class ProductList(ListCreateAPIView):
 
 
 class ProductManager(RetrieveUpdateDestroyAPIView):
-    serializer_class = ProductSerializer
+    serializer_class = ProductDetailSerializer
     permission_classes = [Any(IsSafeMethod, ObjectControls)]
 
     def get_object(self):
-        product = get_object_or_404(Product, user__username=self.kwargs['username'], id=self.kwargs['product'])
+        product = get_object_or_404(
+            Product, user__username=self.kwargs['username'], id=self.kwargs['product'], active=True
+        )
         self.check_object_permissions(self.request, product)
         return product
+
+
+class ProductOrderTokens(ListCreateAPIView):
+    serializer_class = OrderTokenSerializer
+    permission_classes = [ObjectControls]
+
+    def get_queryset(self):
+        product = get_object_or_404(
+            Product, user__username=self.kwargs['username'], id=self.kwargs['product'], active=True
+        )
+        self.check_object_permissions(self.request, product)
+        return product.tokens.filter(expires_on__gte=timezone.now())
+
+    def perform_create(self, serializer):
+        product = get_object_or_404(
+            Product, user__username=self.kwargs['username'], id=self.kwargs['product'], active=True
+        )
+        self.check_object_permissions(self.request, product)
+        return serializer.save(product=product)
+
+
+class OrderTokenManager(DestroyAPIView):
+    serializer_class = OrderTokenSerializer
+    permission_classes = [ObjectControls]
+
+    def get_object(self):
+        product = get_object_or_404(
+            Product, user__username=self.kwargs['username'], id=self.kwargs['product'], active=True
+        )
+        self.check_object_permissions(self.request, product)
+        return get_object_or_404(OrderToken, product=product, id=self.kwargs['order_token'])
 
 
 class ProductExamples(ListAPIView):
     serializer_class = ImageAssetSerializer
 
     def get_queryset(self):
-        product = get_object_or_404(Product, user__username=self.kwargs['username'], id=self.kwargs['product'])
+        product = get_object_or_404(
+            Product, user__username=self.kwargs['username'], id=self.kwargs['product'], active=True
+        )
         qs = ImageAsset.objects.filter(order__product=product, rating__lte=self.request.max_rating)
         if not (self.request.user == product.user or self.request.user.is_staff):
             if product.hidden:
@@ -117,14 +151,14 @@ class PlaceOrder(CreateAPIView):
                 return True, '', tokens[0]
             else:
                 token_failed = True
-        if available_products_by_load(product.user).filter(id=product.id).exists():
+        if available_products_from_user(product.user).filter(id=product.id).exists():
             return True, '', None
         if token_failed:
-            return False, 'The order token you provided is either expired or invalid.', None
+            return False, 'The order token you provided is expired, revoked, or invalid.', None
         return False, 'This product is not available at this time.', None
 
     def perform_create(self, serializer):
-        product = get_object_or_404(Product, id=self.kwargs['product'], hidden=False)
+        product = get_object_or_404(Product, id=self.kwargs['product'], hidden=False, active=True)
         can_order, message, token = self.can_create(product, serializer)
         if not can_order:
             raise ValidationError({'errors': [message]})
@@ -837,7 +871,7 @@ class ProductTag(BaseTagView):
 
     def post_post(self, product, tag_list):
         return Response(
-            status=status.HTTP_200_OK, data=ProductSerializer(instance=product).data
+            status=status.HTTP_200_OK, data=ProductDetailSerializer(instance=product).data
         )
 
 

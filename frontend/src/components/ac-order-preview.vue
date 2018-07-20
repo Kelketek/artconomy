@@ -18,7 +18,7 @@
         <div>
           <router-link :to="{name: viewName, params: {username: username, orderID: order.id}}">
             {{ order.product.name }}
-          </router-link> by
+          </router-link> <span v-if="!buyer">commissioned </span>by
           <router-link v-if="buyer" :to="{name: 'Profile', params: {username: order.seller.username}}">
             {{ order.seller.username }}
           </router-link>

@@ -269,7 +269,6 @@ def notify(
                 'data': NOTIFICATION_TYPE_MAP.get(event_type, lambda x, _: x.data)(event, req_context),
                 'target': notification_serialize(event.target, req_context), 'user': subscription.subscriber
             }
-            print(ctx)
             subject = Template(subject).render(Context(ctx))
             to = [subscription.subscriber.email]
             from_email = settings.DEFAULT_FROM_EMAIL

@@ -99,7 +99,7 @@ def available_products(requester, query='', ordering=True):
     exclude = Q(hidden=True)
     q = Q(name__istartswith=query) | Q(tags__name__iexact=query)
     if requester.is_authenticated:
-        qs = Product.objects.filter(q).exclude(exclude & ~Q(user=requester))
+        qs = Product.objects.filter(q).exclude(exclude & ~Q(user=requester)).exclude(active=False)
         qs = qs.exclude(Q(task_weight__gt=F('user__max_load')-F('user__load')) & ~Q(user=requester))
         qs = qs.filter(Q(max_parallel=0) | Q(parallel__lt=F('max_parallel')) | Q(user=requester))
         if not requester.is_staff:
@@ -181,12 +181,19 @@ def available_products_by_load(seller, load=None):
     ).exclude(Q(parallel__gte=F('max_parallel')) & ~Q(max_parallel=0))
 
 
+def available_products_from_user(seller):
+    from apps.sales.models import Product
+    if seller.commissions_closed or seller.commissions_disabled:
+        return Product.objects.none()
+    return available_products_by_load(seller)
+
+
 # Primitive recursion check lock.
 UPDATING = {}
 
 
 def update_availability(seller, load, current_closed_status):
-    from apps.sales.models import Product, Order
+    from apps.sales.models import Order
     global UPDATING
     if seller in UPDATING:
         return

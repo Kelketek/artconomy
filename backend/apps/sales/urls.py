@@ -11,7 +11,7 @@ from apps.sales.views import ProductList, ProductManager, PlaceOrder, \
     AvailableHistory, CreateCharacterTransfer, RetrieveCharacterTransfer, CharacterTransferAssets, AcceptCharTransfer, \
     CancelCharTransfer, CharactersInbound, CharactersOutbound, CharactersArchive, NewProducts, WhoIsOpen, \
     CurrentPlaceholderSalesList, PlaceholderManager, SalesStats, PublishFinal, RateOrder, RatingList, PremiumInfo, \
-    Premium, CancelPremium
+    Premium, CancelPremium, ProductOrderTokens, OrderTokenManager
 
 app_name = 'sales'
 
@@ -43,6 +43,16 @@ urlpatterns = [
     path('v1/search/product/', ProductSearch.as_view(), name='product_search'),
     path('v1/account/<username>/products/', ProductList.as_view(), name='product_list'),
     path('v1/account/<username>/products/<int:product>/', ProductManager.as_view(), name='product_manager'),
+    path(
+        'v1/account/<username>/products/<int:product>/tokens/',
+        ProductOrderTokens.as_view(),
+        name='product_order_tokens'
+    ),
+    path(
+        'v1/account/<username>/products/<int:product>/tokens/<int:order_token>/',
+        OrderTokenManager.as_view(),
+        name='order_token_manager'
+    ),
     path('v1/account/<username>/products/<int:product>/tag/', ProductTag.as_view(), name='product_tag'),
     path(
         'v1/account/<username>/products/<int:product>/examples/',

@@ -36,7 +36,11 @@ def available_chars(requester, query='', commissions=False, tagging=False, self_
         q = Q()
     q = Character.objects.filter(q)
     if requester.is_authenticated:
-        qs = q.exclude(exclude & ~(Q(user=requester) | Q(shared_with=requester)))
+        if commissions:
+            exclude_exception = Q(shared_with=requester) & Q(open_requests=True)
+        else:
+            exclude_exception = Q(shared_with=requester)
+        qs = q.exclude(exclude & ~(Q(user=requester) | exclude_exception))
         if not self_search:
             # Never make our blacklist exclude our own characters, lest we lose track of them.
             qs = qs.exclude(tags__in=requester.blacklist.all())
