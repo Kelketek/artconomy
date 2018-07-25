@@ -49,16 +49,19 @@
           <v-dialog
               v-model="showTokenPrompt"
               width="500"
+              @keydown.enter="sendLogin"
           >
             <v-card>
               <v-card-text>
                 <p>
                   This account is protected by Two Factor Authentication. Please use your
-                  authentication device to generate a login token.
+                  authentication device to generate a login token, or check your Telegram messages if you've set
+                  up Telegram 2FA.
                 </p>
                 <vue-form-generator id="tokenForm" ref="tokenForm" :schema="tokenSchema" :model="loginModel"
                                     :options="loginOptions" />
                 <div class="text-xs-center">
+                  <v-btn @click="showTokenPrompt = false">Cancel</v-btn>
                   <v-btn type="submit" id="tokenSubmit" color="primary" @click.prevent="sendLogin">
                     Verify
                   </v-btn>
@@ -213,6 +216,7 @@
       loginFailure (response) {
         let form = this.$refs[this.tab.form]
         if (response.responseJSON.token.length && !this.showTokenPrompt) {
+          setErrors(this.$refs.tokenForm, {})
           this.showTokenPrompt = true
           return
         } else if (this.showTokenPrompt) {
@@ -243,6 +247,17 @@
           return this.forgotHandler
         } else {
           return this.loginHandler
+        }
+      }
+    },
+    watch: {
+      showTokenPrompt (newVal) {
+        if (newVal) {
+          this.$nextTick(() => {
+            document.getElementById('field-token').focus()
+          })
+        } else {
+          setErrors(this.$refs.tokenForm, {})
         }
       }
     },

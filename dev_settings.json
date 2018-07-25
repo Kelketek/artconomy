@@ -11,5 +11,6 @@
   "TELEGRAM_BOT_USERNAME": "ArtconomyDevBot",
   "CELERY_ALWAYS_EAGER": true,
   "CELERY_BROKER_CONNECTION_RETRY": false,
-  "EMAIL_BACKEND": "django.core.mail.backends.console.EmailBackend"
+  "EMAIL_BACKEND": "django.core.mail.backends.console.EmailBackend",
+  "OTP_TOTP_ISSUER": "Artconomy Dev"
 }

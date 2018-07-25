@@ -12,8 +12,9 @@ from django.db.transaction import atomic
 from django.shortcuts import get_object_or_404
 from django.template.loader import get_template
 from django.utils import timezone
+from django.views import View
 from django.views.decorators.csrf import csrf_exempt
-from django_otp import user_has_device, match_token, login as otp_login
+from django_otp import user_has_device, match_token, login as otp_login, devices_for_user
 from django_otp.plugins.otp_totp.models import TOTPDevice
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -43,9 +44,10 @@ from apps.profiles.permissions import ObjectControls, UserControls, AssetViewPer
 from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer, SettingsSerializer, UserSerializer, \
     RegisterSerializer, ImageAssetManagementSerializer, CredentialsSerializer, AvatarSerializer, RefColorSerializer, \
     AttributeSerializer, SessionSettingsSerializer, MessageManagementSerializer, MessageSerializer, \
-    PasswordResetSerializer, JournalSerializer, TwoFactorTimerSerializer
+    PasswordResetSerializer, JournalSerializer, TwoFactorTimerSerializer, TelegramDeviceSerializer
 from apps.profiles.utils import available_chars, char_ordering, available_assets, available_artists, available_users
 from apps.sales.models import Order
+from apps.tg_bot.models import TelegramDevice
 
 
 class Register(CreateAPIView):
@@ -96,7 +98,7 @@ class CredentialsAPI(GenericAPIView):
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
 
-class TwoFactorDevices(ListCreateAPIView):
+class TOTPDeviceList(ListCreateAPIView):
     permission_classes = [IsUser]
     serializer_class = TwoFactorTimerSerializer
 
@@ -111,7 +113,7 @@ class TwoFactorDevices(ListCreateAPIView):
         return serializer.save(user=user, confirmed=False)
 
 
-class TwoFactorDeviceManager(RetrieveUpdateDestroyAPIView):
+class TOTPDeviceManager(RetrieveUpdateDestroyAPIView):
     permission_classes = [IsUser]
     serializer_class = TwoFactorTimerSerializer
 
@@ -121,6 +123,36 @@ class TwoFactorDeviceManager(RetrieveUpdateDestroyAPIView):
         )
         self.check_object_permissions(self.request, device.user)
         return device
+
+
+class Telegram2FA(RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsUser]
+    serializer_class = TelegramDeviceSerializer
+
+    http_method_names = View.http_method_names + ['create']
+
+    def get_object(self):
+        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        self.check_object_permissions(self.request, user)
+        if self.request.method == 'CREATE':
+            devices = TelegramDevice.objects.filter(user=user)
+            if devices.exists():
+                return devices.first()
+            return None
+        return get_object_or_404(TelegramDevice, user=user)
+
+    def create(self, request, username):
+        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        device = self.get_object()
+        if not device:
+            device = TelegramDevice(user=user, confirmed=False)
+            device.save()
+        return Response(status=status.HTTP_201_CREATED, data=self.get_serializer(instance=device).data)
+
+    def post(self, request, username):
+        device = self.get_object()
+        device.generate_challenge()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class CharacterListAPI(ListCreateAPIView):
@@ -879,29 +911,7 @@ def check_email(request):
     return Response({'available': False})
 
 
-@csrf_exempt
-@api_view(['POST'])
-def login_preflight(request):
-    # Gather the username and password provided by the user.
-    # This information is obtained from the login form.
-    email = str(request.data.get('email', request.POST.get('email', ''))).lower()
-    password = request.data.get('password', request.POST.get('password', ''))
-    # Use Django's machinery to attempt to see if the username/password
-    # combination is valid - a User object is returned if it is.
-    user = authenticate(email=email, password=password)
-    error_message = handle_login(request, user, '', preliminary=True)
-    if error_message:
-        return Response(
-            status=status.HTTP_401_UNAUTHORIZED,
-            data={
-                'email': [],
-                'password': [error_message]
-            }
-        )
-    return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-def handle_login(request, user, token, preliminary=False):
+def handle_login(request, user, token):
     # If we have a User object, the details are correct.
     # If None (Python's way of representing the absence of a value), no user
     # with matching credentials was found.
@@ -916,13 +926,20 @@ def handle_login(request, user, token, preliminary=False):
 
     # Last check-- does the user have 2FA?
     device = None
-    if (not preliminary) and user_has_device(user):
+    if not token:
+        for dev in devices_for_user(user):
+            try:
+                dev.generate_challenge()
+            except Exception as err:
+                # Sending this to both fields since it otherwise might not be visible.
+                return str(err), str(err)
+
+    if user_has_device(user):
         device = match_token(user, token)
         if not device:
             return '', "That Verification code is either invalid or expired. Please try again. If you've lost your" \
                    " 2FA device, please contact support@artconomy.com"
-    if preliminary:
-        return '', ''
+
     # If the account is valid and active, we can log the user in.
     # We'll send the user to their account.
     login(request, user)

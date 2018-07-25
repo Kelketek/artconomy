@@ -143,7 +143,6 @@ def watch_subscriptions(watcher, watched):
     target_date = (
         watcher.portrait_paid_through or watcher.landscape_paid_through or (date.today() - relativedelta(days=5))
     )
-    #(NEW_AUCTION, 'New Auction'),
     content_type = ContentType.objects.get_for_model(watched)
     sub, _ = Subscription.objects.get_or_create(
         subscriber=watcher,

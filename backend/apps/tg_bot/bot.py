@@ -40,7 +40,9 @@ def start(bot, update, args):
     user.save()
     bot.send_message(
         chat_id=update.message.chat_id,
-        text="Hi! I'm the Artconomy bot. I'll send messages for {}'s watchlist when artists become available."
+        text="Hi! I'm the Artconomy bot. I'll send messages for {}'s watchlist when artists become "
+             "available if they're subscribing to our Portrait service, or I can send Two Factor Authentication "
+             "codes. Please visit the site for more information.".format(user.username)
     )
 
 

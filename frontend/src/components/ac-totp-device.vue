@@ -3,7 +3,7 @@
     <v-card>
       <v-card-text>
         <v-layout row wrap>
-          <v-flex xs12>
+          <v-flex xs12 text-xs-center>
             <h3>{{device.name}}</h3>
           </v-flex>
           <v-flex class="text-xs-center" xs12>
@@ -23,8 +23,12 @@
               <v-btn color="primary" type="submit">Verify</v-btn>
             </form>
           </v-flex>
-          <v-flex xs12 v-else>
-            Confirmed. <ac-action :success="refreshDevices" color="red" :url="url" method="DELETE"><v-icon>delete</v-icon></ac-action>
+          <v-flex xs12 v-else text-xs-center>
+            <p>This device is set up for 2FA.</p>
+            <ac-action :success="refreshDevices" color="red" :url="url" method="DELETE" :confirm="true">
+              <div class="text-xs-left" slot="confirmation-text">Are you sure you wish to remove this 2FA device? Removing 2FA makes your account less secure. You should only do this if you've lost your device or will replace it.</div>
+              Remove Device
+            </ac-action>
           </v-flex>
         </v-layout>
       </v-card-text>
