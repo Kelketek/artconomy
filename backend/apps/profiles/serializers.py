@@ -4,12 +4,13 @@ from avatar.templatetags.avatar_tags import avatar_url
 from django.conf import settings
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ValidationError
 from django.db import connection
 from django.middleware.csrf import get_token
+from django_otp.plugins.otp_totp.models import TOTPDevice
 from recaptcha.fields import ReCaptchaField
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
+from rest_framework.exceptions import ValidationError
 
 from apps.lib.abstract_models import RATINGS
 from apps.lib.serializers import RelatedUserSerializer, Base64ImageField, TagSerializer, SubscribedField, \
@@ -423,3 +424,34 @@ class JournalSerializer(SubscribeMixin, serializers.ModelSerializer):
         read_only_fields = (
             'id', 'created_on', 'edited_on'
         )
+
+
+class TwoFactorTimerSerializer(serializers.ModelSerializer):
+    config_url = serializers.SerializerMethodField()
+    code = serializers.IntegerField(required=False, write_only=True)
+
+    def get_config_url(self, obj):
+        if obj.confirmed:
+            return None
+        return obj.config_url
+
+    class Meta:
+        model = TOTPDevice
+        fields = (
+            'id', 'name', 'config_url', 'confirmed', 'code'
+        )
+        read_only_fields = (
+            'id', 'config_url', 'confirmed'
+        )
+
+    def update(self, instance, validated_data, **kwargs):
+        data = dict(**validated_data)
+        code = data.pop('code', None)
+        if not code:
+            raise ValidationError({'code': ['You must supply a verification code.']})
+        if instance.verify_token(code):
+            instance.confirmed = True
+            instance.save()
+        else:
+            raise ValidationError({'code': ['The verification code you provided was invalid or expired.']})
+        return instance

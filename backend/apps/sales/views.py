@@ -810,6 +810,7 @@ class BankAccounts(ListCreateAPIView):
 
     def perform_create(self, serializer):
         user = get_object_or_404(User, username=self.kwargs['username'])
+        self.check_object_permissions(self.request, user)
         # validated_data will have the additional fields, whereas data only contains fields for model creation.
         data = serializer.validated_data
         make_dwolla_account(self.request, user, data['first_name'], data['last_name'])

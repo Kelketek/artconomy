@@ -57,6 +57,9 @@ INSTALLED_APPS = [
     'djmoney',
     'avatar',
     'recaptcha',
+    'django_otp',
+    'django_otp.plugins.otp_totp',
+    'django_otp.plugins.otp_static',
     'apps.profiles.apps.ProfilesConfig',
     'apps.sales.apps.SalesConfig',
     'apps.lib',
@@ -69,6 +72,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django_otp.middleware.OTPMiddleware',
     'apps.profiles.middleware.rating_middleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -320,3 +324,5 @@ CELERYBEAT_SCHEDULE = {
 }
 
 ENV_NAME = ENV_TOKENS.get('ENV_NAME', 'dev')
+
+OTP_TOTP_ISSUER = ENV_TOKENS.get('OTP_TOTP_ISSUER', 'Artconomy')

@@ -13,6 +13,8 @@ from django.shortcuts import get_object_or_404
 from django.template.loader import get_template
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
+from django_otp import user_has_device, match_token, login as otp_login
+from django_otp.plugins.otp_totp.models import TOTPDevice
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.exceptions import ValidationError, PermissionDenied
@@ -41,7 +43,7 @@ from apps.profiles.permissions import ObjectControls, UserControls, AssetViewPer
 from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer, SettingsSerializer, UserSerializer, \
     RegisterSerializer, ImageAssetManagementSerializer, CredentialsSerializer, AvatarSerializer, RefColorSerializer, \
     AttributeSerializer, SessionSettingsSerializer, MessageManagementSerializer, MessageSerializer, \
-    PasswordResetSerializer, JournalSerializer, ImageAssetArtNotificationSerializer
+    PasswordResetSerializer, JournalSerializer, TwoFactorTimerSerializer
 from apps.profiles.utils import available_chars, char_ordering, available_assets, available_artists, available_users
 from apps.sales.models import Order
 
@@ -92,6 +94,33 @@ class CredentialsAPI(GenericAPIView):
             update_session_auth_hash(request, serializer.instance)
 
         return Response(status=status.HTTP_200_OK, data=serializer.data)
+
+
+class TwoFactorDevices(ListCreateAPIView):
+    permission_classes = [IsUser]
+    serializer_class = TwoFactorTimerSerializer
+
+    def get_queryset(self):
+        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        self.check_object_permissions(self.request, user)
+        return user.totpdevice_set.all()
+
+    def perform_create(self, serializer):
+        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        self.check_object_permissions(self.request, user)
+        return serializer.save(user=user, confirmed=False)
+
+
+class TwoFactorDeviceManager(RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsUser]
+    serializer_class = TwoFactorTimerSerializer
+
+    def get_object(self):
+        device = get_object_or_404(
+            TOTPDevice, user__username__iexact=self.kwargs['username'], id=self.kwargs['totp_id']
+        )
+        self.check_object_permissions(self.request, device.user)
+        return device
 
 
 class CharacterListAPI(ListCreateAPIView):
@@ -553,11 +582,13 @@ class CharacterTag(BaseTagView):
 
 
 class AttributeList(ListCreateAPIView):
-    permission_classes = [ObjectControls]
+    permission_classes = [Any(All(IsSafeMethod, SharedWith), ObjectControls)]
     serializer_class = AttributeSerializer
 
     def get_character(self):
-        return get_object_or_404(Character, name=self.kwargs['character'], user__username=self.kwargs['username'])
+        character = get_object_or_404(Character, name=self.kwargs['character'], user__username=self.kwargs['username'])
+        self.check_object_permissions(self.request, character)
+        return character
 
     def get_queryset(self):
         character = self.get_character()
@@ -756,7 +787,7 @@ class SalesNotificationsList(ListAPIView):
 
 class RefColorList(ListCreateAPIView):
     serializer_class = RefColorSerializer
-    permission_classes = [All(ColorControls, ColorLimit)]
+    permission_classes = [Any(All(IsSafeMethod, SharedWith), All(ColorControls, ColorLimit))]
 
     def get_queryset(self):
         character = get_object_or_404(Character, name=self.kwargs['character'], user__username=self.kwargs['username'])
@@ -850,41 +881,79 @@ def check_email(request):
 
 @csrf_exempt
 @api_view(['POST'])
+def login_preflight(request):
+    # Gather the username and password provided by the user.
+    # This information is obtained from the login form.
+    email = str(request.data.get('email', request.POST.get('email', ''))).lower()
+    password = request.data.get('password', request.POST.get('password', ''))
+    # Use Django's machinery to attempt to see if the username/password
+    # combination is valid - a User object is returned if it is.
+    user = authenticate(email=email, password=password)
+    error_message = handle_login(request, user, '', preliminary=True)
+    if error_message:
+        return Response(
+            status=status.HTTP_401_UNAUTHORIZED,
+            data={
+                'email': [],
+                'password': [error_message]
+            }
+        )
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+def handle_login(request, user, token, preliminary=False):
+    # If we have a User object, the details are correct.
+    # If None (Python's way of representing the absence of a value), no user
+    # with matching credentials was found.
+    if not user:
+        return "Either this account does not exist, or the password is incorrect.", ''
+        # Is the account active? It could have been disabled.
+
+    if not user.is_active:
+        # An inactive account was used - no logging in!
+        logout(request)
+        return "Your account is disabled. Please contact support", ''
+
+    # Last check-- does the user have 2FA?
+    device = None
+    if (not preliminary) and user_has_device(user):
+        device = match_token(user, token)
+        if not device:
+            return '', "That Verification code is either invalid or expired. Please try again. If you've lost your" \
+                   " 2FA device, please contact support@artconomy.com"
+    if preliminary:
+        return '', ''
+    # If the account is valid and active, we can log the user in.
+    # We'll send the user to their account.
+    login(request, user)
+    if device:
+        otp_login(request, device)
+    return '', ''
+
+
+@csrf_exempt
+@api_view(['POST'])
 def perform_login(request):
     """
     Handle post action
     """
-    error_message = ''
     # Gather the username and password provided by the user.
     # This information is obtained from the login form.
     email = str(request.data.get('email', request.POST.get('email', ''))).lower()
-    password = request.data.get('password', request.POST.get('email', ''))
+    password = request.data.get('password', request.POST.get('password', ''))
+    token = request.data.get('token', request.POST.get('token', ''))
     # Use Django's machinery to attempt to see if the username/password
     # combination is valid - a User object is returned if it is.
     user = authenticate(email=email, password=password)
+    password_error, token_error = handle_login(request, user, token)
 
-    # If we have a User object, the details are correct.
-    # If None (Python's way of representing the absence of a value), no user
-    # with matching credentials was found.
-    if user:
-        # Is the account active? It could have been disabled.
-        if user.is_active:
-            # If the account is valid and active, we can log the user in.
-            # We'll send the user to their account.
-            login(request, user)
-        else:
-            # An inactive account was used - no logging in!
-            logout(request)
-            error_message = "Your account is disabled. Please contact support"
-    else:
-        error_message = "Either this account does not exist, or the password is incorrect."
-
-    status_code = status.HTTP_401_UNAUTHORIZED if error_message else status.HTTP_200_OK
+    status_code = status.HTTP_401_UNAUTHORIZED if (password_error or token_error) else status.HTTP_200_OK
     return Response(
         status=status_code,
         data={
             'email': [],
-            'password': [error_message],
+            'password': [password_error] if password_error else [],
+            'token': [token_error] if token_error else []
         }
     )
 
@@ -901,17 +970,17 @@ class FavoritesList(ListAPIView):
 
 class GalleryList(ListCreateAPIView):
     serializer_class = ImageAssetSerializer
+    permission_classes = [Any(IsSafeMethod, ObjectControls)]
 
     def get_queryset(self):
         user = get_object_or_404(User, username=self.kwargs['username'])
+        self.check_object_permissions(user)
         return available_assets(self.request, user).filter(artists=user)
 
     @atomic
     def perform_create(self, serializer):
         user = get_object_or_404(User, username__iexact=self.kwargs['username'])
-        if not self.request.user.is_staff:
-            if not user == self.request.user:
-                raise PermissionDenied("You are not permitted to add to this user's gallery.")
+        self.check_object_permissions(self.request, user)
         char_pks = [char.pk for char in serializer.validated_data.get('characters', []) or []]
         artist_pks = [artist.pk for artist in serializer.validated_data.get('artists', []) or []]
         is_artist = serializer.validated_data.get('is_artist')
