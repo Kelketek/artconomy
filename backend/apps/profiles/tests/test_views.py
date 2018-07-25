@@ -1186,3 +1186,14 @@ class TestPrivateMessages(APITestCase):
             object_id=message.id
         )
         self.assertEqual(subscriptions.count(), 0)
+
+
+class ListTestCase(APITestCase):
+    def test_gallery_list(self):
+        asset = ImageAsset.objects.create(owner=self.user2)
+        asset.artists.add(self.user)
+        response = self.client.get(
+            '/api/profiles/v1/account/{}/gallery/'.format(self.user.username),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIDInList(asset, response.data['results'])

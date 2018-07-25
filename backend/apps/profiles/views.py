@@ -991,7 +991,7 @@ class GalleryList(ListCreateAPIView):
 
     def get_queryset(self):
         user = get_object_or_404(User, username=self.kwargs['username'])
-        self.check_object_permissions(user)
+        self.check_object_permissions(self.request, user)
         return available_assets(self.request, user).filter(artists=user)
 
     @atomic
