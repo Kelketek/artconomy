@@ -71,7 +71,7 @@
                 </form>
               </v-tab-item>
               <v-tab-item id="tab-two-factor">
-                <ac-setup-two-factor />
+                <ac-setup-two-factor :username="username" class="mt-2"/>
               </v-tab-item>
             </v-tabs-items>
           </v-tab-item>

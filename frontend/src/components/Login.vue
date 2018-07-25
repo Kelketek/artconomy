@@ -2,7 +2,7 @@
   <div class="container">
     <div class="row-centered">
       <div class="col-12 col-md-6 col-lg-4 col-centered text-xs-center">
-        <form>
+        <form @submit.prevent="sendLogin">
           <v-tabs class="inverse" v-model="loginTab">
             <v-tab href="#tab-login" id="set-login">
               Login
@@ -46,6 +46,26 @@
           </v-tabs-items>
           <div>
           </div>
+          <v-dialog
+              v-model="showTokenPrompt"
+              width="500"
+          >
+            <v-card>
+              <v-card-text>
+                <p>
+                  This account is protected by Two Factor Authentication. Please use your
+                  authentication device to generate a login token.
+                </p>
+                <vue-form-generator id="tokenForm" ref="tokenForm" :schema="tokenSchema" :model="loginModel"
+                                    :options="loginOptions" />
+                <div class="text-xs-center">
+                  <v-btn type="submit" id="tokenSubmit" color="primary" @click.prevent="sendLogin">
+                    Verify
+                  </v-btn>
+                </div>
+              </v-card-text>
+            </v-card>
+          </v-dialog>
         </form>
       </div>
     </div>
@@ -74,7 +94,8 @@
       email: '',
       username: '',
       password: '',
-      recaptcha: ''
+      recaptcha: '',
+      token: ''
     }
   }
 
@@ -84,6 +105,7 @@
       return {
         resetSent: false,
         loginModel: loginDefault(),
+        showTokenPrompt: false,
         loginSchema: {
           fields: [{
             type: 'v-text',
@@ -118,6 +140,15 @@
             featured: true,
             required: true,
             validator: VueFormGenerator.validators.string
+          }]
+        },
+        tokenSchema: {
+          fields: [{
+            type: 'v-text',
+            inputType: 'number',
+            label: 'Verification Code',
+            name: 'token',
+            model: 'token'
           }]
         },
         registerSchema: {
@@ -181,6 +212,12 @@
       },
       loginFailure (response) {
         let form = this.$refs[this.tab.form]
+        if (response.responseJSON.token.length && !this.showTokenPrompt) {
+          this.showTokenPrompt = true
+          return
+        } else if (this.showTokenPrompt) {
+          setErrors(this.$refs.tokenForm, response.responseJSON)
+        }
         setErrors(form, response.responseJSON)
       },
       forgotHandler (response) {
