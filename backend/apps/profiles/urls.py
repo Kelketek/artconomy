@@ -11,7 +11,7 @@ from apps.profiles.views import Register, CharacterListAPI, CharacterAssets, \
     AttributeManager, AttributeList, SessionSettings, AssetShare, CharacterShare, WatchUser, Watching, Watchers, \
     MessagesTo, MessagesFrom, MessageManager, MessageComments, LeaveConversation, BlockUser, StartPasswordReset, \
     TokenValidator, PasswordReset, Journals, JournalManager, JournalComments, SalesNotificationsList, \
-    UnreadNotifications, WatchListSubmissions, TwoFactorDevices, TwoFactorDeviceManager, login_preflight
+    UnreadNotifications, WatchListSubmissions, TOTPDeviceList, TOTPDeviceManager, Telegram2FA
 from apps.profiles.views import check_username, check_email, perform_login, perform_logout
 
 app_name = "profiles"
@@ -25,7 +25,6 @@ urlpatterns = [
     path('v1/new-characters/', NewCharacters.as_view(), name='new_characters'),
     path('v1/form-validators/username/', check_username, name='username_validator'),
     path('v1/form-validators/email/', check_email, name='email_validator'),
-    path('v1/login/preflight/', login_preflight, name='login_preflight'),
     path('v1/login/', perform_login, name='login'),
     path('v1/logout/', perform_logout, name='logout'),
     path('v1/register/', Register.as_view(), name='register'),
@@ -47,11 +46,12 @@ urlpatterns = [
     path('v1/search/tag/', TagSearch.as_view(), name='tag_search'),
     path('v1/search/asset/', AssetSearch.as_view(), name='asset_search'),
     path('v1/account/<username>/settings/', SettingsAPI.as_view(), name='settings_update'),
-    path('v1/account/<username>/settings/two-factor/totp/', TwoFactorDevices.as_view(), name='settings_update'),
+    path('v1/account/<username>/settings/two-factor/totp/', TOTPDeviceList.as_view(), name='totp_list'),
     path(
         'v1/account/<username>/settings/two-factor/totp/<int:totp_id>/',
-        TwoFactorDeviceManager.as_view(), name='settings_update'
+        TOTPDeviceManager.as_view(), name='totp_manager'
     ),
+    path('v1/account/<username>/settings/two-factor/tg/', Telegram2FA.as_view(), name='telegram_2fa'),
     path('v1/account/<username>/watching/', Watching.as_view(), name='watching'),
     path('v1/account/<username>/watchers/', Watchers.as_view(), name='watchers'),
     path('v1/account/<username>/credentials/', CredentialsAPI.as_view(), name='credentials'),

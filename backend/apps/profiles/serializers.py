@@ -17,6 +17,7 @@ from apps.lib.serializers import RelatedUserSerializer, Base64ImageField, TagSer
     SubscribeMixin, UserInfoMixin
 from apps.profiles.models import Character, ImageAsset, User, RefColor, Attribute, Message, \
     MessageRecipientRelationship, Journal
+from apps.tg_bot.models import TelegramDevice
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -455,3 +456,28 @@ class TwoFactorTimerSerializer(serializers.ModelSerializer):
         else:
             raise ValidationError({'code': ['The verification code you provided was invalid or expired.']})
         return instance
+
+
+class TelegramDeviceSerializer(serializers.ModelSerializer):
+    code = serializers.IntegerField(required=False, write_only=True)
+
+    def update(self, instance, validated_data, **kwargs):
+        data = dict(**validated_data)
+        code = data.pop('code', None)
+        if not code:
+            raise ValidationError({'code': ['You must supply a verification code.']})
+        if instance.verify_token(code):
+            instance.confirmed = True
+            instance.save()
+        else:
+            raise ValidationError({'code': ['The verification code you provided was invalid or expired.']})
+        return instance
+
+    class Meta:
+        model = TelegramDevice
+        fields = (
+            'id', 'confirmed', 'code'
+        )
+        read_only_fields = (
+            'id', 'confirmed'
+        )
