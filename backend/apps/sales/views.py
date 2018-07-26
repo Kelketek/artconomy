@@ -815,6 +815,7 @@ class BankAccounts(ListCreateAPIView):
         data = serializer.validated_data
         make_dwolla_account(self.request, user, data['first_name'], data['last_name'])
         account = add_bank_account(user, data['account_number'], data['routing_number'], data['type'])
+        serializer.instance = account
         return account
 
 
