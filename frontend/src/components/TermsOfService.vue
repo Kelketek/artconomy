@@ -112,6 +112,51 @@
         <p>By continuing to access or use our Service after those revisions become effective, you agree to be
           bound by the revised terms. If you do not agree to the new terms, please stop using the Service.</p>
 
+        <h2>Conduct</h2>
+        <p>
+          You agree not to use Artconomy to harass other users, including the following activities:
+        </p>
+        <ul>
+          <li>Creation of multiple accounts to circumvent blocks from other users or restrictions placed on your main account</li>
+          <li>Threats of violence against another person or their property</li>
+          <li>Distributing the private information of other persons, including address, phone, and real names, especially for the purpose of calling others to brigade the person in question</li>
+          <li>Any activity which compromises the integrity or security of Artconomy's services. (We do favor responsible disclosure of vulnerabilities-- please contact support@artconomy.com if one is found)</li>
+        </ul>
+
+        <p>Additionally, the following activities are prohibited on the Artconomy platform:</p>
+
+        <ul>
+          <li>Sale or display of pornographic artwork that contains or is photography of real persons</li>
+          <li>Use of Artconomy's escrow service to perform any illegal transaction</li>
+          <li>Use of the site to circumvent or violate Intellectual Property laws</li>
+        </ul>
+
+        <p>
+          Artconomy reserves the right to terminate access to any users who perform the above activities and to contact
+          law enforcement if it deems necessary.
+        </p>
+
+        <h2>Bank Transfers</h2>
+        <p>Bank transfer service is provided by Dwolla. Dwolla's Terms of Service may be found at
+          <a href="https://www.dwolla.com/legal/tos/">https://www.dwolla.com/legal/tos/</a>.
+          By withdrawing funds to your account through our site, you are agreeing to the Dwolla Terms of Service.
+        </p>
+
+        <h2>Arbitration</h2>
+        <p>
+          Any controversy or claim arising out of or relating to this contract,
+          or the breach thereof, shall be settled by arbitration administered
+          by the American Arbitration Association under its Commercial Arbitration Rules.
+          The number of arbitrators shall be one.  The place of arbitration shall be Houston, Texas.
+          Texas law shall apply.  Judgment on the award rendered by the
+          arbitrator(s) may be entered in any court having jurisdiction
+          thereof. The
+          demand for arbitration shall be made within a reasonable time after the
+          claim, dispute or other
+          matter in question has arisen, and in no event shall it
+          be made after two years from when the aggrieved party knew or should have
+          known of the controversy, claim, dispute or breach.
+        </p>
 
         <h2>Contact Us</h2>
 
