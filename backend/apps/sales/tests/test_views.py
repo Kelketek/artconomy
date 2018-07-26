@@ -814,9 +814,10 @@ class TestOrder(APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+    @freeze_time('2012-08-01')
     def test_revision_upload(self):
         self.login(self.user)
-        order = OrderFactory.create(seller=self.user, status=Order.IN_PROGRESS)
+        order = OrderFactory.create(seller=self.user, status=Order.IN_PROGRESS, revisions=1)
         response = self.client.post(
             '/api/sales/v1/order/{}/revisions/'.format(order.id),
             {
@@ -828,6 +829,21 @@ class TestOrder(APITestCase):
         self.assertEqual(response.data['order'], order.id)
         self.assertEqual(response.data['owner'], self.user.username)
         self.assertEqual(response.data['rating'], ADULT)
+        order = Order.objects.get(id=order.id)
+        self.assertIsNone(order.auto_finalize_on)
+        response = self.client.post(
+            '/api/sales/v1/order/{}/revisions/'.format(order.id),
+            {
+                'file': SimpleUploadedFile('bloo-oo.jpg', gen_image()),
+                'rating': ADULT,
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['order'], order.id)
+        self.assertEqual(response.data['owner'], self.user.username)
+        self.assertEqual(response.data['rating'], ADULT)
+        order.refresh_from_db()
+        self.assertEqual(order.auto_finalize_on, date(2012, 8, 6))
 
     def test_revision_upload_buyer_fail(self):
         self.login(self.user)
@@ -1276,7 +1292,7 @@ class TestOrderStateChange(APITestCase):
     def test_cancel_order_staffer(self):
         self.state_assertion('staffer', 'cancel/', initial_status=Order.PAYMENT_PENDING)
 
-    @override_settings(STANDARD_PERCENTAGE_FEE=Decimal('.1'), STANDARD_STATIC_FEE=Decimal('1.00'))
+    @override_settings(STANDARD_PERCENTAGE_FEE=Decimal('10'), STANDARD_STATIC_FEE=Decimal('1.00'))
     def test_approve_order_buyer(self):
         record = PaymentRecordFactory.create(
             target=self.order,

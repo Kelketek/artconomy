@@ -178,6 +178,7 @@
       addBank (response) {
         this.showNewBank = false
         this.accounts.push(response)
+        this.$root.$loadUser()
       }
     },
     computed: {
