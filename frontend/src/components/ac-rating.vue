@@ -5,7 +5,7 @@
           @mouseout="hoverStars = null" @click="stars = i" :small="small"
       >{{icon(i)}}</v-icon>
       <div class="error-text" v-html="errors.stars || ''"></div>
-      <v-text-field
+      <v-textarea
        v-model="comments"
        :counter="1000"
        :multi-line="true"

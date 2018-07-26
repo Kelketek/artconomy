@@ -13,7 +13,7 @@ from django.utils import timezone
 from math import ceil
 
 from django.utils.datetime_safe import date
-from moneyed import Money
+from moneyed import Money, Decimal
 # BDay is business day, not birthday...
 from pandas.tseries.offsets import BDay
 from rest_framework import status
@@ -296,8 +296,8 @@ class OrderRevisions(ListCreateAPIView):
         order.refresh_from_db()
         if (order.revision_set.all().count() >= order.revisions + 1) and (order.status == Order.IN_PROGRESS):
             order.status = Order.REVIEW
-            order.save()
             order.auto_finalize_on = (timezone.now() + relativedelta(days=5)).date()
+            order.save()
             notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
         else:
             notify(REVISION_UPLOADED, order, data={'revision': revision.id}, unique_data=True, mark_unread=True)
@@ -1104,7 +1104,10 @@ class AcceptCharTransfer(GenericAPIView):
             data = CharacterTransferSerializer(instance=transfer, context=self.get_serializer_context()).data
             PaymentRecord.objects.create(
                 payer=transfer.seller,
-                amount=(transfer.price * transfer.seller.percentage_fee) + Money(transfer.seller.static_fee, 'USD'),
+                amount=(
+                    (transfer.price * transfer.seller.percentage_fee * Decimal('.01'))
+                    + Money(transfer.seller.static_fee, 'USD')
+                ),
                 payee=None,
                 source=PaymentRecord.ACCOUNT,
                 txn_id=str(uuid4()),

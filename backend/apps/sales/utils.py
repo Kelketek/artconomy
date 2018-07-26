@@ -256,7 +256,7 @@ def finalize_order(order, user=None):
         PaymentRecord.objects.create(
             payer=order.seller,
             amount=(
-                    ((order.price + order.adjustment) * order.seller.percentage_fee)
+                    ((order.price + order.adjustment) * order.seller.percentage_fee * Decimal('.01'))
                     + Money(order.seller.static_fee, 'USD')
             ),
             payee=None,
