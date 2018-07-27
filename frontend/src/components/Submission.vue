@@ -142,7 +142,7 @@
             <p v-if="controls && submission.order" class="mb-0">
               From <router-link :to="{name: 'Order', params: {orderID: submission.order, username: submission.owner.username}}">Order {{submission.order}}</router-link>
             </p>
-            <p v-if="(submission.order && ownWork ) || controls && (submission.order)" class="mb-0">
+            <p v-if="(submission.order && ownWork )" class="mb-0">
               From <router-link :to="{name: 'Sale', params: {orderID: submission.order, username: viewer.username}}">Sale {{submission.order}}</router-link>
             </p>
           </v-flex>

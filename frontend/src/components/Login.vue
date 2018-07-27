@@ -59,6 +59,7 @@
                   authentication device to generate a login token, or check your Telegram messages if you've set
                   up Telegram 2FA.
                 </p>
+                <p>If you have lost your 2FA device/service, please contact support@artconomy.com with the subject 'Lost 2FA'.</p>
                 <vue-form-generator id="tokenForm" ref="tokenForm" :schema="tokenSchema" :model="loginModel"
                                     :options="loginOptions" />
                 <div class="text-xs-center">
@@ -227,6 +228,7 @@
       },
       forgotHandler (response) {
         this.resetSent = true
+        this.showTokenPrompt = false
       },
       sendLogin () {
         artCall(

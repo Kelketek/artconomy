@@ -41,22 +41,6 @@ class Product(ImageModel):
     """
     Product on offer by an art seller.
     """
-    SKETCH = 0
-    FULLBODY = 1
-    REFERENCE = 2
-    BADGE = 3
-    ICON = 4
-    ICON_SET = 5
-    HEADSHOT = 6
-    CHIBI = 7
-    GAME_ASSET = 8
-    THREE_D = 9
-    ANIMATION_2D = 10
-    ANIMATION_3D = 11
-    STORY_SHORT = 12
-    STORY_LONG = 13
-    MUSIC = 14
-    OTHER = 15
 
     name = CharField(max_length=250)
     description = CharField(max_length=5000)

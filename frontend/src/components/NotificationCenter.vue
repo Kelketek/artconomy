@@ -46,6 +46,7 @@
     },
     created () {
       EventBus.$on('notification-count', this.setCounts)
+      EventBus.$emit('notifications-updated')
     },
     destroyed () {
       EventBus.$off('notification-count', this.setCounts)
