@@ -1228,6 +1228,33 @@ class StartPasswordReset(APIView):
                         ]
                     }
                 )
+        if user_has_device(user):
+            token = request.data.get('token')
+            if not token:
+                error = {
+                    'token': ['This account is protected by Two-factor authentication. Please enter the 2FA code.']
+                }
+                for dev in devices_for_user(user):
+                    try:
+                        dev.generate_challenge()
+                    except Exception as err:
+                        # Sending this to email field since it might otherwise not be visible.
+                        error['email'] = str(err)
+                        error['token'] = str(err)
+                return Response(
+                    status=status.HTTP_401_UNAUTHORIZED,
+                    data=error
+                )
+            if not match_token(user, token):
+                return Response(
+                    status=status.HTTP_401_UNAUTHORIZED,
+                    data={
+                        'token': [
+                            "That 2FA code is either invalid or expired."
+                        ]
+                    }
+                )
+
         user.reset_token = uuid.uuid4()
         user.token_expiry = timezone.now() + relativedelta(days=1)
         user.save()

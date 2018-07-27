@@ -403,7 +403,7 @@
               </ac-action>
               <p v-if="review">This order will auto-finalize on {{formatDate(order.auto_finalize_on)}}.</p>
             </div>
-            <v-expansion-panel v-model="expandRating" v-if="completed && !(price <= 0)">
+            <v-expansion-panel v-model="expandRating" v-if="completed && (price > 0)">
               <v-expansion-panel-content class="text-xs-center">
                 <div slot="header">Rate Performance</div>
                 <v-card class="mb-2">
@@ -413,7 +413,7 @@
                       <ac-rating :url="`/api/sales/v1/order/${order.id}/rating/?end=buyer`" />
                     </v-flex>
                     <v-flex v-if="seller">
-                      <h2>Rate your {{order.buyer.username}}!</h2>
+                      <h2>Rate {{order.buyer.username}}!</h2>
                       <ac-rating :url="`/api/sales/v1/order/${order.id}/rating/?end=seller`" />
                     </v-flex>
                   </v-card-text>
@@ -516,7 +516,7 @@
         this.$root.$setUser(response.seller.username, this.sellerData, this.$error)
       },
       ratingClose () {
-        this.expandRating = false
+        this.expandRating = null
       },
       populateRevisions (response) {
         this.revisions = response.results
@@ -674,7 +674,7 @@
         selectedCardModel: null,
         justPaid: false,
         revisions: null,
-        expandRating: true,
+        expandRating: 0,
         cvv: '',
         publishModel: {
           title: '',

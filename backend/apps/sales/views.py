@@ -482,6 +482,14 @@ class PublishFinal(GenericAPIView):
         )
         submission.characters.add(*order.characters.all())
         submission.artists.add(order.seller)
+        submission.shared_with.add(order.seller)
+        # Subscribe seller to comments on resulting work.
+        Subscription.objects.create(
+            type=COMMENT,
+            object_id=submission.id,
+            content_type=ContentType.objects.get_for_model(submission),
+            subscriber=order.seller
+        )
         if not order.private:
             for character in order.characters.all():
                 if not character.primary_asset:

@@ -17,7 +17,6 @@
           <v-list-tile :to="{name: 'Store', params: {username: viewer.username}}">My Products</v-list-tile>
           <v-list-tile :to="{name: 'Transfers', params: {username: viewer.username}}">Transfers</v-list-tile>
           <v-list-tile :to="{name: 'Messages', params: {username: viewer.username}}">Private Messages</v-list-tile>
-          <v-list-tile class="hidden-md-and-up" :to="{name: 'Search'}">Search</v-list-tile>
         </v-list>
         <ac-patchbutton
             class="hidden-sm-and-up"
@@ -124,6 +123,9 @@
           false-text="SFW"
       />
       <v-toolbar-items>
+        <v-btn flat class="hidden-md-and-up" :to="{name: 'Search'}">
+          <v-icon large>search</v-icon>
+        </v-btn>
         <v-btn flat v-if="viewer && viewer.username" @click="notificationLoad">
           <v-badge overlap right color="red">
             <span slot="badge" v-if="unread && unread < 1000">{{unread}}</span>
