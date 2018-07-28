@@ -386,13 +386,14 @@ class Attribute(Model):
             tag_name = tag_list_cleaner([old.value])[0]
             tags = self.character.tags.filter(name=tag_name)
             if tags.exists():
-                self.character.tags.remove(*tags)
                 tag = tags[0]
+                self.character.tags.remove(*tags)
                 tag.self_clean()
         if self.value:
             tag_name = tag_list_cleaner([self.value])[0]
             tag, _ = Tag.objects.get_or_create(name=tag_name)
-            self.character.tags.add(tag)
+            if not self.character.tags.filter(name=tag.name).exists():
+                self.character.tags.add(tag)
 
     def save(self, *args, **kwargs):
         self.key = self.key.lower()
