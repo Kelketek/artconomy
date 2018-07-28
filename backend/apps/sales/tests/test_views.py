@@ -398,7 +398,6 @@ class TestProduct(APITestCase):
         response = self.client.post(
             '/api/sales/v1/account/{}/products/'.format(self.user.username),
             {
-                'category': Product.REFERENCE,
                 'description': 'I will draw you a porn.',
                 'file': SimpleUploadedFile('bloo-oo.jpg', gen_image()),
                 'name': 'Pornographic refsheet',
@@ -419,7 +418,6 @@ class TestProduct(APITestCase):
         response = self.client.post(
             '/api/sales/v1/account/{}/products/'.format(self.user.username),
             {
-                'category': Product.REFERENCE,
                 'description': 'I will draw you a porn.',
                 'file': SimpleUploadedFile('bloo-oo.jpg', gen_image()),
                 'name': 'Pornographic refsheet',
@@ -435,7 +433,6 @@ class TestProduct(APITestCase):
         response = self.client.post(
             '/api/sales/v1/account/{}/products/'.format(self.user.username),
             {
-                'category': Product.REFERENCE,
                 'description': 'I will draw you a porn.',
                 'file': SimpleUploadedFile('bloo-oo.jpg', gen_image()),
                 'name': 'Pornographic refsheet',
@@ -451,7 +448,6 @@ class TestProduct(APITestCase):
         response = self.client.post(
             '/api/sales/v1/account/{}/products/'.format(self.user.username),
             {
-                'category': Product.REFERENCE,
                 'description': 'I will draw you a porn.',
                 'file': SimpleUploadedFile('bloo-oo.jpg', gen_image()),
                 'name': 'Pornographic refsheet',
