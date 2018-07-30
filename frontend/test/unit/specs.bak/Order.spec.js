@@ -220,7 +220,7 @@ describe('Order.vue', () => {
       router,
       propsData: {
         username: 'Fox',
-        orderID: 4
+        orderID: 4,
       }
     })
     wrapper.vm.$forceUser({username: 'Fox', fee: 0.01, blacklist: []})

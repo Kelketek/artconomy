@@ -7,7 +7,7 @@
   import sinon from 'sinon'
   export default {
     components: {AcPatchfield},
-    props: ['multiline', 'value', 'editing'],
+    props: ['multiline', 'value', 'editing', 'name'],
     data: function () {
       return {
         callback: false,
