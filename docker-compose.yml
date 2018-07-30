@@ -23,8 +23,6 @@ services:
     environment:
       - HTTPS=1
     command: python3 manage.py runserver 0.0.0.0:8002
-    volumes:
-      - .:/code
     ports:
       - "8001:8001"
       - "8002:8002"

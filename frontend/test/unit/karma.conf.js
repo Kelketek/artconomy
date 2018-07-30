@@ -5,29 +5,28 @@
 
 var webpackConfig = require('../../build/webpack.test.conf')
 
-// function isDebug (argument) {
-//   return argument === '--debug'
-// }
+function isDebug (argument) {
+  return argument === '--debug'
+}
 
 let sourcePreprocessors = ['webpack', 'sourcemap']
 
-// if (process.argv.some(isDebug)) {
-//   sourcePreprocessors = []
-// }
+if (process.argv.some(isDebug)) {
+  sourcePreprocessors = []
+}
 
 module.exports = function (config) {
   config.set({
     // to run in additional browsers:
     // 1. install corresponding karma launcher
     //    http://karma-runner.github.io/0.13/config/browsers.html
-    browsers: ['FirefoxHeadless'],
-    frameworks: ['mocha', 'sinon-chai', 'phantomjs-shim', 'polyfill'],
+    browsers: ['Chrome'],
+    frameworks: ['mocha', 'sinon-chai', 'polyfill'],
     reporters: ['spec', 'coverage'],
     files: [
       './index.js',
       '../../../node_modules/vuetify/dist/vuetify.min.css'
     ],
-    polyfill: ['Promise'],
     preprocessors: {
       './index.js': sourcePreprocessors
     },

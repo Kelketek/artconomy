@@ -278,7 +278,7 @@ describe('Order.vue', () => {
 
   it('Grabs and populates the initial order data and renders it for seller.', async() => {
     let wrapper = sellerBootstrap()
-    expect(server.requests.length).to.equal(4)
+    expect(server.requests.length).to.equal(5)
     let orderReq = server.requests[1]
     let revisionsReq = server.requests[2]
     expect(orderReq.url).to.equal('/api/sales/v1/order/4/')
@@ -311,7 +311,7 @@ describe('Order.vue', () => {
   })
   it('Grabs and populates the initial order data and renders it for the buyer.', async() => {
     let wrapper = buyerBootstrap()
-    expect(server.requests.length).to.equal(4)
+    expect(server.requests.length).to.equal(5)
     let orderReq = server.requests[1]
     let revisionsReq = server.requests[2]
     expect(orderReq.url).to.equal('/api/sales/v1/order/4/')
