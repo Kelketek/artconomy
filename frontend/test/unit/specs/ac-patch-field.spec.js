@@ -20,7 +20,8 @@ describe('ac-patch-field.vue', () => {
     let wrapper = mount(Simple, {
       localVue,
       propsData: {
-        value: 'TestValue'
+        value: 'TestValue',
+        name: 'test'
       }
     })
     expect(wrapper.text()).to.equal('TestValue')
@@ -33,7 +34,8 @@ describe('ac-patch-field.vue', () => {
           multiline: true,
           value: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. \n\n' +
           'Duis ac libero facilisis, hendrerit risus in, pulvinar ex. Ut placerat mi odio, eget \n\n' +
-          'iaculis lectus volutpat ullamcorper. Etiam ut eros at massa porttitor faucibus sit'
+          'iaculis lectus volutpat ullamcorper. Etiam ut eros at massa porttitor faucibus sit',
+          name: 'test'
         }
       })
     expect(wrapper.text()).to.equal(

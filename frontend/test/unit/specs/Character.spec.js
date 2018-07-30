@@ -3,7 +3,7 @@ import { mount, createLocalVue } from '@vue/test-utils'
 import MarkDownIt from 'markdown-it'
 import sinon from 'sinon'
 import VueRouter from 'vue-router'
-import { router } from '../../../src/router'
+import { router } from '../../../src/router/index'
 import { UserHandler } from '../../../src/plugins/user'
 import VueFormGenerator from 'vue-form-generator'
 import { Shortcuts } from '../../../src/plugins/shortcuts'
@@ -26,16 +26,21 @@ describe('Character.vue', () => {
     server.restore()
   })
   it('Grabs and populates the initial character data and renders it.', async() => {
-    router.replace({name: 'Character', params: {username: 'testusername', characterName: 'testcharacter'}})
+    // router.replace({name: 'Character', params: {username: 'testusername', characterName: 'testcharacter'}})
     let wrapper = mount(Character, {
       localVue,
       router,
       stubs: ['router-link', 'router-view'],
       propsData: {
         username: 'testusername', characterName: 'testcharacter'
+      },
+      mocks: {
+        '$root.user': {username: 'Fox', rating: 3, sfw_mode: false}
       }
     })
-    wrapper.vm.$forceUser({username: 'Fox', rating: 3})
+    console.log('Viewer is:')
+    console.log(wrapper.vm.viewer)
+    wrapper.vm.$forceUser({username: 'Fox', rating: 3, sfw_mode: false})
     expect(server.requests.length).to.equal(3)
     let charReq = server.requests[1]
     let assetReq = server.requests[2]

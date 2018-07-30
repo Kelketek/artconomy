@@ -4,8 +4,7 @@ import sinon from 'sinon'
 import { checkJson, installFields } from '../helpers'
 import VueFormGenerator from 'vue-form-generator'
 import { UserHandler } from '../../../src/plugins/user'
-import VueRouter from 'vue-router'
-import { router } from '../../../src/router'
+import { router } from '../../../src/router/index'
 import Vuetify from 'vuetify'
 
 let server, localVue
@@ -117,7 +116,6 @@ describe('ac-comment-section.vue', () => {
   beforeEach(function () {
     server = sinon.fakeServer.create()
     localVue = createLocalVue()
-    localVue.use(VueRouter)
     localVue.use(UserHandler)
     localVue.use(VueFormGenerator)
     localVue.use(Vuetify)
@@ -126,6 +124,9 @@ describe('ac-comment-section.vue', () => {
       username: 'Kelketek',
       id: 1
     }
+    localVue.prototype.$route = {
+      query: {}
+    }
   })
   afterEach(function () {
     server.restore()
@@ -133,7 +134,6 @@ describe('ac-comment-section.vue', () => {
   it('Grabs and populates the initial comments and renders them.', async () => {
     let wrapper = mount(AcCommentSection, {
       localVue,
-      router,
       stubs: ['router-link', 'router-view'],
       propsData: {
         commenturl: '/test/comments/',
@@ -191,6 +191,11 @@ describe('ac-comment-section.vue', () => {
         commenturl: '/test/comments/',
         nesting: true,
         locked: false
+      },
+      mocks: {
+        $route: {
+          query: {}
+        }
       }
     })
     expect(server.requests.length).to.equal(1)
@@ -209,6 +214,7 @@ describe('ac-comment-section.vue', () => {
     let saveButton = wrapper.find('.new-comment-component').find('.comment-save')
     expect(saveButton.exists())
     wrapper.vm.$refs.newComment.draft = 'This is a test comment'
+    expect(server.requests.length).to.equal(1)
     saveButton.trigger('click')
     expect(server.requests.length).to.equal(2)
     let newComment = server.requests[1]

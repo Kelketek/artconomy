@@ -9,14 +9,14 @@ import fieldVFileUpload from '../../src/components/fields/fieldVFileUpload'
 import fieldVColor from '../../src/components/fields/fieldVColor'
 
 export function checkJson (request, expected) {
-  for (let key in expected) {
+  for (let key in Object.keys(expected)) {
     if (key === 'data') {
       continue
     }
     expect(request[key]).to.deep.equal(expected[key])
   }
   let result = JSON.parse(request['requestBody'])
-  expect(expected['data']).to.deep.equal(result)
+  expect(result).to.deep.equal(expected['data'])
 }
 
 export function waitFor (func, message, timeout) {

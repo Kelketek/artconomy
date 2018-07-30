@@ -86,19 +86,62 @@ export function setErrors (form, errors, extra) {
   form.errors = errorSet
 }
 
-export function artCall (url, method, data, success, error) {
-  if (method !== 'GET') {
-    data = data ? JSON.stringify(data) : undefined
+function param (object) {
+  let encodedString = ''
+  for (let prop in object) {
+    if (object.hasOwnProperty(prop)) {
+      if (encodedString.length > 0) {
+        encodedString += '&'
+      }
+      encodedString += encodeURI(prop + '=' + object[prop])
+    }
   }
-  return $.ajax({
-    url,
-    method,
-    data: data,
-    contentType: 'application/json; charset=utf-8',
-    dataType: 'json',
-    success,
-    error
-  })
+  return encodedString
+}
+
+function crossDomain (url) {
+  let urlAnchor = document.createElement('a')
+  try {
+    urlAnchor.href = url
+    let originAnchor = document.createElement('a')
+    originAnchor.href = location.href
+    return originAnchor.protocol + '//' + originAnchor.host !== urlAnchor.protocol + '//' + urlAnchor.host
+  } catch (e) {
+    // If there is an error parsing the URL, assume it is crossDomain,
+    // it can be rejected by the transport if it is invalid
+    return true
+  }
+}
+
+export function setHeaders (xhr, method) {
+  xhr.setRequestHeader('Content-Type', 'application/json; charset=utf-8')
+  if (!csrfSafeMethod(method) && !crossDomain()) {
+    let token = getCookie('csrftoken')
+    if (token) {
+      xhr.setRequestHeader('X-CSRFToken', getCookie('csrftoken'))
+    }
+  }
+}
+
+export function artCall (url, method, data, success, error) {
+  if (method === 'GET' && data) {
+    url += '?' + param(data)
+    data = undefined
+  }
+  let xhr = new XMLHttpRequest()
+  xhr.open(method, url)
+  setHeaders(xhr, method)
+  xhr.onload = function () {
+    if (xhr.status >= 200 && xhr.status < 300) {
+      success && success(JSON.parse(xhr.responseText))
+    } else {
+      try {
+        xhr.responseJSON = JSON.parse(xhr.responseText)
+      } catch (e) {}
+      error && error(xhr)
+    }
+  }
+  xhr.send(data !== undefined ? JSON.stringify(data) : undefined)
 }
 
 export const RATINGS = {
