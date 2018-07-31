@@ -1,7 +1,7 @@
 import Login from '@/components/Login'
 import VueFormGenerator from 'vue-form-generator'
 import VueRouter from 'vue-router'
-import { router } from '../../../src/router'
+import { router } from '../../../src/router/index'
 import 'vue-form-generator/dist/vfg.css'  // optional full css additions
 import { mount, createLocalVue } from '@vue/test-utils'
 import sinon from 'sinon'
@@ -26,12 +26,11 @@ describe('Login.vue', () => {
     server.restore()
   })
   it('Should send login information when filling out the login form and hitting the login button.', async () => {
-    router.replace({name: 'Login', params: {tabName: 'login'}})
+    localVue.prototype.user = {}
     let wrapper = mount(Login, {
       localVue,
       router
     })
-    wrapper.vm.$forceUser({})
     await localVue.nextTick()
     expect(wrapper.find('input[id="field-email"]').exists()).to.equal(true)
     expect(wrapper.find('input[id="field-password"]').exists()).to.equal(true)

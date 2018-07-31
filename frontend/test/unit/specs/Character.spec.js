@@ -8,6 +8,7 @@ import { UserHandler } from '../../../src/plugins/user'
 import VueFormGenerator from 'vue-form-generator'
 import { Shortcuts } from '../../../src/plugins/shortcuts'
 import Vuetify from 'vuetify'
+import {installFields} from '../helpers'
 
 let server, localVue
 
@@ -16,31 +17,27 @@ describe('Character.vue', () => {
     server = sinon.fakeServer.create()
     localVue = createLocalVue()
     localVue.prototype.md = MarkDownIt()
+    localVue.prototype.user = {username: 'Fox', rating: 3, sfw_mode: false}
+    localVue.prototype.userCache = {}
     localVue.use(VueRouter)
     localVue.use(UserHandler)
     localVue.use(VueFormGenerator)
     localVue.use(Shortcuts)
     localVue.use(Vuetify)
+    installFields(localVue)
   })
   afterEach(function () {
     server.restore()
   })
   it('Grabs and populates the initial character data and renders it.', async() => {
-    // router.replace({name: 'Character', params: {username: 'testusername', characterName: 'testcharacter'}})
     let wrapper = mount(Character, {
       localVue,
       router,
       stubs: ['router-link', 'router-view'],
       propsData: {
         username: 'testusername', characterName: 'testcharacter'
-      },
-      mocks: {
-        '$root.user': {username: 'Fox', rating: 3, sfw_mode: false}
       }
     })
-    console.log('Viewer is:')
-    console.log(wrapper.vm.viewer)
-    wrapper.vm.$forceUser({username: 'Fox', rating: 3, sfw_mode: false})
     expect(server.requests.length).to.equal(3)
     let charReq = server.requests[1]
     let assetReq = server.requests[2]
@@ -69,7 +66,20 @@ describe('Character.vue', () => {
             favorite_count: 3,
             comment_count: 2
           },
-          tags: []
+          tags: [],
+          attributes: [
+            {
+              'id': 61,
+              'key': 'sex',
+              'value': 'Female',
+              'sticky': true
+            },
+            {
+              'id': 62,
+              'key': 'species',
+              'value': 'Red Panda',
+              'sticky': true
+            }]
         }
       )
     )
