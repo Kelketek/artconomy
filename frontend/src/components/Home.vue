@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div id="home-page">
     <v-container fluid v-if="viewer !== null && !viewer.username" style="margin-top: -48px">
       <v-layout row wrap class="intro">
         <v-jumbotron class="home-banner darken-3">

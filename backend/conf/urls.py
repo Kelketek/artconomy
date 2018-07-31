@@ -13,11 +13,14 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
+import re
 import sys
 from django.conf import settings
 from django.conf.urls import url, include
-from django.conf.urls.static import static
 from django.contrib import admin
+from django.core.exceptions import ImproperlyConfigured
+from django.urls import re_path
+from django.views.static import serve
 
 import views
 
@@ -34,9 +37,25 @@ urlpatterns = [
     url(r'^test-telegram/', views.test_telegram, name='test_telegram')
 ]
 
-if settings.DEBUG:
+
+def static(prefix, view=serve, **kwargs):
+    """
+    Version of the static views that DOESN'T check for the DEBUG flag since we're
+    checking it elsewhere and static items are needed for e2e tests.
+    """
+    if not prefix:
+        raise ImproperlyConfigured("Empty static prefix not permitted")
+    elif '://' in prefix:
+        # No-op if not in debug mode or a non-local prefix.
+        return []
+    return [
+        re_path(r'^%s(?P<path>.*)$' % re.escape(prefix.lstrip('/')), view, kwargs=kwargs),
+    ]
+
+if settings.DEBUG or 'test' in sys.argv:
+    urlpatterns += static('/js/', document_root=settings.STATIC_ROOT + '/dist/js/')
+    urlpatterns += static('/css/', document_root=settings.STATIC_ROOT + '/dist/css/')
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
-if 'test' not in sys.argv:
-    urlpatterns += [url(r'^', views.index)]
+urlpatterns += [url(r'^', views.index)]

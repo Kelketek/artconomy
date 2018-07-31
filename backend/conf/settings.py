@@ -36,7 +36,7 @@ SECRET_KEY = ENV_TOKENS.get('DJANGO_SECRET_KEY', '')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = ENV_TOKENS.get('DEBUG', True)
 
-ALLOWED_HOSTS = ENV_TOKENS.get('ALLOWED_HOSTS', ['artconomy.vulpinity.com'])
+ALLOWED_HOSTS = ENV_TOKENS.get('ALLOWED_HOSTS', ['artconomy.vulpinity.com', 'localhost'])
 
 # Application definition
 
@@ -229,7 +229,7 @@ STANDARD_STATIC_FEE = Decimal(ENV_TOKENS.get('PREMIUM_STATIC_FEE', '.75'))
 LANDSCAPE_PRICE = Decimal(ENV_TOKENS.get('PREMIUM_PRICE', '5.00'))
 PORTRAIT_PRICE = Decimal(ENV_TOKENS.get('STANDARD_PRICE', '3.00'))
 
-HIDE_TEST_BROWSER = ENV_TOKENS.get('HIDE_TEST_BROWSER', True)
+HIDE_TEST_BROWSER = ENV_TOKENS.get('HIDE_TEST_BROWSER', False)
 
 CARD_TEST = ENV_TOKENS.get('CARD_TEST', True)
 
@@ -265,6 +265,39 @@ GR_CAPTCHA_PUBLIC_KEY = ENV_TOKENS.get('GR_CAPTCHA_PUBLIC_KEY', '')
 
 
 LOGGING = None
+
+if 'test' in argv:
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'console': {
+                # exact format is not important, this is the minimum information
+                'format': '%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+            },
+        },
+        'handlers': {
+            'console': {
+                'class': 'logging.StreamHandler',
+                'formatter': 'console',
+            },
+            'mail_admins': {
+                'level': 'ERROR',
+                'class': 'django.utils.log.AdminEmailHandler',
+            }
+        },
+        'loggers': {
+            # root logger
+            'bok_choy': {
+                'level': 'DEBUG',
+                'handlers': ['console'],
+            },
+            '': {
+                'level': 'DEBUG',
+                'handlers': ['console'],
+            }
+        },
+    }
 
 if ('test' not in argv) and ('runserver' not in argv):
 
@@ -328,3 +361,5 @@ CELERYBEAT_SCHEDULE = {
 ENV_NAME = ENV_TOKENS.get('ENV_NAME', 'dev')
 
 OTP_TOTP_ISSUER = ENV_TOKENS.get('OTP_TOTP_ISSUER', 'Artconomy')
+
+TEST_RUNNER = 'apps.lib.test_resources.NPMBuildTestRunner'

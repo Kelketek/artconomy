@@ -1,7 +1,7 @@
 ansible==2.5.0
 pycountry
 authorizesauce==0.5.0
-bok_choy==0.7.1
+bok_choy==0.8.0
 celery==4.2.0
 ddt==1.1.1
 Django>=2.0.6,<2.1.0
