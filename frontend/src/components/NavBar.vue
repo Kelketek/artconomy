@@ -244,8 +244,8 @@
             () => { this.$setTimer('getUnreadNotifications', this.monitorNotifications, 10000) })
         }
       },
-      logoutHandler () {
-        this.$root.user = {}
+      logoutHandler (response) {
+        this.$root.user = response
         this.$router.push({'name': 'Home'})
         this.$root.userCache = {}
       },

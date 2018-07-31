@@ -2,6 +2,7 @@ import inspect
 import json
 import os
 from pprint import pformat
+from subprocess import call
 
 from bok_choy.browser import BROWSERS
 from bok_choy.page_object import PageObject, unguarded
@@ -10,6 +11,7 @@ from bok_choy.web_app_test import WebAppTest
 from django.conf import settings
 from django.forms import CheckboxInput, RadioSelect
 from django.test import LiveServerTestCase, TestCase
+from django.test.runner import DiscoverRunner
 from django.urls import reverse
 from needle.driver import NeedleFirefox
 from pyvirtualdisplay import Display
@@ -53,7 +55,7 @@ class BaseWebAppTest(LiveServerTestCase, WebAppTest):
 
     def login(self, user, password='Test'):
         self.browser.request(
-            'POST', self.live_server_url + '/api/login/', data={'email': user.email, 'password': password}
+            'POST', self.live_server_url + '/api/profiles/v1/login/', data={'email': user.email, 'password': password}
         )
 
 
@@ -458,3 +460,10 @@ class APITestCase(TestCase):
                 member.id,
                 '[' + ',\n'.join([pformat(item) for item in container]) + ']')
             )
+
+
+class NPMBuildTestRunner(DiscoverRunner):
+    def setup_test_environment(self, **kwargs):
+        super().setup_test_environment(**kwargs)
+        call(['npm', 'run', 'build'])
+        call(['./manage.py', 'collectstatic', '--noinput', '-v0'])

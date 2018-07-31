@@ -133,7 +133,13 @@ export function artCall (url, method, data, success, error) {
   setHeaders(xhr, method)
   xhr.onload = function () {
     if (xhr.status >= 200 && xhr.status < 300) {
-      success && success(JSON.parse(xhr.responseText))
+      let response = ''
+      try {
+        response = JSON.parse(xhr.responseText)
+      } catch (err) {
+        response = xhr.responseText
+      }
+      success && success(response)
     } else {
       try {
         xhr.responseJSON = JSON.parse(xhr.responseText)

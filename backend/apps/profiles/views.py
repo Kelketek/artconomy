@@ -317,6 +317,10 @@ class SetAvatar(GenericAPIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+def empty_user(request):
+    return {'blacklist': [], 'rating': request.max_rating}
+
+
 class UserInfo(APIView):
     permission_classes = [Any(IsSafeMethod, ObjectControls)]
 
@@ -1362,4 +1366,4 @@ class JournalComments(ListCreateAPIView):
 @api_view(['POST'])
 def perform_logout(request):
     logout(request)
-    return Response(status=status.HTTP_204_NO_CONTENT)
+    return Response(status=status.HTTP_200_OK, data=empty_user(request))
