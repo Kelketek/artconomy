@@ -1,6 +1,5 @@
 import Character from '@/components/Character'
 import { mount, createLocalVue } from '@vue/test-utils'
-import MarkDownIt from 'markdown-it'
 import sinon from 'sinon'
 import VueRouter from 'vue-router'
 import { router } from '../../../src/router/index'
@@ -16,7 +15,6 @@ describe('Character.vue', () => {
   beforeEach(function () {
     server = sinon.fakeServer.create()
     localVue = createLocalVue()
-    localVue.prototype.md = MarkDownIt()
     localVue.prototype.user = {username: 'Fox', rating: 3, sfw_mode: false}
     localVue.prototype.userCache = {}
     localVue.use(VueRouter)

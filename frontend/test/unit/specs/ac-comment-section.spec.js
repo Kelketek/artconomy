@@ -120,6 +120,7 @@ describe('ac-comment-section.vue', () => {
     localVue.use(VueFormGenerator)
     localVue.use(Vuetify)
     installFields(localVue)
+    localVue.prototype.userCache = {}
     localVue.prototype.user = {
       username: 'Kelketek',
       id: 1
@@ -140,6 +141,10 @@ describe('ac-comment-section.vue', () => {
         nesting: true,
         locked: false
       }
+    })
+    wrapper.vm.$forceUser({
+      username: 'Kelketek',
+      id: 1
     })
     expect(server.requests.length).to.equal(1)
     let commentReq = server.requests[0]
@@ -166,6 +171,10 @@ describe('ac-comment-section.vue', () => {
         nesting: true,
         locked: true
       }
+    })
+    wrapper.vm.$forceUser({
+      username: 'Kelketek',
+      id: 1
     })
     expect(server.requests.length).to.equal(1)
     let commentReq = server.requests[0]
@@ -197,6 +206,10 @@ describe('ac-comment-section.vue', () => {
           query: {}
         }
       }
+    })
+    wrapper.vm.$forceUser({
+      username: 'Kelketek',
+      id: 1
     })
     expect(server.requests.length).to.equal(1)
     let commentReq = server.requests[0]
