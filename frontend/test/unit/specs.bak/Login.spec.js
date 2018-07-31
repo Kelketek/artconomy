@@ -27,6 +27,7 @@ describe('Login.vue', () => {
   })
   it('Should send login information when filling out the login form and hitting the login button.', async () => {
     localVue.prototype.user = {}
+    router.push({name: 'Login', params: {tabName: 'login'}})
     let wrapper = mount(Login, {
       localVue,
       router
@@ -35,18 +36,16 @@ describe('Login.vue', () => {
     expect(wrapper.find('input[id="field-email"]').exists()).to.equal(true)
     expect(wrapper.find('input[id="field-password"]').exists()).to.equal(true)
     await localVue.nextTick()
-    expect(isVisible(wrapper.find('#tab-login'))).to.equal(true)
-    expect(isVisible(wrapper.find('#tab-register'))).to.equal(false)
     wrapper.vm.loginModel.email = 'jimbob@example.com'
     wrapper.vm.loginModel.password = 'hunter2'
     let loginSubmit = wrapper.find('#loginSubmit')
     expect(isVisible(loginSubmit)).to.equal(true)
     loginSubmit.trigger('click')
-    expect(server.requests.length, 1)
+    expect(server.requests.length).to.equal(1)
     checkJson(
       server.requests[0], {
         'data': {
-          'email': 'jimbob@example.com', 'password': 'hunter2', 'username': '', 'recaptcha': ''
+          'email': 'jimbob@example.com', 'password': 'hunter2', 'token': '', 'username': '', 'recaptcha': ''
         },
         'url': '/api/profiles/v1/login/',
         'method': 'POST'

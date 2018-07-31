@@ -47,14 +47,14 @@
 </style>
 
 <script>
-  import { artCall } from '../lib'
+  import {artCall, md} from '../lib'
 
   export default {
     name: 'ac-new-comment',
     props: ['parent', 'url'],
     methods: {
       parseDraft () {
-        return this.$root.md.render(this.draft)
+        return this.md.render(this.draft)
       },
       addComment (response) {
         this.draft = ''
@@ -74,7 +74,8 @@
         draft: '',
         editing: false,
         edit_preview: false,
-        edit_disabled: false
+        edit_disabled: false,
+        md
       }
     }
   }

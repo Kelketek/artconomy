@@ -3,9 +3,11 @@ import { mount, createLocalVue } from '@vue/test-utils'
 import MarkDownIt from 'markdown-it'
 import sinon from 'sinon'
 import VueRouter from 'vue-router'
-import { router } from '../../../src/router'
+import { router } from '../../../src/router/index'
 import Vuetify from 'vuetify'
 import { UserHandler } from '../../../src/plugins/user'
+import {installFields} from '../helpers'
+import VueFormGenerator from 'vue-form-generator'
 
 let server, localVue
 
@@ -15,8 +17,10 @@ describe('Submission.vue', () => {
     localVue = createLocalVue()
     localVue.prototype.md = MarkDownIt()
     localVue.use(VueRouter)
+    localVue.use(VueFormGenerator)
     localVue.use(UserHandler)
     localVue.use(Vuetify)
+    installFields(localVue)
   })
   afterEach(function () {
     server.restore()

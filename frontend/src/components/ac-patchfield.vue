@@ -13,7 +13,7 @@
 
 <script>
   import { focus } from 'vue-focus'
-  import {artCall} from '../lib'
+  import {artCall, md} from '../lib'
   import autosize from 'autosize'
   import Vue from 'vue'
 
@@ -27,7 +27,8 @@
         original: this.value,
         disabled: false,
         errors: [],
-        input: this.value
+        input: this.value,
+        md
       }
     },
     computed: {
@@ -40,9 +41,9 @@
           value = this.placeholder ? this.placeholder : ''
         }
         if (this.multiline) {
-          return this.$root.md.render(value + '')
+          return this.md.render(value + '')
         } else {
-          return this.$root.md.renderInline(value + '')
+          return this.md.renderInline(value + '')
         }
       }
     },

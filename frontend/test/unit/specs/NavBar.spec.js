@@ -1,10 +1,8 @@
 import NavBar from '@/components/NavBar'
 import VueFormGenerator from 'vue-form-generator'
 import VueRouter from 'vue-router'
-import { router } from '../../../src/router'
-import 'bootstrap-vue/dist/bootstrap-vue.css'
+import { router } from '../../../src/router/index'
 import 'vue-form-generator/dist/vfg.css'  // optional full css additions
-import BootstrapVue from 'bootstrap-vue'
 import { mount, createLocalVue } from '@vue/test-utils'
 import sinon from 'sinon'
 import Vuetify from 'vuetify'
@@ -17,7 +15,6 @@ describe('NavBar.vue', () => {
     server = sinon.fakeServer.create()
     localVue = createLocalVue()
     localVue.use(VueRouter)
-    localVue.use(BootstrapVue)
     localVue.use(UserHandler)
     localVue.use(Vuetify)
     localVue.use(VueFormGenerator)
