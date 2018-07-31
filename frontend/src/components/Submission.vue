@@ -273,7 +273,6 @@
   import AcCommentSection from './ac-comment-section'
   import AcAvatar from './ac-avatar'
   import AcAsset from './ac-asset'
-  import AcPatchdropdown from './ac-patchdropdown'
   import AcAction from './ac-action'
   import AcFormContainer from './ac-form-container'
   import AcTag from './ac-tag'
@@ -287,7 +286,6 @@
       AcTagDisplay,
       AcTag,
       AcFormContainer,
-      AcPatchdropdown,
       AcCharacterPreview,
       AcPatchfield,
       AcCommentSection,

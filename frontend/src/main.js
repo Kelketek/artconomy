@@ -5,7 +5,6 @@ import 'vuetify/dist/vuetify.min.css'
 import './artconomy.css'
 import { $, jQuery } from 'jquery'
 import Vuetify from 'vuetify'
-import BootstrapVue from 'bootstrap-vue'
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import App from './App'
@@ -32,7 +31,6 @@ window.jQuery = jQuery
 
 Vue.use(VueRouter)
 Vue.use(UserHandler)
-Vue.use(BootstrapVue)
 Vue.use(VueFormGenerator)
 Vue.use(ErrorHandler)
 Vue.use(Timer)

@@ -36,14 +36,12 @@
 
 <script>
   import NavBar from './components/NavBar'
-  import AcFooter from './components/ac-footer'
   export default {
     name: 'app',
     data () {
       return {}
     },
     components: {
-      AcFooter,
       NavBar},
     props: ['user']
   }
