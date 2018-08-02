@@ -266,38 +266,38 @@ GR_CAPTCHA_PUBLIC_KEY = ENV_TOKENS.get('GR_CAPTCHA_PUBLIC_KEY', '')
 
 LOGGING = None
 
-if 'test' in argv:
-    LOGGING = {
-        'version': 1,
-        'disable_existing_loggers': False,
-        'formatters': {
-            'console': {
-                # exact format is not important, this is the minimum information
-                'format': '%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
-            },
-        },
-        'handlers': {
-            'console': {
-                'class': 'logging.StreamHandler',
-                'formatter': 'console',
-            },
-            'mail_admins': {
-                'level': 'ERROR',
-                'class': 'django.utils.log.AdminEmailHandler',
-            }
-        },
-        'loggers': {
-            # root logger
-            'bok_choy': {
-                'level': 'DEBUG',
-                'handlers': ['console'],
-            },
-            '': {
-                'level': 'DEBUG',
-                'handlers': ['console'],
-            }
-        },
-    }
+# if 'test' in argv:
+#     LOGGING = {
+#         'version': 1,
+#         'disable_existing_loggers': False,
+#         'formatters': {
+#             'console': {
+#                 # exact format is not important, this is the minimum information
+#                 'format': '%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+#             },
+#         },
+#         'handlers': {
+#             'console': {
+#                 'class': 'logging.StreamHandler',
+#                 'formatter': 'console',
+#             },
+#             'mail_admins': {
+#                 'level': 'ERROR',
+#                 'class': 'django.utils.log.AdminEmailHandler',
+#             }
+#         },
+#         'loggers': {
+#             # root logger
+#             'bok_choy': {
+#                 'level': 'DEBUG',
+#                 'handlers': ['console'],
+#             },
+#             '': {
+#                 'level': 'DEBUG',
+#                 'handlers': ['console'],
+#             }
+#         },
+#     }
 
 if ('test' not in argv) and ('runserver' not in argv):
 
@@ -355,6 +355,10 @@ CELERYBEAT_SCHEDULE = {
     'auto_finalize_run': {
         'task': 'apps.sales.tasks.auto_finalize_run',
         'schedule': crontab(hour=1, minute=0)
+    },
+    'finalize_transactions': {
+        'task': 'apps.sales.tasks.finalize_transactions',
+        'schedule': crontab(hour=1, minute=15)
     }
 }
 
@@ -362,4 +366,4 @@ ENV_NAME = ENV_TOKENS.get('ENV_NAME', 'dev')
 
 OTP_TOTP_ISSUER = ENV_TOKENS.get('OTP_TOTP_ISSUER', 'Artconomy')
 
-TEST_RUNNER = 'apps.lib.test_resources.NPMBuildTestRunner'
+# TEST_RUNNER = 'apps.lib.test_resources.NPMBuildTestRunner'

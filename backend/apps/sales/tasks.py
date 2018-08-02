@@ -114,6 +114,13 @@ def check_transactions():
 
 
 @celery_app.task
+def finalize_transactions():
+    PaymentRecord.objects.filter(
+        finalize_on__lte=timezone.now().date()
+    ).exclude(finalize_on__isnull=True).update(finalized=True)
+
+
+@celery_app.task
 def update_transfer_status(record_id):
     record = PaymentRecord.objects.get(id=record_id)
     with dwolla as api:

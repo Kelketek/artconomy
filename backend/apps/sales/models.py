@@ -585,6 +585,8 @@ class PaymentRecord(Model):
     # of this transfer.
     # Also used for checking if an escrow payment has been released.
     finalized = BooleanField(default=True, db_index=True)
+    # Used to manage things like delays on the bank side so our account does not overdraw.
+    finalize_on = DateField(default=None, db_index=True, null=True)
     object_id = PositiveIntegerField(null=True, blank=True, db_index=True)
     content_type = ForeignKey(ContentType, on_delete=SET_NULL, null=True, blank=True)
     target = GenericForeignKey('content_type', 'object_id')
