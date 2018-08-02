@@ -69,7 +69,8 @@ class BaseTestPage(PageObject):
     block_id = None
 
     def __init__(self, browser, block_id=None):
-        self.block_id = block_id
+        if block_id is not None:
+            self.block_id = block_id
         super().__init__(browser)
 
     def is_browser_on_page(self):
