@@ -2,6 +2,7 @@
   <v-layout row wrap v-if="response" text-xs-center class="mt-2">
     <v-flex xs12>
       <p><strong>Escrow Balance: ${{response.escrow}}</strong></p>
+      <p><strong>Pending Balance: ${{response.pending}}</strong></p>
       <p><strong>Available Balance: ${{response.available}}</strong></p>
     </v-flex>
     <v-flex xs12 v-if="response.available && accounts !== null && accounts.length !== 0">

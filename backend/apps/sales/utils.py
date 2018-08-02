@@ -1,6 +1,7 @@
 from decimal import Decimal, InvalidOperation
 from uuid import uuid4
 
+from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Sum, Q, IntegerField, Case, When, F
@@ -56,11 +57,30 @@ def available_balance(user):
         debit = Decimal('0.00')
     try:
         credit = Decimal(
-            str(user.credits.filter(status=PaymentRecord.SUCCESS).aggregate(Sum('amount'))['amount__sum']))
+            str(
+                user.credits.filter(
+                    status=PaymentRecord.SUCCESS,
+                    finalized=True
+                ).aggregate(Sum('amount'))['amount__sum'])
+        )
     except InvalidOperation:
         credit = Decimal('0.00')
 
     return credit - debit
+
+
+def pending_balance(user):
+    from apps.sales.models import PaymentRecord
+    try:
+        return Decimal(
+            str(
+                user.credits.filter(
+                    status=PaymentRecord.SUCCESS,
+                    finalized=False
+                ).aggregate(Sum('amount'))['amount__sum'])
+        )
+    except InvalidOperation:
+        return Decimal('0.00')
 
 
 def translate_authnet_error(err):
@@ -235,7 +255,7 @@ def finalize_order(order, user=None):
         order.status = order.COMPLETED
         order.save()
         notify(SALE_UPDATE, order, unique=True, mark_unread=True)
-        PaymentRecord.objects.create(
+        new_tx = PaymentRecord(
             payer=None,
             amount=order.price + order.adjustment,
             payee=order.seller,
@@ -251,6 +271,10 @@ def finalize_order(order, user=None):
             object_id=order.id, content_type=ContentType.objects.get_for_model(order), payer=order.buyer,
             type=PaymentRecord.SALE
         )
+        if old_transaction.created_on.date() > (timezone.now().date() - relativedelta(days=2)):
+            new_tx.finalize_on = old_transaction.created_on.date() + relativedelta(days=2)
+            new_tx.finalized = False
+        new_tx.save()
         old_transaction.finalized = True
         old_transaction.save()
         PaymentRecord.objects.create(

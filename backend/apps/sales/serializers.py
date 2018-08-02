@@ -13,7 +13,7 @@ from apps.profiles.models import User, ImageAsset
 from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer
 from apps.sales.models import Product, Order, CreditCardToken, Revision, PaymentRecord, BankAccount, CharacterTransfer, \
     PlaceholderSale, Rating, OrderToken
-from apps.sales.utils import escrow_balance, available_balance, available_products_from_user
+from apps.sales.utils import escrow_balance, available_balance, available_products_from_user, pending_balance
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -236,6 +236,7 @@ class RevisionSerializer(serializers.ModelSerializer):
 class AccountBalanceSerializer(serializers.ModelSerializer):
     escrow = serializers.SerializerMethodField()
     available = serializers.SerializerMethodField()
+    pending = serializers.SerializerMethodField()
 
     def get_escrow(self, obj):
         return escrow_balance(obj)
@@ -243,9 +244,12 @@ class AccountBalanceSerializer(serializers.ModelSerializer):
     def get_available(self, obj):
         return available_balance(obj)
 
+    def get_pending(self, obj):
+        return pending_balance(obj)
+
     class Meta:
         model = User
-        fields = ('escrow', 'available')
+        fields = ('escrow', 'available', 'pending')
 
 
 class BankAccountSerializer(serializers.ModelSerializer):
