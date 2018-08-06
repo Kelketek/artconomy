@@ -46,6 +46,7 @@
           <li>Phone number</li>
           <li>Address, State, Province, ZIP/Postal code, City</li>
           <li>Cookies and Usage Data</li>
+          <li>Financial Information</li>
         </ul>
 
         <h4>Usage Data</h4>
@@ -118,7 +119,7 @@
         <p>We may employ third party companies and individuals to facilitate our Service ("Service Providers"), to
           provide the Service on our behalf, to perform Service-related services or to assist us in analyzing how our
           Service is used.</p>
-        <p>These third parties have access to your Personal Data only to perform these tasks on our behalf and are
+        <p>We will only share this data as necessary to perform these tasks and are
           obligated not to disclose or use it for any other purpose.</p>
 
         <h3>Analytics</h3>

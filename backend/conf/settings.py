@@ -366,4 +366,4 @@ ENV_NAME = ENV_TOKENS.get('ENV_NAME', 'dev')
 
 OTP_TOTP_ISSUER = ENV_TOKENS.get('OTP_TOTP_ISSUER', 'Artconomy')
 
-# TEST_RUNNER = 'apps.lib.test_resources.NPMBuildTestRunner'
+TEST_RUNNER = 'apps.lib.test_resources.NPMBuildTestRunner'
