@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-container v-if="submission">
+    <v-container v-if="submission" id="submission-section">
       <v-layout row wrap>
         <v-flex text-xs-center xs12>
           <ac-asset :asset="submission" thumb-name="gallery" :rating="rating" />

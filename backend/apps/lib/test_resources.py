@@ -464,7 +464,20 @@ class APITestCase(TestCase):
 
 
 class NPMBuildTestRunner(DiscoverRunner):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.run_build = kwargs.pop('run_build')
+
     def setup_test_environment(self, **kwargs):
         super().setup_test_environment(**kwargs)
-        call(['npm', 'run', 'build'])
-        call(['./manage.py', 'collectstatic', '--noinput', '-v0'])
+        if self.run_build:
+            call(['npm', 'run', 'build'])
+            call(['./manage.py', 'collectstatic', '--noinput', '-v0'])
+
+    @classmethod
+    def add_arguments(cls, parser):
+        super().add_arguments(parser)
+        parser.add_argument(
+            '--run-build', action='store_true', dest='run_build',
+            help='Build and collect static assets.',
+        )

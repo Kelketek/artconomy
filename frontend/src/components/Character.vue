@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <v-card v-if="character">
+    <v-card v-if="character" id="character-profile">
       <v-speed-dial v-if="controls" bottom right fixed v-model="speedDial" elevation-10 style="z-index: 4">
         <v-btn
           dark

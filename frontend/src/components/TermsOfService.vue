@@ -137,10 +137,8 @@
         </p>
 
         <h2>Bank Transfers</h2>
-        <p>Bank transfer service is provided by Dwolla. Dwolla's Terms of Service may be found at
-          <a href="https://www.dwolla.com/legal/tos/">https://www.dwolla.com/legal/tos/</a>.
-          By withdrawing funds to your account through our site, you are agreeing to the Dwolla Terms of Service.
-        </p>
+        <p>You expressly authorize Artconomy's service provider, Dwolla, Inc. to originate credit transfers
+        to your financial institution account.</p>
 
         <h2>Arbitration</h2>
         <p>
