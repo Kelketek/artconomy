@@ -6,14 +6,14 @@
           <img class="legal-logo" src="/static/images/logo.svg"/>
         </div>
         <div class="col-12 text-xs-center home-title">
-          <h1>Terms of Service</h1>
+          <h1>Privacy Policy</h1>
         </div>
       </div>
       <div class="col-12-sm">
         <h1>Privacy Policy</h1>
 
 
-        <p><strong>Last updated: July 03, 2018</strong></p>
+        <p><strong>Last updated: August 06, 2018</strong></p>
 
 
         <p>Artconomy ("us", "we", or "our") operates the https://artconomy.com/ website (the "Service").</p>

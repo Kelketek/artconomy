@@ -10,7 +10,7 @@
         </div>
       </div>
       <div class="col-12-sm">
-        <p><strong>Last updated: July 26, 2018</strong></p>
+        <p><strong>Last updated: August 06, 2018</strong></p>
 
 
         <p>Please read these Terms of Service ("Terms", "Terms of Service") carefully before using
