@@ -72,6 +72,12 @@
           <li><strong>Security Cookies.</strong> We use Security Cookies for security purposes.</li>
         </ul>
 
+        <h4>Financial Data</h4>
+        <p>
+          Credit card data is shared with our payment processor, and bank account and routing information
+          is shared with Dwolla to allow transfers to your account.
+        </p>
+
         <h2>Use of Data</h2>
 
         <p>Artconomy uses the collected data for various purposes:</p>
