@@ -52,7 +52,7 @@
     >
       <v-flex slot="header" text-xs-center xs12>
         <p><strong>Only US Banks are supported at this time.</strong></p>
-        <p>Bank Transfers are subject to agreement with the <a href="https://www.dwolla.com/legal/tos/">Dwolla Terms of Service.</a> Consent may be revoked by removing the bank information from your account.</p>
+        <p>Consent for bank transfers may be revoked by removing the bank information from your account.</p>
       </v-flex>
     </ac-form-dialog>
   </v-layout>
