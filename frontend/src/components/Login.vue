@@ -27,7 +27,10 @@
               <div class="pt-2"></div>
               <vue-form-generator id="registerForm" ref="registerForm" :schema="registerSchema" :model="loginModel"
                                   :options="loginOptions" />
-              <p>By Registering, you are agreeing to be bound by Artconomy's <router-link :to="{name: 'TermsOfService'}">Terms of Service</router-link>.</p>
+              <p>
+                By Registering, you are agreeing to be bound by Artconomy's <router-link :to="{name: 'TermsOfService'}">Terms of Service</router-link>
+                and <router-link :to="{name: 'PrivacyPolicy'}">Privacy Policy</router-link>.
+              </p>
               <v-btn type="submit" id="registerSubmit" color="primary" @click.prevent="sendLogin">
                 Register
               </v-btn>

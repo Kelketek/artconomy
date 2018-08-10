@@ -59,7 +59,7 @@
           <v-list-tile-action>
             <v-icon>info</v-icon>
           </v-list-tile-action>
-          <v-list-tile-title>Legal/Policies</v-list-tile-title>
+          <v-list-tile-title>Privacy and Legal</v-list-tile-title>
         </v-list-tile>
       </v-list>
       <v-bottom-nav
