@@ -1,0 +1,16 @@
+---
+- name: Artconomy Production Deployment
+  become: true
+  become_user: root
+  hosts: production
+
+  roles:
+    - sysconfig
+    - postfix
+    - firewall
+    - postgres
+    - letsencrypt
+    - nginx
+    - app
+    - rabbitmq
+    - celery
