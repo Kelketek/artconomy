@@ -1,2 +1,5 @@
 [stage]
 stage.artconomy.com ansible_host=104.237.142.110
+
+[production]
+beta.artconomy.com ansible_host=23.239.30.116

@@ -5,7 +5,7 @@
     state: present
 
 - name: Generate certificates
-  command: "letsencrypt --email {{ admin_email }} --agree-tos{% for name in domains %} -d {{name}}{% endfor %} certonly"
+  command: "letsencrypt --standalone --email {{ admin_email }} --agree-tos{% for name in domains %} -d {{name}}{% endfor %} certonly"
   args:
     creates: "/etc/letsencrypt/live/*"
 
