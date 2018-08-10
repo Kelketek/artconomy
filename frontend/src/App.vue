@@ -30,6 +30,11 @@
         </div>
         <router-view v-else-if="$root.user !== null" />
       </v-container>
+      <v-container>
+        <v-layout row wrap>
+          <v-flex v-if="user && !user.username" xs12 text-xs-center>Please read our <router-link :to="{name: 'PrivacyPolicy'}">Privacy Policy</router-link> and <router-link :to="{name: 'TermsOfService'}">Terms of Service</router-link>.</v-flex>
+        </v-layout>
+      </v-container>
     </v-content>
   </v-app>
 </template>
