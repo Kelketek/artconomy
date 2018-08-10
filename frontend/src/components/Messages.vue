@@ -77,7 +77,7 @@
             label: 'Body',
             model: 'body',
             featured: true,
-            multiline: true,
+            multiLine: true,
             required: true,
             validator: VueFormGenerator.validators.string
           }]
