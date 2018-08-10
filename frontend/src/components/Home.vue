@@ -95,6 +95,7 @@
         <v-flex xs12 sm5 text-xs-center text-sm-left>
           <v-btn color="purple" :to="{name: 'Login', params: {tabName: 'register'}}">Get Started!</v-btn>
         </v-flex>
+        <v-flex xs12 text-xs-center>You should also read our <router-link :to="{name: 'PrivacyPolicy'}">Privacy Policy</router-link> and <router-link :to="{name: 'TermsOfService'}">Terms of Service</router-link>.</v-flex>
       </v-layout>
     </v-container>
   </div>
