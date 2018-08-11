@@ -395,7 +395,7 @@ class CharacterSearch(ListAPIView):
         try:
             commissions = json.loads(self.request.query_params.get('new_order', 'false'))
         except ValueError:
-            return Response(status=status.HTTP_400_BAD_REQUEST, data={'errors': ['New Order must be a boolean.']})
+            raise ValidationError({'errors': ['New Order must be a boolean.']})
 
         # If staffer, allow search on behalf of user.
         if self.request.user.is_staff:
