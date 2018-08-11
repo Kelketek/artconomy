@@ -52,7 +52,7 @@
     methods: {
       runQuery () {
         artCall(
-          `/api/profiles/v1/search/character/`, 'GET', {q: this.query, new_order: this.schema.commission, size: 9, tagging: this.schema.tagging}, this.populateResponse
+          `/api/profiles/v1/search/character/`, 'GET', {q: this.query, new_order: this.schema.commission || false, size: 9, tagging: this.schema.tagging}, this.populateResponse
         )
       },
       populateResponse (response) {
