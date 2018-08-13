@@ -51,6 +51,10 @@ def available_balance(user):
                 # In the case of disbursement failed, we use success by default since it's a record from Dwolla, not
                 # us.
                 type__in=[PaymentRecord.DISBURSEMENT_SENT, PaymentRecord.TRANSFER, PaymentRecord.DISBURSEMENT_RETURNED],
+            ).exclude(
+                # Exclude service fees that haven't finalized.
+                type=PaymentRecord.TRANSFER,
+                finalized=False
             ).aggregate(Sum('amount'))['amount__sum'])
         )
     except InvalidOperation:
@@ -290,5 +294,7 @@ def finalize_order(order, user=None):
             type=PaymentRecord.TRANSFER,
             status=PaymentRecord.SUCCESS,
             response_code='OdrFee',
+            finalized=new_tx.finalized,
+            finalize_on=new_tx.finalize_on,
             response_message='Artconomy Service Fee'
         )
