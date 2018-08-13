@@ -76,7 +76,7 @@ def available_balance(user):
 def pending_balance(user):
     from apps.sales.models import PaymentRecord
     try:
-        return Decimal(
+        credit = Decimal(
             str(
                 user.credits.filter(
                     status=PaymentRecord.SUCCESS,
@@ -84,7 +84,20 @@ def pending_balance(user):
                 ).aggregate(Sum('amount'))['amount__sum'])
         )
     except InvalidOperation:
-        return Decimal('0.00')
+        credit = Decimal('0.00')
+    try:
+        debit = Decimal(
+            str(
+                user.debits.filter(
+                    status=PaymentRecord.SUCCESS,
+                    type=PaymentRecord.TRANSFER,
+                    finalized=False
+                ).aggregate(Sum('amount'))['amount__sum']
+            )
+        )
+    except InvalidOperation:
+        debit = Decimal('0.00')
+    return credit - debit
 
 
 def translate_authnet_error(err):

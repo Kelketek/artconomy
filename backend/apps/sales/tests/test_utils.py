@@ -271,8 +271,24 @@ class BalanceTestCase(TestCase):
         self.assertEqual(pending_balance(self.user), Decimal('25.00'))
         self.assertEqual(pending_balance(self.user2), Decimal('0.00'))
         self.assertEqual(pending_balance(self.user3), Decimal('0.00'))
+        fee = PaymentRecordFactory.create(
+            payee=None,
+            payer=self.user,
+            source=PaymentRecord.ACCOUNT,
+            type=PaymentRecord.TRANSFER,
+            finalized=False,
+            amount=Money('5.00', 'USD')
+        )
+        self.assertEqual(pending_balance(self.user), Decimal('20.00'))
+        self.assertEqual(pending_balance(self.user2), Decimal('0.00'))
+        self.assertEqual(pending_balance(self.user3), Decimal('0.00'))
         record.finalized = True
         record.save()
+        self.assertEqual(pending_balance(self.user), Decimal('-5.00'))
+        self.assertEqual(pending_balance(self.user2), Decimal('0.00'))
+        self.assertEqual(pending_balance(self.user3), Decimal('0.00'))
+        fee.finalized = True
+        fee.save()
         self.assertEqual(pending_balance(self.user), Decimal('0.00'))
         self.assertEqual(pending_balance(self.user2), Decimal('0.00'))
         self.assertEqual(pending_balance(self.user3), Decimal('0.00'))
