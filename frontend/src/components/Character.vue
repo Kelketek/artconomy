@@ -611,7 +611,7 @@
           {
             'name': 'Character',
             'params': {'username': this.user.username, 'characterName': value},
-            'query': {'editing': this.editing}
+            'query': {'editing': this.editing || undefined}
           }
         )
         this.url = `/api/profiles/v1/account/${this.username}/characters/${value}/`
