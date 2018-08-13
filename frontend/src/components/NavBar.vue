@@ -9,6 +9,7 @@
     >
       <v-list dense>
         <v-list v-if="viewer && viewer.username">
+          <v-list-tile :to="{name: 'Home'}" class="hidden-sm-and-up">Home</v-list-tile>
           <v-list-tile :to="{name: 'WhoIsOpen'}">Who's Open?</v-list-tile>
           <v-list-tile :to="{name: 'WatchListSubmissions'}">Recent Art</v-list-tile>
           <v-list-tile :to="{name: 'Orders', params: {username: viewer.username}}">Orders</v-list-tile>
@@ -97,6 +98,13 @@
           </v-btn>
         </v-toolbar-title>
       </v-layout>
+      <v-layout hidden-sm-and-up row v-if="viewer && !viewer.username">
+        <v-toolbar-title class="align-center">
+          <v-btn flat to="/">
+            <img src="/static/images/logo.svg" class="header-logo"/>
+          </v-btn>
+        </v-toolbar-title>
+      </v-layout>
       <v-layout hidden-sm-and-down row justify-center>
         <v-text-field
             placeholder="Search..."
@@ -110,7 +118,6 @@
             hide-details
         />
       </v-layout>
-      <v-spacer />
       <ac-patchbutton
           class="hidden-xs-only"
           v-if="viewer && viewer.username && viewer.rating > 0"
