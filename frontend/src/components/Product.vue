@@ -10,8 +10,8 @@
                slot="activator"
                v-model="editing"
         >
-          <v-icon>lock</v-icon>
-          <v-icon>lock_open</v-icon>
+          <v-icon v-if="editing">lock</v-icon>
+          <v-icon v-else>lock_open</v-icon>
         </v-btn>
         <ac-action
             variant="danger" :confirm="true" :success="goToStore"
@@ -129,7 +129,7 @@
               <span v-else>unavailable.</span>
             </p>
           </v-flex>
-          <p v-else-if="!product.available">This product is not available at this time.</p>
+          <p v-else-if="!product.available && !newOrderModel.order_token">This product is not available at this time.</p>
           <v-btn color="primary" size="lg" @click="showOrder = true" v-else-if="viewer.username">Order</v-btn>
           <v-btn color="primary" size="lg" :to="{name: 'Login'}" v-else>Login or Register to Order this Product!</v-btn>
         </div>

@@ -78,7 +78,8 @@
       return {
         newCharModel: {
           name: '',
-          private: false
+          private: false,
+          tags: []
         },
         url: this.endpoint,
         showNew: false,
@@ -102,6 +103,13 @@
             hint: 'Only shows this character to people you have explicitly shared them to. ' +
             'Note that this prevents your character from showing up in searches and lists, but does not hide ' +
             'submissions which are marked public.'
+          }, {
+            type: 'tag-search',
+            model: 'tags',
+            label: 'Tags',
+            hint: 'Add some tags to make your character easier to search for',
+            required: true,
+            validator: VueFormGenerator.validators.required
           }]
         },
         newCharOptions: {

@@ -190,7 +190,7 @@ class CharacterSerializer(serializers.ModelSerializer):
             'primary_asset', 'primary_asset_id', 'tags', 'colors', 'taggable', 'attributes', 'transfer',
             'shared_with'
         )
-        read_only_fields = ('transfer',)
+        read_only_fields = ('transfer', 'tags')
 
 
 class ImageAssetManagementSerializer(SubscribeMixin, serializers.ModelSerializer):
