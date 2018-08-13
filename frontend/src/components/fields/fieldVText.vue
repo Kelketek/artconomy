@@ -6,6 +6,7 @@
         :label="schema.label"
         :type="schema.inputType"
         :rules="validators"
+        :validate-on-blur="!formOptions.validateAfterChanged"
         :required="schema.required"
         :error-messages="errors"
         :hint="schema.hint"
