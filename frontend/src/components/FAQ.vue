@@ -66,7 +66,7 @@
                   realizing that he rarely commissioned online but frequently did at creative conventions,
                   where one could meet face-to-face with artists. He wanted to create a service where it was as easy
                   to commission online as it was in person.</p>
-                <h3>Marketing and Public Relations Director: Eris Autumn Griffon</h3>
+                <h3>Marketing and Public Relations Director: Eris A. Griffon</h3>
                 <p>Eris is <em>also</em> a longterm online role player and her life is filled with artists, so she's
                   always had a passion to make art more accessible for everyone and to see characters come alive online!
                   She's served six years in the US Navy, and also worked in a paper factory, handed out samples, worked
