@@ -220,7 +220,7 @@
       },
       loginFailure (response) {
         let form = this.$refs[this.tab.form]
-        if (response.responseJSON.token.length && !this.showTokenPrompt) {
+        if (response.responseJSON && response.responseJSON.token && response.responseJSON.token.length && !this.showTokenPrompt) {
           setErrors(this.$refs.tokenForm, {})
           this.showTokenPrompt = true
           return
