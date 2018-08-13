@@ -136,7 +136,7 @@
         },
         loginOptions: {
           validateAfterLoad: false,
-          validateAfterChanged: true
+          validateAfterChanged: false
         },
         forgotSchema: {
           fields: [{
