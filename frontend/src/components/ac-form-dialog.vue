@@ -31,6 +31,11 @@
           />
           <slot name="footer" />
           <v-btn type="submit" class="hidden" />
+          <v-layout row wrap class="hidden-xs-only">
+            <v-flex xs12 text-xs-center mt-4>
+              <v-btn color="primary" @click.prevent="$refs.form.submit">{{ submitText }}</v-btn>
+            </v-flex>
+          </v-layout>
         </v-form>
       </v-card-text>
     </v-card>
