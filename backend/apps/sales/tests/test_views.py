@@ -628,7 +628,7 @@ class TestOrder(APITestCase):
             {
                 'details': 'Draw me some porn!',
                 'characters': character_ids,
-                'token': token.activation_code,
+                'order_token': token.activation_code,
             },
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -653,7 +653,7 @@ class TestOrder(APITestCase):
             {
                 'details': 'Draw me some porn!',
                 'characters': characters,
-                'token': '123'
+                'order_token': '123'
             }
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -692,7 +692,7 @@ class TestOrder(APITestCase):
             {
                 'details': 'Draw me some porn!',
                 'characters': character_ids,
-                'token': token.activation_code
+                'order_token': token.activation_code
             }
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)

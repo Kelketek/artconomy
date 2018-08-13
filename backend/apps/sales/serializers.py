@@ -46,7 +46,7 @@ class ProductDetailSerializer(ProductSerializer):
 class ProductNewOrderSerializer(serializers.ModelSerializer):
     seller = RelatedUserSerializer(read_only=True)
     buyer = RelatedUserSerializer(read_only=True)
-    token = serializers.CharField(max_length=8, required=False)
+    order_token = serializers.CharField(max_length=8, required=False)
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request')
@@ -65,16 +65,17 @@ class ProductNewOrderSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         data = dict(**validated_data)
-        data.pop('token', None)
+        data.pop('order_token', None)
         return super().create(data)
 
     class Meta:
         model = Order
         fields = (
-            'id', 'created_on', 'status', 'product', 'details', 'seller', 'buyer', 'characters', 'private', 'token'
+            'id', 'created_on', 'status', 'product', 'details', 'seller', 'buyer', 'characters', 'private',
+            'order_token',
         )
         extra_kwargs = {
-            'token': {'write_only': True, 'read_only': False}
+            'order_token': {'write_only': True, 'read_only': False}
         }
         read_only_fields = (
             'status', 'id', 'created_on'
