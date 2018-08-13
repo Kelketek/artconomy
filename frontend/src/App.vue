@@ -13,6 +13,9 @@
               <p v-if="$root.errorCode === 500">
                 Something went wrong. We've notified our developers and will get it fixed as soon as we can!
               </p>
+              <p v-if="$root.errorCode === 503">
+                Artconomy is currently updating or under maintenance. Please refresh in a few minutes and try again!
+              </p>
               <p v-else-if="$root.errorCode === 400">
                 Something seems wrong with your request. Could you check the URL?
               </p>
