@@ -143,7 +143,7 @@ class PlaceOrder(CreateAPIView):
     def can_create(self, product, serializer):
         if self.request.user == product.user:
             return False, 'You cannot order your own products. Use a placeholder order instead.', None
-        token = serializer.validated_data.get('token')
+        token = serializer.validated_data.get('order_token')
         token_failed = False
         if token:
             tokens = product.tokens.filter(activation_code=token, expires_on__gte=timezone.now())
