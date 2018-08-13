@@ -674,7 +674,35 @@ class TestOrder(APITestCase):
                 'characters': characters
             }
         )
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['errors'], ['This product is not available at this time.'])
+
+    def test_place_order_hidden_token(self):
+        self.login(self.user)
+        characters = [
+            CharacterFactory.create(user=self.user),
+            CharacterFactory.create(user=self.user, private=True),
+            CharacterFactory.create(user=self.user2, open_requests=True)
+        ]
+        token = OrderTokenFactory.create(product__task_weight=500, product__hidden=True)
+        product = token.product
+        character_ids = [character.id for character in characters]
+        response = self.client.post(
+            '/api/sales/v1/account/{}/products/{}/order/'.format(product.user.username, product.id),
+            {
+                'details': 'Draw me some porn!',
+                'characters': character_ids,
+                'token': token.activation_code
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['details'], 'Draw me some porn!')
+        self.assertEqual(response.data['characters'], character_ids)
+        for character in characters:
+            self.assertTrue(character.shared_with.filter(username=response.data['seller']['username']).exists())
+        self.assertEqual(response.data['product'], product.id)
+        self.assertEqual(response.data['status'], Order.NEW)
+        self.assertRaises(OrderToken.DoesNotExist, token.refresh_from_db)
 
     def test_adjust_order(self):
         self.login(self.user)

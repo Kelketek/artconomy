@@ -158,7 +158,7 @@ class PlaceOrder(CreateAPIView):
         return False, 'This product is not available at this time.', None
 
     def perform_create(self, serializer):
-        product = get_object_or_404(Product, id=self.kwargs['product'], hidden=False, active=True)
+        product = get_object_or_404(Product, id=self.kwargs['product'], active=True)
         can_order, message, token = self.can_create(product, serializer)
         if not can_order:
             raise ValidationError({'errors': [message]})
