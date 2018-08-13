@@ -5,7 +5,7 @@
       <p><strong>Pending Balance: ${{response.pending}}</strong></p>
       <p><strong>Available Balance: ${{response.available}}</strong></p>
     </v-flex>
-    <v-flex xs12 v-if="response.available && accounts !== null && accounts.length !== 0">
+    <v-flex xs12 v-if="parseFloat(response.available) && accounts !== null && accounts.length !== 0">
       <v-btn color="primary" @click="showWithdraw = true">Withdraw Funds</v-btn>
       <ac-form-dialog ref="withdrawForm" :schema="withdrawSchema" :model="withdrawModel"
                       :options="bankOptions" :success="postWithdraw"

@@ -240,13 +240,13 @@ class AccountBalanceSerializer(serializers.ModelSerializer):
     pending = serializers.SerializerMethodField()
 
     def get_escrow(self, obj):
-        return escrow_balance(obj)
+        return str(escrow_balance(obj))
 
     def get_available(self, obj):
-        return available_balance(obj)
+        return str(available_balance(obj))
 
     def get_pending(self, obj):
-        return pending_balance(obj)
+        return str(pending_balance(obj))
 
     class Meta:
         model = User
