@@ -53,8 +53,8 @@
                  @click="editing = !editing"
                  v-model="editing"
           >
-            <v-icon>lock</v-icon>
-            <v-icon>lock_open</v-icon>
+            <v-icon v-if="editing">lock</v-icon>
+            <v-icon v-else>lock_open</v-icon>
           </v-btn>
           <ac-action
               variant="danger" :confirm="true" :success="goBack"

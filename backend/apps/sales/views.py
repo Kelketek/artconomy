@@ -14,7 +14,7 @@ from math import ceil
 
 from django.utils.datetime_safe import date
 from moneyed import Money, Decimal
-# BDay is business day, not birthday...
+# BDay is business day, not birthday.
 from pandas.tseries.offsets import BDay
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied, ValidationError

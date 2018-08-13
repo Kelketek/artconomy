@@ -1,6 +1,18 @@
 <template>
   <div class="wrapper">
-    <v-text-field ref="searchField" v-model="query" class="form-control" @input="runQuery" @keydown.enter.prevent.native="grabFirst" @keydown.space.prevent.native="literalTag" @blur="blurHandler" :placeholder="schema.placeholder" />
+    <v-text-field
+        ref="searchField"
+        v-model="query"
+        class="form-control"
+        @input="runQuery"
+        @keydown.enter.prevent.native="grabFirst"
+        @keydown.space.prevent.native="literalTag"
+        @blur="blurHandler"
+        :label="schema.label"
+        :hint="schema.hint"
+        :persistent-hint="true"
+        :placeholder="schema.placeholder"
+    />
     <div class="mb-2 mt-2">
       <div v-if="value.length === 0">Click a tag to add it, or press enter to select the first one. Press space to create a new tag if the first option doesn't exist or match.</div>
       <div v-else><v-chip close v-for="tag in value" :key="tag" :tag="tag" @input="delTag(tag)">{{tag}}</v-chip></div>

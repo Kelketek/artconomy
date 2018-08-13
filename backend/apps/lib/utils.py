@@ -413,7 +413,7 @@ def add_tags(request, target, field_name='tags'):
     tag_list = tag_list_cleaner(tag_list)
     try:
         add_check(target, field_name, *tag_list)
-    except ValueError as err:
+    except Exception as err:
         return False, Response(status=status.HTTP_400_BAD_REQUEST, data={'tags': [str(err)]})
     ensure_tags(tag_list)
     getattr(target, field_name).add(*Tag.objects.filter(name__in=tag_list))

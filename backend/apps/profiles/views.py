@@ -181,7 +181,12 @@ class CharacterListAPI(ListCreateAPIView):
             )
         if user.characters.filter(name=serializer.validated_data['name']):
             raise ValidationError({'name': ['A character with this name already exists.']})
-        return serializer.save(user=user)
+        target = serializer.save(user=user)
+        # ignore the tagging result. In the case it fails, someone's doing something pretty screwwy anyway, and it's
+        # not essential for creating the character.
+        add_tags(self.request, target, field_name='tags')
+
+        return target
 
 
 class CharacterAssets(ListCreateAPIView):
