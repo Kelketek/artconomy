@@ -510,7 +510,7 @@ def default_context():
         'title': 'Artconomy-- Where characters come alive!',
         'description': 'Provides a platform that makes it as easy for people to '
                        'commission artists online as it is in person.',
-        'image_link': '/static/images/logo.svg'
+        'image_link': '/static/images/logo.png'
     }
 
 

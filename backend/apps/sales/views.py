@@ -1370,7 +1370,7 @@ class ProductPreview(BasePreview):
     def context(self, username, product_id):
         product = get_object_or_404(Product, id=product_id, active=True, hidden=False)
         if self.request.max_rating < product.rating:
-            image = '/static/images/logo.svg'
+            image = '/static/images/logo.png'
         else:
             image = product.preview_link
         return {
