@@ -2,6 +2,7 @@ ansible==2.6.2
 pycountry
 authorizesauce==0.5.0
 bok_choy==0.8.0
+bs4==0.0.1
 celery==4.2.0
 ddt==1.1.1
 Django>=2.0.6,<2.1.0
@@ -20,6 +21,7 @@ easy_thumbnails==2.5
 factory_boy==2.8.1
 freezegun==0.3.9
 ipython==6.2.1
+markdown==2.6.11
 pandas==0.23.3
 PyVirtualDisplay==0.2.1
 psycopg2==2.7.5

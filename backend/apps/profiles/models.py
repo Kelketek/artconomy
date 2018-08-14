@@ -345,6 +345,12 @@ class Character(Model):
     class Meta:
         unique_together = (('name', 'user'),)
 
+    @property
+    def preview_image(self):
+        if not self.primary_asset:
+            return '/static/images/default-avatar.png'
+        return self.primary_asset.preview_link
+
     def notification_serialize(self, context):
         from .serializers import CharacterSerializer
         return CharacterSerializer(instance=self, context=context).data

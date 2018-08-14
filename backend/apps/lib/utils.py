@@ -2,6 +2,8 @@ import logging
 import os
 from pathlib import Path
 
+import markdown
+from bs4 import BeautifulSoup
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
@@ -501,3 +503,16 @@ class MinimumOrZero:
             return True
         if value < self.limit:
             raise ValidationError('Must be zero, or greater than or equal to {}'.format(self.limit))
+
+
+def default_context():
+    return {
+        'title': 'Artconomy-- Where characters come alive!',
+        'description': 'Provides a platform that makes it as easy for people to '
+                       'commission artists online as it is in person.',
+        'image_link': '/static/images/logo.svg'
+    }
+
+
+def demark(text):
+    return BeautifulSoup(markdown.markdown(text)).get_text()

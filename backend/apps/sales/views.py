@@ -28,8 +28,8 @@ from apps.lib.models import DISPUTE, REFUND, COMMENT, Subscription, ORDER_UPDATE
     CHAR_TRANSFER, NEW_PRODUCT, STREAMING
 from apps.lib.permissions import ObjectStatus, IsStaff, IsSafeMethod, Any
 from apps.lib.serializers import CommentSerializer
-from apps.lib.utils import notify, recall_notification, subscribe, add_tags
-from apps.lib.views import BaseTagView
+from apps.lib.utils import notify, recall_notification, subscribe, add_tags, demark
+from apps.lib.views import BaseTagView, BasePreview
 from apps.profiles.models import User, ImageAsset, Character
 from apps.profiles.permissions import ObjectControls, UserControls
 from apps.profiles.serializers import ImageAssetSerializer, UserSerializer
@@ -1364,3 +1364,17 @@ class CancelPremium(APIView):
             status=status.HTTP_200_OK,
             data=UserSerializer(context={'request': request}, instance=self.request.user).data
         )
+
+
+class ProductPreview(BasePreview):
+    def context(self, username, product_id):
+        product = get_object_or_404(Product, id=product_id, active=True, hidden=False)
+        if self.request.max_rating < product.rating:
+            image = '/static/images/logo.svg'
+        else:
+            image = product.preview_link
+        return {
+            'title': demark(product.name),
+            'description': demark(product.description),
+            'image_link': image
+        }
