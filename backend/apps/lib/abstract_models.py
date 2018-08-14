@@ -27,3 +27,14 @@ class ImageModel(models.Model):
     class Meta:
         abstract = True
         ordering = ('created_on',)
+
+    @property
+    def preview_link(self):
+        if self.preview:
+            return self.preview['thumbnail'].url
+        for thumb in ['thumbnail', 'preview', 'gallery']:
+            try:
+                return self.file[thumb].url
+            except AttributeError:
+                pass
+        return self.file.url

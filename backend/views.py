@@ -5,15 +5,24 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from telegram import Bot
 
+from apps.lib.utils import default_context
 
-def index(request):
+
+def base_template(request, extra=None):
     if request.method != 'GET':
         return bad_endpoint(request)
     if request.content_type == 'application/json':
         return bad_endpoint(request)
+    context = {'debug': settings.DEBUG, 'env_file': 'envs/{}.html'.format(settings.ENV_NAME)}
+    print(extra)
+    context.update(extra or default_context())
     return render(
-        request, 'index.html', {'debug': settings.DEBUG, 'env_file': 'envs/{}.html'.format(settings.ENV_NAME)}
+        request, 'index.html', context
     )
+
+
+def index(request):
+    return base_template(request)
 
 
 @api_view(('GET', 'POST', 'PATCH', 'PUT', 'HEAD', 'DELETE', 'OPTIONS'))

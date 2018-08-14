@@ -34,8 +34,8 @@ from apps.lib.permissions import Any, All, IsSafeMethod, IsMethod, IsAnonymous
 from apps.lib.serializers import CommentSerializer, NotificationSerializer, Base64ImageField, RelatedUserSerializer, \
     BulkNotificationSerializer, UserInfoSerializer
 from apps.lib.utils import recall_notification, notify, safe_add, add_tags, remove_watch_subscriptions, \
-    watch_subscriptions, add_check
-from apps.lib.views import BaseTagView, BaseUserTagView
+    watch_subscriptions, add_check, demark
+from apps.lib.views import BaseTagView, BaseUserTagView, BasePreview
 from apps.profiles.models import User, Character, ImageAsset, RefColor, Attribute, Message, \
     MessageRecipientRelationship, Journal
 from apps.profiles.permissions import ObjectControls, UserControls, AssetViewPermission, AssetControls, \
@@ -1372,3 +1372,35 @@ class JournalComments(ListCreateAPIView):
 def perform_logout(request):
     logout(request)
     return Response(status=status.HTTP_200_OK, data=empty_user(request))
+
+
+class CharacterPreview(BasePreview):
+    permission_classes = [Any(All(IsSafeMethod, SharedWith), ObjectControls)]
+
+    def context(self, username, character):
+        char_context = {}
+        character = get_object_or_404(Character, user__username=username, name=character)
+        if not self.check_object_permissions(self.request, character):
+            return char_context
+        char_context['title'] = demark(character.name)
+        char_context['description'] = demark(character.description)
+        char_context['image_link'] = character.preview_image
+        return char_context
+
+
+class SubmissionPreview(BasePreview):
+    permission_classes = [AssetViewPermission]
+
+    def context(self, submission_id):
+        submission = get_object_or_404(ImageAsset, id=submission_id)
+        if not self.check_object_permissions(self.request, submission):
+            return {}
+        if self.request.max_rating < submission.rating:
+            image = '/static/images/logo.svg'
+        else:
+            image = submission.preview_link
+        return {
+            'title': demark(submission.title),
+            'description': demark(submission.caption),
+            'image_link': image
+        }

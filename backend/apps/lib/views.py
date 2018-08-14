@@ -1,5 +1,7 @@
 from collections import OrderedDict
 
+from django.http import Http404
+from django.views import View
 from rest_framework import status
 from rest_framework.generics import RetrieveUpdateDestroyAPIView, get_object_or_404, CreateAPIView, \
     GenericAPIView
@@ -11,9 +13,10 @@ from apps.lib.models import Comment
 from apps.lib.permissions import CommentEditPermission, CommentViewPermission, CommentDepthPermission, Any, All, \
     IsMethod, IsSafeMethod
 from apps.lib.serializers import CommentSerializer, CommentSubscriptionSerializer
-from apps.lib.utils import countries_tweaked, remove_tags, add_tags, remove_comment, safe_add
+from apps.lib.utils import countries_tweaked, remove_tags, add_tags, remove_comment, safe_add, default_context
 from apps.profiles.models import User
 from apps.profiles.permissions import ObjectControls
+from views import bad_endpoint, base_template
 
 
 class CommentUpdate(RetrieveUpdateDestroyAPIView):
@@ -188,3 +191,58 @@ class BaseUserTagView(GenericAPIView):
                 instance=target, context=self.get_serializer_context()
             ).data
         )
+
+
+class BasePreview(View):
+    post = bad_endpoint
+    patch = bad_endpoint
+    delete = bad_endpoint
+    put = bad_endpoint
+    head = bad_endpoint
+    options = bad_endpoint
+    permission_classes = []
+    args = []
+    kwargs = {}
+    request = None
+
+    def default_context(self):
+        return default_context()
+
+    def get_permissions(self):
+        """
+        Instantiates and returns the list of permissions that this view requires.
+        """
+        return [permission() for permission in self.permission_classes]
+
+    def check_permissions(self, request):
+        """
+        Check if the request should be permitted.
+        Raises an appropriate exception if the request is not permitted.
+        """
+        for permission in self.get_permissions():
+            if not permission.has_permission(request, self):
+                return False
+        return True
+
+    def check_object_permissions(self, request, obj):
+        """
+        Check if the request should be permitted for a given object.
+        Raises an appropriate exception if the request is not permitted.
+        """
+        for permission in self.get_permissions():
+            if not permission.has_object_permission(request, self, obj):
+                return False
+        return True
+
+    def context(self, *args, **kwargs):
+        return {}
+
+    def get(self, request, *args, **kwargs):
+        self.request = request
+        self.args = args
+        self.kwargs = kwargs
+        try:
+            context = self.context(*args, **kwargs)
+        except Http404:
+            context = self.default_context()
+        return base_template(request, context)

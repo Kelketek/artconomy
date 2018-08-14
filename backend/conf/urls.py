@@ -28,6 +28,9 @@ import views
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    url(r'^profile/', include('apps.profiles.profile_urls', namespace='profile')),
+    url(r'^submissions/', include('apps.profiles.submission_urls', namespace='submissions')),
+    url(r'^store/', include('apps.sales.store_urls', namespace='store')),
     url(r'^api/profiles/', include('apps.profiles.urls', namespace='profiles')),
     url(r'^api/sales/', include('apps.sales.urls', namespace='sales')),
     url(r'^api/lib/', include('apps.lib.urls', namespace='lib')),
@@ -51,6 +54,7 @@ def static(prefix, view=serve, **kwargs):
     return [
         re_path(r'^%s(?P<path>.*)$' % re.escape(prefix.lstrip('/')), view, kwargs=kwargs),
     ]
+
 
 if settings.DEBUG or 'test' in sys.argv:
     urlpatterns += static('/js/', document_root=settings.STATIC_ROOT + '/dist/js/')
