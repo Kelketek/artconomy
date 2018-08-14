@@ -48,37 +48,37 @@
                 <ac-avatar :user="product.user" />
               </v-flex>
               <v-flex xs6>
-                <strong>Days turnaround:</strong>
+                <strong>Days turnaround: </strong>
               </v-flex>
               <v-flex xs6>
-                <ac-patchfield v-model="product.expected_turnaround" :display-value="turnaround" name="expected_turnaround" :editmode="editing" :url="url" />
+                {{turnaround}}
               </v-flex>
               <v-flex xs6>
                 <strong>Included revision<span v-if="product.revisions > 1">s</span>:</strong>
               </v-flex>
               <v-flex xs6>
-                <ac-patchfield styleclass="revision-count" v-model="product.revisions" name="revisions" :editmode="editing" :url="url" />
+                {{product.revisions}}
               </v-flex>
               <v-flex xs6>
                 <strong>Starting at:</strong>
               </v-flex>
               <v-flex xs6>
-                <span v-if="!editing">$</span><ac-patchfield v-model="product.price" name="price" :editmode="editing" :url="url" />
+                <span>$</span>{{product.price}}
               </v-flex>
               <v-flex xs6 v-if="editing">
                 <strong>Task weight:</strong>
               </v-flex>
               <v-flex xs6 v-if="editing">
-                <ac-patchfield v-model="product.task_weight" name="task_weight" :editmode="editing" :url="url" />
+                {{product.task_weight}}
               </v-flex>
               <v-flex xs6 v-if="editing">
                 <strong>Max at once:</strong>
               </v-flex>
               <v-flex xs6 v-if="editing">
-                <ac-patchfield v-model="product.max_parallel" name="max_parallel" :editmode="editing" :url="url" />
+                {{product.max_parallel}}
               </v-flex>
               <v-flex xs12 v-if="editing">
-                <ac-patchbutton :url="url" :classes="{'btn-sm': true, 'm-0': true}" name="hidden" v-model="product.hidden" true-text="Hide Product" true-variant="success" false-text="Unhide Product" />
+                <v-btn @click="showProductUpdate = true">Edit Attributes</v-btn>
               </v-flex>
               <v-flex xs12 v-if="editing">
                 <v-btn @click="showImageUpdate = true">Update Images</v-btn>
@@ -94,6 +94,18 @@
           :model="imageModel"
           :options="newOrderOptions"
           :schema="imageUpdateSchema"
+          method="PATCH"
+          :url="url"
+          :success="setProduct"
+      >
+      </ac-form-dialog>
+      <ac-form-dialog
+          v-model="showProductUpdate"
+          :title="`Update attributes for ${product.name}`"
+          submit-text="Save"
+          :model="productModel"
+          :options="newOrderOptions"
+          :schema="productUpdateSchema"
           method="PATCH"
           :url="url"
           :success="setProduct"
@@ -205,8 +217,17 @@
     },
     methods: {
       setProduct (response) {
-        this.product = response
+        this.product = {...response}
+        this.productModel = {
+          price: response.price,
+          revisions: response.revisions,
+          expected_turnaround: response.expected_turnaround,
+          task_weight: response.task_weight,
+          max_parallel: response.max_parallel,
+          hidden: response.hidden
+        }
         this.showImageUpdate = false
+        this.showProductUpdate = false
       },
       goToStore: function () {
         this.$router.history.push({name: 'Store', params: {username: this.username}})
@@ -230,6 +251,8 @@
         showOrder: false,
         showImageUpdate: false,
         md: md,
+        productModel: null,
+        showProductUpdate: false,
         newOrderModel: {
           details: '',
           private: false,
@@ -304,6 +327,82 @@
         newOrderOptions: {
           validateAfterLoad: false,
           validateAfterChanged: true
+        },
+        productUpdateSchema: {
+          fields: [{
+            type: 'v-text',
+            inputType: 'number',
+            label: 'Price (USD)',
+            model: 'price',
+            step: '.01',
+            min: '1.10',
+            featured: true,
+            required: true
+          }, {
+            type: 'v-text',
+            inputType: 'number',
+            label: 'Revisions',
+            model: 'revisions',
+            step: '1',
+            min: '0',
+            hint: 'How many previews/waves of notes are offered with this piece. For instance, if you want to let the commissioner check the sketch lines before delivering a final inked piece, that would be one revision.',
+            featured: true,
+            required: true
+          }, {
+            type: 'v-text',
+            inputType: 'number',
+            label: 'Expected Turnaround (days)',
+            model: 'expected_turnaround',
+            step: '1',
+            min: '1',
+            hint: (
+              'How many days you expect this piece to take from the time you approve the final order to ' +
+              'delivery. Bear in mind your average work load and how long it takes for you to finish other pieces ' +
+              'before starting a new one. If a piece takes 20% more days than specified, the commissioner ' +
+              'may file for dispute. Completing tasks on or ahead of schedule results in improved statistics, which ' +
+              'commissioners can factor into purchases.'
+            ),
+            featured: true,
+            required: true
+          }, {
+            type: 'v-text',
+            inputType: 'number',
+            label: 'Task Weight',
+            model: 'task_weight',
+            step: '1',
+            min: '1',
+            hint: (
+              'How much this product contributes to your "max load" (configurable in your settings). If you have a ' +
+              'max load of 10, and a task weight of 2, you could take up to five of these at a time. This product ' +
+              'will be hidden if its task weight would put you over your max load.'
+            ),
+            featured: true,
+            required: true
+          }, {
+            type: 'v-text',
+            inputType: 'number',
+            label: 'Max at Once',
+            model: 'max_parallel',
+            step: '1',
+            min: '0',
+            hint: (
+              'How many of this product you are willing to take on, regardless of task weight. For ' +
+              'instance, if this is a full color piece, and you do sketches as well, and never want to ' +
+              'take more than 2 full color pieces at a time, you could set this to 2. If this is set to ' +
+              'zero, allows you to fill your entire max load with this product if that is what commissioners ' +
+              'order.'
+            ),
+            featured: true,
+            required: true
+          }, {
+            type: 'v-checkbox',
+            styleClasses: ['vue-checkbox'],
+            label: 'Hidden?',
+            model: 'hidden',
+            required: false,
+            validator: VueFormGenerator.validators.boolean,
+            hint: 'If checked, this product will not be visible on your storefront.'
+          }]
         }
       }
     },

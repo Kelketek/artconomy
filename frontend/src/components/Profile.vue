@@ -243,7 +243,7 @@
           {
             type: 'tag-search',
             model: 'tags',
-            label: 'tags',
+            label: 'Tags',
             featured: true,
             placeholder: 'Search tags',
             styleClasses: 'field-input'
