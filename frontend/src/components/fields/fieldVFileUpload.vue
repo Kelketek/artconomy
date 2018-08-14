@@ -1,6 +1,7 @@
 <template>
-  <div class="mb-3 mt-3 text-xs-center">
-    <p><label :for="schema.id">{{schema.label}}</label></p>
+  <v-card class="mt-3 elevation-5">
+    <v-card-text>
+    <v-card-title><strong><label :for="schema.id">{{schema.label}}</label></strong></v-card-title>
     <div class="upload" :class="{'error--text': errors.length}">
       <div v-if="value.length">
         <v-btn v-if="value.length" color="normal" @click="value = []">Reset</v-btn>
@@ -17,7 +18,7 @@
         </div>
       </div>
       <div v-else class="text-xs-center p-5">
-        <h4>Drop value anywhere to upload<br/>or</h4>
+        <h4>Drag and drop here to upload<br/>or</h4>
         <label :for="schema.id" class="v-btn primary"><div class="v-btn__content">Select File</div></label>
       </div>
 
@@ -42,7 +43,8 @@
       <div v-if="schema.hint" class="input-group__messages input-group__hint">{{hint}}</div>
       <div v-if="errors.length" class="input-group__messages input-group__error">{{errors.join(', ')}}</div>
     </div>
-  </div>
+    </v-card-text>
+  </v-card>
 </template>
 <style scoped>
   .example-drag label.btn {

@@ -30,6 +30,7 @@ class ProductSerializer(serializers.ModelSerializer):
             'id', 'name', 'description', 'revisions', 'hidden', 'max_parallel', 'task_weight',
             'expected_turnaround', 'user', 'file', 'rating', 'price', 'tags', 'preview'
         )
+        read_only_fields = ('tags',)
 
 
 class ProductDetailSerializer(ProductSerializer):

@@ -118,6 +118,7 @@
           max_parallel: 0,
           expected_turnaround: 3,
           price: 0,
+          tags: [],
           file: [],
           preview: []
         },
@@ -205,13 +206,21 @@
             required: true,
             validator: VueFormGenerator.validators.string
           }, {
+            type: 'tag-search',
+            model: 'tags',
+            label: 'Tags',
+            featured: true,
+            placeholder: 'Search tags',
+            styleClasses: 'field-input',
+            hint: 'Add some tags to make searching for your product easier, such as refsheet, inks, or watercolor.'
+          }, {
             type: 'v-checkbox',
             styleClasses: ['vue-checkbox'],
             label: 'Hidden?',
             model: 'hidden',
             required: false,
             validator: VueFormGenerator.validators.boolean,
-            hint: 'This product will not be visible on your storefront.'
+            hint: 'If checked, this product will not be visible on your storefront.'
           }, {
             type: 'v-select',
             label: 'Rating',

@@ -63,6 +63,7 @@
       addTag (tag) {
         if (this.tags.indexOf(tag) === -1) {
           tag = tag.replace(/\s+/g, '')
+          tag = tag.replace(/,/g, '')
           if (tag === '') {
             this.query = ''
             this.response = null

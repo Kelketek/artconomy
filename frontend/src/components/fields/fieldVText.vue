@@ -16,7 +16,7 @@
         :step="schema.step"
         :min="schema.min"
         :max="schema.max"
-        :persistent-hint="true"
+        :persistent-hint="schema.persistentHint"
         :counter="schema.counter"
         v-if="!schema.multiLine"
     />

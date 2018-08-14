@@ -28,7 +28,7 @@ from apps.lib.models import DISPUTE, REFUND, COMMENT, Subscription, ORDER_UPDATE
     CHAR_TRANSFER, NEW_PRODUCT, STREAMING
 from apps.lib.permissions import ObjectStatus, IsStaff, IsSafeMethod, Any
 from apps.lib.serializers import CommentSerializer
-from apps.lib.utils import notify, recall_notification, subscribe
+from apps.lib.utils import notify, recall_notification, subscribe, add_tags
 from apps.lib.views import BaseTagView
 from apps.profiles.models import User, ImageAsset, Character
 from apps.profiles.permissions import ObjectControls, UserControls
@@ -57,6 +57,9 @@ class ProductList(ListCreateAPIView):
         if not (self.request.user.is_staff or self.request.user == user):
             raise PermissionDenied("You do not have permission to create products for that user.")
         product = serializer.save(owner=user, user=user)
+        # ignore the tagging result. In the case it fails, someone's doing something pretty screwwy anyway, and it's
+        # not essential for creating the character.
+        add_tags(self.request, product, field_name='tags')
         if not product.hidden:
             notify(NEW_PRODUCT, user, data={'product': product.id}, unique_data=True)
         return product
