@@ -1396,7 +1396,7 @@ class SubmissionPreview(BasePreview):
         if not self.check_object_permissions(self.request, submission):
             return {}
         if self.request.max_rating < submission.rating:
-            image = '/static/images/logo.svg'
+            image = '/static/images/logo.png'
         else:
             image = submission.preview_link
         return {
