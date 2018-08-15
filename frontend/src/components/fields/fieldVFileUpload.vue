@@ -2,47 +2,47 @@
   <v-card class="mt-3 elevation-5">
     <v-card-text>
     <v-card-title><strong><label :for="schema.id">{{schema.label}}</label></strong></v-card-title>
-    <div class="upload" :class="{'error--text': errors.length}">
-      <div v-if="value.length">
-        <v-btn v-if="value.length" color="normal" @click="value = []">Reset</v-btn>
-        <div>
-          <img :src="getUrl(value[0])" style="max-width: 15rem;max-height: 15rem">
+      <div class="upload text-xs-center" :class="{'error--text': errors.length}">
+        <div v-if="value.length">
+          <v-btn v-if="value.length" color="normal" @click="value = []">Reset</v-btn>
           <div>
-            <span>{{value[0].name}}</span> -
-            <span>{{value[0].size | formatSize}}</span>
-            <span v-if="value[0].error">{{value[0].error}}</span>
-            <span v-else-if="value[0].success">success</span>
-            <span v-else-if="value[0].active">active</span>
-            <span v-else-if="value[0].active">active</span>
+            <img :src="getUrl(value[0])" style="max-width: 15rem;max-height: 15rem">
+            <div>
+              <span>{{value[0].name}}</span> -
+              <span>{{value[0].size | formatSize}}</span>
+              <span v-if="value[0].error">{{value[0].error}}</span>
+              <span v-else-if="value[0].success">success</span>
+              <span v-else-if="value[0].active">active</span>
+              <span v-else-if="value[0].active">active</span>
+            </div>
           </div>
         </div>
-      </div>
-      <div v-else class="text-xs-center p-5">
-        <h4>Drag and drop here to upload<br/>or</h4>
-        <label :for="schema.id" class="v-btn primary"><div class="v-btn__content">Select File</div></label>
-      </div>
+        <div v-else class="text-xs-center p-5">
+          <h4>Drag and drop here to upload<br/>or</h4>
+          <label :for="schema.id" class="v-btn primary"><div class="v-btn__content">Select File</div></label>
+        </div>
 
-      <div v-show="$refs.upload && $refs.upload.dropActive" class="drop-active">
-        <h3>Drop file to upload</h3>
-      </div>
+        <div v-show="$refs.upload && $refs.upload.dropActive" class="drop-active">
+          <h3>Drop file to upload</h3>
+        </div>
 
-      <div class="file-upload-btn">
-        <file-upload
-            class="btn btn-primary"
-            :post-action="postUrl"
-            :multiple="false"
-            :drop="true"
-            :data="formData"
-            v-model="value"
-            :inputId="schema.id"
-            ref="upload">
-          <i class="fa fa-plus"></i>
-          Select file
-        </file-upload>
+        <div class="file-upload-btn">
+          <file-upload
+              class="btn btn-primary"
+              :post-action="postUrl"
+              :multiple="false"
+              :drop="true"
+              :data="formData"
+              v-model="value"
+              :inputId="schema.id"
+              ref="upload">
+            <i class="fa fa-plus"></i>
+            Select file
+          </file-upload>
+        </div>
+        <div v-if="schema.hint" class="input-group__messages input-group__hint">{{hint}}</div>
+        <div v-if="errors.length" class="input-group__messages input-group__error">{{errors.join(', ')}}</div>
       </div>
-      <div v-if="schema.hint" class="input-group__messages input-group__hint">{{hint}}</div>
-      <div v-if="errors.length" class="input-group__messages input-group__error">{{errors.join(', ')}}</div>
-    </div>
     </v-card-text>
   </v-card>
 </template>
