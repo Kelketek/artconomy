@@ -155,10 +155,12 @@ STATIC_ROOT = ENV_TOKENS.get('STATIC_ROOT', os.path.join(BASE_DIR, 'public'))
 MEDIA_URL = ENV_TOKENS.get('MEDIA_ROOT', '/media/')
 MEDIA_ROOT = ENV_TOKENS.get('MEDIA_ROOT', os.path.join(BASE_DIR, 'media'))
 
+pack_file_name = 'webpack-stats.json' if DEBUG else 'webpack-stats-saved.json'
+
 WEBPACK_LOADER = {
     'DEFAULT': {
         'BUNDLE_DIR_NAME': '',
-        'STATS_FILE': os.path.join(BASE_DIR, 'webpack-stats.json'),
+        'STATS_FILE': os.path.join(BASE_DIR, pack_file_name),
         'CACHE': not DEBUG
     }
 }
