@@ -14,7 +14,6 @@ def base_template(request, extra=None):
     if request.content_type == 'application/json':
         return bad_endpoint(request)
     context = {'debug': settings.DEBUG, 'env_file': 'envs/{}.html'.format(settings.ENV_NAME)}
-    print(extra)
     context.update(extra or default_context())
     return render(
         request, 'index.html', context
