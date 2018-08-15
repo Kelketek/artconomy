@@ -1797,8 +1797,8 @@ class TestAccountBalance(APITestCase):
         mock_escrow_balance.return_value = Decimal('50.00')
         response = self.client.get('/api/sales/v1/account/{}/balance/'.format(self.user.username))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['available'], 100)
-        self.assertEqual(response.data['escrow'], 50)
+        self.assertEqual(response.data['available'], '100.00')
+        self.assertEqual(response.data['escrow'], '50.00')
 
     @patch('apps.sales.serializers.available_balance')
     @patch('apps.sales.serializers.escrow_balance')
@@ -1808,8 +1808,8 @@ class TestAccountBalance(APITestCase):
         mock_escrow_balance.return_value = Decimal('50.00')
         response = self.client.get('/api/sales/v1/account/{}/balance/'.format(self.user.username))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['available'], 100)
-        self.assertEqual(response.data['escrow'], 50)
+        self.assertEqual(response.data['available'], '100.00')
+        self.assertEqual(response.data['escrow'], '50.00')
 
     def test_account_balance_wrong_user(self):
         self.login(self.user2)
