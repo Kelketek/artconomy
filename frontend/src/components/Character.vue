@@ -398,6 +398,7 @@
           rating: null,
           file: [],
           preview: [],
+          tags: [],
           comments_disabled: false
         },
         showNewColor: false,
@@ -481,6 +482,14 @@
             multiLine: true,
             required: true,
             validator: VueFormGenerator.validators.string
+          },
+          {
+            type: 'tag-search',
+            model: 'tags',
+            label: 'Tags',
+            featured: true,
+            placeholder: 'Search tags',
+            styleClasses: 'field-input'
           },
           {
             type: 'v-checkbox',

@@ -211,6 +211,9 @@ class CharacterAssets(ListCreateAPIView):
             character.save()
         if serializer.validated_data.get('is_artist'):
             asset.artists.add(self.request.user)
+        # ignore the tagging result. In the case it fails, someone's doing something pretty screwwy anyway, and it's
+        # not essential for creating the character.
+        add_tags(self.request, asset, field_name='tags')
         return asset
 
 
