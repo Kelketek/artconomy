@@ -5,14 +5,15 @@ from dateutil.relativedelta import relativedelta
 from django.db.models import Q
 from django.utils import timezone
 from django.utils.datetime_safe import date
+from moneyed import Money
 
-from apps.lib.models import RENEWAL_FAILURE, SUBSCRIPTION_DEACTIVATED, RENEWAL_FIXED
+from apps.lib.models import RENEWAL_FAILURE, SUBSCRIPTION_DEACTIVATED, RENEWAL_FIXED, TRANSFER_FAILED
 from apps.lib.utils import notify
 from apps.profiles.models import User
 from apps.sales.apis import dwolla
-from apps.sales.dwolla import refund_transfer
+from apps.sales.dwolla import refund_transfer, initiate_withdraw, perform_transfer
 from apps.sales.models import PaymentRecord, CreditCardToken, Order
-from apps.sales.utils import service_price, translate_authnet_error, set_service, finalize_order
+from apps.sales.utils import service_price, translate_authnet_error, set_service, finalize_order, available_balance
 from conf.celery_config import celery_app
 
 
@@ -115,9 +116,14 @@ def check_transactions():
 
 @celery_app.task
 def finalize_transactions():
-    PaymentRecord.objects.filter(
+    records = PaymentRecord.objects.filter(
         finalize_on__lte=timezone.now().date()
-    ).exclude(finalize_on__isnull=True).update(finalized=True)
+    ).exclude(finalize_on__isnull=True)
+    for record in records:
+        record.finalized = True
+        record.save()
+        if record.payee:
+            withdraw_all.delay(record.payee.id)
 
 
 @celery_app.task
@@ -153,3 +159,21 @@ def auto_finalize(order_id):
 def auto_finalize_run():
     for order in Order.objects.filter(status=Order.REVIEW, auto_finalize_on__lte=timezone.now().date()):
         auto_finalize.delay(order.id)
+
+
+@celery_app.task
+def withdraw_all(user_id):
+    user = User.objects.get(id=user_id)
+    if not user.auto_withdraw:
+        return
+    banks = user.banks.filter(deleted=False)
+    if not banks:
+        return
+    balance = available_balance(user)
+    if balance <= 0:
+        return
+    record = initiate_withdraw(user, banks[0], Money(balance, 'USD'), test_only=False)
+    try:
+        perform_transfer(record, note='Disbursement')
+    except Exception as err:
+        notify(TRANSFER_FAILED, user, data={'error': str(err)})

@@ -1,0 +1,13 @@
+{% extends 'email_base.html' %}
+{% block header_message %}There was an issue transferring money to your bank account!{% endblock %}
+{% block message %}
+<p>
+  The error our system reported is:
+</p>
+<blockquote>{{data.error}}</blockquote>
+<p>You will need to perform a withdraw manually by visiting the link below, updating your bank account if necessary.</p>
+{% endblock message %}
+
+{% block action %}
+<a href="/profile/{{target.username}}/settings/payment/disbursement">Visit your payout settings!</a>
+{% endblock %}

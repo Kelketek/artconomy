@@ -21,7 +21,8 @@ from rest_framework.authtoken.models import Token
 from apps.lib.abstract_models import GENERAL, RATINGS, ImageModel
 from apps.lib.models import Comment, Subscription, FAVORITE, SYSTEM_ANNOUNCEMENT, DISPUTE, REFUND, Event, \
     SUBMISSION_CHAR_TAG, CHAR_TAG, SUBMISSION_TAG, COMMENT, Tag, CHAR_TRANSFER, ASSET_SHARED, CHAR_SHARED, \
-    NEW_CHARACTER, RENEWAL_FAILURE, SUBSCRIPTION_DEACTIVATED, RENEWAL_FIXED, NEW_JOURNAL, ORDER_TOKEN_ISSUED
+    NEW_CHARACTER, RENEWAL_FAILURE, SUBSCRIPTION_DEACTIVATED, RENEWAL_FIXED, NEW_JOURNAL, ORDER_TOKEN_ISSUED, \
+    TRANSFER_FAILED
 from apps.lib.utils import clear_events, tag_list_cleaner, notify, recall_notification
 from apps.profiles.permissions import AssetViewPermission, AssetCommentPermission, MessageReadPermission, \
     JournalCommentPermission
@@ -63,6 +64,7 @@ class User(AbstractEmailUser):
     landscape_paid_through = DateField(null=True, default=None, blank=True, db_index=True)
     portrait_enabled = BooleanField(default=False, db_index=True)
     portrait_paid_through = DateField(null=True, default=None, blank=True, db_index=True)
+    auto_withdraw = BooleanField(default=True)
     tg_key = CharField(db_index=True, default=tg_key_gen, max_length=30)
     tg_chat_id = CharField(db_index=True, default='', max_length=30)
     max_load = IntegerField(
@@ -174,6 +176,13 @@ def auto_subscribe(sender, instance, created=False, **_kwargs):
             content_type=ContentType.objects.get_for_model(model=instance),
             object_id=instance.id,
             type=ORDER_TOKEN_ISSUED,
+            email=True,
+        )
+        Subscription.objects.create(
+            subscriber=instance,
+            content_type=ContentType.objects.get_for_model(model=instance),
+            object_id=instance.id,
+            type=TRANSFER_FAILED,
             email=True,
         )
     if instance.is_staff:

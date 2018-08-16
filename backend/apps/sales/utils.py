@@ -263,6 +263,7 @@ def update_availability(seller, load, current_closed_status):
 
 def finalize_order(order, user=None):
     from apps.sales.models import PaymentRecord
+    from apps.sales.tasks import withdraw_all
     with atomic():
         if order.status == order.DISPUTED and user == order.buyer:
             # User is rescinding dispute. d
@@ -311,3 +312,5 @@ def finalize_order(order, user=None):
             finalize_on=new_tx.finalize_on,
             response_message='Artconomy Service Fee'
         )
+    if new_tx.finalized and order.seller.auto_withdraw:
+        withdraw_all.delay(order.seller.id)
