@@ -218,7 +218,6 @@ class ServicePaymentSerializer(serializers.Serializer):
     cvv = serializers.CharField(validators=[RegexValidator(r'^\d{3,4}$')], required=False, default='', allow_blank=True)
 
 
-
 class RevisionSerializer(serializers.ModelSerializer):
     """
     Serializer for order revisions.

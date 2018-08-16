@@ -371,6 +371,7 @@ class TestSettings(APITestCase):
                 'favorites_hidden': False,
                 'max_load': 5,
                 'taggable': True,
+                'auto_withdraw': True,
                 'commission_info': '',
             }
         )

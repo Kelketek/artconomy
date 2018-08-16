@@ -2,7 +2,8 @@ from django.db import transaction
 from dwollav2 import ValidationError as DwollaValidationError
 from rest_framework.exceptions import ValidationError
 
-from apps.lib.utils import require_lock
+from apps.lib.models import TRANSFER_FAILED
+from apps.lib.utils import require_lock, notify
 from apps.sales.apis import dwolla
 from ipware import get_client_ip
 
@@ -142,3 +143,11 @@ def refund_transfer(record):
         source=PaymentRecord.ACH,
         txn_id=record.txn_id
     ).save()
+    notify(
+        TRANSFER_FAILED,
+        record.payer,
+        data={
+            'error': 'The bank rejected the transfer. Please try again, update your account information, '
+                     'or contact support.'
+        }
+    )

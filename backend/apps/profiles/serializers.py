@@ -228,6 +228,7 @@ class SettingsSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             'commissions_closed', 'rating', 'sfw_mode', 'max_load', 'favorites_hidden', 'taggable', 'commission_info',
+            'auto_withdraw',
         )
 
 
@@ -339,7 +340,7 @@ class UserSerializer(UserInfoMixin, serializers.ModelSerializer):
             'dwolla_configured', 'csrftoken', 'avatar_url', 'email', 'authtoken', 'favorites_hidden',
             'blacklist', 'biography', 'has_products', 'taggable', 'watching', 'blocked',  'commission_info',
             'stars', 'percentage_fee', 'static_fee', 'portrait', 'portrait_enabled', 'portrait_paid_through',
-            'landscape', 'landscape_enabled', 'landscape_paid_through', 'telegram_link'
+            'landscape', 'landscape_enabled', 'landscape_paid_through', 'telegram_link', 'auto_withdraw',
         )
         read_only_fields = [field for field in fields if field not in ['biography']]
 

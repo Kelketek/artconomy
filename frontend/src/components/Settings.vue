@@ -361,6 +361,15 @@
             validator: VueFormGenerator.validators.boolean,
             hint: 'Commissions are automatically closed when the total load points of all open orders exceeds this amount.'
           }, {
+            type: 'v-checkbox',
+            styleClasses: ['vue-checkbox'],
+            label: 'Auto Withdraw',
+            model: 'auto_withdraw',
+            required: false,
+            validator: VueFormGenerator.validators.boolean,
+            hint: 'If checked, automatically sends any money you earn to your bank account. If not set, you will ' +
+              'need to visit your payout account settings to withdraw money.'
+          }, {
             type: 'v-text',
             multiLine: true,
             label: 'Commission Info',

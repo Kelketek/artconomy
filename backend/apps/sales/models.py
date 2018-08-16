@@ -660,7 +660,7 @@ class BankAccount(Model):
         (CHECKING, 'Checking'),
         (SAVINGS, 'Savings')
     )
-    user = ForeignKey(settings.AUTH_USER_MODEL, on_delete=CASCADE)
+    user = ForeignKey(settings.AUTH_USER_MODEL, on_delete=CASCADE, related_name='banks')
     url = URLField()
     last_four = CharField(max_length=4)
     type = IntegerField(choices=ACCOUNT_TYPES)

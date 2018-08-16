@@ -209,7 +209,8 @@ export const NOTIFICATION_MAPPING = {
   '28': 'ac-subscription-deactivated',
   '29': 'ac-renewal-fixed',
   '30': 'ac-new-journal',
-  '31': 'ac-order-token-issued'
+  '31': 'ac-order-token-issued',
+  '32': 'ac-withdraw-failed'
 }
 
 export const ORDER_STATUSES = {

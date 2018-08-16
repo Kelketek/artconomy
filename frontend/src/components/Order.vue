@@ -207,6 +207,7 @@
             <div v-if="completed && seller">
               <strong>Congratulations! You've completed the order</strong>
               <p>You can revisit this page at any time for your records.</p>
+              <p>Your payment will be transferred to your bank account unless you've opted out of automatic withdrawal.</p>
             </div>
             <div v-if="showDisputePeriod">
               <p>You may dispute this order for non-completion on {{formatDate(order.dispute_available_on)}}</p>
