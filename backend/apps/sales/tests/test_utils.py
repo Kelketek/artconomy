@@ -1,9 +1,12 @@
+from unittest.mock import patch
+
 from django.test import TestCase
 from moneyed import Money, Decimal
 
 from apps.profiles.tests.factories import UserFactory
 from apps.sales.models import PaymentRecord
-from apps.sales.tests.factories import PaymentRecordFactory
+from apps.sales.tasks import withdraw_all
+from apps.sales.tests.factories import PaymentRecordFactory, BankAccountFactory
 from apps.sales.utils import escrow_balance, available_balance, pending_balance
 
 
@@ -336,3 +339,13 @@ class BalanceTestCase(TestCase):
         self.assertEqual(pending_balance(self.user), Decimal('0.00'))
         self.assertEqual(pending_balance(self.user2), Decimal('0.00'))
         self.assertEqual(pending_balance(self.user3), Decimal('0.00'))
+
+    @patch('apps.sales.tasks.available_balance')
+    @patch('apps.sales.tasks.initiate_withdraw')
+    @patch('apps.sales.tasks.perform_transfer')
+    def test_withdraw_all(self, mock_perform_transfer, mock_initiate, mock_balance):
+        bank = BankAccountFactory.create(user=self.user)
+        mock_balance.return_value = Decimal('25.00')
+        withdraw_all(self.user.id)
+        mock_initiate.assert_called_with(self.user, bank, Money('25.00', 'USD'), test_only=False)
+        mock_perform_transfer.assert_called()

@@ -312,5 +312,7 @@ def finalize_order(order, user=None):
             finalize_on=new_tx.finalize_on,
             response_message='Artconomy Service Fee'
         )
-    if new_tx.finalized and order.seller.auto_withdraw:
-        withdraw_all.delay(order.seller.id)
+    # Don't worry about whether it's time to withdraw or not. This will make sure that an attempt is made in case
+    # there's money to withdraw that hasn't been taken yet, and another process will try again if it settles later.
+    # It will also ignore if the seller has auto_withdraw disabled.
+    withdraw_all.delay(order.seller.id)
