@@ -1317,7 +1317,8 @@ class TestOrderStateChange(APITestCase):
         self.state_assertion('staffer', 'cancel/', initial_status=Order.PAYMENT_PENDING)
 
     @override_settings(STANDARD_PERCENTAGE_FEE=Decimal('10'), STANDARD_STATIC_FEE=Decimal('1.00'))
-    def test_approve_order_buyer(self):
+    @patch('apps.sales.tasks.withdraw_all.delay')
+    def test_approve_order_buyer(self, mock_withdraw):
         record = PaymentRecordFactory.create(
             target=self.order,
             payee=None,
@@ -1343,6 +1344,7 @@ class TestOrderStateChange(APITestCase):
         self.assertEqual(payment.escrow_for, None)
         self.assertEqual(payment.status, PaymentRecord.SUCCESS)
         self.assertEqual(payment.source, PaymentRecord.ESCROW)
+        mock_withdraw.assert_called_with(self.order.seller.id)
 
     def test_publish_order(self):
         self.order.status = Order.COMPLETED
