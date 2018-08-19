@@ -35,7 +35,7 @@ def start(bot, update, args):
                  "Portrait tab in your settings to send a starting message with your key."
         )
         return
-    user.tg_chat_id = '171085739'
+    user.tg_chat_id = update.message.chat_id
     user.tg_key = tg_key_gen()
     user.save()
     bot.send_message(
