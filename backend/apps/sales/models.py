@@ -153,6 +153,7 @@ class Order(Model):
     adjustment_expected_turnaround = DecimalField(default=0, max_digits=5, decimal_places=2)
     adjustment_task_weight = IntegerField(default=0)
     task_weight = IntegerField(default=0)
+    escrow_disabled = BooleanField(default=False, db_index=True)
     expected_turnaround = DecimalField(
         validators=[MinValueValidator(settings.MINIMUM_TURNAROUND)],
         help_text="Number of days completion is expected to take.",

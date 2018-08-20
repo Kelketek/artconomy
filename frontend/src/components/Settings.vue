@@ -478,6 +478,12 @@
       window.settings = this
       artCall('/api/sales/v1/pricing-info/', 'GET', undefined, this.loadPricing, this.$error)
     },
+    watch: {
+      '$root.user': function () {
+        // Prevent any changes to the user model from causing surprises when updating settings.
+        this.settingsModel = JSON.parse(JSON.stringify(this.$root.user))
+      }
+    },
     computed: {
       tab: paramHandleMap('tabName', ['subTabName']),
       paymentTab: paramHandleMap('subTabName', undefined, ['tab-purchase', 'tab-disbursement', 'tab-transactions'], 'tab-purchase'),

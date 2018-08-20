@@ -30,9 +30,17 @@
                   <li>Character Profiles</li>
                   <li>Stores for artists to sell commissions</li>
                   <li>Artist availability tracking</li>
-                  <li>Escrow services for commissions-- artists don't get paid unless the work is complete, and commissioners cannot back out once they've sent payment</li>
+                  <li><router-link
+                      :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}"
+                  >
+                    Artconomy Shield's escrow
+                  </router-link> for commissions-- artists don't get paid unless the work is complete, and commissioners cannot back out once they've sent payment</li>
                   <li>Contract agreements for both parties to refer to in case disagreements arrise</li>
-                  <li>Dispute resolution services between artists and commissioners</li>
+                  <li>                  <router-link
+                      :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}"
+                  >
+                    Artconomy Shield's dispute resolution
+                  </router-link> services between artists and commissioners</li>
                   <li>Character transfers/sales</li>
                   <li>...And more!</li>
                 </ul>
@@ -45,8 +53,26 @@
               <v-card-text>
                 <p>Artconomy is <strong>FREE</strong> to use. Your character gallery is <strong>FREE</strong>, running a shop as an artist is <strong>FREE</strong>.</p>
 
-                <p>Artconomy only collects fees for premium services and upon actual sales. It costs you nothing to get
-                  started commissioning on Artconomy, and artists pay fees for completed sales.</p>
+                <p>Artconomy only collects fees for premium services and upon actual sales using                   <router-link
+                    :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}"
+                >
+                  Artconomy Shield
+                  </router-link>. It costs you nothing to get
+                    started commissioning on Artconomy, and artists pay fees for completed sales using                   <router-link
+                        :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}"
+                  >
+                    Artconomy Shield.
+                  </router-link>
+                </p>
+
+                <p>Sales without
+                  <router-link
+                    :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}"
+                  >
+                    Artconomy Shield
+                  </router-link>
+                  may be supported by ad revenue or by other means.
+                </p>
 
                 <p>We don't make money if our artists don't make money and our commissioners aren't served.
                   This gives us an incentive to make the best platform we can for both groups.</p>
@@ -115,14 +141,31 @@
                   the price if they are willing to complete the piece or reject the order if they are not.
                 </p>
                 <p>
-                  Once the artist has approved your request, you will be able to pay for the order. We will hold onto
-                  the money until the artist completes the work. They may upload revisions for your approval. Please
-                  provide comments to the artist when revisions are uploaded to ensure the result is what you are hoping
-                  for.
+                  Once the artist has approved your request, you will be able to pay for the order. If the product is protected by
+                  <router-link
+                    :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}"
+                >
+                  Artconomy Shield
+                </router-link> We will hold onto
+                  the money until the artist completes the work. Otherwise, the artist will arrange with you how to pay them.
+                  They may upload revisions for your approval. Please provide comments to the artist when revisions are
+                  uploaded to ensure the result is what you are hoping for.
                 </p>
                 <p>
-                  Once the artist has completed the work, you may approve the final piece, and the artist will be paid.
-                  Then you can rate your artist, and add the final piece to your gallery if you like.
+                  Once the artist has completed the work, two things may happen:
+                </p>
+                <ul>
+                  <li>If using
+                    <router-link
+                      :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}"
+                    >
+                      Artconomy Shield
+                    </router-link>, you may approve the final piece, and the artist will be paid.
+                  </li>
+                  <li>Otherwise, the order will then be finalized.</li>
+                </ul>
+                <p>
+                   Then you can rate your artist, and add the final piece to your gallery if you like.
                 </p>
               </v-card-text>
             </v-card>
@@ -138,11 +181,25 @@
                       v-if="viewer.username"
                   >
                     configure your bank account
-                  </router-link><span v-else>configure your bank account</span> so that we can send you
-                  any money you earn. Please see the question below about bank accounts.
+                  </router-link><span v-else>configure your bank account</span> so that you can use                     <router-link
+                    :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}"
+                >
+                  Artconomy Shield
+                </router-link>. Please see the question below about bank accounts. If you cannot link a
+                  US Bank account, you can opt out of
+                  <router-link
+                    :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}"
+                  >
+                  Artconomy Shield</router-link>, but you will not have access to its protections and features, and your
+                  products will be marked to alert users that                     <router-link
+                    :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}"
+                >
+                  Artconomy Shield
+                </router-link> is not available. Your product and order pages may have ads on them to help pay for the
+                  cost of running the site.
                 </p>
                 <p>
-                  Once your banks account is set up, you may create a product. Click the 'My Products' link in the
+                  After this, you may create a product. Click the 'My Products' link in the
                   sidebar to create a product. Fill out the provided form and your product will be listed.
                 </p>
                 <p>
@@ -157,14 +214,23 @@
                   Finally, hit the approve button.
                 </p>
                 <p>
-                  The commissioner will then review the offer and pay for it if they find it acceptable.
+                  The commissioner will then review the offer and pay for it if they find it acceptable. If you are not using                     <router-link
+                    :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}"
+                >
+                  Artconomy Shield</router-link>, you will need to arrange payment with the customer manually.
                   You should then begin the work as soon as you are able, uploading any revisions along the way. When
                   you are finished, submit your final piece.
                 </p>
                 <p>
-                  The commissioner will then review and approve your work. Once approved, you will receive the money
-                  that has been held, minus Artconomy's fees.
+                  The commissioner will then review and approve your work. Once approved, you will receive any money
+                  that has been held by
+                  <router-link
+                    :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}"
+                  >
+                    Artconomy Shield
+                  </router-link>, minus Artconomy's fees.
                 </p>
+                <p>You will then be able to rate your customer and provide comments.</p>
               </v-card-text>
             </v-card>
           </v-expansion-panel-content>
@@ -173,7 +239,13 @@
             <v-card>
               <v-card-text>
                 <p>
-                  When a commission is finished, or an extended period between the task's acceptance and its
+                  When a commission with
+                  <router-link
+                      :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}"
+                  >
+                    Artconomy Shield
+                  </router-link>
+                   is finished, or an extended period between the task's acceptance and its
                   completion has elapsed, a commissioner will have the option to file a dispute. Disputes will come up
                   for review by our staff.
                 </p>
@@ -200,16 +272,79 @@
                   commission price. The commissioner is free to include any information about their commissioning
                   experience when rating the artist.
                 </p>
+                <p>
+                  <strong>Products without Artconomy Shield do not have dispute resolution services available.</strong>
+                </p>
               </v-card-text>
             </v-card>
           </v-expansion-panel-content>
           <v-expansion-panel-content>
-            <div slot="header"><strong>What banks can be linked to Artconomy?</strong></div>
+            <div slot="header"><strong>What is Artconomy Shield?</strong></div>
+            <v-card>
+              <v-card-text>
+                <p>
+                  <em><strong>Artconomy Shield</strong></em> is your protector against the uncertainties of commissioning art online!
+                </p>
+                <p>
+                  Products protected by Artconomy shield are guaranteed to be completed by the artist, and to be paid
+                  for by the commissioner. If there's an issue with a piece being commissioned, the commissioner may
+                  file a
+                  <router-link
+                      :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'disputes'}}"
+                  >
+                    dispute
+                  </router-link>
+                  for mediation.
+                </p>
+                <p>
+                  When you purchase a product with Artconomy shield, we hold onto your payment until the artist
+                  completes the work. <em><strong>If the artist does not complete the work, you receive your money back.</strong></em>
+                </p>
+                <p>
+                  When, as an artist, you list a product with Artconomy shield, you know the commissioner has already
+                  paid with their credit card and that they've agreed to our dispute mediation service.
+                  Unless a
+                  <router-link
+                    :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'disputes'}}"
+                  >
+                    dispute
+                  </router-link>
+                  is found in favor of your commissioner, <em><strong>your money will be deposited in your bank account once the
+                  commission is completed.</strong></em>
+                </p>
+                <p>
+                  Artists and commissioners who use Artconomy Shield help build trust in the artistic community.
+                  Artists who are unable to use Artconomy Shield (such as those without US Bank Accounts) can still
+                  list products and take orders on Artconomy, but must arrange payment with each other manually.
+                </p>
+                <p>
+                  Orders made without Artconomy Shield may also have ads on the product, profile, and order pages
+                  to help pay for the cost of providing Artconomy's service.
+                </p>
+                <p>
+                  <em><strong>
+                    Commissioning artists or taking orders without Artconomy Shield is done at your own risk, and
+                    Artconomy provides no guarantees for unshielded orders.</strong>
+                  </em>
+                </p>
+                <p>Look for the shield icon on products to see if they're shielded!</p>
+                <p><v-icon class="green--text">fa-shield</v-icon></p>
+              </v-card-text>
+            </v-card>
+          </v-expansion-panel-content>
+          <v-expansion-panel-content>
+            <div slot="header"><strong>What banks can be linked to Artconomy Shield?</strong></div>
             <v-card>
               <v-card-text>
                 <p>
                   At present, only US Bank accounts can be integrated with Artconomy. We are looking into ways to
-                  support European and other banks but do not currently have a method of doing so.
+                  support European and other banks but do not currently have a method of doing so. Artists must have a bank
+                  linked to use
+                  <router-link
+                      :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}"
+                  >
+                    Artconomy Shield.
+                  </router-link> However, Artconomy Shield is not required to list products and take orders on Artconomy.
                 </p>
               </v-card-text>
             </v-card>
@@ -286,7 +421,11 @@
                 <p>
                   Placeholder orders are not, however, fully featured orders in Artconomy. You cannot, for instance,
                   comment directly to your customers from them, take payment, or utilize Artconomy's dispute resolution
-                  services through Placeholder Orders. They are for tracking your workload only, and keeping track of
+                  services through <router-link
+                    :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}"
+                >
+                  Artconomy Shield.</router-link>
+                  They are for tracking your workload only, and keeping track of
                   any notes you may have while working on the projects you've made them for.
                 </p>
               </v-card-text>
@@ -359,10 +498,23 @@
                     commissions may find their accounts abruptly closed.</li>
                 </ul>
                 <p>
-                  Artconomy is built with the needs of commissioners and artists in mind, and specializes in the needs of both.
+                  <router-link
+                      :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}"
+                  >
+                    Artconomy Shield
+                  </router-link> is built with the needs of commissioners and artists in mind, and specializes in the needs of both.
                   PayPal's limitations also prevent it from being a backend for Artconomy to take payments, so we are
                   unable to accept payments via PayPal.
                 </p>
+                <p>
+                  Artists not using                   <router-link
+                    :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}"
+                >
+                  Artconomy Shield
+                </router-link> may elect to accept payment using PayPal, but will not be
+                  protected by our verification and dispute resolution.
+                </p>
+                <p></p>
               </v-card-text>
             </v-card>
           </v-expansion-panel-content>
@@ -435,6 +587,7 @@
                   </span>
                   for extra security, Especially if you are an artist!
                 </p>
+                <p>Do not share your account password with anyone. Artconomy staff will never ask for your password.</p>
               </v-card-text>
             </v-card>
           </v-expansion-panel-content>
@@ -715,7 +868,7 @@
 
   const about = ['what-is-artconomy', 'cost', 'team']
   const buySell = [
-    'how-to-buy', 'how-to-sell', 'disputes', 'bank-accounts',
+    'how-to-buy', 'how-to-sell', 'disputes', 'shield', 'bank-accounts',
     'workload-management', 'placeholder-orders', 'order-tokens',
     'why-commissions-disabled',
     'why-not-paypal', 'patreon-comparison', 'security',

@@ -165,7 +165,9 @@ class PlaceOrder(CreateAPIView):
         can_order, message, token = self.can_create(product, serializer)
         if not can_order:
             raise ValidationError({'errors': [message]})
-        order = serializer.save(product=product, buyer=self.request.user, seller=product.user)
+        order = serializer.save(
+            product=product, buyer=self.request.user, seller=product.user, escrow_disabled=product.user.escrow_disabled
+        )
         if token:
             token.delete()
         for character in order.characters.all():

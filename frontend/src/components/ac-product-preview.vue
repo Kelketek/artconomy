@@ -21,6 +21,12 @@
           </router-link> by
           <router-link :to="{name: 'Profile', params: {username: product.user.username, tabName: 'products'}}">
             {{ product.user.username }}
+            <router-link v-if="!product.user.escrow_disabled" :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}">
+              <v-tooltip bottom>
+                <v-icon slot="activator" class="green--text pl-2">fa-shield</v-icon>
+                <span>Protected by Artconomy Shield</span>
+              </v-tooltip>
+            </router-link>
           </router-link>
           <router-link :to="{name: 'Ratings', params: {username: product.user.username}}" v-if="product.user.stars">
             <ac-rating :value="product.user.stars" class="highlight-icon"></ac-rating>
