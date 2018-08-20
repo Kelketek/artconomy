@@ -87,6 +87,34 @@
           </v-flex>
         </v-layout>
       </v-card>
+      <v-card class="mt-3">
+        <v-card-text>
+          <v-layout row wrap>
+            <v-flex xs3 sm1 v-if="product.user.escrow_disabled">
+              <v-icon large class="yellow--text">warning</v-icon>
+            </v-flex>
+            <v-flex xs3 sm1 v-else>
+              <v-icon large class="green--text">fa-shield</v-icon>
+            </v-flex>
+            <v-flex xs9 sm11 text-xs-center v-if="product.user.escrow_disabled">
+              This product is not protected by
+              <router-link :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}">
+                Artconomy Shield.
+              </router-link>
+              Artconomy gives no guarantees on products ordered without Artconomy Shield, and <em><strong>ordering is at your own
+              risk</strong></em>. Your artist will instruct you on how to pay them.
+            </v-flex>
+            <v-flex xs9 sm11 text-xs-center v-else>
+              <p>
+                This product is protected by
+                  <router-link :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}">
+                    Artconomy Shield,
+                  </router-link> our escrow and dispute resolution service.
+              </p>
+            </v-flex>
+          </v-layout>
+        </v-card-text>
+      </v-card>
       <ac-form-dialog
           v-model="showImageUpdate"
           :title="`Update images for ${product.name}`"
