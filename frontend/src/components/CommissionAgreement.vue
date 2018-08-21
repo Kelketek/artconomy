@@ -19,10 +19,10 @@
           The artist will, to their abilities and earnest interpretation, render a work or works as specified in the product description (henceforth known as the deliverables) and the commissioner's notes. The artist is expected to have read and fully understood, to the best of their ability, the requirements of the commissioner before accepting the commission.
         </p>
         <p>
-          The commissioner will pay, up front, the amount agreed upon in the order form, to be held in escrow by Artconomy until the work is completed.
+          The commissioner will pay, up front, the amount agreed upon in the order form. This amount will be held in escrow by Artconomy until the work is completed, if the product is marked as covered by the Artconomy Shield escrow service.
         </p>
         <p>
-          Artconomy will release, upon completion of the project and approval of the commissioner (or a period of ten days after the deliverables are posted if no comment is made) the funds, minus their fees as scheduled with the artist to the artist.
+          If Arconomy Shield is used, Artconomy will release, upon completion of the project and approval of the commissioner (or a period of ten days after the deliverables are posted if no dispute is filed) the funds, minus their fees as scheduled with the artist to the artist.
         </p>
         <h2>Revisions</h2>
         <p>
@@ -30,7 +30,7 @@
         </p>
         <h2>Disputes</h2>
         <p>
-          At any time after the order is placed and before the commissioner's final approval, the commissioner may file a dispute with Artconomy. Artconomy will review the order agreement and history, and will determine how to resolve the dispute. Artconomy may, at its discretion, refund all or part of the price payed by the commissioner if they find in favor of the commissioner. The artist may be required to cover the transaction fees involved in refunding the customer.
+          At a time equal to 1.25x times the estimated turnaround time, (in business days), rounded up to the next day, after the order is placed or after a final is delivered to the commissioner and before the commissioner's final approval, the commissioner may file a dispute with Artconomy if the product is protected by Artconomy Shield. Artconomy will review the order agreement and history, and will determine how to resolve the dispute. Artconomy may, at its discretion, refund all or part of the price payed by the commissioner if they find in favor of the commissioner. The artist may be required to cover the transaction fees involved in refunding the customer.
         </p>
         <p>
           Examples of reasons for filing a dispute include but are not limited to:
@@ -44,6 +44,9 @@
         </p>
         <p>
           The commissioner and artist agree to consider the determination of Artconomy in disputes to be binding and final.
+        </p>
+        <p>
+          Orders not protected by Artconomy Shield (including any orders which have a price of $0.00), will not use Artconomy's escrow or dispute resolution services. Artists and commissioners not using Artconomy Shield will assume all risks involved in their transactions between one another.
         </p>
         <h2>Intellectual Property and Liability</h2>
         <p>

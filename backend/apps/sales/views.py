@@ -36,7 +36,7 @@ from apps.profiles.serializers import ImageAssetSerializer, UserSerializer
 from apps.sales.dwolla import add_bank_account, initiate_withdraw, perform_transfer, make_dwolla_account, \
     destroy_bank_account
 from apps.sales.permissions import OrderViewPermission, OrderSellerPermission, OrderBuyerPermission, \
-    OrderPlacePermission
+    OrderPlacePermission, EscrowPermission, EscrowDisabledPermission
 from apps.sales.models import Product, Order, CreditCardToken, PaymentRecord, Revision, BankAccount, CharacterTransfer, \
     PlaceholderSale, WEIGHTED_STATUSES, Rating, OrderToken
 from apps.sales.serializers import ProductSerializer, ProductNewOrderSerializer, OrderViewSerializer, CardSerializer, \
@@ -211,6 +211,31 @@ class OrderAccept(GenericAPIView):
         order.task_weight = order.product.task_weight
         order.expected_turnaround = order.product.expected_turnaround
         order.revisions = order.product.revisions
+        if order.total() <= Money('0', 'USD'):
+            order.status = Order.QUEUED
+            order.escrow_disabled = True
+        order.save()
+        data = self.serializer_class(instance=order, context=self.get_serializer_context()).data
+        notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
+        return Response(data)
+
+
+class MarkPaid(GenericAPIView):
+    permission_classes = [OrderSellerPermission, EscrowDisabledPermission]
+    serializer_class = OrderViewSerializer
+
+    def get_object(self):
+        return get_object_or_404(Order, id=self.kwargs['order_id'])
+
+    def post(self, request, **_kwargs):
+        order = self.get_object()
+        self.check_object_permissions(request, order)
+        if order.status != Order.PAYMENT_PENDING:
+            return Response(
+                {'error': 'You can only mark orders paid if they are waiting for payment.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        order.status = Order.QUEUED
         order.save()
         data = self.serializer_class(instance=order, context=self.get_serializer_context()).data
         notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
@@ -300,8 +325,11 @@ class OrderRevisions(ListCreateAPIView):
         revision = serializer.save(order=order, owner=self.request.user)
         order.refresh_from_db()
         if (order.revision_set.all().count() >= order.revisions + 1) and (order.status == Order.IN_PROGRESS):
-            order.status = Order.REVIEW
-            order.auto_finalize_on = (timezone.now() + relativedelta(days=5)).date()
+            if order.escrow_disabled:
+                order.status = Order.COMPLETED
+            else:
+                order.status = Order.REVIEW
+                order.auto_finalize_on = (timezone.now() + relativedelta(days=5)).date()
             order.save()
             notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
         else:
@@ -316,7 +344,10 @@ class DeleteOrderRevision(DestroyAPIView):
 
     def get_object(self):
         order = get_object_or_404(Order, id=self.kwargs['order_id'])
-        if order.status not in [Order.REVIEW, Order.IN_PROGRESS]:
+        statuses = [Order.REVIEW, Order.IN_PROGRESS]
+        if order.escrow_disabled:
+            statuses.append(Order.COMPLETED)
+        if order.status not in statuses:
             raise PermissionDenied("This order's revisions are locked.")
         revision = get_object_or_404(Revision, id=self.kwargs['revision_id'], order_id=self.kwargs['order_id'])
         self.check_object_permissions(self.request, order)
@@ -327,14 +358,14 @@ class DeleteOrderRevision(DestroyAPIView):
         super(DeleteOrderRevision, self).perform_destroy(instance)
         order = Order.objects.get(id=self.kwargs['order_id'])
         recall_notification(REVISION_UPLOADED, order, data={'revision': revision_id}, unique_data=True)
-        if order.status == Order.REVIEW:
+        if order.status in [Order.REVIEW, Order.COMPLETED]:
             order.auto_finalize_on = None
             order.status = Order.IN_PROGRESS
             order.save()
 
 
 class StartDispute(GenericAPIView):
-    permission_classes = [OrderBuyerPermission]
+    permission_classes = [OrderBuyerPermission, EscrowPermission]
     serializer_class = OrderViewSerializer
 
     def get_object(self):
@@ -388,7 +419,7 @@ class ClaimDispute(GenericAPIView):
 
 
 class OrderRefund(GenericAPIView):
-    permission_classes = [OrderSellerPermission]
+    permission_classes = [OrderSellerPermission, EscrowPermission]
     serializer_class = OrderViewSerializer
 
     def get_object(self):
@@ -399,6 +430,13 @@ class OrderRefund(GenericAPIView):
         self.check_object_permissions(self.request, order)
         if order.status not in [Order.QUEUED, Order.IN_PROGRESS, Order.REVIEW, Order.DISPUTED]:
             raise PermissionDenied('This order is not in a refundable state.')
+        if order.escrow_disabled or order.total() <= Money('0', 'USD'):
+            order.status = order.REFUNDED
+            notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
+            if request.user != order.seller:
+                notify(SALE_UPDATE, order, unique=True, mark_unread=True)
+            serializer = self.get_serializer(instance=order, context=self.get_serializer_context())
+            return Response(status=status.HTTP_200_OK, data=serializer.data)
         old_transaction = PaymentRecord.objects.get(
             object_id=order.id, content_type=ContentType.objects.get_for_model(order), payer=order.buyer,
             type=PaymentRecord.SALE
@@ -433,13 +471,12 @@ class OrderRefund(GenericAPIView):
         notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
         if request.user != order.seller:
             notify(SALE_UPDATE, order, unique=True, mark_unread=True)
-        serializer = self.get_serializer()
-        serializer.instance = order
+        serializer = self.get_serializer(instance=order, context=self.get_serializer_context())
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
 
 class ApproveFinal(GenericAPIView):
-    permission_classes = [OrderBuyerPermission]
+    permission_classes = [OrderBuyerPermission, EscrowPermission]
     serializer_class = OrderViewSerializer
 
     def get_object(self):
@@ -741,7 +778,7 @@ class MakePrimary(APIView):
 
 class MakePayment(GenericAPIView):
     serializer_class = PaymentSerializer
-    permission_classes = [OrderBuyerPermission]
+    permission_classes = [OrderBuyerPermission, EscrowPermission]
 
     def get_object(self):
         order = get_object_or_404(Order, id=self.kwargs['order_id'])

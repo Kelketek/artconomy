@@ -373,6 +373,7 @@ class TestSettings(APITestCase):
                 'taggable': True,
                 'auto_withdraw': True,
                 'commission_info': '',
+                'escrow_disabled': False
             }
         )
         self.user.refresh_from_db()

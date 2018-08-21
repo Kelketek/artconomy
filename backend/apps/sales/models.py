@@ -14,7 +14,7 @@ from authorize.data import CreditCard
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation, GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator, BaseValidator
 from django.db.models import Model, CharField, ForeignKey, IntegerField, BooleanField, DateTimeField, ManyToManyField, \
     TextField, SET_NULL, PositiveIntegerField, URLField, CASCADE, DecimalField, Sum, Avg, DateField, EmailField
 
@@ -24,6 +24,8 @@ from django.dispatch import receiver
 from django.template import Context, Template
 from django.template.loader import get_template
 from django.utils import timezone
+from django.utils.deconstruct import deconstructible
+from django.utils.translation import gettext_lazy as _
 from djmoney.models.fields import MoneyField
 from moneyed import Money
 
@@ -35,6 +37,15 @@ from apps.profiles.models import User
 from apps.sales.permissions import OrderViewPermission
 from apps.sales.apis import sauce
 from apps.sales.utils import update_availability
+
+
+@deconstructible
+class MinimumOrZeroValidator(BaseValidator):
+    message = _('Ensure this value is greater than or equal to %(limit_value)s, or is zero.')
+    code = 'min_or_zero'
+
+    def compare(self, a, b):
+        return (a > b) and b
 
 
 class Product(ImageModel):
@@ -51,7 +62,7 @@ class Product(ImageModel):
     )
     price = MoneyField(
         max_digits=6, decimal_places=2, default_currency='USD',
-        db_index=True, validators=[MinValueValidator(settings.MINIMUM_PRICE)]
+        db_index=True, validators=[MinimumOrZeroValidator(settings.MINIMUM_PRICE)]
     )
     tags = ManyToManyField('lib.Tag', related_name='products', blank=True)
     tags__max = 200
@@ -168,7 +179,7 @@ class Order(Model):
     auto_finalize_on = DateField(blank=True, null=True, db_index=True)
     arbitrator = ForeignKey(settings.AUTH_USER_MODEL, related_name='cases', null=True, blank=True, on_delete=SET_NULL)
     stream_link = URLField(blank=True, default='')
-    characters = ManyToManyField('profiles.Character')
+    characters = ManyToManyField('profiles.Character', blank=True)
     private = BooleanField(default=False)
     comments = GenericRelation(
         Comment, related_query_name='order', content_type_field='content_type', object_id_field='object_id'
@@ -670,6 +681,14 @@ class BankAccount(Model):
     def notification_serialize(self, context):
         from .serializers import BankAccountSerializer
         return BankAccountSerializer(instance=self).data
+
+
+@receiver(post_save, sender=BankAccount)
+def ensure_shield(sender, instance, created=False, **_kwargs):
+    if not created:
+        return
+    instance.user.escrow_disabled = False
+    instance.user.save()
 
 
 class CharacterTransfer(Model):

@@ -42,9 +42,13 @@
             </div>
           </div>
           <div class="price-container text-xs-center mt-2">
-            Starting at
-            <div class="price-highlight">
+            <span v-if="product.price > 0">Starting at</span>
+            <span v-else>Starts</span>
+            <div class="price-highlight" v-if="product.price > 0">
               <sup class="mini-dollar">$</sup>{{ product.price }}
+            </div>
+            <div v-else class="price-highlight">
+              FREE
             </div>
           </div>
         </div>

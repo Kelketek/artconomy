@@ -37,3 +37,23 @@ class OrderPlacePermission(BasePermission):
             return False
         if obj.user.commissions_closed:
             return False
+
+
+class EscrowPermission(BasePermission):
+    """
+    Only allow if Escrow is enabled on this order.
+    """
+    def has_object_permission(self, request, view, obj):
+        if obj.escrow_disabled:
+            return False
+        return True
+
+
+class EscrowDisabledPermission(BasePermission):
+    """
+    Only allow if Escrow is disabled on this order.
+    """
+    def has_object_permission(self, request, view, obj):
+        if obj.escrow_disabled:
+            return True
+        return False

@@ -32,7 +32,7 @@
         </v-layout>
       </v-card>
     </v-container>
-    <v-container v-if="order" grid-list-md>
+    <v-container v-if="order && order.characters.length" grid-list-md>
       <v-layout row wrap>
         <v-flex xs12 class="mb-2">
           <h2>Characters</h2>
@@ -45,6 +45,36 @@
             xs12 md4 lg3
         />
       </v-layout>
+    </v-container>
+    <v-container v-if="order">
+      <v-card class="mt-3">
+        <v-card-text>
+          <v-layout row wrap>
+            <v-flex xs3 sm1 v-if="order.escrow_disabled">
+              <v-icon large class="yellow--text">warning</v-icon>
+            </v-flex>
+            <v-flex xs3 sm1 v-else>
+              <v-icon large class="green--text">fa-shield</v-icon>
+            </v-flex>
+            <v-flex xs9 sm11 text-xs-center v-if="order.escrow_disabled">
+              This order is not protected by
+              <router-link :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}">
+                Artconomy Shield.
+              </router-link>
+              Artconomy gives no guarantees on products ordered without Artconomy Shield, and <em><strong>ordering is at your own
+              risk</strong></em>. <span v-if="price > 0">Your artist will instruct you on how to pay them.</span>
+            </v-flex>
+            <v-flex xs9 sm11 text-xs-center v-else>
+              <p>
+                This order is protected by
+                <router-link :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}">
+                  Artconomy Shield,
+                </router-link> our escrow and dispute resolution service.
+              </p>
+            </v-flex>
+          </v-layout>
+        </v-card-text>
+      </v-card>
     </v-container>
     <v-container v-if="order && order.product.user.commission_info">
       <v-card>
@@ -71,8 +101,8 @@
               <strong>Total: ${{price}}</strong> <br />
               <strong>Expected Turnaround: {{turnaround}} days</strong>
               <div v-if="seller && sellerData.user.percentage_fee !== null">
-                Artconomy service fee: -${{ fee }} <br />
-                <strong>Your payout: ${{ payout }}</strong> <br />
+                <span v-if="!order.escrow_disabled">Artconomy service fee: -${{ fee }} </span><br v-if="!order.escrow_disabled" />
+                <strong v-if="!order.escrow_disabled">Your payout: ${{ payout }}</strong> <br v-if="!order.escrow_disabled" />
                 <strong>Task weight: {{ weight }}</strong>
               </div>
             </div>
@@ -107,20 +137,22 @@
             <div v-if="seller && (newOrder)">
               <p><strong>Make any Price adjustments here, and then accept or reject the order.</strong></p>
               <p>Be sure to comment on the order about your price adjustments so the buyer will know the reasoning behind them.</p>
+              <p v-if="order.escrow_disabled"><strong>Be sure to let your customer know how to send you payment in the comments below!</strong></p>
               <div v-if="pricing">
-                <div v-if="!landscape">
+                <div v-if="!landscape && !order.escrow_disabled">
                   You'll earn <strong>${{landscapeDifference}}</strong> more from this commission if you upgrade to Artconomy Landscape!
                   <br />
                   <v-btn :to="{name: 'Upgrade'}" color="purple">Upgrade Now!</v-btn>
                 </div>
-                <div v-else>
+                <div v-else-if="!order.escrow_disabled">
                   Your Landscape subscription earns you <strong>${{landscapeDifference}}</strong> more than you would have earned on this commission otherwise!
                 </div>
               </div>
             </div>
             <div v-if="seller && paymentPending">
               <p><strong>We've notified the commissioner of your acceptance!</strong></p>
-              <p>We will notify you once they have paid for the commission. You are advised not to begin work until payment has been received. If needed, you may adjust the pricing until the comissioner pays.</p>
+              <p v-if="order.escrow_disabled">Make sure you've commented to let the commissioner know how to send payment to you. <strong>Hit the Mark Paid button below once you've received payment!</strong></strong></p>
+              <p v-else>We will notify you once they have paid for the commission. You are advised not to begin work until payment has been received. If needed, you may adjust the pricing until the comissioner pays.</p>
             </div>
             <div v-if="buyer && paymentPending">
               <p><strong>The artist has accepted your commission! Please pay below.</strong></p>
@@ -129,15 +161,18 @@
             <div v-if="seller && queued">
               <p><strong>Awesome! The commissioner has sent payment.</strong></p>
               <p>You should start work on the commission as soon as you can. If there are revisions to upload, you may upload them (and the final, when ready) below.</p>
-              <p>If for some reason you need to refund the customer, you may do so below. Note that refunding a customer has a $2.00 fee to cover costs with our payment processor.</p>
+              <p v-if="price > 0">If for some reason you need to refund the customer, you may do so below. <span v-if="!order.escrow_disabled">Note that refunding a customer has a $2.00 fee to cover costs with our payment processor.</span></p>
               <ac-action
                   variant="danger"
                   method="POST"
                   :url="`${this.url}refund/`"
                   :success="populateOrder"
                   class="refund-button"
+                  :confirm="true"
               >
-                Refund
+                <span v-if="order.escrow_disabled">Mark Refunded</span>
+                <span v-else-if="price > 0">Refund</span>
+                <span v-else>Cancel</span>
               </ac-action>
             </div>
             <div v-if="buyer && queued && !justPaid">
@@ -146,6 +181,15 @@
             </div>
             <div class="text-xs-center" v-if="newOrder || paymentPending">
               <ac-action class="cancel-order-button" :url="`${this.url}cancel/`" variant="danger" :success="populateOrder">Cancel</ac-action>
+              <ac-action class="accept-order-btn" v-if="paymentPending && seller && order.escrow_disabled" :confirm="true" :url="`${this.url}mark-paid/`" variant="success" :success="populateOrder">
+                Mark Paid
+                <div class="text-left" slot="confirmation-text">
+                  <p>
+                    Are you sure you understand the commissioner's requirements, and that you've received payment in the right amount? By accepting this order, you are confirming you
+                    understand and agree to the <router-link :to="{name: 'CommissionAgreement'}">Commission Agreement.</router-link>
+                  </p>
+                </div>
+              </ac-action>
               <ac-action class="accept-order-btn" v-if="newOrder && seller" :confirm="true" :url="`${this.url}accept/`" variant="success" :success="populateOrder">
                 Accept order
                 <div class="text-left" slot="confirmation-text">
@@ -167,7 +211,8 @@
                   :success="populateOrder"
                   class="refund-button"
               >
-                Refund
+                <span v-if="order.escrow_disabled">Mark Refunded</span>
+                <span v-else>Refund</span>
               </ac-action>
             </div>
             <div v-if="inProgress && buyer">
@@ -207,7 +252,7 @@
             <div v-if="completed && seller">
               <strong>Congratulations! You've completed the order</strong>
               <p>You can revisit this page at any time for your records.</p>
-              <p>Your payment will be transferred to your bank account unless you've opted out of automatic withdrawal.</p>
+              <p v-if="!order.escrow_disabled">Your payment will be transferred to your bank account unless you've opted out of automatic withdrawal.</p>
             </div>
             <div v-if="showDisputePeriod">
               <p>You may dispute this order for non-completion on {{formatDate(order.dispute_available_on)}}</p>
@@ -337,7 +382,7 @@
           <div class="text-xs-center text-section pb-2">
             Final delivered {{ formatDateTime(final.created_on)}}
             <ac-action
-                v-if="seller && review"
+                v-if="seller && (review || order.escrow_disabled)"
                 variant="danger"
                 method="DELETE"
                 :url="`${this.url}revisions/${final.id}/`"
@@ -633,12 +678,18 @@
         return ((this.viewer.username === this.order.seller.username) || this.viewer.is_staff)
       },
       fee () {
+        if (this.order.escrow_disabled) {
+          return 0
+        }
         return ((this.price * (this.sellerData.user.percentage_fee * 0.01)) + parseFloat(this.sellerData.user.static_fee)).toFixed(2)
       },
       payout () {
         return (this.price - this.fee).toFixed(2)
       },
       landscapeDifference () {
+        if (this.order.escrow_disabled) {
+          return 0
+        }
         let standardFee = ((this.price * (this.pricing.standard_percentage * 0.01)) + parseFloat(this.pricing.standard_static)).toFixed(2)
         let landscapeFee = ((this.price * (this.pricing.landscape_percentage * 0.01)) + parseFloat(this.pricing.landscape_static)).toFixed(2)
         return (parseFloat(standardFee) - parseFloat(landscapeFee)).toFixed(2)

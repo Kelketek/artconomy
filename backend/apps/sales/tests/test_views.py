@@ -1066,6 +1066,23 @@ class TestOrder(APITestCase):
         self.assertEqual(record.payee, None)
 
     @patch('apps.sales.models.sauce')
+    def test_pay_order_no_escrow(self, card_api):
+        self.login(self.user)
+        order = OrderFactory.create(
+            buyer=self.user, status=Order.QUEUED, price=Money('10.00', 'USD'),
+            adjustment=Money('2.00', 'USD'), escrow_disabled=True
+        )
+        response = self.client.post(
+            '/api/sales/v1/order/{}/pay/'.format(order.id),
+            {
+                'card_id': CreditCardTokenFactory.create(user=self.user).id,
+                'amount': '12.00',
+                'cvv': '100'
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    @patch('apps.sales.models.sauce')
     def test_pay_order_cvv_missing(self, card_api):
         self.login(self.user)
         order = OrderFactory.create(
@@ -1315,6 +1332,15 @@ class TestOrderStateChange(APITestCase):
 
     def test_cancel_order_staffer(self):
         self.state_assertion('staffer', 'cancel/', initial_status=Order.PAYMENT_PENDING)
+
+    def test_mark_paid_order_buyer_fail(self):
+        self.state_assertion('buyer', 'mark-paid/', status.HTTP_403_FORBIDDEN, initial_status=Order.PAYMENT_PENDING)
+
+    def test_mark_paid_order_seller(self):
+        self.state_assertion('buyer', 'mark-paid/', initial_status=Order.PAYMENT_PENDING)
+
+    def test_mark_paid_order_staffer(self):
+        self.state_assertion('buyer', 'mark-paid/', initial_status=Order.PAYMENT_PENDING)
 
     @override_settings(STANDARD_PERCENTAGE_FEE=Decimal('10'), STANDARD_STATIC_FEE=Decimal('1.00'))
     @patch('apps.sales.tasks.withdraw_all.delay')
