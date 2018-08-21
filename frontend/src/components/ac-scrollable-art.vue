@@ -1,10 +1,5 @@
 <template>
-  <v-container grid-list-md>
-    <v-layout>
-      <v-flex text-xs-center>
-        <h1>See recent art from your watchlist here!</h1>
-      </v-flex>
-    </v-layout>
+  <div>
     <v-layout row wrap v-if="growing">
       <ac-gallery-preview
           :asset="asset"
@@ -15,7 +10,7 @@
     </v-layout>
     <v-layout v-if="growing && growing.length === 0">
       <v-flex text-xs-center>
-        Your watchlist is empty, the artists you are watching have been tagged in no art, or
+        This list is empty, or
         all art is currently above your permitted ratings or on your blacklist.
       </v-flex>
     </v-layout>
@@ -23,7 +18,7 @@
       <div v-if="(growing !== null) && furtherPagination" v-observe-visibility="loadMore"></div>
       <div v-if="fetching"><i class="fa fa-spin fa-spinner fa-5x"></i></div>
     </v-flex>
-  </v-container>
+  </div>
 </template>
 
 <script>
@@ -31,15 +26,16 @@
   import Paginated from '../mixins/paginated'
   import { ObserveVisibility } from 'vue-observe-visibility'
   export default {
-    name: 'WatchListSubmissions',
+    name: 'ac-scrollable-art',
     mixins: [Paginated],
+    props: ['endpoint'],
     directives: {
       ObserveVisibility
     },
     components: {AcGalleryPreview},
     data () {
       return {
-        url: '/api/profiles/v1/watch-list-submissions/',
+        url: this.endpoint,
         growMode: true
       }
     },

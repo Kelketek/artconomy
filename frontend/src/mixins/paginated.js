@@ -10,7 +10,11 @@ export default {
     queryData: {default () { return {} }},
     counterName: {default: 'counter'},
     trackPages: {default: false},
-    tabName: {}
+    tabName: {},
+    showError: {default: false},
+    emptyError: {
+      default: 'We could not find anything which matched your request.'
+    }
   },
   data: function () {
     let defaults = {
@@ -68,8 +72,8 @@ export default {
         this.growing = response.results
       }
       this.fetching = false
-      if (this.growing.length === 0 && this.queryData.q && this.queryData.q.length) {
-        this.error = 'We could not find anything which matched your request.'
+      if (this.growing.length === 0 && ((this.queryData.q && this.queryData.q.length) || this.showError)) {
+        this.error = this.emptyError
       }
       EventBus.$emit('result-count', {name: this.counterName, count: this.count})
     },
@@ -80,7 +84,6 @@ export default {
         if (response.responseJSON && response.responseJSON.error) {
           this.error = response.responseJSON.error
         } else {
-          console.log('Erroring out.')
           this.$error(response)
         }
       }

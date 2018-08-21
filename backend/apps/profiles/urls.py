@@ -11,7 +11,7 @@ from apps.profiles.views import Register, CharacterListAPI, CharacterAssets, \
     AttributeManager, AttributeList, SessionSettings, AssetShare, CharacterShare, WatchUser, Watching, Watchers, \
     MessagesTo, MessagesFrom, MessageManager, MessageComments, LeaveConversation, BlockUser, StartPasswordReset, \
     TokenValidator, PasswordReset, Journals, JournalManager, JournalComments, SalesNotificationsList, \
-    UnreadNotifications, WatchListSubmissions, TOTPDeviceList, TOTPDeviceManager, Telegram2FA
+    UnreadNotifications, WatchListSubmissions, TOTPDeviceList, TOTPDeviceManager, Telegram2FA, RecentArt
 from apps.profiles.views import check_username, check_email, perform_login, perform_logout
 
 app_name = "profiles"
@@ -21,6 +21,7 @@ urlpatterns = [
     path('v1/session/settings/', SessionSettings.as_view(), name='session_settings'),
     path('v1/recent-submissions/', RecentSubmissions.as_view(), name='recent_submissions'),
     path('v1/recent-commissions/', RecentCommissions.as_view(), name='recent_commissions'),
+    path('v1/recent-art/', RecentArt.as_view(), name='recent_art'),
     path('v1/watch-list-submissions/', WatchListSubmissions.as_view(), name='watch_list_submissions'),
     path('v1/new-characters/', NewCharacters.as_view(), name='new_characters'),
     path('v1/form-validators/username/', check_username, name='username_validator'),

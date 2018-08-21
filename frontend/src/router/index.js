@@ -22,7 +22,7 @@ import Orders from '@/components/Orders'
 import Upgrade from '@/components/Upgrade'
 import FAQ from '@/components/FAQ'
 import Settings from '@/components/Settings'
-import WatchListSubmissions from '@/components/WatchListSubmissions'
+import RecentArt from '@/components/RecentArt'
 import Character from '@/components/Character'
 import Submission from '@/components/Submission'
 import Search from '@/components/Search'
@@ -63,9 +63,10 @@ export const routes = [
     component: Policies
   },
   {
-    path: '/watch-list/',
-    name: 'WatchListSubmissions',
-    component: WatchListSubmissions
+    path: '/recent-art/:tabName?/',
+    name: 'RecentArt',
+    props: true,
+    component: RecentArt
   },
   {
     path: '/legal-and-policies/character-transfer-agreement/',
@@ -127,8 +128,9 @@ export const routes = [
     props: true
   },
   {
-    path: '/who-is-open/',
+    path: '/who-is-open/:tabName?/',
     name: 'WhoIsOpen',
+    props: true,
     component: WhoIsOpen
   },
   {
