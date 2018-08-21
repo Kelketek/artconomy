@@ -9,7 +9,7 @@
     >
       <v-list dense>
         <v-list v-if="viewer && viewer.username">
-          <v-list-tile :to="{name: 'Home'}">Home</v-list-tile>
+          <v-list-tile to="/" exact>Home</v-list-tile>
           <v-list-tile :to="{name: 'WhoIsOpen'}">Who's Open?</v-list-tile>
           <v-list-tile :to="{name: 'WatchListSubmissions'}">Recent Art</v-list-tile>
           <v-list-tile :to="{name: 'Orders', params: {username: viewer.username}}">Orders</v-list-tile>
