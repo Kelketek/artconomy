@@ -33,7 +33,7 @@
         </v-flex>
       </v-layout>
     </v-card>
-    <store ref="productSearch" class="pt-2" endpoint="/api/sales/v1/new-products/" />
+    <store class="pt-2" endpoint="/api/sales/v1/new-products/" />
     <v-card>
       <v-layout row wrap>
         <v-flex xs12 class="pl-2">

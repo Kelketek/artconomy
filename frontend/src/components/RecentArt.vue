@@ -6,27 +6,39 @@
     </v-tabs>
     <v-tabs-items v-model="tab">
       <v-tab-item id="tab-watchlist">
-        <store class="pt-2" endpoint="/api/sales/v1/who-is-open/" counter-name="watchlist-open" :show-error="true" empty-error="No one on your watchlist is currently open." />
+        <ac-scrollable-art endpoint="/api/profiles/v1/watch-list-submissions/" counter-name="watchlist-art" />
       </v-tab-item>
       <v-tab-item id="tab-all">
-        <store class="pt-2" endpoint="/api/sales/v1/new-products/" :show-error="true" empty-error="There are no products currently open." />
+        <ac-scrollable-art endpoint="/api/profiles/v1/recent-art/"/>
       </v-tab-item>
     </v-tabs-items>
   </v-container>
 </template>
 
 <script>
-  import Store from './Store'
+  import AcGalleryPreview from './ac-gallery-preview'
   import Paginated from '../mixins/paginated'
+  import { ObserveVisibility } from 'vue-observe-visibility'
   import {paramHandleMap, EventBus} from '../lib'
-
+  import AcScrollableArt from './ac-scrollable-art'
   export default {
-    name: 'WhoIsOpen',
-    components: {Store},
+    name: 'RecentArt',
     mixins: [Paginated],
+    directives: {
+      ObserveVisibility
+    },
+    components: {AcScrollableArt, AcGalleryPreview},
+    data () {
+      return {
+        url: '/api/profiles/v1/watch-list-submissions/',
+        growMode: true
+      }
+    },
     methods: {
       resultCheck (data) {
-        if (data.name === 'watchlist-open') {
+        console.log('I ran!')
+        console.log(data)
+        if (data.name === 'watchlist-art') {
           if (data.count === 0) {
             this.tab = 'tab-all'
           }
@@ -45,7 +57,3 @@
     }
   }
 </script>
-
-<style scoped>
-
-</style>

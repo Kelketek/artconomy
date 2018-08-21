@@ -890,6 +890,13 @@ class RecentSubmissions(ListAPIView):
         return available_assets(self.request, self.request.user).filter(order__isnull=True).order_by('-created_on')
 
 
+class RecentArt(ListAPIView):
+    serializer_class = ImageAssetSerializer
+
+    def get_queryset(self):
+        return available_assets(self.request, self.request.user).order_by('-created_on')
+
+
 class NewCharacters(ListAPIView):
     serializer_class = CharacterSerializer
 
