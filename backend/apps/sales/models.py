@@ -45,7 +45,9 @@ class MinimumOrZeroValidator(BaseValidator):
     code = 'min_or_zero'
 
     def compare(self, a, b):
-        return (a > b) and b
+        if not a:
+            return False
+        return a < b
 
 
 class Product(ImageModel):
