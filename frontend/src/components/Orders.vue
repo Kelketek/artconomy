@@ -72,7 +72,6 @@
             <ac-placeholder-list :url="`${url}archived/placeholders/`" :username="username" />
           </v-tab-item>
         </v-tabs-items>
-        <ac-order-list :url="`${url}archived/`" :buyer="buyer" :username="username" />
       </v-tab-item>
       <v-tab-item id="tab-cancelled">
         <ac-order-list :url="`${url}cancelled/`" :buyer="buyer" :username="username" />

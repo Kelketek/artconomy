@@ -11,7 +11,7 @@ from apps.sales.views import ProductList, ProductManager, PlaceOrder, \
     AvailableHistory, CreateCharacterTransfer, RetrieveCharacterTransfer, CharacterTransferAssets, AcceptCharTransfer, \
     CancelCharTransfer, CharactersInbound, CharactersOutbound, CharactersArchive, NewProducts, WhoIsOpen, \
     CurrentPlaceholderSalesList, PlaceholderManager, SalesStats, PublishFinal, RateOrder, RatingList, PremiumInfo, \
-    Premium, CancelPremium, ProductOrderTokens, OrderTokenManager
+    Premium, CancelPremium, ProductOrderTokens, OrderTokenManager, MarkPaid
 
 app_name = 'sales'
 
@@ -32,6 +32,7 @@ urlpatterns = [
     path('v1/order/<int:order_id>/start/', OrderStart.as_view(), name='start_order'),
     path('v1/order/<int:order_id>/adjust/', AdjustOrder.as_view(), name='adjust_order'),
     path('v1/order/<int:order_id>/cancel/', OrderCancel.as_view(), name='cancel_order'),
+    path('v1/order/<int:order_id>/mark-paid/', MarkPaid.as_view(), name='mark_paid'),
     path('v1/order/<int:order_id>/pay/', MakePayment.as_view(), name='make_payment'),
     path('v1/order/<int:order_id>/approve/', ApproveFinal.as_view(), name='approve_final'),
     path('v1/order/<int:order_id>/dispute/', StartDispute.as_view(), name='approve_final'),

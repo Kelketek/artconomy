@@ -76,7 +76,8 @@ class ProductNewOrderSerializer(serializers.ModelSerializer):
             'order_token',
         )
         extra_kwargs = {
-            'order_token': {'write_only': True, 'read_only': False}
+            'order_token': {'write_only': True, 'read_only': False},
+            'characters': {'required': False},
         }
         read_only_fields = (
             'status', 'id', 'created_on'
@@ -103,7 +104,7 @@ class OrderViewSerializer(SubscribeMixin, serializers.ModelSerializer):
             'id', 'created_on', 'status', 'price', 'product', 'details', 'seller', 'buyer', 'adjustment', 'characters',
             'stream_link', 'revisions', 'outputs', 'private', 'subscribed', 'adjustment_task_weight',
             'adjustment_expected_turnaround', 'expected_turnaround', 'task_weight', 'paid_on', 'dispute_available_on',
-            'auto_finalize_on', 'started_on'
+            'auto_finalize_on', 'started_on', 'escrow_disabled',
         )
         read_only_fields = fields
 
