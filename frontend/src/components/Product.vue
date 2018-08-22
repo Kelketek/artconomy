@@ -8,6 +8,7 @@
                fab
                hover
                slot="activator"
+               large
                v-model="editing"
         >
           <v-icon v-if="editing">lock</v-icon>

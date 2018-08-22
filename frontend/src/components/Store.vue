@@ -8,9 +8,10 @@
            fixed
            right
            bottom
+           large
            @click="showNew=true"
     >
-      <v-icon large>add</v-icon>
+      <v-icon x-large>add</v-icon>
     </v-btn>
     <v-layout row wrap>
       <v-flex xs12 text-xs-center v-if="error">

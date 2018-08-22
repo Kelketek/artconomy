@@ -70,9 +70,10 @@
                fixed
                right
                bottom
+               large
                @click="newUploadModel.is_artist=true; showUpload=true"
         >
-          <v-icon large>add</v-icon>
+          <v-icon x-large>add</v-icon>
         </v-btn>
       </v-tab-item>
       <v-tab-item id="tab-favorites" v-if="!user.favorites_hidden || controls">
@@ -92,9 +93,10 @@
                fixed
                right
                bottom
+               large
                @click="newUploadModel.is_artist=false; showUpload=true"
         >
-          <v-icon large>add</v-icon>
+          <v-icon x-large>add</v-icon>
         </v-btn>
       </v-tab-item>
       <v-tab-item id="tab-watchlists">

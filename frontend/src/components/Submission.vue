@@ -41,6 +41,7 @@
                  fab
                  hover
                  slot="activator"
+                 large
           >
             <v-icon>menu</v-icon>
           </v-btn>

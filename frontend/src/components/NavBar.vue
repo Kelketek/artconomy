@@ -63,7 +63,7 @@
           <v-list-tile-title>Privacy and Legal</v-list-tile-title>
         </v-list-tile>
       </v-list>
-      <v-bottom-nav
+      <v-bottom-nav style="margin-top: -1em;"
       >
         <v-btn
             flat
@@ -71,7 +71,7 @@
             target="_blank"
         >
           <span>Twitter</span>
-          <v-icon>fa-twitter</v-icon>
+          <v-icon medium>fa-twitter</v-icon>
         </v-btn>
         <v-btn
             flat
@@ -79,7 +79,7 @@
             target="_blank"
         >
           <span>Facebook</span>
-          <v-icon>fa-facebook</v-icon>
+          <v-icon medium>fa-facebook</v-icon>
         </v-btn>
       </v-bottom-nav>
     </v-navigation-drawer>
