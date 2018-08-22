@@ -8,6 +8,7 @@
           fab
           hover
           slot="activator"
+          large
           v-model="speedDial"
         >
           <v-icon>menu</v-icon>

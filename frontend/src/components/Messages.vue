@@ -26,9 +26,10 @@
            fixed
            right
            bottom
+           large
            @click="showNew=true"
     >
-      <v-icon large>add</v-icon>
+      <v-icon x-large>add</v-icon>
     </v-btn>
   </v-container>
 </template>

@@ -84,9 +84,10 @@
            fixed
            right
            bottom
+           large
            @click="showNew=true"
     >
-      <v-icon large>add</v-icon>
+      <v-icon x-large>add</v-icon>
     </v-btn>
     <ac-form-dialog title="New Placeholder Sale" submit-text="Create" v-model="showNew"
                     ref="newPlaceholderForm" :schema="newPlaceholderSchema" :model="newPlaceholderModel"
