@@ -128,7 +128,7 @@
                     <h3 class="display-3">Try Artconomy Portrait!</h3>
                     <span class="subheading">Know when your favorite artists are open with Artconomy Portrait</span>
                     <v-divider class="my-3" />
-                    <v-btn large color="primary" class="mx-0">Notify Me!</v-btn>
+                    <v-btn large color="primary" class="mx-0" :to="{name: 'Upgrade'}">Notify Me!</v-btn>
                   </v-flex>
                 </v-layout>
               </v-container>
