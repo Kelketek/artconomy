@@ -551,7 +551,7 @@ class Message(Model):
         MessageRecipientRelationship.objects.filter(message=self).exclude(user=comment.user).update(read=False)
 
     def notification_name(self, context):
-        return "Message with subject: {}".format(self.subject)
+        return "message with subject: {}".format(self.subject)
 
     def notification_link(self, context):
         return {'name': 'Message', 'params': {'messageID': self.id, 'username': context['request'].user.username}}
