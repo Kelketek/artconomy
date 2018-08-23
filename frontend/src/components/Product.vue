@@ -98,12 +98,14 @@
               <v-icon large class="green--text">fa-shield</v-icon>
             </v-flex>
             <v-flex xs9 sm11 text-xs-center v-if="product.user.escrow_disabled">
-              This product is not protected by
-              <router-link :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}">
-                Artconomy Shield.
-              </router-link>
-              Artconomy gives no guarantees on products ordered without Artconomy Shield, and <em><strong>ordering is at your own
-              risk</strong></em>. Your artist will instruct you on how to pay them.
+              <p>
+                This product is not protected by
+                <router-link :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}">
+                  Artconomy Shield.
+                </router-link>
+                Artconomy gives no guarantees on products ordered without Artconomy Shield, and <em><strong>ordering is at your own
+                risk</strong></em>. Your artist will instruct you on how to pay them.
+              </p>
             </v-flex>
             <v-flex xs9 sm11 text-xs-center v-else>
               <p>

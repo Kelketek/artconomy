@@ -19,6 +19,11 @@ img {
   font-weight: bold
 }
 
+#app p a, #app ul a, #app ol a, #app .v-jumbotron__content a{
+  color: #fff;
+  text-decoration: underline;
+}
+
 .clickable {
   cursor: pointer;
 }

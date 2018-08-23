@@ -39,8 +39,7 @@
                   <li>                  <router-link
                       :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}"
                   >
-                    Artconomy Shield's dispute resolution
-                  </router-link> services between artists and commissioners</li>
+                    Artconomy Shield's dispute resolution</router-link> services between artists and commissioners</li>
                   <li>Character transfers/sales</li>
                   <li>...And more!</li>
                 </ul>
@@ -291,9 +290,7 @@
                   file a
                   <router-link
                       :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'disputes'}}"
-                  >
-                    dispute
-                  </router-link>
+                  >dispute</router-link>
                   for mediation.
                 </p>
                 <p>
@@ -306,9 +303,7 @@
                   Unless a
                   <router-link
                     :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'disputes'}}"
-                  >
-                    dispute
-                  </router-link>
+                  >dispute</router-link>
                   is found in favor of your commissioner, <em><strong>your money will be deposited in your bank account once the
                   commission is completed.</strong></em>
                 </p>
@@ -342,9 +337,7 @@
                   linked to use
                   <router-link
                       :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}"
-                  >
-                    Artconomy Shield.
-                  </router-link> However, Artconomy Shield is not required to list products and take orders on Artconomy.
+                  >Artconomy Shield.</router-link> However, Artconomy Shield is not required to list products and take orders on Artconomy.
                 </p>
               </v-card-text>
             </v-card>
@@ -362,9 +355,7 @@
                   <router-link
                       :to="{name: 'Settings', params: {username: viewer.username, tabName: 'options'}}"
                       v-if="viewer.username"
-                  >
-                    Maximum Load, configurable in your settings.
-                  </router-link>
+                  >Maximum Load, configurable in your settings.</router-link>
                   <span v-else>
                     Maximum Load, configurable in your settings.
                   </span>
@@ -509,9 +500,8 @@
                 <p>
                   Artists not using                   <router-link
                     :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}"
-                >
-                  Artconomy Shield
-                </router-link> may elect to accept payment using PayPal, but will not be
+                >Artconomy Shield</router-link>
+                  may elect to accept payment using PayPal, but will not be
                   protected by our verification and dispute resolution.
                 </p>
                 <p></p>
@@ -580,8 +570,7 @@
                   <router-link
                       v-if="viewer.username"
                       :to="{name: 'Settings', params: {username: viewer.username, tabName: 'credentials', subTabName: 'two-factor'}}">
-                    Two-factor authentication, configurable in your settings,
-                  </router-link>
+                    Two-factor authentication, configurable in your settings,</router-link>
                   <span v-else>
                     Two-factor authentication, configurable in your settings,
                   </span>
@@ -597,17 +586,16 @@
               <v-card-text>
                 <p>
                   After you have completed your tasks, the money you've earned will be released to your Artconomy
-                  account holdings. From here,
+                  account holdings. It will automatically be sent to your bank account, unless you have opted out of auto withdraw, in which case
                   <router-link
                       v-if="viewer.username"
                       :to="{name: 'Settings', params: {username: viewer.username, tabName: 'payment', subTabName: 'disbursement'}}"
                   >
-                    you may submit a withdrawal request.
-                  </router-link>
+                    you may submit a withdrawal request.</router-link>
                   <span v-else>
                     you may submit a withdrawal request.
                   </span>
-                  Payouts take 1-2 business days to complete. If you're having an issue with your payout, please email
+                  Payouts take 1-4 business days to complete. If you're having an issue with your payout, please email
                   support@artconomy.com.
                 </p>
               </v-card-text>

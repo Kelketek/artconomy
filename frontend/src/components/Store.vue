@@ -30,7 +30,7 @@
           <v-layout align-center>
             <v-flex>
               <h3 class="display-3">Sell your art!</h3>
-              <span class="subheading">Now that you have your disbursement account set up, you can create products to sell on Artconomy.</span>
+              <span class="subheading">Now that you have your payout settings configured, you can create products to sell on Artconomy.</span>
               <v-divider class="my-3" />
               <div class="mb-3"><span class="title">Create your first product now:</span></div>
               <v-btn large color="primary" class="mx-0" @click="showNew = true">New Product</v-btn>
@@ -43,8 +43,7 @@
       <v-flex xs12 v-if="isCurrent && !setUp && !embedded">
         <p>To open a store, you must first set up your
           <router-link :to="{name: 'Settings', params: {tabName: 'payment', 'username': this.viewer.username, 'subTabName': 'disbursement'}}">
-            deposit account.
-          </router-link>
+            payout settings.</router-link>
         </p>
       </v-flex>
     </v-layout>
@@ -59,12 +58,12 @@
                          :url="`/api/sales/v1/account/${this.username}/products/`"
       >
       <v-layout slot="header">
-        <v-flex text-xs-center v-if="price" xs6 md3 offset-md3>
+        <v-flex text-xs-center v-if="price && !user.escrow_disabled" xs6 md3 offset-md3>
             <strong>Price: ${{price}}</strong> <br />
             Artconomy service fee: -${{ fee }} <br />
             <strong>Your payout: ${{ payout }}</strong> <br />
         </v-flex>
-        <v-flex v-if="price && pricing" text-xs-center xs6 md3>
+        <v-flex v-if="price && pricing && !user.escrow_disabled" text-xs-center xs6 md3>
           <div v-if="!landscape">
             You'll earn <strong>${{landscapeDifference}}</strong> more from this commission if you upgrade to Artconomy Landscape!
             <br />
