@@ -1,7 +1,7 @@
 {% extends 'email_base.html' %}
-{% block header_message %}New Comment on {{ data.name }}{% endblock %}
+{% block header_message %}New Comment{% endblock %}
 {% block message %}
-There is a new comment on {{ name }}.
+There was a new comment on your {{data.name}}. View it via the link below!
 {% endblock message %}
 
 {% block action %}
