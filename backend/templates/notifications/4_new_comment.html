@@ -1,5 +1,5 @@
 {% extends 'email_base.html' %}
-{% block header_message %}New Comment on {{ name }}{% endblock %}
+{% block header_message %}New Comment on {{ data.name }}{% endblock %}
 {% block message %}
 There is a new comment on {{ name }}.
 {% endblock message %}
@@ -11,5 +11,5 @@ There is a new comment on {{ name }}.
     <a href="/orders/{{target.buyer.username}}/order/{{data.link.params.orderID}}/">View your sale here!</a>
 {% elif data.link.name == 'Sale' %}
     <a href="/sales/{{target.buyer.username}}/sale/{{data.link.params.orderID}}/">View your sale here!</a>
-{% endif %}}
+{% endif %}
 {% endblock %}
