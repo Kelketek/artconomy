@@ -110,8 +110,7 @@
               <p>
                 This product is protected by
                   <router-link :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}">
-                    Artconomy Shield,
-                  </router-link> our escrow and dispute resolution service.
+                    Artconomy Shield,</router-link> our escrow and dispute resolution service.
               </p>
             </v-flex>
           </v-layout>
@@ -154,9 +153,11 @@
         </div>
       </ac-asset-gallery>
       <v-card>
-        <v-layout row wrap v-if="product.user.commission_info">
-          <v-flex xs12 v-html="md.render(product.user.commission_info)" class="pl-2 pr-2"></v-flex>
-        </v-layout>
+        <v-card-text>
+          <v-layout row wrap v-if="product.user.commission_info">
+            <v-flex xs12 v-html="md.render(product.user.commission_info)" class="pl-2 pr-2"></v-flex>
+          </v-layout>
+        </v-card-text>
       </v-card>
       <div class="row-centered">
         <div class="col-12 pt-3 col-md-8 col-centered text-xs-center mb-3">
