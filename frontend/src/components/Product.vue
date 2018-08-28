@@ -101,8 +101,7 @@
               <p>
                 This product is not protected by
                 <router-link :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}">
-                  Artconomy Shield.
-                </router-link>
+                  Artconomy Shield.</router-link>
                 Artconomy gives no guarantees on products ordered without Artconomy Shield, and <em><strong>ordering is at your own
                 risk</strong></em>. Your artist will instruct you on how to pay them.
               </p>
@@ -163,8 +162,8 @@
         <div class="col-12 pt-3 col-md-8 col-centered text-xs-center mb-3">
           <v-flex v-if="isCurrent">
             <p>
-              Customers may view your product using this link if it is not hidden. If you need to allow a customer to
-              order even if this product is not normally available, add an order token below.
+              Customers may view your product if it is not hidden. If you need to allow a customer to
+              order even if your queue is full, add an order token below.
             </p>
             <p>
               This product is currently
