@@ -717,6 +717,19 @@ class TestOrder(APITestCase):
         order.refresh_from_db()
         self.assertEqual(order.adjustment, Money('2.03', 'USD'))
 
+    def test_accept_order(self):
+        self.login(self.user)
+        order = OrderFactory.create(seller=self.user)
+        response = self.client.patch(
+            '/api/sales/v1/order/{}/accept/'.format(order.id),
+            {
+                'adjustment': '2.03'
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        order.refresh_from_db()
+        self.assertEqual(order.adjustment, Money('2.03', 'USD'))
+
     def test_adjust_order_too_low(self):
         self.login(self.user)
         order = OrderFactory.create(seller=self.user, product__price=Money('15.00', 'USD'))

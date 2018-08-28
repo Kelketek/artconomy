@@ -116,16 +116,6 @@ class OrderStartedSerializer(OrderViewSerializer):
         read_only_fields = tuple(field for field in OrderViewSerializer.Meta.read_only_fields if field != 'stream_link')
 
 
-class OrderAcceptSerializer(OrderViewSerializer):
-    class Meta:
-        model = Order
-        fields = OrderViewSerializer.Meta.fields
-        read_only_fields = tuple(
-            field for field in OrderViewSerializer.Meta.read_only_fields
-            if field not in ['adjustment', 'adjustment_task_weight', 'adjustment_expected_turnaround']
-        )
-
-
 class OrderAdjustSerializer(OrderViewSerializer):
     def validate(self, attrs):
         errors = {}
