@@ -268,38 +268,38 @@ GR_CAPTCHA_PUBLIC_KEY = ENV_TOKENS.get('GR_CAPTCHA_PUBLIC_KEY', '')
 
 LOGGING = None
 
-# if 'test' in argv:
-#     LOGGING = {
-#         'version': 1,
-#         'disable_existing_loggers': False,
-#         'formatters': {
-#             'console': {
-#                 # exact format is not important, this is the minimum information
-#                 'format': '%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
-#             },
-#         },
-#         'handlers': {
-#             'console': {
-#                 'class': 'logging.StreamHandler',
-#                 'formatter': 'console',
-#             },
-#             'mail_admins': {
-#                 'level': 'ERROR',
-#                 'class': 'django.utils.log.AdminEmailHandler',
-#             }
-#         },
-#         'loggers': {
-#             # root logger
-#             'bok_choy': {
-#                 'level': 'DEBUG',
-#                 'handlers': ['console'],
-#             },
-#             '': {
-#                 'level': 'DEBUG',
-#                 'handlers': ['console'],
-#             }
-#         },
-#     }
+if 'test' in argv:
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'console': {
+                # exact format is not important, this is the minimum information
+                'format': '%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+            },
+        },
+        'handlers': {
+            'console': {
+                'class': 'logging.StreamHandler',
+                'formatter': 'console',
+            },
+            'mail_admins': {
+                'level': 'ERROR',
+                'class': 'django.utils.log.AdminEmailHandler',
+            }
+        },
+        'loggers': {
+            # root logger
+            'bok_choy': {
+                'level': 'DEBUG',
+                'handlers': ['console'],
+            },
+            '': {
+                'level': 'DEBUG',
+                'handlers': ['console'],
+            }
+        },
+    }
 
 if ('test' not in argv) and ('runserver' not in argv):
 
