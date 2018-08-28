@@ -43,7 +43,7 @@ from apps.sales.serializers import ProductSerializer, ProductNewOrderSerializer,
     NewCardSerializer, OrderAdjustSerializer, PaymentSerializer, RevisionSerializer, OrderStartedSerializer, \
     AccountBalanceSerializer, BankAccountSerializer, WithdrawSerializer, PaymentRecordSerializer, \
     CharacterTransferSerializer, PlaceholderSaleSerializer, PublishFinalSerializer, RatingSerializer, \
-    ServicePaymentSerializer, ProductDetailSerializer, OrderTokenSerializer, OrderAcceptSerializer
+    ServicePaymentSerializer, ProductDetailSerializer, OrderTokenSerializer
 from apps.sales.utils import translate_authnet_error, available_products, service_price, set_service, \
     check_charge_required, available_products_by_load, finalize_order, available_products_from_user
 from apps.sales.tasks import renew
@@ -194,7 +194,7 @@ class OrderRetrieve(RetrieveAPIView):
 
 class OrderAccept(UpdateAPIView):
     permission_classes = [OrderSellerPermission]
-    serializer_class = OrderAcceptSerializer
+    serializer_class = OrderAdjustSerializer
 
     def get_object(self):
         order = get_object_or_404(Order, id=self.kwargs['order_id'])

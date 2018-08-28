@@ -43,7 +43,6 @@ class BaseWebAppTest(LiveServerTestCase, WebAppTest):
             self.display = None
         os.environ['LIVE_SERVER_URL'] = self.live_server_url
         os.environ['SCREENSHOT_DIR'] = os.path.join(settings.BACKEND_ROOT, 'conf', 'logs')
-        print(os.environ['SCREENSHOT_DIR'])
         os.environ['SELENIUM_DRIVER_LOG_DIR'] = os.environ['SCREENSHOT_DIR']
         super(BaseWebAppTest, self).setUp()
         if not hasattr(self.server_thread, '_children'):
