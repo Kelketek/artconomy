@@ -39,26 +39,6 @@
               <span class="subheading">Add your account information so that we can send you the money you earn through Artconomy.</span>
               <v-divider class="my-3" />
               <v-btn large color="primary" class="mx-0" @click="showNewBank = true">Get Started</v-btn>
-              <v-divider class="my-3" />
-              <span class="subheading">If you don't have a US Bank account, you can still list products on Artconomy and
-                take orders, but you will need to disable
-                <router-link :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}">
-                  Artconomy Shield.
-                </router-link>
-              </span>
-              <v-divider class="my-3" />
-              <ac-patchbutton large
-                         :url="`/api/profiles/v1/account/${this.user.username}/settings/`"
-                         method="PATCH" class="mx-0"
-                         :success="updateUser"
-                          name="escrow_disabled"
-                          v-model="user.escrow_disabled"
-                          true-text="Disable Shielding"
-                          true-variant="success"
-                          false-text="Re-enable Shielding"
-              />
-              <v-divider class="my-3" v-if="user.escrow_disabled" />
-              <span class="subheading" v-if="user.escrow_disabled">You may now <router-link :to="{name: 'Store', params: {username: user.username}}">set up products.</router-link></span>
             </v-flex>
           </v-layout>
         </v-container>
@@ -75,6 +55,31 @@
         <p>Consent for bank transfers may be revoked by removing the bank information from your account.</p>
       </v-flex>
     </ac-form-dialog>
+    <v-flex xs12 v-if="accounts !== null && accounts.length === 0">
+      <v-card class="mt-3">
+        <v-card-text>
+          <p>
+            <span class="subheading">If you don't have a US Bank account, you can still list products on Artconomy and
+                    take orders, but you will need to disable
+                    <router-link :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}">
+                      Artconomy Shield.</router-link>
+            </span>
+          </p>
+          <ac-patchbutton large
+                          :url="`/api/profiles/v1/account/${this.user.username}/settings/`"
+                          method="PATCH" class="mx-0"
+                          :success="updateUser"
+                          name="escrow_disabled"
+                          v-model="user.escrow_disabled"
+                          true-text="Disable Shielding"
+                          true-variant="success"
+                          false-text="Re-enable Shielding"
+          />
+          <v-divider class="my-3" v-if="user.escrow_disabled" />
+          <span class="subheading" v-if="user.escrow_disabled">You may now <router-link :to="{name: 'Store', params: {username: user.username}}">set up products.</router-link></span>
+        </v-card-text>
+      </v-card>
+    </v-flex>
   </v-layout>
 </template>
 
