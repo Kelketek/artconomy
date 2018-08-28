@@ -271,7 +271,7 @@
         if (!this.isCurrent) {
           return true
         }
-        return this.user.dwolla_configured
+        return this.user.dwolla_configured || this.user.escrow_disabled
       },
       fee () {
         return ((this.price * (this.user.percentage_fee * 0.01)) + parseFloat(this.user.static_fee)).toFixed(2)
