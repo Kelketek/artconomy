@@ -6,6 +6,7 @@ EXPOSE 8002
 ENV PYTHONUNBUFFERED 1
 WORKDIR /root
 RUN apt-get update
+RUN apt-get update --fix-missing
 RUN apt-get install apt-utils python3-pip python3-dev build-essential npm firefox curl git xvfb wget psmisc -y
 RUN curl -sL https://deb.nodesource.com/setup_9.x | bash -
 RUN apt-get install -y nodejs
