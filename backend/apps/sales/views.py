@@ -43,7 +43,7 @@ from apps.sales.serializers import ProductSerializer, ProductNewOrderSerializer,
     NewCardSerializer, OrderAdjustSerializer, PaymentSerializer, RevisionSerializer, OrderStartedSerializer, \
     AccountBalanceSerializer, BankAccountSerializer, WithdrawSerializer, PaymentRecordSerializer, \
     CharacterTransferSerializer, PlaceholderSaleSerializer, PublishFinalSerializer, RatingSerializer, \
-    ServicePaymentSerializer, ProductDetailSerializer, OrderTokenSerializer
+    ServicePaymentSerializer, ProductDetailSerializer, OrderTokenSerializer, OrderAcceptSerializer
 from apps.sales.utils import translate_authnet_error, available_products, service_price, set_service, \
     check_charge_required, available_products_by_load, finalize_order, available_products_from_user
 from apps.sales.tasks import renew
@@ -192,20 +192,19 @@ class OrderRetrieve(RetrieveAPIView):
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
 
-class OrderAccept(GenericAPIView):
+class OrderAccept(UpdateAPIView):
     permission_classes = [OrderSellerPermission]
-    serializer_class = OrderViewSerializer
+    serializer_class = OrderAcceptSerializer
 
     def get_object(self):
-        return get_object_or_404(Order, id=self.kwargs['order_id'])
-
-    def post(self, request, **_kwargs):
-        order = self.get_object()
-        self.check_object_permissions(request, order)
+        order = get_object_or_404(Order, id=self.kwargs['order_id'])
+        self.check_object_permissions(self.request, order)
         if order.status != Order.NEW:
-            return Response(
-                {'error': "Approval can only be applied to new orders."}, status=status.HTTP_400_BAD_REQUEST
-            )
+            self.permission_denied(self.request, "Approval can only be applied to new orders.")
+        return order
+
+    def perform_update(self, serializer):
+        order = serializer.save()
         order.status = Order.PAYMENT_PENDING
         order.price = order.product.price
         order.task_weight = order.product.task_weight

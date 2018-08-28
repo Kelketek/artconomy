@@ -1301,25 +1301,27 @@ class TestOrderStateChange(APITestCase):
         self.final = RevisionFactory.create(order=self.order, rating=ADULT)
         self.url = '/api/sales/v1/order/{}/'.format(self.order.id)
 
-    def state_assertion(self, user_attr, url_ext='', target_response_code=status.HTTP_200_OK, initial_status=None):
+    def state_assertion(
+            self, user_attr, url_ext='', target_response_code=status.HTTP_200_OK, initial_status=None, method='post'
+    ):
         if initial_status is not None:
             self.order.status = initial_status
             self.order.save()
         self.login(getattr(self, user_attr))
-        response = self.client.post(self.url + url_ext)
+        response = getattr(self.client, method)(self.url + url_ext)
         self.assertEqual(response.status_code, target_response_code)
 
     def test_accept_order(self):
-        self.state_assertion('seller', 'accept/')
+        self.state_assertion('seller', 'accept/', method='patch')
 
     def test_accept_order_buyer_fail(self):
-        self.state_assertion('buyer', 'accept/', status.HTTP_403_FORBIDDEN)
+        self.state_assertion('buyer', 'accept/', status.HTTP_403_FORBIDDEN, method='patch')
 
     def test_accept_order_outsider(self):
-        self.state_assertion('outsider', 'accept/', status.HTTP_403_FORBIDDEN)
+        self.state_assertion('outsider', 'accept/', status.HTTP_403_FORBIDDEN, method='patch')
 
     def test_accept_order_staffer(self):
-        self.state_assertion('staffer', 'accept/')
+        self.state_assertion('staffer', 'accept/', method='patch')
 
     def test_cancel_order(self):
         self.state_assertion('seller', 'cancel/', initial_status=Order.NEW)
@@ -1334,13 +1336,19 @@ class TestOrderStateChange(APITestCase):
         self.state_assertion('staffer', 'cancel/', initial_status=Order.PAYMENT_PENDING)
 
     def test_mark_paid_order_buyer_fail(self):
+        self.order.escrow_disabled = True
+        self.order.save()
         self.state_assertion('buyer', 'mark-paid/', status.HTTP_403_FORBIDDEN, initial_status=Order.PAYMENT_PENDING)
 
     def test_mark_paid_order_seller(self):
-        self.state_assertion('buyer', 'mark-paid/', initial_status=Order.PAYMENT_PENDING)
+        self.order.escrow_disabled = True
+        self.order.save()
+        self.state_assertion('seller', 'mark-paid/', initial_status=Order.PAYMENT_PENDING)
 
     def test_mark_paid_order_staffer(self):
-        self.state_assertion('buyer', 'mark-paid/', initial_status=Order.PAYMENT_PENDING)
+        self.order.escrow_disabled = True
+        self.order.save()
+        self.state_assertion('staffer', 'mark-paid/', initial_status=Order.PAYMENT_PENDING)
 
     @override_settings(STANDARD_PERCENTAGE_FEE=Decimal('10'), STANDARD_STATIC_FEE=Decimal('1.00'))
     @patch('apps.sales.tasks.withdraw_all.delay')

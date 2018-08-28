@@ -190,7 +190,7 @@
                   </p>
                 </div>
               </ac-action>
-              <ac-action class="accept-order-btn" v-if="newOrder && seller" :confirm="true" :url="`${this.url}accept/`" variant="success" :success="populateOrder">
+              <ac-action class="accept-order-btn" v-if="newOrder && seller" :confirm="true" :url="`${this.url}accept/`" variant="success" :success="populateOrder" method="PATCH" :send="adjustmentModel">
                 Accept order
                 <div class="text-left" slot="confirmation-text">
                   <p>
