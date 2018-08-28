@@ -4,6 +4,13 @@
       <p><strong>Escrow Balance: ${{response.escrow}}</strong></p>
       <p><strong>Pending Balance: ${{response.pending}}</strong></p>
       <p><strong>Available Balance: ${{response.available}}</strong></p>
+      <p>
+        If auto-withdraw is enabled, available balance may always be 0, as transfers are started automatically.
+        Please check your
+        <router-link :to="{name: 'Settings', params: {tabName: 'payment', subTabName: 'transactions', tertiaryTabName: 'available'}}">t
+          ransaction history
+        </router-link> for more details.
+      </p>
     </v-flex>
     <v-flex xs12 v-if="parseFloat(response.available) && accounts !== null && accounts.length !== 0">
       <v-btn color="primary" @click="showWithdraw = true">Withdraw Funds</v-btn>
