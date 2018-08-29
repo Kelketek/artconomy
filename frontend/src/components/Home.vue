@@ -9,6 +9,8 @@
                 <h1>Bring your characters to life</h1>
                 <h2>by commissioning artists</h2>
                 <v-btn color="primary" class="mt-2" :to="{name: 'Login', params: {tabName: 'register'}}">Get Started</v-btn>
+                or
+                <v-btn color="purple" class="mt-2" @click="$vuetify.goTo('#intro-start', {offset: -60})">Learn More</v-btn>
               </v-flex>
             </v-layout>
           </v-container>
@@ -56,7 +58,7 @@
     />
     </v-container>
     <v-container v-if="viewer !== null && !viewer.username">
-      <v-layout row wrap>
+      <v-layout row wrap id="intro-start">
         <v-flex xs12 text-xs-center>
           <img class="home-logo" src="/static/images/logo.svg"/>
         </v-flex>
