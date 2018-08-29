@@ -68,8 +68,7 @@
                   <router-link
                     :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}"
                   >
-                    Artconomy Shield
-                  </router-link>
+                    Artconomy Shield</router-link>
                   may be supported by ad revenue or by other means.
                 </p>
 
@@ -158,8 +157,7 @@
                     <router-link
                       :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}"
                     >
-                      Artconomy Shield
-                    </router-link>, you may approve the final piece, and the artist will be paid.
+                      Artconomy Shield,</router-link> you may approve the final piece, and the artist will be paid.
                   </li>
                   <li>Otherwise, the order will then be finalized.</li>
                 </ul>
@@ -226,8 +224,7 @@
                   <router-link
                     :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}"
                   >
-                    Artconomy Shield
-                  </router-link>, minus Artconomy's fees.
+                    Artconomy Shield,</router-link> minus fees.
                 </p>
                 <p>You will then be able to rate your customer and provide comments.</p>
               </v-card-text>
@@ -242,8 +239,7 @@
                   <router-link
                       :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}"
                   >
-                    Artconomy Shield
-                  </router-link>
+                    Artconomy Shield</router-link>
                    is finished, or an extended period between the task's acceptance and its
                   completion has elapsed, a commissioner will have the option to file a dispute. Disputes will come up
                   for review by our staff.
@@ -382,8 +378,7 @@
                   <router-link
                       :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'why-commissions-disabled'}}"
                   >
-                    'Why are my Commissions Disabled?'
-                  </router-link>
+                    'Why are my Commissions Disabled?'</router-link>
                   for more information as to why this may happen.
                 </p>
                 <p>
@@ -407,7 +402,9 @@
                 </p>
                 <p>
                   Placeholder orders allow you to keep track of these projects and have them count against your
-                  current load in AWOO so that customers don't commission you when you're already too busy.
+                  current load in
+                  <router-link :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'awoo-workload-management'}}">
+                    AWOO</router-link> so that customers don't commission you when you're already too busy.
                 </p>
                 <p>
                   Placeholder orders are not, however, fully featured orders. You cannot, for instance,
@@ -428,14 +425,17 @@
               <v-card-text>
                 <p>
                   Sometimes you may have a special project or in person sale which you want to track fully through
-                  AWOO but it would normally not be allowed via your load settings or because your commissions are
+                  <router-link :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'awoo-workload-management'}}">
+                    AWOO</router-link> but it would normally not be allowed via your load settings or because your commissions are
                   marked closed. For example, if you're at a convention and taking commissions from con-goers, you might
                   not want commissions created during the event to be restricted, since you'll be doing them
                   within days or hours and returning to your normal workload when you return home.
                 </p>
                 <p>
                   Artconomy allows you to send an Order Token to an email address of your choice. Users can then use the
-                  token to place an order when they otherwise could not, and it will end up in you AWOO queue to
+                  token to place an order when they otherwise could not, and it will end up in your
+                  <router-link :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'awoo-workload-management'}}">
+                    AWOO</router-link> queue to
                   complete.
                 </p>
                 <p>
@@ -451,7 +451,9 @@
             <v-card>
               <v-card-text>
                 <p>
-                  AWOO uses a smart algorithm to help determine if you should be considered open for commissions.
+                  <router-link :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'awoo-workload-management'}}">
+                    AWOO</router-link>
+                  uses a smart algorithm to help determine if you should be considered open for commissions.
                   On your sales page, you will see information about your current commission status and any reasons
                   why you may not be open. Some of these reasons may include:
                 </p>
