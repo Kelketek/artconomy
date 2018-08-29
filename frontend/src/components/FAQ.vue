@@ -29,12 +29,12 @@
                 <ul>
                   <li>Character Profiles</li>
                   <li>Stores for artists to sell commissions</li>
-                  <li>Artist availability tracking</li>
+                  <li>Workload management through <router-link :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'awoo-workload-management'}}">AWOO</router-link></li>
                   <li><router-link
                       :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}"
                   >
-                    Artconomy Shield's escrow
-                  </router-link> for commissions-- artists don't get paid unless the work is complete, and commissioners cannot back out once they've sent payment</li>
+                    Artconomy Shield's
+                  </router-link>escrow for commissions-- artists don't get paid unless the work is complete, and commissioners cannot back out once they've sent payment</li>
                   <li>Contract agreements for both parties to refer to in case disagreements arrise</li>
                   <li>                  <router-link
                       :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}"
@@ -343,15 +343,15 @@
             </v-card>
           </v-expansion-panel-content>
           <v-expansion-panel-content>
-            <div slot="header"><strong>How can I manage my workload with Artconomy's tools?</strong></div>
+            <div slot="header"><strong>What is AWOO and how can it help me manage my workload?</strong></div>
             <v-card>
               <v-card-text>
                 <p>
                   Artconomy understand the problems artists have with managing their workload and communicating with
-                  commissioners. We've come up with a number of art-specific tools to help with managing your workload.
+                  commissioners. That's why we created Artconomy Workload Organization and Overview (AWOO).
                 </p>
                 <p>
-                  Workload management begins with your
+                  AWOO begins with your
                   <router-link
                       :to="{name: 'Settings', params: {username: viewer.username, tabName: 'options'}}"
                       v-if="viewer.username"
@@ -364,7 +364,7 @@
                   you have five of them.
                 </p>
                 <p>
-                  Artconomy is able to track multiple products' workloads. If you also sell full color pieces and set
+                  AWOO is able to track multiple products' workloads. If you also sell full color pieces and set
                   their task weight as 5, you could have one full color commission and two sketches (totalling 9 points)
                   before commissions would close, since both a sketch and a full color would put your workload over 10
                   at that point. You could also have two full color commissions to use up all 10 points.
@@ -372,11 +372,11 @@
                 <p>
                   In addition to this, you may also specify the 'Max at Once' setting for a product. If you never want to
                   do more than two sketches at a time, you would set this to 2. This will make sure that if you already
-                  have two sketches accepted, Artconomy will delist sketches from your store so you don't receive more
+                  have two sketches accepted, AWOO will delist sketches from your store so you don't receive more
                   requests for them.
                 </p>
                 <p>
-                  Artconomy manages when you are considered 'open' for commissions, sending alerts to Portrait and
+                  AWOO manages when you are considered 'open' for commissions, sending alerts to Portrait and
                   Landscape subscribers when you are available. Note that you may still be closed for commissions even
                   if you have some workload to spare. See
                   <router-link
@@ -407,10 +407,10 @@
                 </p>
                 <p>
                   Placeholder orders allow you to keep track of these projects and have them count against your
-                  current load so that customers don't commission you when you're already too busy.
+                  current load in AWOO so that customers don't commission you when you're already too busy.
                 </p>
                 <p>
-                  Placeholder orders are not, however, fully featured orders in Artconomy. You cannot, for instance,
+                  Placeholder orders are not, however, fully featured orders. You cannot, for instance,
                   comment directly to your customers from them, take payment, or utilize Artconomy's dispute resolution
                   services through <router-link
                     :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}"
@@ -428,14 +428,15 @@
               <v-card-text>
                 <p>
                   Sometimes you may have a special project or in person sale which you want to track fully through
-                  Artconomy but it would normally not be allowed via your load settings or because your commissions are
+                  AWOO but it would normally not be allowed via your load settings or because your commissions are
                   marked closed. For example, if you're at a convention and taking commissions from con-goers, you might
                   not want commissions created during the event to be restricted, since you'll be doing them
                   within days or hours and returning to your normal workload when you return home.
                 </p>
                 <p>
                   Artconomy allows you to send an Order Token to an email address of your choice. Users can then use the
-                  token to place an order when they otherwise could not, and it will end up in your queue to complete.
+                  token to place an order when they otherwise could not, and it will end up in you AWOO queue to
+                  complete.
                 </p>
                 <p>
                   You are advised to be judicious when using Order Tokens-- if overused, they can cause you to be
@@ -450,7 +451,7 @@
             <v-card>
               <v-card-text>
                 <p>
-                  Artconomy uses a smart algorithm to help determine if you should be considered open for commissions.
+                  AWOO uses a smart algorithm to help determine if you should be considered open for commissions.
                   On your sales page, you will see information about your current commission status and any reasons
                   why you may not be open. Some of these reasons may include:
                 </p>
@@ -857,7 +858,7 @@
   const about = ['what-is-artconomy', 'cost', 'team']
   const buySell = [
     'how-to-buy', 'how-to-sell', 'disputes', 'shield', 'bank-accounts',
-    'workload-management', 'placeholder-orders', 'order-tokens',
+    'awoo-workload-management', 'placeholder-orders', 'order-tokens',
     'why-commissions-disabled',
     'why-not-paypal', 'patreon-comparison', 'security',
     'payouts', 'pending-balance', 'crypto-currencies', 'character-transfer',

@@ -2,6 +2,9 @@
   <div class="order-list">
     <v-layout row wrap text-xs-center v-if="stats && !buyer" class="mt-2 mb-2">
       <v-flex xs12 md6>
+        <h1>
+          <router-link style="text-decoration: underline;" :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'awoo-workload-management'}}">AWOO</router-link> Panel
+        </h1>
         <v-layout row wrap>
           <v-flex xs6>Max Load:</v-flex>
           <v-flex xs6>{{stats.max_load}}</v-flex>
