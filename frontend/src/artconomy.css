@@ -24,6 +24,10 @@ img {
   text-decoration: underline;
 }
 
+#app a.v-btn {
+  text-decoration: none;
+}
+
 .clickable {
   cursor: pointer;
 }
