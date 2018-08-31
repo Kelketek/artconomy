@@ -73,6 +73,14 @@
           <span>Twitter</span>
           <v-icon medium>fa-twitter</v-icon>
         </v-btn>
+        <v-btn
+            flat
+            href="mailto:support@artconomy.com"
+            target="_blank"
+        >
+          <span>Support</span>
+          <v-icon medium>contact_support</v-icon>
+        </v-btn>
         <!--<v-btn-->
             <!--flat-->
             <!--href="https://facebook.com/ArtconomyArt/"-->
