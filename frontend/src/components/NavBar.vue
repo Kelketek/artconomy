@@ -73,14 +73,14 @@
           <span>Twitter</span>
           <v-icon medium>fa-twitter</v-icon>
         </v-btn>
-        <v-btn
-            flat
-            href="https://facebook.com/ArtconomyArt/"
-            target="_blank"
-        >
-          <span>Facebook</span>
-          <v-icon medium>fa-facebook</v-icon>
-        </v-btn>
+        <!--<v-btn-->
+            <!--flat-->
+            <!--href="https://facebook.com/ArtconomyArt/"-->
+            <!--target="_blank"-->
+        <!--&gt;-->
+          <!--<span>Facebook</span>-->
+          <!--<v-icon medium>fa-facebook</v-icon>-->
+        <!--</v-btn>-->
       </v-bottom-nav>
     </v-navigation-drawer>
     <v-toolbar
