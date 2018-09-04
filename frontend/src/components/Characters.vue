@@ -5,7 +5,7 @@
         <p>{{error}}</p>
       </v-flex>
       <v-flex xs12 text-xs-center>
-        <v-pagination v-model="currentPage" :length="totalPages" v-if="totalPages > 1" />
+        <v-pagination v-model="currentPage" :length="totalPages" v-if="totalPages > 1 && !noPagination" />
       </v-flex>
       <ac-character-preview
         v-for="char in response.results"
@@ -28,7 +28,7 @@
         </v-container>
       </v-jumbotron>
       <v-flex xs12 text-xs-center>
-        <v-pagination v-model="currentPage" :length="totalPages" v-if="totalPages > 1" />
+        <v-pagination v-model="currentPage" :length="totalPages" v-if="totalPages > 1 && !noPagination" />
       </v-flex>
     </v-layout>
     <v-layout row wrapped v-else>
@@ -39,6 +39,9 @@
         <v-btn color="primary" size="lg" @click="showNew=true" id="new-char-button">Add a new character</v-btn>
       </div>
     </div>
+    <v-flex v-if="noPagination && to && currentPage !== totalPages" xs12 text-xs-center>
+      <v-btn color="primary" :to="to">{{seeMoreText}}</v-btn>
+    </v-flex>
     <ac-form-dialog ref="newCharForm" :schema="newCharSchema" :model="newCharModel"
                        :options="newCharOptions" :success="addCharacter"
                        title="New Character"
@@ -74,7 +77,7 @@
     components: {AcFormDialog, AcFormContainer, AcCharacterPreview},
     name: 'Characters',
     mixins: [Viewer, Perms, Paginated],
-    props: ['embedded', 'endpoint'],
+    props: ['embedded', 'endpoint', 'noPagination', 'to', 'seeMoreText'],
     data: function () {
       return {
         newCharModel: {

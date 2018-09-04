@@ -1,10 +1,10 @@
 <template>
   <v-container grid-list-md>
-    <v-tabs v-model="tab" fixed-tabs class="mb-2">
+    <v-tabs v-model="tab" fixed-tabs class="mb-2" v-if="isLoggedIn">
       <v-tab href="#tab-watchlist">Watchlist</v-tab>
       <v-tab href="#tab-all">All</v-tab>
     </v-tabs>
-    <v-tabs-items v-model="tab">
+    <v-tabs-items v-model="tab" v-if="isLoggedIn">
       <v-tab-item id="tab-watchlist">
         <ac-scrollable-art endpoint="/api/profiles/v1/watch-list-submissions/" counter-name="watchlist-art" />
       </v-tab-item>
@@ -12,6 +12,9 @@
         <ac-scrollable-art endpoint="/api/profiles/v1/recent-art/"/>
       </v-tab-item>
     </v-tabs-items>
+    <div v-else>
+      <ac-scrollable-art endpoint="/api/profiles/v1/recent-art/"/>
+    </div>
   </v-container>
 </template>
 
@@ -21,9 +24,11 @@
   import { ObserveVisibility } from 'vue-observe-visibility'
   import {paramHandleMap, EventBus} from '../lib'
   import AcScrollableArt from './ac-scrollable-art'
+  import Viewer from '../mixins/viewer'
+  import Perms from '../mixins/permissions'
   export default {
     name: 'RecentArt',
-    mixins: [Paginated],
+    mixins: [Paginated, Viewer, Perms],
     directives: {
       ObserveVisibility
     },

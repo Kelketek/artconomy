@@ -21,21 +21,28 @@
     <v-card>
       <v-layout row wrap>
         <v-flex xs12 class="pl-2">
-        <h2>Recent Commissions</h2>
-        </v-flex>
-      </v-layout>
-    </v-card>
-    <ac-asset-gallery
-        endpoint="/api/profiles/v1/recent-commissions/" :limit="4"
-    />
-    <v-card>
-      <v-layout row wrap>
-        <v-flex xs12 class="pl-2">
           <h2>New Products</h2>
         </v-flex>
       </v-layout>
     </v-card>
     <store class="pt-2" endpoint="/api/sales/v1/new-products/" />
+    <v-layout row wrap>
+      <v-flex xs12 text-xs-center>
+        <v-btn :to="{name: 'WhoIsOpen', params: {tabName: 'all'}}" color="primary">See more products</v-btn>
+      </v-flex>
+    </v-layout>
+    <v-card>
+      <v-layout row wrap>
+        <v-flex xs12 class="pl-2">
+          <h2>Recent Art</h2>
+        </v-flex>
+      </v-layout>
+    </v-card>
+    <ac-asset-gallery
+        endpoint="/api/profiles/v1/recent-art/" :limit="4" :no-pagination="true"
+        :to="{name: 'RecentArt', params: {tabName: 'all'}}"
+        see-more-text="See more art!"
+    />
     <v-card>
       <v-layout row wrap>
         <v-flex xs12 class="pl-2">
@@ -44,17 +51,7 @@
       </v-layout>
     </v-card>
     <characters
-        endpoint="/api/profiles/v1/new-characters/" :limit="4"
-    />
-    <v-card>
-      <v-layout row wrap>
-        <v-flex xs12 class="pl-2">
-          <h2>Recent Submissions</h2>
-        </v-flex>
-      </v-layout>
-    </v-card>
-    <ac-asset-gallery
-        endpoint="/api/profiles/v1/recent-submissions/" :limit="4"
+        endpoint="/api/profiles/v1/new-characters/" :limit="4" :no-pagination="true"
     />
     </v-container>
     <v-container v-if="viewer !== null && !viewer.username">
