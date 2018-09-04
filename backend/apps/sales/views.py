@@ -1230,7 +1230,7 @@ class WhoIsOpen(ListAPIView):
     def get_queryset(self):
         return available_products(
             self.request.user, ordering=False
-        ).filter(user__in=self.request.user.watching.all()).order_by('user')
+        ).filter(user__in=self.request.user.watching.all()).distinct('id').order_by('id', 'user')
 
 
 class SalesStats(APIView):
