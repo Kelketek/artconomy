@@ -43,16 +43,6 @@
         :to="{name: 'RecentArt', params: {tabName: 'all'}}"
         see-more-text="See more art!"
     />
-    <v-card>
-      <v-layout row wrap>
-        <v-flex xs12 class="pl-2">
-          <h2>New Characters</h2>
-        </v-flex>
-      </v-layout>
-    </v-card>
-    <characters
-        endpoint="/api/profiles/v1/new-characters/" :limit="4" :no-pagination="true"
-    />
     </v-container>
     <v-container v-if="viewer !== null && !viewer.username">
       <v-layout row wrap id="intro-start">
