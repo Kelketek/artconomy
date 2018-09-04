@@ -1332,7 +1332,7 @@ class PremiumInfo(APIView):
                 'landscape_price': str(settings.LANDSCAPE_PRICE),
                 'standard_percentage': str(settings.STANDARD_PERCENTAGE_FEE),
                 'standard_static': str(settings.STANDARD_STATIC_FEE),
-                'portrait_price': str(settings.PORTRAIT_PRICE)
+                'portrait_price': str(settings.PORTRAIT_PRICE),
             }
         )
 

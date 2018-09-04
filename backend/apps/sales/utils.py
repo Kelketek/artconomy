@@ -289,9 +289,6 @@ def finalize_order(order, user=None):
             object_id=order.id, content_type=ContentType.objects.get_for_model(order), payer=order.buyer,
             type=PaymentRecord.SALE
         )
-        if old_transaction.created_on.date() > (timezone.now().date() - relativedelta(days=2)):
-            new_tx.finalize_on = old_transaction.created_on.date() + relativedelta(days=2)
-            new_tx.finalized = False
         new_tx.save()
         old_transaction.finalized = True
         old_transaction.save()

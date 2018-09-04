@@ -53,7 +53,7 @@ class UserInfoSerializer(UserInfoMixin, serializers.ModelSerializer):
         model = User
         fields = (
             'id', 'username', 'avatar_url', 'biography', 'has_products', 'favorites_hidden', 'watching', 'blocked',
-            'commission_info', 'stars', 'escrow_disabled'
+            'commission_info', 'stars', 'escrow_disabled', 'is_staff', 'is_superuser'
         )
         read_only_fields = fields
 
@@ -66,8 +66,8 @@ class RelatedUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'avatar_url', 'stars', 'escrow_disabled')
-        read_only_fields = ('username', 'avatar_url', 'stars', 'escrow_disabled')
+        fields = ('id', 'username', 'avatar_url', 'stars', 'escrow_disabled', 'is_staff', 'is_superuser')
+        read_only_fields = fields
 
 
 def notification_serialize(obj, context):

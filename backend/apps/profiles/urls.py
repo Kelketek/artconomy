@@ -11,7 +11,7 @@ from apps.profiles.views import Register, CharacterListAPI, CharacterAssets, \
     AttributeManager, AttributeList, SessionSettings, AssetShare, CharacterShare, WatchUser, Watching, Watchers, \
     MessagesTo, MessagesFrom, MessageManager, MessageComments, LeaveConversation, BlockUser, StartPasswordReset, \
     TokenValidator, PasswordReset, Journals, JournalManager, JournalComments, SalesNotificationsList, \
-    UnreadNotifications, WatchListSubmissions, TOTPDeviceList, TOTPDeviceManager, Telegram2FA, RecentArt
+    UnreadNotifications, WatchListSubmissions, TOTPDeviceList, TOTPDeviceManager, Telegram2FA, RecentArt, UserInfoByID
 from apps.profiles.views import check_username, check_email, perform_login, perform_logout
 
 app_name = "profiles"
@@ -42,6 +42,7 @@ urlpatterns = [
     path('v1/data/notifications/community/', CommunityNotificationsList.as_view(), name='community_notifications'),
     path('v1/data/notifications/sales/', SalesNotificationsList.as_view(), name='sales_notifications'),
     path('v1/data/user/<username>/', UserInfo.as_view(), name='user_info'),
+    path('v1/data/user/id/<int:user_id>/', UserInfoByID.as_view(), name='user_info'),
     path('v1/search/character/', CharacterSearch.as_view(), name='character_search'),
     path('v1/search/user/', UserSearch.as_view(), name='character_search'),
     path('v1/search/tag/', TagSearch.as_view(), name='tag_search'),
