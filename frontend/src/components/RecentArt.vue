@@ -36,8 +36,6 @@
     },
     methods: {
       resultCheck (data) {
-        console.log('I ran!')
-        console.log(data)
         if (data.name === 'watchlist-art') {
           if (data.count === 0) {
             this.tab = 'tab-all'
