@@ -605,29 +605,6 @@
             </v-card>
           </v-expansion-panel-content>
           <v-expansion-panel-content>
-            <div slot="header"><strong>What is my pending balance?</strong></div>
-            <v-card>
-              <v-card-text>
-                <p>
-                  Money from a customer's credit card has to settle from our internal
-                  accounts before it can be sent over to your bank. This can take up to two days from the time the customer's card is charged.
-                </p>
-                <p>
-                  If a customer's card is charged and you complete a commission within the same day, you may need to
-                  wait another day or two for us to clear the transaction with our bank before you can withdraw.
-                  We are exploring ways to reduce this time for people who make quick-turnaround pieces.
-                </p>
-                <p>
-                  Most artists may rarely or never see a pending balance, since we expect most commissions require more
-                  than two days from the time a customer's card is charged to completion.
-                </p>
-                <p>If you think your balance has been left in pending for longer than two days, please contact
-                  support@artconomy.com, as this may indicate an issue on our end.
-                </p>
-              </v-card-text>
-            </v-card>
-          </v-expansion-panel-content>
-          <v-expansion-panel-content>
             <div slot="header"><strong>Does Artconomy Support Cryptocurrency Payments?</strong></div>
             <v-card>
               <v-card-text>
@@ -863,7 +840,7 @@
     'awoo-workload-management', 'placeholder-orders', 'order-tokens',
     'why-commissions-disabled',
     'why-not-paypal', 'patreon-comparison', 'security',
-    'payouts', 'pending-balance', 'crypto-currencies', 'character-transfer',
+    'payouts', 'crypto-currencies', 'character-transfer',
     'portrait-and-landscape', 'auctions',
     'physical-goods'
   ]

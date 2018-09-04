@@ -25,7 +25,7 @@
 <script>
   import { abstractField } from 'vue-form-generator'
   import Viewer from '../../mixins/viewer'
-  import { artCall } from '../../lib'
+  import { artCall, EventBus } from '../../lib'
   import AcAvatar from '../ac-avatar'
 
   export default {
@@ -46,6 +46,11 @@
         data.users = []
         data.userIDs = this.value ? [this.value] : []
       }
+      if (data.userIDs.length) {
+        for (let userID in data.userIDs.length) {
+          this.populateUser(userID)
+        }
+      }
       return data
     },
     watch: {
@@ -55,6 +60,12 @@
           this.userIDs = newVal
         }
       }
+    },
+    created () {
+      EventBus.$on('userfield-add-' + this.schema.model, this.addUser)
+    },
+    destroyed () {
+      EventBus.$off('userfield-add-' + this.schema.model, this.addUser)
     },
     methods: {
       runQuery () {

@@ -118,12 +118,15 @@ def check_transactions():
 def finalize_transactions():
     records = PaymentRecord.objects.filter(
         finalize_on__lte=timezone.now().date()
-    ).exclude(finalize_on__isnull=True)
+    ).exclude(finalize_on__isnull=True).exclude(finalized=True)
+    withdraw_for = set()
     for record in records:
         record.finalized = True
         record.save()
         if record.payee:
-            withdraw_all.delay(record.payee.id)
+            withdraw_for |= {record.payee}
+    for payee in withdraw_for:
+        withdraw_all.delay(payee.id)
 
 
 @celery_app.task

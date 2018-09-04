@@ -15,6 +15,7 @@ from django.utils import timezone
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django_otp import user_has_device, match_token, login as otp_login, devices_for_user
+from django_otp import user_has_device, match_token, login as otp_login, devices_for_user
 from django_otp.plugins.otp_totp.models import TOTPDevice
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -364,6 +365,11 @@ class UserInfo(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(data=serializer.data, status=status.HTTP_200_OK)
+
+
+class UserInfoByID(UserInfo):
+    def get_user(self):
+        get_object_or_404(User, id=self.kwargs.get('user_id'))
 
 
 class SessionSettings(APIView):

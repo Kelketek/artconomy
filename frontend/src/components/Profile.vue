@@ -19,6 +19,12 @@
                 <span v-if="user.blocked">&nbsp;Unblock</span><span v-else>&nbsp;Block</span>
               </ac-action>
             </v-flex>
+            <v-flex xs12 text-xs-center v-if="!isCurrent && isLoggedIn">
+              <v-btn @click="showNewMessage = true">
+                <v-icon>message</v-icon>
+                <span>&nbsp;Message</span>
+              </v-btn>
+            </v-flex>
             <v-flex v-if="!isCurrent && user.watching" text-xs-center>
               <v-btn v-if="isLoggedIn && !portrait" color="purple" :to="{name: 'Upgrade'}">Alert when open</v-btn>
               <span v-if="portrait && user.watching">You will be alerted when this artist is open.</span>
@@ -119,6 +125,12 @@
                     v-model="showUpload"
                     :url="`/api/profiles/v1/account/${user.username}/gallery/`"
     />
+    <ac-form-dialog ref="newMessageForm" :schema="newMessageSchema" :model="newMessageModel"
+                    :options="newMessageOptions" :success="goToMessage"
+                    title="New Message"
+                    :url="`/api/profiles/v1/account/${this.viewer.username}/messages/sent/`"
+                    v-model="showNewMessage"
+    />
   </v-container>
 </template>
 
@@ -192,6 +204,9 @@
       replaceUser (response) {
         this.$setUser(response.username, response)
         this.user = response
+      },
+      goToMessage (response) {
+        this.$router.push({name: 'Message', params: {messageID: response.id, username: response.sender.username}})
       }
     },
     data: function () {
@@ -200,6 +215,7 @@
         count: 0,
         assets: null,
         showUpload: false,
+        showNewMessage: false,
         journals: null,
         newUploadModel: {
           title: '',
@@ -320,6 +336,44 @@
         newUploadOptions: {
           validateAfterLoad: false,
           validateAfterChanged: true
+        },
+        newMessageModel: {
+          subject: '',
+          body: '',
+          recipients: []
+        },
+        newMessageSchema: {
+          fields: [{
+            type: 'user-search',
+            model: 'recipients',
+            label: 'Recipients',
+            featured: true,
+            tagging: true,
+            placeholder: 'Search users',
+            styleClasses: 'field-input',
+            multiple: true
+          }, {
+            type: 'v-text',
+            inputType: 'text',
+            label: 'Subject',
+            model: 'subject',
+            featured: true,
+            required: true,
+            validator: VueFormGenerator.validators.string
+          },
+          {
+            type: 'v-text',
+            label: 'Body',
+            model: 'body',
+            featured: true,
+            multiLine: true,
+            required: true,
+            validator: VueFormGenerator.validators.string
+          }]
+        },
+        newMessageOptions: {
+          validateAfterLoad: false,
+          validateAfterChanged: true
         }
       }
     },
@@ -327,6 +381,11 @@
       username () {
         this.user = {username: this.username}
         this.refreshUser()
+      },
+      user () {
+        if (this.user.id) {
+          EventBus.$emit('userfield-add-recipients', this.user)
+        }
       }
     },
     computed: {

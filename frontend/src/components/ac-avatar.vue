@@ -10,6 +10,15 @@
           </v-avatar>
         </router-link>
         <div v-if="showName" class="text-xs-center" :class="{'mb-2': !showRating}">
+          <v-tooltip bottom v-if="user.is_superuser">
+            <v-icon slot="activator" small class="green--text">stars</v-icon>
+            <span>Admin</span>
+          </v-tooltip>
+          <v-tooltip bottom v-else-if="user.is_staff">
+            <v-icon slot="activator" small class="yellow--text">stars</v-icon>
+            <span>Staff</span>
+          </v-tooltip>
+          <!--<span v-else-if="user.is_staff"><v-icon small class="yellow&#45;&#45;text">stars</v-icon> Staff</span>-->
           <span v-if="noLink">{{user.username}}</span>
           <router-link :to="{name: 'Profile', params: {username: user.username}}" v-else>{{ user.username }}</router-link>
           <v-icon small v-if="removable" @click="remove">close</v-icon>
