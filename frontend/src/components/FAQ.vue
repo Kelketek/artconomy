@@ -640,6 +640,7 @@
                   Please make sure you have fully read the
                   <router-link :to="{name: 'CharacterTransferAgreement'}">Character Transfer Agreement</router-link>
                   before transferring or agreeing to receive any characters.
+                  <strong>Character Transfers are final and NOT REFUNDABLE.</strong>
                 </p>
               </v-card-text>
             </v-card>

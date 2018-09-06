@@ -24,6 +24,12 @@
           Artists may also elect to refund a customer before scheduled delivery and without waiting
           for dispute resolution at their discretion.
         </p>
+        <p>
+          Refunds provided by Artconomy staff as part of Artconomy Shield will be minus the full escrow fees due to Artconomy.
+        </p>
+        <p>
+          Refunds provided by artists will be minus a smaller refund fee to cover the cost of payment processing.
+        </p>
         <h3>Commissioned, Physically Delivered Art, or Physical Items</h3>
         <p>
           Artists are expected to use shipping methods which have tracking information and
@@ -56,9 +62,12 @@
           Artconomy subscription services may be refunded if a refund is requested within three business days of
           purchase or renewal.
         </p>
+        <h3>Character Transfers</h3>
+        <p>Artconomy provides no refunds for Character Transfers. All character transfer transactions are final.</p>
         <h2>Refund Fees</h2>
         <p>
-          Artists are required to cover the cost of processing any refunds related to their sales.
+          As Artconomy does not control the refund policy of artists on the platform, refund fees are assessed from
+          refunded amounts to cover processing costs when refunding a purchase through Artconomy Shield.
         </p>
         <p>
           No fees are required for refunding of Artconomy Subscription services.

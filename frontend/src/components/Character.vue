@@ -131,9 +131,16 @@
                       :url="`/api/sales/v1/account/${user.username}/transfer/character/${character.name}/`"
                       v-model="transferVisible"
       >
-        <v-flex slot="header">
-          All transfers are subject to the <router-link :to="{name: 'CharacterTransferAgreement'}">Character Transfer Agreement</router-link>
-        </v-flex>
+        <v-layout slot="header">
+          <v-flex text-xs-center v-if="price && !user.escrow_disabled" xs6 md3 offset-md3>
+            <strong>Price: ${{price}}</strong> <br />
+            Artconomy service fee: -${{ fee }} <br />
+            <strong>Your payout: ${{ payout }}</strong> <br />
+          </v-flex>
+          <v-flex text-xs-center xs6 md3>
+            All transfers are subject to the <router-link :to="{name: 'CharacterTransferAgreement'}">Character Transfer Agreement.</router-link> Character transfers are final and non-refundable.
+          </v-flex>
+        </v-layout>
       </ac-form-dialog>
     </v-card>
     <div v-if="character" class="color-section">
@@ -257,7 +264,7 @@
   import $ from 'jquery'
   import Vue from 'vue'
   import VueFormGenerator from 'vue-form-generator'
-  import {artCall, minimumOrZero, ratings, validNumber} from '../lib'
+  import {artCall, minimumOrZero, ratings, validateTrue, validNumber} from '../lib'
   import Perms from '../mixins/permissions'
   import Editable from '../mixins/editable'
   import Viewer from '../mixins/viewer'
@@ -371,6 +378,9 @@
         this.$router.history.push(
           {name: 'Submission', params: {assetID: response.id}}
         )
+      },
+      loadPricing (response) {
+        this.pricing = response
       },
       showTransfer () {
         if (!this.character.transfer) {
@@ -589,6 +599,7 @@
             type: 'v-checkbox',
             label: 'I agree to the Character Transfer Agreement',
             model: 'read_agreement',
+            validator: [validateTrue],
             hint: 'I have read and understood the Character Transfer Agreement and agree to it'
           }]
         }
@@ -606,11 +617,27 @@
       },
       moreToLoad () {
         return this.totalPieces > 4
+      },
+      fee () {
+        return ((this.price * (this.pricing.landscape_percentage * 0.01)) + parseFloat(this.pricing.landscape_static)).toFixed(2)
+      },
+      payout () {
+        return (this.price - this.fee).toFixed(2)
+      },
+      price () {
+        if (parseFloat(this.transferModel.price + '') <= 0) {
+          return 0
+        }
+        if (isNaN(parseFloat(this.transferModel.price + ''))) {
+          return 0
+        }
+        return (parseFloat(this.transferModel.price + '')).toFixed(2)
       }
     },
     created () {
       this.fetchCharacter()
       this.fetchAssets()
+      artCall('/api/sales/v1/pricing-info/', 'GET', undefined, this.loadPricing)
     },
     watch: {
       rating () {

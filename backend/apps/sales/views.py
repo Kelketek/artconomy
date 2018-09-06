@@ -449,16 +449,26 @@ class OrderRefund(GenericAPIView):
             payer=order.buyer,
             payee=None
         )
-        record = record.refund()
+        if request.user == order.seller:
+            # Reduced refund cost if seller provides refund.
+            fee = record.amount
+            fee *= Decimal(settings.PREMIUM_PERCENTAGE_FEE) * Decimal('0.01')
+            fee += Money(settings.PREMIUM_STATIC_FEE, 'USD')
+        else:
+            fee = record.amount
+            fee *= Decimal(order.seller.percentage_fee) * Decimal('0.01')
+            fee += Money(order.seller.static_fee, 'USD')
+        amount = record.amount - fee
+        record = record.refund(amount=amount)
         if record.status == PaymentRecord.FAILURE:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'error': record.response_message})
         order.status = Order.REFUNDED
         order.save()
         PaymentRecord.objects.create(
             payer=order.seller,
-            amount=Money(settings.REFUND_FEE, 'USD'),
+            amount=fee,
             payee=None,
-            source=PaymentRecord.ACCOUNT,
+            source=PaymentRecord.ESCROW,
             txn_id=str(uuid4()),
             target=order,
             type=PaymentRecord.TRANSFER,
@@ -1018,11 +1028,26 @@ class CreateCharacterTransfer(CreateAPIView):
             Character, user__username__iexact=self.kwargs['username'], name=self.kwargs['character']
         )
         self.check_object_permissions(self.request, character)
+        if serializer.validated_data['price']:
+            if character.user.escrow_disabled:
+                raise ValidationError(
+                    {'price': [
+                        'You may not set a price on a transfer if Artconomy Shield is disabled, since we '
+                        'cannot take payment for you. Arrange payment outside of Artconomy and then create a free'
+                        ' transfer to finalize your transaction.'
+                    ]}
+                )
+            if not character.user.banks.exists():
+                raise ValidationError(
+                    {'price': [
+                        'You may not set a price if we have no bank account on file to deposit the resulting '
+                        'charge into. Add an account to use this feature, or arrange payment outside of Artconomy and '
+                        'then create a free transfer to finalize your transaction.'
+                    ]}
+                )
         instance = serializer.save(
             character=character, seller=character.user, status=CharacterTransfer.NEW, buyer=self.buyer
         )
-        # event_type, target, data=None, unique=False, unique_data=None, mark_unread=False, time_override=None,
-        # transform=None, exclude=None, force_create=False
         subscribe(CHAR_TRANSFER, instance.buyer, instance)
         subscribe(CHAR_TRANSFER, instance.seller, instance)
         notify(CHAR_TRANSFER, instance, unique=True, exclude=[instance.seller])
@@ -1154,8 +1179,8 @@ class AcceptCharTransfer(GenericAPIView):
             PaymentRecord.objects.create(
                 payer=transfer.seller,
                 amount=(
-                    (transfer.price * transfer.seller.percentage_fee * Decimal('.01'))
-                    + Money(transfer.seller.static_fee, 'USD')
+                    (transfer.price * settings.PREMIUM_PERCENTAGE_FEE * Decimal('.01'))
+                    + Money(settings.PREMIUM_STATIC_FEE, 'USD')
                 ),
                 payee=None,
                 source=PaymentRecord.ACCOUNT,

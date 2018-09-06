@@ -6,6 +6,7 @@
         :rules="validators"
         :required="schema.required"
         :hint="schema.hint"
+        :error-messages="errors"
         persistent-hint
     />
   </div>
