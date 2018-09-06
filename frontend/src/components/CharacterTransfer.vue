@@ -54,7 +54,19 @@
                 </div>
                 <div class="mt-2 text-xs-center">
                   <ac-action class="cancel-button" :url="`${url}cancel/`" color="red">Decline</ac-action>
-                  <ac-action class="pay-button" :disabled="selectedCard === null || !validCVV" :url="`${url}pay/`" variant="success" :send="paymentData" :success="postPay">Submit</ac-action>
+                  <ac-action
+                      class="pay-button" :disabled="selectedCard === null || !validCVV" :url="`${url}pay/`"
+                      variant="success" :send="paymentData" :success="postPay" :confirm="true"
+                  >
+                    Submit
+                    <div class="text-left" slot="confirmation-text">
+                      <p>
+                        I accept the
+                        <router-link :to="{name: 'CharacterTransferAgreement'}">Character Transfer Agreement</router-link>
+                        and accept that there are <strong>NO REFUNDS</strong> for character transfers.
+                      </p>
+                    </div>
+                  </ac-action>
                 </div>
               </div>
             </v-flex>
@@ -64,7 +76,16 @@
                   <ac-action class="cancel-button" :url="`${url}cancel/`" color="red" :success="setTransfer">Decline</ac-action>
                 </v-flex>
                 <v-flex xs6>
-                  <ac-action class="pay-button" :url="`${url}pay/`" variant="success" :send="paymentData" :success="postPay">Accept</ac-action>
+                  <ac-action class="pay-button" :url="`${url}pay/`" variant="success" :send="paymentData" :success="postPay" :confirm="true">
+                    Accept
+                    <div class="text-left" slot="confirmation-text">
+                      <p>
+                        I accept the
+                        <router-link :to="{name: 'CharacterTransferAgreement'}">Character Transfer Agreement</router-link>
+                        and understand that character transfers are final.
+                      </p>
+                    </div>
+                  </ac-action>
                 </v-flex>
               </v-layout>
             </v-flex>

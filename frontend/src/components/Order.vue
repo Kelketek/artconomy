@@ -161,7 +161,7 @@
             <div v-if="seller && queued">
               <p><strong>Awesome! The commissioner has sent payment.</strong></p>
               <p>You should start work on the commission as soon as you can. If there are revisions to upload, you may upload them (and the final, when ready) below.</p>
-              <p v-if="price > 0">If for some reason you need to refund the customer, you may do so below. <span v-if="!order.escrow_disabled">Note that refunding a customer has a $2.00 fee to cover costs with our payment processor.</span></p>
+              <p v-if="price > 0">If for some reason you need to refund the customer, you may do so below. <span v-if="!order.escrow_disabled">Note that the cost of the refund fee is born by the commissioner and refunding may affect your rating.</span></p>
               <ac-action
                   variant="danger"
                   method="POST"
@@ -203,7 +203,7 @@
             <div v-if="inProgress && seller">
               <p><strong>Here we go!</strong></p>
               <p>You've begun work on this piece. We've notified the commissioner that their piece is in progress and have sent them the link to your stream if you set one.</p>
-              <p>If for some reason you need to refund the customer, you may do so below. Note that refunding a customer has a $2.00 fee to cover costs with our payment processor.</p>
+              <p>If for some reason you need to refund the commissioner, you may do so below. Note the cost of the refund fee is born by the customer, and refunding may affect your rating.</p>
               <ac-action
                   variant="danger"
                   method="POST"
@@ -275,7 +275,7 @@
               <strong>This order is under dispute</strong>
               <p>An Artconomy staff member will assist in dispute resolution. Please await further instruction in the comments.</p>
               <p>You may elect to refund to close the dispute early. We recommend waiting for our staff to review, however.</p>
-              <p>Refunding a transaction has a fee of $2.00 to cover costs with our payment processor.</p>
+              <p>Note that the cost of the refund fee is born by the commissioner and refunding may affect your rating.</p>
               <p>
                 <strong>Note:</strong>
                 <span v-if="order.started_on">Work on this order started on {{formatDate(order.started_on)}}</span>
@@ -398,7 +398,7 @@
                 <strong>This order is under dispute</strong>
                 <p>An Artconomy staff member will assist in dispute resolution. Please await further instruction in the comments.</p>
                 <p>You may elect to refund to close the dispute early. We recommend waiting for our staff to review, however.</p>
-                <p>Refunding a transaction has a fee of $2.00 to cover costs with our payment processor.</p>
+                <p>Note that the cost of the refund fee is born by the commissioner and refunding may affect your rating.</p>
                 <p>
                   <strong>Note:</strong>
                   <span v-if="order.started_on">Work on this order started on {{formatDate(order.started_on)}}</span>

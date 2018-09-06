@@ -1475,7 +1475,9 @@ class TestOrderStateChange(APITestCase):
         self.assertTrue(record.finalized)
 
     @patch('apps.sales.models.sauce')
-    @override_settings(REFUND_FEE=Decimal('5.00'))
+    @override_settings(
+        PREMIUM_PERCENTAGE_FEE=Decimal('5'), PREMIUM_STATIC_FEE=Decimal('0.10')
+    )
     def test_refund_card_seller(self, mock_sauce):
         record = PaymentRecordFactory.create(
             target=self.order,
@@ -1494,14 +1496,13 @@ class TestOrderStateChange(APITestCase):
             payee=self.order.buyer, payer=None,
             source=PaymentRecord.ESCROW,
             type=PaymentRecord.REFUND,
-            amount=Money('15.00', 'USD')
+            amount=Money('14.15', 'USD')
         )
         PaymentRecord.objects.get(
             status=PaymentRecord.SUCCESS,
             payee=None, payer=self.order.seller,
-            amount=Money('5.00', 'USD')
+            amount=Money('.85', 'USD')
         )
-
 
     @patch('apps.sales.models.sauce')
     def test_refund_card_seller_error(self, mock_sauce):

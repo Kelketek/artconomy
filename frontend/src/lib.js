@@ -338,6 +338,12 @@ export function validateNonEmpty (value) {
   }
 }
 
+export function validateTrue (value) {
+  if (!value) {
+    return 'This field is required!'
+  }
+}
+
 // From vue upload component
 export function formatSize (size) {
   if (size > 1024 * 1024 * 1024 * 1024) {
@@ -368,7 +374,7 @@ export function validNumber (value, schema) {
 }
 
 export function minimumOrZero (value, schema) {
-  if (value === 0) {
+  if (value === 0 || value === 0.0) {
     return true
   }
   if (value < schema.min) {

@@ -614,7 +614,12 @@ class PaymentRecord(Model):
             self.payee or '(Artconomy)',
         )
 
-    def refund_card(self):
+    def refund_card(self, amount=None):
+        if amount:
+            note = 'Refund, minus fees.'
+        else:
+            note = ''
+        amount = amount or self.amount
         if self.escrow_for:
             source = PaymentRecord.ESCROW
         else:
@@ -627,12 +632,13 @@ class PaymentRecord(Model):
             payee=self.payer,
             content_type=self.content_type,
             object_id=self.object_id,
-            amount=self.amount,
-            response_message="Failed when contacting payment processor."
+            amount=amount,
+            response_message="Failed when contacting payment processor.",
+            note=note
         )
         transaction = sauce.transaction(self.txn_id)
         try:
-            response = transaction.credit(self.card.last_four, self.amount.amount)
+            response = transaction.credit(self.card.last_four, amount.amount)
             record.txn_id = response.uid
             record.status = PaymentRecord.SUCCESS
             record.save()
@@ -645,11 +651,11 @@ class PaymentRecord(Model):
     def refund_account(self):
         raise NotImplementedError("Account refunds are not yet implemented.")
 
-    def refund(self):
+    def refund(self, amount=None):
         if self.status != PaymentRecord.SUCCESS:
             raise ValueError("Cannot refund a failed transaction.")
         if self.source == PaymentRecord.CARD:
-            return self.refund_card()
+            return self.refund_card(amount)
         elif self.source == PaymentRecord.ACH:
             raise NotImplementedError("ACH Refunds are not implemented.")
         elif self.source == PaymentRecord.ESCROW:
