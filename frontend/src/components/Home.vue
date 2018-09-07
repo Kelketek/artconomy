@@ -21,6 +21,18 @@
     <v-card>
       <v-layout row wrap>
         <v-flex xs12 class="pl-2">
+          <h2>Recent Commissions</h2>
+        </v-flex>
+      </v-layout>
+    </v-card>
+    <ac-asset-gallery
+        endpoint="/api/profiles/v1/recent-commissions/" :limit="8" :no-pagination="true"
+        :to="{name: 'RecentArt', params: {tabName: 'all'}}"
+        see-more-text="See more art!"
+    />
+    <v-card>
+      <v-layout row wrap>
+        <v-flex xs12 class="pl-2">
           <h2>New Products</h2>
         </v-flex>
       </v-layout>
@@ -39,7 +51,7 @@
       </v-layout>
     </v-card>
     <ac-asset-gallery
-        endpoint="/api/profiles/v1/recent-art/" :limit="4" :no-pagination="true"
+        endpoint="/api/profiles/v1/recent-submissions/" :limit="8" :no-pagination="true"
         :to="{name: 'RecentArt', params: {tabName: 'all'}}"
         see-more-text="See more art!"
     />
