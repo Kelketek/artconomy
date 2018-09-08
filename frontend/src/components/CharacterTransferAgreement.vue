@@ -18,8 +18,7 @@
           sale alternately with an understood equivalence.
         </p>
         <p>
-          <strong>Adoptables can be viewed as a speculative intellectual property investment. Artconomy
-          is not aware of any unambiguous intellectual property law concerning individual characters
+          <strong>Artconomy is not aware of any unambiguous intellectual property law concerning individual characters
           not registered as trademarks. Such laws may exist in the future or may exist in jurisdictions
           outside of Artconomy's discovery. Parties to this agreement affirm to use it to resolve disputes in
           any arbitration or court of law that will admit it in lieu of and/or in supplement of statutes or
