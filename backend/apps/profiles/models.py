@@ -359,6 +359,8 @@ class Character(Model):
     def preview_image(self):
         if not self.primary_asset:
             return '/static/images/default-avatar.png'
+        if self.primary_asset.rating > 0:
+            return '/static/images/logo.png'
         return self.primary_asset.preview_link
 
     def notification_serialize(self, context):
