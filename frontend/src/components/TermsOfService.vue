@@ -10,7 +10,7 @@
         </div>
       </div>
       <div class="col-12-sm">
-        <p><strong>Last updated: August 06, 2018</strong></p>
+        <p><strong>Last updated: September 10, 2018</strong></p>
 
 
         <p>Please read these Terms of Service ("Terms", "Terms of Service") carefully before using
@@ -81,13 +81,18 @@
 
         <h2>Purchases</h2>
 
-        <p>Commissions, character transfers, and other items are each bound by their own agreements, given at the
-          time of sale or transfer, such as the 'Commission Agreement' for commissioned works.</p>
+        <p>
+          Commissions, character transfers, and other items are each bound by their own agreements, given at the
+          time of sale or transfer, such as the
+          <router-link :to="{name: 'CommissionAgreement'}">Commission Agreement</router-link> for commissioned works.
+        </p>
 
-        <p>Subscription services will provide features such as notification of artist availability, but will not be
-          warranted for any particular use, and are provided AS IS. No guarantee is given that artists watched will
-          accept orders placed by subscription holders, or that artists will be timely in their workload management or
-          responses to subscription holders. Each Artist is responsible for their own performance.</p>
+        <p>
+          Subscription services will provide features such as notification of artist availability, but will not be
+          warranted for any particular use, and are provided AS IS. No guarantee is given that artists will accept
+          orders placed by subscription holders, or that artists will be timely in their workload management or
+          responses to subscription holders. Each Artist is responsible for their own performance.
+        </p>
 
         <p>Refunds are covered by our <router-link :to="{name: 'RefundPolicy'}">Refund Policy.</router-link></p>
 

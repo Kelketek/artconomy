@@ -10,6 +10,7 @@
         </div>
       </div>
       <div class="col-12-sm">
+        <p><strong>Last updated: July 03, 2018</strong></p>
         <p>
           This agreement covers the expectations for characters who are transferred, auctioned, or sold. A character
           made for transfer will be referred to as an 'adoptable' for the purposes of this agreement. Regardless of

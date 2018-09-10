@@ -77,6 +77,9 @@
         <p>
           Artconomy's failure to enforce any right or provision of this Agreement will not be considered a waiver of those rights. If any provision of this Agreement is held to be invalid or unenforceable by a court, the remaining provisions of this Agreement will remain in effect. This Agreement constitutes the entire agreement between parties regarding this Commission, and supersedes and replaces any prior agreements that might have between the parties regarding this Commission.
         </p>
+        <p>
+          All provisions of the Agreement which by their nature should survive termination shall survive termination, including, without limitation, ownership provisions, warranty disclaimers, indemnity and limitations of liability.
+        </p>
       </div>
     </div>
   </div>
