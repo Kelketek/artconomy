@@ -12,7 +12,7 @@
       <div class="col-12-sm">
         <p><strong>Last updated: September 10, 2018</strong></p>
         <p>
-          This is an agreement between the commissioner (“Commissioner”), artist (“Artist”), and the intermediary (“Artconomy”) to complete an artistic work ("Commission").
+          This is an agreement ("Agreement") between the commissioner (“Commissioner”), artist (“Artist”), and the intermediary (“Artconomy”) to complete an artistic work ("Commission").
         </p>
         <h2>Basics</h2>
         <p>
