@@ -1,5 +1,5 @@
 <template>
-  <v-container class="account-profile" :key="username">
+  <v-container class="account-profile" :key="username" v-if="userloaded">
     <v-card>
       <v-layout row wrap class="mb-4">
         <v-flex xs12 sm2  text-xs-center text-sm-left class="pt-2">
@@ -394,6 +394,11 @@
       },
       url () {
         return `/api/profiles/v1/data/user/${this.username}/`
+      },
+      userloaded () {
+        console.log(Object.keys(this.user).length)
+        console.log(Object.keys(this.user).length > 1)
+        return Object.keys(this.user).length > 1
       },
       tab: paramHandleMap('tabName'),
       watchTab: paramHandleMap('subTabName', undefined, ['tab-watchers', 'tab-watching'], 'tab-watchers')
