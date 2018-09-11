@@ -74,8 +74,7 @@
 
         <p>Artconomy is a publicly accessible platform where users may upload content. We cannot prevent all instances
           of intellectual property violations that may occur on our platform, and do not actively police intellectual
-          property matters. Artconomy will respond to properly formed and formatted DMCA requests unless it has reason
-          to believe these requests are filed in bad faith or erroneously.</p>
+          property matters. Artconomy will respond to properly formed and formatted DMCA requests.</p>
 
         <p>By using Artconomy, you agree not to upload/submit material for which you do not have the appropriate rights.</p>
 
