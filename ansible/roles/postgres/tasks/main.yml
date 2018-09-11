@@ -10,13 +10,56 @@
 - name: Load app settings
   include_vars: "keys/{{env_prefix}}/app_settings.yml"
 
+- name: Set facts
+  set_fact:
+    db_name: "{{ app_settings['DATABASES']['default']['NAME'] }}"
+    db_user: "{{ app_settings['DATABASES']['default']['USER'] }}"
+    db_pw: "{{ app_settings['DATABASES']['default']['PASSWORD'] }}"
+
 - name: Create DB User
   become: yes
   become_user: postgres
-  postgresql_user: name="{{ app_settings['DATABASES']['default']['USER'] }}" state=present password="{{ app_settings['DATABASES']['default']['PASSWORD'] }}"
+  postgresql_user: name="{{ db_user }}" state=present password="{{ db_pw }}"
                    role_attr_flags=CREATEDB,LOGIN encrypted=yes
 
 - name: Create DB
   become: yes
   become_user: postgres
-  postgresql_db: owner="{{ app_settings['DATABASES']['default']['USER'] }}" name="{{ app_settings['DATABASES']['default']['NAME'] }}" state=present template=template0
+  postgresql_db: owner="{{ db_user }}" name="{{ db_name }}" state=present template=template0
+
+- name: Create backup directory
+  file:
+    path: /var/lib/pgsql/backup/
+    state: directory
+    owner: postgres
+    group: postgres
+    mode: 0700
+
+- name: Create backup subdirectories
+  file:
+    path: "/var/lib/postgresql/backup/{{ item }}"
+    state: directory
+    owner: postgres
+    group: postgres
+    mode: 0700
+  with_items:
+    - hourly
+    - weekly
+
+- name: Set up logrotate
+  template:
+    src: "templates/logrotate/postgres"
+    dest: "/etc/logrotate.d/postgres"
+
+- name: Check for initial backup
+  stat:
+    path: "/var/lib/postgresql/backup/hourly/{{ db_name }}.sql.gz"
+  register: backup
+
+- name: first backup
+  become: yes
+  become_user: "postgres"
+  shell: "pg_dump {{db_name}} --file=/var/lib/postgresql/backup/hourly/{{ db_name }}.sql && gzip /var/lib/postgresql/backup/hourly/{{ db_name }}.sql && cp /var/lib/postgresql/backup/hourly/{{ db_name }}.sql.gz /var/lib/postgresql/backup/weekly/"
+  args:
+    executable: "/bin/bash"
+  when: not backup.stat.exists
