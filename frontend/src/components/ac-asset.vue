@@ -5,7 +5,7 @@
       <div v-if="fullscreen" class="fullscreen-container" @click="fullscreen=false">
         <img :class="imgClass" :src="asset.file.full" v-if="canDisplay && !textOnly">
       </div>
-      <div v-else-if="!canDisplay" :style="style">
+      <div v-else-if="!canDisplay" :style="style" class="text-xs-center">
         <div style="min-height: 20%;">&nbsp;</div>
         <div class="text-xs-center" v-if="!terse">
           <v-icon x-large>block</v-icon>
