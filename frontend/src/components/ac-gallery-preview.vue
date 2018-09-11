@@ -5,6 +5,7 @@
           <v-card-media
               :src="$img(asset, thumbName)"
               :contain="contain"
+              class="gallery-preview-media"
           >
             <ac-asset :asset="asset" :text-only="true" :thumb-name="thumbName" :container-style="containerStyle" />
           </v-card-media>
@@ -18,6 +19,12 @@
       </v-card>
     </v-flex>
 </template>
+
+<style>
+  .gallery-preview-media .v-card__media__content {
+    justify-content: center;
+  }
+</style>
 
 <script>
   import AcAsset from './ac-asset'
