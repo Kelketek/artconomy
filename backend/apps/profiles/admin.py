@@ -17,9 +17,12 @@ class ArtconomyUserAdmin(EmailUserAdmin):
         ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser',
                                     'groups', 'user_permissions')}),
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
+        ('Premium Info', {'fields': (
+            'landscape_enabled', 'landscape_paid_through', 'portrait_enabled', 'portrait_paid_through')}
+         )
     )
 
 
-admin.site.register(User, EmailUserAdmin)
+admin.site.register(User, ArtconomyUserAdmin)
 admin.site.register(ImageAsset, ModelAdmin)
 admin.site.register(RefColor, ModelAdmin)
