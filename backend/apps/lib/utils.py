@@ -515,4 +515,4 @@ def default_context():
 
 
 def demark(text):
-    return BeautifulSoup(markdown.markdown(text)).get_text()
+    return BeautifulSoup(markdown.markdown(text), features="lxml").get_text()
