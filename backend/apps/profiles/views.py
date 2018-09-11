@@ -1104,7 +1104,7 @@ class Watchers(ListAPIView):
 
     def get_queryset(self):
         user = get_object_or_404(User, username__iexact=self.kwargs['username'])
-        return user.watched_by.all()
+        return user.watched_by.all().order_by('username')
 
 
 class Watching(ListAPIView):
@@ -1112,7 +1112,7 @@ class Watching(ListAPIView):
 
     def get_queryset(self):
         user = get_object_or_404(User, username__iexact=self.kwargs['username'])
-        return user.watching.all()
+        return user.watching.all().order_by('username')
 
 
 class MessagesFrom(ListCreateAPIView):
@@ -1338,7 +1338,7 @@ class Journals(ListCreateAPIView):
 
     def get_queryset(self):
         user = get_object_or_404(User, username__iexact=self.kwargs['username'])
-        return Journal.objects.filter(user=user)
+        return Journal.objects.filter(user=user).order_by('-created_on')
 
     def perform_create(self, serializer):
         user = get_object_or_404(User, username__iexact=self.kwargs['username'])

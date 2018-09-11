@@ -155,6 +155,10 @@ STATIC_ROOT = ENV_TOKENS.get('STATIC_ROOT', os.path.join(BASE_DIR, 'public'))
 MEDIA_URL = ENV_TOKENS.get('MEDIA_ROOT', '/media/')
 MEDIA_ROOT = ENV_TOKENS.get('MEDIA_ROOT', os.path.join(BASE_DIR, 'media'))
 
+FILE_UPLOAD_DIRECTORY_PERMISSIONS = 0o750
+FILE_UPLOAD_PERMISSIONS = 0o644
+
+
 pack_file_name = 'webpack-stats.json' if DEBUG else 'webpack-stats-saved.json'
 
 WEBPACK_LOADER = {
