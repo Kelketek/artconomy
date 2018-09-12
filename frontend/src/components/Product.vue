@@ -221,7 +221,7 @@
   import Editable from '../mixins/editable'
   import AcAsset from '../components/ac-asset'
   import AcAction from '../components/ac-action'
-  import {artCall, md} from '../lib'
+  import {artCall, md, ratings} from '../lib'
   import AcPatchfield from './ac-patchfield'
   import AcPatchbutton from './ac-patchbutton'
   import AcFormContainer from './ac-form-container'
@@ -257,6 +257,7 @@
           max_parallel: response.max_parallel,
           hidden: response.hidden
         }
+        this.imageModel.rating = response.rating + ''
         this.showImageUpdate = false
         this.showProductUpdate = false
       },
@@ -291,11 +292,24 @@
           order_token: this.$route.query.order_token || ''
         },
         imageModel: {
+          rating: null,
           file: [],
           preview: []
         },
         imageUpdateSchema: {
           fields: [
+            {
+              type: 'v-select',
+              label: 'Rating',
+              model: 'rating',
+              featured: true,
+              required: true,
+              values: ratings,
+              hint: 'The content rating of your preview image (even if individual commissions may vary)',
+              selectOptions: {
+                hideNoneSelectedText: true
+              }
+            },
             {
               type: 'v-file-upload',
               id: 'file',
