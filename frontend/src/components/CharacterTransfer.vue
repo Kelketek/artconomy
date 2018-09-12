@@ -29,7 +29,7 @@
             <v-flex xs12>
               <p v-if="cancelled"><strong>Transfer was cancelled.</strong></p>
               <p v-if="declined"><strong>Transfer was declined.</strong></p>
-              <p v-if="completed"><strong>Transfer completed successfully.</strong></p>
+              <p v-if="completed"><strong>Transfer completed successfully on {{formatDateTime(transfer.completed_on)}}.</strong></p>
               <p v-if="!price">There <span v-if="newTransfer">is</span><span v-else>was</span> no cost for this transfer.</p>
               <p v-else>Transfer price<span v-if="!newTransfer"> was</span>: ${{price}}</p>
             </v-flex>
@@ -96,14 +96,14 @@
         </v-flex>
       </v-layout>
     </v-card>
-    <v-card v-if="transfer.include_assets && newTransfer" class="mt-2">
+    <v-card v-if="transfer.include_assets" class="mt-2">
       <v-layout row wrap>
         <v-flex xs12 class="pl-2">
-          <h2>Included Assets</h2>
+          <h2>Included Assets (If any):</h2>
         </v-flex>
       </v-layout>
     </v-card>
-    <v-layout row wrap v-if="transfer.include_assets && newTransfer">
+    <v-layout row wrap v-if="transfer.include_assets">
       <ac-asset-gallery
           :endpoint="`/api/sales/v1/transfer/character/${transferID}/assets/`"
       />
@@ -112,7 +112,7 @@
 </template>
 
 <script>
-  import {artCall} from '../lib'
+  import {artCall, formatDateTime} from '../lib'
   import AcAsset from './ac-asset'
   import AcAvatar from './ac-avatar'
   import AcAssetGallery from './ac-asset-gallery'
@@ -131,6 +131,7 @@
         selectedCard: null,
         selectedCardModel: null,
         cvv: '',
+        formatDateTime,
         url: `/api/sales/v1/transfer/character/${this.transferID}/`
       }
     },
