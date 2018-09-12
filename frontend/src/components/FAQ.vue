@@ -52,16 +52,10 @@
               <v-card-text>
                 <p>Artconomy is <strong>FREE</strong> to use. Your character gallery is <strong>FREE</strong>, running a shop as an artist is <strong>FREE</strong>.</p>
 
-                <p>Artconomy only collects fees for premium services and upon actual sales using                   <router-link
+                <p>Artconomy only collects fees for premium services and from orders using <router-link
                     :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}"
                 >
-                  Artconomy Shield
-                  </router-link>. It costs you nothing to get
-                    started commissioning on Artconomy, and artists pay fees for completed sales using                   <router-link
-                        :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}"
-                  >
-                    Artconomy Shield.
-                  </router-link>
+                  Artconomy Shield.</router-link>
                 </p>
 
                 <p>Sales without
@@ -72,8 +66,24 @@
                   may be supported by ad revenue or by other means.
                 </p>
 
-                <p>We don't make money if our artists don't make money and our commissioners aren't served.
-                  This gives us an incentive to make the best platform we can for both groups.</p>
+                <p v-if="pricing">
+                  Artconomy's fees for <router-link
+                    :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}"
+                >
+                  Artconomy Shield</router-link> are {{pricing.standard_percentage}}% + ${{pricing.standard_static}} for
+                  each order.
+                </p>
+                <p v-if="pricing">
+                  If you're an artist using
+                  <router-link
+                      :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'portrait-and-landscape'}}"
+                  >Artconomy Landscape,</router-link>
+                  your per-order fee is <strong>lower</strong> at
+                  {{pricing.landscape_percentage}}% + ${{pricing.landscape_static}}.
+                </p>
+
+                <p>Our money is made in helping commissioners and artists connect. This gives us an incentive to
+                  help both groups achieve their goals.</p>
               </v-card-text>
             </v-card>
           </v-expansion-panel-content>
@@ -291,11 +301,12 @@
                 </p>
                 <p>
                   When you purchase a product with Artconomy shield, we hold onto your payment until the artist
-                  completes the work. <em><strong>If the artist does not complete the work, you receive your money back.</strong></em>
+                  completes the work. <em><strong>If the artist does not complete the work, you receive your money back,
+                  minus a fee for the dispute resolution service.</strong></em>
                 </p>
                 <p>
                   When, as an artist, you list a product with Artconomy shield, you know the commissioner has already
-                  paid with their credit card and that they've agreed to our dispute mediation service.
+                  paid with their credit card and that they've agreed to our dispute resolution service.
                   Unless a
                   <router-link
                     :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'disputes'}}"
@@ -833,7 +844,7 @@
   </v-container>
 </template>
 <script>
-  import {paramHandleArray, paramHandleMap} from '../lib'
+  import {artCall, paramHandleArray, paramHandleMap} from '../lib'
 
   const about = ['what-is-artconomy', 'cost', 'team']
   const buySell = [
@@ -851,11 +862,24 @@
 
   export default {
     name: 'FAQ',
+    methods: {
+      loadPricing (response) {
+        this.pricing = response
+      }
+    },
+    data () {
+      return {
+        pricing: null
+      }
+    },
     computed: {
       tab: paramHandleMap('tabName', ['subTabName']),
       aboutTab: paramHandleArray('subTabName', about),
       buySellTab: paramHandleArray('subTabName', buySell),
       otherTab: paramHandleArray('subTabName', other)
+    },
+    created () {
+      artCall('/api/sales/v1/pricing-info/', 'GET', undefined, this.loadPricing)
     }
   }
 </script>
