@@ -609,7 +609,7 @@
                   <span v-else>
                     you may submit a withdrawal request.
                   </span>
-                  Payouts take 1-4 business days to complete. If you're having an issue with your payout, please email
+                  Payouts take up to 5 business days to complete. If you're having an issue with your payout, please email
                   support@artconomy.com.
                 </p>
               </v-card-text>
