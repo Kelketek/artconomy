@@ -10,7 +10,7 @@
         </div>
       </div>
       <div class="col-12-sm">
-        <p><strong>Last updated: September 10, 2018</strong></p>
+        <p><strong>Last updated: September 12, 2018</strong></p>
 
 
         <p>Please read these Terms of Service ("Terms", "Terms of Service") carefully before using
@@ -144,7 +144,7 @@
         <ul>
           <li>Creation of multiple accounts to circumvent blocks from other users or restrictions placed on your main account</li>
           <li>Threats of violence against another person or their property</li>
-          <li>Distributing the private information of other persons, including address, phone, and real names, especially for the purpose of calling others to brigade the person in question</li>
+          <li>Distributing the private information of other persons, including address, phone, and real names, especially for the purpose of harassment</li>
           <li>Any activity which compromises the integrity or security of Artconomy's services. (We do favor responsible disclosure of vulnerabilities-- please contact support@artconomy.com if one is found)</li>
         </ul>
 
