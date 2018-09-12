@@ -76,6 +76,27 @@
           of intellectual property violations that may occur on our platform, and do not actively police intellectual
           property matters. Artconomy will respond to properly formed and formatted DMCA requests.</p>
 
+        <p>Properly formed and formatted DMCA requests must contain:</p>
+        <ul>
+          <li>The URL of the item in question</li>
+          <li>A description of the content which is in violation</li>
+          <li>An identification of the material that is claimed to be infringing, and information reasonably sufficient
+            to permit Artconomy to locate the material (for example, by providing a URL to the material); or, if
+            applicable, identification of the reference or link to material or activity claimed to be infringing, and
+            information reasonably sufficient to permit Artconomy to locate that reference or link
+          </li>
+          <li>
+            Name, address, telephone number, and email address of the person claiming infringement
+          </li>
+          <li>
+            A statement that the information in the notification is accurate and a statement, made under penalty of
+            perjury, that the person claiming infringement is the rights holder or is authorized to act on the behalf
+            of the rights holder.
+          </li>
+          <li>Electronic or physical signature of the rights holder or the person authorized to act on behalf of that person</li>
+        </ul>
+        <p>DMCA takedown requests must be sent to abuse@artconomy.com</p>
+
         <p>By using Artconomy, you agree not to upload/submit material for which you do not have the appropriate rights.</p>
 
         <h2>Purchases</h2>
