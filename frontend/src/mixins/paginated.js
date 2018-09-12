@@ -102,8 +102,9 @@ export default {
       this.promise = artCall(url, 'GET', undefined, this.populateResponse, this.populateError)
     },
     setPageQuery (value) {
-      let query = {query: {page: value}}
-      let newQuery = Object.assign({}, this.$route, query)
+      let newQuery = {...this.$route.query}
+      newQuery['page'] = value
+      newQuery = Object.assign({}, this.$route, newQuery)
       this.$router.history.replace(newQuery)
     },
     checkPageQuery (tabName) {

@@ -12,7 +12,9 @@ export default {
       this.$router.history.replace({query: Object.assign({}, this.$route.query, { editing: true })})
     },
     lock: function () {
-      this.$router.history.replace({query: {}})
+      let newQuery = {...this.$route.query}
+      delete newQuery['editing']
+      this.$router.history.replace({query: newQuery})
     },
     toggleEdit: function () {
       if (this.editing) {
