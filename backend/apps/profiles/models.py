@@ -408,7 +408,11 @@ class Attribute(Model):
                 self.character.tags.remove(*tags)
                 tag.self_clean()
         if self.value:
-            tag_name = tag_list_cleaner([self.value])[0]
+            tag_name = tag_list_cleaner([self.value])
+            if tag_name:
+                tag_name = tag_name[0]
+            else:
+                return
             tag, _ = Tag.objects.get_or_create(name=tag_name)
             if not self.character.tags.filter(name=tag.name).exists():
                 self.character.tags.add(tag)
