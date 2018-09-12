@@ -2,11 +2,12 @@
   <v-layout row>
     <v-flex xs11>
       <v-text-field
-          v-model="value"
+          v-model="color"
           :label="schema.label"
           :rules="validators"
           :required="schema.required"
           :hint="schema.hint"
+          :error-messages="errors"
           persistent-hint
       />
     </v-flex>
@@ -25,6 +26,20 @@
     mixins: [ abstractField, materialField ],
     created () {
       window.select = this
+    },
+    computed: {
+      color: {
+        get () {
+          return this.value
+        },
+        set (newVal) {
+          newVal = newVal.replace(new RegExp('[\\W]*', 'g'), '')
+          console.log(newVal)
+          newVal = newVal.toLowerCase()
+          newVal = '#' + newVal
+          this.value = newVal
+        }
+      }
     }
   }
 </script>
