@@ -374,6 +374,7 @@ export function validNumber (value, schema) {
 }
 
 export function minimumOrZero (value, schema) {
+  value = parseFloat(value)
   if (value === 0 || value === 0.0) {
     return true
   }

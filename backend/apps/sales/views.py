@@ -1103,12 +1103,14 @@ class AcceptCharTransfer(GenericAPIView):
 
     def mark_transfer_completed(self, transfer):
         transfer.status = CharacterTransfer.COMPLETED
+        transfer.completed_on = timezone.now()
         transfer.saved_name = transfer.character.name
         transfer.save()
         transfer.character.user = transfer.buyer
         transfer.character.transfer = None
         transfer.character.save()
         if transfer.include_assets:
+            transfer.included_assets.add(*transfer.character.assets.filter(owner=transfer.seller))
             transfer.character.assets.filter(owner=transfer.seller).update(owner=transfer.buyer)
         notify(CHAR_TRANSFER, transfer, unique=True, exclude=[transfer.buyer])
 
@@ -1204,6 +1206,8 @@ class CharacterTransferAssets(ListAPIView):
         self.check_object_permissions(self.request, transfer)
         if transfer.status == CharacterTransfer.NEW and transfer.include_assets:
             return transfer.character.assets.filter(owner=transfer.seller)
+        elif transfer.status == CharacterTransfer.COMPLETED:
+            return transfer.included_assets.all()
         else:
             return ImageAsset.objects.none()
 

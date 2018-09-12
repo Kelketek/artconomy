@@ -307,9 +307,9 @@ class CharacterTransferSerializer(serializers.ModelSerializer):
         model = CharacterTransfer
         fields = (
             'status', 'created_on', 'buyer', 'seller', 'character', 'price', 'include_assets', 'id',
-            'saved_name'
+            'saved_name', 'completed_on'
         )
-        read_only_fields = ('seller', 'character', 'created_on', 'status', 'buyer', 'id', 'saved_name')
+        read_only_fields = ('seller', 'character', 'created_on', 'status', 'buyer', 'id', 'saved_name', 'completed_on')
 
 
 class PlaceholderSaleSerializer(serializers.ModelSerializer):

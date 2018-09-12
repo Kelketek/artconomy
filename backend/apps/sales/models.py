@@ -711,12 +711,14 @@ class CharacterTransfer(Model):
         (REJECTED, 'Rejected'),
     )
     status = IntegerField(choices=STATUSES, db_index=True, default=NEW)
-    created_on = DateTimeField(auto_now_add=True)
+    created_on = DateTimeField(auto_now_add=True, db_index=True)
+    completed_on = DateTimeField(db_index=True, null=True, blank=True)
     seller = ForeignKey('profiles.User', on_delete=CASCADE, related_name='character_transfers_outbound')
     buyer = ForeignKey('profiles.User', on_delete=CASCADE, related_name='character_transfers_inbound')
     character = ForeignKey('profiles.Character', on_delete=SET_NULL, null=True, blank=True)
     saved_name = CharField(blank=True, default='', max_length=150)
     include_assets = BooleanField(default=False)
+    included_assets = ManyToManyField('profiles.ImageAsset', related_name='character_transfers')
     price = MoneyField(
         max_digits=6, decimal_places=2, default_currency='USD',
         db_index=True, validators=[MinimumOrZero(settings.MINIMUM_PRICE)]
