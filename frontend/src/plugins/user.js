@@ -60,7 +60,7 @@ export const UserHandler = {
           function loadLoggedIn (response) {
             self.$userSaver(self, response)
             if (loadProfile) {
-              self.$router.push({name: 'Profile', params: {username: self.user.username}})
+              self.$router.push({name: 'Profile', params: {username: self.user.username}, query: {editing: true}})
             }
           }
           artCall('/api/profiles/v1/data/requester/', 'GET', undefined, loadLoggedIn, this.$error)

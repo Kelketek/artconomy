@@ -34,7 +34,6 @@
         },
         set (newVal) {
           newVal = newVal.replace(new RegExp('[\\W]*', 'g'), '')
-          console.log(newVal)
           newVal = newVal.toLowerCase()
           newVal = '#' + newVal
           this.value = newVal

@@ -1,50 +1,56 @@
 <template>
   <v-container class="account-profile" :key="username" v-if="userloaded">
-    <v-card>
-      <v-layout row wrap class="mb-4">
-        <v-flex xs12 sm2  text-xs-center text-sm-left class="pt-2">
-          <v-layout row wrap>
-            <v-flex xs12 text-xs-center>
-              <ac-avatar :user="user" :show-rating="true" :no-link="true" />
-            </v-flex>
-            <v-flex xs12 text-xs-center v-if="!isCurrent">
-              <ac-action :url="`/api/profiles/v1/account/${username}/watch/`" :success="replaceUser" v-if="isLoggedIn">
-                <span v-if="user.watching"><v-icon>visibility_off</v-icon>&nbsp;Stop Watching</span>
-                <span v-else><v-icon>visibility</v-icon>&nbsp;Watch</span>
-              </ac-action>
-            </v-flex>
-            <v-flex xs12 text-xs-center v-if="!isCurrent">
-              <ac-action :url="`/api/profiles/v1/account/${username}/block/`" :success="replaceUser" v-if="isLoggedIn">
-                <v-icon>block</v-icon>
-                <span v-if="user.blocked">&nbsp;Unblock</span><span v-else>&nbsp;Block</span>
-              </ac-action>
-            </v-flex>
-            <v-flex xs12 text-xs-center v-if="!isCurrent && isLoggedIn">
-              <v-btn @click="showNewMessage = true">
-                <v-icon>message</v-icon>
-                <span>&nbsp;Message</span>
-              </v-btn>
-            </v-flex>
-            <v-flex v-if="!isCurrent && user.watching" text-xs-center>
-              <v-btn v-if="isLoggedIn && !portrait" color="purple" :to="{name: 'Upgrade'}">Alert when open</v-btn>
-              <span v-if="portrait && user.watching">You will be alerted when this artist is open.</span>
-            </v-flex>
-          </v-layout>
-        </v-flex>
-        <v-flex xs12 sm10 class="pt-2 pl-2 pr-2">
-          <h3>About {{user.username}}</h3>
-          <ac-patchfield
-              v-model="user.biography"
-              name="biography"
-              :multiline="true"
-              :editmode="controls"
-              :url="url"
-              placeholder="Write a bit about yourself!"
-          />
-        </v-flex>
-        <v-flex sm3 class="hidden-sm-and-down">
-        </v-flex>
-      </v-layout>
+    <v-card class="mb-4">
+      <v-card-text>
+        <v-layout row wrap>
+          <v-flex xs12 sm2  text-xs-center text-sm-left>
+            <v-layout row wrap>
+              <v-flex xs12 text-xs-center>
+                <ac-avatar :user="user" :show-rating="true" :no-link="true" />
+              </v-flex>
+              <v-flex xs12 text-xs-center v-if="!isCurrent">
+                <ac-action :url="`/api/profiles/v1/account/${username}/watch/`" :success="replaceUser" v-if="isLoggedIn">
+                  <span v-if="user.watching"><v-icon>visibility_off</v-icon>&nbsp;Stop Watching</span>
+                  <span v-else><v-icon>visibility</v-icon>&nbsp;Watch</span>
+                </ac-action>
+              </v-flex>
+              <v-flex xs12 text-xs-center v-if="!isCurrent">
+                <ac-action :url="`/api/profiles/v1/account/${username}/block/`" :success="replaceUser" v-if="isLoggedIn">
+                  <v-icon>block</v-icon>
+                  <span v-if="user.blocked">&nbsp;Unblock</span><span v-else>&nbsp;Block</span>
+                </ac-action>
+              </v-flex>
+              <v-flex xs12 text-xs-center v-if="!isCurrent && isLoggedIn">
+                <v-btn @click="showNewMessage = true">
+                  <v-icon>message</v-icon>
+                  <span>&nbsp;Message</span>
+                </v-btn>
+              </v-flex>
+              <v-flex v-if="!isCurrent && user.watching" text-xs-center>
+                <v-btn v-if="isLoggedIn && !portrait" color="purple" :to="{name: 'Upgrade'}">Alert when open</v-btn>
+                <span v-if="portrait && user.watching">You will be alerted when this artist is open.</span>
+              </v-flex>
+              <v-flex xs12 v-if="controls" class="text-xs-center">
+                <v-icon class="clickable" v-if="editing" @click="editing=false">lock_open</v-icon>
+                <v-icon class="clickable" v-else @click="editing=true">lock</v-icon>
+              </v-flex>
+            </v-layout>
+          </v-flex>
+          <v-flex xs12 sm10 class="pt-2 pl-2 pr-2">
+            <h3>About {{user.username}}</h3>
+            <ac-patchfield
+                v-model="user.biography"
+                name="biography"
+                :multiline="true"
+                :editmode="editing"
+                :url="url"
+                placeholder="Write a bit about yourself!"
+            />
+          </v-flex>
+          <v-flex sm3 class="hidden-sm-and-down">
+          </v-flex>
+        </v-layout>
+      </v-card-text>
     </v-card>
     <ac-journals :username="username" :limit="3" class="mb-3"/>
     <v-tabs v-model="tab" fixed-tabs>
@@ -177,7 +183,7 @@
 
   export default {
     name: 'Profile',
-    mixins: [Viewer, Perms],
+    mixins: [Viewer, Perms, Editable],
     components: {
       AcJournals,
       AcUserGallery,
@@ -188,8 +194,7 @@
       AcAssetGallery,
       AcPatchfield,
       AcAvatar,
-      Characters,
-      Editable
+      Characters
     },
     methods: {
       shownTab (tabName) {
@@ -396,8 +401,6 @@
         return `/api/profiles/v1/data/user/${this.username}/`
       },
       userloaded () {
-        console.log(Object.keys(this.user).length)
-        console.log(Object.keys(this.user).length > 1)
         return Object.keys(this.user).length > 1
       },
       tab: paramHandleMap('tabName'),
