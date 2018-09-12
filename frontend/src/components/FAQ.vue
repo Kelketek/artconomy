@@ -736,6 +736,12 @@
                   </li>
                 </ol>
                 <p>
+                  <strong>
+                    If there is any reasonable doubt a piece belongs in one category or the or the next one, place
+                    it in the next one.
+                  </strong>
+                </p>
+                <p>
                   Users are expected to categorize their pieces in good faith. If users do not properly categorize,
                   pieces may be categorized for them. Repeated failure to properly categorize can
                   result in account suspension.
