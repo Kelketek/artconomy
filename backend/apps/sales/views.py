@@ -37,8 +37,8 @@ from apps.sales.dwolla import add_bank_account, initiate_withdraw, perform_trans
     destroy_bank_account
 from apps.sales.permissions import OrderViewPermission, OrderSellerPermission, OrderBuyerPermission, \
     OrderPlacePermission, EscrowPermission, EscrowDisabledPermission
-from apps.sales.models import Product, Order, CreditCardToken, PaymentRecord, Revision, BankAccount, CharacterTransfer, \
-    PlaceholderSale, WEIGHTED_STATUSES, Rating, OrderToken
+from apps.sales.models import Product, Order, CreditCardToken, PaymentRecord, Revision, BankAccount, \
+    CharacterTransfer, PlaceholderSale, WEIGHTED_STATUSES, Rating, OrderToken
 from apps.sales.serializers import ProductSerializer, ProductNewOrderSerializer, OrderViewSerializer, CardSerializer, \
     NewCardSerializer, OrderAdjustSerializer, PaymentSerializer, RevisionSerializer, OrderStartedSerializer, \
     AccountBalanceSerializer, BankAccountSerializer, WithdrawSerializer, PaymentRecordSerializer, \
