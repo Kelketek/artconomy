@@ -3,9 +3,7 @@
     <v-flex xs3>
       {{refColor.note}}
     </v-flex>
-    <v-flex xs6 class="text-xs-center color-notation">
-      {{refColor.color}}
-    </v-flex>
+    <v-flex xs6 class="text-xs-center color-notation">{{refColor.color}}</v-flex>
     <v-flex xs2 v-if="editing" :style="'background-color: ' + refColor.color">&nbsp;</v-flex>
     <v-flex xs3 v-else :style="'background-color: ' + refColor.color">
       &nbsp;
