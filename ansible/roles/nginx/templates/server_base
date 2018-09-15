@@ -16,6 +16,6 @@ server {
 server {
     listen 443 ssl;
     include includes/ssl.conf;
+    include includes/extra.conf;
     include includes/upstream.conf;
 }
-include includes/extra.conf;
