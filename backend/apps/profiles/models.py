@@ -272,7 +272,7 @@ def auto_subscribe_image(sender, instance, created=False, **_kwargs):
 
 
 @receiver(post_delete, sender=ImageAsset)
-def auto_remove(sender, instance, **kwargs):
+def auto_remove_image_subscriptions(sender, instance, **kwargs):
     Subscription.objects.filter(
         subscriber=instance.owner,
         content_type=ContentType.objects.get_for_model(model=sender),
