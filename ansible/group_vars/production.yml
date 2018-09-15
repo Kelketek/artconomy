@@ -5,7 +5,9 @@ app_user: production
 cron_enabled: true
 admin_email: fox@vulpinity.com
 domains:
+ - artconomy.com
  - beta.artconomy.com
+ - www.artconomy.com
 app_version: master
 host_color: red
 password_protect: false

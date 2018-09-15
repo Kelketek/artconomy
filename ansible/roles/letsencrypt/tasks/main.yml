@@ -8,6 +8,7 @@
   command: "letsencrypt --standalone --email {{ admin_email }} --agree-tos{% for name in domains %} -d {{name}}{% endfor %} certonly"
   args:
     creates: "/etc/letsencrypt/live/*"
+  register: certgen
 
 - name: Set up cron job
   template:
