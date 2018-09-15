@@ -66,22 +66,6 @@
                   may be supported by ad revenue or by other means.
                 </p>
 
-                <p v-if="pricing">
-                  Artconomy's fees for <router-link
-                    :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}"
-                >
-                  Artconomy Shield</router-link> are {{pricing.standard_percentage}}% + ${{pricing.standard_static}} for
-                  each order.
-                </p>
-                <p v-if="pricing">
-                  If you're an artist using
-                  <router-link
-                      :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'portrait-and-landscape'}}"
-                  >Artconomy Landscape,</router-link>
-                  your per-order fee is <strong>lower</strong> at
-                  {{pricing.landscape_percentage}}% + ${{pricing.landscape_static}}.
-                </p>
-
                 <p>Our money is made in helping commissioners and artists connect. This gives us an incentive to
                   help both groups achieve their goals.</p>
               </v-card-text>
@@ -241,6 +225,72 @@
             </v-card>
           </v-expansion-panel-content>
           <v-expansion-panel-content>
+            <div slot="header"><strong>What is Artconomy Shield?</strong></div>
+            <v-card>
+              <v-card-text>
+                <p>
+                  <em><strong>Artconomy Shield</strong></em> is your protector against the uncertainties of commissioning art online!
+                </p>
+                <p>
+                  Products protected by Artconomy shield are guaranteed to be completed by the artist, and to be paid
+                  for by the commissioner. If there's an issue with a piece being commissioned, the commissioner may
+                  file a
+                  <router-link
+                      :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'disputes'}}"
+                  >dispute</router-link>
+                  for mediation.
+                </p>
+                <p>
+                  When you purchase a product with Artconomy shield, we hold onto your payment until the artist
+                  completes the work. <em><strong>If the artist does not complete the work, you receive your money back,
+                  minus the shield fee.</strong></em>
+                </p>
+                <p>
+                  When, as an artist, you list a product with Artconomy shield, you know the commissioner has already
+                  paid with their credit card and that they've agreed to our dispute resolution service.
+                  Unless a
+                  <router-link
+                      :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'disputes'}}"
+                  >dispute</router-link>
+                  is found in favor of your commissioner, <em><strong>your money will be deposited in your bank account once the
+                  commission is completed.</strong></em>
+                </p>
+                <p>
+                  Artists and commissioners who use Artconomy Shield help build trust in the artistic community.
+                  Artists who are unable to use Artconomy Shield (such as those without US Bank Accounts) can still
+                  list products and take orders on Artconomy, but must arrange payment with each other manually.
+                </p>
+                <p>
+                  Orders made without Artconomy Shield may also have ads on the product, profile, and order pages
+                  to help pay for the cost of providing Artconomy's service.
+                </p>
+                <p v-if="pricing">
+                  Artconomy's fees for <router-link
+                    :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}"
+                >
+                  Artconomy Shield</router-link> are {{pricing.standard_percentage}}% + ${{pricing.standard_static}} for
+                  each order.
+                </p>
+                <p v-if="pricing">
+                  For artists using
+                  <router-link
+                      :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'portrait-and-landscape'}}"
+                  >Artconomy Landscape,</router-link>
+                  the shield fee is <strong>lower</strong> at
+                  {{pricing.landscape_percentage}}% + ${{pricing.landscape_static}}.
+                </p>
+                <p>
+                  <em><strong>
+                    Commissioning artists or taking orders without Artconomy Shield is done at your own risk, and
+                    Artconomy provides no guarantees for unshielded orders.</strong>
+                  </em>
+                </p>
+                <p>Look for the shield icon on products to see if they're shielded!</p>
+                <p><v-icon class="green--text">fa-shield</v-icon></p>
+              </v-card-text>
+            </v-card>
+          </v-expansion-panel-content>
+          <v-expansion-panel-content>
             <div slot="header"><strong>How are disputes handled?</strong></div>
             <v-card>
               <v-card-text>
@@ -284,53 +334,30 @@
             </v-card>
           </v-expansion-panel-content>
           <v-expansion-panel-content>
-            <div slot="header"><strong>What is Artconomy Shield?</strong></div>
+            <div slot="header"><strong>What are Artconomy Portrait and Landscape?</strong></div>
             <v-card>
               <v-card-text>
                 <p>
-                  <em><strong>Artconomy Shield</strong></em> is your protector against the uncertainties of commissioning art online!
+                  Artconomy Portrait and Landscape are paid services that allow you to get more out
+                  of your experience with Artconomy.
                 </p>
-                <p>
-                  Products protected by Artconomy shield are guaranteed to be completed by the artist, and to be paid
-                  for by the commissioner. If there's an issue with a piece being commissioned, the commissioner may
-                  file a
-                  <router-link
-                      :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'disputes'}}"
-                  >dispute</router-link>
-                  for mediation.
+                <p>Artconomy Portrait allows you to <strong>receive messages over email and Telegram when your favorite artists are available</strong> for commissions.</p>
+                <p>Artconomy Landscape includes Artconomy Portrait, and also greatly reduces the fees involved in selling commissions:</p>
+                <p v-if="pricing">
+                  Artconomy's fees for <router-link
+                    :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}"
+                >
+                  Artconomy Shield</router-link> are {{pricing.standard_percentage}}% + ${{pricing.standard_static}} for
+                  each order.
                 </p>
-                <p>
-                  When you purchase a product with Artconomy shield, we hold onto your payment until the artist
-                  completes the work. <em><strong>If the artist does not complete the work, you receive your money back,
-                  minus a fee for the dispute resolution service.</strong></em>
+                <p v-if="pricing">
+                  ...But if you're an artist using
+                  Artconomy Landscape,
+                  your per-order fee is <strong>lower</strong> at
+                  <strong>{{pricing.landscape_percentage}}% + ${{pricing.landscape_static}}.</strong>
                 </p>
-                <p>
-                  When, as an artist, you list a product with Artconomy shield, you know the commissioner has already
-                  paid with their credit card and that they've agreed to our dispute resolution service.
-                  Unless a
-                  <router-link
-                    :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'disputes'}}"
-                  >dispute</router-link>
-                  is found in favor of your commissioner, <em><strong>your money will be deposited in your bank account once the
-                  commission is completed.</strong></em>
-                </p>
-                <p>
-                  Artists and commissioners who use Artconomy Shield help build trust in the artistic community.
-                  Artists who are unable to use Artconomy Shield (such as those without US Bank Accounts) can still
-                  list products and take orders on Artconomy, but must arrange payment with each other manually.
-                </p>
-                <p>
-                  Orders made without Artconomy Shield may also have ads on the product, profile, and order pages
-                  to help pay for the cost of providing Artconomy's service.
-                </p>
-                <p>
-                  <em><strong>
-                    Commissioning artists or taking orders without Artconomy Shield is done at your own risk, and
-                    Artconomy provides no guarantees for unshielded orders.</strong>
-                  </em>
-                </p>
-                <p>Look for the shield icon on products to see if they're shielded!</p>
-                <p><v-icon class="green--text">fa-shield</v-icon></p>
+                <router-link v-if="viewer.username" :to="{name: 'Upgrade'}">Click this link for more details!</router-link>
+                <p v-else>Click the Upgrade link in the sidebar after you're logged in to upgrade your account!</p>
               </v-card-text>
             </v-card>
           </v-expansion-panel-content>
@@ -657,20 +684,6 @@
             </v-card>
           </v-expansion-panel-content>
           <v-expansion-panel-content>
-            <div slot="header"><strong>What are Artconomy Portrait and Landscape?</strong></div>
-            <v-card>
-              <v-card-text>
-                <p>
-                  Artconomy Portrait and Landscape are paid services that allow you to get more out
-                  of your experience with Artconomy.
-                </p>
-                <p>Artconomy Portrait allows you to receive messages over email and Telegram when your favorite artists are available for commissions.</p>
-                <p>Artconomy Landscape includes Artconomy Portrait, and also greatly reduces the fees involved in selling commissions.</p>
-                <p>After signing in, see the Upgrade link in the sidebar for more details.</p>
-              </v-card-text>
-            </v-card>
-          </v-expansion-panel-content>
-          <v-expansion-panel-content>
             <div slot="header"><strong>Does Artconomy Support Auctions?</strong></div>
             <v-card>
               <v-card-text>
@@ -854,13 +867,13 @@
 
   const about = ['what-is-artconomy', 'cost', 'team']
   const buySell = [
-    'how-to-buy', 'how-to-sell', 'disputes', 'shield', 'bank-accounts',
+    'how-to-buy', 'how-to-sell', 'shield', 'disputes', 'portrait-and-landscape',
+    'bank-accounts',
     'awoo-workload-management', 'placeholder-orders', 'order-tokens',
     'why-commissions-disabled',
     'why-not-paypal', 'patreon-comparison', 'security',
     'payouts', 'crypto-currencies', 'character-transfer',
-    'portrait-and-landscape', 'auctions',
-    'physical-goods'
+    'auctions', 'physical-goods'
   ]
   const other = [
     'content-ratings', 'blacklist', 'watching', 'blocking'
