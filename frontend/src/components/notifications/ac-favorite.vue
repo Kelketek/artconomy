@@ -6,7 +6,8 @@
       </v-list-tile-avatar>
     </router-link>
     <v-list-tile-title>
-        Your piece has been favorited!
+      Your piece has been favorited by
+      <router-link :to="{name: 'Profile', params: {username: event.data.user.username}}">{{event.data.user.username}}!</router-link>
     </v-list-tile-title>
   </v-list-tile>
 </template>
