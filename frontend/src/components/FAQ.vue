@@ -419,6 +419,19 @@
                     'Why are my Commissions Disabled?'</router-link>
                   for more information as to why this may happen.
                 </p>
+                <p>You can effectively disable AWOO's load management by setting your Maximum Load to a number
+                  so high you'll never reach it. You can then open and close yourself with the
+                  <router-link
+                      :to="{name: 'Settings', params: {username: viewer.username, tabName: 'options'}}"
+                      v-if="viewer.username"
+                  >Commissions Closed setting.</router-link>
+                  <span v-else>
+                    Commissions Closed setting, available on your settings page.
+                  </span>
+                  <strong>This is not recommended unless you are experienced in managing
+                    your workload.</strong> Appearing to be open when you are not leads to customer service issues,
+                  which can affect your rating and reputation.
+                </p>
                 <p>
                   All orders offer a direct communication line with your commissioner.
                   Commenting on an order sends an email alert and notification to the commissioner for them to review.
