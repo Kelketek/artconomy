@@ -11,7 +11,7 @@ from rest_framework.views import APIView
 
 from apps.lib.models import Comment
 from apps.lib.permissions import CommentEditPermission, CommentViewPermission, CommentDepthPermission, Any, All, \
-    IsMethod, IsSafeMethod
+    IsMethod, IsSafeMethod, IsAuthenticatedObj
 from apps.lib.serializers import CommentSerializer, CommentSubscriptionSerializer
 from apps.lib.utils import countries_tweaked, remove_tags, add_tags, remove_comment, safe_add, default_context
 from apps.profiles.models import User
@@ -24,7 +24,7 @@ class CommentUpdate(RetrieveUpdateDestroyAPIView):
     permission_classes = [
         Any(
             CommentEditPermission,
-            All(IsMethod('PUT'), CommentViewPermission),
+            All(IsMethod('PUT'), CommentViewPermission, IsAuthenticatedObj),
             All(IsSafeMethod, CommentViewPermission)
         )
     ]

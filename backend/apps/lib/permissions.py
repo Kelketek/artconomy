@@ -1,6 +1,6 @@
 from logging import getLogger
 
-from rest_framework.permissions import BasePermission, SAFE_METHODS
+from rest_framework.permissions import BasePermission, SAFE_METHODS, IsAuthenticated
 
 logger = getLogger(__name__)
 
@@ -85,6 +85,11 @@ class IsSafeMethod(BasePermission):
         return self.has_permission(request, view)
 
 
+class IsAuthenticatedObj(IsAuthenticated):
+    def has_object_permission(self, request, view, obj):
+        return request.user and request.user.is_authenticated
+
+
 def IsMethod(*method_list):
     class MethodCheck(BasePermission):
         def has_permission(self, request, view):
@@ -109,5 +114,6 @@ def All(*perms):
 
     class AllPerms(BasePermission):
         def has_object_permission(self, request, view, obj):
-            return all(perm.has_object_permission(request, view, obj) for perm in perms)
+            result = all(perm.has_object_permission(request, view, obj) for perm in perms)
+            return result
     return AllPerms
