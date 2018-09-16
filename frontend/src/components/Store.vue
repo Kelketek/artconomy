@@ -25,6 +25,10 @@
         v-if="growing !== null && setUp"
         :product="product"
       />
+      <v-flex xs12 text-xs-center v-if="growing !== null">
+        <div v-if="(growing !== null) && furtherPagination" v-observe-visibility="loadMore"></div>
+        <div v-if="fetching"><i class="fa fa-spin fa-spinner fa-5x"></i></div>
+      </v-flex>
       <v-jumbotron v-if="setUp && isCurrent && (growing !== null) && (growing.length === 0)" color="grey darken-3">
         <v-container fill-height>
           <v-layout align-center>
@@ -89,6 +93,7 @@
   import AcProductPreview from './ac-product-preview'
   import AcFormContainer from './ac-form-container'
   import VueFormGenerator from 'vue-form-generator'
+  import { ObserveVisibility } from 'vue-observe-visibility'
   import {artCall, ratings, validateNonEmpty} from '../lib'
   import AcFormDialog from './ac-form-dialog'
 
@@ -99,6 +104,9 @@
       AcProductPreview,
       AcFormContainer
     },
+    directives: {
+      ObserveVisibility
+    },
     props: ['endpoint', 'embedded'],
     mixins: [Viewer, Perms, Paginated],
     data () {
@@ -106,6 +114,7 @@
         showNew: false,
         url: this.endpoint,
         pricing: null,
+        growMode: true,
         newProdModel: {
           name: '',
           category: 0,
