@@ -21,6 +21,9 @@
       <v-tab href="#tab-characters" key="characters">
         <v-icon>people</v-icon>&nbsp;Characters <strong>{{tabCounter('characterCount')}}</strong>
       </v-tab>
+      <v-tab href="#tab-profiles" key="profiles">
+        <v-icon>account_circle</v-icon>&nbsp;Profiles <strong>{{tabCounter('profileCount')}}</strong>
+      </v-tab>
     </v-tabs>
     <v-tabs-items v-model="tab">
       <v-tab-item id="tab-products">
@@ -41,6 +44,12 @@
         </div>
         <characters ref="characterSearch" counter-name="characterCount" class="pt-2" endpoint="/api/profiles/v1/search/character/" :query-data="query" />
       </v-tab-item>
+      <v-tab-item id="tab-profiles">
+        <div v-if="query.q.length === 0" class="text-xs-center pt-2">
+          <p>Enter tags to search for in the search bar above</p>
+        </div>
+        <ac-user-gallery ref="profileSearch" counter-name="profileCount" class="pt-2" endpoint="/api/profiles/v1/search/user/" :query-data="query" />
+      </v-tab-item>
     </v-tabs-items>
   </v-container>
 </template>
@@ -50,9 +59,11 @@
   import { paramHandleMap, EventBus } from '../lib'
   import Characters from './Characters'
   import Store from './Store'
+  import AcUserGallery from './ac-user-gallery'
 
   export default {
     components: {
+      AcUserGallery,
       Store,
       Characters,
       AcAssetGallery},
@@ -62,7 +73,8 @@
       return {
         characterCount: 0,
         assetCount: 0,
-        productCount: 0
+        productCount: 0,
+        profileCount: 0
       }
     },
     methods: {
