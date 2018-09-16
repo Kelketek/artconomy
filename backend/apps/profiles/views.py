@@ -31,7 +31,7 @@ from rest_framework_bulk import BulkUpdateAPIView
 from apps.lib.models import Notification, FAVORITE, CHAR_TAG, SUBMISSION_CHAR_TAG, SUBMISSION_ARTIST_TAG, ARTIST_TAG, \
     SUBMISSION_TAG, Tag, ASSET_SHARED, CHAR_SHARED, WATCHING, Comment, NEW_PM, Subscription, \
     COMMENT, ORDER_NOTIFICATION_TYPES
-from apps.lib.permissions import Any, All, IsSafeMethod, IsMethod, IsAnonymous
+from apps.lib.permissions import Any, All, IsSafeMethod, IsMethod, IsAnonymous, IsAuthenticatedObj
 from apps.lib.serializers import CommentSerializer, NotificationSerializer, Base64ImageField, RelatedUserSerializer, \
     BulkNotificationSerializer, UserInfoSerializer
 from apps.lib.utils import recall_notification, notify, safe_add, add_tags, remove_watch_subscriptions, \
@@ -266,7 +266,9 @@ class MakePrimary(APIView):
 
 class AssetManager(RetrieveUpdateDestroyAPIView):
     serializer_class = ImageAssetManagementSerializer
-    permission_classes = [Any(All(Any(IsSafeMethod, IsMethod('PUT')), AssetViewPermission), AssetControls)]
+    permission_classes = [
+        Any(All(Any(IsSafeMethod, All(IsMethod('PUT'), IsAuthenticatedObj)), AssetViewPermission), AssetControls)
+    ]
 
     def get_object(self):
         asset = get_object_or_404(
@@ -1350,7 +1352,7 @@ class Journals(ListCreateAPIView):
 
 class JournalManager(RetrieveUpdateDestroyAPIView):
     serializer_class = JournalSerializer
-    permission_classes = [ObjectControls]
+    permission_classes = [Any(IsSafeMethod, All(IsMethod('PUT'), IsAuthenticated), ObjectControls)]
 
     def get_object(self):
         user = get_object_or_404(User, username__iexact=self.kwargs['username'])

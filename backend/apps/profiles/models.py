@@ -590,6 +590,15 @@ class Journal(Model):
         from .serializers import JournalSerializer
         return JournalSerializer(instance=self, context=context).data
 
+    def notification_display(self, context):
+        return {'file': {'notification': avatar_url(self.user)}}
+
+    def notification_name(self, context):
+        return "journal with subject: {}".format(self.subject)
+
+    def notification_link(self, context):
+        return {'name': 'Journal', 'params': {'journalID': self.id, 'username': self.user.username}}
+
 
 @receiver(post_save, sender=Journal)
 def auto_subscribe_journal(sender, instance, created=False, **kwargs):
