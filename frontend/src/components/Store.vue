@@ -25,7 +25,7 @@
         v-if="growing !== null && setUp"
         :product="product"
       />
-      <v-flex xs12 text-xs-center v-if="growing !== null">
+      <v-flex xs12 text-xs-center v-if="growMode && growing !== null">
         <div v-if="(growing !== null) && furtherPagination" v-observe-visibility="loadMore"></div>
         <div v-if="fetching"><i class="fa fa-spin fa-spinner fa-5x"></i></div>
       </v-flex>
@@ -107,14 +107,14 @@
     directives: {
       ObserveVisibility
     },
-    props: ['endpoint', 'embedded'],
+    props: ['endpoint', 'embedded', 'grow'],
     mixins: [Viewer, Perms, Paginated],
     data () {
       return {
         showNew: false,
         url: this.endpoint,
         pricing: null,
-        growMode: true,
+        growMode: this.grow,
         newProdModel: {
           name: '',
           category: 0,
