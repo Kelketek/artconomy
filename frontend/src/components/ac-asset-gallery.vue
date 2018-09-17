@@ -42,7 +42,7 @@
     },
     watch: {
       rating () {
-        this.fetchItems()
+        this.restart()
       }
     },
     name: 'ac-asset-gallery',
