@@ -1,13 +1,15 @@
 <template>
     <v-flex class="patchfield-wrapper" :class="classes()">
       <v-flex v-if="editmode && multiline" @click="startEditing">
-        <v-textarea ref="field" @keydown="handleMultilineInput" append-icon="edit" @click:append="focusField" v-model="input" @input="resizer" :v-focus="true" @blur="save" @keyup.escape="reset" :disabled="disabled"></v-textarea>
+        <v-textarea ref="field" @keydown="handleMultilineInput" :append-icon="icon" @click:append="focusField" v-model="input" @input="resizer" :v-focus="true" @blur="save" @keyup.escape="reset" :disabled="disabled"></v-textarea>
+        <v-btn small class="formatting-help" @click="formatToggle=true">Formatting Help</v-btn>
       </v-flex>
       <v-flex v-else-if="editmode" @click="startEditing">
-        <v-text-field type="text" ref="field" class="patch-input" append-icon="edit" @click:append="focusField" v-model="input" @keyup.enter.native="save" :autofocus="true" @focus="setAtEnd" :value="value" @blur="save" @keyup.escape.native="reset" :disabled="disabled" />
+        <v-text-field type="text" ref="field" class="patch-input" :append-icon="icon" @click:append="focusField" v-model="input" @keyup.enter.native="save" :autofocus="true" @focus="setAtEnd" :value="value" @blur="save" @keyup.escape.native="reset" :disabled="disabled" />
       </v-flex>
       <v-flex v-else-if="multiline" class="patchfield-normal" v-html="preview"></v-flex>
       <v-flex v-else class="patchfield-normal" v-html="preview"></v-flex>
+      <ac-markdown-explanation v-model="formatToggle" />
     </v-flex>
 </template>
 
@@ -16,9 +18,11 @@
   import {artCall, md} from '../lib'
   import autosize from 'autosize'
   import Vue from 'vue'
+  import AcMarkdownExplanation from './ac-markdown-explanation'
 
   export default {
     name: 'ac-patchfield',
+    components: {AcMarkdownExplanation},
     directives: { focus: focus },
     props: ['value', 'editmode', 'name', 'styleclass', 'url', 'callback', 'multiline', 'placeholder', 'displayValue'],
     data: function () {
@@ -26,7 +30,9 @@
         editing: false,
         original: this.value,
         disabled: false,
+        saved: false,
         errors: [],
+        formatToggle: false,
         input: this.value,
         md
       }
@@ -45,6 +51,12 @@
         } else {
           return this.md.renderInline(value + '')
         }
+      },
+      icon () {
+        if (this.saved) {
+          return 'check'
+        }
+        return 'edit'
       }
     },
     methods: {
@@ -75,6 +87,7 @@
       },
       startEditing () {
         this.editing = true
+        this.saved = false
         let self = this
         Vue.nextTick(() => {
           self.resizer()
@@ -88,6 +101,7 @@
       save () {
         this.errors = []
         if (this.original === this.input) {
+          this.saved = true
           this.editing = false
           return
         }
@@ -111,6 +125,7 @@
       },
       postSave () {
         this.editing = false
+        this.saved = true
         this.original = this.value
         this.disabled = false
         if (this.callback) {
@@ -149,12 +164,16 @@
   .patchfield-preview {
     display: inline-block;
   }
+  .formatting-help {
+    margin-top: -1rem;
+  }
   textarea.patchfield-multiline-editor {
     width: 100%;
     height: 100%;
   }
   .patchfield-wrapper {
     display: inline-block;
+    position: relative;
   }
   .patchfield-wrapper .input-group__details {
     display: none
