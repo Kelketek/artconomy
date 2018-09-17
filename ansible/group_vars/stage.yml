@@ -6,6 +6,8 @@ cron_enabled: true
 admin_email: fox@vulpinity.com
 domains:
  - stage.artconomy.com
+ - wat.artconomy.com
+ - thing.artconomy.com
 app_version: master
 host_color: green
 password_protect: false

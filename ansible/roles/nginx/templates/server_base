@@ -13,6 +13,14 @@ server {
     rewrite     ^(.*)   https://{{ domains[0] }}$1 permanent;
 }
 
+{% if domains|length > 1 %}
+server {
+    include includes/ssl.conf;
+    server_name {% for name in domains[1:] %} {{ name }}{% endfor %};
+    rewrite     ^(.*)   https://{{ domains[0] }}$1 permanent;
+}
+{% endif %}
+
 server {
     listen 443 ssl;
     include includes/ssl.conf;
