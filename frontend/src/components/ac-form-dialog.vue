@@ -18,7 +18,7 @@
           <v-btn dark flat @click.prevent="$refs.form.submit">{{ submitText }}</v-btn>
         </v-toolbar-items>
       </v-toolbar>
-      <v-card-text>
+      <v-card-text ref="scrollableText">
         <v-form @submit.prevent="$refs.form.submit">
           <slot name="header" />
           <ac-form-container
@@ -28,6 +28,7 @@
               :success="success" :failure="failure"
               :url="url" :pre-send="preSend"
               :reset-after="resetAfter"
+              :scroll-target="$el"
           />
           <slot name="footer" />
           <v-btn type="submit" class="hidden" />
@@ -49,6 +50,7 @@
 </style>
 
 <script>
+  import $ from 'jquery'
   import AcFormContainer from './ac-form-container'
   import { EventBus } from '../lib'
   import Vue from 'vue'
@@ -122,8 +124,10 @@
     methods: {
       scrollToErrors (event) {
         Vue.nextTick(() => {
-          if (document.querySelector('.error--text')) {
-            this.$refs.dialog.$vuetify.goTo('.error--text')
+          let el = $(this.$refs.scrollableText)
+          let errors = el.find('.error--text')
+          if (errors.length) {
+            errors[0].scrollIntoView()
           }
         })
       }
