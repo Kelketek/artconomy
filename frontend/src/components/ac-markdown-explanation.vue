@@ -116,6 +116,7 @@
 </template>
 
 <script>
+  import $ from 'jquery'
   export default {
     name: 'ac-markdown-explanation',
     props: ['value'],
@@ -128,6 +129,9 @@
           this.$emit('input', value)
         }
       }
+    },
+    mounted () {
+      $(this.$el).scroll(0)
     }
   }
 </script>
