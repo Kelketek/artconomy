@@ -1033,7 +1033,12 @@ class GalleryList(ListCreateAPIView):
             instance.artists.add(user)
         add_tags(self.request, instance)
         instance.artists.add(*available_artists(user).filter(pk__in=artist_pks))
-        instance.characters.add(*available_chars(user, tagging=True).filter(pk__in=char_pks))
+        characters = available_chars(user, tagging=True).filter(pk__in=char_pks)
+        for character in characters:
+            instance.characters.add(character)
+            if character.user == user and not character.primary_asset:
+                character.primary_asset = instance
+                character.save()
         return instance
 
 

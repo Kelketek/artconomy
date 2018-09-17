@@ -39,6 +39,11 @@
         growMode: true
       }
     },
+    watch: {
+      rating () {
+        this.restart()
+      }
+    },
     created () {
       this.fetchItems()
     }

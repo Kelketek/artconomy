@@ -20,15 +20,15 @@
               <v-card-title class="clickable" v-if="editing && isCurrent" @click="editing=false"><v-icon>lock_open</v-icon></v-card-title>
               <v-card-title class="clickable" v-else-if="isCurrent" @click="editing=true"><v-icon>lock</v-icon></v-card-title>
             </v-flex>
-            <v-flex text-xs-right v-if="isCurrent">
-              <ac-action :url="url" :send="{subscribed: !journal.subscribed}" method="PUT" :success="populateJournal">
+            <v-flex text-xs-right>
+              <ac-action :url="url" :send="{subscribed: !journal.subscribed}" method="PUT" :success="populateJournal" v-if="isLoggedIn">
                 <v-icon v-if="journal.subscribed">volume_up</v-icon><v-icon v-else>volume_off</v-icon>
               </ac-action>
-              <ac-action :url="url" method="PATCH" :send="{comments_disabled: !journal.comments_disabled}" :success="populateJournal">
+              <ac-action v-if="isCurrent" :url="url" method="PATCH" :send="{comments_disabled: !journal.comments_disabled}" :success="populateJournal">
                 <span v-if="journal.comments_disabled">Enable Comments</span>
                 <span v-else>Disable Comments</span>
               </ac-action>
-              <ac-action color="red" :url="url" method="DELETE" :confirm="true" :success="goBack">
+              <ac-action color="red" :url="url" method="DELETE" :confirm="true" :success="goBack" v-if="isCurrent">
                 <v-icon>delete</v-icon>
                 <div class="text-left" slot="confirmation-text">
                   Are you sure you want to delete this journal? This cannot be undone.

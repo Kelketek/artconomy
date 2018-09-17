@@ -117,7 +117,7 @@
                 <span v-if="submission.private"><v-icon>visibility_off</v-icon> Submission is private</span>
                 <span v-else><v-icon>visibility</v-icon> Submission is public</span>
               </div>
-              <ac-action :url="url" :send="{subscribed: !submission.subscribed}" method="PUT" :success="populateSubmission">
+              <ac-action :url="url" :send="{subscribed: !submission.subscribed}" method="PUT" :success="populateSubmission" v-if="isLoggedIn">
                 <v-icon v-if="submission.subscribed">volume_up</v-icon><v-icon v-else>volume_off</v-icon>
               </ac-action>
               <ac-action :url="`${url}favorite/`" :success="populateSubmission" v-if="isLoggedIn">
