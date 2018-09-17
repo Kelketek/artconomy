@@ -261,7 +261,7 @@ def auto_subscribe_image(sender, instance, created=False, **_kwargs):
             subscriber=instance.owner,
             content_type=ContentType.objects.get_for_model(model=sender),
             object_id=instance.id,
-            type=SUBMISSION_TAG
+            type=SUBMISSION_CHAR_TAG
         )
         Subscription.objects.create(
             subscriber=instance.owner,

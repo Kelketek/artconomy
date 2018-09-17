@@ -5,6 +5,7 @@ from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.files.base import ContentFile
+from django.db import IntegrityError
 from django.db.models import When, F, Case, BooleanField, Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -25,7 +26,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.lib.models import DISPUTE, REFUND, COMMENT, Subscription, ORDER_UPDATE, SALE_UPDATE, REVISION_UPLOADED, \
-    CHAR_TRANSFER, NEW_PRODUCT, STREAMING
+    CHAR_TRANSFER, NEW_PRODUCT, STREAMING, CHAR_TAG, FAVORITE, SUBMISSION_CHAR_TAG
 from apps.lib.permissions import ObjectStatus, IsStaff, IsSafeMethod, Any
 from apps.lib.serializers import CommentSerializer
 from apps.lib.utils import notify, recall_notification, subscribe, add_tags, demark
@@ -1109,9 +1110,29 @@ class AcceptCharTransfer(GenericAPIView):
         transfer.character.user = transfer.buyer
         transfer.character.transfer = None
         transfer.character.save()
+        Subscription.objects.filter(
+            subscriber=transfer.seller, type=CHAR_TAG,
+            content_type=ContentType.objects.get_for_model(model=transfer.character),
+            object_id=transfer.character.id
+        ).update(subscriber=transfer.buyer)
         if transfer.include_assets:
             transfer.included_assets.add(*transfer.character.assets.filter(owner=transfer.seller))
             transfer.character.assets.filter(owner=transfer.seller).update(owner=transfer.buyer)
+            asset_type = ContentType.objects.get_for_model(ImageAsset)
+            for asset in transfer.included_assets.all():
+                Subscription.objects.filter(
+                    type__in=[FAVORITE, SUBMISSION_CHAR_TAG, SUBMISSION_CHAR_TAG],
+                    content_type=asset_type,
+                    object_id=asset.id,
+                    subscriber=transfer.seller
+                ).update(subscriber=transfer.buyer)
+                Subscription.objects.get_or_create(
+                    type=COMMENT,
+                    object_id=asset.id,
+                    content_type=asset_type,
+                    subscriber=transfer.buyer,
+                )
+
         notify(CHAR_TRANSFER, transfer, unique=True, exclude=[transfer.buyer])
 
     def post(self, *args, **kwargs):
