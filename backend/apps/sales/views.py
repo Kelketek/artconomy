@@ -26,7 +26,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.lib.models import DISPUTE, REFUND, COMMENT, Subscription, ORDER_UPDATE, SALE_UPDATE, REVISION_UPLOADED, \
-    CHAR_TRANSFER, NEW_PRODUCT, STREAMING, CHAR_TAG, FAVORITE, SUBMISSION_CHAR_TAG
+    CHAR_TRANSFER, NEW_PRODUCT, STREAMING, CHAR_TAG, FAVORITE, SUBMISSION_CHAR_TAG, SUBMISSION_ARTIST_TAG
 from apps.lib.permissions import ObjectStatus, IsStaff, IsSafeMethod, Any
 from apps.lib.serializers import CommentSerializer
 from apps.lib.utils import notify, recall_notification, subscribe, add_tags, demark
@@ -1121,7 +1121,7 @@ class AcceptCharTransfer(GenericAPIView):
             asset_type = ContentType.objects.get_for_model(ImageAsset)
             for asset in transfer.included_assets.all():
                 Subscription.objects.filter(
-                    type__in=[FAVORITE, SUBMISSION_CHAR_TAG, SUBMISSION_CHAR_TAG],
+                    type__in=[FAVORITE, SUBMISSION_CHAR_TAG, SUBMISSION_ARTIST_TAG],
                     content_type=asset_type,
                     object_id=asset.id,
                     subscriber=transfer.seller
