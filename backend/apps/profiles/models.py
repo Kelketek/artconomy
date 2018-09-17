@@ -22,7 +22,7 @@ from apps.lib.abstract_models import GENERAL, RATINGS, ImageModel
 from apps.lib.models import Comment, Subscription, FAVORITE, SYSTEM_ANNOUNCEMENT, DISPUTE, REFUND, Event, \
     SUBMISSION_CHAR_TAG, CHAR_TAG, SUBMISSION_TAG, COMMENT, Tag, CHAR_TRANSFER, ASSET_SHARED, CHAR_SHARED, \
     NEW_CHARACTER, RENEWAL_FAILURE, SUBSCRIPTION_DEACTIVATED, RENEWAL_FIXED, NEW_JOURNAL, ORDER_TOKEN_ISSUED, \
-    TRANSFER_FAILED
+    TRANSFER_FAILED, SUBMISSION_ARTIST_TAG
 from apps.lib.utils import clear_events, tag_list_cleaner, notify, recall_notification
 from apps.profiles.permissions import AssetViewPermission, AssetCommentPermission, MessageReadPermission, \
     JournalCommentPermission
@@ -261,7 +261,7 @@ def auto_subscribe_image(sender, instance, created=False, **_kwargs):
             subscriber=instance.owner,
             content_type=ContentType.objects.get_for_model(model=sender),
             object_id=instance.id,
-            type=SUBMISSION_CHAR_TAG
+            type=SUBMISSION_ARTIST_TAG
         )
         Subscription.objects.create(
             subscriber=instance.owner,
