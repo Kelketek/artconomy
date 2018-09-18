@@ -5,7 +5,7 @@ from django.db import migrations
 from apps.lib.models import TRANSFER_FAILED
 
 
-def add_order_token(apps, schema):
+def add_transfer_failed(apps, schema):
     User = apps.get_model('profiles', 'User')
     Subscription = apps.get_model('lib', 'Subscription')
     # Remove any broken subscriptions from previous iteration.
@@ -29,5 +29,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(add_order_token, reverse_code=lambda x, y: None)
+        migrations.RunPython(add_transfer_failed, reverse_code=lambda x, y: None)
     ]
