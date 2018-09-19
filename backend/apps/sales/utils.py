@@ -1,7 +1,6 @@
 from decimal import Decimal, InvalidOperation
 from uuid import uuid4
 
-from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Sum, Q, IntegerField, Case, When, F
@@ -133,19 +132,15 @@ def product_ordering(qs, query=''):
 
 def available_products(requester, query='', ordering=True):
     from apps.sales.models import Product
-    exclude = Q(hidden=True)
-    q = Q(name__istartswith=query) | Q(tags__name__iexact=query)
+    if query:
+        q = Q(name__istartswith=query) | Q(tags__name=query.lower())
+        qs = Product.objects.filter(available=True).filter(q)
+    else:
+        return Product.objects.filter(available=True)
     if requester.is_authenticated:
-        qs = Product.objects.filter(q).exclude(exclude & ~Q(user=requester)).exclude(active=False)
-        qs = qs.exclude(Q(task_weight__gt=F('user__max_load')-F('user__load')) & ~Q(user=requester))
-        qs = qs.filter(Q(max_parallel=0) | Q(parallel__lt=F('max_parallel')) | Q(user=requester))
         if not requester.is_staff:
             qs = qs.exclude(user__blocking=requester)
-    else:
-        qs = Product.objects.filter(q).exclude(exclude)
-        qs = qs.exclude(Q(task_weight__gt=F('user__max_load')-F('user__load')))
-        qs = qs.filter(Q(max_parallel=0) | Q(parallel__lt=F('max_parallel')))
-    qs = qs.exclude(user__commissions_closed=True).exclude(user__commissions_disabled=True)
+        qs = qs.exclude(user__in=requester.blocking.all())
     if ordering:
         return product_ordering(qs, query)
     return qs
@@ -213,7 +208,7 @@ def available_products_by_load(seller, load=None):
     from apps.sales.models import Product
     if load is None:
         load = seller.load
-    return Product.objects.filter(user=seller, active=True, hidden=False).exclude(
+    return Product.objects.filter(user_id=seller.id, active=True, hidden=False).exclude(
         task_weight__gt=seller.max_load - load
     ).exclude(Q(parallel__gte=F('max_parallel')) & ~Q(max_parallel=0))
 
@@ -246,16 +241,21 @@ def update_availability(seller, load, current_closed_status):
         elif not seller.sales.filter(status=Order.NEW).exists():
             seller.commissions_disabled = False
         seller.load = load
+        if products and not seller.commissions_disabled:
+            seller.has_products = True
         seller.save()
+        products.update(available=True)
         if current_closed_status and not seller.commissions_disabled:
             previous = Event.objects.filter(
                 type=COMMISSIONS_OPEN, content_type=ContentType.objects.get_for_model(User), object_id=seller.id,
                 date__gte=timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
             )
             notify(
-                COMMISSIONS_OPEN, seller, unique=True, mark_unread=not previous.exists(), silent_broadcast=previous.exists()
+                COMMISSIONS_OPEN, seller, unique=True, mark_unread=not previous.exists(),
+                silent_broadcast=previous.exists()
             )
-        elif seller.commissions_disabled:
+        if seller.commissions_disabled or seller.commissions_closed:
+            seller.products.all().update(available=False)
             recall_notification(COMMISSIONS_OPEN, seller)
     finally:
         del UPDATING[seller]

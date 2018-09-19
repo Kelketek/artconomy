@@ -16,7 +16,7 @@ from django.contrib.contenttypes.fields import GenericRelation, GenericForeignKe
 from django.contrib.contenttypes.models import ContentType
 from django.core.validators import MinValueValidator, MaxValueValidator, BaseValidator
 from django.db.models import Model, CharField, ForeignKey, IntegerField, BooleanField, DateTimeField, ManyToManyField, \
-    TextField, SET_NULL, PositiveIntegerField, URLField, CASCADE, DecimalField, Sum, Avg, DateField, EmailField
+    TextField, SET_NULL, PositiveIntegerField, URLField, CASCADE, DecimalField, Avg, DateField, EmailField, Sum
 
 # Create your models here.
 from django.db.models.signals import post_delete, post_save, pre_delete
@@ -55,7 +55,7 @@ class Product(ImageModel):
     Product on offer by an art seller.
     """
 
-    name = CharField(max_length=250)
+    name = CharField(max_length=250, db_index=True)
     description = CharField(max_length=5000)
     expected_turnaround = DecimalField(
         validators=[MinValueValidator(settings.MINIMUM_TURNAROUND)],
@@ -73,6 +73,7 @@ class Product(ImageModel):
     created_on = DateTimeField(auto_now_add=True)
     shippable = BooleanField(default=False)
     active = BooleanField(default=True, db_index=True)
+    available = BooleanField(default=True, db_index=True)
     revisions = IntegerField(validators=[MinValueValidator(0), MaxValueValidator(10)])
     max_parallel = IntegerField(
         validators=[MinValueValidator(0)], help_text="How many of these you are willing to have in your "
@@ -336,19 +337,22 @@ class PlaceholderSale(Model):
 @require_lock(PlaceholderSale, 'ACCESS EXCLUSIVE')
 @require_lock(Product, 'ACCESS EXCLUSIVE')
 def update_artist_load(sender, instance, **_kwargs):
+    seller = instance.seller
     result = Order.objects.filter(
-        seller=instance.seller, status__in=WEIGHTED_STATUSES
+        seller_id=seller.id, status__in=WEIGHTED_STATUSES
     ).aggregate(base_load=Sum('task_weight'), added_load=Sum('adjustment_task_weight'))
     load = (result['base_load'] or 0) + (result['added_load'] or 0)
     result = PlaceholderSale.objects.filter(
-        seller=instance.seller, status__in=WEIGHTED_STATUSES
+        seller_id=seller.id, status__in=WEIGHTED_STATUSES
     ).aggregate(load=Sum('task_weight'))
     load += (result['load'] or 0)
     if isinstance(instance, Order):
-        instance.product.parallel = Order.objects.filter(product=instance.product, status__in=WEIGHTED_STATUSES).count()
+        instance.product.parallel = Order.objects.filter(
+            product_id=instance.product.id, status__in=WEIGHTED_STATUSES
+        ).count()
         instance.product.save()
     # Availability update could be recursive, so get the latest version of the user.
-    seller = User.objects.get(id=instance.seller.id)
+    seller = User.objects.get(id=seller.id)
     update_availability(seller, load, seller.commissions_disabled)
 
 

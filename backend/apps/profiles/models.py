@@ -3,7 +3,6 @@ Models dealing primarily with user preferences and personalization.
 """
 import uuid
 
-from avatar.templatetags.avatar_tags import avatar_url
 from django.conf import settings
 from custom_user.models import AbstractEmailUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
@@ -20,7 +19,7 @@ from rest_framework.authtoken.models import Token
 
 from apps.lib.abstract_models import GENERAL, RATINGS, ImageModel
 from apps.lib.models import Comment, Subscription, FAVORITE, SYSTEM_ANNOUNCEMENT, DISPUTE, REFUND, Event, \
-    SUBMISSION_CHAR_TAG, CHAR_TAG, SUBMISSION_TAG, COMMENT, Tag, CHAR_TRANSFER, ASSET_SHARED, CHAR_SHARED, \
+    SUBMISSION_CHAR_TAG, CHAR_TAG, COMMENT, Tag, CHAR_TRANSFER, ASSET_SHARED, CHAR_SHARED, \
     NEW_CHARACTER, RENEWAL_FAILURE, SUBSCRIPTION_DEACTIVATED, RENEWAL_FIXED, NEW_JOURNAL, ORDER_TOKEN_ISSUED, \
     TRANSFER_FAILED, SUBMISSION_ARTIST_TAG
 from apps.lib.utils import clear_events, tag_list_cleaner, notify, recall_notification
@@ -68,6 +67,7 @@ class User(AbstractEmailUser):
     auto_withdraw = BooleanField(default=True)
     tg_key = CharField(db_index=True, default=tg_key_gen, max_length=30)
     tg_chat_id = CharField(db_index=True, default='', max_length=30)
+    avatar_url = URLField(blank=True)
     max_load = IntegerField(
         validators=[MinValueValidator(1)], default=10,
         help_text="How much work you're willing to take on at once (for artists)"
@@ -77,7 +77,7 @@ class User(AbstractEmailUser):
         help_text="Shows the maximum rating to display. By setting this to anything other than general, you certify "
                   "that you are of legal age to view adult content in your country."
     )
-    stars = DecimalField(default=None, null=True, blank=True, max_digits=3, decimal_places=2)
+    stars = DecimalField(default=None, null=True, blank=True, max_digits=3, decimal_places=2, db_index=True)
     sfw_mode = BooleanField(
         default=False,
         help_text="Enable this to only display clean art. "
@@ -89,6 +89,7 @@ class User(AbstractEmailUser):
     blocking = ManyToManyField('User', symmetrical=False, related_name='blocked_by', blank=True)
     notifications = ManyToManyField('lib.Event', through='lib.Notification')
     commission_info = CharField(max_length=5000, blank=True, default='')
+    has_products = BooleanField(default=False, db_index=True)
     # Random default value to make extra sure it will never be invoked by mistake.
     reset_token = CharField(max_length=36, blank=True, default=uuid.uuid4)
     # Auto now add to avoid problems when filtering where 'null' is considered less than something else.
@@ -567,7 +568,7 @@ class Message(Model):
         return MessageManagementSerializer(instance=self, context=context).data
 
     def notification_display(self, context):
-        return {'file': {'notification': avatar_url(self.sender)}}
+        return {'file': {'notification': self.sender.avatar_url}}
 
 
 class Journal(Model):
@@ -591,7 +592,7 @@ class Journal(Model):
         return JournalSerializer(instance=self, context=context).data
 
     def notification_display(self, context):
-        return {'file': {'notification': avatar_url(self.user)}}
+        return {'file': {'notification': self.user.avatar_url}}
 
     def notification_name(self, context):
         return "journal with subject: {}".format(self.subject)

@@ -804,14 +804,14 @@
             inputType: 'number',
             step: '.01',
             model: 'adjustment',
-            label: 'Adjust price (USD)',
+            label: 'Surcharges/Discounts (USD)',
             featured: true
           }, {
             type: 'v-text',
             inputType: 'number',
             step: '.01',
             model: 'adjustment_expected_turnaround',
-            label: 'Adjust expected turnaround',
+            label: 'Additional days required',
             featured: true,
             hint: 'Value is always rounded up when displaying to customer'
           }, {
@@ -819,7 +819,7 @@
             inputType: 'number',
             step: 1,
             model: 'adjustment_task_weight',
-            label: 'Adjust task weight',
+            label: 'Additional task weight',
             featured: true
           }]
         },

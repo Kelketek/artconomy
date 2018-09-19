@@ -7,7 +7,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.fields import SerializerMethodField, DecimalField, IntegerField
 
 from apps.lib.serializers import RelatedUserSerializer, Base64ImageField, EventTargetRelatedField, SubscribedField, \
-    SubscribeMixin, UserInfoSerializer
+    SubscribeMixin
 from apps.lib.utils import country_choices
 from apps.profiles.models import User, ImageAsset
 from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer
@@ -17,7 +17,7 @@ from apps.sales.utils import escrow_balance, available_balance, available_produc
 
 
 class ProductSerializer(serializers.ModelSerializer):
-    user = UserInfoSerializer(read_only=True)
+    user = RelatedUserSerializer(read_only=True)
     file = Base64ImageField(thumbnail_namespace='sales.Product.file')
     preview = Base64ImageField(thumbnail_namespace='profiles.ImageAsset.preview', required=False)
 
@@ -362,3 +362,11 @@ class OrderTokenSerializer(serializers.ModelSerializer):
             'activation_code',
             'expires_on',
         )
+
+
+class SearchQuerySerializer(serializers.Serializer):
+    q = serializers.CharField(required=False)
+    shield_only = serializers.BooleanField(required=False)
+    by_rating = serializers.BooleanField(required=False)
+    min_price = serializers.DecimalField(decimal_places=2, max_digits=6, required=False)
+    max_price = serializers.DecimalField(decimal_places=2, max_digits=6, required=False)

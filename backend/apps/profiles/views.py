@@ -2,6 +2,7 @@ import uuid
 
 from avatar.models import Avatar
 from avatar.signals import avatar_updated
+from avatar.templatetags.avatar_tags import avatar_url
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.auth import login, get_user_model, authenticate, logout, update_session_auth_hash
@@ -14,7 +15,6 @@ from django.template.loader import get_template
 from django.utils import timezone
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
-from django_otp import user_has_device, match_token, login as otp_login, devices_for_user
 from django_otp import user_has_device, match_token, login as otp_login, devices_for_user
 from django_otp.plugins.otp_totp.models import TOTPDevice
 from rest_framework import status
@@ -325,6 +325,8 @@ class SetAvatar(GenericAPIView):
         avatar.save()
         avatar_updated.send(sender=Avatar, user=request.user, avatar=avatar)
         Avatar.objects.filter(user=request.user).exclude(id=avatar.id).delete()
+        user.avatar_url = avatar_url(user)
+        user.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
