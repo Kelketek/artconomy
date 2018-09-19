@@ -10,7 +10,7 @@
         </div>
       </div>
       <div class="col-12-sm">
-        <p><strong>Last updated: September 12, 2018</strong></p>
+        <p><strong>Last updated: September 19, 2018</strong></p>
 
 
         <p>Please read these Terms of Service ("Terms", "Terms of Service") carefully before using
@@ -106,6 +106,9 @@
           time of sale or transfer, such as the
           <router-link :to="{name: 'CommissionAgreement'}">Commission Agreement</router-link> for commissioned works.
         </p>
+        <p>By buying or selling works on Artconomy, you agree to pay all listed fees upon point of sale, and that
+          Artconomy will be entitled to these fees even if a refund is issued from or to the other party or a court
+          assigns damages as a result of a dispute arising from the sale.</p>
 
         <p>
           Subscription services will provide features such as notification of artist availability, but will not be
