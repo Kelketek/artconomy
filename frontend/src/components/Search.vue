@@ -1,16 +1,5 @@
 <template>
   <v-container>
-    <v-layout hidden-md-and-up row justify-center>
-      <v-text-field
-          placeholder="Search..."
-          single-line
-          v-model="queryField"
-          append-icon="search"
-          @click:append="() => {}"
-          color="white"
-          hide-details
-      />
-    </v-layout>
     <v-tabs v-model="tab" fixed-tabs>
       <v-tab href="#tab-products" key="product">
         <v-icon>shopping_basket</v-icon>&nbsp;Products <strong>{{tabCounter('productCount')}}</strong>
@@ -27,26 +16,71 @@
     </v-tabs>
     <v-tabs-items v-model="tab">
       <v-tab-item id="tab-products">
+        <v-layout row justify-center>
+          <v-text-field
+              placeholder="Search..."
+              single-line
+              v-model="queryField"
+              append-icon="search"
+              @click:append="() => {}"
+              color="white"
+              hide-details
+          />
+        </v-layout>
         <div v-if="query.q.length === 0" class="text-xs-center pt-2">
-          <p>Enter tags to search for in the search bar above</p>
+          <p>Enter tags to search for</p>
         </div>
+        <ac-form-container :schema="productSchema" :model="productModel"></ac-form-container>
         <store ref="productSearch" class="pt-2" counter-name="productCount" endpoint="/api/sales/v1/search/product/" :query-data="query" />
       </v-tab-item>
       <v-tab-item id="tab-assets">
+        <v-layout justify-center>
+          <v-text-field
+              placeholder="Search..."
+              single-line
+              v-model="queryField"
+              append-icon="search"
+              @click:append="() => {}"
+              color="white"
+              hide-details
+          />
+        </v-layout>
         <div v-if="query.q.length === 0" class="text-xs-center pt-2">
-          <p>Enter tags to search for in the search bar above</p>
+          <p>Enter tags to search for</p>
         </div>
         <ac-asset-gallery ref="assetSearch" counter-name="assetCount" class="pt-2" endpoint="/api/profiles/v1/search/asset/" :query-data="query" />
       </v-tab-item>
       <v-tab-item id="tab-characters">
+        <v-layout row justify-center>
+          <v-text-field
+              placeholder="Search..."
+              single-line
+              v-model="queryField"
+              append-icon="search"
+              @click:append="() => {}"
+              color="white"
+              hide-details
+          />
+        </v-layout>
         <div v-if="query.q.length === 0" class="text-xs-center pt-2">
           <p>Enter tags to search for in the search bar above</p>
         </div>
         <characters ref="characterSearch" counter-name="characterCount" class="pt-2" endpoint="/api/profiles/v1/search/character/" :query-data="query" />
       </v-tab-item>
       <v-tab-item id="tab-profiles">
+        <v-layout row justify-center>
+          <v-text-field
+              placeholder="Search..."
+              single-line
+              v-model="queryField"
+              append-icon="search"
+              @click:append="() => {}"
+              color="white"
+              hide-details
+          />
+        </v-layout>
         <div v-if="query.q.length === 0" class="text-xs-center pt-2">
-          <p>Enter tags to search for in the search bar above</p>
+          <p>Enter tags to search for</p>
         </div>
         <ac-user-gallery ref="profileSearch" counter-name="profileCount" class="pt-2" endpoint="/api/profiles/v1/search/user/" :query-data="query" />
       </v-tab-item>
@@ -60,9 +94,11 @@
   import Characters from './Characters'
   import Store from './Store'
   import AcUserGallery from './ac-user-gallery'
+  import AcFormContainer from './ac-form-container'
 
   export default {
     components: {
+      AcFormContainer,
       AcUserGallery,
       Store,
       Characters,
@@ -74,7 +110,48 @@
         characterCount: 0,
         assetCount: 0,
         productCount: 0,
-        profileCount: 0
+        profileCount: 0,
+        productModel: {
+          shield_only: false,
+          by_rating: false,
+          min_price: null,
+          max_price: null
+        },
+        productSchema: {
+          fields: [
+            {
+              type: 'v-text',
+              inputType: 'number',
+              label: 'Max Price (USD)',
+              model: 'max_price',
+              step: '.01',
+              featured: true,
+              required: false
+            }, {
+              type: 'v-text',
+              inputType: 'number',
+              label: 'Min Price (USD)',
+              model: 'min_price',
+              step: '.01',
+              featured: true,
+              required: false
+            }, {
+              type: 'v-checkbox',
+              styleClasses: ['vue-checkbox'],
+              label: 'Sort by Rating',
+              model: 'by_rating',
+              required: false,
+              hint: "If checked, sorts products by the artist's rating."
+            }, {
+              type: 'v-checkbox',
+              styleClasses: ['vue-checkbox'],
+              label: 'Shield only',
+              model: 'shield_only',
+              required: false,
+              hint: 'If checked, only shows products protected by the Artconomy Shield escrow service.'
+            }
+          ]
+        }
       }
     },
     methods: {
@@ -109,7 +186,13 @@
       },
       query: {
         get () {
-          return {q: this.$route.query['q'] || []}
+          return {
+            q: this.$route.query['q'] || [],
+            max_price: this.productModel.max_price || [],
+            min_price: this.productModel.min_price || [],
+            shield_only: this.productModel.shield_only || [],
+            by_rating: this.productModel.by_rating || []
+          }
         }
       },
       tab: paramHandleMap('tabName')

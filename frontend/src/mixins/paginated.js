@@ -45,6 +45,7 @@ export default {
     restart () {
       this.growing = []
       this.currentPage = 1
+      this.error = ''
       this.fetchItems()
     },
     loadMore () {
@@ -149,9 +150,7 @@ export default {
     },
     queryData (newValue) {
       if (!deepEqual(this.oldQueryData, newValue)) {
-        this.currentPage = 1
-        this.error = ''
-        this.fetchItems()
+        this.restart()
         this.oldQueryData = JSON.parse(JSON.stringify(newValue))
       }
     }

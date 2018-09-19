@@ -44,7 +44,7 @@ from apps.sales.serializers import ProductSerializer, ProductNewOrderSerializer,
     NewCardSerializer, OrderAdjustSerializer, PaymentSerializer, RevisionSerializer, OrderStartedSerializer, \
     AccountBalanceSerializer, BankAccountSerializer, WithdrawSerializer, PaymentRecordSerializer, \
     CharacterTransferSerializer, PlaceholderSaleSerializer, PublishFinalSerializer, RatingSerializer, \
-    ServicePaymentSerializer, ProductDetailSerializer, OrderTokenSerializer
+    ServicePaymentSerializer, ProductDetailSerializer, OrderTokenSerializer, SearchQuerySerializer
 from apps.sales.utils import translate_authnet_error, available_products, service_price, set_service, \
     check_charge_required, available_products_by_load, finalize_order, available_products_from_user
 from apps.sales.tasks import renew
@@ -941,16 +941,31 @@ class ProductSearch(ListAPIView):
     serializer_class = ProductSerializer
 
     def get_queryset(self):
-        query = self.request.GET.get('q', '')
-        if not query:
-            return Product.objects.none()
+        search_serializer = SearchQuerySerializer(data=self.request.GET)
+        search_serializer.is_valid(raise_exception=True)
+        query = search_serializer.validated_data.get('q', '')
+        max_price = search_serializer.validated_data.get('max_price', None)
+        min_price = search_serializer.validated_data.get('min_price', None)
+        shield_only = search_serializer.validated_data.get('shield_only', False)
+        by_rating = search_serializer.validated_data.get('by_rating', False)
 
         # If staffer, allow search on behalf of user.
         if self.request.user.is_staff:
             user = get_object_or_404(User, id=self.request.GET.get('user', self.request.user.id))
         else:
             user = self.request.user
-        return available_products(user, query=query)
+        products = available_products(user, query=query, ordering=False)
+        if max_price:
+            products = products.filter(price__lte=max_price)
+        if min_price:
+            products = products.filter(price__gte=min_price)
+        if shield_only:
+            products = products.exclude(price=0).exclude(user__escrow_disabled=True)
+        if by_rating:
+            products = products.order_by(F('user__stars').desc(nulls_last=True), 'id').distinct('user__stars', 'id')
+        else:
+            products = products.order_by('id').distinct('id')
+        return products.select_related('user').prefetch_related('tags')
 
 
 class PurchaseHistory(ListAPIView):

@@ -1,6 +1,5 @@
 from urllib.parse import quote_plus
 
-from avatar.templatetags.avatar_tags import avatar_url
 from django.conf import settings
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.contenttypes.models import ContentType
@@ -299,13 +298,11 @@ class UserSerializer(UserInfoMixin, serializers.ModelSerializer):
     dwolla_configured = serializers.SerializerMethodField()
     csrftoken = serializers.SerializerMethodField()
     authtoken = serializers.SerializerMethodField()
-    avatar_url = serializers.SerializerMethodField()
     percentage_fee = serializers.DecimalField(decimal_places=2, max_digits=3, read_only=True)
     static_fee = serializers.DecimalField(decimal_places=2, max_digits=5, read_only=True)
     portrait_paid_through = serializers.DateField(read_only=True)
     landscape_paid_through = serializers.DateField(read_only=True)
     telegram_link = serializers.SerializerMethodField()
-    has_products = serializers.SerializerMethodField()
     watching = serializers.SerializerMethodField()
     blocked = serializers.SerializerMethodField()
 
@@ -321,9 +318,6 @@ class UserSerializer(UserInfoMixin, serializers.ModelSerializer):
         return 'https://t.me/{}/?start={}_{}'.format(
             settings.TELEGRAM_BOT_USERNAME, quote_plus(obj.username), obj.tg_key
         )
-
-    def get_avatar_url(self, obj):
-        return avatar_url(obj)
 
     def get_authtoken(self, obj):
         request = self.context.get('request')

@@ -1,6 +1,5 @@
 import base64, uuid
 
-from avatar.templatetags.avatar_tags import avatar_url
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.files.base import ContentFile
@@ -13,14 +12,10 @@ from apps.lib.models import Comment, Notification, Event, CHAR_TAG, SUBMISSION_C
     NEW_PRODUCT, STREAMING, NEW_JOURNAL, ORDER_TOKEN_ISSUED, FAVORITE
 from apps.profiles.models import User, ImageAsset, Character, Journal
 from apps.sales.models import Revision, Product, Order, OrderToken
+from shortcuts import make_url
 
 
 class UserInfoMixin:
-    def get_has_products(self, obj):
-        return obj.products.all().exists()
-
-    def get_avatar_url(self, obj):
-        return avatar_url(obj)
 
     def get_watching(self, obj):
         request = self.context.get('request')
@@ -40,8 +35,6 @@ class UserInfoMixin:
 
 
 class UserInfoSerializer(UserInfoMixin, serializers.ModelSerializer):
-    avatar_url = serializers.SerializerMethodField()
-    has_products = serializers.SerializerMethodField()
     watching = serializers.SerializerMethodField()
     blocked = serializers.SerializerMethodField()
 
@@ -59,11 +52,6 @@ class UserInfoSerializer(UserInfoMixin, serializers.ModelSerializer):
 
 
 class RelatedUserSerializer(serializers.ModelSerializer):
-    avatar_url = serializers.SerializerMethodField()
-
-    def get_avatar_url(self, obj):
-        return avatar_url(obj)
-
     class Meta:
         model = User
         fields = ('id', 'username', 'avatar_url', 'stars', 'escrow_disabled', 'is_staff', 'is_superuser')
@@ -137,18 +125,18 @@ class Base64ImageField(serializers.ImageField):
         if not value:
             return None
         values = {}
-
-        for key in settings.THUMBNAIL_ALIASES[self.thumbnail_namespace]:
-            values[key] = value[key].url
-
-        values['full'] = value.url
-
-        request = self.context.get('request', None)
-        if request is not None:
-            values = {
-                key: request.build_absolute_uri(value) for key, value in values.items()
-            }
-
+        # Construct URLs manually and avoid hitting the disk.
+        for key, val in settings.THUMBNAIL_ALIASES[self.thumbnail_namespace].items():
+            values[key] = make_url('{}{}.{}x{}_q{}{}.{}'.format(
+                settings.MEDIA_URL,
+                value.name,
+                val['size'][0],
+                val['size'][1],
+                85,
+                '_crop-{}'.format(val.get('crop')) if val.get('crop') else '',
+                value.name.split('.')[-1]
+            ))
+        values['full'] = make_url(settings.MEDIA_URL + value.name)
         return values
 
 

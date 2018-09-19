@@ -55,6 +55,11 @@
         </v-flex>
       </v-layout>
     </v-card>
+    <v-layout row wrap>
+      <v-flex xs12 text-xs-center>
+        <v-btn color="primary" :to="{name: 'Search', params: {tabName: 'products'}}">Search Products</v-btn>
+      </v-flex>
+    </v-layout>
     <store class="pt-2" endpoint="/api/sales/v1/new-products/" />
     <v-layout row wrap>
       <v-flex xs12 text-xs-center>
