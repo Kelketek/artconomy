@@ -223,8 +223,10 @@
       status () {
         if (this.transaction.status) {
           return 'FAILED'
+        } else if (!this.transaction.finalized) {
+          return 'PENDING'
         } else {
-          return 'SUCCEEDED'
+          return 'SUCCESS'
         }
       },
       issuer () {
