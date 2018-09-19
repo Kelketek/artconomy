@@ -5,7 +5,7 @@ import Vue from 'vue'
 
 const $ = jquery
 
-export const md = MarkDownIt({linkify: true})
+export const md = MarkDownIt()
 
 export function getCookie (name) {
   let cookieValue = null
