@@ -6,9 +6,8 @@ from apps.sales.utils import update_availability
 
 
 def set_has_products(apps, schema):
-    User = apps.get_model('profiles', 'User')
-    for user in User.objects.filter(products__isnull=False):
-        update_availability(user, user.load, user.commissions_disabled)
+    # Broken migration.
+    pass
 
 
 class Migration(migrations.Migration):
