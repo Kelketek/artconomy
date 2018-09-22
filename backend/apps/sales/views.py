@@ -44,7 +44,7 @@ from apps.sales.serializers import ProductSerializer, ProductNewOrderSerializer,
     NewCardSerializer, OrderAdjustSerializer, PaymentSerializer, RevisionSerializer, OrderStartedSerializer, \
     AccountBalanceSerializer, BankAccountSerializer, WithdrawSerializer, PaymentRecordSerializer, \
     CharacterTransferSerializer, PlaceholderSaleSerializer, PublishFinalSerializer, RatingSerializer, \
-    ServicePaymentSerializer, ProductDetailSerializer, OrderTokenSerializer, SearchQuerySerializer
+    ServicePaymentSerializer, OrderTokenSerializer, SearchQuerySerializer
 from apps.sales.utils import translate_authnet_error, available_products, service_price, set_service, \
     check_charge_required, available_products_by_load, finalize_order, available_products_from_user
 from apps.sales.tasks import renew
@@ -77,7 +77,7 @@ class ProductList(ListCreateAPIView):
 
 
 class ProductManager(RetrieveUpdateDestroyAPIView):
-    serializer_class = ProductDetailSerializer
+    serializer_class = ProductSerializer
     permission_classes = [Any(IsSafeMethod, ObjectControls)]
 
     def get_object(self):
@@ -933,7 +933,7 @@ class ProductTag(BaseTagView):
 
     def post_post(self, product, tag_list):
         return Response(
-            status=status.HTTP_200_OK, data=ProductDetailSerializer(instance=product).data
+            status=status.HTTP_200_OK, data=ProductSerializer(instance=product).data
         )
 
 
