@@ -104,6 +104,7 @@
   import Store from './Store'
   import AcUserGallery from './ac-user-gallery'
   import AcFormContainer from './ac-form-container'
+  import debounce from 'lodash.debounce'
 
   export default {
     components: {
@@ -127,6 +128,14 @@
           min_price: null,
           max_price: null,
           watchlist_only: false
+        },
+        query: {
+          q: this.$route.query['q'] || [],
+          max_price: [],
+          min_price: [],
+          shield_only: [],
+          by_rating: [],
+          watchlist_only: []
         },
         productSchema: {
           fields: [
@@ -177,14 +186,30 @@
           return `(${this[propName]})`
         }
         return ''
-      }
+      },
+      queryUpdate: debounce(function () {
+        this.query = {
+          q: this.$route.query['q'] || [],
+          max_price: this.productModel.max_price || [],
+          min_price: this.productModel.min_price || [],
+          shield_only: this.productModel.shield_only || [],
+          by_rating: this.productModel.by_rating || [],
+          watchlist_only: this.productModel.watchlist_only || []
+        }
+      }, 500)
     },
     watch: {
       'productModel.shield_only': querySyncer('shield_only'),
       'productModel.by_rating': querySyncer('by_rating'),
       'productModel.max_price': querySyncer('max_price'),
       'productModel.min_price': querySyncer('min_price'),
-      'productModel.watchlist_only': querySyncer('watchlist_only')
+      'productModel.watchlist_only': querySyncer('watchlist_only'),
+      productModel () {
+        this.queryUpdate()
+      },
+      queryField () {
+        this.queryUpdate()
+      }
     },
     computed: {
       queryField: {
@@ -202,18 +227,6 @@
           let newQuery = {...this.$route.query}
           newQuery.q = query
           this.$router.history.replace({name: 'Search', query: newQuery, params: this.$route.params})
-        }
-      },
-      query: {
-        get () {
-          return {
-            q: this.$route.query['q'] || [],
-            max_price: this.productModel.max_price || [],
-            min_price: this.productModel.min_price || [],
-            shield_only: this.productModel.shield_only || [],
-            by_rating: this.productModel.by_rating || [],
-            watchlist_only: this.productModel.watchlist_only || []
-          }
         }
       },
       tab: paramHandleMap('tabName')

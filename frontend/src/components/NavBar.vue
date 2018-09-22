@@ -239,7 +239,6 @@
         }
         let newQuery = {...this.$route.query}
         newQuery.q = query
-        console.log(newQuery)
         this.$router.history.replace({name: 'Search', query: newQuery, params: this.$route.params})
       },
       notificationLoad () {
