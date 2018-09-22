@@ -235,8 +235,12 @@
         }
         if (this.$route.name !== 'Search') {
           this.$router.history.push({name: 'Search', params: {tabName: 'products'}})
+          return
         }
-        this.$router.history.replace({name: 'Search', query: {q: query}, params: this.$route.params})
+        let newQuery = {...this.$route.query}
+        newQuery.q = query
+        console.log(newQuery)
+        this.$router.history.replace({name: 'Search', query: newQuery, params: this.$route.params})
       },
       notificationLoad () {
         if (this.$route.name === 'Notifications') {

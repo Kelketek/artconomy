@@ -30,8 +30,17 @@
         <div v-if="query.q.length === 0" class="text-xs-center pt-2">
           <p>Enter tags to search for</p>
         </div>
-        <ac-form-container :schema="productSchema" :model="productModel"></ac-form-container>
-        <store ref="productSearch" class="pt-2" counter-name="productCount" endpoint="/api/sales/v1/search/product/" :query-data="query" />
+        <v-expansion-panel v-model="showAdvanced">
+          <v-expansion-panel-content>
+            <div slot="header">Advanced Search Options</div>
+            <v-card>
+              <v-card-text>
+                <ac-form-container :schema="productSchema" :model="productModel"></ac-form-container>
+              </v-card-text>
+            </v-card>
+          </v-expansion-panel-content>
+        </v-expansion-panel>
+        <store ref="productSearch" class="pt-2" counter-name="productCount" endpoint="/api/sales/v1/search/product/" :query-data="query" :grow="true" />
       </v-tab-item>
       <v-tab-item id="tab-assets">
         <v-layout justify-center>
@@ -90,7 +99,7 @@
 
 <script>
   import AcAssetGallery from './ac-asset-gallery'
-  import { paramHandleMap, EventBus } from '../lib'
+  import {paramHandleMap, EventBus, querySyncer, queryVal} from '../lib'
   import Characters from './Characters'
   import Store from './Store'
   import AcUserGallery from './ac-user-gallery'
@@ -111,11 +120,13 @@
         assetCount: 0,
         productCount: 0,
         profileCount: 0,
+        showAdvanced: null,
         productModel: {
           shield_only: false,
           by_rating: false,
           min_price: null,
-          max_price: null
+          max_price: null,
+          watchlist_only: false
         },
         productSchema: {
           fields: [
@@ -168,6 +179,13 @@
         return ''
       }
     },
+    watch: {
+      'productModel.shield_only': querySyncer('shield_only'),
+      'productModel.by_rating': querySyncer('by_rating'),
+      'productModel.max_price': querySyncer('max_price'),
+      'productModel.min_price': querySyncer('min_price'),
+      'productModel.watchlist_only': querySyncer('watchlist_only')
+    },
     computed: {
       queryField: {
         get () {
@@ -181,7 +199,9 @@
               query.push(val)
             }
           }
-          this.$router.history.replace({name: 'Search', query: {q: query}, params: this.$route.params})
+          let newQuery = {...this.$route.query}
+          newQuery.q = query
+          this.$router.history.replace({name: 'Search', query: newQuery, params: this.$route.params})
         }
       },
       query: {
@@ -191,15 +211,34 @@
             max_price: this.productModel.max_price || [],
             min_price: this.productModel.min_price || [],
             shield_only: this.productModel.shield_only || [],
-            by_rating: this.productModel.by_rating || []
+            by_rating: this.productModel.by_rating || [],
+            watchlist_only: this.productModel.watchlist_only || []
           }
         }
       },
       tab: paramHandleMap('tabName')
     },
     created () {
+      this.productModel.shield_only = queryVal(this, 'shield_only', false)
+      this.productModel.by_rating = queryVal(this, 'by_rating', false)
+      this.productModel.min_price = queryVal(this, 'min_price', null)
+      this.productModel.max_price = queryVal(this, 'max_price', null)
+      this.productModel.watchlist_only = queryVal(this, 'watchlist_only', false)
       if (this.tab === 'tab-undefined') {
         this.tab = 'tab-products'
+      }
+      if (this.isLoggedIn) {
+        this.productSchema.fields.push({
+          type: 'v-checkbox',
+          styleClasses: ['vue-checkbox'],
+          label: 'On my Watchlist',
+          model: 'watchlist_only',
+          required: false,
+          hint: 'If checked, only returns results from your watchlist.'
+        })
+      }
+      if (Object.values(this.productModel).some((x) => { return x })) {
+        this.showAdvanced = 0
       }
       EventBus.$on('result-count', this.setCounter)
     }

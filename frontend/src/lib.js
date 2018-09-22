@@ -176,6 +176,24 @@ export function ratings () {
   return genOptions(RATINGS)
 }
 
+export function querySyncer (queryName) {
+  return function (val) {
+    if (val) {
+      let query = {}
+      query[queryName] = val
+      this.$router.history.replace({query: Object.assign({}, this.$route.query, query)})
+    } else {
+      let newQuery = {...this.$route.query}
+      delete newQuery[queryName]
+      this.$router.history.replace({query: newQuery})
+    }
+  }
+}
+
+export function queryVal (target, queryName, other) {
+  return target.$route.query[queryName] || other
+}
+
 export function ratingsNonExtreme () {
   let nonExtreme = {...RATINGS}
   delete nonExtreme[3]

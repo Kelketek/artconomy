@@ -6,13 +6,26 @@
     </v-tabs>
     <v-tabs-items v-model="tab" v-if="isLoggedIn">
       <v-tab-item id="tab-watchlist">
+        <v-layout>
+          <v-flex text-xs-center>
+            <v-btn color="primary" :to="{name: 'Search', params: {tabName: 'products'}, query: {watchlist_only: true}}">Refine Search</v-btn>
+          </v-flex>
+        </v-layout>
         <store class="pt-2" endpoint="/api/sales/v1/who-is-open/" counter-name="watchlist-open" :show-error="true" empty-error="No one on your watchlist is currently open." :grow="true" />
       </v-tab-item>
       <v-tab-item id="tab-all">
+        <v-layout>
+          <v-flex text-xs-center>
+            <v-btn color="primary" :to="{name: 'Search', params: {tabName: 'products'}}">Refine Search</v-btn>
+          </v-flex>
+        </v-layout>
         <store class="pt-2" endpoint="/api/sales/v1/new-products/" :show-error="true" empty-error="There are no products currently open." :grow="true" />
       </v-tab-item>
     </v-tabs-items>
-    <store class="pt-2" endpoint="/api/sales/v1/new-products/" :show-error="true" empty-error="There are no products currently open." :grow="true" v-else />
+    <v-layout v-else>
+      <v-btn color="primary" :to="{name: 'Search', params: {tabName: 'products'}}">Refine Search</v-btn>
+      <store class="pt-2" endpoint="/api/sales/v1/new-products/" :show-error="true" empty-error="There are no products currently open." :grow="true"/>
+    </v-layout>
   </v-container>
 </template>
 

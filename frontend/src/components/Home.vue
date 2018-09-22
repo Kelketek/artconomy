@@ -44,7 +44,7 @@
       </v-layout>
     </v-card>
     <ac-asset-gallery
-        endpoint="/api/profiles/v1/recent-commissions/" :limit="8" :no-pagination="true"
+        endpoint="/api/profiles/v1/recent-commissions/" :limit="4" :no-pagination="true"
         :to="{name: 'RecentArt', params: {tabName: 'all'}}"
         see-more-text="See more art!"
     />
@@ -60,7 +60,7 @@
         <v-btn color="primary" :to="{name: 'Search', params: {tabName: 'products'}}">Search Products</v-btn>
       </v-flex>
     </v-layout>
-    <store class="pt-2" endpoint="/api/sales/v1/new-products/" />
+    <store class="pt-2" endpoint="/api/sales/v1/new-products/" :limit="20" />
     <v-layout row wrap>
       <v-flex xs12 text-xs-center>
         <v-btn :to="{name: 'WhoIsOpen', params: {tabName: 'all'}}" color="primary">See more products</v-btn>
