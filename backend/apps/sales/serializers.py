@@ -367,6 +367,7 @@ class OrderTokenSerializer(serializers.ModelSerializer):
 class SearchQuerySerializer(serializers.Serializer):
     q = serializers.CharField(required=False)
     shield_only = serializers.BooleanField(required=False)
+    watchlist_only = serializers.BooleanField(required=False)
     by_rating = serializers.BooleanField(required=False)
     min_price = serializers.DecimalField(decimal_places=2, max_digits=6, required=False)
     max_price = serializers.DecimalField(decimal_places=2, max_digits=6, required=False)

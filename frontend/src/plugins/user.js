@@ -70,6 +70,9 @@ export const UserHandler = {
         viewer: function () {
           return this.$root.user
         },
+        isLoggedIn () {
+          return Boolean(this.$root.user.username)
+        },
         rating: function () {
           let contentRating = 0
           if (this.viewer.sfw_mode) {

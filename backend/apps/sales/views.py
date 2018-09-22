@@ -948,6 +948,9 @@ class ProductSearch(ListAPIView):
         min_price = search_serializer.validated_data.get('min_price', None)
         shield_only = search_serializer.validated_data.get('shield_only', False)
         by_rating = search_serializer.validated_data.get('by_rating', False)
+        watchlist_only = False
+        if self.request.user.is_authenticated:
+            watchlist_only = search_serializer.validated_data.get('watchlist_only')
 
         # If staffer, allow search on behalf of user.
         if self.request.user.is_staff:
@@ -959,6 +962,8 @@ class ProductSearch(ListAPIView):
             products = products.filter(price__lte=max_price)
         if min_price:
             products = products.filter(price__gte=min_price)
+        if watchlist_only:
+            products = products.filter(user__in=self.request.user.watching.all())
         if shield_only:
             products = products.exclude(price=0).exclude(user__escrow_disabled=True)
         if by_rating:
