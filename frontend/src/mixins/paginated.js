@@ -52,6 +52,9 @@ export default {
       if (this.currentPage >= this.totalPages) {
         return
       }
+      if (this.fetching) {
+        return
+      }
       this.fetching = true
       this.currentPage += 1
     },
