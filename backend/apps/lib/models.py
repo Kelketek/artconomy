@@ -6,6 +6,9 @@ from django.db import models
 from django.db.models import DateTimeField, Model, SlugField, CASCADE
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from easy_thumbnails.signals import saved_file
+
+from apps.lib.tasks import generate_thumbnails
 
 
 class Comment(models.Model):
@@ -225,5 +228,12 @@ def auto_subscribe_thread(sender, instance, created=False, **_kwargs):
             )
         if hasattr(target, 'new_comment'):
             target.new_comment(instance)
+
+
+@receiver(saved_file)
+def generate_thumbnails_async(sender, fieldfile, **kwargs):
+    generate_thumbnails(
+        model=sender, pk=fieldfile.instance.pk,
+        field=fieldfile.field.name)
 
 # Additional signal for comment in utils, pre_save, since it would be recursive otherwise.
