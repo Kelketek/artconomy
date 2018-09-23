@@ -26,7 +26,7 @@
         :product="product"
       />
       <v-flex xs12 text-xs-center v-if="growMode && growing !== null">
-        <div v-if="(growing !== null) && furtherPagination" v-observe-visibility="loadMore"></div>
+        <div v-if="(growing !== null && growing.length) && furtherPagination" v-observe-visibility="loadMore"></div>
         <div v-if="fetching"><i class="fa fa-spin fa-spinner fa-5x"></i></div>
       </v-flex>
       <v-jumbotron v-if="setUp && isCurrent && (growing !== null) && (growing.length === 0)" color="grey darken-3">

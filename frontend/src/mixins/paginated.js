@@ -5,8 +5,6 @@ export default {
   props: {
     startingPage: {default: 1},
     limit: {default: 24},
-    // Set false to use the never ending mode via the growing list.
-    pageReload: {default: true},
     queryData: {default () { return {} }},
     counterName: {default: 'counter'},
     trackPages: {default: false},
@@ -55,8 +53,8 @@ export default {
       if (this.fetching) {
         return
       }
-      this.fetching = true
       this.currentPage += 1
+      this.fetchItems()
     },
     cease () {
       this.furtherPagination = false
@@ -144,7 +142,7 @@ export default {
   },
   watch: {
     currentPage (value) {
-      if (this.pageReload) {
+      if (!this.growing) {
         this.fetchItems()
       }
       if (this.trackPages) {

@@ -204,8 +204,12 @@
       'productModel.max_price': querySyncer('max_price'),
       'productModel.min_price': querySyncer('min_price'),
       'productModel.watchlist_only': querySyncer('watchlist_only'),
-      productModel () {
-        this.queryUpdate()
+      productModel: {
+        deep: true,
+        immediate: true,
+        handler () {
+          this.queryUpdate()
+        }
       },
       queryField () {
         this.queryUpdate()
