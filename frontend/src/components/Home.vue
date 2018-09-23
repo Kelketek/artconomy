@@ -18,24 +18,6 @@
       </v-layout>
     </v-container>
   <v-container class="home-main">
-    <v-alert
-        :value="true"
-        type="success"
-    >
-      <p><strong>Launch Deal!</strong></p>
-      <ul>
-      <li>All artists with a <router-link :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}">
-      Shield-protected product</router-link> by the end of the first week will receive a free month of <router-link
-        :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'portrait-and-landscape'}}"
-      >Artconomy Landscape,</router-link> and another free month if they complete a commission in the first two weeks!</li>
-        <li>All commissioners who pay for a <router-link :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}">
-          Shield-protected commission</router-link> within the first week will get
-          a free month of
-          <router-link :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'portrait-and-landscape'}}">Artconomy Portrait!</router-link>
-        </li>
-      </ul>
-    </v-alert>
-
     <v-card>
       <v-layout row wrap>
         <v-flex xs12 class="pl-2">
