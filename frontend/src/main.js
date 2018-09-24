@@ -1,5 +1,6 @@
 // The Vue build version to load with the `import` command
 // (runtime-only or standalone) has been set in webpack.base.conf with an alias.
+import 'intersection-observer'
 import VueFormGenerator from 'vue-form-generator'
 import 'vuetify/dist/vuetify.min.css'
 import './artconomy.css'
