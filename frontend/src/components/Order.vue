@@ -699,7 +699,7 @@
         return parseInt(weight) + parseInt(this.adjustmentModel.adjustment_task_weight || '0')
       },
       turnaround () {
-        let turnaround = this.order.expected_turnaround || this.order.product.expected_turnaround
+        let turnaround = parseFloat(this.order.expected_turnaround) || parseFloat(this.order.product.expected_turnaround)
         return Math.ceil(parseFloat(turnaround) + parseFloat(this.adjustmentModel.adjustment_expected_turnaround || '0'))
       },
       daysDifference () {
