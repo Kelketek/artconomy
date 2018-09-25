@@ -158,12 +158,12 @@ class Order(Model):
     seller = ForeignKey(settings.AUTH_USER_MODEL, related_name='sales', on_delete=CASCADE)
     buyer = ForeignKey(settings.AUTH_USER_MODEL, related_name='buys', on_delete=CASCADE)
     price = MoneyField(
-        max_digits=4, decimal_places=2, default_currency='USD',
+        max_digits=6, decimal_places=2, default_currency='USD',
         blank=True, null=True, validators=[MinValueValidator(settings.MINIMUM_PRICE)]
     )
     revisions = IntegerField(default=0)
     details = CharField(max_length=5000)
-    adjustment = MoneyField(max_digits=4, decimal_places=2, default_currency='USD', blank=True, default=0)
+    adjustment = MoneyField(max_digits=6, decimal_places=2, default_currency='USD', blank=True, default=0)
     adjustment_expected_turnaround = DecimalField(default=0, max_digits=5, decimal_places=2)
     adjustment_task_weight = IntegerField(default=0)
     task_weight = IntegerField(default=0)

@@ -195,7 +195,7 @@ class PaymentSerializer(serializers.Serializer):
     Serializer for taking payments
     """
     card_id = IntegerField()
-    amount = DecimalField(max_digits=4, min_value=settings.MINIMUM_PRICE, decimal_places=2)
+    amount = DecimalField(max_digits=6, min_value=settings.MINIMUM_PRICE, decimal_places=2)
     cvv = serializers.CharField(validators=[RegexValidator(r'^\d{3,4}$')], required=False, default='', allow_blank=True)
 
 
