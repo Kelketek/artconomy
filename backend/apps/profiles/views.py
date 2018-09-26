@@ -869,6 +869,7 @@ class RefColorManager(RetrieveUpdateDestroyAPIView):
 
 
 class MarkNotificationsRead(BulkUpdateAPIView):
+    permission_classes = [IsAuthenticated]
     serializer_class = BulkNotificationSerializer
     queryset = Notification.objects.all()
 
