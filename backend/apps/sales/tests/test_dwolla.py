@@ -84,7 +84,7 @@ class DwollaTestCase(TestCase):
         self.assertIsNone(record)
         self.assertEqual(PaymentRecord.objects.all().count(), 0)
 
-    @override_settings(DWOLLA_FUNDING_SOURCE='http://someplace.com/')
+    @override_settings(DWOLLA_FUNDING_SOURCE_KEY='http://someplace.com/')
     def test_perform_transfer(self, mock_api):
         account = BankAccountFactory.create(url='http://whatever.com/')
         record = PaymentRecordFactory.create(
