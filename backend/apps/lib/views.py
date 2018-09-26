@@ -16,7 +16,7 @@ from apps.lib.serializers import CommentSerializer, CommentSubscriptionSerialize
 from apps.lib.utils import countries_tweaked, remove_tags, add_tags, remove_comment, safe_add, default_context
 from apps.profiles.models import User
 from apps.profiles.permissions import ObjectControls
-from views import bad_endpoint, base_template
+from views import bad_request, base_template
 
 
 class CommentUpdate(RetrieveUpdateDestroyAPIView):
@@ -194,12 +194,12 @@ class BaseUserTagView(GenericAPIView):
 
 
 class BasePreview(View):
-    post = bad_endpoint
-    patch = bad_endpoint
-    delete = bad_endpoint
-    put = bad_endpoint
-    head = bad_endpoint
-    options = bad_endpoint
+    post = staticmethod(bad_request)
+    patch = staticmethod(bad_request)
+    delete = staticmethod(bad_request)
+    put = staticmethod(bad_request)
+    head = staticmethod(bad_request)
+    options = staticmethod(bad_request)
     permission_classes = []
     args = []
     kwargs = {}
