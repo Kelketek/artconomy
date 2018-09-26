@@ -64,6 +64,8 @@ def available_assets(request, requester):
     if not request.user.is_staff and request.user.is_authenticated:
         exclude |= Q(owner__blocking=requester)
         exclude |= Q(owner__blocked_by=requester)
+        exclude |= Q(artists__blocking=requester)
+        exclude |= Q(artists__blocked_by=requester)
     if request.user.is_authenticated:
         exclude &= ~(Q(owner=requester) | Q(shared_with=requester))
     return ImageAsset.objects.exclude(exclude).exclude(
