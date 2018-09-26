@@ -140,8 +140,7 @@ def available_products(requester, query='', ordering=True):
     if requester.is_authenticated:
         if not requester.is_staff:
             qs = qs.exclude(user__blocking=requester)
-            qs = qs.exclude(user__blocked_by=requester)
-        qs = qs.exclude(user__in=requester.blocking.all())
+        qs = qs.exclude(user__blocked_by=requester)
     if ordering:
         return product_ordering(qs, query)
     return qs
