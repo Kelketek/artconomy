@@ -8,7 +8,7 @@
     data () {
       return {}
     },
-    created () {
+    mounted () {
       this.$root.errorCode = 404
     }
   }
