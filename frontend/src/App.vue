@@ -6,7 +6,7 @@
         <div v-if="$root.errorCode !== null" class="container error-container">
           <div class="row">
             <div class="col-12 text-xs-center">
-              <img class="error-logo" src="/static/images/logo.svg"/>
+              <img class="error-logo" :src="errorLogo"/>
             </div>
             <div class="col-12 text-xs-center home-title">
               <h1>Whoops!</h1>
