@@ -8,6 +8,15 @@ export const ErrorHandler = {
         $error (error) {
           this.$root.errorCode = error.status
         }
+      },
+      computed: {
+        errorLogo () {
+          if ([500, 503, 400, 404, 403].indexOf(this.$root.errorCode) !== -1) {
+            return `/static/images/${this.$root.errorCode}.png`
+          } else {
+            return `/static/images/generic-error.png`
+          }
+        }
       }
     })
   },
