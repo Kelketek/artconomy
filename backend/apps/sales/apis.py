@@ -22,7 +22,7 @@ class DwollaContext:
 
     @lazy
     def funding_url(self):
-        return settings.DWOLLA_FUNDING_SOURCE
+        return settings.DWOLLA_FUNDING_SOURCE_KEY
 
     @lazy
     def account_url(self):
