@@ -25,9 +25,16 @@ def index(request):
 
 
 @api_view(('GET', 'POST', 'PATCH', 'PUT', 'HEAD', 'DELETE', 'OPTIONS'))
-def bad_endpoint(request):
+def bad_endpoint(request, *_args, **_kwargs):
     return Response(
         status=status.HTTP_404_NOT_FOUND, data={'error': '{} is not a valid API Endpoint.'.format(request.path)}
+    )
+
+
+@api_view(('GET', 'POST', 'PATCH', 'PUT', 'HEAD', 'DELETE', 'OPTIONS'))
+def bad_request(request, *_args, **_kwargs):
+    return Response(
+        status=status.HTTP_400_BAD_REQUEST, data={'error': '{} does not support this method.'.format(request.path)}
     )
 
 
