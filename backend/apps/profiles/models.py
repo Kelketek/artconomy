@@ -1,8 +1,11 @@
 """
 Models dealing primarily with user preferences and personalization.
 """
+import hashlib
 import uuid
+from urllib.parse import urlencode, urljoin
 
+from avatar.models import Avatar
 from django.conf import settings
 from custom_user.models import AbstractEmailUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
@@ -15,6 +18,7 @@ from django.db.models import Model, CharField, ForeignKey, IntegerField, Boolean
 from django.db.models.signals import post_save, post_delete, pre_delete
 from django.dispatch import receiver
 from django.utils.datetime_safe import datetime, date
+from django.utils.encoding import force_bytes
 from rest_framework.authtoken.models import Token
 
 from apps.lib.abstract_models import GENERAL, RATINGS, ImageModel
@@ -34,6 +38,19 @@ def banned_named_validator(value):
 
 def tg_key_gen():
     return str(uuid.uuid4())[:30]
+
+
+def set_avatar_url(user):
+    avatar = user.avatar_set.order_by("-primary", "-date_uploaded").first()
+    if avatar:
+        avatar = Avatar.objects.get(id=avatar.id)
+        user.avatar_url = avatar.avatar_url(80)
+    else:
+        params = {'s': '80'}
+        path = "%s/?%s" % (hashlib.md5(force_bytes(getattr(user,
+                                                           'email'))).hexdigest(), urlencode(params))
+        user.avatar_url = urljoin('https://www.gravatar.com/avatar/', path)
+    user.save()
 
 
 class User(AbstractEmailUser):
@@ -187,6 +204,7 @@ def auto_subscribe(sender, instance, created=False, **_kwargs):
             type=TRANSFER_FAILED,
             email=True,
         )
+        set_avatar_url(instance)
     if instance.is_staff:
         Subscription.objects.get_or_create(
             subscriber=instance,
