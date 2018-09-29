@@ -227,7 +227,7 @@ class SettingsSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             'commissions_closed', 'rating', 'sfw_mode', 'max_load', 'favorites_hidden', 'taggable', 'commission_info',
-            'auto_withdraw', 'escrow_disabled'
+            'auto_withdraw', 'escrow_disabled', 'bank_account_status'
         )
 
 
@@ -335,7 +335,7 @@ class UserSerializer(UserInfoMixin, serializers.ModelSerializer):
             'blacklist', 'biography', 'has_products', 'taggable', 'watching', 'blocked',  'commission_info',
             'stars', 'percentage_fee', 'static_fee', 'portrait', 'portrait_enabled', 'portrait_paid_through',
             'landscape', 'landscape_enabled', 'landscape_paid_through', 'telegram_link', 'auto_withdraw',
-            'escrow_disabled'
+            'escrow_disabled', 'bank_account_status'
         )
         read_only_fields = [field for field in fields if field not in ['biography']]
 

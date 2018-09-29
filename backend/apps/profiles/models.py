@@ -57,6 +57,12 @@ class User(AbstractEmailUser):
     """
     User model for Artconomy.
     """
+    HAS_US_ACCOUNT = 1
+    NO_US_ACCOUNT = 2
+    BANK_STATUS_CHOICES = (
+        (HAS_US_ACCOUNT, "Has US Bank account"),
+        (NO_US_ACCOUNT, "No US Bank account")
+    )
     username = CharField(
         max_length=30, unique=True, db_index=True, validators=[UnicodeUsernameValidator(), banned_named_validator]
     )
@@ -72,6 +78,7 @@ class User(AbstractEmailUser):
         default=False, db_index=True,
         help_text="Internal check for commissions that prevents taking on more work when max load is exceeded."
     )
+    bank_account_status = IntegerField(null=True, choices=BANK_STATUS_CHOICES, db_index=True, default=None, blank=True)
     favorites_hidden = BooleanField(default=False)
     taggable = BooleanField(default=True, db_index=True)
     artist_tagging_disabled = BooleanField(default=False, db_index=True)
@@ -221,6 +228,12 @@ def auto_subscribe(sender, instance, created=False, **_kwargs):
         )
         subscription.email = True
         subscription.save()
+    # These are synced right now, mostly for legacy purposes, but we expect them to be separate again
+    # once we implement banks for other countries.
+    if instance.bank_account_status == User.HAS_US_ACCOUNT:
+        instance.escrow_disabled = False
+    elif instance.bank_account_status == User.NO_US_ACCOUNT:
+        instance.escrow_disabled = True
 
 
 class ImageAsset(ImageModel):
