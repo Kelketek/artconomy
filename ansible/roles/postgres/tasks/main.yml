@@ -53,7 +53,7 @@
 
 - name: Check for initial backup
   stat:
-    path: "/var/lib/postgresql/backup/hourly/{{ db_name }}.sql.gz"
+    path: "/var/lib/postgresql/backup/{{ db_name }}.sql.gz"
   register: backup
 
 - name: first backup
