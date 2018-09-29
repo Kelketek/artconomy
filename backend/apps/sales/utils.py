@@ -136,7 +136,7 @@ def available_products(requester, query='', ordering=True):
         q = Q(name__istartswith=query) | Q(tags__name=query.lower())
         qs = Product.objects.filter(available=True).filter(q)
     else:
-        return Product.objects.filter(available=True)
+        qs = Product.objects.filter(available=True)
     if requester.is_authenticated:
         if not requester.is_staff:
             qs = qs.exclude(user__blocking=requester)

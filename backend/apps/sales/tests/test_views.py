@@ -1952,6 +1952,13 @@ class TestProductSearch(APITestCase):
         self.assertIDInList(product3, response.data['results'])
         self.assertEqual(len(response.data['results']), 3)
 
+    def test_blocked(self):
+        product = ProductFactory.create(name='Test1')
+        self.user.blocking.add(product.user)
+        self.login(self.user)
+        response = self.client.get('/api/sales/v1/search/product/', {'q': 'test'})
+        self.assertEqual(len(response.data['results']), 0)
+
 
 class TestTransfer(APITestCase):
     def test_create_transfer(self):
