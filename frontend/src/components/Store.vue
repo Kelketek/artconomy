@@ -44,7 +44,7 @@
       </v-jumbotron>
     </v-layout>
     <v-layout row wrap>
-      <v-flex xs12 v-if="isCurrent && !setUp && !embedded">
+      <v-flex xs12 v-if="!setUp && !embedded">
         <p>To open a store, you must first set up your
           <router-link :to="{name: 'Settings', params: {tabName: 'payment', 'username': this.viewer.username, 'subTabName': 'disbursement'}}">
             payout settings.</router-link>
@@ -280,7 +280,7 @@
         if (!this.isCurrent) {
           return true
         }
-        return this.user.dwolla_configured || this.user.escrow_disabled
+        return this.user.bank_account_status
       },
       fee () {
         return ((this.price * (this.user.percentage_fee * 0.01)) + parseFloat(this.user.static_fee)).toFixed(2)
