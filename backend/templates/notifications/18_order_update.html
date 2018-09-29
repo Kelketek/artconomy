@@ -4,7 +4,7 @@
 {% if target.status == 2 %}
 Your order has been accepted by the artist and is ready for payment!
 {% elif target.status == 4 %}
-The artist has begun work on your order.
+The artist has begun work on your order. {% if target.stream_link %}<a href="{{target.stream_link}}">They're streaming the work here!</a> {% endif %}
 {% elif target.status == 5 %}
 Your order is ready for review!
 {% elif target.status == 8 %}
