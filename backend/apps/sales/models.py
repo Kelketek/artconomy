@@ -701,6 +701,21 @@ def ensure_shield(sender, instance, created=False, **_kwargs):
         return
     instance.user.escrow_disabled = False
     instance.user.save()
+    PaymentRecord.objects.create(
+        payer=instance.user,
+        amount=Money('3.00', 'USD'),
+        payee=None,
+        source=PaymentRecord.ACCOUNT,
+        txn_id=str(uuid.uuid4()),
+        target=instance,
+        type=PaymentRecord.TRANSFER,
+        status=PaymentRecord.SUCCESS,
+        response_code='CnctFee',
+        finalized=True,
+        response_message='Bank Connection Fee'
+    )
+    from apps.sales.tasks import withdraw_all
+    withdraw_all(instance.user.id)
 
 
 class CharacterTransfer(Model):

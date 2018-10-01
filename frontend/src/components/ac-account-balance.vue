@@ -4,7 +4,7 @@
       <p><strong>Escrow Balance: ${{response.escrow}}</strong></p>
       <p><strong>Available Balance: ${{response.available}}</strong></p>
       <p>
-        If auto-withdraw is enabled, available balance may always be 0, as transfers are started automatically.
+        If auto-withdraw is enabled and you've added a bank, available balance may always be 0, as transfers are started automatically.
         Please check your
         <router-link :to="{name: 'Settings', params: {tabName: 'payment', subTabName: 'transactions', tertiaryTabName: 'available'}}">
           transaction history</router-link> for more details.
@@ -129,7 +129,7 @@
 </template>
 
 <script>
-  import { artCall, accountTypes, ACCOUNT_TYPES, validNumber, EventBus } from '../lib'
+  import {artCall, accountTypes, ACCOUNT_TYPES, validNumber, EventBus, inputMatches} from '../lib'
   import Perms from '../mixins/permissions'
   import AcFormDialog from './ac-form-dialog'
   import VueFormGenerator from 'vue-form-generator'
@@ -154,6 +154,7 @@
           last_name: '',
           type: '0',
           account_number: '',
+          account_number2: '',
           routing_number: ''
         },
         bankSchema: {
@@ -184,6 +185,13 @@
             mask: '#################################################',
             featured: true,
             validator: VueFormGenerator.validators.required
+          }, {
+            type: 'v-text',
+            label: 'Account Number (repeated)',
+            model: 'account_number2',
+            mask: '#################################################',
+            featured: true,
+            validator: inputMatches('account_number', 'Account numbers do not match')
           }, {
             type: 'v-text',
             label: 'Routing Number',
@@ -256,6 +264,7 @@
         this.showNewBank = false
         this.accounts.push(response)
         this.$root.$loadUser()
+        this.fetchBalance()
       }
     },
     computed: {
