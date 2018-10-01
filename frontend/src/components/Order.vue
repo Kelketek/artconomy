@@ -252,7 +252,14 @@
             <div v-if="completed && seller">
               <strong>Congratulations! You've completed the order</strong>
               <p>You can revisit this page at any time for your records.</p>
-              <p v-if="!order.escrow_disabled">Your payment will be transferred to your bank account unless you've opted out of automatic withdrawal. It may take up to five business days to arrive.</p>
+              <p v-if="!order.escrow_disabled">
+                If you have not yet set up your bank account, <router-link :to="{name: 'Settings', params: {tabName: 'payment', 'username': this.viewer.username, 'subTabName': 'disbursement'}}">
+                you should do so now.</router-link>
+              </p>
+              <p v-if="!order.escrow_disabled">
+                Your payment will be transferred to your bank account unless you've opted out of automatic withdrawal.
+                It may take up to five business days to arrive, though it most commonly takes four.
+              </p>
             </div>
             <div v-if="showDisputePeriod">
               <p>You may dispute this order for non-completion on {{formatDate(order.dispute_available_on)}}</p>
