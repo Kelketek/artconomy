@@ -15,11 +15,11 @@
         <v-toolbar-title>{{title}}</v-toolbar-title>
         <v-spacer />
         <v-toolbar-items>
-          <v-btn dark flat @click.prevent="$refs.form.submit">{{ submitText }}</v-btn>
+          <v-btn dark flat @click.prevent="$refs.form.submit" :disabled="form.sending">{{ submitText }}</v-btn>
         </v-toolbar-items>
       </v-toolbar>
       <v-card-text ref="scrollableText">
-        <v-form @submit.prevent="$refs.form.submit">
+        <v-form @submit.prevent="form.submit">
           <slot name="header" />
           <ac-form-container
               ref="form" v-bind="$attrs"
@@ -34,7 +34,7 @@
           <v-btn type="submit" class="hidden" />
           <v-layout row wrap class="hidden-xs-only">
             <v-flex xs12 text-xs-center mt-4>
-              <v-btn color="primary" @click.prevent="$refs.form.submit">{{ submitText }}</v-btn>
+              <v-btn color="primary" @click.prevent="form.submit" :disabled="form.sending">{{ submitText }}</v-btn>
             </v-flex>
           </v-layout>
         </v-form>
@@ -121,6 +121,11 @@
         }
       }
     },
+    data () {
+      return {
+        form: {}
+      }
+    },
     methods: {
       scrollToErrors (event) {
         Vue.nextTick(() => {
@@ -139,6 +144,9 @@
     destroyed () {
       EventBus.$off('form-error', this.scrollToErrors)
       EventBus.$off('form-failure', this.scrollToErrors)
+    },
+    mounted () {
+      this.form = this.$refs.form
     }
   }
 </script>
