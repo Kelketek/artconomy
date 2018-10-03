@@ -92,6 +92,8 @@ class User(AbstractEmailUser):
     portrait_enabled = BooleanField(default=False, db_index=True)
     portrait_paid_through = DateField(null=True, default=None, blank=True, db_index=True)
     auto_withdraw = BooleanField(default=True)
+    # Whether the user's been offered the mailing list
+    offered_mailchimp = BooleanField(default=False)
     referred_by = ForeignKey('User', related_name='referrals', blank=True, on_delete=PROTECT, null=True)
     tg_key = CharField(db_index=True, default=tg_key_gen, max_length=30)
     tg_chat_id = CharField(db_index=True, default='', max_length=30)

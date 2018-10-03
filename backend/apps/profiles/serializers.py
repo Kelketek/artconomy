@@ -16,16 +16,16 @@ from apps.lib.serializers import RelatedUserSerializer, Base64ImageField, TagSer
     SubscribeMixin, UserInfoMixin
 from apps.profiles.models import Character, ImageAsset, User, RefColor, Attribute, Message, \
     MessageRecipientRelationship, Journal
-from apps.sales.models import Order
 from apps.tg_bot.models import TelegramDevice
 
 
 class RegisterSerializer(serializers.ModelSerializer):
     csrftoken = serializers.SerializerMethodField()
     recaptcha = ReCaptchaField(write_only=True)
+    mail = serializers.BooleanField(write_only=True)
 
     def create(self, validated_data):
-        validated_data = {key: value for key, value in validated_data.items() if key != 'recaptcha'}
+        validated_data = {key: value for key, value in validated_data.items() if key not in ['recaptcha', 'mail']}
         return super(RegisterSerializer, self).create(validated_data)
 
     def get_csrftoken(self, value):
@@ -49,7 +49,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'username', 'email', 'password', 'csrftoken', 'recaptcha'
+            'username', 'email', 'password', 'csrftoken', 'recaptcha', 'mail'
         )
         read_only_fields = (
             'csrftoken',
@@ -228,7 +228,7 @@ class SettingsSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             'commissions_closed', 'rating', 'sfw_mode', 'max_load', 'favorites_hidden', 'taggable', 'commission_info',
-            'auto_withdraw', 'escrow_disabled', 'bank_account_status'
+            'auto_withdraw', 'escrow_disabled', 'bank_account_status', 'offered_mailchimp'
         )
 
 
@@ -336,7 +336,7 @@ class UserSerializer(UserInfoMixin, serializers.ModelSerializer):
             'blacklist', 'biography', 'has_products', 'taggable', 'watching', 'blocked',  'commission_info',
             'stars', 'percentage_fee', 'static_fee', 'portrait', 'portrait_enabled', 'portrait_paid_through',
             'landscape', 'landscape_enabled', 'landscape_paid_through', 'telegram_link', 'auto_withdraw',
-            'escrow_disabled', 'bank_account_status'
+            'escrow_disabled', 'bank_account_status', 'offered_mailchimp'
         )
         read_only_fields = [field for field in fields if field not in ['biography']]
 
