@@ -83,27 +83,26 @@ def available_users(request):
     return User.objects.exclude(id__in=request.user.blocked_by.all().values('id'))
 
 
-def extend_landscape(user, months, start_point=None, save=True):
-    if not start_point:
-        today = timezone.now().date()
-        start_point = user.landscape_paid_through or today
-        if start_point < today:
-            start_point = today
-    extend_portrait(user, months, start_point, save=False)
+def extend_landscape(user, months):
+    today = timezone.now().date()
+    if user.landscape_paid_through and user.landscape_paid_through > today:
+        start_point = user.landscape_paid_through
+    else:
+        start_point = today
     user.landscape_paid_through = start_point + relativedelta(months=months)
-    if save:
-        user.save()
+    if not (user.portrait_paid_through and user.portrait_paid_through > user.landscape_paid_through):
+        user.portrait_paid_through = user.landscape_paid_through
+    user.save()
 
 
-def extend_portrait(user, months, start_point=None, save=True):
-    if not start_point:
-        today = timezone.now().date()
-        start_point = user.portrait_paid_through or today
-        if start_point < today:
-            start_point = today
+def extend_portrait(user, months):
+    today = timezone.now().date()
+    if user.portrait_paid_through and user.portrait_paid_through > today:
+        start_point = user.portrait_paid_through
+    else:
+        start_point = today
     user.portrait_paid_through = start_point + relativedelta(months=months)
-    if save:
-        user.save()
+    user.save()
 
 
 def credit_referral(order):
