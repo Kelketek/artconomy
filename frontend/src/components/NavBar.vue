@@ -44,6 +44,12 @@
           </v-list-tile-action>
           <v-list-tile-title>Upgrade!</v-list-tile-title>
         </v-list-tile>
+        <v-list-tile :to="{name: 'Referrals', params: {username: viewer.username}}">
+          <v-list-tile-action>
+            <v-icon>star</v-icon>
+          </v-list-tile-action>
+          <v-list-tile-title>Referrals and Rewards!</v-list-tile-title>
+        </v-list-tile>
         <v-list-tile :to="{name: 'FAQ'}">
           <v-list-tile-action>
             <v-icon>question_answer</v-icon>

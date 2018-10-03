@@ -33,6 +33,7 @@ from apps.lib.views import BaseTagView, BasePreview
 from apps.profiles.models import User, ImageAsset, Character
 from apps.profiles.permissions import ObjectControls, UserControls
 from apps.profiles.serializers import ImageAssetSerializer, UserSerializer
+from apps.profiles.utils import credit_referral
 from apps.sales.dwolla import add_bank_account, initiate_withdraw, perform_transfer, make_dwolla_account, \
     destroy_bank_account
 from apps.sales.permissions import OrderViewPermission, OrderSellerPermission, OrderBuyerPermission, \
@@ -796,6 +797,11 @@ class MakePayment(GenericAPIView):
 
     def post(self, *args, **kwargs):
         order = self.get_object()
+        if order.status != Order.PAYMENT_PENDING:
+            raise ValidationError(
+                {'amount': 'This has already been paid for, or is not ready for payment. '
+                           'Please refresh the page or contact support.'}
+            )
         attempt = self.get_serializer(data=self.request.data, context=self.get_serializer_context())
         attempt.is_valid(raise_exception=True)
         attempt = attempt.validated_data
@@ -843,6 +849,7 @@ class MakePayment(GenericAPIView):
             card.cvv_verified = True
             card.save()
             notify(SALE_UPDATE, order, unique=True, mark_unread=True)
+            credit_referral(order)
             data = OrderViewSerializer(instance=order, context=self.get_serializer_context()).data
         record.save()
         return Response(status=code, data=data)

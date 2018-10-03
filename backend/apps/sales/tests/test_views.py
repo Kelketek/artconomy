@@ -11,7 +11,8 @@ from moneyed import Money, Decimal
 from rest_framework import status
 
 from apps.lib.abstract_models import ADULT, MATURE
-from apps.lib.models import DISPUTE, Comment, Subscription, SALE_UPDATE
+from apps.lib.models import DISPUTE, Comment, Subscription, SALE_UPDATE, Notification, REFERRAL_PORTRAIT_CREDIT, \
+    REFERRAL_LANDSCAPE_CREDIT
 from apps.lib.test_resources import APITestCase
 from apps.lib.tests.factories import TagFactory
 from apps.profiles.models import ImageAsset
@@ -1054,7 +1055,7 @@ class TestOrder(APITestCase):
     def test_pay_order(self, card_api):
         self.login(self.user)
         order = OrderFactory.create(
-            buyer=self.user, status=Order.QUEUED, price=Money('10.00', 'USD'),
+            buyer=self.user, status=Order.PAYMENT_PENDING, price=Money('10.00', 'USD'),
             adjustment=Money('2.00', 'USD')
         )
         subscription = Subscription.objects.get(subscriber=order.seller, type=SALE_UPDATE)
@@ -1079,10 +1080,56 @@ class TestOrder(APITestCase):
         self.assertEqual(record.payee, None)
 
     @patch('apps.sales.models.sauce')
+    def test_pay_order_credit_referrals(self, card_api):
+        self.login(self.user)
+        self.user.referred_by = UserFactory.create()
+        self.user.save()
+        order = OrderFactory.create(
+            buyer=self.user, status=Order.PAYMENT_PENDING, price=Money('10.00', 'USD'),
+            adjustment=Money('2.00', 'USD'), product__user__referred_by=UserFactory.create()
+        )
+        self.assertFalse(self.user.bought_shield_on)
+        self.assertFalse(self.user.sold_shield_on)
+        subscription = Subscription.objects.get(subscriber=order.seller, type=SALE_UPDATE)
+        self.assertTrue(subscription.email)
+        card_api.saved_card.return_value.capture.return_value.uid = 'Trans123'
+        response = self.client.post(
+            '/api/sales/v1/order/{}/pay/'.format(order.id),
+            {
+                'card_id': CreditCardTokenFactory.create(user=self.user).id,
+                'amount': '12.00',
+                'cvv': '100'
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        record = PaymentRecord.objects.get(txn_id='Trans123')
+        order.seller.refresh_from_db()
+        order.buyer.refresh_from_db()
+        portrait_notification = Notification.objects.filter(event__type=REFERRAL_PORTRAIT_CREDIT)
+        landscape_notification = Notification.objects.filter(event__type=REFERRAL_LANDSCAPE_CREDIT)
+        self.assertEqual(portrait_notification.count(), 1)
+        self.assertEqual(landscape_notification.count(), 1)
+        portrait_notification = portrait_notification.first()
+        landscape_notification = landscape_notification.first()
+        self.assertEqual(portrait_notification.user, order.buyer.referred_by)
+        self.assertEqual(portrait_notification.event.target, order.buyer.referred_by)
+        self.assertEqual(landscape_notification.user, order.seller.referred_by)
+        self.assertEqual(landscape_notification.event.target, order.seller.referred_by)
+        self.assertTrue(order.seller.sold_shield_on)
+        self.assertTrue(order.buyer.bought_shield_on)
+        self.assertEqual(record.status, PaymentRecord.SUCCESS)
+        self.assertEqual(record.source, PaymentRecord.CARD)
+        self.assertEqual(record.escrow_for, order.seller)
+        self.assertEqual(record.target, order)
+        self.assertEqual(record.amount, Money('12.00', 'USD'))
+        self.assertEqual(record.payer, self.user)
+        self.assertEqual(record.payee, None)
+
+    @patch('apps.sales.models.sauce')
     def test_pay_order_no_escrow(self, card_api):
         self.login(self.user)
         order = OrderFactory.create(
-            buyer=self.user, status=Order.QUEUED, price=Money('10.00', 'USD'),
+            buyer=self.user, status=Order.PAYMENT_PENDING, price=Money('10.00', 'USD'),
             adjustment=Money('2.00', 'USD'), escrow_disabled=True
         )
         response = self.client.post(
@@ -1099,7 +1146,7 @@ class TestOrder(APITestCase):
     def test_pay_order_cvv_missing(self, card_api):
         self.login(self.user)
         order = OrderFactory.create(
-            buyer=self.user, status=Order.QUEUED, price=Money('10.00', 'USD'),
+            buyer=self.user, status=Order.PAYMENT_PENDING, price=Money('10.00', 'USD'),
             adjustment=Money('2.00', 'USD')
         )
         card_api.saved_card.return_value.capture.return_value.uid = 'Trans123'
@@ -1117,7 +1164,7 @@ class TestOrder(APITestCase):
     def test_pay_order_cvv_already_verified(self, card_api):
         self.login(self.user)
         order = OrderFactory.create(
-            buyer=self.user, status=Order.QUEUED, price=Money('10.00', 'USD'),
+            buyer=self.user, status=Order.PAYMENT_PENDING, price=Money('10.00', 'USD'),
             adjustment=Money('2.00', 'USD')
         )
         card_api.saved_card.return_value.capture.return_value.uid = 'Trans123'
@@ -1143,7 +1190,7 @@ class TestOrder(APITestCase):
     def test_pay_order_failed_transaction(self, card_api):
         self.login(self.user)
         order = OrderFactory.create(
-            buyer=self.user, status=Order.QUEUED, price=Money('10.00', 'USD'),
+            buyer=self.user, status=Order.PAYMENT_PENDING, price=Money('10.00', 'USD'),
             adjustment=Money('2.00', 'USD')
         )
         card_api.saved_card.return_value.capture.side_effect = AuthorizeError("It failed!")
@@ -1170,7 +1217,7 @@ class TestOrder(APITestCase):
     def test_pay_order_amount_changed(self, card_api):
         self.login(self.user)
         order = OrderFactory.create(
-            buyer=self.user, status=Order.QUEUED, price=Money('10.00', 'USD'),
+            buyer=self.user, status=Order.PAYMENT_PENDING, price=Money('10.00', 'USD'),
             adjustment=Money('2.00', 'USD')
         )
         card_api.saved_card.return_value.capture.return_value.uid = 'Trans123'
@@ -1189,7 +1236,7 @@ class TestOrder(APITestCase):
     def test_pay_order_wrong_card(self, card_api):
         self.login(self.user)
         order = OrderFactory.create(
-            buyer=self.user, status=Order.QUEUED, price=Money('10.00', 'USD'),
+            buyer=self.user, status=Order.PAYMENT_PENDING, price=Money('10.00', 'USD'),
             adjustment=Money('2.00', 'USD')
         )
         card_api.saved_card.return_value.capture.return_value.uid = 'Trans123'
@@ -1208,7 +1255,7 @@ class TestOrder(APITestCase):
     def test_pay_order_outsider(self, card_api):
         self.login(self.user2)
         order = OrderFactory.create(
-            buyer=self.user, status=Order.QUEUED, price=Money('10.00', 'USD'),
+            buyer=self.user, status=Order.PAYMENT_PENDING, price=Money('10.00', 'USD'),
             adjustment=Money('2.00', 'USD')
         )
         card_api.saved_card.return_value.capture.return_value.uid = 'Trans123'
@@ -1227,7 +1274,7 @@ class TestOrder(APITestCase):
     def test_pay_order_seller_fail(self, card_api):
         self.login(self.user2)
         order = OrderFactory.create(
-            buyer=self.user, status=Order.QUEUED, price=Money('10.00', 'USD'),
+            buyer=self.user, status=Order.PAYMENT_PENDING, price=Money('10.00', 'USD'),
             adjustment=Money('2.00', 'USD'), seller=self.user2,
         )
         card_api.saved_card.return_value.capture.return_value.uid = 'Trans123'
@@ -1246,7 +1293,7 @@ class TestOrder(APITestCase):
     def test_pay_order_staffer(self, card_api):
         self.login(self.user)
         order = OrderFactory.create(
-            buyer=self.user, status=Order.QUEUED, price=Money('10.00', 'USD'),
+            buyer=self.user, status=Order.PAYMENT_PENDING, price=Money('10.00', 'USD'),
             adjustment=Money('2.00', 'USD')
         )
         card_api.saved_card.return_value.capture.return_value.uid = 'Trans123'

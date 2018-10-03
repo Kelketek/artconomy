@@ -45,7 +45,8 @@ from apps.profiles.permissions import ObjectControls, UserControls, AssetViewPer
 from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer, SettingsSerializer, UserSerializer, \
     RegisterSerializer, ImageAssetManagementSerializer, CredentialsSerializer, AvatarSerializer, RefColorSerializer, \
     AttributeSerializer, SessionSettingsSerializer, MessageManagementSerializer, MessageSerializer, \
-    PasswordResetSerializer, JournalSerializer, TwoFactorTimerSerializer, TelegramDeviceSerializer
+    PasswordResetSerializer, JournalSerializer, TwoFactorTimerSerializer, TelegramDeviceSerializer, \
+    ReferralStatsSerializer
 from apps.profiles.utils import available_chars, char_ordering, available_assets, available_artists, available_users
 from apps.sales.models import Order
 from apps.tg_bot.models import TelegramDevice
@@ -58,6 +59,9 @@ class Register(CreateAPIView):
         instance = serializer.save()
         instance.set_password(instance.password)
         instance.rating = self.request.max_rating
+        referrer = self.request.META.get('HTTP_X_REFERRED_BY', None)
+        if referrer:
+            instance.referred_by = User.objects.filter(username__iexact=referrer).first()
         instance.save()
         login(self.request, instance)
 
@@ -1430,3 +1434,12 @@ class SubmissionPreview(BasePreview):
             'description': demark(submission.caption),
             'image_link': image
         }
+
+
+class ReferralStats(APIView):
+    permission_classes = [UserControls]
+
+    def get(self, request, **kwargs):
+        user = get_object_or_404(User, username__iexact=kwargs.get('username'))
+        self.check_object_permissions(self.request, user)
+        return Response(status=status.HTTP_200_OK, data=ReferralStatsSerializer(user).data)

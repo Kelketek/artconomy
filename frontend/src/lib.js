@@ -50,6 +50,10 @@ function csrfSafeMethod (method) {
 $.ajaxSetup({
   beforeSend (xhr, settings) {
     if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+      let referredBy = getCookie('referredBy')
+      if (referredBy) {
+        xhr.setRequestHeader('X-Referred-By', referredBy)
+      }
       xhr.setRequestHeader('X-CSRFToken', getCookie('csrftoken'))
     }
   }
@@ -136,10 +140,8 @@ export function setHeaders (xhr, method) {
     if (token) {
       xhr.setRequestHeader('X-CSRFToken', token)
     }
-    console.log('I ran!')
-    console.log(referredBy)
     if (referredBy) {
-      xhr.setRequestHeader('X-ReferredBy', referredBy)
+      xhr.setRequestHeader('X-Referred-By', referredBy)
     }
   }
 }
@@ -249,7 +251,9 @@ export const NOTIFICATION_MAPPING = {
   '29': 'ac-renewal-fixed',
   '30': 'ac-new-journal',
   '31': 'ac-order-token-issued',
-  '32': 'ac-withdraw-failed'
+  '32': 'ac-withdraw-failed',
+  '33': 'ac-portrait-referral',
+  '34': 'ac-landscape-referral'
 }
 
 export const ORDER_STATUSES = {

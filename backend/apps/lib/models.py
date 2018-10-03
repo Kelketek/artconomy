@@ -70,6 +70,8 @@ RENEWAL_FIXED = 29
 NEW_JOURNAL = 30
 ORDER_TOKEN_ISSUED = 31
 TRANSFER_FAILED = 32
+REFERRAL_PORTRAIT_CREDIT = 33
+REFERRAL_LANDSCAPE_CREDIT = 34
 
 ORDER_NOTIFICATION_TYPES = (
     DISPUTE, SALE_UPDATE, ORDER_UPDATE, RENEWAL_FIXED, RENEWAL_FAILURE, SUBSCRIPTION_DEACTIVATED,
@@ -119,7 +121,9 @@ EMAIL_SUBJECTS = {
     SUBSCRIPTION_DEACTIVATED: 'Your subscription has been deactivated.',
     RENEWAL_FIXED: 'Subscription renewed successfully',
     ORDER_TOKEN_ISSUED: 'A special order token has been issued to you!',
-    TRANSFER_FAILED: 'Bank transfer failed.'
+    TRANSFER_FAILED: 'Bank transfer failed.',
+    REFERRAL_PORTRAIT_CREDIT: "One of your referrals just made a purchase!",
+    REFERRAL_LANDSCAPE_CREDIT: "One of your referrals just made a sale!"
 }
 
 
