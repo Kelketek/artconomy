@@ -69,7 +69,7 @@
           <v-list-tile-title>Privacy and Legal</v-list-tile-title>
         </v-list-tile>
       </v-list>
-      <v-bottom-nav style="margin-top: -1em;"
+      <v-bottom-nav style="margin-top: -4.5em;"
       >
         <v-btn
             flat
@@ -81,20 +81,20 @@
         </v-btn>
         <v-btn
             flat
+            href="https://blog.artconomy.com/"
+            target="_blank"
+        >
+          <span>Blog</span>
+          <v-icon medium>edit</v-icon>
+        </v-btn>
+        <v-btn
+            flat
             href="mailto:support@artconomy.com"
             target="_blank"
         >
           <span>Support</span>
           <v-icon medium>contact_support</v-icon>
         </v-btn>
-        <!--<v-btn-->
-            <!--flat-->
-            <!--href="https://facebook.com/ArtconomyArt/"-->
-            <!--target="_blank"-->
-        <!--&gt;-->
-          <!--<span>Facebook</span>-->
-          <!--<v-icon medium>fa-facebook</v-icon>-->
-        <!--</v-btn>-->
       </v-bottom-nav>
     </v-navigation-drawer>
     <v-toolbar
