@@ -18,6 +18,17 @@
       </v-layout>
     </v-container>
   <v-container class="home-main">
+    <v-alert
+        :value="showMailingPrompt"
+        type="info"
+        class="mb-2"
+    >
+      <div v-if="answered">Ok!</div>
+      <div v-else>
+        <p><strong>Would you like to keep up to date on the latest Artconomy news by joining our mailing list?</strong></p>
+        <v-btn color="red" @click="mailAnswer('DELETE')">No, thank you.</v-btn> <v-btn color="purple" @click="mailAnswer('POST')">Yes, please!</v-btn>
+      </div>
+    </v-alert>
     <v-card>
       <v-layout row wrap>
         <v-flex xs12 class="pl-2">
@@ -135,20 +146,47 @@
 </style>
 
 <script>
-  import { setMetaContent } from '../lib'
+  import {artCall, setMetaContent} from '../lib'
   import AcAssetGallery from './ac-asset-gallery'
   import Characters from './Characters'
   import Store from './Store'
+  import Viewer from '../mixins/viewer'
 
   export default {
     components: {
       Store,
       Characters,
       AcAssetGallery},
+    mixins: [Viewer],
+    data () {
+      return {
+        answered: false
+      }
+    },
     name: 'Home',
     created () {
       document.title = 'Artconomy-- Where artists and commissioners meet!'
       setMetaContent('description', 'Artconomy lets you find artists to draw your personal characters.')
+    },
+    methods: {
+      refreshUser () {
+        // Don't pass on the arguments
+        this.$root.$loadUser()
+      },
+      mailAnswer (value) {
+        this.answered = true
+        artCall('/api/profiles/v1/mailing-list-pref/', value, undefined, this.refreshUser)
+      }
+    },
+    computed: {
+      showMailingPrompt () {
+        if (this.answered) {
+          return true
+        }
+        if (this.viewer.username && !this.viewer.offered_mailchimp) {
+          return true
+        }
+      }
     }
   }
 </script>

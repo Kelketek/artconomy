@@ -103,6 +103,7 @@
       username: '',
       password: '',
       recaptcha: '',
+      mail: true,
       token: ''
     }
   }
@@ -187,6 +188,11 @@
             required: true,
             featured: true,
             validator: VueFormGenerator.validators.string
+          }, {
+            type: 'v-checkbox',
+            label: 'Keep up to Date',
+            hint: 'Keep up to date with the latest news on Artconomy using our mailing list',
+            model: 'mail'
           }, {
             type: 'recaptcha',
             model: 'recaptcha',

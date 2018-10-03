@@ -47,6 +47,7 @@ from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer,
     AttributeSerializer, SessionSettingsSerializer, MessageManagementSerializer, MessageSerializer, \
     PasswordResetSerializer, JournalSerializer, TwoFactorTimerSerializer, TelegramDeviceSerializer, \
     ReferralStatsSerializer
+from apps.profiles.tasks import mailchimp_subscribe
 from apps.profiles.utils import available_chars, char_ordering, available_assets, available_artists, available_users
 from apps.sales.models import Order
 from apps.tg_bot.models import TelegramDevice
@@ -58,11 +59,15 @@ class Register(CreateAPIView):
     def perform_create(self, serializer):
         instance = serializer.save()
         instance.set_password(instance.password)
+        instance.offered_mailchimp = True
+        add_to_newsletter = serializer.validated_data.get('mail')
         instance.rating = self.request.max_rating
         referrer = self.request.META.get('HTTP_X_REFERRED_BY', None)
         if referrer:
             instance.referred_by = User.objects.filter(username__iexact=referrer).first()
         instance.save()
+        if add_to_newsletter:
+            mailchimp_subscribe.delay(instance.id)
         login(self.request, instance)
 
     def get_serializer(self, instance=None, data=None, many=False, partial=False):
@@ -1443,3 +1448,16 @@ class ReferralStats(APIView):
         user = get_object_or_404(User, username__iexact=kwargs.get('username'))
         self.check_object_permissions(self.request, user)
         return Response(status=status.HTTP_200_OK, data=ReferralStatsSerializer(user).data)
+
+
+class MailingListPref(APIView):
+    def post(self, request):
+        request.user.offered_mailchimp = True
+        request.user.save()
+        mailchimp_subscribe.delay(request.user.id)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def delete(self, request):
+        request.user.offered_mailchimp = True
+        request.user.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)

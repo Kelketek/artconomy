@@ -17,7 +17,7 @@
         return {
           name: 'Referrals',
           params: {
-            username: this.event.target.username,
+            username: this.event.target.username
           }
         }
       }

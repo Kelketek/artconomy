@@ -12,7 +12,7 @@ from apps.profiles.views import Register, CharacterListAPI, CharacterAssets, \
     MessagesTo, MessagesFrom, MessageManager, MessageComments, LeaveConversation, BlockUser, StartPasswordReset, \
     TokenValidator, PasswordReset, Journals, JournalManager, JournalComments, SalesNotificationsList, \
     UnreadNotifications, WatchListSubmissions, TOTPDeviceList, TOTPDeviceManager, Telegram2FA, RecentArt, UserInfoByID, \
-    ReferralStats
+    ReferralStats, MailingListPref
 from apps.profiles.views import check_username, check_email, perform_login, perform_logout
 
 app_name = "profiles"
@@ -27,6 +27,7 @@ urlpatterns = [
     path('v1/new-characters/', NewCharacters.as_view(), name='new_characters'),
     path('v1/form-validators/username/', check_username, name='username_validator'),
     path('v1/form-validators/email/', check_email, name='email_validator'),
+    path('v1/mailing-list-pref/', MailingListPref.as_view(), name='referral_stats'),
     path('v1/login/', perform_login, name='login'),
     path('v1/logout/', perform_logout, name='logout'),
     path('v1/register/', Register.as_view(), name='register'),
