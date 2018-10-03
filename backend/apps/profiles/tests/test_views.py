@@ -358,25 +358,11 @@ class TestSettings(APITestCase):
             '/api/profiles/v1/account/{}/settings/'.format(self.user.username), {
                 'rating': ADULT,
                 'max_load': 5,
-                'use_load_tracker': False,
             }
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(
-            response.data,
-            {
-                'commissions_closed': False,
-                'rating': ADULT,
-                'sfw_mode': False,
-                'favorites_hidden': False,
-                'max_load': 5,
-                'taggable': True,
-                'auto_withdraw': True,
-                'commission_info': '',
-                'escrow_disabled': False,
-                'bank_account_status': None
-            }
-        )
+        self.assertEqual(response.data['rating'], ADULT)
+        self.assertEqual(response.data['max_load'], 5)
         self.user.refresh_from_db()
         self.assertEqual(self.user.rating, ADULT)
 
