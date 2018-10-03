@@ -132,8 +132,14 @@ export function setHeaders (xhr, method) {
   xhr.setRequestHeader('Content-Type', 'application/json; charset=utf-8')
   if (!csrfSafeMethod(method) && !crossDomain()) {
     let token = getCookie('csrftoken')
+    let referredBy = getCookie('referredBy')
     if (token) {
-      xhr.setRequestHeader('X-CSRFToken', getCookie('csrftoken'))
+      xhr.setRequestHeader('X-CSRFToken', token)
+    }
+    console.log('I ran!')
+    console.log(referredBy)
+    if (referredBy) {
+      xhr.setRequestHeader('X-ReferredBy', referredBy)
     }
   }
 }
