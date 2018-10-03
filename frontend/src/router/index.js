@@ -34,7 +34,7 @@ import Messages from '@/components/Messages.vue'
 import Message from '@/components/Message.vue'
 import PasswordReset from '@/components/PasswordReset.vue'
 import {ErrorHandler} from '@/plugins/error'
-import {setMetaContent} from '../lib'
+import {setCookie, setMetaContent} from '../lib'
 
 export const routes = [
   {
@@ -289,6 +289,9 @@ router.beforeEach((to, from, next) => {
   if (from.name !== to.name) {
     document.title = 'Artconomy-- Where artists and commissioners meet!'
     setMetaContent('description', 'Artconomy lets you find artists to draw your personal characters.')
+  }
+  if (to.query.referred_by) {
+    setCookie('referredBy', to.query.referred_by)
   }
   next()
 })

@@ -14,7 +14,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db.models import Model, CharField, ForeignKey, IntegerField, BooleanField, DateTimeField, \
-    URLField, SET_NULL, ManyToManyField, CASCADE, DecimalField, DateField
+    URLField, SET_NULL, ManyToManyField, CASCADE, DecimalField, DateField, PROTECT
 from django.db.models.signals import post_save, post_delete, pre_delete
 from django.dispatch import receiver
 from django.utils.datetime_safe import datetime, date
@@ -89,6 +89,7 @@ class User(AbstractEmailUser):
     portrait_enabled = BooleanField(default=False, db_index=True)
     portrait_paid_through = DateField(null=True, default=None, blank=True, db_index=True)
     auto_withdraw = BooleanField(default=True)
+    referred_by = ForeignKey('User', related_name='referrals', blank=True, on_delete=PROTECT, null=True)
     tg_key = CharField(db_index=True, default=tg_key_gen, max_length=30)
     tg_chat_id = CharField(db_index=True, default='', max_length=30)
     avatar_url = URLField(blank=True)
