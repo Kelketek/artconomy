@@ -79,6 +79,8 @@ class DwollaTestCase(TestCase):
     @patch('apps.sales.dwolla.available_balance')
     def test_initiate_withdraw_test_only(self, mock_account_balance, _mock_api):
         account = BankAccountFactory.create(url='http://whatever.com/')
+        # Remove the post-creation hook payment record.
+        PaymentRecord.objects.all().delete()
         mock_account_balance.return_value = Decimal('10.00')
         record = initiate_withdraw(account.user, account, Money('5.00', 'USD'), True)
         self.assertIsNone(record)

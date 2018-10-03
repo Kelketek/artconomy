@@ -344,8 +344,13 @@ class BalanceTestCase(TestCase):
     @patch('apps.sales.tasks.initiate_withdraw')
     @patch('apps.sales.tasks.perform_transfer')
     def test_withdraw_all(self, mock_perform_transfer, mock_initiate, mock_balance):
+        # Avoid initial call in post-creation hook.
+        mock_balance.return_value = Decimal('0.00')
         bank = BankAccountFactory.create(user=self.user)
+        mock_initiate.assert_not_called()
         mock_balance.return_value = Decimal('25.00')
         withdraw_all(self.user.id)
+        # Normally, three dollars would be removed here for the connection fee,
+        # but we're always returning a balance of $25.
         mock_initiate.assert_called_with(self.user, bank, Money('25.00', 'USD'), test_only=False)
         mock_perform_transfer.assert_called()
