@@ -25,7 +25,7 @@ from apps.lib.abstract_models import GENERAL, RATINGS, ImageModel
 from apps.lib.models import Comment, Subscription, FAVORITE, SYSTEM_ANNOUNCEMENT, DISPUTE, REFUND, Event, \
     SUBMISSION_CHAR_TAG, CHAR_TAG, COMMENT, Tag, CHAR_TRANSFER, ASSET_SHARED, CHAR_SHARED, \
     NEW_CHARACTER, RENEWAL_FAILURE, SUBSCRIPTION_DEACTIVATED, RENEWAL_FIXED, NEW_JOURNAL, ORDER_TOKEN_ISSUED, \
-    TRANSFER_FAILED, SUBMISSION_ARTIST_TAG
+    TRANSFER_FAILED, SUBMISSION_ARTIST_TAG, REFERRAL_LANDSCAPE_CREDIT, REFERRAL_PORTRAIT_CREDIT
 from apps.lib.utils import clear_events, tag_list_cleaner, notify, recall_notification
 from apps.profiles.permissions import AssetViewPermission, AssetCommentPermission, MessageReadPermission, \
     JournalCommentPermission
@@ -83,6 +83,9 @@ class User(AbstractEmailUser):
     taggable = BooleanField(default=True, db_index=True)
     artist_tagging_disabled = BooleanField(default=False, db_index=True)
     escrow_disabled = BooleanField(default=False, db_index=True)
+    # Whether the suer has made a shield purchase.
+    bought_shield_on = DateTimeField(null=True, default=None, blank=True, db_index=True)
+    sold_shield_on = DateTimeField(null=True, default=None, blank=True, db_index=True)
     watching = ManyToManyField('User', symmetrical=False, related_name='watched_by', blank=True)
     landscape_enabled = BooleanField(default=False, db_index=True)
     landscape_paid_through = DateField(null=True, default=None, blank=True, db_index=True)
@@ -210,6 +213,20 @@ def auto_subscribe(sender, instance, created=False, **_kwargs):
             content_type=ContentType.objects.get_for_model(model=instance),
             object_id=instance.id,
             type=TRANSFER_FAILED,
+            email=True,
+        )
+        Subscription.objects.create(
+            subscriber=instance,
+            content_type=ContentType.objects.get_for_model(model=instance),
+            object_id=instance.id,
+            type=REFERRAL_LANDSCAPE_CREDIT,
+            email=True,
+        )
+        Subscription.objects.create(
+            subscriber=instance,
+            content_type=ContentType.objects.get_for_model(model=instance),
+            object_id=instance.id,
+            type=REFERRAL_PORTRAIT_CREDIT,
             email=True,
         )
         set_avatar_url(instance)

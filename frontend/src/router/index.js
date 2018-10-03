@@ -26,6 +26,7 @@ import RecentArt from '@/components/RecentArt'
 import Character from '@/components/Character'
 import Submission from '@/components/Submission'
 import Search from '@/components/Search'
+import Referrals from '@/components/Referrals'
 import CharacterGallery from '@/components/CharacterGallery'
 import CharacterTransfer from '@/components/CharacterTransfer'
 import NotFound from '@/components/NotFound'
@@ -143,6 +144,12 @@ export const routes = [
     path: '/profile/:username/ratings/',
     name: 'Ratings',
     component: Ratings,
+    props: true
+  },
+  {
+    path: '/profile/:username/referrals/',
+    name: 'Referrals',
+    component: Referrals,
     props: true
   },
   {

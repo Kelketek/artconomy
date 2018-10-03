@@ -1,5 +1,9 @@
+from dateutil.relativedelta import relativedelta
 from django.db.models import Case, When, F, IntegerField, Q
+from django.utils import timezone
 
+from apps.lib.models import REFERRAL_LANDSCAPE_CREDIT, REFERRAL_PORTRAIT_CREDIT
+from apps.lib.utils import notify
 from apps.profiles.models import Character, ImageAsset, User
 
 
@@ -77,3 +81,45 @@ def available_users(request):
     if request.user.is_staff or not request.user.is_authenticated:
         return User.objects.all()
     return User.objects.exclude(id__in=request.user.blocked_by.all().values('id'))
+
+
+def extend_landscape(user, months, start_point=None, save=True):
+    if not start_point:
+        today = timezone.now().date()
+        start_point = user.landscape_paid_through or today
+        if start_point < today:
+            start_point = today
+    extend_portrait(user, months, start_point, save=False)
+    user.landscape_paid_through = start_point + relativedelta(months=months)
+    if save:
+        user.save()
+
+
+def extend_portrait(user, months, start_point=None, save=True):
+    if not start_point:
+        today = timezone.now().date()
+        start_point = user.portrait_paid_through or today
+        if start_point < today:
+            start_point = today
+    user.portrait_paid_through = start_point + relativedelta(months=months)
+    if save:
+        user.save()
+
+
+def credit_referral(order):
+    seller_credit = False
+    buyer_credit = False
+    if not order.seller.sold_shield_on:
+        seller_credit = True
+        order.seller.sold_shield_on = timezone.now()
+        order.seller.save()
+    if not order.buyer.bought_shield_on:
+        buyer_credit = True
+        order.buyer.bought_shield_on = timezone.now()
+        order.buyer.save()
+    if seller_credit and order.seller.referred_by:
+        extend_landscape(order.seller, months=1)
+        notify(REFERRAL_LANDSCAPE_CREDIT, order.seller.referred_by, unique=False)
+    if buyer_credit and order.buyer.referred_by:
+        extend_portrait(order.seller, months=1)
+        notify(REFERRAL_PORTRAIT_CREDIT, order.buyer.referred_by, unique=False)

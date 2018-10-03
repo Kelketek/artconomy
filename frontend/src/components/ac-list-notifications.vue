@@ -67,11 +67,15 @@
   import NotificationListBase from '../mixins/notification-list-base'
   import AcOrderTokenIssued from './notifications/ac-order-token-issued'
   import AcWithdrawFailed from './notifications/ac-withdraw-failed'
+  import AcPortraitReferral from './notifications/ac-portrait-referral'
+  import AcLandscapeReferral from './notifications/ac-landscape-referral'
 
   export default {
     name: 'ac-list-notifications',
     mixins: [Paginated, NotificationListBase],
     components: {
+      AcLandscapeReferral,
+      AcPortraitReferral,
       AcWithdrawFailed,
       AcOrderTokenIssued,
       AcNewJournal,

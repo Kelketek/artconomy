@@ -11,7 +11,8 @@ from apps.profiles.views import Register, CharacterListAPI, CharacterAssets, \
     AttributeManager, AttributeList, SessionSettings, AssetShare, CharacterShare, WatchUser, Watching, Watchers, \
     MessagesTo, MessagesFrom, MessageManager, MessageComments, LeaveConversation, BlockUser, StartPasswordReset, \
     TokenValidator, PasswordReset, Journals, JournalManager, JournalComments, SalesNotificationsList, \
-    UnreadNotifications, WatchListSubmissions, TOTPDeviceList, TOTPDeviceManager, Telegram2FA, RecentArt, UserInfoByID
+    UnreadNotifications, WatchListSubmissions, TOTPDeviceList, TOTPDeviceManager, Telegram2FA, RecentArt, UserInfoByID, \
+    ReferralStats
 from apps.profiles.views import check_username, check_email, perform_login, perform_logout
 
 app_name = "profiles"
@@ -53,6 +54,7 @@ urlpatterns = [
         'v1/account/<username>/settings/two-factor/totp/<int:totp_id>/',
         TOTPDeviceManager.as_view(), name='totp_manager'
     ),
+    path('v1/account/<username>/referral_stats/', ReferralStats.as_view(), name='referral_stats'),
     path('v1/account/<username>/settings/two-factor/tg/', Telegram2FA.as_view(), name='telegram_2fa'),
     path('v1/account/<username>/watching/', Watching.as_view(), name='watching'),
     path('v1/account/<username>/watchers/', Watchers.as_view(), name='watchers'),

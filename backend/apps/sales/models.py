@@ -139,6 +139,8 @@ class Order(Model):
     COMPLETED = 8
     REFUNDED = 9
 
+    PAID_STATUSES = (QUEUED, IN_PROGRESS, REVIEW, REFUNDED, COMPLETED)
+
     STATUSES = (
         (NEW, 'New'),
         (PAYMENT_PENDING, 'Payment Pending'),

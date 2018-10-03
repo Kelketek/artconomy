@@ -1,0 +1,17 @@
+{% extends 'email_base.html' %}
+{% block header_message %}Awesome! You've been credited for a referral!{% endblock %}
+{% block message %}
+<p>
+  One of the artists you referred just made their
+  first <a href="/faq/buying-and-selling/shield">Artconomy Shield</a> purchase.
+  Your account has been credited with a month of
+  <a href="/faq/buying-and-selling/portrait-and-landscape">Artconomy Landscape!</a> You can configure your
+  settings for Portrait and Landscape
+  <a href="/profile/{{target.username}}/settings/portrait">from your settings page.</a>
+</p>
+<p>Frequent referrers are eligible for prizes. <a href="https://twitter.com/ArtconomyArt">Follow our Twitter feed for announcements!</a></p>
+{% endblock message %}
+
+{% block action %}
+<a href="/profile/{{target.username}}/referral">Visit your referral stats!</a>
+{% endblock %}

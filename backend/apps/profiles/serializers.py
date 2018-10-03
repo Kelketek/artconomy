@@ -16,6 +16,7 @@ from apps.lib.serializers import RelatedUserSerializer, Base64ImageField, TagSer
     SubscribeMixin, UserInfoMixin
 from apps.profiles.models import Character, ImageAsset, User, RefColor, Attribute, Message, \
     MessageRecipientRelationship, Journal
+from apps.sales.models import Order
 from apps.tg_bot.models import TelegramDevice
 
 
@@ -477,3 +478,22 @@ class TelegramDeviceSerializer(serializers.ModelSerializer):
         read_only_fields = (
             'id', 'confirmed'
         )
+
+
+class ReferralStatsSerializer(serializers.ModelSerializer):
+    total_referred = serializers.SerializerMethodField()
+    portrait_eligible = serializers.SerializerMethodField()
+    landscape_eligible = serializers.SerializerMethodField()
+
+    def get_total_referred(self, obj):
+        return User.objects.filter(referred_by=obj).count()
+
+    def get_portrait_eligible(self, obj):
+        return User.objects.filter(referred_by=obj, bought_shield_on__isnull=False).count()
+
+    def get_landscape_eligible(self, obj):
+        return User.objects.filter(referred_by=obj, sold_shield_on__isnull=False).count()
+
+    class Meta:
+        model = User
+        fields = ('total_referred', 'portrait_eligible', 'landscape_eligible')
