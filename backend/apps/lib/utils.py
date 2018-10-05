@@ -516,3 +516,19 @@ def default_context():
 
 def demark(text):
     return BeautifulSoup(markdown.markdown(text), features="lxml").get_text()
+
+
+def preview_rating(request, target_rating, real_link, sub_link='/static/images/logo.png'):
+    if request.user.is_authenticated:
+        if request.max_rating < target_rating:
+            return sub_link
+        else:
+            return real_link
+    if target_rating >= 3:
+        # extreme content, always avoid preview.
+        return sub_link
+    if request.GET.get('nsfw_preview'):
+        return real_link
+    elif request.max_rating < target_rating:
+        return sub_link
+    return real_link

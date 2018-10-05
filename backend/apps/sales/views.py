@@ -32,7 +32,7 @@ from apps.lib.models import DISPUTE, REFUND, COMMENT, Subscription, ORDER_UPDATE
     CHAR_TRANSFER, NEW_PRODUCT, STREAMING, CHAR_TAG, FAVORITE, SUBMISSION_CHAR_TAG, SUBMISSION_ARTIST_TAG
 from apps.lib.permissions import ObjectStatus, IsStaff, IsSafeMethod, Any
 from apps.lib.serializers import CommentSerializer
-from apps.lib.utils import notify, recall_notification, subscribe, add_tags, demark
+from apps.lib.utils import notify, recall_notification, subscribe, add_tags, demark, preview_rating
 from apps.lib.views import BaseTagView, BasePreview
 from apps.profiles.models import User, ImageAsset, Character
 from apps.profiles.permissions import ObjectControls, UserControls
@@ -73,7 +73,7 @@ class ProductList(ListCreateAPIView):
         username = self.kwargs['username']
         qs = Product.objects.filter(user__username__iexact=self.kwargs['username'], active=True)
         if not (self.request.user.username.lower() == username.lower() or self.request.user.is_staff):
-            qs = qs.filter(available=True)
+            qs = qs.filter(available=True, hidden=False)
         qs = qs.order_by('created_on')
         return qs
 
@@ -1503,14 +1503,10 @@ class StorePreview(BasePreview):
 class ProductPreview(BasePreview):
     def context(self, username, product_id):
         product = get_object_or_404(Product, id=product_id, active=True, hidden=False)
-        if self.request.max_rating < product.rating:
-            image = '/static/images/logo.png'
-        else:
-            image = product.preview_link
         return {
             'title': demark(product.name),
             'description': demark(product.description),
-            'image_link': image
+            'image_link': preview_rating(self.request, product.rating, product.preview_link)
         }
 
 

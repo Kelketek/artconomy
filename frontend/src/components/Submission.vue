@@ -85,6 +85,7 @@
                 :tag-list="submission.tags"
                 :controls="controls"
             />
+            <ac-share-button :title="submission.title" :target-rating="submission.rating" v-if="!submission.private" />
           </v-flex>
           <v-flex xs12 md5 class="pt-3 pl-4">
             <h1><ac-patchfield v-model="submission.title" name="title" placeholder="Set the title" :editmode="editing" :url="url" /></h1>
@@ -279,10 +280,12 @@
   import AcTag from './ac-tag'
   import AcTagDisplay from './ac-tag-display'
   import AcFormDialog from './ac-form-dialog'
+  import AcShareButton from './ac-share-button'
 
   export default {
     name: 'Submission',
     components: {
+      AcShareButton,
       AcFormDialog,
       AcTagDisplay,
       AcTag,

@@ -26,7 +26,7 @@ from apps.lib.models import Comment, Subscription, FAVORITE, SYSTEM_ANNOUNCEMENT
     SUBMISSION_CHAR_TAG, CHAR_TAG, COMMENT, Tag, CHAR_TRANSFER, ASSET_SHARED, CHAR_SHARED, \
     NEW_CHARACTER, RENEWAL_FAILURE, SUBSCRIPTION_DEACTIVATED, RENEWAL_FIXED, NEW_JOURNAL, ORDER_TOKEN_ISSUED, \
     TRANSFER_FAILED, SUBMISSION_ARTIST_TAG, REFERRAL_LANDSCAPE_CREDIT, REFERRAL_PORTRAIT_CREDIT
-from apps.lib.utils import clear_events, tag_list_cleaner, notify, recall_notification
+from apps.lib.utils import clear_events, tag_list_cleaner, notify, recall_notification, preview_rating
 from apps.profiles.permissions import AssetViewPermission, AssetCommentPermission, MessageReadPermission, \
     JournalCommentPermission
 
@@ -407,13 +407,10 @@ class Character(Model):
     class Meta:
         unique_together = (('name', 'user'),)
 
-    @property
-    def preview_image(self):
+    def preview_image(self, request):
         if not self.primary_asset:
             return '/static/images/default-avatar.png'
-        if self.primary_asset.rating > 0:
-            return '/static/images/logo.png'
-        return self.primary_asset.preview_link
+        return preview_rating(request, self.primary_asset.rating, self.primary_asset.preview_link)
 
     def notification_serialize(self, context):
         from .serializers import CharacterSerializer

@@ -35,7 +35,7 @@ from apps.lib.permissions import Any, All, IsSafeMethod, IsMethod, IsAnonymous, 
 from apps.lib.serializers import CommentSerializer, NotificationSerializer, Base64ImageField, RelatedUserSerializer, \
     BulkNotificationSerializer, UserInfoSerializer
 from apps.lib.utils import recall_notification, notify, safe_add, add_tags, remove_watch_subscriptions, \
-    watch_subscriptions, add_check, demark
+    watch_subscriptions, add_check, demark, preview_rating
 from apps.lib.views import BaseTagView, BaseUserTagView, BasePreview
 from apps.profiles.models import User, Character, ImageAsset, RefColor, Attribute, Message, \
     MessageRecipientRelationship, Journal
@@ -1419,7 +1419,7 @@ class CharacterPreview(BasePreview):
             return char_context
         char_context['title'] = demark(character.name)
         char_context['description'] = demark(character.description)
-        char_context['image_link'] = character.preview_image
+        char_context['image_link'] = character.preview_image(self.request)
         return char_context
 
 
@@ -1430,10 +1430,8 @@ class SubmissionPreview(BasePreview):
         submission = get_object_or_404(ImageAsset, id=submission_id)
         if not self.check_object_permissions(self.request, submission):
             return {}
-        if self.request.max_rating < submission.rating:
-            image = '/static/images/logo.png'
-        else:
-            image = submission.preview_link
+
+        image = preview_rating(self.request, submission.rating, submission.preview_link)
         return {
             'title': demark(submission.title),
             'description': demark(submission.caption),
