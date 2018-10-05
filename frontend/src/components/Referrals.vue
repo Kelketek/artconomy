@@ -71,7 +71,7 @@
             <v-card>
               <v-card-text>
                 <p>
-                  If you're using a site that doesn't support iFrames (like FurAffinity or DeviantArt), you can use this snippet instead:
+                  <strong>Show your commission status at a glance!</strong>
                 </p>
                 <code>
 &lt;a href="{{protocol}}://{{host}}/store/{{username}}/iframe/?referred_by={{username}}"&gt;&lt;img src="{{protocol}}://{{host}}/api/sales/v1/account/{{username}}/commissions-status-image/"&gt;&lta&gt;
