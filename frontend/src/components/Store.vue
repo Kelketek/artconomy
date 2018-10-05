@@ -1,6 +1,6 @@
 <template>
   <v-container grid-list-lg class="storefront">
-    <v-btn v-if="controls && setUp && !embedded"
+    <v-btn v-if="controls && setUp && !embedded && !iFrame"
            dark
            color="green"
            fab
@@ -29,6 +29,9 @@
       <v-flex xs12 text-xs-center v-if="growMode && growing !== null">
         <div v-if="(growing !== null && growing.length) && furtherPagination" v-observe-visibility="loadMore"></div>
         <div v-if="fetching"><i class="fa fa-spin fa-spinner fa-5x"></i></div>
+      </v-flex>
+      <v-flex xs12 text-xs-center v-if="growing !== null && currentPage === 1 && growing.length === 0">
+        Commissions are not available at this time.
       </v-flex>
       <v-jumbotron v-if="setUp && isCurrent && (growing !== null) && (growing.length === 0)" color="grey darken-3">
         <v-container fill-height>
