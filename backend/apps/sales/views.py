@@ -73,9 +73,7 @@ class ProductList(ListCreateAPIView):
         username = self.kwargs['username']
         qs = Product.objects.filter(user__username__iexact=self.kwargs['username'], active=True)
         if not (self.request.user.username.lower() == username.lower() or self.request.user.is_staff):
-            qs = qs.exclude(hidden=True)
-            qs = qs.exclude(task_weight__gt=F('user__max_load') - F('user__load'))
-            qs = qs.exclude(Q(parallel__gte=F('max_parallel')) & ~Q(max_parallel=0))
+            qs = qs.filter(available=True)
         qs = qs.order_by('created_on')
         return qs
 
