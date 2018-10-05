@@ -24,6 +24,7 @@
         :key="product.id"
         v-if="growing !== null && setUp"
         :product="product"
+        :i-frame="iFrame"
       />
       <v-flex xs12 text-xs-center v-if="growMode && growing !== null">
         <div v-if="(growing !== null && growing.length) && furtherPagination" v-observe-visibility="loadMore"></div>
@@ -107,7 +108,7 @@
     directives: {
       ObserveVisibility
     },
-    props: ['endpoint', 'embedded', 'grow'],
+    props: ['endpoint', 'embedded', 'grow', 'iFrame'],
     mixins: [Viewer, Perms, Paginated],
     data () {
       return {

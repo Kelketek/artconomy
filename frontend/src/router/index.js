@@ -117,6 +117,18 @@ export const routes = [
     }
   },
   {
+    path: '/store/:username/iframe/',
+    name: 'StoreFrame',
+    component: Store,
+    props (route) {
+      return {
+        username: route.params.username,
+        endpoint: `/api/sales/v1/account/${route.params.username}/products/`,
+        iFrame: true
+      }
+    }
+  },
+  {
     path: '/upgrade/',
     name: 'Upgrade',
     component: Upgrade,
@@ -147,7 +159,7 @@ export const routes = [
     props: true
   },
   {
-    path: '/profile/:username/referrals/',
+    path: '/profile/:username/referrals/:tabName?/',
     name: 'Referrals',
     component: Referrals,
     props: true

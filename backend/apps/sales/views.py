@@ -4,6 +4,7 @@ from authorize import AuthorizeResponseError
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
+from django.views.static import serve
 from django.core.files.base import ContentFile
 from django.db.models import When, F, Case, BooleanField, Q
 from django.shortcuts import get_object_or_404
@@ -13,6 +14,9 @@ from django.utils import timezone
 from math import ceil
 
 from django.utils.datetime_safe import date
+from django.utils.decorators import method_decorator
+from django.views import View
+from django.views.decorators.clickjacking import xframe_options_exempt
 from moneyed import Money, Decimal
 # BDay is business day, not birthday.
 from pandas.tseries.offsets import BDay
@@ -1484,6 +1488,20 @@ class CancelPremium(APIView):
         )
 
 
+class StorePreview(BasePreview):
+    def context(self, username):
+        user = get_object_or_404(User, username__iexact=username)
+        return {
+            'title': "{}'s store",
+            'description': demark(user.commission_info),
+            'image_link': user.avatar_url
+        }
+
+    @method_decorator(xframe_options_exempt)
+    def get(self, request, *args, **kwargs):
+        return super(StorePreview, self).get(request, *args, **kwargs)
+
+
 class ProductPreview(BasePreview):
     def context(self, username, product_id):
         product = get_object_or_404(Product, id=product_id, active=True, hidden=False)
@@ -1496,3 +1514,12 @@ class ProductPreview(BasePreview):
             'description': demark(product.description),
             'image_link': image
         }
+
+
+class CommissionStatusImage(View):
+    def get(self, request, username):
+        user = get_object_or_404(User, username__iexact=username)
+        if user.commissions_disabled:
+            return serve(request, '/images/commissions-closed.png', document_root=settings.STATIC_ROOT)
+        else:
+            return serve(request, '/images/commissions-open.png', document_root=settings.STATIC_ROOT)

@@ -5,7 +5,7 @@
         clipped
         v-model="drawer"
         app
-        v-if="viewer && viewer.username"
+        v-if="viewer && viewer.username && notFramed"
     >
       <v-list dense>
         <v-list v-if="viewer && viewer.username">
@@ -48,7 +48,7 @@
           <v-list-tile-action>
             <v-icon>star</v-icon>
           </v-list-tile-action>
-          <v-list-tile-title>Referrals and Rewards!</v-list-tile-title>
+          <v-list-tile-title>Referrals, Rewards, and Tools!</v-list-tile-title>
         </v-list-tile>
         <v-list-tile :to="{name: 'FAQ'}">
           <v-list-tile-action>
@@ -103,6 +103,7 @@
         fixed
         clipped-left
         app
+        v-if="notFramed"
     >
       <v-toolbar-side-icon v-if="viewer && viewer.username" @click.stop="drawer = !drawer" />
       <v-layout hidden-xs-only>
@@ -229,6 +230,9 @@
           return {name: 'Login', params: {tabName: 'login'}}
         }
         return {name: 'Login', params: {tabName: 'login'}, query: {next: this.$route.path}}
+      },
+      notFramed () {
+        return this.$route.path.indexOf('/iframe/') === -1
       }
     },
     methods: {

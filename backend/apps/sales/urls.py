@@ -11,7 +11,7 @@ from apps.sales.views import ProductList, ProductManager, PlaceOrder, \
     AvailableHistory, CreateCharacterTransfer, RetrieveCharacterTransfer, CharacterTransferAssets, AcceptCharTransfer, \
     CancelCharTransfer, CharactersInbound, CharactersOutbound, CharactersArchive, NewProducts, WhoIsOpen, \
     CurrentPlaceholderSalesList, PlaceholderManager, SalesStats, PublishFinal, RateOrder, RatingList, PremiumInfo, \
-    Premium, CancelPremium, ProductOrderTokens, OrderTokenManager, MarkPaid
+    Premium, CancelPremium, ProductOrderTokens, OrderTokenManager, MarkPaid, CommissionStatusImage
 
 app_name = 'sales'
 
@@ -97,6 +97,11 @@ urlpatterns = [
     path('v1/account/<username>/transactions/purchases/', PurchaseHistory.as_view(), name='purchase_history'),
     path('v1/account/<username>/transactions/escrow/', EscrowHistory.as_view(), name='escrow_history'),
     path('v1/account/<username>/transactions/available/', AvailableHistory.as_view(), name='available_history'),
+    path(
+        'v1/account/<username>/commissions-status-image/',
+        CommissionStatusImage.as_view(),
+        name='commissions-status-image'
+    ),
     path(
         'v1/account/<username>/transfer/character/<character>/',
         CreateCharacterTransfer.as_view(),
