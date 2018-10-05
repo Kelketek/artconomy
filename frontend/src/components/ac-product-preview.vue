@@ -1,7 +1,7 @@
 <template>
   <v-flex xs12 md4 lg3 class="product-preview">
     <v-card>
-      <router-link :to="{name: 'Product', params: {username: product.user.username, productID: product.id}}">
+      <ac-frameable-link :i-frame="iFrame" :to="{name: 'Product', params: {username: product.user.username, productID: product.id}}">
         <v-card-media
             :contain="contain"
             :src="$img(product, 'thumbnail')"
@@ -13,27 +13,27 @@
                 :text-only="true"
             />
         </v-card-media>
-      </router-link>
+      </ac-frameable-link>
       <v-card-title>
         <div>
-          <router-link :to="{name: 'Product', params: {username: product.user.username, productID: product.id}}">
+          <ac-frameable-link :i-frame="iFrame" :to="{name: 'Product', params: {username: product.user.username, productID: product.id}}">
             {{ product.name }}
-          </router-link> by
-          <router-link :to="{name: 'Profile', params: {username: product.user.username, tabName: 'products'}}">
+          </ac-frameable-link> by
+          <ac-frameable-link :i-frame="iFrame" :to="{name: 'Profile', params: {username: product.user.username, tabName: 'products'}}">
             {{ product.user.username }}
-            <router-link v-if="!product.user.escrow_disabled" :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}">
+            <ac-frameable-link :i-frame="iFrame" v-if="!product.user.escrow_disabled" :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}">
               <v-tooltip bottom>
                 <v-icon slot="activator" class="green--text pl-2">fa-shield</v-icon>
                 <span>Protected by Artconomy Shield</span>
               </v-tooltip>
-            </router-link>
-          </router-link>
-          <router-link :to="{name: 'Ratings', params: {username: product.user.username}}" v-if="product.user.stars">
+            </ac-frameable-link>
+          </ac-frameable-link>
+          <ac-frameable-link :i-frame="iFrame" :to="{name: 'Ratings', params: {username: product.user.username}}" v-if="product.user.stars">
             <ac-rating :value="product.user.stars" class="highlight-icon"></ac-rating>
-          </router-link>
+          </ac-frameable-link>
         </div>
       </v-card-title>
-      <router-link :to="{name: 'Product', params: {username: product.user.username, productID: product.id}}">
+      <ac-frameable-link :i-frame="iFrame" :to="{name: 'Product', params: {username: product.user.username, productID: product.id}}">
         <div class="card-block product-info">
           <div class="extra-details text-xs-center">
             <div class="full-width">
@@ -52,7 +52,7 @@
             </div>
           </div>
         </div>
-      </router-link>
+      </ac-frameable-link>
     </v-card>
   </v-flex>
 </template>
@@ -60,15 +60,16 @@
 <script>
   import AcAsset from './ac-asset'
   import AcRating from './ac-rating'
+  import AcFrameableLink from './ac-frameable-link'
   export default {
     name: 'ac-product-preview',
-    props: ['product', 'contain'],
+    props: ['product', 'contain', 'iFrame'],
     computed: {
       turnaround () {
         return Math.ceil(this.product.expected_turnaround)
       }
     },
-    components: {AcRating, AcAsset}
+    components: {AcFrameableLink, AcRating, AcAsset}
   }
 </script>
 
