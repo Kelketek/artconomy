@@ -473,6 +473,10 @@
       }
     },
     created () {
+      if ((this.viewer.username !== this.username) && !this.viewer.is_staff) {
+        this.$error({status: 403})
+        return
+      }
       document.title = `Settings for ${this.$route.params.username}`
       setMetaContent('description', 'Configure your account settings for Artconomy.')
       window.settings = this

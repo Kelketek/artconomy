@@ -1,9 +1,6 @@
 export const ErrorHandler = {
   install (Vue) {
     Vue.mixin({
-      created () {
-        this.$root.errorCode = null
-      },
       methods: {
         $error (error) {
           this.$root.errorCode = error.status
