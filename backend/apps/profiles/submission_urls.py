@@ -10,5 +10,5 @@ app_name = "profiles"
 
 
 urlpatterns = [
-    path('<submission_id>', SubmissionPreview.as_view(), name='submission_preview'),
+    path('<int:submission_id>', SubmissionPreview.as_view(), name='submission_preview'),
 ]
