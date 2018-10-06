@@ -62,7 +62,7 @@
               tab-name="characters"
               v-if="character.tags.length || editing"
           />
-          <ac-share-button :title="character.name" :target-rating="character.primary_asset && character.primary_asset.rating" v-if="!character.private" />
+          <ac-share-button :title="`${character.name} - by ${character.user.username}`" :target-rating="character.primary_asset && character.primary_asset.rating" v-if="!character.private" />
         </v-flex>
         <v-flex xs12 sm6 md5 lg4 offset-lg1>
           <router-link v-if="character.primary_asset && character.primary_asset.id" :to="{name: 'Submission', params: {assetID: character.primary_asset.id}}">

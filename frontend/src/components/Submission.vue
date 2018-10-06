@@ -85,7 +85,7 @@
                 :tag-list="submission.tags"
                 :controls="controls"
             />
-            <ac-share-button :title="submission.title" :target-rating="submission.rating" v-if="!submission.private" />
+            <ac-share-button :title="shareTitle" :target-rating="submission.rating" v-if="!submission.private" />
           </v-flex>
           <v-flex xs12 md5 class="pt-3 pl-4">
             <h1><ac-patchfield v-model="submission.title" name="title" placeholder="Set the title" :editmode="editing" :url="url" /></h1>
@@ -448,6 +448,15 @@
       },
       extreme () {
         return this.submission.rating === 3
+      },
+      shareTitle () {
+        let title = this.submission.title
+        if (this.submission.artists.length) {
+          title += ' - by '
+          let names = this.submission.artists.map((x) => { return x.username })
+          title += names.join(', ')
+        }
+        return title
       }
     },
     methods: {
