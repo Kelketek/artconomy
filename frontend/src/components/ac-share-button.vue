@@ -73,12 +73,18 @@
       },
       location () {
         let route = {...this.$route}
+        let query = {...this.$route.query}
         if (this.nsfwPreview) {
-          route.query.nsfw_preview = true
+          query.nsfw_preview = true
+        } else {
+          delete query.nsfw_preview
         }
         if (this.referral) {
-          route.query.referred_by = this.viewer.username
+          query.referred_by = this.viewer.username
+        } else {
+          delete query.referred_by
         }
+        route.query = query
         return encodeURIComponent(
           window.location.protocol + '//' + window.location.host + this.$router.resolve(route).href
         )
