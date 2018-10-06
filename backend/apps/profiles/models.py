@@ -29,6 +29,7 @@ from apps.lib.models import Comment, Subscription, FAVORITE, SYSTEM_ANNOUNCEMENT
 from apps.lib.utils import clear_events, tag_list_cleaner, notify, recall_notification, preview_rating
 from apps.profiles.permissions import AssetViewPermission, AssetCommentPermission, MessageReadPermission, \
     JournalCommentPermission
+from shortcuts import make_url
 
 
 def banned_named_validator(value):
@@ -409,7 +410,7 @@ class Character(Model):
 
     def preview_image(self, request):
         if not self.primary_asset:
-            return '/static/images/default-avatar.png'
+            return make_url('/static/images/default-avatar.png')
         return preview_rating(request, self.primary_asset.rating, self.primary_asset.preview_link)
 
     def notification_serialize(self, context):
