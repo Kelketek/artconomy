@@ -32,9 +32,9 @@ class ImageModel(models.Model):
     def preview_link(self):
         if self.preview:
             return self.preview['thumbnail'].url
-        for thumb in ['thumbnail', 'preview', 'gallery']:
+        for thumb in ['gallery', 'preview', 'thumbnail']:
             try:
                 return self.file[thumb].url
-            except AttributeError:
+            except KeyError:
                 pass
         return self.file.url

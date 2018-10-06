@@ -519,6 +519,8 @@ def demark(text):
 
 
 def preview_rating(request, target_rating, real_link, sub_link='/static/images/logo.png'):
+    real_link = make_url(real_link)
+    sub_link = make_url(sub_link)
     if request.user.is_authenticated:
         if request.max_rating < target_rating:
             return sub_link
