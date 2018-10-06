@@ -42,7 +42,7 @@
                 :controls="controls && editing"
                 v-if="product.tags.length || editing"
             />
-            <ac-share-button :title="product.name" :target-rating="product.rating" v-if="!product.hidden" />
+            <ac-share-button :title="`${product.name} - by ${product.user.username}`" :target-rating="product.rating" v-if="!product.hidden" />
           </v-flex>
           <v-flex md6 xs12 lg3 class="text-xs-center pt-3 pl-2">
             <v-layout row wrap>
