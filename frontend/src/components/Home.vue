@@ -29,6 +29,15 @@
         <v-btn color="red" @click="mailAnswer('DELETE')">No, thank you.</v-btn> <v-btn color="purple" @click="mailAnswer('POST')">Yes, please!</v-btn>
       </div>
     </v-alert>
+    <v-alert
+      type="success"
+      value="true"
+      class="mb-2"
+      v-if="viewer.username">
+      <div>
+        <p>Want <strong>FREE ART?</strong> <router-link :to="{name: 'Referrals', params: {username: viewer.username}}">refer the most qualifying people</router-link> by November 5th, and get a free commission up to $30 in value! There are other perks to earn, too! <a href="https://blog.artconomy.com/posts/2018/10/07/referral-contest/" target="_blank">Click here to learn more.</a></p>
+      </div>
+    </v-alert>
     <v-card>
       <v-layout row wrap>
         <v-flex xs12 class="pl-2">
