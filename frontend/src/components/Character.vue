@@ -66,14 +66,14 @@
         </v-flex>
         <v-flex xs12 sm6 md5 lg4 offset-lg1>
           <router-link v-if="character.primary_asset && character.primary_asset.id" :to="{name: 'Submission', params: {assetID: character.primary_asset.id}}">
-            <v-card-media :src="$img(character.primary_asset, 'thumbnail')">
+            <v-img :src="$img(character.primary_asset, 'thumbnail')">
               <ac-asset :asset="character.primary_asset" thumbnail="thumbnail" :text-only="true" />
-            </v-card-media>
+            </v-img>
           </router-link>
           <!-- Will render placeholder. -->
-          <v-card-media v-else :src="$img(character.primary_asset, 'thumbnail')">
+          <v-img v-else :src="$img(character.primary_asset, 'thumbnail')">
             <ac-asset :asset="character.primary_asset" thumbnail="thumbnail" :text-only="true" />
-          </v-card-media>
+          </v-img>
         </v-flex>
       </v-layout>
     </v-card>
