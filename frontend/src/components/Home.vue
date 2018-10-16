@@ -38,6 +38,10 @@
         <p>Want <strong>FREE ART?</strong> <router-link :to="{name: 'Referrals', params: {username: viewer.username}}">refer the most qualifying people</router-link> by November 5th, and get a free commission up to $30 in value! There are other perks to earn, too! <a href="https://blog.artconomy.com/posts/2018/10/07/referral-contest/" target="_blank">Click here to learn more.</a></p>
       </div>
     </v-alert>
+    <v-layout row wrap>
+      <v-flex xs12><v-img :src="`/static/images/${randomBanner.file}`"></v-img></v-flex>
+      <v-flex xs12><p>Banner by <router-link :to="{name: 'Profile', params: {username: randomBanner.username}}">{{randomBanner.username}}</router-link></p></v-flex>
+    </v-layout>
     <v-card>
       <v-layout row wrap>
         <v-flex xs12 class="pl-2">
@@ -169,7 +173,22 @@
     mixins: [Viewer],
     data () {
       return {
-        answered: false
+        answered: false,
+        banners: [
+          {
+            file: 'vulpy-banner-1.png',
+            username: 'Halcyon'
+          }, {
+            file: 'vulpy-banner-2.png',
+            username: 'Halcyon'
+          }, {
+            file: 'vulpy-banner-3.png',
+            username: 'Halcyon'
+          }, {
+            file: 'vulpy-banner-4.png',
+            username: 'Halcyon'
+          }
+        ]
       }
     },
     name: 'Home',
@@ -195,6 +214,10 @@
         if (this.viewer.username && !this.viewer.offered_mailchimp) {
           return true
         }
+      },
+      randomBanner () {
+        // Lazy calculation, so should always match on a specific render.
+        return this.banners[Math.floor(Math.random() * this.banners.length)]
       }
     }
   }

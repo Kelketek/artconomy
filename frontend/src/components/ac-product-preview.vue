@@ -1,8 +1,8 @@
 <template>
-  <v-flex xs12 md4 lg3 class="product-preview">
+  <v-flex xs12 sm4 lg3 class="product-preview">
     <v-card>
       <ac-frameable-link :i-frame="iFrame" :to="{name: 'Product', params: {username: product.user.username, productID: product.id}}">
-        <v-card-media
+        <v-img
             :contain="contain"
             :src="$img(product, 'thumbnail')"
         >
@@ -12,7 +12,7 @@
                 :terse="true"
                 :text-only="true"
             />
-        </v-card-media>
+        </v-img>
       </ac-frameable-link>
       <v-card-title>
         <div>

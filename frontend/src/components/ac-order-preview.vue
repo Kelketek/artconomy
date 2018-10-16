@@ -2,7 +2,7 @@
   <v-flex xs12 md4 lg3 class="order-preview">
     <v-card>
       <router-link :to="{name: viewName, params: {username: username, orderID: order.id}}">
-        <v-card-media
+        <v-img
             :contain="contain"
             :src="$img(order.product, 'thumbnail')"
         >
@@ -12,7 +12,7 @@
               :terse="true"
               :text-only="true"
           />
-        </v-card-media>
+        </v-img>
       </router-link>
       <v-card-title>
         <div>

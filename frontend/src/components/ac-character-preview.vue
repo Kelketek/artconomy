@@ -2,7 +2,7 @@
   <v-flex v-bind="$attrs">
     <v-card class="character-card">
       <router-link :to="{name: 'Character', params: {username: character.user.username, characterName: character.name}}">
-        <v-card-media
+        <v-img
             :contain="contain"
             :src="$img(character.primary_asset, 'thumbnail')"
         >
@@ -12,7 +12,7 @@
                 :terse="true"
                 :text-only="true"
             />
-        </v-card-media>
+        </v-img>
       </router-link>
       <v-card-title>
           <router-link :to="{name: 'Character', params: {username: character.user.username, characterName: character.name}}">

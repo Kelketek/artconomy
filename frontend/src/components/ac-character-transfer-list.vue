@@ -13,7 +13,7 @@
       <v-flex xs12 sm4 lg3 v-for="(transfer, key, index) in results" :key="key">
         <v-card>
           <router-link :to="{name: 'CharacterTransfer', params: {username: username, transferID: transfer.id}}">
-            <v-card-media
+            <v-img
                 :contain="false"
                 :src="$img(transfer.character && transfer.character.primary_asset, 'thumbnail')"
             >
@@ -23,7 +23,7 @@
                   :terse="true"
                   :text-only="true"
               />
-            </v-card-media>
+            </v-img>
           </router-link>
           <v-card-title>
             <router-link :to="{name: 'CharacterTransfer', params: {username: username, transferID: transfer.id}}">
