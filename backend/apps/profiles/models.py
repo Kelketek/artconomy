@@ -61,6 +61,7 @@ class User(AbstractEmailUser):
     HAS_US_ACCOUNT = 1
     NO_US_ACCOUNT = 2
     BANK_STATUS_CHOICES = (
+        (None, "Unset"),
         (HAS_US_ACCOUNT, "Has US Bank account"),
         (NO_US_ACCOUNT, "No US Bank account")
     )
