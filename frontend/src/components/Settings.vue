@@ -310,11 +310,21 @@
         if (this.isCurrent) {
           this.$root.$loadUser()
         }
+      },
+      modelFrom (obj) {
+        let newObj = {}
+        for (let key of Object.keys(obj)) {
+          if (key === 'bank_account_status') {
+            continue
+          }
+          newObj[key] = obj[key]
+        }
+        this.settingsModel = newObj
       }
     },
     data () {
       return {
-        settingsModel: JSON.parse(JSON.stringify(this.$root.user)),
+        settingsModel: {},
         settingsUpdated: false,
         // Used by Tab mapper
         query: null,
@@ -473,6 +483,7 @@
       }
     },
     created () {
+      this.settingsModel = this.modelFrom(this.$root.user)
       if ((this.viewer.username !== this.username) && !this.viewer.is_staff) {
         this.$error({status: 403})
         return
@@ -485,7 +496,7 @@
     watch: {
       '$root.user': function () {
         // Prevent any changes to the user model from causing surprises when updating settings.
-        this.settingsModel = JSON.parse(JSON.stringify(this.$root.user))
+        this.settingsModel = this.modelFrom(this.$root.user)
       }
     },
     computed: {
