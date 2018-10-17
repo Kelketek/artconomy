@@ -226,6 +226,9 @@ class ImageAssetManagementSerializer(SubscribeMixin, serializers.ModelSerializer
 class SettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
+        extra_kwargs = {
+            'bank_account_status': {'allow_null': True, 'required': False}
+        }
         fields = (
             'commissions_closed', 'rating', 'sfw_mode', 'max_load', 'favorites_hidden', 'taggable', 'commission_info',
             'auto_withdraw', 'escrow_disabled', 'bank_account_status', 'offered_mailchimp'
