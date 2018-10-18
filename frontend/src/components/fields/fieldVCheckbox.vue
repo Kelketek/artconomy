@@ -4,6 +4,7 @@
         v-model="value"
         :label="schema.label"
         :rules="validators"
+        :id="'field-' + (schema.id || schema.model)"
         :required="schema.required"
         :hint="schema.hint"
         :error-messages="errors"

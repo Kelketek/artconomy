@@ -2,7 +2,7 @@
   <div>
     <v-text-field
         v-model="value"
-        :id="'field-' + schema.model"
+        :id="'field-' + (schema.id || schema.model)"
         :label="schema.label"
         :type="schema.inputType"
         :rules="validators"

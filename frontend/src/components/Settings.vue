@@ -1,5 +1,5 @@
 <template>
-  <div class="settings-center container">
+  <div class="settings-center container" id="settings-section">
     <div class="row">
       <div class="main-settings col-12" v-if="user.username">
         <v-tabs v-model="tab" fixed-tabs>
@@ -31,8 +31,8 @@
                                  method="PATCH"
                                  :reset-after="false"
               >
-                <v-btn type="submit" color="primary" @click.prevent="$refs.settingsForm.submit">Update</v-btn>
-                <i v-if="$refs.settingsForm && $refs.settingsForm.saved" class="fa fa-check" style="color: green"></i>
+                <v-btn type="submit" color="primary" @click.prevent="$refs.settingsForm.submit" id="save-settings">Update</v-btn>
+                <i v-if="$refs.settingsForm && ($refs.settingsForm.saved || saved)" id="saved-settings-checkmark" class="fa fa-check" style="color: green"></i>
               </ac-form-container>
             </form>
             <div class="pt-2">
@@ -267,6 +267,7 @@
   import AcFormDialog from './ac-form-dialog'
   import AcTransactionHistory from './ac-transaction-history'
   import AcAction from './ac-action'
+  import deepEqual from 'deep-equal'
 
   export default {
     name: 'Settings',
@@ -284,6 +285,7 @@
     methods: {
       updateUser () {
         // The arguments pushed to the success function evaluate as true, so we have to make sure none are passed.
+        this.saved = true
         this.$root.$loadUser()
       },
       loadPricing (response) {
@@ -322,21 +324,23 @@
       modelFrom (obj) {
         let newObj = {}
         for (let key of Object.keys(obj)) {
-          if (key === 'bank_account_status') {
+          if (['bank_account_status', 'csrftoken', 'timestamp'].indexOf(key) !== -1) {
             continue
           }
           newObj[key] = obj[key]
         }
-        this.settingsModel = newObj
+        return newObj
       }
     },
     data () {
       return {
         settingsModel: {},
+        oldSettingsModel: {},
         settingsUpdated: false,
         // Used by Tab mapper
         query: null,
         pricing: null,
+        saved: false,
         formatDate: formatDate,
         credentialsModel: {
           username: this.$root.user.username,
@@ -504,7 +508,19 @@
     watch: {
       '$root.user': function () {
         // Prevent any changes to the user model from causing surprises when updating settings.
+        let saved = this.saved
         this.settingsModel = this.modelFrom(this.$root.user)
+        this.saved = saved
+      },
+      settingsModel: {
+        handler (val) {
+          if (!deepEqual(this.oldSettingsModel, val)) {
+            this.saved = false
+            this.oldSettingsModel = {...val}
+          }
+        },
+        deep: true,
+        immediate: true
       }
     },
     computed: {
