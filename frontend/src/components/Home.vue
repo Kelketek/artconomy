@@ -2,7 +2,7 @@
   <div id="home-page">
     <v-container fluid v-if="viewer !== null && !viewer.username" style="margin-top: -48px">
       <v-layout row wrap class="intro">
-        <v-jumbotron class="home-banner darken-3">
+        <v-responsive class="home-banner darken-3" max-width="100%">
           <v-container fluid fill-height>
             <v-layout align-center row wrap>
               <v-flex xs12 md10 offset-md1>
@@ -14,7 +14,7 @@
               </v-flex>
             </v-layout>
           </v-container>
-        </v-jumbotron>
+        </v-responsive>
       </v-layout>
     </v-container>
   <v-container class="home-main">
@@ -175,19 +175,22 @@
       return {
         answered: false,
         banners: [
-          {
-            file: 'vulpy-banner-1.png',
-            username: 'Halcyon'
-          }, {
-            file: 'vulpy-banner-2.png',
-            username: 'Halcyon'
-          }, {
-            file: 'vulpy-banner-3.png',
-            username: 'Halcyon'
-          }, {
-            file: 'vulpy-banner-4.png',
-            username: 'Halcyon'
-          }
+          {file: 'halcy0n-artconomy-banner-A1-1440x200.png', username: 'Halcyon'},
+          {file: 'halcy0n-artconomy-banner-A2-1440x200.png', username: 'Halcyon'},
+          {file: 'halcy0n-artconomy-banner-A3-1440x200.png', username: 'Halcyon'},
+          {file: 'halcy0n-artconomy-banner-A4-1440x200.png', username: 'Halcyon'},
+          {file: 'halcy0n-artconomy-banner-B1-1440x200.png', username: 'Halcyon'},
+          {file: 'halcy0n-artconomy-banner-B2-1440x200.png', username: 'Halcyon'},
+          {file: 'halcy0n-artconomy-banner-B3-1440x200.png', username: 'Halcyon'},
+          {file: 'halcy0n-artconomy-banner-B4-1440x200.png', username: 'Halcyon'},
+          {file: 'halcy0n-artconomy-banner-C1-1440x200.png', username: 'Halcyon'},
+          {file: 'halcy0n-artconomy-banner-C2-1440x200.png', username: 'Halcyon'},
+          {file: 'halcy0n-artconomy-banner-C3-1440x200.png', username: 'Halcyon'},
+          {file: 'halcy0n-artconomy-banner-C4-1440x200.png', username: 'Halcyon'},
+          {file: 'halcy0n-artconomy-banner-D1-1440x200.png', username: 'Halcyon'},
+          {file: 'halcy0n-artconomy-banner-D2-1440x200.png', username: 'Halcyon'},
+          {file: 'halcy0n-artconomy-banner-D3-1440x200.png', username: 'Halcyon'},
+          {file: 'halcy0n-artconomy-banner-D4-1440x200.png', username: 'Halcyon'}
         ]
       }
     },
