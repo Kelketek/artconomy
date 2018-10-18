@@ -3,6 +3,7 @@ import json
 import os
 from pprint import pformat
 from subprocess import call
+from urllib.parse import urlparse
 
 from bok_choy.browser import BROWSERS
 from bok_choy.page_object import PageObject, unguarded
@@ -10,7 +11,7 @@ from bok_choy.promise import EmptyPromise, BrokenPromise, Promise
 from bok_choy.web_app_test import WebAppTest
 from django.conf import settings
 from django.forms import CheckboxInput, RadioSelect
-from django.test import LiveServerTestCase, TestCase
+from django.test import LiveServerTestCase, TestCase, override_settings
 from django.test.runner import DiscoverRunner
 from django.urls import reverse
 from needle.driver import NeedleFirefox
@@ -21,6 +22,10 @@ from seleniumrequests import RequestMixin
 from apps.profiles.tests.factories import UserFactory
 
 
+MIDDLEWARE = ['apps.lib.test_resources.DisableCSRF'] + settings.MIDDLEWARE
+
+
+@override_settings(MIDDLEWARE=MIDDLEWARE)
 class BaseWebAppTest(LiveServerTestCase, WebAppTest):
     """
     Inherits from WebAppTest and LiveServerTestCase in order to have
@@ -274,7 +279,7 @@ class memoized_property(property):
     pass
 
 
-class CheckBox(object):
+class CheckBox:
     """
     Base class for Checkbox element
     """
@@ -479,6 +484,10 @@ class NPMBuildTestRunner(DiscoverRunner):
                 settings.BASE_DIR, 'webpack-stats-saved.json'
             )
             call(['./manage.py', 'collectstatic', '--noinput', '-v0'])
+        else:
+            settings.WEBPACK_LOADER['DEFAULT']['STATS_FILE'] = os.path.join(
+                settings.BASE_DIR, 'webpack-stats-saved.json'
+            )
 
     @classmethod
     def add_arguments(cls, parser):
@@ -487,3 +496,12 @@ class NPMBuildTestRunner(DiscoverRunner):
             '--run-build', action='store_true', dest='run_build',
             help='Build and collect static assets.',
         )
+
+
+class DisableCSRF:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        setattr(request, '_dont_enforce_csrf_checks', True)
+        return self.get_response(request)
