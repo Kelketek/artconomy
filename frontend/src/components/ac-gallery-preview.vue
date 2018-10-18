@@ -5,9 +5,14 @@
           <v-img
               :src="$img(asset, thumbName)"
               :contain="contain"
-              class="gallery-preview-media"
+              :aspect-ratio="1"
           >
-            <ac-asset :asset="asset" :text-only="true" :thumb-name="thumbName" :container-style="containerStyle" />
+            <ac-asset
+                :asset="asset"
+                :text-only="true"
+                :thumb-name="thumbName"
+                :container-style="containerStyle"
+            />
           </v-img>
         </router-link>
         <v-card-title>

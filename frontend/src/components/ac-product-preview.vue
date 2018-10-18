@@ -5,6 +5,7 @@
         <v-img
             :contain="contain"
             :src="$img(product, 'thumbnail')"
+            :aspect-ratio="1"
         >
             <ac-asset
                 :asset="product"
