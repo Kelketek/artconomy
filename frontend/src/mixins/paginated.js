@@ -106,8 +106,9 @@ export default {
     setPageQuery (value) {
       let newQuery = {...this.$route.query}
       newQuery['page'] = value
-      newQuery = Object.assign({}, this.$route, newQuery)
-      this.$router.history.replace(newQuery)
+      let newRoute = {...this.$route}
+      newRoute.query = newQuery
+      this.$router.history.replace(newRoute)
     },
     checkPageQuery (tabName) {
       if (this.tabName === tabName && this.trackPages) {
@@ -142,7 +143,7 @@ export default {
   },
   watch: {
     currentPage (value) {
-      if (!this.growing) {
+      if (!this.growMode) {
         this.fetchItems()
       }
       if (this.trackPages) {
