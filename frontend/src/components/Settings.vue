@@ -121,35 +121,39 @@
             </v-tabs-items>
           </v-tab-item>
           <v-tab-item id="tab-portrait">
-            <v-jumbotron v-if="newPortrait" color="grey darken-3">
-              <v-container fill-height>
-                <v-layout align-center>
-                  <v-flex>
-                    <h3 class="display-3">Try Artconomy Portrait!</h3>
-                    <span class="subheading">Know when your favorite artists are open with Artconomy Portrait</span>
-                    <v-divider class="my-3" />
-                    <v-btn large color="primary" class="mx-0" :to="{name: 'Upgrade'}">Notify Me!</v-btn>
-                  </v-flex>
-                </v-layout>
-              </v-container>
-            </v-jumbotron>
+            <v-card color="grey darken-3" v-if="newPortrait">
+              <v-responsive :aspect-ratio="16/5" max-width="100%">
+                <v-container fill-height>
+                  <v-layout align-center>
+                    <v-flex>
+                      <h3 class="display-3">Try Artconomy Portrait!</h3>
+                      <span class="subheading">Know when your favorite artists are open with Artconomy Portrait</span>
+                      <v-divider class="my-3" />
+                      <v-btn large color="primary" class="mx-0" :to="{name: 'Upgrade'}">Notify Me!</v-btn>
+                    </v-flex>
+                  </v-layout>
+                </v-container>
+              </v-responsive>
+            </v-card>
             <v-layout v-else>
               <v-card-text>
                 <v-layout row wrap>
                   <v-flex text-xs-center xs12>
-                    <v-jumbotron color="grey darken-3">
-                      <v-container fill-height>
-                        <v-layout align-center>
-                          <v-flex>
-                            <h3 class="display-3">Welcome to Artconomy Portrait!</h3>
-                            <span class="subheading">You are currently receiving emails for your watchlist. If you'd like to get messages via Telegram, click the button below.</span>
-                            <v-divider class="my-3" />
-                            <v-btn large color="primary" :href="user.telegram_link" class="mx-0" target="_blank"><v-icon>fa-telegram</v-icon>&nbsp;Notify me via Telegram!</v-btn>
-                            <p><strong>Note:</strong> Notifications will not be sent more than once for each artist on a given day to prevent spamming.</p>
-                          </v-flex>
-                        </v-layout>
-                      </v-container>
-                    </v-jumbotron>
+                    <v-card color="grey darken-3">
+                      <v-responsive :aspect-ratio="16/5" max-width="100%">
+                        <v-container fill-height>
+                          <v-layout align-center>
+                            <v-flex>
+                              <h3 class="display-3">Welcome to Artconomy Portrait!</h3>
+                              <span class="subheading">You are currently receiving emails for your watchlist. If you'd like to get messages via Telegram, click the button below.</span>
+                              <v-divider class="my-3" />
+                              <v-btn large color="primary" :href="user.telegram_link" class="mx-0" target="_blank"><v-icon>fa-telegram</v-icon>&nbsp;Notify me via Telegram!</v-btn>
+                              <p><strong>Note:</strong> Notifications will not be sent more than once for each artist on a given day to prevent spamming.</p>
+                            </v-flex>
+                          </v-layout>
+                        </v-container>
+                      </v-responsive>
+                    </v-card>
                   </v-flex>
                   <v-flex xs12 text-xs-center class="pt-3">
                     <v-card>
@@ -177,40 +181,44 @@
             </v-layout>
           </v-tab-item>
           <v-tab-item id="tab-landscape">
-            <v-jumbotron v-if="newLandscape" color="grey darken-3">
-              <v-container fill-height>
-                <v-layout align-center>
-                  <v-flex>
-                    <h3 class="display-3">Try Artconomy Landscape!</h3>
-                    <span class="subheading">Lower your fees for commissions, and be the first to try new features!</span>
-                    <v-divider class="my-3" />
-                    <v-btn large color="primary" class="mx-0" :to="{name: 'Upgrade'}">Go for it!</v-btn>
-                  </v-flex>
-                </v-layout>
-              </v-container>
-            </v-jumbotron>
+            <v-card v-if="newLandscape" color="grey darken-3">
+              <v-responsive :aspect-ratio="16/5" max-width="100%">
+                <v-container fill-height>
+                  <v-layout align-center>
+                    <v-flex>
+                      <h3 class="display-3">Try Artconomy Landscape!</h3>
+                      <span class="subheading">Lower your fees for commissions, and be the first to try new features!</span>
+                      <v-divider class="my-3" />
+                      <v-btn large color="primary" class="mx-0" :to="{name: 'Upgrade'}">Go for it!</v-btn>
+                    </v-flex>
+                  </v-layout>
+                </v-container>
+              </v-responsive>
+            </v-card>
             <v-layout v-else-if="pricing">
               <v-card-text>
                 <v-layout row wrap>
                   <v-flex xs12>
-                    <v-jumbotron color="grey darken-3">
-                      <v-container fill-height>
-                        <v-layout align-center>
-                          <v-flex>
-                            <h3 class="display-3">Welcome to Artconomy Landscape!</h3>
-                            <span class="subheading">
-                              Your commission percentage fee is now {{ pricing.landscape_percentage }}%
-                              (down from {{pricing.standard_percentage}}%) and your per-sale fee is
-                              ${{pricing.landscape_static}} (down from ${{pricing.standard_static}})
-                            </span>
-                            <br />
-                            <span class="subheading">
-                              You will also be first to receive previews for new Artconomy Features, and have access to Portrait features.
-                            </span>
-                          </v-flex>
-                        </v-layout>
-                      </v-container>
-                    </v-jumbotron>
+                    <v-card>
+                      <v-responsive :aspect-ratio="16/5" max-width="100%" color="grey darken-3">
+                        <v-container fill-height>
+                          <v-layout align-center>
+                            <v-flex>
+                              <h3 class="display-3">Welcome to Artconomy Landscape!</h3>
+                              <span class="subheading">
+                                Your commission percentage fee is now {{ pricing.landscape_percentage }}%
+                                (down from {{pricing.standard_percentage}}%) and your per-sale fee is
+                                ${{pricing.landscape_static}} (down from ${{pricing.standard_static}})
+                              </span>
+                              <br />
+                              <span class="subheading">
+                                You will also be first to receive previews for new Artconomy Features, and have access to Portrait features.
+                              </span>
+                            </v-flex>
+                          </v-layout>
+                        </v-container>
+                      </v-responsive>
+                    </v-card>
                   </v-flex>
                   <v-flex xs12 text-xs-center class="pt-3">
                     <v-card>

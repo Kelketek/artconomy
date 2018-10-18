@@ -30,22 +30,26 @@
         <div v-if="(growing !== null && growing.length) && furtherPagination" v-observe-visibility="loadMore"></div>
         <div v-if="fetching"><i class="fa fa-spin fa-spinner fa-5x"></i></div>
       </v-flex>
-      <v-flex xs12 text-xs-center v-if="growing !== null && currentPage === 1 && growing.length === 0">
+      <v-flex xs12 text-xs-center v-if="growing !== null && currentPage === 1 && growing.length === 0 && !isCurrent">
         Commissions are not available at this time.
       </v-flex>
-      <v-jumbotron v-if="setUp && isCurrent && (growing !== null) && (growing.length === 0)" color="grey darken-3">
-        <v-container fill-height>
-          <v-layout align-center>
-            <v-flex>
-              <h3 class="display-3">Sell your art!</h3>
-              <span class="subheading">Now that you have your payout settings configured, you can create products to sell on Artconomy.</span>
-              <v-divider class="my-3" />
-              <div class="mb-3"><span class="title">Create your first product now:</span></div>
-              <v-btn large color="primary" class="mx-0" @click="showNew = true">New Product</v-btn>
-            </v-flex>
-          </v-layout>
-        </v-container>
-      </v-jumbotron>
+      <v-flex xs12 v-if="setUp && isCurrent && (growing !== null) && (growing.length === 0)">
+        <v-card color="grey darken-3">
+          <v-responsive :aspect-ratio="16/5" max-width="100%">
+            <v-container fill-height>
+              <v-layout align-center>
+                <v-flex>
+                  <h3 class="display-3">Sell your art!</h3>
+                  <span class="subheading">Now that you have your payout settings configured, you can create products to sell on Artconomy.</span>
+                  <v-divider class="my-3" />
+                  <div class="mb-3"><span class="title">Create your first product now:</span></div>
+                  <v-btn large color="primary" class="mx-0" @click="showNew = true">New Product</v-btn>
+                </v-flex>
+              </v-layout>
+            </v-container>
+          </v-responsive>
+        </v-card>
+      </v-flex>
     </v-layout>
     <v-layout row wrap>
       <v-flex xs12 v-if="!setUp && !embedded">

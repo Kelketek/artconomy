@@ -36,56 +36,58 @@
       </v-list>
     </v-flex>
     <v-flex xs12>
-      <v-jumbotron v-if="accounts !== null && accounts.length === 0" color="grey darken-3">
-        <v-container fill-height>
-          <v-layout align-center>
-            <v-flex v-if="!user.bank_account_status">
-              <h3 class="display-3">Configure your payment settings!</h3>
-              <span class="subheading">Do you have a US Bank account?</span>
-              <v-divider class="my-3" />
-              <ac-action large
-                              :url="`/api/profiles/v1/account/${this.user.username}/settings/`"
-                              method="PATCH" class="mx-0"
-                              :success="updateUser"
-                              color="primary"
-                              :send="{bank_account_status: 1}"
-              >I have a US Bank account</ac-action> <br />
-              <ac-action large
-                         :url="`/api/profiles/v1/account/${this.user.username}/settings/`"
-                         method="PATCH" class="mx-0"
-                         :success="updateUser"
-                         color="red"
-                         :send="{bank_account_status: 2}"
-              >I do not have a US Bank account</ac-action>
-            </v-flex>
-            <v-flex v-else-if="user.bank_account_status === 1">
-              <h3 class="display-3">You may now list products!</h3>
-              <span class="subheading"><router-link :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}">
-                  Artconomy Shield</router-link> is enabled. You may add a bank account to collect your earnings below, or <router-link :to="{name: 'Store', username: user.username}">click here to start adding products!</router-link>.</span>
-              <v-divider class="my-3" />
-              <v-btn @click="showNewBank = true" color="primary" :disabled="!sufficientBalance">Add a US Bank Account</v-btn>
-              <p v-if="!sufficientBalance">You will be able to link your bank account once you have earned at least $3.00.</p>
-            </v-flex>
-            <v-flex v-else>
-              <h3 class="display-3">You may now list products!</h3>
-              <span class="subheading">
-                <router-link :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}">
-                  Artconomy Shield</router-link> is disabled, <router-link :to="{name: 'Store', username: user.username}">
-                but you may list products and sell them here!</router-link> If you obtain a US Banking account, you may
-                enable shielding by pressing the button below.
-              </span>
-              <v-divider class="my-3" />
-              <ac-action large
-                         :url="`/api/profiles/v1/account/${this.user.username}/settings/`"
-                         method="PATCH" class="mx-0"
-                         :success="updateUser"
-                         color="red"
-                         :send="{bank_account_status: 1}"
-              >I have a US Bank Account</ac-action>
-            </v-flex>
-          </v-layout>
-        </v-container>
-      </v-jumbotron>
+      <v-card color="grey darken-3" v-if="accounts !== null && accounts.length === 0">
+        <v-responsive :aspect-ratio="16/5" max-width="100%">
+          <v-container fill-height>
+            <v-layout align-center>
+              <v-flex v-if="!user.bank_account_status">
+                <h3 class="display-3">Configure your payment settings!</h3>
+                <span class="subheading">Do you have a US Bank account?</span>
+                <v-divider class="my-3" />
+                <ac-action large
+                                :url="`/api/profiles/v1/account/${this.user.username}/settings/`"
+                                method="PATCH" class="mx-0"
+                                :success="updateUser"
+                                color="primary"
+                                :send="{bank_account_status: 1}"
+                >I have a US Bank account</ac-action> <br />
+                <ac-action large
+                           :url="`/api/profiles/v1/account/${this.user.username}/settings/`"
+                           method="PATCH" class="mx-0"
+                           :success="updateUser"
+                           color="red"
+                           :send="{bank_account_status: 2}"
+                >I do not have a US Bank account</ac-action>
+              </v-flex>
+              <v-flex v-else-if="user.bank_account_status === 1">
+                <h3 class="display-3">You may now list products!</h3>
+                <span class="subheading"><router-link :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}">
+                    Artconomy Shield</router-link> is enabled. You may add a bank account to collect your earnings below, or <router-link :to="{name: 'Store', username: user.username}">click here to start adding products!</router-link>.</span>
+                <v-divider class="my-3" />
+                <v-btn @click="showNewBank = true" color="primary" :disabled="!sufficientBalance">Add a US Bank Account</v-btn>
+                <p v-if="!sufficientBalance">You will be able to link your bank account once you have earned at least $3.00.</p>
+              </v-flex>
+              <v-flex v-else>
+                <h3 class="display-3">You may now list products!</h3>
+                <span class="subheading">
+                  <router-link :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}">
+                    Artconomy Shield</router-link> is disabled, <router-link :to="{name: 'Store', username: user.username}">
+                  but you may list products and sell them here!</router-link> If you obtain a US Banking account, you may
+                  enable shielding by pressing the button below.
+                </span>
+                <v-divider class="my-3" />
+                <ac-action large
+                           :url="`/api/profiles/v1/account/${this.user.username}/settings/`"
+                           method="PATCH" class="mx-0"
+                           :success="updateUser"
+                           color="red"
+                           :send="{bank_account_status: 1}"
+                >I have a US Bank Account</ac-action>
+              </v-flex>
+            </v-layout>
+          </v-container>
+        </v-responsive>
+      </v-card>
     </v-flex>
     <ac-form-dialog ref="bankForm" :schema="bankSchema" :model="bankModel"
                     :options="bankOptions" :success="addBank"
