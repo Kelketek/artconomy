@@ -1,7 +1,14 @@
 {
   "presets": [
     ["env", {
-      "modules": false
+      "modules": false,
+      "loose": true,
+      "targets": {
+        "browsers": [
+          ">1%"
+        ]
+      },
+      "useBuiltIns": true
     }],
     "stage-2"
   ],
