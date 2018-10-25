@@ -8,7 +8,7 @@
           ">1%"
         ]
       },
-      "useBuiltIns": true
+      "useBuiltIns": "usage"
     }],
     "stage-2"
   ],
