@@ -31,6 +31,9 @@ import { Shortcuts } from './plugins/shortcuts'
 // export for others scripts to use
 window.$ = $
 window.jQuery = jQuery
+if (navigator.userAgent.toLowerCase().indexOf('googlebot') !== -1) {
+  window.onerror = (error) => { document.innerHTML = error }
+}
 
 Vue.use(VueRouter)
 Vue.use(UserHandler)
