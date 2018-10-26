@@ -1,7 +1,5 @@
 // The Vue build version to load with the `import` command
 // (runtime-only or standalone) has been set in webpack.base.conf with an alias.
-import 'es5-shim'
-import 'es6-shim'
 import 'intersection-observer'
 import VueFormGenerator from 'vue-form-generator'
 import 'vuetify/dist/vuetify.min.css'
@@ -31,9 +29,6 @@ import { Shortcuts } from './plugins/shortcuts'
 // export for others scripts to use
 window.$ = $
 window.jQuery = jQuery
-if (navigator.userAgent.toLowerCase().indexOf('googlebot') !== -1) {
-  window.onerror = (error) => { document.innerHTML = error }
-}
 
 Vue.use(VueRouter)
 Vue.use(UserHandler)
@@ -59,7 +54,7 @@ Vue.filter('formatSize', formatSize)
 window.artconomy = new Vue({
   el: '#app',
   router,
-  template: '<App :user="user"/>',
+  render: h => h(App),
   components: {App, NavBar},
   data: {
     userCache: {},
@@ -79,3 +74,4 @@ window.artconomy = new Vue({
     }
   }
 })
+window.artconomy.$mount('#app');

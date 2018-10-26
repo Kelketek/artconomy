@@ -244,14 +244,13 @@
   </v-container>
 </template>
 
-<style lang="scss">
-  @import '../custom-bootstrap';
+<style>
   .character-description {
     width: 100%
   }
   .statline p{
     margin-bottom: .5rem;
-    border-bottom: 1px solid $dark-purple;
+    border-bottom: 1px solid #5f2480;
   }
   .vue-form-generator .wrapper input[type="color"] {
     display: inline-block;

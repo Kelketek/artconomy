@@ -88,16 +88,15 @@
   }
 </script>
 
-<style scoped lang="scss">
-  @import '../custom-bootstrap';
+<style scoped>
   .pulse {
     animation: pulse_animation 2s infinite;
   }
   @keyframes pulse_animation {
-    0% { background-color: $primary; }
-    25% {background-color: lighten($primary, 20)}
-    50% { background-color: $secondary; }
-    75% {background-color: lighten($secondary, 20)}
-    100% { background-color: $primary; }
+    0% { background-color: #5f2480 }
+    25% {background-color: #735c94 }
+    50% { background-color: #82204A }
+    75% {background-color: #96345e}
+    100% { background-color: #5f2480 }
   }
 </style>
