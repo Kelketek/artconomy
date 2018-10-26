@@ -70,32 +70,3 @@
     }
   }
 </script>
-
-<style lang="scss">
-  @import '../custom-bootstrap';
-  .patchfield-preview {
-    display: inline-block;
-  }
-  input.patch-input {
-    padding: 0;
-    margin: 0;
-    background-color: $light-gray;
-    border-color: $dark-purple;
-    border-top: none;
-    border-right: none;
-    border-left: none;
-    height: 1em;
-    box-sizing: border-box;
-  }
-  textarea.patchfield-multiline-editor {
-    width: 100%;
-    height: 100%;
-  }
-  .patchfield-wrapper {
-    display: inline-block;
-  }
-  .patchfield-multiline-wrapper {
-    width: 100%;
-    height: available;
-  }
-</style>

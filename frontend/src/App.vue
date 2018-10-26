@@ -50,12 +50,12 @@
       return {}
     },
     components: {
-      NavBar},
-    props: ['user']
+      NavBar
+    },
   }
 </script>
 
-<style lang="scss">
+<style>
   a {
     text-decoration: none;
   }

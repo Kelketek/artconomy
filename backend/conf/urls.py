@@ -19,7 +19,7 @@ from django.conf import settings
 from django.conf.urls import url, include
 from django.contrib import admin
 from django.core.exceptions import ImproperlyConfigured
-from django.urls import re_path, path
+from django.urls import path
 from django.views.generic import RedirectView
 from django.views.static import serve
 
@@ -48,6 +48,10 @@ def static(prefix, view=serve, **kwargs):
     """
     Version of the static views that DOESN'T check for the DEBUG flag since we're
     checking it elsewhere and static items are needed for e2e tests.
+
+    NOTICE: Sometimes the Staticfiles app decides to do whatever it wants and then
+    reports this view was the one that did it. If you can't print from the serve
+    function, it's full of shit. Check the STATICFILES_DIRS instead.
     """
     if not prefix:
         raise ImproperlyConfigured("Empty static prefix not permitted")
@@ -55,7 +59,7 @@ def static(prefix, view=serve, **kwargs):
         # No-op if not in debug mode or a non-local prefix.
         return []
     return [
-        re_path(r'^%s(?P<path>.*)$' % re.escape(prefix.lstrip('/')), view, kwargs=kwargs),
+        url(r'^%s(?P<path>.*)$' % re.escape(prefix.lstrip('/')), view, kwargs=kwargs),
     ]
 
 

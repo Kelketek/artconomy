@@ -7,6 +7,8 @@ class TestHomePage(BaseWebAppTest):
 
     def test_basic(self):
         HomePage(self.browser).visit()
+        import time
+        time.sleep(30)
 
 
 class TestCharacterPage(BaseWebAppTest):

@@ -476,18 +476,14 @@ class NPMBuildTestRunner(DiscoverRunner):
     def setup_test_environment(self, **kwargs):
         super().setup_test_environment(**kwargs)
         if self.run_build:
-            call(['mv', 'webpack-stats.json', 'webpack-stats-bak.json'])
+            call(['cp', 'webpack-stats.json', 'webpack-stats-bak.json'])
             call(['npm', 'run', 'build'])
             call(['cp', 'webpack-stats.json', 'webpack-stats-saved.json'])
-            call(['mv', 'webpack-stats-bak.json', 'webpack-stats.json'])
-            settings.WEBPACK_LOADER['DEFAULT']['STATS_FILE'] = os.path.join(
-                settings.BASE_DIR, 'webpack-stats-saved.json'
-            )
+            call(['cp', 'webpack-stats-bak.json', 'webpack-stats.json'])
             call(['./manage.py', 'collectstatic', '--noinput', '-v0'])
-        else:
-            settings.WEBPACK_LOADER['DEFAULT']['STATS_FILE'] = os.path.join(
-                settings.BASE_DIR, 'webpack-stats-saved.json'
-            )
+        settings.WEBPACK_LOADER['DEFAULT']['STATS_FILE'] = os.path.join(
+            settings.BASE_DIR, 'webpack-stats-saved.json'
+        )
 
     @classmethod
     def add_arguments(cls, parser):

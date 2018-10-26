@@ -634,7 +634,7 @@ class TestOrder(APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['details'], 'Draw me some porn!')
-        self.assertEqual(response.data['characters'], character_ids)
+        self.assertEqual(sorted(response.data['characters']), sorted(character_ids))
         for character in characters:
             self.assertTrue(character.shared_with.filter(username=response.data['seller']['username']).exists())
         self.assertEqual(response.data['product'], product.id)

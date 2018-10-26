@@ -13,8 +13,7 @@
     </v-flex>
   </v-layout>
 </template>
-<style scoped lang="scss">
-  @import '../custom-bootstrap';
+<style>
   .ref-container{
     opacity: 0;
     padding: .1rem;
@@ -22,11 +21,11 @@
   }
   .swatch {
     width: 100%;
-    border: 2px solid $dark-gray;
+    border: 2px solid #e0e0e0;
   }
   .swatch:hover .ref-container{
-    background-color: $dark-beige;
-    color: $dark-purple;
+    background-color: #B8B8A9;
+    color: #5f2480;
     opacity: 1;
   }
   .color-notation {
