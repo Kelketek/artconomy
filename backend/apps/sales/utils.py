@@ -245,6 +245,8 @@ def update_availability(seller, load, current_closed_status):
             seller.has_products = True
         seller.save()
         products.update(available=True)
+        # Sanity setting.
+        seller.products.filter(hidden=True).update(available=False)
         if current_closed_status and not seller.commissions_disabled:
             previous = Event.objects.filter(
                 type=COMMISSIONS_OPEN, content_type=ContentType.objects.get_for_model(User), object_id=seller.id,
