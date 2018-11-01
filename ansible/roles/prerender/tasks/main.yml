@@ -24,6 +24,19 @@
     group: www-data
     mode: 0750
 
+- name: Ensure log directory
+  file:
+    state: directory
+    path: /home/prerender/logs
+    owner: prerender
+    group: www-data
+    mode: 0700
+
+- name: Install logrotate config
+  copy:
+    src: files/logrotate/prerender
+    dest: /etc/logrotate.d/prerender
+
 - name: Add Chrome apt signing key
   apt_key:
     url: https://dl-ssl.google.com/linux/linux_signing_key.pub
