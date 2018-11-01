@@ -12,5 +12,6 @@
     - letsencrypt
     - nginx
     - app
+    - prerender
     - rabbitmq
     - celery

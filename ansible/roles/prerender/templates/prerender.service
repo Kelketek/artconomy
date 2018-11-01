@@ -7,7 +7,7 @@ Group=www-data
 Type=forking
 Environment="CACHE_ROOT_DIR=/home/prerender/cache"
 Environment="CACHE_LIVE_TIME=1000"
-ExecStart=/home/prerender/prerender/node_modules/forever/bin/forever -l /home/prerender/prerender.log -e /home/prerender/prerender.err -a start /home/prerender/prerender/server.js {{domains[0]}}
+ExecStart=/home/prerender/prerender/node_modules/forever/bin/forever -l /home/prerender/logs/prerender.log -e /home/prerender/logs/prerender_error.log -a start /home/prerender/prerender/server.js {{domains[0]}}
 ExecStop=/home/prerender/prerender/node_modules/forever/bin/forever stop /home/prerender/prerender/server.js
 RemainAfterExit=no
 KillMode=process
