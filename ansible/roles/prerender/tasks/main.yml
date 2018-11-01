@@ -1,0 +1,59 @@
+- name: Add prerender user
+  user:
+    name: prerender
+    group: www-data
+    shell: /bin/bash
+
+- name: Clone source
+  become: yes
+  become_user: prerender
+  git: repo="https://github.com/Vulpinity/prerender.git" dest="/home/prerender/prerender" force=yes update=yes
+
+- name: Install NPM packages
+  become: yes
+  become_user: prerender
+  npm: registry=http://registry.npmjs.org/ path="/home/prerender/prerender/"
+  notify:
+    - restart prerender
+
+- name: Install Forever
+  become: yes
+  become_user: prerender
+  npm:
+    registry: http://registry.npmjs.org/
+    path: "/home/prerender/prerender/"
+    name: "forever"
+  notify:
+    - restart prerender
+
+- name: Add Chrome apt signing key
+  apt_key:
+    url: https://dl-ssl.google.com/linux/linux_signing_key.pub
+    state: present
+
+- apt_repository:
+    repo: deb http://dl.google.com/linux/chrome/deb/ stable main
+    state: present
+  register: repo_added
+
+- apt:
+    state: present
+    name: google-chrome-stable
+    update_cache: "{{repo_added.changed}}"
+
+- name: Install service
+  template:
+    src: templates/prerender.service
+    dest: /etc/systemd/system/prerender.service
+  notify:
+    - restart prerender
+  register: service_installed
+
+- name: Reload services.
+  shell: "/bin/systemctl daemon-reload"
+  args:
+    executable: "/bin/bash"
+  when: service_installed.changed
+
+- name: Ensure prerender running
+  service: name=prerender state=started enabled=yes
