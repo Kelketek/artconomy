@@ -16,15 +16,13 @@
   notify:
     - restart prerender
 
-- name: Install Forever
-  become: yes
-  become_user: prerender
-  npm:
-    registry: http://registry.npmjs.org/
-    path: "/home/prerender/prerender/"
-    name: "forever"
-  notify:
-    - restart prerender
+- name: Ensure cache directory
+  file:
+    state: directory
+    path: /home/prerender/cache
+    owner: prerender
+    group: www-data
+    mode: 0750
 
 - name: Add Chrome apt signing key
   apt_key:
