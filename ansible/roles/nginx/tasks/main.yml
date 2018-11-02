@@ -54,7 +54,6 @@
   notify:
     - reload nginx
 
-
 - name: Ensure link to default host
   file:
     dest: /etc/nginx/sites-enabled/default

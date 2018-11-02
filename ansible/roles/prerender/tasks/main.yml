@@ -42,12 +42,14 @@
     url: https://dl-ssl.google.com/linux/linux_signing_key.pub
     state: present
 
-- apt_repository:
+- name: Install Chrome apt repository
+  apt_repository:
     repo: deb http://dl.google.com/linux/chrome/deb/ stable main
     state: present
   register: repo_added
 
-- apt:
+- name: Install Chrome
+  apt:
     state: present
     name: google-chrome-stable
     update_cache: "{{repo_added.changed}}"
