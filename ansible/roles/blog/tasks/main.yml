@@ -28,7 +28,7 @@
     - unzip
     - python-mysqldb
     - php-fpm
-    - php7.0-mysql
+    - php7.2-mysql
 
 - name: Create application dir
   file:
@@ -89,9 +89,9 @@
     dest: "{{item.dest}}"
   with_items:
     - src: "files/php.ini"
-      dest: "/etc/php/7.0/fpm/php.ini"
+      dest: "/etc/php/7.2/fpm/php.ini"
     - src: "files/www.conf"
-      dest: "/etc/php/7.0/fpm/pool.d/www.conf"
+      dest: "/etc/php/7.2/fpm/pool.d/www.conf"
   notify:
     - restart php-fpm
 
@@ -102,6 +102,8 @@
     src: "/home/wordpress/wordpress"
 
 - name: Configure Wordpress
+  become: yes
+  become_user: wordpress
   template:
     src: "templates/wp-config.php"
     dest: "/home/wordpress/wordpress/wp-config.php"

@@ -81,7 +81,7 @@
         </v-btn>
         <v-btn
             flat
-            href="https://blog.artconomy.com/"
+            href="https://artconomy.com/blog/"
             target="_blank"
         >
           <span>Blog</span>
