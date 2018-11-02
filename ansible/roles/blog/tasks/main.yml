@@ -1,0 +1,107 @@
+---
+- name: Create wordpress user
+  user:
+    name: wordpress
+    shell: /bin/bash
+
+- name: Add wordpress group to www-data
+  user:
+    name: www-data
+    append: true
+    groups: wordpress
+  notify:
+    - restart nginx
+
+- name: Download WordPress
+  become: yes
+  become_user: wordpress
+  get_url:
+    url: https://wordpress.org/latest.zip
+    dest: /home/wordpress/latest.zip
+    mode: 0440
+
+- name: Install prereqs
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - unzip
+    - python-mysqldb
+    - php-fpm
+    - php7.0-mysql
+
+- name: Create application dir
+  file:
+    state: directory
+    path: /home/wordpress/app
+    owner: wordpress
+    group: wordpress
+    mode: 0750
+
+- name: Unpack WordPress
+  become: yes
+  become_user: wordpress
+  unarchive:
+    src: /home/wordpress/latest.zip
+    dest: /home/wordpress/
+    remote_src: yes
+    creates: /home/wordpress/wordpress
+
+- name: Check for MySQL
+  stat:
+    path: /usr/bin/mysql
+  register: p
+
+- name: Load app settings
+  include_vars: "keys/{{env_prefix}}/wp_settings.yml"
+
+- name: Mysql | Set root password
+  shell: debconf-set-selections mysql-server mysql-server/root_password password {{wp_settings.mysql_root_pw}}
+  when: not p.stat.exists
+
+- name: Mysql | Set root repassword
+  shell: debconf-set-selections mysql-server mysql-server/root_password_again password {{wp_settings.mysql_root_pw}}
+  when: not p.stat.exists
+
+- name: Install MySQL
+  apt: pkg=mysql-server state=latest
+
+- name: Save MySQL conf
+  template:
+    src: templates/.my.cnf
+    dest: /root/.my.cnf
+
+- name: Create MySQL db
+  mysql_db:
+    name: "{{wp_settings.DB_NAME}}"
+    state: present
+
+- name: Create MySQL user
+  mysql_user:
+    name: "{{wp_settings.DB_USER}}"
+    password: "{{wp_settings.DB_PASSWORD}}"
+    priv: '{{wp_settings.DB_NAME}}.*:ALL'
+    state: present
+
+- name: Configure PHP-FPM
+  copy:
+    src: "{{item.src}}"
+    dest: "{{item.dest}}"
+  with_items:
+    - src: "files/php.ini"
+      dest: "/etc/php/7.0/fpm/php.ini"
+    - src: "files/www.conf"
+      dest: "/etc/php/7.0/fpm/pool.d/www.conf"
+  notify:
+    - restart php-fpm
+
+- name: Set up symlink to wordpress
+  file:
+    dest: "/home/{{env_prefix}}/artconomy/blog"
+    state: link
+    src: "/home/wordpress/wordpress"
+
+- name: Configure Wordpress
+  template:
+    src: "templates/wp-config.php"
+    dest: "/home/wordpress/wordpress/wp-config.php"
