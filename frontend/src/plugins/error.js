@@ -1,3 +1,5 @@
+import {clearMetaTag} from '../lib'
+
 export const ErrorHandler = {
   install (Vue) {
     Vue.mixin({
@@ -21,6 +23,7 @@ export const ErrorHandler = {
     if (window.artconomy) {
       window.artconomy.errorCode = null
     }
+    clearMetaTag('prerender-status-code')
     next()
   }
 }

@@ -47,6 +47,7 @@
 
 <script>
   import NavBar from './components/NavBar'
+  import {setMetaContent} from './lib'
   export default {
     name: 'app',
     data () {
@@ -55,6 +56,13 @@
     components: {
       NavBar
     },
+    watch: {
+      '$root.errorCode' (val) {
+        if (val) {
+          setMetaContent('prerender-status-code', val)
+        }
+      }
+    }
   }
 </script>
 
