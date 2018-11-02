@@ -35,7 +35,10 @@
       </v-container>
       <v-container>
         <v-layout row wrap>
-          <v-flex v-if="user && !user.username" xs12 text-xs-center>Please read our <router-link :to="{name: 'PrivacyPolicy'}">Privacy Policy</router-link> and <router-link :to="{name: 'TermsOfService'}">Terms of Service</router-link>.</v-flex>
+          <v-flex v-if="$root.user && !$root.user.username" xs12 text-xs-center>
+            <p>Please read our <router-link :to="{name: 'PrivacyPolicy'}">Privacy Policy</router-link> and <router-link :to="{name: 'TermsOfService'}">Terms of Service</router-link>.</p>
+            <p>Check out our <a href="/blog/" target="_blank">blog</a> for updates, or read the <router-link :to="{name: 'FAQ'}">FAQ</router-link> for more information.</p>
+          </v-flex>
         </v-layout>
       </v-container>
     </v-content>
