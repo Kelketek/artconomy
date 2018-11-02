@@ -291,6 +291,13 @@ export function textualize (markdown) {
   return container.textContent.trim()
 }
 
+export function clearMetaTag (tagname) {
+  let tag = document.head.querySelector(`meta[name=${tagname}]`)
+  if (tag) {
+    tag.parentNode.removeChild(tag)
+  }
+}
+
 export function setMetaContent (tagname, value) {
   let desctag = document.head.querySelector(`meta[name=${tagname}]`)
   if (!desctag) {
