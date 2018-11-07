@@ -172,7 +172,7 @@
   import AcAvatar from './ac-avatar'
   import AcPatchfield from './ac-patchfield'
   import AcAssetGallery from './ac-asset-gallery'
-  import { paramHandleMap, ratings, EventBus } from '../lib'
+  import {paramHandleMap, ratings, EventBus, setMetaContent, textualize} from '../lib'
   import AcContextGallery from './ac-context-gallery'
   import Store from './Store'
   import VueFormGenerator from 'vue-form-generator'
@@ -209,6 +209,10 @@
       replaceUser (response) {
         this.$setUser(response.username, response)
         this.user = response
+      },
+      setMeta () {
+        document.title = `${this.user.username} - Artconomy`
+        setMetaContent('description', textualize(this.user.biography).slice(0, 160))
       },
       goToMessage (response) {
         this.$router.push({name: 'Message', params: {messageID: response.id, username: response.sender.username}})
@@ -390,6 +394,7 @@
       user () {
         if (this.user.id) {
           EventBus.$emit('userfield-add-recipients', this.user)
+          this.setMeta()
         }
       }
     },
