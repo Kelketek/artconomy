@@ -478,7 +478,7 @@
         this.shareModel.shared_with = []
       },
       setMeta () {
-        document.title = `${this.submission.title} -- by ${this.submission.owner.username}`
+        document.title = `${this.submission.title} -- by ${this.submission.owner.username} - Artconomy`
         setMetaContent('description', textualize(this.submission.caption).slice(0, 160))
       },
       goBack () {

@@ -878,7 +878,7 @@
   </v-container>
 </template>
 <script>
-  import {artCall, paramHandleArray, paramHandleMap} from '../lib'
+  import {artCall, paramHandleArray, paramHandleMap, setMetaContent} from '../lib'
 
   const about = ['what-is-artconomy', 'cost', 'team']
   const buySell = [
@@ -914,6 +914,8 @@
     },
     created () {
       artCall('/api/sales/v1/pricing-info/', 'GET', undefined, this.loadPricing)
+      document.title = `Frequently Asked Questions -- Artconomy`
+      setMetaContent('description', 'Learn how Artconomy works, how to buy art safely online, and how to make money selling your art!')
     }
   }
 </script>

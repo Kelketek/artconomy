@@ -258,6 +258,8 @@
         this.showAdvanced = 0
       }
       EventBus.$on('result-count', this.setCounter)
+      document.title = `Search - Artconomy`
+      setMetaContent('description', 'Search for artists, art, and products.')
     }
   }
 </script>

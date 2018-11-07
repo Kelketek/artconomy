@@ -222,7 +222,7 @@
   import Editable from '../mixins/editable'
   import AcAsset from '../components/ac-asset'
   import AcAction from '../components/ac-action'
-  import {artCall, md, ratings} from '../lib'
+  import {artCall, md, ratings, setMetaContent, textualize} from '../lib'
   import AcPatchfield from './ac-patchfield'
   import AcPatchbutton from './ac-patchbutton'
   import AcFormContainer from './ac-form-container'
@@ -263,6 +263,8 @@
         this.imageModel.rating = response.rating + ''
         this.showImageUpdate = false
         this.showProductUpdate = false
+        document.title = `${this.product.name} by ${this.product.user.username} -- Artconomy`
+        setMetaContent('description', textualize(this.product.description).slice(0, 160))
       },
       goToStore: function () {
         this.$router.history.push({name: 'Store', params: {username: this.username}})
