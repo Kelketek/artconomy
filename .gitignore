@@ -263,3 +263,6 @@ ansible/keys/
 *.retry
 
 blog
+
+# SSL Validation
+.well-known/*
