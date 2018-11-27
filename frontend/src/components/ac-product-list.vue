@@ -8,16 +8,17 @@
     </v-layout>
     <v-layout row wrap>
       <v-flex xs12 text-xs-center v-if="show">
-        <v-pagination :id="scrollToId" v-model="currentPage" :length="totalPages" v-if="totalPages > 1 && !noPagination" :total-visible="5" />
+        <v-pagination :id="scrollToId" v-model="currentPage" :length="totalPages" :total-visible="5" v-if="totalPages > 1 && !noPagination" />
       </v-flex>
-      <ac-gallery-preview
-          :asset="asset"
-          v-for="(asset, key, index) in results"
-          :key="key" :id="'asset-' + key"
+      <ac-product-preview
+          v-for="product in growing"
+          :key="product.id"
+          :product="product"
+          :i-frame="iFrame"
           xs12 sm4 lg3
       />
       <v-flex xs12 text-xs-center v-if="show">
-        <v-pagination v-model="currentPage" :length="totalPages" v-if="totalPages > 1 && !noPagination" @input="performScroll" :total-visible="5" />
+        <v-pagination v-model="currentPage" :length="totalPages" v-if="totalPages > 1 && !noPagination" :total-visible="5" @input="performScroll" />
       </v-flex>
       <v-flex v-if="noPagination && to && currentPage !== totalPages" xs12 text-xs-center>
         <v-btn color="primary" :to="to">{{seeMoreText}}</v-btn>
@@ -28,10 +29,10 @@
 
 <script>
   import Paginated from '../mixins/paginated'
-  import AcGalleryPreview from './ac-gallery-preview'
+  import AcProductPreview from './ac-product-preview'
   export default {
-    props: ['endpoint', 'header', 'noPagination', 'to', 'seeMoreText'],
-    components: {AcGalleryPreview},
+    props: ['endpoint', 'header', 'noPagination', 'to', 'seeMoreText', 'i-frame'],
+    components: {AcProductPreview},
     data () {
       return {
         url: this.endpoint
@@ -45,7 +46,7 @@
         this.restart()
       }
     },
-    name: 'ac-asset-gallery',
+    name: 'ac-product-list',
     mixins: [Paginated],
     computed: {
       show () {

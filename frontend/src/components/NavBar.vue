@@ -311,7 +311,7 @@
       let e = d.documentElement
       let g = d.getElementsByTagName('body')[0]
       let x = w.innerWidth || e.clientWidth || g.clientWidth
-      if (x >= 960) {
+      if (x >= 1264) {
         this.drawer = true
       }
       EventBus.$on('notifications-updated', this.monitorNotifications)

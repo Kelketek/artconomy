@@ -6,14 +6,14 @@
     </v-tabs>
     <v-tabs-items v-model="tab" v-if="isLoggedIn">
       <v-tab-item id="tab-watchlist">
-        <ac-scrollable-art endpoint="/api/profiles/v1/watch-list-submissions/" counter-name="watchlist-art" />
+        <ac-asset-gallery :track-pages="true" endpoint="/api/profiles/v1/watch-list-submissions/" counter-name="watchlist-art" />
       </v-tab-item>
       <v-tab-item id="tab-all">
-        <ac-scrollable-art endpoint="/api/profiles/v1/recent-art/"/>
+        <ac-asset-gallery :track-pages="true" endpoint="/api/profiles/v1/recent-art/"/>
       </v-tab-item>
     </v-tabs-items>
     <div v-else>
-      <ac-scrollable-art endpoint="/api/profiles/v1/recent-art/"/>
+      <ac-asset-gallery :track-pages="true" endpoint="/api/profiles/v1/recent-art/"/>
     </div>
   </v-container>
 </template>
@@ -23,16 +23,16 @@
   import Paginated from '../mixins/paginated'
   import { ObserveVisibility } from 'vue-observe-visibility'
   import {paramHandleMap, EventBus} from '../lib'
-  import AcScrollableArt from './ac-scrollable-art'
   import Viewer from '../mixins/viewer'
   import Perms from '../mixins/permissions'
+  import AcAssetGallery from './ac-asset-gallery'
   export default {
     name: 'RecentArt',
     mixins: [Paginated, Viewer, Perms],
     directives: {
       ObserveVisibility
     },
-    components: {AcScrollableArt, AcGalleryPreview},
+    components: {AcAssetGallery, AcGalleryPreview},
     data () {
       return {
         url: '/api/profiles/v1/watch-list-submissions/',

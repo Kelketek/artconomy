@@ -1,5 +1,5 @@
 <template>
-  <v-flex xs12 sm4 lg3 class="product-preview">
+  <v-flex v-bind="$attrs" class="product-preview">
     <v-card>
       <ac-frameable-link :i-frame="iFrame" :to="{name: 'Product', params: {username: product.user.username, productID: product.id}}">
         <v-img

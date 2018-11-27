@@ -11,7 +11,7 @@
             <v-btn color="primary" :to="{name: 'Search', params: {tabName: 'products'}, query: {watchlist_only: true}}">Refine Search</v-btn>
           </v-flex>
         </v-layout>
-        <store class="pt-2" endpoint="/api/sales/v1/who-is-open/" counter-name="watchlist-open" :show-error="true" empty-error="No one on your watchlist is currently open." :grow="true" />
+        <ac-product-list class="pt-2" endpoint="/api/sales/v1/who-is-open/" counter-name="watchlist-open" :show-error="true" empty-error="No one on your watchlist is currently open." :grow="true" />
       </v-tab-item>
       <v-tab-item id="tab-all">
         <v-layout>
@@ -19,12 +19,12 @@
             <v-btn color="primary" :to="{name: 'Search', params: {tabName: 'products'}}">Refine Search</v-btn>
           </v-flex>
         </v-layout>
-        <store class="pt-2" endpoint="/api/sales/v1/new-products/" :show-error="true" empty-error="There are no products currently open." :grow="true" />
+        <ac-product-list class="pt-2" endpoint="/api/sales/v1/new-products/" :show-error="true" empty-error="There are no products currently open." :grow="true" />
       </v-tab-item>
     </v-tabs-items>
     <v-layout v-else>
       <v-btn color="primary" :to="{name: 'Search', params: {tabName: 'products'}}">Refine Search</v-btn>
-      <store class="pt-2" endpoint="/api/sales/v1/new-products/" :show-error="true" empty-error="There are no products currently open." :grow="true"/>
+      <ac-product-list class="pt-2" endpoint="/api/sales/v1/new-products/" :show-error="true" empty-error="There are no products currently open." :grow="true"/>
     </v-layout>
   </v-container>
 </template>
@@ -35,10 +35,11 @@
   import Perms from '../mixins/permissions'
   import Viewer from '../mixins/viewer'
   import {paramHandleMap, EventBus} from '../lib'
+  import AcProductList from './ac-product-list'
 
   export default {
     name: 'WhoIsOpen',
-    components: {Store},
+    components: {AcProductList, Store},
     mixins: [Paginated, Perms, Viewer],
     methods: {
       resultCheck (data) {

@@ -36,7 +36,8 @@
     data () {
       return {
         url: this.endpoint,
-        growMode: true
+        // We're no longer making this autoload on scroll, which means this component is poorly named.
+        // growMode: true
       }
     },
     watch: {

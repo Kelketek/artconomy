@@ -57,7 +57,7 @@
         <v-btn color="primary" :to="{name: 'Search', params: {tabName: 'products'}}">Search Products</v-btn>
       </v-flex>
     </v-layout>
-    <store class="pt-2" endpoint="/api/sales/v1/new-products/" :limit="20" />
+    <ac-product-list class="pt-2" endpoint="/api/sales/v1/new-products/" :limit="20" :no-pagination="true" />
     <v-layout row wrap>
       <v-flex xs12 text-xs-center>
         <v-btn :to="{name: 'WhoIsOpen', params: {tabName: 'all'}}" color="primary">See more products</v-btn>
@@ -153,12 +153,12 @@
   import {artCall, setMetaContent} from '../lib'
   import AcAssetGallery from './ac-asset-gallery'
   import Characters from './Characters'
-  import Store from './Store'
   import Viewer from '../mixins/viewer'
+  import AcProductList from './ac-product-list'
 
   export default {
     components: {
-      Store,
+      AcProductList,
       Characters,
       AcAssetGallery},
     mixins: [Viewer],
