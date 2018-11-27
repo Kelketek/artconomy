@@ -207,7 +207,8 @@ class CharacterAssets(ListCreateAPIView):
         char = get_object_or_404(
             Character, user__username__iexact=self.kwargs['username'], name=self.kwargs['character']
         )
-        return char.assets.filter(rating__lte=self.request.max_rating).exclude(tags__in=self.request.blacklist)
+        qs = char.assets.filter(rating__lte=self.request.max_rating).exclude(tags__in=self.request.blacklist)
+        return qs.order_by('-created_on')
 
     def perform_create(self, serializer):
         character = get_object_or_404(

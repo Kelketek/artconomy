@@ -46,6 +46,4 @@ class TestSettingsPage(BaseWebAppTest):
         self.assertTrue(settings.commissions_closed)
         settings.save_settings()
         settings.visit()
-        import time
-        time.sleep(5)
         self.assertTrue(settings.commissions_closed)

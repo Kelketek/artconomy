@@ -24,6 +24,7 @@ export default {
       growMode: false,
       fetching: false,
       promise: null,
+      scrollToId: this.genId(),
       furtherPagination: true,
       error: '',
       oldQueryData: JSON.parse(JSON.stringify(this.queryData))
@@ -35,6 +36,14 @@ export default {
     return defaults
   },
   methods: {
+    genId () {
+        let text = '';
+        let possible = 'abcdefghijklmnopqrstuvwxyz';
+        for (let i = 0; i < 20; i++) {
+          text += possible.charAt(Math.floor(Math.random() * possible.length));
+        }
+        return 'scroll-' + text;
+    },
     linkGen (pageNum) {
       let query = JSON.parse(JSON.stringify(this.queryData))
       query.page = pageNum
@@ -45,6 +54,9 @@ export default {
       this.currentPage = 1
       this.error = ''
       this.fetchItems()
+    },
+    performScroll () {
+      this.$vuetify.goTo('#' + this.scrollToId, {offset: -100})
     },
     loadMore () {
       if (this.currentPage >= this.totalPages) {

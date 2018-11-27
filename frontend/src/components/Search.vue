@@ -40,7 +40,7 @@
             </v-card>
           </v-expansion-panel-content>
         </v-expansion-panel>
-        <store ref="productSearch" class="pt-2" counter-name="productCount" endpoint="/api/sales/v1/search/product/" :query-data="query" :grow="true" />
+        <ac-product-list ref="productSearch" class="pt-2" counter-name="productCount" endpoint="/api/sales/v1/search/product/" :query-data="query" />
       </v-tab-item>
       <v-tab-item id="tab-assets">
         <v-layout justify-center>
@@ -99,18 +99,18 @@
 
 <script>
   import AcAssetGallery from './ac-asset-gallery'
-  import {paramHandleMap, EventBus, querySyncer, queryVal} from '../lib'
+  import {paramHandleMap, EventBus, querySyncer, queryVal, setMetaContent} from '../lib'
   import Characters from './Characters'
-  import Store from './Store'
   import AcUserGallery from './ac-user-gallery'
   import AcFormContainer from './ac-form-container'
   import debounce from 'lodash.debounce'
+  import AcProductList from './ac-product-list'
 
   export default {
     components: {
+      AcProductList,
       AcFormContainer,
       AcUserGallery,
-      Store,
       Characters,
       AcAssetGallery},
     name: 'search',

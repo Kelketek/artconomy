@@ -13,27 +13,9 @@
     >
       <v-icon x-large>add</v-icon>
     </v-btn>
-    <v-layout row wrap>
-      <v-flex xs12 text-xs-center v-if="error">
-        <p>{{error}}</p>
-      </v-flex>
-    </v-layout>
-    <v-layout row wrap>
-      <ac-product-preview
-        v-for="product in growing"
-        :key="product.id"
-        v-if="growing !== null && setUp"
-        :product="product"
-        :i-frame="iFrame"
-      />
-      <v-flex xs12 text-xs-center v-if="growMode && growing !== null">
-        <div v-if="(growing !== null && growing.length) && furtherPagination" v-observe-visibility="loadMore"></div>
-        <div v-if="fetching"><i class="fa fa-spin fa-spinner fa-5x"></i></div>
-      </v-flex>
-      <v-flex xs12 text-xs-center v-if="growing !== null && currentPage === 1 && growing.length === 0 && !isCurrent">
-        Commissions are not available at this time.
-      </v-flex>
-      <v-flex xs12 v-if="setUp && isCurrent && (growing !== null) && (growing.length === 0)">
+    <ac-product-list :endpoint="this.endpoint" :i-frame="iFrame" counter-name="productListCount" />
+    <v-layout row wrap v-if="setUp && isCurrent && productCount === 0">
+      <v-flex xs12>
         <v-card color="grey darken-3">
           <v-responsive :aspect-ratio="16/5" max-width="100%">
             <v-container fill-height>
@@ -51,16 +33,16 @@
         </v-card>
       </v-flex>
     </v-layout>
-    <v-layout row wrap>
-      <v-flex xs12 v-if="!setUp && !embedded">
+    <v-layout row wrap v-if="!setUp && !embedded">
+      <v-flex xs12>
         <p>To open a store, you must first set up your
           <router-link :to="{name: 'Settings', params: {tabName: 'payment', 'username': this.viewer.username, 'subTabName': 'disbursement'}}">
             payout settings.</router-link>
         </p>
       </v-flex>
     </v-layout>
-    <v-layout row wrap>
-      <v-flex xs12 v-if="isCurrent && setUp && embedded" text-xs-center>
+    <v-layout row wrap v-if="isCurrent && setUp && embedded">
+      <v-flex xs12 text-xs-center>
         <v-btn large color="primary" class="mx-0" @click="showNew = true">New Product</v-btn>
       </v-flex>
     </v-layout>
@@ -97,17 +79,18 @@
 <script>
   import Viewer from '../mixins/viewer'
   import Perms from '../mixins/permissions'
-  import Paginated from '../mixins/paginated'
   import AcProductPreview from './ac-product-preview'
   import AcFormContainer from './ac-form-container'
   import VueFormGenerator from 'vue-form-generator'
   import { ObserveVisibility } from 'vue-observe-visibility'
-  import {artCall, ratings, validateNonEmpty} from '../lib'
+  import {artCall, ratings, validateNonEmpty, EventBus} from '../lib'
   import AcFormDialog from './ac-form-dialog'
+  import AcProductList from './ac-product-list'
 
   export default {
     name: 'Store',
     components: {
+      AcProductList,
       AcFormDialog,
       AcProductPreview,
       AcFormContainer
@@ -115,14 +98,13 @@
     directives: {
       ObserveVisibility
     },
-    props: ['endpoint', 'embedded', 'grow', 'iFrame'],
-    mixins: [Viewer, Perms, Paginated],
+    props: ['endpoint', 'embedded', 'iFrame'],
+    mixins: [Viewer, Perms],
     data () {
       return {
         showNew: false,
-        url: this.endpoint,
         pricing: null,
-        growMode: this.grow,
+        productCount: null,
         newProdModel: {
           name: '',
           category: 0,
@@ -279,6 +261,10 @@
           {name: 'Product', params: {username: this.user.username, productID: response.id}, query: {editing: true}}
         )
       },
+      setCounter (counterData) {
+        if (counterData.name === 'productListCount')
+        this.productCount = counterData.count
+      },
       loadPricing (response) {
         this.pricing = response
       }
@@ -311,15 +297,9 @@
         return (parseFloat(standardFee) - parseFloat(landscapeFee)).toFixed(2)
       }
     },
-    watch: {
-      endpoint () {
-        this.url = this.endpoint
-        this.fetchItems()
-      }
-    },
     created () {
-      this.fetchItems()
       artCall('/api/sales/v1/pricing-info/', 'GET', undefined, this.loadPricing)
+      EventBus.$on('result-count', this.setCounter)
     }
   }
 </script>
