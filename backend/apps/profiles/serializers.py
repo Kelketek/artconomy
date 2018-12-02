@@ -227,7 +227,8 @@ class SettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         extra_kwargs = {
-            'bank_account_status': {'allow_null': True, 'required': False}
+            'bank_account_status': {'allow_null': True, 'required': False},
+            'sfw_mode': {'required': False}
         }
         fields = (
             'commissions_closed', 'rating', 'sfw_mode', 'max_load', 'favorites_hidden', 'taggable', 'commission_info',
