@@ -28,7 +28,7 @@
           />
         </v-layout>
         <div v-if="query.q.length === 0" class="text-xs-center pt-2">
-          <p>Enter tags to search for</p>
+          <p>Enter tags to search for, such as 'inks', 'color', 'shaded', 'digital', 'fullbody', or 'refsheet'.</p>
         </div>
         <v-expansion-panel v-model="showAdvanced">
           <v-expansion-panel-content>
@@ -55,7 +55,7 @@
           />
         </v-layout>
         <div v-if="query.q.length === 0" class="text-xs-center pt-2">
-          <p>Enter tags to search for</p>
+          <p>Enter tags to search for, like 'fox', 'pony', 'chibi', or 'refsheet'.</p>
         </div>
         <ac-asset-gallery ref="assetSearch" counter-name="assetCount" class="pt-2" endpoint="/api/profiles/v1/search/asset/" :query-data="query" />
       </v-tab-item>
@@ -72,7 +72,7 @@
           />
         </v-layout>
         <div v-if="query.q.length === 0" class="text-xs-center pt-2">
-          <p>Enter tags to search for in the search bar above</p>
+          <p>Enter tags to search for, like 'fox', 'wolf', 'human', 'male' or 'female'.</p>
         </div>
         <characters ref="characterSearch" counter-name="characterCount" class="pt-2" endpoint="/api/profiles/v1/search/character/" :query-data="query" />
       </v-tab-item>
@@ -89,7 +89,7 @@
           />
         </v-layout>
         <div v-if="query.q.length === 0" class="text-xs-center pt-2">
-          <p>Enter tags to search for</p>
+          <p>Enter a name to search for.</p>
         </div>
         <ac-user-gallery ref="profileSearch" counter-name="profileCount" class="pt-2" endpoint="/api/profiles/v1/search/user/" :query-data="query" />
       </v-tab-item>
