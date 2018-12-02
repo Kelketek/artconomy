@@ -266,3 +266,6 @@ blog
 
 # SSL Validation
 .well-known/*
+
+# Search index
+whoosh-index

@@ -48,6 +48,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_premailer',
+    'haystack',
+    'celery_haystack',
     'djcelery_email',
     'webpack_loader',
     'rest_framework',
@@ -387,3 +389,12 @@ ENV_NAME = ENV_TOKENS.get('ENV_NAME', 'dev')
 OTP_TOTP_ISSUER = ENV_TOKENS.get('OTP_TOTP_ISSUER', 'Artconomy')
 
 TEST_RUNNER = 'apps.lib.test_resources.NPMBuildTestRunner'
+
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
+        'PATH': os.path.join(BASE_DIR, 'whoosh_index'),
+    },
+}
+
+HAYSTACK_SIGNAL_PROCESSOR = 'celery_haystack.signals.CelerySignalProcessor'

@@ -46,6 +46,7 @@ urlpatterns = [
     path('v1/data/user/<username>/', UserInfo.as_view(), name='user_info'),
     path('v1/data/user/id/<int:user_id>/', UserInfoByID.as_view(), name='user_info'),
     path('v1/search/character/', CharacterSearch.as_view(), name='character_search'),
+    path('v1/search/character/indexed/', CharacterSearch.as_view(), name='indexed_character_search'),
     path('v1/search/user/', UserSearch.as_view(), name='character_search'),
     path('v1/search/tag/', TagSearch.as_view(), name='tag_search'),
     path('v1/search/asset/', AssetSearch.as_view(), name='asset_search'),

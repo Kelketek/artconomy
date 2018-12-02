@@ -2,7 +2,6 @@
   <v-card class="mt-3 elevation-5">
     <v-card-text>
     <v-card-title><strong><label :for="schema.id">{{schema.label}}</label></strong></v-card-title>
-      <p>{{schema.hint}}</p>
       <div class="upload text-xs-center" :class="{'error--text': errors.length}">
         <div v-if="value.length">
           <v-btn v-if="value.length" color="normal" @click="value = []">Reset</v-btn>
@@ -41,7 +40,7 @@
             Select file
           </file-upload>
         </div>
-        <div v-if="schema.hint" class="input-group__messages input-group__hint">{{hint}}</div>
+        <div v-if="schema.hint" class="input-group__messages input-group__hint">{{schema.hint}}</div>
         <div v-if="errors.length" class="input-group__messages input-group__error">{{errors.join(', ')}}</div>
       </div>
     </v-card-text>
