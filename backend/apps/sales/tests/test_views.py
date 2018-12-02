@@ -1354,7 +1354,9 @@ class TestOrderStateChange(APITestCase):
         characters = [
             CharacterFactory.create(user=self.buyer, name='Pictured', primary_asset=ImageAssetFactory.create()),
             CharacterFactory.create(user=self.buyer, private=True, name='Unpictured1', primary_asset=None),
-            CharacterFactory.create(user=self.buyer, open_requests=True, name='Unpictured2', primary_asset=None),
+            CharacterFactory.create(
+                user=UserFactory.create(), open_requests=True, name='Unpictured2', primary_asset=None
+            )
         ]
         self.order = OrderFactory.create(seller=self.user, buyer=self.buyer, price=Money('5.00', 'USD'))
         self.order.characters.add(*characters)
@@ -1456,7 +1458,7 @@ class TestOrderStateChange(APITestCase):
         self.assertEqual(asset.title, 'This is a test')
         self.assertEqual(asset.caption, 'A testy test')
         self.assertEqual(self.order.characters.get(name='Unpictured1').primary_asset, asset)
-        self.assertEqual(self.order.characters.get(name='Unpictured2').primary_asset, asset)
+        self.assertIsNone(self.order.characters.get(name='Unpictured2').primary_asset)
         self.assertNotEqual(self.order.characters.get(name='Pictured').primary_asset, asset)
 
     def test_publish_order_buyer_hidden(self):
