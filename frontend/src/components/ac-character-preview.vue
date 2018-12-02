@@ -4,6 +4,7 @@
       <router-link :to="{name: 'Character', params: {username: character.user.username, characterName: character.name}}">
         <v-img
             :contain="contain"
+            aspect-ratio="1"
             :src="$img(character.primary_asset, 'thumbnail')"
         >
             <ac-asset
