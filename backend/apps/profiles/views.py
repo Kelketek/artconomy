@@ -1406,6 +1406,7 @@ class JournalComments(ListCreateAPIView):
 @api_view(['POST'])
 def perform_logout(request):
     logout(request)
+    request.session.pop('rating', None)
     return Response(status=status.HTTP_200_OK, data=empty_user(request))
 
 
