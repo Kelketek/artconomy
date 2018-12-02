@@ -500,7 +500,7 @@ class AssetTagCharacter(APIView):
         # we end up doing it a lot.
         if 'characters' not in request.data:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'characters': ['This field is required.']})
-        id_list = request.data['characters']
+        id_list = request.data.getlist('characters')
         qs = Character.objects.filter(id__in=id_list, transfer__isnull=True)
         if (asset.owner == request.user) or request.user.is_staff:
             asset.characters.remove(*qs)
@@ -524,8 +524,7 @@ class AssetTagCharacter(APIView):
         asset.characters.remove(*qs)
         return Response(
             status=status.HTTP_200_OK, data=ImageAssetManagementSerializer(
-                instance=asset, request=request,
-                context={'request': self.request}
+                instance=asset, context={'request': self.request}
             ).data
         )
 
