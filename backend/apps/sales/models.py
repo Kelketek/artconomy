@@ -74,6 +74,7 @@ class Product(ImageModel):
     shippable = BooleanField(default=False)
     active = BooleanField(default=True, db_index=True)
     available = BooleanField(default=True, db_index=True)
+    featured = BooleanField(default=False, db_index=True)
     revisions = IntegerField(validators=[MinValueValidator(0), MaxValueValidator(10)])
     max_parallel = IntegerField(
         validators=[MinValueValidator(0)], help_text="How many of these you are willing to have in your "

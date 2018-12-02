@@ -8,7 +8,7 @@
     </v-layout>
     <v-layout row wrap>
       <v-flex xs12 text-xs-center v-if="show">
-        <v-pagination :id="scrollToId" v-model="currentPage" :length="totalPages" v-if="totalPages > 1 && !noPagination" :total-visible="5" />
+        <v-pagination :id="scrollToId" v-model="currentPage" :length="totalPages" v-if="totalPages > 1 && !noPagination" :total-visible="10" />
       </v-flex>
       <ac-gallery-preview
           :asset="asset"
@@ -17,7 +17,7 @@
           xs12 sm4 lg3
       />
       <v-flex xs12 text-xs-center v-if="show">
-        <v-pagination v-model="currentPage" :length="totalPages" v-if="totalPages > 1 && !noPagination" @input="performScroll" :total-visible="5" />
+        <v-pagination v-model="currentPage" :length="totalPages" v-if="totalPages > 1 && !noPagination" @input="performScroll" :total-visible="10" />
       </v-flex>
       <v-flex v-if="noPagination && to && currentPage !== totalPages" xs12 text-xs-center>
         <v-btn color="primary" :to="to">{{seeMoreText}}</v-btn>
