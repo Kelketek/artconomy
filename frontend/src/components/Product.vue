@@ -327,6 +327,7 @@
               id: 'preview',
               label: 'Replace Preview Image/Thumbnail',
               model: 'preview',
+              hint: 'Should be a square image. We recommend a size not smaller than 300x300 pixels.',
               required: false
             }]
         },
