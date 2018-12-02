@@ -861,6 +861,18 @@ class TestTagCharacter(APITestCase):
         self.assertEqual(asset.characters.all().count(), 1)
         self.assertEqual(asset.characters.all()[0], character)
 
+    def test_delete_tag(self):
+        self.login(self.user)
+        character = CharacterFactory.create(name='Gooby', user=self.user)
+        asset = ImageAssetFactory.create()
+        asset.characters.add(character)
+        response = self.client.delete(
+            '/api/profiles/v1/asset/{}/tag-characters/'.format(asset.id),
+            {'characters': [character.id]}
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(asset.characters.all().count(), 0)
+
 
 class TestShareCharacter(APITestCase):
     def test_logged_in(self):
