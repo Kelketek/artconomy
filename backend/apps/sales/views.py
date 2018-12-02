@@ -546,7 +546,7 @@ class PublishFinal(GenericAPIView):
         )
         if not order.private:
             for character in order.characters.all():
-                if not character.primary_asset:
+                if not character.primary_asset and character.user == order.buyer:
                     character.primary_asset = submission
                     character.save()
         return Response(
