@@ -1,3 +1,4 @@
+import $ from 'jquery'
 import deepEqual from 'deep-equal'
 import { artCall, buildQueryString, EventBus } from '../lib'
 // For use with paginated Django views.
@@ -37,12 +38,12 @@ export default {
   },
   methods: {
     genId () {
-        let text = '';
-        let possible = 'abcdefghijklmnopqrstuvwxyz';
-        for (let i = 0; i < 20; i++) {
-          text += possible.charAt(Math.floor(Math.random() * possible.length));
-        }
-        return 'scroll-' + text;
+      let text = '';
+      let possible = 'abcdefghijklmnopqrstuvwxyz';
+      for (let i = 0; i < 20; i++) {
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+      }
+      return 'scroll-' + text;
     },
     linkGen (pageNum) {
       let query = JSON.parse(JSON.stringify(this.queryData))
@@ -56,7 +57,7 @@ export default {
       this.fetchItems()
     },
     performScroll () {
-      this.$vuetify.goTo('#' + this.scrollToId, {offset: -100})
+      this.$vuetify.goTo('#' + this.scrollToId, { offset: -100 })
     },
     loadMore () {
       if (this.currentPage >= this.totalPages) {
@@ -89,7 +90,7 @@ export default {
       if (this.growing.length === 0 && ((this.queryData.q && this.queryData.q.length) || this.showError)) {
         this.error = this.emptyError
       }
-      EventBus.$emit('result-count', {name: this.counterName, count: this.count})
+      EventBus.$emit('result-count',{ name: this.counterName, count: this.count })
     },
     populateError (response) {
       this.promise = null
@@ -116,9 +117,9 @@ export default {
       this.promise = artCall(url, 'GET', undefined, this.populateResponse, this.populateError)
     },
     setPageQuery (value) {
-      let newQuery = {...this.$route.query}
+      let newQuery = { ...this.$route.query }
       newQuery['page'] = value
-      let newRoute = {...this.$route}
+      let newRoute = { ...this.$route }
       newRoute.query = newQuery
       this.$router.history.replace(newRoute)
     },
@@ -167,6 +168,24 @@ export default {
         this.restart()
         this.oldQueryData = JSON.parse(JSON.stringify(newValue))
       }
+    }
+  },
+  updated () {
+    let crawler = /bot|google|baidu|bing|msn|duckduckbot|teoma|slurp|yandex|Prerender/i
+      .test(navigator.userAgent)
+    crawler = crawler || this.$route.query._escaped_fragment_
+    let self = this
+    if (crawler) {
+      $('.v-pagination__item').each((index, elem) => {
+        let item = $(elem)
+        let num = item.text()
+        let newQuery = { ...self.$route.query }
+        newQuery['page'] = num
+        let newRoute = { ...self.$route }
+        newRoute.query = newQuery
+        let url = self.$router.resolve(newRoute).href
+        item.wrap(`<a href="${url}"></a>`)
+      })
     }
   },
   created () {
