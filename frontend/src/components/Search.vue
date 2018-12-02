@@ -165,6 +165,13 @@
             }, {
               type: 'v-checkbox',
               styleClasses: ['vue-checkbox'],
+              label: 'Only Featured Products',
+              model: 'by_rating',
+              required: false,
+              hint: "If checked, only shows featured products."
+            }, {
+              type: 'v-checkbox',
+              styleClasses: ['vue-checkbox'],
               label: 'Shield only',
               model: 'shield_only',
               required: false,
@@ -241,6 +248,7 @@
     },
     created () {
       this.productModel.shield_only = queryVal(this, 'shield_only', false)
+      this.productModel.featured = queryVal(this, 'featured', false)
       this.productModel.by_rating = queryVal(this, 'by_rating', false)
       this.productModel.min_price = queryVal(this, 'min_price', null)
       this.productModel.max_price = queryVal(this, 'max_price', null)
