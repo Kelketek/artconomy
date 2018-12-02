@@ -410,14 +410,6 @@
               hideNoneSelectedText: true
             },
             values: ratings
-          }, {
-            type: 'v-checkbox',
-            styleClasses: ['vue-checkbox'],
-            label: 'Safe For Work Mode',
-            model: 'sfw_mode',
-            required: false,
-            validator: VueFormGenerator.validators.boolean,
-            hint: 'When enabled, ignores the rating setting and only allows content marked for general audiences to be displayed.'
           }]
         },
         settingsOptions: {
