@@ -2,6 +2,7 @@
   <v-card class="mt-3 elevation-5">
     <v-card-text>
     <v-card-title><strong><label :for="schema.id">{{schema.label}}</label></strong></v-card-title>
+      <p>{{schema.hint}}</p>
       <div class="upload text-xs-center" :class="{'error--text': errors.length}">
         <div v-if="value.length">
           <v-btn v-if="value.length" color="normal" @click="value = []">Reset</v-btn>
