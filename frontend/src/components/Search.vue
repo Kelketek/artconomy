@@ -189,7 +189,7 @@
       },
       queryUpdate: debounce(function () {
         this.query = {
-          q: this.$route.query['q'] || [],
+          q: this.$route.query['q'] || '',
           max_price: this.productModel.max_price || [],
           min_price: this.productModel.min_price || [],
           shield_only: this.productModel.shield_only || [],
@@ -218,7 +218,11 @@
     computed: {
       queryField: {
         get () {
-          return this.$route.query['q'] || ''
+          let base = this.$route.query['q'] || []
+          for (let val of base) {
+            val = val.replace(/[\W_]+/g, '')
+          }
+          return base.join(' ')
         },
         set (value) {
           let queryData = value.split(' ')

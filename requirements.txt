@@ -4,11 +4,13 @@ authorizesauce==0.5.0
 bok_choy==0.8.0
 bs4==0.0.1
 celery==4.2.0
+celery-haystack==0.10
 ddt==1.1.1
 Django>=2.0.6,<2.1.0
 django-avatar==4.1.0
 django-otp==0.4.3
 django-celery-email==2.0.0
+django-haystack==2.8.1
 django-ipware==2.0.1
 djangorestframework==3.7.7
 djangorestframework-bulk==0.2.1
@@ -16,6 +18,7 @@ django-rest-recaptcha==1.0.1
 django_money==0.14
 django-premailer==0.2.0
 django-custom-user==0.7
+drf-haystack==1.8.4
 dwollav2==1.2.4
 easy_thumbnails==2.5
 factory_boy==2.8.1
@@ -32,3 +35,4 @@ requests==2.20.0
 selenium-requests==1.3
 luhn==0.2.0
 django-webpack-loader>=0.5.0
+whoosh==2.7.4

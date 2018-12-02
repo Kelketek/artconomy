@@ -17,6 +17,8 @@ from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django_otp import user_has_device, match_token, login as otp_login, devices_for_user
 from django_otp.plugins.otp_totp.models import TOTPDevice
+from haystack.inputs import AutoQuery
+from haystack.query import SearchQuerySet
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.exceptions import ValidationError, PermissionDenied
@@ -436,6 +438,17 @@ class CharacterSearch(ListAPIView):
             )
         q = Q(name__istartswith=query) | Q(tags__name__iexact=query)
         return Character.objects.filter(q).exclude(private=True).exclude(taggable=False).distinct().order_by('id')
+
+
+class CharacterSearchIndexed(ListAPIView):
+    """
+    Indexed search for the more general case of searching blind, like in the top search bar.
+    """
+    serializer_class = CharacterSerializer
+
+    def get_queryset(self):
+        query = self.request.GET.get('q', '')
+        return SearchQuerySet.models(Character).filter(content=AutoQuery(query))
 
 
 class UserSearch(ListAPIView):
