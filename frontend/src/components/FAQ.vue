@@ -893,6 +893,11 @@
   const other = [
     'content-ratings', 'blacklist', 'watching', 'blocking'
   ]
+  const tabMap = {
+    'tab-about': 'aboutTab',
+    'tab-buying-and-selling': 'buySellTab',
+    'tab-other': 'otherTab'
+  }
 
   export default {
     name: 'FAQ',
@@ -905,6 +910,13 @@
       return {
         pricing: null
       }
+    },
+    mounted () {
+      let index = this[tabMap[this.tab]] + 1
+      let selector = `#${this.tab} > ul > li:nth-child(${index})`
+      this.$nextTick(() => {
+        this.$vuetify.goTo(selector)
+      })
     },
     computed: {
       tab: paramHandleMap('tabName', ['subTabName']),
