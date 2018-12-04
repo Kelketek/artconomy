@@ -27,6 +27,17 @@
         <v-layout row wrap>
           <v-flex xs12 md6 lg4 class="text-xs-center pr-1 pl-2 pt-1">
             <ac-asset :asset="product" thumb-name="preview" img-class="bound-image" />
+            <div v-if="product.featured && !(editing && viewer.is_staff)">
+              <router-link :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'featured-products'}}">
+                <p><v-icon>star</v-icon>Featured Product!</p>
+              </router-link>
+            </div>
+            <div v-else-if="editing && viewer.is_staff">
+              <ac-action :url="`${this.url}feature/`" :success="setProduct">
+                <span v-if="product.featured"><v-icon>star_outline</v-icon>&nbsp;Stop Featuring</span>
+                <span v-else><v-icon>star</v-icon>&nbsp;Feature</span>
+              </ac-action>
+            </div>
           </v-flex>
           <v-flex xs12 md5 class="pt-3 pl-2">
             <h1><ac-patchfield v-model="product.name" name="name" :editmode="editing" styleclass="h1" :url="url" /> <v-icon v-if="product.hidden">visibility_off</v-icon></h1>
@@ -273,6 +284,9 @@
         this.$router.history.push(
           {name: 'Order', params: {username: response.buyer.username, orderID: response.id}, query: {editing: true}}
         )
+      },
+      refreshProduct () {
+        artCall(this.url, 'GET', this.$route.query, this.setProduct, this.$error)
       }
     },
     computed: {
@@ -458,7 +472,7 @@
       }
     },
     created () {
-      artCall(this.url, 'GET', this.$route.query, this.setProduct, this.$error)
+      this.refreshProduct()
     }
   }
 </script>
