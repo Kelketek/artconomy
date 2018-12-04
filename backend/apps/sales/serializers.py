@@ -28,9 +28,10 @@ class ProductSerializer(serializers.ModelSerializer):
         model = Product
         fields = (
             'id', 'name', 'description', 'revisions', 'hidden', 'max_parallel', 'task_weight',
-            'expected_turnaround', 'user', 'file', 'rating', 'price', 'tags', 'preview', 'available'
+            'expected_turnaround', 'user', 'file', 'rating', 'price', 'tags', 'preview', 'available',
+            'featured'
         )
-        read_only_fields = ('tags',)
+        read_only_fields = ('tags', 'featured')
 
 
 class ProductNewOrderSerializer(serializers.ModelSerializer):

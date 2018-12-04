@@ -1520,3 +1520,15 @@ class CommissionStatusImage(View):
             return serve(request, '/images/commissions-closed.png', document_root=settings.STATIC_ROOT)
         else:
             return serve(request, '/images/commissions-open.png', document_root=settings.STATIC_ROOT)
+
+
+class FeatureProduct(APIView):
+    permission_classes = [IsStaff]
+
+    def post(self, request, username, product):
+        product = get_object_or_404(Product, id=product, user__username=username)
+        product.featured = not product.featured
+        product.save()
+        return Response(
+            status=status.HTTP_200_OK, data=ProductSerializer(instance=product, context={'request': request}).data
+        )

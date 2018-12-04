@@ -2,16 +2,18 @@
 """
 from django.urls import path
 
-from apps.sales.views import ProductList, ProductManager, PlaceOrder, \
-    OrderRetrieve, OrderAccept, OrderCancel, CurrentOrderList, CurrentSalesList, OrderComments, CardList, CardManager, \
-    MakePrimary, AdjustOrder, MakePayment, OrderRevisions, DeleteOrderRevision, OrderStart, ApproveFinal, \
-    ArchivedOrderList, CancelledOrderList, ArchivedSalesList, CancelledSalesList, ProductExamples, StartDispute, \
-    OrderRefund, ClaimDispute, CurrentCasesList, ArchivedCasesList, CancelledCasesList, AccountBalance, \
-    BankAccounts, ProductTag, ProductSearch, PerformWithdraw, BankManager, PurchaseHistory, EscrowHistory, \
-    AvailableHistory, CreateCharacterTransfer, RetrieveCharacterTransfer, CharacterTransferAssets, AcceptCharTransfer, \
-    CancelCharTransfer, CharactersInbound, CharactersOutbound, CharactersArchive, NewProducts, WhoIsOpen, \
-    CurrentPlaceholderSalesList, PlaceholderManager, SalesStats, PublishFinal, RateOrder, RatingList, PremiumInfo, \
-    Premium, CancelPremium, ProductOrderTokens, OrderTokenManager, MarkPaid, CommissionStatusImage
+from apps.sales.views import (
+    ProductList, ProductManager, PlaceOrder,
+    OrderRetrieve, OrderAccept, OrderCancel, CurrentOrderList, CurrentSalesList, OrderComments, CardList, CardManager,
+    MakePrimary, AdjustOrder, MakePayment, OrderRevisions, DeleteOrderRevision, OrderStart, ApproveFinal,
+    ArchivedOrderList, CancelledOrderList, ArchivedSalesList, CancelledSalesList, ProductExamples, StartDispute,
+    OrderRefund, ClaimDispute, CurrentCasesList, ArchivedCasesList, CancelledCasesList, AccountBalance,
+    BankAccounts, ProductTag, ProductSearch, PerformWithdraw, BankManager, PurchaseHistory, EscrowHistory,
+    AvailableHistory, CreateCharacterTransfer, RetrieveCharacterTransfer, CharacterTransferAssets, AcceptCharTransfer,
+    CancelCharTransfer, CharactersInbound, CharactersOutbound, CharactersArchive, NewProducts, WhoIsOpen,
+    CurrentPlaceholderSalesList, PlaceholderManager, SalesStats, PublishFinal, RateOrder, RatingList, PremiumInfo,
+    Premium, CancelPremium, ProductOrderTokens, OrderTokenManager, MarkPaid, CommissionStatusImage, FeatureProduct
+)
 
 app_name = 'sales'
 
@@ -55,6 +57,7 @@ urlpatterns = [
         name='order_token_manager'
     ),
     path('v1/account/<username>/products/<int:product>/tag/', ProductTag.as_view(), name='product_tag'),
+    path('v1/account/<username>/products/<int:product>/feature/', FeatureProduct.as_view(), name='feature_product'),
     path(
         'v1/account/<username>/products/<int:product>/examples/',
         ProductExamples.as_view(),

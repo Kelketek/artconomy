@@ -599,6 +599,29 @@
             </v-card>
           </v-expansion-panel-content>
           <v-expansion-panel-content>
+            <div slot="header"><strong>What are Featured Products?</strong></div>
+            <v-card>
+              <v-card-text>
+                <p>
+                  Featured products are products hand-curated by Artconomy staff.
+                  Several criteria are used to determine whether a product is featured,
+                  <em>some of which are subjective and up to staff judgement.</em>
+                  These include (but are not limited to):
+                </p>
+                <ul>
+                  <li>Quality of the work Offered</li>
+                  <li>Ratings and feedback from commissioners who have worked with the artist</li>
+                  <li>Value for price</li>
+                  <li>Shield Capability (Not required, but it helps!)</li>
+                </ul>
+                <p>
+                  Featured products may change and are rotated on the front page at random. If you believe there is a
+                  product that should be considered for featured status, please contact support@artconomy.com.
+                </p>
+              </v-card-text>
+            </v-card>
+          </v-expansion-panel-content>
+          <v-expansion-panel-content>
             <div slot="header"><strong>Is Artconomy Secure?</strong></div>
             <v-card>
               <v-card-text>
@@ -621,6 +644,11 @@
                   probability of SQL injections and makes use of anti-clickjacking technology.
                 </p>
                 <p>
+                  For especially sensitive data that must be stored on our servers (such as tax ID information), we use
+                  encryption with offline, cold stored, secured keys, which are used only as long as explicit operations
+                  by our executive technical staff require.
+                </p>
+                <p>
                   These are only some of the things we do to keep your data safe, and we continue to keep security in
                   mind when developing our products. You are always advised to use
                   <router-link
@@ -632,7 +660,7 @@
                   </span>
                   for extra security, Especially if you are an artist!
                 </p>
-                <p>Do not share your account password with anyone. Artconomy staff will never ask for your password.</p>
+                <p>Do not share your account password with anyone. Artconomy staff will <em><strong>never</strong></em> ask for your password.</p>
               </v-card-text>
             </v-card>
           </v-expansion-panel-content>
@@ -886,7 +914,7 @@
     'bank-accounts',
     'awoo-workload-management', 'placeholder-orders', 'order-tokens',
     'why-commissions-disabled',
-    'why-not-paypal', 'patreon-comparison', 'security',
+    'why-not-paypal', 'patreon-comparison', 'featured-products', 'security',
     'payouts', 'crypto-currencies', 'character-transfer',
     'auctions', 'physical-goods'
   ]
