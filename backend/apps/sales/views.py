@@ -1559,9 +1559,10 @@ class NewArtistProducts(ListAPIView):
     serializer_class = ProductSerializer
 
     def get_queryset(self):
-        return Product.objects.all().annotate(
-            completed_orders=Count('order', filter=Q(order__status=Order.COMPLETED))
-        ).filter(completed_orders=0, available=True).order_by('?')
+        # Can't directly do order_by on this QS because the ORM breaks grouping by placing it before the annotation.
+        return Product.objects.filter(id__in=Product.objects.all().annotate(
+            completed_orders=Count('user__sales', filter=Q(user__sales__status=Order.COMPLETED))
+        ).filter(completed_orders=0, available=True)).order_by('?')
 
 
 class RandomProducts(ListAPIView):
