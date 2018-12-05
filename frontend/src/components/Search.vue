@@ -125,6 +125,7 @@
         productModel: {
           shield_only: false,
           by_rating: false,
+          featured: false,
           min_price: null,
           max_price: null,
           watchlist_only: false
@@ -166,7 +167,7 @@
               type: 'v-checkbox',
               styleClasses: ['vue-checkbox'],
               label: 'Only Featured Products',
-              model: 'by_rating',
+              model: 'featured',
               required: false,
               hint: "If checked, only shows featured products."
             }, {
@@ -199,6 +200,7 @@
           q: this.$route.query['q'] || '',
           max_price: this.productModel.max_price || [],
           min_price: this.productModel.min_price || [],
+          featured: this.productModel.featured || [],
           shield_only: this.productModel.shield_only || [],
           by_rating: this.productModel.by_rating || [],
           watchlist_only: this.productModel.watchlist_only || []
@@ -208,6 +210,7 @@
     watch: {
       'productModel.shield_only': querySyncer('shield_only'),
       'productModel.by_rating': querySyncer('by_rating'),
+      'productModel.featured': querySyncer('featured'),
       'productModel.max_price': querySyncer('max_price'),
       'productModel.min_price': querySyncer('min_price'),
       'productModel.watchlist_only': querySyncer('watchlist_only'),
