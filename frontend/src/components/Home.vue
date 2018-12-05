@@ -99,7 +99,7 @@
         <p>These artists have recently listed with Artconomy and you could be the first to commission them!</p>
       </v-flex>
     </v-layout>
-    <ac-product-list class="pt-0" endpoint="/api/sales/v1/low-price/" :limit="4" :no-pagination="true" />
+    <ac-product-list class="pt-0" endpoint="/api/sales/v1/new-artist-products/" :limit="4" :no-pagination="true" />
     <v-card>
       <v-layout row wrap>
         <v-flex xs12 class="pl-2">
