@@ -1552,7 +1552,7 @@ class HighlyRatedProducts(ListAPIView):
     serializer_class = ProductSerializer
 
     def get_queryset(self):
-        return Product.objects.filter(user__rating__gte=4.5, available=True).exclude(featured=True).order_by('?')
+        return Product.objects.filter(user__stars__gte=4.5, available=True).exclude(featured=True).order_by('?')
 
 
 class NewArtistProducts(ListAPIView):
