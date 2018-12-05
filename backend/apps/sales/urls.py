@@ -12,13 +12,23 @@ from apps.sales.views import (
     AvailableHistory, CreateCharacterTransfer, RetrieveCharacterTransfer, CharacterTransferAssets, AcceptCharTransfer,
     CancelCharTransfer, CharactersInbound, CharactersOutbound, CharactersArchive, NewProducts, WhoIsOpen,
     CurrentPlaceholderSalesList, PlaceholderManager, SalesStats, PublishFinal, RateOrder, RatingList, PremiumInfo,
-    Premium, CancelPremium, ProductOrderTokens, OrderTokenManager, MarkPaid, CommissionStatusImage, FeatureProduct
+    Premium, CancelPremium, ProductOrderTokens, OrderTokenManager, MarkPaid, CommissionStatusImage, FeatureProduct,
+    FeaturedProducts,
+    LowPriceProducts,
+    HighlyRatedProducts,
+    NewArtistProducts,
+    RandomProducts
 )
 
 app_name = 'sales'
 
 urlpatterns = [
     path('v1/new-products/', NewProducts.as_view(), name='new_products'),
+    path('v1/featured-products/', FeaturedProducts.as_view(), name='new_products'),
+    path('v1/highly-rated/', HighlyRatedProducts.as_view(), name='highly_rated'),
+    path('v1/low-price/', LowPriceProducts.as_view(), name='low_price_products'),
+    path('v1/new-artist-products/', NewArtistProducts.as_view(), name='new_artist_products'),
+    path('v1/random/', RandomProducts.as_view(), name='new_artist_products'),
     path('v1/who-is-open/', WhoIsOpen.as_view(), name='who_is_open'),
     path('v1/pricing-info/', PremiumInfo.as_view(), name='pricing_info'),
     path('v1/premium/', Premium.as_view(), name='premium'),

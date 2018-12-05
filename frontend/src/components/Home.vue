@@ -6,8 +6,8 @@
           <v-container fluid fill-height>
             <v-layout align-center row wrap>
               <v-flex xs12 md10 offset-md1>
-                <h1>Bring your characters to life</h1>
-                <h2>by commissioning artists</h2>
+                <h1>Easy Online Commissioning</h1>
+                <h2>Hire an artist with confidence!</h2>
                 <v-btn color="primary" class="mt-2" :to="{name: 'Login', params: {tabName: 'register'}}">Get Started</v-btn>
                 or
                 <v-btn color="purple" class="mt-2" @click="$vuetify.goTo('#intro-start', {offset: -60})">Learn More</v-btn>
@@ -36,33 +36,103 @@
     <v-card>
       <v-layout row wrap>
         <v-flex xs12 class="pl-2">
+          <h2>Featured Products</h2>
+        </v-flex>
+      </v-layout>
+    </v-card>
+    <v-layout row wrap class="pt-1">
+      <v-flex>
+        <p>A selection of hot products curated by Artconomy Staff</p>
+      </v-flex>
+    </v-layout>
+    <ac-product-list class="pt-0" endpoint="/api/sales/v1/featured-products/" :limit="4" :no-pagination="true" />
+    <v-layout row wrap>
+      <v-flex xs12 text-xs-center>
+        <v-btn :to="{name: 'Search', params: {tabName: 'products'}, query: {featured: true}}" color="primary">See all featured products</v-btn>
+      </v-flex>
+    </v-layout>
+    <v-card>
+      <v-layout row wrap>
+        <v-flex xs12 class="pl-2">
+          <h2>Highly Rated Products</h2>
+        </v-flex>
+      </v-layout>
+    </v-card>
+    <v-layout row wrap class="pt-1">
+      <v-flex>
+        <p>Products by artists given high ratings by previous commissioners</p>
+      </v-flex>
+    </v-layout>
+    <ac-product-list class="pt-0" endpoint="/api/sales/v1/highly-rated/" :limit="4" :no-pagination="true" />
+    <v-layout row wrap>
+      <v-flex xs12 text-xs-center>
+        <v-btn :to="{name: 'Search', params: {tabName: 'products'}, query: {by_rating: true}}" color="primary">See more products by rating</v-btn>
+      </v-flex>
+    </v-layout>
+    <v-card>
+      <v-layout row wrap>
+        <v-flex xs12 class="pl-2">
+          <h2>Low Priced Products</h2>
+        </v-flex>
+      </v-layout>
+    </v-card>
+    <v-layout row wrap class="pt-1">
+      <v-flex>
+        <p>Looking for a great deal? Check out these low-priced offerings from our artists, $30 or less!</p>
+      </v-flex>
+    </v-layout>
+    <ac-product-list class="pt-0" endpoint="/api/sales/v1/low-price/" :limit="4" :no-pagination="true" />
+    <v-layout row wrap>
+      <v-flex xs12 text-xs-center>
+        <v-btn :to="{name: 'Search', params: {tabName: 'products'}, query: {max_price: '30.00'}}" color="primary">See more low priced products</v-btn>
+      </v-flex>
+    </v-layout>
+    <v-card>
+      <v-layout row wrap>
+        <v-flex xs12 class="pl-2">
+          <h2>New Artists</h2>
+        </v-flex>
+      </v-layout>
+    </v-card>
+    <v-layout row wrap class="pt-1">
+      <v-flex>
+        <p>These artists have recently listed with Artconomy and you could be the first to commission them!</p>
+      </v-flex>
+    </v-layout>
+    <ac-product-list class="pt-0" endpoint="/api/sales/v1/low-price/" :limit="4" :no-pagination="true" />
+    <v-card>
+      <v-layout row wrap>
+        <v-flex xs12 class="pl-2">
+          <h2>Random Products</h2>
+        </v-flex>
+      </v-layout>
+    </v-card>
+    <v-layout row wrap class="pt-1">
+      <v-flex>
+        <p>Feeling lucky? Here's a random selection of products that might catch your fancy!</p>
+      </v-flex>
+    </v-layout>
+    <ac-product-list class="pt-0" endpoint="/api/sales/v1/random/" :limit="4" :no-pagination="true" />
+    <v-layout row wrap>
+      <v-flex xs12 text-xs-center>
+        <v-btn :to="{name: 'Search', params: {tabName: 'products'}}" color="primary">Search All Products</v-btn>
+      </v-flex>
+    </v-layout>
+    <v-card>
+      <v-layout row wrap>
+        <v-flex xs12 class="pl-2">
           <h2>Recent Commissions</h2>
         </v-flex>
       </v-layout>
     </v-card>
+    <v-layout row wrap class="pt-1">
+      <v-flex>
+        <p>Check out pieces completed by artists on Artconomy!</p>
+      </v-flex>
+    </v-layout>
     <ac-asset-gallery
         endpoint="/api/profiles/v1/recent-commissions/" :limit="4" :no-pagination="true"
-        :to="{name: 'RecentArt', params: {tabName: 'all'}}"
-        see-more-text="See more art!"
     />
-    <v-card>
-      <v-layout row wrap>
-        <v-flex xs12 class="pl-2">
-          <h2>New Products</h2>
-        </v-flex>
-      </v-layout>
-    </v-card>
-    <v-layout row wrap>
-      <v-flex xs12 text-xs-center>
-        <v-btn color="primary" :to="{name: 'Search', params: {tabName: 'products'}}">Search Products</v-btn>
-      </v-flex>
-    </v-layout>
-    <ac-product-list class="pt-2" endpoint="/api/sales/v1/new-products/" :limit="20" :no-pagination="true" />
-    <v-layout row wrap>
-      <v-flex xs12 text-xs-center>
-        <v-btn :to="{name: 'WhoIsOpen', params: {tabName: 'all'}}" color="primary">See more products</v-btn>
-      </v-flex>
-    </v-layout>
     <v-card>
       <v-layout row wrap>
         <v-flex xs12 class="pl-2">
@@ -70,6 +140,11 @@
         </v-flex>
       </v-layout>
     </v-card>
+    <v-layout row wrap class="pt-1">
+      <v-flex>
+        <p>Art uploaded by our users to their personal galleries</p>
+      </v-flex>
+    </v-layout>
     <ac-asset-gallery
         endpoint="/api/profiles/v1/recent-submissions/" :limit="8" :no-pagination="true"
         :to="{name: 'RecentArt', params: {tabName: 'all'}}"

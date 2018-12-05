@@ -6,7 +6,7 @@ from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.views.static import serve
 from django.core.files.base import ContentFile
-from django.db.models import When, F, Case, BooleanField, Q
+from django.db.models import When, F, Case, BooleanField, Q, Count
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
@@ -1532,3 +1532,40 @@ class FeatureProduct(APIView):
         return Response(
             status=status.HTTP_200_OK, data=ProductSerializer(instance=product, context={'request': request}).data
         )
+
+
+class FeaturedProducts(ListAPIView):
+    serializer_class = ProductSerializer
+
+    def get_queryset(self):
+        return Product.objects.filter(featured=True, available=True).order_by('?')
+
+
+class LowPriceProducts(ListAPIView):
+    serializer_class = ProductSerializer
+
+    def get_queryset(self):
+        return Product.objects.filter(price__lte=Decimal('30'), available=True).exclude(featured=True).order_by('?')
+
+
+class HighlyRatedProducts(ListAPIView):
+    serializer_class = ProductSerializer
+
+    def get_queryset(self):
+        return Product.objects.filter(user__rating__gte=4.5, available=True).exclude(featured=True).order_by('?')
+
+
+class NewArtistProducts(ListAPIView):
+    serializer_class = ProductSerializer
+
+    def get_queryset(self):
+        return Product.objects.all().annotate(
+            completed_orders=Count('order', filter=Q(order__status=Order.COMPLETED))
+        ).filter(completed_orders=0, available=True).order_by('?')
+
+
+class RandomProducts(ListAPIView):
+    serializer_class = ProductSerializer
+
+    def get_queryset(self):
+        return Product.objects.filter(featured=False, available=True).order_by('?')
