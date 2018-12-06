@@ -24,7 +24,10 @@
                 </v-list-tile-avatar>
                 <v-list-tile-content>
                   <v-list-tile-title>Subject: {{message.subject}}</v-list-tile-title>
-                  <v-list-tile-sub-title>
+                  <v-list-tile-sub-title v-if="isSender">
+                    To {{recipients(message) }} On {{formatDateTime(message.created_on)}}
+                  </v-list-tile-sub-title>
+                  <v-list-tile-sub-title v-else>
                     From {{message.sender.username }} On {{formatDateTime(message.created_on)}}
                   </v-list-tile-sub-title>
                 </v-list-tile-content>
@@ -51,7 +54,7 @@
     name: 'ac-message-list',
     components: {AcAvatar},
     mixins: [Paginated, Viewer, Perms],
-    props: ['endpoint'],
+    props: ['endpoint', 'isSender'],
     data () {
       return {url: this.endpoint}
     },
@@ -60,6 +63,9 @@
         if (isVisible) {
           this.loadMore()
         }
+      },
+      recipients (message) {
+        return message.recipients.map((x) => {return x.username}).join(', ')
       },
       formatDateTime: formatDateTime
     },
