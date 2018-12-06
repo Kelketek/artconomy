@@ -40,7 +40,16 @@
             </v-card>
           </v-expansion-panel-content>
         </v-expansion-panel>
-        <ac-product-list ref="productSearch" class="pt-2" counter-name="productCount" endpoint="/api/sales/v1/search/product/" :query-data="query" />
+        <ac-product-list
+            ref="productSearch"
+            class="pt-2"
+            counter-name="productCount"
+            endpoint="/api/sales/v1/search/product/"
+            :tab-shown="shownTab('tab-products')"
+            :current-tab="tab"
+            :track-pages="true"
+            tab-name="tab-products"
+            :query-data="query" />
       </v-tab-item>
       <v-tab-item id="tab-assets">
         <v-layout justify-center>
@@ -57,7 +66,16 @@
         <div v-if="query.q.length === 0" class="text-xs-center pt-2">
           <p>Enter tags to search for, like 'fox', 'pony', 'chibi', or 'refsheet'.</p>
         </div>
-        <ac-asset-gallery ref="assetSearch" counter-name="assetCount" class="pt-2" endpoint="/api/profiles/v1/search/asset/" :query-data="query" />
+        <ac-asset-gallery
+            ref="assetSearch"
+            counter-name="assetCount"
+            class="pt-2"
+            endpoint="/api/profiles/v1/search/asset/"
+            :tab-shown="shownTab('tab-assets')"
+            tab-name="tab-assets"
+            :track-pages="true"
+            :query-data="query"
+        />
       </v-tab-item>
       <v-tab-item id="tab-characters">
         <v-layout row justify-center>
@@ -74,7 +92,16 @@
         <div v-if="query.q.length === 0" class="text-xs-center pt-2">
           <p>Enter tags to search for, like 'fox', 'wolf', 'human', 'male' or 'female'.</p>
         </div>
-        <characters ref="characterSearch" counter-name="characterCount" class="pt-2" endpoint="/api/profiles/v1/search/character/" :query-data="query" />
+        <characters
+            ref="characterSearch"
+            counter-name="characterCount"
+            class="pt-2"
+            endpoint="/api/profiles/v1/search/character/"
+            :tab-shown="shownTab('tab-characters')"
+            tab-name="tab-characters"
+            :track-pages="true"
+            :query-data="query"
+        />
       </v-tab-item>
       <v-tab-item id="tab-profiles">
         <v-layout row justify-center>
@@ -91,7 +118,16 @@
         <div v-if="query.q.length === 0" class="text-xs-center pt-2">
           <p>Enter a name to search for.</p>
         </div>
-        <ac-user-gallery ref="profileSearch" counter-name="profileCount" class="pt-2" endpoint="/api/profiles/v1/search/user/" :query-data="query" />
+        <ac-user-gallery
+            ref="profileSearch"
+            counter-name="profileCount"
+            class="pt-2"
+            endpoint="/api/profiles/v1/search/user/"
+            :tab-shown="shownTab('tab-profiles')"
+            tab-name="tab-profiles"
+            :track-pages="true"
+            :query-data="query"
+        />
       </v-tab-item>
     </v-tabs-items>
   </v-container>
@@ -136,6 +172,7 @@
           min_price: [],
           shield_only: [],
           by_rating: [],
+          featured: [],
           watchlist_only: []
         },
         productSchema: {
@@ -195,9 +232,15 @@
         }
         return ''
       },
+      shownTab (tabName) {
+        if (tabName === this.tab) {
+          EventBus.$emit('tab-shown', tabName)
+          return true
+        }
+      },
       queryUpdate: debounce(function () {
         this.query = {
-          q: this.$route.query['q'] || '',
+          q: this.$route.query['q'] || [],
           max_price: this.productModel.max_price || [],
           min_price: this.productModel.min_price || [],
           featured: this.productModel.featured || [],
