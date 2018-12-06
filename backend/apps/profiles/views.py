@@ -1151,6 +1151,12 @@ class MessagesFrom(ListCreateAPIView):
     permission_classes = [IsUser]
     serializer_class = MessageSerializer
 
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return MessageSerializer
+        else:
+            return MessageManagementSerializer
+
     def perform_create(self, serializer):
         user = get_object_or_404(User, username__iexact=self.kwargs['username'])
         self.check_object_permissions(self.request, user)
@@ -1159,11 +1165,11 @@ class MessagesFrom(ListCreateAPIView):
         users = available_users(self.request).filter(id__in=recipient_pks)
         if not users:
             message.delete()
-            raise ValidationError({'recipients': "No valid recipients provided."})
+            raise ValidationError({'recipients': ["No valid recipients provided."]})
         try:
             add_check(message, 'recipients', users)
         except ValidationError:
-            raise ValidationError({'recipients': "Too many recipients."})
+            raise ValidationError({'recipients': ["Too many recipients."]})
         MessageRecipientRelationship.objects.bulk_create(
             MessageRecipientRelationship(message=message, user=user) for user in users
         )

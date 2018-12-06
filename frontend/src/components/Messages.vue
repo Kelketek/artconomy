@@ -9,7 +9,7 @@
         <ac-message-list :endpoint="`${url}inbox/`" :username="username" />
       </v-tab-item>
       <v-tab-item id="tab-sent">
-        <ac-message-list :endpoint="`${url}sent/`" :username="username" />
+        <ac-message-list :endpoint="`${url}sent/`" :username="username" :is-sender="true" />
       </v-tab-item>
     </v-tabs-items>
     <ac-form-dialog ref="newMessageForm" :schema="newMessageSchema" :model="newMessageModel"
