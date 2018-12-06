@@ -321,14 +321,16 @@
       }
       this.setWatchers()
       this.updateQueryNow()
-      for (let tabName of ['tab-products', 'tab-characters', 'tab-assets', 'tab-profiles']) {
-        if (tabName !== this.tab) {
-          EventBus.$emit('bootstrap-tab', tabName)
-        } else {
-          EventBus.$emit('tab-shown', tabName)
-          EventBus.$emit('bootstrap-tab', tabName)
+      this.$nextTick(() => {
+        for (let tabName of ['tab-products', 'tab-characters', 'tab-assets', 'tab-profiles']) {
+          if (tabName !== this.tab) {
+            EventBus.$emit('bootstrap-tab', tabName)
+          } else {
+            EventBus.$emit('tab-shown', tabName)
+            EventBus.$emit('bootstrap-tab', tabName)
+          }
         }
-      }
+      })
       EventBus.$on('result-count', this.setCounter)
       document.title = `Search - Artconomy`
       setMetaContent('description', 'Search for artists, art, and products.')
