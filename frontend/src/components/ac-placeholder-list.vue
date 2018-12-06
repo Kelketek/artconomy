@@ -195,9 +195,6 @@
         EventBus.$emit('refresh-sales-stats')
       }
     },
-    created () {
-      this.fetchItems()
-    },
     computed: {
       showDialog: {
         get () {

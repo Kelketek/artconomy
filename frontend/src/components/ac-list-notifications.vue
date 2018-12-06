@@ -101,6 +101,9 @@
       AcNewCharacter,
       AcNewProduct
     },
+    props: {
+      autoFetch: {default: false}
+    },
     directives: {'observe-visibility': ObserveVisibility}
   }
 </script>

@@ -132,9 +132,6 @@
           {name: 'Character', params: {user: this.username, characterName: response.name}, query: {editing: true}}
         )
       }
-    },
-    created () {
-      this.fetchItems()
     }
   }
 </script>

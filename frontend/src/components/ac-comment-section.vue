@@ -36,7 +36,7 @@
   export default {
     name: 'ac-comment-section',
     components: {AcComment, AcNewComment},
-    props: ['commenturl', 'nesting', 'parent', 'locked'],
+    props: {commenturl: {}, nesting: {}, parent: {}, locked: {}, autoFetch: {default: false}},
     directives: {'observe-visibility': ObserveVisibility},
     mixins: [Paginated],
     methods: {

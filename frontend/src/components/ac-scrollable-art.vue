@@ -44,9 +44,6 @@
       rating () {
         this.restart()
       }
-    },
-    created () {
-      this.fetchItems()
     }
   }
 </script>

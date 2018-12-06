@@ -37,9 +37,6 @@
         url: this.endpoint
       }
     },
-    created () {
-      this.fetchItems()
-    },
     watch: {
       rating () {
         this.fetchItems()

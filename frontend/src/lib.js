@@ -200,16 +200,19 @@ export function ratings () {
 }
 
 export function querySyncer (queryName) {
-  return function (val) {
-    if (val) {
-      let query = {}
-      query[queryName] = val
-      this.$router.history.replace({query: Object.assign({}, this.$route.query, query)})
-    } else {
-      let newQuery = {...this.$route.query}
-      delete newQuery[queryName]
-      this.$router.history.replace({query: newQuery})
-    }
+  return {
+    handler (val) {
+      if (val) {
+        let query = {}
+        query[queryName] = val
+        this.$router.history.replace({ query: Object.assign({}, this.$route.query, query) })
+      } else {
+        let newQuery = { ...this.$route.query }
+        delete newQuery[queryName]
+        this.$router.history.replace({ query: newQuery })
+      }
+    },
+    immediate: true
   }
 }
 

@@ -31,7 +31,7 @@
     },
     computed: {
       pmLink () {
-        return {name: 'Message', params: {messageID: this.event.target.id}}
+        return {name: 'Message', params: {messageID: this.event.target.id, username: this.viewer.username}}
       }
     }
   }

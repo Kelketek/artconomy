@@ -26,7 +26,6 @@
 </template>
 
 <script>
-  import Paginated from '../mixins/paginated'
   import AcTransaction from './ac-transaction'
   import Viewer from '../mixins/viewer'
   import Perms from '../mixins/permissions'
@@ -37,7 +36,7 @@
     components: {
       AcTransactionListing,
       AcTransaction},
-    mixins: [Viewer, Perms, Paginated],
+    mixins: [Viewer, Perms],
     props: ['endpoint'],
     data () {
       return {

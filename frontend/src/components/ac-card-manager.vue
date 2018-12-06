@@ -80,7 +80,7 @@
 
   export default {
     name: 'ac-card-manager',
-    props: ['username', 'payment', 'value'],
+    props: {username: {}, payment: {}, value: {}, autoFetch: {default: false}},
     mixins: [Viewer, Perms, Paginated],
     components: {AcFormContainer, AcSavedCard},
     data () {

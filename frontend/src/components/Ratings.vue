@@ -62,9 +62,6 @@
           this.loadMore()
         }
       }
-    },
-    created () {
-      this.fetchItems()
     }
   }
 </script>
