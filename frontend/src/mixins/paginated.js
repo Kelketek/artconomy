@@ -142,10 +142,7 @@ export default {
     },
     bootstrap (tabName) {
       if (this.tabName && (tabName === this.tabName)) {
-        this.$nextTick(() => {
-          this.started = true
-          this.fetchItems()
-        })
+        this.fetchItems()
       }
     }
   },
