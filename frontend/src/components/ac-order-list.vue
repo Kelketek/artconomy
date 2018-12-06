@@ -29,7 +29,11 @@
     name: 'ac-order-list',
     mixins: [Viewer, Perms, Paginated],
     components: {AcOrderPreview},
-    props: ['buyer', 'url'],
+    props: {
+      buyer: {},
+      url: {},
+      autoFetch: { default: false }
+    },
     data () {
       return {
         baseURL: this.$router.path

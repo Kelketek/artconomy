@@ -139,9 +139,6 @@
         this.currentJournal = this.growing[0]
         this.firstRun = false
       }
-    },
-    created () {
-      this.fetchItems()
     }
   }
 </script>

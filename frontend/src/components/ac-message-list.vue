@@ -68,9 +68,6 @@
         return message.recipients.map((x) => {return x.username}).join(', ')
       },
       formatDateTime: formatDateTime
-    },
-    created () {
-      this.fetchItems()
     }
   }
 </script>

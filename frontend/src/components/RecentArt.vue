@@ -52,7 +52,6 @@
       tab: paramHandleMap('tabName', [], undefined, 'tab-watchlist')
     },
     created () {
-      this.fetchItems()
       EventBus.$on('result-count', this.resultCheck)
     },
     destroyed () {

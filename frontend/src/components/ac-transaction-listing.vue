@@ -41,7 +41,6 @@
     },
     created () {
       EventBus.$on('updated-transactions', this.resetTransactions)
-      this.fetchItems()
     },
     destroyed () {
       EventBus.$off('updated-transactions', this.resetTransactions)

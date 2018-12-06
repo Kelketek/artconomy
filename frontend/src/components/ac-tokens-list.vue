@@ -103,9 +103,6 @@
           validateAfterChanged: true
         }
       }
-    },
-    created () {
-      this.fetchItems()
     }
   }
 </script>

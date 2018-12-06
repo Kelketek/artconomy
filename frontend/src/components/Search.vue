@@ -49,6 +49,7 @@
             :current-tab="tab"
             :track-pages="true"
             tab-name="tab-products"
+            :auto-fetch="false"
             :query-data="query" />
       </v-tab-item>
       <v-tab-item id="tab-assets">
@@ -74,6 +75,7 @@
             :tab-shown="shownTab('tab-assets')"
             tab-name="tab-assets"
             :track-pages="true"
+            :auto-fetch="false"
             :query-data="query"
         />
       </v-tab-item>
@@ -100,6 +102,7 @@
             :tab-shown="shownTab('tab-characters')"
             tab-name="tab-characters"
             :track-pages="true"
+            :auto-fetch="false"
             :query-data="query"
         />
       </v-tab-item>
@@ -125,6 +128,7 @@
             endpoint="/api/profiles/v1/search/user/"
             :tab-shown="shownTab('tab-profiles')"
             tab-name="tab-profiles"
+            :auto-fetch="false"
             :track-pages="true"
             :query-data="query"
         />
@@ -223,6 +227,21 @@
       emptyResult (ref) {
         return ref && (ref.growing !== null) && (ref.growing.length === 0)
       },
+      setWatchers () {
+        this.$watch('productModel.shield_only', querySyncer('shield_only'))
+        this.$watch('productModel.by_rating', querySyncer('by_rating'))
+        this.$watch('productModel.featured', querySyncer('featured'))
+        this.$watch('productModel.max_price', querySyncer('max_price'))
+        this.$watch('productModel.min_price', querySyncer('min_price'))
+        this.$watch('productModel.watchlist_only', querySyncer('watchlist_only'))
+        this.$watch('productModel', {
+          deep: true,
+          immediate: true,
+          handler () {
+            this.queryUpdate()
+          }
+        })
+      },
       setCounter (counterData) {
         this[counterData.name] = counterData.count
       },
@@ -238,7 +257,7 @@
           return true
         }
       },
-      queryUpdate: debounce(function () {
+      updateQueryNow () {
         this.query = {
           q: this.$route.query['q'] || [],
           max_price: this.productModel.max_price || [],
@@ -248,25 +267,10 @@
           by_rating: this.productModel.by_rating || [],
           watchlist_only: this.productModel.watchlist_only || []
         }
-      }, 500)
-    },
-    watch: {
-      'productModel.shield_only': querySyncer('shield_only'),
-      'productModel.by_rating': querySyncer('by_rating'),
-      'productModel.featured': querySyncer('featured'),
-      'productModel.max_price': querySyncer('max_price'),
-      'productModel.min_price': querySyncer('min_price'),
-      'productModel.watchlist_only': querySyncer('watchlist_only'),
-      productModel: {
-        deep: true,
-        immediate: true,
-        handler () {
-          this.queryUpdate()
-        }
       },
-      queryField () {
-        this.queryUpdate()
-      }
+      queryUpdate: debounce(function () {
+        this.updateQueryNow()
+      }, 500)
     },
     computed: {
       queryField: {
@@ -314,6 +318,16 @@
       }
       if (Object.values(this.productModel).some((x) => { return x })) {
         this.showAdvanced = 0
+      }
+      this.setWatchers()
+      this.updateQueryNow()
+      for (let tabName of ['tab-products', 'tab-characters', 'tab-assets', 'tab-profiles']) {
+        if (tabName !== this.tab) {
+          EventBus.$emit('bootstrap-tab', tabName)
+        } else {
+          EventBus.$emit('tab-shown', tabName)
+          EventBus.$emit('bootstrap-tab', tabName)
+        }
       }
       EventBus.$on('result-count', this.setCounter)
       document.title = `Search - Artconomy`

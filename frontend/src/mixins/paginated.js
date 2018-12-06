@@ -12,6 +12,9 @@ export default {
     tabName: {},
     // Name of the tab currently in use, to compare against tabName.
     currentTab: {},
+    // Whether we fetch once we've loaded immediately. Otherwise initial fetch will have to be handled by an outside
+    // force.
+    autoFetch: { default: true },
     showError: { default: false },
     tabShown: { default: true },
     emptyError: {
@@ -28,6 +31,8 @@ export default {
       growMode: false,
       fetching: false,
       promise: null,
+      // Used with autoFetch to indicate when we've received the OK from the outside to manage ourselves.
+      started: false,
       scrollToId: this.genId(),
       furtherPagination: true,
       error: '',
@@ -107,19 +112,10 @@ export default {
       }
     },
     fetchItems () {
+      this.started = true
       if (this.promise) {
         this.promise.abort()
         this.promise = null
-      }
-      if (this.response === null && this.trackPages && this.tabName === this.currentTab) {
-        if (this.$route.query.page) {
-          let pageToSet = parseInt(this.$route.query.page)
-          if (this.currentPage !== pageToSet) {
-            this.currentPage = pageToSet
-            // Let the property invocation handle recalling this function.
-            return
-          }
-        }
       }
       let queryData = JSON.parse(JSON.stringify(this.queryData))
       queryData.page = this.currentPage
@@ -135,14 +131,31 @@ export default {
       let newRoute = { ...this.$route }
       newRoute.query = newQuery
       this.$router.history.replace(newRoute)
+      if (newQuery.page) {
+        this.currentPage = newQuery.page
+      }
     },
     checkPageQuery (tabName) {
-      if (this.tabName === tabName && this.trackPages) {
+      if (this.tabName && this.tabName === tabName && this.trackPages) {
         this.setPageQuery(this.currentPage)
+      }
+    },
+    bootstrap (tabName) {
+      if (this.tabName && (tabName === this.tabName)) {
+        this.$nextTick(() => {
+          this.started = true
+          this.fetchItems()
+        })
       }
     }
   },
   computed: {
+    canRun () {
+      if (this.autoFetch) {
+        return true
+      }
+      return this.started
+    },
     totalPages: function () {
       if (!this.response) {
         return 0
@@ -169,7 +182,7 @@ export default {
   },
   watch: {
     currentPage (value) {
-      if (!this.growMode) {
+      if (!this.growMode && this.canRun) {
         this.fetchItems()
       }
       if (this.trackPages) {
@@ -178,7 +191,8 @@ export default {
     },
     queryData (newValue) {
       newValue = { ...newValue }
-      if (!this.response) {
+      if (!this.canRun) {
+        this.oldQueryData = newValue
         return
       }
       if (!deepEqual(this.oldQueryData, newValue)) {
@@ -207,8 +221,13 @@ export default {
   },
   created () {
     EventBus.$on('tab-shown', this.checkPageQuery)
+    EventBus.$on('bootstrap-tab', this.bootstrap)
+    if (this.canRun) {
+      this.fetchItems()
+    }
   },
   destroyed () {
     EventBus.$off('tab-shown', this.checkPageQuery)
+    EventBus.$off('bootstrap-tab', this.checkPageQuery)
   }
 }
