@@ -63,7 +63,7 @@
     </v-tabs>
     <v-tabs-items v-model="tab" class="min-height">
       <v-tab-item id="tab-products" :class="{'tab-shown': shownTab('tab-products')}">
-        <store :endpoint="`/api/sales/v1/account/${username}/products/`" :username="username" :track-pages="true" tab-name="tab-store"/>
+        <store :endpoint="`/api/sales/v1/account/${username}/products/`" :username="username" :track-pages="true" tab-name="tab-products"/>
       </v-tab-item>
       <v-tab-item id="tab-characters" :class="{'tab-shown': shownTab('tab-characters')}">
         <Characters

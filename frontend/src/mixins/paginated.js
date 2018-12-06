@@ -4,13 +4,16 @@ import { artCall, buildQueryString, EventBus } from '../lib'
 // For use with paginated Django views.
 export default {
   props: {
-    startingPage: {default: 1},
-    limit: {default: 24},
-    queryData: {default () { return {} }},
-    counterName: {default: 'counter'},
-    trackPages: {default: false},
+    startingPage: { default: 1 },
+    limit: { default: 24 },
+    queryData: { default () { return {} } },
+    counterName: { default: 'counter' },
+    trackPages: { default: false },
     tabName: {},
-    showError: {default: false},
+    // Name of the tab currently in use, to compare against tabName.
+    currentTab: {},
+    showError: { default: false },
+    tabShown: { default: true },
     emptyError: {
       default: 'We could not find anything which matched your request.'
     }
@@ -38,17 +41,17 @@ export default {
   },
   methods: {
     genId () {
-      let text = '';
-      let possible = 'abcdefghijklmnopqrstuvwxyz';
+      let text = ''
+      let possible = 'abcdefghijklmnopqrstuvwxyz'
       for (let i = 0; i < 20; i++) {
-        text += possible.charAt(Math.floor(Math.random() * possible.length));
+        text += possible.charAt(Math.floor(Math.random() * possible.length))
       }
-      return 'scroll-' + text;
+      return 'scroll-' + text
     },
     linkGen (pageNum) {
       let query = JSON.parse(JSON.stringify(this.queryData))
       query.page = pageNum
-      return {path: this.baseURL, query: query}
+      return { path: this.baseURL, query: query }
     },
     restart () {
       this.growing = []
@@ -90,7 +93,7 @@ export default {
       if (this.growing.length === 0 && ((this.queryData.q && this.queryData.q.length) || this.showError)) {
         this.error = this.emptyError
       }
-      EventBus.$emit('result-count',{ name: this.counterName, count: this.count })
+      EventBus.$emit('result-count', { name: this.counterName, count: this.count })
     },
     populateError (response) {
       this.promise = null
@@ -107,6 +110,16 @@ export default {
       if (this.promise) {
         this.promise.abort()
         this.promise = null
+      }
+      if (this.response === null && this.trackPages && this.tabName === this.currentTab) {
+        if (this.$route.query.page) {
+          let pageToSet = parseInt(this.$route.query.page)
+          if (this.currentPage !== pageToSet) {
+            this.currentPage = pageToSet
+            // Let the property invocation handle recalling this function.
+            return
+          }
+        }
       }
       let queryData = JSON.parse(JSON.stringify(this.queryData))
       queryData.page = this.currentPage
@@ -164,9 +177,13 @@ export default {
       }
     },
     queryData (newValue) {
+      newValue = { ...newValue }
+      if (!this.response) {
+        return
+      }
       if (!deepEqual(this.oldQueryData, newValue)) {
         this.restart()
-        this.oldQueryData = JSON.parse(JSON.stringify(newValue))
+        this.oldQueryData = newValue
       }
     }
   },
