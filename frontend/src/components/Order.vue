@@ -490,6 +490,12 @@
       </v-layout>
       <v-layout row wrap text-xs-center class="mt-3 pb-3 revision-upload" v-if="showRevisionPanel">
         <v-flex xs12 md6 offset-md3>
+          <h3 v-if="remainingUploads === 1">
+            You need to upload the final piece below.
+          </h3>
+          <h3 v-else>
+            You must upload {{ remainingUploads - 1 }} more revision<span v-if="remainingUploads > 2">s</span> and the final.
+          </h3>
           <form>
             <ac-form-container
                 method="POST"
@@ -665,6 +671,9 @@
       },
       revisionsRemain () {
         return (this.revisions && (this.revisions.length <= this.order.revisions))
+      },
+      remainingUploads () {
+        return (this.order.revisions + 1) - this.revisions.length
       },
       validCVV () {
         if (this.$refs.cardManager.selectedCardModel && this.$refs.cardManager.selectedCardModel.cvv_verified === true) {
