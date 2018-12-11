@@ -8,9 +8,10 @@
         @keydown.enter.prevent.native="grabFirst"
         :placeholder="schema.placeholder"
         :error-messages="errors"
+        :hint="schema.hint"
     />
     <div class="mb-2 mt-2">
-      <div v-if="characterIDs.length === 0">Click a character to add them.</div>
+      <div v-if="characterIDs.length === 0 && query && response && response.results.length !== 0">Click a character to add them, or press enter to add the first one.</div>
       <div v-else><v-chip close @input="delChar(char)" class="char-name" v-for="char in characters" :key="char.id"><span v-if="char.user.username !== viewer.username">({{char.user.username}}) </span>{{char.name}}</v-chip></div>
     </div>
       <div v-if="response" class="char-search-results">

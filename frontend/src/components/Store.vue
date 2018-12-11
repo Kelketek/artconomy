@@ -235,10 +235,11 @@
           }, {
             type: 'v-file-upload',
             id: 'file',
-            label: 'File',
+            label: 'Sample',
             model: 'file',
             uniqueId: 'productFile',
             required: true,
+            hint: "A sample image for customers to look at",
             validator: validateNonEmpty
           },
           {
@@ -246,7 +247,7 @@
             id: 'preview',
             label: 'Preview Image/Thumbnail',
             model: 'preview',
-            hint: 'Should be a square image. We recommend a size not smaller than 300x300 pixels.',
+            hint: 'Smaller sample image seen when searching or browsing. Should be a square image. We recommend a size not smaller than 300x300 pixels.',
             required: false
           }]
         },
@@ -261,6 +262,7 @@
         this.$router.history.push(
           {name: 'Product', params: {username: this.user.username, productID: response.id}, query: {editing: true}}
         )
+        this.$root.$loadUser()
       },
       setCounter (counterData) {
         if (counterData.name === 'productListCount')
