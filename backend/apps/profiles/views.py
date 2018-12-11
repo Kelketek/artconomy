@@ -117,7 +117,7 @@ class TOTPDeviceList(ListCreateAPIView):
     def get_queryset(self):
         user = get_object_or_404(User, username__iexact=self.kwargs['username'])
         self.check_object_permissions(self.request, user)
-        return user.totpdevice_set.all()
+        return user.totpdevice_set.all().order_by('-id')
 
     def perform_create(self, serializer):
         user = get_object_or_404(User, username__iexact=self.kwargs['username'])
