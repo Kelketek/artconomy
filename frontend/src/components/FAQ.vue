@@ -83,7 +83,7 @@
                 <p>Fox began work on Artconomy upon observing the difficulties encountered when commissioning, and
                   realizing that he rarely commissioned online but frequently did at creative conventions,
                   where one could meet face-to-face with artists. He wanted to create a service where it was as easy
-                  to commission online as it was in person.</p>
+                  to commission online as it is in person.</p>
                 <h3>Marketing and Public Relations Director: Eris A. Griffon</h3>
                 <p>Eris is <em>also</em> a longterm online role player and her life is filled with artists, so she's
                   always had a passion to make art more accessible for everyone and to see characters come alive online!
@@ -258,7 +258,7 @@
                 <p>
                   Artists and commissioners who use Artconomy Shield help build trust in the artistic community.
                   Artists who are unable to use Artconomy Shield (such as those without US Bank Accounts) can still
-                  list products and take orders on Artconomy, but must arrange payment with each other manually.
+                  list products and take orders on Artconomy, but must arrange payment with commissioners manually.
                 </p>
                 <p>
                   Orders made without Artconomy Shield may also have ads on the product, profile, and order pages

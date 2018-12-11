@@ -96,6 +96,38 @@
               <v-flex xs12 v-if="editing">
                 <v-btn @click="showImageUpdate = true">Update Images</v-btn>
               </v-flex>
+              <v-flex xs12 v-if="product.user.escrow_disabled">
+                <v-icon large class="yellow--text">warning</v-icon>
+              </v-flex>
+              <v-flex xs12 v-else>
+                <v-icon large class="green--text">fa-shield</v-icon>
+              </v-flex>
+              <v-flex xs12 text-xs-center v-if="product.user.escrow_disabled">
+                <p>
+                  This product is not protected by
+                  <router-link :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}">
+                    Artconomy Shield.</router-link>
+                </p>
+              </v-flex>
+              <v-flex xs12 text-xs-center v-else>
+                <p>
+                  This product protected by
+                  <router-link :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}">
+                    Artconomy Shield.</router-link>
+                </p>
+              </v-flex>
+              <v-flex xs12 v-if="!editing">
+                <v-flex v-if="isCurrent">
+                  <p>
+                    This product is currently
+                    <span v-if="product.available">available.</span>
+                    <span v-else>unavailable.</span>
+                  </p>
+                </v-flex>
+                <p v-else-if="!product.available && !newOrderModel.order_token">This product is not available at this time.</p>
+                <v-btn color="green" size="lg" @click="showOrder = true" v-else-if="viewer.username">Order</v-btn>
+                <v-btn color="green" size="lg" :to="{name: 'Login', params: {tabName: 'register'}}" v-else>Register to Order!</v-btn>
+              </v-flex>
             </v-layout>
           </v-flex>
         </v-layout>
@@ -353,6 +385,10 @@
             featured: true,
             placeholder: 'Search characters',
             commission: true,
+            hint: (
+              'If what you want the artist to make involves a character, you can specify which character here. ' +
+              'You can set up your characters on your profile page. You can leave this blank.'
+            ),
             styleClasses: 'field-input'
           }, {
             type: 'v-checkbox',
