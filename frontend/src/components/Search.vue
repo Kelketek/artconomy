@@ -296,6 +296,11 @@
       },
       tab: paramHandleMap('tabName')
     },
+    watch: {
+      queryField () {
+        this.queryUpdate()
+      }
+    },
     created () {
       this.productModel.shield_only = queryVal(this, 'shield_only', false)
       this.productModel.featured = queryVal(this, 'featured', false)
