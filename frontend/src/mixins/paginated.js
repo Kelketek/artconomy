@@ -10,8 +10,6 @@ export default {
     counterName: { default: 'counter' },
     trackPages: { default: false },
     tabName: {},
-    // Name of the tab currently in use, to compare against tabName.
-    currentTab: {},
     // Whether we fetch once we've loaded immediately. Otherwise initial fetch will have to be handled by an outside
     // force.
     autoFetch: { default: true },
