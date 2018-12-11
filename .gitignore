@@ -268,4 +268,4 @@ blog
 .well-known/*
 
 # Search index
-whoosh-index
+whoosh_index
