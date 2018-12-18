@@ -4,15 +4,19 @@
       <v-card>
         <v-layout row wrap>
           <v-flex xs12 md6 lg4 text-xs-center class="pt-2 pb-2 pl-2 pr-2">
-            <ac-asset :asset="order.product" thumb-name="preview" img-class="bound-image" />
+            <router-link :to="{name: 'Product', params: {productID: order.product.id, username: order.product.user.username}}">
+              <ac-asset :asset="order.product" thumb-name="preview" img-class="bound-image" />
+            </router-link>
           </v-flex>
           <v-flex xs12 md6 class="pt-3 pl-2 pr-2">
-            <h1 v-html="md.renderInline(order.product.name)"></h1>
+            <router-link :to="{name: 'Product', params: {productID: order.product.id, username: order.product.user.username}}">
+              <h1 v-html="mdRenderInline(order.product.name)"></h1>
+            </router-link>
             <h2>Order #{{order.id}}</h2>
-            <div v-html="md.render(order.product.description)"></div>
+            <div v-html="mdRender(order.product.description)"></div>
             <div>
               <h4>Details:</h4>
-              <div class="order-details" v-html="md.render(order.details)"></div>
+              <div class="order-details" v-html="mdRender(order.details)"></div>
             </div>
             <div v-if="order.private">
               <p><strong>PRIVATE ORDER</strong></p>
@@ -79,7 +83,7 @@
     <v-container v-if="order && order.product.user.commission_info">
       <v-card>
         <v-layout row wrap>
-          <v-flex xs12 v-html="md.render(order.product.user.commission_info)" class="pl-2 pr-2"></v-flex>
+          <v-flex xs12 v-html="mdRender(order.product.user.commission_info)" class="pl-2 pr-2"></v-flex>
         </v-layout>
       </v-card>
     </v-container>
@@ -93,7 +97,7 @@
           <v-flex xs12 md6 text-xs-center class="pt-2" v-if="paymentDetail">
             <div class="pricing-container">
               <p v-if="order.status < 2">Price may be adjusted by the seller before finalization.</p>
-              <span v-html="md.renderInline(order.product.name)"></span>: ${{order.price}}<br />
+              <span v-html="mdRenderInline(order.product.name)"></span>: ${{order.price}}<br />
               <span v-if="adjustmentModel.adjustment < 0">Discount: </span>
               <span v-else-if="adjustmentModel.adjustment > 0">Custom requirements: </span>
               <span v-if="parseFloat(adjustmentModel.adjustment || '0') !== 0">${{parseFloat(adjustmentModel.adjustment).toFixed(2)}}</span>
@@ -318,7 +322,7 @@
             <p>Artconomy is based in the United States of America</p>
             <div class="pricing-container" :class="{'text-xs-center': buyer && paymentPending}">
               <p v-if="order.status < 2">Price may be adjusted by the seller before finalization.</p>
-              <span v-html="md.renderInline(order.product.name)"></span>: ${{order.price}}<br />
+              <span v-html="mdRenderInline(order.product.name)"></span>: ${{order.price}}<br />
               <span v-if="adjustmentModel.adjustment < 0">Discount: </span>
               <span v-else-if="adjustmentModel.adjustment > 0">Custom requirements: </span>
               <span v-if="parseFloat(adjustmentModel.adjustment) !== 0">${{parseFloat(adjustmentModel.adjustment).toFixed(2)}}</span>
@@ -538,8 +542,9 @@
   import AcPatchfield from './ac-patchfield'
   import AcAsset from './ac-asset'
   import Viewer from '../mixins/viewer'
+  import Markdown from '../mixins/markdown'
   import Perms from '../mixins/permissions'
-  import {artCall, md, ratings, formatDateTime, EventBus, formatDate} from '../lib'
+  import {artCall, ratings, formatDateTime, EventBus, formatDate} from '../lib'
   import AcFormContainer from './ac-form-container'
   import AcCardManager from './ac-card-manager'
   import AcFormDialog from './ac-form-dialog'
@@ -561,7 +566,7 @@
       AcCommentSection,
       AcAction
     },
-    mixins: [Viewer, Perms],
+    mixins: [Viewer, Perms, Markdown],
     methods: {
       populateOrder (response) {
         let oldOrder = this.order
@@ -734,7 +739,6 @@
         order: null,
         commenturl: `/api/sales/v1/order/${this.orderID}/comments/`,
         url: `/api/sales/v1/order/${this.orderID}/`,
-        md: md,
         formatDateTime,
         formatDate,
         sellerData: {user: {fee: null}},

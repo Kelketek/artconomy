@@ -6,8 +6,8 @@
         <v-flex xs12 md8>
           <v-layout row wrap>
             <v-flex xs12 v-if="currentJournal">
-              <h3 v-html="md.renderInline(currentJournal.subject)"></h3>
-              <v-flex v-html="md.render(preview)" my-2></v-flex>
+              <h3 v-html="mdRenderInline(currentJournal.subject)"></h3>
+              <v-flex v-html="mdRender(preview)" my-2></v-flex>
             </v-flex>
             <v-flex xs12 v-if="currentJournal">
               <v-btn
@@ -65,14 +65,15 @@
   import Paginated from '../mixins/paginated'
   import Viewer from '../mixins/viewer'
   import Perms from '../mixins/permissions'
+  import Markdown from '../mixins/markdown'
   import VueFormGenerator from 'vue-form-generator'
   import AcFormDialog from './ac-form-dialog'
-  import {formatDateTime, md, truncateText} from '../lib'
+  import {formatDateTime, truncateText} from '../lib'
 
   export default {
     name: 'ac-journals',
     components: {AcFormDialog},
-    mixins: [Paginated, Viewer, Perms],
+    mixins: [Paginated, Viewer, Perms, Markdown],
     methods: {
       addJournal (response) {
         this.$router.history.push({name: 'Journal', params: {username: this.username, journalID: response.id}})
@@ -84,7 +85,6 @@
         firstRun: true,
         currentJournal: null,
         showNew: false,
-        md,
         formatDateTime,
         newJournalModel: {
           subject: '',

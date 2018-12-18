@@ -47,14 +47,16 @@
 </style>
 
 <script>
-  import {artCall, md} from '../lib'
+  import Markdown from '../mixins/markdown'
+  import {artCall} from '../lib'
 
   export default {
     name: 'ac-new-comment',
     props: ['parent', 'url'],
+    mixins: [Markdown],
     methods: {
       parseDraft () {
-        return this.md.render(this.draft)
+        return this.mdRender(this.draft)
       },
       addComment (response) {
         this.draft = ''
@@ -75,7 +77,6 @@
         editing: false,
         edit_preview: false,
         edit_disabled: false,
-        md
       }
     }
   }

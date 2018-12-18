@@ -268,6 +268,7 @@
   import Perms from '../mixins/permissions'
   import Editable from '../mixins/editable'
   import Viewer from '../mixins/viewer'
+  import Markdown from '../mixins/markdown'
   import AcAction from './ac-action'
   import AcFormContainer from './ac-form-container'
   import AcPatchfield from './ac-patchfield'
@@ -283,7 +284,7 @@
 
   export default {
     name: 'Character',
-    mixins: [Viewer, Perms, Editable],
+    mixins: [Viewer, Perms, Editable, Markdown],
     components: {
       AcShareButton,
       AcAttributes,
@@ -301,7 +302,7 @@
     props: ['characterName'],
     methods: {
       parseDesc: function () {
-        return this.$root.md.render(this.character.description)
+        return this.mdRender(this.character.description)
       },
       setIndex: function (key) {
         this.$data.selectedIndex = key

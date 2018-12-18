@@ -98,19 +98,20 @@
 </template>
 
 <script>
+  import Markdown from '../mixins/markdown'
   import Viewer from '../mixins/viewer'
   import Perms from '../mixins/permissions'
   import Paginated from '../mixins/paginated'
   import AcPatchfield from './ac-patchfield'
   import Editable from '../mixins/editable'
-  import {md, EventBus} from '../lib'
+  import {EventBus} from '../lib'
   import VueFormGenerator from 'vue-form-generator'
   import AcFormDialog from './ac-form-dialog'
   export default {
     name: 'ac-placeholder-list',
     components: {AcFormDialog, AcPatchfield},
     props: ['url'],
-    mixins: [Viewer, Perms, Paginated, Editable],
+    mixins: [Viewer, Perms, Paginated, Editable, Markdown],
     data () {
       return {
         currentPlaceholder: false,
@@ -177,7 +178,7 @@
     methods: {
       renderInline (text) {
         // Issues with 'this' scoping
-        return `<span>${md.renderInline(text)}</span>`
+        return `<span>${this.mdRenderInline(text)}</span>`
       },
       addPlaceholder (response) {
         this.growing.push(response)

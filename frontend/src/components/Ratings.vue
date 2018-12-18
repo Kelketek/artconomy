@@ -19,7 +19,7 @@
               <ac-rating :value="rating.stars"></ac-rating>
             </v-flex>
             <v-flex xs12 sm5 md9 text-xs-center text-sm-left v-if="rating.comments">
-              <div v-html="md.render(rating.comments)">
+              <div v-html="mdRender(rating.comments)">
               </div>
             </v-flex>
           </v-layout>
@@ -40,20 +40,19 @@
   import AcAvatar from './ac-avatar'
   import AcRating from './ac-rating'
   import Viewer from '../mixins/viewer'
+  import Markdown from '../mixins/markdown'
   import Perms from '../mixins/permissions'
   import { ObserveVisibility } from 'vue-observe-visibility'
-  import { md } from '../lib'
 
   export default {
     name: 'Ratings',
     components: {AcRating, AcAvatar},
-    mixins: [Paginated, Viewer, Perms],
+    mixins: [Paginated, Viewer, Perms, Markdown],
     directives: {'observe-visibility': ObserveVisibility},
     props: ['username'],
     data () {
       return {
         url: `/api/sales/v1/account/${this.username}/ratings/`,
-        md
       }
     },
     methods: {

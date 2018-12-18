@@ -14,8 +14,9 @@
 </template>
 
 <script>
+  import Markdown from '../mixins/markdown'
   import { focus } from 'vue-focus'
-  import {artCall, md} from '../lib'
+  import {artCall} from '../lib'
   import autosize from 'autosize'
   import Vue from 'vue'
   import AcMarkdownExplanation from './ac-markdown-explanation'
@@ -23,6 +24,7 @@
   export default {
     name: 'ac-patchfield',
     components: {AcMarkdownExplanation},
+    mixins: [Markdown],
     directives: { focus: focus },
     props: ['value', 'editmode', 'name', 'styleclass', 'url', 'callback', 'multiline', 'placeholder', 'displayValue'],
     data: function () {
@@ -34,7 +36,6 @@
         errors: [],
         formatToggle: false,
         input: this.value,
-        md
       }
     },
     computed: {
@@ -47,9 +48,9 @@
           value = this.placeholder ? this.placeholder : ''
         }
         if (this.multiline) {
-          return this.md.render(value + '')
+          return this.mdRender(value + '')
         } else {
-          return this.md.renderInline(value + '')
+          return this.mdRenderInline(value + '')
         }
       },
       icon () {

@@ -199,7 +199,7 @@
       <v-card>
         <v-card-text>
           <v-layout row wrap v-if="product.user.commission_info">
-            <v-flex xs12 v-html="md.render(product.user.commission_info)" class="pl-2 pr-2"></v-flex>
+            <v-flex xs12 v-html="mdRender(product.user.commission_info)" class="pl-2 pr-2"></v-flex>
           </v-layout>
         </v-card-text>
       </v-card>
@@ -262,10 +262,11 @@
   import VueFormGenerator from 'vue-form-generator'
   import Viewer from '../mixins/viewer'
   import Perms from '../mixins/permissions'
+  import Markdown from '../mixins/markdown'
   import Editable from '../mixins/editable'
   import AcAsset from '../components/ac-asset'
   import AcAction from '../components/ac-action'
-  import {artCall, md, ratings, setMetaContent, textualize} from '../lib'
+  import {artCall, ratings, setMetaContent, textualize} from '../lib'
   import AcPatchfield from './ac-patchfield'
   import AcPatchbutton from './ac-patchbutton'
   import AcFormContainer from './ac-form-container'
@@ -278,7 +279,7 @@
 
   export default {
     props: ['productID'],
-    mixins: [Viewer, Perms, Editable],
+    mixins: [Viewer, Perms, Editable, Markdown],
     components: {
       AcShareButton,
       AcTokensList,
@@ -333,7 +334,6 @@
         url: `/api/sales/v1/account/${this.username}/products/${this.productID}/`,
         showOrder: false,
         showImageUpdate: false,
-        md: md,
         productModel: null,
         showProductUpdate: false,
         newOrderModel: {
