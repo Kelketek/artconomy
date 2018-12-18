@@ -183,6 +183,23 @@
           :url="url"
           :success="setProduct"
       >
+        <v-layout slot="header">
+          <v-flex text-xs-center v-if="price && !user.escrow_disabled" xs6 md3 offset-md3>
+            <strong>Price: ${{price}}</strong> <br />
+            Artconomy service fee: -${{ fee }} <br />
+            <strong>Your payout: ${{ payout }}</strong> <br />
+          </v-flex>
+          <v-flex v-if="price && pricing && !user.escrow_disabled" text-xs-center xs6 md3>
+            <div v-if="!landscape">
+              You'll earn <strong>${{landscapeDifference}}</strong> more from this commission if you upgrade to Artconomy Landscape!
+              <br />
+              <v-btn :to="{name: 'Upgrade'}" color="purple">Upgrade Now!</v-btn>
+            </div>
+            <div v-else>
+              Your Landscape subscription earns you <strong>${{landscapeDifference}}</strong> more than you would have earned on this commission otherwise!
+            </div>
+          </v-flex>
+        </v-layout>
       </ac-form-dialog>
       <div class="mt-3"></div>
       <ac-asset-gallery ref="assetGallery" :endpoint="`${url}examples/`" :limit="5" :header="true">
@@ -320,12 +337,35 @@
       },
       refreshProduct () {
         artCall(this.url, 'GET', this.$route.query, this.setProduct, this.$error)
+      },
+      loadPricing (response) {
+        this.pricing = response
       }
     },
     computed: {
       turnaround () {
         return Math.ceil(this.product.expected_turnaround)
-      }
+      },
+      price () {
+        if (parseFloat(this.productModel.price + '') <= 0) {
+          return 0
+        }
+        if (isNaN(parseFloat(this.productModel.price + ''))) {
+          return 0
+        }
+        return (parseFloat(this.productModel.price + '')).toFixed(2)
+      },
+      landscapeDifference () {
+        let standardFee = ((this.price * (this.pricing.standard_percentage * 0.01)) + parseFloat(this.pricing.standard_static)).toFixed(2)
+        let landscapeFee = ((this.price * (this.pricing.landscape_percentage * 0.01)) + parseFloat(this.pricing.landscape_static)).toFixed(2)
+        return (parseFloat(standardFee) - parseFloat(landscapeFee)).toFixed(2)
+      },
+      payout () {
+        return (this.price - this.fee).toFixed(2)
+      },
+      fee () {
+        return ((this.price * (this.user.percentage_fee * 0.01)) + parseFloat(this.user.static_fee)).toFixed(2)
+      },
     },
     data () {
       return {
@@ -508,6 +548,7 @@
       }
     },
     created () {
+      artCall('/api/sales/v1/pricing-info/', 'GET', undefined, this.loadPricing)
       this.refreshProduct()
     }
   }
