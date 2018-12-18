@@ -105,8 +105,8 @@
               <strong>Total: ${{price}}</strong> <br />
               <strong>Expected Turnaround: {{turnaround}} days</strong>
               <div v-if="seller && sellerData.user.percentage_fee !== null">
-                <span v-if="!order.escrow_disabled">Artconomy service fee: -${{ fee }} </span><br v-if="!order.escrow_disabled" />
-                <strong v-if="!order.escrow_disabled">Your payout: ${{ payout }}</strong> <br v-if="!order.escrow_disabled" />
+                <span v-if="!feeless">Artconomy service fee: -${{ fee }} </span><br v-if="!feeless" />
+                <strong v-if="!feeless">Your payout: ${{ payout }}</strong> <br v-if="!feeless" />
                 <strong>Task weight: {{ weight }}</strong>
               </div>
             </div>
@@ -732,6 +732,9 @@
           amount: this.price,
           cvv: this.cvv
         }
+      },
+      feeless () {
+        return this.order.escrow_disabled || parseFloat(this.price) <= 0
       }
     },
     data () {
