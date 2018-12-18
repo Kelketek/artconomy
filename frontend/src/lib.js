@@ -7,6 +7,42 @@ const $ = jquery
 
 export const md = MarkDownIt({ linkify: true })
 
+let defaultRender = md.renderer.rules.link_open || function (tokens, idx, options, env, self) {
+  return self.renderToken(tokens, idx, options)
+}
+
+function isForeign (url) {
+  if (url.toLowerCase().startsWith('mailto:')) {
+    return false
+  }
+  if (url.startsWith('/') || url.match(/^http(s)?:[/][/](www[.])?artconomy[.]com([/]|$)/)) {
+    return false
+  }
+  return true
+}
+
+md.renderer.rules.link_open = function (tokens, idx, options, env, self) {
+  // If you are sure other plugins can't add `target` - drop check below
+  let targetIndex = tokens[idx].attrIndex('target')
+
+  if (targetIndex < 0) {
+    tokens[idx].attrPush(['target', '_blank']) // add new attribute
+  } else {
+    tokens[idx].attrs[targetIndex][1] = '_blank' // replace value of existing attr
+  }
+
+  let hrefIndex = tokens[idx].attrIndex('href')
+  // Should always have href for a link.
+  let href = tokens[idx].attrs[hrefIndex][1]
+  if (isForeign(href)) {
+    return defaultRender(tokens, idx, options, env, self)
+  }
+  href = href.replace(/^http(s)?:[/][/](www[.])?artconomy[.]com([/]|$)/, '/')
+  href = encodeURI(href)
+  tokens[idx].attrPush(['onclick', `artconomy.$router.history.push('${href}');return false`])
+  return defaultRender(tokens, idx, options, env, self)
+}
+
 export function getCookie (name) {
   let cookieValue = null
   if (document.cookie && document.cookie !== '') {
