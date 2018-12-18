@@ -121,7 +121,8 @@
 </style>
 
 <script>
-  import { artCall, md, formatDateTime } from '../lib'
+  import { artCall, formatDateTime } from '../lib'
+  import Markdown from '../mixins/markdown'
   import AcAvatar from './ac-avatar'
   import Vue from 'vue'
   import AcAction from './ac-action'
@@ -131,6 +132,7 @@
       AcAction,
       AcAvatar},
     name: 'ac-comment',
+    mixins: [Markdown],
     props: {
       commentobj: {},
       reader: {},
@@ -142,13 +144,13 @@
     },
     methods: {
       parseContent () {
-        return md.render(this.comment.text)
+        return this.mdRender(this.comment.text)
       },
       parseDraft () {
-        return md.render(this.draft)
+        return this.mdRender(this.draft)
       },
       parseReply () {
-        return md.render(this.reply)
+        return this.mdRender(this.reply)
       },
       setSubscription (response) {
         this.comment = response
