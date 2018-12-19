@@ -9,6 +9,16 @@
     path: /etc/postfix/main.cf
     regexp: '^myhostname'
     line: 'myhostname = {{ inventory_hostname }}'
+  notify:
+    - reload postfix
+
+- name: Set postfix destination
+  lineinfile:
+    path: /etc/postfix/main.cf
+    regexp: '^mydestination'
+    line: 'mydestination = localhost'
+  notify:
+    - reload postfix
 
 - name: Add header checks to postfix configuration
   lineinfile:
