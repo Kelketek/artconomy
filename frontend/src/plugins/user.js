@@ -55,12 +55,12 @@ export const UserHandler = {
             this.$cacheUser(username, target)
           }
         },
-        $loadUser (loadProfile) {
+        $loadUser (callback) {
           let self = this
           function loadLoggedIn (response) {
             self.$userSaver(self, response)
-            if (loadProfile) {
-              self.$router.push({name: 'Profile', params: {username: self.user.username}, query: {editing: true}})
+            if (callback) {
+              callback(response)
             }
           }
           artCall('/api/profiles/v1/data/requester/', 'GET', undefined, loadLoggedIn, this.$error)

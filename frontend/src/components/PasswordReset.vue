@@ -76,7 +76,7 @@
       },
       postReset () {
         delete this.$root.userCache[this.username]
-        this.$root.$loadUser(true)
+        this.$root.$loadUser(() => {this.$router.push({name: 'Profile', params: {username: self.user.username}, query: {editing: true}})})
       }
     },
     created () {

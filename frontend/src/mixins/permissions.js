@@ -38,10 +38,13 @@ export default {
     }
   },
   watch: {
-    '$root.user': function (val) {
-      if (val.username && this.user.username) {
-        this.user = this.$root.user
-      }
+    '$root.user': {
+      handler (val) {
+        if (val.username && this.user.username === val.username) {
+          this.user = this.$root.user
+        }
+      },
+      deep: true
     }
   }
 }
