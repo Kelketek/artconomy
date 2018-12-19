@@ -158,9 +158,13 @@
               <p v-if="order.escrow_disabled">Make sure you've commented to let the commissioner know how to send payment to you. <strong>Hit the Mark Paid button below once you've received payment!</strong></strong></p>
               <p v-else>We will notify you once they have paid for the commission. You are advised not to begin work until payment has been received. If needed, you may adjust the pricing until the comissioner pays.</p>
             </div>
-            <div v-if="buyer && paymentPending">
+            <div v-if="buyer && paymentPending && !order.escrow_disabled">
               <p><strong>The artist has accepted your commission! Please pay below.</strong></p>
               <p>Review the price and pay below. Once your payment has been received, your commission will be placed in the artist's queue.</p>
+            </div>
+            <div v-else-if="buyer && paymentPending">
+              <p>The artist has accepted your commission!</p>
+              <p>Please send payment to the artist in the amount and manner they specify. If you have not received instructions for payment from the artist, please comment below.</p>
             </div>
             <div v-if="seller && queued">
               <p><strong>Awesome! The commissioner has sent payment.</strong></p>
@@ -307,7 +311,7 @@
       </v-card>
       <v-card>
         <v-layout row wrap class="mt-3">
-          <v-flex xs12 md6 v-if="buyer && paymentPending">
+          <v-flex xs12 md6 v-if="buyer && paymentPending &&! order.escrow_disabled">
             <ac-card-manager
                 ref="cardManager"
                 :payment="true"
@@ -315,7 +319,7 @@
                 v-model="selectedCard"
             />
           </v-flex>
-          <v-flex xs12 md6 text-xs-center class="mt-3 mb-3 pr-2 pl-2" v-if="buyer && paymentPending">
+          <v-flex xs12 md6 text-xs-center class="mt-3 mb-3 pr-2 pl-2" v-if="buyer && paymentPending && !order.escrow_disabled">
             <p><strong>Add a card or select a saved one on the left.</strong></p>
             <p>Once you've selected a card, you may click the pay button below to put the commission in the artist's queue.
               By paying, you are agreeing to the <router-link :to="{name: 'CommissionAgreement'}">Commission Agreement.</router-link></p>

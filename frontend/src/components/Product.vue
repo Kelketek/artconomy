@@ -126,7 +126,7 @@
                 </v-flex>
                 <p v-else-if="!product.available && !newOrderModel.order_token">This product is not available at this time.</p>
                 <v-btn color="green" size="lg" @click="showOrder = true" v-else-if="viewer.username">Order</v-btn>
-                <v-btn color="green" size="lg" :to="{name: 'Login', params: {tabName: 'register'}}" v-else>Register to Order!</v-btn>
+                <v-btn color="green" size="lg" :to="{name: 'Login', params: {tabName: 'register'}, query: {next: this.$route.path}}" v-else>Register to Order!</v-btn>
               </v-flex>
             </v-layout>
           </v-flex>

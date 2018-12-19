@@ -216,15 +216,21 @@
       loginHandler (response) {
         setCookie('csrftoken', response.csrftoken)
         setCookie('authtoken', response.authtoken)
-        if (this.tab.sendToProfile) {
-          this.$root.$loadUser(true)
-        } else if (this.$route.query.next) {
-          this.$root.$loadUser()
-          this.$router.push(this.$route.query.next)
+        if (this.$route.query.next) {
+          if (this.$route.query.next === '/') {
+            this.$root.$loadUser(this.sendToProfile)
+            return
+          }
+          this.$root.$loadUser(this.$router.push(this.$route.query.next))
+        } else if (this.tab.sendToProfile) {
+          this.$root.$loadUser(this.sendToProfile)
         } else {
           this.$root.$loadUser()
           this.$router.push({'name': 'Home'})
         }
+      },
+      sendToProfile () {
+        this.$root.$loadUser((response) => {this.$router.push({name: 'Profile', params: {username: response.username}, query: {editing: true}})})
       },
       logoutHandler () {
         this.$root.user = {}

@@ -34,8 +34,8 @@ import SessionSettings from '@/components/SessionSettings.vue'
 import Messages from '@/components/Messages.vue'
 import Message from '@/components/Message.vue'
 import PasswordReset from '@/components/PasswordReset.vue'
-import {ErrorHandler} from '@/plugins/error'
-import {setCookie, setMetaContent} from '../lib'
+import { ErrorHandler } from '@/plugins/error'
+import { setCookie, setMetaContent } from '../lib'
 
 export const routes = [
   {

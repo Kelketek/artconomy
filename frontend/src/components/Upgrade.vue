@@ -127,7 +127,7 @@
         this.$setUser(response.username, response)
         setCookie('csrftoken', response.csrftoken)
         setCookie('authtoken', response.authtoken)
-        this.$root.$loadUser(false)
+        this.$root.$loadUser()
       }
     },
     created () {
