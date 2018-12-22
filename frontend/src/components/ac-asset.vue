@@ -6,12 +6,11 @@
           <img :class="imgClass" :src="displayImage" @click="fullscreen = true">
         </div>
         <div v-else-if="displayComponent">
-          <component :asset="asset" :is="displayComponent"></component>
+          <component :asset="asset" :imgClass="imgClass" :compact="compact" :is="displayComponent"></component>
         </div>
         <div v-else>
           <a :href="asset.file.full" download>
             <img :class="imgClass" :src="displayImage">
-            <p>Click here to download</p>
           </a>
         </div>
         <div v-if="fullscreen" class="fullscreen-container" @click="fullscreen=false">
@@ -72,6 +71,7 @@
   import AcSvgViewer from './ac-svg-viewer'
   import AcMarkdownViewer from './ac-markdown-viewer'
   import AcAudioPlayer from './ac-audio-player'
+  import AcDangerFile from './ac-danger-file'
   export default {
     name: 'ac-asset',
     props: {
@@ -80,12 +80,13 @@
       'terse': {},
       'thumbName': {},
       'textOnly': {},
+      'compact': {},
       'containerStyle': {
         default: 'min-height: 15rem;'
       },
       'addedTags': {default () { return [] }}
     },
-    components: {AcAudioPlayer, AcMarkdownViewer, AcSvgViewer, AcVideoPlayer},
+    components: {AcDangerFile, AcAudioPlayer, AcMarkdownViewer, AcSvgViewer, AcVideoPlayer},
     data () {
       return {
         fullscreen: false

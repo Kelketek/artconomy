@@ -516,15 +516,21 @@ export const COMPONENT_EXTENSIONS = {
   'TXT': 'ac-markdown-viewer',
   'MP3': 'ac-audio-player',
   'WAV': 'ac-audio-player',
-  'OGG': 'ac-audio-player'
+  'OGG': 'ac-audio-player',
+  'EXE': 'ac-danger-file',
+  'COM': 'ac-danger-file',
+  'DLL': 'ac-danger-file',
+  'APK': 'ac-danger-file',
+  'BIN': 'ac-danger-file',
+  'VBS': 'ac-danger-file',
+  'JAR': 'ac-danger-file',
+  'BAT': 'ac-danger-file',
+  'SH': 'ac-danger-file'
 }
 
 export function getExt (filename) {
   let components = filename.split('.')
   let ext = components[components.length - 1].toUpperCase()
-  if (ICON_EXTENSIONS.indexOf(ext) === -1) {
-    return 'UN.KNOWN'
-  }
   return ext
 }
 
@@ -534,6 +540,9 @@ export function isImage (filename) {
 
 export function extPreview (filename) {
   let ext = getExt(filename)
+  if (ICON_EXTENSIONS.indexOf(ext) === -1) {
+    ext = 'UN.KNOWN'
+  }
   return `/static/icons/${ext}.png`
 }
 
