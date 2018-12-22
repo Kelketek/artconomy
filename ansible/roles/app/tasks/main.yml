@@ -78,6 +78,18 @@
   notify:
     - collect static assets
 
+- name: Copy over icons
+  copy:
+    src: "keys/{{env_prefix}}/icons.zip"
+    dest: "{{home}}/icons.zip"
+
+- name: Unzip icons
+  unzip:
+    src: "{{home}}/icons.zip"
+    dest: "{{home}}/artconomy/static_resources/icons/"
+  notify:
+    - collect static assets
+
 - name: Install a sufficiently high version of pip.
   become: yes
   become_user: "{{ env_prefix }}"

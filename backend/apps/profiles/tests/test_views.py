@@ -249,7 +249,7 @@ class CharacterAPITestCase(APITestCase):
         self.assertFalse(asset.private)
         self.assertEqual(asset.rating, ADULT)
         self.assertEqual(asset.artists.all()[0], self.user)
-        self.assertIn('bloo-oo', asset.file.url)
+        self.assertTrue(asset.file.url)
         self.assertEqual(Subscription.objects.filter(type=FAVORITE).count(), 1)
         asset.delete()
         self.assertEqual(Subscription.objects.filter(type=FAVORITE).count(), 0)
@@ -272,7 +272,7 @@ class CharacterAPITestCase(APITestCase):
         self.assertEqual(asset.caption, 'A sea of green.')
         self.assertFalse(asset.private)
         self.assertEqual(asset.rating, ADULT)
-        self.assertIn('gree-een', asset.file.url)
+        self.assertTrue(asset.file.url)
         Subscription.objects.get(
             object_id=asset.id, content_type=ContentType.objects.get_for_model(asset),
             type=COMMENT,
@@ -296,7 +296,6 @@ class CharacterAPITestCase(APITestCase):
             }
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        print(response.data)
 
     def test_asset_upload_forbidden(self):
         self.login(self.user2)

@@ -1,10 +1,11 @@
 from django.conf import settings
 from django.core.validators import RegexValidator
+from django.forms import FileField
 from django.utils.datetime_safe import datetime, date
 from luhn import verify
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from rest_framework.fields import SerializerMethodField, DecimalField, IntegerField, FileField
+from rest_framework.fields import SerializerMethodField, DecimalField, IntegerField
 
 from apps.lib.serializers import RelatedUserSerializer, Base64ImageField, EventTargetRelatedField, SubscribedField, \
     SubscribeMixin

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <video controls :width="width">
+    <video controls :width="width" style="max-width: 100%">
       <source :src="asset.file.full" :type="type">
     </video>
   </div>

@@ -366,7 +366,8 @@
         <v-flex xs12 md6 lg4 text-xs-center v-for="(revision, index) in revisionsLimited"
              class="order-revision"
              v-bind:key="revision.id">
-          <ac-asset thumb-name="preview" img-class="max-width" :asset="revision" />
+          <ac-asset thumb-name="preview" img-class="max-width" :asset="revision" :compact="true"/>
+          <a :href="revision.file.full" download><p>Download</p></a>
           <div class="text-xs-center text-section p-3 mt-2">
             Revision {{ index + 1 }} on {{ formatDateTime(revision.created_on) }}
             <ac-action
@@ -391,9 +392,9 @@
       <v-layout row wrap class="mt-3 pb-3" v-if="final">
         <v-flex xs12 text-xs-center>
           <router-link v-if="output" :to="{name: 'Submission', params: {assetID: output.id}}">
-            <ac-asset class="final-preview" thumb-name="preview" :asset="final" />
+            <ac-asset class="final-preview" thumb-name="preview" :asset="final" :compact="true" />
           </router-link>
-          <ac-asset class="final-preview" v-else thumb-name="preview" :asset="final" />
+          <ac-asset class="final-preview" v-else thumb-name="preview" :asset="final" :compact="true" />
           <div class="text-xs-center text-section pb-2">
             Final delivered {{ formatDateTime(final.created_on)}}
             <ac-action
