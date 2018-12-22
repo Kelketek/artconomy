@@ -1,8 +1,10 @@
 import base64, uuid
+import os
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.files.base import ContentFile
+from django.core.validators import get_available_image_extensions
 from rest_framework import serializers
 from rest_framework.fields import SerializerMethodField
 from rest_framework_bulk import BulkSerializerMixin, BulkListSerializer
@@ -13,6 +15,9 @@ from apps.lib.models import Comment, Notification, Event, CHAR_TAG, SUBMISSION_C
 from apps.profiles.models import User, ImageAsset, Character, Journal
 from apps.sales.models import Revision, Product, Order, OrderToken
 from shortcuts import make_url
+
+
+AVAILABLE_IMAGE_EXTENSIONS = get_available_image_extensions()
 
 
 class UserInfoMixin:
@@ -112,18 +117,27 @@ class Base64ImageField(serializers.ImageField):
         super().__init__(*args, **kwargs)
 
     def to_internal_value(self, data):
+        auto_id = uuid.uuid4()
         if isinstance(data, str) and data.startswith('data:image'):
             # base64 encoded image - decode
             fmt, image_string = data.split(';base64,')  # format ~= data:image/X,
             ext = fmt.split('/')[-1]  # guess file extension
-            auto_id = uuid.uuid4()
             data = ContentFile(base64.b64decode(image_string), name=auto_id.urn[9:] + '.' + ext)
+        else:
+            ext = os.path.splitext(data.name)[1]
+            data = ContentFile(data.read(), name=auto_id.urn[9:] + ext)
         result = super(Base64ImageField, self).to_internal_value(data)
         return result
 
     def to_representation(self, value):
         if not value:
             return None
+        extension = os.path.splitext(value.name)[1][1:].lower()
+        if extension not in AVAILABLE_IMAGE_EXTENSIONS:
+            return {
+                '__type__': extension,
+                'full': make_url('{}{}'.format(settings.MEDIA_URL, value.name))
+            }
         values = {}
         # Construct URLs manually and avoid hitting the disk.
         for key, val in settings.THUMBNAIL_ALIASES[self.thumbnail_namespace].items():
@@ -137,6 +151,7 @@ class Base64ImageField(serializers.ImageField):
                 value.name.split('.')[-1]
             ))
         values['full'] = make_url(settings.MEDIA_URL + value.name)
+        values['__type__'] = 'data:image'
         return values
 
 

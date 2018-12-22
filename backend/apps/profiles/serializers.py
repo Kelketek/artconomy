@@ -4,6 +4,7 @@ from django.conf import settings
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.contenttypes.models import ContentType
 from django.db import connection
+from django.forms import FileField
 from django.middleware.csrf import get_token
 from django_otp.plugins.otp_totp.models import TOTPDevice
 from recaptcha.fields import ReCaptchaField
@@ -64,7 +65,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 class ImageAssetSerializer(serializers.ModelSerializer):
     owner = RelatedUserSerializer(read_only=True)
     comment_count = serializers.SerializerMethodField()
-    file = Base64ImageField(thumbnail_namespace='profiles.ImageAsset.file')
+    file = Base64ImageField(thumbnail_namespace='profiles.ImageAsset.file', _DjangoImageField=FileField)
     preview = Base64ImageField(thumbnail_namespace='profiles.ImageAsset.preview', required=False)
     is_artist = serializers.BooleanField(write_only=True)
     subscribed = SubscribedField(required=False)
@@ -123,7 +124,7 @@ class AvatarSerializer(serializers.Serializer):
 class ImageAssetNotificationSerializer(serializers.ModelSerializer):
     owner = RelatedUserSerializer(read_only=True)
     tags = TagSerializer(many=True, read_only=True)
-    file = Base64ImageField(thumbnail_namespace='profiles.ImageAsset.file')
+    file = Base64ImageField(thumbnail_namespace='profiles.ImageAsset.file', _DjangoImageField=FileField)
     preview = Base64ImageField(thumbnail_namespace='profiles.ImageAsset.preview', required=False)
 
     class Meta:
@@ -141,7 +142,7 @@ class ImageAssetNotificationSerializer(serializers.ModelSerializer):
 
 
 class ImageAssetArtNotificationSerializer(serializers.ModelSerializer):
-    file = Base64ImageField(thumbnail_namespace='profiles.ImageAsset.file')
+    file = Base64ImageField(thumbnail_namespace='profiles.ImageAsset.file', _DjangoImageField=FileField)
     preview = Base64ImageField(thumbnail_namespace='profiles.ImageAsset.preview', required=False)
 
     class Meta:
@@ -197,7 +198,7 @@ class ImageAssetManagementSerializer(SubscribeMixin, serializers.ModelSerializer
     owner = RelatedUserSerializer(read_only=True)
     artists = RelatedUserSerializer(read_only=True, many=True)
     characters = CharacterSerializer(many=True, read_only=True)
-    file = Base64ImageField(thumbnail_namespace='profiles.ImageAsset.file')
+    file = Base64ImageField(thumbnail_namespace='profiles.ImageAsset.file', _DjangoImageField=FileField)
     preview = Base64ImageField(thumbnail_namespace='profiles.ImageAsset.preview', required=False)
     favorite = serializers.SerializerMethodField()
     subscribed = SubscribedField(required=False)

@@ -6,7 +6,8 @@
         <div v-if="value.length">
           <v-btn v-if="value.length" color="normal" @click="value = []">Reset</v-btn>
           <div>
-            <img :src="getUrl(value[0])" style="max-width: 15rem;max-height: 15rem">
+            <img :src="getUrl(value[0])" style="max-width: 15rem;max-height: 15rem" v-if="isImage">
+            <img :src="previewIcon" style="max-width: 15rem;max-height: 15rem" v-else>
             <div>
               <span>{{value[0].name}}</span> -
               <span>{{value[0].size | formatSize}}</span>
@@ -29,6 +30,7 @@
         <div class="file-upload-btn">
           <file-upload
               class="btn btn-primary"
+              :class="{'preview-hidden': value.length && !isImage}"
               :post-action="postUrl"
               :multiple="false"
               :drop="true"
@@ -86,7 +88,7 @@
   import { abstractField } from 'vue-form-generator'
   import materialField from './materialField'
   import FileUpload from 'vue-upload-component'
-  import {EventBus} from '../../lib'
+  import {EventBus, extPreview, isImage} from '../../lib'
 
   export default {
     mixins: [abstractField, materialField],
@@ -107,6 +109,14 @@
     methods: {
       getUrl (file) {
         return URL.createObjectURL(file.file)
+      }
+    },
+    computed: {
+      isImage () {
+        return isImage(this.value[0].name)
+      },
+      previewIcon () {
+        return extPreview(this.value[0].name)
       }
     },
     created () {

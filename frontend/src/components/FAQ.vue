@@ -900,6 +900,28 @@
               </v-card-text>
             </v-card>
           </v-expansion-panel-content>
+          <v-expansion-panel-content>
+            <div slot="header"><strong>What file formats are supported? What are the limitations?</strong></div>
+            <v-card>
+              <v-card-text>
+                <p>
+                  We currently support all file formats, however, there are some things to keep in mind:
+                </p>
+                <ul>
+                  <li>We do not currently do automated video conversion (though it's planned!).
+                    You should upload in mp4, or else some viewers may not see your work.</li>
+                  <li>Not all file formats will have useful previews. JPG, GIF, BMP, PNG, and others are supported by
+                    all browsers, but whatever you upload can be downloaded. You're advised to set the preview icon of
+                    any piece that doesn't have previewing, such as .PSD files.</li>
+                  <li>File formats that are known to be especially dangerous (such as .exe files) will be marked with
+                    a warning. Support for these formats may be removed in the future if these become an issue.</li>
+                  <li>The file size limit is currently <strong>100MB</strong>.
+                    We intend to raise this in the future as we scale.</li>
+                  <li>.TXT files will be previewed with Markdown.</li>
+                </ul>
+              </v-card-text>
+            </v-card>
+          </v-expansion-panel-content>
         </v-expansion-panel>
       </v-tab-item>
     </v-tabs-items>
@@ -919,7 +941,7 @@
     'auctions', 'physical-goods'
   ]
   const other = [
-    'content-ratings', 'blacklist', 'watching', 'blocking'
+    'content-ratings', 'blacklist', 'watching', 'blocking', 'file-formats'
   ]
   const tabMap = {
     'tab-about': 'aboutTab',

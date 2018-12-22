@@ -1,3 +1,5 @@
+import {extPreview, getExt, isImage} from '../lib'
+
 export const Shortcuts = {
   install (Vue) {
     Vue.mixin({
@@ -22,6 +24,12 @@ export const Shortcuts = {
             if (asset.preview) {
               return asset.preview.thumbnail
             }
+          }
+          if (getExt(asset.file.full) === 'SVG') {
+            return asset.file.full
+          }
+          if (!isImage(asset.file.full)) {
+            return extPreview(asset.file.full)
           }
           return asset.file[thumbName]
         }
