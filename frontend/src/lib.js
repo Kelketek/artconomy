@@ -498,6 +498,45 @@ export function truncateText (text, maxLength) {
   return newText + '...'
 }
 
+const ICON_EXTENSIONS = [
+  'ACC', 'AE', 'AI', 'AN', 'AVI', 'BMP', 'CSV', 'DAT', 'DGN', 'DOC', 'DOCH', 'DOCM', 'DOCX', 'DOTH', 'DW', 'DWFX',
+  'DWG', 'DXF', 'DXL', 'EML', 'EPS', 'F4A', 'F4V', 'FLV', 'FS', 'GIF', 'HTML', 'IND', 'JPEG', 'JPG', 'JPP', 'LR', 'LOG',
+  'M4V', 'MBOX', 'MDB', 'MIDI', 'MKV', 'MOV', 'MP3', 'MP4', 'MPEG', 'MPG', 'MPP', 'MPT', 'MPW', 'MPX', 'MSG', 'ODS',
+  'OGA', 'OGG', 'OGV', 'ONE', 'OST', 'PDF', 'PHP', 'PNG', 'POT', 'POTH', 'POTM', 'POTX', 'PPS', 'PPSX', 'PPT', 'PPTH',
+  'PPTM', 'PPTX', 'PREM', 'PS', 'PSD', 'PST', 'PUB', 'PUBH', 'PUBM', 'PWZ', 'READ', 'RP', 'RTF', 'SQL', 'SVG', 'SWF',
+  'TIF', 'TIFF', 'TXT', 'URL', 'VCF', 'VDX', 'VOB', 'VSD', 'VSS', 'VST', 'VSX', 'VTX', 'WAV', 'WDP', 'WEBM', 'WMA',
+  'WMV', 'XD', 'XLS', 'XLSM', 'XLSX', 'XML', 'ZIP'
+]
+
+export const COMPONENT_EXTENSIONS = {
+  'MP4': 'ac-video-player',
+  'WEBM': 'ac-video-player',
+  'OGV': 'ac-video-player',
+  'SVG': 'ac-svg-viewer',
+  'TXT': 'ac-markdown-viewer',
+  'MP3': 'ac-audio-player',
+  'WAV': 'ac-audio-player',
+  'OGG': 'ac-audio-player'
+}
+
+export function getExt (filename) {
+  let components = filename.split('.')
+  let ext = components[components.length - 1].toUpperCase()
+  if (ICON_EXTENSIONS.indexOf(ext) === -1) {
+    return 'UN.KNOWN'
+  }
+  return ext
+}
+
+export function isImage (filename) {
+  return !(['JPG', 'BMP', 'JPEG', 'GIF', 'PNG'].indexOf(getExt(filename)) === -1)
+}
+
+export function extPreview (filename) {
+  let ext = getExt(filename)
+  return `/static/icons/${ext}.png`
+}
+
 export const EventBus = new Vue()
 
 export const recaptchaSiteKey = '6LdDkkIUAAAAAFyNzBAPKEDkxwYrQ3aZdVb1NKPw'

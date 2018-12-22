@@ -1,7 +1,24 @@
+import os
+
 from django.conf import settings
 from django.db import models
 from django.db.models import DateTimeField, ForeignKey, CASCADE
+from easy_thumbnails.exceptions import InvalidImageFormatError
 from easy_thumbnails.fields import ThumbnailerImageField
+from easy_thumbnails.files import ThumbnailerImageFieldFile
+
+
+class UntypedFieldFile(ThumbnailerImageFieldFile):
+    def save(self, name, content, *args, **kwargs):
+        name, ext = os.path.splitext(name)
+        if ext in []:
+            return super().save(name, content, *args, **kwargs)
+        return super(ThumbnailerImageFieldFile, self).save(name, content, *args, **kwargs)
+
+
+class UntypedThumbnailField(ThumbnailerImageField):
+    default_validators = []
+
 
 GENERAL = 0
 MATURE = 1
@@ -37,4 +54,6 @@ class ImageModel(models.Model):
                 return self.file[thumb].url
             except KeyError:
                 pass
+            except InvalidImageFormatError:
+                break
         return self.file.url

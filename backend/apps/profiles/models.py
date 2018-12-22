@@ -19,6 +19,7 @@ from django.db.models.signals import post_save, post_delete, pre_delete
 from django.dispatch import receiver
 from django.utils.datetime_safe import datetime, date
 from django.utils.encoding import force_bytes
+from easy_thumbnails.exceptions import InvalidImageFormatError
 from rest_framework.authtoken.models import Token
 
 from apps.lib.abstract_models import GENERAL, RATINGS, ImageModel
@@ -412,7 +413,10 @@ class Character(Model):
     def preview_image(self, request):
         if not self.primary_asset:
             return make_url('/static/images/default-avatar.png')
-        return preview_rating(request, self.primary_asset.rating, self.primary_asset.preview_link)
+        return preview_rating(
+            request, self.primary_asset.rating, self.primary_asset.preview_link,
+            sub_link='/static/images/default-avatar.png'
+        )
 
     def notification_serialize(self, context):
         from .serializers import CharacterSerializer

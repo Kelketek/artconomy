@@ -4,7 +4,7 @@ from django.utils.datetime_safe import datetime, date
 from luhn import verify
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from rest_framework.fields import SerializerMethodField, DecimalField, IntegerField
+from rest_framework.fields import SerializerMethodField, DecimalField, IntegerField, FileField
 
 from apps.lib.serializers import RelatedUserSerializer, Base64ImageField, EventTargetRelatedField, SubscribedField, \
     SubscribeMixin
@@ -18,7 +18,7 @@ from apps.sales.utils import escrow_balance, available_balance, pending_balance
 
 class ProductSerializer(serializers.ModelSerializer):
     user = RelatedUserSerializer(read_only=True)
-    file = Base64ImageField(thumbnail_namespace='sales.Product.file')
+    file = Base64ImageField(thumbnail_namespace='sales.Product.file', _DjangoImageField=FileField)
     preview = Base64ImageField(thumbnail_namespace='profiles.ImageAsset.preview', required=False)
 
     def get_thumbnail_url(self, obj):
@@ -214,7 +214,7 @@ class RevisionSerializer(serializers.ModelSerializer):
     Serializer for order revisions.
     """
     owner = serializers.SlugRelatedField(slug_field='username', read_only=True)
-    file = Base64ImageField(thumbnail_namespace='sales.Revision.file')
+    file = Base64ImageField(thumbnail_namespace='sales.Revision.file', _DjangoImageField=FileField)
 
     def get_thumbnail_url(self, obj):
         return self.context['request'].build_absolute_uri(obj.file.url)

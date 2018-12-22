@@ -269,3 +269,6 @@ blog
 
 # Search index
 whoosh_index
+
+# Don't save outside icon pack to repo.
+static_resources/icons/*

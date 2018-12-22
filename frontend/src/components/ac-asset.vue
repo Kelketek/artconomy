@@ -1,9 +1,22 @@
 <template>
   <div class="asset-container">
     <div v-if="asset">
-      <img :class="imgClass" :src="displayImage" v-if="canDisplay && !textOnly" @click="fullscreen=true">
-      <div v-if="fullscreen" class="fullscreen-container" @click="fullscreen=false">
-        <img :class="imgClass" :src="asset.file.full" v-if="canDisplay && !textOnly">
+      <div v-if="canDisplay && !textOnly">
+        <div v-if="isImage">
+          <img :class="imgClass" :src="displayImage" @click="fullscreen = true">
+        </div>
+        <div v-else-if="displayComponent">
+          <component :asset="asset" :is="displayComponent"></component>
+        </div>
+        <div v-else>
+          <a :href="asset.file.full" download>
+            <img :class="imgClass" :src="displayImage">
+            <p>Click here to download</p>
+          </a>
+        </div>
+        <div v-if="fullscreen" class="fullscreen-container" @click="fullscreen=false">
+          <img :class="imgClass" :src="asset.file.full" v-if="canDisplay && !textOnly">
+        </div>
       </div>
       <div v-else-if="!canDisplay" :style="style" class="text-xs-center">
         <div style="min-height: 20%;">&nbsp;</div>
@@ -54,7 +67,11 @@
 </style>
 
 <script>
-  import { RATINGS } from '../lib'
+  import {COMPONENT_EXTENSIONS, extPreview, getExt, RATINGS} from '../lib'
+  import AcVideoPlayer from './ac-video-player'
+  import AcSvgViewer from './ac-svg-viewer'
+  import AcMarkdownViewer from './ac-markdown-viewer'
+  import AcAudioPlayer from './ac-audio-player'
   export default {
     name: 'ac-asset',
     props: {
@@ -68,6 +85,7 @@
       },
       'addedTags': {default () { return [] }}
     },
+    components: {AcAudioPlayer, AcMarkdownViewer, AcSvgViewer, AcVideoPlayer},
     data () {
       return {
         fullscreen: false
@@ -86,7 +104,21 @@
             return this.asset.preview.thumbnail
           }
         }
+        if (!this.isImage) {
+          return extPreview(this.asset.file.full)
+        }
         return this.asset.file[this.thumbName]
+      },
+      displayComponent () {
+        let ext = getExt(this.asset.file.full)
+        // Special case-- SVGs are natively supported but the backend can't thumbnail them.
+        if (ext === 'SVG') {
+          return 'ac-svg-viewer'
+        }
+        if (['gallery', 'full', 'preview'].indexOf(this.thumbName) === -1) {
+          return null
+        }
+        return COMPONENT_EXTENSIONS[ext]
       },
       blacklisted () {
         if (!this.asset) {
@@ -106,6 +138,9 @@
           return true
         }
         return this.asset.rating <= this.rating
+      },
+      isImage () {
+        return (this.asset.file['__type__'] === 'data:image')
       },
       canDisplay () {
         if (this.permittedRating) {
