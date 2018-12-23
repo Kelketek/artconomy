@@ -905,19 +905,23 @@
             <v-card>
               <v-card-text>
                 <p>
-                  We currently support all file formats, however, there are some things to keep in mind:
+                  We currently support most file formats used for artistic expression, with a few caveats:
                 </p>
                 <ul>
-                  <li>We do not currently do automated video conversion (though it's planned!).
+                  <li>We do not do automated video conversion (though it's planned!).
                     You should upload in mp4, or else some viewers may not see your work.</li>
                   <li>Not all file formats will have useful previews. JPG, GIF, BMP, PNG, and others are supported by
                     all browsers, but whatever you upload can be downloaded. You're advised to set the preview icon of
                     any piece that doesn't have previewing, such as .PSD files.</li>
-                  <li>File formats that are known to be especially dangerous (such as .exe files) will be marked with
-                    a warning. Support for these formats may be removed in the future if these become an issue.</li>
                   <li>The file size limit is currently <strong>100MB</strong>.
                     We intend to raise this in the future as we scale.</li>
                   <li>.TXT files will be previewed with Markdown.</li>
+                  <li>
+                    If you're using a file type that is not supported, please upload a .zip file. Do note that uploads
+                    to Artconomy are expected to be artistic expressions and renderings and they may be removed if
+                    they are found to be primarily data sets (such as database dumps), non-game programs, or other work
+                    not reasonably understood as art.
+                  </li>
                 </ul>
               </v-card-text>
             </v-card>

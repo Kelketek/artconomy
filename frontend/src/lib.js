@@ -517,15 +517,6 @@ export const COMPONENT_EXTENSIONS = {
   'MP3': 'ac-audio-player',
   'WAV': 'ac-audio-player',
   'OGG': 'ac-audio-player',
-  'EXE': 'ac-danger-file',
-  'COM': 'ac-danger-file',
-  'DLL': 'ac-danger-file',
-  'APK': 'ac-danger-file',
-  'BIN': 'ac-danger-file',
-  'VBS': 'ac-danger-file',
-  'JAR': 'ac-danger-file',
-  'BAT': 'ac-danger-file',
-  'SH': 'ac-danger-file'
 }
 
 export function getExt (filename) {

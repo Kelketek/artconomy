@@ -1,11 +1,23 @@
 import os
 
 from django.conf import settings
+from django.core.validators import FileExtensionValidator
 from django.db import models
 from django.db.models import DateTimeField, ForeignKey, CASCADE
 from easy_thumbnails.exceptions import InvalidImageFormatError
 from easy_thumbnails.fields import ThumbnailerImageField
 from easy_thumbnails.files import ThumbnailerImageFieldFile
+
+
+ALLOWED_EXTENSIONS = (
+    'ACC', 'AE', 'AI', 'AN', 'AVI', 'BMP', 'DGN', 'DOC', 'DOCH', 'DOCM', 'DOCX', 'DOTH', 'DW', 'DWFX',
+    'DWG', 'DXF', 'EPS', 'F4A', 'F4V', 'FLV', 'FS', 'GIF', 'IND', 'JPEG', 'JPG', 'JPP', 'LR',
+    'M4V', 'MIDI', 'MKV', 'MOV', 'MP3', 'MP4', 'MPEG', 'MPG',
+    'OGA', 'OGG', 'OGV', 'PDF', 'PNG',
+    'PS', 'PSD', 'RTF', 'SVG', 'SWF',
+    'TIF', 'TIFF', 'TXT', 'VTX', 'WAV', 'WDP', 'WEBM', 'WMA',
+    'WMV', 'ZIP'
+)
 
 
 class UntypedFieldFile(ThumbnailerImageFieldFile):
@@ -34,7 +46,9 @@ RATINGS = (
 
 class ImageModel(models.Model):
     rating = models.IntegerField(choices=RATINGS, db_index=True, default=GENERAL)
-    file = ThumbnailerImageField(upload_to='art/%Y/%m/%d/')
+    file = ThumbnailerImageField(
+        upload_to='art/%Y/%m/%d/', validators=[FileExtensionValidator(allowed_extensions=ALLOWED_EXTENSIONS)]
+    )
     preview = ThumbnailerImageField(upload_to='thumbs/%Y/%m/%d/', blank=True, null=True, default='')
     created_on = DateTimeField(auto_now_add=True)
     owner = ForeignKey(
