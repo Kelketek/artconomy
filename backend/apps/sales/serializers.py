@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.core.validators import RegexValidator
+from django.core.validators import RegexValidator, FileExtensionValidator
 from django.forms import FileField
 from django.utils.datetime_safe import datetime, date
 from luhn import verify
@@ -7,6 +7,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import SerializerMethodField, DecimalField, IntegerField
 
+from apps.lib.abstract_models import ALLOWED_EXTENSIONS
 from apps.lib.serializers import RelatedUserSerializer, Base64ImageField, EventTargetRelatedField, SubscribedField, \
     SubscribeMixin
 from apps.lib.utils import country_choices
@@ -19,7 +20,10 @@ from apps.sales.utils import escrow_balance, available_balance, pending_balance
 
 class ProductSerializer(serializers.ModelSerializer):
     user = RelatedUserSerializer(read_only=True)
-    file = Base64ImageField(thumbnail_namespace='sales.Product.file', _DjangoImageField=FileField)
+    file = Base64ImageField(
+        thumbnail_namespace='sales.Product.file', _DjangoImageField=FileField,
+        validators=[FileExtensionValidator(allowed_extensions=ALLOWED_EXTENSIONS)],
+    )
     preview = Base64ImageField(thumbnail_namespace='profiles.ImageAsset.preview', required=False)
 
     def get_thumbnail_url(self, obj):
@@ -215,7 +219,10 @@ class RevisionSerializer(serializers.ModelSerializer):
     Serializer for order revisions.
     """
     owner = serializers.SlugRelatedField(slug_field='username', read_only=True)
-    file = Base64ImageField(thumbnail_namespace='sales.Revision.file', _DjangoImageField=FileField)
+    file = Base64ImageField(
+        thumbnail_namespace='sales.Revision.file', _DjangoImageField=FileField,
+        validators=[FileExtensionValidator(allowed_extensions=ALLOWED_EXTENSIONS)],
+    )
 
     def get_thumbnail_url(self, obj):
         return self.context['request'].build_absolute_uri(obj.file.url)

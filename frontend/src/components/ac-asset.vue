@@ -71,7 +71,6 @@
   import AcSvgViewer from './ac-svg-viewer'
   import AcMarkdownViewer from './ac-markdown-viewer'
   import AcAudioPlayer from './ac-audio-player'
-  import AcDangerFile from './ac-danger-file'
   export default {
     name: 'ac-asset',
     props: {
@@ -86,7 +85,7 @@
       },
       'addedTags': {default () { return [] }}
     },
-    components: {AcDangerFile, AcAudioPlayer, AcMarkdownViewer, AcSvgViewer, AcVideoPlayer},
+    components: {AcAudioPlayer, AcMarkdownViewer, AcSvgViewer, AcVideoPlayer},
     data () {
       return {
         fullscreen: false

@@ -297,6 +297,24 @@ class CharacterAPITestCase(APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
+    def test_unsupported_upload(self):
+        self.login(self.user)
+        char = CharacterFactory.create(user=self.user)
+        watch_subscriptions(self.user2, self.user)
+        uploaded = SimpleUploadedFile('porn.exe', b'Oh baby oh baby oh baby harder')
+        response = self.client.post(
+            '/api/profiles/v1/account/{}/characters/{}/assets/'.format(self.user.username, char.name),
+            {
+                'title': 'Do meeeee',
+                'caption': "Do me in the doer hole.",
+                'private': False,
+                'rating': ADULT,  # Such a sexy color!
+                'file': uploaded,
+                'is_artist': True
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
     def test_asset_upload_forbidden(self):
         self.login(self.user2)
         char = CharacterFactory.create(user=self.user)

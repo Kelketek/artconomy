@@ -3,6 +3,7 @@ from urllib.parse import quote_plus
 from django.conf import settings
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.contenttypes.models import ContentType
+from django.core.validators import FileExtensionValidator
 from django.db import connection
 from django.forms import FileField
 from django.middleware.csrf import get_token
@@ -12,7 +13,7 @@ from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 from rest_framework.exceptions import ValidationError
 
-from apps.lib.abstract_models import RATINGS
+from apps.lib.abstract_models import RATINGS, ALLOWED_EXTENSIONS
 from apps.lib.serializers import RelatedUserSerializer, Base64ImageField, TagSerializer, SubscribedField, \
     SubscribeMixin, UserInfoMixin
 from apps.profiles.models import Character, ImageAsset, User, RefColor, Attribute, Message, \
@@ -65,7 +66,11 @@ class RegisterSerializer(serializers.ModelSerializer):
 class ImageAssetSerializer(serializers.ModelSerializer):
     owner = RelatedUserSerializer(read_only=True)
     comment_count = serializers.SerializerMethodField()
-    file = Base64ImageField(thumbnail_namespace='profiles.ImageAsset.file', _DjangoImageField=FileField)
+    file = Base64ImageField(
+        thumbnail_namespace='profiles.ImageAsset.file',
+        _DjangoImageField=FileField,
+        validators=[FileExtensionValidator(allowed_extensions=ALLOWED_EXTENSIONS)],
+    )
     preview = Base64ImageField(thumbnail_namespace='profiles.ImageAsset.preview', required=False)
     is_artist = serializers.BooleanField(write_only=True)
     subscribed = SubscribedField(required=False)
@@ -124,7 +129,10 @@ class AvatarSerializer(serializers.Serializer):
 class ImageAssetNotificationSerializer(serializers.ModelSerializer):
     owner = RelatedUserSerializer(read_only=True)
     tags = TagSerializer(many=True, read_only=True)
-    file = Base64ImageField(thumbnail_namespace='profiles.ImageAsset.file', _DjangoImageField=FileField)
+    file = Base64ImageField(
+        thumbnail_namespace='profiles.ImageAsset.file',
+        _DjangoImageField=FileField, validators=[FileExtensionValidator(allowed_extensions=ALLOWED_EXTENSIONS)],
+    )
     preview = Base64ImageField(thumbnail_namespace='profiles.ImageAsset.preview', required=False)
 
     class Meta:
@@ -142,7 +150,10 @@ class ImageAssetNotificationSerializer(serializers.ModelSerializer):
 
 
 class ImageAssetArtNotificationSerializer(serializers.ModelSerializer):
-    file = Base64ImageField(thumbnail_namespace='profiles.ImageAsset.file', _DjangoImageField=FileField)
+    file = Base64ImageField(
+        thumbnail_namespace='profiles.ImageAsset.file', _DjangoImageField=FileField,
+        validators=[FileExtensionValidator(allowed_extensions=ALLOWED_EXTENSIONS)],
+    )
     preview = Base64ImageField(thumbnail_namespace='profiles.ImageAsset.preview', required=False)
 
     class Meta:
@@ -198,7 +209,10 @@ class ImageAssetManagementSerializer(SubscribeMixin, serializers.ModelSerializer
     owner = RelatedUserSerializer(read_only=True)
     artists = RelatedUserSerializer(read_only=True, many=True)
     characters = CharacterSerializer(many=True, read_only=True)
-    file = Base64ImageField(thumbnail_namespace='profiles.ImageAsset.file', _DjangoImageField=FileField)
+    file = Base64ImageField(
+        thumbnail_namespace='profiles.ImageAsset.file', _DjangoImageField=FileField,
+        validators=[FileExtensionValidator(allowed_extensions=ALLOWED_EXTENSIONS)],
+    )
     preview = Base64ImageField(thumbnail_namespace='profiles.ImageAsset.preview', required=False)
     favorite = serializers.SerializerMethodField()
     subscribed = SubscribedField(required=False)
