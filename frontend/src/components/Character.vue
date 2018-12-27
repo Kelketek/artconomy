@@ -443,7 +443,7 @@
         showSettings: false,
         settingsModel: {
           name: '',
-          open_comissions: false,
+          open_commissions: false,
           private: false,
           taggable: true
         },

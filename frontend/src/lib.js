@@ -520,9 +520,9 @@ export const COMPONENT_EXTENSIONS = {
 }
 
 export function getExt (filename) {
+  filename = filename || ''
   let components = filename.split('.')
-  let ext = components[components.length - 1].toUpperCase()
-  return ext
+  return components[components.length - 1].toUpperCase()
 }
 
 export function isImage (filename) {

@@ -353,7 +353,7 @@
           fields: [{
             type: 'v-checkbox',
             styleClasses: ['vue-checkbox'],
-            label: 'Comissions closed',
+            label: 'Commissions closed',
             model: 'commissions_closed',
             required: false,
             validator: VueFormGenerator.validators.boolean,
