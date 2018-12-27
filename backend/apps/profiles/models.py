@@ -49,7 +49,7 @@ def set_avatar_url(user):
         user.avatar_url = avatar.avatar_url(80)
     else:
         params = {'s': '80'}
-        path = "%s/?%s" % (hashlib.md5(force_bytes(getattr(user,
+        path = "%s.jpg?%s" % (hashlib.md5(force_bytes(getattr(user,
                                                            'email'))).hexdigest(), urlencode(params))
         user.avatar_url = urljoin('https://www.gravatar.com/avatar/', path)
     user.save()
