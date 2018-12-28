@@ -151,7 +151,7 @@
           </v-flex>
         </v-layout>
       </v-card>
-      <v-card class="mt-3">
+      <v-card class="mt-3" v-if="submission.characters.length">
         <v-layout>
           <v-flex xs12 class="pl-2">
             <h2>Featuring</h2>

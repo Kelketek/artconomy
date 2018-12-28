@@ -1,6 +1,6 @@
 import $ from 'jquery'
 import deepEqual from 'deep-equal'
-import { artCall, buildQueryString, EventBus } from '../lib'
+import {artCall, buildQueryString, EventBus, genId} from '../lib'
 // For use with paginated Django views.
 export default {
   props: {
@@ -31,7 +31,7 @@ export default {
       promise: null,
       // Used with autoFetch to indicate when we've received the OK from the outside to manage ourselves.
       started: false,
-      scrollToId: this.genId(),
+      scrollToId: genId(),
       furtherPagination: true,
       error: '',
       oldQueryData: JSON.parse(JSON.stringify(this.queryData))
@@ -43,14 +43,6 @@ export default {
     return defaults
   },
   methods: {
-    genId () {
-      let text = ''
-      let possible = 'abcdefghijklmnopqrstuvwxyz'
-      for (let i = 0; i < 20; i++) {
-        text += possible.charAt(Math.floor(Math.random() * possible.length))
-      }
-      return 'scroll-' + text
-    },
     linkGen (pageNum) {
       let query = JSON.parse(JSON.stringify(this.queryData))
       query.page = pageNum
