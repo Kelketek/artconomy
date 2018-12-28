@@ -517,6 +517,7 @@ export const COMPONENT_EXTENSIONS = {
   'MP3': 'ac-audio-player',
   'WAV': 'ac-audio-player',
   'OGG': 'ac-audio-player',
+  'SWF': 'ac-flash-player'
 }
 
 export function getExt (filename) {
@@ -535,6 +536,15 @@ export function extPreview (filename) {
     ext = 'UN.KNOWN'
   }
   return `/static/icons/${ext}.png`
+}
+
+export function genId () {
+  let text = ''
+  let possible = 'abcdefghijklmnopqrstuvwxyz'
+  for (let i = 0; i < 20; i++) {
+    text += possible.charAt(Math.floor(Math.random() * possible.length))
+  }
+  return text
 }
 
 export const EventBus = new Vue()
