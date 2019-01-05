@@ -158,6 +158,9 @@ class User(AbstractEmailUser):
         self.email = self.email and self.email.lower()
         super().save(*args, **kwargs)
 
+    def __str__(self):
+        return self.username
+
     def notification_serialize(self, context):
         from .serializers import RelatedUserSerializer
         return RelatedUserSerializer(instance=self, context=context).data
