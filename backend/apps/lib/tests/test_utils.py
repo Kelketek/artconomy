@@ -97,6 +97,7 @@ class NotificationsTestCase(TestCase):
             self.assertEqual(event.data, {'users': [1, 2, 3]})
             self.assertFalse(notification.read)
 
+    @freeze_time('2018-01-01')
     def test_unique_data(self):
         asset = ImageAssetFactory.create()
         notify(FAVORITE, target=asset, data={'users': []})
@@ -118,6 +119,7 @@ class NotificationsTestCase(TestCase):
             self.assertTrue(notification.read)
             self.assertFalse(event.recalled)
 
+    @freeze_time('2018-01-01')
     def test_unique_data_query(self):
         asset = ImageAssetFactory.create()
         notify(FAVORITE, target=asset, data={'users': []})
@@ -139,6 +141,7 @@ class NotificationsTestCase(TestCase):
             self.assertTrue(notification.read)
             self.assertFalse(event.recalled)
 
+    @freeze_time('2018-01-01')
     def test_unique_data_no_update_nonmatch(self):
         asset = ImageAssetFactory.create()
         notify(FAVORITE, target=asset, data={'users': []})
