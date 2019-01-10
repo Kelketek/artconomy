@@ -19,7 +19,7 @@ img {
   font-weight: bold
 }
 
-#app p a, #app ul a, #app ol a, #app .v-responsive__content a {
+#app p a, #app ul a, #app ol a, #app .v-responsive__content a, .v-alert a {
   color: #fff;
   text-decoration: underline;
 }
