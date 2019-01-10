@@ -104,8 +104,11 @@ def Any(*perms):
     perms = [perm() for perm in perms]
 
     class AnyPerm(BasePermission):
+        def has_permission(self, request, view):
+            return any(perm.has_permission(request, view) for perm in perms)
+
         def has_object_permission(self, request, view, obj):
-            return any(perm.has_object_permission(request, view, obj) for perm in perms)
+                return any(perm.has_object_permission(request, view, obj) for perm in perms)
     return AnyPerm
 
 
@@ -113,6 +116,9 @@ def All(*perms):
     perms = [perm() for perm in perms]
 
     class AllPerms(BasePermission):
+        def has_permission(self, request, view):
+            return all(perm.has_permission(request, view) for perm in perms)
+
         def has_object_permission(self, request, view, obj):
             result = all(perm.has_object_permission(request, view, obj) for perm in perms)
             return result
