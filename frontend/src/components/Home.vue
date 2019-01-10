@@ -29,6 +29,16 @@
         <v-btn color="red" @click="mailAnswer('DELETE')">No, thank you.</v-btn> <v-btn color="purple" @click="mailAnswer('POST')">Yes, please!</v-btn>
       </div>
     </v-alert>
+    <v-alert
+        v-model="showConNotification"
+        type="info"
+        dismissible
+        class="mb-2"
+    >
+      <div>
+        <strong>Artconomy will be at Further Confusion, January 17th-21st. Find Eris Griffon (<a href="https://telegram.me/ErisGriffon" target="_blank">@ErisGriffon</a> on Telegram) and get yourself a sticker!</strong>
+      </div>
+    </v-alert>
     <v-layout row wrap>
       <v-flex xs12><v-img :src="`/static/images/${randomBanner.file}`"></v-img></v-flex>
       <v-flex xs12><p>Banner by <router-link :to="{name: 'Profile', params: {username: randomBanner.username}}">{{randomBanner.username}}</router-link></p></v-flex>
@@ -225,7 +235,7 @@
 </style>
 
 <script>
-  import {artCall, setMetaContent} from '../lib'
+  import {artCall, getCookie, setCookie, setMetaContent} from '../lib'
   import AcAssetGallery from './ac-asset-gallery'
   import Characters from './Characters'
   import Viewer from '../mixins/viewer'
@@ -282,6 +292,19 @@
         }
         if (this.viewer.username && !this.viewer.offered_mailchimp) {
           return true
+        }
+      },
+      showConNotification: {
+        get () {
+          return !getCookie('FC2019')
+        },
+        set (val) {
+          if (!val) {
+            setCookie('FC2019', true)
+          } else {
+            // Should delete cookie. I don't think the code would ever run across this branch, but just in case.
+            setCookie('FC2019', '', -1)
+          }
         }
       },
       randomBanner () {
