@@ -6,7 +6,7 @@ bs4==0.0.1
 celery==4.2.0
 celery-haystack==0.10
 ddt==1.1.1
-Django>=2.0.6,<2.1.0
+Django==2.1.5
 django-avatar==4.1.0
 django-otp==0.4.3
 django-celery-email==2.0.0
