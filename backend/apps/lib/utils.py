@@ -229,6 +229,32 @@ def notify(
         event_type, target, data=None, unique=False, unique_data=None, mark_unread=False, time_override=None,
         transform=None, exclude=None, force_create=False, silent_broadcast=False
 ):
+    """
+    Send out notifications to people who are subscribed to particular events.
+
+    event_type should be a type users are subscribed to. Target is a target they're subscribed to that event type on
+    (or None, if it's a general category like SYSTEM_ANNOUNCEMENT).
+
+    data should be the JSON-compatible data to save in the event.
+
+    unique is to specify that the notification is universally unique and that if the notification is run again with the
+    same parameters (aside from whatever is in data, which can vary), it should not create a new broadcast.
+    The existing events will be updated based on the other parameters.
+
+    unique_data means that the event will only be considered unique if the data is precisely the same.
+
+    time_override will force a particular timestamp on the event.
+
+    transform is a function that takes the original data in an event and modifies it.
+
+    exclude is a list of users whose subscriptions will be ignored. For instance, a user might have a comment
+    subscription, but they made the comment, so we shouldn't notify them.
+
+    force_create will force the creation of the event even if it would reach no subscribers. Useful if the data stored
+    will be useful for later subscribers.
+
+    silent_broadcast will not generate any emails or telegram notifications if they otherwise would have been generated.
+    """
     from apps.lib.serializers import NOTIFICATION_TYPE_MAP
     from apps.lib.serializers import notification_serialize
 

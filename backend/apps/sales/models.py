@@ -266,10 +266,11 @@ def auto_subscribe_order(sender, instance, created=False, **_kwargs):
             type=COMMENT
         )
         # In the off chance the seller and buyer are the same.
-        Subscription.objects.get_or_create(
+        Subscription.objects.create(
             subscriber=instance.seller,
             content_type=ContentType.objects.get_for_model(model=sender),
             object_id=instance.id,
+            email=True,
             type=COMMENT
         )
 
