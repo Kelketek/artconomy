@@ -17,7 +17,6 @@ from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django_otp import user_has_device, match_token, login as otp_login, devices_for_user
 from django_otp.plugins.otp_totp.models import TOTPDevice
-from easy_thumbnails.exceptions import InvalidImageFormatError
 from haystack.inputs import AutoQuery
 from haystack.query import SearchQuerySet
 from rest_framework import status
