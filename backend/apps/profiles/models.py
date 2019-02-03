@@ -381,7 +381,7 @@ class Character(Model):
             RegexValidator(r'^[^/\\?%&+#]+$', message='Names may not contain /, \\, ?, #, or &.')
         ]
     )
-    description = CharField(max_length=5000, blank=True, default='')
+    description = CharField(max_length=20000, blank=True, default='')
     private = BooleanField(
         default=False, help_text="Only show this character to people I have explicitly shared it to."
     )
