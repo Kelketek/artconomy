@@ -6,7 +6,7 @@
           <img :class="imgClass" :src="displayImage" @click="fullscreen = true">
         </div>
         <div v-else-if="displayComponent">
-          <component :asset="asset" :imgClass="imgClass" :compact="compact" :is="displayComponent"></component>
+          <component :asset="asset" :imgClass="imgClass" :compact="compact" :pop-out="popOut" :is="displayComponent"></component>
         </div>
         <div v-else>
           <a :href="asset.file.full" download>
@@ -81,6 +81,8 @@
       'thumbName': {},
       'textOnly': {},
       'compact': {},
+      'previewOnly': {},
+      'popOut': {default: false},
       'containerStyle': {
         default: 'min-height: 15rem;'
       },
