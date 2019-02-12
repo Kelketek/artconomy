@@ -332,7 +332,7 @@ class SetAvatar(GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         avatar = Avatar(user=request.user, primary=True)
-        image_file = Base64ImageField().to_internal_value(request.data['avatar'])
+        image_file = serializer.validated_data.get('avatar')
         avatar.avatar.save(image_file.name, image_file)
         avatar.save()
         avatar_updated.send(sender=Avatar, user=request.user, avatar=avatar)
