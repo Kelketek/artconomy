@@ -516,3 +516,9 @@ class ReferralStatsSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('total_referred', 'portrait_eligible', 'landscape_eligible')
+
+
+class ContactSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    body = serializers.CharField(max_length=10000)
+    referring_url = serializers.CharField(max_length=1000)

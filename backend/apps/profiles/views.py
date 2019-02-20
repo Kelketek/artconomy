@@ -34,21 +34,25 @@ from apps.lib.models import Notification, FAVORITE, CHAR_TAG, SUBMISSION_CHAR_TA
     SUBMISSION_TAG, Tag, ASSET_SHARED, CHAR_SHARED, WATCHING, Comment, NEW_PM, Subscription, \
     COMMENT, ORDER_NOTIFICATION_TYPES
 from apps.lib.permissions import Any, All, IsSafeMethod, IsMethod, IsAnonymous, IsAuthenticatedObj
-from apps.lib.serializers import CommentSerializer, NotificationSerializer, Base64ImageField, RelatedUserSerializer, \
+from apps.lib.serializers import CommentSerializer, NotificationSerializer, RelatedUserSerializer, \
     BulkNotificationSerializer, UserInfoSerializer
-from apps.lib.utils import recall_notification, notify, safe_add, add_tags, remove_watch_subscriptions, \
+from apps.lib.utils import (
+    recall_notification, notify, safe_add, add_tags, remove_watch_subscriptions,
     watch_subscriptions, add_check, demark, preview_rating
+)
 from apps.lib.views import BaseTagView, BaseUserTagView, BasePreview
 from apps.profiles.models import User, Character, ImageAsset, RefColor, Attribute, Message, \
     MessageRecipientRelationship, Journal
 from apps.profiles.permissions import ObjectControls, UserControls, AssetViewPermission, AssetControls, \
     ColorControls, ColorLimit, ViewFavorites, SharedWith, MessageReadPermission, MessageControls, IsUser, \
     JournalCommentPermission
-from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer, SettingsSerializer, UserSerializer, \
-    RegisterSerializer, ImageAssetManagementSerializer, CredentialsSerializer, AvatarSerializer, RefColorSerializer, \
-    AttributeSerializer, SessionSettingsSerializer, MessageManagementSerializer, MessageSerializer, \
-    PasswordResetSerializer, JournalSerializer, TwoFactorTimerSerializer, TelegramDeviceSerializer, \
+from apps.profiles.serializers import (
+    CharacterSerializer, ImageAssetSerializer, SettingsSerializer, UserSerializer,
+    RegisterSerializer, ImageAssetManagementSerializer, CredentialsSerializer, AvatarSerializer, RefColorSerializer,
+    AttributeSerializer, SessionSettingsSerializer, MessageManagementSerializer, MessageSerializer,
+    PasswordResetSerializer, JournalSerializer, TwoFactorTimerSerializer, TelegramDeviceSerializer,
     ReferralStatsSerializer
+)
 from apps.profiles.tasks import mailchimp_subscribe
 from apps.profiles.utils import available_chars, char_ordering, available_assets, available_artists, available_users
 from apps.sales.models import Order

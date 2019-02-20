@@ -38,29 +38,138 @@
           <v-flex v-if="$root.user && !$root.user.username" xs12 text-xs-center>
             <p>Please read our <router-link :to="{name: 'PrivacyPolicy'}">Privacy Policy</router-link> and <router-link :to="{name: 'TermsOfService'}">Terms of Service</router-link>.</p>
             <p>Check out our <a href="/blog/" target="_blank">blog</a> for updates, or read the <router-link :to="{name: 'FAQ'}">FAQ</router-link> for more information.</p>
+            <p>If you're having trouble, please <a @click="showSupport = true">Contact support.</a></p>
           </v-flex>
         </v-layout>
       </v-container>
+      <ac-form-dialog
+          v-model="showSupport"
+          :schema="supportSchema"
+          :model="supportModel"
+          url="/api/lib/v1/support/request/"
+          title="Contact Support!"
+          :success="showSuccess"
+          :reset-after="false"
+      >
+        <div slot="header">
+          <v-flex class="text-xs-center">
+            <h1>We respond to all support requests the same day we receive them, often within the same hour!</h1>
+          </v-flex>
+        </div>
+      </ac-form-dialog>
+      <v-dialog
+          v-model="showTicketSuccess"
+          width="500"
+      >
+        <v-card>
+          <v-card-text>
+            Your support request has been received, and our team has been contacted! If you do not receive a reply
+            soon, try emailing <a href="mailto:support@artconomy.com">support@artconomy.com</a>. Requests are
+            responded to on the same day they are received.
+          </v-card-text>
+
+          <v-divider></v-divider>
+
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn
+                color="primary"
+                flat
+                @click="showTicketSuccess = false"
+            >
+              OK
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
     </v-content>
   </v-app>
 </template>
 
 <script>
   import NavBar from './components/NavBar'
-  import {setMetaContent} from './lib'
+  import VueFormGenerator from 'vue-form-generator'
+  import {EventBus, genId, setMetaContent} from './lib'
+  import AcFormDialog from './components/ac-form-dialog'
+  import Viewer from './mixins/viewer'
   export default {
     name: 'app',
+    mixins: [Viewer],
     data () {
-      return {}
+      return {
+        showSupport: false,
+        showTicketSuccess: false,
+        supportModel: {
+          email: (this.viewer && this.viewer.email) || '',
+          body: '',
+          referring_url: this.$route.fullPath
+        },
+        supportSchema: {
+          fields: [
+            {
+              type: 'v-text',
+              inputType: 'text',
+              label: 'How can we help?',
+              model: 'body',
+              featured: true,
+              required: true,
+              multiLine: true,
+              validator: VueFormGenerator.validators.string
+            },
+            {
+              type: 'v-text',
+              inputType: 'text',
+              label: 'Email',
+              model: 'email',
+              id: 'login-email',
+              placeholder: 'example@example.com',
+              featured: true,
+              required: true,
+              validator: VueFormGenerator.validators.email
+            }
+          ]
+        }
+      }
     },
     components: {
+      AcFormDialog,
       NavBar
+    },
+    methods: {
+      showSuccess () {
+        this.showSupport = false
+        this.showTicketSuccess = true
+        this.supportModel.body = ''
+      },
     },
     watch: {
       '$root.errorCode' (val) {
         if (val) {
           setMetaContent('prerender-status-code', val)
         }
+      },
+      '$route': {
+        deep: true,
+        handler () {
+          console.log(this.$route)
+          this.supportModel.referring_url = this.$route.fullPath
+        }
+      },
+      viewer: {
+        deep: true,
+        immediate: true,
+        handler () {
+          if (this.viewer && this.viewer.email){
+            this.supportModel.email = this.viewer.email
+          }
+          this.supportModel.email = ''
+        }
+      }
+    },
+    created () {
+      EventBus.$on('showSupport', () => {this.showSupport = true})
+      if (this.viewer && this.viewer.email) {
+        this.supportModel.email = this.viewer.email
       }
     }
   }
