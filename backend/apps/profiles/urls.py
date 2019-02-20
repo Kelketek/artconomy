@@ -2,17 +2,20 @@
 """
 from django.urls import path
 
-from apps.profiles.views import Register, CharacterListAPI, CharacterAssets, \
-    CharacterManager, AssetManager, MakePrimary, SettingsAPI, CurrentUserInfo, AssetComments, CredentialsAPI, \
-    CommunityNotificationsList, SetAvatar, UserInfo, CharacterSearch, AssetFavorite, MarkNotificationsRead, \
-    AssetTagCharacter, \
-    UserSearch, AssetTagArtist, TagSearch, AssetTag, AssetSearch, CharacterTag, UserBlacklist, RefColorList, \
-    RefColorManager, RecentSubmissions, RecentCommissions, NewCharacters, FavoritesList, GalleryList, SubmissionList, \
-    AttributeManager, AttributeList, SessionSettings, AssetShare, CharacterShare, WatchUser, Watching, Watchers, \
-    MessagesTo, MessagesFrom, MessageManager, MessageComments, LeaveConversation, BlockUser, StartPasswordReset, \
-    TokenValidator, PasswordReset, Journals, JournalManager, JournalComments, SalesNotificationsList, \
-    UnreadNotifications, WatchListSubmissions, TOTPDeviceList, TOTPDeviceManager, Telegram2FA, RecentArt, UserInfoByID, \
+from apps.profiles.views import (
+    Register, CharacterListAPI, CharacterAssets,
+    CharacterManager, AssetManager, MakePrimary, SettingsAPI, CurrentUserInfo, AssetComments, CredentialsAPI,
+    CommunityNotificationsList, SetAvatar, UserInfo, CharacterSearch, AssetFavorite, MarkNotificationsRead,
+    AssetTagCharacter,
+    UserSearch, AssetTagArtist, TagSearch, AssetTag, AssetSearch, CharacterTag, UserBlacklist, RefColorList,
+    RefColorManager, RecentSubmissions, RecentCommissions, NewCharacters, FavoritesList, GalleryList, SubmissionList,
+    AttributeManager, AttributeList, SessionSettings, AssetShare, CharacterShare, WatchUser, Watching, Watchers,
+    MessagesTo, MessagesFrom, MessageManager, MessageComments, LeaveConversation, BlockUser, StartPasswordReset,
+    TokenValidator, PasswordReset, Journals, JournalManager, JournalComments, SalesNotificationsList,
+    UnreadNotifications, WatchListSubmissions, TOTPDeviceList, TOTPDeviceManager, Telegram2FA, RecentArt, UserInfoByID,
     ReferralStats, MailingListPref
+)
+from apps.lib.views import SupportRequest
 from apps.profiles.views import check_username, check_email, perform_login, perform_logout
 
 app_name = "profiles"
@@ -149,5 +152,6 @@ urlpatterns = [
     ),
     path(r'v1/account/<username>/characters/', CharacterListAPI.as_view(), name='character_list'),
     path(r'v1/account/<username>/watch/', WatchUser.as_view(), name='watch_user'),
-    path(r'v1/account/<username>/block/', BlockUser.as_view(), name='block_user')
+    path(r'v1/account/<username>/block/', BlockUser.as_view(), name='block_user'),
+
 ]

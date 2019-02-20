@@ -1,6 +1,10 @@
 from collections import OrderedDict
 
+from django.conf import settings
+from django.core.mail import EmailMessage
+
 from django.http import Http404
+from django.template.loader import get_template
 from django.views import View
 from rest_framework import status
 from rest_framework.generics import RetrieveUpdateDestroyAPIView, get_object_or_404, CreateAPIView, \
@@ -13,9 +17,13 @@ from apps.lib.models import Comment
 from apps.lib.permissions import CommentEditPermission, CommentViewPermission, CommentDepthPermission, Any, All, \
     IsMethod, IsSafeMethod, IsAuthenticatedObj
 from apps.lib.serializers import CommentSerializer, CommentSubscriptionSerializer
-from apps.lib.utils import countries_tweaked, remove_tags, add_tags, remove_comment, safe_add, default_context
+from apps.lib.utils import (
+    countries_tweaked, remove_tags, add_tags, remove_comment, safe_add, default_context,
+    get_client_ip
+)
 from apps.profiles.models import User
 from apps.profiles.permissions import ObjectControls
+from apps.profiles.serializers import ContactSerializer
 from views import bad_request, base_template
 
 
@@ -246,3 +254,30 @@ class BasePreview(View):
         except Http404:
             context = self.default_context()
         return base_template(request, context)
+
+
+class SupportRequest(APIView):
+    def post(self, request):
+        serializer = ContactSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        subject = 'New Support Request'
+        from_email = serializer.validated_data['email']
+        username = '<Anonymous>'
+        if request.user.is_authenticated:
+            username = request.user.username
+        ctx = {
+            'body': serializer.validated_data['body'],
+            'ip': get_client_ip(request),
+            'username': username,
+            'path': serializer.validated_data['referring_url'],
+            'user_agent': request.META.get('HTTP_USER_AGENT')
+        }
+        message = get_template('support_email.txt').render(ctx)
+        msg = EmailMessage(
+            subject,
+            message,
+            to=[settings.ADMINS[0][1]],
+            headers={'Reply-To': from_email}
+        )
+        msg.send()
+        return Response(status=status.HTTP_204_NO_CONTENT)

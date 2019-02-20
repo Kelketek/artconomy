@@ -89,8 +89,7 @@
         </v-btn>
         <v-btn
             flat
-            href="mailto:support@artconomy.com"
-            target="_blank"
+            @click="showSupport"
         >
           <span>Support</span>
           <v-icon medium>contact_support</v-icon>
@@ -196,9 +195,10 @@
   import { artCall, EventBus } from '../lib'
   import AcPatchbutton from './ac-patchbutton'
   import Viewer from '../mixins/viewer'
+  import AcFormDialog from './ac-form-dialog'
 
   export default {
-    components: {AcPatchbutton},
+    components: {AcFormDialog, AcPatchbutton},
     mixins: [Viewer],
     name: 'NavBar',
     data () {
@@ -233,7 +233,7 @@
       },
       notFramed () {
         return this.$route.path.indexOf('/iframe/') === -1
-      }
+      },
     },
     methods: {
       performSearch () {
@@ -284,6 +284,9 @@
           undefined,
           this.logoutHandler
         )
+      },
+      showSupport () {
+        EventBus.$emit('showSupport')
       }
     },
     watch: {
