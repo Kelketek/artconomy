@@ -692,7 +692,7 @@
         return RegExp('^\\d{3,4}$').test(this.cvv)
       },
       paymentDetail () {
-        return this.seller || this.newOrder
+        return true
       },
       price () {
         return (parseFloat(this.order.price) + parseFloat(this.adjustmentModel.adjustment || '0')).toFixed(2)
