@@ -1,8 +1,15 @@
 {% extends 'email_base.html' %}
+{% load md2 %}
 {% block header_message %}{% if target.status == 1 %}New Sale!{% else %}Sale update!{% endif %} #{{target.id}}{% endblock %}
 {% block message %}
 {% if target.status == 1 %}
-You have a new sale on Artconomy
+You have a new sale of your product, "{{target.product.name}}" to <a href="/profiles/{{target.buyer.username}}/">{{target.buyer.username}}</a>.
+
+Here's a preview of their order description:
+
+<div class="message-preview">
+  {{target.details|markdown:"safe"}}
+</div>
 {% elif target.status == 3 %}
 The buyer has submitted payment and the sale has been added to your queue.
 {% elif target.status == 6 %}

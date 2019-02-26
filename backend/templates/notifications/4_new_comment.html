@@ -1,7 +1,13 @@
 {% extends 'email_base.html' %}
+{% load md2 %}
 {% block header_message %}New Comment{% endblock %}
 {% block message %}
-There was a new comment on your {{data.name}}. View it via the link below!
+There was a new comment on your {{data.name}} by {{data.most_recent_comment.user.username}}. View it via the link below! Here's a preview:
+
+<div class="message-preview">
+  {{data.most_recent_comment.text|markdown:"safe"}}
+</div>
+<strong>Check the link below to reply! Do not reply to this email. It won't go anywhere.</strong>
 {% endblock message %}
 
 {% block action %}

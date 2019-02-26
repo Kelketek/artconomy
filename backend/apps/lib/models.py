@@ -33,6 +33,10 @@ class Comment(models.Model):
     def __str__(self):
         return "({}) Comment by {} on {}".format(self.id, self.user.username, self.created_on)
 
+    def notification_serialize(self, context):
+        from apps.lib.serializers import CommentSerializer
+        return CommentSerializer(self, context=context).data
+
     class Meta:
         ordering = ('created_on',)
 
@@ -116,7 +120,7 @@ EMAIL_SUBJECTS = {
                  ' #{{target.id}}',
     REFUND: 'A refund was issued for Order #{{ target.id }}',
     NEW_PM: 'You have a new private message from {{ target.sender.username }}!',
-    COMMENT: 'New comment on {{ name }}',
+    COMMENT: 'New comment on {{ data.name }}',
     RENEWAL_FAILURE: 'Issue with your subscription',
     SUBSCRIPTION_DEACTIVATED: 'Your subscription has been deactivated.',
     RENEWAL_FIXED: 'Subscription renewed successfully',
