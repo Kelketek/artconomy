@@ -590,7 +590,10 @@ class AssetTagArtist(BaseUserTagView):
                 unique=True, mark_unread=True
             )
         if user != target.owner:
-            notify(SUBMISSION_ARTIST_TAG, target, data={'user': self.request.user.id, 'artist': user.id})
+            notify(
+                SUBMISSION_ARTIST_TAG, target, data={'user': self.request.user.id, 'artist': user.id},
+                exclude=[self.request.user]
+            )
 
     def recall(self, target, qs):
         for user in qs:

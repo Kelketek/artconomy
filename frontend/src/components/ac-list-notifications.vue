@@ -69,11 +69,13 @@
   import AcWithdrawFailed from './notifications/ac-withdraw-failed'
   import AcPortraitReferral from './notifications/ac-portrait-referral'
   import AcLandscapeReferral from './notifications/ac-landscape-referral'
+  import AcSubmissionArtistTag from './notifications/ac-submission-artist-tag'
 
   export default {
     name: 'ac-list-notifications',
     mixins: [Paginated, NotificationListBase],
     components: {
+      AcSubmissionArtistTag,
       AcLandscapeReferral,
       AcPortraitReferral,
       AcWithdrawFailed,

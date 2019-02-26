@@ -151,7 +151,6 @@
       '$route': {
         deep: true,
         handler () {
-          console.log(this.$route)
           this.supportModel.referring_url = this.$route.fullPath
         }
       },
