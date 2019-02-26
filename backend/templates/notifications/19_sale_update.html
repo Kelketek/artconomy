@@ -3,7 +3,7 @@
 {% block header_message %}{% if target.status == 1 %}New Sale!{% else %}Sale update!{% endif %} #{{target.id}}{% endblock %}
 {% block message %}
 {% if target.status == 1 %}
-You have a new sale of your product, "{{target.product.name}}" to <a href="/profiles/{{target.buyer.username}}/">{{target.buyer.username}}</a>.
+You have a new sale of your product, "{{target.product.name}}" to <a href="/profile/{{target.buyer.username}}/">{{target.buyer.username}}</a>.
 
 Here's a preview of their order description:
 
