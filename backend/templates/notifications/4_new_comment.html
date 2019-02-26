@@ -2,7 +2,7 @@
 {% load md2 %}
 {% block header_message %}New Comment{% endblock %}
 {% block message %}
-There was a new comment on your {{data.name}} by {{data.most_recent_comment.user.username}}. View it via the link below! Here's a preview:
+There was a new comment on your {{data.name}} by <a href="/profile/{{data.most_recent_comment.user.username}}/">{{data.most_recent_comment.user.username}}</a>. View it via the link below! Here's a preview:
 
 <div class="message-preview">
   {{data.most_recent_comment.text|markdown:"safe"}}
