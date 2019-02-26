@@ -1,4 +1,4 @@
-New support request from: {{ username }}
+New support request from: {{{ username }}}
 
 IP: {{ ip }} (Unverified)
 URL: {{ path }}
