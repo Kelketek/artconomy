@@ -323,6 +323,7 @@ def comment_made(obj, context):
         'commenters': list(commenters[:3].values_list('user__username', flat=True)),
         'additional': additional,
         'is_thread': is_thread,
+        'most_recent_comment': notification_serialize(comment, context),
         'display': notification_display(target, context),
         'link': link,
         'name': get_display_name(target, context),

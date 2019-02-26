@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'djmoney',
     'avatar',
     'recaptcha',
+    'django_markdown2',
     'django_otp',
     'django_otp.plugins.otp_totp',
     'django_otp.plugins.otp_static',
