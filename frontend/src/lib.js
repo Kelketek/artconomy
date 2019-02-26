@@ -280,6 +280,7 @@ export const NOTIFICATION_MAPPING = {
   '17': 'ac-submission-char-tag',
   '18': 'ac-order-update',
   '19': 'ac-sale-update',
+  '21': 'ac-submission-artist-tag',
   '22': 'ac-revision-uploaded',
   '23': 'ac-asset-shared',
   '24': 'ac-char-shared',

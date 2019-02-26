@@ -9,9 +9,11 @@ from rest_framework import serializers
 from rest_framework.fields import SerializerMethodField
 from rest_framework_bulk import BulkSerializerMixin, BulkListSerializer
 
-from apps.lib.models import Comment, Notification, Event, CHAR_TAG, SUBMISSION_CHAR_TAG, Tag, REVISION_UPLOADED, \
-    ORDER_UPDATE, SALE_UPDATE, COMMENT, Subscription, ASSET_SHARED, CHAR_SHARED, NEW_CHARACTER, \
-    NEW_PRODUCT, STREAMING, NEW_JOURNAL, ORDER_TOKEN_ISSUED, FAVORITE
+from apps.lib.models import (
+    Comment, Notification, Event, CHAR_TAG, SUBMISSION_CHAR_TAG, Tag, REVISION_UPLOADED,
+    ORDER_UPDATE, SALE_UPDATE, COMMENT, Subscription, ASSET_SHARED, CHAR_SHARED, NEW_CHARACTER,
+    NEW_PRODUCT, STREAMING, NEW_JOURNAL, ORDER_TOKEN_ISSUED, FAVORITE, SUBMISSION_ARTIST_TAG
+)
 from apps.profiles.models import User, ImageAsset, Character, Journal
 from apps.sales.models import Revision, Product, Order, OrderToken
 from shortcuts import make_url
@@ -428,6 +430,15 @@ def order_token_issued(obj, context):
     }
 
 
+def submission_artist_tag(obj, context):
+    submission = ImageAsset.objects.get(id=obj.target.id)
+    return {
+        'user': notification_display(User.objects.get(id=obj.data['user']), context),
+        'artist': notification_display(User.objects.get(id=obj.data['artist']), context),
+        'display': notification_display(submission, context)
+    }
+
+
 NOTIFICATION_TYPE_MAP = {
     CHAR_TAG: char_tag,
     ORDER_UPDATE: order_update,
@@ -442,7 +453,8 @@ NOTIFICATION_TYPE_MAP = {
     STREAMING: streaming,
     NEW_JOURNAL: new_journal,
     ORDER_TOKEN_ISSUED: order_token_issued,
-    FAVORITE: favorite
+    FAVORITE: favorite,
+    SUBMISSION_ARTIST_TAG: submission_artist_tag,
 }
 
 
