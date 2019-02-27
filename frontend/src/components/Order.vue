@@ -517,7 +517,7 @@
                 v-if="seller && (inProgress || disputed) && revisionsRemain">
             </ac-form-container>
             <div class="text-xs-center">
-              <v-btn type="submit" color="primary" v-if="seller && (inProgress || disputed) && revisionsRemain" @click.prevent="$refs.revisionForm.submit"><span v-if="(revisions.length < order.revisions)">Upload Revision</span><span v-else>Upload Final</span></v-btn>
+              <v-btn type="submit" :class="{pulse: revisionModel.file.length, primary: !revisionModel.file.length}" v-if="seller && (inProgress || disputed) && revisionsRemain" @click.prevent="$refs.revisionForm.submit"><span v-if="(revisions.length < order.revisions)">Upload Revision</span><span v-else>Upload Final</span></v-btn>
             </div>
           </form>
         </v-flex>
@@ -884,5 +884,15 @@
   .pricing-container {
     display: inline-block;
     text-align: left;
+  }
+  .pulse {
+    animation: pulse_animation 2s infinite;
+  }
+  @keyframes pulse_animation {
+    0% { background-color: #5f2480 }
+    25% {background-color: #735c94 }
+    50% { background-color: #82204A }
+    75% {background-color: #96345e}
+    100% { background-color: #5f2480 }
   }
 </style>
