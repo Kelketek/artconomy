@@ -7,7 +7,7 @@
           <a :href="submission.file.full"><p>Download</p></a>
         </v-flex>
         <v-flex text-xs-center xs12 v-if="!viewer.username">
-          <v-btn @click="showRatingSettings = true" v-if="!extreme">Adjust my content rating settings</v-btn>
+          <v-btn @click="showRatingSettings = true" v-if="!extreme" color="purple">Adjust my content rating settings</v-btn>
           <ac-form-dialog ref="ratingSettingsForm" :schema="ratingSettingsSchema" :model="ratingSettingsModel"
                              :options="settingsOptions" :success="updateSession"
                              :url="`/api/profiles/v1/session/settings/`"
