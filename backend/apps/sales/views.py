@@ -320,13 +320,13 @@ class OrderRevisions(ListCreateAPIView):
 
     def perform_create(self, serializer):
         order = get_object_or_404(Order, id=self.kwargs['order_id'])
-        if order.revision_set.all().count() >= order.revisions + 1:
-            raise PermissionDenied("The maximum number of revisions for this order has already been reached.")
         if not (self.request.user.is_staff or self.request.user == order.seller):
             raise PermissionDenied("You are not the seller on this order.")
         revision = serializer.save(order=order, owner=self.request.user)
         order.refresh_from_db()
-        if (order.revision_set.all().count() >= order.revisions + 1) and (order.status == Order.IN_PROGRESS):
+        if not order.status == Order.IN_PROGRESS:
+            raise PermissionDenied("You may only upload revisions for orders which are in progress.")
+        if serializer.validated_data.get('final'):
             if order.escrow_disabled:
                 order.status = Order.COMPLETED
             else:
@@ -364,6 +364,56 @@ class DeleteOrderRevision(DestroyAPIView):
             order.auto_finalize_on = None
             order.status = Order.IN_PROGRESS
             order.save()
+
+
+class ReOpen(GenericAPIView):
+    serializer_class = OrderViewSerializer
+    permission_classes = [OrderSellerPermission]
+
+    def get_object(self):
+        return get_object_or_404(Order, id=self.kwargs['order_id'])
+
+    def post(self, _request, *_args, **_kwargs):
+        order = self.get_object()
+        self.check_object_permissions(self.request, order)
+        statuses = [Order.REVIEW]
+        if order.escrow_disabled:
+            statuses.append(Order.COMPLETED)
+        if order.status not in statuses:
+            raise PermissionDenied("This order cannot be reopened.")
+        order.status = Order.IN_PROGRESS
+        order.auto_finalize_on = None
+        order.save()
+        notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
+        serializer = self.get_serializer()
+        serializer.instance = order
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
+
+
+class MarkComplete(GenericAPIView):
+    serializer_class = OrderViewSerializer
+    permission_classes = [OrderSellerPermission]
+
+    def get_object(self):
+        return get_object_or_404(Order, id=self.kwargs['order_id'])
+
+    def post(self, _request, *_args, **_kwargs):
+        order = self.get_object()
+        self.check_object_permissions(self.request, order)
+        if order.status != Order.IN_PROGRESS:
+            raise PermissionDenied("You cannot mark an order complete if it is not in progress.")
+        if order.revision_set.count() < 1:
+            raise PermissionDenied("You can't count an order as completed without any revisions.")
+        if order.escrow_disabled:
+            order.status = Order.COMPLETED
+        else:
+            order.status = Order.REVIEW
+            order.auto_finalize_on = (timezone.now() + relativedelta(days=5)).date()
+        order.save()
+        notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
+        serializer = self.get_serializer()
+        serializer.instance = order
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
 
 
 class StartDispute(GenericAPIView):

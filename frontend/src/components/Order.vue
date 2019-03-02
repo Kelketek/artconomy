@@ -372,12 +372,21 @@
             Revision {{ index + 1 }} on {{ formatDateTime(revision.created_on) }}
             <ac-action
                 v-if="seller && (index === revisionsLimited.length - 1) && !final"
-                variant="danger"
+                variant="red"
                 method="DELETE"
                 :url="`${url}/revisions/${revision.id}/`"
                 :success="reload"
             >
               <i class="fa fa-trash-o"></i>
+            </ac-action>
+            <ac-action
+                v-if="seller && (index === revisionsLimited.length - 1) && !final"
+                variant="primary"
+                method="POST"
+                :url="`${url}complete/`"
+                :success="reload"
+            >
+              <i class="fa fa-check-circle"></i>&nbsp;Mark as final
             </ac-action>
           </div>
         </v-flex>
@@ -408,7 +417,14 @@
             </ac-action>
             <div v-if="(review || disputed) && seller">
               <p v-if="review">
-                Waiting on the commissioner to approve the final result.
+                Waiting on the commissioner to approve the final result. <br />
+                <ac-action variant="primary"
+                           method="POST"
+                           :url="`${this.url}reopen/`"
+                           :success="reload"
+                           >
+                  Unmark as Final
+                </ac-action>
               </p>
               <div v-if="disputed">
                 <strong>This order is under dispute</strong>
@@ -499,11 +515,12 @@
       </v-layout>
       <v-layout row wrap text-xs-center class="mt-3 pb-3 revision-upload" v-if="showRevisionPanel">
         <v-flex xs12 md6 offset-md3>
-          <h3 v-if="remainingUploads === 1">
+          <h3 v-if="remainingUploads <= 1 && inProgress">
             You need to upload the final piece below.
           </h3>
           <h3 v-else>
-            You must upload {{ remainingUploads - 1 }} more revision<span v-if="remainingUploads > 2">s</span> and the final.
+            You have promised {{ remainingUploads - 1 }} more revision<span v-if="remainingUploads > 2">s</span> and the final.
+            You may mark a revision as final early if you believe the work is ready for the commissioner.
           </h3>
           <form>
             <ac-form-container
@@ -514,10 +531,10 @@
                 :options="revisionOptions"
                 :schema="revisionSchema"
                 :success="reload"
-                v-if="seller && (inProgress || disputed) && revisionsRemain">
+                v-if="seller && (inProgress || disputed) && !finalUploaded">
             </ac-form-container>
             <div class="text-xs-center">
-              <v-btn type="submit" :class="{pulse: revisionModel.file.length, primary: !revisionModel.file.length}" v-if="seller && (inProgress || disputed) && revisionsRemain" @click.prevent="$refs.revisionForm.submit"><span v-if="(revisions.length < order.revisions)">Upload Revision</span><span v-else>Upload Final</span></v-btn>
+              <v-btn type="submit" :class="{pulse: revisionModel.file.length, primary: !revisionModel.file.length}" v-if="seller && (inProgress || disputed)" @click.prevent="$refs.revisionForm.submit"><span v-if="(revisionModel.final)">Upload Final</span><span v-else>Upload Revision</span></v-btn>
             </div>
           </form>
         </v-flex>
@@ -658,12 +675,10 @@
         return moment() >= moment(this.order.dispute_available_on)
       },
       showRevisionPanel () {
-        return this.seller && this.revisionsRemain && !this.queued && !this.newOrder && !this.paymentPending
+        return (this.revisions !== null) && this.seller && !this.queued && !this.newOrder && !this.paymentPending && !this.finalUploaded
       },
       revisionsLimited () {
-        if (this.revisionsRemain) {
-          return this.revisions
-        } else if (this.finalUploaded) {
+        if (this.finalUploaded) {
           return this.revisions.slice(0, -1)
         } else {
           return this.revisions
@@ -677,7 +692,7 @@
         }
       },
       finalUploaded () {
-        return (this.revisions && (this.revisions.length > this.order.revisions))
+        return (this.revisions && this.revisions.length && !(this.inProgress || this.cancelled))
       },
       revisionsRemain () {
         return (this.revisions && (this.revisions.length <= this.order.revisions))
@@ -789,7 +804,8 @@
         },
         revisionModel: {
           file: [],
-          rating: null
+          rating: null,
+          final: false
         },
         streamModel: {
           stream_link: null
@@ -814,6 +830,11 @@
             model: 'file',
             required: true,
             validator: VueFormGenerator.validators.required
+          }, {
+            type: 'v-checkbox',
+            id: 'final',
+            model: 'final',
+            label: 'This is the final piece',
           }]
         },
         streamSchema: {

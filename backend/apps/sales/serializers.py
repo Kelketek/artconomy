@@ -223,14 +223,23 @@ class RevisionSerializer(serializers.ModelSerializer):
         thumbnail_namespace='sales.Revision.file', _DjangoImageField=FileField,
         validators=[FileExtensionValidator(allowed_extensions=ALLOWED_EXTENSIONS)],
     )
+    final = serializers.BooleanField(default=False, required=False)
+
+    def create(self, validated_data):
+        data = {**validated_data}
+        data.pop('final', None)
+        return super().create(data)
 
     def get_thumbnail_url(self, obj):
         return self.context['request'].build_absolute_uri(obj.file.url)
 
     class Meta:
         model = Revision
-        fields = ('id', 'rating', 'file', 'created_on', 'owner', 'order')
+        fields = ('id', 'rating', 'file', 'created_on', 'owner', 'order', 'final')
         read_only_fields = ('id', 'order', 'owner')
+        extra_kwargs = {
+            'final': {'write_only': True}
+        }
 
 
 class AccountBalanceSerializer(serializers.ModelSerializer):
