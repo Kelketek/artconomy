@@ -17,7 +17,9 @@ from apps.sales.views import (
     LowPriceProducts,
     HighlyRatedProducts,
     NewArtistProducts,
-    RandomProducts
+    RandomProducts,
+    MarkComplete,
+    ReOpen
 )
 
 app_name = 'sales'
@@ -49,6 +51,8 @@ urlpatterns = [
     path('v1/order/<int:order_id>/approve/', ApproveFinal.as_view(), name='approve_final'),
     path('v1/order/<int:order_id>/dispute/', StartDispute.as_view(), name='approve_final'),
     path('v1/order/<int:order_id>/claim/', ClaimDispute.as_view(), name='order_claim'),
+    path('v1/order/<int:order_id>/complete/', MarkComplete.as_view(), name='order_complete'),
+    path('v1/order/<int:order_id>/reopen/', ReOpen.as_view(), name='order_reopen'),
     path('v1/order/<int:order_id>/refund/', OrderRefund.as_view(), name='order_refund'),
     path('v1/order/<int:order_id>/publish/', PublishFinal.as_view(), name='order_publish'),
     path('v1/order/<int:order_id>/rating/', RateOrder.as_view(), name='order_rate'),

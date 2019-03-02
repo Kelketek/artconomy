@@ -11,6 +11,7 @@
     - uwsgi
     - git
     - uwsgi-plugin-python3
+    - libpq-dev
 
 - name: Load app settings
   include_vars: "keys/{{env_prefix}}/app_settings.yml"

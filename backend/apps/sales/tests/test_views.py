@@ -880,8 +880,143 @@ class TestOrder(APITestCase):
         self.assertEqual(response.data['order'], order.id)
         self.assertEqual(response.data['owner'], self.user.username)
         self.assertEqual(response.data['rating'], ADULT)
+        # Filling revisions should not mark as complete automatically.
         order.refresh_from_db()
+        self.assertEqual(order.auto_finalize_on, None)
+        self.assertEqual(order.status, Order.IN_PROGRESS)
+
+    @freeze_time('2012-08-01')
+    def test_final_revision_upload(self):
+        self.login(self.user)
+        order = OrderFactory.create(seller=self.user, status=Order.IN_PROGRESS, revisions=1)
+        response = self.client.post(
+            '/api/sales/v1/order/{}/revisions/'.format(order.id),
+            {
+                'file': SimpleUploadedFile('bloo-oo.jpg', gen_image()),
+                'rating': ADULT,
+                'final': True
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['order'], order.id)
+        self.assertEqual(response.data['owner'], self.user.username)
+        self.assertEqual(response.data['rating'], ADULT)
+        order = Order.objects.get(id=order.id)
         self.assertEqual(order.auto_finalize_on, date(2012, 8, 6))
+        response = self.client.post(
+            '/api/sales/v1/order/{}/revisions/'.format(order.id),
+            {
+                'file': SimpleUploadedFile('bloo-oo.jpg', gen_image()),
+                'rating': ADULT,
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        order.refresh_from_db()
+        # Filling revisions should not mark as complete automatically.
+        self.assertEqual(order.auto_finalize_on, date(2012, 8, 6))
+        self.assertEqual(order.status, Order.REVIEW)
+
+    @freeze_time('2012-08-01')
+    def test_final_revision_upload_escrow_disabled(self):
+        self.login(self.user)
+        order = OrderFactory.create(seller=self.user, status=Order.IN_PROGRESS, revisions=1, escrow_disabled=True)
+        response = self.client.post(
+            '/api/sales/v1/order/{}/revisions/'.format(order.id),
+            {
+                'file': SimpleUploadedFile('bloo-oo.jpg', gen_image()),
+                'rating': ADULT,
+                'final': True
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['order'], order.id)
+        self.assertEqual(response.data['owner'], self.user.username)
+        self.assertEqual(response.data['rating'], ADULT)
+        order = Order.objects.get(id=order.id)
+        self.assertIsNone(order.auto_finalize_on)
+        self.assertEqual(order.status, Order.COMPLETED)
+        response = self.client.post(
+            '/api/sales/v1/order/{}/revisions/'.format(order.id),
+            {
+                'file': SimpleUploadedFile('bloo-oo.jpg', gen_image()),
+                'rating': ADULT,
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    @freeze_time('2012-08-01')
+    def test_order_mark_complete(self):
+        self.login(self.user)
+        order = OrderFactory.create(seller=self.user, status=Order.IN_PROGRESS, revisions=1)
+        RevisionFactory.create(order=order)
+        order.refresh_from_db()
+        self.assertEqual(order.status, Order.IN_PROGRESS)
+        response = self.client.post(
+            '/api/sales/v1/order/{}/complete/'.format(order.id)
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        order.refresh_from_db()
+        self.assertEqual(order.status, Order.REVIEW)
+        self.assertEqual(order.auto_finalize_on, date(2012, 8, 6))
+
+    @freeze_time('2012-08-01')
+    def test_order_mark_complete_escrow_disabled(self):
+        self.login(self.user)
+        order = OrderFactory.create(seller=self.user, status=Order.IN_PROGRESS, revisions=1, escrow_disabled=True)
+        RevisionFactory.create(order=order)
+        order.refresh_from_db()
+        self.assertEqual(order.status, Order.IN_PROGRESS)
+        response = self.client.post(
+            '/api/sales/v1/order/{}/complete/'.format(order.id)
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        order.refresh_from_db()
+        self.assertEqual(order.status, Order.COMPLETED)
+        self.assertIsNone(order.auto_finalize_on)
+
+    @freeze_time('2012-08-01')
+    def test_order_mark_complete_no_revisions(self):
+        self.login(self.user)
+        order = OrderFactory.create(seller=self.user, status=Order.IN_PROGRESS, revisions=1, escrow_disabled=True)
+        self.assertEqual(order.status, Order.IN_PROGRESS)
+        response = self.client.post(
+            '/api/sales/v1/order/{}/complete/'.format(order.id)
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        order.refresh_from_db()
+        self.assertEqual(order.status, Order.IN_PROGRESS)
+
+    @freeze_time('2012-08-01')
+    def test_order_reopen(self):
+        self.login(self.user)
+        order = OrderFactory.create(
+            seller=self.user, status=Order.REVIEW, revisions=1, auto_finalize_on=date(2012, 8, 6)
+        )
+        RevisionFactory.create(order=order)
+        order.refresh_from_db()
+        response = self.client.post(
+            '/api/sales/v1/order/{}/reopen/'.format(order.id)
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        order.refresh_from_db()
+        self.assertEqual(order.status, Order.IN_PROGRESS)
+        self.assertIsNone(order.auto_finalize_on)
+
+    @freeze_time('2012-08-01')
+    def test_order_reopen_escrow_disabled(self):
+        self.login(self.user)
+        order = OrderFactory.create(
+            seller=self.user, status=Order.COMPLETED, revisions=1, escrow_disabled=True
+        )
+        RevisionFactory.create(order=order)
+        order.refresh_from_db()
+        response = self.client.post(
+            '/api/sales/v1/order/{}/reopen/'.format(order.id)
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        order.refresh_from_db()
+        self.assertEqual(order.status, Order.IN_PROGRESS)
+        self.assertIsNone(order.auto_finalize_on)
 
     def test_revision_upload_buyer_fail(self):
         self.login(self.user)
@@ -924,7 +1059,7 @@ class TestOrder(APITestCase):
 
     def test_revision_upload_final(self):
         self.login(self.user)
-        order = OrderFactory.create(seller=self.user, status=Order.IN_PROGRESS, revisions=2)
+        order = OrderFactory.create(seller=self.user, status=Order.IN_PROGRESS, revisions=1)
         response = self.client.post(
             '/api/sales/v1/order/{}/revisions/'.format(order.id),
             {
@@ -950,6 +1085,7 @@ class TestOrder(APITestCase):
             {
                 'file': SimpleUploadedFile('bloo-oo.jpg', gen_image()),
                 'rating': ADULT,
+                'final': True
             }
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
