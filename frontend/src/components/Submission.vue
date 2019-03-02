@@ -459,6 +459,9 @@
         return this.submission.rating === 3
       },
       showOrderPanel () {
+        if (this.controls) {
+          return
+        }
         if (!(this.submission.product && this.submission.product.available)) {
           return
         }
