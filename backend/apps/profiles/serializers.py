@@ -217,6 +217,7 @@ class ImageAssetManagementSerializer(SubscribeMixin, serializers.ModelSerializer
     favorite = serializers.SerializerMethodField()
     subscribed = SubscribedField(required=False)
     shared_with = RelatedUserSerializer(read_only=True, many=True)
+    product = serializers.SerializerMethodField()
 
     def get_favorite(self, obj):
         request = self.context.get('request')
@@ -226,6 +227,14 @@ class ImageAssetManagementSerializer(SubscribeMixin, serializers.ModelSerializer
             return None
         return request.user.favorites.filter(id=obj.id).exists()
 
+    def get_product(self, obj):
+        from apps.sales.serializers import ProductSerializer
+        if not obj.order:
+            return
+        if not obj.order.product.available:
+            return
+        return ProductSerializer(instance=obj.order.product, context=self.context).data
+
     def get_thumbnail_url(self, obj):
         return self.context['request'].build_absolute_uri(obj.file.url)
 
@@ -234,7 +243,7 @@ class ImageAssetManagementSerializer(SubscribeMixin, serializers.ModelSerializer
         fields = (
             'id', 'title', 'caption', 'rating', 'file', 'private', 'created_on', 'order', 'owner', 'characters',
             'comments_disabled', 'favorite_count', 'favorite', 'artists', 'tags', 'subscribed', 'shared_with',
-            'preview'
+            'preview', 'product'
         )
 
 

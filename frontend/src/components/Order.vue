@@ -516,7 +516,7 @@
       <v-layout row wrap text-xs-center class="mt-3 pb-3 revision-upload" v-if="showRevisionPanel">
         <v-flex xs12 md6 offset-md3>
           <h3 v-if="remainingUploads <= 1 && inProgress">
-            You need to upload the final piece below.
+            You need to upload the final piece below. {{extraRevisionsText}}
           </h3>
           <h3 v-else>
             You have promised {{ remainingUploads - 1 }} more revision<span v-if="remainingUploads > 2">s</span> and the final.
@@ -752,6 +752,26 @@
           amount: this.price,
           cvv: this.cvv
         }
+      },
+      extraRevisions () {
+        if (this.remainingUploads >= 0) {
+          return 0
+        } else {
+          return Math.abs(this.remainingUploads)
+        }
+      },
+      extraRevisionsText () {
+        let extra = this.extraRevisions
+        if (!extra) {
+          return ''
+        }
+        let text = "You have given the commissioner " + extra + " more revision"
+        if (extra > 1) {
+          text += "s than were included in the agreement."
+        } else {
+          text += ' than was included in the agreement.'
+        }
+        return text
       },
       feeless () {
         return this.order.escrow_disabled || parseFloat(this.price) <= 0

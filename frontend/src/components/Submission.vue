@@ -33,6 +33,14 @@
             </p>
           </div>
         </v-flex>
+        <v-flex text-xs-center xs12 v-if="showOrderPanel">
+          <v-card>
+            <v-card-text>
+              <h3>Do you like this piece?</h3>
+              <v-btn color="green" :to="{name: 'Product', params: {username: submission.product.user.username, productID: submission.product.id}}">Order your own!</v-btn>
+            </v-card-text>
+          </v-card>
+        </v-flex>
       </v-layout>
       <v-card v-if="submission">
         <v-speed-dial v-if="controls" bottom right fixed elevation-10 style="z-index: 4">
@@ -449,6 +457,13 @@
       },
       extreme () {
         return this.submission.rating === 3
+      },
+      showOrderPanel () {
+        if (!(this.submission.product && this.submission.product.available)) {
+          return
+        }
+        // Artist could disavow work.
+        return this.isArtist(this.submission.product.user.username)
       },
       shareTitle () {
         let title = this.submission.title
