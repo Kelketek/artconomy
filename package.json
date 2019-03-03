@@ -10,6 +10,7 @@
     "lint": "cd frontend && vue-cli-service lint"
   },
   "dependencies": {
+    "@sentry/browser": "^4.6.4",
     "autosize": "^4.0.0",
     "cropperjs": "^1.2.2",
     "deep-equal": "^1.0.1",

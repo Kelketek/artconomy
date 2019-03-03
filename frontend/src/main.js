@@ -6,6 +6,7 @@ import 'vuetify/dist/vuetify.min.css'
 import './artconomy.css'
 import { $, jQuery } from 'jquery'
 import Vuetify from 'vuetify'
+import * as Sentry from '@sentry/browser'
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import App from './App'
@@ -50,12 +51,22 @@ Vue.component('fieldVColor', fieldVColor)
 
 Vue.filter('formatSize', formatSize)
 
+if (process.env.NODE_ENV === 'production') {
+  Sentry.init({
+    dsn: 'https://8efd301a6c794f3e9a84e741edef2cfe@sentry.io/1406820',
+    integrations: [new Sentry.Integrations.Vue({
+      Vue,
+      attachProps: true
+    })]
+  })
+}
+
 /* eslint-disable no-new */
 window.artconomy = new Vue({
   el: '#app',
   router,
   render: h => h(App),
-  components: {App, NavBar},
+  components: { App, NavBar },
   data: {
     userCache: {},
     $unread: 0,
@@ -73,4 +84,4 @@ window.artconomy = new Vue({
     }
   }
 })
-window.artconomy.$mount('#app');
+window.artconomy.$mount('#app')
