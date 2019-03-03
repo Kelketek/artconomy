@@ -517,7 +517,7 @@ class AssetTagCharacter(APIView):
         # we end up doing it a lot.
         if 'characters' not in request.data:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'characters': ['This field is required.']})
-        id_list = request.data.getlist('characters')
+        id_list = request.data.get('characters', [])
         qs = Character.objects.filter(id__in=id_list, transfer__isnull=True)
         if (asset.owner == request.user) or request.user.is_staff:
             asset.characters.remove(*qs)
