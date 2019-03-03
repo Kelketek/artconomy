@@ -53,7 +53,7 @@
       >
         <div slot="header">
           <v-flex class="text-xs-center">
-            <h1>We respond to all support requests the same day we receive them, often within the same hour!</h1>
+            <h1>We respond to all support requests within 24 hours, and often within the same hour!</h1>
           </v-flex>
         </div>
       </ac-form-dialog>
