@@ -904,7 +904,7 @@ class TestTagCharacter(APITestCase):
         asset.characters.add(character)
         response = self.client.delete(
             '/api/profiles/v1/asset/{}/tag-characters/'.format(asset.id),
-            {'characters': [character.id]}
+            {'characters': [character.id]}, format='json'
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(asset.characters.all().count(), 0)
