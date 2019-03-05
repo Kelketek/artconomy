@@ -6,9 +6,9 @@ Your order has been accepted by the artist and is ready for payment!
 {% elif target.status == 4 %}
 The artist has begun work on your order. {% if target.stream_link %}<a href="{{target.stream_link}}">They're streaming the work here!</a> {% endif %}
 {% elif target.status == 5 %}
-Your order is ready for review!
+Your order is ready for review!{% if target.auto_finalize_on %} It will auto finalize on {{target.auto_finalize_on}}.{% endif %}
 {% elif target.status == 8 %}
-Your order has been completed! It will autofinalize on {{ target.auto_finalize_on|date:"M d, Y" }}
+Your order has been completed!
 {% elif target.status == 9%}
 Your order has been refunded.
 {% else %}
