@@ -276,6 +276,9 @@
       queryField: {
         get () {
           let base = this.$route.query['q'] || []
+          if (typeof base === 'string') {
+            base = [base]
+          }
           for (let val of base) {
             val = val.replace(/[\W_]+/g, '')
           }
