@@ -27,7 +27,7 @@
             <form class="mt-3">
               <ac-form-container ref="settingsForm" :schema="settingsSchema" :model="settingsModel"
                                  :options="settingsOptions" :success="updateUser"
-                                 :url="`/api/profiles/v1/account/${this.user.username}/settings/`"
+                                 :url="`/api/profiles/v1/account/${user.username}/settings/`"
                                  method="PATCH"
                                  :reset-after="false"
               >
@@ -40,7 +40,7 @@
               <p>Any submissions which contain content with blacklisted tags will be hidden.</p>
               <ac-tag-display
                   :editable="true"
-                  :url="`/api/profiles/v1/account/${this.user.username}/blacklist/`"
+                  :url="`/api/profiles/v1/account/${user.username}/blacklist/`"
                   :callback="updateUser"
                   :tag-list="user.blacklist"
                   :controls="true"
@@ -62,7 +62,7 @@
                 <form class="mt-3">
                   <ac-form-container ref="credentialsForm" :schema="credentialsSchema" :model="credentialsModel"
                                      :options="credentialsOptions" :success="updateCredentials"
-                                     :url="`/api/profiles/v1/account/${this.user.username}/credentials/`"
+                                     :url="`/api/profiles/v1/account/${user.username}/credentials/`"
                                      :reset-after="false"
                   >
                     <v-btn type="submit" color="primary" @click.prevent="$refs.credentialsForm.submit">Update</v-btn>
@@ -78,14 +78,14 @@
           <v-tab-item id="tab-avatar">
             <div class="text-xs-center mt-3">
               <p>Current Avatar:</p>
-              <img class="avatar-preview shadowed mb-3" :src="this.user.avatar_url" />
+              <img class="avatar-preview shadowed mb-3" :src="user.avatar_url" />
               <p v-if="user.avatar_url.indexOf('gravatar') > -1">Default avatars provided by <a href="http://en.gravatar.com/">Gravatar</a></p>
             </div>
             <form class="mt-3 text-xs-center">
               <h3>Upload a new avatar</h3>
               <ac-form-container ref="avatarForm" :schema="avatarSchema" :model="avatarModel"
                                  :options="avatarOptions" :success="updateAvatar"
-                                 :url="`/api/profiles/v1/account/${this.user.username}/avatar/`"
+                                 :url="`/api/profiles/v1/account/${user.username}/avatar/`"
               >
                 <v-btn type="submit" variant="primary" @click.prevent="$refs.avatarForm.submit">Upload</v-btn>
                 <i v-if="$refs.avatarForm && $refs.avatarForm.saved" class="fa fa-check" style="color: green"></i>
