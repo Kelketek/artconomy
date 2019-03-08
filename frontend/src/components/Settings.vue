@@ -1,7 +1,7 @@
 <template>
   <div class="settings-center container" id="settings-section">
-    <div class="row">
-      <div class="main-settings col-12" v-if="user.username">
+    <div class="row" v-if="user.username && viewer.username">
+      <div class="main-settings col-12">
         <v-tabs v-model="tab" fixed-tabs>
           <v-tab href="#tab-options">
             <v-icon>build</v-icon>&nbsp;Options
