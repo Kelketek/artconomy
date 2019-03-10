@@ -6,11 +6,6 @@
         <v-card-text>
           <v-flex text-xs-center>
             <v-checkbox
-                label="Allow NSFW preview image"
-                v-model="nsfwPreview"
-                v-if="showNSFWToggle"
-            />
-            <v-checkbox
               label="Include referral information (includes username in URL)"
               v-model="referral"
               v-if="viewer.username"

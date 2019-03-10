@@ -555,10 +555,6 @@ def preview_rating(request, target_rating, real_link, sub_link='/static/images/l
     if target_rating >= 3:
         # extreme content, always avoid preview.
         return sub_link
-    if request.GET.get('nsfw_preview'):
-        return real_link
-    elif request.max_rating < target_rating:
-        return sub_link
     return real_link
 
 

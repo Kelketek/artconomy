@@ -24,7 +24,7 @@
           <div v-if="!permittedRating">
             <p>This piece exceeds your current content rating settings.</p>
             <p v-if="viewer.rating && (asset.rating <= viewer.rating)">Please toggle SFW mode off to see this piece.</p>
-            <p v-else-if="viewer.username === undefined">Registered users can customize their content rating settings.</p>
+            <p v-else-if="viewer.username === undefined"></p>
             <p v-else>
               This piece is rated '{{ ratingText }}'. <br />
               You can change your content rating settings in the <router-link :to="{name: 'Settings', params: {username: viewer.username}}">settings panel.</router-link>
