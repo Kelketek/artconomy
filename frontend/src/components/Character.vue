@@ -2,49 +2,60 @@
   <v-container>
     <v-card v-if="character" id="character-profile">
       <v-speed-dial v-if="controls" bottom right fixed v-model="speedDial" elevation-10 style="z-index: 4">
-        <v-btn
-          dark
-          color="purple"
-          fab
-          hover
-          slot="activator"
-          large
-          v-model="speedDial"
+        <ac-speed-button text="Menu" slot="activator" nudge-top="2rem" nudge-right="1rem">
+          <v-btn v-if="controls"
+                 dark
+                 color="purple"
+                 fab
+                 hover
+                 large
+                 v-model="speedDial"
+          >
+            <v-icon>menu</v-icon>
+          </v-btn>
+        </ac-speed-button>
+        <ac-speed-button
+            :text="editing ? 'Lock' : 'Edit'"
         >
-          <v-icon>menu</v-icon>
-        </v-btn>
-        <v-btn
-               dark
-               color="blue"
-               fab
-               hover
-               small
-               v-model="editing"
-               @click="editing = !editing"
+          <v-btn
+                 dark
+                 color="blue"
+                 fab
+                 hover
+                 small
+                 v-model="editing"
+                 @click="editing = !editing"
+          >
+            <v-icon v-if="editing">lock</v-icon>
+            <v-icon v-else>edit</v-icon>
+          </v-btn>
+        </ac-speed-button>
+        <ac-speed-button
+            text="Settings"
         >
-          <v-icon v-if="editing">lock</v-icon>
-          <v-icon v-else>edit</v-icon>
-        </v-btn>
-        <v-btn
-               dark
-               color="orange"
-               fab
-               hover
-               small
-               @click="showSettings=true"
-        >
-          <v-icon>settings</v-icon>
-        </v-btn>
-        <v-btn
-               dark
-               color="green"
-               fab
-               hover
-               small
-               @click="showUpload=true"
-        >
-          <v-icon>file_upload</v-icon>
-        </v-btn>
+          <v-btn
+                 dark
+                 color="orange"
+                 fab
+                 hover
+                 small
+                 @click="showSettings=true"
+          >
+            <v-icon>settings</v-icon>
+          </v-btn>
+        </ac-speed-button>
+        <ac-speed-button text="Upload">
+          <v-btn
+                 dark
+                 color="green"
+                 fab
+                 hover
+                 small
+                 @click="showUpload=true"
+          >
+            <v-icon>file_upload</v-icon>
+          </v-btn>
+        </ac-speed-button>
       </v-speed-dial>
       <v-layout row wrap>
         <v-flex xs12 sm6 md7 lg7 class="pl-3 pt-3">
@@ -281,11 +292,13 @@
   import AcContextGallery from './ac-context-gallery'
   import AcAttributes from './ac-attributes'
   import AcShareButton from './ac-share-button'
+  import AcSpeedButton from './ac-speed-button'
 
   export default {
     name: 'Character',
     mixins: [Viewer, Perms, Editable, Markdown],
     components: {
+      AcSpeedButton,
       AcShareButton,
       AcAttributes,
       AcContextGallery,

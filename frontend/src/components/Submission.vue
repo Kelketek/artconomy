@@ -43,47 +43,57 @@
         </v-flex>
       </v-layout>
       <v-card v-if="submission">
-        <v-speed-dial v-if="controls" bottom right fixed elevation-10 style="z-index: 4">
-          <v-btn v-if="controls"
-                 dark
-                 color="purple"
-                 fab
-                 hover
-                 slot="activator"
-                 large
+        <v-speed-dial v-if="controls" bottom right fixed elevation-10 style="z-index: 4" v-model="speedDial">
+          <ac-speed-button text="Menu" slot="activator" nudge-top="2rem" nudge-right="1rem">
+              <v-btn v-if="controls"
+                     dark
+                     color="purple"
+                     fab
+                     hover
+                     large
+              >
+                <v-icon>menu</v-icon>
+              </v-btn>
+          </ac-speed-button>
+          <ac-speed-button
+              :text="editing ? 'Lock' : 'Edit'"
           >
-            <v-icon>menu</v-icon>
-          </v-btn>
-          <v-btn v-if="controls"
-                 dark
-                 color="blue"
-                 fab
-                 hover
-                 small
-                 @click="editing = !editing"
-                 v-model="editing"
-          >
-            <v-icon v-if="editing">lock</v-icon>
-            <v-icon v-else>edit</v-icon>
-          </v-btn>
-          <ac-action
-              variant="danger" :confirm="true" :success="goBack"
-              :url="url"
-              method="DELETE"
-              dark small color="red" fab
-          ><v-icon>delete</v-icon>
-            <div class="text-left" slot="confirmation-text">Are you sure you wish to delete this submission? This cannot be undone!</div>
-          </ac-action>
-          <v-btn v-if="controls"
-                 dark
-                 color="orange"
-                 fab
-                 hover
-                 small
-                 @click="showSettings=true"
-          >
-            <v-icon>settings</v-icon>
-          </v-btn>
+            <v-btn v-if="controls"
+                   dark
+                   color="blue"
+                   fab
+                   hover
+                   small
+                   @click="editing = !editing"
+                   v-model="editing"
+            >
+              <v-icon v-if="editing">lock</v-icon>
+              <v-icon v-else>edit</v-icon>
+            </v-btn>
+          </ac-speed-button>
+          <ac-speed-button text="Delete">
+            <ac-action
+                variant="danger" :confirm="true" :success="goBack"
+                :url="url"
+                method="DELETE"
+                dark small color="red" fab
+            ><v-icon>delete</v-icon>
+              <div class="text-left" slot="confirmation-text">Are you sure you wish to delete this submission? This cannot be undone!</div>
+            </ac-action>
+          </ac-speed-button>
+
+          <ac-speed-button text="Settings">
+            <v-btn v-if="controls"
+                   dark
+                   color="orange"
+                   fab
+                   hover
+                   small
+                   @click="showSettings=true"
+            >
+              <v-icon>settings</v-icon>
+            </v-btn>
+          </ac-speed-button>
         </v-speed-dial>
         <v-layout row wrap>
           <v-flex xs12 md3 class="pt-3 pl-4">
@@ -289,10 +299,12 @@
   import AcTagDisplay from './ac-tag-display'
   import AcFormDialog from './ac-form-dialog'
   import AcShareButton from './ac-share-button'
+  import AcSpeedButton from './ac-speed-button'
 
   export default {
     name: 'Submission',
     components: {
+      AcSpeedButton,
       AcShareButton,
       AcFormDialog,
       AcTagDisplay,
@@ -317,6 +329,7 @@
         showSettings: false,
         showRatingSettings: false,
         showShare: false,
+        speedDial: false,
         characterTaggingModel: {
           characters: []
         },

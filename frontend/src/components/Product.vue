@@ -2,26 +2,32 @@
   <v-container>
     <div v-if="product">
       <v-speed-dial v-if="controls" bottom right fixed v-model="editing" elevation-10 style="z-index: 4">
-        <v-btn v-if="controls"
-               dark
-               color="blue"
-               fab
-               hover
-               slot="activator"
-               large
-               v-model="editing"
+        <ac-speed-button
+            slot="activator" nudge-top="2rem" nudge-right="1rem"
+            :text="editing ? 'Lock' : 'Edit'"
         >
-          <v-icon v-if="editing">lock</v-icon>
-          <v-icon v-else>edit</v-icon>
-        </v-btn>
-        <ac-action
-            variant="danger" :confirm="true" :success="goToStore"
-            :url="`/api/sales/v1/account/${this.username}/products/${this.product.id}/`"
-            method="DELETE"
-            dark small color="red" fab
-        ><v-icon>delete</v-icon>
-          <div class="text-left" slot="confirmation-text">Are you sure you wish to delete this product? This cannot be undone!</div>
-        </ac-action>
+          <v-btn v-if="controls"
+                 dark
+                 color="blue"
+                 fab
+                 hover
+                 large
+                 v-model="editing"
+          >
+            <v-icon v-if="editing">lock</v-icon>
+            <v-icon v-else>edit</v-icon>
+          </v-btn>
+        </ac-speed-button>
+        <ac-speed-button text="Delete">
+          <ac-action
+              variant="danger" :confirm="true" :success="goToStore"
+              :url="`/api/sales/v1/account/${this.username}/products/${this.product.id}/`"
+              method="DELETE"
+              dark small color="red" fab
+          ><v-icon>delete</v-icon>
+            <div class="text-left" slot="confirmation-text">Are you sure you wish to delete this product? This cannot be undone!</div>
+          </ac-action>
+        </ac-speed-button>
       </v-speed-dial>
       <v-card elevation-1>
         <v-layout row wrap>
@@ -294,11 +300,13 @@
   import AcFormDialog from './ac-form-dialog'
   import AcTokensList from './ac-tokens-list'
   import AcShareButton from './ac-share-button'
+  import AcSpeedButton from './ac-speed-button'
 
   export default {
     props: ['productID'],
     mixins: [Viewer, Perms, Editable, Markdown],
     components: {
+      AcSpeedButton,
       AcShareButton,
       AcTokensList,
       AcFormDialog,
