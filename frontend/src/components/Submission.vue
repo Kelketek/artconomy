@@ -4,7 +4,7 @@
       <v-layout row wrap>
         <v-flex text-xs-center xs12>
           <ac-asset :asset="submission" thumb-name="gallery" :rating="rating" />
-          <a :href="submission.file.full"><p>Download</p></a>
+          <a :href="submission.file.full" v-if="rating >= submission.rating"><p>Download</p></a>
         </v-flex>
         <v-flex text-xs-center xs12 v-if="!viewer.username">
           <v-btn @click="showRatingSettings = true" v-if="!extreme" color="purple">Adjust my content rating settings</v-btn>
