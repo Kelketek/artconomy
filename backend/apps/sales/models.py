@@ -15,8 +15,11 @@ from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation, GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.core.validators import MinValueValidator, MaxValueValidator, BaseValidator
-from django.db.models import Model, CharField, ForeignKey, IntegerField, BooleanField, DateTimeField, ManyToManyField, \
-    TextField, SET_NULL, PositiveIntegerField, URLField, CASCADE, DecimalField, Avg, DateField, EmailField, Sum
+from django.db.models import (
+    Model, CharField, ForeignKey, IntegerField, BooleanField, DateTimeField, ManyToManyField,
+    TextField, SET_NULL, PositiveIntegerField, URLField, CASCADE, DecimalField, Avg, DateField, EmailField, Sum,
+    SlugField
+)
 
 # Create your models here.
 from django.db.models.signals import post_delete, post_save, pre_delete
@@ -815,3 +818,12 @@ def send_token_info(sender, instance, created=False, **kwargs):
 @receiver(post_delete, sender=OrderToken)
 def revoke_token_info(sender, instance, **kwargs):
     Event.objects.filter(data__order_token=instance.id).delete()
+
+
+class Promo(Model):
+    """
+    For now, this will just be used to handle free months of landscape.
+    """
+    code = SlugField(unique=True)
+    starts = DateTimeField(default=timezone.now, db_index=True)
+    expires = DateTimeField(null=True)
