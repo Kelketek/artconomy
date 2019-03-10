@@ -52,7 +52,7 @@
                        :url="`/api/profiles/v1/account/${this.user.username}/characters/`"
                        v-model="showNew"
     />
-    <v-btn v-if="controls && !embedded"
+    <v-btn
            dark
            color="green"
            fab
@@ -76,9 +76,10 @@
   import AcFormContainer from './ac-form-container'
   import AcCharacterPreview from './ac-character-preview'
   import AcFormDialog from './ac-form-dialog'
+  import AcSpeedButton from './ac-speed-button'
 
   export default {
-    components: {AcFormDialog, AcFormContainer, AcCharacterPreview},
+    components: {AcSpeedButton, AcFormDialog, AcFormContainer, AcCharacterPreview},
     name: 'Characters',
     mixins: [Viewer, Perms, Paginated],
     props: ['embedded', 'endpoint', 'noPagination', 'to', 'seeMoreText'],

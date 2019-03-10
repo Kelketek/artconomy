@@ -1,5 +1,5 @@
 <template>
-  <v-chip :close="removable" @input="remove">
+  <v-chip :close="removable" @input="remove" light>
     <router-link class="primary--text" v-if="tabName" :to="{name: 'Search', params: {tabName: tabName}, query: {q: [tag]}}">
       {{tag}}
     </router-link>

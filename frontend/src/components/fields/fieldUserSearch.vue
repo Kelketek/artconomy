@@ -3,7 +3,7 @@
     <v-text-field ref="searchField" :label="schema.label" v-model="query" class="form-control" @input="runQuery" @keydown.enter.prevent.native="grabFirst" :placeholder="schema.placeholder" :error-messages="errors" />
     <div class="mb-2 mt-2">
       <div v-if="userIDs.length === 0">Click a user to add them, or press enter to add the first one.</div>
-      <div v-else><v-chip close v-for="user in users" :key="user.id" :user="user" @input="delUser(user)" >{{user.username}}</v-chip></div>
+      <div v-else><v-chip light close v-for="user in users" :key="user.id" :user="user" @input="delUser(user)" >{{user.username}}</v-chip></div>
     </div>
       <div v-if="response" class="user-search-results">
         <div style="display:inline-block"

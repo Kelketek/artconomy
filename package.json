@@ -20,14 +20,14 @@
     "markdown-it": "^8.4.0",
     "moment": "^2.19.3",
     "qrcode": "^1.2.0",
-    "vue": "^2.5.17",
+    "vue": "^2.6.8",
     "vue-focus": "^2.1.0",
     "vue-form-generator": "^2.1.1",
     "vue-observe-visibility": "^0.3.1",
     "vue-recaptcha": "^1.1.0",
     "vue-router": "^3.0.1",
     "vue-upload-component": "^2.8.11",
-    "vuetify": "^1.2.6"
+    "vuetify": "^1.5.5"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "^3.0.5",
@@ -42,7 +42,7 @@
     "eslint-plugin-promise": "^4.0.1",
     "eslint-plugin-standard": "^4.0.0",
     "vue-style-loader": "^4.1.2",
-    "vue-template-compiler": "^2.5.17",
+    "vue-template-compiler": "^2.6.8",
     "webpack": "^4.23.1",
     "webpack-bundle-tracker": "^0.4.2-beta"
   },
