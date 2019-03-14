@@ -826,4 +826,11 @@ class Promo(Model):
     """
     code = SlugField(unique=True)
     starts = DateTimeField(default=timezone.now, db_index=True)
-    expires = DateTimeField(null=True)
+    expires = DateTimeField(null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        self.code = self.code.upper()
+        return super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.code

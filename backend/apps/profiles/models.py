@@ -6,6 +6,7 @@ import uuid
 from urllib.parse import urlencode, urljoin
 
 from avatar.models import Avatar
+from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from custom_user.models import AbstractEmailUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
@@ -15,11 +16,11 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db.models import Model, CharField, ForeignKey, IntegerField, BooleanField, DateTimeField, \
     URLField, SET_NULL, ManyToManyField, CASCADE, DecimalField, DateField, PROTECT
-from django.db.models.signals import post_save, post_delete, pre_delete
+from django.db.models.signals import post_save, post_delete, pre_delete, pre_save
 from django.dispatch import receiver
+from django.utils import timezone
 from django.utils.datetime_safe import datetime, date
 from django.utils.encoding import force_bytes
-from easy_thumbnails.exceptions import InvalidImageFormatError
 from rest_framework.authtoken.models import Token
 
 from apps.lib.abstract_models import GENERAL, RATINGS, ImageModel
@@ -27,7 +28,10 @@ from apps.lib.models import Comment, Subscription, FAVORITE, SYSTEM_ANNOUNCEMENT
     SUBMISSION_CHAR_TAG, CHAR_TAG, COMMENT, Tag, CHAR_TRANSFER, ASSET_SHARED, CHAR_SHARED, \
     NEW_CHARACTER, RENEWAL_FAILURE, SUBSCRIPTION_DEACTIVATED, RENEWAL_FIXED, NEW_JOURNAL, ORDER_TOKEN_ISSUED, \
     TRANSFER_FAILED, SUBMISSION_ARTIST_TAG, REFERRAL_LANDSCAPE_CREDIT, REFERRAL_PORTRAIT_CREDIT
-from apps.lib.utils import clear_events, tag_list_cleaner, notify, recall_notification, preview_rating
+from apps.lib.utils import (
+    clear_events, tag_list_cleaner, notify, recall_notification, preview_rating,
+    send_transaction_email
+)
 from apps.profiles.permissions import AssetViewPermission, AssetCommentPermission, MessageReadPermission, \
     JournalCommentPermission
 from shortcuts import make_url
@@ -95,6 +99,7 @@ class User(AbstractEmailUser):
     portrait_enabled = BooleanField(default=False, db_index=True)
     portrait_paid_through = DateField(null=True, default=None, blank=True, db_index=True)
     auto_withdraw = BooleanField(default=True)
+    registration_code = ForeignKey('sales.Promo', null=True, blank=True, on_delete=SET_NULL)
     # Whether the user's been offered the mailing list
     offered_mailchimp = BooleanField(default=False)
     referred_by = ForeignKey('User', related_name='referrals', blank=True, on_delete=PROTECT, null=True)
@@ -164,6 +169,13 @@ class User(AbstractEmailUser):
     def notification_serialize(self, context):
         from .serializers import RelatedUserSerializer
         return RelatedUserSerializer(instance=self, context=context).data
+
+
+@receiver(pre_save, sender=User)
+def reg_code_action(sender, instance, created=False, **_kwargs):
+    if instance.id is None and instance.registration_code:
+        instance.landscape_paid_through = timezone.now() + relativedelta(months=1)
+        send_transaction_email('Welcome to Landscape.', 'registration_code.html', instance, {})
 
 
 @receiver(post_save, sender=User)
@@ -254,6 +266,7 @@ def auto_subscribe(sender, instance, created=False, **_kwargs):
         )
         subscription.email = True
         subscription.save()
+
     # These are synced right now, mostly for legacy purposes, but we expect them to be separate again
     # once we implement banks for other countries.
     if instance.bank_account_status == User.HAS_US_ACCOUNT:

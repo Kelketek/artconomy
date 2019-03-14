@@ -103,6 +103,7 @@
       username: '',
       password: '',
       recaptcha: '',
+      registration_code: '',
       mail: true,
       token: ''
     }
@@ -194,6 +195,12 @@
             required: true,
             featured: true,
             validator: VueFormGenerator.validators.string
+          }, {
+            type: 'v-text',
+            inputType: 'text',
+            label: 'Promo Code',
+            model: 'registration_code',
+            hint: "If you've been given a promo code, please enter it here!"
           }, {
             type: 'v-checkbox',
             label: 'Keep up to Date',
