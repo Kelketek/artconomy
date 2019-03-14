@@ -7,6 +7,7 @@ from django.core.validators import FileExtensionValidator
 from django.db import connection
 from django.forms import FileField
 from django.middleware.csrf import get_token
+from django.utils import timezone
 from django_otp.plugins.otp_totp.models import TOTPDevice
 from recaptcha.fields import ReCaptchaField
 from rest_framework import serializers
@@ -18,20 +19,36 @@ from apps.lib.serializers import RelatedUserSerializer, Base64ImageField, TagSer
     SubscribeMixin, UserInfoMixin
 from apps.profiles.models import Character, ImageAsset, User, RefColor, Attribute, Message, \
     MessageRecipientRelationship, Journal
+from apps.sales.models import Promo
 from apps.tg_bot.models import TelegramDevice
 
 
 class RegisterSerializer(serializers.ModelSerializer):
     csrftoken = serializers.SerializerMethodField()
     recaptcha = ReCaptchaField(write_only=True)
+    registration_code = serializers.CharField(required=False, write_only=True, allow_blank=True)
     mail = serializers.BooleanField(write_only=True)
 
     def create(self, validated_data):
-        validated_data = {key: value for key, value in validated_data.items() if key not in ['recaptcha', 'mail']}
-        return super(RegisterSerializer, self).create(validated_data)
+        data = {key: value for key, value in validated_data.items() if key not in [
+            'recaptcha', 'mail'
+        ]}
+        return super(RegisterSerializer, self).create(data)
 
     def get_csrftoken(self, value):
         return get_token(self.context['request'])
+
+    def validate_registration_code(self, value):
+        if not value:
+            return None
+        promo = Promo.objects.filter(code__iexact=value).first()
+        if not promo:
+            raise ValidationError('We could not find this promo code.')
+        if promo.expires and promo.expires < timezone.now():
+            raise ValidationError('This promo code has expired.')
+        if promo.starts > timezone.now():
+            raise ValidationError('This promo code is not active.')
+        return promo
 
     def validate_email(self, value):
         if User.objects.filter(email__iexact=value).exists():
@@ -51,7 +68,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'username', 'email', 'password', 'csrftoken', 'recaptcha', 'mail'
+            'username', 'email', 'password', 'csrftoken', 'recaptcha', 'mail', 'registration_code'
         )
         read_only_fields = (
             'csrftoken',
@@ -59,7 +76,8 @@ class RegisterSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'username': {'write_only': True},
             'email': {'write_only': True},
-            'password': {'write_only': True}
+            'password': {'write_only': True},
+            'registration_code': {'required': False}
         }
 
 

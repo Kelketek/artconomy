@@ -4,7 +4,7 @@ from django.utils import timezone
 from freezegun import freeze_time
 
 from apps.lib.models import FAVORITE, Notification, SYSTEM_ANNOUNCEMENT, Event, Subscription
-from apps.lib.utils import notify, recall_notification
+from apps.lib.utils import notify, recall_notification, send_transaction_email
 from apps.profiles.models import ImageAsset
 from apps.profiles.tests.factories import ImageAssetFactory, UserFactory
 
@@ -243,3 +243,7 @@ class NotificationsTestCase(TestCase):
         asset = ImageAssetFactory.create()
         notify(FAVORITE, target=asset, data={'users': []})
         self.assertEqual(Notification.objects.filter(user=asset.owner).count(), 1)
+
+    def test_transaction_email(self):
+        user = UserFactory.create()
+        send_transaction_email('Test transaction', 'registration_code.html', user, {})

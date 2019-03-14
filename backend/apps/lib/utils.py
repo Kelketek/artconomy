@@ -565,3 +565,13 @@ def get_client_ip(request):
     else:
         ip = request.META.get('REMOTE_ADDR')
     return ip
+
+
+def send_transaction_email(subject, template_name, user, context):
+    template_path = Path(settings.BACKEND_ROOT) / 'templates' / 'transactional' / template_name
+    to = [user.email]
+    from_email = settings.DEFAULT_FROM_EMAIL
+    message = get_template(template_path).render(context)
+    msg = EmailMessage(subject, message, to=to, from_email=from_email)
+    msg.content_subtype = 'html'
+    msg.send()
