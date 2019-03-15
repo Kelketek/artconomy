@@ -319,11 +319,10 @@
       AcAction
     },
     mixins: [Viewer, Editable],
+    props: ['assetID'],
     data () {
       return {
         submission: null,
-        url: `/api/profiles/v1/asset/${this.$route.params.assetID}/`,
-        commenturl: `/api/profiles/v1/asset/${this.$route.params.assetID}/comments/`,
         showCharacterTagging: false,
         showArtistTagging: false,
         showSettings: false,
@@ -471,6 +470,12 @@
       extreme () {
         return this.submission.rating === 3
       },
+      url() {
+        return `/api/profiles/v1/asset/${this.assetID}/`
+      },
+      commenturl () {
+        return `/api/profiles/v1/asset/${this.assetID}/comments/`
+      },
       showOrderPanel () {
         if (this.controls) {
           return
@@ -489,6 +494,12 @@
           title += names.join(', ')
         }
         return title
+      }
+    },
+    watch: {
+      assetID () {
+        this.submission = null
+        this.fetchSubmission()
       }
     },
     methods: {

@@ -15,7 +15,9 @@ function isForeign (url) {
   if (url.toLowerCase().startsWith('mailto:')) {
     return false
   }
-  if (url.startsWith('/') || url.match(/^http(s)?:[/][/](www[.])?artconomy[.]com([/]|$)/)) {
+  if (url.startsWith('/') ||
+    url.match(/^http(s)?:[/][/](www[.])?artconomy[.]com([/]|$)/) ||
+    url.match(/^http(s)?:[/][/]artconomy[.]vulpinity[.]com([/]|$)/)) {
     return false
   }
   return true
@@ -37,6 +39,9 @@ md.renderer.rules.link_open = function (tokens, idx, options, env, self) {
   if (isForeign(href)) {
     return defaultRender(tokens, idx, options, env, self)
   }
+  // Local dev URL format.
+  href = href.replace(/^http(s)?:[/][/]artconomy[.]vulpinity[.]com([/]|$)/, '/')
+  // Public server format.
   href = href.replace(/^http(s)?:[/][/](www[.])?artconomy[.]com([/]|$)/, '/')
   href = encodeURI(href)
   tokens[idx].attrPush(['onclick', `artconomy.$router.history.push('${href}');return false`])
