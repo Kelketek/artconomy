@@ -43,7 +43,7 @@
       <v-flex xs12><v-img :src="`/static/images/${randomBanner.file}`"></v-img></v-flex>
       <v-flex xs12><p>Banner by <router-link :to="{name: 'Profile', params: {username: randomBanner.username}}">{{randomBanner.username}}</router-link></p></v-flex>
     </v-layout>
-    <v-card>
+    <v-card class="purple">
       <v-layout row wrap>
         <v-flex xs12 class="pl-2">
           <h2>Featured Products</h2>
@@ -61,7 +61,7 @@
         <v-btn :to="{name: 'Search', params: {tabName: 'products'}, query: {featured: true}}" color="primary">See all featured products</v-btn>
       </v-flex>
     </v-layout>
-    <v-card>
+    <v-card class="purple">
       <v-layout row wrap>
         <v-flex xs12 class="pl-2">
           <h2>Highly Rated Products</h2>
@@ -79,7 +79,7 @@
         <v-btn :to="{name: 'Search', params: {tabName: 'products'}, query: {by_rating: true}}" color="primary">See more products by rating</v-btn>
       </v-flex>
     </v-layout>
-    <v-card>
+    <v-card class="purple">
       <v-layout row wrap>
         <v-flex xs12 class="pl-2">
           <h2>Low Priced Products</h2>
@@ -97,7 +97,7 @@
         <v-btn :to="{name: 'Search', params: {tabName: 'products'}, query: {max_price: '30.00'}}" color="primary">See more low priced products</v-btn>
       </v-flex>
     </v-layout>
-    <v-card>
+    <v-card class="purple">
       <v-layout row wrap>
         <v-flex xs12 class="pl-2">
           <h2>New Artists</h2>
@@ -110,7 +110,7 @@
       </v-flex>
     </v-layout>
     <ac-product-list class="pt-0" endpoint="/api/sales/v1/new-artist-products/" :limit="4" :no-pagination="true" />
-    <v-card>
+    <v-card class="purple">
       <v-layout row wrap>
         <v-flex xs12 class="pl-2">
           <h2>Random Products</h2>
@@ -128,7 +128,7 @@
         <v-btn :to="{name: 'Search', params: {tabName: 'products'}}" color="primary">Search All Products</v-btn>
       </v-flex>
     </v-layout>
-    <v-card>
+    <v-card class="purple">
       <v-layout row wrap>
         <v-flex xs12 class="pl-2">
           <h2>Recent Commissions</h2>
@@ -143,7 +143,7 @@
     <ac-asset-gallery
         endpoint="/api/profiles/v1/recent-commissions/" :limit="4" :no-pagination="true"
     />
-    <v-card>
+    <v-card class="purple">
       <v-layout row wrap>
         <v-flex xs12 class="pl-2">
           <h2>Recent Art</h2>
