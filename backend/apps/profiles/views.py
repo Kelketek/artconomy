@@ -1085,7 +1085,7 @@ class SubmissionList(ListAPIView):
         user = get_object_or_404(User, username=self.kwargs['username'])
         return available_assets(
             self.request, user
-        ).filter(owner=user).exclude(artists=user).exclude(characters__user=user)
+        ).filter(owner=user).exclude(artists=user)
 
 
 class AssetShare(BaseUserTagView):
