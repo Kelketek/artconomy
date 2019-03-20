@@ -71,6 +71,9 @@
             :endpoint="`/api/profiles/v1/account/${username}/characters/`" :track-pages="true" tab-name="tab-characters" />
       </v-tab-item>
       <v-tab-item id="tab-gallery" :class="{'tab-shown': shownTab('tab-gallery')}">
+        <div class="text-xs-center">
+          <h3>Submissions where this user was tagged as the artist.</h3>
+        </div>
         <ac-asset-gallery
             :endpoint="`/api/profiles/v1/account/${username}/gallery/`" :track-pages="true" tab-name="tab-gallery"
         />
@@ -94,6 +97,9 @@
         />
       </v-tab-item>
       <v-tab-item id="tab-other" :class="{'tab-shown': shownTab('tab-other')}">
+        <div class="text-xs-center">
+          <h3>Uploads from this user where they are not tagged as the artist.</h3>
+        </div>
         <ac-asset-gallery
             :endpoint="`/api/profiles/v1/account/${username}/submissions/`" :track-pages="true" tab-name="tab-other"
         />
