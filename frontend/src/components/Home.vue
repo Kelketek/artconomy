@@ -1,23 +1,29 @@
 <template>
   <div id="home-page">
-    <v-container fluid v-if="viewer !== null && !viewer.username" style="margin-top: -48px">
-      <v-layout row wrap class="intro">
-        <v-responsive class="home-banner darken-3" max-width="100%">
-          <v-container fluid fill-height>
-            <v-layout align-center row wrap>
-              <v-flex xs12 md10 offset-md1>
-                <h1>Easy Online Commissioning</h1>
-                <h2>Hire an artist with confidence!</h2>
-                <v-btn color="primary" class="mt-2" :to="{name: 'Login', params: {tabName: 'register'}}">Get Started</v-btn>
-                or
-                <v-btn color="purple" class="mt-2" @click="$vuetify.goTo('#intro-start', {offset: -60})">Learn More</v-btn>
-              </v-flex>
-            </v-layout>
-          </v-container>
-        </v-responsive>
-      </v-layout>
-    </v-container>
   <v-container class="home-main">
+    <v-layout row wrap>
+      <v-flex xs12><img :src="`/static/images/${randomBanner.file}`" class="art-banner" /></v-flex>
+      <v-flex xs12><p>Banner by <router-link :to="{name: 'Profile', params: {username: randomBanner.username}}">{{randomBanner.username}}</router-link></p></v-flex>
+    </v-layout>
+  </v-container>
+  <v-container fluid v-if="viewer !== null && !viewer.username" style="margin-top: -48px">
+    <v-layout row wrap class="intro">
+      <v-responsive class="home-banner darken-3" max-width="100%">
+        <v-container fluid fill-height class="banner-container">
+          <v-layout align-center row wrap>
+            <v-flex xs12 md10 offset-md1>
+              <h1>Easy Online Commissioning</h1>
+              <h2>Hire an artist with confidence!</h2>
+              <v-btn color="primary" class="mt-2" :to="{name: 'Login', params: {tabName: 'register'}}">Get Started</v-btn>
+              or
+              <v-btn color="purple" class="mt-2" @click="$vuetify.goTo('#intro-start', {offset: -60})">Learn More</v-btn>
+            </v-flex>
+          </v-layout>
+        </v-container>
+      </v-responsive>
+    </v-layout>
+  </v-container>
+  <v-container>
     <v-alert
         :value="showMailingPrompt"
         type="info"
@@ -39,10 +45,6 @@
         <strong>Artconomy's CEO, Fox, will be at <a href="https://2019.furryfiesta.org/" target="_blank">Texas Furry Fiesta</a> from March 29-31st to speak at a few panels! Contact him (<a href="https://telegram.me/VulpesVeritas" target="_blank">@VulpesVeritas</a> on Telegram) and get yourself a sticker!</strong>
       </div>
     </v-alert>
-    <v-layout row wrap>
-      <v-flex xs12><v-img :src="`/static/images/${randomBanner.file}`"></v-img></v-flex>
-      <v-flex xs12><p>Banner by <router-link :to="{name: 'Profile', params: {username: randomBanner.username}}">{{randomBanner.username}}</router-link></p></v-flex>
-    </v-layout>
     <v-card class="purple">
       <v-layout row wrap>
         <v-flex xs12 class="pl-2">
@@ -220,6 +222,10 @@
   img.demo-img-sm {
     max-width: 50%;
   }
+  .banner-container {
+    padding-top: 0;
+    padding-bottom: 1rem;
+  }
   .home-banner {
     background-size: cover;
     background: url("/static/images/banner.jpg") fixed center;
@@ -231,6 +237,9 @@
   .home-banner h2 {
     font-size: 2rem;
     font-weight: normal;
+  }
+  .art-banner {
+    margin-top: -2.5rem;
   }
 </style>
 
