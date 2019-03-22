@@ -382,6 +382,10 @@ CELERYBEAT_SCHEDULE = {
     'finalize_transactions': {
         'task': 'apps.sales.tasks.finalize_transactions',
         'schedule': crontab(hour=1, minute=15)
+    },
+    'remind_sales': {
+        'task': 'apps.sales.tasks.remind_sales',
+        'schedule': crontab(hour=15, minute=30)
     }
 }
 

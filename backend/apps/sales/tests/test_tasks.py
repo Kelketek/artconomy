@@ -3,16 +3,18 @@ from decimal import Decimal
 from unittest.mock import patch, call, PropertyMock
 
 from authorize import AuthorizeError
+from dateutil.relativedelta import relativedelta
 from django.core import mail
 from django.test import TestCase, override_settings
+from django.utils import timezone
 from djmoney.money import Money
 from freezegun import freeze_time
 
 from apps.lib.models import SUBSCRIPTION_DEACTIVATED, Notification, RENEWAL_FAILURE, RENEWAL_FIXED
 from apps.profiles.tests.factories import UserFactory
-from apps.sales.models import PaymentRecord
-from apps.sales.tasks import run_billing, renew, update_transfer_status
-from apps.sales.tests.factories import CreditCardTokenFactory, PaymentRecordFactory
+from apps.sales.models import PaymentRecord, Order
+from apps.sales.tasks import run_billing, renew, update_transfer_status, remind_sales, remind_sale
+from apps.sales.tests.factories import CreditCardTokenFactory, PaymentRecordFactory, OrderFactory
 
 
 class TestAutoRenewal(TestCase):
@@ -197,3 +199,31 @@ class TestUpdateTransaction(TestCase):
         self.record.refresh_from_db()
         _mock_refund.assert_not_called()
         self.assertEqual(self.record.finalized, True)
+
+
+class TestReminders(TestCase):
+    @freeze_time('2018-02-10')
+    @patch('apps.sales.tasks.remind_sale')
+    def test_reminder_emails(self, mock_remind_sale):
+        to_remind = [
+            OrderFactory.create(status=Order.NEW, created_on=timezone.now() - relativedelta(days=i)) for i in [
+                1, 2, 3, 4, 5, 6, 9, 12, 15, 18, 25, 30
+            ]
+        ]
+        # To be ignored.
+        [
+            OrderFactory.create(status=Order.NEW, created_on=timezone.now() - relativedelta(days=i)) for i in [
+                7, 8, 10, 11, 13, 14, 16, 17, 19, 21, 22, 23, 24, 26, 27, 28
+            ]
+        ]
+        remind_sales()
+        self.assertEqual(mock_remind_sale.delay.call_count, 12)
+        to_remind = [
+            call(order.id) for order in to_remind
+        ]
+        mock_remind_sale.delay.assert_has_calls(to_remind, any_order=True)
+
+    def test_send_reminder(self):
+        order = OrderFactory.create(status=Order.NEW, details='# This is a test\n\nDo things and stuff.')
+        remind_sale(order.id)
+        self.assertEqual(mail.outbox[0].subject, 'Your commissioner is awaiting your response!')
