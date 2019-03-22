@@ -1,0 +1,15 @@
+{% extends 'email_base.html' %}
+{% load md2 %}
+{% block header_message %}Please respond to your commissioner!{% endblock %}
+{% block message %}
+<p>An order is still awaiting your acceptance. Please respond to the commissioner, either accepting or declining their order.</p>
+<p>Here's a preview of the sale description, in case you missed it:</p>
+<div class="message-preview">
+  {{sale.details|markdown:"safe"}}
+</div>
+<p>If you are unable to take orders at this time, you may also decline this order and then set your commissions to closed in your settings.</p>
+{% endblock message %}
+
+{% block action %}
+<a href="/sales/{{sale.seller.username}}/sale/{{sale.id}}/">View your sale here!</a>
+{% endblock %}

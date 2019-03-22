@@ -180,7 +180,7 @@ class Order(Model):
         max_digits=5, decimal_places=2,
         default=0
     )
-    created_on = DateTimeField(auto_now_add=True, db_index=True)
+    created_on = DateTimeField(db_index=True, default=timezone.now)
     disputed_on = DateTimeField(blank=True, null=True, db_index=True)
     started_on = DateTimeField(blank=True, null=True)
     paid_on = DateTimeField(blank=True, null=True, db_index=True)

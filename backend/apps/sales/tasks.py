@@ -8,7 +8,7 @@ from django.utils.datetime_safe import date
 from moneyed import Money
 
 from apps.lib.models import RENEWAL_FAILURE, SUBSCRIPTION_DEACTIVATED, RENEWAL_FIXED, TRANSFER_FAILED
-from apps.lib.utils import notify
+from apps.lib.utils import notify, send_transaction_email
 from apps.profiles.models import User
 from apps.sales.apis import dwolla
 from apps.sales.dwolla import refund_transfer, initiate_withdraw, perform_transfer
@@ -180,3 +180,30 @@ def withdraw_all(user_id):
         perform_transfer(record, note='Disbursement')
     except Exception as err:
         notify(TRANSFER_FAILED, user, data={'error': str(err)})
+
+
+@celery_app.task
+def remind_sale(order_id):
+    order = Order.objects.get(id=order_id)
+    if not order.status == Order.NEW:
+        return
+    send_transaction_email(
+        'Your commissioner is awaiting your response!', 'sale_reminder.html', order.seller, {'sale': order}
+    )
+
+
+@celery_app.task
+def remind_sales():
+    to_remind = []
+    for order in Order.objects.filter(status=Order.NEW, created_on__lte=timezone.now() - relativedelta(days=1)):
+        delta = (timezone.now() - order.created_on).days
+        if delta <= 5:
+            to_remind.append(order)
+            continue
+        elif delta <= 20 and not (delta % 3):
+            to_remind.append(order)
+            continue
+        elif delta > 20 and not delta % 5:
+            to_remind.append(order)
+    for order in to_remind:
+        remind_sale.delay(order.id)

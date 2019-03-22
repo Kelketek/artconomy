@@ -3,9 +3,9 @@
 {% block header_message %}{% if target.status == 1 %}New Sale!{% else %}Sale update!{% endif %} #{{target.id}}{% endblock %}
 {% block message %}
 {% if target.status == 1 %}
-You have a new sale of your product, "{{target.product.name}}" to <a href="/profile/{{target.buyer.username}}/">{{target.buyer.username}}</a>.
+<p>You have a new sale of your product, "{{target.product.name}}" to <a href="/profile/{{target.buyer.username}}/">{{target.buyer.username}}</a>.</p>
 
-Here's a preview of their order description:
+<p>Here's a preview of their order description:</p>
 
 <div class="message-preview">
   {{target.details|markdown:"safe"}}
@@ -26,5 +26,5 @@ Your sale has been updated!
 {% endblock message %}
 
 {% block action %}
-<a href="/orders/{{target.buyer.username}}/order/{{target.id}}/">View your sale here!</a>
+<a href="/sales/{{target.seller.username}}/sale/{{target.id}}/">View your sale here!</a>
 {% endblock %}
