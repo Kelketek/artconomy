@@ -258,6 +258,7 @@
     mixins: [Viewer],
     data () {
       return {
+        message: 'Dude',
         answered: false,
         banners: [
           {file: 'halcy0n-artconomy-banner-A1-1440x200.png', username: 'Halcyon'},
