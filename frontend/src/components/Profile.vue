@@ -77,19 +77,11 @@
         <ac-asset-gallery
             :endpoint="`/api/profiles/v1/account/${username}/gallery/`" :track-pages="true" tab-name="tab-gallery"
         />
-        <v-btn v-if="controls"
-               dark
-               color="green"
-               fab
-               hover
-               fixed
-               right
-               bottom
-               large
-               @click="newUploadModel.is_artist=true; showUpload=true"
-        >
-          <v-icon x-large>add</v-icon>
-        </v-btn>
+        <ac-add-button
+            v-if="controls"
+            v-model="newGallery"
+            text="New Gallery Upload"
+        ></ac-add-button>
       </v-tab-item>
       <v-tab-item id="tab-favorites" v-if="!user.favorites_hidden || controls">
         <ac-asset-gallery
@@ -103,19 +95,11 @@
         <ac-asset-gallery
             :endpoint="`/api/profiles/v1/account/${username}/submissions/`" :track-pages="true" tab-name="tab-other"
         />
-        <v-btn v-if="controls"
-               dark
-               color="green"
-               fab
-               hover
-               fixed
-               right
-               bottom
-               large
-               @click="newUploadModel.is_artist=false; showUpload=true"
-        >
-          <v-icon x-large>add</v-icon>
-        </v-btn>
+        <ac-add-button
+            v-if="controls"
+            v-model="newSubmission"
+            text="New Non-Gallery Upload"
+        ></ac-add-button>
       </v-tab-item>
       <v-tab-item id="tab-watchlists">
         <v-tabs v-model="watchTab" fixed-tabs>
@@ -158,12 +142,12 @@
     99% { opacity: 0 }
     100% { opacity: 1 }
   }
-  .account-profile .btn--floating {
+  .account-profile .add-button-container {
     visibility: hidden;
     opacity: 0;
     transition: none;
   }
-  .account-profile .tab-shown .btn--floating {
+  .account-profile .tab-shown .add-button-container{
     visibility: visible;
     opacity: 1;
     animation: delay-display 1s;
@@ -186,11 +170,13 @@
   import AcAction from './ac-action'
   import AcUserGallery from './ac-user-gallery'
   import AcJournals from './ac-journals'
+  import AcAddButton from './ac-add-button'
 
   export default {
     name: 'Profile',
     mixins: [Viewer, Perms, Editable],
     components: {
+      AcAddButton,
       AcJournals,
       AcUserGallery,
       AcAction,
@@ -411,6 +397,24 @@
       },
       url () {
         return `/api/profiles/v1/data/user/${this.username}/`
+      },
+      newGallery: {
+        get () {
+          return this.showUpload && this.newUploadModel.is_artist
+        },
+        set (val) {
+          this.showUpload = val;
+          this.newUploadModel.is_artist = val;
+        }
+      },
+      newSubmission: {
+        get () {
+          return this.showUpload && ! this.newUploadModel.is_artist
+        },
+        set (val) {
+          this.showUpload = val;
+          this.newUploadModel.is_artist = !val;
+        }
       },
       userloaded () {
         return Object.keys(this.user).length > 1
