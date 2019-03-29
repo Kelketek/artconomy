@@ -386,7 +386,9 @@
       },
       user () {
         if (this.user.id) {
-          EventBus.$emit('userfield-add-recipients', this.user)
+          this.$nextTick(() => {
+            EventBus.$emit('userfield-add-recipients', this.user)
+          })
           this.setMeta()
         }
       }
