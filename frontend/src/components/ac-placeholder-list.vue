@@ -76,19 +76,7 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-btn
-           dark
-           color="green"
-           fab
-           hover
-           fixed
-           right
-           bottom
-           large
-           @click="showNew=true"
-    >
-      <v-icon x-large>add</v-icon>
-    </v-btn>
+    <ac-add-button v-model="showNew" text="New Placeholder"></ac-add-button>
     <ac-form-dialog title="New Placeholder Sale" submit-text="Create" v-model="showNew"
                     ref="newPlaceholderForm" :schema="newPlaceholderSchema" :model="newPlaceholderModel"
                     :options="newPlaceholderOptions" :success="addPlaceholder"
@@ -107,9 +95,10 @@
   import {EventBus} from '../lib'
   import VueFormGenerator from 'vue-form-generator'
   import AcFormDialog from './ac-form-dialog'
+  import AcAddButton from './ac-add-button'
   export default {
     name: 'ac-placeholder-list',
-    components: {AcFormDialog, AcPatchfield},
+    components: {AcAddButton, AcFormDialog, AcPatchfield},
     props: ['url'],
     mixins: [Viewer, Perms, Paginated, Editable, Markdown],
     data () {

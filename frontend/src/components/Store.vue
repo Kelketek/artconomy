@@ -1,18 +1,6 @@
 <template>
   <v-container grid-list-lg class="storefront">
-    <v-btn v-if="controls && setUp && !embedded && !iFrame"
-           dark
-           color="green"
-           fab
-           hover
-           fixed
-           right
-           bottom
-           large
-           @click="showNew=true"
-    >
-      <v-icon x-large>add</v-icon>
-    </v-btn>
+    <ac-add-button text="New Product" v-model="showNew" v-if="controls && setUp && !embedded && !iFrame"></ac-add-button>
     <ac-product-list :endpoint="this.endpoint" :i-frame="iFrame" counter-name="productListCount" />
     <v-layout row wrap v-if="setUp && isCurrent && productCount === 0">
       <v-flex xs12>
@@ -86,10 +74,12 @@
   import {artCall, ratings, validateNonEmpty, EventBus} from '../lib'
   import AcFormDialog from './ac-form-dialog'
   import AcProductList from './ac-product-list'
+  import AcAddButton from './ac-add-button'
 
   export default {
     name: 'Store',
     components: {
+      AcAddButton,
       AcProductList,
       AcFormDialog,
       AcProductPreview,

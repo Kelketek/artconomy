@@ -52,19 +52,7 @@
                        :url="`/api/profiles/v1/account/${this.user.username}/characters/`"
                        v-model="showNew"
     />
-    <v-btn
-           dark
-           color="green"
-           fab
-           hover
-           fixed
-           right
-           bottom
-           large
-           @click="showNew=true"
-    >
-      <v-icon x-large>add</v-icon>
-    </v-btn>
+   <ac-add-button v-model="showNew" text="Add Character"></ac-add-button>
   </v-container>
 </template>
 
@@ -77,9 +65,10 @@
   import AcCharacterPreview from './ac-character-preview'
   import AcFormDialog from './ac-form-dialog'
   import AcSpeedButton from './ac-speed-button'
+  import AcAddButton from './ac-add-button'
 
   export default {
-    components: {AcSpeedButton, AcFormDialog, AcFormContainer, AcCharacterPreview},
+    components: {AcAddButton, AcSpeedButton, AcFormDialog, AcFormContainer, AcCharacterPreview},
     name: 'Characters',
     mixins: [Viewer, Perms, Paginated],
     props: ['embedded', 'endpoint', 'noPagination', 'to', 'seeMoreText'],

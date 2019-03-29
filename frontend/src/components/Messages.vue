@@ -18,19 +18,7 @@
                     :url="`${url}sent/`"
                     v-model="showNew"
     />
-    <v-btn
-           dark
-           color="green"
-           fab
-           hover
-           fixed
-           right
-           bottom
-           large
-           @click="showNew=true"
-    >
-      <v-icon x-large>add</v-icon>
-    </v-btn>
+    <ac-add-button text="New Message" v-model="showNew"></ac-add-button>
   </v-container>
 </template>
 
@@ -41,10 +29,11 @@
   import AcMessageList from './ac-message-list'
   import AcFormDialog from './ac-form-dialog'
   import VueFormGenerator from 'vue-form-generator'
+  import AcAddButton from './ac-add-button'
 
   export default {
     name: 'Messages',
-    components: {AcFormDialog, AcMessageList},
+    components: {AcAddButton, AcFormDialog, AcMessageList},
     mixins: [Viewer, Perms],
     data () {
       return {
