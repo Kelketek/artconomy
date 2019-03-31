@@ -6,23 +6,6 @@
       <v-flex xs12><p>Banner by <router-link :to="{name: 'Profile', params: {username: randomBanner.username}}">{{randomBanner.username}}</router-link></p></v-flex>
     </v-layout>
   </v-container>
-  <v-container fluid v-if="viewer !== null && !viewer.username" style="margin-top: -48px">
-    <v-layout row wrap class="intro">
-      <v-responsive class="home-banner darken-3" max-width="100%">
-        <v-container fluid fill-height class="banner-container">
-          <v-layout align-center row wrap>
-            <v-flex xs12 md10 offset-md1>
-              <h1>Easy Online Commissioning</h1>
-              <h2>Hire an artist with confidence!</h2>
-              <v-btn color="primary" class="mt-2" :to="{name: 'Login', params: {tabName: 'register'}}">Get Started</v-btn>
-              or
-              <v-btn color="purple" class="mt-2" @click="$vuetify.goTo('#intro-start', {offset: -60})">Learn More</v-btn>
-            </v-flex>
-          </v-layout>
-        </v-container>
-      </v-responsive>
-    </v-layout>
-  </v-container>
   <v-container>
     <v-alert
         :value="showMailingPrompt"
@@ -53,6 +36,25 @@
         <v-btn :to="{name: 'Search', params: {tabName: 'products'}, query: {featured: true}}" color="primary">See all featured products</v-btn>
       </v-flex>
     </v-layout>
+  </v-container>
+  <v-container fluid v-if="viewer !== null && !viewer.username" style="margin-top: -48px">
+    <v-layout row wrap class="intro">
+      <v-responsive class="home-banner darken-3" max-width="100%">
+        <v-container fluid fill-height class="banner-container">
+          <v-layout align-center row wrap>
+            <v-flex xs12 md10 offset-md1>
+              <h1>Easy Online Commissioning</h1>
+              <h2>Hire an artist with confidence!</h2>
+              <v-btn color="primary" class="mt-2" :to="{name: 'Login', params: {tabName: 'register'}}">Get Started</v-btn>
+              or
+              <v-btn color="purple" class="mt-2" @click="$vuetify.goTo('#intro-start', {offset: -60})">Learn More</v-btn>
+            </v-flex>
+          </v-layout>
+        </v-container>
+      </v-responsive>
+    </v-layout>
+  </v-container>
+  <v-container>
     <v-card class="purple">
       <v-layout row wrap>
         <v-flex xs12 class="pl-2">
