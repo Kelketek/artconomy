@@ -5,8 +5,6 @@
       <v-flex xs12><img :src="`/static/images/${randomBanner.file}`" class="art-banner" /></v-flex>
       <v-flex xs12><p>Banner by <router-link :to="{name: 'Profile', params: {username: randomBanner.username}}">{{randomBanner.username}}</router-link></p></v-flex>
     </v-layout>
-  </v-container>
-  <v-container>
     <v-alert
         :value="showMailingPrompt"
         type="info"
