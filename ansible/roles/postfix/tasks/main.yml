@@ -1,29 +1,19 @@
 ---
 - name: Install postfix
   apt:
-    name: postfix
+    name: "{{ item }}"
     state: present
+  with_items:
+    - postfix
+    - opendkim
+    - opendkim-tools
 
-- name: Set postfix host name
-  lineinfile:
-    path: /etc/postfix/main.cf
-    regexp: '^myhostname'
-    line: 'myhostname = {{ inventory_hostname }}'
+- name: Configure Postfix
+  template:
+    src: "templates/main.cf"
+    dest: "/etc/postfix/main.cf"
   notify:
-    - reload postfix
-
-- name: Set postfix destination
-  lineinfile:
-    path: /etc/postfix/main.cf
-    regexp: '^mydestination'
-    line: 'mydestination = localhost'
-  notify:
-    - reload postfix
-
-- name: Add header checks to postfix configuration
-  lineinfile:
-    path: /etc/postfix/main.cf
-    line: 'header_checks = regexp:/etc/postfix/header_checks'
+    - restart postfix
 
 - name: Ensure header checks configuration file
   file:
@@ -31,10 +21,32 @@
     state: touch
   changed_when: false
 
-- name: Add subject logging via header checks
-  lineinfile:
-    path: /etc/postfix/header_checks
-    line: '/^Subject:/     WARN'
+- name: Add dkim key
+  copy:
+    src: "keys/{{env_prefix}}/mail/mail.key"
+    dest: /etc/mail/mail.key
+    mode: 0600
+    owner: opendkim
   notify:
-    - postmap
-    - reload postfix
+    - restart opendkim
+
+- name: Configure OpenDKIM
+  template:
+    src: "templates/opendkim.conf"
+    dest: "/etc/opendkim.conf"
+  notify:
+    - restart opendkim
+    - restart postfix
+
+
+- name: Ensure OpenDKIM is running
+  service:
+    name: opendkim
+    enabled: yes
+    state: started
+
+- name: Ensure Postfix is running
+  service:
+    name: postfix
+    enabled: yes
+    state: started

@@ -2,5 +2,8 @@
 - name: postmap
   command: "postmap /etc/postfix/header_checks"
 
-- name: reload postfix
-  command: "postfix reload"
+- name: restart postfix
+  command: "/etc/init.d/postfix restart"
+
+- name: restart opendkim
+  command: "/etc/init.d/opendkim restart"
