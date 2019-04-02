@@ -1015,9 +1015,9 @@ def perform_login(request):
     """
     # Gather the username and password provided by the user.
     # This information is obtained from the login form.
-    email = str(request.data.get('email', request.POST.get('email', ''))).lower()
-    password = request.data.get('password', request.POST.get('password', ''))
-    token = request.data.get('token', request.POST.get('token', ''))
+    email = str(request.data.get('email', request.POST.get('email', ''))).lower().strip()
+    password = request.data.get('password', request.POST.get('password', '')).strip()
+    token = request.data.get('token', request.POST.get('token', '')).strip()
     # Use Django's machinery to attempt to see if the username/password
     # combination is valid - a User object is returned if it is.
     user = authenticate(email=email, password=password)
