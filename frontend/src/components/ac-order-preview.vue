@@ -22,9 +22,12 @@
           <router-link v-if="buyer" :to="{name: 'Profile', params: {username: order.seller.username}}">
             {{ order.seller.username }}
           </router-link>
-          <router-link v-else :to="{name: 'Profile', params: {username: order.buyer.username}}">
-            {{ order.buyer.username }}
+          <router-link v-else-if="order.buyer" :to="{name: 'Profile', params: {username: order.buyer.username}}">
+            {{ (order.buyer && order.buyer.username) }}
           </router-link>
+          <span v-else>
+            (Pending)
+          </span>
         </div>
       </v-card-title>
       <v-card-title>

@@ -1,3 +1,4 @@
+import logging
 from decimal import Decimal, InvalidOperation
 from uuid import uuid4
 
@@ -9,9 +10,12 @@ from django.utils import timezone
 from django.utils.datetime_safe import date
 from moneyed import Money
 
-from apps.lib.models import Subscription, COMMISSIONS_OPEN, Event, DISPUTE, SALE_UPDATE
+from apps.lib.models import Subscription, COMMISSIONS_OPEN, Event, DISPUTE, SALE_UPDATE, ORDER_UPDATE
 from apps.lib.utils import notify, recall_notification
 from apps.profiles.models import User
+
+
+logger = logging.getLogger(__name__)
 
 
 def escrow_balance(user):
@@ -315,3 +319,21 @@ def finalize_order(order, user=None):
     # there's money to withdraw that hasn't been taken yet, and another process will try again if it settles later.
     # It will also ignore if the seller has auto_withdraw disabled.
     withdraw_all.delay(order.seller.id)
+
+
+def claim_order_by_token(order_claim, user):
+    from apps.sales.models import Order, buyer_subscriptions
+    if not order_claim:
+        return
+    order = Order.objects.filter(claim_token=order_claim).first()
+    if not order:
+        logger.warning("User %s attempted to claim non-existent order token, %s", user, order_claim)
+        return
+    if order.seller == user:
+        logger.warning("Seller %s attempted to claim their own order token, %s", user, order_claim)
+        return
+    order.claim_token = None
+    order.buyer = user
+    order.save()
+    buyer_subscriptions(order)
+    notify(ORDER_UPDATE, order, unique=True, mark_unread=True)

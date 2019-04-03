@@ -18,7 +18,8 @@ from django.core.validators import MinValueValidator, MaxValueValidator, BaseVal
 from django.db.models import (
     Model, CharField, ForeignKey, IntegerField, BooleanField, DateTimeField, ManyToManyField,
     TextField, SET_NULL, PositiveIntegerField, URLField, CASCADE, DecimalField, Avg, DateField, EmailField, Sum,
-    SlugField
+    SlugField,
+    UUIDField
 )
 
 # Create your models here.
@@ -35,7 +36,10 @@ from moneyed import Money
 from apps.lib.models import Comment, Subscription, SALE_UPDATE, ORDER_UPDATE, REVISION_UPLOADED, COMMENT, NEW_PRODUCT, \
     Event, ORDER_TOKEN_ISSUED, EMAIL_SUBJECTS
 from apps.lib.abstract_models import ImageModel
-from apps.lib.utils import clear_events, MinimumOrZero, recall_notification, require_lock, notify, FakeRequest
+from apps.lib.utils import (
+    clear_events, MinimumOrZero, recall_notification, require_lock, notify, FakeRequest,
+    send_transaction_email
+)
 from apps.profiles.models import User
 from apps.sales.permissions import OrderViewPermission
 from apps.sales.apis import sauce
@@ -67,7 +71,7 @@ class Product(ImageModel):
     )
     price = MoneyField(
         max_digits=6, decimal_places=2, default_currency='USD',
-        db_index=True, validators=[MinimumOrZeroValidator(settings.MINIMUM_PRICE)]
+        db_index=True
     )
     tags = ManyToManyField('lib.Tag', related_name='products', blank=True)
     tags__max = 200
@@ -162,12 +166,16 @@ class Order(Model):
     status = IntegerField(choices=STATUSES, default=NEW, db_index=True)
     product = ForeignKey('Product', null=True, blank=True, on_delete=CASCADE)
     seller = ForeignKey(settings.AUTH_USER_MODEL, related_name='sales', on_delete=CASCADE)
-    buyer = ForeignKey(settings.AUTH_USER_MODEL, related_name='buys', on_delete=CASCADE)
+    buyer = ForeignKey(settings.AUTH_USER_MODEL, related_name='buys', on_delete=CASCADE, null=True, blank=True)
     price = MoneyField(
         max_digits=6, decimal_places=2, default_currency='USD',
         blank=True, null=True, validators=[MinValueValidator(settings.MINIMUM_PRICE)]
     )
     revisions = IntegerField(default=0)
+    revisions_hidden = BooleanField(default=True)
+    final_uploaded = BooleanField(default=False)
+    claim_token = UUIDField(blank=True, null=True)
+    customer_email = EmailField(blank=True)
     details = CharField(max_length=5000)
     adjustment = MoneyField(max_digits=6, decimal_places=2, default_currency='USD', blank=True, default=0)
     adjustment_expected_turnaround = DecimalField(default=0, max_digits=5, decimal_places=2)
@@ -247,27 +255,6 @@ def auto_subscribe_order(sender, instance, created=False, **_kwargs):
             email=True,
             type=SALE_UPDATE
         )
-        Subscription.objects.create(
-            subscriber=instance.buyer,
-            content_type=ContentType.objects.get_for_model(model=sender),
-            object_id=instance.id,
-            email=True,
-            type=ORDER_UPDATE,
-        )
-        Subscription.objects.create(
-            subscriber=instance.buyer,
-            content_type=ContentType.objects.get_for_model(model=sender),
-            object_id=instance.id,
-            email=True,
-            type=REVISION_UPLOADED
-        )
-        Subscription.objects.create(
-            subscriber=instance.buyer,
-            content_type=ContentType.objects.get_for_model(model=sender),
-            object_id=instance.id,
-            email=True,
-            type=COMMENT
-        )
         # In the off chance the seller and buyer are the same.
         Subscription.objects.create(
             subscriber=instance.seller,
@@ -276,6 +263,45 @@ def auto_subscribe_order(sender, instance, created=False, **_kwargs):
             email=True,
             type=COMMENT
         )
+        buyer_subscriptions(instance)
+
+
+def buyer_subscriptions(instance):
+    if not instance.buyer:
+        return
+    Subscription.objects.get_or_create(
+            subscriber=instance.buyer,
+            content_type=ContentType.objects.get_for_model(instance),
+            object_id=instance.id,
+            email=True,
+            type=ORDER_UPDATE,
+        )
+    Subscription.objects.get_or_create(
+        subscriber=instance.buyer,
+        content_type=ContentType.objects.get_for_model(instance),
+        object_id=instance.id,
+        email=True,
+        type=REVISION_UPLOADED
+    )
+    Subscription.objects.get_or_create(
+        subscriber=instance.buyer,
+        content_type=ContentType.objects.get_for_model(instance),
+        object_id=instance.id,
+        email=True,
+        type=COMMENT
+    )
+
+
+@receiver(post_save, sender=Order)
+def issue_order_claim(sender, instance, created=False, **kwargs):
+    if not created:
+        return
+    if not instance.claim_token:
+        return
+    send_transaction_email(
+        f'You have a new invoice from {instance.seller.username}!',
+        'invoice_issued.html', instance.customer_email, {'order': instance}
+    )
 
 
 WEIGHTED_STATUSES = [Order.IN_PROGRESS, Order.PAYMENT_PENDING, Order.QUEUED]

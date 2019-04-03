@@ -1,9 +1,4 @@
-from decimal import Decimal
-
-from moneyed import Money
 from rest_framework.permissions import BasePermission
-
-from apps.sales.utils import available_balance
 
 
 class OrderViewPermission(BasePermission):
@@ -62,3 +57,13 @@ class EscrowDisabledPermission(BasePermission):
         if obj.escrow_disabled:
             return True
         return False
+
+
+class RevisionsVisible(BasePermission):
+    def has_object_permission(self, request, view, obj):
+        return not obj.revisions_hidden
+
+
+class BankingConfigured(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.bank_account_status is not None

@@ -1,13 +1,15 @@
+import uuid
 from unittest.mock import patch
 
 from django.test import TestCase
 from moneyed import Money, Decimal
 
+from apps.lib.models import Notification, ORDER_UPDATE
 from apps.profiles.tests.factories import UserFactory
 from apps.sales.models import PaymentRecord
 from apps.sales.tasks import withdraw_all
-from apps.sales.tests.factories import PaymentRecordFactory, BankAccountFactory
-from apps.sales.utils import escrow_balance, available_balance, pending_balance
+from apps.sales.tests.factories import PaymentRecordFactory, BankAccountFactory, OrderFactory
+from apps.sales.utils import escrow_balance, available_balance, pending_balance, claim_order_by_token
 
 
 class BalanceTestCase(TestCase):
@@ -354,3 +356,39 @@ class BalanceTestCase(TestCase):
         # but we're always returning a balance of $25.
         mock_initiate.assert_called_with(self.user, bank, Money('25.00', 'USD'), test_only=False)
         mock_perform_transfer.assert_called()
+
+
+class TestClaim(TestCase):
+    def test_order_claim(self):
+        user = UserFactory.create()
+        uid = uuid.uuid4()
+        order = OrderFactory.create(buyer=None, claim_token=uid)
+        claim_order_by_token(uid, user)
+        order.refresh_from_db()
+        self.assertEqual(order.buyer, user)
+        self.assertIsNone(order.claim_token)
+
+    def test_order_claim_string(self):
+        user = UserFactory.create()
+        uid = uuid.uuid4()
+        order = OrderFactory.create(buyer=None, claim_token=uid)
+        claim_order_by_token(str(uid), user)
+        order.refresh_from_db()
+        self.assertEqual(order.buyer, user)
+        self.assertIsNone(order.claim_token)
+
+    @patch('apps.sales.utils.logger.warning')
+    def test_order_claim_fail(self, mock_warning):
+        user = UserFactory.create()
+        uid = uuid.uuid4()
+        claim_order_by_token(uid, user)
+        self.assertTrue(mock_warning.called)
+
+    def test_order_claim_subscription(self):
+        user = UserFactory.create()
+        uid = uuid.uuid4()
+        order = OrderFactory.create(buyer=None, claim_token=uid)
+        claim_order_by_token(str(uid), user)
+        notification = Notification.objects.get(event__type=ORDER_UPDATE)
+        self.assertEqual(notification.user, user)
+        self.assertEqual(notification.event.target, order)

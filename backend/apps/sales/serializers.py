@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.core.validators import RegexValidator, FileExtensionValidator
+from django.core.validators import RegexValidator, FileExtensionValidator, MinValueValidator, EmailValidator
 from django.forms import FileField
 from django.utils.datetime_safe import datetime, date
 from luhn import verify
@@ -13,6 +13,7 @@ from apps.lib.serializers import RelatedUserSerializer, Base64ImageField, EventT
 from apps.lib.utils import country_choices
 from apps.profiles.models import User, ImageAsset
 from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer
+from apps.profiles.utils import available_users
 from apps.sales.models import Product, Order, CreditCardToken, Revision, PaymentRecord, BankAccount, CharacterTransfer, \
     PlaceholderSale, Rating, OrderToken
 from apps.sales.utils import escrow_balance, available_balance, pending_balance
@@ -99,7 +100,7 @@ class OrderViewSerializer(SubscribeMixin, serializers.ModelSerializer):
             'id', 'created_on', 'status', 'price', 'product', 'details', 'seller', 'buyer', 'adjustment', 'characters',
             'stream_link', 'revisions', 'outputs', 'private', 'subscribed', 'adjustment_task_weight',
             'adjustment_expected_turnaround', 'expected_turnaround', 'task_weight', 'paid_on', 'dispute_available_on',
-            'auto_finalize_on', 'started_on', 'escrow_disabled',
+            'auto_finalize_on', 'started_on', 'escrow_disabled', 'revisions_hidden', 'final_uploaded'
         )
         read_only_fields = fields
 
@@ -379,3 +380,47 @@ class SearchQuerySerializer(serializers.Serializer):
     featured = serializers.BooleanField(required=False)
     min_price = serializers.DecimalField(decimal_places=2, max_digits=6, required=False)
     max_price = serializers.DecimalField(decimal_places=2, max_digits=6, required=False)
+
+
+class NewInvoiceSerializer(serializers.Serializer):
+    product = serializers.IntegerField(
+        required=False, error_messages={'required': 'You must select a product to base this invoice on.'}
+    )
+    buyer = serializers.CharField()
+    price = serializers.DecimalField(
+        max_digits=6, decimal_places=2,
+        validators=[MinValueValidator(settings.MINIMUM_PRICE)]
+    )
+    completed = serializers.BooleanField()
+    task_weight = serializers.IntegerField(min_value=0)
+    private = serializers.BooleanField()
+    details = serializers.CharField(max_length=5000)
+    expected_turnaround = serializers.DecimalField(
+        max_digits=5, decimal_places=2,
+    )
+
+    def validate_buyer(self, value):
+        if '@' in value:
+            EmailValidator()(value)
+            user = User.objects.filter(email=value).first()
+            if user:
+                if user.blocking.filter(id=self.context['request'].user.id).exists():
+                    raise ValidationError('Cannot send an invoice to this user. They may be blocking you.')
+                if user == self.context['request'].user:
+                    raise ValidationError('You cannot send yourself an invoice.')
+                return user
+            return User.objects.filter(email=value).first() or value
+        try:
+            value = int(value)
+        except ValueError:
+            raise ValidationError("Not a valid email or user.")
+        user = available_users(self.context['request']).filter(id=value).first()
+        if not user:
+            raise ValidationError("User with that ID not found, or they are blocking you.")
+        return user
+
+    def validate_product(self, value):
+        product = self.context['request'].user.products.exclude(active=False).filter(id=value).first()
+        if not product:
+            raise ValidationError("You don't have a product with that ID.")
+        return product

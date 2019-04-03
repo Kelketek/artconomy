@@ -2,8 +2,9 @@
   <div class="wrapper">
     <v-text-field ref="searchField" :label="schema.label" v-model="query" class="form-control" @input="runQuery" @keydown.enter.prevent.native="grabFirst" :placeholder="schema.placeholder" :error-messages="errors" />
     <div class="mb-2 mt-2">
-      <div v-if="userIDs.length === 0">Click a user to add them, or press enter to add the first one.</div>
-      <div v-else><v-chip light close v-for="user in users" :key="user.id" :user="user" @input="delUser(user)" >{{user.username}}</v-chip></div>
+      <div v-if="userIDs.length === 0 && !schema.hint">Click a user to add them, or press enter to add the first one.</div>
+      <div v-else-if="schema.hint" v-html="schema.hint"></div>
+      <v-chip light close v-for="user in users" :key="user.id" :user="user" @input="delUser(user)" >{{user.username}}</v-chip>
     </div>
       <div v-if="response" class="user-search-results">
         <div style="display:inline-block"
@@ -70,7 +71,19 @@
     },
     methods: {
       runQuery () {
-        artCall(`/api/profiles/v1/search/user/`, 'GET', {q: this.query, size: 9, tagging: this.schema.tagging}, this.populateResponse)
+        if (this.query.indexOf('@') === -1) {
+          artCall(`/api/profiles/v1/search/user/`, 'GET', {
+            q: this.query,
+            size: 9,
+            tagging: this.schema.tagging
+          }, this.populateResponse)
+        } else {
+          this.response = null
+          if (this.schema.emailPermitted) {
+            this.$emit('input', this.query)
+            this.value = this.query
+          }
+        }
       },
       populateResponse (response) {
         this.response = response

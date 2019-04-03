@@ -15,7 +15,6 @@ from apps.profiles.views import (
     UnreadNotifications, WatchListSubmissions, TOTPDeviceList, TOTPDeviceManager, Telegram2FA, RecentArt, UserInfoByID,
     ReferralStats, MailingListPref
 )
-from apps.lib.views import SupportRequest
 from apps.profiles.views import check_username, check_email, perform_login, perform_logout
 
 app_name = "profiles"
@@ -153,5 +152,4 @@ urlpatterns = [
     path(r'v1/account/<username>/characters/', CharacterListAPI.as_view(), name='character_list'),
     path(r'v1/account/<username>/watch/', WatchUser.as_view(), name='watch_user'),
     path(r'v1/account/<username>/block/', BlockUser.as_view(), name='block_user'),
-
 ]

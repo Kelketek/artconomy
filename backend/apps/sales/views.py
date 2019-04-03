@@ -4,6 +4,7 @@ from authorize import AuthorizeResponseError
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
+from django.http import Http404
 from django.views.static import serve
 from django.core.files.base import ContentFile
 from django.db.models import When, F, Case, BooleanField, Q, Count
@@ -40,15 +41,20 @@ from apps.profiles.serializers import ImageAssetSerializer, UserSerializer
 from apps.profiles.utils import credit_referral
 from apps.sales.dwolla import add_bank_account, initiate_withdraw, perform_transfer, make_dwolla_account, \
     destroy_bank_account
-from apps.sales.permissions import OrderViewPermission, OrderSellerPermission, OrderBuyerPermission, \
-    OrderPlacePermission, EscrowPermission, EscrowDisabledPermission
+from apps.sales.permissions import (
+    OrderViewPermission, OrderSellerPermission, OrderBuyerPermission,
+    OrderPlacePermission, EscrowPermission, EscrowDisabledPermission, RevisionsVisible,
+    BankingConfigured
+)
 from apps.sales.models import Product, Order, CreditCardToken, PaymentRecord, Revision, BankAccount, \
     CharacterTransfer, PlaceholderSale, WEIGHTED_STATUSES, Rating, OrderToken
-from apps.sales.serializers import ProductSerializer, ProductNewOrderSerializer, OrderViewSerializer, CardSerializer, \
-    NewCardSerializer, OrderAdjustSerializer, PaymentSerializer, RevisionSerializer, OrderStartedSerializer, \
-    AccountBalanceSerializer, BankAccountSerializer, WithdrawSerializer, PaymentRecordSerializer, \
-    CharacterTransferSerializer, PlaceholderSaleSerializer, PublishFinalSerializer, RatingSerializer, \
-    ServicePaymentSerializer, OrderTokenSerializer, SearchQuerySerializer
+from apps.sales.serializers import (
+    ProductSerializer, ProductNewOrderSerializer, OrderViewSerializer, CardSerializer,
+    NewCardSerializer, OrderAdjustSerializer, PaymentSerializer, RevisionSerializer, OrderStartedSerializer,
+    AccountBalanceSerializer, BankAccountSerializer, WithdrawSerializer, PaymentRecordSerializer,
+    CharacterTransferSerializer, PlaceholderSaleSerializer, PublishFinalSerializer, RatingSerializer,
+    ServicePaymentSerializer, OrderTokenSerializer, SearchQuerySerializer, NewInvoiceSerializer
+)
 from apps.sales.utils import translate_authnet_error, available_products, service_price, set_service, \
     check_charge_required, available_products_by_load, finalize_order, available_products_from_user, available_balance
 from apps.sales.tasks import renew
@@ -237,7 +243,14 @@ class MarkPaid(GenericAPIView):
                 {'error': 'You can only mark orders paid if they are waiting for payment.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        order.status = Order.QUEUED
+        if order.final_uploaded:
+            order.status = Order.COMPLETED
+        elif order.revision_set.all():
+            order.status = Order.IN_PROGRESS
+        else:
+            order.status = Order.QUEUED
+        order.task_weight = order.product.task_weight
+        order.expected_turnaround = order.product.expected_turnaround
         order.save()
         data = self.serializer_class(instance=order, context=self.get_serializer_context()).data
         notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
@@ -310,7 +323,7 @@ class OrderComments(ListCreateAPIView):
 
 
 class OrderRevisions(ListCreateAPIView):
-    permission_classes = [OrderViewPermission]
+    permission_classes = [OrderViewPermission, Any(RevisionsVisible, OrderSellerPermission)]
     serializer_class = RevisionSerializer
 
     def get_queryset(self):
@@ -324,14 +337,17 @@ class OrderRevisions(ListCreateAPIView):
             raise PermissionDenied("You are not the seller on this order.")
         revision = serializer.save(order=order, owner=self.request.user)
         order.refresh_from_db()
-        if not order.status == Order.IN_PROGRESS:
-            raise PermissionDenied("You may only upload revisions for orders which are in progress.")
+        if order.status not in [Order.IN_PROGRESS, Order.PAYMENT_PENDING, Order.NEW]:
+            raise PermissionDenied(
+                "You may not upload revisions while order is in state: {}".format(order.get_status_display())
+            )
         if serializer.validated_data.get('final'):
             if order.escrow_disabled:
                 order.status = Order.COMPLETED
-            else:
+            elif order.status == Order.IN_PROGRESS:
                 order.status = Order.REVIEW
                 order.auto_finalize_on = (timezone.now() + relativedelta(days=5)).date()
+            order.final_uploaded = True
             order.save()
             notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
         else:
@@ -360,10 +376,12 @@ class DeleteOrderRevision(DestroyAPIView):
         super(DeleteOrderRevision, self).perform_destroy(instance)
         order = Order.objects.get(id=self.kwargs['order_id'])
         recall_notification(REVISION_UPLOADED, order, data={'revision': revision_id}, unique_data=True)
+        if order.final_uploaded:
+            order.final_uploaded = False
         if order.status in [Order.REVIEW, Order.COMPLETED]:
             order.auto_finalize_on = None
             order.status = Order.IN_PROGRESS
-            order.save()
+        order.save()
 
 
 class ReOpen(GenericAPIView):
@@ -376,12 +394,14 @@ class ReOpen(GenericAPIView):
     def post(self, _request, *_args, **_kwargs):
         order = self.get_object()
         self.check_object_permissions(self.request, order)
-        statuses = [Order.REVIEW]
+        statuses = [Order.REVIEW, Order.PAYMENT_PENDING]
         if order.escrow_disabled:
             statuses.append(Order.COMPLETED)
         if order.status not in statuses:
             raise PermissionDenied("This order cannot be reopened.")
-        order.status = Order.IN_PROGRESS
+        if order.status != Order.PAYMENT_PENDING:
+            order.status = Order.IN_PROGRESS
+        order.final_uploaded = False
         order.auto_finalize_on = None
         order.save()
         notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
@@ -400,6 +420,11 @@ class MarkComplete(GenericAPIView):
     def post(self, _request, *_args, **_kwargs):
         order = self.get_object()
         self.check_object_permissions(self.request, order)
+        if order.revision_set.all().exists() and order.status == Order.PAYMENT_PENDING:
+            order.final_uploaded = True
+            order.save()
+            serializer = self.get_serializer(instance=order)
+            return Response(status=status.HTTP_200_OK, data=serializer.data)
         if order.status != Order.IN_PROGRESS:
             raise PermissionDenied("You cannot mark an order complete if it is not in progress.")
         if order.revision_set.count() < 1:
@@ -408,11 +433,10 @@ class MarkComplete(GenericAPIView):
             order.status = Order.COMPLETED
         else:
             order.status = Order.REVIEW
-            order.auto_finalize_on = (timezone.now() + relativedelta(days=5)).date()
+            order.auto_finalize_on = (timezone.now() + relativedelta(days=2)).date()
         order.save()
         notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
-        serializer = self.get_serializer()
-        serializer.instance = order
+        serializer = self.get_serializer(instance=order)
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
 
@@ -892,9 +916,17 @@ class MakePayment(GenericAPIView):
             record.finalized = False
             record.response_message = ''
             code = status.HTTP_202_ACCEPTED
-            order.status = Order.QUEUED
-            order.task_weight = order.task_weight + order.adjustment_task_weight
-            order.expected_turnaround = order.expected_turnaround + order.expected_turnaround
+            if order.final_uploaded:
+                order.status = Order.REVIEW
+                order.auto_finalize_on = (timezone.now() + relativedelta(days=2)).date()
+            elif order.revision_set.all().exists():
+                order.status = Order.IN_PROGRESS
+            else:
+                order.status = Order.QUEUED
+            order.revisions_hidden = False
+            # Save the original turnaround/weight.
+            order.task_weight = order.product.task_weight
+            order.expected_turnaround = order.product.expected_turnaround
             order.dispute_available_on = (timezone.now() + BDay(ceil(ceil(order.expected_turnaround) * 1.25))).date()
             order.paid_on = timezone.now()
             order.save()
@@ -1035,6 +1067,19 @@ class ProductSearch(ListAPIView):
             products = products.order_by(F('user__stars').desc(nulls_last=True), 'id').distinct('user__stars', 'id')
         else:
             products = products.order_by('id').distinct('id')
+        return products.select_related('user').prefetch_related('tags')
+
+
+class PersonalProductSearch(ListAPIView):
+    serializer_class = ProductSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        search_serializer = SearchQuerySerializer(data=self.request.GET)
+        search_serializer.is_valid(raise_exception=True)
+        query = search_serializer.validated_data.get('q', '')
+        products = Product.objects.filter(user=self.request.user, name__icontains=query, active=True)
+        products = products.filter(user=self.request.user)
         return products.select_related('user').prefetch_related('tags')
 
 
@@ -1620,3 +1665,74 @@ class RandomProducts(ListAPIView):
 
     def get_queryset(self):
         return Product.objects.filter(featured=False, available=True).order_by('?')
+
+
+class CreateInvoice(GenericAPIView):
+    """
+    Used to create a new order from the seller's side.
+    """
+    permission_classes = [IsAuthenticated, BankingConfigured]
+    serializer_class = NewInvoiceSerializer
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        buyer = serializer.validated_data['buyer']
+        product = serializer.validated_data['product']
+        if serializer.validated_data['completed']:
+            raw_task_weight = 0
+            raw_expected_turnaround = 0
+        else:
+            raw_task_weight = serializer.validated_data['task_weight']
+            raw_expected_turnaround = serializer.validated_data['expected_turnaround']
+        adjustment = serializer.validated_data['price'] - product.price.amount
+
+        if isinstance(buyer, str):
+            customer_email = buyer
+            buyer = None
+            claim_token = uuid4()
+        else:
+            buyer = buyer
+            customer_email = ''
+            claim_token = None
+        escrow_disabled = (
+                (product.price.amount + adjustment) <= 0 or request.user.bank_account_status != User.HAS_US_ACCOUNT
+        )
+        order = Order.objects.create(
+            seller=request.user,
+            buyer=buyer,
+            customer_email=customer_email,
+            claim_token=claim_token,
+            product=product,
+            escrow_disabled=escrow_disabled,
+            details=serializer.validated_data['details'],
+            private=serializer.validated_data['private'],
+            adjustment=adjustment,
+            adjustment_task_weight=raw_task_weight - product.task_weight,
+            adjustment_expected_turnaround=raw_expected_turnaround - product.expected_turnaround,
+            revisions_hidden=True,
+            revisions=product.revisions,
+            status=Order.PAYMENT_PENDING
+        )
+        return Response(data=OrderViewSerializer(instance=order, context=self.get_serializer_context()).data)
+
+
+class ClaimOrder(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, order_id, claim_token):
+        order = get_object_or_404(Order, id=order_id)
+        if request.user.is_authenticated:
+            if order.seller == request.user:
+                return Response({'errors': ['You may not claim your own token.']}, status=403)
+        if not order.claim_token:
+            if order.buyer == request.user:
+                return Response({'id': order.id})
+            else:
+                raise Http404('Order not found.')
+        if claim_token != str(order.claim_token):
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        order.buyer = request.user
+        order.claim_token = None
+        order.save()
+        return Response({'id': order.id})

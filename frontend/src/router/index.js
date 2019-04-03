@@ -18,6 +18,7 @@ import WhoIsOpen from '@/components/WhoIsOpen'
 import Transfers from '@/components/Transfers'
 import Product from '@/components/Product'
 import Order from '@/components/Order'
+import ClaimOrder from '@/components/ClaimOrder'
 import Orders from '@/components/Orders'
 import Upgrade from '@/components/Upgrade'
 import FAQ from '@/components/FAQ'
@@ -253,6 +254,12 @@ export const routes = [
         buyer: true
       }
     }
+  },
+  {
+    path: '/claim/order/:orderId/:claimToken/',
+    component: ClaimOrder,
+    name: 'ClaimOrder',
+    props: true
   },
   {
     path: '/transfers/:username/:tabName?/',

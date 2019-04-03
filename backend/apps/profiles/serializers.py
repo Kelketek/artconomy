@@ -28,10 +28,11 @@ class RegisterSerializer(serializers.ModelSerializer):
     recaptcha = ReCaptchaField(write_only=True)
     registration_code = serializers.CharField(required=False, write_only=True, allow_blank=True)
     mail = serializers.BooleanField(write_only=True)
+    order_claim = serializers.UUIDField(required=False)
 
     def create(self, validated_data):
         data = {key: value for key, value in validated_data.items() if key not in [
-            'recaptcha', 'mail'
+            'recaptcha', 'mail', 'order_claim'
         ]}
         return super(RegisterSerializer, self).create(data)
 
@@ -68,7 +69,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'username', 'email', 'password', 'csrftoken', 'recaptcha', 'mail', 'registration_code'
+            'username', 'email', 'password', 'csrftoken', 'recaptcha', 'mail', 'registration_code', 'order_claim',
         )
         read_only_fields = (
             'csrftoken',

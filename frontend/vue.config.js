@@ -7,7 +7,7 @@ module.exports = {
   runtimeCompiler: true,
   devServer: {
     proxy: 'http://artconomy.vulpinity.com:8002',
-    public: 'https://artconomy.vulpinity.com/'
+    public: 'https://artconomy.vulpinity.com'
   },
   configureWebpack: {
     plugins: [

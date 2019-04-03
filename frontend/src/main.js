@@ -12,6 +12,7 @@ import VueRouter from 'vue-router'
 import App from './App'
 import NavBar from './components/NavBar'
 import fieldCharacterSearch from './components/fields/fieldCharacterSearch'
+import fieldProductSearch from './components/fields/fieldProductSearch'
 import fieldUserSearch from './components/fields/fieldUserSearch'
 import fieldTagSearch from './components/fields/fieldTagSearch'
 import fieldRecaptcha from './components/fields/fieldRecaptcha'
@@ -40,6 +41,7 @@ Vue.use(Shortcuts)
 Vue.use(Vuetify)
 Vue.config.productionTip = false
 Vue.component('fieldCharacterSearch', fieldCharacterSearch)
+Vue.component('fieldProductSearch', fieldProductSearch)
 Vue.component('fieldUserSearch', fieldUserSearch)
 Vue.component('fieldTagSearch', fieldTagSearch)
 Vue.component('fieldRecaptcha', fieldRecaptcha)

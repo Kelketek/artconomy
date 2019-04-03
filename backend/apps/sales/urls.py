@@ -19,7 +19,10 @@ from apps.sales.views import (
     NewArtistProducts,
     RandomProducts,
     MarkComplete,
-    ReOpen
+    ReOpen,
+    PersonalProductSearch,
+    CreateInvoice,
+    ClaimOrder
 )
 
 app_name = 'sales'
@@ -35,6 +38,7 @@ urlpatterns = [
     path('v1/pricing-info/', PremiumInfo.as_view(), name='pricing_info'),
     path('v1/premium/', Premium.as_view(), name='premium'),
     path('v1/cancel-premium/', CancelPremium.as_view(), name='cancel_premium'),
+    path('v1/create-invoice/', CreateInvoice.as_view(), name='create_invoice'),
     path('v1/order/<int:order_id>/comments/', OrderComments.as_view(), name='order_comments'),
     path('v1/order/<int:order_id>/revisions/', OrderRevisions.as_view(), name='order_revisions'),
     path(
@@ -58,6 +62,7 @@ urlpatterns = [
     path('v1/order/<int:order_id>/rating/', RateOrder.as_view(), name='order_rate'),
     path('v1/order/<int:order_id>/', OrderRetrieve.as_view(), name='order'),
     path('v1/search/product/', ProductSearch.as_view(), name='product_search'),
+    path('v1/search/product/mine/', PersonalProductSearch.as_view(), name='personal_product_search'),
     path('v1/account/<username>/products/', ProductList.as_view(), name='product_list'),
     path('v1/account/<username>/products/<int:product>/', ProductManager.as_view(), name='product_manager'),
     path(
@@ -159,4 +164,5 @@ urlpatterns = [
         CharacterTransferAssets.as_view(),
         name='character_transfer_assets'
     ),
+    path('v1/claim/order/<int:order_id>/<uuid:claim_token>/', ClaimOrder.as_view(), name='order_claim_token')
 ]
