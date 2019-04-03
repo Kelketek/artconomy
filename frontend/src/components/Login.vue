@@ -105,7 +105,8 @@
       recaptcha: '',
       registration_code: '',
       mail: true,
-      token: ''
+      token: '',
+      order_claim: ''
     }
   }
 
@@ -221,6 +222,7 @@
     },
     methods: {
       loginHandler (response) {
+        console.log(response)
         setCookie('csrftoken', response.csrftoken)
         setCookie('authtoken', response.authtoken)
         if (this.$route.query.next) {
@@ -294,7 +296,7 @@
       }
     },
     created () {
-      window.login = this
+      this.loginModel.order_claim = this.$route.query['claim']
     }
   }
 </script>

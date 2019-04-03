@@ -3,8 +3,10 @@ from factory.django import DjangoModelFactory, ImageField
 from moneyed import Money
 
 from apps.profiles.tests.factories import UserFactory, CharacterFactory
-from apps.sales.models import Order, Product, CreditCardToken, Revision, PaymentRecord, BankAccount, \
-    CharacterTransfer, PlaceholderSale, OrderToken
+from apps.sales.models import (
+    Order, Product, CreditCardToken, Revision, PaymentRecord, BankAccount,
+    CharacterTransfer, PlaceholderSale, OrderToken, Promo
+)
 
 
 class ProductFactory(DjangoModelFactory):
@@ -101,3 +103,10 @@ class OrderTokenFactory(DjangoModelFactory):
 
     class Meta:
         model = OrderToken
+
+
+class PromoFactory(DjangoModelFactory):
+    code = Sequence(lambda x: f'CODE{x}')
+
+    class Meta:
+        model = Promo

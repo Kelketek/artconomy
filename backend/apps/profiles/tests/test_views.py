@@ -1,4 +1,6 @@
 import logging
+from unittest.mock import patch
+from uuid import UUID
 
 from django.contrib.contenttypes.models import ContentType
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -6,16 +8,20 @@ from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from apps.lib.models import FAVORITE, Subscription, COMMENT, Notification, ASSET_SHARED, CHAR_SHARED, \
-    NEW_PRODUCT, NEW_CHARACTER, NEW_PM
+from apps.lib.models import (
+    FAVORITE, Subscription, COMMENT, Notification, ASSET_SHARED, CHAR_SHARED,
+    NEW_PRODUCT, NEW_CHARACTER, NEW_PM, ORDER_UPDATE
+)
 from apps.lib.utils import watch_subscriptions
-from apps.profiles.models import Character, ImageAsset, Message
+from apps.profiles.models import Character, ImageAsset, Message, User
 from apps.lib.abstract_models import MATURE, ADULT, GENERAL
 from apps.lib.test_resources import APITestCase
-from apps.profiles.tests.factories import UserFactory, CharacterFactory, ImageAssetFactory, \
-    MessageRecipientRelationshipFactory
+from apps.profiles.tests.factories import (
+    UserFactory, CharacterFactory, ImageAssetFactory,
+    MessageRecipientRelationshipFactory, TOTPDeviceFactory
+)
 from apps.profiles.tests.helpers import gen_characters, gen_image
-
+from apps.sales.tests.factories import PromoFactory, OrderFactory
 
 logger = logging.getLogger(__name__)
 
@@ -1234,3 +1240,75 @@ class ListTestCase(APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIDInList(asset, response.data['results'])
+
+
+@patch('recaptcha.fields.ReCaptchaField.to_internal_value')
+class TestRegister(APITestCase):
+    def test_basic_user(self, mock_captcha):
+        response = self.client.post('/api/profiles/v1/register/', {
+            'username': 'Goober',
+            'password': 'test_password',
+            'email': 'test@example.com',
+            'recaptcha': 'dummy',
+        })
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIn('csrftoken', response.data)
+        user = User.objects.get(username='Goober')
+        self.assertEqual(user.email, 'test@example.com')
+        self.assertTrue(user.check_password('test_password'))
+
+    def test_user_promo_code(self, mock_captcha):
+        promo = PromoFactory.create()
+        self.client.post('/api/profiles/v1/register/', {
+            'username': 'Goober',
+            'password': 'test_password',
+            'email': 'test@example.com',
+            'recaptcha': 'dummy',
+            'registration_code': promo.code
+        })
+        user = User.objects.get(username='Goober')
+        self.assertEqual(promo, user.registration_code)
+
+    @patch('apps.profiles.views.claim_order_by_token')
+    def test_claim_order(self, mock_claim, mock_captcha):
+        self.client.post('/api/profiles/v1/register/', {
+            'username': 'Goober',
+            'password': 'test_password',
+            'email': 'test@example.com',
+            'recaptcha': 'dummy',
+            'order_claim': '82e1885c-07e8-407e-9356-93603a8b5df1'
+        })
+        user = User.objects.get(username='Goober')
+        mock_claim.assert_called_with(UUID('82e1885c-07e8-407e-9356-93603a8b5df1'), user)
+
+
+class TestLogin(APITestCase):
+    def test_basic_login(self):
+        UserFactory.create(username='Goober', password='Test', email='test@example.com')
+        response = self.client.post('/api/profiles/v1/login/', {
+            'email': 'test@example.com',
+            'password': 'Test',
+        }, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    @patch('apps.profiles.views.match_token')
+    def test_2fa(self, mock_match_token):
+        user = UserFactory.create(username='Goober', password='Test', email='test@example.com')
+        device = TOTPDeviceFactory.create(user=user)
+        mock_match_token.side_effect = [device]
+        response = self.client.post('/api/profiles/v1/login/', {
+            'email': 'test@example.com',
+            'password': 'Test',
+            'token': '123456'
+        }, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        mock_match_token.assert_called_with(user, '123456')
+
+    @patch('apps.profiles.views.claim_order_by_token')
+    def test_login_claim_order(self, mock_claim):
+        UserFactory.create(username='Goober', password='Test', email='test@example.com')
+        response = self.client.post('/api/profiles/v1/login/', {
+            'email': 'test@example.com',
+            'password': 'Test',
+        }, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)

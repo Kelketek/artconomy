@@ -1,3 +1,4 @@
+from django_otp.plugins.otp_totp.models import TOTPDevice
 from factory import Sequence, PostGenerationMethodCall, SubFactory
 from factory.django import DjangoModelFactory, ImageField
 from django.conf import settings
@@ -48,3 +49,12 @@ class MessageRecipientRelationshipFactory(DjangoModelFactory):
 
     class Meta:
         model = MessageRecipientRelationship
+
+
+class TOTPDeviceFactory(DjangoModelFactory):
+    name = Sequence(lambda x: f'Device {x}')
+    user = SubFactory(UserFactory)
+    confirmed = True
+
+    class Meta:
+        model = TOTPDevice

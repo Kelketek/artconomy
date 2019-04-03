@@ -22,7 +22,7 @@
               <p><strong>PRIVATE ORDER</strong></p>
             </div>
           </v-flex>
-          <v-flex xs12 lg2 text-xs-center class="pt-3">
+          <v-flex xs12 lg2 text-xs-center class="pt-3" v-if="buyer">
             <div class="text-xs-center">
               <h3>Ordered By</h3>
               <ac-avatar :user="order.buyer" :show-rating="true" />
@@ -407,7 +407,7 @@
           <div class="text-xs-center text-section pb-2">
             Final delivered {{ formatDateTime(final.created_on)}}
             <ac-action
-                v-if="seller && (review || order.escrow_disabled)"
+                v-if="seller && (review || order.escrow_disabled || paymentPending)"
                 variant="danger"
                 method="DELETE"
                 :url="`${this.url}revisions/${final.id}/`"
@@ -415,8 +415,8 @@
             >
               <i class="fa fa-trash-o"></i>
             </ac-action>
-            <div v-if="(review || disputed) && seller">
-              <p v-if="review">
+            <div v-if="(review || disputed || paymentPending) && seller">
+              <p v-if="!disputed">
                 Waiting on the commissioner to approve the final result. <br />
                 <ac-action variant="primary"
                            method="POST"
@@ -426,7 +426,7 @@
                   Unmark as Final
                 </ac-action>
               </p>
-              <div v-if="disputed">
+              <div v-else="disputed">
                 <strong>This order is under dispute</strong>
                 <p>An Artconomy staff member will assist in dispute resolution. Please await further instruction in the comments.</p>
                 <p>You may elect to refund to close the dispute early. We recommend waiting for our staff to review, however.</p>
@@ -515,11 +515,14 @@
       </v-layout>
       <v-layout row wrap text-xs-center class="mt-3 pb-3 revision-upload" v-if="showRevisionPanel">
         <v-flex xs12 md6 offset-md3>
-          <h3 v-if="remainingUploads <= 1 && inProgress">
+          <h3 v-if="seller && order.revisions_hidden">
+            Revisions are hidden until the customer pays.
+          </h3>
+          <h3 v-if="remainingUploads <= 1 && (!order.final_uploaded)">
             You need to upload the final piece below. {{extraRevisionsText}}
           </h3>
-          <h3 v-else>
-            You have promised {{ remainingUploads - 1 }} more revision<span v-if="remainingUploads > 2">s</span> and the final.
+          <h3 v-else-if="!order.final_uploaded">
+            You have promised {{ remainingUploads - 1 }} more revision<span v-if="remainingUploads !== 2">s</span> and the final.
             You may mark a revision as final early if you believe the work is ready for the commissioner.
           </h3>
           <form>
@@ -531,10 +534,10 @@
                 :options="revisionOptions"
                 :schema="revisionSchema"
                 :success="reload"
-                v-if="seller && (inProgress || disputed) && !finalUploaded">
+                v-if="seller && (inProgress || disputed || order.revisions_hidden) && !finalUploaded">
             </ac-form-container>
             <div class="text-xs-center">
-              <v-btn type="submit" :class="{pulse: revisionModel.file.length, primary: !revisionModel.file.length}" v-if="seller && (inProgress || disputed)" @click.prevent="$refs.revisionForm.submit"><span v-if="(revisionModel.final)">Upload Final</span><span v-else>Upload Revision</span></v-btn>
+              <v-btn type="submit" :class="{pulse: revisionModel.file.length, primary: !revisionModel.file.length}" v-if="seller && !order.final_uploaded && (inProgress || disputed || order.revisions_hidden)" @click.prevent="$refs.revisionForm.submit"><span v-if="(revisionModel.final)">Upload Final</span><span v-else>Upload Revision</span></v-btn>
             </div>
           </form>
         </v-flex>
@@ -611,9 +614,8 @@
         this.pricing = response
       },
       reload () {
-        // The number of revisions can have effects on the order's status. Safer to let the server handle it.
         artCall(this.url, 'GET', undefined, this.populateOrder, this.$error)
-        artCall(`${this.url}revisions/`, 'GET', undefined, this.populateRevisions, this.$error)
+        artCall(`${this.url}revisions/`, 'GET', undefined, this.populateRevisions)
         artCall('/api/sales/v1/pricing-info/', 'GET', undefined, this.loadPricing)
       },
       postPay (response) {
@@ -675,7 +677,7 @@
         return moment() >= moment(this.order.dispute_available_on)
       },
       showRevisionPanel () {
-        return (this.revisions !== null) && this.seller && !this.queued && !this.newOrder && !this.paymentPending && !this.finalUploaded
+        return (this.revisions !== null) && (this.order.revisions_hidden || (this.seller && !this.queued && !this.newOrder && !this.paymentPending && !this.finalUploaded))
       },
       revisionsLimited () {
         if (this.finalUploaded) {
@@ -692,7 +694,7 @@
         }
       },
       finalUploaded () {
-        return (this.revisions && this.revisions.length && !(this.inProgress || this.cancelled))
+        return this.order.final_uploaded
       },
       revisionsRemain () {
         return (this.revisions && (this.revisions.length <= this.order.revisions))
@@ -713,6 +715,9 @@
         return (parseFloat(this.order.price) + parseFloat(this.adjustmentModel.adjustment || '0')).toFixed(2)
       },
       buyer () {
+        if (!this.order.buyer) {
+          return false
+        }
         return ((this.viewer.username === this.order.buyer.username) || this.viewer.is_staff)
       },
       seller () {

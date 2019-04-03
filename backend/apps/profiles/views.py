@@ -1,3 +1,4 @@
+import logging
 import uuid
 
 from avatar.models import Avatar
@@ -10,6 +11,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.mail import EmailMessage
 from django.db.models import Q
 from django.db.transaction import atomic
+from django.middleware.csrf import get_token
 from django.shortcuts import get_object_or_404
 from django.template.loader import get_template
 from django.utils import timezone
@@ -30,9 +32,11 @@ from rest_framework.utils import json
 from rest_framework.views import APIView
 from rest_framework_bulk import BulkUpdateAPIView
 
-from apps.lib.models import Notification, FAVORITE, CHAR_TAG, SUBMISSION_CHAR_TAG, SUBMISSION_ARTIST_TAG, ARTIST_TAG, \
-    SUBMISSION_TAG, Tag, ASSET_SHARED, CHAR_SHARED, WATCHING, Comment, NEW_PM, Subscription, \
+from apps.lib.models import (
+    Notification, FAVORITE, CHAR_TAG, SUBMISSION_CHAR_TAG, SUBMISSION_ARTIST_TAG, ARTIST_TAG,
+    SUBMISSION_TAG, Tag, ASSET_SHARED, CHAR_SHARED, WATCHING, Comment, NEW_PM, Subscription,
     COMMENT, ORDER_NOTIFICATION_TYPES
+)
 from apps.lib.permissions import Any, All, IsSafeMethod, IsMethod, IsAnonymous, IsAuthenticatedObj
 from apps.lib.serializers import CommentSerializer, NotificationSerializer, RelatedUserSerializer, \
     BulkNotificationSerializer, UserInfoSerializer
@@ -56,7 +60,11 @@ from apps.profiles.serializers import (
 from apps.profiles.tasks import mailchimp_subscribe
 from apps.profiles.utils import available_chars, char_ordering, available_assets, available_artists, available_users
 from apps.sales.models import Order
+from apps.sales.utils import claim_order_by_token
 from apps.tg_bot.models import TelegramDevice
+
+
+logger = logging.getLogger(__name__)
 
 
 class Register(CreateAPIView):
@@ -75,6 +83,8 @@ class Register(CreateAPIView):
         if add_to_newsletter:
             mailchimp_subscribe.delay(instance.id)
         login(self.request, instance)
+        order_claim = serializer.validated_data.get('order_claim', None)
+        claim_order_by_token(order_claim, instance)
 
     def get_serializer(self, instance=None, data=None, many=False, partial=False):
         return self.serializer_class(
@@ -1018,19 +1028,25 @@ def perform_login(request):
     email = str(request.data.get('email', request.POST.get('email', ''))).lower().strip()
     password = request.data.get('password', request.POST.get('password', '')).strip()
     token = request.data.get('token', request.POST.get('token', '')).strip()
+    order_claim = request.data.get('order_claim', request.POST.get('order_claim', '')).strip()
     # Use Django's machinery to attempt to see if the username/password
     # combination is valid - a User object is returned if it is.
     user = authenticate(email=email, password=password)
     password_error, token_error = handle_login(request, user, token)
 
     status_code = status.HTTP_401_UNAUTHORIZED if (password_error or token_error) else status.HTTP_200_OK
+    data = {
+        'email': [],
+        'password': [password_error] if password_error else [],
+        'token': [token_error] if token_error else [],
+    }
+    if status_code == status.HTTP_200_OK:
+        if order_claim:
+            claim_order_by_token(order_claim, user)
+        data['csrftoken'] = get_token(request)
     return Response(
         status=status_code,
-        data={
-            'email': [],
-            'password': [password_error] if password_error else [],
-            'token': [token_error] if token_error else []
-        }
+        data=data
     )
 
 
