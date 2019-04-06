@@ -337,10 +337,12 @@ class OrderRevisions(ListCreateAPIView):
             raise PermissionDenied("You are not the seller on this order.")
         revision = serializer.save(order=order, owner=self.request.user)
         order.refresh_from_db()
-        if order.status not in [Order.IN_PROGRESS, Order.PAYMENT_PENDING, Order.NEW]:
+        if order.status not in [Order.IN_PROGRESS, Order.PAYMENT_PENDING, Order.NEW, Order.QUEUED]:
             raise PermissionDenied(
                 "You may not upload revisions while order is in state: {}".format(order.get_status_display())
             )
+        if order.status == Order.QUEUED:
+            order.status = Order.IN_PROGRESS
         if serializer.validated_data.get('final'):
             if order.escrow_disabled:
                 order.status = Order.COMPLETED
