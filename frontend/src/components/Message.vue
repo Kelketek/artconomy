@@ -5,8 +5,15 @@
         <v-card-text>
           <v-layout row wrap>
             <v-flex xs12 sm3 md2 text-xs-center>
-              <p>From:</p>
-              <ac-avatar :user="message.sender" />
+              <v-tooltip bottom>
+                <template slot="activator">
+                  <p>Message From:</p>
+                  <ac-avatar :user="message.sender" />
+                  <span :id="'message-' + message.id + '-edited_on'" class="underlined" v-if="message.edited"><br /><small>(edited)</small></span>
+                </template>
+                <span>{{ formatDateTime(message.created_on) }}</span>
+                <span v-if="message.edited"><br />Edited: {{formatDateTime(message.edited_on)}}</span>
+              </v-tooltip>
             </v-flex>
             <v-flex xs12 sm9 md10>
               <v-flex xs12 class="title">
@@ -53,7 +60,7 @@
   import Perms from '../mixins/permissions'
   import Editable from '../mixins/editable'
   import Viewer from '../mixins/viewer'
-  import {artCall} from '../lib'
+  import {artCall, formatDateTime} from '../lib'
   import AcAvatar from './ac-avatar'
   import AcCommentSection from './ac-comment-section'
   export default {
@@ -74,7 +81,8 @@
       },
       goBack () {
         this.$router.history.push({name: 'Messages', params: {username: this.username}})
-      }
+      },
+      formatDateTime
     },
     created () {
       artCall(this.url, 'GET', undefined, this.populateMessage, this.$error)

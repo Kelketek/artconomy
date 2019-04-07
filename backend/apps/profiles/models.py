@@ -614,6 +614,7 @@ class Message(Model):
     last_activity = DateTimeField(auto_now_add=True, db_index=True)
     sender_read = BooleanField(default=True)
     edited_on = DateTimeField(auto_now=True)
+    edited = BooleanField(default=False)
     recipients__max = 20
     comments = GenericRelation(
         Comment, related_query_name='message', content_type_field='content_type', object_id_field='object_id'

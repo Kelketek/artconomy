@@ -28,6 +28,7 @@ from rest_framework.generics import ListCreateAPIView, CreateAPIView, RetrieveUp
     GenericAPIView, ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.serializers import BaseSerializer
 from rest_framework.utils import json
 from rest_framework.views import APIView
 from rest_framework_bulk import BulkUpdateAPIView
@@ -1250,6 +1251,9 @@ class MessageManager(RetrieveUpdateDestroyAPIView):
         else:
             MessageRecipientRelationship.objects.filter(user=self.request.user, message=message).update(read=True)
         return message
+
+    def perform_update(self, serializer: BaseSerializer) -> None:
+        serializer.save(edited=True)
 
 
 class MessageComments(ListCreateAPIView):

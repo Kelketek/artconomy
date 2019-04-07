@@ -412,10 +412,11 @@ class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
         fields = (
-            'id', 'recipients', 'sender', 'subject', 'body', 'created_on', 'edited_on', 'read'
+            'id', 'recipients', 'sender', 'subject', 'body', 'created_on', 'edited_on', 'read', 'edited'
         )
         extra_kwargs = {
-            'recipients': {'write_only': True, 'queryset': User.objects.all(), 'read_only': False}
+            'recipients': {'write_only': True, 'queryset': User.objects.all(), 'read_only': False},
+            'edited': {'read_only': True}
         }
 
 
@@ -435,8 +436,11 @@ class MessageManagementSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
         fields = (
-            'id', 'recipients', 'sender', 'subject', 'body', 'created_on', 'edited_on', 'read'
+            'id', 'recipients', 'sender', 'subject', 'body', 'created_on', 'edited_on', 'read', 'edited'
         )
+        extra_kwargs = {
+            'edited': {'read_only': True}
+        }
 
 
 class PasswordResetSerializer(serializers.ModelSerializer):
