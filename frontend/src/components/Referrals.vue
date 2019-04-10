@@ -5,7 +5,7 @@
       <v-tab href="#tab-tools">Tools</v-tab>
     </v-tabs>
     <v-tabs-items v-model="tab">
-      <v-tab-item id="tab-links-and-stats">
+      <v-tab-item value="tab-links-and-stats">
         <v-layout row wrap text-xs-center>
           <v-flex xs12>
             <h1>Refer a Friend and get Rewarded!</h1>
@@ -52,7 +52,7 @@
           <v-flex v-else>Loading...</v-flex>
         </v-layout>
       </v-tab-item>
-      <v-tab-item id="tab-tools">
+      <v-tab-item value="tab-tools">
         <v-layout row wrap>
           <v-flex xs12 text-xs-center>
             <h1>Referral Tools</h1>

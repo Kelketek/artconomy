@@ -11,7 +11,7 @@
       </v-card-text>
     </v-card>
     <v-tabs-items v-model="tab">
-      <v-tab-item id="selection">
+      <v-tab-item value="selection">
         <v-layout row wrap class="mt-3" v-if="pricing !== null && selection === null">
           <v-flex xs12 md5>
             <v-card style="height: 100%" class="service-container">
@@ -58,7 +58,7 @@
           </v-flex>
         </v-layout>
       </v-tab-item>
-      <v-tab-item id="payment">
+      <v-tab-item value="payment">
         <v-layout row wrap class="mt-3" v-if="selection !== null">
           <v-flex xs12>
             <ac-card-manager
@@ -87,7 +87,7 @@
           </v-flex>
         </v-layout>
       </v-tab-item>
-      <v-tab-item id="completed">
+      <v-tab-item value="completed">
         <v-flex xs12 text-xs-center class="mt-4">
           <i class="fa fa-5x fa-check-circle"></i><br />
           <p><strong>Your payment has been received!</strong></p>

@@ -12,13 +12,13 @@
       </v-tab>
     </v-tabs>
     <v-tabs-items v-model="tab">
-      <v-tab-item id="tab-purchases">
+      <v-tab-item value="tab-purchases">
         <ac-transaction-listing :endpoint="`${url}purchases/`" :username="username" />
       </v-tab-item>
-      <v-tab-item id="tab-escrow">
+      <v-tab-item value="tab-escrow">
         <ac-transaction-listing :endpoint="`${url}escrow/`" :username="username" :escrow="true" />
       </v-tab-item>
-      <v-tab-item id="tab-available">
+      <v-tab-item value="tab-available">
         <ac-transaction-listing :endpoint="`${url}available/`" :username="username" />
       </v-tab-item>
     </v-tabs-items>

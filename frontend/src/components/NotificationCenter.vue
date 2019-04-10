@@ -6,10 +6,10 @@
         <v-tab href="#tab-sales">Sales/Orders<span v-if="counts && counts.sales_count">&nbsp;({{counts.sales_count}})</span></v-tab>
       </v-tabs>
       <v-tabs-items v-model="tab">
-        <v-tab-item id="tab-community">
+        <v-tab-item value="tab-community">
           <ac-list-notifications subset="community" class="mt-2" :host-tab="tabName" :auto-read="true"></ac-list-notifications>
         </v-tab-item>
-        <v-tab-item id="tab-sales">
+        <v-tab-item value="tab-sales">
           <ac-list-notifications subset="sales" class="mt-2" :host-tab="tabName"></ac-list-notifications>
         </v-tab-item>
       </v-tabs-items>

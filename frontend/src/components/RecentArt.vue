@@ -5,10 +5,10 @@
       <v-tab href="#tab-all">All</v-tab>
     </v-tabs>
     <v-tabs-items v-model="tab" v-if="isLoggedIn">
-      <v-tab-item id="tab-watchlist">
+      <v-tab-item value="tab-watchlist">
         <ac-asset-gallery :track-pages="true" endpoint="/api/profiles/v1/watch-list-submissions/" counter-name="watchlist-art" />
       </v-tab-item>
-      <v-tab-item id="tab-all">
+      <v-tab-item value="tab-all">
         <ac-asset-gallery :track-pages="true" endpoint="/api/profiles/v1/recent-art/"/>
       </v-tab-item>
     </v-tabs-items>

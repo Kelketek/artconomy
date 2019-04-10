@@ -9,7 +9,7 @@
       </v-tab>
     </v-tabs>
     <v-tabs-items v-model="currentTab">
-      <v-tab-item id="tab-saved-card">
+      <v-tab-item value="tab-saved-card">
         <v-radio-group v-model="selectedCard">
           <template v-for="(card, index) in growing">
             <ac-saved-card
@@ -27,7 +27,7 @@
           </template>
         </v-radio-group>
       </v-tab-item>
-      <v-tab-item id="tab-new-card" class="pt-2 pl-2 pb-2 pr-2">
+      <v-tab-item value="tab-new-card" class="pt-2 pl-2 pb-2 pr-2">
         <form autocomplete="off">
           <div class="card-type-selector text-xs-center">
             <i class="fa fa-2x fa-cc-visa" :class="{picked: cardSelected('visa')}"></i>

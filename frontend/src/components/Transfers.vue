@@ -12,13 +12,13 @@
       </v-tab>
     </v-tabs>
     <v-tabs-items v-model="tab">
-      <v-tab-item id="tab-inbound">
+      <v-tab-item value="tab-inbound">
         <ac-character-transfer-list ref="charactersInbound" counter-name="characterInboundCount" class="pt-2" :endpoint="`/api/sales/v1/account/${username}/transfers/character/inbound/`" :username="username" />
       </v-tab-item>
-      <v-tab-item id="tab-outbound">
+      <v-tab-item value="tab-outbound">
         <ac-character-transfer-list ref="charactersOutbound" counter-name="characterOutboundCount" class="pt-2" :endpoint="`/api/sales/v1/account/${username}/transfers/character/outbound/`" :username="username" />
       </v-tab-item>
-      <v-tab-item id="tab-archived">
+      <v-tab-item value="tab-archived">
         <ac-character-transfer-list ref="charactersArchive" counter-name="characterArchiveCount" class="pt-2" :endpoint="`/api/sales/v1/account/${username}/transfers/character/archive/`" :username="username" />
       </v-tab-item>
     </v-tabs-items>

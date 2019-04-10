@@ -12,7 +12,7 @@
       </v-tab>
     </v-tabs>
     <v-tabs-items v-model="tab">
-      <v-tab-item id="tab-about">
+      <v-tab-item value="tab-about">
         <v-expansion-panel v-model="aboutTab">
           <v-expansion-panel-content>
             <div slot="header"><strong>What is Artconomy?</strong></div>
@@ -100,7 +100,7 @@
           </v-expansion-panel-content>
         </v-expansion-panel>
       </v-tab-item>
-      <v-tab-item id="tab-buying-and-selling">
+      <v-tab-item value="tab-buying-and-selling">
         <v-expansion-panel v-model="buySellTab">
           <v-expansion-panel-content>
             <div slot="header"><strong>How do I buy commissions on Artconomy?</strong></div>
@@ -751,7 +751,7 @@
           </v-expansion-panel-content>
         </v-expansion-panel>
       </v-tab-item>
-      <v-tab-item id="tab-other">
+      <v-tab-item value="tab-other">
         <v-expansion-panel v-model="otherTab">
           <v-expansion-panel-content>
             <div slot="header"><strong>What are the content ratings and what do they mean?</strong></div>
