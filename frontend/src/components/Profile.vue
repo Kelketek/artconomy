@@ -62,15 +62,15 @@
       <v-tab href="#tab-watchlists"><v-icon>visibility</v-icon>&nbsp;Watchlists</v-tab>
     </v-tabs>
     <v-tabs-items v-model="tab" class="min-height">
-      <v-tab-item id="tab-products" :class="{'tab-shown': shownTab('tab-products')}">
+      <v-tab-item value="tab-products" :class="{'tab-shown': shownTab('tab-products')}">
         <store :endpoint="`/api/sales/v1/account/${username}/products/`" :username="username" :track-pages="true" tab-name="tab-products"/>
       </v-tab-item>
-      <v-tab-item id="tab-characters" :class="{'tab-shown': shownTab('tab-characters')}">
+      <v-tab-item value="tab-characters" :class="{'tab-shown': shownTab('tab-characters')}">
         <Characters
             :username="username"
             :endpoint="`/api/profiles/v1/account/${username}/characters/`" :track-pages="true" tab-name="tab-characters" />
       </v-tab-item>
-      <v-tab-item id="tab-gallery" :class="{'tab-shown': shownTab('tab-gallery')}">
+      <v-tab-item value="tab-gallery" :class="{'tab-shown': shownTab('tab-gallery')}">
         <div class="text-xs-center">
           <h3>Submissions where this user was tagged as the artist.</h3>
         </div>
@@ -83,12 +83,12 @@
             text="New Gallery Upload"
         ></ac-add-button>
       </v-tab-item>
-      <v-tab-item id="tab-favorites" v-if="!user.favorites_hidden || controls">
+      <v-tab-item value="tab-favorites" v-if="!user.favorites_hidden || controls">
         <ac-asset-gallery
             :endpoint="`/api/profiles/v1/account/${username}/favorites/`" :track-pages="true" tab-name="tab-favorites"
         />
       </v-tab-item>
-      <v-tab-item id="tab-other" :class="{'tab-shown': shownTab('tab-other')}">
+      <v-tab-item value="tab-other" :class="{'tab-shown': shownTab('tab-other')}">
         <div class="text-xs-center">
           <h3>Uploads from this user where they are not tagged as the artist.</h3>
         </div>
@@ -101,16 +101,16 @@
             text="New Non-Gallery Upload"
         ></ac-add-button>
       </v-tab-item>
-      <v-tab-item id="tab-watchlists">
+      <v-tab-item value="tab-watchlists">
         <v-tabs v-model="watchTab" fixed-tabs>
           <v-tab href="#tab-watchers">Watchers</v-tab>
           <v-tab href="#tab-watching">Watching</v-tab>
         </v-tabs>
         <v-tabs-items v-model="watchTab">
-          <v-tab-item id="tab-watchers">
+          <v-tab-item value="tab-watchers">
             <ac-user-gallery :endpoint="`/api/profiles/v1/account/${username}/watchers/`" />
           </v-tab-item>
-          <v-tab-item id="tab-watching">
+          <v-tab-item value="tab-watching">
             <ac-user-gallery :endpoint="`/api/profiles/v1/account/${username}/watching/`" />
           </v-tab-item>
         </v-tabs-items>

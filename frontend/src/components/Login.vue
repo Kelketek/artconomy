@@ -15,7 +15,7 @@
             </v-tab>
           </v-tabs>
           <v-tabs-items v-model="loginTab">
-            <v-tab-item id="tab-login">
+            <v-tab-item value="tab-login">
               <div class="pt-2"></div>
               <vue-form-generator id="loginForm" ref="loginForm" :schema="loginSchema" :model="loginModel"
                                   :options="loginOptions" />
@@ -23,7 +23,7 @@
                 Login
               </v-btn>
             </v-tab-item>
-            <v-tab-item id="tab-register">
+            <v-tab-item value="tab-register">
               <div class="pt-2"></div>
               <vue-form-generator id="registerForm" ref="registerForm" :schema="registerSchema" :model="loginModel"
                                   :options="loginOptions" />
@@ -35,7 +35,7 @@
                 Register
               </v-btn>
             </v-tab-item>
-            <v-tab-item id="tab-forgot">
+            <v-tab-item value="tab-forgot">
               <div class="pt-2"></div>
               <p>Enter your username or email address below, and we will send you a link to reset your password.</p>
               <vue-form-generator id="forgotForm" ref="forgotForm" :schema="forgotSchema" :model="loginModel"

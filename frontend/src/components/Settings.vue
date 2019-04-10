@@ -23,7 +23,7 @@
           </v-tab>
         </v-tabs>
         <v-tabs-items v-model="tab">
-          <v-tab-item id="tab-options">
+          <v-tab-item value="tab-options">
             <form class="mt-3">
               <ac-form-container ref="settingsForm" :schema="settingsSchema" :model="settingsModel"
                                  :options="settingsOptions" :success="updateUser"
@@ -48,7 +48,7 @@
               />
             </div>
           </v-tab-item>
-          <v-tab-item id="tab-credentials">
+          <v-tab-item value="tab-credentials">
             <v-tabs v-model="credentialsTab">
               <v-tab href="#tab-authentication">
                 <v-icon>lock_outline</v-icon>&nbsp;Authentication Details
@@ -58,7 +58,7 @@
               </v-tab>
             </v-tabs>
             <v-tabs-items v-model="credentialsTab">
-              <v-tab-item id="tab-authentication">
+              <v-tab-item value="tab-authentication">
                 <form class="mt-3">
                   <ac-form-container ref="credentialsForm" :schema="credentialsSchema" :model="credentialsModel"
                                      :options="credentialsOptions" :success="updateCredentials"
@@ -70,12 +70,12 @@
                   </ac-form-container>
                 </form>
               </v-tab-item>
-              <v-tab-item id="tab-two-factor">
+              <v-tab-item value="tab-two-factor">
                 <ac-setup-two-factor :username="username" class="mt-2"/>
               </v-tab-item>
             </v-tabs-items>
           </v-tab-item>
-          <v-tab-item id="tab-avatar">
+          <v-tab-item value="tab-avatar">
             <div class="text-xs-center mt-3">
               <p>Current Avatar:</p>
               <img class="avatar-preview shadowed mb-3" :src="user.avatar_url" />
@@ -92,7 +92,7 @@
               </ac-form-container>
             </form>
           </v-tab-item>
-          <v-tab-item id="tab-payment">
+          <v-tab-item value="tab-payment">
             <v-tabs v-model="paymentTab" fixed-tabs>
               <v-tab href="#tab-purchase">
                 <v-icon>credit_card</v-icon>&nbsp;Payment Methods
@@ -105,22 +105,22 @@
               </v-tab>
             </v-tabs>
             <v-tabs-items v-model="paymentTab">
-              <v-tab-item id="tab-purchase">
+              <v-tab-item value="tab-purchase">
                 <div class="row mt-3">
                   <div class="col-lg-4 col-md-6 col-12">
                     <ac-card-manager :username="user.username" />
                   </div>
                 </div>
               </v-tab-item>
-              <v-tab-item id="tab-disbursement">
+              <v-tab-item value="tab-disbursement">
                 <ac-account-balance :username="user.username"/>
               </v-tab-item>
-              <v-tab-item id="tab-transactions">
+              <v-tab-item value="tab-transactions">
                 <ac-transaction-history :endpoint="`/api/sales/v1/account/${user.username}/transactions/`" :username="user.username" />
               </v-tab-item>
             </v-tabs-items>
           </v-tab-item>
-          <v-tab-item id="tab-portrait">
+          <v-tab-item value="tab-portrait">
             <v-card color="grey darken-3" v-if="newPortrait">
               <v-responsive :aspect-ratio="16/5" max-width="100%">
                 <v-container fill-height>
@@ -180,7 +180,7 @@
               </v-card-text>
             </v-layout>
           </v-tab-item>
-          <v-tab-item id="tab-landscape">
+          <v-tab-item value="tab-landscape">
             <v-card v-if="newLandscape" color="grey darken-3">
               <v-responsive :aspect-ratio="16/5" max-width="100%">
                 <v-container fill-height>

@@ -42,41 +42,41 @@
       </v-tab>
     </v-tabs>
     <v-tabs-items v-model="tab">
-      <v-tab-item id="tab-current" v-if="buyer">
+      <v-tab-item value="tab-current" v-if="buyer">
         <ac-order-list :url="`${url}current/`" :buyer="buyer" :username="username" />
       </v-tab-item>
-      <v-tab-item id="tab-current" v-else>
+      <v-tab-item value="tab-current" v-else>
         <v-tabs v-model="currentTab" fixed-tabs>
           <v-tab href="#tab-store">Store</v-tab>
           <v-tab href="#tab-placeholders">Placeholders</v-tab>
         </v-tabs>
         <v-tabs-items v-model="currentTab">
-          <v-tab-item id="tab-store">
+          <v-tab-item value="tab-store">
             <ac-order-list :url="`${url}current/`" :buyer="buyer" :username="username" />
           </v-tab-item>
-          <v-tab-item id="tab-placeholders" :class="{'tab-shown': shownTab('tab-placeholders')}">
+          <v-tab-item value="tab-placeholders" :class="{'tab-shown': shownTab('tab-placeholders')}">
             <ac-placeholder-list :url="`${url}current/placeholders/`" :username="username" />
           </v-tab-item>
         </v-tabs-items>
       </v-tab-item>
-      <v-tab-item id="tab-archived" v-if="buyer">
+      <v-tab-item value="tab-archived" v-if="buyer">
         <ac-order-list :url="`${url}archived/`" :buyer="buyer" :username="username" />
       </v-tab-item>
-      <v-tab-item id="tab-archived" v-else>
+      <v-tab-item value="tab-archived" v-else>
         <v-tabs v-model="archiveTab" fixed-tabs>
           <v-tab href="#tab-store">Store</v-tab>
           <v-tab href="#tab-placeholders">Placeholders</v-tab>
         </v-tabs>
         <v-tabs-items v-model="archiveTab">
-          <v-tab-item id="tab-store">
+          <v-tab-item value="tab-store">
             <ac-order-list :url="`${url}archived/`" :buyer="buyer" :username="username" />
           </v-tab-item>
-          <v-tab-item id="tab-placeholders">
+          <v-tab-item value="tab-placeholders">
             <ac-placeholder-list :url="`${url}archived/placeholders/`" :username="username" />
           </v-tab-item>
         </v-tabs-items>
       </v-tab-item>
-      <v-tab-item id="tab-cancelled">
+      <v-tab-item value="tab-cancelled">
         <ac-order-list :url="`${url}cancelled/`" :buyer="buyer" :username="username" />
       </v-tab-item>
     </v-tabs-items>

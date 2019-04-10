@@ -5,10 +5,10 @@
       <v-tab href="#tab-sent"><v-icon>send</v-icon>&nbsp;Sent</v-tab>
     </v-tabs>
     <v-tabs-items v-model="tab">
-      <v-tab-item id="tab-inbox">
+      <v-tab-item value="tab-inbox">
         <ac-message-list :endpoint="`${url}inbox/`" :username="username" />
       </v-tab-item>
-      <v-tab-item id="tab-sent">
+      <v-tab-item value="tab-sent">
         <ac-message-list :endpoint="`${url}sent/`" :username="username" :is-sender="true" />
       </v-tab-item>
     </v-tabs-items>

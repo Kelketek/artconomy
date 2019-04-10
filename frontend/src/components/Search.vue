@@ -15,7 +15,7 @@
       </v-tab>
     </v-tabs>
     <v-tabs-items v-model="tab">
-      <v-tab-item id="tab-products">
+      <v-tab-item value="tab-products">
         <v-layout row justify-center>
           <v-text-field
               placeholder="Search..."
@@ -52,7 +52,7 @@
             :auto-fetch="false"
             :query-data="query" />
       </v-tab-item>
-      <v-tab-item id="tab-assets">
+      <v-tab-item value="tab-assets">
         <v-layout justify-center>
           <v-text-field
               placeholder="Search..."
@@ -79,7 +79,7 @@
             :query-data="query"
         />
       </v-tab-item>
-      <v-tab-item id="tab-characters">
+      <v-tab-item value="tab-characters">
         <v-layout row justify-center>
           <v-text-field
               placeholder="Search..."
@@ -106,7 +106,7 @@
             :query-data="query"
         />
       </v-tab-item>
-      <v-tab-item id="tab-profiles">
+      <v-tab-item value="tab-profiles">
         <v-layout row justify-center>
           <v-text-field
               placeholder="Search..."
