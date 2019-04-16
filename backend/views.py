@@ -27,14 +27,14 @@ def index(request):
 @api_view(('GET', 'POST', 'PATCH', 'PUT', 'HEAD', 'DELETE', 'OPTIONS'))
 def bad_endpoint(request, *_args, **_kwargs):
     return Response(
-        status=status.HTTP_404_NOT_FOUND, data={'error': '{} is not a valid API Endpoint.'.format(request.path)}
+        status=status.HTTP_404_NOT_FOUND, data={'detail': '{} is not a valid API Endpoint.'.format(request.path)}
     )
 
 
 @api_view(('GET', 'POST', 'PATCH', 'PUT', 'HEAD', 'DELETE', 'OPTIONS'))
 def bad_request(request, *_args, **_kwargs):
     return Response(
-        status=status.HTTP_400_BAD_REQUEST, data={'error': '{} does not support this method.'.format(request.path)}
+        status=status.HTTP_400_BAD_REQUEST, data={'detail': '{} does not support this method.'.format(request.path)}
     )
 
 
@@ -46,11 +46,11 @@ def force_error_email(request):
 def test_telegram(request):
     if not request.user.is_authenticated:
         return Response(
-            status=status.HTTP_400_BAD_REQUEST, data={'error': 'You must be logged in to use this feature.'}
+            status=status.HTTP_400_BAD_REQUEST, data={'detail': 'You must be logged in to use this feature.'}
         )
     if not request.user.tg_chat_id:
         return Response(
-            status=status.HTTP_400_BAD_REQUEST, data={'error': 'You have not connected via Telegram.'}
+            status=status.HTTP_400_BAD_REQUEST, data={'detail': 'You have not connected via Telegram.'}
         )
     bot = Bot(token=settings.TELEGRAM_BOT_KEY)
     bot.send_message(chat_id=request.user.tg_chat_id, text='This is a test message.')

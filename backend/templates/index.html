@@ -1,63 +1,39 @@
 <!DOCTYPE html>
 {% load render_bundle from webpack_loader %}
-{% load get_files from webpack_loader %}
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width,initial-scale=1.0">
-        <meta name="description" content="{{description}}">
-        <meta name="fragment" content="!">
-        <script src="https://use.fontawesome.com/b04fe3f35a.js" async></script>
-        <script src="https://www.google.com/recaptcha/api.js?onload=vueRecaptchaApiLoaded&render=explicit" async defer></script>
-        <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons' rel="stylesheet">
-        <link rel="icon" type="image/png" href="/static/images/logo.png">
-        <meta property="og:image" content="{{image_link}}" />
-        <meta property="twitter:image" content="{{image_link}}" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:site" content="@ArtconomyArt" />
-        <meta property="og:title" content="{{title}}" />
-        <meta property="og:description" content="{{description}}" />
-        {% if not debug %}
-            {% render_bundle 'app' 'css' %}
-            {% render_bundle 'chunk-vendors' 'css' %}
-        {% endif %}
-        <title>{{title}}</title>
-    </head>
-    <body>
-        <div id="app"></div>
-        {% if not debug %}
-            {% get_files 'chunk-vendors' 'js' as vendors_js_files %}
-            {% for file in vendors_js_files %}
-                <script type=module src="{{file.publicPath}}"></script>
-            {% endfor %}
-            {% get_files 'app' 'js' as app_js_files %}
-            {% for file in app_js_files %}
-                <script type=module src="{{file.publicPath}}"></script>
-            {% endfor %}
-            <script>!function () {
-                var e = document, t = e.createElement('script')
-                if (!('noModule' in t) && 'onbeforeload' in t) {
-                    var n = !1
-                    e.addEventListener('beforeload', function (e) {
-                        if (e.target === t) n = !0 else if (!e.target.hasAttribute('nomodule') || !n) return
-                        e.preventDefault()
-                    }, !0), t.type = 'module', t.src = '.', e.head.appendChild(t), t.remove()
-                }
-            }()</script>
-            {% get_files 'chunk-vendors' 'js' config='LEGACY' as vendors_legacy_js_files %}
-            {% for file in vendors_legacy_js_files %}
-                <script src="{{file.publicPath}}" nomodule></script>
-            {% endfor %}
-            {% get_files 'app' 'js' config='LEGACY' as app_legacy_js_files %}
-            {% for file in app_legacy_js_files %}
-                <script src="{{file.publicPath}}" nomodule></script>
-            {% endfor %}
-        {% else %}
-            {% render_bundle 'app' %}
-        {% endif %}
-        {% include env_file %}
-        <noscript>
-            <p>Hey, we're one of those newfangled single page apps, so please enable JavaScript or the site won't work!</p>
-        </noscript>
-    </body>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <meta name="description" content="{{description}}">
+  <meta name="fragment" content="!">
+  <script src="https://use.fontawesome.com/b04fe3f35a.js" async></script>
+  <script src="https://www.google.com/recaptcha/api.js?onload=vueRecaptchaApiLoaded&render=explicit" async defer></script>
+  <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons' rel="stylesheet">
+  <link rel="icon" type="image/png" href="/static/images/logo.png">
+  <meta property="og:image" content="{{image_link}}" />
+  <meta property="twitter:image" content="{{image_link}}" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@ArtconomyArt" />
+  <meta property="og:title" content="{{title}}" />
+  <meta property="og:description" content="{{description}}" />
+  <title>{{title}}</title>
+</head>
+<body>
+<script>
+  {% if request.META.HTTP_X_PRERENDERING %}
+  PRERENDERING = 1
+  {% else %}
+  PRERENDERING = 0
+  {% endif %}
+</script>
+<div id="app"></div>
+{% render_bundle 'app' 'js' %}
+{% render_bundle 'app' 'css' %}
+{% render_bundle 'chunk-vendors' 'js' %}
+{% render_bundle 'chunk-vendors' 'css' %}
+{% include env_file %}
+<noscript>
+  <p>Hey, we're one of those newfangled single page apps, so please enable JavaScript or the site won't work!</p>
+</noscript>
+</body>
 </html>

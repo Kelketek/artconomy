@@ -12,9 +12,9 @@
 
 - name: Set facts
   set_fact:
-    db_name: "{{ app_settings['DATABASES']['default']['NAME'] }}"
-    db_user: "{{ app_settings['DATABASES']['default']['USER'] }}"
-    db_pw: "{{ app_settings['DATABASES']['default']['PASSWORD'] }}"
+    db_name: "{{ app_settings['DB_NAME'] }}"
+    db_user: "{{ app_settings['DB_USER'] }}"
+    db_pw: "{{ app_settings['DB_PASSWORD'] }}"
 
 - name: Create DB User
   become: yes
@@ -50,6 +50,11 @@
   template:
     src: "templates/logrotate/postgres"
     dest: "/etc/logrotate.d/postgres"
+
+- name: Set up cron
+  template:
+    src: "templates/cron/postgres"
+    dest: "/etc/cron.d/postgres"
 
 - name: Check for initial backup
   stat:

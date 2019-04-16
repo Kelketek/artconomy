@@ -2,7 +2,7 @@
 from django.contrib.contenttypes.models import ContentType
 from django.db import migrations
 
-from apps.lib.models import ORDER_TOKEN_ISSUED
+ORDER_TOKEN_ISSUED = 31
 
 
 def add_order_token(apps, schema):

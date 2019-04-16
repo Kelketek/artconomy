@@ -1,6 +1,6 @@
 import logging
 from decimal import Decimal, InvalidOperation
-from uuid import uuid4
+from typing import Union, Type
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
@@ -10,131 +10,64 @@ from django.utils import timezone
 from django.utils.datetime_safe import date
 from moneyed import Money
 
-from apps.lib.models import Subscription, COMMISSIONS_OPEN, Event, DISPUTE, SALE_UPDATE, ORDER_UPDATE
+from apps.lib.models import Subscription, COMMISSIONS_OPEN, Event, DISPUTE, SALE_UPDATE, Notification, \
+    Comment
 from apps.lib.utils import notify, recall_notification
 from apps.profiles.models import User
-
 
 logger = logging.getLogger(__name__)
 
 
-def escrow_balance(user):
-    # TODO: This accounting requires too many special cases. We need a better way to keep track of all of this.
-    from apps.sales.models import PaymentRecord
+class ALL:
+    def __init__(self):
+        raise RuntimeError('This class used as unique enum, not to be instantiated.')
+    pass
+
+
+AVAILABLE = 0
+POSTED_ONLY= 1
+PENDING = 2
+
+def account_balance(user: Union[User, None, Type[ALL]], account_type: int, balance_type: int=AVAILABLE) -> Decimal:
+    from apps.sales.models import TransactionRecord
+    if balance_type == PENDING:
+        statuses = [TransactionRecord.PENDING]
+    elif balance_type == POSTED_ONLY:
+        statuses = [TransactionRecord.SUCCESS]
+    elif balance_type == AVAILABLE:
+        statuses = [TransactionRecord.SUCCESS, TransactionRecord.PENDING]
+    else:
+        raise TypeError(f'Invalid balance type: {balance_type}')
+    kwargs = {
+        'status__in': statuses,
+        'source': account_type,
+    }
+    if user is not ALL:
+        kwargs['payer'] = user
     try:
         debit = Decimal(
-            str(user.credits.filter(
-                status=PaymentRecord.SUCCESS,
-                source=PaymentRecord.ESCROW
-            ).exclude(type=PaymentRecord.REFUND).aggregate(Sum('amount'))['amount__sum'])
-        )
-    except InvalidOperation:
-        debit = Decimal('0.00')
-    try:
-        debit += Decimal(
-            str(user.escrow_holdings.filter(
-                status=PaymentRecord.SUCCESS,
-                type=PaymentRecord.REFUND,
-            ).aggregate(Sum('amount'))['amount__sum'])
-        )
-    except InvalidOperation:
-        pass
-    try:
-        debit += Decimal(
-            str(user.debits.filter(
-                source=PaymentRecord.ESCROW, status=PaymentRecord.SUCCESS,
-            ).aggregate(Sum('amount'))['amount__sum'])
-        )
-    except InvalidOperation:
-        pass
-    try:
-        credit = Decimal(
-            str(user.escrow_holdings.filter(
-                status=PaymentRecord.SUCCESS).exclude(
-                type__in=[
-                    PaymentRecord.DISBURSEMENT_SENT,
-                    PaymentRecord.DISBURSEMENT_RETURNED,
-                    PaymentRecord.REFUND,
-                ]
-            ).aggregate(Sum('amount'))['amount__sum']))
-    except InvalidOperation:
-        credit = Decimal('0.00')
-
-    return credit - debit
-
-
-def available_balance(user):
-    from apps.sales.models import PaymentRecord
-    try:
-        debit = Decimal(
-            str(user.debits.filter(
-                status=PaymentRecord.SUCCESS,
-                source=PaymentRecord.ACCOUNT,
-                # In the case of disbursement failed, we use success by default since it's a record from Dwolla, not
-                # us.
-                type__in=[PaymentRecord.DISBURSEMENT_SENT, PaymentRecord.TRANSFER, PaymentRecord.DISBURSEMENT_RETURNED],
-            ).exclude(
-                # Exclude service fees that haven't finalized.
-                type__in=[PaymentRecord.TRANSFER],
-                finalized=False
+            str(TransactionRecord.objects.filter(
+                **kwargs,
             ).aggregate(Sum('amount'))['amount__sum'])
         )
     except InvalidOperation:
         debit = Decimal('0.00')
+    kwargs = {
+        'status__in': statuses,
+        'destination': account_type,
+    }
+    if user is not ALL:
+        kwargs['payee'] = user
     try:
         credit = Decimal(
-            str(
-                user.credits.filter(
-                    status=PaymentRecord.SUCCESS,
-                    finalized=True
-                ).exclude(type=PaymentRecord.REFUND).aggregate(Sum('amount'))['amount__sum'])
+            str(TransactionRecord.objects.filter(
+                **kwargs,
+            ).aggregate(Sum('amount'))['amount__sum'])
         )
     except InvalidOperation:
         credit = Decimal('0.00')
 
     return credit - debit
-
-
-def pending_balance(user):
-    from apps.sales.models import PaymentRecord
-    try:
-        credit = Decimal(
-            str(
-                user.credits.filter(
-                    status=PaymentRecord.SUCCESS,
-                    finalized=False
-                ).aggregate(Sum('amount'))['amount__sum'])
-        )
-    except InvalidOperation:
-        credit = Decimal('0.00')
-    try:
-        debit = Decimal(
-            str(
-                user.debits.filter(
-                    status=PaymentRecord.SUCCESS,
-                    type=PaymentRecord.TRANSFER,
-                    finalized=False
-                ).aggregate(Sum('amount'))['amount__sum']
-            )
-        )
-    except InvalidOperation:
-        debit = Decimal('0.00')
-    return credit - debit
-
-
-def translate_authnet_error(err):
-    response = str(err)
-    if hasattr(err, 'full_response'):
-        # API is inconsistent in how it returns error info.
-        if 'response_reason_text' in err.full_response:
-            response = err.full_response['response_reason_text']
-        if 'response_text' in err.full_response:
-            response = err.full_response['response_text']
-        if 'response_reason_code' in err.full_response:
-            response = RESPONSE_TRANSLATORS.get(err.full_response['response_reason_code'], response)
-        if 'response_code' in err.full_response:
-            response = RESPONSE_TRANSLATORS.get(err.full_response['response_code'], response)
-    return response
 
 
 def product_ordering(qs, query=''):
@@ -167,15 +100,6 @@ def available_products(requester, query='', ordering=True):
     if ordering:
         return product_ordering(qs, query)
     return qs
-
-
-RESPONSE_TRANSLATORS = {
-    '54': 'This transaction cannot be refunded. It may not yet have posted. '
-          'Please try again tomorrow, and contact support if it still fails.',
-    'E00027': "The zip or address we have on file for your card is either incorrect or has changed. Please remove the "
-          "card and add it again with updated information.",
-    'E00040': "Something is wrong in our records with the card you've added. Please remove the card and re-add it."
-}
 
 
 def service_price(user, service):
@@ -227,20 +151,20 @@ def check_charge_required(user, service):
     return True, None
 
 
-def available_products_by_load(seller, load=None):
+def available_products_by_load(seller_profile, load=None):
     from apps.sales.models import Product
     if load is None:
-        load = seller.load
-    return Product.objects.filter(user_id=seller.id, active=True, hidden=False).exclude(
-        task_weight__gt=seller.max_load - load
+        load = seller_profile.load
+    return Product.objects.filter(user_id=seller_profile.user_id, active=True, hidden=False).exclude(
+        task_weight__gt=seller_profile.max_load - load
     ).exclude(Q(parallel__gte=F('max_parallel')) & ~Q(max_parallel=0))
 
 
-def available_products_from_user(seller):
+def available_products_from_user(seller_profile):
     from apps.sales.models import Product
-    if seller.commissions_closed or seller.commissions_disabled:
+    if seller_profile.commissions_closed or seller_profile.commissions_disabled:
         return Product.objects.none()
-    return available_products_by_load(seller)
+    return available_products_by_load(seller_profile)
 
 
 # Primitive recursion check lock.
@@ -253,24 +177,23 @@ def update_availability(seller, load, current_closed_status):
     if seller in UPDATING:
         return
     UPDATING[seller] = True
+    seller_profile = seller.artist_profile
     try:
-        products = available_products_by_load(seller, load)
-        if seller.commissions_closed:
-            seller.commissions_disabled = True
+        products = available_products_by_load(seller_profile, load)
+        if seller_profile.commissions_closed:
+            seller_profile.commissions_disabled = True
         elif not products.exists():
-            seller.commissions_disabled = True
-        elif load >= seller.max_load:
-            seller.commissions_disabled = True
+            seller_profile.commissions_disabled = True
         elif not seller.sales.filter(status=Order.NEW).exists():
-            seller.commissions_disabled = False
-        seller.load = load
-        if products and not seller.commissions_disabled:
-            seller.has_products = True
-        seller.save()
+            seller_profile.commissions_disabled = False
+        seller_profile.load = load
+        if products.exists() and not seller_profile.commissions_disabled:
+            seller_profile.has_products = True
+        seller_profile.save()
         products.update(available=True)
         # Sanity setting.
-        seller.products.filter(hidden=True).update(available=False)
-        if current_closed_status and not seller.commissions_disabled:
+        seller.products.filter(Q(hidden=True) | Q(active=False)).update(available=False)
+        if current_closed_status and not seller_profile.commissions_disabled:
             previous = Event.objects.filter(
                 type=COMMISSIONS_OPEN, content_type=ContentType.objects.get_for_model(User), object_id=seller.id,
                 date__gte=timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
@@ -279,7 +202,7 @@ def update_availability(seller, load, current_closed_status):
                 COMMISSIONS_OPEN, seller, unique=True, mark_unread=not previous.exists(),
                 silent_broadcast=previous.exists()
             )
-        if seller.commissions_disabled or seller.commissions_closed:
+        if seller_profile.commissions_disabled or seller_profile.commissions_closed:
             seller.products.all().update(available=False)
             recall_notification(COMMISSIONS_OPEN, seller)
     finally:
@@ -287,7 +210,7 @@ def update_availability(seller, load, current_closed_status):
 
 
 def finalize_order(order, user=None):
-    from apps.sales.models import PaymentRecord
+    from apps.sales.models import TransactionRecord
     from apps.sales.tasks import withdraw_all
     with atomic():
         if order.status == order.DISPUTED and user == order.buyer:
@@ -298,42 +221,39 @@ def finalize_order(order, user=None):
         order.status = order.COMPLETED
         order.save()
         notify(SALE_UPDATE, order, unique=True, mark_unread=True)
-        new_tx = PaymentRecord(
-            payer=None,
-            amount=order.price + order.adjustment,
-            payee=order.seller,
-            source=PaymentRecord.ESCROW,
-            txn_id=str(uuid4()),
-            target=order,
-            type=PaymentRecord.TRANSFER,
-            status=PaymentRecord.SUCCESS,
-            response_code='OdrFnl',
-            response_message='Order finalized.'
+        record = TransactionRecord.objects.get(
+            payer=order.buyer, payee=order.seller, destination=TransactionRecord.ESCROW,
+            status=TransactionRecord.SUCCESS, object_id=order.id, content_type=ContentType.objects.get_for_model(order),
         )
-        old_transaction = PaymentRecord.objects.get(
-            object_id=order.id, content_type=ContentType.objects.get_for_model(order), payer=order.buyer,
-            type=PaymentRecord.SALE
-        )
-        new_tx.save()
-        old_transaction.finalized = True
-        old_transaction.save()
-        PaymentRecord.objects.create(
+        TransactionRecord.objects.create(
             payer=order.seller,
-            amount=(
-                    ((order.price + order.adjustment) * order.seller.percentage_fee * Decimal('.01'))
-                    + Money(order.seller.static_fee, 'USD')
-            ),
-            payee=None,
-            source=PaymentRecord.ACCOUNT,
-            txn_id=str(uuid4()),
+            payee=order.seller,
+            amount=record.amount,
+            source=TransactionRecord.ESCROW,
+            destination=TransactionRecord.HOLDINGS,
             target=order,
-            type=PaymentRecord.TRANSFER,
-            status=PaymentRecord.SUCCESS,
-            response_code='OdrFee',
-            finalized=new_tx.finalized,
-            finalize_on=new_tx.finalize_on,
-            response_message='Artconomy Service Fee'
+            category=TransactionRecord.ESCROW_RELEASE,
+            status=TransactionRecord.SUCCESS,
+            remote_id=record.remote_id,
         )
+        amount = get_bonus_amount(record)
+        bonus = TransactionRecord(
+            payer=None,
+            source=TransactionRecord.RESERVE,
+            target=order,
+            amount=amount,
+            status=TransactionRecord.SUCCESS,
+            remote_id=record.remote_id,
+        )
+        if order.seller.landscape:
+            bonus.payee = order.seller
+            bonus.destination=TransactionRecord.HOLDINGS
+            bonus.category=TransactionRecord.PREMIUM_BONUS
+        else:
+            bonus.payee = None
+            bonus.destination = TransactionRecord.UNPROCESSED_EARNINGS
+            bonus.category = TransactionRecord.SERVICE_FEE
+        bonus.save()
     # Don't worry about whether it's time to withdraw or not. This will make sure that an attempt is made in case
     # there's money to withdraw that hasn't been taken yet, and another process will try again if it settles later.
     # It will also ignore if the seller has auto_withdraw disabled.
@@ -341,7 +261,7 @@ def finalize_order(order, user=None):
 
 
 def claim_order_by_token(order_claim, user):
-    from apps.sales.models import Order, buyer_subscriptions
+    from apps.sales.models import Order
     if not order_claim:
         return
     order = Order.objects.filter(claim_token=order_claim).first()
@@ -351,8 +271,79 @@ def claim_order_by_token(order_claim, user):
     if order.seller == user:
         logger.warning("Seller %s attempted to claim their own order token, %s", user, order_claim)
         return
+    transfer_order(order, order.buyer, user)
+
+
+def split_fee(transaction: 'TransactionRecord') -> 'TransactionRecord':
+    from apps.sales.models import TransactionRecord
+    base_amount = transaction.amount.amount - settings.SERVICE_STATIC_FEE
+    withheld_amount = settings.PREMIUM_STATIC_BONUS
+    withheld_amount += settings.PREMIUM_PERCENTAGE_BONUS * Decimal('.01') * base_amount
+    withheld_amount = Money(withheld_amount, 'USD')
+    return TransactionRecord.objects.create(
+        payer=None,
+        payee=None,
+        amount=transaction.amount - withheld_amount,
+        source=TransactionRecord.RESERVE,
+        destination=TransactionRecord.UNPROCESSED_EARNINGS,
+        remote_id=transaction.remote_id,
+        status=TransactionRecord.SUCCESS,
+        target=transaction.target,
+        category=TransactionRecord.SERVICE_FEE,
+    )
+
+
+def get_bonus_amount(record) -> Money:
+    from apps.sales.models import TransactionRecord
+    fee_payment = TransactionRecord.objects.get(
+        object_id=record.object_id,
+        content_type_id=record.content_type_id,
+        status=TransactionRecord.SUCCESS,
+        payer=record.payer,
+        payee=None,
+        destination=TransactionRecord.RESERVE,
+    )
+    initial_split = TransactionRecord.objects.get(
+        object_id=record.object_id,
+        content_type_id=record.content_type_id,
+        status=TransactionRecord.SUCCESS,
+        payer=None,
+        payee=None,
+        source=TransactionRecord.RESERVE,
+        destination=TransactionRecord.UNPROCESSED_EARNINGS,
+    )
+    return fee_payment.amount - initial_split.amount
+
+
+def recuperate_fee(record: 'TransactionRecord') -> 'TransactionRecord':
+    from apps.sales.models import TransactionRecord
+    amount = get_bonus_amount(record)
+    return TransactionRecord.objects.create(
+        object_id=record.object_id,
+        content_type_id=record.content_type_id,
+        status=TransactionRecord.SUCCESS,
+        payer=None,
+        payee=None,
+        source=TransactionRecord.RESERVE,
+        destination=TransactionRecord.UNPROCESSED_EARNINGS,
+        amount=amount,
+        category=TransactionRecord.SERVICE_FEE,
+    )
+
+
+def transfer_order(order, old_buyer, new_buyer):
+    from apps.sales.models import buyer_subscriptions, CreditCardToken, ORDER_UPDATE
+    assert old_buyer != new_buyer
+    order.buyer = new_buyer
+    order.customer_email = ''
     order.claim_token = None
-    order.buyer = user
     order.save()
-    buyer_subscriptions(order)
+    Subscription.objects.bulk_create(buyer_subscriptions(order), ignore_conflicts=True)
     notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
+    if not old_buyer:
+        return
+    assert old_buyer.guest
+    Subscription.objects.filter(subscriber=old_buyer).delete()
+    Notification.objects.filter(user=old_buyer).update(user=new_buyer)
+    Comment.objects.filter(user=old_buyer).update(user=new_buyer)
+    CreditCardToken.objects.filter(user=old_buyer).update(user=new_buyer)

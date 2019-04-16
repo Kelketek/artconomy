@@ -37,6 +37,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='product',
             name='price',
-            field=djmoney.models.fields.MoneyField(db_index=True, decimal_places=2, default=Decimal('0.0'), default_currency='USD', max_digits=6, validators=[apps.sales.models.MinimumOrZeroValidator(Decimal('1.10'))]),
+            field=djmoney.models.fields.MoneyField(db_index=True, decimal_places=2, default=Decimal('0.0'), default_currency='USD', max_digits=6),
         ),
     ]

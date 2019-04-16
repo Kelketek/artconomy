@@ -8,7 +8,7 @@ from django.contrib import admin
 #
 from django.contrib.admin import ModelAdmin
 
-from apps.profiles.models import User, ImageAsset, RefColor
+from apps.profiles.models import User, Submission, RefColor, ArtistProfile
 
 
 class ArtconomyUserAdmin(EmailUserAdmin):
@@ -23,8 +23,21 @@ class ArtconomyUserAdmin(EmailUserAdmin):
         )})
     )
     list_display = ('username', 'email', 'is_staff', 'is_superuser')
+    list_filter = ['guest', 'artist_mode']
+
+
+class SubmissionAdmin(ModelAdmin):
+    raw_id_fields = ['tags', 'characters', 'owner', 'artists', 'shared_with', 'file', 'preview']
+
+class ArtistProfileAdmin(ModelAdmin):
+    list_display = ('user', 'commissions_disabled', 'commissions_closed', 'max_load', 'load')
+
+class RefColorAdmin(ModelAdmin):
+    raw_id_fields = ['character']
 
 
 admin.site.register(User, ArtconomyUserAdmin)
-admin.site.register(ImageAsset, ModelAdmin)
-admin.site.register(RefColor, ModelAdmin)
+admin.site.register(Submission, SubmissionAdmin)
+admin.site.register(RefColor, RefColorAdmin)
+admin.site.register(ArtistProfile, ArtistProfileAdmin)
+

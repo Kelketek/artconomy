@@ -1,16 +1,7 @@
-from factory import SubFactory, Sequence
-from factory.django import DjangoModelFactory
+from factory import Sequence, SubFactory
+from factory.django import DjangoModelFactory, ImageField
 
-from apps.lib.models import Comment, Tag
-from apps.profiles.tests.factories import UserFactory
-
-
-class CommentFactory(DjangoModelFactory):
-    user = SubFactory(UserFactory)
-    text = Sequence(lambda n: 'Test comment {0}'.format(n))
-
-    class Meta:
-        model = Comment
+from apps.lib.models import Tag, Asset
 
 
 class TagFactory(DjangoModelFactory):
@@ -18,3 +9,10 @@ class TagFactory(DjangoModelFactory):
 
     class Meta:
         model = Tag
+
+
+class AssetFactory(DjangoModelFactory):
+    file = ImageField(color='blue')
+
+    class Meta:
+        model = Asset

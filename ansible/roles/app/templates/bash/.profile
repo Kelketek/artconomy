@@ -20,3 +20,10 @@ fi
 if [ -d "$HOME/bin" ] ; then
     PATH="$HOME/bin:$PATH"
 fi
+
+{% for key, value in app_settings.items() %}
+export {{key}}='{{value}}'
+{% endfor %}
+{% for key, value in app_settings_complex.items() %}
+export {{key}}='{{value|to_json|b64encode}}'
+{% endfor %}

@@ -2,18 +2,17 @@ from django.db import transaction
 from dwollav2 import ValidationError as DwollaValidationError
 from rest_framework.exceptions import ValidationError
 
-from apps.lib.models import TRANSFER_FAILED
-from apps.lib.utils import require_lock, notify
+from apps.lib.utils import require_lock
 from apps.sales.apis import dwolla
 from ipware import get_client_ip
 
-from apps.sales.models import BankAccount, PaymentRecord
-from apps.sales.utils import available_balance
+from apps.sales.models import BankAccount, TransactionRecord
+from apps.sales.utils import account_balance
 
 
 def make_dwolla_account(request, user, first_name, last_name):
-    if user.dwolla_url:
-        return user.dwolla_url
+    if user.artist_profile.dwolla_url:
+        return user.artist_profile.dwolla_url
 
     request_body = {
         'firstName': first_name,
@@ -23,9 +22,9 @@ def make_dwolla_account(request, user, first_name, last_name):
     }
 
     with dwolla as api:
-        user.dwolla_url = api.post('customers', request_body).headers['location']
-        user.save()
-    return user.dwolla_url
+        user.artist_profile.dwolla_url = api.post('customers', request_body).headers['location']
+        user.artist_profile.save()
+    return user.artist_profile.dwolla_url
 
 
 VALIDATION_FIELD_MAP = {
@@ -46,8 +45,8 @@ def add_bank_account(user, account_number, routing_number, account_type):
     }
     with dwolla as api:
         try:
-            response = api.post('{}/funding-sources'.format(user.dwolla_url), request_body)
-        except DwollaValidationError as err:
+            response = api.post('{}/funding-sources'.format(user.artist_profile.dwolla_url), request_body)
+        except DwollaValidationError as err:  # pragma: no cover
             errors = {}
             for err in err.body['_embedded']['errors']:
                 field = VALIDATION_FIELD_MAP.get(err['path'])
@@ -71,27 +70,22 @@ def destroy_bank_account(account):
 
 
 @transaction.atomic
-@require_lock(PaymentRecord, 'ACCESS EXCLUSIVE')
+@require_lock(TransactionRecord, 'ACCESS EXCLUSIVE')
 def initiate_withdraw(user, bank, amount, test_only=True):
-    balance = available_balance(user)
+    balance = account_balance(user, TransactionRecord.HOLDINGS)
     if amount.amount > balance:
         raise ValidationError({'amount': ['Amount cannot be greater than current balance of {}.'.format(balance)]})
     if test_only:
         return
-    record = PaymentRecord(
-        type=PaymentRecord.DISBURSEMENT_SENT,
-        payee=None,
+    record = TransactionRecord(
+        category=TransactionRecord.CASH_WITHDRAW,
+        payee=user,
         payer=user,
-        # We will flip this if there's any issue. For now, we need to make sure there is not a chance for someone
-        # to withdraw within the next millisecond.
-        # If there's a bug in the code between here and then, these funds will be inaccessible and it will be
-        # a customer service issue.
-        status=PaymentRecord.SUCCESS,
+        source=TransactionRecord.HOLDINGS,
+        destination=TransactionRecord.BANK,
+        status=TransactionRecord.PENDING,
         amount=amount,
-        source=PaymentRecord.ACCOUNT,
-        txn_id='N/A',
         target=bank,
-        finalized=False
     )
     record.save()
     return record
@@ -119,35 +113,11 @@ def perform_transfer(record, note='Disbursement'):
     with dwolla as api:
         try:
             transfer = api.post('transfers', transfer_request)
-            record.txn_id = transfer.headers['location'].split('/transfers/')[-1].strip('/')
+            record.remote_id = transfer.headers['location'].split('/transfers/')[-1].strip('/')
             record.save()
-        except Exception:
-            record.status = PaymentRecord.FAILURE
-            record.finalized = True
+        except Exception as err:
+            record.status = TransactionRecord.FAILURE
+            record.remote_message = str(err)
             record.save()
             raise
         return record
-
-
-@require_lock(PaymentRecord, 'ACCESS EXCLUSIVE')
-@transaction.atomic
-def refund_transfer(record):
-    if PaymentRecord.objects.filter(txn_id=record.txn_id, type=PaymentRecord.DISBURSEMENT_RETURNED).count():
-        return
-    PaymentRecord(
-        status=PaymentRecord.SUCCESS,
-        type=PaymentRecord.DISBURSEMENT_RETURNED,
-        amount=record.amount,
-        payer=None,
-        payee=record.payer,
-        source=PaymentRecord.ACH,
-        txn_id=record.txn_id
-    ).save()
-    notify(
-        TRANSFER_FAILED,
-        record.payer,
-        data={
-            'error': 'The bank rejected the transfer. Please try again, update your account information, '
-                     'or contact support.'
-        }
-    )

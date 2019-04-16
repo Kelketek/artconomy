@@ -10,4 +10,5 @@ if [[ ! -d node_modules ]]
 fi
 ./manage.py migrate
 npm run serve &
+./manage.py tg_bot &
 exec "$@"

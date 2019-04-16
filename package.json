@@ -1,49 +1,90 @@
 {
   "name": "artconomy",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
   "description": "Where artists and commissioners meet!",
   "author": "Fox Piacenti <fox@vulpinity.com>",
   "scripts": {
-    "serve": "cd frontend && vue-cli-service serve --port 8001",
-    "build": "cd frontend && vue-cli-service build --modern",
-    "lint": "cd frontend && vue-cli-service lint"
+    "serve": "vue-cli-service serve --port 8001",
+    "build": "vue-cli-service build",
+    "lint": "vue-cli-service lint",
+    "test:unit": "vue-cli-service test:unit",
+    "test:unit:watch:host": "vue-cli-service test:unit --watchAll --collectCoverage",
+    "test:unit:watch": "vue-cli-service test:unit --watchAll --maxWorkers=1 --collectCoverage",
+    "clear-jest": "vue-cli-service test:unit --clearCache",
+    "inspect": "vue-cli-service inspect"
   },
   "dependencies": {
-    "@sentry/browser": "^4.6.4",
-    "autosize": "^4.0.0",
-    "cropperjs": "^1.2.2",
+    "@sentry/browser": "^5.0.8",
+    "@sentry/integrations": "^5.8.0",
+    "@types/lodash": "^4.14.123",
+    "@types/markdown-it": "0.0.7",
+    "@types/moment-timezone": "^0.5.12",
+    "@types/qrcode": "^1.3.3",
+    "@uppy/core": "^1.0.2",
+    "@uppy/dashboard": "^1.0.2",
+    "@uppy/xhr-upload": "^1.0.2",
+    "autosize": "^4.0.2",
+    "axios": "^0.19.0",
+    "core-js": "^3.3.2",
     "deep-equal": "^1.0.1",
-    "intersection-observer": "^0.5.0",
-    "jquery": "^3.3.1",
+    "flush-promises": "^1.0.2",
+    "intersection-observer": "^0.5.1",
+    "jest-mock-axios": "^3.1.2",
+    "lodash": "^4.17.15",
     "lodash.debounce": "^4.0.8",
-    "markdown-it": "^8.4.0",
-    "moment": "^2.19.3",
-    "qrcode": "^1.2.0",
-    "vue": "^2.6.8",
+    "markdown-it": "^8.4.2",
+    "moment": "^2.24.0",
+    "moment-business-days": "^1.1.3",
+    "moment-timezone": "^0.5.25",
+    "qrcode": "^1.3.3",
+    "register-service-worker": "^1.6.2",
+    "typescript-tslint-plugin": "^0.3.1",
+    "v-markdown-editor": "^1.0.8",
+    "vue": "^2.6.10",
+    "vue-class-component": "^7.0.2",
     "vue-focus": "^2.1.0",
-    "vue-form-generator": "^2.1.1",
-    "vue-observe-visibility": "^0.3.1",
-    "vue-recaptcha": "^1.1.0",
-    "vue-router": "^3.0.1",
-    "vue-upload-component": "^2.8.11",
-    "vuetify": "^1.5.11"
+    "vue-form-generator": "^2.3.4",
+    "vue-fragment": "^1.5.1",
+    "vue-observe-visibility": "^0.4.3",
+    "vue-property-decorator": "^8.3.0",
+    "vue-recaptcha": "^1.2.0",
+    "vue-router": "^3.1.3",
+    "vue-upload-component": "^2.8.20",
+    "vuetify": "^1.5.21",
+    "vuetify-loader": "^1.2.2",
+    "vuex": "^3.1.2",
+    "vuex-class": "^0.3.2",
+    "vuex-typescript": "^3.0.2"
   },
   "devDependencies": {
-    "@vue/cli-plugin-babel": "^3.0.5",
-    "@vue/cli-plugin-eslint": "^3.0.5",
-    "@vue/cli-service": "^3.0.5",
-    "babel-eslint": "^10.0.1",
-    "eslint": "^5.9.0",
-    "eslint-config-standard": "^12.0.0",
-    "eslint-plugin-html": "^5.0.0",
-    "eslint-plugin-import": "^2.14.0",
-    "eslint-plugin-node": "^8.0.0",
-    "eslint-plugin-promise": "^4.0.1",
-    "eslint-plugin-standard": "^4.0.0",
-    "vue-style-loader": "^4.1.2",
-    "vue-template-compiler": "^2.6.8",
-    "webpack": "^4.23.1",
+    "@types/jest": "^24.0.11",
+    "@vue/cli-plugin-babel": "^4.0.0",
+    "@vue/cli-plugin-eslint": "^4.0.0",
+    "@vue/cli-plugin-pwa": "^4.0.0",
+    "@vue/cli-plugin-router": "^4.0.0",
+    "@vue/cli-plugin-typescript": "^4.0.0",
+    "@vue/cli-plugin-unit-jest": "^4.0.0",
+    "@vue/cli-plugin-vuex": "^4.0.0",
+    "@vue/cli-service": "^4.0.0",
+    "@vue/eslint-config-standard": "^4.0.0",
+    "@vue/eslint-config-typescript": "^4.0.0",
+    "@vue/test-utils": "1.0.0-beta.29",
+    "babel-core": "7.0.0-bridge.0",
+    "chai": "^4.2.0",
+    "css-loader": "^2.1.1",
+    "eslint": "^5.16.0",
+    "eslint-plugin-vue": "^5.0.0",
+    "mockdate": "^2.0.3",
+    "node-sass": "^4.12.0",
+    "sass-loader": "^8.0.0",
+    "style-loader": "^0.23.1",
+    "stylus": "^0.54.5",
+    "stylus-loader": "^3.0.2",
+    "ts-jest": "^24.0.22",
+    "tslint-eslint-rules": "^5.4.0",
+    "typescript": "~3.5.3",
+    "vue-template-compiler": "^2.6.10",
     "webpack-bundle-tracker": "^0.4.2-beta"
   },
   "eslintConfig": {
@@ -53,20 +94,56 @@
     },
     "extends": [
       "plugin:vue/essential",
-      "eslint:recommended"
+      "@vue/standard",
+      "@vue/typescript"
     ],
-    "rules": {},
+    "rules": {
+      "comma-dangle": [
+        "warn",
+        "always-multiline"
+      ],
+      "space-before-function-paren": [
+        "warn",
+        "never"
+      ],
+      "object-curly-spacing": [
+        "warn",
+        "never"
+      ]
+    },
     "parserOptions": {
-      "parser": "babel-eslint"
-    }
+      "parser": "@typescript-eslint/parser"
+    },
+    "overrides": [
+      {
+        "files": [
+          "**/__tests__/*.{j,t}s?(x)",
+          "**/tests/unit/**/*.spec.{j,t}s?(x)"
+        ],
+        "env": {
+          "jest": true
+        }
+      },
+      {
+        "files": [
+          "**/types/**"
+        ],
+        "rules": {
+          "camelcase": "off"
+        }
+      }
+    ]
   },
   "postcss": {
     "plugins": {
       "autoprefixer": {}
     }
   },
-  "engines": {
-    "node": ">= 4.0.0",
-    "npm": ">= 3.0.0"
+  "browserslist": [
+    "> 1%",
+    "last 2 versions"
+  ],
+  "jest": {
+    "preset": "@vue/cli-plugin-unit-jest/presets/typescript-and-babel"
   }
 }

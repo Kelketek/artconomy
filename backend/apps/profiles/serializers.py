@@ -2,10 +2,10 @@ from urllib.parse import quote_plus
 
 from django.conf import settings
 from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.contrib.contenttypes.models import ContentType
-from django.core.validators import FileExtensionValidator
 from django.db import connection
-from django.forms import FileField
+from django.db.transaction import atomic
 from django.middleware.csrf import get_token
 from django.utils import timezone
 from django_otp.plugins.otp_totp.models import TOTPDevice
@@ -14,11 +14,21 @@ from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 from rest_framework.exceptions import ValidationError
 
-from apps.lib.abstract_models import RATINGS, ALLOWED_EXTENSIONS
-from apps.lib.serializers import RelatedUserSerializer, Base64ImageField, TagSerializer, SubscribedField, \
-    SubscribeMixin, UserInfoMixin
-from apps.profiles.models import Character, ImageAsset, User, RefColor, Attribute, Message, \
-    MessageRecipientRelationship, Journal
+from apps.lib.abstract_models import RATINGS, RATINGS_ANON
+from apps.lib.serializers import (
+    RelatedUserSerializer, RelatedAssetField, TagSerializer, SubscribedField,
+    TagListField,
+    RelatedAtomicMixin,
+    UserRelationField,
+    UserListField,
+    CommentSerializer,
+    CharacterListField, IdWritable)
+from apps.profiles.models import (
+    Character, Submission, User, RefColor, Attribute, Conversation,
+    ConversationParticipant, Journal, banned_named_validator,
+    banned_prefix_validator,
+    ArtistProfile
+)
 from apps.sales.models import Promo
 from apps.tg_bot.models import TelegramDevice
 
@@ -36,10 +46,12 @@ class RegisterSerializer(serializers.ModelSerializer):
         ]}
         return super(RegisterSerializer, self).create(data)
 
+    # noinspection PyUnusedLocal
     def get_csrftoken(self, value):
         return get_token(self.context['request'])
 
-    def validate_registration_code(self, value):
+    @staticmethod
+    def validate_registration_code(value):
         if not value:
             return None
         promo = Promo.objects.filter(code__iexact=value).first()
@@ -51,17 +63,20 @@ class RegisterSerializer(serializers.ModelSerializer):
             raise ValidationError('This promo code is not active.')
         return promo
 
-    def validate_email(self, value):
+    @staticmethod
+    def validate_email(value):
         if User.objects.filter(email__iexact=value).exists():
             raise ValidationError("An account with this email already exists.")
         return value
 
-    def validate_username(self, value):
+    @staticmethod
+    def validate_username(value):
         if User.objects.filter(username__iexact=value).exists():
             raise ValidationError("An account with this username already exists.")
         return value
 
-    def validate_password(self, value):
+    @staticmethod
+    def validate_password(value):
         if len(value) < settings.MIN_PASS_LENGTH:
             raise ValidationError("That password is too short.")
         return value
@@ -82,18 +97,19 @@ class RegisterSerializer(serializers.ModelSerializer):
         }
 
 
-class ImageAssetSerializer(serializers.ModelSerializer):
+class SubmissionSerializer(IdWritable, RelatedAtomicMixin, serializers.ModelSerializer):
     owner = RelatedUserSerializer(read_only=True)
     comment_count = serializers.SerializerMethodField()
-    file = Base64ImageField(
-        thumbnail_namespace='profiles.ImageAsset.file',
-        _DjangoImageField=FileField,
-        validators=[FileExtensionValidator(allowed_extensions=ALLOWED_EXTENSIONS)],
+    file = RelatedAssetField(thumbnail_namespace='profiles.Submission.file', required=True, allow_null=False)
+    preview = RelatedAssetField(
+        thumbnail_namespace='profiles.Submission.preview', required=False, allow_null=True,
     )
-    preview = Base64ImageField(thumbnail_namespace='profiles.ImageAsset.preview', required=False)
-    is_artist = serializers.BooleanField(write_only=True)
+    artists = UserListField(tag_check=True, block_check=True, back_name='art', write_only=True, required=False)
+    characters = CharacterListField(tag_check=True, back_name='submissions', write_only=True, required=False)
     subscribed = SubscribedField(required=False)
+    tags = TagListField(required=False)
 
+    # noinspection PyMethodMayBeStatic
     def get_comment_count(self, obj):
         with connection.cursor() as cursor:
             cursor.execute(
@@ -107,55 +123,39 @@ class ImageAssetSerializer(serializers.ModelSerializer):
                                        JOIN q ON q.id = m.parent_id)
                     SELECT COUNT(id) FROM q
                 """,
-                [obj.id, ContentType.objects.get(app_label="profiles", model="imageasset").id]
+                [obj.id, ContentType.objects.get(app_label="profiles", model="submission").id]
             )
             return cursor.fetchone()[0]
 
+    @atomic
     def create(self, validated_data):
-        data = dict(**validated_data)
-        # Remove all of the data we need to handle specially in the view.
-        data.pop('is_artist', None)
-        data.pop('characters', None)
-        data.pop('artists', None)
-        return super().create(data)
+        instance = super().create(validated_data)
+        for character in instance.characters.all():
+            if self.context['request'].user == character.user and not character.primary_submission:
+                character.primary_submission = instance
+                character.save()
+        return instance
 
     class Meta:
-        model = ImageAsset
+        model = Submission
         fields = (
             'id', 'title', 'caption', 'rating', 'file', 'private', 'created_on', 'owner', 'comment_count',
-            'favorite_count', 'comments_disabled', 'tags', 'is_artist', 'characters', 'artists', 'subscribed',
+            'favorite_count', 'comments_disabled', 'tags', 'characters', 'artists', 'subscribed',
             'preview'
         )
-        extra_kwargs = {
-            'file': {'write_only': True},
-            'characters': {'write_only': True},
-            'artists': {'write_only': True}
-        }
         read_only_fields = (
             'tags',
         )
 
 
-class AvatarSerializer(serializers.Serializer):
-    avatar = Base64ImageField()
-
-    class Meta:
-        fields = (
-            'avatar',
-        )
-
-
-class ImageAssetNotificationSerializer(serializers.ModelSerializer):
+class SubmissionNotificationSerializer(serializers.ModelSerializer):
     owner = RelatedUserSerializer(read_only=True)
     tags = TagSerializer(many=True, read_only=True)
-    file = Base64ImageField(
-        thumbnail_namespace='profiles.ImageAsset.file',
-        _DjangoImageField=FileField, validators=[FileExtensionValidator(allowed_extensions=ALLOWED_EXTENSIONS)],
-    )
-    preview = Base64ImageField(thumbnail_namespace='profiles.ImageAsset.preview', required=False)
+    file = RelatedAssetField(thumbnail_namespace='profiles.Submission.file')
+    preview = RelatedAssetField(thumbnail_namespace='profiles.Submisssion.preview', required=False, allow_null=True)
 
     class Meta:
-        model = ImageAsset
+        model = Submission
         fields = (
             'id', 'title', 'caption', 'rating', 'file', 'private', 'created_on', 'owner',
             'favorite_count', 'comments_disabled', 'tags', 'preview'
@@ -168,15 +168,12 @@ class ImageAssetNotificationSerializer(serializers.ModelSerializer):
         )
 
 
-class ImageAssetArtNotificationSerializer(serializers.ModelSerializer):
-    file = Base64ImageField(
-        thumbnail_namespace='profiles.ImageAsset.file', _DjangoImageField=FileField,
-        validators=[FileExtensionValidator(allowed_extensions=ALLOWED_EXTENSIONS)],
-    )
-    preview = Base64ImageField(thumbnail_namespace='profiles.ImageAsset.preview', required=False)
+class SubmissionArtNotificationSerializer(serializers.ModelSerializer):
+    file = RelatedAssetField(thumbnail_namespace='profiles.Submission.file')
+    preview = RelatedAssetField(thumbnail_namespace='profiles.Submission.preview', required=False)
 
     class Meta:
-        model = ImageAsset
+        model = Submission
         fields = (
             'id', 'title', 'rating', 'file', 'private', 'preview', 'created_on'
         )
@@ -189,63 +186,150 @@ class RefColorSerializer(serializers.ModelSerializer):
         fields = ('id', 'color', 'note')
 
 
-class AttributeSerializer(serializers.ModelSerializer):
+class AttributeListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Attribute
         fields = ('id', 'key', 'value', 'sticky')
         read_only_fields = ('sticky',)
 
 
-class CharacterSerializer(serializers.ModelSerializer):
-    user = RelatedUserSerializer(read_only=True)
-    primary_asset = ImageAssetSerializer(required=False)
-    primary_asset_id = serializers.IntegerField(write_only=True, required=False)
-    colors = RefColorSerializer(many=True, read_only=True)
-    attributes = AttributeSerializer(many=True, read_only=True)
-    taggable = serializers.BooleanField(default=True)
-    shared_with = RelatedUserSerializer(many=True, read_only=True)
+class AttributeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Attribute
+        fields = ('id', 'key', 'value', 'sticky')
+        read_only_fields = ('sticky',)
 
-    def validate_primary_asset_id(self, value):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.sticky:
+            self.fields['value'].allow_blank = True
+            self.fields['key'].read_only = True
+
+
+class CharacterSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
+    user = RelatedUserSerializer(read_only=True)
+    primary_submission = SubmissionSerializer(required=False, allow_null=True)
+    taggable = serializers.BooleanField(default=True)
+    tags = TagListField(required=False)
+
+    class Meta:
+        model = Character
+        fields = (
+            'id', 'name', 'description', 'private', 'open_requests', 'open_requests_restrictions', 'user',
+            'primary_submission', 'tags', 'colors', 'taggable', 'hits',
+        )
+
+
+class CharacterManagementSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
+    user = RelatedUserSerializer(read_only=True)
+    primary_submission = SubmissionSerializer(required=False, allow_null=True)
+    colors = RefColorSerializer(many=True, read_only=True)
+    taggable = serializers.BooleanField(default=True)
+    tags = TagListField(required=False)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        user = self.context['request'].user
+        if (not (user == self.instance.user)) and not user.is_staff:
+            for value in self.fields.values():
+                value.read_only = True
+            if self.instance.user.taggable:
+                self.fields['tags'].read_only = False
+
+    def validate_primary_submission_id(self, value):
         if value is None:
             return None
         try:
-            ImageAsset.objects.get(id=value, character=self.instance)
-        except ImageAsset.DoesNotExist:
-            raise ValidationError("That asset does not exist.")
+            Submission.objects.get(id=value, character=self.instance)
+        except Submission.DoesNotExist:
+            raise ValidationError("That submission does not exist.")
         return value
 
     class Meta:
         model = Character
         fields = (
             'id', 'name', 'description', 'private', 'open_requests', 'open_requests_restrictions', 'user',
-            'primary_asset', 'primary_asset_id', 'tags', 'colors', 'taggable', 'attributes',
-            'shared_with'
+            'primary_submission', 'tags', 'colors', 'taggable', 'hits',
         )
-        read_only_fields = ('tags',)
 
 
-class ImageAssetManagementSerializer(SubscribeMixin, serializers.ModelSerializer):
-    owner = RelatedUserSerializer(read_only=True)
-    artists = RelatedUserSerializer(read_only=True, many=True)
-    characters = CharacterSerializer(many=True, read_only=True)
-    file = Base64ImageField(
-        thumbnail_namespace='profiles.ImageAsset.file', _DjangoImageField=FileField,
-        validators=[FileExtensionValidator(allowed_extensions=ALLOWED_EXTENSIONS)],
-    )
-    preview = Base64ImageField(thumbnail_namespace='profiles.ImageAsset.preview', required=False)
-    favorite = serializers.SerializerMethodField()
-    subscribed = SubscribedField(required=False)
-    shared_with = RelatedUserSerializer(read_only=True, many=True)
-    product = serializers.SerializerMethodField()
+class CharacterSharedSerializer(serializers.ModelSerializer):
+    user = RelatedUserSerializer(read_only=True)
+    user_id = serializers.IntegerField(write_only=True)
 
-    def get_favorite(self, obj):
-        request = self.context.get('request')
-        if not request:
-            return None
-        if not request.user.is_authenticated:
-            return None
-        return request.user.favorites.filter(id=obj.id).exists()
+    def validate_user_id(self, val):
+        if self.context['request'].subject.id == val:
+            raise ValidationError('You cannot share to yourself!')
+        if self.context['request'].subject.blocked_by.filter(id=val):
+            raise ValidationError('You cannot share to this person.')
+        return val
 
+    class Meta:
+        fields = (
+            'id', 'user', 'user_id',
+        )
+        model = Character.shared_with.through
+
+
+class SubmissionSharedSerializer(serializers.ModelSerializer):
+    user = RelatedUserSerializer(read_only=True)
+    user_id = serializers.IntegerField(write_only=True)
+
+    def validate_user_id(self, val):
+        user = self.context['request'].user
+        if user.id == val:
+            raise ValidationError('You cannot share to yourself!')
+        if user.blocked_by.filter(id=val):
+            raise ValidationError('You cannot share to this person.')
+        return val
+
+    class Meta:
+        fields = (
+            'id', 'user', 'user_id',
+        )
+        model = Submission.shared_with.through
+
+
+class SubmissionArtistTagSerializer(serializers.ModelSerializer):
+    user = RelatedUserSerializer(read_only=True)
+    user_id = serializers.IntegerField(write_only=True)
+
+    def validate_user_id(self, val):
+        if self.context['request'].user.blocked_by.filter(id=val):
+            raise ValidationError('You cannot tag this person.')
+        if self.context['request'].user.id == val:
+            return val
+        if not User.objects.filter(id=val, taggable=True):
+            raise ValidationError('That user does not exist or has disabled tagging.')
+        return val
+
+    class Meta:
+        fields = (
+            'id', 'user', 'user_id',
+        )
+        model = Submission.artists.through
+
+
+class SubmissionCharacterTagSerializer(serializers.ModelSerializer):
+    character = CharacterSerializer(read_only=True)
+    character_id = serializers.IntegerField(write_only=True)
+
+    def validate_character_id(self, val):
+        error = 'Either this character does not exist, or you are not allowed to tag them.'
+        if self.context['request'].user.blocked_by.filter(id=val):
+            raise ValidationError(error)
+        if not Character.objects.filter(id=val, user__taggable=True):
+            raise ValidationError(error)
+        return val
+
+    class Meta:
+        fields = (
+            'id', 'character', 'character_id',
+        )
+        model = Submission.characters.through
+
+
+class SubmissionMixin:
     def get_product(self, obj):
         from apps.sales.serializers import ProductSerializer
         if not obj.order:
@@ -255,28 +339,68 @@ class ImageAssetManagementSerializer(SubscribeMixin, serializers.ModelSerializer
         return ProductSerializer(instance=obj.order.product, context=self.context).data
 
     def get_thumbnail_url(self, obj):
-        return self.context['request'].build_absolute_uri(obj.file.url)
+        return self.context['request'].build_absolute_uri(obj.file.file.url)
+
+
+class SubmissionManagementSerializer(RelatedAtomicMixin, SubmissionMixin, serializers.ModelSerializer):
+    owner = RelatedUserSerializer(read_only=True)
+    artists = RelatedUserSerializer(read_only=True, many=True)
+    file = RelatedAssetField(thumbnail_namespace='profiles.Submission.file')
+    preview = RelatedAssetField(thumbnail_namespace='profiles.Submission.preview', required=False, allow_null=True)
+    favorites = UserRelationField(required=False)
+    subscribed = SubscribedField(required=False)
+    product = serializers.SerializerMethodField()
+    tags = TagListField(required=False, read_only=True)
+    commission_link = serializers.SerializerMethodField()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        user = self.context['request'].user
+        if (not (user == self.instance.owner)) and not user.is_staff:
+            exempt = ['subscribed', 'favorites']
+            for key, value in self.fields.items():
+                if key not in exempt:
+                    value.read_only = True
+            if self.instance.owner.taggable:
+                self.fields['tags'].read_only = False
+        else:
+            self.fields['tags'].read_only = False
+
+    def get_commission_link(self, instance):
+        artists = instance.artists.all()
+        if not instance.order and not artists.count():
+            return None
+        if not instance.order:
+            artist = artists.order_by('artist_mode').first()
+            return {'name': 'Products' if artist.artist_mode else 'Profile', 'params': {'username': artist.username}}
+        # If we know who made this piece, don't give easy credit to anyone else.
+        if not artists.filter(id=instance.order.seller.id).exists():
+            return None
+        artist = instance.order.seller
+        return {'name': 'Products' if artist.artist_mode else 'Profile', 'params': {'username': artist.username}}
 
     class Meta:
-        model = ImageAsset
+        model = Submission
         fields = (
             'id', 'title', 'caption', 'rating', 'file', 'private', 'created_on', 'order', 'owner', 'characters',
-            'comments_disabled', 'favorite_count', 'favorite', 'artists', 'tags', 'subscribed', 'shared_with',
-            'preview', 'product'
+            'comments_disabled', 'favorite_count', 'favorites', 'artists', 'tags', 'subscribed', 'shared_with',
+            'preview', 'product', 'hits', 'commission_link',
         )
 
 
-class SettingsSerializer(serializers.ModelSerializer):
+class ArtistProfileSerializer(serializers.ModelSerializer):
+
+    @staticmethod
+    def dwolla_configured(obj):
+        return bool(obj.dwolla_url)
+
     class Meta:
-        model = User
-        extra_kwargs = {
-            'bank_account_status': {'allow_null': True, 'required': False},
-            'sfw_mode': {'required': False}
-        }
+        model = ArtistProfile
         fields = (
-            'commissions_closed', 'rating', 'sfw_mode', 'max_load', 'favorites_hidden', 'taggable', 'commission_info',
-            'auto_withdraw', 'escrow_disabled', 'bank_account_status', 'offered_mailchimp'
+            'commissions_closed', 'max_load', 'commission_info',
+            'auto_withdraw', 'escrow_disabled', 'bank_account_status', 'max_rating',
         )
+        extra_kwargs = {field: {'required': False} for field in fields}
 
 
 class CorrectPasswordValidator(object):
@@ -284,6 +408,7 @@ class CorrectPasswordValidator(object):
     Validates that the correct password was entered.
     """
     def set_context(self, serializer_field):
+        # noinspection PyAttributeOutsideInit
         self.instance = serializer_field.parent.instance
 
     def __call__(self, value):
@@ -302,6 +427,7 @@ class FieldUniqueValidator(object):
         self.error_msg = error_msg
 
     def set_context(self, serializer_field):
+        # noinspection PyAttributeOutsideInit
         self.instance = serializer_field.parent.instance
 
     def __call__(self, value):
@@ -342,8 +468,8 @@ class CredentialsSerializer(serializers.ModelSerializer):
         )
 
 
-class UserSerializer(UserInfoMixin, serializers.ModelSerializer):
-    dwolla_configured = serializers.SerializerMethodField()
+class UserSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
+    # dwolla_configured = serializers.SerializerMethodField()
     csrftoken = serializers.SerializerMethodField()
     authtoken = serializers.SerializerMethodField()
     percentage_fee = serializers.DecimalField(decimal_places=2, max_digits=3, read_only=True)
@@ -351,18 +477,21 @@ class UserSerializer(UserInfoMixin, serializers.ModelSerializer):
     portrait_paid_through = serializers.DateField(read_only=True)
     landscape_paid_through = serializers.DateField(read_only=True)
     telegram_link = serializers.SerializerMethodField()
-    watching = serializers.SerializerMethodField()
-    blocked = serializers.SerializerMethodField()
+    watching = UserRelationField(required=False)
+    blocking = UserRelationField(required=False)
+    artist_mode = serializers.NullBooleanField(required=False)
+    blacklist = TagListField(required=False)
+    stars = serializers.FloatField(required=False)
 
-    def get_dwolla_configured(self, obj):
-        return bool(obj.dwolla_url)
-
+    # noinspection PyUnusedLocal
     def get_csrftoken(self, obj):
         # This will be the CSRFToken of the requesting user rather than the target user-- not a security risk,
         # but also not intuitively clear that it's not the right data if someone were trying to attack.
         return get_token(self.context['request'])
 
-    def get_telegram_link(self, obj):
+    @staticmethod
+    def get_telegram_link(obj):
+        # tg://resolve?domain=ArtconomyDevBot&start=Fox_9c005d61-8b84-4ad0-81b3-dae876
         return 'https://t.me/{}/?start={}_{}'.format(
             settings.TELEGRAM_BOT_USERNAME, quote_plus(obj.username), obj.tg_key
         )
@@ -378,69 +507,95 @@ class UserSerializer(UserInfoMixin, serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'commissions_closed', 'rating', 'sfw_mode', 'max_load', 'username', 'id', 'is_staff', 'is_superuser',
-            'dwolla_configured', 'csrftoken', 'avatar_url', 'email', 'authtoken', 'favorites_hidden',
-            'blacklist', 'biography', 'has_products', 'taggable', 'watching', 'blocked',  'commission_info',
+            'rating', 'username', 'id', 'is_staff', 'is_superuser',
+            'csrftoken', 'avatar_url', 'email', 'authtoken', 'favorites_hidden',
+            'blacklist', 'biography', 'taggable', 'watching', 'blocking',
             'stars', 'percentage_fee', 'static_fee', 'portrait', 'portrait_enabled', 'portrait_paid_through',
-            'landscape', 'landscape_enabled', 'landscape_paid_through', 'telegram_link', 'auto_withdraw',
-            'escrow_disabled', 'bank_account_status', 'offered_mailchimp'
+            'landscape', 'landscape_enabled', 'landscape_paid_through', 'telegram_link', 'sfw_mode',
+            'offered_mailchimp', 'guest', 'artist_mode', 'hits', 'watches', 'guest_email',
         )
-        read_only_fields = [field for field in fields if field not in ['biography']]
+        read_only_fields = [field for field in fields if field not in [
+            'rating', 'sfw_mode', 'taggable',
+            'offered_mailchimp', 'artist_mode', 'favorites_hidden',
+            'blacklist', 'biography',
+        ]]
+        extra_kwargs = {field: {'required': False} for field in fields}
 
 
+# noinspection PyAbstractClass
 class SessionSettingsSerializer(serializers.Serializer):
-    rating = serializers.ChoiceField(choices=RATINGS)
+    rating = serializers.ChoiceField(choices=RATINGS_ANON)
+    sfw_mode = serializers.BooleanField()
 
 
-class MessageSerializer(serializers.ModelSerializer):
-    sender = RelatedUserSerializer(read_only=True)
-    read = serializers.SerializerMethodField()
+class ReadMarkerField(serializers.Field):
+    save_related = True
 
-    def get_read(self, obj):
-        user = self.context['request'].user
-        if user == obj.sender:
-            return obj.sender_read
-        if not MessageRecipientRelationship.objects.filter(user=user, message=obj, read=False).exists():
-            return True
+    def get_initial(self):
+        if hasattr(self, 'initial_data'):
+            return self.initial_data
         return False
 
-    def create(self, validated_data):
-        data = dict(**validated_data)
-        data.pop('recipients', None)
-        return super().create(data)
+    def get_attribute(self, instance):
+        request = self.context.get('request', None)
+        if not request:
+            return None
+        if not request.user.is_authenticated:
+            return None
+        if not instance.id:
+            return None
+        participant_relationship = ConversationParticipant.objects.filter(
+            user=request.user, conversation=instance,
+        ).first()
+        if participant_relationship is None:
+            return None
+        return participant_relationship.read
+
+    def to_representation(self, instance):
+        if isinstance(instance, Conversation):
+            return self.get_attribute(instance)
+        else:
+            return instance
+
+    def to_internal_value(self, data):
+        return data
+
+    def mod_instance(self, instance, value):
+        request = self.context.get('request', None)
+        participant_relationship = ConversationParticipant.objects.get(
+            user=request.user, conversation=instance,
+        )
+        participant_relationship.read = value
+        participant_relationship.save()
+
+
+class ConversationSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
+    read = ReadMarkerField(read_only=True)
+    participants = UserListField(model=ConversationParticipant, back_name='conversation', add_self=True, min_length=2)
 
     class Meta:
-        model = Message
+        model = Conversation
         fields = (
-            'id', 'recipients', 'sender', 'subject', 'body', 'created_on', 'edited_on', 'read', 'edited'
+            'id', 'participants', 'created_on', 'read',
         )
-        extra_kwargs = {
-            'recipients': {'write_only': True, 'queryset': User.objects.all(), 'read_only': False},
-            'edited': {'read_only': True}
-        }
 
 
-class MessageManagementSerializer(serializers.ModelSerializer):
-    recipients = RelatedUserSerializer(read_only=True, many=True)
-    sender = RelatedUserSerializer(read_only=True)
-    read = serializers.SerializerMethodField()
+class ConversationManagementSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
+    participants = RelatedUserSerializer(read_only=True, many=True)
+    read = ReadMarkerField()
+    last_comment = serializers.SerializerMethodField()
 
-    def get_read(self, obj):
-        user = self.context['request'].user
-        if user == obj.sender:
-            return obj.sender_read
-        if not MessageRecipientRelationship.objects.filter(user=user, message=obj, read=False).exists():
-            return True
-        return False
+    def get_last_comment(self, obj):
+        comment = obj.comments.filter(deleted=False).order_by('-created_on').first()
+        if not comment:
+            return None
+        return CommentSerializer(instance=comment, context=self.context).data
 
     class Meta:
-        model = Message
+        model = Conversation
         fields = (
-            'id', 'recipients', 'sender', 'subject', 'body', 'created_on', 'edited_on', 'read', 'edited'
+            'id', 'participants', 'created_on', 'read', 'last_comment',
         )
-        extra_kwargs = {
-            'edited': {'read_only': True}
-        }
 
 
 class PasswordResetSerializer(serializers.ModelSerializer):
@@ -461,17 +616,18 @@ class PasswordResetSerializer(serializers.ModelSerializer):
         )
 
 
-class JournalSerializer(SubscribeMixin, serializers.ModelSerializer):
+class JournalSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
     user = RelatedUserSerializer(read_only=True)
     subscribed = SubscribedField(required=False)
 
     class Meta:
         model = Journal
         fields = (
-            'id', 'user', 'subject', 'body', 'created_on', 'edited_on', 'comments_disabled', 'subscribed'
+            'id', 'user', 'subject', 'body', 'created_on', 'edited_on', 'comments_disabled', 'subscribed',
+            'edited',
         )
         read_only_fields = (
-            'id', 'created_on', 'edited_on'
+            'id', 'created_on', 'edited_on', 'edited',
         )
 
 
@@ -479,7 +635,8 @@ class TwoFactorTimerSerializer(serializers.ModelSerializer):
     config_url = serializers.SerializerMethodField()
     code = serializers.IntegerField(required=False, write_only=True)
 
-    def get_config_url(self, obj):
+    @staticmethod
+    def get_config_url(obj):
         if obj.confirmed:
             return None
         return obj.config_url
@@ -536,13 +693,17 @@ class ReferralStatsSerializer(serializers.ModelSerializer):
     portrait_eligible = serializers.SerializerMethodField()
     landscape_eligible = serializers.SerializerMethodField()
 
-    def get_total_referred(self, obj):
+    @staticmethod
+    def get_total_referred(obj):
         return User.objects.filter(referred_by=obj).count()
 
-    def get_portrait_eligible(self, obj):
+    # noinspection PyUnusedLocal
+    @staticmethod
+    def get_portrait_eligible(obj):
         return User.objects.filter(referred_by=obj, bought_shield_on__isnull=False).count()
 
-    def get_landscape_eligible(self, obj):
+    @staticmethod
+    def get_landscape_eligible(obj):
         return User.objects.filter(referred_by=obj, sold_shield_on__isnull=False).count()
 
     class Meta:
@@ -550,7 +711,32 @@ class ReferralStatsSerializer(serializers.ModelSerializer):
         fields = ('total_referred', 'portrait_eligible', 'landscape_eligible')
 
 
+def user_value_taken(property_name):
+    def validate(value):
+        if User.objects.filter(**{property_name + '__iexact': value}):
+            raise ValidationError("A user with that {} already exists.".format(property_name))
+    return validate
+
+
+# noinspection PyAbstractClass
 class ContactSerializer(serializers.Serializer):
     email = serializers.EmailField()
     body = serializers.CharField(max_length=10000)
     referring_url = serializers.CharField(max_length=1000)
+
+
+# noinspection PyAbstractClass
+class PasswordValidationSerializer(serializers.Serializer):
+    password = serializers.CharField(validators=[validate_password])
+
+
+# noinspection PyAbstractClass
+class UsernameValidationSerializer(serializers.Serializer):
+    username = serializers.CharField(validators=[
+        UnicodeUsernameValidator(), banned_named_validator, banned_prefix_validator, user_value_taken('username')
+    ])
+
+
+# noinspection PyAbstractClass
+class EmailValidationSerializer(serializers.Serializer):
+    email = serializers.EmailField(validators=[user_value_taken('email')])

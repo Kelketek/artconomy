@@ -1,0 +1,1 @@
+15 * * * * postgres pg_dump {{db_name}} > ~/backup/{{ db_name }}.sql && gzip -c ~/backup/{{ db_name }}.sql > ~/backup/{{ db_name }}.sql.gz

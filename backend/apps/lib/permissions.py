@@ -1,4 +1,5 @@
 from logging import getLogger
+from typing import List, Type
 
 from rest_framework.permissions import BasePermission, SAFE_METHODS, IsAuthenticated
 
@@ -16,7 +17,10 @@ class CommentEditPermission(BasePermission):
 
 
 class CommentViewPermission(BasePermission):
-    message = "You do not have permission to comment on this topic."
+    """
+    Checks if a user has permission to view/comment on a particular comment object.
+    """
+    message = "You do not have permission to comment on this."
 
     def has_object_permission(self, request, view, obj):
         # Jump to the top of the thread.
@@ -30,10 +34,13 @@ class CommentViewPermission(BasePermission):
             return False
         if request.user.is_staff:
             return True
-        if not hasattr(obj.content_object, 'comment_permissions'):
+        permission_check = getattr(
+            obj.content_object, 'comment_view_permissions', getattr(obj.content_object, 'comment_permissions', None)
+        )
+        if permission_check is None:
             return False
         target = obj.content_object
-        if not all((perm().has_object_permission(request, view, target) for perm in target.comment_permissions)):
+        if not all((perm().has_object_permission(request, view, target) for perm in permission_check)):
             return False
         return True
 
@@ -42,8 +49,12 @@ class CommentDepthPermission(BasePermission):
     message = 'Comments are limited to top-level threads.'
 
     def has_object_permission(self, request, view, obj):
+        from apps.lib.models import Comment
+        if not hasattr(obj, 'content_object'):
+            # Target isn't a comment, so this is top level.
+            return True
         # Limit comment depth for now.
-        if obj.parent and obj.parent.parent:
+        if obj.content_object and isinstance(obj.content_object, Comment):
             return False
         return True
 
@@ -90,7 +101,7 @@ class IsAuthenticatedObj(IsAuthenticated):
         return request.user and request.user.is_authenticated
 
 
-def IsMethod(*method_list):
+def IsMethod(*method_list: str):
     class MethodCheck(BasePermission):
         def has_permission(self, request, view):
             return request.method in method_list
@@ -100,26 +111,84 @@ def IsMethod(*method_list):
     return MethodCheck
 
 
-def Any(*perms):
+class ComboPermission(BasePermission):
+    message = ''
+
+    def run_check(self, perm, func_name, *args):
+        result = getattr(perm, func_name)(*args)
+        if not result and not self.message:
+            self.message = getattr(perm, 'message', self.message)
+        return result
+
+
+def Any(*perms: Type[BasePermission]) -> Type[ComboPermission]:
     perms = [perm() for perm in perms]
 
-    class AnyPerm(BasePermission):
+    class AnyPerm(ComboPermission):
         def has_permission(self, request, view):
-            return any(perm.has_permission(request, view) for perm in perms)
+            return any(self.run_check(perm, 'has_permission', request, view) for perm in perms)
 
         def has_object_permission(self, request, view, obj):
-                return any(perm.has_object_permission(request, view, obj) for perm in perms)
+            return any(self.run_check(perm, 'has_object_permission', request, view, obj) for perm in perms)
     return AnyPerm
 
 
-def All(*perms):
+def All(*perms: Type[BasePermission]) -> Type[ComboPermission]:
     perms = [perm() for perm in perms]
 
-    class AllPerms(BasePermission):
+    class AllPerms(ComboPermission):
+
         def has_permission(self, request, view):
-            return all(perm.has_permission(request, view) for perm in perms)
+            return all(self.run_check(perm, 'has_permission', request, view) for perm in perms)
 
         def has_object_permission(self, request, view, obj):
-            result = all(perm.has_object_permission(request, view, obj) for perm in perms)
+            result = all(self.run_check(perm, 'has_object_permission', request, view, obj) for perm in perms)
             return result
     return AllPerms
+
+
+class CanComment(ComboPermission):
+    """
+    Checks to see if a user can comment or list comments on a particular object.
+    """
+    message = 'You are not allowed to comment on that.'
+
+    def has_object_permission(self, request, view, obj):
+        if not hasattr(obj, 'comment_permissions'):
+            self.message = "That doesn't support comments."
+            return False
+        return all(
+            (self.run_check(perm(), 'has_object_permission', request, view, obj) for perm in obj.comment_permissions)
+        )
+
+
+class CanListComments(ComboPermission):
+    """
+    Checks to see if a user can comment or list comments on a particular object.
+    """
+    message = 'You are not allowed to read comments on that.'
+
+    def has_object_permission(self, request, view, obj):
+        permissions_set = getattr(obj, 'comment_view_permissions', getattr(obj, 'comment_permissions', None))
+        if permissions_set is None:
+            self.message = "That doesn't support comments."
+            return False
+        return all(
+            (self.run_check(perm(), 'has_object_permission', request, view, obj) for perm in permissions_set)
+        )
+
+
+# noinspection PyPep8Naming
+def BlockedCheckPermission(ref_path=''):
+    class WrappedBlockedPermission(BasePermission):
+        def has_object_permission(self, request, view, obj):
+            if not request.user.is_authenticated:
+                # In any case where we care if the user is blocked, this is an action we don't want to offer anonymous
+                # users access.
+                return False
+            path = ref_path.split('.')
+            target = obj
+            for segment in path:
+                target = getattr(obj, segment)
+            return not target.blocking.filter(id=request.user.id).exists()
+    return WrappedBlockedPermission

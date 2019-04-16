@@ -1,8 +1,12 @@
 {% extends 'email_base.html' %}
 {% load md2 %}
-{% block header_message %}New Comment{% endblock %}
+{% block header_message %}{% if data.subject %}New Message{% else %}New Comment{% endif %}{% endblock %}
 {% block message %}
-There was a new comment on your {{data.name}} by <a href="/profile/{{data.most_recent_comment.user.username}}/">{{data.most_recent_comment.user.username}}</a>. View it via the link below! Here's a preview:
+There is a new {% if data.subject %}message in{% else %}comment on{% endif %} your {{data.name}} by
+{% if data.most_recent_comment.user.guest %}Guest #{{data.most_recent_comment.user.id}}{% else %}
+<a href="/profile/{{data.most_recent_comment.user.username}}/">{{data.most_recent_comment.user.username}}{% endif %}</a>.
+
+View it via the link below! Here's a preview:
 
 <div class="message-preview">
   {{data.most_recent_comment.text|markdown:"safe"}}
@@ -12,10 +16,12 @@ There was a new comment on your {{data.name}} by <a href="/profile/{{data.most_r
 
 {% block action %}
 {% if data.link.name == 'Message' %}
-    <a href="/messages/{{user.username}}/message/{{data.link.params.messageID}}/">View your message here!</a>
+    <a href="/messages/{{user.username}}/message/{{data.link.params.messageId}}/?commentId={{data.most_recent_comment.id}}">View your message here!</a>
 {% elif data.link.name == 'Order' %}
-    <a href="/orders/{{target.buyer.username}}/order/{{data.link.params.orderID}}/">View your sale here!</a>
+    <a href="/orders/{{target.buyer.username}}/order/{{data.link.params.orderId}}/?commentId={{data.most_recent_comment.id}}">View your order here!</a>
+{% elif data.link.name == 'ClaimOrder' %}
+    <a href="/claim-order/{{data.link.params.orderId}}/{{target.claim_token}}/{{target.buyer.username}}/?commentId={{data.most_recent_comment.id}}">View your order here!</a>
 {% elif data.link.name == 'Sale' %}
-    <a href="/sales/{{target.buyer.username}}/sale/{{data.link.params.orderID}}/">View your sale here!</a>
+    <a href="/sales/{{target.buyer.username}}/sale/{{data.link.params.orderId}}/?commentId={{data.most_recent_comment.id}}">View your sale here!</a>
 {% endif %}
 {% endblock %}

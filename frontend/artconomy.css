@@ -1,0 +1,76 @@
+fieldset {
+    border: 0;
+}
+
+.vue-form-generator .error {
+    background-color: transparent !important;
+}
+
+.vue-form-generator .form-group > label:first-child, .vue-form-generator .hint, .vue-form-generator .errors {
+    display: none
+}
+
+img {
+    max-width: 100%;
+}
+
+#app.theme--dark a {
+    color: #fff;
+}
+
+#app a {
+    font-weight: bold
+}
+
+#app p a, #app ul a, #app ol a, #app .v-responsive__content a,
+.v-alert a {
+    color: #000;
+    text-decoration: underline;
+}
+
+#app.theme--dark p a, #app.theme--dark ul a, #app.theme--dark ol a, #app.theme--dark .v-responsive__content a,
+.theme--dark .v-alert a {
+    color: #fff;
+}
+
+#app a.v-btn {
+    text-decoration: none;
+}
+
+.clickable {
+    cursor: pointer;
+}
+
+.content--wrap .container.fluid:first-child {
+    padding-top: 48px;
+}
+
+.container.fluid {
+    padding-left: 0;
+    padding-right: 0;
+    max-width: 100%;
+}
+
+.highlight-icon:hover {
+    text-shadow: 1px 1px 3px #fff, 1px 1px 10px #ccc;
+}
+
+blockquote {
+    padding-left: 1rem;
+    border-left: 3px solid darkgray;
+    opacity: .8;
+}
+
+.compact-fields .v-text-field {
+    padding: 0;
+    margin: 0;
+}
+.compact-fields .v-btn--icon, .compact-fields .v-btn--icon.v-btn--small {
+    height: unset;
+    padding: 0;
+    margin: 0;
+    width: unset;
+}
+.compact-fields .v-input__slot {
+    margin-bottom: 0;
+}

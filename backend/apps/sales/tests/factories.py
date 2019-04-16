@@ -1,12 +1,13 @@
 from factory import Sequence, SubFactory, SelfAttribute
-from factory.django import DjangoModelFactory, ImageField
+from factory.django import DjangoModelFactory
 from moneyed import Money
 
+from apps.lib.tests.factories import AssetFactory
 from apps.profiles.tests.factories import UserFactory
 from apps.sales.models import (
-    Order, Product, CreditCardToken, Revision, PaymentRecord, BankAccount,
-    OrderToken, Promo
-)
+    Order, Product, CreditCardToken, Revision, BankAccount,
+    Promo, Rating,
+    TransactionRecord)
 
 
 class ProductFactory(DjangoModelFactory):
@@ -18,7 +19,7 @@ class ProductFactory(DjangoModelFactory):
     price = Money('15.00', 'USD')
     name = Sequence(lambda n: 'Product {0}'.format(n))
     description = 'Product description'
-    file = ImageField(color='blue')
+    file = SubFactory(AssetFactory)
 
     class Meta:
         model = Product
@@ -35,7 +36,7 @@ class OrderFactory(DjangoModelFactory):
 
 class CreditCardTokenFactory(DjangoModelFactory):
     last_four = Sequence(lambda x: '{}'.format(x).zfill(4))
-    payment_id = Sequence(lambda x: '{}|0000'.format(x).zfill(9))
+    token = Sequence(lambda x: '{}|0000'.format(x).zfill(9))
     user = SubFactory(UserFactory)
 
     class Meta:
@@ -43,7 +44,7 @@ class CreditCardTokenFactory(DjangoModelFactory):
 
 
 class RevisionFactory(DjangoModelFactory):
-    file = ImageField(color='blue')
+    file = SubFactory(AssetFactory)
     order = SubFactory(OrderFactory)
     owner = SelfAttribute('order.seller')
 
@@ -51,21 +52,18 @@ class RevisionFactory(DjangoModelFactory):
         model = Revision
 
 
-class PaymentRecordFactory(DjangoModelFactory):
-    card = SubFactory(CreditCardTokenFactory)
-    status = PaymentRecord.SUCCESS
-    txn_id = Sequence(lambda x: '{}'.format(x))
-    response_message = 'Payment happened.'
-    response_code = 'PMT'
-    source = PaymentRecord.CARD
+class TransactionRecordFactory(DjangoModelFactory):
+    status = TransactionRecord.SUCCESS
+    remote_id = Sequence(lambda x: '{}'.format(x))
+    source = TransactionRecord.CARD
+    destination = TransactionRecord.ESCROW
     payer = SubFactory(UserFactory)
     payee = SubFactory(UserFactory)
-    target = SubFactory(OrderFactory)
-    type = PaymentRecord.SALE
+    category = TransactionRecord.ESCROW_HOLD
     amount = Money('10.00', 'USD')
 
     class Meta:
-        model = PaymentRecord
+        model = TransactionRecord
 
 
 class BankAccountFactory(DjangoModelFactory):
@@ -78,16 +76,17 @@ class BankAccountFactory(DjangoModelFactory):
         model = BankAccount
 
 
-class OrderTokenFactory(DjangoModelFactory):
-    product = SubFactory(ProductFactory)
-    email = Sequence(lambda n: '{0}@example.com'.format(n))
-
-    class Meta:
-        model = OrderToken
-
-
 class PromoFactory(DjangoModelFactory):
     code = Sequence(lambda x: f'CODE{x}')
 
     class Meta:
         model = Promo
+
+
+class RatingFactory(DjangoModelFactory):
+    target = SubFactory(UserFactory)
+    rater = SubFactory(UserFactory)
+    stars = 3
+
+    class Meta:
+        model = Rating

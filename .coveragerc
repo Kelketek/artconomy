@@ -1,0 +1,14 @@
+[report]
+omit =
+    */migrations/*
+    test_*
+    */tests/*
+    ./manage.py
+include =
+    ./*
+[html]
+   directory = reports/coverage/htmlcov
+[run]
+parallel=True
+concurrency=multiprocessing
+data_file=reports/coverage/scratch/.coverage

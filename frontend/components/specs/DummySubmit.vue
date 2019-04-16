@@ -1,0 +1,18 @@
+<template>
+  <v-app>
+    <v-content>
+      <ac-new-submission ref="submissionForm" title="Sharable thing!" :username="username" v-model="showUpload"></ac-new-submission>
+    </v-content>
+  </v-app>
+</template>
+<script lang="ts">
+import Component, {mixins} from 'vue-class-component'
+import AcNewSubmission from '../AcNewSubmission.vue'
+import Subjective from '@/mixins/subjective'
+import Upload from '@/mixins/upload'
+  @Component({
+    components: {AcNewSubmission},
+  })
+export default class DummySubmit extends mixins(Subjective, Upload) {
+}
+</script>

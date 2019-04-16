@@ -1,6 +1,5 @@
 import logging
 
-from authorize import AuthorizeError
 from dateutil.relativedelta import relativedelta
 from django.db.models import Q
 from django.utils import timezone
@@ -11,9 +10,10 @@ from apps.lib.models import RENEWAL_FAILURE, SUBSCRIPTION_DEACTIVATED, RENEWAL_F
 from apps.lib.utils import notify, send_transaction_email
 from apps.profiles.models import User
 from apps.sales.apis import dwolla
-from apps.sales.dwolla import refund_transfer, initiate_withdraw, perform_transfer
-from apps.sales.models import PaymentRecord, CreditCardToken, Order
-from apps.sales.utils import service_price, translate_authnet_error, set_service, finalize_order, available_balance
+from apps.sales.authorize import AuthorizeException, charge_saved_card, translate_authnet_error
+from apps.sales.dwolla import initiate_withdraw, perform_transfer
+from apps.sales.models import CreditCardToken, Order, TransactionRecord
+from apps.sales.utils import service_price, set_service, finalize_order, account_balance
 from conf.celery_config import celery_app
 
 
@@ -40,36 +40,38 @@ def renew(user_id, service, card_id=None):
     else:
         card = user.primary_card
     if card is None:
-        cards = User.credit_cards.filter(active=True).order_by('-primary', '-created_on')
+        # noinspection PyUnresolvedReferences
+        cards = user.credit_cards.filter(active=True).order_by('-created_on')
         if not cards.exists():
             logger.info("{}({}) can't renew due to no card on file.".format(user.username, user.id))
             notify(RENEWAL_FAILURE, user, data={'error': 'No card on file!'}, unique=True)
             return
         card = cards[0]
     price = service_price(user, service)
-    record = PaymentRecord.objects.create(
+    record = TransactionRecord.objects.create(
         card=card,
         payer=user,
         payee=None,
-        status=PaymentRecord.FAILURE,
-        source=PaymentRecord.CARD,
-        type=PaymentRecord.SALE,
+        status=TransactionRecord.FAILURE,
+        source=TransactionRecord.CARD,
+        destination=TransactionRecord.UNPROCESSED_EARNINGS,
+        category=TransactionRecord.SUBSCRIPTION_DUES,
         amount=price,
         response_message="Failed when contacting payment processor.",
         target=user,
     )
     try:
-        result = card.api.capture(price.amount)
-    except AuthorizeError as err:
-        record.response_message = translate_authnet_error(err)
+        remote_id = charge_saved_card(profile_id=card.profile_id, payment_id=card.payment_id, amount=price.amount)
+    except AuthorizeException as err:
+        record.response_message = str(err)
         record.save()
         notify(
             RENEWAL_FAILURE, user, data={
                 'error': "Card ending in {} -- {}".format(card.last_four, record.response_message)}, unique=True
         )
     else:
-        record.status = PaymentRecord.SUCCESS
-        record.txn_id = result.uid
+        record.status = TransactionRecord.SUCCESS
+        record.remote_id = remote_id
         record.finalized = True
         record.response_message = 'Upgraded to {}'.format(service)
         card.cvv_verified = True
@@ -109,38 +111,33 @@ def check_transactions():
     """
     Task to be run periodically to update the status of transfers on Dwolla.
     """
-    records = PaymentRecord.objects.filter(finalized=False, type=PaymentRecord.DISBURSEMENT_SENT)
+    records = TransactionRecord.objects.filter(
+        status=TransactionRecord.PENDING, destination=TransactionRecord.BANK,
+        source=TransactionRecord.HOLDINGS,
+    )
     for record in records:
         update_transfer_status.delay(record.id)
 
 
 @celery_app.task
-def finalize_transactions():
-    records = PaymentRecord.objects.filter(
-        finalize_on__lte=timezone.now().date()
-    ).exclude(finalize_on__isnull=True).exclude(finalized=True)
-    withdraw_for = set()
-    for record in records:
-        record.finalized = True
-        record.save()
-        if record.payee:
-            withdraw_for |= {record.payee}
-    for payee in withdraw_for:
-        withdraw_all.delay(payee.id)
-
-
-@celery_app.task
 def update_transfer_status(record_id):
-    record = PaymentRecord.objects.get(id=record_id)
+    record = TransactionRecord.objects.get(id=record_id)
     with dwolla as api:
-        status = api.get('https://api.dwolla.com/transfers/{}'.format(record.txn_id))
+        status = api.get('https://api.dwolla.com/transfers/{}'.format(record.remote_id))
         if status.body['status'] == 'processed':
-            record.finalized = True
+            record.status = TransactionRecord.SUCCESS
             record.save()
         if status.body['status'] == 'cancelled':
-            refund_transfer(record)
-            record.finalized = True
+            record.status = TransactionRecord.FAILURE
             record.save()
+            notify(
+                TRANSFER_FAILED,
+                record.payer,
+                data={
+                    'error': 'The bank rejected the transfer. Please try again, update your account information, '
+                             'or contact support.'
+                }
+            )
 
 
 @celery_app.task
@@ -167,12 +164,12 @@ def auto_finalize_run():
 @celery_app.task
 def withdraw_all(user_id):
     user = User.objects.get(id=user_id)
-    if not user.auto_withdraw:
+    if not user.artist_profile.auto_withdraw:
         return
     banks = user.banks.filter(deleted=False)
     if not banks:
         return
-    balance = available_balance(user)
+    balance = account_balance(user, TransactionRecord.HOLDINGS)
     if balance <= 0:
         return
     record = initiate_withdraw(user, banks[0], Money(balance, 'USD'), test_only=False)
@@ -195,7 +192,10 @@ def remind_sale(order_id):
 @celery_app.task
 def remind_sales():
     to_remind = []
-    for order in Order.objects.filter(status=Order.NEW, created_on__lte=timezone.now() - relativedelta(days=1)):
+    orders = Order.objects.filter(
+        status=Order.NEW, created_on__lte=timezone.now() - relativedelta(days=1),
+    )
+    for order in orders:
         delta = (timezone.now() - order.created_on).days
         if delta <= 5:
             to_remind.append(order)

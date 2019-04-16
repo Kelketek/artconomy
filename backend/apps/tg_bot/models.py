@@ -1,5 +1,6 @@
 from binascii import unhexlify
 
+from django.db import models
 from django.db.models import CharField
 from django_otp.models import Device
 from django_otp.oath import totp
@@ -16,6 +17,7 @@ class TelegramDevice(Device):
         default=default_key,
         help_text='A hex-encoded secret key of up to 20 bytes.'
     )
+    confirmed = models.BooleanField(default=False, help_text="Is this device ready for use?")
 
     @property
     def bin_key(self):
@@ -30,7 +32,7 @@ class TelegramDevice(Device):
             chat_id=self.user.tg_chat_id, text="Your 2FA Verification code is:"
         )
         bot.send_message(
-            chat_id=self.user.tg_chat_id, text=str(token)
+            chat_id=self.user.tg_chat_id, text=str(token).zfill(6)
         )
 
     def verify_token(self, token):

@@ -1,10 +1,11 @@
 from dateutil.relativedelta import relativedelta
 from django.db.models import Case, When, F, IntegerField, Q
 from django.utils import timezone
+from short_stuff import gen_guid, slugify
 
 from apps.lib.models import REFERRAL_LANDSCAPE_CREDIT, REFERRAL_PORTRAIT_CREDIT
 from apps.lib.utils import notify
-from apps.profiles.models import Character, ImageAsset, User
+from apps.profiles.models import Character, Submission, User
 
 
 def char_ordering(qs, requester, query=''):
@@ -56,13 +57,13 @@ def available_chars(requester, query='', commissions=False, tagging=False, self_
 
 
 def available_artists(requester):
-    qs = User.objects.filter(Q(id=requester.id) | Q(artist_tagging_disabled=False))
+    qs = User.objects.filter(Q(id=requester.id) | Q(taggable=True))
     if not requester.is_staff and requester.is_authenticated:
         qs = qs.exclude(blocking=requester)
     return qs
 
 
-def available_assets(request, requester):
+def available_submissions(request, requester):
     exclude = Q(private=True)
     if not request.user.is_staff and request.user.is_authenticated:
         exclude |= Q(owner__blocking=requester)
@@ -71,7 +72,7 @@ def available_assets(request, requester):
         exclude |= Q(artists__blocked_by=requester)
     if request.user.is_authenticated:
         exclude &= ~(Q(owner=requester) | Q(shared_with=requester))
-    return ImageAsset.objects.exclude(exclude).exclude(
+    return Submission.objects.exclude(exclude).exclude(
         rating__gt=request.max_rating
     ).exclude(tags__in=request.blacklist)
 
@@ -121,3 +122,20 @@ def credit_referral(order):
     if buyer_credit and order.buyer.referred_by:
         extend_portrait(order.seller, months=1)
         notify(REFERRAL_PORTRAIT_CREDIT, order.buyer.referred_by, unique=False)
+
+
+def empty_user(request):
+    return {'blacklist': [], 'rating': request.rating, 'sfw_mode': request.sfw_mode, 'username': '_'}
+
+
+def create_guest_user(email: str) -> User:
+    # Start with a username unlikely to cause collision
+    username = f'__{slugify(gen_guid())}'
+    user = User.objects.create(
+        guest=True, email=f'{username}@localhost', guest_email=email, username=username
+    )
+    # Create username in a pattern we can quickly recognize elsewhere in the code even if the user is not yet loaded.
+    user.username = f'__{user.id}'
+    user.email = f'__{user.id}@localhost'
+    user.save()
+    return user
