@@ -19,16 +19,17 @@ from django.conf import settings
 from django.conf.urls import url, include
 from django.contrib import admin
 from django.core.exceptions import ImproperlyConfigured
-from django.urls import path
-from django.views.generic import RedirectView
 from django.views.static import serve
+from django_otp.admin import OTPAdminSite
 
 import views
 
 
+if not settings.DEBUG:
+    admin.site.__class__ = OTPAdminSite
+
+
 urlpatterns = [
-    # Don't allow login through the admin's login system. It doesn't respect our 2FA implementation.
-    path('admin/login/', RedirectView.as_view(url='/auth/login/')),
     url(r'^admin/', admin.site.urls),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^profile/', include('apps.profiles.profile_urls', namespace='profile')),

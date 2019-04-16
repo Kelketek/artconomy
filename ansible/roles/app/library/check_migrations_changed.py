@@ -23,6 +23,7 @@ def explore_path(dir_name, hasher):
             migrations_path = os.path.join(path, 'migrations')
             if os.path.isdir(migrations_path):
                 hash_migration(migrations_path, hasher)
+    hasher.update(args.get('tilt', '0').encode('utf-8'))
     return hasher.hexdigest()
 
 

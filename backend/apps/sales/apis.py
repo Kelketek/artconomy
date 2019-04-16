@@ -1,28 +1,35 @@
+from typing import Union
 from unittest.mock import Mock
 
 import dwollav2
 import requests
-from authorize import AuthorizeClient
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
-from django.utils.datetime_safe import datetime
+from django.utils import timezone
 from lazy import lazy
 from mailchimp3 import MailChimp
 
 
-sauce = AuthorizeClient(settings.AUTHORIZE_KEY, settings.AUTHORIZE_SECRET, debug=settings.SANDBOX_APIS)
-client = dwollav2.Client(
-    key=settings.DWOLLA_KEY,
-    secret=settings.DWOLLA_SECRET,
-    environment='sandbox' if settings.SANDBOX_APIS else 'production'
-)
+def create_client() -> dwollav2.Client:
+    return dwollav2.Client(
+        key=settings.DWOLLA_KEY,
+        secret=settings.DWOLLA_SECRET,
+        environment='sandbox' if settings.SANDBOX_APIS else 'production'
+    )
 
-if settings.MAILCHIMP_API_KEY:
-    headers = requests.utils.default_headers()
-    headers['User-Agent'] = 'Artconomy (fox@artconomy.com)'
-    chimp = MailChimp(mc_api=settings.MAILCHIMP_API_KEY, timeout=10.0, request_headers=headers)
-else:
-    chimp = Mock()
+
+def init_chimp() -> Union[MailChimp, Mock]:
+    if settings.MAILCHIMP_API_KEY:
+        headers = requests.utils.default_headers()
+        headers['User-Agent'] = 'Artconomy (fox@artconomy.com)'
+        return MailChimp(mc_api=settings.MAILCHIMP_API_KEY, timeout=10.0, request_headers=headers)
+    else:
+        return Mock()
+
+
+client = create_client()
+
+chimp = init_chimp()
 
 
 class DwollaContext:
@@ -42,10 +49,10 @@ class DwollaContext:
 
     @property
     def dwolla_api(self):
-        if self.timestamp and self.timestamp > (datetime.now() - relativedelta(minutes=30)):
+        if self.timestamp and self.timestamp > (timezone.now() - relativedelta(minutes=30)):
             return self.token
         self.token = client.Auth.client()
-        self.timestamp = datetime.now()
+        self.timestamp = timezone.now()
         return self.token
 
     def __enter__(self):

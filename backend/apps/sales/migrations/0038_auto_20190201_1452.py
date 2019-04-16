@@ -18,6 +18,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('sales', '0037_product_featured'),
+        ('lib', '0013_subscription_email'),
     ]
 
     operations = [

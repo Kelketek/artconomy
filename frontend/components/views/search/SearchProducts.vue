@@ -1,0 +1,33 @@
+<template>
+  <v-container fluid class="pa-0">
+    <ac-paginated :list="list" :track-pages="true" :auto-run="false">
+      <v-flex sm6 md4 lg3 xl2 pa-1 v-for="product in list.list" :key="product.x.id">
+        <ac-product-preview :product="product.x"></ac-product-preview>
+      </v-flex>
+      <v-flex text-xs-center slot="empty">
+        <v-card>
+          <v-card-text>
+            We could not find anything which matched your request.
+          </v-card-text>
+        </v-card>
+      </v-flex>
+    </ac-paginated>
+  </v-container>
+</template>
+<script lang="ts">
+import AcPaginated from '@/components/wrappers/AcPaginated.vue'
+import {ListController} from '@/store/lists/controller'
+import Product from '@/types/Product'
+import Component, {mixins} from 'vue-class-component'
+import SearchList from '@/components/views/search/mixins/SearchList'
+import AcProductPreview from '@/components/AcProductPreview.vue'
+  @Component({
+    components: {AcProductPreview, AcPaginated},
+  })
+export default class SearchProducts extends mixins(SearchList) {
+    public list: ListController<Product> = null as unknown as ListController<Product>
+    public created() {
+      this.list = this.$getList('searchProducts', {endpoint: '/api/sales/v1/search/product/'})
+    }
+}
+</script>

@@ -19,7 +19,7 @@ def get_updater():
 class ProcessUpdate(APIView):
     def post(self, request, secret):
         if secret != settings.TELEGRAM_BOT_KEY:
-            return Response(status=status.HTTP_403_FORBIDDEN, data={'error': 'Incorrect key.'})
+            return Response(status=status.HTTP_403_FORBIDDEN, data={'detail': 'Incorrect key.'})
         updater = get_updater()
         updater.dispatcher.process_update(Update.de_json(request.data, updater.bot))
         return Response(status=status.HTTP_204_NO_CONTENT)

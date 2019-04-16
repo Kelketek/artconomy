@@ -149,6 +149,7 @@ Temporary Items
 # Distribution / packaging
 .Python
 env/
+src/
 develop-eggs/
 dist/
 downloads/
@@ -179,6 +180,7 @@ htmlcov/
 .coverage
 .coverage.*
 .cache
+reports/*
 nosetests.xml
 coverage.xml
 *,cover
@@ -244,8 +246,6 @@ yarn-error.log*
 frontend/test/unit/coverage/
 frontend/test/e2e/reports/
 selenium-debug.log
-package-lock.json
-reports/
 
 # Editor directories and files
 .idea
@@ -274,3 +274,14 @@ whoosh_index
 
 # Don't save outside icon pack to repo.
 static_resources/icons/*
+static/*
+
+backend/apps/sales/tests/fixtures/**
+backend/apps/profiles/tests/fixtures/**
+backend/apps/lib/tests/fixtures/**
+
+// Mock axios local install to try to fix promise catch-rethrow issue.
+jest-mock-promise/**
+
+# Let's not shoot ourselves in the foot.
+**/*.sql

@@ -1,14 +1,17 @@
 from unittest.mock import Mock, patch, PropertyMock
 
 from django.test import TestCase, override_settings
+
+from freezegun import freeze_time
 from moneyed import Money, Decimal
 from rest_framework.exceptions import ValidationError
 
 from apps.profiles.tests.factories import UserFactory
+from apps.sales.apis import DwollaContext
 from apps.sales.dwolla import make_dwolla_account, add_bank_account, destroy_bank_account, initiate_withdraw, \
-    perform_transfer, refund_transfer
-from apps.sales.models import BankAccount, PaymentRecord
-from apps.sales.tests.factories import BankAccountFactory, PaymentRecordFactory
+    perform_transfer
+from apps.sales.models import BankAccount, TransactionRecord
+from apps.sales.tests.factories import BankAccountFactory, TransactionRecordFactory
 
 
 @patch('apps.sales.apis.DwollaContext.dwolla_api', new_callable=PropertyMock)
@@ -29,16 +32,20 @@ class DwollaTestCase(TestCase):
             }
         )
         user.refresh_from_db()
-        self.assertEqual(user.dwolla_url, 'http://example.com')
+        self.assertEqual(user.artist_profile.dwolla_url, 'http://example.com')
 
     def test_make_dwolla_url_exists(self, mock_api):
         request = Mock()
-        user = UserFactory.create(dwolla_url='http://example.com')
+        user = UserFactory.create()
+        user.artist_profile.dwolla_url = 'http://example.com'
+        user.artist_profile.save()
         self.assertEqual(make_dwolla_account(request, user, 'Jim', 'Bob'), 'http://example.com')
         mock_api.assert_not_called()
 
     def test_add_bank_account(self, mock_api):
-        user = UserFactory.create(dwolla_url='http://example.com', username='testuser')
+        user = UserFactory.create(username='testuser')
+        user.artist_profile.dwolla_url = 'http://example.com'
+        user.artist_profile.save()
         mock_api.return_value.post.return_value.headers = {'location': 'http://example.com/funding/1'}
         add_bank_account(user, '12345678', '1111', BankAccount.CHECKING)
         mock_api.return_value.post.assert_called_with(
@@ -64,36 +71,37 @@ class DwollaTestCase(TestCase):
         account = BankAccountFactory.create()
         self.assertRaises(ValidationError, initiate_withdraw, account.user, account, Money('5.00', 'USD'), False)
 
-    @patch('apps.sales.dwolla.available_balance')
+    @patch('apps.sales.dwolla.account_balance')
     def test_initiate_withdraw(self, mock_account_balance, _mock_api):
         account = BankAccountFactory.create(url='http://whatever.com/')
         mock_account_balance.return_value = Decimal('10.00')
         record = initiate_withdraw(account.user, account, Money('5.00', 'USD'), False)
-        self.assertEqual(record.status, PaymentRecord.SUCCESS)
+        self.assertEqual(record.status, TransactionRecord.PENDING)
         self.assertEqual(record.amount, Money('5.00', 'USD'))
         self.assertEqual(record.target, account)
-        self.assertEqual(record.type, PaymentRecord.DISBURSEMENT_SENT)
-        self.assertEqual(record.source, PaymentRecord.ACCOUNT)
-        self.assertEqual(record.txn_id, 'N/A')
+        self.assertEqual(record.category, TransactionRecord.CASH_WITHDRAW)
+        self.assertEqual(record.source, TransactionRecord.HOLDINGS)
+        self.assertEqual(record.destination, TransactionRecord.BANK)
 
-    @patch('apps.sales.dwolla.available_balance')
+    @patch('apps.sales.dwolla.account_balance')
     def test_initiate_withdraw_test_only(self, mock_account_balance, _mock_api):
         account = BankAccountFactory.create(url='http://whatever.com/')
         # Remove the post-creation hook payment record.
-        PaymentRecord.objects.all().delete()
+        TransactionRecord.objects.all().delete()
         mock_account_balance.return_value = Decimal('10.00')
         record = initiate_withdraw(account.user, account, Money('5.00', 'USD'), True)
         self.assertIsNone(record)
-        self.assertEqual(PaymentRecord.objects.all().count(), 0)
+        self.assertEqual(TransactionRecord.objects.all().count(), 0)
 
     @override_settings(DWOLLA_FUNDING_SOURCE_KEY='http://someplace.com/')
     def test_perform_transfer(self, mock_api):
         account = BankAccountFactory.create(url='http://whatever.com/')
-        record = PaymentRecordFactory.create(
-            type=PaymentRecord.DISBURSEMENT_SENT,
-            status=PaymentRecord.SUCCESS,
+        record = TransactionRecordFactory.create(
+            category=TransactionRecord.CASH_WITHDRAW,
+            status=TransactionRecord.PENDING,
             amount=Money('5.00', 'USD'),
-            source=PaymentRecord.ACCOUNT,
+            source=TransactionRecord.HOLDINGS,
+            destination=TransactionRecord.BANK,
             target=account
         )
         mock_api.return_value.post.return_value.headers = {'location': 'http://transfers/123'}
@@ -119,50 +127,63 @@ class DwollaTestCase(TestCase):
             }
         )
         record.refresh_from_db()
-        self.assertEqual(record.status, PaymentRecord.SUCCESS)
-        self.assertEqual(record.txn_id, '123')
+        self.assertEqual(record.status, TransactionRecord.PENDING)
+        self.assertEqual(record.remote_id, '123')
 
     def test_perform_transfer_failure(self, mock_api):
         account = BankAccountFactory.create(url='http://whatever.com/')
-        record = PaymentRecordFactory.create(
-            type=PaymentRecord.DISBURSEMENT_SENT,
-            status=PaymentRecord.SUCCESS,
+        record = TransactionRecordFactory.create(
+            category=TransactionRecord.CASH_WITHDRAW,
+            status=TransactionRecord.PENDING,
             amount=Money('5.00', 'USD'),
-            source=PaymentRecord.ACCOUNT,
+            source=TransactionRecord.HOLDINGS,
+            destination=TransactionRecord.BANK,
             target=account,
-            txn_id='N/A'
+            remote_id='N/A',
         )
         mock_api.return_value.post.side_effect = ValueError()
         self.assertRaises(ValueError, perform_transfer, record)
         record.refresh_from_db()
-        self.assertEqual(record.txn_id, 'N/A')
-        self.assertEqual(record.status, PaymentRecord.FAILURE)
+        self.assertEqual(record.remote_id, 'N/A')
+        self.assertEqual(record.status, TransactionRecord.FAILURE)
 
 
-class TestRefundTransfer(TestCase):
-    def test_refund_transfer(self):
-        record = PaymentRecordFactory.create(
-            payee=None,
-            payer=UserFactory.create(),
-            type=PaymentRecord.DISBURSEMENT_SENT,
-            source=PaymentRecord.ACCOUNT,
-            txn_id='1234'
-        )
-        refund_transfer(record)
-        PaymentRecord.objects.get(type=PaymentRecord.DISBURSEMENT_RETURNED, txn_id='1234')
-        self.assertEqual(PaymentRecord.objects.all().count(), 2)
+@patch('apps.sales.apis.client')
+class TestDwollaContext(TestCase):
+    @override_settings(DWOLLA_FUNDING_SOURCE_KEY='https://example.com/123/')
+    def test_funding_url(self, _mock_client):
+        dwolla = DwollaContext()
+        self.assertEqual(dwolla.funding_url, 'https://example.com/123/')
 
-    def test_refund_transfer_no_duplicates(self):
-        record = PaymentRecordFactory.create(
-            payee=None,
-            payer=UserFactory.create(),
-            type=PaymentRecord.DISBURSEMENT_SENT,
-            source=PaymentRecord.ACCOUNT,
-            txn_id='1234',
-            finalized=False,
-        )
-        refund_transfer(record)
-        PaymentRecord.objects.get(type=PaymentRecord.DISBURSEMENT_RETURNED, txn_id='1234')
-        self.assertEqual(PaymentRecord.objects.all().count(), 2)
-        refund_transfer(record)
-        self.assertEqual(PaymentRecord.objects.all().count(), 2)
+    def test_account_url(self, mock_client):
+        dwolla = DwollaContext()
+        mock_client.Auth.client.return_value.get.return_value.body = {
+            '_links': {'account': {'href': 'https://wheee.com/'}}
+        }
+        self.assertEqual(dwolla.account_url, 'https://wheee.com/')
+
+    def test_dwolla_caches_token(self, mock_client):
+        dwolla = DwollaContext()
+        target = Mock()
+        mock_client.Auth.client.return_value = target
+        self.assertIs(dwolla.dwolla_api, target)
+        mock_client.Auth.client.return_value = Mock()
+        self.assertIs(dwolla.dwolla_api, target)
+
+    @freeze_time('2019-08-01')
+    def test_dwolla_expires_token(self, mock_client):
+        dwolla = DwollaContext()
+        target = Mock()
+        mock_client.Auth.client.return_value = target
+        self.assertIs(dwolla.dwolla_api, target)
+        new_target = Mock()
+        mock_client.Auth.client.return_value = new_target
+        with freeze_time('2019-08-02'):
+            self.assertIs(dwolla.dwolla_api, new_target)
+
+    def test_dwolla_context(self, mock_client):
+        dwolla = DwollaContext()
+        target = Mock()
+        mock_client.Auth.client.return_value = target
+        with dwolla as api:
+            self.assertIs(api, target)

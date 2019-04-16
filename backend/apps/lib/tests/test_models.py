@@ -1,29 +1,34 @@
+from unittest.mock import patch
+
+from django.test import TestCase
 from rest_framework import status
 
-from apps.lib.models import Notification
+from apps.lib.models import Notification, Asset, related_iterable_from_field
 from apps.lib.test_resources import APITestCase
-from apps.lib.tests.factories import CommentFactory
-from apps.profiles.tests.factories import ImageAssetFactory, UserFactory
+from apps.lib.tests.factories import AssetFactory
+from apps.lib.tests.factories_interdepend import CommentFactory
+from apps.profiles.models import User
+from apps.profiles.tests.factories import SubmissionFactory, UserFactory
 
 
 class TestComments(APITestCase):
     def test_comment_reply(self):
         user = UserFactory.create()
-        asset = ImageAssetFactory.create()
+        submission = SubmissionFactory.create()
         # Start with initial comment, check notification is sent.
-        comment = CommentFactory.create(content_object=asset)
+        comment = CommentFactory.create(content_object=submission, top=submission)
         self.assertEqual(user.comment_set.all().count(), 0)
         notifications = Notification.objects.all()
         self.assertEqual(notifications.count(), 1)
         notification = notifications[0]
-        self.assertEqual(notification.user, asset.owner)
+        self.assertEqual(notification.user, submission.owner)
         self.assertEqual(notification.event.data['comments'], [comment.id])
         self.assertEqual(notification.event.data['subcomments'], [])
-        self.assertEqual(notification.event.target, asset)
+        self.assertEqual(notification.event.target, submission)
         # Create a reply to the comment
         self.login(user)
         response = self.client.post(
-            '/api/lib/v1/comment/{}/reply/'.format(comment.id),
+            '/api/lib/v1/comments/lib.Comment/{}/'.format(comment.id),
             {
                 'text': 'This is a new comment',
             }
@@ -31,7 +36,7 @@ class TestComments(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         new_comment = response.data
         # Make sure a new notification is created and correct.
-        self.assertEqual(new_comment['children'], [])
+        self.assertEqual(new_comment['comments'], [])
         self.assertEqual(new_comment['edited'], False)
         self.assertEqual(new_comment['deleted'], False)
         self.assertEqual(new_comment['text'], 'This is a new comment')
@@ -55,7 +60,7 @@ class TestComments(APITestCase):
         user2 = UserFactory.create()
         self.login(user2)
         response = self.client.post(
-            '/api/lib/v1/comment/{}/reply/'.format(comment.id),
+            '/api/lib/v1/comments/lib.Comment/{}/'.format(comment.id),
             {
                 'text': 'This is a final comment.',
             }
@@ -70,3 +75,41 @@ class TestComments(APITestCase):
         new_notification.refresh_from_db()
         self.assertFalse(new_notification.read)
         self.assertEqual(new_notification.event.data['comments'], [new_comment['id'], last_comment['id']])
+
+
+class TestAsset(TestCase):
+    def test_can_reference_uploaded(self):
+        asset = AssetFactory.create(uploaded_by=UserFactory.create())
+        self.assertTrue(asset.can_reference(asset.uploaded_by))
+
+    def test_can_reference_outsider_no_usage_no_uploader(self):
+        asset = AssetFactory.create()
+        self.assertFalse(asset.can_reference(UserFactory.create()))
+
+    def test_can_reference_outsider_no_usage(self):
+        asset = AssetFactory.create(uploaded_by=UserFactory.create())
+        self.assertFalse(asset.can_reference(UserFactory.create()))
+
+    def test_can_reference_character_tagged(self):
+        asset = AssetFactory.create(uploaded_by=UserFactory.create())
+        submission = SubmissionFactory.create(file=asset)
+        self.assertTrue(asset.can_reference(submission.owner))
+
+    # If CELERY_ALWAYS_EAGER is enabled, the cleanup function is skipped, because it would
+    # immediately delete any asset uploaded before you can use it. For this test case, we can't
+    # just override settings. We have to patch the settings object to keep CELERY_ALWAYS_EAGER true
+    # while reporting it false for the function tested.
+    @patch('apps.lib.tasks.settings')
+    def test_cleanup(self, mock_settings):
+        mock_settings.CELERY_ALWAYS_EAGER = False
+        asset = AssetFactory.create()
+        # Should already be deleted.
+        with self.assertRaises(Asset.DoesNotExist):
+            asset.refresh_from_db()
+
+class Test(TestCase):
+    def test_related_iterable_from_field(self):
+        user = UserFactory.create()
+        related_values = list(related_iterable_from_field(user, User.artist_profile))
+        self.assertIn(user.artist_profile, related_values)
+        self.assertEqual(len(related_values), 1)

@@ -1,0 +1,161 @@
+<template>
+  <v-layout :key="journalId" column>
+    <v-flex v-if="journal.x">
+      <v-container>
+      <v-card>
+        <v-toolbar dense>
+          <ac-avatar :username="username" :show-name="false"></ac-avatar>
+          <v-toolbar-title>{{username}}</v-toolbar-title><v-spacer></v-spacer>
+          <v-tooltip bottom>
+            <template v-slot:activator="{ on }">
+              <v-icon v-on="on">info</v-icon>
+            </template>
+              {{formatDateTime(journal.x.created_on)}}
+            <span v-if="journal.x.edited"><br/>Edited: {{formatDateTime(journal.x.edited_on)}}</span>
+          </v-tooltip>
+          <v-menu offset-x left>
+            <template v-slot:activator="{on}">
+              <v-btn icon v-on="on" class="more-button"><v-icon>more_horiz</v-icon></v-btn>
+            </template>
+            <v-list dense>
+              <v-list-tile @click="editing = true" v-if="!editing && controls">
+                <v-list-tile-action><v-icon>edit</v-icon></v-list-tile-action>
+                <v-list-tile-title>Edit</v-list-tile-title>
+              </v-list-tile>
+              <v-list-tile @click.stop="journal.patch({subscribed: !journal.x.subscribed})">
+                <v-list-tile-action>
+                  <v-icon v-if="journal.x.subscribed">volume_up</v-icon>
+                  <v-icon v-else>volume_off</v-icon>
+                </v-list-tile-action>
+                <v-list-tile-title>
+                  Notifications
+                  <span v-if="journal.x.subscribed">on</span>
+                  <span v-else>off</span>
+                </v-list-tile-title>
+              </v-list-tile>
+              <v-list-tile @click.stop="journal.patch({comments_disabled: !journal.x.comments_disabled})">
+                <v-list-tile-action>
+                  <v-icon v-if="journal.x.comments_disabled">mode_comment</v-icon>
+                  <v-icon v-else>comment</v-icon>
+                </v-list-tile-action>
+                <v-list-tile-title>
+                  Comments
+                  <span v-if="journal.x.comments_disabled">locked</span>
+                  <span v-else>allowed</span>
+                </v-list-tile-title>
+              </v-list-tile>
+              <ac-confirmation :action="deleteJournal" v-if="controls">
+                <template v-slot:default="confirmContext">
+                  <v-list-tile v-on="confirmContext.on">
+                    <v-list-tile-action class="delete-button"><v-icon>delete</v-icon></v-list-tile-action>
+                    <v-list-tile-title>Delete</v-list-tile-title>
+                  </v-list-tile>
+                </template>
+              </ac-confirmation>
+            </v-list>
+          </v-menu>
+        </v-toolbar>
+        <v-card-text>
+          <v-layout row wrap>
+            <v-flex xs12 sm12 class="pt-1 pl-1 pr-1">
+              <v-flex xs12>
+                <ac-patch-field :patcher="journalSubject" v-show="editing" v-if="controls"></ac-patch-field>
+                <span class="title" v-show="!editing"><ac-rendered :value="journal.x.subject" :inline="true"></ac-rendered></span>
+              </v-flex>
+              <v-flex xs12 class="mt-2 pl-1 pr-1">
+                <ac-patch-field field-type="ac-editor" v-show="editing" v-if="controls" :patcher="body" :auto-save="false">
+                  <v-flex shrink slot="pre-actions">
+                    <v-tooltip top>
+                      <template v-slot:activator="{ on }">
+                        <v-btn v-on="on" @click="editing=false" icon color="danger" class="cancel-button" :disabled="journal.patching">
+                          <v-icon>lock</v-icon>
+                        </v-btn>
+                      </template>
+                      <span>Stop Editing</span>
+                    </v-tooltip>
+                  </v-flex>
+                </ac-patch-field>
+                <ac-rendered :value="journal.x.body" v-show="!editing"></ac-rendered>
+              </v-flex>
+            </v-flex>
+          </v-layout>
+        </v-card-text>
+      </v-card>
+      <ac-editing-toggle v-if="controls"></ac-editing-toggle>
+      </v-container>
+    </v-flex>
+    <ac-loading-spinner v-else></ac-loading-spinner>
+    <ac-comment-section :commentList="journalComments" :nesting="true" :locked="locked"></ac-comment-section>
+  </v-layout>
+</template>
+<script lang="ts">
+import Editable from '@/mixins/editable'
+import AcAvatar from '@/components/AcAvatar.vue'
+import Component, {mixins} from 'vue-class-component'
+import {SingleController} from '@/store/singles/controller'
+import {Journal} from '@/types/Journal'
+import Subjective from '@/mixins/subjective'
+import {Prop} from 'vue-property-decorator'
+import {Patch} from '@/store/singles/patcher'
+import AcRendered from '@/components/wrappers/AcRendered'
+import AcEditor from '@/components/fields/AcEditor.vue'
+import AcLoadingSpinner from '@/components/wrappers/AcLoadingSpinner.vue'
+import AcSpeedButton from '@/components/wrappers/AcSpeedButton.vue'
+import AcEditingToggle from '@/components/navigation/AcEditingToggle.vue'
+import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
+import {ListController} from '@/store/lists/controller'
+import AcCommentSection from '@/components/comments/AcCommentSection.vue'
+import AcPatchField from '@/components/fields/AcPatchField.vue'
+import Formatting from '@/mixins/formatting'
+
+  @Component({components: {
+    AcPatchField,
+    AcCommentSection,
+    AcConfirmation,
+    AcEditingToggle,
+    AcSpeedButton,
+    AcLoadingSpinner,
+    AcEditor,
+    AcRendered,
+    AcAvatar}})
+export default class extends mixins(Subjective, Editable, Formatting) {
+    @Prop({required: true})
+    public journalId!: number
+
+    public journal: SingleController<Journal> = null as unknown as SingleController<Journal>
+    public body: Patch = null as unknown as Patch
+    public journalComments: ListController<Journal> = null as unknown as ListController<Journal>
+    public journalSubject: Patch = null as unknown as Patch
+    public commentsDisabled: Patch = null as unknown as Patch
+
+    public created() {
+      this.body = this.$makePatcher({modelProp: 'journal', attrName: 'body'})
+      this.journal = this.$getSingle(
+        `journal-${this.journalId}`, {
+          endpoint: `/api/profiles/v1/account/${this.username}/journals/${this.journalId}/`,
+        })
+      this.journal.get().catch(this.setError)
+      this.journalComments = this.$getList(
+        `journal-${this.journalId}-comments`, {
+          endpoint: `/api/lib/v1/comments/profiles.Journal/${this.journalId}/`,
+          reverse: true,
+          grow: true,
+          pageSize: 5,
+        })
+      this.journalSubject = this.$makePatcher(
+        {modelProp: 'journal', attrName: 'subject', debounceRate: 300, refresh: false})
+      this.commentsDisabled = this.$makePatcher(
+        {modelProp: 'journal', attrName: 'comments_disabled'})
+    }
+    public deleteJournal() {
+      return this.journal.delete().then(this.goBack)
+    }
+
+    public get locked() {
+      return !(this.journal.x) || this.journal.x.comments_disabled
+    }
+    public goBack() {
+      this.$router.push({name: 'Profile', params: {username: this.username}})
+    }
+}
+</script>

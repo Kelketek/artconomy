@@ -1,5 +1,5 @@
 # NOTE: RabbitMQ is open source message broker software (sometimes called message-
-# oriented middleware) that implements the Advanced Message Queuing Protocol (AMQP)
+# oriented middleware) that implements the Advanced Conversation Queuing Protocol (AMQP)
 
 ---
 - name: Let there be a RabbitMQ installation (use apt to install the package)

@@ -1,7 +1,9 @@
 {% extends 'email_base.html' %}
 {% block header_message %}Order Update!{% endblock %}
 {% block message %}
-{% if target.status == 2 %}
+{% if target.status == 1 %}
+Your order has been placed and will be reviewed by the artist soon. We will update you once they have accepted your commission!
+{% elif target.status == 2 %}
 Your order has been accepted by the artist and is ready for payment!
 {% elif target.status == 4 %}
 The artist has begun work on your order. {% if target.stream_link %}<a href="{{target.stream_link}}">They're streaming the work here!</a> {% endif %}
@@ -17,5 +19,9 @@ Your order has been updated!
 {% endblock message %}
 
 {% block action %}
+{% if target.buyer.guest %}
+<a href="/claim-order/{{target.id}}/{{target.claim_token}}/">View your order here!</a>
+{% else %}
 <a href="/orders/{{target.buyer.username}}/order/{{target.id}}/">View your order here!</a>
+{% endif %}
 {% endblock %}

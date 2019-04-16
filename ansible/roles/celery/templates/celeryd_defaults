@@ -37,3 +37,10 @@ CELERYD_GROUP="www-data"
 # If enabled pid and log directories will be created if missing,
 # and owned by the userid/group configured.
 CELERY_CREATE_DIRS=1
+
+{% for key, value in app_settings.items() %}
+export {{key}}='{{value}}'
+{% endfor %}
+{% for key, value in app_settings_complex.items() %}
+export {{key}}='{{value|to_json|b64encode}}'
+{% endfor %}

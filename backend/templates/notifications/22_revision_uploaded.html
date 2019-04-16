@@ -5,5 +5,9 @@ A new revision has been added to your order!
 {% endblock message %}
 
 {% block action %}
+{% if target.buyer.guest %}
+<a href="/claim-order/{{target.id}}/{{target.claim_token}}/{{target.buyer.username}}/">View your order here!</a>
+{% else %}
 <a href="/orders/{{target.buyer.username}}/order/{{target.id}}/">View your order here!</a>
+{% endif %}
 {% endblock %}

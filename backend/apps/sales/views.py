@@ -1,13 +1,14 @@
+from collections import OrderedDict
+from functools import lru_cache
+from typing import Union, List
 from uuid import uuid4
 
-from authorize import AuthorizeResponseError
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
+from django.contrib.auth import login
 from django.contrib.contenttypes.models import ContentType
-from django.http import Http404
 from django.views.static import serve
-from django.core.files.base import ContentFile
-from django.db.models import When, F, Case, BooleanField, Q, Count
+from django.db.models import When, F, Case, BooleanField, Q, Count, QuerySet, IntegerField
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
@@ -18,58 +19,67 @@ from django.utils.datetime_safe import date
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.clickjacking import xframe_options_exempt
+from hitcount.models import HitCount
+from hitcount.views import HitCountMixin
 from moneyed import Money, Decimal
 # BDay is business day, not birthday.
 from pandas.tseries.offsets import BDay
 from rest_framework import status
-from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, CreateAPIView, RetrieveAPIView, \
-    GenericAPIView, ListAPIView, UpdateAPIView, DestroyAPIView
-from rest_framework.permissions import IsAuthenticated
+    GenericAPIView, ListAPIView, DestroyAPIView, RetrieveUpdateAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from short_stuff import slugify
 
 from apps.lib.models import DISPUTE, REFUND, COMMENT, Subscription, ORDER_UPDATE, SALE_UPDATE, REVISION_UPLOADED, \
-    NEW_PRODUCT, STREAMING, CHAR_TAG, FAVORITE, SUBMISSION_CHAR_TAG, SUBMISSION_ARTIST_TAG
-from apps.lib.permissions import ObjectStatus, IsStaff, IsSafeMethod, Any
-from apps.lib.serializers import CommentSerializer
-from apps.lib.utils import notify, recall_notification, subscribe, add_tags, demark, preview_rating
-from apps.lib.views import BaseTagView, BasePreview
-from apps.profiles.models import User, ImageAsset, Character
-from apps.profiles.permissions import ObjectControls, UserControls
-from apps.profiles.serializers import ImageAssetSerializer, UserSerializer
-from apps.profiles.utils import credit_referral
-from apps.sales.dwolla import add_bank_account, initiate_withdraw, perform_transfer, make_dwolla_account, \
+    NEW_PRODUCT, STREAMING
+from apps.lib.permissions import IsStaff, IsSafeMethod, Any, All, IsMethod
+from apps.lib.utils import notify, recall_notification, demark, preview_rating, send_transaction_email
+from apps.lib.views import BasePreview
+from apps.profiles.models import User, Submission, HAS_US_ACCOUNT, NO_US_ACCOUNT
+from apps.profiles.permissions import ObjectControls, UserControls, IsUser, IsSuperuser, IsRegistered
+from apps.profiles.serializers import UserSerializer, SubmissionSerializer
+from apps.profiles.utils import credit_referral, create_guest_user, empty_user
+from apps.sales.authorize import AuthorizeException, charge_saved_card, CardInfo, AddressInfo, \
+    create_customer_profile, charge_card, card_token_from_transaction, get_card_type
+from apps.sales.dwolla import add_bank_account, make_dwolla_account, \
     destroy_bank_account
 from apps.sales.permissions import (
     OrderViewPermission, OrderSellerPermission, OrderBuyerPermission,
     OrderPlacePermission, EscrowPermission, EscrowDisabledPermission, RevisionsVisible,
-    BankingConfigured
-)
-from apps.sales.models import Product, Order, CreditCardToken, PaymentRecord, Revision, BankAccount, \
-    WEIGHTED_STATUSES, Rating, OrderToken
+    BankingConfigured,
+    OrderStatusPermission, HasRevisionsPermission, OrderTimeUpPermission, NoOrderOutput, PaidOrderPermission)
+from apps.sales.models import Product, Order, CreditCardToken, Revision, BankAccount, \
+    WEIGHTED_STATUSES, Rating, TransactionRecord, buyer_subscriptions
 from apps.sales.serializers import (
     ProductSerializer, ProductNewOrderSerializer, OrderViewSerializer, CardSerializer,
-    NewCardSerializer, OrderAdjustSerializer, PaymentSerializer, RevisionSerializer, OrderStartedSerializer,
-    AccountBalanceSerializer, BankAccountSerializer, WithdrawSerializer, PaymentRecordSerializer,
-    PublishFinalSerializer, RatingSerializer,
-    ServicePaymentSerializer, OrderTokenSerializer, SearchQuerySerializer, NewInvoiceSerializer
-)
-from apps.sales.utils import translate_authnet_error, available_products, service_price, set_service, \
-    check_charge_required, available_products_by_load, finalize_order, available_products_from_user, available_balance
+    NewCardSerializer, PaymentSerializer, RevisionSerializer,
+    AccountBalanceSerializer, BankAccountSerializer, TransactionRecordSerializer,
+    RatingSerializer,
+    ServicePaymentSerializer, SearchQuerySerializer, NewInvoiceSerializer,
+    HoldingsSummarySerializer, ProductSampleSerializer, OrderPreviewSerializer,
+    AccountQuerySerializer, OrderCharacterTagSerializer, SubmissionFromOrderSerializer, OrderAuthSerializer)
+from apps.sales.utils import available_products, service_price, set_service, \
+    check_charge_required, available_products_by_load, finalize_order, account_balance, split_fee, \
+    recuperate_fee, ALL, POSTED_ONLY, PENDING, transfer_order
 from apps.sales.tasks import renew
 
 
 class ProductList(ListCreateAPIView):
     serializer_class = ProductSerializer
-    permission_classes = [Any(IsSafeMethod, UserControls)]
+    permission_classes = [Any(IsSafeMethod, All(IsRegistered, UserControls))]
+
+    def get(self, *args, **kwargs):
+        self.check_object_permissions(self.request, self.request.subject)
+        return super().get(*args, **kwargs)
+
+    def post(self, *args, **kwargs):
+        self.check_object_permissions(self.request, self.request.subject)
+        return super().post(*args, **kwargs)
 
     def perform_create(self, serializer):
-        self.check_object_permissions(self.request, self.request.subject)
         product = serializer.save(owner=self.request.subject, user=self.request.subject)
-        # ignore the tagging result. In the case it fails, someone's doing something pretty screwwy anyway, and it's
-        # not essential for creating the character.
-        add_tags(self.request, product, field_name='tags')
         if not product.hidden:
             notify(NEW_PRODUCT, self.request.subject, data={'product': product.id}, unique_data=True)
         return product
@@ -85,106 +95,109 @@ class ProductList(ListCreateAPIView):
 
 class ProductManager(RetrieveUpdateDestroyAPIView):
     serializer_class = ProductSerializer
-    permission_classes = [Any(IsSafeMethod, ObjectControls)]
+    permission_classes = [Any(IsSafeMethod, All(IsRegistered, ObjectControls))]
 
+    def perform_update(self, serializer):
+        super().perform_update(serializer)
+        # post-save effects will change values.
+        serializer.instance.refresh_from_db()
+
+    @lru_cache()
     def get_object(self):
         product = get_object_or_404(
             Product, user__username=self.kwargs['username'], id=self.kwargs['product'], active=True
         )
+        hit_count = HitCount.objects.get_for_object(product)
+        HitCountMixin.hit_count(self.request, hit_count)
         self.check_object_permissions(self.request, product)
         return product
 
 
-class ProductOrderTokens(ListCreateAPIView):
-    serializer_class = OrderTokenSerializer
-    permission_classes = [ObjectControls]
-
-    def get_queryset(self):
-        product = get_object_or_404(
-            Product, user__username=self.kwargs['username'], id=self.kwargs['product'], active=True
+class ProductSamples(ListCreateAPIView):
+    serializer_class = ProductSampleSerializer
+    permission_classes = [
+        Any(
+            All(IsSafeMethod, OrderPlacePermission),
+            ObjectControls,
         )
+    ]
+
+    @lru_cache()
+    def get_object(self):
+        product = get_object_or_404(Product, id=self.kwargs['product'], user__username=self.kwargs['username'])
         self.check_object_permissions(self.request, product)
-        return product.tokens.filter(expires_on__gte=timezone.now())
+        return product
+
+    def get_queryset(self) -> QuerySet:
+        product = self.get_object()
+        samples = Product.samples.through.objects.filter(product=self.get_object())
+        if not self.request.user == product.user:
+            samples = samples.exclude(submission__private=True)
+        return samples.order_by('-submission__created_on')
 
     def perform_create(self, serializer):
-        product = get_object_or_404(
-            Product, user__username=self.kwargs['username'], id=self.kwargs['product'], active=True
+        instance, _ = Product.samples.through.objects.get_or_create(
+            product=self.get_object(), submission_id=serializer.validated_data['submission_id'],
         )
-        self.check_object_permissions(self.request, product)
-        return serializer.save(product=product)
+        serializer.instance = instance
+        return instance
 
 
-class OrderTokenManager(DestroyAPIView):
-    serializer_class = OrderTokenSerializer
-    permission_classes = [ObjectControls]
+class ProductSampleManager(DestroyAPIView):
+    permission_classes = [IsRegistered, ObjectControls]
+    serializer_class = ProductSampleSerializer
 
-    def get_object(self):
-        product = get_object_or_404(
-            Product, user__username=self.kwargs['username'], id=self.kwargs['product'], active=True
+    def get_object(self) -> Submission.artists.through:
+        return get_object_or_404(
+            Product.samples.through, id=self.kwargs['tag_id'],
+            product__id=self.kwargs['product'],
         )
-        self.check_object_permissions(self.request, product)
-        return get_object_or_404(OrderToken, product=product, id=self.kwargs['order_token'])
 
+    def perform_destroy(self, instance: Submission.artists.through):
+        self.check_object_permissions(self.request, instance.product)
+        if instance.product.primary_submission == instance.submission:
+            instance.product.primary_submission = None
+            instance.product.save()
+        instance.delete()
 
-class ProductExamples(ListAPIView):
-    serializer_class = ImageAssetSerializer
-
-    def get_queryset(self):
-        product = get_object_or_404(
-            Product, user__username=self.kwargs['username'], id=self.kwargs['product'], active=True
-        )
-        qs = ImageAsset.objects.filter(order__product=product, rating__lte=self.request.max_rating)
-        if not (self.request.user == product.user or self.request.user.is_staff):
-            if product.hidden:
-                raise PermissionDenied('Example listings for this product are hidden.')
-            qs = qs.exclude(private=True)
-        return qs
 
 
 class PlaceOrder(CreateAPIView):
     serializer_class = ProductNewOrderSerializer
-    permission_classes = [IsAuthenticated, OrderPlacePermission]
-
-    def get_serializer(self, instance=None, data=None, many=False, partial=False):
-        return self.serializer_class(
-            instance=instance, data=data, many=many, partial=partial, request=self.request,
-            context=self.get_serializer_context()
-        )
-
-    def can_create(self, product, serializer):
-        if self.request.user == product.user:
-            return False, 'You cannot order your own products. Use a placeholder order instead.', None
-        token = serializer.validated_data.get('order_token')
-        token_failed = False
-        if token:
-            tokens = product.tokens.filter(activation_code=token, expires_on__gte=timezone.now())
-            if tokens.exists():
-                return True, '', tokens[0]
-            else:
-                token_failed = True
-        if available_products_from_user(product.user).filter(id=product.id).exists():
-            return True, '', None
-        if token_failed:
-            return False, 'The order token you provided is expired, revoked, or invalid.', None
-        return False, 'This product is not available at this time.', None
+    permission_classes = [OrderPlacePermission]
 
     def perform_create(self, serializer):
         product = get_object_or_404(Product, id=self.kwargs['product'], active=True)
-        can_order, message, token = self.can_create(product, serializer)
-        if not can_order:
-            raise ValidationError({'errors': [message]})
+        self.check_object_permissions(self.request, product)
+        user = self.request.user
+        if not user.is_authenticated:
+            user = create_guest_user(serializer.validated_data['email'])
+            login(self.request, user)
+        elif not user.is_registered:
+            if self.request.user.guest_email != serializer.validated_data['email']:
+                user = create_guest_user(serializer.validated_data['email'])
+                login(self.request, user)
         order = serializer.save(
-            product=product, buyer=self.request.user, seller=product.user, escrow_disabled=product.user.escrow_disabled
+            product=product, buyer=user, seller=product.user,
+            escrow_disabled=product.user.artist_profile.escrow_disabled,
         )
-        if token:
-            token.delete()
-        for character in order.characters.all():
-            character.shared_with.add(order.seller)
+        if not user.guest:
+            for character in order.characters.all():
+                character.shared_with.add(order.seller)
         notify(SALE_UPDATE, order, unique=True, mark_unread=True)
+        notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
         return order
 
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        order = self.perform_create(serializer)
+        serializer = OrderViewSerializer(instance=order, context=self.get_serializer_context())
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
-class OrderRetrieve(RetrieveAPIView):
+
+class OrderManager(RetrieveUpdateAPIView):
     permission_classes = [OrderViewPermission]
     serializer_class = OrderViewSerializer
 
@@ -193,28 +206,45 @@ class OrderRetrieve(RetrieveAPIView):
         self.check_object_permissions(self.request, order)
         return order
 
-    def put(self, request, *args, **kwargs):
-        order = self.get_object()
-        data = {'subscribed': request.data.get('subscribed')}
-        serializer = self.get_serializer(instance=order, data=data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(status=status.HTTP_200_OK, data=serializer.data)
 
-
-class OrderAccept(UpdateAPIView):
+class OrderInvite(GenericAPIView):
     permission_classes = [OrderSellerPermission]
-    serializer_class = OrderAdjustSerializer
+    serializer_class = OrderViewSerializer
+
+    def get_object(self):
+        order = get_object_or_404(Order, id=self.kwargs['order_id'])
+        return order
+
+    def post(self, request, **kwargs):
+        order = self.get_object()
+        self.check_object_permissions(self.request, order)
+        if order.buyer:
+            return Response(data={'detail': 'This order has already been claimed.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not order.customer_email:
+            return Response(
+                data={'detail': 'Customer email not set. Cannot send an invite!'}, status=status.HTTP_400_BAD_REQUEST,
+            )
+        send_transaction_email(
+            f'You have a new invoice from {order.seller.username}!',
+            'invoice_issued.html', order.customer_email,
+            {'order': order, 'claim_token': slugify(order.claim_token)}
+        )
+        return Response(status=status.HTTP_200_OK, data=self.get_serializer(instance=order).data)
+
+
+class OrderAccept(GenericAPIView):
+    permission_classes = [
+        OrderSellerPermission,
+        OrderStatusPermission(Order.NEW, error_message="Approval can only be applied to new orders."),
+    ]
 
     def get_object(self):
         order = get_object_or_404(Order, id=self.kwargs['order_id'])
         self.check_object_permissions(self.request, order)
-        if order.status != Order.NEW:
-            self.permission_denied(self.request, "Approval can only be applied to new orders.")
         return order
 
-    def perform_update(self, serializer):
-        order = serializer.save()
+    def post(self, request, *args, **kwargs):
+        order = self.get_object()
         order.status = Order.PAYMENT_PENDING
         order.price = order.product.price
         order.task_weight = order.product.task_weight
@@ -222,15 +252,22 @@ class OrderAccept(UpdateAPIView):
         order.revisions = order.product.revisions
         if order.total() <= Money('0', 'USD'):
             order.status = Order.QUEUED
+            order.revisions_hidden = False
             order.escrow_disabled = True
         order.save()
-        data = self.serializer_class(instance=order, context=self.get_serializer_context()).data
+        data = OrderViewSerializer(instance=order, context=self.get_serializer_context()).data
         notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
         return Response(data)
 
 
 class MarkPaid(GenericAPIView):
-    permission_classes = [OrderSellerPermission, EscrowDisabledPermission]
+    permission_classes = [
+        OrderSellerPermission,
+        OrderStatusPermission(
+            Order.PAYMENT_PENDING,
+            error_message='You can only mark orders paid if they are waiting for payment.',
+        ),
+    ]
     serializer_class = OrderViewSerializer
 
     def get_object(self):
@@ -239,39 +276,45 @@ class MarkPaid(GenericAPIView):
     def post(self, request, **_kwargs):
         order = self.get_object()
         self.check_object_permissions(request, order)
-        if order.status != Order.PAYMENT_PENDING:
-            return Response(
-                {'error': 'You can only mark orders paid if they are waiting for payment.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
         if order.final_uploaded:
             order.status = Order.COMPLETED
         elif order.revision_set.all():
             order.status = Order.IN_PROGRESS
         else:
             order.status = Order.QUEUED
-        order.task_weight = order.product.task_weight
-        order.expected_turnaround = order.product.expected_turnaround
+        if order.product:
+            order.task_weight = order.product.task_weight
+            order.expected_turnaround = order.product.expected_turnaround
+            order.revisions = order.product.revisions
         order.revisions_hidden = False
+        order.commission_info = order.seller.artist_profile.commission_info
+        order.escrow_disabled = True
         order.save()
         data = self.serializer_class(instance=order, context=self.get_serializer_context()).data
         notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
         return Response(data)
 
 
-class OrderStart(UpdateAPIView):
-    permission_classes = [OrderSellerPermission]
-    serializer_class = OrderStartedSerializer
+class OrderStart(GenericAPIView):
+    permission_classes = [
+        OrderSellerPermission,
+        OrderStatusPermission(
+            Order.QUEUED,
+            error_message='You can only start orders that are queued.',
+        ),
+    ]
+    serializer_class = OrderViewSerializer
 
     def get_object(self):
         order = get_object_or_404(Order, id=self.kwargs['order_id'])
         self.check_object_permissions(self.request, order)
-        if order.status not in (Order.QUEUED, Order.IN_PROGRESS):
-            raise PermissionDenied('You can only start orders that are queued.')
         return order
 
-    def perform_update(self, serializer):
-        order = serializer.save(status=Order.IN_PROGRESS, started_on=timezone.now())
+    def post(self, *args, **kwargs):
+        order = self.get_object()
+        order.started_on = timezone.now()
+        order.status = Order.IN_PROGRESS
+        order.save()
         notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
         if not order.private and order.stream_link:
             notify(
@@ -279,70 +322,73 @@ class OrderStart(UpdateAPIView):
                 data={'order': order.id}, unique_data=True,
                 exclude=[order.buyer, order.seller]
             )
-        return Response(serializer.data)
+        return Response(data=OrderViewSerializer(instance=order, context=self.get_serializer_context()).data)
 
 
 class OrderCancel(GenericAPIView):
-    permission_classes = [OrderViewPermission]
+    permission_classes = [
+        OrderViewPermission,
+        OrderStatusPermission(
+            Order.NEW, Order.PAYMENT_PENDING,
+            error_message='You cannot cancel this order. It is either already cancelled, finalized, '
+                          'or must be refunded instead.',
+        ),
+    ]
     serializer_class = OrderViewSerializer
 
     def get_object(self):
         order = get_object_or_404(Order, id=self.kwargs['order_id'])
         self.check_object_permissions(self.request, order)
-        if self.request.user != order.seller:
-            notify(SALE_UPDATE, order, unique=True, mark_unread=True)
-        if self.request.user != order.buyer:
-            notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
-        if order.status not in [Order.NEW, Order.PAYMENT_PENDING]:
-            raise PermissionDenied(
-                "You cannot cancel this order. It is either already cancelled or must be refunded instead."
-            )
         return order
 
+    # noinspection PyUnusedLocal
     def post(self, request, order_id):
         order = self.get_object()
         order.status = Order.CANCELLED
         order.save()
+        if self.request.user != order.seller:
+            notify(SALE_UPDATE, order, unique=True, mark_unread=True)
+        if self.request.user != order.buyer:
+            notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
         data = self.serializer_class(instance=order, context=self.get_serializer_context()).data
         return Response(data)
 
 
-class OrderComments(ListCreateAPIView):
-    permission_classes = [OrderViewPermission]
-    serializer_class = CommentSerializer
-
-    def get_queryset(self):
-        order = get_object_or_404(Order, id=self.kwargs['order_id'])
-        self.check_object_permissions(self.request, order)
-        return order.comments.all()
-
-    def perform_create(self, serializer):
-        order = get_object_or_404(Order, id=self.kwargs['order_id'])
-        self.check_object_permissions(self.request, order)
-        serializer.save(
-            user=self.request.user, object_id=order.id, content_type=ContentType.objects.get_for_model(order)
-        )
-
-
 class OrderRevisions(ListCreateAPIView):
-    permission_classes = [OrderViewPermission, Any(RevisionsVisible, OrderSellerPermission)]
+    permission_classes = [
+        Any(
+            All(IsSafeMethod, OrderViewPermission, Any(RevisionsVisible, OrderSellerPermission)),
+            All(OrderSellerPermission, IsMethod('POST'), OrderStatusPermission(
+                Order.IN_PROGRESS, Order.PAYMENT_PENDING, Order.NEW, Order.QUEUED, Order.DISPUTED,
+                error_message='You may not upload revisions while the order is in this state.',
+            )),
+        ),
+    ]
+    pagination_class = None
     serializer_class = RevisionSerializer
 
+    @lru_cache()
+    def get_object(self):
+        return get_object_or_404(Order, id=self.kwargs['order_id'])
+
     def get_queryset(self):
-        order = get_object_or_404(Order, id=self.kwargs['order_id'])
-        self.check_object_permissions(self.request, order)
+        order = self.get_object()
         return order.revision_set.all()
 
+    def get(self, *args, **kwargs):
+        order = self.get_object()
+        self.check_object_permissions(self.request, order)
+        return super().get(*args, **kwargs)
+
+    def post(self, *args, **kwargs):
+        order = self.get_object()
+        self.check_object_permissions(self.request, order)
+        return super().post(*args, **kwargs)
+
     def perform_create(self, serializer):
-        order = get_object_or_404(Order, id=self.kwargs['order_id'])
-        if not (self.request.user.is_staff or self.request.user == order.seller):
-            raise PermissionDenied("You are not the seller on this order.")
-        revision = serializer.save(order=order, owner=self.request.user)
+        order = self.get_object()
+        revision = serializer.save(order=order, owner=self.request.user, rating=order.rating)
         order.refresh_from_db()
-        if order.status not in [Order.IN_PROGRESS, Order.PAYMENT_PENDING, Order.NEW, Order.QUEUED, Order.DISPUTED]:
-            raise PermissionDenied(
-                "You may not upload revisions while order is in state: {}".format(order.get_status_display())
-            )
         if order.status == Order.QUEUED:
             order.status = Order.IN_PROGRESS
         if serializer.validated_data.get('final'):
@@ -356,23 +402,34 @@ class OrderRevisions(ListCreateAPIView):
             notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
         else:
             notify(REVISION_UPLOADED, order, data={'revision': revision.id}, unique_data=True, mark_unread=True)
+        order.save()
         recall_notification(STREAMING, order.seller, data={'order': order.id})
         return revision
 
 
+delete_forbidden_message = 'You may not remove revisions from this order. They are either locked or under dispute.'
+
+
 class DeleteOrderRevision(DestroyAPIView):
-    permission_classes = [OrderSellerPermission]
+    permission_classes = [
+        OrderSellerPermission,
+        Any(
+            OrderStatusPermission(
+                Order.REVIEW, Order.PAYMENT_PENDING, Order.NEW, Order.IN_PROGRESS,
+                error_message=delete_forbidden_message,
+            ),
+            All(
+                EscrowDisabledPermission,
+                OrderStatusPermission(
+                    Order.COMPLETED,
+                    error_message=delete_forbidden_message,
+            )),
+        ),
+    ]
     serializer_class = RevisionSerializer
 
     def get_object(self):
         order = get_object_or_404(Order, id=self.kwargs['order_id'])
-        statuses = [Order.REVIEW, Order.PAYMENT_PENDING, Order.NEW, Order.IN_PROGRESS]
-        if order.escrow_disabled:
-            statuses.append(Order.COMPLETED)
-        if order.status == Order.DISPUTED:
-            raise PermissionDenied('You may not remove revisions from a disputed order.')
-        if order.status not in statuses:
-            raise PermissionDenied("This order's revisions are locked.")
         revision = get_object_or_404(Revision, id=self.kwargs['revision_id'], order_id=self.kwargs['order_id'])
         self.check_object_permissions(self.request, order)
         return revision
@@ -390,9 +447,20 @@ class DeleteOrderRevision(DestroyAPIView):
         order.save()
 
 
+reopen_error_message = 'This order cannot be reopened.'
+
+
 class ReOpen(GenericAPIView):
     serializer_class = OrderViewSerializer
-    permission_classes = [OrderSellerPermission]
+    permission_classes = [
+        OrderSellerPermission,
+        Any(
+            OrderStatusPermission(
+                Order.REVIEW, Order.PAYMENT_PENDING, Order.DISPUTED, error_message=reopen_error_message,
+            ),
+            All(EscrowDisabledPermission, OrderStatusPermission(Order.COMPLETED, error_message=reopen_error_message)),
+        )
+    ]
 
     def get_object(self):
         return get_object_or_404(Order, id=self.kwargs['order_id'])
@@ -400,25 +468,27 @@ class ReOpen(GenericAPIView):
     def post(self, _request, *_args, **_kwargs):
         order = self.get_object()
         self.check_object_permissions(self.request, order)
-        statuses = [Order.REVIEW, Order.PAYMENT_PENDING, Order.DISPUTED]
-        if order.escrow_disabled:
-            statuses.append(Order.COMPLETED)
-        if order.status not in statuses:
-            raise PermissionDenied("This order cannot be reopened.")
         if order.status not in [Order.PAYMENT_PENDING, Order.DISPUTED]:
             order.status = Order.IN_PROGRESS
         order.final_uploaded = False
         order.auto_finalize_on = None
         order.save()
         notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
-        serializer = self.get_serializer()
-        serializer.instance = order
+        serializer = self.get_serializer(instance=order)
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
 
 class MarkComplete(GenericAPIView):
     serializer_class = OrderViewSerializer
-    permission_classes = [OrderSellerPermission]
+    permission_classes = [
+        OrderSellerPermission,
+        OrderStatusPermission(
+            Order.IN_PROGRESS,
+            Order.PAYMENT_PENDING,
+            error_message='You cannot mark an order complete if it is not in progress.',
+        ),
+        HasRevisionsPermission,
+    ]
 
     def get_object(self):
         return get_object_or_404(Order, id=self.kwargs['order_id'])
@@ -431,10 +501,6 @@ class MarkComplete(GenericAPIView):
             order.save()
             serializer = self.get_serializer(instance=order)
             return Response(status=status.HTTP_200_OK, data=serializer.data)
-        if order.status != Order.IN_PROGRESS:
-            raise PermissionDenied("You cannot mark an order complete if it is not in progress.")
-        if order.revision_set.count() < 1:
-            raise PermissionDenied("You can't count an order as completed without any revisions.")
         if order.escrow_disabled:
             order.status = Order.COMPLETED
         else:
@@ -448,7 +514,17 @@ class MarkComplete(GenericAPIView):
 
 
 class StartDispute(GenericAPIView):
-    permission_classes = [OrderBuyerPermission, EscrowPermission]
+    permission_classes = [
+        OrderBuyerPermission, EscrowPermission,
+        OrderStatusPermission(
+            Order.REVIEW, Order.IN_PROGRESS, Order.QUEUED, error_message='This order is not in a disputable state.',
+        ),
+        # Slight redundancy here to ensure the right error messages display.
+        Any(
+            All(OrderTimeUpPermission, OrderStatusPermission(Order.IN_PROGRESS, Order.QUEUED)),
+            OrderStatusPermission(Order.REVIEW),
+        )
+    ]
     serializer_class = OrderViewSerializer
 
     def get_object(self):
@@ -457,22 +533,12 @@ class StartDispute(GenericAPIView):
     def post(self, _request, *_args, **_kwargs):
         order = self.get_object()
         self.check_object_permissions(self.request, order)
-        if order.status not in [Order.IN_PROGRESS, Order.QUEUED, Order.REVIEW]:
-            raise PermissionDenied('This order is not in a disputable state.')
-        if order.status in [Order.IN_PROGRESS, Order.QUEUED]:
-            if order.dispute_available_on and (order.dispute_available_on > timezone.now().date()):
-                raise PermissionDenied(
-                    "This order is not old enough to dispute. You can dispute it on {}".format(
-                        order.dispute_available_on
-                    )
-                )
         order.status = Order.DISPUTED
         order.disputed_on = timezone.now()
         order.save()
         notify(DISPUTE, order, unique=True, mark_unread=True)
         notify(SALE_UPDATE, order, unique=True, mark_unread=True)
-        serializer = self.get_serializer()
-        serializer.instance = order
+        serializer = self.get_serializer(instance=order)
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
 
@@ -483,6 +549,7 @@ class ClaimDispute(GenericAPIView):
     def get_object(self):
         return get_object_or_404(Order, id=self.kwargs['order_id'])
 
+    # noinspection PyUnusedLocal
     def post(self, request, order_id):
         obj = self.get_object()
         self.check_object_permissions(request, obj)
@@ -504,13 +571,18 @@ class ClaimDispute(GenericAPIView):
             subscriber=request.user,
             email=True,
         )
-        serializer = self.get_serializer()
-        serializer.instance = obj
+        serializer = self.get_serializer(instance=obj)
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
 
 class OrderRefund(GenericAPIView):
-    permission_classes = [OrderSellerPermission, EscrowPermission]
+    permission_classes = [
+        OrderSellerPermission,
+        OrderStatusPermission(
+            Order.QUEUED, Order.IN_PROGRESS, Order.REVIEW, Order.DISPUTED,
+            error_message='This order is not in a refundable state.',
+        )
+    ]
     serializer_class = OrderViewSerializer
 
     def get_object(self):
@@ -519,55 +591,25 @@ class OrderRefund(GenericAPIView):
     def post(self, request, *_args, **_kwargs):
         order = self.get_object()
         self.check_object_permissions(self.request, order)
-        if order.status not in [Order.QUEUED, Order.IN_PROGRESS, Order.REVIEW, Order.DISPUTED]:
-            raise PermissionDenied('This order is not in a refundable state.')
-        if order.escrow_disabled or order.total() <= Money('0', 'USD'):
+        if order.escrow_disabled:
             order.status = order.REFUNDED
+            order.save()
             notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
-            if request.user != order.seller:
-                notify(SALE_UPDATE, order, unique=True, mark_unread=True)
             serializer = self.get_serializer(instance=order, context=self.get_serializer_context())
             return Response(status=status.HTTP_200_OK, data=serializer.data)
-        old_transaction = PaymentRecord.objects.get(
-            object_id=order.id, content_type=ContentType.objects.get_for_model(order), payer=order.buyer,
-            type=PaymentRecord.SALE
+        order_type = ContentType.objects.get_for_model(order)
+        record = TransactionRecord.objects.get(
+            object_id=order.id, content_type=order_type, payer=order.buyer,
+            payee=order.seller,
+            destination=TransactionRecord.ESCROW,
+            status=TransactionRecord.SUCCESS,
         )
-        old_transaction.finalized = True
-        old_transaction.save()
-        record = PaymentRecord.objects.get(
-            status=PaymentRecord.SUCCESS,
-            object_id=order.id,
-            content_type=ContentType.objects.get_for_model(order),
-            payer=order.buyer,
-            payee=None
-        )
-        if request.user == order.seller:
-            # Reduced refund cost if seller provides refund.
-            fee = record.amount
-            fee *= Decimal(settings.PREMIUM_PERCENTAGE_FEE) * Decimal('0.01')
-            fee += Money(settings.PREMIUM_STATIC_FEE, 'USD')
-        else:
-            fee = record.amount
-            fee *= Decimal(order.seller.percentage_fee) * Decimal('0.01')
-            fee += Money(order.seller.static_fee, 'USD')
-        amount = record.amount - fee
-        record = record.refund(amount=amount)
-        if record.status == PaymentRecord.FAILURE:
-            return Response(status=status.HTTP_400_BAD_REQUEST, data={'error': record.response_message})
+        record = record.refund()
+        if record.status == TransactionRecord.FAILURE:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={'detail': record.response_message})
         order.status = Order.REFUNDED
         order.save()
-        PaymentRecord.objects.create(
-            payer=order.seller,
-            amount=fee,
-            payee=None,
-            source=PaymentRecord.ESCROW,
-            txn_id=str(uuid4()),
-            target=order,
-            type=PaymentRecord.TRANSFER,
-            status=PaymentRecord.SUCCESS,
-            response_code='RfndFee',
-            response_message='Artconomy Refund Fee'
-        )
+        recuperate_fee(record)
         notify(REFUND, order, unique=True, mark_unread=True)
         notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
         if request.user != order.seller:
@@ -577,7 +619,10 @@ class OrderRefund(GenericAPIView):
 
 
 class ApproveFinal(GenericAPIView):
-    permission_classes = [OrderBuyerPermission, EscrowPermission]
+    permission_classes = [
+        OrderBuyerPermission, EscrowPermission,
+        OrderStatusPermission(Order.REVIEW, Order.DISPUTED, error_message='This order is not in an approvable state.')
+    ]
     serializer_class = OrderViewSerializer
 
     def get_object(self):
@@ -586,58 +631,7 @@ class ApproveFinal(GenericAPIView):
     def post(self, request, *_args, **_kwargs):
         order = self.get_object()
         self.check_object_permissions(self.request, order)
-        if order.status not in [Order.REVIEW, Order.DISPUTED]:
-            raise PermissionDenied('This order is not in an approvable state.')
         finalize_order(order, request.user)
-        return Response(
-            status=status.HTTP_200_OK,
-            data=OrderViewSerializer(instance=order, context=self.get_serializer_context()).data
-        )
-
-
-class PublishFinal(GenericAPIView):
-    permission_classes = [OrderBuyerPermission]
-    serializer_class = PublishFinalSerializer
-
-    def get_object(self):
-        return get_object_or_404(Order, id=self.kwargs['order_id'])
-
-    def post(self, request, *args, **kwargs):
-        order = self.get_object()
-        self.check_object_permissions(request, order)
-        if order.outputs.exists():
-            return Response(
-                status=status.HTTP_400_BAD_REQUEST, data={'errors': ['A submission for this order already exists.']}
-            )
-        if not order.status == Order.COMPLETED:
-            return Response(
-                status=status.HTTP_400_BAD_REQUEST, data={'errors': ['Order not yet completed, or it is cancelled.']}
-            )
-        final = order.revision_set.last()
-        serializer = self.get_serializer(data=self.request.data)
-        serializer.is_valid(raise_exception=True)
-        new_file = ContentFile(final.file.read())
-        new_file.name = final.file.name
-        submission = serializer.save(
-            owner=order.buyer, order=order,
-            rating=final.rating,
-            file=new_file, private=order.private
-        )
-        submission.characters.add(*order.characters.all())
-        submission.artists.add(order.seller)
-        submission.shared_with.add(order.seller)
-        # Subscribe seller to comments on resulting work.
-        Subscription.objects.create(
-            type=COMMENT,
-            object_id=submission.id,
-            content_type=ContentType.objects.get_for_model(submission),
-            subscriber=order.seller
-        )
-        if not order.private:
-            for character in order.characters.all():
-                if not character.primary_asset and character.user == order.buyer:
-                    character.primary_asset = submission
-                    character.save()
         return Response(
             status=status.HTTP_200_OK,
             data=OrderViewSerializer(instance=order, context=self.get_serializer_context()).data
@@ -662,18 +656,25 @@ class CancelledMixin(object):
         return qs.filter(status__in=[Order.CANCELLED, Order.REFUNDED])
 
 
-class OrderListBase(ListCreateAPIView):
+class OrderListBase(ListAPIView):
     permission_classes = [ObjectControls]
-    serializer_class = OrderViewSerializer
+    serializer_class = OrderPreviewSerializer
 
     @staticmethod
-    def extra_filter(qs):
+    def extra_filter(qs):  # pragma: no cover
         return qs
 
+    def get_object(self):
+        return get_object_or_404(User, username=self.kwargs['username'])
+
     def get_queryset(self):
-        self.user = get_object_or_404(User, username=self.kwargs['username'])
-        self.check_object_permissions(self.request, self.user)
         return self.extra_filter(self.user.buys.all())
+
+    # noinspection PyAttributeOutsideInit
+    def get(self, *args, **kwargs):
+        self.user = self.get_object()
+        self.check_object_permissions(self.request, self.user)
+        return super().get(*args, **kwargs)
 
 
 class CurrentOrderList(CurrentMixin, OrderListBase):
@@ -690,16 +691,23 @@ class CancelledOrderList(CancelledMixin, OrderListBase):
 
 class SalesListBase(ListAPIView):
     permission_classes = [ObjectControls]
-    serializer_class = OrderViewSerializer
+    serializer_class = OrderPreviewSerializer
 
     @staticmethod
-    def extra_filter(qs):
+    def extra_filter(qs):  # pragma: no cover
         return qs
 
+    def get_object(self):
+        return get_object_or_404(User, username=self.kwargs['username'])
+
     def get_queryset(self):
-        self.user = get_object_or_404(User, username=self.kwargs['username'])
-        self.check_object_permissions(self.request, self.user)
         return self.extra_filter(self.user.sales.all())
+
+    def get(self, *args, **kwargs):
+        # noinspection PyAttributeOutsideInit
+        self.user = self.get_object()
+        self.check_object_permissions(self.request, self.user)
+        return super().get(*args, **kwargs)
 
 
 class CurrentSalesList(CurrentMixin, SalesListBase):
@@ -716,16 +724,24 @@ class CancelledSalesList(CancelledMixin, SalesListBase):
 
 class CasesListBase(ListAPIView):
     permission_classes = [ObjectControls, IsStaff]
-    serializer_class = OrderViewSerializer
+    serializer_class = OrderPreviewSerializer
 
     @staticmethod
-    def extra_filter(qs):
+    def extra_filter(qs):  # pragma: no cover
         return qs
 
+    def get_object(self):
+        return get_object_or_404(User, username=self.kwargs['username'])
+
     def get_queryset(self):
-        self.user = get_object_or_404(User, username=self.kwargs['username'])
         self.check_object_permissions(self.request, self.user)
         return self.extra_filter(self.user.cases.all())
+
+    def get(self, *args, **kwargs):
+        # noinspection PyAttributeOutsideInit
+        self.user = self.get_object()
+        self.check_object_permissions(self.request, self.user)
+        return super().get(*args, **kwargs)
 
 
 class CurrentCasesList(CurrentMixin, CasesListBase):
@@ -740,28 +756,20 @@ class CancelledCasesList(CancelledMixin, CasesListBase):
     pass
 
 
-class AdjustOrder(UpdateAPIView):
-    permission_classes = [
-        OrderSellerPermission, ObjectStatus(
-            [Order.NEW, Order.PAYMENT_PENDING], "You may not adjust the price of a confirmed order."
-        )
-    ]
-    serializer_class = OrderAdjustSerializer
-
-    def get_object(self):
-        order = get_object_or_404(Order, id=self.kwargs['order_id'])
-        self.check_object_permissions(self.request, order)
-        return order
-
-
 class CardList(ListCreateAPIView):
-    permission_classes = [UserControls]
+    permission_classes = [
+        Any(
+            All(IsSafeMethod, UserControls),
+            All(IsRegistered, UserControls),
+        ),
+    ]
     serializer_class = NewCardSerializer
+    pagination_class = None
 
     def get_queryset(self):
-        self.user = get_object_or_404(User, username=self.kwargs['username'])
-        self.check_object_permissions(self.request, self.user)
-        qs = self.user.credit_cards.filter(active=True)
+        user = get_object_or_404(User, username=self.kwargs['username'])
+        self.check_object_permissions(self.request, user)
+        qs = user.credit_cards.filter(active=True)
         # Primary card should always be listed first.
         qs = qs.annotate(
             primary=Case(
@@ -786,12 +794,12 @@ class CardList(ListCreateAPIView):
         serializer.is_valid(raise_exception=True)
         try:
             token = self.perform_create(serializer)
-        except AuthorizeResponseError as err:
-            return Response(data={'errors': [translate_authnet_error(err)]}, status=status.HTTP_400_BAD_REQUEST)
-        if token.user.portrait_enabled:
-            renew.delay(token.user.id, 'portrait')
-        elif token.user.landscape_enabled:
+        except AuthorizeException as err:
+            return Response(data={'detail': str(err)}, status=status.HTTP_400_BAD_REQUEST)
+        if token.user.landscape_enabled:
             renew.delay(token.user.id, 'landscape')
+        elif token.user.portrait_enabled:
+            renew.delay(token.user.id, 'portrait')
         serializer = CardSerializer(instance=token)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
@@ -803,13 +811,13 @@ class CardList(ListCreateAPIView):
         return CreditCardToken.create(
             first_name=data['first_name'], last_name=data['last_name'], country=data['country'],
             user=user, exp_month=data['exp_date'].month, exp_year=data['exp_date'].year,
-            card_number=data['card_number'], cvv=data['cvv'], zip_code=data.get('zip'),
+            number=data['number'], cvv=data['cvv'], zip_code=data.get('zip'),
             make_primary=data['make_primary']
         )
 
 
 class CardManager(RetrieveUpdateDestroyAPIView):
-    permission_classes = [ObjectControls]
+    permission_classes = [IsRegistered, ObjectControls]
     serializer_class = NewCardSerializer
 
     def get_object(self):
@@ -825,7 +833,7 @@ class CardManager(RetrieveUpdateDestroyAPIView):
 
 class MakePrimary(APIView):
     serializer_class = CardSerializer
-    permission_classes = [ObjectControls]
+    permission_classes = [IsRegistered, ObjectControls]
 
     def get_object(self):
         return get_object_or_404(
@@ -833,6 +841,7 @@ class MakePrimary(APIView):
             active=True
         )
 
+    # noinspection PyUnusedLocal
     def post(self, *args, **kwargs):
         card = self.get_object()
         self.check_object_permissions(self.request, card)
@@ -841,85 +850,202 @@ class MakePrimary(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class MakePayment(GenericAPIView):
-    serializer_class = PaymentSerializer
-    permission_classes = [OrderBuyerPermission, EscrowPermission]
+class PaymentMixin:
+    def perform_charge(
+            self, data: dict, amount: Money, user: User,
+    ) -> (bool, Union[Response, List[TransactionRecord]]):
+        if data.get('card_id'):
+            return self.charge_existing_card(data, amount, user)
+        else:
+            return self.charge_new_card(data, amount, user)
 
+    def annotate_error(self, transactions: List[TransactionRecord], err: Exception) -> (False, Response):
+        response_message = str(err)
+        for transaction in transactions:
+            transaction.response_message = response_message
+            transaction.save()
+        return False, Response(
+            status=status.HTTP_400_BAD_REQUEST, data={'detail': response_message}
+        )
+
+    def charge_new_card(
+            self, data: dict, amount: Money, user: User,
+    ) -> (bool, Union[Response, TransactionRecord]):
+        card_info = CardInfo(
+            number=data['number'],
+            exp_year=data['exp_date'].year,
+            exp_month=data['exp_date'].month,
+            cvv=data.get('cvv', None),
+        )
+        address_info = AddressInfo(
+            first_name=data['first_name'],
+            last_name=data['last_name'],
+            postal_code=data['zip'],
+            country=data['country'],
+        )
+        if not user.authorize_token:
+            user.authorize_token = create_customer_profile(user.email)
+            user.save()
+        transactions = self.init_transactions(data, amount, user)
+        try:
+            remote_id = charge_card(card_info, address_info, amount.amount)
+        except Exception as err:
+            return self.annotate_error(transactions, err)
+        for transaction in transactions:
+            transaction.status = TransactionRecord.SUCCESS
+            transaction.remote_id = remote_id
+        self.post_success(transactions, data, user)
+        for transaction in transactions:
+            transaction.save()
+
+        card_args = dict(
+            type=CreditCardToken.TYPE_TRANSLATION[get_card_type(data['number'])],
+            cvv_verified=True, user=user, last_four=data['number'][-4:],
+        )
+        if data['save_card'] and user.is_registered:
+            card_args['token'] = card_token_from_transaction(remote_id, profile_id=user.authorize_token)
+        else:
+            card_args['token'] = 'XXXX'
+            card_args['active'] = False
+        card = CreditCardToken.objects.create(**card_args)
+        if card.active and (user.primary_card is None or data['make_primary']):
+            user.primary_card = card
+            user.save()
+        for transaction in transactions:
+            transaction.card = card
+            transaction.save()
+
+        return True, transactions
+
+    def charge_existing_card(self, data: dict, amount: Money, user: User):
+        card = get_object_or_404(CreditCardToken, id=data['card_id'], active=True, user=user)
+        if not card.cvv_verified and not data.get('cvv', None):
+            return False, Response(
+                status=status.HTTP_400_BAD_REQUEST, data={'detail': 'You must enter the security code for this card.'}
+            )
+        transactions = self.init_transactions(data, amount, user)
+        for transaction in transactions:
+            transaction.card = card
+        try:
+            remote_id = charge_saved_card(
+                profile_id=card.profile_id,
+                payment_id=card.payment_id, amount=amount.amount, cvv=data.get('cvv', None),
+            )
+        except Exception as err:
+            return self.annotate_error(transactions, err)
+        for transaction in transactions:
+            transaction.status = TransactionRecord.SUCCESS
+            transaction.remote_id = remote_id
+        self.post_success(transactions, data, user)
+        for transaction in transactions:
+            transaction.save()
+        card.cvv_verified = True
+        card.save()
+        return True, transactions
+
+    def init_transactions(self, data: dict, amount: Money, user: User) -> List[TransactionRecord]:  # pragma: no cover
+        """
+        Override to create the initial transaction.
+        """
+        raise NotImplementedError('Subclass must implement init_transaction.')
+
+    def post_success(self, transactions: List[TransactionRecord], data: dict, user: User):  # pragma: no cover
+        """
+        Override to further annotate the successful transaction.
+        """
+        pass
+
+
+class MakePayment(PaymentMixin, GenericAPIView):
+    serializer_class = PaymentSerializer
+    permission_classes = [
+        OrderBuyerPermission, EscrowPermission,
+        OrderStatusPermission(
+            Order.PAYMENT_PENDING,
+            error_message='This has already been paid for, or is not ready for payment. '
+                          'Please refresh the page or contact support.',
+        )
+    ]
+
+    @lru_cache()
     def get_object(self):
         order = get_object_or_404(Order, id=self.kwargs['order_id'])
         self.check_object_permissions(self.request, order)
         return order
 
+    def init_transactions(self, data: dict, amount: Money, user: User) -> List[TransactionRecord]:
+        fee_amount = (
+                (amount.amount * settings.SERVICE_PERCENTAGE_FEE * Decimal('.01'))
+                + settings.SERVICE_STATIC_FEE
+        )
+        fee_amount = Money(fee_amount, 'USD')
+        order = self.get_object()
+        escrow_record = TransactionRecord.objects.create(
+            payer=order.buyer,
+            # Payment is currently in escrow.
+            payee=order.seller,
+            status=TransactionRecord.FAILURE,
+            category=TransactionRecord.ESCROW_HOLD,
+            source=TransactionRecord.CARD,
+            destination=TransactionRecord.ESCROW,
+            amount=amount - fee_amount,
+            response_message="Failed when contacting payment processor.",
+            target=order,
+        )
+        fee_record = TransactionRecord.objects.create(
+            payer=order.buyer,
+            payee=None,
+            source=TransactionRecord.CARD,
+            destination=TransactionRecord.RESERVE,
+            status=TransactionRecord.FAILURE,
+            category=TransactionRecord.SERVICE_FEE,
+            amount=fee_amount,
+            target=order,
+            response_message="Failed when contacting payment processor.",
+        )
+        return [escrow_record, fee_record]
+
+    def post_success(self, transactions: List[TransactionRecord], data: dict, user: User):
+        escrow_record, fee_record = transactions
+        split_fee(fee_record)
+
+    # noinspection PyUnusedLocal
     def post(self, *args, **kwargs):
         order = self.get_object()
-        if order.status != Order.PAYMENT_PENDING:
-            raise ValidationError(
-                {'amount': 'This has already been paid for, or is not ready for payment. '
-                           'Please refresh the page or contact support.'}
-            )
         attempt = self.get_serializer(data=self.request.data, context=self.get_serializer_context())
         attempt.is_valid(raise_exception=True)
         attempt = attempt.validated_data
         if attempt['amount'] != order.total().amount:
             return Response(
-                status=status.HTTP_400_BAD_REQUEST, data={'error': 'The price has changed. Please refresh the page.'}
+                status=status.HTTP_400_BAD_REQUEST, data={'detail': 'The price has changed. Please refresh the page.'}
             )
-        card = get_object_or_404(CreditCardToken, id=attempt['card_id'], active=True, user=order.buyer)
-        if not card.cvv_verified and not attempt['cvv']:
-            return Response(
-                status=status.HTTP_400_BAD_REQUEST, data={'error': 'You must enter the security code for this card.'}
-            )
-        record = PaymentRecord.objects.create(
-            card=card,
-            payer=order.buyer,
-            # Payment is currently in escrow.
-            payee=None,
-            escrow_for=order.seller,
-            status=PaymentRecord.FAILURE,
-            source=PaymentRecord.CARD,
-            type=PaymentRecord.SALE,
-            amount=attempt['amount'],
-            response_message="Failed when contacting payment processor.",
-            target=order,
-        )
-        code = status.HTTP_400_BAD_REQUEST
-        data = {'error': record.response_message}
-        try:
-            result = card.api.capture(attempt['amount'], cvv=attempt['cvv'] or None)
-        except Exception as err:
-            record.response_message = translate_authnet_error(err)
-            data['error'] = record.response_message
+        success, response = self.perform_charge(attempt, Money(attempt['amount'], 'USD'), order.buyer)
+        if not success:
+            return response
+        if order.final_uploaded:
+            order.status = Order.REVIEW
+            order.auto_finalize_on = (timezone.now() + relativedelta(days=2)).date()
+        elif order.revision_set.all().exists():
+            order.status = Order.IN_PROGRESS
         else:
-            record.status = PaymentRecord.SUCCESS
-            record.txn_id = result.uid
-            record.finalized = False
-            record.response_message = ''
-            code = status.HTTP_202_ACCEPTED
-            if order.final_uploaded:
-                order.status = Order.REVIEW
-                order.auto_finalize_on = (timezone.now() + relativedelta(days=2)).date()
-            elif order.revision_set.all().exists():
-                order.status = Order.IN_PROGRESS
-            else:
-                order.status = Order.QUEUED
-            order.revisions_hidden = False
-            # Save the original turnaround/weight.
-            order.task_weight = order.product.task_weight
-            order.expected_turnaround = order.product.expected_turnaround
-            order.dispute_available_on = (timezone.now() + BDay(ceil(ceil(order.expected_turnaround) * 1.25))).date()
-            order.paid_on = timezone.now()
-            order.save()
-            card.cvv_verified = True
-            card.save()
-            notify(SALE_UPDATE, order, unique=True, mark_unread=True)
-            credit_referral(order)
-            data = OrderViewSerializer(instance=order, context=self.get_serializer_context()).data
-        record.save()
-        return Response(status=code, data=data)
+            order.status = Order.QUEUED
+        order.revisions_hidden = False
+        # Save the original turnaround/weight.
+        order.task_weight = order.product.task_weight
+        order.expected_turnaround = order.product.expected_turnaround
+        order.dispute_available_on = (timezone.now() + BDay(ceil(ceil(order.expected_turnaround) * 1.25))).date()
+        order.paid_on = timezone.now()
+        # Preserve this so it can't be changed during disputes.
+        order.commission_info = order.seller.artist_profile.commission_info
+        order.save()
+        notify(SALE_UPDATE, order, unique=True, mark_unread=True)
+        credit_referral(order)
+        data = OrderViewSerializer(instance=order, context=self.get_serializer_context()).data
+        return Response(data=data)
 
 
 class AccountBalance(RetrieveAPIView):
-    permission_classes = [UserControls]
+    permission_classes = [IsRegistered, UserControls]
     serializer_class = AccountBalanceSerializer
 
     def get_object(self):
@@ -929,8 +1055,9 @@ class AccountBalance(RetrieveAPIView):
 
 
 class BankAccounts(ListCreateAPIView):
-    permission_classes = [UserControls]
+    permission_classes = [IsUser]
     serializer_class = BankAccountSerializer
+    pagination_class = None
 
     def get_queryset(self):
         user = get_object_or_404(User, username=self.kwargs['username'])
@@ -942,10 +1069,8 @@ class BankAccounts(ListCreateAPIView):
         self.check_object_permissions(self.request, user)
         # validated_data will have the additional fields, whereas data only contains fields for model creation.
         data = serializer.validated_data
-        if available_balance(user) < Decimal('1.00'):
-            raise ValidationError(
-                {'errors': ['You do not have sufficient balance to cover the $1.00 connection fee yet.']}
-            )
+        if account_balance(user, TransactionRecord.HOLDINGS) < Decimal('1.00'):
+            raise PermissionDenied('You do not have sufficient balance to cover the $1.00 connection fee yet.')
         make_dwolla_account(self.request, user, data['first_name'], data['last_name'])
         account = add_bank_account(user, data['account_number'], data['routing_number'], data['type'])
         serializer.instance = account
@@ -953,61 +1078,16 @@ class BankAccounts(ListCreateAPIView):
 
 
 class BankManager(DestroyAPIView):
-    permission_classes = [ObjectControls]
+    permission_classes = [IsUser]
     serializer_class = BankAccountSerializer
 
     def get_object(self):
         bank = get_object_or_404(BankAccount, user__username=self.kwargs['username'], id=self.kwargs['account'])
-        self.check_object_permissions(self.request, bank)
+        self.check_object_permissions(self.request, bank.user)
         return bank
 
     def perform_destroy(self, instance):
         destroy_bank_account(instance)
-
-
-class PerformWithdraw(APIView):
-    permission_classes = [ObjectControls]
-    serializer_class = WithdrawSerializer
-
-    def post(self, request, username):
-        errors = {}
-        user = get_object_or_404(User, username=username)
-        serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        bank = None
-        try:
-            bank = BankAccount.objects.get(id=serializer.data['bank'])
-            if not bank.user == user or bank.deleted:
-                errors['account'] = ['The user has no such account.']
-        except BankAccount.DoesNotExist:
-            errors['account'] = ['The user has no such account.']
-        self.check_object_permissions(request, bank)
-        try:
-            record = initiate_withdraw(user, bank, Money(serializer.data['amount'], 'USD'), test_only=errors)
-        except ValidationError as err:
-            errors.update(err.detail)
-        if errors:
-            return Response(data=errors, status=status.HTTP_400_BAD_REQUEST)
-        perform_transfer(record, note='Disbursement')
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-class ProductTag(BaseTagView):
-    permission_classes = [ObjectControls]
-
-    def get_object(self):
-        return get_object_or_404(Product, user__username__iexact=self.kwargs['username'], id=self.kwargs['product'])
-
-    def post_delete(self, product, qs):
-        return Response(
-            status=status.HTTP_200_OK,
-            data=ProductSerializer(instance=product).data
-        )
-
-    def post_post(self, product, tag_list):
-        return Response(
-            status=status.HTTP_200_OK, data=ProductSerializer(instance=product).data
-        )
 
 
 class ProductSearch(ListAPIView):
@@ -1024,7 +1104,7 @@ class ProductSearch(ListAPIView):
         featured = search_serializer.validated_data.get('featured', False)
         watchlist_only = False
         if self.request.user.is_authenticated:
-            watchlist_only = search_serializer.validated_data.get('watchlist_only')
+            watchlist_only = search_serializer.validated_data.get('watch_list')
 
         # If staffer, allow search on behalf of user.
         if self.request.user.is_staff:
@@ -1039,11 +1119,12 @@ class ProductSearch(ListAPIView):
         if watchlist_only:
             products = products.filter(user__in=self.request.user.watching.all())
         if shield_only:
-            products = products.exclude(price=0).exclude(user__escrow_disabled=True)
+            products = products.exclude(price=0).exclude(user__artist_profile__escrow_disabled=True)
         if featured:
             products = products.filter(featured=True)
         if by_rating:
-            products = products.order_by(F('user__stars').desc(nulls_last=True), 'id').distinct('user__stars', 'id')
+            products = products.order_by(
+                F('user__stars').desc(nulls_last=True), '-created_on', 'id').distinct('user__stars', 'created_on', 'id')
         else:
             products = products.order_by('-created_on', 'id').distinct('created_on', 'id')
         return products.select_related('user').prefetch_related('tags')
@@ -1051,7 +1132,7 @@ class ProductSearch(ListAPIView):
 
 class PersonalProductSearch(ListAPIView):
     serializer_class = ProductSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsRegistered]
 
     def get_queryset(self):
         search_serializer = SearchQuerySerializer(data=self.request.GET)
@@ -1059,54 +1140,46 @@ class PersonalProductSearch(ListAPIView):
         query = search_serializer.validated_data.get('q', '')
         products = Product.objects.filter(user=self.request.user, name__icontains=query, active=True)
         products = products.filter(user=self.request.user)
-        return products.select_related('user').prefetch_related('tags')
+        return products.select_related('user')
 
 
-class PurchaseHistory(ListAPIView):
-    permission_classes = [UserControls]
-    serializer_class = PaymentRecordSerializer
+class AccountStatus(GenericAPIView):
+    permission_classes = [IsRegistered, UserControls]
+    serializer_class = TransactionRecordSerializer
 
-    def get_serializer(self, *args, **kwargs):
-        return self.serializer_class(user=self.user, context=self.get_serializer_context(), *args, **kwargs)
+    def get(self, request, *args, **kwargs):
+        self.check_object_permissions(self.request, request.subject)
+        query = AccountQuerySerializer(data=request.GET)
+        query.is_valid(raise_exception=True)
+        account = query.validated_data['account']
+        return Response(status=status.HTTP_200_OK, data={
+            'available': float(account_balance(request.subject, account)),
+            'posted': float(account_balance(request.subject, account, POSTED_ONLY)),
+            'pending': float(account_balance(request.subject, account, PENDING)),
+        })
 
-    def get_queryset(self):
-        self.user = get_object_or_404(User, username=self.kwargs['username'])
-        self.check_object_permissions(self.request, self.user)
-        return PaymentRecord.objects.filter(
-            payer=self.user
-        ).exclude(type__in=[PaymentRecord.DISBURSEMENT_SENT, PaymentRecord.TRANSFER]).order_by('-id').distinct('id')
 
-
-class EscrowHistory(ListAPIView):
-    permission_classes = [UserControls]
-    serializer_class = PaymentRecordSerializer
-
-    def get_serializer(self, *args, **kwargs):
-        return self.serializer_class(user=self.user, context=self.get_serializer_context(), *args, **kwargs)
+class AccountHistory(ListAPIView):
+    permission_classes = [IsRegistered, UserControls]
+    serializer_class = TransactionRecordSerializer
 
     def get_queryset(self):
-        self.user = get_object_or_404(User, username=self.kwargs['username'])
-        self.check_object_permissions(self.request, self.user)
-        return PaymentRecord.objects.filter(
-            Q(payee=self.user, source=PaymentRecord.ESCROW) | Q(escrow_for=self.user)
-        ).order_by('-id').distinct('id')
+        query = AccountQuerySerializer(data=self.request.GET)
+        query.is_valid(raise_exception=True)
+        account = query.validated_data['account']
+        return TransactionRecord.objects.filter(
+            Q(payer=self.request.subject, source=account) | Q(payee=self.request.subject, destination=account),
+        ).exclude(
+            Q(payee=self.request.subject, destination=account, status=TransactionRecord.FAILURE),
+        ).annotate(pending=Case(
+            When(status=TransactionRecord.PENDING, then=0),
+            default=1,
+            output_field=IntegerField()
+        )).order_by('pending', 'finalized_on', 'created_on')
 
-
-class AvailableHistory(ListAPIView):
-    permission_classes = [UserControls]
-    serializer_class = PaymentRecordSerializer
-
-    def get_serializer(self, *args, **kwargs):
-        return self.serializer_class(user=self.user, context=self.get_serializer_context(), *args, **kwargs)
-
-    def get_queryset(self):
-        self.user = get_object_or_404(User, username=self.kwargs['username'])
-        self.check_object_permissions(self.request, self.user)
-        return PaymentRecord.objects.filter(
-            Q(payee=self.user, source=PaymentRecord.ESCROW) | Q(payer=self.user, type=PaymentRecord.DISBURSEMENT_SENT) |
-            Q(payee=self.user, type=PaymentRecord.DISBURSEMENT_RETURNED) |
-            Q(payer=self.user, type=PaymentRecord.TRANSFER)
-        ).order_by('-id').distinct('id')
+    def get(self, request, *args, **kwargs):
+        self.check_object_permissions(self.request, self.request.subject)
+        return super().get(request, *args, **kwargs)
 
 
 class NewProducts(ListAPIView):
@@ -1121,7 +1194,7 @@ class NewProducts(ListAPIView):
 
 class WhoIsOpen(ListAPIView):
     serializer_class = ProductSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsRegistered]
 
     def get_queryset(self):
         return available_products(
@@ -1130,17 +1203,18 @@ class WhoIsOpen(ListAPIView):
 
 
 class SalesStats(APIView):
-    permission_classes = [ObjectControls]
+    permission_classes = [IsRegistered, ObjectControls]
 
+    # noinspection PyUnusedLocal
     def get(self, request, **kwargs):
         user = get_object_or_404(User, username__iexact=self.kwargs['username'])
         self.check_object_permissions(request, user)
-        products_available = available_products_by_load(user).count()
+        products_available = available_products_by_load(user.artist_profile).count()
         data = {
-            'load': user.load,
-            'max_load': user.max_load,
-            'commissions_closed': user.commissions_closed,
-            'commissions_disabled': user.commissions_disabled,
+            'load': user.artist_profile.load,
+            'max_load': user.artist_profile.max_load,
+            'commissions_closed': user.artist_profile.commissions_closed,
+            'commissions_disabled': user.artist_profile.commissions_disabled,
             'products_available': products_available,
             'active_orders': user.sales.filter(status__in=WEIGHTED_STATUSES).count(),
             'new_orders': user.sales.filter(status=Order.NEW).count(),
@@ -1148,66 +1222,67 @@ class SalesStats(APIView):
         return Response(status=status.HTTP_200_OK, data=data)
 
 
-class RateOrder(GenericAPIView):
+class RateBase(RetrieveUpdateAPIView):
     serializer_class = RatingSerializer
+    # Override the permissions per-end.
     permission_classes = [OrderViewPermission]
 
+    def get_target(self):
+        raise NotImplementedError('Override in subclass')  # pragma: no cover
+
+    def get_rater(self):
+        raise NotImplementedError('Override in subclass')  # pragma: no cover
+
+    @lru_cache()
     def get_object(self):
+        order = self.get_order()
+        rater = self.get_rater()
+        target = self.get_target()
+        ratings = Rating.objects.filter(
+            object_id=order.id, content_type=ContentType.objects.get_for_model(order), rater=rater,
+            target=target,
+        )
+        return ratings.first() or Rating(
+            object_id=order.id, content_type=ContentType.objects.get_for_model(order), rater=rater,
+            target=target,
+        )
+
+    def get_order(self):
         order = get_object_or_404(Order, id=self.kwargs['order_id'])
         self.check_object_permissions(self.request, order)
         return order
 
-    def get_target(self, order):
-        target = None
-        if order.seller == self.request.user:
-            target = order.buyer
-        elif order.buyer == self.request.user:
-            target = order.seller
-        elif self.request.GET.get('end'):
-            end = self.request.GET.get('end')
-            if end in ['buyer', 'seller']:
-                target = getattr(order, end)
-        return target
 
-    def get_rating(self, order, target):
-        ratings = Rating.objects.filter(
-            object_id=order.id, content_type=ContentType.objects.get_for_model(order), rater=self.request.user,
-            target=target
-        )
-        if ratings:
-            return ratings[0]
-        return None
+class RateBuyer(RateBase):
+    permission_classes = [
+        Any(
+            All(IsSafeMethod, OrderViewPermission),
+            All(OrderSellerPermission)
+        ),
+        OrderStatusPermission(Order.COMPLETED, Order.REFUNDED),
+        PaidOrderPermission,
+    ]
 
-    def get(self, request, **_kwargs):
-        order = self.get_object()
-        target = self.get_target(order)
-        if target is None:
-            return Response(status=status.HTTP_400_BAD_REQUEST, data={'stars': 'Target could not be determined.'})
-        rating = self.get_rating(order, target)
-        if rating is None:
-            return Response(status=status.HTTP_200_OK, data={'stars': None})
-        serializer = self.get_serializer(instance=rating)
-        return Response(status=status.HTTP_200_OK, data=serializer.data)
+    def get_target(self):
+        return self.get_order().buyer
 
-    def post(self, request, **_kwargs):
-        order = self.get_object()
-        target = self.get_target(order)
-        if target is None:
-            return Response(status=status.HTTP_400_BAD_REQUEST, data={'stars': 'Target could not be determined.'})
-        if target == request.user:
-            return Response(status=status.HTTP_400_BAD_REQUEST, data={'stars': 'You may not rate yourself.'})
-        if order.total() <= Money(0, 'USD'):
-            return Response(
-                status=status.HTTP_400_BAD_REQUEST, data={'stars': 'You may not rate an order that was free.'}
-            )
-        rating = self.get_rating(order, target)
-        serializer = self.get_serializer(instance=rating, data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(
-            rater=request.user, object_id=order.id, content_type=ContentType.objects.get_for_model(order),
-            target=target
-        )
-        return Response(status=status.HTTP_200_OK, data=serializer.data)
+    def get_rater(self):
+        return self.get_order().seller
+
+
+class RateSeller(RateBase):
+    permission_classes = [
+        Any(
+            All(IsSafeMethod, OrderViewPermission),
+            OrderBuyerPermission,
+        ),
+    ]
+
+    def get_target(self):
+        return self.get_order().seller
+
+    def get_rater(self):
+        return self.get_order().buyer
 
 
 class RatingList(ListAPIView):
@@ -1219,84 +1294,73 @@ class RatingList(ListAPIView):
 
 
 class PremiumInfo(APIView):
+    # noinspection PyMethodMayBeStatic
     def get(self, _request):
         return Response(
             status=status.HTTP_200_OK,
             data={
-                'landscape_percentage': str(settings.PREMIUM_PERCENTAGE_FEE),
-                'landscape_static': str(settings.PREMIUM_STATIC_FEE),
-                'landscape_price': str(settings.LANDSCAPE_PRICE),
-                'standard_percentage': str(settings.STANDARD_PERCENTAGE_FEE),
-                'standard_static': str(settings.STANDARD_STATIC_FEE),
-                'portrait_price': str(settings.PORTRAIT_PRICE),
+                'premium_percentage_bonus': settings.PREMIUM_PERCENTAGE_BONUS,
+                'premium_static_bonus': settings.PREMIUM_STATIC_BONUS,
+                'landscape_price': settings.LANDSCAPE_PRICE,
+                'standard_percentage': settings.SERVICE_PERCENTAGE_FEE,
+                'standard_static': settings.SERVICE_STATIC_FEE,
+                'portrait_price': settings.PORTRAIT_PRICE,
+                'minimum_price': settings.MINIMUM_PRICE,
             }
         )
 
 
-class Premium(GenericAPIView):
+class Premium(PaymentMixin, GenericAPIView):
     serializer_class = ServicePaymentSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsRegistered]
+
+    def init_transactions(self, data: dict, amount: Money, user: User) -> List[TransactionRecord]:
+        return [TransactionRecord.objects.create(
+            payer=user,
+            payee=None,
+            source=TransactionRecord.CARD,
+            destination=TransactionRecord.UNPROCESSED_EARNINGS,
+            category=TransactionRecord.SUBSCRIPTION_DUES,
+            status=TransactionRecord.FAILURE,
+            amount=amount,
+            response_message='Failed when contacting payment processor.',
+        )]
+
+    def post_success(self, transactions: List[TransactionRecord], data: dict, user: User):
+        for transaction in transactions:
+            transaction.response_message = 'Upgraded to {}'.format(data['service'])
+        set_service(user, data['service'], target_date=date.today() + relativedelta(months=1))
 
     def post(self, request):
-        attempt = self.get_serializer(data=self.request.data, context=self.get_serializer_context())
-        attempt.is_valid(raise_exception=True)
-        attempt = attempt.validated_data
-        card = get_object_or_404(CreditCardToken, id=attempt['card_id'], active=True, user=request.user)
-        if not card.cvv_verified and not attempt['cvv']:
-            return Response(
-                status=status.HTTP_400_BAD_REQUEST, data={'error': 'You must enter the security code for this card.'}
-            )
-        charge_required, target_date = check_charge_required(self.request.user, attempt['service'])
+        serializer = self.get_serializer(data=self.request.data, context=self.get_serializer_context())
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        charge_required, target_date = check_charge_required(self.request.user, data['service'])
         if not charge_required:
-            set_service(request.user, attempt['service'], target_date=target_date)
+            set_service(request.user, data['service'], target_date=target_date)
             return Response(
                 status=status.HTTP_200_OK,
                 data=UserSerializer(instance=self.request.user, context=self.get_serializer_context()).data
             )
-        price = service_price(request.user, attempt['service'])
-        record = PaymentRecord.objects.create(
-            card=card,
-            payer=self.request.user,
-            payee=None,
-            status=PaymentRecord.FAILURE,
-            source=PaymentRecord.CARD,
-            type=PaymentRecord.SALE,
-            amount=price,
-            response_message="Failed when contacting payment processor.",
-            target=request.user,
-        )
-        code = status.HTTP_400_BAD_REQUEST
-        data = {'error': record.response_message}
-        try:
-            result = card.api.capture(price.amount, cvv=attempt['cvv'] or None)
-        except Exception as err:
-            record.response_message = translate_authnet_error(err)
-            data['error'] = record.response_message
-        else:
-            record.status = PaymentRecord.SUCCESS
-            record.txn_id = result.uid
-            record.finalized = True
-            record.response_message = 'Upgraded to {}'.format(attempt['service'])
-            code = status.HTTP_202_ACCEPTED
-            card.cvv_verified = True
-            card.save()
-            set_service(request.user, attempt['service'], target_date=date.today() + relativedelta(months=1))
-            data = UserSerializer(instance=request.user, context=self.get_serializer_context()).data
-        record.save()
-        return Response(status=code, data=data)
+        amount = service_price(request.user, data['service'])
+        success, output = self.perform_charge(data, amount, self.request.user)
+        if not success:
+            return output
+        response_data = UserSerializer(instance=request.user, context=self.get_serializer_context()).data
+        return Response(data=response_data)
 
 
 class CancelPremium(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsRegistered, UserControls]
 
-    def post(self, request):
+    def post(self, request, *args, **kwargs):
         self.check_permissions(request)
-        request.user.portrait_enabled = False
-        request.user.landscape_enabled = False
-        request.user.save()
+        request.subject.portrait_enabled = False
+        request.subject.landscape_enabled = False
+        request.subject.save()
         return Response(
             status=status.HTTP_200_OK,
-            data=UserSerializer(context={'request': request}, instance=self.request.user).data
+            data=UserSerializer(context={'request': request}, instance=self.request.subject).data
         )
 
 
@@ -1305,7 +1369,7 @@ class StorePreview(BasePreview):
         user = get_object_or_404(User, username__iexact=username)
         return {
             'title': "{}'s store",
-            'description': demark(user.commission_info),
+            'description': demark(user.artist_profile.commission_info),
             'image_link': user.avatar_url
         }
 
@@ -1325,9 +1389,10 @@ class ProductPreview(BasePreview):
 
 
 class CommissionStatusImage(View):
+    # noinspection PyMethodMayBeStatic
     def get(self, request, username):
         user = get_object_or_404(User, username__iexact=username)
-        if user.commissions_disabled:
+        if user.artist_profile.commissions_disabled:
             return serve(request, '/images/commissions-closed.png', document_root=settings.STATIC_ROOT)
         else:
             return serve(request, '/images/commissions-open.png', document_root=settings.STATIC_ROOT)
@@ -1336,6 +1401,7 @@ class CommissionStatusImage(View):
 class FeatureProduct(APIView):
     permission_classes = [IsStaff]
 
+    # noinspection PyMethodMayBeStatic
     def post(self, request, username, product):
         product = get_object_or_404(Product, id=product, user__username=username)
         product.featured = not product.featured
@@ -1387,69 +1453,264 @@ class CreateInvoice(GenericAPIView):
     """
     Used to create a new order from the seller's side.
     """
-    permission_classes = [IsAuthenticated, BankingConfigured]
+    permission_classes = [IsRegistered, UserControls, BankingConfigured]
     serializer_class = NewInvoiceSerializer
 
-    def post(self, request):
+    def post(self, request, username):
+        user = get_object_or_404(User, username=username)
+        self.check_object_permissions(request, user)
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         buyer = serializer.validated_data['buyer']
-        product = serializer.validated_data['product']
+        product = serializer.validated_data.get('product', None)
         if serializer.validated_data['completed']:
             raw_task_weight = 0
             raw_expected_turnaround = 0
+            raw_revisions = 0
         else:
             raw_task_weight = serializer.validated_data['task_weight']
             raw_expected_turnaround = serializer.validated_data['expected_turnaround']
-        adjustment = serializer.validated_data['price'] - product.price.amount
+            raw_revisions = serializer.validated_data['revisions']
+        if product:
+            price = product.price
+            adjustment = Money(serializer.validated_data['price'] - product.price.amount, 'USD')
+            task_weight = product.task_weight
+            adjustment_task_weight = raw_task_weight - product.task_weight
+            adjustment_expected_turnaround = raw_expected_turnaround - product.expected_turnaround
+            expected_turnaround = product.expected_turnaround
+            revisions = product.revisions
+            adjustment_revisions = raw_revisions - product.revisions
+        else:
+            price = Money(serializer.validated_data['price'], 'USD')
+            task_weight = raw_task_weight
+            expected_turnaround = raw_expected_turnaround
+            revisions = raw_revisions
+            adjustment_task_weight = 0
+            adjustment_expected_turnaround = 0
+            adjustment_revisions = 0
+            adjustment = Money('0.00', 'USD')
 
-        if isinstance(buyer, str):
-            customer_email = buyer
+        if isinstance(buyer, str) or buyer is None:
+            customer_email = buyer or ''
             buyer = None
-            claim_token = uuid4()
         else:
             buyer = buyer
             customer_email = ''
-            claim_token = None
+        paid = serializer.validated_data['paid'] or ((price + adjustment) == Money('0', 'USD'))
         escrow_disabled = (
-                (product.price.amount + adjustment) <= 0 or request.user.bank_account_status != User.HAS_US_ACCOUNT
+                paid or (user.artist_profile.bank_account_status != HAS_US_ACCOUNT)
         )
+        if paid:
+            if serializer.validated_data['completed']:
+                # Seller still has to upload revisions.
+                order_status = Order.IN_PROGRESS
+            else:
+                order_status = Order.QUEUED
+            revisions_hidden = False
+        else:
+            order_status = Order.PAYMENT_PENDING
+            revisions_hidden = True
+
         order = Order.objects.create(
-            seller=request.user,
+            seller=user,
             buyer=buyer,
             customer_email=customer_email,
-            claim_token=claim_token,
             product=product,
-            price=product.price,
+            price=price,
             escrow_disabled=escrow_disabled,
             details=serializer.validated_data['details'],
             private=serializer.validated_data['private'],
             adjustment=adjustment,
-            adjustment_task_weight=raw_task_weight - product.task_weight,
-            adjustment_expected_turnaround=raw_expected_turnaround - product.expected_turnaround,
-            revisions_hidden=True,
-            revisions=product.revisions,
-            status=Order.PAYMENT_PENDING
+            adjustment_task_weight=adjustment_task_weight,
+            task_weight=task_weight,
+            adjustment_expected_turnaround=adjustment_expected_turnaround,
+            expected_turnaround=expected_turnaround,
+            revisions_hidden=revisions_hidden,
+            revisions=revisions,
+            adjustment_revisions=adjustment_revisions,
+            commission_info=request.subject.artist_profile.commission_info,
+            status=order_status,
         )
         return Response(data=OrderViewSerializer(instance=order, context=self.get_serializer_context()).data)
 
 
-class ClaimOrder(APIView):
-    permission_classes = [IsAuthenticated]
+class OverviewReport(APIView):
+    permission_classes = [IsSuperuser]
+    def get(self, request):
+        data = OrderedDict()
+        data['earned'] = str(account_balance(None, TransactionRecord.HOLDINGS))
+        data['unprocessed'] = str(account_balance(None, TransactionRecord.UNPROCESSED_EARNINGS))
+        data['escrow'] = str(account_balance(ALL, TransactionRecord.ESCROW))
+        data['reserve'] = str(account_balance(None, TransactionRecord.RESERVE))
+        data['holdings'] = str(
+                account_balance(ALL, TransactionRecord.HOLDINGS) - account_balance(None, TransactionRecord.HOLDINGS)
+        )
+        return Response(data=data)
 
-    def post(self, request, order_id, claim_token):
-        order = get_object_or_404(Order, id=order_id)
-        if request.user.is_authenticated:
+
+class CustomerHoldings(ListAPIView):
+    permission_classes = [IsSuperuser]
+    serializer_class = HoldingsSummarySerializer
+
+    def get_queryset(self):
+        return User.objects.all().order_by('username')
+
+
+class ProductRecommendations(ListAPIView):
+    serializer_class = ProductSerializer
+    permission_classes = [
+        Any(
+            All(IsSafeMethod, OrderPlacePermission),
+            ObjectControls,
+        )
+    ]
+
+    @lru_cache()
+    def get_object(self):
+        return get_object_or_404(Product, id=self.kwargs['product'])
+
+    def get_queryset(self):
+        product = self.get_object()
+        qs = available_products(self.request.user, ordering=False).exclude(id=product.id)
+        qs = qs.annotate(
+            same_artist=Case(
+                When(user=product.user, then=0-F('id')),
+                default=0,
+                output_field=IntegerField(),
+            ),
+        ).order_by('same_artist', '?')
+        return qs
+
+
+class OrderCharacterList(ListAPIView):
+    permission_classes = [OrderViewPermission]
+    pagination_class = None
+    serializer_class = OrderCharacterTagSerializer
+
+    def get_queryset(self) -> QuerySet:
+        return Order.characters.through.objects.filter(order=self.get_object())
+
+    @lru_cache()
+    def get_object(self) -> Order:
+        order = get_object_or_404(Order, id=self.kwargs['order_id'])
+        self.check_object_permissions(self.request, order)
+        return order
+
+
+class OrderOutputs(ListCreateAPIView):
+    permission_classes = [
+        OrderViewPermission,
+        OrderStatusPermission(Order.COMPLETED),
+        Any(
+            All(IsRegistered, NoOrderOutput),
+            IsSafeMethod,
+        )
+    ]
+    pagination_class = None
+    serializer_class = SubmissionSerializer
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return SubmissionFromOrderSerializer
+        return SubmissionSerializer
+
+    def get_queryset(self) -> QuerySet:
+        return self.get_object().outputs.all()
+
+    @lru_cache()
+    def get_object(self) -> Order:
+        order = get_object_or_404(Order, id=self.kwargs['order_id'])
+        self.check_object_permissions(self.request, order)
+        return order
+
+    def post(self, request, *args, **kwargs):
+        order = self.get_object()
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        revision = order.revision_set.all().last()
+        if not revision:
+            return Response(
+                data={'detail': 'You can not create a submission from an order with no revisions.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        instance = serializer.save(
+            owner=request.user, order=order, rating=order.rating, file=revision.file,
+        )
+        instance.characters.set(order.characters.all())
+        instance.artists.add(order.seller)
+        for character in instance.characters.all():
+            if request.user == character.user and not character.primary_submission:
+                character.primary_submission = instance
+                character.save()
+        if order.product and request.user == order.seller:
+            order.product.samples.add(instance)
+        return Response(
+            data=SubmissionSerializer(instance=instance, context=self.get_serializer_context()).data,
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class OrderAuth(GenericAPIView):
+    serializer_class = OrderAuthSerializer
+
+    def user_info(self, user):
+        serializer = UserSerializer(instance=user, context=self.get_serializer_context())
+        data = serializer.data
+        if not user.is_registered:
+            patch_data = empty_user(self.request)
+            del patch_data['username']
+            data = {**data, **patch_data}
+        return data
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        invalid = 'Invalid claim token. It may have expired. A new link will be sent to your ' \
+                  'email, if this order can be claimed.'
+        order = Order.objects.filter(
+            id=serializer.validated_data['id'],
+        ).filter(Q(buyer__guest=True) | Q(buyer__isnull=True)).first()
+        if not order:
+            return Response(
+                status=status.HTTP_401_UNAUTHORIZED, data={'detail': invalid},
+            )
+        if request.user.is_authenticated and (order.buyer and (request.user.username == order.buyer.username)):
+            # Ignore the claim token since we're already the required user, and just return success.
+            return Response(status=status.HTTP_200_OK, data=self.user_info(order.buyer))
+        if order.claim_token != serializer.validated_data['claim_token']:
+            target_email = (order.buyer and order.buyer.guest_email) or order.customer_email
+            send_transaction_email(
+                f'Claim Link for order #{order.id}.',
+                'new_claim_link.html', target_email, {'order': order, 'claim_token': slugify(order.claim_token)}
+            )
+            return Response(
+                status=status.HTTP_401_UNAUTHORIZED, data={'detail': invalid},
+            )
+        if serializer.validated_data['chown'] and not request.user.is_registered:
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST, data={
+                    'detail': 'You must be logged in to claim this order for an existing account. '
+                              'You may wish to continue as a guest instead?'
+                }
+            )
+        if serializer.validated_data['chown']:
+            old_buyer = order.buyer
             if order.seller == request.user:
-                return Response({'errors': ['You may not claim your own token.']}, status=403)
-        if not order.claim_token:
-            if order.buyer == request.user:
-                return Response({'id': order.id})
-            else:
-                raise Http404('Order not found.')
-        if claim_token != str(order.claim_token):
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-        order.buyer = request.user
-        order.claim_token = None
+                return Response(
+                    status=status.HTTP_403_FORBIDDEN, data={'detail': 'You may not claim your own order!'}
+                )
+            transfer_order(order, old_buyer, request.user)
+            return Response(status=status.HTTP_200_OK, data=self.user_info(request.user))
+
+        if not order.buyer:
+            assert order.customer_email
+            # Create the buyer now as a guest.
+            user = create_guest_user(order.customer_email)
+            order.buyer = user
+            order.customer_email = ''
+            order.save()
+            Subscription.objects.bulk_create(buyer_subscriptions(order), ignore_conflicts=True)
+        login(request, order.buyer)
+        order.claim_token = uuid4()
         order.save()
-        return Response({'id': order.id})
+        return Response(status=status.HTTP_200_OK, data=self.user_info(order.buyer))

@@ -1,6 +1,6 @@
 from apps.lib.test_resources import BaseWebAppTest
 from apps.profiles.tests.bok_choy.pages import HomePage, CharacterPage, SubmissionPage, SettingsPage
-from apps.profiles.tests.factories import CharacterFactory, ImageAssetFactory, UserFactory
+from apps.profiles.tests.factories import CharacterFactory, SubmissionFactory, UserFactory
 
 
 class TestHomePage(BaseWebAppTest):
@@ -23,7 +23,7 @@ class TestCharacterPage(BaseWebAppTest):
 class TestSubmissionPage(BaseWebAppTest):
     def setUp(self):
         super().setUp()
-        self.submission = ImageAssetFactory.create()
+        self.submission = SubmissionFactory.create()
 
     def test_basic(self):
         SubmissionPage(self.browser, submission=self.submission).visit()

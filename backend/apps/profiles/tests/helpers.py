@@ -1,23 +1,22 @@
 from io import BytesIO
 
 from PIL import Image
-from avatar.templatetags.avatar_tags import avatar_url
 
-from apps.profiles.tests.factories import CharacterFactory, ImageAssetFactory
+from apps.profiles.tests.factories import CharacterFactory, SubmissionFactory
 
 
-def gen_characters(user, count=5, asset_count=3):
+def gen_characters(user, count=5, submission_count=3):
     characters = {}
     for index in range(count):
         character = CharacterFactory.create(user=user)
         characters[character] = []
-        for i_index in range(asset_count):
-            asset = ImageAssetFactory.create(owner=user)
-            asset.characters.add(character)
+        for i_index in range(submission_count):
+            submission = SubmissionFactory.create(owner=user)
+            submission.characters.add(character)
             if i_index == 0:
-                character.primary_asset = asset
+                character.primary_submission = submission
                 character.save()
-            characters[character].append(asset)
+            characters[character].append(submission)
     return characters
 
 

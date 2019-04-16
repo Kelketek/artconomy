@@ -13,6 +13,6 @@
     - nginx
     - app
     - prerender
-    - blog
+    # - blog
     - rabbitmq
     - celery

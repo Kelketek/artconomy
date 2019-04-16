@@ -1,34 +1,37 @@
 import logging
 import os
 from pathlib import Path
+from typing import Optional
 
 import markdown
 from bs4 import BeautifulSoup
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
 from django.db import connection
-from django.db.models import Q
+from django.db.models import Q, Model, Subquery, IntegerField
 from django.db.models.signals import pre_delete
 from django.db.transaction import atomic
 from django.dispatch import receiver
+from django.http import HttpRequest
 from django.template import Template, Context
 from django.template.loader import get_template
 from django.utils import timezone
 from django.utils.datetime_safe import date
 from django.utils.deconstruct import deconstructible
 from django.utils.text import slugify
+from hitcount.models import HitCount
+from hitcount.views import HitCountMixin
 from pycountry import countries, subdivisions
 from rest_framework import status
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from telegram import Bot
 
 from apps.lib.models import Subscription, Event, Notification, Tag, Comment, COMMENT, \
     NEW_PRODUCT, COMMISSIONS_OPEN, NEW_CHARACTER, STREAMING, EMAIL_SUBJECTS, NEW_JOURNAL
-from shortcuts import make_url
-
+from shortcuts import make_url, disable_on_load
 
 BOT = None
 logger = logging.getLogger(__name__)
@@ -46,14 +49,17 @@ def countries_tweaked():
     Tweaked listing of countries.
     """
     us = countries.get(alpha_2='US')
-    yield (us.alpha_2, us.name)
+    country_list = []
     for a in countries:
         if a.alpha_2 == 'TW':
-            yield (a.alpha_2, "Taiwan")
+            country_list.append((a.alpha_2, "Taiwan"))
         elif a.alpha_2 in settings.COUNTRIES_NOT_SERVED:
             continue
         elif a.alpha_2 != 'US':
-            yield (a.alpha_2, a.name)
+            country_list.append((a.alpha_2, a.name))
+    country_list.sort(key=lambda x: x[1])
+    country_list.insert(0, (us.alpha_2, us.name))
+    return country_list
 
 
 def country_choices():
@@ -220,7 +226,8 @@ class FakeRequest:
     def __init__(self, user):
         self.user = user
 
-    def build_absolute_uri(self, value):
+    @staticmethod
+    def build_absolute_uri(value):
         return make_url(value)
 
 
@@ -297,7 +304,7 @@ def notify(
                 'target': notification_serialize(event.target, req_context), 'user': subscription.subscriber
             }
             subject = Template(subject).render(Context(ctx))
-            to = [subscription.subscriber.email]
+            to = [subscription.subscriber.guest_email or subscription.subscriber.email]
             from_email = settings.DEFAULT_FROM_EMAIL
             message = get_template(template_path).render(ctx)
             msg = EmailMessage(
@@ -352,6 +359,8 @@ def subscribe(event_type, user, target, implicit=True):
     return subscription, created
 
 
+# noinspection PyUnusedLocal
+@disable_on_load
 def clear_events(sender, instance, **_kwargs):
     """
     To be used as a signal handler elsewhere on models to make sure any events that existed with this
@@ -394,15 +403,30 @@ def remove_comment(comment_id):
         update_event(event, data, False, Subscription.objects.none(), transform=_comment_filter)
 
 
-def add_check(instance, field_name, *args):
+def add_check(instance: Optional[Model], field_name: str, *args, replace: bool = False, fallback_max: int = 200):
     args_length = len(args)
-    max_length = getattr(instance, field_name + '__max')
-    current_length = getattr(instance, field_name).all().count()
+    if instance:
+        max_length = getattr(instance, field_name + '__max')
+    else:
+        max_length = fallback_max
+    if replace or not instance:
+        current_length = 0
+    else:
+        current_length = getattr(instance, field_name).all().count()
     proposed = args_length + current_length
     if proposed > max_length:
         raise ValidationError(
             'This would exceed the maximum number of entries for this relation. {} > {}'.format(proposed, max_length)
         )
+
+
+def set_tags(instance, field_name, tag_names):
+    """
+    Idempotently sets the tags an instance field.
+    Assumes you've done all other cleanup and verification aside from ensuring the tags exist and setting them.
+    """
+    ensure_tags(tag_names)
+    getattr(instance, field_name).set(tag_names)
 
 
 def safe_add(instance, field_name, *args):
@@ -413,20 +437,24 @@ def safe_add(instance, field_name, *args):
 def ensure_tags(tag_list):
     if not tag_list:
         return
+    # May have already been run, but don't want to risk injection.
+    tag_list = tag_list_cleaner(tag_list)
     with connection.cursor() as cursor:
         # Bulk get or create
         # Django's query prepper automatically wraps our arrays in parens, but we need to have them
         # act as individual values, so we have to custom build our placeholders here.
-        statement = """
+        formatted_list = ('%s, ' * len(tag_list)).rsplit(',', 1)[0]
+        # noinspection SqlType
+        statement = f"""
                     INSERT INTO lib_tag (name)
                     (
                              SELECT i.name
-                             FROM (VALUES {}) AS i(name)
+                             FROM (VALUES {formatted_list}) AS i(name)
                              LEFT JOIN lib_tag as existing
                                      ON (existing.name = i.name)
                              WHERE existing.name IS NULL
                     )
-                    """.format(('%s, ' * len(tag_list)).rsplit(',', 1)[0])
+                    """
         cursor.execute(statement, [*tuple((tag,) for tag in tag_list)])
 
 
@@ -435,19 +463,16 @@ def tag_list_cleaner(tag_list):
     return list({tag for tag in tag_list if tag})
 
 
-def add_tags(request, target, field_name='tags'):
-    if 'tags' not in request.data:
-        return False, Response(status=status.HTTP_400_BAD_REQUEST, data={'tags': ['This field is required.']})
-    tag_list = request.POST.getlist('tags')
+def add_tags(value, target, field_name: str = 'tags'):
     # Slugify, but also do a few tricks to reduce the incidence rate of duplicates.
-    tag_list = tag_list_cleaner(tag_list)
+    tag_list = tag_list_cleaner(value)
     try:
         add_check(target, field_name, *tag_list)
     except Exception as err:
-        return False, Response(status=status.HTTP_400_BAD_REQUEST, data={'tags': [str(err)]})
+        raise ValidationError({field_name: str(err)})
     ensure_tags(tag_list)
     getattr(target, field_name).add(*Tag.objects.filter(name__in=tag_list))
-    return True, tag_list
+    return tag_list
 
 
 def remove_tags(request, target, field_name='tags'):
@@ -500,6 +525,7 @@ def require_lock(model, lock):
                 raise ValueError('%s is not a PostgreSQL supported lock mode.' % lock)
             from django.db import connection
             cursor = connection.cursor()
+            # noinspection PyProtectedMember
             cursor.execute(
                 'LOCK TABLE %s IN %s MODE' % (model._meta.db_table, lock)
             )
@@ -510,11 +536,11 @@ def require_lock(model, lock):
 
 def translate_related_names(names):
     new_names = []
-    for name in names:
-        if not name.endswith('+'):
-            new_names.append(name)
+    for related_name in names:
+        if not related_name.endswith('+'):
+            new_names.append(related_name)
             continue
-        base_name = name.split('_')[0]
+        base_name = related_name.split('_')[0]
         base_name = base_name.lower()
         base_name += '_set'
         new_names.append(base_name)
@@ -583,3 +609,18 @@ def send_transaction_email(subject, template_name, user, context):
     )
     msg.content_subtype = 'html'
     msg.send()
+
+
+# noinspection PyAbstractClass
+class SubCount(Subquery):
+    """
+    Version of Subquery that outputs the count instead of the result. Good for annotation.
+    """
+    template = "(SELECT count(*) FROM (%(subquery)s) _count)"
+    output_field = IntegerField()
+
+
+def count_hit(request: HttpRequest, instance: Model):
+    if request.GET.get('view', None):
+        hit_count = HitCount.objects.get_for_object(instance)
+        HitCountMixin.hit_count(request, hit_count)

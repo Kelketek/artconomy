@@ -1,67 +1,70 @@
-import base64, uuid
 import os
+from typing import Union, List
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
-from django.core.files.base import ContentFile
-from django.core.validators import get_available_image_extensions
+from django.db.models import Q
+from django.db.transaction import atomic
 from rest_framework import serializers
-from rest_framework.fields import SerializerMethodField
+from rest_framework.exceptions import ValidationError
+from rest_framework.fields import SerializerMethodField, empty
 from rest_framework_bulk import BulkSerializerMixin, BulkListSerializer
 
+from apps.lib.abstract_models import THUMBNAIL_IMAGE_EXTENSIONS
 from apps.lib.models import (
     Comment, Notification, Event, CHAR_TAG, SUBMISSION_CHAR_TAG, Tag, REVISION_UPLOADED,
-    ORDER_UPDATE, SALE_UPDATE, COMMENT, Subscription, ASSET_SHARED, CHAR_SHARED, NEW_CHARACTER,
-    NEW_PRODUCT, STREAMING, NEW_JOURNAL, ORDER_TOKEN_ISSUED, FAVORITE, SUBMISSION_ARTIST_TAG
-)
-from apps.profiles.models import User, ImageAsset, Character, Journal
-from apps.sales.models import Revision, Product, Order, OrderToken
+    ORDER_UPDATE, SALE_UPDATE, COMMENT, Subscription, SUBMISSION_SHARED, CHAR_SHARED, NEW_CHARACTER,
+    NEW_PRODUCT, STREAMING, NEW_JOURNAL, FAVORITE, SUBMISSION_ARTIST_TAG,
+    Asset,
+    DISPUTE)
+from apps.lib.utils import tag_list_cleaner, add_check, set_tags
+from apps.profiles.models import User, Submission, Character, Journal, Conversation
+from apps.sales.models import Revision, Product, Order
 from shortcuts import make_url
 
 
-AVAILABLE_IMAGE_EXTENSIONS = get_available_image_extensions()
+# noinspection PyUnresolvedReferences
+class RelatedAtomicMixin:
+    @atomic
+    def update(self, instance, validated_data):
+        data = {**validated_data}
+        for field_name, value in validated_data.items():
+            field = self.fields.get(field_name)
+            if not getattr(field, 'save_related', False):
+                continue
+            data.pop(field_name)
+            field.mod_instance(instance, value)
+        if not data:
+            # Don't run an update directly if there are no more fields to update.
+            # We may add a way to force saving anyway if it ends up needed,
+            # but this prevents us from updating edit timestamps for things like subscribing to comments.
+            return instance
+        return super().update(instance, data)
 
-
-class UserInfoMixin:
-
-    def get_watching(self, obj):
-        request = self.context.get('request')
-        if not request:
-            return None
-        if not request.user.is_authenticated:
-            return None
-        return request.user.watching.filter(id=obj.id).exists()
-
-    def get_blocked(self, obj):
-        request = self.context.get('request')
-        if not request:
-            return None
-        if not request.user.is_authenticated:
-            return None
-        return request.user.blocking.filter(id=obj.id).exists()
-
-
-class UserInfoSerializer(UserInfoMixin, serializers.ModelSerializer):
-    watching = serializers.SerializerMethodField()
-    blocked = serializers.SerializerMethodField()
-
-    def __init__(self, request=None, *args, **kwargs):
-        # For compatibility with main User serializer
-        super().__init__(*args, **kwargs)
-
-    class Meta:
-        model = User
-        fields = (
-            'id', 'username', 'avatar_url', 'biography', 'has_products', 'favorites_hidden', 'watching', 'blocked',
-            'commission_info', 'stars', 'escrow_disabled', 'is_staff', 'is_superuser'
-        )
-        read_only_fields = fields
+    @atomic
+    def create(self, validated_data):
+        data = {**validated_data}
+        post_handle = {}
+        for field_name, value in validated_data.items():
+            field = self.fields.get(field_name)
+            if not getattr(field, 'save_related', False):
+                continue
+            post_handle[field_name] = value
+            data.pop(field_name)
+        instance = super(RelatedAtomicMixin, self).create(data)
+        for field_name, value in post_handle.items():
+            field = self.fields[field_name]
+            field.mod_instance(instance, value)
+        return instance
 
 
 class RelatedUserSerializer(serializers.ModelSerializer):
+    stars = serializers.FloatField()
     class Meta:
         model = User
-        fields = ('id', 'username', 'avatar_url', 'stars', 'escrow_disabled', 'is_staff', 'is_superuser')
+        fields = (
+            'id', 'username', 'avatar_url', 'stars', 'is_staff', 'is_superuser', 'guest', 'artist_mode', 'taggable',
+        )
         read_only_fields = fields
 
 
@@ -94,10 +97,11 @@ def get_display_name(obj, context):
     if obj is None:
         return '<removed>'
     if hasattr(obj, 'notification_name'):
-            return obj.notification_name(context) or 'Untitled'
+        return obj.notification_name(context) or 'Untitled'
     return 'Unknown'
 
 
+# noinspection PyAbstractClass
 class EventTargetRelatedField(serializers.RelatedField):
     """
     A custom field to use for the `content_object` generic relationship.
@@ -113,35 +117,53 @@ class EventTargetRelatedField(serializers.RelatedField):
 
 
 # Custom image field - handles base 64 encoded images
-class Base64ImageField(serializers.ImageField):
+class RelatedAssetField(serializers.UUIDField):
+    default_error_messages = dict(
+        **serializers.UUIDField.default_error_messages, **{
+        'non_existent': "We can't find that upload. It may have expired,"
+                        " or you may not have permission to reference it.",
+        'null': 'This field may not be blank.'
+    })
     def __init__(self, *args, **kwargs):
         self.thumbnail_namespace = kwargs.pop('thumbnail_namespace', '')
         super().__init__(*args, **kwargs)
 
     def to_internal_value(self, data):
-        auto_id = uuid.uuid4()
-        if isinstance(data, str) and data.startswith('data:image'):
-            # base64 encoded image - decode
-            fmt, image_string = data.split(';base64,')  # format ~= data:image/X,
-            ext = fmt.split('/')[-1]  # guess file extension
-            data = ContentFile(base64.b64decode(image_string), name=auto_id.urn[9:] + '.' + ext)
-        else:
-            ext = os.path.splitext(data.name)[1]
-            data = ContentFile(data.read(), name=auto_id.urn[9:] + ext)
-        result = super(Base64ImageField, self).to_internal_value(data)
+        if data == '':
+            if self.allow_null:
+                return None
+            else:
+                self.fail('null')
+        data = super(RelatedAssetField, self).to_internal_value(data)
+        if not data:
+            return data
+        asset = Asset.objects.filter(id=data).first()
+        if not asset:
+            self.fail('non_existent')
+        if not asset.can_reference(self.context['request'].user):
+            self.fail('non_existent')
+        return asset
+
+    def get_value(self, dictionary):
+        result = super(RelatedAssetField, self).get_value(dictionary)
         return result
 
     def to_representation(self, value):
         if not value:
             return None
+        value = value.file
         extension = os.path.splitext(value.name)[1][1:].lower()
-        if extension not in AVAILABLE_IMAGE_EXTENSIONS:
+        if extension not in THUMBNAIL_IMAGE_EXTENSIONS:
+            if extension != 'svg':
+                extension = f'data:{extension}'
+            else:
+                extension = 'data:image'
             return {
                 '__type__': extension,
                 'full': make_url('{}{}'.format(settings.MEDIA_URL, value.name))
             }
         values = {}
-        # Construct URLs manually and avoid hitting the disk.
+        # Construct URLs manually and avoid hitting the disk/network.
         for key, val in settings.THUMBNAIL_ALIASES[self.thumbnail_namespace].items():
             values[key] = make_url('{}{}.{}x{}_q{}{}.{}'.format(
                 settings.MEDIA_URL,
@@ -156,45 +178,24 @@ class Base64ImageField(serializers.ImageField):
         values['__type__'] = 'data:image'
         return values
 
+    def mod_instance(self, instance, value):
+        pass
 
+
+# noinspection PyAbstractClass
 class RecursiveField(serializers.Serializer):
     def to_representation(self, value):
         serializer = self.parent.parent.__class__(value, context=self.context)
         return serializer.data
 
 
-class SubscribeMixin(object):
-    subscription_type = COMMENT
-
-    def update(self, instance, validated_data, **kwargs):
-        data = dict(**validated_data)
-        subscribed = data.pop('subscribed', None)
-        if data:
-            # Only call super if we're editing something other than subscription.
-            # This prevents us from changing the edited timestamp.
-            super().update(instance, data, **kwargs)
-        if subscribed is None:
-            return instance
-        subscription, created = Subscription.objects.get_or_create(
-            subscriber=self.context['request'].user, type=self.subscription_type,
-            object_id=instance.id, content_type=ContentType.objects.get_for_model(instance)
-        )
-        if subscribed:
-            subscription.removed = False
-            subscription.save()
-            return instance
-        if created:
-            subscription.delete()
-            return instance
-        subscription.removed = True
-        subscription.save()
-        return instance
-
-
 class SubscribedField(serializers.Field):
-    def __init__(self, related_name='subscriptions', extra_args=None, *args, **kwargs):
+    save_related = True
+
+    def __init__(self, *args, related_name='subscriptions', extra_args=None, subscription_type=COMMENT, **kwargs):
         self.extra_args = extra_args or {}
         self.related_name = related_name
+        self.subscription_type = subscription_type
         super().__init__(*args, **kwargs)
 
     def get_attribute(self, instance):
@@ -204,7 +205,7 @@ class SubscribedField(serializers.Field):
             subscriber=self.context['request'].user,
             object_id=instance.id,
             content_type=ContentType.objects.get_for_model(instance),
-            type=COMMENT,
+            type=self.subscription_type,
             removed=False,
             **self.extra_args
         ).exists()
@@ -217,21 +218,55 @@ class SubscribedField(serializers.Field):
             return
         return bool(data)
 
+    def mod_instance(self, instance, value):
+        subscription, created = Subscription.objects.get_or_create(
+            subscriber=self.context['request'].user, type=self.subscription_type,
+            object_id=instance.id, content_type=ContentType.objects.get_for_model(instance)
+        )
+        if value:
+            subscription.removed = False
+            subscription.save()
+            return instance
+        elif created:
+            subscription.delete()
+        subscription.removed = True
+        subscription.save()
 
-class CommentSerializer(SubscribeMixin, serializers.ModelSerializer):
-    user = RelatedUserSerializer(read_only=True)
-    children = RecursiveField(many=True, read_only=True)
+
+class CommentMixin:
+    def get_user(self, obj):
+        if obj.deleted:
+            return None
+        return RelatedUserSerializer(context=self.context, instance=obj.user).data
+
+    def get_comments(self, obj):
+        if self.context.get('history'):
+            return []
+        return CommentSerializer(
+            many=True, instance=reversed(obj.comments.all().order_by('-created_on')[:5]),
+            context=self.context,
+        ).data
+
+    def get_comment_count(self, obj):
+        return obj.comments.all().count()
+
+
+class CommentSerializer(RelatedAtomicMixin, CommentMixin, serializers.ModelSerializer):
+    user = SerializerMethodField()
+    comments = SerializerMethodField()
+    comment_count = SerializerMethodField()
     subscribed = SubscribedField(required=False)
 
     class Meta:
         model = Comment
         fields = (
-            'id', 'text', 'created_on', 'edited_on', 'user', 'children', 'edited', 'deleted', 'subscribed', 'system'
+            'id', 'text', 'created_on', 'edited_on', 'user', 'comments', 'comment_count', 'edited', 'deleted',
+            'subscribed', 'system',
         )
-        read_only_fields = ('id', 'created_on', 'edited_on', 'user', 'children', 'edited', 'deleted', 'system')
+        read_only_fields = ('id', 'created_on', 'edited_on', 'user', 'comments', 'edited', 'deleted', 'system')
 
 
-class CommentSubscriptionSerializer(SubscribeMixin, serializers.ModelSerializer):
+class CommentSubscriptionSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
     user = RelatedUserSerializer(read_only=True)
     children = RecursiveField(many=True, read_only=True)
     subscribed = SubscribedField(required=True)
@@ -253,16 +288,16 @@ def get_user(user_id):
 
 def char_tag(obj, context):
     value = obj.data
-    from apps.profiles.serializers import ImageAssetSerializer
+    from apps.profiles.serializers import SubmissionSerializer
     try:
-        asset = ImageAssetSerializer(instance=ImageAsset.objects.get(id=value['asset']), context=context).data
-    except ImageAsset.DoesNotExist:
-        asset = None
+        submission = SubmissionSerializer(instance=Submission.objects.get(id=value['submission']), context=context).data
+    except Submission.DoesNotExist:
+        submission = None
     try:
         user = RelatedUserSerializer(instance=User.objects.get(id=value['user']), context=context).data
     except User.DoesNotExist:
         user = None
-    return {'user': user, 'asset': asset}
+    return {'user': user, 'submission': submission}
 
 
 def submission_char_tag(obj, context):
@@ -287,13 +322,7 @@ def revision_uploaded(obj, context):
 
 
 def order_update(obj, context):
-    from apps.sales.serializers import RevisionSerializer, ProductSerializer
-    revision = obj.target.revision_set.all().last()
-    if revision is None:
-        display = ProductSerializer(instance=obj.target.product, context=context).data
-    else:
-        display = RevisionSerializer(instance=revision, context=context).data
-    return {'display': display}
+    return {'display': notification_display(obj.target, context=context)}
 
 
 def comment_made(obj, context):
@@ -302,7 +331,12 @@ def comment_made(obj, context):
     while top.parent:
         top = top.parent
     target = top.content_object
-    is_thread = bool((not comment.content_object) and comment.parent)
+    is_thread = isinstance(comment.content_object, Comment)
+    subject = ''
+    display = notification_display(target, context)
+    if isinstance(target, Conversation):
+        subject = f'New message from {comment.user.username}'
+        display = notification_display(comment.user, context)
     commenters = Comment.objects.filter(
         id__in=obj.data['comments'] + obj.data['subcomments']
     ).exclude(user=context['request'].user).order_by('user__username').distinct('user__username')
@@ -315,36 +349,37 @@ def comment_made(obj, context):
     link = get_link(target, context)
     if link:
         if 'query' in link:
-            link['query']['commentID'] = comment.id
+            link['query']['commentId'] = comment.id
         else:
-            link['query'] = {'commentID': comment.id}
+            link['query'] = {'commentId': comment.id}
     return {
         'top': notification_serialize(top, context),
         'commenters': list(commenters[:3].values_list('user__username', flat=True)),
         'additional': additional,
         'is_thread': is_thread,
+        'subject': subject,
         'most_recent_comment': notification_serialize(comment, context),
-        'display': notification_display(target, context),
+        'display': display,
         'link': link,
         'name': get_display_name(target, context),
     }
 
 
-def asset_shared(obj, context):
+def submission_shared(obj, context):
     try:
-        asset = ImageAsset.objects.get(id=obj.data['asset'])
-    except ImageAsset.DoesNotExist:
-        asset = None
+        submission = Submission.objects.get(id=obj.data['submission'])
+    except Submission.DoesNotExist:
+        submission = None
 
     try:
         user = User.objects.get(id=obj.data['user'])
     except User.DoesNotExist:
         user = None
 
-    serialized = notification_display(asset, context)
+    serialized = notification_display(submission, context)
 
     return {
-        'asset': serialized,
+        'submission': serialized,
         'display': serialized,
         'user': notification_display(user, context),
     }
@@ -363,7 +398,7 @@ def char_shared(obj, context):
 
     return {
         'character': notification_display(character, context),
-        'display': notification_display(character.primary_asset, context),
+        'display': notification_display(character.primary_submission, context),
         'user': notification_display(user, context),
     }
 
@@ -376,7 +411,7 @@ def new_char(obj, context):
 
     return {
         'character': notification_display(character, context),
-        'display': notification_display(character.primary_asset, context),
+        'display': notification_display(character.primary_submission, context),
     }
 
 
@@ -422,17 +457,8 @@ def favorite(obj, context):
     }
 
 
-def order_token_issued(obj, context):
-    token = OrderToken.objects.get(id=obj.data['order_token'])
-    token_data = notification_display(token, context)
-    return {
-        'token': token_data,
-        'display': token_data['product'],
-    }
-
-
 def submission_artist_tag(obj, context):
-    submission = ImageAsset.objects.get(id=obj.target.id)
+    submission = Submission.objects.get(id=obj.target.id)
     return {
         'user': notification_display(User.objects.get(id=obj.data['user']), context),
         'artist': notification_display(User.objects.get(id=obj.data['artist']), context),
@@ -447,14 +473,14 @@ NOTIFICATION_TYPE_MAP = {
     SUBMISSION_CHAR_TAG: submission_char_tag,
     REVISION_UPLOADED: revision_uploaded,
     COMMENT: comment_made,
-    ASSET_SHARED: asset_shared,
+    SUBMISSION_SHARED: submission_shared,
     CHAR_SHARED: char_shared,
     NEW_CHARACTER: new_char,
     NEW_PRODUCT: new_product,
     STREAMING: streaming,
     NEW_JOURNAL: new_journal,
-    ORDER_TOKEN_ISSUED: order_token_issued,
     FAVORITE: favorite,
+    DISPUTE: order_update,
     SUBMISSION_ARTIST_TAG: submission_artist_tag,
 }
 
@@ -497,3 +523,224 @@ class TagSerializer(serializers.ModelSerializer):
         fields = (
             'name',
         )
+
+
+# noinspection PyAbstractClass
+class TagListField(serializers.ListSerializer):
+    save_related = True
+
+    def __init__(self, *args, **kwargs):
+        kwargs['child'] = serializers.SlugField()
+        super().__init__(*args, **kwargs)
+
+    def get_value(self, dictionary):
+        if hasattr(dictionary, 'getlist'):
+            result = dictionary.getlist(self.field_name, empty)
+        else:
+            result = dictionary.get(self.field_name, empty)
+        return result
+
+    def to_representation(self, value):
+        if hasattr(value, 'all'):
+            return value.all().values_list('name', flat=True)
+        return [getattr(val, 'name', str(val)) for val in value]
+
+    def to_internal_value(self, value):
+        return [getattr(val, 'name', str(val)) for val in value]
+
+    def run_validation(self, data=empty):
+        super().run_validation(data=data)
+        if data is empty:
+            return empty
+        data = tag_list_cleaner(data)
+        add_check(self.parent.instance, self.field_name, replace=True)
+        return data
+
+    def mod_instance(self, instance, value):
+        set_tags(instance, self.field_name, value)
+
+
+class UserRelationField(serializers.Field):
+    save_related = True
+
+    def get_initial(self):
+        return self.to_representation(None)
+
+    def to_representation(self, _instance):
+        request = self.context.get('request', None)
+        if not request:
+            return None
+        if not request.user.is_authenticated:
+            return None
+        if not (self.parent.instance and self.parent.instance.id):
+            return None
+        return getattr(request.user, self.field_name).filter(id=self.parent.instance.id).exists()
+
+    def to_internal_value(self, data):
+        return bool(data)
+
+    def mod_instance(self, instance, value):
+        request = self.context.get('request', None)
+        if value:
+            getattr(request.user, self.field_name).add(instance)
+        else:
+            getattr(request.user, self.field_name).remove(instance)
+
+
+# noinspection PyUnresolvedReferences
+class RelatedSetMixin:
+    def get_value(self, dictionary):
+        # We want to be able to take either a set of integers or a set of dictionaries that contain an id field.
+        value = super().get_value(dictionary)
+        if value is empty:
+            return empty
+        if not isinstance(value, list):
+            # Let it fail elsewhere.
+            return value
+        result = []
+        for item in value:
+            if isinstance(item, int):
+                result.append(item)
+            if isinstance(item, dict):
+                # If there's no ID field, it'll fail elsewhere.
+                result.append(item.get('id', item))
+        return result
+
+    def get_initial(self):
+        if hasattr(self, 'initial_data'):
+            return self.initial_data
+        if not self.parent.instance:
+            return []
+        return getattr(self.parent.instance, self.field_name).values_list('id', flat=True)
+
+    def to_internal_value(self, data):
+        return data
+
+    def mod_instance(self, instance, value):
+        if self.model:
+            base_kwargs = {self.back_name: instance}
+            for user_id in value:
+                self.model.objects.create(user_id=user_id, **base_kwargs)
+            for instance in self.model.objects.exclude(**base_kwargs, user_id__in=value):
+                instance.delete()
+        else:
+            getattr(instance, self.field_name).set(value)
+
+
+# noinspection PyAbstractClass
+class UserListField(RelatedSetMixin, serializers.ListSerializer):
+    save_related = True
+
+    def __init__(
+            self, *args, block_check=True, tag_check=False, back_name=None, model=None, add_self=False,
+            min_length=0,
+            **kwargs,
+    ):
+        kwargs['child'] = serializers.IntegerField()
+        self.block_check = block_check
+        self.tag_check = tag_check
+        self.back_name = back_name
+        self.model = model
+        self.add_self = add_self
+        self.min_length = min_length
+        if back_name is None and model is not None:
+            raise TypeError(
+                "You must specify a 'back_name' for the through table the model the users will be tied to.",
+            )
+        super().__init__(*args, **kwargs)
+
+    def get_initial(self):
+        if hasattr(self, 'initial_data'):
+            return self.initial_data
+        if not self.parent.instance:
+            return []
+        return getattr(self.parent.instance, self.field_name).values_list('id', flat=True)
+
+    def to_representation(self, user_manager):
+        return RelatedUserSerializer(many=True, instance=user_manager.all()).data
+
+    def run_validation(self, data: Union[empty, List[int]] = empty):
+        from apps.profiles.utils import available_users
+        super().run_validation(data=data)
+        if data is empty:
+            return empty
+        if self.add_self:
+            data.append(self.context.get('request').user.id)
+        data = list(set(data))
+        if self.block_check:
+            qs = available_users(self.context.get('request')).filter(id__in=data)
+        else:
+            qs = User.objects.filter(id__in=data)
+        if self.tag_check:
+            qs = qs.filter(Q(taggable=True) | Q(id=self.context.get('request').user.id))
+
+        data = qs.values_list('id', flat=True)
+        if not len(data) >= self.min_length:
+            error = f'Minimum number of users is {self.min_length}'
+            if self.add_self:
+                error += ', including yourself.'
+            else:
+                error += '.'
+            raise ValidationError(error)
+        add_check(self.parent.instance, self.field_name, *data, replace=True)
+        return data
+
+
+class CharacterListField(RelatedSetMixin, serializers.ListSerializer):
+    def __init__(
+            self, *args, tag_check=False, back_name=None, model=None, add_self=False,
+            min_length=0,
+            **kwargs,
+    ):
+        kwargs['child'] = serializers.IntegerField()
+        self.tag_check = tag_check
+        self.back_name = back_name
+        self.model = model
+        self.add_self = add_self
+        self.min_length = min_length
+        if back_name is None and model is not None:
+            raise TypeError(
+                "You must specify a 'back_name' for the through table to the model the users will be tied to.",
+            )
+        super().__init__(*args, **kwargs)
+
+    def to_representation(self, character_manager):
+        from apps.profiles.serializers import CharacterSerializer
+        return CharacterSerializer(many=True, instance=character_manager.all(), context=self.context).data
+
+    def run_validation(self, data: Union[empty, List[int]] = empty):
+        from apps.profiles.utils import available_chars
+        super().run_validation(data=data)
+        if data is empty:
+            return empty
+        data.append(self.context.get('request').user.id)
+        data = list(set(data))
+        qs = available_chars(self.context.get('request').user, tagging=self.tag_check).filter(id__in=data)
+        data = qs.values_list('id', flat=True)
+        add_check(self.parent.instance, self.field_name, *data, replace=True)
+        return data
+
+
+class UserInfoSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
+    watching = UserRelationField(required=False)
+    blocking = UserRelationField(required=False)
+    stars = serializers.FloatField(required=False, read_only=True)
+
+    class Meta:
+        model = User
+        fields = (
+            'id', 'username', 'avatar_url', 'biography', 'favorites_hidden', 'watching', 'blocking',
+            'stars', 'is_staff', 'is_superuser', 'guest', 'artist_mode', 'hits', 'watches',
+        )
+        read_only_fields = [field for field in fields if field not in ['watching', 'blocking']]
+
+
+class IdWritable:
+    def to_internal_value(self, data):
+        if not data:
+            return None
+        if isinstance(data, dict):
+            return super().to_internal_value(data)
+        if not self.parent:
+            return data
+        return self.Meta.model.objects.filter(id=data).first()

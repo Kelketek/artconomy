@@ -139,6 +139,7 @@
   check_migrations_changed:
       directory: "{{ home }}/artconomy/backend/apps/"
       hash_file: "{{ home }}/.migrations_hash"
+      tilt: "{{ app_settings.FORCE_UPDATE }}"
   register: migrations_status
   notify:
     - migrator

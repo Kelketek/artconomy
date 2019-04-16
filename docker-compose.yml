@@ -3,6 +3,10 @@ version: '3'
 services:
   db:
     image: postgres
+    environment:
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
   nginx:
     image: nginx:latest
     container_name: ng01
@@ -22,6 +26,20 @@ services:
     entrypoint: /app/docker-entrypoint.sh
     environment:
       - HTTPS=1
+      - DJANGO_SECRET_KEY=sdfbv804jrg23945g890efnvdscviu7ndor8tyh0345hwub
+      - DWOLLA_KEY=sUNuwIxg71Pbb1IplwysLTDN7tQZS4qRsN9h6W3RQgEeW3z6W4
+      - DWOLLA_SECRET=fLdkagXI9ECOqkXM7o7afX0mTO8h4yLw4HSMklYCXmVpW84tku
+      - DWOLLA_FUNDING_SOURCE_KEY=https://api-sandbox.dwolla.com/funding-sources/fd18e5b7-29f1-4b89-955e-ac271ea3fa9b
+      - AUTHORIZE_KEY=497HxDC9yd
+      - AUTHORIZE_SECRET=3n69vX6qXA7j248x
+      - GR_CAPTCHA_SECRET_KEY=6LdDkkIUAAAAAL1ekZxQwQD2KnWItTmZi_Zs58sC
+      - GR_CAPTCHA_PUBLIC_KEY=6LdDkkIUAAAAAFyNzBAPKEDkxwYrQ3aZdVb1NKPw
+      - TELEGRAM_BOT_KEY=605537825:AAHPOwXeSDxxNNN3M2p8U_5mWOWJyOOO5-g
+      - TELEGRAM_BOT_USERNAME=ArtconomyDevBot
+      - CELERY_ALWAYS_EAGER=1
+      - CELERY_BROKER_CONNECTION_RETRY=1
+      - EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
+      - OTP_TOTP_ISSUER=Artconomy Dev
     command: python3 manage.py runserver 0.0.0.0:8002
     ports:
       - "8001:8001"
@@ -31,3 +49,4 @@ services:
       - rabbit
     volumes:
       - ./:/app
+      - ./node_modules:/app/node_modules

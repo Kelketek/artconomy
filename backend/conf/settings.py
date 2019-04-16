@@ -11,32 +11,54 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import json
+import logging
 import os
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+from base64 import decodebytes
 from decimal import Decimal
 from sys import argv
+from typing import Any
 
+from celery.exceptions import ImproperlyConfigured
 from celery.schedules import crontab
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 BACKEND_ROOT = os.path.join(BASE_DIR, 'backend')
 os.sys.path = [BACKEND_ROOT] + os.sys.path
 
-with open(os.path.join(BASE_DIR, "..", "settings.json")) as env_file:
-    ENV_TOKENS = json.load(env_file)
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
 
-ADMINS = ENV_TOKENS.get('ADMINS', [('Fox', 'fox@vulpinity.com')])
+ADMINS = os.environ.get('ADMINS', [('Fox', 'fox@vulpinity.com')])
+
+
+class UNSET:
+    """
+    To be used if we need to throw should a setting not be set.
+    """
+    def __init__(self):
+        raise TypeError('This is to be used as a constant, not initialized.')
+
+
+def get_env(name: str, default: Any, unpack=False) -> Any:
+    if name not in os.environ:
+        if default is UNSET:
+            raise ImproperlyConfigured(f"Environment variable ${name} is missing.")
+        return default
+    var = os.environ.get(name)
+    if unpack:
+        var = decodebytes(var.encode('ascii'))
+        return json.loads(var)
+    return var
+
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = ENV_TOKENS.get('DJANGO_SECRET_KEY', '')
+SECRET_KEY = get_env('DJANGO_SECRET_KEY', UNSET)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = ENV_TOKENS.get('DEBUG', True)
+DEBUG = get_env('DEBUG', True)
 
-ALLOWED_HOSTS = ENV_TOKENS.get('ALLOWED_HOSTS', ['artconomy.vulpinity.com', 'localhost'])
+ALLOWED_HOSTS = get_env('ALLOWED_HOSTS', ['artconomy.vulpinity.com', 'localhost'], unpack=True)
 
 # Application definition
 
@@ -48,8 +70,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_premailer',
-    'haystack',
-    'celery_haystack',
     'djcelery_email',
     'webpack_loader',
     'rest_framework',
@@ -59,6 +79,8 @@ INSTALLED_APPS = [
     'djmoney',
     'avatar',
     'recaptcha',
+    'reversion',
+    'hitcount',
     'django_markdown2',
     'django_otp',
     'django_otp.plugins.otp_totp',
@@ -78,7 +100,8 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django_otp.middleware.OTPMiddleware',
-    'apps.profiles.middleware.rating_middleware',
+    'apps.lib.middleware.IPMiddleware',
+    'apps.profiles.middleware.RatingMiddleware',
     'apps.profiles.middleware.SubjectMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -107,17 +130,16 @@ WSGI_APPLICATION = 'wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
 
-DATABASES = ENV_TOKENS.get(
-    'DATABASES', {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'postgres',
-            'USER': 'postgres',
-            'HOST': 'db',
-            'PORT': 5432,
-        }
-    }
-)
+DATABASES = {
+    'default': {
+        'ENGINE': get_env('DB_ENGINE', 'django.db.backends.postgresql'),
+        'NAME': get_env('DB_NAME', 'postgres'),
+        'USER': get_env('DB_USER', 'postgres'),
+        'PASSWORD': get_env('DB_PASSWORD', 'postgres'),
+        'HOST': get_env('DB_HOST', 'db'),
+        'PORT': int(get_env('DB_PORT', '5432')),
+    },
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/1.10/ref/settings/#auth-password-validators
@@ -143,7 +165,7 @@ AUTH_USER_MODEL = 'profiles.User'
 # https://docs.djangoproject.com/en/1.10/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = ENV_TOKENS.get('TIME_ZONE', 'America/Chicago')
+TIME_ZONE = get_env('TIME_ZONE', 'America/Chicago')
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
@@ -151,14 +173,13 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
-STATIC_URL = ENV_TOKENS.get('STATIC_URL', '/static/')
+STATIC_URL = get_env('STATIC_URL', '/static/')
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
     os.path.join(BASE_DIR, 'static_resources'),
 ]
-STATIC_ROOT = ENV_TOKENS.get('STATIC_ROOT', os.path.join(BASE_DIR, 'public'))
-MEDIA_URL = ENV_TOKENS.get('MEDIA_ROOT', '/media/')
-MEDIA_ROOT = ENV_TOKENS.get('MEDIA_ROOT', os.path.join(BASE_DIR, 'media'))
+STATIC_ROOT = get_env('STATIC_ROOT', os.path.join(BASE_DIR, 'public'))
+MEDIA_URL = get_env('MEDIA_ROOT', '/media/')
+MEDIA_ROOT = get_env('MEDIA_ROOT', os.path.join(BASE_DIR, 'media'))
 
 FILE_UPLOAD_DIRECTORY_PERMISSIONS = 0o750
 FILE_UPLOAD_PERMISSIONS = 0o644
@@ -179,18 +200,18 @@ WEBPACK_LOADER = {
 }
 
 THUMBNAIL_ALIASES = {
-    'profiles.ImageAsset.file': {
+    'profiles.Submission.file': {
         'thumbnail': {'size': (300, 300), 'crop': ',0'},
         'gallery': {'size': (1000, 700)},
         'notification': {'size': (80, 80)}
     },
-    'profiles.ImageAsset.preview': {
+    'profiles.Submission.preview': {
         'thumbnail': {'size': (300, 300), 'crop': False},
         'notification': {'size': (80, 80)}
     },
     'sales.Product.file': {
         'thumbnail': {'size': (300, 300), 'crop': False},
-        'preview': {'size': (500, 500), 'crop': False},
+        'preview': {'size': (1000, 1000), 'crop': False},
         'notification': {'size': (80, 80)}
     },
     'sales.Product.preview': {
@@ -198,7 +219,7 @@ THUMBNAIL_ALIASES = {
         'notification': {'size': (80, 80)}
     },
     'sales.Revision.file': {
-        'preview': {'size': (500, 500), 'crop': False},
+        'preview': {'size': (1000, 1000), 'crop': False},
         'notification': {'size': (80, 80)}
     },
     'sales.Revision.preview': {
@@ -210,73 +231,82 @@ THUMBNAIL_ALIASES = {
 
 THUMBNAIL_PRESERVE_EXTENSIONS = True
 
-DWOLLA_KEY = ENV_TOKENS.get('DWOLLA_KEY', '')
-DWOLLA_SECRET = ENV_TOKENS.get('DWOLLA_SECRET', '')
+DWOLLA_KEY = get_env('DWOLLA_KEY', '')
+DWOLLA_SECRET = get_env('DWOLLA_SECRET', '')
 # Named 'key' here mostly to make sure it gets filtered out of error emails.
-DWOLLA_FUNDING_SOURCE_KEY = ENV_TOKENS.get(
+DWOLLA_FUNDING_SOURCE_KEY = get_env(
     'DWOLLA_FUNDING_SOURCE_KEY', ''
 )
 
-AUTHORIZE_KEY = ENV_TOKENS.get('AUTHORIZE_KEY', '')
-AUTHORIZE_SECRET = ENV_TOKENS.get('AUTHORIZE_SECRET', '')
+AUTHORIZE_KEY = get_env('AUTHORIZE_KEY', '')
+AUTHORIZE_SECRET = get_env('AUTHORIZE_SECRET', '')
 
-DEFAULT_PROTOCOL = ENV_TOKENS.get('DEFAULT_PROTOCOL', 'https')
-DEFAULT_DOMAIN = ENV_TOKENS.get('DEFAULT_DOMAIN', 'artconomy.vulpinity.com')
-PREMAILER_OPTIONS = ENV_TOKENS.get(
-    'PREMAILER_OPTIONS', {'base_url': '{}://{}'.format(DEFAULT_PROTOCOL, DEFAULT_DOMAIN), 'remove_classes': False}
+DEFAULT_PROTOCOL = get_env('DEFAULT_PROTOCOL', 'https')
+DEFAULT_DOMAIN = get_env('DEFAULT_DOMAIN', 'artconomy.vulpinity.com')
+PREMAILER_OPTIONS = get_env(
+    'PREMAILER_OPTIONS', {'base_url': '{}://{}'.format(DEFAULT_PROTOCOL, DEFAULT_DOMAIN), 'remove_classes': False},
+    unpack=True,
 )
 
-EMAIL_BACKEND = ENV_TOKENS.get('EMAIL_BACKEND', 'djcelery_email.backends.CeleryEmailBackend')
-CELERY_EMAIL_BACKEND = ENV_TOKENS.get('CELERY_EMAIL_BACKEND', 'sendgrid_backend.SendgridBackend')
-DEFAULT_FROM_EMAIL = ENV_TOKENS.get('DEFAULT_FROM_EMAIL', 'Artconomy <notifications@artconomy.com>')
-RETURN_PATH_EMAIL = ENV_TOKENS.get('RETURN_PATH_EMAIL', 'support@artconomy.com')
+EMAIL_BACKEND = get_env('EMAIL_BACKEND', 'djcelery_email.backends.CeleryEmailBackend')
+CELERY_EMAIL_BACKEND = get_env('CELERY_EMAIL_BACKEND', 'sendgrid_backend.SendgridBackend')
+DEFAULT_FROM_EMAIL = get_env('DEFAULT_FROM_EMAIL', 'Artconomy <notifications@artconomy.com>')
+RETURN_PATH_EMAIL = get_env('RETURN_PATH_EMAIL', 'support@artconomy.com')
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 CELERY_EMAIL_TASK_CONFIG = {
     'rate_limit': '50/m',
 }
 
-SENDGRID_API_KEY = ENV_TOKENS.get('SENDGRID_API_KEY')
+SENDGRID_API_KEY = get_env('SENDGRID_API_KEY', '')
 
-SANDBOX_APIS = ENV_TOKENS.get('SANDBOX_APIS', True)
+SANDBOX_APIS = bool(int(get_env('SANDBOX_APIS', '1')))
 
 SENDGRID_SANDBOX_MODE_IN_DEBUG = SANDBOX_APIS
 SENDGRID_ECHO_TO_STDOUT = DEBUG
 
-MAX_CHARACTER_COUNT = ENV_TOKENS.get('MAX_CHARACTER_COUNT', 30)
-MAX_ATTRS = ENV_TOKENS.get('MAX_ATTRS', 10)
+MAX_CHARACTER_COUNT = int(get_env('MAX_CHARACTER_COUNT', '30'))
+MAX_ATTRS = int(get_env('MAX_ATTRS', '10'))
 
-PREMIUM_PERCENTAGE_FEE = Decimal(ENV_TOKENS.get('PREMIUM_PERCENTAGE_FEE', '4'))
-STANDARD_PERCENTAGE_FEE = Decimal(ENV_TOKENS.get('PREMIUM_PERCENTAGE_FEE', '8'))
-PREMIUM_STATIC_FEE = Decimal(ENV_TOKENS.get('PREMIUM_PERCENTAGE_FEE', '.50'))
-STANDARD_STATIC_FEE = Decimal(ENV_TOKENS.get('PREMIUM_STATIC_FEE', '.75'))
-LANDSCAPE_PRICE = Decimal(ENV_TOKENS.get('PREMIUM_PRICE', '5.00'))
-PORTRAIT_PRICE = Decimal(ENV_TOKENS.get('STANDARD_PRICE', '3.00'))
+SERVICE_PERCENTAGE_FEE = Decimal(get_env('PREMIUM_PERCENTAGE_FEE', '8'))
+SERVICE_STATIC_FEE = Decimal(get_env('PREMIUM_STATIC_FEE', '.75'))
+PREMIUM_STATIC_BONUS = Decimal(get_env('PREMIUM_STATIC_BONUS', '.25'))
+PREMIUM_PERCENTAGE_BONUS = Decimal(get_env('PREMIUM_PERCENTAGE_BONUS', '50'))
 
-HIDE_TEST_BROWSER = ENV_TOKENS.get('HIDE_TEST_BROWSER', True)
+assert PREMIUM_STATIC_BONUS < SERVICE_STATIC_FEE
+assert PREMIUM_PERCENTAGE_BONUS <= 50
+# Applied to the fee amount.
 
-CARD_TEST = ENV_TOKENS.get('CARD_TEST', True)
+LANDSCAPE_PRICE = Decimal(get_env('PREMIUM_PRICE', '5.00'))
+PORTRAIT_PRICE = Decimal(get_env('STANDARD_PRICE', '3.00'))
 
-MIN_PASS_LENGTH = ENV_TOKENS.get('MIN_PASS_LENGTH', 8)
+HIDE_TEST_BROWSER = bool(int(get_env('HIDE_TEST_BROWSER', '1')))
 
-BANNED_USERNAMES = ENV_TOKENS.get('BANNED_USERNAMES', ['artconomy'])
+CARD_TEST = bool(int(get_env('CARD_TEST', '1')))
 
-MINIMUM_PRICE = Decimal(ENV_TOKENS.get('MINIMUM_PRICE', '1.10'))
-MINIMUM_TURNAROUND = ENV_TOKENS.get('MINIMUM_TURNAROUND', Decimal('.01'))
+MIN_PASS_LENGTH = int(get_env('MIN_PASS_LENGTH', '8'))
 
-REFUND_FEE = ENV_TOKENS.get('REFUND_FEE', Decimal('2.00'))
+BANNED_USERNAMES = get_env('BANNED_USERNAMES', ['artconomy'], unpack=True)
+# Special username that is used by the frontend to indicate user is not logged in.
+BANNED_USERNAMES += ['_']
 
-MAILCHIMP_API_KEY = ENV_TOKENS.get('MAILCHIMP_API_KEY', '')
+MINIMUM_PRICE = Decimal(get_env('MINIMUM_PRICE', '1.10'))
+MINIMUM_TURNAROUND = Decimal(get_env('MINIMUM_TURNAROUND', '.01'))
 
-MAILCHIMP_LIST_SECRET = ENV_TOKENS.get('MAILCHIMP_LIST_SECRET', '3d3eca5eea')
+REFUND_FEE = Decimal(get_env('REFUND_FEE', '2.00'))
 
-COUNTRIES_NOT_SERVED = ENV_TOKENS.get(
+MAILCHIMP_API_KEY = get_env('MAILCHIMP_API_KEY', '')
+
+MAILCHIMP_LIST_SECRET = get_env('MAILCHIMP_LIST_SECRET', '3d3eca5eea')
+
+COUNTRIES_NOT_SERVED = get_env(
     'COUNTRIES_NOT_SERVED',
     (
         'NK',
         'IR',
-        'NG'
-    )
+        'NG',
+    ),
+    unpack=True,
 )
 
 REST_FRAMEWORK = {
@@ -291,14 +321,15 @@ if not DEBUG:
         'rest_framework.renderers.JSONRenderer',
     )
 
-GR_CAPTCHA_SECRET_KEY = ENV_TOKENS.get('GR_CAPTCHA_SECRET_KEY', '')
+GR_CAPTCHA_SECRET_KEY = get_env('GR_CAPTCHA_SECRET_KEY', '')
 
-GR_CAPTCHA_PUBLIC_KEY = ENV_TOKENS.get('GR_CAPTCHA_PUBLIC_KEY', '')
+GR_CAPTCHA_PUBLIC_KEY = get_env('GR_CAPTCHA_PUBLIC_KEY', '')
 
 
 LOGGING = None
 
 # Uncomment when tests need debugging, like when bok_choy isn't launching the browser.
+# Make sure to comment out the logging disable line in the next section as well.
 
 # if 'test' in argv:
 #     LOGGING = {
@@ -339,6 +370,9 @@ if TESTING:
     PASSWORD_HASHERS = [
         'django.contrib.auth.hashers.MD5PasswordHasher',
     ]
+    # Uncomment this when doing heavy test debugging.
+    logging.disable(logging.CRITICAL)
+
 
 if ('test' not in argv) and ('runserver' not in argv):
     LOGGING = {
@@ -373,15 +407,15 @@ AVATAR_EXPOSE_USERNAMES = False
 
 AVATAR_THUMB_FORMAT = 'PNG'
 
-TELEGRAM_BOT_KEY = ENV_TOKENS.get('TELEGRAM_BOT_KEY', '')
-TELEGRAM_BOT_USERNAME = ENV_TOKENS.get('TELEGRAM_BOT_USERNAME', '')
+TELEGRAM_BOT_KEY = get_env('TELEGRAM_BOT_KEY', '')
+TELEGRAM_BOT_USERNAME = get_env('TELEGRAM_BOT_USERNAME', '')
 
-RABBIT_HOST = ENV_TOKENS.get('RABBIT_HOST', 'rabbit')
-RABBIT_PORT = ENV_TOKENS.get('RABBIT_PORT', 5672)
+RABBIT_HOST = get_env('RABBIT_HOST', 'rabbit')
+RABBIT_PORT = int(get_env('RABBIT_PORT', '5672'))
 
-CELERY_ALWAYS_EAGER = ENV_TOKENS.get('CELERY_ALWAYS_EAGER', False)
+CELERY_ALWAYS_EAGER = bool(int(get_env('CELERY_ALWAYS_EAGER', '0')))
 
-CELERY_BROKER_CONNECTION_RETRY = ENV_TOKENS.get('CELERY_BROKER_CONNECTION_RETRY', True)
+CELERY_BROKER_CONNECTION_RETRY = bool(int(get_env('CELERY_BROKER_CONNECTION_RETRY', True)))
 
 CELERYBEAT_SCHEDULE = {
     'run_billing': {
@@ -396,27 +430,33 @@ CELERYBEAT_SCHEDULE = {
         'task': 'apps.sales.tasks.auto_finalize_run',
         'schedule': crontab(hour=1, minute=0)
     },
-    'finalize_transactions': {
-        'task': 'apps.sales.tasks.finalize_transactions',
-        'schedule': crontab(hour=1, minute=15)
-    },
     'remind_sales': {
         'task': 'apps.sales.tasks.remind_sales',
         'schedule': crontab(hour=15, minute=30)
     }
 }
 
-ENV_NAME = ENV_TOKENS.get('ENV_NAME', 'dev')
+ENV_NAME = get_env('ENV_NAME', 'dev')
 
-OTP_TOTP_ISSUER = ENV_TOKENS.get('OTP_TOTP_ISSUER', 'Artconomy')
+OTP_TOTP_ISSUER = get_env('OTP_TOTP_ISSUER', 'Artconomy')
 
 TEST_RUNNER = 'apps.lib.test_resources.NPMBuildTestRunner'
 
-HAYSTACK_CONNECTIONS = {
-    'default': {
-        'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
-        'PATH': os.path.join(BASE_DIR, 'whoosh_index'),
-    },
-}
 
-HAYSTACK_SIGNAL_PROCESSOR = 'celery_haystack.signals.CelerySignalProcessor'
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {
+            'min_length': 8,
+        }
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+]
