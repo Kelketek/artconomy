@@ -300,7 +300,9 @@ def notify(
             to = [subscription.subscriber.email]
             from_email = settings.DEFAULT_FROM_EMAIL
             message = get_template(template_path).render(ctx)
-            msg = EmailMessage(subject, message, to=to, from_email=from_email)
+            msg = EmailMessage(
+                subject, message, to=to, from_email=from_email, headers={'Return-Path': settings.RETURN_PATH_EMAIL}
+            )
             msg.content_subtype = 'html'
             msg.send()
 
@@ -575,6 +577,9 @@ def send_transaction_email(subject, template_name, user, context):
         to = [user.email]
     from_email = settings.DEFAULT_FROM_EMAIL
     message = get_template(template_path).render(context)
-    msg = EmailMessage(subject, message, to=to, from_email=from_email)
+    msg = EmailMessage(
+        subject, message, to=to, from_email=from_email,
+        headers={'Return-Path': settings.RETURN_PATH_EMAIL}
+    )
     msg.content_subtype = 'html'
     msg.send()
