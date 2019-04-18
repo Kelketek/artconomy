@@ -1,7 +1,12 @@
 {% extends 'email_base.html' %}
+{% load md2 %}
 {% block header_message %}New Private Message!{% endblock %}
 {% block message %}
 You have a new private message from {{ target.sender.username }}
+
+<div class="message-preview">
+  {{target.body|markdown:"safe"}}
+</div>
 {% endblock message %}
 
 {% block action %}
