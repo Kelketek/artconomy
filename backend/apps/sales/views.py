@@ -190,7 +190,8 @@ class OrderRetrieve(RetrieveAPIView):
     serializer_class = OrderViewSerializer
 
     def get_object(self):
-        return get_object_or_404(Order, id=self.kwargs['order_id'])
+        order = get_object_or_404(Order, id=self.kwargs['order_id'])
+        self.check_object_permissions(self.request, order)
 
     def put(self, request, *args, **kwargs):
         order = self.get_object()
