@@ -709,6 +709,30 @@ class TestOrder(APITestCase):
         self.assertEqual(response.data['status'], Order.NEW)
         self.assertRaises(OrderToken.DoesNotExist, token.refresh_from_db)
 
+    def test_order_view_seller(self):
+        self.login(self.user)
+        order = OrderFactory.create(seller=self.user)
+        response = self.client.get(
+            '/api/sales/v1/order/{}/'.format(order.id),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_order_view_buyer(self):
+        self.login(self.user)
+        order = OrderFactory.create(buyer=self.user)
+        response = self.client.get(
+            '/api/sales/v1/order/{}/'.format(order.id),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_order_view_outsider(self):
+        self.login(self.user)
+        order = OrderFactory.create()
+        response = self.client.get(
+            '/api/sales/v1/order/{}/'.format(order.id),
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
     def test_adjust_order(self):
         self.login(self.user)
         order = OrderFactory.create(seller=self.user)
