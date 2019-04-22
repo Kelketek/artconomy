@@ -52,7 +52,7 @@
                        :url="`/api/profiles/v1/account/${this.user.username}/characters/`"
                        v-model="showNew"
     />
-   <ac-add-button v-model="showNew" text="Add Character"></ac-add-button>
+   <ac-add-button v-model="showNew" text="Add Character" v-if="controls"></ac-add-button>
   </v-container>
 </template>
 

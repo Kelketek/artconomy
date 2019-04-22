@@ -192,6 +192,7 @@ class OrderRetrieve(RetrieveAPIView):
     def get_object(self):
         order = get_object_or_404(Order, id=self.kwargs['order_id'])
         self.check_object_permissions(self.request, order)
+        return order
 
     def put(self, request, *args, **kwargs):
         order = self.get_object()
