@@ -323,8 +323,14 @@ LOGGING = None
 #         },
 #     }
 
-if ('test' not in argv) and ('runserver' not in argv):
+TESTING = 'test' in argv
 
+if TESTING:
+    PASSWORD_HASHERS = [
+        'django.contrib.auth.hashers.MD5PasswordHasher',
+    ]
+
+if ('test' not in argv) and ('runserver' not in argv):
     LOGGING = {
         'version': 1,
         'disable_existing_loggers': False,

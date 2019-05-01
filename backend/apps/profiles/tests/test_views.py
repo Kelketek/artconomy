@@ -28,8 +28,9 @@ logger = logging.getLogger(__name__)
 
 class CharacterAPITestCase(APITestCase):
     def test_character_listing(self):
-        characters = gen_characters(self.user)
-        response = self.client.get('/api/profiles/v1/account/{}/characters/'.format(self.user.username))
+        user = UserFactory.create()
+        characters = gen_characters(user)
+        response = self.client.get('/api/profiles/v1/account/{}/characters/'.format(user.username))
         self.assertEqual(len(response.data['results']), 5)
         for key, value in characters.items():
             self.assertIDInList(
@@ -38,43 +39,49 @@ class CharacterAPITestCase(APITestCase):
             )
 
     def test_no_list_private(self):
-        characters = gen_characters(self.user)
+        user = UserFactory.create()
+        characters = gen_characters(user)
         private_character = list(characters.keys())[0]
         private_character.private = True
         private_character.save()
 
         # Should fail for unregistered user
-        response = self.client.get('/api/profiles/v1/account/{}/characters/'.format(self.user.username))
+        response = self.client.get('/api/profiles/v1/account/{}/characters/'.format(user.username))
         self.assertEqual(len(response.data['results']), 4)
         self.assertNotIn(private_character.id, [result['id'] for result in response.data['results']])
 
         # Should fail for unprivileged user
-        self.login(self.user2)
+        user2 = UserFactory.create()
+        self.login(user2)
         self.assertEqual(len(response.data['results']), 4)
         self.assertNotIn(private_character.id, [result['id'] for result in response.data['results']])
 
     def test_list_private_for_privileged(self):
-        characters = gen_characters(self.user)
+        user = UserFactory.create()
+        characters = gen_characters(user)
         private_character = list(characters.keys())[0]
         private_character.private = True
         private_character.save()
 
         # Should work for character owner.
-        self.login(self.user)
-        response = self.client.get('/api/profiles/v1/account/{}/characters/'.format(self.user.username))
+        self.login(user)
+        response = self.client.get('/api/profiles/v1/account/{}/characters/'.format(user.username))
         self.assertEqual(len(response.data['results']), 5)
         self.assertIDInList(private_character, response.data['results'])
         # Should work for staff, too.
-        self.login(self.staffer)
-        response = self.client.get('/api/profiles/v1/account/{}/characters/'.format(self.user.username))
+        staffer = UserFactory.create(is_staff=True)
+        self.login(staffer)
+        response = self.client.get('/api/profiles/v1/account/{}/characters/'.format(user.username))
         self.assertEqual(len(response.data['results']), 5)
         self.assertIDInList(private_character, response.data['results'])
 
     def test_new_character(self):
-        self.login(self.user)
-        watch_subscriptions(self.user2, self.user)
+        user = UserFactory.create()
+        user2 = UserFactory.create()
+        self.login(user)
+        watch_subscriptions(user2, user)
         response = self.client.post(
-            '/api/profiles/v1/account/{}/characters/'.format(self.user.username), {
+            '/api/profiles/v1/account/{}/characters/'.format(user.username), {
                 'name': 'Fern',
                 'description': 'The best of both worlds',
                 'private': False,
@@ -92,13 +99,14 @@ class CharacterAPITestCase(APITestCase):
         notifications = Notification.objects.filter(event__type=NEW_CHARACTER)
         self.assertEqual(notifications.count(), 1)
         notification = notifications[0]
-        self.assertEqual(notification.user, self.user2)
+        self.assertEqual(notification.user, user2)
         self.assertEqual(notification.event.data, {'character': char.id})
 
         # Should work for staffer.
-        self.login(self.staffer)
+        staffer = UserFactory.create(is_staff=True)
+        self.login(staffer)
         response = self.client.post(
-            '/api/profiles/v1/account/{}/characters/'.format(self.user.username), {
+            '/api/profiles/v1/account/{}/characters/'.format(user.username), {
                 'name': 'Rain',
                 'description': 'Heart breaker',
                 'private': True,
@@ -109,7 +117,7 @@ class CharacterAPITestCase(APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         char2 = Character.objects.get(name='Rain')
-        self.assertEqual(char2.user, self.user)
+        self.assertEqual(char2.user, user)
         self.assertEqual(char2.description, 'Heart breaker')
         self.assertEqual(char2.private, True)
         self.assertEqual(char2.open_requests, False)
@@ -119,21 +127,23 @@ class CharacterAPITestCase(APITestCase):
         notifications = Notification.objects.filter(event__type=NEW_CHARACTER)
         self.assertEqual(notifications.count(), 1)
         notification = notifications[0]
-        self.assertEqual(notification.user, self.user2)
+        self.assertEqual(notification.user, user2)
         self.assertEqual(notification.event.data, {'character': char.id})
 
     def test_edit_character(self):
-        self.login(self.user)
-        watch_subscriptions(self.user2, self.user)
-        char = CharacterFactory.create(user=self.user)
+        user = UserFactory.create()
+        user2 = UserFactory.create()
+        self.login(user)
+        watch_subscriptions(user2, user)
+        char = CharacterFactory.create(user=user)
         notifications = Notification.objects.filter(event__type=NEW_CHARACTER)
         self.assertEqual(notifications.count(), 1)
         notification = notifications[0]
-        self.assertEqual(notification.user, self.user2)
+        self.assertEqual(notification.user, user2)
         self.assertEqual(notification.event.data, {'character': char.id})
         self.assertFalse(notification.event.recalled)
         response = self.client.patch(
-            '/api/profiles/v1/account/{}/characters/{}/'.format(self.user.username, char.name),
+            '/api/profiles/v1/account/{}/characters/{}/'.format(user.username, char.name),
             {
                 'name': 'Terrence',
                 'description': 'Positively foxy.',
@@ -149,9 +159,10 @@ class CharacterAPITestCase(APITestCase):
         self.assertTrue(notification.event.recalled)
 
         # Should work for staff, too.
-        self.login(self.staffer)
+        staffer = UserFactory.create(is_staff=True)
+        self.login(staffer)
         response = self.client.patch(
-            '/api/profiles/v1/account/{}/characters/{}/'.format(self.user.username, char.name),
+            '/api/profiles/v1/account/{}/characters/{}/'.format(user.username, char.name),
             {
                 'name': 'Rain',
                 'description': 'Supremely foxy.'
@@ -163,10 +174,12 @@ class CharacterAPITestCase(APITestCase):
         self.assertEqual(char.description, 'Supremely foxy.')
 
     def test_edit_character_permission_denied(self):
-        char = CharacterFactory.create(user=self.user)
-        self.login(self.user2)
+        char = CharacterFactory.create()
+        user = char.user
+        user2 = UserFactory.create()
+        self.login(user2)
         response = self.client.patch(
-            '/api/profiles/v1/account/{}/characters/{}/'.format(self.user.username, char.name),
+            '/api/profiles/v1/account/{}/characters/{}/'.format(user.username, char.name),
             {
                 'name': 'Terrence',
                 'description': 'Positively foxy.'
@@ -175,70 +188,77 @@ class CharacterAPITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_delete_character(self):
-        self.login(self.user)
-        char = CharacterFactory.create(user=self.user)
+        char = CharacterFactory.create()
+        user = char.user
+        self.login(user)
         response = self.client.delete(
-            '/api/profiles/v1/account/{}/characters/{}/'.format(self.user.username, char.name)
+            '/api/profiles/v1/account/{}/characters/{}/'.format(user.username, char.name)
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertRaises(Character.DoesNotExist, char.refresh_from_db)
 
         # Test for staff.
-        char = CharacterFactory.create(user=self.user)
+        char = CharacterFactory.create(user=user)
 
         response = self.client.delete(
-            '/api/profiles/v1/account/{}/characters/{}/'.format(self.user.username, char.name)
+            '/api/profiles/v1/account/{}/characters/{}/'.format(user.username, char.name)
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertRaises(Character.DoesNotExist, char.refresh_from_db)
 
     def test_primary_asset(self):
-        self.login(self.user)
-        char = CharacterFactory.create(user=self.user)
-        asset = ImageAssetFactory.create(owner=self.user)
+        char = CharacterFactory.create()
+        user = char.user
+        asset = ImageAssetFactory.create(owner=user)
+        self.login(user)
         asset.characters.add(char)
         char.refresh_from_db()
         self.assertIsNone(char.primary_asset)
 
         response = self.client.post(
-            '/api/profiles/v1/account/{}/characters/{}/asset/primary/{}/'.format(self.user.username, char.name, asset.id),
+            '/api/profiles/v1/account/{}/characters/{}/asset/primary/{}/'.format(user.username, char.name, asset.id),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         char.refresh_from_db()
         self.assertEqual(char.primary_asset, asset)
 
+        staffer = UserFactory.create(is_staff=True)
         # Should work for staff, too.
-        asset2 = ImageAssetFactory.create(owner=self.staffer)
+        asset2 = ImageAssetFactory.create(owner=staffer)
         asset2.characters.add(char)
 
-        self.login(self.staffer)
+        self.login(staffer)
         response = self.client.post(
-            '/api/profiles/v1/account/{}/characters/{}/asset/primary/{}/'.format(self.user.username, char.name, asset2.id),
+            '/api/profiles/v1/account/{}/characters/{}/asset/primary/{}/'.format(user.username, char.name, asset2.id),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         char.refresh_from_db()
         self.assertEqual(char.primary_asset, asset2)
 
     def test_primary_asset_forbidden(self):
-        self.login(self.user2)
-        char = CharacterFactory.create(user=self.user)
-        asset = ImageAssetFactory.create(owner=self.user)
+        user = UserFactory.create()
+        user2 = UserFactory.create()
+        self.login(user2)
+        char = CharacterFactory.create(user=user)
+        asset = ImageAssetFactory.create(owner=user)
         asset.characters.add(char)
         char.refresh_from_db()
         self.assertIsNone(char.primary_asset)
 
         response = self.client.post(
-            '/api/profiles/v1/account/{}/characters/{}/asset/primary/{}/'.format(self.user.username, char.name, asset.id),
+            '/api/profiles/v1/account/{}/characters/{}/asset/primary/{}/'.format(user.username, char.name, asset.id),
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_asset_upload(self):
-        self.login(self.user)
-        char = CharacterFactory.create(user=self.user)
-        watch_subscriptions(self.user2, self.user)
+        char = CharacterFactory.create()
+        user = char.user
+        self.login(user)
+        user2 = UserFactory.create()
+        watch_subscriptions(user2, user)
         uploaded = SimpleUploadedFile('bloo-oo.jpg', gen_image())
         response = self.client.post(
-            '/api/profiles/v1/account/{}/characters/{}/assets/'.format(self.user.username, char.name),
+            '/api/profiles/v1/account/{}/characters/{}/assets/'.format(user.username, char.name),
             {
                 'title': 'Blooo',
                 'caption': "A sea of blue.",
@@ -254,16 +274,17 @@ class CharacterAPITestCase(APITestCase):
         self.assertEqual(asset.caption, 'A sea of blue.')
         self.assertFalse(asset.private)
         self.assertEqual(asset.rating, ADULT)
-        self.assertEqual(asset.artists.all()[0], self.user)
+        self.assertEqual(asset.artists.all()[0], user)
         self.assertTrue(asset.file.url)
         self.assertEqual(Subscription.objects.filter(type=FAVORITE).count(), 1)
         asset.delete()
         self.assertEqual(Subscription.objects.filter(type=FAVORITE).count(), 0)
         # Should work for staffer, too.
-        self.login(self.staffer)
+        staffer = UserFactory.create(is_staff=True)
+        self.login(staffer)
         uploaded = SimpleUploadedFile('gree-een.jpg', gen_image(color='green'))
         response = self.client.post(
-            '/api/profiles/v1/account/{}/characters/{}/assets/'.format(self.user.username, char.name),
+            '/api/profiles/v1/account/{}/characters/{}/assets/'.format(user.username, char.name),
             {
                 'title': 'Green',
                 'caption': "A sea of green.",
@@ -286,12 +307,14 @@ class CharacterAPITestCase(APITestCase):
         )
 
     def test_non_image_upload(self):
-        self.login(self.user)
-        char = CharacterFactory.create(user=self.user)
-        watch_subscriptions(self.user2, self.user)
+        char = CharacterFactory.create()
+        user = char.user
+        self.login(user)
+        user2 = UserFactory.create()
+        watch_subscriptions(user2, user)
         uploaded = SimpleUploadedFile('porn.txt', b'Oh baby oh baby oh baby harder')
         response = self.client.post(
-            '/api/profiles/v1/account/{}/characters/{}/assets/'.format(self.user.username, char.name),
+            '/api/profiles/v1/account/{}/characters/{}/assets/'.format(user.username, char.name),
             {
                 'title': 'Do meeeee',
                 'caption': "Do me in the doer hole.",
@@ -304,12 +327,14 @@ class CharacterAPITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_unsupported_upload(self):
-        self.login(self.user)
-        char = CharacterFactory.create(user=self.user)
-        watch_subscriptions(self.user2, self.user)
+        char = CharacterFactory.create()
+        user = char.user
+        self.login(user)
+        user2 = UserFactory.create()
+        watch_subscriptions(user2, user)
         uploaded = SimpleUploadedFile('porn.exe', b'Oh baby oh baby oh baby harder')
         response = self.client.post(
-            '/api/profiles/v1/account/{}/characters/{}/assets/'.format(self.user.username, char.name),
+            '/api/profiles/v1/account/{}/characters/{}/assets/'.format(user.username, char.name),
             {
                 'title': 'Do meeeee',
                 'caption': "Do me in the doer hole.",
@@ -322,11 +347,13 @@ class CharacterAPITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_asset_upload_forbidden(self):
-        self.login(self.user2)
-        char = CharacterFactory.create(user=self.user)
+        char = CharacterFactory.create()
+        user = char.user
+        user2 = UserFactory.create()
+        self.login(user2)
         uploaded = SimpleUploadedFile('bloo-oo.jpg', gen_image())
         response = self.client.post(
-            '/api/profiles/v1/account/{}/characters/{}/assets/'.format(self.user.username, char.name),
+            '/api/profiles/v1/account/{}/characters/{}/assets/'.format(user.username, char.name),
             {
                 'title': 'Blooo',
                 'caption': "A sea of blue.",
@@ -338,9 +365,10 @@ class CharacterAPITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_asset_edit(self):
-        self.login(self.user)
-        char = CharacterFactory.create(user=self.user)
-        asset = ImageAssetFactory.create(owner=self.user)
+        char = CharacterFactory.create()
+        user = char.user
+        asset = ImageAssetFactory.create(owner=user)
+        self.login(user)
         asset.characters.add(char)
         response = self.client.patch(
             '/api/profiles/v1/asset/{}/'.format(asset.id),
@@ -359,7 +387,8 @@ class CharacterAPITestCase(APITestCase):
         self.assertEqual(asset.rating, MATURE)
 
         # Should work for staffer, too.
-        self.login(self.staffer)
+        staffer = UserFactory.create(is_staff=True)
+        self.login(staffer)
         response = self.client.patch(
             '/api/profiles/v1/asset/{}/'.format(asset.id),
             {
@@ -377,9 +406,10 @@ class CharacterAPITestCase(APITestCase):
         self.assertEqual(asset.rating, ADULT)
 
     def test_asset_edit_forbidden(self):
-        self.login(self.user2)
-        char = CharacterFactory.create(user=self.user)
-        asset = ImageAssetFactory.create(owner=self.user)
+        user2 = UserFactory.create()
+        self.login(user2)
+        char = CharacterFactory.create()
+        asset = ImageAssetFactory.create(owner=char.user)
         asset.characters.add(char)
         response = self.client.patch(
             '/api/profiles/v1/asset/{}/'.format(asset.id),
@@ -395,9 +425,10 @@ class CharacterAPITestCase(APITestCase):
 
 class TestSettings(APITestCase):
     def test_settings_post(self):
-        self.login(self.user)
+        user = UserFactory.create()
+        self.login(user)
         response = self.client.patch(
-            '/api/profiles/v1/account/{}/settings/'.format(self.user.username), {
+            '/api/profiles/v1/account/{}/settings/'.format(user.username), {
                 'rating': ADULT,
                 'max_load': 5,
             }
@@ -405,134 +436,145 @@ class TestSettings(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['rating'], ADULT)
         self.assertEqual(response.data['max_load'], 5)
-        self.user.refresh_from_db()
-        self.assertEqual(self.user.rating, ADULT)
+        user.refresh_from_db()
+        self.assertEqual(user.rating, ADULT)
 
     def test_settings_wrong_user(self):
+        user = UserFactory.create()
         self.login(UserFactory.create())
         response = self.client.patch(
-            '/api/profiles/v1/account/{}/settings/'.format(self.user.username), {
+            '/api/profiles/v1/account/{}/settings/'.format(user.username), {
                 'rating': ADULT,
             }
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.user.refresh_from_db()
-        self.assertEqual(self.user.rating, GENERAL)
+        user.refresh_from_db()
+        self.assertEqual(user.rating, GENERAL)
 
     def test_credentials_post_username(self):
-        self.login(self.user)
+        user = UserFactory.create()
+        self.login(user)
         response = self.client.post(
-            '/api/profiles/v1/account/{}/credentials/'.format(self.user.username),
+            '/api/profiles/v1/account/{}/credentials/'.format(user.username),
             {'username': 'NewName', 'current_password': 'Test'}
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.user.refresh_from_db()
-        self.assertEqual(self.user.username, 'NewName')
+        user.refresh_from_db()
+        self.assertEqual(user.username, 'NewName')
 
     def test_credentials_username_taken(self):
-        self.login(self.user)
+        user = UserFactory.create()
+        self.login(user)
         conflicting = UserFactory.create()
         response = self.client.post(
-            '/api/profiles/v1/account/{}/credentials/'.format(self.user.username),
+            '/api/profiles/v1/account/{}/credentials/'.format(user.username),
             {'username': conflicting.username, 'current_password': 'Test'}
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        old_name = self.user.username
-        self.user.refresh_from_db()
-        self.assertNotEqual(self.user.username, conflicting.username)
-        self.assertEqual(self.user.username, old_name)
+        old_name = user.username
+        user.refresh_from_db()
+        self.assertNotEqual(user.username, conflicting.username)
+        self.assertEqual(user.username, old_name)
 
     def test_credentials_wrong_user(self):
+        user = UserFactory.create()
         self.login(UserFactory.create())
         response = self.client.post(
-            '/api/profiles/v1/account/{}/credentials/'.format(self.user.username),
+            '/api/profiles/v1/account/{}/credentials/'.format(user.username),
             {'username': 'NewName', 'current_password': 'Test'}
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        old_username = self.user.username
-        self.user.refresh_from_db()
-        self.assertNotEqual(self.user.username, 'NewName')
-        self.assertEqual(self.user.username, old_username)
+        old_username = user.username
+        user.refresh_from_db()
+        self.assertNotEqual(user.username, 'NewName')
+        self.assertEqual(user.username, old_username)
 
     def test_credentials_email_change(self):
-        self.login(self.user)
+        user = UserFactory.create()
+        self.login(user)
         response = self.client.post(
-            '/api/profiles/v1/account/{}/credentials/'.format(self.user.username),
+            '/api/profiles/v1/account/{}/credentials/'.format(user.username),
             {'current_password': 'Test', 'email': 'changed_email@example.com'}
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.user.refresh_from_db()
-        self.assertEqual(self.user.email, 'changed_email@example.com')
+        user.refresh_from_db()
+        self.assertEqual(user.email, 'changed_email@example.com')
 
     def test_credentials_email_taken(self):
-        self.login(self.user)
+        user = UserFactory.create()
+        self.login(user)
         conflicting = UserFactory.create()
         response = self.client.post(
-            '/api/profiles/v1/account/{}/credentials/'.format(self.user.username),
+            '/api/profiles/v1/account/{}/credentials/'.format(user.username),
             {'current_password': 'Test', 'email': conflicting.email}
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        old_email = self.user.email
-        self.user.refresh_from_db()
-        self.assertNotEqual(self.user.email, conflicting.email)
-        self.assertEqual(self.user.email, old_email)
+        old_email = user.email
+        user.refresh_from_db()
+        self.assertNotEqual(user.email, conflicting.email)
+        self.assertEqual(user.email, old_email)
 
     def test_credentials_username_no_password(self):
-        self.login(self.user)
+        user = UserFactory.create()
+        self.login(user)
         response = self.client.post(
-            '/api/profiles/v1/account/{}/credentials/'.format(self.user.username),
+            '/api/profiles/v1/account/{}/credentials/'.format(user.username),
             {'username': 'NewName'}
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        old_name = self.user.username
-        self.user.refresh_from_db()
-        self.assertEqual(old_name, self.user.username)
+        old_name = user.username
+        user.refresh_from_db()
+        self.assertEqual(old_name, user.username)
 
     def test_credentials_username_wrong_password(self):
-        self.login(self.user)
+        user = UserFactory.create()
+        self.login(user)
         response = self.client.post(
-            '/api/profiles/v1/account/{}/credentials/'.format(self.user.username),
+            '/api/profiles/v1/account/{}/credentials/'.format(user.username),
             {'username': 'NewName', 'current_password': 'password'}
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        old_name = self.user.username
-        self.user.refresh_from_db()
-        self.assertEqual(old_name, self.user.username)
+        old_name = user.username
+        user.refresh_from_db()
+        self.assertEqual(old_name, user.username)
 
     def test_credentials_change_password(self):
-        self.login(self.user)
+        user = UserFactory.create()
+        self.login(user)
         response = self.client.post(
-            '/api/profiles/v1/account/{}/credentials/'.format(self.user.username),
+            '/api/profiles/v1/account/{}/credentials/'.format(user.username),
             {
                 'current_password': 'Test',
                 'new_password': '1234TestABC',
             }
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.user.refresh_from_db()
-        self.assertFalse(self.user.check_password('Test'))
-        self.assertTrue(self.user.check_password('1234TestABC'))
+        user.refresh_from_db()
+        self.assertFalse(user.check_password('Test'))
+        self.assertTrue(user.check_password('1234TestABC'))
 
     def test_credentials_wrong_password(self):
-        self.login(self.user)
+        user = UserFactory.create()
+        self.login(user)
         response = self.client.post(
-            '/api/profiles/v1/account/{}/credentials/'.format(self.user.username),
+            '/api/profiles/v1/account/{}/credentials/'.format(user.username),
             {
                 'current_password': 'password',
                 'new_password': '1234TestABC',
             }
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.user.refresh_from_db()
-        self.assertFalse(self.user.check_password('1234'))
-        self.assertTrue(self.user.check_password('Test'))
+        user.refresh_from_db()
+        self.assertFalse(user.check_password('1234'))
+        self.assertTrue(user.check_password('Test'))
 
 
 class TestSetBiography(APITestCase):
     def test_set_biography(self):
-        self.login(self.user)
+        user = UserFactory.create()
+        self.login(user)
         response = self.client.patch(
-            '/api/profiles/v1/data/user/{}/'.format(self.user.username),
+            '/api/profiles/v1/data/user/{}/'.format(user.username),
             {
                 'biography': 'test'
             }
@@ -541,11 +583,7 @@ class TestSetBiography(APITestCase):
         self.assertEqual(response.data['biography'], 'test')
 
 
-class ValidatorChecks(TestCase):
-    def setUp(self):
-        super().setUp()
-        self.client = APIClient()
-
+class ValidatorChecks(APITestCase):
     def test_username_validator_taken(self):
         UserFactory.create(username='testola')
         response = self.client.get('/api/profiles/v1/form-validators/username/', {'username': 'testola'}, format='json')
@@ -577,16 +615,18 @@ class TestCharacterSearch(APITestCase):
         self.assertIDInList(char2, response.data['results'])
 
     def test_query_logged_in(self):
-        visible = CharacterFactory.create(name='Terrybutt', user=self.user)
-        visible2 = CharacterFactory.create(name='Terrencia', user=self.user2, open_requests=False)
-        visible_private = CharacterFactory.create(name='Terrence', private=True, user=self.user)
-        CharacterFactory.create(name='Terryvix', private=True, user=self.user2)
-        visible_non_taggable = CharacterFactory.create(name='Terrifying', taggable=False, user=self.user)
+        user = UserFactory.create()
+        user2 = UserFactory.create()
+        visible = CharacterFactory.create(name='Terrybutt', user=user)
+        visible2 = CharacterFactory.create(name='Terrencia', user=user2, open_requests=False)
+        visible_private = CharacterFactory.create(name='Terrence', private=True, user=user)
+        CharacterFactory.create(name='Terryvix', private=True, user=user2)
+        visible_non_taggable = CharacterFactory.create(name='Terrifying', taggable=False, user=user)
         blocked_character = CharacterFactory.create(name='Terrific')
-        blocked_character.user.blocking.add(self.user)
+        blocked_character.user.blocking.add(user)
         CharacterFactory.create(name='Stuff')
-        CharacterFactory.create(name='Terrible', taggable=False, user=self.user2)
-        self.login(self.user)
+        CharacterFactory.create(name='Terrible', taggable=False, user=user2)
+        self.login(user)
         response = self.client.get('/api/profiles/v1/search/character/?q=terr&tagging=true')
         self.assertEqual(len(response.data['results']), 4)
         self.assertIDInList(visible, response.data['results'])
@@ -596,15 +636,17 @@ class TestCharacterSearch(APITestCase):
         self.assertEqual(visible2.id, response.data['results'][3]['id'])
 
     def test_query_logged_in_commission(self):
-        visible = CharacterFactory.create(name='Terrybutt', open_requests=True, user=self.user)
-        visible2 = CharacterFactory.create(name='Terrencia', open_requests=True, user=self.user2)
-        visible3 = CharacterFactory.create(name='Terrifying', taggable=False, open_requests=True, user=self.user2)
-        visible_private = CharacterFactory.create(name='Terrence', private=True, open_requests=True, user=self.user)
-        CharacterFactory.create(name='Terryvix', private=True, open_requests=True, user=self.user2)
-        CharacterFactory.create(name='Terrible', open_requests=False, user=self.user2)
-        CharacterFactory.create(name='Terrp', taggable=True, open_requests=False, user=self.user2)
+        user = UserFactory.create()
+        user2 = UserFactory.create()
+        visible = CharacterFactory.create(name='Terrybutt', open_requests=True, user=user)
+        visible2 = CharacterFactory.create(name='Terrencia', open_requests=True, user=user2)
+        visible3 = CharacterFactory.create(name='Terrifying', taggable=False, open_requests=True, user=user2)
+        visible_private = CharacterFactory.create(name='Terrence', private=True, open_requests=True, user=user)
+        CharacterFactory.create(name='Terryvix', private=True, open_requests=True, user=user2)
+        CharacterFactory.create(name='Terrible', open_requests=False, user=user2)
+        CharacterFactory.create(name='Terrp', taggable=True, open_requests=False, user=user2)
         CharacterFactory.create(name='Stuff', open_requests=True)
-        self.login(self.user)
+        self.login(user)
         response = self.client.get('/api/profiles/v1/search/character/?q=terr&new_order=1')
         self.assertEqual(len(response.data['results']), 4)
         self.assertIDInList(visible, response.data['results'])
@@ -613,18 +655,21 @@ class TestCharacterSearch(APITestCase):
         self.assertEqual(visible2.id, response.data['results'][2]['id'])
 
     def test_query_logged_in_staffer(self):
-        visible = CharacterFactory.create(name='Terrybutt', open_requests=True, user=self.user)
-        visible2 = CharacterFactory.create(name='Terrencia', open_requests=True, user=self.user2)
-        visible_private = CharacterFactory.create(name='Terrence', private=True, user=self.user)
-        visible_non_taggable = CharacterFactory.create(name='Terrifying', taggable=False, user=self.user)
-        CharacterFactory.create(name='Terryvix', open_requests=True, private=True, user=self.user2)
-        CharacterFactory.create(name='Terrible', open_requests=False, user=self.user2)
+        user = UserFactory.create()
+        user2 = UserFactory.create()
+        visible = CharacterFactory.create(name='Terrybutt', open_requests=True, user=user)
+        visible2 = CharacterFactory.create(name='Terrencia', open_requests=True, user=user2)
+        visible_private = CharacterFactory.create(name='Terrence', private=True, user=user)
+        visible_non_taggable = CharacterFactory.create(name='Terrifying', taggable=False, user=user)
+        CharacterFactory.create(name='Terryvix', open_requests=True, private=True, user=user2)
+        CharacterFactory.create(name='Terrible', open_requests=False, user=user2)
         CharacterFactory.create(name='Stuff', open_requests=True)
         blocked_character = CharacterFactory.create(name='Terrific', open_requests=True)
-        blocked_character.user.blocking.add(self.user)
-        self.login(self.staffer)
+        blocked_character.user.blocking.add(user)
+        staffer = UserFactory.create(is_staff=True)
+        self.login(staffer)
         response = self.client.get(
-            '/api/profiles/v1/search/character/?q=terr&new_order=1&user={}&tagging=true'.format(self.user.id)
+            '/api/profiles/v1/search/character/?q=terr&new_order=1&user={}&tagging=true'.format(user.id)
         )
         self.assertEqual(len(response.data['results']), 4)
         self.assertIDInList(visible, response.data['results'])
@@ -690,44 +735,52 @@ class TestRefColor(APITestCase):
 
 class TestTagArtist(APITestCase):
     def test_logged_in(self):
+        user = UserFactory.create()
+        user2 = UserFactory.create()
         asset = ImageAssetFactory.create()
         self.login(asset.owner)
         response = self.client.post(
             '/api/profiles/v1/asset/{}/tag-artists/'.format(asset.id),
-            {'artists': [self.user.id, self.user2.id]}
+            {'artists': [user.id, user2.id]}
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['id'], asset.id)
         asset.refresh_from_db()
-        self.assertEqual(sorted(list(asset.artists.all().values_list('id', flat=True))), [self.user.id, self.user2.id])
+        self.assertEqual(sorted(list(asset.artists.all().values_list('id', flat=True))), [user.id, user2.id])
 
     def test_not_logged_in(self):
+        user = UserFactory.create()
+        user2 = UserFactory.create()
         asset = ImageAssetFactory.create()
         response = self.client.post(
             '/api/profiles/v1/asset/{}/tag-artists/'.format(asset.id),
-            {'artists': [self.user.id, self.user2.id]}
+            {'artists': [user.id, user2.id]}
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_logged_in_different_user(self):
+        user = UserFactory.create()
+        user2 = UserFactory.create()
         asset = ImageAssetFactory.create()
-        self.login(self.user)
+        self.login(user)
         response = self.client.post(
             '/api/profiles/v1/asset/{}/tag-artists/'.format(asset.id),
-            {'artists': [self.user.id, self.user2.id]}
+            {'artists': [user.id, user2.id]}
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['id'], asset.id)
         asset.refresh_from_db()
-        self.assertEqual(sorted(list(asset.artists.all().values_list('id', flat=True))), [self.user.id, self.user2.id])
+        self.assertEqual(sorted(list(asset.artists.all().values_list('id', flat=True))), [user.id, user2.id])
 
     def test_delete_logged_in(self):
+        user = UserFactory.create()
+        user2 = UserFactory.create()
         asset = ImageAssetFactory.create()
-        asset.artists.add(self.user, self.user2, asset.owner)
+        asset.artists.add(user, user2, asset.owner)
         self.login(asset.owner)
         response = self.client.delete(
             '/api/profiles/v1/asset/{}/tag-artists/'.format(asset.id),
-            {'artists': [self.user.id, self.user2.id]}
+            {'artists': [user.id, user2.id]}
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['id'], asset.id)
@@ -735,84 +788,98 @@ class TestTagArtist(APITestCase):
         self.assertEqual(list(asset.artists.all().values_list('id', flat=True)), [asset.owner.id])
 
     def test_delete_not_logged_in(self):
+        user = UserFactory.create()
+        user2 = UserFactory.create()
         asset = ImageAssetFactory.create()
-        asset.artists.add(self.user, self.user2, asset.owner)
+        asset.artists.add(user, user2, asset.owner)
         response = self.client.delete(
             '/api/profiles/v1/asset/{}/tag-artists/'.format(asset.id),
-            {'artists': [self.user.id, self.user2.id]}
+            {'artists': [user.id, user2.id]}
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_delete_wrong_user(self):
+        user = UserFactory.create()
+        user2 = UserFactory.create()
         asset = ImageAssetFactory.create()
-        asset.artists.add(self.user, self.user2, asset.owner)
+        asset.artists.add(user, user2, asset.owner)
         self.login(UserFactory.create())
         response = self.client.delete(
             '/api/profiles/v1/asset/{}/tag-artists/'.format(asset.id),
-            {'artists': [self.user.id, self.user2.id]}
+            {'artists': [user.id, user2.id]}
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_delete_other_user_tagged(self):
+        user = UserFactory.create()
+        user2 = UserFactory.create()
         asset = ImageAssetFactory.create()
-        asset.artists.add(self.user, self.user2, asset.owner)
-        self.login(self.user)
+        asset.artists.add(user, user2, asset.owner)
+        self.login(user)
         response = self.client.delete(
             '/api/profiles/v1/asset/{}/tag-artists/'.format(asset.id),
-            {'artists': [self.user.id, self.user2.id]}
+            {'artists': [user.id, user2.id]}
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         asset.refresh_from_db()
         self.assertEqual(
-            sorted(list(asset.artists.all().values_list('id', flat=True))), [self.user2.id, asset.owner.id]
+            sorted(list(asset.artists.all().values_list('id', flat=True))), [user2.id, asset.owner.id]
         )
 
 
 class TestShareAsset(APITestCase):
     def test_logged_in(self):
+        user = UserFactory.create()
+        user2 = UserFactory.create()
         asset = ImageAssetFactory.create()
         self.login(asset.owner)
         response = self.client.post(
             '/api/profiles/v1/asset/{}/share/'.format(asset.id),
-            {'shared_with': [self.user.id, self.user2.id]}
+            {'shared_with': [user.id, user2.id]}
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['id'], asset.id)
         asset.refresh_from_db()
         self.assertEqual(
-            sorted(list(asset.shared_with.all().values_list('id', flat=True))), [self.user.id, self.user2.id]
+            sorted(list(asset.shared_with.all().values_list('id', flat=True))), [user.id, user2.id]
         )
-        notification1 = Notification.objects.get(event__type=ASSET_SHARED, user=self.user)
-        notification2 = Notification.objects.get(event__type=ASSET_SHARED, user=self.user)
+        notification1 = Notification.objects.get(event__type=ASSET_SHARED, user=user)
+        notification2 = Notification.objects.get(event__type=ASSET_SHARED, user=user)
         self.assertEqual(notification1.event.data['user'], asset.owner.id)
         self.assertEqual(notification2.event, notification1.event)
         self.assertEqual(notification1.event.data['asset'], asset.id)
         self.assertEqual(notification2.event, notification1.event)
 
     def test_not_logged_in(self):
+        user = UserFactory.create()
+        user2 = UserFactory.create()
         asset = ImageAssetFactory.create()
         response = self.client.post(
             '/api/profiles/v1/asset/{}/share/'.format(asset.id),
-            {'shared_with': [self.user.id, self.user2.id]}
+            {'shared_with': [user.id, user2.id]}
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_logged_in_different_user(self):
+        user = UserFactory.create()
+        user2 = UserFactory.create()
         asset = ImageAssetFactory.create()
-        self.login(self.user)
+        self.login(user)
         response = self.client.post(
             '/api/profiles/v1/asset/{}/share/'.format(asset.id),
-            {'shared_with': [self.user.id, self.user2.id]}
+            {'shared_with': [user.id, user2.id]}
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_delete_logged_in(self):
+        user = UserFactory.create()
+        user2 = UserFactory.create()
         asset = ImageAssetFactory.create()
-        asset.shared_with.add(self.user, self.user2, asset.owner)
+        asset.shared_with.add(user, user2, asset.owner)
         self.login(asset.owner)
         response = self.client.delete(
             '/api/profiles/v1/asset/{}/share/'.format(asset.id),
-            {'shared_with': [self.user.id, self.user2.id]}
+            {'shared_with': [user.id, user2.id]}
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['id'], asset.id)
@@ -820,55 +887,63 @@ class TestShareAsset(APITestCase):
         self.assertEqual(list(asset.shared_with.all().values_list('id', flat=True)), [asset.owner.id])
 
     def test_delete_not_logged_in(self):
+        user = UserFactory.create()
+        user2 = UserFactory.create()
         asset = ImageAssetFactory.create()
-        asset.shared_with.add(self.user, self.user2, asset.owner)
+        asset.shared_with.add(user, user2, asset.owner)
         response = self.client.delete(
             '/api/profiles/v1/asset/{}/share/'.format(asset.id),
-            {'shared_with': [self.user.id, self.user2.id]}
+            {'shared_with': [user.id, user2.id]}
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_delete_wrong_user(self):
+        user = UserFactory.create()
+        user2 = UserFactory.create()
         asset = ImageAssetFactory.create()
-        asset.artists.add(self.user, self.user2, asset.owner)
+        asset.artists.add(user, user2, asset.owner)
         self.login(UserFactory.create())
         response = self.client.delete(
             '/api/profiles/v1/asset/{}/share/'.format(asset.id),
-            {'shared_with': [self.user.id, self.user2.id]}
+            {'shared_with': [user.id, user2.id]}
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_delete_other_user_tagged(self):
+        user = UserFactory.create()
+        user2 = UserFactory.create()
         asset = ImageAssetFactory.create()
-        asset.shared_with.add(self.user, self.user2, asset.owner)
-        self.login(self.user)
+        asset.shared_with.add(user, user2, asset.owner)
+        self.login(user)
         response = self.client.delete(
             '/api/profiles/v1/asset/{}/share/'.format(asset.id),
-            {'shared_with': [self.user.id, self.user2.id]}
+            {'shared_with': [user.id, user2.id]}
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_notification_deleted(self):
+        user = UserFactory.create()
         asset = ImageAssetFactory.create()
         self.login(asset.owner)
         self.client.post(
             '/api/profiles/v1/asset/{}/share/'.format(asset.id),
-            {'shared_with': [self.user.id]}
+            {'shared_with': [user.id]}
         )
         self.client.delete(
             '/api/profiles/v1/asset/{}/share/'.format(asset.id),
-            {'shared_with': [self.user.id]}
+            {'shared_with': [user.id]}
         )
-        notification = Notification.objects.get(event__type=ASSET_SHARED, user=self.user)
+        notification = Notification.objects.get(event__type=ASSET_SHARED, user=user)
         self.assertTrue(notification.event.recalled)
 
 
 class TestCharacterTag(APITestCase):
     def test_tag_user(self):
-        self.login(self.user)
-        char = CharacterFactory.create(user=self.user)
+        user = UserFactory.create()
+        self.login(user)
+        char = CharacterFactory.create(user=user)
         response = self.client.post(
-            '/api/profiles/v1/account/{}/characters/{}/tag/'.format(self.user.username, char.name),
+            '/api/profiles/v1/account/{}/characters/{}/tag/'.format(user.username, char.name),
             {'tags': ['sexy', 'vix']}
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -878,8 +953,9 @@ class TestCharacterTag(APITestCase):
 
 class TestAssetTag(APITestCase):
     def test_tag_user(self):
-        self.login(self.user)
-        asset = ImageAssetFactory.create(owner=self.user)
+        user = UserFactory.create()
+        self.login(user)
+        asset = ImageAssetFactory.create(owner=user)
         response = self.client.post(
             '/api/profiles/v1/asset/{}/tag/'.format(asset.id),
             {'tags': ['sexy', 'vix']}
@@ -891,7 +967,8 @@ class TestAssetTag(APITestCase):
 
 class TestTagCharacter(APITestCase):
     def test_tag_character(self):
-        self.login(self.user)
+        user = UserFactory.create()
+        self.login(user)
         character = CharacterFactory.create(name='Gooby')
         asset = ImageAssetFactory.create()
         response = self.client.post(
@@ -904,8 +981,9 @@ class TestTagCharacter(APITestCase):
         self.assertEqual(asset.characters.all()[0], character)
 
     def test_delete_tag(self):
-        self.login(self.user)
-        character = CharacterFactory.create(name='Gooby', user=self.user)
+        user = UserFactory.create()
+        self.login(user)
+        character = CharacterFactory.create(name='Gooby', user=user)
         asset = ImageAssetFactory.create()
         asset.characters.add(character)
         response = self.client.delete(
@@ -918,49 +996,57 @@ class TestTagCharacter(APITestCase):
 
 class TestShareCharacter(APITestCase):
     def test_logged_in(self):
+        user = UserFactory.create()
+        user2 = UserFactory.create()
         character = CharacterFactory.create()
         self.login(character.user)
         response = self.client.post(
             '/api/profiles/v1/account/{}/characters/{}/share/'.format(character.user.username, character.name),
-            {'shared_with': [self.user.id, self.user2.id]}
+            {'shared_with': [user.id, user2.id]}
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['id'], character.id)
         character.refresh_from_db()
         self.assertEqual(
-            sorted(list(character.shared_with.all().values_list('id', flat=True))), [self.user.id, self.user2.id]
+            sorted(list(character.shared_with.all().values_list('id', flat=True))), [user.id, user2.id]
         )
-        notification1 = Notification.objects.get(event__type=CHAR_SHARED, user=self.user)
-        notification2 = Notification.objects.get(event__type=CHAR_SHARED, user=self.user)
+        notification1 = Notification.objects.get(event__type=CHAR_SHARED, user=user)
+        notification2 = Notification.objects.get(event__type=CHAR_SHARED, user=user)
         self.assertEqual(notification1.event.data['user'], character.user.id)
         self.assertEqual(notification2.event, notification1.event)
         self.assertEqual(notification1.event.data['character'], character.id)
         self.assertEqual(notification2.event, notification1.event)
 
     def test_not_logged_in(self):
+        user = UserFactory.create()
+        user2 = UserFactory.create()
         character = CharacterFactory.create()
         response = self.client.post(
             '/api/profiles/v1/account/{}/characters/{}/share/'.format(character.user.username, character.name),
-            {'shared_with': [self.user.id, self.user2.id]}
+            {'shared_with': [user.id, user2.id]}
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_logged_in_different_user(self):
         character = CharacterFactory.create()
-        self.login(self.user)
+        user = UserFactory.create()
+        user2 = UserFactory.create()
+        self.login(user)
         response = self.client.post(
             '/api/profiles/v1/account/{}/characters/{}/share/'.format(character.user.username, character.name),
-            {'shared_with': [self.user.id, self.user2.id]}
+            {'shared_with': [user.id, user2.id]}
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_delete_logged_in(self):
+        user = UserFactory.create()
+        user2 = UserFactory.create()
         character = CharacterFactory.create()
-        character.shared_with.add(self.user, self.user2, character.user)
+        character.shared_with.add(user, user2, character.user)
         self.login(character.user)
         response = self.client.delete(
             '/api/profiles/v1/account/{}/characters/{}/share/'.format(character.user.username, character.name),
-            {'shared_with': [self.user.id, self.user2.id]}
+            {'shared_with': [user.id, user2.id]}
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['id'], character.id)
@@ -968,127 +1054,140 @@ class TestShareCharacter(APITestCase):
         self.assertEqual(list(character.shared_with.all().values_list('id', flat=True)), [character.user.id])
 
     def test_delete_not_logged_in(self):
+        user = UserFactory.create()
+        user2 = UserFactory.create()
         character = CharacterFactory.create()
-        character.shared_with.add(self.user, self.user2, character.user)
+        character.shared_with.add(user, user2, character.user)
         response = self.client.delete(
             '/api/profiles/v1/account/{}/characters/{}/share/'.format(character.user.username, character.name),
-            {'shared_with': [self.user.id, self.user2.id]}
+            {'shared_with': [user.id, user2.id]}
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_delete_wrong_user(self):
+        user = UserFactory.create()
+        user2 = UserFactory.create()
         character = CharacterFactory.create()
-        character.shared_with.add(self.user, self.user2, character.user)
+        character.shared_with.add(user, user2, character.user)
         self.login(UserFactory.create())
         response = self.client.delete(
             '/api/profiles/v1/account/{}/characters/{}/share/'.format(character.user.username, character.name),
-            {'shared_with': [self.user.id, self.user2.id]}
+            {'shared_with': [user.id, user2.id]}
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_delete_other_user_tagged(self):
+        user = UserFactory.create()
+        user2 = UserFactory.create()
         character = CharacterFactory.create()
-        character.shared_with.add(self.user, self.user2, character.user)
-        self.login(self.user)
+        character.shared_with.add(user, user2, character.user)
+        self.login(user)
         response = self.client.delete(
             '/api/profiles/v1/account/{}/characters/{}/share/'.format(character.user.username, character.name),
-            {'shared_with': [self.user.id, self.user2.id]}
+            {'shared_with': [user.id, user2.id]}
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_notification_deleted(self):
+        user = UserFactory.create()
         character = CharacterFactory.create()
         self.login(character.user)
         self.client.post(
             '/api/profiles/v1/account/{}/characters/{}/share/'.format(character.user.username, character.name),
-            {'shared_with': [self.user.id]}
+            {'shared_with': [user.id]}
         )
         self.client.delete(
             '/api/profiles/v1/account/{}/characters/{}/share/'.format(character.user.username, character.name),
-            {'shared_with': [self.user.id]}
+            {'shared_with': [user.id]}
         )
-        notification = Notification.objects.get(event__type=CHAR_SHARED, user=self.user)
+        notification = Notification.objects.get(event__type=CHAR_SHARED, user=user)
         self.assertTrue(notification.event.recalled)
 
 
 class TestWatch(APITestCase):
     def test_watch_user(self):
-        self.login(self.user)
+        user = UserFactory.create()
+        user2 = UserFactory.create()
+        self.login(user)
         response = self.client.post(
-            '/api/profiles/v1/account/{}/watch/'.format(self.user2.username),
+            '/api/profiles/v1/account/{}/watch/'.format(user2.username),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(self.user.watching.all().count(), 1)
-        self.assertEqual(self.user.watching.all()[0], self.user2)
+        self.assertEqual(user.watching.all().count(), 1)
+        self.assertEqual(user.watching.all()[0], user2)
         event_types = [NEW_CHARACTER, NEW_PRODUCT]
         for event_type in event_types:
             logger.info('Checking {}'.format(event_type))
             self.assertTrue(Subscription.objects.filter(
-                subscriber=self.user,
-                content_type=ContentType.objects.get_for_model(self.user2),
-                object_id=self.user2.id,
+                subscriber=user,
+                content_type=ContentType.objects.get_for_model(user2),
+                object_id=user2.id,
                 type=event_type
             ).exists())
         response = self.client.post(
-            '/api/profiles/v1/account/{}/watch/'.format(self.user2.username),
+            '/api/profiles/v1/account/{}/watch/'.format(user2.username),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(self.user.watching.all().count(), 0)
+        self.assertEqual(user.watching.all().count(), 0)
         for event_type in event_types:
             logger.info('Checking {}'.format(event_type))
             self.assertFalse(Subscription.objects.filter(
-                subscriber=self.user,
-                content_type=ContentType.objects.get_for_model(self.user2),
-                object_id=self.user2.id,
+                subscriber=user,
+                content_type=ContentType.objects.get_for_model(user2),
+                object_id=user2.id,
                 type=event_type
             ).exists())
 
     def test_watch_user_no_login(self):
+        user = UserFactory.create()
         response = self.client.post(
-            '/api/profiles/v1/account/{}/watch/'.format(self.user2.username),
+            '/api/profiles/v1/account/{}/watch/'.format(user.username),
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
 class TestFavorite(APITestCase):
     def test_favorite_asset(self):
+        user = UserFactory.create()
         asset = ImageAssetFactory.create()
-        self.login(self.user)
+        self.login(user)
         response = self.client.post(
             '/api/profiles/v1/asset/{}/favorite/'.format(asset.id)
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(self.user.favorites.all().count(), 1)
-        self.assertEqual(self.user.favorites.all()[0], asset)
+        self.assertEqual(user.favorites.all().count(), 1)
+        self.assertEqual(user.favorites.all()[0], asset)
         response = self.client.post(
             '/api/profiles/v1/asset/{}/favorite/'.format(asset.id)
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(self.user.favorites.all().count(), 0)
+        self.assertEqual(user.favorites.all().count(), 0)
 
     def test_favorite_asset_hidden_failure(self):
+        user = UserFactory.create()
         asset = ImageAssetFactory.create(private=True)
-        self.login(self.user)
+        self.login(user)
         response = self.client.post(
             '/api/profiles/v1/asset/{}/favorite/'.format(asset.id)
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_favorite_asset_hidden_shared(self):
+        user = UserFactory.create()
         asset = ImageAssetFactory.create(private=True)
-        asset.shared_with.add(self.user)
-        self.login(self.user)
+        asset.shared_with.add(user)
+        self.login(user)
         response = self.client.post(
             '/api/profiles/v1/asset/{}/favorite/'.format(asset.id)
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(self.user.favorites.all().count(), 1)
-        self.assertEqual(self.user.favorites.all()[0], asset)
+        self.assertEqual(user.favorites.all().count(), 1)
+        self.assertEqual(user.favorites.all()[0], asset)
         response = self.client.post(
             '/api/profiles/v1/asset/{}/favorite/'.format(asset.id)
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(self.user.favorites.all().count(), 0)
+        self.assertEqual(user.favorites.all().count(), 0)
 
     def test_favorite_asset_no_login(self):
         asset = ImageAssetFactory.create()
@@ -1100,13 +1199,15 @@ class TestFavorite(APITestCase):
 
 class TestPrivateMessages(APITestCase):
     def test_create_message(self):
-        self.login(self.user)
+        user = UserFactory.create()
+        user2 = UserFactory.create()
+        self.login(user)
         response = self.client.post(
-            '/api/profiles/v1/account/{}/messages/sent/'.format(self.user.username),
+            '/api/profiles/v1/account/{}/messages/sent/'.format(user.username),
             {
                 'subject': 'This is a test',
                 'body': 'O hai',
-                'recipients': [self.user2.id]
+                'recipients': [user2.id]
             }
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -1117,18 +1218,18 @@ class TestPrivateMessages(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['body'], 'O hai')
         self.assertEqual(response.data['subject'], 'This is a test')
-        self.assertEqual(response.data['recipients'][0]['id'], self.user2.id)
-        self.assertEqual(response.data['sender']['id'], self.user.id)
+        self.assertEqual(response.data['recipients'][0]['id'], user2.id)
+        self.assertEqual(response.data['sender']['id'], user.id)
 
-        self.login(self.user2)
+        self.login(user2)
         response = self.client.get(
             '/api/profiles/v1/messages/{}/'.format(message_id)
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['body'], 'O hai')
         self.assertEqual(response.data['subject'], 'This is a test')
-        self.assertEqual(response.data['recipients'][0]['id'], self.user2.id)
-        self.assertEqual(response.data['sender']['id'], self.user.id)
+        self.assertEqual(response.data['recipients'][0]['id'], user2.id)
+        self.assertEqual(response.data['sender']['id'], user.id)
 
         user3 = UserFactory.create()
         self.login(user3)
@@ -1139,59 +1240,67 @@ class TestPrivateMessages(APITestCase):
 
         subscriptions = Subscription.objects.filter(type=NEW_PM)
         self.assertEqual(subscriptions.count(), 1)
-        self.assertEqual(subscriptions[0].subscriber, self.user2)
+        self.assertEqual(subscriptions[0].subscriber, user2)
 
         subscriptions = Subscription.objects.filter(
             type=COMMENT, content_type=ContentType.objects.get_for_model(Message),
             object_id=message_id
         )
         self.assertEqual(subscriptions.count(), 2)
-        self.assertTrue(subscriptions.filter(subscriber=self.user).exists())
-        self.assertTrue(subscriptions.filter(subscriber=self.user2).exists())
+        self.assertTrue(subscriptions.filter(subscriber=user).exists())
+        self.assertTrue(subscriptions.filter(subscriber=user2).exists())
 
     def test_list_from(self):
-        relationships = [MessageRecipientRelationshipFactory.create(message__sender=self.user) for _ in range(3)]
-        self.login(self.user)
-        response = self.client.get('/api/profiles/v1/account/{}/messages/sent/'.format(self.user.username))
+        user = UserFactory.create()
+        user2 = UserFactory.create()
+        relationships = [MessageRecipientRelationshipFactory.create(message__sender=user) for _ in range(3)]
+        self.login(user)
+        response = self.client.get('/api/profiles/v1/account/{}/messages/sent/'.format(user.username))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['results']), len(relationships))
         for relationship in relationships:
             self.assertIDInList(relationship.message, response.data['results'])
 
-        self.login(self.user2)
-        response = self.client.get('/api/profiles/v1/account/{}/messages/sent/'.format(self.user.username))
+        self.login(user2)
+        response = self.client.get('/api/profiles/v1/account/{}/messages/sent/'.format(user.username))
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.login(self.staffer)
-        response = self.client.get('/api/profiles/v1/account/{}/messages/sent/'.format(self.user.username))
+        staffer = UserFactory.create(is_staff=True)
+        self.login(staffer)
+        response = self.client.get('/api/profiles/v1/account/{}/messages/sent/'.format(user.username))
         # Even staffers can't just go browsing.
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_list_to(self):
-        relationships = [MessageRecipientRelationshipFactory.create(user=self.user) for _ in range(3)]
-        self.login(self.user)
-        response = self.client.get('/api/profiles/v1/account/{}/messages/inbox/'.format(self.user.username))
+        user = UserFactory.create()
+        user2 = UserFactory.create()
+        relationships = [MessageRecipientRelationshipFactory.create(user=user) for _ in range(3)]
+        self.login(user)
+        response = self.client.get('/api/profiles/v1/account/{}/messages/inbox/'.format(user.username))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['results']), len(relationships))
         for relationship in relationships:
             self.assertIDInList(relationship.message, response.data['results'])
 
-        self.login(self.user2)
-        response = self.client.get('/api/profiles/v1/account/{}/messages/inbox/'.format(self.user.username))
+        self.login(user2)
+        response = self.client.get('/api/profiles/v1/account/{}/messages/inbox/'.format(user.username))
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.login(self.staffer)
-        response = self.client.get('/api/profiles/v1/account/{}/messages/inbox/'.format(self.user.username))
+        staffer = UserFactory.create(is_staff=True)
+        self.login(staffer)
+        response = self.client.get('/api/profiles/v1/account/{}/messages/inbox/'.format(user.username))
         # Even staffers can't just go browsing.
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_leave_conversation(self):
         # The view creates the subscriptions, so use it for this test.
-        self.login(self.user)
+        user = UserFactory.create()
+        user2 = UserFactory.create()
+        self.login(user)
         response = self.client.post(
-            '/api/profiles/v1/account/{}/messages/sent/'.format(self.user.username),
+            '/api/profiles/v1/account/{}/messages/sent/'.format(user.username),
             {
                 'subject': 'This is a test',
                 'body': 'O hai',
-                'recipients': [self.user2.id]
+                'recipients': [user2.id]
             }
         )
         message = Message.objects.get(id=response.data['id'])
@@ -1201,7 +1310,7 @@ class TestPrivateMessages(APITestCase):
         )
         self.assertEqual(subscriptions.count(), 2)
 
-        self.login(self.user)
+        self.login(user)
         response = self.client.post('/api/profiles/v1/messages/{}/leave/'.format(message.id))
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
@@ -1213,7 +1322,7 @@ class TestPrivateMessages(APITestCase):
 
         message.refresh_from_db()
         self.assertTrue(message.sender_left)
-        self.login(self.user2)
+        self.login(user2)
         response = self.client.post('/api/profiles/v1/messages/{}/leave/'.format(message.id))
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertRaises(Message.DoesNotExist, Message.objects.get, id=message.id)
@@ -1233,10 +1342,12 @@ class TestPrivateMessages(APITestCase):
 
 class ListTestCase(APITestCase):
     def test_gallery_list(self):
-        asset = ImageAsset.objects.create(owner=self.user2)
-        asset.artists.add(self.user)
+        user = UserFactory.create()
+        user2 = UserFactory.create()
+        asset = ImageAsset.objects.create(owner=user2)
+        asset.artists.add(user)
         response = self.client.get(
-            '/api/profiles/v1/account/{}/gallery/'.format(self.user.username),
+            '/api/profiles/v1/account/{}/gallery/'.format(user.username),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIDInList(asset, response.data['results'])

@@ -3,15 +3,16 @@ from rest_framework import status
 from apps.lib.models import Notification
 from apps.lib.test_resources import APITestCase
 from apps.lib.tests.factories import CommentFactory
-from apps.profiles.tests.factories import ImageAssetFactory
+from apps.profiles.tests.factories import ImageAssetFactory, UserFactory
 
 
 class TestComments(APITestCase):
     def test_comment_reply(self):
+        user = UserFactory.create()
         asset = ImageAssetFactory.create()
         # Start with initial comment, check notification is sent.
         comment = CommentFactory.create(content_object=asset)
-        self.assertEqual(self.user.comment_set.all().count(), 0)
+        self.assertEqual(user.comment_set.all().count(), 0)
         notifications = Notification.objects.all()
         self.assertEqual(notifications.count(), 1)
         notification = notifications[0]
@@ -20,7 +21,7 @@ class TestComments(APITestCase):
         self.assertEqual(notification.event.data['subcomments'], [])
         self.assertEqual(notification.event.target, asset)
         # Create a reply to the comment
-        self.login(self.user)
+        self.login(user)
         response = self.client.post(
             '/api/lib/v1/comment/{}/reply/'.format(comment.id),
             {
@@ -34,8 +35,8 @@ class TestComments(APITestCase):
         self.assertEqual(new_comment['edited'], False)
         self.assertEqual(new_comment['deleted'], False)
         self.assertEqual(new_comment['text'], 'This is a new comment')
-        self.user.refresh_from_db()
-        self.assertEqual(self.user.comment_set.all().count(), 1)
+        user.refresh_from_db()
+        self.assertEqual(user.comment_set.all().count(), 1)
         notifications = Notification.objects.all()
         self.assertEqual(notifications.count(), 2)
         # Grab the new notification and verify its contents are correct.
@@ -51,7 +52,8 @@ class TestComments(APITestCase):
         new_notification.read = True
         new_notification.save()
         # Make one more reply with another user.
-        self.login(self.user2)
+        user2 = UserFactory.create()
+        self.login(user2)
         response = self.client.post(
             '/api/lib/v1/comment/{}/reply/'.format(comment.id),
             {
