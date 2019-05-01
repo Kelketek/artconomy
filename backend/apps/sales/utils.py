@@ -272,7 +272,7 @@ def finalize_order(order, user=None):
     from apps.sales.tasks import withdraw_all
     with atomic():
         if order.status == order.DISPUTED and user == order.buyer:
-            # User is rescinding dispute. d
+            # User is rescinding dispute.
             recall_notification(DISPUTE, order)
             # We'll pretend this never happened.
             order.disputed_on = None

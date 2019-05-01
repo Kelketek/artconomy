@@ -2650,7 +2650,7 @@ class TestCreateInvoice(APITestCase):
         self.assertEqual(response.data['product']['expected_turnaround'], '2.00')
 
         order = Order.objects.get(id=response.data['id'])
-        self.assertIsNone(order.price)
+        self.assertEqual(order.price, Money('3.00', 'USD'))
         self.assertIsNone(order.claim_token)
 
     def test_create_invoice_email(self):
@@ -2685,7 +2685,7 @@ class TestCreateInvoice(APITestCase):
         self.assertEqual(response.data['product']['expected_turnaround'], '2.00')
 
         order = Order.objects.get(id=response.data['id'])
-        self.assertIsNone(order.price)
+        self.assertEqual(order.price, Money('3.00', 'USD'))
         self.assertEqual(order.customer_email, 'test@example.com')
         self.assertTrue(order.claim_token)
 
@@ -2723,5 +2723,5 @@ class TestCreateInvoice(APITestCase):
         self.assertEqual(response.data['product']['expected_turnaround'], '2.00')
 
         order = Order.objects.get(id=response.data['id'])
-        self.assertIsNone(order.price)
+        self.assertEqual(order.price, Money('3.00', 'USD'))
         self.assertIsNone(order.claim_token)
