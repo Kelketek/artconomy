@@ -1708,6 +1708,7 @@ class CreateInvoice(GenericAPIView):
             customer_email=customer_email,
             claim_token=claim_token,
             product=product,
+            price=product.price,
             escrow_disabled=escrow_disabled,
             details=serializer.validated_data['details'],
             private=serializer.validated_data['private'],

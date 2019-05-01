@@ -1,15 +1,16 @@
 import uuid
 from unittest.mock import patch
 
+from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
 from moneyed import Money, Decimal
 
 from apps.lib.models import Notification, ORDER_UPDATE
 from apps.profiles.tests.factories import UserFactory
-from apps.sales.models import PaymentRecord
+from apps.sales.models import PaymentRecord, Order
 from apps.sales.tasks import withdraw_all
 from apps.sales.tests.factories import PaymentRecordFactory, BankAccountFactory, OrderFactory
-from apps.sales.utils import escrow_balance, available_balance, pending_balance, claim_order_by_token
+from apps.sales.utils import escrow_balance, available_balance, pending_balance, claim_order_by_token, finalize_order
 
 
 class BalanceTestCase(TestCase):

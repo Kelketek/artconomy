@@ -169,7 +169,7 @@ class Order(Model):
     buyer = ForeignKey(settings.AUTH_USER_MODEL, related_name='buys', on_delete=CASCADE, null=True, blank=True)
     price = MoneyField(
         max_digits=6, decimal_places=2, default_currency='USD',
-        blank=True, null=True, validators=[MinValueValidator(settings.MINIMUM_PRICE)]
+        blank=True, null=True, validators=[MinValueValidator(Money(settings.MINIMUM_PRICE, 'USD'))]
     )
     revisions = IntegerField(default=0)
     revisions_hidden = BooleanField(default=True)
@@ -177,7 +177,9 @@ class Order(Model):
     claim_token = UUIDField(blank=True, null=True)
     customer_email = EmailField(blank=True)
     details = CharField(max_length=5000)
-    adjustment = MoneyField(max_digits=6, decimal_places=2, default_currency='USD', blank=True, default=0)
+    adjustment = MoneyField(
+        max_digits=6, decimal_places=2, default_currency='USD', blank=True, default=Money('0.00', 'USD')
+    )
     adjustment_expected_turnaround = DecimalField(default=0, max_digits=5, decimal_places=2)
     adjustment_task_weight = IntegerField(default=0)
     task_weight = IntegerField(default=0)
