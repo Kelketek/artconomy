@@ -178,7 +178,8 @@ class Order(Model):
     customer_email = EmailField(blank=True)
     details = CharField(max_length=5000)
     adjustment = MoneyField(
-        max_digits=6, decimal_places=2, default_currency='USD', blank=True, default=Money('0.00', 'USD')
+        # Migrations choke when the default is a Money object.
+        max_digits=6, decimal_places=2, default_currency='USD', blank=True, default=0
     )
     adjustment_expected_turnaround = DecimalField(default=0, max_digits=5, decimal_places=2)
     adjustment_task_weight = IntegerField(default=0)
