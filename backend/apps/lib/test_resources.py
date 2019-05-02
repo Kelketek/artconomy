@@ -463,6 +463,9 @@ class NPMBuildTestRunner(DiscoverRunner):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.run_build = kwargs.pop('run_build')
+        self.e2e = kwargs.pop('e2e')
+        if not self.e2e:
+            self.exclude_tags.add('e2e')
 
     def setup_test_environment(self, **kwargs):
         super().setup_test_environment(**kwargs)
@@ -482,6 +485,10 @@ class NPMBuildTestRunner(DiscoverRunner):
         parser.add_argument(
             '--run-build', action='store_true', dest='run_build',
             help='Build and collect static assets.',
+        )
+        parser.add_argument(
+            '--e2e', action='store_true', dest='e2e',
+            help='Run the end-to-end tests.',
         )
 
 
