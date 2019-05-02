@@ -18,6 +18,7 @@ django-rest-recaptcha==1.0.1
 django_money==0.14
 django-premailer==0.2.0
 django-custom-user==0.7
+django-sendgrid-v5==0.8.0
 drf-haystack==1.8.4
 dwollav2==1.2.4
 easy_thumbnails==2.5
