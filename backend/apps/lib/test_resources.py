@@ -10,7 +10,7 @@ from bok_choy.promise import EmptyPromise, BrokenPromise, Promise
 from bok_choy.web_app_test import WebAppTest
 from django.conf import settings
 from django.forms import CheckboxInput, RadioSelect
-from django.test import LiveServerTestCase, override_settings
+from django.test import LiveServerTestCase, override_settings, tag
 from django.test.runner import DiscoverRunner
 from django.urls import reverse
 from needle.driver import NeedleFirefox
@@ -22,6 +22,7 @@ from seleniumrequests import RequestMixin
 MIDDLEWARE = ['apps.lib.test_resources.DisableCSRF'] + settings.MIDDLEWARE
 
 
+@tag('e2e')
 @override_settings(MIDDLEWARE=MIDDLEWARE)
 class BaseWebAppTest(LiveServerTestCase, WebAppTest):
     """
