@@ -84,6 +84,24 @@
                   realizing that he rarely commissioned online but frequently did at creative conventions,
                   where one could meet face-to-face with artists. He wanted to create a service where it was as easy
                   to commission online as it is in person.</p>
+                <h3>President: Amber R. Criswell</h3>
+                <p>Amber is a supporter of all things artistic and exploratory. A writer and musician,
+                  she makes up for her lack of drawing talent by buying ALL the art and filling her home with it.</p>
+                  <p>A friend of hers who has supported himself with his art for over 30 years took her on a personalized
+                tour of the best artists in her city, telling her when and what to buy – as well as who would and would
+                not succeed. Asking how he knew that, he told her that art is 80% business and 20% creation, and when
+                    an artist isn’t treating their work like the business it is, they won’t be in the game much longer.</p>
+
+                  <p>She believes the marvelous thing about Artconomy is that it honors its users by creating a
+                    platform that helps with the business side of art so that everyone has time to focus on what they
+                    actually want – the art!</p>
+
+                <p>Formerly in education and now in neuroscience research, her interests range from post-WWII
+                  "lost generation" literature to synesthesia and neuropsychology to astrophysics. An avid traveler,
+                  her favorite city is Paris and her favorite museum is Museu de l'Erotica in Barcelona
+                  (where she discovered her fascination with 18th century French erotic art). When she's not working,
+                  she’s catching up on sleep. When she’s not catching up on sleep, she's being entertained by this
+                  handsome fox that burrowed his way into her life...</p>
                 <h3>Marketing and Public Relations Director: Eris A. Griffon</h3>
                 <p>Eris is <em>also</em> a longterm online role player and her life is filled with artists, so she's
                   always had a passion to make art more accessible for everyone and to see characters come alive online!
