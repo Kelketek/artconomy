@@ -1,4 +1,6 @@
 from apps.lib.abstract_models import GENERAL, MATURE, ADULT, EXTREME
+from apps.profiles.models import User
+from django.shortcuts import get_object_or_404
 
 
 def rating_middleware(get_response):
@@ -32,3 +34,15 @@ def rating_middleware(get_response):
         return response
 
     return middleware
+
+
+class SubjectMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        return self.get_response(request)
+
+    def process_view(self, request, view_func, view_args, view_kwargs):
+        if 'username' in view_kwargs:
+            request.subject = get_object_or_404(User, username__iexact=view_kwargs['username'])

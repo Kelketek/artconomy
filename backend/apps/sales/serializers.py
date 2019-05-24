@@ -30,6 +30,12 @@ class ProductSerializer(serializers.ModelSerializer):
     def get_thumbnail_url(self, obj):
         return self.context['request'].build_absolute_uri(obj.file.url)
 
+    def validate_price(self, value):
+        if not self.context['request'].subject.escrow_disabled:
+            if value and (value < settings.MINIMUM_PRICE):
+                raise ValidationError('Must be at least ${}'.format(settings.MINIMUM_PRICE))
+        return value
+
     class Meta:
         model = Product
         fields = (
@@ -38,6 +44,7 @@ class ProductSerializer(serializers.ModelSerializer):
             'featured'
         )
         read_only_fields = ('tags', 'featured')
+        extra_kwargs = {'price': {'required': True}}
 
 
 class ProductNewOrderSerializer(serializers.ModelSerializer):

@@ -62,17 +62,16 @@ from apps.sales.tasks import renew
 
 class ProductList(ListCreateAPIView):
     serializer_class = ProductSerializer
+    permission_classes = [Any(IsSafeMethod, UserControls)]
 
     def perform_create(self, serializer):
-        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
-        if not (self.request.user.is_staff or self.request.user == user):
-            raise PermissionDenied("You do not have permission to create products for that user.")
-        product = serializer.save(owner=user, user=user)
+        self.check_object_permissions(self.request, self.request.subject)
+        product = serializer.save(owner=self.request.subject, user=self.request.subject)
         # ignore the tagging result. In the case it fails, someone's doing something pretty screwwy anyway, and it's
         # not essential for creating the character.
         add_tags(self.request, product, field_name='tags')
         if not product.hidden:
-            notify(NEW_PRODUCT, user, data={'product': product.id}, unique_data=True)
+            notify(NEW_PRODUCT, self.request.subject, data={'product': product.id}, unique_data=True)
         return product
 
     def get_queryset(self):

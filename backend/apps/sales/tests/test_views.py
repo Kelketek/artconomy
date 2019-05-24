@@ -438,6 +438,7 @@ class TestProduct(APITestCase):
                 'revisions': 2,
                 'task_weight': 2,
                 'expected_turnaround': 3,
+                'price': '2.50',
             }
         )
         result = response.data
@@ -446,6 +447,70 @@ class TestProduct(APITestCase):
         self.assertEqual(result['revisions'], 2)
         self.assertEqual(result['task_weight'], 2)
         self.assertEqual(result['expected_turnaround'], '3.00')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_create_product_free(self):
+        user = UserFactory.create()
+        self.login(user)
+        response = self.client.post(
+            '/api/sales/v1/account/{}/products/'.format(user.username),
+            {
+                'description': 'I will draw you a porn.',
+                'file': SimpleUploadedFile('bloo-oo.jpg', gen_image()),
+                'name': 'Pornographic refsheet',
+                'revisions': 2,
+                'task_weight': 2,
+                'expected_turnaround': 3,
+                'price': '0',
+            }
+        )
+        result = response.data
+        self.assertEqual(result['description'], 'I will draw you a porn.')
+        self.assertEqual(result['name'], 'Pornographic refsheet')
+        self.assertEqual(result['revisions'], 2)
+        self.assertEqual(result['task_weight'], 2)
+        self.assertEqual(result['expected_turnaround'], '3.00')
+        self.assertEqual(result['price'], '0.00')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    @override_settings(MINIMUM_PRICE=Decimal('1.00'))
+    def test_create_product_minimum_unmet(self):
+        user = UserFactory.create()
+        self.login(user)
+        response = self.client.post(
+            '/api/sales/v1/account/{}/products/'.format(user.username),
+            {
+                'description': 'I will draw you a porn.',
+                'file': SimpleUploadedFile('bloo-oo.jpg', gen_image()),
+                'name': 'Pornographic refsheet',
+                'revisions': 2,
+                'task_weight': 2,
+                'expected_turnaround': 3,
+                'price': '0.50',
+            }
+        )
+        result = response.data
+        self.assertEqual(result['price'], ['Must be at least $1.00'])
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    @override_settings(MINIMUM_PRICE=Decimal('1.00'))
+    def test_create_product_minimum_irrelevant(self):
+        user = UserFactory.create(escrow_disabled=True)
+        self.login(user)
+        response = self.client.post(
+            '/api/sales/v1/account/{}/products/'.format(user.username),
+            {
+                'description': 'I will draw you a porn.',
+                'file': SimpleUploadedFile('bloo-oo.jpg', gen_image()),
+                'name': 'Pornographic refsheet',
+                'revisions': 2,
+                'task_weight': 2,
+                'expected_turnaround': 3,
+                'price': '0.50',
+            }
+        )
+        result = response.data
+        self.assertEqual(result['price'], '0.50')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_create_product_not_logged_in(self):
@@ -459,6 +524,7 @@ class TestProduct(APITestCase):
                 'revisions': 2,
                 'task_weight': 2,
                 'expected_turnaround': 3,
+                'price': '2.50',
             }
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -476,6 +542,7 @@ class TestProduct(APITestCase):
                 'revisions': 2,
                 'task_weight': 2,
                 'expected_turnaround': 3,
+                'price': '2.50',
             }
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -494,6 +561,7 @@ class TestProduct(APITestCase):
                 'task_weight': 2,
                 'rating': MATURE,
                 'expected_turnaround': 3,
+                'price': '2.50',
             }
         )
         result = response.data
@@ -503,6 +571,7 @@ class TestProduct(APITestCase):
         self.assertEqual(result['task_weight'], 2)
         self.assertEqual(result['expected_turnaround'], '3.00')
         self.assertEqual(result['rating'], MATURE)
+        self.assertEqual(result['price'], '2.50')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_product_listing_not_logged_in(self):
