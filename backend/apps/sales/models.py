@@ -169,7 +169,7 @@ class Order(Model):
     buyer = ForeignKey(settings.AUTH_USER_MODEL, related_name='buys', on_delete=CASCADE, null=True, blank=True)
     price = MoneyField(
         max_digits=6, decimal_places=2, default_currency='USD',
-        blank=True, null=True, validators=[MinValueValidator(Money(settings.MINIMUM_PRICE, 'USD'))]
+        blank=True, null=True,
     )
     revisions = IntegerField(default=0)
     revisions_hidden = BooleanField(default=True)

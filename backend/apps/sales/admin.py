@@ -9,6 +9,7 @@ class OrderAdmin(admin.ModelAdmin):
     inlines = [
         CommentInline
     ]
+    raw_id_fields = ['buyer', 'seller', 'product', 'arbitrator', 'characters']
 
 
 admin.site.register(Product, admin.ModelAdmin)
