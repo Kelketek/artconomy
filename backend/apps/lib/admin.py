@@ -5,7 +5,7 @@ from apps.lib.models import Comment
 
 
 class CommentInline(GenericTabularInline):
-    raw_id_fields = ['user']
+    raw_id_fields = ['user', 'parent']
     model = Comment
 
 
