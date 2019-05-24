@@ -2076,6 +2076,27 @@ class TestOrderStateChange(APITestCase):
     def test_claim_order_seller(self):
         self.state_assertion('seller', 'claim/', status.HTTP_403_FORBIDDEN, initial_status=Order.DISPUTED)
 
+    def test_file_dispute_buyer(self):
+        self.state_assertion('buyer', 'dispute/', status.HTTP_200_OK, initial_status=Order.IN_PROGRESS)
+
+    @freeze_time('2019-01-01')
+    def test_file_dispute_buyer_too_early(self):
+        self.order.dispute_available_on = date(year=2019, month=5, day=3)
+        self.order.save()
+        self.state_assertion('buyer', 'dispute/', status.HTTP_403_FORBIDDEN, initial_status=Order.IN_PROGRESS)
+
+    @freeze_time('2019-01-01')
+    def test_file_dispute_buyer_enough_time(self):
+        self.order.dispute_available_on = date(year=2019, month=5, day=3)
+        self.order.save()
+        self.state_assertion('buyer', 'dispute/', status.HTTP_403_FORBIDDEN, initial_status=Order.IN_PROGRESS)
+
+    def test_file_dispute_seller(self):
+        self.state_assertion('seller', 'dispute/', status.HTTP_403_FORBIDDEN, initial_status=Order.REVIEW)
+
+    def test_file_dispute_outsider_fail(self):
+        self.state_assertion('outsider', 'dispute/', status.HTTP_403_FORBIDDEN, initial_status=Order.REVIEW)
+
 
 class TestComment(APITestCase):
     def test_make_comment(self):

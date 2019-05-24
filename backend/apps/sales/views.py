@@ -457,7 +457,7 @@ class StartDispute(GenericAPIView):
         if order.status not in [Order.IN_PROGRESS, Order.QUEUED, Order.REVIEW]:
             raise PermissionDenied('This order is not in a disputable state.')
         if order.status in [Order.IN_PROGRESS, Order.QUEUED]:
-            if order.dispute_available_on < timezone.now().date():
+            if order.dispute_available_on and (order.dispute_available_on > timezone.now().date()):
                 raise PermissionDenied(
                     "This order is not old enough to dispute. You can dispute it on {}".format(
                         order.dispute_available_on
