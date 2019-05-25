@@ -370,6 +370,8 @@ class DeleteOrderRevision(DestroyAPIView):
         statuses = [Order.REVIEW, Order.IN_PROGRESS]
         if order.escrow_disabled:
             statuses.append(Order.COMPLETED)
+        if order.status == Order.DISPUTED:
+            raise PermissionDenied('You may not remove revisions from a disputed order.')
         if order.status not in statuses:
             raise PermissionDenied("This order's revisions are locked.")
         revision = get_object_or_404(Revision, id=self.kwargs['revision_id'], order_id=self.kwargs['order_id'])
@@ -399,12 +401,12 @@ class ReOpen(GenericAPIView):
     def post(self, _request, *_args, **_kwargs):
         order = self.get_object()
         self.check_object_permissions(self.request, order)
-        statuses = [Order.REVIEW, Order.PAYMENT_PENDING]
+        statuses = [Order.REVIEW, Order.PAYMENT_PENDING, Order.DISPUTED]
         if order.escrow_disabled:
             statuses.append(Order.COMPLETED)
         if order.status not in statuses:
             raise PermissionDenied("This order cannot be reopened.")
-        if order.status != Order.PAYMENT_PENDING:
+        if order.status not in [Order.PAYMENT_PENDING, Order.DISPUTED]:
             order.status = Order.IN_PROGRESS
         order.final_uploaded = False
         order.auto_finalize_on = None
@@ -492,7 +494,15 @@ class ClaimDispute(GenericAPIView):
             type=COMMENT,
             object_id=obj.id,
             content_type=ContentType.objects.get_for_model(obj),
-            subscriber=request.user
+            subscriber=request.user,
+            email=True,
+        )
+        Subscription.objects.get_or_create(
+            type=REVISION_UPLOADED,
+            object_id=obj.id,
+            content_type=ContentType.objects.get_for_model(obj),
+            subscriber=request.user,
+            email=True,
         )
         serializer = self.get_serializer()
         serializer.instance = obj
@@ -1452,8 +1462,8 @@ class RateOrder(GenericAPIView):
             target = order.buyer
         elif order.buyer == self.request.user:
             target = order.seller
-        elif self.request.GET('end'):
-            end = self.request.GET('end')
+        elif self.request.GET.get('end'):
+            end = self.request.GET.get('end')
             if end in ['buyer', 'seller']:
                 target = getattr(order, end)
         return target
