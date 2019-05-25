@@ -692,6 +692,7 @@ class TestProduct(APITestCase):
         self.assertEqual(Product.objects.filter(id=products[2].id).count(), 0)
 
 
+@ddt
 class TestOrder(APITestCase):
     def test_place_order(self):
         user = UserFactory.create()
@@ -1333,10 +1334,11 @@ class TestOrder(APITestCase):
         order.refresh_from_db()
         self.assertEqual(order.status, Order.REVIEW)
 
-    def test_delete_revision(self):
+    @data(Order.IN_PROGRESS, Order.NEW, Order.PAYMENT_PENDING, Order.REVIEW)
+    def test_delete_revision(self, order_status):
         user = UserFactory.create()
         self.login(user)
-        order = OrderFactory.create(seller=user, status=Order.IN_PROGRESS)
+        order = OrderFactory.create(seller=user, status=order_status)
         revision = RevisionFactory.create(order=order)
         self.assertEqual(order.revision_set.all().count(), 1)
         response = self.client.delete(
@@ -1359,17 +1361,12 @@ class TestOrder(APITestCase):
         self.assertEqual(order.status, Order.IN_PROGRESS)
         self.assertFalse(order.final_uploaded)
 
-    def test_delete_revision_locked(self):
+    @data(Order.COMPLETED, Order.DISPUTED)
+    def test_delete_revision_locked(self, order_status):
         user = UserFactory.create()
         self.login(user)
-        order = OrderFactory.create(seller=user, status=Order.COMPLETED)
+        order = OrderFactory.create(seller=user, status=order_status)
         revision = RevisionFactory.create(order=order)
-        response = self.client.delete(
-            '/api/sales/v1/order/{}/revisions/{}/'.format(order.id, revision.id)
-        )
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        order.status = Order.DISPUTED
-        order.save()
         response = self.client.delete(
             '/api/sales/v1/order/{}/revisions/{}/'.format(order.id, revision.id)
         )

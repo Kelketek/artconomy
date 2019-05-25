@@ -367,7 +367,7 @@ class DeleteOrderRevision(DestroyAPIView):
 
     def get_object(self):
         order = get_object_or_404(Order, id=self.kwargs['order_id'])
-        statuses = [Order.REVIEW, Order.IN_PROGRESS]
+        statuses = [Order.REVIEW, Order.PAYMENT_PENDING, Order.NEW, Order.IN_PROGRESS]
         if order.escrow_disabled:
             statuses.append(Order.COMPLETED)
         if order.status == Order.DISPUTED:

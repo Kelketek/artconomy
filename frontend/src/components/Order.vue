@@ -371,7 +371,7 @@
           <div class="text-xs-center text-section p-3 mt-2">
             Revision {{ index + 1 }} on {{ formatDateTime(revision.created_on) }}
             <ac-action
-                v-if="seller && (index === revisionsLimited.length - 1) && !final"
+                v-if="!disputed && seller && (index === revisionsLimited.length - 1) && !final"
                 variant="red"
                 method="DELETE"
                 :url="`${url}/revisions/${revision.id}/`"
@@ -407,7 +407,7 @@
           <div class="text-xs-center text-section pb-2">
             Final delivered {{ formatDateTime(final.created_on)}}
             <ac-action
-                v-if="seller && (review || order.escrow_disabled || paymentPending)"
+                v-if="!disputed && seller && (review || order.escrow_disabled || paymentPending)"
                 variant="danger"
                 method="DELETE"
                 :url="`${this.url}revisions/${final.id}/`"
