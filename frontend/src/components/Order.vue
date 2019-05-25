@@ -418,13 +418,6 @@
             <div v-if="(review || disputed || paymentPending) && seller">
               <p v-if="!disputed">
                 Waiting on the commissioner to approve the final result. <br />
-                <ac-action variant="primary"
-                           method="POST"
-                           :url="`${this.url}reopen/`"
-                           :success="reload"
-                           >
-                  Unmark as Final
-                </ac-action>
               </p>
               <div v-else="disputed">
                 <strong>This order is under dispute</strong>
@@ -446,6 +439,13 @@
                   Refund
                 </ac-action>
               </div>
+              <ac-action variant="primary"
+                         method="POST"
+                         :url="`${this.url}reopen/`"
+                         :success="reload"
+              >
+                Unmark as Final
+              </ac-action>
             </div>
             <div v-if="(review || disputed) && buyer">
               <ac-action
@@ -537,7 +537,14 @@
                 v-if="seller && (inProgress || disputed || order.revisions_hidden) && !finalUploaded">
             </ac-form-container>
             <div class="text-xs-center">
-              <v-btn type="submit" :class="{pulse: revisionModel.file.length, primary: !revisionModel.file.length}" v-if="seller && !order.final_uploaded && (inProgress || disputed || order.revisions_hidden)" @click.prevent="$refs.revisionForm.submit"><span v-if="(revisionModel.final)">Upload Final</span><span v-else>Upload Revision</span></v-btn>
+              <v-btn type="submit"
+                     :class="{pulse: revisionModel.file.length, primary: !revisionModel.file.length}"
+                     v-if="seller && !order.final_uploaded && (inProgress || disputed || order.revisions_hidden)"
+                     :disabled="revisionForm && revisionForm.sending"
+                     @click.prevent="revisionForm.submit">
+                <span v-if="(revisionModel.final)">Upload Final</span>
+                <span v-else>Upload Revision</span>
+              </v-btn>
             </div>
           </form>
         </v-flex>
@@ -559,6 +566,7 @@
 </template>
 
 <script>
+  import Vue from 'vue'
   import VueFormGenerator from 'vue-form-generator'
   import AcCharacterPreview from './ac-character-preview'
   import AcAction from './ac-action'
@@ -680,6 +688,9 @@
         return (this.revisions !== null) && (this.order.revisions_hidden || (this.seller && !this.queued && !this.newOrder && !this.paymentPending && !this.finalUploaded))
       },
       revisionsLimited () {
+        if (this.revisions === null) {
+          return []
+        }
         if (this.finalUploaded) {
           return this.revisions.slice(0, -1)
         } else {
@@ -687,7 +698,7 @@
         }
       },
       final () {
-        if (this.finalUploaded) {
+        if (this.finalUploaded && this.revisions) {
           return this.revisions[this.revisions.length - 1]
         } else {
           return null
@@ -796,6 +807,7 @@
         revisions: null,
         expandRating: 0,
         cvv: '',
+        revisionForm: null,
         publishModel: {
           title: '',
           caption: ''
@@ -919,6 +931,13 @@
     created () {
       this.reload()
       EventBus.$on('rating-submitted', this.ratingClose)
+    },
+    updated () {
+      if (this.$refs.revisionForm) {
+        Vue.set(this, 'revisionForm', this.$refs.revisionForm)
+      } else {
+        Vue.set(this, 'revisionForm', null)
+      }
     },
     destroyed () {
       EventBus.$off('rating-submitted', this.ratingClose)

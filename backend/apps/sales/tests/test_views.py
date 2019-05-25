@@ -2,6 +2,7 @@ from unittest.mock import patch, call
 
 from authorize import AuthorizeError
 from ddt import data, unpack, ddt
+from django.contrib.contenttypes.models import ContentType
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings, TestCase
 from django.utils import timezone
@@ -21,6 +22,8 @@ from apps.profiles.tests.helpers import gen_image
 from apps.sales.models import Order, CreditCardToken, Product, PaymentRecord, OrderToken, CharacterTransfer
 from apps.sales.tests.factories import OrderFactory, CreditCardTokenFactory, ProductFactory, RevisionFactory, \
     PaymentRecordFactory, BankAccountFactory, CharacterTransferFactory, PlaceholderSaleFactory, OrderTokenFactory
+
+from apps.lib.models import COMMENT, REVISION_UPLOADED
 
 order_scenarios = (
     {
@@ -1556,6 +1559,57 @@ class TestOrder(APITestCase):
         self.assertTrue(order.final_uploaded)
         self.assertEqual(order.auto_finalize_on, date(2018, 8, 3))
 
+    def test_order_get_rating_buyer(self):
+        order = OrderFactory.create(status=Order.COMPLETED)
+        self.login(order.buyer)
+        response = self.client.get(
+            '/api/sales/v1/order/{}/rating/'.format(order.id),
+        )
+        self.assertIsNone(response.data['stars'])
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_order_get_rating_seller(self):
+        order = OrderFactory.create(status=Order.COMPLETED)
+        self.login(order.seller)
+        response = self.client.get(
+            '/api/sales/v1/order/{}/rating/'.format(order.id),
+        )
+        self.assertIsNone(response.data['stars'])
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_order_get_rating_staff_buyer_end(self):
+        order = OrderFactory.create(status=Order.COMPLETED)
+        self.login(UserFactory.create(is_staff=True))
+        response = self.client.get(
+            '/api/sales/v1/order/{}/rating/?end=buyer'.format(order.id),
+        )
+        self.assertIsNone(response.data['stars'])
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_order_get_rating_staff_seller_end(self):
+        order = OrderFactory.create(status=Order.COMPLETED)
+        self.login(UserFactory.create(is_staff=True))
+        response = self.client.get(
+            '/api/sales/v1/order/{}/rating/?end=seller'.format(order.id),
+        )
+        self.assertIsNone(response.data['stars'])
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_order_get_rating_outsider(self):
+        order = OrderFactory.create(status=Order.COMPLETED)
+        self.login(UserFactory.create())
+        response = self.client.get(
+            '/api/sales/v1/order/{}/rating/?end=seller'.format(order.id),
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_order_get_rating_not_logged_in(self):
+        order = OrderFactory.create(status=Order.COMPLETED)
+        response = self.client.get(
+            '/api/sales/v1/order/{}/rating/?end=seller'.format(order.id),
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
     @patch('apps.sales.models.sauce')
     def test_pay_order_credit_referrals(self, card_api):
         user = UserFactory.create()
@@ -2150,6 +2204,10 @@ class TestOrderStateChange(APITestCase):
         self.state_assertion('staffer', 'claim/', initial_status=Order.DISPUTED)
         self.order.refresh_from_db()
         self.assertEqual(self.order.arbitrator, self.staffer)
+        self.assertEqual(Subscription.objects.filter(
+            subscriber=self.staffer, object_id=self.order.id, content_type=ContentType.objects.get_for_model(Order),
+            type__in=[COMMENT, REVISION_UPLOADED], email=True,
+        ).count(), 2)
 
     def test_claim_order_staffer_claimed_already(self):
         arbitrator = UserFactory.create(is_staff=True)
