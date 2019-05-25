@@ -1100,6 +1100,26 @@ class TestOrder(APITestCase):
         self.assertEqual(order.status, Order.REVIEW)
 
     @freeze_time('2012-08-01')
+    def test_final_revision_upload_dispute(self):
+        user = UserFactory.create()
+        self.login(user)
+        order = OrderFactory.create(seller=user, status=Order.DISPUTED, revisions=1)
+        response = self.client.post(
+            '/api/sales/v1/order/{}/revisions/'.format(order.id),
+            {
+                'file': SimpleUploadedFile('bloo-oo.jpg', gen_image()),
+                'rating': ADULT,
+                'final': True
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['order'], order.id)
+        self.assertEqual(response.data['owner'], user.username)
+        self.assertEqual(response.data['rating'], ADULT)
+        order.refresh_from_db()
+        self.assertEqual(order.status, Order.DISPUTED)
+
+    @freeze_time('2012-08-01')
     def test_final_revision_upload_escrow_disabled(self):
         user = UserFactory.create()
         self.login(user)
