@@ -59,6 +59,8 @@ from apps.sales.utils import translate_authnet_error, available_products, servic
     check_charge_required, available_products_by_load, finalize_order, available_products_from_user, available_balance
 from apps.sales.tasks import renew
 
+from apps.lib.permissions import All
+
 
 class ProductList(ListCreateAPIView):
     serializer_class = ProductSerializer
@@ -338,7 +340,7 @@ class OrderRevisions(ListCreateAPIView):
             raise PermissionDenied("You are not the seller on this order.")
         revision = serializer.save(order=order, owner=self.request.user)
         order.refresh_from_db()
-        if order.status not in [Order.IN_PROGRESS, Order.PAYMENT_PENDING, Order.NEW, Order.QUEUED]:
+        if order.status not in [Order.IN_PROGRESS, Order.PAYMENT_PENDING, Order.NEW, Order.QUEUED, Order.DISPUTED]:
             raise PermissionDenied(
                 "You may not upload revisions while order is in state: {}".format(order.get_status_display())
             )
