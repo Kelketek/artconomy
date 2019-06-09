@@ -12,5 +12,14 @@
   "CELERY_ALWAYS_EAGER": true,
   "CELERY_BROKER_CONNECTION_RETRY": false,
   "EMAIL_BACKEND": "django.core.mail.backends.console.EmailBackend",
-  "OTP_TOTP_ISSUER": "Artconomy Dev"
+  "OTP_TOTP_ISSUER": "Artconomy Dev",
+  "DATABASES": {
+    "default": {
+      "ENGINE": "django.db.backends.postgresql_psycopg2",
+      "HOST": "db",
+      "NAME": "postgres",
+      "USER": "postgres",
+      "PASSWORD": "postgres"
+    }
+  }
 }

@@ -2,6 +2,7 @@
 #apt-get install node npm
 #npm run build
 pip3 install -r requirements.txt
+ln -s /app/dev_settings.json /settings.json
 if [[ ! -d node_modules ]]
    then
    cp -a /root/node_modules /app/
