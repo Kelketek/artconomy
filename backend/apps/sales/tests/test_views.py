@@ -268,6 +268,7 @@ class TestCardManagement(APITestCase):
         self.assertEqual(response.data['card_type'], 1)
         self.assertEqual(response.data['primary'], True)
         self.assertEqual(response.data['user']['id'], user.id)
+        self.assertEqual(response.data['last_four'], '1111')
         card = CreditCardToken.objects.get(user=user)
         self.assertEqual(card.payment_id, '12345|6789')
 

@@ -561,7 +561,7 @@ class CreditCardToken(Model):
         compiled_card.auth(1)
         saved_card = compiled_card.save()
 
-        return saved_card, card_type, number[:4]
+        return saved_card, card_type, number[-4:]
 
     @classmethod
     def create(
@@ -573,7 +573,7 @@ class CreditCardToken(Model):
         )
 
         token = cls(
-            user=user, card_type=card_type, last_four=card_number[:4],
+            user=user, card_type=card_type, last_four=last_four,
             payment_id=saved_card.uid, cvv_verified=True)
 
         token.save()
