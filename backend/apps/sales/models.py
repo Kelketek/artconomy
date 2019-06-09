@@ -31,6 +31,7 @@ from django.utils import timezone
 from django.utils.deconstruct import deconstructible
 from django.utils.translation import gettext_lazy as _
 from djmoney.models.fields import MoneyField
+from lazy import lazy
 from moneyed import Money
 
 from apps.lib.models import Comment, Subscription, SALE_UPDATE, ORDER_UPDATE, REVISION_UPLOADED, COMMENT, NEW_PRODUCT, \
@@ -493,23 +494,19 @@ class CreditCardToken(Model):
     cvv_verified = BooleanField(default=False, db_index=True)
     created_on = DateTimeField(auto_now_add=True, db_index=True)
 
-    def __init__(self, *args, **kwargs):
-        super(CreditCardToken, self).__init__(*args, **kwargs)
-        self.api = None
-        self._get_sauce()
-
     def __unicode__(self):
         return "%s ending in %s (%s)" % (
             self.get_card_type_display(), self.last_four,
             "" if self.active else " (Deleted)")
 
-    def _get_sauce(self):
+    @lazy
+    def api(self):
         if self.payment_id:
-            self.api = sauce.saved_card(self.payment_id)
+            return sauce.saved_card(self.payment_id)
 
     def save(self, *args, **kwargs):
         super(CreditCardToken, self).save(*args, **kwargs)
-        self._get_sauce()
+        lazy.invalidate(self, 'api')
 
     def delete(self, *args, **kwargs):
         """
