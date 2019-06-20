@@ -46,12 +46,6 @@
     "webpack": "^4.23.1",
     "webpack-bundle-tracker": "^0.4.2-beta"
   },
-  "browserslist": [
-    "> 1%",
-    "last 2 versions",
-    "not ie <= 8",
-    "chrome >= 41"
-  ],
   "eslintConfig": {
     "root": true,
     "env": {
