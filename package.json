@@ -6,7 +6,7 @@
   "author": "Fox Piacenti <fox@vulpinity.com>",
   "scripts": {
     "serve": "cd frontend && vue-cli-service serve --port 8001",
-    "build": "cd frontend && vue-cli-service build",
+    "build": "cd frontend && vue-cli-service build --modern",
     "lint": "cd frontend && vue-cli-service lint"
   },
   "dependencies": {
