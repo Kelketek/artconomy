@@ -245,6 +245,7 @@ frontend/test/unit/coverage/
 frontend/test/e2e/reports/
 selenium-debug.log
 package-lock.json
+reports/
 
 # Editor directories and files
 .idea
