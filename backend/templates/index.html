@@ -51,8 +51,9 @@
             {% for file in app_legacy_js_files %}
                 <script src="{{file.publicPath}}" nomodule></script>
             {% endfor %}
+        {% else %}
+            {% render_bundle 'app' %}
         {% endif %}
-        {% render_bundle 'app' %}
         {% include env_file %}
         <noscript>
             <p>Hey, we're one of those newfangled single page apps, so please enable JavaScript or the site won't work!</p>
