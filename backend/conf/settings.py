@@ -171,6 +171,10 @@ WEBPACK_LOADER = {
         'BUNDLE_DIR_NAME': '',
         'STATS_FILE': os.path.join(BASE_DIR, pack_file_name),
         'CACHE': not DEBUG
+    },
+    'LEGACY': {
+        'BUNDLE_DIR_NAME': '',
+        'STATS_FILE': os.path.join(BASE_DIR, 'webpack-stats-legacy.json'),
     }
 }
 

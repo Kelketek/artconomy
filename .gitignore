@@ -254,6 +254,7 @@ package-lock.json
 *.njsproj
 *.sln
 webpack-stats.json
+webpack-stats-legacy.json
 webpack-stats-saved.json
 webpack-stats-bak.json
 
