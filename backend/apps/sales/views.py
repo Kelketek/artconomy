@@ -59,8 +59,6 @@ from apps.sales.utils import translate_authnet_error, available_products, servic
     check_charge_required, available_products_by_load, finalize_order, available_products_from_user, available_balance
 from apps.sales.tasks import renew
 
-from apps.lib.permissions import All
-
 
 class ProductList(ListCreateAPIView):
     serializer_class = ProductSerializer
@@ -441,6 +439,7 @@ class MarkComplete(GenericAPIView):
         else:
             order.status = Order.REVIEW
             order.auto_finalize_on = (timezone.now() + relativedelta(days=2)).date()
+        order.final_uploaded = True
         order.save()
         notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
         serializer = self.get_serializer(instance=order)

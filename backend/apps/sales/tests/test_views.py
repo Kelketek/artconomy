@@ -1168,6 +1168,7 @@ class TestOrder(APITestCase):
         order.refresh_from_db()
         self.assertEqual(order.status, Order.REVIEW)
         self.assertEqual(order.auto_finalize_on, date(2012, 8, 3))
+        self.assertTrue(order.final_uploaded)
 
     def test_order_mark_completed_payment_pending(self):
         user = UserFactory.create()
