@@ -162,7 +162,7 @@ RESPONSE_TRANSLATORS = {
 def service_price(user, service):
     price = Money(getattr(settings, service.upper() + '_PRICE'), 'USD')
     if service == 'landscape':
-        if user.portrait_paid_through and user.portrait_paid_through >= date.today():
+        if user.portrait_paid_through and user.portrait_paid_through > date.today():
             price -= Money(settings.PORTRAIT_PRICE, 'USD')
     return price
 
