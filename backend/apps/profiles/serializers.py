@@ -218,10 +218,10 @@ class CharacterSerializer(serializers.ModelSerializer):
         model = Character
         fields = (
             'id', 'name', 'description', 'private', 'open_requests', 'open_requests_restrictions', 'user',
-            'primary_asset', 'primary_asset_id', 'tags', 'colors', 'taggable', 'attributes', 'transfer',
+            'primary_asset', 'primary_asset_id', 'tags', 'colors', 'taggable', 'attributes',
             'shared_with'
         )
-        read_only_fields = ('transfer', 'tags')
+        read_only_fields = ('tags',)
 
 
 class ImageAssetManagementSerializer(SubscribeMixin, serializers.ModelSerializer):

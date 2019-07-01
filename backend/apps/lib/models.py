@@ -43,7 +43,6 @@ class Comment(models.Model):
 
 NEW_CHARACTER = 0
 WATCHING = 1
-CHAR_TRANSFER = 2
 # Character tagged on submission, sent on character listener
 CHAR_TAG = 3
 COMMENT = 4
@@ -79,14 +78,13 @@ REFERRAL_LANDSCAPE_CREDIT = 34
 
 ORDER_NOTIFICATION_TYPES = (
     DISPUTE, SALE_UPDATE, ORDER_UPDATE, RENEWAL_FIXED, RENEWAL_FAILURE, SUBSCRIPTION_DEACTIVATED,
-    CHAR_TRANSFER, REVISION_UPLOADED, ORDER_TOKEN_ISSUED, TRANSFER_FAILED, REFUND,
+    REVISION_UPLOADED, ORDER_TOKEN_ISSUED, TRANSFER_FAILED, REFUND,
 )
 
 
 EVENT_TYPES = (
     (NEW_CHARACTER, 'New Character'),
     (WATCHING, 'New Watcher'),
-    (CHAR_TRANSFER, 'Character Transfer Request'),
     (CHAR_TAG, 'Character Tagged'),
     (COMMENT, 'New Comment'),
     (COMMISSIONS_OPEN, 'Commission Slots Available'),

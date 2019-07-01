@@ -52,7 +52,6 @@
   import AcSubmissionCharTag from './notifications/ac-submission-char-tag'
   import AcRevisionUploaded from './notifications/ac-revision-uploaded'
   import AcCommentNotification from './notifications/ac-comment-notification'
-  import AcCharTransfer from './notifications/ac-char-transfer'
   import AcAssetShared from './notifications/ac-asset-shared'
   import AcCharShared from './notifications/ac-char-shared'
   import AcNewCharacter from './notifications/ac-new-character'
@@ -89,7 +88,6 @@
       AcNewPm,
       AcCharShared,
       AcAssetShared,
-      AcCharTransfer,
       AcCommentNotification,
       AcRevisionUploaded,
       AcSubmissionCharTag,

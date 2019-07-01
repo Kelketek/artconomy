@@ -185,7 +185,7 @@
               :expanded="true"
               :key="char.id"
               :remove-url="`${url}tag-characters/`"
-              :removable="((char.user.username === viewer.username) || controls) && !char.transfer"
+              :removable="((char.user.username === viewer.username) || controls)"
               :callback="populateSubmission"
               :can-showcase="char.user.username === viewer.username"
               :asset-id="submission.id"

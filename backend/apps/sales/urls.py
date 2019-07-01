@@ -9,8 +9,7 @@ from apps.sales.views import (
     ArchivedOrderList, CancelledOrderList, ArchivedSalesList, CancelledSalesList, ProductExamples, StartDispute,
     OrderRefund, ClaimDispute, CurrentCasesList, ArchivedCasesList, CancelledCasesList, AccountBalance,
     BankAccounts, ProductTag, ProductSearch, PerformWithdraw, BankManager, PurchaseHistory, EscrowHistory,
-    AvailableHistory, CreateCharacterTransfer, RetrieveCharacterTransfer, CharacterTransferAssets, AcceptCharTransfer,
-    CancelCharTransfer, CharactersInbound, CharactersOutbound, CharactersArchive, NewProducts, WhoIsOpen,
+    AvailableHistory, NewProducts, WhoIsOpen,
     CurrentPlaceholderSalesList, PlaceholderManager, SalesStats, PublishFinal, RateOrder, RatingList, PremiumInfo,
     Premium, CancelPremium, ProductOrderTokens, OrderTokenManager, MarkPaid, CommissionStatusImage, FeatureProduct,
     FeaturedProducts,
@@ -123,46 +122,6 @@ urlpatterns = [
         'v1/account/<username>/commissions-status-image/',
         CommissionStatusImage.as_view(),
         name='commissions-status-image'
-    ),
-    path(
-        'v1/account/<username>/transfer/character/<character>/',
-        CreateCharacterTransfer.as_view(),
-        name='character_transfer_create'
-    ),
-    path(
-        'v1/account/<username>/transfers/character/inbound/',
-        CharactersInbound.as_view(),
-        name='characters_inbound'
-    ),
-    path(
-        'v1/account/<username>/transfers/character/outbound/',
-        CharactersOutbound.as_view(),
-        name='characters_outbound'
-    ),
-    path(
-        'v1/account/<username>/transfers/character/archive/',
-        CharactersArchive.as_view(),
-        name='characters_archive'
-    ),
-    path(
-        'v1/transfer/character/<int:transfer_id>/',
-        RetrieveCharacterTransfer.as_view(),
-        name='retrieve_character_transfer'
-    ),
-    path(
-        'v1/transfer/character/<int:transfer_id>/pay/',
-        AcceptCharTransfer.as_view(),
-        name='accept_character_transfer'
-    ),
-    path(
-        'v1/transfer/character/<int:transfer_id>/cancel/',
-        CancelCharTransfer.as_view(),
-        name='accept_character_transfer'
-    ),
-    path(
-        'v1/transfer/character/<int:transfer_id>/assets/',
-        CharacterTransferAssets.as_view(),
-        name='character_transfer_assets'
     ),
     path('v1/claim/order/<int:order_id>/<uuid:claim_token>/', ClaimOrder.as_view(), name='order_claim_token')
 ]

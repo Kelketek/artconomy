@@ -51,8 +51,6 @@
           Artconomy subscription services may be refunded if a refund is requested within three business days of
           purchase or renewal.
         </p>
-        <h3>Character Transfers</h3>
-        <p>Artconomy provides no refunds for Character Transfers. All character transfer transactions are final.</p>
         <h2>Refund Fees</h2>
         <p>
           As Artconomy does not control the refund policy of artists on the platform, refund fees are assessed from

@@ -3,7 +3,6 @@ import Home from '@/components/Home'
 import Reload from '@/components/Reload'
 import Login from '@/components/Login'
 import CommissionAgreement from '@/components/CommissionAgreement'
-import CharacterTransferAgreement from '@/components/CharacterTransferAgreement'
 import RefundPolicy from '@/components/RefundPolicy'
 import TermsOfService from '@/components/TermsOfService'
 import PrivacyPolicy from '@/components/PrivacyPolicy'
@@ -15,7 +14,6 @@ import Store from '@/components/Store'
 import Ratings from '@/components/Ratings'
 import Journal from '@/components/Journal'
 import WhoIsOpen from '@/components/WhoIsOpen'
-import Transfers from '@/components/Transfers'
 import Product from '@/components/Product'
 import Order from '@/components/Order'
 import ClaimOrder from '@/components/ClaimOrder'
@@ -29,7 +27,6 @@ import Submission from '@/components/Submission'
 import Search from '@/components/Search'
 import Referrals from '@/components/Referrals'
 import CharacterGallery from '@/components/CharacterGallery'
-import CharacterTransfer from '@/components/CharacterTransfer'
 import NotFound from '@/components/NotFound'
 import SessionSettings from '@/components/SessionSettings.vue'
 import Messages from '@/components/Messages.vue'
@@ -69,11 +66,6 @@ export const routes = [
     name: 'RecentArt',
     props: true,
     component: RecentArt
-  },
-  {
-    path: '/legal-and-policies/character-transfer-agreement/',
-    name: 'CharacterTransferAgreement',
-    component: CharacterTransferAgreement
   },
   {
     path: '/legal-and-policies/commission-agreement/',
@@ -259,18 +251,6 @@ export const routes = [
     path: '/claim/order/:orderId/:claimToken/',
     component: ClaimOrder,
     name: 'ClaimOrder',
-    props: true
-  },
-  {
-    path: '/transfers/:username/:tabName?/',
-    name: 'Transfers',
-    component: Transfers,
-    props: true
-  },
-  {
-    path: '/transfers/:username/characters/:transferID/',
-    name: 'CharacterTransfer',
-    component: CharacterTransfer,
     props: true
   },
   {

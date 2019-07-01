@@ -19,9 +19,9 @@ from apps.lib.tests.factories import TagFactory
 from apps.profiles.models import ImageAsset, User
 from apps.profiles.tests.factories import CharacterFactory, UserFactory, ImageAssetFactory
 from apps.profiles.tests.helpers import gen_image
-from apps.sales.models import Order, CreditCardToken, Product, PaymentRecord, OrderToken, CharacterTransfer
+from apps.sales.models import Order, CreditCardToken, Product, PaymentRecord, OrderToken
 from apps.sales.tests.factories import OrderFactory, CreditCardTokenFactory, ProductFactory, RevisionFactory, \
-    PaymentRecordFactory, BankAccountFactory, CharacterTransferFactory, PlaceholderSaleFactory, OrderTokenFactory
+    PaymentRecordFactory, BankAccountFactory, PlaceholderSaleFactory, OrderTokenFactory
 
 from apps.lib.models import COMMENT, REVISION_UPLOADED
 
@@ -2656,92 +2656,6 @@ class TestProductSearch(APITestCase):
         self.assertIDInList(listed2, response.data['results'])
         self.assertIDInList(listed3, response.data['results'])
         self.assertEqual(len(response.data['results']), 3)
-
-
-class TestTransfer(APITestCase):
-    def test_create_transfer(self):
-        user = UserFactory.create()
-        user2 = UserFactory.create()
-        character = CharacterFactory.create(user=user)
-        self.login(user)
-        response = self.client.post(
-            '/api/sales/v1/account/{}/transfer/character/{}/'.format(
-                user.username,
-                character.name
-            ),
-            {
-                'buyer': user2.id,
-                'price': 0
-            },
-            format='json'
-        )
-        self.assertEqual(response.status_code, 201)
-
-    @patch('apps.sales.models.sauce')
-    @freeze_time('2019-01-01')
-    def test_character_transfer_pay_no_assets(self, card_api):
-        transfer = CharacterTransferFactory.create(include_assets=False)
-        asset = ImageAssetFactory.create(owner=transfer.seller)
-        asset.characters.add(transfer.character)
-        card = CreditCardTokenFactory.create(user=transfer.buyer, cvv_verified=True)
-        self.login(transfer.buyer)
-        card_api.saved_card.return_value.capture.return_value.uid = 'Trans123'
-        response = self.client.post(
-            '/api/sales/v1/transfer/character/{}/pay/'.format(transfer.id),
-            {
-                'amount': transfer.price.amount,
-                'card_id': card.id,
-                'cvv': ''
-            },
-            format='json'
-        )
-        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
-        transfer.refresh_from_db()
-        asset.refresh_from_db()
-        self.assertEqual(asset.owner, transfer.seller)
-        self.assertEqual(transfer.included_assets.all().count(), 0)
-        self.assertEqual(transfer.status, CharacterTransfer.COMPLETED)
-
-    @patch('apps.sales.models.sauce')
-    def test_character_transfer_pay_assets(self, card_api):
-        transfer = CharacterTransferFactory.create(include_assets=True)
-        asset = ImageAssetFactory.create(owner=transfer.seller)
-        asset.characters.add(transfer.character)
-        card = CreditCardTokenFactory.create(user=transfer.buyer, cvv_verified=True)
-        self.login(transfer.buyer)
-        card_api.saved_card.return_value.capture.return_value.uid = 'Trans123'
-        response = self.client.post(
-            '/api/sales/v1/transfer/character/{}/pay/'.format(transfer.id),
-            {
-                'amount': transfer.price.amount,
-                'card_id': card.id,
-                'cvv': ''
-            },
-            format='json'
-        )
-        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
-        transfer.refresh_from_db()
-        asset.refresh_from_db()
-        self.assertEqual(asset.owner, transfer.buyer)
-        self.assertEqual(transfer.included_assets.all().count(), 1)
-        self.assertEqual(transfer.status, CharacterTransfer.COMPLETED)
-
-    @patch('apps.sales.models.sauce')
-    def test_character_transfer_pay_fail_seller(self, card_api):
-        transfer = CharacterTransferFactory.create()
-        card = CreditCardTokenFactory.create(user=transfer.buyer, cvv_verified=True)
-        self.login(transfer.seller)
-        card_api.saved_card.return_value.capture.return_value.uid = 'Trans123'
-        response = self.client.post(
-            '/api/sales/v1/transfer/character/{}/pay/'.format(transfer.id),
-            {
-                'amount': transfer.price.amount,
-                'card_id': card.id,
-                'cvv': ''
-            },
-            format='json'
-        )
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
 class TestLoadAdjustment(TestCase):

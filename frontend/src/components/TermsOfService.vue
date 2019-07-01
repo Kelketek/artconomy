@@ -102,9 +102,8 @@
         <h2>Purchases</h2>
 
         <p>
-          Commissions, character transfers, and other items are each bound by their own agreements, given at the
-          time of sale or transfer, such as the
-          <router-link :to="{name: 'CommissionAgreement'}">Commission Agreement</router-link> for commissioned works.
+          Commissions are bound by their own agreement, the
+          <router-link :to="{name: 'CommissionAgreement'}">Commission Agreement.</router-link>
         </p>
         <p>By buying or selling works on Artconomy, you agree to pay all listed fees upon point of sale, and that
           Artconomy will be entitled to these fees even if a refund is issued from or to the other party or a court
