@@ -25,7 +25,7 @@ from rest_framework.authtoken.models import Token
 
 from apps.lib.abstract_models import GENERAL, RATINGS, ImageModel
 from apps.lib.models import Comment, Subscription, FAVORITE, SYSTEM_ANNOUNCEMENT, DISPUTE, REFUND, Event, \
-    SUBMISSION_CHAR_TAG, CHAR_TAG, COMMENT, Tag, CHAR_TRANSFER, ASSET_SHARED, CHAR_SHARED, \
+    SUBMISSION_CHAR_TAG, CHAR_TAG, COMMENT, Tag, ASSET_SHARED, CHAR_SHARED, \
     NEW_CHARACTER, RENEWAL_FAILURE, SUBSCRIPTION_DEACTIVATED, RENEWAL_FIXED, NEW_JOURNAL, ORDER_TOKEN_ISSUED, \
     TRANSFER_FAILED, SUBMISSION_ARTIST_TAG, REFERRAL_LANDSCAPE_CREDIT, REFERRAL_PORTRAIT_CREDIT
 from apps.lib.utils import (
@@ -413,7 +413,6 @@ class Character(Model):
     taggable = BooleanField(default=True, db_index=True)
     user = ForeignKey(settings.AUTH_USER_MODEL, related_name='characters', on_delete=CASCADE)
     created_on = DateTimeField(auto_now_add=True)
-    transfer = ForeignKey('sales.CharacterTransfer', on_delete=SET_NULL, null=True, blank=True, related_name='+')
     tags = ManyToManyField('lib.Tag', related_name='characters', blank=True)
     shared_with = ManyToManyField('User', related_name='shared_characters', blank=True)
     tags__max = 100
@@ -504,21 +503,6 @@ def auto_subscribe_character(sender, instance, created=False, **_kwargs):
             object_id=instance.id,
             type=CHAR_TAG
         )
-
-
-@receiver(pre_delete, sender=Character)
-def auto_recall_character(sender, instance, **kwargs):
-    from apps.sales.models import CharacterTransfer
-    for transfer in CharacterTransfer.objects.filter(character=instance):
-        Event.objects.filter(
-            content_type=ContentType.objects.get_for_model(model=sender),
-            object_id=instance.id,
-            type=CHAR_TRANSFER,
-            recalled=True
-        )
-        if transfer.status == CharacterTransfer.NEW:
-            transfer.status = CharacterTransfer.CANCELLED
-            transfer.save()
 
 
 @receiver(post_delete, sender=Character)

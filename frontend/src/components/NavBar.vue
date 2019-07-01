@@ -16,7 +16,6 @@
           <v-list-tile :to="{name: 'Sales', params: {username: viewer.username}}">Sales</v-list-tile>
           <v-list-tile v-if="viewer.is_staff" :to="{name: 'Cases', params: {username: viewer.username}}">Cases</v-list-tile>
           <v-list-tile :to="{name: 'Store', params: {username: viewer.username}}">My Products</v-list-tile>
-          <v-list-tile :to="{name: 'Transfers', params: {username: viewer.username}}">Transfers</v-list-tile>
           <v-list-tile :to="{name: 'Messages', params: {username: viewer.username}}">Private Messages</v-list-tile>
         </v-list>
         <ac-patchbutton

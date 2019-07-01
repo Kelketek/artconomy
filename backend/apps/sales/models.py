@@ -751,51 +751,6 @@ def ensure_shield(sender, instance, created=False, **_kwargs):
     withdraw_all(instance.user.id)
 
 
-class CharacterTransfer(Model):
-    NEW = 0
-    COMPLETED = 1
-    CANCELLED = 2
-    REJECTED = 3
-    STATUSES = (
-        (NEW, 'New'),
-        (COMPLETED, 'Completed'),
-        (CANCELLED, 'Cancelled'),
-        (REJECTED, 'Rejected'),
-    )
-    status = IntegerField(choices=STATUSES, db_index=True, default=NEW)
-    created_on = DateTimeField(auto_now_add=True, db_index=True)
-    completed_on = DateTimeField(db_index=True, null=True, blank=True)
-    seller = ForeignKey('profiles.User', on_delete=CASCADE, related_name='character_transfers_outbound')
-    buyer = ForeignKey('profiles.User', on_delete=CASCADE, related_name='character_transfers_inbound')
-    character = ForeignKey('profiles.Character', on_delete=SET_NULL, null=True, blank=True)
-    saved_name = CharField(blank=True, default='', max_length=150)
-    include_assets = BooleanField(default=False)
-    included_assets = ManyToManyField('profiles.ImageAsset', related_name='character_transfers')
-    price = MoneyField(
-        max_digits=6, decimal_places=2, default_currency='USD',
-        db_index=True, validators=[MinimumOrZero(settings.MINIMUM_PRICE)]
-    )
-
-    def save(self, *args, **kwargs):
-        if self.character.transfer and self.character.transfer != self:
-            raise IntegrityError("There is already a transfer for this character.")
-        super().save()
-
-    def notification_serialize(self, context):
-        from apps.sales.serializers import CharacterTransferSerializer
-        return CharacterTransferSerializer(instance=self, context=context).data
-
-
-@receiver(post_save, sender=CharacterTransfer)
-def auto_set_transfer(sender, instance, **_kwargs):
-    if instance.status == CharacterTransfer.NEW:
-        instance.character.transfer = instance
-        instance.character.save()
-    else:
-        instance.character.transfer = None
-        instance.character.save()
-
-
 def mini_key():
     return str(uuid.uuid4())[:8]
 

@@ -40,7 +40,6 @@
                       :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}"
                   >
                     Artconomy Shield's dispute resolution</router-link> services between artists and commissioners</li>
-                  <li>Character transfers/sales</li>
                   <li>...And more!</li>
                 </ul>
               </v-card-text>
@@ -715,36 +714,6 @@
             </v-card>
           </v-expansion-panel-content>
           <v-expansion-panel-content>
-            <div slot="header"><strong>How do Character Transfers Work?</strong></div>
-            <v-card>
-              <v-card-text>
-                <p>
-                  Don't have a character but want one for your own? Have a character design idea that you think someone
-                  else would like? Artconomy allows you to buy, sell, or gift characters using our character transfer
-                  feature.
-                </p>
-                <p>
-                  Once you've created a character and uploaded any relevant assets, and you have located a person who is
-                  willing to buy or receive the character, you can click the settings button under the lower right-hand
-                  expanded menu on a character's page. From there, you will find the Transfer button, where you can
-                  select a target user and set a price for the transfer.
-                </p>
-                <p>
-                  You may also elect to include any submissions in which the character is the only one tagged.
-                  The receiver will be able to accept or reject the offer, receiving control and rights over the
-                  character and any submissions attached to it.
-                </p>
-                <p>
-                  <strong>Note:</strong> Characters are a fuzzy concept in Intellectual Property law.
-                  Please make sure you have fully read the
-                  <router-link :to="{name: 'CharacterTransferAgreement'}">Character Transfer Agreement</router-link>
-                  before transferring or agreeing to receive any characters.
-                  <strong>Character Transfers are final and NOT REFUNDABLE.</strong>
-                </p>
-              </v-card-text>
-            </v-card>
-          </v-expansion-panel-content>
-          <v-expansion-panel-content>
             <div slot="header"><strong>Does Artconomy Support Auctions?</strong></div>
             <v-card>
               <v-card-text>
@@ -959,7 +928,7 @@
     'awoo-workload-management', 'placeholder-orders', 'order-tokens',
     'why-commissions-disabled',
     'why-not-paypal', 'patreon-comparison', 'featured-products', 'security',
-    'payouts', 'crypto-currencies', 'character-transfer',
+    'payouts', 'crypto-currencies',
     'auctions', 'physical-goods'
   ]
   const other = [

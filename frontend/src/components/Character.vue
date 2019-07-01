@@ -128,29 +128,7 @@
             </ac-action>
           </v-flex>
           <v-flex>
-            <v-btn @click="showTransfer" color="purple"><v-icon>compare_arrows</v-icon> Transfer</v-btn>
-          </v-flex>
-          <v-flex>
             <v-btn @click="showShare=true" color="primary"><v-icon>share</v-icon> Share</v-btn>
-          </v-flex>
-        </v-layout>
-      </ac-form-dialog>
-      <ac-form-dialog ref="transferForm" :schema="transferSchema" :model="transferModel"
-                      :options="newUploadOptions" :success="postTransfer"
-                      method="POST"
-                      submit-text="Save"
-                      title="Transfer Character"
-                      :url="`/api/sales/v1/account/${user.username}/transfer/character/${character.name}/`"
-                      v-model="transferVisible"
-      >
-        <v-layout slot="header">
-          <v-flex text-xs-center v-if="price && !user.escrow_disabled" xs6 md3 offset-md3>
-            <strong>Price: ${{price}}</strong> <br />
-            Artconomy service fee: -${{ fee }} <br />
-            <strong>Your payout: ${{ payout }}</strong> <br />
-          </v-flex>
-          <v-flex text-xs-center xs6 md3>
-            All transfers are subject to the <router-link :to="{name: 'CharacterTransferAgreement'}">Character Transfer Agreement.</router-link> Character transfers are final and non-refundable.
           </v-flex>
         </v-layout>
       </ac-form-dialog>
@@ -351,9 +329,6 @@
           this.$router.history.push({name: 'Profile', params: {username: this.username}})
         }
       },
-      postTransfer (response) {
-        this.$router.history.push({name: 'CharacterTransfer', params: {'transferID': response.id, username: this.username}})
-      },
       showUpdater: function () {
         this.$refs.updater.showUpdater()
       },
@@ -395,17 +370,6 @@
           {name: 'Submission', params: {assetID: response.id}}
         )
       },
-      loadPricing (response) {
-        this.pricing = response
-      },
-      showTransfer () {
-        if (!this.character.transfer) {
-          this.transferVisible = true
-        } else {
-          this.$router.history.push(
-            {name: 'CharacterTransfer', params: {transferID: this.character.transfer, username: this.username}})
-        }
-      }
     },
     data () {
       return {
@@ -585,41 +549,6 @@
             }
           ]
         },
-        transferModel: {
-          buyer: null,
-          price: 0,
-          include_assets: false
-        },
-        transferVisible: false,
-        transferSchema: {
-          fields: [{
-            type: 'user-search',
-            label: 'Transferee',
-            model: 'buyer',
-            hint: 'The person who will receive the transfer. Transferees must accept the transfer to receive the character.'
-          }, {
-            type: 'v-checkbox',
-            label: 'Include Submissions',
-            model: 'include_assets',
-            hint: 'Also transfer over any pieces you own in which this character is tagged. Note: ' +
-                  'This also includes pieces where other characters are tagged.'
-          }, {
-            type: 'v-text',
-            inputType: 'number',
-            label: 'Price (USD)',
-            model: 'price',
-            step: '.01',
-            min: '0.00',
-            validator: [minimumOrZero, validNumber],
-            hint: 'Optionally, require payment for this transfer.'
-          }, {
-            type: 'v-checkbox',
-            label: 'I agree to the Character Transfer Agreement',
-            model: 'read_agreement',
-            validator: [validateTrue],
-            hint: 'I have read and understood the Character Transfer Agreement and agree to it'
-          }]
-        }
       }
     },
     computed: {
@@ -635,26 +564,10 @@
       moreToLoad () {
         return this.totalPieces > 4
       },
-      fee () {
-        return ((this.price * (this.pricing.landscape_percentage * 0.01)) + parseFloat(this.pricing.landscape_static)).toFixed(2)
-      },
-      payout () {
-        return (this.price - this.fee).toFixed(2)
-      },
-      price () {
-        if (parseFloat(this.transferModel.price + '') <= 0) {
-          return 0
-        }
-        if (isNaN(parseFloat(this.transferModel.price + ''))) {
-          return 0
-        }
-        return (parseFloat(this.transferModel.price + '')).toFixed(2)
-      }
     },
     created () {
       this.fetchCharacter()
       this.fetchAssets()
-      artCall('/api/sales/v1/pricing-info/', 'GET', undefined, this.loadPricing)
     },
     watch: {
       rating () {

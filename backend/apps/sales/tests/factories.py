@@ -5,7 +5,7 @@ from moneyed import Money
 from apps.profiles.tests.factories import UserFactory, CharacterFactory
 from apps.sales.models import (
     Order, Product, CreditCardToken, Revision, PaymentRecord, BankAccount,
-    CharacterTransfer, PlaceholderSale, OrderToken, Promo
+    PlaceholderSale, OrderToken, Promo
 )
 
 
@@ -85,16 +85,6 @@ class BankAccountFactory(DjangoModelFactory):
 
     class Meta:
         model = BankAccount
-
-
-class CharacterTransferFactory(DjangoModelFactory):
-    seller = SubFactory(UserFactory)
-    buyer = SubFactory(UserFactory)
-    character = SubFactory(CharacterFactory)
-    price = Money('15.00', 'USD')
-
-    class Meta:
-        model = CharacterTransfer
 
 
 class OrderTokenFactory(DjangoModelFactory):

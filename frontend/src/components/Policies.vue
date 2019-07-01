@@ -33,16 +33,6 @@
       </v-flex>
       <v-flex xs12 md3>
         <v-card>
-          <router-link :to="{name: 'CharacterTransferAgreement'}">
-            <v-card-title>Character Transfer Agreement</v-card-title>
-            <v-card-text>
-              <p>This agreement covers character sales/transfers (adoptables)</p>
-            </v-card-text>
-          </router-link>
-        </v-card>
-      </v-flex>
-      <v-flex xs12 md3>
-        <v-card>
           <router-link :to="{name: 'PrivacyPolicy'}">
             <v-card-title>Privacy Policy</v-card-title>
             <v-card-text>
