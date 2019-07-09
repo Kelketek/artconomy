@@ -7,7 +7,7 @@
     </v-layout>
     <v-layout row wrap>
       <v-flex xs12>
-        <v-pagination v-model="currentPage" :length="totalPages" v-if="totalPages > 1" />
+        <v-pagination v-model="currentPage" :length="totalPages" v-if="totalPages > 1" :total-visible="totalVisibleByViewport" />
       </v-flex>
       <v-flex xs12 md10 offset-md1 v-if="growing && growing.length">
         <v-list two-line>
@@ -38,7 +38,7 @@
         </v-list>
       </v-flex>
       <v-flex xs12>
-        <v-pagination v-model="currentPage" :length="totalPages" v-if="totalPages > 1" />
+        <v-pagination v-model="currentPage" :length="totalPages" v-if="totalPages > 1" :total-visible="totalVisibleByViewport" />
       </v-flex>
     </v-layout>
   </v-container>

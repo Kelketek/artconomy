@@ -10,6 +10,11 @@ class OrderAdmin(admin.ModelAdmin):
         CommentInline
     ]
     raw_id_fields = ['buyer', 'seller', 'product', 'arbitrator', 'characters']
+    list_display = ('product', 'buyer', 'seller', 'price', 'shield_protected', 'status')
+    list_filter = ('escrow_disabled', 'status')
+
+    def shield_protected(self, obj):
+        return not obj.escrow_disabled
 
 
 admin.site.register(Product, admin.ModelAdmin)

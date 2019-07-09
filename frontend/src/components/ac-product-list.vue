@@ -8,7 +8,7 @@
     </v-layout>
     <v-layout row wrap>
       <v-flex xs12 text-xs-center v-if="show">
-        <v-pagination :id="scrollToId" v-model="currentPage" :length="totalPages" :total-visible="10" v-if="totalPages > 1 && !noPagination" />
+        <v-pagination :id="scrollToId" v-model="currentPage" :length="totalPages" :total-visible="totalVisibleByViewport" v-if="totalPages > 1 && !noPagination" />
       </v-flex>
       <ac-product-preview
           v-for="product in growing"
@@ -18,7 +18,7 @@
           xs12 sm4 lg3
       />
       <v-flex xs12 text-xs-center v-if="show">
-        <v-pagination v-model="currentPage" :length="totalPages" v-if="totalPages > 1 && !noPagination" :total-visible="10" @input="performScroll" />
+        <v-pagination v-model="currentPage" :length="totalPages" v-if="totalPages > 1 && !noPagination" :total-visible="totalVisibleByViewport" @input="performScroll" />
       </v-flex>
       <v-flex v-if="noPagination && to && currentPage !== totalPages" xs12 text-xs-center>
         <v-btn color="primary" :to="to">{{seeMoreText}}</v-btn>
