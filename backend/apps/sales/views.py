@@ -252,6 +252,7 @@ class MarkPaid(GenericAPIView):
             order.status = Order.QUEUED
         order.task_weight = order.product.task_weight
         order.expected_turnaround = order.product.expected_turnaround
+        order.revisions_hidden = False
         order.save()
         data = self.serializer_class(instance=order, context=self.get_serializer_context()).data
         notify(ORDER_UPDATE, order, unique=True, mark_unread=True)

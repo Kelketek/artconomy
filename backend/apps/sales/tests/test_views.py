@@ -1958,9 +1958,12 @@ class TestOrderStateChange(APITestCase):
 
     def test_mark_paid_order_seller(self):
         self.order.escrow_disabled = True
+        self.assertTrue(self.order.revisions_hidden)
         self.order.save()
         self.final.delete()
         self.state_assertion('seller', 'mark-paid/', initial_status=Order.PAYMENT_PENDING, target_status=Order.QUEUED)
+        self.order.refresh_from_db()
+        self.assertFalse(self.order.revisions_hidden)
 
     def test_mark_paid_order_final_uploaded(self):
         self.order.escrow_disabled = True
