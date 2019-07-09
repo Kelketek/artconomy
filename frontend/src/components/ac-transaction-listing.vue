@@ -1,6 +1,6 @@
 <template>
   <v-card v-if="growing !== null" class="text-xs-center">
-    <v-pagination v-model="currentPage" :length="totalPages" v-if="totalPages > 1" />
+    <v-pagination v-model="currentPage" :length="totalPages" v-if="totalPages > 1" :total-visible="totalVisibleByViewport" />
     <v-list three-line>
       <template v-for="(transaction, index) in growing">
         <ac-transaction :key="transaction.id" :transaction="transaction" :username="user.username" :escrow="escrow" />
@@ -12,7 +12,7 @@
         </v-list-tile-content>
       </v-list-tile>
     </v-list>
-    <v-pagination v-model="currentPage" :length="totalPages" v-if="totalPages > 1" />
+    <v-pagination v-model="currentPage" :length="totalPages" v-if="totalPages > 1" :total-visible="totalVisibleByViewport" />
   </v-card>
 </template>
 

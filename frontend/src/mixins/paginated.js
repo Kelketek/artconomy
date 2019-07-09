@@ -165,6 +165,13 @@ export default {
     },
     count () {
       return this.response && this.response.count
+    },
+    totalVisibleByViewport() {
+      if (this.$vuetify.breakpoint.name === 'xs') {
+        return 5
+      } else {
+        return 10
+      }
     }
   },
   watch: {

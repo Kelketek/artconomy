@@ -5,7 +5,7 @@
         <p>{{error}}</p>
       </v-flex>
       <v-flex xs12 text-xs-center>
-        <v-pagination v-model="currentPage" :length="totalPages" v-if="totalPages > 1 && !noPagination" :id="scrollToId" :total-visible="10"/>
+        <v-pagination v-model="currentPage" :length="totalPages" v-if="totalPages > 1 && !noPagination" :id="scrollToId" :total-visible="totalVisibleByViewport"/>
       </v-flex>
       <ac-character-preview
         v-for="char in response.results"
@@ -32,7 +32,7 @@
         </v-card>
       </v-flex>
       <v-flex xs12 text-xs-center>
-        <v-pagination v-model="currentPage" :length="totalPages" v-if="totalPages > 1 && !noPagination" @input="performScroll" :total-visible="5"/>
+        <v-pagination v-model="currentPage" :length="totalPages" v-if="totalPages > 1 && !noPagination" @input="performScroll" :total-visible="totalVisibleByViewport"/>
       </v-flex>
     </v-layout>
     <v-layout row wrapped v-else>

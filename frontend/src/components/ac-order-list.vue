@@ -2,7 +2,7 @@
   <v-container grid-list-md>
     <v-layout row wrap>
       <v-flex xs12 text-xs-center>
-        <v-pagination v-model="currentPage" :length="totalPages" v-if="totalPages > 1" />
+        <v-pagination v-model="currentPage" :length="totalPages" v-if="totalPages > 1" :total-visible="totalVisibleByViewport" />
       </v-flex>
       <ac-order-preview
           v-for="order in growing"
@@ -13,7 +13,7 @@
           :username="username"
       />
       <v-flex xs12 text-xs-center>
-        <v-pagination v-model="currentPage" :length="totalPages" v-if="totalPages > 1" />
+        <v-pagination v-model="currentPage" :length="totalPages" v-if="totalPages > 1" :total-visible="totalVisibleByViewport" />
       </v-flex>
     </v-layout>
   </v-container>
