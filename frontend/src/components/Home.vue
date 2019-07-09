@@ -28,7 +28,7 @@
         <p>A selection of hot products curated by Artconomy Staff</p>
       </v-flex>
     </v-layout>
-    <ac-product-list class="pt-0" endpoint="/api/sales/v1/featured-products/" :limit="4" :no-pagination="true" />
+    <ac-product-list class="pt-0" endpoint="/api/sales/v1/featured-products/" :limit="smallLimit" :no-pagination="true" />
     <v-layout row wrap>
       <v-flex xs12 text-xs-center>
         <v-btn :to="{name: 'Search', params: {tabName: 'products'}, query: {featured: true}}" color="primary">See all featured products</v-btn>
@@ -65,7 +65,7 @@
         <p>Products by artists given high ratings by previous commissioners</p>
       </v-flex>
     </v-layout>
-    <ac-product-list class="pt-0" endpoint="/api/sales/v1/highly-rated/" :limit="4" :no-pagination="true" />
+    <ac-product-list class="pt-0" endpoint="/api/sales/v1/highly-rated/" :limit="smallLimit" :no-pagination="true" />
     <v-layout row wrap>
       <v-flex xs12 text-xs-center>
         <v-btn :to="{name: 'Search', params: {tabName: 'products'}, query: {by_rating: true}}" color="primary">See more products by rating</v-btn>
@@ -83,7 +83,7 @@
         <p>Looking for a great deal? Check out these low-priced offerings from our artists, $30 or less!</p>
       </v-flex>
     </v-layout>
-    <ac-product-list class="pt-0" endpoint="/api/sales/v1/low-price/" :limit="4" :no-pagination="true" />
+    <ac-product-list class="pt-0" endpoint="/api/sales/v1/low-price/" :limit="smallLimit" :no-pagination="true" />
     <v-layout row wrap>
       <v-flex xs12 text-xs-center>
         <v-btn :to="{name: 'Search', params: {tabName: 'products'}, query: {max_price: '30.00'}}" color="primary">See more low priced products</v-btn>
@@ -101,7 +101,7 @@
         <p>These artists have recently listed with Artconomy and you could be the first to commission them!</p>
       </v-flex>
     </v-layout>
-    <ac-product-list class="pt-0" endpoint="/api/sales/v1/new-artist-products/" :limit="4" :no-pagination="true" />
+    <ac-product-list class="pt-0" endpoint="/api/sales/v1/new-artist-products/" :limit="smallLimit" :no-pagination="true" />
     <v-card class="purple">
       <v-layout row wrap>
         <v-flex xs12 class="pl-2">
@@ -114,7 +114,7 @@
         <p>Feeling lucky? Here's a random selection of products that might catch your fancy!</p>
       </v-flex>
     </v-layout>
-    <ac-product-list class="pt-0" endpoint="/api/sales/v1/random/" :limit="4" :no-pagination="true" />
+    <ac-product-list class="pt-0" endpoint="/api/sales/v1/random/" :limit="smallLimit" :no-pagination="true" />
     <v-layout row wrap>
       <v-flex xs12 text-xs-center>
         <v-btn :to="{name: 'Search', params: {tabName: 'products'}}" color="primary">Search All Products</v-btn>
@@ -133,7 +133,7 @@
       </v-flex>
     </v-layout>
     <ac-asset-gallery
-        endpoint="/api/profiles/v1/recent-commissions/" :limit="4" :no-pagination="true"
+        endpoint="/api/profiles/v1/recent-commissions/" :limit="smallLimit" :no-pagination="true"
     />
     <v-card class="purple">
       <v-layout row wrap>
@@ -148,7 +148,7 @@
       </v-flex>
     </v-layout>
     <ac-asset-gallery
-        endpoint="/api/profiles/v1/recent-submissions/" :limit="8" :no-pagination="true"
+        endpoint="/api/profiles/v1/recent-submissions/" :limit="largeLimit" :no-pagination="true"
         :to="{name: 'RecentArt', params: {tabName: 'all'}}"
         see-more-text="See more art!"
     />
@@ -297,6 +297,22 @@
       randomBanner () {
         // Lazy calculation, so should always match on a specific render.
         return this.banners[Math.floor(Math.random() * this.banners.length)]
+      },
+      smallLimit() {
+        switch (this.$vuetify.breakpoint.name) {
+          case 'xs': return 2
+          case 'sm': return 3
+          case 'md': return 3
+          default: return 4
+        }
+      },
+      largeLimit() {
+        switch (this.$vuetify.breakpoint.name) {
+          case 'xs': return 4
+          case 'sm': return 6
+          case 'md': return 6
+          default: return 8
+        }
       }
     }
   }
