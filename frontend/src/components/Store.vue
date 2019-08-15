@@ -29,11 +29,6 @@
         </p>
       </v-flex>
     </v-layout>
-    <v-layout row wrap v-if="isCurrent && setUp && embedded">
-      <v-flex xs12 text-xs-center>
-        <v-btn large color="primary" class="mx-0" @click="showNew = true">New Product</v-btn>
-      </v-flex>
-    </v-layout>
     <ac-form-dialog title="New Product" submit-text="Create" v-model="showNew"
                     ref="newProdForm" :schema="newProdSchema" :model="newProdModel"
                          :options="newProdOptions" :success="addProduct"
