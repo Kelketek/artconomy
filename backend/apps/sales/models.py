@@ -613,7 +613,7 @@ class PaymentRecord(Model):
     TYPES = (
         (SALE, 'Sale of good or service'),
         (TRANSFER, 'Internal Transfer'),
-        (DISBURSEMENT_SENT, 'Initiated Disbersement'),
+        (DISBURSEMENT_SENT, 'Initiated Disbursement'),
         (DISBURSEMENT_RETURNED, 'Disbursement completed'),
         (REFUND, 'Refund')
     )

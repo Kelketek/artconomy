@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 def escrow_balance(user):
+    # TODO: This accounting requires too many special cases. We need a better way to keep track of all of this.
     from apps.sales.models import PaymentRecord
     try:
         debit = Decimal(
@@ -34,6 +35,14 @@ def escrow_balance(user):
             str(user.escrow_holdings.filter(
                 status=PaymentRecord.SUCCESS,
                 type=PaymentRecord.REFUND,
+            ).aggregate(Sum('amount'))['amount__sum'])
+        )
+    except InvalidOperation:
+        pass
+    try:
+        debit += Decimal(
+            str(user.debits.filter(
+                source=PaymentRecord.ESCROW, status=PaymentRecord.SUCCESS,
             ).aggregate(Sum('amount'))['amount__sum'])
         )
     except InvalidOperation:
