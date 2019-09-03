@@ -669,6 +669,7 @@ class PaymentRecord(Model):
             payee=self.payer,
             content_type=self.content_type,
             object_id=self.object_id,
+            escrow_for=self.escrow_for,
             amount=amount,
             response_message="Failed when contacting payment processor.",
             note=note

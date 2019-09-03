@@ -106,6 +106,17 @@ class BalanceTestCase(TestCase):
         self.assertEqual(escrow_balance(self.user), Decimal('5.00'))
         self.assertEqual(escrow_balance(self.user2), Decimal('0.00'))
         self.assertEqual(escrow_balance(self.user3), Decimal('0.00'))
+        PaymentRecordFactory.create(
+            payee=self.user2,
+            payer=None,
+            source=PaymentRecord.ESCROW,
+            type=PaymentRecord.REFUND,
+            escrow_for=self.user,
+            amount=Money('3.00', 'USD')
+        )
+        self.assertEqual(escrow_balance(self.user), Decimal('2.00'))
+        self.assertEqual(escrow_balance(self.user2), Decimal('0.00'))
+        self.assertEqual(escrow_balance(self.user3), Decimal('0.00'))
 
     def test_account_balance(self):
         PaymentRecordFactory.create(
@@ -216,6 +227,17 @@ class BalanceTestCase(TestCase):
         self.assertEqual(available_balance(self.user3), Decimal('0.00'))
         txn.finalized = True
         txn.save()
+        self.assertEqual(available_balance(self.user), Decimal('20.00'))
+        self.assertEqual(available_balance(self.user2), Decimal('0.00'))
+        self.assertEqual(available_balance(self.user3), Decimal('0.00'))
+        PaymentRecordFactory.create(
+            payee=self.user2,
+            payer=None,
+            source=PaymentRecord.ESCROW,
+            type=PaymentRecord.REFUND,
+            escrow_for=self.user,
+            amount=Money('3.00', 'USD')
+        )
         self.assertEqual(available_balance(self.user), Decimal('20.00'))
         self.assertEqual(available_balance(self.user2), Decimal('0.00'))
         self.assertEqual(available_balance(self.user3), Decimal('0.00'))

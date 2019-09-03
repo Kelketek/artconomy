@@ -25,10 +25,19 @@ def escrow_balance(user):
             str(user.credits.filter(
                 status=PaymentRecord.SUCCESS,
                 source=PaymentRecord.ESCROW
-            ).aggregate(Sum('amount'))['amount__sum'])
+            ).exclude(type=PaymentRecord.REFUND).aggregate(Sum('amount'))['amount__sum'])
         )
     except InvalidOperation:
         debit = Decimal('0.00')
+    try:
+        debit += Decimal(
+            str(user.escrow_holdings.filter(
+                status=PaymentRecord.SUCCESS,
+                type=PaymentRecord.REFUND,
+            ).aggregate(Sum('amount'))['amount__sum'])
+        )
+    except InvalidOperation:
+        pass
     try:
         credit = Decimal(
             str(user.escrow_holdings.filter(
@@ -36,6 +45,7 @@ def escrow_balance(user):
                 type__in=[
                     PaymentRecord.DISBURSEMENT_SENT,
                     PaymentRecord.DISBURSEMENT_RETURNED,
+                    PaymentRecord.REFUND,
                 ]
             ).aggregate(Sum('amount'))['amount__sum']))
     except InvalidOperation:
@@ -56,7 +66,7 @@ def available_balance(user):
                 type__in=[PaymentRecord.DISBURSEMENT_SENT, PaymentRecord.TRANSFER, PaymentRecord.DISBURSEMENT_RETURNED],
             ).exclude(
                 # Exclude service fees that haven't finalized.
-                type=PaymentRecord.TRANSFER,
+                type__in=[PaymentRecord.TRANSFER],
                 finalized=False
             ).aggregate(Sum('amount'))['amount__sum'])
         )
@@ -68,7 +78,7 @@ def available_balance(user):
                 user.credits.filter(
                     status=PaymentRecord.SUCCESS,
                     finalized=True
-                ).aggregate(Sum('amount'))['amount__sum'])
+                ).exclude(type=PaymentRecord.REFUND).aggregate(Sum('amount'))['amount__sum'])
         )
     except InvalidOperation:
         credit = Decimal('0.00')

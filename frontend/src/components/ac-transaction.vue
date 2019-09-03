@@ -194,6 +194,9 @@
             return 'Transfer'
           }
         }
+        if (this.transaction.type === TYPES.REFUND) {
+          return 'Refund'
+        }
         return 'Unknown rcpt type ' + this.transaction.type
       },
       link () {

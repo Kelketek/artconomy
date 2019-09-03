@@ -2132,6 +2132,7 @@ class TestOrderStateChange(APITestCase):
             status=PaymentRecord.SUCCESS,
             payee=self.order.buyer, payer=None,
             source=PaymentRecord.ESCROW,
+            escrow_for=self.order.seller,
             type=PaymentRecord.REFUND,
             amount=Money('14.15', 'USD')
         )
