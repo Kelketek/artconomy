@@ -737,7 +737,7 @@ def ensure_shield(sender, instance, created=False, **_kwargs):
     instance.user.save()
     PaymentRecord.objects.create(
         payer=instance.user,
-        amount=Money('3.00', 'USD'),
+        amount=Money('1.00', 'USD'),
         payee=None,
         source=PaymentRecord.ACCOUNT,
         txn_id=str(uuid.uuid4()),

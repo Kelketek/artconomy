@@ -65,7 +65,7 @@
                     Artconomy Shield</router-link> is enabled. You may add a bank account to collect your earnings below, or <router-link :to="{name: 'Store', username: user.username}">click here to start adding products!</router-link>.</span>
                 <v-divider class="my-3" />
                 <v-btn @click="showNewBank = true" color="primary" :disabled="!sufficientBalance">Add a US Bank Account</v-btn>
-                <p v-if="!sufficientBalance">You will be able to link your bank account once you have earned at least $3.00, to cover the connection fee. This fee is required by our payment processor.</p>
+                <p v-if="!sufficientBalance">You will be able to link your bank account once you have earned at least $1.00, to cover the connection fee. This fee is required by our payment processor.</p>
               </v-flex>
               <v-flex v-else>
                 <h3 class="display-3">You may now list products!</h3>
@@ -99,7 +99,7 @@
         <p><strong>Only US Banks are supported at this time.</strong></p>
         <p>Consent for bank transfers may be revoked by removing the bank information from your account.</p>
         <p>
-          <strong>A $3 non-refundable connection fee is assessed upon connecting an account, as required by our payment
+          <strong>A $1 non-refundable connection fee is assessed upon connecting an account, as required by our payment
             processor. This will be deducted from your current balance. If your balance is not yet sufficient to cover
             this fee, you will not be able to add a bank at this time.
           </strong>
