@@ -978,9 +978,9 @@ class BankAccounts(ListCreateAPIView):
         self.check_object_permissions(self.request, user)
         # validated_data will have the additional fields, whereas data only contains fields for model creation.
         data = serializer.validated_data
-        if available_balance(user) < Decimal('3.00'):
+        if available_balance(user) < Decimal('1.00'):
             raise ValidationError(
-                {'errors': ['You do not have sufficient balance to cover the $3.00 connection fee yet.']}
+                {'errors': ['You do not have sufficient balance to cover the $1.00 connection fee yet.']}
             )
         make_dwolla_account(self.request, user, data['first_name'], data['last_name'])
         account = add_bank_account(user, data['account_number'], data['routing_number'], data['type'])

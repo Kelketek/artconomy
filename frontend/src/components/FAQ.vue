@@ -281,8 +281,8 @@
                   Orders made without Artconomy Shield may also have ads on the product, profile, and order pages
                   to help pay for the cost of providing Artconomy's service.
                 </p>
-                <p>Artists using Shield will be assessed a one-time setup fee, required by our payment processor, of <strong>$3.00</strong>.
-                  This fee is not assessed until the artist has earned at least $3 through sales, and is non-refundable.</p>
+                <p>Artists using Shield will be assessed a one-time setup fee, required by our payment processor, of <strong>$1.00</strong>.
+                  This fee is not assessed until the artist has earned at least $1 through sales, and is non-refundable.</p>
                 <p v-if="pricing">
                   Artconomy's fees for <router-link
                     :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}"
