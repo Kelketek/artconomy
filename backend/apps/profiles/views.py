@@ -1068,7 +1068,7 @@ class GalleryList(ListCreateAPIView):
     def get_queryset(self):
         user = get_object_or_404(User, username=self.kwargs['username'])
         self.check_object_permissions(self.request, user)
-        return available_assets(self.request, user).filter(artists=user)
+        return available_assets(self.request, user).filter(artists=user).order_by('-created_on')
 
     @atomic
     def perform_create(self, serializer):
@@ -1102,7 +1102,7 @@ class SubmissionList(ListAPIView):
         user = get_object_or_404(User, username=self.kwargs['username'])
         return available_assets(
             self.request, user
-        ).filter(owner=user).exclude(artists=user)
+        ).filter(owner=user).exclude(artists=user).order_by('-created_on')
 
 
 class AssetShare(BaseUserTagView):
