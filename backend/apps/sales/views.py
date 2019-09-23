@@ -79,7 +79,7 @@ class ProductList(ListCreateAPIView):
         qs = Product.objects.filter(user__username__iexact=self.kwargs['username'], active=True)
         if not (self.request.user.username.lower() == username.lower() or self.request.user.is_staff):
             qs = qs.filter(available=True, hidden=False)
-        qs = qs.order_by('created_on')
+        qs = qs.order_by('-created_on')
         return qs
 
 
@@ -1081,7 +1081,7 @@ class ProductSearch(ListAPIView):
         if by_rating:
             products = products.order_by(F('user__stars').desc(nulls_last=True), 'id').distinct('user__stars', 'id')
         else:
-            products = products.order_by('id').distinct('id')
+            products = products.order_by('-created_on', 'id').distinct('created_on', 'id')
         return products.select_related('user').prefetch_related('tags')
 
 
