@@ -8,6 +8,10 @@ domains:
  - artconomy.com
  - beta.artconomy.com
  - www.artconomy.com
+ - yourcharacterhere.com
+ - www.yourcharacterhere.com
+ - vulpinity.com
+ - www.vulpinity.com
 app_version: master
 host_color: red
 password_protect: false
