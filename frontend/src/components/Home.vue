@@ -16,17 +16,6 @@
         <v-btn color="red" @click="mailAnswer('DELETE')">No, thank you.</v-btn> <v-btn color="purple" @click="mailAnswer('POST')">Yes, please!</v-btn>
       </div>
     </v-alert>
-    <v-alert
-        :value="true"
-        type="info"
-        class="mb-2"
-    >
-      <div>
-        <p><strong>Artconomy is going to be at <a href="https://furryinvasion.org/" target="_blank" rel="nofollow">Alamo City Furry Invasion!</a></strong>
-          Find us and get some swag, or check out our panels. <a href="https://twitter.com/ArtconomyArt" target="_blank" rel="nofollow">Follow us on Twitter for real time updates!</a>
-        </p>
-      </div>
-    </v-alert>
     <v-card class="purple">
       <v-layout row wrap>
         <v-flex xs12 class="pl-2">
