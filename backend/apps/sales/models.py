@@ -348,30 +348,9 @@ def auto_remove_order(sender, instance, **_kwargs):
 remove_order_events = receiver(pre_delete, sender=Order)(clear_events)
 
 
-class PlaceholderSale(Model):
-
-    STATUSES = (
-        (Order.IN_PROGRESS, 'In Progress'),
-        (Order.COMPLETED, 'Completed'),
-    )
-
-    title = CharField(max_length=150)
-    status = IntegerField(choices=Order.STATUSES, default=Order.IN_PROGRESS, db_index=True)
-    seller = ForeignKey(settings.AUTH_USER_MODEL, related_name='placeholder_sales', on_delete=CASCADE)
-    task_weight = IntegerField(default=0)
-    expected_turnaround = DecimalField(
-        validators=[MinValueValidator(settings.MINIMUM_TURNAROUND)],
-        help_text="Number of days completion is expected to take.",
-        max_digits=5, decimal_places=2
-    )
-    created_on = DateTimeField(auto_now_add=True, db_index=True)
-    description = CharField(max_length=5000)
-
-
 @transaction.atomic
 @require_lock(User, 'ACCESS EXCLUSIVE')
 @require_lock(Order, 'ACCESS EXCLUSIVE')
-@require_lock(PlaceholderSale, 'ACCESS EXCLUSIVE')
 @require_lock(Product, 'ACCESS EXCLUSIVE')
 def update_artist_load(sender, instance, **_kwargs):
     seller = instance.seller
@@ -379,10 +358,6 @@ def update_artist_load(sender, instance, **_kwargs):
         seller_id=seller.id, status__in=WEIGHTED_STATUSES
     ).aggregate(base_load=Sum('task_weight'), added_load=Sum('adjustment_task_weight'))
     load = (result['base_load'] or 0) + (result['added_load'] or 0)
-    result = PlaceholderSale.objects.filter(
-        seller_id=seller.id, status__in=WEIGHTED_STATUSES
-    ).aggregate(load=Sum('task_weight'))
-    load += (result['load'] or 0)
     if isinstance(instance, Order):
         instance.product.parallel = Order.objects.filter(
             product_id=instance.product.id, status__in=WEIGHTED_STATUSES
@@ -395,16 +370,10 @@ def update_artist_load(sender, instance, **_kwargs):
 
 order_load_check = receiver(post_save, sender=Order, dispatch_uid='load')(update_artist_load)
 # No need for delete check-- orders are only ever archived, not deleted.
-placeholder_load_check = receiver(post_save, sender=PlaceholderSale, dispatch_uid='load')(update_artist_load)
-placeholder_load_check_delete = receiver(
-    post_delete, sender=PlaceholderSale, dispatch_uid='load'
-)(update_artist_load)
-
 
 @transaction.atomic
 @require_lock(User, 'ACCESS EXCLUSIVE')
 @require_lock(Order, 'ACCESS EXCLUSIVE')
-@require_lock(PlaceholderSale, 'ACCESS EXCLUSIVE')
 @require_lock(Product, 'ACCESS EXCLUSIVE')
 def update_product_availability(sender, instance, **kwargs):
     update_availability(instance.user, instance.user.load, instance.user.commissions_disabled)
@@ -413,7 +382,6 @@ def update_product_availability(sender, instance, **kwargs):
 @transaction.atomic
 @require_lock(User, 'ACCESS EXCLUSIVE')
 @require_lock(Order, 'ACCESS EXCLUSIVE')
-@require_lock(PlaceholderSale, 'ACCESS EXCLUSIVE')
 @require_lock(Product, 'ACCESS EXCLUSIVE')
 def update_user_availability(sender, instance, **kwargs):
     update_availability(instance, instance.load, instance.commissions_disabled)

@@ -462,34 +462,6 @@
             </v-card>
           </v-expansion-panel-content>
           <v-expansion-panel-content>
-            <div slot="header"><strong>What are Placeholder Orders?</strong></div>
-            <v-card>
-              <v-card-text>
-                <p>
-                  Artconomy wants to help you manage your workload, but it won't be able to do this very effectively if
-                  it insists that all of your commissions are made through its order forms. Sometimes you have projects
-                  that are commissioned offline or through another service and need to keep track of them.
-                </p>
-                <p>
-                  Placeholder orders allow you to keep track of these projects and have them count against your
-                  current load in
-                  <router-link :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'awoo-workload-management'}}">
-                    AWOO</router-link> so that customers don't commission you when you're already too busy.
-                </p>
-                <p>
-                  Placeholder orders are not, however, fully featured orders. You cannot, for instance,
-                  comment directly to your customers from them, take payment, or utilize Artconomy's dispute resolution
-                  services through <router-link
-                    :to="{name: 'FAQ', params: {tabName: 'buying-and-selling', subTabName: 'shield'}}"
-                >
-                  Artconomy Shield.</router-link>
-                  They are for tracking your workload only, and keeping track of
-                  any notes you may have while working on the projects you've made them for.
-                </p>
-              </v-card-text>
-            </v-card>
-          </v-expansion-panel-content>
-          <v-expansion-panel-content>
             <div slot="header"><strong>What are Order Tokens?</strong></div>
             <v-card>
               <v-card-text>
@@ -610,7 +582,6 @@
                 <p>
                   Artconomy does not have this problem, as each commission is tied to a specific seller who pays
                   individually for their pieces. Thankfully one does not need to exclusively use Patreon or Artconomy.
-                  Artconomy is able to handle workload management from your Patreon via the use of Placeholder Orders.
                 </p>
               </v-card-text>
             </v-card>
@@ -925,7 +896,7 @@
   const buySell = [
     'how-to-buy', 'how-to-sell', 'shield', 'disputes', 'portrait-and-landscape',
     'bank-accounts',
-    'awoo-workload-management', 'placeholder-orders', 'order-tokens',
+    'awoo-workload-management', 'order-tokens',
     'why-commissions-disabled',
     'why-not-paypal', 'patreon-comparison', 'featured-products', 'security',
     'payouts', 'crypto-currencies',
