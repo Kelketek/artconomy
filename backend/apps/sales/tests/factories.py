@@ -2,10 +2,10 @@ from factory import Sequence, SubFactory, SelfAttribute
 from factory.django import DjangoModelFactory, ImageField
 from moneyed import Money
 
-from apps.profiles.tests.factories import UserFactory, CharacterFactory
+from apps.profiles.tests.factories import UserFactory
 from apps.sales.models import (
     Order, Product, CreditCardToken, Revision, PaymentRecord, BankAccount,
-    PlaceholderSale, OrderToken, Promo
+    OrderToken, Promo
 )
 
 
@@ -31,15 +31,6 @@ class OrderFactory(DjangoModelFactory):
     buyer = SubFactory(UserFactory)
     seller = SelfAttribute('product.user')
     product = SubFactory(ProductFactory)
-
-
-class PlaceholderSaleFactory(DjangoModelFactory):
-    class Meta:
-        model = PlaceholderSale
-    title = Sequence(lambda n: 'Placeholder {0}'.format(n))
-    seller = SubFactory(UserFactory)
-    task_weight = 5
-    expected_turnaround = 1
 
 
 class CreditCardTokenFactory(DjangoModelFactory):

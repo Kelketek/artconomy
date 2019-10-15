@@ -21,7 +21,7 @@ from apps.profiles.tests.factories import CharacterFactory, UserFactory, ImageAs
 from apps.profiles.tests.helpers import gen_image
 from apps.sales.models import Order, CreditCardToken, Product, PaymentRecord, OrderToken
 from apps.sales.tests.factories import OrderFactory, CreditCardTokenFactory, ProductFactory, RevisionFactory, \
-    PaymentRecordFactory, BankAccountFactory, PlaceholderSaleFactory, OrderTokenFactory
+    PaymentRecordFactory, BankAccountFactory, OrderTokenFactory
 
 from apps.lib.models import COMMENT, REVISION_UPLOADED
 
@@ -2571,7 +2571,7 @@ class TestProductSearch(APITestCase):
         OrderFactory.create(product=maxed, status=Order.IN_PROGRESS)
         OrderFactory.create(product=maxed, status=Order.QUEUED)
         overloaded = ProductFactory.create(name='Test6 overloaded', task_weight=1, user__max_load=5)
-        PlaceholderSaleFactory.create(task_weight=5, seller=overloaded.user)
+        OrderFactory.create(seller=overloaded.user, task_weight=7, status=Order.IN_PROGRESS)
         ProductFactory.create(name='Test commissions closed', user__commissions_closed=True)
         overloaded.user.refresh_from_db()
 
@@ -2600,7 +2600,6 @@ class TestProductSearch(APITestCase):
         user.blocking.add(user2)
 
         ProductFactory.create(user__commissions_closed=True)
-        PlaceholderSaleFactory.create(task_weight=1, seller=user)
 
         user.max_load = 10
         user.load = 2

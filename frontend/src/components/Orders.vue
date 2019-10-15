@@ -42,39 +42,11 @@
       </v-tab>
     </v-tabs>
     <v-tabs-items v-model="tab">
-      <v-tab-item value="tab-current" v-if="buyer">
+      <v-tab-item value="tab-current">
         <ac-order-list :url="`${url}current/`" :buyer="buyer" :username="username" />
       </v-tab-item>
-      <v-tab-item value="tab-current" v-else>
-        <v-tabs v-model="currentTab" fixed-tabs>
-          <v-tab href="#tab-store">Store</v-tab>
-          <v-tab href="#tab-placeholders">Placeholders</v-tab>
-        </v-tabs>
-        <v-tabs-items v-model="currentTab">
-          <v-tab-item value="tab-store">
-            <ac-order-list :url="`${url}current/`" :buyer="buyer" :username="username" />
-          </v-tab-item>
-          <v-tab-item value="tab-placeholders" :class="{'tab-shown': shownTab('tab-placeholders')}">
-            <ac-placeholder-list :url="`${url}current/placeholders/`" :username="username" />
-          </v-tab-item>
-        </v-tabs-items>
-      </v-tab-item>
-      <v-tab-item value="tab-archived" v-if="buyer">
+      <v-tab-item value="tab-archived">
         <ac-order-list :url="`${url}archived/`" :buyer="buyer" :username="username" />
-      </v-tab-item>
-      <v-tab-item value="tab-archived" v-else>
-        <v-tabs v-model="archiveTab" fixed-tabs>
-          <v-tab href="#tab-store">Store</v-tab>
-          <v-tab href="#tab-placeholders">Placeholders</v-tab>
-        </v-tabs>
-        <v-tabs-items v-model="archiveTab">
-          <v-tab-item value="tab-store">
-            <ac-order-list :url="`${url}archived/`" :buyer="buyer" :username="username" />
-          </v-tab-item>
-          <v-tab-item value="tab-placeholders">
-            <ac-placeholder-list :url="`${url}archived/placeholders/`" :username="username" />
-          </v-tab-item>
-        </v-tabs-items>
       </v-tab-item>
       <v-tab-item value="tab-cancelled">
         <ac-order-list :url="`${url}cancelled/`" :buyer="buyer" :username="username" />
@@ -123,7 +95,6 @@
   import AcOrderPreview from './ac-order-preview'
   import { paramHandleMap, EventBus, artCall } from '../lib'
   import AcOrderList from './ac-order-list'
-  import AcPlaceholderList from './ac-placeholder-list'
   import AcAddButton from './ac-add-button'
   import AcFormDialog from './ac-form-dialog'
 
@@ -133,7 +104,6 @@
     components: {
       AcFormDialog,
       AcAddButton,
-      AcPlaceholderList,
       AcOrderList,
       AcOrderPreview
     },
@@ -161,12 +131,6 @@
       }
     },
     methods: {
-      shownTab (tabName) {
-        if (tabName === this.currentTab && this.tab === 'tab-current') {
-          EventBus.$emit('tab-shown', tabName)
-          return true
-        }
-      },
       visitSale (response) {
         this.$router.push({name: 'Sale', params: {orderID: response.id, username: this.username}})
       },
@@ -200,9 +164,7 @@
     },
     props: ['url', 'buyer'],
     computed: {
-      tab: paramHandleMap('tabName', ['subTabName'], undefined, 'tab-current'),
-      currentTab: paramHandleMap('subTabName', undefined, ['tab-store', 'tab-placeholders'], 'tab-store'),
-      archiveTab: paramHandleMap('subTabName', undefined, ['tab-store', 'tab-placeholders'], 'tab-store'),
+      tab: paramHandleMap('tabName', undefined, undefined, 'tab-current'),
       extended () {
         return this.url.indexOf('sales') !== -1
       },

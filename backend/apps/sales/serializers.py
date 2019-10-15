@@ -15,7 +15,7 @@ from apps.profiles.models import User, ImageAsset
 from apps.profiles.serializers import CharacterSerializer, ImageAssetSerializer
 from apps.profiles.utils import available_users
 from apps.sales.models import Product, Order, CreditCardToken, Revision, PaymentRecord, BankAccount, \
-    PlaceholderSale, Rating, OrderToken
+    Rating, OrderToken
 from apps.sales.utils import escrow_balance, available_balance, pending_balance
 
 
@@ -311,14 +311,6 @@ class PaymentRecordSerializer(serializers.ModelSerializer):
             'response_code', 'response_message', 'finalized', 'target'
         )
         read_only_fields = fields
-
-
-class PlaceholderSaleSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PlaceholderSale
-        fields = (
-            'id', 'title', 'status', 'task_weight', 'description', 'expected_turnaround'
-        )
 
 
 class PublishFinalSerializer(serializers.ModelSerializer):
