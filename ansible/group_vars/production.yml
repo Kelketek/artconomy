@@ -12,6 +12,7 @@ domains:
  - www.yourcharacterhere.com
  - vulpinity.com
  - www.vulpinity.com
+mail_domain: outbound.artconomy.com
 app_version: master
 host_color: red
 password_protect: false
