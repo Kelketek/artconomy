@@ -677,3 +677,8 @@ def auto_unsubscribe_journal(sender, instance, **kwargs):
         object_id=instance.id,
         content_type=ContentType.objects.get_for_model(Journal)
     ).delete()
+    Event.objects.filter(
+        content_type=ContentType.objects.get_for_model(model=sender),
+        object_id=instance.id,
+        type=COMMENT,
+    ).delete()
