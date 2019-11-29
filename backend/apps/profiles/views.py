@@ -526,7 +526,7 @@ class SubmissionSearch(ListAPIView):
                 qs = qs.filter(tags__name__iexact=q)
         if search_serializer.validated_data.get('watch_list', False) and self.request.user.is_authenticated:
             qs = qs.filter(artists__in=self.request.user.watching.all())
-        return qs.distinct()
+        return qs.order_by('-created_on').distinct()
 
     def get(self, *args, **kwargs):
         query = self.request.GET.get('q', '')
