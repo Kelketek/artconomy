@@ -7,7 +7,7 @@
             <ac-avatar
                 :user="participant"
                 class="px-1"
-                v-for="participant in conversation.x.participants.filter((x) => x.username === rawViewerName)"
+                v-for="participant in conversation.x.participants.filter((x) => x.username !== rawViewerName)"
                 :key="participant.id"
             />
           </v-toolbar-items>

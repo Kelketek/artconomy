@@ -1179,7 +1179,7 @@ class Conversations(ListCreateAPIView):
         return user.conversations.annotate(
             comment_count=Count(
                 'comments', filter=Q(comments__deleted=False))
-        ).exclude(comment_count=0).order_by('-comments__created_on')
+        ).exclude(comment_count=0).order_by('-comments__created_on').distinct()
 
 
 class ConversationManager(RetrieveUpdateDestroyAPIView):
