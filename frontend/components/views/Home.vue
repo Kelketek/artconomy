@@ -207,6 +207,10 @@
         <v-card :color="$vuetify.theme.darkBase.darken4">
           <v-toolbar dense color="secondary">
             <v-toolbar-title>Recent Submissions</v-toolbar-title>
+            <v-spacer></v-spacer>
+            <v-toolbar-items>
+              <v-btn color="primary" :to="{name: 'SearchSubmissions'}">See More</v-btn>
+            </v-toolbar-items>
           </v-toolbar>
           <v-card-text>Art uploaded by our users</v-card-text>
           <ac-load-section :controller="submissions">

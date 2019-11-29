@@ -137,12 +137,12 @@
                   <v-flex shrink d-flex>
                     <v-layout row align-center justify-content>
                       <v-flex>
-                        <v-menu offset-x left>
+                        <v-menu offset-x left v-if="controls">
                           <template v-slot:activator="{on}">
                             <v-btn icon v-on="on" class="more-button"><v-icon>more_horiz</v-icon></v-btn>
                           </template>
                           <v-list dense>
-                            <v-list-tile @click.stop="submission.patch({private: !submission.x.private})" v-if="controls">
+                            <v-list-tile @click.stop="submission.patch({private: !submission.x.private})">
                               <v-list-tile-action>
                                 <v-icon v-if="submission.x.private">visibility_off</v-icon>
                                 <v-icon v-else>visibility</v-icon>

@@ -211,4 +211,31 @@ describe('SubmissionDetail.vue', () => {
     await vm.$nextTick()
     expect(vm.tagControls).toBe(false)
   })
+  it('Shows a context menu when the user controls the submission', async() => {
+    setViewer(store, vulpes)
+    const submission = genSubmission()
+    submission.owner = vulpes
+    wrapper = mount(SubmissionDetail, {
+      localVue, store, router, propsData: {submissionId: '123'}, sync: false, attachToDocument: true,
+    })
+    const vm = wrapper.vm as any
+    vm.submission.setX(submission)
+    vm.submission.fetching = false
+    vm.submission.ready = true
+    await vm.$nextTick()
+    expect(wrapper.find('.more-button').exists()).toBe(true)
+  })
+  it('Does not show a context menu when the user does not control', async() => {
+    setViewer(store, vulpes)
+    const submission = genSubmission()
+    wrapper = mount(SubmissionDetail, {
+      localVue, store, router, propsData: {submissionId: '123'}, sync: false, attachToDocument: true,
+    })
+    const vm = wrapper.vm as any
+    vm.submission.setX(submission)
+    vm.submission.fetching = false
+    vm.submission.ready = true
+    await vm.$nextTick()
+    expect(wrapper.find('.more-button').exists()).toBe(false)
+  })
 })

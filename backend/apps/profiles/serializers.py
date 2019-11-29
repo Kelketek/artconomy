@@ -152,7 +152,7 @@ class SubmissionNotificationSerializer(serializers.ModelSerializer):
     owner = RelatedUserSerializer(read_only=True)
     tags = TagSerializer(many=True, read_only=True)
     file = RelatedAssetField(thumbnail_namespace='profiles.Submission.file')
-    preview = RelatedAssetField(thumbnail_namespace='profiles.Submisssion.preview', required=False, allow_null=True)
+    preview = RelatedAssetField(thumbnail_namespace='profiles.Submission.preview', required=False, allow_null=True)
 
     class Meta:
         model = Submission

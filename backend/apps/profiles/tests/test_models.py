@@ -1,4 +1,5 @@
 from decimal import Decimal
+from unittest.mock import Mock
 
 from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase, override_settings
@@ -6,7 +7,7 @@ from django.test import TestCase, override_settings
 from apps.lib import models
 from apps.lib.models import Subscription
 from apps.lib.test_resources import SignalsDisabledMixin
-from apps.profiles.tests.factories import UserFactory
+from apps.profiles.tests.factories import UserFactory, SubmissionFactory
 
 
 class TestUser(SignalsDisabledMixin, TestCase):
@@ -50,3 +51,12 @@ class SubscriptionsTestCase(TestCase):
         self.assertTrue(Subscription.objects.filter(
             subscriber=user, type=models.REFUND, content_type_id=None, object_id=None,
         ).exists())
+
+
+class TestSubmissionSerializer(TestCase):
+    def test_submission_serialization(self):
+        submission = SubmissionFactory.create()
+        request = Mock()
+        request.user = submission.owner
+        result = submission.notification_serialize({'request': request})
+        self.assertEqual(result['id'], submission.id)
