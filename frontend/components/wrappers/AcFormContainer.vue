@@ -69,6 +69,10 @@ export default class AcFormContainer extends Vue {
       this.savedErrors.splice(index, 1)
     }
 
+    public mounted() {
+      window._paq.push(['FormAnalytics::scanForForms', this.$el])
+    }
+
     @Watch('errors', {deep: true})
     public saveErrors(val: string[]) {
       /* istanbul ignore if */

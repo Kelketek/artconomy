@@ -147,6 +147,10 @@ export default class AcAsset extends mixins(AssetBase) {
     public text!: boolean
     public fullscreen = false
 
+    public mounted() {
+      window._paq.push(['MediaAnalytics::scanForMedia', this.$el])
+    }
+
     public get displayComponent() {
       if (!this.asset) {
         return null

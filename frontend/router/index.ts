@@ -580,6 +580,14 @@ export const router = new Router({
   routes,
 })
 
+declare global {
+  interface Window {
+    _paq: Array<any[]>
+  }
+}
+
+window._paq = window._paq || []
+
 export function configureHooks(vueRouter: Router, store: ArtStore): void {
   vueRouter.beforeEach((to, from, next) => {
     clearMetaTag('prerender-status-code')
@@ -601,5 +609,11 @@ export function configureHooks(vueRouter: Router, store: ArtStore): void {
       setCookie('referredBy', to.query.referred_by)
     }
     next()
+  })
+  vueRouter.afterEach((to, from) => {
+    window._paq.push(['setCustomUrl', to.fullPath])
+    window._paq.push(['setDocumentTitle', document.title])
+    window._paq.push(['setReferrerUrl', from.fullPath])
+    window._paq.push(['trackPageView'])
   })
 }

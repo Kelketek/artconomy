@@ -15,19 +15,19 @@
   </v-container>
 </template>
 <script lang="ts">
-import {setMetaContent} from '@/lib'
+import {setMetaContent, updateTitle} from '@/lib'
 import Component, {mixins} from 'vue-class-component'
 import Viewer from '@/mixins/viewer'
 import {SingleController} from '@/store/singles/controller'
 import Pricing from '@/types/Pricing'
 
-  @Component
+@Component
 export default class FAQ extends mixins(Viewer) {
     public pricing: SingleController<Pricing> = null as unknown as SingleController<Pricing>
 
     public created() {
       this.pricing = this.$getSingle('pricing', {endpoint: '/api/sales/v1/pricing-info/'})
-      document.title = `Frequently Asked Questions -- Artconomy`
+      updateTitle(`Frequently Asked Questions -- Artconomy`)
       setMetaContent(
         'description',
         'Learn how Artconomy works, how to buy art safely online, and how to make money selling your art!'

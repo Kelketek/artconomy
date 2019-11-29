@@ -262,7 +262,7 @@ import Formatting from '@/mixins/formatting'
 import {ListController} from '@/store/lists/controller'
 import {Journal} from '@/types/Journal'
 import AcCommentSection from '@/components/comments/AcCommentSection.vue'
-import {posse, RATING_COLOR, RATINGS_SHORT, setMetaContent, textualize} from '@/lib'
+import {posse, RATING_COLOR, RATINGS_SHORT, setMetaContent, textualize, updateTitle} from '@/lib'
 import AcAvatar from '@/components/AcAvatar.vue'
 import Editable from '@/mixins/editable'
 import AcEditingToggle from '@/components/navigation/AcEditingToggle.vue'
@@ -377,7 +377,7 @@ export default class SubmissionDetail extends mixins(Viewer, Formatting, Editabl
       if (!submission) {
         return
       }
-      document.title = this.windowTitle
+      updateTitle(this.windowTitle)
       setMetaContent('description', textualize(submission.caption).slice(0, 160))
     }
 

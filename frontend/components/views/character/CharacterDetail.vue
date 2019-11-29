@@ -149,7 +149,7 @@ import AcRelatedManager from '@/components/wrappers/AcRelatedManager.vue'
 import AcCharacterToolbar from '@/components/views/character/AcCharacterToolbar.vue'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
 import {Watch} from 'vue-property-decorator'
-import {setMetaContent, textualize} from '@/lib'
+import {setMetaContent, textualize, updateTitle} from '@/lib'
 
   @Component({components: {
     AcExpandedProperty,
@@ -197,7 +197,7 @@ export default class CharacterDetail extends mixins(Subjective, CharacterCentric
       if (!character) {
         return
       }
-      document.title = `${character.name} - ${character.user.username} on Artconomy.com`
+      updateTitle(`${character.name} - ${character.user.username} on Artconomy.com`)
       setMetaContent('description', textualize(character.description).slice(0, 160))
     }
 

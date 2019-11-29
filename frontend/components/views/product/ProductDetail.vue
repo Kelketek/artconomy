@@ -359,7 +359,7 @@ import {RawLocation} from 'vue-router'
 import LinkedSubmission from '@/types/LinkedSubmission'
 import ProductCentric from '@/components/views/product/mixins/ProductCentric'
 import AcEscrowLabel from '@/components/AcEscrowLabel.vue'
-import {setMetaContent, textualize} from '@/lib'
+import {setMetaContent, textualize, updateTitle} from '@/lib'
 
   @Component({
     components: {
@@ -414,7 +414,7 @@ export default class ProductDetail extends mixins(ProductCentric, Formatting, Ed
       if (!product) {
         return
       }
-      document.title = `${product.name} by ${product.user.username} -- Artconomy`
+      updateTitle(`${product.name} by ${product.user.username} -- Artconomy`)
       setMetaContent('description', textualize(product.description).slice(0, 160))
     }
 

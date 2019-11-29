@@ -17,6 +17,15 @@ import {Dictionary} from 'vue-router/types/router'
 import {NamelessFormSchema} from '@/store/forms/types/NamelessFormSchema'
 import {HttpVerbs} from '@/store/forms/types/HttpVerbs'
 
+// Needed for Matomo.
+declare global {
+  interface Window {
+    _paq: Array<any[]>
+  }
+}
+
+window._paq = window._paq || []
+
 // Useful for attaching dummy observers to objects that Vue needs to ignore.
 export const Observer = (new Vue()).$data.__ob__.constructor
 
@@ -776,4 +785,9 @@ export function saneNav(originalFunction: (location: RawLocation) => Promise<Rou
 
   wrapped.PATCHED = true
   return wrapped
+}
+
+export function updateTitle(title: string) {
+  document.title = title
+  window._paq.push(['setDocumentTitle', document.title])
 }
