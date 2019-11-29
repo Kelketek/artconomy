@@ -80,7 +80,12 @@ export default class ConversationDetail extends mixins(Subjective, Formatting) {
       this.conversation.get().catch(this.setError)
       this.conversationComments = this.$getList(
         'conversation-' + this.conversationId + '-comments',
-        {endpoint: `/api/lib/v1/comments/profiles.Conversation/${this.conversationId}/`}
+        {
+          endpoint: `/api/lib/v1/comments/profiles.Conversation/${this.conversationId}/`,
+          reverse: true,
+          grow: true,
+          pageSize: 5,
+        }
       )
     }
     public get url(): string {

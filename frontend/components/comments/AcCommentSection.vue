@@ -113,6 +113,9 @@ export default class AcCommentSection extends mixins(Viewer) {
       if (this.hardFail) {
         runPromise.catch(this.setError)
       }
+      if (!this.commentList.state.reverse) {
+        throw Error('Comment lists should always be reversed!')
+      }
     }
 }
 </script>

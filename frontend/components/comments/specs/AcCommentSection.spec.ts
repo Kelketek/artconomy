@@ -41,7 +41,10 @@ describe('AcCommentSection', () => {
   })
   it('Fetches and renders a comment list', async() => {
     setViewer(store, genUser())
-    const commentList = mount(Empty, {localVue, store}).vm.$getList('commentList', {endpoint: '/api/comments/'})
+    const commentList = mount(Empty, {localVue, store}).vm.$getList('commentList', {
+      endpoint: '/api/comments/',
+      reverse: true,
+    })
     wrapper = mount(AcCommentSection, {
       localVue,
       store,
@@ -64,9 +67,29 @@ describe('AcCommentSection', () => {
     await vm.$nextTick()
     expect(wrapper.findAll('.comment').length).toBe(7)
   })
+  it('Throws an error if you try to load an unreversedlist', async() => {
+    const commentList = mount(Empty, {localVue, store}).vm.$getList('commentList', {
+      endpoint: '/api/comments/',
+    })
+    expect(() => {
+      wrapper = mount(AcCommentSection, {
+        localVue,
+        store,
+        router,
+        attachToDocument: false,
+        sync: false,
+        propsData: {
+          showHistory: true,
+          commentList,
+        }})
+    }).toThrow(Error('Comment lists should always be reversed!'))
+  })
   it('Toggle history mode', async() => {
     setViewer(store, genUser())
-    const commentList = mount(Empty, {localVue, store}).vm.$getList('commentList', {endpoint: '/api/comments/'})
+    const commentList = mount(Empty, {localVue, store}).vm.$getList('commentList', {
+      endpoint: '/api/comments/',
+      reverse: true,
+    })
     wrapper = mount(AcCommentSection, {
       localVue,
       store,
