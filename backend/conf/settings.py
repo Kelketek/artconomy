@@ -56,7 +56,7 @@ def get_env(name: str, default: Any, unpack=False) -> Any:
 SECRET_KEY = get_env('DJANGO_SECRET_KEY', UNSET)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = get_env('DEBUG', True)
+DEBUG = bool(int(get_env('DEBUG', 1)))
 
 ALLOWED_HOSTS = get_env('ALLOWED_HOSTS', ['artconomy.vulpinity.com', 'localhost'], unpack=True)
 
