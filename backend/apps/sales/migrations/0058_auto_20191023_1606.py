@@ -2,6 +2,7 @@
 from django.contrib.contenttypes.models import ContentType
 from django.db import migrations
 from easy_thumbnails.alias import aliases
+from easy_thumbnails.exceptions import InvalidImageFormatError
 from easy_thumbnails.files import get_thumbnailer
 
 FAVORITE = 14
@@ -26,7 +27,10 @@ def gen_subjective_thumbnails(cls, field_name, asset):
     thumbnailer = get_thumbnailer(asset.file)
     for key, options in all_options.items():
         options['ALIAS'] = key
-        thumbnailer.get_thumbnail(options)
+        try:
+            thumbnailer.get_thumbnail(options)
+        except (OSError, InvalidImageFormatError) as err:
+            print(f'Could not generate for {asset.file}: {err}')
 
 
 def create_submissions(apps, schema):
