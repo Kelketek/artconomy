@@ -1176,10 +1176,7 @@ class Conversations(ListCreateAPIView):
     def get_queryset(self):
         user = get_object_or_404(User, username__iexact=self.kwargs['username'])
         self.check_object_permissions(self.request, user)
-        return user.conversations.annotate(
-            comment_count=Count(
-                'comments', filter=Q(comments__deleted=False))
-        ).exclude(comment_count=0).order_by('-comments__created_on').distinct()
+        return user.conversations.all().exclude(last_activity=None).order_by('-last_activity')
 
 
 class ConversationManager(RetrieveUpdateDestroyAPIView):

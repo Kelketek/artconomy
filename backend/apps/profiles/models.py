@@ -619,10 +619,21 @@ class Conversation(Model):
     comments = GenericRelation(
         Comment, related_query_name='message', content_type_field='content_type', object_id_field='object_id'
     )
+    last_activity = DateTimeField(default=None, null=True, db_index=True)
     comment_permissions = [IsRegistered, MessageReadPermission]
 
     def new_comment(self, comment):
         ConversationParticipant.objects.filter(conversation=self).exclude(user=comment.user).update(read=False)
+        self.last_activity = comment.created_on
+        self.save()
+
+    def comment_deleted(self, comment):
+        last_comment = self.comments.filter(deleted=False).order_by('-created_on').first()
+        if not last_comment:
+            self.last_activity = None
+        else:
+            self.last_activity = last_comment.created_on
+        self.save()
 
     # noinspection PyUnusedLocal
     def notification_name(self, context):

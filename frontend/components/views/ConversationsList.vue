@@ -4,28 +4,32 @@
       <v-container>
         <v-layout row wrap>
           <v-flex xs12>
-            <v-card v-if="conversations.empty">
+            <ac-paginated :list="conversations" :auto-run="false" :track-pages="true">
+              <v-card v-slot="empty">
                 <v-card-text>
                   <v-flex text-xs-center>
                     <p>You have no conversations at this time.</p>
                     <v-btn color="primary" v-if="isCurrent" @click="showNew = true">Start a Conversation</v-btn>
                   </v-flex>
                 </v-card-text>
-            </v-card>
-            <v-list three-line v-else>
-              <template v-for="(conversation, index) in conversations.list">
-                <v-list-tile :key="conversation.id" :to="{name: 'Conversation', params: {username, conversationId: conversation.x.id}}">
-                  <v-list-tile-avatar>
-                    <img :src="avatarImage(conversation.x)"/>
-                  </v-list-tile-avatar>
-                  <v-list-tile-content>
-                    <v-list-tile-title>{{conversationTitle(conversation.x)}}</v-list-tile-title>
-                    <v-list-tile-sub-title>{{conversation.x.last_comment.user.username}}: {{textualize(conversation.x.last_comment.text)}}</v-list-tile-sub-title>
-                  </v-list-tile-content>
-                </v-list-tile>
-                <v-divider :key="'divider' + conversation.x.id" v-if="index + 1 !== conversations.list.length"></v-divider>
+              </v-card>
+              <template v-slot:default>
+                <v-list three-line>
+                  <template v-for="(conversation, index) in conversations.list">
+                    <v-list-tile :key="conversation.id" :to="{name: 'Conversation', params: {username, conversationId: conversation.x.id}}">
+                      <v-list-tile-avatar>
+                        <img :src="avatarImage(conversation.x)"/>
+                      </v-list-tile-avatar>
+                      <v-list-tile-content>
+                        <v-list-tile-title>{{conversationTitle(conversation.x)}}</v-list-tile-title>
+                        <v-list-tile-sub-title>{{conversation.x.last_comment.user.username}}: {{textualize(conversation.x.last_comment.text)}}</v-list-tile-sub-title>
+                      </v-list-tile-content>
+                    </v-list-tile>
+                    <v-divider :key="'divider' + conversation.x.id" v-if="index + 1 !== conversations.list.length"></v-divider>
+                  </template>
+                </v-list>
               </template>
-            </v-list>
+            </ac-paginated>
           </v-flex>
         </v-layout>
       </v-container>
@@ -44,7 +48,6 @@
         </v-flex>
       </ac-form-dialog>
     </v-flex>
-    <ac-loading-spinner v-else></ac-loading-spinner>
   </v-layout>
 </template>
 
@@ -62,8 +65,9 @@ import AcAddButton from '@/components/AcAddButton.vue'
 import {FormController} from '@/store/forms/form-controller'
 import AcBoundField from '@/components/fields/AcBoundField'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
+import AcPaginated from '@/components/wrappers/AcPaginated.vue'
   @Component({
-    components: {AcFormDialog, AcBoundField, AcAddButton, AcLoadingSpinner, AcAvatar},
+    components: {AcPaginated, AcFormDialog, AcBoundField, AcAddButton, AcLoadingSpinner, AcAvatar},
   })
 export default class ConversationsList extends mixins(Subjective, Formatting) {
     public conversations: ListController<Conversation> = null as unknown as ListController<Conversation>
@@ -111,7 +115,7 @@ export default class ConversationsList extends mixins(Subjective, Formatting) {
 
     public created() {
       this.conversations = this.$getList('conversations-' + this.username, {
-        endpoint: `/api/profiles/v1/account/${this.username}/conversations/`, grow: true,
+        endpoint: `/api/profiles/v1/account/${this.username}/conversations/`,
       })
       this.newConversation = this.$getForm('new-conversation', {
         fields: {participants: {value: []}},

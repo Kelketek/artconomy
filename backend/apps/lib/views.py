@@ -81,6 +81,8 @@ class CommentUpdate(RetrieveUpdateDestroyAPIView):
             self.fake_destroy(instance)
         else:
             self.real_destroy(instance)
+        if hasattr(instance.top, 'comment_deleted'):
+            instance.top.comment_deleted(instance)
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()

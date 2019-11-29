@@ -1248,10 +1248,6 @@ class TestConversations(APITestCase):
         CommentFactory.create(
             object_id=conversations[0].id, content_type=ContentType.objects.get_for_model(Conversation)
         )
-        CommentFactory.create(
-            object_id=conversations[1].id, content_type=ContentType.objects.get_for_model(Conversation),
-            deleted=True
-        )
         self.login(user)
         response = self.client.get('/api/profiles/v1/account/{}/conversations/'.format(user.username))
         self.assertEqual(response.status_code, status.HTTP_200_OK)

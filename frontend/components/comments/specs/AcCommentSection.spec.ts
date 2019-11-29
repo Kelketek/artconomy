@@ -14,6 +14,7 @@ localVue.use(Router)
 let store: ArtStore
 let wrapper: Wrapper<Vue>
 let router: Router
+const mockError = jest.spyOn(console, 'error')
 
 describe('AcCommentSection', () => {
   beforeEach(() => {
@@ -38,6 +39,7 @@ describe('AcCommentSection', () => {
   })
   afterEach(() => {
     cleanUp(wrapper)
+    mockError.mockReset()
   })
   it('Fetches and renders a comment list', async() => {
     setViewer(store, genUser())
@@ -68,6 +70,7 @@ describe('AcCommentSection', () => {
     expect(wrapper.findAll('.comment').length).toBe(7)
   })
   it('Throws an error if you try to load an unreversedlist', async() => {
+    mockError.mockImplementationOnce(() => {})
     const commentList = mount(Empty, {localVue, store}).vm.$getList('commentList', {
       endpoint: '/api/comments/',
     })
@@ -82,7 +85,7 @@ describe('AcCommentSection', () => {
           showHistory: true,
           commentList,
         }})
-    }).toThrow(Error('Comment lists should always be reversed!'))
+    }).toThrow('Comment lists should always be reversed!')
   })
   it('Toggle history mode', async() => {
     setViewer(store, genUser())
