@@ -76,7 +76,7 @@ describe('List controller', () => {
     store.commit('lists/example/setResponse', {
       results: [],
       count: 50,
-      size: 20,
+      size: 24,
     })
     expect(controller.totalPages).toBe(3)
   })
@@ -102,7 +102,7 @@ describe('List controller', () => {
     const controller = makeController()
     controller.response = {
       count: 2,
-      size: 20,
+      size: 24,
     }
     controller.ready = true
     controller.setList([{id: 1}, {id: 2}, {id: 3}, {id: 4}])
@@ -178,7 +178,7 @@ describe('List controller', () => {
     const controller = makeController()
     controller.get().then()
     expect(mockAxios.get).toHaveBeenCalledWith(
-      ...rq('/endpoint/', 'post', undefined, {params: {page: 1, size: 20}, cancelToken: {}})
+      ...rq('/endpoint/', 'post', undefined, {params: {page: 1, size: 24}, cancelToken: {}})
     )
   })
   it('Sets from the resulting response', async() => {
@@ -187,14 +187,14 @@ describe('List controller', () => {
     const response = {
       results: [{test: 1}, {test: 2}],
       count: 2,
-      size: 20,
+      size: 24,
     }
     mockAxios.mockResponse({
       status: 200,
       data: response,
     })
     await flushPromises()
-    expect(state.example.response).toEqual({count: 2, size: 20})
+    expect(state.example.response).toEqual({count: 2, size: 24})
   })
   it('Properly replaces old items in the response', async() => {
     const controller = makeController()
@@ -203,7 +203,7 @@ describe('List controller', () => {
     const response = {
       results: [{id: 3}, {id: 5}],
       count: 2,
-      size: 20,
+      size: 24,
     }
     mockAxios.mockResponse({
       status: 200,
@@ -229,7 +229,7 @@ describe('List controller', () => {
     const response = {
       results: [item4, item5],
       count: 2,
-      size: 20,
+      size: 24,
     }
     mockAxios.mockResponse({
       status: 200,
@@ -362,7 +362,7 @@ describe('List controller', () => {
     store.commit('lists/example/setFailed', true)
     controller.retryGet().then()
     expect(mockAxios.get).toHaveBeenCalledWith(
-      ...rq('/endpoint/', 'get', undefined, {params: {size: 20, page: 1}, cancelToken: {}})
+      ...rq('/endpoint/', 'get', undefined, {params: {size: 24, page: 1}, cancelToken: {}})
     )
   })
   it('Grows on command', async() => {
@@ -370,7 +370,7 @@ describe('List controller', () => {
     controller.response = {count: 100, size: 10}
     controller.grower(true)
     expect(mockAxios.get).toHaveBeenCalledWith(
-      ...rq('/endpoint/', 'get', undefined, {params: {size: 20, page: 2}, cancelToken: {}})
+      ...rq('/endpoint/', 'get', undefined, {params: {size: 24, page: 2}, cancelToken: {}})
     )
     mockAxios.reset()
     controller.grower(true)

@@ -49,7 +49,7 @@ export class ListModule<T extends {}> {
       response: null,
       currentPage: 1,
       refs: [],
-      pageSize: 20,
+      pageSize: 24,
       persistent: false,
       ready: false,
       keyProp: 'id' as keyof T,
@@ -67,7 +67,7 @@ export class ListModule<T extends {}> {
       },
       kill(state: ListState<T>) {
         // Triggers the cancellation token.
-        cancel.source.cancel('Killled.')
+        cancel.source.cancel('Killed.')
         cancel.source = axios.CancelToken.source()
       },
       setResponse(state: ListState<T>, response: PaginatedResponse) {

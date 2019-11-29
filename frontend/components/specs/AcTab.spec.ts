@@ -42,7 +42,7 @@ describe('AcTab.vue', () => {
     const vm = wrapper.vm as any
     expect(vm.destination).toEqual({name: 'Place'})
     list.currentPage = 3
-    list.response = {count: 20, size: 5}
+    list.response = {count: 24, size: 5}
     list.fetching = true
     list.ready = true
     await wrapper.vm.$nextTick()

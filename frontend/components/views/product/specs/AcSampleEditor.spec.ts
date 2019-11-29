@@ -90,7 +90,7 @@ describe('ProductDetail.vue', () => {
     submission2.submission.id = 6
     submission3.submission.id = 7
     const samples = [submission, submission2, submission3]
-    const response = {count: 3, size: 20}
+    const response = {count: 3, size: 24}
     samplesList.setList([...samples])
     localSamples.setList([...samples])
     samplesList.response = response
@@ -121,7 +121,7 @@ describe('ProductDetail.vue', () => {
     submission2.submission.id = 6
     submission3.submission.id = 7
     const samples = [submission, submission2, submission3]
-    const response = {count: 3, size: 20}
+    const response = {count: 3, size: 24}
     samplesList.setList([...samples])
     localSamples.setList([...samples])
     samplesList.response = response
@@ -154,7 +154,7 @@ describe('ProductDetail.vue', () => {
     submission2.id = 6
     submission3.id = 7
     const samples = [submission, submission2, submission3]
-    art.response = {count: 3, size: 20}
+    art.response = {count: 3, size: 24}
     art.setList(samples)
     wrapper = mount(AcSampleEditor, {localVue,
       store,
@@ -184,7 +184,7 @@ describe('ProductDetail.vue', () => {
     submission2.id = 6
     submission3.id = 7
     const samples = [submission, submission2, submission3]
-    art.response = {count: 3, size: 20}
+    art.response = {count: 3, size: 24}
     art.setList(samples)
     wrapper = mount(AcSampleEditor, {localVue,
       store,
