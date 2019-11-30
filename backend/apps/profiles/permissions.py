@@ -24,12 +24,12 @@ class SharedWith(BasePermission):
     """
 
     def has_object_permission(self, request, view, obj):
+        if not obj.private:
+            return True
         if request.user.is_authenticated:
             if obj.shared_with.filter(id=request.user.id).exists():
                 return True
-        if obj.private:
-            return False
-        return True
+        return False
 
 
 class SubmissionControls(BasePermission):

@@ -5,7 +5,7 @@
         <v-layout row wrap>
           <v-flex xs8 offset-xs2>
             <ac-link :to="productLink">
-              <ac-asset :terse="true" :asset="product.primary_submission" thumb-name="thumbnail"></ac-asset>
+              <ac-asset :text="false" :asset="product.primary_submission" thumb-name="thumbnail"></ac-asset>
             </ac-link>
           </v-flex>
         </v-layout>

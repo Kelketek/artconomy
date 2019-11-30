@@ -1,6 +1,6 @@
 <template>
   <ac-paginated :list="list" :track-pages="true" :auto-run="false">
-    <v-flex sm6 md4 lg3 xl2 v-for="character in list.list" :key="character.x.id">
+    <v-flex sm6 md4 lg3 xl2 pa-2 v-for="character in list.list" :key="character.x.id">
       <ac-character-preview :character="character.x"></ac-character-preview>
     </v-flex>
     <v-flex text-xs-center slot="empty">

@@ -115,6 +115,24 @@
             class="mt-3"
             :username="username" :character-name="characterName"
         />
+        <v-layout row wrap>
+          <v-flex xs12 class="pt-5">
+            <v-toolbar color="secondary" dense><v-toolbar-title>You might also like...</v-toolbar-title></v-toolbar>
+            <v-card :color="$vuetify.theme.darkBase.darken4">
+              <v-card-text class="px-0" v-if="character.recommended">
+                <ac-load-section :controller="character.recommended">
+                  <template v-slot:default>
+                    <v-layout row wrap>
+                      <v-flex xs6 sm4 md3 lg2 v-for="char in character.recommended.list" :key="char.x.id" class="pa-1">
+                        <ac-character-preview :character="char.x" :mini="true"></ac-character-preview>
+                      </v-flex>
+                    </v-layout>
+                  </template>
+                </ac-load-section>
+              </v-card-text>
+            </v-card>
+          </v-flex>
+        </v-layout>
         <ac-editing-toggle v-if="controls"></ac-editing-toggle>
       </template>
     </ac-load-section>
@@ -150,26 +168,28 @@ import AcCharacterToolbar from '@/components/views/character/AcCharacterToolbar.
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
 import {Watch} from 'vue-property-decorator'
 import {setMetaContent, textualize, updateTitle} from '@/lib'
+import AcCharacterPreview from '@/components/AcCharacterPreview.vue'
 
-  @Component({components: {
-    AcExpandedProperty,
-    AcCharacterToolbar,
-    AcRelatedManager,
-    AcShareButton,
-    AcLink,
-    AcContextGallery,
-    AcTagDisplay,
-    AcColors,
-    AcAttributes,
-    AcConfirmation,
-    AcBoundField,
-    AcFormContainer,
-    AcLoadSection,
-    AcEditingToggle,
-    AcRendered,
-    AcPatchField,
-    AcAvatar,
-    AcAsset}})
+@Component({components: {
+  AcCharacterPreview,
+  AcExpandedProperty,
+  AcCharacterToolbar,
+  AcRelatedManager,
+  AcShareButton,
+  AcLink,
+  AcContextGallery,
+  AcTagDisplay,
+  AcColors,
+  AcAttributes,
+  AcConfirmation,
+  AcBoundField,
+  AcFormContainer,
+  AcLoadSection,
+  AcEditingToggle,
+  AcRendered,
+  AcPatchField,
+  AcAvatar,
+  AcAsset}})
 export default class CharacterDetail extends mixins(Subjective, CharacterCentric, Editable) {
     public newShare: FormController = null as unknown as FormController
     public name: Patch = null as unknown as Patch
@@ -210,6 +230,7 @@ export default class CharacterDetail extends mixins(Subjective, CharacterCentric
       this.character.attributes.firstRun().then()
       this.character.colors.firstRun().then()
       this.character.sharedWith.firstRun().then()
+      this.character.recommended.firstRun().then()
     }
 }
 </script>

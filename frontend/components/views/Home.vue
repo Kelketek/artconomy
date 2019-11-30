@@ -224,6 +224,27 @@
           </ac-load-section>
         </v-card>
       </v-flex>
+      <v-flex xs12 md6 class="pa-1">
+        <v-card :color="$vuetify.theme.darkBase.darken4">
+          <v-toolbar dense color="secondary">
+            <v-toolbar-title>New Characters</v-toolbar-title>
+            <v-spacer></v-spacer>
+            <v-toolbar-items>
+              <v-btn color="primary" :to="{name: 'SearchCharacters'}">See More</v-btn>
+            </v-toolbar-items>
+          </v-toolbar>
+          <v-card-text>Characters catalogged by our users</v-card-text>
+          <ac-load-section :controller="characters">
+            <template v-slot:default>
+              <v-layout row wrap>
+                <v-flex xs6 sm4 pa-1 v-for="character in charactersList" :key="character.id">
+                  <ac-character-preview :character="character.x" :mini="true"></ac-character-preview>
+                </v-flex>
+              </v-layout>
+            </template>
+          </ac-load-section>
+        </v-card>
+      </v-flex>
     </v-layout>
   </v-container>
 </template>
@@ -241,8 +262,10 @@ import {FormController} from '@/store/forms/form-controller'
 import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
 import Submission from '@/types/Submission'
 import {RawData} from '@/store/forms/types/RawData'
+import AcCharacterPreview from '@/components/AcCharacterPreview.vue'
+import {Character} from '@/store/characters/types/Character'
   @Component({
-    components: {AcGalleryPreview, AcBoundField, AcLoadSection, AcProductPreview},
+    components: {AcCharacterPreview, AcGalleryPreview, AcBoundField, AcLoadSection, AcProductPreview},
   })
 export default class Home extends mixins(Viewer) {
     public searchForm: FormController = null as unknown as FormController
@@ -253,6 +276,7 @@ export default class Home extends mixins(Viewer) {
     public lowPriced: ListController<Product> = null as unknown as ListController<Product>
     public commissions: ListController<Submission> = null as unknown as ListController<Submission>
     public submissions: ListController<Submission> = null as unknown as ListController<Submission>
+    public characters: ListController<Character> = null as unknown as ListController<Character>
     public banners = [
       {file: 'halcy0n-artconomy-banner-A1-1440x200.png', username: 'Halcyon'},
       {file: 'halcy0n-artconomy-banner-A2-1440x200.png', username: 'Halcyon'},
@@ -327,6 +351,10 @@ export default class Home extends mixins(Viewer) {
       return this.listPreview(this.submissions)
     }
 
+    public get charactersList() {
+      return this.listPreview(this.characters)
+    }
+
     public created() {
       this.searchForm = this.$getForm('search')
       this.featured = this.$getList('featured', {endpoint: '/api/sales/v1/featured-products/', pageSize: 6})
@@ -351,6 +379,8 @@ export default class Home extends mixins(Viewer) {
         'submissions', {endpoint: '/api/profiles/v1/recent-submissions/', pageSize: 6}
       )
       this.submissions.firstRun()
+      this.characters = this.$getList('newCharacters', {endpoint: '/api/profiles/v1/new-characters/', pageSize: 6})
+      this.characters.firstRun()
     }
 }
 </script>

@@ -22,7 +22,8 @@ export class CharacterController extends BaseController<CharacterModuleOpts, Cha
   public colors: ListController<Color> = null as unknown as ListController<Color>
   public submissions: ListController<Submission> = null as unknown as ListController<Submission>
   public sharedWith: ListController<TerseUser> = null as unknown as ListController<TerseUser>
-  public submoduleKeys = ['profile', 'attributes', 'colors', 'submissions', 'sharedWith']
+  public recommended: ListController<Character> = null as unknown as ListController<Character>
+  public submoduleKeys = ['profile', 'attributes', 'colors', 'submissions', 'sharedWith', 'recommended']
   public baseClass = CharacterModule
   public baseModuleName = 'characterModules'
   // @ts-ignore
@@ -35,6 +36,7 @@ export class CharacterController extends BaseController<CharacterModuleOpts, Cha
     this.colors.endpoint = `${baseEndpoint}colors/`
     this.submissions.endpoint = `${baseEndpoint}submissions/`
     this.sharedWith.endpoint = `${baseEndpoint}share/`
+    this.recommended.endpoint = `${baseEndpoint}recommended/`
   }
 
   public kill() {
@@ -100,6 +102,9 @@ export class CharacterController extends BaseController<CharacterModuleOpts, Cha
     ))
     Vue.set(this, 'sharedWith', this.$getList(
       this.path.concat(['sharedWith']).join('/'), {endpoint: '', paginated: false}
+    ))
+    Vue.set(this, 'recommended', this.$getList(
+      this.path.concat(['recommended']).join('/'), {endpoint: '', pageSize: 6}
     ))
     this.setEndpoints()
   }

@@ -1,5 +1,40 @@
 <template>
-  <v-flex class="submission">
+  <v-responsive v-if="($vuetify.breakpoint.smAndDown && showFooter) || mini" aspect-ratio="1" class="submission">
+    <v-card>
+      <v-layout column class="pt-2">
+        <v-layout row wrap>
+          <v-flex xs8 offset-xs2>
+            <ac-link :to="submissionLink">
+              <ac-asset :text="false" :asset="submission" thumb-name="thumbnail"></ac-asset>
+            </ac-link>
+          </v-flex>
+        </v-layout>
+        <v-flex>
+          <v-card-text class="pb-2">
+            <ac-link :to="submissionLink">
+              <v-layout row wrap>
+                <v-layout column>
+                  <v-flex text-xs-left>{{ submission.title }}</v-flex>
+                  <v-flex>
+                    <v-layout row>
+                      <v-flex text-xs-left>
+                        <v-icon small>favorite</v-icon>
+                        {{ submission.favorite_count }}
+                        <v-icon small>comment</v-icon>
+                        {{ submission.comment_count }}
+                      </v-flex>
+                      <slot name="stats-append"></slot>
+                    </v-layout>
+                  </v-flex>
+                </v-layout>
+              </v-layout>
+            </ac-link>
+          </v-card-text>
+        </v-flex>
+      </v-layout>
+    </v-card>
+  </v-responsive>
+  <v-flex class="submission" v-else>
     <v-card>
       <ac-link :to="submissionLink">
         <ac-asset
@@ -66,6 +101,9 @@ export default {
     },
     aspectRatio: {
       default: 1,
+    },
+    mini: {
+      default: false,
     },
   },
   computed: {

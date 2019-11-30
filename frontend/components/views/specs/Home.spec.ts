@@ -50,6 +50,9 @@ describe('Home.vue', () => {
     vm.submissions.setList([])
     vm.submissions.ready = true
     vm.submissions.fetching = false
+    vm.characters.setList([])
+    vm.characters.ready = true
+    vm.characters.fetching = false
     await vm.$nextTick()
   })
   it('Performs a premade search', async() => {

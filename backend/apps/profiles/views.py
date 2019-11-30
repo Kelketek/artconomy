@@ -277,7 +277,7 @@ class CharacterListAPI(ListCreateAPIView):
 
 class CharacterSubmissions(ListAPIView):
     serializer_class = SubmissionSerializer
-    permission_classes = [SharedWith]
+    permission_classes = [Any(SharedWith, ObjectControls)]
 
     def get_queryset(self):
         char = get_object_or_404(
@@ -462,8 +462,6 @@ class CharacterSearch(ListAPIView):
     def get_queryset(self):
         query = self.request.GET.get('q', '')
         tagging = self.request.GET.get('tagging', False)
-        if not query:
-            return Character.objects.none()
         try:
             commissions = json.loads(self.request.query_params.get('new_order', 'false'))
         except ValueError:
@@ -1468,4 +1466,28 @@ class RecommendedSubmissions(ListAPIView):
                 output_field=IntegerField()
             ),
         ).order_by('same_artist', 'same_collector', '?')
+        return qs
+
+class RecommendedCharacters(ListAPIView):
+    serializer_class = CharacterSerializer
+    permission_classes = [Any(
+        All(IsSafeMethod, SharedWith),
+        ObjectControls,
+    )]
+    @lru_cache()
+    def get_object(self):
+        character = get_object_or_404(Character, user__username=self.kwargs['username'], name=self.kwargs['character'])
+        self.check_object_permissions(self.request, character)
+        return character
+
+    def get_queryset(self):
+        character = self.get_object()
+        qs = available_chars(self.request.user).exclude(id=character.id).exclude(primary_submission=None)
+        qs = qs.annotate(
+            same_user=Case(
+                When(user=character.user, then=0-F('id')),
+                default=0,
+                output_field=IntegerField(),
+            ),
+        ).order_by('same_user', '?')
         return qs

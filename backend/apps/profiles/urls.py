@@ -108,6 +108,10 @@ urlpatterns = [
         views.SubmissionManager.as_view(), name='submission_manager'
     ),
     path(
+        'v1/account/<username>/characters/<character>/recommended/',
+        views.RecommendedCharacters.as_view(), name='character_recommendations'
+    ),
+    path(
         'v1/account/<username>/characters/<character>/submissions/',
         views.CharacterSubmissions.as_view(), name='submission_upload'
     ),
