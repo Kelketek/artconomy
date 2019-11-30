@@ -6,7 +6,7 @@ import {mount, Wrapper} from '@vue/test-utils'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import searchSchema from '@/components/views/search/specs/fixtures'
 import {FormController} from '@/store/forms/form-controller'
-import Shield from '@/components/views/landing/Shield.vue'
+import AlwaysOpen from '@/components/views/landing/AlwaysOpen.vue'
 
 const localVue = vueSetup()
 localVue.use(Router)
@@ -36,10 +36,10 @@ describe('Shield.vue', () => {
     cleanUp(wrapper)
   })
   it('Calls Search', async() => {
-    const wrapper = mount(Shield, {localVue, store, router, attachToDocument: true, sync: false})
+    const wrapper = mount(AlwaysOpen, {localVue, store, router, attachToDocument: true, sync: false})
     wrapper.find('.commission-cta').trigger('click')
     await wrapper.vm.$nextTick()
     expect(router.currentRoute.name).toBe('SearchProducts')
-    expect(router.currentRoute.query).toEqual({shield_only: true})
+    expect(router.currentRoute.query).toEqual({})
   })
 })

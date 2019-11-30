@@ -70,6 +70,7 @@ import ClaimOrder from '@/components/views/ClaimOrder.vue'
 import Premium from '@/components/views/settings/Premium.vue'
 import Redirect from '@/components/views/Redirect.vue'
 import Shield from '@/components/views/landing/Shield.vue'
+import AlwaysOpen from '@/components/views/landing/AlwaysOpen.vue'
 
 function orderLists() {
   const orderRoutes: RouteConfig[] = []
@@ -556,6 +557,11 @@ export const routes = [
     path: '/landing/commission-safely-with-artconomy-shield/',
     name: 'Shield',
     component: Shield,
+  },
+  {
+    path: '/landing/always-open-for-commissions/',
+    name: 'AlwaysOpen',
+    component: AlwaysOpen,
   },
   {
     path: '/who-is-open/',

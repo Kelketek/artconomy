@@ -8,8 +8,8 @@
         fill-height
         class="hero-text"
       >
-        <h1 class="display-2 font-weight-thin mb-3">Ready Artists</h1>
-        <h2>Guaranteed Completion</h2>
+        <h1 class="display-2 font-weight-thin mb-3">Always Open</h1>
+        <h2>24/7 Commissions</h2>
       </v-layout>
     </v-img>
     <v-container>
@@ -24,7 +24,7 @@
                 <v-flex xs6 md12 order-xs1 order-md2>
                   <v-layout row justify-content align-center fill-height>
                     <v-flex pa-1>
-                      Select one of our many artists to commission. We're always open!
+                      Find an artist <strong>TODAY</strong>. No more hunting through journals and tweets!
                     </v-flex>
                   </v-layout>
                 </v-flex>
@@ -40,12 +40,12 @@
             <v-flex grow pa-1>
               <v-layout row wrap>
                 <v-flex xs6 md12>
-                  <v-img src="/static/images/403.png" max-height="20vh" contain></v-img>
+                  <v-img src="/static/images/fingerpainting.png" max-height="20vh" contain></v-img>
                 </v-flex>
                 <v-flex xs6 md12 pa-1>
                   <v-layout row justify-content align-center fill-height>
                     <v-flex>
-                      <p><strong>Never get scammed.</strong> With <router-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">Artconomy Shield</router-link>, your artist's work is guaranteed, and you are always protected.</p>
+                      <p>Get updates on your commission's progress, with revisions and direct messages.</p>
                     </v-flex>
                   </v-layout>
                 </v-flex>
@@ -66,7 +66,7 @@
                 <v-flex xs6 md12 pa-1 order-xs1 order-md2>
                   <v-layout row justify-content align-center fill-height>
                     <v-flex>
-                      Catalog your pieces and characters. Show us what you got!
+                      Show off your commissions-- make a profile and gallery for your characters!
                     </v-flex>
                   </v-layout>
                 </v-flex>
@@ -96,11 +96,10 @@ import Component from 'vue-class-component'
 import {FormController} from '@/store/forms/form-controller'
 
 @Component
-export default class Shield extends Vue {
+export default class AlwaysOpen extends Vue {
   public searchForm: FormController = null as unknown as FormController
   public search() {
     this.searchForm.reset()
-    this.searchForm.fields.shield_only.update(true)
     this.$router.push({name: 'SearchProducts', query: this.searchForm.rawData})
   }
   public created() {
