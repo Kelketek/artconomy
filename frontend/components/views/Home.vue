@@ -32,7 +32,7 @@
                 <v-img src="/static/images/laptop.png" max-height="20vh" contain></v-img>
               </v-flex>
               <v-flex xs6 md12 order-xs1 order-md2>
-                <v-layout row justify-content align-center>
+                <v-layout row justify-content align-center fill-height>
                   <v-flex pa-1>
                     Find an artist you want to commission, and place an order describing what you want.
                   </v-flex>
@@ -53,7 +53,7 @@
                 <v-img src="/static/images/fingerpainting.png" max-height="20vh" contain></v-img>
               </v-flex>
               <v-flex xs6 md12 pa-1>
-                <v-layout row justify-content align-center>
+                <v-layout row justify-content align-center fill-height>
                   <v-flex>
                     <p>We hold onto your payment until the work is done. In the event the artist fails to complete the assignment, you'll get your money back!*</p>
                     <p><small>* Protection available only on
@@ -77,7 +77,7 @@
                 <v-img src="/static/images/fridge.png" max-height="20vh" contain></v-img>
               </v-flex>
               <v-flex xs6 md12 pa-1 order-xs1 order-md2>
-                <v-layout row justify-content align-center>
+                <v-layout row justify-content align-center fill-height>
                   <v-flex>
                     Once completed, you can catalog and show off your completed piece to the world! If you have a character, you can add it to your character's gallery, too!
                   </v-flex>

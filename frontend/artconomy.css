@@ -41,9 +41,6 @@ img {
     cursor: pointer;
 }
 
-.content--wrap .container.fluid:first-child {
-    padding-top: 48px;
-}
 
 .container.fluid {
     padding-left: 0;

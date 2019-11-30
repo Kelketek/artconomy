@@ -69,6 +69,7 @@ import WatchList from '@/components/views/profile/WatchList.vue'
 import ClaimOrder from '@/components/views/ClaimOrder.vue'
 import Premium from '@/components/views/settings/Premium.vue'
 import Redirect from '@/components/views/Redirect.vue'
+import Shield from '@/components/views/landing/Shield.vue'
 
 function orderLists() {
   const orderRoutes: RouteConfig[] = []
@@ -550,6 +551,11 @@ export const routes = [
     path: '/reports/',
     name: 'Reports',
     component: Reports,
+  },
+  {
+    path: '/landing/commission-safely-with-artconomy-shield/',
+    name: 'Shield',
+    component: Shield,
   },
   {
     path: '/who-is-open/',

@@ -2,7 +2,7 @@
 <template>
   <v-app dark>
     <nav-bar/>
-    <v-content class="pb-5 main-content">
+    <v-content class="main-content">
       <ac-error></ac-error>
       <router-view v-if="displayRoute" :key="routeKey"/>
       <ac-form-dialog
@@ -111,9 +111,10 @@ import {Alert} from '@/store/state'
 import AcMarkdownExplanation from '@/components/fields/AcMarkdownExplination.vue'
 import {fallback, fallbackBoolean, searchSchema} from './lib'
 import {User} from '@/store/profiles/types/User'
+import Nav from '@/mixins/nav'
 
-  @Component({components: {AcMarkdownExplanation, AcError, AcFormDialog, NavBar}})
-export default class App extends mixins(Viewer) {
+@Component({components: {AcMarkdownExplanation, AcError, AcFormDialog, NavBar}})
+export default class App extends mixins(Viewer, Nav) {
     @State('profiles') public p!: UserStoreState
     @Mutation('supportDialog') public setSupport: any
     @Mutation('popAlert') public popAlert: any
