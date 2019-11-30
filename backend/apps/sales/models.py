@@ -245,7 +245,7 @@ class Order(Model):
         if revision is None:
             return ProductSerializer(instance=self.product, context=context).data['primary_submission']
         else:
-            data = RevisionSerializer(instance=revision, context=context).data
+            return RevisionSerializer(instance=revision, context=context).data
 
     def notification_name(self, context):
         request = context['request']

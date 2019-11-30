@@ -135,6 +135,22 @@ class TestOrder(TestCase):
             order.notification_link(context),
         )
 
+    def test_notification_display(self):
+        order, context = self.order_and_context()
+        order.product.primary_submission = SubmissionFactory.create()
+        output = order.notification_display(context)
+        self.assertEqual(output['id'], order.product.primary_submission.id)
+        self.assertEqual(output['title'], order.product.primary_submission.title)
+
+    def test_notification_display_revision(self):
+        order, context = self.order_and_context()
+        order.product.primary_submission = SubmissionFactory.create()
+        order.revisions_hidden = False
+        revision = RevisionFactory.create(order=order)
+        output = order.notification_display(context)
+        self.assertEqual(output['id'], revision.id)
+        self.assertIn(revision.file.file.name, output['file']['full'])
+
 
 class TestCreditCardToken(TestCase):
     def test_string(self):
