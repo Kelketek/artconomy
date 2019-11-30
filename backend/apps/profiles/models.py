@@ -382,6 +382,11 @@ def auto_remove_image_subscriptions(sender, instance, **kwargs):
     Event.objects.filter(
         data__submission=instance.id
     ).delete()
+    Event.objects.filter(
+        content_type=ContentType.objects.get_for_model(model=sender),
+        object_id=instance.id,
+        type=COMMENT,
+    ).delete()
 
 
 remove_submission_events = receiver(pre_delete, sender=Submission)(clear_events)
@@ -603,6 +608,11 @@ def unsubscribe_conversation_comments(sender, instance, **kwargs):
         subscriber=instance.user,
         content_type=ContentType.objects.get_for_model(model=instance.conversation),
         object_id=instance.conversation.id,
+        type=COMMENT,
+    ).delete()
+    Event.objects.filter(
+        content_type=ContentType.objects.get_for_model(model=sender),
+        object_id=instance.id,
         type=COMMENT,
     ).delete()
 
