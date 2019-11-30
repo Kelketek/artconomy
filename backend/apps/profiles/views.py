@@ -472,12 +472,14 @@ class CharacterSearch(ListAPIView):
             user = get_object_or_404(User, id=self.request.GET.get('user', self.request.user.id))
         else:
             user = self.request.user
-        if self.request.user.is_authenticated:
+        if self.request.user.is_authenticated and tagging:
             return char_ordering(
                 available_chars(user, query=query, commissions=commissions, tagging=tagging), user, query=query
             )
         q = Q(name__istartswith=query) | Q(tags__name__iexact=query)
-        return Character.objects.filter(q).exclude(private=True).exclude(taggable=False).distinct().order_by('id')
+        return Character.objects.filter(q).exclude(private=True).exclude(taggable=False).distinct().order_by(
+            '-created_on',
+        )
 
 
 class UserSearch(ListAPIView):
