@@ -1,7 +1,7 @@
 <template>
   <ac-form-dialog
       :value="value"
-      @update="toggle"
+      @input="toggle"
       :large="true"
       :fluid="true"
       title="New Product"
