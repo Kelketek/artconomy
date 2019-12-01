@@ -1,8 +1,10 @@
 import {TerseUser} from '@/store/profiles/types/TerseUser'
-import {User} from '@/store/profiles/types/User'
+import {Comment} from '@/types/Comment'
 
 export interface Conversation {
   id: number,
   read: boolean,
   participants: TerseUser[],
+  created_on: string,
+  last_comment: Comment|null,
 }

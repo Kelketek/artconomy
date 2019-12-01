@@ -12,7 +12,7 @@ import {listRegistry, Lists} from '@/store/lists/registry'
 import {FormControllers, formRegistry} from '@/store/forms/registry'
 import Router from 'vue-router'
 import mockAxios from '@/__mocks__/axios'
-import {genMessage} from '@/components/views/specs/fixtures'
+import {genConversation} from '@/components/views/specs/fixtures'
 import Profile from '@/components/views/profile/Profile.vue'
 import {User} from '@/store/profiles/types/User'
 
@@ -144,7 +144,7 @@ describe('Profile.vue', () => {
       ...rq('/api/profiles/v1/account/Vulpes/conversations/', 'post',
         {participants: [1]}, {})
     )
-    mockAxios.mockResponse(rs(genMessage()))
+    mockAxios.mockResponse(rs(genConversation()))
     await flushPromises()
     await wrapper.vm.$nextTick()
   })

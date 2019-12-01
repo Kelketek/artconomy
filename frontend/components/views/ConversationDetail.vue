@@ -15,7 +15,7 @@
           <v-toolbar-items>
             <ac-confirmation :action="leaveConversation">
               <template v-slot:default="{on}">
-                <v-btn icon v-on="on" color="red"><v-icon>delete</v-icon></v-btn>
+                <v-btn icon v-on="on" color="red" class="delete-button"><v-icon>delete</v-icon></v-btn>
               </template>
               <v-flex slot="confirmation-text">
                 Are you sure you wish to leave this conversation? This cannot be undone. Conversations are deleted
@@ -27,28 +27,42 @@
       </v-container>
       <ac-loading-spinner v-if="!conversation.x"></ac-loading-spinner>
       <v-container>
-      <v-flex>
-        <p><strong class="danger">WARNING:</strong> Do not discuss order details through private conversations. Add any details
-          about the commission you want in an order. You can negotiate details and pricing and approve/disapprove as needed within the order itself.
-          Requirements negotiated within a private conversation cannot be enforced by
-          <router-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">Artconomy Shield</router-link>&nbsp;
-          <router-link :to="{name: 'BuyAndSell', params: {question: 'disputes'}}">dispute resolution.</router-link>
-        </p>
-      </v-flex>
-      </v-container>
-      <ac-comment-section
-          :commentList="conversationComments"
-          :nesting="false"
-          :locked="false">
-        <v-flex slot="empty" text-xs-center pt-1>
-          <v-flex>
-            <h2>Start a conversation</h2>
-            <p>
-              Enter some text into the field below to start messaging!
+        <v-layout row wrap>
+          <v-flex xs12>
+            <p><strong class="danger">WARNING:</strong> Do not discuss order details through private conversations. Add any details
+              about the commission you want in an order. You can negotiate details and pricing and approve/disapprove as needed within the order itself.
+              Requirements negotiated within a private conversation cannot be enforced by
+              <router-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">Artconomy Shield</router-link>&nbsp;
+              <router-link :to="{name: 'BuyAndSell', params: {question: 'disputes'}}">dispute resolution.</router-link>
             </p>
           </v-flex>
-        </v-flex>
-      </ac-comment-section>
+        </v-layout>
+      </v-container>
+      <v-container fluid class="pa-0">
+        <ac-comment-section
+          :commentList="conversationComments"
+          :nesting="false"
+          :locked="(!inConversation) && locked">
+          <v-flex slot="empty" text-xs-center pt-1>
+            <v-flex>
+              <h2>Start a conversation</h2>
+              <p>
+                Enter some text into the field below to start messaging!
+              </p>
+            </v-flex>
+          </v-flex>
+        </ac-comment-section>
+        <v-layout row wrap>
+          <v-flex xs12 v-if="!inConversation" text-xs-center>
+            <v-btn @click="locked = !locked" :block="$vuetify.breakpoint.xsOnly" class="lock-toggle">
+              <v-icon v-if="locked" left>lock</v-icon>
+              <v-icon v-else left>lock_open</v-icon>
+              <span v-if="locked">Unlock to allow outside comment.</span>
+              <span v-else>Lock to prevent outside comment.</span>
+            </v-btn>
+          </v-flex>
+        </v-layout>
+      </v-container>
     </v-flex>
   </v-layout>
 </template>
@@ -72,8 +86,16 @@ export default class ConversationDetail extends mixins(Subjective, Formatting) {
     public conversationId!: string
     public conversation: SingleController<Conversation> = null as unknown as SingleController<Conversation>
     public conversationComments: ListController<Comment> = null as unknown as ListController<Comment>
+    public locked = true
     public goBack() {
       this.$router.push({name: 'Conversations', params: {username: this.username}})
+    }
+    public get inConversation() {
+      /* istanbul ignore next */
+      if (!this.conversation.x) {
+        return
+      }
+      return this.conversation.x.participants.map((user) => user.username).indexOf(this.rawViewerName) !== -1
     }
     public created() {
       this.conversation = this.$getSingle('conversation-' + this.conversationId, {endpoint: this.url})
