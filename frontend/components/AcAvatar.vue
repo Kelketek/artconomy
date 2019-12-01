@@ -49,7 +49,7 @@ import {profileRegistry} from '@/store/profiles/registry'
 import {TerseUser} from '@/store/profiles/types/TerseUser'
 import AcLink from '@/components/wrappers/AcLink.vue'
 @Component({
-  components: {AcLink}
+  components: {AcLink},
 })
 export default class AcAvatar extends Vue {
     // The logic for this module is a bit complex because we don't necessarily want to store the user in Vuex for

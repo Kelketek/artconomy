@@ -13,7 +13,7 @@ import {Prop} from 'vue-property-decorator'
 import {Route} from 'vue-router'
 import {State} from 'vuex-class'
 
-  @Component({components: {Fragment}})
+@Component({components: {Fragment}})
 export default class AcLink extends Vue {
     @Prop()
     public to!: Route
