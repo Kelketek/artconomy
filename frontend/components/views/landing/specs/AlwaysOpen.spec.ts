@@ -15,7 +15,7 @@ let wrapper: Wrapper<Vue>
 let searchForm: FormController
 let router: Router
 
-describe('Shield.vue', () => {
+describe('AlwaysOpen.vue', () => {
   beforeEach(() => {
     store = createStore()
     searchForm = mount(Empty, {localVue, store}).vm.$getForm('search', searchSchema())
