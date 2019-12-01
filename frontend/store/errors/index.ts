@@ -19,6 +19,10 @@ const mutations: MutationTree<ErrorState> = {
   },
   setError(state: ErrorState, error: AxiosError | { response: { status: number } }) {
     // Maybe find a different non-connection error code for this later.
+    // @ts-ignore
+    if (error && error.message === 'Killed.') {
+      return
+    }
     state.code = (error.response || {status: 503}).status
   },
 }

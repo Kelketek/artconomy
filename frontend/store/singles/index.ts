@@ -72,6 +72,11 @@ export class SingleModule<T> {
           commit('setFetching', false)
           return response
         }).catch((reason) => {
+          // Can't test this because the mock-axios library does not implement cancel tokens.
+          /* istanbul ignore if */
+          if (reason && reason.message === 'Killed.') {
+            return
+          }
           commit('setReady', false)
           commit('setFetching', false)
           commit('setFailed', true)
