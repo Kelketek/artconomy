@@ -15,8 +15,8 @@ View it via the link below! Here's a preview:
 {% endblock message %}
 
 {% block action %}
-{% if data.link.name == 'Message' %}
-    <a href="/messages/{{user.username}}/message/{{data.link.params.messageId}}/?commentId={{data.most_recent_comment.id}}">View your message here!</a>
+{% if data.link.name == 'Conversation' %}
+    <a href="/messages/{{user.username}}/{{data.link.params.conversationId}}/?commentId={{data.most_recent_comment.id}}">View your message here!</a>
 {% elif data.link.name == 'Order' %}
     <a href="/orders/{{target.buyer.username}}/order/{{data.link.params.orderId}}/?commentId={{data.most_recent_comment.id}}">View your order here!</a>
 {% elif data.link.name == 'ClaimOrder' %}

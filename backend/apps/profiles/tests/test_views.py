@@ -27,7 +27,7 @@ from apps.sales.tests.factories import PromoFactory
 logger = logging.getLogger(__name__)
 
 
-class CharacterAPITestCase(SignalsDisabledMixin, APITestCase):
+class TestCharacterAPICase(SignalsDisabledMixin, APITestCase):
     def test_character_listing(self):
         user = UserFactory.create()
         characters = gen_characters(user)
@@ -88,13 +88,11 @@ class CharacterAPITestCase(SignalsDisabledMixin, APITestCase):
                 'private': False,
                 'open_requests': False,
                 'open_requests_restrictions': 'Must be foxy.',
-            }
+            }, format='json',
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         char = Character.objects.get(name='Fern')
         self.assertEqual(char.description, 'The best of both worlds')
-        self.assertEqual(char.private, False)
-        self.assertEqual(char.open_requests, False)
         self.assertEqual(char.open_requests_restrictions, 'Must be foxy.')
         self.assertEqual(char.taggable, True)
 
@@ -109,7 +107,7 @@ class CharacterAPITestCase(SignalsDisabledMixin, APITestCase):
                 'open_requests': False,
                 'open_requests_restrictions': 'Must be really foxy.',
                 'taggable': False,
-            }
+            }, format='json',
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         char2 = Character.objects.get(name='Rain')
@@ -132,7 +130,7 @@ class CharacterAPITestCase(SignalsDisabledMixin, APITestCase):
                 'name': 'Terrence',
                 'description': 'Positively foxy.',
                 'private': True
-            }
+            }, format='json',
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         char.refresh_from_db()
@@ -147,7 +145,7 @@ class CharacterAPITestCase(SignalsDisabledMixin, APITestCase):
             {
                 'name': 'Rain',
                 'description': 'Supremely foxy.'
-            }
+            }, format='json',
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         char.refresh_from_db()
@@ -165,7 +163,7 @@ class CharacterAPITestCase(SignalsDisabledMixin, APITestCase):
                 'name': 'Terrence',
                 'description': 'Positively foxy.',
                 'tags': ['new', 'set']
-            }
+            }, format='json',
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['name'], 'Fern')

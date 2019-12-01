@@ -216,7 +216,7 @@ class CharacterSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
         model = Character
         fields = (
             'id', 'name', 'description', 'private', 'open_requests', 'open_requests_restrictions', 'user',
-            'primary_submission', 'tags', 'colors', 'taggable', 'hits',
+            'primary_submission', 'tags', 'taggable', 'hits',
         )
 
 
