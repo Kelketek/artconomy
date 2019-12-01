@@ -8,6 +8,7 @@ import {ProfileController} from '@/store/profiles/controller'
 import {userHandle} from '@/store/profiles/handles'
 import {Ratings} from '@/store/profiles/types/Ratings'
 import {setCookie} from '@/lib'
+import {AxiosError} from 'axios'
 
 const profileModule = namespace('profiles')
 
@@ -69,6 +70,15 @@ export default class Viewer extends Vue {
 
   public get rawViewerName() {
     return this.$store.state.profiles.viewerRawUsername
+  }
+
+  public statusOk(...statuses: number[]) {
+    return (error: AxiosError) => {
+      if (error.response && statuses.indexOf(error.response.status) !== -1) {
+        return
+      }
+      throw error
+    }
   }
 
   public created() {

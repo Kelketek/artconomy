@@ -11,6 +11,7 @@ import {profileRegistry, Profiles} from '@/store/profiles/registry'
 import {singleRegistry, Singles} from '@/store/singles/registry'
 import {getCookie} from '@/lib'
 import {Lists} from '@/store/lists/registry'
+import {AxiosError} from 'axios'
 
 describe('Viewer.ts', () => {
   let store: ArtStore
@@ -179,5 +180,14 @@ describe('Viewer.ts', () => {
     user.username = 'TestPerson'
     mockAxios.mockResponse(rs(user))
     expect((wrapper.vm as any).viewerName).toBe('TestPerson')
+  })
+  it('Handles a known error status', async() => {
+    wrapper = shallowMount(ViewerComponent, {localVue, store})
+    const vm = wrapper.vm as any
+    // Should not throw.
+    vm.statusOk(403)({response: {status: 403}})
+    // Should throw.
+    const error = {response: {status: 400}, name: 'TestError', message: 'Failed!'}
+    expect(() => vm.statusOk(403)(error)).toThrow(error)
   })
 })

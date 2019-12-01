@@ -441,7 +441,7 @@ export default class SubmissionDetail extends mixins(Viewer, Formatting, Editabl
       this.submission.get().catch(this.setError)
       this.artists.firstRun()
       this.characters.firstRun()
-      this.sharedWith.firstRun()
+      this.sharedWith.firstRun().catch(this.statusOk(403))
       this.recommended.firstRun()
     }
 }

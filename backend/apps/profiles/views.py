@@ -1386,7 +1386,11 @@ class SubmissionPreview(BasePreview):
         if not self.check_object_permissions(self.request, submission):
             return {}
 
-        image = preview_rating(self.request, submission.rating, submission.preview_link)
+        try:
+            image = preview_rating(self.request, submission.rating, submission.preview_link)
+        except Exception as err:
+            logger.exception(err)
+            image = None
         return {
             'title': demark(submission.title),
             'description': demark(submission.caption),
