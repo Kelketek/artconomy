@@ -126,7 +126,7 @@
       </template>
     </ac-load-section>
     <template slot="bottom-buttons">
-      <v-card-actions row wrap v-if="subjectHandler.artistProfile.x.bank_account_status !== 0">
+      <v-card-actions row wrap v-if="subjectHandler.artistProfile.x && subjectHandler.artistProfile.x.bank_account_status !== 0">
         <v-spacer></v-spacer>
         <v-btn @click.prevent="toggle(false)">Cancel</v-btn>
         <v-btn @click.prevent="newProduct.step -= 1" v-if="newProduct.step > 1" color="secondary">Previous</v-btn>

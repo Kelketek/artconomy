@@ -18,7 +18,8 @@ const mutations: MutationTree<ErrorState> = {
     state.code = 0
   },
   setError(state: ErrorState, error: AxiosError | { response: { status: number } }) {
-    // Maybe find a different non-connection error code for this later.
+    // Can't test this since mock-axios doesn't implement cancellation.
+    /* istanbul ignore if */
     // @ts-ignore
     if (error && error.message === 'Killed.') {
       return
