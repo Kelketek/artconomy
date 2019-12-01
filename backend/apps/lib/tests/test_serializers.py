@@ -1,10 +1,13 @@
 from unittest.mock import Mock
 
-from apps.lib.models import Notification
-from apps.lib.serializers import comment_made
+from django.test import TestCase
+
+from apps.lib.models import Notification, NEW_PRODUCT, Event
+from apps.lib.serializers import comment_made, new_product
 from apps.lib.test_resources import APITestCase
 from apps.lib.tests.factories_interdepend import CommentFactory
-from apps.profiles.tests.factories import SubmissionFactory
+from apps.profiles.tests.factories import SubmissionFactory, UserFactory
+from apps.sales.tests.factories import ProductFactory
 
 
 class TestComments(APITestCase):
@@ -26,3 +29,18 @@ class TestComments(APITestCase):
             data['link'],
             {'name': 'Submission', 'params': {'submissionId': submission.id}, 'query': {'commentId': comments[-1].id}}
         )
+
+
+class TestNotificationSerializers(TestCase):
+    def test_new_product(self):
+        user = UserFactory.create()
+        product = ProductFactory.create(user=user, primary_submission=SubmissionFactory.create())
+        event = Event.objects.create(
+            target=user, data={'product': product.id}, type=NEW_PRODUCT,
+        )
+        request = Mock()
+        request.user = user
+        output = new_product(event, {'request': request})
+        self.assertEqual(output['product']['id'], product.id)
+        self.assertEqual(output['product']['name'], product.name)
+        self.assertEqual(output['display']['title'], product.primary_submission.title)

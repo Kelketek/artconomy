@@ -416,16 +416,17 @@ def new_char(obj, context):
 
 
 def new_product(obj, context):
+    from apps.sales.serializers import ProductSerializer
     try:
         product = Product.objects.get(id=obj.data['product'])
     except Product.DoesNotExist:
         product = None
 
-    serialized = notification_display(product, context)
+    serialized = ProductSerializer(instance=product, context=context).data
 
     return {
         'product': serialized,
-        'display': serialized,
+        'display': notification_display(product, context),
     }
 
 

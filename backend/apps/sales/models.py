@@ -139,6 +139,7 @@ def set_static_order_price(sender, instance, **kwargs):
 @disable_on_load
 def auto_remove_product_notifications(sender, instance, **kwargs):
     Event.objects.filter(data__product=instance.id).delete()
+    Event.objects.filter(object_id=instance.id, content_type=ContentType.objects.get_for_model(instance)).delete()
 
 
 product_thumbnailer = receiver(post_save, sender=Product)(thumbnail_hook)
