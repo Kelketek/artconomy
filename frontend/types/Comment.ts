@@ -10,4 +10,6 @@ export default interface Comment {
   deleted: boolean,
   comments: Comment[],
   comment_count: number,
+  subscribed: boolean,
+  system: boolean,
 }

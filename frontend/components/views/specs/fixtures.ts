@@ -65,7 +65,7 @@ export function genConversation(): Conversation {
         guest: false,
         artist_mode: true,
         taggable: true,
-      },
+      } as TerseUser,
       comments: [],
       comment_count: 0,
       edited: false,
