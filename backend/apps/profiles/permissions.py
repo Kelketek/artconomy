@@ -70,12 +70,12 @@ class SubmissionViewPermission(BasePermission):
             return True
         if obj.owner == request.user:
             return True
+        if not obj.private:
+            return True
         if request.user.is_authenticated:
             if obj.shared_with.filter(id=request.user.id).exists():
                 return True
-        if obj.private:
-            return False
-        return True
+        return False
 
 
 class SubmissionCommentPermission(BasePermission):

@@ -107,8 +107,10 @@ class CommentUpdate(RetrieveUpdateDestroyAPIView):
 
 class Comments(ListCreateAPIView):
     permission_classes = [
-        IsAuthenticated,
-        Any(All(IsSafeMethod, CanListComments), All(IsMethod('POST'), CanComment, CommentDepthPermission)),
+        Any(
+            All(IsSafeMethod, CanListComments),
+            All(IsMethod('POST'), IsAuthenticated, CanComment, CommentDepthPermission),
+        ),
     ]
     serializer_class = CommentSerializer
     pagination_class = OlderThanPagination
@@ -136,10 +138,7 @@ class Comments(ListCreateAPIView):
     def get_queryset(self):
         qs = self.target.comments.all()
         if not (self.request.user.is_staff and self.request.GET.get('history', False)):
-            print('Not getting history')
             qs = qs.filter(thread_deleted=False)
-        else:
-            print('Getting history!')
         return qs.select_related('user').order_by('-created_on')
 
     def post(self, *args, **kwargs):
