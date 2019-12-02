@@ -86,6 +86,20 @@ describe('Login.vue', () => {
     const fields = wrapper.vm.$getForm('login').fields
     expect(fields.order_claim.value).toBe('0e59f96e-700f-48f0-ac13-f565846497d5')
   })
+  it('Retrieves and sends artist mode toggle', () => {
+    wrapper = mount(Login, {
+      store,
+      localVue,
+      mocks: {
+        $router: {},
+        $route: {name: 'Login', params: {}, query: {artist_mode: 'true'}},
+      },
+      stubs: ['router-link'],
+      attachToDocument: true,
+    })
+    const fields = wrapper.vm.$getForm('register').fields
+    expect(fields.artist_mode.value).toBe(true)
+  })
   it('Logs in the user', async() => {
     const push = jest.fn()
     wrapper = mount(Login, {
@@ -401,6 +415,7 @@ describe('Login.vue', () => {
         recaptcha: '',
         registration_code: 'BLEP',
         username: 'Goofball',
+        artist_mode: false,
       },
       {headers: {'Content-Type': 'application/json; charset=utf-8'}}
     )

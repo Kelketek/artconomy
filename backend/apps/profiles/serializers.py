@@ -85,6 +85,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             'username', 'email', 'password', 'csrftoken', 'recaptcha', 'mail', 'registration_code', 'order_claim',
+            'artist_mode',
         )
         read_only_fields = (
             'csrftoken',

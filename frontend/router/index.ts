@@ -69,8 +69,9 @@ import WatchList from '@/components/views/profile/WatchList.vue'
 import ClaimOrder from '@/components/views/ClaimOrder.vue'
 import Premium from '@/components/views/settings/Premium.vue'
 import Redirect from '@/components/views/Redirect.vue'
-import Shield from '@/components/views/landing/Shield.vue'
+import ShieldCommissioner from '@/components/views/landing/ShieldCommissioner.vue'
 import AlwaysOpen from '@/components/views/landing/AlwaysOpen.vue'
+import ShieldArtist from '@/components/views/landing/ShieldArtist.vue'
 
 function orderLists() {
   const orderRoutes: RouteConfig[] = []
@@ -555,8 +556,13 @@ export const routes = [
   },
   {
     path: '/landing/commission-safely-with-artconomy-shield/',
-    name: 'Shield',
-    component: Shield,
+    name: 'ShieldCommissioner',
+    component: ShieldCommissioner,
+  },
+  {
+    path: '/landing/payment-guaranteed-with-artconomy-shield/',
+    name: 'ShieldArtist',
+    component: ShieldArtist,
   },
   {
     path: '/landing/always-open-for-commissions/',

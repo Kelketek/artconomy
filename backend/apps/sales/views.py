@@ -148,7 +148,7 @@ class ProductSampleManager(DestroyAPIView):
         return get_object_or_404(
             Product.samples.through, id=self.kwargs['tag_id'],
             product__id=self.kwargs['product'],
-            active=True,
+            product__active=True,
         )
 
     def perform_destroy(self, instance: Submission.artists.through):

@@ -67,14 +67,28 @@
                     v-on="registerForm.fields.registration_code.on"
                     hint="If you've been given a promo code, please enter it here!"
                 ></v-text-field>
-                <v-checkbox
-                    label="Keep Me up to Date" v-bind="registerForm.fields.mail.bind"
-                    hint="Keep up to date with the latest news on Artconomy using our mailing list"
-                    v-on="registerForm.fields.mail.on"
-                    v-model="registerForm.fields.mail.model"
-                    :persistent-hint="true"
-                >
-                </v-checkbox>
+                <v-layout row wrap>
+                  <v-flex xs12 sm6 pa-1>
+                    <v-checkbox
+                      label="Keep Me up to Date" v-bind="registerForm.fields.mail.bind"
+                      hint="Keep up to date with the latest news on Artconomy using our mailing list"
+                      v-on="registerForm.fields.mail.on"
+                      v-model="registerForm.fields.mail.model"
+                      :persistent-hint="true"
+                    >
+                    </v-checkbox>
+                  </v-flex>
+                  <v-flex xs12 sm6 pa-1>
+                    <v-checkbox
+                      label="I'm an artist!" v-bind="registerForm.fields.artist_mode.bind"
+                      hint="Enable artist tools in your account. You can change this later."
+                      v-on="registerForm.fields.artist_mode.on"
+                      v-model="registerForm.fields.artist_mode.model"
+                      :persistent-hint="true"
+                    >
+                    </v-checkbox>
+                  </v-flex>
+                </v-layout>
                 <v-input v-bind="registerForm.fields.recaptcha.bind" class="mt-4">
                   <v-flex text-xs-center>
                     <div style="display: inline-block">
@@ -261,6 +275,7 @@ export default class Login extends mixins(Viewer) {
           },
           password: {value: '', validators: [{name: 'required'}, {name: 'password', async: true}]},
           recaptcha: {value: '', validators: [{name: 'required'}]},
+          artist_mode: {value: false},
           registration_code: {value: ''},
           mail: {value: true},
           order_claim: {value: '', omitIf: ''},
@@ -273,6 +288,7 @@ export default class Login extends mixins(Viewer) {
         },
       })
       this.loginForm.fields.order_claim.update(this.$route.query.claim || '', false)
+      this.registerForm.fields.artist_mode.update(((this.$route.query.artist_mode && true) || false), false)
       this.loginForm.clearErrors()
       this.registerForm.clearErrors()
     }

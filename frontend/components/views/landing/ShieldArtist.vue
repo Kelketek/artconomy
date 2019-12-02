@@ -8,8 +8,8 @@
         fill-height
         class="hero-text"
       >
-        <h1 class="display-2 font-weight-thin mb-3">Ready Artists</h1>
-        <h2>Guaranteed Completion</h2>
+        <h1 class="display-2 font-weight-thin mb-3">Always Get Paid</h1>
+        <h2>Stay Organized Effortlessly</h2>
       </v-layout>
     </v-img>
     <v-container>
@@ -24,7 +24,7 @@
                 <v-flex xs6 md12 order-xs1 order-md2>
                   <v-layout row justify-content align-center fill-height>
                     <v-flex pa-1>
-                      Select one of our many artists to commission. We're always open!
+                      Take orders through your store. You'll never lose track of your customer's contact information, or who you owe art, ever again!
                     </v-flex>
                   </v-layout>
                 </v-flex>
@@ -45,7 +45,7 @@
                 <v-flex xs6 md12 pa-1>
                   <v-layout row justify-content align-center fill-height>
                     <v-flex>
-                      <p><strong>Never get scammed.</strong> With <router-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">Artconomy Shield</router-link>, your artist's work is guaranteed, and you are always protected.</p>
+                      <p><strong>Never get scammed.</strong> With <router-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">Artconomy Shield</router-link>, payment is guaranteed.</p>
                     </v-flex>
                   </v-layout>
                 </v-flex>
@@ -66,7 +66,7 @@
                 <v-flex xs6 md12 pa-1 order-xs1 order-md2>
                   <v-layout row justify-content align-center fill-height>
                     <v-flex>
-                      Catalog your pieces and characters. Show us what you got!
+                      Tools built just for you: Galleries, Invoicing, Workload Management, Price Negotiation, Product Samples, and more!
                     </v-flex>
                   </v-layout>
                 </v-flex>
@@ -77,7 +77,7 @@
       </v-layout>
       <v-layout row wrap>
         <v-flex xs12 text-xs-center>
-          <v-btn large color="green" @click="search" :block="$vuetify.breakpoint.xsOnly" class="commission-cta"><v-icon left>palette</v-icon>Commission an Artist Now!</v-btn>
+          <v-btn large color="green" :to="{name: 'Login', params: {tabName: 'register'}, query: {artist_mode: 'true'}}" :block="$vuetify.breakpoint.xsOnly" class="commission-cta"><v-icon left>palette</v-icon>Open Your Store Now!</v-btn>
         </v-flex>
       </v-layout>
     </v-container>
@@ -96,7 +96,7 @@ import Component from 'vue-class-component'
 import {FormController} from '@/store/forms/form-controller'
 
 @Component
-export default class Shield extends Vue {
+export default class ShieldArtist extends Vue {
   public searchForm: FormController = null as unknown as FormController
   public search() {
     this.searchForm.reset()
