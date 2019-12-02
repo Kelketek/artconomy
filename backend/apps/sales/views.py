@@ -115,16 +115,13 @@ class ProductManager(RetrieveUpdateDestroyAPIView):
 
 class ProductSamples(ListCreateAPIView):
     serializer_class = ProductSampleSerializer
-    permission_classes = [
-        Any(
-            All(IsSafeMethod, OrderPlacePermission),
-            ObjectControls,
-        )
-    ]
+    permission_classes = [Any(IsSafeMethod, All(IsRegistered, ObjectControls))]
 
     @lru_cache()
     def get_object(self):
-        product = get_object_or_404(Product, id=self.kwargs['product'], user__username=self.kwargs['username'])
+        product = get_object_or_404(
+            Product, id=self.kwargs['product'], user__username=self.kwargs['username'], active=True,
+        )
         self.check_object_permissions(self.request, product)
         return product
 
@@ -151,6 +148,7 @@ class ProductSampleManager(DestroyAPIView):
         return get_object_or_404(
             Product.samples.through, id=self.kwargs['tag_id'],
             product__id=self.kwargs['product'],
+            active=True,
         )
 
     def perform_destroy(self, instance: Submission.artists.through):

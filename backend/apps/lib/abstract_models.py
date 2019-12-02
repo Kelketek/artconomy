@@ -7,6 +7,7 @@ from django.db import models
 from django.db.models import DateTimeField, ForeignKey, CASCADE
 from django.utils import timezone
 from easy_thumbnails.alias import aliases
+from easy_thumbnails.exceptions import InvalidImageFormatError
 from easy_thumbnails.fields import ThumbnailerImageField
 from easy_thumbnails.files import ThumbnailerImageFieldFile, get_thumbnailer
 from hitcount.models import HitCount
@@ -152,7 +153,10 @@ class ImageModel(AssetThumbnailMixin, models.Model):
     def preview_link(self):
         if self.preview:
             options = aliases.get('thumbnail', target=self.ref_name('preview'))
-            return self.preview.file.get_thumbnail(options).url
+            try:
+                return self.preview.file.get_thumbnail(options).url
+            except (OSError, InvalidImageFormatError):
+                pass
         for thumb in ['gallery', 'preview', 'thumbnail']:
             try:
                 options = aliases.get(thumb, target=self.ref_name('file'))
@@ -161,6 +165,8 @@ class ImageModel(AssetThumbnailMixin, models.Model):
                 return self.file.file.get_thumbnail(options).url
             except OSError:
                 break
+            except InvalidImageFormatError:
+                return None
         return self.file.file.url
 
     def ref_name(self, field_name):

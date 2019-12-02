@@ -485,7 +485,7 @@ export default class ProductDetail extends mixins(ProductCentric, Formatting, Ed
     public created() {
       this.product.get().then((product: Product) => {
         this.shown = product.primary_submission
-      })
+      }).catch(this.setError)
       this.samples = this.$getList(`product__${this.productId}__samples`, {endpoint: `${this.url}samples/`})
       this.samples.firstRun()
       this.recommended = this.$getList(
