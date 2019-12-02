@@ -95,7 +95,7 @@ export default class AcAvatar extends Vue {
     public buildHandler(username: string) {
       if (username) {
         this.subjectHandler = this.$getProfile(username, {})
-        this.subjectHandler.user.get().then()
+        this.subjectHandler.user.get().then().catch()
         return
       }
       if (!this.userId) {
@@ -105,7 +105,7 @@ export default class AcAvatar extends Vue {
         username = this.$store.getters.idMap[this.userId]
         this.subjectHandler = this.$getProfile(username, {})
       } else {
-        artCall({url: `/api/profiles/v1/data/user/id/${this.userId}/`, method: 'get'}).then(this.setUser)
+        artCall({url: `/api/profiles/v1/data/user/id/${this.userId}/`, method: 'get'}).then(this.setUser).catch()
       }
     }
 
