@@ -154,7 +154,7 @@ describe('Patcher', () => {
     await flushPromises()
     expect((wrapper.vm as any).sfwMode.errors).toEqual(['Nope.'])
   })
-  it('Stores an error if the server does not respond at all', async() => {
+  it('Stores an error if we do not know what happened', async() => {
     wrapper = mount(Patcher, {localVue, store, sync: false, attachToDocument: true});
     (wrapper.vm as any).sfwMode.model = true
     await flushPromises()
@@ -165,6 +165,19 @@ describe('Patcher', () => {
     // deriveErrors will also call it.
     expect((wrapper.vm as any).sfwMode.errors).toEqual(
       ['We had an issue contacting the server. Please try again later!']
+    )
+  })
+  it('Stores an error if the server times out', async() => {
+    wrapper = mount(Patcher, {localVue, store, sync: false, attachToDocument: true});
+    (wrapper.vm as any).sfwMode.model = true
+    await flushPromises()
+    jest.runAllTimers()
+    mockTrace.mockImplementation(() => undefined)
+    mockAxios.mockError({code: 'ECONNABORTED'})
+    await flushPromises()
+    // deriveErrors will also call it.
+    expect((wrapper.vm as any).sfwMode.errors).toEqual(
+      ['Timed out or aborted. Please try again or contact support!']
     )
   })
   it('Ignores axios cancel errors', () => {

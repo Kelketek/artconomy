@@ -12,12 +12,20 @@ export function missingFieldError(errors: FormError): string[] {
   return result
 }
 
+const TRANSLATED: {[key: string]: string} = {
+  ECONNABORTED: 'Timed out or aborted. Please try again or contact support!',
+}
+
 export function deriveErrors(error: AxiosError, knownFields: string[]): FormErrorSet {
   const errorSet: FormErrorSet = {
     fields: {},
     errors: [],
   }
   if (!error.response || !error.response.data || !(typeof error.response.data === 'object')) {
+    if (error.code && TRANSLATED[error.code]) {
+      errorSet.errors.push(TRANSLATED[error.code])
+      return errorSet
+    }
     console.trace(error)
     errorSet.errors = ['We had an issue contacting the server. Please try again later!']
     return errorSet
