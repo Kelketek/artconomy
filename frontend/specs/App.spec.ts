@@ -67,6 +67,50 @@ describe('App.vue', () => {
       wrapper.find('.error-container img').attributes().src).toBe('/static/images/500.png'
     )
   })
+  it('Detects when a full interface should not be used due to a specific name', async() => {
+    const wrapper = mount(App, {
+      store,
+      localVue,
+      mocks: {$route: {fullPath: '/order/', name: 'NewOrder', params: {}, query: {}}},
+      stubs: ['nav-bar', 'router-view', 'router-link'],
+      sync: false,
+    })
+    const vm = wrapper.vm as any
+    expect(vm.fullInterface).toBe(false)
+  })
+  it('Detects when a full interface should not be used due to a landing page', async() => {
+    const wrapper = mount(App, {
+      store,
+      localVue,
+      mocks: {$route: {fullPath: '/order/', name: 'LandingStuff', params: {}, query: {}}},
+      stubs: ['nav-bar', 'router-view', 'router-link'],
+      sync: false,
+    })
+    const vm = wrapper.vm as any
+    expect(vm.fullInterface).toBe(false)
+  })
+  it('Detects when a full interface should be used', async() => {
+    const wrapper = mount(App, {
+      store,
+      localVue,
+      mocks: {$route: {fullPath: '/order/', name: 'Thingsf', params: {}, query: {}}},
+      stubs: ['nav-bar', 'router-view', 'router-link'],
+      sync: false,
+    })
+    const vm = wrapper.vm as any
+    expect(vm.fullInterface).toBe(true)
+  })
+  it('Detects when a full interface should be used on a broken route', async() => {
+    const wrapper = mount(App, {
+      store,
+      localVue,
+      mocks: {$route: {fullPath: '/order/', params: {}, query: {}}},
+      stubs: ['nav-bar', 'router-view', 'router-link'],
+      sync: false,
+    })
+    const vm = wrapper.vm as any
+    expect(vm.fullInterface).toBe(true)
+  })
   it('Submits the support request form', async() => {
     const wrapper = mount(App, {
       store,

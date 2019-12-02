@@ -556,17 +556,17 @@ export const routes = [
   },
   {
     path: '/landing/commission-safely-with-artconomy-shield/',
-    name: 'ShieldCommissioner',
+    name: 'LandingShieldCommissioner',
     component: ShieldCommissioner,
   },
   {
     path: '/landing/payment-guaranteed-with-artconomy-shield/',
-    name: 'ShieldArtist',
+    name: 'LandingShieldArtist',
     component: ShieldArtist,
   },
   {
     path: '/landing/always-open-for-commissions/',
-    name: 'AlwaysOpen',
+    name: 'LandingAlwaysOpen',
     component: AlwaysOpen,
   },
   {
