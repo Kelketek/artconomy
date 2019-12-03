@@ -1413,7 +1413,7 @@ class FeaturedProducts(ListAPIView):
     serializer_class = ProductSerializer
 
     def get_queryset(self):
-        return Product.objects.filter(featured=True, available=True).order_by('?')
+        return Product.objects.filter(featured=True, available=True, active=True).order_by('?')
 
 
 class LowPriceProducts(ListAPIView):

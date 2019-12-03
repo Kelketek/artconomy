@@ -3457,6 +3457,14 @@ class TestLists(APITestCase):
         self.assertEqual(len(response.data['results']), 1)
         self.assertEqual(response.data['results'][0]['id'], rating.id)
 
+    def test_featured_products(self):
+        ProductFactory.create(active=False, featured=True)
+        active_product = ProductFactory.create(active=True, featured=True)
+        ProductFactory.create(active=True, featured=True, hidden=True)
+        response = self.client.get('/api/sales/v1/featured-products/')
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertIDInList(active_product, response.data['results'])
+
 
 class TestSalesStats(APITestCase):
     def test_sales_stats(self):
