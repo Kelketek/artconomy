@@ -2,7 +2,7 @@
   <v-container class="pa-0" fluid>
     <v-layout column class="text-xs-center">
       <v-flex shrink text-xs-center>
-        <v-pagination :length="list.totalPages" v-model="list.currentPage" v-if="list.totalPages > 1"></v-pagination>
+        <v-pagination :length="list.totalPages" v-model="list.currentPage" v-if="list.totalPages > 1" :class="{prerendering}"></v-pagination>
       </v-flex>
       <v-flex>
         <ac-load-section :controller="list" class="load-section">
@@ -23,11 +23,17 @@
         </ac-load-section>
       </v-flex>
       <v-flex shrink text-xs-center>
-        <v-pagination :length="list.totalPages" v-model="list.currentPage" v-if="list.totalPages > 1"></v-pagination>
+        <v-pagination :length="list.totalPages" v-model="list.currentPage" v-if="list.totalPages > 1" :class="{prerendering}"></v-pagination>
       </v-flex>
     </v-layout>
   </v-container>
 </template>
+
+<style>
+  .v-pagination.prerendering .v-pagination__item {
+    display: none;
+  }
+</style>
 
 <script lang="ts">
 import Vue from 'vue'
@@ -48,6 +54,7 @@ export default class AcPaginated extends Vue {
     public pageVariable!: string
     @Prop({required: true})
     public list!: ListController<any>
+    public prerendering = window.PRERENDERING || 0
 
     @Watch('list.currentPage')
     public updateRoute(val: number|undefined) {

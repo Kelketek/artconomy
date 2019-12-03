@@ -6,10 +6,10 @@
         clipped
         v-model="drawer"
         app
-        v-if="viewer && !iFrame && fullInterface"
+        v-if="viewer && !iFrame && fullInterface && !prerendering"
     >
       <ac-nav-links :subject-handler="viewerHandler" :is-logged-in="isLoggedIn" :is-registered="isRegistered" :is-superuser="isSuperuser" :is-staff="isStaff" v-model="drawer" />
-      <v-bottom-nav v-if="!prerendering"
+      <v-bottom-nav
       >
         <v-btn
             flat
@@ -59,7 +59,7 @@
         :scroll-threshold="150"
         v-if="!iFrame"
     >
-      <v-toolbar-side-icon v-if="viewer && fullInterface" @click.stop="drawer = !drawer"/>
+      <v-toolbar-side-icon v-if="viewer && fullInterface && !prerendering" @click.stop="drawer = !drawer"/>
       <v-layout hidden-xs-only>
         <v-toolbar-title class="mr-5 align-center hide-sm hide-xs">
           <v-btn flat to="/">
