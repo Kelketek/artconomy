@@ -93,6 +93,7 @@ def available_products(requester, query='', ordering=True):
         qs = Product.objects.filter(available=True).filter(q)
     else:
         qs = Product.objects.filter(available=True)
+    qs = qs.exclude(active=False)
     if requester.is_authenticated:
         if not requester.is_staff:
             qs = qs.exclude(user__blocking=requester)

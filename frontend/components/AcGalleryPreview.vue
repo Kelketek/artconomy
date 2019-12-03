@@ -1,5 +1,5 @@
 <template>
-  <v-responsive v-if="($vuetify.breakpoint.smAndDown && showFooter) || mini" aspect-ratio="1" class="submission">
+  <v-responsive v-if="($vuetify.breakpoint.smAndDown && showFooter) || mini" aspect-ratio="1" class="submission" :class="{unavailable}">
     <v-card>
       <v-layout column class="pt-2">
         <v-layout row wrap>
@@ -34,7 +34,7 @@
       </v-layout>
     </v-card>
   </v-responsive>
-  <v-flex class="submission" v-else>
+  <v-flex class="submission" v-else :class="{unavailable}">
     <v-card>
       <ac-link :to="submissionLink">
         <ac-asset
@@ -109,6 +109,9 @@ export default {
   computed: {
     submissionLink() {
       return {name: 'Submission', params: {submissionId: this.submission.id}}
+    },
+    unavailable() {
+      return this.submission.private
     },
   },
 }

@@ -1,5 +1,5 @@
 <template>
-  <v-responsive v-if="$vuetify.breakpoint.smAndDown || mini" aspect-ratio="1" class="submission">
+  <v-responsive v-if="$vuetify.breakpoint.smAndDown || mini" aspect-ratio="1" class="character" :class="{unavailable}">
     <v-card>
       <v-layout column class="pt-2">
         <v-layout row wrap>
@@ -23,7 +23,7 @@
       </v-layout>
     </v-card>
   </v-responsive>
-  <v-card class="character-card" v-else>
+  <v-card class="character-card" v-else :class="{unavailable}">
     <router-link
         :to="characterLink">
         <ac-asset
@@ -58,6 +58,9 @@ export default {
   computed: {
     characterLink() {
       return {name: 'Character', params: {username: this.character.user.username, characterName: this.character.name}}
+    },
+    unavailable() {
+      return this.character.hidden
     },
   },
   props: {

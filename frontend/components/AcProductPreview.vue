@@ -1,5 +1,5 @@
 <template>
-  <v-responsive v-if="$vuetify.breakpoint.smAndDown || mini" aspect-ratio="1">
+  <v-responsive v-if="$vuetify.breakpoint.smAndDown || mini" aspect-ratio="1" :class="{unavailable}">
     <v-card>
       <v-layout column class="pt-2">
         <v-layout row wrap>
@@ -32,7 +32,7 @@
       </v-layout>
     </v-card>
   </v-responsive>
-  <v-card class="product-preview" v-else>
+  <v-card class="product-preview" :class="{unavailable}" v-else>
     <ac-link :to="productLink">
       <ac-asset :asset="product.primary_submission" thumb-name="thumbnail"></ac-asset>
     </ac-link>
@@ -96,6 +96,9 @@
   .days-turnaround, .price-display {
     font-size: 2.5rem;
   }
+  .unavailable {
+    opacity: .5;
+  }
 </style>
 
 <style>
@@ -121,6 +124,9 @@ export default class AcProductPreview extends Vue {
     public mini!: boolean
     public get productLink() {
       return {name: 'Product', params: {username: this.product.user.username, productId: this.product.id}}
+    }
+    public get unavailable() {
+      return !this.product.available
     }
     public get turnaround() {
       return Math.ceil(this.product.expected_turnaround)
