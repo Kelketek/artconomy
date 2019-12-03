@@ -56,6 +56,8 @@ if (process.env.NODE_ENV === 'production') {
   // noinspection TypeScriptValidateJSTypes
   Sentry.init({
     dsn: 'https://8efd301a6c794f3e9a84e741edef2cfe@sentry.io/1406820',
+    // @ts-ignore
+    release: __COMMIT_HASH__,
     integrations: [new (Integrations as any).Vue({
       Vue,
       attachProps: true,

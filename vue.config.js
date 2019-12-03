@@ -1,6 +1,11 @@
 const path = require('path')
 const BundleTracker = require('webpack-bundle-tracker')
 const VuetifyLoaderPlugin = require('vuetify-loader/lib/plugin')
+const webpack = require('webpack')
+
+let commitHash = require('child_process')
+  .execSync('git rev-parse --short HEAD')
+  .toString()
 
 module.exports = {
   assetsDir: 'dist',
@@ -10,6 +15,9 @@ module.exports = {
       packName = './webpack-stats-legacy.json'
     }
     config.plugins.push(new BundleTracker({filename: packName}), new VuetifyLoaderPlugin())
+    config.plugins.push(new webpack.DefinePlugin({
+      __COMMIT_HASH__: JSON.stringify(commitHash),
+    }))
     config.entry = {
       app: [
         './frontend/main.ts',
