@@ -164,8 +164,7 @@ export default class NavBar extends mixins(Viewer, Nav) {
     @State('iFrame') public iFrame!: boolean
     public drawerStore: null|boolean = null
     public searchForm: FormController = null as unknown as FormController
-    // @ts-ignore
-    public prerendering = window.PRERENDERING || 0
+    public prerendering = false
 
     public get loginLink() {
       if (this.$route.name === 'Login') {
@@ -182,6 +181,7 @@ export default class NavBar extends mixins(Viewer, Nav) {
     }
 
     public created() {
+      this.prerendering = Boolean(window.PRERENDERING || 0)
       this.searchForm = this.$getForm('search')
       if (this.$vuetify.breakpoint.mdAndDown) {
         // Never begin with the drawer open on a small screen.

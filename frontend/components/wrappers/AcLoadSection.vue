@@ -54,6 +54,11 @@ export default class AcLoadSection extends Vue {
     public controller!: SingleController<any>|ListController<any>
     @Prop({default: true})
     public fluid!: boolean
+    public prerendering = false
+
+    public created() {
+      this.prerendering = Boolean(window.PRERENDERING || 0)
+    }
 
     private showSupport() {
       this.$store.commit('supportDialog', true)
