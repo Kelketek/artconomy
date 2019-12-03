@@ -20,7 +20,7 @@
 </head>
 <body>
 <script>
-  {% if request.META.HTTP_X_PRERENDERING %}
+  {% if request.META.HTTP_X_PRERENDERING == '1' %}
   PRERENDERING = 1
   {% else %}
   PRERENDERING = 0
