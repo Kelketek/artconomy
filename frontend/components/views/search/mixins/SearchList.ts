@@ -29,8 +29,8 @@ export default class SearchList extends Vue {
       return
     }
     this.list.params = newParams
-    this.$router.replace({query: newParams})
     this.list.reset().catch(this.searchForm.setErrors)
+    this.$router.replace({query: newParams})
   }
   public created() {
     this.searchForm = this.$getForm('search')
