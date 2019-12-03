@@ -1,27 +1,15 @@
 import Vue from 'vue'
-import Vuex from 'vuex'
-import {createLocalVue, mount, Wrapper} from '@vue/test-utils'
-import Vuetify from 'vuetify'
-import {singleRegistry, Singles} from '@/store/singles/registry'
-import {profileRegistry, Profiles} from '@/store/profiles/registry'
+import {mount, Wrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
-import {flushPromises, rq, rs, setViewer, vuetifySetup} from '@/specs/helpers'
+import {cleanUp, flushPromises, rq, rs, setViewer, vueSetup} from '@/specs/helpers'
 import {genUser} from '@/specs/helpers/fixtures'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import {commentSet} from './fixtures'
-import {listRegistry, Lists} from '@/store/lists/registry'
-import {FormControllers, formRegistry} from '@/store/forms/registry'
 import Router from 'vue-router'
 import mockAxios from '@/__mocks__/axios'
 import AcNewComment from '@/components/comments/AcNewComment.vue'
 
-Vue.use(Vuex)
-Vue.use(Vuetify)
-const localVue = createLocalVue()
-localVue.use(Singles)
-localVue.use(Lists)
-localVue.use(Profiles)
-localVue.use(FormControllers)
+const localVue = vueSetup()
 localVue.use(Router)
 let store: ArtStore
 let wrapper: Wrapper<Vue>
@@ -48,17 +36,9 @@ describe('AcNewComment.vue', () => {
         component: Empty,
       },
       ]})
-    singleRegistry.reset()
-    listRegistry.reset()
-    formRegistry.reset()
-    profileRegistry.reset()
-    vuetifySetup()
-    mockAxios.reset()
   })
   afterEach(() => {
-    if (wrapper) {
-      wrapper.destroy()
-    }
+    cleanUp(wrapper)
   })
   it('Posts a new comment', async() => {
     setViewer(store, genUser())

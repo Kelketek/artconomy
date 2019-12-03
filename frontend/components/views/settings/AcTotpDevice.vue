@@ -125,13 +125,13 @@
                   <p>Finally, enter the code in the field below, and you're all done!</p>
                 </v-flex>
                 <v-flex xs12 sm8 offset-sm2 md4 offset-md4 text-xs-center>
-                  <form @submit.prevent="totpForm.submitThen(device.setX)">
+                  <ac-form @submit.prevent="totpForm.submitThen(device.setX)">
                     <ac-form-container v-bind="totpForm.bind">
                       <v-text-field v-bind="totpForm.fields.code.bind" v-on="totpForm.fields.code.on" mask="### ###">
                       </v-text-field>
                       <v-btn color="primary" type="submit" class="submit-button">Verify</v-btn>
                     </ac-form-container>
-                  </form>
+                  </ac-form>
                 </v-flex>
               </v-layout>
             </v-card-text>
@@ -155,9 +155,10 @@ import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
 import {TOTPDevice} from '@/store/profiles/types/TOTPDevice'
 import {SingleController} from '@/store/singles/controller'
 import {HttpVerbs} from '@/store/forms/types/HttpVerbs'
+import AcForm from '@/components/wrappers/AcForm.vue'
 
   @Component({
-    components: {AcConfirmation, AcFormContainer},
+    components: {AcForm, AcConfirmation, AcFormContainer},
   })
 export default class AcTotpDevice extends mixins(Subjective) {
     @Prop({required: true})

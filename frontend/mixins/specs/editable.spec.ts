@@ -1,19 +1,18 @@
 import {createLocalVue, shallowMount, Wrapper} from '@vue/test-utils'
 import Vue from 'vue'
 import Editable from '@/specs/helpers/dummy_components/editable.vue'
+import {cleanUp, vueSetup} from '@/specs/helpers'
 
 const mockError = jest.spyOn(console, 'error')
 
 describe('Editable.ts', () => {
   const localVue = createLocalVue()
-  let wrapper: Wrapper<Vue> | null
+  let wrapper: Wrapper<Vue>
   beforeEach(() => {
-    wrapper = null
+    vueSetup()
   })
   afterEach(() => {
-    if (wrapper) {
-      wrapper.destroy()
-    }
+    cleanUp(wrapper)
   })
   it('Reports when editing', async() => {
     const replace = jest.fn()

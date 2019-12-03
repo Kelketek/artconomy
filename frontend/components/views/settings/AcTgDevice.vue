@@ -93,13 +93,13 @@
                   <p>Finally, enter the code in the field below, and you're all done!</p>
                 </v-flex>
                 <v-flex xs12 sm8 offset-sm2 md4 offset-md4 text-xs-center>
-                  <form @submit.prevent="form.submitThen(device.setX)">
+                  <ac-form @submit.prevent="form.submitThen(device.setX)">
                     <ac-form-container v-bind="form.bind">
                       <v-text-field v-bind="form.fields.code.bind" v-on="form.fields.code.on" mask="### ###">
                       </v-text-field>
                       <v-btn color="primary" type="submit" class="submit-button">Verify</v-btn>
                     </ac-form-container>
-                  </form>
+                  </ac-form>
                 </v-flex>
               </v-layout>
             </v-card-text>
@@ -123,9 +123,10 @@ import {Prop, Watch} from 'vue-property-decorator'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
 import {HttpVerbs} from '@/store/forms/types/HttpVerbs'
+import AcForm from '@/components/wrappers/AcForm.vue'
 
   @Component({
-    components: {AcConfirmation, AcFormContainer},
+    components: {AcForm, AcConfirmation, AcFormContainer},
   })
 export default class AcTgDevice extends mixins(Subjective) {
     @Prop({required: true})

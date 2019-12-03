@@ -31,7 +31,7 @@
           </v-layout>
         </v-flex>
       </v-flex>
-      <form @submit.prevent="newAttribute.submitThen(addAttribute)" v-if="character.attributes.list.length < 10">
+      <ac-form @submit.prevent="newAttribute.submitThen(addAttribute)" v-if="character.attributes.list.length < 10">
         <ac-form-container v-if="controls" v-show="editing" :sending="newAttribute.sending" :errors="newAttribute.errors">
           <v-layout row wrap>
             <v-flex xs5 attr-input>
@@ -49,7 +49,7 @@
             </v-flex>
           </v-layout>
         </ac-form-container>
-      </form>
+      </ac-form>
       <v-flex v-for="(attribute, index) in character.attributes.list" :key="attribute.id" v-show="!editing">
         <v-layout row wrap>
           <v-flex xs3 attr-key>{{attribute.x.key}}</v-flex>
@@ -89,9 +89,10 @@ import {artCall, flatten} from '@/lib'
 import {Watch} from 'vue-property-decorator'
 import axios from 'axios'
 import {Character} from '@/store/characters/types/Character'
+import AcForm from '@/components/wrappers/AcForm.vue'
 
   @Component({
-    components: {AcBoundField, AcFormContainer, AcConfirmation, AcPatchField, AcLoadSection},
+    components: {AcForm, AcBoundField, AcFormContainer, AcConfirmation, AcPatchField, AcLoadSection},
   })
 export default class AcAttributes extends mixins(Subjective, CharacterCentric, Editable) {
     public newAttribute: FormController = null as unknown as FormController

@@ -3,7 +3,7 @@
     <template v-slot:default>
       <v-layout row wrap class="mt-5">
         <v-flex xs12 md6 offset-md3 text-xs-center>
-          <v-form @submit.prevent="resetForm.submitThen(postReset)">
+          <ac-form @submit.prevent="resetForm.submitThen(postReset)">
             <ac-form-container class="mt-3" :sending="resetForm.sending" :errors="resetForm.errors" v-if="validator.x">
               <v-layout row wrap>
                 <v-flex xs12>
@@ -26,7 +26,7 @@
                 </v-flex>
               </v-layout>
             </ac-form-container>
-          </v-form>
+          </ac-form>
         </v-flex>
       </v-layout>
     </template>
@@ -55,8 +55,9 @@ import {User} from '@/store/profiles/types/User'
 import Viewer from '@/mixins/viewer'
 import AcBoundField from '@/components/fields/AcBoundField'
 import {SingleController} from '@/store/singles/controller'
+import AcForm from '@/components/wrappers/AcForm.vue'
   @Component({
-    components: {AcBoundField, AcFormContainer, AcLoadSection},
+    components: {AcForm, AcBoundField, AcFormContainer, AcLoadSection},
   })
 export default class PasswordReset extends mixins(Viewer) {
     public resetForm: FormController = null as unknown as FormController

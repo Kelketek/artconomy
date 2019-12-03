@@ -77,7 +77,7 @@
                   </v-layout>
                   <ac-rendered :value="order.x.details"></ac-rendered>
                   <v-flex v-if="!buyer" xs12>
-                    <v-form @submit.prevent="orderEmail.submitThen(markInviteSent)">
+                    <ac-form @submit.prevent="orderEmail.submitThen(markInviteSent)">
                     <ac-form-container v-bind="orderEmail.bind">
                       <v-layout row justify-content align-content-center>
                         <v-flex>
@@ -106,7 +106,7 @@
                         </v-flex>
                       </v-layout>
                     </ac-form-container>
-                    </v-form>
+                    </ac-form>
                   </v-flex>
                   <v-subheader v-if="commissionInfo">Commission Info</v-subheader>
                   <ac-rendered :value="commissionInfo" :truncate="200"></ac-rendered>
@@ -167,7 +167,7 @@
         <v-flex xs12 md3 lg3 pa-1 order-xs2 order-md3>
           <v-card>
             <v-card-title><h3>Now what?</h3></v-card-title>
-            <v-form>
+            <ac-form>
             <ac-form-container @submit.prevent="stateChanger" :errors="stateChange.errors" :sending="stateChange.sending">
             <v-card-text>
               <v-layout row wrap>
@@ -460,7 +460,7 @@
               </v-layout>
             </v-card-text>
             </ac-form-container>
-            </v-form>
+            </ac-form>
           </v-card>
         </v-flex>
         <ac-expanded-property v-model="showConfirm">
@@ -526,6 +526,7 @@ import {RawLocation} from 'vue-router'
 import AcOrderStatus from '@/components/AcOrderStatus.vue'
 import {Mutation} from 'vuex-class'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
+import AcForm from '@/components/wrappers/AcForm.vue'
 
 enum VIEWER_TYPE {
   UNSET = 0,
@@ -535,6 +536,7 @@ enum VIEWER_TYPE {
 }
 
 @Component({components: {
+  AcForm,
   AcExpandedProperty,
   AcOrderStatus,
   AcEscrowLabel,

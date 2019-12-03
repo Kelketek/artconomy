@@ -30,7 +30,7 @@
         </v-btn>
       </v-toolbar>
       <v-card-text class="scrollableText" :class="{'pa-0': fluid}">
-        <v-form @submit.prevent="reSend">
+        <ac-form @submit.prevent="reSend">
           <slot name="header"/>
           <ac-form-container
               :errors="errors"
@@ -47,7 +47,7 @@
                 </v-btn>
             </v-card-actions>
           </slot>
-        </v-form>
+        </ac-form>
       </v-card-text>
     </v-card>
   </v-dialog>
@@ -64,10 +64,11 @@ import Component, {mixins} from 'vue-class-component'
 import {Prop, Watch} from 'vue-property-decorator'
 import AcFormContainer from './AcFormContainer.vue'
 import Dialog from '@/mixins/dialog'
+import AcForm from '@/components/wrappers/AcForm.vue'
 
   @Component({
     name: 'ac-form-dialog',
-    components: {AcFormContainer},
+    components: {AcForm, AcFormContainer},
   })
 export default class AcFormDialog extends mixins(Dialog) {
     @Prop()

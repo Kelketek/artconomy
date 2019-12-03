@@ -8,7 +8,7 @@
           <v-icon>close</v-icon>
         </v-btn>
       </v-toolbar>
-      <v-form @submit.prevent="toggle=false">
+      <ac-form @submit.prevent="toggle=false">
         <v-card-text class="scrollableText">
           <slot></slot>
         </v-card-text>
@@ -20,7 +20,7 @@
             </v-btn>
           </slot>
         </v-card-actions>
-      </v-form>
+      </ac-form>
     </v-card>
   </v-dialog>
 </template>
@@ -28,8 +28,10 @@
 <script lang="ts">
 import Component, {mixins} from 'vue-class-component'
 import Dialog from '@/mixins/dialog'
-
-  @Component
+import AcForm from '@/components/wrappers/AcForm.vue'
+@Component({
+  components: {AcForm},
+})
 export default class AcExpandedProperty extends mixins(Dialog) {
 }
 </script>

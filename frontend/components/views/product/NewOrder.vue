@@ -3,7 +3,7 @@
     <template v-slot:default>
       <v-layout row wrap class="ma-2">
         <v-flex xs12 md8 offset-lg1 pb-3>
-          <v-form @submit.prevent="orderForm.submitThen(goToOrder)">
+          <ac-form @submit.prevent="orderForm.submitThen(goToOrder)">
             <ac-form-container
                 :errors="orderForm.errors"
                 :sending="orderForm.sending"
@@ -105,7 +105,7 @@
                 </v-card-text>
               </v-card>
             </ac-form-container>
-          </v-form>
+          </ac-form>
         </v-flex>
         <v-flex xs12 offset-md1 md3 lg2>
           <v-toolbar dense>
@@ -157,8 +157,9 @@ import Order from '@/types/Order'
 import {User} from '@/store/profiles/types/User'
 import {Watch} from 'vue-property-decorator'
 import AcRendered from '@/components/wrappers/AcRendered'
+import AcForm from '@/components/wrappers/AcForm.vue'
   @Component({
-    components: {AcRendered, AcFormContainer, AcAvatar, AcAsset, AcBoundField, AcLoadSection, AcFormDialog},
+    components: {AcForm, AcRendered, AcFormContainer, AcAvatar, AcAsset, AcBoundField, AcLoadSection, AcFormDialog},
   })
 export default class NewOrder extends mixins(ProductCentric, Formatting) {
     public orderForm: FormController = null as unknown as FormController

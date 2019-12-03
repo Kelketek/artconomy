@@ -98,7 +98,7 @@
       </v-tab-item>
       <v-tab-item value="payment">
         <v-card>
-          <v-form @submit.prevent="paymentForm.submitThen(postPay)">
+          <ac-form @submit.prevent="paymentForm.submitThen(postPay)">
             <ac-form-container>
               <v-layout row wrap class="mt-3" v-if="selection !== null">
                 <v-flex xs12>
@@ -127,7 +127,7 @@
                 </v-flex>
               </v-layout>
             </ac-form-container>
-          </v-form>
+          </ac-form>
         </v-card>
       </v-tab-item>
       <v-tab-item value="completed">
@@ -156,8 +156,9 @@ import {baseCardSchema} from '@/lib'
 import {Watch} from 'vue-property-decorator'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import {User} from '@/store/profiles/types/User'
+import AcForm from '@/components/wrappers/AcForm.vue'
   @Component({
-    components: {AcFormContainer, AcCardManager, AcLoadSection},
+    components: {AcForm, AcFormContainer, AcCardManager, AcLoadSection},
   })
 export default class Upgrade extends mixins(Viewer) {
     public pricing: SingleController<Pricing> = null as unknown as SingleController<Pricing>

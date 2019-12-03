@@ -28,8 +28,8 @@
         </v-layout>
       </v-flex>
       <v-flex xs12 v-if="isSeller && !final && !archived">
-        <v-form>
-        <ac-form-container :sending="newRevision.sending" :errors="newRevision.errors">
+        <ac-form @submit.prevent="newRevision.submitThen(()=>{})">
+        <ac-form-container v-bind="newRevision.bind">
           <v-toolbar dense><v-toolbar-title>Upload Revision</v-toolbar-title></v-toolbar>
           <v-layout row align-center align-content-center justify-center column>
             <v-flex shrink text-xs-center align-self-center>
@@ -53,7 +53,7 @@
             </v-flex>
           </v-layout>
         </ac-form-container>
-        </v-form>
+        </ac-form>
       </v-flex>
       <v-flex v-else-if="!final && !isSeller" text-xs-center>
         <p v-if="remainingRevisions && remainingRevisions > 0">The artist has promised <strong>{{remainingRevisions}}</strong> more revision and the final.</p>
@@ -79,8 +79,9 @@ import AcBoundField from '@/components/fields/AcBoundField'
 import AcAsset from '@/components/AcAsset.vue'
 import {SingleController} from '@/store/singles/controller'
 import Order from '@/types/Order'
+import AcForm from '@/components/wrappers/AcForm.vue'
 @Component({
-  components: {AcAsset, AcBoundField, AcFormContainer, AcLoadSection},
+  components: {AcForm, AcAsset, AcBoundField, AcFormContainer, AcLoadSection},
 })
 export default class AcRevisionManager extends Vue {
   @Prop({required: true})

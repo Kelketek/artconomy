@@ -1,27 +1,19 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-import {createLocalVue, mount, Wrapper} from '@vue/test-utils'
+import {mount, Wrapper} from '@vue/test-utils'
 import Vuetify from 'vuetify'
-import {singleRegistry, Singles} from '@/store/singles/registry'
-import {profileRegistry, Profiles} from '@/store/profiles/registry'
 import {ArtStore, createStore} from '@/store'
-import {confirmAction, flushPromises, rq, rs, setViewer, vuetifySetup} from '@/specs/helpers'
+import {cleanUp, confirmAction, flushPromises, rq, rs, setViewer, vueSetup} from '@/specs/helpers'
 import {genUser} from '@/specs/helpers/fixtures'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import {commentSet} from './fixtures'
 import AcComment from '@/components/comments/AcComment.vue'
-import {listRegistry, Lists} from '@/store/lists/registry'
-import {FormControllers, formRegistry} from '@/store/forms/registry'
 import Router from 'vue-router'
 import mockAxios from '@/__mocks__/axios'
 
 Vue.use(Vuex)
 Vue.use(Vuetify)
-const localVue = createLocalVue()
-localVue.use(Singles)
-localVue.use(Lists)
-localVue.use(Profiles)
-localVue.use(FormControllers)
+const localVue = vueSetup()
 localVue.use(Router)
 jest.useFakeTimers()
 let store: ArtStore
@@ -45,17 +37,9 @@ describe('AcComment.vue', () => {
         ],
       },
       ]})
-    singleRegistry.reset()
-    listRegistry.reset()
-    formRegistry.reset()
-    profileRegistry.reset()
-    vuetifySetup()
-    mockAxios.reset()
   })
   afterEach(() => {
-    if (wrapper) {
-      wrapper.destroy()
-    }
+    cleanUp(wrapper)
   })
   it('Handles a comment', async() => {
     const empty = mount(Empty, {localVue, store, router, sync: false})

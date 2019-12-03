@@ -16,7 +16,7 @@
       <v-layout row wrap v-if="isRegistered || (isLoggedIn && guestOk)">
         <v-flex xs12 sm12>
           <ac-form-container v-bind="newCommentForm.bind">
-            <v-form @submit.prevent="publish">
+            <ac-form @submit.prevent="publish">
               <ac-bound-field :field="newCommentForm.fields.text" field-type="ac-editor">
                 <v-flex text-xs-right slot="actions">
                   <v-layout wrap>
@@ -44,7 +44,7 @@
                   </v-layout>
                 </v-flex>
               </ac-bound-field>
-            </v-form>
+            </ac-form>
           </ac-form-container>
         </v-flex>
       </v-layout>
@@ -69,9 +69,10 @@ import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import {FormController} from '@/store/forms/form-controller'
 import AcBoundField from '@/components/fields/AcBoundField'
 import {flatten} from '@/lib'
+import AcForm from '@/components/wrappers/AcForm.vue'
 
   @Component({
-    components: {AcBoundField, AcFormContainer, AcAvatar, AcEditor},
+    components: {AcForm, AcBoundField, AcFormContainer, AcAvatar, AcEditor},
   })
 export default class AcNewComment extends mixins(Viewer) {
     @Prop({required: true})

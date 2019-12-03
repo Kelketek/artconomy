@@ -25,7 +25,7 @@
               <v-flex xs12 text-xs-center>
                 <p><strong>Your default card will be charged for subscription services.</strong></p>
               </v-flex>
-              <v-form @submit.prevent="ccForm.submitThen(addCard)">
+              <ac-form @submit.prevent="ccForm.submitThen(addCard)">
                 <ac-form-container v-bind="ccForm.bind">
                   <ac-card-manager :username="username" :cc-form="ccForm" :show-save="false" :field-mode="false" ref="cardManager">
                     <template v-slot:new-card-bottom>
@@ -35,7 +35,7 @@
                     </template>
                   </ac-card-manager>
                 </ac-form-container>
-              </v-form>
+              </ac-form>
             </v-card-text>
           </v-card>
         </v-flex>
@@ -56,8 +56,9 @@ import {ListController} from '@/store/lists/controller'
 import {CreditCardToken} from '@/types/CreditCardToken'
 import AcCard from '@/components/views/settings/payment/AcCard.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
+import AcForm from '@/components/wrappers/AcForm.vue'
 
-@Component({components: {AcLoadSection, AcFormContainer, AcCardManager, AcCard}})
+@Component({components: {AcForm, AcLoadSection, AcFormContainer, AcCardManager, AcCard}})
 export default class Purchase extends mixins(Subjective) {
   public cards: ListController<CreditCardToken> = null as unknown as ListController<CreditCardToken>
   public ccForm: FormController = null as unknown as FormController

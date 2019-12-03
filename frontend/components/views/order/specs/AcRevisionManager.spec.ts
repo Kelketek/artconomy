@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import {vueSetup} from '@/specs/helpers'
+import {cleanUp, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import {mount, Wrapper} from '@vue/test-utils'
 import AcRevisionManager from '@/components/views/order/AcRevisionManager.vue'
@@ -10,18 +10,16 @@ const localVue = vueSetup()
 let store: ArtStore
 let wrapper: Wrapper<Vue>
 
-describe('AcOrderRating.vue', () => {
+describe('AcRevisionManager.vue', () => {
   beforeEach(() => {
     store = createStore()
   })
   afterEach(() => {
-    if (wrapper) {
-      wrapper.destroy()
-    }
+    cleanUp(wrapper)
   })
   it('Determines the final', async() => {
     const empty = mount(
-      Empty, {localVue, store}).vm
+      Empty, {localVue, store, attachToDocument: true, sync: false}).vm
     const revisions = empty.$getList('revisions', {endpoint: '/test/'})
     const order = empty.$getSingle('order', {endpoint: '/order/'})
     order.setX(genOrder())
@@ -44,7 +42,7 @@ describe('AcOrderRating.vue', () => {
   })
   it('Refreshes the order when the list changes', async() => {
     const empty = mount(
-      Empty, {localVue, store}).vm
+      Empty, {localVue, store, attachToDocument: true, sync: false}).vm
     const revisions = empty.$getList('revisions', {endpoint: '/test/'})
     const order = empty.$getSingle('order', {endpoint: '/order/'})
     order.setX(genOrder())
@@ -68,7 +66,7 @@ describe('AcOrderRating.vue', () => {
   })
   it('Autosubmits when a new file is added', async() => {
     const empty = mount(
-      Empty, {localVue, store}).vm
+      Empty, {localVue, store, attachToDocument: true, sync: false}).vm
     const revisions = empty.$getList('revisions', {endpoint: '/test/'})
     const order = empty.$getSingle('order', {endpoint: '/order/'})
     order.setX(genOrder())
@@ -85,6 +83,7 @@ describe('AcOrderRating.vue', () => {
       attachToDocument: true,
     })
     const vm = wrapper.vm as any
+    await vm.$nextTick()
     const spySubmit = jest.spyOn(vm.newRevision, 'submitThen')
     vm.newRevision.fields.file.update('Stuff')
     await vm.$nextTick()

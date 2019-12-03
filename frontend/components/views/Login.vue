@@ -16,7 +16,7 @@
         <v-tabs-items v-model="loginTab">
           <v-tab-item value="tab-login">
             <div class="pt-2"></div>
-            <form @submit.prevent="sendLogin()">
+            <ac-form @submit.prevent="sendLogin()">
               <ac-form-container :sending="loginForm.sending" :errors="loginForm.errors">
                 <v-text-field
                     label="Email"
@@ -35,11 +35,11 @@
                   Login
                 </v-btn>
               </ac-form-container>
-            </form>
+            </ac-form>
           </v-tab-item>
           <v-tab-item value="tab-register">
             <div class="pt-2"></div>
-            <form @submit.prevent="registerForm.submitThen(loginHandler)">
+            <ac-form @submit.prevent="registerForm.submitThen(loginHandler)">
               <ac-form-container :sending="loginForm.sending" :errors="loginForm.errors">
                 <v-text-field
                     label="Email"
@@ -114,12 +114,12 @@
                   Register
                 </v-btn>
               </ac-form-container>
-            </form>
+            </ac-form>
           </v-tab-item>
           <v-tab-item value="tab-forgot">
             <div class="pt-2"></div>
             <p>Enter your username or email address below, and we will send you a link to reset your password.</p>
-            <form @submit.prevent="forgotForm.submitThen(forgotHandler)">
+            <ac-form @submit.prevent="forgotForm.submitThen(forgotHandler)">
               <ac-form-container :sending="loginForm.sending" :errors="loginForm.errors">
                 <v-text-field
                     label="Email or Username"
@@ -134,7 +134,7 @@
                   Reset
                 </v-btn>
               </ac-form-container>
-            </form>
+            </ac-form>
           </v-tab-item>
         </v-tabs-items>
         <div>
@@ -145,7 +145,7 @@
             width="500"
         >
           <v-card>
-            <form @submit.prevent="sendLogin()">
+            <ac-form @submit.prevent="sendLogin()">
               <v-card-text>
                 <p>
                   This account is protected by Two Factor Authentication. Please use your
@@ -173,7 +173,7 @@
                   </div>
                 </ac-form-container>
               </v-card-text>
-            </form>
+            </ac-form>
           </v-card>
         </v-dialog>
       </v-flex>
@@ -200,6 +200,7 @@ import VueRecaptcha from 'vue-recaptcha'
 import {UserStoreState} from '@/store/profiles/types/UserStoreState'
 import Viewer from '../../mixins/viewer'
 import {User} from '@/store/profiles/types/User'
+import AcForm from '@/components/wrappers/AcForm.vue'
 
   declare type SyncFunc = (value: any) => void
 
@@ -219,10 +220,10 @@ function syncTo(...fields: Array<[string, string]>): SyncFunc {
   return syncedField
 }
 
-  @Component({
-    name: 'Login',
-    components: {AcFormContainer, VueRecaptcha},
-  })
+@Component({
+  name: 'Login',
+  components: {AcForm, AcFormContainer, VueRecaptcha},
+})
 export default class Login extends mixins(Viewer) {
     @State('profiles') private profiles!: UserStoreState
     @paramHandleMap('tabName') private loginTab!: string

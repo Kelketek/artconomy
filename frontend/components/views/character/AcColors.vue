@@ -17,7 +17,7 @@
             <ac-ref-color :color="color" :key="color.id" :username="username"></ac-ref-color>
             <v-divider v-if="index + 1 < character.colors.list.length" :key="`color-${index}-divider`"></v-divider>
           </template>
-            <form @submit.prevent="newColor.submitThen(character.colors.push)" v-if="editing && character.colors.list.length < 10" :id="newColor.bind.id">
+            <ac-form @submit.prevent="newColor.submitThen(character.colors.push)" v-if="editing && character.colors.list.length < 10" :id="newColor.bind.id">
               <ac-form-container>
                 <v-layout row wrap class="compact-fields">
                   <v-flex xs12><v-divider></v-divider></v-flex>
@@ -42,7 +42,7 @@
                   </v-flex>
                 </v-layout>
               </ac-form-container>
-            </form>
+            </ac-form>
         </v-card-text>
       </v-expansion-panel-content>
     </v-expansion-panel>
@@ -79,10 +79,20 @@ import AcBoundField from '@/components/fields/AcBoundField'
 import {flatten} from '@/lib'
 import {Watch} from 'vue-property-decorator'
 import AcColorPrepend from '@/components/fields/AcColorPrepend.vue'
+import AcForm from '@/components/wrappers/AcForm.vue'
 
-  @Component({
-    components: {AcColorPrepend, AcBoundField, AcFormContainer, AcRefColor, AcPatchField, AcConfirmation, AcLoadSection},
-  })
+@Component({
+  components: {
+    AcForm,
+    AcColorPrepend,
+    AcBoundField,
+    AcFormContainer,
+    AcRefColor,
+    AcPatchField,
+    AcConfirmation,
+    AcLoadSection
+  },
+})
 export default class AcColors extends mixins(Subjective, CharacterCentric, Editable) {
     public colors: ListController<Color> = null as unknown as ListController<Color>
     public newColor: FormController = null as unknown as FormController
