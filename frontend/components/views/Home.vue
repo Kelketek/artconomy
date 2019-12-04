@@ -15,7 +15,7 @@
             label="I'm looking for..."
         ></ac-bound-field>
       </v-flex>
-      <v-flex xs12 offset-sm2 lg4 offset-lg4 text-xs-center>
+      <v-flex xs12 offset-sm2 lg6 offset-lg3 text-xs-center>
         Try terms like:
         <v-chip color="secondary" @click="search({q: 'refsheet'})">refsheet</v-chip>
           <v-chip color="secondary" @click="search({q: 'badge'})">badge</v-chip>
