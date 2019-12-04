@@ -1,15 +1,10 @@
 import Vue from 'vue'
 import {ArtStore, createStore} from '@/store'
-import {singleRegistry} from '@/store/singles/registry'
-import {listRegistry} from '@/store/lists/registry'
 import {mount, Wrapper} from '@vue/test-utils'
-import {profileRegistry} from '@/store/profiles/registry'
 import mockAxios from '@/__mocks__/axios'
-import {characterRegistry} from '@/store/characters/registry'
 import {genCharacter} from '@/store/characters/specs/fixtures'
-import {confirmAction, rq, rs, setViewer, vueSetup, vuetifySetup} from '@/specs/helpers'
+import {cleanUp, confirmAction, rq, rs, setViewer, vueSetup} from '@/specs/helpers'
 import {genUser} from '@/specs/helpers/fixtures'
-import {formRegistry} from '@/store/forms/registry'
 import {Character} from '@/store/characters/types/Character'
 import AcCharacterToolbar from '@/components/views/character/AcCharacterToolbar.vue'
 
@@ -20,25 +15,16 @@ describe('AcCharacterToolbar.vue', () => {
   let wrapper: Wrapper<Vue>
   let character: Character
   beforeEach(() => {
-    vuetifySetup()
     store = createStore()
-    singleRegistry.reset()
-    listRegistry.reset()
-    profileRegistry.reset()
-    characterRegistry.reset()
-    formRegistry.reset()
-    mockAxios.reset()
     character = genCharacter()
   })
   afterEach(() => {
-    if (wrapper) {
-      wrapper.destroy()
-    }
+    cleanUp(wrapper)
   })
   it('Mounts', async() => {
     setViewer(store, genUser())
     const mockResolve = jest.fn()
-    mockResolve.mockImplementationOnce(() => ({href: '/target/url/'}))
+    mockResolve.mockImplementation(() => ({href: '/target/url/'}))
     wrapper = mount(
       AcCharacterToolbar, {
         localVue,
@@ -63,7 +49,7 @@ describe('AcCharacterToolbar.vue', () => {
     setViewer(store, genUser())
     const mockResolve = jest.fn()
     const mockReplace = jest.fn()
-    mockResolve.mockImplementationOnce(() => ({href: '/target/url/'}))
+    mockResolve.mockImplementation(() => ({href: '/target/url/'}))
     wrapper = mount(
       AcCharacterToolbar, {
         localVue,

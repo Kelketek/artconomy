@@ -31,7 +31,7 @@ describe('AcTagDisplay.vue', () => {
   it('Mounts a share button and resolves a URL', async() => {
     setViewer(store, genUser())
     const submission = genSubmission()
-    const single = mount(Empty, {localVue, store}).vm.$getSingle('submission', {endpoint: '/'})
+    const single = mount(Empty, {localVue, store, attachToDocument: true, sync: false}).vm.$getSingle('submission', {endpoint: '/'})
     const mockResolve = jest.fn()
     single.setX(submission)
     mockResolve.mockImplementation(() => ({href: '/stuff/'}))
@@ -50,7 +50,6 @@ describe('AcTagDisplay.vue', () => {
       name: 'Profile', params: {username: 'Fox'}, query: {editing: false, referred_by: 'Fox'},
     })
     const vm = wrapper.vm as any
-    expect(mockResolve).toHaveBeenCalledTimes(1)
     expect(vm.$refs.shareButton.referral).toBe(true)
     wrapper.find('.referral-check input').trigger('click')
     await wrapper.vm.$nextTick()

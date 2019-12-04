@@ -224,6 +224,9 @@
                   </v-btn>
                   <v-alert v-else :value="true" type="info">This product is not currently available.</v-alert>
                 </v-flex>
+                <v-flex xs12>
+                  <ac-share-button :title="product.x.name" :block="true" />
+                </v-flex>
                 <v-flex xs12 text-xs-center>
                   <v-flex v-if="escrowDisabled">
                     <p>Artconomy gives no guarantees on products ordered without Artconomy Shield, and <em><strong>ordering is
@@ -360,9 +363,11 @@ import LinkedSubmission from '@/types/LinkedSubmission'
 import ProductCentric from '@/components/views/product/mixins/ProductCentric'
 import AcEscrowLabel from '@/components/AcEscrowLabel.vue'
 import {setMetaContent, textualize, updateTitle} from '@/lib'
+import AcShareButton from '@/components/AcShareButton.vue'
 
   @Component({
     components: {
+      AcShareButton,
       AcEscrowLabel,
       AcProductPreview,
       AcGalleryPreview,

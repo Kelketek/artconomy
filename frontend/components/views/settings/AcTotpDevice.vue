@@ -154,53 +154,52 @@ import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
 import {TOTPDevice} from '@/store/profiles/types/TOTPDevice'
 import {SingleController} from '@/store/singles/controller'
-import {HttpVerbs} from '@/store/forms/types/HttpVerbs'
 import AcForm from '@/components/wrappers/AcForm.vue'
 
-  @Component({
-    components: {AcForm, AcConfirmation, AcFormContainer},
-  })
+@Component({
+  components: {AcForm, AcConfirmation, AcFormContainer},
+})
 export default class AcTotpDevice extends mixins(Subjective) {
-    @Prop({required: true})
-    private device!: SingleController<TOTPDevice>
-    private QRCode = QRCode
-    private image: string = ''
-    private totpForm: FormController = null as unknown as FormController
-    private step: number = 1
+  @Prop({required: true})
+  private device!: SingleController<TOTPDevice>
+  private QRCode = QRCode
+  private image: string = ''
+  private totpForm: FormController = null as unknown as FormController
+  private step: number = 1
 
-    public created() {
-      const device = this.device.x as TOTPDevice
-      this.totpForm = this.$getForm(device.id + '_totpForm', {
-        method: 'patch',
-        endpoint: this.url,
-        fields: {code: {validators: [{name: 'required'}], value: null}},
-      })
-      this.renderCode()
+  public created() {
+    const device = this.device.x as TOTPDevice
+    this.totpForm = this.$getForm(device.id + '_totpForm', {
+      method: 'patch',
+      endpoint: this.url,
+      fields: {code: {validators: [{name: 'required'}], value: null}},
+    })
+    this.renderCode()
+  }
+
+  private renderCode() {
+    const device = this.device.x as TOTPDevice
+    if (device.confirmed) {
+      this.image = ''
+      return
     }
-
-    private renderCode() {
-      const device = this.device.x as TOTPDevice
-      if (device.confirmed) {
-        this.image = ''
-        return
+    QRCode.toString(device.config_url, {}, (err: Error, str: string) => {
+      if (err) {
+        console.error(err)
       }
-      QRCode.toString(device.config_url, {}, (err: Error, str: string) => {
-        if (err) {
-          console.error(err)
-        }
-        this.image = str
-      })
-    }
+      this.image = str
+    })
+  }
 
-    @Watch('url')
-    private updateEndpoints(val: string) {
-      this.totpForm.endpoint = val
-    }
+  @Watch('url')
+  private updateEndpoints(val: string) {
+    this.totpForm.endpoint = val
+  }
 
-    private get url() {
-      const device = this.device.x as TOTPDevice
-      return `/api/profiles/v1/account/${this.username}/auth/two-factor/totp/${device.id}/`
-    }
+  private get url() {
+    const device = this.device.x as TOTPDevice
+    return `/api/profiles/v1/account/${this.username}/auth/two-factor/totp/${device.id}/`
+  }
 }
 </script>
 
