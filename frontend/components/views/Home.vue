@@ -102,7 +102,7 @@
           <ac-load-section :controller="featured">\
             <template v-slot:default>
               <v-layout row wrap>
-                <v-flex xs4 pa-1 v-for="product in featuredList" :key="product.id">
+                <v-flex xs6 sm4 pa-1 v-for="product in featuredList" :key="product.id">
                   <ac-product-preview :product="product.x" :mini="true"></ac-product-preview>
                 </v-flex>
               </v-layout>
