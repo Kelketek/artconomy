@@ -47,7 +47,7 @@
             <v-layout column>
               <v-flex>
                 <v-layout row wrap>
-                  <v-flex xs5 sm3 md12 lg5>
+                  <v-flex xs5 sm3 md12 lg5 :class="{sm3: commissionLink, sm6: !commissionLink}">
                     <v-btn block @click="submission.patch({favorites: !submission.x.favorites})"
                            color="secondary">
                       <v-icon left v-if="favorite">favorite</v-icon>
@@ -55,13 +55,13 @@
                       Fav
                     </v-btn>
                   </v-flex>
-                  <v-flex xs7 sm4 lg7 md12>
+                  <v-flex xs7 lg7 md12 :class="{sm4: commissionLink, sm6: !commissionLink}">
                     <v-btn color="primary" block :href="submission.x.file.full" download>
                       <v-icon left>save_alt</v-icon>
                       Download
                     </v-btn>
                   </v-flex>
-                  <v-flex xs12 sm5 md12 v-if="submission.x.commission_link">
+                  <v-flex xs12 sm5 md12 v-if="commissionLink">
                     <v-btn color="green" block :to="submission.x.commission_link">
                       <v-icon left>palette</v-icon>
                       Commission the artist!
@@ -367,6 +367,13 @@ export default class SubmissionDetail extends mixins(Viewer, Formatting, Editabl
     public get tagControls() {
       const submission = this.submission.x as Submission
       return this.controls || submission.owner.taggable
+    }
+
+    public get commissionLink() {
+      if (!this.submission.x) {
+        return null
+      }
+      return this.submission.x.commission_link
     }
 
     public get locked() {
