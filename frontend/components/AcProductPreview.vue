@@ -1,5 +1,5 @@
 <template>
-  <v-responsive v-if="$vuetify.breakpoint.smAndDown || mini" aspect-ratio="1" :class="{unavailable}">
+  <v-responsive v-if="$vuetify.breakpoint.smAndDown || mini" aspect-ratio="1" :class="{unavailable}" class="product-preview">
     <v-card>
       <v-layout column class="pt-2">
         <v-layout row wrap>
@@ -16,7 +16,7 @@
               <v-flex xs12>
                 <v-layout row>
                   <v-flex grow><small>From</small> ${{product.price.toFixed(2)}}</v-flex>
-                  <v-flex shrink>
+                  <v-flex shrink class="no-underline">
                     <ac-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">
                       <v-tooltip bottom v-if="!product.escrow_disabled">
                         <v-icon slot="activator" color="green" class="pl-1" small>fa-shield</v-icon>
@@ -103,7 +103,7 @@
 
 <style>
   .product-preview a {
-    text-decoration: none;
+    text-decoration: none !important;
   }
 </style>
 

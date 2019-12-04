@@ -50,12 +50,12 @@
           <v-layout column>
             <v-flex text-xs-left>{{ submission.title }}</v-flex>
             <v-flex>
-              <v-layout row>
+              <v-layout row class="submission-stats">
                 <v-flex text-xs-left>
                   <v-icon>favorite</v-icon>
-                  {{ submission.favorite_count }}
+                  <span>{{ submission.favorite_count }}</span>
                   <v-icon>comment</v-icon>
-                  {{ submission.comment_count }}
+                  <span>{{ submission.comment_count }}</span>
                 </v-flex>
                 <slot name="stats-append"></slot>
               </v-layout>
@@ -72,7 +72,7 @@
     justify-content: center;
   }
   .submission a {
-    text-decoration: none;
+    text-decoration: none !important;
   }
 </style>
 

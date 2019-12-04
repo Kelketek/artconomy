@@ -42,6 +42,12 @@
   </v-card>
 </template>
 
+<style>
+  .character a {
+    text-decoration: none !important;
+  }
+</style>
+
 <script>
 import AcAsset from './AcAsset'
 import Viewer from '../mixins/viewer'
