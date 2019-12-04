@@ -41,6 +41,17 @@
                     You can change your content rating settings in your
                     <router-link :to="{name: 'Settings', params: {username: viewer.username}}">settings panel.</router-link>
                   </p>
+                  <p v-else-if="!terse">
+                    This piece is rated '{{ ratingText }}'. <br/>
+                    <span v-if="assetRating > 2">
+                      Content of this rating is only available to
+                      <router-link :to="{name: 'Login', params: {tabName: 'register'}}">registered users.</router-link>
+                    </span>
+                    <span v-else>
+                      You can change your content rating settings in the
+                      <router-link :to="{name: 'SessionSettings'}">settings panel.</router-link>
+                    </span>
+                  </p>
                 </div>
                 <div v-if="blacklisted.length" class="blacklist-info">
                   <p v-if="terse">This piece contains tags on your blacklist.</p>

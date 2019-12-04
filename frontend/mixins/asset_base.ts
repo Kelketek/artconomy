@@ -51,6 +51,12 @@ export default class AssetBase extends mixins(Viewer) {
     const viewer = this.viewer as User|AnonUser
     return this.tags.filter((n) => viewer.blacklist.includes(n))
   }
+  public get assetRating() {
+    if (!this.asset) {
+      return 0
+    }
+    return this.asset.rating
+  }
   public get permittedRating() {
     if (!this.asset) {
       return true
