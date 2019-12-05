@@ -12,6 +12,7 @@ import App from './App.vue'
 import {configureHooks, router} from './router'
 import {FormControllers} from '@/store/forms/registry'
 import {Shortcuts} from './plugins/shortcuts'
+import Bowser from 'bowser'
 // import './registerServiceWorker'
 import {formatSize} from './lib'
 import {Lists} from '@/store/lists/registry'
@@ -52,7 +53,18 @@ Vue.config.productionTip = false
 
 Vue.filter('formatSize', formatSize)
 
-if (process.env.NODE_ENV === 'production') {
+const browser = Bowser.getParser(window.navigator.userAgent)
+const isValidBrowser = browser.satisfies({
+  chrome: '>=70',
+  firefox: '>=68.3',
+  opera: '>=22',
+  safari: '>=12',
+  edge: '>=16',
+})
+
+const productionMode = process.env.NODE_ENV === 'production'
+
+if (productionMode && isValidBrowser) {
   // noinspection TypeScriptValidateJSTypes
   Sentry.init({
     dsn: 'https://8efd301a6c794f3e9a84e741edef2cfe@sentry.io/1406820',
@@ -63,6 +75,8 @@ if (process.env.NODE_ENV === 'production') {
       attachProps: true,
     })],
   })
+} else if (process.env.NODE_ENV === 'production') {
+  console.log('Unsupported browser. Automatic error reports will not be sent.')
 }
 
 const store = createStore()

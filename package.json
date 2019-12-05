@@ -26,6 +26,7 @@
     "@uppy/xhr-upload": "^1.0.2",
     "autosize": "^4.0.2",
     "axios": "^0.19.0",
+    "bowser": "^2.7.0",
     "core-js": "^3.3.2",
     "deep-equal": "^1.0.1",
     "flush-promises": "^1.0.2",

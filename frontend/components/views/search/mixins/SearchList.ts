@@ -28,9 +28,15 @@ export default class SearchList extends Vue {
     if (deepEqual(newParams, oldParams)) {
       return
     }
+    // I'm not entirely sure how, but this seems to create a situation, sometimes, where we no longer have the list.
+    // It might be that I'm reacting to something that destroys this component based on this change.
     this.list.params = newParams
-    this.list.reset().catch(this.searchForm.setErrors)
+    if (!(this.list && this.list.reset)) {
+      return
+    }
+    // My error logs say we sometimes end up with the query string attached to a nonsense place
     this.$router.replace({query: newParams})
+    this.list.reset().catch(this.searchForm.setErrors)
   }
   public created() {
     this.searchForm = this.$getForm('search')
