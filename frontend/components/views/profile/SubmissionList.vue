@@ -1,10 +1,11 @@
 <template>
-  <ac-paginated :list="list" :track-pages="trackPages">
+  <ac-paginated :list="list" :track-pages="trackPages" :ok-statuses="okStatuses">
     <v-flex xs4 sm3 lg2 v-for="submission in list.list" :key="submission.x.id">
       <ac-gallery-preview class="pa-1"
                           :submission="submission.x" :show-footer="false">
       </ac-gallery-preview>
     </v-flex>
+    <v-flex slot="failure" text-xs-center v-if="okStatuses"><p>{{failureMessage}}</p></v-flex>
   </ac-paginated>
 </template>
 
@@ -27,6 +28,10 @@ export default class SubmissionList extends mixins(Subjective) {
     public endpoint!: string
     @Prop({default: false})
     public trackPages!: false
+    @Prop({default: () => []})
+    public okStatuses!: number[]
+    @Prop({default: 'This content is disabled or unavailable.'})
+    public failureMessage!: string
     public list: ListController<Submission> = null as unknown as ListController<Submission>
     public created() {
       let listName = this.listName

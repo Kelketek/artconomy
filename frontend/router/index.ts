@@ -426,7 +426,10 @@ export const routes = [
           return {
             ...route.params,
             listName: 'favorites',
-            endpoint: `/api/profiles/v1/account/${route.params.username}/favorites/`}
+            endpoint: `/api/profiles/v1/account/${route.params.username}/favorites/`,
+            okStatuses: [403],
+            failureMessage: "This user's favorites are hidden.",
+          }
         },
       },
       {

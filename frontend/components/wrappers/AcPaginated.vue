@@ -20,6 +20,9 @@
               </slot>
             </v-layout>
           </template>
+          <template slot="failure">
+            <slot name="failure"/>
+          </template>
         </ac-load-section>
       </v-flex>
       <v-flex shrink text-xs-center>
@@ -37,15 +40,16 @@
 
 <script lang="ts">
 import Vue from 'vue'
-import Component from 'vue-class-component'
+import Component, {mixins} from 'vue-class-component'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import {ListController} from '@/store/lists/controller'
 import {Prop, Watch} from 'vue-property-decorator'
+import ErrorHandling from '@/mixins/ErrorHandling'
 
   @Component({
     components: {AcLoadSection},
   })
-export default class AcPaginated extends Vue {
+export default class AcPaginated extends mixins(ErrorHandling) {
     @Prop({default: true})
     public autoRun!: boolean
     @Prop({default: false})
@@ -54,6 +58,8 @@ export default class AcPaginated extends Vue {
     public pageVariable!: string
     @Prop({required: true})
     public list!: ListController<any>
+    @Prop({default: () => []})
+    public okStatuses!: number[]
     public prerendering = window.PRERENDERING || 0
 
     @Watch('list.currentPage')
@@ -76,7 +82,7 @@ export default class AcPaginated extends Vue {
         }
       }
       if (this.autoRun) {
-        this.list.firstRun().then()
+        this.list.firstRun().catch(this.statusOk(...this.okStatuses))
       }
     }
 }

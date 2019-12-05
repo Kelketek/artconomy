@@ -1,6 +1,6 @@
 <template>
   <fragment>
-    <v-btn color="primary" @click="showModal = true" :block="block">
+    <v-btn color="primary" @click="showModal = true" :block="block" class="share-button">
       <v-icon left>share</v-icon>
       Share
     </v-btn>
@@ -18,7 +18,7 @@
           />
         </v-flex>
         <v-flex text-xs-center xs12>
-          <v-btn color="purple" icon large @click="showQr = true"><v-icon>fa-qrcode</v-icon></v-btn>
+          <v-btn color="purple" icon large @click="showQr = true" class="qr-button"><v-icon>fa-qrcode</v-icon></v-btn>
           <v-btn color="red" icon large :href="`https://reddit.com/submit?url=${location}&title=${titleText}`"
                  rel="nofollow"
                  target="_blank">
@@ -43,7 +43,7 @@
           </v-btn>
         </v-flex>
       </v-layout>
-      <ac-expanded-property v-model="showQr">
+      <ac-expanded-property v-model="showQr" class="qr-modal">
         <v-layout row wrap>
           <v-flex class="text-xs-center" xs12>
             <div v-html="image" class="qrcode" v-if="image"></div>
@@ -99,6 +99,7 @@ export default class AcShareButton extends mixins(Dialog, Viewer) {
   @Watch('location', {immediate: true})
   public renderCode() {
     QRCode.toString(this.rawLocation, {}, (err: Error, str: string) => {
+      /* istanbul ignore if */
       if (err) {
         console.error(err)
       }

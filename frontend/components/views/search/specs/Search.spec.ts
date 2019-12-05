@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import {vueSetup} from '@/specs/helpers'
+import {cleanUp, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import {mount, Wrapper} from '@vue/test-utils'
 import Search from '@/components/views/search/Search.vue'
@@ -16,11 +16,6 @@ import CharacterHints from '@/components/views/search/hints/CharacterHints.vue'
 import ProfileHints from '@/components/views/search/hints/ProfileHints.vue'
 import searchSchema from '@/components/views/search/specs/fixtures'
 import {FormController} from '@/store/forms/form-controller'
-import {listRegistry} from '@/store/lists/registry'
-import {singleRegistry} from '@/store/singles/registry'
-import {profileRegistry} from '@/store/profiles/registry'
-import {characterRegistry} from '@/store/characters/registry'
-import {formRegistry} from '@/store/forms/registry'
 
 const localVue = vueSetup()
 localVue.use(Router)
@@ -31,11 +26,6 @@ let searchForm: FormController
 
 describe('Search.vue', () => {
   beforeEach(() => {
-    listRegistry.reset()
-    singleRegistry.reset()
-    profileRegistry.reset()
-    characterRegistry.reset()
-    formRegistry.reset()
     store = createStore()
     router = new Router({
       mode: 'history',
@@ -80,12 +70,10 @@ describe('Search.vue', () => {
         }],
       }],
     })
-    searchForm = mount(Empty, {localVue, store}).vm.$getForm('search', searchSchema())
+    searchForm = mount(Empty, {localVue, store, sync: false}).vm.$getForm('search', searchSchema())
   })
   afterEach(() => {
-    if (wrapper) {
-      wrapper.destroy()
-    }
+    cleanUp(wrapper)
   })
   it('Mounts', () => {
     wrapper = mount(Search, {localVue, store, router, sync: false, attachToDocument: true})

@@ -5,7 +5,7 @@ import Vuetify from 'vuetify'
 import {singleRegistry, Singles} from '@/store/singles/registry'
 import {profileRegistry, Profiles} from '@/store/profiles/registry'
 import {ArtStore, createStore} from '@/store'
-import {makeSpace, setViewer, vuetifySetup} from '@/specs/helpers'
+import {setViewer, vuetifySetup} from '@/specs/helpers'
 import {genUser} from '@/specs/helpers/fixtures'
 import mockAxios from '@/__mocks__/axios'
 import AcAsset from '@/components/AcAsset.vue'
@@ -39,7 +39,8 @@ describe('AcAsset.vue', () => {
   })
   it('Loads and previews an asset', async() => {
     setViewer(store, genUser())
-    wrapper = mount(AcAsset, {store, localVue, propsData: {asset: genSubmission(), thumbName: 'full'}})
+    wrapper = mount(AcAsset, {
+      store, localVue, stubs: ['router-link'], propsData: {asset: genSubmission(), thumbName: 'full'}})
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
     expect(vm.$refs.imgContainer.src).toBe('https://artconomy.vulpinity.com/media/art/2019/07/26/kairef-color.png')
@@ -123,6 +124,7 @@ describe('AcAsset.vue', () => {
     expect(vm.blacklisted).toEqual([])
     expect(vm.displayComponent).toBe(null)
     expect(vm.fullUrl).toBe('boop.jpg')
+    expect(vm.assetRating).toBe(0)
   })
   it('Handles an anonymous user', async() => {
     const viewer = genUser()

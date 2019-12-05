@@ -12,6 +12,7 @@ import moment from 'moment'
 import Router from 'vue-router'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import Order from '@/types/Order'
+import SessionSettings from '@/components/views/SessionSettings.vue'
 
 const localVue = vueSetup()
 localVue.use(Router)
@@ -58,6 +59,10 @@ describe('OrderDetail.vue', () => {
         name: 'TermsOfService',
         component: Empty,
         path: '/terms/',
+      }, {
+        name: 'SessionSettings',
+        component: Empty,
+        path: '/settings/session/',
       }, {
         name: 'CommissionAgreement',
         component: Empty,

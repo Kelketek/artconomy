@@ -370,6 +370,7 @@ export default class SubmissionDetail extends mixins(Viewer, Formatting, Editabl
     }
 
     public get commissionLink() {
+      /* istanbul ignore if */
       if (!this.submission.x) {
         return null
       }
