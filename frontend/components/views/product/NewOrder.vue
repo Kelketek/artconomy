@@ -189,6 +189,9 @@ export default class NewOrder extends mixins(ProductCentric, Formatting) {
     }
 
     public created() {
+      // The way we're constructed allows us to avoid refetching if we arrive through the product page, but
+      // leaves us in the same scroll position as we were. Fix that here.
+      window.scrollTo(0, 0)
       this.product.get()
       const viewer = this.viewer as User
       this.orderForm = this.$getForm(`product${this.productId}__order`, {
