@@ -191,7 +191,7 @@ export default class AcSampleEditor extends mixins(Subjective) {
       this.art = this.$getList(`${this.username}-art`, {
         endpoint: `/api/profiles/v1/account/${this.username}/submissions/art/`,
       })
-      this.art.firstRun().catch()
+      this.art.firstRun().catch(() => {})
     }
 }
 </script>

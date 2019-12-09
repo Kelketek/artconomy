@@ -945,7 +945,7 @@ export default class OrderDetail extends mixins(Viewer, Formatting, Ratings) {
     this.revisions = this.$getList(
       `order${this.orderId}__revisions`, {endpoint: `${this.url}revisions/`, paginated: false}
     )
-    this.revisions.firstRun().catch()
+    this.revisions.firstRun().catch(() => {})
     const outputUrl = `${this.url}outputs/`
     this.outputs = this.$getList(`order${this.orderId}__outputs`, {endpoint: outputUrl})
     this.addSubmission = this.$getForm(`order${this.orderId}__addSubmission`, {

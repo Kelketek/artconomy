@@ -1,7 +1,6 @@
 import {State as RootState} from '../state'
 import {ActionTree, GetterTree, MutationTree} from 'vuex'
 import {artCall} from '@/lib'
-import {ListModule} from '@/store/lists'
 import {NotificationsState} from '@/store/notifications/types/NotificationsState'
 import {NotificationStats} from '@/store/notifications/types/NotificationStats'
 
@@ -39,7 +38,7 @@ const actions: ActionTree<NotificationsState, RootState> = {
     artCall({url: '/api/profiles/v1/data/notifications/unread/', method: 'get'}
     ).then((response: NotificationStats) => {
       commit('setStats', response)
-    }).catch()
+    }).catch(() => {})
   },
 }
 
