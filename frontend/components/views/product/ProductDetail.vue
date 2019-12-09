@@ -240,7 +240,7 @@
                 <v-flex xs12 text-xs-center v-if="editing">
                   <v-btn color="warning" block @click="showWorkload = true">
                     <v-icon left>settings</v-icon>
-                    Workload Settings
+                    Workload
                   </v-btn>
                   <ac-expanded-property v-model="showWorkload" :large="true">
                     <span slot="title">Edit Workload Settings</span>
