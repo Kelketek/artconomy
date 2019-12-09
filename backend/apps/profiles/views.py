@@ -141,7 +141,6 @@ class ArtistProfileSettings(RetrieveUpdateAPIView):
     def get_object(self):
         user = get_object_or_404(User, username__iexact=self.kwargs['username'], guest=False)
         self.check_object_permissions(self.request, user)
-        count_hit(self.request, user)
         return user.artist_profile
 
     def patch(self, *args, **kwargs):

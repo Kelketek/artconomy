@@ -292,6 +292,9 @@ class ArtistProfile(Model):
     dwolla_url = URLField(blank=True, default='')
     commission_info = CharField(max_length=5000, blank=True, default='')
 
+    def __str__(self):
+        return f'Artist profile for {self.user and self.user.username}'
+
 
 @receiver(pre_save, sender=ArtistProfile)
 def sync_escrow_status(sender, instance, **kwargs):
@@ -330,6 +333,9 @@ class Submission(ImageModel, HitsMixin):
 
     comment_view_permissions = [SubmissionViewPermission]
     comment_permissions = [IsRegistered, SubmissionViewPermission, SubmissionCommentPermission]
+
+    def __str__(self):
+        return f'{repr(self.title)} owned by {self.owner and self.owner.username}'
 
     def can_reference_asset(self, user):
         return user == self.owner
