@@ -184,7 +184,7 @@ export const routes = [
         path: 'sales',
         component: NotificationsList,
         props(route: VueRouter) {
-          return {subset: 'sales', autoRead: false}
+          return {subset: 'sales', autoRead: true}
         },
       },
     ],

@@ -4,6 +4,7 @@ from uuid import UUID
 
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
+from hitcount.models import HitCount, Hit
 from rest_framework import status
 
 from apps.lib.models import (
@@ -297,6 +298,54 @@ class TestSubmission(APITestCase):
             f'/api/profiles/v1/submission/{submission.id}/',
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_submission_ip4_hitcount(self):
+        user = UserFactory.create()
+        self.login(user)
+        submission = SubmissionFactory.create(
+            title='Stuff',
+            caption='Things',
+            rating=GENERAL,
+            private=False,
+        )
+
+        self.client.credentials(REMOTE_ADDR='34.56.73.23')
+        response = self.client.get(
+            f'/api/profiles/v1/submission/{submission.id}/?view=true',
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        count = HitCount.objects.get(
+            object_pk=submission.id, content_type=ContentType.objects.get_for_model(Submission),
+        )
+        self.assertEqual(count.hits, 1)
+        hits = Hit.objects.all()
+        self.assertEqual(hits.count(), 1)
+        hit = hits[0]
+        self.assertEqual(hit.ip, '34.56.73.23')
+
+    def test_submission_ip6_hitcount(self):
+        user = UserFactory.create()
+        self.login(user)
+        submission = SubmissionFactory.create(
+            title='Stuff',
+            caption='Things',
+            rating=GENERAL,
+            private=False,
+        )
+
+        self.client.credentials(REMOTE_ADDR='2001:0db8:85a3:0000:0000:8a2e:0370:7334')
+        response = self.client.get(
+            f'/api/profiles/v1/submission/{submission.id}/?view=true',
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        count = HitCount.objects.get(
+            object_pk=submission.id, content_type=ContentType.objects.get_for_model(Submission),
+        )
+        self.assertEqual(count.hits, 1)
+        hits = Hit.objects.all()
+        self.assertEqual(hits.count(), 1)
+        hit = hits[0]
+        self.assertEqual(hit.ip, '2001:0db8:85a3:0000:0000:8a2e:0370:7334')
 
     def test_create_submission(self):
         user = UserFactory.create()

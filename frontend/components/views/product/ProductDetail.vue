@@ -291,7 +291,7 @@
               <ac-load-section :controller="recommended">
                 <template v-slot:default>
                   <v-layout row wrap>
-                    <v-flex xs6 sm4 md3 lg2 v-for="product in recommended.list" :key="product.x.id" class="pa-1">
+                    <v-flex xs6 sm4 md3 v-for="product in recommended.list" :key="product.x.id" class="pa-1">
                       <ac-product-preview :product="product.x"></ac-product-preview>
                     </v-flex>
                   </v-layout>
@@ -494,7 +494,7 @@ export default class ProductDetail extends mixins(ProductCentric, Formatting, Ed
       this.samples = this.$getList(`product__${this.productId}__samples`, {endpoint: `${this.url}samples/`})
       this.samples.firstRun()
       this.recommended = this.$getList(
-        `product__${this.productId}__recommendations`, {endpoint: `${this.url}recommendations/`, pageSize: 6}
+        `product__${this.productId}__recommendations`, {endpoint: `${this.url}recommendations/`, pageSize: 12}
       )
       this.recommended.firstRun()
       this.subjectHandler.artistProfile.get().catch(this.setError)
