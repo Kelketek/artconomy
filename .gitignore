@@ -280,7 +280,7 @@ backend/apps/sales/tests/fixtures/**
 backend/apps/profiles/tests/fixtures/**
 backend/apps/lib/tests/fixtures/**
 
-// Mock axios local install to try to fix promise catch-rethrow issue.
+# Mock axios local install to try to fix promise catch-rethrow issue.
 jest-mock-promise/**
 
 # Let's not shoot ourselves in the foot.
