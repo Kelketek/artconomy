@@ -112,6 +112,10 @@ export function mention(state: StateCore, silent?: boolean) {
   max = state.posMax
 
   while (pos < max && /[-a-zA-Z_0-9]/.test(state.src[pos])) { pos++ }
+  if (pos - start === 1) {
+    // Hanging @.
+    return
+  }
 
   marker = state.src.slice(start, pos)
 
