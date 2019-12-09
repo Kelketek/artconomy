@@ -229,7 +229,7 @@ export default class CharacterDetail extends mixins(Subjective, CharacterCentric
       this.character.profile.get().catch(this.setError)
       this.character.attributes.firstRun().then()
       this.character.colors.firstRun().then()
-      this.character.sharedWith.firstRun().then()
+      this.character.sharedWith.firstRun().catch(this.statusOk(403))
       this.character.recommended.firstRun().then()
     }
 }
