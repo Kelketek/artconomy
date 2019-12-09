@@ -1,6 +1,8 @@
 import re
 
+import hitcount
 from dateutil import parser
+from hitcount.utils import get_ip
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
@@ -56,3 +58,11 @@ class IPMiddleware:
         else:
             request.ip4 = None
         return self.get_response(request)
+
+# Monkey patch the hitcount detector
+def patched_get_ip(request):
+    if not request.ip4:
+        return get_ip(request)
+    return request.ip4
+
+hitcount.views.get_ip = patched_get_ip
