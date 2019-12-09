@@ -200,7 +200,7 @@ export class ListModule<T extends {}> {
         if (state.paginated) {
           /* istanbul ignore if */
           if (response.results === undefined) {
-            console.error(response)
+            console.error(response, state.endpoint)
             throw Error('No results list. Are you sure this endpoint is paginated?')
           }
           commit('setPageItems', response.results)
