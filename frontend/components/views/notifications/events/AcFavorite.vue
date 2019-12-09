@@ -1,6 +1,6 @@
 <template>
   <v-list-tile avatar>
-    <router-link :to="{name: 'Submission', params: {'assetID': event.target.id}}">
+    <router-link :to="{name: 'Submission', params: {'submissionId': event.target.id}}">
       <v-list-tile-avatar>
         <img :src="$img(event.target, 'notification', true)" alt=""/>
       </v-list-tile-avatar>
