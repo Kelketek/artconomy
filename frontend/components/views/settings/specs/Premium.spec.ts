@@ -2,21 +2,24 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import {mount, Wrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
-import {cleanUp, confirmAction, flushPromises, rq, rs, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, confirmAction, createVuetify, flushPromises, rq, rs, setViewer, vueSetup} from '@/specs/helpers'
 import {genUser} from '@/specs/helpers/fixtures'
 import Premium from '@/components/views/settings/Premium.vue'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
-import mockAxios from '@/__mocks__/axios';
+import mockAxios from '@/__mocks__/axios'
+import {Vuetify} from 'vuetify/types'
 
 const localVue = vueSetup()
 localVue.use(Router)
 let store: ArtStore
 let router: Router
 let wrapper: Wrapper<Vue>
+let vuetify: Vuetify
 
 describe('Premium.vue', () => {
   beforeEach(() => {
     store = createStore()
+    vuetify = createVuetify()
     router = new Router({
       mode: 'history',
       routes: [{
@@ -46,7 +49,7 @@ describe('Premium.vue', () => {
     user.portrait_paid_through = '2019-07-26T15:04:41.078424-05:00'
     setViewer(store, user)
     wrapper = mount(Premium, {
-      localVue, store, router, propsData: {username: 'Fox'}, attachToDocument: true, sync: false,
+      localVue, store, router, vuetify, propsData: {username: 'Fox'}, attachToDocument: true, sync: false,
     })
     const vm = wrapper.vm as any
     await vm.$nextTick()
@@ -63,7 +66,7 @@ describe('Premium.vue', () => {
     user.landscape_paid_through = '2019-07-26T15:04:41.078424-05:00'
     setViewer(store, user)
     wrapper = mount(Premium, {
-      localVue, store, router, propsData: {username: 'Fox'}, attachToDocument: true, sync: false,
+      localVue, store, router, vuetify, propsData: {username: 'Fox'}, attachToDocument: true, sync: false,
     })
     const vm = wrapper.vm as any
     await vm.$nextTick()
@@ -77,7 +80,7 @@ describe('Premium.vue', () => {
     user.portrait_paid_through = '2019-07-26T15:04:41.078424-05:00'
     setViewer(store, user)
     wrapper = mount(Premium, {
-      localVue, store, router, propsData: {username: 'Fox'}, attachToDocument: true, sync: false,
+      localVue, store, router, vuetify, propsData: {username: 'Fox'}, attachToDocument: true, sync: false,
     })
     const vm = wrapper.vm as any
     await vm.$nextTick()

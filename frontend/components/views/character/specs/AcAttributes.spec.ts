@@ -1,48 +1,28 @@
 import Vue from 'vue'
-import Vuex from 'vuex'
-import Vuetify from 'vuetify'
+import {Vuetify} from 'vuetify'
 import {ArtStore, createStore} from '@/store'
-import {singleRegistry, Singles} from '@/store/singles/registry'
-import {listRegistry, Lists} from '@/store/lists/registry'
-import {createLocalVue, mount, Wrapper} from '@vue/test-utils'
-import {profileRegistry, Profiles} from '@/store/profiles/registry'
+import {mount, Wrapper} from '@vue/test-utils'
 import mockAxios from '@/__mocks__/axios'
-import {characterRegistry, Characters} from '@/store/characters/registry'
 import {genCharacter} from '@/store/characters/specs/fixtures'
-import {flushPromises, makeSpace, rs, setViewer, vuetifySetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, flushPromises, rs, setViewer, vueSetup} from '@/specs/helpers'
 import {genUser} from '@/specs/helpers/fixtures'
-import {FormControllers, formRegistry} from '@/store/forms/registry'
 import {Character} from '@/store/characters/types/Character'
 import AcAttributes from '@/components/views/character/AcAttributes.vue'
 
-Vue.use(Vuetify)
-Vue.use(Vuex)
-const localVue = createLocalVue()
-localVue.use(Singles)
-localVue.use(Lists)
-localVue.use(Profiles)
-localVue.use(Characters)
-localVue.use(FormControllers)
+const localVue = vueSetup()
 
 describe('AcAttributes.vue', () => {
   let store: ArtStore
   let wrapper: Wrapper<Vue>
   let character: Character
+  let vuetify: Vuetify
   beforeEach(() => {
-    vuetifySetup()
     store = createStore()
-    singleRegistry.reset()
-    listRegistry.reset()
-    profileRegistry.reset()
-    characterRegistry.reset()
-    formRegistry.reset()
-    mockAxios.reset()
     character = genCharacter()
+    vuetify = createVuetify()
   })
   afterEach(() => {
-    if (wrapper) {
-      wrapper.destroy()
-    }
+    cleanUp(wrapper)
   })
   it('Mounts an attribute listing', async() => {
     setViewer(store, genUser())
@@ -50,6 +30,7 @@ describe('AcAttributes.vue', () => {
       AcAttributes, {
         localVue,
         store,
+        vuetify,
         propsData: {username: 'Fox', characterName: 'Kai'},
         mocks: {$route: {name: 'Character', params: {username: 'Fox', characterName: 'Kai'}, query: {}}},
         stubs: ['router-link'],
@@ -73,6 +54,7 @@ describe('AcAttributes.vue', () => {
       AcAttributes, {
         localVue,
         store,
+        vuetify,
         propsData: {username: 'Fox', characterName: 'Kai'},
         mocks: {$route: {name: 'Character', params: {username: 'Fox', characterName: 'Kai'}, query: {editing: 'true'}}},
         stubs: ['router-link'],
@@ -97,6 +79,7 @@ describe('AcAttributes.vue', () => {
       AcAttributes, {
         localVue,
         store,
+        vuetify,
         propsData: {username: 'Fox', characterName: 'Kai'},
         mocks: {$route: {name: 'Character', params: {username: 'Fox', characterName: 'Kai'}, query: {editing: 'true'}}},
         stubs: ['router-link'],

@@ -1,24 +1,14 @@
 <template>
-  <v-list-tile avatar>
-    <router-link :to="{name: 'Sale', params: {orderId: event.target.id, username: viewer.username}}">
-      <v-badge left overlap>
-        <span slot="badge" v-if="!notification.read">*</span>
-        <v-list-tile-avatar>
-          <img :src="$img(event.data.display, 'notification', true)" alt="">
-        </v-list-tile-avatar>
-      </v-badge>
-    </router-link>
-    <v-list-tile-content>
-      <v-list-tile-title>
-        <router-link :to="{name: 'Sale', params: {orderId: event.target.id, username: viewer.username}}">
-          Sale #{{event.target.id}}
-        </router-link>
-      </v-list-tile-title>
-      <v-list-tile-sub-title>
-        {{message}}
-      </v-list-tile-sub-title>
-    </v-list-tile-content>
-  </v-list-tile>
+  <ac-base-notification :asset-link="assetLink" :notification="notification">
+    <span slot="title">
+      <router-link :to="assetLink">
+        Sale #{{event.target.id}}
+      </router-link>
+    </span>
+    <span slot="subtitle">
+      <router-link :to="assetLink">{{message}}</router-link>
+    </span>
+  </ac-base-notification>
 </template>
 
 <style scoped>
@@ -30,6 +20,7 @@
 
 <script>
 import Notification from '../mixins/notification'
+import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification'
 
 const ORDER_STATUSES = {
   1: 'has been placed, and is awaiting your acceptance!',
@@ -45,6 +36,7 @@ const ORDER_STATUSES = {
 
 export default {
   name: 'ac-sale-update',
+  components: {AcBaseNotification},
   mixins: [Notification],
   data() {
     return {}
@@ -52,6 +44,9 @@ export default {
   computed: {
     url() {
       return `/api/sales/v1/order/${this.event.target.id}/`
+    },
+    assetLink() {
+      return {name: 'Sale', params: {orderId: this.event.target.id, username: this.viewer.username}}
     },
     message() {
       return ORDER_STATUSES[this.event.target.status]

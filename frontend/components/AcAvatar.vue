@@ -1,33 +1,37 @@
 <template>
-  <v-flex shrink text-xs-center class="ac-avatar">
-    <v-layout column>
-      <v-flex>
+  <div class="ac-avatar shrink text-center flex">
+    <div class="flex">
+      <div class="flex">
         <ac-link :to="profileLink">
           <v-avatar>
             <img alt="" :src="person.avatar_url" v-if="person">
             <v-icon v-else>person</v-icon>
           </v-avatar>
         </ac-link>
-      </v-flex>
-      <v-flex v-if="showName" class="text-xs-center">
+      </div>
+      <div v-if="showName" class="text-center flex">
         <v-tooltip bottom v-if="person && person.is_superuser">
-          <v-icon slot="activator" small class="green--text">stars</v-icon>
+          <template v-slot:activator="{on}">
+            <v-icon small class="green--text" v-on="on">stars</v-icon>&nbsp;
+          </template>
           <span>Admin</span>
         </v-tooltip>
         <v-tooltip bottom v-else-if="person && person.is_staff">
-          <v-icon slot="activator" small class="yellow--text">stars</v-icon>
+          <template v-slot:activator="{on}">
+            <v-icon v-on="on" small class="yellow--text">stars</v-icon>&nbsp;
+          </template>
           <span>Staff</span>
         </v-tooltip>
-        <ac-link :to="profileLink" v-else>{{ displayName }}</ac-link>
-      </v-flex>
-      <v-flex v-if="person && removable">
+        <ac-link :to="profileLink">{{ displayName }}</ac-link>
+      </div>
+      <div v-if="person && removable" class="flex">
         <v-btn small icon color="danger" @click="$emit('remove')"><v-icon small>close</v-icon></v-btn>
-      </v-flex>
+      </div>
       <router-link :to="{name: 'Ratings', params: {username: person.username}}" v-if="showRating && person && person.stars">
-        <v-rating dense small half-increments :value="person.stars" color="primary"></v-rating>
+        <v-rating dense small half-increments :value="person.stars" color="primary" />
       </router-link>
-    </v-layout>
-  </v-flex>
+    </div>
+  </div>
 </template>
 
 <style>

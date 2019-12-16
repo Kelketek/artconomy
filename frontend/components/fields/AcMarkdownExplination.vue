@@ -8,161 +8,161 @@
       scrollable
   >
     <v-card tile class="markdown-help">
-      <v-toolbar card dark color="primary">
+      <v-toolbar flat dark color="primary">
         <v-btn icon @click.native="toggle = false" dark id="close-markdown-help">
           <v-icon>close</v-icon>
         </v-btn>
         <v-toolbar-title>Formatting Help</v-toolbar-title>
         <v-spacer/>
         <v-toolbar-items>
-          <v-btn dark flat @click.prevent="toggle=false">Close</v-btn>
+          <v-btn dark text @click.prevent="toggle=false">Close</v-btn>
         </v-toolbar-items>
       </v-toolbar>
       <v-card-text>
-        <v-container fluid class="py-0" grid-list-lg>
-        <v-layout row wrap v-if="display" class="markdown-rendered-help">
-          <v-flex xs12 text-xs-center>
+        <v-container fluid class="py-0">
+        <v-row no-gutters   v-if="display" class="markdown-rendered-help">
+          <v-col class="text-center" cols="12" >
             <h1>Artconomy uses Markdown!</h1>
             <p>Markdown is a language for enhancing your posts with links, lists, and other goodies. Here are some
               examples!</p>
-          </v-flex>
-          <v-flex xs12 md6 lg5 offset-lg1>
-            <v-layout row wrap>
-              <v-flex xs12>
+          </v-col>
+          <v-col cols="12" md="6" lg="5" offset-lg="1">
+            <v-row no-gutters  >
+              <v-col cols="12">
                 <span class="title">Basics</span>
                 <v-divider></v-divider>
-              </v-flex>
-              <v-flex xs6><v-subheader class="markdown-table-header">Write</v-subheader></v-flex>
-              <v-flex xs6><v-subheader class="markdown-table-header">...and get</v-subheader></v-flex>
+              </v-col>
+              <v-col cols="6"><v-subheader class="markdown-table-header">Write</v-subheader></v-col>
+              <v-col cols="6"><v-subheader class="markdown-table-header">...and get</v-subheader></v-col>
               <template v-for="(item, index) in basicsItems">
-                <v-flex xs12 :key="index">
-                  <v-layout row wrap>
-                    <v-flex xs12 class="py-0"><v-divider></v-divider></v-flex>
-                    <v-flex xs6><kbd>{{item.input}}</kbd></v-flex>
-                    <v-flex xs6 v-html="mdRenderInline(item.input)"></v-flex>
-                  </v-layout>
-                </v-flex>
+                <v-col cols="12" :key="index">
+                  <v-row no-gutters  >
+                    <v-col cols="12" class="py-0"><v-divider></v-divider></v-col>
+                    <v-col cols="6"><kbd>{{item.input}}</kbd></v-col>
+                    <v-col cols="6" v-html="mdRenderInline(item.input)"></v-col>
+                  </v-row>
+                </v-col>
               </template>
-            </v-layout>
-          </v-flex>
-          <v-flex xs12 md6 lg5>
-            <v-layout row wrap>
-              <v-flex xs12>
+            </v-row>
+          </v-col>
+          <v-col cols="12" md="6" lg="5">
+            <v-row no-gutters  >
+              <v-col cols="12">
                 <span class="title">Links</span>
                 <v-divider></v-divider>
-              </v-flex>
-              <v-flex xs7 md8 lg7><v-subheader class="markdown-table-header">Write</v-subheader></v-flex>
-              <v-flex xs5 md4 lg5><v-subheader class="markdown-table-header">...and get</v-subheader></v-flex>
+              </v-col>
+              <v-col cols="7" md="8" lg="7"><v-subheader class="markdown-table-header">Write</v-subheader></v-col>
+              <v-col cols="5" md="4" lg="5"><v-subheader class="markdown-table-header">...and get</v-subheader></v-col>
               <template v-for="(item, index) in linksItems">
-                <v-flex xs12 :key="index">
-                  <v-layout row wrap>
-                    <v-flex xs12 class="py-0"><v-divider></v-divider></v-flex>
-                    <v-flex xs7 md8 lg7><kbd>{{item.input}}</kbd></v-flex>
-                    <v-flex xs5 md4 lg5 v-html="mdRenderInline(item.input)"></v-flex>
-                  </v-layout>
-                </v-flex>
+                <v-col cols="12" :key="index">
+                  <v-row no-gutters  >
+                    <v-col cols="12" class="py-0"><v-divider></v-divider></v-col>
+                    <v-col cols="7" md="8" lg="7"><kbd>{{item.input}}</kbd></v-col>
+                    <v-col cols="5" md="4" lg="5" v-html="mdRenderInline(item.input)"></v-col>
+                  </v-row>
+                </v-col>
               </template>
-            </v-layout>
-          </v-flex>
-          <v-flex xs12 hide-sm-and-down>
+            </v-row>
+          </v-col>
+          <v-col class="hide-sm-and-down" cols="12" >
             <v-divider></v-divider>
-          </v-flex>
-          <v-flex xs12 md6 lg5 offset-lg1>
-            <v-layout row wrap>
-              <v-flex xs12>
+          </v-col>
+          <v-col cols="12" md="6" lg="5" offset-lg="1">
+            <v-row no-gutters  >
+              <v-col cols="12">
                 <span class="title">Blocks</span>
                 <v-divider></v-divider>
-              </v-flex>
-              <v-flex xs12>
+              </v-col>
+              <v-col cols="12">
                 <p>You can create paragraphs and other 'blocks' of text. Paragraphs should be separated by two newlines.
                   <strong>One new line is not enough!</strong>
                 </p>
-              </v-flex>
-              <v-flex xs6><v-subheader class="markdown-table-header">Write</v-subheader></v-flex>
-              <v-flex xs6><v-subheader class="markdown-table-header">...and get</v-subheader></v-flex>
+              </v-col>
+              <v-col cols="6"><v-subheader class="markdown-table-header">Write</v-subheader></v-col>
+              <v-col cols="6"><v-subheader class="markdown-table-header">...and get</v-subheader></v-col>
               <template v-for="(item, index) in blocksItems">
-                <v-flex xs12 :key="index">
-                  <v-layout row wrap>
-                    <v-flex xs12 class="py-0"><v-divider></v-divider></v-flex>
-                    <v-flex xs6><kbd>{{item.input}}</kbd></v-flex>
-                    <v-flex xs6 v-html="mdRender(item.input)"></v-flex>
-                  </v-layout>
-                </v-flex>
+                <v-col cols="12" :key="index">
+                  <v-row no-gutters  >
+                    <v-col cols="12" class="py-0"><v-divider></v-divider></v-col>
+                    <v-col cols="6"><kbd>{{item.input}}</kbd></v-col>
+                    <v-col cols="6" v-html="mdRender(item.input)"></v-col>
+                  </v-row>
+                </v-col>
               </template>
-            </v-layout>
-          </v-flex>
-          <v-flex xs12 md6 lg4 offset-lg1>
-            <v-layout row wrap>
-              <v-flex xs12>
+            </v-row>
+          </v-col>
+          <v-col cols="12" md="6" lg="4" offset-lg="1">
+            <v-row no-gutters  >
+              <v-col cols="12">
                 <span class="title">Lists</span>
                 <v-divider></v-divider>
-              </v-flex>
-              <v-flex xs12>
+              </v-col>
+              <v-col cols="12">
                 <p>You can create numbered and bullet lists. <strong>You don't need to track the numbers yourself!</strong></p>
                 <p>You can also nest paragraphs and other lists by indenting four spaces for each level.</p>
-              </v-flex>
-              <v-flex xs7 md8 lg7><v-subheader class="markdown-table-header">Write</v-subheader></v-flex>
-              <v-flex xs5 md4 lg5><v-subheader class="markdown-table-header">...and get</v-subheader></v-flex>
+              </v-col>
+              <v-col cols="7" md="8" lg="7"><v-subheader class="markdown-table-header">Write</v-subheader></v-col>
+              <v-col cols="5" md="4" lg="5"><v-subheader class="markdown-table-header">...and get</v-subheader></v-col>
               <template v-for="(item, index) in listsItems">
-                <v-flex xs12 :key="index">
-                  <v-layout row wrap>
-                    <v-flex xs12 class="py-0"><v-divider></v-divider></v-flex>
-                    <v-flex xs7 md8 lg7><kbd>{{item.input}}</kbd></v-flex>
-                    <v-flex xs5 md4 lg5 v-html="mdRender(item.input)"></v-flex>
-                  </v-layout>
-                </v-flex>
+                <v-col cols="12" :key="index">
+                  <v-row no-gutters  >
+                    <v-col cols="12" class="py-0"><v-divider></v-divider></v-col>
+                    <v-col cols="7" md="8" lg="7"><kbd>{{item.input}}</kbd></v-col>
+                    <v-col cols="5" md="4" lg="5" v-html="mdRender(item.input)"></v-col>
+                  </v-row>
+                </v-col>
               </template>
-            </v-layout>
-          </v-flex>
-          <v-flex xs12 md5 offset-lg1>
-            <v-layout row wrap>
-              <v-flex xs12>
+            </v-row>
+          </v-col>
+          <v-col cols="12" md="5" offset-lg="1">
+            <v-row no-gutters  >
+              <v-col cols="12">
                 <span class="title">Headers</span>
                 <v-divider></v-divider>
-              </v-flex>
-              <v-flex xs12>
+              </v-col>
+              <v-col cols="12">
                 <p>You can add headers to your post. Please use these sparingly.
                   <strong>You must start a header at the beginning of a line for this to work.</strong></p>
-              </v-flex>
-              <v-flex xs7 md8 lg7><v-subheader class="markdown-table-header">Write</v-subheader></v-flex>
-              <v-flex xs5 md4 lg5><v-subheader class="markdown-table-header">...and get</v-subheader></v-flex>
+              </v-col>
+              <v-col cols="7" md="8" lg="7"><v-subheader class="markdown-table-header">Write</v-subheader></v-col>
+              <v-col cols="5" md="4" lg="5"><v-subheader class="markdown-table-header">...and get</v-subheader></v-col>
               <template v-for="(item, index) in headersItems">
-                <v-flex xs12 :key="index">
-                  <v-layout row wrap>
-                    <v-flex xs12 class="py-0"><v-divider></v-divider></v-flex>
-                    <v-flex xs7 md8 lg7><kbd>{{item.input}}</kbd></v-flex>
-                    <v-flex xs5 md4 lg5 v-html="mdRender(item.input)"></v-flex>
-                  </v-layout>
-                </v-flex>
+                <v-col cols="12" :key="index">
+                  <v-row no-gutters  >
+                    <v-col cols="12" class="py-0"><v-divider></v-divider></v-col>
+                    <v-col cols="7" md="8" lg="7"><kbd>{{item.input}}</kbd></v-col>
+                    <v-col cols="5" md="4" lg="5" v-html="mdRender(item.input)"></v-col>
+                  </v-row>
+                </v-col>
               </template>
-            </v-layout>
-          </v-flex>
-          <v-flex xs12 md5>
-            <v-layout row wrap>
-              <v-flex xs12>
+            </v-row>
+          </v-col>
+          <v-col cols="12" md="5">
+            <v-row no-gutters  >
+              <v-col cols="12">
                 <span class="title">Extras</span>
                 <v-divider></v-divider>
-              </v-flex>
-              <v-flex xs12>
+              </v-col>
+              <v-col cols="12">
                 <p>Here are a few extra tricks you might find handy!</p>
-              </v-flex>
-              <v-flex xs7 md8 lg7><v-subheader class="markdown-table-header">Write</v-subheader></v-flex>
-              <v-flex xs5 md4 lg5><v-subheader class="markdown-table-header">...and get</v-subheader></v-flex>
+              </v-col>
+              <v-col cols="7" md="8" lg="7"><v-subheader class="markdown-table-header">Write</v-subheader></v-col>
+              <v-col cols="5" md="4" lg="5"><v-subheader class="markdown-table-header">...and get</v-subheader></v-col>
               <template v-for="(item, index) in extrasItems">
-                <v-flex xs12 :key="index">
-                  <v-layout row wrap>
-                    <v-flex xs12 class="py-0"><v-divider></v-divider></v-flex>
-                    <v-flex xs7 md8 lg7><kbd>{{item.input}}</kbd></v-flex>
-                    <v-flex xs5 md4 lg5 v-html="mdRender(item.input)"></v-flex>
-                  </v-layout>
-                </v-flex>
+                <v-col cols="12" :key="index">
+                  <v-row no-gutters  >
+                    <v-col cols="12" class="py-0"><v-divider></v-divider></v-col>
+                    <v-col cols="7" md="8" lg="7"><kbd>{{item.input}}</kbd></v-col>
+                    <v-col cols="5" md="4" lg="5" v-html="mdRender(item.input)"></v-col>
+                  </v-row>
+                </v-col>
               </template>
-            </v-layout>
-          </v-flex>
-          <v-flex xs12 text-xs-center mt-4 class="hidden-xs-only">
+            </v-row>
+          </v-col>
+          <v-col cols="12" class="hidden-xs-only text-center mt-4">
             <v-btn color="primary" @click.prevent="toggle = false">Back</v-btn>
-          </v-flex>
-        </v-layout>
+          </v-col>
+        </v-row>
         </v-container>
       </v-card-text>
     </v-card>

@@ -1,10 +1,10 @@
 <template xmlns:v-slot="http://www.w3.org/1999/XSL/Transform">
   <v-container fluid class="pa-0">
-    <v-layout row wrap>
-      <v-flex xs12>
+    <v-row dense>
+      <v-col class="shrink">
         <v-tooltip top v-if="controls">
           <template v-slot:activator="{on}">
-            <v-btn color="primary" icon v-on="on" @click="editTags" class="edit-button"><v-icon>fa-tags</v-icon></v-btn>
+            <v-btn color="primary" fab small v-on="on" @click="editTags" class="edit-button"><v-icon>fa-tags</v-icon></v-btn>
           </template>
           Edit Tags
         </v-tooltip>
@@ -14,37 +14,43 @@
           </template>
           Tags
         </v-tooltip>
-        <v-chip v-for="tag in displayedTags" :key="tag" @click="setSearch(tag)" class="tag-search-link">
+      </v-col>
+      <v-col v-for="tag in displayedTags" :key="tag" class="shrink">
+        <v-chip @click="setSearch(tag)" class="tag-search-link">
           <ac-link :to="tagLink(tag)">{{tag}}</ac-link>
         </v-chip>
-        <v-chip v-if="moreTags" @click="showMore" class="show-more-tags">...</v-chip>
-        <span v-if="displayedTags.length === 0">
+      </v-col>
+      <v-col v-if="moreTags" class="shrink">
+        <v-chip @click="showMore" class="show-more-tags">...</v-chip>
+      </v-col>
+      <v-col v-if="displayedTags.length === 0">
+        <span>
           &nbsp;
           <span v-if="controls">No tags set. Please add some!</span>
           <span v-else>No tags set.</span>
         </span>
-      </v-flex>
+      </v-col>
       <ac-expanded-property v-model="toggle">
         <span slot="title">All Tags</span>
-        <v-layout row wrap>
-          <v-flex xs12 v-if="editing && controls">
-            <ac-patch-field field-type="ac-tag-field" :patcher="patcher"></ac-patch-field>
-          </v-flex>
-          <v-flex xs12 v-show="!editing">
+        <v-row>
+          <v-col cols="12" v-if="editing && controls">
+            <ac-patch-field field-type="ac-tag-field" :patcher="patcher" />
+          </v-col>
+          <v-col cols="12" v-show="!editing">
             <v-chip v-for="tag in patcher.rawValue" :key="tag">
               <ac-link :to="tagLink(tag)">{{tag}}</ac-link>
             </v-chip>
-          </v-flex>
-        </v-layout>
+          </v-col>
+        </v-row>
         <template slot="actions">
-          <v-switch v-model="editing" label="Editing" v-if="controls"></v-switch>
-          <v-spacer></v-spacer>
+          <v-switch v-model="editing" label="Editing" v-if="controls" />
+          <v-spacer />
           <v-btn color="primary" type="submit">
             Done
           </v-btn>
         </template>
       </ac-expanded-property>
-    </v-layout>
+    </v-row>
   </v-container>
 </template>
 

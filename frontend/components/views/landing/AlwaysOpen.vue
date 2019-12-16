@@ -1,85 +1,85 @@
 <template>
   <v-container fluid class="pa-0">
     <v-img src="/static/images/banner.jpg" :aspect-ratio="16/9" max-height="250px">
-      <v-layout
-        align-center
-        column
-        justify-center
-        fill-height
-        class="hero-text"
+      <v-row no-gutters
+        align="center"
+        justify="center"
+                class="hero-text fill-height"
       >
-        <h1 class="display-2 font-weight-thin mb-3">Always Open</h1>
-        <h2>24/7 Commissions</h2>
-      </v-layout>
+        <v-col>
+          <h1 class="display-2 font-weight-thin mb-3">Always Open</h1>
+          <h2>24/7 Commissions</h2>
+        </v-col>
+      </v-row>
     </v-img>
     <v-container>
-      <v-layout row wrap class="py-2">
-        <v-flex xs12 md4 text-xs-center d-flex>
-          <v-layout row>
-            <v-flex grow pa-1>
-              <v-layout row wrap>
-                <v-flex xs6 md12 order-xs2 order-md1>
+      <v-row no-gutters   class="py-2">
+        <v-col class="text-center d-flex" cols="12" md="4" >
+          <v-row no-gutters >
+            <v-col class="grow pa-1" >
+              <v-row no-gutters  >
+                <v-col cols="6" md="12" order="2" order-md="1">
                   <v-img src="/static/images/laptop.png" max-height="20vh" contain></v-img>
-                </v-flex>
-                <v-flex xs6 md12 order-xs1 order-md2>
-                  <v-layout row justify-content align-center fill-height>
-                    <v-flex pa-1>
+                </v-col>
+                <v-col cols="6" md="12" order="1" order-md="2">
+                  <v-row no-gutters class="justify-content fill-height"  align="center" >
+                    <v-col class="pa-1" >
                       Find an artist <strong>TODAY</strong>. No more hunting through journals and tweets!
-                    </v-flex>
-                  </v-layout>
-                </v-flex>
-              </v-layout>
-            </v-flex>
-            <v-flex shrink class="hidden-sm-and-down">
+                    </v-col>
+                  </v-row>
+                </v-col>
+              </v-row>
+            </v-col>
+            <v-col class="hidden-sm-and-down shrink">
               <v-divider vertical></v-divider>
-            </v-flex>
-          </v-layout>
-        </v-flex>
-        <v-flex xs12 md4 text-xs-center d-flex>
-          <v-layout row>
-            <v-flex grow pa-1>
-              <v-layout row wrap>
-                <v-flex xs6 md12>
+            </v-col>
+          </v-row>
+        </v-col>
+        <v-col class="text-center d-flex" cols="12" md="4" >
+          <v-row no-gutters >
+            <v-col class="grow pa-1" >
+              <v-row no-gutters  >
+                <v-col cols="6" md="12">
                   <v-img src="/static/images/fingerpainting.png" max-height="20vh" contain></v-img>
-                </v-flex>
-                <v-flex xs6 md12 pa-1>
-                  <v-layout row justify-content align-center fill-height>
-                    <v-flex>
+                </v-col>
+                <v-col class="pa-1" cols="6" md="12" >
+                  <v-row no-gutters class="justify-content fill-height"  align="center" >
+                    <v-col>
                       <p>Get updates on your commission's progress, with revisions and direct messages.</p>
-                    </v-flex>
-                  </v-layout>
-                </v-flex>
-              </v-layout>
-            </v-flex>
-            <v-flex shrink class="hidden-sm-and-down">
+                    </v-col>
+                  </v-row>
+                </v-col>
+              </v-row>
+            </v-col>
+            <v-col class="hidden-sm-and-down shrink">
               <v-divider vertical></v-divider>
-            </v-flex>
-          </v-layout>
-        </v-flex>
-        <v-flex xs12 md4 text-xs-center d-flex>
-          <v-layout row>
-            <v-flex grow pa-1>
-              <v-layout row wrap>
-                <v-flex xs6 md12 order-xs2 order-md1>
+            </v-col>
+          </v-row>
+        </v-col>
+        <v-col class="text-center d-flex" cols="12" md="4" >
+          <v-row no-gutters >
+            <v-col class="grow pa-1" >
+              <v-row no-gutters  >
+                <v-col cols="6" md="12" order="2" order-md="1">
                   <v-img src="/static/images/fridge.png" max-height="20vh" contain></v-img>
-                </v-flex>
-                <v-flex xs6 md12 pa-1 order-xs1 order-md2>
-                  <v-layout row justify-content align-center fill-height>
-                    <v-flex>
+                </v-col>
+                <v-col class="pa-1" cols="6" md="12" order="1" order-md="2">
+                  <v-row no-gutters class="justify-content fill-height"  align="center" >
+                    <v-col>
                       Show off your commissions-- make a profile and gallery for your characters!
-                    </v-flex>
-                  </v-layout>
-                </v-flex>
-              </v-layout>
-            </v-flex>
-          </v-layout>
-        </v-flex>
-      </v-layout>
-      <v-layout row wrap>
-        <v-flex xs12 text-xs-center>
+                    </v-col>
+                  </v-row>
+                </v-col>
+              </v-row>
+            </v-col>
+          </v-row>
+        </v-col>
+      </v-row>
+      <v-row no-gutters  >
+        <v-col class="text-center" cols="12" >
           <v-btn large color="green" @click="search" :block="$vuetify.breakpoint.xsOnly" class="commission-cta"><v-icon left>palette</v-icon>Commission an Artist Now!</v-btn>
-        </v-flex>
-      </v-layout>
+        </v-col>
+      </v-row>
     </v-container>
   </v-container>
 </template>

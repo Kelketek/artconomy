@@ -1,34 +1,30 @@
-import {vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, vueSetup} from '@/specs/helpers'
 import {mount, Wrapper} from '@vue/test-utils'
 import Vue from 'vue'
 import {ArtStore, createStore} from '@/store'
-import {singleRegistry} from '@/store/singles/registry'
-import {profileRegistry} from '@/store/profiles/registry'
-import {listRegistry} from '@/store/lists/registry'
 import AcShareManager from '@/components/AcShareManager.vue'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
+import {Vuetify} from 'vuetify'
 
 const localVue = vueSetup()
 let wrapper: Wrapper<Vue>
 let store: ArtStore
+let vuetify: Vuetify
 
 describe('AcShareManager.vue', () => {
   beforeEach(() => {
     store = createStore()
-    singleRegistry.reset()
-    listRegistry.reset()
-    profileRegistry.reset()
+    vuetify = createVuetify()
   })
   afterEach(() => {
-    if (wrapper) {
-      wrapper.destroy()
-    }
+    cleanUp(wrapper)
   })
   it('Mounts', async() => {
     const list = mount(Empty, {localVue, store}).vm.$getList('stuff', {endpoint: '/'})
     wrapper = mount(AcShareManager, {
       localVue,
       store,
+      vuetify,
       propsData: {controller: list},
       sync: false,
       attachToDocument: true,

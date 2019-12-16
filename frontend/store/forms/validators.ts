@@ -127,17 +127,14 @@ export function cardExp(field: FieldController) {
     // Handled by required validator.
     return []
   }
-  if (!/^(\d)+$/.test(field.value)) {
-    return ['Numbers only, please.']
-  }
-  if (!/^(\d){4}$/.test(field.value)) {
-    return ['Please enter full expiration date.']
+  if (!/^(\d)+\/(\d)+$/.test(field.value)) {
+    return ['Please write the date in the format MM/YY, like 08/22.']
   }
   const now = new Date()
   const currentYear = now.getFullYear()
   const yearFloor = currentYear - (currentYear % 100)
   const currentMonth = now.getMonth()
-  const year = parseInt(field.value.slice(2), 10) + yearFloor
+  const year = parseInt(field.value.slice(3), 10) + yearFloor
   // Months are zero indexed.
   const month = parseInt(field.value.slice(0, 2), 10) - 1
   if ((month > 11) || (month < 0)) {

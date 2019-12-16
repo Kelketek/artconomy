@@ -1,46 +1,37 @@
 import Vue from 'vue'
-import Vuex from 'vuex'
-import {createLocalVue, mount, Wrapper} from '@vue/test-utils'
-import Vuetify from 'vuetify'
-import {singleRegistry, Singles} from '@/store/singles/registry'
-import {profileRegistry, Profiles} from '@/store/profiles/registry'
+import {mount, Wrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
-import {setViewer, vuetifySetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, setViewer, vueSetup} from '@/specs/helpers'
 import {genUser} from '@/specs/helpers/fixtures'
-import mockAxios from '@/__mocks__/axios'
 import AcAsset from '@/components/AcAsset.vue'
 import {genSubmission} from '@/store/submissions/specs/fixtures'
-import {Lists} from '@/store/lists/registry'
+import {Vuetify} from 'vuetify/types'
 
-Vue.use(Vuex)
-Vue.use(Vuetify)
-const localVue = createLocalVue()
-localVue.use(Singles)
-localVue.use(Lists)
-localVue.use(Profiles)
+const localVue = vueSetup()
 let store: ArtStore
 let wrapper: Wrapper<Vue>
+let vuetify: Vuetify
 
 const mockError = jest.spyOn(console, 'error')
 
 describe('AcAsset.vue', () => {
   beforeEach(() => {
     store = createStore()
-    mockAxios.reset()
-    profileRegistry.reset()
-    singleRegistry.reset()
-    vuetifySetup()
+    vuetify = createVuetify()
     mockError.mockClear()
   })
   afterEach(() => {
-    if (wrapper) {
-      wrapper.destroy()
-    }
+    cleanUp(wrapper)
   })
   it('Loads and previews an asset', async() => {
     setViewer(store, genUser())
     wrapper = mount(AcAsset, {
-      store, localVue, stubs: ['router-link'], propsData: {asset: genSubmission(), thumbName: 'full'}})
+      store,
+      localVue,
+      vuetify,
+      stubs: ['router-link'],
+      propsData: {asset: genSubmission(), thumbName: 'full'},
+    })
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
     expect(vm.$refs.imgContainer.src).toBe('https://artconomy.vulpinity.com/media/art/2019/07/26/kairef-color.png')
@@ -52,7 +43,11 @@ describe('AcAsset.vue', () => {
     viewer.sfw_mode = true
     setViewer(store, viewer)
     wrapper = mount(AcAsset, {
-      store, localVue, stubs: ['router-link'], propsData: {asset: submission, thumbName: 'full'}}
+      store,
+      localVue,
+      vuetify,
+      stubs: ['router-link'],
+      propsData: {asset: submission, thumbName: 'full'}},
     )
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
@@ -67,7 +62,11 @@ describe('AcAsset.vue', () => {
     viewer.rating = 1
     setViewer(store, viewer)
     wrapper = mount(AcAsset, {
-      store, localVue, stubs: ['router-link'], propsData: {asset: submission, thumbName: 'full'}}
+      store,
+      localVue,
+      vuetify,
+      stubs: ['router-link'],
+      propsData: {asset: submission, thumbName: 'full'}}
     )
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
@@ -84,7 +83,11 @@ describe('AcAsset.vue', () => {
       viewer.rating = 1
       setViewer(store, viewer)
       wrapper = mount(AcAsset, {
-        store, localVue, stubs: ['router-link'], propsData: {asset: submission, thumbName: 'full', aspectRatio: null}}
+        store,
+        localVue,
+        vuetify,
+        stubs: ['router-link'],
+        propsData: {asset: submission, thumbName: 'full', aspectRatio: null}},
       )
       await wrapper.vm.$nextTick()
       const vm = wrapper.vm as any
@@ -97,7 +100,11 @@ describe('AcAsset.vue', () => {
     viewer.rating = 1
     setViewer(store, viewer)
     wrapper = mount(AcAsset, {
-      store, localVue, stubs: ['router-link'], propsData: {asset: null, thumbName: 'full'}}
+      store,
+      localVue,
+      vuetify,
+      stubs: ['router-link'],
+      propsData: {asset: null, thumbName: 'full'}},
     )
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
@@ -114,7 +121,11 @@ describe('AcAsset.vue', () => {
     viewer.rating = 1
     setViewer(store, viewer)
     wrapper = mount(AcAsset, {
-      store, localVue, stubs: ['router-link'], propsData: {asset: null, thumbName: 'full', fallbackImage: 'boop.jpg'}}
+      store,
+      localVue,
+      vuetify,
+      stubs: ['router-link'],
+      propsData: {asset: null, thumbName: 'full', fallbackImage: 'boop.jpg'}},
     )
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
@@ -133,7 +144,11 @@ describe('AcAsset.vue', () => {
     viewer.rating = 1
     setViewer(store, viewer)
     wrapper = mount(AcAsset, {
-      store, localVue, stubs: ['router-link'], propsData: {asset: null, thumbName: 'full'}}
+      store,
+      localVue,
+      vuetify,
+      stubs: ['router-link'],
+      propsData: {asset: null, thumbName: 'full'}},
     )
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
@@ -147,7 +162,11 @@ describe('AcAsset.vue', () => {
     submission.file = {full: 'https://example.com/thing.mp4', __type__: 'data:swf'}
     setViewer(store, viewer)
     wrapper = mount(AcAsset, {
-      store, localVue, stubs: ['router-link'], propsData: {asset: submission, thumbName: 'full'}}
+      store,
+      localVue,
+      vuetify,
+      stubs: ['router-link'],
+      propsData: {asset: submission, thumbName: 'full'}},
     )
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
@@ -159,7 +178,11 @@ describe('AcAsset.vue', () => {
     const submission = genSubmission()
     setViewer(store, viewer)
     wrapper = mount(AcAsset, {
-      store, localVue, stubs: ['router-link'], propsData: {asset: submission, thumbName: 'thumbnail'}}
+      store,
+      localVue,
+      vuetify,
+      stubs: ['router-link'],
+      propsData: {asset: submission, thumbName: 'thumbnail'}},
     )
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
@@ -173,7 +196,11 @@ describe('AcAsset.vue', () => {
     submission.preview = {thumbnail: 'https://example.com/thing.jpg'}
     setViewer(store, viewer)
     wrapper = mount(AcAsset, {
-      store, localVue, stubs: ['router-link'], propsData: {asset: submission, thumbName: 'thumbnail'}}
+      store,
+      localVue,
+      vuetify,
+      stubs: ['router-link'],
+      propsData: {asset: submission, thumbName: 'thumbnail'}},
     )
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
@@ -187,8 +214,12 @@ describe('AcAsset.vue', () => {
     submission.file = {full: 'https://example.com/thing.doc', __type__: 'data:word'}
     setViewer(store, viewer)
     wrapper = mount(AcAsset, {
-      store, localVue, stubs: ['router-link'], propsData: {asset: submission, thumbName: 'thumbnail'}}
-    )
+      store,
+      localVue,
+      vuetify,
+      stubs: ['router-link'],
+      propsData: {asset: submission, thumbName: 'thumbnail'},
+    })
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
     expect(vm.$refs.imgContainer.src).toBe(
@@ -201,7 +232,11 @@ describe('AcAsset.vue', () => {
     submission.file = {full: 'https://example.com/thing.svg', __type__: 'data:image'}
     setViewer(store, viewer)
     wrapper = mount(AcAsset, {
-      store, localVue, stubs: ['router-link'], propsData: {asset: submission, thumbName: 'thumbnail'}}
+      store,
+      localVue,
+      vuetify,
+      stubs: ['router-link'],
+      propsData: {asset: submission, thumbName: 'thumbnail'}},
     )
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
@@ -217,6 +252,7 @@ describe('AcAsset.vue', () => {
     wrapper = mount(AcAsset, {
       store,
       localVue,
+      vuetify,
       stubs: ['router-link'],
       propsData: {asset: submission, thumbName: 'thumbnail'},
       sync: false,
@@ -240,6 +276,7 @@ describe('AcAsset.vue', () => {
     wrapper = mount(AcAsset, {
       store,
       localVue,
+      vuetify,
       stubs: ['router-link'],
       propsData: {asset: submission, thumbName: 'thumbnail'},
       sync: false,

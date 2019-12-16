@@ -1,18 +1,16 @@
 import Vue from 'vue'
-import {cleanUp, flushPromises, rq, rs, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, flushPromises, makeSpace, rq, rs, setViewer, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
-import {singleRegistry} from '@/store/singles/registry'
-import {listRegistry} from '@/store/lists/registry'
-import {profileRegistry} from '@/store/profiles/registry'
 import {mount, Wrapper} from '@vue/test-utils'
 import {genCard, genUser} from '@/specs/helpers/fixtures'
 import Purchase from '@/components/views/settings/payment/Purchase.vue'
-import mockAxios from '@/__mocks__/axios';
-import {flush} from '@sentry/browser'
+import mockAxios from '@/__mocks__/axios'
+import {Vuetify} from 'vuetify'
 
 const localVue = vueSetup()
 let store: ArtStore
 let wrapper: Wrapper<Vue>
+let vuetify: Vuetify
 
 function emptyForm() {
   return {
@@ -31,10 +29,8 @@ function emptyForm() {
 
 describe('Purchase.vue', () => {
   beforeEach(() => {
+    vuetify = createVuetify()
     store = createStore()
-    singleRegistry.reset()
-    listRegistry.reset()
-    profileRegistry.reset()
   })
   afterEach(() => {
     cleanUp(wrapper)
@@ -42,13 +38,13 @@ describe('Purchase.vue', () => {
   it('Mounts', async() => {
     setViewer(store, genUser())
     wrapper = mount(Purchase, {
-      localVue, store, propsData: {username: 'Fox'}, sync: false, attachToDocument: true,
+      localVue, store, vuetify, propsData: {username: 'Fox'}, sync: false, attachToDocument: true,
     })
   })
   it('Updates the endpoints when the username is changed', async() => {
     setViewer(store, genUser())
     wrapper = mount(Purchase, {
-      localVue, store, propsData: {username: 'Fox'}, sync: false, attachToDocument: true,
+      localVue, store, vuetify, propsData: {username: 'Fox'}, sync: false, attachToDocument: true,
     })
     const vm = wrapper.vm as any
     expect(vm.cards.endpoint).toBe('/api/sales/v1/account/Fox/cards/')
@@ -61,7 +57,7 @@ describe('Purchase.vue', () => {
     user.landscape = true
     setViewer(store, user)
     wrapper = mount(Purchase, {
-      localVue, store, propsData: {username: 'Fox'}, sync: false, attachToDocument: true,
+      localVue, store, vuetify, propsData: {username: 'Fox'}, sync: false, attachToDocument: true,
     })
     const vm = wrapper.vm as any
     vm.cards.setList([genCard({id: 1, primary: true}), genCard({id: 2}), genCard({id: 4})])
@@ -86,7 +82,7 @@ describe('Purchase.vue', () => {
     user.landscape = true
     setViewer(store, user)
     wrapper = mount(Purchase, {
-      localVue, store, propsData: {username: 'Fox'}, sync: false, attachToDocument: true,
+      localVue, store, vuetify, propsData: {username: 'Fox'}, sync: false, attachToDocument: true,
     })
     const vm = wrapper.vm as any
     vm.cards.setList([genCard({id: 1, primary: true}), genCard({id: 2}), genCard({id: 4})])
@@ -113,7 +109,7 @@ describe('Purchase.vue', () => {
     user.landscape = true
     setViewer(store, user)
     wrapper = mount(Purchase, {
-      localVue, store, propsData: {username: 'Fox'}, sync: false, attachToDocument: true,
+      localVue, store, vuetify, propsData: {username: 'Fox'}, sync: false, attachToDocument: true,
     })
     const vm = wrapper.vm as any
     vm.cards.setList([genCard({id: 1, primary: true}), genCard({id: 2}), genCard({id: 4})])

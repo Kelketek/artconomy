@@ -1,34 +1,24 @@
 import Vue from 'vue'
-import Vuex from 'vuex'
-import Vuetify from 'vuetify'
-import {createLocalVue, mount, Wrapper} from '@vue/test-utils'
+import {Vuetify} from 'vuetify'
+import {mount, Wrapper} from '@vue/test-utils'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import {ArtStore, createStore} from '@/store'
-import {Singles} from '@/store/singles/registry'
 import AcRefColor from '@/components/views/character/AcRefColor.vue'
-import {setViewer, vuetifySetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, setViewer, vueSetup} from '@/specs/helpers'
 import {genUser} from '@/specs/helpers/fixtures'
-import {Profiles} from '@/store/profiles/registry'
-import {Lists} from '@/store/lists/registry'
 
-Vue.use(Vuetify)
-const localVue = createLocalVue()
-localVue.use(Vuex)
-localVue.use(Singles)
-localVue.use(Lists)
-localVue.use(Profiles)
+const localVue = vueSetup()
 
 describe('AcRefColor.vue', () => {
   let store: ArtStore
   let wrapper: Wrapper<Vue>
+  let vuetify: Vuetify
   beforeEach(() => {
     store = createStore()
-    vuetifySetup()
+    vuetify = createVuetify()
   })
   afterEach(() => {
-    if (wrapper) {
-      wrapper.destroy()
-    }
+    cleanUp(wrapper)
   })
   it('Mounts', async() => {
     setViewer(store, genUser())
@@ -39,6 +29,7 @@ describe('AcRefColor.vue', () => {
       propsData: {color, username: 'Fox'},
       localVue,
       store,
+      vuetify,
       sync: false,
       mocks: {
         $route: {name: 'Character', params: {}, query: {}},
@@ -54,6 +45,7 @@ describe('AcRefColor.vue', () => {
       propsData: {color, username: 'Fox'},
       localVue,
       store,
+      vuetify,
       sync: false,
       mocks: {
         $route: {name: 'Character', params: {}, query: {}},

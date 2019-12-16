@@ -1,24 +1,26 @@
 <template>
   <ac-load-section :controller="controller">
-    <v-layout row wrap>
-      <v-tooltip top v-if="editable">
-        <template v-slot:activator="{on}">
-          <v-btn v-on="on" @click="toggle=true" color="secondary" icon><v-icon>palette</v-icon></v-btn>
-        </template>
-        Edit Artists
-      </v-tooltip>
-      <v-tooltip top v-else>
-        <template v-slot:activator="{on}">
-          <v-icon>palette</v-icon>
-        </template>
-        Artists
-      </v-tooltip>
-      <v-flex v-if="controller.empty" d-flex>
-        <v-layout row wrap justify-content align-center>
-          <v-flex>No artists tagged.<span v-if="editable"></span></v-flex>
-        </v-layout>
-      </v-flex>
-      <ac-avatar v-for="artist in controller.list" :user="artist.x.user" :key="artist.x.id" class="px-1"></ac-avatar>
+    <v-row dense>
+      <v-col class="shrink">
+        <v-tooltip top v-if="editable">
+          <template v-slot:activator="{on}">
+            <v-btn v-on="on" @click="toggle=true" color="secondary" fab small><v-icon>palette</v-icon></v-btn>
+          </template>
+          Edit Artists
+        </v-tooltip>
+        <v-tooltip top v-else>
+          <template v-slot:activator="{on}">
+            <v-icon>palette</v-icon>
+          </template>
+          Artists
+        </v-tooltip>
+      </v-col>
+      <v-col v-if="controller.empty" align-self="center">
+        No artists tagged.
+      </v-col>
+      <v-col class="shrink" v-for="artist in controller.list" :key="artist.x.id">
+        <ac-avatar :user="artist.x.user" />
+      </v-col>
       <ac-expanded-property v-model="toggle" v-if="editable">
         <span slot="title">Artists</span>
         <ac-related-manager
@@ -26,9 +28,9 @@
             item-key="user"
         >
           <template v-slot:preview="{item}">
-            <v-flex xs4 sm3 md2 lg1>
+            <v-col cols="4" sm="3" md="2" lg="1">
               <ac-avatar :user="item.x.user" :removable="true" @remove="item.delete().catch(tagArtist.setErrors)"/>
-            </v-flex>
+            </v-col>
           </template>
           <template v-slot:default="{filter}">
             <ac-bound-field
@@ -38,7 +40,7 @@
           </template>
         </ac-related-manager>
       </ac-expanded-property>
-    </v-layout>
+    </v-row>
   </ac-load-section>
 </template>
 

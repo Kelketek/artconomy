@@ -1,77 +1,79 @@
 <template>
-  <v-container fluid grid-list-sm py-0>
-    <v-flex xs12 sm8 offset-sm2 md6 offset-md3 lg4 offset-lg4>
-      <v-subheader v-if="firstCard">New Card</v-subheader>
-      <v-layout row wrap>
-        <v-flex xs12 sm6>
-          <ac-bound-field
+  <v-container class="py-0" fluid>
+    <v-row no-gutters>
+      <v-col cols="12" sm="8" offset-sm="2" md="6" offset-md="3" lg="4" offset-lg="4">
+        <v-subheader v-if="firstCard">New Card</v-subheader>
+        <v-row no-gutters  >
+          <v-col cols="12" sm="6">
+            <ac-bound-field
               :field="ccForm.fields.first_name" label="First Name"
-          ></ac-bound-field>
-        </v-flex>
-        <v-flex xs12 sm6>
-          <ac-bound-field
+            />
+          </v-col>
+          <v-col cols="12" sm="6">
+            <ac-bound-field
               :field="ccForm.fields.last_name"
               label="Last Name"
-          ></ac-bound-field>
-        </v-flex>
-        <v-flex xs12 class="card-type-selector">
-          <v-layout class="text-xs-center">
-            <v-flex><v-icon :class="{picked: ccType === 'visa'}">fa-cc-visa</v-icon></v-flex>
-            <v-flex><v-icon :class="{picked: ccType === 'mastercard'}">fa-cc-mastercard</v-icon></v-flex>
-            <v-flex><v-icon :class="{picked: ccType === 'discover'}">fa-cc-discover</v-icon></v-flex>
-            <v-flex><v-icon :class="{picked: ccType === 'amex'}">fa-cc-amex</v-icon></v-flex>
-            <v-flex><v-icon :class="{picked: ccType === 'diners-club'}">fa-cc-diners-club</v-icon></v-flex>
-          </v-layout>
-        </v-flex>
-        <v-flex xs8>
-          <ac-bound-field
+            />
+          </v-col>
+          <v-col cols="12" class="card-type-selector">
+            <v-row no-gutters class="text-center">
+              <v-col><v-icon :class="{picked: ccType === 'visa'}">fa-cc-visa</v-icon></v-col>
+              <v-col><v-icon :class="{picked: ccType === 'mastercard'}">fa-cc-mastercard</v-icon></v-col>
+              <v-col><v-icon :class="{picked: ccType === 'discover'}">fa-cc-discover</v-icon></v-col>
+              <v-col><v-icon :class="{picked: ccType === 'amex'}">fa-cc-amex</v-icon></v-col>
+              <v-col><v-icon :class="{picked: ccType === 'diners-club'}">fa-cc-diners-club</v-icon></v-col>
+            </v-row>
+          </v-col>
+          <v-col cols="8">
+            <ac-bound-field
               :field="ccForm.fields.number"
               label="Card Number"
               placeholder="#### #### #### ####"
-              :mask="hints.mask"
-          ></ac-bound-field>
-        </v-flex>
-        <v-flex xs4>
-          <ac-bound-field
+              v-mask="hints.mask"
+            />
+          </v-col>
+          <v-col cols="4">
+            <ac-bound-field
               :field="ccForm.fields.cvv"
               label="CVV"
               :hint="hints.cvv"
-          ></ac-bound-field>
-        </v-flex>
-        <v-flex xs6>
-          <ac-bound-field
+            />
+          </v-col>
+          <v-col cols="6">
+            <ac-bound-field
               :field="ccForm.fields.exp_date"
               label="Exp Date"
-              mask="##/##"
+              v-mask="'##/##'"
               placeholder="MM/YY"
-          ></ac-bound-field>
-        </v-flex>
-        <v-flex xs6>
-          <ac-bound-field
+            />
+          </v-col>
+          <v-col cols="6">
+            <ac-bound-field
               :field="ccForm.fields.zip"
               label="Zip/Postal Code"
-          ></ac-bound-field>
-        </v-flex>
-        <v-flex xs12>
-          <ac-bound-field fieldType="v-autocomplete" :field="ccForm.fields.country" :items="countryOptions">
-          </ac-bound-field>
-        </v-flex>
-        <v-flex xs12 sm6 v-if="isRegistered && showSave">
-          <ac-bound-field
+            />
+          </v-col>
+          <v-col cols="12">
+            <ac-bound-field fieldType="v-autocomplete" :field="ccForm.fields.country" :items="countryOptions">
+            </ac-bound-field>
+          </v-col>
+          <v-col cols="12" sm="6" v-if="isRegistered && showSave">
+            <ac-bound-field
               fieldType="v-checkbox"
               label="Save Card"
               :field="ccForm.fields.save_card"
-          ></ac-bound-field>
-        </v-flex>
-        <v-flex xs12 :class="{sm6: showSave}" v-if="!firstCard && isRegistered">
-          <ac-bound-field
+            />
+          </v-col>
+          <v-col cols="12" :class="{sm6: showSave}" v-if="!firstCard && isRegistered">
+            <ac-bound-field
               fieldType="v-checkbox"
               label="Make this my default card"
               :field="ccForm.fields.make_primary"
-          ></ac-bound-field>
-        </v-flex>
-      </v-layout>
-    </v-flex>
+            />
+          </v-col>
+        </v-row>
+      </v-col>
+    </v-row>
   </v-container>
 </template>
 
@@ -98,8 +100,9 @@ import Component, {mixins} from 'vue-class-component'
 import {cardType, CardType} from '@/store/forms/validators'
 import Viewer from '@/mixins/viewer'
 import {cardHelperMap} from '@/lib'
+import {mask} from 'vue-the-mask'
 
-@Component({components: {AcBoundField, AcFormContainer}})
+@Component({components: {AcBoundField, AcFormContainer}, directives: {mask}})
 export default class AcNewCard extends mixins(Viewer) {
   @Prop({default: false})
   public firstCard!: boolean

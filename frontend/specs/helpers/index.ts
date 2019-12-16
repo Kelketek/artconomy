@@ -32,6 +32,7 @@ import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import {ArtStore} from '@/store'
 import Router from 'vue-router'
 import {HttpVerbs} from '@/store/forms/types/HttpVerbs'
+import {Shortcuts} from '@/plugins/shortcuts'
 
 export interface ExtraData {
   status?: number,
@@ -140,23 +141,14 @@ export function makeSpace() {
 export function vueSetup() {
   // Create a localVue with the most common parameters needed for testing our components.
   Vue.use(Vuex)
-  Vue.use(Vuetify, {
-    theme: {
-      primary: colors.blue,
-      secondary: colors.purple,
-      danger: colors.red,
-      darkBase: colors.grey,
-    },
-    options: {
-      customProperties: true,
-    },
-  })
+  Vue.use(Vuetify)
   const localVue = createLocalVue()
   localVue.use(Singles)
   localVue.use(Lists)
   localVue.use(Profiles)
   localVue.use(FormControllers)
   localVue.use(Characters)
+  localVue.use(Shortcuts)
   vuetifySetup()
   // We won't use the Router in all tests, but we always have these modifications when we do.
   // @ts-ignore
@@ -167,6 +159,29 @@ export function vueSetup() {
     Router.prototype.replace = saneNav(Router.prototype.replace)
   }
   return localVue
+}
+
+export function createVuetify() {
+  // @ts-ignore
+  return new Vuetify({
+    icons: {
+      iconfont: 'mdiSvg',
+    },
+    theme: {
+      dark: true,
+      themes: {
+        dark: {
+          primary: colors.blue,
+          secondary: colors.purple,
+          danger: colors.red,
+          darkBase: colors.grey,
+        },
+      },
+    },
+    options: {
+      customProperties: true,
+    },
+  })
 }
 
 export function cleanUp(wrapper?: Wrapper<Vue>) {

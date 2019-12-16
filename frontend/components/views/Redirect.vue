@@ -1,14 +1,14 @@
 <template>
   <v-container>
-    <v-layout row>
-      <v-flex>
+    <v-row no-gutters >
+      <v-col>
         <v-card>
           <v-card-text>
             <p>This page has moved. Redirecting you...</p>
           </v-card-text>
         </v-card>
-      </v-flex>
-    </v-layout>
+      </v-col>
+    </v-row>
   </v-container>
 </template>
 

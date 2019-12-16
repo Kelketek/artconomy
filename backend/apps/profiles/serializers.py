@@ -634,13 +634,16 @@ class JournalSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
 
 class TwoFactorTimerSerializer(serializers.ModelSerializer):
     config_url = serializers.SerializerMethodField()
-    code = serializers.IntegerField(required=False, write_only=True)
+    code = serializers.CharField(required=False, write_only=True)
 
     @staticmethod
     def get_config_url(obj):
         if obj.confirmed:
             return None
         return obj.config_url
+
+    def validate_code(self, value):
+        return value.replace(' ', '')
 
     class Meta:
         model = TOTPDevice
@@ -678,6 +681,9 @@ class TelegramDeviceSerializer(serializers.ModelSerializer):
         else:
             raise ValidationError({'code': ['The verification code you provided was invalid or expired.']})
         return instance
+
+    def validate_code(self, value):
+        return value.replace(' ', '')
 
     class Meta:
         model = TelegramDevice

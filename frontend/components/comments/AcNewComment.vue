@@ -1,53 +1,53 @@
 <template>
-  <v-card :class="{alternate, comment: true, 'elevation-3': alternate}" class="new-comment">
-    <v-toolbar dense v-if="isRegistered || (isLoggedIn && guestOk)">
-      <ac-avatar :user="viewer" :show-name="false"></ac-avatar>
-      <v-toolbar-title>{{viewerName}}</v-toolbar-title><v-spacer></v-spacer>
+  <v-card :class="{comment: true, 'elevation-3': alternate}" class="new-comment" :color="color">
+    <v-toolbar dense color="black" v-if="isRegistered || (isLoggedIn && guestOk)">
+      <ac-avatar :user="viewer" :show-name="false" />
+      <v-toolbar-title class="ml-1">{{viewerName}}</v-toolbar-title><v-spacer />
     </v-toolbar>
     <v-card-text>
-      <v-layout row wrap v-if="!isRegistered && !guestOk">
-        <v-flex xs12 text-xs-center>
+      <v-row no-gutters v-if="!isRegistered && !guestOk">
+        <v-col class="text-center" cols="12" >
           <v-btn @click="editing=true" class="new-comment-button" :to="{name: 'Login', params: {tabName: 'login'}, query: {next: this.$route.fullPath}}">Log in or Register to
             Comment!
           </v-btn>
-        </v-flex>
-      </v-layout>
+        </v-col>
+      </v-row>
       <v-subheader v-else-if="!value">New Comment</v-subheader>
-      <v-layout row wrap v-if="isRegistered || (isLoggedIn && guestOk)">
-        <v-flex xs12 sm12>
+      <v-row no-gutters v-if="isRegistered || (isLoggedIn && guestOk)">
+        <v-col cols="12" sm="12">
           <ac-form-container v-bind="newCommentForm.bind">
             <ac-form @submit.prevent="publish">
               <ac-bound-field :field="newCommentForm.fields.text" field-type="ac-editor">
-                <v-flex text-xs-right slot="actions">
-                  <v-layout wrap>
-                    <v-spacer></v-spacer>
-                    <v-flex shrink v-if="value">
+                <v-col class="text-right" slot="actions">
+                  <v-row dense>
+                    <v-spacer />
+                    <v-col class="shrink" v-if="value">
                       <v-tooltip top>
                         <template v-slot:activator="{ on }">
-                          <v-btn v-on="on" @click="cancel" color="danger" icon class="cancel-button">
+                          <v-btn v-on="on" @click="cancel" color="danger" fab small class="cancel-button">
                             <v-icon>cancel</v-icon>
                           </v-btn>
                         </template>
                         <span>Cancel</span>
                       </v-tooltip>
-                    </v-flex>
-                    <v-flex shrink>
+                    </v-col>
+                    <v-col class="shrink" >
                     <v-tooltip top>
                       <template v-slot:activator="{ on }">
-                        <v-btn v-on="on" color="primary" type="submit" icon class="submit-button">
+                        <v-btn v-on="on" color="blue" type="submit" fab class="submit-button" small>
                           <v-icon>send</v-icon>
                         </v-btn>
                       </template>
                       <span>Send</span>
                     </v-tooltip>
-                    </v-flex>
-                  </v-layout>
-                </v-flex>
+                    </v-col>
+                  </v-row>
+                </v-col>
               </ac-bound-field>
             </ac-form>
           </ac-form-container>
-        </v-flex>
-      </v-layout>
+        </v-col>
+      </v-row>
     </v-card-text>
   </v-card>
 </template>
@@ -84,6 +84,13 @@ export default class AcNewComment extends mixins(Viewer) {
     @Prop({default: false})
     public guestOk!: boolean
     public newCommentForm: FormController = null as unknown as FormController
+
+    public get color() {
+      if (this.alternate) {
+        // @ts-ignore
+        return this.$vuetify.theme.currentTheme.darkBase.darken4
+      }
+    }
 
     // Used for when we're nested under a comment thread.
     public cancel() {

@@ -1,28 +1,28 @@
 <template>
   <v-container>
     <ac-form-container :sending="claimForm.sending" :errors="claimForm.errors">
-      <v-layout row wrap>
-        <v-flex xs12 text-xs-center>
+      <v-row no-gutters  >
+        <v-col class="text-center" cols="12" >
           <h1>Your Order is waiting!</h1>
-        </v-flex>
-        <v-flex xs12 text-xs-center>
+        </v-col>
+        <v-col class="text-center" cols="12" >
           <v-img src="/static/images/cheering.png" max-height="30vh" :contain="true"></v-img>
-        </v-flex>
-        <v-flex xs12 v-if="isRegistered" text-xs-center>
+        </v-col>
+        <v-col class="text-center" cols="12" v-if="isRegistered" >
           <p>You are currently logged in as <strong>{{viewerName}}</strong>. Would you like to claim this order as {{viewerName}} or continue as a guest?</p>
-        </v-flex>
-        <v-flex xs12 sm6 v-if="isRegistered" text-xs-center text-sm-right>
+        </v-col>
+        <v-col class="text-center text-sm-right" cols="12" sm="6" v-if="isRegistered" >
           <v-btn color="green" @click="claimAsUser">Claim as {{viewerName}}!</v-btn>
-        </v-flex>
-        <v-flex xs12 sm6 v-if="isRegistered" text-xs-center text-sm-left>
+        </v-col>
+        <v-col class="text-center text-sm-left" cols="12" sm="6" v-if="isRegistered" >
           <v-btn @click="becomeGuest">Continue as guest</v-btn>
-        </v-flex>
-        <v-flex xs12 v-for="field of claimForm.fields" :key="field.name">
+        </v-col>
+        <v-col cols="12" v-for="field of claimForm.fields" :key="field.name">
           <v-alert v-for="(error, index) of field.errors" :key="index" :value="true">
             {{error}}
           </v-alert>
-        </v-flex>
-      </v-layout>
+        </v-col>
+      </v-row>
     </ac-form-container>
   </v-container>
 </template>

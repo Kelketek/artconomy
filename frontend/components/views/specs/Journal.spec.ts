@@ -1,35 +1,26 @@
 import Vue from 'vue'
-import Vuex from 'vuex'
-import {createLocalVue, mount, Wrapper} from '@vue/test-utils'
-import Vuetify from 'vuetify'
-import {singleRegistry, Singles} from '@/store/singles/registry'
-import {profileRegistry, Profiles} from '@/store/profiles/registry'
+import {mount, Wrapper} from '@vue/test-utils'
+import {Vuetify} from 'vuetify'
 import {ArtStore, createStore} from '@/store'
-import {confirmAction, flushPromises, rq, rs, setViewer, vuetifySetup} from '@/specs/helpers'
+import {confirmAction, createVuetify, flushPromises, rq, rs, setViewer, vueSetup} from '@/specs/helpers'
 import {genUser} from '@/specs/helpers/fixtures'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
-import {listRegistry, Lists} from '@/store/lists/registry'
-import {FormControllers, formRegistry} from '@/store/forms/registry'
 import Router from 'vue-router'
 import mockAxios from '@/__mocks__/axios'
 import Journal from '@/components/views/Journal.vue'
 import {genJournal} from '@/components/views/specs/fixtures'
 
-Vue.use(Vuex)
-Vue.use(Vuetify)
-const localVue = createLocalVue()
-localVue.use(Singles)
-localVue.use(Lists)
-localVue.use(Profiles)
-localVue.use(FormControllers)
+const localVue = vueSetup()
 localVue.use(Router)
 let store: ArtStore
 let wrapper: Wrapper<Vue>
 let router: Router
+let vuetify: Vuetify
 
 describe('Journal.vue', () => {
   beforeEach(() => {
     store = createStore()
+    vuetify = createVuetify()
     router = new Router({mode: 'history',
       routes: [{
         path: '/',
@@ -48,11 +39,6 @@ describe('Journal.vue', () => {
         component: Empty,
       },
       ]})
-    singleRegistry.reset()
-    listRegistry.reset()
-    formRegistry.reset()
-    profileRegistry.reset()
-    vuetifySetup()
     mockAxios.reset()
   })
   afterEach(() => {
@@ -62,7 +48,7 @@ describe('Journal.vue', () => {
   })
   it('Mounts a journal', async() => {
     wrapper = mount(Journal, {
-      localVue, store, router, propsData: {journalId: 1, username: 'Fox'}, sync: false, attachToDocument: true}
+      localVue, store, router, vuetify, propsData: {journalId: 1, username: 'Fox'}, sync: false, attachToDocument: true}
     )
     expect(mockAxios.get).toHaveBeenCalledWith(...rq('/api/profiles/v1/account/Fox/journals/1/', 'get'))
     expect(wrapper.find('.edit-toggle').exists()).toBe(false)
@@ -72,7 +58,7 @@ describe('Journal.vue', () => {
     router.push('/')
     setViewer(store, genUser())
     wrapper = mount(Journal, {
-      localVue, store, router, propsData: {journalId: 1, username: 'Fox'}, sync: false, attachToDocument: true}
+      localVue, store, router, vuetify, propsData: {journalId: 1, username: 'Fox'}, sync: false, attachToDocument: true}
     )
     mockAxios.mockResponse(rs(genJournal()))
     // Comments

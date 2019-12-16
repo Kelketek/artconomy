@@ -1,12 +1,16 @@
-import {cleanUp, setViewer, vueSetup} from '@/specs/helpers'
+import Vue from 'vue'
+import {cleanUp, createVuetify, setViewer, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import {mount, Wrapper} from '@vue/test-utils'
 import AcTransaction from '@/components/views/settings/payment/AcTransaction.vue'
 import {genCard, genUser} from '@/specs/helpers/fixtures'
 import Transaction from '@/types/Transaction'
+import {Vuetify} from 'vuetify/types'
 
 const localVue = vueSetup()
 let store: ArtStore
+let wrapper: Wrapper<Vue>
+let vuetify: Vuetify
 
 function genTransaction(): Transaction {
   return {
@@ -50,22 +54,28 @@ function genTransaction(): Transaction {
 describe('AcTransaction.vue', () => {
   beforeEach(() => {
     store = createStore()
+    vuetify = createVuetify()
   })
   afterEach(() => {
-    cleanUp()
+    cleanUp(wrapper)
   })
-  it('Displays a transaction as the payee', () => {
+  it('Displays a transaction as the payee', async() => {
     setViewer(store, genUser())
-    mount(AcTransaction, {
-      localVue, store, propsData: {transaction: genTransaction(), username: 'Fox', currentAccount: 300},
+    wrapper = mount(AcTransaction, {
+      localVue,
+      store,
+      vuetify,
+      propsData: {transaction: genTransaction(), username: 'Fox', currentAccount: 300},
+      sync: false,
+      attachToDocument: true,
     })
   })
-  it('Displays a transaction as the payer', () => {
+  it('Displays a transaction as the payer', async() => {
     const user = genUser()
     user.username = 'Vulpes'
     setViewer(store, user)
-    mount(AcTransaction, {
-      localVue, store, propsData: {transaction: genTransaction(), username: 'Vulpes', currentAccount: 300},
+    wrapper = mount(AcTransaction, {
+      localVue, store, vuetify, propsData: {transaction: genTransaction(), username: 'Vulpes', currentAccount: 300},
     })
   })
   it('Displays a transaction as a transfer between accounts', () => {
@@ -73,26 +83,41 @@ describe('AcTransaction.vue', () => {
     setViewer(store, user)
     const transaction = genTransaction()
     transaction.payer = transaction.payee
-    mount(AcTransaction, {
-      localVue, store, propsData: {transaction, username: 'Fox', currentAccount: 301},
+    wrapper = mount(AcTransaction, {
+      localVue,
+      store,
+      vuetify,
+      propsData: {transaction, username: 'Fox', currentAccount: 301},
+      sync: false,
+      attachToDocument: true,
     })
   })
-  it('Displays a transaction as the payer with a null payee', () => {
+  it('Displays a transaction as the payer with a null payee', async() => {
     const user = genUser()
     user.username = 'Vulpes'
     setViewer(store, user)
     const transaction = genTransaction()
     transaction.payee = null
-    mount(AcTransaction, {
-      localVue, store, propsData: {transaction, username: 'Vulpes', currentAccount: 300},
+    wrapper = mount(AcTransaction, {
+      localVue,
+      store,
+      vuetify,
+      propsData: {transaction, username: 'Vulpes', currentAccount: 300},
+      sync: false,
+      attachToDocument: true,
     })
   })
-  it('Handles a card', () => {
+  it('Handles a card', async() => {
     setViewer(store, genUser())
     const transaction = genTransaction()
     transaction.card = genCard()
-    mount(AcTransaction, {
-      localVue, store, propsData: {transaction, username: 'Fox', currentAccount: 300},
+    wrapper = mount(AcTransaction, {
+      localVue,
+      store,
+      vuetify,
+      propsData: {transaction, username: 'Fox', currentAccount: 300},
+      sync: false,
+      attachToDocument: true,
     })
   })
 })

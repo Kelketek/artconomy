@@ -13,7 +13,7 @@ module.exports = {
     '^.+\\.tsx?$': 'ts-jest',
   },
   transformIgnorePatterns: [
-    '/node_modules/',
+    '/node_modules/(?!vuetify)',
   ],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/frontend/$1',

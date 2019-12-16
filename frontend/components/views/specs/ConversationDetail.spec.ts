@@ -1,23 +1,26 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import {cleanUp, confirmAction, flushPromises, rs, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, confirmAction, createVuetify, flushPromises, rs, setViewer, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import {mount, Wrapper} from '@vue/test-utils'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import {genUser} from '@/specs/helpers/fixtures'
 import ConversationDetail from '@/components/views/ConversationDetail.vue'
 import {genConversation} from '@/components/views/specs/fixtures'
-import mockAxios from '@/__mocks__/axios';
+import mockAxios from '@/__mocks__/axios'
+import {Vuetify} from 'vuetify/types'
 
 const localVue = vueSetup()
 localVue.use(Router)
 let store: ArtStore
 let wrapper: Wrapper<Vue>
 let router: Router
+let vuetify: Vuetify
 
 describe('ConversationDetail.vue', () => {
   beforeEach(() => {
     store = createStore()
+    vuetify = createVuetify()
     router = new Router({
       mode: 'history',
       routes: [{
@@ -54,6 +57,7 @@ describe('ConversationDetail.vue', () => {
       localVue,
       store,
       router,
+      vuetify,
       propsData: {username: 'Fox', conversationId: 23},
       attachToDocument: true,
       sync: false,
@@ -72,6 +76,7 @@ describe('ConversationDetail.vue', () => {
       localVue,
       store,
       router,
+      vuetify,
       propsData: {username: 'Fox', conversationId: 23},
       attachToDocument: true,
       sync: false,
@@ -90,6 +95,7 @@ describe('ConversationDetail.vue', () => {
       localVue,
       store,
       router,
+      vuetify,
       propsData: {username: 'Fox', conversationId: 23},
       attachToDocument: true,
       sync: false,

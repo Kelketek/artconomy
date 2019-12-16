@@ -1,5 +1,5 @@
 <template>
-  <v-flex class="form-container">
+  <v-row class="form-container" no-gutters>
     <div v-if="sending" class="loading-overlay">
       <v-progress-circular
           indeterminate
@@ -8,15 +8,15 @@
           color="purple"
       ></v-progress-circular>
     </div>
-    <v-flex :class="{'form-sending': sending}">
+    <v-col :class="{'form-sending': sending}" cols="12">
       <slot/>
-    </v-flex>
+    </v-col>
     <template v-for="(error, index) in savedErrors">
-      <v-alert value="error" type="error" :key="error" @input="(val) => {toggleError(val, index)}" dismissible>
+      <v-alert :value="true" type="error" :key="error" @input="(val) => {toggleError(val, index)}" dismissible>
         {{error}}
       </v-alert>
     </template>
-  </v-flex>
+  </v-row>
 </template>
 
 <style scoped>

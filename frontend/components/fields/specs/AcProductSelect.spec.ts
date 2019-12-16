@@ -1,6 +1,7 @@
 import {mount, Wrapper} from '@vue/test-utils'
 import Vue from 'vue'
-import {setViewer, vueSetup, vuetifySetup} from '@/specs/helpers'
+import {Vuetify} from 'vuetify/types'
+import {createVuetify, setViewer, vueSetup, vuetifySetup} from '@/specs/helpers'
 import mockAxios from '@/__mocks__/axios'
 import AcProductSelect from '@/components/fields/AcProductSelect.vue'
 import {genUser} from '@/specs/helpers/fixtures'
@@ -10,11 +11,12 @@ const localVue = vueSetup()
 jest.useFakeTimers()
 let wrapper: Wrapper<Vue>
 let store: ArtStore
+let vuetify: Vuetify
 
 describe('AcProductSelect.vue', () => {
   beforeEach(() => {
-    vuetifySetup()
     store = createStore()
+    vuetify = createVuetify()
   })
   afterEach(() => {
     if (wrapper) {
@@ -29,6 +31,7 @@ describe('AcProductSelect.vue', () => {
       AcProductSelect, {
         localVue,
         store,
+        vuetify,
         sync: false,
         attachToDocument: true,
         propsData: {

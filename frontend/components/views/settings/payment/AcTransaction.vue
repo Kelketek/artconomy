@@ -1,26 +1,26 @@
 <template>
-  <v-list-tile>
-    <v-list-tile-content>
-      <v-list-tile-title>
+  <v-list-item>
+    <v-list-item-content>
+      <v-list-item-title>
         {{STATUS_COMMENTS[transaction.status]}} ${{amount}}
-      </v-list-tile-title>
-      <v-list-tile-sub-title>
+      </v-list-item-title>
+      <v-list-item-subtitle>
         <span v-if="outbound">to</span>
         <span v-else>from</span>&nbsp;
         {{displayName(other)}}&nbsp;
         ({{ACCOUNT_TYPES[otherAccount]}})
-      </v-list-tile-sub-title>
-      <v-list-tile-sub-title>
+      </v-list-item-subtitle>
+      <v-list-item-subtitle>
         {{formatDateTime(transaction.created_on)}}
-      </v-list-tile-sub-title>
-    </v-list-tile-content>
-    <v-list-tile-action>
-      <v-btn icon flat @click="showDetails = true">
+      </v-list-item-subtitle>
+    </v-list-item-content>
+    <v-list-item-action>
+      <v-btn icon text @click="showDetails = true">
         <v-icon>more_horiz</v-icon>
       </v-btn>
-    </v-list-tile-action>
+    </v-list-item-action>
     <v-dialog v-model="showDetails" max-width="800px">
-      <v-toolbar card dark color="secondary" :dense="$vuetify.breakpoint.mdAndUp">
+      <v-toolbar flat dark color="secondary" :dense="$vuetify.breakpoint.mdAndUp">
         <v-toolbar-title><slot name="title">Transaction Details</slot></v-toolbar-title>
         <v-spacer/>
         <v-btn icon @click.native="showDetails = false" dark class="dialog-closer">
@@ -29,28 +29,28 @@
       </v-toolbar>
       <v-card>
         <v-card-text>
-          <v-layout row wrap>
-            <v-flex xs6>TXN ID: {{transaction.id}}</v-flex>
-            <v-flex xs6>Category: {{CATEGORY_TYPES[transaction.category]}}</v-flex>
-            <v-flex xs6>Status: {{STATUSES[transaction.status]}}</v-flex>
-            <v-flex xs6>Payer: {{displayName(transaction.payer)}}</v-flex>
-            <v-flex xs6>Payee: {{displayName(transaction.payee)}}</v-flex>
-            <v-flex xs6><span v-if="transaction.remote_id">Remote TXN ID: {{transaction.remote_id}}</span></v-flex>
-            <v-flex xs6>
+          <v-row no-gutters  >
+            <v-col cols="6">TXN ID: {{transaction.id}}</v-col>
+            <v-col cols="6">Category: {{CATEGORY_TYPES[transaction.category]}}</v-col>
+            <v-col cols="6">Status: {{STATUSES[transaction.status]}}</v-col>
+            <v-col cols="6">Payer: {{displayName(transaction.payer)}}</v-col>
+            <v-col cols="6">Payee: {{displayName(transaction.payee)}}</v-col>
+            <v-col cols="6"><span v-if="transaction.remote_id">Remote TXN ID: {{transaction.remote_id}}</span></v-col>
+            <v-col cols="6">
               <strong>
                 <span v-if="transaction.finalized_on">Finalized on {{formatDateTime(transaction.finalized_on)}}</span>
                 <span v-else>Not Finalized</span>
               </strong>
-            </v-flex>
-            <v-flex xs6 v-if="transaction.card">Card: {{issuer.name}} x{{transaction.card.last_four}}</v-flex>
-          </v-layout>
+            </v-col>
+            <v-col cols="6" v-if="transaction.card">Card: {{issuer.name}} x{{transaction.card.last_four}}</v-col>
+          </v-row>
         </v-card-text>
-        <v-card-actions class="text-xs-right">
+        <v-card-actions class="text-right">
           <v-spacer /><v-btn color="primary" @click.stop="showDetails=false">Close</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
-  </v-list-tile>
+  </v-list-item>
 </template>
 
 <script lang="ts">

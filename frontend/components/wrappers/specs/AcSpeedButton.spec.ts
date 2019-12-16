@@ -1,20 +1,29 @@
 import Vue from 'vue'
 import AcSpeedButton from '@/components/wrappers/AcSpeedButton.vue'
-import {createLocalVue, mount} from '@vue/test-utils'
-import Vuetify from 'vuetify'
-import {vuetifySetup} from '@/specs/helpers'
-
-Vue.use(Vuetify)
+import {mount, Wrapper} from '@vue/test-utils'
+import {Vuetify} from 'vuetify/types'
+import {cleanUp, createVuetify, vueSetup} from '@/specs/helpers'
 
 describe('AcSpeedButton.vue', () => {
-  const localVue = createLocalVue()
+  const localVue = vueSetup()
+  let vuetify: Vuetify
+  let wrapper: Wrapper<Vue>
   beforeEach(() => {
-    vuetifySetup()
+    vuetify = createVuetify()
     jest.resetAllMocks()
     jest.useFakeTimers()
   })
+  afterEach(() => {
+    cleanUp(wrapper)
+  })
   it('Toggles its tooltip', async() => {
-    const wrapper = mount(AcSpeedButton, {localVue, propsData: {value: false, text: 'I am a label'}})
+    wrapper = mount(AcSpeedButton, {
+      localVue,
+      vuetify,
+      propsData: {value: false, text: 'I am a label'},
+      sync: false,
+      attachToDocument: true,
+    })
     const vm = wrapper.vm as any
     expect(vm.showTooltip).toBe(false)
     expect(wrapper.text()).toEqual('I am a label')

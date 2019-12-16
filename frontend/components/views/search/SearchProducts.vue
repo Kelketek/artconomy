@@ -1,16 +1,16 @@
 <template>
   <v-container fluid class="pa-0">
     <ac-paginated :list="list" :track-pages="true" :auto-run="false">
-      <v-flex sm6 md4 lg3 xl2 pa-1 v-for="product in list.list" :key="product.x.id">
-        <ac-product-preview :product="product.x"></ac-product-preview>
-      </v-flex>
-      <v-flex text-xs-center slot="empty">
+      <v-col class="pa-1" sm="6" md="4" lg="3" xl="2" v-for="product in list.list" :key="product.x.id">
+        <ac-product-preview :product="product.x" />
+      </v-col>
+      <v-col class="text-center" slot="empty">
         <v-card>
           <v-card-text>
             We could not find anything which matched your request.
           </v-card-text>
         </v-card>
-      </v-flex>
+      </v-col>
     </ac-paginated>
   </v-container>
 </template>

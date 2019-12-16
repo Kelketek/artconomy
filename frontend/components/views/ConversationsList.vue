@@ -1,37 +1,39 @@
 <template>
-  <v-layout>
-    <v-flex v-if="conversations.ready">
+  <v-row no-gutters>
+    <v-col v-if="conversations.ready">
       <v-container>
-        <v-layout row wrap>
-          <v-flex xs12>
+        <v-row no-gutters  >
+          <v-col cols="12">
             <ac-paginated :list="conversations" :auto-run="false" :track-pages="true">
               <v-card v-slot="empty">
                 <v-card-text>
-                  <v-flex text-xs-center>
+                  <v-col class="text-center" >
                     <p>You have no conversations at this time.</p>
                     <v-btn color="primary" v-if="isCurrent" @click="showNew = true">Start a Conversation</v-btn>
-                  </v-flex>
+                  </v-col>
                 </v-card-text>
               </v-card>
               <template v-slot:default>
-                <v-list three-line>
-                  <template v-for="(conversation, index) in conversations.list">
-                    <v-list-tile :key="conversation.id" :to="{name: 'Conversation', params: {username, conversationId: conversation.x.id}}">
-                      <v-list-tile-avatar>
-                        <img :src="avatarImage(conversation.x)"/>
-                      </v-list-tile-avatar>
-                      <v-list-tile-content>
-                        <v-list-tile-title>{{conversationTitle(conversation.x)}}</v-list-tile-title>
-                        <v-list-tile-sub-title>{{conversation.x.last_comment.user.username}}: {{textualize(conversation.x.last_comment.text)}}</v-list-tile-sub-title>
-                      </v-list-tile-content>
-                    </v-list-tile>
-                    <v-divider :key="'divider' + conversation.x.id" v-if="index + 1 !== conversations.list.length"></v-divider>
-                  </template>
-                </v-list>
+                <v-col>
+                  <v-list three-line>
+                    <template v-for="(conversation, index) in conversations.list">
+                      <v-list-item :key="conversation.id" :to="{name: 'Conversation', params: {username, conversationId: conversation.x.id}}">
+                        <v-list-item-avatar>
+                          <img :src="avatarImage(conversation.x)"/>
+                        </v-list-item-avatar>
+                        <v-list-item-content>
+                          <v-list-item-title>{{conversationTitle(conversation.x)}}</v-list-item-title>
+                          <v-list-item-subtitle>{{conversation.x.last_comment.user.username}}: {{textualize(conversation.x.last_comment.text)}}</v-list-item-subtitle>
+                        </v-list-item-content>
+                      </v-list-item>
+                      <v-divider :key="'divider' + conversation.x.id" v-if="index + 1 !== conversations.list.length"></v-divider>
+                    </template>
+                  </v-list>
+                </v-col>
               </template>
             </ac-paginated>
-          </v-flex>
-        </v-layout>
+          </v-col>
+        </v-row>
       </v-container>
       <ac-add-button v-model="showNew" v-if="isCurrent">Start New Conversation</ac-add-button>
       <ac-form-dialog
@@ -41,14 +43,14 @@
           @submit="newConversation.submitThen(visitConversation)"
           title="Start a New Conversation"
       >
-        <v-flex xs12 sm10 offset-sm1 offset-md2 md8>
+        <v-col cols="12" sm="10" offset-sm="1" offset-md="2" md="8">
           <ac-bound-field
               field-type="ac-user-select" :field="newConversation.fields.participants" label="Start conversation with..." autofocus
           ></ac-bound-field>
-        </v-flex>
+        </v-col>
       </ac-form-dialog>
-    </v-flex>
-  </v-layout>
+    </v-col>
+  </v-row>
 </template>
 
 <script lang="ts">

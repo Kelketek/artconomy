@@ -1,15 +1,15 @@
 <template>
   <v-container fluid>
-    <v-layout row class="mb-2">
-      <v-flex>
+    <v-row no-gutters  class="mb-2">
+      <v-col>
         <v-tabs fixed-tabs>
           <v-tab :to="{name: 'CommunityNotifications'}">Community<span v-if="counts.community_count">&nbsp;({{counts.community_count}})</span>
           </v-tab>
           <v-tab :to="{name: 'SalesNotifications'}">Sales/Orders<span
               v-if="counts.sales_count">&nbsp;({{counts.sales_count}})</span></v-tab>
         </v-tabs>
-      </v-flex>
-    </v-layout>
+      </v-col>
+    </v-row>
     <router-view :key="$route.path"></router-view>
   </v-container>
 </template>

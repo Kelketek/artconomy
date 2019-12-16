@@ -1,24 +1,27 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import {cleanUp, rq, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, rq, setViewer, vueSetup} from '@/specs/helpers'
 import {mount, Wrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import AcCommentSection from '@/components/comments/AcCommentSection.vue'
-import mockAxios from '@/__mocks__/axios';
+import mockAxios from '@/__mocks__/axios'
 import {commentSet} from '@/components/comments/specs/fixtures'
 import {genUser} from '@/specs/helpers/fixtures'
+import {Vuetify} from 'vuetify/types'
 
 const localVue = vueSetup()
 localVue.use(Router)
 let store: ArtStore
 let wrapper: Wrapper<Vue>
 let router: Router
+let vuetify: Vuetify
 const mockError = jest.spyOn(console, 'error')
 
 describe('AcCommentSection', () => {
   beforeEach(() => {
     store = createStore()
+    vuetify = createVuetify()
     router = new Router({mode: 'history',
       routes: [{
         path: '/',
@@ -51,6 +54,7 @@ describe('AcCommentSection', () => {
       localVue,
       store,
       router,
+      vuetify,
       attachToDocument: false,
       sync: false,
       propsData: {
@@ -79,6 +83,7 @@ describe('AcCommentSection', () => {
         localVue,
         store,
         router,
+        vuetify,
         attachToDocument: false,
         sync: false,
         propsData: {
@@ -97,6 +102,7 @@ describe('AcCommentSection', () => {
       localVue,
       store,
       router,
+      vuetify,
       attachToDocument: false,
       sync: false,
       propsData: {

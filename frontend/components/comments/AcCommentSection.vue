@@ -1,21 +1,21 @@
 <template>
   <v-container>
     <v-toolbar dense v-if="commentList.moreAvailable || showHistory" @click="commentList.next">
-      <v-layout row wrap>
-        <v-flex grow v-if="commentList.moreAvailable">
-          <v-layout column text-xs-center>
-            <v-flex>Load More</v-flex>
-            <v-flex><v-icon>expand_more</v-icon></v-flex>
-          </v-layout>
-        </v-flex>
-        <v-flex v-if="showHistory" text-xs-center>
+      <v-row no-gutters  >
+        <v-col class="grow" v-if="commentList.moreAvailable">
+          <v-col class="text-center">
+            <v-col>Load More</v-col>
+            <v-col><v-icon>expand_more</v-icon></v-col>
+          </v-col>
+        </v-col>
+        <v-col class="text-center" v-if="showHistory" >
           <v-btn @click="historyToggle = !historyToggle" class="comment-history-button">
             <v-icon left v-if="historyToggle">visibility</v-icon>
             <v-icon left v-else>visibility_off</v-icon>
             Toggle History
           </v-btn>
-        </v-flex>
-      </v-layout>
+        </v-col>
+      </v-row>
     </v-toolbar>
     <ac-load-section min-height="10rem" :controller="commentList">
       <template v-slot:default>
@@ -40,9 +40,9 @@
     <ac-loading-spinner v-if="commentList.fetching" min-height="10rem"></ac-loading-spinner>
     <slot v-if="commentList.ready && !commentList.list.length" name="empty"></slot>
     <ac-new-comment ref="newComment" v-if="commentList.ready && !locked && !inHistory" :commentList="commentList" :alternate="!(commentList.list.length % 2)" :guest-ok="guestOk"/>
-    <v-layout v-if="locked && commentList.ready &&!inHistory" row wrap>
-      <v-flex xs12 class="col-12 text-section text-xs-center">Comments have been locked.</v-flex>
-    </v-layout>
+    <v-row no-gutters v-if="locked && commentList.ready &&!inHistory"  >
+      <v-col cols="12" class="col-12 text-section text-center">Comments have been locked.</v-col>
+    </v-row>
   </v-container>
 </template>
 

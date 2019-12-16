@@ -1,59 +1,60 @@
 <template>
-  <v-flex>
-    <v-flex v-if="journals.ready">
+  <div class="flex flex-column">
+    <div class="flex">
       <v-toolbar dense color="secondary">
         <v-toolbar-title>Journals</v-toolbar-title>
-        <v-spacer></v-spacer>
+        <v-spacer />
         <v-btn color="green" @click="showNew = true" v-if="isCurrent"><v-icon left>add</v-icon>Add New</v-btn>
       </v-toolbar>
-      <v-layout class="elevation-4">
-        <v-layout column>
-          <v-flex>
+      <v-col class="elevation-4">
+        <ac-paginated :list="journals">
+          <v-col cols="12">
             <v-list two-line>
               <template v-for="item in journals.list">
-                <v-list-tile
-                    :key="item.x.id"
-                    avatar
-                    :to="{name: 'Journal', params: {username, journalId: item.x.id}}"
+                <v-list-item
+                  :key="item.x.id"
+                  :to="{name: 'Journal', params: {username, journalId: item.x.id}}"
                 >
-                  <v-list-tile-avatar>
+                  <v-list-item-avatar>
                     <v-icon>edit</v-icon>
-                  </v-list-tile-avatar>
-                  <v-list-tile-content>
-                    <v-list-tile-title>{{item.x.subject}}</v-list-tile-title>
-                    <v-list-tile-sub-title>{{formatDate(item.x.created_on)}}</v-list-tile-sub-title>
-                  </v-list-tile-content>
-                </v-list-tile>
+                  </v-list-item-avatar>
+                  <v-list-item-content>
+                    <v-list-item-title>{{item.x.subject}}</v-list-item-title>
+                    <v-list-item-subtitle>{{formatDate(item.x.created_on)}}</v-list-item-subtitle>
+                  </v-list-item-content>
+                </v-list-item>
               </template>
             </v-list>
-          </v-flex>
-        </v-layout>
-      </v-layout>
-    </v-flex>
-    <ac-loading-spinner v-else></ac-loading-spinner>
+          </v-col>
+        </ac-paginated>
+      </v-col>
+    </div>
     <ac-form-dialog
         v-model="showNew"
         v-if="isCurrent"
         v-bind="newJournal.bind"
         @submit="newJournal.submitThen(visitJournal)"
         :large="true"
+        title="New Journal"
     >
-      <v-flex xs12 sm10 offset-sm1 offset-md2 md8>
-        <ac-bound-field :field="newJournal.fields.subject" label="Subject" autofocus></ac-bound-field>
-      </v-flex>
-      <v-flex xs12 sm10 offset-sm1 offset-md2 md8 mt-2>
-        <ac-bound-field :field="newJournal.fields.body" field-type="ac-editor" label="Body"
-                        :auto-save="true" :save-indicator="false"
-        ></ac-bound-field>
-      </v-flex>
-      <v-flex xs12 sm10 offset-sm1 offset-md2 md8>
-        <ac-bound-field :field="newJournal.fields.comments_disabled" field-type="v-checkbox" :persistent-hint="true"
-                        label="Comments Disabled"
-                        hint="If checked, prevents people from commenting on this journal."
-        ></ac-bound-field>
-      </v-flex>
+      <v-row>
+        <v-col cols="12" sm="10" offset-sm="1" offset-md="2" md="8">
+          <ac-bound-field :field="newJournal.fields.subject" label="Subject" autofocus />
+        </v-col>
+        <v-col cols="12" sm="10" offset-sm="1" offset-md="2" md="8" >
+          <ac-bound-field :field="newJournal.fields.body" field-type="ac-editor" label="Body"
+                          :auto-save="true" :save-indicator="false"
+          />
+        </v-col>
+        <v-col cols="12" sm="10" offset-sm="1" offset-md="2" md="8">
+          <ac-bound-field :field="newJournal.fields.comments_disabled" field-type="v-checkbox" :persistent-hint="true"
+                          label="Comments Disabled"
+                          hint="If checked, prevents people from commenting on this journal."
+          />
+        </v-col>
+      </v-row>
     </ac-form-dialog>
-  </v-flex>
+  </div>
 </template>
 
 <script lang="ts">
@@ -70,9 +71,10 @@ import AcBoundField from '@/components/fields/AcBoundField'
 import AcRendered from '@/components/wrappers/AcRendered'
 import AcLoadingSpinner from '@/components/wrappers/AcLoadingSpinner.vue'
 import AcGrowSpinner from '@/components/AcGrowSpinner.vue'
+import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 
   @Component({
-    components: {AcGrowSpinner, AcLoadingSpinner, AcRendered, AcBoundField, AcFormDialog},
+    components: {AcPaginated, AcGrowSpinner, AcLoadingSpinner, AcRendered, AcBoundField, AcFormDialog},
   })
 export default class AcJournals extends mixins(Subjective, Formatting) {
     public firstRun: boolean = true
@@ -90,7 +92,7 @@ export default class AcJournals extends mixins(Subjective, Formatting) {
           comments_disabled: {value: false},
         },
       })
-      this.journals = this.$getList(this.username + '-journals', {endpoint: this.url, pageSize: 3, grow: true})
+      this.journals = this.$getList(this.username + '-journals', {endpoint: this.url, pageSize: 3})
       this.journals.firstRun().then()
     }
 

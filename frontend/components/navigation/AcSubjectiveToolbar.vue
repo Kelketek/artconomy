@@ -1,17 +1,17 @@
 <template>
   <fragment>
-    <v-toolbar :dense="$vuetify.breakpoint.smAndDown">
+    <v-toolbar :dense="$vuetify.breakpoint.smAndDown" color="black">
       <slot name="avatar">
-        <ac-avatar :username="username" :show-name="false"></ac-avatar>
-        <v-toolbar-title>{{subjectHandler.displayName}}</v-toolbar-title>
+        <ac-avatar :username="username" :show-name="false" />
+        <v-toolbar-title class="ml-1">{{subjectHandler.displayName}}</v-toolbar-title>
       </slot>
-      <v-spacer></v-spacer>
+      <v-spacer />
       <v-toolbar-items v-if="!$vuetify.breakpoint.xs">
-        <slot></slot>
+        <slot />
       </v-toolbar-items>
     </v-toolbar>
     <v-toolbar v-if="$vuetify.breakpoint.xs" dense class="subjective-mini-buttons" height="32px">
-      <slot></slot>
+      <slot />
     </v-toolbar>
   </fragment>
 </template>

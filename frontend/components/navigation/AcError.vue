@@ -2,11 +2,11 @@
   <!--suppress JSUnresolvedVariable -->
   <div v-if="errors.code" class="container error-container">
     <div class="row">
-      <div class="col-12 text-xs-center">
+      <div class="col-12 text-center">
         <!--suppress JSUnresolvedVariable -->
         <img class="error-logo" :src="errorLogo" :alt="`Error code ${errors.code}`"/>
       </div>
-      <div class="col-12 text-xs-center home-title">
+      <div class="col-12 text-center home-title">
         <h1>Whoops!</h1>
         <!--suppress JSUnresolvedVariable -->
         <p v-if="errors.code === 500">

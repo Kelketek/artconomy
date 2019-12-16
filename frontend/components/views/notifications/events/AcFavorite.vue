@@ -1,16 +1,16 @@
 <template>
-  <v-list-tile avatar>
+  <v-list-item>
     <router-link :to="{name: 'Submission', params: {'submissionId': event.target.id}}">
-      <v-list-tile-avatar>
+      <v-list-item-avatar>
         <img :src="$img(event.target, 'notification', true)" alt=""/>
-      </v-list-tile-avatar>
+      </v-list-item-avatar>
     </router-link>
-    <v-list-tile-title>
+    <v-list-item-title>
       Your piece has been favorited by
       <router-link :to="{name: 'Profile', params: {username: event.data.user.username}}">{{event.data.user.username}}!
       </router-link>
-    </v-list-tile-title>
-  </v-list-tile>
+    </v-list-item-title>
+  </v-list-item>
 </template>
 
 <script>

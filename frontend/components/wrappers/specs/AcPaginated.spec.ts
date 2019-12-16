@@ -1,41 +1,24 @@
 import Vue from 'vue'
-import Vuex from 'vuex'
-import {createLocalVue, mount, Wrapper} from '@vue/test-utils'
-import Vuetify from 'vuetify'
-import {singleRegistry, Singles} from '@/store/singles/registry'
-import {profileRegistry, Profiles} from '@/store/profiles/registry'
-import {vuetifySetup} from '@/specs/helpers'
+import {mount, Wrapper} from '@vue/test-utils'
+import {cleanUp, createVuetify, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
-import {characterRegistry, Characters} from '@/store/characters/registry'
-import {listRegistry, Lists} from '@/store/lists/registry'
-import {FormControllers, formRegistry} from '@/store/forms/registry'
 import {genSubmission} from '@/store/submissions/specs/fixtures'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import {Route} from 'vue-router/types/router'
+import {Vuetify} from 'vuetify/types'
 
-Vue.use(Vuex)
-Vue.use(Vuetify)
-const localVue = createLocalVue()
-localVue.use(Singles)
-localVue.use(Profiles)
-localVue.use(Lists)
-localVue.use(Characters)
-localVue.use(FormControllers)
+const localVue = vueSetup()
 let wrapper: Wrapper<Vue>
 let store: ArtStore
 let router: any
 let route: Partial<Route>
+let vuetify: Vuetify
 
 describe('AcPaginated.vue', () => {
   beforeEach(() => {
-    vuetifySetup()
     store = createStore()
-    singleRegistry.reset()
-    profileRegistry.reset()
-    characterRegistry.reset()
-    listRegistry.reset()
-    formRegistry.reset()
+    vuetify = createVuetify()
     route = {
       query: {stuff: 'things'},
     }
@@ -43,8 +26,15 @@ describe('AcPaginated.vue', () => {
       replace: jest.fn(),
     }
   })
-  it('Loads a paginated list', () => {
-    const paginatedList = mount(Empty, {localVue, store}).vm.$getList('stuff', {endpoint: '/wat/'})
+  afterEach(() => {
+    cleanUp(wrapper)
+  })
+  it('Loads a paginated list', async() => {
+    const paginatedList = mount(Empty, {
+      localVue,
+      store,
+      sync: false,
+    }).vm.$getList('stuff', {endpoint: '/wat/'})
     const firstPage = []
     for (let i = 1; i <= 10; i++) {
       const sub = genSubmission()
@@ -53,12 +43,22 @@ describe('AcPaginated.vue', () => {
     }
     paginatedList.setList(firstPage)
     paginatedList.response = ({size: 10, count: 30})
-    wrapper = mount(AcPaginated, {localVue, store, propsData: {list: paginatedList}})
+    wrapper = mount(AcPaginated, {
+      localVue,
+      store,
+      vuetify,
+      propsData: {list: paginatedList},
+    })
   })
   it('Does not load a list initially if autoRun is false', () => {
     const paginatedList = mount(Empty, {localVue, store}).vm.$getList('stuff', {endpoint: '/wat/'})
     wrapper = mount(AcPaginated, {
-      localVue, store, propsData: {list: paginatedList, autoRun: false}, sync: false, attachToDocument: true,
+      localVue,
+      store,
+      vuetify,
+      propsData: {list: paginatedList, autoRun: false},
+      sync: false,
+      attachToDocument: true,
     })
     expect(paginatedList.fetching).toBe(false)
   })
@@ -77,6 +77,7 @@ describe('AcPaginated.vue', () => {
     wrapper = mount(AcPaginated, {
       localVue,
       store,
+      vuetify,
       propsData: {list: paginatedList, trackPages: true},
       sync: false,
       attachToDocument: true,
@@ -101,6 +102,7 @@ describe('AcPaginated.vue', () => {
     wrapper = mount(AcPaginated, {
       localVue,
       store,
+      vuetify,
       propsData: {list: paginatedList},
       sync: false,
       attachToDocument: true,
@@ -119,6 +121,7 @@ describe('AcPaginated.vue', () => {
     wrapper = mount(AcPaginated, {
       localVue,
       store,
+      vuetify,
       propsData: {list: paginatedList, trackPages: true},
       sync: false,
       attachToDocument: true,

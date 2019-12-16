@@ -23,7 +23,7 @@ export default class QuestionSet extends Vue {
       return
     }
     const index = this.tab + 1
-    const selector = `.faq > .v-expansion-panel > li:nth-child(${index})`
+    const selector = `.faq > .v-expansion-panels > .v-expansion-panel:nth-child(${index})`
     this.$nextTick(() => {
       const target = document.querySelector(selector)
       if (target === null) {

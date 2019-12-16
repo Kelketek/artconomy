@@ -1,7 +1,8 @@
 import Vue from 'vue'
+import {Vuetify} from 'vuetify/types'
 import {mount, Wrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
-import {cleanUp, rq, rs, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, rq, rs, setViewer, vueSetup} from '@/specs/helpers'
 import {genUser} from '@/specs/helpers/fixtures'
 import Router from 'vue-router'
 import mockAxios from '@/__mocks__/axios'
@@ -19,11 +20,12 @@ let store: ArtStore
 let wrapper: Wrapper<Vue>
 let router: Router
 let vulpes: User
+let vuetify: Vuetify
 
 describe('CharacterDetail.vue', () => {
   beforeEach(() => {
     store = createStore()
-    cleanUp()
+    vuetify = createVuetify()
     vulpes = genUser()
     vulpes.username = 'Vulpes'
     vulpes.is_staff = false
@@ -57,9 +59,7 @@ describe('CharacterDetail.vue', () => {
     mount(Empty, {localVue, store}).vm.$getForm('search', searchSchema())
   })
   afterEach(() => {
-    if (wrapper) {
-      wrapper.destroy()
-    }
+    cleanUp(wrapper)
   })
   it('Mounts and fetches a character', async() => {
     setViewer(store, vulpes)
@@ -67,6 +67,7 @@ describe('CharacterDetail.vue', () => {
       localVue,
       store,
       router,
+      vuetify,
       propsData: {username: 'Vulpes', characterName: 'Kai'},
       sync: false,
       attachToDocument: true}
@@ -96,6 +97,7 @@ describe('CharacterDetail.vue', () => {
       localVue,
       store,
       router,
+      vuetify,
       propsData: {username: 'Vulpes', characterName: 'Kai'},
       sync: false,
       attachToDocument: true}

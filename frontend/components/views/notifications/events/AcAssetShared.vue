@@ -1,25 +1,25 @@
 <template>
-  <v-list-tile avatar>
+  <v-list-item>
     <router-link :to="assetLink">
       <v-badge left overlap>
         <span slot="badge" v-if="!notification.read">*</span>
-        <v-list-tile-avatar>
+        <v-list-item-avatar>
           <img :src="$img(event.data.display, 'notification', true)" alt="">
-        </v-list-tile-avatar>
+        </v-list-item-avatar>
       </v-badge>
     </router-link>
-    <v-list-tile-content>
-      <v-list-tile-title>
+    <v-list-item-content>
+      <v-list-item-title>
         <router-link :to="assetLink">
           A submission was shared with you
         </router-link>
-      </v-list-tile-title>
-      <v-list-tile-sub-title>
+      </v-list-item-title>
+      <v-list-item-subtitle>
         <router-link :to="assetLink">"{{event.data.asset.title}}" was shared by {{event.data.user.username}}
         </router-link>
-      </v-list-tile-sub-title>
-    </v-list-tile-content>
-  </v-list-tile>
+      </v-list-item-subtitle>
+    </v-list-item-content>
+  </v-list-item>
 </template>
 
 <script>

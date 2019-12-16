@@ -1,7 +1,7 @@
 <template>
   <v-container>
-    <v-layout row wrap>
-      <v-flex xs12 lg4>
+    <v-row no-gutters  >
+      <v-col cols="12" lg="4">
         <v-toolbar dense><v-toolbar-title>Overview</v-toolbar-title></v-toolbar>
         <ac-load-section :controller="overview">
           <v-data-table :items="overviewItems" :hide-actions="true" :hide-headers="true">
@@ -11,23 +11,23 @@
             </template>
           </v-data-table>
         </ac-load-section>
-      </v-flex>
-      <v-flex xs12 lg7 offset-lg1>
+      </v-col>
+      <v-col cols="12" lg="7" offset-lg="1">
         <v-toolbar dense><v-toolbar-title>By Customer</v-toolbar-title></v-toolbar>
         <ac-paginated :list="holdings">
-          <v-flex>
+          <v-col>
             <v-data-table :items="holdingsItems" :headers="holdingsHeaders" :hide-actions="true" >
               <template v-slot:items="props">
-                <td class="text-xs-left"><strong>{{props.item.id}}</strong></td>
-                <td class="text-xs-left"><strong>{{props.item.username}}</strong></td>
-                <td class="text-xs-center">${{props.item.escrow}}</td>
-                <td class="text-xs-center">${{props.item.holdings}}</td>
+                <td class="text-left"><strong>{{props.item.id}}</strong></td>
+                <td class="text-left"><strong>{{props.item.username}}</strong></td>
+                <td class="text-center">${{props.item.escrow}}</td>
+                <td class="text-center">${{props.item.holdings}}</td>
               </template>
             </v-data-table>
-          </v-flex>
+          </v-col>
         </ac-paginated>
-      </v-flex>
-    </v-layout>
+      </v-col>
+    </v-row>
   </v-container>
 </template>
 

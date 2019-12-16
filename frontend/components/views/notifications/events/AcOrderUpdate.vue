@@ -1,26 +1,12 @@
 <template>
-  <v-list-tile avatar>
-    <router-link :to="{name: 'Order', params: {orderId: event.target.id, username: viewer.username}}">
-      <v-badge left overlap>
-        <span slot="badge" v-if="!notification.read">*</span>
-        <v-list-tile-avatar>
-          <img :src="$img(event.data.display, 'notification', true)" alt="">
-        </v-list-tile-avatar>
-      </v-badge>
-    </router-link>
-    <v-list-tile-content>
-      <router-link :to="{name: 'Order', params: {orderId: event.target.id, username: viewer.username}}">
-        <v-list-tile-title>Order #{{event.target.id}}</v-list-tile-title>
-      </router-link>
-      <v-list-tile-sub-title>
-        {{ message }}
-      </v-list-tile-sub-title>
-      <v-list-tile-sub-title>
+  <ac-base-notification :notification="notification" :asset-link="assetLink">
+    <span slot="title"><router-link :to="assetLink">Order #{{event.target.id}}</router-link></span>
+    <span slot="subtitle"><router-link :to="assetLink">{{ message }}</router-link></span>
+      <v-list-item-subtitle slot="extra">
         <a target="_blank" :href="streamingLink" v-if="streamingLink">Click here for stream!</a>
         <span v-if="autofinalizeDisplay">Will autofinalize on {{formatDate(event.target.auto_finalize_on)}}.</span>
-      </v-list-tile-sub-title>
-    </v-list-tile-content>
-  </v-list-tile>
+      </v-list-item-subtitle>
+  </ac-base-notification>
 </template>
 
 <style scoped>
@@ -29,6 +15,7 @@
 <script>
 import Notification from '../mixins/notification'
 import Formatting from '../../../../mixins/formatting'
+import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification'
 
 const ORDER_STATUSES = {
   1: 'has been placed, and is waiting for the artist to accept.',
@@ -44,10 +31,14 @@ const ORDER_STATUSES = {
 
 export default {
   name: 'ac-order-update',
+  components: {AcBaseNotification},
   mixins: [Notification, Formatting],
   computed: {
     url() {
       return `/api/sales/v1/order/${this.event.target.id}/`
+    },
+    assetLink() {
+      return {name: 'Order', params: {orderId: this.event.target.id, username: this.viewer.username}}
     },
     message() {
       return ORDER_STATUSES[this.event.target.status + '']

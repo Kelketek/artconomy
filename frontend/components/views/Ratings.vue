@@ -4,25 +4,25 @@
       <ac-profile-header :username="username"></ac-profile-header>
       <ac-paginated :list="ratings">
         <template v-slot:default>
-          <v-layout row wrap>
-            <v-flex v-for="rating in ratings.list" :key="rating.x.id" class="pb-2" xs12>
+          <v-row no-gutters  >
+            <v-col v-for="rating in ratings.list" :key="rating.x.id" class="pb-2" cols="12">
               <v-card>
                 <v-card-text>
-                  <v-layout row wrap>
-                    <v-flex xs12 sm2 md1 text-xs-center text-sm-left>
+                  <v-row no-gutters  >
+                    <v-col class="text-center text-sm-left" cols="12" sm="2" md="1" >
                       <ac-avatar :user="rating.x.rater"></ac-avatar>
-                    </v-flex>
-                    <v-flex xs12 sm4 md2 text-xs-center text-sm-left>
+                    </v-col>
+                    <v-col class="text-center text-sm-left" cols="12" sm="4" md="2" >
                       <v-rating :readonly="true" dense :value="rating.x.stars"></v-rating>
-                    </v-flex>
-                    <v-flex xs12 sm6 md9 text-xs-center text-sm-left v-if="rating.x.comments">
+                    </v-col>
+                    <v-col class="text-center text-sm-left" cols="12" sm="6" md="9" v-if="rating.x.comments">
                       <ac-rendered :value="rating.x.comments" />
-                    </v-flex>
-                  </v-layout>
+                    </v-col>
+                  </v-row>
                 </v-card-text>
               </v-card>
-            </v-flex>
-          </v-layout>
+            </v-col>
+          </v-row>
         </template>
       </ac-paginated>
     </v-container>

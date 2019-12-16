@@ -1,14 +1,14 @@
 <template>
-  <v-layout row wrap>
-    <v-flex xs12 sm6 offset-sm3 md4 offset-md4 v-if="asset.preview">
+  <v-row no-gutters  >
+    <v-col cols="12" sm="6" offset-sm="3" md="4" offset-md="4" v-if="asset.preview">
       <v-img :src="asset.preview.thumbnail" class="mb-2" :aspect-ratio="1"/>
-    </v-flex>
-    <v-flex xs12 text-xs-center>
+    </v-col>
+    <v-col class="text-center" cols="12" >
       <audio controls>
         <source :src="asset.file.full" :type="type">
       </audio>
-    </v-flex>
-  </v-layout>
+    </v-col>
+  </v-row>
 </template>
 
 <script>

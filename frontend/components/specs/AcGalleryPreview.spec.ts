@@ -1,39 +1,32 @@
 import Vue from 'vue'
-import Vuex from 'vuex'
-import {createLocalVue, mount, shallowMount, Wrapper} from '@vue/test-utils'
-import Vuetify from 'vuetify'
-import {singleRegistry, Singles} from '@/store/singles/registry'
-import {profileRegistry, Profiles} from '@/store/profiles/registry'
+import {shallowMount, Wrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
-import {genAnon, makeSpace, setViewer, vueSetup, vuetifySetup} from '@/specs/helpers'
-import mockAxios from '@/__mocks__/axios'
+import {cleanUp, createVuetify, genAnon, setViewer, vueSetup} from '@/specs/helpers'
 import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
 import {genSubmission} from '@/store/submissions/specs/fixtures'
+import {Vuetify} from 'vuetify/types'
 
 const localVue = vueSetup()
 let store: ArtStore
 let wrapper: Wrapper<Vue>
+let vuetify: Vuetify
 
 describe('AcGalleryPreview.vue', () => {
   beforeEach(() => {
+    vuetify = createVuetify()
     store = createStore()
-    mockAxios.reset()
-    profileRegistry.reset()
-    singleRegistry.reset()
-    vuetifySetup()
   })
   afterEach(() => {
-    if (wrapper) {
-      wrapper.destroy()
-    }
+    cleanUp(wrapper)
   })
-  it('Displays a preview of a submission', () => {
+  it('Displays a preview of a submission', async() => {
     setViewer(store, genAnon())
     const submission = genSubmission()
     submission.id = 534
     wrapper = shallowMount(AcGalleryPreview, {
       localVue,
       store,
+      vuetify,
       propsData: {submission},
       sync: false,
       attachToDocument: true,

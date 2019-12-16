@@ -1,9 +1,9 @@
 <template>
   <v-input v-bind="passedProps" class="ac-rating-field">
     <v-card-text>
-      <v-layout v-if="label" class="mb-5">
+      <v-row no-gutters v-if="label" class="mb-5">
         <label :for="$attrs.id" class="v-label">{{label}}</label>
-      </v-layout>
+      </v-row>
       <v-slider
           field-type="v-slider"
           v-model="scratch"
@@ -19,13 +19,13 @@
       >
         <template v-slot:thumb-label="props"></template>
       </v-slider>
-      <v-layout row wrap :class="{disabled}">
-        <v-flex xs12 text-xs-center><h2>{{ratingOptions[scratch]}}</h2></v-flex>
-        <v-flex xs12 text-xs-center>
+      <v-row no-gutters   :class="{disabled}">
+        <v-col class="text-center" cols="12" ><h2>{{ratingOptions[scratch]}}</h2></v-col>
+        <v-col class="text-center" cols="12" >
               <span v-text="ratingLongDesc[scratch]">
               </span>
-        </v-flex>
-      </v-layout>
+        </v-col>
+      </v-row>
     </v-card-text>
   </v-input>
 </template>

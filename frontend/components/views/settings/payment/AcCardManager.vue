@@ -1,47 +1,47 @@
 <template>
-  <v-layout row wrap>
-    <v-flex xs12 v-if="subject && cards.ready">
-      <v-layout>
-        <v-flex>
+  <v-row no-gutters  >
+    <v-col cols="12" v-if="subject && cards.ready">
+      <v-row no-gutters>
+        <v-col>
           <v-tabs v-if="cards.list.length" v-model="tab" fixed-tabs>
-            <v-tab href="#saved-cards">
+            <v-tab href="#saved-cards" class="saved-card-tab">
               <v-icon>save</v-icon> Saved Cards
             </v-tab>
-            <v-tab href="#new-card">
+            <v-tab href="#new-card" class="new-card-tab">
               <v-icon>credit_card</v-icon> New Card
             </v-tab>
           </v-tabs>
-        </v-flex>
-      </v-layout>
-      <v-layout>
-        <v-flex xs12>
+        </v-col>
+      </v-row>
+      <v-row no-gutters>
+        <v-col cols="12">
           <v-tabs-items v-model="tab">
-            <v-tab-item value="saved-cards">
-              <v-layout row wrap>
-                <v-flex xs12 sm8 offset-sm2 md6 offset-md3 lg4 offset-lg4>
-                  <ac-saved-card-field v-if="fieldMode" :value="value" @input="setCard" :cards="cards"></ac-saved-card-field>
-                  <ac-card v-else v-for="card in cards.list" :card="card" :key="card.id" :card-list="cards"></ac-card>
-                </v-flex>
-                <v-flex xs12 sm8 offset-sm2 md6 offset-md3 lg4 offset-lg4 v-if="selectedCard && !selectedCard.cvv_verified">
+            <v-tab-item value="saved-cards" eager>
+              <v-row no-gutters  >
+                <v-col cols="12" sm="8" offset-sm="2" md="6" offset-md="3" lg="4" offset-lg="4">
+                  <ac-saved-card-field v-if="fieldMode" :value="value" @input="setCard" :cards="cards" />
+                  <ac-card v-else v-for="card in cards.list" :card="card" :key="card.id" :card-list="cards" />
+                </v-col>
+                <v-col cols="12" sm="8" offset-sm="2" md="6" offset-md="3" lg="4" offset-lg="4" v-if="selectedCard && !selectedCard.cvv_verified">
                   <ac-bound-field
                           :field="ccForm.fields.cvv"
                           label="CVV"
                           :hint="hints.cvv"
                           class="cvv-verify"
-                  ></ac-bound-field>
-                </v-flex>
-              </v-layout>
+                  />
+                </v-col>
+              </v-row>
             </v-tab-item>
-            <v-tab-item value="new-card">
-              <ac-new-card :cc-form="ccForm" :username="username" :first-card="!cards.list.length" :show-save="showSave"></ac-new-card>
-              <slot name="new-card-bottom"></slot>
+            <v-tab-item value="new-card" eager>
+              <ac-new-card :cc-form="ccForm" :username="username" :first-card="!cards.list.length" :show-save="showSave" />
+              <slot name="new-card-bottom" />
             </v-tab-item>
           </v-tabs-items>
-        </v-flex>
-      </v-layout>
-    </v-flex>
-    <v-flex v-else><ac-loading-spinner></ac-loading-spinner></v-flex>
-  </v-layout>
+        </v-col>
+      </v-row>
+    </v-col>
+    <v-col v-else><ac-loading-spinner /></v-col>
+  </v-row>
 </template>
 
 <script lang="ts">

@@ -1,23 +1,23 @@
 <template>
-  <v-list-tile avatar>
+  <v-list-item>
       <router-link :to="{name: 'Case', params: {orderId: event.target.id, username: viewer.username}}">
-        <v-list-tile-avatar>
+        <v-list-item-avatar>
           <img :src="$img(event.data.display, 'notification', true)"/>
-        </v-list-tile-avatar>
+        </v-list-item-avatar>
       </router-link>
-    <v-list-tile-content>
-      <v-list-tile-title>
+    <v-list-item-content>
+      <v-list-item-title>
         A Dispute has been filed for Order #{{event.target.id}}.
-      </v-list-tile-title>
-    </v-list-tile-content>
-    <v-list-tile-action>
+      </v-list-item-title>
+    </v-list-item-content>
+    <v-list-item-action>
       <v-btn
           @click="claimDispute"
           small
       >Claim
       </v-btn>
-    </v-list-tile-action>
-  </v-list-tile>
+    </v-list-item-action>
+  </v-list-item>
 </template>
 
 <style scoped>

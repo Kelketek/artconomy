@@ -14,5 +14,8 @@ import Upload from '@/mixins/upload'
     components: {AcNewSubmission},
   })
 export default class DummySubmit extends mixins(Subjective, Upload) {
+  public created() {
+    this.showUpload = true
+  }
 }
 </script>

@@ -1,49 +1,49 @@
 <template>
   <v-card>
     <v-card-text>
-      <v-layout row wrap v-if="!subject.portrait && !subject.landscape">
-        <v-flex xs12 text-xs-center>
+      <v-row no-gutters   v-if="!subject.portrait && !subject.landscape">
+        <v-col class="text-center" cols="12" >
           <p>Premium settings are only available with a portrait or Landscape subscription.</p>
           <v-btn :to="{name: 'Upgrade'}" color="secondary">Upgrade Now!</v-btn>
-        </v-flex>
-      </v-layout>
-      <v-layout row wrap v-if="portrait">
-        <v-flex xs12>
+        </v-col>
+      </v-row>
+      <v-row no-gutters   v-if="portrait">
+        <v-col cols="12">
           <v-subheader>Portrait settings</v-subheader>
           <p>Manage your portrait settings here. You will be notified when artists you are watching become available.
             <strong>Want to get notified on Telegram?</strong> Link your Telegram account!</p>
-        </v-flex>
-        <v-flex text-xs-center xs12 sm4 offset-sm4 d-flex>
+        </v-col>
+        <v-col class="text-center d-flex" cols="12" sm="4" offset-sm="4" >
           <a :href="subject.telegram_link" target="_blank" style="text-decoration: none">
             <v-card class="elevation-7 setup-telegram">
               <v-card-text>
-                <v-layout row wrap>
-                  <v-flex xs6 sm12 order-xs2 order-sm1 px-2>
+                <v-row no-gutters  >
+                  <v-col class="px-2" cols="6" sm="12" order="2" order-sm="1" >
                     <img src="/static/images/telegram_logo.svg" style="height: 10vh" alt="Telegram logo"/>
-                  </v-flex>
-                  <v-flex xs6 sm12 order-xs1 order-sm2 class="two-factor-label">
+                  </v-col>
+                  <v-col cols="6" sm="12" order="1" order-sm="2" class="two-factor-label">
                     <p>Click this panel, then click the 'start' button in Telegram to link your account!</p>
-                  </v-flex>
-                </v-layout>
+                  </v-col>
+                </v-row>
               </v-card-text>
             </v-card>
           </a>
-        </v-flex>
-      </v-layout>
-      <v-layout row wrap v-if="subject.landscape">
-        <v-flex xs12 text-xs-center>
+        </v-col>
+      </v-row>
+      <v-row no-gutters   v-if="subject.landscape">
+        <v-col class="text-center" cols="12" >
           <v-subheader>Landscape settings</v-subheader>
           <p>There are no special settings to configure for Landscape at this time. Your commission bonuses will be applied automatically!</p>
-        </v-flex>
-      </v-layout>
-      <v-layout row wrap v-if="(subject.portrait || subject.landscape)">
-        <v-flex xs12 text-xs-center>
+        </v-col>
+      </v-row>
+      <v-row no-gutters   v-if="(subject.portrait || subject.landscape)">
+        <v-col class="text-center" cols="12" >
           <p>Your {{subscriptionType}} subscription is paid through {{formatDate(paidThrough)}}.</p>
-        </v-flex>
-        <v-flex xs12 sm6 text-xs-center>
+        </v-col>
+        <v-col class="text-center" cols="12" sm="6" >
           <v-btn :to="{name: 'Payment', params: {username}}" color="primary">Update Payment Settings</v-btn>
-        </v-flex>
-        <v-flex xs12 sm6 text-xs-center v-if="subject.portrait_enabled || subject.landscape_enabled">
+        </v-col>
+        <v-col class="text-center" cols="12" sm="6" v-if="subject.portrait_enabled || subject.landscape_enabled">
           <ac-confirmation :action="cancelSubscription">
             <template v-slot:default="{on}">
               <v-btn color="danger" class="cancel-subscription" v-on="on">Cancel Subscription</v-btn>
@@ -53,11 +53,11 @@
               <p>Note: You will be able to use the extra features until your current term ends.</p>
             </span>
           </ac-confirmation>
-        </v-flex>
-        <v-flex xs12 sm6 text-xs-center v-else-if="subject.portrait || subject.landscape">
+        </v-col>
+        <v-col class="text-center" cols="12" sm="6" v-else-if="subject.portrait || subject.landscape">
           <v-btn color="secondary" :to="{name: 'Upgrade'}">Restart Subscription</v-btn>
-        </v-flex>
-      </v-layout>
+        </v-col>
+      </v-row>
     </v-card-text>
   </v-card>
 </template>

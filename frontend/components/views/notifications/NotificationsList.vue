@@ -1,9 +1,9 @@
 <template>
-  <v-layout wrap>
-    <v-flex xs12 text-xs-center v-if="notifications.ready !== null && !notifications.list.length">
+  <v-row no-gutters >
+    <v-col class="text-center" cols="12" v-if="notifications.ready !== null && !notifications.list.length">
       <p>You do not have any notifications at this time.</p>
-    </v-flex>
-    <v-flex xs12 md10 offset-md1 v-if="notifications.list.length">
+    </v-col>
+    <v-col cols="12" md="10" offset-md="1" v-if="notifications.list.length">
       <v-list three-line>
         <template v-for="(notification, index) in notifications.list">
           <div
@@ -17,20 +17,20 @@
                        class="notification" :notification="notification.x"
             />
           </div>
-          <v-list-tile v-else :key="index">
-            <v-list-tile-content>
+          <v-list-item v-else :key="index">
+            <v-list-item-content>
               {{log(notification.x)}}
               {{notification.x}}
-            </v-list-tile-content>
-          </v-list-tile>
+            </v-list-item-content>
+          </v-list-item>
           <v-divider v-if="index + 1 < notifications.list.length" :key="`divider-${index}`"/>
         </template>
       </v-list>
-    </v-flex>
-    <v-flex xs12 text-xs-center>
+    </v-col>
+    <v-col class="text-center" cols="12" >
       <ac-grow-spinner :list="notifications"></ac-grow-spinner>
-    </v-flex>
-  </v-layout>
+    </v-col>
+  </v-row>
 </template>
 
 <script lang="ts">

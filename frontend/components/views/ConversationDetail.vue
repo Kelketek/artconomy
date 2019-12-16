@@ -1,70 +1,70 @@
 <template>
-  <v-layout :key="conversationId">
-    <v-flex v-if="conversation.x">
-      <v-container class="py-0">
-        <v-toolbar class="py-1">
-          <v-toolbar-items>
-            <ac-avatar
+  <v-row no-gutters :key="conversationId">
+    <v-col v-if="conversation.x">
+      <v-container>
+        <v-card>
+          <v-row>
+            <v-col class="shrink" v-for="participant in conversation.x.participants.filter((x) => x.username !== rawViewerName)" :key="participant.id">
+              <ac-avatar
                 :user="participant"
                 class="px-1"
-                v-for="participant in conversation.x.participants.filter((x) => x.username !== rawViewerName)"
-                :key="participant.id"
-            />
-          </v-toolbar-items>
-          <v-spacer></v-spacer>
-          <v-toolbar-items>
-            <ac-confirmation :action="leaveConversation">
-              <template v-slot:default="{on}">
-                <v-btn icon v-on="on" color="red" class="delete-button"><v-icon>delete</v-icon></v-btn>
-              </template>
-              <v-flex slot="confirmation-text">
-                Are you sure you wish to leave this conversation? This cannot be undone. Conversations are deleted
-                when all users have left.
-              </v-flex>
-            </ac-confirmation>
-          </v-toolbar-items>
-        </v-toolbar>
+              />
+            </v-col>
+            <v-spacer />
+            <v-col class="shrink d-flex" align-self="center">
+              <ac-confirmation :action="leaveConversation">
+                <template v-slot:default="{on}">
+                  <v-btn icon v-on="on" color="red" class="delete-button"><v-icon>delete</v-icon></v-btn>
+                </template>
+                <v-col slot="confirmation-text">
+                  Are you sure you wish to leave this conversation? This cannot be undone. Conversations are deleted
+                  when all users have left.
+                </v-col>
+              </ac-confirmation>
+            </v-col>
+          </v-row>
+        </v-card>
       </v-container>
-      <ac-loading-spinner v-if="!conversation.x"></ac-loading-spinner>
+      <ac-loading-spinner v-if="!conversation.x" />
       <v-container>
-        <v-layout row wrap>
-          <v-flex xs12>
+        <v-row no-gutters  >
+          <v-col cols="12">
             <p><strong class="danger">WARNING:</strong> Do not discuss order details through private conversations. Add any details
               about the commission you want in an order. You can negotiate details and pricing and approve/disapprove as needed within the order itself.
               Requirements negotiated within a private conversation cannot be enforced by
               <router-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">Artconomy Shield</router-link>&nbsp;
               <router-link :to="{name: 'BuyAndSell', params: {question: 'disputes'}}">dispute resolution.</router-link>
             </p>
-          </v-flex>
-        </v-layout>
+          </v-col>
+        </v-row>
       </v-container>
       <v-container fluid class="pa-0">
         <ac-comment-section
           :commentList="conversationComments"
           :nesting="false"
           :locked="(!inConversation) && locked">
-          <v-flex slot="empty" text-xs-center pt-1>
-            <v-flex>
+          <v-col class="text-center pt-1" slot="empty" >
+            <v-col>
               <h2>Start a conversation</h2>
               <p>
                 Enter some text into the field below to start messaging!
               </p>
-            </v-flex>
-          </v-flex>
+            </v-col>
+          </v-col>
         </ac-comment-section>
-        <v-layout row wrap>
-          <v-flex xs12 v-if="!inConversation" text-xs-center>
+        <v-row no-gutters  >
+          <v-col class="text-center" cols="12" v-if="!inConversation" >
             <v-btn @click="locked = !locked" :block="$vuetify.breakpoint.xsOnly" class="lock-toggle">
               <v-icon v-if="locked" left>lock</v-icon>
               <v-icon v-else left>lock_open</v-icon>
               <span v-if="locked">Unlock to allow outside comment.</span>
               <span v-else>Lock to prevent outside comment.</span>
             </v-btn>
-          </v-flex>
-        </v-layout>
+          </v-col>
+        </v-row>
       </v-container>
-    </v-flex>
-  </v-layout>
+    </v-col>
+  </v-row>
 </template>
 
 <script lang="ts">

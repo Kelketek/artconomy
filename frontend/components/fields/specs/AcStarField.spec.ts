@@ -1,5 +1,5 @@
-import {vueSetup} from '@/specs/helpers'
-import AcSavedCardField from '@/components/fields/AcSavedCardField.vue'
+import {Vuetify} from 'vuetify/types'
+import {createVuetify, vueSetup} from '@/specs/helpers'
 import {mount} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
@@ -10,14 +10,21 @@ import AcStarField from '@/components/fields/AcStarField.vue'
 const localVue = vueSetup()
 let store: ArtStore
 let cards: ListController<CreditCardToken>
+let vuetify: Vuetify
 
 describe('AcSavedCardField.vue', () => {
   beforeEach(() => {
     store = createStore()
+    vuetify = createVuetify()
   })
   it('Sends the right information', async() => {
     mount(Empty)
-    const wrapper = mount(AcStarField, {localVue, store, propsData: {cards, value: null}})
+    const wrapper = mount(AcStarField, {
+      localVue,
+      store,
+      vuetify,
+      propsData: {cards, value: null},
+    })
     const spyEmit = jest.spyOn(wrapper.vm, '$emit')
     wrapper.findAll('.v-icon').at(2).trigger('click')
     await wrapper.vm.$nextTick()

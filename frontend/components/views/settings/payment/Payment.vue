@@ -1,9 +1,9 @@
 <template>
-  <v-layout row wrap>
-    <v-flex xs12>
+  <v-row no-gutters  >
+    <v-col cols="12">
       <router-view></router-view>
-    </v-flex>
-  </v-layout>
+    </v-col>
+  </v-row>
 </template>
 
 <script lang="ts">

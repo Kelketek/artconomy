@@ -1,27 +1,24 @@
-import {createLocalVue, mount, Wrapper} from '@vue/test-utils'
+import {mount, Wrapper} from '@vue/test-utils'
 import AcConfirmation from '../AcConfirmation.vue'
-import {vuetifySetup} from '@/specs/helpers'
-import Vue, {VueConstructor} from 'vue'
-import Vuetify from 'vuetify'
+import {createVuetify, vueSetup} from '@/specs/helpers'
+import Vue from 'vue'
+import {Vuetify} from 'vuetify/types'
 import flushPromises from 'flush-promises'
 
-Vue.use(Vuetify)
-let localVue: VueConstructor
+let localVue = vueSetup()
 let wrapper: Wrapper<Vue>
+let vuetify: Vuetify
 
 describe('ac-confirmation.vue', () => {
   beforeEach(() => {
-    localVue = createLocalVue()
-    vuetifySetup()
-    if (wrapper) {
-      wrapper.destroy()
-    }
+    vuetify = createVuetify()
   })
   it('Asks for confirmation', async() => {
     const action = jest.fn()
     // Needed for that last bit of code coverage.
     wrapper = mount(AcConfirmation, {
       localVue,
+      vuetify,
       propsData: {action},
       sync: false,
       attachToDocument: true,
@@ -39,6 +36,7 @@ describe('ac-confirmation.vue', () => {
     // Needed for that last bit of code coverage.
     wrapper = mount(AcConfirmation, {
       localVue,
+      vuetify,
       propsData: {action},
       sync: false,
       attachToDocument: true,
@@ -56,7 +54,11 @@ describe('ac-confirmation.vue', () => {
     }))
     // Needed for that last bit of code coverage.
     wrapper = mount(AcConfirmation, {
-      localVue, propsData: {action}, sync: false, attachToDocument: true,
+      localVue,
+      vuetify,
+      propsData: {action},
+      sync: false,
+      attachToDocument: true,
     });
     (wrapper.vm as any).showModal = true
     await wrapper.vm.$nextTick()

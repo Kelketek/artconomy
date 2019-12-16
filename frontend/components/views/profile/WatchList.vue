@@ -1,8 +1,8 @@
 <template>
   <ac-paginated :list="watch" :track-pages="true">
-    <v-flex xs3 sm2 lg1 v-for="user in watch.list" :key="user.x.id">
+    <v-col cols="3" sm="2" lg="1" v-for="user in watch.list" :key="user.x.id">
       <ac-avatar :user="user.x"></ac-avatar>
-    </v-flex>
+    </v-col>
   </ac-paginated>
 </template>
 

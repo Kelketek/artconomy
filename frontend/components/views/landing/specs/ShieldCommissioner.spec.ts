@@ -1,6 +1,7 @@
 import Vue from 'vue'
+import {Vuetify} from 'vuetify/types'
 import Router from 'vue-router'
-import {cleanUp, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import {mount, Wrapper} from '@vue/test-utils'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
@@ -14,10 +15,12 @@ let store: ArtStore
 let wrapper: Wrapper<Vue>
 let searchForm: FormController
 let router: Router
+let vuetify: Vuetify
 
 describe('Shield.vue', () => {
   beforeEach(() => {
     store = createStore()
+    vuetify = createVuetify()
     searchForm = mount(Empty, {localVue, store}).vm.$getForm('search', searchSchema())
     router = new Router({
       mode: 'history',
@@ -36,7 +39,14 @@ describe('Shield.vue', () => {
     cleanUp(wrapper)
   })
   it('Calls Search', async() => {
-    const wrapper = mount(ShieldCommissioner, {localVue, store, router, attachToDocument: true, sync: false})
+    const wrapper = mount(ShieldCommissioner, {
+      localVue,
+      store,
+      router,
+      vuetify,
+      attachToDocument: true,
+      sync: false,
+    })
     wrapper.find('.commission-cta').trigger('click')
     await wrapper.vm.$nextTick()
     expect(router.currentRoute.name).toBe('SearchProducts')

@@ -1,29 +1,30 @@
 import Vue from 'vue'
-import {cleanUp, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, setViewer, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import {mount, Wrapper} from '@vue/test-utils'
 import {genUser} from '@/specs/helpers/fixtures'
 import TransactionHistory from '@/components/views/settings/payment/TransactionHistory.vue'
+import {Vuetify} from 'vuetify'
 
 const localVue = vueSetup()
 let store: ArtStore
 let wrapper: Wrapper<Vue>
+let vuetify: Vuetify
 
 describe('AcTransaction.vue', () => {
   beforeEach(() => {
     store = createStore()
+    vuetify = createVuetify()
   })
   afterEach(() => {
-    if (wrapper) {
-      wrapper.destroy()
-    }
-    cleanUp()
+    cleanUp(wrapper)
   })
   it('Identifies the current list type', async() => {
     setViewer(store, genUser())
     wrapper = mount(TransactionHistory, {
       localVue,
       store,
+      vuetify,
       propsData: {username: 'Fox'},
       sync: false,
       attachToDocument: true,

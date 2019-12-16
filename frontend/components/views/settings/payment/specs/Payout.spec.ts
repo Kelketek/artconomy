@@ -1,9 +1,7 @@
 import Vue from 'vue'
-import {setViewer, vueSetup} from '@/specs/helpers'
+import {Vuetify} from 'vuetify/types'
+import {cleanUp, createVuetify, setViewer, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
-import {singleRegistry} from '@/store/singles/registry'
-import {listRegistry} from '@/store/lists/registry'
-import {profileRegistry} from '@/store/profiles/registry'
 import {mount, Wrapper} from '@vue/test-utils'
 import Payout from '@/components/views/settings/payment/Payout.vue'
 import {genArtistProfile, genUser} from '@/specs/helpers/fixtures'
@@ -11,18 +9,15 @@ import {genArtistProfile, genUser} from '@/specs/helpers/fixtures'
 const localVue = vueSetup()
 let store: ArtStore
 let wrapper: Wrapper<Vue>
+let vuetify: Vuetify
 
 describe('Payout.vue', () => {
   beforeEach(() => {
     store = createStore()
-    singleRegistry.reset()
-    listRegistry.reset()
-    profileRegistry.reset()
+    vuetify = createVuetify()
   })
   afterEach(() => {
-    if (wrapper) {
-      wrapper.destroy()
-    }
+    cleanUp(wrapper)
   })
   it('Mounts', async() => {
     setViewer(store, genUser())

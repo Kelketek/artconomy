@@ -3,9 +3,9 @@
     <ac-load-section :controller="character.profile">
       <ac-character-toolbar :username="username" :character-name="characterName"></ac-character-toolbar>
       <ac-paginated :list="character.submissions" :track-pages="true" class="pt-3">
-        <v-flex xs4 sm3 lg2 v-for="submission in this.character.submissions.list" :key="submission.x.id">
+        <v-col cols="4" sm="3" lg="2" v-for="submission in this.character.submissions.list" :key="submission.x.id">
           <ac-gallery-preview class="pa-1" :submission="submission.x" />
-        </v-flex>
+        </v-col>
       </ac-paginated>
     </ac-load-section>
   </v-container>

@@ -1,13 +1,9 @@
 import Vue from 'vue'
-import Vuex from 'vuex'
-import {createLocalVue, mount, Wrapper} from '@vue/test-utils'
+import {mount, Wrapper} from '@vue/test-utils'
 import AcCardManager from '@/components/views/settings/payment/AcCardManager.vue'
-import Vuetify from 'vuetify'
+import {Vuetify} from 'vuetify/types'
 import {ArtStore, createStore} from '@/store'
-import {singleRegistry, Singles} from '@/store/singles/registry'
-import {listRegistry, Lists} from '@/store/lists/registry'
-import {profileRegistry, Profiles} from '@/store/profiles/registry'
-import {cleanUp, flushPromises, rq, rs, setViewer, vueSetup, vuetifySetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, flushPromises, rq, rs, setViewer, vueSetup} from '@/specs/helpers'
 import {ListController} from '@/store/lists/controller'
 import {CreditCardToken} from '@/types/CreditCardToken'
 import mockAxios from '@/__mocks__/axios'
@@ -19,6 +15,7 @@ const localVue = vueSetup()
 let store: ArtStore
 let wrapper: Wrapper<Vue>
 let cards: ListController<CreditCardToken>
+let vuetify: Vuetify
 
 function genList() {
   return [
@@ -30,21 +27,23 @@ function genList() {
 
 describe('AcCardManager.vue', () => {
   beforeEach(() => {
-    vuetifySetup()
     store = createStore()
+    vuetify = createVuetify()
     setViewer(store, genUser())
     const ccForm = mount(Empty, {localVue, store}).vm.$getForm('newCard', baseCardSchema('/test/'))
     wrapper = mount(
       AcCardManager, {
-        localVue, store, sync: false, attachToDocument: true, propsData: {username: 'Fox', ccForm},
+        localVue,
+        store,
+        vuetify,
+        sync: false,
+        attachToDocument: true,
+        propsData: {username: 'Fox', ccForm},
       })
     cards = (wrapper.vm as any).cards
   })
   afterEach(() => {
-    if (wrapper) {
-      wrapper.destroy()
-    }
-    cleanUp()
+    cleanUp(wrapper)
   })
   it('Fetches the initial data', async() => {
     expect(mockAxios.get.mock.calls[0]).toEqual(

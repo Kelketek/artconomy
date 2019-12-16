@@ -1,38 +1,32 @@
 import Vue from 'vue'
+import {Vuetify} from 'vuetify/types'
 import {mount, Wrapper} from '@vue/test-utils'
-import {singleRegistry} from '@/store/singles/registry'
-import {profileRegistry} from '@/store/profiles/registry'
-import {setViewer, vueSetup, vuetifySetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, setViewer, vueSetup} from '@/specs/helpers'
 import {genSubmission} from '@/store/submissions/specs/fixtures'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import {ArtStore, createStore} from '@/store'
 import AcTagDisplay from '@/components/AcTagDisplay.vue'
 import {genUser} from '@/specs/helpers/fixtures'
 import {searchSchema} from '@/lib'
-import {formRegistry} from '@/store/forms/registry'
 import {FormController} from '@/store/forms/form-controller'
 
 const localVue = vueSetup()
 let wrapper: Wrapper<Vue>
 let store: ArtStore
 let form: FormController
+let vuetify: Vuetify
 
 const mockError = jest.spyOn(console, 'error')
 
 describe('AcTagDisplay.vue', () => {
   beforeEach(() => {
-    vuetifySetup()
     store = createStore()
-    singleRegistry.reset()
-    profileRegistry.reset()
-    formRegistry.reset()
+    vuetify = createVuetify()
     mockError.mockClear()
     form = mount(Empty, {localVue, store}).vm.$getForm('search', searchSchema())
   })
   afterEach(() => {
-    if (wrapper) {
-      wrapper.destroy()
-    }
+    cleanUp(wrapper)
   })
   it('Loads and displays tags', async() => {
     setViewer(store, genUser())
@@ -43,6 +37,7 @@ describe('AcTagDisplay.vue', () => {
     wrapper = mount(AcTagDisplay, {
       localVue,
       store,
+      vuetify,
       propsData: {patcher: single.patchers.tags, username: 'Fox', scope: 'Submissions'},
       mocks: {$route: {name: 'Profile', params: {username: 'Fox'}, query: {editing: false}}},
       stubs: ['router-link'],
@@ -59,6 +54,7 @@ describe('AcTagDisplay.vue', () => {
     wrapper = mount(AcTagDisplay, {
       localVue,
       store,
+      vuetify,
       propsData: {patcher: single.patchers.tags, username: 'Fox', scope: 'Submissions'},
       mocks: {$route: {name: 'Profile', params: {username: 'Fox'}, query: {editing: false}}},
       stubs: ['router-link'],
@@ -82,6 +78,7 @@ describe('AcTagDisplay.vue', () => {
     wrapper = mount(AcTagDisplay, {
       localVue,
       store,
+      vuetify,
       propsData: {patcher: single.patchers.tags, username: 'Fox', scope: 'Submissions'},
       mocks: {$route: {name: 'Profile', params: {username: 'Fox', scope: 'Submissions'}, query: {editing: false}}},
       stubs: ['router-link'],
@@ -110,6 +107,7 @@ describe('AcTagDisplay.vue', () => {
     wrapper = mount(AcTagDisplay, {
       localVue,
       store,
+      vuetify,
       propsData: {
         patcher: single.patchers.tags, username: 'Vulpes', scope: 'Submissions', editable: false,
       },
@@ -131,6 +129,7 @@ describe('AcTagDisplay.vue', () => {
     wrapper = mount(AcTagDisplay, {
       localVue,
       store,
+      vuetify,
       propsData: {patcher: single.patchers.tags, username: 'Fox', scope: 'Submissions'},
       mocks: {$route: {name: 'Profile', params: {username: 'Fox'}, query: {editing: false}}, $router: {push}},
       stubs: ['router-link'],

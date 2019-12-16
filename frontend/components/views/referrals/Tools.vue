@@ -1,10 +1,10 @@
 <template>
   <v-container>
-    <v-layout row wrap>
-      <v-flex xs12 text-xs-center>
+    <v-row no-gutters  >
+      <v-col class="text-center" cols="12" >
         <h1>Referral Tools</h1>
-      </v-flex>
-      <v-flex xs12 lg6 text-xs-center>
+      </v-col>
+      <v-col class="text-center" cols="12" lg="6" >
         <v-card>
           <v-card-text>
             <p>You can embed a copy of your store into your website by using the following code snippet:</p>
@@ -14,8 +14,8 @@
             </code>
           </v-card-text>
         </v-card>
-      </v-flex>
-      <v-flex xs12 lg6 text-xs-center>
+      </v-col>
+      <v-col class="text-center" cols="12" lg="6" >
         <v-card>
           <v-card-text>
             <p>
@@ -31,8 +31,8 @@
             </router-link>
           </v-card-text>
         </v-card>
-      </v-flex>
-    </v-layout>
+      </v-col>
+    </v-row>
   </v-container>
 </template>
 

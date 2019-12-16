@@ -1,45 +1,45 @@
 <template>
   <ac-load-section :controller="validator">
     <template v-slot:default>
-      <v-layout row wrap class="mt-5">
-        <v-flex xs12 md6 offset-md3 text-xs-center>
+      <v-row no-gutters   class="mt-5">
+        <v-col class="text-center" cols="12" md="6" offset-md="3" >
           <ac-form @submit.prevent="resetForm.submitThen(postReset)">
             <ac-form-container class="mt-3" :sending="resetForm.sending" :errors="resetForm.errors" v-if="validator.x">
-              <v-layout row wrap>
-                <v-flex xs12>
+              <v-row no-gutters  >
+                <v-col cols="12">
                   <p>Reset password for {{username}}</p>
-                </v-flex>
-                <v-flex xs12>
+                </v-col>
+                <v-col cols="12">
                   <ac-bound-field
                       :field="resetForm.fields.new_password" type="password"
                       label="New Password"
                   ></ac-bound-field>
-                </v-flex>
-                <v-flex xs12>
+                </v-col>
+                <v-col cols="12">
                   <ac-bound-field
                       :field="resetForm.fields.new_password2" type="password"
                       label="New Password (again)"
                   ></ac-bound-field>
-                </v-flex>
-                <v-flex xs12 text-xs-center>
+                </v-col>
+                <v-col class="text-center" cols="12" >
                   <v-btn type="submit" color="primary">Reset Password</v-btn>
-                </v-flex>
-              </v-layout>
+                </v-col>
+              </v-row>
             </ac-form-container>
           </ac-form>
-        </v-flex>
-      </v-layout>
+        </v-col>
+      </v-row>
     </template>
     <template v-slot:failure>
       <v-container>
-        <v-layout row wrap>
-          <v-flex xs12 md6 offset-md3 text-xs-center>
+        <v-row no-gutters  >
+          <v-col class="text-center" cols="12" md="6" offset-md="3" >
             <v-alert value="error" type="error">
               Your reset token is invalid or has expired.
               <router-link :to="{name: 'Login', params: {tabName: 'forgot'}}">You can request a new one here!</router-link>
             </v-alert>
-          </v-flex>
-        </v-layout>
+          </v-col>
+        </v-row>
       </v-container>
     </template>
   </ac-load-section>

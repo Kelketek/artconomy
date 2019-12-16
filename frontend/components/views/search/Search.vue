@@ -1,19 +1,19 @@
 <template>
   <v-container>
-    <v-layout row wrap>
-      <v-flex xs12 sm6 md3 lg4 order-xs1 order-sm1>
-        <ac-bound-field :field="searchForm.fields.q" label="I'm looking for..." :autofocus="true"></ac-bound-field>
-      </v-flex>
-      <v-flex xs12 sm6 md5 lg4 xl3 order-xs3 order-sm2>
-        <router-view name="hints"></router-view>
-      </v-flex>
-      <v-flex xs12 md4 xl5 text-xs-center order-xs2 order-sm3>
-        <v-layout column>
-          <v-flex shrink>
+    <v-row no-gutters  >
+      <v-col cols="12" sm="6" md="3" lg="4" order="1" order-sm="1">
+        <ac-bound-field :field="searchForm.fields.q" label="I'm looking for..." :autofocus="true" />
+      </v-col>
+      <v-col cols="12" sm="6" md="5" lg="4" xl="3" order="3" order-sm="2">
+        <router-view name="hints" />
+      </v-col>
+      <v-col class="text-center" cols="12" md="4" xl="5" order="2" order-sm="3">
+        <v-col>
+          <v-col class="shrink" >
             <h2>Search in...</h2>
-          </v-flex>
-          <v-flex grow>
-            <v-btn-toggle>
+          </v-col>
+          <v-col class="grow">
+            <v-btn-toggle dense>
               <v-btn :to="{name: 'SearchProducts', query: $route.query}">
                 <v-icon left>shopping_basket</v-icon>
                 Products
@@ -23,7 +23,7 @@
                 Submissions
               </v-btn>
             </v-btn-toggle>
-            <v-btn-toggle>
+            <v-btn-toggle dense>
               <v-btn :to="{name: 'SearchCharacters', query: $route.query}">
                 <v-icon left>people</v-icon>
                 Characters
@@ -33,12 +33,12 @@
                 Profiles
               </v-btn>
             </v-btn-toggle>
-          </v-flex>
-        </v-layout>
-      </v-flex>
-    </v-layout>
-    <router-view name="extra"></router-view>
-    <router-view class="pt-3"></router-view>
+          </v-col>
+        </v-col>
+      </v-col>
+    </v-row>
+    <router-view name="extra" />
+    <router-view class="pt-3" />
   </v-container>
 </template>
 

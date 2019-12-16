@@ -1,7 +1,7 @@
 <template>
   <v-container>
-    <v-layout row wrap text-xs-center>
-      <v-flex xs12>
+    <v-row no-gutters class="text-center"   >
+      <v-col cols="12">
         <h1>Refer a Friend and get Rewarded!</h1>
         <p>
           Every time someone registers and buys or sells a
@@ -14,12 +14,12 @@
             Artconomy Portrait or Landscape.
           </router-link>
         </p>
-      </v-flex>
-    </v-layout>
+      </v-col>
+    </v-row>
     <v-card>
       <v-card-text>
-        <v-layout row wrap>
-          <v-flex text-xs-center>
+        <v-row no-gutters  >
+          <v-col class="text-center" >
             <h2>Use this link to refer other commissioners and artists:</h2>
             <p><a :href="`https://artconomy.com/?referred_by=${username}`"><code
                 v-html="`https://artconomy.com/?referred_by=${username}`"></code></a></p>
@@ -30,14 +30,14 @@
             <h3>Extra Rewards!</h3>
             <p>Follow our <a href="https://twitter.com/ArtconomyArt">Twitter Feed</a> for information on contests
               for things like <strong>FREE</strong> commissions!</p>
-          </v-flex>
-        </v-layout>
+          </v-col>
+        </v-row>
       </v-card-text>
     </v-card>
     <ac-load-section :controller="stats">
       <template v-slot:default>
-        <v-layout row wrap>
-          <v-flex xs12 text-xs-center>
+        <v-row no-gutters  >
+          <v-col class="text-center" cols="12" >
             <h2>Your Referral Stats</h2>
             <ul>
               <li>Total People Referred: {{stats.x.total_referred}}</li>
@@ -72,8 +72,8 @@
               </router-link>
               transactions.
             </p>
-          </v-flex>
-        </v-layout>
+          </v-col>
+        </v-row>
       </template>
     </ac-load-section>
   </v-container>

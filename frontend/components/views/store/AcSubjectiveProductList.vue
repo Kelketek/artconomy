@@ -3,27 +3,27 @@
     <ac-product-list :products="products" v-show="!firstProduct"></ac-product-list>
     <ac-add-button v-model="showNew" v-if="controls && !iFrame">New Product</ac-add-button>
     <ac-new-product :username="username" v-model="showNew" v-if="controls && !iFrame"></ac-new-product>
-    <v-layout row wrap v-if="firstProduct">
-      <v-flex xs12 lg8 offset-lg2 pa-2>
+    <v-row no-gutters   v-if="firstProduct">
+      <v-col class="pa-2" cols="12" lg="8" offset-lg="2" >
         <v-card>
           <v-responsive min-height="25vh">
-            <v-container bg fill-height>
+            <v-container class="bg fill-height" >
               <v-card-text>
-                <v-layout row wrap justify-content align-center>
-                  <v-flex>
+                <v-row no-gutters class="justify-content"   align="center">
+                  <v-col>
                     <h1>Your art. Your store.</h1>
                     <p>Get started selling commissions by adding a product!</p>
-                  </v-flex>
-                  <v-flex text-xs-center>
+                  </v-col>
+                  <v-col class="text-center" >
                     <v-btn large color="primary" @click="showNew = true">Add your first product!</v-btn>
-                  </v-flex>
-                </v-layout>
+                  </v-col>
+                </v-row>
               </v-card-text>
             </v-container>
           </v-responsive>
         </v-card>
-      </v-flex>
-    </v-layout>
+      </v-col>
+    </v-row>
   </ac-load-section>
 </template>
 

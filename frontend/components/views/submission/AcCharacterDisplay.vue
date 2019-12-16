@@ -1,24 +1,26 @@
 <template>
   <ac-load-section :controller="controller">
-    <v-layout row wrap>
-      <v-tooltip top v-if="editable">
-        <template v-slot:activator="{on}">
-          <v-btn v-on="on" @click="toggle=true" color="accent" icon><v-icon>people</v-icon></v-btn>
-        </template>
-        Edit Characters
-      </v-tooltip>
-      <v-tooltip top v-else>
-        <template v-slot:activator="{on}">
-          <v-icon>people</v-icon>
-        </template>
-        Characters
-      </v-tooltip>
-      <v-flex v-if="controller.empty" d-flex>
-        <v-layout row wrap justify-content align-center>
-          <v-flex>No characters tagged.<span v-if="editable"></span></v-flex>
-        </v-layout>
-      </v-flex>
-      <ac-mini-character v-for="item in controller.list" :character="item.x.character" :key="item.x.id" class="px-1"></ac-mini-character>
+    <v-row dense>
+      <v-col class="shrink">
+        <v-tooltip top v-if="editable">
+          <template v-slot:activator="{on}">
+            <v-btn v-on="on" @click="toggle=true" color="accent" small fab><v-icon>people</v-icon></v-btn>
+          </template>
+          Edit Characters
+        </v-tooltip>
+        <v-tooltip top v-else>
+          <template v-slot:activator="{on}">
+            <v-icon>people</v-icon>
+          </template>
+          Characters
+        </v-tooltip>
+      </v-col>
+      <v-col align-self="center" v-if="controller.empty">
+          No characters tagged.
+      </v-col>
+      <v-col class="shrink">
+        <ac-mini-character v-for="item in controller.list" :character="item.x.character" :key="item.x.id" />
+      </v-col>
       <ac-expanded-property v-model="toggle" v-if="editable">
         <span slot="title">Characters</span>
         <ac-related-manager
@@ -26,9 +28,9 @@
             item-key="character"
         >
           <template v-slot:preview="{item}">
-            <v-flex xs4 sm3 md2 lg1>
+            <v-col cols="4" sm="3" md="2" lg="1">
               <ac-mini-character :character="item.x.character" :removable="true" @remove="item.delete().catch(tagCharacter.setErrors)"/>
-            </v-flex>
+            </v-col>
           </template>
           <template v-slot:default="{filter}">
             <ac-bound-field
@@ -38,7 +40,7 @@
           </template>
         </ac-related-manager>
       </ac-expanded-property>
-    </v-layout>
+    </v-row>
   </ac-load-section>
 </template>
 

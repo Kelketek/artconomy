@@ -1,51 +1,34 @@
 import Vue from 'vue'
-import Vuex from 'vuex'
-import Vuetify from 'vuetify'
 import {ArtStore, createStore} from '@/store'
-import {singleRegistry, Singles} from '@/store/singles/registry'
-import {listRegistry, Lists} from '@/store/lists/registry'
-import {createLocalVue, mount, Wrapper} from '@vue/test-utils'
-import {profileRegistry, Profiles} from '@/store/profiles/registry'
+import {mount, Wrapper} from '@vue/test-utils'
 import AcContextGallery from '@/components/views/character/AcContextGallery.vue'
-import mockAxios from '@/__mocks__/axios'
-import {characterRegistry, Characters} from '@/store/characters/registry'
 import {genCharacter} from '@/store/characters/specs/fixtures'
 import {genSubmission} from '@/store/submissions/specs/fixtures'
 import Submission from '@/types/Submission'
-import {setViewer, vuetifySetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, setViewer, vueSetup} from '@/specs/helpers'
 import {genUser} from '@/specs/helpers/fixtures'
 import {SingleController} from '@/store/singles/controller'
+import {Vuetify} from 'vuetify'
 
-Vue.use(Vuetify)
-Vue.use(Vuex)
-const localVue = createLocalVue()
-localVue.use(Singles)
-localVue.use(Lists)
-localVue.use(Profiles)
-localVue.use(Characters)
+const localVue = vueSetup()
+let vuetify: Vuetify
 
 describe('AcContextGallery.vue', () => {
   let store: ArtStore
   let wrapper: Wrapper<Vue>
   beforeEach(() => {
-    vuetifySetup()
     store = createStore()
-    singleRegistry.reset()
-    listRegistry.reset()
-    profileRegistry.reset()
-    characterRegistry.reset()
-    mockAxios.reset()
+    vuetify = createVuetify()
   })
   afterEach(() => {
-    if (wrapper) {
-      wrapper.destroy()
-    }
+    cleanUp(wrapper)
   })
   it('Determines the featured submission', async() => {
     setViewer(store, genUser())
     wrapper = mount(
       AcContextGallery, {
         localVue,
+        vuetify,
         store,
         propsData: {username: 'Fox', characterName: 'Kai'},
         mocks: {$route: {name: 'Character', params: {username: 'Fox', characterName: 'Kai'}, query: {}}},

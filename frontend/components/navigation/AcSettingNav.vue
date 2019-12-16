@@ -1,65 +1,65 @@
 <!--suppress XmlUnboundNsPrefix -->
 <template>
   <v-list v-if="subject">
-    <v-list-tile :to="{name: 'Options', params: {username}}" exact>
-      <v-list-tile-action>
+    <v-list-item :to="{name: 'Options', params: {username}}" exact>
+      <v-list-item-action>
         <v-icon>build</v-icon>
-      </v-list-tile-action>
-      <v-list-tile-title>Options</v-list-tile-title>
-    </v-list-tile>
-    <v-list-tile class="artist-panel-link" :to="{name: 'Artist', params: {username}}" exact v-if="subject.artist_mode">
-      <v-list-tile-action>
+      </v-list-item-action>
+      <v-list-item-title>Options</v-list-item-title>
+    </v-list-item>
+    <v-list-item class="artist-panel-link" :to="{name: 'Artist', params: {username}}" exact v-if="subject.artist_mode">
+      <v-list-item-action>
         <v-icon>palette</v-icon>
-      </v-list-tile-action>
-      <v-list-tile-title>Artist</v-list-tile-title>
-    </v-list-tile>
-    <v-list-tile :to="{name: 'Credentials', params: {username}}">
-      <v-list-tile-action>
+      </v-list-item-action>
+      <v-list-item-title>Artist</v-list-item-title>
+    </v-list-item>
+    <v-list-item :to="{name: 'Credentials', params: {username}}">
+      <v-list-item-action>
         <v-icon>lock</v-icon>
-      </v-list-tile-action>
-      <v-list-tile-title>Credentials</v-list-tile-title>
-    </v-list-tile>
-    <v-list-tile :to="{name: 'Avatar', params: {username}}">
-      <v-list-tile-action>
+      </v-list-item-action>
+      <v-list-item-title>Credentials</v-list-item-title>
+    </v-list-item>
+    <v-list-item :to="{name: 'Avatar', params: {username}}">
+      <v-list-item-action>
         <v-icon>person</v-icon>
-      </v-list-tile-action>
-      <v-list-tile-title>Avatar</v-list-tile-title>
-    </v-list-tile>
-    <v-list-tile :to="{name: 'Premium', params: {username}}">
-      <v-list-tile-action>
+      </v-list-item-action>
+      <v-list-item-title>Avatar</v-list-item-title>
+    </v-list-item>
+    <v-list-item :to="{name: 'Premium', params: {username}}">
+      <v-list-item-action>
         <v-icon>star</v-icon>
-      </v-list-tile-action>
-      <v-list-tile-title>Premium</v-list-tile-title>
-    </v-list-tile>
+      </v-list-item-action>
+      <v-list-item-title>Premium</v-list-item-title>
+    </v-list-item>
     <v-list-group
         no-action :value="true"
     >
       <template v-slot:activator>
-        <v-list-tile>
-          <v-list-tile-action>
+        <v-list-item>
+          <v-list-item-action>
             <v-icon>attach_money</v-icon>
-          </v-list-tile-action>
-          <v-list-tile-title>Payment</v-list-tile-title>
-        </v-list-tile>
+          </v-list-item-action>
+          <v-list-item-title>Payment</v-list-item-title>
+        </v-list-item>
       </template>
-      <v-list-tile :to="{name: 'Purchase', params: {username}}">
-        <v-list-tile-action>
+      <v-list-item :to="{name: 'Purchase', params: {username}}">
+        <v-list-item-action>
           <v-icon>credit_card</v-icon>
-        </v-list-tile-action>
-        <v-list-tile-title>Payment Methods</v-list-tile-title>
-      </v-list-tile>
-      <v-list-tile :to="{name: 'Payout', params: {username}}" class="payout-link" v-if="showPayout">
-        <v-list-tile-action>
+        </v-list-item-action>
+        <v-list-item-title>Payment Methods</v-list-item-title>
+      </v-list-item>
+      <v-list-item :to="{name: 'Payout', params: {username}}" class="payout-link" v-if="showPayout">
+        <v-list-item-action>
           <v-icon>account_balance_wallet</v-icon>
-        </v-list-tile-action>
-        <v-list-tile-title>Payout Methods</v-list-tile-title>
-      </v-list-tile>
-      <v-list-tile :to="{name: 'TransactionHistory', params: {username}}">
-        <v-list-tile-action>
+        </v-list-item-action>
+        <v-list-item-title>Payout Methods</v-list-item-title>
+      </v-list-item>
+      <v-list-item :to="{name: 'TransactionHistory', params: {username}}">
+        <v-list-item-action>
           <v-icon>list</v-icon>
-        </v-list-tile-action>
-        <v-list-tile-title>Transaction History</v-list-tile-title>
-      </v-list-tile>
+        </v-list-item-action>
+        <v-list-item-title>Transaction History</v-list-item-title>
+      </v-list-item>
     </v-list-group>
   </v-list>
 </template>

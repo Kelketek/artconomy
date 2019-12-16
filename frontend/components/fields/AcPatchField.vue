@@ -2,36 +2,34 @@
 <template>
   <component :is="fieldType" v-bind="inputAttrs" v-on="$listeners" v-model="scratch" v-if="(patcher.loaded || patcher.model)" @keydown.enter="enterHandler" class="patch-field">
     <slot v-for="(_, name) in $slots" :name="name" :slot="name"/>
-    <v-flex slot="append" v-if="!handlesSaving">
-      <v-layout>
-        <v-tooltip top v-if="saved && saveIndicator">
-          <template v-slot:activator="{ on }">
-            <!-- Using a button here so the two elements are aligned. -->
-            <v-btn v-on="on" icon class="save-indicator" @click.stop="() => {}" :ripple="false" tabindex="-1">
-              <v-icon color="green" class="save-indicator">check_circle</v-icon>
-            </v-btn>
-          </template>
-          <span>Saved</span>
-        </v-tooltip>
-        <v-tooltip top v-else-if="saveIndicator">
-          <template v-slot:activator="{ on }">
-            <!-- Using a button here so the two elements are aligned. -->
-            <v-btn v-on="on" icon class="save-indicator" @click.stop="() => {}" :ripple="false" tabindex="-1" :disabled="disabled">
-              <v-icon color="yellow" class="save-indicator">warning</v-icon>
-            </v-btn>
-          </template>
-          <span>Unsaved</span>
-        </v-tooltip>
-        <v-tooltip top v-if="!autoSave">
-          <template v-slot:activator="{ on }">
-            <v-btn v-on="on" @click="save" :disabled="saved || disabled" icon color="black" class="save-button">
-              <v-icon color="yellow">save</v-icon>
-            </v-btn>
-          </template>
-          <span>Save</span>
-        </v-tooltip>
-      </v-layout>
-    </v-flex>
+    <div slot="append" v-if="!handlesSaving">
+      <v-tooltip top v-if="saved && saveIndicator">
+        <template v-slot:activator="{ on }">
+          <!-- Using a button here so the two elements are aligned. -->
+          <v-btn v-on="on" icon class="save-indicator" @click.stop="() => {}" :ripple="false" tabindex="-1">
+            <v-icon color="green" class="save-indicator">check_circle</v-icon>
+          </v-btn>
+        </template>
+        <span>Saved</span>
+      </v-tooltip>
+      <v-tooltip top v-else-if="saveIndicator">
+        <template v-slot:activator="{ on }">
+          <!-- Using a button here so the two elements are aligned. -->
+          <v-btn v-on="on" icon class="save-indicator" @click.stop="() => {}" :ripple="false" tabindex="-1" :disabled="disabled">
+            <v-icon color="yellow" class="save-indicator">warning</v-icon>
+          </v-btn>
+        </template>
+        <span>Unsaved</span>
+      </v-tooltip>
+      <v-tooltip top v-if="!autoSave">
+        <template v-slot:activator="{ on }">
+          <v-btn v-on="on" @click="save" :disabled="saved || disabled" icon color="black" class="save-button">
+            <v-icon color="yellow">save</v-icon>
+          </v-btn>
+        </template>
+        <span>Save</span>
+      </v-tooltip>
+    </div>
   </component>
 </template>
 
@@ -58,7 +56,13 @@ import AcSubmissionSelect from '@/components/fields/AcSubmissionSelect.vue'
 import AcBankToggle from '@/components/fields/AcBankToggle.vue'
 import AcPriceField from '@/components/fields/AcPriceField.vue'
 import AcStarField from '@/components/fields/AcStarField.vue'
+import * as VCheckbox from 'vuetify/es5/components/VCheckbox'
+import * as VSwitch from 'vuetify/es5/components/VSwitch'
+import * as VTextField from 'vuetify/es5/components/VTextField'
+import * as VAutocomplete from 'vuetify/es5/components/VAutocomplete'
+import * as VSlider from 'vuetify/es5/components/VSlider'
 
+// @ts-ignore
 @Component({components: {
   AcStarField,
   AcPriceField,
@@ -68,6 +72,11 @@ import AcStarField from '@/components/fields/AcStarField.vue'
   AcRatingField,
   AcTagField,
   AcEditor,
+  ...VTextField,
+  ...VCheckbox,
+  ...VSwitch,
+  ...VAutocomplete,
+  ...VSlider,
 }})
 export default class AcPatchField extends Vue {
     @Prop({default: 'v-text-field'})
@@ -165,7 +174,7 @@ export default class AcPatchField extends Vue {
         return false
       }
       if (this.patcher.patching) {
-        return (this.$vuetify.theme.secondary as any).base
+        return (this.$vuetify.theme.currentTheme.secondary as any).base
       }
     }
 

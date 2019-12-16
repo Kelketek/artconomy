@@ -1,17 +1,20 @@
 <template>
   <ac-paginated :list="list" :track-pages="true" :auto-run="false">
-    <v-flex xs4 sm3 lg2 v-for="submission in list.list" :key="submission.x.id">
-      <ac-gallery-preview class="pa-1"
-                          :submission="submission.x">
-      </ac-gallery-preview>
-    </v-flex>
-    <v-flex text-xs-center slot="empty">
-      <v-card>
-        <v-card-text>
-          We could not find anything which matched your request.
-        </v-card-text>
-      </v-card>
-    </v-flex>
+    <v-row>
+      <v-col cols="4" sm="3" lg="2" v-for="submission in list.list" :key="submission.x.id">
+        <ac-gallery-preview :submission="submission.x">
+        </ac-gallery-preview>
+      </v-col>
+    </v-row>
+    <v-row no-gutters slot="empty">
+      <v-col class="text-center" slot="empty">
+        <v-card>
+          <v-card-text>
+            We could not find anything which matched your request.
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
   </ac-paginated>
 </template>
 <script lang="ts">

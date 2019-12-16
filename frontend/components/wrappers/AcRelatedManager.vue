@@ -1,15 +1,15 @@
 <template>
   <ac-form-container :sending="fieldController.form.sending" :errors="fieldController.form.errors">
-    <v-layout row wrap>
+    <v-row no-gutters  >
       <slot name="preview" :item="item" v-for="item in listController.list">
-        <v-flex xs12>{{item}}</v-flex>
+        <v-col cols="12">{{item}}</v-col>
       </slot>
       <slot name="empty" v-if="listController.empty">
       </slot>
-      <v-flex xs12>
+      <v-col cols="12">
         <slot :filter="filter"></slot>
-      </v-flex>
-    </v-layout>
+      </v-col>
+    </v-row>
   </ac-form-container>
 </template>
 

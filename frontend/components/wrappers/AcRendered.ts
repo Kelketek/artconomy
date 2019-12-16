@@ -4,12 +4,13 @@ import AcAvatar from '@/components/AcAvatar.vue'
 import Formatting from '@/mixins/formatting'
 import {compileToFunctions} from 'vue-template-compiler'
 import {CreateElement} from 'vue'
+import * as VGrid from 'vuetify/es5/components/VGrid'
 
 @Component
 export default class AcRendered extends mixins(Formatting) {
   @Prop()
   public value!: string
-  @Prop({default: 'v-flex'})
+  @Prop({default: 'v-col'})
   public tag!: string
   @Prop({default: false})
   public inline!: boolean
@@ -36,7 +37,7 @@ export default class AcRendered extends mixins(Formatting) {
 
   public get renderedComponent() {
     return {
-      components: {AcAvatar},
+      components: {AcAvatar, ...VGrid},
       render: compileToFunctions(this.dynamicTemplate).render,
     }
   }
@@ -64,7 +65,7 @@ export default class AcRendered extends mixins(Formatting) {
       return ''
     }
     return '<v-toolbar class="read-more-bar" dense @click="$parent.more=true">' +
-      '<v-flex class="text-xs-center"><strong>Read More</strong></v-flex>' +
+      '<v-col class="text-center"><strong>Read More</strong></v-col>' +
       '</v-toolbar>'
   }
 }

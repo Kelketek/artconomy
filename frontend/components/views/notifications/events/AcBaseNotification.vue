@@ -1,43 +1,39 @@
 <template>
-  <v-list-tile avatar>
-    <a :href="hrefLink" v-if="hrefLink">
+  <v-list-item>
+    <v-list-item-avatar>
+    <ac-link :to="assetLink">
       <v-badge left overlap>
-        <span slot="badge" v-if="!notification.read">*</span>
-        <v-list-tile-avatar>
-          <slot name="avatar">
+        <template v-slot:badge>
+          <span v-if="!notification.read">*</span>
+        </template>
+        <slot name="avatar">
+          <v-avatar>
             <img :src="event.data.display.avatar_url" v-if="event.data.display && event.data.display.avatar_url" alt="">
             <img :src="$img(event.data.display, 'notification', true)" alt="" v-else>
-          </slot>
-        </v-list-tile-avatar>
+          </v-avatar>
+        </slot>
       </v-badge>
-    </a>
-    <router-link :to="assetLink" v-else>
-      <v-badge left overlap>
-        <span slot="badge" v-if="!notification.read">*</span>
-        <v-list-tile-avatar>
-          <slot name="avatar">
-            <img :src="event.data.display.avatar_url" v-if="event.data.display && event.data.display.avatar_url" alt="">
-            <img :src="$img(event.data.display, 'notification', true)" alt="" v-else>
-          </slot>
-        </v-list-tile-avatar>
-      </v-badge>
-    </router-link>
-    <v-list-tile-content>
-      <v-list-tile-title>
-        <slot name="title"></slot>
-      </v-list-tile-title>
-      <v-list-tile-sub-title>
-        <slot name="subtitle"></slot>
-      </v-list-tile-sub-title>
-    </v-list-tile-content>
-  </v-list-tile>
+    </ac-link>
+    </v-list-item-avatar>
+    <v-list-item-content>
+      <v-list-item-title>
+        <slot name="title" />
+      </v-list-item-title>
+      <v-list-item-subtitle>
+        <slot name="subtitle" />
+      </v-list-item-subtitle>
+      <slot name="extra" />
+    </v-list-item-content>
+  </v-list-item>
 </template>
 
 <script>
 import Notification from '../mixins/notification'
+import AcLink from '@/components/wrappers/AcLink'
 
 export default {
   name: 'ac-base-notification',
+  components: {AcLink},
   mixins: [Notification],
   props: ['assetLink', 'hrefLink'],
 }

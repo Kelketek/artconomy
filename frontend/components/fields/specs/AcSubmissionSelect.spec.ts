@@ -1,26 +1,26 @@
 import {mount, Wrapper} from '@vue/test-utils'
 import Vue from 'vue'
-import {cleanUp, genAnon, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, genAnon, setViewer, vueSetup} from '@/specs/helpers'
 import AcSubmissionSelect from '@/components/fields/AcSubmissionSelect.vue'
 import {ArtStore, createStore} from '@/store'
 import {genSubmission} from '@/store/submissions/specs/fixtures'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
+import {Vuetify} from 'vuetify/types'
 
 const localVue = vueSetup()
 let store: ArtStore
 jest.useFakeTimers()
 let wrapper: Wrapper<Vue>
+let vuetify: Vuetify
 
 describe('AcSubmissionSelect.vue', () => {
   beforeEach(() => {
     store = createStore()
+    vuetify = createVuetify()
     setViewer(store, genAnon())
   })
   afterEach(() => {
-    if (wrapper) {
-      wrapper.destroy()
-    }
-    cleanUp()
+    cleanUp(wrapper)
   })
   it('Gets the right comparison ID when comparison is specified', async() => {
     const currentSubmission = genSubmission()
@@ -29,6 +29,7 @@ describe('AcSubmissionSelect.vue', () => {
       AcSubmissionSelect, {
         localVue,
         store,
+        vuetify,
         propsData: {
           value: 2, queryEndpoint: '/stuff/', saveComparison: currentSubmission,
         },
@@ -55,6 +56,7 @@ describe('AcSubmissionSelect.vue', () => {
       AcSubmissionSelect, {
         localVue,
         store,
+        vuetify,
         propsData: {
           value: 2,
           queryEndpoint: '/stuff/',
@@ -89,6 +91,7 @@ describe('AcSubmissionSelect.vue', () => {
       AcSubmissionSelect, {
         localVue,
         store,
+        vuetify,
         propsData: {
           value: 2, queryEndpoint: '/stuff/',
         },
@@ -116,6 +119,7 @@ describe('AcSubmissionSelect.vue', () => {
       AcSubmissionSelect, {
         localVue,
         store,
+        vuetify,
         propsData: {
           value: 1, queryEndpoint: '/stuff/', saveComparison: currentSubmission,
         },
@@ -149,6 +153,7 @@ describe('AcSubmissionSelect.vue', () => {
       AcSubmissionSelect, {
         localVue,
         store,
+        vuetify,
         propsData: {
           value: 1, queryEndpoint: '/stuff/', saveComparison: currentSubmission,
         },
@@ -182,6 +187,7 @@ describe('AcSubmissionSelect.vue', () => {
       AcSubmissionSelect, {
         localVue,
         store,
+        vuetify,
         propsData: {
           value: 1, saveComparison: currentSubmission,
         },
@@ -217,6 +223,7 @@ describe('AcSubmissionSelect.vue', () => {
       AcSubmissionSelect, {
         localVue,
         store,
+        vuetify,
         propsData: {
           value: 1, queryEndpoint: '/stuff/', saveComparison: currentSubmission,
         },

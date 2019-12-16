@@ -1,8 +1,8 @@
 <template>
   <ac-paginated :list="products" :track-pages="true">
-    <v-flex xs12 sm3 md4 lg3 xl2 v-for="product in products.list" :key="product.x.id" class="pa-1">
+    <v-col cols="12" sm="3" md="4" lg="3" xl="2" v-for="product in products.list" :key="product.x.id" class="pa-1">
       <ac-product-preview :product="product.x"></ac-product-preview>
-    </v-flex>
+    </v-col>
   </ac-paginated>
 </template>
 

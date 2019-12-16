@@ -1,5 +1,6 @@
 import Vue from 'vue'
-import {cleanUp, vueSetup} from '@/specs/helpers'
+import {Vuetify} from 'vuetify/types'
+import {cleanUp, createVuetify, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import {mount, Wrapper} from '@vue/test-utils'
 import AcRevisionManager from '@/components/views/order/AcRevisionManager.vue'
@@ -9,10 +10,12 @@ import {genOrder, genRevision} from '@/specs/helpers/fixtures'
 const localVue = vueSetup()
 let store: ArtStore
 let wrapper: Wrapper<Vue>
+let vuetify: Vuetify
 
 describe('AcRevisionManager.vue', () => {
   beforeEach(() => {
     store = createStore()
+    vuetify = createVuetify()
   })
   afterEach(() => {
     cleanUp(wrapper)

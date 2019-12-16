@@ -947,7 +947,7 @@ def perform_login(request):
     # This information is obtained from the login form.
     email = str(request.data.get('email', request.POST.get('email', ''))).lower().strip()
     password = request.data.get('password', request.POST.get('password', '')).strip()
-    token = request.data.get('token', request.POST.get('token', '')).strip()
+    token = request.data.get('token', request.POST.get('token', '')).strip().replace(' ', '')
     order_claim = request.data.get('order_claim', request.POST.get('order_claim', '')).strip()
     # Use Django's machinery to attempt to see if the username/password
     # combination is valid - a User object is returned if it is.

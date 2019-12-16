@@ -171,6 +171,7 @@ describe('Enumerators', () => {
   const localVue = createLocalVue()
   let wrapper: Wrapper<Vue>
   let store: ArtStore
+  localVue.use(Vuex)
   localVue.use(Singles)
   localVue.use(Lists)
   localVue.use(Profiles)

@@ -2,8 +2,8 @@
   <v-container>
     <ac-load-section v-if="isSales" :controller="stats">
       <template v-slot:default>
-        <v-layout row wrap text-xs-center>
-          <v-flex xs12 md6>
+        <v-row no-gutters class="text-center"   >
+          <v-col cols="12" md="6">
             <h1>
               <router-link style="text-decoration: underline;"
                            :to="{name: 'BuyAndSell', params: {question: 'awoo-workload-management'}}">
@@ -11,18 +11,18 @@
               </router-link>
               Panel
             </h1>
-            <v-layout row wrap>
-              <v-flex xs6>Max Load:</v-flex>
-              <v-flex xs6>{{stats.x.max_load}}</v-flex>
-              <v-flex xs6>Current Load:</v-flex>
-              <v-flex xs6>{{stats.x.load}}</v-flex>
-              <v-flex xs6>Active Orders:</v-flex>
-              <v-flex xs6>{{stats.x.active_orders}}</v-flex>
-              <v-flex xs6>New Orders:</v-flex>
-              <v-flex xs6>{{stats.x.new_orders}}</v-flex>
-            </v-layout>
-          </v-flex>
-          <v-flex xs12 md6 v-if="closed">
+            <v-row no-gutters  >
+              <v-col cols="6">Max Load:</v-col>
+              <v-col cols="6">{{stats.x.max_load}}</v-col>
+              <v-col cols="6">Current Load:</v-col>
+              <v-col cols="6">{{stats.x.load}}</v-col>
+              <v-col cols="6">Active Orders:</v-col>
+              <v-col cols="6">{{stats.x.active_orders}}</v-col>
+              <v-col cols="6">New Orders:</v-col>
+              <v-col cols="6">{{stats.x.new_orders}}</v-col>
+            </v-row>
+          </v-col>
+          <v-col cols="12" md="6" v-if="closed">
             <strong>You are currently unable to take new commissions because:</strong>
             <ul>
               <li v-if="stats.x.commissions_closed">You have set your 'commissions closed' setting.</li>
@@ -38,12 +38,12 @@
                 commissions.
               </li>
             </ul>
-          </v-flex>
-          <v-flex v-else>
+          </v-col>
+          <v-col v-else>
             You are currently able to take commissions.
             <router-link :to="{name: 'Store', params: {username}}">Manage your store here.</router-link>
-          </v-flex>
-        </v-layout>
+          </v-col>
+        </v-row>
       </template>
     </ac-load-section>
     <v-tabs fixed-tabs>
@@ -56,8 +56,8 @@
     </v-tabs-items>
     <ac-add-button v-if="isSales" v-model="showNewInvoice">Create Invoice</ac-add-button>
     <ac-form-dialog v-bind="newInvoice.bind" @submit.prevent="newInvoice.submitThen(goToOrder)" v-model="showNewInvoice" :large="true" title="Issue new Invoice">
-      <v-layout row wrap>
-        <v-flex xs12 sm6 pa-2>
+      <v-row no-gutters  >
+        <v-col class="pa-2" cols="12" sm="6" >
           <ac-bound-field
             :field="newInvoice.fields.product"
             field-type="ac-product-select"
@@ -67,18 +67,18 @@
                   If no product is specified, this will be considered a custom order."
             :persistent-hint="true"
           ></ac-bound-field>
-        </v-flex>
-        <v-flex xs12 sm6 pa-2>
+        </v-col>
+        <v-col class="pa-2" cols="12" sm="6" >
           <ac-price-preview :price="newInvoice.fields.price.value" :escrow="!escrowDisabled" :username="username"></ac-price-preview>
-        </v-flex>
-        <v-flex xs12 sm6 pa-2>
+        </v-col>
+        <v-col class="pa-2" cols="12" sm="6" >
           <ac-bound-field
             :field="newInvoice.fields.price"
             field-type="ac-price-field"
             label="Total Price"
           ></ac-bound-field>
-        </v-flex>
-        <v-flex xs12 sm6 pa-2>
+        </v-col>
+        <v-col class="pa-2" cols="12" sm="6" >
           <ac-bound-field
             label="Customer username/email"
             :field="newInvoice.fields.buyer"
@@ -89,8 +89,8 @@
             hint="Enter the username or the email address of the customer this commission is for.
                   This can be left blank if you only want to use this order for tracking purposes."
           />
-        </v-flex>
-        <v-flex xs12 sm6 pa-2>
+        </v-col>
+        <v-col class="pa-2" cols="12" sm="6" >
           <ac-bound-field field-type="v-checkbox"
                           label="Paid"
                           :field="newInvoice.fields.paid"
@@ -98,16 +98,16 @@
                                 please check this box."
                           :persistent-hint="true"
           />
-        </v-flex>
-        <v-flex xs12 sm6 pa-2>
+        </v-col>
+        <v-col class="pa-2" cols="12" sm="6" >
           <ac-bound-field field-type="v-checkbox"
                           label="Already Complete"
                           :field="newInvoice.fields.completed"
                           hint="If you have already completed the commission you're invoicing, please check this box."
                           :persistent-hint="true"
           />
-        </v-flex>
-        <v-flex xs12 sm4 pa-2>
+        </v-col>
+        <v-col class="pa-2" cols="12" sm="4" >
           <ac-bound-field
             label="Slots taken"
             :field="newInvoice.fields.task_weight"
@@ -115,8 +115,8 @@
             :disabled="newInvoice.fields.completed.value"
             hint="How many of your slots this commission will take up."
           />
-        </v-flex>
-        <v-flex xs12 sm4 pa-2>
+        </v-col>
+        <v-col class="pa-2" cols="12" sm="4" >
           <ac-bound-field
             label="Revisions included"
             :field="newInvoice.fields.revisions"
@@ -125,8 +125,8 @@
             hint="The total number of times the buyer will be able to ask for revisions.
                   This does not include the final, so if there are no revisions, set this to zero."
             />
-        </v-flex>
-        <v-flex xs12 sm4 pa-2>
+        </v-col>
+        <v-col class="pa-2" cols="12" sm="4" >
           <ac-bound-field
             label="Expected turnaround (days)"
             :field="newInvoice.fields.revisions"
@@ -134,8 +134,8 @@
             :disabled="newInvoice.fields.completed.value"
             hint="The total number of business days you expect this task will take."
           />
-        </v-flex>
-        <v-flex xs12 pa-1>
+        </v-col>
+        <v-col class="pa-1" cols="12" >
           <ac-bound-field
             label="description"
             :field="newInvoice.fields.details"
@@ -144,8 +144,8 @@
             hint="Enter any information you need to remember in order to complete this commission.
                   NOTE: This information will be visible to the buyer."
           />
-        </v-flex>
-      </v-layout>
+        </v-col>
+      </v-row>
     </ac-form-dialog>
   </v-container>
 </template>

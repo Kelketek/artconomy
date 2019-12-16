@@ -1,11 +1,11 @@
 <template>
-  <v-layout :key="journalId" column>
-    <v-flex v-if="journal.x">
+  <v-col :key="journalId">
+    <v-col v-if="journal.x">
       <v-container>
       <v-card>
-        <v-toolbar dense>
-          <ac-avatar :username="username" :show-name="false"></ac-avatar>
-          <v-toolbar-title>{{username}}</v-toolbar-title><v-spacer></v-spacer>
+        <v-toolbar dense color="black">
+          <ac-avatar :username="username" :show-name="false" />
+          <v-toolbar-title class="ml-1">{{username}}</v-toolbar-title><v-spacer />
           <v-tooltip bottom>
             <template v-slot:activator="{ on }">
               <v-icon v-on="on">info</v-icon>
@@ -18,75 +18,73 @@
               <v-btn icon v-on="on" class="more-button"><v-icon>more_horiz</v-icon></v-btn>
             </template>
             <v-list dense>
-              <v-list-tile @click="editing = true" v-if="!editing && controls">
-                <v-list-tile-action><v-icon>edit</v-icon></v-list-tile-action>
-                <v-list-tile-title>Edit</v-list-tile-title>
-              </v-list-tile>
-              <v-list-tile @click.stop="journal.patch({subscribed: !journal.x.subscribed})">
-                <v-list-tile-action>
+              <v-list-item @click="editing = true" v-if="!editing && controls">
+                <v-list-item-action><v-icon>edit</v-icon></v-list-item-action>
+                <v-list-item-title>Edit</v-list-item-title>
+              </v-list-item>
+              <v-list-item @click.stop="journal.patch({subscribed: !journal.x.subscribed})">
+                <v-list-item-action>
                   <v-icon v-if="journal.x.subscribed">volume_up</v-icon>
                   <v-icon v-else>volume_off</v-icon>
-                </v-list-tile-action>
-                <v-list-tile-title>
+                </v-list-item-action>
+                <v-list-item-title>
                   Notifications
                   <span v-if="journal.x.subscribed">on</span>
                   <span v-else>off</span>
-                </v-list-tile-title>
-              </v-list-tile>
-              <v-list-tile @click.stop="journal.patch({comments_disabled: !journal.x.comments_disabled})">
-                <v-list-tile-action>
+                </v-list-item-title>
+              </v-list-item>
+              <v-list-item @click.stop="journal.patch({comments_disabled: !journal.x.comments_disabled})">
+                <v-list-item-action>
                   <v-icon v-if="journal.x.comments_disabled">mode_comment</v-icon>
                   <v-icon v-else>comment</v-icon>
-                </v-list-tile-action>
-                <v-list-tile-title>
+                </v-list-item-action>
+                <v-list-item-title>
                   Comments
                   <span v-if="journal.x.comments_disabled">locked</span>
                   <span v-else>allowed</span>
-                </v-list-tile-title>
-              </v-list-tile>
+                </v-list-item-title>
+              </v-list-item>
               <ac-confirmation :action="deleteJournal" v-if="controls">
                 <template v-slot:default="confirmContext">
-                  <v-list-tile v-on="confirmContext.on">
-                    <v-list-tile-action class="delete-button"><v-icon>delete</v-icon></v-list-tile-action>
-                    <v-list-tile-title>Delete</v-list-tile-title>
-                  </v-list-tile>
+                  <v-list-item v-on="confirmContext.on">
+                    <v-list-item-action class="delete-button"><v-icon>delete</v-icon></v-list-item-action>
+                    <v-list-item-title>Delete</v-list-item-title>
+                  </v-list-item>
                 </template>
               </ac-confirmation>
             </v-list>
           </v-menu>
         </v-toolbar>
         <v-card-text>
-          <v-layout row wrap>
-            <v-flex xs12 sm12 class="pt-1 pl-1 pr-1">
-              <v-flex xs12>
-                <ac-patch-field :patcher="journalSubject" v-show="editing" v-if="controls"></ac-patch-field>
-                <span class="title" v-show="!editing"><ac-rendered :value="journal.x.subject" :inline="true"></ac-rendered></span>
-              </v-flex>
-              <v-flex xs12 class="mt-2 pl-1 pr-1">
-                <ac-patch-field field-type="ac-editor" v-show="editing" v-if="controls" :patcher="body" :auto-save="false">
-                  <v-flex shrink slot="pre-actions">
-                    <v-tooltip top>
-                      <template v-slot:activator="{ on }">
-                        <v-btn v-on="on" @click="editing=false" icon color="danger" class="cancel-button" :disabled="journal.patching">
-                          <v-icon>lock</v-icon>
-                        </v-btn>
-                      </template>
-                      <span>Stop Editing</span>
-                    </v-tooltip>
-                  </v-flex>
-                </ac-patch-field>
-                <ac-rendered :value="journal.x.body" v-show="!editing"></ac-rendered>
-              </v-flex>
-            </v-flex>
-          </v-layout>
+          <v-row>
+            <v-col cols="12">
+              <ac-patch-field :patcher="journalSubject" v-show="editing" v-if="controls" />
+              <span class="title" v-show="!editing"><ac-rendered :value="journal.x.subject" :inline="true" /></span>
+            </v-col>
+            <v-col cols="12">
+              <ac-patch-field field-type="ac-editor" v-show="editing" v-if="controls" :patcher="body" :auto-save="false">
+                <v-col class="shrink" slot="pre-actions">
+                  <v-tooltip top>
+                    <template v-slot:activator="{ on }">
+                      <v-btn v-on="on" @click="editing=false" icon color="danger" class="cancel-button" :disabled="journal.patching">
+                        <v-icon>lock</v-icon>
+                      </v-btn>
+                    </template>
+                    <span>Stop Editing</span>
+                  </v-tooltip>
+                </v-col>
+              </ac-patch-field>
+              <ac-rendered :value="journal.x.body" v-show="!editing" />
+            </v-col>
+          </v-row>
         </v-card-text>
       </v-card>
-      <ac-editing-toggle v-if="controls"></ac-editing-toggle>
+      <ac-editing-toggle v-if="controls" />
       </v-container>
-    </v-flex>
-    <ac-loading-spinner v-else></ac-loading-spinner>
-    <ac-comment-section :commentList="journalComments" :nesting="true" :locked="locked"></ac-comment-section>
-  </v-layout>
+    </v-col>
+    <ac-loading-spinner v-else />
+    <ac-comment-section :commentList="journalComments" :nesting="true" :locked="locked" />
+  </v-col>
 </template>
 <script lang="ts">
 import Editable from '@/mixins/editable'

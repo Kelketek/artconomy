@@ -1,10 +1,10 @@
 import Vue from 'vue'
+import {Vuetify} from 'vuetify/types'
 import Router from 'vue-router'
-import {cleanUp, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, setViewer, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import {mount, Wrapper} from '@vue/test-utils'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
-import {FormController} from '@/store/forms/form-controller'
 import WatchList from '@/components/views/profile/WatchList.vue'
 import {genUser} from '@/specs/helpers/fixtures'
 
@@ -12,12 +12,13 @@ const localVue = vueSetup()
 localVue.use(Router)
 let store: ArtStore
 let wrapper: Wrapper<Vue>
-let searchForm: FormController
 let router: Router
+let vuetify: Vuetify
 
 describe('WatchList.vue', () => {
   beforeEach(() => {
     store = createStore()
+    vuetify = createVuetify()
     router = new Router({
       mode: 'history',
       routes: [{
@@ -30,6 +31,11 @@ describe('WatchList.vue', () => {
         path: '/profiles/:username/products/',
         component: Empty,
         props: true,
+      }, {
+        name: 'Dummy',
+        path: '/dummy',
+        component: Empty,
+        props: true,
       }],
     })
   })
@@ -38,10 +44,13 @@ describe('WatchList.vue', () => {
   })
   it('Mounts and loads a watchlist', async() => {
     setViewer(store, genUser())
-    const wrapper = mount(WatchList, {
+    // Need a route for the paginator to check page numbers on. Can be any.
+    await router.push({name: 'Dummy'})
+    wrapper = mount(WatchList, {
       localVue,
       store,
       router,
+      vuetify,
       propsData: {username: 'Fox', nameSpace: 'watching', endpoint: '/test/'},
       attachToDocument: true,
       sync: false,

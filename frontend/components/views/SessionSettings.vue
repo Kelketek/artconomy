@@ -4,8 +4,8 @@
       <v-container>
         <v-card>
           <v-card-text>
-            <v-layout row wrap>
-              <v-flex xs12>
+            <v-row no-gutters  >
+              <v-col cols="12">
                 <v-card-text :class="{disabled: patchers.sfw_mode.model}">
                   <ac-patch-field
                       field-type="ac-rating-field"
@@ -16,29 +16,29 @@
                   >
                   </ac-patch-field>
                 </v-card-text>
-              </v-flex>
-              <v-flex xs12 sm6>
+              </v-col>
+              <v-col cols="12" sm="6">
                 <ac-patch-field field-type="v-switch" label="SFW Mode"
                                 :patcher="patchers.sfw_mode"
                                 hint="Overrides your content preferences to only allow clean content. Useful if viewing the site
                       from a work machine."
                                 :save-indicator="false"
                                 persistent-hint></ac-patch-field>
-              </v-flex>
-              <v-flex xs12 sm6 pa-2 text-xs-center>
+              </v-col>
+              <v-col class="pa-2 text-center" cols="12" sm="6" >
                 <p class="title">Register, and get access to more cool features like:</p>
-              </v-flex>
-              <v-flex xs12 sm6 d-flex>
-                <v-layout row justify-content align-center d-flex>
-                  <v-flex>
+              </v-col>
+              <v-col class="d-flex" cols="12" sm="6" >
+                <v-row no-gutters class="justify-content d-flex"  align="center" >
+                  <v-col>
                     <v-img src="/static/images/laptop.png" max-height="30vh" :contain="true"></v-img>
-                  </v-flex>
-                </v-layout>
-              </v-flex>
-              <v-flex xs12 sm6 d-flex>
-                <v-layout row justify-content align-center>
+                  </v-col>
+                </v-row>
+              </v-col>
+              <v-col class="d-flex" cols="12" sm="6" >
+                <v-row no-gutters class="justify-content"  align="center">
                   <v-spacer />
-                  <v-flex>
+                  <v-col>
                     <ul>
                       <li>
                         <strong>Character listings</strong>
@@ -56,14 +56,14 @@
                         <strong>...And much more!</strong>
                       </li>
                     </ul>
-                  </v-flex>
+                  </v-col>
                   <v-spacer />
-                </v-layout>
-              </v-flex>
-              <v-flex xs12 text-xs-center pt-2>
+                </v-row>
+              </v-col>
+              <v-col class="text-center pt-2" cols="12" >
                 <v-btn color="primary" :to="{name: 'Login', params: {tabName: 'register'}}">Sign up for FREE!</v-btn>
-              </v-flex>
-            </v-layout>
+              </v-col>
+            </v-row>
           </v-card-text>
         </v-card>
       </v-container>

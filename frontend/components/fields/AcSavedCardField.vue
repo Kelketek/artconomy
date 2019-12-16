@@ -1,11 +1,11 @@
 <template>
   <ac-load-section :controller="cards">
     <template v-slot:default>
-      <v-flex class="card-group-container">
+      <div class="flex card-group-container">
         <v-radio-group :hide-details="true" :value="value" @change="sendInput">
-          <ac-card v-for="card in cards.list" :card="card" :key="card.id" :card-list="cards" :value="value" :field-mode="true"></ac-card>
+          <ac-card v-for="card in cards.list" :card="card" :key="card.id" :card-list="cards" :value="value" :field-mode="true" />
         </v-radio-group>
-      </v-flex>
+      </div>
     </template>
   </ac-load-section>
 </template>

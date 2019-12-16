@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import Component from 'vue-class-component'
-import {Prop, Watch} from 'vue-property-decorator'
+import {Prop} from 'vue-property-decorator'
 
 @Component
 export default class Dialog extends Vue {
@@ -10,8 +10,6 @@ export default class Dialog extends Vue {
   public large!: boolean
   @Prop({default: true})
   public persistent!: boolean
-  @Prop({default: false})
-  public lazy!: boolean
 
   /* istanbul ignore next */
   public get width() {

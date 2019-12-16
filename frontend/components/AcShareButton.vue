@@ -6,8 +6,8 @@
     </v-btn>
     <ac-expanded-property v-model="showModal">
       <span slot="title">Share this!</span>
-      <v-layout row wrap v-if="social">
-        <v-flex text-xs-center xs12>
+      <v-row no-gutters   v-if="social">
+        <v-col class="text-center" cols="12">
           <v-checkbox
               label="Include referral information"
               hint="Includes your username in URL to credit for rewards."
@@ -16,8 +16,8 @@
               v-if="isRegistered"
               class="referral-check"
           />
-        </v-flex>
-        <v-flex text-xs-center xs12>
+        </v-col>
+        <v-col class="text-center" cols="12">
           <v-btn color="purple" icon large @click="showQr = true" class="qr-button"><v-icon>fa-qrcode</v-icon></v-btn>
           <v-btn color="red" icon large :href="`https://reddit.com/submit?url=${location}&title=${titleText}`"
                  rel="nofollow"
@@ -41,17 +41,17 @@
                  rel="nofollow">
             <v-icon>fa-tumblr</v-icon>
           </v-btn>
-        </v-flex>
-      </v-layout>
+        </v-col>
+      </v-row>
       <ac-expanded-property v-model="showQr" class="qr-modal">
-        <v-layout row wrap>
-          <v-flex class="text-xs-center" xs12>
+        <v-row no-gutters  >
+          <v-col class="text-center" cols="12">
             <div v-html="image" class="qrcode" v-if="image"></div>
-          </v-flex>
-          <v-flex xs12 text-xs-center>
+          </v-col>
+          <v-col class="text-center" cols="12" >
             Show this QR code to someone and have them scan it with their camera app to quickly link them.
-          </v-flex>
-        </v-layout>
+          </v-col>
+        </v-row>
       </ac-expanded-property>
       <slot name="footer"></slot>
     </ac-expanded-property>

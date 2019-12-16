@@ -8,7 +8,7 @@ celery-haystack==0.10
 coverage==4.5.3
 python-dateutil==2.8.0
 ddt==1.1.1
-Django==2.2.1
+Django==2.2.9
 django-avatar==4.1.0
 django-otp==0.4.3
 django-celery-email==2.0.0

@@ -1,20 +1,13 @@
-import Vue, {VueConstructor} from 'vue'
-import Vuex from 'vuex'
-import Vuetify from 'vuetify'
-import {createLocalVue, mount, shallowMount, Wrapper} from '@vue/test-utils'
+import Vue from 'vue'
+import {Vuetify} from 'vuetify/types'
+import {mount, shallowMount, Wrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
 import VueRouter from 'vue-router'
 import {genUser} from '@/specs/helpers/fixtures'
-import {setViewer, vuetifySetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, setViewer, vueSetup} from '@/specs/helpers'
 import Credentials from '../Credentials.vue'
-import {FormControllers, formRegistry} from '@/store/forms/registry'
 import Settings from '../Settings.vue'
-import {listRegistry, Lists} from '@/store/lists/registry'
-import {Singles} from '@/store/singles/registry'
-import {Profiles} from '@/store/profiles/registry'
 
-// Must use it directly, due to issues with package imports upstream.
-Vue.use(Vuetify)
 jest.useFakeTimers()
 
 const settingRoutes = [{
@@ -36,34 +29,29 @@ const settingRoutes = [{
 }]
 
 describe('Credentials.vue', () => {
-  const localVue: VueConstructor = createLocalVue()
-  localVue.use(Vuex)
-  localVue.use(FormControllers)
-  localVue.use(Lists)
-  localVue.use(Singles)
-  localVue.use(Profiles)
+  const localVue = vueSetup()
   let store: ArtStore
   let wrapper: Wrapper<Vue>
   let router: VueRouter
+  let vuetify: Vuetify
   beforeEach(() => {
-    if (wrapper) {
-      wrapper.destroy()
-    }
-    formRegistry.reset()
-    listRegistry.reset()
     localVue.use(VueRouter)
     store = createStore()
+    vuetify = createVuetify()
     router = new VueRouter({
       mode: 'history',
       routes: settingRoutes,
     })
-    vuetifySetup()
+  })
+  afterEach(() => {
+    cleanUp(wrapper)
   })
   it('Mounts the credentials page', async() => {
     setViewer(store, genUser())
     wrapper = mount(Credentials, {
       localVue,
       store,
+      vuetify,
       propsData: {username: 'Fox'},
       attachToDocument: true,
       sync: false,
@@ -75,6 +63,7 @@ describe('Credentials.vue', () => {
     wrapper = shallowMount(Credentials, {
       localVue,
       store,
+      vuetify,
       propsData: {username: 'Fox'},
       attachToDocument: true,
       sync: false,
@@ -94,6 +83,7 @@ describe('Credentials.vue', () => {
     wrapper = shallowMount(Credentials, {
       localVue,
       store,
+      vuetify,
       propsData: {username: 'Fox'},
       attachToDocument: true,
       sync: false,
@@ -119,6 +109,7 @@ describe('Credentials.vue', () => {
   wrapper = shallowMount(Credentials, {
     localVue,
     store,
+    vuetify,
     propsData: {username: 'Fox'},
     attachToDocument: true,
     sync: false,
@@ -145,6 +136,7 @@ async({currentPassword, password, password2, disabled, result}) => {
   wrapper = shallowMount(Credentials, {
     localVue,
     store,
+    vuetify,
     propsData: {username: 'Fox'},
     attachToDocument: true,
     sync: false,
@@ -162,6 +154,7 @@ async({currentPassword, password, password2, disabled, result}) => {
     wrapper = mount(Credentials, {
       localVue,
       store,
+      vuetify,
       propsData: {username: 'Fox'},
       attachToDocument: true,
       sync: false,

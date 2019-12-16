@@ -1,5 +1,5 @@
 <template>
-  <v-flex>Collection</v-flex>
+  <v-col>Collection</v-col>
 </template>
 
 <script lang="ts">

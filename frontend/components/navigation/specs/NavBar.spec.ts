@@ -1,36 +1,40 @@
 import Vue from 'vue'
+import {Vuetify} from 'vuetify/types'
 import {mount, shallowMount, Wrapper} from '@vue/test-utils'
 import NavBar from '../NavBar.vue'
 import {ArtStore, createStore} from '@/store'
 import {genUser} from '@/specs/helpers/fixtures'
-import {flushPromises, genAnon, rq, rs, setViewer, vueSetup, vuetifySetup} from '@/specs/helpers'
-import {singleRegistry} from '@/store/singles/registry'
-import {profileRegistry} from '@/store/profiles/registry'
+import {
+  cleanUp,
+  createVuetify,
+  flushPromises,
+  genAnon,
+  rq,
+  rs,
+  setViewer,
+  vueSetup,
+} from '@/specs/helpers'
 import mockAxios from '@/specs/helpers/mock-axios'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
-import Nav from '@/mixins/nav'
 
 // Must use it directly, due to issues with package imports upstream.
 const localVue = vueSetup()
 let wrapper: Wrapper<Vue>
 let empty: Wrapper<Vue>
+let vuetify: Vuetify
 
 describe('NavBar.vue', () => {
   let store: ArtStore
   beforeEach(() => {
     mockAxios.reset()
-    singleRegistry.reset()
-    profileRegistry.reset()
     store = createStore()
-    vuetifySetup()
+    vuetify = createVuetify()
     jest.useFakeTimers()
     empty = mount(Empty, {localVue, store})
     empty.vm.$getForm('search', {endpoint: '/', fields: {q: {value: ''}}})
   })
   afterEach(() => {
-    if (wrapper) {
-      wrapper.destroy()
-    }
+    cleanUp(wrapper)
   })
   it('Starts with the drawer closed on small screens', async() => {
     (window as any).innerWidth = 300
@@ -39,6 +43,7 @@ describe('NavBar.vue', () => {
     wrapper = shallowMount(NavBar, {
       store,
       localVue,
+      vuetify,
       mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}},
       sync: false,
       attachToDocument: true,
@@ -52,6 +57,7 @@ describe('NavBar.vue', () => {
     wrapper = shallowMount(NavBar, {
       store,
       localVue,
+      vuetify,
       mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}},
       sync: false,
       attachToDocument: true,
@@ -63,6 +69,7 @@ describe('NavBar.vue', () => {
     wrapper = shallowMount(NavBar, {
       store,
       localVue,
+      vuetify,
       mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}},
       sync: false,
     })
@@ -77,6 +84,7 @@ describe('NavBar.vue', () => {
     wrapper = shallowMount(NavBar, {
       store,
       localVue,
+      vuetify,
       mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}},
       sync: false,
     })
@@ -93,6 +101,7 @@ describe('NavBar.vue', () => {
     wrapper = shallowMount(NavBar, {
       store,
       localVue,
+      vuetify,
       mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}},
       sync: false,
     })
@@ -106,6 +115,7 @@ describe('NavBar.vue', () => {
     wrapper = shallowMount(NavBar, {
       store,
       localVue,
+      vuetify,
       mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}},
       sync: false,
     })
@@ -126,6 +136,7 @@ describe('NavBar.vue', () => {
     wrapper = shallowMount(NavBar, {
       store,
       localVue,
+      vuetify,
       mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}},
       sync: false,
     })
@@ -137,6 +148,7 @@ describe('NavBar.vue', () => {
     wrapper = mount(NavBar, {
       store,
       localVue,
+      vuetify,
       mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}},
       stubs: ['router-link'],
       sync: false,
@@ -154,6 +166,7 @@ describe('NavBar.vue', () => {
     wrapper = mount(NavBar, {
       store,
       localVue,
+      vuetify,
       mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}, $router: {push: mockPush}},
       stubs: ['router-link'],
       sync: false,
@@ -176,6 +189,7 @@ describe('NavBar.vue', () => {
     wrapper = mount(NavBar, {
       store,
       localVue,
+      vuetify,
       mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}, $router: {push: mockPush, replace: mockReplace}},
       stubs: ['router-link'],
       sync: false,
@@ -197,6 +211,7 @@ describe('NavBar.vue', () => {
     wrapper = mount(NavBar, {
       store,
       localVue,
+      vuetify,
       mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}},
       stubs: ['router-link'],
       sync: false,
@@ -214,6 +229,7 @@ describe('NavBar.vue', () => {
     wrapper = mount(NavBar, {
       store,
       localVue,
+      vuetify,
       mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}, $router: {push: mockPush}},
       stubs: ['router-link'],
       sync: false,
@@ -230,6 +246,7 @@ describe('NavBar.vue', () => {
     wrapper = mount(NavBar, {
       store,
       localVue,
+      vuetify,
       mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}, $router: {push: mockPush}},
       stubs: ['router-link'],
       sync: false,
@@ -245,6 +262,7 @@ describe('NavBar.vue', () => {
     wrapper = mount(NavBar, {
       store,
       localVue,
+      vuetify,
       mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}, $router: {push: mockPush}},
       stubs: ['router-link'],
       sync: false,
@@ -259,6 +277,7 @@ describe('NavBar.vue', () => {
     wrapper = mount(NavBar, {
       store,
       localVue,
+      vuetify,
       mocks: {$route: {fullPath: '/search/products', name: 'SearchProducts', path: '/'}, $router: {push: mockPush}},
       stubs: ['router-link'],
       sync: false,

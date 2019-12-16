@@ -1,8 +1,18 @@
+import {Vuetify} from 'vuetify/types'
 import {ArtStore, createStore} from '@/store'
 import Router from 'vue-router'
 import {mount, Wrapper} from '@vue/test-utils'
 import {searchSchema} from '@/lib'
-import {cleanUp, flushPromises, makeSpace, rq, rs, setPricing, setViewer, vueSetup} from '@/specs/helpers'
+import {
+  cleanUp,
+  createVuetify,
+  flushPromises, makeSpace,
+  rq,
+  rs,
+  setPricing,
+  setViewer,
+  vueSetup,
+} from '@/specs/helpers'
 import Vue from 'vue'
 import {FormController} from '@/store/forms/form-controller'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
@@ -19,6 +29,7 @@ import LinkedSubmission from '@/types/LinkedSubmission'
 const localVue = vueSetup()
 localVue.use(Router)
 let store: ArtStore
+let vuetify: Vuetify
 let wrapper: Wrapper<Vue>
 let form: FormController
 let product: SingleController<Product>
@@ -26,10 +37,11 @@ let samplesList: ListController<LinkedSubmission>
 let localSamples: ListController<LinkedSubmission>
 let art: ListController<Submission>
 
-describe('ProductDetail.vue', () => {
+describe('AcSampleEditor.vue', () => {
   beforeEach(() => {
     store = createStore()
-    const empty = mount(Empty, {localVue, store}).vm
+    vuetify = createVuetify()
+    const empty = mount(Empty, {localVue, store, vuetify, sync: false}).vm
     form = empty.$getForm('search', searchSchema())
     setPricing(store, localVue)
     product = empty.$getSingle('product', {endpoint: '/product/'})
@@ -59,6 +71,7 @@ describe('ProductDetail.vue', () => {
     setViewer(store, genUser())
     wrapper = mount(AcSampleEditor, {localVue,
       store,
+      vuetify,
       propsData: {
         product, productId: (product.x as Product).id, username: 'Fox', value: true, samples: samplesList},
       attachToDocument: true,
@@ -97,6 +110,7 @@ describe('ProductDetail.vue', () => {
     localSamples.response = response
     wrapper = mount(AcSampleEditor, {localVue,
       store,
+      vuetify,
       propsData: {
         product, productId: (product.x as Product).id, username: 'Fox', value: true, samples: samplesList},
       attachToDocument: true,
@@ -129,6 +143,7 @@ describe('ProductDetail.vue', () => {
     product.updateX({primary_submission: submission.submission})
     wrapper = mount(AcSampleEditor, {localVue,
       store,
+      vuetify,
       propsData: {
         product, productId: (product.x as Product).id, username: 'Fox', value: true, samples: samplesList},
       attachToDocument: true,
@@ -158,14 +173,21 @@ describe('ProductDetail.vue', () => {
     art.setList(samples)
     wrapper = mount(AcSampleEditor, {localVue,
       store,
+      vuetify,
       propsData: {
-        product, productId: (product.x as Product).id, username: 'Fox', value: true, samples: samplesList},
+        product,
+        productId: (product.x as Product).id,
+        username: 'Fox',
+        value: true,
+        samples: samplesList,
+      },
       attachToDocument: true,
       sync: false,
       stubs: ['ac-new-submission', 'router-link'],
     })
     await wrapper.vm.$nextTick()
     mockAxios.reset()
+    const vm = wrapper.vm as any
     wrapper.find('.product-sample-option').trigger('click')
     expect(mockAxios.post).toHaveBeenCalledWith(...rq('/samples/', 'post', {submission_id: 5}))
     mockAxios.mockResponse(rs({id: 1, submission}))
@@ -188,6 +210,7 @@ describe('ProductDetail.vue', () => {
     art.setList(samples)
     wrapper = mount(AcSampleEditor, {localVue,
       store,
+      vuetify,
       propsData: {
         product, productId: (product.x as Product).id, username: 'Fox', value: true, samples: samplesList},
       attachToDocument: true,
@@ -211,6 +234,7 @@ describe('ProductDetail.vue', () => {
     setViewer(store, genUser())
     wrapper = mount(AcSampleEditor, {localVue,
       store,
+      vuetify,
       propsData: {
         product, productId: (product.x as Product).id, username: 'Fox', value: true, samples: samplesList},
       attachToDocument: true,
@@ -235,6 +259,7 @@ describe('ProductDetail.vue', () => {
     product.updateX({primary_submission: null})
     wrapper = mount(AcSampleEditor, {localVue,
       store,
+      vuetify,
       propsData: {
         product, productId: (product.x as Product).id, username: 'Fox', value: true, samples: samplesList},
       attachToDocument: true,
@@ -264,6 +289,7 @@ describe('ProductDetail.vue', () => {
     setViewer(store, genUser())
     wrapper = mount(AcSampleEditor, {localVue,
       store,
+      vuetify,
       propsData: {
         product, productId: (product.x as Product).id, username: 'Fox', value: true, samples: samplesList},
       attachToDocument: true,

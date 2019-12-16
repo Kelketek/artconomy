@@ -1,7 +1,7 @@
 <!--suppress JSUnusedLocalSymbols -->
 <template>
-  <v-layout>
-    <v-flex v-if="subject">
+  <v-row no-gutters>
+    <v-col v-if="subject">
       <v-navigation-drawer
           temporary
           v-model="drawer"
@@ -26,9 +26,9 @@
         </v-toolbar>
         <router-view></router-view>
       </v-container>
-    </v-flex>
+    </v-col>
     <ac-loading-spinner v-else></ac-loading-spinner>
-  </v-layout>
+  </v-row>
 </template>
 
 <script lang="ts">

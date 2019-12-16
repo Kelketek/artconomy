@@ -1,25 +1,22 @@
 import Vue from 'vue'
-import {makeSpace, rs, setViewer, vueSetup} from '@/specs/helpers'
+import {createVuetify, rs, setViewer, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
-import {singleRegistry} from '@/store/singles/registry'
-import {listRegistry} from '@/store/lists/registry'
-import {profileRegistry} from '@/store/profiles/registry'
 import {mount, Wrapper} from '@vue/test-utils'
 import {genUser} from '@/specs/helpers/fixtures'
 import AcBankToggle from '@/components/fields/AcBankToggle.vue'
 import mockAxios from '@/__mocks__/axios'
 import flushPromises from 'flush-promises'
+import {Vuetify} from 'vuetify/types'
 
 const localVue = vueSetup()
 let store: ArtStore
 let wrapper: Wrapper<Vue>
+let vuetify: Vuetify
 
 describe('AcBankToggle.vue', () => {
   beforeEach(() => {
     store = createStore()
-    singleRegistry.reset()
-    listRegistry.reset()
-    profileRegistry.reset()
+    vuetify = createVuetify()
   })
   afterEach(() => {
     if (wrapper) {
@@ -32,6 +29,7 @@ describe('AcBankToggle.vue', () => {
       AcBankToggle, {
         localVue,
         store,
+        vuetify,
         propsData: {username: 'Fox', value: 1},
         stubs: ['router-link'],
         sync: false,
@@ -44,6 +42,7 @@ describe('AcBankToggle.vue', () => {
       AcBankToggle, {
         localVue,
         store,
+        vuetify,
         propsData: {username: 'Fox', value: 1},
         stubs: ['router-link'],
         sync: false,
@@ -60,6 +59,7 @@ describe('AcBankToggle.vue', () => {
       AcBankToggle, {
         localVue,
         store,
+        vuetify,
         propsData: {username: 'Fox', value: 1, manageBanks: true},
         stubs: ['router-link'],
         sync: false,

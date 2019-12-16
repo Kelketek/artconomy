@@ -1,43 +1,33 @@
 import mockAxios from './helpers/mock-axios'
 import Vue from 'vue'
-import Vuex from 'vuex'
-import Vuetify from 'vuetify'
-import {createLocalVue, mount, shallowMount} from '@vue/test-utils'
+import {mount, shallowMount, Wrapper} from '@vue/test-utils'
 import App from '../App.vue'
 import {ArtStore, createStore} from '../store'
 import flushPromises from 'flush-promises'
-import {FormControllers, formRegistry} from '@/store/forms/registry'
 import {userResponse} from './helpers/fixtures'
 import {FormController} from '@/store/forms/form-controller'
-import {dialogExpects, genAnon, rq, rs, vuetifySetup} from './helpers'
-import {singleRegistry, Singles} from '@/store/singles/registry'
-import {profileRegistry, Profiles} from '@/store/profiles/registry'
-import {Lists} from '@/store/lists/registry'
+import {cleanUp, createVuetify, dialogExpects, genAnon, rq, rs, vueSetup} from './helpers'
+import {Vuetify} from 'vuetify/types'
 
 jest.useFakeTimers()
-// Must use it directly, due to issues with package imports upstream.
-Vue.use(Vuetify)
-Vue.use(Vuex)
-const localVue = createLocalVue()
-localVue.use(Singles)
-localVue.use(Lists)
-localVue.use(Profiles)
-localVue.use(FormControllers)
+const localVue = vueSetup()
+let wrapper: Wrapper<Vue>
+let vuetify: Vuetify
 
 describe('App.vue', () => {
   let store: ArtStore
   beforeEach(() => {
     store = createStore()
-    mockAxios.reset()
-    vuetifySetup()
-    formRegistry.reset()
-    singleRegistry.reset()
-    profileRegistry.reset()
+    vuetify = createVuetify()
+  })
+  afterEach(() => {
+    cleanUp(wrapper)
   })
   it('Fetches the user upon creation', async() => {
-    const wrapper = shallowMount(App, {
+    wrapper = shallowMount(App, {
       store,
       localVue,
+      vuetify,
       stubs: ['router-link', 'router-view'],
       mocks: {$route: {fullPath: '/', params: {}, query: {}}},
       sync: false,
@@ -50,9 +40,10 @@ describe('App.vue', () => {
     expect(viewer.username).toBe('Fox')
   })
   it('Shows an error message if the user doesn\'t load.', async() => {
-    const wrapper = mount(App, {
+    wrapper = mount(App, {
       store,
       localVue,
+      vuetify,
       mocks: {$route: {fullPath: '/', params: {}, query: {}}},
       stubs: ['nav-bar', 'router-view', 'router-link'],
       sync: false,
@@ -68,9 +59,10 @@ describe('App.vue', () => {
     )
   })
   it('Detects when a full interface should not be used due to a specific name', async() => {
-    const wrapper = mount(App, {
+    wrapper = mount(App, {
       store,
       localVue,
+      vuetify,
       mocks: {$route: {fullPath: '/order/', name: 'NewOrder', params: {}, query: {}}},
       stubs: ['nav-bar', 'router-view', 'router-link'],
       sync: false,
@@ -79,9 +71,10 @@ describe('App.vue', () => {
     expect(vm.fullInterface).toBe(false)
   })
   it('Detects when a full interface should not be used due to a landing page', async() => {
-    const wrapper = mount(App, {
+    wrapper = mount(App, {
       store,
       localVue,
+      vuetify,
       mocks: {$route: {fullPath: '/order/', name: 'LandingStuff', params: {}, query: {}}},
       stubs: ['nav-bar', 'router-view', 'router-link'],
       sync: false,
@@ -90,9 +83,10 @@ describe('App.vue', () => {
     expect(vm.fullInterface).toBe(false)
   })
   it('Detects when a full interface should be used', async() => {
-    const wrapper = mount(App, {
+    wrapper = mount(App, {
       store,
       localVue,
+      vuetify,
       mocks: {$route: {fullPath: '/order/', name: 'Thingsf', params: {}, query: {}}},
       stubs: ['nav-bar', 'router-view', 'router-link'],
       sync: false,
@@ -101,9 +95,10 @@ describe('App.vue', () => {
     expect(vm.fullInterface).toBe(true)
   })
   it('Detects when a full interface should be used on a broken route', async() => {
-    const wrapper = mount(App, {
+    wrapper = mount(App, {
       store,
       localVue,
+      vuetify,
       mocks: {$route: {fullPath: '/order/', params: {}, query: {}}},
       stubs: ['nav-bar', 'router-view', 'router-link'],
       sync: false,
@@ -112,19 +107,23 @@ describe('App.vue', () => {
     expect(vm.fullInterface).toBe(true)
   })
   it('Submits the support request form', async() => {
-    const wrapper = mount(App, {
+    wrapper = mount(App, {
       store,
       localVue,
+      vuetify,
       mocks: {$route: {fullPath: '/', params: {}, query: {}}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
       sync: false,
     })
     const state = wrapper.vm.$store.state
     expect(state.showSupport).toBe(false)
-    expect((wrapper.vm as any).showTicketSuccess).toBe(false)
+    const vm = wrapper.vm as any
+    expect(vm.showTicketSuccess).toBe(false)
     mockAxios.mockResponse(userResponse())
     const supportForm: FormController = (wrapper.vm as any).supportForm
     await flushPromises()
+    vm.setSupport(true)
+    await vm.$nextTick()
     supportForm.fields.body.update('This is a test.')
     const submit = dialogExpects({wrapper, formName: 'supportRequest', fields: ['email', 'body']})
     submit.trigger('click')
@@ -145,9 +144,10 @@ describe('App.vue', () => {
     expect((wrapper.vm as any).showTicketSuccess).toBe(false)
   })
   it('Updates the email field when the viewer\'s email is updated.', async() => {
-    const wrapper = mount(App, {
+    wrapper = mount(App, {
       store,
       localVue,
+      vuetify,
       mocks: {$route: {fullPath: '/', params: {}, query: {}}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
       sync: false,
@@ -167,9 +167,10 @@ describe('App.vue', () => {
     expect(supportForm.fields.email.value).toBe('')
   })
   it('Updates the email field when the viewer\'s guest email is updated.', async() => {
-    const wrapper = mount(App, {
+    wrapper = mount(App, {
       store,
       localVue,
+      vuetify,
       mocks: {$route: {fullPath: '/', params: {}, query: {}}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
       sync: false,
@@ -190,9 +191,10 @@ describe('App.vue', () => {
     expect(supportForm.fields.email.value).toBe('')
   })
   it('Updates the referring_url field when the route has changed.', async() => {
-    const wrapper = mount(App, {
+    wrapper = mount(App, {
       store,
       localVue,
+      vuetify,
       mocks: {$route: {fullPath: '/', params: {}, query: {}}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
       sync: false,
@@ -204,9 +206,10 @@ describe('App.vue', () => {
     expect(supportForm.fields.referring_url.value).toBe('/test/')
   })
   it('Shows an alert', async() => {
-    const wrapper = mount(App, {
+    wrapper = mount(App, {
       store,
       localVue,
+      vuetify,
       mocks: {$route: {fullPath: '/', params: {}, query: {}}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
       sync: false,
@@ -216,9 +219,10 @@ describe('App.vue', () => {
     expect(wrapper.find('#alert-bar').exists()).toBe(true)
   })
   it('Removes an alert automatically', async() => {
-    const wrapper = mount(App, {
+    wrapper = mount(App, {
       store,
       localVue,
+      vuetify,
       mocks: {$route: {fullPath: '/', params: {}, query: {}}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
       sync: false,
@@ -230,9 +234,10 @@ describe('App.vue', () => {
     expect((wrapper.vm as any).alertDismissed).toBe(true)
   })
   it('Resets the alert dismissal value after the alert has cleared.', async() => {
-    const wrapper = mount(App, {
+    wrapper = mount(App, {
       store,
       localVue,
+      vuetify,
       mocks: {$route: {fullPath: '/', params: {}, query: {}}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
       sync: false,
@@ -244,9 +249,10 @@ describe('App.vue', () => {
     expect((wrapper.vm as any).alertDismissed).toBe(false)
   })
   it('Manually resets alert dismissal, if needed', async() => {
-    const wrapper = mount(App, {
+    wrapper = mount(App, {
       store,
       localVue,
+      vuetify,
       mocks: {$route: {fullPath: '/', params: {}, query: {}}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
       sync: false,
@@ -256,9 +262,10 @@ describe('App.vue', () => {
     expect((wrapper.vm as any).alertDismissed).toBe(false)
   })
   it('Loads up search form data', async() => {
-    const wrapper = mount(App, {
+    wrapper = mount(App, {
       store,
       localVue,
+      vuetify,
       mocks: {$route: {fullPath: '/', params: {}, query: {q: 'Stuff', featured: 'true'}}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
       sync: false,
@@ -267,9 +274,10 @@ describe('App.vue', () => {
     expect(vm.searchForm.fields.q.value).toBe('Stuff')
   })
   it('Shows the markdown help section', async() => {
-    const wrapper = mount(App, {
+    wrapper = mount(App, {
       store,
       localVue,
+      vuetify,
       mocks: {$route: {fullPath: '/', params: {}, query: {}}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
       sync: false,
@@ -288,9 +296,10 @@ describe('App.vue', () => {
     expect(wrapper.find('.markdown-rendered-help').exists()).toBe(true)
   })
   it('Changes the route key', async() => {
-    const wrapper = mount(App, {
+    wrapper = mount(App, {
       store,
       localVue,
+      vuetify,
       mocks: {$route: {fullPath: '/', params: {stuff: 'things'}, query: {}}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
       sync: false,

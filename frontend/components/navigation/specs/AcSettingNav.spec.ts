@@ -1,34 +1,31 @@
-import AcSettingNav from '@/components/navigation/AcSettingNav.vue'
-import {createLocalVue, mount} from '@vue/test-utils'
 import Vue from 'vue'
-import Vuex from 'vuex'
-import Vuetify from 'vuetify'
+import AcSettingNav from '@/components/navigation/AcSettingNav.vue'
+import {mount, Wrapper} from '@vue/test-utils'
+import {Vuetify} from 'vuetify/types'
 import {ArtStore, createStore} from '@/store'
-import {profileRegistry, Profiles} from '@/store/profiles/registry'
-import {singleRegistry, Singles} from '@/store/singles/registry'
 import {genArtistProfile, genUser} from '@/specs/helpers/fixtures'
 import {BankStatus} from '@/store/profiles/types/BankStatus'
-import {Lists} from '@/store/lists/registry'
+import {cleanUp, createVuetify, vueSetup} from '@/specs/helpers'
 
-Vue.use(Vuex)
-Vue.use(Vuetify)
-const localVue = createLocalVue()
-localVue.use(Singles)
-localVue.use(Lists)
-localVue.use(Profiles)
+const localVue = vueSetup()
 let store: ArtStore
+let vuetify: Vuetify
+let wrapper: Wrapper<Vue>
 
 describe('AcSettingNav.vue', () => {
   beforeEach(() => {
     store = createStore()
-    profileRegistry.reset()
-    singleRegistry.reset()
+    vuetify = createVuetify()
+  })
+  afterEach(() => {
+    cleanUp(wrapper)
   })
   it('Shows artist panel when artist mode is on', async() => {
     const wrapper = mount(
       AcSettingNav, {
         localVue,
         store,
+        vuetify,
         stubs: ['router-link'],
         propsData: {username: 'Fox'}}
     )
@@ -42,6 +39,7 @@ describe('AcSettingNav.vue', () => {
       AcSettingNav, {
         localVue,
         store,
+        vuetify,
         stubs: ['router-link'],
         propsData: {username: 'Fox'}}
     )
@@ -59,6 +57,7 @@ describe('AcSettingNav.vue', () => {
       AcSettingNav, {
         localVue,
         store,
+        vuetify,
         stubs: ['router-link'],
         propsData: {username: 'Fox'}}
     )

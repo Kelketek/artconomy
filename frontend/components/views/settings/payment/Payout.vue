@@ -1,8 +1,8 @@
 <template>
-  <v-layout row wrap>
-    <v-flex xs12 sm6 text-xs-center class="pa-2" d-flex>
-      <v-layout row justify-content align-center>
-        <v-flex>
+  <v-row no-gutters  >
+    <v-col cols="12" sm="6" class="pa-2 text-center d-flex" >
+      <v-row no-gutters class="justify-content"  align="center">
+        <v-col>
           <ac-load-section :controller="balance" v-if="!nonUsAccount">
             <template v-slot:default>
               <v-card>
@@ -16,29 +16,29 @@
           </ac-load-section>
           <ac-load-section :controller="subjectHandler.artistProfile">
             <template v-slot:default>
-              <v-flex py-1>
+              <v-col class="py-1" >
                 <ac-patch-field field-type="ac-bank-toggle"
                                 :patcher="subjectHandler.artistProfile.patchers.bank_account_status"
                                 :username="username" :manage-banks="true"
                 ></ac-patch-field>
-              </v-flex>
+              </v-col>
             </template>
           </ac-load-section>
-        </v-flex>
-      </v-layout>
-    </v-flex>
-    <v-flex xs12 sm6 text-xs-center class="pa-2">
-      <v-layout row wrap>
-        <v-flex xs8 offset-xs2 sm6 offset-sm3 md4 offset-md4>
+        </v-col>
+      </v-row>
+    </v-col>
+    <v-col cols="12" sm="6" class="pa-2 text-center">
+      <v-row no-gutters  >
+        <v-col cols="8" offset="2" sm="6" offset-sm="3" md="4" offset-md="4">
           <v-img src="/static/images/defending.png" contain class="shield-indicator" :class="{faded: nonUsAccount}"></v-img>
-        </v-flex>
-        <v-flex xs12 text-xs-center>
+        </v-col>
+        <v-col class="text-center" cols="12" >
           <p v-if="nonUsAccount">Artconomy Shield is disabled.</p>
           <p v-else>Artconomy Shield is enabled!</p>
-        </v-flex>
-      </v-layout>
-    </v-flex>
-  </v-layout>
+        </v-col>
+      </v-row>
+    </v-col>
+  </v-row>
 </template>
 
 <style scoped>

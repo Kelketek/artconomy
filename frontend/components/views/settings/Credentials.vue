@@ -3,44 +3,44 @@
   <v-card>
     <v-card-text>
       <v-subheader>Primary Credentials</v-subheader>
-      <v-layout row wrap class="pb-3">
-        <v-flex xs12 sm4 lg4 text-xs-center>
+      <v-row no-gutters   class="pb-3">
+        <v-col class="text-center" cols="12" sm="4" lg="4" >
           <v-btn color="primary" @click="showUsernameChange=true">Change Username</v-btn>
           <h3>Username: {{subject.username}}</h3>
-        </v-flex>
-        <v-flex xs12 sm4 lg4 text-xs-center>
+        </v-col>
+        <v-col class="text-center" cols="12" sm="4" lg="4" >
           <v-btn color="primary" @click="showPasswordChange=true">Change Password</v-btn>
           <h3>Password</h3>
-        </v-flex>
-        <v-flex xs12 sm4 lg4 text-xs-center>
+        </v-col>
+        <v-col class="text-center" cols="12" sm="4" lg="4" >
           <v-btn color="primary" @click="showEmailChange=true">Change Email</v-btn>
           <h3>Email: {{subject.email}}</h3>
-        </v-flex>
-      </v-layout>
+        </v-col>
+      </v-row>
       <ac-form-dialog
           v-model="showUsernameChange"
           @submit.stop="usernameForm.submitThen(save)"
           v-bind="usernameForm.bind"
           title="Change Username"
       >
-        <v-layout slot="header" row wrap>
-          <v-flex class="text-xs-center" xs12 md6 offset-md3>
+        <v-row no-gutters slot="header"  >
+          <v-col class="text-center" cols="12" md="6" offset-md="3">
             <h3>
               Warning: Any links to your account, characters, submissions, etc, such as from search engines or other
               sites,
               will be broken by changing your username. This can affect SEO.
             </h3>
-          </v-flex>
-        </v-layout>
-        <v-layout row wrap>
-          <v-flex xs12 md6 offset-md3>
+          </v-col>
+        </v-row>
+        <v-row no-gutters  >
+          <v-col cols="12" md="6" offset-md="3">
             <v-text-field
                 label="New Username"
                 v-bind="usernameForm.fields.username.bind"
                 v-on="usernameForm.fields.username.on"
-            ></v-text-field>
-          </v-flex>
-          <v-flex xs12 md6 offset-md3>
+            />
+          </v-col>
+          <v-col cols="12" md="6" offset-md="3">
             <v-text-field
                 label="Password"
                 type="password"
@@ -48,9 +48,9 @@
                 hint="For security purposes, please enter your password to change your username."
                 v-bind="usernameForm.fields.current_password.bind"
                 v-on="usernameForm.fields.current_password.on"
-            ></v-text-field>
-          </v-flex>
-        </v-layout>
+            />
+          </v-col>
+        </v-row>
       </ac-form-dialog>
       <ac-form-dialog
           v-model="showPasswordChange"
@@ -59,8 +59,8 @@
           title="Change Password"
           :disabled="passwordDisabled"
       >
-        <v-layout row wrap>
-          <v-flex xs12 md6 offset-md3>
+        <v-row no-gutters  >
+          <v-col cols="12" md="6" offset-md="3">
             <v-text-field
                 label="Current Password"
                 type="password"
@@ -68,27 +68,27 @@
                 hint="For security purposes, please enter your current password first."
                 v-bind="passwordForm.fields.current_password.bind"
                 v-on="passwordForm.fields.current_password.on"
-            ></v-text-field>
-          </v-flex>
-          <v-flex xs12 md6 offset-md3>
+            />
+          </v-col>
+          <v-col cols="12" md="6" offset-md="3">
             <v-text-field
                 label="New Password"
                 type="password"
                 autocomplete="off"
                 v-bind="passwordForm.fields.new_password.bind"
                 v-on="passwordForm.fields.new_password.on"
-            ></v-text-field>
-          </v-flex>
-          <v-flex xs12 md6 offset-md3>
+            />
+          </v-col>
+          <v-col cols="12" md="6" offset-md="3">
             <v-text-field
                 label="Confirm New Password"
                 type="password"
                 autocomplete="off"
                 v-bind="passwordForm.fields.new_password2.bind"
                 v-on="passwordForm.fields.new_password2.on"
-            ></v-text-field>
-          </v-flex>
-        </v-layout>
+            />
+          </v-col>
+        </v-row>
       </ac-form-dialog>
       <ac-form-dialog
           v-model="showEmailChange"
@@ -97,26 +97,26 @@
           :disabled="emailDisabled"
           title="Change Email"
       >
-        <v-layout row wrap>
-          <v-flex xs12 md6 offset-md3>
+        <v-row no-gutters  >
+          <v-col cols="12" md="6" offset-md="3">
             <v-text-field
                 label="New Email"
                 type="email"
                 autocomplete="off"
                 v-bind="emailForm.fields.email.bind"
                 v-on="emailForm.fields.email.on"
-            ></v-text-field>
-          </v-flex>
-          <v-flex xs12 md6 offset-md3>
+            />
+          </v-col>
+          <v-col cols="12" md="6" offset-md="3">
             <v-text-field
                 label="Confirm New Email"
                 type="email"
                 autocomplete="off"
                 v-bind="emailForm.fields.email2.bind"
                 v-on="emailForm.fields.email2.on"
-            ></v-text-field>
-          </v-flex>
-          <v-flex xs12 md6 offset-md3>
+            />
+          </v-col>
+          <v-col cols="12" md="6" offset-md="3">
             <v-text-field
                 label="Current Password"
                 type="password"
@@ -124,13 +124,13 @@
                 hint="For security purposes, please enter your current password first."
                 v-bind="emailForm.fields.current_password.bind"
                 v-on="emailForm.fields.current_password.on"
-            ></v-text-field>
-          </v-flex>
-        </v-layout>
+            />
+          </v-col>
+        </v-row>
       </ac-form-dialog>
-      <v-divider></v-divider>
+      <v-divider />
       <v-subheader>Two factor Authentication</v-subheader>
-      <ac-setup-two-factor :username="username"></ac-setup-two-factor>
+      <ac-setup-two-factor :username="username" />
     </v-card-text>
   </v-card>
 </template>

@@ -1,65 +1,65 @@
 <template>
   <ac-load-section :controller="product">
     <template v-slot:default>
-      <v-layout row wrap class="ma-2">
-        <v-flex xs12 md8 offset-lg1 pb-3>
+      <v-row>
+        <v-col cols="12" md="8" offset-lg="1" >
           <ac-form @submit.prevent="orderForm.submitThen(goToOrder)">
             <ac-form-container
                 :errors="orderForm.errors"
                 :sending="orderForm.sending"
             >
               <v-card>
-                <v-toolbar v-if="isRegistered" dense>
-                  <ac-avatar :user="viewer" :show-name="false"></ac-avatar>
-                  <v-toolbar-title>{{viewerName}}</v-toolbar-title>
+                <v-toolbar v-if="isRegistered" dense color="black">
+                  <ac-avatar :user="viewer" :show-name="false" />
+                  <v-toolbar-title class="ml-1">{{viewerName}}</v-toolbar-title>
                 </v-toolbar>
                 <v-card-title>
                   <span class="title">New Commission Order</span>
                 </v-card-title>
                 <v-card-text>
-                  <v-layout row wrap>
-                    <v-flex xs12 sm6 v-if="!isRegistered">
+                  <v-row>
+                    <v-col cols="12" sm="6" v-if="!isRegistered">
                       <v-subheader>Checkout as Guest</v-subheader>
                       <ac-bound-field label="Email" v-if="!isRegistered" :field="orderForm.fields.email" />
-                    </v-flex>
-                    <v-flex xs12 sm6 text-xs-center class="pa-2" v-if="!isRegistered">
+                    </v-col>
+                    <v-col cols="12" sm="6" class="text-center" v-if="!isRegistered">
                       <p>Or, if you have an account,</p>
                       <v-btn :to="{name: 'Login', params: {tabName: 'login'}, query: {next: $route.fullPath}}" color="primary">Log in here!</v-btn>
-                    </v-flex>
-                  </v-layout>
-                  <v-layout row wrap>
-                    <v-flex xs12>
+                    </v-col>
+                  </v-row>
+                  <v-row>
+                    <v-col cols="12">
                       <ac-bound-field
                           label="Content Rating of Piece"
                           field-type="ac-rating-field" :field="orderForm.fields.rating"
                           :persistent-hint="true"
                           hint="Please select the desired content rating of the piece you are commissioning."
-                      ></ac-bound-field>
-                    </v-flex>
-                  </v-layout>
-                  <v-layout row wrap>
-                    <v-flex xs12 v-if="isRegistered">
+                      />
+                    </v-col>
+                  </v-row>
+                  <v-row>
+                    <v-col cols="12" v-if="isRegistered">
                       <ac-bound-field
                           field-type="ac-character-select" :field="orderForm.fields.characters" label="Characters"
                           hint="Start typing a character's name to search. If you've set up characters on Artconomy, you can
                   attach them to this order for easy referencing by the artist! If you haven't added any characters, or
                   no characters are in this piece, you may leave this blank." />
-                    </v-flex>
-                  </v-layout>
-                  <v-layout row wrap>
-                    <v-flex xs12 sm6 class="pt-3" order-xs2 order-sm1>
+                    </v-col>
+                  </v-row>
+                  <v-row>
+                    <v-col cols="12" sm="6" class="pt-3" order="2" order-sm="1">
                       <ac-bound-field
                           :field="orderForm.fields.details" field-type="ac-editor" label="Description"
                           :rows="7"
                           :save-indicator="false"
-                      ></ac-bound-field>
-                    </v-flex>
-                    <v-flex xs12 sm6 order-xs1 order-sm2>
-                      <v-layout row wrap>
-                        <v-flex xs3 d-flex justify-content justify-center align-content-center style="flex-direction: column">
+                      />
+                    </v-col>
+                    <v-col cols="12" sm="6" order="1" order-sm="2">
+                      <v-row>
+                        <v-col class="d-flex justify-content justify-center align-content-center" cols="3" style="flex-direction: column">
                           <v-img src="/static/images/laptop.png" max-height="30vh" :contain="true" />
-                        </v-flex>
-                        <v-flex xs9>
+                        </v-col>
+                        <v-col cols="9">
                           <v-subheader>Example description</v-subheader>
                             Vulpy:<br />
                             * is a fox<br />
@@ -68,76 +68,78 @@
                             * has a paintbrush tail that can be any color, but is black for this piece.<br />
                             * has pink pawpads<br /><br />
                             Please draw Vulpy sitting and typing away excitedly on a computer!
-                        </v-flex>
-                      </v-layout>
-                    </v-flex>
-                  </v-layout>
-                  <v-layout row wrap>
-                    <v-flex xs12>
+                        </v-col>
+                      </v-row>
+                    </v-col>
+                  </v-row>
+                  <v-row no-gutters  >
+                    <v-col cols="12">
                       <ac-load-section :controller="subjectHandler.artistProfile">
                         <template v-slot:default>
                           <v-subheader v-if="subjectHandler.artistProfile.x.commission_info">Commission Info</v-subheader>
-                          <ac-rendered :value="subjectHandler.artistProfile.x.commission_info" :truncate="500"></ac-rendered>
+                          <ac-rendered :value="subjectHandler.artistProfile.x.commission_info" :truncate="500" />
                         </template>
                       </ac-load-section>
-                    </v-flex>
-                  </v-layout>
-                  <v-layout row wrap>
-                    <v-flex xs12 sm6>
+                    </v-col>
+                  </v-row>
+                  <v-row>
+                    <v-col cols="12" sm="6">
                       <ac-bound-field
                           field-type="v-checkbox" :field="orderForm.fields.private" label="Private Order" :persistent-hint="true"
                           hint="Hides the resulting submission from public view and tells the artist you want this commission
                     to be private. The artist may charge an additional fee, since they will not be able to use the piece
                     in their portfolio."
                       />
-                    </v-flex>
-                    <v-flex text-xs-center xs12 sm6>
+                    </v-col>
+                    <v-col class="text-center" cols="12" sm="6" align-self="center">
                       <h3>All orders are bound by the
                         <router-link :to="{name: 'CommissionAgreement'}">Commission Agreement.</router-link>
                       </h3>
-                    </v-flex>
-                  </v-layout>
-                  <v-layout row wrap>
-                    <v-flex xs12 text-xs-center>
+                    </v-col>
+                  </v-row>
+                  <v-row>
+                    <v-col class="text-center" cols="12" >
                       <v-btn color="primary" type="submit">Place Order</v-btn>
-                    </v-flex>
-                  </v-layout>
+                    </v-col>
+                  </v-row>
                 </v-card-text>
               </v-card>
             </ac-form-container>
           </ac-form>
-        </v-flex>
-        <v-flex xs12 offset-md1 md3 lg2>
-          <v-toolbar dense>
-            <ac-avatar :user="product.x.user" :show-name="false"></ac-avatar>
-            <v-toolbar-title>{{username}}</v-toolbar-title>
+        </v-col>
+        <v-col cols="12" offset-md="1" md="3" lg="2">
+          <v-toolbar dense color="black">
+            <ac-avatar :user="product.x.user" :show-name="false" />
+            <v-toolbar-title class="ml-1">{{username}}</v-toolbar-title>
           </v-toolbar>
-          <v-card :color="$vuetify.theme.darkBase.darken2">
+          <v-card :color="$vuetify.theme.currentTheme.darkBase.darken2">
             <v-card-text>
-              <v-layout row wrap>
-                <v-flex xs12 title>
+              <v-row dense>
+                <v-col class="title" cols="12" >
                   Order Summary
-                </v-flex>
-                <v-flex xs12 py-2 subheading>
+                </v-col>
+                <v-col class="subheading" cols="12" >
                   {{product.x.name}}
-                </v-flex>
-                <v-flex xs12>
-                  <ac-asset :asset="product.x.primary_submission" thumb-name="thumbnail"></ac-asset>
-                </v-flex>
-                <v-flex subheading class="py-2">
+                </v-col>
+                <v-col cols="12">
+                  <ac-asset :asset="product.x.primary_submission" thumb-name="thumbnail" />
+                </v-col>
+                <v-col class="subtitle-1" cols="12">
                   Starts at ${{product.x.price.toFixed(2)}}
-                </v-flex>
-                <v-flex>
-                  <p v-if="product.x.revisions">
+                </v-col>
+                <v-col>
+                  <span v-if="product.x.revisions">
                     <strong>{{product.x.revisions}}</strong> revision<span v-if="product.x.revisions > 1">s</span> included.
-                  </p>
-                  <p>Estimated completion: <strong>{{formatDateTerse(deliveryDate)}}</strong></p>
-                </v-flex>
-              </v-layout>
+                  </span>
+                </v-col>
+                <v-col cols="12">
+                  <span>Estimated completion: <strong>{{formatDateTerse(deliveryDate)}}</strong></span>
+                </v-col>
+              </v-row>
             </v-card-text>
           </v-card>
-        </v-flex>
-      </v-layout>
+        </v-col>
+      </v-row>
     </template>
   </ac-load-section>
 </template>

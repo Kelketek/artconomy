@@ -1,28 +1,29 @@
-import {createLocalVue, mount, Wrapper} from '@vue/test-utils'
+import {mount, Wrapper} from '@vue/test-utils'
 import Vue from 'vue'
-import Vuex from 'vuex'
-import {flushPromises, rs, vuetifySetup} from '@/specs/helpers'
-import Vuetify from 'vuetify'
+import {cleanUp, createVuetify, flushPromises, rs, vueSetup} from '@/specs/helpers'
+import {Vuetify} from 'vuetify/types'
 import AcTagField from '@/components/fields/AcTagField.vue'
 import mockAxios from '@/__mocks__/axios'
 
-Vue.use(Vuex)
-Vue.use(Vuetify)
-const localVue = createLocalVue()
+const localVue = vueSetup()
 jest.useFakeTimers()
 let wrapper: Wrapper<Vue>
+let vuetify: Vuetify
 
 describe('ac-tag-field', () => {
   beforeEach(() => {
-    vuetifySetup()
-    mockAxios.reset()
-    if (wrapper) {
-      wrapper.destroy()
-    }
+    vuetify = createVuetify()
+  })
+  afterEach(() => {
+    cleanUp(wrapper)
   })
   it('Searches for tags', async() => {
     const tagList: string[] = []
-    wrapper = mount(AcTagField, {localVue, propsData: {value: tagList}})
+    wrapper = mount(AcTagField, {
+      localVue,
+      vuetify,
+      propsData: {value: tagList},
+    })
     wrapper.find('input').setValue('Test')
     await jest.runAllTimers()
     expect(mockAxios.get).toHaveBeenCalledWith(
@@ -33,7 +34,11 @@ describe('ac-tag-field', () => {
   })
   it('Accepts a response from the server on its query', async() => {
     const tagList: string[] = []
-    wrapper = mount(AcTagField, {localVue, propsData: {value: tagList}})
+    wrapper = mount(AcTagField, {
+      localVue,
+      vuetify,
+      propsData: {value: tagList},
+    })
     wrapper.find('input').setValue('Test')
     await jest.runAllTimers()
     mockAxios.mockResponse(rs(['Test', 'Test1', 'Test2']))
@@ -42,8 +47,29 @@ describe('ac-tag-field', () => {
   it('Sets a tag and resets upon adding a space.', async() => {
     const tagList: string[] = []
     wrapper = mount(
-      AcTagField, {localVue, propsData: {value: tagList}, sync: false, attachToDocument: true}
-    )
+      AcTagField, {
+        localVue,
+        vuetify,
+        propsData: {value: tagList},
+        sync: false,
+        attachToDocument: true,
+      })
+    wrapper.find('input').setValue('Test ')
+    await jest.runAllTimers()
+    await wrapper.vm.$nextTick()
+    expect((wrapper.vm as any).tags).toEqual(['Test'])
+    expect((wrapper.vm as any).queryStore).toBe('')
+  })
+  it('Does not redundantly add a tag.', async() => {
+    const tagList: string[] = ['Test']
+    wrapper = mount(
+      AcTagField, {
+        localVue,
+        vuetify,
+        propsData: {value: tagList},
+        sync: false,
+        attachToDocument: true,
+      })
     wrapper.find('input').setValue('Test ')
     await jest.runAllTimers()
     await wrapper.vm.$nextTick()

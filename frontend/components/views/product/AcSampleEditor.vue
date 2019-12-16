@@ -1,56 +1,59 @@
 <template>
   <fragment>
-    <ac-new-submission v-if="firstUpload || newUpload" :username="username" @success="addSample" title="Upload a Sample" :value="value" @input="toggle" ref="newSubmissionForm"></ac-new-submission>
-    <ac-expanded-property :value="value" :large="true" @input="toggle" :lazy="true" class="sample-editor" v-else>
+    <ac-new-submission v-if="firstUpload || newUpload" :username="username" @success="addSample" title="Upload a Sample" :value="value" @input="toggle" ref="newSubmissionForm" />
+    <ac-expanded-property :value="value" :large="true" @input="toggle" class="sample-editor" ref="sampleEditor" v-else>
       <span slot="title">Change Samples</span>
-      <v-layout row wrap>
-        <v-flex xs12>
-          <v-tabs v-model="tab" centered>
-            <v-tab href="#tab-pick-sample">Manage Samples</v-tab>
-            <v-tab href="#tab-add-new">Add Sample</v-tab>
-          </v-tabs>
-        </v-flex>
-        <v-flex xs12>
-          <v-tabs-items v-model="tab">
-            <v-tab-item value="tab-pick-sample">
-              <ac-patch-field
-                  field-type="ac-submission-select"
-                  :patcher="product.patchers.primary_submission"
-                  :list="localSamples"
-                  :save-comparison="product.x.primary_submission"
-                  :related="true"
-                  :show-progress="true"
-                  :removable="true"
-                  @remove="unlinkSubmission"
-              >
-              </ac-patch-field>
-            </v-tab-item>
-            <v-tab-item value="tab-add-new">
-              <v-layout row wrap>
-                <v-flex xs12 text-xs-center>
-                  <v-btn @click="newUpload = true" color="primary"><v-icon left>fa-upload</v-icon>Upload New Sample</v-btn>
-                </v-flex>
-                <v-flex xs12 v-if="!art.empty" text-xs-center>
-                  <p><strong>OR</strong></p>
-                  <p>Select one of the pieces from your gallery below!</p>
-                </v-flex>
-                <v-flex xs12 v-if="!art.empty">
-                  <ac-paginated :list="art">
-                    <v-flex xs6 sm6 md3 v-for="submission in art.list" :key="submission.id" px-1 @click.capture.stop.prevent="artToSample(submission.x)">
-                      <ac-gallery-preview :submission="submission.x" class="product-sample-option"></ac-gallery-preview>
-                    </v-flex>
-                  </ac-paginated>
-                </v-flex>
-              </v-layout>
-            </v-tab-item>
-          </v-tabs-items>
-        </v-flex>
-      </v-layout>
+      <template v-slot:default>
+        <div class="stuff"></div>
+        <v-row no-gutters  >
+          <v-col cols="12">
+            <v-tabs v-model="tab" centered>
+              <v-tab href="#tab-pick-sample" class="pick-sample-tab">Manage Samples</v-tab>
+              <v-tab href="#tab-add-new" class="add-new-tab">Add Sample</v-tab>
+            </v-tabs>
+          </v-col>
+          <v-col cols="12">
+            <v-tabs-items v-model="tab">
+              <v-tab-item value="tab-pick-sample" eager>
+                <ac-patch-field
+                    field-type="ac-submission-select"
+                    :patcher="product.patchers.primary_submission"
+                    :list="localSamples"
+                    :save-comparison="product.x.primary_submission"
+                    :related="true"
+                    :show-progress="true"
+                    :removable="true"
+                    @remove="unlinkSubmission"
+                >
+                </ac-patch-field>
+              </v-tab-item>
+              <v-tab-item value="tab-add-new" eager>
+                <v-row no-gutters>
+                  <v-col class="text-center" cols="12" >
+                    <v-btn @click="newUpload = true" color="primary"><v-icon left>fa-upload</v-icon>Upload New Sample</v-btn>
+                  </v-col>
+                  <v-col class="text-center" cols="12" v-if="!art.empty" >
+                    <p><strong>OR</strong></p>
+                    <p>Select one of the pieces from your gallery below!</p>
+                  </v-col>
+                  <v-col cols="12" v-if="!art.empty">
+                    <ac-paginated :list="art">
+                      <v-col class="px-1" cols="6" sm="6" md="3" v-for="submission in art.list" :key="submission.id" @click.capture.stop.prevent="artToSample(submission.x)">
+                        <ac-gallery-preview :submission="submission.x" class="product-sample-option" />
+                      </v-col>
+                    </ac-paginated>
+                  </v-col>
+                </v-row>
+              </v-tab-item>
+            </v-tabs-items>
+          </v-col>
+        </v-row>
+      </template>
       <template v-slot:actions>
-        <v-spacer></v-spacer>
+        <v-spacer />
         <v-btn color="danger" v-if="product.x.primary_submission" @click="product.patch({primary_submission: null})" class="clear-showcased">Clear Showcased Sample</v-btn>
         <v-btn color="primary" @click="toggle(false)" v-if="$vuetify.breakpoint.mdAndUp">Done</v-btn>
-        <v-spacer v-if="$vuetify.breakpoint.smAndDown"></v-spacer>
+        <v-spacer v-if="$vuetify.breakpoint.smAndDown" />
       </template>
     </ac-expanded-property>
   </fragment>

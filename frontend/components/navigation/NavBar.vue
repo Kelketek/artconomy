@@ -6,49 +6,57 @@
         clipped
         v-model="drawer"
         app
+        width="300"
         v-if="viewer && !iFrame && fullInterface && !prerendering"
     >
-      <ac-nav-links :subject-handler="viewerHandler" :is-logged-in="isLoggedIn" :is-registered="isRegistered" :is-superuser="isSuperuser" :is-staff="isStaff" v-model="drawer" />
-      <v-bottom-nav
-      >
-        <v-btn
-            flat
+      <v-container fluid class="pa-0 fill-height">
+        <v-row no-gutters>
+          <v-col cols="12">
+            <ac-nav-links :subject-handler="viewerHandler" :is-logged-in="isLoggedIn" :is-registered="isRegistered" :is-superuser="isSuperuser" :is-staff="isStaff" v-model="drawer" />
+          </v-col>
+        </v-row>
+        <v-spacer />
+        <v-bottom-navigation
+        >
+          <v-btn
+            text
             href="https://twitter.com/ArtconomyArt/"
             rel="nofollow"
             target="_blank"
-        >
-          <span>Twitter</span>
-          <v-icon medium>fa-twitter</v-icon>
-        </v-btn>
-        <v-btn
-            flat
+          >
+            <span>Twitter</span>
+            <v-icon medium>fa-twitter</v-icon>
+          </v-btn>
+          <v-btn
+            text
             href="https://artconomy.com/blog/"
             target="_blank"
-        >
-          <span>Blog</span>
-          <v-icon medium>edit</v-icon>
-        </v-btn>
-        <v-btn
-          flat
-          href="https://t.me/Artconomy"
-          target="_blank"
-          rel="nofollow"
           >
-          <span>Telegram</span>
-          <v-icon medium>fa-telegram</v-icon>
-        </v-btn>
-        <v-btn
-            flat
+            <span>Blog</span>
+            <v-icon medium>edit</v-icon>
+          </v-btn>
+          <v-btn
+            text
+            href="https://discord.gg/4nWK9mf"
+            target="_blank"
+            rel="nofollow"
+          >
+            <span>Discord</span>
+            <v-icon medium>{{discordPath}}</v-icon>
+          </v-btn>
+          <v-btn
+            text
             @click.capture.prevent="showSupport"
             to="#"
             class="support-button"
-        >
-          <span>Support</span>
-          <v-icon medium>contact_support</v-icon>
-        </v-btn>
-      </v-bottom-nav>
+          >
+            <span>Support</span>
+            <v-icon medium>contact_support</v-icon>
+          </v-btn>
+        </v-bottom-navigation>
+      </v-container>
     </v-navigation-drawer>
-    <v-toolbar
+    <v-app-bar
         color="secondary"
         dense
         fixed
@@ -59,24 +67,24 @@
         :scroll-threshold="150"
         v-if="!iFrame"
     >
-      <v-toolbar-side-icon v-if="viewer && fullInterface && !prerendering" @click.stop="drawer = !drawer"/>
-      <v-layout hidden-xs-only>
+      <v-app-bar-nav-icon v-if="viewer && fullInterface && !prerendering" @click.stop="drawer = !drawer"/>
+      <v-row no-gutters class="hidden-xs-only" >
         <v-toolbar-title class="mr-5 align-center hide-sm hide-xs">
-          <v-btn flat to="/">
+          <v-btn text to="/">
             <img src="/static/images/logo.svg" class="header-logo" alt="A"/>
             <div class="title">rtconomy</div>
           </v-btn>
         </v-toolbar-title>
-      </v-layout>
-      <v-layout hidden-sm-and-up row v-if="isLoggedIn">
+      </v-row>
+      <v-row no-gutters class="hidden-sm-and-up"  v-if="isLoggedIn">
         <v-toolbar-title class="align-center">
-          <v-btn flat to="/" icon>
+          <v-btn text to="/" icon>
             <img src="/static/images/logo.svg" class="header-logo" alt="Artconomy"/>
           </v-btn>
         </v-toolbar-title>
-      </v-layout>
-      <v-spacer></v-spacer>
-      <v-layout hidden-sm-and-down row justify-center>
+      </v-row>
+      <v-spacer />
+      <v-row no-gutters class="hidden-sm-and-down"  justify="center">
         <!--suppress CheckEmptyScriptTag -->
         <ac-bound-field
             :field="searchForm.fields.q"
@@ -89,8 +97,8 @@
             hide-details
             v-if="fullInterface"
         />
-      </v-layout>
-      <v-spacer></v-spacer>
+      </v-row>
+      <v-spacer />
       <v-btn
           class="hidden-xs-only"
           v-if="viewer && viewer.rating > 0 && fullInterface"
@@ -100,27 +108,29 @@
       ><span v-if="!sfwMode.model">N</span>SFW
       </v-btn>
       <v-toolbar-items v-if="fullInterface">
-        <v-btn flat class="hidden-md-and-up px-1" icon :to="{name: 'SearchProducts'}">
+        <v-btn text class="hidden-md-and-up px-1" icon :to="{name: 'SearchProducts'}">
           <v-icon large>search</v-icon>
         </v-btn>
         <v-btn icon v-if="isRegistered" @click="notificationLoad" class="notifications-button">
           <v-badge overlap right color="red">
-            <span slot="badge" v-if="counts.count && counts.count < 1000">{{counts.count}}</span>
-            <span slot="badge" v-else-if="counts.count > 999">*</span>
+            <template v-slot:badge>
+              <span slot="badge" v-if="counts.count && counts.count < 1000">{{counts.count}}</span>
+              <span slot="badge" v-else-if="counts.count > 999">*</span>
+            </template>
             <v-icon large>notifications</v-icon>
           </v-badge>
         </v-btn>
-        <v-btn class="nav-login-item" flat v-if="isRegistered"
+        <v-btn class="nav-login-item" text v-if="isRegistered"
                :to="profileRoute">
           <v-avatar size="32px">
             <img :src="viewer.avatar_url" :alt="viewer.username">
           </v-avatar>
           <div style="padding-left: 1rem;" v-if="isLoggedIn">{{ viewer.username }}</div>
         </v-btn>
-        <v-btn v-else-if="viewer" class="nav-login-item" flat :to="loginLink">Login</v-btn>
+        <v-btn v-else-if="viewer" class="nav-login-item" text :to="loginLink">Login</v-btn>
         <v-btn v-else class="nav-login-item"/>
       </v-toolbar-items>
-    </v-toolbar>
+    </v-app-bar>
   </div>
 </template>
 
@@ -150,6 +160,7 @@ import {FormController} from '@/store/forms/form-controller'
 import Nav from '@/mixins/nav'
 import {State} from 'vuex-class'
 import AcNavLinks from '@/components/navigation/AcNavLinks.vue'
+import {mdiDiscord} from '@mdi/js'
 
 const startValue = localStorage.getItem('drawerOpen')
 let initDrawerValue: boolean|null = null
@@ -165,6 +176,7 @@ export default class NavBar extends mixins(Viewer, Nav) {
     public drawerStore: null|boolean = null
     public searchForm: FormController = null as unknown as FormController
     public prerendering = false
+    public discordPath = mdiDiscord
 
     public get loginLink() {
       if (this.$route.name === 'Login') {

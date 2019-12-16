@@ -150,12 +150,13 @@ describe('Field validators', () => {
   it.each`
     date                   | result
     ${''}                  | ${[]}
-    ${'0820'}              | ${[]}
-    ${'0'}                 | ${['Please enter full expiration date.']}
-    ${'12'}                | ${['Please enter full expiration date.']}
-    ${'1423'}              | ${['That is not a valid month.']}
-    ${'@stuff'}            | ${['Numbers only, please.']}
-    ${'0502'}              | ${['This card has expired.']}
+    ${'0820'}              | ${['Please write the date in the format MM/YY, like 08/22.']}
+    ${'0'}                 | ${['Please write the date in the format MM/YY, like 08/22.']}
+    ${'12'}                | ${['Please write the date in the format MM/YY, like 08/22.']}
+    ${'14/23'}              | ${['That is not a valid month.']}
+    ${'@stuff'}            | ${['Please write the date in the format MM/YY, like 08/22.']}
+    ${'05/02'}              | ${['This card has expired.']}
+    ${'12/99'}              | ${[]}
   `('should return $result when handed the expiration date $date.', async({date, result}) => {
   MockDate.set('2019-6-19')
   store.commit('forms/initForm', {

@@ -1,8 +1,8 @@
 <template>
-  <v-toolbar :dense="dense">
-    <ac-avatar :username="username" :show-name="false"></ac-avatar>
-    <v-toolbar-title>{{subjectHandler.displayName}}</v-toolbar-title>
-    <v-spacer></v-spacer>
+  <v-toolbar :dense="dense" color="black">
+    <ac-avatar :username="username" :show-name="false" />
+    <v-toolbar-title class="ml-1">{{subjectHandler.displayName}}</v-toolbar-title>
+    <v-spacer />
     <v-toolbar-items v-if="subject && showActions && $vuetify.breakpoint.smAndUp">
       <v-btn color="secondary" @click="showMenu=true" v-if="isStaff">
         <v-icon left>menu</v-icon> Menu
@@ -18,21 +18,21 @@
       </v-btn>
       <!--suppress JSCheckFunctionSignatures -->
       <ac-confirmation :action="() => {subjectHandler.user.patch({blocking: !subject.blocking})}">
-        <v-flex slot="confirmation-text">
-          <v-flex v-if="subject.blocking">
+        <v-col slot="confirmation-text">
+          <v-col v-if="subject.blocking">
             <p>
               Are you sure you wish to unblock {{subjectHandler.displayName}}? They will be able to message you, comment, and
               perform other interactive actions with your account.
             </p>
-          </v-flex>
-          <v-flex v-else>
+          </v-col>
+          <v-col v-else>
             <p>
               Are you sure you wish to block {{subjectHandler.displayName}}? They will not be able to message you, comment on your
               items, or perform other interactive actions with your account.
             </p>
             <p v-if="subject.watching">This will also remove them from your watchlist.</p>
-          </v-flex>
-        </v-flex>
+          </v-col>
+        </v-col>
         <template v-slot:default="{on}">
           <v-btn color="red" v-on="on">
             <v-icon left>block</v-icon>
@@ -49,52 +49,52 @@
         </v-btn>
       </template>
       <v-list dense>
-        <v-list-tile v-if="isStaff" @click="showMenu=true">
-          <v-list-tile-action>
+        <v-list-item v-if="isStaff" @click="showMenu=true">
+          <v-list-item-action>
             <v-icon>menu</v-icon>
-          </v-list-tile-action>
-          <v-list-tile-title>Menu</v-list-tile-title>
-        </v-list-tile>
-        <v-list-tile class="message-button" @click="startConversation">
-          <v-list-tile-action><v-icon>message</v-icon></v-list-tile-action>
-          <v-list-tile-title>Message</v-list-tile-title>
-        </v-list-tile>
-        <v-list-tile @click="subjectHandler.user.patch({watching: !subject.watching})">
-          <v-list-tile-action>
+          </v-list-item-action>
+          <v-list-item-title>Menu</v-list-item-title>
+        </v-list-item>
+        <v-list-item class="message-button" @click="startConversation">
+          <v-list-item-action><v-icon>message</v-icon></v-list-item-action>
+          <v-list-item-title>Message</v-list-item-title>
+        </v-list-item>
+        <v-list-item @click="subjectHandler.user.patch({watching: !subject.watching})">
+          <v-list-item-action>
             <v-icon v-if="subject.watching">visibility_off</v-icon>
             <v-icon v-else>visibility</v-icon>
-          </v-list-tile-action>
-          <v-list-tile-title>
+          </v-list-item-action>
+          <v-list-item-title>
             <span v-if="subject.watching">Unwatch</span>
             <span v-else>Watch</span>
-          </v-list-tile-title>
-        </v-list-tile>
+          </v-list-item-title>
+        </v-list-item>
         <ac-confirmation :action="() => {subjectHandler.user.patch({blocking: !subject.blocking})}">
-          <v-flex slot="confirmation-text">
-            <v-flex v-if="subject.blocking">
+          <v-col slot="confirmation-text">
+            <v-col v-if="subject.blocking">
               <p>
                 Are you sure you wish to unblock {{subjectHandler.displayName}}? They will be able to message you, comment, and
                 perform other interactive actions with your account.
               </p>
-            </v-flex>
-            <v-flex v-else>
+            </v-col>
+            <v-col v-else>
               <p>
                 Are you sure you wish to block {{subjectHandler.displayName}}? They will not be able to message you, comment on your
                 items, or perform other interactive actions with your account.
               </p>
               <p v-if="subject.watching">This will also remove them from your watchlist.</p>
-            </v-flex>
-          </v-flex>
+            </v-col>
+          </v-col>
           <template v-slot:default="{on}">
-            <v-list-tile v-on="on">
-              <v-list-tile-action>
+            <v-list-item v-on="on">
+              <v-list-item-action>
                 <v-icon>block</v-icon>
-              </v-list-tile-action>
-              <v-list-tile-title>
+              </v-list-item-action>
+              <v-list-item-title>
                 <span v-if="subject.blocking">Unblock</span>
                 <span v-if="!subject.blocking">Block</span>
-              </v-list-tile-title>
-            </v-list-tile>
+              </v-list-item-title>
+            </v-list-item>
           </template>
         </ac-confirmation>
       </v-list>

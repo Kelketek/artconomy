@@ -1,39 +1,27 @@
 import Vue from 'vue'
-import Vuex from 'vuex'
-import {createLocalVue, mount, Wrapper} from '@vue/test-utils'
-import Vuetify from 'vuetify'
-import {singleRegistry, Singles} from '@/store/singles/registry'
-import {profileRegistry, Profiles} from '@/store/profiles/registry'
-import {setViewer, vuetifySetup} from '@/specs/helpers'
+import {mount, Wrapper} from '@vue/test-utils'
+import {Vuetify} from 'vuetify/types'
+import {cleanUp, createVuetify, setViewer, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
-import {genUser, vuetifyOptions} from '@/specs/helpers/fixtures'
+import {genUser} from '@/specs/helpers/fixtures'
 import AcMiniCharacter from '@/components/AcMiniCharacter.vue'
 import {genCharacter} from '@/store/characters/specs/fixtures'
-import {Lists} from '@/store/lists/registry'
 
-Vue.use(Vuex)
-Vue.use(Vuetify, vuetifyOptions())
-const localVue = createLocalVue()
-localVue.use(Singles)
-localVue.use(Lists)
-localVue.use(Profiles)
+const localVue = vueSetup()
 let wrapper: Wrapper<Vue>
 let store: ArtStore
+let vuetify: Vuetify
 
 const mockError = jest.spyOn(console, 'error')
 
 describe('AcMiniCharacter.vue', () => {
   beforeEach(() => {
-    vuetifySetup()
     store = createStore()
-    singleRegistry.reset()
-    profileRegistry.reset()
+    vuetify = createVuetify()
     mockError.mockClear()
   })
   afterEach(() => {
-    if (wrapper) {
-      wrapper.destroy()
-    }
+    cleanUp(wrapper)
   })
   it('Mounts', async() => {
     setViewer(store, genUser())
@@ -41,6 +29,7 @@ describe('AcMiniCharacter.vue', () => {
       AcMiniCharacter, {
         store,
         localVue,
+        vuetify,
         sync: false,
         attachToDocument: true,
         propsData: {character: genCharacter()},

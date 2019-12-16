@@ -1,7 +1,7 @@
 <template>
-  <v-flex v-observe-visibility="grower">
+  <v-col v-observe-visibility="grower">
     <ac-loading-spinner :min-height="minHeight" v-if="list.fetching"></ac-loading-spinner>
-  </v-flex>
+  </v-col>
 </template>
 
 <script lang="ts">

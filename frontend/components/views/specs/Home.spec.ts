@@ -1,4 +1,4 @@
-import {setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, setViewer, vueSetup} from '@/specs/helpers'
 import {mount, Wrapper} from '@vue/test-utils'
 import {Vue} from 'vue/types/vue'
 import {ArtStore, createStore} from '@/store'
@@ -7,27 +7,30 @@ import {genUser} from '@/specs/helpers/fixtures'
 import searchSchema from '@/components/views/search/specs/fixtures'
 import {FormController} from '@/store/forms/form-controller'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
+import {Vuetify} from 'vuetify/types'
 
 const localVue = vueSetup()
 let wrapper: Wrapper<Vue>
 let store: ArtStore
 let searchForm: FormController
+let vuetify: Vuetify
 
 describe('Home.vue', () => {
   beforeEach(() => {
     store = createStore()
+    vuetify = createVuetify()
     searchForm = mount(Empty, {localVue, store}).vm.$getForm('search', searchSchema())
   })
   afterEach(() => {
-    wrapper.destroy()
+    cleanUp(wrapper)
   })
   it('Mounts', async() => {
     setViewer(store, genUser())
-    wrapper = mount(Home, {localVue, store, mocks: {$router: {}}, stubs: ['router-link']})
+    wrapper = mount(Home, {localVue, store, vuetify, mocks: {$router: {}}, stubs: ['router-link']})
   })
   it('Handles several lists', async() => {
     setViewer(store, genUser())
-    wrapper = mount(Home, {localVue, store, mocks: {$router: {}}, stubs: ['router-link']})
+    wrapper = mount(Home, {localVue, store, vuetify, mocks: {$router: {}}, stubs: ['router-link']})
     const vm = wrapper.vm as any
     vm.featured.setList([])
     vm.featured.ready = true
@@ -58,7 +61,7 @@ describe('Home.vue', () => {
   it('Performs a premade search', async() => {
     setViewer(store, genUser())
     const push = jest.fn()
-    wrapper = mount(Home, {localVue, store, mocks: {$router: {push}}, stubs: ['router-link']})
+    wrapper = mount(Home, {localVue, store, vuetify, mocks: {$router: {push}}, stubs: ['router-link']})
     wrapper.find('.low-price-more').trigger('click')
     await wrapper.vm.$nextTick()
     expect(push).toHaveBeenCalledWith({name: 'SearchProducts', query: {max_price: '30.00'}})

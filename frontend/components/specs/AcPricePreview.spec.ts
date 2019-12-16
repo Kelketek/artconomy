@@ -1,7 +1,8 @@
 import {mount, Wrapper} from '@vue/test-utils'
 import Vue from 'vue'
+import {Vuetify} from 'vuetify'
 import {ArtStore, createStore} from '@/store'
-import {cleanUp, setPricing, setViewer, vueSetup, vuetifySetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, setPricing, setViewer, vueSetup} from '@/specs/helpers'
 import AcPricePreview from '@/components/AcPricePreview.vue'
 import {genUser} from '@/specs/helpers/fixtures'
 import Router from 'vue-router'
@@ -12,10 +13,12 @@ localVue.use(Router)
 let store: ArtStore
 let wrapper: Wrapper<Vue>
 let router: Router
+let vuetify: Vuetify
 
 describe('AcPricePreview.vue', () => {
   beforeEach(() => {
     store = createStore()
+    vuetify = createVuetify()
     router = new Router({
       mode: 'history',
       routes: [{
@@ -27,16 +30,19 @@ describe('AcPricePreview.vue', () => {
     })
   })
   afterEach(() => {
-    cleanUp()
-    if (wrapper) {
-      wrapper.destroy()
-    }
+    cleanUp(wrapper)
   })
   it('Previews the affected fees for a user', async() => {
     setViewer(store, genUser())
     setPricing(store, localVue)
     wrapper = mount(AcPricePreview, {
-      localVue, store, router, sync: false, attachToDocument: true, propsData: {price: '10.00', username: 'Fox'}}
+      localVue,
+      store,
+      router,
+      vuetify,
+      sync: false,
+      attachToDocument: true,
+      propsData: {price: '10.00', username: 'Fox'}},
     )
     const vm = wrapper.vm as any
     expect(vm.serviceFee).toEqual(1.55)
@@ -51,7 +57,13 @@ describe('AcPricePreview.vue', () => {
     setViewer(store, user)
     setPricing(store, localVue)
     wrapper = mount(AcPricePreview, {
-      localVue, store, router, sync: false, attachToDocument: true, propsData: {price: '10.00', username: 'Fox'}}
+      localVue,
+      store,
+      router,
+      vuetify,
+      sync: false,
+      attachToDocument: true,
+      propsData: {price: '10.00', username: 'Fox'}},
     )
     const vm = wrapper.vm as any
     expect(vm.serviceFee).toEqual(1.55)
@@ -63,7 +75,12 @@ describe('AcPricePreview.vue', () => {
   it('Gives NaNs for non-determined pricing', async() => {
     setViewer(store, genUser())
     wrapper = mount(AcPricePreview, {
-      localVue, store, sync: false, attachToDocument: true, propsData: {price: '10.00', username: 'Fox'}}
+      localVue,
+      store,
+      vuetify,
+      sync: false,
+      attachToDocument: true,
+      propsData: {price: '10.00', username: 'Fox'}},
     )
     const vm = wrapper.vm as any
     expect(vm.serviceFee).toBeNaN()
@@ -76,7 +93,13 @@ describe('AcPricePreview.vue', () => {
     setViewer(store, genUser())
     setPricing(store, localVue)
     wrapper = mount(AcPricePreview, {
-      localVue, store, router, sync: false, attachToDocument: true, propsData: {price: '10.00', username: 'Fox', escrow: false}}
+      localVue,
+      store,
+      router,
+      vuetify,
+      sync: false,
+      attachToDocument: true,
+      propsData: {price: '10.00', username: 'Fox', escrow: false}},
     )
     const vm = wrapper.vm as any
     expect(vm.serviceFee).toBe(0)

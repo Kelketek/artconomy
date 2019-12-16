@@ -62,11 +62,12 @@ blockquote {
     padding: 0;
     margin: 0;
 }
-.compact-fields .v-btn--icon, .compact-fields .v-btn--icon.v-btn--small {
+.compact-fields .v-input, .compact-fields .v-btn--icon.v-size--default, .compact-fields .v-input, .compact-fields .v-btn--icon.v-size--small {
     height: unset;
     padding: 0;
     margin: 0;
     width: unset;
+    min-width: unset;
 }
 .compact-fields .v-input__slot {
     margin-bottom: 0;

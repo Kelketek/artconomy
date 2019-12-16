@@ -1,36 +1,36 @@
 <template>
-  <v-layout row wrap>
-    <v-flex xs12 v-if="subject.artist_mode">
+  <v-row no-gutters  >
+    <v-col cols="12" v-if="subject.artist_mode">
       <ac-bound-field
           :field="transactionFilter.fields.account"
           field-type="v-select"
           :items="[{text: 'Purchases', value: 300}, {text: 'Escrow', value: 302}, {text: 'Holdings', value: 303}]"
           label="Account"
       ></ac-bound-field>
-    </v-flex>
-    <v-flex xs12>
+    </v-col>
+    <v-col cols="12">
       <ac-paginated :list="transactions">
         <template v-slot:default>
-          <v-flex>
+          <v-col>
             <v-list three-line>
               <template v-for="transaction, index in transactions.list">
                 <ac-transaction :transaction="transaction.x" :username="username" :key="transaction.x.id" :current-account="transactionFilter.fields.account.value"></ac-transaction>
                 <v-divider v-if="index + 1 < transactions.list.length" :key="index"/>
               </template>
             </v-list>
-          </v-flex>
+          </v-col>
         </template>
       </ac-paginated>
-    </v-flex>
-    <v-flex xs12 v-if="!purchaseList">
+    </v-col>
+    <v-col cols="12" v-if="!purchaseList">
       <ac-load-section :controller="summary">
         <template v-slot:default>
           <strong>Working Balance:</strong> ${{summary.x.available.toFixed(2)}}<br />
           <span v-if="!escrowList"><strong>Pending Changes:</strong> ${{summary.x.pending.toFixed(2)}}</span>
         </template>
       </ac-load-section>
-    </v-flex>
-  </v-layout>
+    </v-col>
+  </v-row>
 </template>
 
 <script lang="ts">

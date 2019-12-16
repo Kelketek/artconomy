@@ -1,27 +1,21 @@
-import Vue, {VueConstructor} from 'vue'
-import Vuex from 'vuex'
-import Vuetify from 'vuetify'
-import {createLocalVue, mount, Wrapper} from '@vue/test-utils'
+import Vue from 'vue'
+import {Vuetify} from 'vuetify/types'
+import {mount, Wrapper} from '@vue/test-utils'
 import Settings from '../Settings.vue'
 import {ArtStore, createStore} from '@/store'
 import Router from 'vue-router'
 import {genUser} from '@/specs/helpers/fixtures'
-import {setViewer, vuetifySetup} from '@/specs/helpers'
+import {setViewer, vueSetup, cleanUp, createVuetify} from '@/specs/helpers'
 import Credentials from '../Credentials.vue'
 import Avatar from '../Avatar.vue'
 import Payment from '../payment/Payment.vue'
 import Options from '../Options.vue'
 import Purchase from '../payment/Purchase.vue'
 import Artist from '../Artist.vue'
-import {Singles} from '@/store/singles/registry'
-import {Profiles} from '@/store/profiles/registry'
 import Payout from '@/components/views/settings/payment/Payout.vue'
 import TransactionHistory from '@/components/views/settings/payment/TransactionHistory.vue'
-import {Lists} from '@/store/lists/registry'
 import Premium from '@/components/views/settings/Premium.vue'
 
-// Must use it directly, due to issues with package imports upstream.
-Vue.use(Vuetify)
 jest.useFakeTimers()
 
 const settingRoutes = [{
@@ -92,33 +86,30 @@ const settingRoutes = [{
 
 describe('Settings.vue', () => {
   let store: ArtStore
-  let localVue: VueConstructor
   let wrapper: Wrapper<Vue>
   let router: Router
+  let vuetify: Vuetify
+  const localVue = vueSetup()
+  localVue.use(Router)
   beforeEach(() => {
-    localVue = createLocalVue()
-    localVue.use(Vuex)
-    localVue.use(Singles)
-    localVue.use(Lists)
-    localVue.use(Profiles)
     store = createStore()
-    vuetifySetup()
-    if (wrapper) {
-      wrapper.destroy()
-    }
-    localVue.use(Router)
+    vuetify = createVuetify()
     router = new Router({
       mode: 'history',
       routes: settingRoutes,
     })
   })
+  afterEach(() => {
+    cleanUp(wrapper)
+  })
   it('Opens up a drawer when you click the settings button', async() => {
     setViewer(store, genUser())
-    router.push({name: 'Settings', params: {username: 'Fox'}})
+    await router.push({name: 'Settings', params: {username: 'Fox'}})
     wrapper = mount(Settings, {
       localVue,
       store,
       router,
+      vuetify,
       propsData: {username: 'Fox'},
       attachToDocument: true,
       sync: false,
@@ -131,11 +122,12 @@ describe('Settings.vue', () => {
   })
   it('Adds Options to the route if missing', async() => {
     setViewer(store, genUser())
-    router.push({name: 'Settings', params: {username: 'Fox'}})
+    await router.push({name: 'Settings', params: {username: 'Fox'}})
     wrapper = mount(Settings, {
       localVue,
       store,
       router,
+      vuetify,
       propsData: {username: 'Fox'},
       attachToDocument: true,
       sync: false,
@@ -145,18 +137,19 @@ describe('Settings.vue', () => {
   })
   it('Loads the subordinate route', async() => {
     setViewer(store, genUser())
-    router.push({name: 'Settings', params: {username: 'Fox'}})
+    await router.push({name: 'Settings', params: {username: 'Fox'}})
     wrapper = mount(Settings, {
       localVue,
       store,
       router,
+      vuetify,
       propsData: {username: 'Fox'},
       attachToDocument: true,
       sync: false,
     })
     await wrapper.vm.$nextTick()
     expect(wrapper.find('#avatar-settings').exists()).toBe(false)
-    router.push({name: 'Avatar', params: {username: 'Fox'}})
+    await router.push({name: 'Avatar', params: {username: 'Fox'}})
     await wrapper.vm.$nextTick()
     expect(wrapper.find('#avatar-settings').exists()).toBe(true)
   })

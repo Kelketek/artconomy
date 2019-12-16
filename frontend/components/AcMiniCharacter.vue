@@ -1,22 +1,22 @@
 <template>
-  <v-flex shrink text-xs-center class="ac-avatar">
-    <v-layout column>
-      <v-flex>
+  <div class="shrink text-center flex">
+    <div class="flex">
+      <div class="flex">
         <router-link :to="route">
-          <v-avatar :color="$vuetify.theme.darkBase.darken4">
+          <v-avatar :color="$vuetify.theme.currentTheme.darkBase.darken4">
             <v-icon v-if="!canDisplay">block</v-icon>
             <img :src="displayImage" v-else-if="canDisplay && displayImage" class="asset-image" alt="">
           </v-avatar>
         </router-link>
-      </v-flex>
-      <v-flex v-if="showName" class="text-xs-center">
+      </div>
+      <div v-if="showName" class="flex text-center">
         <router-link :to="route">{{ character.name }}</router-link>
-      </v-flex>
-      <v-flex v-if="removable">
+      </div>
+      <div class="flex" v-if="removable">
         <v-btn small icon color="danger" @click="$emit('remove')"><v-icon small>close</v-icon></v-btn>
-      </v-flex>
-    </v-layout>
-  </v-flex>
+      </div>
+    </div>
+  </div>
 </template>
 
 <style>

@@ -1,5 +1,6 @@
 import Vue from 'vue'
-import {cleanUp, confirmAction, flushPromises, rs, setViewer, vueSetup} from '@/specs/helpers'
+import {Vuetify} from 'vuetify/types'
+import {cleanUp, confirmAction, createVuetify, flushPromises, rs, setViewer, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import {mount, Wrapper} from '@vue/test-utils'
 import OrderDetail from '@/components/views/order/OrderDetail.vue'
@@ -19,10 +20,12 @@ localVue.use(Router)
 let store: ArtStore
 let wrapper: Wrapper<Vue>
 let router: Router
+let vuetify: Vuetify
 
 describe('OrderDetail.vue', () => {
   beforeEach(() => {
     store = createStore()
+    vuetify = createVuetify()
     router = new Router({
       mode: 'history',
       routes: [{
@@ -71,10 +74,7 @@ describe('OrderDetail.vue', () => {
     })
   })
   afterEach(() => {
-    if (wrapper) {
-      wrapper.destroy()
-    }
-    cleanUp()
+    cleanUp(wrapper)
   })
   it('Adds character tags to submission form', async() => {
     setViewer(store, genUser())
@@ -84,6 +84,7 @@ describe('OrderDetail.vue', () => {
         localVue,
         store,
         router,
+        vuetify,
         propsData: {orderId: 3},
         sync: false,
         attachToDocument: true,
@@ -115,6 +116,7 @@ describe('OrderDetail.vue', () => {
         localVue,
         store,
         router,
+        vuetify,
         propsData: {orderId: 3},
         sync: false,
         attachToDocument: true,
@@ -154,6 +156,7 @@ describe('OrderDetail.vue', () => {
         localVue,
         store,
         router,
+        vuetify,
         propsData: {orderId: 3},
         sync: false,
         attachToDocument: true,
@@ -192,6 +195,7 @@ describe('OrderDetail.vue', () => {
         localVue,
         store,
         router,
+        vuetify,
         propsData: {orderId: 3},
         sync: false,
         attachToDocument: true,
@@ -220,6 +224,7 @@ describe('OrderDetail.vue', () => {
         localVue,
         store,
         router,
+        vuetify,
         propsData: {orderId: 3},
         sync: false,
         attachToDocument: true,
@@ -243,6 +248,7 @@ describe('OrderDetail.vue', () => {
         localVue,
         store,
         router,
+        vuetify,
         propsData: {orderId: 3},
         sync: false,
         attachToDocument: true,
@@ -274,6 +280,7 @@ describe('OrderDetail.vue', () => {
         localVue,
         store,
         router,
+        vuetify,
         propsData: {orderId: 3},
         sync: false,
         attachToDocument: true,
@@ -309,6 +316,7 @@ describe('OrderDetail.vue', () => {
         localVue,
         store,
         router,
+        vuetify,
         propsData: {orderId: 3},
         sync: false,
         attachToDocument: true,
@@ -333,6 +341,7 @@ describe('OrderDetail.vue', () => {
         localVue,
         store,
         router,
+        vuetify,
         propsData: {orderId: 3},
         sync: false,
         attachToDocument: true,
@@ -377,6 +386,7 @@ describe('OrderDetail.vue', () => {
         localVue,
         store,
         router,
+        vuetify,
         propsData: {orderId: 3},
         sync: false,
         attachToDocument: true,
@@ -410,6 +420,7 @@ describe('OrderDetail.vue', () => {
         localVue,
         store,
         router,
+        vuetify,
         propsData: {orderId: 3},
         sync: false,
         attachToDocument: true,
@@ -437,6 +448,7 @@ describe('OrderDetail.vue', () => {
         localVue,
         store,
         router,
+        vuetify,
         propsData: {orderId: 3},
         sync: false,
         attachToDocument: true,
@@ -464,6 +476,7 @@ describe('OrderDetail.vue', () => {
         localVue,
         store,
         router,
+        vuetify,
         propsData: {orderId: 3},
         sync: false,
         attachToDocument: true,
@@ -494,6 +507,7 @@ describe('OrderDetail.vue', () => {
         localVue,
         store,
         router,
+        vuetify,
         propsData: {orderId: 3},
         sync: false,
         attachToDocument: true,
@@ -510,6 +524,7 @@ describe('OrderDetail.vue', () => {
         localVue,
         store,
         router,
+        vuetify,
         propsData: {orderId: 3},
         sync: false,
         attachToDocument: true,
@@ -526,6 +541,7 @@ describe('OrderDetail.vue', () => {
         localVue,
         store,
         router,
+        vuetify,
         propsData: {orderId: 3},
         sync: false,
         attachToDocument: true,
@@ -544,6 +560,7 @@ describe('OrderDetail.vue', () => {
         localVue,
         store,
         router,
+        vuetify,
         propsData: {orderId: 3},
         sync: false,
         attachToDocument: true,
@@ -573,6 +590,7 @@ describe('OrderDetail.vue', () => {
         localVue,
         store,
         router,
+        vuetify,
         propsData: {orderId: 3},
         sync: false,
         attachToDocument: true,
@@ -604,6 +622,7 @@ describe('OrderDetail.vue', () => {
         localVue,
         store,
         router,
+        vuetify,
         propsData: {orderId: 3},
         sync: false,
         attachToDocument: true,

@@ -1,17 +1,17 @@
 <template>
   <v-input v-bind="passedProps" class="ac-uppy-file">
-    <v-flex>
-      <v-flex v-if="label" text-xs-center mb-2>
+    <div class="flex flex-column">
+      <div class="flex text-center mb-2" v-if="label" >
         <v-label :for="$attrs.id" :color="errorColor" :focused="errorFocused">{{label}}</v-label>
-      </v-flex>
-      <v-flex :id="uppyId" text-xs-center>
-        <v-flex class="dashboard-container"></v-flex>
-      </v-flex>
-      <v-flex text-xs-center>
+      </div>
+      <div class="flex text-center" :id="uppyId" >
+        <v-col class="dashboard-container" />
+      </div>
+      <div class="text-center flex" >
         <v-btn @click="reset" class="uppy-reset-button" color="secondary" v-if="value && showReset">Reset</v-btn>
         <v-btn @click="clear" class="uppy-clear-button" color="danger" v-if="value && showClear">Clear</v-btn>
-      </v-flex>
-    </v-flex>
+      </div>
+    </div>
   </v-input>
 </template>
 

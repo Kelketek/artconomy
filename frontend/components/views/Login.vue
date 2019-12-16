@@ -1,7 +1,7 @@
 <template>
   <v-container>
-    <v-layout row wrap>
-      <v-flex class="xs12 offset-sm2 sm8 offset-md3 md6 text-xs-center">
+    <v-row>
+      <v-col cols="12" sm="8" md="6" offset-sm="2" offset-md="3" class="text-center">
         <v-tabs class="inverse" v-model="loginTab" fixed-tabs>
           <v-tab href="#tab-login" id="set-login">
             Login
@@ -15,126 +15,129 @@
         </v-tabs>
         <v-tabs-items v-model="loginTab">
           <v-tab-item value="tab-login">
-            <div class="pt-2"></div>
-            <ac-form @submit.prevent="sendLogin()">
-              <ac-form-container :sending="loginForm.sending" :errors="loginForm.errors">
-                <v-text-field
-                    label="Email"
-                    placeholder="test@example.com"
-                    v-bind="loginForm.fields.email.bind"
-                    v-on="loginForm.fields.email.on"
-                ></v-text-field>
-                <v-text-field
-                    label="Password"
-                    type="password"
-                    v-bind="loginForm.fields.password.bind"
-                    v-on="loginForm.fields.password.on"
-                ></v-text-field>
-                <v-btn color="primary" id="loginSubmit" type="submit"
-                       :disabled="loginForm.disabled">
-                  Login
-                </v-btn>
-              </ac-form-container>
-            </ac-form>
+            <v-card-text>
+              <ac-form @submit.prevent="sendLogin()">
+                <ac-form-container :sending="loginForm.sending" :errors="loginForm.errors">
+                  <v-row>
+                    <v-col cols="12">
+                      <ac-bound-field
+                        label="Email"
+                        placeholder="test@example.com"
+                        :field="loginForm.fields.email"
+                      />
+                    </v-col>
+                    <v-col cols="12">
+                      <ac-bound-field
+                        label="Password"
+                        type="password"
+                        :field="loginForm.fields.password"
+                      />
+                    </v-col>
+                    <v-col cols="12">
+                      <v-btn color="primary" id="loginSubmit" type="submit"
+                             :disabled="loginForm.disabled">
+                        Login
+                      </v-btn>
+                    </v-col>
+                  </v-row>
+                </ac-form-container>
+              </ac-form>
+            </v-card-text>
           </v-tab-item>
           <v-tab-item value="tab-register">
-            <div class="pt-2"></div>
-            <ac-form @submit.prevent="registerForm.submitThen(loginHandler)">
-              <ac-form-container :sending="loginForm.sending" :errors="loginForm.errors">
-                <v-text-field
-                    label="Email"
-                    placeholder="test@example.com"
-                    v-bind="registerForm.fields.email.bind"
-                    v-on="registerForm.fields.email.on"
-                ></v-text-field>
-                <v-text-field
-                    label="Password"
-                    type="password"
-                    v-bind="registerForm.fields.password.bind"
-                    v-on="registerForm.fields.password.on"
-                ></v-text-field>
-                <v-text-field
-                    label="Username"
-                    placeholder=""
-                    v-bind="registerForm.fields.username.bind"
-                    v-on="registerForm.fields.username.on"
-                    hint="You can change this later."
-                ></v-text-field>
-                <v-text-field
-                    label="Promo Code"
-                    placeholder=""
-                    v-bind="registerForm.fields.registration_code.bind"
-                    v-on="registerForm.fields.registration_code.on"
-                    hint="If you've been given a promo code, please enter it here!"
-                ></v-text-field>
-                <v-layout row wrap>
-                  <v-flex xs12 sm6 pa-1>
-                    <v-checkbox
-                      label="Keep Me up to Date" v-bind="registerForm.fields.mail.bind"
-                      hint="Keep up to date with the latest news on Artconomy using our mailing list"
-                      v-on="registerForm.fields.mail.on"
-                      v-model="registerForm.fields.mail.model"
-                      :persistent-hint="true"
-                    >
-                    </v-checkbox>
-                  </v-flex>
-                  <v-flex xs12 sm6 pa-1>
-                    <v-checkbox
-                      label="I'm an artist!" v-bind="registerForm.fields.artist_mode.bind"
-                      hint="Enable artist tools in your account. You can change this later."
-                      v-on="registerForm.fields.artist_mode.on"
-                      v-model="registerForm.fields.artist_mode.model"
-                      :persistent-hint="true"
-                    >
-                    </v-checkbox>
-                  </v-flex>
-                </v-layout>
-                <v-input v-bind="registerForm.fields.recaptcha.bind" class="mt-4">
-                  <v-flex text-xs-center>
-                    <div style="display: inline-block">
-                      <vue-recaptcha
-                          :sitekey="siteKey"
-                          ref="recaptcha"
-                          @verify="registerForm.fields.recaptcha.update"
-                          @expired="registerForm.fields.recaptcha.update('')"
-                          theme="dark"
+            <v-card-text>
+              <ac-form @submit.prevent="registerForm.submitThen(loginHandler)">
+                <ac-form-container :sending="loginForm.sending" :errors="loginForm.errors">
+                  <ac-bound-field
+                      label="Email"
+                      placeholder="test@example.com"
+                      :field="registerForm.fields.email"
+                  />
+                  <ac-bound-field
+                      label="Password"
+                      type="password"
+                      :field="registerForm.fields.password"
+                  />
+                  <ac-bound-field
+                      label="Username"
+                      placeholder=""
+                      :field="registerForm.fields.username"
+                      hint="You can change this later."
+                  />
+                  <ac-bound-field
+                      label="Promo Code"
+                      placeholder=""
+                      :field="registerForm.fields.registration_code"
+                      hint="If you've been given a promo code, please enter it here!"
+                  />
+                  <v-row>
+                    <v-col cols="12" sm="6" >
+                      <ac-bound-field
+                        label="Keep Me up to Date"
+                        hint="Keep up to date with the latest news on Artconomy using our mailing list"
+                        :field="registerForm.fields.mail"
+                        field-type="v-checkbox"
+                        :persistent-hint="true"
                       />
-                    </div>
-                  </v-flex>
-                </v-input>
-                <p>
-                  By Registering, you are agreeing to be bound by Artconomy's
-                  <router-link :to="{name: 'TermsOfService'}">Terms of Service</router-link>
-                  and
-                  <router-link :to="{name: 'PrivacyPolicy'}">Privacy Policy</router-link>
-                  .
-                </p>
-                <v-btn color="primary" id="registerSubmit" type="submit"
-                       :disabled="registerForm.disabled">
-                  Register
-                </v-btn>
-              </ac-form-container>
-            </ac-form>
+                    </v-col>
+                    <v-col cols="12" sm="6" >
+                      <ac-bound-field
+                        label="I'm an artist!"
+                        hint="Enable artist tools in your account. You can change this later."
+                        :field="registerForm.fields.artist_mode"
+                        field-type="v-checkbox"
+                        :persistent-hint="true"
+                      >
+                      </ac-bound-field>
+                    </v-col>
+                  </v-row>
+                  <v-input v-bind="registerForm.fields.recaptcha.bind" class="mt-4">
+                    <v-col class="text-center" >
+                      <div style="display: inline-block">
+                        <vue-recaptcha
+                            :sitekey="siteKey"
+                            ref="recaptcha"
+                            @verify="registerForm.fields.recaptcha.update"
+                            @expired="registerForm.fields.recaptcha.update('')"
+                            theme="dark"
+                        />
+                      </div>
+                    </v-col>
+                  </v-input>
+                  <p>
+                    By Registering, you are agreeing to be bound by Artconomy's
+                    <router-link :to="{name: 'TermsOfService'}">Terms of Service</router-link>
+                    and
+                    <router-link :to="{name: 'PrivacyPolicy'}">Privacy Policy</router-link>
+                    .
+                  </p>
+                  <v-btn color="primary" id="registerSubmit" type="submit"
+                         :disabled="registerForm.disabled">
+                    Register
+                  </v-btn>
+                </ac-form-container>
+              </ac-form>
+            </v-card-text>
           </v-tab-item>
           <v-tab-item value="tab-forgot">
-            <div class="pt-2"></div>
+            <v-card-text>
             <p>Enter your username or email address below, and we will send you a link to reset your password.</p>
-            <ac-form @submit.prevent="forgotForm.submitThen(forgotHandler)">
-              <ac-form-container :sending="loginForm.sending" :errors="loginForm.errors">
-                <v-text-field
-                    label="Email or Username"
-                    v-bind="forgotForm.fields.email.bind"
-                    v-on="forgotForm.fields.email.on"
-                ></v-text-field>
-                <div class="email-sent" v-if="resetSent">
-                  Email sent! Please check your inbox (and your spam folder)!
-                </div>
-                <v-btn color="primary" id="forgotSubmit"
-                       type="submit">
-                  Reset
-                </v-btn>
-              </ac-form-container>
-            </ac-form>
+              <ac-form @submit.prevent="forgotForm.submitThen(forgotHandler)">
+                <ac-form-container :sending="loginForm.sending" :errors="loginForm.errors">
+                  <ac-bound-field
+                      label="Email or Username"
+                      :field="forgotForm.fields.email"
+                  />
+                  <v-alert type="info" v-model="resetSent" dismissible>
+                    Email sent! Please check your inbox (and your spam folder)!
+                  </v-alert>
+                  <v-btn color="primary" id="forgotSubmit"
+                         type="submit">
+                    Reset
+                  </v-btn>
+                </ac-form-container>
+              </ac-form>
+            </v-card-text>
           </v-tab-item>
         </v-tabs-items>
         <div>
@@ -155,15 +158,14 @@
                 <p>If you have lost your 2FA device/service, please contact support@artconomy.com with the subject 'Lost
                   2FA'.</p>
                 <ac-form-container :sending="loginForm.sending" :errors="loginForm.errors">
-                  <v-text-field
+                  <ac-bound-field
                       label="Token"
-                      mask="### ###"
-                      v-bind="loginForm.fields.token.bind"
-                      v-on="loginForm.fields.token.on"
+                      v-mask="'### ###'"
+                      :field="loginForm.fields.token"
                       :autofocus="true"
                       id="field-token"
-                  ></v-text-field>
-                  <div class="text-xs-center">
+                  />
+                  <div class="text-center">
                     <v-btn @click="showTokenPrompt = false">Cancel</v-btn>
                     <v-btn color="primary" id="tokenSubmit" type="submit"
                            :disabled="loginForm.disabled"
@@ -176,17 +178,10 @@
             </ac-form>
           </v-card>
         </v-dialog>
-      </v-flex>
-    </v-layout>
+      </v-col>
+    </v-row>
   </v-container>
 </template>
-
-<style scoped>
-  .email-sent {
-    color: red;
-    text-align: center;
-  }
-</style>
 
 <script lang="ts">
 import {isAxiosError, paramHandleMap, RECAPTCHA_SITE_KEY, singleQ} from '@/lib'
@@ -201,8 +196,10 @@ import {UserStoreState} from '@/store/profiles/types/UserStoreState'
 import Viewer from '../../mixins/viewer'
 import {User} from '@/store/profiles/types/User'
 import AcForm from '@/components/wrappers/AcForm.vue'
+import AcBoundField from '@/components/fields/AcBoundField'
+import {mask} from 'vue-the-mask'
 
-  declare type SyncFunc = (value: any) => void
+declare type SyncFunc = (value: any) => void
 
 function syncTo(...fields: Array<[string, string]>): SyncFunc {
   function syncedField(this: any, value: any): void {
@@ -222,7 +219,8 @@ function syncTo(...fields: Array<[string, string]>): SyncFunc {
 
 @Component({
   name: 'Login',
-  components: {AcForm, AcFormContainer, VueRecaptcha},
+  components: {AcBoundField, AcForm, AcFormContainer, VueRecaptcha},
+  directives: {mask},
 })
 export default class Login extends mixins(Viewer) {
     @State('profiles') private profiles!: UserStoreState

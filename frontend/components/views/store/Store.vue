@@ -1,9 +1,9 @@
 <template>
   <v-container fluid class="pa-0">
-    <router-view v-if="!currentRoute"></router-view>
+    <router-view v-if="!currentRoute" />
     <v-container v-else>
-      <ac-profile-header :username="username" v-if="!iFrame"></ac-profile-header>
-      <ac-subjective-product-list :username="username"></ac-subjective-product-list>
+      <ac-profile-header :username="username" v-if="!iFrame" />
+      <ac-subjective-product-list :username="username" />
     </v-container>
   </v-container>
 </template>

@@ -1,7 +1,6 @@
 import 'intersection-observer'
 import './artconomy.css'
-import Vuetify from 'vuetify'
-import 'vuetify/src/stylus/app.styl'
+import Vuetify from 'vuetify/lib'
 import * as Sentry from '@sentry/browser'
 import * as Integrations from '@sentry/integrations'
 import Vue from 'vue'
@@ -32,17 +31,7 @@ declare global {
 Vue.use(VueRouter)
 Vue.use(Vuex)
 Vue.use(Shortcuts)
-Vue.use(Vuetify, {
-  theme: {
-    primary: colors.blue,
-    secondary: colors.purple,
-    danger: colors.red,
-    darkBase: colors.grey,
-  },
-  options: {
-    customProperties: true,
-  },
-})
+Vue.use(Vuetify)
 Vue.use(FormControllers)
 Vue.use(Lists)
 Vue.use(Singles)
@@ -79,6 +68,26 @@ if (productionMode && isValidBrowser) {
   console.log('Unsupported browser. Automatic error reports will not be sent.')
 }
 
+const vuetifySettings = {
+  icons: {
+    iconfont: 'mdiSvg',
+  },
+  theme: {
+    dark: true,
+    themes: {
+      dark: {
+        primary: colors.blue,
+        secondary: colors.purple,
+        danger: colors.red,
+        darkBase: colors.grey,
+      },
+    },
+  },
+  options: {
+    customProperties: true,
+  },
+}
+
 const store = createStore()
 configureHooks(router, store)
 
@@ -87,6 +96,8 @@ window.artconomy = new Vue({
   router,
   store,
   render: (h) => h(App),
+  // @ts-ignore
+  vuetify: new Vuetify(vuetifySettings),
   components: {App}, // , NavBar},
 })
 

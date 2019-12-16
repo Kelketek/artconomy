@@ -1,18 +1,16 @@
 <template>
-  <v-flex>
-    <v-combobox
-        chips
-        multiple
-        v-model="tags"
-        autocomplete
-        v-bind:search-input.sync="query"
-        :items="items"
-        auto-select-first
-        deletable-chips
-        ref="input"
-        v-bind="fieldAttrs"
-    ></v-combobox>
-  </v-flex>
+  <v-combobox
+      chips
+      multiple
+      v-model="tags"
+      autocomplete
+      v-bind:search-input.sync="query"
+      :items="items"
+      auto-select-first
+      deletable-chips
+      ref="input"
+      v-bind="fieldAttrs"
+  />
 </template>
 
 <script lang="ts">
@@ -29,6 +27,7 @@ export default class AcTagField extends Vue {
     public value!: string[]
     private queryStore = ''
     private tags: string[] = []
+    private oldCount = 0
     private cancelSource: CancelTokenSource = axios.CancelToken.source()
 
     // noinspection JSMismatchedCollectionQueryUpdate
@@ -51,6 +50,10 @@ export default class AcTagField extends Vue {
     @Watch('tags')
     private syncUpstream() {
       this.$emit('input', this.tags)
+      if (this.tags.length !== this.oldCount) {
+        this.queryStore = ''
+      }
+      this.oldCount = this.tags.length
     }
 
     private get fieldAttrs() {

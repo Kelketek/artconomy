@@ -1,34 +1,34 @@
 <template xmlns:v-slot="http://www.w3.org/1999/XSL/Transform">
-  <v-layout row wrap class="compact-fields">
-    <v-flex xs12 sm7 md4 v-if="controls" v-show="editing">
-      <ac-patch-field  :patcher="color.patchers.note"></ac-patch-field>
-    </v-flex>
-    <v-flex xs4 v-show="!editing">{{color.x.note}}</v-flex>
-    <v-flex xs12 sm4 md2 offset-sm1 v-if="controls" v-show="editing">
+  <v-row no-gutters   class="compact-fields">
+    <v-col cols="12" sm="7" md="4" v-if="controls" v-show="editing">
+      <ac-patch-field  :patcher="color.patchers.note" />
+    </v-col>
+    <v-col cols="4" v-show="!editing">{{color.x.note}}</v-col>
+    <v-col cols="12" sm="4" md="2" offset-sm="1" v-if="controls" v-show="editing">
       <ac-patch-field :patcher="color.patchers.color">
-        <ac-color-prepend slot="prepend-inner" v-model="color.patchers.color.model"></ac-color-prepend>
+        <ac-color-prepend slot="prepend-inner" v-model="color.patchers.color.model" />
       </ac-patch-field>
-    </v-flex>
-    <v-flex xs5 md4 text-xs-center color-notation v-show="!editing">{{color.x.color}}</v-flex>
-    <v-flex xs10 md3 lg3 offset-md1 v-if="controls" v-show="editing">
-      <v-flex px-2 :style="modelStyle">
+    </v-col>
+    <v-col class="text-center color-notation" cols="5" md="4" v-show="!editing">{{color.x.color}}</v-col>
+    <v-col cols="10" md="3" lg="3" offset-md="1" v-if="controls" v-show="editing" align-self="center">
+      <v-col class="px-2" :style="modelStyle">
         &nbsp;
-      </v-flex>
-    </v-flex>
-    <v-flex xs2 md3 offset-xs1 v-show="!editing">
-      <v-flex px-2 :style="savedStyle">&nbsp;</v-flex>
-    </v-flex>
-    <v-flex xs2 md1 text-xs-right text-lg-center v-if="editing">
+      </v-col>
+    </v-col>
+    <v-col cols="2" md="3" offset="1" v-show="!editing">
+      <v-col class="px-2" :style="savedStyle">&nbsp;</v-col>
+    </v-col>
+    <v-col class="text-right text-lg-center" cols="2" md="1" v-if="editing">
       <ac-confirmation :action="color.delete">
         <span slot="confirmation-text">Are you sure you wish to delete this color? This cannot be undone.</span>
         <template v-slot:default="{on}">
-          <v-btn small v-on="on" icon color="red" class="delete-button">
+          <v-btn x-small fab v-on="on" color="red" class="delete-button">
             <v-icon>delete</v-icon>
           </v-btn>
         </template>
       </ac-confirmation>
-    </v-flex>
-  </v-layout>
+    </v-col>
+  </v-row>
 </template>
 
 <style>

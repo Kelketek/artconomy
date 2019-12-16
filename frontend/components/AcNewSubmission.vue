@@ -14,69 +14,69 @@
       </v-stepper-header>
       <v-stepper-items>
         <v-stepper-content :step="1">
-          <v-layout row wrap>
-            <v-flex xs12>
+          <v-row no-gutters  >
+            <v-col cols="12">
               <ac-bound-field :field="newUpload.fields.title" label="Title" hint="What will you title this submission?" />
-            </v-flex>
-            <v-flex xs12>
+            </v-col>
+            <v-col cols="12">
               <ac-bound-field field-type="ac-editor" :field="newUpload.fields.caption" label="Caption" hint="Tell viewers a little about the piece." :save-indicator="false" />
-            </v-flex>
-            <v-flex xs12 md4 px-2>
+            </v-col>
+            <v-col class="px-2" cols="12" md="4" >
               <ac-bound-field field-type="v-checkbox" :field="newUpload.fields.private" label="Private"
                               hint="If checked, will not show this submission to anyone you've not explicitly shared it with."
                               :persistent-hint="true"
               />
-            </v-flex>
-            <v-flex xs12 md4 px-2>
+            </v-col>
+            <v-col class="px-2" cols="12" md="4" >
               <ac-bound-field field-type="v-checkbox" :field="newUpload.fields.comments_disabled" label="Comments Disabled"
                               hint="If checked, prevents others from commenting on this submission."
                               :persistent-hint="true"
               />
-            </v-flex>
-            <v-flex xs12 md4 px-2>
+            </v-col>
+            <v-col class="px-2" cols="12" md="4" >
               <v-checkbox label="I made dis!"
                           hint="If checked, tags you as an artist on this piece. You may still submit if this is not checked, but you won't be credited as the artist."
                           :persistent-hint="true"
                           v-if="subject"
                           v-model="isArtist"
               />
-            </v-flex>
-          </v-layout>
+            </v-col>
+          </v-row>
         </v-stepper-content>
         <v-stepper-content :step="2">
-          <v-layout row wrap>
-            <v-flex xs12>
+          <v-row no-gutters  >
+            <v-col cols="12">
               <ac-bound-field :field="newUpload.fields.rating" label="Content Rating" field-type="ac-rating-field"></ac-bound-field>
-            </v-flex>
-            <v-flex xs12>
+            </v-col>
+            <v-col cols="12">
               <ac-bound-field :field="newUpload.fields.tags" field-type="ac-tag-field" label="Tags" hint="Please add a few tags for this submission."></ac-bound-field>
-            </v-flex>
-            <v-flex xs12 md6>
+            </v-col>
+            <v-col cols="12" md="6">
               <ac-bound-field :field="newUpload.fields.artists"
                               v-if="subject"
                               :init-items="preloadedUser"
                               field-type="ac-user-select" label="Artists"
                               hint="Tag the artist(s) that have worked on this piece. If they don't have an Artconomy account, you can skip this step.">
               </ac-bound-field>
-            </v-flex>
-            <v-flex xs12 md6>
+            </v-col>
+            <v-col cols="12" md="6">
               <ac-bound-field :field="newUpload.fields.characters"
                               v-if="showCharacters"
                               :init-items="characterInitItems"
                               field-type="ac-character-select" label="Characters"
                               hint="Tag the character(s) featured in this piece. If they're not listed on Artconomy, you can skip this step." />
-            </v-flex>
-          </v-layout>
+            </v-col>
+          </v-row>
         </v-stepper-content>
         <v-stepper-content :step="3">
-          <v-layout row wrap>
-            <v-flex xs12 md6>
+          <v-row no-gutters  >
+            <v-col cols="12" md="6">
               <ac-bound-field :field="newUpload.fields.file" field-type="ac-uppy-file" label="Upload your submission"></ac-bound-field>
-            </v-flex>
-            <v-flex xs12 md6>
+            </v-col>
+            <v-col cols="12" md="6">
               <ac-bound-field :field="newUpload.fields.preview" field-type="ac-uppy-file" label="Upload a preview image (Optional)"></ac-bound-field>
-            </v-flex>
-          </v-layout>
+            </v-col>
+          </v-row>
         </v-stepper-content>
       </v-stepper-items>
     </v-stepper>

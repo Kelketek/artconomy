@@ -3,17 +3,17 @@
     <template v-slot:default>
       <v-card>
         <v-card-text>
-          <v-layout row wrap>
-            <v-flex xs12 text-xs-center>
+          <v-row no-gutters  >
+            <v-col class="text-center" cols="12" >
               <span class="title">Rate your {{end}}!</span>
-            </v-flex>
-            <v-flex xs12 text-xs-center>
+            </v-col>
+            <v-col class="text-center" cols="12" >
               <ac-patch-field :patcher="rating.patchers.stars" field-type="ac-star-field"></ac-patch-field>
-            </v-flex>
-            <v-flex xs12>
+            </v-col>
+            <v-col cols="12">
               <ac-patch-field :patcher="rating.patchers.comments" field-type="ac-editor" v-if="rating.x.stars"></ac-patch-field>
-            </v-flex>
-          </v-layout>
+            </v-col>
+          </v-row>
         </v-card-text>
       </v-card>
     </template>

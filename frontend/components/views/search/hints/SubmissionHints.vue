@@ -1,15 +1,15 @@
 <template>
-  <v-flex>
-    <v-layout row wrap>
-      <v-flex xs12 text-xs-center>
+  <v-col>
+    <v-row no-gutters  >
+      <v-col class="text-center" cols="12" >
         Try terms like:
-        <p><v-chip color="secondary" @click="search('fox')">fox</v-chip>
-        <v-chip color="secondary" @click="search('pony')">pony</v-chip>
-        <v-chip color="secondary" @click="search('chibi')">chibi</v-chip>
-        <v-chip color="secondary" @click="search('refsheet')">refsheet</v-chip></p>
-      </v-flex>
-    </v-layout>
-  </v-flex>
+        <p><v-chip color="secondary" @click="search('fox')" class="mx-1">fox</v-chip>
+        <v-chip color="secondary" @click="search('pony')" class="mx-1">pony</v-chip>
+        <v-chip color="secondary" @click="search('chibi')" class="mx-1">chibi</v-chip>
+        <v-chip color="secondary" @click="search('refsheet')" class="mx-1">refsheet</v-chip></p>
+      </v-col>
+    </v-row>
+  </v-col>
 </template>
 
 <script lang="ts">

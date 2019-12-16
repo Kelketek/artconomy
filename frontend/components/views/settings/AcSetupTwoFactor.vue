@@ -1,50 +1,50 @@
 <!--suppress JSUnusedLocalSymbols, HtmlUnknownTarget -->
 <template>
   <div>
-    <v-layout row wrap>
-      <v-flex v-if="noDevice">
+    <v-row>
+      <v-col v-if="noDevice">
         <p>Two Factor Authentication (2FA) helps keep your account secure. If someone discovers your password,
           they still will not be able to log in without being able to access a device you own.</p>
         <p><strong>Pick a method below to get started!</strong></p>
-      </v-flex>
-    </v-layout>
-    <v-layout row wrap v-if="noDevice">
-      <v-flex text-xs-center xs12 sm4 offset-sm1 d-flex>
+      </v-col>
+    </v-row>
+    <v-row v-if="noDevice">
+      <v-col class="text-center" align-self="center" cols="12" sm="4" offset-sm="1" >
         <v-card class="elevation-7 setup-totp" @click="totpDevices.postPush({name: 'Phone'})">
           <v-card-text>
-            <v-layout row wrap>
-              <v-flex xs6 sm12 order-xs2 order-sm1 px-2>
+            <v-row no-gutters>
+              <v-col class="px-2" cols="6" sm="12" order="2" order-sm="1" >
                 <img src="/static/images/iphone.svg" style="height: 10vh" alt="Smartphone"/>
-              </v-flex>
-              <v-flex xs6 sm12 order-xs1 order-sm2 class="two-factor-label">
+              </v-col>
+              <v-col cols="6" sm="12" order="1" order-sm="2" class="two-factor-label">
                 <strong>Set up Phone App</strong>
-              </v-flex>
-            </v-layout>
+              </v-col>
+            </v-row>
           </v-card-text>
         </v-card>
-      </v-flex>
-      <v-flex text-xs-center xs12 sm4 offset-sm1 d-flex>
+      </v-col>
+      <v-col class="text-center" align-self="center" cols="12" sm="4" offset-sm="2" >
         <v-card class="elevation-7 setup-telegram" @click="tgDevice.put()">
           <v-card-text>
-            <v-layout row wrap>
-              <v-flex xs6 sm12 order-xs2 order-sm1 px-2>
+            <v-row no-gutters  >
+              <v-col class="px-2" cols="6" sm="12" order="2" order-sm="1" >
                 <img src="/static/images/telegram_logo.svg" style="height: 10vh" alt="Telegram logo"/>
-              </v-flex>
-              <v-flex xs6 sm12 order-xs1 order-sm2 class="two-factor-label">
+              </v-col>
+              <v-col cols="6" sm="12" order="1" order-sm="2" class="two-factor-label">
                 <div><strong>Set up Telegram</strong></div>
-              </v-flex>
-            </v-layout>
+              </v-col>
+            </v-row>
           </v-card-text>
         </v-card>
-      </v-flex>
-    </v-layout>
-    <ac-tg-device v-if="tgDevice.x" :username="username" :device="tgDevice"></ac-tg-device>
-    <v-flex v-if="totpDevices">
+      </v-col>
+    </v-row>
+    <ac-tg-device v-if="tgDevice.x" :username="username" :device="tgDevice" />
+    <v-col v-if="totpDevices">
     <ac-totp-device
         v-for="device in totpDevices.list"
         :key="device.x.id" :device="device" :username="username">
     </ac-totp-device>
-    </v-flex>
+    </v-col>
   </div>
 </template>
 

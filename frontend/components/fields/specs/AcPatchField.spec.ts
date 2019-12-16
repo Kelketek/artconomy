@@ -1,49 +1,39 @@
-import {createLocalVue, mount, Wrapper} from '@vue/test-utils'
-import Vuex from 'vuex'
+import {mount, Wrapper} from '@vue/test-utils'
 import Vue from 'vue'
-import Vuetify from 'vuetify'
+import {Vuetify} from 'vuetify'
 import {ArtStore, createStore} from '@/store'
-import {rq, rs, vuetifySetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, rq, rs, vueSetup} from '@/specs/helpers'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
-import {singleRegistry, Singles} from '@/store/singles/registry'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import {SingleController} from '@/store/singles/controller'
 import mockAxios from '@/__mocks__/axios'
 
 jest.useFakeTimers()
-Vue.use(Vuex)
-Vue.use(Vuetify)
-const localVue = createLocalVue()
-localVue.use(Singles)
+const localVue = vueSetup()
 let store: ArtStore
 let wrapper: Wrapper<Vue>
 let single: SingleController<any>
 let empty: Wrapper<Vue>
+let vuetify: Vuetify
 
 describe('AcPatchField.ts', () => {
   beforeEach(() => {
-    vuetifySetup()
-    singleRegistry.reset()
     store = createStore()
-    mockAxios.reset()
-    if (wrapper) {
-      wrapper.destroy()
-    }
+    vuetify = createVuetify()
     empty = mount(Empty, {localVue, store, sync: false})
     single = empty.vm.$getSingle('stuff', {endpoint: '/'})
     single.setX({test: 'Things'})
     store.commit('singles/stuff/setReady', true)
   })
   afterEach(() => {
-    if (wrapper) {
-      wrapper.destroy()
-    }
+    cleanUp(wrapper)
     empty.destroy()
   })
   it('Creates a field based on a patch', async() => {
     wrapper = mount(AcPatchField, {
       localVue,
       store,
+      vuetify,
       sync: false,
       attachToDocument: true,
       propsData: {patcher: single.patchers.test, id: 'stuff-patch'},
@@ -55,6 +45,7 @@ describe('AcPatchField.ts', () => {
     wrapper = mount(AcPatchField, {
       localVue,
       store,
+      vuetify,
       sync: false,
       attachToDocument: true,
       propsData: {patcher: single.patchers.test, id: 'stuff-patch', enterSave: true},
@@ -73,6 +64,7 @@ describe('AcPatchField.ts', () => {
     wrapper = mount(AcPatchField, {
       localVue,
       store,
+      vuetify,
       sync: false,
       attachToDocument: true,
       propsData: {patcher: single.patchers.test, id: 'stuff-patch', enterSave: false, autoSave: false},
@@ -88,6 +80,7 @@ describe('AcPatchField.ts', () => {
     wrapper = mount(AcPatchField, {
       localVue,
       store,
+      vuetify,
       sync: false,
       attachToDocument: true,
       propsData: {patcher: single.patchers.test, id: 'stuff-patch', autoSave: false},
@@ -107,6 +100,7 @@ describe('AcPatchField.ts', () => {
     wrapper = mount(AcPatchField, {
       localVue,
       store,
+      vuetify,
       sync: false,
       attachToDocument: true,
       propsData: {patcher: single.patchers.test, id: 'stuff-patch', autoSave: false},
@@ -122,6 +116,7 @@ describe('AcPatchField.ts', () => {
     wrapper = mount(AcPatchField, {
       localVue,
       store,
+      vuetify,
       sync: false,
       attachToDocument: true,
       propsData: {patcher: single.patchers.test, id: 'stuff-patch', autoSave: false, handlesSaving: true},
@@ -136,6 +131,7 @@ describe('AcPatchField.ts', () => {
     wrapper = mount(AcPatchField, {
       localVue,
       store,
+      vuetify,
       sync: false,
       attachToDocument: true,
       propsData: {patcher: single.patchers.test, id: 'stuff-patch', autoSave: false, handlesSaving: true},
@@ -153,6 +149,7 @@ describe('AcPatchField.ts', () => {
     wrapper = mount(AcPatchField, {
       localVue,
       store,
+      vuetify,
       sync: false,
       attachToDocument: true,
       propsData: {patcher: single.patchers.test, id: 'stuff-patch', autoSave: false, handlesSaving: true},

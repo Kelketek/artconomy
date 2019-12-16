@@ -1,8 +1,8 @@
 <template>
   <ac-paginated :list="list" :track-pages="true" :auto-run="false">
-    <v-flex xs4 sm3 md2 lg1 v-for="user in list.list" :key="user.x.id">
+    <v-col cols="4" sm="3" md="2" lg="1" v-for="user in list.list" :key="user.x.id">
       <ac-avatar :user="user.x"></ac-avatar>
-    </v-flex>
+    </v-col>
   </ac-paginated>
 </template>
 <script lang="ts">

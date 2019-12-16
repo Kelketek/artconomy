@@ -1,49 +1,35 @@
 import Vue from 'vue'
-import Vuex from 'vuex'
-import {createLocalVue, mount, Wrapper} from '@vue/test-utils'
+import {mount, Wrapper} from '@vue/test-utils'
 import AcCard from '@/components/views/settings/payment/AcCard.vue'
-import Vuetify from 'vuetify'
+import {Vuetify} from 'vuetify/types'
 import {ArtStore, createStore} from '@/store'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
-import {singleRegistry, Singles} from '@/store/singles/registry'
-import {listRegistry, Lists} from '@/store/lists/registry'
-import {profileRegistry, Profiles} from '@/store/profiles/registry'
-import {flushPromises, rq, rs, vuetifySetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, flushPromises, rq, rs, vueSetup} from '@/specs/helpers'
 import {ListController} from '@/store/lists/controller'
 import {CreditCardToken} from '@/types/CreditCardToken'
 import mockAxios from '@/__mocks__/axios'
 
-Vue.use(Vuex)
-Vue.use(Vuetify)
-const localVue = createLocalVue()
-localVue.use(Singles)
-localVue.use(Lists)
-localVue.use(Profiles)
+const localVue = vueSetup()
 let store: ArtStore
 let wrapper: Wrapper<Vue>
 let generator: Wrapper<Vue>
 let cardList: ListController<CreditCardToken>
+let vuetify: Vuetify
 
-describe('ac-card', () => {
+describe('AcCard.vue', () => {
   beforeEach(() => {
-    vuetifySetup()
     store = createStore()
-    singleRegistry.reset()
-    listRegistry.reset()
-    profileRegistry.reset()
-    mockAxios.reset()
+    vuetify = createVuetify()
     generator = mount(Empty, {localVue, store})
     cardList = generator.vm.$getList('creditCards', {endpoint: '/cards/'})
     cardList.setList([{id: 1, last_four: '1234', primary: true, type: 1, cvv_verified: true}])
     wrapper = mount(
       AcCard, {
-        localVue, store, sync: false, attachToDocument: true, propsData: {cardList, card: cardList.list[0]},
+        localVue, store, vuetify, sync: false, attachToDocument: true, propsData: {cardList, card: cardList.list[0]},
       })
   })
   afterEach(() => {
-    if (wrapper) {
-      wrapper.destroy()
-    }
+    cleanUp(wrapper)
   })
   it('Mounts and displays a card', () => {
     expect(wrapper.find('.fa-cc-visa').exists()).toBe(true)
@@ -69,7 +55,8 @@ describe('ac-card', () => {
     await wrapper.vm.$nextTick()
     wrapper.find('.make-default').trigger('click')
     // Confirmation.
-    expect(mockAxios.post).toHaveBeenCalledWith(...rq('/cards/1/primary/', 'post', undefined, {}))
+    expect(mockAxios.post).toHaveBeenCalledWith(
+      ...rq('/cards/1/primary/', 'post', undefined, {}))
     mockAxios.mockResponse(rs({}))
     await flushPromises()
     expect((cardList.list[0].x as CreditCardToken).primary).toBe(true)

@@ -1,12 +1,12 @@
 <template>
   <v-container>
-    <ac-character-toolbar :username="username" :character-name="characterName" :character-avatar="false"></ac-character-toolbar>
+    <ac-character-toolbar :username="username" :character-name="characterName" :character-avatar="false" />
     <ac-load-section :controller="character.profile" tag="v-layout" class="mt-3">
       <template v-slot:default>
         <v-card class="mb-2">
           <v-card-text>
-            <v-layout row wrap>
-              <v-flex xs12 sm8 md7 lg8 xl9>
+            <v-row no-gutters >
+              <v-col cols="12" sm="8" md="7" lg="8" xl="9">
                 <v-card-title primary-title>
                   <h1 v-show="!editing">{{character.profile.x.name}}</h1>
                   <ac-patch-field
@@ -18,17 +18,17 @@
                       label="Name"
                       hint="WARNING: Changing this character's name will change the URL of the
                   character, which can affect SEO."
-                  ></ac-patch-field>
+                  />
                 </v-card-title>
-                <ac-attributes :username="username" :character-name="characterName"></ac-attributes>
+                <ac-attributes :username="username" :character-name="characterName" />
                 <ac-tag-display
                     :patcher="character.profile.patchers.tags" :editable="character.profile.x.taggable" :username="username"
                     scope="Characters"
-                ></ac-tag-display>
-              </v-flex>
-              <v-flex xs12 sm4 md4 lg3 xl2 offset-md1>
-                <v-layout align-content-center align-center justify-center row>
-                  <v-flex align-self-center>
+                />
+              </v-col>
+              <v-col cols="12" sm="4" md="4" lg="3" xl="2" offset-md="1">
+                <v-row no-gutters align-content="center" align="center" justify="center" >
+                  <v-col align-self="center">
                     <ac-link :to="primarySubmissionLink">
                       <ac-asset :asset="character.profile.x.primary_submission"
                                 thumb-name="thumbnail" :terse="true"
@@ -47,7 +47,7 @@
                             >
                             </ac-patch-field>
                             <template v-slot:actions>
-                              <v-spacer></v-spacer>
+                              <v-spacer />
                               <v-btn color="danger" v-if="character.profile.x.primary_submission" @click="character.profile.patch({primary_submission: null})">Clear Showcased Image</v-btn>
                               <v-btn color="primary" @click="showChangePrimary = false">Cancel</v-btn>
                             </template>
@@ -55,10 +55,10 @@
                         </template>
                       </ac-asset>
                     </ac-link>
-                  </v-flex>
-                </v-layout>
-              </v-flex>
-            </v-layout>
+                  </v-col>
+                </v-row>
+              </v-col>
+            </v-row>
           </v-card-text>
         </v-card>
         <v-card>
@@ -71,13 +71,13 @@
                 v-if="controls"
                 v-show="editing"
                 :save-comparison="character.profile.patchers.description.rawValue" />
-            <ac-rendered :value="character.profile.patchers.description.rawValue" v-show="!editing"></ac-rendered>
+            <ac-rendered :value="character.profile.patchers.description.rawValue" v-show="!editing" />
           </v-card-text>
         </v-card>
-        <ac-colors :username="username" :character-name="characterName"></ac-colors>
+        <ac-colors :username="username" :character-name="characterName" />
         <v-card v-if="editing || character.profile.x.open_requests" class="mt-3">
           <v-card-text>
-            <v-layout row wrap class="mb-2">
+            <v-row no-gutters   class="mb-2">
               <ac-patch-field field-type="v-checkbox"
                               hint="If this is checked, permits others to commission art involving your characters."
                               label="Open Requests"
@@ -88,11 +88,11 @@
                               :patcher="character.profile.patchers.open_requests"
               >
               </ac-patch-field>
-              <v-flex xs12 v-if="character.profile.x.open_requests" v-show="!editing">
+              <v-col cols="12" v-if="character.profile.x.open_requests" v-show="!editing">
                 <h3><v-icon left color="green">check_circle</v-icon> Character can be used in other people's commissions</h3>
-              </v-flex>
-            </v-layout>
-            <v-layout row wrap>
+              </v-col>
+            </v-row>
+            <v-row no-gutters  >
               <ac-patch-field
                   field-type="ac-editor"
                   :auto-save="false"
@@ -104,36 +104,36 @@
                   For instance, if your character would never eat pie, you could write, 'Don't draw them eating pie.'"
                   :disabled="!character.profile.patchers.open_requests.model"
                   :save-comparison="character.profile.x.open_requests_restrictions" />
-              <v-flex xs12 v-if="character.profile.x.open_requests_restrictions" v-show="!editing">
+              <v-col cols="12" v-if="character.profile.x.open_requests_restrictions" v-show="!editing">
                 <h4 class="mb-2"><v-icon color="yellow" left>warning</v-icon>With the following restrictions:</h4>
-                <ac-rendered :value="character.profile.x.open_requests_restrictions"></ac-rendered>
-              </v-flex>
-            </v-layout>
+                <ac-rendered :value="character.profile.x.open_requests_restrictions" />
+              </v-col>
+            </v-row>
           </v-card-text>
         </v-card>
         <ac-context-gallery
             class="mt-3"
             :username="username" :character-name="characterName"
         />
-        <v-layout row wrap>
-          <v-flex xs12 class="pt-5">
+        <v-row no-gutters  >
+          <v-col cols="12" class="pt-5">
             <v-toolbar color="secondary" dense><v-toolbar-title>You might also like...</v-toolbar-title></v-toolbar>
-            <v-card :color="$vuetify.theme.darkBase.darken4">
+            <v-card :color="$vuetify.theme.currentTheme.darkBase.darken4">
               <v-card-text class="px-0" v-if="character.recommended">
                 <ac-load-section :controller="character.recommended">
                   <template v-slot:default>
-                    <v-layout row wrap>
-                      <v-flex xs6 sm4 md3 lg2 v-for="char in character.recommended.list" :key="char.x.id" class="pa-1">
-                        <ac-character-preview :character="char.x" :mini="true"></ac-character-preview>
-                      </v-flex>
-                    </v-layout>
+                    <v-row no-gutters  >
+                      <v-col cols="6" sm="4" md="3" lg="2" v-for="char in character.recommended.list" :key="char.x.id" class="pa-1">
+                        <ac-character-preview :character="char.x" :mini="true" />
+                      </v-col>
+                    </v-row>
                   </template>
                 </ac-load-section>
               </v-card-text>
             </v-card>
-          </v-flex>
-        </v-layout>
-        <ac-editing-toggle v-if="controls"></ac-editing-toggle>
+          </v-col>
+        </v-row>
+        <ac-editing-toggle v-if="controls" />
       </template>
     </ac-load-section>
   </v-container>

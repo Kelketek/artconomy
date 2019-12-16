@@ -1,28 +1,33 @@
 import {mount, Wrapper} from '@vue/test-utils'
 import Vue from 'vue'
-import {cleanUp, flushPromises, rs, vueSetup, vuetifySetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, flushPromises, rs, vueSetup, vuetifySetup} from '@/specs/helpers'
 import AcUserSelect from '@/components/fields/AcUserSelect.vue'
 import mockAxios from '@/__mocks__/axios'
 import {genUser} from '@/specs/helpers/fixtures'
+import {Vuetify} from 'vuetify/types'
 
 const localVue = vueSetup()
 jest.useFakeTimers()
 let wrapper: Wrapper<Vue>
+let vuetify: Vuetify
 
 describe('AcUserSelect.vue', () => {
   beforeEach(() => {
-    vuetifySetup()
+    vuetify = createVuetify()
   })
   afterEach(() => {
-    if (wrapper) {
-      wrapper.destroy()
-      jest.clearAllTimers()
-    }
-    cleanUp()
+    jest.clearAllTimers()
+    cleanUp(wrapper)
   })
   it('Searches for users', async() => {
     const tagList: number[] = []
-    wrapper = mount(AcUserSelect, {localVue, sync: false, attachToDocument: true, propsData: {value: tagList}})
+    wrapper = mount(AcUserSelect, {
+      localVue,
+      vuetify,
+      sync: false,
+      attachToDocument: true,
+      propsData: {value: tagList},
+    })
     wrapper.find('input').setValue('Test')
     await wrapper.vm.$nextTick()
     await jest.runAllTimers()
@@ -36,7 +41,12 @@ describe('AcUserSelect.vue', () => {
   it('Searches for users with a tagging modifier', async() => {
     const tagList: number[] = []
     wrapper = mount(
-      AcUserSelect, {localVue, sync: false, attachToDocument: true, propsData: {value: tagList, tagging: true}}
+      AcUserSelect, {
+        localVue,
+        vuetify,
+        sync: false,
+        attachToDocument: true,
+        propsData: {value: tagList, tagging: true}},
     )
     wrapper.find('input').setValue('Test')
     await wrapper.vm.$nextTick()
@@ -54,7 +64,13 @@ describe('AcUserSelect.vue', () => {
   })
   it('Accepts a response from the server on its query', async() => {
     const tagList: number[] = []
-    wrapper = mount(AcUserSelect, {localVue, sync: false, attachToDocument: true, propsData: {value: tagList}})
+    wrapper = mount(AcUserSelect, {
+      localVue,
+      vuetify,
+      sync: false,
+      attachToDocument: true,
+      propsData: {value: tagList},
+    })
     wrapper.find('input').setValue('Test')
     await wrapper.vm.$nextTick()
     await jest.runAllTimers()
@@ -66,7 +82,12 @@ describe('AcUserSelect.vue', () => {
   it('Sets a tag and resets upon adding a space when mode is multiple.', async() => {
     const tagList: number[] = []
     wrapper = mount(
-      AcUserSelect, {localVue, sync: false, attachToDocument: true, propsData: {value: tagList}}
+      AcUserSelect, {
+        localVue,
+        vuetify,
+        sync: false,
+        attachToDocument: true,
+        propsData: {value: tagList}},
     )
     wrapper.find('input').setValue('Test')
     await wrapper.vm.$nextTick()
@@ -81,7 +102,12 @@ describe('AcUserSelect.vue', () => {
   })
   it('Sets a tag and resets upon adding a space when mode is not multiple.', async() => {
     wrapper = mount(
-      AcUserSelect, {localVue, sync: false, attachToDocument: true, propsData: {value: null, multiple: false}}
+      AcUserSelect, {
+        localVue,
+        vuetify,
+        sync: false,
+        attachToDocument: true,
+        propsData: {value: null, multiple: false}},
     )
     wrapper.find('input').setValue('Test')
     await wrapper.vm.$nextTick()
@@ -97,7 +123,13 @@ describe('AcUserSelect.vue', () => {
   it('Does nothing to the query if adding a space with no results.', async() => {
     const tagList: number[] = []
     wrapper = mount(
-      AcUserSelect, {localVue, sync: false, attachToDocument: true, propsData: {value: tagList}}
+      AcUserSelect, {
+        localVue,
+        vuetify,
+        sync: false,
+        attachToDocument: true,
+        propsData: {value: tagList},
+      }
     )
     wrapper.find('input').setValue('Test')
     await wrapper.vm.$nextTick()
@@ -113,7 +145,9 @@ describe('AcUserSelect.vue', () => {
   it('Prepopulates with initial items', async() => {
     const tagList: number[] = []
     wrapper = mount(
-      AcUserSelect, {localVue,
+      AcUserSelect, {
+        localVue,
+        vuetify,
         sync: false,
         attachToDocument: true,
         propsData: {
@@ -127,6 +161,7 @@ describe('AcUserSelect.vue', () => {
     wrapper = mount(
       AcUserSelect, {
         localVue,
+        vuetify,
         sync: false,
         attachToDocument: true,
         propsData: {
@@ -145,6 +180,7 @@ describe('AcUserSelect.vue', () => {
     wrapper = mount(
       AcUserSelect, {
         localVue,
+        vuetify,
         sync: false,
         attachToDocument: true,
         propsData: {
@@ -163,6 +199,7 @@ describe('AcUserSelect.vue', () => {
     wrapper = mount(
       AcUserSelect, {
         localVue,
+        vuetify,
         sync: false,
         attachToDocument: true,
         propsData: {
@@ -177,6 +214,7 @@ describe('AcUserSelect.vue', () => {
     wrapper = mount(
       AcUserSelect, {
         localVue,
+        vuetify,
         sync: false,
         attachToDocument: true,
         propsData: {
@@ -196,6 +234,7 @@ describe('AcUserSelect.vue', () => {
     wrapper = mount(
       AcUserSelect, {
         localVue,
+        vuetify,
         sync: false,
         attachToDocument: true,
         propsData: {
@@ -214,6 +253,7 @@ describe('AcUserSelect.vue', () => {
     wrapper = mount(
       AcUserSelect, {
         localVue,
+        vuetify,
         sync: false,
         attachToDocument: true,
         propsData: {

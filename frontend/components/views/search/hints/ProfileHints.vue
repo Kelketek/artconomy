@@ -1,11 +1,11 @@
 <template>
-  <v-flex>
-    <v-layout row wrap>
-      <v-flex xs12 text-xs-center>
+  <v-col>
+    <v-row no-gutters  >
+      <v-col class="text-center" cols="12" >
         Enter a name to search for.
-      </v-flex>
-    </v-layout>
-  </v-flex>
+      </v-col>
+    </v-row>
+  </v-col>
 </template>
 
 <script lang="ts">

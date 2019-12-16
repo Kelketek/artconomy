@@ -2,15 +2,15 @@
   <ac-load-section :controller="character.profile">
     <ac-subjective-toolbar :username="username">
       <template v-if="characterAvatar" v-slot:avatar>
-        <ac-mini-character :show-name="false" :character="character.profile.x"></ac-mini-character>
+        <ac-mini-character :show-name="false" :character="character.profile.x" />
         <v-toolbar-title>{{characterName}}</v-toolbar-title>
       </template>
-      <v-toolbar-items class="text-xs-center text-md-right" v-if="character.profile.x">
+      <v-toolbar-items class="text-center text-md-right" v-if="character.profile.x">
         <ac-share-button :title="`${characterName} by ${username} - Artconomy`">
           <span slot="title">Share {{characterName}}</span>
           <template v-slot:footer v-if="controls">
             <ac-load-section :controller="character.sharedWith">
-              <ac-share-manager :controller="character.sharedWith"></ac-share-manager>
+              <ac-share-manager :controller="character.sharedWith" />
             </ac-load-section>
           </template>
         </ac-share-button>
@@ -19,28 +19,28 @@
                            v-model="showUpload"
                            :username="username"
                            v-if="controls"
-        ></ac-new-submission>
+        />
         <v-menu offset-x left v-if="controls">
           <template v-slot:activator="{on}">
             <v-btn icon v-on="on" class="more-button"><v-icon>more_horiz</v-icon></v-btn>
           </template>
           <v-list dense>
-            <v-list-tile @click.stop="character.profile.patch({private: !character.profile.x.private})">
-              <v-list-tile-action>
+            <v-list-item @click.stop="character.profile.patch({private: !character.profile.x.private})">
+              <v-list-item-action>
                 <v-icon v-if="character.profile.x.private">visibility_off</v-icon>
                 <v-icon v-else>visibility</v-icon>
-              </v-list-tile-action>
-              <v-list-tile-title>
+              </v-list-item-action>
+              <v-list-item-title>
                 <span v-if="character.profile.x.private">Hidden</span>
                 <span v-else>Listed</span>
-              </v-list-tile-title>
-            </v-list-tile>
+              </v-list-item-title>
+            </v-list-item>
             <ac-confirmation :action="deleteCharacter">
               <template v-slot:default="confirmContext">
-                <v-list-tile v-on="confirmContext.on">
-                  <v-list-tile-action class="delete-button"><v-icon>delete</v-icon></v-list-tile-action>
-                  <v-list-tile-title>Delete</v-list-tile-title>
-                </v-list-tile>
+                <v-list-item v-on="confirmContext.on">
+                  <v-list-item-action class="delete-button"><v-icon>delete</v-icon></v-list-item-action>
+                  <v-list-item-title>Delete</v-list-item-title>
+                </v-list-item>
               </template>
             </ac-confirmation>
           </v-list>

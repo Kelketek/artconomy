@@ -1,12 +1,12 @@
 <template>
   <ac-paginated :list="list">
     <template v-slot:default>
-      <v-container fluid class="pa-0" grid-list-sm>
-        <v-layout row wrap>
-          <v-flex xs12 sm6 md4 lg2 v-for="order in list.list" :key="order.x.id">
+      <v-container fluid class="pa-0">
+        <v-row no-gutters  >
+          <v-col cols="12" sm="6" md="4" lg="2" v-for="order in list.list" :key="order.x.id">
             <ac-order-preview :order="order" :type="type" :username="username"></ac-order-preview>
-          </v-flex>
-        </v-layout>
+          </v-col>
+        </v-row>
       </v-container>
     </template>
   </ac-paginated>

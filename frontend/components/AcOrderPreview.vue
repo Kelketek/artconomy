@@ -1,28 +1,33 @@
 <template>
-  <v-flex>
+  <v-col>
       <v-card>
         <ac-link :to="orderLink">
-          <ac-asset :asset="order.x.display" thumb-name="thumbnail"></ac-asset>
+          <ac-asset :asset="order.x.display" thumb-name="thumbnail" />
         </ac-link>
         <v-card-text>
-          <ac-link :to="orderLink">
-            {{ name }}
-          </ac-link>
-          <span v-if="!isBuyer">commissioned </span>by
-          <ac-link v-if="isBuyer" :to="{name: 'Profile', params: {username: order.x.seller.username}}">
-            {{ order.x.seller.username }}</ac-link>
-          <ac-link v-else-if="order.x.buyer" :to="buyerProfile">
-            {{ deriveDisplayName(order.x.buyer.username) }}</ac-link>
-          <span v-else>
-          (Pending)
-          </span><br />
-          <ac-order-status :order="order.x"></ac-order-status>
-        </v-card-text>
-        <v-card-text>
-          Placed on <span v-text="formatDateTime(order.x.created_on)"></span>
+          <v-row dense>
+            <v-col cols="12">
+              <ac-link :to="orderLink">
+                {{ name }}</ac-link>
+              <span v-if="!isBuyer">commissioned </span>by
+              <ac-link v-if="isBuyer" :to="{name: 'Profile', params: {username: order.x.seller.username}}">
+                {{ order.x.seller.username }}</ac-link>
+              <ac-link v-else-if="order.x.buyer" :to="buyerProfile">
+                {{ deriveDisplayName(order.x.buyer.username) }}</ac-link>
+              <span v-else>
+                (Pending)
+              </span>
+            </v-col>
+            <v-col cols="12" class="text-center">
+              <ac-order-status :order="order.x" />
+            </v-col>
+            <v-col cols="12">
+              Placed on <span v-text="formatDateTime(order.x.created_on)" />
+            </v-col>
+          </v-row>
         </v-card-text>
       </v-card>
-  </v-flex>
+  </v-col>
 </template>
 
 <script lang="ts">

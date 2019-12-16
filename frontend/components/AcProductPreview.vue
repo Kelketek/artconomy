@@ -1,93 +1,98 @@
 <template>
   <v-responsive v-if="$vuetify.breakpoint.smAndDown || mini" aspect-ratio="1" :class="{unavailable}" class="product-preview">
     <v-card>
-      <v-layout column class="pt-2">
-        <v-layout row wrap>
-          <v-flex xs8 offset-xs2>
+      <v-container fluid class="pa-2">
+        <v-row no-gutters class="pb-2" >
+          <v-col cols="8" offset="2">
             <ac-link :to="productLink">
-              <ac-asset :text="false" :asset="product.primary_submission" thumb-name="thumbnail"></ac-asset>
+              <ac-asset :text="false" :asset="product.primary_submission" thumb-name="thumbnail" />
             </ac-link>
-          </v-flex>
-        </v-layout>
-        <v-flex>
-          <v-card-text class="pb-2">
-            <v-layout row wrap>
-              <v-flex xs12><ac-link :to="productLink">{{product.name}}</ac-link></v-flex>
-              <v-flex xs12>
-                <v-layout row>
-                  <v-flex grow><small>From</small> ${{product.price.toFixed(2)}}</v-flex>
-                  <v-flex shrink class="no-underline">
-                    <ac-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">
-                      <v-tooltip bottom v-if="!product.escrow_disabled">
-                        <v-icon slot="activator" color="green" class="pl-1" small>fa-shield</v-icon>
-                        <span>Protected by Artconomy Shield</span>
-                      </v-tooltip>
-                    </ac-link>
-                  </v-flex>
-                </v-layout>
-              </v-flex>
-            </v-layout>
-          </v-card-text>
-        </v-flex>
-      </v-layout>
+          </v-col>
+        </v-row>
+        <v-row no-gutters>
+          <v-col cols="12"><ac-link :to="productLink">{{product.name}}</ac-link></v-col>
+          <v-col cols="12">
+            <v-row no-gutters>
+              <v-col class="grow" ><small>From</small> ${{product.price.toFixed(2)}}</v-col>
+              <v-col class="no-underline shrink">
+                <ac-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">
+                  <v-tooltip bottom v-if="!product.escrow_disabled">
+                    <template v-slot:activator="{on}">
+                      <v-icon color="green" class="pl-1" small v-on="on">fa-shield</v-icon>
+                    </template>
+                    <span>Protected by Artconomy Shield</span>
+                  </v-tooltip>
+                </ac-link>
+              </v-col>
+            </v-row>
+          </v-col>
+        </v-row>
+      </v-container>
     </v-card>
   </v-responsive>
   <v-card class="product-preview" :class="{unavailable}" v-else>
     <ac-link :to="productLink">
-      <ac-asset :asset="product.primary_submission" thumb-name="thumbnail"></ac-asset>
+      <ac-asset :asset="product.primary_submission" thumb-name="thumbnail" />
     </ac-link>
     <v-card-text class="pt-2">
-      <v-layout row>
-        <v-flex text-xs-left>
+      <v-row no-gutters >
+        <v-col class="text-left" >
           <ac-link :to="productLink">{{product.name}}</ac-link>
           By
           <ac-link :to="{name: 'Products', params: {username: product.user.username}}">{{product.user.username}}</ac-link>
-        </v-flex>
-        <v-spacer></v-spacer>
-      </v-layout>
-      <v-layout row>
-        <v-flex shrink d-flex>
-          <v-layout column align-content-end align-end>
-            <v-spacer></v-spacer>
-            <ac-link :to="productLink">
-              <v-flex shrink>
-                <ac-link :to="productLink">
-                  <span class="days-turnaround">{{turnaround}}</span> days
-                </ac-link>
-              </v-flex>
-              <v-flex>turnaround</v-flex>
+        </v-col>
+        <v-spacer />
+      </v-row>
+      <v-row no-gutters>
+        <v-col>
+          <v-row no-gutters>
+            <ac-link :to="{name: 'Ratings', params: {username: product.user.username}}" v-if="product.user.stars">
+              <v-rating dense small half-increments :value="product.user.stars" color="primary" />
             </ac-link>
-          </v-layout>
-        </v-flex>
-        <v-spacer></v-spacer>
-        <v-flex shrink d-flex>
-          <v-layout column>
-            <v-flex>
-              <v-layout row>
-                <ac-link :to="{name: 'Ratings', params: {username: product.user.username}}" v-if="product.user.stars">
-                  <v-rating dense small half-increments :value="product.user.stars" color="primary"></v-rating>
-                </ac-link>
-                <v-spacer v-else></v-spacer>
-                <ac-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">
-                  <v-tooltip bottom v-if="!product.escrow_disabled">
-                    <v-icon slot="activator" color="green" class="pl-1">fa-shield</v-icon>
-                    <span>Protected by Artconomy Shield</span>
-                  </v-tooltip>
-                </ac-link>
-              </v-layout>
-            </v-flex>
+            <v-spacer v-else />
+            <ac-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">
+              <v-tooltip bottom v-if="!product.escrow_disabled">
+                <template v-slot:activator="{on}">
+                  <v-icon slot="activator" color="green" class="pl-1">fa-shield</v-icon>
+                </template>
+                <span>Protected by Artconomy Shield</span>
+              </v-tooltip>
+            </ac-link>
+          </v-row>
+        </v-col>
+      </v-row>
+      <v-row no-gutters class="mt-2">
+        <v-col class="shrink d-flex">
+          <v-row no-gutters align-content="end" align="end">
+            <v-col>
+            <v-spacer />
             <ac-link :to="productLink">
-              <v-flex shrink>
+              <v-row no-gutters>
+                <v-col class="shrink" >
+                  <ac-link :to="productLink">
+                    <span class="days-turnaround">{{turnaround}}</span> days turnaround
+                  </ac-link>
+                </v-col>
+              </v-row>
+            </ac-link>
+            </v-col>
+          </v-row>
+        </v-col>
+        <v-spacer />
+        <v-col class="shrink d-flex">
+          <ac-link :to="productLink">
+            <v-row no-gutters>
+              <v-col cols="12" class="pb-1">
                 Starting at
-              </v-flex>
-              <v-flex>
+              </v-col>
+              <v-col cols="12">
                 <span class="currency-notation" v-if="product.price">$</span>
                 <span class="price-display">{{product.price.toFixed(2)}}</span>
-              </v-flex>
-            </ac-link>
-          </v-layout>
-        </v-flex>
-      </v-layout>
+              </v-col>
+            </v-row>
+          </ac-link>
+        </v-col>
+      </v-row>
     </v-card-text>
   </v-card>
 </template>

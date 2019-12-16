@@ -1,32 +1,32 @@
-import {createLocalVue, mount, Wrapper} from '@vue/test-utils'
-import Vuex from 'vuex'
+import {Vuetify} from 'vuetify/types'
+import {mount, Wrapper} from '@vue/test-utils'
 import Vue from 'vue'
-import Vuetify from 'vuetify'
-import {FormControllers, formRegistry} from '@/store/forms/registry'
 import {ArtStore, createStore} from '@/store'
-import {vuetifySetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, vueSetup} from '@/specs/helpers'
 import AcRatingField from '@/components/fields/AcRatingField.vue'
 
-Vue.use(Vuex)
-Vue.use(Vuetify)
-const localVue = createLocalVue()
-localVue.use(FormControllers)
+const localVue = vueSetup()
 let store: ArtStore
 let wrapper: Wrapper<Vue>
+let vuetify: Vuetify
 
 describe('AcRatingField.vue', () => {
   beforeEach(() => {
-    formRegistry.reset()
     store = createStore()
-    vuetifySetup()
-    if (wrapper) {
-      wrapper.destroy()
-    }
+    vuetify = createVuetify()
+  })
+  afterEach(() => {
+    cleanUp(wrapper)
   })
   it('Creates a field based on a field controller', async() => {
     wrapper = mount(AcRatingField, {
-      localVue, store, sync: false, attachToDocument: true, propsData: {value: 1}}
-    )
+      localVue,
+      store,
+      vuetify,
+      sync: false,
+      attachToDocument: true,
+      propsData: {value: 1},
+    })
     const vm = wrapper.vm as any
     await vm.$nextTick()
     const mockEmit = jest.spyOn(vm, '$emit')

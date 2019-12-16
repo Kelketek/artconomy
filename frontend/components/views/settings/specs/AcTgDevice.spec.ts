@@ -1,47 +1,32 @@
-import {createLocalVue, mount, Wrapper} from '@vue/test-utils'
+import {mount, Wrapper} from '@vue/test-utils'
 import AcTgDevice from '../AcTgDevice.vue'
-import {FormControllers, formRegistry} from '@/store/forms/registry'
-import {listRegistry, Lists} from '@/store/lists/registry'
 import {ArtStore, createStore} from '@/store'
-import {flushPromises, rq, setViewer, vuetifySetup} from '@/specs/helpers'
-import Vue, {VueConstructor} from 'vue'
-import Vuex from 'vuex'
+import {cleanUp, createVuetify, flushPromises, rq, setViewer, vueSetup} from '@/specs/helpers'
+import Vue from 'vue'
 import {genUser} from '@/specs/helpers/fixtures'
 import {ListController} from '@/store/lists/controller'
 import {TOTPDevice} from '@/store/profiles/types/TOTPDevice'
-import Vuetify from 'vuetify'
+import {Vuetify} from 'vuetify/types'
 import mockAxios from '@/specs/helpers/mock-axios'
-import {singleRegistry, Singles} from '@/store/singles/registry'
-import {Profiles} from '@/store/profiles/registry'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
-
-Vue.use(Vuex)
-Vue.use(Vuetify)
 
 const qrImageUrl = 'otpauth://totp/Artconomy%20Dev%3Afox%40vulpinity.com?secret=KJZWLZLDMVY3XJAX72V4WAXDKKZZDA76' +
   '&algorithm=SHA1&digits=6&period=30&issuer=Artconomy+Dev'
 
-describe('AcTgDevice.vie', () => {
+describe('AcTgDevice.vue', () => {
   const mockError = jest.spyOn(console, 'error')
-  const localVue: VueConstructor = createLocalVue()
-  localVue.use(FormControllers)
-  localVue.use(Lists)
-  localVue.use(Singles)
-  localVue.use(Profiles)
+  const localVue = vueSetup()
   let store: ArtStore
   let wrapper: Wrapper<Vue>
   let controller: ListController<TOTPDevice>
+  let vuetify: Vuetify
   beforeEach(() => {
-    if (wrapper) {
-      wrapper.destroy()
-    }
-    formRegistry.reset()
-    listRegistry.reset()
-    singleRegistry.reset()
     store = createStore()
-    vuetifySetup()
-    mockAxios.reset()
+    vuetify = createVuetify()
     controller = mount(Empty, {localVue, store}).vm.$getList('totpDevices', {endpoint: '/test/'})
+  })
+  afterEach(() => {
+    cleanUp(wrapper)
   })
   it('Shows a set of steps', async() => {
     setViewer(store, genUser())
@@ -49,6 +34,7 @@ describe('AcTgDevice.vie', () => {
     wrapper = mount(AcTgDevice, {
       store,
       localVue,
+      vuetify,
       propsData: {username: 'Fox', device: controller.list[0]},
       sync: false,
     })
@@ -60,6 +46,7 @@ describe('AcTgDevice.vie', () => {
     wrapper = mount(AcTgDevice, {
       store,
       localVue,
+      vuetify,
       propsData: {username: 'Fox', device: controller.list[0]},
       sync: false,
     })
@@ -71,6 +58,7 @@ describe('AcTgDevice.vie', () => {
     wrapper = mount(AcTgDevice, {
       store,
       localVue,
+      vuetify,
       propsData: {username: 'Fox', device: controller.list[0]},
       sync: false,
     })
@@ -92,6 +80,7 @@ describe('AcTgDevice.vie', () => {
     wrapper = mount(AcTgDevice, {
       store,
       localVue,
+      vuetify,
       propsData: {username: 'Fox', device: controller.list[0]},
       sync: false,
       attachToDocument: true,
@@ -107,6 +96,7 @@ describe('AcTgDevice.vie', () => {
     wrapper = mount(AcTgDevice, {
       store,
       localVue,
+      vuetify,
       propsData: {username: 'Fox', device: controller.list[0]},
       sync: false,
       attachToDocument: true,
@@ -126,6 +116,7 @@ describe('AcTgDevice.vie', () => {
     wrapper = mount(AcTgDevice, {
       store,
       localVue,
+      vuetify,
       propsData: {username: 'Fox', device: controller.list[0]},
       sync: false,
     })

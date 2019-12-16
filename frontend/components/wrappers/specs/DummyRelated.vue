@@ -1,18 +1,18 @@
 <template>
-  <v-flex>
+  <v-col>
     <ac-related-manager ref="manager" :list-controller="demoList" :field-controller="userForm.fields.user_id" item-key="user">
       <template v-slot:preview="{item}">
-        <v-flex xs4 sm3 md2 lg1>
+        <v-col cols="4" sm="3" md="2" lg="1">
           <ac-avatar :user="item.x.user"
                      removable="true" @remove="item.delete().catch(userForm.setErrors)"/>
-        </v-flex>
+        </v-col>
       </template>
       <template v-slot:default="{filter}">
         <ac-bound-field
             :field="userForm.fields.user_id" field-type="ac-user-select" :multiple="false" :filter="filter"/>
       </template>
     </ac-related-manager>
-  </v-flex>
+  </v-col>
 </template>
 
 <script lang="ts">

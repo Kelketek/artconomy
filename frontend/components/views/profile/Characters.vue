@@ -1,9 +1,9 @@
 <template>
   <v-container fluid class="pa-0">
     <ac-paginated :list="characters">
-      <v-flex lg2 md3 xs6 pa-1 v-for="character in characters.list" :key="character.x.id">
+      <v-col class="pa-1" lg="2" md="3" cols="6" v-for="character in characters.list" :key="character.x.id">
         <ac-character-preview :character="character.x" :key="character.key"></ac-character-preview>
-      </v-flex>
+      </v-col>
     </ac-paginated>
     <ac-form-dialog
             v-if="controls"
@@ -12,13 +12,13 @@
             title="New Character"
             @submit="form.submitThen(visitCharacter)"
     >
-      <v-layout row wrap>
-        <v-flex xs12>
+      <v-row no-gutters  >
+        <v-col cols="12">
           <ac-bound-field :field="form.fields.name" hint="Enter the name of your character." label="Character Name">
 
           </ac-bound-field>
-        </v-flex>
-        <v-flex xs12>
+        </v-col>
+        <v-col cols="12">
           <ac-bound-field :field="form.fields.private"
                           field-type="v-checkbox"
                           :persistent-hint="true"
@@ -26,8 +26,8 @@
                           hint="If checked, this character will not appear in search listings and will only be visible to users you explicitly share them with."
           >
           </ac-bound-field>
-        </v-flex>
-      </v-layout>
+        </v-col>
+      </v-row>
     </ac-form-dialog>
     <ac-add-button v-model="showNew" v-if="controls">New Character</ac-add-button>
   </v-container>

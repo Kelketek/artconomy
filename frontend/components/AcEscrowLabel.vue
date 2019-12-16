@@ -1,28 +1,28 @@
 <template>
-  <v-flex text-xs-center>
-    <v-flex xs12 v-if="escrow">
+  <v-row dense>
+    <v-col cols="12" v-if="escrow" class="text-center">
       <v-icon large class="green--text">fa-shield</v-icon>
-    </v-flex>
-    <v-flex xs12 v-else>
+    </v-col>
+    <v-col cols="12" v-else class="text-center">
       <v-icon large class="yellow--text">warning</v-icon>
-    </v-flex>
-    <v-flex xs12 text-xs-center v-if="escrow">
+    </v-col>
+    <v-col class="text-center" cols="12" v-if="escrow">
       <p>
         This {{name}} protected by <br />
         <router-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">
           Artconomy Shield.
         </router-link>
       </p>
-    </v-flex>
-    <v-flex xs12 text-xs-center v-else>
+    </v-col>
+    <v-col class="text-center" cols="12" v-else>
       <p>
         This {{name}} is not protected by <br />
         <router-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">
           Artconomy Shield.
         </router-link>
       </p>
-    </v-flex>
-  </v-flex>
+    </v-col>
+  </v-row>
 </template>
 
 <script lang="ts">

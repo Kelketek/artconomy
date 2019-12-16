@@ -1,10 +1,11 @@
 import Vue from 'vue'
 import Router, {RouteConfig} from 'vue-router'
-import {vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import {mount, Wrapper} from '@vue/test-utils'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
+import {Vuetify} from 'vuetify/types'
 
 const localVue = vueSetup()
 localVue.use(Router)
@@ -12,10 +13,12 @@ let store: ArtStore
 let wrapper: Wrapper<Vue>
 let routes: RouteConfig[]
 let router: Router
+let vuetify: Vuetify
 
 describe('AcLink.vue', () => {
   beforeEach(() => {
     store = createStore()
+    vuetify = createVuetify()
     routes = [{
       name: 'Test',
       path: '/test',
@@ -24,13 +27,17 @@ describe('AcLink.vue', () => {
     router = new Router({mode: 'history', routes})
   })
   afterEach(() => {
-    if (wrapper) {
-      wrapper.destroy()
-    }
+    cleanUp(wrapper)
   })
   it('Navigates', async() => {
     wrapper = mount(AcLink, {
-      localVue, store, router, propsData: {to: {name: 'Test'}}, sync: false, attachToDocument: true,
+      localVue,
+      store,
+      router,
+      vuetify,
+      propsData: {to: {name: 'Test'}},
+      sync: false,
+      attachToDocument: true,
     })
     const mockPush = jest.spyOn(wrapper.vm.$router, 'push')
     wrapper.find('a').trigger('click')
@@ -41,7 +48,13 @@ describe('AcLink.vue', () => {
     mockOpen.mockImplementationOnce(() => null)
     store.commit('setiFrame', true)
     wrapper = mount(AcLink, {
-      localVue, store, router, propsData: {to: {name: 'Test'}}, sync: false, attachToDocument: true,
+      localVue,
+      store,
+      router,
+      vuetify,
+      propsData: {to: {name: 'Test'}},
+      sync: false,
+      attachToDocument: true,
     })
     wrapper.find('a').trigger('click')
     expect(mockOpen).toHaveBeenCalledWith('/test', '_blank')

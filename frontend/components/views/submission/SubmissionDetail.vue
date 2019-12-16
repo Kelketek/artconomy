@@ -2,8 +2,8 @@
   <v-container fluid>
     <ac-load-section :controller="submission" fluid>
       <template v-slot:default>
-        <v-layout row wrap>
-          <v-flex xs12 md9 lg9 xl10>
+        <v-row dense>
+          <v-col cols="12" md="9" lg="9" xl="10">
             <ac-asset :asset="submission.x" thumb-name="gallery" aspect-ratio="" :contain="true" :editing="editing" v-model="showEditAsset">
               <template slot="edit-menu">
                 <ac-expanded-property v-model="showEditAsset">
@@ -17,171 +17,164 @@
                           field-type="ac-uppy-file"
                           :patcher="submission.patchers.file"
                           label="Upload a file for this submission"
-                      ></ac-patch-field>
+                      />
                     </v-tab-item>
                     <v-tab-item>
-                      <v-layout row wrap>
-                        <v-flex xs12 sm6 d-flex>
-                          <v-layout row justify-content align-center>
-                            <v-flex>
+                      <v-row no-gutters  >
+                        <v-col class="d-flex" cols="12" sm="6" >
+                          <v-row no-gutters class="justify-content"  align="center">
+                            <v-col>
                               <ac-patch-field
                                   field-type="ac-uppy-file"
                                   :patcher="submission.patchers.preview"
                                   label="Preview Image"
                                   :show-reset="false" :show-clear="true"
-                              ></ac-patch-field>
-                            </v-flex>
-                          </v-layout>
-                        </v-flex>
-                        <v-flex xs12 sm6>
-                          <ac-gallery-preview :submission="submission.x"></ac-gallery-preview>
-                        </v-flex>
-                      </v-layout>
+                              />
+                            </v-col>
+                          </v-row>
+                        </v-col>
+                        <v-col cols="12" sm="6">
+                          <ac-gallery-preview :submission="submission.x" />
+                        </v-col>
+                      </v-row>
                     </v-tab-item>
                   </v-tabs-items>
                 </ac-expanded-property>
               </template>
             </ac-asset>
-          </v-flex>
-          <v-flex xs12 md3 lg3 xl2 class="px-2">
-            <v-layout column>
-              <v-flex>
-                <v-layout row wrap>
-                  <v-flex xs5 sm3 md12 lg5 :class="{sm3: commissionLink, sm6: !commissionLink}">
+          </v-col>
+          <v-col cols="12" md="3" lg="3" xl="2">
+              <v-col>
+                <v-row dense>
+                  <v-col cols="5" sm="6" md="12" lg="5" :class="{sm3: commissionLink, sm6: !commissionLink}">
                     <v-btn block @click="submission.patch({favorites: !submission.x.favorites})"
                            color="secondary">
                       <v-icon left v-if="favorite">favorite</v-icon>
                       <v-icon left v-else>favorite_border</v-icon>
                       Fav
                     </v-btn>
-                  </v-flex>
-                  <v-flex xs7 lg7 md12 :class="{sm4: commissionLink, sm6: !commissionLink}">
+                  </v-col>
+                  <v-col cols="7" sm="6" md="12" lg="7" :class="{sm4: commissionLink, sm6: !commissionLink}">
                     <v-btn color="primary" block :href="submission.x.file.full" download>
                       <v-icon left>save_alt</v-icon>
                       Download
                     </v-btn>
-                  </v-flex>
-                  <v-flex xs12 sm5 md12 v-if="commissionLink">
+                  </v-col>
+                  <v-col cols="12" v-if="commissionLink">
                     <v-btn color="green" block :to="submission.x.commission_link">
                       <v-icon left>palette</v-icon>
                       Commission the artist!
                     </v-btn>
-                  </v-flex>
-                  <v-flex xs12>
+                  </v-col>
+                  <v-col cols="12">
                     <ac-share-button block :title="windowTitle">
                       <span slot="title">Share {{submission.x.title}}</span>
                       <template v-slot:footer v-if="controls">
                         <ac-load-section :controller="sharedWith">
-                          <ac-share-manager :controller="sharedWith"></ac-share-manager>
+                          <ac-share-manager :controller="sharedWith" />
                         </ac-load-section>
                       </template>
                     </ac-share-button>
-                  </v-flex>
-                </v-layout>
-              </v-flex>
-              <v-flex>
+                  </v-col>
+                </v-row>
+              </v-col>
+              <v-col>
                 <ac-tag-display :patcher="submission.patchers.tags"
                                 :editable="submission.x.owner.taggable"
                                 :username="submission.x.owner.username"
                                 scope="Submissions"
-                ></ac-tag-display>
-              </v-flex>
-              <v-flex>
+                />
+              </v-col>
+              <v-col>
                 <ac-artist-display :controller="artists" :submission-id="submissionId"
                                    :editable="submission.x.owner.taggable"
-                                   :controls="tagControls"></ac-artist-display>
-              </v-flex>
-              <v-flex>
+                                   :controls="tagControls" />
+              </v-col>
+              <v-col>
                 <ac-character-display :controller="characters" :submission-id="submissionId"
                                       :editable="submission.x.owner.taggable"
-                                      :controls="tagControls"></ac-character-display>
-              </v-flex>
-              <v-flex class="pt-2">
+                                      :controls="tagControls" />
+              </v-col>
+              <v-col class="pt-2">
                 <h3>You might also like...</h3>
-                <v-layout row wrap>
-                  <v-flex xs4 sm2 lg6 xl4 v-for="submission in recommended.list" :key="submission.id">
+                <v-row no-gutters  >
+                  <v-col cols="4" sm="2" lg="6" xl="4" v-for="submission in recommended.list" :key="submission.id">
                     <ac-gallery-preview
                         :submission="submission.x"
                         :show-footer="false"
-                    ></ac-gallery-preview>
-                  </v-flex>
-                </v-layout>
-              </v-flex>
-            </v-layout>
-          </v-flex>
+                    />
+                  </v-col>
+                </v-row>
+              </v-col>
+          </v-col>
           <v-container class="pt-3">
             <v-card>
-              <v-card :color="$vuetify.theme.darkBase.darken4" class="px-3">
-                <v-layout row>
-                  <v-flex d-flex>
-                    <v-layout row justify-content align-center>
-                      <v-flex>
+              <v-card :color="$vuetify.theme.currentTheme.darkBase.darken4" class="px-3">
+                <v-row no-gutters class="d-flex" >
+                  <v-col align-self="center">
+                    <v-row no-gutters>
+                      <v-col align-self="center">
                         <v-toolbar-title v-show="!editing" class="wrap">{{submission.x.title}}
                         </v-toolbar-title>
                         <ac-patch-field label="Title" :patcher="submission.patchers.title"
-                                        v-if="controls" v-show="editing"></ac-patch-field>
-                      </v-flex>
-                    </v-layout>
-                  </v-flex>
-                  <v-spacer></v-spacer>
-                  <v-flex shrink hidden-xs-only :class="{'d-flex': $vuetify.breakpoint.smAndUp}">
-                    <v-layout row justify-content align-center>
-                      <v-flex>
-                        <ac-avatar :user="submission.x.owner" :show-name="false"></ac-avatar>
-                      </v-flex>
-                      <v-flex class="px-2">
-                        <v-toolbar-title>{{submission.x.owner.username}}</v-toolbar-title>
-                      </v-flex>
-                    </v-layout>
-                  </v-flex>
-                  <v-flex shrink d-flex>
-                    <v-layout row align-center justify-content>
-                      <v-flex>
+                                        v-if="controls" v-show="editing"/>
+                      </v-col>
+                    </v-row>
+                  </v-col>
+                  <v-col class="ml-auto hidden-xs-only shrink" align-self="center">
+                    <v-row dense class="flex-nowrap">
+                      <v-col class="shrink" align-self="center">
+                        <ac-avatar :user="submission.x.owner" :show-name="false"/>
+                      </v-col>
+                      <v-col class="shrink" align-self="center">
+                        <v-toolbar-title class="ml-1">{{submission.x.owner.username}}</v-toolbar-title>
+                      </v-col>
+                      <v-col class="shrink" align-self="center">
                         <v-menu offset-x left v-if="controls">
                           <template v-slot:activator="{on}">
                             <v-btn icon v-on="on" class="more-button"><v-icon>more_horiz</v-icon></v-btn>
                           </template>
                           <v-list dense>
-                            <v-list-tile @click.stop="submission.patch({private: !submission.x.private})">
-                              <v-list-tile-action>
+                            <v-list-item @click.stop="submission.patch({private: !submission.x.private})">
+                              <v-list-item-action>
                                 <v-icon v-if="submission.x.private">visibility_off</v-icon>
                                 <v-icon v-else>visibility</v-icon>
-                              </v-list-tile-action>
-                              <v-list-tile-title>
+                              </v-list-item-action>
+                              <v-list-item-title>
                                 <span v-if="submission.x.private">Hidden</span>
                                 <span v-else>Public</span>
-                              </v-list-tile-title>
-                            </v-list-tile>
-                            <v-list-tile @click.stop="submission.patch({comments_disabled: !submission.x.comments_disabled})" v-if="controls">
-                              <v-list-tile-action>
+                              </v-list-item-title>
+                            </v-list-item>
+                            <v-list-item @click.stop="submission.patch({comments_disabled: !submission.x.comments_disabled})" v-if="controls">
+                              <v-list-item-action>
                                 <v-icon v-if="submission.x.comments_disabled">mode_comment</v-icon>
                                 <v-icon v-else>comment</v-icon>
-                              </v-list-tile-action>
-                              <v-list-tile-title>
+                              </v-list-item-action>
+                              <v-list-item-title>
                                 Comments
                                 <span v-if="submission.x.comments_disabled">locked</span>
                                 <span v-else>allowed</span>
-                              </v-list-tile-title>
-                            </v-list-tile>
+                              </v-list-item-title>
+                            </v-list-item>
                             <ac-confirmation :action="deleteSubmission">
                               <template v-slot:default="confirmContext">
-                                <v-list-tile v-on="confirmContext.on">
-                                  <v-list-tile-action class="delete-button"><v-icon>delete</v-icon></v-list-tile-action>
-                                  <v-list-tile-title>Delete</v-list-tile-title>
-                                </v-list-tile>
+                                <v-list-item v-on="confirmContext.on">
+                                  <v-list-item-action class="delete-button"><v-icon>delete</v-icon></v-list-item-action>
+                                  <v-list-item-title>Delete</v-list-item-title>
+                                </v-list-item>
                               </template>
                             </ac-confirmation>
                           </v-list>
                         </v-menu>
-                      </v-flex>
-                    </v-layout>
-                  </v-flex>
-                </v-layout>
+                      </v-col>
+                    </v-row>
+                  </v-col>
+                </v-row>
               </v-card>
               <v-card-text>
-                <v-layout row wrap>
-                  <v-flex xs12 md8 xl9>
-                    <ac-rendered :value="submission.x.caption" v-show="!editing"></ac-rendered>
+                <v-row no-gutters  >
+                  <v-col cols="12" md="8" xl="9">
+                    <ac-rendered :value="submission.x.caption" v-show="!editing" />
                     <ac-patch-field
                         field-type="ac-editor"
                         :auto-save="false"
@@ -191,53 +184,53 @@
                         label="Description"
                         hint="Describe this piece-- how it came to be, how it makes you feel, or give it a caption."
                         :save-comparison="submission.x.caption"/>
-                  </v-flex>
-                  <v-flex xs12 md3 xl2 offset-md1>
-                    <v-layout row wrap>
-                      <v-flex xs12>
+                  </v-col>
+                  <v-col cols="12" md="3" xl="2" offset-md="1">
+                    <v-row no-gutters  >
+                      <v-col cols="12">
                         <h3>Info</h3>
-                        <v-divider></v-divider>
-                      </v-flex>
-                      <v-flex xs4 hidden-sm-and-up :class="{'d-flex': $vuetify.breakpoint.xs}">
-                        <v-layout justify-content align-center>
+                        <v-divider />
+                      </v-col>
+                      <v-col class="hidden-sm-and-up" cols="4" :class="{'d-flex': $vuetify.breakpoint.xs}">
+                        <v-row no-gutters class="justify-content" align="center">
                           <strong>Submitted by:</strong>
-                        </v-layout>
-                      </v-flex>
-                      <v-flex xs8 pt-2 hidden-sm-and-up>
-                        <ac-avatar :user="submission.x.owner"></ac-avatar>
-                      </v-flex>
-                      <v-flex xs4><strong>Views:</strong></v-flex>
-                      <v-flex xs8 text-xs-center>{{submission.x.hits}}</v-flex>
-                      <v-flex xs4><strong>Created on:</strong></v-flex>
-                      <v-flex xs8 text-xs-center>{{formatDateTime(submission.x.created_on)}}</v-flex>
-                      <v-flex xs4><strong>Favorites:</strong></v-flex>
-                      <v-flex xs8 text-xs-center>{{submission.x.favorite_count}}</v-flex>
-                      <v-flex xs4 v-if="submission.x.order && controls"><strong>From Order:</strong></v-flex>
-                      <v-flex xs8 text-xs-center v-if="submission.x.order && controls">
+                        </v-row>
+                      </v-col>
+                      <v-col class="pt-2 hidden-sm-and-up" cols="8" >
+                        <ac-avatar :user="submission.x.owner" />
+                      </v-col>
+                      <v-col cols="4"><strong>Views:</strong></v-col>
+                      <v-col class="text-center" cols="8" >{{submission.x.hits}}</v-col>
+                      <v-col cols="4"><strong>Created on:</strong></v-col>
+                      <v-col class="text-center" cols="8" >{{formatDateTime(submission.x.created_on)}}</v-col>
+                      <v-col cols="4"><strong>Favorites:</strong></v-col>
+                      <v-col class="text-center" cols="8" >{{submission.x.favorite_count}}</v-col>
+                      <v-col cols="4" v-if="submission.x.order && controls"><strong>From Order:</strong></v-col>
+                      <v-col class="text-center" cols="8" v-if="submission.x.order && controls">
                         <router-link :to="{name: 'Order', params: {username: submission.x.owner.username, orderId: submission.x.order}}">
                           {{submission.x.order}}
                         </router-link>
-                      </v-flex>
-                      <v-flex xs12 text-xs-center>
+                      </v-col>
+                      <v-col class="text-center" cols="12" >
                         <v-btn class="mx-0 rating-button" small :color="ratingColor[submission.x.rating]" @click="showRating" :ripple="editing">
                           <v-icon left v-if="editing">edit</v-icon>
                           {{ratingsShort[submission.x.rating]}}
                         </v-btn>
                         <ac-expanded-property v-model="ratingDialog">
-                          <ac-patch-field field-type="ac-rating-field" :patcher="submission.patchers.rating"></ac-patch-field>
+                          <ac-patch-field field-type="ac-rating-field" :patcher="submission.patchers.rating" />
                         </ac-expanded-property>
-                      </v-flex>
-                    </v-layout>
-                  </v-flex>
-                </v-layout>
+                      </v-col>
+                    </v-row>
+                  </v-col>
+                </v-row>
               </v-card-text>
             </v-card>
           </v-container>
-          <v-flex xs12>
-            <ac-comment-section :commentList="comments" :nesting="true" :locked="locked"></ac-comment-section>
-          </v-flex>
-        </v-layout>
-        <ac-editing-toggle v-if="controls"></ac-editing-toggle>
+          <v-col cols="12">
+            <ac-comment-section :commentList="comments" :nesting="true" :locked="locked" />
+          </v-col>
+        </v-row>
+        <ac-editing-toggle v-if="controls" />
       </template>
     </ac-load-section>
   </v-container>

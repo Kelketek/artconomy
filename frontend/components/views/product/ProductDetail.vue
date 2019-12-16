@@ -1,29 +1,29 @@
 <template>
   <ac-load-section :controller="product" v-if="currentRoute">
     <template v-slot:default>
-      <v-layout row wrap class="ma-2">
-        <v-flex xs12 hidden-md-and-up style="position: relative">
+      <v-row>
+        <v-col class="hidden-md-and-up" cols="12" style="position: relative">
           <ac-sample-editor v-model="showChangePrimary" :large="true" :username="username" :product="product" :product-id="productId" :samples="samples" />
           <div class="edit-overlay" v-if="editing" v-ripple="{ center: true }" @click="showChangePrimary = true">
             <v-container fluid class="pa-0 edit-container">
-              <v-layout column justify-content align-center d-flex class="edit-layout">
-                <v-flex d-flex>
-                  <v-layout row wrap align-center justify-content>
-                    <v-flex text-xs-center class="edit-cta">
+              <v-col class="edit-layout justify-content d-flex">
+                <v-col class="d-flex" >
+                  <v-row no-gutters class="justify-content"   align="center" >
+                    <v-col class="edit-cta text-center">
                       <slot name="edit-prompt">
                         <v-icon large>photo_camera</v-icon>
                         <p>Edit</p>
                       </slot>
-                    </v-flex>
-                  </v-layout>
-                </v-flex>
-              </v-layout>
+                    </v-col>
+                  </v-row>
+                </v-col>
+              </v-col>
             </v-container>
             <div class="backdrop"></div>
           </div>
-          <v-carousel height="60vh" :cycle="false" :hide-controls="slides.length <= 1" :hide-delimiters="slides.length <= 1">
+          <v-carousel height="60vh" :cycle="false" :show-arrows="slides.length > 1" :hide-delimiters="slides.length <= 1">
             <v-carousel-item v-if="product.x.primary_submission === null">
-              <ac-asset thumb-name="thumbnail" :asset="null" :contain="true" :terse="true"></ac-asset>
+              <ac-asset thumb-name="thumbnail" :asset="null" :contain="true" :terse="true" />
             </v-carousel-item>
             <v-carousel-item v-for="sample in slides" :key="sample.id">
               <ac-gallery-preview :submission="sample"
@@ -32,13 +32,13 @@
               />
             </v-carousel-item>
           </v-carousel>
-        </v-flex>
-        <v-flex md4 lg5 hidden-sm-and-down>
+        </v-col>
+        <v-col class="hidden-sm-and-down" md="4" lg="5" >
           <v-responsive max-height="80vh">
-            <v-layout row wrap>
-              <v-flex xs2 v-if="showExtra">
-                <v-layout column>
-                  <v-flex pa-1 v-for="sample in slides" @click.capture.stop.prevent="shown = sample" @mouseover="shown = sample"
+            <v-row no-gutters  >
+              <v-col cols="2" v-if="showExtra">
+                <v-col>
+                  <v-col class="pa-1" v-for="sample in slides" @click.capture.stop.prevent="shown = sample" @mouseover="shown = sample"
                           :key="sample.id"
                   >
                     <ac-asset :asset="sample"
@@ -46,10 +46,10 @@
                               :text="false"
                               :class="{submissionSelected: (shown && shown.id === sample.id)}"
                     />
-                  </v-flex>
-                </v-layout>
-              </v-flex>
-              <v-flex :class="{md10: showExtra, md12: !showExtra}">
+                  </v-col>
+                </v-col>
+              </v-col>
+              <v-col :class="{md10: showExtra, md12: !showExtra}">
                 <ac-link :to="shownSubmissionLink">
                   <ac-asset :asset="shown"
                             thumb-name="gallery" :terse="true"
@@ -65,70 +65,69 @@
                     </template>
                   </ac-asset>
                 </ac-link>
-              </v-flex>
-            </v-layout>
+              </v-col>
+            </v-row>
           </v-responsive>
-        </v-flex>
-        <v-flex xs12 md5 lg5 :class="{'px-2': $vuetify.breakpoint.mdAndUp}">
-          <v-toolbar dense>
-            <ac-avatar :username="username" :show-name="false"></ac-avatar>
-            <v-toolbar-title>{{username}}</v-toolbar-title>
-            <v-spacer></v-spacer>
-            <v-flex shrink d-flex v-if="controls">
-              <v-layout row align-center justify-content>
-                <v-flex>
+        </v-col>
+        <v-col cols="12" md="5" lg="5" :class="{'px-2': $vuetify.breakpoint.mdAndUp}">
+          <v-toolbar dense color="black">
+            <ac-avatar :username="username" :show-name="false" />
+            <v-toolbar-title class="ml-1">{{username}}</v-toolbar-title>
+            <v-spacer />
+            <v-col class="shrink d-flex" v-if="controls">
+              <v-row no-gutters class="justify-content"  align="center" >
+                <v-col>
                   <v-menu offset-x left>
                     <template v-slot:activator="{on}">
                       <v-btn icon v-on="on" class="more-button"><v-icon>more_horiz</v-icon></v-btn>
                     </template>
                     <v-list dense>
-                      <v-list-tile @click.stop="product.patch({hidden: !product.x.hidden})">
-                        <v-list-tile-action>
+                      <v-list-item @click.stop="product.patch({hidden: !product.x.hidden})">
+                        <v-list-item-action>
                           <v-icon v-if="product.x.hidden">visibility_off</v-icon>
                           <v-icon v-else>visibility</v-icon>
-                        </v-list-tile-action>
-                        <v-list-tile-title>
+                        </v-list-item-action>
+                        <v-list-item-title>
                           <span v-if="product.x.hidden">Hidden</span>
                           <span v-else>Public</span>
-                        </v-list-tile-title>
-                      </v-list-tile>
+                        </v-list-item-title>
+                      </v-list-item>
                       <ac-confirmation :action="deleteProduct">
                         <template v-slot:default="confirmContext">
-                          <v-list-tile v-on="confirmContext.on">
-                            <v-list-tile-action class="delete-button"><v-icon>delete</v-icon></v-list-tile-action>
-                            <v-list-tile-title>Delete</v-list-tile-title>
-                          </v-list-tile>
+                          <v-list-item v-on="confirmContext.on">
+                            <v-list-item-action class="delete-button"><v-icon>delete</v-icon></v-list-item-action>
+                            <v-list-item-title>Delete</v-list-item-title>
+                          </v-list-item>
                         </template>
                       </ac-confirmation>
                     </v-list>
                   </v-menu>
-                </v-flex>
-              </v-layout>
-            </v-flex>
+                </v-col>
+              </v-row>
+            </v-col>
           </v-toolbar>
           <v-card>
             <v-card-text>
-              <v-layout row wrap>
-                <v-flex xs12>
+              <v-row no-gutters>
+                <v-col cols="12">
                   <ac-patch-field label="Title" :patcher="product.patchers.name"
                                   v-if="controls" v-show="editing" />
                   <h1 v-show="!editing">{{product.x.name}}</h1>
-                </v-flex>
-                <v-flex xs12>
-                  <v-layout row>
-                    <v-flex shrink>
-                      <v-rating :value="product.x.user.stars" dense small half-increments readonly v-if="product.x.user.stars"></v-rating>
-                    </v-flex>
-                    <v-flex shrink px-2 text-xs-center v-if="product.x.user.stars"><v-divider vertical/></v-flex>
-                    <v-flex shrink><v-icon small>visibility</v-icon> {{product.x.hits}}</v-flex>
-                    <v-spacer></v-spacer>
-                    <v-flex shrink v-if="product.x.featured" v-show="!editing">
+                </v-col>
+                <v-col cols="12">
+                  <v-row dense>
+                    <v-col class="shrink">
+                      <v-rating :value="product.x.user.stars" dense small half-increments readonly v-if="product.x.user.stars" />
+                    </v-col>
+                    <v-col class="shrink text-center" v-if="product.x.user.stars"><v-divider vertical/></v-col>
+                    <v-col class="shrink"><v-chip small><v-icon left>visibility</v-icon> {{product.x.hits}}</v-chip></v-col>
+                    <v-col class="text-right" v-if="product.x.featured">
                       <v-chip small color="success"><v-avatar><v-icon>star</v-icon></v-avatar>Featured!</v-chip>
-                    </v-flex>
-                  </v-layout>
+                    </v-col>
+                  </v-row>
                   <v-divider />
-                </v-flex>
-                <v-flex xs12 class="pt-2">
+                </v-col>
+                <v-col cols="12" class="pt-2">
                   <ac-rendered :value="product.x.description" v-show="!editing"/>
                   <ac-patch-field
                       field-type="ac-editor"
@@ -139,16 +138,16 @@
                       label="Description"
                       hint="Tell the customer more about what you're offering."
                       :save-comparison="product.x.description"/>
-                </v-flex>
-                <v-flex xs12>
-                  <v-divider></v-divider>
+                </v-col>
+                <v-col cols="12">
+                  <v-divider />
                   <ac-tag-display :patcher="product.patchers.tags"
                                   :editable="controls"
                                   :username="username"
                                   scope="Products"
-                  ></ac-tag-display>
-                </v-flex>
-                <v-flex xs12>
+                  />
+                </v-col>
+                <v-col cols="12">
                   <ac-load-section :controller="subjectHandler.artistProfile">
                     <template v-slot:default>
                       <v-subheader v-if="subjectHandler.artistProfile.x.commission_info" v-show="!editing">Commission Info</v-subheader>
@@ -165,107 +164,107 @@
                               :save-comparison="subjectHandler.artistProfile.x.commission_info" />
                     </template>
                   </ac-load-section>
-                </v-flex>
-              </v-layout>
+                </v-col>
+              </v-row>
             </v-card-text>
           </v-card>
-        </v-flex>
-        <v-flex xs12 md3 lg2>
-          <v-card :color="$vuetify.theme.darkBase.darken2">
+        </v-col>
+        <v-col cols="12" md="3" lg="2">
+          <v-card :color="$vuetify.theme.currentTheme.darkBase.darken2">
             <v-card-text>
-              <v-layout row wrap>
-                <v-flex xs12 title>
+              <v-row dense>
+                <v-col class="title" cols="12" >
                   ${{product.x.price.toFixed(2)}}
                   <v-btn v-show="editing" icon color="primary" @click="showTerms = true"><v-icon>edit</v-icon></v-btn>
                   <ac-expanded-property v-model="showTerms" :large="true">
                     <span slot="title">Edit Terms</span>
-                    <v-layout row wrap>
-                      <v-flex xs12 sm6>
-                        <ac-patch-field :patcher="product.patchers.price" field-type="ac-price-field" :save-comparison="product.x.price"></ac-patch-field>
-                      </v-flex>
-                      <v-flex xs12 sm6>
-                        <ac-price-preview :price="product.patchers.price.model" :username="username"></ac-price-preview>
-                      </v-flex>
-                      <v-flex xs12 sm6>
+                    <v-row no-gutters  >
+                      <v-col cols="12" sm="6">
+                        <ac-patch-field :patcher="product.patchers.price" field-type="ac-price-field" :save-comparison="product.x.price" />
+                      </v-col>
+                      <v-col cols="12" sm="6">
+                        <ac-price-preview :price="product.patchers.price.model" :username="username" />
+                      </v-col>
+                      <v-col cols="12" sm="6">
                         <ac-patch-field :patcher="product.patchers.expected_turnaround" number
                                         label="Expected Days Turnaround"
                                         hint="How many standard business days you expect this task to take (on average)."
                                         :persistent-hint="true"
                         />
-                      </v-flex>
-                      <v-flex xs12 sm6>
+                      </v-col>
+                      <v-col cols="12" sm="6">
                         <ac-patch-field :patcher="product.patchers.revisions" number
                                         label="Included Revisions"
                                         hint="How many revisions you're offering with this product. This does not include final
                                       delivery-- only intermediate WIP steps."
                                         :persistent-hint="true"
                         />
-                      </v-flex>
-                    </v-layout>
+                      </v-col>
+                    </v-row>
                   </ac-expanded-property>
-                </v-flex>
-                <v-flex>
+                </v-col>
+                <v-col>
                   <p v-if="product.x.revisions">
                     <strong>{{product.x.revisions}}</strong> revision<span v-if="product.x.revisions > 1">s</span> included.
                   </p>
                   <p>Estimated completion: <strong>{{formatDateTerse(deliveryDate)}}</strong></p>
-                </v-flex>
-                <v-flex xs12 text-xs-center>
+                </v-col>
+                <v-col class="text-center" cols="12" >
                   <ac-load-section :controller="subjectHandler.artistProfile">
                     <template v-slot:default>
-                      <ac-escrow-label :escrow="!escrowDisabled" name="product"></ac-escrow-label>
+                      <ac-escrow-label :escrow="!escrowDisabled" name="product" />
                     </template>
                   </ac-load-section>
-                </v-flex>
-                <v-flex xs12>
+                </v-col>
+                <v-col cols="12">
                   <v-btn color="green" block :to="{name: 'NewOrder', params: {username, productId}}" v-if="product.x.available">
                     <v-icon left>shopping_basket</v-icon>
                     Order
                   </v-btn>
                   <v-alert v-else :value="true" type="info">This product is not currently available.</v-alert>
-                </v-flex>
-                <v-flex xs12>
+                </v-col>
+                <v-col cols="12">
                   <ac-share-button :title="product.x.name" :block="true" />
-                </v-flex>
-                <v-flex xs12 text-xs-center>
-                  <v-flex v-if="escrowDisabled">
+                </v-col>
+                <v-col class="text-center" cols="12" >
+                  <v-col v-if="escrowDisabled">
                     <p>Artconomy gives no guarantees on products ordered without Artconomy Shield, and <em><strong>ordering is
                       at your own
                       risk</strong></em>. Your artist will instruct you on how to pay them.</p>
-                  </v-flex>
-                  <v-flex v-else>
+                  </v-col>
+                  <v-col v-else>
                     Artconomy guarantees this purchase.
-                  </v-flex>
-                </v-flex>
-                <v-flex xs12 text-xs-center v-if="editing">
+                  </v-col>
+                </v-col>
+                <v-col class="text-center" cols="12" v-if="editing">
                   <v-btn color="warning" block @click="showWorkload = true">
                     <v-icon left>settings</v-icon>
                     Workload
                   </v-btn>
                   <ac-expanded-property v-model="showWorkload" :large="true">
                     <span slot="title">Edit Workload Settings</span>
-                    <v-layout row wrap>
-                      <v-flex xs12 sm6>
+                    <v-row no-gutters  >
+                      <v-col cols="12" sm="6">
                         <h2>AWOO Workload Settings</h2>
-                        <v-divider></v-divider>
+                        <v-divider />
                         <p>You can set these settings to help the Artconomy Workdload Organization and Overview tool manage your workload for you.</p>
                         <p><strong>If you're not sure what to do here, or would like to set these settings later, the defaults should be safe.</strong></p>
-                      </v-flex>
-                      <v-flex xs12 sm6>
+                      </v-col>
+                      <v-col cols="12" sm="6">
                         <ac-patch-field :patcher="product.patchers.task_weight" number
                                         label="Slots"
                                         hint="How many slots an order of this product should take up. If this task is
                                         particularly big, you may want it to take up more than one slot."
                                         :persistent-hint="true"
                         />
-                      </v-flex>
-                      <v-flex xs12 sm6>
+                      </v-col>
+                      <v-col cols="12" sm="6">
                         <v-checkbox v-model="limitAtOnce" :persistent-hint="true"
                                     label="Limit Availability"
                                     hint="If you would like to make sure you're never doing more than a few of these at a time, check this box."
                         />
-                      </v-flex>
-                      <v-flex xs12 sm6 v-if="limitAtOnce">
+                      </v-col>
+                      <v-col cols="12" sm="6" v-if="limitAtOnce">
                         <ac-patch-field :persistent-hint="true"
                                         :patcher="product.patchers.max_parallel"
                                         type="number"
@@ -273,38 +272,38 @@
                                         min="1"
                                         hint="If you already have this many orders of this product, don't allow customers to order any more."
                         />
-                      </v-flex>
-                    </v-layout>
+                      </v-col>
+                    </v-row>
                   </ac-expanded-property>
-                </v-flex>
-                <v-flex xs12 v-if="isStaff" v-show="editing" text-xs-center>
-                  <ac-patch-field :patcher="product.patchers.featured" field-type="v-switch" label="Featured"></ac-patch-field>
-                </v-flex>
-              </v-layout>
+                </v-col>
+                <v-col class="text-center" cols="12" v-if="isStaff" v-show="editing" >
+                  <ac-patch-field :patcher="product.patchers.featured" field-type="v-switch" label="Featured" />
+                </v-col>
+              </v-row>
             </v-card-text>
           </v-card>
-        </v-flex>
-        <v-flex xs12 class="pt-5">
+        </v-col>
+        <v-col cols="12" class="pt-5">
           <v-toolbar color="secondary" dense><v-toolbar-title>You might also like...</v-toolbar-title></v-toolbar>
-          <v-card :color="$vuetify.theme.darkBase.darken4">
+          <v-card :color="$vuetify.theme.currentTheme.darkBase.darken4">
             <v-card-text class="px-0" v-if="recommended">
               <ac-load-section :controller="recommended">
                 <template v-slot:default>
-                  <v-layout row wrap>
-                    <v-flex xs6 sm4 md3 v-for="product in recommended.list" :key="product.x.id" class="pa-1">
-                      <ac-product-preview :product="product.x"></ac-product-preview>
-                    </v-flex>
-                  </v-layout>
+                  <v-row no-gutters  >
+                    <v-col cols="6" sm="4" md="3" v-for="product in recommended.list" :key="product.x.id" class="pa-1">
+                      <ac-product-preview :product="product.x" />
+                    </v-col>
+                  </v-row>
                 </template>
               </ac-load-section>
             </v-card-text>
           </v-card>
-        </v-flex>
-      </v-layout>
-      <ac-editing-toggle v-if="controls"></ac-editing-toggle>
+        </v-col>
+      </v-row>
+      <ac-editing-toggle v-if="controls" />
     </template>
   </ac-load-section>
-  <router-view v-else></router-view>
+  <router-view v-else />
 </template>
 
 <style lang="sass" scoped>

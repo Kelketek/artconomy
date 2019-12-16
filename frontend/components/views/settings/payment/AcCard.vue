@@ -1,18 +1,18 @@
 <template>
-  <v-flex xs12 saved-card-container>
-    <v-layout row align-center>
-      <v-flex v-if="fieldMode" shrink px-2>
+  <v-col class="saved-card-container" cols="12" >
+    <v-row no-gutters  align="center">
+      <v-col class="shrink px-2" v-if="fieldMode" >
         <v-radio :value="card.x.id"></v-radio>
-      </v-flex>
-      <v-flex text-xs-center fill-height shrink px-2>
+      </v-col>
+      <v-col class="text-center fill-height shrink px-2" >
         <v-icon>{{cardIcon}}</v-icon>
-      </v-flex>
-      <v-flex text-xs-center fill-height shrink px-2>
-        <v-layout justify-center align-center>
-          <v-flex text-xs-center>x{{card.x.last_four}}</v-flex>
-        </v-layout>
-      </v-flex>
-      <v-flex text-xs-right fill-height grow>
+      </v-col>
+      <v-col class="text-center fill-height shrink px-2" >
+        <v-row no-gutters justify="center" align="center">
+          <v-col class="text-center" >x{{card.x.last_four}}</v-col>
+        </v-row>
+      </v-col>
+      <v-col class="text-right fill-height grow" >
         <v-tooltip v-if="card.x.primary" top>
           <template v-slot:activator="{on}">
             <v-btn color="green" v-on="on" icon small class="default-indicator"><v-icon>star</v-icon></v-btn>
@@ -30,9 +30,9 @@
             <v-btn v-on="on" icon small color="error" class="delete-card"><v-icon>delete</v-icon></v-btn>
           </template>
         </ac-confirmation>
-      </v-flex>
-    </v-layout>
-  </v-flex>
+      </v-col>
+    </v-row>
+  </v-col>
 </template>
 
 <style lang="sass">

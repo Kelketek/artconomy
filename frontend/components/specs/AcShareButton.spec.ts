@@ -1,8 +1,7 @@
 import Vue from 'vue'
+import {Vuetify} from 'vuetify/types'
 import {mount, Wrapper} from '@vue/test-utils'
-import {singleRegistry} from '@/store/singles/registry'
-import {profileRegistry} from '@/store/profiles/registry'
-import {setViewer, vueSetup, vuetifySetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, setViewer, vueSetup} from '@/specs/helpers'
 import {genSubmission} from '@/store/submissions/specs/fixtures'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import {ArtStore, createStore} from '@/store'
@@ -12,21 +11,18 @@ import DummyShare from '@/components/specs/DummyShare.vue'
 const localVue = vueSetup()
 let wrapper: Wrapper<Vue>
 let store: ArtStore
+let vuetify: Vuetify
 
 const mockError = jest.spyOn(console, 'error')
 
 describe('AcTagDisplay.vue', () => {
   beforeEach(() => {
-    vuetifySetup()
+    vuetify = createVuetify()
     store = createStore()
-    singleRegistry.reset()
-    profileRegistry.reset()
     mockError.mockClear()
   })
   afterEach(() => {
-    if (wrapper) {
-      wrapper.destroy()
-    }
+    cleanUp(wrapper)
   })
   it('Mounts a share button and resolves a URL', async() => {
     setViewer(store, genUser())
@@ -38,6 +34,7 @@ describe('AcTagDisplay.vue', () => {
     wrapper = mount(DummyShare, {
       localVue,
       store,
+      vuetify,
       propsData: {title: 'Sharable thing!'},
       mocks: {
         $route: {name: 'Profile', params: {username: 'Fox'}, query: {editing: false}},
@@ -51,6 +48,8 @@ describe('AcTagDisplay.vue', () => {
     })
     const vm = wrapper.vm as any
     expect(vm.$refs.shareButton.referral).toBe(true)
+    wrapper.find('.share-button').trigger('click')
+    await vm.$nextTick()
     wrapper.find('.referral-check input').trigger('click')
     await wrapper.vm.$nextTick()
     expect(vm.$refs.shareButton.referral).toBe(false)
@@ -68,6 +67,7 @@ describe('AcTagDisplay.vue', () => {
     wrapper = mount(DummyShare, {
       localVue,
       store,
+      vuetify,
       propsData: {title: 'Sharable thing!'},
       mocks: {
         $route: {name: 'Profile', params: {username: 'Fox'}, query: {editing: false}},

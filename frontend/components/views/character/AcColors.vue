@@ -1,51 +1,55 @@
 <template>
   <ac-load-section :controller="character.colors" class="color-section">
-    <v-layout row class="mt-3" v-if="character.colors.list.length || editing">
-      <v-flex
+    <v-row no-gutters class="mt-3" v-if="character.colors.list.length || editing">
+      <v-col
           v-for="color in character.colors.list"
           :key="color.x.id"
           :style="'background-color: ' + color.x.color + ';' + 'height: 3rem;'"/>
-    </v-layout>
-    <v-layout v-else></v-layout>
-    <v-expansion-panel v-if="character.colors.list.length || editing">
-      <v-expansion-panel-content>
-        <v-flex slot="header" class="text-xs-center">
-          <v-icon left>palette</v-icon> Color References
-        </v-flex>
-        <v-card-text>
-          <template v-for="(color, index) in character.colors.list">
-            <ac-ref-color :color="color" :key="color.id" :username="username"></ac-ref-color>
-            <v-divider v-if="index + 1 < character.colors.list.length" :key="`color-${index}-divider`"></v-divider>
-          </template>
+    </v-row>
+    <v-row no-gutters v-else />
+    <v-expansion-panels v-if="character.colors.list.length || editing">
+      <v-expansion-panel>
+        <v-expansion-panel-header>
+          <v-col class="text-center">
+            <v-icon left>palette</v-icon> Color References
+          </v-col>
+        </v-expansion-panel-header>
+        <v-expansion-panel-content>
+          <v-card-text>
+            <template v-for="(color, index) in character.colors.list">
+              <ac-ref-color :color="color" :key="color.id" :username="username" />
+              <v-divider v-if="index + 1 < character.colors.list.length" :key="`color-${index}-divider`" />
+            </template>
             <ac-form @submit.prevent="newColor.submitThen(character.colors.push)" v-if="editing && character.colors.list.length < 10" :id="newColor.bind.id">
               <ac-form-container>
-                <v-layout row wrap class="compact-fields">
-                  <v-flex xs12><v-divider></v-divider></v-flex>
-                  <v-flex xs12 sm7 md4>
+                <v-row no-gutters  class="compact-fields">
+                  <v-col cols="12"><v-divider></v-divider></v-col>
+                  <v-col cols="12" sm="7" md="4">
                     <ac-bound-field :field="newColor.fields.note"
                                     label="Note"
                                     hint="Label this color so others know what it's for. 'Hair', 'Eyes', or 'Hat' are all examples.">
                     </ac-bound-field>
-                  </v-flex>
-                  <v-flex xs12 sm4 md2 offset-sm1>
+                  </v-col>
+                  <v-col cols="12" sm="4" md="2" offset-sm="1">
                     <ac-bound-field :field="newColor.fields.color">
-                      <ac-color-prepend slot="prepend-inner" v-model="newColor.fields.color.model"></ac-color-prepend>
+                      <ac-color-prepend slot="prepend-inner" v-model="newColor.fields.color.model" />
                     </ac-bound-field>
-                  </v-flex>
-                  <v-flex xs10 md3 lg3 offset-md1>
-                    <v-flex px-2 :style="newColorStyle">&nbsp;</v-flex>
-                  </v-flex>
-                  <v-flex xs2 md1 text-xs-right text-lg-center>
-                    <v-btn icon color="black" type="submit">
+                  </v-col>
+                  <v-col cols="10" md="3" lg="3" offset-md="1" align-self="center">
+                    <v-col class="px-2" :style="newColorStyle">&nbsp;</v-col>
+                  </v-col>
+                  <v-col class="text-right text-lg-center" cols="2" md="1" >
+                    <v-btn x-small fab color="black" type="submit">
                       <v-icon color="yellow">save</v-icon>
                     </v-btn>
-                  </v-flex>
-                </v-layout>
+                  </v-col>
+                </v-row>
               </ac-form-container>
             </ac-form>
-        </v-card-text>
-      </v-expansion-panel-content>
-    </v-expansion-panel>
+          </v-card-text>
+        </v-expansion-panel-content>
+      </v-expansion-panel>
+    </v-expansion-panels>
   </ac-load-section>
 </template>
 
@@ -90,7 +94,7 @@ import AcForm from '@/components/wrappers/AcForm.vue'
     AcRefColor,
     AcPatchField,
     AcConfirmation,
-    AcLoadSection
+    AcLoadSection,
   },
 })
 export default class AcColors extends mixins(Subjective, CharacterCentric, Editable) {

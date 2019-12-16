@@ -1,6 +1,7 @@
 import Vue from 'vue'
+import {Vuetify} from 'vuetify/types'
 import Router from 'vue-router'
-import {vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import {mount, Wrapper} from '@vue/test-utils'
 import AcTab from '@/components/AcTab.vue'
@@ -11,10 +12,12 @@ localVue.use(Router)
 let store: ArtStore
 let wrapper: Wrapper<Vue>
 let router: Router
+let vuetify: Vuetify
 
 describe('AcTab.vue', () => {
   beforeEach(() => {
     store = createStore()
+    vuetify = createVuetify()
     router = new Router({mode: 'history',
       routes: [{
         name: 'Place',
@@ -23,9 +26,7 @@ describe('AcTab.vue', () => {
       }]})
   })
   afterEach(() => {
-    if (wrapper) {
-      wrapper.destroy()
-    }
+    cleanUp(wrapper)
   })
   it('Renders list tab information', async() => {
     const list = mount(Empty, {localVue, store}).vm.$getList('stuff', {endpoint: '/'})
@@ -35,6 +36,7 @@ describe('AcTab.vue', () => {
       localVue,
       store,
       router,
+      vuetify,
       propsData: {trackPages: true, to: {name: 'Place'}, list},
       attachToDocument: false,
       sync: true,
@@ -53,6 +55,7 @@ describe('AcTab.vue', () => {
       localVue,
       store,
       router,
+      vuetify,
       propsData: {trackPages: false, to: {name: 'Place'}},
       attachToDocument: false,
       sync: true,
@@ -65,6 +68,7 @@ describe('AcTab.vue', () => {
       localVue,
       store,
       router,
+      vuetify,
       propsData: {},
       attachToDocument: false,
       sync: true,

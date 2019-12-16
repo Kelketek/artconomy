@@ -1,42 +1,37 @@
-import {vuetifySetup} from '@/specs/helpers'
-import Vuetify from 'vuetify'
+import {cleanUp, createVuetify, vueSetup} from '@/specs/helpers'
+import {Vuetify} from 'vuetify/types'
 import Vue from 'vue'
-import Vuex from 'vuex'
-import {createLocalVue, mount, Wrapper} from '@vue/test-utils'
+import {mount, Wrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
-import {Singles} from '@/store/singles/registry'
-import {Profiles} from '@/store/profiles/registry'
 import AcRendered from '../AcRendered'
 
-Vue.use(Vuetify)
-Vue.use(Vuex)
-
 describe('AcRendered.ts', () => {
-  const localVue = createLocalVue()
-  localVue.use(Singles)
-  localVue.use(Profiles)
+  const localVue = vueSetup()
   let wrapper: Wrapper<Vue>
   let store: ArtStore
+  let vuetify: Vuetify
   beforeEach(() => {
-    vuetifySetup()
+    vuetify = createVuetify()
     store = createStore()
   })
   afterEach(() => {
-    if (wrapper) {
-      wrapper.destroy()
-    }
+    cleanUp(wrapper)
   })
   it('Truncates text at a specific length', () => {
-    wrapper = mount(AcRendered, {localVue,
+    wrapper = mount(AcRendered, {
+      localVue,
       store,
+      vuetify,
       propsData: {
         value: 'This is a section of text.', truncate: 10,
       }})
     expect(wrapper.text()).toBe('This is a... Read More')
   })
   it('Allows the user to read more', async() => {
-    wrapper = mount(AcRendered, {localVue,
+    wrapper = mount(AcRendered, {
+      localVue,
       store,
+      vuetify,
       propsData: {
         value: 'This is a section of text.', truncate: 10, sync: false,
       }})
@@ -45,8 +40,10 @@ describe('AcRendered.ts', () => {
     expect(wrapper.text()).toBe('This is a section of text.')
   })
   it('Sets a default truncation level', async() => {
-    wrapper = mount(AcRendered, {localVue,
+    wrapper = mount(AcRendered, {
+      localVue,
       store,
+      vuetify,
       propsData: {
         value: ''.padStart(1500, 'A'), truncate: true, sync: false,
       }})

@@ -1,13 +1,13 @@
 <template>
   <v-input v-bind="passedProps" class="ac-uppy-file">
-    <v-flex v-if="label" text-xs-center mb-2>
+    <v-col class="text-center mb-2" v-if="label" >
       <v-label :for="$attrs.id" :color="errorColor" :focused="errorFocused">{{label}}</v-label>
-    </v-flex>
+    </v-col>
     <ac-paginated :list="submissionList" class="submission-list-container" v-if="submissionList">
       <template v-slot:default>
-        <v-flex xs6 sm6 md3 class="submission-container" v-for="submission in submissionList.list" :key="submission.x && derived(submission).id">
-          <v-layout row wrap v-if="submission.x">
-            <v-flex xs12>
+        <v-col cols="6" sm="6" md="3" class="submission-container" v-for="submission in submissionList.list" :key="submission.x && derived(submission).id">
+          <v-row no-gutters   v-if="submission.x">
+            <v-col cols="12">
               <ac-gallery-preview class="pa-1"
                                   @click.native.capture.stop.prevent="select(derived(submission).id)"
                                   :key="derived(submission).id"
@@ -15,23 +15,23 @@
               >
                 <template v-slot:stats-append>
                   <v-spacer></v-spacer>
-                  <v-flex text-xs-right  slot="stats-append">
+                  <v-col class="text-right"  slot="stats-append">
                     <v-progress-circular
-                        :color="$vuetify.theme.secondary.base"
+                        :color="$vuetify.theme.currentTheme.secondary.base"
                         indeterminate
                         :size="24"
                         v-if="loading === derived(submission).id"
                     ></v-progress-circular>
                     <v-icon v-if="derived(submission).id === compare" color="green">check_circle</v-icon>
-                  </v-flex>
+                  </v-col>
                 </template>
               </ac-gallery-preview>
-            </v-flex>
-            <v-flex xs12 v-if="removable" text-xs-center>
+            </v-col>
+            <v-col class="text-center" cols="12" v-if="removable" >
               <v-btn @click="$emit('remove', submission)" color="danger" class="remove-submission">Unlink Sample</v-btn>
-            </v-flex>
-          </v-layout>
-        </v-flex>
+            </v-col>
+          </v-row>
+        </v-col>
       </template>
     </ac-paginated>
   </v-input>

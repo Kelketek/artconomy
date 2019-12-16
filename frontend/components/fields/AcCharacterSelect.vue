@@ -1,5 +1,4 @@
 <template>
-  <v-flex>
     <v-autocomplete
         chips
         :multiple="multiple"
@@ -17,9 +16,7 @@
         :item-text="formatName"
         ref="input"
         v-bind="fieldAttrs"
-    >
-    </v-autocomplete>
-  </v-flex>
+    />
 </template>
 
 <script lang="ts">

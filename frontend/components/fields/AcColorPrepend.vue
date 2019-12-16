@@ -1,11 +1,11 @@
 <template>
-  <v-flex>
+  <div class="flex">
     <v-btn icon small color="primary" class="picker-button" @click="launchPicker"><v-icon>colorize</v-icon></v-btn>
     <input v-model="scratch"
            type="color"
            class="picker"
            slot="prepend-inner"/>
-  </v-flex>
+  </div>
 </template>
 
 <style>

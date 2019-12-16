@@ -1,9 +1,10 @@
 import {mount, Wrapper} from '@vue/test-utils'
 import Vue from 'vue'
+import {Vuetify} from 'vuetify/types'
 import {ArtStore, createStore} from '@/store'
 import {
   cleanUp,
-  confirmAction,
+  confirmAction, createVuetify,
   flushPromises,
   rs,
   setPricing,
@@ -26,6 +27,7 @@ let store: ArtStore
 let wrapper: Wrapper<Vue>
 let form: FormController
 let router: Router
+let vuetify: Vuetify
 
 function prepData() {
   setViewer(store, genUser())
@@ -57,7 +59,7 @@ const routes: RouterOptions = {
     name: 'Upgrade',
     component: Empty,
     props: true,
-  },{
+  }, {
     path: '/submission/:submissionId/',
     name: 'Submission',
     component: Empty,
@@ -101,21 +103,19 @@ const routes: RouterOptions = {
 describe('ProductDetail.vue', () => {
   beforeEach(() => {
     store = createStore()
+    vuetify = createVuetify()
     router = new Router(routes)
     form = mount(Empty, {localVue, router, store}).vm.$getForm('search', searchSchema())
     setPricing(store, localVue)
   })
   afterEach(() => {
-    if (wrapper) {
-      wrapper.destroy()
-    }
-    cleanUp()
+    cleanUp(wrapper)
   })
   it('Mounts', async() => {
     setViewer(store, genUser())
     setPricing(store, localVue)
     wrapper = mount(ProductDetail, {
-      localVue, router, store, sync: false, attachToDocument: true, propsData: {username: 'Fox', productId: 1},
+      localVue, router, store, vuetify, sync: false, attachToDocument: true, propsData: {username: 'Fox', productId: 1},
     })
     expect((wrapper.vm as any).slides).toEqual([])
     const product = genProduct()
@@ -131,6 +131,7 @@ describe('ProductDetail.vue', () => {
       localVue,
       router,
       store,
+      vuetify,
       sync: false,
       attachToDocument: true,
       propsData: {username: 'Fox', productId: 1},
@@ -170,6 +171,7 @@ describe('ProductDetail.vue', () => {
       localVue,
       router,
       store,
+      vuetify,
       sync: false,
       attachToDocument: true,
       propsData: {username: 'Fox', productId: 1},
@@ -189,6 +191,7 @@ describe('ProductDetail.vue', () => {
       localVue,
       router,
       store,
+      vuetify,
       sync: false,
       attachToDocument: true,
       propsData: {username: 'Fox', productId: 1},
@@ -211,6 +214,7 @@ describe('ProductDetail.vue', () => {
       localVue,
       router,
       store,
+      vuetify,
       sync: false,
       attachToDocument: true,
       propsData: {username: 'Fox', productId: 1},
@@ -233,6 +237,7 @@ describe('ProductDetail.vue', () => {
       localVue,
       router,
       store,
+      vuetify,
       sync: false,
       attachToDocument: true,
       propsData: {username: 'Fox', productId: 1},

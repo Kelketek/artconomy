@@ -3,7 +3,7 @@ import {mount, Wrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
 import {
   cleanUp,
-  confirmAction,
+  confirmAction, createVuetify,
   flushPromises,
   rs,
   setViewer,
@@ -19,6 +19,7 @@ import {genSubmission} from '@/store/submissions/specs/fixtures'
 import SubmissionDetail from '@/components/views/submission/SubmissionDetail.vue'
 import {RelatedUser} from '@/store/profiles/types/RelatedUser'
 import {searchSchema} from '@/lib'
+import {Vuetify} from 'vuetify/types'
 
 let localVue = vueSetup()
 localVue.use(Router)
@@ -26,6 +27,7 @@ let store: ArtStore
 let wrapper: Wrapper<Vue>
 let router: Router
 let vulpes: User
+let vuetify: Vuetify
 
 describe('SubmissionDetail.vue', () => {
   beforeEach(() => {
@@ -36,6 +38,7 @@ describe('SubmissionDetail.vue', () => {
     vulpes.is_superuser = false
     vulpes.id = 2
     vulpes.artist_mode = false
+    vuetify = createVuetify()
     router = new Router({mode: 'history',
       routes: [
         {
@@ -76,17 +79,14 @@ describe('SubmissionDetail.vue', () => {
     mount(Empty, {localVue, store}).vm.$getForm('search', searchSchema())
   })
   afterEach(() => {
-    if (wrapper) {
-      wrapper.destroy()
-    }
-    cleanUp()
+    cleanUp(wrapper)
   })
   it('Deletes the submission', async() => {
     setViewer(store, vulpes)
     const submission = genSubmission()
     submission.owner = vulpes as RelatedUser
     wrapper = mount(SubmissionDetail, {
-      localVue, store, router, propsData: {submissionId: '123'}, sync: false, attachToDocument: true,
+      localVue, store, router, vuetify, propsData: {submissionId: '123'}, sync: false, attachToDocument: true,
     })
     const vm = wrapper.vm as any
     vm.submission.setX(submission)
@@ -107,7 +107,7 @@ describe('SubmissionDetail.vue', () => {
     submission.title = 'Test submission'
     submission.owner = vulpes as RelatedUser
     wrapper = mount(SubmissionDetail, {
-      localVue, store, router, propsData: {submissionId: '123'}, sync: false, attachToDocument: true,
+      localVue, store, router, vuetify, propsData: {submissionId: '123'}, sync: false, attachToDocument: true,
     })
     const vm = wrapper.vm as any
     vm.submission.setX(submission)
@@ -126,7 +126,7 @@ describe('SubmissionDetail.vue', () => {
     submission.title = ''
     submission.owner = vulpes as RelatedUser
     wrapper = mount(SubmissionDetail, {
-      localVue, store, router, propsData: {submissionId: '123'}, sync: false, attachToDocument: true,
+      localVue, store, router, vuetify, propsData: {submissionId: '123'}, sync: false, attachToDocument: true,
     })
     const vm = wrapper.vm as any
     vm.submission.setX(submission)
@@ -145,7 +145,7 @@ describe('SubmissionDetail.vue', () => {
     submission.title = ''
     submission.owner = vulpes as RelatedUser
     wrapper = mount(SubmissionDetail, {
-      localVue, store, router, propsData: {submissionId: '123'}, sync: false, attachToDocument: true,
+      localVue, store, router, vuetify, propsData: {submissionId: '123'}, sync: false, attachToDocument: true,
     })
     const vm = wrapper.vm as any
     vm.submission.setX(submission)
@@ -164,7 +164,7 @@ describe('SubmissionDetail.vue', () => {
     submission.title = ''
     submission.owner = vulpes as RelatedUser
     wrapper = mount(SubmissionDetail, {
-      localVue, store, router, propsData: {submissionId: '123'}, sync: false, attachToDocument: true,
+      localVue, store, router, vuetify, propsData: {submissionId: '123'}, sync: false, attachToDocument: true,
     })
     const vm = wrapper.vm as any
     vm.submission.setX(submission)
@@ -183,7 +183,7 @@ describe('SubmissionDetail.vue', () => {
     submission.title = ''
     submission.owner.taggable = true
     wrapper = mount(SubmissionDetail, {
-      localVue, store, router, propsData: {submissionId: '123'}, sync: false, attachToDocument: true,
+      localVue, store, router, vuetify, propsData: {submissionId: '123'}, sync: false, attachToDocument: true,
     })
     const vm = wrapper.vm as any
     vm.submission.setX(submission)
@@ -200,7 +200,7 @@ describe('SubmissionDetail.vue', () => {
     submission.title = ''
     submission.owner.taggable = false
     wrapper = mount(SubmissionDetail, {
-      localVue, store, router, propsData: {submissionId: '123'}, sync: false, attachToDocument: true,
+      localVue, store, router, vuetify, propsData: {submissionId: '123'}, sync: false, attachToDocument: true,
     })
     const vm = wrapper.vm as any
     vm.submission.setX(submission)
@@ -216,7 +216,7 @@ describe('SubmissionDetail.vue', () => {
     const submission = genSubmission()
     submission.owner = vulpes
     wrapper = mount(SubmissionDetail, {
-      localVue, store, router, propsData: {submissionId: '123'}, sync: false, attachToDocument: true,
+      localVue, store, router, vuetify, propsData: {submissionId: '123'}, sync: false, attachToDocument: true,
     })
     const vm = wrapper.vm as any
     vm.submission.setX(submission)
@@ -229,7 +229,7 @@ describe('SubmissionDetail.vue', () => {
     setViewer(store, vulpes)
     const submission = genSubmission()
     wrapper = mount(SubmissionDetail, {
-      localVue, store, router, propsData: {submissionId: '123'}, sync: false, attachToDocument: true,
+      localVue, store, router, vuetify, propsData: {submissionId: '123'}, sync: false, attachToDocument: true,
     })
     const vm = wrapper.vm as any
     vm.submission.setX(submission)

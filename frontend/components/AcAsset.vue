@@ -1,38 +1,39 @@
 <template>
   <v-card class="asset-card">
-    <v-flex>
+    <v-row no-gutters>
       <div class="edit-overlay" v-if="editing" v-ripple="{ center: true }" @click="$emit('input', true)">
         <v-container fluid class="pa-0 edit-container">
-          <v-layout column justify-content align-center d-flex class="edit-layout">
-            <v-flex d-flex>
-              <v-layout row wrap align-center justify-content>
-                <v-flex text-xs-center class="edit-cta">
+          <v-row no-gutters class="edit-layout justify-content d-flex">
+            <v-col class="d-flex" >
+              <v-row no-gutters class="justify-content"   align="center" >
+                <v-col class="edit-cta text-center">
                   <slot name="edit-prompt">
                     <v-icon large>photo_camera</v-icon>
                     <p>Edit</p>
                   </slot>
-                </v-flex>
-              </v-layout>
-            </v-flex>
-          </v-layout>
+                </v-col>
+              </v-row>
+            </v-col>
+          </v-row>
         </v-container>
         <div class="backdrop"></div>
       </div>
       <v-img :src="displayImage" :aspect-ratio="ratio" :contain="contain" v-if="renderImage && isImage"
              max-height="90vh" max-width="100%" class="asset-image" ref="imgContainer"
              @click="fullscreen=true"
-      ></v-img>
-      <v-flex v-else-if="renderImage && !isImage" xs12 text-xs-center>
+      />
+      <v-col class="text-center" v-else-if="renderImage && !isImage" cols="12" >
         <a :href="fullUrl" download><img :src="displayImage" alt="" ref="imgContainer"></a>
-      </v-flex>
+      </v-col>
       <component :asset="asset" :compact="compact" :pop-out="popOut" v-else-if="asset && canDisplay"
-                 :is="displayComponent"></component>
+                 :is="displayComponent" />
       <v-responsive v-else :aspect-ratio="ratio">
-        <v-layout column justify-center align-content-center style="height: 100%">
+        <v-row no-gutters justify="center" align-content="center" style="height: 100%">
+          <v-col>
           <v-card-text align-self-center>
-            <v-flex text-xs-center>
+            <v-col class="text-center" >
               <v-icon x-large>block</v-icon>
-              <v-flex v-if="text">
+              <v-col v-if="text">
                 <div v-if="!permittedRating">
                   <p>This piece exceeds your content rating settings.</p>
                   <p v-if="nerfed" class="nerfed-message">Please toggle SFW mode off to see this piece.</p>
@@ -60,10 +61,11 @@
                     <span v-for="tag in this.blacklisted" :key="tag">{{tag}} </span>
                   </p>
                 </div>
-              </v-flex>
-            </v-flex>
+              </v-col>
+            </v-col>
           </v-card-text>
-        </v-layout>
+          </v-col>
+        </v-row>
       </v-responsive>
       <div class="fullscreen-container" v-if="renderImage && isImage && fullscreen" @click="fullscreen=false">
         <div class="image-container">
@@ -72,7 +74,7 @@
         <div class="backdrop">
         </div>
       </div>
-    </v-flex>
+    </v-row>
     <slot v-if="editing" name="edit-menu">
 
     </slot>
@@ -146,8 +148,8 @@ import {Asset} from '@/types/Asset'
 
   @Component({components: {AcVideoPlayer, AcAudioPlayer, AcMarkdownViewer}})
 export default class AcAsset extends mixins(AssetBase) {
-    @Prop({default: null as unknown as Asset})
-    public asset!: Asset
+    @Prop({default: null})
+    public asset!: Asset|null
     @Prop({default: 1})
     public aspectRatio!: number|null
     @Prop({required: true})

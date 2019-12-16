@@ -1,29 +1,40 @@
 import AcUppyFile from '../AcUppyFile.vue'
-import Vuetify from 'vuetify'
+import {Vuetify} from 'vuetify/types'
 import Vue from 'vue'
-import {createLocalVue, mount, Wrapper} from '@vue/test-utils'
-import {vuetifySetup} from '@/specs/helpers'
+import {mount, Wrapper} from '@vue/test-utils'
+import {cleanUp, createVuetify, vueSetup} from '@/specs/helpers'
 import flushPromises from 'flush-promises'
 import {UppyFile} from '@uppy/core'
 
-Vue.use(Vuetify)
-const localVue = createLocalVue()
+const localVue = vueSetup()
 let wrapper: Wrapper<Vue>
+let vuetify: Vuetify
 
 describe('ac-uppy-file.vue', () => {
   beforeEach(() => {
-    vuetifySetup()
-    if (wrapper) {
-      wrapper.destroy()
-    }
+    vuetify = createVuetify()
+  })
+  afterEach(() => {
+    cleanUp(wrapper)
   })
   it('Mounts and initializes the uppy object', async() => {
-    wrapper = mount(AcUppyFile, {localVue, attachToDocument: true, sync: false})
+    wrapper = mount(AcUppyFile, {
+      localVue,
+      vuetify,
+      attachToDocument: true,
+      sync: false,
+    })
     await flushPromises()
     expect((wrapper.vm as any).uppy).toBeTruthy()
   })
   it('Resets uppy when the reset button is clicked.', async() => {
-    wrapper = mount(AcUppyFile, {localVue, attachToDocument: true, sync: false, propsData: {value: '123'}})
+    wrapper = mount(AcUppyFile, {
+      localVue,
+      vuetify,
+      attachToDocument: true,
+      sync: false,
+      propsData: {value: '123'},
+    })
     await flushPromises()
     const spyEmit = jest.spyOn(wrapper.vm, '$emit')
     const spyReset = jest.spyOn((wrapper.vm as any).uppy, 'reset')
@@ -32,7 +43,13 @@ describe('ac-uppy-file.vue', () => {
     expect(spyReset).toHaveBeenCalled()
   })
   it('Resets uppy when the value is cleared.', async() => {
-    wrapper = mount(AcUppyFile, {localVue, attachToDocument: true, sync: false, propsData: {value: '123'}})
+    wrapper = mount(AcUppyFile, {
+      localVue,
+      vuetify,
+      attachToDocument: true,
+      sync: false,
+      propsData: {value: '123'},
+    })
     await flushPromises()
     const spyEmit = jest.spyOn(wrapper.vm, '$emit')
     const spyReset = jest.spyOn((wrapper.vm as any).uppy, 'reset')
@@ -42,7 +59,13 @@ describe('ac-uppy-file.vue', () => {
     expect(spyReset).toHaveBeenCalled()
   })
   it('Does not reset the value when uppy is populated.', async() => {
-    wrapper = mount(AcUppyFile, {localVue, attachToDocument: true, sync: false, propsData: {value: ''}})
+    wrapper = mount(AcUppyFile, {
+      localVue,
+      vuetify,
+      attachToDocument: true,
+      sync: false,
+      propsData: {value: ''},
+    })
     await flushPromises()
     const spyEmit = jest.spyOn(wrapper.vm, '$emit')
     const spyReset = jest.spyOn((wrapper.vm as any).uppy, 'reset')
@@ -53,7 +76,11 @@ describe('ac-uppy-file.vue', () => {
   })
   it('Clears the file when the clear button is clicked.', async() => {
     wrapper = mount(AcUppyFile, {
-      localVue, attachToDocument: true, sync: false, propsData: {value: '123', showClear: true},
+      localVue,
+      vuetify,
+      attachToDocument: true,
+      sync: false,
+      propsData: {value: '123', showClear: true},
     })
     await flushPromises()
     const spyEmit = jest.spyOn(wrapper.vm, '$emit')
@@ -61,7 +88,12 @@ describe('ac-uppy-file.vue', () => {
     expect(spyEmit).toHaveBeenCalledWith('input', null)
   })
   it('Handles a successfully uploaded file.', async() => {
-    wrapper = mount(AcUppyFile, {localVue, attachToDocument: true, sync: false})
+    wrapper = mount(AcUppyFile, {
+      localVue,
+      vuetify,
+      attachToDocument: true,
+      sync: false,
+    })
     await wrapper.vm.$nextTick()
     const spyEmit = jest.spyOn(wrapper.vm, '$emit')
     let file: UppyFile
@@ -84,7 +116,11 @@ describe('ac-uppy-file.vue', () => {
   it('Calls a callback on a successfully uploaded file.', async() => {
     const mockSuccess = jest.fn()
     wrapper = mount(AcUppyFile, {
-      localVue, attachToDocument: true, sync: false, propsData: {success: mockSuccess},
+      localVue,
+      vuetify,
+      attachToDocument: true,
+      sync: false,
+      propsData: {success: mockSuccess},
     })
     await wrapper.vm.$nextTick() // Created
     // await wrapper.vm.$nextTick() // Mounted
@@ -106,14 +142,26 @@ describe('ac-uppy-file.vue', () => {
   })
   it('Sets the proper label color when there are no errors.', async() => {
     const errorMessages: string[] = []
-    wrapper = mount(AcUppyFile, {localVue, attachToDocument: true, sync: false, propsData: {errorMessages}})
+    wrapper = mount(AcUppyFile, {
+      localVue,
+      vuetify,
+      attachToDocument: true,
+      sync: false,
+      propsData: {errorMessages},
+    })
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
     expect(vm.errorColor).toBe('primary')
   })
   it('Sets the proper label color when there are errors.', async() => {
     const errorMessages: string[] = ['Stuff']
-    wrapper = mount(AcUppyFile, {localVue, attachToDocument: true, sync: false, propsData: {errorMessages}})
+    wrapper = mount(AcUppyFile, {
+      localVue,
+      vuetify,
+      attachToDocument: true,
+      sync: false,
+      propsData: {errorMessages},
+    })
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
     expect(vm.errorColor).toBe('red')

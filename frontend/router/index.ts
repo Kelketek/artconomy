@@ -495,7 +495,7 @@ export const routes = [
     props: true,
   },
   {
-    path: '/search/:tabName?/',
+    path: '/search/',
     name: 'Search',
     component: Search,
     props: true,

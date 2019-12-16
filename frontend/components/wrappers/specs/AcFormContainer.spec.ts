@@ -1,37 +1,36 @@
-import {createLocalVue, mount} from '@vue/test-utils'
+import {mount} from '@vue/test-utils'
 import FormContainer from '@/specs/helpers/dummy_components/form-container.vue'
 import {AxiosError} from 'axios'
-import {FormControllers} from '@/store/forms/registry'
-import Vuetify from 'vuetify'
-import {vuetifySetup} from '@/specs/helpers'
-import Vue from 'vue'
-import Vuex from 'vuex'
+import {createVuetify, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
+import {Vuetify} from 'vuetify'
 
 const mockTrace = jest.spyOn(console, 'trace')
 
-Vue.use(Vuetify)
-Vue.use(Vuex)
-const localVue = createLocalVue()
-localVue.use(FormControllers)
+const localVue = vueSetup()
+let vuetify: Vuetify
 
 describe('ac-form-container.vue', () => {
   let store: ArtStore
   beforeEach(() => {
+    vuetify = createVuetify()
     store = createStore()
-    vuetifySetup()
   })
   it('Sets default properties', async() => {
     // Needed for that last bit of code coverage.
     const wrapper = mount(FormContainer, {
-      localVue, store,
+      localVue,
+      store,
+      vuetify,
     })
     expect((wrapper.vm as any).$refs.defaultForm.errors).toEqual([])
     expect((wrapper.vm as any).$refs.defaultForm.sending).toEqual(false)
   })
-  it('Displays dismissable errors', async() => {
+  it('Displays dismissible errors', async() => {
     const wrapper = mount(FormContainer, {
-      localVue, store,
+      localVue,
+      store,
+      vuetify,
     })
     const vm = wrapper.vm as any
     mockTrace.mockImplementationOnce(() => undefined)

@@ -1,53 +1,35 @@
 import Vue from 'vue'
-import Vuex from 'vuex'
-import {createLocalVue, mount, Wrapper} from '@vue/test-utils'
-import Vuetify from 'vuetify'
-import {singleRegistry, Singles} from '@/store/singles/registry'
-import {profileRegistry, Profiles} from '@/store/profiles/registry'
-import {flushPromises, rs, setViewer, vuetifySetup} from '@/specs/helpers'
+import {Vuetify} from 'vuetify'
+import {mount, Wrapper} from '@vue/test-utils'
+import {cleanUp, createVuetify, flushPromises, rs, setViewer, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import {genUser} from '@/specs/helpers/fixtures'
-import {characterRegistry, Characters} from '@/store/characters/registry'
-import {listRegistry, Lists} from '@/store/lists/registry'
-import {FormControllers, formRegistry} from '@/store/forms/registry'
 import DummySubmit from '@/components/specs/DummySubmit.vue'
 import mockAxios from '@/__mocks__/axios'
 import {genSubmission} from '@/store/submissions/specs/fixtures'
 
-Vue.use(Vuex)
-Vue.use(Vuetify)
-const localVue = createLocalVue()
-localVue.use(Singles)
-localVue.use(Profiles)
-localVue.use(Lists)
-localVue.use(Characters)
-localVue.use(FormControllers)
+const localVue = vueSetup()
 let wrapper: Wrapper<Vue>
 let store: ArtStore
+let vuetify: Vuetify
 
 const mockError = jest.spyOn(console, 'error')
 
-describe('AcTagDisplay.vue', () => {
+describe('AcNewSubmission.vue', () => {
   beforeEach(() => {
-    vuetifySetup()
+    vuetify = createVuetify()
     store = createStore()
-    singleRegistry.reset()
-    profileRegistry.reset()
-    characterRegistry.reset()
-    listRegistry.reset()
-    formRegistry.reset()
     mockError.mockClear()
   })
   afterEach(() => {
-    if (wrapper) {
-      wrapper.destroy()
-    }
+    cleanUp(wrapper)
   })
   it('Mounts the submission form', async() => {
     setViewer(store, genUser())
     wrapper = mount(DummySubmit, {
       localVue,
       store,
+      vuetify,
       propsData: {username: 'Fox'},
       mocks: {$route: {name: 'Profile', params: {username: 'Fox'}, query: {editing: false}}},
       sync: false,
@@ -61,6 +43,7 @@ describe('AcTagDisplay.vue', () => {
     wrapper = mount(DummySubmit, {
       localVue,
       store,
+      vuetify,
       propsData: {username: 'Fox'},
       mocks: {$route: {name: 'Profile', params: {username: 'Fox'}, query: {editing: false}}},
       sync: false,
@@ -90,6 +73,7 @@ describe('AcTagDisplay.vue', () => {
     wrapper = mount(DummySubmit, {
       localVue,
       store,
+      vuetify,
       propsData: {username: 'Fox'},
       mocks: {
         $route: {name: 'Profile', params: {username: 'Fox'}, query: {editing: false}},
@@ -124,6 +108,7 @@ describe('AcTagDisplay.vue', () => {
     wrapper = mount(DummySubmit, {
       localVue,
       store,
+      vuetify,
       propsData: {username: 'Fox'},
       mocks: {
         $route: {name: 'Profile', params: {username: 'Fox'}, query: {editing: false}},
@@ -133,15 +118,12 @@ describe('AcTagDisplay.vue', () => {
       attachToDocument: true,
     })
     await wrapper.vm.$nextTick()
-    expect(wrapper.find('.v-dialog__content--active').exists()).toBe(false)
-    expect(store.state.uploadVisible).toBe(false)
-    store.commit('setUploadVisible', true)
-    expect(store.state.uploadVisible).toBe(true)
-    await wrapper.vm.$nextTick()
     expect(wrapper.find('.v-dialog__content--active').exists()).toBe(true)
+    expect(store.state.uploadVisible).toBe(true)
     wrapper.find('.dialog-closer').trigger('click')
     await wrapper.vm.$nextTick()
-    expect(wrapper.find('.v-dialog__content--active').exists()).toBe(false)
     expect(store.state.uploadVisible).toBe(false)
+    await wrapper.vm.$nextTick()
+    expect(wrapper.find('.v-dialog__content--active').exists()).toBe(false)
   })
 })

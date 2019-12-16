@@ -1,70 +1,68 @@
 <template>
   <v-responsive v-if="($vuetify.breakpoint.smAndDown && showFooter) || mini" aspect-ratio="1" class="submission" :class="{unavailable}">
     <v-card>
-      <v-layout column class="pt-2">
-        <v-layout row wrap>
-          <v-flex xs8 offset-xs2>
+      <v-card-text class="pa-2">
+        <v-row no-gutters>
+          <v-col cols="8" offset="2">
             <ac-link :to="submissionLink">
-              <ac-asset :text="false" :asset="submission" thumb-name="thumbnail"></ac-asset>
+              <ac-asset :text="false" :asset="submission" thumb-name="thumbnail" />
             </ac-link>
-          </v-flex>
-        </v-layout>
-        <v-flex>
-          <v-card-text class="pb-2">
-            <ac-link :to="submissionLink">
-              <v-layout row wrap>
-                <v-layout column>
-                  <v-flex text-xs-left>{{ submission.title }}</v-flex>
-                  <v-flex>
-                    <v-layout row>
-                      <v-flex text-xs-left>
-                        <v-icon small>favorite</v-icon>
-                        {{ submission.favorite_count }}
-                        <v-icon small>comment</v-icon>
-                        {{ submission.comment_count }}
-                      </v-flex>
-                      <slot name="stats-append"></slot>
-                    </v-layout>
-                  </v-flex>
-                </v-layout>
-              </v-layout>
-            </ac-link>
-          </v-card-text>
-        </v-flex>
-      </v-layout>
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col>
+              <ac-link :to="submissionLink">
+                <v-row no-gutters  >
+                  <v-col>
+                    <div class="text-left" >{{ submission.title }}</div>
+                      <v-row no-gutters>
+                        <v-col class="text-left" >
+                          <v-icon small>favorite</v-icon>
+                          {{ submission.favorite_count }}
+                          <v-icon small>comment</v-icon>
+                          {{ submission.comment_count }}
+                        </v-col>
+                        <slot name="stats-append" />
+                      </v-row>
+                  </v-col>
+                </v-row>
+              </ac-link>
+          </v-col>
+        </v-row>
+      </v-card-text>
     </v-card>
   </v-responsive>
-  <v-flex class="submission" v-else :class="{unavailable}">
-    <v-card>
-      <ac-link :to="submissionLink">
-        <ac-asset
-            :asset="submission"
-            :thumb-name="thumbName"
-            :contain="contain"
-            :compact="compact"
-            :aspect-ratio="aspectRatio"
-        />
-      </ac-link>
-      <ac-link :to="submissionLink" v-if="showFooter">
-        <v-flex pa-2>
-          <v-layout column>
-            <v-flex text-xs-left>{{ submission.title }}</v-flex>
-            <v-flex>
-              <v-layout row class="submission-stats">
-                <v-flex text-xs-left>
-                  <v-icon>favorite</v-icon>
-                  <span>{{ submission.favorite_count }}</span>
-                  <v-icon>comment</v-icon>
-                  <span>{{ submission.comment_count }}</span>
-                </v-flex>
-                <slot name="stats-append"></slot>
-              </v-layout>
-            </v-flex>
-          </v-layout>
-        </v-flex>
-      </ac-link>
-    </v-card>
-  </v-flex>
+  <v-card class="submission" v-else :class="{unavailable}">
+    <ac-link :to="submissionLink">
+      <ac-asset
+        :asset="submission"
+        :thumb-name="thumbName"
+        :contain="contain"
+        :compact="compact"
+        :aspect-ratio="aspectRatio"
+      />
+    </ac-link>
+    <ac-link :to="submissionLink" v-if="showFooter">
+      <v-card-text class="pa-1">
+        <v-row dense>
+          <v-col class="text-left" ><strong>{{ submission.title }}</strong></v-col>
+        </v-row>
+        <v-row dense>
+          <v-col>
+            <v-row no-gutters class="submission-stats">
+              <v-col class="text-left" >
+                <v-icon>favorite</v-icon>&nbsp;
+                <span>{{ submission.favorite_count }}</span>&nbsp;
+                <v-icon>comment</v-icon>&nbsp;
+                <span>{{ submission.comment_count }}</span>&nbsp;
+              </v-col>
+              <slot name="stats-append"><v-spacer /></slot>
+            </v-row>
+          </v-col>
+        </v-row>
+      </v-card-text>
+    </ac-link>
+  </v-card>
 </template>
 
 <style>

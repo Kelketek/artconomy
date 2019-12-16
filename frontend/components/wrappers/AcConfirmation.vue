@@ -6,7 +6,7 @@
     </slot>
     <v-dialog v-model="showModal" max-width="500px" :persistent="sending">
       <v-card :class="cardClass">
-        <v-toolbar card dark color="secondary">
+        <v-toolbar flat dark color="secondary">
           <v-toolbar-title><slot name="title">Are you sure?</slot></v-toolbar-title>
           <v-spacer/>
           <v-btn icon @click.native="showModal=false" dark class="dialog-closer">
@@ -19,14 +19,14 @@
               :size="70"
               :width="7"
               color="purple"
-          ></v-progress-circular>
+          />
         </div>
-        <v-card-title :class="{'confirm-submitting': sending}">
+        <v-card-text :class="{'confirm-submitting': sending}">
           <slot name="confirmation-text">
             This cannot be undone.
           </slot>
           <v-spacer/>
-        </v-card-title>
+        </v-card-text>
         <v-card-actions right :class="{'confirm-submitting': sending}">
           <v-spacer></v-spacer>
           <v-btn @click.stop="showModal=false" :disabled="sending" class="cancel-button">

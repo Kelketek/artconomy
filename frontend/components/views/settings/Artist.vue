@@ -1,10 +1,10 @@
 <template>
   <v-card>
     <v-card-text v-if="artistProfile.x">
-      <v-container fluid class="py-0" grid-list-lg>
+      <v-container fluid class="py-0">
         <v-subheader>Workload</v-subheader>
-        <v-layout row wrap pb-4>
-          <v-flex xs12 sm6 md4>
+        <v-row no-gutters class="pb-4"   >
+          <v-col cols="12" sm="6" md="4">
             <ac-patch-field
                 label="Commissions Closed"
                 field-type="v-switch"
@@ -14,8 +14,8 @@
                 :save-indicator="false"
                 :patcher="commissionsClosed"
             ></ac-patch-field>
-          </v-flex>
-          <v-flex xs12 sm6 md4>
+          </v-col>
+          <v-col cols="12" sm="6" md="4">
             <ac-patch-field
                 label="Auto Withdraw"
                 field-type="v-switch"
@@ -24,10 +24,10 @@
                 :patcher="autoWithdraw"
                 :save-indicator="false"
                 :persistent-hint="true"></ac-patch-field>
-          </v-flex>
-          <v-flex xs12 sm6 md4>
-            <v-layout row wrap>
-              <v-flex xs12>
+          </v-col>
+          <v-col cols="12" sm="6" md="4">
+            <v-row no-gutters  >
+              <v-col cols="12">
                 <ac-patch-field
                     field-type="v-slider"
                     label="Slots"
@@ -39,10 +39,10 @@
                     :max="100"
                 >
                 </ac-patch-field>
-              </v-flex>
-            </v-layout>
-            <v-layout row wrap>
-              <v-flex xs12>
+              </v-col>
+            </v-row>
+            <v-row no-gutters  >
+              <v-col cols="12">
                 <ac-patch-field
                     :patcher="maxLoad"
                     class="mt-0"
@@ -52,19 +52,19 @@
                     :save-indicator="false"
                     step="1"
                 ></ac-patch-field>
-              </v-flex>
-            </v-layout>
-          </v-flex>
-          <v-flex></v-flex>
-        </v-layout>
+              </v-col>
+            </v-row>
+          </v-col>
+          <v-col></v-col>
+        </v-row>
       </v-container>
-      <v-layout>
-        <v-flex>
+      <v-row no-gutters>
+        <v-col>
           <v-subheader>Content</v-subheader>
           <v-card-text>
-            <v-layout>
-              <v-flex>Select the maximum rating of content you're willing to create.</v-flex>
-            </v-layout>
+            <v-row no-gutters>
+              <v-col>Select the maximum rating of content you're willing to create.</v-col>
+            </v-row>
             <ac-patch-field
                 field-type="v-slider"
                 :patcher="maxRating"
@@ -76,21 +76,21 @@
                 :color="ratingColor[maxRating.model]"
             >
             </ac-patch-field>
-            <v-layout row wrap>
-              <v-flex xs12 text-xs-center><h2>{{ratingOptions[maxRating.model]}}</h2></v-flex>
-              <v-flex xs12>
+            <v-row no-gutters  >
+              <v-col class="text-center" cols="12" ><h2>{{ratingOptions[maxRating.model]}}</h2></v-col>
+              <v-col cols="12">
                 <span v-text="ratingLongDesc[maxRating.model]">
                 </span>
-              </v-flex>
-            </v-layout>
+              </v-col>
+            </v-row>
           </v-card-text>
-        </v-flex>
-      </v-layout>
-      <v-layout row wrap>
-        <v-flex xs12 py-4>
+        </v-col>
+      </v-row>
+      <v-row no-gutters  >
+        <v-col class="py-4" cols="12" >
           <v-divider></v-divider>
-        </v-flex>
-        <v-flex xs12>
+        </v-col>
+        <v-col cols="12">
           <ac-patch-field
               field-type="ac-editor"
               :patcher="commissionInfo"
@@ -103,8 +103,8 @@
           >
 
           </ac-patch-field>
-        </v-flex>
-      </v-layout>
+        </v-col>
+      </v-row>
     </v-card-text>
     <v-card-text v-else>
       <ac-loading-spinner></ac-loading-spinner>

@@ -1,32 +1,23 @@
 import Vue from 'vue'
-import Vuex from 'vuex'
-import {createLocalVue, mount, Wrapper} from '@vue/test-utils'
-import Vuetify from 'vuetify'
-import {Singles} from '@/store/singles/registry'
-import {Profiles} from '@/store/profiles/registry'
-import {vuetifySetup} from '@/specs/helpers'
-import AcAsset from '@/components/AcAsset.vue'
+import {mount, Wrapper} from '@vue/test-utils'
+import {cleanUp, createVuetify, vueSetup} from '@/specs/helpers'
 import {genSubmission} from '@/store/submissions/specs/fixtures'
 import AcAudioPlayer from '@/components/AcAudioPlayer.vue'
+import {Vuetify} from 'vuetify/types'
 
-Vue.use(Vuex)
-Vue.use(Vuetify)
-const localVue = createLocalVue()
-localVue.use(Singles)
-localVue.use(Profiles)
+const localVue = vueSetup()
 let wrapper: Wrapper<Vue>
+let vuetify: Vuetify
 
 const mockError = jest.spyOn(console, 'error')
 
 describe('AcAudioPlayer.vue', () => {
   beforeEach(() => {
-    vuetifySetup()
+    vuetify = createVuetify()
     mockError.mockClear()
   })
   afterEach(() => {
-    if (wrapper) {
-      wrapper.destroy()
-    }
+    cleanUp(wrapper)
   })
   it('Loads and types an audio file', async() => {
     const submission = genSubmission()

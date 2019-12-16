@@ -1,28 +1,28 @@
 import Vue from 'vue'
-import Vuex from 'vuex'
 import {mount, Wrapper} from '@vue/test-utils'
-import Vuetify from 'vuetify'
+import {Vuetify} from 'vuetify/types'
 import {ArtStore, createStore} from '@/store'
-import {cleanUp, confirmAction, flushPromises, rq, rs, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, confirmAction, createVuetify, flushPromises, rq, rs, setViewer, vueSetup} from '@/specs/helpers'
 import {genUser} from '@/specs/helpers/fixtures'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import {commentSet} from './fixtures'
 import AcComment from '@/components/comments/AcComment.vue'
 import Router from 'vue-router'
 import mockAxios from '@/__mocks__/axios'
+import {goToNameSpace} from '@/plugins/shortcuts'
 
-Vue.use(Vuex)
-Vue.use(Vuetify)
 const localVue = vueSetup()
 localVue.use(Router)
 jest.useFakeTimers()
 let store: ArtStore
 let wrapper: Wrapper<Vue>
 let router: Router
+let vuetify: Vuetify
 
 describe('AcComment.vue', () => {
   beforeEach(() => {
     store = createStore()
+    vuetify = createVuetify()
     router = new Router({mode: 'history',
       routes: [{
         path: '/',
@@ -50,6 +50,7 @@ describe('AcComment.vue', () => {
       localVue,
       store,
       router,
+      vuetify,
       propsData: {
         commentList,
         comment: commentList.list[0],
@@ -70,6 +71,7 @@ describe('AcComment.vue', () => {
       localVue,
       store,
       router,
+      vuetify,
       propsData: {
         commentList,
         comment: commentList.list[1],
@@ -82,7 +84,7 @@ describe('AcComment.vue', () => {
   })
   it('Scrolls to the comment if it is to be highlighted', async() => {
     const empty = mount(Empty, {localVue, store, router, sync: false})
-    const mockScrollTo = jest.spyOn(empty.vm.$vuetify, 'goTo')
+    const mockScrollTo = jest.spyOn(goToNameSpace, 'goTo')
     const commentList = empty.vm.$getList('commentList', {endpoint: '/api/comments/'})
     commentList.response = {...commentSet}
     commentList.setList(commentSet.results)
@@ -91,6 +93,7 @@ describe('AcComment.vue', () => {
       localVue,
       store,
       router,
+      vuetify,
       propsData: {
         commentList,
         comment: commentList.list[0],
@@ -111,6 +114,7 @@ describe('AcComment.vue', () => {
       localVue,
       store,
       router,
+      vuetify,
       propsData: {
         commentList,
         comment: commentList.list[1],
@@ -132,6 +136,7 @@ describe('AcComment.vue', () => {
       localVue,
       store,
       router,
+      vuetify,
       propsData: {
         commentList,
         comment: commentList.list[0],
@@ -160,6 +165,7 @@ describe('AcComment.vue', () => {
       localVue,
       store,
       router,
+      vuetify,
       propsData: {
         commentList,
         comment: commentList.list[0],
@@ -181,6 +187,7 @@ describe('AcComment.vue', () => {
       localVue,
       store,
       router,
+      vuetify,
       propsData: {
         commentList,
         comment: commentList.list[0],
@@ -190,6 +197,8 @@ describe('AcComment.vue', () => {
       sync: false,
       attachToDocument: true,
     })
+    wrapper.find('.more-button').trigger('click')
+    await wrapper.vm.$nextTick()
     wrapper.find('.edit-button').trigger('click')
     await wrapper.vm.$nextTick()
     wrapper.find('textarea').setValue('Edited message')
@@ -233,6 +242,7 @@ describe('AcComment.vue', () => {
       localVue,
       store,
       router,
+      vuetify,
       propsData: {
         commentList,
         comment: commentList.list[2],
@@ -262,6 +272,7 @@ describe('AcComment.vue', () => {
       localVue,
       store,
       router,
+      vuetify,
       propsData: {
         commentList,
         comment: commentList.list[2],
@@ -292,6 +303,7 @@ describe('AcComment.vue', () => {
       localVue,
       store,
       router,
+      vuetify,
       propsData: {
         commentList,
         comment: commentList.list[2],
@@ -323,6 +335,7 @@ describe('AcComment.vue', () => {
       localVue,
       store,
       router,
+      vuetify,
       propsData: {
         commentList,
         comment: commentList.list[2],
@@ -354,6 +367,7 @@ describe('AcComment.vue', () => {
       localVue,
       store,
       router,
+      vuetify,
       propsData: {
         commentList,
         comment: commentList.list[2],
@@ -366,6 +380,8 @@ describe('AcComment.vue', () => {
     })
     mockAxios.reset()
     const vm = wrapper.vm as any
+    wrapper.find('.more-button').trigger('click')
+    await vm.$nextTick()
     wrapper.find('.history-button').trigger('click')
     await wrapper.vm.$nextTick()
     expect(mockAxios.lastReqGet().url).toBe('/api/lib/v1/comments/lib.Comment/13/history/')

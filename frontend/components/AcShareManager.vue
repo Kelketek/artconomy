@@ -1,13 +1,13 @@
 <template>
-  <v-layout row wrap>
+  <v-row no-gutters  >
     <ac-related-manager
         :field-controller="newShare.fields.user_id" :list-controller="controller"
         item-key="user"
     >
       <template v-slot:preview="{item}">
-        <v-flex xs4 sm3 md2 lg1>
+        <v-col cols="4" sm="3" md="2" lg="1">
           <ac-avatar :user="item.x.user" :removable="true" @remove="item.delete().catch(newShare.setErrors)"/>
-        </v-flex>
+        </v-col>
       </template>
       <template v-slot:default="{filter}">
         <ac-bound-field
@@ -16,7 +16,7 @@
             :field="newShare.fields.user_id" field-type="ac-user-select" :multiple="false" :filter="filter" />
       </template>
     </ac-related-manager>
-  </v-layout>
+  </v-row>
 </template>
 
 <script lang="ts">

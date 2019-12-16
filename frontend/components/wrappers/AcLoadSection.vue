@@ -6,13 +6,13 @@
     </v-container>
     <v-container class="pa-0" v-else-if="controller.fetching">
       <slot name="loading-spinner">
-        <ac-loading-spinner></ac-loading-spinner>
+        <ac-loading-spinner />
       </slot>
     </v-container>
     <v-container class="pa-0" v-else-if="controller.failed">
       <slot name="failure">
-        <v-layout column class="failure-prompt" justify-center align-content-center align-center>
-          <v-flex class="text-xs-center" align-self-center shrink>
+        <v-row no-gutters class="failure-prompt" justify="center" align-content="center" align="center">
+          <v-col class="text-center shrink" align-self="center" >
             <slot name="failure-header">
               <p>
                 <slot name="error-text">Whoops! We had an issue grabbing the information that goes here.</slot>
@@ -26,8 +26,8 @@
               <v-icon left>contact_support</v-icon>
               Contact Support
             </v-btn>
-          </v-flex>
-        </v-layout>
+          </v-col>
+        </v-row>
       </slot>
     </v-container>
   </v-container>

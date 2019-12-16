@@ -1,45 +1,44 @@
 <!--suppress XmlUnboundNsPrefix -->
 <template>
-  <v-flex class="ac-editor">
-    <v-layout row wrap>
-      <v-flex xs12 v-if="previewMode">
-        <v-layout row wrap>
-          <ac-rendered xs12 :value="scratch" class="editor-preview"></ac-rendered>
-        </v-layout>
-      </v-flex>
-      <v-flex xs12 v-else>
-        <v-textarea v-bind="inputAttrs" ref="input" v-model="scratch" outline :auto-grow="autoGrow" :rows="rows || this.defaultRows">
-        </v-textarea>
-      </v-flex>
-      <v-flex xs12>
-        <v-layout wrap>
-          <v-flex shrink>
+  <div class="flex ac-editor">
+    <v-row no-gutters>
+      <v-col cols="12" v-if="previewMode">
+        <v-row no-gutters  >
+          <ac-rendered xs12 :value="scratch" class="editor-preview" />
+        </v-row>
+      </v-col>
+      <v-col cols="12" v-else>
+        <v-textarea v-bind="inputAttrs" ref="input" v-model="scratch" outlined :auto-grow="autoGrow" :rows="rows || this.defaultRows" />
+      </v-col>
+      <v-col cols="12">
+        <v-row dense>
+          <v-col class="shrink" >
             <v-tooltip top>
               <template v-slot:activator="{ on }">
-                <v-btn icon v-on="on" @click="previewMode = !previewMode" class="preview-mode-toggle" :class="{weakened: disabled}" color="grey darken-4">
+                <v-btn fab small v-on="on" @click="previewMode = !previewMode" class="preview-mode-toggle" :class="{weakened: disabled}" color="grey darken-4">
                   <v-icon v-if="previewMode">visibility_off</v-icon>
                   <v-icon v-else>visibility</v-icon>
                 </v-btn>
               </template>
               <span>Preview</span>
             </v-tooltip>
-          </v-flex>
-          <v-flex shrink>
+          </v-col>
+          <v-col class="shrink" >
             <v-tooltip top>
               <template v-slot:activator="{ on }">
-                <v-btn v-on="on" @click="setMarkdownHelp(true)" :class="{weakened: disabled}" icon color="blue lighten-2"><v-icon>help</v-icon></v-btn>
+                <v-btn v-on="on" @click="setMarkdownHelp(true)" :class="{weakened: disabled}" fab small color="blue lighten-2"><v-icon>help</v-icon></v-btn>
               </template>
               <span>Formatting help</span>
             </v-tooltip>
-          </v-flex>
+          </v-col>
           <v-spacer>
           </v-spacer>
-          <slot name="pre-actions" :disabled="disabled"></slot>
           <slot name="actions">
-            <v-flex shrink>
-              <v-layout row>
-                <v-spacer></v-spacer>
-                <v-flex shrink>
+            <v-col>
+              <v-row dense>
+                <v-spacer />
+                <slot name="pre-actions" :disabled="disabled" />
+                <v-col class="shrink">
                   <v-tooltip top v-if="saved && saveIndicator">
                     <template v-slot:activator="{ on }">
                       <!-- Using a button here so the two elements are aligned. -->
@@ -58,24 +57,24 @@
                     </template>
                     <span>Unsaved</span>
                   </v-tooltip>
-                </v-flex>
-                <v-flex v-if="!autoSave" shrink>
+                </v-col>
+                <v-col class="shrink" v-if="!autoSave" >
                   <v-tooltip top>
                     <template v-slot:activator="{ on }">
-                      <v-btn v-on="on" @click="save" :disabled="saved || disabled" icon color="black" class="save-button">
+                      <v-btn v-on="on" @click="save" :disabled="saved || disabled" color="black" fab small class="save-button">
                         <v-icon color="yellow">save</v-icon>
                       </v-btn>
                     </template>
                     <span>Save</span>
                   </v-tooltip>
-                </v-flex>
-              </v-layout>
-            </v-flex>
+                </v-col>
+              </v-row>
+            </v-col>
           </slot>
-        </v-layout>
-      </v-flex>
-    </v-layout>
-  </v-flex>
+        </v-row>
+      </v-col>
+    </v-row>
+  </div>
 </template>
 
 <style lang="stylus">

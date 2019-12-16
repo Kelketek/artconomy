@@ -1,34 +1,34 @@
 <template>
   <v-container class="pa-0" fluid>
-    <v-layout column class="text-xs-center">
-      <v-flex shrink text-xs-center>
-        <v-pagination :length="list.totalPages" v-model="list.currentPage" v-if="list.totalPages > 1" :class="{prerendering}"></v-pagination>
-      </v-flex>
-      <v-flex>
+    <v-row no-gutters>
+      <v-col class="shrink text-center" cols="12">
+        <v-pagination :length="list.totalPages" v-model="list.currentPage" v-if="list.totalPages > 1" :class="{prerendering}" />
+      </v-col>
+      <v-col cols="12">
         <ac-load-section :controller="list" class="load-section">
           <template v-slot:default>
-            <v-layout row wrap v-if="list.list.length">
+            <v-row no-gutters v-if="list.list.length">
               <slot>
-                <v-flex v-for="item in list.list" :key="item.key">{{item.x}}</v-flex>
+                <v-col v-for="item in list.list" :key="item.key">{{item.x}}</v-col>
               </slot>
-            </v-layout>
-            <v-layout row v-else>
+            </v-row>
+            <v-row no-gutters  v-else>
               <slot name="empty">
-                <v-flex text-xs-center>
+                <v-col class="text-center" >
                   Nothing to see here.
-                </v-flex>
+                </v-col>
               </slot>
-            </v-layout>
+            </v-row>
           </template>
           <template slot="failure">
             <slot name="failure"/>
           </template>
         </ac-load-section>
-      </v-flex>
-      <v-flex shrink text-xs-center>
-        <v-pagination :length="list.totalPages" v-model="list.currentPage" v-if="list.totalPages > 1" :class="{prerendering}"></v-pagination>
-      </v-flex>
-    </v-layout>
+      </v-col>
+      <v-col class="shrink text-center" cols="12">
+        <v-pagination :length="list.totalPages" v-model="list.currentPage" v-if="list.totalPages > 1" :class="{prerendering}" />
+      </v-col>
+    </v-row>
   </v-container>
 </template>
 

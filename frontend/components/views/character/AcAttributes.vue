@@ -1,24 +1,24 @@
 <template>
   <ac-load-section :controller="character.attributes">
     <span slot="error-text">We had an issue while trying to load {{characterName}}'s attrbutes.</span>
-    <v-layout column class="compact-fields">
-      <v-flex v-if="controls" v-show="editing">
-        <v-flex v-for="attribute in character.attributes.list" :key="attribute.id">
-          <v-layout row wrap>
-            <v-flex d-flex xs5 attr-input v-if="attribute.x.sticky">
+    <v-container class="pa-0 compact-fields">
+      <v-row v-if="controls" v-show="editing" no-gutters>
+        <v-col v-for="attribute in character.attributes.list" :key="attribute.id" cols="12">
+          <v-row no-gutters>
+            <v-col cols="5" class="attr-input" v-if="attribute.x.sticky">
               <ac-patch-field
                   :disabled="true" :value="attribute.x.key"
                   :save-indicator="false"
-                  :patcher="attribute.patchers.key"></ac-patch-field>
-            </v-flex>
-            <v-flex d-flex xs5 attr-input v-else>
-              <ac-patch-field disabled :patcher="attribute.patchers.key"></ac-patch-field>
-            </v-flex>
-            <v-flex d-flex xs5 lg6>
-              <ac-patch-field :patcher="attribute.patchers.value"></ac-patch-field>
-            </v-flex>
-            <v-flex class xs2 lg1 column d-flex v-if="!attribute.x.sticky">
-              <v-flex text-xs-center>
+                  :patcher="attribute.patchers.key" />
+            </v-col>
+            <v-col class="d-flex attr-input" cols="5" v-else>
+              <ac-patch-field disabled :patcher="attribute.patchers.key" />
+            </v-col>
+            <v-col class="d-flex" cols="5" lg="6">
+              <ac-patch-field :patcher="attribute.patchers.value" />
+            </v-col>
+            <v-col class="d-flex" cols="2" lg="1" v-if="!attribute.x.sticky">
+              <v-row no-gutters class="text-center">
                 <ac-confirmation v :action="attribute.delete">
                   <template v-slot:default="{on}">
                     <v-btn color="red" icon small type="submit" v-on="on">
@@ -26,38 +26,38 @@
                     </v-btn>
                   </template>
                 </ac-confirmation>
-              </v-flex>
-            </v-flex>
-          </v-layout>
-        </v-flex>
-      </v-flex>
+              </v-row>
+            </v-col>
+          </v-row>
+        </v-col>
+      </v-row>
       <ac-form @submit.prevent="newAttribute.submitThen(addAttribute)" v-if="character.attributes.list.length < 10">
         <ac-form-container v-if="controls" v-show="editing" :sending="newAttribute.sending" :errors="newAttribute.errors">
-          <v-layout row wrap>
-            <v-flex xs5 attr-input>
-              <ac-bound-field ref="attrKey" :field="newAttribute.fields.key" label="Attribute"></ac-bound-field>
-            </v-flex>
-            <v-flex xs5 lg6>
-              <ac-bound-field :field="newAttribute.fields.value" label="Value"></ac-bound-field>
-            </v-flex>
-            <v-flex xs2 lg1 column d-flex>
-              <v-flex text-xs-center>
-                <v-btn color="black" icon type="submit" small class="submit-attribute">
+          <v-row no-gutters>
+            <v-col class="attr-input" cols="5" >
+              <ac-bound-field ref="attrKey" :field="newAttribute.fields.key" label="Attribute" />
+            </v-col>
+            <v-col cols="5" lg="6">
+              <ac-bound-field :field="newAttribute.fields.value" label="Value" />
+            </v-col>
+            <v-col cols="2" lg="1" class="d-flex">
+              <v-col class="text-center" >
+                <v-btn color="black" fab elevation="0" type="submit" x-small class="submit-attribute">
                   <v-icon color="yellow">save</v-icon>
                 </v-btn>
-              </v-flex>
-            </v-flex>
-          </v-layout>
+              </v-col>
+            </v-col>
+          </v-row>
         </ac-form-container>
       </ac-form>
-      <v-flex v-for="(attribute, index) in character.attributes.list" :key="attribute.id" v-show="!editing">
-        <v-layout row wrap>
-          <v-flex xs3 attr-key>{{attribute.x.key}}</v-flex>
-          <v-flex xs9>{{attribute.x.value}}</v-flex>
-          <v-flex xs12 v-if="index + 1 !== character.attributes.list.length"><v-divider></v-divider></v-flex>
-        </v-layout>
-      </v-flex>
-    </v-layout>
+      <v-col v-for="(attribute, index) in character.attributes.list" :key="attribute.id" v-show="!editing">
+        <v-row no-gutters  >
+          <v-col class="attr-key" cols="3" >{{attribute.x.key}}</v-col>
+          <v-col cols="9">{{attribute.x.value}}</v-col>
+          <v-col cols="12" v-if="index + 1 !== character.attributes.list.length"><v-divider /></v-col>
+        </v-row>
+      </v-col>
+    </v-container>
   </ac-load-section>
 </template>
 

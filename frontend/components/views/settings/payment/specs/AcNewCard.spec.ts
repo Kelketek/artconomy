@@ -1,18 +1,22 @@
 import Vue from 'vue'
-import Vuex from 'vuex'
-import {createLocalVue, mount, Wrapper} from '@vue/test-utils'
-import AcCardManager from '@/components/views/settings/payment/AcCardManager.vue'
-import Vuetify from 'vuetify'
+import {mount, Wrapper} from '@vue/test-utils'
+import {Vuetify} from 'vuetify/types'
 import {ArtStore, createStore} from '@/store'
-import {singleRegistry, Singles} from '@/store/singles/registry'
-import {listRegistry, Lists} from '@/store/lists/registry'
-import {profileRegistry, Profiles} from '@/store/profiles/registry'
-import {expectFields, fieldEl, flushPromises, rq, rs, setViewer, vueSetup, vuetifySetup} from '@/specs/helpers'
+import {
+  cleanUp,
+  createVuetify,
+  expectFields,
+  fieldEl,
+  flushPromises,
+  rq,
+  rs,
+  setViewer,
+  vueSetup,
+} from '@/specs/helpers'
 import {ListController} from '@/store/lists/controller'
 import {CreditCardToken} from '@/types/CreditCardToken'
 import mockAxios from '@/__mocks__/axios'
 import {genUser} from '@/specs/helpers/fixtures'
-import {FormControllers, formRegistry} from '@/store/forms/registry'
 import {FormController} from '@/store/forms/form-controller'
 import {FieldController} from '@/store/forms/field-controller'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
@@ -23,6 +27,7 @@ const localVue = vueSetup()
 let store: ArtStore
 let wrapper: Wrapper<Vue>
 let cards: ListController<CreditCardToken>
+let vuetify: Vuetify
 
 function genList() {
   return [
@@ -34,25 +39,18 @@ function genList() {
 
 describe('AcNewCard.vue', () => {
   beforeEach(() => {
-    vuetifySetup()
     store = createStore()
-    singleRegistry.reset()
-    listRegistry.reset()
-    profileRegistry.reset()
-    formRegistry.reset()
-    mockAxios.reset()
     setViewer(store, genUser())
+    vuetify = createVuetify()
     const ccForm = mount(Empty, {localVue, store}).vm.$getForm('newCard', baseCardSchema('/test/'))
     wrapper = mount(
       AcNewCard, {
-        localVue, store, sync: false, attachToDocument: true, propsData: {username: 'Fox', ccForm},
+        localVue, store, vuetify, sync: false, attachToDocument: true, propsData: {username: 'Fox', ccForm},
       })
     cards = (wrapper.vm as any).cards
   })
   afterEach(() => {
-    if (wrapper) {
-      wrapper.destroy()
-    }
+    cleanUp(wrapper)
   })
   it('Fetches the initial data', async() => {
     const countriesRequest = mockAxios.lastReqGet()

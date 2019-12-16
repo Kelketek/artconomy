@@ -1,21 +1,15 @@
 import Vue, {VueConstructor} from 'vue'
-import Vuex from 'vuex'
-import Vuetify from 'vuetify'
-import {createLocalVue, mount, Wrapper} from '@vue/test-utils'
+import {Vuetify} from 'vuetify/types'
+import {mount, Wrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
 import Router from 'vue-router'
 import {genUser} from '@/specs/helpers/fixtures'
-import {flushPromises, setViewer, vuetifySetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, flushPromises, setViewer, vueSetup} from '@/specs/helpers'
 import Payment from '../Payment.vue'
 import Purchase from '../Purchase.vue'
-import {Singles} from '@/store/singles/registry'
-import {Profiles} from '@/store/profiles/registry'
 import Payout from '../Payout.vue'
 import SubjectiveComponent from '@/specs/helpers/dummy_components/subjective-component.vue'
-import {Lists} from '@/store/lists/registry'
 
-// Must use it directly, due to issues with package imports upstream.
-Vue.use(Vuetify)
 jest.useFakeTimers()
 
 const paymentRoutes = [
@@ -48,25 +42,21 @@ const paymentRoutes = [
 
 describe('Payment.vue', () => {
   let store: ArtStore
-  let localVue: VueConstructor
   let wrapper: Wrapper<Vue>
   let router: Router
+  let vuetify: Vuetify
+  const localVue = vueSetup()
+  localVue.use(Router)
   beforeEach(() => {
-    localVue = createLocalVue()
-    localVue.use(Router)
-    localVue.use(Vuex)
-    localVue.use(Singles)
-    localVue.use(Lists)
-    localVue.use(Profiles)
     store = createStore()
     router = new Router({
       mode: 'history',
       routes: paymentRoutes,
     })
-    vuetifySetup()
-    if (wrapper) {
-      wrapper.destroy()
-    }
+    vuetify = createVuetify()
+  })
+  afterEach(() => {
+    cleanUp(wrapper)
   })
   it('Adds Purchase to the route if missing', async() => {
     setViewer(store, genUser())
@@ -76,6 +66,7 @@ describe('Payment.vue', () => {
       localVue,
       store,
       router,
+      vuetify,
       propsData: {username: 'Fox'},
       attachToDocument: true,
       sync: false,
@@ -90,6 +81,7 @@ describe('Payment.vue', () => {
       localVue,
       store,
       router,
+      vuetify,
       propsData: {username: 'Fox'},
       attachToDocument: true,
       sync: false,

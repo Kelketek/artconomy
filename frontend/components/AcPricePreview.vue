@@ -1,31 +1,31 @@
 <template>
   <ac-load-section :controller="pricing">
     <template v-slot:default>
-      <v-layout row wrap v-if="validPrice">
-        <v-flex xs6 text-xs-right pr-1 v-if="adjustmentPrice">Base Price:</v-flex>
-        <v-flex xs6 text-xs-left pl-1 v-if="adjustmentPrice">${{basePrice.toFixed(2)}}</v-flex>
-        <v-flex xs6 text-xs-right pr-1 v-if="adjustmentPrice > 0">Additional Requirements:</v-flex>
-        <v-flex xs6 text-xs-right pr-1 v-if="adjustmentPrice < 0">Discount:</v-flex>
-        <v-flex xs6 text-xs-left pl-1 v-if="adjustmentPrice">${{adjustmentPrice.toFixed(2)}}</v-flex>
-        <v-flex xs6 text-xs-right pr-1><strong>Total Price:</strong></v-flex>
-        <v-flex xs6 text-xs-left pl-1>${{rawPrice.toFixed(2)}}</v-flex>
-        <v-flex xs6 text-xs-right pr-1 v-if="escrow"><span v-if="!isSeller">(Included) </span>Artconomy Service Fee:</v-flex>
-        <v-flex xs6 text-xs-left pl-1 v-if="escrow">$-{{serviceFee.toFixed(2)}}</v-flex>
-        <v-flex xs6 text-xs-right pr-1 v-if="landscape && isSeller"><strong>Landscape Bonus:</strong></v-flex>
-        <v-flex xs6 text-xs-left pl-1 v-if="landscape && isSeller"><strong>${{landscapeBonus.toFixed(2)}}</strong></v-flex>
-        <v-flex xs6 text-xs-right pr-1 v-if="isSeller && escrow"><strong>Your Payout:</strong></v-flex>
-        <v-flex xs6 text-xs-left pl-1 v-if="isSeller && escrow"><strong>${{payout.toFixed(2)}}</strong></v-flex>
-        <v-flex xs12 v-if="!landscape && isSeller && escrow" text-xs-center pt-2>
+      <v-row no-gutters   v-if="validPrice">
+        <v-col class="text-right pr-1" cols="6" v-if="adjustmentPrice">Base Price:</v-col>
+        <v-col class="text-left pl-1" cols="6" v-if="adjustmentPrice">${{basePrice.toFixed(2)}}</v-col>
+        <v-col class="text-right pr-1" cols="6" v-if="adjustmentPrice > 0">Additional Requirements:</v-col>
+        <v-col class="text-right pr-1" cols="6" v-if="adjustmentPrice < 0">Discount:</v-col>
+        <v-col class="text-left pl-1" cols="6" v-if="adjustmentPrice">${{adjustmentPrice.toFixed(2)}}</v-col>
+        <v-col class="text-right pr-1" cols="6" ><strong>Total Price:</strong></v-col>
+        <v-col class="text-left pl-1" cols="6" >${{rawPrice.toFixed(2)}}</v-col>
+        <v-col class="text-right pr-1" cols="6" v-if="escrow"><span v-if="!isSeller">(Included) </span>Artconomy Service Fee:</v-col>
+        <v-col class="text-left pl-1" cols="6" v-if="escrow">$-{{serviceFee.toFixed(2)}}</v-col>
+        <v-col class="text-right pr-1" cols="6" v-if="landscape && isSeller"><strong>Landscape Bonus:</strong></v-col>
+        <v-col class="text-left pl-1" cols="6" v-if="landscape && isSeller"><strong>${{landscapeBonus.toFixed(2)}}</strong></v-col>
+        <v-col class="text-right pr-1" cols="6" v-if="isSeller && escrow"><strong>Your Payout:</strong></v-col>
+        <v-col class="text-left pl-1" cols="6" v-if="isSeller && escrow"><strong>${{payout.toFixed(2)}}</strong></v-col>
+        <v-col class="text-center pt-2" cols="12" v-if="!landscape && isSeller && escrow" >
           You could earn <strong>${{landscapeBonus.toFixed(2)}}</strong> more with
           <router-link :to="{name: 'Upgrade'}">Artconomy Landscape</router-link>!
-        </v-flex>
-      </v-layout>
-      <v-layout row wrap v-else>
-        <v-flex text-xs-center v-if="(basePrice !== 0) && escrow">
+        </v-col>
+      </v-row>
+      <v-row no-gutters   v-else>
+        <v-col class="text-center" v-if="(basePrice !== 0) && escrow">
           You must enter a price higher than ${{pricing.x.minimum_price.toFixed(2)}},
           if you plan to charge for this product.
-        </v-flex>
-      </v-layout>
+        </v-col>
+      </v-row>
     </template>
   </ac-load-section>
 </template>

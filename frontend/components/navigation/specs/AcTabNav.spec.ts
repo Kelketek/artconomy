@@ -1,6 +1,7 @@
 import Vue from 'vue'
+import {Vuetify} from 'vuetify/types'
 import Router from 'vue-router'
-import {vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, vueSetup} from '@/specs/helpers'
 import {mount, Wrapper} from '@vue/test-utils'
 import AcTabNav from '@/components/navigation/AcTabNav.vue'
 import {VueRouter} from 'vue-router/types/router'
@@ -10,6 +11,7 @@ const localVue = vueSetup()
 localVue.use(Router)
 let wrapper: Wrapper<Vue>
 let router: VueRouter
+let vuetify: Vuetify
 
 describe('AcTabNav.vue', () => {
   beforeEach(() => {
@@ -29,16 +31,16 @@ describe('AcTabNav.vue', () => {
         name: 'Profile',
       }],
     })
+    vuetify = createVuetify()
   })
   afterEach(() => {
-    if (wrapper) {
-      wrapper.destroy()
-    }
+    cleanUp(wrapper)
   })
   it('Renders tabs', async() => {
     router.replace('/profile/Fox/')
     wrapper = mount(AcTabNav, {router,
       localVue,
+      vuetify,
       propsData: {items: [{
         value: {name: 'Characters', params: {username: 'Fox'}}, icon: 'people', text: 'Characters', count: 2,
       }, {
@@ -47,7 +49,7 @@ describe('AcTabNav.vue', () => {
       sync: false,
       attachToDocument: true,
     })
-    expect(wrapper.find('.v-tabs__item').text().replace(/\s\s+/g, ' ')).toBe(
+    expect(wrapper.find('.v-tab').text().replace(/\s\s+/g, ' ')).toBe(
       'people Characters (2)'
     )
   })
@@ -55,6 +57,7 @@ describe('AcTabNav.vue', () => {
     router.replace('/profile/Fox/')
     wrapper = mount(AcTabNav, {router,
       localVue,
+      vuetify,
       propsData: {items: [{
         value: {name: 'Characters', params: {username: 'Fox'}}, icon: 'people', text: 'Characters', count: 2,
       }, {
@@ -64,7 +67,7 @@ describe('AcTabNav.vue', () => {
       attachToDocument: true,
     })
     expect(wrapper.vm.$route.name).toBe('Profile')
-    wrapper.find('.v-tabs__item').trigger('click')
+    wrapper.find('.v-tab').trigger('click')
     await wrapper.vm.$nextTick()
     expect(wrapper.vm.$route.name).toBe('Characters')
   })
@@ -72,6 +75,7 @@ describe('AcTabNav.vue', () => {
     router.replace('/profile/Fox/')
     wrapper = mount(AcTabNav, {router,
       localVue,
+      vuetify,
       propsData: {items: [{
         value: {name: 'Characters', params: {username: 'Fox'}}, icon: 'people', text: 'Characters', count: 2,
       }, {
@@ -83,7 +87,7 @@ describe('AcTabNav.vue', () => {
     expect(wrapper.vm.$route.name).toBe('Profile')
     wrapper.find('.v-select__selections').trigger('click')
     await wrapper.vm.$nextTick()
-    wrapper.find('.v-list__tile__title').trigger('click')
+    wrapper.find('.v-list-item__title').trigger('click')
     await wrapper.vm.$nextTick()
     expect(wrapper.vm.$route.name).toBe('Characters')
   })

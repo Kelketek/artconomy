@@ -1,6 +1,7 @@
 import Vue from 'vue'
+import {Vuetify} from 'vuetify/types'
 import Router from 'vue-router'
-import {cleanUp, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import {mount, Wrapper} from '@vue/test-utils'
 import Search from '@/components/views/search/Search.vue'
@@ -23,10 +24,12 @@ let store: ArtStore
 let wrapper: Wrapper<Vue>
 let router: Router
 let searchForm: FormController
+let vuetify: Vuetify
 
 describe('Search.vue', () => {
   beforeEach(() => {
     store = createStore()
+    vuetify = createVuetify()
     router = new Router({
       mode: 'history',
       routes: [{
@@ -76,10 +79,10 @@ describe('Search.vue', () => {
     cleanUp(wrapper)
   })
   it('Mounts', () => {
-    wrapper = mount(Search, {localVue, store, router, sync: false, attachToDocument: true})
+    wrapper = mount(Search, {localVue, store, vuetify, router, sync: false, attachToDocument: true})
   })
   it('Tabs through each search option', async() => {
-    wrapper = mount(Search, {localVue, store, router, sync: false, attachToDocument: true})
+    wrapper = mount(Search, {localVue, store, vuetify, router, sync: false, attachToDocument: true})
     const routes = ['SearchProducts', 'SearchSubmissions', 'SearchCharacters', 'SearchProfiles']
     for (const [index, el] of wrapper.findAll('.v-item-group .v-btn').wrappers.entries()) {
       el.trigger('click')
@@ -87,13 +90,12 @@ describe('Search.vue', () => {
       expect(wrapper.vm.$route.name).toBe(routes[index])
     }
   })
-  it('Opens the default view and keeps the panel open when settings are set', async() => {
+  it('Opens the default view', async() => {
     router.push({name: 'Search'})
     searchForm.fields.featured.update(true)
-    wrapper = mount(Search, {localVue, store, router, sync: false, attachToDocument: true})
+    wrapper = mount(Search, {localVue, store, vuetify, router, sync: false, attachToDocument: true})
     await wrapper.vm.$nextTick()
     expect(wrapper.vm.$route.name).toBe('SearchProducts')
-    expect(wrapper.find('.v-expansion-panel__container--active').exists()).toBeTruthy()
   })
   it('Updates the route when the values change', async() => {
     // Need to start the fake timers here or else things get weird during the test.

@@ -2,19 +2,18 @@ import Vue from 'vue'
 import {mount, shallowMount, Wrapper} from '@vue/test-utils'
 import Login from '../Login.vue'
 import {ArtStore, createStore} from '@/store'
-import {formRegistry} from '@/store/forms/registry'
 import mockAxios from '@/specs/helpers/mock-axios'
-import {expectFields, fieldEl, vueSetup, vuetifySetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, expectFields, fieldEl, makeSpace, vueSetup} from '@/specs/helpers'
 import {userResponse} from '@/specs/helpers/fixtures'
 import flushPromises from 'flush-promises'
 import {deleteCookie} from '@/lib'
 import {UserStoreState} from '@/store/profiles/types/UserStoreState'
-import {singleRegistry, Singles} from '@/store/singles/registry'
-import {profileRegistry, Profiles} from '@/store/profiles/registry'
+import {Vuetify} from 'vuetify/types'
 
 const localVue = vueSetup()
 let profiles: UserStoreState
 let wrapper: Wrapper<Vue>
+let vuetify: Vuetify
 
 Element.prototype.scrollIntoView = jest.fn()
 const mockTrace = jest.spyOn(console, 'trace')
@@ -23,22 +22,18 @@ describe('Login.vue', () => {
   let store: ArtStore
   beforeEach(() => {
     store = createStore()
-    formRegistry.reset()
-    singleRegistry.reset()
-    profileRegistry.reset()
-    mockAxios.reset()
-    vuetifySetup()
     deleteCookie('csrftoken')
+    vuetify = createVuetify()
     profiles = (store.state as any).profiles as UserStoreState
-    if (wrapper !== undefined) {
-      // Enforce DOM cleanup, since we test event handling.
-      wrapper.destroy()
-    }
+  })
+  afterEach(() => {
+    cleanUp(wrapper)
   })
   it('Initializes', async() => {
-    wrapper = shallowMount(Login, {
+    wrapper = mount(Login, {
       store,
       localVue,
+      vuetify,
       mocks: {$router: {}, $route: {name: 'Login', params: {}, query: {}}},
       stubs: ['router-link'],
       attachToDocument: true,
@@ -49,7 +44,8 @@ describe('Login.vue', () => {
     wrapper = mount(Login, {
       store,
       localVue,
-      mocks: {$router: {}, $route: {name: 'Login', params: {}, query: {}}},
+      vuetify,
+      mocks: {$router: {}, $route: {name: 'Login', params: {tabName: 'login'}, query: {}}},
       stubs: ['router-link'],
       attachToDocument: true,
     })
@@ -76,9 +72,10 @@ describe('Login.vue', () => {
     wrapper = mount(Login, {
       store,
       localVue,
+      vuetify,
       mocks: {
         $router: {},
-        $route: {name: 'Login', params: {}, query: {claim: '0e59f96e-700f-48f0-ac13-f565846497d5'}},
+        $route: {name: 'Login', params: {tabName: 'login'}, query: {claim: '0e59f96e-700f-48f0-ac13-f565846497d5'}},
       },
       stubs: ['router-link'],
       attachToDocument: true,
@@ -90,6 +87,7 @@ describe('Login.vue', () => {
     wrapper = mount(Login, {
       store,
       localVue,
+      vuetify,
       mocks: {
         $router: {},
         $route: {name: 'Login', params: {}, query: {artist_mode: 'true'}},
@@ -105,7 +103,8 @@ describe('Login.vue', () => {
     wrapper = mount(Login, {
       store,
       localVue,
-      mocks: {$router: {push}, $route: {name: 'Login', params: {}, query: {}}},
+      vuetify,
+      mocks: {$router: {push}, $route: {name: 'Login', params: {tabName: 'login'}, query: {}}},
       stubs: ['router-link'],
       attachToDocument: true,
       sync: false,
@@ -126,7 +125,8 @@ describe('Login.vue', () => {
     wrapper = mount(Login, {
       store,
       localVue,
-      mocks: {$router: {push}, $route: {name: 'Login', params: {}, query: {}}},
+      vuetify,
+      mocks: {$router: {push}, $route: {name: 'Login', params: {tabName: 'login'}, query: {}}},
       stubs: ['router-link'],
       attachToDocument: true,
       sync: false,
@@ -149,7 +149,8 @@ describe('Login.vue', () => {
     wrapper = mount(Login, {
       store,
       localVue,
-      mocks: {$router: {push}, $route: {name: 'Login', params: {}, query: {}}},
+      vuetify,
+      mocks: {$router: {push}, $route: {name: 'Login', params: {tabName: 'login'}, query: {}}},
       stubs: ['router-link'],
       attachToDocument: true,
       sync: false,
@@ -171,7 +172,8 @@ describe('Login.vue', () => {
     wrapper = mount(Login, {
       store,
       localVue,
-      mocks: {$router: {push}, $route: {name: 'Login', params: {}, query: {}}},
+      vuetify,
+      mocks: {$router: {push}, $route: {name: 'Login', params: {tabName: 'login'}, query: {}}},
       stubs: ['router-link'],
       attachToDocument: true,
       sync: false,
@@ -190,7 +192,8 @@ describe('Login.vue', () => {
     wrapper = mount(Login, {
       store,
       localVue,
-      mocks: {$router: {push}, $route: {name: 'Login', params: {}, query: {next: '/destination/'}}},
+      vuetify,
+      mocks: {$router: {push}, $route: {name: 'Login', params: {tabName: 'login'}, query: {next: '/destination/'}}},
       stubs: ['router-link'],
       attachToDocument: true,
       sync: false,
@@ -209,7 +212,8 @@ describe('Login.vue', () => {
     wrapper = mount(Login, {
       store,
       localVue,
-      mocks: {$router: {push}, $route: {name: 'Login', params: {}, query: {next: '/'}}},
+      vuetify,
+      mocks: {$router: {push}, $route: {name: 'Login', params: {tabName: 'login'}, query: {next: '/'}}},
       stubs: ['router-link'],
       attachToDocument: true,
       sync: false,
@@ -227,7 +231,8 @@ describe('Login.vue', () => {
     wrapper = mount(Login, {
       store,
       localVue,
-      mocks: {$router: jest.fn(), $route: {name: 'Login', params: {}, query: {}}},
+      vuetify,
+      mocks: {$router: jest.fn(), $route: {name: 'Login', params: {tabName: 'login'}, query: {}}},
       stubs: ['router-link'],
       attachToDocument: true,
       sync: false,
@@ -247,7 +252,8 @@ describe('Login.vue', () => {
     wrapper = mount(Login, {
       store,
       localVue,
-      mocks: {$router: jest.fn(), $route: {name: 'Login', params: {}, query: {}}},
+      vuetify,
+      mocks: {$router: jest.fn(), $route: {name: 'Login', params: {tabName: 'login'}, query: {}}},
       stubs: ['router-link'],
       attachToDocument: true,
       sync: false,
@@ -262,7 +268,8 @@ describe('Login.vue', () => {
     wrapper = mount(Login, {
       store,
       localVue,
-      mocks: {$router: jest.fn(), $route: {name: 'Login', params: {}, query: {}}},
+      vuetify,
+      mocks: {$router: jest.fn(), $route: {name: 'Login', params: {tabName: 'login'}, query: {}}},
       stubs: ['router-link'],
       attachToDocument: true,
       sync: false,
@@ -284,7 +291,8 @@ describe('Login.vue', () => {
     wrapper = mount(Login, {
       store,
       localVue,
-      mocks: {$router: jest.fn(), $route: {name: 'Login', params: {}, query: {}}},
+      vuetify,
+      mocks: {$router: jest.fn(), $route: {name: 'Login', params: {tabName: 'login'}, query: {}}},
       stubs: ['router-link'],
       attachToDocument: true,
       sync: false,
@@ -305,7 +313,8 @@ describe('Login.vue', () => {
     wrapper = mount(Login, {
       store,
       localVue,
-      mocks: {$router: {push}, $route: {name: 'Login', params: {}, query: {}}},
+      vuetify,
+      mocks: {$router: {push}, $route: {name: 'Login', params: {tabName: 'login'}, query: {}}},
       stubs: ['router-link'],
       attachToDocument: true,
       sync: false,
@@ -321,7 +330,7 @@ describe('Login.vue', () => {
     submit.trigger('click')
     expect(mockAxios.post).toHaveBeenCalledWith(
       '/api/profiles/v1/login/',
-      {email: 'test@example.com', password: 'pass', token: '086456'},
+      {email: 'test@example.com', password: 'pass', token: '086 456'},
       {headers: {'Content-Type': 'application/json; charset=utf-8'}}
     )
     mockAxios.mockResponse(userResponse())
@@ -335,6 +344,7 @@ describe('Login.vue', () => {
     wrapper = mount(Login, {
       store,
       localVue,
+      vuetify,
       mocks: {$router: {push}, $route: {name: 'Login', params: {}, query: {}}},
       stubs: ['router-link'],
       attachToDocument: true,
@@ -357,6 +367,7 @@ describe('Login.vue', () => {
     wrapper = mount(Login, {
       store,
       localVue,
+      vuetify,
       mocks: {$router: {push}, $route: {name: 'Login', params: {tabName: 'register'}, query: {}}},
       stubs: ['router-link'],
       attachToDocument: true,
@@ -379,19 +390,18 @@ describe('Login.vue', () => {
     const email = fieldEl(wrapper, fields.email)
     const password = fieldEl(wrapper, fields.password)
     const registrationCode = fieldEl(wrapper, fields.registration_code)
-    const mail = fieldEl(wrapper, fields.mail)
     expect(fields.email.value).toBe('test@example.com')
     expect(email.value).toBe('test@example.com')
     expect(password.value).toBe('secret')
     expect(username.value).toBe('Goofball')
     expect(registrationCode.value).toBe('BLEP')
-    expect(mail.value).toBe('false')
   })
   it('Submits a registration form', async() => {
     const push = jest.fn()
     wrapper = mount(Login, {
       store,
       localVue,
+      vuetify,
       mocks: {$router: {push}, $route: {name: 'Login', params: {tabName: 'register'}, query: {}}},
       stubs: ['router-link'],
       attachToDocument: true,
@@ -425,6 +435,7 @@ describe('Login.vue', () => {
     wrapper = mount(Login, {
       store,
       localVue,
+      vuetify,
       mocks: {$router: {push}, $route: {name: 'Login', params: {tabName: 'register'}, query: {}}},
       stubs: ['router-link'],
       attachToDocument: true,
@@ -447,6 +458,7 @@ describe('Login.vue', () => {
     wrapper = mount(Login, {
       store,
       localVue,
+      vuetify,
       mocks: {$router: {push}, $route: {name: 'Login', params: {tabName: 'register'}, query: {}}},
       stubs: ['router-link'],
       attachToDocument: true,
@@ -464,6 +476,7 @@ describe('Login.vue', () => {
     wrapper = mount(Login, {
       store,
       localVue,
+      vuetify,
       mocks: {$router: {push}, $route: {name: 'Login', params: {tabName: 'forgot'}, query: {}}},
       stubs: ['router-link'],
       attachToDocument: true,
@@ -483,6 +496,7 @@ describe('Login.vue', () => {
     wrapper = mount(Login, {
       store,
       localVue,
+      vuetify,
       mocks: {$router: {push}, $route: {name: 'Login', params: {tabName: 'forgot'}, query: {}}},
       stubs: ['router-link'],
       attachToDocument: true,
@@ -506,6 +520,7 @@ describe('Login.vue', () => {
     wrapper = mount(Login, {
       store,
       localVue,
+      vuetify,
       mocks: {$router: {push}, $route: {name: 'Login', params: {tabName: 'forgot'}, query: {}}},
       stubs: ['router-link'],
       attachToDocument: true,
@@ -515,8 +530,5 @@ describe('Login.vue', () => {
     submit.trigger('click')
     mockAxios.mockResponse({data: undefined, status: 204})
     await flushPromises()
-    const message = wrapper.find('.email-sent')
-    expect(message.exists()).toBe(true)
-    expect(message.text()).toBe('Email sent! Please check your inbox (and your spam folder)!')
   })
 })

@@ -1,23 +1,26 @@
 import Vue from 'vue'
 import {mount, Wrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
-import {cleanUp, flushPromises, rq, rs, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, flushPromises, rq, rs, setViewer, vueSetup} from '@/specs/helpers'
 import {genUser} from '@/specs/helpers/fixtures'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import {commentSet} from './fixtures'
 import Router from 'vue-router'
 import mockAxios from '@/__mocks__/axios'
 import AcNewComment from '@/components/comments/AcNewComment.vue'
+import {Vuetify} from 'vuetify/types'
 
 const localVue = vueSetup()
 localVue.use(Router)
 let store: ArtStore
 let wrapper: Wrapper<Vue>
 let router: Router
+let vuetify: Vuetify
 
 describe('AcNewComment.vue', () => {
   beforeEach(() => {
     store = createStore()
+    vuetify = createVuetify()
     router = new Router({mode: 'history',
       routes: [{
         path: '/',
@@ -51,6 +54,7 @@ describe('AcNewComment.vue', () => {
       localVue,
       store,
       router,
+      vuetify,
       propsData: {
         commentList,
         comment: commentList.list[0],

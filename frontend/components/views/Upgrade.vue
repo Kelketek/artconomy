@@ -2,40 +2,40 @@
   <v-container>
     <v-card color="grey darken-3">
       <v-card-text>
-        <v-layout row wrap>
-          <v-flex>
+        <v-row no-gutters  >
+          <v-col>
             <h1>Upgrade Your Account</h1>
             <span class="subheading">Check out our options below to enhance your art experience!</span>
-          </v-flex>
-        </v-layout>
+          </v-col>
+        </v-row>
       </v-card-text>
     </v-card>
     <v-tabs-items v-model="tab">
       <v-tab-item value="selection">
         <ac-load-section :controller="pricing">
           <template v-slot:default>
-            <v-layout row wrap class="mt-3" v-if="selection === null">
-              <v-flex xs12 md5>
+            <v-row no-gutters   class="mt-3" v-if="selection === null">
+              <v-col cols="12" md="5">
                 <v-card style="height: 100%" class="service-container">
                   <v-card-title>
-                    <v-flex text-xs-center>
+                    <v-col class="text-center" >
                       <v-icon>portrait</v-icon>&nbsp;Artconomy Portrait
-                    </v-flex>
+                    </v-col>
                   </v-card-title>
                   <v-card-text>
-                    <v-layout row>
-                      <v-flex>
+                    <v-row no-gutters >
+                      <v-col>
                         <v-list>
-                          <v-list-tile>Receive Notifications when your favorite artists become available</v-list-tile>
+                          <v-list-item>Receive Notifications when your favorite artists become available</v-list-item>
                           <v-divider/>
-                          <v-list-tile>Get the opportunity to try experimental new features first!
-                          </v-list-tile>
-                          <v-list-tile>...for ${{pricing.x.portrait_price}}/Month!</v-list-tile>
+                          <v-list-item>Get the opportunity to try experimental new features first!
+                          </v-list-item>
+                          <v-list-item>...for ${{pricing.x.portrait_price}}/Month!</v-list-item>
                         </v-list>
-                      </v-flex>
-                    </v-layout>
+                      </v-col>
+                    </v-row>
                   </v-card-text>
-                  <v-card-text class="card-bottom text-xs-center">
+                  <v-card-text class="card-bottom text-center">
                     <v-btn color="primary" v-if="!viewer.landscape_enabled && !viewer.portrait_enabled"
                            @click="selection='portrait'">Get Portrait!
                     </v-btn>
@@ -44,46 +44,46 @@
                     </v-btn>
                   </v-card-text>
                 </v-card>
-              </v-flex>
-              <v-flex xs12 md5 offset-md2>
+              </v-col>
+              <v-col cols="12" md="5" offset-md="2">
                 <v-card style="height: 100%">
-                  <v-card-title text-xs-center>
-                    <v-flex text-xs-center>
+                  <v-card-title text-center>
+                    <v-col class="text-center" >
                       <v-icon>landscape</v-icon>&nbsp;Artconomy Landscape
-                    </v-flex>
+                    </v-col>
                   </v-card-title>
                   <v-card-text class="mb-5">
-                    <v-layout fill-height>
-                      <v-flex>
+                    <v-row no-gutters class="fill-height" >
+                      <v-col>
                         <v-list two-line>
-                          <v-list-tile>
-                            <v-list-tile-content>
+                          <v-list-item>
+                            <v-list-item-content>
                               Receive Notifications when your favorite artists become available
-                            </v-list-tile-content>
-                          </v-list-tile>
+                            </v-list-item-content>
+                          </v-list-item>
                           <v-divider/>
-                          <v-list-tile>
-                            <v-list-tile-content>
+                          <v-list-item>
+                            <v-list-item-content>
                               Get the opportunity to try experimental new features first!
-                            </v-list-tile-content>
-                          </v-list-tile>
+                            </v-list-item-content>
+                          </v-list-item>
                           <v-divider/>
-                          <v-list-tile>
-                            <v-list-tile-content>
+                          <v-list-item>
+                            <v-list-item-content>
                               Get <strong>Bonus Cash</strong> for every Shield-protected commission you complete!
-                            </v-list-tile-content>
-                          </v-list-tile>
+                            </v-list-item-content>
+                          </v-list-item>
                           <v-divider/>
-                          <v-list-tile>
-                            <v-list-tile-content>
+                          <v-list-item>
+                            <v-list-item-content>
                               ...All for ${{pricing.x.landscape_price}}/Month!
-                            </v-list-tile-content>
-                          </v-list-tile>
+                            </v-list-item-content>
+                          </v-list-item>
                         </v-list>
-                      </v-flex>
-                    </v-layout>
+                      </v-col>
+                    </v-row>
                   </v-card-text>
-                  <v-card-text class="card-bottom text-xs-center">
+                  <v-card-text class="card-bottom text-center">
                     <v-btn color="primary" v-if="!viewer.landscape_enabled" @click="selection='landscape'">Get Landscape!
                     </v-btn>
                     <v-btn v-else :to="{name: 'Premium', params: {username: viewer.username}}">Manage
@@ -91,8 +91,8 @@
                     </v-btn>
                   </v-card-text>
                 </v-card>
-              </v-flex>
-            </v-layout>
+              </v-col>
+            </v-row>
           </template>
         </ac-load-section>
       </v-tab-item>
@@ -100,8 +100,8 @@
         <v-card>
           <ac-form @submit.prevent="paymentForm.submitThen(postPay)">
             <ac-form-container>
-              <v-layout row wrap class="mt-3" v-if="selection !== null">
-                <v-flex xs12>
+              <v-row no-gutters   class="mt-3" v-if="selection !== null">
+                <v-col cols="12">
                   <ac-card-manager
                       ref="cardManager"
                       :payment="true"
@@ -111,10 +111,10 @@
                       v-model="paymentForm.fields.card_id.model"
                       :show-save="false"
                   />
-                </v-flex>
-                <v-flex xs12 class="pricing-container" text-xs-center>
+                </v-col>
+                <v-col cols="12" class="pricing-container text-center" >
                   <strong>Monthly charge: ${{price}}</strong> <br/>
-                  <div class="mt-2 text-xs-center">
+                  <div class="mt-2 text-center">
                     <v-btn @click="selection=null">Go back</v-btn>
                     <v-btn type="submit" color="primary">
                       Start Service
@@ -124,21 +124,21 @@
                     </p>
                     <p>Artconomy is based in the United States of America</p>
                   </div>
-                </v-flex>
-              </v-layout>
+                </v-col>
+              </v-row>
             </ac-form-container>
           </ac-form>
         </v-card>
       </v-tab-item>
       <v-tab-item value="completed">
-        <v-flex xs12 text-xs-center class="mt-4">
+        <v-col cols="12" class="mt-4 text-center">
           <i class="fa fa-5x fa-check-circle"></i><br/>
           <p><strong>Your payment has been received!</strong></p>
           <p>We've received your payment and your account has been upgraded! Visit your
             <router-link :to="{name: 'Premium', params: {username: viewer.username}}">premium settings page</router-link>
             to view and manage your upgraded account settings.
           </p>
-        </v-flex>
+        </v-col>
       </v-tab-item>
     </v-tabs-items>
   </v-container>

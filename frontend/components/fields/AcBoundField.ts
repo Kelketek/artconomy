@@ -10,10 +10,27 @@ import AcUppyFile from '@/components/fields/AcUppyFile.vue'
 import AcCharacterSelect from '@/components/fields/AcCharacterSelect.vue'
 import AcPriceField from '@/components/fields/AcPriceField.vue'
 import AcProductSelect from '@/components/fields/AcProductSelect.vue'
+import * as VCheckbox from 'vuetify/es5/components/VCheckbox'
+import * as VSwitch from 'vuetify/es5/components/VSwitch'
+import * as VTextField from 'vuetify/es5/components/VTextField'
+import * as VAutocomplete from 'vuetify/es5/components/VAutocomplete'
+import * as VSlider from 'vuetify/es5/components/VSlider'
 
 // Any components that might be used as a field and which aren't in Vuetify must be added here to resolve.
 @Component({components: {
-  AcUserSelect, AcEditor, AcTagField, AcRatingField, AcUppyFile, AcCharacterSelect, AcPriceField, AcProductSelect,
+  AcUserSelect,
+  AcEditor,
+  AcTagField,
+  AcRatingField,
+  AcUppyFile,
+  AcCharacterSelect,
+  AcPriceField,
+  AcProductSelect,
+  ...VTextField,
+  ...VSwitch,
+  ...VCheckbox,
+  ...VAutocomplete,
+  ...VSlider,
 }})
 export default class AcBoundField extends Vue {
   @Prop({default: 'v-text-field'})

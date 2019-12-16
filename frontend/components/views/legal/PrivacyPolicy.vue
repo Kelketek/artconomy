@@ -3,10 +3,10 @@
   <div class="container">
     <div class="row">
       <div class="col-12">
-        <div class="col-12 text-xs-center">
+        <div class="col-12 text-center">
           <img class="legal-logo" src="/static/images/logo.svg" alt="Artconomy.com"/>
         </div>
-        <div class="col-12 text-xs-center home-title">
+        <div class="col-12 text-center home-title">
           <h1>Privacy Policy</h1>
         </div>
       </div>

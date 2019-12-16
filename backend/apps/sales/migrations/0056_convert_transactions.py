@@ -377,6 +377,7 @@ def run_conversion(apps, schema):
                 source=New.CARD,
                 destination=New.RESERVE,
                 amount=full_fee_amount,
+                content_type_id=order_type_id,
                 object_id=record.object_id,
                 remote_id=record.txn_id,
                 response_message=record.response_message,

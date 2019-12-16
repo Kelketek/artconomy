@@ -1,7 +1,7 @@
 <template>
-  <v-container grid-list-lg>
-    <v-layout row wrap>
-      <v-flex xs12 md3>
+  <v-container>
+    <v-row no-gutters  >
+      <v-col cols="12" md="3">
         <v-card>
           <router-link :to="{name: 'CommissionAgreement'}">
             <v-card-title>Commission Agreement</v-card-title>
@@ -16,8 +16,8 @@
             </v-card-text>
           </router-link>
         </v-card>
-      </v-flex>
-      <v-flex xs12 md3>
+      </v-col>
+      <v-col cols="12" md="3">
         <v-card>
           <router-link :to="{name: 'RefundPolicy'}">
             <v-card-title>Refund Policy</v-card-title>
@@ -30,8 +30,8 @@
             </v-card-text>
           </router-link>
         </v-card>
-      </v-flex>
-      <v-flex xs12 md3>
+      </v-col>
+      <v-col cols="12" md="3">
         <v-card>
           <router-link :to="{name: 'PrivacyPolicy'}">
             <v-card-title>Privacy Policy</v-card-title>
@@ -40,8 +40,8 @@
             </v-card-text>
           </router-link>
         </v-card>
-      </v-flex>
-      <v-flex xs12 md3>
+      </v-col>
+      <v-col cols="12" md="3">
         <v-card>
           <router-link :to="{name: 'TermsOfService'}">
             <v-card-title>Terms of Service</v-card-title>
@@ -50,8 +50,8 @@
             </v-card-text>
           </router-link>
         </v-card>
-      </v-flex>
-    </v-layout>
+      </v-col>
+    </v-row>
   </v-container>
 </template>
 

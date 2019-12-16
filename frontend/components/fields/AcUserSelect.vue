@@ -1,26 +1,23 @@
 <template>
-  <v-flex>
-    <v-autocomplete
-        chips
-        :multiple="multiple"
-        v-model="tags"
-        autocomplete
-        v-bind:search-input.sync="query"
-        :items="items"
-        hide-no-data
-        auto-select-first
-        deletable-chips
-        hide-selected
-        cache-items
-        :filter="itemFilter"
-        :item-value="itemValue"
-        :allow-raw="allowRaw"
-        item-text="username"
-        ref="input"
-        v-bind="fieldAttrs"
-    >
-    </v-autocomplete>
-  </v-flex>
+  <v-autocomplete
+      chips
+      :multiple="multiple"
+      v-model="tags"
+      autocomplete
+      v-bind:search-input.sync="query"
+      :items="items"
+      hide-no-data
+      auto-select-first
+      deletable-chips
+      hide-selected
+      cache-items
+      :filter="itemFilter"
+      :item-value="itemValue"
+      :allow-raw="allowRaw"
+      item-text="username"
+      ref="input"
+      v-bind="fieldAttrs"
+  />
 </template>
 
 <script lang="ts">

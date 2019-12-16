@@ -1,10 +1,10 @@
 <template>
-  <v-layout row wrap>
-    <v-flex xs12 text-xs-center><video controls :width="width" style="max-width: 100%">
+  <v-row no-gutters  >
+    <v-col class="text-center" cols="12" ><video controls :width="width" style="max-width: 100%">
         <source :src="asset.file.full" :type="type">
       </video>
-    </v-flex>
-  </v-layout>
+    </v-col>
+  </v-row>
 </template>
 
 <script lang="ts">

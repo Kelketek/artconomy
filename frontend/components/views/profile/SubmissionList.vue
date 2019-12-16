@@ -1,11 +1,11 @@
 <template>
   <ac-paginated :list="list" :track-pages="trackPages" :ok-statuses="okStatuses">
-    <v-flex xs4 sm3 lg2 v-for="submission in list.list" :key="submission.x.id">
+    <v-col cols="4" sm="3" lg="2" v-for="submission in list.list" :key="submission.x.id">
       <ac-gallery-preview class="pa-1"
                           :submission="submission.x" :show-footer="false">
       </ac-gallery-preview>
-    </v-flex>
-    <v-flex slot="failure" text-xs-center v-if="okStatuses"><p>{{failureMessage}}</p></v-flex>
+    </v-col>
+    <v-col class="text-center" slot="failure" v-if="okStatuses"><p>{{failureMessage}}</p></v-col>
   </ac-paginated>
 </template>
 

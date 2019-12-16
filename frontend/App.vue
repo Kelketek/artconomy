@@ -12,27 +12,27 @@
           v-bind="supportForm.bind"
       >
         <div slot="header">
-          <v-flex class="text-xs-center">
+          <v-col class="text-center">
             <h1>We respond to all support requests within 24 hours, and often within the same hour!</h1>
-          </v-flex>
+          </v-col>
         </div>
-        <v-layout row wrap>
-          <v-flex xs12>
+        <v-row no-gutters  >
+          <v-col cols="12">
             <v-text-field
                 label="Email"
                 placeholder="test@example.com"
                 v-bind="supportForm.fields.email.bind"
                 v-on="supportForm.fields.email.on"
             ></v-text-field>
-          </v-flex>
-          <v-flex xs12>
+          </v-col>
+          <v-col cols="12">
             <v-textarea
                 label="How can we help?"
                 v-bind="supportForm.fields.body.bind"
                 v-on="supportForm.fields.body.on"
             ></v-textarea>
-          </v-flex>
-        </v-layout>
+          </v-col>
+        </v-row>
       </ac-form-dialog>
       <v-dialog
           v-model="showTicketSuccess"
@@ -51,7 +51,7 @@
             <v-spacer></v-spacer>
             <v-btn
                 color="primary"
-                flat
+                text
                 @click="showTicketSuccess = false"
             >
               OK
@@ -68,24 +68,24 @@
         {{latestAlert.message}}
         <v-btn
             dark
-            flat
+            text
             @click="showAlert = false"
         >
           Close
         </v-btn>
       </v-snackbar>
-      <ac-markdown-explanation v-model="showMarkdownHelp"></ac-markdown-explanation>
+      <ac-markdown-explanation v-model="showMarkdownHelp" />
     </v-content>
     <v-content>
-      <v-layout row wrap>
-        <v-flex text-xs-right px-2>
+      <v-row no-gutters>
+        <v-col class="text-right px-2">
           <router-link :to="{name: 'PrivacyPolicy'}">Privacy Policy</router-link>
-        </v-flex>
-        <v-flex d-flex shrink><v-divider vertical /></v-flex>
-        <v-flex text-xs-left px-2>
+        </v-col>
+        <v-col class="d-flex shrink"><v-divider vertical /></v-col>
+        <v-col class="text-left px-2">
           <router-link :to="{name: 'TermsOfService'}">Terms of Service</router-link>
-        </v-flex>
-      </v-layout>
+        </v-col>
+      </v-row>
     </v-content>
   </v-app>
 </template>

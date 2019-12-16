@@ -1,39 +1,33 @@
 import Vue from 'vue'
-import {createLocalVue, mount, Wrapper} from '@vue/test-utils'
-import Vuetify from 'vuetify'
-import Vuex from 'vuex'
+import {mount, Wrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
-import {singleRegistry, Singles} from '@/store/singles/registry'
-import {listRegistry, Lists} from '@/store/lists/registry'
 import mockAxios from '@/__mocks__/axios'
-import {FormControllers} from '@/store/forms/registry'
-import {flushPromises, rq, rs, vuetifySetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, flushPromises, rq, rs, vueSetup} from '@/specs/helpers'
 import {genUser} from '@/specs/helpers/fixtures'
 import DummyRelated from '@/components/wrappers/specs/DummyRelated.vue'
-
-Vue.use(Vuetify)
-Vue.use(Vuex)
+import {Vuetify} from 'vuetify/types'
 
 describe('AcRelatedManager.vue', () => {
   let wrapper: Wrapper<Vue>
   let store: ArtStore
-  const localVue = createLocalVue()
-  localVue.use(Singles)
-  localVue.use(Lists)
-  localVue.use(FormControllers)
+  let vuetify: Vuetify
+  const localVue = vueSetup()
   beforeEach(() => {
-    vuetifySetup()
     store = createStore()
-    singleRegistry.reset()
-    listRegistry.reset()
+    vuetify = createVuetify()
   })
   afterEach(() => {
-    if (wrapper) {
-      wrapper.destroy()
-    }
+    cleanUp(wrapper)
   })
   it('Loads up related items', async() => {
-    wrapper = mount(DummyRelated, {localVue, store, sync: false, stubs: ['router-link'], attachToDocument: true})
+    wrapper = mount(DummyRelated, {
+      localVue,
+      store,
+      vuetify,
+      sync: false,
+      stubs: ['router-link'],
+      attachToDocument: true,
+    })
     expect(mockAxios.get).toHaveBeenCalledWith(
       ...rq('/endpoint/', 'get', undefined, {cancelToken: {}})
     )
@@ -47,7 +41,14 @@ describe('AcRelatedManager.vue', () => {
     await wrapper.vm.$nextTick()
   })
   it('Filters existing items out of results', async() => {
-    wrapper = mount(DummyRelated, {localVue, store, sync: false, stubs: ['router-link'], attachToDocument: true})
+    wrapper = mount(DummyRelated, {
+      localVue,
+      store,
+      vuetify,
+      sync: false,
+      stubs: ['router-link'],
+      attachToDocument: true,
+    })
     expect(mockAxios.get).toHaveBeenCalledWith(
       ...rq('/endpoint/', 'get', undefined, {cancelToken: {}})
     )
@@ -69,7 +70,14 @@ describe('AcRelatedManager.vue', () => {
     expect(vm.$refs.manager.filter(user3, '', user3.username)).toBe(false)
   })
   it('Auto-submits when the bound field is updated.', async() => {
-    wrapper = mount(DummyRelated, {localVue, store, sync: false, stubs: ['router-link'], attachToDocument: true})
+    wrapper = mount(DummyRelated, {
+      localVue,
+      store,
+      vuetify,
+      sync: false,
+      stubs: ['router-link'],
+      attachToDocument: true,
+    })
     expect(mockAxios.get).toHaveBeenCalledWith(
       ...rq('/endpoint/', 'get', undefined, {cancelToken: {}})
     )

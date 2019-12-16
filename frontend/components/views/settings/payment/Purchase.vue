@@ -1,45 +1,45 @@
 <template>
   <ac-load-section :controller="subjectHandler.user">
     <template v-slot:default>
-      <v-layout id="purchase-settings" v-if="!(subject.landscape || subject.portrait)">
-        <v-layout row wrap>
-          <v-flex xs12 sm8 offset-sm2 md6 offset-md3 lg4 offset-lg4>
+      <v-row no-gutters id="purchase-settings" v-if="!(subject.landscape || subject.portrait)">
+        <v-row no-gutters  >
+          <v-col cols="12" sm="8" offset-sm="2" md="6" offset-md="3" lg="4" offset-lg="4">
             <v-subheader>Saved Cards</v-subheader>
-          </v-flex>
-          <v-flex xs12 sm8 offset-sm2 md6 offset-md3 lg4 offset-lg4>
+          </v-col>
+          <v-col cols="12" sm="8" offset-sm="2" md="6" offset-md="3" lg="4" offset-lg="4">
             <v-card>
               <v-card-text>
-                <ac-card v-for="card in cards.list" :card="card" :key="card.id" :card-list="cards"></ac-card>
-                <v-flex v-if="cards.empty" text-xs-center>
+                <ac-card v-for="card in cards.list" :card="card" :key="card.id" :card-list="cards" />
+                <v-col class="text-center" v-if="cards.empty" >
                   <p>Cards saved during purchase will be listed here for management.</p>
-                </v-flex>
+                </v-col>
               </v-card-text>
             </v-card>
-          </v-flex>
-        </v-layout>
-      </v-layout>
-      <v-layout v-else row wrap>
-        <v-flex xs12>
+          </v-col>
+        </v-row>
+      </v-row>
+      <v-row no-gutters v-else>
+        <v-col cols="12">
           <v-card>
             <v-card-text>
-              <v-flex xs12 text-xs-center>
+              <v-col class="text-center" cols="12">
                 <p><strong>Your default card will be charged for subscription services.</strong></p>
-              </v-flex>
+              </v-col>
               <ac-form @submit.prevent="ccForm.submitThen(addCard)">
                 <ac-form-container v-bind="ccForm.bind">
                   <ac-card-manager :username="username" :cc-form="ccForm" :show-save="false" :field-mode="false" ref="cardManager">
                     <template v-slot:new-card-bottom>
-                      <v-flex xs12 text-xs-center>
+                      <v-col class="text-center" cols="12" >
                         <v-btn color="primary" type="submit" class="add-card-button">Add Card</v-btn>
-                      </v-flex>
+                      </v-col>
                     </template>
                   </ac-card-manager>
                 </ac-form-container>
               </ac-form>
             </v-card-text>
           </v-card>
-        </v-flex>
-      </v-layout>
+        </v-col>
+      </v-row>
     </template>
   </ac-load-section>
 </template>
