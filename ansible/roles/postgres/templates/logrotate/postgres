@@ -4,18 +4,11 @@
   rotate 24
   nocompress
   nocreate
-  postrotate
-  sudo -upostgres pg_dump {{db_name}} --file=/var/lib/postgresql/backup/{{ db_name }}.sql
-  sudo -upostgres gzip /var/lib/postgresql/backup/{{ db_name }}.sql
-  endscript
 }
 /var/lib/postgresql/backup/weekly/{{ db_name }}.sql.gz {
-  hourly
+  weekly
   missingok
   rotate 8
   nocompress
   nocreate
-  postrotate
-  sudo -upostgres cp /var/lib/postgresql/backup/hourly/{{ db_name }}.sql.gz /var/lib/postgresql/backup/weekly/
-  endscript
 }

@@ -44,6 +44,7 @@
     mode: 0700
   with_items:
     - hourly
+    - daily
     - weekly
 
 - name: Set up logrotate
@@ -68,3 +69,15 @@
   args:
     executable: "/bin/bash"
   when: not backup.stat.exists
+
+- name: symlinks
+  become: yes
+  become_user: "postgres"
+  with_items:
+    - hourly
+    - daily
+    - weekly
+  file:
+    src: '/var/lib/postgresql/backup/production.sql.gz'
+    dest: '/var/lib/postgresql/backup/{{item}}/production.sql.gz'
+    state: link
