@@ -3,7 +3,7 @@ from typing import Union, List
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Q
+from django.db.models import Q, Subquery
 from django.db.transaction import atomic
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -622,7 +622,8 @@ class RelatedSetMixin:
             base_kwargs = {self.back_name: instance}
             for user_id in value:
                 self.model.objects.create(user_id=user_id, **base_kwargs)
-            for instance in self.model.objects.exclude(**base_kwargs, user_id__in=value):
+            to_remove = self.model.objects.filter(**base_kwargs).exclude(user_id__in=value)
+            for instance in to_remove:
                 instance.delete()
         else:
             getattr(instance, self.field_name).set(value)

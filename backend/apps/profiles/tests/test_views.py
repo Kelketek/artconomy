@@ -1287,6 +1287,24 @@ class TestConversations(APITestCase):
         conversation3_id = response.data['id']
         self.assertNotEqual(conversation2_id, conversation3_id)
 
+    def test_conversation_no_delete_others(self):
+        # Apparently one of my serializers had a terrible side effect of deleting all other conversations when a new
+        # one was created.
+        relation = ConversationParticipantFactory.create()
+        user = UserFactory.create()
+        user2 = UserFactory.create()
+        self.login(user)
+        response = self.client.post(
+            '/api/profiles/v1/account/{}/conversations/'.format(user.username),
+            {
+                'participants': [user2.id]
+            },
+            format='json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        relation.refresh_from_db()
+        self.assertTrue(relation.id)
+
     def test_conversations_list(self):
         user = UserFactory.create()
         user2 = UserFactory.create()
