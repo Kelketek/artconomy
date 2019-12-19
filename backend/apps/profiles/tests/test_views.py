@@ -363,6 +363,30 @@ class TestSubmission(APITestCase):
         self.assertEqual(response.data['rating'], MATURE)
         self.assertTrue(response.data['file'])
 
+    def test_create_submission_no_artist_clobber(self):
+        user = UserFactory.create()
+        self.login(user)
+        asset = AssetFactory.create(uploaded_by=user)
+        artist = UserFactory.create()
+        artist2 = UserFactory.create()
+        unrelated_submission = SubmissionFactory.create()
+        unrelated_submission.artists.set([artist, artist2])
+        response = self.client.post(
+            f'/api/profiles/v1/account/{user.username}/submissions/', {
+                'title': 'This is a test',
+                'rating': MATURE,
+                'file': str(asset.id),
+                'artists': [artist.id],
+            }, format='json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        submission = Submission.objects.get(id=response.data['id'])
+        self.assertEqual(submission.artists.all().first(), artist)
+        self.assertSequenceEqual(list(unrelated_submission.artists.all()), [artist, artist2])
+        self.assertEqual(response.data['title'], 'This is a test')
+        self.assertEqual(response.data['rating'], MATURE)
+        self.assertTrue(response.data['file'])
+
     def test_create_submission_file_blank(self):
         user = UserFactory.create()
         self.login(user)
@@ -1168,6 +1192,35 @@ class TestFavorite(APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(user.favorites.all().count(), 0)
+
+    def test_favorite_submission_not_destroy_others(self):
+        user = UserFactory.create()
+        submission = SubmissionFactory.create()
+        user2 = UserFactory.create()
+        submission2 = SubmissionFactory.create()
+        submission3 = SubmissionFactory.create()
+        user.favorites.add(submission3)
+        user2.favorites.add(submission)
+        user2.favorites.add(submission2)
+        self.assertEqual(user2.favorites.through.objects.filter(user=user2).count(), 2)
+        self.assertEqual(user2.favorites.through.objects.filter(user=user).count(), 1)
+        self.login(user)
+        response = self.client.patch(
+            '/api/profiles/v1/submission/{}/'.format(submission.id),
+            {'favorites': True},
+            format='json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(user.favorites.all().count(), 2)
+        self.assertEqual(user.favorites.all()[0], submission)
+        response = self.client.patch(
+            '/api/profiles/v1/submission/{}/'.format(submission.id),
+            {'favorites': False},
+            format='json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(user.favorites.all().count(), 1)
+        self.assertEqual(user2.favorites.through.objects.filter(user=user2).count(), 2)
 
     def test_favorite_submission_hidden_failure(self):
         user = UserFactory.create()
