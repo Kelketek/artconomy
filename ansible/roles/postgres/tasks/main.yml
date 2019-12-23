@@ -81,3 +81,4 @@
     src: '/var/lib/postgresql/backup/production.sql.gz'
     dest: '/var/lib/postgresql/backup/{{item}}/production.sql.gz'
     state: link
+    force: yes
