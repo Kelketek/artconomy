@@ -100,7 +100,7 @@
                   <v-row>
                     <v-col cols="12">
                       <v-alert type="info" :value="true">
-                        Once your order is placed, the artist will review your request, make any adjustments to the quote as needed, and present them for your approval and payment.
+                        Once your order is placed, the artist will review your request, make any adjustments to the quote as needed, and present them for your approval and payment. We will update you via email as things progress.
                       </v-alert>
                     </v-col>
                     <v-col class="text-center" cols="12" >
