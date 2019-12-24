@@ -3,17 +3,46 @@
                   v-bind="newUpload.bind"
                   :fluid="true" v-if="isRegistered" :title="title"
   >
-    <template slot="top-buttons"></template>
+    <template slot="top-buttons" />
     <v-stepper v-model="newUpload.step" class="submission-stepper" non-linear>
       <v-stepper-header>
-        <v-stepper-step editable :complete="newUpload.steps[1].complete" :step="1" :rules="newUpload.steps[1].rules">Basics</v-stepper-step>
+        <v-stepper-step editable :complete="newUpload.steps[1].complete" :step="1" :rules="newUpload.steps[1].rules">Content</v-stepper-step>
         <v-divider />
-        <v-stepper-step editable :complete="newUpload.steps[2].complete" :step="2" :rules="newUpload.steps[2].rules">Meta</v-stepper-step>
-        <v-divider />
-        <v-stepper-step editable :step="3" :rules="newUpload.steps[3].rules">Content</v-stepper-step>
+        <v-stepper-step editable :step="2" :rules="newUpload.steps[2].rules">Info</v-stepper-step>
       </v-stepper-header>
       <v-stepper-items>
         <v-stepper-content :step="1">
+          <v-row no-gutters  >
+            <v-col cols="12" md="6">
+              <ac-bound-field :field="newUpload.fields.file" field-type="ac-uppy-file" label="Upload your submission" />
+            </v-col>
+            <v-col cols="12" md="6">
+              <ac-bound-field :field="newUpload.fields.preview" field-type="ac-uppy-file" label="Upload a preview image (Optional)" />
+            </v-col>
+            <v-col cols="12">
+              <ac-bound-field :field="newUpload.fields.rating" label="Content Rating" field-type="ac-rating-field" />
+            </v-col>
+            <v-col cols="12">
+              <ac-bound-field :field="newUpload.fields.tags" field-type="ac-tag-field" label="Tags" hint="Please add a few tags for this submission." />
+            </v-col>
+            <v-col cols="12" md="6">
+              <ac-bound-field :field="newUpload.fields.artists"
+                              v-if="subject"
+                              :init-items="preloadedUser"
+                              field-type="ac-user-select" label="Artists"
+                              hint="Tag the artist(s) that have worked on this piece. If they don't have an Artconomy account, you can skip this step.">
+              </ac-bound-field>
+            </v-col>
+            <v-col cols="12" md="6">
+              <ac-bound-field :field="newUpload.fields.characters"
+                              v-if="showCharacters"
+                              :init-items="characterInitItems"
+                              field-type="ac-character-select" label="Characters"
+                              hint="Tag the character(s) featured in this piece. If they're not listed on Artconomy, you can skip this step." />
+            </v-col>
+          </v-row>
+        </v-stepper-content>
+        <v-stepper-content :step="2">
           <v-row no-gutters  >
             <v-col cols="12">
               <ac-bound-field :field="newUpload.fields.title" label="Title" hint="What will you title this submission?" />
@@ -43,41 +72,6 @@
             </v-col>
           </v-row>
         </v-stepper-content>
-        <v-stepper-content :step="2">
-          <v-row no-gutters  >
-            <v-col cols="12">
-              <ac-bound-field :field="newUpload.fields.rating" label="Content Rating" field-type="ac-rating-field"></ac-bound-field>
-            </v-col>
-            <v-col cols="12">
-              <ac-bound-field :field="newUpload.fields.tags" field-type="ac-tag-field" label="Tags" hint="Please add a few tags for this submission."></ac-bound-field>
-            </v-col>
-            <v-col cols="12" md="6">
-              <ac-bound-field :field="newUpload.fields.artists"
-                              v-if="subject"
-                              :init-items="preloadedUser"
-                              field-type="ac-user-select" label="Artists"
-                              hint="Tag the artist(s) that have worked on this piece. If they don't have an Artconomy account, you can skip this step.">
-              </ac-bound-field>
-            </v-col>
-            <v-col cols="12" md="6">
-              <ac-bound-field :field="newUpload.fields.characters"
-                              v-if="showCharacters"
-                              :init-items="characterInitItems"
-                              field-type="ac-character-select" label="Characters"
-                              hint="Tag the character(s) featured in this piece. If they're not listed on Artconomy, you can skip this step." />
-            </v-col>
-          </v-row>
-        </v-stepper-content>
-        <v-stepper-content :step="3">
-          <v-row no-gutters  >
-            <v-col cols="12" md="6">
-              <ac-bound-field :field="newUpload.fields.file" field-type="ac-uppy-file" label="Upload your submission"></ac-bound-field>
-            </v-col>
-            <v-col cols="12" md="6">
-              <ac-bound-field :field="newUpload.fields.preview" field-type="ac-uppy-file" label="Upload a preview image (Optional)"></ac-bound-field>
-            </v-col>
-          </v-row>
-        </v-stepper-content>
       </v-stepper-items>
     </v-stepper>
     <template slot="bottom-buttons">
@@ -85,8 +79,8 @@
         <v-spacer></v-spacer>
         <v-btn @click.prevent="toggle(false)">Cancel</v-btn>
         <v-btn @click.prevent="newUpload.step -= 1" v-if="newUpload.step > 1" color="secondary">Previous</v-btn>
-        <v-btn @click.prevent="newUpload.step += 1" v-if="newUpload.step < 3" color="primary">Next</v-btn>
-        <v-btn type="submit" v-if="newUpload.step === 3" color="primary" class="submit-button">Submit</v-btn>
+        <v-btn @click.prevent="newUpload.step += 1" v-if="newUpload.step < 2" color="primary">Next</v-btn>
+        <v-btn type="submit" v-if="newUpload.step === 2" color="primary" class="submit-button">Submit</v-btn>
       </v-card-actions>
     </template>
   </ac-form-dialog>

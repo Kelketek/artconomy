@@ -86,7 +86,7 @@ describe('AcNewSubmission.vue', () => {
     await vm.$nextTick()
     mockAxios.reset()
     const form = vm.$getForm('newUpload')
-    form.step = 3
+    form.step = 2
     await vm.$nextTick()
     wrapper.find('.submit-button').trigger('click')
     expect(mockAxios.post).toHaveBeenCalled()

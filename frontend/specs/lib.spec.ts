@@ -214,16 +214,16 @@ describe('Enumerators', () => {
     expect(newUploadSchema(handler.user)).toEqual({
       endpoint: `/api/profiles/v1/account/person/submissions/`,
       fields: {
-        title: {value: ''},
-        caption: {value: ''},
-        private: {value: false},
-        comments_disabled: {value: false},
-        rating: {value: 0, step: 2},
-        file: {value: '', step: 3},
-        preview: {value: '', step: 3},
-        tags: {value: [], step: 2},
-        characters: {value: [], step: 2},
-        artists: {value: [], step: 2},
+        title: {value: '', step: 2},
+        caption: {value: '', step: 2},
+        private: {value: false, step: 2},
+        comments_disabled: {value: false, step: 2},
+        rating: {value: 0, step: 1},
+        file: {value: '', step: 1},
+        preview: {value: '', step: 1},
+        tags: {value: [], step: 1},
+        characters: {value: [], step: 1},
+        artists: {value: [], step: 1},
       },
     })
   })
