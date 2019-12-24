@@ -98,6 +98,11 @@
                     </v-col>
                   </v-row>
                   <v-row>
+                    <v-col cols="12">
+                      <v-alert type="info" :value="true">
+                        Once your order is placed, the artist will review your request, make any adjustments to the quote as needed, and present them for your approval and payment.
+                      </v-alert>
+                    </v-col>
                     <v-col class="text-center" cols="12" >
                       <v-btn color="primary" type="submit">Place Order</v-btn>
                     </v-col>
