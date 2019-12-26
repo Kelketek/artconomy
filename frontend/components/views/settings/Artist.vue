@@ -146,7 +146,7 @@ export default class Options extends mixins(Viewer, Subjective, Alerts) {
       this.artistProfile.get().then()
       this.maxLoad = this.$makePatcher({modelProp: 'artistProfile', debounceRate: 200, attrName: 'max_load'})
       this.autoWithdraw = this.$makePatcher({modelProp: 'artistProfile', attrName: 'auto_withdraw'})
-      this.commissionsClosed = this.$makePatcher({modelProp: 'artistProfile', attrName: 'max_rating'})
+      this.commissionsClosed = this.$makePatcher({modelProp: 'artistProfile', attrName: 'commissions_closed'})
       this.maxRating = this.$makePatcher({modelProp: 'artistProfile', attrName: 'max_rating'})
       this.commissionInfo = this.$makePatcher(
         {modelProp: 'artistProfile', attrName: 'commission_info', debounceRate: 1000}
