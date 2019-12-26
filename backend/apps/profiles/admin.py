@@ -1,11 +1,6 @@
 from custom_user.admin import EmailUserAdmin
 from django.contrib import admin
 
-# Register your models here.
-# from django.contrib.auth.admin import UserAdmin
-#
-# from apps.profiles.models import User
-#
 from django.contrib.admin import ModelAdmin
 
 from apps.profiles.models import User, Submission, RefColor, ArtistProfile
@@ -19,11 +14,11 @@ class ArtconomyUserAdmin(EmailUserAdmin):
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
         ('Premium Info', {'fields': (
             'landscape_enabled', 'landscape_paid_through', 'portrait_enabled', 'portrait_paid_through',
-            'registration_code'
+            'registration_code', 'trust_level',
         )})
     )
     list_display = ('username', 'email', 'is_staff', 'is_superuser')
-    list_filter = ['guest', 'artist_mode']
+    list_filter = ['guest', 'artist_mode', 'trust_level']
 
 
 class SubmissionAdmin(ModelAdmin):

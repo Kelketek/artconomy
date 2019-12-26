@@ -37,7 +37,7 @@ from apps.lib.models import DISPUTE, REFUND, COMMENT, Subscription, ORDER_UPDATE
 from apps.lib.permissions import IsStaff, IsSafeMethod, Any, All, IsMethod
 from apps.lib.utils import notify, recall_notification, demark, preview_rating, send_transaction_email
 from apps.lib.views import BasePreview
-from apps.profiles.models import User, Submission, HAS_US_ACCOUNT, NO_US_ACCOUNT
+from apps.profiles.models import User, Submission, HAS_US_ACCOUNT, NO_US_ACCOUNT, VERIFIED
 from apps.profiles.permissions import ObjectControls, UserControls, IsUser, IsSuperuser, IsRegistered
 from apps.profiles.serializers import UserSerializer, SubmissionSerializer
 from apps.profiles.utils import credit_referral, create_guest_user, empty_user
@@ -62,7 +62,7 @@ from apps.sales.serializers import (
     AccountQuerySerializer, OrderCharacterTagSerializer, SubmissionFromOrderSerializer, OrderAuthSerializer)
 from apps.sales.utils import available_products, service_price, set_service, \
     check_charge_required, available_products_by_load, finalize_order, account_balance, split_fee, \
-    recuperate_fee, ALL, POSTED_ONLY, PENDING, transfer_order
+    recuperate_fee, ALL, POSTED_ONLY, PENDING, transfer_order, early_finalize
 from apps.sales.tasks import renew
 
 
@@ -390,12 +390,13 @@ class OrderRevisions(ListCreateAPIView):
         if order.status == Order.QUEUED:
             order.status = Order.IN_PROGRESS
         if serializer.validated_data.get('final'):
+            order.final_uploaded = True
             if order.escrow_disabled:
                 order.status = Order.COMPLETED
             elif order.status == Order.IN_PROGRESS:
                 order.status = Order.REVIEW
                 order.auto_finalize_on = (timezone.now() + relativedelta(days=5)).date()
-            order.final_uploaded = True
+                early_finalize(order, self.request.user)
             order.save()
             notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
         else:
@@ -499,12 +500,13 @@ class MarkComplete(GenericAPIView):
             order.save()
             serializer = self.get_serializer(instance=order)
             return Response(status=status.HTTP_200_OK, data=serializer.data)
+        order.final_uploaded = True
         if order.escrow_disabled:
             order.status = Order.COMPLETED
         else:
             order.status = Order.REVIEW
             order.auto_finalize_on = (timezone.now() + relativedelta(days=2)).date()
-        order.final_uploaded = True
+            early_finalize(order, self.request.user)
         order.save()
         notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
         serializer = self.get_serializer(instance=order)
@@ -1023,6 +1025,7 @@ class MakePayment(PaymentMixin, GenericAPIView):
         if order.final_uploaded:
             order.status = Order.REVIEW
             order.auto_finalize_on = (timezone.now() + relativedelta(days=2)).date()
+            early_finalize(order, self.request.user)
         elif order.revision_set.all().exists():
             order.status = Order.IN_PROGRESS
         else:

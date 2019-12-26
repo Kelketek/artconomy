@@ -16,7 +16,7 @@ from apps.lib.models import DISPUTE, Comment, Subscription, SALE_UPDATE, Notific
     REFERRAL_LANDSCAPE_CREDIT
 from apps.lib.test_resources import APITestCase, PermissionsTestCase, MethodAccessMixin, SignalsDisabledMixin
 from apps.lib.tests.factories import TagFactory, AssetFactory
-from apps.profiles.models import User, HAS_US_ACCOUNT, NO_US_ACCOUNT, UNSET
+from apps.profiles.models import User, HAS_US_ACCOUNT, NO_US_ACCOUNT, UNSET, VERIFIED
 from apps.profiles.tests.factories import CharacterFactory, UserFactory, SubmissionFactory
 from apps.profiles.utils import create_guest_user
 from apps.sales.authorize import AuthorizeException, CardInfo, AddressInfo
@@ -1272,6 +1272,24 @@ class TestOrder(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         order.refresh_from_db()
         self.assertEqual(order.status, Order.REVIEW)
+        self.assertEqual(order.auto_finalize_on, date(2012, 8, 3))
+        self.assertTrue(order.final_uploaded)
+
+    @freeze_time('2012-08-01 12:00:00')
+    @patch('apps.sales.utils.finalize_order')
+    def test_order_mark_complete_trusted_finalize(self, mock_finalize):
+        user = UserFactory.create(landscape_paid_through=timezone.now() + relativedelta(months=1), trust_level=VERIFIED)
+        self.login(user)
+        order = OrderFactory.create(seller=user, status=Order.IN_PROGRESS, revisions=1)
+        RevisionFactory.create(order=order)
+        order.refresh_from_db()
+        self.assertEqual(order.status, Order.IN_PROGRESS)
+        response = self.client.post(
+            '/api/sales/v1/order/{}/complete/'.format(order.id)
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        order.refresh_from_db()
+        self.assertTrue(order.trust_finalized)
         self.assertEqual(order.auto_finalize_on, date(2012, 8, 3))
         self.assertTrue(order.final_uploaded)
 

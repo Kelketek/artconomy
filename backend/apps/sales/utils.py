@@ -13,7 +13,7 @@ from moneyed import Money
 from apps.lib.models import Subscription, COMMISSIONS_OPEN, Event, DISPUTE, SALE_UPDATE, Notification, \
     Comment
 from apps.lib.utils import notify, recall_notification
-from apps.profiles.models import User
+from apps.profiles.models import User, VERIFIED
 
 logger = logging.getLogger(__name__)
 
@@ -209,6 +209,16 @@ def update_availability(seller, load, current_closed_status):
     finally:
         del UPDATING[seller]
 
+
+def early_finalize(order, user: User):
+    if (
+            order.final_uploaded
+            and order.seller.landscape
+            and order.seller.trust_level == VERIFIED
+            and not order.escrow_disabled
+    ):
+        order.trust_finalized = True
+        finalize_order(order, user)
 
 def finalize_order(order, user=None):
     from apps.sales.models import TransactionRecord

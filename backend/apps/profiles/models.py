@@ -88,6 +88,14 @@ BANK_STATUS_CHOICES = (
     (NO_US_ACCOUNT, "No US Bank account")
 )
 
+NORMAL = 0
+VERIFIED = 1
+
+TRUST_LEVELS = (
+    (NORMAL, 'Normal'),
+    (VERIFIED, 'Verified'),
+)
+
 
 class User(AbstractEmailUser, HitsMixin):
     """
@@ -121,6 +129,7 @@ class User(AbstractEmailUser, HitsMixin):
     tg_chat_id = CharField(db_index=True, default='', max_length=30)
     guest_email = EmailField(db_index=True, default='', blank=True)
     avatar_url = URLField(blank=True)
+    trust_level = IntegerField(choices=TRUST_LEVELS, default=NORMAL, db_index=True)
     rating = IntegerField(
         choices=RATINGS, db_index=True, default=GENERAL,
         help_text="Shows the maximum rating to display. By setting this to anything other than general, you certify "

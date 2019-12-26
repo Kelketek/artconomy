@@ -391,6 +391,10 @@
                 <v-col class="text-center" v-if="is(COMPLETED)" cols="12" >
                   <p>This order has been completed! <strong>Thank you for using Artconomy!</strong></p>
                 </v-col>
+                <v-col class="text-center" v-if="is(COMPLETED) && disputeWindow && isBuyer" cols="12">
+                  <v-alert :value="true" type="info">If there is an issue with this order, please <a href="#" @click.prevent="setSupport(true)">contact support</a>
+                    on or before {{formatDateTerse(order.x.auto_finalize_on)}}.</v-alert>
+                </v-col>
                 <v-col class="text-center" v-if="is(REFUNDED)" cols="12" >
                   <p>This order has been refunded and is now archived.</p>
                 </v-col>
@@ -811,6 +815,10 @@ export default class OrderDetail extends mixins(Viewer, Formatting, Ratings) {
   public get deliveryDate() {
     // @ts-ignore
     return (moment() as Moment).businessAdd(Math.ceil(this.expectedTurnaround))
+  }
+
+  public get disputeWindow() {
+    return true
   }
 
   public get escrow() {

@@ -11,17 +11,21 @@
     </v-container>
     <v-container class="pa-0" v-else-if="controller.failed">
       <slot name="failure">
-        <v-row no-gutters class="failure-prompt" justify="center" align-content="center" align="center">
-          <v-col class="text-center shrink" align-self="center" >
+        <v-row class="failure-prompt" justify="center" align-content="center" align="center">
+          <v-col class="text-center shrink" align-self="center" cols="12">
             <slot name="failure-header">
               <p>
                 <slot name="error-text">Whoops! We had an issue grabbing the information that goes here.</slot>
               </p>
             </slot>
+          </v-col>
+          <v-col cols="12" align-self="center" class="shrink text-center">
             <v-btn @click="controller.retryGet" color="primary" class="retry-button">
               <v-icon left>refresh</v-icon>
               Retry
             </v-btn>
+          </v-col>
+          <v-col cols="12" align-self="center" class="shrink text-center">
             <v-btn color="orange" @click="showSupport" class="support-button">
               <v-icon left>contact_support</v-icon>
               Contact Support

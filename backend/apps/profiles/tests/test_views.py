@@ -382,7 +382,7 @@ class TestSubmission(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         submission = Submission.objects.get(id=response.data['id'])
         self.assertEqual(submission.artists.all().first(), artist)
-        self.assertSequenceEqual(list(unrelated_submission.artists.all()), [artist, artist2])
+        self.assertCountEqual(list(unrelated_submission.artists.all()), [artist, artist2])
         self.assertEqual(response.data['title'], 'This is a test')
         self.assertEqual(response.data['rating'], MATURE)
         self.assertTrue(response.data['file'])

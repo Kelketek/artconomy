@@ -275,6 +275,26 @@
       </v-expansion-panel-content>
     </v-expansion-panel>
     <v-expansion-panel>
+      <v-expansion-panel-header>What is a 'trusted artist' and how does it affect payouts?</v-expansion-panel-header>
+      <v-expansion-panel-content>
+        <p>While many artists are just starting out and Shield's normal workflow is a great way to establish trust, established
+          artists may need payouts to be delivered in a faster, more predictable manner.</p>
+        <p>At the end of a normal Shield-protected transaction, the commissioner is given up to five days to either
+          approve the final piece or file a dispute. While most will push one of these buttons within a day or two,
+          the fact that the extra step is required and that it may be forgotten can make payouts take longer.</p>
+        <p>However, in order to make sure it is always possible and safe to refund, the funds have to wait for finalization one way or the other. What can be done?</p>
+        <p><strong>Enter: Artconomy Trusted Artists</strong></p>
+        <p>Trusted Artists are verified by Artconomy Staff to consistently deliver on their promises.
+          Orders from these artists finalize immediately-- and the bank transfers begin as soon as possible. However,
+          commissioners are still protected by Shield's guarentee-- if there's a problem with the order which is covered
+          by Shield protection, customers can <a href="#" @click.prevent="setSupport(true)">contact support</a>, and, if
+          necessary, a refund will be issued. Artists under the trusted program are expected to work with Artconomy
+          staff for reimbursement in the case that a customer must be refunded.</p>
+        <p>The Trusted Artist program is available to Landscape subscribers.
+          <a href="#" @click.prevent="setSupport(true)">Contact support</a> to get verified as a Trusted artist!</p>
+      </v-expansion-panel-content>
+    </v-expansion-panel>
+    <v-expansion-panel>
       <v-expansion-panel-header>
         <strong>What are Artconomy Portrait and Landscape?</strong>
       </v-expansion-panel-header>
@@ -302,6 +322,8 @@
               When using landscape, artists receive an additional bonus of
               <strong>{{bonusPercentage}}% + ${{pricing.x.premium_static_bonus}}!</strong>
             </p>
+            <p>Premium users will also have access to new features early, allowing them to help shape and define
+              features that improve the site.</p>
             <router-link v-if="isRegistered" :to="{name: 'Upgrade'}">Click this link for more details!
             </router-link>
             <p v-else>Click the Upgrade link in the sidebar after you're logged in to upgrade your account!</p>
@@ -728,7 +750,7 @@ import QuestionSet from '@/components/views/faq/mixins/question-set'
 import {FormController} from '@/store/forms/form-controller'
 
 const buySell = [
-  'how-to-buy', 'how-to-sell', 'shield', 'disputes', 'portrait-and-landscape',
+  'how-to-buy', 'how-to-sell', 'shield', 'disputes', 'trusted_artists', 'portrait-and-landscape',
   'bank-accounts',
   'awoo-workload-management', 'outside-orders',
   'why-commissions-disabled',
