@@ -69,8 +69,14 @@
                           </v-list-item>
                           <v-divider/>
                           <v-list-item>
-                            <v-list-item-content>
+                            <v-list-item-content class="item-flatten">
                               Get <strong>Bonus Cash</strong> for every Shield-protected commission you complete!
+                            </v-list-item-content>
+                          </v-list-item>
+                          <v-divider/>
+                          <v-list-item>
+                            <v-list-item-content class="item-flatten">
+                              Be eligible for quicker payouts with the <router-link :to="{name: 'BuyAndSell', params: {question: 'trusted-artists'}}">Trusted Artist</router-link> program!
                             </v-list-item-content>
                           </v-list-item>
                           <v-divider/>
@@ -220,5 +226,8 @@ export default class Upgrade extends mixins(Viewer) {
 
   .service-container {
     padding-bottom: 75px;
+  }
+  .item-flatten {
+    display: unset;
   }
 </style>

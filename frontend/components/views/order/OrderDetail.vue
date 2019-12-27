@@ -818,7 +818,12 @@ export default class OrderDetail extends mixins(Viewer, Formatting, Ratings) {
   }
 
   public get disputeWindow() {
-    return true
+    /* istanbul ignore if */
+    if (!this.order.x) {
+      return false
+    }
+    // @ts-ignore
+    return (moment(this.order.x.auto_finalize_on) as Moment) >= (moment() as Moment)
   }
 
   public get escrow() {

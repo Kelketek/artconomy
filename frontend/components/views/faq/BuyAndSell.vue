@@ -275,7 +275,7 @@
       </v-expansion-panel-content>
     </v-expansion-panel>
     <v-expansion-panel>
-      <v-expansion-panel-header>What is a 'trusted artist' and how does it affect payouts?</v-expansion-panel-header>
+      <v-expansion-panel-header><strong>What is a 'trusted artist' and how does it affect payouts?</strong></v-expansion-panel-header>
       <v-expansion-panel-content>
         <p>While many artists are just starting out and Shield's normal workflow is a great way to establish trust, established
           artists may need payouts to be delivered in a faster, more predictable manner.</p>
@@ -750,7 +750,7 @@ import QuestionSet from '@/components/views/faq/mixins/question-set'
 import {FormController} from '@/store/forms/form-controller'
 
 const buySell = [
-  'how-to-buy', 'how-to-sell', 'shield', 'disputes', 'trusted_artists', 'portrait-and-landscape',
+  'how-to-buy', 'how-to-sell', 'shield', 'disputes', 'trusted-artists', 'portrait-and-landscape',
   'bank-accounts',
   'awoo-workload-management', 'outside-orders',
   'why-commissions-disabled',
