@@ -22,6 +22,9 @@
                 <v-col cols="12">
                   <ac-asset :asset="order.x.display" thumb-name="thumbnail" />
                 </v-col>
+                <v-col cols="12">
+                  Placed on: {{formatDateTime(order.x.created_on)}}
+                </v-col>
                 <v-col class="py-2 subheading" v-if="is(NEW)">
                   Base Price: ${{product.price.toFixed(2)}}
                 </v-col>
