@@ -17,6 +17,7 @@
   "dependencies": {
     "@sentry/browser": "^5.10.2",
     "@sentry/integrations": "^5.10.2",
+    "@sentry/webpack-plugin": "^1.9.3",
     "@types/lodash": "^4.14.149",
     "@types/markdown-it": "0.0.7",
     "@types/moment-timezone": "^0.5.12",
@@ -59,7 +60,6 @@
   },
   "devDependencies": {
     "@mdi/js": "^4.7.95",
-    "@sentry/webpack-plugin": "^1.9.3",
     "@types/jest": "^24.0.24",
     "@types/vue-the-mask": "^0.11.0",
     "@vue/cli-plugin-babel": "^4.1.1",
