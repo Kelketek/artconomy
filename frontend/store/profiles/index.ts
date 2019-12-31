@@ -1,4 +1,5 @@
 import Vue from 'vue'
+import * as Sentry from '@sentry/browser'
 import {ActionTree, GetterTree, Module, MutationTree} from 'vuex'
 import {State as RootState} from '../state'
 import {UserStoreState} from './types/UserStoreState'

@@ -54,6 +54,9 @@
 - name: Copy deployment key
   copy: src="keys/{{ env_prefix }}/.ssh" dest="{{ home }}/" owner="{{ env_prefix }}" mode=0600 directory_mode=0700 force=yes
 
+- name: Copy Sentry settings
+  copy: src="keys/{{ env_prefix }}/.sentryclirc" dest="{{ home }}/" owner="{{ env_prefix }}" mode=0600 directory_mode=0700 force=yes
+
 - name: Clone source
   become: yes
   become_user: "{{ env_prefix }}"
