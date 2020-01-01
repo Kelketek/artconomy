@@ -58,7 +58,7 @@ SECRET_KEY = get_env('DJANGO_SECRET_KEY', UNSET)
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = bool(int(get_env('DEBUG', 1)))
 
-ALLOWED_HOSTS = get_env('ALLOWED_HOSTS', ['artconomy.vulpinity.com', 'localhost'], unpack=True)
+ALLOWED_HOSTS = get_env('ALLOWED_HOSTS', ['artconomy.vulpinity.com', 'localhost', '775e24e0.ngrok.io'], unpack=True)
 
 # Application definition
 

@@ -1384,7 +1384,7 @@ class ProductPreview(BasePreview):
         product = get_object_or_404(Product, id=product_id, active=True, hidden=False)
         return {
             'title': demark(product.name),
-            'description': demark(product.description),
+            'description': product.preview_description,
             'image_link': preview_rating(self.request, product.rating, product.preview_link)
         }
 

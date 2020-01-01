@@ -252,4 +252,27 @@ describe('ProductDetail.vue', () => {
     await vm.$nextTick()
     expect(vm.escrowDisabled).toBe(false)
   })
+  it('Handles meta content', async() => {
+    const data = prepData()
+    wrapper = mount(ProductDetail, {
+      localVue,
+      router,
+      store,
+      vuetify,
+      sync: false,
+      attachToDocument: true,
+      propsData: {username: 'Fox', productId: 1},
+      stubs: ['ac-sample-editor', 'v-carousel', 'v-carousel-item'],
+    })
+    const vm = wrapper.vm as any
+    await vm.$nextTick()
+    let description = document.querySelector('meta[name="description"]')
+    expect(description).toBeTruthy()
+    expect(description!.textContent).toBe('[Starts at $10.00] - This is a test product')
+    data.productSingle.updateX({price: 0})
+    await vm.$nextTick()
+    description = document.querySelector('meta[name="description"]')
+    expect(description).toBeTruthy()
+    expect(description!.textContent).toBe('[Starts at FREE] - This is a test product')
+  })
 })

@@ -1,6 +1,7 @@
 from decimal import Decimal
 from unittest.mock import patch, Mock
 
+from ddt import ddt, unpack, data
 from django.test import TestCase
 from moneyed import Money
 
@@ -28,6 +29,14 @@ class TestPromo(TestCase):
         self.assertEqual(str(promo), 'WAT')
 
 
+DESCRIPTION_VALUES = (
+    {'price': Decimal('5.00'), 'prefix': '[Starts at $5.00] - '},
+    {'price': Decimal('0'), 'prefix': '[Starts at FREE] - '},
+    {'price': Decimal('1.1'), 'prefix': '[Starts at $1.10] - '},
+)
+
+
+@ddt
 class TestProduct(TestCase):
     def test_can_reference(self):
         user = UserFactory.create()
@@ -53,6 +62,13 @@ class TestProduct(TestCase):
         product = ProductFactory.create(user=request.user, primary_submission=SubmissionFactory.create())
         data = product.notification_display(context)
         self.assertEqual(data['id'], product.primary_submission.id)
+
+    @unpack
+    @data(*DESCRIPTION_VALUES)
+    def test_preview_description(self, price: Decimal, prefix: str):
+        product = ProductFactory.create(price=price, description='Test **Test** *Test*')
+        self.assertTrue(product.preview_description.startswith(prefix))
+        self.assertTrue(product.preview_description.endswith('Test Test Test'))
 
 
 class TestTransactionRecord(TestCase):

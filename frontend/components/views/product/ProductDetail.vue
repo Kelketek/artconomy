@@ -413,13 +413,20 @@ export default class ProductDetail extends mixins(ProductCentric, Formatting, Ed
       return {name: 'Submission', params: {submissionId: this.shown.id + ''}}
     }
 
-    @Watch('product.x')
+    @Watch('product.x', {deep: true})
     public updateMeta(product: Product|null) {
       if (!product) {
         return
       }
       updateTitle(`${product.name} by ${product.user.username} -- Artconomy`)
-      setMetaContent('description', textualize(product.description).slice(0, 160))
+      let prefix: string
+      if (product.price) {
+        prefix = `[Starts at $${product.price.toFixed(2)}] - `
+      } else {
+        prefix = `[Starts at FREE] - `
+      }
+      let description = textualize(product.description).slice(0, 160 - prefix.length)
+      setMetaContent('description', prefix + description)
     }
 
     @Watch('product.x.primary_submission')

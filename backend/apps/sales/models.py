@@ -28,8 +28,8 @@ from apps.lib.models import Comment, Subscription, SALE_UPDATE, ORDER_UPDATE, RE
 from apps.lib.abstract_models import ImageModel, thumbnail_hook, HitsMixin, RATINGS, GENERAL
 from apps.lib.utils import (
     clear_events, recall_notification, require_lock,
-    send_transaction_email
-)
+    send_transaction_email,
+    demark)
 from apps.profiles.models import User, ArtistProfile
 from apps.sales.authorize import create_customer_profile, create_card, AddressInfo, CardInfo, translate_authnet_error, \
     refund_transaction
@@ -89,6 +89,11 @@ class Product(ImageModel, HitsMixin):
 
     def can_reference_asset(self, user):
         return user == self.user
+
+    @property
+    def preview_description(self):
+        price = f'[Starts at {self.price or "FREE"}] - '
+        return price + demark(self.description)
 
     def proto_delete(self, *args, **kwargs):
         if self.order_set.all().count():
