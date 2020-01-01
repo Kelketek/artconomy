@@ -668,7 +668,7 @@ class TwoFactorTimerSerializer(serializers.ModelSerializer):
 
 
 class TelegramDeviceSerializer(serializers.ModelSerializer):
-    code = serializers.IntegerField(required=False, write_only=True)
+    code = serializers.CharField(required=False, write_only=True)
 
     def update(self, instance, validated_data, **kwargs):
         data = dict(**validated_data)
@@ -693,6 +693,7 @@ class TelegramDeviceSerializer(serializers.ModelSerializer):
         read_only_fields = (
             'id', 'confirmed'
         )
+
 
 
 class ReferralStatsSerializer(serializers.ModelSerializer):
