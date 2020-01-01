@@ -3,7 +3,7 @@
   <v-app dark>
     <nav-bar/>
     <v-content class="main-content">
-      <ac-error></ac-error>
+      <ac-error/>
       <router-view v-if="displayRoute" :key="routeKey"/>
       <ac-form-dialog
           :value="$store.state.showSupport"
@@ -23,14 +23,14 @@
                 placeholder="test@example.com"
                 v-bind="supportForm.fields.email.bind"
                 v-on="supportForm.fields.email.on"
-            ></v-text-field>
+            />
           </v-col>
           <v-col cols="12">
             <v-textarea
                 label="How can we help?"
                 v-bind="supportForm.fields.body.bind"
                 v-on="supportForm.fields.body.on"
-            ></v-textarea>
+            />
           </v-col>
         </v-row>
       </ac-form-dialog>
@@ -45,10 +45,10 @@
             responded to on the same day they are received.
           </v-card-text>
 
-          <v-divider></v-divider>
+          <v-divider />
 
           <v-card-actions>
-            <v-spacer></v-spacer>
+            <v-spacer />
             <v-btn
                 color="primary"
                 text
@@ -235,5 +235,11 @@ export default class App extends mixins(Viewer, Nav) {
 <style scoped>
   a {
     text-decoration: none;
+  }
+</style>
+
+<style>
+  body {
+    background-color: rgb(48, 48, 48)
   }
 </style>

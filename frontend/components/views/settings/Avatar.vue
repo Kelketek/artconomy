@@ -1,6 +1,6 @@
 <template>
-  <v-row no-gutters class="pt-4"   id="avatar-settings">
-    <v-col class="d-flex text-center" cols="12" sm="3" lg="3" offset-sm="2" offset-lg="3">
+  <v-row id="avatar-settings">
+    <v-col class="text-center" cols="12" sm="3" lg="3" offset-sm="2" offset-lg="3" align-self="center">
       <v-card>
         <v-card-text>
           <v-subheader>Current Avatar</v-subheader>
@@ -10,12 +10,12 @@
         </v-card-text>
       </v-card>
     </v-col>
-    <v-col class="d-flex" cols="12" sm="6" lg="3">
+    <v-col cols="12" sm="6" lg="3">
       <ac-uppy-file
           :endpoint="url"
           :success="subjectHandler.updateX"
           label="Upload a new Avatar"
-      ></ac-uppy-file>
+      />
     </v-col>
   </v-row>
 </template>
