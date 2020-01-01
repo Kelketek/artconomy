@@ -1,7 +1,7 @@
 <template>
   <v-container fluid class="pa-0">
     <ac-paginated :list="list" :track-pages="true" :auto-run="false">
-      <v-col class="pa-1" sm="6" md="4" lg="3" xl="2" v-for="product in list.list" :key="product.x.id">
+      <v-col class="pa-1" cols="6" md="4" lg="3" xl="2" v-for="product in list.list" :key="product.x.id">
         <ac-product-preview :product="product.x" />
       </v-col>
       <v-col class="text-center" slot="empty">
