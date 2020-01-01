@@ -244,6 +244,28 @@ describe('AcAsset.vue', () => {
       'https://example.com/thing.svg'
     )
   })
+  it('Handles the special case of a GIF', async() => {
+    const viewer = genUser()
+    const submission = genSubmission()
+    submission.file = {
+      full: 'https://example.com/thing.gif',
+      gallery: 'https://example.com/thumb.gif',
+      __type__: 'data:image',
+    }
+    setViewer(store, viewer)
+    wrapper = mount(AcAsset, {
+      store,
+      localVue,
+      vuetify,
+      stubs: ['router-link'],
+      propsData: {asset: submission, thumbName: 'gallery'}},
+    )
+    await wrapper.vm.$nextTick()
+    const vm = wrapper.vm as any
+    expect(vm.$refs.imgContainer.src).toBe(
+      'https://example.com/thing.gif'
+    )
+  })
   it('Fetches asset tags', async() => {
     const viewer = genUser()
     const submission = genSubmission()

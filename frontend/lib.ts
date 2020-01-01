@@ -693,6 +693,9 @@ export function searchSchema() {
 }
 
 export function thumbFromSpec(thumbName: string, spec: FileSpec) {
+  if ((['gallery', 'full', 'preview'].indexOf(thumbName) !== -1) && getExt(spec.full) === 'GIF') {
+    return spec.full
+  }
   if (spec[thumbName]) {
     return spec[thumbName]
   }
