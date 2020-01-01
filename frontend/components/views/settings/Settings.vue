@@ -7,27 +7,28 @@
           v-model="drawer"
           right
           absolute
+          width="300"
       >
         <v-list>
-          <ac-setting-nav :username="username"></ac-setting-nav>
+          <ac-setting-nav :username="username" />
         </v-list>
       </v-navigation-drawer>
       <v-container>
         <v-toolbar v-if="!isCurrent" color="red">
-          <v-toolbar-title>Settings for {{username}}</v-toolbar-title><v-spacer></v-spacer>
-          <ac-avatar :username="username" :show-name="false"></ac-avatar>
+          <v-toolbar-title>Settings for {{username}}</v-toolbar-title><v-spacer />
+          <ac-avatar :username="username" :show-name="false" />
         </v-toolbar>
         <v-toolbar color="secondary">
           <v-toolbar-title>{{$route.name}}</v-toolbar-title>
-          <v-spacer></v-spacer>
+          <v-spacer />
           <v-toolbar-items>
             <v-btn color="primary" id="more-settings-button" @click="drawer=true">More Settings...</v-btn>
           </v-toolbar-items>
         </v-toolbar>
-        <router-view></router-view>
+        <router-view />
       </v-container>
     </v-col>
-    <ac-loading-spinner v-else></ac-loading-spinner>
+    <ac-loading-spinner v-else />
   </v-row>
 </template>
 

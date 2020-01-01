@@ -65,11 +65,11 @@
             :patcher="sfwMode"
             :save-indicator="false"
             label="SFW Mode"
-        ></ac-patch-field>
+        />
       </v-list-item>
     </v-list>
     <v-list v-if="isLoggedIn && subject.artist_mode">
-      <v-divider></v-divider>
+      <v-divider/>
       <v-list-item :to="{name: 'Store', params: {username: subject.username}}">
         <v-list-item-action>
           <v-icon>storefront</v-icon>
@@ -82,7 +82,7 @@
         </v-list-item-action>
         <v-list-item-title>Sales</v-list-item-title>
       </v-list-item>
-      <v-divider></v-divider>
+      <v-divider />
     </v-list>
     <v-list v-if="isStaff">
       <v-list-item :to="{name: 'Reports'}" v-if="isSuperuser">
@@ -98,21 +98,12 @@
         <v-list-item-title>Cases</v-list-item-title>
       </v-list-item>
     </v-list>
-    <v-list-group :to="{name: 'Options', params: {'username': subject.username}}" v-if="isRegistered">
-      <v-list-item slot="activator">
-        <v-list-item-action>
-          <v-icon>settings</v-icon>
-        </v-list-item-action>
+    <v-list-group :to="{name: 'Options', params: {'username': subject.username}}" v-if="isRegistered" prepend-icon="settings">
+      <template v-slot:activator>
         <v-list-item-title>Settings</v-list-item-title>
-      </v-list-item>
-      <ac-setting-nav :username="subject.username"></ac-setting-nav>
+      </template>
+      <ac-setting-nav :username="subject.username" :nested="true" />
     </v-list-group>
-    <!--        <v-list-item :to="{name: 'Upgrade'}" v-if="!landscape && isLoggedIn">-->
-    <!--          <v-list-item-action>-->
-    <!--            <v-icon>arrow_upward</v-icon>-->
-    <!--          </v-list-item-action>-->
-    <!--          <v-list-item-title>Upgrade!</v-list-item-title>-->
-    <!--        </v-list-item>-->
     <v-list-item :to="{name: 'About'}" v-if="!embedded">
       <v-list-item-action>
         <v-icon>question_answer</v-icon>

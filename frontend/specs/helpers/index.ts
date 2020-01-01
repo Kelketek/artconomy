@@ -194,6 +194,7 @@ export function cleanUp(wrapper?: Wrapper<Vue>) {
   formRegistry.reset()
   characterRegistry.reset()
   mockAxios.reset()
+  jest.clearAllTimers()
 }
 
 export function setPricing(store: ArtStore, localVue: VueConstructor<Vue>) {
