@@ -715,7 +715,6 @@ class CharacterListField(RelatedSetMixin, serializers.ListSerializer):
         super().run_validation(data=data)
         if data is empty:
             return empty
-        data.append(self.context.get('request').user.id)
         data = list(set(data))
         qs = available_chars(self.context.get('request').user, tagging=self.tag_check).filter(id__in=data)
         data = qs.values_list('id', flat=True)
