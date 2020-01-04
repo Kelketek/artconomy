@@ -19,12 +19,14 @@ module.exports = {
     config.plugins.push(new webpack.DefinePlugin({
       __COMMIT_HASH__: JSON.stringify(commitHash),
     }))
-    config.plugins.push(new SentryWebpackPlugin({
-      include: '.',
-      ignoreFile: '.sentrycliignore',
-      ignore: ['node_modules', 'vue.config.js', 'jest.config.js', 'reports'],
-      configFile: 'sentry.properties',
-    }))
+    if (process.env.NODE_ENV === 'production') {
+      config.plugins.push(new SentryWebpackPlugin({
+        include: '.',
+        ignoreFile: '.sentrycliignore',
+        ignore: ['node_modules', 'vue.config.js', 'jest.config.js', 'reports'],
+        configFile: 'sentry.properties',
+      }))
+    }
     config.entry = {
       app: [
         './frontend/main.ts',

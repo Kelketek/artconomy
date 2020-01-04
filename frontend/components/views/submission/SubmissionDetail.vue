@@ -80,20 +80,18 @@
               </v-col>
               <v-col>
                 <ac-tag-display :patcher="submission.patchers.tags"
-                                :editable="submission.x.owner.taggable"
+                                :editable="tagControls"
                                 :username="submission.x.owner.username"
                                 scope="Submissions"
                 />
               </v-col>
               <v-col>
                 <ac-artist-display :controller="artists" :submission-id="submissionId"
-                                   :editable="submission.x.owner.taggable"
-                                   :controls="tagControls" />
+                                   :editable="tagControls" />
               </v-col>
               <v-col>
                 <ac-character-display :controller="characters" :submission-id="submissionId"
-                                      :editable="submission.x.owner.taggable"
-                                      :controls="tagControls" />
+                                      :editable="tagControls" />
               </v-col>
               <v-col class="pt-2">
                 <h3>You might also like...</h3>
@@ -359,7 +357,7 @@ export default class SubmissionDetail extends mixins(Viewer, Formatting, Editabl
 
     public get tagControls() {
       const submission = this.submission.x as Submission
-      return this.controls || submission.owner.taggable
+      return (this.controls || submission.owner.taggable) && this.isRegistered
     }
 
     public get commissionLink() {
