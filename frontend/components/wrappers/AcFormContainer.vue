@@ -6,15 +6,17 @@
           :size="70"
           :width="7"
           color="purple"
-      ></v-progress-circular>
+      />
     </div>
     <v-col :class="{'form-sending': sending}" cols="12">
       <slot/>
     </v-col>
     <template v-for="(error, index) in savedErrors">
-      <v-alert :value="true" type="error" :key="error" @input="(val) => {toggleError(val, index)}" dismissible>
-        {{error}}
-      </v-alert>
+      <v-col cols="12" :key="index">
+        <v-alert :value="true" type="error" :key="error" @input="(val) => {toggleError(val, index)}" dismissible>
+          {{error}}
+        </v-alert>
+      </v-col>
     </template>
   </v-row>
 </template>

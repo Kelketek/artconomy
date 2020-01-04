@@ -1,13 +1,13 @@
 <template>
   <ac-form-container :sending="fieldController.form.sending" :errors="fieldController.form.errors">
-    <v-row no-gutters  >
+    <v-row no-gutters>
       <slot name="preview" :item="item" v-for="item in listController.list">
         <v-col cols="12">{{item}}</v-col>
       </slot>
       <slot name="empty" v-if="listController.empty">
       </slot>
       <v-col cols="12">
-        <slot :filter="filter"></slot>
+        <slot :filter="filter" />
       </v-col>
     </v-row>
   </ac-form-container>
