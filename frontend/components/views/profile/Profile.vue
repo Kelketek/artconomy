@@ -1,9 +1,11 @@
 <template>
   <v-container>
     <ac-load-section :controller="subjectHandler.user">
-      <ac-profile-header :username="username"></ac-profile-header>
-      <ac-tab-nav :items="items"></ac-tab-nav>
-      <router-view class="pa-0" :class="{'pt-3': needsSpace}"></router-view>
+      <template v-slot:default>
+        <ac-profile-header :username="username" />
+        <ac-tab-nav :items="items" />
+        <router-view class="pa-0" :class="{'pt-3': needsSpace}" />
+      </template>
     </ac-load-section>
   </v-container>
 </template>
