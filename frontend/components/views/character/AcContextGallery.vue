@@ -3,29 +3,28 @@
     <v-card color="grey darken-4">
       <v-card-title><h2>Uploads</h2></v-card-title>
       <v-card-text>
-        <v-row no-gutters class="justify-content"   v-if="character.submissions.list.length && character.profile.ready"
-                                    align="center"
+        <v-row no-gutters v-if="character.submissions.list.length && character.profile.ready"
         >
-          <v-col :class="featuredClasses">
-            <v-col>
-              <v-col class="grow" >
+          <div :class="featuredClasses">
+            <v-col cols="12">
+              <v-col class="grow">
                 <ac-gallery-preview
                   :submission="featured"
                   thumb-name="gallery"
                   :contain="true"
                   :compact="true"
                   :aspect-ratio="null"
-              />
+                  :show-footer="$vuetify.breakpoint.lgAndUp"
+                />
               </v-col>
-              <v-col class="shrink text-center pt-2" v-if="more" >
+              <v-col class="shrink text-center pt-2" v-if="more && $vuetify.breakpoint.mdAndUp" >
                 <v-btn color="primary" :to="{name: 'CharacterGallery', params: {username, characterName}}">See all Uploads</v-btn>
               </v-col>
             </v-col>
-          </v-col>
-          <v-col cols="12" md="3" lg="2" offset-md="1">
-            <v-col class="d-flex">
-              <v-col class="shrink" v-for="(submission, index) in prunedSubmissions"
-                                            :class="{'pb-2': index !== prunedSubmissions.length}" :key="submission.x.id">
+          </div>
+          <v-col cols="12" md="4" lg="2" offset-md="1" align-self="center">
+            <v-row>
+              <v-col cols="6" lg="12" v-for="submission in prunedSubmissions" :key="submission.x.id">
                 <ac-gallery-preview
                   :submission="submission.x"
                   thumb-name="thumbnail"
@@ -33,9 +32,10 @@
                   :show-footer="false"
                 />
               </v-col>
-              <v-spacer></v-spacer>
-              <v-col></v-col>
-            </v-col>
+              <v-col cols="12" class="text-center pt-2" v-if="more && $vuetify.breakpoint.smAndDown" >
+                <v-btn color="primary" :to="{name: 'CharacterGallery', params: {username, characterName}}">See all Uploads</v-btn>
+              </v-col>
+            </v-row>
           </v-col>
         </v-row>
       </v-card-text>
@@ -52,7 +52,7 @@ import CharacterCentric from '@/components/views/character/mixins/CharacterCentr
 import Submission from '@/types/Submission'
 import {SingleController} from '@/store/singles/controller'
 
-  @Component({components: {AcLoadSection, AcGalleryPreview}})
+@Component({components: {AcLoadSection, AcGalleryPreview}})
 export default class AcContextGallery extends mixins(CharacterCentric) {
   public get featured() {
     const character = this.character.profile.x as Character
@@ -71,12 +71,13 @@ export default class AcContextGallery extends mixins(CharacterCentric) {
     return submissions.slice(0, 4)
   }
   public get featuredClasses() {
-    const single = this.character.submissions.list.length === 1
+    const single = this.prunedSubmissions.length === 0
     return {
       'pb-2': this.$vuetify.breakpoint.smAndDown,
-      xs12: true,
-      md3: !single,
-      lg9: !single,
+      'col-12': true,
+      'col-md-7': !single,
+      'col-lg-9': !single,
+      'align-self-center': true,
     }
   }
   public get more() {

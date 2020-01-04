@@ -86,8 +86,7 @@
                               v-show="editing"
                               :save-indicator="false"
                               :patcher="character.profile.patchers.open_requests"
-              >
-              </ac-patch-field>
+              />
               <v-col cols="12" v-if="character.profile.x.open_requests" v-show="!editing">
                 <h3><v-icon left color="green">check_circle</v-icon> Character can be used in other people's commissions</h3>
               </v-col>
