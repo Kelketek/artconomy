@@ -154,7 +154,9 @@ class OrderViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
                     self.fields[field_name].read_only = False
             # Should never be harmful. Helpful in many statuses.
             self.fields['stream_link'].read_only = False
-            if (not self.instance.buyer) or self.instance.buyer.guest:
+            if ((not self.instance.buyer) or self.instance.buyer.guest) and self.instance.status not in [
+                Order.DISPUTED, Order.COMPLETED, Order.REFUNDED, Order.CANCELLED
+            ]:
                 self.fields['customer_email'].read_only = False
                 if not self.instance.buyer:
                     self.fields['customer_email'].allow_blank = True
