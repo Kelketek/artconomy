@@ -3,6 +3,7 @@ from unittest.mock import patch, call, Mock
 from dateutil.relativedelta import relativedelta
 from ddt import data, unpack, ddt
 from django.contrib.contenttypes.models import ContentType
+from django.core import mail
 from django.test import override_settings, TestCase
 from django.utils import timezone
 from django.utils.datetime_safe import date
@@ -3663,3 +3664,39 @@ class TestOrderOutputs(APITestCase):
         })
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(order.outputs.all().count(), 1)
+
+
+class TestOrderInvite(APITestCase):
+    def test_order_invite_no_buyer(self):
+        order = OrderFactory.create(buyer=None, customer_email='test@example.com')
+        self.login(order.seller)
+        request = self.client.post(f'/api/sales/v1/order/{order.id}/invite/')
+        self.assertEqual(request.status_code, status.HTTP_200_OK)
+        self.assertEqual(mail.outbox[0].subject, f'You have a new invoice from {order.seller.username}!')
+        self.assertIn('This artist should', mail.outbox[0].body)
+
+    def test_order_invite_buyer_not_guest(self):
+        order = OrderFactory.create(customer_email='test@example.com')
+        self.login(order.seller)
+        request = self.client.post(f'/api/sales/v1/order/{order.id}/invite/')
+        self.assertEqual(request.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_order_invite_buyer_guest(self):
+        order = OrderFactory.create(
+            buyer__guest=True, buyer__guest_email='test@wat.com', customer_email='test@example.com',
+        )
+        self.login(order.seller)
+        request = self.client.post(f'/api/sales/v1/order/{order.id}/invite/')
+        self.assertEqual(request.status_code, status.HTTP_200_OK)
+        self.assertEqual(mail.outbox[0].subject, f'Claim Link for order #{order.id}.')
+        self.assertIn('resend your claim link', mail.outbox[0].body)
+        order.refresh_from_db()
+        self.assertEqual(order.buyer.guest_email, 'test@example.com')
+
+    def test_order_invite_email_not_set(self):
+        order = OrderFactory.create(buyer=None, customer_email='')
+        self.login(order.seller)
+        request = self.client.post(f'/api/sales/v1/order/{order.id}/invite/')
+        self.assertEqual(request.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(len(mail.outbox), 0)

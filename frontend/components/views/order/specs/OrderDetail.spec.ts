@@ -599,6 +599,7 @@ describe('OrderDetail.vue', () => {
     const vm = wrapper.vm as any
     const order = genOrder()
     order.buyer = null
+    order.seller = user
     order.customer_email = 'stuff@example.com'
     vm.order.setX(order)
     vm.order.fetching = false

@@ -84,7 +84,7 @@
                     </v-col>
                   </v-row>
                   <ac-rendered :value="order.x.details" />
-                  <v-col v-if="!buyer" cols="12">
+                  <v-col v-if="isSeller && (!buyer || buyer.guest)" cols="12">
                     <ac-form @submit.prevent="orderEmail.submitThen(markInviteSent)">
                     <ac-form-container v-bind="orderEmail.bind">
                       <v-row dense class="justify-content"  align-content="center">

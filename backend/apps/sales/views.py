@@ -182,6 +182,9 @@ class PlaceOrder(CreateAPIView):
         if not user.guest:
             for character in order.characters.all():
                 character.shared_with.add(order.seller)
+        else:
+            order.customer_email = user.guest_email
+            order.save()
         notify(SALE_UPDATE, order, unique=True, mark_unread=True)
         notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
         return order
@@ -216,15 +219,23 @@ class OrderInvite(GenericAPIView):
     def post(self, request, **kwargs):
         order = self.get_object()
         self.check_object_permissions(self.request, order)
-        if order.buyer:
+        if order.buyer and not order.buyer.guest:
             return Response(data={'detail': 'This order has already been claimed.'}, status=status.HTTP_400_BAD_REQUEST)
         if not order.customer_email:
             return Response(
                 data={'detail': 'Customer email not set. Cannot send an invite!'}, status=status.HTTP_400_BAD_REQUEST,
             )
+        if order.buyer:
+            order.buyer.guest_email = order.customer_email
+            order.buyer.save()
+            subject = f'Claim Link for order #{order.id}.'
+            template = 'new_claim_link.html'
+        else:
+            subject = f'You have a new invoice from {order.seller.username}!'
+            template = 'invoice_issued.html'
         send_transaction_email(
-            f'You have a new invoice from {order.seller.username}!',
-            'invoice_issued.html', order.customer_email,
+            subject,
+            template, order.customer_email,
             {'order': order, 'claim_token': slugify(order.claim_token)}
         )
         return Response(status=status.HTTP_200_OK, data=self.get_serializer(instance=order).data)
@@ -1708,7 +1719,6 @@ class OrderAuth(GenericAPIView):
             # Create the buyer now as a guest.
             user = create_guest_user(order.customer_email)
             order.buyer = user
-            order.customer_email = ''
             order.save()
             Subscription.objects.bulk_create(buyer_subscriptions(order), ignore_conflicts=True)
         login(request, order.buyer)
