@@ -80,6 +80,10 @@ def tag_text(tag, level: int) -> str:  #pragma: no cover
 
 MockCustomerProfileResponse = namedtuple('MockCustomerProfileResponse', ('customerProfileId',))
 
+def has_transaction_error(response):
+    return hasattr(response, 'transactionResponse') and hasattr(response.transactionResponse, 'errors')
+
+
 def execute(controller: APIOperationBase):
     """
     Wrapper for authorize.net controllers that raises a proper exception if there's an issue, and contacts either
@@ -108,6 +112,13 @@ def execute(controller: APIOperationBase):
         raise AuthorizeException(
             response, code=code,
         )
+    # Can still be OK but have an error at a higher level.
+    if has_transaction_error(response):
+        code, response = translate_authnet_error(response)
+        raise AuthorizeException(
+            response, code=code,
+        )
+    logger.error(response)
     return response
 
 
@@ -245,7 +256,7 @@ def refund_transaction(txn_id: str, last_four: str, amount: Decimal):
 
 
 def derive_authnet_error(err):
-    if hasattr(err, 'transactionResponse') and hasattr(err.transactionResponse, 'errors'):
+    if has_transaction_error(err):
         error = err.transactionResponse.errors[0].error
         return error.errorCode.text, error.errorText.text
     return err.messages.message[0]['code'].text, err.messages.message[0]['text'].text

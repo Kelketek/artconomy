@@ -105,7 +105,7 @@
       <v-tab-item value="payment">
         <v-card>
           <ac-form @submit.prevent="paymentForm.submitThen(postPay)">
-            <ac-form-container>
+            <ac-form-container v-bind="paymentForm.bind">
               <v-row no-gutters   class="mt-3" v-if="selection !== null">
                 <v-col cols="12">
                   <ac-card-manager
@@ -138,7 +138,7 @@
       </v-tab-item>
       <v-tab-item value="completed">
         <v-col cols="12" class="mt-4 text-center">
-          <i class="fa fa-5x fa-check-circle"></i><br/>
+          <i class="fa fa-5x fa-check-circle" /><br/>
           <p><strong>Your payment has been received!</strong></p>
           <p>We've received your payment and your account has been upgraded! Visit your
             <router-link :to="{name: 'Premium', params: {username: viewer.username}}">premium settings page</router-link>

@@ -25,6 +25,7 @@ class TestAuthorize(TestCase):
     def test_execute(self):
         controller = Mock()
         controller.getresponse.return_value.messages.resultCode = 'Ok'
+        controller.getresponse.return_value.transactionResponse = None
         execute(controller)
         self.assertTrue(controller.execute.called)
         self.assertTrue(controller.getresponse.called)
@@ -34,6 +35,7 @@ class TestAuthorize(TestCase):
     def test_execute_production(self):
         controller = Mock()
         controller.getresponse.return_value.messages.resultCode = 'Ok'
+        controller.getresponse.return_value.transactionResponse = None
         execute(controller)
         self.assertTrue(controller.execute.called)
         self.assertTrue(controller.getresponse.called)

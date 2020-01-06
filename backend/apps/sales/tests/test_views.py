@@ -3080,6 +3080,28 @@ class TestPremium(APITestCase):
         )
 
     @freeze_time('2017-11-10 12:00:00')
+    @override_settings(LANDSCAPE_PRICE=Decimal('6.00'), PORTRAIT_PRICE=Decimal('2.00'))
+    @patch('apps.sales.views.charge_saved_card')
+    def test_upgrade_card_failure(self, mock_charge_card):
+        user = UserFactory.create()
+        self.login(user)
+        user.portrait_paid_through = date(2017, 11, 15)
+        user.portrait_enabled = True
+        user.save()
+        card = CreditCardTokenFactory.create(user=user, cvv_verified=True)
+        mock_charge_card.return_value = 'Trans123'
+        response = self.client.post('/api/sales/v1/premium/', {'service': 'landscape', 'card_id': card.id})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        user.refresh_from_db()
+        self.assertFalse(user.portrait_enabled)
+        self.assertEqual(user.portrait_paid_through, date(2017, 12, 10))
+        self.assertTrue(user.landscape_enabled)
+        self.assertEqual(user.landscape_paid_through, date(2017, 12, 10))
+        mock_charge_card.assert_called_with(
+            profile_id=card.profile_id, payment_id=card.payment_id, amount=Decimal('4.00'), cvv=None,
+        )
+
+    @freeze_time('2017-11-10 12:00:00')
     @override_settings(PORTRAIT_PRICE=Decimal('2.00'))
     @patch('apps.sales.views.charge_saved_card')
     def test_reenable_portrait(self, mock_charge_card):

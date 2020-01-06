@@ -29,7 +29,8 @@ class TelegramDevice(Device):
             raise ValidationError({'errors': ["You haven't yet set up Telegram with us yet."]})
         bot = get_bot()
         bot.send_message(
-            chat_id=self.user.tg_chat_id, text="Your 2FA Verification code is:"
+            chat_id=self.user.tg_chat_id, text="WE WILL NOT CALL, TEXT, OR MESSAGE YOU ASKING YOU FOR THIS CODE. "
+                                               "DO NOT SHARE WITH ANYONE! Your 2FA Verification code is:"
         )
         bot.send_message(
             chat_id=self.user.tg_chat_id, text=str(token).zfill(6)
