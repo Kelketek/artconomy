@@ -62,7 +62,7 @@ from apps.sales.serializers import (
     AccountQuerySerializer, OrderCharacterTagSerializer, SubmissionFromOrderSerializer, OrderAuthSerializer)
 from apps.sales.utils import available_products, service_price, set_service, \
     check_charge_required, available_products_by_load, finalize_order, account_balance, split_fee, \
-    recuperate_fee, ALL, POSTED_ONLY, PENDING, transfer_order, early_finalize
+    recuperate_fee, ALL, POSTED_ONLY, PENDING, transfer_order, early_finalize, cancel_order
 from apps.sales.tasks import renew
 
 
@@ -353,12 +353,7 @@ class OrderCancel(GenericAPIView):
     # noinspection PyUnusedLocal
     def post(self, request, order_id):
         order = self.get_object()
-        order.status = Order.CANCELLED
-        order.save()
-        if self.request.user != order.seller:
-            notify(SALE_UPDATE, order, unique=True, mark_unread=True)
-        if self.request.user != order.buyer:
-            notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
+        cancel_order(order, self.request.user)
         data = self.serializer_class(instance=order, context=self.get_serializer_context()).data
         return Response(data)
 
@@ -609,18 +604,18 @@ class OrderRefund(GenericAPIView):
             serializer = self.get_serializer(instance=order, context=self.get_serializer_context())
             return Response(status=status.HTTP_200_OK, data=serializer.data)
         order_type = ContentType.objects.get_for_model(order)
-        record = TransactionRecord.objects.get(
+        original_record = TransactionRecord.objects.get(
             object_id=order.id, content_type=order_type, payer=order.buyer,
             payee=order.seller,
             destination=TransactionRecord.ESCROW,
             status=TransactionRecord.SUCCESS,
         )
-        record = record.refund()
+        record = original_record.refund()
         if record.status == TransactionRecord.FAILURE:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'detail': record.response_message})
         order.status = Order.REFUNDED
         order.save()
-        recuperate_fee(record)
+        recuperate_fee(original_record)
         notify(REFUND, order, unique=True, mark_unread=True)
         notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
         if request.user != order.seller:

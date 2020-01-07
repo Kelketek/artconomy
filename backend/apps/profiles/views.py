@@ -79,7 +79,7 @@ from apps.profiles.serializers import (
 from apps.profiles.tasks import mailchimp_subscribe
 from apps.profiles.utils import (
     available_chars, char_ordering, available_submissions,
-    empty_user)
+    empty_user, leave_conversation)
 from apps.sales.models import Order
 from apps.sales.serializers import SearchQuerySerializer
 from apps.sales.utils import claim_order_by_token
@@ -379,7 +379,7 @@ class UserInfo(APIView):
             return UserInfoSerializer
 
     def get_object(self):
-        user = get_object_or_404(User, username__iexact=self.kwargs.get('username'))
+        user = get_object_or_404(User, username__iexact=self.kwargs.get('username'), is_active=True)
         return user
 
     def get_serializer_context(self):
@@ -415,7 +415,7 @@ class UserInfo(APIView):
 
 class UserInfoByID(UserInfo):
     def get_object(self):
-        return get_object_or_404(User, id=self.kwargs.get('user_id'))
+        return get_object_or_404(User, id=self.kwargs.get('user_id'), is_active=True)
 
 
 class CurrentUserInfo(UserInfo):
@@ -490,7 +490,7 @@ class UserSearch(ListAPIView):
         tagging = self.request.GET.get('tagging', False)
         if not query:
             return User.objects.none()
-        qs = User.objects.filter(username__istartswith=query)
+        qs = User.objects.filter(username__istartswith=query, is_active=True, guest=False)
         if tagging and self.request.user.is_authenticated:
             qs = qs.filter(Q(taggable=True) | Q(id=self.request.user.id))
         elif tagging:

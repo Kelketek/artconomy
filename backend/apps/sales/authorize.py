@@ -118,7 +118,6 @@ def execute(controller: APIOperationBase):
         raise AuthorizeException(
             response, code=code,
         )
-    logger.error(response)
     return response
 
 

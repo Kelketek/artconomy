@@ -96,6 +96,7 @@ class Product(ImageModel, HitsMixin):
         return price + demark(self.description)
 
     def proto_delete(self, *args, **kwargs):
+        self.samples.clear()
         if self.order_set.all().count():
             self.active = False
             self.save()

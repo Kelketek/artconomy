@@ -15,7 +15,7 @@ import Order from '../types/Order'
 export default class AcOrderStatus extends Vue {
   public STATUSES = {
     1: {text: 'NEW!', icon: 'star', color: 'primary', dark: true},
-    2: {text: 'Payment Required', icon: 'credit_card', color: 'orange', dark: true},
+    2: {text: 'Unpaid', icon: 'credit_card', color: 'orange', dark: true},
     3: {text: 'Queued', icon: 'list', color: 'secondary', dark: true},
     4: {text: 'In Progress', icon: 'edit', color: 'info', dark: true},
     5: {text: 'Review', icon: 'visibility', color: 'yellow', dark: false},

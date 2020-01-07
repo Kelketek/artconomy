@@ -20,7 +20,7 @@ from django.db.models import (
     Model, CharField, ForeignKey, IntegerField, BooleanField, DateTimeField,
     URLField, SET_NULL, ManyToManyField, CASCADE, DecimalField, DateField, PROTECT,
     OneToOneField,
-    EmailField)
+    EmailField, TextField)
 from django.db.models.signals import post_save, post_delete, pre_delete, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
@@ -156,6 +156,7 @@ class User(AbstractEmailUser, HitsMixin):
     reset_token = CharField(max_length=36, blank=True, default=uuid.uuid4)
     # Auto now add to avoid problems when filtering where 'null' is considered less than something else.
     token_expiry = DateTimeField(auto_now_add=True)
+    notes = TextField(default='')
     hit_counter = GenericRelation(
         'hitcount.HitCount', object_id_field='object_pk',
         related_query_name='hit_counter')
@@ -784,6 +785,9 @@ def subscribe_watching(sender, instance, **kwargs):
 @disable_on_load
 def favorite_notification(sender, instance, **kwargs):
     action = kwargs.get('action', '')
+    pk_set = kwargs.get('pk_set', None)
+    if not pk_set:
+        return
     for pk in kwargs.get('pk_set', set()):
         submission = Submission.objects.get(pk=pk)
         if action == 'post_add':

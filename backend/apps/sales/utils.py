@@ -11,7 +11,7 @@ from django.utils.datetime_safe import date
 from moneyed import Money
 
 from apps.lib.models import Subscription, COMMISSIONS_OPEN, Event, DISPUTE, SALE_UPDATE, Notification, \
-    Comment
+    Comment, ORDER_UPDATE
 from apps.lib.utils import notify, recall_notification
 from apps.profiles.models import User, VERIFIED
 
@@ -358,3 +358,13 @@ def transfer_order(order, old_buyer, new_buyer):
     Notification.objects.filter(user=old_buyer).update(user=new_buyer)
     Comment.objects.filter(user=old_buyer).update(user=new_buyer)
     CreditCardToken.objects.filter(user=old_buyer).update(user=new_buyer)
+
+
+def cancel_order(order, requested_by):
+    from apps.sales.models import Order
+    order.status = Order.CANCELLED
+    order.save()
+    if requested_by != order.seller:
+        notify(SALE_UPDATE, order, unique=True, mark_unread=True)
+    if requested_by != order.buyer:
+        notify(ORDER_UPDATE, order, unique=True, mark_unread=True)

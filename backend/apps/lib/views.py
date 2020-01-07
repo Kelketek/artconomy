@@ -30,9 +30,9 @@ from apps.lib.permissions import (
     IsAuthenticatedObj, IsStaff)
 from apps.lib.serializers import CommentSerializer, CommentSubscriptionSerializer
 from apps.lib.utils import (
-    countries_tweaked, remove_comment, safe_add, default_context,
-    get_client_ip
-)
+    countries_tweaked, safe_add, default_context,
+    get_client_ip,
+    destroy_comment)
 from apps.profiles.models import User
 from apps.profiles.permissions import ObjectControls, IsRegistered
 from apps.profiles.serializers import ContactSerializer
@@ -56,38 +56,10 @@ class CommentUpdate(RetrieveUpdateDestroyAPIView):
         self.check_object_permissions(self.request, comment)
         return comment
 
-    def fake_destroy(self, instance):
-        instance.text = ''
-        instance.deleted = True
-        if instance.comments.all().filter(deleted=True).count() == instance.comments.all().count():
-            instance.thread_deleted = True
-        instance.save()
-
-    def real_destroy(self, instance):
-        target = instance.content_object
-        if not instance.comments.all().exists() or not target:
-            instance.delete()
-            if target and isinstance(target, Comment):
-                if target.deleted and not target.comments.all().exists():
-                    target.delete()
-        else:
-            instance.text = ''
-            instance.deleted = True
-            instance.save()
-
-    def perform_destroy(self, instance):
-        remove_comment(instance.id)
-        if getattr(instance.top, 'preserve_comments', False):
-            self.fake_destroy(instance)
-        else:
-            self.real_destroy(instance)
-        if hasattr(instance.top, 'comment_deleted'):
-            instance.top.comment_deleted(instance)
-
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         self.check_object_permissions(request, instance)
-        self.perform_destroy(instance)
+        destroy_comment(instance)
         if instance.deleted:
             # Soft deleted.
             return Response(

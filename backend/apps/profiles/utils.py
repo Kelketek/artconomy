@@ -1,11 +1,16 @@
+from uuid import uuid4
+
 from dateutil.relativedelta import relativedelta
 from django.db.models import Case, When, F, IntegerField, Q
 from django.utils import timezone
 from short_stuff import gen_guid, slugify
 
-from apps.lib.models import REFERRAL_LANDSCAPE_CREDIT, REFERRAL_PORTRAIT_CREDIT
-from apps.lib.utils import notify
-from apps.profiles.models import Character, Submission, User
+from apps.lib.models import REFERRAL_LANDSCAPE_CREDIT, REFERRAL_PORTRAIT_CREDIT, Comment
+from apps.lib.utils import notify, destroy_comment
+from apps.profiles.models import Character, Submission, User, Conversation, ConversationParticipant
+from apps.sales.dwolla import destroy_bank_account
+from apps.sales.models import Order, TransactionRecord
+from apps.sales.utils import account_balance, PENDING, cancel_order
 
 
 def char_ordering(qs, requester, query=''):
@@ -139,3 +144,71 @@ def create_guest_user(email: str) -> User:
     user.email = f'__{user.id}@localhost'
     user.save()
     return user
+
+
+def clear_user(user: User):
+    # Clears out as much user data as is practical. Uses normal iterators, despite being slow, to ensure all cleanup
+    # hooks are run.
+    holdup_statuses = [Order.DISPUTED, Order.IN_PROGRESS, Order.QUEUED, Order.REVIEW]
+    if user.sales.filter(status__in=holdup_statuses).exists():
+        raise RuntimeError('User has outstanding sales to finish. Cannot remove!')
+    if user.buys.filter(status__in=holdup_statuses).exists():
+        raise RuntimeError('User has outstanding orders which are unfinished. Cannot remove!')
+    for sale in user.sales.filter(status__in=[Order.NEW, Order.PAYMENT_PENDING]):
+        cancel_order(sale, user)
+    for order in user.buys.filter(status__in=[Order.NEW, Order.PAYMENT_PENDING]):
+        cancel_order(order, user)
+    stoppers = [
+        account_balance(user, TransactionRecord.HOLDINGS),
+        account_balance(user, TransactionRecord.HOLDINGS, PENDING)
+    ]
+    if any(stoppers):
+        raise RuntimeError('User has uncleared transactions! Cannot remove!')
+
+    notes = user.notes
+    if notes:
+        notes += f'\n\nUsername: {user.username}, Email: {user.email}, removed on {timezone.now()}'
+    user.username = f'__deleted{user.id}'
+    user.set_password(str(uuid4()))
+    user.is_active = False
+    user.landscape_enabled = False
+    user.portrait_enabled = False
+    user.subscription_set.all().delete()
+    user.save()
+    for favorite in user.favorites.all():
+        user.favorites.remove(favorite)
+    for watcher in user.watched_by.all():
+        user.watched_by.remove(watcher)
+    for watcher in user.watching.all():
+        user.watching.remove(watcher)
+    for submission in user.owned_profiles_submission.all():
+        submission.delete()
+    for character in user.characters.all():
+        character.delete()
+    for conversation in user.conversations.all():
+        leave_conversation(user, conversation)
+    for comment in user.comment_set.all():
+        destroy_comment(comment)
+    for product in user.products.all():
+        product.delete()
+    for bank in user.banks.all():
+        destroy_bank_account(bank)
+    for card in user.credit_cards.all():
+        card.mark_deleted()
+    # These can just be straight up cleared.
+    user.notifications.all().delete()
+
+
+def leave_conversation(user: User, conversation: Conversation):
+    participant = ConversationParticipant.objects.filter(conversation=conversation, user=user).first()
+    if participant:
+        participant.delete()
+    count = conversation.participants.all().count()
+    if not count:
+        conversation.delete()
+    elif count == 1:
+        if not conversation.comments.exclude(system=True).exists():
+            conversation.delete()
+            return
+    if participant:
+        Comment(user=user, system=True, content_object=conversation, text='left the conversation.').save()

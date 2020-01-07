@@ -624,3 +624,34 @@ def count_hit(request: HttpRequest, instance: Model):
     if request.GET.get('view', None):
         hit_count = HitCount.objects.get_for_object(instance)
         HitCountMixin.hit_count(request, hit_count)
+
+
+def fake_destroy_comment(instance):
+    instance.text = ''
+    instance.deleted = True
+    if instance.comments.all().filter(deleted=True).count() == instance.comments.all().count():
+        instance.thread_deleted = True
+    instance.save()
+
+
+def real_destroy_comment(instance):
+    target = instance.content_object
+    if not instance.comments.all().exists() or not target:
+        instance.delete()
+        if target and isinstance(target, Comment):
+            if target.deleted and not target.comments.all().exists():
+                target.delete()
+    else:
+        instance.text = ''
+        instance.deleted = True
+        instance.save()
+
+
+def destroy_comment(instance):
+    remove_comment(instance.id)
+    if getattr(instance.top, 'preserve_comments', False):
+        fake_destroy_comment(instance)
+    else:
+        real_destroy_comment(instance)
+    if hasattr(instance.top, 'comment_deleted'):
+        instance.top.comment_deleted(instance)
