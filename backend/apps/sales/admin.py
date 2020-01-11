@@ -5,6 +5,10 @@ from apps.lib.admin import CommentInline
 from apps.sales.models import Product, Order, Revision, Promo, TransactionRecord, Rating
 
 
+class ProductAdmin(admin.ModelAdmin):
+    raw_id_fields = ['user', 'file', 'preview', 'owner', 'primary_submission', 'samples', 'tags']
+
+
 class OrderAdmin(admin.ModelAdmin):
     inlines = [
         CommentInline
@@ -26,7 +30,7 @@ class TransactionRecordAdmin(admin.ModelAdmin):
 class RatingAdmin(admin.ModelAdmin):
     raw_id_fields = ['rater', 'target']
 
-admin.site.register(Product, admin.ModelAdmin)
+admin.site.register(Product, ProductAdmin)
 admin.site.register(Order, OrderAdmin)
 admin.site.register(Revision, admin.ModelAdmin)
 admin.site.register(Promo)

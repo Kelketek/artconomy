@@ -1131,9 +1131,9 @@ class ProductSearch(ListAPIView):
             products = products.filter(featured=True)
         if by_rating:
             products = products.order_by(
-                F('user__stars').desc(nulls_last=True), '-created_on', 'id').distinct('user__stars', 'created_on', 'id')
+                F('user__stars').desc(nulls_last=True), '-edited_on', 'id').distinct('user__stars', 'created_on', 'id')
         else:
-            products = products.order_by('-created_on', 'id').distinct('created_on', 'id')
+            products = products.order_by('-edited_on', 'id').distinct('edited_on', 'id')
         return products.select_related('user').prefetch_related('tags')
 
 

@@ -61,7 +61,8 @@ class Product(ImageModel, HitsMixin):
         'profiles.Submission', on_delete=SET_NULL, related_name='featured_sample_for', null=True,
     )
     samples = ManyToManyField('profiles.Submission', related_name='is_sample_for')
-    created_on = DateTimeField(default=timezone.now)
+    created_on = DateTimeField(default=timezone.now, db_index=True)
+    edited_on = DateTimeField(db_index=True, auto_now=True)
     shippable = BooleanField(default=False)
     active = BooleanField(default=True, db_index=True)
     available = BooleanField(default=True, db_index=True)

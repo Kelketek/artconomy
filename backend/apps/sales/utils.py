@@ -191,9 +191,9 @@ def update_availability(seller, load, current_closed_status):
         if products.exists() and not seller_profile.commissions_disabled:
             seller_profile.has_products = True
         seller_profile.save()
-        products.update(available=True)
+        products.update(available=True, edited_on=timezone.now())
         # Sanity setting.
-        seller.products.filter(Q(hidden=True) | Q(active=False)).update(available=False)
+        seller.products.filter(Q(hidden=True) | Q(active=False)).update(available=False, edited_on=timezone.now())
         if current_closed_status and not seller_profile.commissions_disabled:
             previous = Event.objects.filter(
                 type=COMMISSIONS_OPEN, content_type=ContentType.objects.get_for_model(User), object_id=seller.id,
@@ -204,7 +204,7 @@ def update_availability(seller, load, current_closed_status):
                 silent_broadcast=previous.exists()
             )
         if seller_profile.commissions_disabled or seller_profile.commissions_closed:
-            seller.products.all().update(available=False)
+            seller.products.all().update(available=False, edited_on=timezone.now())
             recall_notification(COMMISSIONS_OPEN, seller)
     finally:
         del UPDATING[seller]
