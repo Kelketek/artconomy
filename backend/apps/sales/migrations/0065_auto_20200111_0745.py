@@ -4,12 +4,6 @@ from django.db import migrations, models
 import django.utils.timezone
 
 
-def set_initial_edit(apps, schema):
-    Product = apps.get_model('sales', 'Product')
-    for product in Product.objects.all():
-        Product.objects.filter(id=product.id).update(edited_on=product.created_on)
-
-
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -27,8 +21,4 @@ class Migration(migrations.Migration):
             name='created_on',
             field=models.DateTimeField(db_index=True, default=django.utils.timezone.now),
         ),
-        migrations.RunPython(
-            set_initial_edit,
-            reverse_code=lambda x, y: None,
-        )
     ]
