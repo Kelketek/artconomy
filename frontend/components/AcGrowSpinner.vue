@@ -1,6 +1,6 @@
 <template>
   <v-col v-observe-visibility="grower">
-    <ac-loading-spinner :min-height="minHeight" v-if="list.fetching"></ac-loading-spinner>
+    <ac-loading-spinner :min-height="minHeight" v-if="list.fetching && list.currentPage > 1" />
   </v-col>
 </template>
 
@@ -27,7 +27,7 @@ export default class AcGrowSpinner extends Vue {
       }
     }
 
-    @Watch('list.moreToLoad', {immediate: true})
+    @Watch('list.moreAvailable', {immediate: true})
     public updateMore(val: boolean) {
       if (val) {
         this.list.grower(this.visible)

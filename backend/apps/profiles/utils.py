@@ -1,5 +1,7 @@
 from uuid import uuid4
 
+from avatar.models import Avatar
+from avatar.templatetags.avatar_tags import avatar_url
 from dateutil.relativedelta import relativedelta
 from django.db.models import Case, When, F, IntegerField, Q
 from django.utils import timezone
@@ -170,10 +172,15 @@ def clear_user(user: User):
         notes += f'\n\nUsername: {user.username}, Email: {user.email}, removed on {timezone.now()}'
     user.username = f'__deleted{user.id}'
     user.set_password(str(uuid4()))
+    user.email = f'{uuid4()}@local'
     user.is_active = False
     user.landscape_enabled = False
     user.portrait_enabled = False
     user.subscription_set.all().delete()
+    for avatar in Avatar.objects.filter(user=user):
+        avatar.file.delete()
+        avatar.delete()
+    user.avatar_url = avatar_url(user)
     user.save()
     for favorite in user.favorites.all():
         user.favorites.remove(favorite)

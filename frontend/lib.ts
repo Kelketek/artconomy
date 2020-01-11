@@ -266,27 +266,6 @@ export function ratings() {
   return genOptions(RATINGS)
 }
 
-// export function querySyncer(queryName) {
-//   return {
-//     handler(val) {
-//       if (val) {
-//         let query = {}
-//         query[queryName] = val
-//         this.$router.history.replace({query: Object.assign({}, this.$route.query, query)})
-//       } else {
-//         let newQuery = {...this.$route.query}
-//         delete newQuery[queryName]
-//         this.$router.history.replace({query: newQuery})
-//       }
-//     },
-//     immediate: true,
-//   }
-// }
-
-// export function queryVal(target, queryName, other) {
-//   return target.$route.query[queryName] || other
-// }
-
 export function ratingsNonExtreme() {
   const nonExtreme = {...RATINGS}
   delete nonExtreme[3]
@@ -751,6 +730,9 @@ export function deriveDisplayName(username: string) {
   }
   if (username === '_') {
     return ''
+  }
+  if (username.startsWith('__deleted')) {
+    return '[deleted]'
   }
   if (username.startsWith('__')) {
     // @ts-ignore

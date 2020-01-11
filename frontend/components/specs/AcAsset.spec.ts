@@ -31,6 +31,7 @@ describe('AcAsset.vue', () => {
       vuetify,
       stubs: ['router-link'],
       propsData: {asset: genSubmission(), thumbName: 'full'},
+      sync: false,
     })
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
@@ -47,6 +48,7 @@ describe('AcAsset.vue', () => {
       localVue,
       vuetify,
       stubs: ['router-link'],
+      sync: false,
       propsData: {asset: submission, thumbName: 'full'}},
     )
     await wrapper.vm.$nextTick()
@@ -65,6 +67,7 @@ describe('AcAsset.vue', () => {
       store,
       localVue,
       vuetify,
+      sync: false,
       stubs: ['router-link'],
       propsData: {asset: submission, thumbName: 'full'}}
     )
@@ -86,6 +89,7 @@ describe('AcAsset.vue', () => {
         store,
         localVue,
         vuetify,
+        sync: false,
         stubs: ['router-link'],
         propsData: {asset: submission, thumbName: 'full', aspectRatio: null}},
       )
@@ -103,6 +107,7 @@ describe('AcAsset.vue', () => {
       store,
       localVue,
       vuetify,
+      sync: false,
       stubs: ['router-link'],
       propsData: {asset: null, thumbName: 'full'}},
     )
@@ -124,6 +129,7 @@ describe('AcAsset.vue', () => {
       store,
       localVue,
       vuetify,
+      sync: false,
       stubs: ['router-link'],
       propsData: {asset: null, thumbName: 'full', fallbackImage: 'boop.jpg'}},
     )
@@ -147,6 +153,7 @@ describe('AcAsset.vue', () => {
       store,
       localVue,
       vuetify,
+      sync: false,
       stubs: ['router-link'],
       propsData: {asset: null, thumbName: 'full'}},
     )
@@ -166,6 +173,7 @@ describe('AcAsset.vue', () => {
       localVue,
       vuetify,
       stubs: ['router-link'],
+      sync: false,
       propsData: {asset: submission, thumbName: 'full'}},
     )
     await wrapper.vm.$nextTick()
@@ -181,6 +189,7 @@ describe('AcAsset.vue', () => {
       store,
       localVue,
       vuetify,
+      sync: false,
       stubs: ['router-link'],
       propsData: {asset: submission, thumbName: 'thumbnail'}},
     )
@@ -199,6 +208,7 @@ describe('AcAsset.vue', () => {
       store,
       localVue,
       vuetify,
+      sync: false,
       stubs: ['router-link'],
       propsData: {asset: submission, thumbName: 'thumbnail'}},
     )
@@ -217,6 +227,7 @@ describe('AcAsset.vue', () => {
       store,
       localVue,
       vuetify,
+      sync: false,
       stubs: ['router-link'],
       propsData: {asset: submission, thumbName: 'thumbnail'},
     })
@@ -235,6 +246,7 @@ describe('AcAsset.vue', () => {
       store,
       localVue,
       vuetify,
+      sync: false,
       stubs: ['router-link'],
       propsData: {asset: submission, thumbName: 'thumbnail'}},
     )
@@ -257,6 +269,7 @@ describe('AcAsset.vue', () => {
       store,
       localVue,
       vuetify,
+      sync: false,
       stubs: ['router-link'],
       propsData: {asset: submission, thumbName: 'gallery'}},
     )

@@ -4,10 +4,12 @@
       <v-col cols="12" lg="4">
         <v-toolbar dense><v-toolbar-title>Overview</v-toolbar-title></v-toolbar>
         <ac-load-section :controller="overview">
-          <v-data-table :items="overviewItems" :hide-actions="true" :hide-headers="true">
-            <template v-slot:items="props">
-              <td><strong>{{props.item.label}}</strong></td>
-              <td>${{props.item.value}}</td>
+          <v-data-table :items="overviewItems" :headers="overviewHeaders" hide-default-footer hide-default-header>
+            <template v-slot:item.label="{ item }">
+              <strong>{{item.label}}</strong>
+            </template>
+            <template v-slot:item.value="{ item }">
+              ${{item.value}}
             </template>
           </v-data-table>
         </ac-load-section>
@@ -16,7 +18,7 @@
         <v-toolbar dense><v-toolbar-title>By Customer</v-toolbar-title></v-toolbar>
         <ac-paginated :list="holdings">
           <v-col>
-            <v-data-table :items="holdingsItems" :headers="holdingsHeaders" :hide-actions="true" >
+            <v-data-table :items="holdingsItems" :headers="holdingsHeaders" hide-default-footer>
               <template v-slot:items="props">
                 <td class="text-left"><strong>{{props.item.id}}</strong></td>
                 <td class="text-left"><strong>{{props.item.username}}</strong></td>
@@ -67,6 +69,7 @@ export default class App extends Vue {
       sortable: false,
       align: 'center',
     }]
+    public overviewHeaders = [{text: 'Label', value: 'label'}, {text: 'Value', value: 'value'}]
     public get overviewItems() {
       if (!this.overview.x) {
         return []

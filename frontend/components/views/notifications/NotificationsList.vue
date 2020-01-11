@@ -1,35 +1,33 @@
 <template>
   <v-row no-gutters >
-    <v-col class="text-center" cols="12" v-if="notifications.ready !== null && !notifications.list.length">
-      <p>You do not have any notifications at this time.</p>
-    </v-col>
-    <v-col cols="12" md="10" offset-md="1" v-if="notifications.list.length">
-      <v-list three-line>
-        <template v-for="(notification, index) in notifications.list">
-          <div
-              v-if="dynamicComponent(notification.x.event.type)"
-              @click.left.capture="clickRead(notification)"
-              @click.middle.capture="clickRead(notification)"
-              :key="'container-' + index"
-          >
-            <component :is="dynamicComponent(notification.x.event.type)"
-                       :key="notification.x.id" v-observe-visibility="markRead(notification)"
-                       class="notification" :notification="notification.x"
-            />
-          </div>
-          <v-list-item v-else :key="index">
-            <v-list-item-content>
-              {{log(notification.x)}}
-              {{notification.x}}
-            </v-list-item-content>
-          </v-list-item>
-          <v-divider v-if="index + 1 < notifications.list.length" :key="`divider-${index}`"/>
-        </template>
-      </v-list>
-    </v-col>
-    <v-col class="text-center" cols="12" >
-      <ac-grow-spinner :list="notifications"></ac-grow-spinner>
-    </v-col>
+    <ac-paginated :show-pagination="false" :list="notifications">
+      <template v-slot:default>
+        <v-col cols="12" md="10" offset-md="1">
+          <v-list three-line>
+            <template v-for="(notification, index) in notifications.list">
+              <div
+                v-if="dynamicComponent(notification.x.event.type)"
+                @click.left.capture="clickRead(notification)"
+                @click.middle.capture="clickRead(notification)"
+                :key="'container-' + index"
+              >
+                <component :is="dynamicComponent(notification.x.event.type)"
+                           :key="notification.x.id" v-observe-visibility="markRead(notification)"
+                           class="notification" :notification="notification.x"
+                />
+              </div>
+              <v-list-item v-else :key="index">
+                <v-list-item-content>
+                  {{log(notification.x)}}
+                  {{notification.x}}
+                </v-list-item-content>
+              </v-list-item>
+              <v-divider v-if="index + 1 < notifications.list.length" :key="`divider-${index}`"/>
+            </template>
+          </v-list>
+        </v-col>
+      </template>
+    </ac-paginated>
   </v-row>
 </template>
 
@@ -61,11 +59,13 @@ import AcPortraitReferral from './events/AcPortraitReferral.vue'
 import AcLandscapeReferral from './events/AcLandscapeReferral.vue'
 import AcSubmissionArtistTag from './events/AcSubmissionArtistTag.vue'
 import AcGrowSpinner from '@/components/AcGrowSpinner.vue'
+import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 
 export default {
   name: 'ac-list-notifications',
   mixins: [NotificationsListBase],
   components: {
+    AcPaginated,
     AcGrowSpinner,
     AcSubmissionArtistTag,
     AcLandscapeReferral,
@@ -92,9 +92,6 @@ export default {
     AcOrderUpdate,
     AcNewCharacter,
     AcNewProduct,
-  },
-  props: {
-    autoFetch: {default: false},
   },
   methods: {
     log(x: any) {

@@ -119,6 +119,10 @@ export class ListController<T> extends BaseController<ListModuleOpts, ListState<
     return !this.$store.state.lists[this.name]
   }
 
+  public get grow() {
+    return this.attr('grow')
+  }
+
   public get params(): QueryParams|null {
     return this.attr('params')
   }

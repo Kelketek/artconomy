@@ -21,7 +21,7 @@ export default {
         name: 'Sale',
         params: {
           username: this.event.target.seller.username,
-          saleID: this.event.target.id,
+          orderId: this.event.target.id,
         },
       }
     },

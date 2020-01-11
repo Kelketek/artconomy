@@ -94,8 +94,14 @@
               </v-card>
             </v-col>
           </v-row>
-          <v-btn color="primary" @click="step = 2">Continue</v-btn>
-          <v-btn text @click="device.delete">Cancel</v-btn>
+          <v-row>
+            <v-col class="shrink">
+              <v-btn color="primary" @click="step = 2">Continue</v-btn>
+            </v-col>
+            <v-col class="shrink">
+              <v-btn @click="device.delete">Cancel</v-btn>
+            </v-col>
+          </v-row>
         </v-stepper-content>
         <v-stepper-step step="2" editable>Add Artconomy to App</v-stepper-step>
         <v-stepper-content step="2">
@@ -112,9 +118,17 @@
               </v-row>
             </v-card-text>
           </v-card>
-          <v-btn color="primary" @click="step = 3">Continue</v-btn>
-          <v-btn @click="step = 1">Back</v-btn>
-          <v-btn text @click="device.delete">Cancel</v-btn>
+          <v-row>
+            <v-col class="shrink">
+              <v-btn color="primary" @click="step = 3">Continue</v-btn>
+            </v-col>
+            <v-col class="shrink">
+              <v-btn @click="step = 1" color="black">Back</v-btn>
+            </v-col>
+            <v-col class="shrink">
+              <v-btn @click="device.delete">Cancel</v-btn>
+            </v-col>
+          </v-row>
         </v-stepper-content>
         <v-stepper-step step="3" editable>Verify</v-stepper-step>
         <v-stepper-content step="3">
@@ -136,8 +150,14 @@
               </v-row>
             </v-card-text>
           </v-card>
-          <v-btn @click="step = 2">Back</v-btn>
-          <v-btn text @click="device.delete">Cancel</v-btn>
+          <v-row>
+            <v-col class="shrink">
+              <v-btn @click="step = 2" color="black">Back</v-btn>
+            </v-col>
+            <v-col class="shrink">
+              <v-btn @click="device.delete">Cancel</v-btn>
+            </v-col>
+          </v-row>
         </v-stepper-content>
       </v-stepper>
     </v-col>

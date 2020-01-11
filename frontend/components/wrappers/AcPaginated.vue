@@ -2,7 +2,7 @@
   <v-container class="pa-0" fluid>
     <v-row no-gutters>
       <v-col class="shrink text-center" cols="12">
-        <v-pagination :length="list.totalPages" v-model="list.currentPage" v-if="list.totalPages > 1" :class="{prerendering}" />
+        <v-pagination :length="list.totalPages" v-model="list.currentPage" v-if="list.totalPages > 1 && showPagination" :class="{prerendering}" />
       </v-col>
       <v-col cols="12">
         <ac-load-section :controller="list" class="load-section">
@@ -25,8 +25,11 @@
           </template>
         </ac-load-section>
       </v-col>
+      <v-col class="text-center" cols="12" v-if="list.grow">
+        <ac-grow-spinner :list="list" />
+      </v-col>
       <v-col class="shrink text-center" cols="12">
-        <v-pagination :length="list.totalPages" v-model="list.currentPage" v-if="list.totalPages > 1" :class="{prerendering}" />
+        <v-pagination :length="list.totalPages" v-model="list.currentPage" v-if="list.totalPages > 1 && showPagination" :class="{prerendering}" />
       </v-col>
     </v-row>
   </v-container>
@@ -45,9 +48,10 @@ import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import {ListController} from '@/store/lists/controller'
 import {Prop, Watch} from 'vue-property-decorator'
 import ErrorHandling from '@/mixins/ErrorHandling'
+import AcGrowSpinner from '@/components/AcGrowSpinner.vue'
 
   @Component({
-    components: {AcLoadSection},
+    components: {AcGrowSpinner, AcLoadSection},
   })
 export default class AcPaginated extends mixins(ErrorHandling) {
     @Prop({default: true})
@@ -60,6 +64,8 @@ export default class AcPaginated extends mixins(ErrorHandling) {
     public list!: ListController<any>
     @Prop({default: () => []})
     public okStatuses!: number[]
+    @Prop({default: true})
+    public showPagination!: boolean
     public prerendering = window.PRERENDERING || 0
 
     @Watch('list.currentPage')

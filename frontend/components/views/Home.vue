@@ -209,7 +209,7 @@
             <v-toolbar-title>Recent Submissions</v-toolbar-title>
             <v-spacer />
             <v-toolbar-items>
-              <v-btn color="primary" :to="{name: 'SearchSubmissions'}">See More</v-btn>
+              <v-btn color="primary" @click="search({})">See More</v-btn>
             </v-toolbar-items>
           </v-toolbar>
           <v-card-text>Art uploaded by our users</v-card-text>
@@ -230,7 +230,7 @@
             <v-toolbar-title>New Characters</v-toolbar-title>
             <v-spacer />
             <v-toolbar-items>
-              <v-btn color="primary" :to="{name: 'SearchCharacters'}">See More</v-btn>
+              <v-btn color="primary" @click.stop="searchCharacters({})">See More</v-btn>
             </v-toolbar-items>
           </v-toolbar>
           <v-card-text>Characters catalogged by our users</v-card-text>
@@ -306,6 +306,14 @@ export default class Home extends mixins(Viewer) {
         this.searchForm.fields[key].update(data[key])
       }
       this.$router.push({name: 'SearchProducts', query: data})
+    }
+
+    public searchCharacters(data: RawData) {
+      this.searchForm.reset()
+      for (const key of Object.keys(data)) {
+        this.searchForm.fields[key].update(data[key])
+      }
+      this.$router.push({name: 'SearchCharacters', query: data})
     }
 
     public listPreview(list: ListController<any>) {

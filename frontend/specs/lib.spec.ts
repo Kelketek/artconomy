@@ -402,11 +402,12 @@ Here's an email: support@artconomy.com`)).toBe(`<h1>Hello there.</h1>
   expect(posse(userList, additional)).toEqual(result)
 })
   it.each`
-  userName  | result
-  ${'_'}    | ${''}
-  ${'__4'}  | ${'Guest #4'}
-  ${'Fox'}  | ${'Fox'}
-  ${null}   | ${''}
+  userName         | result
+  ${'_'}           | ${''}
+  ${'__4'}         | ${'Guest #4'}
+  ${'Fox'}         | ${'Fox'}
+  ${null}          | ${''}
+  ${'__deleted45'} | ${'[deleted]'}
   `('Should format a display name based on a username', ({userName, result}) => {
   expect(deriveDisplayName(userName)).toBe(result)
 })
