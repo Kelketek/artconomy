@@ -5,7 +5,7 @@
         <v-pagination :length="list.totalPages" v-model="list.currentPage" v-if="list.totalPages > 1 && showPagination" :class="{prerendering}" />
       </v-col>
       <v-col cols="12">
-        <ac-load-section :controller="list" class="load-section">
+        <ac-load-section :controller="list" class="load-section" :force-render="list.grow && list.list.length">
           <template v-slot:default>
             <v-row no-gutters v-if="list.list.length">
               <slot>

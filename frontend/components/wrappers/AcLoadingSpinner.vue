@@ -7,7 +7,7 @@
           :size="70"
           :width="7"
           color="purple"
-        ></v-progress-circular>
+        />
       </v-col>
     </v-row>
   </v-container>

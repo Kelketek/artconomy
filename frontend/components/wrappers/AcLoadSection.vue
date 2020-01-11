@@ -1,6 +1,6 @@
 <template>
   <v-container class="pa-0" :fluid="fluid">
-    <v-container class="pa-0" :fluid="fluid" v-if="controller.ready && !controller.fetching">
+    <v-container class="pa-0" :fluid="fluid" v-if="forceRender || (controller.ready && !controller.fetching)">
       <!-- Always use a template tag with v-slot:default to fill this slot or else it will be evaluated by the parent. -->
       <slot></slot>
     </v-container>
@@ -58,6 +58,8 @@ export default class AcLoadSection extends Vue {
     public controller!: SingleController<any>|ListController<any>
     @Prop({default: true})
     public fluid!: boolean
+    @Prop({default: false})
+    public forceRender!: boolean
     public prerendering = false
 
     public created() {
