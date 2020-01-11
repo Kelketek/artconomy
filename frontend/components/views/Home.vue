@@ -209,7 +209,7 @@
             <v-toolbar-title>Recent Submissions</v-toolbar-title>
             <v-spacer />
             <v-toolbar-items>
-              <v-btn color="primary" @click="search({})">See More</v-btn>
+              <v-btn color="primary" @click="searchSubmissions()" class="search-submissions">See More</v-btn>
             </v-toolbar-items>
           </v-toolbar>
           <v-card-text>Art uploaded by our users</v-card-text>
@@ -230,7 +230,7 @@
             <v-toolbar-title>New Characters</v-toolbar-title>
             <v-spacer />
             <v-toolbar-items>
-              <v-btn color="primary" @click.stop="searchCharacters({})">See More</v-btn>
+              <v-btn color="primary" @click.stop="searchCharacters()" class="search-characters">See More</v-btn>
             </v-toolbar-items>
           </v-toolbar>
           <v-card-text>Characters catalogged by our users</v-card-text>
@@ -300,20 +300,26 @@ export default class Home extends mixins(Viewer) {
       return this.banners[Math.floor(Math.random() * this.banners.length)]
     }
 
-    public search(data: RawData) {
+    public searchReplace(data: RawData) {
       this.searchForm.reset()
       for (const key of Object.keys(data)) {
         this.searchForm.fields[key].update(data[key])
       }
+    }
+
+    public search(data: RawData) {
+      this.searchReplace(data)
       this.$router.push({name: 'SearchProducts', query: data})
     }
 
-    public searchCharacters(data: RawData) {
-      this.searchForm.reset()
-      for (const key of Object.keys(data)) {
-        this.searchForm.fields[key].update(data[key])
-      }
-      this.$router.push({name: 'SearchCharacters', query: data})
+    public searchCharacters() {
+      this.searchReplace({})
+      this.$router.push({name: 'SearchCharacters'})
+    }
+
+    public searchSubmissions() {
+      this.searchReplace({})
+      this.$router.push({name: 'SearchSubmissions'})
     }
 
     public listPreview(list: ListController<any>) {

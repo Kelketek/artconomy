@@ -58,12 +58,32 @@ describe('Home.vue', () => {
     vm.characters.fetching = false
     await vm.$nextTick()
   })
-  it('Performs a premade search', async() => {
+  it('Performs a premade search for products', async() => {
     setViewer(store, genUser())
     const push = jest.fn()
     wrapper = mount(Home, {localVue, store, vuetify, mocks: {$router: {push}}, stubs: ['router-link']})
     wrapper.find('.low-price-more').trigger('click')
     await wrapper.vm.$nextTick()
     expect(push).toHaveBeenCalledWith({name: 'SearchProducts', query: {max_price: '30.00'}})
+  })
+  it('Performs a search for characters', async() => {
+    setViewer(store, genUser())
+    const push = jest.fn()
+    wrapper = mount(Home, {localVue, store, vuetify, mocks: {$router: {push}}, stubs: ['router-link']})
+    searchForm.fields.q.update('test')
+    wrapper.find('.search-characters').trigger('click')
+    await wrapper.vm.$nextTick()
+    expect(push).toHaveBeenCalledWith({name: 'SearchCharacters'})
+    expect(searchForm.fields.q.value).toBe('')
+  })
+  it('Performs a search for submissions', async() => {
+    setViewer(store, genUser())
+    const push = jest.fn()
+    wrapper = mount(Home, {localVue, store, vuetify, mocks: {$router: {push}}, stubs: ['router-link']})
+    searchForm.fields.q.update('test')
+    wrapper.find('.search-submissions').trigger('click')
+    await wrapper.vm.$nextTick()
+    expect(push).toHaveBeenCalledWith({name: 'SearchSubmissions'})
+    expect(searchForm.fields.q.value).toBe('')
   })
 })
