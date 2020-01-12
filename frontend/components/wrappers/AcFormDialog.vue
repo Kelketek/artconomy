@@ -4,24 +4,25 @@
       :fullscreen="fullscreen"
       ref="dialog"
       :transition="transition"
-      :overlay="false"
       :persistent="persistent"
       scrollable
       :width="width"
   >
-    <v-card tile :id="id">
-      <v-toolbar flat dark color="secondary" v-if="$vuetify.breakpoint.smAndDown">
-        <v-btn icon @click.native="toggle = false" dark class="dialog-closer">
-          <v-icon>close</v-icon>
-        </v-btn>
-        <v-toolbar-title>{{title}}</v-toolbar-title>
-        <v-spacer/>
-        <slot name="top-buttons">
-          <v-toolbar-items v-if="$vuetify.breakpoint.smAndDown">
-            <v-btn text @click.prevent="reSend" :disabled="disabled">{{ submitText }}</v-btn>
-          </v-toolbar-items>
-        </slot>
-      </v-toolbar>
+    <v-card :id="id">
+      <div v-if="$vuetify.breakpoint.smAndDown">
+        <v-toolbar dark color="secondary">
+          <v-btn icon @click.native="toggle = false" dark class="dialog-closer">
+            <v-icon>close</v-icon>
+          </v-btn>
+          <v-toolbar-title>{{title}}</v-toolbar-title>
+          <v-spacer/>
+          <slot name="top-buttons">
+            <v-toolbar-items v-if="$vuetify.breakpoint.smAndDown">
+              <v-btn text @click.prevent="reSend" :disabled="disabled">{{ submitText }}</v-btn>
+            </v-toolbar-items>
+          </slot>
+        </v-toolbar>
+      </div>
       <v-toolbar flat dark color="secondary" dense v-else>
         <v-toolbar-title>{{title}}</v-toolbar-title>
         <v-spacer/>

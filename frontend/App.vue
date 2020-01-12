@@ -10,13 +10,12 @@
           @input="setSupport"
           @submit="supportForm.submitThen(showSuccess)"
           v-bind="supportForm.bind"
+          title="Contact Support"
       >
-        <div slot="header">
-          <v-col class="text-center">
-            <h1>We respond to all support requests within 24 hours, and often within the same hour!</h1>
+        <v-row no-gutters>
+          <v-col cols="12" class="text-center">
+            <span class="headline">We respond to all support requests within 24 hours, and often within the same hour!</span>
           </v-col>
-        </div>
-        <v-row no-gutters  >
           <v-col cols="12">
             <v-text-field
                 label="Email"

@@ -1,7 +1,7 @@
 <template>
   <div class="add-button-container">
     <div class="tooltip-holder">
-      <div class="tooltip-content" :style="style"><slot></slot></div>
+      <div class="tooltip-content" :style="style"><slot /></div>
     </div>
     <v-btn
         dark
@@ -22,12 +22,12 @@
 <style scoped>
   .tooltip-holder {
     position: fixed;
-    right: 7.5rem;
+    right: 7rem;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    bottom: 2.5rem;
+    bottom: 2rem;
   }
 
   .tooltip-content {
