@@ -10,7 +10,7 @@
         </v-tabs>
       </v-col>
     </v-row>
-    <router-view :key="$route.path"></router-view>
+    <router-view :key="$route.path" />
   </v-container>
 </template>
 

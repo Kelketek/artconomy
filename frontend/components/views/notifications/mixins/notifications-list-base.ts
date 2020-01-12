@@ -99,6 +99,7 @@ export default class NotificationsListBase extends mixins(Viewer) {
   }
 
   public destroyed() {
+    this.readMonitor()
     window.clearInterval(this.loopId)
   }
 
