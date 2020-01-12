@@ -6,14 +6,14 @@
           <v-col cols="12">
             <ac-asset :asset="revision.x" thumb-name="thumbnail" />
           </v-col>
-          <v-col class="text-center" cols="6" sm="3">
+          <v-col class="text-center" cols="6" lg="3">
             <v-btn fab small color="green" :href="revision.x.file.full" download><v-icon>cloud_download</v-icon></v-btn>
           </v-col>
-          <v-col class="text-center" cols="6" sm="3" v-if="isSeller && (index + 1 === list.list.length) && !archived">
+          <v-col class="text-center" cols="6" lg="3" v-if="isSeller && (index + 1 === list.list.length) && !archived">
             <v-btn fab small color="danger" @click="revision.delete"><v-icon>delete</v-icon></v-btn>
           </v-col>
-          <v-col class="text-center" cols="12" sm="6" v-if="isSeller && (index + 1 === list.list.length) && !archived">
-            <v-btn color="primary" @click="$emit('finalize')">Mark as Final</v-btn>
+          <v-col class="text-center" cols="12" lg="6" v-if="isSeller && (index + 1 === list.list.length) && !archived">
+            <v-btn color="primary" @click="$emit('finalize')">Mark Final</v-btn>
           </v-col>
         </v-row>
       </v-col>

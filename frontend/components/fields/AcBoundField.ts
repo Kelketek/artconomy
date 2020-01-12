@@ -15,6 +15,7 @@ import * as VSwitch from 'vuetify/es5/components/VSwitch'
 import * as VTextField from 'vuetify/es5/components/VTextField'
 import * as VAutocomplete from 'vuetify/es5/components/VAutocomplete'
 import * as VSlider from 'vuetify/es5/components/VSlider'
+import * as VSelect from 'vuetify/es5/components/VSelect'
 
 // Any components that might be used as a field and which aren't in Vuetify must be added here to resolve.
 @Component({components: {
@@ -31,6 +32,7 @@ import * as VSlider from 'vuetify/es5/components/VSlider'
   ...VCheckbox,
   ...VAutocomplete,
   ...VSlider,
+  ...VSelect,
 }})
 export default class AcBoundField extends Vue {
   @Prop({default: 'v-text-field'})

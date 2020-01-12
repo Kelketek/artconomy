@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import {Vuetify} from 'vuetify/types'
-import {cleanUp, confirmAction, createVuetify, flushPromises, rs, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, confirmAction, createVuetify, flushPromises, makeSpace, rs, setViewer, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import {mount, Wrapper} from '@vue/test-utils'
 import OrderDetail from '@/components/views/order/OrderDetail.vue'
@@ -145,6 +145,43 @@ describe('OrderDetail.vue', () => {
     await flushPromises()
     await wrapper.vm.$nextTick()
     expect(vm.order.x.status).toBe(OrderStatus.QUEUED)
+  })
+  it('Permits tipping', async() => {
+    const fox = genUser()
+    fox.username = 'Fox'
+    setViewer(store, fox)
+    await router.push('/orders/Fox/order/1/')
+    wrapper = mount(
+      OrderDetail, {
+        localVue,
+        store,
+        router,
+        vuetify,
+        propsData: {orderId: 3},
+        sync: false,
+        attachToDocument: true,
+        stubs: ['router-link', 'ac-revision-manager'],
+      })
+    const vm = wrapper.vm as any
+    const order = genOrder()
+    order.seller.landscape = true
+    order.buyer!.landscape = false
+    order.status = OrderStatus.PAYMENT_PENDING
+    vm.order.setX(order)
+    vm.order.ready = true
+    vm.order.fetching = false
+    vm.fetching = false
+    vm.revisions.ready = true
+    vm.characters.setList([])
+    vm.characters.fetching = false
+    vm.characters.ready = false
+    mockAxios.reset()
+    await vm.$nextTick()
+    wrapper.find('.payment-button').trigger('click')
+    await vm.$nextTick()
+    wrapper.find('.preset10').trigger('click')
+    await vm.$nextTick()
+    expect(vm.order.patchers.tip.model).toBe('1.00')
   })
   it('Identifies seller and buyer outputs', async() => {
     const fox = genUser()
@@ -647,5 +684,29 @@ describe('OrderDetail.vue', () => {
     vm.order.updateX({status: OrderStatus.QUEUED})
     await vm.$nextTick()
     expect(vm.commissionInfo).toBe('Stuff and things')
+  })
+  it('Generates adjustment line items', async() => {
+    const fox = genUser()
+    fox.username = 'Fox'
+    setViewer(store, fox)
+    await router.push('/orders/Fox/order/1/')
+    wrapper = mount(
+      OrderDetail, {
+        localVue,
+        store,
+        router,
+        vuetify,
+        propsData: {orderId: 3},
+        sync: false,
+        attachToDocument: true,
+        stubs: ['router-link', 'ac-revision-manager'],
+      })
+    const vm = wrapper.vm as any
+    const order = genOrder()
+    order.adjustment = 5
+    vm.order.setX(order)
+    expect(vm.lineItems).toEqual([{label: 'Additional Requirements', value: 5}])
+    vm.order.updateX({adjustment: -2})
+    expect(vm.lineItems).toEqual([{label: 'Discount', value: -2}])
   })
 })

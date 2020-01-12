@@ -104,4 +104,27 @@ describe('AcPricePreview.vue', () => {
     const vm = wrapper.vm as any
     expect(vm.serviceFee).toBe(0)
   })
+  it('Handles line items', async() => {
+    setViewer(store, genUser())
+    setPricing(store, localVue)
+    wrapper = mount(AcPricePreview, {
+      localVue,
+      store,
+      router,
+      vuetify,
+      sync: false,
+      attachToDocument: true,
+      propsData: {
+        price: '10.00',
+        username: 'Fox',
+        lineItems: [{label: 'Stuff', value: 2}, {label: 'Things', value: 4}],
+      }},
+    )
+    const vm = wrapper.vm as any
+    expect(vm.serviceFee).toEqual(2.03)
+    expect(vm.validPrice).toBe(true)
+    expect(vm.landscapeBonus).toBe(0.89)
+    expect(vm.userBonus).toBe(0)
+    expect(vm.rawPrice).toBe(16.00)
+  })
 })

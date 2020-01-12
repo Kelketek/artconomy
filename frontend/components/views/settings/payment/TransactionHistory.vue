@@ -6,7 +6,7 @@
           field-type="v-select"
           :items="[{text: 'Purchases', value: 300}, {text: 'Escrow', value: 302}, {text: 'Holdings', value: 303}]"
           label="Account"
-      ></ac-bound-field>
+      />
     </v-col>
     <v-col cols="12">
       <ac-paginated :list="transactions">
@@ -14,7 +14,7 @@
           <v-col>
             <v-list three-line>
               <template v-for="transaction, index in transactions.list">
-                <ac-transaction :transaction="transaction.x" :username="username" :key="transaction.x.id" :current-account="transactionFilter.fields.account.value"></ac-transaction>
+                <ac-transaction :transaction="transaction.x" :username="username" :key="transaction.x.id" :current-account="transactionFilter.fields.account.value" />
                 <v-divider v-if="index + 1 < transactions.list.length" :key="index"/>
               </template>
             </v-list>

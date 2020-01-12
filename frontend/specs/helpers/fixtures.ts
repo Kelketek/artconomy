@@ -173,6 +173,7 @@ export function genOrder(): Order {
     outputs: [],
     private: false,
     subscribed: true,
+    tip: 0,
     adjustment_task_weight: 0,
     adjustment_expected_turnaround: 0,
     expected_turnaround: 1,

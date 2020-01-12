@@ -6,7 +6,7 @@
 
 <script lang="ts">
 import Vue from 'vue'
-import {Prop} from 'vue-property-decorator'
+import {Prop, Watch} from 'vue-property-decorator'
 import Component from 'vue-class-component'
 
   @Component
@@ -23,6 +23,12 @@ export default class AcPriceField extends Vue {
         const rawValue = this.value
         this.update(parseFloat(rawValue).toFixed(2))
       })
+    }
+
+    public mounted() {
+      if (this.value) {
+        this.update(parseFloat(this.value).toFixed(2))
+      }
     }
 }
 </script>

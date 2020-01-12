@@ -120,6 +120,8 @@ class TestOrder(TestCase):
         self.assertEqual(order.total(), Money('4.00', 'USD'))
         order.adjustment = Money('6.00', 'USD')
         self.assertEqual(order.total(), Money('10.00', 'USD'))
+        order.tip = Money('2.00', 'USD')
+        self.assertEqual(order.total(), Money('12.00', 'USD'))
 
     def order_and_context(self):
         order = OrderFactory.create()

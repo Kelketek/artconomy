@@ -776,6 +776,18 @@ export function saneNav(originalFunction: (location: RawLocation) => Promise<Rou
   return wrapped
 }
 
+export function paramsKey(sourceParams: {[key: string]: string}) {
+  let key = ''
+  const params = Object.keys(sourceParams)
+  params.sort()
+  for (const param of params) {
+    if (param.endsWith('Id') || param.endsWith('Name') || param === 'username') {
+      key += `${param}:${sourceParams[param]}|`
+    }
+  }
+  return key
+}
+
 export function updateTitle(title: string) {
   document.title = title
   window._paq.push(['setDocumentTitle', document.title])

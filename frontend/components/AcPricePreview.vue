@@ -2,19 +2,20 @@
   <ac-load-section :controller="pricing">
     <template v-slot:default>
       <v-row no-gutters   v-if="validPrice">
-        <v-col class="text-right pr-1" cols="6" v-if="adjustmentPrice">Base Price:</v-col>
-        <v-col class="text-left pl-1" cols="6" v-if="adjustmentPrice">${{basePrice.toFixed(2)}}</v-col>
-        <v-col class="text-right pr-1" cols="6" v-if="adjustmentPrice > 0">Additional Requirements:</v-col>
-        <v-col class="text-right pr-1" cols="6" v-if="adjustmentPrice < 0">Discount:</v-col>
-        <v-col class="text-left pl-1" cols="6" v-if="adjustmentPrice">${{adjustmentPrice.toFixed(2)}}</v-col>
+        <v-col class="text-right pr-1" cols="6" v-if="lineItems.length">Base Price:</v-col>
+        <v-col class="text-left pl-1" cols="6" v-if="lineItems.length">${{basePrice.toFixed(2)}}</v-col>
+        <template v-for="item in lineItems">
+          <v-col class="text-right pr-1" cols="6" :key="'label-' + item.label">{{item.label}}:</v-col>
+          <v-col class="text-left pl-1" align-self="center" cols="6" :key="'value-' + item.label">${{item.value.toFixed(2)}}</v-col>
+        </template>
         <v-col class="text-right pr-1" cols="6" ><strong>Total Price:</strong></v-col>
         <v-col class="text-left pl-1" cols="6" >${{rawPrice.toFixed(2)}}</v-col>
-        <v-col class="text-right pr-1" cols="6" v-if="escrow"><span v-if="!isSeller">(Included) </span>Artconomy Service Fee:</v-col>
-        <v-col class="text-left pl-1" cols="6" v-if="escrow">$-{{serviceFee.toFixed(2)}}</v-col>
+        <v-col class="text-right pr-1" cols="6" v-if="escrow">Shield Protection (Included):</v-col>
+        <v-col class="text-left pl-1" align-self="center" cols="6" v-if="escrow">$-{{serviceFee.toFixed(2)}}</v-col>
         <v-col class="text-right pr-1" cols="6" v-if="landscape && isSeller"><strong>Landscape Bonus:</strong></v-col>
-        <v-col class="text-left pl-1" cols="6" v-if="landscape && isSeller"><strong>${{landscapeBonus.toFixed(2)}}</strong></v-col>
+        <v-col class="text-left pl-1" align-self="center" cols="6" v-if="landscape && isSeller"><strong>${{landscapeBonus.toFixed(2)}}</strong></v-col>
         <v-col class="text-right pr-1" cols="6" v-if="isSeller && escrow"><strong>Your Payout:</strong></v-col>
-        <v-col class="text-left pl-1" cols="6" v-if="isSeller && escrow"><strong>${{payout.toFixed(2)}}</strong></v-col>
+        <v-col class="text-left pl-1" align-self="center" cols="6" v-if="isSeller && escrow"><strong>${{payout.toFixed(2)}}</strong></v-col>
         <v-col class="text-center pt-2" cols="12" v-if="!landscape && isSeller && escrow" >
           You could earn <strong>${{landscapeBonus.toFixed(2)}}</strong> more with
           <router-link :to="{name: 'Upgrade'}">Artconomy Landscape</router-link>!
@@ -37,6 +38,12 @@ import {SingleController} from '@/store/singles/controller'
 import Pricing from '@/types/Pricing'
 import Component, {mixins} from 'vue-class-component'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
+import LineItem from '@/types/LineItem'
+
+function quantize(value: number) {
+  return parseFloat(value.toFixed(2))
+}
+
 @Component({
   components: {AcLoadSection},
 })
@@ -44,8 +51,8 @@ export default class AcPricePreview extends mixins(Subjective) {
     public pricing: SingleController<Pricing> = null as unknown as SingleController<Pricing>
     @Prop({required: true})
     public price!: string
-    @Prop({default: '0.00'})
-    public adjustment!: string
+    @Prop({required: false, default: () => []})
+    public lineItems!: LineItem[]
     @Prop({default: true})
     public isSeller!: boolean
     @Prop({default: true})
@@ -56,15 +63,18 @@ export default class AcPricePreview extends mixins(Subjective) {
     }
 
     public get adjustmentPrice() {
-      return parseFloat(this.adjustment)
+      const result = this.lineItems.reduce((previousValue: LineItem, nextValue: LineItem) => {
+        return {label: 'adjustment', value: previousValue.value + nextValue.value}
+      }, {label: 'adjustment', value: 0})
+      return (result && result.value) || 0
     }
 
     public get rawPrice() {
-      return this.basePrice + this.adjustmentPrice
+      return quantize(this.basePrice + this.adjustmentPrice)
     }
 
     public get payout() {
-      return (this.rawPrice - this.serviceFee + this.userBonus)
+      return quantize(this.rawPrice - this.serviceFee + this.userBonus)
     }
 
     public get userBonus() {
@@ -113,7 +123,7 @@ export default class AcPricePreview extends mixins(Subjective) {
         return 0
       }
       const percentageMultiplier = this.pricing.x.standard_percentage * 0.01
-      return ((this.rawPrice * percentageMultiplier) + this.pricing.x.standard_static)
+      return quantize((this.rawPrice * percentageMultiplier) + this.pricing.x.standard_static)
     }
     public created() {
       this.pricing = this.$getSingle('pricing', {endpoint: '/api/sales/v1/pricing-info/'})

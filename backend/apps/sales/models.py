@@ -191,6 +191,10 @@ class Order(Model):
         max_digits=6, decimal_places=2, default_currency='USD',
         blank=True, null=True,
     )
+    tip = MoneyField(
+        max_digits=6, decimal_places=2, default_currency='USD',
+        default=0,
+    )
     revisions = IntegerField(default=0)
     revisions_hidden = BooleanField(default=True)
     final_uploaded = BooleanField(default=False)
@@ -237,7 +241,7 @@ class Order(Model):
         price = self.price
         if price is None:
             price = (self.product and self.product.price) or Money('0.00', 'USD')
-        return price + (self.adjustment or Money(0, 'USD'))
+        return price + (self.adjustment or Money(0, 'USD')) + self.tip
 
     def notification_serialize(self, context):
         from .serializers import OrderViewSerializer

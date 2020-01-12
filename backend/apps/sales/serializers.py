@@ -1,14 +1,13 @@
 from decimal import Decimal
 
 from django.conf import settings
-from django.core.validators import RegexValidator, MinValueValidator, EmailValidator
-from django.db.transaction import atomic
+from django.core.validators import RegexValidator, EmailValidator
 from django.utils.datetime_safe import datetime, date
 from luhn import verify
 from rest_framework import serializers
+from rest_framework.compat import MinValueValidator
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import SerializerMethodField, DecimalField, IntegerField, FloatField, EmailField
-from rest_framework.generics import get_object_or_404
 from short_stuff import slugify
 from short_stuff.django import ShortUIDField
 
@@ -140,6 +139,7 @@ class OrderViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
     subscribed = SubscribedField(required=False)
     expected_turnaround = FloatField(read_only=True)
     adjustment = FloatField(read_only=True)
+    tip = FloatField(read_only=True, validators=[MinValueValidator(0)])
     adjustment_expected_turnaround = FloatField(read_only=True)
     display = serializers.SerializerMethodField()
     claim_token = serializers.SerializerMethodField()
@@ -160,6 +160,9 @@ class OrderViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
                 self.fields['customer_email'].read_only = False
                 if not self.instance.buyer:
                     self.fields['customer_email'].allow_blank = True
+        elif self.is_buyer:
+            if self.instance.status == Order.PAYMENT_PENDING and self.instance.seller.landscape:
+                self.fields['tip'].read_only = False
 
     def validate_adjustment(self, val):
         adjustment = Decimal(val)
@@ -209,11 +212,28 @@ class OrderViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
         user = self.context['request'].user
         return (user == self.instance.seller) or user.is_staff
 
+    @property
+    def is_buyer(self):
+        user = self.context['request'].user
+        return (user == self.instance.buyer) or user.is_staff
+
     # noinspection PyMethodMayBeStatic
     def get_price(self, obj):
         if not obj.price:
             return obj.product.price.amount
         return obj.price.amount
+
+    def validate(self, attrs):
+        # We're going to assume that tip is only edited on its own.
+        tip = attrs.get('tip', None)
+        if tip is None:
+            return attrs
+        current_total = self.instance.total()
+        current_total -= self.instance.tip
+        if (current_total.amount / 2) < tip:
+            raise ValidationError({'tip': 'Tip should not be more than half of the original price.'})
+        return attrs
+
 
     def get_display(self, obj):
         return obj.notification_display(context=self.context)
@@ -226,6 +246,7 @@ class OrderViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
             'adjustment_expected_turnaround', 'expected_turnaround', 'task_weight', 'paid_on', 'dispute_available_on',
             'auto_finalize_on', 'started_on', 'escrow_disabled', 'revisions_hidden', 'final_uploaded', 'arbitrator',
             'display', 'rating', 'claim_token', 'commission_info', 'adjustment_revisions', 'customer_email',
+            'tip',
         )
         read_only_fields = [field for field in fields if field != 'subscribed']
 

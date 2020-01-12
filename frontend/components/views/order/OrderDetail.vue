@@ -165,7 +165,7 @@
               <v-img src="/static/images/fridge.png" max-height="20vh" contain />
               <v-btn v-if="buyerSubmission" color="primary"
                      :to="{name: 'Submission', params: {submissionId: buyerSubmission.x.id}}">Visit in Collection</v-btn>
-              <v-btn color="green" v-else @click="addToCollection" class="collection-add">Add to my Collection</v-btn>
+              <v-btn color="green" v-else @click="addToCollection" class="collection-add">Add to Collection</v-btn>
             </v-col>
             <v-col cols="12">
               <ac-comment-section :commentList="comments" :nesting="false" :locked="!isInvolved" :guest-ok="true" :show-history="isArbitrator" />
@@ -195,7 +195,7 @@
                 <v-col class="pb-2" v-if="(is(NEW) && isSeller) || !(is(NEW) || is(CANCELLED))" cols="12" >
                   <ac-price-preview
                       :price="order.x.price"
-                      :adjustment="order.x.adjustment"
+                      :line-items="lineItems"
                       :username="order.x.seller.username"
                       :is-seller="isSeller"
                       :escrow="!order.x.escrow_disabled"
@@ -273,6 +273,44 @@
                             :cc-form="paymentForm"
                             :field-mode="true"
                             v-model="paymentForm.fields.card_id.model"
+                        />
+                      </v-col>
+                      <v-col cols="12" v-if="seller.landscape && !order.x.escrow_disabled" class="text-xs-center">
+                        <v-card elevation="5">
+                          <v-card-title>Add a tip?</v-card-title>
+                          <v-card-text>
+                            <v-row>
+                              <v-col cols="12">
+                                <strong>Tips are not required, as artists set their own prices,</strong> but they are always appreciated. Your tip is protected
+                                by Artconomy Shield, along with the rest of your order.
+                              </v-col>
+                              <v-col cols="4" sm="2" offset-sm="3" class="text-center">
+                                <v-btn small color="secondary" class="preset10" fab @click="setTip(.1)"><strong>10%</strong></v-btn>
+                              </v-col>
+                              <v-col cols="4" sm="2" class="text-center">
+                                <v-btn small color="secondary" class="preset15" fab @click="setTip(.15)"><strong>15%</strong></v-btn>
+                              </v-col>
+                              <v-col cols="4" sm="2" class="text-center">
+                                <v-btn small color="secondary" class="preset20" fab @click="setTip(.2)"><strong>20%</strong></v-btn>
+                              </v-col>
+                              <v-col cols="12">
+                                <ac-patch-field
+                                  :patcher="order.patchers.tip"
+                                  field-type="ac-price-field"
+                                  label="Tip"
+                                />
+                              </v-col>
+                            </v-row>
+                          </v-card-text>
+                        </v-card>
+                      </v-col>
+                      <v-col class="text-center" cols="12" v-if="order.x.tip">
+                        <ac-price-preview
+                          :price="order.x.price"
+                          :line-items="lineItems"
+                          :username="order.x.seller.username"
+                          :is-seller="isSeller"
+                          :escrow="!order.x.escrow_disabled"
                         />
                       </v-col>
                       <v-col class="text-center" cols="12" >
@@ -416,7 +454,7 @@
                 <v-col class="text-center" v-if="isBuyer && is(COMPLETED)" cols="12" >
                   <v-btn v-if="buyerSubmission" color="primary"
                          :to="{name: 'Submission', params: {submissionId: buyerSubmission.x.id}}">Visit in Collection</v-btn>
-                  <v-btn color="green" v-else @click="addToCollection" class="collection-add">Add to my Collection</v-btn>
+                  <v-btn color="green" v-else @click="addToCollection" class="collection-add">Add to Collection</v-btn>
                 </v-col>
                 <v-col v-if="is(CANCELLED) && isBuyer">
                   <p>This order has been cancelled. You will have to create a new order if you want a commission.</p>
@@ -537,6 +575,7 @@ import AcOrderStatus from '@/components/AcOrderStatus.vue'
 import {Mutation} from 'vuex-class'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
 import AcForm from '@/components/wrappers/AcForm.vue'
+import LineItem from '@/types/LineItem'
 
 enum VIEWER_TYPE {
   UNSET = 0,
@@ -633,7 +672,17 @@ export default class OrderDetail extends mixins(Viewer, Formatting, Ratings) {
     if (!order) {
       return 0
     }
-    return order.price + order.adjustment
+    return order.price + order.adjustment + order.tip
+  }
+
+  public setTip(multiplier: number) {
+    const order = this.order.x as Order
+    /* istanbul ignore if */
+    if (!order) {
+      return
+    }
+    const tip = (this.totalCharge - order.tip) * multiplier
+    this.order.patchers.tip.model = tip.toFixed(2)
   }
 
   public get viewerItems() {
@@ -698,6 +747,25 @@ export default class OrderDetail extends mixins(Viewer, Formatting, Ratings) {
       return null
     }
     return this.order.x.product
+  }
+
+  public get lineItems() {
+    let items: LineItem[] = []
+    /* istanbul ignore if */
+    if (!this.order.x) {
+      return items
+    }
+    if (this.order.x.adjustment) {
+      if (this.order.x.adjustment > 0) {
+        items.push({label: 'Additional Requirements', value: this.order.x.adjustment})
+      } else {
+        items.push({label: 'Discount', value: this.order.x.adjustment})
+      }
+    }
+    if (this.order.x.tip) {
+      items.push({label: 'Tip', value: this.order.x.tip})
+    }
+    return items
   }
 
   public get inviteDisabled() {

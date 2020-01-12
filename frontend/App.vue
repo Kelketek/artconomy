@@ -108,7 +108,7 @@ import Viewer from '@/mixins/viewer'
 import {UserStoreState} from '@/store/profiles/types/UserStoreState'
 import {Alert} from '@/store/state'
 import AcMarkdownExplanation from '@/components/fields/AcMarkdownExplination.vue'
-import {fallback, fallbackBoolean, searchSchema} from './lib'
+import {fallback, fallbackBoolean, paramsKey, searchSchema} from './lib'
 import {User} from '@/store/profiles/types/User'
 import Nav from '@/mixins/nav'
 
@@ -192,15 +192,7 @@ export default class App extends mixins(Viewer, Nav) {
       // If we don't do this, then the component won't be recreated when we, say, jump from one profile page to another.
       // If we use the standard advice of 'make $route.fullPath the key', we'll be recreating far too often, since
       // we have many nested routes.
-      let key = ''
-      const params = Object.keys(this.$route.params)
-      params.sort()
-      for (const param of params) {
-        if (param.endsWith('Id') || param.endsWith('Name') || param === 'username') {
-          key += `${param}:${this.$route.params[param]}|`
-        }
-      }
-      return key
+      return paramsKey(this.$route.params)
     }
 
     @Watch('viewer.email')

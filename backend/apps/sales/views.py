@@ -1182,7 +1182,7 @@ class AccountHistory(ListAPIView):
             When(status=TransactionRecord.PENDING, then=0),
             default=1,
             output_field=IntegerField()
-        )).order_by('pending', 'finalized_on', 'created_on')
+        )).order_by('pending', '-finalized_on', '-created_on')
 
     def get(self, request, *args, **kwargs):
         self.check_object_permissions(self.request, self.request.subject)

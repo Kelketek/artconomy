@@ -23,6 +23,7 @@ export default interface Order {
   outputs: Submission[],
   private: boolean,
   subscribed: boolean,
+  tip: number,
   adjustment_task_weight: number,
   adjustment_expected_turnaround: number,
   adjustment_revisions: number,

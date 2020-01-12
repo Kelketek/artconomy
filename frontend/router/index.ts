@@ -26,7 +26,7 @@ import NotFound from '@/components/views/NotFound.vue'
 import ConversationDetail from '@/components/views/ConversationDetail.vue'
 import PasswordReset from '@/components/views/PasswordReset.vue'
 import Router, {Route, RouteConfig} from 'vue-router'
-import {clearMetaTag, saneNav, setCookie, setMetaContent} from '@/lib'
+import {clearMetaTag, paramsKey, saneNav, setCookie, setMetaContent} from '@/lib'
 import {ArtStore} from '@/store'
 import Purchase from '@/components/views/settings/payment/Purchase.vue'
 import TransactionHistory from '@/components/views/settings/payment/TransactionHistory.vue'
@@ -599,6 +599,18 @@ Router.prototype.replace = saneNav(Router.prototype.replace)
 export const router = new Router({
   mode: 'history',
   routes,
+  scrollBehavior(to: Route, from: Route): void|{x: number, y: number} {
+    if (!from || !to) {
+      return
+    }
+    if ((from.name === to.name) || (from.matched[0].name === to.matched[0].name)) {
+      // Need to find cases of different IDs or usernames and blep them out.
+      if (paramsKey(from.params) === paramsKey(to.params)) {
+        return
+      }
+    }
+    return {x: 0, y: 0}
+  },
 })
 
 declare global {
