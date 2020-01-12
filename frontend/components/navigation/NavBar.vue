@@ -17,6 +17,7 @@
         </v-row>
         <v-spacer />
         <v-bottom-navigation
+          :class="{'mb-5': $vuetify.breakpoint.smAndDown}"
         >
           <v-btn
             text
@@ -48,7 +49,6 @@
             text
             @click.capture.prevent="showSupport"
             to="#"
-            class="support-button"
           >
             <span>Support</span>
             <v-icon medium>contact_support</v-icon>
