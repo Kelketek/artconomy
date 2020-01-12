@@ -17,13 +17,15 @@
         </v-row>
         <v-spacer />
         <v-bottom-navigation
-          :class="{'mb-5': $vuetify.breakpoint.smAndDown}"
+          style="height: auto"
         >
           <v-btn
             text
             href="https://twitter.com/ArtconomyArt/"
             rel="nofollow"
             target="_blank"
+            :class="{'phone-padding': $vuetify.breakpoint.smAndDown, 'pb-2': $vuetify.breakpoint.mdAndUp}"
+            class="pt-2"
           >
             <span>Twitter</span>
             <v-icon medium>fa-twitter</v-icon>
@@ -32,6 +34,8 @@
             text
             href="https://artconomy.com/blog/"
             target="_blank"
+            :class="{'phone-padding': $vuetify.breakpoint.smAndDown, 'pb-2': $vuetify.breakpoint.mdAndUp}"
+            class="pt-2"
           >
             <span>Blog</span>
             <v-icon medium>edit</v-icon>
@@ -41,6 +45,8 @@
             href="https://discord.gg/4nWK9mf"
             target="_blank"
             rel="nofollow"
+            :class="{'phone-padding': $vuetify.breakpoint.smAndDown, 'pb-2': $vuetify.breakpoint.mdAndUp}"
+            class="pt-2"
           >
             <span>Discord</span>
             <v-icon medium>{{discordPath}}</v-icon>
@@ -49,6 +55,8 @@
             text
             @click.capture.prevent="showSupport"
             to="#"
+            class="support-button pt-2"
+            :class="{'phone-padding': $vuetify.breakpoint.smAndDown, 'pb-2': $vuetify.breakpoint.mdAndUp}"
           >
             <span>Support</span>
             <v-icon medium>contact_support</v-icon>
@@ -143,6 +151,10 @@
   .title {
     display: inline-block;
     vertical-align: middle;
+  }
+
+  .phone-padding {
+    padding-bottom: 80px !important;
   }
 
 </style>
