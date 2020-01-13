@@ -18,29 +18,43 @@
           />
         </v-col>
         <v-col class="text-center" cols="12">
-          <v-btn color="purple" icon large @click="showQr = true" class="qr-button"><v-icon>fa-qrcode</v-icon></v-btn>
-          <v-btn color="red" icon large :href="`https://reddit.com/submit?url=${location}&title=${titleText}`"
-                 rel="nofollow"
-                 target="_blank">
-            <v-icon large>fa-reddit</v-icon>
-          </v-btn>
-          <v-btn color="blue" icon large :href="`https://telegram.me/share/url?url=${location}`"
-                 target="_blank"
-                 rel="nofollow"
-          >
-            <v-icon large>fa-telegram</v-icon>
-          </v-btn>
-          <v-btn color="blue" icon large
-                 :href="`https://twitter.com/share?text=${titleText}&url=${location}&hashtags=Artconomy`"
-                 target="_blank"
-                 rel="nofollow">
-            <v-icon>fa-twitter</v-icon>
-          </v-btn>
-          <v-btn color="grey darken-4" icon large :href="`https://www.tumblr.com/share/link?url=${location}&name=${titleText}`"
-                 target="_blank"
-                 rel="nofollow">
-            <v-icon>fa-tumblr</v-icon>
-          </v-btn>
+          <v-row>
+            <v-spacer />
+            <v-col class="shrink">
+              <v-btn color="purple" fab small @click="showQr = true" class="qr-button"><v-icon>fa-qrcode</v-icon></v-btn>
+            </v-col>
+            <v-col class="shrink">
+              <v-btn color="red" fab small :href="`https://reddit.com/submit?url=${location}&title=${titleText}`"
+                     rel="nofollow"
+                     target="_blank">
+                <v-icon>fa-reddit</v-icon>
+              </v-btn>
+            </v-col>
+            <v-col class="shrink">
+              <v-btn color="blue" fab small :href="`https://telegram.me/share/url?url=${location}`"
+                     target="_blank"
+                     rel="nofollow"
+              >
+                <v-icon>fa-telegram</v-icon>
+              </v-btn>
+            </v-col>
+            <v-col class="shrink">
+              <v-btn color="blue" fab small
+                     :href="`https://twitter.com/share?text=${titleText}&url=${location}&hashtags=Artconomy`"
+                     target="_blank"
+                     rel="nofollow">
+                <v-icon>fa-twitter</v-icon>
+              </v-btn>
+            </v-col>
+            <v-col class="shrink">
+              <v-btn color="grey darken-4" fab small :href="`https://www.tumblr.com/share/link?url=${location}&name=${titleText}`"
+                     target="_blank"
+                     rel="nofollow">
+                <v-icon>fa-tumblr</v-icon>
+              </v-btn>
+            </v-col>
+            <v-spacer />
+          </v-row>
         </v-col>
       </v-row>
       <ac-expanded-property v-model="showQr" class="qr-modal">
