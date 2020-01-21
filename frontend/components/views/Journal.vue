@@ -5,7 +5,7 @@
       <v-card>
         <v-toolbar dense color="black">
           <ac-avatar :username="username" :show-name="false" />
-          <v-toolbar-title class="ml-1">{{username}}</v-toolbar-title><v-spacer />
+          <v-toolbar-title class="ml-1"><ac-link :to="profileLink(subject)">{{username}}</ac-link></v-toolbar-title><v-spacer />
           <v-tooltip bottom>
             <template v-slot:activator="{ on }">
               <v-icon v-on="on">info</v-icon>
@@ -105,8 +105,11 @@ import {ListController} from '@/store/lists/controller'
 import AcCommentSection from '@/components/comments/AcCommentSection.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import Formatting from '@/mixins/formatting'
+import AcLink from '@/components/wrappers/AcLink.vue'
+import {profileLink} from '@/lib'
 
   @Component({components: {
+    AcLink,
     AcPatchField,
     AcCommentSection,
     AcConfirmation,

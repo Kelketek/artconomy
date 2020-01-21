@@ -72,7 +72,7 @@
         <v-col cols="12" md="5" lg="5" :class="{'px-2': $vuetify.breakpoint.mdAndUp}">
           <v-toolbar dense color="black">
             <ac-avatar :username="username" :show-name="false" />
-            <v-toolbar-title class="ml-1">{{username}}</v-toolbar-title>
+            <v-toolbar-title class="ml-1"><ac-link :to="profileLink(subject)">{{username}}</ac-link></v-toolbar-title>
             <v-spacer />
             <v-col class="shrink d-flex" v-if="controls">
               <v-row no-gutters class="justify-content"  align="center" >
@@ -361,7 +361,7 @@ import {RawLocation} from 'vue-router'
 import LinkedSubmission from '@/types/LinkedSubmission'
 import ProductCentric from '@/components/views/product/mixins/ProductCentric'
 import AcEscrowLabel from '@/components/AcEscrowLabel.vue'
-import {setMetaContent, textualize, updateTitle} from '@/lib'
+import {setMetaContent, textualize, updateTitle, profileLink} from '@/lib'
 import AcShareButton from '@/components/AcShareButton.vue'
 
   @Component({

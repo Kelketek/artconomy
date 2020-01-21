@@ -3,7 +3,7 @@
     <v-toolbar :dense="$vuetify.breakpoint.smAndDown" color="black">
       <slot name="avatar">
         <ac-avatar :username="username" :show-name="false" />
-        <v-toolbar-title class="ml-1">{{subjectHandler.displayName}}</v-toolbar-title>
+        <v-toolbar-title class="ml-1"><ac-link :to="profileLink(subject)">{{subjectHandler.displayName}}</ac-link></v-toolbar-title>
       </slot>
       <v-spacer />
       <v-toolbar-items v-if="!$vuetify.breakpoint.xs">
@@ -32,10 +32,12 @@ import Component, {mixins} from 'vue-class-component'
 import AcAvatar from '../AcAvatar.vue'
 import Subjective from '../../mixins/subjective'
 import {Fragment} from 'vue-fragment'
+import AcLink from '@/components/wrappers/AcLink.vue'
+import Formatting from '@/mixins/formatting'
 
-  @Component({
-    components: {AcAvatar, Fragment},
-  })
-export default class AcSubjectiveToolbar extends mixins(Subjective) {
+@Component({
+  components: {AcLink, AcAvatar, Fragment},
+})
+export default class AcSubjectiveToolbar extends mixins(Subjective, Formatting) {
 }
 </script>

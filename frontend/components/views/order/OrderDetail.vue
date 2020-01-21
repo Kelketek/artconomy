@@ -5,7 +5,7 @@
         <v-col cols="12" md="3" lg="2" order="1">
           <v-toolbar dense color="black">
             <ac-avatar :user="order.x.seller" :show-name="false" />
-            <v-toolbar-title class="ml-1">{{order.x.seller.username}}</v-toolbar-title>
+            <v-toolbar-title class="ml-1"><ac-link :to="profileLink(order.x.seller)">{{order.x.seller.username}}</ac-link></v-toolbar-title>
           </v-toolbar>
           <v-card :color="$vuetify.theme.currentTheme.darkBase.darken2">
             <v-card-text >
@@ -59,7 +59,7 @@
             <v-col cols="12">
               <v-toolbar dense v-if="buyer" color="black">
                 <ac-avatar :username="buyer.username" :show-name="false" />
-                <v-toolbar-title class="ml-1">{{deriveDisplayName(buyer.username)}}</v-toolbar-title>
+                <v-toolbar-title class="ml-1"><ac-link :to="profileLink(buyer)">{{deriveDisplayName(buyer.username)}}</ac-link></v-toolbar-title>
               </v-toolbar>
               <v-card>
                 <v-card-text>
@@ -560,7 +560,7 @@ import {FormController} from '@/store/forms/form-controller'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import AcPricePreview from '@/components/AcPricePreview.vue'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
-import {baseCardSchema} from '@/lib'
+import {baseCardSchema, profileLink} from '@/lib'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import AcCardManager from '@/components/views/settings/payment/AcCardManager.vue'
 import Revision from '@/types/Revision'

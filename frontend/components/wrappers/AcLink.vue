@@ -1,7 +1,7 @@
 <template>
   <fragment>
-    <router-link v-bind="$props" v-if="to" @click.native.capture="navigate"><slot></slot></router-link>
-    <slot v-else></slot>
+    <router-link v-bind="$props" v-if="to" :to="to" @click.native.capture="navigate"><slot /></router-link>
+    <slot v-else />
   </fragment>
 </template>
 

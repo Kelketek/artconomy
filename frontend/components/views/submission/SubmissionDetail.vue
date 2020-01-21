@@ -125,7 +125,7 @@
                         <ac-avatar :user="submission.x.owner" :show-name="false"/>
                       </v-col>
                       <v-col class="shrink" align-self="center">
-                        <v-toolbar-title class="ml-1">{{submission.x.owner.username}}</v-toolbar-title>
+                        <v-toolbar-title class="ml-1"><ac-link :to="profileLink(submission.x.owner)">{{submission.x.owner.username}}</ac-link></v-toolbar-title>
                       </v-col>
                       <v-col class="shrink" align-self="center">
                         <v-menu offset-x left v-if="controls">
@@ -253,7 +253,7 @@ import Formatting from '@/mixins/formatting'
 import {ListController} from '@/store/lists/controller'
 import {Journal} from '@/types/Journal'
 import AcCommentSection from '@/components/comments/AcCommentSection.vue'
-import {posse, RATING_COLOR, RATINGS_SHORT, setMetaContent, textualize, updateTitle} from '@/lib'
+import {posse, RATING_COLOR, RATINGS_SHORT, setMetaContent, textualize, updateTitle, profileLink} from '@/lib'
 import AcAvatar from '@/components/AcAvatar.vue'
 import Editable from '@/mixins/editable'
 import AcEditingToggle from '@/components/navigation/AcEditingToggle.vue'
@@ -273,9 +273,11 @@ import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
 import AcShareButton from '@/components/AcShareButton.vue'
 import AcShareManager from '@/components/AcShareManager.vue'
+import AcLink from '@/components/wrappers/AcLink.vue'
 
   @Component({
     components: {
+      AcLink,
       AcShareManager,
       AcShareButton,
       AcGalleryPreview,

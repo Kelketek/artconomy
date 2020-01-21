@@ -15,7 +15,7 @@
       </v-navigation-drawer>
       <v-container>
         <v-toolbar v-if="!isCurrent" color="red">
-          <v-toolbar-title>Settings for {{username}}</v-toolbar-title><v-spacer />
+          <v-toolbar-title>Settings for <ac-link :to="profileLink(subject)">{{username}}</ac-link></v-toolbar-title><v-spacer />
           <ac-avatar :username="username" :show-name="false" />
         </v-toolbar>
         <v-toolbar color="secondary">
@@ -34,16 +34,18 @@
 
 <script lang="ts">
 import Component, {mixins} from 'vue-class-component'
-import {paramHandleMap} from '@/lib'
+import {paramHandleMap, profileLink} from '@/lib'
 import Subjective from '@/mixins/subjective'
 import AcSettingNav from '@/components/navigation/AcSettingNav.vue'
 import AcLoadingSpinner from '@/components/wrappers/AcLoadingSpinner.vue'
 import AcAvatar from '@/components/AcAvatar.vue'
+import AcLink from '@/components/wrappers/AcLink.vue'
+import Formatting from '@/mixins/formatting'
 
   @Component({
-    components: {AcAvatar, AcLoadingSpinner, AcSettingNav},
+    components: {AcLink, AcAvatar, AcLoadingSpinner, AcSettingNav},
   })
-export default class Settings extends mixins(Subjective) {
+export default class Settings extends mixins(Subjective, Formatting) {
     public privateView = true
     private drawer = false
 

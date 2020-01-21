@@ -1,7 +1,7 @@
 <template>
   <v-toolbar :dense="dense" color="black">
     <ac-avatar :username="username" :show-name="false" />
-    <v-toolbar-title class="ml-1">{{subjectHandler.displayName}}</v-toolbar-title>
+    <v-toolbar-title class="ml-1"><ac-link :to="profileLink(subject)">{{subjectHandler.displayName}}</ac-link></v-toolbar-title>
     <v-spacer />
     <v-toolbar-items v-if="subject && showActions && $vuetify.breakpoint.smAndUp">
       <v-btn color="secondary" @click="showMenu=true" v-if="isStaff">
@@ -120,17 +120,19 @@ import Component, {mixins} from 'vue-class-component'
 import AcConfirmation from '../../wrappers/AcConfirmation.vue'
 import AcAvatar from '../../AcAvatar.vue'
 import Subjective from '@/mixins/subjective'
-import {artCall} from '@/lib'
+import {artCall, profileLink} from '@/lib'
 import {Conversation} from '@/types/Conversation'
 import {User} from '@/store/profiles/types/User'
 import {Prop} from 'vue-property-decorator'
 import AcNavLinks from '@/components/navigation/AcNavLinks.vue'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
+import AcLink from '@/components/wrappers/AcLink.vue'
+import Formatting from '@/mixins/formatting'
 
   @Component({
-    components: {AcExpandedProperty, AcNavLinks, AcAvatar, AcConfirmation},
+    components: {AcLink, AcExpandedProperty, AcNavLinks, AcAvatar, AcConfirmation},
   })
-export default class AcProfileHeader extends mixins(Subjective) {
+export default class AcProfileHeader extends mixins(Subjective, Formatting) {
     @Prop({default: false})
     public dense!: boolean
     public showMenu = false

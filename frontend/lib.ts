@@ -792,3 +792,17 @@ export function updateTitle(title: string) {
   document.title = title
   window._paq.push(['setDocumentTitle', document.title])
 }
+
+export function profileLink(user: User|TerseUser|null) {
+  if (!user) {
+    return null
+  }
+  if (guestName(user.username)) {
+    return null
+  }
+  if (user.artist_mode) {
+    return {name: 'Products', params: {username: user.username}}
+  } else {
+    return {name: 'AboutUser', params: {username: user.username}}
+  }
+}

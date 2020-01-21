@@ -2,7 +2,7 @@
   <v-card :class="{comment: true, 'elevation-3': alternate}" class="new-comment" :color="color">
     <v-toolbar dense color="black" v-if="isRegistered || (isLoggedIn && guestOk)">
       <ac-avatar :user="viewer" :show-name="false" />
-      <v-toolbar-title class="ml-1">{{viewerName}}</v-toolbar-title><v-spacer />
+      <v-toolbar-title class="ml-1"><ac-link :to="profileLink(viewer)">{{viewerName}}</ac-link></v-toolbar-title><v-spacer />
     </v-toolbar>
     <v-card-text>
       <v-row no-gutters v-if="!isRegistered && !guestOk">
@@ -68,13 +68,15 @@ import AcAvatar from '@/components/AcAvatar.vue'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import {FormController} from '@/store/forms/form-controller'
 import AcBoundField from '@/components/fields/AcBoundField'
-import {flatten} from '@/lib'
+import {flatten, profileLink} from '@/lib'
 import AcForm from '@/components/wrappers/AcForm.vue'
+import AcLink from '@/components/wrappers/AcLink.vue'
+import Formatting from '@/mixins/formatting'
 
   @Component({
-    components: {AcForm, AcBoundField, AcFormContainer, AcAvatar, AcEditor},
+    components: {AcLink, AcForm, AcBoundField, AcFormContainer, AcAvatar, AcEditor},
   })
-export default class AcNewComment extends mixins(Viewer) {
+export default class AcNewComment extends mixins(Viewer, Formatting) {
     @Prop({required: true})
     public commentList!: ListController<Comment>
     @Prop({default: false})

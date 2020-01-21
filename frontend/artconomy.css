@@ -72,3 +72,7 @@ blockquote {
 .compact-fields .v-input__slot {
     margin-bottom: 0;
 }
+
+.v-toolbar__title a {
+    text-decoration: none;
+}

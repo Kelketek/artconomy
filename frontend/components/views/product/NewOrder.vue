@@ -115,7 +115,7 @@
         <v-col cols="12" offset-md="1" md="3" lg="2">
           <v-toolbar dense color="black">
             <ac-avatar :user="product.x.user" :show-name="false" />
-            <v-toolbar-title class="ml-1">{{username}}</v-toolbar-title>
+            <v-toolbar-title class="ml-1"><ac-link :to="profileLink(product.x.user)">{{username}}</ac-link></v-toolbar-title>
           </v-toolbar>
           <v-card :color="$vuetify.theme.currentTheme.darkBase.darken2">
             <v-card-text>
@@ -165,8 +165,19 @@ import {User} from '@/store/profiles/types/User'
 import {Watch} from 'vue-property-decorator'
 import AcRendered from '@/components/wrappers/AcRendered'
 import AcForm from '@/components/wrappers/AcForm.vue'
+import AcLink from '@/components/wrappers/AcLink.vue'
   @Component({
-    components: {AcForm, AcRendered, AcFormContainer, AcAvatar, AcAsset, AcBoundField, AcLoadSection, AcFormDialog},
+    components: {
+      AcLink,
+      AcForm,
+      AcRendered,
+      AcFormContainer,
+      AcAvatar,
+      AcAsset,
+      AcBoundField,
+      AcLoadSection,
+      AcFormDialog,
+    },
   })
 export default class NewOrder extends mixins(ProductCentric, Formatting) {
     public orderForm: FormController = null as unknown as FormController

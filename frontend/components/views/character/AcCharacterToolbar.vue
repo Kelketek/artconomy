@@ -3,7 +3,7 @@
     <ac-subjective-toolbar :username="username">
       <template v-if="characterAvatar" v-slot:avatar>
         <ac-mini-character :show-name="false" :character="character.profile.x" />
-        <v-toolbar-title>{{characterName}}</v-toolbar-title>
+        <v-toolbar-title><ac-link :to="{name: 'Character', params: {username, characterName}}">{{characterName}}</ac-link></v-toolbar-title>
       </template>
       <v-toolbar-items class="text-center text-md-right" v-if="character.profile.x">
         <ac-share-button :title="`${characterName} by ${username} - Artconomy`">
@@ -70,9 +70,11 @@ import Upload from '@/mixins/upload'
 import AcNewSubmission from '@/components/AcNewSubmission.vue'
 import AcShareManager from '@/components/AcShareManager.vue'
 import AcMiniCharacter from '@/components/AcMiniCharacter.vue'
+import AcLink from '@/components/wrappers/AcLink.vue'
 
   @Component({
     components: {
+      AcLink,
       AcMiniCharacter,
       AcShareManager,
       AcNewSubmission,

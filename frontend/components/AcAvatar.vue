@@ -48,7 +48,7 @@ import {Prop, Watch} from 'vue-property-decorator'
 import {ProfileController} from '@/store/profiles/controller'
 import {userHandle} from '@/store/profiles/handles'
 import {User} from '@/store/profiles/types/User'
-import {artCall, guestName} from '@/lib'
+import {artCall, profileLink} from '@/lib'
 import {profileRegistry} from '@/store/profiles/registry'
 import {TerseUser} from '@/store/profiles/types/TerseUser'
 import AcLink from '@/components/wrappers/AcLink.vue'
@@ -116,20 +116,10 @@ export default class AcAvatar extends Vue {
     }
 
     public get profileLink() {
-      if (!this.person) {
-        return null
-      }
       if (this.noLink) {
         return null
       }
-      if (guestName(this.person.username)) {
-        return null
-      }
-      if (this.person.artist_mode) {
-        return {name: 'Products', params: {username: this.person.username}}
-      } else {
-        return {name: 'AboutUser', params: {username: this.person.username}}
-      }
+      return profileLink(this.person)
     }
 
     public get displayName() {

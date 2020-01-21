@@ -9,7 +9,9 @@ import {
   formatDateTerse,
   deriveDisplayName,
   guestName,
+  profileLink,
 } from '@/lib'
+import {User} from '@/store/profiles/types/User'
 
 @Component
 export default class Formatting extends Vue {
@@ -45,5 +47,8 @@ export default class Formatting extends Vue {
   }
   public guestName(username: string) {
     return guestName(username)
+  }
+  public profileLink(user: User|null) {
+    return profileLink(user)
   }
 }

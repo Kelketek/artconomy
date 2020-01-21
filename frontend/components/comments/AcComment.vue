@@ -2,7 +2,7 @@
   <v-card :color="color" :class="{alternate, comment: true, 'elevation-3': alternate, selected}" :id="'comment-' + comment.x.id" v-if="comment.x">
     <v-toolbar dense color="black">
       <ac-avatar :username="username" :show-name="false" v-if="username" />
-      <v-toolbar-title v-if="username" class="ml-1">{{subjectHandler.displayName}}</v-toolbar-title><v-spacer />
+      <v-toolbar-title v-if="username" class="ml-1"><ac-link :to="profileLink(subject)">{{subjectHandler.displayName}}</ac-link></v-toolbar-title><v-spacer />
       <v-tooltip bottom>
         <template v-slot:activator="{ on }">
           <v-icon v-on="on">info</v-icon>
@@ -175,18 +175,20 @@ import AcAvatar from '@/components/AcAvatar.vue'
 import AcRendered from '@/components/wrappers/AcRendered'
 import AcBoundField from '@/components/fields/AcBoundField'
 import Comment from '@/types/Comment'
-import {flatten} from '@/lib'
+import {flatten, profileLink} from '@/lib'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
 import AcNewComment from '@/components/comments/AcNewComment.vue'
 import AcLoadingSpinner from '@/components/wrappers/AcLoadingSpinner.vue'
-import Formatting from '@/mixins/formatting'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import {Patch} from '@/store/singles/patcher'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
+import AcLink from '@/components/wrappers/AcLink.vue'
+import Formatting from '@/mixins/formatting'
 
 @Component({
   components: {
+    AcLink,
     AcExpandedProperty,
     AcPatchField,
     AcLoadingSpinner,
