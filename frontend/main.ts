@@ -12,14 +12,17 @@ import {configureHooks, router} from './router'
 import {FormControllers} from '@/store/forms/registry'
 import {Shortcuts} from './plugins/shortcuts'
 import Bowser from 'bowser'
+import Big from 'big.js'
+import * as lineItemFunctions from '@/lib/lineItemFunctions'
 // import './registerServiceWorker'
-import {formatSize} from './lib'
+import {formatSize} from './lib/lib'
 import {Lists} from '@/store/lists/registry'
 import {Singles} from '@/store/singles/registry'
 import colors from 'vuetify/es5/util/colors'
 import {Profiles} from '@/store/profiles/registry'
 import {Characters} from '@/store/characters/registry'
 import VueObserveVisibility from 'vue-observe-visibility'
+import {genLineItem} from '@/lib/specs/helpers'
 
 declare global {
   interface Window {
@@ -41,6 +44,11 @@ Vue.use(VueObserveVisibility)
 Vue.config.productionTip = false
 
 Vue.filter('formatSize', formatSize)
+
+Big.DP = 2
+Big.RM = 2
+// @ts-ignore
+window.Big = Big
 
 const browser = Bowser.getParser(window.navigator.userAgent)
 const isValidBrowser = browser.satisfies({
@@ -102,3 +110,7 @@ window.artconomy = new Vue({
 })
 
 window.artconomy.$mount('#app')
+// @ts-ignore
+window.lines = lineItemFunctions
+// @ts-ignore
+window.genLineItem = genLineItem

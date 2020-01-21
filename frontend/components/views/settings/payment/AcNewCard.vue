@@ -99,7 +99,7 @@ import {Prop} from 'vue-property-decorator'
 import Component, {mixins} from 'vue-class-component'
 import {cardType, CardType} from '@/store/forms/validators'
 import Viewer from '@/mixins/viewer'
-import {cardHelperMap} from '@/lib'
+import {cardHelperMap} from '@/lib/lib'
 import {mask} from 'vue-the-mask'
 
 @Component({components: {AcBoundField, AcFormContainer}, directives: {mask}})

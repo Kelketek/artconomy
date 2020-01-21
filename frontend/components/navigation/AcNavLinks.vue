@@ -133,7 +133,7 @@ import AcSettingNav from '@/components/navigation/AcSettingNav.vue'
 import {FormController} from '@/store/forms/form-controller'
 import {ProfileController} from '@/store/profiles/controller'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
-import {artCall} from '@/lib'
+import {artCall} from '@/lib/lib'
   @Component({
     components: {AcPatchField, AcSettingNav},
   })

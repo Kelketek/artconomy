@@ -7,8 +7,9 @@ from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.auth import login
 from django.contrib.contenttypes.models import ContentType
+from django.db import transaction, IntegrityError
 from django.views.static import serve
-from django.db.models import When, F, Case, BooleanField, Q, Count, QuerySet, IntegerField
+from django.db.models import When, F, Case, BooleanField, Q, Count, QuerySet, IntegerField, Sum
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
@@ -25,11 +26,12 @@ from moneyed import Money, Decimal
 # BDay is business day, not birthday.
 from pandas.tseries.offsets import BDay
 from rest_framework import status
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, CreateAPIView, RetrieveAPIView, \
     GenericAPIView, ListAPIView, DestroyAPIView, RetrieveUpdateAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_csv.renderers import CSVRenderer, JSONRenderer
 from short_stuff import slugify
 
 from apps.lib.models import DISPUTE, REFUND, COMMENT, Subscription, ORDER_UPDATE, SALE_UPDATE, REVISION_UPLOADED, \
@@ -37,7 +39,7 @@ from apps.lib.models import DISPUTE, REFUND, COMMENT, Subscription, ORDER_UPDATE
 from apps.lib.permissions import IsStaff, IsSafeMethod, Any, All, IsMethod
 from apps.lib.utils import notify, recall_notification, demark, preview_rating, send_transaction_email
 from apps.lib.views import BasePreview
-from apps.profiles.models import User, Submission, HAS_US_ACCOUNT, NO_US_ACCOUNT, VERIFIED
+from apps.profiles.models import User, Submission, HAS_US_ACCOUNT
 from apps.profiles.permissions import ObjectControls, UserControls, IsUser, IsSuperuser, IsRegistered
 from apps.profiles.serializers import UserSerializer, SubmissionSerializer
 from apps.profiles.utils import credit_referral, create_guest_user, empty_user
@@ -49,9 +51,11 @@ from apps.sales.permissions import (
     OrderViewPermission, OrderSellerPermission, OrderBuyerPermission,
     OrderPlacePermission, EscrowPermission, EscrowDisabledPermission, RevisionsVisible,
     BankingConfigured,
-    OrderStatusPermission, HasRevisionsPermission, OrderTimeUpPermission, NoOrderOutput, PaidOrderPermission)
+    OrderStatusPermission, HasRevisionsPermission, OrderTimeUpPermission, NoOrderOutput, PaidOrderPermission,
+    LineItemTypePermission, OrderNoProduct)
 from apps.sales.models import Product, Order, CreditCardToken, Revision, BankAccount, \
-    WEIGHTED_STATUSES, Rating, TransactionRecord, buyer_subscriptions
+    WEIGHTED_STATUSES, Rating, TransactionRecord, buyer_subscriptions, BASE_PRICE, ADD_ON, TAX, EXTRA, \
+    TABLE_SERVICE, TIP, LineItem, SHIELD, inventory_change, InventoryError, InventoryTracker
 from apps.sales.serializers import (
     ProductSerializer, ProductNewOrderSerializer, OrderViewSerializer, CardSerializer,
     NewCardSerializer, PaymentSerializer, RevisionSerializer,
@@ -59,10 +63,12 @@ from apps.sales.serializers import (
     RatingSerializer,
     ServicePaymentSerializer, SearchQuerySerializer, NewInvoiceSerializer,
     HoldingsSummarySerializer, ProductSampleSerializer, OrderPreviewSerializer,
-    AccountQuerySerializer, OrderCharacterTagSerializer, SubmissionFromOrderSerializer, OrderAuthSerializer)
+    AccountQuerySerializer, OrderCharacterTagSerializer, SubmissionFromOrderSerializer, OrderAuthSerializer,
+    LineItemSerializer, OrderValuesSerializer, SimpleTransactionSerializer, InventorySerializer)
 from apps.sales.utils import available_products, service_price, set_service, \
-    check_charge_required, available_products_by_load, finalize_order, account_balance, split_fee, \
-    recuperate_fee, ALL, POSTED_ONLY, PENDING, transfer_order, early_finalize, cancel_order
+    check_charge_required, available_products_by_load, finalize_order, account_balance, \
+    recuperate_fee, ALL, POSTED_ONLY, PENDING, transfer_order, early_finalize, cancel_order, lines_to_transaction_specs, \
+    get_totals, verify_total, issue_refund
 from apps.sales.tasks import renew
 
 
@@ -113,6 +119,26 @@ class ProductManager(RetrieveUpdateDestroyAPIView):
         return product
 
 
+class ProductInventoryManager(RetrieveUpdateAPIView):
+    serializer_class = InventorySerializer
+    permission_classes = [Any(IsSafeMethod, All(IsRegistered, ObjectControls))]
+
+    @lru_cache()
+    def get_object(self):
+        product = get_object_or_404(
+            Product, user__username=self.kwargs['username'], id=self.kwargs['product'], active=True,
+            track_inventory=True,
+        )
+        self.check_object_permissions(self.request, product)
+        return product.inventory
+
+    def perform_update(self, serializer):
+        with transaction.atomic():
+            tracker = InventoryTracker.objects.select_for_update().get(id=self.get_object().id)
+            serializer.instance = tracker
+            serializer.save()
+
+
 class ProductSamples(ListCreateAPIView):
     serializer_class = ProductSampleSerializer
     permission_classes = [Any(IsSafeMethod, All(IsRegistered, ObjectControls))]
@@ -159,13 +185,16 @@ class ProductSampleManager(DestroyAPIView):
         instance.delete()
 
 
-
 class PlaceOrder(CreateAPIView):
     serializer_class = ProductNewOrderSerializer
     permission_classes = [OrderPlacePermission]
 
+    @lru_cache
+    def get_object(self):
+        return get_object_or_404(Product, id=self.kwargs['product'], active=True)
+
     def perform_create(self, serializer):
-        product = get_object_or_404(Product, id=self.kwargs['product'], active=True)
+        product = self.get_object()
         self.check_object_permissions(self.request, product)
         user = self.request.user
         if not user.is_authenticated:
@@ -192,7 +221,12 @@ class PlaceOrder(CreateAPIView):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        order = self.perform_create(serializer)
+        product = self.get_object()
+        try:
+            with inventory_change(product):
+                order = self.perform_create(serializer)
+        except InventoryError:
+            return Response({'detail': 'This product is not in stock.'}, status=status.HTTP_400_BAD_REQUEST)
         serializer = OrderViewSerializer(instance=order, context=self.get_serializer_context())
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
@@ -255,16 +289,23 @@ class OrderAccept(GenericAPIView):
     def post(self, request, *args, **kwargs):
         order = self.get_object()
         order.status = Order.PAYMENT_PENDING
-        order.price = order.product.price
-        order.task_weight = order.product.task_weight
-        order.expected_turnaround = order.product.expected_turnaround
-        order.revisions = order.product.revisions
+        order.task_weight = (order.product and order.product.task_weight) or order.task_weight
+        order.expected_turnaround = (order.product and order.product.expected_turnaround) or order.expected_turnaround
+        order.revisions = (order.product and order.product.revisions) or order.revisions
         if order.total() <= Money('0', 'USD'):
             order.status = Order.QUEUED
             order.revisions_hidden = False
             order.escrow_disabled = True
         order.save()
         data = OrderViewSerializer(instance=order, context=self.get_serializer_context()).data
+        if (not order.buyer) and order.customer_email:
+            subject = f'You have a new invoice from {order.seller.username}!'
+            template = 'invoice_issued.html'
+            send_transaction_email(
+                subject,
+                template, order.customer_email,
+                {'order': order, 'claim_token': slugify(order.claim_token)}
+            )
         notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
         return Response(data)
 
@@ -356,6 +397,119 @@ class OrderCancel(GenericAPIView):
         cancel_order(order, self.request.user)
         data = self.serializer_class(instance=order, context=self.get_serializer_context()).data
         return Response(data)
+
+
+class OrderLineItems(ListCreateAPIView):
+    permission_classes = [
+        Any(
+            All(
+                Any(
+                    IsSafeMethod,
+                    All(
+                        IsMethod('POST'), OrderStatusPermission(
+                            Order.NEW, Order.PAYMENT_PENDING,
+                        )
+                    )
+                ),
+                OrderViewPermission
+            ),
+        )
+    ]
+    pagination_class = None
+    serializer_class = LineItemSerializer
+
+    @lru_cache()
+    def get_object(self):
+        return get_object_or_404(Order, id=self.kwargs['order_id'])
+
+    def get_queryset(self):
+        order = self.get_object()
+        return order.line_items.exclude(type=TIP, amount=0)
+
+    def get_serializer_context(self):
+        return {**super().get_serializer_context(), 'order': self.get_object()}
+
+    def get(self, request, *args, **kwargs):
+        order = self.get_object()
+        self.check_object_permissions(request, order)
+        return super().get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        order = self.get_object()
+        self.check_object_permissions(request, order)
+        return super().post(request, *args, **kwargs)
+
+    def perform_create(self, serializer):
+        item_type = serializer.validated_data.get('type', ADD_ON)
+        order = self.get_object()
+        destination_user = order.seller
+        if item_type in [TAX, EXTRA, TABLE_SERVICE]:
+            destination_user = None
+        accounts = {
+            TAX: TransactionRecord.MONEY_HOLE,
+            ADD_ON: TransactionRecord.ESCROW,
+            TIP: TransactionRecord.ESCROW,
+            BASE_PRICE: TransactionRecord.ESCROW,
+            TABLE_SERVICE: TransactionRecord.UNPROCESSED_EARNINGS,
+            EXTRA: TransactionRecord.UNPROCESSED_EARNINGS,
+        }
+        destination_account = accounts[item_type]
+        tip = order.line_items.filter(type=TIP).first()
+        if item_type == TIP and tip:
+            tip.amount = serializer.validated_data['amount']
+            tip.save()
+            serializer.instance = tip
+            return
+        if item_type == BASE_PRICE and serializer.validated_data.get('percentage', 0):
+            raise ValidationError({'percentage': ['Base price may not have percentage.']})
+        with transaction.atomic():
+            base_price = order.line_items.filter(type=BASE_PRICE).first()
+            if base_price and item_type == BASE_PRICE:
+                base_price.amount = serializer.validated_data['amount']
+                base_price.save()
+            else:
+                serializer.save(destination_user=destination_user, destination_account=destination_account, order=order)
+            verify_total(order)
+
+
+class LineItemManager(RetrieveUpdateDestroyAPIView):
+    permission_classes = [
+        Any(
+            All(IsSafeMethod, OrderViewPermission),
+            All(
+                IsMethod('PATCH', 'DELETE'),
+                OrderStatusPermission(Order.NEW, Order.PAYMENT_PENDING),
+                Any(
+                    All(
+                        OrderSellerPermission, Any(
+                            LineItemTypePermission(ADD_ON), All(OrderNoProduct, All(LineItemTypePermission(BASE_PRICE), IsMethod('PATCH'))),
+                        )
+                    ),
+                    All(OrderBuyerPermission, LineItemTypePermission(TIP)),
+                    All(IsStaff, LineItemTypePermission(EXTRA, TABLE_SERVICE)),
+                    IsSuperuser,
+                )
+            ),
+        )
+    ]
+    serializer_class = LineItemSerializer
+
+    @lru_cache
+    def get_object(self):
+        line_item = LineItem.objects.get(id=self.kwargs['line_item_id'], order__id=self.kwargs['order_id'])
+        self.check_object_permissions(self.request, line_item)
+        return line_item
+
+    def get_serializer_context(self):
+        return {**super().get_serializer_context(), 'order': self.get_object().order}
+
+    def perform_update(self, serializer):
+        with transaction.atomic():
+            serializer.save()
+            order = serializer.instance.order
+            verify_total(order)
+        # Trigger automatic creation/destruction of shield lines.
+        order.save()
 
 
 class OrderRevisions(ListCreateAPIView):
@@ -610,7 +764,11 @@ class OrderRefund(GenericAPIView):
             destination=TransactionRecord.ESCROW,
             status=TransactionRecord.SUCCESS,
         )
-        record = original_record.refund()
+        transaction_set = TransactionRecord.objects.filter(
+            remote_id=original_record.remote_id, source=TransactionRecord.CARD,
+            status=TransactionRecord.SUCCESS,
+        ).exclude(category=TransactionRecord.SHIELD_FEE)
+        record = issue_refund(transaction_set, TransactionRecord.ESCROW_REFUND)[0]
         if record.status == TransactionRecord.FAILURE:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'detail': record.response_message})
         order.status = Order.REFUNDED
@@ -979,41 +1137,45 @@ class MakePayment(PaymentMixin, GenericAPIView):
         self.check_object_permissions(self.request, order)
         return order
 
+    @lru_cache()
+    def transaction_specs(self):
+        return lines_to_transaction_specs(self.get_object().line_items.all())
+
     def init_transactions(self, data: dict, amount: Money, user: User) -> List[TransactionRecord]:
-        fee_amount = (
-                (amount.amount * settings.SERVICE_PERCENTAGE_FEE * Decimal('.01'))
-                + settings.SERVICE_STATIC_FEE
-        )
-        fee_amount = Money(fee_amount, 'USD')
         order = self.get_object()
-        escrow_record = TransactionRecord.objects.create(
-            payer=order.buyer,
-            # Payment is currently in escrow.
-            payee=order.seller,
-            status=TransactionRecord.FAILURE,
-            category=TransactionRecord.ESCROW_HOLD,
-            source=TransactionRecord.CARD,
-            destination=TransactionRecord.ESCROW,
-            amount=amount - fee_amount,
-            response_message="Failed when contacting payment processor.",
-            target=order,
-        )
-        fee_record = TransactionRecord.objects.create(
-            payer=order.buyer,
-            payee=None,
-            source=TransactionRecord.CARD,
-            destination=TransactionRecord.RESERVE,
-            status=TransactionRecord.FAILURE,
-            category=TransactionRecord.SERVICE_FEE,
-            amount=fee_amount,
-            target=order,
-            response_message="Failed when contacting payment processor.",
-        )
-        return [escrow_record, fee_record]
+        transaction_specs = self.transaction_specs()
+        return [
+            TransactionRecord(
+                payer=order.buyer,
+                status=TransactionRecord.FAILURE,
+                category=category,
+                source=TransactionRecord.CARD,
+                payee=destination_user,
+                destination=destination_account,
+                amount=value,
+                response_message="Failed when contacting payment processor.",
+                target=order,
+            ) for ((destination_user, destination_account, category), value) in transaction_specs.items()
+        ]
 
     def post_success(self, transactions: List[TransactionRecord], data: dict, user: User):
-        escrow_record, fee_record = transactions
-        split_fee(fee_record)
+        escrow_record, fee_record, *other = transactions
+        order = self.get_object()
+        if order.table_order:
+            return
+        reserve_item = order.line_items.get(type=SHIELD)
+        _value, subtotals = get_totals(order.line_items.all())
+        TransactionRecord.objects.create(
+            payer=None,
+            payee=None,
+            amount=subtotals[reserve_item],
+            source=TransactionRecord.RESERVE,
+            destination=TransactionRecord.UNPROCESSED_EARNINGS,
+            remote_id=fee_record.remote_id,
+            status=TransactionRecord.SUCCESS,
+            target=fee_record.target,
+            category=TransactionRecord.SHIELD_FEE,
+        )
 
     # noinspection PyUnusedLocal
     def post(self, *args, **kwargs):
@@ -1120,13 +1282,13 @@ class ProductSearch(ListAPIView):
             user = self.request.user
         products = available_products(user, query=query, ordering=False)
         if max_price:
-            products = products.filter(price__lte=max_price)
+            products = products.filter(starting_price__lte=max_price)
         if min_price:
-            products = products.filter(price__gte=min_price)
+            products = products.filter(starting_price__gte=min_price)
         if watchlist_only:
             products = products.filter(user__in=self.request.user.watching.all())
         if shield_only:
-            products = products.exclude(price=0).exclude(user__artist_profile__escrow_disabled=True)
+            products = products.exclude(starting_price=0).exclude(user__artist_profile__escrow_disabled=True)
         if featured:
             products = products.filter(featured=True)
         if by_rating:
@@ -1313,6 +1475,9 @@ class PremiumInfo(APIView):
                 'standard_static': settings.SERVICE_STATIC_FEE,
                 'portrait_price': settings.PORTRAIT_PRICE,
                 'minimum_price': settings.MINIMUM_PRICE,
+                'table_percentage': settings.TABLE_PERCENTAGE_FEE,
+                'table_static': settings.TABLE_STATIC_FEE,
+                'table_tax': settings.TABLE_TAX,
             }
         )
 
@@ -1429,7 +1594,9 @@ class LowPriceProducts(ListAPIView):
     serializer_class = ProductSerializer
 
     def get_queryset(self):
-        return Product.objects.filter(price__lte=Decimal('30'), available=True).exclude(featured=True).order_by('?')
+        return Product.objects.filter(
+            starting_price__lte=Decimal('30'), available=True,
+        ).exclude(featured=True).exclude(table_product=True).order_by('?')
 
 
 class HighlyRatedProducts(ListAPIView):
@@ -1470,6 +1637,8 @@ class CreateInvoice(GenericAPIView):
         serializer.is_valid(raise_exception=True)
         buyer = serializer.validated_data['buyer']
         product = serializer.validated_data.get('product', None)
+        hold = serializer.validated_data.get('hold', False)
+        table_order = False
         if serializer.validated_data['completed']:
             raw_task_weight = 0
             raw_expected_turnaround = 0
@@ -1479,14 +1648,15 @@ class CreateInvoice(GenericAPIView):
             raw_expected_turnaround = serializer.validated_data['expected_turnaround']
             raw_revisions = serializer.validated_data['revisions']
         if product:
-            price = product.price
-            adjustment = Money(serializer.validated_data['price'] - product.price.amount, 'USD')
+            price = product.base_price
+            adjustment = Money(serializer.validated_data['price'], 'USD') - product.get_starting_price()
             task_weight = product.task_weight
             adjustment_task_weight = raw_task_weight - product.task_weight
             adjustment_expected_turnaround = raw_expected_turnaround - product.expected_turnaround
             expected_turnaround = product.expected_turnaround
             revisions = product.revisions
             adjustment_revisions = raw_revisions - product.revisions
+            table_order = product.table_product
         else:
             price = Money(serializer.validated_data['price'], 'USD')
             task_weight = raw_task_weight
@@ -1505,7 +1675,7 @@ class CreateInvoice(GenericAPIView):
             customer_email = ''
         paid = serializer.validated_data['paid'] or ((price + adjustment) == Money('0', 'USD'))
         escrow_disabled = (
-                paid or (user.artist_profile.bank_account_status != HAS_US_ACCOUNT)
+                paid or ((user.artist_profile.bank_account_status != HAS_US_ACCOUNT) and not product.table_product)
         )
         if paid:
             if serializer.validated_data['completed']:
@@ -1514,35 +1684,52 @@ class CreateInvoice(GenericAPIView):
             else:
                 order_status = Order.QUEUED
             revisions_hidden = False
+        elif hold:
+            order_status = Order.NEW
+            revisions_hidden = True
         else:
             order_status = Order.PAYMENT_PENDING
             revisions_hidden = True
-
-        order = Order.objects.create(
-            seller=user,
-            buyer=buyer,
-            customer_email=customer_email,
-            product=product,
-            price=price,
-            escrow_disabled=escrow_disabled,
-            details=serializer.validated_data['details'],
-            private=serializer.validated_data['private'],
-            adjustment=adjustment,
-            adjustment_task_weight=adjustment_task_weight,
-            task_weight=task_weight,
-            adjustment_expected_turnaround=adjustment_expected_turnaround,
-            expected_turnaround=expected_turnaround,
-            revisions_hidden=revisions_hidden,
-            revisions=revisions,
-            adjustment_revisions=adjustment_revisions,
-            commission_info=request.subject.artist_profile.commission_info,
-            status=order_status,
-        )
+        try:
+            with inventory_change(product):
+                order = Order.objects.create(
+                    seller=user,
+                    buyer=buyer,
+                    customer_email=customer_email,
+                    product=product,
+                    escrow_disabled=escrow_disabled,
+                    table_order=table_order,
+                    details=serializer.validated_data['details'],
+                    private=serializer.validated_data['private'],
+                    adjustment_task_weight=adjustment_task_weight,
+                    task_weight=task_weight,
+                    adjustment_expected_turnaround=adjustment_expected_turnaround,
+                    expected_turnaround=expected_turnaround,
+                    revisions_hidden=revisions_hidden,
+                    revisions=revisions,
+                    adjustment_revisions=adjustment_revisions,
+                    commission_info=request.subject.artist_profile.commission_info,
+                    status=order_status,
+                )
+                order.line_items.get_or_create(
+                    type=BASE_PRICE, amount=price, priority=0, destination_account=TransactionRecord.ESCROW,
+                    destination_user=order.seller,
+                )
+                if adjustment:
+                    order.line_items.get_or_create(
+                        type=ADD_ON, amount=adjustment, priority=1, destination_account=TransactionRecord.ESCROW,
+                        destination_user=order.seller,
+                    )
+                # Trigger line item creation.
+                order.save()
+        except InventoryError:
+            return Response(data={'detail': 'This product is out of stock.'})
         return Response(data=OrderViewSerializer(instance=order, context=self.get_serializer_context()).data)
 
 
 class OverviewReport(APIView):
     permission_classes = [IsSuperuser]
+
     def get(self, request):
         data = OrderedDict()
         data['earned'] = str(account_balance(None, TransactionRecord.HOLDINGS))
@@ -1560,7 +1747,123 @@ class CustomerHoldings(ListAPIView):
     serializer_class = HoldingsSummarySerializer
 
     def get_queryset(self):
-        return User.objects.all().order_by('username')
+        return User.objects.filter(guest=False, sales__isnull=False).order_by('username').distinct()
+
+
+class CustomerHoldingsCSV(CustomerHoldings):
+    pagination_class = None
+    renderer_classes = [CSVRenderer]
+
+    def get_renderer_context(self):
+        context = super().get_renderer_context()
+        context['header'] = ['id', 'username', 'escrow', 'holdings']
+        return context
+
+
+class OrderValues(ListAPIView):
+    serializer_class = OrderValuesSerializer
+    permission_classes = [IsSuperuser]
+    renderer_classes = [CSVRenderer]
+    pagination_class = None
+
+    def get_queryset(self):
+        return Order.objects.filter(escrow_disabled=False).exclude(
+            status__in=[Order.CANCELLED, Order.NEW, Order.PAYMENT_PENDING],
+        ).order_by('created_on')
+
+    def get_renderer_context(self):
+        context = super().get_renderer_context()
+        context['header'] = [
+            'id',
+            'created_on',
+            'status',
+            'seller',
+            'buyer',
+            'price',
+            'charged_on',
+            'still_in_escrow',
+            'artist_payout',
+            'in_reserve',
+            'unqualified_earnings',
+            'refunded_on',
+        ]
+        return context
+
+
+class SubscriptionReportCSV(ListAPIView):
+    serializer_class = SimpleTransactionSerializer
+    permission_classes = [IsSuperuser]
+    renderer_classes = [CSVRenderer]
+    pagination_class = None
+
+    def get_renderer_context(self):
+        context = super().get_renderer_context()
+        context['header'] = [
+            'id',
+            'status',
+            'payer',
+            'amount',
+            'created_on',
+            'remote_id',
+        ]
+        return context
+
+    def get_queryset(self):
+        return TransactionRecord.objects.filter(
+            category__in=[TransactionRecord.SUBSCRIPTION_DUES, TransactionRecord.SUBSCRIPTION_REFUND],
+        ).exclude(status=TransactionRecord.FAILURE)
+
+
+class PayoutReportCSV(ListAPIView):
+    serializer_class = SimpleTransactionSerializer
+    permission_classes = [IsSuperuser]
+    renderer_classes = [CSVRenderer]
+    pagination_class = None
+
+    def get_renderer_context(self):
+        context = super().get_renderer_context()
+        context['header'] = [
+            'id',
+            'status',
+            'payee',
+            'amount',
+            'created_on',
+            'finalized_on',
+            'remote_id',
+        ]
+        return context
+
+    def get_queryset(self):
+        return TransactionRecord.objects.filter(
+            payer=F('payee'),
+            source=TransactionRecord.HOLDINGS,
+            destination=TransactionRecord.BANK,
+        ).exclude(payer=None).exclude(status=TransactionRecord.FAILURE)
+
+
+class DwollaSetupFees(ListAPIView):
+    serializer_class = SimpleTransactionSerializer
+    permission_classes = [IsSuperuser]
+    renderer_classes = [CSVRenderer]
+    pagination_class = None
+
+    def get_renderer_context(self):
+        context = super().get_renderer_context()
+        context['header'] = [
+            'id',
+            'status',
+            'payer',
+            'amount',
+            'created_on',
+        ]
+        return context
+
+    def get_queryset(self):
+        return TransactionRecord.objects.filter(
+            payee=None,
+            destination=TransactionRecord.ACH_MISC_FEES,
+            category=TransactionRecord.THIRD_PARTY_FEE,
+        ).exclude(status=TransactionRecord.FAILURE)
 
 
 class ProductRecommendations(ListAPIView):

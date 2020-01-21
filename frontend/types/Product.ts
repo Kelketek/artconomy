@@ -12,9 +12,12 @@ export default interface Product {
   expected_turnaround: number,
   escrow_disabled: boolean,
   user: RelatedUser,
-  price: number,
+  base_price: number,
+  starting_price: number,
   tags: string[],
   available: boolean,
   featured: boolean,
+  track_inventory: boolean,
+  table_product: boolean,
   primary_submission: null|Submission,
 }

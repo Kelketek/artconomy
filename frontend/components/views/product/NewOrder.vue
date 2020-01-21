@@ -130,7 +130,7 @@
                   <ac-asset :asset="product.x.primary_submission" thumb-name="thumbnail" />
                 </v-col>
                 <v-col class="subtitle-1" cols="12">
-                  Starts at ${{product.x.price.toFixed(2)}}
+                  Starts at ${{product.x.starting_price.toFixed(2)}}
                 </v-col>
                 <v-col>
                   <span v-if="product.x.revisions">

@@ -61,14 +61,16 @@
               <v-stepper-content :step="2">
                 <v-row>
                   <v-col cols="12" sm="6" >
-                    <ac-bound-field :field="newProduct.fields.price" label="List Price"
+                    <ac-bound-field :field="newProduct.fields.base_price" label="List Price"
                                     field-type="ac-price-field"
                                     :hint="priceHint"
 
                     />
                   </v-col>
                   <v-col cols="12" sm="6" >
-                    <ac-price-preview :username="username" :price="newProduct.fields.price.value" v-if="escrow" />
+                    <ac-price-preview
+                      :username="username" :line-items="lineItems" v-if="escrow"
+                    />
                   </v-col>
                   <v-col cols="12" sm="6" >
                     <ac-bound-field :field="newProduct.fields.expected_turnaround" number
@@ -148,12 +150,17 @@ import AcBoundField from '@/components/fields/AcBoundField'
 import Subjective from '@/mixins/subjective'
 import Component from 'vue-class-component'
 import {Prop} from 'vue-property-decorator'
-import AcPricePreview from '@/components/AcPricePreview.vue'
+import AcPricePreview from '@/components/price_preview/AcPricePreview.vue'
 import {FormController} from '@/store/forms/form-controller'
 import Product from '@/types/Product'
+import LineItem from '@/types/LineItem'
+import {LineTypes} from '@/types/LineTypes'
+import {SingleController} from '@/store/singles/controller'
+import Pricing from '@/types/Pricing'
 
-  @Component({components: {AcPricePreview, AcBoundField, AcPatchField, AcLoadSection, AcFormDialog}})
+@Component({components: {AcPricePreview, AcBoundField, AcPatchField, AcLoadSection, AcFormDialog}})
 export default class AcNewProduct extends Subjective {
+    public pricing: SingleController<Pricing> = null as unknown as SingleController<Pricing>
     @Prop({required: true})
     public value!: boolean
     public newProduct: FormController = null as unknown as FormController
@@ -164,6 +171,73 @@ export default class AcNewProduct extends Subjective {
 
     public get limitAtOnce() {
       return this.newProduct.fields.max_parallel.value !== 0
+    }
+
+    public get lineItems() {
+      const linesController = this.$getList('newProductLines', {endpoint: '????', paginated: false})
+      linesController.ready = true
+      if (!(this.pricing.x)) {
+        linesController.setList([])
+        return linesController
+      }
+      const basePrice = parseFloat(this.newProduct.fields.base_price.value)
+      if (isNaN(basePrice)) {
+        linesController.setList([])
+        return linesController
+      }
+      const lines: LineItem[] = [{
+        id: -1,
+        priority: 0,
+        type: LineTypes.BASE_PRICE,
+        amount: basePrice,
+        percentage: 0,
+        description: '',
+        cascade_amount: false,
+        cascade_percentage: false,
+      }]
+      if (this.newProduct.fields.table_product.value) {
+        lines.push({
+          id: -2,
+          priority: 400,
+          type: LineTypes.TABLE_SERVICE,
+          cascade_percentage: true,
+          cascade_amount: false,
+          amount: this.pricing.x.table_static,
+          percentage: this.pricing.x.table_percentage,
+          description: '',
+        }, {
+          id: -3,
+          priority: 700,
+          type: LineTypes.TAX,
+          cascade_percentage: true,
+          cascade_amount: true,
+          percentage: this.pricing.x.table_tax,
+          description: '',
+          amount: 0,
+        })
+      } else if (this.escrow && basePrice > 0) {
+        lines.push({
+          id: -4,
+          priority: 300,
+          type: LineTypes.SHIELD,
+          cascade_percentage: true,
+          cascade_amount: true,
+          amount: this.pricing.x.standard_static,
+          percentage: this.pricing.x.standard_percentage,
+          description: '',
+        }, {
+          id: -5,
+          priority: 300,
+          type: LineTypes.BONUS,
+          cascade_percentage: true,
+          cascade_amount: true,
+          amount: this.pricing.x.premium_static_bonus,
+          percentage: this.pricing.x.premium_percentage_bonus,
+          description: '',
+        })
+      }
+      linesController.setList(lines)
+      return linesController
     }
 
     public set limitAtOnce(val: boolean) {
@@ -203,17 +277,20 @@ export default class AcNewProduct extends Subjective {
 
     public created() {
       this.subjectHandler.artistProfile.get().catch(this.setError)
+      this.pricing = this.$getSingle('pricing', {endpoint: '/api/sales/v1/pricing-info/'})
+      this.pricing.get()
       this.newProduct = this.$getForm(`${this.username}__newProduct`, {
         endpoint: this.url,
         fields: {
           name: {value: ''},
           description: {value: ''},
-          price: {value: '25.00', step: 2, validators: [{name: 'numeric'}]},
+          base_price: {value: '25.00', step: 2, validators: [{name: 'numeric'}]},
           expected_turnaround: {value: 5, step: 2, validators: [{name: 'numeric'}]},
           task_weight: {value: 1, step: 3},
           revisions: {value: 1, step: 2},
           max_parallel: {value: 0, step: 3},
           hidden: {value: false},
+          table_product: {value: false},
           tags: {value: []},
         },
       })

@@ -12,7 +12,7 @@ import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import {genCharacter} from '@/store/characters/specs/fixtures'
 import Submission from '@/types/Submission'
 import {genSubmission} from '@/store/submissions/specs/fixtures'
-import {searchSchema} from '@/lib'
+import {searchSchema} from '@/lib/lib'
 
 const localVue = vueSetup()
 localVue.use(Router)

@@ -18,18 +18,15 @@ import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcBankToggle from '@/components/fields/AcBankToggle.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import AcBoundField from '@/components/fields/AcBoundField'
-import AcPricePreview from '@/components/AcPricePreview.vue'
 import AcAddButton from '@/components/AcAddButton.vue'
 import AcNewProduct from '@/components/views/store/AcNewProduct.vue'
 import AcSubjectiveProductList from '@/components/views/store/AcSubjectiveProductList.vue'
-import {Prop} from 'vue-property-decorator'
 import {State} from 'vuex-class'
   @Component({
     components: {
       AcSubjectiveProductList,
       AcNewProduct,
       AcAddButton,
-      AcPricePreview,
       AcBoundField,
       AcPatchField,
       AcBankToggle,

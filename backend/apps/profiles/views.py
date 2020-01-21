@@ -79,7 +79,7 @@ from apps.profiles.serializers import (
 from apps.profiles.tasks import mailchimp_subscribe
 from apps.profiles.utils import (
     available_chars, char_ordering, available_submissions,
-    empty_user, leave_conversation)
+    empty_user)
 from apps.sales.models import Order
 from apps.sales.serializers import SearchQuerySerializer
 from apps.sales.utils import claim_order_by_token

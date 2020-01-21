@@ -1,6 +1,6 @@
 import {State as RootState} from '../state'
 import {ActionTree, GetterTree, MutationTree} from 'vuex'
-import {artCall, ArtCallOptions, immediate} from '@/lib'
+import {artCall, ArtCallOptions, immediate} from '@/lib/lib'
 import {SingleState} from './types/SingleState'
 import _Vue from 'vue'
 import {QueryParams} from '@/store/helpers/QueryParams'

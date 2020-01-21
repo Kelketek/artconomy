@@ -99,6 +99,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'apps.lib.middleware.MonkeyPatchMiddleWare',
     'django_otp.middleware.OTPMiddleware',
     'apps.lib.middleware.IPMiddleware',
     'apps.profiles.middleware.RatingMiddleware',
@@ -268,13 +269,15 @@ SENDGRID_ECHO_TO_STDOUT = DEBUG
 MAX_CHARACTER_COUNT = int(get_env('MAX_CHARACTER_COUNT', '30'))
 MAX_ATTRS = int(get_env('MAX_ATTRS', '10'))
 
-SERVICE_PERCENTAGE_FEE = Decimal(get_env('PREMIUM_PERCENTAGE_FEE', '8'))
-SERVICE_STATIC_FEE = Decimal(get_env('PREMIUM_STATIC_FEE', '.75'))
+SERVICE_PERCENTAGE_FEE = Decimal(get_env('PREMIUM_PERCENTAGE_FEE', '4'))
+SERVICE_STATIC_FEE = Decimal(get_env('SERVICE_STATIC_FEE', '.50'))
 PREMIUM_STATIC_BONUS = Decimal(get_env('PREMIUM_STATIC_BONUS', '.25'))
-PREMIUM_PERCENTAGE_BONUS = Decimal(get_env('PREMIUM_PERCENTAGE_BONUS', '50'))
+PREMIUM_PERCENTAGE_BONUS = Decimal(get_env('PREMIUM_PERCENTAGE_BONUS', '4'))
+TABLE_PERCENTAGE_FEE = Decimal(get_env('TABLE_PERCENTAGE_FEE', '10'))
+TABLE_STATIC_FEE = Decimal(get_env('TABLE_STATIC_FEE', '5.00'))
+TABLE_TAX = Decimal(get_env('TABLE_TAX', '8.25'))
 
 assert PREMIUM_STATIC_BONUS < SERVICE_STATIC_FEE
-assert PREMIUM_PERCENTAGE_BONUS <= 50
 # Applied to the fee amount.
 
 LANDSCAPE_PRICE = Decimal(get_env('PREMIUM_PRICE', '5.00'))
@@ -290,7 +293,7 @@ BANNED_USERNAMES = get_env('BANNED_USERNAMES', ['artconomy'], unpack=True)
 # Special username that is used by the frontend to indicate user is not logged in.
 BANNED_USERNAMES += ['_']
 
-MINIMUM_PRICE = Decimal(get_env('MINIMUM_PRICE', '1.10'))
+MINIMUM_PRICE = Decimal(get_env('MINIMUM_PRICE', '1.00'))
 MINIMUM_TURNAROUND = Decimal(get_env('MINIMUM_TURNAROUND', '.01'))
 
 REFUND_FEE = Decimal(get_env('REFUND_FEE', '2.00'))
@@ -406,6 +409,9 @@ if ('test' not in argv) and ('runserver' not in argv):
 AVATAR_EXPOSE_USERNAMES = False
 
 AVATAR_THUMB_FORMAT = 'PNG'
+
+# Default: one year.
+SESSION_COOKIE_AGE = int(get_env('SESSION_COOKIE_AGE', str(60 * 60 * 24 * 365)))
 
 TELEGRAM_BOT_KEY = get_env('TELEGRAM_BOT_KEY', '')
 TELEGRAM_BOT_USERNAME = get_env('TELEGRAM_BOT_USERNAME', '')

@@ -142,7 +142,7 @@ import {Prop} from 'vue-property-decorator'
 import AcVideoPlayer from '@/components/AcVideoPlayer.vue'
 import AcAudioPlayer from '@/components/AcAudioPlayer.vue'
 import AcMarkdownViewer from '@/components/AcMarkdownViewer.vue'
-import {COMPONENT_EXTENSIONS, getExt} from '@/lib'
+import {COMPONENT_EXTENSIONS, getExt} from '@/lib/lib'
 import AssetBase from '@/mixins/asset_base'
 import {Asset} from '@/types/Asset'
 

@@ -1,11 +1,10 @@
 ---
 - name: Install NginX
   apt:
-    name: "{{ item }}"
+    name:
+      - nginx
+      - nginx-extras
     state: present
-  with_items:
-    - nginx
-    - nginx-extras
 
 - name: Link ssl certs
   file:

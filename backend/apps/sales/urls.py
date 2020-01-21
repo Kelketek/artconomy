@@ -18,6 +18,12 @@ urlpatterns = [
     path('v1/order/<int:order_id>/outputs/', views.OrderOutputs.as_view(), name='accept_order'),
     path('v1/order/<int:order_id>/characters/', views.OrderCharacterList.as_view(), name='accept_order'),
     path('v1/order/<int:order_id>/revisions/', views.OrderRevisions.as_view(), name='order_revisions'),
+    path('v1/order/<int:order_id>/line-items/', views.OrderLineItems.as_view(), name='order_line_items'),
+    path(
+        'v1/order/<int:order_id>/line-items/<int:line_item_id>/',
+        views.LineItemManager.as_view(),
+        name='line_item_manager',
+    ),
     path(
         'v1/order/<int:order_id>/revisions/<int:revision_id>/',
         views.DeleteOrderRevision.as_view(),
@@ -44,6 +50,8 @@ urlpatterns = [
     path('v1/account/<username>/products/', views.ProductList.as_view(), name='product_list'),
     path('v1/account/<username>/products/<int:product>/', views.ProductManager.as_view(), name='product_manager'),
     path('v1/account/<username>/products/<int:product>/feature/', views.FeatureProduct.as_view(),
+         name='feature_product'),
+    path('v1/account/<username>/products/<int:product>/inventory/', views.ProductInventoryManager.as_view(),
          name='feature_product'),
     path(
         'v1/account/<username>/products/<int:product>/recommendations/',
@@ -88,5 +96,10 @@ urlpatterns = [
     ),
     path('v1/order-auth/', views.OrderAuth.as_view(), name='order_auth'),
     path('v1/reports/overview/', views.OverviewReport.as_view(), name='overview_report'),
-    path('v1/reports/customer_holdings/', views.CustomerHoldings.as_view(), name='customer_holdings_report'),
+    path('v1/reports/customer-holdings/', views.CustomerHoldings.as_view(), name='customer_holdings_report'),
+    path('v1/reports/customer-holdings/csv/', views.CustomerHoldingsCSV.as_view(), name='customer_holdings_report_csv'),
+    path('v1/reports/order-values/csv/', views.OrderValues.as_view(), name='order_values_csv'),
+    path('v1/reports/subscription-report/csv/', views.SubscriptionReportCSV.as_view(), name='subscription_report_csv'),
+    path('v1/reports/payout-report/csv/', views.PayoutReportCSV.as_view(), name='payout_report_csv'),
+    path('v1/reports/dwolla-report/csv/', views.DwollaSetupFees.as_view(), name='dwolla_report_csv'),
 ]

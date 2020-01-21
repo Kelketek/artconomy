@@ -10,6 +10,7 @@ import {RawData} from '@/store/forms/types/RawData'
 @Component
 export class SingleController<T extends {}> extends BaseController<SingleModuleOpts<T>, SingleState<T>> {
   public baseClass = SingleModule
+  public forceRecomputeCounter = 0
 
   // @ts-ignore
   public registry = singleRegistry
@@ -41,6 +42,9 @@ export class SingleController<T extends {}> extends BaseController<SingleModuleO
 
   public setX(x: T | null | false) {
     // Also available as a setter.
+    if (this.x && !x) {
+      this.forceRecomputeCounter += 1
+    }
     this.commit('setX', x)
   }
 
@@ -114,6 +118,8 @@ export class SingleController<T extends {}> extends BaseController<SingleModuleO
   }
 
   public get patchers() {
+    // eslint-disable-next-line no-unused-expressions
+    this.forceRecomputeCounter
     return this.getPatcher() as unknown as {[key: string]: Patch}
   }
 }

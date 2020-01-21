@@ -1,7 +1,7 @@
 // Patcher that allows more flexibility in defining how data will be sent. In most cases, you want patcher in the
 // singles module instead.
 import Vue from 'vue'
-import {artCall, dotTraverse} from '@/lib'
+import {artCall, dotTraverse} from '@/lib/lib'
 import {debounce, cloneDeep} from 'lodash'
 import axios, {AxiosError, CancelTokenSource} from 'axios'
 import {deriveErrors} from '@/store/forms/helpers'

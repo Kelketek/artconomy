@@ -166,7 +166,7 @@ import AcRelatedManager from '@/components/wrappers/AcRelatedManager.vue'
 import AcCharacterToolbar from '@/components/views/character/AcCharacterToolbar.vue'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
 import {Watch} from 'vue-property-decorator'
-import {setMetaContent, textualize, updateTitle} from '@/lib'
+import {setMetaContent, textualize, updateTitle} from '@/lib/lib'
 import AcCharacterPreview from '@/components/AcCharacterPreview.vue'
 
 @Component({components: {
@@ -212,7 +212,7 @@ export default class CharacterDetail extends mixins(Subjective, CharacterCentric
 
     @Watch('character.profile.x', {deep: true, immediate: true})
     public setMeta(character: Character|null) {
-      // istanbul ignore if
+      /* istanbul ignore if */
       if (!character) {
         return
       }

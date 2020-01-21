@@ -3,8 +3,6 @@ import {Ratings} from './Ratings'
 export interface User {
   csrftoken: string,
   authtoken: string,
-  percentage_fee: string,
-  static_fee: string,
   portrait_paid_through: string | null,
   landscape_paid_through: string | null,
   telegram_link: string,

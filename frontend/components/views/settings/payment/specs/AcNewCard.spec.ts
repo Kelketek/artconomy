@@ -20,7 +20,7 @@ import {genUser} from '@/specs/helpers/fixtures'
 import {FormController} from '@/store/forms/form-controller'
 import {FieldController} from '@/store/forms/field-controller'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
-import {baseCardSchema} from '@/lib'
+import {baseCardSchema} from '@/lib/lib'
 import AcNewCard from '@/components/views/settings/payment/AcNewCard.vue'
 
 const localVue = vueSetup()

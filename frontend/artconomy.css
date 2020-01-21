@@ -57,7 +57,10 @@ blockquote {
     border-left: 3px solid darkgray;
     opacity: .8;
 }
-
+.compact-fields .v-label--active {
+    top: 13px;
+    font-size: 12px;
+}
 .compact-fields .v-text-field {
     padding: 0;
     margin: 0;

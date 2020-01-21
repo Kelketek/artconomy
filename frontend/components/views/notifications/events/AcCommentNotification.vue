@@ -8,7 +8,7 @@
 <script>
 import Notification from '../mixins/notification'
 import AcBaseNotification from './AcBaseNotification'
-import {posse} from '../../../../lib'
+import {posse} from '../../../../lib/lib'
 
 export default {
   name: 'ac-comment-notification',

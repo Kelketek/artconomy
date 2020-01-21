@@ -8,7 +8,7 @@ import {singleRegistry} from '@/store/singles/registry'
 import {profileRegistry} from '@/store/profiles/registry'
 import SubjectiveComponent from '@/specs/helpers/dummy_components/subjective-component.vue'
 import {ProfileController} from '@/store/profiles/controller'
-import {getCookie} from '@/lib'
+import {getCookie} from '@/lib/lib'
 
 const localVue = vueSetup()
 

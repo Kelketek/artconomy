@@ -80,6 +80,7 @@ export class ListController<T> extends BaseController<ListModuleOpts, ListState<
   // setList function instead.
   public get list(): Array<SingleController<T>> {
     // Can happen if there remains a reference to this object after our system reaps it.
+    /* istanbul ignore if */
     if (!this.attr('refs')) {
       return []
     }

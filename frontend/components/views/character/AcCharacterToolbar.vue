@@ -65,7 +65,7 @@ import AcSubjectiveToolbar from '@/components/navigation/AcSubjectiveToolbar.vue
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import {Prop, Watch} from 'vue-property-decorator'
 import {Character} from '@/store/characters/types/Character'
-import {newUploadSchema} from '@/lib'
+import {newUploadSchema} from '@/lib/lib'
 import Upload from '@/mixins/upload'
 import AcNewSubmission from '@/components/AcNewSubmission.vue'
 import AcShareManager from '@/components/AcShareManager.vue'

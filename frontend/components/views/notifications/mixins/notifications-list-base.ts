@@ -1,6 +1,6 @@
 // Probably need to eliminate this once it's refactored, since it's only ever used one place and most of its
 // functionality is in modules now.
-import {artCall, NOTIFICATION_MAPPING} from '@/lib'
+import {artCall, NOTIFICATION_MAPPING} from '@/lib/lib'
 import Viewer from '@/mixins/viewer'
 import Component, {mixins} from 'vue-class-component'
 import {Prop} from 'vue-property-decorator'

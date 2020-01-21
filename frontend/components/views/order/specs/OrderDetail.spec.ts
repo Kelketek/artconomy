@@ -14,6 +14,10 @@ import Router from 'vue-router'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import Order from '@/types/Order'
 import SessionSettings from '@/components/views/SessionSettings.vue'
+import {LineTypes} from '@/types/LineTypes'
+import {SingleController} from '@/store/singles/controller'
+import LineItem from '@/types/LineItem'
+import {dummyLineItems} from '@/lib/specs/helpers'
 
 const localVue = vueSetup()
 localVue.use(Router)
@@ -70,6 +74,10 @@ describe('OrderDetail.vue', () => {
         name: 'CommissionAgreement',
         component: Empty,
         path: '/agreement/',
+      }, {
+        name: 'Payout',
+        component: Empty,
+        path: '/:username/settings/payout/',
       }],
     })
   })
@@ -78,7 +86,7 @@ describe('OrderDetail.vue', () => {
   })
   it('Adds character tags to submission form', async() => {
     setViewer(store, genUser())
-    await router.push('/orders/Fox/order/1/')
+    router.push('/orders/Fox/order/1/')
     wrapper = mount(
       OrderDetail, {
         localVue,
@@ -110,7 +118,7 @@ describe('OrderDetail.vue', () => {
     const fox = genUser()
     fox.username = 'Fox'
     setViewer(store, fox)
-    await router.push('/orders/Fox/order/1/')
+    router.push('/orders/Fox/order/1/')
     wrapper = mount(
       OrderDetail, {
         localVue,
@@ -120,7 +128,7 @@ describe('OrderDetail.vue', () => {
         propsData: {orderId: 3},
         sync: false,
         attachToDocument: true,
-        stubs: ['router-link', 'ac-revision-manager'],
+        stubs: ['ac-revision-manager'],
       })
     const vm = wrapper.vm as any
     const order = genOrder()
@@ -150,7 +158,7 @@ describe('OrderDetail.vue', () => {
     const fox = genUser()
     fox.username = 'Fox'
     setViewer(store, fox)
-    await router.push('/orders/Fox/order/1/')
+    router.push('/orders/Fox/order/1/')
     wrapper = mount(
       OrderDetail, {
         localVue,
@@ -160,7 +168,7 @@ describe('OrderDetail.vue', () => {
         propsData: {orderId: 3},
         sync: false,
         attachToDocument: true,
-        stubs: ['router-link', 'ac-revision-manager'],
+        stubs: ['ac-revision-manager'],
       })
     const vm = wrapper.vm as any
     const order = genOrder()
@@ -176,19 +184,24 @@ describe('OrderDetail.vue', () => {
     vm.characters.setList([])
     vm.characters.fetching = false
     vm.characters.ready = false
+    vm.lineItems.setList(dummyLineItems())
     mockAxios.reset()
     await vm.$nextTick()
     wrapper.find('.payment-button').trigger('click')
     await vm.$nextTick()
     wrapper.find('.preset10').trigger('click')
     await vm.$nextTick()
-    expect(vm.order.patchers.tip.model).toBe('1.00')
+    expect(mockAxios.lastReqGet().data).toEqual({
+      amount: '8.00',
+      percentage: 0,
+      type: LineTypes.TIP,
+    })
   })
   it('Identifies seller and buyer outputs', async() => {
     const fox = genUser()
     fox.username = 'Fox'
     setViewer(store, fox)
-    await router.push('/orders/Fox/order/1/')
+    router.push('/orders/Fox/order/1/')
     wrapper = mount(
       OrderDetail, {
         localVue,
@@ -198,7 +211,7 @@ describe('OrderDetail.vue', () => {
         propsData: {orderId: 3},
         sync: false,
         attachToDocument: true,
-        stubs: ['router-link', 'ac-revision-manager'],
+        stubs: ['ac-revision-manager'],
       })
     const vm = wrapper.vm as any
     const order = genOrder()
@@ -227,7 +240,7 @@ describe('OrderDetail.vue', () => {
     const fox = genUser()
     fox.username = 'Fox'
     setViewer(store, fox)
-    await router.push('/orders/Fox/order/1/')
+    router.push('/orders/Fox/order/1/')
     wrapper = mount(
       OrderDetail, {
         localVue,
@@ -237,7 +250,7 @@ describe('OrderDetail.vue', () => {
         propsData: {orderId: 3},
         sync: false,
         attachToDocument: true,
-        stubs: ['router-link', 'ac-revision-manager'],
+        stubs: ['ac-revision-manager'],
       })
     const vm = wrapper.vm as any
     const order = genOrder()
@@ -256,7 +269,7 @@ describe('OrderDetail.vue', () => {
     const vulpes = genUser()
     vulpes.username = 'Fox'
     setViewer(store, vulpes)
-    await router.push('/orders/Fox/order/1/')
+    router.push('/orders/Fox/order/1/')
     wrapper = mount(
       OrderDetail, {
         localVue,
@@ -266,7 +279,7 @@ describe('OrderDetail.vue', () => {
         propsData: {orderId: 3},
         sync: false,
         attachToDocument: true,
-        stubs: ['router-link', 'ac-revision-manager'],
+        stubs: ['ac-revision-manager'],
       })
     const vm = wrapper.vm as any
     const order = genOrder()
@@ -280,7 +293,7 @@ describe('OrderDetail.vue', () => {
     const vulpes = genUser()
     vulpes.username = 'Vulpes'
     setViewer(store, vulpes)
-    await router.push('/orders/Fox/order/1/')
+    router.push('/orders/Fox/order/1/')
     wrapper = mount(
       OrderDetail, {
         localVue,
@@ -290,7 +303,7 @@ describe('OrderDetail.vue', () => {
         propsData: {orderId: 3},
         sync: false,
         attachToDocument: true,
-        stubs: ['router-link', 'ac-revision-manager'],
+        stubs: ['ac-revision-manager'],
       })
     const vm = wrapper.vm as any
     const order = genOrder()
@@ -312,7 +325,7 @@ describe('OrderDetail.vue', () => {
     const vulpes = genUser()
     vulpes.username = 'Vulpes'
     setViewer(store, vulpes)
-    await router.push('/orders/Fox/order/1/')
+    router.push('/orders/Fox/order/1/')
     wrapper = mount(
       OrderDetail, {
         localVue,
@@ -322,7 +335,7 @@ describe('OrderDetail.vue', () => {
         propsData: {orderId: 3},
         sync: false,
         attachToDocument: true,
-        stubs: ['router-link', 'ac-revision-manager'],
+        stubs: ['ac-revision-manager'],
       })
     const vm = wrapper.vm as any
     const order = genOrder()
@@ -349,7 +362,7 @@ describe('OrderDetail.vue', () => {
   })
   it('Handles an order without a product', async() => {
     setViewer(store, genUser())
-    await router.push('/orders/Fox/order/1/')
+    router.push('/orders/Fox/order/1/')
     wrapper = mount(
       OrderDetail, {
         localVue,
@@ -359,7 +372,7 @@ describe('OrderDetail.vue', () => {
         propsData: {orderId: 3},
         sync: false,
         attachToDocument: true,
-        stubs: ['router-link', 'ac-revision-manager'],
+        stubs: ['ac-revision-manager'],
       })
     const vm = wrapper.vm as any
     const order = genOrder()
@@ -374,7 +387,7 @@ describe('OrderDetail.vue', () => {
     let user = genUser()
     user.username = 'Dude'
     setViewer(store, user)
-    await router.push('/orders/Fox/order/1/')
+    router.push('/orders/Fox/order/1/')
     wrapper = mount(
       OrderDetail, {
         localVue,
@@ -384,7 +397,7 @@ describe('OrderDetail.vue', () => {
         propsData: {orderId: 3},
         sync: false,
         attachToDocument: true,
-        stubs: ['router-link', 'ac-revision-manager'],
+        stubs: ['ac-revision-manager'],
       })
     const vm = wrapper.vm as any
     const order = genOrder()
@@ -419,7 +432,7 @@ describe('OrderDetail.vue', () => {
     let user = genUser()
     user.username = 'Dude'
     setViewer(store, user)
-    await router.push('/orders/Fox/order/1/')
+    router.push('/orders/Fox/order/1/')
     wrapper = mount(
       OrderDetail, {
         localVue,
@@ -429,7 +442,7 @@ describe('OrderDetail.vue', () => {
         propsData: {orderId: 3},
         sync: false,
         attachToDocument: true,
-        stubs: ['router-link', 'ac-revision-manager'],
+        stubs: ['ac-revision-manager'],
       })
     const vm = wrapper.vm as any
     const order = genOrder()
@@ -451,9 +464,11 @@ describe('OrderDetail.vue', () => {
     await vm.$nextTick()
     expect(vm.disputeTimeElapsed).toBe(false)
   })
-  it('Fetches revisions if they are newly permitted to be seen', async() => {
-    setViewer(store, genUser())
-    await router.push('/orders/Fox/order/1/')
+  it('Determines if the dispute window is open', async() => {
+    let user = genUser()
+    user.username = 'Dude'
+    setViewer(store, user)
+    router.push('/orders/Fox/order/1/')
     wrapper = mount(
       OrderDetail, {
         localVue,
@@ -463,7 +478,36 @@ describe('OrderDetail.vue', () => {
         propsData: {orderId: 3},
         sync: false,
         attachToDocument: true,
-        stubs: ['router-link', 'ac-revision-manager'],
+        stubs: ['ac-revision-manager'],
+      })
+    const vm = wrapper.vm as any
+    const order = genOrder()
+    order.product = null
+    order.trust_finalized = true
+    order.auto_finalize_on = moment().add(7, 'days').toISOString()
+    order.status = OrderStatus.COMPLETED
+    const orderRequest = mockAxios.getReqByUrl('/api/sales/v1/order/3/')
+    mockAxios.mockResponse(rs(order), orderRequest)
+    await flushPromises()
+    await vm.$nextTick()
+    expect(vm.disputeWindow).toBe(true)
+    vm.order.updateX({auto_finalize_on: '2019-07-26T15:04:41.078424-05:00'})
+    await vm.$nextTick()
+    expect(vm.disputeWindow).toBe(false)
+  })
+  it('Fetches revisions if they are newly permitted to be seen', async() => {
+    setViewer(store, genUser())
+    router.push('/orders/Fox/order/1/')
+    wrapper = mount(
+      OrderDetail, {
+        localVue,
+        store,
+        router,
+        vuetify,
+        propsData: {orderId: 3},
+        sync: false,
+        attachToDocument: true,
+        stubs: ['ac-revision-manager'],
       })
     const vm = wrapper.vm as any
     const order = genOrder()
@@ -481,7 +525,7 @@ describe('OrderDetail.vue', () => {
   })
   it('Prompts to add revision to collection', async() => {
     setViewer(store, genUser())
-    await router.push('/orders/Fox/order/1/')
+    router.push('/orders/Fox/order/1/')
     wrapper = mount(
       OrderDetail, {
         localVue,
@@ -491,7 +535,7 @@ describe('OrderDetail.vue', () => {
         propsData: {orderId: 3},
         sync: false,
         attachToDocument: true,
-        stubs: ['router-link', 'ac-revision-manager'],
+        stubs: ['ac-revision-manager'],
       })
     const vm = wrapper.vm as any
     const order = genOrder()
@@ -509,7 +553,7 @@ describe('OrderDetail.vue', () => {
   it('Prompts to add revision to collection by registering if they are a guest', async() => {
     const user = genGuest()
     setViewer(store, user)
-    await router.push('/orders/Fox/order/1/')
+    router.push('/orders/Fox/order/1/')
     wrapper = mount(
       OrderDetail, {
         localVue,
@@ -519,7 +563,7 @@ describe('OrderDetail.vue', () => {
         propsData: {orderId: 3},
         sync: false,
         attachToDocument: true,
-        stubs: ['router-link', 'ac-revision-manager'],
+        stubs: ['ac-revision-manager'],
       })
     const vm = wrapper.vm as any
     const order = genOrder()
@@ -540,7 +584,7 @@ describe('OrderDetail.vue', () => {
   })
   it('Does not have the submission adding form loaded by default', async() => {
     setViewer(store, genUser())
-    await router.push('/orders/Fox/order/1/')
+    router.push('/orders/Fox/order/1/')
     wrapper = mount(
       OrderDetail, {
         localVue,
@@ -550,14 +594,14 @@ describe('OrderDetail.vue', () => {
         propsData: {orderId: 3},
         sync: false,
         attachToDocument: true,
-        stubs: ['router-link', 'ac-revision-manager'],
+        stubs: ['ac-revision-manager'],
       })
     const vm = wrapper.vm as any
     expect(vm.showAddSubmission).toBe(false)
   })
   it('Loads with the submission prompt triggered', async() => {
     setViewer(store, genUser())
-    await router.push('/orders/Fox/order/1/?showAdd=true')
+    router.push('/orders/Fox/order/1/?showAdd=true')
     wrapper = mount(
       OrderDetail, {
         localVue,
@@ -567,14 +611,14 @@ describe('OrderDetail.vue', () => {
         propsData: {orderId: 3},
         sync: false,
         attachToDocument: true,
-        stubs: ['router-link', 'ac-revision-manager'],
+        stubs: ['ac-revision-manager'],
       })
     const vm = wrapper.vm as any
     expect(vm.showAddSubmission).toBe(true)
   })
   it('Loads with the order confirmation triggered', async() => {
     setViewer(store, genUser())
-    await router.push('/orders/Fox/order/1/?showConfirm=true')
+    router.push('/orders/Fox/order/1/?showConfirm=true')
     wrapper = mount(
       OrderDetail, {
         localVue,
@@ -584,7 +628,7 @@ describe('OrderDetail.vue', () => {
         propsData: {orderId: 3},
         sync: false,
         attachToDocument: true,
-        stubs: ['router-link', 'ac-revision-manager'],
+        stubs: ['ac-revision-manager'],
       })
     const vm = wrapper.vm as any
     await vm.$nextTick()
@@ -593,7 +637,7 @@ describe('OrderDetail.vue', () => {
   it('Prompts to link a guest account', async() => {
     const user = genGuest()
     setViewer(store, user)
-    await router.push('/orders/Fox/order/1/')
+    router.push('/orders/Fox/order/1/')
     wrapper = mount(
       OrderDetail, {
         localVue,
@@ -623,7 +667,7 @@ describe('OrderDetail.vue', () => {
   it('Sends an invite email', async() => {
     const user = genUser()
     setViewer(store, user)
-    await router.push('/orders/Fox/order/1/')
+    router.push('/orders/Fox/order/1/')
     wrapper = mount(
       OrderDetail, {
         localVue,
@@ -656,7 +700,7 @@ describe('OrderDetail.vue', () => {
   it('Gracefully handles commission info', async() => {
     const user = genUser()
     setViewer(store, user)
-    await router.push('/orders/Fox/order/1/')
+    router.push('/orders/Fox/order/1/')
     wrapper = mount(
       OrderDetail, {
         localVue,
@@ -687,35 +731,11 @@ describe('OrderDetail.vue', () => {
     await vm.$nextTick()
     expect(vm.commissionInfo).toBe('Stuff and things')
   })
-  it('Generates adjustment line items', async() => {
-    const fox = genUser()
-    fox.username = 'Fox'
-    setViewer(store, fox)
-    await router.push('/orders/Fox/order/1/')
-    wrapper = mount(
-      OrderDetail, {
-        localVue,
-        store,
-        router,
-        vuetify,
-        propsData: {orderId: 3},
-        sync: false,
-        attachToDocument: true,
-        stubs: ['router-link', 'ac-revision-manager'],
-      })
-    const vm = wrapper.vm as any
-    const order = genOrder()
-    order.adjustment = 5
-    vm.order.setX(order)
-    expect(vm.lineItems).toEqual([{label: 'Additional Requirements', value: 5}])
-    vm.order.updateX({adjustment: -2})
-    expect(vm.lineItems).toEqual([{label: 'Discount', value: -2}])
-  })
   it('Generates tip line item', async() => {
     const fox = genUser()
     fox.username = 'Fox'
     setViewer(store, fox)
-    await router.push('/orders/Fox/order/1/')
+    router.push('/orders/Fox/order/1/')
     wrapper = mount(
       OrderDetail, {
         localVue,
@@ -725,12 +745,80 @@ describe('OrderDetail.vue', () => {
         propsData: {orderId: 3},
         sync: false,
         attachToDocument: true,
-        stubs: ['router-link', 'ac-revision-manager'],
+        stubs: ['ac-revision-manager'],
       })
     const vm = wrapper.vm as any
     const order = genOrder()
-    order.tip = 5
     vm.order.setX(order)
-    expect(vm.lineItems).toEqual([{label: 'Tip', value: 5}])
+    vm.order.ready = true
+    await vm.$nextTick()
+    mockAxios.reset()
+    vm.lineItems.setList(dummyLineItems())
+    vm.setTip(0.25)
+    const lastReq = mockAxios.lastReqGet()
+    expect(lastReq.url).toEqual('/api/sales/v1/order/3/line-items/')
+    expect(lastReq.method).toEqual('post')
+    expect(lastReq.data).toEqual({
+      amount: '20.00',
+      percentage: 0,
+      type: LineTypes.TIP,
+    })
+    const tipLine = {
+      amount: 5,
+      percentage: 0,
+      type: LineTypes.TIP,
+      priority: 200,
+      cascade_percentage: false,
+      cascade_amount: false,
+    }
+    mockAxios.mockResponse(rs({
+      amount: 5,
+      percentage: 0,
+      type: LineTypes.TIP,
+      priority: 200,
+      cascade_percentage: false,
+      cascade_amount: false,
+    }))
+    await flushPromises()
+    expect(vm.lineItems.list.map((x: SingleController<LineItem>) => x.x)).toContainEqual(tipLine)
+  })
+  it('Updates an existing tip line item', async() => {
+    const fox = genUser()
+    fox.username = 'Fox'
+    setViewer(store, fox)
+    router.push('/orders/Fox/order/1/')
+    wrapper = mount(
+      OrderDetail, {
+        localVue,
+        store,
+        router,
+        vuetify,
+        propsData: {orderId: 3},
+        sync: false,
+        attachToDocument: true,
+        stubs: ['ac-revision-manager'],
+      })
+    const vm = wrapper.vm as any
+    const order = genOrder()
+    vm.order.setX(order)
+    vm.order.ready = true
+    await vm.$nextTick()
+    mockAxios.reset()
+    const lines = dummyLineItems()
+    lines.push({
+      id: -20,
+      amount: 5,
+      percentage: 0,
+      type: LineTypes.TIP,
+      priority: 200,
+      cascade_percentage: false,
+      cascade_amount: false,
+      description: '',
+    })
+    vm.lineItems.setList(lines)
+    vm.setTip(0.25)
+    await vm.$nextTick()
+    expect(vm.tip).toBeTruthy()
+    expect(vm.tip.patchers.amount.model).toBe('20.00')
   })
 })

@@ -42,7 +42,7 @@
 
 <script lang="ts">
 import Vue from 'vue'
-import {genId} from '@/lib'
+import {genId} from '@/lib/lib'
 import Component from 'vue-class-component'
 import {Prop, Watch} from 'vue-property-decorator'
 

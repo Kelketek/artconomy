@@ -28,7 +28,7 @@ import Dashboard from '@uppy/dashboard'
 import XHRUpload from '@uppy/xhr-upload'
 
 import Component, {mixins} from 'vue-class-component'
-import {genId, getCookie} from '@/lib'
+import {genId, getCookie} from '@/lib/lib'
 import {Prop, Watch} from 'vue-property-decorator'
 import ExtendedInput from '@/components/fields/mixins/extended_input'
 import {RawData} from '@/store/forms/types/RawData'

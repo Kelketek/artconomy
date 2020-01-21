@@ -12,7 +12,7 @@
 </template>
 
 <script>
-import {getExt} from '../lib'
+import {getExt} from '../lib/lib'
 
 export default {
   props: ['asset'],

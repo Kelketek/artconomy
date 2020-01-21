@@ -8,7 +8,7 @@
 </template>
 
 <script lang="ts">
-import {getExt} from '@/lib'
+import {getExt} from '@/lib/lib'
 import Component from 'vue-class-component'
 import Vue from 'vue'
 import {Prop} from 'vue-property-decorator'

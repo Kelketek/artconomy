@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <v-row no-gutters  >
+    <v-row>
       <v-col cols="12" lg="4">
         <v-toolbar dense><v-toolbar-title>Overview</v-toolbar-title></v-toolbar>
         <ac-load-section :controller="overview">
@@ -15,19 +15,26 @@
         </ac-load-section>
       </v-col>
       <v-col cols="12" lg="7" offset-lg="1">
-        <v-toolbar dense><v-toolbar-title>By Customer</v-toolbar-title></v-toolbar>
-        <ac-paginated :list="holdings">
-          <v-col>
-            <v-data-table :items="holdingsItems" :headers="holdingsHeaders" hide-default-footer>
-              <template v-slot:items="props">
-                <td class="text-left"><strong>{{props.item.id}}</strong></td>
-                <td class="text-left"><strong>{{props.item.username}}</strong></td>
-                <td class="text-center">${{props.item.escrow}}</td>
-                <td class="text-center">${{props.item.holdings}}</td>
-              </template>
-            </v-data-table>
-          </v-col>
-        </ac-paginated>
+        <v-toolbar dense><v-toolbar-title>Holdings by Customer</v-toolbar-title></v-toolbar>
+        <v-row no-gutters>
+          <v-col><a href="/api/sales/v1/reports/customer-holdings/csv/" download>Download CSV</a></v-col>
+        </v-row>
+        <v-toolbar dense><v-toolbar-title>Order report</v-toolbar-title></v-toolbar>
+        <v-row no-gutters>
+          <v-col><a href="/api/sales/v1/reports/order-values/csv/" download>Download CSV</a></v-col>
+        </v-row>
+        <v-toolbar dense><v-toolbar-title>Subscription Report</v-toolbar-title></v-toolbar>
+        <v-row no-gutters>
+          <v-col><a href="/api/sales/v1/reports/subscription-report/csv/" download>Download CSV</a></v-col>
+        </v-row>
+        <v-toolbar dense><v-toolbar-title>Payout Report</v-toolbar-title></v-toolbar>
+        <v-row no-gutters>
+          <v-col><a href="/api/sales/v1/reports/payout-report/csv/" download>Download CSV</a></v-col>
+        </v-row>
+        <v-toolbar dense><v-toolbar-title>Dwolla Report</v-toolbar-title></v-toolbar>
+        <v-row no-gutters>
+          <v-col><a href="/api/sales/v1/reports/dwolla-report/csv/" download>Download CSV</a></v-col>
+        </v-row>
       </v-col>
     </v-row>
   </v-container>
@@ -42,6 +49,9 @@ import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import {ListController} from '@/store/lists/controller'
 import CustomerHolding from '@/types/CustomerHolding'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
+import {axiosCatch} from '@/store/forms/field-controller'
+import {artCall} from '@/lib/lib'
+import moment from 'moment-timezone'
   @Component({
     components: {AcPaginated, AcLoadSection},
   })
@@ -75,8 +85,7 @@ export default class App extends Vue {
         return []
       }
       return [
-        {label: 'Cash available for withdraw', value: this.overview.x.earned},
-        {label: 'Unprocessed earnings, needs card processor import', value: this.overview.x.unprocessed},
+        {label: 'Unqualified earnings', value: this.overview.x.unprocessed},
         {label: 'Reserve (may be given as Landscape bonus)', value: this.overview.x.reserve},
         {label: 'Held in escrow', value: this.overview.x.escrow},
         {label: 'Customer holdings awaiting withdraw', value: this.overview.x.holdings},
@@ -95,14 +104,22 @@ export default class App extends Vue {
       }
     }
     public set holdingsPagination(obj: any) {
-      console.log('I ran!', obj, this.holdings.pageSize)
       this.holdings.currentPage = obj.page
+    }
+    public downloadHoldings() {
+      artCall({
+        url: this.holdings.endpoint, method: 'get', responseType: 'blob', headers: {Accept: 'text/csv'}},
+      ).then((response) => {
+        const url = window.URL.createObjectURL(new Blob([response]))
+        const link = document.createElement('a')
+        link.href = url
+        link.setAttribute('download', `holdings-${moment.now()}.csv`)
+        link.click()
+      })
     }
     public created() {
       this.overview = this.$getSingle('overviewReport', {endpoint: '/api/sales/v1/reports/overview/'})
       this.overview.get()
-      this.holdings = this.$getList('customerHoldings', {endpoint: '/api/sales/v1/reports/customer_holdings/'})
-      this.holdings.firstRun()
     }
 }
 </script>

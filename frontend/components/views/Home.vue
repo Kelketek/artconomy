@@ -249,7 +249,7 @@
 <script lang="ts">
 
 import Component, {mixins} from 'vue-class-component'
-import Viewer from '../../mixins/viewer'
+import Viewer from '@/mixins/viewer'
 import AcProductPreview from '@/components/AcProductPreview.vue'
 import {ListController} from '@/store/lists/controller'
 import Product from '@/types/Product'
@@ -261,7 +261,7 @@ import Submission from '@/types/Submission'
 import {RawData} from '@/store/forms/types/RawData'
 import AcCharacterPreview from '@/components/AcCharacterPreview.vue'
 import {Character} from '@/store/characters/types/Character'
-import {shuffle} from '@/lib'
+import {shuffle} from '@/lib/lib'
 
 @Component({
   components: {AcCharacterPreview, AcGalleryPreview, AcBoundField, AcLoadSection, AcProductPreview},

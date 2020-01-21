@@ -3,6 +3,7 @@ import inspect
 import json
 import multiprocessing
 import os
+import platform
 import time
 from io import StringIO
 from multiprocessing import Queue
@@ -20,11 +21,9 @@ from bok_choy.promise import EmptyPromise, BrokenPromise, Promise
 from bok_choy.web_app_test import WebAppTest
 from ddt import ddt, data
 from django.conf import settings
-from django.contrib.auth.models import AnonymousUser
 from django.core import management
 from django.core.management import call_command
 from django.db import connections
-from django.forms import CheckboxInput, RadioSelect
 from django.test import LiveServerTestCase, override_settings, tag
 from django.test.runner import DiscoverRunner, ParallelTestSuite
 from django.urls import reverse
@@ -35,7 +34,6 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.test import APITestCase as BaseAPITestCase, APIRequestFactory
 from seleniumrequests import RequestMixin
 
-from apps.profiles.models import User
 
 MIDDLEWARE = ['apps.lib.test_resources.DisableCSRF'] + settings.MIDDLEWARE
 
@@ -299,149 +297,6 @@ class memoized_property(property):
     pass
 
 
-class CheckBox:
-    """
-    Base class for Checkbox element
-    """
-    def __init__(self, page, field_id):
-        self.page = page
-        self.field_id = field_id
-
-    @property
-    def checked(self):
-        return self.page.q(css=self.field_id).attrs("value")[0]
-
-    def click(self):
-        """
-        click event on checkbox
-        """
-        target = None
-        for element in self.page.q(css=self.field_id + ', label[for={}]'.format(self.field_id.replace('#', '', 1))):
-            if element.is_displayed():
-                target = element
-                break
-        if not target:
-            raise BrokenPromise(
-                Promise(lambda: None, ("Checkbox ID {} can be clicked.".format(self.field_id)))
-            )
-        target.click()
-
-
-class FieldHandlerMetaclass(type):
-    """
-    Metaclass for field handlers to automagically create getters/setters for fields.
-    """
-
-    @staticmethod
-    def create_getter(field_id, field):
-        if isinstance(field.widget, CheckboxInput):
-            @memoized_property
-            def checkbox_access(self):
-                return CheckBox(self._page, field_id)
-            return checkbox_access
-
-        @memoized_property
-        def field_access(self):
-            return self._page.q(css=field_id).attrs("value")[0]
-        return field_access
-
-    @staticmethod
-    def create_setter(field_access, field_id, field):
-        @field_access.setter
-        def field_access(self, value):
-            if isinstance(field.widget, CheckboxInput):
-                raise AttributeError("Cannot set a checkbox directly. You have to .click() it.")
-            elif isinstance(field.widget, RadioSelect):
-                radio = self._page.q(
-                    css='[id^={id}][value="{value}"]'.format(id=field_id.replace('#', ''), value=value)
-                )
-                label_selector = 'label[for="{}"]'.format(radio[0].get_attribute('id'))
-                self._page.wait_for_element_visibility(
-                    label_selector, 'Waited for radio with value "{}" to be visible.'.format(value)
-                )
-                self._page.q(css=label_selector).click()
-            else:
-                self._page.q(css=field_id).fill(value)
-        return field_access
-
-    @classmethod
-    def create_handles(mcs, field_id, field):
-        handler = mcs.create_getter(field_id, field)
-        handler = mcs.create_setter(handler, field_id, field)
-        return handler
-
-    def __new__(mcs, name, parents, dct):
-        dct['_form'] = dct.pop('form')
-        for field_name, field in dct['_form'].fields.items():
-            prefix = dct['_form'].prefix
-            if prefix:
-                prefix += '-'
-            else:
-                prefix = ''
-            field_id = "#id_{prefix}{field_name}".format(prefix=prefix, field_name=field_name)
-
-            field_access = mcs.create_handles(field_id, field)
-
-            dct[field_name] = field_access
-        return super(FieldHandlerMetaclass, mcs).__new__(mcs, name, parents, dct)
-
-
-class PageForm(PageObject):
-    """
-    Mixin to manage Forms
-    """
-
-    url = None
-
-    def __init__(self, browser, form_id='', form=None):
-        """
-        init method for page form object
-        """
-        self.form_id = form_id
-        # Can't set a variable directly in this instance because of
-        # Python's attempt to keep us from affecting outside scope by accident.
-        mutable_hack = {'form': form}
-
-        if form:
-            class FieldHandler(object):
-                """
-                Provides access to the fields on the form with getters and setters.
-                """
-                __metaclass__ = FieldHandlerMetaclass
-                form = mutable_hack['form']
-
-                def __init__(self, page):
-                    self._page = page
-
-            self.fields = FieldHandler(self)
-        super(PageForm, self).__init__(browser)
-
-    def is_browser_on_page(self):
-        """
-        check the requested page is loaded on current browser
-        Returns: True or False
-
-        """
-        if not self.form_id:
-            return self.q(css="form")
-        return self.q(css='#{}'.format(self.form_id))
-
-    def prefix(self, selector):
-        if self.form_id:
-            return "#{} {}".format(self.form_id, selector)
-        return selector
-
-    def submit(self):
-        """
-        Submits via the first button of type submit under the form ID.
-        """
-        self.q(css=self.prefix("input[type=submit]")).click()
-
-    @property
-    def errors(self):
-        return [el.text for el in self.q(css=self.prefix('ul.errorlist >li'))]
-
-
 class FixtureMixin(object):
     """
     Loads a file in tests that need fixtures.
@@ -525,6 +380,8 @@ def _init_worker(counter):
     requirements.
     """
     global _worker_id
+    import django
+    django.setup()
 
     with counter.get_lock():
         counter.value += 1
@@ -537,6 +394,8 @@ def _init_worker(counter):
         # reflected in django.db.connections. If the following line assigned
         # connection.settings_dict = settings_dict, new threads would connect
         # to the default database instead of the appropriate clone.
+        if platform.system().lower() == 'darwin':
+            settings_dict['NAME'] = f'test_{settings_dict["NAME"]}'
         connection.settings_dict.update(settings_dict)
         connection.close()
     # Remove parent process reference, which won't be valid.
@@ -674,6 +533,7 @@ class NPMBuildTestRunner(DiscoverRunner):
         # noinspection PyPep8Naming,PyShadowingNames
         def setUp(self):
             self.method_start_time = time.time()
+            super().setUp()
 
         # noinspection PyPep8Naming,PyShadowingNames
         def tearDown(self):
@@ -681,6 +541,7 @@ class NPMBuildTestRunner(DiscoverRunner):
             time_reports.put(
                 (f'{self.__class__.__module__}.{self.__class__.__name__}.{self._testMethodName}', execution_time)
             )
+            super().tearDown()
 
         TestCase.setUp = setUp
         TestCase.tearDown = tearDown
@@ -760,6 +621,9 @@ class NPMBuildTestRunner(DiscoverRunner):
         parser.add_argument(
             '--rebuild-fixtures', action='store_true', dest='rebuild_fixtures',
         )
+        parser.add_argument(
+            '--no-coverage', action='store_true', dest='rebuild_fixtures',
+        )
 
 
 class DisableCSRF:
@@ -793,6 +657,8 @@ class PermissionsTestCase(APITestCase):
     kwargs = {}
 
     def setUp(self):
+        from django.contrib.auth.models import AnonymousUser
+        from apps.profiles.models import User
         super().setUp()
         self.factory = SimpleAuthRequestFactory()
         self.user = Mock(spec=User)
@@ -911,12 +777,18 @@ class MethodAccessMixin:
         return self.user
 
 
+disable = signal_disabler.disable()
+
+
 class SignalsDisabledMixin:
     def setUp(self):
         super().setUp()
-        self.disabler = signal_disabler.disable()
+        self.disabler = disable
         self.disabler.disconnect_all()
 
     def tearDown(self):
         super().tearDown()
+        signals = self.disabler.stashed_signals.keys()
         self.disabler.reconnect_all()
+        for signal in signals:
+            signal.sender_receivers_cache.clear()

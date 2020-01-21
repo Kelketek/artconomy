@@ -21,7 +21,7 @@
 
 <script lang="ts">
 import axios, {CancelTokenSource} from 'axios'
-import {artCall} from '@/lib'
+import {artCall} from '@/lib/lib'
 import {Prop, Watch} from 'vue-property-decorator'
 import Component, {mixins} from 'vue-class-component'
 import {cloneDeep, debounce} from 'lodash'

@@ -3,7 +3,7 @@ import Vue from 'vue'
 import {Prop, Watch} from 'vue-property-decorator'
 import axios, {CancelTokenSource} from 'axios'
 import {cloneDeep, debounce} from 'lodash'
-import {artCall} from '@/lib'
+import {artCall} from '@/lib/lib'
 import deepEqual from 'fast-deep-equal'
 import {RawData} from '@/store/forms/types/RawData'
 

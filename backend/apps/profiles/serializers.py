@@ -473,8 +473,6 @@ class UserSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
     # dwolla_configured = serializers.SerializerMethodField()
     csrftoken = serializers.SerializerMethodField()
     authtoken = serializers.SerializerMethodField()
-    percentage_fee = serializers.DecimalField(decimal_places=2, max_digits=3, read_only=True)
-    static_fee = serializers.DecimalField(decimal_places=2, max_digits=5, read_only=True)
     portrait_paid_through = serializers.DateField(read_only=True)
     landscape_paid_through = serializers.DateField(read_only=True)
     telegram_link = serializers.SerializerMethodField()
@@ -511,7 +509,7 @@ class UserSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
             'rating', 'username', 'id', 'is_staff', 'is_superuser',
             'csrftoken', 'avatar_url', 'email', 'authtoken', 'favorites_hidden',
             'blacklist', 'biography', 'taggable', 'watching', 'blocking',
-            'stars', 'percentage_fee', 'static_fee', 'portrait', 'portrait_enabled', 'portrait_paid_through',
+            'stars', 'portrait', 'portrait_enabled', 'portrait_paid_through',
             'landscape', 'landscape_enabled', 'landscape_paid_through', 'telegram_link', 'sfw_mode',
             'offered_mailchimp', 'guest', 'artist_mode', 'hits', 'watches', 'guest_email',
         )

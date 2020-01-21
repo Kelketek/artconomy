@@ -5,7 +5,7 @@
   </v-container>
 </template>
 <script lang="ts">
-import {setMetaContent, updateTitle} from '@/lib'
+import {setMetaContent, updateTitle} from '@/lib/lib'
 import Component, {mixins} from 'vue-class-component'
 import Viewer from '@/mixins/viewer'
 import {SingleController} from '@/store/singles/controller'

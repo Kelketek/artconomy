@@ -50,7 +50,7 @@
 </template>
 
 <script>
-import {artCall} from '../lib'
+import {artCall} from '../lib/lib'
 import Formatting from '../mixins/formatting'
 
 export default {

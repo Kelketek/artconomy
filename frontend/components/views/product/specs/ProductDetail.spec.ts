@@ -14,12 +14,17 @@ import {
 import ProductDetail from '@/components/views/product/ProductDetail.vue'
 import {genArtistProfile, genProduct, genUser} from '@/specs/helpers/fixtures'
 import mockAxios from '@/__mocks__/axios'
-import {searchSchema} from '@/lib'
+import {searchSchema} from '@/lib/lib'
 import {FormController} from '@/store/forms/form-controller'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import Router, {RouterOptions} from 'vue-router'
 
 import {genSubmission} from '@/store/submissions/specs/fixtures'
+import {getTotals, totalForTypes} from '@/lib/lineItemFunctions'
+import {LineTypes} from '@/types/LineTypes'
+import {SingleController} from '@/store/singles/controller'
+import LineItem from '@/types/LineItem'
+import Big from 'big.js'
 
 const localVue = vueSetup()
 localVue.use(Router)
@@ -34,11 +39,11 @@ function prepData() {
   setPricing(store, localVue)
   const data = {
     productSingle: mount(
-      Empty, {localVue, router, store}).vm.$getSingle('product__1', {endpoint: '/wat/'}),
+      Empty, {localVue, router, store, sync: false}).vm.$getSingle('product__1', {endpoint: '/wat/'}),
     samplesList: mount(
-      Empty, {localVue, router, store}).vm.$getList('product__1__samples', {endpoint: '/dude/'}),
+      Empty, {localVue, router, store, sync: false}).vm.$getList('product__1__samples', {endpoint: '/dude/'}),
     recommendedList: mount(
-      Empty, {localVue, router, store}).vm.$getList('product__1__recommendations', {endpoint: '/sweet/'}),
+      Empty, {localVue, router, store, sync: false}).vm.$getList('product__1__recommendations', {endpoint: '/sweet/'}),
   }
   data.productSingle.setX(genProduct())
   data.productSingle.ready = true
@@ -105,8 +110,9 @@ describe('ProductDetail.vue', () => {
     store = createStore()
     vuetify = createVuetify()
     router = new Router(routes)
-    form = mount(Empty, {localVue, router, store}).vm.$getForm('search', searchSchema())
+    form = mount(Empty, {localVue, router, store, sync: false}).vm.$getForm('search', searchSchema())
     setPricing(store, localVue)
+    Big.DP = 2
   })
   afterEach(() => {
     cleanUp(wrapper)
@@ -137,8 +143,8 @@ describe('ProductDetail.vue', () => {
       propsData: {username: 'Fox', productId: 1},
       stubs: ['ac-sample-editor'],
     })
-    mockAxios.reset()
     const vm = wrapper.vm as any
+    mockAxios.reset()
     await vm.$nextTick()
     await confirmAction(wrapper, ['.more-button', '.delete-button'])
     mockAxios.mockResponse(rs({}))
@@ -269,10 +275,147 @@ describe('ProductDetail.vue', () => {
     let description = document.querySelector('meta[name="description"]')
     expect(description).toBeTruthy()
     expect(description!.textContent).toBe('[Starts at $10.00] - This is a test product')
-    data.productSingle.updateX({price: 0})
+    data.productSingle.updateX({base_price: 0, starting_price: 0})
     await vm.$nextTick()
     description = document.querySelector('meta[name="description"]')
     expect(description).toBeTruthy()
     expect(description!.textContent).toBe('[Starts at FREE] - This is a test product')
+  })
+  it('Clears the fake line item list if the price is nonsense', async() => {
+    prepData()
+    wrapper = mount(ProductDetail, {
+      localVue,
+      router,
+      store,
+      vuetify,
+      sync: false,
+      attachToDocument: true,
+      propsData: {username: 'Fox', productId: 1},
+      stubs: ['ac-sample-editor', 'v-carousel', 'v-carousel-item'],
+    })
+    const vm = wrapper.vm as any
+    await vm.$nextTick()
+    const product = genProduct()
+    vm.product.setX(product)
+    vm.product.ready = true
+    vm.product.patchers.base_price.model = NaN
+    await vm.$nextTick()
+    expect(vm.lineItems.list).toEqual([])
+  })
+  it('Gives a clear list if pricing info is not yet gathered', async() => {
+    prepData()
+    wrapper = mount(ProductDetail, {
+      localVue,
+      router,
+      store,
+      vuetify,
+      sync: false,
+      attachToDocument: true,
+      propsData: {username: 'Fox', productId: 1},
+      stubs: ['ac-sample-editor', 'v-carousel', 'v-carousel-item'],
+    })
+    const vm = wrapper.vm as any
+    vm.pricing.setX(null)
+    await vm.$nextTick()
+    const product = genProduct()
+    vm.product.setX(product)
+    vm.product.ready = true
+    await vm.$nextTick()
+    expect(vm.lineItems.list).toEqual([])
+  })
+  it('Refreshes the product after closing out the workload settings', async() => {
+    prepData()
+    wrapper = mount(ProductDetail, {
+      localVue,
+      router,
+      store,
+      vuetify,
+      sync: false,
+      attachToDocument: true,
+      propsData: {username: 'Fox', productId: 1},
+      stubs: ['ac-sample-editor', 'v-carousel', 'v-carousel-item'],
+    })
+    const vm = wrapper.vm as any
+    const mockRefresh = jest.spyOn(vm.product, 'refresh')
+    await vm.$nextTick()
+    const product = genProduct()
+    vm.product.setX(product)
+    vm.product.ready = true
+    await vm.$nextTick()
+    vm.showWorkload = true
+    await vm.$nextTick()
+    expect(mockRefresh).not.toHaveBeenCalled()
+    vm.showWorkload = false
+    await vm.$nextTick()
+    expect(mockRefresh).toHaveBeenCalled()
+  })
+  it('Clears inventory settings and refetches when inventory disabled.', async() => {
+    prepData()
+    wrapper = mount(ProductDetail, {
+      localVue,
+      router,
+      store,
+      vuetify,
+      sync: false,
+      attachToDocument: true,
+      propsData: {username: 'Fox', productId: 1},
+      stubs: ['ac-sample-editor', 'v-carousel', 'v-carousel-item'],
+    })
+    const vm = wrapper.vm as any
+    vm.product.updateX({track_inventory: true})
+    vm.inventory.setX({count: 20})
+    expect(vm.inventory.x).toEqual({count: 20})
+    await vm.$nextTick()
+    vm.product.updateX({track_inventory: false})
+    await vm.$nextTick()
+    expect(vm.inventory.x).toBe(null)
+  })
+  it('Handles a table product', async() => {
+    const data = prepData()
+    data.productSingle.updateX({table_product: true})
+    wrapper = mount(ProductDetail, {
+      localVue,
+      router,
+      store,
+      vuetify,
+      sync: false,
+      attachToDocument: true,
+      propsData: {username: 'Fox', productId: 1},
+      stubs: ['ac-sample-editor', 'v-carousel', 'v-carousel-item'],
+    })
+    const vm = wrapper.vm as any
+    expect(totalForTypes(getTotals(vm.lineItems.list.map(
+      (x: SingleController<LineItem>) => x.x)),
+    [LineTypes.TABLE_SERVICE]),
+    ).toEqual(Big('5.51'))
+    expect(totalForTypes(getTotals(vm.lineItems.list.map(
+      (x: SingleController<LineItem>) => x.x)),
+    [LineTypes.SHIELD, LineTypes.BONUS]),
+    ).toEqual(Big('0'))
+  })
+  it('Handles a shield product', async() => {
+    const data = prepData()
+    wrapper = mount(ProductDetail, {
+      localVue,
+      router,
+      store,
+      vuetify,
+      sync: false,
+      attachToDocument: true,
+      propsData: {username: 'Fox', productId: 1},
+      stubs: ['ac-sample-editor', 'v-carousel', 'v-carousel-item'],
+    })
+    const vm = wrapper.vm as any
+    vm.subjectHandler.artistProfile.setX(genArtistProfile())
+    vm.subjectHandler.artistProfile.ready = true
+    await vm.$nextTick()
+    expect(totalForTypes(getTotals(vm.lineItems.list.map(
+      (x: SingleController<LineItem>) => x.x)),
+    [LineTypes.TABLE_SERVICE]),
+    ).toEqual(Big('0'))
+    expect(totalForTypes(getTotals(vm.lineItems.list.map(
+      (x: SingleController<LineItem>) => x.x)),
+    [LineTypes.SHIELD, LineTypes.BONUS]),
+    ).toEqual(Big('6.8'))
   })
 })

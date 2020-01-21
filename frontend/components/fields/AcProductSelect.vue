@@ -36,7 +36,7 @@ export default class AcProductSelect extends mixins(Autocomplete, Viewer) {
       // Type mismatch thrown by parent library. Return an empty string for this.
       return ''
     }
-    return `${item.name} starting at $${item.price.toFixed(2)}`
+    return `${item.name} starting at $${item.starting_price.toFixed(2)}`
   }
 }
 </script>

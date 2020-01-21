@@ -184,7 +184,7 @@
 </template>
 
 <script lang="ts">
-import {isAxiosError, paramHandleMap, RECAPTCHA_SITE_KEY, singleQ} from '@/lib'
+import {isAxiosError, paramHandleMap, RECAPTCHA_SITE_KEY, singleQ} from '@/lib/lib'
 import Component, {mixins} from 'vue-class-component'
 import {State} from 'vuex-class'
 import {FormController} from '@/store/forms/form-controller'

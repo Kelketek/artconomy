@@ -75,11 +75,10 @@
               <ac-rendered v-show="!editing" :value="comment.x.text" v-if="!comment.x.deleted" />
               <v-col v-else>[Deleted]</v-col>
             </v-col>
-            <v-col class="text-right" cols="12" v-if="controls && !editing && !comment.x.deleted">
+            <v-col class="text-right" cols="12" v-if="canReply && !editing && !comment.x.deleted && !subCommentList.list.length && !replying">
               <v-row no-gutters>
                 <v-spacer />
-                <!-- We'll want this under the children instead if it's a reply. -->
-                <v-col class="shrink" v-if="!subCommentList.list.length && canReply && !replying">
+                <v-col class="shrink">
                   <v-tooltip top>
                     <template v-slot:activator="{ on }">
                       <v-btn v-on="on" color="primary" fab small @click="replying = true" class="reply-button">
@@ -175,7 +174,7 @@ import AcAvatar from '@/components/AcAvatar.vue'
 import AcRendered from '@/components/wrappers/AcRendered'
 import AcBoundField from '@/components/fields/AcBoundField'
 import Comment from '@/types/Comment'
-import {flatten, profileLink} from '@/lib'
+import {flatten} from '@/lib/lib'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
 import AcNewComment from '@/components/comments/AcNewComment.vue'

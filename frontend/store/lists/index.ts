@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import {State as RootState} from '../state'
 import {ActionTree, GetterTree, MutationTree, Store} from 'vuex'
-import {artCall, ArtCallOptions, immediate} from '@/lib'
+import {artCall, ArtCallOptions, immediate} from '@/lib/lib'
 import axios from 'axios'
 import {ListState} from './types/ListState'
 import {PaginatedResponse} from '@/store/lists/types/PaginatedResponse'

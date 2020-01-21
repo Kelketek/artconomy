@@ -1,6 +1,6 @@
 /* istanbul ignore file */
 import {AxiosRequestConfig, AxiosResponse} from 'axios'
-import {csrfSafeMethod, getCookie, saneNav} from '@/lib'
+import {csrfSafeMethod, getCookie, saneNav} from '@/lib/lib'
 import {createLocalVue, mount, Wrapper} from '@vue/test-utils'
 import Vue, {VueConstructor} from 'vue'
 import {FieldController} from '@/store/forms/field-controller'
@@ -209,6 +209,9 @@ export function setPricing(store: ArtStore, localVue: VueConstructor<Vue>) {
     standard_static: 0.75,
     portrait_price: 3.00,
     minimum_price: 1.10,
+    table_percentage: 10,
+    table_static: 5,
+    table_tax: 8.25,
   })
   pricing.ready = true
   return pricing

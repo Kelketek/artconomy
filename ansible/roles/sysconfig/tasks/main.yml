@@ -16,14 +16,13 @@
     cache_valid_time: 8400
     update_cache: yes
     upgrade: yes
-  when: perform_upgrades
+  when: perform_upgrades|bool
 
 - name: Install utils
   apt:
-    name: "{{ item }}"
+    name:
+      - screen
+      - vim
+      - build-essential
+      - unattended-upgrades
     state: present
-  with_items:
-    - screen
-    - vim
-    - build-essential
-    - unattended-upgrades

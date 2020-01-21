@@ -9,7 +9,7 @@ import {CreditCardToken} from '@/types/CreditCardToken'
 import mockAxios from '@/__mocks__/axios'
 import {genCard, genUser} from '@/specs/helpers/fixtures'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
-import {baseCardSchema} from '@/lib'
+import {baseCardSchema} from '@/lib/lib'
 
 const localVue = vueSetup()
 let store: ArtStore

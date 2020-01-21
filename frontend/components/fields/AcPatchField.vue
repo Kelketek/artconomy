@@ -6,8 +6,8 @@
       <v-tooltip top v-if="saved && saveIndicator">
         <template v-slot:activator="{ on }">
           <!-- Using a button here so the two elements are aligned. -->
-          <v-btn v-on="on" icon class="save-indicator" @click.stop="() => {}" :ripple="false" tabindex="-1">
-            <v-icon color="green" class="save-indicator">check_circle</v-icon>
+          <v-btn x-small v-on="on" icon class="save-indicator" @click.stop="() => {}" :ripple="false" tabindex="-1">
+            <v-icon x-small color="green" class="save-indicator">check_circle</v-icon>
           </v-btn>
         </template>
         <span>Saved</span>
@@ -15,8 +15,8 @@
       <v-tooltip top v-else-if="saveIndicator">
         <template v-slot:activator="{ on }">
           <!-- Using a button here so the two elements are aligned. -->
-          <v-btn v-on="on" icon class="save-indicator" @click.stop="() => {}" :ripple="false" tabindex="-1" :disabled="disabled">
-            <v-icon color="yellow" class="save-indicator">warning</v-icon>
+          <v-btn v-on="on" x-small icon class="save-indicator" @click.stop="() => {}" :ripple="false" tabindex="-1" :disabled="disabled">
+            <v-icon x-small color="yellow" class="save-indicator">warning</v-icon>
           </v-btn>
         </template>
         <span>Unsaved</span>

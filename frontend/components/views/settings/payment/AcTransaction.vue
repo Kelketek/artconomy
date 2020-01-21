@@ -60,9 +60,9 @@ import Transaction from '@/types/Transaction'
 import {Prop} from 'vue-property-decorator'
 import {User} from '@/store/profiles/types/User'
 import Formatting from '@/mixins/formatting'
-import {ISSUERS} from '@/lib'
+import {ISSUERS} from '@/lib/lib'
 
-  @Component
+@Component
 export default class AcTransaction extends mixins(Subjective, Formatting) {
     @Prop({required: true})
     public transaction!: Transaction
@@ -110,6 +110,8 @@ export default class AcTransaction extends mixins(Subjective, Formatting) {
       307: 'Other card fees',
       308: 'ACH Transaction fees',
       309: 'Other ACH fees',
+      310: 'Tax staging',
+      311: 'Taxes',
     }
 
     public get isPayer() {

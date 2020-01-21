@@ -9,7 +9,7 @@ import {Ratings} from '@/store/profiles/types/Ratings'
 import ViewerComponent from '@/specs/helpers/dummy_components/viewer.vue'
 import {profileRegistry, Profiles} from '@/store/profiles/registry'
 import {singleRegistry, Singles} from '@/store/singles/registry'
-import {getCookie} from '@/lib'
+import {getCookie} from '@/lib/lib'
 import {Lists} from '@/store/lists/registry'
 import {AxiosError} from 'axios'
 

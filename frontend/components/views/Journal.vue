@@ -106,7 +106,7 @@ import AcCommentSection from '@/components/comments/AcCommentSection.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import Formatting from '@/mixins/formatting'
 import AcLink from '@/components/wrappers/AcLink.vue'
-import {profileLink} from '@/lib'
+import {profileLink} from '@/lib/lib'
 
   @Component({components: {
     AcLink,

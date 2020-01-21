@@ -10,7 +10,7 @@ import {
   deriveDisplayName,
   guestName,
   profileLink,
-} from '@/lib'
+} from '@/lib/lib'
 import {User} from '@/store/profiles/types/User'
 
 @Component

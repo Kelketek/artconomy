@@ -1,21 +1,11 @@
-from decimal import Decimal
 from unittest.mock import Mock
 
 from django.contrib.contenttypes.models import ContentType
-from django.test import TestCase, override_settings
+from django.test import TestCase
 
 from apps.lib import models
 from apps.lib.models import Subscription
-from apps.lib.test_resources import SignalsDisabledMixin
 from apps.profiles.tests.factories import UserFactory, SubmissionFactory
-
-
-class TestUser(SignalsDisabledMixin, TestCase):
-    @override_settings(STANDARD_PERCENTAGE_FEE=Decimal('1'), STANDARD_STATIC_FEE=Decimal('1.00'))
-    def test_standard_fees(self):
-        user = UserFactory.create()
-        self.assertEqual(user.static_fee, Decimal('1.00'))
-        self.assertEqual(user.percentage_fee, Decimal('1'))
 
 
 expected_subscriptions = (

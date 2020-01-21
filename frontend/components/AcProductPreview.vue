@@ -13,7 +13,7 @@
           <v-col cols="12"><ac-link :to="productLink">{{product.name}}</ac-link></v-col>
           <v-col cols="12">
             <v-row no-gutters>
-              <v-col class="grow" ><small>From</small> ${{product.price.toFixed(2)}}</v-col>
+              <v-col class="grow" ><small>From</small> ${{product.starting_price.toFixed(2)}}</v-col>
               <v-col class="no-underline shrink">
                 <ac-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">
                   <v-tooltip bottom v-if="!product.escrow_disabled">
@@ -86,8 +86,8 @@
                 Starting at
               </v-col>
               <v-col cols="12">
-                <span class="currency-notation" v-if="product.price">$</span>
-                <span class="price-display">{{product.price.toFixed(2)}}</span>
+                <span class="currency-notation" v-if="product.starting_price">$</span>
+                <span class="price-display">{{product.starting_price.toFixed(2)}}</span>
               </v-col>
             </v-row>
           </ac-link>

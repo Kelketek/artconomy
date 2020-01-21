@@ -60,7 +60,7 @@
 <script lang="ts">
 // import Paginated from './mixins/paginated'
 import Formatting from '@/mixins/formatting'
-import {truncateText} from '@/lib'
+import {truncateText} from '@/lib/lib'
 import Component, {mixins} from 'vue-class-component'
 import Subjective from '@/mixins/subjective'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'

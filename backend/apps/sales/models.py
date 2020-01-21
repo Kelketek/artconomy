@@ -1,7 +1,12 @@
 import re
+from contextlib import contextmanager
+from dataclasses import dataclass
+from decimal import Decimal
+from typing import Union, List
 from uuid import uuid4
+from warnings import warn
 
-from django.db import transaction
+from django.db import transaction, models, IntegrityError
 
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation, GenericForeignKey
@@ -31,10 +36,10 @@ from apps.lib.utils import (
     send_transaction_email,
     demark)
 from apps.profiles.models import User, ArtistProfile
-from apps.sales.authorize import create_customer_profile, create_card, AddressInfo, CardInfo, translate_authnet_error, \
+from apps.sales.authorize import create_customer_profile, create_card, AddressInfo, CardInfo, \
     refund_transaction
 from apps.sales.permissions import OrderViewPermission
-from apps.sales.utils import update_availability
+from apps.sales.utils import update_availability, reckon_lines
 from shortcuts import disable_on_load
 
 
@@ -49,9 +54,14 @@ class Product(ImageModel, HitsMixin):
         help_text="Number of days completion is expected to take.",
         max_digits=5, decimal_places=2
     )
-    price = MoneyField(
+    base_price = MoneyField(
         max_digits=6, decimal_places=2, default_currency='USD',
-        db_index=True
+        db_index=True, null=True,
+    )
+    # Cached value from get_starting_price, useful for searching.
+    starting_price = MoneyField(
+        max_digits=6, decimal_places=2, default_currency='USD',
+        db_index=True, null=True,
     )
     tags = ManyToManyField('lib.Tag', related_name='products', blank=True)
     tags__max = 200
@@ -67,6 +77,8 @@ class Product(ImageModel, HitsMixin):
     active = BooleanField(default=True, db_index=True)
     available = BooleanField(default=True, db_index=True)
     featured = BooleanField(default=False, db_index=True)
+    table_product = BooleanField(default=False, db_index=True)
+    track_inventory = BooleanField(default=False, db_index=True)
     revisions = IntegerField(validators=[MinValueValidator(0), MaxValueValidator(10)])
     max_parallel = IntegerField(
         validators=[MinValueValidator(0)], help_text="How many of these you are willing to have in your "
@@ -92,8 +104,56 @@ class Product(ImageModel, HitsMixin):
         return user == self.user
 
     @property
-    def preview_description(self):
-        price = f'[Starts at {self.price or "FREE"}] - '
+    def line_items(self) -> List['LineItemSim']:
+        lines = [
+            LineItemSim(amount=self.base_price, priority=0, type=BASE_PRICE),
+        ]
+        if self.table_product:
+            lines.extend([
+                LineItemSim(
+                    percentage=settings.TABLE_PERCENTAGE_FEE, priority=300,
+                    amount=Money(settings.TABLE_STATIC_FEE, 'USD'),
+                    type=TABLE_SERVICE, cascade_percentage=True,
+                    cascade_amount=False,
+                ),
+                LineItemSim(
+                    percentage=settings.TABLE_TAX, priority=600, type=TAX, cascade_percentage=True, cascade_amount=True,
+                ),
+            ])
+        elif self.base_price and not self.escrow_disabled:
+            lines.extend([
+                LineItemSim(
+                    amount=Money(settings.SERVICE_STATIC_FEE, 'USD'),
+                    percentage=settings.SERVICE_PERCENTAGE_FEE, priority=200,
+                    type=SHIELD,
+                    cascade_percentage=True,
+                    cascade_amount=True,
+                ),
+                LineItemSim(
+                    amount=Money(settings.PREMIUM_STATIC_BONUS, 'USD'),
+                    percentage=settings.PREMIUM_PERCENTAGE_BONUS, priority=200,
+                    type=BONUS,
+                    cascade_percentage=True,
+                    cascade_amount=True,
+                ),
+            ])
+        return lines
+
+    def get_starting_price(self) -> Money:
+        return reckon_lines(self.line_items)
+
+    @property
+    def escrow_disabled(self):
+        if not self.base_price:
+            return True
+        return self.user.artist_profile.escrow_disabled
+
+    @property
+    def preview_description(self) -> str:
+        price = self.starting_price
+        if price:
+            price = str(price).replace('US$', '$')
+        price = f'[Starts at {price or "FREE"}] - '
         return price + demark(self.description)
 
     def proto_delete(self, *args, **kwargs):
@@ -121,6 +181,7 @@ class Product(ImageModel, HitsMixin):
         return self.wrap_operation(self.proto_delete, always=True, *args, **kwargs)
 
     def save(self, *args, **kwargs):
+        self.starting_price = self.get_starting_price()
         result = self.wrap_operation(super().save, *args, **kwargs)
         if self.primary_submission:
             self.samples.add(self.primary_submission)
@@ -132,13 +193,7 @@ class Product(ImageModel, HitsMixin):
         return ProductSerializer(instance=self, context=context).data['primary_submission']
 
     def __str__(self):
-        return "{} offered by {} at {}".format(self.name, self.user.username, self.price)
-
-
-@receiver(pre_delete, sender=Product)
-@disable_on_load
-def set_static_order_price(sender, instance, **kwargs):
-    Order.objects.filter(product=instance, price__isnull=True).update(price=instance.price)
+        return "{} offered by {} at {}".format(self.name, self.user.username, self.base_price)
 
 
 # noinspection PyUnusedLocal
@@ -150,6 +205,47 @@ def auto_remove_product_notifications(sender, instance, **kwargs):
 
 
 product_thumbnailer = receiver(post_save, sender=Product)(thumbnail_hook)
+
+
+@receiver(post_save, sender=Product)
+@disable_on_load
+def apply_inventory(sender, instance, **kwargs):
+    if instance.track_inventory:
+        InventoryTracker.objects.get_or_create(product=instance)
+    else:
+        InventoryTracker.objects.filter(product=instance).delete()
+
+
+class InventoryTracker(Model):
+    product = models.OneToOneField('Product', on_delete=CASCADE, related_name='inventory')
+    count = models.IntegerField(default=0, db_index=True)
+
+
+class InventoryError(IntegrityError):
+    """
+    Used when a product is out of stock.
+    """
+
+
+@contextmanager
+def inventory_change(product: Union['Product', None], delta: int = -1):
+    if product is None:
+        # Nothing to do.
+        yield
+        return
+    with transaction.atomic():
+        tracker = InventoryTracker.objects.select_for_update().filter(product=product).first()
+        if not tracker:
+            # Nothing to do here, carry on.
+            yield
+            return
+        tracker.count += delta
+        if tracker.count < 0:
+            raise InventoryError()
+        # Should return the row, locked for editing. When the block this function is used in is exited, should
+        # release the lock.
+        yield tracker.count
+        tracker.save()
 
 
 class Order(Model):
@@ -187,30 +283,19 @@ class Order(Model):
     product = ForeignKey('Product', null=True, blank=True, on_delete=SET_NULL)
     seller = ForeignKey(User, related_name='sales', on_delete=CASCADE)
     buyer = ForeignKey(User, related_name='buys', on_delete=CASCADE, null=True, blank=True)
-    price = MoneyField(
-        max_digits=6, decimal_places=2, default_currency='USD',
-        blank=True, null=True,
-    )
-    tip = MoneyField(
-        max_digits=6, decimal_places=2, default_currency='USD',
-        default=0,
-    )
     revisions = IntegerField(default=0)
     revisions_hidden = BooleanField(default=True)
     final_uploaded = BooleanField(default=False)
     claim_token = UUIDField(blank=True, null=True)
     customer_email = EmailField(blank=True)
     details = CharField(max_length=5000)
-    adjustment = MoneyField(
-        # Migrations choke when the default is a Money object.
-        max_digits=6, decimal_places=2, default_currency='USD', blank=True, default=0
-    )
     adjustment_expected_turnaround = DecimalField(default=0, max_digits=5, decimal_places=2)
     adjustment_task_weight = IntegerField(default=0)
     adjustment_revisions = IntegerField(default=0)
     task_weight = IntegerField(default=0)
     escrow_disabled = BooleanField(default=False, db_index=True)
     trust_finalized = BooleanField(default=False, db_index=True)
+    table_order = BooleanField(default=False, db_index=True)
     expected_turnaround = DecimalField(
         validators=[MinValueValidator(settings.MINIMUM_TURNAROUND)],
         help_text="Number of days completion is expected to take.",
@@ -238,10 +323,7 @@ class Order(Model):
     subscriptions = GenericRelation('lib.Subscription')
 
     def total(self):
-        price = self.price
-        if price is None:
-            price = (self.product and self.product.price) or Money('0.00', 'USD')
-        return price + (self.adjustment or Money(0, 'USD')) + self.tip
+        return reckon_lines(self.line_items.all())
 
     def notification_serialize(self, context):
         from .serializers import OrderViewSerializer
@@ -293,9 +375,13 @@ class Order(Model):
             self.id, (self.product and self.product.name) or '<Custom>', self.buyer, self.seller,
         )
 
+    def save(self, *args, **kwargs):
+        if self.table_order:
+            self.escrow_disabled = False
+        super().save(*args, **kwargs)
+
     class Meta:
         ordering = ['created_on']
-
 
 @receiver(post_save, sender=Order)
 @disable_on_load
@@ -323,6 +409,71 @@ def auto_subscribe_order(sender, instance, created=False, **_kwargs):
     if (not instance.buyer) or instance.buyer.guest:
         instance.claim_token = uuid4()
         instance.save()
+
+
+def idempotent_lines(instance: Order):
+    if instance.status not in [Order.NEW, Order.PAYMENT_PENDING]:
+        return
+    if instance.product:
+        LineItem.objects.update_or_create(
+            {'amount': instance.product.base_price},
+            order=instance, amount=instance.product.base_price, type=BASE_PRICE, destination_user=instance.seller,
+            destination_account=TransactionRecord.ESCROW,
+        )
+    total = reckon_lines(instance.line_items.filter(priority__lt=PRIORITY_MAP[SHIELD]))
+    escrow_enabled = (not instance.escrow_disabled) and total
+    if instance.table_order:
+        LineItem.objects.update_or_create(
+            {
+                'percentage': settings.TABLE_PERCENTAGE_FEE,
+                'cascade_percentage': True,
+                'amount': Money(settings.TABLE_STATIC_FEE, 'USD'),
+                'cascade_amount': False,
+            },
+            order=instance,
+            destination_user=None, destination_account=TransactionRecord.RESERVE, type=TABLE_SERVICE,
+        )
+        LineItem.objects.update_or_create(
+            {'percentage': settings.TABLE_TAX, 'cascade_percentage': True, 'cascade_amount': True},
+            order=instance, destination_user=None, destination_account=TransactionRecord.MONEY_HOLE_STAGE, type=TAX,
+        )
+        instance.line_items.filter(type__in=[BONUS, SHIELD]).delete()
+    elif escrow_enabled:
+        LineItem.objects.update_or_create(
+            {
+                'percentage': settings.SERVICE_PERCENTAGE_FEE,
+                'amount': Money(settings.SERVICE_STATIC_FEE, 'USD'),
+                'cascade_percentage': True,
+                'cascade_amount': True,
+            },
+            order=instance,
+            destination_user=None, destination_account=TransactionRecord.RESERVE, type=SHIELD,
+        )
+        LineItem.objects.update_or_create(
+            {
+                'percentage': settings.PREMIUM_PERCENTAGE_BONUS,
+                'amount': Money(settings.PREMIUM_STATIC_BONUS, 'USD'),
+                'cascade_percentage': True,
+                'cascade_amount': True,
+            },
+            order=instance, percentage=settings.PREMIUM_PERCENTAGE_BONUS, amount=settings.PREMIUM_STATIC_BONUS,
+            destination_user=None, destination_account=TransactionRecord.RESERVE, type=BONUS,
+        )
+        LineItem.objects.filter(
+            type=EXTRA, destination_account=TransactionRecord.RESERVE, description='Table Service', order=instance,
+        ).delete()
+        LineItem.objects.filter(type=TAX).delete()
+    else:
+        instance.line_items.filter(type__in=[BONUS, SHIELD]).delete()
+        LineItem.objects.filter(
+            type=EXTRA, destination_account=TransactionRecord.RESERVE, description='Table Service', order=instance,
+        ).delete()
+        LineItem.objects.filter(type=TAX).delete()
+
+
+@receiver(post_save, sender=Order)
+def ensure_line_items(sender, instance, **kwargs):
+    idempotent_lines(instance)
 
 
 def buyer_subscriptions(instance, order_type=None):
@@ -364,6 +515,9 @@ def issue_order_claim(sender: type, instance: Order, created=False, **kwargs):
     if not instance.claim_token:
         return
     if instance.buyer:
+        return
+    if instance.status == Order.NEW:
+        # Seller has opted to not send off this notification yet.
         return
     send_transaction_email(
         f'You have a new invoice from {instance.seller.username}!',
@@ -455,6 +609,22 @@ def update_product_availability(sender, instance, **kwargs):
 def update_user_availability(sender, instance, **kwargs):
     update_availability(instance.user, instance.load, instance.commissions_disabled)
 
+
+@receiver(post_save, sender=Product)
+def update_order_line_items(sender, instance, **kwargs):
+    orders = instance.order_set.filter(status__in=[Order.NEW, Order.PAYMENT_PENDING])
+    LineItem.objects.filter(order__in=orders, type=BASE_PRICE).update(amount=instance.base_price)
+
+
+@receiver(post_save, sender=InventoryTracker)
+@disable_on_load
+def update_tracker_availability(sender, instance, **kwargs):
+    update_product_availability(sender, instance.product, **kwargs)
+
+@receiver(post_delete, sender=InventoryTracker)
+@disable_on_load
+def clear_tracker_availability(sender, instance, **kwargs):
+    update_product_availability(sender, instance.product, **kwargs)
 
 product_availability_check_save = receiver(
     post_save, sender=Product, dispatch_uid='load'
@@ -680,6 +850,12 @@ class TransactionRecord(Model):
     # Fees for other ACH-related items, like Dwolla's customer onboarding fees.
     ACH_MISC_FEES = 309
 
+    # Tax held here until order finalized
+    MONEY_HOLE_STAGE = 310
+
+    # Where taxes go
+    MONEY_HOLE = 311
+
     ACCOUNT_TYPES = (
         (CARD, 'Credit Card'),
         (BANK, 'Bank Account'),
@@ -691,10 +867,12 @@ class TransactionRecord(Model):
         (CARD_MISC_FEES, 'Other card fees'),
         (ACH_TRANSACTION_FEES, 'ACH Transaction fees'),
         (ACH_MISC_FEES, 'Other ACH fees'),
+        (MONEY_HOLE_STAGE, 'Tax staging'),
+        (MONEY_HOLE, 'Tax')
     )
 
     # Transaction types
-    SERVICE_FEE = 400
+    SHIELD_FEE = 400
     ESCROW_HOLD = 401
     ESCROW_RELEASE = 402
     ESCROW_REFUND = 403
@@ -708,9 +886,16 @@ class TransactionRecord(Model):
     # 'Catch all' for any transfers between accounts.
     INTERNAL_TRANSFER = 410
     THIRD_PARTY_REFUND = 411
+    # For when we make a mistake and need to correct it somehow.
+    CORRECTION = 412
+    # For fees levied at conventions
+    TABLE_SERVICE = 413
+    TAX = 414
+    # For things like inventory items sold at tables alongside the commission, like a pop socket.
+    EXTRA_ITEM = 415
 
     CATEGORIES = (
-        (SERVICE_FEE, 'Artconomy Service Fee'),
+        (SHIELD_FEE, 'Artconomy Service Fee'),
         (ESCROW_HOLD, 'Escrow hold'),
         (ESCROW_RELEASE, 'Escrow release'),
         (ESCROW_REFUND, 'Escrow refund'),
@@ -722,6 +907,8 @@ class TransactionRecord(Model):
         (PREMIUM_BONUS, 'Premium service bonus'),
         (INTERNAL_TRANSFER, 'Internal Transfer'),
         (THIRD_PARTY_REFUND, 'Third party refund'),
+        (CORRECTION, 'Correction'),
+        (TAX, 'Tax'),
     )
 
     id = UUIDField(primary_key=True, db_index=True, default=gen_unique_id)
@@ -787,6 +974,7 @@ class TransactionRecord(Model):
         raise NotImplementedError("Account refunds are not yet implemented.")
 
     def refund(self):
+        warn('Deprecated refund function used.')
         if self.status != TransactionRecord.SUCCESS:
             raise ValueError("Cannot refund a failed transaction.")
         if self.source == TransactionRecord.CARD:
@@ -804,6 +992,74 @@ class TransactionRecord(Model):
         if (self.status in [TransactionRecord.SUCCESS, TransactionRecord.FAILURE]) and (self.finalized_on is None):
             self.finalized_on = timezone.now()
         return super().save(*args, **kwargs)
+
+
+BASE_PRICE = 0
+ADD_ON = 1
+SHIELD = 2
+BONUS = 3
+TIP = 4
+TABLE_SERVICE = 5
+TAX = 6
+EXTRA = 7
+
+LINE_ITEM_TYPES = (
+    (BASE_PRICE, 'Base Price'),
+    (ADD_ON, 'Add on or Discount'),
+    (SHIELD, 'Shield'),
+    (BONUS, 'Bonus'),
+    (TIP, 'Tip'),
+    (TABLE_SERVICE, 'Table Service'),
+    (EXTRA, 'Extra'),
+    (TAX, 'Tax'),
+)
+
+PRIORITY_MAP = {
+    BASE_PRICE: 0,
+    ADD_ON: 100,
+    TIP: 200,
+    SHIELD: 300,
+    BONUS: 300,
+    TABLE_SERVICE: 300,
+    EXTRA: 400,
+    TAX: 600,
+}
+
+
+class LineItem(Model):
+    type = IntegerField(choices=LINE_ITEM_TYPES, db_index=True)
+    order = ForeignKey(Order, on_delete=CASCADE, related_name='line_items')
+    amount = MoneyField(
+        max_digits=6, decimal_places=2, default_currency='USD',
+        blank=True, default=0,
+    )
+    percentage = DecimalField(max_digits=5, db_index=True, decimal_places=3, default=0)
+    # Line items will be run in layers to get our totals/subtotals. Higher numbers will be run after lower numbers.
+    # If two items have the same priority, they will both be run as if the other had not been run.
+    priority = IntegerField(db_index=True)
+    cascade_percentage = BooleanField(db_index=True, default=False)
+    cascade_amount = BooleanField(db_index=True, default=False)
+    destination_user = ForeignKey(User, null=True, db_index=True, on_delete=CASCADE)
+    destination_account = IntegerField(choices=TransactionRecord.ACCOUNT_TYPES)
+    description = CharField(max_length=250, blank=True, default='')
+
+    def __str__(self):
+        return f'{self.get_type_display()} ({self.amount}, {self.percentage}) for #{self.order.id}, priority {self.priority}'
+
+    def save(self, *args, **kwargs):
+        self.priority = PRIORITY_MAP[self.type]
+        super().save(*args, **kwargs)
+
+
+@dataclass(frozen=True)
+class LineItemSim:
+    priority: int
+    amount: Money = Money('0', 'USD')
+    percentage: Decimal = Decimal(0)
+    cascade_percentage: bool = False
+    cascade_amount: bool = False
+    type: int = BASE_PRICE
+    description: str = ''
 
 
 class PaymentRecord(Model):
@@ -897,6 +1153,7 @@ class Revision(ImageModel):
 
 revision_thumbnailer = receiver(post_save, sender=Revision)(thumbnail_hook)
 
+
 class BankAccount(Model):
     CHECKING = 0
     SAVINGS = 1
@@ -937,7 +1194,6 @@ def ensure_shield(sender, instance, created=False, **_kwargs):
     )
     from apps.sales.tasks import withdraw_all
     withdraw_all(instance.user.id)
-
 
 
 class Promo(Model):

@@ -7,7 +7,7 @@ import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import {ArtStore, createStore} from '@/store'
 import AcTagDisplay from '@/components/AcTagDisplay.vue'
 import {genUser} from '@/specs/helpers/fixtures'
-import {searchSchema} from '@/lib'
+import {searchSchema} from '@/lib/lib'
 import {FormController} from '@/store/forms/form-controller'
 
 const localVue = vueSetup()

@@ -32,7 +32,7 @@ import AssetBase from '@/mixins/asset_base'
 import {Prop} from 'vue-property-decorator'
 import {Character} from '@/store/characters/types/Character'
 import {Asset} from '@/types/Asset'
-import {getExt} from '@/lib'
+import {getExt} from '@/lib/lib'
 
   @Component
 export default class AcMiniCharacter extends mixins(AssetBase) {

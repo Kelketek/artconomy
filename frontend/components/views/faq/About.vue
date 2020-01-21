@@ -121,7 +121,7 @@
 <script lang="ts">
 import Component, {mixins} from 'vue-class-component'
 import Viewer from '@/mixins/viewer'
-import {paramHandleArray} from '@/lib'
+import {paramHandleArray} from '@/lib/lib'
 import QuestionSet from '@/components/views/faq/mixins/question-set'
 
 const about = ['what-is-artconomy', 'cost', 'team']

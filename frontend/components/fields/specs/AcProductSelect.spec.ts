@@ -37,7 +37,7 @@ describe('AcProductSelect.vue', () => {
         propsData: {
           value: 1,
           multiple: false,
-          initItems: [{name: 'Test', id: 1, price: 2.50}, {username: 'Test2', id: 2, price: 2.50}],
+          initItems: [{name: 'Test', id: 1, starting_price: 2.50}, {username: 'Test2', id: 2, starting_price: 2.50}],
         }}
     )
   })

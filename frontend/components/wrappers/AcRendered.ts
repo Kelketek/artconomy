@@ -5,6 +5,7 @@ import Formatting from '@/mixins/formatting'
 import {compileToFunctions} from 'vue-template-compiler'
 import {CreateElement} from 'vue'
 import * as VGrid from 'vuetify/es5/components/VGrid'
+import * as VToolbar from 'vuetify/es5/components/VToolbar'
 
 @Component
 export default class AcRendered extends mixins(Formatting) {
@@ -37,7 +38,7 @@ export default class AcRendered extends mixins(Formatting) {
 
   public get renderedComponent() {
     return {
-      components: {AcAvatar, ...VGrid},
+      components: {AcAvatar, ...VGrid, ...VToolbar},
       render: compileToFunctions(this.dynamicTemplate).render,
     }
   }
@@ -64,7 +65,7 @@ export default class AcRendered extends mixins(Formatting) {
     if (!this.truncated) {
       return ''
     }
-    return '<v-toolbar class="read-more-bar" dense @click="$parent.more=true">' +
+    return '<v-toolbar class="read-more-bar" dense @click="$parent.more=true" color="black">' +
       '<v-col class="text-center"><strong>Read More</strong></v-col>' +
       '</v-toolbar>'
   }

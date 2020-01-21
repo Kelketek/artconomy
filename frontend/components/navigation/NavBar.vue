@@ -160,7 +160,7 @@
 </style>
 
 <script lang="ts">
-import {makeQueryParams} from '@/lib'
+import {makeQueryParams} from '@/lib/lib'
 import Viewer from '../../mixins/viewer'
 import Component, {mixins} from 'vue-class-component'
 import {Watch} from 'vue-property-decorator'

@@ -2,7 +2,7 @@ import {formRegistry} from './registry'
 import {FieldController} from './field-controller'
 import {CancelToken} from 'axios'
 import deepEqual from 'fast-deep-equal'
-import {artCall} from '@/lib'
+import {artCall} from '@/lib/lib'
 import {ArtistProfile} from '@/store/profiles/types/ArtistProfile'
 import {RawData} from '@/store/forms/types/RawData'
 

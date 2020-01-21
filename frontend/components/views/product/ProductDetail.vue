@@ -174,16 +174,16 @@
             <v-card-text>
               <v-row dense>
                 <v-col class="title" cols="12" >
-                  ${{product.x.price.toFixed(2)}}
+                  ${{product.x.starting_price.toFixed(2)}}
                   <v-btn v-show="editing" icon color="primary" @click="showTerms = true"><v-icon>edit</v-icon></v-btn>
                   <ac-expanded-property v-model="showTerms" :large="true">
                     <span slot="title">Edit Terms</span>
                     <v-row no-gutters  >
                       <v-col cols="12" sm="6">
-                        <ac-patch-field :patcher="product.patchers.price" field-type="ac-price-field" :save-comparison="product.x.price" />
+                        <ac-patch-field :patcher="product.patchers.base_price" field-type="ac-price-field" :save-comparison="product.x.base_price" />
                       </v-col>
                       <v-col cols="12" sm="6">
-                        <ac-price-preview :price="product.patchers.price.model" :username="username" />
+                        <ac-price-preview :line-items="lineItems" :username="username" />
                       </v-col>
                       <v-col cols="12" sm="6">
                         <ac-patch-field :patcher="product.patchers.expected_turnaround" number
@@ -217,10 +217,19 @@
                   </ac-load-section>
                 </v-col>
                 <v-col cols="12">
-                  <v-btn color="green" block :to="{name: 'NewOrder', params: {username, productId}}" v-if="product.x.available">
-                    <v-icon left>shopping_basket</v-icon>
-                    Order
-                  </v-btn>
+                  <template v-if="product.x.available">
+                    <div class="text-center" v-if="inventory.x && inventory.x.count">
+                      <p>
+                        <strong>
+                          {{inventory.x.count}} still available. Order now to get yours!
+                        </strong>
+                      </p>
+                    </div>
+                    <v-btn color="green" block :to="{name: 'NewOrder', params: {username, productId}}">
+                      <v-icon left>shopping_basket</v-icon>
+                      Order
+                    </v-btn>
+                  </template>
                   <v-alert v-else :value="true" type="info">This product is not currently available.</v-alert>
                 </v-col>
                 <v-col cols="12">
@@ -272,6 +281,28 @@
                                         min="1"
                                         hint="If you already have this many orders of this product, don't allow customers to order any more."
                         />
+                      </v-col>
+                    </v-row>
+                    <v-row>
+                      <v-col cols="12" sm="6">
+                        <ac-patch-field :patcher="product.patchers.track_inventory" :persistent-hint="true"
+                                    v-if="isStaff || landscape || product.patchers.inventory"
+                                    field-type="v-checkbox"
+                                    label="Inventory"
+                                    hint="Check if you only want to sell this product a limited number of times total."
+                        />
+                      </v-col>
+                      <v-col cols="12" sm="6" v-if="product.x.track_inventory">
+                        <ac-load-section :controller="inventory">
+                          <template v-slot:default>
+                            <ac-patch-field :persistent-hint="true"
+                                            :patcher="inventory.patchers.count"
+                                            type="number"
+                                            min="0"
+                                            hint="Number of times left you'll allow this product to be ordered."
+                            />
+                          </template>
+                        </ac-load-section>
                       </v-col>
                     </v-row>
                   </ac-expanded-property>
@@ -348,7 +379,7 @@ import AcEditingToggle from '@/components/navigation/AcEditingToggle.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import AcRendered from '@/components/wrappers/AcRendered'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
-import AcPricePreview from '@/components/AcPricePreview.vue'
+import AcPricePreview from '@/components/price_preview/AcPricePreview.vue'
 import AcTagDisplay from '@/components/AcTagDisplay.vue'
 import {ListController} from '@/store/lists/controller'
 import Submission from '@/types/Submission'
@@ -361,34 +392,39 @@ import {RawLocation} from 'vue-router'
 import LinkedSubmission from '@/types/LinkedSubmission'
 import ProductCentric from '@/components/views/product/mixins/ProductCentric'
 import AcEscrowLabel from '@/components/AcEscrowLabel.vue'
-import {setMetaContent, textualize, updateTitle, profileLink} from '@/lib'
+import {setMetaContent, textualize, updateTitle} from '@/lib/lib'
 import AcShareButton from '@/components/AcShareButton.vue'
+import LineItem from '@/types/LineItem'
+import Pricing from '@/types/Pricing'
+import Inventory from '@/types/Inventory'
+import {LineTypes} from '@/types/LineTypes'
 
-  @Component({
-    components: {
-      AcShareButton,
-      AcEscrowLabel,
-      AcProductPreview,
-      AcGalleryPreview,
-      AcSampleEditor,
-      AcPaginated,
-      AcTagDisplay,
-      AcPricePreview,
-      AcExpandedProperty,
-      AcRendered,
-      AcPatchField,
-      AcEditingToggle,
-      AcConfirmation,
-      AcProfileHeader,
-      AcLink,
-      AcAvatar,
-      AcAsset,
-      AcLoadSection,
-      Fragment,
-    },
-  })
+@Component({
+  components: {
+    AcShareButton,
+    AcEscrowLabel,
+    AcProductPreview,
+    AcGalleryPreview,
+    AcSampleEditor,
+    AcPaginated,
+    AcTagDisplay,
+    AcPricePreview,
+    AcExpandedProperty,
+    AcRendered,
+    AcPatchField,
+    AcEditingToggle,
+    AcConfirmation,
+    AcProfileHeader,
+    AcLink,
+    AcAvatar,
+    AcAsset,
+    AcLoadSection,
+    Fragment,
+  },
+})
 export default class ProductDetail extends mixins(ProductCentric, Formatting, Editable) {
-    // Need meta tags
+    public pricing: SingleController<Pricing> = null as unknown as SingleController<Pricing>
+    public inventory: SingleController<Inventory> = null as unknown as SingleController<Inventory>
     public showTerms = false
     public showWorkload = false
     public showChangePrimary = false
@@ -420,13 +456,30 @@ export default class ProductDetail extends mixins(ProductCentric, Formatting, Ed
       }
       updateTitle(`${product.name} by ${product.user.username} -- Artconomy`)
       let prefix: string
-      if (product.price) {
-        prefix = `[Starts at $${product.price.toFixed(2)}] - `
+      if (product.starting_price) {
+        prefix = `[Starts at $${product.starting_price.toFixed(2)}] - `
       } else {
         prefix = `[Starts at FREE] - `
       }
       let description = textualize(product.description).slice(0, 160 - prefix.length)
       setMetaContent('description', prefix + description)
+    }
+
+    @Watch('product.x.track_inventory')
+    public getInventory(toggle: boolean, oldVal: boolean|undefined) {
+      if (!toggle) {
+        return
+      }
+      this.inventory.ready = false
+      this.inventory.setX(null)
+      this.inventory.get()
+    }
+
+    @Watch('showWorkload')
+    public updateAvailability(newVal: boolean, oldVal: boolean) {
+      if (oldVal && !newVal) {
+        this.product.refresh()
+      }
     }
 
     @Watch('product.x.primary_submission')
@@ -452,6 +505,73 @@ export default class ProductDetail extends mixins(ProductCentric, Formatting, Ed
       } else {
         field.model = 0
       }
+    }
+
+    public get lineItems(): ListController<LineItem> {
+      const linesController = this.$getList(`product${this.productId}_previewLines`, {endpoint: '????', paginated: false})
+      linesController.ready = true
+      if (!(this.pricing.x && this.product.x)) {
+        linesController.setList([])
+        return linesController
+      }
+      const basePrice = parseFloat(this.product.patchers.base_price.model)
+      if (isNaN(basePrice)) {
+        linesController.setList([])
+        return linesController
+      }
+      const lines: LineItem[] = [{
+        id: -1,
+        priority: 0,
+        type: LineTypes.BASE_PRICE,
+        amount: basePrice,
+        percentage: 0,
+        description: '',
+        cascade_amount: false,
+        cascade_percentage: false,
+      }]
+      if (this.product.x.table_product) {
+        lines.push({
+          id: -2,
+          priority: 400,
+          type: LineTypes.TABLE_SERVICE,
+          cascade_percentage: true,
+          cascade_amount: false,
+          amount: this.pricing.x.table_static,
+          percentage: this.pricing.x.table_percentage,
+          description: '',
+        }, {
+          id: -3,
+          priority: 700,
+          type: LineTypes.TAX,
+          cascade_percentage: true,
+          cascade_amount: true,
+          percentage: this.pricing.x.table_tax,
+          description: '',
+          amount: 0,
+        })
+      } else if (!this.escrowDisabled) {
+        lines.push({
+          id: -4,
+          priority: 300,
+          type: LineTypes.SHIELD,
+          cascade_percentage: true,
+          cascade_amount: true,
+          amount: this.pricing.x.standard_static,
+          percentage: this.pricing.x.standard_percentage,
+          description: '',
+        }, {
+          id: -5,
+          priority: 300,
+          type: LineTypes.BONUS,
+          cascade_percentage: true,
+          cascade_amount: true,
+          amount: this.pricing.x.premium_static_bonus,
+          percentage: this.pricing.x.premium_percentage_bonus,
+          description: '',
+        })
+      }
+      linesController.setList(lines)
+      return linesController
     }
 
     public get more() {
@@ -497,6 +617,10 @@ export default class ProductDetail extends mixins(ProductCentric, Formatting, Ed
       this.product.get().then((product: Product) => {
         this.shown = product.primary_submission
       }).catch(this.setError)
+      this.pricing = this.$getSingle('pricing', {endpoint: '/api/sales/v1/pricing-info/'})
+      this.pricing.get()
+      this.inventory = this.$getSingle(`product__${this.productId}__inventory`, {endpoint: `${this.url}inventory/`})
+      this.pricing.get()
       this.samples = this.$getList(`product__${this.productId}__samples`, {endpoint: `${this.url}samples/`})
       this.samples.firstRun()
       this.recommended = this.$getList(

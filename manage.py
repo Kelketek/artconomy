@@ -1,8 +1,12 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.8
 import os
+import platform
 import sys
 
 import coverage
+
+if 'test' in sys.argv and platform.system().lower() == 'darwin':
+    os.environ.setdefault('OBJC_DISABLE_INITIALIZE_FORK_SAFETY', 'YES')
 
 if __name__ == "__main__":
     if 'test' in sys.argv:

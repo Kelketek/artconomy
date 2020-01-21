@@ -1,4 +1,4 @@
-import {extPreview, getExt, isImage} from '@/lib'
+import {extPreview, getExt, isImage} from '@/lib/lib'
 import _Vue from 'vue'
 import {Ratings} from '@/store/profiles/types/Ratings'
 // TODO: Declaration file? Not sure why this doesn't exist already, considering the lib.

@@ -1,6 +1,6 @@
 import {State as RootState} from '../state'
 import {ActionTree, GetterTree, MutationTree} from 'vuex'
-import {artCall} from '@/lib'
+import {artCall} from '@/lib/lib'
 import {NotificationsState} from '@/store/notifications/types/NotificationsState'
 import {NotificationStats} from '@/store/notifications/types/NotificationStats'
 

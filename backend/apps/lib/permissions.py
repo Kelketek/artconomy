@@ -129,7 +129,8 @@ def Any(*perms: Type[BasePermission]) -> Type[ComboPermission]:
             return any(self.run_check(perm, 'has_permission', request, view) for perm in perms)
 
         def has_object_permission(self, request, view, obj):
-            return any(self.run_check(perm, 'has_object_permission', request, view, obj) for perm in perms)
+            result = any(self.run_check(perm, 'has_object_permission', request, view, obj) for perm in perms)
+            return result
     return AnyPerm
 
 

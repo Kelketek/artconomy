@@ -1,6 +1,5 @@
 import re
 
-import hitcount
 from dateutil import parser
 from hitcount.utils import get_ip
 from rest_framework.pagination import PageNumberPagination
@@ -67,4 +66,12 @@ def patched_get_ip(request):
         return get_ip(request)
     return request.ip4 or request.ip6
 
-hitcount.views.get_ip = patched_get_ip
+
+class MonkeyPatchMiddleWare:
+    def __init__(self, get_response):
+        from hitcount import views as hitcount_views
+        hitcount_views.get_ip = patched_get_ip
+        self.get_response = get_response
+
+    def __call__(self, request):
+        return self.get_response(request)

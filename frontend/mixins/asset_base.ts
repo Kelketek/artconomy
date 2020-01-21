@@ -1,7 +1,7 @@
 import Component, {mixins} from 'vue-class-component'
 import {Prop} from 'vue-property-decorator'
 import {Asset} from '@/types/Asset'
-import {extPreview, RATINGS, thumbFromSpec} from '@/lib'
+import {extPreview, RATINGS, thumbFromSpec} from '@/lib/lib'
 import Viewer from './viewer'
 import {User} from '@/store/profiles/types/User'
 import {AnonUser} from '@/store/profiles/types/AnonUser'

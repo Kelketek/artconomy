@@ -51,7 +51,7 @@
 <script>
 import AcAsset from './AcAsset'
 import Viewer from '../mixins/viewer'
-import {artCall} from '../lib'
+import {artCall} from '../lib/lib'
 import AcLink from '@/components/wrappers/AcLink'
 
 export default {

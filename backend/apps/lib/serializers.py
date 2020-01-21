@@ -328,14 +328,10 @@ def order_update(obj, context):
 
 def comment_made(obj, context):
     comment = Comment.objects.filter(id__in=obj.data['comments']).order_by('-id').first()
-    top = comment
-    while top.parent:
-        top = top.parent
-    target = top.content_object
     is_thread = isinstance(comment.content_object, Comment)
     subject = ''
-    display = notification_display(target, context)
-    if isinstance(target, Conversation):
+    display = notification_display(comment.top, context)
+    if isinstance(comment.top, Conversation):
         subject = f'New message from {comment.user.username}'
         display = notification_display(comment.user, context)
     commenters = Comment.objects.filter(
@@ -347,14 +343,14 @@ def comment_made(obj, context):
     else:
         additional = 0
     context = dict(**context)
-    link = get_link(target, context)
+    link = get_link(comment.top, context)
     if link:
         if 'query' in link:
             link['query']['commentId'] = comment.id
         else:
             link['query'] = {'commentId': comment.id}
     return {
-        'top': notification_serialize(top, context),
+        'top': notification_serialize(comment.top, context),
         'commenters': list(commenters[:3].values_list('user__username', flat=True)),
         'additional': additional,
         'is_thread': is_thread,
@@ -362,7 +358,7 @@ def comment_made(obj, context):
         'most_recent_comment': notification_serialize(comment, context),
         'display': display,
         'link': link,
-        'name': get_display_name(target, context),
+        'name': get_display_name(comment.top, context),
     }
 
 
@@ -746,3 +742,11 @@ class IdWritable:
         if not self.parent:
             return data
         return self.Meta.model.objects.filter(id=data).first()
+
+
+class MoneyToFloatField(serializers.FloatField):
+    """
+    We're not as worried about the front-end getting these numbers right. We'll clean them up on the back.
+    """
+    def to_representation(self, value):
+        return float(value.amount)

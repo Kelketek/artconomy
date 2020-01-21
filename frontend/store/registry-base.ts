@@ -1,7 +1,7 @@
 import _Vue, {ComponentOptions} from 'vue'
 import {Vue} from 'vue/types/vue'
 import {DefaultMethods} from 'vue/types/options'
-import {neutralize} from '@/lib'
+import {neutralize} from '@/lib/lib'
 
 export interface AttrKeys {
   persistent: boolean,

@@ -41,7 +41,7 @@ import Component from 'vue-class-component'
 import Vue from 'vue'
 import {Getter, State} from 'vuex-class'
 import {ErrorState} from '../../store/errors/types'
-import {setMetaContent} from '../../lib'
+import {setMetaContent} from '../../lib/lib'
 import {Watch} from 'vue-property-decorator'
 
   @Component

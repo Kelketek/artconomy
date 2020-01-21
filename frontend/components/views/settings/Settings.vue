@@ -34,7 +34,7 @@
 
 <script lang="ts">
 import Component, {mixins} from 'vue-class-component'
-import {paramHandleMap, profileLink} from '@/lib'
+import {paramHandleMap, profileLink} from '@/lib/lib'
 import Subjective from '@/mixins/subjective'
 import AcSettingNav from '@/components/navigation/AcSettingNav.vue'
 import AcLoadingSpinner from '@/components/wrappers/AcLoadingSpinner.vue'

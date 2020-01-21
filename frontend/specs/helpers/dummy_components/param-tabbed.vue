@@ -5,7 +5,7 @@
 <script lang="ts">
 import Vue from 'vue'
 import Component from 'vue-class-component'
-import {paramHandleMap} from '@/lib'
+import {paramHandleMap} from '@/lib/lib'
 
   @Component
 export default class ParamTabbed extends Vue {

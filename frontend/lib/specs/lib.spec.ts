@@ -1,5 +1,5 @@
 /* tslint:disable:max-line-length */
-import mockAxios from './helpers/mock-axios'
+import mockAxios from '../../specs/helpers/mock-axios'
 import moment from 'moment-timezone'
 import {
   artCall,
@@ -21,7 +21,7 @@ import {
   setMetaContent,
   singleQ,
   textualize, thumbFromSpec, truncateText,
-} from '@/lib'
+} from '@/lib/lib'
 import VueRouter from 'vue-router'
 import {createLocalVue, mount, shallowMount, Wrapper} from '@vue/test-utils'
 import ParamTabbed from '@/specs/helpers/dummy_components/param-tabbed.vue'

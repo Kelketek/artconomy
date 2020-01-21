@@ -16,7 +16,7 @@
 <script lang="ts">
 import Vue from 'vue'
 import axios, {CancelTokenSource} from 'axios'
-import {artCall} from '@/lib'
+import {artCall} from '@/lib/lib'
 import {Prop, Watch} from 'vue-property-decorator'
 import Component from 'vue-class-component'
 import {cloneDeep, debounce} from 'lodash'

@@ -155,6 +155,41 @@ describe('AcComment.vue', () => {
     await wrapper.vm.$nextTick()
     expect(wrapper.find('.new-comment textarea').exists()).toBe(false)
   })
+  it('Allows for a reply by another user', async() => {
+    const user = genUser()
+    user.id = 234
+    user.username = 'Vulpes'
+    user.is_staff = false
+    user.is_superuser = false
+    setViewer(store, user)
+    const empty = mount(Empty, {localVue, store, router, sync: false})
+    const commentList = empty.vm.$getList('commentList', {endpoint: '/api/comments/'})
+    const comments = {...commentSet, ...{results: [commentSet.results[0]]}}
+    commentList.response = {...comments}
+    commentList.setList(commentSet.results)
+    wrapper = mount(AcComment, {
+      localVue,
+      store,
+      router,
+      vuetify,
+      propsData: {
+        commentList,
+        comment: commentList.list[0],
+        username: 'Fox',
+        nesting: true,
+      },
+      sync: false,
+      attachToDocument: true,
+    })
+    const replyButton = wrapper.find('.reply-button')
+    expect(replyButton.exists()).toBe(true)
+    replyButton.trigger('click')
+    await wrapper.vm.$nextTick()
+    wrapper.find('.new-comment textarea').setValue('Response comment!')
+    wrapper.find('.new-comment .cancel-button').trigger('click')
+    await wrapper.vm.$nextTick()
+    expect(wrapper.find('.new-comment textarea').exists()).toBe(false)
+  })
   it('Does not allow for a reply when nesting is disabled', async() => {
     setViewer(store, genUser())
     const empty = mount(Empty, {localVue, store, router, sync: false})

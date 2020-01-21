@@ -35,7 +35,7 @@ from apps.lib.models import (
     NEW_CHARACTER, RENEWAL_FAILURE, SUBSCRIPTION_DEACTIVATED, RENEWAL_FIXED, NEW_JOURNAL,
     TRANSFER_FAILED, SUBMISSION_ARTIST_TAG, REFERRAL_LANDSCAPE_CREDIT, REFERRAL_PORTRAIT_CREDIT,
     WATCHING,
-)
+    Notification)
 from apps.lib.utils import (
     clear_events, tag_list_cleaner, notify, recall_notification, preview_rating,
     send_transaction_email,
@@ -175,20 +175,6 @@ class User(AbstractEmailUser, HitsMixin):
     @property
     def is_registered(self):
         return not self.guest
-
-    @property
-    def percentage_fee(self):
-        if self.landscape:
-            return settings.PREMIUM_PERCENTAGE_FEE
-        else:
-            return settings.STANDARD_PERCENTAGE_FEE
-
-    @property
-    def static_fee(self):
-        if self.landscape:
-            return settings.PREMIUM_STATIC_FEE
-        else:
-            return settings.STANDARD_STATIC_FEE
 
     def save(self, *args, **kwargs):
         self.email = self.email and self.email.lower()
@@ -497,8 +483,8 @@ class Attribute(Model):
         old = Attribute.objects.get(id=self.id)
         if old.value == self.value:
             return
-        if old.value:
-            tag_name = tag_list_cleaner([old.value])[0]
+        if old.value and (tags := tag_list_cleaner([old.value])):
+            tag_name = tags[0]
             tags = self.character.tags.filter(name=tag_name)
             if tags.exists():
                 tag = tags[0]
@@ -630,10 +616,11 @@ def unsubscribe_conversation_comments(sender, instance, **kwargs):
         object_id=instance.conversation.id,
         type=COMMENT,
     ).delete()
-    Event.objects.filter(
-        content_type=ContentType.objects.get_for_model(model=sender),
-        object_id=instance.id,
-        type=COMMENT,
+    Notification.objects.filter(
+        event__content_type=ContentType.objects.get_for_model(model=sender),
+        event__object_id=instance.id,
+        event__type=COMMENT,
+        user=instance.user,
     ).delete()
 
 

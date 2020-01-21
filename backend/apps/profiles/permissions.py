@@ -192,6 +192,9 @@ class IsSuperuser(BasePermission):
             return True
         return False
 
+    def has_object_permission(self, request, view, obj):
+        return self.has_permission(request, view)
+
 
 class IsRegistered(BasePermission):
     message = 'This action only available to registered users.'

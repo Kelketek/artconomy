@@ -15,7 +15,7 @@
 </template>
 
 <script lang="ts">
-import {paramHandleMap} from '@/lib'
+import {paramHandleMap} from '@/lib/lib'
 import Component, {mixins} from 'vue-class-component'
 import Viewer from '@/mixins/viewer'
 import {ListController} from '@/store/lists/controller'

@@ -51,7 +51,7 @@ import {SingleController} from '@/store/singles/controller'
 import {CreditCardToken} from '@/types/CreditCardToken'
 import {ListController} from '@/store/lists/controller'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
-import {artCall} from '@/lib'
+import {artCall} from '@/lib/lib'
 
 const typeMap: {[key: number]: string} = {
   1: 'fa-cc-visa',

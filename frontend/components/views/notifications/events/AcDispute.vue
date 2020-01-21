@@ -25,7 +25,7 @@
 
 <script>
 import Notification from '../mixins/notification'
-import {artCall} from '@/lib'
+import {artCall} from '@/lib/lib'
 
 export default {
   name: 'ac-dispute',

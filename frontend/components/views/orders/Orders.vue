@@ -56,8 +56,8 @@
     </v-tabs-items>
     <ac-add-button v-if="isSales" v-model="showNewInvoice">Create Invoice</ac-add-button>
     <ac-form-dialog v-bind="newInvoice.bind" @submit.prevent="newInvoice.submitThen(goToOrder)" v-model="showNewInvoice" :large="true" title="Issue new Invoice">
-      <v-row no-gutters  >
-        <v-col class="pa-2" cols="12" sm="6" >
+      <v-row>
+        <v-col cols="12" sm="6" >
           <ac-bound-field
             :field="newInvoice.fields.product"
             field-type="ac-product-select"
@@ -68,17 +68,17 @@
             :persistent-hint="true"
           ></ac-bound-field>
         </v-col>
-        <v-col class="pa-2" cols="12" sm="6" >
-          <ac-price-preview :price="newInvoice.fields.price.value" :escrow="!escrowDisabled" :username="username"></ac-price-preview>
+        <v-col cols="12" sm="6">
+          <ac-price-preview  :lineItems="lineItems" :escrow="!escrowDisabled" :username="username" />
         </v-col>
-        <v-col class="pa-2" cols="12" sm="6" >
+        <v-col cols="12" sm="6" >
           <ac-bound-field
             :field="newInvoice.fields.price"
             field-type="ac-price-field"
             label="Total Price"
           ></ac-bound-field>
         </v-col>
-        <v-col class="pa-2" cols="12" sm="6" >
+        <v-col cols="12" sm="6" >
           <ac-bound-field
             label="Customer username/email"
             :field="newInvoice.fields.buyer"
@@ -90,7 +90,7 @@
                   This can be left blank if you only want to use this order for tracking purposes."
           />
         </v-col>
-        <v-col class="pa-2" cols="12" sm="6" >
+        <v-col cols="12" sm="4" >
           <ac-bound-field field-type="v-checkbox"
                           label="Paid"
                           :field="newInvoice.fields.paid"
@@ -99,7 +99,7 @@
                           :persistent-hint="true"
           />
         </v-col>
-        <v-col class="pa-2" cols="12" sm="6" >
+        <v-col cols="12" sm="4" >
           <ac-bound-field field-type="v-checkbox"
                           label="Already Complete"
                           :field="newInvoice.fields.completed"
@@ -107,7 +107,16 @@
                           :persistent-hint="true"
           />
         </v-col>
-        <v-col class="pa-2" cols="12" sm="4" >
+        <v-col cols="12" sm="4" >
+          <ac-bound-field field-type="v-checkbox"
+                          label="Hold for Edit"
+                          :disabled="newInvoice.fields.paid.model"
+                          :field="newInvoice.fields.hold"
+                          hint="If you want to edit the line items on this invoice before sending it for payment, check this box."
+                          :persistent-hint="true"
+          />
+        </v-col>
+        <v-col cols="12" sm="4" >
           <ac-bound-field
             label="Slots taken"
             :field="newInvoice.fields.task_weight"
@@ -116,7 +125,7 @@
             hint="How many of your slots this commission will take up."
           />
         </v-col>
-        <v-col class="pa-2" cols="12" sm="4" >
+        <v-col cols="12" sm="4" >
           <ac-bound-field
             label="Revisions included"
             :field="newInvoice.fields.revisions"
@@ -126,7 +135,7 @@
                   This does not include the final, so if there are no revisions, set this to zero."
             />
         </v-col>
-        <v-col class="pa-2" cols="12" sm="4" >
+        <v-col cols="12" sm="4" >
           <ac-bound-field
             label="Expected turnaround (days)"
             :field="newInvoice.fields.revisions"
@@ -135,7 +144,7 @@
             hint="The total number of business days you expect this task will take."
           />
         </v-col>
-        <v-col class="pa-1" cols="12" >
+        <v-col cols="12" >
           <ac-bound-field
             label="description"
             :field="newInvoice.fields.details"
@@ -163,12 +172,16 @@ import AcAddButton from '@/components/AcAddButton.vue'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import AcBoundField from '@/components/fields/AcBoundField'
 import Product from '@/types/Product'
-import AcPricePreview from '@/components/AcPricePreview.vue'
+import AcPricePreview from '@/components/price_preview/AcPricePreview.vue'
 import Order from '@/types/Order'
+import LineItem from '@/types/LineItem'
+import {LineTypes} from '@/types/LineTypes'
+import Pricing from '@/types/Pricing'
 @Component({
   components: {AcPricePreview, AcBoundField, AcFormDialog, AcAddButton, AcPaginated, AcLoadSection},
 })
 export default class Orders extends mixins(Subjective) {
+  public pricing: SingleController<Pricing> = null as unknown as SingleController<Pricing>
   public stats: SingleController<CommissionStats> = null as unknown as SingleController<CommissionStats>
   @Prop({required: true})
   public baseName!: string
@@ -196,7 +209,7 @@ export default class Orders extends mixins(Subjective) {
     if (!val) {
       return
     }
-    this.newInvoice.fields.price.update(val.price)
+    this.newInvoice.fields.price.update(val.starting_price)
     this.newInvoice.fields.task_weight.update(val.task_weight)
     this.newInvoice.fields.revisions.update(val.revisions)
     this.newInvoice.fields.expected_turnaround.update(val.expected_turnaround)
@@ -214,18 +227,100 @@ export default class Orders extends mixins(Subjective) {
     this.$router.push({name: 'Sale', params: {username: this.username, orderId: order.id + ''}})
   }
 
-  public get price() {
+  public get lineItems() {
+    const linesController = this.$getList('newProductLines', {endpoint: '????', paginated: false})
+    linesController.ready = true
+    if (!(this.pricing.x)) {
+      linesController.setList([])
+      return linesController
+    }
+    const lines: LineItem[] = []
+    let addOnPrice = parseFloat(this.newInvoice.fields.price.value)
+    const shieldLines: LineItem[] = [
+      {
+        id: -5,
+        priority: 300,
+        type: LineTypes.SHIELD,
+        cascade_percentage: true,
+        cascade_amount: true,
+        amount: this.pricing.x.standard_static,
+        percentage: this.pricing.x.standard_percentage,
+        description: '',
+      }, {
+        id: -6,
+        priority: 300,
+        type: LineTypes.BONUS,
+        cascade_percentage: true,
+        cascade_amount: true,
+        amount: this.pricing.x.premium_static_bonus,
+        percentage: this.pricing.x.premium_percentage_bonus,
+        description: '',
+      },
+    ]
     if (this.invoiceProduct.x) {
-      return this.invoiceProduct.x.price
+      lines.push({
+        id: -1,
+        priority: 0,
+        type: LineTypes.BASE_PRICE,
+        amount: this.invoiceProduct.x.starting_price,
+        percentage: 0,
+        description: '',
+        cascade_amount: false,
+        cascade_percentage: false,
+      })
+      addOnPrice = addOnPrice - this.invoiceProduct.x.starting_price
+      if (!isNaN(addOnPrice) && addOnPrice) {
+        lines.push({
+          id: -2,
+          priority: 100,
+          type: LineTypes.ADD_ON,
+          amount: addOnPrice,
+          percentage: 0,
+          description: '',
+          cascade_amount: false,
+          cascade_percentage: false,
+        })
+      }
+      if (this.invoiceProduct.x.table_product) {
+        lines.push({
+          id: -3,
+          priority: 400,
+          type: LineTypes.TABLE_SERVICE,
+          cascade_percentage: true,
+          cascade_amount: false,
+          amount: this.pricing.x.table_static,
+          percentage: this.pricing.x.table_percentage,
+          description: '',
+        }, {
+          id: -4,
+          priority: 700,
+          type: LineTypes.TAX,
+          cascade_percentage: true,
+          cascade_amount: true,
+          percentage: this.pricing.x.table_tax,
+          description: '',
+          amount: 0,
+        })
+      } else if (!this.escrowDisabled) {
+        lines.push(...shieldLines)
+      }
+    } else if (!isNaN(addOnPrice)) {
+      lines.push({
+        id: -1,
+        priority: 0,
+        type: LineTypes.BASE_PRICE,
+        amount: addOnPrice,
+        percentage: 0,
+        description: '',
+        cascade_amount: false,
+        cascade_percentage: false,
+      })
+      if (!this.escrowDisabled) {
+        lines.push(...shieldLines)
+      }
     }
-    return this.newInvoice.fields.price.value
-  }
-
-  public get adjustment() {
-    if (!this.invoiceProduct.x) {
-      return 0
-    }
-    return this.newInvoice.fields.price.value - this.invoiceProduct.x.price
+    linesController.setList(lines)
+    return linesController
   }
 
   public get isSales() {
@@ -259,6 +354,8 @@ export default class Orders extends mixins(Subjective) {
   }
 
   public created() {
+    this.pricing = this.$getSingle('pricing', {endpoint: '/api/sales/v1/pricing-info/'})
+    this.pricing.get()
     const type = this.baseName.toLocaleLowerCase()
     this.invoiceProduct = this.$getSingle('invoiceProduct', {endpoint: ''})
     this.stats = this.$getSingle(`stats__sales__${this.username}`, {
@@ -285,6 +382,7 @@ export default class Orders extends mixins(Subjective) {
         private: {value: false},
         details: {value: ''},
         paid: {value: false},
+        hold: {value: this.isCurrent},
         expected_turnaround: {value: 1},
       },
     })

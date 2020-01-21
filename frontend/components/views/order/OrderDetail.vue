@@ -1,8 +1,11 @@
+import {LineTypes} from '@/types/LineTypes'
+import {LineTypes} from '@/types/LineTypes'
+import {LineTypes} from '@/types/LineTypes'
 <template>
   <ac-load-section :controller="order">
     <template v-slot:default>
       <v-row dense>
-        <v-col cols="12" md="3" lg="2" order="1">
+        <v-col cols="12" md="3" lg="2" order="4" order-md="1">
           <v-toolbar dense color="black">
             <ac-avatar :user="order.x.seller" :show-name="false" />
             <v-toolbar-title class="ml-1"><ac-link :to="profileLink(order.x.seller)">{{order.x.seller.username}}</ac-link></v-toolbar-title>
@@ -10,29 +13,21 @@
           <v-card :color="$vuetify.theme.currentTheme.darkBase.darken2">
             <v-card-text >
               <v-row dense>
-                <v-col class="title" cols="12" >
-                  <span v-if="isSeller">Sale</span>
-                  <span v-else-if="isArbitrator">Case</span>
-                  <span v-else>Order</span>
-                  #{{order.x.id}}
-                </v-col>
                 <v-col class="py-2 subheading" cols="12" >
                   {{name}}
                 </v-col>
-                <v-col cols="12">
+                <v-col cols="6" md="12">
                   <ac-asset :asset="order.x.display" thumb-name="thumbnail" />
                 </v-col>
-                <v-col cols="12">
+                <v-col cols="6" md="12" align-self="center" class="text-center text-md-left">
                   Placed on: {{formatDateTime(order.x.created_on)}}
-                </v-col>
-                <v-col class="py-2 subheading" v-if="is(NEW)">
-                  Base Price: ${{product.price.toFixed(2)}}
-                </v-col>
-                <v-col cols="12" v-if="is(NEW)">
-                  <span v-if="revisionCount">
+                  <div v-if="is(NEW)">
+                    <span v-if="revisionCount">
                     <strong>{{revisionCount}}</strong> revision<span v-if="revisionCount > 1">s</span> included.
-                  </span><br v-if="revisionCount" />
-                  <span>Estimated completion: <strong>{{formatDateTerse(deliveryDate)}}</strong></span><br />
+                    </span><br v-if="revisionCount" />
+                    <span>Estimated completion: <strong>{{formatDateTerse(deliveryDate)}}</strong></span><br />
+                  </div>
+                  <ac-escrow-label :escrow="escrow" name="order" />
                 </v-col>
                 <v-col cols="12" class="pt-2">
                   <v-row no-gutters>
@@ -47,14 +42,11 @@
                     </v-col>
                   </v-row>
                 </v-col>
-                <v-col cols="12">
-                  <ac-escrow-label :escrow="escrow" name="order" />
-                </v-col>
               </v-row>
             </v-card-text>
           </v-card>
         </v-col>
-        <v-col cols="12" md="6" lg="7" order="3" order-md="2">
+        <v-col cols="12" md="6" lg="7" order="1" order-md="2">
           <v-row dense>
             <v-col cols="12">
               <v-toolbar dense v-if="buyer" color="black">
@@ -64,21 +56,20 @@
               <v-card>
                 <v-card-text>
                   <v-row dense>
-                    <v-col class="shrink" align-self="center">
-                      <h2>Details:</h2>
+                    <v-col align-self="center">
+                      <h2><span v-if="isSeller">Sale</span>
+                      <span v-else-if="isArbitrator">Case</span>
+                      <span v-else>Order</span>
+                      #{{order.x.id}}
+                      Details:</h2>
                     </v-col>
-                    <v-spacer />
-                    <v-col class="shrink" align-self="center">
-                      <v-chip color="white" light v-if="order.x.private">
+                    <v-col class="text-right" align-self="center">
+                      <v-chip color="white" light v-if="order.x.private" class="ma-1">
                         <v-icon left>visibility_off</v-icon>
                         Private
                       </v-chip>
-                    </v-col>
-                    <v-col class="shrink" align-self="center">
-                      <ac-order-status :order="order.x" />
-                    </v-col>
-                    <v-col class="shrink" align-self="center">
-                      <v-btn class="mx-0 rating-button" small :color="ratingColor[order.x.rating]" :ripple="false">
+                      <ac-order-status :order="order.x" class="ma-1" />
+                      <v-btn class="ma-1 rating-button pa-1" small :color="ratingColor[order.x.rating]" :ripple="false">
                         {{ratingsShort[order.x.rating]}}
                       </v-btn>
                     </v-col>
@@ -118,6 +109,31 @@
                   </v-col>
                   <v-subheader v-if="commissionInfo">Commission Info</v-subheader>
                   <ac-rendered :value="commissionInfo" :truncate="200" />
+                  <ac-price-preview
+                    :price="order.x.price"
+                    :line-items="lineItems"
+                    :username="order.x.seller.username"
+                    :is-seller="isSeller"
+                    :editable="(is(NEW) || is(PAYMENT_PENDING)) && (isSeller || isArbitrator)"
+                    :editBase="!product"
+                    :escrow="!order.x.escrow_disabled"
+                  />
+                  <v-row v-if="isBuyer && is(NEW)">
+                    <v-col class="text-center">
+                      <p><strong>Note:</strong> The artist may adjust the above price based on the requirements you have given before accepting it.</p>
+                    </v-col>
+                  </v-row>
+                  <ac-escrow-label :escrow="escrow" name="order" v-if="$vuetify.breakpoint.smAndDown" />
+                  <v-col class="text-center" v-if="(isSeller || isArbitrator) && (is(QUEUED) || is(IN_PROGRESS) || is(REVIEW) || is(DISPUTED))" cols="12" >
+                    <ac-confirmation :action="statusEndpoint('refund')">
+                      <template v-slot:default="{on}">
+                        <v-btn v-on="on">
+                          <span v-if="escrow">Refund</span>
+                          <span v-else>Mark Refunded</span>
+                        </v-btn>
+                      </template>
+                    </ac-confirmation>
+                  </v-col>
                 </v-card-text>
               </v-card>
             </v-col>
@@ -167,7 +183,7 @@
                      :to="{name: 'Submission', params: {submissionId: buyerSubmission.x.id}}">Visit in Collection</v-btn>
               <v-btn color="green" v-else @click="addToCollection" class="collection-add">Add to Collection</v-btn>
             </v-col>
-            <v-col cols="12">
+            <v-col cols="12" v-if="$vuetify.breakpoint.mdAndUp">
               <ac-comment-section :commentList="comments" :nesting="false" :locked="!isInvolved" :guest-ok="true" :show-history="isArbitrator" />
             </v-col>
           </v-row>
@@ -193,13 +209,6 @@
                   <v-btn color="green" :to="registerLink" class="link-account">Link an Account</v-btn>
                 </v-col>
                 <v-col class="pb-2" v-if="(is(NEW) && isSeller) || !(is(NEW) || is(CANCELLED))" cols="12" >
-                  <ac-price-preview
-                      :price="order.x.price"
-                      :line-items="lineItems"
-                      :username="order.x.seller.username"
-                      :is-seller="isSeller"
-                      :escrow="!order.x.escrow_disabled"
-                  />
                   <v-divider />
                   Estimated completion: <strong>{{formatDateTerse(deliveryDate)}}</strong><br />
                   <span v-if="revisionCount">Revisions: <strong>{{revisionCount}}</strong></span><br v-if="revisionCount" />
@@ -279,32 +288,39 @@
                         <v-card elevation="5">
                           <v-card-title>Add a tip?</v-card-title>
                           <v-card-text>
-                            <v-row>
-                              <v-col cols="12">
-                                <strong>Tips are not required, as artists set their own prices,</strong> but they are always appreciated. Your tip is protected
-                                by Artconomy Shield, along with the rest of your order.
-                              </v-col>
-                              <v-col cols="4" sm="2" offset-sm="3" class="text-center">
-                                <v-btn small color="secondary" class="preset10" fab @click="setTip(.1)"><strong>10%</strong></v-btn>
-                              </v-col>
-                              <v-col cols="4" sm="2" class="text-center">
-                                <v-btn small color="secondary" class="preset15" fab @click="setTip(.15)"><strong>15%</strong></v-btn>
-                              </v-col>
-                              <v-col cols="4" sm="2" class="text-center">
-                                <v-btn small color="secondary" class="preset20" fab @click="setTip(.2)"><strong>20%</strong></v-btn>
-                              </v-col>
-                              <v-col cols="12">
-                                <ac-patch-field
-                                  :patcher="order.patchers.tip"
-                                  field-type="ac-price-field"
-                                  label="Tip"
-                                />
-                              </v-col>
-                            </v-row>
+                            <ac-form-container v-bind="tipForm.bind">
+                              <ac-form @submit.prevent="tipForm.submitThen(lineItems.uniquePush)">
+                                <v-row>
+                                  <v-col cols="12">
+                                    <strong>Tips are not required, as artists set their own prices,</strong> but they are always appreciated. Your tip is protected
+                                    by Artconomy Shield, along with the rest of your order.
+                                  </v-col>
+                                  <v-col cols="4" sm="2" offset-sm="3" class="text-center">
+                                    <v-btn small color="secondary" class="preset10" fab @click="setTip(.1)"><strong>10%</strong></v-btn>
+                                  </v-col>
+                                  <v-col cols="4" sm="2" class="text-center">
+                                    <v-btn small color="secondary" class="preset15" fab @click="setTip(.15)"><strong>15%</strong></v-btn>
+                                  </v-col>
+                                  <v-col cols="4" sm="2" class="text-center">
+                                    <v-btn small color="secondary" class="preset20" fab @click="setTip(.2)"><strong>20%</strong></v-btn>
+                                  </v-col>
+                                  <v-col cols="12" v-if="tip">
+                                    <ac-patch-field
+                                      :patcher="tip.patchers.amount"
+                                      field-type="ac-price-field"
+                                      label="Tip"
+                                    />
+                                  </v-col>
+                                  <v-col cols="12" v-else class="text-center">
+                                    <v-btn color="secondary" @click="setTip(0)">Custom Tip</v-btn>
+                                  </v-col>
+                                </v-row>
+                              </ac-form>
+                            </ac-form-container>
                           </v-card-text>
                         </v-card>
                       </v-col>
-                      <v-col class="text-center" cols="12" v-if="order.x.tip">
+                      <v-col class="text-center" cols="12" v-if="tip">
                         <ac-price-preview
                           :price="order.x.price"
                           :line-items="lineItems"
@@ -389,7 +405,7 @@
                   <p>Your order has been added to the artists queue. We will notify you when they have begun work!</p>
                 </v-col>
                 <v-col v-if="is(QUEUED) && isSeller" cols="12">
-                  <p><strong>Excellent!</strong> The commissioner has paid and the money is being held in safekeeping.
+                  <p><strong>Excellent!</strong> The commissioner has paid<span v-if="escrow"> and the money is being held in safekeeping</span>.
                     When you've started work, hit the 'Mark In Progress' button to let the customer know.
                     You can also set the order's streaming link (if applicable) here:</p>
                 </v-col>
@@ -418,16 +434,6 @@
                   <p><strong>This order is under dispute.</strong> One of our staff will be along soon to give further
                     instruction. If you wish, you may refund the customer. Otherwise, please wait for our staff to work
                     with you and the commissioner on a resolution.</p>
-                </v-col>
-                <v-col class="text-center" v-if="(isSeller || isArbitrator) && (is(QUEUED) || is(IN_PROGRESS) || is(REVIEW) || is(DISPUTED))" cols="12" >
-                  <ac-confirmation :action="statusEndpoint('refund')">
-                    <template v-slot:default="{on}">
-                      <v-btn v-on="on">
-                        <span v-if="escrow">Refund</span>
-                        <span v-else>Mark Refunded</span>
-                      </v-btn>
-                    </template>
-                  </ac-confirmation>
                 </v-col>
                 <v-col class="text-center" v-if="is(COMPLETED)" cols="12" >
                   <p>This order has been completed! <strong>Thank you for using Artconomy!</strong></p>
@@ -532,6 +538,9 @@
             </v-col>
           </v-row>
         </ac-expanded-property>
+        <v-col cols="12" v-if="$vuetify.breakpoint.smAndDown" order="3">
+          <ac-comment-section :commentList="comments" :nesting="false" :locked="!isInvolved" :guest-ok="true" :show-history="isArbitrator" />
+        </v-col>
       </v-row>
     </template>
   </ac-load-section>
@@ -559,9 +568,9 @@ import Ratings from '@/mixins/ratings'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import {FormController} from '@/store/forms/form-controller'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
-import AcPricePreview from '@/components/AcPricePreview.vue'
+import AcPricePreview from '@/components/price_preview/AcPricePreview.vue'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
-import {baseCardSchema, profileLink} from '@/lib'
+import {baseCardSchema} from '@/lib/lib'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import AcCardManager from '@/components/views/settings/payment/AcCardManager.vue'
 import Revision from '@/types/Revision'
@@ -577,6 +586,10 @@ import {Mutation} from 'vuex-class'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import LineItem from '@/types/LineItem'
+import {getTotals, quantize, totalForTypes} from '@/lib/lineItemFunctions'
+import {LineTypes} from '@/types/LineTypes'
+import LineAccumulator from '@/types/LineAccumulator'
+import Big from 'big.js'
 
 enum VIEWER_TYPE {
   UNSET = 0,
@@ -617,10 +630,12 @@ export default class OrderDetail extends mixins(Viewer, Formatting, Ratings) {
   public order: SingleController<Order> = null as unknown as SingleController<Order>
   public characters: ListController<LinkedCharacter> = null as unknown as ListController<LinkedCharacter>
   public comments: ListController<Comment> = null as unknown as ListController<Comment>
+  public lineItems: ListController<LineItem> = null as unknown as ListController<LineItem>
   public revisions: ListController<Revision> = null as unknown as ListController<Revision>
   public outputs: ListController<Submission> = null as unknown as ListController<Submission>
   public stateChange: FormController = null as unknown as FormController
   public paymentForm: FormController = null as unknown as FormController
+  public tipForm: FormController = null as unknown as FormController
   public addSubmission: FormController = null as unknown as FormController
   public orderEmail: FormController = null as unknown as FormController
   public inviteSent = false
@@ -658,32 +673,59 @@ export default class OrderDetail extends mixins(Viewer, Formatting, Ratings) {
     this.inviteSent = false
   }
 
-  @Watch('order.x')
-  public updateAmount(order: Order) {
+  @Watch('totalCharge')
+  public updateAmount(newValue: Big, oldValue: Big|undefined) {
+    this.paymentForm.fields.amount.update(this.totalCharge)
     /* istanbul ignore if */
-    if (!order) {
+    if (oldValue === undefined) {
       return
     }
-    this.paymentForm.fields.amount.update(this.totalCharge.toFixed(2))
+    if (newValue.eq(oldValue)) {
+      // Vue can't quite tell when these are equal otherwise.
+      return
+    }
+    if (newValue.eq(Big('0')) || oldValue.eq(Big('0'))) {
+      // Refresh the line items, since if it's newly 0, or no longer 0, upstream may have changed.
+      this.lineItems.get()
+    }
+  }
+
+  public get priceData(): LineAccumulator {
+    if (!this.lineItems) {
+      return {total: Big(0), map: new Map()}
+    }
+    return getTotals(this.bareLines)
+  }
+
+  public get bareLines() {
+    return this.lineItems.list.map((x) => (x.x as LineItem))
   }
 
   public get totalCharge() {
-    const order = this.order.x as Order
-    /* istanbul ignore if */
-    if (!order) {
-      return 0
-    }
-    return order.price + order.adjustment + order.tip
+    return this.priceData.total
+  }
+
+  public get sansOutsiders() {
+    return this.bareLines.filter((x) => [
+      LineTypes.BASE_PRICE, LineTypes.ADD_ON, LineTypes.BONUS, LineTypes.SHIELD,
+    ].includes(x.type))
   }
 
   public setTip(multiplier: number) {
-    const order = this.order.x as Order
-    /* istanbul ignore if */
-    if (!order) {
-      return
+    const subTotal = totalForTypes(getTotals(this.sansOutsiders), [
+      LineTypes.BASE_PRICE, LineTypes.ADD_ON, LineTypes.BONUS, LineTypes.SHIELD,
+    ])
+    const tip = quantize(subTotal.times(multiplier))
+    if (this.tip) {
+      this.tip.patchers.amount.model = tip.toFixed(2)
+    } else {
+      this.tipForm.fields.amount.update(tip.toFixed(2))
+      this.tipForm.submitThen(this.lineItems.uniquePush)
     }
-    const tip = (this.totalCharge - order.tip) * multiplier
-    this.order.patchers.tip.model = tip.toFixed(2)
+  }
+
+  public get tip() {
+    return this.lineItems && this.lineItems.list.filter((x) => x.x && x.x.type === LineTypes.TIP)[0]
   }
 
   public get viewerItems() {
@@ -748,25 +790,6 @@ export default class OrderDetail extends mixins(Viewer, Formatting, Ratings) {
       return null
     }
     return this.order.x.product
-  }
-
-  public get lineItems() {
-    let items: LineItem[] = []
-    /* istanbul ignore if */
-    if (!this.order.x) {
-      return items
-    }
-    if (this.order.x.adjustment) {
-      if (this.order.x.adjustment > 0) {
-        items.push({label: 'Additional Requirements', value: this.order.x.adjustment})
-      } else {
-        items.push({label: 'Discount', value: this.order.x.adjustment})
-      }
-    }
-    if (this.order.x.tip) {
-      items.push({label: 'Tip', value: this.order.x.tip})
-    }
-    return items
   }
 
   public get inviteDisabled() {
@@ -894,6 +917,9 @@ export default class OrderDetail extends mixins(Viewer, Formatting, Ratings) {
     if (!this.order.x) {
       return false
     }
+    if (!this.order.x.trust_finalized) {
+      return false
+    }
     // @ts-ignore
     return (moment(this.order.x.auto_finalize_on) as Moment) >= (moment() as Moment)
   }
@@ -1006,12 +1032,19 @@ export default class OrderDetail extends mixins(Viewer, Formatting, Ratings) {
   }
 
   public created() {
+    // @ts-ignore
+    window.stuff = this
     this.characters = this.$getList(
       `order${this.orderId}__characters`, {endpoint: `${this.url}characters/`, paginated: false},
     )
     this.characters.firstRun().then(this.addTags)
     this.order = this.$getSingle(`order${this.orderId}`, {endpoint: this.url})
     this.order.get().catch(this.setError)
+    this.lineItems = this.$getList(`order${this.orderId}__lineItems`, {
+      endpoint: `${this.url}line-items/`,
+      paginated: false,
+    })
+    this.lineItems.firstRun()
     this.comments = this.$getList(
       `order${this.orderId}-comments`, {
         endpoint: `/api/lib/v1/comments/sales.Order/${this.orderId}/`,
@@ -1030,6 +1063,14 @@ export default class OrderDetail extends mixins(Viewer, Formatting, Ratings) {
       amount: {value: 0},
     }
     this.paymentForm = this.$getForm(`order${this.orderId}__payment`, schema)
+    this.tipForm = this.$getForm(`order${this.orderId}__tip`, {
+      endpoint: `${this.url}line-items/`,
+      fields: {
+        amount: {value: 0, validators: [{name: 'numeric'}]},
+        percentage: {value: 0},
+        type: {value: LineTypes.TIP},
+      },
+    })
     this.revisions = this.$getList(
       `order${this.orderId}__revisions`, {endpoint: `${this.url}revisions/`, paginated: false}
     )

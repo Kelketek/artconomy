@@ -13,7 +13,7 @@ from apps.sales.tests.factories import ProductFactory
 class TestComments(APITestCase):
     def test_comment_serializer(self):
         submission = SubmissionFactory.create()
-        comments = [CommentFactory.create(content_object=submission) for i in range(5)]
+        comments = [CommentFactory.create(content_object=submission, top=submission) for i in range(5)]
         self.assertEqual(Notification.objects.all().count(), 1)
         notification = Notification.objects.first()
         request = Mock()

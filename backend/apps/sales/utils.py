@@ -1,6 +1,8 @@
 import logging
-from decimal import Decimal, InvalidOperation
-from typing import Union, Type
+from collections import defaultdict
+from decimal import Decimal, InvalidOperation, ROUND_HALF_EVEN, getcontext, localcontext
+from functools import reduce
+from typing import Union, Type, TYPE_CHECKING, List, Dict, Iterator
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
@@ -9,11 +11,13 @@ from django.db.transaction import atomic
 from django.utils import timezone
 from django.utils.datetime_safe import date
 from moneyed import Money
+from rest_framework.exceptions import ValidationError
 
 from apps.lib.models import Subscription, COMMISSIONS_OPEN, Event, DISPUTE, SALE_UPDATE, Notification, \
     Comment, ORDER_UPDATE
 from apps.lib.utils import notify, recall_notification
 from apps.profiles.models import User, VERIFIED
+from apps.sales.authorize import refund_transaction
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +33,10 @@ POSTED_ONLY = 1
 PENDING = 2
 
 
-def account_balance(user: Union[User, None, Type[ALL]], account_type: int, balance_type: int=AVAILABLE) -> Decimal:
+def account_balance(
+        user: Union[User, None, Type[ALL]], account_type: int, balance_type: int = AVAILABLE, qs_kwargs: dict = None,
+) -> Decimal:
+    qs_kwargs = qs_kwargs or {}
     from apps.sales.models import TransactionRecord
     if balance_type == PENDING:
         statuses = [TransactionRecord.PENDING]
@@ -42,6 +49,7 @@ def account_balance(user: Union[User, None, Type[ALL]], account_type: int, balan
     kwargs = {
         'status__in': statuses,
         'source': account_type,
+        **qs_kwargs,
     }
     if user is not ALL:
         kwargs['payer'] = user
@@ -56,6 +64,7 @@ def account_balance(user: Union[User, None, Type[ALL]], account_type: int, balan
     kwargs = {
         'status__in': statuses,
         'destination': account_type,
+        **qs_kwargs,
     }
     if user is not ALL:
         kwargs['payee'] = user
@@ -98,6 +107,7 @@ def available_products(requester, query='', ordering=True):
     if requester.is_authenticated:
         if not requester.is_staff:
             qs = qs.exclude(user__blocking=requester)
+            qs = qs.exclude(table_product=True)
         qs = qs.exclude(user__blocked_by=requester)
     if ordering:
         return product_ordering(qs, query)
@@ -194,7 +204,9 @@ def update_availability(seller, load, current_closed_status):
         seller_profile.save()
         products.update(available=True, edited_on=timezone.now())
         # Sanity setting.
-        seller.products.filter(Q(hidden=True) | Q(active=False)).update(available=False, edited_on=timezone.now())
+        seller.products.filter(Q(hidden=True) | Q(active=False) | Q(inventory__count=0)).update(
+            available=False, edited_on=timezone.now(),
+        )
         if current_closed_status and not seller_profile.commissions_disabled:
             previous = Event.objects.filter(
                 type=COMMISSIONS_OPEN, content_type=ContentType.objects.get_for_model(User), object_id=seller.id,
@@ -220,6 +232,64 @@ def early_finalize(order, user: User):
     ):
         order.trust_finalized = True
         finalize_order(order, user)
+
+
+def allocate_bonus(order: 'Order', source_record: 'TransactionRecord'):
+    from apps.sales.models import TransactionRecord
+    amount = get_bonus_amount(order)
+    bonus = TransactionRecord(
+        payer=None,
+        source=TransactionRecord.RESERVE,
+        target=order,
+        amount=amount,
+        status=TransactionRecord.SUCCESS,
+        remote_id=source_record.remote_id,
+    )
+    if order.seller.landscape:
+        bonus.payee = order.seller
+        bonus.destination = TransactionRecord.HOLDINGS
+        bonus.category = TransactionRecord.PREMIUM_BONUS
+    else:
+        bonus.payee = None
+        bonus.destination = TransactionRecord.UNPROCESSED_EARNINGS
+        bonus.category = TransactionRecord.SHIELD_FEE
+    bonus.save()
+
+
+def finalize_table_fees(order: 'Order'):
+    from apps.sales.models import TransactionRecord
+    order_type = ContentType.objects.get_for_model(order)
+    record = TransactionRecord.objects.get(
+        payer=order.buyer, payee=None, destination=TransactionRecord.RESERVE,
+        object_id=order.id, content_type=order_type,
+        status=TransactionRecord.SUCCESS,
+    )
+    TransactionRecord.objects.create(
+        source=TransactionRecord.RESERVE,
+        destination=TransactionRecord.UNPROCESSED_EARNINGS,
+        object_id=order.id, content_type=order_type,
+        amount=record.amount,
+        payer=None, payee=None,
+        status=TransactionRecord.SUCCESS,
+        category=TransactionRecord.TABLE_SERVICE,
+        remote_id=record.remote_id,
+    )
+    tax_record = TransactionRecord.objects.get(
+        payer=order.buyer, payee=None, destination=TransactionRecord.MONEY_HOLE_STAGE,
+        object_id=order.id, content_type=order_type,
+        status=TransactionRecord.SUCCESS,
+    )
+    TransactionRecord.objects.create(
+        source=TransactionRecord.MONEY_HOLE_STAGE,
+        destination=TransactionRecord.MONEY_HOLE,
+        object_id=order.id, content_type=order_type,
+        amount=tax_record.amount,
+        payer=None, payee=None,
+        status=TransactionRecord.SUCCESS,
+        category=TransactionRecord.TABLE_SERVICE,
+        remote_id=tax_record.remote_id,
+    )
+
 
 def finalize_order(order, user=None):
     from apps.sales.models import TransactionRecord
@@ -248,24 +318,10 @@ def finalize_order(order, user=None):
             status=TransactionRecord.SUCCESS,
             remote_id=record.remote_id,
         )
-        amount = get_bonus_amount(record)
-        bonus = TransactionRecord(
-            payer=None,
-            source=TransactionRecord.RESERVE,
-            target=order,
-            amount=amount,
-            status=TransactionRecord.SUCCESS,
-            remote_id=record.remote_id,
-        )
-        if order.seller.landscape:
-            bonus.payee = order.seller
-            bonus.destination=TransactionRecord.HOLDINGS
-            bonus.category=TransactionRecord.PREMIUM_BONUS
+        if not order.table_order:
+            allocate_bonus(order, record)
         else:
-            bonus.payee = None
-            bonus.destination = TransactionRecord.UNPROCESSED_EARNINGS
-            bonus.category = TransactionRecord.SERVICE_FEE
-        bonus.save()
+            finalize_table_fees(order)
     # Don't worry about whether it's time to withdraw or not. This will make sure that an attempt is made in case
     # there's money to withdraw that hasn't been taken yet, and another process will try again if it settles later.
     # It will also ignore if the seller has auto_withdraw disabled.
@@ -301,35 +357,21 @@ def split_fee(transaction: 'TransactionRecord') -> 'TransactionRecord':
         remote_id=transaction.remote_id,
         status=TransactionRecord.SUCCESS,
         target=transaction.target,
-        category=TransactionRecord.SERVICE_FEE,
+        category=TransactionRecord.SHIELD_FEE,
     )
 
 
-def get_bonus_amount(record) -> Money:
-    from apps.sales.models import TransactionRecord
-    fee_payment = TransactionRecord.objects.get(
-        object_id=record.object_id,
-        content_type_id=record.content_type_id,
-        status=TransactionRecord.SUCCESS,
-        payer=record.payer,
-        payee=None,
-        destination=TransactionRecord.RESERVE,
-    )
-    initial_split = TransactionRecord.objects.get(
-        object_id=record.object_id,
-        content_type_id=record.content_type_id,
-        status=TransactionRecord.SUCCESS,
-        payer=None,
-        payee=None,
-        source=TransactionRecord.RESERVE,
-        destination=TransactionRecord.UNPROCESSED_EARNINGS,
-    )
-    return fee_payment.amount - initial_split.amount
+def get_bonus_amount(order: 'Order') -> Money:
+    from apps.sales.models import BONUS
+    bonus = order.line_items.filter(type=BONUS).first()
+    if not bonus:
+        return Money(0, 'USD')
+    return get_totals(order.line_items.all())[1][bonus]
 
 
 def recuperate_fee(record: 'TransactionRecord') -> 'TransactionRecord':
     from apps.sales.models import TransactionRecord
-    amount = get_bonus_amount(record)
+    amount = get_bonus_amount(record.target)
     return TransactionRecord.objects.create(
         object_id=record.object_id,
         content_type_id=record.content_type_id,
@@ -339,7 +381,7 @@ def recuperate_fee(record: 'TransactionRecord') -> 'TransactionRecord':
         source=TransactionRecord.RESERVE,
         destination=TransactionRecord.UNPROCESSED_EARNINGS,
         amount=amount,
-        category=TransactionRecord.SERVICE_FEE,
+        category=TransactionRecord.SHIELD_FEE,
     )
 
 
@@ -369,3 +411,170 @@ def cancel_order(order, requested_by):
         notify(SALE_UPDATE, order, unique=True, mark_unread=True)
     if requested_by != order.buyer:
         notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
+
+
+if TYPE_CHECKING:
+    from apps.sales.models import LineItemSim, LineItem, TransactionRecord
+
+    Line = Union[LineItem, LineItemSim]
+    LineMoneyMap = Dict[Line, Money]
+    TransactionSpecKey = (Union[User, None], int, int)
+    TransactionSpecMap = Dict[TransactionSpecKey, Money]
+
+
+def lines_by_priority(
+        lines: Iterator[Union['LineItem', 'LineItemSim']]) -> List[List[Union['LineItem', 'LineItemSim']]]:
+    """
+    Groups line items by priority.
+    """
+    priority_sets = defaultdict(list)
+    for line in lines:
+        priority_sets[line.priority].append(line)
+    return [priority_set for _, priority_set in sorted(priority_sets.items())]
+
+
+def distribute_reduction(
+        *, total: Money, distributed_amount: Money, line_values: 'LineMoneyMap'
+) -> 'LineMoneyMap':
+    reductions = {}
+    if total.amount == 0:
+        return reductions
+    for line, original_value in line_values.items():
+        multiplier = (original_value / total).quantize(Decimal('.01'))
+        reductions[line] = Money(distributed_amount.amount * multiplier, 'USD')
+    return reductions
+
+
+def priority_total(
+        current: (Money, 'LineMoneyMap'), priority_set: List['Line']
+) -> (Money, 'LineMoneyMap'):
+    """
+    Get the effect on the total of a priority set. First runs any percentage increase, then
+    adds in the static amount. Calculates the difference of each separately to make sure they're not affecting each
+    other.
+    """
+    current_total, subtotals = current
+    working_subtotals = {}
+    summable_totals = {}
+    reductions: List['LineMoneyMap'] = []
+    for line in priority_set:
+        cascaded_amount = Money(0, 'USD')
+        added_amount = Money(0, 'USD')
+        # Percentages with equal priorities should not stack.
+        working_amount = current_total * (Decimal('.01') * line.percentage)
+        if line.cascade_percentage:
+            cascaded_amount += working_amount
+        else:
+            added_amount += working_amount
+        if line.cascade_amount:
+            cascaded_amount += line.amount
+        else:
+            added_amount += line.amount
+        working_amount += line.amount
+        if cascaded_amount:
+            reductions.append(distribute_reduction(
+                total=current_total, distributed_amount=cascaded_amount, line_values={
+                    key: value for key, value in subtotals.items() if key.priority < line.priority
+            }))
+        if added_amount:
+            summable_totals[line] = added_amount
+        working_subtotals[line] = working_amount
+    new_subtotals = {**subtotals}
+    for reduction_set in reductions:
+        for line, reduction in reduction_set.items():
+            new_subtotals[line] -= reduction
+    return current_total + sum(summable_totals.values()), {**new_subtotals, **working_subtotals}
+
+
+def get_totals(
+        lines: Iterator['Line']) -> (Money, 'LineMoneyMap'):
+    priority_sets = lines_by_priority(lines)
+    with localcontext() as ctx:
+        ctx.rounding = ROUND_HALF_EVEN
+        value, subtotals = reduce(priority_total, priority_sets, (Money('0.00', 'USD'), {}))
+        for key, amount in subtotals.items():
+            subtotals[key] = amount.round(2)
+    return value.round(2), subtotals
+
+
+def reckon_lines(lines) -> Money:
+    """
+    Reckons all line items to produce a total value.
+    """
+    value, _subtotals = get_totals(lines)
+    return value.round(2)
+
+
+def lines_to_transaction_specs(lines: Iterator['LineItem']) -> 'TransactionSpecMap':
+    from apps.sales.models import BONUS, SHIELD, ADD_ON, BASE_PRICE, TABLE_SERVICE, TAX, EXTRA, TIP, TransactionRecord
+    type_map = {
+        BONUS: TransactionRecord.SHIELD_FEE,
+        SHIELD: TransactionRecord.SHIELD_FEE,
+        TABLE_SERVICE: TransactionRecord.TABLE_SERVICE,
+        TAX: TransactionRecord.TAX,
+        ADD_ON: TransactionRecord.ESCROW_HOLD,
+        BASE_PRICE: TransactionRecord.ESCROW_HOLD,
+        TIP: TransactionRecord.ESCROW_HOLD,
+        EXTRA: TransactionRecord.EXTRA_ITEM,
+    }
+    priority_sets = lines_by_priority(lines)
+    _, subtotals = reduce(priority_total, priority_sets, (Money('0.00', 'USD'), {}))
+    transaction_specs = defaultdict(lambda: Money('0.00', 'USD'))
+    for line_item, subtotal in subtotals.items():
+        transaction_specs[
+            line_item.destination_user, line_item.destination_account, type_map[line_item.type]
+        ] += subtotal
+    return transaction_specs
+
+
+if TYPE_CHECKING:
+    from apps.sales.models import Order
+
+
+def verify_total(order: 'Order'):
+    total = order.total()
+    if total < Money(0, 'USD'):
+        raise ValidationError({'amount': ['Total cannot end up less than $0.']})
+    if total == Money(0, 'USD'):
+        return
+    if (not order.escrow_disabled) and total < Money(settings.MINIMUM_PRICE, 'USD'):
+        raise ValidationError({'amount': [f'Total cannot end up less than ${settings.MINIMUM_PRICE}.']})
+
+
+def issue_refund(transaction_set: Iterator['TransactionRecord'], category: int) -> List['TransactionRecord']:
+    from apps.sales.models import TransactionRecord
+    remote_id = None
+    last_four = None
+    for transaction in transaction_set:
+        assert transaction.source == TransactionRecord.CARD, f'Cannot refund non-card transaction {transaction}'
+        remote_id = transaction.remote_id
+        last_four = transaction.card.last_four
+    assert remote_id, 'Could not find a remote transaction ID to refund.'
+    assert last_four, 'Could not determine the last four digits of the relevant card.'
+    refund_transactions = [
+        TransactionRecord(
+            source=transaction.destination,
+            destination=transaction.source,
+            status=TransactionRecord.FAILURE,
+            category=category,
+            payer=transaction.payee,
+            payee=transaction.payer,
+            content_type=transaction.content_type,
+            object_id=transaction.object_id,
+            amount=transaction.amount,
+            response_message="Failed when contacting payment processor.",
+        ) for transaction in transaction_set
+    ]
+    amount = sum(transaction.amount for transaction in transaction_set)
+    try:
+        remote_id = refund_transaction(remote_id, last_four, amount)
+        for transaction in refund_transactions:
+            transaction.status = TransactionRecord.SUCCESS
+            transaction.remote_id = remote_id
+    except Exception as err:
+        for transaction in refund_transactions:
+            transaction.response_message = str(err)
+    finally:
+        for transaction in refund_transactions:
+            transaction.save()
+    return refund_transactions

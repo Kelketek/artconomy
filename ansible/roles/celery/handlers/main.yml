@@ -3,4 +3,4 @@
 
 - name: restart celerybeat
   service: name="celerybeat" state=restarted enabled="{{ cron_enabled }}"
-  when: cron_enabled
+  when: cron_enabled|bool

@@ -14,7 +14,7 @@
 
 <script lang="ts">
 import Vue from 'vue'
-import {setMetaContent} from '@/lib'
+import {setMetaContent} from '@/lib/lib'
 import Component from 'vue-class-component'
 import {Prop} from 'vue-property-decorator'
 

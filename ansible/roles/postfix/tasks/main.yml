@@ -1,12 +1,11 @@
 ---
 - name: Install postfix
   apt:
-    name: "{{ item }}"
+    name:
+      - postfix
+      - opendkim
+      - opendkim-tools
     state: present
-  with_items:
-    - postfix
-    - opendkim
-    - opendkim-tools
 
 - name: Configure Postfix
   template:

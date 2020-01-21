@@ -6,29 +6,28 @@
 
 <script lang="ts">
 import Vue from 'vue'
-import {Prop, Watch} from 'vue-property-decorator'
+import {Prop} from 'vue-property-decorator'
 import Component from 'vue-class-component'
 
-  @Component
+@Component
 export default class AcPriceField extends Vue {
-    @Prop({required: true})
-    public value!: string
+  @Prop({required: true})
+  public value!: string
 
-    public update(value: string) {
-      this.$emit('input', value)
-    }
+  public update(value: string) {
+    this.$emit('input', value)
+  }
 
-    public blur() {
-      this.$nextTick(() => {
-        const rawValue = this.value
-        this.update(parseFloat(rawValue).toFixed(2))
-      })
-    }
-
-    public mounted() {
-      if (this.value) {
-        this.update(parseFloat(this.value).toFixed(2))
+  public blur() {
+    this.$nextTick(() => {
+      const rawValue = this.value
+      const newVal = parseFloat(rawValue)
+      /* istanbul ignore if */
+      if (isNaN(newVal)) {
+        return
       }
-    }
+      this.update(newVal.toFixed(2))
+    })
+  }
 }
 </script>

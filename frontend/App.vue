@@ -108,7 +108,7 @@ import Viewer from '@/mixins/viewer'
 import {UserStoreState} from '@/store/profiles/types/UserStoreState'
 import {Alert} from '@/store/state'
 import AcMarkdownExplanation from '@/components/fields/AcMarkdownExplination.vue'
-import {fallback, fallbackBoolean, paramsKey, searchSchema} from './lib'
+import {fallback, fallbackBoolean, paramsKey, searchSchema} from './lib/lib'
 import {User} from '@/store/profiles/types/User'
 import Nav from '@/mixins/nav'
 

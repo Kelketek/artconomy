@@ -103,7 +103,7 @@ import Submission from '@/types/Submission'
 import {FormController} from '@/store/forms/form-controller'
 import {User} from '@/store/profiles/types/User'
 import Upload from '@/mixins/upload'
-import {newUploadSchema} from '@/lib'
+import {newUploadSchema} from '@/lib/lib'
   @Component({
     components: {AcBoundField, AcFormDialog},
   })

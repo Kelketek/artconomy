@@ -1,4 +1,8 @@
 ---
+- name: reload systemd
+  shell: "systemctl daemon-reload"
+  args:
+    executable: "/bin/bash"
 
 - name: collect static assets
   become: yes

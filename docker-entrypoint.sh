@@ -1,7 +1,7 @@
 #!/bin/bash
 #apt-get install node npm
 #npm run build
-pip3 install -r requirements.txt
+/usr/bin/python3.8 -m pip install -r requirements.txt
 ln -s /app/dev_settings.json /settings.json
 if [[ ! -d node_modules ]]
    then

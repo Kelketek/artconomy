@@ -6,7 +6,7 @@ import {forms} from './forms'
 import {lists} from './lists'
 import {cloneDeep} from 'lodash'
 import {notifications} from './notifications'
-import {genId} from '@/lib'
+import {genId} from '@/lib/lib'
 import {singles} from './singles'
 import {characterModules} from '@/store/characters'
 

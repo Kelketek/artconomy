@@ -1,17 +1,23 @@
 ---
+
+- name: Add Deadsnakes repo
+  apt_repository:
+    repo: ppa:deadsnakes/ppa
+
 - name: Install base requirements
   apt:
-    name: "{{ item }}"
-  with_items:
-    - python3-dev
-    - autoconf
-    - libtool
-    - python3-pip
-    - python-virtualenv
-    - uwsgi
-    - git
-    - uwsgi-plugin-python3
-    - libpq-dev
+    name:
+      - python3.8
+      - python3.8-dev
+      - autoconf
+      - libtool
+      - python3-pip
+      - python-virtualenv
+      - uwsgi
+      - git
+      - uwsgi-plugin-python3
+      - libpq-dev
+      - software-properties-common
 
 - name: Load app settings
   include_vars: "keys/{{env_prefix}}/app_settings.yml"
@@ -70,10 +76,28 @@
 - name: Initialize virtual environment
   become: yes
   become_user: "{{ env_prefix }}"
-  shell: "virtualenv ~ -p /usr/bin/python3"
+  shell: "rm -rvf {{home}}/bin && /usr/bin/virtualenv -p /usr/bin/python3.8 {{home}} && touch {{home}}/.3-8-upgrade"
   args:
     executable: "/bin/bash"
-    creates: "{{ home }}/bin/activate"
+    creates: "{{ home }}/.3-8-upgrade"
+    warn: false
+
+- name: Drop in verified pip
+  become_user: "{{ env_prefix }}"
+  template:
+    src: "templates/bash/pip"
+    dest: "{{home}}/bin/pip"
+    mode: 0755
+
+- name: Ensure default python link
+  file:
+    src: "{{home}}/bin/python3.8"
+    dest: "{{home}}/bin/python"
+
+- name: Ensure default python3 link
+  file:
+    src: "{{home}}/bin/python3.8"
+    dest: "{{home}}/bin/python3"
 
 - name: Install NPM packages
   become: yes
@@ -151,6 +175,14 @@
   file: src="/etc/uwsgi/apps-available/artconomy.ini" dest="/etc/uwsgi/apps-enabled/artconomy.ini" state=link
   notify:
     - restart uwsgi
+
+- name: Force local uwsgi'
+  lineinfile:
+    path: /etc/init.d/uwsgi
+    regexp: '^DAEMON='
+    line: 'DAEMON={{ home }}/bin/uwsgi'
+  notify:
+    - reload systemd
 
 - name: Enable uwsgi service
   service: name=uwsgi enabled=true

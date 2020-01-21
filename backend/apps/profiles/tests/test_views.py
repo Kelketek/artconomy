@@ -14,7 +14,7 @@ from apps.lib.models import (
 from apps.lib.tests.factories import AssetFactory
 from apps.lib.tests.factories_interdepend import CommentFactory
 from apps.lib.utils import watch_subscriptions
-from apps.profiles.models import Character, Submission, Conversation, User
+from apps.profiles.models import Character, Submission, Conversation, User, ConversationParticipant
 from apps.lib.abstract_models import MATURE, ADULT, GENERAL
 from apps.lib.test_resources import APITestCase, SignalsDisabledMixin, PermissionsTestCase, MethodAccessMixin
 from apps.profiles.tests.factories import (
@@ -1408,6 +1408,7 @@ class TestConversations(APITestCase):
             object_id=conversation.id,
         )
         self.assertEqual(subscriptions.count(), 3)
+        self.assertEqual(ConversationParticipant.objects.all().count(), 3)
         self.login(user)
         response = self.client.delete(
             '/api/profiles/v1/account/{}/conversations/{}/'.format(user.username, conversation.id),
@@ -1417,6 +1418,7 @@ class TestConversations(APITestCase):
             type=COMMENT, content_type=ContentType.objects.get_for_model(Conversation),
             object_id=conversation.id,
         )
+        self.assertEqual(ConversationParticipant.objects.all().count(), 2)
         self.assertEqual(subscriptions.count(), 2)
 
         self.login(user2)

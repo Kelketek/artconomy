@@ -1,11 +1,10 @@
 ---
 - name: Install postgres
   apt:
-    name: "{{ item }}"
+    name:
+      - postgresql
+      - python-psycopg2
     state: present
-  with_items:
-    - postgresql
-    - python-psycopg2
 
 - name: Load app settings
   include_vars: "keys/{{env_prefix}}/app_settings.yml"

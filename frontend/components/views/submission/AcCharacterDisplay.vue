@@ -18,8 +18,8 @@
       <v-col align-self="center" v-if="controller.empty">
           No characters tagged.
       </v-col>
-      <v-col class="shrink">
-        <ac-mini-character v-for="item in controller.list" :character="item.x.character" :key="item.x.id" />
+      <v-col class="shrink" v-for="item in controller.list" :key="item.x.id">
+        <ac-mini-character :character="item.x.character" />
       </v-col>
       <ac-expanded-property v-model="toggle" v-if="editable">
         <span slot="title">Characters</span>

@@ -7,6 +7,9 @@ from apps.sales.utils import available_products_from_user
 
 class OrderViewPermission(BasePermission):
     def has_object_permission(self, request, view, obj):
+        from apps.sales.models import Order
+        if not isinstance(obj, Order):
+            obj = obj.order
         if request.user.is_staff:
             return True
         if request.user == obj.buyer:
@@ -17,6 +20,9 @@ class OrderViewPermission(BasePermission):
 
 class OrderSellerPermission(BasePermission):
     def has_object_permission(self, request, view, obj):
+        from apps.sales.models import Order
+        if not isinstance(obj, Order):
+            obj = obj.order
         if request.user.is_staff:
             return True
         if request.user == obj.seller:
@@ -25,6 +31,9 @@ class OrderSellerPermission(BasePermission):
 
 class OrderBuyerPermission(BasePermission):
     def has_object_permission(self, request, view, obj):
+        from apps.sales.models import Order
+        if not isinstance(obj, Order):
+            obj = obj.order
         if request.user.is_staff:
             return True
         if request.user == obj.buyer:
@@ -83,6 +92,9 @@ def OrderStatusPermission(*args, error_message='The order is not in the right st
     class StatusCheckPermission(BasePermission):
         message = error_message
         def has_object_permission(self, request, view, obj):
+            from apps.sales.models import Order
+            if not isinstance(obj, Order):
+                obj = obj.order
             if obj.status in args:
                 return True
             return False
@@ -122,5 +134,29 @@ class PaidOrderPermission(BasePermission):
     message = 'You may not rate an order which was free.'
     def has_object_permission(self, request, view, obj):
         if obj.total().amount <= 0:
+            return False
+        return True
+
+
+def LineItemTypePermission(*args, error_message='You are not permitted to edit line items of that type.'):
+    """
+    Verify that a line item is of a certain type.
+    """
+    class TypeCheckPermission(BasePermission):
+        message = error_message
+        def has_object_permission(self, request, view, obj):
+            if obj.type in args:
+                return True
+            return False
+    return TypeCheckPermission
+
+
+class OrderNoProduct(BasePermission):
+    message = 'You may only perform this action on orders without an associated product.'
+    def has_object_permission(self, request, view, obj):
+        from apps.sales.models import Order
+        if not isinstance(obj, Order):
+            obj = obj.order
+        if obj.product:
             return False
         return True

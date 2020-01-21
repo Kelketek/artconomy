@@ -6,7 +6,7 @@ import mockAxios from '@/specs/helpers/mock-axios'
 import {cleanUp, createVuetify, expectFields, fieldEl, makeSpace, vueSetup} from '@/specs/helpers'
 import {userResponse} from '@/specs/helpers/fixtures'
 import flushPromises from 'flush-promises'
-import {deleteCookie} from '@/lib'
+import {deleteCookie} from '@/lib/lib'
 import {UserStoreState} from '@/store/profiles/types/UserStoreState'
 import {Vuetify} from 'vuetify/types'
 

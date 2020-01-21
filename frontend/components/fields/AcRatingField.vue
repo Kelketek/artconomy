@@ -40,7 +40,7 @@
 import Vue from 'vue'
 import Component, {mixins} from 'vue-class-component'
 import AcAsset from '../AcAsset.vue'
-import {RATING_COLOR, RATING_LONG_DESC, RATINGS_SHORT} from '@/lib'
+import {RATING_COLOR, RATING_LONG_DESC, RATINGS_SHORT} from '@/lib/lib'
 import {Prop} from 'vue-property-decorator'
 import ExtendedInput from '@/components/fields/mixins/extended_input'
 

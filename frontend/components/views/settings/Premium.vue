@@ -71,7 +71,7 @@ import AcTagField from '@/components/fields/AcTagField.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import AcCardManager from '@/components/views/settings/payment/AcCardManager.vue'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
-import {artCall} from '@/lib'
+import {artCall} from '@/lib/lib'
 import {User} from '@/store/profiles/types/User'
 import Formatting from '@/mixins/formatting'
 

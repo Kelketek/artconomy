@@ -40,7 +40,7 @@ services:
       - CELERY_BROKER_CONNECTION_RETRY=1
       - EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
       - OTP_TOTP_ISSUER=Artconomy Dev
-    command: python3 manage.py runserver 0.0.0.0:8002
+    command: /usr/bin/python3.8 manage.py runserver 0.0.0.0:8002
     ports:
       - "8001:8001"
       - "8002:8002"

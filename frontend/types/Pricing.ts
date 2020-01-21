@@ -6,4 +6,7 @@ export default interface Pricing {
   standard_static: number,
   portrait_price: number,
   minimum_price: number,
+  table_percentage: number,
+  table_static: number,
+  table_tax: number,
 }

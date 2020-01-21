@@ -7,7 +7,7 @@ from apps.profiles.tests.factories import UserFactory
 from apps.sales.models import (
     Order, Product, CreditCardToken, Revision, BankAccount,
     Promo, Rating,
-    TransactionRecord)
+    TransactionRecord, LineItem, ADD_ON, BASE_PRICE)
 
 
 class ProductFactory(DjangoModelFactory):
@@ -16,7 +16,7 @@ class ProductFactory(DjangoModelFactory):
     revisions = 4
     task_weight = 2
     owner = SelfAttribute('user')
-    price = Money('15.00', 'USD')
+    base_price = Money('15.00', 'USD')
     name = Sequence(lambda n: 'Product {0}'.format(n))
     description = 'Product description'
     file = SubFactory(AssetFactory)
@@ -90,3 +90,22 @@ class RatingFactory(DjangoModelFactory):
 
     class Meta:
         model = Rating
+
+
+class LineItemFactory(DjangoModelFactory):
+    type = ADD_ON
+    order = SubFactory(OrderFactory)
+    priority = 1
+    amount = SelfAttribute('order.product.base_price')
+    destination_user = SelfAttribute('order.seller')
+    destination_account = TransactionRecord.ESCROW
+
+    class Meta:
+        model = LineItem
+
+
+def add_adjustment(order, amount: Money):
+    return LineItem.objects.create(
+        order=order, destination_user=order.seller, destination_account=TransactionRecord.ESCROW,
+        amount=amount, type=ADD_ON,
+    )

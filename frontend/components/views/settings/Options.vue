@@ -91,7 +91,7 @@
 import Component, {mixins} from 'vue-class-component'
 import Viewer from '@/mixins/viewer'
 import Subjective from '@/mixins/subjective'
-import {RATING_COLOR, RATING_LONG_DESC, RATINGS_SHORT} from '@/lib'
+import {RATING_COLOR, RATING_LONG_DESC, RATINGS_SHORT} from '@/lib/lib'
 import AcLoadingSpinner from '@/components/wrappers/AcLoadingSpinner.vue'
 import Alerts from '@/mixins/alerts'
 import AcTagField from '@/components/fields/AcTagField.vue'

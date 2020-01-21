@@ -61,7 +61,7 @@ import AcCard from '@/components/views/settings/payment/AcCard.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcNewCard from '@/components/views/settings/payment/AcNewCard.vue'
 import AcSavedCardField from '@/components/fields/AcSavedCardField.vue'
-import {cardHelperMap} from '@/lib'
+import {cardHelperMap} from '@/lib/lib'
 
   @Component({
     components: {AcSavedCardField, AcNewCard, AcLoadSection, AcCard, AcBoundField, AcLoadingSpinner},

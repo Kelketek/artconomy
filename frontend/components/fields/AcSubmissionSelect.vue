@@ -52,7 +52,7 @@ import Submission from '@/types/Submission'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
 import ExtendedInput from '@/components/fields/mixins/extended_input'
-import {genId} from '@/lib'
+import {genId} from '@/lib/lib'
 import {SingleController} from '@/store/singles/controller'
 import {makeSpace} from '@/specs/helpers'
 

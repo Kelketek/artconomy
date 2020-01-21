@@ -18,7 +18,7 @@ import Submission from '@/types/Submission'
 import {genSubmission} from '@/store/submissions/specs/fixtures'
 import SubmissionDetail from '@/components/views/submission/SubmissionDetail.vue'
 import {RelatedUser} from '@/store/profiles/types/RelatedUser'
-import {searchSchema} from '@/lib'
+import {searchSchema} from '@/lib/lib'
 import {Vuetify} from 'vuetify/types'
 
 let localVue = vueSetup()

@@ -1,11 +1,13 @@
 from decimal import Decimal
+from functools import lru_cache
 
 from django.conf import settings
-from django.core.validators import RegexValidator, EmailValidator
+from django.contrib.contenttypes.models import ContentType
+from django.core.validators import RegexValidator, EmailValidator, MinValueValidator
+from django.db.models import Sum, QuerySet
 from django.utils.datetime_safe import datetime, date
 from luhn import verify
 from rest_framework import serializers
-from rest_framework.compat import MinValueValidator
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import SerializerMethodField, DecimalField, IntegerField, FloatField, EmailField
 from short_stuff import slugify
@@ -14,21 +16,21 @@ from short_stuff.django import ShortUIDField
 from apps.lib.serializers import (
     RelatedUserSerializer, RelatedAssetField, EventTargetRelatedField, SubscribedField,
     TagListField, RelatedAtomicMixin,
-)
+    MoneyToFloatField)
 from apps.lib.utils import country_choices, add_check
 from apps.profiles.models import User, Submission, Character
 from apps.profiles.serializers import CharacterSerializer, SubmissionSerializer
 from apps.profiles.utils import available_users
 from apps.sales.models import Product, Order, CreditCardToken, Revision, BankAccount, \
-    Rating, TransactionRecord
-from apps.sales.utils import account_balance, PENDING, POSTED_ONLY
+    Rating, TransactionRecord, LineItem, ADD_ON, TIP, BASE_PRICE, InventoryTracker, EXTRA
+from apps.sales.utils import account_balance, PENDING, POSTED_ONLY, AVAILABLE
 
 
 class ProductMixin:
     def get_thumbnail_url(self, obj):
         return self.context['request'].build_absolute_uri(obj.file.file.url)
 
-    def validate_price(self, value):
+    def validate_base_price(self, value):
         if not self.context['request'].subject.artist_profile.escrow_disabled:
             if value and (value < settings.MINIMUM_PRICE):
                 raise ValidationError('Must be at least ${}'.format(settings.MINIMUM_PRICE))
@@ -56,9 +58,9 @@ class ProductSerializer(ProductMixin, RelatedAtomicMixin, serializers.ModelSeria
     user = RelatedUserSerializer(read_only=True)
     primary_submission = SubmissionSerializer(required=False, allow_null=True)
     tags = TagListField(required=False)
-    price = FloatField()
+    base_price = MoneyToFloatField()
+    starting_price = MoneyToFloatField(read_only=True)
     expected_turnaround = FloatField()
-    escrow_disabled = serializers.SerializerMethodField()
 
     def __init__(self, *args, **kwargs):
         self.related_list = kwargs.get('related_list', None)
@@ -69,19 +71,14 @@ class ProductSerializer(ProductMixin, RelatedAtomicMixin, serializers.ModelSeria
         if request.user.is_staff:
             self.fields['featured'].read_only = False
 
-    def get_escrow_disabled(self, product):
-        if not product.price:
-            return True
-        return product.user.artist_profile.escrow_disabled
-
     class Meta:
         model = Product
         fields = (
             'id', 'name', 'description', 'revisions', 'hidden', 'max_parallel', 'task_weight',
-            'expected_turnaround', 'user', 'price', 'tags', 'available', 'primary_submission',
-            'featured', 'hits', 'escrow_disabled'
+            'expected_turnaround', 'user', 'base_price', 'starting_price', 'tags', 'available', 'primary_submission',
+            'featured', 'hits', 'escrow_disabled', 'table_product', 'track_inventory',
         )
-        read_only_fields = ('tags', 'featured')
+        read_only_fields = ('tags', 'featured', 'table_product', 'starting_price')
         extra_kwargs = {'price': {'required': True}}
 
 
@@ -133,13 +130,11 @@ class OrderViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
     seller = RelatedUserSerializer(read_only=True)
     buyer = RelatedUserSerializer(read_only=True)
     arbitrator = RelatedUserSerializer(read_only=True)
-    price = SerializerMethodField()
     product = ProductSerializer(read_only=True)
     outputs = SubmissionSerializer(many=True, read_only=True)
     subscribed = SubscribedField(required=False)
     expected_turnaround = FloatField(read_only=True)
-    adjustment = FloatField(read_only=True)
-    tip = FloatField(read_only=True, validators=[MinValueValidator(0)])
+    tip = MoneyToFloatField(read_only=True, validators=[MinValueValidator(0)])
     adjustment_expected_turnaround = FloatField(read_only=True)
     display = serializers.SerializerMethodField()
     claim_token = serializers.SerializerMethodField()
@@ -149,7 +144,7 @@ class OrderViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
         if self.is_seller:
             if self.instance.status in [Order.NEW, Order.PAYMENT_PENDING]:
                 for field_name in [
-                    'adjustment_expected_turnaround', 'adjustment', 'adjustment_task_weight', 'adjustment_revisions',
+                    'adjustment_expected_turnaround', 'adjustment_task_weight', 'adjustment_revisions',
                 ]:
                     self.fields[field_name].read_only = False
             # Should never be harmful. Helpful in many statuses.
@@ -163,13 +158,6 @@ class OrderViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
         elif self.is_buyer:
             if self.instance.status == Order.PAYMENT_PENDING and self.instance.seller.landscape:
                 self.fields['tip'].read_only = False
-
-    def validate_adjustment(self, val):
-        adjustment = Decimal(val)
-        base = self.instance.product or self.instance
-        if (base.price.amount + adjustment) < settings.MINIMUM_PRICE:
-            raise ValidationError("The total price may not be less than ${}".format(settings.MINIMUM_PRICE))
-        return adjustment
 
     def validate_adjustment_revisions(self, val):
         base = self.instance.product or self.instance
@@ -217,12 +205,6 @@ class OrderViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
         user = self.context['request'].user
         return (user == self.instance.buyer) or user.is_staff
 
-    # noinspection PyMethodMayBeStatic
-    def get_price(self, obj):
-        if not obj.price:
-            return obj.product.price.amount
-        return obj.price.amount
-
     def validate(self, attrs):
         # We're going to assume that tip is only edited on its own.
         tip = attrs.get('tip', None)
@@ -234,38 +216,70 @@ class OrderViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
             raise ValidationError({'tip': 'Tip should not be more than half of the original price.'})
         return attrs
 
-
     def get_display(self, obj):
         return obj.notification_display(context=self.context)
 
     class Meta:
         model = Order
         fields = (
-            'id', 'created_on', 'status', 'price', 'product', 'details', 'seller', 'buyer', 'adjustment',
+            'id', 'created_on', 'status', 'product', 'details', 'seller', 'buyer',
             'stream_link', 'revisions', 'outputs', 'private', 'subscribed', 'adjustment_task_weight',
             'adjustment_expected_turnaround', 'expected_turnaround', 'task_weight', 'paid_on', 'dispute_available_on',
             'auto_finalize_on', 'started_on', 'escrow_disabled', 'revisions_hidden', 'final_uploaded', 'arbitrator',
             'display', 'rating', 'claim_token', 'commission_info', 'adjustment_revisions', 'customer_email',
-            'tip',
+            'tip', 'table_order', 'trust_finalized',
         )
         read_only_fields = [field for field in fields if field != 'subscribed']
+
+
+class LineItemSerializer(serializers.ModelSerializer):
+    percentage = serializers.FloatField()
+    amount = MoneyToFloatField()
+
+    class Meta:
+        model = LineItem
+        fields = (
+            'id', 'priority', 'percentage', 'amount', 'type', 'destination_account', 'destination_user',
+            'description', 'cascade_percentage', 'cascade_amount',
+        )
+        read_only_fields = ['id', 'priority', 'destination_account', 'destination_user']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if getattr(self, 'instance') and not isinstance(self.instance, QuerySet):
+            if self.instance.type == BASE_PRICE:
+                self.fields['percentage'].read_only = True
+            if self.instance.id:
+                self.fields['type'].read_only = True
+
+    def validate_type(self, value):
+        order = self.context['order']
+        user = self.context['request'].user
+        if user.is_staff:
+            permitted_types = [EXTRA, ADD_ON, TIP]
+        elif user == order.seller:
+            permitted_types = [ADD_ON]
+        elif user == order.buyer:
+            permitted_types = [TIP]
+        if value not in permitted_types:
+            raise ValidationError('You do not have permission to create/modify line items of this type.')
+        return value
+
+    def validate_minimum(self, value):
+        order = self.context['order']
+        user = self.context['request'].user
+        if (not (user == order.seller) or user.is_staff) and value < 0:
+            raise ValidationError('Cannot be less than 0.')
+        return value
 
 
 class OrderPreviewSerializer(serializers.ModelSerializer):
     seller = RelatedUserSerializer(read_only=True)
     buyer = RelatedUserSerializer(read_only=True)
-    price = SerializerMethodField()
     product = ProductSerializer(read_only=True)
     expected_turnaround = FloatField()
-    adjustment = FloatField()
     adjustment_expected_turnaround = FloatField()
     display = serializers.SerializerMethodField()
-
-    # noinspection PyMethodMayBeStatic
-    def get_price(self, obj):
-        if not obj.price:
-            return obj.product.price.amount
-        return obj.price.amount
 
     def get_display(self, obj):
         return obj.notification_display(context=self.context)
@@ -273,7 +287,7 @@ class OrderPreviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = (
-            'id', 'created_on', 'status', 'price', 'product', 'seller', 'buyer', 'adjustment', 'private',
+            'id', 'created_on', 'status', 'product', 'seller', 'buyer', 'private',
             'adjustment_task_weight', 'adjustment_expected_turnaround', 'expected_turnaround', 'task_weight',
             'paid_on', 'dispute_available_on', 'auto_finalize_on', 'started_on', 'escrow_disabled', 'arbitrator',
             'display', 'adjustment_revisions',
@@ -438,11 +452,12 @@ class TransactionRecordSerializer(serializers.ModelSerializer):
     payee = RelatedUserSerializer(read_only=True)
     target = EventTargetRelatedField(read_only=True)
     card = CardSerializer(read_only=True)
-    amount = FloatField()
+    amount = MoneyToFloatField()
 
     def to_representation(self, instance):
         result = super().to_representation(instance)
-        if instance.payer != self.context['request'].subject:
+        subject = getattr(self.context['request'], 'subject', self.context['request'].user)
+        if (instance.payer != subject) and not subject.is_staff:
             # In this case the user should not have access to the card information.
             result['card'] = None
         return result
@@ -506,6 +521,7 @@ class NewInvoiceSerializer(serializers.Serializer):
     private = serializers.BooleanField()
     details = serializers.CharField(max_length=5000)
     paid = serializers.BooleanField(allow_null=True)
+    hold = serializers.BooleanField(allow_null=True)
     expected_turnaround = serializers.DecimalField(
         max_digits=5, decimal_places=2, min_value=settings.MINIMUM_TURNAROUND,
     )
@@ -523,13 +539,9 @@ class NewInvoiceSerializer(serializers.Serializer):
                     raise ValidationError('You cannot send yourself an invoice.')
                 return user
             return User.objects.filter(email=value).first() or value
-        try:
-            value = int(value)
-        except ValueError:
-            raise ValidationError("Not a valid email or user.")
-        user = available_users(self.context['request']).filter(id=value).first()
+        user = available_users(self.context['request']).filter(username__iexact=value).first()
         if not user:
-            raise ValidationError("User with that ID not found, or they are blocking you.")
+            raise ValidationError("User with that username not found, or they are blocking you.")
         return user
 
     def validate_product(self, value):
@@ -621,3 +633,120 @@ class OrderAuthSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     claim_token = ShortUIDField()
     chown = serializers.BooleanField()
+
+
+class OrderValuesSerializer(serializers.ModelSerializer):
+    """
+    Tracks all relevant finance info from an order. This serializer should only be used on orders which have at
+    least been initially paid for.
+    """
+    status = serializers.SerializerMethodField()
+    buyer = serializers.SerializerMethodField()
+    seller = serializers.StringRelatedField()
+    price = serializers.SerializerMethodField()
+    charged_on = serializers.SerializerMethodField()
+    still_in_escrow = serializers.SerializerMethodField()
+    artist_payment = serializers.SerializerMethodField()
+    in_reserve = serializers.SerializerMethodField()
+    unqualified_earnings = serializers.SerializerMethodField()
+    refunded_on = serializers.SerializerMethodField()
+
+    def get_status(self, obj):
+        return obj.get_status_display()
+
+    def get_buyer(self, obj):
+        if obj.buyer and obj.buyer.guest:
+            return f'Guest #{obj.id}'
+        elif obj.buyer:
+            return obj.buyer.username
+        else:
+            return '(Empty)'
+
+    @lru_cache
+    def charge_transactions(self, obj):
+        return TransactionRecord.objects.filter(
+            status=TransactionRecord.SUCCESS,
+            # Will need this to expand to cash or similar?
+            source__in=[TransactionRecord.CARD],
+            **self.qs_kwargs(obj),
+        )
+
+    @lru_cache
+    def qs_kwargs(self, obj):
+        return {
+            'content_type': ContentType.objects.get_for_model(obj),
+            'object_id': obj.id,
+        }
+
+    def get_price(self, obj):
+        return self.charge_transactions(obj).aggregate(total=Sum('amount'))['total']
+
+    def get_charged_on(self, obj):
+        return self.charge_transactions(obj)[0].created_on
+
+    def get_still_in_escrow(self, obj):
+        return account_balance(
+            obj.seller, TransactionRecord.ESCROW, AVAILABLE, qs_kwargs=self.qs_kwargs(obj)
+        )
+
+    def get_artist_payment(self, obj):
+        return account_balance(
+            obj.seller, TransactionRecord.HOLDINGS, AVAILABLE, qs_kwargs=self.qs_kwargs(obj)
+        )
+
+    def get_in_reserve(self, obj):
+        return account_balance(
+            None, TransactionRecord.RESERVE, AVAILABLE, qs_kwargs=self.qs_kwargs(obj)
+        )
+
+    def get_unqualified_earnings(self, obj):
+        return account_balance(
+            None, TransactionRecord.UNPROCESSED_EARNINGS, AVAILABLE, qs_kwargs=self.qs_kwargs(obj),
+        )
+
+    def get_refunded_on(self, obj):
+        if refund := TransactionRecord.objects.filter(
+            source=TransactionRecord.ESCROW, payer=obj.seller, status=TransactionRecord.SUCCESS,
+            payee=obj.buyer,
+            **self.qs_kwargs(obj),
+        ).first():
+            return refund.created_on
+
+    class Meta:
+        model = Order
+        fields = (
+            'id', 'created_on', 'status', 'seller', 'buyer', 'price', 'charged_on', 'still_in_escrow', 'artist_payment',
+            'in_reserve', 'unqualified_earnings', 'refunded_on',
+        )
+
+
+class SimpleTransactionSerializer(serializers.ModelSerializer):
+    id = ShortUIDField()
+    payer = serializers.StringRelatedField(read_only=True)
+    payee = serializers.StringRelatedField(read_only=True)
+    category = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
+    amount = MoneyToFloatField()
+
+    def get_category(self, obj):
+        return obj.get_category_display()
+
+    def get_status(self, obj):
+        return obj.get_status_display()
+
+    class Meta:
+        model = TransactionRecord
+        fields = (
+            'id', 'source', 'status', 'payer', 'payee', 'amount', 'remote_id',
+            'category',
+            'created_on', 'finalized_on',
+        )
+        read_only_fields = fields
+
+
+class InventorySerializer(serializers.ModelSerializer):
+    count = serializers.IntegerField(validators=[MinValueValidator(0)])
+
+    class Meta:
+        model = InventoryTracker
+        fields = ('count',)
