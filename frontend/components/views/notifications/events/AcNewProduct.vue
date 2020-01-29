@@ -20,7 +20,7 @@ export default {
         return {
           name: 'Product',
           params: {
-            productID: this.event.data.product.id,
+            productId: this.event.data.product.id,
             username: this.event.data.product.user.username,
           },
         }
