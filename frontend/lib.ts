@@ -434,22 +434,7 @@ export function paramHandleArray(handleName: string, nameArray: string[]): param
     })
   }
 }
-// export function buildQueryString(obj) {
-//   let str = []
-//   for (let p of Object.keys(obj)) {
-//     if (Array.isArray(obj[p])) {
-//       for (let entry of obj[p]) {
-//         str.push(encodeURIComponent(p) + '=' + encodeURIComponent(entry))
-//       }
-//       continue
-//     }
-//     str.push(encodeURIComponent(p) + '=' + encodeURIComponent(obj[p]))
-//   }
-//   return str.join('&')
-// }
-//
-//
-// From vue upload component
+
 export function formatSize(size: number): string {
   if (size > 1024 * 1024 * 1024 * 1024) {
     return (size / 1024 / 1024 / 1024 / 1024).toFixed(2) + ' TB'
@@ -462,33 +447,6 @@ export function formatSize(size: number): string {
   }
   return size.toString() + ' B'
 }
-
-//
-// // The Vue form generator number validator doesn't always seem to work right. Here's our own implementation.
-// export function validNumber(value, schema) {
-//   if (isNaN(value)) {
-//     return ['That is not a number']
-//   }
-//   // Might be best to use type coercion here and set min and max as a string so that it displays without
-//   // extra digits.
-//   if (schema.max !== undefined && (Number(value) > Number(schema.max))) {
-//     return ['This number cannot be greater than ' + schema.max]
-//   }
-//   if (schema.min !== undefined && (Number(value) < Number(schema.min))) {
-//     return ['This number cannot be less than ' + schema.min]
-//   }
-//   return true
-// }
-//
-// export function minimumOrZero(value, schema) {
-//   value = parseFloat(value)
-//   if (value === 0 || value === 0.0) {
-//     return true
-//   }
-//   if (value < schema.min) {
-//     return ['Value must be either 0 or ' + schema.min]
-//   }
-// }
 
 export function truncateText(text: string, maxLength: number) {
   if (text.length <= maxLength) {

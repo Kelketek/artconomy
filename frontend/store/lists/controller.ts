@@ -79,6 +79,10 @@ export class ListController<T> extends BaseController<ListModuleOpts, ListState<
   // We do not have a corresponding setter because we cannot be certain of type/store guarantees that way. Use the
   // setList function instead.
   public get list(): Array<SingleController<T>> {
+    // Can happen if there remains a reference to this object after our system reaps it.
+    if (!this.attr('refs')) {
+      return []
+    }
     let controllers = this.attr('refs').map((ref: string) => this.$getSingle(
       // Vestigil endpoint-- the controller may not be cached but the list should have defined it in the store.
       `${this.prefix}items/${ref}`, {endpoint: ''}

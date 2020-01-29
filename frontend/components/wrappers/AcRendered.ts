@@ -45,7 +45,7 @@ export default class AcRendered extends mixins(Formatting) {
     if (this.more) {
       return this.value
     }
-    let value = this.value
+    let value = this.value || ''
     let truncateLength: number|undefined
     if (this.truncate) {
       if (typeof this.truncate === 'number') {

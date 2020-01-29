@@ -37,6 +37,11 @@ export default class SearchList extends Vue {
     }
     // My error logs say we sometimes end up with the query string attached to a nonsense place
     this.$router.replace({query: newParams})
+    // Same issue here.
+    /* istanbul ignore if */
+    if (!(this.list && this.list.reset)) {
+      return
+    }
     this.list.reset().catch(this.searchForm.setErrors)
   }
   public created() {
