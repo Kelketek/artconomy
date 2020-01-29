@@ -17,10 +17,7 @@
       </v-col>
       <v-col class="text-center" cols="12" offset-sm="2" lg="6" offset-lg="3" >
         Try terms like:
-        <v-chip color="secondary" @click="search({q: 'refsheet'})" class="mx-1">refsheet</v-chip>
-          <v-chip color="secondary" @click="search({q: 'badge'})" class="mx-1">badge</v-chip>
-          <v-chip color="secondary" @click="search({q: 'stickers'})" class="mx-1">stickers</v-chip>
-          <v-chip color="secondary" @click="search({q: 'ych'})" class="mx-1">ych</v-chip>
+        <v-chip color="secondary" @click="search({q: term})" class="mx-1" v-for="term in searchTerms" :key="term">{{term}}</v-chip>
       </v-col>
     </v-row>
     <v-row no-gutters   class="py-2">
@@ -264,9 +261,11 @@ import Submission from '@/types/Submission'
 import {RawData} from '@/store/forms/types/RawData'
 import AcCharacterPreview from '@/components/AcCharacterPreview.vue'
 import {Character} from '@/store/characters/types/Character'
-  @Component({
-    components: {AcCharacterPreview, AcGalleryPreview, AcBoundField, AcLoadSection, AcProductPreview},
-  })
+import {shuffle} from '@/lib'
+
+@Component({
+  components: {AcCharacterPreview, AcGalleryPreview, AcBoundField, AcLoadSection, AcProductPreview},
+})
 export default class Home extends mixins(Viewer) {
     public searchForm: FormController = null as unknown as FormController
     public featured: ListController<Product> = null as unknown as ListController<Product>
@@ -298,6 +297,10 @@ export default class Home extends mixins(Viewer) {
     public get randomBanner() {
       // Lazy calculation, so should always match on a specific render.
       return this.banners[Math.floor(Math.random() * this.banners.length)]
+    }
+
+    public get searchTerms() {
+      return shuffle(['refsheet', 'ych', 'stickers', 'badge']).slice(0, 3)
     }
 
     public searchReplace(data: RawData) {
