@@ -6,7 +6,7 @@
         justify="center"
                 class="hero-text fill-height"
       >
-        <v-col>
+        <v-col class="text-center">
           <h1 class="display-2 font-weight-thin mb-3">Always Get Paid</h1>
           <h2>Stay Organized Effortlessly</h2>
         </v-col>
@@ -19,7 +19,7 @@
             <v-col class="grow pa-1" >
               <v-row no-gutters  >
                 <v-col cols="6" md="12" order="2" order-md="1">
-                  <v-img src="/static/images/laptop.png" max-height="20vh" contain></v-img>
+                  <v-img src="/static/images/laptop.png" max-height="20vh" contain />
                 </v-col>
                 <v-col cols="6" md="12" order="1" order-md="2">
                   <v-row no-gutters class="justify-content fill-height"  align="center" >
@@ -31,7 +31,7 @@
               </v-row>
             </v-col>
             <v-col class="hidden-sm-and-down shrink">
-              <v-divider vertical></v-divider>
+              <v-divider vertical />
             </v-col>
           </v-row>
         </v-col>
@@ -40,7 +40,7 @@
             <v-col class="grow pa-1" >
               <v-row no-gutters  >
                 <v-col cols="6" md="12">
-                  <v-img src="/static/images/403.png" max-height="20vh" contain></v-img>
+                  <v-img src="/static/images/403.png" max-height="20vh" contain />
                 </v-col>
                 <v-col class="pa-1" cols="6" md="12" >
                   <v-row no-gutters class="justify-content fill-height"  align="center" >
@@ -52,7 +52,7 @@
               </v-row>
             </v-col>
             <v-col class="hidden-sm-and-down shrink">
-              <v-divider vertical></v-divider>
+              <v-divider vertical />
             </v-col>
           </v-row>
         </v-col>
@@ -61,7 +61,7 @@
             <v-col class="grow pa-1" >
               <v-row no-gutters  >
                 <v-col cols="6" md="12" order="2" order-md="1">
-                  <v-img src="/static/images/fridge.png" max-height="20vh" contain></v-img>
+                  <v-img src="/static/images/fridge.png" max-height="20vh" contain />
                 </v-col>
                 <v-col class="pa-1" cols="6" md="12" order="1" order-md="2">
                   <v-row no-gutters class="justify-content fill-height"  align="center" >
