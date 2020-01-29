@@ -663,7 +663,7 @@ export default class OrderDetail extends mixins(Viewer, Formatting, Ratings) {
     if (!order) {
       return
     }
-    this.paymentForm.fields.amount.update(this.totalCharge)
+    this.paymentForm.fields.amount.update(this.totalCharge.toFixed(2))
   }
 
   public get totalCharge() {
