@@ -33,7 +33,7 @@ mailchimp3==3.0.5
 markdown==2.6.11
 pandas==0.23.3
 PyVirtualDisplay==0.2.1
-psycopg2>=2.7,<2.8 --no-binary psycopg2
+psycopg2-binary>=2.8,<2.9 --no-binary psycopg2
 python-telegram-bot==10.1.0
 pytz>=2018.3
 requests==2.20.0
