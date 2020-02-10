@@ -9,7 +9,7 @@
             <ac-patch-field
                 field-type="v-switch"
                 label="Favorites Hidden"
-                hint="When off, prevents others from seeing what pieces you've added to your favorites."
+                hint="When on, prevents others from seeing what pieces you've added to your favorites."
                 :persistent-hint="true"
                 :save-indicator="false"
                 :patcher="favoritesHidden"

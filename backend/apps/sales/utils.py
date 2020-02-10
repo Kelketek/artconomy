@@ -25,8 +25,9 @@ class ALL:
 
 
 AVAILABLE = 0
-POSTED_ONLY= 1
+POSTED_ONLY = 1
 PENDING = 2
+
 
 def account_balance(user: Union[User, None, Type[ALL]], account_type: int, balance_type: int=AVAILABLE) -> Decimal:
     from apps.sales.models import TransactionRecord
