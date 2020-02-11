@@ -577,7 +577,6 @@ import {Mutation} from 'vuex-class'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import LineItem from '@/types/LineItem'
-import { makeSpace } from '@/specs/helpers';
 
 enum VIEWER_TYPE {
   UNSET = 0,
