@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import {Vuetify} from 'vuetify/types'
-import {cleanUp, confirmAction, createVuetify, flushPromises, rs, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, confirmAction, createVuetify, flushPromises, makeSpace, rs, setViewer, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import {mount, Wrapper} from '@vue/test-utils'
 import OrderDetail from '@/components/views/order/OrderDetail.vue'
@@ -124,12 +124,12 @@ describe('OrderDetail.vue', () => {
       })
     const vm = wrapper.vm as any
     const order = genOrder()
+    order.seller.landscape = true
+    order.buyer!.landscape = false
     order.status = OrderStatus.PAYMENT_PENDING
-    const orderRequest = mockAxios.getReqByUrl('/api/sales/v1/order/3/')
-    mockAxios.mockResponse(rs(order), orderRequest)
-    await flushPromises()
-    await vm.$nextTick()
-    vm.fetching = false
+    vm.order.setX(order)
+    vm.order.ready = true
+    vm.order.fetching = false
     vm.revisions.ready = true
     vm.characters.setList([])
     vm.characters.fetching = false
@@ -170,7 +170,8 @@ describe('OrderDetail.vue', () => {
     vm.order.setX(order)
     vm.order.ready = true
     vm.order.fetching = false
-    vm.fetching = false
+    vm.revisions.setList([])
+    vm.revisions.fetching = false
     vm.revisions.ready = true
     vm.characters.setList([])
     vm.characters.fetching = false
@@ -332,6 +333,7 @@ describe('OrderDetail.vue', () => {
     await vm.$nextTick()
     mockAxios.reset()
     vm.showAddSubmission = true
+    mockAxios.reset()
     await vm.$nextTick()
     wrapper.find('.dialog-submit').trigger('click')
     const newSubmission = genSubmission()

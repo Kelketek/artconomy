@@ -6,6 +6,7 @@
       :transition="transition"
       :persistent="persistent"
       scrollable
+      :eager="eager"
       :width="width"
   >
     <v-card :id="id">
@@ -88,6 +89,8 @@ export default class AcFormDialog extends mixins(Dialog) {
     public id!: string
     @Prop({default: false})
     public fluid!: boolean
+    @Prop({default: false})
+    public eager!: boolean
 
     public reSend(event: Event) {
       // Re-emit form so that we can use semantic Vue @event directives without the browser

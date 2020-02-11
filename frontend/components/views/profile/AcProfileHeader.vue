@@ -1,7 +1,7 @@
 <template>
   <v-toolbar :dense="dense" color="black">
     <ac-avatar :username="username" :show-name="false" />
-    <v-toolbar-title class="ml-1"><ac-link :to="profileLink(subject)">{{subjectHandler.displayName}}</ac-link></v-toolbar-title>
+    <v-toolbar-title class="ml-1"><ac-link :to="subject && profileLink(subject)">{{subjectHandler.displayName}}</ac-link></v-toolbar-title>
     <v-spacer />
     <v-toolbar-items v-if="subject && showActions && $vuetify.breakpoint.smAndUp">
       <v-btn color="secondary" @click="showMenu=true" v-if="isStaff">

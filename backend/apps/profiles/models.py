@@ -547,7 +547,11 @@ def auto_remove_character(sender, instance, **kwargs):
     Event.objects.filter(
         content_type=ContentType.objects.get_for_model(model=sender),
         object_id=instance.id,
-        type__in=[CHAR_TAG, SUBMISSION_CHAR_TAG, NEW_CHARACTER],
+        type__in=[CHAR_TAG, NEW_CHARACTER],
+    ).delete()
+    Event.objects.filter(
+        type=SUBMISSION_CHAR_TAG,
+        data__character=instance.id
     ).delete()
 
 

@@ -470,6 +470,7 @@
                     :errors="addSubmission.errors"
                     v-bind="addSubmission.bind"
                     :large="true"
+                    :eager="true"
                     :title="isSeller ? 'Add to Gallery' : 'Add to Collection'"
                 >
                   <v-container class="pa-0">
@@ -576,6 +577,7 @@ import {Mutation} from 'vuex-class'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import LineItem from '@/types/LineItem'
+import { makeSpace } from '@/specs/helpers';
 
 enum VIEWER_TYPE {
   UNSET = 0,
