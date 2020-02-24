@@ -253,6 +253,12 @@ describe('ProductDetail.vue', () => {
     await vm.$nextTick()
     // No profile loaded yet.
     expect(vm.escrowDisabled).toBe(true)
+    vm.product.updateX({table_product: true})
+    await vm.$nextTick()
+    expect(vm.escrowDisabled).toBe(false)
+    vm.product.updateX({table_product: false})
+    await vm.$nextTick()
+    expect(vm.escrowDisabled).toBe(true)
     vm.subjectHandler.artistProfile.setX(genArtistProfile())
     vm.subjectHandler.artistProfile.ready = true
     await vm.$nextTick()

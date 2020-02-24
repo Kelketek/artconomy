@@ -1,6 +1,3 @@
-import {LineTypes} from '@/types/LineTypes'
-import {LineTypes} from '@/types/LineTypes'
-import {LineTypes} from '@/types/LineTypes'
 <template>
   <ac-load-section :controller="order">
     <template v-slot:default>

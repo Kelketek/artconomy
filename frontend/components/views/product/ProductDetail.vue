@@ -433,6 +433,13 @@ export default class ProductDetail extends mixins(ProductCentric, Formatting, Ed
     public recommended: ListController<Product> = null as unknown as ListController<Product>
 
     public get escrowDisabled() {
+      /* istanbul ignore if */
+      if (!this.product.x) {
+        return true
+      }
+      if (this.product.x.table_product) {
+        return false
+      }
       if (!this.subjectHandler.artistProfile.x) {
         return true
       }

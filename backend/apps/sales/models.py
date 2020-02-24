@@ -147,6 +147,8 @@ class Product(ImageModel, HitsMixin):
     def escrow_disabled(self):
         if not self.base_price:
             return True
+        if self.table_product:
+            return False
         return self.user.artist_profile.escrow_disabled
 
     @property

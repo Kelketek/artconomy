@@ -65,6 +65,15 @@ class TestProduct(TestCase):
         data = product.notification_display(context)
         self.assertEqual(data['id'], product.primary_submission.id)
 
+    def test_escrow_disabled(self):
+        product = ProductFactory.create(user__artist_profile__escrow_disabled=True)
+        self.assertTrue(product.escrow_disabled)
+        product.table_product = True
+        self.assertFalse(product.escrow_disabled)
+        product.table_product = False
+        product.user.artist_profile.escrow_disabled = False
+        self.assertFalse(product.escrow_disabled)
+
     @unpack
     @data(*DESCRIPTION_VALUES)
     def test_preview_description(self, price: Decimal, prefix: str, escrow_disabled: bool):
