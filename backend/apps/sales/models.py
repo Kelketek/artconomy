@@ -183,6 +183,7 @@ class Product(ImageModel, HitsMixin):
 
     def save(self, *args, **kwargs):
         self.starting_price = self.get_starting_price()
+        self.owner = self.user
         result = self.wrap_operation(super().save, *args, **kwargs)
         if self.primary_submission:
             self.samples.add(self.primary_submission)
