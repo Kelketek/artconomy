@@ -61,7 +61,7 @@ class Product(ImageModel, HitsMixin):
     # Cached value from get_starting_price, useful for searching.
     starting_price = MoneyField(
         max_digits=6, decimal_places=2, default_currency='USD',
-        db_index=True, null=True,
+        db_index=True, null=True, blank=True,
     )
     tags = ManyToManyField('lib.Tag', related_name='products', blank=True)
     tags__max = 200
@@ -69,8 +69,9 @@ class Product(ImageModel, HitsMixin):
     user = ForeignKey(User, on_delete=CASCADE, related_name='products')
     primary_submission = ForeignKey(
         'profiles.Submission', on_delete=SET_NULL, related_name='featured_sample_for', null=True,
+        blank=True,
     )
-    samples = ManyToManyField('profiles.Submission', related_name='is_sample_for')
+    samples = ManyToManyField('profiles.Submission', related_name='is_sample_for', blank=True)
     created_on = DateTimeField(default=timezone.now, db_index=True)
     edited_on = DateTimeField(db_index=True, auto_now=True)
     shippable = BooleanField(default=False)

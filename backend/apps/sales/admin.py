@@ -6,7 +6,7 @@ from apps.sales.models import Product, Order, Revision, Promo, TransactionRecord
 
 
 class ProductAdmin(admin.ModelAdmin):
-    raw_id_fields = ['user', 'primary_submission', 'samples', 'tags']
+    raw_id_fields = ['user', 'owner', 'primary_submission', 'samples', 'tags']
 
 
 class OrderAdmin(admin.ModelAdmin):

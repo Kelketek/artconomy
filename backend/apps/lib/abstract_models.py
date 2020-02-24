@@ -142,7 +142,8 @@ class ImageModel(AssetThumbnailMixin, models.Model):
     preview_old = ThumbnailerImageField(upload_to='thumbs/%Y/%m/%d/', blank=True, null=True, default='')
     created_on = DateTimeField(default=timezone.now)
     owner = ForeignKey(
-        settings.AUTH_USER_MODEL, related_name='owned_%(app_label)s_%(class)s', on_delete=CASCADE
+        settings.AUTH_USER_MODEL, related_name='owned_%(app_label)s_%(class)s', on_delete=CASCADE,
+        blank=True,
     )
 
     class Meta:
