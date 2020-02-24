@@ -94,7 +94,7 @@ class ProductList(ListCreateAPIView):
         username = self.kwargs['username']
         qs = Product.objects.filter(user__username__iexact=self.kwargs['username'], active=True)
         if not (self.request.user.username.lower() == username.lower() or self.request.user.is_staff):
-            qs = qs.filter(hidden=False)
+            qs = qs.filter(hidden=False, table_product=False)
         qs = qs.order_by('-created_on')
         return qs
 
