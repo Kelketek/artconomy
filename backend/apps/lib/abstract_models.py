@@ -127,7 +127,7 @@ class ImageModel(AssetThumbnailMixin, models.Model):
     rating = models.IntegerField(choices=RATINGS, db_index=True, default=GENERAL)
     file = models.ForeignKey(
         'lib.Asset', on_delete=models.SET_NULL, null=True,
-        related_name='full_%(app_label)s_%(class)s',
+        related_name='full_%(app_label)s_%(class)s', blank=True,
     )
     # To be removed once we're in production and it's proven safe without data loss for a while.
     file_old = ThumbnailerImageField(

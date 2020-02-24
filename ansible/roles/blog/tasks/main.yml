@@ -18,7 +18,7 @@
   get_url:
     url: https://wordpress.org/latest.zip
     dest: /home/wordpress/latest.zip
-    mode: 0440
+    mode: 0640
 
 - name: Install prereqs
   apt:
