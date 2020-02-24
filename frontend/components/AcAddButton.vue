@@ -38,6 +38,14 @@
     margin-right: 0;
     margin-top: .9rem;
   }
+  .add-button-container .v-btn {
+    border: 3px solid #fff !important;
+    border-radius: 100% !important;
+  }
+  .tooltip-holder .tooltip-content {
+    border: 1px solid #fff !important;
+    border-radius: 3px;
+  }
 </style>
 
 <script>

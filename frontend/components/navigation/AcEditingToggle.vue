@@ -1,7 +1,7 @@
 <template>
   <v-speed-dial bottom right fixed v-model="editing" elevation-10 style="z-index: 4">
     <ac-speed-button
-        slot="activator" nudge-top="2rem" nudge-right="1rem"
+        slot="activator"
         :text="editing ? 'Lock' : 'Edit'"
     >
       <v-btn
