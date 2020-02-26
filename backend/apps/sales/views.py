@@ -1018,10 +1018,22 @@ class PaymentMixin:
     def perform_charge(
             self, data: dict, amount: Money, user: User,
     ) -> (bool, Union[Response, List[TransactionRecord]]):
+        if data.get('remote_id') and self.request.user.is_staff:
+            return self.from_remote_id(data, amount, user, data.get('remote_id'))
         if data.get('card_id'):
             return self.charge_existing_card(data, amount, user)
         else:
             return self.charge_new_card(data, amount, user)
+
+    def from_remote_id(self, data: dict, amount: Money, user: User, remote_id: str):
+        transactions = self.init_transactions(data, amount, user)
+        for transaction in transactions:
+            transaction.status = TransactionRecord.SUCCESS
+            transaction.remote_id = remote_id
+        self.post_success(transactions, data, user)
+        for transaction in transactions:
+            transaction.save()
+        return True, transactions
 
     def annotate_error(self, transactions: List[TransactionRecord], err: Exception) -> (False, Response):
         response_message = str(err)

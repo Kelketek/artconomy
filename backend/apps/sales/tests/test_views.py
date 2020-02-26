@@ -1756,7 +1756,7 @@ class TestOrder(APITestCase):
 
     def check_transactions(self, order, user):
         escrow = TransactionRecord.objects.get(
-            remote_id='Trans123', source=TransactionRecord.CARD, destination=TransactionRecord.ESCROW,
+            remote_id='36985214745', source=TransactionRecord.CARD, destination=TransactionRecord.ESCROW,
         )
         self.assertEqual(escrow.target, order)
         self.assertEqual(escrow.amount, Money('10.29', 'USD'))
@@ -1764,7 +1764,7 @@ class TestOrder(APITestCase):
         self.assertEqual(escrow.payee, order.seller)
 
         fee = TransactionRecord.objects.get(
-            remote_id='Trans123', source=TransactionRecord.CARD, destination=TransactionRecord.RESERVE,
+            remote_id='36985214745', source=TransactionRecord.CARD, destination=TransactionRecord.RESERVE,
         )
         self.assertEqual(fee.status, TransactionRecord.SUCCESS)
         self.assertEqual(fee.target, order)
@@ -1772,7 +1772,7 @@ class TestOrder(APITestCase):
         self.assertEqual(fee.payer, user)
         self.assertIsNone(fee.payee)
 
-        unprocessed = TransactionRecord.objects.get(remote_id='Trans123', source=TransactionRecord.RESERVE, destination=TransactionRecord.UNPROCESSED_EARNINGS)
+        unprocessed = TransactionRecord.objects.get(remote_id='36985214745', source=TransactionRecord.RESERVE, destination=TransactionRecord.UNPROCESSED_EARNINGS)
         self.assertEqual(unprocessed.status, TransactionRecord.SUCCESS)
         self.assertEqual(unprocessed.target, order)
         self.assertEqual(unprocessed.amount, Money('.98', 'USD'))
@@ -1789,7 +1789,7 @@ class TestOrder(APITestCase):
         add_adjustment(order, Money('2.00', 'USD'))
         subscription = Subscription.objects.get(subscriber=order.seller, type=SALE_UPDATE)
         self.assertTrue(subscription.email)
-        mock_charge_card.return_value = 'Trans123'
+        mock_charge_card.return_value = '36985214745'
         card = CreditCardTokenFactory.create(user=user)
         response = self.client.post(
             '/api/sales/v1/order/{}/pay/'.format(order.id),
@@ -1814,7 +1814,7 @@ class TestOrder(APITestCase):
             buyer=user, status=Order.PAYMENT_PENDING, product__base_price=Money('10.00', 'USD'),
         )
         add_adjustment(order, Money('2.00', 'USD'))
-        mock_charge_card.return_value = 'Trans123'
+        mock_charge_card.return_value = '36985214745'
         mock_create_token.return_value = '5634'
         response = self.client.post(
             '/api/sales/v1/order/{}/pay/'.format(order.id),
@@ -1856,7 +1856,7 @@ class TestOrder(APITestCase):
         add_adjustment(order, Money('2.00', 'USD'))
         subscription = Subscription.objects.get(subscriber=order.seller, type=SALE_UPDATE)
         self.assertTrue(subscription.email)
-        mock_charge_card.return_value = 'Trans123'
+        mock_charge_card.return_value = '36985214745'
         response = self.client.post(
             '/api/sales/v1/order/{}/pay/'.format(order.id),
             {
@@ -1882,7 +1882,7 @@ class TestOrder(APITestCase):
         )
         add_adjustment(order, Money('2.00', 'USD'))
         RevisionFactory.create(order=order)
-        mock_charge_card.return_value = 'Trans123'
+        mock_charge_card.return_value = '36985214745'
         self.client.post(
             '/api/sales/v1/order/{}/pay/'.format(order.id),
             {
@@ -1907,7 +1907,7 @@ class TestOrder(APITestCase):
         )
         add_adjustment(order, Money('2.00', 'USD'))
         RevisionFactory.create(order=order)
-        mock_charge_card.return_value = 'Trans123'
+        mock_charge_card.return_value = '36985214745'
         self.client.post(
             '/api/sales/v1/order/{}/pay/'.format(order.id),
             {
@@ -1990,7 +1990,7 @@ class TestOrder(APITestCase):
         self.assertFalse(user.sold_shield_on)
         subscription = Subscription.objects.get(subscriber=order.seller, type=SALE_UPDATE)
         self.assertTrue(subscription.email)
-        mock_charge_card.return_value = 'Trans123'
+        mock_charge_card.return_value = '36985214745'
         response = self.client.post(
             '/api/sales/v1/order/{}/pay/'.format(order.id),
             {
@@ -2043,7 +2043,7 @@ class TestOrder(APITestCase):
             buyer=user, status=Order.PAYMENT_PENDING, product__base_price=Money('10.00', 'USD'),
         )
         add_adjustment(order, Money('2.00', 'USD'))
-        mock_charge_card.return_value = 'Trans123'
+        mock_charge_card.return_value = '36985214745'
         response = self.client.post(
             '/api/sales/v1/order/{}/pay/'.format(order.id),
             {
@@ -2053,7 +2053,7 @@ class TestOrder(APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         # noinspection PyTypeChecker
-        self.assertRaises(TransactionRecord.DoesNotExist, TransactionRecord.objects.get, remote_id='Trans123')
+        self.assertRaises(TransactionRecord.DoesNotExist, TransactionRecord.objects.get, remote_id='36985214745')
 
     @patch('apps.sales.views.charge_saved_card')
     def test_pay_order_cvv_already_verified(self, mock_charge_card):
@@ -2063,7 +2063,7 @@ class TestOrder(APITestCase):
             buyer=user, status=Order.PAYMENT_PENDING, product__base_price=Money('10.00', 'USD'),
         )
         add_adjustment(order, Money('2.00', 'USD'))
-        mock_charge_card.return_value = 'Trans123'
+        mock_charge_card.return_value = '36985214745'
         response = self.client.post(
             '/api/sales/v1/order/{}/pay/'.format(order.id),
             {
@@ -2170,7 +2170,7 @@ class TestOrder(APITestCase):
             buyer=user, status=Order.PAYMENT_PENDING, product__base_price=Money('10.00', 'USD'),
         )
         add_adjustment(order, Money('2.00', 'USD'))
-        mock_charge_card.return_value = 'Trans123'
+        mock_charge_card.return_value = '36985214745'
         response = self.client.post(
             '/api/sales/v1/order/{}/pay/'.format(order.id),
             {
@@ -2190,7 +2190,7 @@ class TestOrder(APITestCase):
             buyer=user, status=Order.PAYMENT_PENDING, product__base_price=Money('10.00', 'USD'),
         )
         add_adjustment(order, Money('2.00', 'USD'))
-        mock_charge_card.return_value = 'Trans123'
+        mock_charge_card.return_value = '36985214745'
         response = self.client.post(
             '/api/sales/v1/order/{}/pay/'.format(order.id),
             {
@@ -2211,7 +2211,7 @@ class TestOrder(APITestCase):
             buyer=user, status=Order.PAYMENT_PENDING, product__base_price=Money('10.00', 'USD'),
         )
         add_adjustment(order, Money('2.00', 'USD'))
-        mock_charge_card.return_value = 'Trans123'
+        mock_charge_card.return_value = '36985214745'
         response = self.client.post(
             '/api/sales/v1/order/{}/pay/'.format(order.id),
             {
@@ -2232,7 +2232,7 @@ class TestOrder(APITestCase):
             buyer=user, status=Order.PAYMENT_PENDING, product__base_price=Money('10.00', 'USD'),
             seller=user2,
         )
-        mock_charge_card.return_value = 'Trans123'
+        mock_charge_card.return_value = '36985214745'
         response = self.client.post(
             '/api/sales/v1/order/{}/pay/'.format(order.id),
             {
@@ -2246,23 +2246,56 @@ class TestOrder(APITestCase):
 
     @patch('apps.sales.views.charge_saved_card')
     def test_pay_order_staffer(self, mock_charge_card):
+        user = UserFactory.create(is_staff=True)
+        self.login(user)
+        order = OrderFactory.create(
+            status=Order.PAYMENT_PENDING, product__base_price=Money('10.00', 'USD'),
+        )
+        add_adjustment(order, Money('2.00', 'USD'))
+        mock_charge_card.return_value = '36985214745'
+        response = self.client.post(
+            '/api/sales/v1/order/{}/pay/'.format(order.id),
+            {
+                'card_id': CreditCardTokenFactory.create(user=order.buyer).id,
+                'amount': '12.00',
+                'cvv': '467',
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.check_transactions(order, order.buyer)
+
+    def test_pay_order_staffer_remote_id(self):
+        user = UserFactory.create(is_staff=True)
+        self.login(user)
+        order = OrderFactory.create(
+            status=Order.PAYMENT_PENDING, product__base_price=Money('10.00', 'USD'),
+        )
+        add_adjustment(order, Money('2.00', 'USD'))
+        response = self.client.post(
+            '/api/sales/v1/order/{}/pay/'.format(order.id),
+            {
+                'remote_id': '36985214745',
+                'amount': '12.00',
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.check_transactions(order, order.buyer)
+
+    def test_pay_order_buyer_remote_id_fail(self):
         user = UserFactory.create()
         self.login(user)
         order = OrderFactory.create(
             buyer=user, status=Order.PAYMENT_PENDING, product__base_price=Money('10.00', 'USD'),
         )
         add_adjustment(order, Money('2.00', 'USD'))
-        mock_charge_card.return_value = 'Trans123'
         response = self.client.post(
             '/api/sales/v1/order/{}/pay/'.format(order.id),
             {
-                'card_id': CreditCardTokenFactory.create(user=user).id,
+                'remote_id': '36985214745',
                 'amount': '12.00',
-                'cvv': '467'
             }
         )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.check_transactions(order, user)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     @patch('apps.sales.views.charge_saved_card')
     def test_pay_order_table_order(self, mock_charge_card):
@@ -2275,7 +2308,7 @@ class TestOrder(APITestCase):
         add_adjustment(order, Money('2.00', 'USD'))
         subscription = Subscription.objects.get(subscriber=order.seller, type=SALE_UPDATE)
         self.assertTrue(subscription.email)
-        mock_charge_card.return_value = 'Trans123'
+        mock_charge_card.return_value = '36985214745'
         card = CreditCardTokenFactory.create(user=user)
         response = self.client.post(
             '/api/sales/v1/order/{}/pay/'.format(order.id),
@@ -3279,7 +3312,7 @@ class TestPremium(APITestCase):
         user = UserFactory.create()
         self.login(user)
         card = CreditCardTokenFactory.create(user=user, cvv_verified=True)
-        mock_charge_card.return_value = 'Trans123'
+        mock_charge_card.return_value = '36985214745'
         response = self.client.post('/api/sales/v1/premium/', {'service': 'portrait', 'card_id': card.id})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         user.refresh_from_db()
@@ -3298,7 +3331,7 @@ class TestPremium(APITestCase):
         user = UserFactory.create()
         self.login(user)
         card = CreditCardTokenFactory.create(user=user, cvv_verified=True)
-        mock_charge_card.return_value = 'Trans123'
+        mock_charge_card.return_value = '36985214745'
         response = self.client.post('/api/sales/v1/premium/', {'service': 'landscape', 'card_id': card.id})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         user.refresh_from_db()
@@ -3320,7 +3353,7 @@ class TestPremium(APITestCase):
         user.portrait_enabled = True
         user.save()
         card = CreditCardTokenFactory.create(user=user, cvv_verified=True)
-        mock_charge_card.return_value = 'Trans123'
+        mock_charge_card.return_value = '36985214745'
         response = self.client.post('/api/sales/v1/premium/', {'service': 'landscape', 'card_id': card.id})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         user.refresh_from_db()
@@ -3342,7 +3375,7 @@ class TestPremium(APITestCase):
         user.portrait_enabled = True
         user.save()
         card = CreditCardTokenFactory.create(user=user, cvv_verified=True)
-        mock_charge_card.return_value = 'Trans123'
+        mock_charge_card.return_value = '36985214745'
         response = self.client.post('/api/sales/v1/premium/', {'service': 'landscape', 'card_id': card.id})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         user.refresh_from_db()
@@ -3364,7 +3397,7 @@ class TestPremium(APITestCase):
         user.portrait_enabled = False
         user.save()
         card = CreditCardTokenFactory.create(user=user, cvv_verified=True)
-        mock_charge_card.return_value = 'Trans123'
+        mock_charge_card.return_value = '36985214745'
         response = self.client.post('/api/sales/v1/premium/', {'service': 'portrait', 'card_id': card.id})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         user.refresh_from_db()
@@ -3384,7 +3417,7 @@ class TestPremium(APITestCase):
         user.landscape_enabled = False
         user.save()
         card = CreditCardTokenFactory.create(user=user, cvv_verified=True)
-        mock_charge_card.return_value = 'Trans123'
+        mock_charge_card.return_value = '36985214745'
         response = self.client.post('/api/sales/v1/premium/', {'service': 'portrait', 'card_id': card.id})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         user.refresh_from_db()

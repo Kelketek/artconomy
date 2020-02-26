@@ -358,9 +358,14 @@ class NewCardSerializer(serializers.Serializer):
 class MakePaymentMixin:
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if 'data' in kwargs and kwargs['data'].get('card_id', None):
+        card_id = kwargs['data'].get('card_id', None)
+        remote_id = kwargs['data'].get('remote_id', '')
+        is_staff = kwargs['context']['request'].user.is_staff
+        if 'data' in kwargs and (card_id or (remote_id and is_staff)):
             for field_name in ['first_name', 'last_name', 'country', 'number', 'exp_date', 'zip', 'make_primary']:
                 del self.fields[field_name]
+            if remote_id and is_staff:
+                del self.fields['card_id']
             self.fields['cvv'].allow_blank = True
             self.fields['cvv'].required = False
 
@@ -370,8 +375,18 @@ class PaymentSerializer(MakePaymentMixin, NewCardSerializer):
     """
     Serializer for taking payments
     """
+    remote_id = serializers.CharField(required=False)
     card_id = IntegerField(allow_null=True)
     amount = DecimalField(max_digits=6, min_value=settings.MINIMUM_PRICE, decimal_places=2)
+
+    def validate_remote_id(self, value: str):
+        if not value:
+            return value
+        if not value.isnumeric():
+            raise ValidationError('Authorize.net transaction IDs are numeric.')
+        if not len(value) >= 10:
+            raise ValidationError('Authorize.net transaction IDs are 10 or more digits in length.')
+        return value
 
 
 # noinspection PyAbstractClass
