@@ -225,10 +225,11 @@
                         </strong>
                       </p>
                     </div>
-                    <v-btn color="green" block :to="{name: 'NewOrder', params: {username, productId}}">
+                    <v-btn color="green" block :to="{name: 'NewOrder', params: {username, productId}}" v-if="!product.x.table_product">
                       <v-icon left>shopping_basket</v-icon>
                       Order
                     </v-btn>
+                    <v-alert type="info" v-else>Visit our table to order!</v-alert>
                   </template>
                   <v-alert v-else :value="true" type="info">This product is not currently available.</v-alert>
                 </v-col>
