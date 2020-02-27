@@ -1212,8 +1212,8 @@ class MakePayment(PaymentMixin, GenericAPIView):
             order.status = Order.QUEUED
         order.revisions_hidden = False
         # Save the original turnaround/weight.
-        order.task_weight = order.product.task_weight
-        order.expected_turnaround = order.product.expected_turnaround
+        order.task_weight = (order.product and order.product.task_weight) or order.task_weight
+        order.expected_turnaround = (order.product and order.product.expected_turnaround) or order.expected_turnaround
         order.dispute_available_on = (timezone.now() + BDay(ceil(ceil(order.expected_turnaround) * 1.25))).date()
         order.paid_on = timezone.now()
         # Preserve this so it can't be changed during disputes.

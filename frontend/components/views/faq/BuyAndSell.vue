@@ -185,7 +185,7 @@
               >
                 Artconomy Shield
               </router-link>
-              are {{pricing.x.standard_percentage}}% + ${{pricing.x.standard_static}} for
+              are {{pricing.x.standard_percentage}}% + ${{pricing.x.standard_static.toFixed(2)}} for
               each order.
             </p>
             <p v-if="pricing.x">
@@ -195,7 +195,7 @@
               >Artconomy Landscape
               </router-link>
               receive a bonus amount of
-              {{bonusPercentage}}% + ${{pricing.x.premium_static_bonus}} on each commission!
+              {{pricing.x.premium_percentage_bonus}}% + ${{pricing.x.premium_static_bonus.toFixed(2)}} on each commission!
             </p>
             <p>
               <em><strong>
@@ -320,7 +320,7 @@
             </p>
             <p v-if="pricing.x">
               When using landscape, artists receive an additional bonus of
-              <strong>{{bonusPercentage}}% + ${{pricing.x.premium_static_bonus}}!</strong>
+              <strong>{{pricing.x.premium_percentage_bonus}}% + ${{pricing.x.premium_static_bonus.toFixed(2)}}!</strong>
             </p>
             <p>Premium users will also have access to new features early, allowing them to help shape and define
               features that improve the site.</p>
@@ -764,13 +764,6 @@ export default class BuyAndSell extends mixins(Viewer, QuestionSet) {
     @paramHandleArray('question', buySell)
     public tab!: number
 
-    public get bonusPercentage() {
-      /* istanbul ignore if */
-      if (!this.pricing.x) {
-        return NaN
-      }
-      return this.pricing.x.standard_percentage * (this.pricing.x.premium_percentage_bonus / 100)
-    }
     public searchOpen() {
       this.searchForm.reset()
       this.$router.push({name: 'SearchProducts'})

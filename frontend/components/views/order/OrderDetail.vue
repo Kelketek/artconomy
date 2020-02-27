@@ -253,6 +253,12 @@
                     </v-col>
                   </v-row>
                 </v-col>
+                <v-col v-if="is(PAYMENT_PENDING) && isStaff" class="text-center" cols="12">
+                  <v-btn @click="showManualTransaction = true">Transaction Input</v-btn>
+                  <ac-form-dialog v-model="showManualTransaction" @submit.prevent="paymentForm.submitThen(updateOrder)" v-bind="paymentForm.bind" title="Enter transaction ID">
+                    <ac-bound-field :field="paymentForm.fields.remote_id" label="Transaction ID" hint="Enter the transaction ID given to you by the Authorize.net app." />
+                  </ac-form-dialog>
+                </v-col>
                 <ac-escrow-label :escrow="!order.x.escrow_disabled" v-if="is(PAYMENT_PENDING) && isBuyer" name="order" />
                 <v-col v-if="is(PAYMENT_PENDING) && isBuyer" cols="12">
                   <v-divider />
@@ -638,6 +644,7 @@ export default class OrderDetail extends mixins(Viewer, Formatting, Ratings) {
   public inviteSent = false
   public showPayment = false
   public showAddSubmission = false
+  public showManualTransaction = false
   public showConfirm = false
   public viewMode = VIEWER_TYPE.UNSET
   public NEW = 1
@@ -1058,6 +1065,7 @@ export default class OrderDetail extends mixins(Viewer, Formatting, Ratings) {
       card_id: {value: null},
       service: {value: null},
       amount: {value: 0},
+      remote_id: {value: ''},
     }
     this.paymentForm = this.$getForm(`order${this.orderId}__payment`, schema)
     this.tipForm = this.$getForm(`order${this.orderId}__tip`, {

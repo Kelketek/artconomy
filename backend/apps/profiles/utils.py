@@ -119,14 +119,14 @@ def credit_referral(order):
         seller_credit = True
         order.seller.sold_shield_on = timezone.now()
         order.seller.save()
-    if not order.buyer.bought_shield_on:
+    if order.buyer and not order.buyer.bought_shield_on:
         buyer_credit = True
         order.buyer.bought_shield_on = timezone.now()
         order.buyer.save()
     if seller_credit and order.seller.referred_by:
         extend_landscape(order.seller, months=1)
         notify(REFERRAL_LANDSCAPE_CREDIT, order.seller.referred_by, unique=False)
-    if buyer_credit and order.buyer.referred_by:
+    if buyer_credit and order.buyer and order.buyer.referred_by:
         extend_portrait(order.seller, months=1)
         notify(REFERRAL_PORTRAIT_CREDIT, order.buyer.referred_by, unique=False)
 
