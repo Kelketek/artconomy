@@ -256,7 +256,14 @@
                 <v-col v-if="is(PAYMENT_PENDING) && isStaff" class="text-center" cols="12">
                   <v-btn @click="showManualTransaction = true">Transaction Input</v-btn>
                   <ac-form-dialog v-model="showManualTransaction" @submit.prevent="paymentForm.submitThen(updateOrder)" v-bind="paymentForm.bind" title="Enter transaction ID">
-                    <ac-bound-field :field="paymentForm.fields.remote_id" label="Transaction ID" hint="Enter the transaction ID given to you by the Authorize.net app." />
+                    <v-row>
+                      <v-col cols="6">
+                        <ac-bound-field :field="paymentForm.fields.cash" label="Cash transaction" hint="Tick this box if the customer has handed you cash." field-type="v-checkbox" />
+                      </v-col>
+                      <v-col cols="6">
+                        <ac-bound-field :disabled="paymentForm.fields.cash.value" :field="paymentForm.fields.remote_id" label="Transaction ID" hint="Enter the transaction ID given to you by the Authorize.net app." />
+                      </v-col>
+                    </v-row>
                   </ac-form-dialog>
                 </v-col>
                 <ac-escrow-label :escrow="!order.x.escrow_disabled" v-if="is(PAYMENT_PENDING) && isBuyer" name="order" />
@@ -677,6 +684,18 @@ export default class OrderDetail extends mixins(Viewer, Formatting, Ratings) {
     this.inviteSent = false
   }
 
+  @Watch('showManualTransaction')
+  public clearCash(val: boolean|undefined) {
+    /* istanbul ignore if */
+    if (val === undefined) {
+      return
+    }
+    if (!val) {
+      this.paymentForm.fields.cash.update(false)
+      this.paymentForm.fields.remote_id.update('')
+    }
+  }
+
   @Watch('totalCharge')
   public updateAmount(newValue: Big, oldValue: Big|undefined) {
     this.paymentForm.fields.amount.update(this.totalCharge)
@@ -1066,6 +1085,7 @@ export default class OrderDetail extends mixins(Viewer, Formatting, Ratings) {
       service: {value: null},
       amount: {value: 0},
       remote_id: {value: ''},
+      cash: {value: false},
     }
     this.paymentForm = this.$getForm(`order${this.orderId}__payment`, schema)
     this.tipForm = this.$getForm(`order${this.orderId}__tip`, {

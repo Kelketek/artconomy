@@ -765,7 +765,8 @@ class OrderRefund(GenericAPIView):
             status=TransactionRecord.SUCCESS,
         )
         transaction_set = TransactionRecord.objects.filter(
-            remote_id=original_record.remote_id, source=TransactionRecord.CARD,
+            source__in=[TransactionRecord.CARD, TransactionRecord.CASH_DEPOSIT],
+            content_type=order_type, object_id=order.id,
             status=TransactionRecord.SUCCESS,
         ).exclude(category=TransactionRecord.SHIELD_FEE)
         record = issue_refund(transaction_set, TransactionRecord.ESCROW_REFUND)[0]
@@ -1018,12 +1019,24 @@ class PaymentMixin:
     def perform_charge(
             self, data: dict, amount: Money, user: User,
     ) -> (bool, Union[Response, List[TransactionRecord]]):
+        if data.get('cash', False) and self.request.user.is_staff:
+            return self.from_cash(data, amount, user)
         if data.get('remote_id') and self.request.user.is_staff:
             return self.from_remote_id(data, amount, user, data.get('remote_id'))
         if data.get('card_id'):
             return self.charge_existing_card(data, amount, user)
         else:
             return self.charge_new_card(data, amount, user)
+
+    def from_cash(self, data: dict, amount: Money, user: User):
+        transactions = self.init_transactions(data, amount, user)
+        for transaction in transactions:
+            transaction.status = TransactionRecord.SUCCESS
+            transaction.source = TransactionRecord.CASH_DEPOSIT
+        self.post_success(transactions, data, user)
+        for transaction in transactions:
+            transaction.save()
+        return True, transactions
 
     def from_remote_id(self, data: dict, amount: Money, user: User, remote_id: str):
         transactions = self.init_transactions(data, amount, user)

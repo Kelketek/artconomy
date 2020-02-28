@@ -543,14 +543,19 @@ def verify_total(order: 'Order'):
 
 def issue_refund(transaction_set: Iterator['TransactionRecord'], category: int) -> List['TransactionRecord']:
     from apps.sales.models import TransactionRecord
-    remote_id = None
+    remote_id = ''
     last_four = None
-    for transaction in transaction_set:
-        assert transaction.source == TransactionRecord.CARD, f'Cannot refund non-card transaction {transaction}'
+    transactions = [*transaction_set]
+    cash_transactions = [
+        transaction for transaction in transaction_set if transaction.source == TransactionRecord.CASH_DEPOSIT
+    ]
+    card_transactions = [transaction for transaction in transaction_set if transaction.source == TransactionRecord.CARD]
+    for transaction in card_transactions:
         remote_id = transaction.remote_id
         last_four = transaction.card.last_four
-    assert remote_id, 'Could not find a remote transaction ID to refund.'
-    assert last_four, 'Could not determine the last four digits of the relevant card.'
+    if not len(cash_transactions) == len(transactions):
+        assert remote_id, 'Could not find a remote transaction ID to refund.'
+        assert last_four, 'Could not determine the last four digits of the relevant card.'
     refund_transactions = [
         TransactionRecord(
             source=transaction.destination,
@@ -561,20 +566,29 @@ def issue_refund(transaction_set: Iterator['TransactionRecord'], category: int) 
             payee=transaction.payer,
             content_type=transaction.content_type,
             object_id=transaction.object_id,
+            card=transaction.card,
             amount=transaction.amount,
             response_message="Failed when contacting payment processor.",
-        ) for transaction in transaction_set
+        ) for transaction in transactions
     ]
-    amount = sum(transaction.amount for transaction in transaction_set)
-    try:
-        remote_id = refund_transaction(remote_id, last_four, amount)
+    amount = sum(transaction.amount for transaction in card_transactions)
+    if card_transactions:
+        try:
+            remote_id = refund_transaction(remote_id, last_four, amount)
+            for transaction in refund_transactions:
+                transaction.status = TransactionRecord.SUCCESS
+                if transaction.destination == TransactionRecord.CARD:
+                    transaction.remote_id = remote_id
+                transaction.response_message = ''
+        except Exception as err:
+            for transaction in refund_transactions:
+                transaction.response_message = str(err)
+        finally:
+            for transaction in refund_transactions:
+                transaction.save()
+    else:
         for transaction in refund_transactions:
             transaction.status = TransactionRecord.SUCCESS
-            transaction.remote_id = remote_id
-    except Exception as err:
-        for transaction in refund_transactions:
-            transaction.response_message = str(err)
-    finally:
-        for transaction in refund_transactions:
+            transaction.response_message = ''
             transaction.save()
     return refund_transactions

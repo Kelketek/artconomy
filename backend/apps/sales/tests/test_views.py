@@ -1754,9 +1754,9 @@ class TestOrder(APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def check_transactions(self, order, user):
+    def check_transactions(self, order, user, remote_id='36985214745', source=TransactionRecord.CARD):
         escrow = TransactionRecord.objects.get(
-            remote_id='36985214745', source=TransactionRecord.CARD, destination=TransactionRecord.ESCROW,
+            remote_id=remote_id, source=source, destination=TransactionRecord.ESCROW,
         )
         self.assertEqual(escrow.target, order)
         self.assertEqual(escrow.amount, Money('10.29', 'USD'))
@@ -1764,7 +1764,7 @@ class TestOrder(APITestCase):
         self.assertEqual(escrow.payee, order.seller)
 
         fee = TransactionRecord.objects.get(
-            remote_id='36985214745', source=TransactionRecord.CARD, destination=TransactionRecord.RESERVE,
+            remote_id=remote_id, source=source, destination=TransactionRecord.RESERVE,
         )
         self.assertEqual(fee.status, TransactionRecord.SUCCESS)
         self.assertEqual(fee.target, order)
@@ -1772,7 +1772,7 @@ class TestOrder(APITestCase):
         self.assertEqual(fee.payer, user)
         self.assertIsNone(fee.payee)
 
-        unprocessed = TransactionRecord.objects.get(remote_id='36985214745', source=TransactionRecord.RESERVE, destination=TransactionRecord.UNPROCESSED_EARNINGS)
+        unprocessed = TransactionRecord.objects.get(remote_id=remote_id, source=TransactionRecord.RESERVE, destination=TransactionRecord.UNPROCESSED_EARNINGS)
         self.assertEqual(unprocessed.status, TransactionRecord.SUCCESS)
         self.assertEqual(unprocessed.target, order)
         self.assertEqual(unprocessed.amount, Money('.98', 'USD'))
@@ -2264,6 +2264,39 @@ class TestOrder(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.check_transactions(order, order.buyer)
 
+    def test_pay_order_staffer_cash(self):
+        user = UserFactory.create(is_staff=True)
+        self.login(user)
+        order = OrderFactory.create(
+            status=Order.PAYMENT_PENDING, product__base_price=Money('10.00', 'USD'),
+        )
+        add_adjustment(order, Money('2.00', 'USD'))
+        response = self.client.post(
+            '/api/sales/v1/order/{}/pay/'.format(order.id),
+            {
+                'cash': True,
+                'amount': '12.00',
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.check_transactions(order, order.buyer, remote_id='', source=TransactionRecord.CASH_DEPOSIT)
+
+    def test_pay_order_buyer_cash_fail(self):
+        user = UserFactory.create()
+        self.login(user)
+        order = OrderFactory.create(
+            buyer=user, status=Order.PAYMENT_PENDING, product__base_price=Money('10.00', 'USD'),
+        )
+        add_adjustment(order, Money('2.00', 'USD'))
+        response = self.client.post(
+            '/api/sales/v1/order/{}/pay/'.format(order.id),
+            {
+                'cash': True,
+                'amount': '12.00',
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
     def test_pay_order_staffer_remote_id(self):
         user = UserFactory.create(is_staff=True)
         self.login(user)
@@ -2729,6 +2762,28 @@ class TestOrderStateChange(SignalsDisabledMixin, APITestCase):
             payee=self.order.buyer, payer=self.order.seller,
             source=TransactionRecord.ESCROW,
             destination=TransactionRecord.CARD,
+            category=TransactionRecord.ESCROW_REFUND,
+        )
+
+    @patch('apps.sales.utils.refund_transaction')
+    def test_refund_cash_only(self, mock_refund_transaction, _mock_notify):
+        TransactionRecordFactory.create(
+            target=self.order,
+            payee=self.order.seller,
+            payer=self.order.buyer,
+            source=TransactionRecord.CASH_DEPOSIT,
+            destination=TransactionRecord.ESCROW,
+        )
+        mock_refund_transaction.side_effect = AuthorizeException(
+            "It failed"
+        )
+        self.state_assertion('seller', 'refund/', status.HTTP_200_OK, initial_status=Order.IN_PROGRESS)
+        mock_refund_transaction.assert_not_called()
+        TransactionRecord.objects.get(
+            response_message="", status=TransactionRecord.SUCCESS,
+            payee=self.order.buyer, payer=self.order.seller,
+            source=TransactionRecord.ESCROW,
+            destination=TransactionRecord.CASH_DEPOSIT,
             category=TransactionRecord.ESCROW_REFUND,
         )
 
