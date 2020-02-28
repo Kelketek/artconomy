@@ -62,6 +62,7 @@
             :field="newInvoice.fields.product"
             field-type="ac-product-select"
             :multiple="false"
+            :username="username"
             label="Product"
             hint="Optional: Specify which of your product this invoice is for. This can help with organization.
                   If no product is specified, this will be considered a custom order."

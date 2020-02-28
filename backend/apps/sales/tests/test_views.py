@@ -3275,7 +3275,7 @@ class TestProductSearch(APITestCase):
             name__in=['Test', 'Test2', 'Test3']
         ).order_by('id').values_list('id', flat=True)
         self.login(user)
-        response = self.client.get('/api/sales/v1/search/product/mine/', {'q': 'test'})
+        response = self.client.get('/api/sales/v1/search/product/Fox/', {'q': 'test'})
         self.assertIDInList(listed, response.data['results'])
         self.assertIDInList(listed2, response.data['results'])
         self.assertIDInList(listed3, response.data['results'])

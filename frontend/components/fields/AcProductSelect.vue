@@ -25,10 +25,11 @@ import AcAvatar from '@/components/AcAvatar.vue'
 import Viewer from '@/mixins/viewer'
 import Autocomplete from '@/components/fields/mixins/autocomplete'
 import Product from '@/types/Product'
+import Subjective from '@/mixins/subjective'
 @Component({
   components: {AcAvatar},
 })
-export default class AcProductSelect extends mixins(Autocomplete, Viewer) {
+export default class AcProductSelect extends mixins(Autocomplete, Subjective) {
   public url = `/api/sales/v1/search/product/mine/`
   public formatName(item: Product) {
     /* istanbul ignore if */
@@ -37,6 +38,9 @@ export default class AcProductSelect extends mixins(Autocomplete, Viewer) {
       return ''
     }
     return `${item.name} starting at $${item.starting_price.toFixed(2)}`
+  }
+  public created() {
+    this.url = `/api/sales/v1/search/product/${this.username}/`
   }
 }
 </script>

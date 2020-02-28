@@ -1332,8 +1332,7 @@ class PersonalProductSearch(ListAPIView):
         search_serializer = SearchQuerySerializer(data=self.request.GET)
         search_serializer.is_valid(raise_exception=True)
         query = search_serializer.validated_data.get('q', '')
-        products = Product.objects.filter(user=self.request.user, name__icontains=query, active=True)
-        products = products.filter(user=self.request.user)
+        products = Product.objects.filter(user=self.request.subject, name__icontains=query, active=True)
         return products.select_related('user')
 
 
