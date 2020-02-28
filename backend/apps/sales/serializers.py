@@ -566,7 +566,7 @@ class NewInvoiceSerializer(serializers.Serializer):
     def validate_product(self, value):
         if value is None:
             return None
-        product = self.context['request'].user.products.exclude(active=False).filter(id=value).first()
+        product = self.context['request'].subject.products.exclude(active=False).filter(id=value).first()
         if not product:
             raise ValidationError("You don't have a product with that ID.")
         return product
