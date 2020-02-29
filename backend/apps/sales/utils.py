@@ -260,7 +260,7 @@ def finalize_table_fees(order: 'Order'):
     from apps.sales.models import TransactionRecord
     order_type = ContentType.objects.get_for_model(order)
     record = TransactionRecord.objects.get(
-        payer=order.buyer, payee=None, destination=TransactionRecord.RESERVE,
+        payee=None, destination=TransactionRecord.RESERVE,
         object_id=order.id, content_type=order_type,
         status=TransactionRecord.SUCCESS,
     )
@@ -275,7 +275,7 @@ def finalize_table_fees(order: 'Order'):
         remote_id=record.remote_id,
     )
     tax_record = TransactionRecord.objects.get(
-        payer=order.buyer, payee=None, destination=TransactionRecord.MONEY_HOLE_STAGE,
+        payee=None, destination=TransactionRecord.MONEY_HOLE_STAGE,
         object_id=order.id, content_type=order_type,
         status=TransactionRecord.SUCCESS,
     )
@@ -304,7 +304,7 @@ def finalize_order(order, user=None):
         order.save()
         notify(SALE_UPDATE, order, unique=True, mark_unread=True)
         record = TransactionRecord.objects.get(
-            payer=order.buyer, payee=order.seller, destination=TransactionRecord.ESCROW,
+            payee=order.seller, destination=TransactionRecord.ESCROW,
             status=TransactionRecord.SUCCESS, object_id=order.id, content_type=ContentType.objects.get_for_model(order),
         )
         TransactionRecord.objects.create(
