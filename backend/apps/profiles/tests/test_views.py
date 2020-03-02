@@ -1480,6 +1480,16 @@ class TestRegister(APITestCase):
         user = User.objects.get(username='Goober')
         self.assertEqual(promo, user.registration_code)
 
+    def test_user_mail_null(self, _mock_captcha):
+        self.client.post('/api/profiles/v1/register/', {
+            'username': 'Goober',
+            'password': 'test_password',
+            'email': 'test@example.com',
+            'recaptcha': 'dummy',
+            'mail': None
+        }, format='json')
+        user = User.objects.get(username='Goober')
+
     @patch('apps.profiles.views.claim_order_by_token')
     def test_claim_order(self, mock_claim, _mock_captcha):
         self.client.post('/api/profiles/v1/register/', {

@@ -263,7 +263,7 @@ export default class Orders extends mixins(Subjective) {
         id: -1,
         priority: 0,
         type: LineTypes.BASE_PRICE,
-        amount: this.invoiceProduct.x.starting_price,
+        amount: this.invoiceProduct.x.base_price,
         percentage: 0,
         description: '',
         cascade_amount: false,
@@ -383,7 +383,7 @@ export default class Orders extends mixins(Subjective) {
         private: {value: false},
         details: {value: ''},
         paid: {value: false},
-        hold: {value: this.isCurrent},
+        hold: {value: !this.isCurrent},
         expected_turnaround: {value: 1},
       },
     })
