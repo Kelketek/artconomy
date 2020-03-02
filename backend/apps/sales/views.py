@@ -68,7 +68,7 @@ from apps.sales.serializers import (
 from apps.sales.utils import available_products, service_price, set_service, \
     check_charge_required, available_products_by_load, finalize_order, account_balance, \
     recuperate_fee, ALL, POSTED_ONLY, PENDING, transfer_order, early_finalize, cancel_order, lines_to_transaction_specs, \
-    get_totals, verify_total, issue_refund
+    get_totals, verify_total, issue_refund, ensure_buyer
 from apps.sales.tasks import renew
 
 
@@ -1212,6 +1212,14 @@ class MakePayment(PaymentMixin, GenericAPIView):
             return Response(
                 status=status.HTTP_400_BAD_REQUEST, data={'detail': 'The price has changed. Please refresh the page.'}
             )
+        try:
+            ensure_buyer(order)
+        except AssertionError:
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST, data={
+                    'detail': 'No buyer is set for this order, nor is there a customer email set.',
+                }
+            )
         success, response = self.perform_charge(attempt, Money(attempt['amount'], 'USD'), order.buyer)
         if not success:
             return response
@@ -2036,13 +2044,7 @@ class OrderAuth(GenericAPIView):
             transfer_order(order, old_buyer, request.user)
             return Response(status=status.HTTP_200_OK, data=self.user_info(request.user))
 
-        if not order.buyer:
-            assert order.customer_email
-            # Create the buyer now as a guest.
-            user = create_guest_user(order.customer_email)
-            order.buyer = user
-            order.save()
-            Subscription.objects.bulk_create(buyer_subscriptions(order), ignore_conflicts=True)
+        ensure_buyer(order)
         login(request, order.buyer)
         order.claim_token = uuid4()
         order.save()

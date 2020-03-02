@@ -394,6 +394,7 @@ def transfer_order(order, old_buyer, new_buyer):
     order.save()
     Subscription.objects.bulk_create(buyer_subscriptions(order), ignore_conflicts=True)
     notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
+    update_order_payments(order)
     if not old_buyer:
         return
     assert old_buyer.guest
@@ -592,3 +593,31 @@ def issue_refund(transaction_set: Iterator['TransactionRecord'], category: int) 
             transaction.response_message = ''
             transaction.save()
     return refund_transactions
+
+
+def ensure_buyer(order: 'Order'):
+    """
+    Makes sure there's a buyer attached to the order. Creates one if none has been set.
+    """
+    from apps.sales.models import buyer_subscriptions
+    from apps.profiles.utils import create_guest_user
+    if order.buyer:
+        return
+    assert order.customer_email, "No customer, and customer email not set on order."
+    # Create the buyer now as a guest.
+    user = create_guest_user(order.customer_email)
+    order.buyer = user
+    order.save()
+    Subscription.objects.bulk_create(buyer_subscriptions(order), ignore_conflicts=True)
+
+
+def update_order_payments(order: 'Order'):
+    """
+    Find existing payment actions for an order, and sets the payer to the current buyer.
+    This is useful when a order was once created by a guest but later chowned over to a registered user.
+    """
+    from apps.sales.models import TransactionRecord
+    TransactionRecord.objects.filter(
+        source__in=[TransactionRecord.CARD, TransactionRecord.CASH_DEPOSIT],
+        object_id=order.id, content_type=ContentType.objects.get_for_model(order),
+    ).update(payer=order.buyer)

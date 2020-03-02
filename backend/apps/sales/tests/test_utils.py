@@ -428,25 +428,6 @@ class TestLineCalculations(TestCase):
         )
         self.assertEqual(result[0], sum(result[1].values()))
 
-    #   it('Handles fixed-point calculations sanely', () => {
-    #     let source = [
-    #       genLineItem({id: 34, amount: 100, priority: 0}),
-    #       genLineItem({id: 37, amount: 5.0, priority: 100}),
-    #       genLineItem({id: 35, amount: 5.0, percentage: 10.0, cascade_percentage: true, cascade_amount: false, priority: 300}),
-    #       genLineItem({id: 36, amount: 0, percentage: 8.25, cascade_percentage: true, cascade_amount: true, priority: 600}),
-    #     ]
-    #     let result = getTotals(source)
-    #     expect(result).toEqual({
-    #       total: Big('110.00'),
-    #       map: new Map([
-    #         [genLineItem({id: 34, amount: 100.0, priority: 0, percentage: 0.0}), Big('82.58')],
-    #         [genLineItem({id: 37, amount: 5.0, priority: 100}), Big('4.11')],
-    #         [genLineItem({id: 35, amount: 5.0, percentage: 10.0, cascade_percentage: true, cascade_amount: false, priority: 300}), Big('14.23')],
-    #         [genLineItem({id: 36, amount: 0.0, percentage: 8.25, cascade_percentage: true, cascade_amount: true, priority: 600}), Big('9.08')],
-    #       ]),
-    #     })
-    #   })
-
     def test_reckon_lines(self):
         source = [
             LineItemSim(amount=Money('1.00', 'USD'), priority=0),

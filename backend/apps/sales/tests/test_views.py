@@ -2264,6 +2264,50 @@ class TestOrder(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.check_transactions(order, order.buyer)
 
+    @patch('apps.sales.views.charge_saved_card')
+    def test_pay_order_create_guest(self, mock_charge_card):
+        user = UserFactory.create(is_staff=True)
+        self.login(user)
+        order = OrderFactory.create(
+            status=Order.PAYMENT_PENDING, product__base_price=Money('10.00', 'USD'),
+            buyer=None, customer_email='test@example.com',
+        )
+        self.assertIsNone(order.buyer)
+        add_adjustment(order, Money('2.00', 'USD'))
+        mock_charge_card.return_value = '36985214745'
+        response = self.client.post(
+            '/api/sales/v1/order/{}/pay/'.format(order.id),
+            {
+                'cash': True,
+                'amount': '12.00',
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        order.refresh_from_db()
+        self.assertTrue(order.buyer.guest)
+        self.check_transactions(order, order.buyer, remote_id='', source=TransactionRecord.CASH_DEPOSIT)
+
+    @patch('apps.sales.views.charge_saved_card')
+    def test_pay_order_fail_no_guest_email(self, mock_charge_card):
+        user = UserFactory.create(is_staff=True)
+        self.login(user)
+        order = OrderFactory.create(
+            status=Order.PAYMENT_PENDING, product__base_price=Money('10.00', 'USD'),
+            buyer=None,
+        )
+        self.assertIsNone(order.buyer)
+        add_adjustment(order, Money('2.00', 'USD'))
+        mock_charge_card.return_value = '36985214745'
+        response = self.client.post(
+            '/api/sales/v1/order/{}/pay/'.format(order.id),
+            {
+                'cash': True,
+                'amount': '12.00',
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['detail'], 'No buyer is set for this order, nor is there a customer email set.')
+
     def test_pay_order_staffer_cash(self):
         user = UserFactory.create(is_staff=True)
         self.login(user)
