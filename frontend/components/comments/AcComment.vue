@@ -96,31 +96,29 @@
       </v-row>
       <v-row no-gutters   v-if="subCommentList.list.length || replying">
         <v-col cols="11" offset="1">
-          <v-row no-gutters   class="mt-4">
-            <v-col cols="12">
-              <v-toolbar dense v-if="subCommentList.moreAvailable" @click="subCommentList.next">
-                <v-col>
-                  <v-col class="text-center">
-                    <v-col>Load More</v-col>
-                    <v-col><v-icon>expand_more</v-icon></v-col>
-                  </v-col>
-                </v-col>
-              </v-toolbar>
-              <ac-loading-spinner min-height="3rem" v-if="subCommentList.fetching" />
+          <v-row no-gutters class="mt-4">
+            <v-col v-if="subCommentList.moreAvailable">
+              <v-btn block @click="subCommentList.next">
+                <v-icon left>expand_more</v-icon>Load More<v-icon right>expand_more</v-icon>
+              </v-btn>
             </v-col>
-            <v-col cols="12" class="subcomments" v-if="subCommentList.list.length">
-              <ac-comment
-                  :alternate="checkAlternate(index)"
-                  v-for="(comment, index) in subCommentList.list"
-                  :comment="comment"
-                  :comment-list="subCommentList"
-                  :username="comment.x.user.username"
-                  :level="level + 1"
-                  :key="comment.x.id"
-                  :nesting="nesting"
-                  :show-history="showHistory"
-              />
-            </v-col >
+            <ac-load-section :controller="subCommentList">
+              <template v-slot:default>
+                <div class="flex subcomments">
+                  <ac-comment
+                    :alternate="checkAlternate(index)"
+                    v-for="(comment, index) in subCommentList.list"
+                    :comment="comment"
+                    :comment-list="subCommentList"
+                    :username="comment.x.user.username"
+                    :level="level + 1"
+                    :key="comment.x.id"
+                    :nesting="nesting"
+                    :show-history="showHistory"
+                  />
+                </div >
+              </template>
+            </ac-load-section>
             <v-col cols="12" v-if="replying">
               <ac-new-comment
                   :commentList="subCommentList"
@@ -184,9 +182,11 @@ import {Patch} from '@/store/singles/patcher'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import Formatting from '@/mixins/formatting'
+import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 
 @Component({
   components: {
+    AcLoadSection,
     AcLink,
     AcExpandedProperty,
     AcPatchField,
@@ -316,6 +316,7 @@ export default class AcComment extends mixins(Subjective, Formatting) {
       }
       this.subCommentList.setList(comment.comments)
       this.subCommentList.response = {size: 5, count: comment.comment_count}
+      this.subCommentList.ready = true
       // @ts-ignore
       window.comment = this
     }

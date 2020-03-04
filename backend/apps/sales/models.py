@@ -897,6 +897,9 @@ class TransactionRecord(Model):
     TAX = 414
     # For things like inventory items sold at tables alongside the commission, like a pop socket.
     EXTRA_ITEM = 415
+    # For times when we're manually sending money to others-- such as cases where we don't yet have code to manage
+    # something but we need to be able to pay using Dwolla.
+    MANUAL_PAYOUT = 416
 
     CATEGORIES = (
         (SHIELD_FEE, 'Artconomy Service Fee'),
@@ -913,6 +916,7 @@ class TransactionRecord(Model):
         (THIRD_PARTY_REFUND, 'Third party refund'),
         (CORRECTION, 'Correction'),
         (TAX, 'Tax'),
+        (MANUAL_PAYOUT, 'Manual Payout')
     )
 
     id = UUIDField(primary_key=True, db_index=True, default=gen_unique_id)

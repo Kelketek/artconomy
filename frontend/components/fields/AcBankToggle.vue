@@ -64,13 +64,12 @@
       <v-col cols="12" v-for="bank in banks.list" :key="bank.x.id">
         <v-card>
           <v-card-text>
-            <v-row no-gutters class="justify-content"  align="center">
-              <v-col class="bank-label shrink">
+            <v-row no-gutters class="justify-content" align="center">
+              <v-col class="bank-label text-left" align-self="center">
                 <span v-if="bank.x.type === 0">Checking</span>
                 <span v-else>Savings</span>
                 ending in {{bank.x.last_four}}
               </v-col>
-              <v-spacer />
               <v-col class="shrink" >
                 <ac-confirmation :action="bank.delete">
                   <template v-slot:default="confirmContext">

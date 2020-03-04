@@ -1,13 +1,13 @@
 <template>
   <v-container class="pa-0" :fluid="fluid">
-    <v-container class="pa-0" :fluid="fluid" v-if="forceRender || (controller.ready && !controller.fetching)">
-      <!-- Always use a template tag with v-slot:default to fill this slot or else it will be evaluated by the parent. -->
-      <slot></slot>
-    </v-container>
-    <v-container class="pa-0" v-else-if="controller.fetching">
+    <v-container class="pa-0" v-if="controller.fetching">
       <slot name="loading-spinner">
         <ac-loading-spinner />
       </slot>
+    </v-container>
+    <v-container class="pa-0" :fluid="fluid" v-if="forceRender || (controller.ready && (!controller.fetching || controller.grow))">
+      <!-- Always use a template tag with v-slot:default to fill this slot or else it will be evaluated by the parent. -->
+      <slot></slot>
     </v-container>
     <v-container class="pa-0" v-else-if="controller.failed">
       <slot name="failure">

@@ -97,6 +97,7 @@ export default class AcTransaction extends mixins(Subjective, Formatting) {
       409: 'Premium service bonus',
       410: 'Internal Transfer',
       411: 'Third party refund',
+      412: 'Error correction',
     }
 
     public ACCOUNT_TYPES = {
@@ -112,6 +113,7 @@ export default class AcTransaction extends mixins(Subjective, Formatting) {
       309: 'Other ACH fees',
       310: 'Tax staging',
       311: 'Taxes',
+      407: 'Cash deposit',
     }
 
     public get isPayer() {

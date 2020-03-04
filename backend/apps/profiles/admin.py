@@ -19,6 +19,7 @@ class ArtconomyUserAdmin(EmailUserAdmin):
     )
     list_display = ('username', 'email', 'is_staff', 'is_superuser')
     list_filter = ['guest', 'artist_mode', 'trust_level']
+    search_fields = ['username', 'email']
 
 
 class SubmissionAdmin(ModelAdmin):

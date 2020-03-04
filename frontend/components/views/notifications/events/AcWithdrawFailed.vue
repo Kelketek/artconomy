@@ -1,7 +1,7 @@
 <template>
   <ac-base-notification :notification="notification" :asset-link="assetLink">
     <span slot="title"><router-link :to="assetLink">We had an issue sending money to your bank.</router-link></span>
-    <span slot="subtitle"><router-link :to="assetLink">Click here to try manually or update your settings.</router-link></span>
+    <span slot="subtitle"><router-link :to="assetLink">Click here to change your bank settings.</router-link></span>
   </ac-base-notification>
 </template>
 
@@ -16,11 +16,9 @@ export default {
   computed: {
     assetLink() {
       return {
-        name: 'Settings',
+        name: 'Payout',
         params: {
           username: this.event.target.username,
-          tabName: 'payment',
-          subTabName: 'disbursement',
         },
       }
     },

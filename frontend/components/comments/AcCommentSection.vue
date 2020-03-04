@@ -1,22 +1,19 @@
 <template>
   <v-container>
-    <v-toolbar dense v-if="commentList.moreAvailable || showHistory" @click="commentList.next">
-      <v-row no-gutters  >
-        <v-col class="grow" v-if="commentList.moreAvailable">
-          <v-col class="text-center">
-            <v-col>Load More</v-col>
-            <v-col><v-icon>expand_more</v-icon></v-col>
-          </v-col>
-        </v-col>
-        <v-col class="text-center" v-if="showHistory" >
-          <v-btn @click="historyToggle = !historyToggle" class="comment-history-button">
-            <v-icon left v-if="historyToggle">visibility</v-icon>
-            <v-icon left v-else>visibility_off</v-icon>
-            Toggle History
-          </v-btn>
-        </v-col>
-      </v-row>
-    </v-toolbar>
+    <v-row no-gutters v-if="commentList.moreAvailable || showHistory">
+      <v-col v-if="commentList.moreAvailable">
+        <v-btn block @click="commentList.next">
+          <v-icon left>expand_more</v-icon>Load More<v-icon right>expand_more</v-icon>
+        </v-btn>
+      </v-col>
+      <v-col class="text-center" v-if="showHistory">
+        <v-btn @click="historyToggle = !historyToggle" class="comment-history-button">
+          <v-icon left v-if="historyToggle">visibility</v-icon>
+          <v-icon left v-else>visibility_off</v-icon>
+          Toggle History
+        </v-btn>
+      </v-col>
+    </v-row>
     <ac-load-section min-height="10rem" :controller="commentList">
       <template v-slot:default>
         <template v-for="(comment, index) in commentList.list">
