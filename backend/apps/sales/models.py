@@ -860,6 +860,9 @@ class TransactionRecord(Model):
     # Where taxes go
     MONEY_HOLE = 311
 
+    # For when a customer gives us cash, like at an event.
+    CASH_DEPOSIT = 407
+
     ACCOUNT_TYPES = (
         (CARD, 'Credit Card'),
         (BANK, 'Bank Account'),
@@ -869,6 +872,7 @@ class TransactionRecord(Model):
         (UNPROCESSED_EARNINGS, 'Unannotated earnings'),
         (CARD_TRANSACTION_FEES, 'Card transaction fees'),
         (CARD_MISC_FEES, 'Other card fees'),
+        (CASH_DEPOSIT, 'Cash deposit'),
         (ACH_TRANSACTION_FEES, 'ACH Transaction fees'),
         (ACH_MISC_FEES, 'Other ACH fees'),
         (MONEY_HOLE_STAGE, 'Tax staging'),
@@ -883,7 +887,6 @@ class TransactionRecord(Model):
     SUBSCRIPTION_DUES = 404
     SUBSCRIPTION_REFUND = 405
     CASH_WITHDRAW = 406
-    CASH_DEPOSIT = 407
     THIRD_PARTY_FEE = 408
     # The extra money earned for subscribing to premium services and completing a sale.
     PREMIUM_BONUS = 409
@@ -909,7 +912,6 @@ class TransactionRecord(Model):
         (SUBSCRIPTION_DUES, 'Subscription dues'),
         (SUBSCRIPTION_REFUND, 'Refund for subscription dues'),
         (CASH_WITHDRAW, 'Cash withdrawal'),
-        (CASH_DEPOSIT, 'Cash deposit'),
         (THIRD_PARTY_FEE, 'Third party fee'),
         (PREMIUM_BONUS, 'Premium service bonus'),
         (INTERNAL_TRANSFER, 'Internal Transfer'),
