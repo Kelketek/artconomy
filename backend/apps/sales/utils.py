@@ -339,6 +339,9 @@ def claim_order_by_token(order_claim, user):
     if order.seller == user:
         logger.warning("Seller %s attempted to claim their own order token, %s", user, order_claim)
         return
+    if order.buyer == user and user.is_registered:
+        order.claim_token = None
+        order.save()
     transfer_order(order, order.buyer, user)
 
 
