@@ -190,6 +190,7 @@ class TestArchivedCasesListPermissions(PermissionsTestCase, StaffUserList, Metho
     kwargs = {'username': 'Test'}
     view_class = ArchivedCasesList
 
+
 class TestSamples(APITestCase):
     def test_sample_list(self):
         product = ProductFactory.create()

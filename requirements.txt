@@ -8,12 +8,12 @@ celery-haystack==0.10
 coverage==5.0.3
 python-dateutil==2.8.1
 ddt==1.2.2
-Django>=2.2.10,<3
+Django>=3.0.0,<3.1.0
 django-avatar>=5.0.0,<6
 django-otp==0.7.5
 django-celery-email==3.0.0
 django-haystack==2.8.1
-django-hitcount==1.3.1
+git+https://github.com/thornomad/django-hitcount.git@90840a11fae32877c70de58e1bed7b3bf1a67a95
 django-ipware==2.1.0
 djangorestframework==3.11.0
 djangorestframework-bulk==0.2.1

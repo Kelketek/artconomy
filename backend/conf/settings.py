@@ -22,6 +22,8 @@ from typing import Any
 from celery.exceptions import ImproperlyConfigured
 from celery.schedules import crontab
 
+TESTING = 'test' in argv
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 BACKEND_ROOT = os.path.join(BASE_DIR, 'backend')
 os.sys.path = [BACKEND_ROOT] + os.sys.path
@@ -59,6 +61,8 @@ SECRET_KEY = get_env('DJANGO_SECRET_KEY', UNSET)
 DEBUG = bool(int(get_env('DEBUG', 1)))
 
 ALLOWED_HOSTS = get_env('ALLOWED_HOSTS', ['artconomy.vulpinity.com', 'localhost', 'f3f609d8.ngrok.io'], unpack=True)
+if TESTING:
+    ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -251,6 +255,8 @@ PREMAILER_OPTIONS = get_env(
 
 EMAIL_BACKEND = get_env('EMAIL_BACKEND', 'djcelery_email.backends.CeleryEmailBackend')
 CELERY_EMAIL_BACKEND = get_env('CELERY_EMAIL_BACKEND', 'sendgrid_backend.SendgridBackend')
+if TESTING:
+    EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
 DEFAULT_FROM_EMAIL = get_env('DEFAULT_FROM_EMAIL', 'Artconomy <notifications@artconomy.com>')
 RETURN_PATH_EMAIL = get_env('RETURN_PATH_EMAIL', 'support@artconomy.com')
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
@@ -366,8 +372,6 @@ LOGGING = None
 #             }
 #         },
 #     }
-
-TESTING = 'test' in argv
 
 if TESTING:
     PASSWORD_HASHERS = [

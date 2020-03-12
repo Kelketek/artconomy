@@ -469,6 +469,9 @@ class Character(Model, HitsMixin):
         return self.wrap_operation(super().save, *args, **kwargs)
 
 
+Character_shared_with = Character.shared_with.through
+
+
 class Attribute(Model):
     key = CharField(max_length=50, db_index=True)
     value = CharField(max_length=100, default='')

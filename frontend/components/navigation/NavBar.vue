@@ -100,7 +100,7 @@
             single-line
             @keyup="runSearch"
             append-icon="search"
-            @click:append="() => {}"
+            @click:append="runSearch"
             color="white"
             hide-details
             v-if="fullInterface"
