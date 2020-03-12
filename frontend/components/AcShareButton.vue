@@ -124,7 +124,9 @@ export default class AcShareButton extends mixins(Dialog, Viewer) {
     return encodeURIComponent(this.title)
   }
   public get rawLocation() {
-    const route = {...this.$route}
+    /* istanbul ignore next */
+    const route = {...this.$route, name: this.$route.name || undefined}
+    route.name = route.name || undefined
     const query = {...this.$route.query}
     if (this.referral && this.isRegistered) {
       query.referred_by = this.rawViewerName

@@ -18,7 +18,7 @@
               </div>
               <v-list-item v-else :key="index">
                 <v-list-item-content>
-                  {{log(notification.x)}}
+                  {{error(notification.x)}}
                   {{notification.x}}
                 </v-list-item-content>
               </v-list-item>
@@ -94,8 +94,8 @@ export default {
     AcNewProduct,
   },
   methods: {
-    log(x: any) {
-      console.log(x)
+    error(x: any) {
+      console.error(x)
     },
   },
 }

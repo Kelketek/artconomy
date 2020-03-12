@@ -590,7 +590,7 @@ import AcBoundField from '@/components/fields/AcBoundField'
 import AcOrderRating from '@/components/views/order/AcOrderRating.vue'
 import AcEscrowLabel from '@/components/AcEscrowLabel.vue'
 import LinkedCharacter from '@/types/LinkedCharacter'
-import {RawLocation} from 'vue-router'
+import {Location} from 'vue-router'
 import AcOrderStatus from '@/components/AcOrderStatus.vue'
 import {Mutation} from 'vuex-class'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
@@ -976,14 +976,15 @@ export default class OrderDetail extends mixins(Viewer, Formatting, Ratings) {
 
   public get registerLink() {
     const order = this.order.x as Order
-    const baseRoute: RawLocation = {name: 'Login', params: {tabName: 'register'}, query: {}}
+    const baseRoute: Location = {name: 'Login', params: {tabName: 'register'}, query: {}}
     /* istanbul ignore if */
     if (!order) {
       return baseRoute
     }
     baseRoute.query!.claim = order.claim_token
-    const nextRoute: RawLocation = {
-      name: this.$route.name, params: {...this.$route.params}, query: {...this.$route.query},
+    /* istanbul ignore next */
+    const nextRoute: Location = {
+      name: this.$route.name || undefined, params: {...this.$route.params}, query: {...this.$route.query},
     }
     if (this.is(this.COMPLETED)) {
       nextRoute.query!.showAdd = 'true'

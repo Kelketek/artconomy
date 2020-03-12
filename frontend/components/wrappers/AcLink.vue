@@ -10,13 +10,13 @@ import Vue from 'vue'
 import Component from 'vue-class-component'
 import {Fragment} from 'vue-fragment'
 import {Prop} from 'vue-property-decorator'
-import {Route} from 'vue-router'
+import {Location} from 'vue-router'
 import {State} from 'vuex-class'
 
 @Component({components: {Fragment}})
 export default class AcLink extends Vue {
     @Prop()
-    public to!: Route
+    public to!: Location
     @State('iFrame') public iFrame!: boolean
 
     public navigate(event: Event) {

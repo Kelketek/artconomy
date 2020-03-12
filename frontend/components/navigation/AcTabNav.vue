@@ -19,7 +19,7 @@ import Vue from 'vue'
 import Component from 'vue-class-component'
 import {Prop} from 'vue-property-decorator'
 import {TabNavSpec} from '@/types/TabNavSpec'
-import {Route} from 'vue-router'
+import {RawLocation, Route} from 'vue-router'
 import AcTab from '@/components/AcTab.vue'
   @Component({
     components: {AcTab},
@@ -41,7 +41,7 @@ export default class AcTabNav extends Vue {
         (item) => this.$route.matched.filter((match) => match.name === item.value.name).length)[0]
     }
     public set tab(val) {
-      this.$router.replace(val as unknown as Route)
+      this.$router.replace(val as RawLocation)
     }
 }
 </script>
