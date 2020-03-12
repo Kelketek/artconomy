@@ -58,8 +58,10 @@ export class CharacterController extends BaseController<CharacterModuleOpts, Cha
     if (characterName !== oldName) {
       return
     }
+    /* istanbul ignore next */
+    const name = this.$route.name || undefined
     const route = {
-      name: this.$route.name,
+      name,
       params: {...this.$route.params},
       query: {...this.$route.query},
       hash: this.$route.hash,

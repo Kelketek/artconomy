@@ -416,7 +416,9 @@ export function paramHandleArray(handleName: string, nameArray: string[]): param
     const newParams = Object.assign({}, component.$route.params, params)
     const newQuery = Object.assign({}, component.$route.query)
     delete newQuery.page
-    const newPath = {name: component.$route.name, params: newParams, query: newQuery}
+    /* istanbul ignore next */
+    const name = component.$route.name || undefined
+    const newPath = {name, params: newParams, query: newQuery}
     component.$router.replace(newPath)
   }
   return (cls, propName) => {

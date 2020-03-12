@@ -34,7 +34,7 @@ describe('Login.vue', () => {
       store,
       localVue,
       vuetify,
-      mocks: {$router: {}, $route: {name: 'Login', params: {}, query: {}}},
+      mocks: {$router: {replace: jest.fn()}, $route: {name: 'Login', params: {}, query: {}}},
       stubs: ['router-link'],
       attachToDocument: true,
     })
@@ -89,7 +89,7 @@ describe('Login.vue', () => {
       localVue,
       vuetify,
       mocks: {
-        $router: {},
+        $router: {replace: jest.fn()},
         $route: {name: 'Login', params: {}, query: {artist_mode: 'true'}},
       },
       stubs: ['router-link'],
@@ -345,7 +345,7 @@ describe('Login.vue', () => {
       store,
       localVue,
       vuetify,
-      mocks: {$router: {push}, $route: {name: 'Login', params: {}, query: {}}},
+      mocks: {$router: {push, replace: jest.fn()}, $route: {name: 'Login', params: {}, query: {}}},
       stubs: ['router-link'],
       attachToDocument: true,
       sync: false,

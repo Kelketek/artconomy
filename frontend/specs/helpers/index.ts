@@ -171,10 +171,10 @@ export function createVuetify() {
       dark: true,
       themes: {
         dark: {
-          primary: colors.blue,
-          secondary: colors.purple,
-          danger: colors.red,
-          darkBase: colors.grey,
+          primary: colors.blue.base,
+          secondary: colors.purple.base,
+          danger: colors.red.base,
+          darkBase: colors.grey.base,
         },
       },
     },

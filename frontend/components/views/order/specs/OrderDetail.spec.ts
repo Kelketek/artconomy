@@ -28,6 +28,7 @@ let vuetify: Vuetify
 
 describe('OrderDetail.vue', () => {
   beforeEach(() => {
+    jest.useFakeTimers()
     store = createStore()
     vuetify = createVuetify()
     router = new Router({
@@ -820,5 +821,46 @@ describe('OrderDetail.vue', () => {
     await vm.$nextTick()
     expect(vm.tip).toBeTruthy()
     expect(vm.tip.patchers.amount.model).toBe('20.00')
+  })
+  it('Clears the remote ID and cash flag when the manual transaction menu is toggled', async() => {
+    const fox = genUser()
+    fox.username = 'Fox'
+    setViewer(store, fox)
+    router.push('/orders/Fox/order/1/')
+    wrapper = mount(
+      OrderDetail, {
+        localVue,
+        store,
+        router,
+        vuetify,
+        propsData: {orderId: 3},
+        sync: false,
+        attachToDocument: true,
+        stubs: ['ac-revision-manager'],
+      })
+    const vm = wrapper.vm as any
+    const order = genOrder()
+    vm.order.setX(order)
+    vm.order.ready = true
+    mockAxios.reset()
+    await vm.$nextTick()
+    vm.paymentForm.fields.cash.update(true)
+    vm.paymentForm.fields.remote_id.update('1234')
+    await vm.$nextTick()
+    expect(vm.paymentForm.fields.cash.value).toBe(true)
+    expect(vm.paymentForm.fields.remote_id.value).toBe('1234')
+    vm.showManualTransaction = true
+    await vm.$nextTick()
+    expect(vm.paymentForm.fields.cash.value).toBe(false)
+    expect(vm.paymentForm.fields.remote_id.value).toBe('')
+    vm.paymentForm.fields.cash.update(true)
+    vm.paymentForm.fields.remote_id.update('1234')
+    await vm.$nextTick()
+    expect(vm.paymentForm.fields.cash.value).toBe(true)
+    expect(vm.paymentForm.fields.remote_id.value).toBe('1234')
+    vm.showManualTransaction = false
+    await vm.$nextTick()
+    expect(vm.paymentForm.fields.cash.value).toBe(false)
+    expect(vm.paymentForm.fields.remote_id.value).toBe('')
   })
 })

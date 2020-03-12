@@ -43,8 +43,10 @@ export class ProfileController extends BaseController<ProfileModuleOpts, Profile
       return
     }
     // Most relevant routes will have the username right in them, so we need to change these.
+    /* istanbul ignore next */
+    const name = this.$route.name || undefined
     const route = {
-      name: this.$route.name,
+      name,
       params: {...this.$route.params},
       query: {...this.$route.query},
       hash: this.$route.hash,

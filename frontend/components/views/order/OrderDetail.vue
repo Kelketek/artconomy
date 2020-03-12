@@ -685,15 +685,9 @@ export default class OrderDetail extends mixins(Viewer, Formatting, Ratings) {
   }
 
   @Watch('showManualTransaction')
-  public clearCash(val: boolean|undefined) {
-    /* istanbul ignore if */
-    if (val === undefined) {
-      return
-    }
-    if (!val) {
-      this.paymentForm.fields.cash.update(false)
-      this.paymentForm.fields.remote_id.update('')
-    }
+  public clearManualTransactionSettings() {
+    this.paymentForm.fields.cash.update(false)
+    this.paymentForm.fields.remote_id.update('')
   }
 
   @Watch('totalCharge')

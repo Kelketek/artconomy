@@ -1,7 +1,7 @@
 <template>
   <div class="speed-container">
     <div class="tooltip-holder">
-      <div class="tooltip-content" :style="style"><span>{{text}}</span></div>
+      <div class="tooltip-content"><span>{{text}}</span></div>
     </div>
     <div class="speed-button-container">
       <slot>
@@ -61,25 +61,12 @@ export default class AcSpeedButton extends Vue {
     @Prop() public color!: string
     @Prop() public large!: boolean
     @Prop() public small!: boolean
-    @Prop() public nudgeRight!: string
-    @Prop() public nudgeTop!: string
     @Prop() public value!: boolean
     public id = genId()
     public showTooltip!: boolean
 
     public created() {
       this.showTooltip = this.value
-    }
-
-    public get style() {
-      let str = ''
-      if (this.nudgeRight) {
-        str += `margin-right: ${this.nudgeRight};`
-      }
-      if (this.nudgeTop) {
-        str += `margin-top: ${this.nudgeTop};`
-      }
-      return str
     }
 
     @Watch('value')
