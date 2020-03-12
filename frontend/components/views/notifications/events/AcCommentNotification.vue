@@ -1,7 +1,7 @@
 <template>
   <ac-base-notification :notification="notification" :asset-link="event.data.link">
-    <span slot="title"><router-link :to="event.data.link">{{titleText}}</router-link></span>
-    <span slot="subtitle"><router-link :to="event.data.link">{{byLine}}</router-link></span>
+    <span slot="title"><ac-link :to="event.data.link">{{titleText}}</ac-link></span>
+    <span slot="subtitle"><ac-link :to="event.data.link">{{byLine}}</ac-link></span>
   </ac-base-notification>
 </template>
 
@@ -9,10 +9,11 @@
 import Notification from '../mixins/notification'
 import AcBaseNotification from './AcBaseNotification'
 import {posse} from '../../../../lib/lib'
+import AcLink from '@/components/wrappers/AcLink'
 
 export default {
   name: 'ac-comment-notification',
-  components: {AcBaseNotification},
+  components: {AcLink, AcBaseNotification},
   mixins: [Notification],
   data() {
     return {}

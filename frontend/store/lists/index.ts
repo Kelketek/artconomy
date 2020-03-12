@@ -89,6 +89,9 @@ export class ListModule<T extends {}> {
       setReady(state: ListState<T>, value: boolean) {
         state.ready = value
       },
+      setGrow(state: ListState<T>, value: boolean) {
+        state.grow = value
+      },
       setFailed(state: ListState<T>, value: boolean) {
         state.failed = value
       },

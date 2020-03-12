@@ -1,11 +1,11 @@
 <template>
   <v-container class="pa-0" :fluid="fluid">
-    <v-container class="pa-0" v-if="controller.fetching">
+    <v-container class="pa-0 loading-spinner-container" v-if="controller.fetching && growPermitting">
       <slot name="loading-spinner">
         <ac-loading-spinner />
       </slot>
     </v-container>
-    <v-container class="pa-0" :fluid="fluid" v-if="forceRender || (controller.ready && (!controller.fetching || (controller.grow && this.loadWhileGrowing)))">
+    <v-container class="pa-0" :fluid="fluid" v-if="forceRender || (controller.ready && (!controller.fetching || controller.grow))">
       <!-- Always use a template tag with v-slot:default to fill this slot or else it will be evaluated by the parent. -->
       <slot></slot>
     </v-container>
@@ -61,7 +61,7 @@ export default class AcLoadSection extends Vue {
     @Prop({default: false})
     public forceRender!: boolean
     @Prop({default: true})
-    public loadWhileGrowing!: boolean
+    public loadOnGrow!: boolean
     public prerendering = false
 
     public created() {
@@ -70,6 +70,19 @@ export default class AcLoadSection extends Vue {
 
     private showSupport() {
       this.$store.commit('supportDialog', true)
+    }
+
+    public get growPermitting() {
+      if (this.loadOnGrow) {
+        return true
+      }
+      const controller = this.controller as ListController<any>
+      if ((this.controller as ListController<any>).grow) {
+        if (controller.list.length) {
+          return false
+        }
+      }
+      return true
     }
 }
 </script>

@@ -128,6 +128,11 @@ export class ListController<T> extends BaseController<ListModuleOpts, ListState<
     return this.attr('grow')
   }
 
+  public set grow(val: boolean) {
+    // Should only be used during testing, since state can't be guaranteed sane if set at runtime.
+    this.commit('setGrow', val)
+  }
+
   public get params(): QueryParams|null {
     return this.attr('params')
   }

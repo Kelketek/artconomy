@@ -59,4 +59,28 @@ describe('AcLoadSection.vue', () => {
     await wrapper.vm.$nextTick()
     expect(store.state.showSupport).toBe(true)
   })
+  it('Does not show the spinner if loadOnGrow is set and the list has a length.', async() => {
+    store.commit('lists/demo/setFailed', true)
+    list.setList([{id: 1}, {id: 2}])
+    list.fetching = true
+    wrapper = mount(AcLoadSection, {
+      localVue,
+      store,
+      vuetify,
+      propsData: {controller: list, loadOnGrow: false},
+      sync: false,
+      attachToDocument: true,
+    })
+    await wrapper.vm.$nextTick()
+    let button = wrapper.find('.loading-spinner-container')
+    expect(button.exists()).toBe(true)
+    list.grow = true
+    await wrapper.vm.$nextTick()
+    button = wrapper.find('.loading-spinner-container')
+    expect(button.exists()).toBe(false)
+    list.setList([])
+    await wrapper.vm.$nextTick()
+    button = wrapper.find('.loading-spinner-container')
+    expect(button.exists()).toBe(true)
+  })
 })
