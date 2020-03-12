@@ -1,8 +1,8 @@
 <template>
   <v-list-item>
     <router-link :to="assetLink">
-      <v-badge left overlap>
-        <span slot="badge" v-if="!notification.read">*</span>
+      <v-badge left overlap :value="!notification.read">
+        <span slot="badge">*</span>
         <v-list-item-avatar>
           <img :src="$img(event.data.display, 'notification', true)" alt="">
         </v-list-item-avatar>

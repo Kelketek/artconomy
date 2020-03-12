@@ -60,43 +60,40 @@ import AcLandscapeReferral from './events/AcLandscapeReferral.vue'
 import AcSubmissionArtistTag from './events/AcSubmissionArtistTag.vue'
 import AcGrowSpinner from '@/components/AcGrowSpinner.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
+import Component, {mixins} from 'vue-class-component'
 
-export default {
-  name: 'ac-list-notifications',
-  mixins: [NotificationsListBase],
-  components: {
-    AcPaginated,
-    AcGrowSpinner,
-    AcSubmissionArtistTag,
-    AcLandscapeReferral,
-    AcPortraitReferral,
-    AcWithdrawFailed,
-    AcOrderTokenIssued,
-    AcNewJournal,
-    AcSubscriptionDeactivated,
-    AcRenewalFailure,
-    AcRenewalFixed,
-    AcCommissionsOpen,
-    AcStreaming,
-    AcCharShared,
-    AcAssetShared,
-    AcCommentNotification,
-    AcRevisionUploaded,
-    AcSubmissionCharTag,
-    AcCharTag,
-    AcSubmissionTag,
-    AcRefund,
-    AcDispute,
-    AcFavorite,
-    AcSaleUpdate,
-    AcOrderUpdate,
-    AcNewCharacter,
-    AcNewProduct,
-  },
-  methods: {
-    error(x: any) {
-      console.error(x)
-    },
-  },
+@Component({components: {
+  AcPaginated,
+  AcGrowSpinner,
+  AcSubmissionArtistTag,
+  AcLandscapeReferral,
+  AcPortraitReferral,
+  AcWithdrawFailed,
+  AcOrderTokenIssued,
+  AcNewJournal,
+  AcSubscriptionDeactivated,
+  AcRenewalFailure,
+  AcRenewalFixed,
+  AcCommissionsOpen,
+  AcStreaming,
+  AcCharShared,
+  AcAssetShared,
+  AcCommentNotification,
+  AcRevisionUploaded,
+  AcSubmissionCharTag,
+  AcCharTag,
+  AcSubmissionTag,
+  AcRefund,
+  AcDispute,
+  AcFavorite,
+  AcSaleUpdate,
+  AcOrderUpdate,
+  AcNewCharacter,
+  AcNewProduct,
+}})
+export default class NotificationsList extends mixins(NotificationsListBase) {
+  error(x: any) {
+    console.error(x)
+  }
 }
 </script>

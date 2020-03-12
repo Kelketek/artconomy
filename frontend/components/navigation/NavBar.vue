@@ -120,10 +120,10 @@
           <v-icon large>search</v-icon>
         </v-btn>
         <v-btn icon v-if="isRegistered" @click="notificationLoad" class="notifications-button">
-          <v-badge overlap right color="red">
+          <v-badge overlap right color="red" :value="counts.count">
             <template v-slot:badge>
               <span slot="badge" v-if="counts.count && counts.count < 1000">{{counts.count}}</span>
-              <span slot="badge" v-else-if="counts.count > 999">*</span>
+              <span slot="badge" v-else>*</span>
             </template>
             <v-icon large>notifications</v-icon>
           </v-badge>

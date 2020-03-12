@@ -1,11 +1,11 @@
 <template>
   <v-list-item>
     <router-link :to="{name: 'Order', params: {orderId: event.target.id, username: viewer.username}}">
-      <v-badge left overlap>
-        <span slot="badge" v-if="!notification.read">*</span>
-        <v-list-item-avatar>
+      <v-badge left overlap :value="!notification.read">
+        <span slot="badge">*</span>
+        <v-avatar>
           <img :src="$img(event.data.revision, 'notification', true)" alt="">
-        </v-list-item-avatar>
+        </v-avatar>
       </v-badge>
     </router-link>
     <v-list-item-content>

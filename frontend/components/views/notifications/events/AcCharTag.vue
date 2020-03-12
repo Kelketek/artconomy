@@ -1,15 +1,15 @@
 <template>
   <v-list-item>
     <router-link v-if="event.data.asset" :to="{name: 'Submission', params: {assetID: event.data.asset.id}}">
-      <v-badge left overlap>
-        <span slot="badge" v-if="!notification.read">*</span>
+      <v-badge left overlap :value="!notification.read">
+        <span slot="badge">*</span>
         <v-list-item-avatar>
           <img :src="$img(event.target.primary_asset, 'notification', true)" alt="">
         </v-list-item-avatar>
       </v-badge>
     </router-link>
-    <v-badge left v-else overlap>
-      <span slot="badge" v-if="!notification.read">*</span>
+    <v-badge left v-else overlap :value="!notification.read">
+      <span slot="badge">*</span>
       <v-list-item-avatar>
         <img :src="$img(event.target.primary_asset, 'notification', true)" alt="">
       </v-list-item-avatar>

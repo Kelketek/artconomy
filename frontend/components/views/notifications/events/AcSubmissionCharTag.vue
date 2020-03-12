@@ -1,7 +1,7 @@
 <template>
   <v-list-item>
     <router-link v-if="event.data.character" :to="{name: 'Submission', params: {assetID: event.target.id}}">
-      <v-badge left overlap>
+      <v-badge left overlap :value="!notification.read">
         <span slot="badge" v-if="!notification.read">*</span>
         <v-list-item-avatar>
           <img :src="$img(event.target, 'notification', true)" alt="">

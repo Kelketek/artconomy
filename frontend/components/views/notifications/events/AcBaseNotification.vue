@@ -2,9 +2,9 @@
   <v-list-item>
     <v-list-item-avatar>
     <ac-link :to="assetLink">
-      <v-badge left overlap>
+      <v-badge left overlap :value="!notification.read">
         <template v-slot:badge>
-          <span v-if="!notification.read">*</span>
+          <span>*</span>
         </template>
         <slot name="avatar">
           <v-avatar>
