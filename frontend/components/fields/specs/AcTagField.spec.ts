@@ -29,7 +29,7 @@ describe('ac-tag-field', () => {
     expect(mockAxios.get).toHaveBeenCalledWith(
       '/api/profiles/v1/search/tag/',
       undefined,
-      {cancelToken: {}, headers: {'Content-Type': 'application/json; charset=utf-8'}, params: {q: 'Test'}}
+      {cancelToken: expect.any(Object), headers: {'Content-Type': 'application/json; charset=utf-8'}, params: {q: 'Test'}}
     )
   })
   it('Accepts a response from the server on its query', async() => {

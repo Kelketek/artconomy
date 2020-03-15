@@ -1,10 +1,10 @@
+from decimal import Decimal
 from unittest.mock import Mock, patch, PropertyMock
 
-from ddt import data, unpack, ddt
 from django.test import TestCase, override_settings
 
 from freezegun import freeze_time
-from moneyed import Money, Decimal
+from moneyed import Money
 from rest_framework.exceptions import ValidationError
 
 from apps.lib.models import ref_for_instance
@@ -12,8 +12,8 @@ from apps.profiles.tests.factories import UserFactory
 from apps.sales.apis import DwollaContext
 from apps.sales.dwolla import make_dwolla_account, add_bank_account, destroy_bank_account, initiate_withdraw, \
     perform_transfer
-from apps.sales.models import BankAccount, TransactionRecord, Order
-from apps.sales.tests.factories import BankAccountFactory, TransactionRecordFactory, OrderFactory
+from apps.sales.models import BankAccount, TransactionRecord, COMPLETED, IN_PROGRESS, Deliverable
+from apps.sales.tests.factories import BankAccountFactory, TransactionRecordFactory,  DeliverableFactory
 
 
 @patch('apps.sales.apis.DwollaContext.dwolla_api', new_callable=PropertyMock)
@@ -76,11 +76,11 @@ class DwollaTestCase(TestCase):
     @patch('apps.sales.dwolla.account_balance')
     def test_initiate_withdraw(self, mock_account_balance, _mock_api):
         account = BankAccountFactory.create(url='http://whatever.com/')
-        included_order = OrderFactory.create(seller=account.user, status=Order.COMPLETED)
+        included_order = DeliverableFactory.create(order__seller=account.user, status=COMPLETED)
         self.assertFalse(included_order.payout_sent)
-        unincluded_orders = [
-            OrderFactory.create(seller=account.user, status=Order.IN_PROGRESS),
-            OrderFactory.create(status=Order.IN_PROGRESS),
+        unincluded_deliverables = [
+            DeliverableFactory.create(order__seller=account.user, status=IN_PROGRESS),
+            DeliverableFactory.create(status=IN_PROGRESS),
         ]
         mock_account_balance.return_value = Decimal('10.00')
         record = initiate_withdraw(account.user, account, Money('5.00', 'USD'), False)
@@ -92,10 +92,10 @@ class DwollaTestCase(TestCase):
         self.assertEqual(record.destination, TransactionRecord.BANK)
         included_order.refresh_from_db()
         self.assertTrue(included_order.payout_sent)
-        unincluded_orders = Order.objects.filter(id__in=[order.id for order in unincluded_orders])
-        self.assertFalse(unincluded_orders[0].payout_sent)
-        self.assertFalse(unincluded_orders[1].payout_sent)
-        self.assertEqual(unincluded_orders.count(), 2)
+        unincluded_deliverables = Deliverable.objects.filter(id__in=[deliverable.id for deliverable in unincluded_deliverables])
+        self.assertFalse(unincluded_deliverables[0].payout_sent)
+        self.assertFalse(unincluded_deliverables[1].payout_sent)
+        self.assertEqual(unincluded_deliverables.count(), 2)
 
     @patch('apps.sales.dwolla.account_balance')
     def test_initiate_withdraw_test_only(self, mock_account_balance, _mock_api):
@@ -146,8 +146,8 @@ class DwollaTestCase(TestCase):
 
     def test_perform_transfer_failure(self, mock_api):
         account = BankAccountFactory.create(url='http://whatever.com/')
-        order = OrderFactory.create(payout_sent=True)
-        self.assertTrue(order.payout_sent)
+        deliverable = DeliverableFactory.create(payout_sent=True)
+        self.assertTrue(deliverable.payout_sent)
         record = TransactionRecordFactory.create(
             category=TransactionRecord.CASH_WITHDRAW,
             status=TransactionRecord.PENDING,
@@ -156,14 +156,14 @@ class DwollaTestCase(TestCase):
             destination=TransactionRecord.BANK,
             remote_id='N/A',
         )
-        record.targets.add(ref_for_instance(account), ref_for_instance(order))
+        record.targets.add(ref_for_instance(account), ref_for_instance(deliverable))
         mock_api.return_value.post.side_effect = ValueError()
         self.assertRaises(ValueError, perform_transfer, record)
         record.refresh_from_db()
         self.assertEqual(record.remote_id, 'N/A')
         self.assertEqual(record.status, TransactionRecord.FAILURE)
-        order.refresh_from_db()
-        self.assertFalse(order.payout_sent)
+        deliverable.refresh_from_db()
+        self.assertFalse(deliverable.payout_sent)
 
 
 TEST_VALUES = (

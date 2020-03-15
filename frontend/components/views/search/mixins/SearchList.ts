@@ -2,7 +2,7 @@ import Component from 'vue-class-component'
 import Vue from 'vue'
 import {Watch} from 'vue-property-decorator'
 import {makeQueryParams} from '@/lib/lib'
-import {debounce} from 'lodash'
+import {debounce, Cancelable} from 'lodash'
 import deepEqual from 'fast-deep-equal'
 import {ListController} from '@/store/lists/controller'
 import {FormController} from '@/store/forms/form-controller'
@@ -13,18 +13,16 @@ export default class SearchList extends Vue {
   public searchForm: FormController = null as unknown as FormController
   // Must be defined in created function of child.
   public list!: ListController<any>
+  public debouncedUpdate!: ((newData: RawData) => void) & Cancelable
   @Watch('searchForm.rawData', {deep: true})
   public updateParams(newData: RawData) {
     this.debouncedUpdate(newData)
   }
 
-  public get debouncedUpdate() {
-    return debounce(this.rawUpdate, 250, {trailing: true})
-  }
-
   public rawUpdate(newData: RawData) {
     const newParams = makeQueryParams(newData)
     const oldParams = this.list.params
+    /* istanbul ignore if */
     if (deepEqual(newParams, oldParams)) {
       return
     }
@@ -46,5 +44,6 @@ export default class SearchList extends Vue {
   }
   public created() {
     this.searchForm = this.$getForm('search')
+    this.debouncedUpdate = debounce(this.rawUpdate, 250, {trailing: true})
   }
 }

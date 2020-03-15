@@ -63,7 +63,7 @@ import Component, {mixins} from 'vue-class-component'
 import Viewer from '../../mixins/viewer'
 import AcEditor from '../fields/AcEditor.vue'
 import {ListController} from '@/store/lists/controller'
-import {Prop} from 'vue-property-decorator'
+import {Prop, Watch} from 'vue-property-decorator'
 import AcAvatar from '@/components/AcAvatar.vue'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import {FormController} from '@/store/forms/form-controller'
@@ -72,6 +72,7 @@ import {flatten, profileLink} from '@/lib/lib'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import Formatting from '@/mixins/formatting'
+import {RawData} from '@/store/forms/types/RawData'
 
   @Component({
     components: {AcLink, AcForm, AcBoundField, AcFormContainer, AcAvatar, AcEditor},
@@ -85,6 +86,8 @@ export default class AcNewComment extends mixins(Viewer, Formatting) {
     public value!: boolean
     @Prop({default: false})
     public guestOk!: boolean
+    @Prop({default: () => ({})})
+    public extraData!: RawData
     public newCommentForm: FormController = null as unknown as FormController
 
     public get color() {
@@ -99,13 +102,18 @@ export default class AcNewComment extends mixins(Viewer, Formatting) {
       this.$emit('input', false)
     }
 
+    @Watch('extraData', {deep: true})
+    public updateData() {
+      this.newCommentForm.fields.extra_data.update(this.extraData)
+    }
+
     public publish() {
       this.newCommentForm.submit().then(this.commentList.push).then(this.cancel).catch(this.newCommentForm.setErrors)
     }
 
     public created() {
       this.newCommentForm = this.$getForm(flatten(this.commentList.name) + '_new', {
-        endpoint: this.commentList.endpoint, fields: {text: {value: ''}},
+        endpoint: this.commentList.endpoint, fields: {text: {value: ''}, extra_data: {value: this.extraData}},
       })
     }
 }

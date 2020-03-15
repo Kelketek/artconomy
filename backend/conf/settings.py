@@ -232,6 +232,14 @@ THUMBNAIL_ALIASES = {
         'thumbnail': {'size': (300, 300), 'crop': False},
         'notification': {'size': (80, 80)}
     },
+    'sales.Reference.file': {
+        'preview': {'size': (1000, 1000), 'crop': False},
+        'notification': {'size': (80, 80)}
+    },
+    'sales.Reference.preview': {
+        'thumbnail': {'size': (300, 300), 'crop': False},
+        'notification': {'size': (80, 80)}
+    },
     '': {}
 }
 

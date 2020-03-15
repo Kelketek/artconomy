@@ -69,6 +69,11 @@ describe('AcBankToggle.vue', () => {
     vm.banks.setList([])
     vm.banks.fetching = false
     vm.banks.ready = true
+    vm.balance.makeReady({
+      available: '5.00',
+      escrow: '0.00',
+      pending: '0.00',
+    })
     await flushPromises()
     mockAxios.reset()
     wrapper.find('.add-account').trigger('click')

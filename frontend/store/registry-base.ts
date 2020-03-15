@@ -111,7 +111,7 @@ export function genRegistryBase<K extends AttrKeys, T extends Registerable<K>>()
         const self = this as unknown as Registry<K, T>
         const name = controller.name
         if (self.uidTracking[name] === undefined) {
-          // No references left. Form may have been deleted outside of the destroy hook.
+          // No references left. Controller may have been deleted outside of the destroy hook.
           return
         }
         self.uidTracking[name] = self.uidTracking[name].filter((x) => x !== uid)

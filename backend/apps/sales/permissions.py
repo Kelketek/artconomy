@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.utils import timezone
 from rest_framework.permissions import BasePermission
 
@@ -5,9 +6,19 @@ from apps.profiles.models import UNSET
 from apps.sales.utils import available_products_from_user
 
 
+def derive_order(instance):
+    from apps.sales.models import Order, Deliverable
+    if isinstance(instance, Order):
+        return instance
+    if not isinstance(instance, Deliverable):
+        instance = instance.deliverable
+    return instance.order
+
+
 class OrderViewPermission(BasePermission):
     def has_object_permission(self, request, view, obj):
         from apps.sales.models import Order
+        obj = derive_order(obj)
         if not isinstance(obj, Order):
             obj = obj.order
         if request.user.is_staff:
@@ -20,9 +31,7 @@ class OrderViewPermission(BasePermission):
 
 class OrderSellerPermission(BasePermission):
     def has_object_permission(self, request, view, obj):
-        from apps.sales.models import Order
-        if not isinstance(obj, Order):
-            obj = obj.order
+        obj = derive_order(obj)
         if request.user.is_staff:
             return True
         if request.user == obj.seller:
@@ -32,8 +41,7 @@ class OrderSellerPermission(BasePermission):
 class OrderBuyerPermission(BasePermission):
     def has_object_permission(self, request, view, obj):
         from apps.sales.models import Order
-        if not isinstance(obj, Order):
-            obj = obj.order
+        obj = derive_order(obj)
         if request.user.is_staff:
             return True
         if request.user == obj.buyer:
@@ -88,13 +96,13 @@ class BankingConfigured(BasePermission):
         return obj.artist_profile.bank_account_status is not UNSET
 
 
-def OrderStatusPermission(*args, error_message='The order is not in the right status for that.'):
+def DeliverableStatusPermission(*args, error_message='The deliverable is not in the right status for that.'):
+    from apps.sales.models import Deliverable
     class StatusCheckPermission(BasePermission):
         message = error_message
         def has_object_permission(self, request, view, obj):
-            from apps.sales.models import Order
-            if not isinstance(obj, Order):
-                obj = obj.order
+            if not isinstance(obj, Deliverable):
+                obj = obj.deliverable
             if obj.status in args:
                 return True
             return False
@@ -119,13 +127,13 @@ class OrderTimeUpPermission(BasePermission):
 
 
 class NoOrderOutput(BasePermission):
-    message = 'You may not create a submission based on this order.'
+    message = 'You may not create a submission based on this deliverable.'
     def has_object_permission(self, request, view, obj):
         assert request.user
-        if request.user not in [obj.seller, obj.buyer]:
+        if request.user not in [obj.order.seller, obj.order.buyer]:
             return False
         if obj.outputs.filter(owner=request.user).exists():
-            self.message = 'You have already created a submission based on this order.'
+            self.message = 'You have already created a submission based on this deliverable.'
             return False
         return True
 
@@ -160,3 +168,9 @@ class OrderNoProduct(BasePermission):
         if obj.product:
             return False
         return True
+
+
+class ReferenceViewPermission(BasePermission):
+    message = 'You are not permitted to get that reference.'
+    def has_object_permission(self, request, view, obj):
+        return obj.deliverables.filter(Q(order__buyer=request.user) | Q(order__seller=request.user)).exists()

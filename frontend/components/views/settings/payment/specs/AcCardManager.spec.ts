@@ -47,7 +47,7 @@ describe('AcCardManager.vue', () => {
   })
   it('Fetches the initial data', async() => {
     expect(mockAxios.get.mock.calls[0]).toEqual(
-      rq(`/api/sales/v1/account/Fox/cards/`, 'get', undefined, {cancelToken: {}})
+      rq(`/api/sales/v1/account/Fox/cards/`, 'get', undefined, {cancelToken: expect.any(Object)})
     )
   })
   it('Updates the endpoint when the username is changed', async() => {

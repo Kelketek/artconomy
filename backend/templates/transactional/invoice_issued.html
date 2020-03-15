@@ -2,15 +2,15 @@
 {% load md2 %}
 {% block header_message %}Please respond to your commissioner!{% endblock %}
 {% block message %}
-<p>{{order.seller.username}} has just issued an order invoice to you.<p>
+<p>{{deliverable.order.seller.username}} has just issued an order invoice to you.<p>
 <p>This artist should have contacted you about this order previously. If they have not, please email support@artconomy.com and we'll look into it.</p>
 <p>Here's a preview of the order's description:</p>
 <div class="message-preview">
-  {{order.details|markdown:"safe"}}
+  {{deliverable.details|markdown:"safe"}}
 </div>
 <p>To pay your invoice, and get your art, visit the link below!</p>
 {% endblock message %}
 
 {% block action %}
-<a href="/claim-order/{{order.id}}/{{ claim_token }}/">View your invoice here!</a>
+<a href="/claim-order/{{deliverable.order.id}}/{{ claim_token }}/{{deliverable.id}}">View your invoice here!</a>
 {% endblock %}

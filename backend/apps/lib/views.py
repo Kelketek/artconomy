@@ -175,8 +175,6 @@ class CommentHistory(ListAPIView):
         return context
 
     def get_queryset(self):
-        for comment in VersionHistoryQuerySet(Version).get_for_object(self.get_object()).all():
-            print(comment)
         return VersionHistoryQuerySet(Version).get_for_object(self.get_object()).all()
 
 
@@ -353,7 +351,7 @@ class SupportRequest(APIView):
 
 
 class AssetUpload(APIView):
-    permission_classes = [IsRegistered]
+    permission_classes = [IsAuthenticated]
     parser_classes = (MultiPartParser,)
 
     # noinspection PyMethodMayBeStatic

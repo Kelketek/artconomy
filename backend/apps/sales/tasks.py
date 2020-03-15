@@ -15,8 +15,8 @@ from apps.profiles.models import User
 from apps.sales.apis import dwolla
 from apps.sales.authorize import AuthorizeException, charge_saved_card
 from apps.sales.dwolla import initiate_withdraw, perform_transfer, TRANSACTION_STATUS_MAP
-from apps.sales.models import CreditCardToken, Order, TransactionRecord
-from apps.sales.utils import service_price, set_service, finalize_order, account_balance
+from apps.sales.models import CreditCardToken, Order, TransactionRecord, REVIEW, NEW, Deliverable
+from apps.sales.utils import service_price, set_service, finalize_deliverable, account_balance
 from conf.celery_config import celery_app
 
 
@@ -150,31 +150,31 @@ def update_transfer_status(record_id):
             TransactionRecord.objects.filter(
                 targets=ref_for_instance(record), category=TransactionRecord.THIRD_PARTY_FEE,
             ).update(status=TransactionRecord.FAILURE)
-            order_ids = record.targets.filter(
-                content_type=ContentType.objects.get_for_model(Order),
+            deliverable = record.targets.filter(
+                content_type=ContentType.objects.get_for_model(Deliverable),
             ).values_list('object_id', flat=True)
-            Order.objects.filter(id__in=[int(order_id) for order_id in order_ids]).update(payout_sent=False)
+            Deliverable.objects.filter(id__in=[int(order_id) for order_id in deliverable]).update(payout_sent=False)
 
 
 @celery_app.task
 def auto_finalize(order_id):
-    order = Order.objects.get(id=order_id)
-    if not order.status == Order.REVIEW:
+    deliverable = Deliverable.objects.get(id=order_id)
+    if not deliverable.status == REVIEW:
         # Was disputed in the interim.
         return
-    if not order.auto_finalize_on:
+    if not deliverable.auto_finalize_on:
         # Order had final revision removed in the interim.
         return
-    if order.auto_finalize_on > timezone.now().date():
+    if deliverable.auto_finalize_on > timezone.now().date():
         # Order finalize date has been moved up.
         return
-    finalize_order(order)
+    finalize_deliverable(deliverable)
 
 
 @celery_app.task
 def auto_finalize_run():
-    for order in Order.objects.filter(status=Order.REVIEW, auto_finalize_on__lte=timezone.now().date()):
-        auto_finalize.delay(order.id)
+    for deliverable in Deliverable.objects.filter(status=REVIEW, auto_finalize_on__lte=timezone.now().date()):
+        auto_finalize.delay(deliverable.id)
 
 
 @celery_app.task
@@ -197,11 +197,13 @@ def withdraw_all(user_id):
 
 @celery_app.task
 def remind_sale(order_id):
-    order = Order.objects.get(id=order_id)
-    if not order.status == Order.NEW:
+    deliverable = Deliverable.objects.get(id=order_id)
+    if not deliverable.status == NEW:
         return
     send_transaction_email(
-        'Your commissioner is awaiting your response!', 'sale_reminder.html', order.seller, {'sale': order}
+        'Your commissioner is awaiting your response!', 'sale_reminder.html', deliverable.order.seller, {
+            'deliverable': deliverable,
+        }
     )
 
 
@@ -209,7 +211,7 @@ def remind_sale(order_id):
 def remind_sales():
     to_remind = []
     orders = Order.objects.filter(
-        status=Order.NEW, created_on__lte=timezone.now() - relativedelta(days=1),
+        status=NEW, created_on__lte=timezone.now() - relativedelta(days=1),
     )
     for order in orders:
         delta = (timezone.now() - order.created_on).days

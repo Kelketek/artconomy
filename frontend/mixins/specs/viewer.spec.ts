@@ -4,14 +4,12 @@ import {genUser} from '@/specs/helpers/fixtures'
 import {ArtStore, createStore} from '@/store'
 import Vue, {VueConstructor} from 'vue'
 import Vuex from 'vuex'
-import {flushPromises, genAnon, rq, rs} from '@/specs/helpers'
+import {genAnon, rs} from '@/specs/helpers'
 import {Ratings} from '@/store/profiles/types/Ratings'
 import ViewerComponent from '@/specs/helpers/dummy_components/viewer.vue'
 import {profileRegistry, Profiles} from '@/store/profiles/registry'
 import {singleRegistry, Singles} from '@/store/singles/registry'
-import {getCookie} from '@/lib/lib'
 import {Lists} from '@/store/lists/registry'
-import {AxiosError} from 'axios'
 
 describe('Viewer.ts', () => {
   let store: ArtStore
@@ -143,12 +141,12 @@ describe('Viewer.ts', () => {
   })
   it('Identifies the user as a superuser if they are one', async() => {
     wrapper = shallowMount(ViewerComponent, {localVue, store})
-    mockAxios.mockResponse(rs(genUser()))
+    mockAxios.mockResponse(rs(genUser({is_superuser: true})))
     expect((wrapper.vm as any).isSuperuser).toBe(true)
   })
   it('Identifies the user as not a superuser if they are not one', async() => {
     wrapper = shallowMount(ViewerComponent, {localVue, store})
-    const user = genUser()
+    const user = genUser({is_superuser: false})
     user.is_superuser = false
     mockAxios.mockResponse(rs(user))
     expect((wrapper.vm as any).isSuperuser).toBe(false)
@@ -159,12 +157,12 @@ describe('Viewer.ts', () => {
   })
   it('Identifies the user as a staffer if they are one', async() => {
     wrapper = shallowMount(ViewerComponent, {localVue, store})
-    mockAxios.mockResponse(rs(genUser()))
+    mockAxios.mockResponse(rs(genUser({is_staff: true})))
     expect((wrapper.vm as any).isStaff).toBe(true)
   })
   it('Identifies the user as not a staffer if they are not one', async() => {
     wrapper = shallowMount(ViewerComponent, {localVue, store})
-    const user = genUser()
+    const user = genUser({is_staff: false})
     user.is_staff = false
     mockAxios.mockResponse(rs(user))
     expect((wrapper.vm as any).isStaff).toBe(false)

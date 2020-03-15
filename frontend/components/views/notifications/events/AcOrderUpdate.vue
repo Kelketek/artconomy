@@ -1,6 +1,6 @@
 <template>
   <ac-base-notification :notification="notification" :asset-link="assetLink">
-    <span slot="title"><router-link :to="assetLink">Order #{{event.target.id}}</router-link></span>
+    <span slot="title"><router-link :to="assetLink">Order #{{event.target.order.id}} [{{event.target.name}}]</router-link></span>
     <span slot="subtitle"><router-link :to="assetLink">{{ message }}</router-link></span>
       <v-list-item-subtitle slot="extra">
         <a target="_blank" :href="streamingLink" v-if="streamingLink">Click here for stream!</a>
@@ -34,11 +34,13 @@ export default {
   components: {AcBaseNotification},
   mixins: [Notification, Formatting],
   computed: {
-    url() {
-      return `/api/sales/v1/order/${this.event.target.id}/`
-    },
     assetLink() {
-      return {name: 'Order', params: {orderId: this.event.target.id, username: this.viewer.username}}
+      return {name: 'OrderDeliverableOverview',
+        params: {
+          orderId: this.event.target.order.id,
+          username: this.viewer.username,
+          deliverableId: this.event.target.id,
+        }}
     },
     message() {
       return ORDER_STATUSES[this.event.target.status + '']

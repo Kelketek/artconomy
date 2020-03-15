@@ -16,7 +16,7 @@ from apps.lib.models import (
     ORDER_UPDATE, SALE_UPDATE, COMMENT, Subscription, SUBMISSION_SHARED, CHAR_SHARED, NEW_CHARACTER,
     NEW_PRODUCT, STREAMING, NEW_JOURNAL, FAVORITE, SUBMISSION_ARTIST_TAG,
     Asset,
-    DISPUTE)
+    DISPUTE, REFERENCE_UPLOADED)
 from apps.lib.utils import tag_list_cleaner, add_check, set_tags
 from apps.profiles.models import User, Submission, Character, Journal, Conversation
 from apps.sales.models import Revision, Product, Order
@@ -262,9 +262,10 @@ class CommentSerializer(RelatedAtomicMixin, CommentMixin, serializers.ModelSeria
         model = Comment
         fields = (
             'id', 'text', 'created_on', 'edited_on', 'user', 'comments', 'comment_count', 'edited', 'deleted',
-            'subscribed', 'system',
+            'subscribed', 'system', 'extra_data',
         )
         read_only_fields = ('id', 'created_on', 'edited_on', 'user', 'comments', 'edited', 'deleted', 'system')
+        extra_kwargs = {'extra_data': {'write_only': True, 'required': False}}
 
 
 class CommentSubscriptionSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
@@ -316,10 +317,33 @@ def revision_uploaded(obj, context):
     value = obj.data
     from apps.sales.serializers import RevisionSerializer
     try:
-        revision = RevisionSerializer(instance=Revision.objects.get(id=value['revision']), context=context).data
+        revision = Revision.objects.get(id=value['revision'])
+        if revision.deliverable.revisions_hidden:
+            raise Revision.DoesNotExist
+        revision = RevisionSerializer(instance=revision, context=context).data
     except Revision.DoesNotExist:
         revision = None
-    return {'revision': revision}
+    return {'revision': revision, 'display': revision or notification_display(obj.target, context=context)}
+
+
+def reference_uploaded(obj, context):
+    value = obj.data
+    from apps.sales.serializers import ReferenceSerializer
+    from apps.sales.models import Reference
+    try:
+        reference = Reference.objects.get(id=value['reference'])
+        reference = ReferenceSerializer(instance=reference, context=context).data
+    except Revision.DoesNotExist:
+        reference = None
+    if context['request'].user == obj.target.order.buyer:
+        buyer = True
+    else:
+        buyer = False
+    return {
+        'reference': reference,
+        'display': reference or notification_display(obj.target, context=context),
+        'buyer': buyer,
+    }
 
 
 def order_update(obj, context):
@@ -343,6 +367,8 @@ def comment_made(obj, context):
     else:
         additional = 0
     context = dict(**context)
+    # This data not to be trusted, as it is user provided.
+    context['extra_data'] = comment.extra_data
     link = get_link(comment.top, context)
     if link:
         if 'query' in link:
@@ -470,6 +496,7 @@ NOTIFICATION_TYPE_MAP = {
     SALE_UPDATE: order_update,
     SUBMISSION_CHAR_TAG: submission_char_tag,
     REVISION_UPLOADED: revision_uploaded,
+    REFERENCE_UPLOADED: reference_uploaded,
     COMMENT: comment_made,
     SUBMISSION_SHARED: submission_shared,
     CHAR_SHARED: char_shared,

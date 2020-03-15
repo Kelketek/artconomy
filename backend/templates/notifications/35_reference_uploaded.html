@@ -1,0 +1,15 @@
+{% extends 'email_base.html' %}
+{% block header_message %}Update!{% endblock %}
+{% block message %}
+A new reference has been added to your {% if buyer %}order{% else %}sale{% endif %}!
+{% endblock message %}
+
+{% block action %}
+{% if buyer and target.buyer.guest %}
+<a href="/claim-order/{{target.order.id}}/{{target.order.claim_token}}/">View your order here!</a>
+{% elif buyer %}
+<a href="/orders/{{target.order.buyer.username}}/order/{{target.order.id}}/deliverables/{{target.id}}/references/{{data.reference.id}}">View your order here!</a>
+{% else %}
+<a href="/sales/{{target.order.seller.username}}/sale/{{target.order.id}}/deliverables/{{target.id}}/references/{{data.reference.id}}">View your sale here!</a>
+{% endif %}
+{% endblock %}

@@ -1,17 +1,18 @@
 import uuid
 from datetime import date
+from decimal import Decimal
 from unittest.mock import patch
 
 from django.test import TestCase
 from freezegun import freeze_time
-from moneyed import Money, Decimal
+from moneyed import Money
 
 from apps.lib.models import Notification, ORDER_UPDATE, Subscription, COMMISSIONS_OPEN
 from apps.lib.test_resources import SignalsDisabledMixin, FixtureBase
 from apps.profiles.models import User
 from apps.profiles.tests.factories import UserFactory
 from apps.sales.models import TransactionRecord, LineItemSim
-from apps.sales.tests.factories import TransactionRecordFactory, OrderFactory, ProductFactory
+from apps.sales.tests.factories import TransactionRecordFactory, OrderFactory, ProductFactory, DeliverableFactory
 from apps.sales.utils import claim_order_by_token, \
     check_charge_required, available_products, set_service, account_balance, POSTED_ONLY, PENDING, lines_by_priority, \
     get_totals, reckon_lines
@@ -136,11 +137,11 @@ class TestClaim(TestCase):
 
     def test_order_claim_subscription(self):
         user = UserFactory.create()
-        order = OrderFactory.create(buyer=None)
-        claim_order_by_token(str(order.claim_token), user)
+        deliverable = DeliverableFactory.create(order__buyer=None)
+        claim_order_by_token(str(deliverable.order.claim_token), user)
         notification = Notification.objects.get(event__type=ORDER_UPDATE)
         self.assertEqual(notification.user, user)
-        self.assertEqual(notification.event.target, order)
+        self.assertEqual(notification.event.target, deliverable)
 
 
 class TestCheckChargeRequired(TestCase):
@@ -584,36 +585,6 @@ class TestLineCalculations(TestCase):
         ]
         self.assertEqual(reckon_lines(source), Money('10.00', 'USD'))
 
- #     let source = [
-    #       genLineItem({amount: 0.01, priority: 0}),
-    #       genLineItem({amount: 0.01, priority: 100}),
-    #       genLineItem({amount: 0.01, priority: 100}),
-    #       genLineItem({amount: -5.00, priority: 100}),
-    #       genLineItem({amount: 10.00, priority: 100}),
-    #       genLineItem({
-    #         amount: 0.75, percentage: 8.0, cascade_percentage: true, cascade_amount: true, priority: 300,
-    #       }),
-    #     ]
-    #     let result = getTotals(source)
-    #     expect(result).toEqual({
-    #       total: Big('5.03'),
-    #       discount: Big('-5'),
-    #       map: new Map([
-    #         [genLineItem({amount: 0.01, priority: 0}), Big('0.01')],
-    #         [genLineItem({amount: 0.01, priority: 100}), Big('0.01')],
-    #         [genLineItem({amount: 0.01, priority: 100}), Big('0.01')],
-    #         [genLineItem({amount: -5.00, priority: 100}), Big('-5.00')],
-    #         [genLineItem({amount: 10.00, priority: 100}), Big('8.85')],
-    #         [genLineItem({
-    #           amount: 0.75,
-    #           percentage: 8.0,
-    #           cascade_percentage: true,
-    #           cascade_amount: true,
-    #           priority: 300,
-    #         }), Big('1.15')],
-    #       ]),
-    #     })
-
     def test_complex_discount(self):
         source = [
             LineItemSim(amount=Money('0.01', 'USD'), priority=0, id=1),
@@ -679,3 +650,35 @@ class TestLineCalculations(TestCase):
                 }
             )
         )
+
+
+class TransactionCheckMixin:
+    def check_transactions(
+            self, deliverable, user, remote_id='36985214745', auth_code='ABC123', source=TransactionRecord.CARD
+    ):
+        escrow = TransactionRecord.objects.get(
+            remote_id=remote_id, auth_code=auth_code, source=source, destination=TransactionRecord.ESCROW,
+        )
+        self.assertEqual(escrow.targets.get().target, deliverable)
+        self.assertEqual(escrow.amount, Money('10.29', 'USD'))
+        self.assertEqual(escrow.payer, user)
+        self.assertEqual(escrow.payee, deliverable.order.seller)
+
+        fee = TransactionRecord.objects.get(
+            remote_id=remote_id, source=source, auth_code=auth_code, destination=TransactionRecord.RESERVE,
+        )
+        self.assertEqual(fee.status, TransactionRecord.SUCCESS)
+        self.assertEqual(fee.targets.get().target, deliverable)
+        self.assertEqual(fee.amount, Money('1.71', 'USD'))
+        self.assertEqual(fee.payer, user)
+        self.assertIsNone(fee.payee)
+
+        unprocessed = TransactionRecord.objects.get(
+            remote_id=remote_id, auth_code=auth_code, source=TransactionRecord.RESERVE,
+            destination=TransactionRecord.UNPROCESSED_EARNINGS,
+        )
+        self.assertEqual(unprocessed.status, TransactionRecord.SUCCESS)
+        self.assertEqual(unprocessed.targets.get().target, deliverable)
+        self.assertEqual(unprocessed.amount, Money('.98', 'USD'))
+        self.assertIsNone(unprocessed.payer)
+        self.assertIsNone(unprocessed.payee)

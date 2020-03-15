@@ -17,4 +17,6 @@ export interface TerseUser {
   hits: number,
   watches: number,
   guest: boolean,
+  // Not actually here, but avoids issues with compatibility elsewhere.
+  sfw_mode: boolean,
 }

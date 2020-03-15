@@ -99,20 +99,13 @@ describe('Search.vue', () => {
   })
   it('Updates the route when the values change', async() => {
     // Need to start the fake timers here or else things get weird during the test.
-    jest.useFakeTimers()
     router.push({name: 'SearchProducts'})
-    wrapper = mount(Search, {localVue, store, router, sync: false, attachToDocument: true})
+    wrapper = mount(SearchProducts, {localVue, store, router, sync: false, attachToDocument: true})
+    const vm = wrapper.vm as any
+    const mockUpdate = jest.spyOn(vm, 'debouncedUpdate')
+    mockUpdate.mockImplementation(vm.rawUpdate)
     await wrapper.vm.$nextTick()
     searchForm.fields.featured.update(true)
-    await wrapper.vm.$nextTick()
-    await jest.runAllTimers()
-    await wrapper.vm.$nextTick()
-    expect(wrapper.vm.$route.query).toEqual({featured: 'true'})
-    // Should trigger the debounced function once and not change anything.
-    searchForm.fields.featured.update(false)
-    searchForm.fields.featured.update(true)
-    await wrapper.vm.$nextTick()
-    await jest.runAllTimers()
     await wrapper.vm.$nextTick()
     expect(wrapper.vm.$route.query).toEqual({featured: 'true'})
   })

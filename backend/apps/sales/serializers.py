@@ -1,6 +1,6 @@
+from collections import Iterable
 from decimal import Decimal
 from functools import lru_cache
-from pprint import pprint
 from typing import List
 
 from django.conf import settings
@@ -12,7 +12,8 @@ from luhn import verify
 from moneyed import Money
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from rest_framework.fields import SerializerMethodField, DecimalField, IntegerField, FloatField, EmailField
+from rest_framework.fields import SerializerMethodField, DecimalField, IntegerField, FloatField, EmailField, ModelField, \
+    ListField
 from short_stuff import slugify, unslugify
 from short_stuff.django.serializers import ShortCodeField
 
@@ -25,9 +26,13 @@ from apps.lib.utils import country_choices, add_check
 from apps.profiles.models import User, Submission, Character
 from apps.profiles.serializers import CharacterSerializer, SubmissionSerializer
 from apps.profiles.utils import available_users
-from apps.sales.models import Product, Order, CreditCardToken, Revision, BankAccount, \
-    Rating, TransactionRecord, LineItem, ADD_ON, TIP, BASE_PRICE, InventoryTracker, EXTRA, LineItemSim
-from apps.sales.utils import account_balance, PENDING, POSTED_ONLY, AVAILABLE, get_totals
+from apps.sales.models import (
+    Product, Order, CreditCardToken, Revision, BankAccount,
+    LineItemSim, Rating, TransactionRecord, LineItem, ADD_ON, TIP, BASE_PRICE, InventoryTracker,
+    EXTRA, PAYMENT_PENDING, NEW, DISPUTED, COMPLETED, REFUNDED, CANCELLED, Deliverable, REVIEW, IN_PROGRESS, Reference,
+)
+from apps.sales.utils import account_balance, PENDING, POSTED_ONLY, AVAILABLE, get_totals, order_context, \
+    order_context_to_link
 
 
 class ProductMixin:
@@ -90,6 +95,10 @@ class ProductNewOrderSerializer(serializers.ModelSerializer):
     email = EmailField(write_only=True, required=False, allow_blank=True)
     seller = RelatedUserSerializer(read_only=True)
     buyer = RelatedUserSerializer(read_only=True)
+    characters = ListField(child=IntegerField(), required=False)
+    rating = ModelField(model_field=Deliverable()._meta.get_field('rating'))
+    details = ModelField(model_field=Deliverable()._meta.get_field('details'))
+    default_path = serializers.SerializerMethodField()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -98,12 +107,18 @@ class ProductNewOrderSerializer(serializers.ModelSerializer):
             self.fields['email'].required = True
             self.fields['email'].allow_blank = False
 
+    def get_default_path(self, order):
+        return order.notification_link(context=self.context)
+
     def create(self, validated_data):
-        data = {**validated_data}
-        data.pop('email', None)
+        data = {
+            key: value for key, value in validated_data.items() if key not in (
+                'characters', 'details', 'rating', 'email',
+            )}
         return super().create(data)
 
     def validate_characters(self, value):
+        value = Character.objects.filter(id__in=value)
         for character in value:
             user = self.context['request'].user
             if not (user.is_staff or character.user == user):
@@ -118,85 +133,36 @@ class ProductNewOrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = (
-            'id', 'created_on', 'status', 'product', 'rating', 'details', 'seller', 'buyer', 'characters', 'private',
-            'email',
+            'id', 'created_on', 'product', 'rating', 'details', 'seller', 'buyer', 'private',
+            'email', 'characters', 'default_path',
         )
         extra_kwargs = {
             'characters': {'required': False},
         }
         read_only_fields = (
-            'status', 'id', 'created_on', 'product'
+            'status', 'id', 'created_on', 'product', 'default_path',
         )
 
 
 class OrderViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
+    claim_token = serializers.SerializerMethodField()
     seller = RelatedUserSerializer(read_only=True)
     buyer = RelatedUserSerializer(read_only=True)
-    arbitrator = RelatedUserSerializer(read_only=True)
     product = ProductSerializer(read_only=True)
-    outputs = SubmissionSerializer(many=True, read_only=True)
-    subscribed = SubscribedField(required=False)
-    expected_turnaround = FloatField(read_only=True)
-    tip = MoneyToFloatField(read_only=True, validators=[MinValueValidator(0)])
-    adjustment_expected_turnaround = FloatField(read_only=True)
-    display = serializers.SerializerMethodField()
-    claim_token = serializers.SerializerMethodField()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        if 'instance' not in kwargs:
+            return
+        try:
+            self.is_seller
+        except (KeyError, AttributeError):
+            return
         if self.is_seller:
-            if self.instance.status in [Order.NEW, Order.PAYMENT_PENDING]:
-                for field_name in [
-                    'adjustment_expected_turnaround', 'adjustment_task_weight', 'adjustment_revisions',
-                ]:
-                    self.fields[field_name].read_only = False
-            # Should never be harmful. Helpful in many statuses.
-            self.fields['stream_link'].read_only = False
-            if ((not self.instance.buyer) or self.instance.buyer.guest) and self.instance.status not in [
-                Order.DISPUTED, Order.COMPLETED, Order.REFUNDED, Order.CANCELLED
-            ]:
+            if (not self.instance.buyer) or self.instance.buyer.guest and not self.instance.deliverables.filter():
                 self.fields['customer_email'].read_only = False
-                if not self.instance.buyer:
-                    self.fields['customer_email'].allow_blank = True
-        elif self.is_buyer:
-            if self.instance.status == Order.PAYMENT_PENDING and self.instance.seller.landscape:
-                self.fields['tip'].read_only = False
-
-    def validate_adjustment_revisions(self, val):
-        base = self.instance.product or self.instance
-        if base.revisions + val < 0:
-            raise ValidationError('Total revisions may not be less than 0.')
-        return val
-
-    def validate_adjustment_task_weight(self, val):
-        adjustment_task_weight = Decimal(val)
-        base = self.instance.product or self.instance
-        if base.task_weight + adjustment_task_weight < 1:
-            raise ValidationError('Task weight may not be less than 1.')
-        return adjustment_task_weight
-
-    def validate_customer_email(self, val):
-        user = self.instance.seller
-        if val.lower() == user.email.lower():
-            raise ValidationError('You cannot set yourself as the customer.')
-        return val
-
-    def validate_adjustment_expected_turnaround(self, val):
-        adjustment_expected_turnaround = Decimal(val)
-        if (
-                self.instance.product.expected_turnaround
-                + adjustment_expected_turnaround < settings.MINIMUM_TURNAROUND
-        ):
-            raise ValidationError('Expected turnaround may not be less than {}'.format(
-                settings.MINIMUM_TURNAROUND
-            ))
-        return adjustment_expected_turnaround
-
-    def get_claim_token(self, order):
-        user = self.context['request'].user
-        if user == order.buyer and order.claim_token:
-            return order.claim_token
-        return None
+        if not self.instance.buyer:
+            self.fields['customer_email'].allow_blank = True
 
     @property
     def is_seller(self):
@@ -207,6 +173,91 @@ class OrderViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
     def is_buyer(self):
         user = self.context['request'].user
         return (user == self.instance.buyer) or user.is_staff
+
+    def get_claim_token(self, order):
+        user = self.context['request'].user
+        if user == order.buyer and order.claim_token:
+            return order.claim_token
+        return None
+
+    class Meta:
+        model = Order
+        fields = (
+            'id', 'seller', 'buyer', 'product', 'private', 'customer_email', 'claim_token',
+        )
+
+
+
+class DeliverableViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
+    arbitrator = RelatedUserSerializer(read_only=True)
+    outputs = SubmissionSerializer(many=True, read_only=True)
+    subscribed = SubscribedField(required=False)
+    expected_turnaround = FloatField(read_only=True)
+    tip = MoneyToFloatField(read_only=True, validators=[MinValueValidator(0)])
+    adjustment_expected_turnaround = FloatField(read_only=True)
+    display = serializers.SerializerMethodField()
+    order = OrderViewSerializer(read_only=True)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not (args or kwargs):
+            # We're in the class definition.
+            return
+        try:
+            self.is_seller
+        except (KeyError, AttributeError):
+            return
+        if self.is_seller:
+            if self.instance.status in [NEW, PAYMENT_PENDING]:
+                for field_name in [
+                    'adjustment_expected_turnaround', 'adjustment_task_weight', 'adjustment_revisions',
+                ]:
+                    self.fields[field_name].read_only = False
+            # Should never be harmful. Helpful in many statuses.
+            self.fields['stream_link'].read_only = False
+        elif self.is_buyer:
+            if self.instance.status == PAYMENT_PENDING and self.instance.order.seller.landscape:
+                self.fields['tip'].read_only = False
+
+    def validate_adjustment_revisions(self, val):
+        base = self.instance.order.product or self.instance
+        if base.revisions + val < 0:
+            raise ValidationError('Total revisions may not be less than 0.')
+        return val
+
+    def validate_adjustment_task_weight(self, val):
+        adjustment_task_weight = Decimal(val)
+        base = self.instance.order.product or self.instance
+        if base.task_weight + adjustment_task_weight < 1:
+            raise ValidationError('Task weight may not be less than 1.')
+        return adjustment_task_weight
+
+    def validate_customer_email(self, val):
+        user = self.instance.order.seller
+        if val.lower() == user.email.lower():
+            raise ValidationError('You cannot set yourself as the customer.')
+        return val
+
+    def validate_adjustment_expected_turnaround(self, val):
+        adjustment_expected_turnaround = Decimal(val)
+        if (
+                self.instance.order.product.expected_turnaround
+                + adjustment_expected_turnaround < settings.MINIMUM_TURNAROUND
+        ):
+            raise ValidationError('Expected turnaround may not be less than {}'.format(
+                settings.MINIMUM_TURNAROUND
+            ))
+        return adjustment_expected_turnaround
+
+    @property
+    def is_seller(self):
+        user = self.context['request'].user
+        return (user == self.instance.order.seller) or user.is_staff
+
+    @property
+    def is_buyer(self):
+        user = self.context['request'].user
+        return (user == self.instance.order.buyer) or user.is_staff
 
     def validate(self, attrs):
         # We're going to assume that tip is only edited on its own.
@@ -223,14 +274,14 @@ class OrderViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
         return obj.notification_display(context=self.context)
 
     class Meta:
-        model = Order
+        model = Deliverable
         fields = (
-            'id', 'created_on', 'status', 'product', 'details', 'seller', 'buyer',
-            'stream_link', 'revisions', 'outputs', 'private', 'subscribed', 'adjustment_task_weight',
+            'id', 'created_on', 'status', 'details',
+            'stream_link', 'revisions', 'outputs', 'subscribed', 'adjustment_task_weight',
             'adjustment_expected_turnaround', 'expected_turnaround', 'task_weight', 'paid_on', 'dispute_available_on',
             'auto_finalize_on', 'started_on', 'escrow_disabled', 'revisions_hidden', 'final_uploaded', 'arbitrator',
-            'display', 'rating', 'claim_token', 'commission_info', 'adjustment_revisions', 'customer_email',
-            'tip', 'table_order', 'trust_finalized',
+            'display', 'rating', 'commission_info', 'adjustment_revisions',
+            'tip', 'table_order', 'trust_finalized', 'order', 'name',
         )
         read_only_fields = [field for field in fields if field != 'subscribed']
 
@@ -256,13 +307,15 @@ class LineItemSerializer(serializers.ModelSerializer):
                 self.fields['type'].read_only = True
 
     def validate_type(self, value):
-        order = self.context['order']
+        deliverable = self.context['deliverable']
         user = self.context['request'].user
         if user.is_staff:
             permitted_types = [EXTRA, ADD_ON, TIP]
-        elif user == order.seller:
+        elif user == deliverable.order.seller:
             permitted_types = [ADD_ON]
-        elif user == order.buyer:
+            if deliverable.order.product is None:
+                permitted_types.append(BASE_PRICE)
+        elif user == deliverable.order.buyer:
             permitted_types = [TIP]
         else:
             permitted_types = []
@@ -271,9 +324,9 @@ class LineItemSerializer(serializers.ModelSerializer):
         return value
 
     def validate_minimum(self, value):
-        order = self.context['order']
+        deliverable = self.context['order']
         user = self.context['request'].user
-        if (not (user == order.seller) or user.is_staff) and value < 0:
+        if (not (user == deliverable.seller) or user.is_staff) and value < 0:
             raise ValidationError('Cannot be less than 0.')
         return value
 
@@ -282,20 +335,19 @@ class OrderPreviewSerializer(serializers.ModelSerializer):
     seller = RelatedUserSerializer(read_only=True)
     buyer = RelatedUserSerializer(read_only=True)
     product = ProductSerializer(read_only=True)
-    expected_turnaround = FloatField()
-    adjustment_expected_turnaround = FloatField()
     display = serializers.SerializerMethodField()
+    default_path = serializers.SerializerMethodField()
 
     def get_display(self, obj):
         return obj.notification_display(context=self.context)
 
+    def get_default_path(self, order):
+        return order_context_to_link(order_context(order=order, user=self.context['request'].user, logged_in=True))
+
     class Meta:
         model = Order
         fields = (
-            'id', 'created_on', 'status', 'product', 'seller', 'buyer', 'private',
-            'adjustment_task_weight', 'adjustment_expected_turnaround', 'expected_turnaround', 'task_weight',
-            'paid_on', 'dispute_available_on', 'auto_finalize_on', 'started_on', 'escrow_disabled', 'arbitrator',
-            'display', 'adjustment_revisions',
+            'id', 'created_on', 'product', 'seller', 'buyer', 'private', 'display', 'default_path',
         )
         read_only_fields = [field for field in fields]
 
@@ -413,7 +465,7 @@ class RevisionSerializer(serializers.ModelSerializer):
     """
     owner = serializers.SlugRelatedField(slug_field='username', read_only=True)
     file = RelatedAssetField(thumbnail_namespace='sales.Revision.file')
-    final = serializers.BooleanField(default=False, required=False)
+    final = serializers.BooleanField(default=False, required=False, write_only=True)
 
     def create(self, validated_data):
         data = {**validated_data}
@@ -425,11 +477,8 @@ class RevisionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Revision
-        fields = ('id', 'rating', 'file', 'created_on', 'owner', 'order', 'final')
-        read_only_fields = ('id', 'order', 'owner')
-        extra_kwargs = {
-            'final': {'write_only': True}
-        }
+        fields = ('id', 'rating', 'file', 'created_on', 'owner', 'deliverable', 'final')
+        read_only_fields = ('id', 'deliverable', 'owner')
 
 
 # noinspection PyMethodMayBeStatic
@@ -623,7 +672,7 @@ class AccountQuerySerializer(serializers.Serializer):
     account = serializers.ChoiceField(choices=((300, 'Purchases'), (302, 'Escrow'), (303, 'Holdings')), required=True)
 
 
-class OrderCharacterTagSerializer(serializers.ModelSerializer):
+class DeliverableCharacterTagSerializer(serializers.ModelSerializer):
     character = CharacterSerializer(read_only=True)
     character_id = serializers.IntegerField(write_only=True)
 
@@ -639,7 +688,7 @@ class OrderCharacterTagSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'character', 'character_id',
         )
-        model = Order.characters.through
+        model = Deliverable.characters.through
 
 
 class SubmissionFromOrderSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
@@ -661,14 +710,14 @@ class OrderAuthSerializer(serializers.Serializer):
     chown = serializers.BooleanField()
 
 
-class OrderValuesSerializer(serializers.ModelSerializer):
+class DeliverableValuesSerializer(serializers.ModelSerializer):
     """
     Tracks all relevant finance info from an order. This serializer should only be used on orders which have at
     least been initially paid for.
     """
     status = serializers.SerializerMethodField()
     buyer = serializers.SerializerMethodField()
-    seller = serializers.StringRelatedField()
+    seller = serializers.SerializerMethodField()
     price = serializers.SerializerMethodField()
     payment_type = serializers.SerializerMethodField()
     charged_on = serializers.SerializerMethodField()
@@ -687,12 +736,15 @@ class OrderValuesSerializer(serializers.ModelSerializer):
         return obj.get_status_display()
 
     def get_buyer(self, obj):
-        if obj.buyer and obj.buyer.guest:
+        if obj.order.buyer and obj.order.buyer.guest:
             return f'Guest #{obj.id}'
-        elif obj.buyer:
+        elif obj.order.buyer:
             return obj.buyer.username
         else:
             return '(Empty)'
+
+    def get_seller(self, obj):
+        return str(obj.order.seller)
 
     @lru_cache(4)
     def charge_transactions(self, obj):
@@ -806,14 +858,14 @@ class OrderValuesSerializer(serializers.ModelSerializer):
     @lru_cache
     def get_refunded_on(self, obj):
         if refund := TransactionRecord.objects.filter(
-            source=TransactionRecord.ESCROW, payer=obj.seller, status=TransactionRecord.SUCCESS,
-            payee=obj.buyer,
-            **self.qs_kwargs(obj),
+                source=TransactionRecord.ESCROW, payer=obj.seller, status=TransactionRecord.SUCCESS,
+                payee=obj.buyer,
+                **self.qs_kwargs(obj),
         ).first():
             return refund.created_on
 
     class Meta:
-        model = Order
+        model = Deliverable
         fields = (
             'id', 'created_on', 'status', 'seller', 'buyer', 'price', 'charged_on', 'payment_type', 'still_in_escrow',
             'artist_earnings', 'in_reserve', 'sales_tax_collected', 'refunded_on', 'extra', 'ach_fees', 'our_fees',
@@ -839,8 +891,8 @@ class PayoutTransactionSerializer(serializers.ModelSerializer):
     @lru_cache
     def get_fees(self, obj):
         return (
-            TransactionRecord.objects.filter(targets=ref_for_instance(obj)).aggregate(total=Sum('amount'))['total']
-            or Decimal('0')
+                TransactionRecord.objects.filter(targets=ref_for_instance(obj)).aggregate(total=Sum('amount'))['total']
+                or Decimal('0')
         )
 
     def get_targets(self, obj: TransactionRecord):
@@ -897,3 +949,32 @@ class InventorySerializer(serializers.ModelSerializer):
     class Meta:
         model = InventoryTracker
         fields = ('count',)
+
+
+class ReferenceSerializer(serializers.ModelSerializer):
+    id = ShortCodeField(read_only=True)
+    owner = serializers.SlugRelatedField(slug_field='username', read_only=True)
+    file = RelatedAssetField(thumbnail_namespace='sales.Reference.file')
+
+    def get_thumbnail_url(self, obj):
+        return self.context['request'].build_absolute_uri(obj.file.file.url)
+
+    class Meta:
+        model = Reference
+        fields = ('owner', 'file', 'rating', 'id')
+
+
+class DeliverableReferenceSerializer(serializers.ModelSerializer):
+    reference = ReferenceSerializer(read_only=True)
+    reference_id = serializers.IntegerField(write_only=True)
+
+    def validate_reference_id(self, val):
+        if not Reference.objects.filter(id=val, owner=self.context['request'].user).exists():
+            raise ValidationError('Either this reference does not exist, or you are not allowed to use it.')
+        return val
+
+    class Meta:
+        fields = (
+            'id', 'reference', 'reference_id',
+        )
+        model = Reference.deliverables.through

@@ -6,18 +6,20 @@ import colors from 'vuetify/es5/util/colors'
 import {CreditCardToken} from '@/types/CreditCardToken'
 import Revision from '@/types/Revision'
 import Order from '@/types/Order'
-import {OrderStatus} from '@/types/OrderStatus'
+import {DeliverableStatus} from '@/types/DeliverableStatus'
 import Product from '@/types/Product'
 import {genSubmission} from '@/store/submissions/specs/fixtures'
+import Deliverable from '@/types/Deliverable'
+import Reference from '@/types/Reference'
 
-export function genUser(): User {
+export function genUser(overrides?: Partial<User>): User {
   return {
     rating: 1,
     sfw_mode: false,
     username: 'Fox',
     id: 1,
-    is_staff: true,
-    is_superuser: true,
+    is_staff: false,
+    is_superuser: false,
     csrftoken: 'w3rigun4rgi34untbweildsfunvcsirsunfwe',
     avatar_url: 'https://www.gravatar.com/avatar/d3e61c0076b54b4cf19751e2cf8e17ed.jpg?s=80',
     email: 'fox@artconomy.com',
@@ -42,6 +44,7 @@ export function genUser(): User {
     hits: 1,
     watches: 0,
     guest_email: '',
+    ...overrides,
   }
 }
 
@@ -102,7 +105,7 @@ export function genCard(base?: Partial<CreditCardToken>): CreditCardToken {
   }
 }
 
-export function genRevision(): Revision {
+export function genRevision(overrides?: Partial<Revision>): Revision {
   return {
     id: 1,
     rating: 0,
@@ -113,6 +116,7 @@ export function genRevision(): Revision {
       full: 'https://artconomy.vulpinity.com/media/art/2019/07/26/kairef-color.png',
       __type__: 'data:image',
     },
+    ...overrides,
   }
 }
 
@@ -149,32 +153,20 @@ export function genProduct(): Product {
   }
 }
 
-export function genOrder(): Order {
-  const buyer = genUser()
-  buyer.username = 'Fox'
-  buyer.id = 1
-
-  const seller = genUser()
-  seller.username = 'Vulpes'
-  seller.id = 2
+export function genDeliverable(): Deliverable {
   return {
-    id: 1,
+    id: 5,
+    name: 'Main',
     created_on: '2019-07-26T15:04:41.078424-05:00',
-    status: OrderStatus.NEW,
+    status: DeliverableStatus.NEW,
     price: 10.00,
-    product: genProduct(),
     details: 'Stuff and things',
-    seller,
-    buyer,
-    arbitrator: null,
     adjustment: 0,
     commission_info: '',
     adjustment_revisions: 0,
-    customer_email: '',
     stream_link: 'https://google.com/',
     revisions: 1,
     outputs: [],
-    private: false,
     subscribed: true,
     table_order: false,
     adjustment_task_weight: 0,
@@ -190,7 +182,54 @@ export function genOrder(): Order {
     revisions_hidden: false,
     final_uploaded: false,
     rating: 0,
+    arbitrator: null,
+    display: {
+      file: {
+        thumbnail: 'https://artconomy.vulpinity.com/media/art/2019/07/26/kairef-color.png.300x300_q85_crop-,0.png',
+        gallery: 'https://artconomy.vulpinity.com/media/art/2019/07/26/kairef-color.png.1000x700_q85.png',
+        notification: 'https://artconomy.vulpinity.com/media/art/2019/07/26/kairef-color.png.80x80_q85.png',
+        full: 'https://artconomy.vulpinity.com/media/art/2019/07/26/kairef-color.png',
+        __type__: 'data:image',
+      },
+      preview: null,
+    },
+    order: genOrder(),
+  }
+}
+
+export function genReference(): Reference {
+  return {
+    id: 6,
+    created_on: '2019-07-26T15:04:41.078424-05:00',
+    owner: 'Fox',
+    file: {
+      thumbnail: 'https://artconomy.vulpinity.com/media/art/2019/07/26/kairef-color.png.300x300_q85_crop-,0.png',
+      gallery: 'https://artconomy.vulpinity.com/media/art/2019/07/26/kairef-color.png.1000x700_q85.png',
+      notification: 'https://artconomy.vulpinity.com/media/art/2019/07/26/kairef-color.png.80x80_q85.png',
+      full: 'https://artconomy.vulpinity.com/media/art/2019/07/26/kairef-color.png',
+      __type__: 'data:image',
+    },
+  }
+}
+
+export function genOrder(): Order {
+  const buyer = genUser()
+  buyer.username = 'Fox'
+  buyer.id = 1
+
+  const seller = genUser()
+  seller.username = 'Vulpes'
+  seller.id = 2
+  return {
+    id: 1,
+    created_on: '2019-07-26T15:04:41.078424-05:00',
+    product: genProduct(),
+    seller,
+    buyer,
+    customer_email: '',
     claim_token: null,
+    private: false,
+    default_path: {name: 'Order', params: {orderId: '1', username: 'Fox'}},
     display: {
       file: {
         thumbnail: 'https://artconomy.vulpinity.com/media/art/2019/07/26/kairef-color.png.300x300_q85_crop-,0.png',

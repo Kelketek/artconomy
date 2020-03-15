@@ -242,7 +242,7 @@ describe('AcComment.vue', () => {
     await wrapper.vm.$nextTick()
     await jest.runAllTimers()
     expect(mockAxios.patch).toHaveBeenCalledWith(
-      ...rq('/api/comments/17/', 'patch', {text: 'Edited message'}, {cancelToken: {}}),
+      ...rq('/api/comments/17/', 'patch', {text: 'Edited message'}, {cancelToken: expect.any(Object)}),
     )
     mockAxios.mockResponse(rs({
       id: 17,
@@ -268,7 +268,7 @@ describe('AcComment.vue', () => {
     }))
   })
   it('Deletes a comment', async() => {
-    setViewer(store, genUser())
+    setViewer(store, genUser({is_staff: true}))
     const empty = mount(Empty, {localVue, store, router, sync: false})
     const commentList = empty.vm.$getList('commentList', {endpoint: '/api/comments/'})
     commentList.response = {...commentSet}
@@ -288,6 +288,7 @@ describe('AcComment.vue', () => {
       attachToDocument: true,
     })
     expect((wrapper.vm as any).comment.x).toBeTruthy()
+    await wrapper.vm.$nextTick()
     await confirmAction(wrapper, ['.more-button', '.delete-button'])
     await wrapper.vm.$nextTick()
     expect(mockAxios.delete).toHaveBeenCalledWith(

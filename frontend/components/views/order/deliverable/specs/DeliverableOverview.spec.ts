@@ -1,0 +1,139 @@
+import {cleanUp, createVuetify, flushPromises, rs, setViewer, vueSetup} from '@/specs/helpers'
+import Router from 'vue-router'
+import {ArtStore, createStore} from '@/store'
+import {mount, Wrapper} from '@vue/test-utils'
+import Vue from 'vue'
+import {Vuetify} from 'vuetify'
+import {deliverableRouter} from '@/components/views/order/specs/helpers'
+import {genDeliverable, genUser} from '@/specs/helpers/fixtures'
+import {DeliverableStatus} from '@/types/DeliverableStatus'
+import DeliverableOverview from '@/components/views/order/deliverable/DeliverableOverview.vue'
+import mockAxios from '@/__mocks__/axios'
+
+const localVue = vueSetup()
+localVue.use(Router)
+let store: ArtStore
+let wrapper: Wrapper<Vue>
+let router: Router
+let vuetify: Vuetify
+
+describe('DeliverableOverview.vue', () => {
+  beforeEach(() => {
+    jest.useFakeTimers()
+    store = createStore()
+    vuetify = createVuetify()
+    router = deliverableRouter()
+  })
+  afterEach(() => {
+    cleanUp(wrapper)
+  })
+  it('Gracefully handles commission info', async () => {
+    const user = genUser()
+    setViewer(store, user)
+    router.push('/orders/Fox/order/1/deliverables/5/overview')
+    wrapper = mount(
+      DeliverableOverview, {
+        localVue,
+        store,
+        router,
+        vuetify,
+        propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
+        sync: false,
+        attachToDocument: true,
+        stubs: ['ac-revision-manager'],
+      })
+    const vm = wrapper.vm as any
+    expect(vm.commissionInfo).toBe('')
+    const deliverable = genDeliverable()
+    vm.order.makeReady(deliverable.order)
+    deliverable.status = DeliverableStatus.PAYMENT_PENDING
+    vm.deliverable.setX(deliverable)
+    vm.deliverable.fetching = false
+    vm.deliverable.ready = true
+    await vm.$nextTick()
+    vm.deliverable.updateX({commission_info: 'Stuff and things'})
+    vm.sellerHandler.artistProfile.updateX({commission_info: 'This is a test'})
+    await vm.$nextTick()
+    expect(vm.commissionInfo).toBe('This is a test')
+    vm.deliverable.updateX({status: DeliverableStatus.NEW})
+    await vm.$nextTick()
+    expect(vm.commissionInfo).toBe('This is a test')
+    vm.deliverable.updateX({status: DeliverableStatus.QUEUED})
+    await vm.$nextTick()
+    expect(vm.commissionInfo).toBe('Stuff and things')
+  })
+  it('Handles a null product', async () => {
+    const user = genUser()
+    setViewer(store, user)
+    router.push('/orders/Fox/order/1/deliverables/5/overview')
+    wrapper = mount(
+      DeliverableOverview, {
+        localVue,
+        store,
+        router,
+        vuetify,
+        propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
+        sync: false,
+        attachToDocument: true,
+        stubs: ['ac-revision-manager'],
+      })
+    const vm = wrapper.vm as any
+    expect(vm.commissionInfo).toBe('')
+    const deliverable = genDeliverable()
+    deliverable.order.product = null
+    vm.order.makeReady(deliverable.order)
+    vm.deliverable.makeReady(deliverable)
+    await vm.$nextTick()
+    expect(vm.name).toBe('(Custom Project)')
+  })
+  it('Sends an invite email', async() => {
+    const user = genUser()
+    setViewer(store, user)
+    router.push('/orders/Fox/order/1/deliverables/5/overview')
+    wrapper = mount(
+      DeliverableOverview, {
+        localVue,
+        store,
+        router,
+        vuetify,
+        propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
+        sync: false,
+        attachToDocument: true,
+        stubs: ['ac-revision-manager'],
+      })
+    const vm = wrapper.vm as any
+    const deliverable = genDeliverable()
+    deliverable.order.buyer = null
+    deliverable.order.seller = user
+    deliverable.order.customer_email = 'stuff@example.com'
+    vm.order.makeReady(deliverable.order)
+    vm.deliverable.makeReady(deliverable)
+    await vm.$nextTick()
+    mockAxios.reset()
+    wrapper.find('.send-invite-button').trigger('click')
+    const lastRequest = mockAxios.lastReqGet()
+    expect(lastRequest.url).toBe('/api/sales/v1/order/1/invite/')
+    mockAxios.mockResponse(rs(deliverable.order))
+    await flushPromises()
+    await vm.$nextTick()
+    expect(vm.inviteSent).toBe(true)
+  })
+  it('Loads with the order confirmation triggered', async() => {
+    setViewer(store, genUser())
+    router.push('/orders/Fox/order/1/deliverables/5/overview?showConfirm=true')
+    wrapper = mount(
+      DeliverableOverview, {
+        localVue,
+        store,
+        router,
+        vuetify,
+        propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
+        sync: false,
+        attachToDocument: true,
+        stubs: ['ac-revision-manager'],
+      })
+    const vm = wrapper.vm as any
+    await vm.$nextTick()
+    expect(vm.showConfirm).toBe(true)
+  })
+})

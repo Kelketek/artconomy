@@ -1,18 +1,35 @@
 <template>
   <v-col v-if="!manageBanks || banks.empty">
-    <v-col v-if="value === UNSET">
-      <h2>Do you have a US Bank account?</h2>
-      <v-btn color="primary" @click="input(HAS_US_ACCOUNT)" class="have-us-account">Yes, I have a US Bank account</v-btn>
-      <v-btn color="danger" @click="input(NO_US_ACCOUNT)" class="no-us-account">No, I do not have a US Bank account</v-btn>
-      <p><strong>Note:</strong> You may still list products and take orders on Artconomy if you do not have a
-        US Bank account. But you will not be able to use <router-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">Artconomy Shield</router-link> to protect your sales.</p>
-    </v-col>
-    <v-col v-else-if="value === HAS_US_ACCOUNT">
-      <h2>You can now list products!</h2>
-      <p>Your products will be protected by <router-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">Artconomy Shield</router-link>!</p>
-      <v-btn color="primary" v-if="manageBanks && banks.empty" @click="showAddBank = true" class="add-account">Add bank account</v-btn>
-      <v-btn color="danger" @click="input(NO_US_ACCOUNT)" class="no-us-account">I don't have a US Bank account</v-btn>
-    </v-col>
+    <v-row v-if="value === UNSET">
+      <v-col cols="12">
+        <h2>Do you have a US Bank account?</h2>
+      </v-col>
+      <v-col cols="12" sm="6">
+        <v-btn color="primary" @click="input(HAS_US_ACCOUNT)" class="have-us-account">Yes, I have a US Bank account</v-btn>
+      </v-col>
+      <v-col cols="12" sm="6">
+        <v-btn color="danger" @click="input(NO_US_ACCOUNT)" class="no-us-account">No, I do not have a US Bank account</v-btn>
+      </v-col>
+      <v-col cols="12">
+        <p><strong>Note:</strong> You may still list products and take orders on Artconomy if you do not have a
+          US Bank account. But you will not be able to use <router-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">Artconomy Shield</router-link> to protect your sales.</p>
+      </v-col>
+    </v-row>
+    <v-row v-else-if="value === HAS_US_ACCOUNT">
+      <v-col cols="12">
+        <h2>You can now list products!</h2>
+        <p>Your products will be protected by <router-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">Artconomy Shield</router-link>!</p>
+      </v-col>
+      <v-col cols="12" sm="6">
+        <v-btn color="primary" v-if="manageBanks && banks.empty" @click="showAddBank = true" class="add-account" :disabled="!canAddBank">Add bank account</v-btn>
+      </v-col>
+      <v-col cols="12" sm="6">
+        <v-btn color="danger" @click="input(NO_US_ACCOUNT)" class="no-us-account">I don't have a US Bank account</v-btn>
+      </v-col>
+      <v-col cols="12" v-if="manageBanks && banks.empty && !canAddBank">
+        <v-alert type="info">You may not add a bank account until you have earned at least $1. This is to cover the one-time connection fee required by our payment processor.</v-alert>
+      </v-col>
+    </v-row>
     <v-col v-else-if="value === NO_US_ACCOUNT">
       <h2>You may now list products!</h2>
       <p>Your products will not be protected by Artconomy Shield, but you will still be able to list products, take orders, and use other features of the site.</p>
@@ -101,6 +118,7 @@ import Subjective from '@/mixins/subjective'
 import AcBoundField from '@/components/fields/AcBoundField'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
 import {SingleController} from '@/store/singles/controller'
+import {Balance} from '@/types/Balance'
   @Component({
     components: {AcConfirmation, AcBoundField, AcFormDialog},
   })
@@ -109,6 +127,7 @@ export default class AcBankToggle extends mixins(Subjective) {
     public value!: BankStatus
     @Prop({default: false})
     public manageBanks!: boolean
+    public balance: SingleController<Balance> = null as unknown as SingleController<Balance>
     public banks: ListController<Bank> = null as unknown as ListController<Bank>
     public showAddBank = false
     public newBank: FormController = null as unknown as FormController
@@ -126,11 +145,18 @@ export default class AcBankToggle extends mixins(Subjective) {
       this.banks.push(response)
       this.showAddBank = false
     }
+    public get canAddBank() {
+      return this.balance.x && (parseFloat(this.balance.x.available) >= 1)
+    }
     public created() {
       this.banks = this.$getList(
         `${this.username}__banks`, {endpoint: this.bankUrl, paginated: false}
       )
       this.banks.firstRun()
+      this.balance = this.$getSingle(
+        `${this.username}__balance`, {endpoint: `/api/sales/v1/account/${this.username}/balance/`}
+      )
+      this.balance.get()
       this.newBank = this.$getForm(genId(), {fields: {
         type: {value: null},
         first_name: {value: '', validators: [{name: 'required'}]},

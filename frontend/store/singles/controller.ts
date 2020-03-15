@@ -4,8 +4,10 @@ import {SingleState} from './types/SingleState'
 import {SingleModule} from './index'
 import {BaseController} from '@/store/controller-base'
 import {singleRegistry} from '@/store/singles/registry'
-import {Patch} from '@/store/singles/patcher'
 import {RawData} from '@/store/forms/types/RawData'
+import {SinglePatchers} from '@/store/singles/types/SinglePatchers'
+import {Proxify} from '@/store/singles/types/Proxify'
+import {Patch} from '@/store/singles/patcher'
 
 @Component
 export class SingleController<T extends {}> extends BaseController<SingleModuleOpts<T>, SingleState<T>> {
@@ -48,12 +50,27 @@ export class SingleController<T extends {}> extends BaseController<SingleModuleO
     this.commit('setX', x)
   }
 
+  public getModel() {
+    const self = this
+    const patchers = self.patchers
+    type KeyType = keyof T
+    return new Proxy({}, {
+      get(target, propName: KeyType) {
+        return patchers[propName].model
+      },
+      set(target, propName: KeyType, value: T[KeyType]): any {
+        patchers[propName].model = value
+        return true
+      },
+    })
+  }
+
   public getPatcher() {
     const self = this
-    return new Proxy({cached: {} as {[key: string]: Patch}}, {
-      get(target, propName: string) {
+    return new Proxy({cached: {} as SinglePatchers<T>}, {
+      get(target, propName: keyof T): Patch {
         if (target.cached[propName] === undefined) {
-          target.cached[propName] = self.$makePatcher({modelProp: '', attrName: propName, silent: true})
+          target.cached[propName] = self.$makePatcher({modelProp: '', attrName: propName as string, silent: true})
         }
         return target.cached[propName]
       },
@@ -117,9 +134,22 @@ export class SingleController<T extends {}> extends BaseController<SingleModuleO
     return this.get()
   }
 
-  public get patchers() {
+  public makeReady(val: T) {
+    // For tests or preloading. Sets X and clears status flags.
+    this.setX(val)
+    this.ready = true
+    this.fetching = false
+  }
+
+  public get model(): T {
     // eslint-disable-next-line no-unused-expressions
     this.forceRecomputeCounter
-    return this.getPatcher() as unknown as {[key: string]: Patch}
+    return this.getModel() as unknown as T
+  }
+
+  public get patchers(): SinglePatchers<T> {
+    // eslint-disable-next-line no-unused-expressions
+    this.forceRecomputeCounter
+    return this.getPatcher() as unknown as SinglePatchers<T>
   }
 }

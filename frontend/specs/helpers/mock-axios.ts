@@ -20,6 +20,13 @@ export const MockAxiosRequest: AxiosRequestMockType = {
     delete args.data
     return MockAxios[config.method](config.url, config.data, args)
   },
+  getReqByUrl(url: string) {
+    const result = MockAxios.getReqByUrl(url)
+    if (result === undefined) {
+      throw Error(`Could not find request for URL ${url}`)
+    }
+    return result
+  },
 }
 
 export default MockAxiosRequest

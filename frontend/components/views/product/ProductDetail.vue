@@ -125,7 +125,9 @@
                 <v-col cols="12">
                   <v-row dense>
                     <v-col class="shrink">
-                      <v-rating :value="product.x.user.stars" dense small half-increments readonly v-if="product.x.user.stars" />
+                      <router-link :to="{name: 'Ratings', params: {username}}">
+                        <v-rating :value="product.x.user.stars" dense small half-increments readonly v-if="product.x.user.stars" />
+                      </router-link>
                     </v-col>
                     <v-col class="shrink text-center" v-if="product.x.user.stars"><v-divider vertical/></v-col>
                     <v-col class="shrink"><v-chip small><v-icon left>visibility</v-icon> {{product.x.hits}}</v-chip></v-col>

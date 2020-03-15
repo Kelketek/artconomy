@@ -32,7 +32,7 @@ describe('ac-setup-two-factor', () => {
       '/api/profiles/v1/account/Fox/auth/two-factor/totp/',
       'get',
       undefined,
-      {params: {page: 1, size: 24}, cancelToken: {}})
+      {params: {page: 1, size: 24}, cancelToken: expect.any(Object)})
     )
   })
   it('Handles a missing Telegram 2FA', async() => {

@@ -1,7 +1,7 @@
 <template>
-  <v-chip :color="STATUSES[order.status].color" :light="!STATUSES[order.status].dark">
-    <v-icon left>{{STATUSES[order.status].icon}}</v-icon>
-      {{STATUSES[order.status].text}}
+  <v-chip :color="STATUSES[deliverable.status].color" :light="!STATUSES[deliverable.status].dark">
+    <v-icon left>{{STATUSES[deliverable.status].icon}}</v-icon>
+    {{STATUSES[deliverable.status].text}}
   </v-chip>
 </template>
 
@@ -9,10 +9,10 @@
 import Vue from 'vue'
 import Component from 'vue-class-component'
 import {Prop} from 'vue-property-decorator'
-import Order from '../types/Order'
+import Deliverable from '@/types/Deliverable'
 
 @Component
-export default class AcOrderStatus extends Vue {
+export default class AcDeliverableStatus extends Vue {
   public STATUSES = {
     1: {text: 'NEW!', icon: 'star', color: 'primary', dark: true},
     2: {text: 'Unpaid', icon: 'credit_card', color: 'orange', dark: true},
@@ -25,6 +25,6 @@ export default class AcOrderStatus extends Vue {
     9: {text: 'Refunded', icon: 'assignment_return', color: 'black', dark: true},
   }
   @Prop({required: true})
-  public order!: Order
+  public deliverable!: Deliverable
 }
 </script>

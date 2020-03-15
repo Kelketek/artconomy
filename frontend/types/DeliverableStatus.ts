@@ -1,4 +1,4 @@
-export const enum OrderStatus {
+export const enum DeliverableStatus {
   NEW = 1,
   PAYMENT_PENDING = 2,
   QUEUED = 3,

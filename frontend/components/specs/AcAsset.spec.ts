@@ -143,6 +143,24 @@ describe('AcAsset.vue', () => {
     expect(vm.fullUrl).toBe('boop.jpg')
     expect(vm.assetRating).toBe(0)
   })
+  it('Determines an asset rating', async() => {
+    const viewer = genUser()
+    const submission = genSubmission()
+    submission.rating = 2
+    viewer.rating = 1
+    setViewer(store, viewer)
+    wrapper = mount(AcAsset, {
+      store,
+      localVue,
+      vuetify,
+      sync: false,
+      stubs: ['router-link'],
+      propsData: {asset: submission, thumbName: 'full', aspectRatio: null}},
+    )
+    await wrapper.vm.$nextTick()
+    const vm = wrapper.vm as any
+    expect(vm.assetRating).toBe(2)
+  })
   it('Handles an anonymous user', async() => {
     const viewer = genUser()
     const submission = genSubmission()

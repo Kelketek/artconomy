@@ -1,10 +1,6 @@
-from decimal import Decimal, localcontext, ROUND_HALF_EVEN
-
-from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
 from dwollav2 import ValidationError as DwollaValidationError
-from moneyed import Money
 from rest_framework.exceptions import ValidationError
 
 from apps.lib.models import ref_for_instance
@@ -12,9 +8,8 @@ from apps.lib.utils import require_lock
 from apps.sales.apis import dwolla
 from ipware import get_client_ip
 
-from apps.sales.models import BankAccount, TransactionRecord, Order
+from apps.sales.models import BankAccount, TransactionRecord, COMPLETED, Deliverable
 from apps.sales.utils import account_balance
-from short_stuff import unslugify
 
 TRANSACTION_STATUS_MAP = {
     'pending': TransactionRecord.PENDING,
@@ -102,19 +97,19 @@ def initiate_withdraw(user, bank, amount, test_only=True):
     )
     main_record.save()
     main_record.targets.add(ref_for_instance(bank))
-    orders = list(Order.objects.select_for_update().filter(
-        payout_sent=False, seller=user, status=Order.COMPLETED,
+    deliverables = list(Deliverable.objects.select_for_update().filter(
+        payout_sent=False, order__seller=user, status=COMPLETED,
     ))
-    main_record.targets.add(*(ref_for_instance(order) for order in orders))
-    Order.objects.filter(id__in=[order.id for order in orders]).update(payout_sent=True)
+    main_record.targets.add(*(ref_for_instance(deliverable) for deliverable in deliverables))
+    Deliverable.objects.filter(id__in=[deliverable.id for deliverable in deliverables]).update(payout_sent=True)
     return main_record
 
 
 def perform_transfer(record, note='Disbursement'):
     from .tasks import get_transaction_fees
     bank = record.targets.filter(content_type=ContentType.objects.get_for_model(BankAccount)).get().target
-    order_ids = [int(order_id) for order_id in record.targets.filter(
-        content_type=ContentType.objects.get_for_model(Order),
+    deliverable_ids = [int(order_id) for order_id in record.targets.filter(
+        content_type=ContentType.objects.get_for_model(Deliverable),
     ).values_list('object_id', flat=True)]
     transfer_request = {
         '_links': {
@@ -144,7 +139,7 @@ def perform_transfer(record, note='Disbursement'):
             record.status = TransactionRecord.FAILURE
             record.remote_message = str(err)
             record.save()
-            Order.objects.filter(id__in=order_ids).update(payout_sent=False)
+            Deliverable.objects.filter(id__in=deliverable_ids).update(payout_sent=False)
             raise
         get_transaction_fees.delay(str(record.id))
         return record

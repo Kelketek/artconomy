@@ -14,6 +14,7 @@ import PatcherNonExist from '@/specs/helpers/dummy_components/patcher-non-exist.
 import {errorSend} from '@/store/singles/patcher'
 import {AxiosError} from 'axios'
 import {Lists} from '@/store/lists/registry'
+import {VIEWER_TYPE} from '@/types/VIEWER_TYPE'
 
 Vue.use(Vuex)
 const localVue = createLocalVue()
@@ -56,8 +57,21 @@ describe('Patcher', () => {
       '/api/profiles/v1/account/Fox/',
       'patch', {sfw_mode: true}
     )
-    request[2].cancelToken = {}
+    request[2].cancelToken = expect.any(Object)
     expect(mockAxios.patch).toHaveBeenCalledWith(...request)
+  })
+  it('Does not send a patch request when the url is #', async() => {
+    wrapper = mount(Patcher, {localVue, store});
+    (wrapper.vm as any).localShare.makeReady({
+      viewerType: VIEWER_TYPE.BUYER,
+      showPayment: false,
+      showAddSubmission: false,
+    });
+    await wrapper.vm.$nextTick();
+    (wrapper.vm as any).localShare.patchers.showPayment.model = true
+    await wrapper.vm.$nextTick()
+    jest.runAllTimers()
+    expect(mockAxios.patch).not.toHaveBeenCalled()
   })
   it('Returns a dirty value until the patch has settled', async() => {
     wrapper = mount(Patcher, {localVue, store});

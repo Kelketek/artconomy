@@ -77,6 +77,11 @@ export class Patch extends Vue {
     this.cancelSource = axios.CancelToken.source()
     this.errors = []
     this.patching = true
+    if (handler.endpoint === '#') {
+      // This is an a special case where we're just using the single as scaffolding for Vuex storage.
+      handler.updateX(data)
+      return
+    }
     artCall({
       url: handler.endpoint,
       method: 'patch',

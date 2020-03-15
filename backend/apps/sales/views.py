@@ -1,6 +1,8 @@
-from collections import OrderedDict
 from datetime import datetime
+from decimal import Decimal
 from functools import lru_cache
+# Create your views here.
+from math import ceil
 from typing import Union, List
 from uuid import uuid4
 
@@ -10,28 +12,26 @@ from django.conf import settings
 from django.contrib.auth import login
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
-from django.utils.timezone import make_aware
-from django.views.static import serve
 from django.db.models import When, F, Case, BooleanField, Q, Count, QuerySet, IntegerField
+from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-
-# Create your views here.
-from math import ceil
-
 from django.utils.datetime_safe import date
 from django.utils.decorators import method_decorator
+from django.utils.timezone import make_aware
 from django.views import View
 from django.views.decorators.clickjacking import xframe_options_exempt
+from django.views.static import serve
 from hitcount.models import HitCount
 from hitcount.views import HitCountMixin
-from moneyed import Money, Decimal
+from moneyed import Money
 # BDay is business day, not birthday.
 from pandas.tseries.offsets import BDay
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied, ValidationError
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, CreateAPIView, RetrieveAPIView, \
-    GenericAPIView, ListAPIView, DestroyAPIView, RetrieveUpdateAPIView
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, RetrieveAPIView, \
+    GenericAPIView, ListAPIView, DestroyAPIView, RetrieveUpdateAPIView, CreateAPIView, RetrieveDestroyAPIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -39,7 +39,7 @@ from rest_framework_csv.renderers import CSVRenderer
 from short_stuff import slugify
 
 from apps.lib.models import DISPUTE, REFUND, COMMENT, Subscription, ORDER_UPDATE, SALE_UPDATE, REVISION_UPLOADED, \
-    NEW_PRODUCT, STREAMING, ref_for_instance
+    NEW_PRODUCT, STREAMING, ref_for_instance, REFERENCE_UPLOADED
 from apps.lib.permissions import IsStaff, IsSafeMethod, Any, All, IsMethod
 from apps.lib.utils import notify, recall_notification, demark, preview_rating, send_transaction_email
 from apps.lib.views import BasePreview
@@ -51,30 +51,31 @@ from apps.sales.authorize import AuthorizeException, charge_saved_card, CardInfo
     create_customer_profile, charge_card, card_token_from_transaction, get_card_type, transaction_details
 from apps.sales.dwolla import add_bank_account, make_dwolla_account, \
     destroy_bank_account
+from apps.sales.models import Product, Order, CreditCardToken, Revision, BankAccount, \
+    WEIGHTED_STATUSES, Rating, TransactionRecord, BASE_PRICE, ADD_ON, TAX, EXTRA, \
+    TABLE_SERVICE, TIP, LineItem, SHIELD, inventory_change, InventoryError, InventoryTracker, NEW, PAYMENT_PENDING, \
+    QUEUED, COMPLETED, IN_PROGRESS, DISPUTED, REVIEW, CANCELLED, REFUNDED, Deliverable, Reference
 from apps.sales.permissions import (
     OrderViewPermission, OrderSellerPermission, OrderBuyerPermission,
     OrderPlacePermission, EscrowPermission, EscrowDisabledPermission, RevisionsVisible,
     BankingConfigured,
-    OrderStatusPermission, HasRevisionsPermission, OrderTimeUpPermission, NoOrderOutput, PaidOrderPermission,
+    DeliverableStatusPermission, HasRevisionsPermission, OrderTimeUpPermission, NoOrderOutput, PaidOrderPermission,
     LineItemTypePermission, OrderNoProduct)
-from apps.sales.models import Product, Order, CreditCardToken, Revision, BankAccount, \
-    WEIGHTED_STATUSES, Rating, TransactionRecord, BASE_PRICE, ADD_ON, TAX, EXTRA, \
-    TABLE_SERVICE, TIP, LineItem, SHIELD, inventory_change, InventoryError, InventoryTracker
 from apps.sales.serializers import (
-    ProductSerializer, ProductNewOrderSerializer, OrderViewSerializer, CardSerializer,
+    ProductSerializer, ProductNewOrderSerializer, DeliverableViewSerializer, CardSerializer,
     NewCardSerializer, PaymentSerializer, RevisionSerializer,
     AccountBalanceSerializer, BankAccountSerializer, TransactionRecordSerializer,
     RatingSerializer,
     ServicePaymentSerializer, SearchQuerySerializer, NewInvoiceSerializer,
     HoldingsSummarySerializer, ProductSampleSerializer, OrderPreviewSerializer,
-    AccountQuerySerializer, OrderCharacterTagSerializer, SubmissionFromOrderSerializer, OrderAuthSerializer,
-    LineItemSerializer, OrderValuesSerializer, SimpleTransactionSerializer, InventorySerializer,
-    PayoutTransactionSerializer)
-from apps.sales.utils import available_products, service_price, set_service, \
-    check_charge_required, available_products_by_load, finalize_order, account_balance, \
-    recuperate_fee, ALL, POSTED_ONLY, PENDING, transfer_order, early_finalize, cancel_order, lines_to_transaction_specs, \
-    get_totals, verify_total, issue_refund, ensure_buyer
+    AccountQuerySerializer, DeliverableCharacterTagSerializer, SubmissionFromOrderSerializer, OrderAuthSerializer,
+    LineItemSerializer, DeliverableValuesSerializer, SimpleTransactionSerializer, InventorySerializer,
+    PayoutTransactionSerializer, OrderViewSerializer, ReferenceSerializer, DeliverableReferenceSerializer)
 from apps.sales.tasks import renew
+from apps.sales.utils import available_products, service_price, set_service, \
+    check_charge_required, available_products_by_load, finalize_deliverable, account_balance, \
+    recuperate_fee, POSTED_ONLY, PENDING, transfer_order, early_finalize, cancel_deliverable, lines_to_transaction_specs, \
+    get_totals, verify_total, issue_refund, ensure_buyer
 
 
 def user_products(username: str, requester: User):
@@ -213,16 +214,23 @@ class PlaceOrder(CreateAPIView):
                 login(self.request, user)
         order = serializer.save(
             product=product, buyer=user, seller=product.user,
-            escrow_disabled=product.user.artist_profile.escrow_disabled,
         )
+        deliverable = Deliverable.objects.create(
+            order=order,
+            name='Main',
+            escrow_disabled=product.user.artist_profile.escrow_disabled,
+            rating=serializer.validated_data['rating'],
+            details=serializer.validated_data['details'],
+        )
+        deliverable.characters.set(serializer.validated_data.get('characters', []))
         if not user.guest:
-            for character in order.characters.all():
+            for character in deliverable.characters.all():
                 character.shared_with.add(order.seller)
         else:
             order.customer_email = user.guest_email
             order.save()
-        notify(SALE_UPDATE, order, unique=True, mark_unread=True)
-        notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
+        notify(SALE_UPDATE, deliverable, unique=True, mark_unread=True)
+        notify(ORDER_UPDATE, deliverable, unique=True, mark_unread=True)
         return order
 
     def create(self, request, *args, **kwargs):
@@ -234,7 +242,7 @@ class PlaceOrder(CreateAPIView):
                 order = self.perform_create(serializer)
         except InventoryError:
             return Response({'detail': 'This product is not in stock.'}, status=status.HTTP_400_BAD_REQUEST)
-        serializer = OrderViewSerializer(instance=order, context=self.get_serializer_context())
+        serializer = OrderPreviewSerializer(instance=order, context=self.get_serializer_context())
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
@@ -245,6 +253,30 @@ class OrderManager(RetrieveUpdateAPIView):
 
     def get_object(self):
         order = get_object_or_404(Order, id=self.kwargs['order_id'])
+        self.check_object_permissions(self.request, order)
+        return order
+
+
+class OrderDeliverables(ListAPIView):
+    permission_classes = [OrderViewPermission]
+    serializer_class = DeliverableViewSerializer
+
+    def get_queryset(self):
+        return self.get_object().deliverables.all().order_by('-created_on')
+
+    def get_object(self):
+        order = get_object_or_404(Order, id=self.kwargs['order_id'])
+        self.check_object_permissions(self.request, order)
+        return order
+
+
+
+class DeliverableManager(RetrieveUpdateAPIView):
+    permission_classes = [OrderViewPermission]
+    serializer_class = DeliverableViewSerializer
+
+    def get_object(self):
+        order = get_object_or_404(Deliverable, order_id=self.kwargs['order_id'], id=self.kwargs['deliverable_id'])
         self.check_object_permissions(self.request, order)
         return order
 
@@ -282,139 +314,141 @@ class OrderInvite(GenericAPIView):
         return Response(status=status.HTTP_200_OK, data=self.get_serializer(instance=order).data)
 
 
-class OrderAccept(GenericAPIView):
+class DeliverableAccept(GenericAPIView):
     permission_classes = [
         OrderSellerPermission,
-        OrderStatusPermission(Order.NEW, error_message="Approval can only be applied to new orders."),
+        DeliverableStatusPermission(NEW, error_message="Approval can only be applied to new orders."),
     ]
 
     def get_object(self):
-        order = get_object_or_404(Order, id=self.kwargs['order_id'])
-        self.check_object_permissions(self.request, order)
-        return order
+        deliverable = get_object_or_404(Deliverable, id=self.kwargs['deliverable_id'], order_id=self.kwargs['order_id'])
+        self.check_object_permissions(self.request, deliverable)
+        return deliverable
 
     def post(self, request, *args, **kwargs):
-        order = self.get_object()
-        order.status = Order.PAYMENT_PENDING
-        order.task_weight = (order.product and order.product.task_weight) or order.task_weight
-        order.expected_turnaround = (order.product and order.product.expected_turnaround) or order.expected_turnaround
-        order.revisions = (order.product and order.product.revisions) or order.revisions
-        if order.total() <= Money('0', 'USD'):
-            order.status = Order.QUEUED
-            order.revisions_hidden = False
-            order.escrow_disabled = True
-        order.save()
-        data = OrderViewSerializer(instance=order, context=self.get_serializer_context()).data
-        if (not order.buyer) and order.customer_email:
-            subject = f'You have a new invoice from {order.seller.username}!'
+        deliverable = self.get_object()
+        deliverable.status = PAYMENT_PENDING
+        deliverable.task_weight = (deliverable.order.product and deliverable.order.product.task_weight) or deliverable.task_weight
+        deliverable.expected_turnaround = (deliverable.order.product and deliverable.order.product.expected_turnaround) or deliverable.expected_turnaround
+        deliverable.revisions = (deliverable.order.product and deliverable.order.product.revisions) or deliverable.revisions
+        if deliverable.total() <= Money('0', 'USD'):
+            deliverable.status = QUEUED
+            deliverable.revisions_hidden = False
+            deliverable.escrow_disabled = True
+        deliverable.save()
+        data = DeliverableViewSerializer(instance=deliverable, context=self.get_serializer_context()).data
+        if (not deliverable.order.buyer) and deliverable.order.customer_email:
+            subject = f'You have a new invoice from {deliverable.order.seller.username}!'
             template = 'invoice_issued.html'
             send_transaction_email(
                 subject,
-                template, order.customer_email,
-                {'order': order, 'claim_token': order.claim_token}
+                template, deliverable.order.customer_email,
+                {'deliverable': deliverable, 'claim_token': deliverable.order.claim_token},
             )
-        notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
+        notify(ORDER_UPDATE, deliverable, unique=True, mark_unread=True)
         return Response(data)
 
 
 class MarkPaid(GenericAPIView):
     permission_classes = [
         OrderSellerPermission,
-        OrderStatusPermission(
-            Order.PAYMENT_PENDING,
+        DeliverableStatusPermission(
+            PAYMENT_PENDING,
             error_message='You can only mark orders paid if they are waiting for payment.',
         ),
     ]
-    serializer_class = OrderViewSerializer
+    serializer_class = DeliverableViewSerializer
 
     def get_object(self):
-        return get_object_or_404(Order, id=self.kwargs['order_id'])
+        return get_object_or_404(Deliverable, order_id=self.kwargs['order_id'], id=self.kwargs['deliverable_id'])
 
     def post(self, request, **_kwargs):
-        order = self.get_object()
-        self.check_object_permissions(request, order)
-        if order.final_uploaded:
-            order.status = Order.COMPLETED
-        elif order.revision_set.all():
-            order.status = Order.IN_PROGRESS
+        deliverable = self.get_object()
+        self.check_object_permissions(request, deliverable)
+        if deliverable.final_uploaded:
+            deliverable.status = COMPLETED
+        elif deliverable.revision_set.all():
+            deliverable.status = IN_PROGRESS
         else:
-            order.status = Order.QUEUED
-        if order.product:
-            order.task_weight = order.product.task_weight
-            order.expected_turnaround = order.product.expected_turnaround
-            order.revisions = order.product.revisions
-        order.revisions_hidden = False
-        order.commission_info = order.seller.artist_profile.commission_info
-        order.escrow_disabled = True
-        order.save()
-        data = self.serializer_class(instance=order, context=self.get_serializer_context()).data
-        notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
+            deliverable.status = QUEUED
+        if deliverable.order.product:
+            deliverable.task_weight = deliverable.order.product.task_weight
+            deliverable.expected_turnaround = deliverable.order.product.expected_turnaround
+            deliverable.revisions = deliverable.order.product.revisions
+        deliverable.revisions_hidden = False
+        deliverable.commission_info = deliverable.order.seller.artist_profile.commission_info
+        deliverable.escrow_disabled = True
+        deliverable.save()
+        data = self.serializer_class(instance=deliverable, context=self.get_serializer_context()).data
+        notify(ORDER_UPDATE, deliverable, unique=True, mark_unread=True)
         return Response(data)
 
 
-class OrderStart(GenericAPIView):
+class DeliverableStart(GenericAPIView):
     permission_classes = [
         OrderSellerPermission,
-        OrderStatusPermission(
-            Order.QUEUED,
+        DeliverableStatusPermission(
+            QUEUED,
             error_message='You can only start orders that are queued.',
         ),
     ]
-    serializer_class = OrderViewSerializer
+    serializer_class = DeliverableViewSerializer
 
     def get_object(self):
-        order = get_object_or_404(Order, id=self.kwargs['order_id'])
+        order = get_object_or_404(Deliverable, order_id=self.kwargs['order_id'], id=self.kwargs['deliverable_id'])
         self.check_object_permissions(self.request, order)
         return order
 
     def post(self, *args, **kwargs):
-        order = self.get_object()
-        order.started_on = timezone.now()
-        order.status = Order.IN_PROGRESS
-        order.save()
-        notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
-        if not order.private and order.stream_link:
+        deliverable = self.get_object()
+        deliverable.started_on = timezone.now()
+        deliverable.status = IN_PROGRESS
+        deliverable.save()
+        notify(ORDER_UPDATE, deliverable, unique=True, mark_unread=True)
+        if not deliverable.order.private and deliverable.stream_link:
             notify(
-                STREAMING, order.seller,
-                data={'order': order.id}, unique_data=True,
-                exclude=[order.buyer, order.seller]
+                STREAMING, deliverable.order.seller,
+                data={'order': deliverable.id}, unique_data=True,
+                exclude=[deliverable.order.buyer, deliverable.order.seller]
             )
-        return Response(data=OrderViewSerializer(instance=order, context=self.get_serializer_context()).data)
+        return Response(data=DeliverableViewSerializer(instance=deliverable, context=self.get_serializer_context()).data)
 
 
-class OrderCancel(GenericAPIView):
+class DeliverableCancel(GenericAPIView):
     permission_classes = [
         OrderViewPermission,
-        OrderStatusPermission(
-            Order.NEW, Order.PAYMENT_PENDING,
+        DeliverableStatusPermission(
+            NEW, PAYMENT_PENDING,
             error_message='You cannot cancel this order. It is either already cancelled, finalized, '
                           'or must be refunded instead.',
         ),
     ]
-    serializer_class = OrderViewSerializer
+    serializer_class = DeliverableViewSerializer
 
     def get_object(self):
-        order = get_object_or_404(Order, id=self.kwargs['order_id'])
-        self.check_object_permissions(self.request, order)
-        return order
+        deliverable = get_object_or_404(
+            Deliverable, order_id=self.kwargs['order_id'], id=self.kwargs['deliverable_id'],
+        )
+        self.check_object_permissions(self.request, deliverable)
+        return deliverable
 
     # noinspection PyUnusedLocal
-    def post(self, request, order_id):
-        order = self.get_object()
-        cancel_order(order, self.request.user)
-        data = self.serializer_class(instance=order, context=self.get_serializer_context()).data
+    def post(self, request, order_id, deliverable_id):
+        deliverable = self.get_object()
+        cancel_deliverable(deliverable, self.request.user)
+        data = self.serializer_class(instance=deliverable, context=self.get_serializer_context()).data
         return Response(data)
 
 
-class OrderLineItems(ListCreateAPIView):
+class DeliverableLineItems(ListCreateAPIView):
     permission_classes = [
         Any(
             All(
                 Any(
                     IsSafeMethod,
                     All(
-                        IsMethod('POST'), OrderStatusPermission(
-                            Order.NEW, Order.PAYMENT_PENDING,
+                        IsMethod('POST'), DeliverableStatusPermission(
+                            NEW, PAYMENT_PENDING,
                         )
                     )
                 ),
@@ -427,29 +461,31 @@ class OrderLineItems(ListCreateAPIView):
 
     @lru_cache()
     def get_object(self):
-        return get_object_or_404(Order, id=self.kwargs['order_id'])
+        return get_object_or_404(
+            Deliverable, order_id=self.kwargs['order_id'], id=self.kwargs['deliverable_id'],
+        )
 
     def get_queryset(self):
-        order = self.get_object()
-        return order.line_items.exclude(type=TIP, amount=0)
+        deliverable = self.get_object()
+        return deliverable.line_items.exclude(type=TIP, amount=0)
 
     def get_serializer_context(self):
-        return {**super().get_serializer_context(), 'order': self.get_object()}
+        return {**super().get_serializer_context(), 'deliverable': self.get_object()}
 
     def get(self, request, *args, **kwargs):
-        order = self.get_object()
-        self.check_object_permissions(request, order)
+        deliverable = self.get_object()
+        self.check_object_permissions(request, deliverable)
         return super().get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
-        order = self.get_object()
-        self.check_object_permissions(request, order)
+        deliverable = self.get_object()
+        self.check_object_permissions(request, deliverable)
         return super().post(request, *args, **kwargs)
 
     def perform_create(self, serializer):
         item_type = serializer.validated_data.get('type', ADD_ON)
-        order = self.get_object()
-        destination_user = order.seller
+        deliverable = self.get_object()
+        destination_user = deliverable.order.seller
         if item_type in [TAX, EXTRA, TABLE_SERVICE]:
             destination_user = None
         accounts = {
@@ -461,7 +497,7 @@ class OrderLineItems(ListCreateAPIView):
             EXTRA: TransactionRecord.UNPROCESSED_EARNINGS,
         }
         destination_account = accounts[item_type]
-        tip = order.line_items.filter(type=TIP).first()
+        tip = deliverable.line_items.filter(type=TIP).first()
         if item_type == TIP and tip:
             tip.amount = serializer.validated_data['amount']
             tip.save()
@@ -470,13 +506,15 @@ class OrderLineItems(ListCreateAPIView):
         if item_type == BASE_PRICE and serializer.validated_data.get('percentage', 0):
             raise ValidationError({'percentage': ['Base price may not have percentage.']})
         with transaction.atomic():
-            base_price = order.line_items.filter(type=BASE_PRICE).first()
+            base_price = deliverable.line_items.filter(type=BASE_PRICE).first()
             if base_price and item_type == BASE_PRICE:
                 base_price.amount = serializer.validated_data['amount']
                 base_price.save()
             else:
-                serializer.save(destination_user=destination_user, destination_account=destination_account, order=order)
-            verify_total(order)
+                serializer.save(
+                    destination_user=destination_user, destination_account=destination_account, deliverable=deliverable,
+                )
+            verify_total(deliverable)
 
 
 class LineItemManager(RetrieveUpdateDestroyAPIView):
@@ -485,7 +523,7 @@ class LineItemManager(RetrieveUpdateDestroyAPIView):
             All(IsSafeMethod, OrderViewPermission),
             All(
                 IsMethod('PATCH', 'DELETE'),
-                OrderStatusPermission(Order.NEW, Order.PAYMENT_PENDING),
+                DeliverableStatusPermission(NEW, PAYMENT_PENDING),
                 Any(
                     All(
                         OrderSellerPermission, Any(
@@ -503,28 +541,28 @@ class LineItemManager(RetrieveUpdateDestroyAPIView):
 
     @lru_cache
     def get_object(self):
-        line_item = LineItem.objects.get(id=self.kwargs['line_item_id'], order__id=self.kwargs['order_id'])
+        line_item = LineItem.objects.get(id=self.kwargs['line_item_id'], deliverable__id=self.kwargs['deliverable_id'])
         self.check_object_permissions(self.request, line_item)
         return line_item
 
     def get_serializer_context(self):
-        return {**super().get_serializer_context(), 'order': self.get_object().order}
+        return {**super().get_serializer_context(), 'deliverable': self.get_object()}
 
     def perform_update(self, serializer):
         with transaction.atomic():
             serializer.save()
-            order = serializer.instance.order
-            verify_total(order)
+            deliverable = serializer.instance.deliverable
+            verify_total(deliverable)
         # Trigger automatic creation/destruction of shield lines.
-        order.save()
+        deliverable.save()
 
 
-class OrderRevisions(ListCreateAPIView):
+class DeliverableRevisions(ListCreateAPIView):
     permission_classes = [
         Any(
             All(IsSafeMethod, OrderViewPermission, Any(RevisionsVisible, OrderSellerPermission)),
-            All(OrderSellerPermission, IsMethod('POST'), OrderStatusPermission(
-                Order.IN_PROGRESS, Order.PAYMENT_PENDING, Order.NEW, Order.QUEUED, Order.DISPUTED,
+            All(OrderSellerPermission, IsMethod('POST'), DeliverableStatusPermission(
+                IN_PROGRESS, PAYMENT_PENDING, NEW, QUEUED, DISPUTED,
                 error_message='You may not upload revisions while the order is in this state.',
             )),
         ),
@@ -534,190 +572,288 @@ class OrderRevisions(ListCreateAPIView):
 
     @lru_cache()
     def get_object(self):
-        return get_object_or_404(Order, id=self.kwargs['order_id'])
+        return get_object_or_404(Deliverable, id=self.kwargs['deliverable_id'], order_id=self.kwargs['order_id'])
 
     def get_queryset(self):
-        order = self.get_object()
-        return order.revision_set.all()
+        deliverable = self.get_object()
+        return deliverable.revision_set.all()
 
     def get(self, *args, **kwargs):
-        order = self.get_object()
-        self.check_object_permissions(self.request, order)
+        deliverable = self.get_object()
+        self.check_object_permissions(self.request, deliverable)
         return super().get(*args, **kwargs)
 
     def post(self, *args, **kwargs):
-        order = self.get_object()
-        self.check_object_permissions(self.request, order)
+        deliverable = self.get_object()
+        self.check_object_permissions(self.request, deliverable)
         return super().post(*args, **kwargs)
 
     def perform_create(self, serializer):
-        order = self.get_object()
-        revision = serializer.save(order=order, owner=self.request.user, rating=order.rating)
-        order.refresh_from_db()
-        if order.status == Order.QUEUED:
-            order.status = Order.IN_PROGRESS
+        deliverable = self.get_object()
+        revision = serializer.save(deliverable=deliverable, owner=self.request.user, rating=deliverable.rating)
+        deliverable.refresh_from_db()
+        if deliverable.status == QUEUED:
+            deliverable.status = IN_PROGRESS
         if serializer.validated_data.get('final'):
-            order.final_uploaded = True
-            if order.escrow_disabled:
-                order.status = Order.COMPLETED
-            elif order.status == Order.IN_PROGRESS:
-                order.status = Order.REVIEW
-                order.auto_finalize_on = (timezone.now() + relativedelta(days=5)).date()
-                early_finalize(order, self.request.user)
-            order.save()
-            notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
+            deliverable.final_uploaded = True
+            if deliverable.escrow_disabled:
+                deliverable.status = COMPLETED
+            elif deliverable.status == IN_PROGRESS:
+                deliverable.status = REVIEW
+                deliverable.auto_finalize_on = (timezone.now() + relativedelta(days=5)).date()
+                early_finalize(deliverable, self.request.user)
+            deliverable.save()
+            notify(ORDER_UPDATE, deliverable, unique=True, mark_unread=True)
         else:
-            notify(REVISION_UPLOADED, order, data={'revision': revision.id}, unique_data=True, mark_unread=True)
-        order.save()
-        recall_notification(STREAMING, order.seller, data={'order': order.id})
+            notify(REVISION_UPLOADED, deliverable, data={'revision': revision.id}, unique_data=True, mark_unread=True)
+        deliverable.save()
+        recall_notification(STREAMING, deliverable.order.seller, data={'order': deliverable.id})
         return revision
+
+
+class References(CreateAPIView):
+    serializer_class = ReferenceSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        return serializer.save(owner=self.request.user)
+
+
+class DeliverableReferences(ListCreateAPIView):
+    permission_classes = [OrderViewPermission]
+    pagination_class = None
+    serializer_class = DeliverableReferenceSerializer
+
+    @lru_cache()
+    def get_object(self):
+        return get_object_or_404(Deliverable, id=self.kwargs['deliverable_id'], order_id=self.kwargs['order_id'])
+
+    def get_queryset(self):
+        deliverable = self.get_object()
+        return Reference.deliverables.through.objects.filter(deliverable=deliverable).order_by('-reference__created_on')
+
+    def get(self, *args, **kwargs):
+        deliverable = self.get_object()
+        self.check_object_permissions(self.request, deliverable)
+        return super().get(*args, **kwargs)
+
+    def post(self, *args, **kwargs):
+        deliverable = self.get_object()
+        self.check_object_permissions(self.request, deliverable)
+        return super().post(*args, **kwargs)
+
+    def perform_create(self, serializer):
+        deliverable = self.get_object()
+        deliverable_reference = serializer.save(deliverable=deliverable)
+        reference = deliverable_reference.reference
+        content_type = ContentType.objects.get_for_model(reference)
+        Subscription.objects.get_or_create(
+            subscriber=deliverable.order.seller, type=COMMENT, object_id=reference.id,
+            content_type=content_type, email=True,
+        )
+        if deliverable.order.buyer:
+            Subscription.objects.get_or_create(
+                subscriber=deliverable.order.buyer, type=COMMENT, email=True,
+                content_type=content_type,
+                object_id=reference.id,
+            )
+        notify(
+            REFERENCE_UPLOADED,
+            deliverable,
+            data={'reference': reference.id},
+            unique_data=True,
+            mark_unread=True,
+            exclude=[self.request.user],
+        )
+        return deliverable_reference
+
+
+class ReferenceManager(RetrieveDestroyAPIView):
+    serializer_class = ReferenceSerializer
+    permission_classes = [OrderViewPermission]
+
+    def perform_destroy(self, instance):
+        if not (self.request.user.is_staff or instance.owner == self.request.user):
+            # Probably should find some cleaner way to check this with the permissions framework.
+            raise PermissionDenied('You do not have the right to remove this reference.')
+        deliverable = get_object_or_404(
+            Deliverable, id=self.kwargs['deliverable_id'], order_id=self.kwargs['order_id'],
+        )
+        deliverable.reference_set.remove(instance)
+
+    def get_object(self):
+        deliverable = get_object_or_404(
+            Deliverable, id=self.kwargs['deliverable_id'], order_id=self.kwargs['order_id'],
+        )
+        reference = deliverable.reference_set.filter(id=self.kwargs['reference_id']).first()
+        if not reference:
+            raise Http404("I didn't get that reference.")
+        self.check_object_permissions(self.request, deliverable)
+        return reference
 
 
 delete_forbidden_message = 'You may not remove revisions from this order. They are either locked or under dispute.'
 
 
-class DeleteOrderRevision(DestroyAPIView):
+class RevisionManager(RetrieveDestroyAPIView):
     permission_classes = [
-        OrderSellerPermission,
         Any(
-            OrderStatusPermission(
-                Order.REVIEW, Order.PAYMENT_PENDING, Order.NEW, Order.IN_PROGRESS,
-                error_message=delete_forbidden_message,
+            All(
+                IsMethod('DELETE'),
+                OrderSellerPermission,
+                Any(
+                    DeliverableStatusPermission(
+                        REVIEW, PAYMENT_PENDING, NEW, IN_PROGRESS,
+                        error_message=delete_forbidden_message,
+                    ),
+                    All(
+                        EscrowDisabledPermission,
+                        DeliverableStatusPermission(
+                            COMPLETED,
+                            error_message=delete_forbidden_message,
+                        )),
+                ),
             ),
             All(
-                EscrowDisabledPermission,
-                OrderStatusPermission(
-                    Order.COMPLETED,
-                    error_message=delete_forbidden_message,
-            )),
-        ),
+                IsMethod('GET'),
+                OrderViewPermission,
+                Any(
+                    OrderSellerPermission,
+                    RevisionsVisible,
+                )
+            )
+        )
     ]
     serializer_class = RevisionSerializer
 
     def get_object(self):
-        order = get_object_or_404(Order, id=self.kwargs['order_id'])
-        revision = get_object_or_404(Revision, id=self.kwargs['revision_id'], order_id=self.kwargs['order_id'])
-        self.check_object_permissions(self.request, order)
+        deliverable = get_object_or_404(Deliverable, order_id=self.kwargs['order_id'], id=self.kwargs['deliverable_id'])
+        revision = get_object_or_404(
+            Revision, id=self.kwargs['revision_id'], deliverable_id=self.kwargs['deliverable_id'],
+        )
+        self.check_object_permissions(self.request, deliverable)
         return revision
 
     def perform_destroy(self, instance):
         revision_id = instance.id
-        super(DeleteOrderRevision, self).perform_destroy(instance)
-        order = Order.objects.get(id=self.kwargs['order_id'])
-        recall_notification(REVISION_UPLOADED, order, data={'revision': revision_id}, unique_data=True)
-        if order.final_uploaded:
-            order.final_uploaded = False
-        if order.status in [Order.REVIEW, Order.COMPLETED]:
-            order.auto_finalize_on = None
-            order.status = Order.IN_PROGRESS
-        order.save()
+        super(RevisionManager, self).perform_destroy(instance)
+        deliverable = Deliverable.objects.get(id=self.kwargs['deliverable_id'], order_id=self.kwargs['order_id'])
+        recall_notification(REVISION_UPLOADED, deliverable, data={'revision': revision_id}, unique_data=True)
+        if deliverable.final_uploaded:
+            deliverable.final_uploaded = False
+        if deliverable.status in [REVIEW, COMPLETED]:
+            deliverable.auto_finalize_on = None
+            deliverable.status = IN_PROGRESS
+        deliverable.save()
 
 
 reopen_error_message = 'This order cannot be reopened.'
 
 
 class ReOpen(GenericAPIView):
-    serializer_class = OrderViewSerializer
+    serializer_class = DeliverableViewSerializer
     permission_classes = [
         OrderSellerPermission,
         Any(
-            OrderStatusPermission(
-                Order.REVIEW, Order.PAYMENT_PENDING, Order.DISPUTED, error_message=reopen_error_message,
+            DeliverableStatusPermission(
+                REVIEW, PAYMENT_PENDING, DISPUTED, error_message=reopen_error_message,
             ),
-            All(EscrowDisabledPermission, OrderStatusPermission(Order.COMPLETED, error_message=reopen_error_message)),
+            All(EscrowDisabledPermission, DeliverableStatusPermission(COMPLETED, error_message=reopen_error_message)),
         )
     ]
 
     def get_object(self):
-        return get_object_or_404(Order, id=self.kwargs['order_id'])
+        return get_object_or_404(Deliverable, order_id=self.kwargs['order_id'], id=self.kwargs['deliverable_id'])
 
     def post(self, _request, *_args, **_kwargs):
-        order = self.get_object()
-        self.check_object_permissions(self.request, order)
-        if order.status not in [Order.PAYMENT_PENDING, Order.DISPUTED]:
-            order.status = Order.IN_PROGRESS
-        order.final_uploaded = False
-        order.auto_finalize_on = None
-        order.save()
-        notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
-        serializer = self.get_serializer(instance=order)
+        deliverable = self.get_object()
+        self.check_object_permissions(self.request, deliverable)
+        if deliverable.status not in [PAYMENT_PENDING, DISPUTED]:
+            deliverable.status = IN_PROGRESS
+        deliverable.final_uploaded = False
+        deliverable.auto_finalize_on = None
+        deliverable.save()
+        notify(ORDER_UPDATE, deliverable, unique=True, mark_unread=True)
+        serializer = self.get_serializer(instance=deliverable)
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
 
 class MarkComplete(GenericAPIView):
-    serializer_class = OrderViewSerializer
+    serializer_class = DeliverableViewSerializer
     permission_classes = [
         OrderSellerPermission,
-        OrderStatusPermission(
-            Order.IN_PROGRESS,
-            Order.PAYMENT_PENDING,
+        DeliverableStatusPermission(
+            IN_PROGRESS,
+            PAYMENT_PENDING,
             error_message='You cannot mark an order complete if it is not in progress.',
         ),
         HasRevisionsPermission,
     ]
 
     def get_object(self):
-        return get_object_or_404(Order, id=self.kwargs['order_id'])
+        return get_object_or_404(Deliverable, order_id=self.kwargs['order_id'], id=self.kwargs['deliverable_id'])
 
     def post(self, _request, *_args, **_kwargs):
-        order = self.get_object()
-        self.check_object_permissions(self.request, order)
-        if order.revision_set.all().exists() and order.status == Order.PAYMENT_PENDING:
-            order.final_uploaded = True
-            order.save()
-            serializer = self.get_serializer(instance=order)
+        deliverable = self.get_object()
+        self.check_object_permissions(self.request, deliverable)
+        if deliverable.revision_set.all().exists() and deliverable.status == PAYMENT_PENDING:
+            deliverable.final_uploaded = True
+            deliverable.save()
+            serializer = self.get_serializer(instance=deliverable)
             return Response(status=status.HTTP_200_OK, data=serializer.data)
-        order.final_uploaded = True
-        if order.escrow_disabled:
-            order.status = Order.COMPLETED
+        deliverable.final_uploaded = True
+        if deliverable.escrow_disabled:
+            deliverable.status = COMPLETED
         else:
-            order.status = Order.REVIEW
-            order.auto_finalize_on = (timezone.now() + relativedelta(days=2)).date()
-            early_finalize(order, self.request.user)
-        order.save()
-        notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
-        serializer = self.get_serializer(instance=order)
+            deliverable.status = REVIEW
+            deliverable.auto_finalize_on = (timezone.now() + relativedelta(days=2)).date()
+            early_finalize(deliverable, self.request.user)
+        deliverable.save()
+        notify(ORDER_UPDATE, deliverable, unique=True, mark_unread=True)
+        serializer = self.get_serializer(instance=deliverable)
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
 
 class StartDispute(GenericAPIView):
     permission_classes = [
         OrderBuyerPermission, EscrowPermission,
-        OrderStatusPermission(
-            Order.REVIEW, Order.IN_PROGRESS, Order.QUEUED, error_message='This order is not in a disputable state.',
+        DeliverableStatusPermission(
+            REVIEW, IN_PROGRESS, QUEUED, error_message='This order is not in a disputable state.',
         ),
         # Slight redundancy here to ensure the right error messages display.
         Any(
-            All(OrderTimeUpPermission, OrderStatusPermission(Order.IN_PROGRESS, Order.QUEUED)),
-            OrderStatusPermission(Order.REVIEW),
+            All(OrderTimeUpPermission, DeliverableStatusPermission(IN_PROGRESS, QUEUED)),
+            DeliverableStatusPermission(REVIEW),
         )
     ]
-    serializer_class = OrderViewSerializer
+    serializer_class = DeliverableViewSerializer
 
     def get_object(self):
-        return get_object_or_404(Order, id=self.kwargs['order_id'])
+        return get_object_or_404(
+            Deliverable, order_id=self.kwargs['order_id'], id=self.kwargs['deliverable_id'],
+        )
 
     def post(self, _request, *_args, **_kwargs):
-        order = self.get_object()
-        self.check_object_permissions(self.request, order)
-        order.status = Order.DISPUTED
-        order.disputed_on = timezone.now()
-        order.save()
-        notify(DISPUTE, order, unique=True, mark_unread=True)
-        notify(SALE_UPDATE, order, unique=True, mark_unread=True)
-        serializer = self.get_serializer(instance=order)
+        deliverable = self.get_object()
+        self.check_object_permissions(self.request, deliverable)
+        deliverable.status = DISPUTED
+        deliverable.disputed_on = timezone.now()
+        deliverable.save()
+        notify(DISPUTE, deliverable, unique=True, mark_unread=True)
+        notify(SALE_UPDATE, deliverable, unique=True, mark_unread=True)
+        serializer = self.get_serializer(instance=deliverable)
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
 
 class ClaimDispute(GenericAPIView):
     permission_classes = [IsStaff]
-    serializer_class = OrderViewSerializer
+    serializer_class = DeliverableViewSerializer
 
     def get_object(self):
-        return get_object_or_404(Order, id=self.kwargs['order_id'])
+        return get_object_or_404(Deliverable, order_id=self.kwargs['order_id'], id=self.kwargs['deliverable_id'])
 
     # noinspection PyUnusedLocal
-    def post(self, request, order_id):
+    def post(self, request, order_id, deliverable_id):
         obj = self.get_object()
         self.check_object_permissions(request, obj)
         if obj.arbitrator and obj.arbitrator != request.user:
@@ -742,90 +878,95 @@ class ClaimDispute(GenericAPIView):
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
 
-class OrderRefund(GenericAPIView):
+class DeliverableRefund(GenericAPIView):
     permission_classes = [
         OrderSellerPermission,
-        OrderStatusPermission(
-            Order.QUEUED, Order.IN_PROGRESS, Order.REVIEW, Order.DISPUTED,
+        DeliverableStatusPermission(
+            QUEUED, IN_PROGRESS, REVIEW, DISPUTED,
             error_message='This order is not in a refundable state.',
         )
     ]
-    serializer_class = OrderViewSerializer
+    serializer_class = DeliverableViewSerializer
 
     def get_object(self):
-        return get_object_or_404(Order, id=self.kwargs['order_id'])
+        return get_object_or_404(
+            Deliverable, order_id=self.kwargs['order_id'], id=self.kwargs['deliverable_id'],
+        )
 
     def post(self, request, *_args, **_kwargs):
-        order = self.get_object()
-        self.check_object_permissions(self.request, order)
-        if order.escrow_disabled:
-            order.status = order.REFUNDED
-            order.save()
-            notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
-            serializer = self.get_serializer(instance=order, context=self.get_serializer_context())
+        deliverable = self.get_object()
+        self.check_object_permissions(self.request, deliverable)
+        if deliverable.escrow_disabled:
+            deliverable.status = REFUNDED
+            deliverable.save()
+            notify(ORDER_UPDATE, deliverable, unique=True, mark_unread=True)
+            serializer = self.get_serializer(instance=deliverable, context=self.get_serializer_context())
             return Response(status=status.HTTP_200_OK, data=serializer.data)
-        order_type = ContentType.objects.get_for_model(order)
+        order_type = ContentType.objects.get_for_model(deliverable)
         original_record = TransactionRecord.objects.get(
-            targets__object_id=order.id, targets__content_type=order_type, payer=order.buyer,
-            payee=order.seller,
+            targets__object_id=deliverable.id, targets__content_type=order_type, payer=deliverable.order.buyer,
+            payee=deliverable.order.seller,
             destination=TransactionRecord.ESCROW,
             status=TransactionRecord.SUCCESS,
         )
         transaction_set = TransactionRecord.objects.filter(
             source__in=[TransactionRecord.CARD, TransactionRecord.CASH_DEPOSIT],
-            targets__content_type=order_type, targets__object_id=order.id,
+            targets__content_type=order_type, targets__object_id=deliverable.id,
             status=TransactionRecord.SUCCESS,
         ).exclude(category=TransactionRecord.SHIELD_FEE)
         record = issue_refund(transaction_set, TransactionRecord.ESCROW_REFUND)[0]
         if record.status == TransactionRecord.FAILURE:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'detail': record.response_message})
-        order.status = Order.REFUNDED
-        order.save()
+        deliverable.status = REFUNDED
+        deliverable.save()
         recuperate_fee(original_record)
-        notify(REFUND, order, unique=True, mark_unread=True)
-        notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
-        if request.user != order.seller:
-            notify(SALE_UPDATE, order, unique=True, mark_unread=True)
-        serializer = self.get_serializer(instance=order, context=self.get_serializer_context())
+        notify(REFUND, deliverable, unique=True, mark_unread=True)
+        notify(ORDER_UPDATE, deliverable, unique=True, mark_unread=True)
+        if request.user != deliverable.order.seller:
+            notify(SALE_UPDATE, deliverable, unique=True, mark_unread=True)
+        serializer = self.get_serializer(instance=deliverable, context=self.get_serializer_context())
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
 
 class ApproveFinal(GenericAPIView):
     permission_classes = [
         OrderBuyerPermission, EscrowPermission,
-        OrderStatusPermission(Order.REVIEW, Order.DISPUTED, error_message='This order is not in an approvable state.')
+        DeliverableStatusPermission(REVIEW, DISPUTED, error_message='This order is not in an approvable state.')
     ]
-    serializer_class = OrderViewSerializer
+    serializer_class = DeliverableViewSerializer
 
     def get_object(self):
-        return get_object_or_404(Order, id=self.kwargs['order_id'])
+        return get_object_or_404(Deliverable, order_id=self.kwargs['order_id'], id=self.kwargs['deliverable_id'])
 
     def post(self, request, *_args, **_kwargs):
         order = self.get_object()
         self.check_object_permissions(self.request, order)
-        finalize_order(order, request.user)
+        finalize_deliverable(order, request.user)
         return Response(
             status=status.HTTP_200_OK,
-            data=OrderViewSerializer(instance=order, context=self.get_serializer_context()).data
+            data=DeliverableViewSerializer(instance=order, context=self.get_serializer_context()).data
         )
 
 
 class CurrentMixin(object):
     @staticmethod
     def extra_filter(qs):
-        return qs.exclude(status__in=[Order.COMPLETED, Order.CANCELLED, Order.REFUNDED])
+        return qs.filter(deliverables__status__in=[NEW, PAYMENT_PENDING, QUEUED, IN_PROGRESS, REVIEW, DISPUTED])
 
 
 class ArchivedMixin(object):
     @staticmethod
     def extra_filter(qs):
-        return qs.filter(status=Order.COMPLETED).order_by('-created_on')
+        return qs.exclude(deliverables__status__in=[NEW, PAYMENT_PENDING, QUEUED, IN_PROGRESS, REVIEW, DISPUTED]).filter(
+            deliverables__status=COMPLETED,
+        )
 
 
 class CancelledMixin(object):
     @staticmethod
     def extra_filter(qs):
-        return qs.filter(status__in=[Order.CANCELLED, Order.REFUNDED]).order_by('-created_on')
+        return qs.exclude(
+            deliverables__status__in=[NEW, PAYMENT_PENDING, QUEUED, IN_PROGRESS, DISPUTED, REVIEW, COMPLETED])
 
 
 class OrderListBase(ListAPIView):
@@ -907,7 +1048,9 @@ class CasesListBase(ListAPIView):
 
     def get_queryset(self):
         self.check_object_permissions(self.request, self.user)
-        return self.extra_filter(self.user.cases.all())
+        return self.extra_filter(Order.objects.filter(
+            deliverables__in=self.user.cases.all()),
+        ).distinct().order_by('-created_on')
 
     def get(self, *args, **kwargs):
         # noinspection PyAttributeOutsideInit
@@ -1182,8 +1325,8 @@ class MakePayment(PaymentMixin, GenericAPIView):
     serializer_class = PaymentSerializer
     permission_classes = [
         OrderBuyerPermission, EscrowPermission,
-        OrderStatusPermission(
-            Order.PAYMENT_PENDING,
+        DeliverableStatusPermission(
+            PAYMENT_PENDING,
             error_message='This has already been paid for, or is not ready for payment. '
                           'Please refresh the page or contact support.',
         )
@@ -1191,20 +1334,20 @@ class MakePayment(PaymentMixin, GenericAPIView):
 
     @lru_cache()
     def get_object(self):
-        order = get_object_or_404(Order, id=self.kwargs['order_id'])
-        self.check_object_permissions(self.request, order)
-        return order
+        deliverable = get_object_or_404(Deliverable, order_id=self.kwargs['order_id'], id=self.kwargs['deliverable_id'])
+        self.check_object_permissions(self.request, deliverable)
+        return deliverable
 
     @lru_cache()
     def transaction_specs(self):
         return lines_to_transaction_specs(self.get_object().line_items.all())
 
     def init_transactions(self, data: dict, amount: Money, user: User) -> List[TransactionRecord]:
-        order = self.get_object()
+        deliverable = self.get_object()
         transaction_specs = self.transaction_specs()
         transactions = [
             TransactionRecord(
-                payer=order.buyer,
+                payer=deliverable.order.buyer,
                 status=TransactionRecord.FAILURE,
                 category=category,
                 source=TransactionRecord.CARD,
@@ -1217,17 +1360,17 @@ class MakePayment(PaymentMixin, GenericAPIView):
         return transactions
 
     def post_save(self, transactions: List[TransactionRecord], data: dict, user: User):
-        order = self.get_object()
+        deliverable = self.get_object()
         for transaction in transactions:
-            transaction.targets.add(ref_for_instance(order))
+            transaction.targets.add(ref_for_instance(deliverable))
 
     def post_success(self, transactions: List[TransactionRecord], data: dict, user: User):
         escrow_record, fee_record, *other = transactions
-        order = self.get_object()
-        if order.table_order:
+        deliverable = self.get_object()
+        if deliverable.table_order:
             return
-        reserve_item = order.line_items.get(type=SHIELD)
-        _value, discount, subtotals = get_totals(order.line_items.all())
+        reserve_item = deliverable.line_items.get(type=SHIELD)
+        _value, discount, subtotals = get_totals(deliverable.line_items.all())
         record = TransactionRecord.objects.create(
             payer=None,
             payee=None,
@@ -1239,49 +1382,57 @@ class MakePayment(PaymentMixin, GenericAPIView):
             status=TransactionRecord.SUCCESS,
             category=TransactionRecord.SHIELD_FEE,
         )
-        record.targets.add(ref_for_instance(order))
+        record.targets.add(ref_for_instance(deliverable))
 
     # noinspection PyUnusedLocal
     def post(self, *args, **kwargs):
-        order = self.get_object()
+        deliverable = self.get_object()
         attempt = self.get_serializer(data=self.request.data, context=self.get_serializer_context())
         attempt.is_valid(raise_exception=True)
         attempt = attempt.validated_data
-        if attempt['amount'] != order.total().amount:
+        if attempt['amount'] != deliverable.total().amount:
             return Response(
                 status=status.HTTP_400_BAD_REQUEST, data={'detail': 'The price has changed. Please refresh the page.'}
             )
         try:
-            ensure_buyer(order)
+            ensure_buyer(deliverable.order)
         except AssertionError:
             return Response(
                 status=status.HTTP_400_BAD_REQUEST, data={
                     'detail': 'No buyer is set for this order, nor is there a customer email set.',
                 }
             )
-        success, response = self.perform_charge(attempt, Money(attempt['amount'], 'USD'), order.buyer)
+        success, response = self.perform_charge(attempt, Money(attempt['amount'], 'USD'), deliverable.order.buyer)
         if not success:
             return response
-        if order.final_uploaded:
-            order.status = Order.REVIEW
-            order.auto_finalize_on = (timezone.now() + relativedelta(days=2)).date()
-            early_finalize(order, self.request.user)
-        elif order.revision_set.all().exists():
-            order.status = Order.IN_PROGRESS
+        if deliverable.final_uploaded:
+            deliverable.status = REVIEW
+            deliverable.auto_finalize_on = (timezone.now() + relativedelta(days=2)).date()
+            early_finalize(deliverable, self.request.user)
+        elif deliverable.revision_set.all().exists():
+            deliverable.status = IN_PROGRESS
         else:
-            order.status = Order.QUEUED
-        order.revisions_hidden = False
+            deliverable.status = QUEUED
+        deliverable.revisions_hidden = False
         # Save the original turnaround/weight.
-        order.task_weight = (order.product and order.product.task_weight) or order.task_weight
-        order.expected_turnaround = (order.product and order.product.expected_turnaround) or order.expected_turnaround
-        order.dispute_available_on = (timezone.now() + BDay(ceil(ceil(order.expected_turnaround) * 1.25))).date()
-        order.paid_on = timezone.now()
+        deliverable.task_weight = (
+                (deliverable.order.product and deliverable.order.product.task_weight)
+                or deliverable.task_weight
+        )
+        deliverable.expected_turnaround = (
+                (deliverable.order.product and deliverable.order.product.expected_turnaround)
+                or deliverable.expected_turnaround
+        )
+        deliverable.dispute_available_on = (
+                timezone.now() + BDay(ceil(ceil(deliverable.expected_turnaround) * 1.25))
+        ).date()
+        deliverable.paid_on = timezone.now()
         # Preserve this so it can't be changed during disputes.
-        order.commission_info = order.seller.artist_profile.commission_info
-        order.save()
-        notify(SALE_UPDATE, order, unique=True, mark_unread=True)
-        credit_referral(order)
-        data = OrderViewSerializer(instance=order, context=self.get_serializer_context()).data
+        deliverable.commission_info = deliverable.order.seller.artist_profile.commission_info
+        deliverable.save()
+        notify(SALE_UPDATE, deliverable, unique=True, mark_unread=True)
+        credit_referral(deliverable)
+        data = DeliverableViewSerializer(instance=deliverable, context=self.get_serializer_context()).data
         return Response(data=data)
 
 
@@ -1462,8 +1613,8 @@ class SalesStats(APIView):
             'commissions_closed': user.artist_profile.commissions_closed,
             'commissions_disabled': user.artist_profile.commissions_disabled,
             'products_available': products_available,
-            'active_orders': user.sales.filter(status__in=WEIGHTED_STATUSES).count(),
-            'new_orders': user.sales.filter(status=Order.NEW).count(),
+            'active_orders': Deliverable.objects.filter(status__in=WEIGHTED_STATUSES, order__seller=user).count(),
+            'new_orders': Deliverable.objects.filter(status=NEW, order__seller=user).count(),
         }
         return Response(status=status.HTTP_200_OK, data=data)
 
@@ -1481,20 +1632,20 @@ class RateBase(RetrieveUpdateAPIView):
 
     @lru_cache()
     def get_object(self):
-        order = self.get_order()
+        deliverable = self.get_deliverable()
         rater = self.get_rater()
         target = self.get_target()
         ratings = Rating.objects.filter(
-            object_id=order.id, content_type=ContentType.objects.get_for_model(order), rater=rater,
+            object_id=deliverable.id, content_type=ContentType.objects.get_for_model(deliverable), rater=rater,
             target=target,
         )
         return ratings.first() or Rating(
-            object_id=order.id, content_type=ContentType.objects.get_for_model(order), rater=rater,
+            object_id=deliverable.id, content_type=ContentType.objects.get_for_model(deliverable), rater=rater,
             target=target,
         )
 
-    def get_order(self):
-        order = get_object_or_404(Order, id=self.kwargs['order_id'])
+    def get_deliverable(self):
+        order = get_object_or_404(Deliverable, order_id=self.kwargs['order_id'], id=self.kwargs['deliverable_id'])
         self.check_object_permissions(self.request, order)
         return order
 
@@ -1505,15 +1656,15 @@ class RateBuyer(RateBase):
             All(IsSafeMethod, OrderViewPermission),
             All(OrderSellerPermission)
         ),
-        OrderStatusPermission(Order.COMPLETED, Order.REFUNDED),
+        DeliverableStatusPermission(COMPLETED, REFUNDED),
         PaidOrderPermission,
     ]
 
     def get_target(self):
-        return self.get_order().buyer
+        return self.get_deliverable().order.buyer
 
     def get_rater(self):
-        return self.get_order().seller
+        return self.get_deliverable().order.seller
 
 
 class RateSeller(RateBase):
@@ -1525,10 +1676,10 @@ class RateSeller(RateBase):
     ]
 
     def get_target(self):
-        return self.get_order().seller
+        return self.get_deliverable().order.seller
 
     def get_rater(self):
-        return self.get_order().buyer
+        return self.get_deliverable().order.buyer
 
 
 class RatingList(ListAPIView):
@@ -1714,7 +1865,7 @@ class NewArtistProducts(ListAPIView):
     def get_queryset(self):
         # Can't directly do order_by on this QS because the ORM breaks grouping by placing it before the annotation.
         return Product.objects.filter(id__in=Product.objects.all().annotate(
-            completed_orders=Count('user__sales', filter=Q(user__sales__status=Order.COMPLETED))
+            completed_orders=Count('user__sales', filter=Q(user__sales__deliverables__status=COMPLETED))
         ).filter(completed_orders=0, available=True)).order_by('?')
 
 
@@ -1782,15 +1933,15 @@ class CreateInvoice(GenericAPIView):
         if paid:
             if serializer.validated_data['completed']:
                 # Seller still has to upload revisions.
-                order_status = Order.IN_PROGRESS
+                order_status = IN_PROGRESS
             else:
-                order_status = Order.QUEUED
+                order_status = QUEUED
             revisions_hidden = False
         elif hold:
-            order_status = Order.NEW
+            order_status = NEW
             revisions_hidden = True
         else:
-            order_status = Order.PAYMENT_PENDING
+            order_status = PAYMENT_PENDING
             revisions_hidden = True
         try:
             with inventory_change(product):
@@ -1799,34 +1950,38 @@ class CreateInvoice(GenericAPIView):
                     buyer=buyer,
                     customer_email=customer_email,
                     product=product,
-                    escrow_disabled=escrow_disabled,
+                    private=serializer.validated_data['private'],
+                )
+                deliverable = Deliverable.objects.create(
+                    name='Main',
+                    order=order,
                     table_order=table_order,
                     details=serializer.validated_data['details'],
-                    private=serializer.validated_data['private'],
                     adjustment_task_weight=adjustment_task_weight,
                     task_weight=task_weight,
                     adjustment_expected_turnaround=adjustment_expected_turnaround,
                     expected_turnaround=expected_turnaround,
+                    escrow_disabled=escrow_disabled,
                     revisions_hidden=revisions_hidden,
                     revisions=revisions,
                     adjustment_revisions=adjustment_revisions,
                     commission_info=request.subject.artist_profile.commission_info,
                     status=order_status,
                 )
-                order.line_items.get_or_create(
+                deliverable.line_items.get_or_create(
                     type=BASE_PRICE, amount=price, priority=0, destination_account=TransactionRecord.ESCROW,
                     destination_user=order.seller,
                 )
                 if adjustment:
-                    order.line_items.get_or_create(
+                    deliverable.line_items.get_or_create(
                         type=ADD_ON, amount=adjustment, priority=1, destination_account=TransactionRecord.ESCROW,
                         destination_user=order.seller,
                     )
                 # Trigger line item creation.
-                order.save()
+                deliverable.save()
         except InventoryError:
             return Response(data={'detail': 'This product is out of stock.'}, status=status.HTTP_400_BAD_REQUEST)
-        return Response(data=OrderViewSerializer(instance=order, context=self.get_serializer_context()).data)
+        return Response(data=DeliverableViewSerializer(instance=deliverable, context=self.get_serializer_context()).data)
 
 
 class CustomerHoldings(ListAPIView):
@@ -1908,14 +2063,14 @@ class CSVReport:
 
 
 class OrderValues(CSVReport, ListAPIView, DateConstrained):
-    serializer_class = OrderValuesSerializer
+    serializer_class = DeliverableValuesSerializer
     permission_classes = [IsSuperuser]
     pagination_class = None
     report_name = 'order-report'
 
     def get_queryset(self):
-        return Order.objects.filter(escrow_disabled=False, **self.date_kwargs).exclude(
-            status__in=[Order.CANCELLED, Order.NEW, Order.PAYMENT_PENDING],
+        return Order.objects.filter(escrow_disabled=False).exclude(
+            status__in=[CANCELLED, NEW, PAYMENT_PENDING],
         ).order_by('created_on')
 
     def get_renderer_context(self):
@@ -2051,25 +2206,27 @@ class ProductRecommendations(ListAPIView):
         return qs
 
 
-class OrderCharacterList(ListAPIView):
+class DeliverableCharacterList(ListAPIView):
     permission_classes = [OrderViewPermission]
     pagination_class = None
-    serializer_class = OrderCharacterTagSerializer
+    serializer_class = DeliverableCharacterTagSerializer
 
     def get_queryset(self) -> QuerySet:
-        return Order.characters.through.objects.filter(order=self.get_object())
+        return Deliverable.characters.through.objects.filter(deliverable=self.get_object())
 
     @lru_cache()
-    def get_object(self) -> Order:
-        order = get_object_or_404(Order, id=self.kwargs['order_id'])
-        self.check_object_permissions(self.request, order)
-        return order
+    def get_object(self) -> Deliverable:
+        deliverable = get_object_or_404(
+            Deliverable, order_id=self.kwargs['order_id'], id=self.kwargs['deliverable_id'],
+        )
+        self.check_object_permissions(self.request, deliverable)
+        return deliverable
 
 
-class OrderOutputs(ListCreateAPIView):
+class DeliverableOutputs(ListCreateAPIView):
     permission_classes = [
         OrderViewPermission,
-        OrderStatusPermission(Order.COMPLETED),
+        DeliverableStatusPermission(COMPLETED),
         Any(
             All(IsRegistered, NoOrderOutput),
             IsSafeMethod,
@@ -2088,31 +2245,31 @@ class OrderOutputs(ListCreateAPIView):
 
     @lru_cache()
     def get_object(self) -> Order:
-        order = get_object_or_404(Order, id=self.kwargs['order_id'])
+        order = get_object_or_404(Deliverable, order_id=self.kwargs['order_id'], id=self.kwargs['deliverable_id'])
         self.check_object_permissions(self.request, order)
         return order
 
     def post(self, request, *args, **kwargs):
-        order = self.get_object()
+        deliverable = self.get_object()
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        revision = order.revision_set.all().last()
+        revision = deliverable.revision_set.all().last()
         if not revision:
             return Response(
                 data={'detail': 'You can not create a submission from an order with no revisions.'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         instance = serializer.save(
-            owner=request.user, order=order, rating=order.rating, file=revision.file,
+            owner=request.user, deliverable=deliverable, rating=deliverable.rating, file=revision.file,
         )
-        instance.characters.set(order.characters.all())
-        instance.artists.add(order.seller)
+        instance.characters.set(deliverable.characters.all())
+        instance.artists.add(deliverable.order.seller)
         for character in instance.characters.all():
             if request.user == character.user and not character.primary_submission:
                 character.primary_submission = instance
                 character.save()
-        if order.product and request.user == order.seller:
-            order.product.samples.add(instance)
+        if deliverable.order.product and request.user == deliverable.order.seller:
+            deliverable.order.product.samples.add(instance)
         return Response(
             data=SubmissionSerializer(instance=instance, context=self.get_serializer_context()).data,
             status=status.HTTP_201_CREATED,

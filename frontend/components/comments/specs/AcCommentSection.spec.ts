@@ -64,7 +64,7 @@ describe('AcCommentSection', () => {
     const vm = wrapper.vm as any
     await vm.$nextTick()
     expect(mockAxios.get).toHaveBeenCalledWith(...rq('/api/comments/', 'get', undefined, {
-      params: {page: 1, size: 24}, cancelToken: {},
+      params: {page: 1, size: 24}, cancelToken: expect.any(Object),
     }))
     commentList.response = commentSet
     commentList.setList(commentSet.results)
@@ -112,19 +112,19 @@ describe('AcCommentSection', () => {
     const vm = wrapper.vm as any
     await vm.$nextTick()
     expect(mockAxios.get).toHaveBeenCalledWith(...rq('/api/comments/', 'get', undefined, {
-      cancelToken: {}, params: {page: 1, size: 24},
+      cancelToken: expect.any(Object), params: {page: 1, size: 24},
     }))
     mockAxios.reset()
     wrapper.find('.comment-history-button').trigger('click')
     await vm.$nextTick()
     expect(mockAxios.get).toHaveBeenCalledWith(...rq('/api/comments/', 'get', undefined, {
-      params: {history: '1', page: 1, size: 24}, cancelToken: {},
+      params: {history: '1', page: 1, size: 24}, cancelToken: expect.any(Object),
     }))
     mockAxios.reset()
     wrapper.find('.comment-history-button').trigger('click')
     await vm.$nextTick()
     expect(mockAxios.get).toHaveBeenCalledWith(...rq('/api/comments/', 'get', undefined, {
-      cancelToken: {}, params: {page: 1, size: 24},
+      cancelToken: expect.any(Object), params: {page: 1, size: 24},
     }))
   })
 })

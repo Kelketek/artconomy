@@ -17,12 +17,16 @@ localVue.use(Singles)
 
 const mockError = jest.spyOn(console, 'error')
 
+declare interface TestType {
+  stuff: string,
+}
+
 describe('Single controller', () => {
   function makeController(extra?: Partial<ListModuleOpts>) {
     if (extra === undefined) {
       extra = {}
     }
-    return new SingleController({
+    return new SingleController<TestType>({
       store,
       propsData: {
         initName: 'example',
@@ -40,7 +44,7 @@ describe('Single controller', () => {
     mockAxios.reset()
   })
   it('Creates a singles module upon invocation', async() => {
-    const controller = makeController()
+    makeController()
     expect(state.example).toBeTruthy()
     expect(state.example.endpoint).toBe('/endpoint/')
   })
@@ -140,7 +144,7 @@ describe('Single controller', () => {
     expect(controller.patchers.stuff.model).toBe('Things')
     controller.patchers.stuff.rawSet('Wat')
     expect(mockAxios.patch).toHaveBeenCalledWith(
-      ...rq('/endpoint/', 'get', {stuff: 'Wat'}, {cancelToken: {}})
+      ...rq('/endpoint/', 'get', {stuff: 'Wat'}, {cancelToken: expect.any(Object)})
     )
   })
   it('Listens to a pattern', () => {

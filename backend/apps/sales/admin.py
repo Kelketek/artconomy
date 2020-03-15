@@ -2,7 +2,7 @@ from django.contrib import admin
 
 # Register your models here.
 from apps.lib.admin import CommentInline
-from apps.sales.models import Product, Order, Revision, Promo, TransactionRecord, Rating
+from apps.sales.models import Product, Order, Revision, Promo, TransactionRecord, Rating, Deliverable
 
 
 class ProductAdmin(admin.ModelAdmin):
@@ -13,9 +13,29 @@ class OrderAdmin(admin.ModelAdmin):
     inlines = [
         CommentInline
     ]
-    raw_id_fields = ['buyer', 'seller', 'product', 'arbitrator', 'characters']
+    raw_id_fields = ['buyer', 'seller', 'product']
+    list_display = ('product', 'buyer', 'seller')
+
+    def shield_protected(self, obj):
+        return not obj.escrow_disabled
+
+
+class DeliverableAdmin(admin.ModelAdmin):
+    inlines = [
+        CommentInline
+    ]
+    raw_id_fields = ['arbitrator', 'characters']
     list_display = ('product', 'buyer', 'seller', 'shield_protected', 'status')
     list_filter = ('escrow_disabled', 'status')
+
+    def product(self, obj):
+        return obj.product
+
+    def buyer(self, obj):
+        return obj.buyer
+
+    def seller(self, obj):
+        return obj.seller
 
     def shield_protected(self, obj):
         return not obj.escrow_disabled
@@ -45,6 +65,7 @@ class RatingAdmin(admin.ModelAdmin):
 
 admin.site.register(Product, ProductAdmin)
 admin.site.register(Order, OrderAdmin)
+admin.site.register(Deliverable, DeliverableAdmin)
 admin.site.register(Revision, admin.ModelAdmin)
 admin.site.register(Promo)
 admin.site.register(TransactionRecord, TransactionRecordAdmin)

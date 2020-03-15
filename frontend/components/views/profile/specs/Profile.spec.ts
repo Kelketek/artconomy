@@ -77,7 +77,7 @@ describe('Profile.vue', () => {
     expect(mockAxios.get).toHaveBeenCalledWith(...rq('/api/profiles/v1/account/Fox/', 'get'))
     mockAxios.mockResponse(rs(fox))
     expect(mockAxios.get).toHaveBeenCalledWith(...rq('/api/profiles/v1/account/Fox/artist-profile/', 'get', undefined, {
-      params: {view: 'true'}, cancelToken: {},
+      params: {view: 'true'}, cancelToken: expect.any(Object),
     }))
     mockAxios.mockResponse(rs(genArtistProfile()))
     await flushPromises()
@@ -97,7 +97,7 @@ describe('Profile.vue', () => {
     mockAxios.mockResponse(rs(fox))
     expect(mockAxios.get).toHaveBeenCalledWith(
       ...rq('/api/profiles/v1/account/Fox/artist-profile/', 'get', undefined, {
-        params: {view: 'true'}, cancelToken: {},
+        params: {view: 'true'}, cancelToken: expect.any(Object),
       })
     )
     mockAxios.mockResponse(rs(genArtistProfile()))

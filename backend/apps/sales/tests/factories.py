@@ -7,7 +7,7 @@ from apps.profiles.tests.factories import UserFactory
 from apps.sales.models import (
     Order, Product, CreditCardToken, Revision, BankAccount,
     Promo, Rating,
-    TransactionRecord, LineItem, ADD_ON, BASE_PRICE)
+    TransactionRecord, LineItem, ADD_ON, Deliverable, Reference)
 
 
 class ProductFactory(DjangoModelFactory):
@@ -34,6 +34,22 @@ class OrderFactory(DjangoModelFactory):
     product = SubFactory(ProductFactory)
 
 
+class DeliverableFactory(DjangoModelFactory):
+    name = Sequence(lambda x: 'Stage {}'.format(x))
+    order = SubFactory(OrderFactory)
+
+    class Meta:
+        model = Deliverable
+
+
+class ReferenceFactory(DjangoModelFactory):
+    file = SubFactory(AssetFactory)
+    owner = SubFactory(UserFactory)
+
+    class Meta:
+        model = Reference
+
+
 class CreditCardTokenFactory(DjangoModelFactory):
     last_four = Sequence(lambda x: '{}'.format(x).zfill(4))
     token = Sequence(lambda x: '{}|0000'.format(x).zfill(9))
@@ -45,8 +61,8 @@ class CreditCardTokenFactory(DjangoModelFactory):
 
 class RevisionFactory(DjangoModelFactory):
     file = SubFactory(AssetFactory)
-    order = SubFactory(OrderFactory)
-    owner = SelfAttribute('order.seller')
+    deliverable = SubFactory(DeliverableFactory)
+    owner = SelfAttribute('deliverable.order.seller')
 
     class Meta:
         model = Revision
@@ -94,18 +110,19 @@ class RatingFactory(DjangoModelFactory):
 
 class LineItemFactory(DjangoModelFactory):
     type = ADD_ON
-    order = SubFactory(OrderFactory)
+    deliverable = SubFactory(DeliverableFactory)
     priority = 1
-    amount = SelfAttribute('order.product.base_price')
-    destination_user = SelfAttribute('order.seller')
+    amount = SelfAttribute('deliverable.order.product.base_price')
+    destination_user = SelfAttribute('deliverable.order.seller')
     destination_account = TransactionRecord.ESCROW
 
     class Meta:
         model = LineItem
 
 
-def add_adjustment(order, amount: Money):
+def add_adjustment(deliverable, amount: Money):
     return LineItem.objects.create(
-        order=order, destination_user=order.seller, destination_account=TransactionRecord.ESCROW,
+        deliverable=deliverable, destination_user=deliverable.order.seller,
+        destination_account=TransactionRecord.ESCROW,
         amount=amount, type=ADD_ON,
     )

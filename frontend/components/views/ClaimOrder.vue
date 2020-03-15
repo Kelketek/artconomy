@@ -48,11 +48,16 @@ export default class ClaimOrder extends mixins(Viewer) {
   public orderId!: string
   @Prop()
   public token!: string
+  @Prop()
+  public deliverableId!: string
   public claimForm: FormController = null as unknown as FormController
   public failed = false
 
   public visitOrder(user: User) {
-    const route: RawLocation = {name: 'Order', params: {orderId: this.orderId, username: this.rawViewerName}}
+    let route: RawLocation = {name: 'Order', params: {orderId: this.orderId, username: this.rawViewerName}}
+    if (this.deliverableId) {
+      route = {name: 'OrderDeliverableOverview', params: {orderId: this.orderId, deliverableId: this.deliverableId, username: this.rawViewerName}}
+    }
     const commentId = this.$route.query.commentId
     if (commentId) {
       route.query = {commentId}

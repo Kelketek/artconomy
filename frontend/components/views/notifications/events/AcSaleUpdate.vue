@@ -2,7 +2,7 @@
   <ac-base-notification :asset-link="assetLink" :notification="notification">
     <span slot="title">
       <router-link :to="assetLink">
-        Sale #{{event.target.id}}
+        Sale #{{event.target.order.id}} [{{event.target.name}}]
       </router-link>
     </span>
     <span slot="subtitle">
@@ -42,11 +42,14 @@ export default {
     return {}
   },
   computed: {
-    url() {
-      return `/api/sales/v1/order/${this.event.target.id}/`
-    },
     assetLink() {
-      return {name: 'Sale', params: {orderId: this.event.target.id, username: this.viewer.username}}
+      return {
+        name: 'SaleDeliverableOverview',
+        params: {
+          orderId: this.event.target.order.id,
+          username: this.viewer.username,
+          deliverableId: this.event.target.id,
+        }}
     },
     message() {
       return ORDER_STATUSES[this.event.target.status]

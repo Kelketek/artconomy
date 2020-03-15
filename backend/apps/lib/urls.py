@@ -5,10 +5,10 @@ from apps.lib import views
 app_name = 'lib'
 
 urlpatterns = [
-    path('v1/comments/<content_type>/<int:object_id>/', views.Comments.as_view()),
+    path('v1/comments/<content_type>/<object_id>/', views.Comments.as_view()),
     # Convenience alias so that comment singles can chain URLs on the front-end.
     path(
-        'v1/comments/<content_type>/<int:object_id>/<int:comment_id>/', views.CommentUpdate.as_view(),
+        'v1/comments/<content_type>/<object_id>/<int:comment_id>/', views.CommentUpdate.as_view(),
         name='comment'
     ),
     path(

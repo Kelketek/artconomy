@@ -61,8 +61,10 @@ import AcSubmissionArtistTag from './events/AcSubmissionArtistTag.vue'
 import AcGrowSpinner from '@/components/AcGrowSpinner.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import Component, {mixins} from 'vue-class-component'
+import AcReferenceUploaded from '@/components/views/notifications/events/AcReferenceUploaded.vue'
 
 @Component({components: {
+  AcReferenceUploaded,
   AcPaginated,
   AcGrowSpinner,
   AcSubmissionArtistTag,

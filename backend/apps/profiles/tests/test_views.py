@@ -1497,10 +1497,10 @@ class TestRegister(APITestCase):
             'password': 'test_password',
             'email': 'test@example.com',
             'recaptcha': 'dummy',
-            'order_claim': '82e1885c-07e8-407e-9356-93603a8b5df1'
+            'order_claim': 'XtFxMb7qTJ-A'
         })
         user = User.objects.get(username='Goober')
-        mock_claim.assert_called_with(UUID('82e1885c-07e8-407e-9356-93603a8b5df1'), user)
+        mock_claim.assert_called_with('XtFxMb7qTJ-A', user, force=True)
 
 
 class TestLogin(APITestCase):

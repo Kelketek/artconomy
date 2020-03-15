@@ -6,7 +6,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelatio
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import JSONField
 from django.core.validators import FileExtensionValidator
-from django.db import models
+from django.db import models, DEFAULT_DB_ALIAS
 from django.db.models import DateTimeField, Model, SlugField, CASCADE, PositiveIntegerField, ForeignKey, SET_NULL, \
     UUIDField
 from django.db.models.signals import post_save
@@ -41,6 +41,8 @@ class Comment(models.Model):
     top_content_type = models.ForeignKey(
         ContentType, on_delete=models.CASCADE, null=True, blank=False, db_index=True, related_name='+',
     )
+    # The content of this data is user specified. DO NOT TRUST IT.
+    extra_data = JSONField(default=dict, blank=True)
     top_object_id = models.PositiveIntegerField(null=True, blank=False, db_index=True)
     top = GenericForeignKey('top_content_type', 'top_object_id')
     # This field to be removed once data is verified to be working right in production.
@@ -109,10 +111,11 @@ NEW_JOURNAL = 30
 TRANSFER_FAILED = 32
 REFERRAL_PORTRAIT_CREDIT = 33
 REFERRAL_LANDSCAPE_CREDIT = 34
+REFERENCE_UPLOADED = 35
 
 ORDER_NOTIFICATION_TYPES = (
     DISPUTE, SALE_UPDATE, ORDER_UPDATE, RENEWAL_FIXED, RENEWAL_FAILURE, SUBSCRIPTION_DEACTIVATED,
-    REVISION_UPLOADED, TRANSFER_FAILED, REFUND,
+    REVISION_UPLOADED, TRANSFER_FAILED, REFUND, REFERENCE_UPLOADED,
 )
 
 EVENT_TYPES = (
@@ -123,7 +126,7 @@ EVENT_TYPES = (
     (COMMISSIONS_OPEN, 'Commission Slots Available'),
     (NEW_PRODUCT, 'New Product'),
     (NEW_AUCTION, 'New Auction'),
-    (ORDER_UPDATE, 'Order Update'),
+    (ORDER_UPDATE, 'Update'),
     (REVISION_UPLOADED, 'Revision Uploaded'),
     (SALE_UPDATE, 'Sale Update'),
     (DISPUTE, 'Dispute Filed'),
@@ -145,7 +148,8 @@ EVENT_TYPES = (
 EMAIL_SUBJECTS = {
     COMMISSIONS_OPEN: 'Commissions are open for {{ target.username }}!',
     ORDER_UPDATE: 'Order #{{ target.id}} has been updated!',
-    REVISION_UPLOADED: 'New revision for order #{{ target.id }}!',
+    REVISION_UPLOADED: 'New revision for order #{{ target.order.id }} [{{target.name}}]!',
+    REFERENCE_UPLOADED: 'New reference for order #{{ target.order.id }} [{{target.name}}]!',
     SALE_UPDATE: '{% if target.status == 1 %}New Sale!{% else %}Sale #{{ target.id }} has been updated!{% endif %}'
                  ' #{{target.id}}',
     REFUND: 'A refund was issued for Order #{{ target.id }}',

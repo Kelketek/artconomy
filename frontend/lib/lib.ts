@@ -71,7 +71,7 @@ md.renderer.rules.link_open = (tokens, idx, options, env, self) => {
   // Should always have href for a link.
   let href = tokens[idx].attrs[hrefIndex][1]
   if (isForeign(href)) {
-    tokens[idx].attrPush(['rel', 'nofollow'])
+    tokens[idx].attrPush(['rel', 'nofollow noopener'])
     return defaultRender(tokens, idx, options, env, self)
   }
   // Local dev URL format.
@@ -164,7 +164,11 @@ export function formatDate(dateString: string) {
 }
 
 export function formatDateTerse(dateString: string) {
-  return moment(dateString).format('MMM Do')
+  const date = moment(dateString)
+  if (date.year() !== moment().year()) {
+    return date.format('MMM Do YY')
+  }
+  return date.format('MMM Do')
 }
 
 // https://stackoverflow.com/questions/14573223/set-cookie-and-get-cookie-with-javascript
@@ -312,6 +316,7 @@ export const NOTIFICATION_MAPPING: TypeToValue = {
   32: 'ac-withdraw-failed',
   33: 'ac-portrait-referral',
   34: 'ac-landscape-referral',
+  35: 'ac-reference-uploaded',
 }
 
 export const ORDER_STATUSES: TypeToValue = {

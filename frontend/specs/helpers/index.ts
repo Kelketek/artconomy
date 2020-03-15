@@ -55,7 +55,7 @@ export function rs(data: any, extra?: ExtraData): AxiosResponse {
 
 export function rq(url: string, method: HttpVerbs, data?: any, config?: { [key: string]: any }) {
   const starterHeaders: { [key: string]: string } = {'Content-Type': 'application/json; charset=utf-8'}
-  config = config || {cancelToken: {}}
+  config = config || {cancelToken: expect.any(Object)}
   if (!config.headers) {
     config.headers = {}
   }
@@ -185,6 +185,8 @@ export function createVuetify() {
 }
 
 export function cleanUp(wrapper?: Wrapper<Vue>) {
+  mockAxios.reset()
+  jest.clearAllTimers()
   if (wrapper) {
     wrapper.destroy()
   }
@@ -193,8 +195,6 @@ export function cleanUp(wrapper?: Wrapper<Vue>) {
   listRegistry.reset()
   formRegistry.reset()
   characterRegistry.reset()
-  mockAxios.reset()
-  jest.clearAllTimers()
 }
 
 export function setPricing(store: ArtStore, localVue: VueConstructor<Vue>) {
@@ -215,4 +215,13 @@ export function setPricing(store: ArtStore, localVue: VueConstructor<Vue>) {
   })
   pricing.ready = true
   return pricing
+}
+
+export function timeout(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+export async function sleep(fn: Function, ms: number, ...args: any[]) {
+  await timeout(ms)
+  return fn(...args)
 }

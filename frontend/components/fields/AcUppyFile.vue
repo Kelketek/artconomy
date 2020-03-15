@@ -19,6 +19,9 @@
   .ac-uppy-file .v-messages {
     text-align: center;
   }
+  .ac-uppy-file .uppy-Dashboard-AddFiles-title {
+    color: #fff;
+  }
 </style>
 
 <script lang="ts">

@@ -1,6 +1,6 @@
 <template>
   <ac-base-notification :notification="notification" :asset-link="assetLink">
-    <span slot="title"><router-link :to="assetLink">Sale #{{event.target.id}} was refunded. :(</router-link></span>
+    <span slot="title"><router-link :to="assetLink">Sale #{{event.target.id}} [{{event.target.name}}] was refunded. :(</router-link></span>
   </ac-base-notification>
 </template>
 
@@ -18,10 +18,11 @@ export default {
   computed: {
     assetLink() {
       return {
-        name: 'Sale',
+        name: 'SaleDeliverableOverview',
         params: {
-          username: this.event.target.seller.username,
-          orderId: this.event.target.id,
+          username: this.event.target.order.seller.username,
+          orderId: this.event.target.order.id,
+          deliverableId: this.event.target.id,
         },
       }
     },

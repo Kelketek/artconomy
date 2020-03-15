@@ -17,11 +17,11 @@
           @input="setSupport"
           @submit="supportForm.submitThen(showSuccess)"
           v-bind="supportForm.bind"
-          title="Contact Support"
+          title="Get Support or Give Feedback!"
       >
         <v-row no-gutters>
           <v-col cols="12" class="text-center">
-            <span class="headline">We respond to all support requests within 24 hours, and often within the same hour!</span>
+            <span class="headline">We respond to all requests within 24 hours, and often within the same hour!</span>
           </v-col>
           <v-col cols="12">
             <v-text-field
@@ -142,15 +142,18 @@ export default class App extends mixins(Viewer, Nav) {
       return this.couchConStore
     }
 
+    /* istanbul ignore next */
     public set couchCon(val) {
       setCookie('couchCon2020', (val && 'true') || 'false')
     }
 
     @Watch('$route.name')
     public initializeSearch(nameVal: null|string) {
+      /* istanbul ignore if */
       if (!nameVal) {
         return
       }
+      /* istanbul ignore if */
       if (this.searchInitialized) {
         return
       }

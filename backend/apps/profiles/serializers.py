@@ -1,4 +1,5 @@
 from urllib.parse import quote_plus
+from uuid import UUID
 
 from django.conf import settings
 from django.contrib.auth.password_validation import validate_password
@@ -13,6 +14,7 @@ from recaptcha.fields import ReCaptchaField
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 from rest_framework.exceptions import ValidationError
+from short_stuff.django.serializers import ShortCodeField
 
 from apps.lib.abstract_models import RATINGS, RATINGS_ANON
 from apps.lib.serializers import (
@@ -38,7 +40,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     recaptcha = ReCaptchaField(write_only=True)
     registration_code = serializers.CharField(required=False, write_only=True, allow_blank=True)
     mail = serializers.NullBooleanField(write_only=True, required=False)
-    order_claim = serializers.UUIDField(required=False)
+    order_claim = ShortCodeField(required=False, allow_null=True)
 
     def create(self, validated_data):
         data = {key: value for key, value in validated_data.items() if key not in [
@@ -333,11 +335,11 @@ class SubmissionCharacterTagSerializer(serializers.ModelSerializer):
 class SubmissionMixin:
     def get_product(self, obj):
         from apps.sales.serializers import ProductSerializer
-        if not obj.order:
+        if not (obj.deliverable and obj.deliverable.order.product):
             return
-        if not obj.order.product.available:
+        if not obj.deliverable.order.product.available:
             return
-        return ProductSerializer(instance=obj.order.product, context=self.context).data
+        return ProductSerializer(instance=obj.deliverable.order.product, context=self.context).data
 
     def get_thumbnail_url(self, obj):
         return self.context['request'].build_absolute_uri(obj.file.file.url)
@@ -353,6 +355,7 @@ class SubmissionManagementSerializer(RelatedAtomicMixin, SubmissionMixin, serial
     product = serializers.SerializerMethodField()
     tags = TagListField(required=False, read_only=True)
     commission_link = serializers.SerializerMethodField()
+    order = serializers.SerializerMethodField()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -367,17 +370,21 @@ class SubmissionManagementSerializer(RelatedAtomicMixin, SubmissionMixin, serial
         else:
             self.fields['tags'].read_only = False
 
+    def get_order(self, instance):
+        if instance.deliverable:
+            return instance.deliverable.order.id
+
     def get_commission_link(self, instance):
         artists = instance.artists.all()
-        if not instance.order and not artists.count():
+        if not instance.deliverable and not artists.count():
             return None
-        if not instance.order:
+        if not instance.deliverable:
             artist = artists.order_by('artist_mode').first()
             return {'name': 'Products' if artist.artist_mode else 'Profile', 'params': {'username': artist.username}}
         # If we know who made this piece, don't give easy credit to anyone else.
-        if not artists.filter(id=instance.order.seller.id).exists():
+        if not artists.filter(id=instance.deliverable.order.seller.id).exists():
             return None
-        artist = instance.order.seller
+        artist = instance.deliverable.order.seller
         return {'name': 'Products' if artist.artist_mode else 'Profile', 'params': {'username': artist.username}}
 
     class Meta:

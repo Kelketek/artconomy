@@ -7,7 +7,7 @@ import {
   crossDomain,
   csrfSafeMethod, deriveDisplayName, dotTraverse,
   extPreview, flatten,
-  formatDate,
+  formatDate, formatDateTerse,
   formatDateTime, formatSize,
   getCookie,
   getExt,
@@ -295,6 +295,12 @@ describe('Formatters', () => {
   it('Formats a date string', () => {
     expect(formatDate('2019-05-03')).toBe('May 3rd 2019')
   })
+  it('Formats a date string, tersely', () => {
+    expect(formatDateTerse(moment().year() + '-05-03')).toBe('May 3rd')
+  })
+  it('Falls back to full year display if asked to be terse but the year is different', () => {
+    expect(formatDateTerse('2019-05-03')).toBe('May 3rd 19')
+  })
   it('Formats a datetime string as a date', () => {
     expect(formatDate('2019-05-03T15:41:36.902Z')).toBe('May 3rd 2019')
   })
@@ -343,10 +349,10 @@ Here's a raw link: https://example.com/
 
 Here's an email: support@artconomy.com`)).toBe(`<h1>Hello there.</h1>
 <p><em>This is a test of the markdown renderer.</em> <strong>There is no need to be alarmed.</strong><br>
-&lt;a href='<a href="https://example.com/'%3EI'm" target="_blank" rel="nofollow">https://example.com/'&gt;I'm</a> going to try a manual link.&lt;/a&gt;</p>
-<p><a href="http://example.com/" target="_blank" rel="nofollow">Here's a markdown link</a></p>
+&lt;a href='<a href="https://example.com/'%3EI'm" target="_blank" rel="nofollow noopener">https://example.com/'&gt;I'm</a> going to try a manual link.&lt;/a&gt;</p>
+<p><a href="http://example.com/" target="_blank" rel="nofollow noopener">Here's a markdown link</a></p>
 <p><a href="/" target="_blank" onclick="artconomy.$router.history.push('/');return false">Here's another markdown link</a></p>
-<p>Here's a raw link: <a href="https://example.com/" target="_blank" rel="nofollow">https://example.com/</a></p>
+<p>Here's a raw link: <a href="https://example.com/" target="_blank" rel="nofollow noopener">https://example.com/</a></p>
 <p>Here's an email: <a href="mailto:support@artconomy.com" target="_blank">support@artconomy.com</a></p>
 `)
   })

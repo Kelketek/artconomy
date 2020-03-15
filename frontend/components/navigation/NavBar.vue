@@ -22,7 +22,7 @@
           <v-btn
             text
             href="https://twitter.com/ArtconomyArt/"
-            rel="nofollow"
+            rel="nofollow noopener"
             target="_blank"
             :class="{'phone-padding': $vuetify.breakpoint.smAndDown, 'pb-2': $vuetify.breakpoint.mdAndUp}"
             class="pt-2"
@@ -58,7 +58,7 @@
             class="support-button pt-2"
             :class="{'phone-padding': $vuetify.breakpoint.smAndDown, 'pb-2': $vuetify.breakpoint.mdAndUp}"
           >
-            <span>Support</span>
+            <span>Feedback</span>
             <v-icon medium>contact_support</v-icon>
           </v-btn>
         </v-bottom-navigation>

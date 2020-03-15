@@ -56,7 +56,7 @@ describe('AcPatchField.ts', () => {
     await wrapper.vm.$nextTick()
     await jest.runAllTimers()
     expect(mockAxios.patch).toHaveBeenCalledWith(
-      ...rq('/', 'patch', {test: 'TEST'}, {cancelToken: {}})
+      ...rq('/', 'patch', {test: 'TEST'}, {cancelToken: expect.any(Object)})
     )
     mockAxios.mockResponse(rs({test: 'TEST'}))
   })

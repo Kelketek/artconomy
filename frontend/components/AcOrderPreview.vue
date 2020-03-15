@@ -9,7 +9,7 @@
             <v-col cols="12">
               <ac-link :to="orderLink">
                 {{ name }}</ac-link>
-              <span v-if="!isBuyer">commissioned </span>by
+              <span v-if="!isBuyer"> commissioned </span>by
               <ac-link v-if="isBuyer" :to="{name: 'Profile', params: {username: order.x.seller.username}}">
                 {{ order.x.seller.username }}</ac-link>
               <ac-link v-else-if="order.x.buyer" :to="buyerProfile">
@@ -17,9 +17,6 @@
               <span v-else>
                 (Pending)
               </span>
-            </v-col>
-            <v-col cols="12" class="text-center">
-              <ac-order-status :order="order.x" />
             </v-col>
             <v-col cols="12">
               Placed on <span v-text="formatDateTime(order.x.created_on)" />
@@ -39,9 +36,9 @@ import {SingleController} from '@/store/singles/controller'
 import Order from '@/types/Order'
 import Subjective from '@/mixins/subjective'
 import AcLink from '@/components/wrappers/AcLink.vue'
-import AcOrderStatus from '@/components/AcOrderStatus.vue'
+import AcDeliverableStatus from '@/components/AcDeliverableStatus.vue'
   @Component({
-    components: {AcOrderStatus, AcLink, AcAsset},
+    components: {AcLink, AcAsset},
   })
 export default class AcOrderPreview extends mixins(Subjective, Formatting) {
     @Prop({required: true})
@@ -51,7 +48,7 @@ export default class AcOrderPreview extends mixins(Subjective, Formatting) {
 
     public get orderLink() {
       const order = this.order.x as Order
-      return {name: this.routeName, params: {username: this.username, orderId: order.id}}
+      return order.default_path
     }
 
     public get name() {

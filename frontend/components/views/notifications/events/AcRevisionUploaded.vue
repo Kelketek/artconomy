@@ -1,38 +1,45 @@
 <template>
-  <v-list-item>
-    <router-link :to="{name: 'Order', params: {orderId: event.target.id, username: viewer.username}}">
-      <v-badge left overlap :value="!notification.read">
-        <span slot="badge">*</span>
-        <v-avatar>
-          <img :src="$img(event.data.revision, 'notification', true)" alt="">
-        </v-avatar>
-      </v-badge>
+  <ac-base-notification :asset-link="url" :notification="notification">
+    <router-link :to="url" slot="title">
+      Order #{{event.target.order.id}} [{{event.target.name}}]
     </router-link>
-    <v-list-item-content>
-      <v-list-item-title>
-        <router-link :to="{name: 'Order', params: {orderId: event.target.id, username: viewer.username}}">
-          Order #{{event.target.id}}
-        </router-link>
-      </v-list-item-title>
-      <v-list-item-subtitle>
-        A new revision has been added!
-      </v-list-item-subtitle>
-    </v-list-item-content>
-  </v-list-item>
+    <router-link :to="url" slot="subtitle">A new revision has been added!</router-link>
+  </ac-base-notification>
 </template>
 
 <script>
 import Notification from '../mixins/notification'
+import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification'
+import Viewer from '@/mixins/viewer'
 
 export default {
   name: 'ac-revision-uploaded',
-  mixins: [Notification],
+  components: {AcBaseNotification},
+  mixins: [Notification, Viewer],
   data() {
     return {}
   },
   computed: {
     url() {
-      return `/api/sales/v1/order/${this.event.target.id}/`
+      if (this.event.target.revisions_hidden) {
+        return {
+          name: 'OrderDeliverableRevisions',
+          params: {
+            deliverableId: this.event.target.id,
+            orderId: this.event.target.order.id,
+            username: this.rawViewerName,
+          },
+        }
+      }
+      return {
+        name: 'OrderDeliverableRevision',
+        params: {
+          deliverableId: this.event.target.id,
+          orderId: this.event.target.order.id,
+          username: this.rawViewerName,
+          revisionId: this.event.data.revision.id,
+        },
+      }
     },
   },
 }

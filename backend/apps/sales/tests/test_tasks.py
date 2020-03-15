@@ -8,7 +8,6 @@ from dateutil.relativedelta import relativedelta
 from django.core import mail
 from django.test import TestCase, override_settings
 from django.utils import timezone
-from django.utils.timezone import make_aware
 from djmoney.money import Money
 from freezegun import freeze_time
 
@@ -16,11 +15,12 @@ from apps.lib.models import SUBSCRIPTION_DEACTIVATED, Notification, RENEWAL_FAIL
     ref_for_instance
 from apps.profiles.tests.factories import UserFactory
 from apps.sales.authorize import AuthorizeException
-from apps.sales.models import TransactionRecord, Order
+from apps.sales.models import TransactionRecord, REVIEW, PAYMENT_PENDING, NEW
 from apps.sales.tasks import run_billing, renew, update_transfer_status, remind_sales, remind_sale, check_transactions, \
     withdraw_all, auto_finalize_run, auto_finalize, get_transaction_fees
-from apps.sales.tests.factories import CreditCardTokenFactory, TransactionRecordFactory, OrderFactory, \
+from apps.sales.tests.factories import CreditCardTokenFactory, TransactionRecordFactory, DeliverableFactory, \
     BankAccountFactory
+from apps.sales.tests.factories import OrderFactory
 
 
 class TestAutoRenewal(TestCase):
@@ -250,8 +250,8 @@ class TestUpdateTransaction(TestCase):
             destination=TransactionRecord.BANK,
             remote_id='1234',
         )
-        self.order = OrderFactory.create(payout_sent=True)
-        self.record.targets.add(ref_for_instance(self.order))
+        self.deliverable = DeliverableFactory.create(payout_sent=True)
+        self.record.targets.add(ref_for_instance(self.deliverable))
 
     def test_check_transaction_status_no_change(self, mock_api):
         mock_api.return_value.get.return_value.body = {'status': 'pending'}
@@ -260,8 +260,8 @@ class TestUpdateTransaction(TestCase):
         self.record.refresh_from_db()
         self.assertEqual(self.record.status, TransactionRecord.PENDING)
         self.assertIsNone(self.record.finalized_on)
-        self.order.refresh_from_db()
-        self.assertTrue(self.order.payout_sent)
+        self.deliverable.refresh_from_db()
+        self.assertTrue(self.deliverable.payout_sent)
 
     def test_check_transaction_status_cancelled(self, mock_api):
         mock_api.return_value.get.return_value.body = {'status': 'cancelled'}
@@ -270,8 +270,8 @@ class TestUpdateTransaction(TestCase):
         self.record.refresh_from_db()
         self.assertEqual(self.record.status, TransactionRecord.FAILURE)
         self.assertTrue(self.record.finalized_on)
-        self.order.refresh_from_db()
-        self.assertFalse(self.order.payout_sent)
+        self.deliverable.refresh_from_db()
+        self.assertFalse(self.deliverable.payout_sent)
 
     def test_check_transaction_status_processed(self, mock_api):
         mock_api.return_value.get.return_value.body = {'status': 'processed'}
@@ -279,8 +279,8 @@ class TestUpdateTransaction(TestCase):
         self.assertEqual(TransactionRecord.objects.all().count(), 1)
         self.record.refresh_from_db()
         self.assertTrue(self.record.finalized_on)
-        self.order.refresh_from_db()
-        self.assertTrue(self.order.payout_sent)
+        self.deliverable.refresh_from_db()
+        self.assertTrue(self.deliverable.payout_sent)
 
     @patch('apps.sales.tasks.update_transfer_status')
     def test_update_transactions(self, mock_update_transfer_status, _mock_api):
@@ -292,48 +292,48 @@ class TestFinalizers(TestCase):
     @freeze_time('2018-02-10 12:00:00')
     @patch('apps.sales.tasks.auto_finalize')
     def test_auto_finalize_run(self, mock_auto_finalize):
-        order = OrderFactory.create(status=Order.REVIEW, auto_finalize_on=date(2018, 2, 10))
-        order2 = OrderFactory.create(status=Order.REVIEW, auto_finalize_on=date(2018, 2, 9))
-        OrderFactory.create(status=Order.PAYMENT_PENDING, auto_finalize_on=date(2018, 2, 9))
-        OrderFactory.create(status=Order.REVIEW, auto_finalize_on=date(2018, 2, 11))
+        deliverable = DeliverableFactory.create(status=REVIEW, auto_finalize_on=date(2018, 2, 10))
+        order2 = DeliverableFactory.create(status=REVIEW, auto_finalize_on=date(2018, 2, 9))
+        DeliverableFactory.create(status=PAYMENT_PENDING, auto_finalize_on=date(2018, 2, 9))
+        DeliverableFactory.create(status=REVIEW, auto_finalize_on=date(2018, 2, 11))
         auto_finalize_run()
-        mock_auto_finalize.delay.assert_has_calls([call(order.id), call(order2.id)], any_order=True)
+        mock_auto_finalize.delay.assert_has_calls([call(deliverable.id), call(order2.id)], any_order=True)
         self.assertEqual(mock_auto_finalize.delay.call_count, 2)
 
     @freeze_time('2018-02-10 12:00:00')
-    @patch('apps.sales.tasks.finalize_order')
-    def test_auto_finalize(self, mock_finalize_order):
-        order = OrderFactory.create(status=Order.REVIEW, auto_finalize_on=date(2018, 2, 10))
-        auto_finalize(order.id)
-        mock_finalize_order.assert_called_with(order)
+    @patch('apps.sales.tasks.finalize_deliverable')
+    def test_auto_finalize(self, mock_finalize_deliverable):
+        deliverable = DeliverableFactory.create(status=REVIEW, auto_finalize_on=date(2018, 2, 10))
+        auto_finalize(deliverable.id)
+        mock_finalize_deliverable.assert_called_with(deliverable)
 
     @freeze_time('2018-02-10 12:00:00')
-    @patch('apps.sales.tasks.finalize_order')
-    def test_auto_finalize_old(self, mock_finalize_order):
-        order = OrderFactory.create(status=Order.REVIEW, auto_finalize_on=date(2018, 2, 9))
-        auto_finalize(order.id)
-        mock_finalize_order.assert_called_with(order)
+    @patch('apps.sales.tasks.finalize_deliverable')
+    def test_auto_finalize_old(self, mock_finalize_deliverable):
+        deliverable = DeliverableFactory.create(status=REVIEW, auto_finalize_on=date(2018, 2, 9))
+        auto_finalize(deliverable.id)
+        mock_finalize_deliverable.assert_called_with(deliverable)
 
     @freeze_time('2018-02-10 12:00:00')
-    @patch('apps.sales.tasks.finalize_order')
-    def test_auto_finalize_wrong_status(self, mock_finalize_order):
-        order = OrderFactory.create(status=Order.PAYMENT_PENDING, auto_finalize_on=date(2018, 2, 9))
-        auto_finalize(order.id)
-        mock_finalize_order.assert_not_called()
+    @patch('apps.sales.tasks.finalize_deliverable')
+    def test_auto_finalize_wrong_status(self, mock_finalize_deliverable):
+        deliverable = DeliverableFactory.create(status=PAYMENT_PENDING, auto_finalize_on=date(2018, 2, 9))
+        auto_finalize(deliverable.id)
+        mock_finalize_deliverable.assert_not_called()
 
     @freeze_time('2018-02-10 12:00:00')
-    @patch('apps.sales.tasks.finalize_order')
-    def test_auto_finalize_not_yet(self, mock_finalize_order):
-        order = OrderFactory.create(status=Order.REVIEW, auto_finalize_on=date(2018, 2, 11))
-        auto_finalize(order.id)
-        mock_finalize_order.assert_not_called()
+    @patch('apps.sales.tasks.finalize_deliverable')
+    def test_auto_finalize_not_yet(self, mock_finalize_deliverable):
+        deliverable = DeliverableFactory.create(status=REVIEW, auto_finalize_on=date(2018, 2, 11))
+        auto_finalize(deliverable.id)
+        mock_finalize_deliverable.assert_not_called()
 
     @freeze_time('2018-02-10 12:00:00')
-    @patch('apps.sales.tasks.finalize_order')
-    def test_auto_finalize_null(self, mock_finalize_order):
-        order = OrderFactory.create(status=Order.REVIEW, auto_finalize_on=None)
-        auto_finalize(order.id)
-        mock_finalize_order.assert_not_called()
+    @patch('apps.sales.tasks.finalize_deliverable')
+    def test_auto_finalize_null(self, mock_finalize_deliverable):
+        deliverable = DeliverableFactory.create(status=REVIEW, auto_finalize_on=None)
+        auto_finalize(deliverable.id)
+        mock_finalize_deliverable.assert_not_called()
 
 
 class TestWithdrawAll(TestCase):
@@ -416,17 +416,17 @@ class TestReminders(TestCase):
         timestamp = timezone.now()
         timestamp = timestamp.replace(year=2018, month=2, day=9, hour=12, minute=0)
         mock_order.objects.filter.assert_called_with(
-            status=mock_order.NEW, created_on__lte=timestamp,
+            status=NEW, created_on__lte=timestamp,
         )
 
     def test_send_reminder(self):
-        order = OrderFactory.create(status=Order.NEW, details='# This is a test\n\nDo things and stuff.')
-        remind_sale(order.id)
+        deliverable = DeliverableFactory.create(status=NEW, details='# This is a test\n\nDo things and stuff.')
+        remind_sale(deliverable.id)
         self.assertEqual(mail.outbox[0].subject, 'Your commissioner is awaiting your response!')
 
     def test_status_changed(self):
-        order = OrderFactory.create(status=Order.PAYMENT_PENDING, details='# This is a test\n\nDo things and stuff.')
-        remind_sale(order.id)
+        deliverable = DeliverableFactory.create(status=PAYMENT_PENDING, details='# This is a test\n\nDo things and stuff.')
+        remind_sale(deliverable.id)
         self.assertEqual(len(mail.outbox), 0)
 
 

@@ -14,8 +14,7 @@ function registerItems(store: Store<any>, state: ListState<any>, items: any[]) {
     // Build a namespace for the singles.
     store.registerModule([...state.name.split('/'), 'items'], {
       namespaced: true, getters: {}, mutations: {}, actions: {},
-    }
-    )
+    })
   }
   const entries: string[] = []
   for (const item of items) {

@@ -35,7 +35,7 @@ describe('AcUserSelect.vue', () => {
     expect(mockAxios.get).toHaveBeenCalledWith(
       '/api/profiles/v1/search/user/',
       undefined,
-      {cancelToken: {}, headers: {'Content-Type': 'application/json; charset=utf-8'}, params: {q: 'Test'}}
+      {cancelToken: expect.any(Object), headers: {'Content-Type': 'application/json; charset=utf-8'}, params: {q: 'Test'}}
     )
   })
   it('Searches for users with a tagging modifier', async() => {
@@ -56,7 +56,7 @@ describe('AcUserSelect.vue', () => {
       '/api/profiles/v1/search/user/',
       undefined,
       {
-        cancelToken: {},
+        cancelToken: expect.any(Object),
         headers: {'Content-Type': 'application/json; charset=utf-8'},
         params: {q: 'Test', tagging: true},
       }

@@ -232,7 +232,7 @@ describe('App.vue', () => {
     await jest.runOnlyPendingTimers()
     await wrapper.vm.$nextTick()
     expect(wrapper.find('#alert-bar').exists()).toBe(false)
-    expect((wrapper.vm as any).alertDismissed).toBe(true)
+    expect((wrapper.vm as any).showAlert).toBe(false)
   })
   it('Resets the alert dismissal value after the alert has cleared.', async() => {
     wrapper = mount(App, {

@@ -2,13 +2,14 @@ import Vue from 'vue'
 import {mount, Wrapper} from '@vue/test-utils'
 import {Vuetify} from 'vuetify'
 import {ArtStore, createStore} from '@/store'
-import {confirmAction, createVuetify, flushPromises, rq, rs, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, confirmAction, createVuetify, flushPromises, rq, rs, setViewer, vueSetup} from '@/specs/helpers'
 import {genUser} from '@/specs/helpers/fixtures'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import Router from 'vue-router'
 import mockAxios from '@/__mocks__/axios'
 import Journal from '@/components/views/Journal.vue'
 import {genJournal} from '@/components/views/specs/fixtures'
+import mock = jest.mock
 
 const localVue = vueSetup()
 localVue.use(Router)
@@ -39,12 +40,9 @@ describe('Journal.vue', () => {
         component: Empty,
       },
       ]})
-    mockAxios.reset()
   })
   afterEach(() => {
-    if (wrapper) {
-      wrapper.destroy()
-    }
+    cleanUp(wrapper)
   })
   it('Mounts a journal', async() => {
     wrapper = mount(Journal, {
@@ -56,23 +54,22 @@ describe('Journal.vue', () => {
   })
   it('Deletes a journal', async() => {
     router.push('/')
-    setViewer(store, genUser())
+    setViewer(store, genUser({is_staff: true}))
     wrapper = mount(Journal, {
       localVue, store, router, vuetify, propsData: {journalId: 1, username: 'Fox'}, sync: false, attachToDocument: true}
     )
-    mockAxios.mockResponse(rs(genJournal()))
-    // Comments
-    mockAxios.mockResponse(rs({count: 0, size: 5, results: []}))
+    const vm = wrapper.vm as any
+    vm.journal.makeReady(genJournal())
+    mockAxios.reset()
     await wrapper.vm.$nextTick()
     const toggle = wrapper.find('.edit-toggle')
     expect(toggle.exists()).toBe(true)
     toggle.trigger('click')
     await wrapper.vm.$nextTick()
     await confirmAction(wrapper, ['.more-button', '.delete-button'])
-    expect(mockAxios.delete).toHaveBeenCalledWith(
-      ...rq('/api/profiles/v1/account/Fox/journals/1/', 'delete')
-    )
-    mockAxios.mockResponse(rs(null))
+    const mockDelete = mockAxios.getReqByUrl('/api/profiles/v1/account/Fox/journals/1/')
+    expect(mockDelete.method).toBe('delete')
+    mockAxios.mockResponse(rs(null), mockDelete)
     await flushPromises()
     await wrapper.vm.$nextTick()
     expect(router.currentRoute.path).toBe('/Fox')

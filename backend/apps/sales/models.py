@@ -16,7 +16,7 @@ from django.db.models import (
     SET_NULL, PositiveIntegerField, URLField, CASCADE, DecimalField, Avg, DateField, EmailField, Sum,
     TextField,
     SlugField,
-    PROTECT)
+    PROTECT, Count)
 
 # Create your models here.
 from django.db.models.signals import post_delete, post_save, pre_delete
@@ -28,8 +28,9 @@ from short_stuff import gen_shortcode
 from short_stuff.django.models import ShortCodeField
 
 from apps.lib.models import Comment, Subscription, SALE_UPDATE, ORDER_UPDATE, REVISION_UPLOADED, COMMENT, NEW_PRODUCT, \
-    Event, ref_for_instance
+    Event, ref_for_instance, REFERENCE_UPLOADED
 from apps.lib.abstract_models import ImageModel, thumbnail_hook, HitsMixin, RATINGS, GENERAL
+from apps.lib.permissions import Any, IsStaff
 from apps.lib.utils import (
     clear_events, recall_notification, require_lock,
     send_transaction_email,
@@ -37,8 +38,8 @@ from apps.lib.utils import (
 from apps.profiles.models import User, ArtistProfile
 from apps.sales.authorize import create_customer_profile, create_card, AddressInfo, CardInfo, \
     refund_transaction
-from apps.sales.permissions import OrderViewPermission
-from apps.sales.utils import update_availability, reckon_lines
+from apps.sales.permissions import OrderViewPermission, ReferenceViewPermission
+from apps.sales.utils import update_availability, reckon_lines, order_context_to_link, order_context
 from shortcuts import disable_on_load
 
 
@@ -256,46 +257,40 @@ def inventory_change(product: Union['Product', None], delta: int = -1):
         tracker.save()
 
 
-class Order(Model):
-    """
-    Record of Order
-    """
-    NEW = 1
-    PAYMENT_PENDING = 2
-    QUEUED = 3
-    IN_PROGRESS = 4
-    REVIEW = 5
-    CANCELLED = 6
-    DISPUTED = 7
-    COMPLETED = 8
-    REFUNDED = 9
+NEW = 1
+PAYMENT_PENDING = 2
+QUEUED = 3
+IN_PROGRESS = 4
+REVIEW = 5
+CANCELLED = 6
+DISPUTED = 7
+COMPLETED = 8
+REFUNDED = 9
 
-    PAID_STATUSES = (QUEUED, IN_PROGRESS, REVIEW, REFUNDED, COMPLETED)
+PAID_STATUSES = (QUEUED, IN_PROGRESS, REVIEW, REFUNDED, COMPLETED)
 
-    STATUSES = (
-        (NEW, 'New'),
-        (PAYMENT_PENDING, 'Payment Pending'),
-        (QUEUED, 'Queued'),
-        (IN_PROGRESS, 'In Progress'),
-        (REVIEW, 'Review'),
-        (CANCELLED, 'Cancelled'),
-        (DISPUTED, 'Disputed'),
-        (COMPLETED, 'Completed'),
-        (REFUNDED, 'Refunded'),
-    )
+DELIVERABLE_STATUSES = (
+    (NEW, 'New'),
+    (PAYMENT_PENDING, 'Payment Pending'),
+    (QUEUED, 'Queued'),
+    (IN_PROGRESS, 'In Progress'),
+    (REVIEW, 'Review'),
+    (CANCELLED, 'Cancelled'),
+    (DISPUTED, 'Disputed'),
+    (COMPLETED, 'Completed'),
+    (REFUNDED, 'Refunded'),
+)
 
+
+class Deliverable(Model):
     preserve_comments = True
     comment_permissions = [OrderViewPermission]
 
-    status = IntegerField(choices=STATUSES, default=NEW, db_index=True)
-    product = ForeignKey('Product', null=True, blank=True, on_delete=SET_NULL)
-    seller = ForeignKey(User, related_name='sales', on_delete=CASCADE)
-    buyer = ForeignKey(User, related_name='buys', on_delete=CASCADE, null=True, blank=True)
+    status = IntegerField(choices=DELIVERABLE_STATUSES, default=NEW, db_index=True)
+    order = models.ForeignKey('Order', null=False, on_delete=CASCADE, related_name='deliverables')
     revisions = IntegerField(default=0)
     revisions_hidden = BooleanField(default=True)
     final_uploaded = BooleanField(default=False)
-    claim_token = ShortCodeField(blank=True, null=True)
-    customer_email = EmailField(blank=True)
     details = CharField(max_length=5000)
     adjustment_expected_turnaround = DecimalField(default=0, max_digits=5, decimal_places=2)
     adjustment_task_weight = IntegerField(default=0)
@@ -324,110 +319,139 @@ class Order(Model):
         choices=RATINGS, db_index=True, default=GENERAL,
         help_text="The desired content rating of this piece.",
     )
-    private = BooleanField(default=False)
     commission_info = TextField(blank=True, default='')
-    comments = GenericRelation(
-        Comment, related_query_name='order', content_type_field='content_type', object_id_field='object_id'
-    )
     subscriptions = GenericRelation('lib.Subscription')
-
-    def total(self):
-        return reckon_lines(self.line_items.all())
+    name = CharField(default='', max_length=150)
+    comments = GenericRelation(
+        Comment, related_query_name='deliverable', content_type_field='content_type', object_id_field='object_id'
+    )
 
     def notification_serialize(self, context):
-        from .serializers import OrderViewSerializer
-        return OrderViewSerializer(instance=self, context=context).data
+        from .serializers import DeliverableViewSerializer
+        return DeliverableViewSerializer(instance=self, context=context).data
 
     # noinspection PyUnusedLocal
     def notification_display(self, context):
         from .serializers import ProductSerializer
         from .serializers import RevisionSerializer
-        if self.revisions_hidden and not (self.seller == context['request'].user):
+        if self.revisions_hidden and not (self.order.seller == context['request'].user):
             revision = None
         else:
             revision = self.revision_set.all().last()
         if revision is None:
-            return ProductSerializer(instance=self.product, context=context).data['primary_submission']
+            return ProductSerializer(instance=self.order.product, context=context).data['primary_submission']
         else:
             return RevisionSerializer(instance=revision, context=context).data
 
     def notification_name(self, context):
-        request = context['request']
-        if request.user == self.seller:
-            return "Sale #{}".format(self.id)
-        if request.user == self.arbitrator:
-            return "Case #{}".format(self.id)
-        return "Order #{}".format(self.id)
+        if context['request'].user == self.arbitrator:
+            base_string = f'Case #{self.order.id}'
+        else:
+            base_string = self.order.notification_name(context)
+        return f'{base_string} [{self.name}]'
 
     def notification_link(self, context):
-        request = context['request']
-        data = {'params': {'orderId': self.id, 'username': context['request'].user.username}}
-        # Doing early returns here so we match name, rather than overwriting.
-        if request.user == self.seller:
-            data['name'] = 'Sale'
-            return data
-        if request.user == self.arbitrator:
-            data['name'] = 'Case'
-            return data
-        if request.user.guest:
-            data['name'] = 'ClaimOrder'
-            if not self.claim_token:
-                self.claim_token = gen_shortcode()
-                self.save()
-            data['params']['claimToken'] = self.claim_token
-            return data
-        data['name'] = 'Order'
-        return data
-
-    def __str__(self):
-        return "#{} {} for {} by {}".format(
-            self.id, (self.product and self.product.name) or '<Custom>', self.buyer, self.seller,
+        return order_context_to_link(
+            order_context(order=self.order, deliverable=self, logged_in=False, user=context['request'].user),
         )
+
+    def total(self):
+        return reckon_lines(self.line_items.all())
 
     def save(self, *args, **kwargs):
         if self.table_order:
             self.escrow_disabled = False
         super().save(*args, **kwargs)
 
+
+class Order(Model):
+    """
+    Record of Order
+    """
+
+    preserve_comments = True
+    comment_permissions = [OrderViewPermission]
+
+    product = ForeignKey('Product', null=True, blank=True, on_delete=SET_NULL)
+    seller = ForeignKey(User, related_name='sales', on_delete=CASCADE)
+    buyer = ForeignKey(User, related_name='buys', on_delete=CASCADE, null=True, blank=True)
+    claim_token = ShortCodeField(blank=True, null=True)
+    customer_email = EmailField(blank=True)
+    created_on = DateTimeField(db_index=True, default=timezone.now)
+    private = BooleanField(default=False)
+
+    def __str__(self):
+        return "#{} {} for {} by {}".format(
+            self.id, (self.product and self.product.name) or '<Custom>', self.buyer, self.seller,
+        )
+
+    def notification_display(self, context):
+        from .serializers import ProductSerializer
+        from .serializers import RevisionSerializer
+        revisions = Revision.objects.filter(deliverable__order=self)
+        if self.seller == context['request'].user:
+            revision = revisions.order_by('-created_on').first()
+        else:
+            revision = revisions.filter(deliverable__revisions_hidden=False).order_by('-created_on').first()
+        if revision is None:
+            return ProductSerializer(instance=self.product, context=context).data['primary_submission']
+        else:
+            return RevisionSerializer(instance=revision, context=context).data
+
+    def notification_link(self, context):
+        return order_context_to_link(order_context(order=self, logged_in=False, user=context['request'].user))
+
+    def notification_name(self, context):
+        request = context['request']
+        if request.user == self.seller:
+            return "Sale #{}".format(self.id)
+        return "Order #{}".format(self.id)
+
     class Meta:
         ordering = ['created_on']
 
 
-@receiver(post_save, sender=Order)
+@receiver(post_save, sender=Deliverable)
 @disable_on_load
-def auto_subscribe_order(sender, instance, created=False, **_kwargs):
+def auto_subscribe_deliverable(sender, instance, created=False, **_kwargs):
     if not created:
         return
-    order_type = ContentType.objects.get_for_model(model=sender)
+    deliverable_type = ContentType.objects.get_for_model(model=sender)
     subscriptions = [
         Subscription(
-            subscriber=instance.seller,
-            content_type=order_type,
+            subscriber=instance.order.seller,
+            content_type=deliverable_type,
             object_id=instance.id,
             email=True,
             type=SALE_UPDATE
         ),
         Subscription(
-            subscriber=instance.seller,
-            content_type=order_type,
+            subscriber=instance.order.seller,
+            content_type=deliverable_type,
+            object_id=instance.id,
+            email=True,
+            type=REFERENCE_UPLOADED,
+        ),
+        Subscription(
+            subscriber=instance.order.seller,
+            content_type=deliverable_type,
             object_id=instance.id,
             email=True,
             type=COMMENT
         )
-    ] + buyer_subscriptions(instance, order_type=order_type)
+    ] + buyer_subscriptions(instance, order_type=deliverable_type)
     Subscription.objects.bulk_create(subscriptions, ignore_conflicts=True)
-    if (not instance.buyer) or instance.buyer.guest:
-        instance.claim_token = gen_shortcode()
-        instance.save()
 
 
-def idempotent_lines(instance: Order):
-    if instance.status not in [Order.NEW, Order.PAYMENT_PENDING]:
+
+def idempotent_lines(instance: Deliverable):
+    if instance.status not in [NEW, PAYMENT_PENDING]:
         return
-    if instance.product:
+    if instance.order.product:
         LineItem.objects.update_or_create(
-            {'amount': instance.product.base_price},
-            order=instance, amount=instance.product.base_price, type=BASE_PRICE, destination_user=instance.seller,
+            {'amount': instance.order.product.base_price},
+            deliverable=instance, amount=instance.order.product.base_price, type=BASE_PRICE,
+            destination_user=instance.order.seller,
             destination_account=TransactionRecord.ESCROW,
         )
     total = reckon_lines(instance.line_items.filter(priority__lt=PRIORITY_MAP[SHIELD]))
@@ -440,13 +464,13 @@ def idempotent_lines(instance: Order):
                 'amount': Money(settings.TABLE_STATIC_FEE, 'USD'),
                 'cascade_amount': False,
             },
-            order=instance,
+            deliverable=instance,
             destination_user=None, destination_account=TransactionRecord.RESERVE, type=TABLE_SERVICE,
         )
         LineItem.objects.update_or_create(
             {'percentage': settings.TABLE_TAX, 'cascade_percentage': True, 'cascade_amount': True,
              'back_into_percentage': True},
-            order=instance, destination_user=None, destination_account=TransactionRecord.MONEY_HOLE_STAGE, type=TAX,
+            deliverable=instance, destination_user=None, destination_account=TransactionRecord.MONEY_HOLE_STAGE, type=TAX,
         )
         instance.line_items.filter(type__in=[BONUS, SHIELD]).delete()
     elif escrow_enabled:
@@ -457,7 +481,7 @@ def idempotent_lines(instance: Order):
                 'cascade_percentage': True,
                 'cascade_amount': True,
             },
-            order=instance,
+            deliverable=instance,
             destination_user=None, destination_account=TransactionRecord.RESERVE, type=SHIELD,
         )
         LineItem.objects.update_or_create(
@@ -467,48 +491,56 @@ def idempotent_lines(instance: Order):
                 'cascade_percentage': True,
                 'cascade_amount': True,
             },
-            order=instance, percentage=settings.PREMIUM_PERCENTAGE_BONUS, amount=settings.PREMIUM_STATIC_BONUS,
+            deliverable=instance, percentage=settings.PREMIUM_PERCENTAGE_BONUS, amount=settings.PREMIUM_STATIC_BONUS,
             destination_user=None, destination_account=TransactionRecord.RESERVE, type=BONUS,
         )
         LineItem.objects.filter(
-            type=EXTRA, destination_account=TransactionRecord.RESERVE, description='Table Service', order=instance,
+            type=EXTRA, destination_account=TransactionRecord.RESERVE, description='Table Service', deliverable=instance,
         ).delete()
-        LineItem.objects.filter(type=TAX, order=instance).delete()
+        instance.line_items.filter(type=TAX).delete()
     else:
         instance.line_items.filter(type__in=[BONUS, SHIELD]).delete()
         LineItem.objects.filter(
-            type=EXTRA, destination_account=TransactionRecord.RESERVE, description='Table Service', order=instance,
+            type=EXTRA, destination_account=TransactionRecord.RESERVE, description='Table Service', deliverable=instance,
         ).delete()
-        LineItem.objects.filter(type=TAX, order=instance).delete()
+        instance.line_items.filter(type=TAX).delete()
 
 
-@receiver(post_save, sender=Order)
+@receiver(post_save, sender=Deliverable)
+@disable_on_load
 def ensure_line_items(sender, instance, **kwargs):
     idempotent_lines(instance)
 
 
 def buyer_subscriptions(instance, order_type=None):
-    if not instance.buyer:
+    if not instance.order.buyer:
         return []
     if not order_type:
         order_type = ContentType.objects.get_for_model(model=instance)
     return [
         Subscription(
-            subscriber=instance.buyer,
+            subscriber=instance.order.buyer,
             content_type=ContentType.objects.get_for_model(instance),
             object_id=instance.id,
             email=True,
             type=ORDER_UPDATE,
         ),
         Subscription(
-            subscriber=instance.buyer,
+            subscriber=instance.order.buyer,
             content_type=order_type,
             object_id=instance.id,
             email=True,
-            type=REVISION_UPLOADED
+            type=REVISION_UPLOADED,
         ),
         Subscription(
-            subscriber=instance.buyer,
+            subscriber=instance.order.buyer,
+            content_type=order_type,
+            object_id=instance.id,
+            email=True,
+            type=REFERENCE_UPLOADED,
+        ),
+        Subscription(
+            subscriber=instance.order.buyer,
             content_type=order_type,
             object_id=instance.id,
             email=True,
@@ -523,24 +555,25 @@ def buyer_subscriptions(instance, order_type=None):
 def issue_order_claim(sender: type, instance: Order, created=False, **kwargs):
     if not created:
         return
-    if not instance.claim_token:
+    if (not instance.buyer) or instance.buyer.guest:
+        instance.claim_token = gen_shortcode()
+        instance.save()
+    else:
         return
-    if instance.buyer:
-        return
-    if instance.status == Order.NEW:
+    if instance.deliverables.filter(status=NEW).exists():
         # Seller has opted to not send off this notification yet.
         return
     send_transaction_email(
         f'You have a new invoice from {instance.seller.username}!',
         'invoice_issued.html', instance.customer_email,
-        {'order': instance, 'claim_token': instance.claim_token}
+        {'deliverable': instance, 'claim_token': instance.claim_token}
     )
 
 
-WEIGHTED_STATUSES = [Order.IN_PROGRESS, Order.PAYMENT_PENDING, Order.QUEUED]
+WEIGHTED_STATUSES = [IN_PROGRESS, PAYMENT_PENDING, QUEUED]
 
 
-@receiver(post_delete, sender=Order)
+@receiver(post_delete, sender=Deliverable)
 @disable_on_load
 def auto_remove_order(sender, instance, **_kwargs):
     Subscription.objects.filter(
@@ -575,36 +608,36 @@ def auto_remove_order(sender, instance, **_kwargs):
     ).delete()
 
 
-remove_order_events = receiver(pre_delete, sender=Order)(disable_on_load(clear_events))
+remove_deliverable_events = receiver(pre_delete, sender=Deliverable)(disable_on_load(clear_events))
 
 
 @transaction.atomic
 @require_lock(User, 'ACCESS EXCLUSIVE')
-@require_lock(Order, 'ACCESS EXCLUSIVE')
+@require_lock(Deliverable, 'ACCESS EXCLUSIVE')
 @require_lock(Product, 'ACCESS EXCLUSIVE')
 def update_artist_load(sender, instance, **_kwargs):
-    seller = instance.seller
-    result = Order.objects.filter(
-        seller_id=seller.id, status__in=WEIGHTED_STATUSES
+    seller = instance.order.seller
+    result = Deliverable.objects.filter(
+        order__seller_id=seller.id, status__in=WEIGHTED_STATUSES
     ).aggregate(base_load=Sum('task_weight'), added_load=Sum('adjustment_task_weight'))
     load = (result['base_load'] or 0) + (result['added_load'] or 0)
-    if isinstance(instance, Order) and instance.product:
-        instance.product.parallel = Order.objects.filter(
-            product_id=instance.product.id, status__in=WEIGHTED_STATUSES
-        ).count()
-        instance.product.save()
+    if isinstance(instance, Deliverable) and instance.order.product:
+        instance.order.product.parallel = Order.objects.filter(
+            product_id=instance.order.product.id, deliverables__status__in=WEIGHTED_STATUSES
+        ).distinct().count()
+        instance.order.product.save()
     # Availability update could be recursive, so get the latest version of the user.
     seller = User.objects.get(id=seller.id)
     update_availability(seller, load, seller.artist_profile.commissions_disabled)
 
 
-order_load_check = receiver(post_save, sender=Order, dispatch_uid='load')(disable_on_load(update_artist_load))
+order_load_check = receiver(post_save, sender=Deliverable, dispatch_uid='load')(disable_on_load(update_artist_load))
 # No need for delete check-- orders are only ever archived, not deleted.
 
 # noinspection PyUnusedLocal
 @transaction.atomic
 @require_lock(User, 'ACCESS EXCLUSIVE')
-@require_lock(Order, 'ACCESS EXCLUSIVE')
+@require_lock(Deliverable, 'ACCESS EXCLUSIVE')
 @require_lock(Product, 'ACCESS EXCLUSIVE')
 def update_product_availability(sender, instance, **kwargs):
     update_availability(
@@ -615,7 +648,7 @@ def update_product_availability(sender, instance, **kwargs):
 # noinspection PyUnusedLocal,PyUnusedLocal
 @transaction.atomic
 @require_lock(User, 'ACCESS EXCLUSIVE')
-@require_lock(Order, 'ACCESS EXCLUSIVE')
+@require_lock(Deliverable, 'ACCESS EXCLUSIVE')
 @require_lock(Product, 'ACCESS EXCLUSIVE')
 def update_user_availability(sender, instance, **kwargs):
     update_availability(instance.user, instance.load, instance.commissions_disabled)
@@ -623,8 +656,10 @@ def update_user_availability(sender, instance, **kwargs):
 
 @receiver(post_save, sender=Product)
 def update_order_line_items(sender, instance, **kwargs):
-    orders = instance.order_set.filter(status__in=[Order.NEW, Order.PAYMENT_PENDING])
-    LineItem.objects.filter(order__in=orders, type=BASE_PRICE).update(amount=instance.base_price)
+    deliverables = Deliverable.objects.filter(order__product=instance, status__in=[NEW, PAYMENT_PENDING])
+    deliverables = deliverables.exclude(
+        id__in=deliverables.annotate(total_deliverables=Count('order__deliverables')).filter(total_deliverables__gt=1))
+    LineItem.objects.filter(deliverable__in=deliverables, type=BASE_PRICE).update(amount=instance.base_price)
 
 
 @receiver(post_save, sender=InventoryTracker)
@@ -836,7 +871,7 @@ class TransactionRecord(Model):
     FAILURE = 1
     PENDING = 2
 
-    STATUSES = (
+    DELIVERABLE_STATUSES = (
         (SUCCESS, 'Successful'),
         (FAILURE, 'Failed'),
         (PENDING, 'Pending'),
@@ -931,7 +966,7 @@ class TransactionRecord(Model):
 
     id = ShortCodeField(primary_key=True, db_index=True, default=gen_shortcode)
 
-    status = IntegerField(choices=STATUSES, db_index=True)
+    status = IntegerField(choices=DELIVERABLE_STATUSES, db_index=True)
     source = IntegerField(choices=ACCOUNT_TYPES, db_index=True)
     destination = IntegerField(choices=ACCOUNT_TYPES, db_index=True)
     category = IntegerField(choices=CATEGORIES, db_index=True)
@@ -1061,7 +1096,7 @@ PRIORITY_MAP = {
 
 class LineItem(Model):
     type = IntegerField(choices=LINE_ITEM_TYPES, db_index=True)
-    order = ForeignKey(Order, on_delete=CASCADE, related_name='line_items')
+    deliverable = ForeignKey(Deliverable, on_delete=CASCADE, related_name='line_items')
     amount = MoneyField(
         max_digits=6, decimal_places=2, default_currency='USD',
         blank=True, default=0,
@@ -1175,19 +1210,121 @@ class PaymentRecord(Model):
 
 
 class Revision(ImageModel):
-    order = ForeignKey(Order, on_delete=CASCADE)
+    comment_permissions = [OrderViewPermission]
+    preserve_comments = True
+    deliverable = ForeignKey(Deliverable, on_delete=CASCADE)
+    comments = GenericRelation(
+        Comment, related_query_name='revisions', content_type_field='content_type', object_id_field='object_id'
+    )
 
     def can_reference_asset(self, user):
         return (
-            (user == self.owner and not self.order.private)
-            or ((user == self.order.buyer) and self.order.status == Order.COMPLETED)
+            (user == self.owner and not self.deliverable.order.private)
+            or ((user == self.deliverable.order.buyer) and self.deliverable.status == COMPLETED)
         )
+
+    def notification_link(self, context):
+        return order_context_to_link(order_context(order=self.deliverable.order, logged_in=False, user=context['request'].user))
+
+    def notification_name(self, context):
+        return f'Revision ID #{self.id} on {self.deliverable.notification_name(context)}'
 
     class Meta:
         ordering = ['created_on']
 
 
 revision_thumbnailer = receiver(post_save, sender=Revision)(thumbnail_hook)
+
+
+def deliverable_from_context(context):
+    # This data not to be trusted. It is user provided.
+    deliverable = context['extra_data'].get('deliverable', None)
+    if deliverable is not None:
+        try:
+            deliverable = int(deliverable)
+            deliverable = Deliverable.objects.get(id=deliverable)
+            if not OrderViewPermission().has_object_permission(context['request'], None, deliverable):
+                raise ValueError
+            return deliverable
+        except (ValueError, Deliverable.DoesNotExist):
+            return None
+
+
+class Reference(ImageModel):
+    comment_permissions = [Any(ReferenceViewPermission, IsStaff)]
+    preserve_comments = True
+    deliverables = ManyToManyField(Deliverable)
+    comments = GenericRelation(
+        Comment, related_query_name='references', content_type_field='content_type', object_id_field='object_id'
+    )
+
+    def can_reference_asset(self, user):
+        # Despite this being a reference, it should never be the source for any other models/sharing.
+        return False
+
+    def notification_display(self, context):
+        from apps.sales.serializers import ReferenceSerializer
+        return ReferenceSerializer(context=context, instance=self).data
+
+    def notification_link(self, context):
+        deliverable = context.get('deliverable', deliverable_from_context(context))
+        if deliverable is None:
+            return None
+        return order_context_to_link(
+            order_context(
+                order=deliverable.order,
+                deliverable=deliverable,
+                user=context['request'].user,
+                view_name='DeliverableReference',
+                extra_params={'referenceId': self.id},
+                logged_in=False,
+            ))
+
+    def notification_name(self, context):
+        deliverable = deliverable_from_context(context)
+        return f'Reference ID #{self.id} for {deliverable and deliverable.notification_name(context)}'
+
+    class Meta:
+        ordering = ['created_on']
+
+
+reference_thumbnailer = receiver(post_save, sender=Reference)(thumbnail_hook)
+
+
+@disable_on_load
+def auto_subscribe_image(sender, instance, created=False, **kwargs):
+    if not created:
+        return
+    content_type = ContentType.objects.get_for_model(instance)
+    Subscription.objects.create(
+        subscriber=instance.deliverable.order.seller,
+        content_type=content_type,
+        object_id=instance.id,
+        email=True,
+        type=COMMENT
+    )
+    if not instance.deliverable.buyer:
+        return
+    Subscription.objects.create(
+        subscriber=instance.deliverable.order.buyer,
+        content_type=content_type,
+        object_id=instance.id,
+        email=True,
+        type=COMMENT
+    )
+
+receiver(post_delete, sender=Revision)(auto_subscribe_image)
+receiver(post_delete, sender=Reference)(auto_subscribe_image)
+
+@receiver(post_delete, sender=Reference)
+@disable_on_load
+def delete_comments_and_events(sender, instance, **kwargs):
+    content_type = ContentType.objects.get_for_model(instance)
+    Event.objects.filter(object_id=instance.id, content_type=content_type).delete()
+    Subscription.objects.filter(object_id=instance.id, content_type=content_type).delete()
+    Comment.objects.filter(object_id=instance.id, content_type=content_type).delete()
+    Comment.objects.filter(top_object_id=instance.id, top_content_type=content_type).delete()
+    Event.objects.filter(data__reference=instance.id).delete()
 
 
 class BankAccount(Model):

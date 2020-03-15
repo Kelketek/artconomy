@@ -7,5 +7,5 @@ export interface SingleState<T> {
   fetching: boolean,
   ready: boolean,
   failed: boolean,
-  params: QueryParams|null
+  params: QueryParams|null,
 }

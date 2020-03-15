@@ -1,7 +1,7 @@
 import logging
 import os
 from pathlib import Path
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
 import markdown
 from bs4 import BeautifulSoup
@@ -35,6 +35,9 @@ from shortcuts import make_url, disable_on_load
 
 BOT = None
 logger = logging.getLogger(__name__)
+
+if TYPE_CHECKING:
+    from apps.profiles.models import User
 
 
 def get_bot():
@@ -146,11 +149,7 @@ def get_matching_events(event_type, content_type, object_id, data, unique_data=N
     return Event.objects.filter(query)
 
 
-def watch_subscriptions(watcher, watched):
-    # To be implemented when paid service is in place.
-    target_date = (
-        watcher.portrait_paid_through or watcher.landscape_paid_through or (date.today() - relativedelta(days=5))
-    )
+def commissions_open_subscription(watcher: 'User', watched: 'User', target_date: date):
     content_type = ContentType.objects.get_for_model(watched)
     sub, _ = Subscription.objects.get_or_create(
         subscriber=watcher,
@@ -162,6 +161,15 @@ def watch_subscriptions(watcher, watched):
     sub.telegram = True
     sub.email = True
     sub.save()
+
+
+def watch_subscriptions(watcher, watched):
+    # To be implemented when paid service is in place.
+    target_date = (
+        watcher.portrait_paid_through or watcher.landscape_paid_through or (date.today() - relativedelta(days=5))
+    )
+    commissions_open_subscription(watcher, watched, target_date)
+    content_type = ContentType.objects.get_for_model(watched)
     Subscription.objects.get_or_create(
         subscriber=watcher,
         content_type=content_type,
@@ -381,7 +389,7 @@ def _comment_filter(old_data, comment_id):
     subcomments = [comment for comment in old_data['subcomments'] if comment != comment_id]
     data = {
         'comments': comments,
-        'subcomments': subcomments
+        'subcomments': subcomments,
     }
     if not comments:
         raise RecallNotification(data=data)

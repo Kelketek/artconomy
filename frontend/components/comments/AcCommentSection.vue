@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container fluid class="pa-0 ma-0">
     <v-row no-gutters v-if="commentList.moreAvailable || showHistory">
       <v-col v-if="commentList.moreAvailable">
         <v-btn block @click="commentList.next">
@@ -36,7 +36,7 @@
     </ac-load-section>
     <ac-loading-spinner v-if="commentList.fetching" min-height="10rem"></ac-loading-spinner>
     <slot v-if="commentList.ready && !commentList.list.length" name="empty"></slot>
-    <ac-new-comment ref="newComment" v-if="commentList.ready && !locked && !inHistory" :commentList="commentList" :alternate="!(commentList.list.length % 2)" :guest-ok="guestOk"/>
+    <ac-new-comment ref="newComment" v-if="commentList.ready && !locked && !inHistory" :commentList="commentList" :alternate="!(commentList.list.length % 2)" :guest-ok="guestOk" :extra-data="extraData"/>
     <v-row no-gutters v-if="locked && commentList.ready &&!inHistory"  >
       <v-col cols="12" class="col-12 text-section text-center">Comments have been locked.</v-col>
     </v-row>
@@ -54,6 +54,7 @@ import AcLoadingSpinner from '@/components/wrappers/AcLoadingSpinner.vue'
 import AcNewComment from '@/components/comments/AcNewComment.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import {QueryParams} from '@/store/helpers/QueryParams'
+import {RawData} from '@/store/forms/types/RawData'
 
   @Component({
     components: {AcLoadSection, AcNewComment, AcLoadingSpinner},
@@ -73,6 +74,8 @@ export default class AcCommentSection extends mixins(Viewer) {
     public inHistory!: boolean
     @Prop({default: false})
     public hardFail!: boolean
+    @Prop({default: () => ({})})
+    public extraData!: RawData
     @Prop({required: true})
     public commentList!: ListController<Comment>
 

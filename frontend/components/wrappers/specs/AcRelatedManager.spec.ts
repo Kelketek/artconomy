@@ -29,7 +29,7 @@ describe('AcRelatedManager.vue', () => {
       attachToDocument: true,
     })
     expect(mockAxios.get).toHaveBeenCalledWith(
-      ...rq('/endpoint/', 'get', undefined, {cancelToken: {}})
+      ...rq('/endpoint/', 'get', undefined, {cancelToken: expect.any(Object)})
     )
     const user1 = genUser()
     user1.id = 1
@@ -50,7 +50,7 @@ describe('AcRelatedManager.vue', () => {
       attachToDocument: true,
     })
     expect(mockAxios.get).toHaveBeenCalledWith(
-      ...rq('/endpoint/', 'get', undefined, {cancelToken: {}})
+      ...rq('/endpoint/', 'get', undefined, {cancelToken: expect.any(Object)})
     )
     const user1 = genUser()
     user1.id = 1
@@ -79,7 +79,7 @@ describe('AcRelatedManager.vue', () => {
       attachToDocument: true,
     })
     expect(mockAxios.get).toHaveBeenCalledWith(
-      ...rq('/endpoint/', 'get', undefined, {cancelToken: {}})
+      ...rq('/endpoint/', 'get', undefined, {cancelToken: expect.any(Object)})
     )
     mockAxios.reset()
     const vm = wrapper.vm as any

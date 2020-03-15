@@ -40,7 +40,7 @@ const paymentRoutes = [
     ],
   }]
 
-describe('Payment.vue', () => {
+describe('DeliverablePayment.vue', () => {
   let store: ArtStore
   let wrapper: Wrapper<Vue>
   let router: Router

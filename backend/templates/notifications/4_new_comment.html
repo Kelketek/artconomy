@@ -15,13 +15,29 @@ View it via the link below! Here's a preview:
 {% endblock message %}
 
 {% block action %}
+{% comment %}
+Need to find a better way of handling these links. These if chains are gnarly. Maybe add an additional 'email_link' method to the relevant objects?
+The link methods are already gnarly, too. Hmmm....
+{% endcomment %}
 {% if data.link.name == 'Conversation' %}
     <a href="/messages/{{user.username}}/{{data.link.params.conversationId}}/?commentId={{data.most_recent_comment.id}}">View your message here!</a>
-{% elif data.link.name == 'Order' %}
-    <a href="/orders/{{target.buyer.username}}/order/{{data.link.params.orderId}}/?commentId={{data.most_recent_comment.id}}">View your order here!</a>
+{% elif data.link.name == 'OrderDeliverableOverview' %}
+    <a href="/sales/{{data.link.params.username}}/order/{{data.link.params.orderId}}/deliverables/{{data.link.params.deliverableId}}/overview/?commentId={{data.most_recent_comment.id}}">View your order here!</a>
+{% elif data.link.name == 'SaleDeliverableOverview' %}
+    <a href="/sales/{{data.link.params.username}}/sale/{{data.link.params.orderId}}/deliverables/{{data.link.params.deliverableId}}/overview/?commentId={{data.most_recent_comment.id}}">View your sale here!</a>
+{% elif data.link.name == 'CaseDeliverableOverview' %}
+    <a href="/cases/{{data.link.params.username}}/case/{{data.link.params.orderId}}/deliverables/{{data.link.params.deliverableId}}/overview/?commentId={{data.most_recent_comment.id}}">View your case here!</a>
+{% elif data.link.name == 'OrderDeliverableRevision' %}
+    <a href="/orders/{{data.link.params.username}}/order/{{data.link.params.orderId}}/deliverables/{{data.link.params.deliverableId}}/revisions/{{data.link.params.revisionId}}/?commentId={{data.most_recent_comment.id}}">View the revision here!</a>
+{% elif data.link.name == 'OrderDeliverableReference' %}
+    <a href="/orders/{{data.link.params.username}}/order/{{data.link.params.orderId}}/deliverables/{{data.link.params.deliverableId}}/references/{{data.link.params.referenceId}}/?commentId={{data.most_recent_comment.id}}">View the revision here!</a>
+{% elif data.link.name == 'SaleDeliverableReference' %}
+    <a href="/orders/{{data.link.params.username}}/sale/{{data.link.params.orderId}}/deliverables/{{data.link.params.deliverableId}}/references/{{data.link.params.referenceId}}/?commentId={{data.most_recent_comment.id}}">View the revision here!</a>
+{% elif data.link.name == 'SaleDeliverableRevision' %}
+    <a href="/sales/{{data.link.params.username}}/sale/{{data.link.params.orderId}}/deliverables/{{data.link.params.deliverableId}}/revisions/{{data.link.params.revisionId}}/?commentId={{data.most_recent_comment.id}}">View the revision here!</a>
+{% elif data.link.name == 'CaseDeliverableRevision' %}
+    <a href="/cases/{{data.link.params.username}}/case/{{data.link.params.orderId}}/deliverables/{{data.link.params.deliverableId}}/revisions/{{data.link.params.revisionId}}/?commentId={{data.most_recent_comment.id}}">View the revision here!</a>
 {% elif data.link.name == 'ClaimOrder' %}
     <a href="/claim-order/{{data.link.params.orderId}}/{{target.claim_token}}/{{target.buyer.username}}/?commentId={{data.most_recent_comment.id}}">View your order here!</a>
-{% elif data.link.name == 'Sale' %}
-    <a href="/sales/{{target.buyer.username}}/sale/{{data.link.params.orderId}}/?commentId={{data.most_recent_comment.id}}">View your sale here!</a>
 {% endif %}
 {% endblock %}

@@ -70,6 +70,11 @@ const routes: RouterOptions = {
     component: Empty,
     props: true,
   }, {
+    path: '/profiles/:username/ratings/',
+    name: 'Ratings',
+    component: Empty,
+    props: true,
+  }, {
     path: '/profiles/:username/',
     name: 'Profile',
     component: Empty,

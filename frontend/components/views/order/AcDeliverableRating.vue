@@ -33,16 +33,18 @@ import AcProfileHeader from '@/components/views/profile/AcProfileHeader.vue'
 @Component({
   components: {AcProfileHeader, AcPatchField, AcLoadSection},
 })
-export default class AcOrderRating extends Vue {
+export default class AcDeliverableRating extends Vue {
   @Prop({required: true})
   public orderId!: number
+  @Prop({required: true})
+  public deliverableId!: number
   @Prop({required: true})
   public end!: 'buyer'|'seller'
   public rating: SingleController<Rating> = null as unknown as SingleController<Rating>
   public created() {
     this.rating = this.$getSingle(
       `${this.orderId}__rate__${this.end}`,
-      {endpoint: `/api/sales/v1/order/${this.orderId}/rate/${this.end}/`},
+      {endpoint: `/api/sales/v1/order/${this.orderId}/deliverables/${this.deliverableId}/rate/${this.end}/`},
     )
     this.rating.get()
   }

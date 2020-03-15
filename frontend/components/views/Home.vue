@@ -428,9 +428,11 @@ export default class Home extends mixins(Viewer, Formatting, PrerenderMixin) {
     }
 
     public listSizer(long?: boolean) {
+      /* istanbul ignore if */
       if (this.$vuetify.breakpoint.xsOnly) {
         return 2
       }
+      /* istanbul ignore if */
       if (this.$vuetify.breakpoint.mdOnly && long) {
         return 4
       }

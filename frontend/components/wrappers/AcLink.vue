@@ -24,11 +24,11 @@ export default class AcLink extends Vue {
   public newTab!: boolean
 
   public navigate(event: Event) {
+    event.preventDefault()
     if (this.iFrame) {
+      event.stopPropagation()
       const routeData = this.$router.resolve(this.to)
       window.open(routeData.href, '_blank')
-      event.stopPropagation()
-      event.preventDefault()
       return
     }
     this.$router.push(this.to)

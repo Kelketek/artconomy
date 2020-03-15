@@ -115,7 +115,7 @@ describe('Field validators', () => {
     expect(mockAxios.post).toHaveBeenCalledWith(
       '/api/profiles/v1/form-validators/email/',
       {email: 'test@example.com'},
-      {cancelToken: {}, headers: {'Content-Type': 'application/json; charset=utf-8'}, validateStatus}
+      {cancelToken: expect.any(Object), headers: {'Content-Type': 'application/json; charset=utf-8'}, validateStatus}
     )
     expect(mockAxios.post).toHaveBeenCalledTimes(1)
   })

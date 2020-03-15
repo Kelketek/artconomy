@@ -195,15 +195,17 @@ export default class NewOrder extends mixins(ProductCentric, Formatting) {
     public goToOrder(order: Order) {
       // Could take a while. Let's not make it look like we're done.
       this.orderForm.sending = true
+      const link = {...order.default_path}
+      console.log(link)
+      link.query = {...link.query, showConfirm: 'true'}
       if (!this.isRegistered) {
+        link.params!.username = this.rawViewerName
         this.viewerHandler.refresh().then(() => {
-          this.$router.push({name: 'Order', params: {orderId: order.id + '', username: this.rawViewerName}})
+          this.$router.push(link)
         })
         return
       }
-      this.$router.push({
-        name: 'Order', params: {username: this.rawViewerName, orderId: order.id + ''}, query: {showConfirm: 'true'},
-      })
+      this.$router.push(link)
     }
 
     public created() {

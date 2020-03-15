@@ -11,8 +11,8 @@ from apps.lib.models import REFERRAL_LANDSCAPE_CREDIT, REFERRAL_PORTRAIT_CREDIT,
 from apps.lib.utils import notify, destroy_comment
 from apps.profiles.models import Character, Submission, User, Conversation, ConversationParticipant
 from apps.sales.dwolla import destroy_bank_account
-from apps.sales.models import Order, TransactionRecord
-from apps.sales.utils import account_balance, PENDING, cancel_order
+from apps.sales.models import Order, TransactionRecord, DISPUTED, IN_PROGRESS, QUEUED, REVIEW, PAYMENT_PENDING, NEW
+from apps.sales.utils import account_balance, PENDING, cancel_deliverable
 
 
 def char_ordering(qs, requester, query=''):
@@ -114,23 +114,23 @@ def extend_portrait(user, months):
     user.save()
 
 
-def credit_referral(order):
+def credit_referral(deliverable):
     seller_credit = False
     buyer_credit = False
-    if not order.seller.sold_shield_on:
+    if not deliverable.order.seller.sold_shield_on:
         seller_credit = True
-        order.seller.sold_shield_on = timezone.now()
-        order.seller.save()
-    if order.buyer and not order.buyer.bought_shield_on:
+        deliverable.order.seller.sold_shield_on = timezone.now()
+        deliverable.order.seller.save()
+    if deliverable.order.buyer and not deliverable.order.buyer.bought_shield_on:
         buyer_credit = True
-        order.buyer.bought_shield_on = timezone.now()
-        order.buyer.save()
-    if seller_credit and order.seller.referred_by:
-        extend_landscape(order.seller, months=1)
-        notify(REFERRAL_LANDSCAPE_CREDIT, order.seller.referred_by, unique=False)
-    if buyer_credit and order.buyer and order.buyer.referred_by:
-        extend_portrait(order.seller, months=1)
-        notify(REFERRAL_PORTRAIT_CREDIT, order.buyer.referred_by, unique=False)
+        deliverable.order.buyer.bought_shield_on = timezone.now()
+        deliverable.order.buyer.save()
+    if seller_credit and deliverable.order.seller.referred_by:
+        extend_landscape(deliverable.order.seller, months=1)
+        notify(REFERRAL_LANDSCAPE_CREDIT, deliverable.order.seller.referred_by, unique=False)
+    if buyer_credit and deliverable.order.buyer and deliverable.order.buyer.referred_by:
+        extend_portrait(deliverable.order.seller, months=1)
+        notify(REFERRAL_PORTRAIT_CREDIT, deliverable.order.buyer.referred_by, unique=False)
 
 
 def empty_user(request):
@@ -153,15 +153,15 @@ def create_guest_user(email: str) -> User:
 def clear_user(user: User):
     # Clears out as much user data as is practical. Uses normal iterators, despite being slow, to ensure all cleanup
     # hooks are run.
-    holdup_statuses = [Order.DISPUTED, Order.IN_PROGRESS, Order.QUEUED, Order.REVIEW]
+    holdup_statuses = [DISPUTED, IN_PROGRESS, QUEUED, REVIEW]
     if user.sales.filter(status__in=holdup_statuses).exists():
         raise RuntimeError('User has outstanding sales to finish. Cannot remove!')
     if user.buys.filter(status__in=holdup_statuses).exists():
         raise RuntimeError('User has outstanding orders which are unfinished. Cannot remove!')
-    for sale in user.sales.filter(status__in=[Order.NEW, Order.PAYMENT_PENDING]):
-        cancel_order(sale, user)
-    for order in user.buys.filter(status__in=[Order.NEW, Order.PAYMENT_PENDING]):
-        cancel_order(order, user)
+    for sale in user.sales.filter(status__in=[NEW, PAYMENT_PENDING]):
+        cancel_deliverable(sale, user)
+    for order in user.buys.filter(status__in=[NEW, PAYMENT_PENDING]):
+        cancel_deliverable(order, user)
     stoppers = [
         account_balance(user, TransactionRecord.HOLDINGS),
         account_balance(user, TransactionRecord.HOLDINGS, PENDING)

@@ -277,6 +277,7 @@ static_resources/icons/*
 static/*
 
 backend/apps/sales/tests/fixtures/**
+backend/apps/sales/tests/views/fixtures/**
 backend/apps/profiles/tests/fixtures/**
 backend/apps/lib/tests/fixtures/**
 

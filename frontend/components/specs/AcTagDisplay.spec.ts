@@ -94,7 +94,7 @@ describe('AcTagDisplay.vue', () => {
     expect(vm.editing).toBe(false)
   })
   it('Always allows staff to edit', async() => {
-    setViewer(store, genUser())
+    setViewer(store, genUser({is_staff: true}))
     const submission = genSubmission()
     submission.tags = ['fox', 'sexy', 'fluffy', 'herm', 'dude', 'wat']
     const empty = mount(Empty, {localVue, store})

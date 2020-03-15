@@ -80,7 +80,7 @@ from apps.profiles.tasks import mailchimp_subscribe
 from apps.profiles.utils import (
     available_chars, char_ordering, available_submissions,
     empty_user)
-from apps.sales.models import Order
+from apps.sales.models import Order, Reference, Deliverable
 from apps.sales.serializers import SearchQuerySerializer
 from apps.sales.utils import claim_order_by_token
 from apps.tg_bot.models import TelegramDevice
@@ -134,7 +134,7 @@ class Register(CreateAPIView):
             mailchimp_subscribe.delay(instance.id)
         login(self.request, instance)
         order_claim = serializer.validated_data.get('order_claim', None)
-        claim_order_by_token(order_claim, instance)
+        claim_order_by_token(order_claim, instance, force=True)
 
     def get_serializer(self, instance=None, data=None, many=False, partial=False):
         return self.serializer_class(
@@ -779,6 +779,20 @@ class UserSerializerView:
             return UserInfoSerializer
 
 
+ORDER_COMMENT_TYPES_STORE = None
+
+def order_comment_types():
+    global ORDER_COMMENT_TYPES_STORE
+    if ORDER_COMMENT_TYPES_STORE is not None:
+        return ORDER_COMMENT_TYPES_STORE
+    ORDER_COMMENT_TYPES_STORE = (
+        ContentType.objects.get_for_model(Order),
+        ContentType.objects.get_for_model(Reference),
+        ContentType.objects.get_for_model(Deliverable),
+    )
+    return ORDER_COMMENT_TYPES_STORE
+
+
 class UnreadNotifications(APIView):
     permission_classes = [IsRegistered]
 
@@ -797,13 +811,13 @@ class UnreadNotifications(APIView):
                 ).exclude(
                     event__type__in=ORDER_NOTIFICATION_TYPES
                 ).exclude(
-                    event__type=COMMENT, event__content_type=ContentType.objects.get_for_model(Order)
+                    event__type=COMMENT, event__content_type__in=order_comment_types()
                 ).count(),
                 'sales_count': Notification.objects.filter(
                     user=self.request.user, read=False,
                 ).exclude(event__recalled=True).filter(
                     Q(event__type__in=ORDER_NOTIFICATION_TYPES) |
-                    Q(event__type=COMMENT, event__content_type=ContentType.objects.get_for_model(Order))
+                    Q(event__type=COMMENT, event__content_type__in=order_comment_types())
                 ).count()
             }
         )
@@ -817,7 +831,7 @@ class CommunityNotificationsList(ListAPIView):
         qs = Notification.objects.filter(user=self.request.user).exclude(event__recalled=True).exclude(
             event__type__in=ORDER_NOTIFICATION_TYPES
         ).exclude(
-            event__type=COMMENT, event__content_type=ContentType.objects.get_for_model(Order)
+            event__type=COMMENT, event__content_type__in=order_comment_types(),
         )
         if self.request.GET.get('unread'):
             qs = qs.filter(read=False)
@@ -831,7 +845,7 @@ class SalesNotificationsList(ListAPIView):
     def get_queryset(self):
         qs = Notification.objects.filter(user=self.request.user).exclude(event__recalled=True).filter(
             Q(event__type__in=ORDER_NOTIFICATION_TYPES) |
-            Q(event__type=COMMENT, event__content_type=ContentType.objects.get_for_model(Order))
+            Q(event__type=COMMENT, event__content_type__in=order_comment_types())
         )
         if self.request.GET.get('unread'):
             qs = qs.filter(read=False)
@@ -891,7 +905,7 @@ class RecentCommissions(ListAPIView):
     serializer_class = SubmissionSerializer
 
     def get_queryset(self):
-        qs = available_submissions(self.request, self.request.user).filter(order__isnull=False)
+        qs = available_submissions(self.request, self.request.user).filter(deliverable__isnull=False)
         qs = qs.annotate(artist_copy=Case(
             When(artists=F('owner'), then=0),
             default=1,
@@ -904,7 +918,7 @@ class RecentSubmissions(ListAPIView):
     serializer_class = SubmissionSerializer
 
     def get_queryset(self):
-        return available_submissions(self.request, self.request.user).filter(order__isnull=True).order_by('-created_on')
+        return available_submissions(self.request, self.request.user).filter(deliverable__isnull=True).order_by('-created_on')
 
 
 class RecentArt(ListAPIView):

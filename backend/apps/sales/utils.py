@@ -7,22 +7,33 @@ import logging
 from collections import defaultdict
 from decimal import Decimal, InvalidOperation, ROUND_HALF_EVEN, localcontext, ROUND_FLOOR
 from functools import reduce
-from typing import Union, Type, TYPE_CHECKING, List, Dict, Iterator, Callable, Tuple
+from typing import Union, Type, TYPE_CHECKING, List, Dict, Iterator, Callable, Tuple, TypedDict
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import MultipleObjectsReturned
 from django.db.models import Sum, Q, IntegerField, Case, When, F
 from django.db.transaction import atomic
 from django.utils import timezone
 from django.utils.datetime_safe import date
 from moneyed import Money
 from rest_framework.exceptions import ValidationError
+from short_stuff import gen_shortcode
 
 from apps.lib.models import Subscription, COMMISSIONS_OPEN, Event, DISPUTE, SALE_UPDATE, Notification, \
-    Comment, ORDER_UPDATE
-from apps.lib.utils import notify, recall_notification
+    Comment, ORDER_UPDATE, COMMENT
+from apps.lib.utils import notify, recall_notification, commissions_open_subscription
 from apps.profiles.models import User, VERIFIED
 from apps.sales.authorize import refund_transaction
+
+if TYPE_CHECKING:
+    from apps.sales.models import LineItemSim, LineItem, TransactionRecord, Deliverable, Revision, REVIEW
+
+    Line = Union[LineItem, LineItemSim]
+    LineMoneyMap = Dict[Line, Money]
+    TransactionSpecKey = (Union[User, None], int, int)
+    TransactionSpecMap = Dict[TransactionSpecKey, Money]
+
 
 logger = logging.getLogger(__name__)
 
@@ -82,7 +93,7 @@ def account_balance(
     except InvalidOperation:
         credit = Decimal('0.00')
 
-    return credit - debit
+    return Decimal(credit - debit)
 
 
 def product_ordering(qs, query=''):
@@ -139,17 +150,7 @@ def set_service(user, service, target_date=None):
         # Landscape includes portrait, so this is always set regardless.
         user.portrait_paid_through = target_date
         for watched in user.watching.all():
-            content_type = ContentType.objects.get_for_model(watched)
-            sub, _ = Subscription.objects.get_or_create(
-                subscriber=user,
-                content_type=content_type,
-                object_id=watched.id,
-                type=COMMISSIONS_OPEN
-            )
-            sub.until = target_date
-            sub.telegram = True
-            sub.email = True
-            sub.save()
+            commissions_open_subscription(user, watched, target_date)
     user.save()
 
 
@@ -189,7 +190,7 @@ UPDATING = {}
 
 
 def update_availability(seller, load, current_closed_status):
-    from apps.sales.models import Order
+    from apps.sales.models import NEW
     global UPDATING
     if seller in UPDATING:
         return
@@ -201,7 +202,7 @@ def update_availability(seller, load, current_closed_status):
             seller_profile.commissions_disabled = True
         elif not products.exists():
             seller_profile.commissions_disabled = True
-        elif not seller.sales.filter(status=Order.NEW).exists():
+        elif not seller.sales.filter(deliverables__status=NEW).exists():
             seller_profile.commissions_disabled = False
         seller_profile.load = load
         if products.exists() and not seller_profile.commissions_disabled:
@@ -228,15 +229,15 @@ def update_availability(seller, load, current_closed_status):
         del UPDATING[seller]
 
 
-def early_finalize(order, user: User):
+def early_finalize(deliverable: 'Deliverable', user: User):
     if (
-            order.final_uploaded
-            and order.seller.landscape
-            and order.seller.trust_level == VERIFIED
-            and not order.escrow_disabled
+            deliverable.final_uploaded
+            and deliverable.order.seller.landscape
+            and deliverable.order.seller.trust_level == VERIFIED
+            and not deliverable.escrow_disabled
     ):
-        order.trust_finalized = True
-        finalize_order(order, user)
+        deliverable.trust_finalized = True
+        finalize_deliverable(deliverable, user)
 
 
 def floor_context(wrapped: Callable):
@@ -255,9 +256,9 @@ def half_even_context(wrapped: Callable):
     return wrapper
 
 
-def allocate_bonus(order: 'Order', source_record: 'TransactionRecord'):
+def allocate_bonus(deliverable: 'Deliverable', source_record: 'TransactionRecord'):
     from apps.sales.models import TransactionRecord, ref_for_instance
-    amount = get_bonus_amount(order)
+    amount = get_bonus_amount(deliverable)
     bonus = TransactionRecord(
         payer=None,
         source=TransactionRecord.RESERVE,
@@ -266,8 +267,8 @@ def allocate_bonus(order: 'Order', source_record: 'TransactionRecord'):
         remote_id=source_record.remote_id,
         auth_code=source_record.auth_code,
     )
-    if order.seller.landscape:
-        bonus.payee = order.seller
+    if deliverable.order.seller.landscape:
+        bonus.payee = deliverable.order.seller
         bonus.destination = TransactionRecord.HOLDINGS
         bonus.category = TransactionRecord.PREMIUM_BONUS
     else:
@@ -275,12 +276,12 @@ def allocate_bonus(order: 'Order', source_record: 'TransactionRecord'):
         bonus.destination = TransactionRecord.UNPROCESSED_EARNINGS
         bonus.category = TransactionRecord.SHIELD_FEE
     bonus.save()
-    bonus.targets.add(ref_for_instance(order))
+    bonus.targets.add(ref_for_instance(deliverable))
 
 
-def finalize_table_fees(order: 'Order'):
+def finalize_table_fees(deliverable: 'Deliverable'):
     from apps.sales.models import TransactionRecord, ref_for_instance
-    ref = ref_for_instance(order)
+    ref = ref_for_instance(deliverable)
     record = TransactionRecord.objects.get(
         payee=None, destination=TransactionRecord.RESERVE,
         status=TransactionRecord.SUCCESS,
@@ -314,26 +315,26 @@ def finalize_table_fees(order: 'Order'):
     tax_burned.targets.add(ref)
 
 
-def finalize_order(order, user=None):
-    from apps.sales.models import TransactionRecord, ref_for_instance
+def finalize_deliverable(deliverable, user=None):
+    from apps.sales.models import TransactionRecord, COMPLETED, DISPUTED, ref_for_instance
     from apps.sales.tasks import withdraw_all
     with atomic():
-        if order.status == order.DISPUTED and user == order.buyer:
+        if deliverable.status == DISPUTED and user == deliverable.order.buyer:
             # User is rescinding dispute.
-            recall_notification(DISPUTE, order)
+            recall_notification(DISPUTE, deliverable)
             # We'll pretend this never happened.
-            order.disputed_on = None
-        order.status = order.COMPLETED
-        order.save()
-        notify(SALE_UPDATE, order, unique=True, mark_unread=True)
+            deliverable.disputed_on = None
+        deliverable.status = COMPLETED
+        deliverable.save()
+        notify(SALE_UPDATE, deliverable, unique=True, mark_unread=True)
         record = TransactionRecord.objects.get(
-            payee=order.seller, destination=TransactionRecord.ESCROW,
+            payee=deliverable.order.seller, destination=TransactionRecord.ESCROW,
             status=TransactionRecord.SUCCESS,
-            targets__object_id=order.id, targets__content_type=ContentType.objects.get_for_model(order),
+            targets__object_id=deliverable.id, targets__content_type=ContentType.objects.get_for_model(deliverable),
         )
         to_holdings = TransactionRecord.objects.create(
-            payer=order.seller,
-            payee=order.seller,
+            payer=deliverable.order.seller,
+            payee=deliverable.order.seller,
             amount=record.amount,
             source=TransactionRecord.ESCROW,
             destination=TransactionRecord.HOLDINGS,
@@ -342,18 +343,18 @@ def finalize_order(order, user=None):
             remote_id=record.remote_id,
             auth_code=record.auth_code,
         )
-        to_holdings.targets.add(ref_for_instance(order))
-        if not order.table_order:
-            allocate_bonus(order, record)
+        to_holdings.targets.add(ref_for_instance(deliverable))
+        if not deliverable.table_order:
+            allocate_bonus(deliverable, record)
         else:
-            finalize_table_fees(order)
+            finalize_table_fees(deliverable)
     # Don't worry about whether it's time to withdraw or not. This will make sure that an attempt is made in case
     # there's money to withdraw that hasn't been taken yet, and another process will try again if it settles later.
     # It will also ignore if the seller has auto_withdraw disabled.
-    withdraw_all.delay(order.seller.id)
+    withdraw_all.delay(deliverable.order.seller.id)
 
 
-def claim_order_by_token(order_claim, user):
+def claim_order_by_token(order_claim, user, force=False):
     from apps.sales.models import Order
     if not order_claim:
         return
@@ -367,40 +368,20 @@ def claim_order_by_token(order_claim, user):
     if order.buyer == user and user.is_registered:
         order.claim_token = None
         order.save()
-    transfer_order(order, order.buyer, user)
+    transfer_order(order, order.buyer, user, force=force)
 
 
-def split_fee(transaction: 'TransactionRecord') -> 'TransactionRecord':
-    from apps.sales.models import TransactionRecord
-    base_amount = transaction.amount.amount - settings.SERVICE_STATIC_FEE
-    withheld_amount = settings.PREMIUM_STATIC_BONUS
-    withheld_amount += settings.PREMIUM_PERCENTAGE_BONUS * Decimal('.01') * base_amount
-    withheld_amount = Money(withheld_amount, 'USD')
-    return TransactionRecord.objects.create(
-        payer=None,
-        payee=None,
-        amount=transaction.amount - withheld_amount,
-        source=TransactionRecord.RESERVE,
-        destination=TransactionRecord.UNPROCESSED_EARNINGS,
-        remote_id=transaction.remote_id,
-        auth_code=transaction.auth_code,
-        status=TransactionRecord.SUCCESS,
-        target=transaction.target,
-        category=TransactionRecord.SHIELD_FEE,
-    )
-
-
-def get_bonus_amount(order: 'Order') -> Money:
+def get_bonus_amount(deliverable: 'Deliverable') -> Money:
     from apps.sales.models import BONUS
-    bonus = order.line_items.filter(type=BONUS).first()
+    bonus = deliverable.line_items.filter(type=BONUS).first()
     if not bonus:
         return Money(0, 'USD')
-    return get_totals(order.line_items.all())[2][bonus]
+    return get_totals(deliverable.line_items.all())[2][bonus]
 
 
-def recuperate_fee(record: 'TransactionRecord') -> 'TransactionRecord':
-    from apps.sales.models import TransactionRecord, Order
-    amount = get_bonus_amount(record.targets.filter(content_type=ContentType.objects.get_for_model(Order)).get().target)
+def recuperate_fee(record: 'TransactionRecord') -> None:
+    from apps.sales.models import TransactionRecord, Deliverable
+    amount = get_bonus_amount(record.targets.filter(content_type=ContentType.objects.get_for_model(Deliverable)).get().target)
     record = TransactionRecord.objects.create(
         status=TransactionRecord.SUCCESS,
         payer=None,
@@ -413,42 +394,46 @@ def recuperate_fee(record: 'TransactionRecord') -> 'TransactionRecord':
     record.targets.set(record.targets.all())
 
 
-def transfer_order(order, old_buyer, new_buyer):
-    from apps.sales.models import buyer_subscriptions, CreditCardToken, ORDER_UPDATE
-    assert old_buyer != new_buyer
+def transfer_order(order, old_buyer, new_buyer, force=False):
+    from apps.sales.models import buyer_subscriptions, CreditCardToken, Revision, ORDER_UPDATE
+    if (old_buyer == new_buyer) and not force:
+        raise AssertionError("Tried to claim an order, but it was already claimed!")
     order.buyer = new_buyer
     order.customer_email = ''
     order.claim_token = None
     order.save()
-    Subscription.objects.bulk_create(buyer_subscriptions(order), ignore_conflicts=True)
-    notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
-    update_order_payments(order)
+    for deliverable in order.deliverables.all():
+        Subscription.objects.bulk_create(buyer_subscriptions(deliverable), ignore_conflicts=True)
+        notify(ORDER_UPDATE, deliverable, unique=True, mark_unread=True)
+        update_order_payments(deliverable)
+    revision_type = ContentType.objects.get_for_model(Revision)
+    Subscription.objects.bulk_create([
+        Subscription(
+            subscriber=new_buyer,
+            object_id=revision_id,
+            content_type=revision_type,
+            type=COMMENT,
+        )
+        for revision_id in Revision.objects.filter(deliverable__order=order).values_list('id', flat=True)
+    ], ignore_conflicts=True)
     if not old_buyer:
         return
-    assert old_buyer.guest
+    if old_buyer == new_buyer:
+        return
     Subscription.objects.filter(subscriber=old_buyer).delete()
     Notification.objects.filter(user=old_buyer).update(user=new_buyer)
     Comment.objects.filter(user=old_buyer).update(user=new_buyer)
     CreditCardToken.objects.filter(user=old_buyer).update(user=new_buyer)
 
 
-def cancel_order(order, requested_by):
-    from apps.sales.models import Order
-    order.status = Order.CANCELLED
-    order.save()
-    if requested_by != order.seller:
-        notify(SALE_UPDATE, order, unique=True, mark_unread=True)
-    if requested_by != order.buyer:
-        notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
-
-
-if TYPE_CHECKING:
-    from apps.sales.models import LineItemSim, LineItem, TransactionRecord
-
-    Line = Union[LineItem, LineItemSim]
-    LineMoneyMap = Dict[Line, Money]
-    TransactionSpecKey = (Union[User, None], int, int)
-    TransactionSpecMap = Dict[TransactionSpecKey, Money]
+def cancel_deliverable(deliverable, requested_by):
+    from apps.sales.models import CANCELLED
+    deliverable.status = CANCELLED
+    deliverable.save()
+    if requested_by != deliverable.order.seller:
+        notify(SALE_UPDATE, deliverable, unique=True, mark_unread=True)
+    if requested_by != deliverable.order.buyer:
+        notify(ORDER_UPDATE, deliverable, unique=True, mark_unread=True)
 
 
 def lines_by_priority(
@@ -534,7 +519,7 @@ def to_distribute(total: Money, money_map: 'LineMoneyMap') -> Money:
     return difference
 
 
-def biggest_first(item: Tuple['LineItem', Decimal]) -> Tuple[Decimal, 'LineItem']:
+def biggest_first(item: Tuple['LineItem', Decimal]) -> Tuple[Decimal, int]:
     return -item[1], item[0].id
 
 
@@ -609,16 +594,16 @@ def lines_to_transaction_specs(lines: Iterator['LineItem']) -> 'TransactionSpecM
 
 
 if TYPE_CHECKING:
-    from apps.sales.models import Order
+    from apps.sales.models import Order, Deliverable
 
 
-def verify_total(order: 'Order'):
-    total = order.total()
+def verify_total(deliverable: 'Deliverable'):
+    total = deliverable.total()
     if total < Money(0, 'USD'):
         raise ValidationError({'amount': ['Total cannot end up less than $0.']})
     if total == Money(0, 'USD'):
         return
-    if (not order.escrow_disabled) and total < Money(settings.MINIMUM_PRICE, 'USD'):
+    if (not deliverable.escrow_disabled) and total < Money(settings.MINIMUM_PRICE, 'USD'):
         raise ValidationError({'amount': [f'Total cannot end up less than ${settings.MINIMUM_PRICE}.']})
 
 
@@ -689,10 +674,11 @@ def ensure_buyer(order: 'Order'):
     user = create_guest_user(order.customer_email)
     order.buyer = user
     order.save()
-    Subscription.objects.bulk_create(buyer_subscriptions(order), ignore_conflicts=True)
+    for deliverable in order.deliverables.all():
+        Subscription.objects.bulk_create(buyer_subscriptions(deliverable), ignore_conflicts=True)
 
 
-def update_order_payments(order: 'Order'):
+def update_order_payments(deliverable: 'Deliverable'):
     """
     Find existing payment actions for an order, and sets the payer to the current buyer.
     This is useful when a order was once created by a guest but later chowned over to a registered user.
@@ -700,5 +686,96 @@ def update_order_payments(order: 'Order'):
     from apps.sales.models import TransactionRecord
     TransactionRecord.objects.filter(
         source__in=[TransactionRecord.CARD, TransactionRecord.CASH_DEPOSIT],
-        targets__object_id=order.id, targets__content_type=ContentType.objects.get_for_model(order),
-    ).update(payer=order.buyer)
+        targets__object_id=deliverable.id, targets__content_type=ContentType.objects.get_for_model(deliverable),
+    ).update(payer=deliverable.order.buyer)
+
+
+def get_claim_token(order: 'Order') -> Union[str, None]:
+    """Determines whether this order should have a claim token, and, if so, generates one if it does not exist,
+    after which it returns whatever claim token is available or None.
+    """
+    if order.buyer and order.buyer.guest:
+        if not order.claim_token:
+            order.claim_token = gen_shortcode()
+            order.save()
+    return order.claim_token
+
+
+def default_deliverable(order: 'Order') -> Union['Deliverable', None]:
+    try:
+        return order.deliverables.get()
+    except MultipleObjectsReturned:
+        return None
+
+
+def get_view_name(deliverable: 'Deliverable') -> str:
+    """
+    Determines the most relevant view at any given time for a deliverable. For instance, if the deliverable is awaiting
+    payment, the payment view is the most relevant. Note that the string this returns is intended to be combined with
+    a prefix, so if this returns 'DeliverablePayment', then the view on the frontend might be 'OrderDeliverablePayment',
+    'SaleDeliverablePayment', or 'CaseDeliverablePayment'.
+    """
+    from apps.sales.models import IN_PROGRESS, QUEUED, PAYMENT_PENDING, REVIEW
+    if deliverable.status in [IN_PROGRESS, QUEUED, REVIEW]:
+        return 'DeliverableRevisions'
+    if deliverable.status == PAYMENT_PENDING:
+        return 'DeliverablePayment'
+    return 'DeliverableOverview'
+
+
+class OrderContext(TypedDict):
+    view_name: str
+    base_name: str
+    username: str
+    latest_settlement: date
+    claim: bool
+    deliverable_id: int
+    order_id: int
+    claim_token: Union[str, None]
+    extra_params: dict
+
+
+def order_context(
+        *, order: 'Order', user: User, logged_in: bool,
+        deliverable: Union['Deliverable', None] = None,
+        view_name: Union[str, None] = None,
+        extra_params: Union[dict, None] = None,
+) -> OrderContext:
+    context = {'view_name': view_name or '', 'order_id': order.id, 'extra_params': extra_params or {}}
+    if order.seller == user:
+        context['base_name'] = 'Sale'
+    if deliverable and deliverable.arbitrator == user:
+        context['base_name'] = 'Case'
+    else:
+        context['base_name'] = 'Order'
+    context['username'] = user.username
+    deliverable = deliverable or default_deliverable(order)
+    context['claim'] = user.guest and not logged_in
+    context['claim_token'] = get_claim_token(order)
+    context['deliverable_id'] = deliverable and deliverable.id
+    if deliverable and not view_name:
+        context['view_name'] = get_view_name(deliverable)
+    elif view_name:
+        context['view_name'] = view_name
+    return context
+
+
+def order_context_to_link(context: OrderContext):
+    if context['claim']:
+        return {
+            'name': 'OrderClaim',
+            'params': {
+                'order_id': context['order_id'],
+                'claim_token': context['claim_token'],
+                'deliverable_id': context['deliverable_id'],
+            },
+        }
+    return {
+        'name': context['base_name'] + context['view_name'],
+        'params': {
+            'username': context['username'],
+            'orderId': context['order_id'],
+            'deliverableId': context['deliverable_id'],
+            **context['extra_params'],
+        },
+    }
