@@ -160,7 +160,7 @@ class User(AbstractEmailUser, HitsMixin):
     hit_counter = GenericRelation(
         'hitcount.HitCount', object_id_field='object_pk',
         related_query_name='hit_counter')
-
+    mailchimp_id = models.CharField(max_length=32, db_index=True, default='')
     @property
     def landscape(self) -> bool:
         return bool(self.landscape_paid_through and self.landscape_paid_through >= date.today())
