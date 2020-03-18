@@ -8,6 +8,19 @@ from apps.sales.apis import chimp
 from conf.celery_config import celery_app
 
 
+def derive_tags(user: User):
+    return [{'name': 'artist', 'status': 'active' if user.artist_mode else 'inactive'}]
+
+
+@celery_app.task
+def mailchimp_tag(user_id):
+    user = User.objects.filter(id=user_id).exclude(mailchimp_id='').first()
+    if not user:
+        return
+    chimp.lists.members.tags.update(
+        list_id=settings.MAILCHIMP_LIST_SECRET, subscriber_hash=user.mailchimp_id, data={'tags': derive_tags(user)})
+
+
 @celery_app.task
 def mailchimp_subscribe(user_id):
     user = User.objects.get(id=user_id)
@@ -17,6 +30,7 @@ def mailchimp_subscribe(user_id):
         'merge_fields': {},
     })['id']
     user.save()
+    mailchimp_tag.delay(user_id)
 
 
 @celery_app.task

@@ -196,7 +196,9 @@ class ArtconomyAnonymousUser(AnonymousUser):
     def is_registered(self):
         return False
 
-# Let's live dangerously.
+
+# Replace Django's internal AnonymousUser model with our own that has the is_registered flag, needed to distinguish
+# guests from normal users.
 from django.contrib.auth import models as auth_models
 
 auth_models.AnonymousUser = ArtconomyAnonymousUser
@@ -233,6 +235,7 @@ def create_user_subscriptions(instance):
 @receiver(post_save, sender=User)
 @disable_on_load
 def auto_subscribe(sender, instance, created=False, **_kwargs):
+    from apps.profiles.tasks import mailchimp_tag
     if created:
         if not instance.guest:
             create_user_subscriptions(instance)
@@ -260,6 +263,7 @@ def auto_subscribe(sender, instance, created=False, **_kwargs):
     except ArtistProfile.DoesNotExist:
         return
     artist_profile.save()
+    mailchimp_tag.delay(instance.id)
 
 
 class ArtistProfile(Model):
