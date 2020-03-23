@@ -663,10 +663,12 @@ class OrderValuesSerializer(serializers.ModelSerializer):
     buyer = serializers.SerializerMethodField()
     seller = serializers.StringRelatedField()
     price = serializers.SerializerMethodField()
+    payment_type = serializers.SerializerMethodField()
     charged_on = serializers.SerializerMethodField()
     still_in_escrow = serializers.SerializerMethodField()
     artist_payment = serializers.SerializerMethodField()
     in_reserve = serializers.SerializerMethodField()
+    sales_tax_collected = serializers.SerializerMethodField()
     unqualified_earnings = serializers.SerializerMethodField()
     refunded_on = serializers.SerializerMethodField()
 
@@ -686,7 +688,7 @@ class OrderValuesSerializer(serializers.ModelSerializer):
         return TransactionRecord.objects.filter(
             status=TransactionRecord.SUCCESS,
             # Will need this to expand to cash or similar?
-            source__in=[TransactionRecord.CARD],
+            source__in=[TransactionRecord.CARD, TransactionRecord.CASH_DEPOSIT],
             **self.qs_kwargs(obj),
         )
 
@@ -700,8 +702,16 @@ class OrderValuesSerializer(serializers.ModelSerializer):
     def get_price(self, obj):
         return self.charge_transactions(obj).aggregate(total=Sum('amount'))['total']
 
+    def get_payment_type(self, obj):
+        return self.charge_transactions(obj)[0].get_source_display()
+
     def get_charged_on(self, obj):
         return self.charge_transactions(obj)[0].created_on
+
+    def get_sales_tax_collected(self, obj):
+        return account_balance(
+            None, TransactionRecord.MONEY_HOLE, AVAILABLE, qs_kwargs=self.qs_kwargs(obj)
+        )
 
     def get_still_in_escrow(self, obj):
         return account_balance(
@@ -734,8 +744,8 @@ class OrderValuesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = (
-            'id', 'created_on', 'status', 'seller', 'buyer', 'price', 'charged_on', 'still_in_escrow', 'artist_payment',
-            'in_reserve', 'unqualified_earnings', 'refunded_on',
+            'id', 'created_on', 'status', 'seller', 'buyer', 'price', 'charged_on', 'payment_type', 'still_in_escrow',
+            'artist_payment', 'in_reserve', 'sales_tax_collected', 'unqualified_earnings', 'refunded_on',
         )
 
 

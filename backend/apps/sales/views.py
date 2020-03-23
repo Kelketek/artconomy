@@ -1812,10 +1812,12 @@ class OrderValues(ListAPIView):
             'seller',
             'buyer',
             'price',
+            'payment_type',
             'charged_on',
             'still_in_escrow',
             'artist_payout',
             'in_reserve',
+            'sales_tax_collected',
             'unqualified_earnings',
             'refunded_on',
         ]
