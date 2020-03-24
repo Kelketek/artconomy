@@ -1,15 +1,17 @@
 from unittest.mock import Mock, patch, PropertyMock
 
+from ddt import data, unpack, ddt
 from django.test import TestCase, override_settings
 
 from freezegun import freeze_time
 from moneyed import Money, Decimal
 from rest_framework.exceptions import ValidationError
 
+from apps.lib.models import ref_for_instance
 from apps.profiles.tests.factories import UserFactory
 from apps.sales.apis import DwollaContext
 from apps.sales.dwolla import make_dwolla_account, add_bank_account, destroy_bank_account, initiate_withdraw, \
-    perform_transfer
+    perform_transfer, derive_dwolla_fee
 from apps.sales.models import BankAccount, TransactionRecord
 from apps.sales.tests.factories import BankAccountFactory, TransactionRecordFactory
 
@@ -78,7 +80,7 @@ class DwollaTestCase(TestCase):
         record = initiate_withdraw(account.user, account, Money('5.00', 'USD'), False)
         self.assertEqual(record.status, TransactionRecord.PENDING)
         self.assertEqual(record.amount, Money('5.00', 'USD'))
-        self.assertEqual(record.target, account)
+        self.assertEqual(record.targets.first().target, account)
         self.assertEqual(record.category, TransactionRecord.CASH_WITHDRAW)
         self.assertEqual(record.source, TransactionRecord.HOLDINGS)
         self.assertEqual(record.destination, TransactionRecord.BANK)
@@ -102,8 +104,8 @@ class DwollaTestCase(TestCase):
             amount=Money('5.00', 'USD'),
             source=TransactionRecord.HOLDINGS,
             destination=TransactionRecord.BANK,
-            target=account
         )
+        record.targets.add(ref_for_instance(account))
         mock_api.return_value.post.return_value.headers = {'location': 'http://transfers/123'}
         perform_transfer(record)
         mock_api.return_value.post.assert_called_with(
@@ -138,14 +140,48 @@ class DwollaTestCase(TestCase):
             amount=Money('5.00', 'USD'),
             source=TransactionRecord.HOLDINGS,
             destination=TransactionRecord.BANK,
-            target=account,
             remote_id='N/A',
         )
+        record.targets.add(ref_for_instance(account))
         mock_api.return_value.post.side_effect = ValueError()
         self.assertRaises(ValueError, perform_transfer, record)
         record.refresh_from_db()
         self.assertEqual(record.remote_id, 'N/A')
         self.assertEqual(record.status, TransactionRecord.FAILURE)
+
+
+TEST_VALUES = (
+    ('5.00', '.05'),
+    ('8.45', '.05'),
+    ('47.50', '.24'),
+    ('37.90', '.19'),
+    ('20.65', '.10'),
+    ('29.85', '.15'),
+    ('24.78', '.12'),
+    ('49.85', '.25'),
+    ('111.25', '.56'),
+    ('13.05', '.07'),
+    ('92.62', '.46'),
+    ('103.18', '.52'),
+    ('23.50', '.12'),
+    ('13.90', '.07'),
+    # Nice.
+    ('137.74', '.69'),
+    ('16.52', '.08'),
+    ('33.04', '.17'),
+    ('71.50', '.36'),
+    ('1000', '5'),
+    ('1024', '5'),
+    ('100000', '5')
+)
+
+
+@ddt
+class TestDwollaFee(TestCase):
+    @unpack
+    @data(*TEST_VALUES)
+    def test_dwolla_fee(self, amount, fee):
+        self.assertEqual(derive_dwolla_fee(Money(Decimal(amount), 'USD')), Money(fee, 'USD'))
 
 
 @patch('apps.sales.apis.client')

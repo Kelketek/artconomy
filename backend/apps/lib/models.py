@@ -7,7 +7,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import JSONField
 from django.core.validators import FileExtensionValidator
 from django.db import models
-from django.db.models import DateTimeField, Model, SlugField, CASCADE
+from django.db.models import DateTimeField, Model, SlugField, CASCADE, PositiveIntegerField, ForeignKey, SET_NULL, \
+    UUIDField
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
@@ -201,6 +202,28 @@ class Tag(Model):
 
     def notification_serialize(self, context):
         return self.name
+
+
+class GenericReference(Model):
+    object_id = UUIDField(db_index=True)
+    content_type = ForeignKey(ContentType, on_delete=SET_NULL, null=True, blank=False)
+    target = GenericForeignKey('content_type', 'object_id')
+
+    def __str__(self):
+        return f'::ref#{self.id}:: {self.target}'
+
+    class Meta:
+        unique_together = (('object_id', 'content_type'),)
+
+
+def ref_for_instance(instance: Model) -> GenericReference:
+    if isinstance(instance, GenericReference):
+        return instance
+    result, _created = GenericReference.objects.get_or_create(
+        content_type=ContentType.objects.get_for_model(instance),
+        object_id=instance.id,
+    )
+    return result
 
 
 def _comment_transform(old_data, new_data):

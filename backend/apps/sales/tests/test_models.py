@@ -240,9 +240,11 @@ class TestOrder(TestCase):
         self.assertEqual(table_service.amount, Money('2.00', 'USD'))
         self.assertTrue(table_service.cascade_percentage)
         self.assertFalse(table_service.cascade_amount)
+        self.assertFalse(table_service.back_into_percentage)
         set_on_fire = order.line_items.get(type=TAX)
         self.assertEqual(set_on_fire.percentage, Decimal('8'))
         self.assertEqual(set_on_fire.amount, Money('0.00', 'USD'))
+        self.assertTrue(set_on_fire.back_into_percentage)
         self.assertEqual(order.line_items.all().count(), 3)
 
 

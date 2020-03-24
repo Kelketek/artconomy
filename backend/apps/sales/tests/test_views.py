@@ -14,7 +14,7 @@ from short_stuff import slugify
 
 from apps.lib.abstract_models import ADULT, MATURE, GENERAL
 from apps.lib.models import DISPUTE, Comment, Subscription, SALE_UPDATE, Notification, REFERRAL_PORTRAIT_CREDIT, \
-    REFERRAL_LANDSCAPE_CREDIT
+    REFERRAL_LANDSCAPE_CREDIT, ref_for_instance
 from apps.lib.test_resources import APITestCase, PermissionsTestCase, MethodAccessMixin, SignalsDisabledMixin
 from apps.lib.tests.factories import TagFactory, AssetFactory
 from apps.profiles.models import User, HAS_US_ACCOUNT, NO_US_ACCOUNT, UNSET, VERIFIED
@@ -1759,7 +1759,7 @@ class TestOrder(APITestCase):
         escrow = TransactionRecord.objects.get(
             remote_id=remote_id, source=source, destination=TransactionRecord.ESCROW,
         )
-        self.assertEqual(escrow.target, order)
+        self.assertEqual(escrow.targets.get().target, order)
         self.assertEqual(escrow.amount, Money('10.29', 'USD'))
         self.assertEqual(escrow.payer, user)
         self.assertEqual(escrow.payee, order.seller)
@@ -1768,14 +1768,14 @@ class TestOrder(APITestCase):
             remote_id=remote_id, source=source, destination=TransactionRecord.RESERVE,
         )
         self.assertEqual(fee.status, TransactionRecord.SUCCESS)
-        self.assertEqual(fee.target, order)
+        self.assertEqual(fee.targets.get().target, order)
         self.assertEqual(fee.amount, Money('1.71', 'USD'))
         self.assertEqual(fee.payer, user)
         self.assertIsNone(fee.payee)
 
         unprocessed = TransactionRecord.objects.get(remote_id=remote_id, source=TransactionRecord.RESERVE, destination=TransactionRecord.UNPROCESSED_EARNINGS)
         self.assertEqual(unprocessed.status, TransactionRecord.SUCCESS)
-        self.assertEqual(unprocessed.target, order)
+        self.assertEqual(unprocessed.targets.get().target, order)
         self.assertEqual(unprocessed.amount, Money('.98', 'USD'))
         self.assertIsNone(unprocessed.payer)
         self.assertIsNone(unprocessed.payee)
@@ -2100,7 +2100,7 @@ class TestOrder(APITestCase):
             payer=user, payee=order.seller,
         )
         self.assertEqual(escrow.status, TransactionRecord.FAILURE)
-        self.assertEqual(escrow.target, order)
+        self.assertEqual(escrow.targets.get().target, order)
         self.assertEqual(escrow.amount, Money('10.29', 'USD'))
         self.assertEqual(escrow.payer, user)
         self.assertEqual(escrow.response_message, "It failed!")
@@ -2109,7 +2109,7 @@ class TestOrder(APITestCase):
             source=TransactionRecord.CARD, destination=TransactionRecord.RESERVE,
         )
         self.assertEqual(fee.status, TransactionRecord.FAILURE)
-        self.assertEqual(fee.target, order)
+        self.assertEqual(fee.targets.get().target, order)
         self.assertEqual(fee.amount, Money('1.71', 'USD'))
         self.assertEqual(fee.payer, user)
         self.assertIsNone(fee.payee)
@@ -2148,7 +2148,7 @@ class TestOrder(APITestCase):
             payer=user, payee=order.seller,
         )
         self.assertEqual(escrow.status, TransactionRecord.FAILURE)
-        self.assertEqual(escrow.target, order)
+        self.assertEqual(escrow.targets.get().target, order)
         self.assertEqual(escrow.amount, Money('10.29', 'USD'))
         self.assertEqual(escrow.payer, user)
         self.assertEqual(escrow.response_message, "It failed!")
@@ -2157,7 +2157,7 @@ class TestOrder(APITestCase):
             source=TransactionRecord.CARD, destination=TransactionRecord.RESERVE,
         )
         self.assertEqual(fee.status, TransactionRecord.FAILURE)
-        self.assertEqual(fee.target, order)
+        self.assertEqual(fee.targets.get().target, order)
         self.assertEqual(fee.amount, Money('1.71', 'USD'))
         self.assertEqual(fee.payer, user)
         self.assertIsNone(fee.payee)
@@ -2625,13 +2625,13 @@ class TestOrderStateChange(SignalsDisabledMixin, APITestCase):
     @patch('apps.sales.tasks.withdraw_all.delay')
     def test_approve_order_buyer(self, mock_withdraw, mock_bonus_amount, _mock_notify):
         record = TransactionRecordFactory.create(
-            target=self.order,
             payee=self.order.seller,
             payer=self.order.buyer,
             source=TransactionRecord.CARD,
             destination=TransactionRecord.ESCROW,
             amount=Money('15.00', 'USD'),
         )
+        record.targets.add(ref_for_instance(self.order))
         mock_bonus_amount.return_value = Money('5.00', 'USD')
         self.state_assertion('buyer', 'approve/', initial_status=Order.REVIEW)
         record.refresh_from_db()
@@ -2657,8 +2657,7 @@ class TestOrderStateChange(SignalsDisabledMixin, APITestCase):
         self.order.disputed_on = target_time
         self.order.save()
         mock_bonus_amount.return_value = Money('2.50', 'USD')
-        TransactionRecordFactory.create(
-            target=self.order,
+        record = TransactionRecordFactory.create(
             payee=self.order.seller,
             payer=self.order.buyer,
             destination=TransactionRecord.ESCROW,
@@ -2666,6 +2665,7 @@ class TestOrderStateChange(SignalsDisabledMixin, APITestCase):
             category=TransactionRecord.ESCROW_HOLD,
             amount=Money('15.00', 'USD'),
         )
+        record.targets.add(ref_for_instance(self.order))
         self.state_assertion('buyer', 'approve/', initial_status=Order.DISPUTED)
         mock_recall.assert_has_calls([call(DISPUTE, self.order)])
         self.order.refresh_from_db()
@@ -2674,8 +2674,7 @@ class TestOrderStateChange(SignalsDisabledMixin, APITestCase):
     @patch('apps.sales.utils.get_bonus_amount')
     @patch('apps.sales.utils.recall_notification')
     def test_approve_order_staffer_no_recall_notification(self, mock_recall, mock_bonus_amount, _mock_notify):
-        TransactionRecordFactory.create(
-            target=self.order,
+        record = TransactionRecordFactory.create(
             payee=self.order.seller,
             payer=self.order.buyer,
             destination=TransactionRecord.ESCROW,
@@ -2683,6 +2682,7 @@ class TestOrderStateChange(SignalsDisabledMixin, APITestCase):
             category=TransactionRecord.ESCROW_HOLD,
             amount=Money('15.00', 'USD'),
         )
+        record.targets.add(ref_for_instance(self.order))
         mock_bonus_amount.return_value = Money('2.50', 'USD')
         target_time = timezone.now()
         self.order.disputed_on = target_time
@@ -2705,29 +2705,29 @@ class TestOrderStateChange(SignalsDisabledMixin, APITestCase):
         self.order.save()
         idempotent_lines(self.order)
         record = TransactionRecordFactory.create(
-            target=self.order,
             payee=self.order.seller,
             payer=self.order.buyer,
             source=TransactionRecord.CARD,
             destination=TransactionRecord.ESCROW,
             amount=Money('15.00', 'USD'),
         )
-        TransactionRecordFactory.create(
-            target=self.order,
+        record.targets.add(ref_for_instance(self.order))
+        record2 = TransactionRecordFactory.create(
             payee=None,
             payer=self.order.buyer,
             source=TransactionRecord.CARD,
             destination=TransactionRecord.RESERVE,
             amount=Money('2.00', 'USD'),
         )
-        TransactionRecordFactory.create(
-            target=self.order,
+        record2.targets.add(ref_for_instance(self.order))
+        record3 = TransactionRecordFactory.create(
             payee=None,
             payer=self.order.buyer,
             source=TransactionRecord.CARD,
             destination=TransactionRecord.MONEY_HOLE_STAGE,
             amount=Money('3.00', 'USD'),
         )
+        record3.targets.add(ref_for_instance(self.order))
         self.state_assertion('buyer', 'approve/', initial_status=Order.REVIEW)
         record.refresh_from_db()
         records = TransactionRecord.objects.all()
@@ -2759,9 +2759,8 @@ class TestOrderStateChange(SignalsDisabledMixin, APITestCase):
     )
     def test_refund_card_seller(self, mock_refund_transaction, mock_bonus_amount, _mock_notify):
         card = CreditCardTokenFactory.create()
-        TransactionRecordFactory.create(
+        record = TransactionRecordFactory.create(
             card=card,
-            target=self.order,
             payee=self.order.seller,
             payer=self.order.buyer,
             amount=Money('15.00', 'USD'),
@@ -2769,6 +2768,7 @@ class TestOrderStateChange(SignalsDisabledMixin, APITestCase):
             destination=TransactionRecord.ESCROW,
             remote_id='1234',
         )
+        record.targets.add(ref_for_instance(self.order))
         mock_refund_transaction.return_value = '123'
         mock_bonus_amount.return_value = Money('2.50', 'USD')
         self.state_assertion('seller', 'refund/', initial_status=Order.DISPUTED)
@@ -2790,14 +2790,14 @@ class TestOrderStateChange(SignalsDisabledMixin, APITestCase):
     @patch('apps.sales.utils.refund_transaction')
     def test_refund_card_seller_error(self, mock_refund_transaction, _mock_notify):
         card = CreditCardTokenFactory.create()
-        TransactionRecordFactory.create(
-            target=self.order,
+        record = TransactionRecordFactory.create(
             payee=self.order.seller,
             payer=self.order.buyer,
             source=TransactionRecord.CARD,
             destination=TransactionRecord.ESCROW,
             card=card,
         )
+        record.targets.add(ref_for_instance(self.order))
         mock_refund_transaction.side_effect = AuthorizeException(
             "It failed"
         )
@@ -2812,13 +2812,13 @@ class TestOrderStateChange(SignalsDisabledMixin, APITestCase):
 
     @patch('apps.sales.utils.refund_transaction')
     def test_refund_cash_only(self, mock_refund_transaction, _mock_notify):
-        TransactionRecordFactory.create(
-            target=self.order,
+        record = TransactionRecordFactory.create(
             payee=self.order.seller,
             payer=self.order.buyer,
             source=TransactionRecord.CASH_DEPOSIT,
             destination=TransactionRecord.ESCROW,
         )
+        record.targets.add(ref_for_instance(self.order))
         mock_refund_transaction.side_effect = AuthorizeException(
             "It failed"
         )
@@ -2843,11 +2843,11 @@ class TestOrderStateChange(SignalsDisabledMixin, APITestCase):
     def test_refund_card_staffer(self, mock_refund_transaction, mock_bonus_amount, _mock_notify):
         card = CreditCardTokenFactory.create()
         record = TransactionRecordFactory.create(
-            target=self.order,
             payee=self.order.seller,
             payer=self.order.buyer,
             card=card,
         )
+        record.targets.add(ref_for_instance(self.order))
         mock_refund_transaction.return_value = '123'
         mock_bonus_amount.return_value = Money('2.50')
         self.state_assertion('staffer', 'refund/', initial_status=Order.DISPUTED)
@@ -2871,11 +2871,11 @@ class TestOrderStateChange(SignalsDisabledMixin, APITestCase):
     @patch('apps.sales.utils.get_bonus_amount')
     def test_approve_order_staffer(self, mock_bonus_amount, _mock_notify):
         record = TransactionRecordFactory.create(
-            target=self.order,
             payee=self.order.seller,
             payer=self.order.buyer,
             amount=Money('15.00', 'USD'),
         )
+        record.targets.add(ref_for_instance(self.order))
         mock_bonus_amount.return_value = Money('2.50', 'USD')
         self.state_assertion('staffer', 'approve/', initial_status=Order.REVIEW)
         record.refresh_from_db()

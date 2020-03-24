@@ -7,7 +7,7 @@ from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.auth import login
 from django.contrib.contenttypes.models import ContentType
-from django.db import transaction, IntegrityError
+from django.db import transaction
 from django.views.static import serve
 from django.db.models import When, F, Case, BooleanField, Q, Count, QuerySet, IntegerField, Sum
 from django.shortcuts import get_object_or_404
@@ -35,7 +35,7 @@ from rest_framework_csv.renderers import CSVRenderer, JSONRenderer
 from short_stuff import slugify
 
 from apps.lib.models import DISPUTE, REFUND, COMMENT, Subscription, ORDER_UPDATE, SALE_UPDATE, REVISION_UPLOADED, \
-    NEW_PRODUCT, STREAMING
+    NEW_PRODUCT, STREAMING, ref_for_instance
 from apps.lib.permissions import IsStaff, IsSafeMethod, Any, All, IsMethod
 from apps.lib.utils import notify, recall_notification, demark, preview_rating, send_transaction_email
 from apps.lib.views import BasePreview
@@ -759,14 +759,14 @@ class OrderRefund(GenericAPIView):
             return Response(status=status.HTTP_200_OK, data=serializer.data)
         order_type = ContentType.objects.get_for_model(order)
         original_record = TransactionRecord.objects.get(
-            object_id=order.id, content_type=order_type, payer=order.buyer,
+            targets__object_id=order.id, targets__content_type=order_type, payer=order.buyer,
             payee=order.seller,
             destination=TransactionRecord.ESCROW,
             status=TransactionRecord.SUCCESS,
         )
         transaction_set = TransactionRecord.objects.filter(
             source__in=[TransactionRecord.CARD, TransactionRecord.CASH_DEPOSIT],
-            content_type=order_type, object_id=order.id,
+            targets__content_type=order_type, targets__object_id=order.id,
             status=TransactionRecord.SUCCESS,
         ).exclude(category=TransactionRecord.SHIELD_FEE)
         record = issue_refund(transaction_set, TransactionRecord.ESCROW_REFUND)[0]
@@ -1036,6 +1036,7 @@ class PaymentMixin:
         self.post_success(transactions, data, user)
         for transaction in transactions:
             transaction.save()
+        self.post_save(transactions, data, user)
         return True, transactions
 
     def from_remote_id(self, data: dict, amount: Money, user: User, remote_id: str):
@@ -1046,13 +1047,17 @@ class PaymentMixin:
         self.post_success(transactions, data, user)
         for transaction in transactions:
             transaction.save()
+        self.post_save(transactions, data, user)
         return True, transactions
 
-    def annotate_error(self, transactions: List[TransactionRecord], err: Exception) -> (False, Response):
+    def annotate_error(
+            self, transactions: List[TransactionRecord], err: Exception, data: dict, user: User
+    ) -> (False, Response):
         response_message = str(err)
         for transaction in transactions:
             transaction.response_message = response_message
             transaction.save()
+        self.post_save(transactions, data, user)
         return False, Response(
             status=status.HTTP_400_BAD_REQUEST, data={'detail': response_message}
         )
@@ -1079,13 +1084,14 @@ class PaymentMixin:
         try:
             remote_id = charge_card(card_info, address_info, amount.amount)
         except Exception as err:
-            return self.annotate_error(transactions, err)
+            return self.annotate_error(transactions, err, data, user)
         for transaction in transactions:
             transaction.status = TransactionRecord.SUCCESS
             transaction.remote_id = remote_id
         self.post_success(transactions, data, user)
         for transaction in transactions:
             transaction.save()
+        self.post_save(transactions, data, user)
 
         card_args = dict(
             type=CreditCardToken.TYPE_TRANSLATION[get_card_type(data['number'])],
@@ -1121,13 +1127,14 @@ class PaymentMixin:
                 payment_id=card.payment_id, amount=amount.amount, cvv=data.get('cvv', None),
             )
         except Exception as err:
-            return self.annotate_error(transactions, err)
+            return self.annotate_error(transactions, err, data, user)
         for transaction in transactions:
             transaction.status = TransactionRecord.SUCCESS
             transaction.remote_id = remote_id
         self.post_success(transactions, data, user)
         for transaction in transactions:
             transaction.save()
+        self.post_save(transactions, data, user)
         card.cvv_verified = True
         card.save()
         return True, transactions
@@ -1141,6 +1148,12 @@ class PaymentMixin:
     def post_success(self, transactions: List[TransactionRecord], data: dict, user: User):  # pragma: no cover
         """
         Override to further annotate the successful transaction.
+        """
+        pass
+
+    def post_save(self, transactions: List[TransactionRecord], data: dict, user: User):  # pragma: no cover
+        """
+        Override for actions that should be taken after the transactions are saved (such as adding targets)
         """
         pass
 
@@ -1169,7 +1182,7 @@ class MakePayment(PaymentMixin, GenericAPIView):
     def init_transactions(self, data: dict, amount: Money, user: User) -> List[TransactionRecord]:
         order = self.get_object()
         transaction_specs = self.transaction_specs()
-        return [
+        transactions = [
             TransactionRecord(
                 payer=order.buyer,
                 status=TransactionRecord.FAILURE,
@@ -1179,9 +1192,14 @@ class MakePayment(PaymentMixin, GenericAPIView):
                 destination=destination_account,
                 amount=value,
                 response_message="Failed when contacting payment processor.",
-                target=order,
             ) for ((destination_user, destination_account, category), value) in transaction_specs.items()
         ]
+        return transactions
+
+    def post_save(self, transactions: List[TransactionRecord], data: dict, user: User):
+        order = self.get_object()
+        for transaction in transactions:
+            transaction.targets.add(ref_for_instance(order))
 
     def post_success(self, transactions: List[TransactionRecord], data: dict, user: User):
         escrow_record, fee_record, *other = transactions
@@ -1190,7 +1208,7 @@ class MakePayment(PaymentMixin, GenericAPIView):
             return
         reserve_item = order.line_items.get(type=SHIELD)
         _value, subtotals = get_totals(order.line_items.all())
-        TransactionRecord.objects.create(
+        record = TransactionRecord.objects.create(
             payer=None,
             payee=None,
             amount=subtotals[reserve_item],
@@ -1198,9 +1216,9 @@ class MakePayment(PaymentMixin, GenericAPIView):
             destination=TransactionRecord.UNPROCESSED_EARNINGS,
             remote_id=fee_record.remote_id,
             status=TransactionRecord.SUCCESS,
-            target=fee_record.target,
             category=TransactionRecord.SHIELD_FEE,
         )
+        record.targets.add(ref_for_instance(order))
 
     # noinspection PyUnusedLocal
     def post(self, *args, **kwargs):
@@ -1755,7 +1773,7 @@ class CreateInvoice(GenericAPIView):
                 # Trigger line item creation.
                 order.save()
         except InventoryError:
-            return Response(data={'detail': 'This product is out of stock.'})
+            return Response(data={'detail': 'This product is out of stock.'}, status=status.HTTP_400_BAD_REQUEST)
         return Response(data=OrderViewSerializer(instance=order, context=self.get_serializer_context()).data)
 
 

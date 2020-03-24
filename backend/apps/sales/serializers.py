@@ -669,6 +669,7 @@ class OrderValuesSerializer(serializers.ModelSerializer):
     artist_payment = serializers.SerializerMethodField()
     in_reserve = serializers.SerializerMethodField()
     sales_tax_collected = serializers.SerializerMethodField()
+    add_on = serializers.SerializerMethodField()
     unqualified_earnings = serializers.SerializerMethodField()
     refunded_on = serializers.SerializerMethodField()
 

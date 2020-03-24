@@ -2,6 +2,7 @@
   <v-row no-gutters>
     <v-col class="text-right pr-1" :cols="labelCols">{{label}}:</v-col>
     <v-col v-if="editing" cols="4">
+      <span v-if="line.back_into_percentage && line.percentage">(*)</span>
       <span v-if="line.cascade_percentage && line.percentage">(</span>
       <span v-if="line.percentage">{{line.percentage.toFixed(2)}}%</span>
       <span v-if="line.cascade_percentage && line.percentage">)</span>

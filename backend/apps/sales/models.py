@@ -29,7 +29,7 @@ from moneyed import Money
 from short_stuff import gen_unique_id, slugify
 
 from apps.lib.models import Comment, Subscription, SALE_UPDATE, ORDER_UPDATE, REVISION_UPLOADED, COMMENT, NEW_PRODUCT, \
-    Event
+    Event, ref_for_instance
 from apps.lib.abstract_models import ImageModel, thumbnail_hook, HitsMixin, RATINGS, GENERAL
 from apps.lib.utils import (
     clear_events, recall_notification, require_lock,
@@ -119,6 +119,7 @@ class Product(ImageModel, HitsMixin):
                 ),
                 LineItemSim(
                     percentage=settings.TABLE_TAX, priority=600, type=TAX, cascade_percentage=True, cascade_amount=True,
+                    back_into_percentage=True,
                 ),
             ])
         elif self.base_price and not self.escrow_disabled:
@@ -315,6 +316,7 @@ class Order(Model):
     arbitrator = ForeignKey(User, related_name='cases', null=True, blank=True, on_delete=SET_NULL)
     stream_link = URLField(blank=True, default='')
     characters = ManyToManyField('profiles.Character', blank=True)
+    payout_sent = BooleanField(default=False, db_index=True)
     rating = IntegerField(
         choices=RATINGS, db_index=True, default=GENERAL,
         help_text="The desired content rating of this piece.",
@@ -438,7 +440,8 @@ def idempotent_lines(instance: Order):
             destination_user=None, destination_account=TransactionRecord.RESERVE, type=TABLE_SERVICE,
         )
         LineItem.objects.update_or_create(
-            {'percentage': settings.TABLE_TAX, 'cascade_percentage': True, 'cascade_amount': True},
+            {'percentage': settings.TABLE_TAX, 'cascade_percentage': True, 'cascade_amount': True,
+             'back_into_percentage': True},
             order=instance, destination_user=None, destination_account=TransactionRecord.MONEY_HOLE_STAGE, type=TAX,
         )
         instance.line_items.filter(type__in=[BONUS, SHIELD]).delete()
@@ -933,10 +936,7 @@ class TransactionRecord(Model):
     created_on = DateTimeField(db_index=True, default=timezone.now)
     finalized_on = DateTimeField(db_index=True, default=None, null=True, blank=True)
     amount = MoneyField(max_digits=6, decimal_places=2, default_currency='USD')
-
-    object_id = PositiveIntegerField(null=True, blank=True, db_index=True)
-    content_type = ForeignKey(ContentType, on_delete=SET_NULL, null=True, blank=True)
-    target = GenericForeignKey('content_type', 'object_id')
+    targets = ManyToManyField(to='lib.GenericReference', related_name='referencing_transactions')
 
     remote_id = CharField(max_length=40, blank=True, default='')
     response_message = TextField(default='', blank=True)
@@ -947,8 +947,24 @@ class TransactionRecord(Model):
             f'{self.get_status_display()}: {self.amount} from '
             f'{self.payer or "(Artconomy)"} [{self.get_source_display()}] to '
             f'{self.payee or "(Artconomy)"} [{self.get_destination_display()}] for '
-            f'{self.target}'
+            f'{self.target_string}'
         )
+
+    @property
+    def target_string(self):
+        count = self.targets.all().count()
+        if not count:
+            return 'None'
+        base_string = str(self.targets.all().first().target)
+        if count == 1:
+            return base_string
+        count -= 1
+        return base_string + f' and {count} other(s).'
+
+    def __setattr__(self, key, value):
+        if key in ['object_id', 'content_type', 'content_type_id', 'target']:
+            raise AttributeError("Single target no longer supported. Add to 'targets' M2M field via GenericReference.")
+        object.__setattr__(self, key, value)
 
     def refund_card(self) -> 'TransactionRecord':
         if self.category == TransactionRecord.SUBSCRIPTION_DUES:
@@ -966,11 +982,10 @@ class TransactionRecord(Model):
             category=category,
             payer=self.payee,
             payee=self.payer,
-            content_type=self.content_type,
-            object_id=self.object_id,
             amount=self.amount,
             response_message="Failed when contacting payment processor.",
         )
+        record.targets.set(self.targets.all())
         try:
             record.remote_id = refund_transaction(self.remote_id, self.card.last_four, self.amount.amount)
             record.status = TransactionRecord.SUCCESS
@@ -1049,6 +1064,7 @@ class LineItem(Model):
     priority = IntegerField(db_index=True)
     cascade_percentage = BooleanField(db_index=True, default=False)
     cascade_amount = BooleanField(db_index=True, default=False)
+    back_into_percentage = BooleanField(db_index=True, default=False)
     destination_user = ForeignKey(User, null=True, db_index=True, on_delete=CASCADE)
     destination_account = IntegerField(choices=TransactionRecord.ACCOUNT_TYPES)
     description = CharField(max_length=250, blank=True, default='')
@@ -1068,6 +1084,7 @@ class LineItemSim:
     percentage: Decimal = Decimal(0)
     cascade_percentage: bool = False
     cascade_amount: bool = False
+    back_into_percentage: bool = False
     type: int = BASE_PRICE
     description: str = ''
 
@@ -1191,17 +1208,17 @@ def ensure_shield(sender, instance, created=False, **_kwargs):
         return
     instance.user.escrow_disabled = False
     instance.user.save()
-    TransactionRecord.objects.create(
+    record = TransactionRecord.objects.create(
         payer=instance.user,
         amount=Money('1.00', 'USD'),
         category=TransactionRecord.THIRD_PARTY_FEE,
         payee=None,
         source=TransactionRecord.HOLDINGS,
         destination=TransactionRecord.ACH_MISC_FEES,
-        target=instance,
         status=TransactionRecord.SUCCESS,
         note='Bank Connection Fee'
     )
+    record.targets.add(ref_for_instance(instance))
     from apps.sales.tasks import withdraw_all
     withdraw_all(instance.user.id)
 

@@ -1,17 +1,19 @@
 import logging
 
+from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
 from django.db.models import Q
 from django.utils import timezone
 from django.utils.datetime_safe import date
 from moneyed import Money
+from urllib3.exceptions import HTTPError
 
-from apps.lib.models import RENEWAL_FAILURE, SUBSCRIPTION_DEACTIVATED, RENEWAL_FIXED, TRANSFER_FAILED
+from apps.lib.models import RENEWAL_FAILURE, SUBSCRIPTION_DEACTIVATED, RENEWAL_FIXED, TRANSFER_FAILED, ref_for_instance
 from apps.lib.utils import notify, send_transaction_email
 from apps.profiles.models import User
 from apps.sales.apis import dwolla
-from apps.sales.authorize import AuthorizeException, charge_saved_card, translate_authnet_error
-from apps.sales.dwolla import initiate_withdraw, perform_transfer
+from apps.sales.authorize import AuthorizeException, charge_saved_card
+from apps.sales.dwolla import initiate_withdraw, perform_transfer, TRANSACTION_STATUS_MAP
 from apps.sales.models import CreditCardToken, Order, TransactionRecord
 from apps.sales.utils import service_price, set_service, finalize_order, account_balance
 from conf.celery_config import celery_app
@@ -58,8 +60,8 @@ def renew(user_id, service, card_id=None):
         category=TransactionRecord.SUBSCRIPTION_DUES,
         amount=price,
         response_message="Failed when contacting payment processor.",
-        target=user,
     )
+    record.targets.add(ref_for_instance(user))
     try:
         remote_id = charge_saved_card(profile_id=card.profile_id, payment_id=card.payment_id, amount=price.amount)
     except AuthorizeException as err:
@@ -127,6 +129,9 @@ def update_transfer_status(record_id):
         if status.body['status'] == 'processed':
             record.status = TransactionRecord.SUCCESS
             record.save()
+            TransactionRecord.objects.filter(
+                targets=ref_for_instance(record), category=TransactionRecord.THIRD_PARTY_FEE,
+            ).update(status=TransactionRecord.SUCCESS)
         if status.body['status'] == 'cancelled':
             record.status = TransactionRecord.FAILURE
             record.save()
@@ -138,6 +143,9 @@ def update_transfer_status(record_id):
                              'or contact support.'
                 }
             )
+            TransactionRecord.objects.filter(
+                targets=ref_for_instance(record), category=TransactionRecord.THIRD_PARTY_FEE,
+            ).update(status=TransactionRecord.FAILURE)
 
 
 @celery_app.task
@@ -207,3 +215,28 @@ def remind_sales():
             to_remind.append(order)
     for order in to_remind:
         remind_sale.delay(order.id)
+
+
+@celery_app.task(
+    bind=True, autoretry_for=(HTTPError,), retry_kwargs={'max_retries': 5}, exponential_backoff=2, retry_jitter=True,
+)
+def get_transaction_fees(self, transaction_id: str):
+    record = TransactionRecord.objects.get(id=transaction_id)
+    if TransactionRecord.objects.filter(targets=ref_for_instance(record)).exists():
+        # We've already grabbed the fees. Bail.
+        return
+    with dwolla as api:
+        response = api.get(f'transfers/{record.remote_id}/fees')
+    for transaction in response.body['transactions']:
+        fee = TransactionRecord.objects.create(
+            status=TRANSACTION_STATUS_MAP[transaction['status']],
+            created_on=parse(transaction['created']),
+            payee=None,
+            payer=None,
+            source=TransactionRecord.UNPROCESSED_EARNINGS,
+            destination=TransactionRecord.ACH_TRANSACTION_FEES,
+            category=TransactionRecord.THIRD_PARTY_FEE,
+            remote_id=transaction['id'],
+            amount=Money(transaction['amount']['value'], transaction['amount']['currency'])
+        )
+        fee.targets.add(ref_for_instance(record))

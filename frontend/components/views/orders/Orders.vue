@@ -244,6 +244,7 @@ export default class Orders extends mixins(Subjective) {
         type: LineTypes.SHIELD,
         cascade_percentage: true,
         cascade_amount: true,
+        back_into_percentage: false,
         amount: this.pricing.x.standard_static,
         percentage: this.pricing.x.standard_percentage,
         description: '',
@@ -253,6 +254,7 @@ export default class Orders extends mixins(Subjective) {
         type: LineTypes.BONUS,
         cascade_percentage: true,
         cascade_amount: true,
+        back_into_percentage: false,
         amount: this.pricing.x.premium_static_bonus,
         percentage: this.pricing.x.premium_percentage_bonus,
         description: '',
@@ -268,6 +270,7 @@ export default class Orders extends mixins(Subjective) {
         description: '',
         cascade_amount: false,
         cascade_percentage: false,
+        back_into_percentage: false,
       })
       addOnPrice = addOnPrice - this.invoiceProduct.x.starting_price
       if (!isNaN(addOnPrice) && addOnPrice) {
@@ -280,6 +283,7 @@ export default class Orders extends mixins(Subjective) {
           description: '',
           cascade_amount: false,
           cascade_percentage: false,
+          back_into_percentage: false,
         })
       }
       if (this.invoiceProduct.x.table_product) {
@@ -289,6 +293,7 @@ export default class Orders extends mixins(Subjective) {
           type: LineTypes.TABLE_SERVICE,
           cascade_percentage: true,
           cascade_amount: false,
+          back_into_percentage: false,
           amount: this.pricing.x.table_static,
           percentage: this.pricing.x.table_percentage,
           description: '',
@@ -298,6 +303,7 @@ export default class Orders extends mixins(Subjective) {
           type: LineTypes.TAX,
           cascade_percentage: true,
           cascade_amount: true,
+          back_into_percentage: true,
           percentage: this.pricing.x.table_tax,
           description: '',
           amount: 0,
@@ -315,6 +321,7 @@ export default class Orders extends mixins(Subjective) {
         description: '',
         cascade_amount: false,
         cascade_percentage: false,
+        back_into_percentage: true,
       })
       if (!this.escrowDisabled) {
         lines.push(...shieldLines)

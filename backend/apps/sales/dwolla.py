@@ -1,13 +1,26 @@
+from decimal import Decimal, localcontext, ROUND_HALF_EVEN
+
+from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
 from dwollav2 import ValidationError as DwollaValidationError
+from moneyed import Money
 from rest_framework.exceptions import ValidationError
 
+from apps.lib.models import ref_for_instance
 from apps.lib.utils import require_lock
 from apps.sales.apis import dwolla
 from ipware import get_client_ip
 
 from apps.sales.models import BankAccount, TransactionRecord
 from apps.sales.utils import account_balance
+
+TRANSACTION_STATUS_MAP = {
+    'pending': TransactionRecord.PENDING,
+    'processed': TransactionRecord.SUCCESS,
+    'failed': TransactionRecord.FAILURE,
+    'cancelled': TransactionRecord.FAILURE,
+}
 
 
 def make_dwolla_account(request, user, first_name, last_name):
@@ -69,6 +82,17 @@ def destroy_bank_account(account):
     account.save()
 
 
+def derive_dwolla_fee(amount: Money):
+    with localcontext() as ctx:
+        ctx.rounding = ROUND_HALF_EVEN
+        fee = (amount * settings.DWOLLA_PERCENTAGE_FEE * Decimal('.01')).round(2)
+    if fee < settings.DWOLLA_MIN_FEE:
+        return settings.DWOLLA_MIN_FEE
+    elif fee > settings.DWOLLA_MAX_FEE:
+        return settings.DWOLLA_MAX_FEE
+    return fee
+
+
 @transaction.atomic
 @require_lock(TransactionRecord, 'ACCESS EXCLUSIVE')
 def initiate_withdraw(user, bank, amount, test_only=True):
@@ -77,7 +101,7 @@ def initiate_withdraw(user, bank, amount, test_only=True):
         raise ValidationError({'amount': ['Amount cannot be greater than current balance of {}.'.format(balance)]})
     if test_only:
         return
-    record = TransactionRecord(
+    main_record = TransactionRecord(
         category=TransactionRecord.CASH_WITHDRAW,
         payee=user,
         payer=user,
@@ -85,20 +109,22 @@ def initiate_withdraw(user, bank, amount, test_only=True):
         destination=TransactionRecord.BANK,
         status=TransactionRecord.PENDING,
         amount=amount,
-        target=bank,
     )
-    record.save()
-    return record
+    main_record.save()
+    main_record.targets.add(ref_for_instance(bank))
+    return main_record
 
 
 def perform_transfer(record, note='Disbursement'):
+    from .tasks import get_transaction_fees
+    bank = record.targets.filter(content_type=ContentType.objects.get_for_model(BankAccount)).get().target
     transfer_request = {
         '_links': {
             'source': {
                 'href': dwolla.funding_url
             },
             'destination': {
-                'href': record.target.url
+                'href': bank.url
             }
         },
         'amount': {
@@ -106,7 +132,7 @@ def perform_transfer(record, note='Disbursement'):
             'value': str(record.amount.amount),
         },
         'metadata': {
-            'customerId': str(record.target.user.id),
+            'customerId': str(bank.user.id),
             'notes': note
         }
     }
@@ -114,10 +140,12 @@ def perform_transfer(record, note='Disbursement'):
         try:
             transfer = api.post('transfers', transfer_request)
             record.remote_id = transfer.headers['location'].split('/transfers/')[-1].strip('/')
+            record.remote_message = ''
             record.save()
         except Exception as err:
             record.status = TransactionRecord.FAILURE
             record.remote_message = str(err)
             record.save()
             raise
+        get_transaction_fees.delay(str(record.id))
         return record

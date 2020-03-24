@@ -45,7 +45,13 @@ export function priorityTotal(current: LineAccumulator, prioritySet: LineItem[])
     // Percentages with equal priorities should not stack.
     let cascadedAmount = Big(0)
     let addedAmount = Big(0)
-    let workingAmount = currentTotal.times(Big('0.01')).times(quantize(Big(line.percentage)))
+    let workingAmount: Big
+    let multiplier = Big('0.01').times(quantize(Big(line.percentage)))
+    if (line.back_into_percentage) {
+      workingAmount = currentTotal.div(multiplier.plus(Big('1.00'))).times(multiplier)
+    } else {
+      workingAmount = currentTotal.times(multiplier)
+    }
     const lineValues: LineMoneyMap = new Map()
     if (line.cascade_percentage) {
       cascadedAmount = cascadedAmount.plus(workingAmount)

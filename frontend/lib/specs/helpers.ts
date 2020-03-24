@@ -10,6 +10,7 @@ export function genLineItem(overrides: Partial<LineItem>): LineItem {
     priority: 0,
     cascade_percentage: false,
     cascade_amount: false,
+    back_into_percentage: false,
     description: '',
     ...overrides,
   }
@@ -28,6 +29,7 @@ export function dummyLineItems(): LineItem[] {
       description: '',
       cascade_percentage: true,
       cascade_amount: true,
+      back_into_percentage: false,
     },
     {
       id: 22,
@@ -40,6 +42,7 @@ export function dummyLineItems(): LineItem[] {
       description: '',
       cascade_percentage: true,
       cascade_amount: true,
+      back_into_percentage: false,
     },
     {
       id: 20,
@@ -52,6 +55,7 @@ export function dummyLineItems(): LineItem[] {
       description: '',
       cascade_percentage: false,
       cascade_amount: false,
+      back_into_percentage: false,
     },
     {
       id: 23,
@@ -64,6 +68,7 @@ export function dummyLineItems(): LineItem[] {
       description: 'Discount',
       cascade_percentage: false,
       cascade_amount: false,
+      back_into_percentage: false,
     },
   ]
 }

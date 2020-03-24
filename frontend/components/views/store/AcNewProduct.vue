@@ -194,6 +194,7 @@ export default class AcNewProduct extends Subjective {
         description: '',
         cascade_amount: false,
         cascade_percentage: false,
+        back_into_percentage: false,
       }]
       if (this.newProduct.fields.table_product.value) {
         lines.push({
@@ -204,6 +205,7 @@ export default class AcNewProduct extends Subjective {
           cascade_amount: false,
           amount: this.pricing.x.table_static,
           percentage: this.pricing.x.table_percentage,
+          back_into_percentage: false,
           description: '',
         }, {
           id: -3,
@@ -211,6 +213,7 @@ export default class AcNewProduct extends Subjective {
           type: LineTypes.TAX,
           cascade_percentage: true,
           cascade_amount: true,
+          back_into_percentage: true,
           percentage: this.pricing.x.table_tax,
           description: '',
           amount: 0,
@@ -224,6 +227,7 @@ export default class AcNewProduct extends Subjective {
           cascade_amount: true,
           amount: this.pricing.x.standard_static,
           percentage: this.pricing.x.standard_percentage,
+          back_into_percentage: false,
           description: '',
         }, {
           id: -5,
@@ -231,6 +235,7 @@ export default class AcNewProduct extends Subjective {
           type: LineTypes.BONUS,
           cascade_percentage: true,
           cascade_amount: true,
+          back_into_percentage: false,
           amount: this.pricing.x.premium_static_bonus,
           percentage: this.pricing.x.premium_percentage_bonus,
           description: '',

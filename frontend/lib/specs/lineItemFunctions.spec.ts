@@ -66,6 +66,24 @@ describe('lineItemFunctions.ts', () => {
       ]),
     })
   })
+  it('Gets the total with a backed in, cascading percentage modifier', () => {
+    const source = [
+      genLineItem({amount: 10, priority: 0}),
+      genLineItem({percentage: 10, priority: 1, cascade_percentage: true, back_into_percentage: true}),
+    ]
+    const result = getTotals(source)
+    expect(result).toEqual({
+      total: Big('10'),
+      map: new Map([
+        [genLineItem({amount: 10, priority: 0}), Big('9.09')],
+        [
+          genLineItem(
+            {percentage: 10, priority: 1, cascade_percentage: true, back_into_percentage: true},
+          ),
+          Big('.91')],
+      ]),
+    })
+  })
   it('Gets totals with a line item that has both percentage and static modifiers', () => {
     const source = [
       genLineItem({amount: 10, priority: 0}),

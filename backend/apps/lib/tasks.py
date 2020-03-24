@@ -1,7 +1,6 @@
 import random
 
 from django.core.mail import mail_admins
-from django.db.models import Model
 from easy_thumbnails.files import generate_all_aliases
 from django.conf import settings
 

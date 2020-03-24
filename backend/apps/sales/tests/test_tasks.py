@@ -1,21 +1,26 @@
 from datetime import date
 from decimal import Decimal
 from unittest.mock import patch, call, PropertyMock, Mock
+from uuid import uuid4
 
+from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
 from django.core import mail
 from django.test import TestCase, override_settings
 from django.utils import timezone
+from django.utils.timezone import make_aware
 from djmoney.money import Money
 from freezegun import freeze_time
 
-from apps.lib.models import SUBSCRIPTION_DEACTIVATED, Notification, RENEWAL_FAILURE, RENEWAL_FIXED, TRANSFER_FAILED
+from apps.lib.models import SUBSCRIPTION_DEACTIVATED, Notification, RENEWAL_FAILURE, RENEWAL_FIXED, TRANSFER_FAILED, \
+    ref_for_instance
 from apps.profiles.tests.factories import UserFactory
 from apps.sales.authorize import AuthorizeException
 from apps.sales.models import TransactionRecord, Order
 from apps.sales.tasks import run_billing, renew, update_transfer_status, remind_sales, remind_sale, check_transactions, \
-    withdraw_all, auto_finalize_run, auto_finalize
-from apps.sales.tests.factories import CreditCardTokenFactory, TransactionRecordFactory, OrderFactory, BankAccountFactory
+    withdraw_all, auto_finalize_run, auto_finalize, get_transaction_fees
+from apps.sales.tests.factories import CreditCardTokenFactory, TransactionRecordFactory, OrderFactory, \
+    BankAccountFactory
 
 
 class TestAutoRenewal(TestCase):
@@ -131,7 +136,8 @@ class TestAutoRenewal(TestCase):
         self.assertEqual(record.category, TransactionRecord.SUBSCRIPTION_DUES)
         self.assertEqual(record.amount, Money('6.00', 'USD'))
         self.assertEqual(record.card, card)
-        mock_charge_card.assert_called_with(profile_id=card.profile_id, payment_id=card.payment_id, amount=Decimal('6.00'))
+        mock_charge_card.assert_called_with(profile_id=card.profile_id, payment_id=card.payment_id,
+                                            amount=Decimal('6.00'))
 
     @override_settings(PORTRAIT_PRICE=Decimal('2.00'))
     @patch('apps.sales.tasks.charge_saved_card')
@@ -161,7 +167,8 @@ class TestAutoRenewal(TestCase):
         self.assertEqual(Notification.objects.filter(event__type=RENEWAL_FAILURE).count(), 1)
         self.assertEqual(len(mail.outbox), 1)
         self.assertEqual(mail.outbox[0].subject, 'Issue with your subscription')
-        mock_charge_card.assert_called_with(profile_id=card.profile_id, payment_id=card.payment_id, amount=Decimal('2.00'))
+        mock_charge_card.assert_called_with(profile_id=card.profile_id, payment_id=card.payment_id,
+                                            amount=Decimal('2.00'))
 
     @override_settings(PORTRAIT_PRICE=Decimal('2.00'))
     @patch('apps.sales.tasks.charge_saved_card')
@@ -244,24 +251,24 @@ class TestUpdateTransaction(TestCase):
             remote_id='1234',
         )
 
-    def test_check_transaction_status_no_change(self, _mock_api):
-        _mock_api.return_value.get.return_value.body = {'status': 'pending'}
+    def test_check_transaction_status_no_change(self, mock_api):
+        mock_api.return_value.get.return_value.body = {'status': 'pending'}
         update_transfer_status(self.record.id)
         self.assertEqual(TransactionRecord.objects.all().count(), 1)
         self.record.refresh_from_db()
         self.assertEqual(self.record.status, TransactionRecord.PENDING)
         self.assertIsNone(self.record.finalized_on)
 
-    def test_check_transaction_status_cancelled(self, _mock_api):
-        _mock_api.return_value.get.return_value.body = {'status': 'cancelled'}
+    def test_check_transaction_status_cancelled(self, mock_api):
+        mock_api.return_value.get.return_value.body = {'status': 'cancelled'}
         update_transfer_status(self.record.id)
         self.assertEqual(TransactionRecord.objects.all().count(), 1)
         self.record.refresh_from_db()
         self.assertEqual(self.record.status, TransactionRecord.FAILURE)
         self.assertTrue(self.record.finalized_on)
 
-    def test_check_transaction_status_processed(self, _mock_api):
-        _mock_api.return_value.get.return_value.body = {'status': 'processed'}
+    def test_check_transaction_status_processed(self, mock_api):
+        mock_api.return_value.get.return_value.body = {'status': 'processed'}
         update_transfer_status(self.record.id)
         self.assertEqual(TransactionRecord.objects.all().count(), 1)
         self.record.refresh_from_db()
@@ -319,6 +326,7 @@ class TestFinalizers(TestCase):
         order = OrderFactory.create(status=Order.REVIEW, auto_finalize_on=None)
         auto_finalize(order.id)
         mock_finalize_order.assert_not_called()
+
 
 class TestWithdrawAll(TestCase):
     @patch('apps.sales.tasks.account_balance')
@@ -412,3 +420,67 @@ class TestReminders(TestCase):
         order = OrderFactory.create(status=Order.PAYMENT_PENDING, details='# This is a test\n\nDo things and stuff.')
         remind_sale(order.id)
         self.assertEqual(len(mail.outbox), 0)
+
+
+def gen_dwolla_response():
+    return {
+            'transactions': [
+                {
+                 'id': 'c4ded785-d753-45e8-b225-1ec88c321a46',
+                 'status': 'processed',
+                 'amount': {'value': '0.12', 'currency': 'USD'},
+                 'created': '2018-09-26T06:59:25.597Z'}],
+    }
+
+
+@patch('apps.sales.apis.DwollaContext.dwolla_api', new_callable=PropertyMock)
+class TestGetTransactionFees(TestCase):
+    def test_get_transaction_fee(self, mock_api):
+        mock_api.return_value.get.return_value.body = gen_dwolla_response()
+        record = TransactionRecordFactory.create(remote_id=str(uuid4()))
+        get_transaction_fees(str(record.id))
+        mock_api.return_value.get.assert_called_with(f'transfers/{record.remote_id}/fees')
+        results = TransactionRecord.objects.filter(targets=ref_for_instance(record))
+        self.assertEqual(results.count(), 1)
+        fee_record = results[0]
+        self.assertEqual(fee_record.amount, Money('.12', 'USD'))
+        self.assertEqual(fee_record.status, TransactionRecord.SUCCESS)
+        self.assertIsNone(fee_record.payer)
+        self.assertIsNone(fee_record.payee)
+        self.assertEqual(fee_record.category, TransactionRecord.THIRD_PARTY_FEE)
+        self.assertEqual(fee_record.destination, TransactionRecord.ACH_TRANSACTION_FEES)
+        self.assertEqual(fee_record.remote_id, 'c4ded785-d753-45e8-b225-1ec88c321a46')
+        self.assertEqual(fee_record.created_on, parse('2018-09-26T06:59:25.597Z'))
+
+    def test_get_transaction_fee_multiple(self, mock_api):
+        response = gen_dwolla_response()
+        response['transactions'].append({
+            'id': 'sdvibnwer98',
+            'status': 'pending',
+            'amount': {'value': '5.00', 'currency': 'USD'},
+            'created': '2019-09-26T06:59:25.597Z'
+        })
+        mock_api.return_value.get.return_value.body = response
+        record = TransactionRecordFactory.create(remote_id=str(uuid4()))
+        get_transaction_fees(str(record.id))
+        mock_api.return_value.get.assert_called_with(f'transfers/{record.remote_id}/fees')
+        results = TransactionRecord.objects.filter(targets=ref_for_instance(record))
+        self.assertEqual(results.count(), 2)
+        fee_record = results.get(status=TransactionRecord.SUCCESS)
+        self.assertEqual(fee_record.amount, Money('.12', 'USD'))
+        self.assertEqual(fee_record.status, TransactionRecord.SUCCESS)
+        self.assertIsNone(fee_record.payer)
+        self.assertIsNone(fee_record.payee)
+        self.assertEqual(fee_record.category, TransactionRecord.THIRD_PARTY_FEE)
+        self.assertEqual(fee_record.destination, TransactionRecord.ACH_TRANSACTION_FEES)
+        self.assertEqual(fee_record.remote_id, 'c4ded785-d753-45e8-b225-1ec88c321a46')
+        self.assertEqual(fee_record.created_on, parse('2018-09-26T06:59:25.597Z'))
+        pending_fee_record = results.get(status=TransactionRecord.PENDING)
+        self.assertEqual(pending_fee_record.amount, Money('5', 'USD'))
+        self.assertEqual(pending_fee_record.status, TransactionRecord.PENDING)
+        self.assertIsNone(pending_fee_record.payer)
+        self.assertIsNone(pending_fee_record.payee)
+        self.assertEqual(pending_fee_record.category, TransactionRecord.THIRD_PARTY_FEE)
+        self.assertEqual(pending_fee_record.destination, TransactionRecord.ACH_TRANSACTION_FEES)
+        self.assertEqual(pending_fee_record.remote_id, 'sdvibnwer98')
+        self.assertEqual(pending_fee_record.created_on, parse('2019-09-26T06:59:25.597Z'))

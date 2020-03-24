@@ -157,6 +157,7 @@ export default class AcPricePreview extends mixins(Subjective) {
         type: LineTypes.SHIELD,
         priority: 300,
         description: '',
+        back_into_percentage: false,
         cascade_percentage: true,
         cascade_amount: true,
       }
@@ -171,6 +172,7 @@ export default class AcPricePreview extends mixins(Subjective) {
       amount: parseFloat(this.addOnForm.fields.amount.value),
       cascade_amount: false,
       cascade_percentage: false,
+      back_into_percentage: false,
       percentage: parseFloat(this.addOnForm.fields.percentage.value),
       type: this.addOnForm.fields.type.value,
       priority: 100,
@@ -184,6 +186,7 @@ export default class AcPricePreview extends mixins(Subjective) {
       amount: parseFloat(this.extraForm.fields.amount.value),
       cascade_amount: false,
       cascade_percentage: false,
+      back_into_percentage: false,
       percentage: parseFloat(this.extraForm.fields.percentage.value),
       type: this.extraForm.fields.type.value,
       priority: 400,

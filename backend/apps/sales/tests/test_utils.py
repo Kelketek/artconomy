@@ -28,7 +28,6 @@ class BalanceTestCase(SignalsDisabledMixin, FixtureBase, TestCase):
                 payee=user2,
                 source=TransactionRecord.CARD,
                 destination=TransactionRecord.ESCROW,
-                target=None,
                 amount=Money('10.00', 'USD')
             )
             user1, user2 = transaction.payer, transaction.payee
@@ -248,6 +247,25 @@ class TestLineCalculations(TestCase):
                 {
                     LineItemSim(amount=Money('10.00', 'USD'), priority=0): Money('9.00', 'USD'),
                     LineItemSim(percentage=Decimal(10), priority=1, cascade_percentage=True): Money('1.00', 'USD'),
+                },
+            ),
+        )
+        self.assertEqual(result[0], sum(result[1].values()))
+
+    def test_get_totals_percentage_backed_in_cascade(self):
+        source = [
+            LineItemSim(amount=Money('10.00', 'USD'), priority=0),
+            LineItemSim(percentage=Decimal(10), priority=1, cascade_percentage=True, back_into_percentage=True),
+        ]
+        result = get_totals(source)
+        self.assertEqual(
+            result,
+            (
+                Money('10.00', 'USD'),
+                {
+                    LineItemSim(amount=Money('10.00', 'USD'), priority=0): Money('9.09', 'USD'),
+                    LineItemSim(percentage=Decimal(10), priority=1, cascade_percentage=True, back_into_percentage=True):
+                        Money('0.91', 'USD'),
                 },
             ),
         )

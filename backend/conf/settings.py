@@ -21,6 +21,7 @@ from typing import Any
 
 from celery.exceptions import ImproperlyConfigured
 from celery.schedules import crontab
+from moneyed import Money
 
 TESTING = 'test' in argv
 
@@ -282,6 +283,10 @@ PREMIUM_PERCENTAGE_BONUS = Decimal(get_env('PREMIUM_PERCENTAGE_BONUS', '4'))
 TABLE_PERCENTAGE_FEE = Decimal(get_env('TABLE_PERCENTAGE_FEE', '10'))
 TABLE_STATIC_FEE = Decimal(get_env('TABLE_STATIC_FEE', '5.00'))
 TABLE_TAX = Decimal(get_env('TABLE_TAX', '8.25'))
+
+DWOLLA_MIN_FEE = Money(Decimal(get_env('DWOLLA_MIN_FEE', '.05')), 'USD')
+DWOLLA_MAX_FEE = Money(Decimal(get_env('DWOLLA_MIN_FEE', '5')), 'USD')
+DWOLLA_PERCENTAGE_FEE = Decimal(get_env('DWOLLA_MIN_FEE', '.5'))
 
 assert PREMIUM_STATIC_BONUS < SERVICE_STATIC_FEE
 # Applied to the fee amount.

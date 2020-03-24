@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.contenttypes.admin import GenericTabularInline
 
-from apps.lib.models import Comment, Asset
+from apps.lib.models import Comment, Asset, GenericReference
 
 
 class CommentInline(GenericTabularInline):
@@ -13,5 +13,15 @@ class AssetAdmin(admin.ModelAdmin):
     raw_id_fields = ['uploaded_by']
 
 
-admin.site.register(Comment, admin.ModelAdmin)
+class GenericReferenceAdmin(admin.ModelAdmin):
+    list_filter = ['content_type']
+    search_fields = ['object_id']
+
+
+class CommentAdmin(admin.ModelAdmin):
+    raw_id_fields = ['user', 'parent']
+
+
+admin.site.register(Comment, CommentAdmin)
 admin.site.register(Asset, AssetAdmin)
+admin.site.register(GenericReference, GenericReferenceAdmin)

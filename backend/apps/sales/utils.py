@@ -1,6 +1,6 @@
 import logging
 from collections import defaultdict
-from decimal import Decimal, InvalidOperation, ROUND_HALF_EVEN, getcontext, localcontext
+from decimal import Decimal, InvalidOperation, ROUND_HALF_EVEN, localcontext
 from functools import reduce
 from typing import Union, Type, TYPE_CHECKING, List, Dict, Iterator
 
@@ -235,12 +235,11 @@ def early_finalize(order, user: User):
 
 
 def allocate_bonus(order: 'Order', source_record: 'TransactionRecord'):
-    from apps.sales.models import TransactionRecord
+    from apps.sales.models import TransactionRecord, ref_for_instance
     amount = get_bonus_amount(order)
     bonus = TransactionRecord(
         payer=None,
         source=TransactionRecord.RESERVE,
-        target=order,
         amount=amount,
         status=TransactionRecord.SUCCESS,
         remote_id=source_record.remote_id,
@@ -254,20 +253,20 @@ def allocate_bonus(order: 'Order', source_record: 'TransactionRecord'):
         bonus.destination = TransactionRecord.UNPROCESSED_EARNINGS
         bonus.category = TransactionRecord.SHIELD_FEE
     bonus.save()
+    bonus.targets.add(ref_for_instance(order))
 
 
 def finalize_table_fees(order: 'Order'):
-    from apps.sales.models import TransactionRecord
-    order_type = ContentType.objects.get_for_model(order)
+    from apps.sales.models import TransactionRecord, ref_for_instance
+    ref = ref_for_instance(order)
     record = TransactionRecord.objects.get(
         payee=None, destination=TransactionRecord.RESERVE,
-        object_id=order.id, content_type=order_type,
         status=TransactionRecord.SUCCESS,
     )
+    record.targets.add(ref)
     TransactionRecord.objects.create(
         source=TransactionRecord.RESERVE,
         destination=TransactionRecord.UNPROCESSED_EARNINGS,
-        object_id=order.id, content_type=order_type,
         amount=record.amount,
         payer=None, payee=None,
         status=TransactionRecord.SUCCESS,
@@ -276,23 +275,23 @@ def finalize_table_fees(order: 'Order'):
     )
     tax_record = TransactionRecord.objects.get(
         payee=None, destination=TransactionRecord.MONEY_HOLE_STAGE,
-        object_id=order.id, content_type=order_type,
         status=TransactionRecord.SUCCESS,
     )
-    TransactionRecord.objects.create(
+    tax_record.targets.add(ref)
+    tax_burned = TransactionRecord.objects.create(
         source=TransactionRecord.MONEY_HOLE_STAGE,
         destination=TransactionRecord.MONEY_HOLE,
-        object_id=order.id, content_type=order_type,
         amount=tax_record.amount,
         payer=None, payee=None,
         status=TransactionRecord.SUCCESS,
         category=TransactionRecord.TABLE_SERVICE,
         remote_id=tax_record.remote_id,
     )
+    tax_burned.targets.add(ref)
 
 
 def finalize_order(order, user=None):
-    from apps.sales.models import TransactionRecord
+    from apps.sales.models import TransactionRecord, ref_for_instance
     from apps.sales.tasks import withdraw_all
     with atomic():
         if order.status == order.DISPUTED and user == order.buyer:
@@ -305,19 +304,20 @@ def finalize_order(order, user=None):
         notify(SALE_UPDATE, order, unique=True, mark_unread=True)
         record = TransactionRecord.objects.get(
             payee=order.seller, destination=TransactionRecord.ESCROW,
-            status=TransactionRecord.SUCCESS, object_id=order.id, content_type=ContentType.objects.get_for_model(order),
+            status=TransactionRecord.SUCCESS,
+            targets__object_id=order.id, targets__content_type=ContentType.objects.get_for_model(order),
         )
-        TransactionRecord.objects.create(
+        to_holdings = TransactionRecord.objects.create(
             payer=order.seller,
             payee=order.seller,
             amount=record.amount,
             source=TransactionRecord.ESCROW,
             destination=TransactionRecord.HOLDINGS,
-            target=order,
             category=TransactionRecord.ESCROW_RELEASE,
             status=TransactionRecord.SUCCESS,
             remote_id=record.remote_id,
         )
+        to_holdings.targets.add(ref_for_instance(order))
         if not order.table_order:
             allocate_bonus(order, record)
         else:
@@ -373,11 +373,9 @@ def get_bonus_amount(order: 'Order') -> Money:
 
 
 def recuperate_fee(record: 'TransactionRecord') -> 'TransactionRecord':
-    from apps.sales.models import TransactionRecord
-    amount = get_bonus_amount(record.target)
-    return TransactionRecord.objects.create(
-        object_id=record.object_id,
-        content_type_id=record.content_type_id,
+    from apps.sales.models import TransactionRecord, Order
+    amount = get_bonus_amount(record.targets.filter(content_type=ContentType.objects.get_for_model(Order)).get().target)
+    record = TransactionRecord.objects.create(
         status=TransactionRecord.SUCCESS,
         payer=None,
         payee=None,
@@ -386,6 +384,7 @@ def recuperate_fee(record: 'TransactionRecord') -> 'TransactionRecord':
         amount=amount,
         category=TransactionRecord.SHIELD_FEE,
     )
+    record.targets.set(record.targets.all())
 
 
 def transfer_order(order, old_buyer, new_buyer):
@@ -465,7 +464,11 @@ def priority_total(
         cascaded_amount = Money(0, 'USD')
         added_amount = Money(0, 'USD')
         # Percentages with equal priorities should not stack.
-        working_amount = current_total * (Decimal('.01') * line.percentage)
+        multiplier = (Decimal('.01') * line.percentage)
+        if line.back_into_percentage:
+            working_amount = (current_total / (multiplier + Decimal('1.00'))) * multiplier
+        else:
+            working_amount = current_total * (Decimal('.01') * line.percentage)
         if line.cascade_percentage:
             cascaded_amount += working_amount
         else:
@@ -560,21 +563,21 @@ def issue_refund(transaction_set: Iterator['TransactionRecord'], category: int) 
     if not len(cash_transactions) == len(transactions):
         assert remote_id, 'Could not find a remote transaction ID to refund.'
         assert last_four, 'Could not determine the last four digits of the relevant card.'
-    refund_transactions = [
-        TransactionRecord(
+    refund_transactions = []
+    for transaction in transactions:
+        record = TransactionRecord.objects.create(
             source=transaction.destination,
             destination=transaction.source,
             status=TransactionRecord.FAILURE,
             category=category,
             payer=transaction.payee,
             payee=transaction.payer,
-            content_type=transaction.content_type,
-            object_id=transaction.object_id,
             card=transaction.card,
             amount=transaction.amount,
             response_message="Failed when contacting payment processor.",
-        ) for transaction in transactions
-    ]
+        )
+        record.targets.set(transaction.targets.all())
+        refund_transactions.append(record)
     amount = sum(transaction.amount for transaction in card_transactions)
     if card_transactions:
         try:
@@ -622,5 +625,5 @@ def update_order_payments(order: 'Order'):
     from apps.sales.models import TransactionRecord
     TransactionRecord.objects.filter(
         source__in=[TransactionRecord.CARD, TransactionRecord.CASH_DEPOSIT],
-        object_id=order.id, content_type=ContentType.objects.get_for_model(order),
+        targets__object_id=order.id, targets__content_type=ContentType.objects.get_for_model(order),
     ).update(payer=order.buyer)

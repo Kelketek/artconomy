@@ -536,6 +536,7 @@ export default class ProductDetail extends mixins(ProductCentric, Formatting, Ed
         description: '',
         cascade_amount: false,
         cascade_percentage: false,
+        back_into_percentage: false,
       }]
       if (this.product.x.table_product) {
         lines.push({
@@ -546,6 +547,7 @@ export default class ProductDetail extends mixins(ProductCentric, Formatting, Ed
           cascade_amount: false,
           amount: this.pricing.x.table_static,
           percentage: this.pricing.x.table_percentage,
+          back_into_percentage: false,
           description: '',
         }, {
           id: -3,
@@ -554,6 +556,7 @@ export default class ProductDetail extends mixins(ProductCentric, Formatting, Ed
           cascade_percentage: true,
           cascade_amount: true,
           percentage: this.pricing.x.table_tax,
+          back_into_percentage: false,
           description: '',
           amount: 0,
         })
@@ -566,6 +569,7 @@ export default class ProductDetail extends mixins(ProductCentric, Formatting, Ed
           cascade_amount: true,
           amount: this.pricing.x.standard_static,
           percentage: this.pricing.x.standard_percentage,
+          back_into_percentage: false,
           description: '',
         }, {
           id: -5,
@@ -575,6 +579,7 @@ export default class ProductDetail extends mixins(ProductCentric, Formatting, Ed
           cascade_amount: true,
           amount: this.pricing.x.premium_static_bonus,
           percentage: this.pricing.x.premium_percentage_bonus,
+          back_into_percentage: false,
           description: '',
         })
       }

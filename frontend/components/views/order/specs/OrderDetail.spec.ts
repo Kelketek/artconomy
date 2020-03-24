@@ -814,6 +814,7 @@ describe('OrderDetail.vue', () => {
       priority: 200,
       cascade_percentage: false,
       cascade_amount: false,
+      back_into_percentage: false,
       description: '',
     })
     vm.lineItems.setList(lines)
