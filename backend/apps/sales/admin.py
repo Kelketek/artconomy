@@ -23,7 +23,7 @@ class OrderAdmin(admin.ModelAdmin):
 
 class TransactionRecordAdmin(admin.ModelAdmin):
     raw_id_fields = ['payer', 'payee', 'targets']
-    list_display = ('id', 'status', 'category', 'paid_by', 'source', 'paid_to', 'destination', 'amount')
+    list_display = ('id', 'status', 'category', 'created_on', 'paid_by', 'source', 'paid_to', 'destination', 'amount')
     ordering = ('-created_on',)
 
     def paid_by(self, obj):

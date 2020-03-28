@@ -64,7 +64,8 @@ from apps.sales.serializers import (
     ServicePaymentSerializer, SearchQuerySerializer, NewInvoiceSerializer,
     HoldingsSummarySerializer, ProductSampleSerializer, OrderPreviewSerializer,
     AccountQuerySerializer, OrderCharacterTagSerializer, SubmissionFromOrderSerializer, OrderAuthSerializer,
-    LineItemSerializer, OrderValuesSerializer, SimpleTransactionSerializer, InventorySerializer)
+    LineItemSerializer, OrderValuesSerializer, SimpleTransactionSerializer, InventorySerializer,
+    PayoutTransactionSerializer)
 from apps.sales.utils import available_products, service_price, set_service, \
     check_charge_required, available_products_by_load, finalize_order, account_balance, \
     recuperate_fee, ALL, POSTED_ONLY, PENDING, transfer_order, early_finalize, cancel_order, lines_to_transaction_specs, \
@@ -1867,7 +1868,7 @@ class SubscriptionReportCSV(ListAPIView):
 
 
 class PayoutReportCSV(ListAPIView):
-    serializer_class = SimpleTransactionSerializer
+    serializer_class = PayoutTransactionSerializer
     permission_classes = [IsSuperuser]
     renderer_classes = [CSVRenderer]
     pagination_class = None
@@ -1879,6 +1880,8 @@ class PayoutReportCSV(ListAPIView):
             'status',
             'payee',
             'amount',
+            'fees',
+            'total_drafted',
             'created_on',
             'finalized_on',
             'remote_id',
@@ -1890,7 +1893,7 @@ class PayoutReportCSV(ListAPIView):
             payer=F('payee'),
             source=TransactionRecord.HOLDINGS,
             destination=TransactionRecord.BANK,
-        ).exclude(payer=None).exclude(status=TransactionRecord.FAILURE)
+        ).exclude(payer=None).exclude(status=TransactionRecord.FAILURE).order_by('-created_on')
 
 
 class DwollaSetupFees(ListAPIView):

@@ -7,12 +7,14 @@ from django.core.validators import RegexValidator, EmailValidator, MinValueValid
 from django.db.models import Sum, QuerySet
 from django.utils.datetime_safe import datetime, date
 from luhn import verify
+from moneyed import Money
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import SerializerMethodField, DecimalField, IntegerField, FloatField, EmailField
 from short_stuff import slugify
 from short_stuff.django import ShortUIDField
 
+from apps.lib.models import ref_for_instance
 from apps.lib.serializers import (
     RelatedUserSerializer, RelatedAssetField, EventTargetRelatedField, SubscribedField,
     TagListField, RelatedAtomicMixin,
@@ -748,6 +750,39 @@ class OrderValuesSerializer(serializers.ModelSerializer):
             'id', 'created_on', 'status', 'seller', 'buyer', 'price', 'charged_on', 'payment_type', 'still_in_escrow',
             'artist_payment', 'in_reserve', 'sales_tax_collected', 'unqualified_earnings', 'refunded_on',
         )
+
+
+class PayoutTransactionSerializer(serializers.ModelSerializer):
+    id = ShortUIDField()
+    payee = serializers.StringRelatedField(read_only=True)
+    status = serializers.SerializerMethodField()
+    amount = MoneyToFloatField()
+    fees = serializers.SerializerMethodField()
+    total_drafted = serializers.SerializerMethodField()
+
+    def get_category(self, obj):
+        return obj.get_category_display()
+
+    def get_status(self, obj):
+        return obj.get_status_display()
+
+    @lru_cache
+    def get_fees(self, obj):
+        return (
+            TransactionRecord.objects.filter(targets=ref_for_instance(obj)).aggregate(total=Sum('amount'))['total']
+            or Decimal('0')
+        )
+
+    def get_total_drafted(self, obj):
+        return obj.amount.amount + self.get_fees(obj)
+
+    class Meta:
+        model = TransactionRecord
+        fields = (
+            'id', 'status', 'payee', 'amount', 'fees', 'total_drafted', 'remote_id',
+            'created_on', 'finalized_on',
+        )
+        read_only_fields = fields
 
 
 class SimpleTransactionSerializer(serializers.ModelSerializer):
