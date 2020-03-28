@@ -12,7 +12,7 @@ from apps.lib.utils import require_lock
 from apps.sales.apis import dwolla
 from ipware import get_client_ip
 
-from apps.sales.models import BankAccount, TransactionRecord
+from apps.sales.models import BankAccount, TransactionRecord, Order
 from apps.sales.utils import account_balance
 
 TRANSACTION_STATUS_MAP = {
@@ -112,12 +112,20 @@ def initiate_withdraw(user, bank, amount, test_only=True):
     )
     main_record.save()
     main_record.targets.add(ref_for_instance(bank))
+    orders = list(Order.objects.select_for_update().filter(
+        payout_sent=False, seller=user, status=Order.COMPLETED,
+    ))
+    main_record.targets.add(*(ref_for_instance(order) for order in orders))
+    Order.objects.filter(id__in=[order.id for order in orders]).update(payout_sent=True)
     return main_record
 
 
 def perform_transfer(record, note='Disbursement'):
     from .tasks import get_transaction_fees
     bank = record.targets.filter(content_type=ContentType.objects.get_for_model(BankAccount)).get().target
+    order_ids = [int(order_id) for order_id in record.targets.filter(
+        content_type=ContentType.objects.get_for_model(Order),
+    ).values_list('object_id', flat=True)]
     transfer_request = {
         '_links': {
             'source': {
@@ -146,6 +154,7 @@ def perform_transfer(record, note='Disbursement'):
             record.status = TransactionRecord.FAILURE
             record.remote_message = str(err)
             record.save()
+            Order.objects.filter(id__in=order_ids).update(payout_sent=False)
             raise
         get_transaction_fees.delay(str(record.id))
         return record

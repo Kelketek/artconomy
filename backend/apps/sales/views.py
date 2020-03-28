@@ -1879,6 +1879,7 @@ class PayoutReportCSV(ListAPIView):
             'id',
             'status',
             'payee',
+            'targets',
             'amount',
             'fees',
             'total_drafted',

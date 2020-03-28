@@ -250,6 +250,8 @@ class TestUpdateTransaction(TestCase):
             destination=TransactionRecord.BANK,
             remote_id='1234',
         )
+        self.order = OrderFactory.create(payout_sent=True)
+        self.record.targets.add(ref_for_instance(self.order))
 
     def test_check_transaction_status_no_change(self, mock_api):
         mock_api.return_value.get.return_value.body = {'status': 'pending'}
@@ -258,6 +260,8 @@ class TestUpdateTransaction(TestCase):
         self.record.refresh_from_db()
         self.assertEqual(self.record.status, TransactionRecord.PENDING)
         self.assertIsNone(self.record.finalized_on)
+        self.order.refresh_from_db()
+        self.assertTrue(self.order.payout_sent)
 
     def test_check_transaction_status_cancelled(self, mock_api):
         mock_api.return_value.get.return_value.body = {'status': 'cancelled'}
@@ -266,6 +270,8 @@ class TestUpdateTransaction(TestCase):
         self.record.refresh_from_db()
         self.assertEqual(self.record.status, TransactionRecord.FAILURE)
         self.assertTrue(self.record.finalized_on)
+        self.order.refresh_from_db()
+        self.assertFalse(self.order.payout_sent)
 
     def test_check_transaction_status_processed(self, mock_api):
         mock_api.return_value.get.return_value.body = {'status': 'processed'}
@@ -273,6 +279,8 @@ class TestUpdateTransaction(TestCase):
         self.assertEqual(TransactionRecord.objects.all().count(), 1)
         self.record.refresh_from_db()
         self.assertTrue(self.record.finalized_on)
+        self.order.refresh_from_db()
+        self.assertTrue(self.order.payout_sent)
 
     @patch('apps.sales.tasks.update_transfer_status')
     def test_update_transactions(self, mock_update_transfer_status, _mock_api):

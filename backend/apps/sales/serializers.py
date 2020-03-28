@@ -671,7 +671,6 @@ class OrderValuesSerializer(serializers.ModelSerializer):
     artist_payment = serializers.SerializerMethodField()
     in_reserve = serializers.SerializerMethodField()
     sales_tax_collected = serializers.SerializerMethodField()
-    add_on = serializers.SerializerMethodField()
     unqualified_earnings = serializers.SerializerMethodField()
     refunded_on = serializers.SerializerMethodField()
 
@@ -698,8 +697,8 @@ class OrderValuesSerializer(serializers.ModelSerializer):
     @lru_cache
     def qs_kwargs(self, obj):
         return {
-            'content_type': ContentType.objects.get_for_model(obj),
-            'object_id': obj.id,
+            'targets__content_type': ContentType.objects.get_for_model(obj),
+            'targets__object_id': obj.id,
         }
 
     def get_price(self, obj):
@@ -759,6 +758,7 @@ class PayoutTransactionSerializer(serializers.ModelSerializer):
     amount = MoneyToFloatField()
     fees = serializers.SerializerMethodField()
     total_drafted = serializers.SerializerMethodField()
+    targets = serializers.SerializerMethodField()
 
     def get_category(self, obj):
         return obj.get_category_display()
@@ -773,6 +773,13 @@ class PayoutTransactionSerializer(serializers.ModelSerializer):
             or Decimal('0')
         )
 
+    def get_targets(self, obj):
+        targets = [
+            f'{target.target.__class__.__name__} #{target.target.id}'
+            for target in obj.targets.order_by('content_type_id').all() if target.target
+        ]
+        return ', '.join(targets)
+
     def get_total_drafted(self, obj):
         return obj.amount.amount + self.get_fees(obj)
 
@@ -780,7 +787,7 @@ class PayoutTransactionSerializer(serializers.ModelSerializer):
         model = TransactionRecord
         fields = (
             'id', 'status', 'payee', 'amount', 'fees', 'total_drafted', 'remote_id',
-            'created_on', 'finalized_on',
+            'created_on', 'finalized_on', 'targets',
         )
         read_only_fields = fields
 

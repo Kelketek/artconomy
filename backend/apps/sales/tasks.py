@@ -2,6 +2,7 @@ import logging
 
 from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
+from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from django.utils import timezone
 from django.utils.datetime_safe import date
@@ -146,6 +147,10 @@ def update_transfer_status(record_id):
             TransactionRecord.objects.filter(
                 targets=ref_for_instance(record), category=TransactionRecord.THIRD_PARTY_FEE,
             ).update(status=TransactionRecord.FAILURE)
+            order_ids = record.targets.filter(
+                content_type=ContentType.objects.get_for_model(Order),
+            ).values_list('object_id', flat=True)
+            Order.objects.filter(id__in=[int(order_id) for order_id in order_ids]).update(payout_sent=False)
 
 
 @celery_app.task
