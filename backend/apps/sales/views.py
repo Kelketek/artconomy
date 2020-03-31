@@ -8,6 +8,7 @@ from django.conf import settings
 from django.contrib.auth import login
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
+from django.http import HttpRequest
 from django.views.static import serve
 from django.db.models import When, F, Case, BooleanField, Q, Count, QuerySet, IntegerField, Sum
 from django.shortcuts import get_object_or_404
@@ -1811,7 +1812,17 @@ class CustomerHoldingsCSV(CustomerHoldings):
         return context
 
 
-class OrderValues(ListAPIView):
+class DateConstrained:
+    request: HttpRequest
+    date_field = 'created_on'
+
+    def get_date_kwargs(self):
+        start_date = self.request.GET('start_date', None)
+        if start_date:
+            pass
+
+
+class OrderValues(ListAPIView, DateConstrained):
     serializer_class = OrderValuesSerializer
     permission_classes = [IsSuperuser]
     renderer_classes = [CSVRenderer]
@@ -1834,9 +1845,10 @@ class OrderValues(ListAPIView):
             'payment_type',
             'charged_on',
             'still_in_escrow',
-            'artist_payout',
+            'artist_earnings',
             'in_reserve',
             'sales_tax_collected',
+            'extra',
             'unqualified_earnings',
             'refunded_on',
         ]

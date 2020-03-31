@@ -23,8 +23,10 @@ django-reversion==3.0.5
 django_money==1.0
 django-premailer==0.2.0
 django-custom-user==0.7
+djangorestframework-stubs==1.1.0
 django-sendgrid-v5==0.8.1
 django-signal-disabler==0.1.1
+django-stubs==1.5.0
 dwollav2==2.0.0
 easy_thumbnails==2.7
 factory_boy==2.12.0
@@ -32,6 +34,7 @@ freezegun==0.3.14
 ipython==7.12.0
 mailchimp3==3.0.12
 markdown==3.1.1
+mypy==0.770
 needle==0.5.0
 pandas==1.0.1
 PyVirtualDisplay==0.2.5

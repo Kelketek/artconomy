@@ -1,5 +1,6 @@
 from decimal import Decimal
 from functools import lru_cache
+from pprint import pprint
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
@@ -25,7 +26,7 @@ from apps.profiles.serializers import CharacterSerializer, SubmissionSerializer
 from apps.profiles.utils import available_users
 from apps.sales.models import Product, Order, CreditCardToken, Revision, BankAccount, \
     Rating, TransactionRecord, LineItem, ADD_ON, TIP, BASE_PRICE, InventoryTracker, EXTRA
-from apps.sales.utils import account_balance, PENDING, POSTED_ONLY, AVAILABLE
+from apps.sales.utils import account_balance, PENDING, POSTED_ONLY, AVAILABLE, get_totals
 
 
 class ProductMixin:
@@ -668,11 +669,12 @@ class OrderValuesSerializer(serializers.ModelSerializer):
     payment_type = serializers.SerializerMethodField()
     charged_on = serializers.SerializerMethodField()
     still_in_escrow = serializers.SerializerMethodField()
-    artist_payment = serializers.SerializerMethodField()
+    artist_earnings = serializers.SerializerMethodField()
     in_reserve = serializers.SerializerMethodField()
     sales_tax_collected = serializers.SerializerMethodField()
     unqualified_earnings = serializers.SerializerMethodField()
     refunded_on = serializers.SerializerMethodField()
+    extra = serializers.SerializerMethodField()
 
     def get_status(self, obj):
         return obj.get_status_display()
@@ -715,26 +717,37 @@ class OrderValuesSerializer(serializers.ModelSerializer):
             None, TransactionRecord.MONEY_HOLE, AVAILABLE, qs_kwargs=self.qs_kwargs(obj)
         )
 
+    def get_fees_collected(self, obj):
+        initial = self.charge_transactions(obj).filter(
+            destination__in=[TransactionRecord.UNPROCESSED_EARNINGS, TransactionRecord.RESERVE],
+        ).aggregate(total=Sum('amount'))['total'] or 0
+        return initial - (
+            TransactionRecord.objects.filter(
+                source=TransactionRecord.RESERVE, destination=TransactionRecord.HOLDINGS,
+                payee=obj.seller, **self.qs_kwargs(obj),
+            ).aggregate(total=Sum('amount'))['total'] or 0
+        )
+
+    def get_extra(self, obj):
+        _, subtotals = get_totals(obj.line_items.all())
+        return sum([value.amount for line, value in subtotals.items() if line.type == EXTRA])
+
     def get_still_in_escrow(self, obj):
         return account_balance(
             obj.seller, TransactionRecord.ESCROW, AVAILABLE, qs_kwargs=self.qs_kwargs(obj)
         )
 
-    def get_artist_payment(self, obj):
-        return account_balance(
-            obj.seller, TransactionRecord.HOLDINGS, AVAILABLE, qs_kwargs=self.qs_kwargs(obj)
-        )
+    def get_artist_earnings(self, obj):
+        return TransactionRecord.objects.filter(
+            source=TransactionRecord.ESCROW, destination=TransactionRecord.HOLDINGS, **self.qs_kwargs(obj),
+        ).aggregate(total=Sum('amount'))['total']
 
     def get_in_reserve(self, obj):
         return account_balance(
             None, TransactionRecord.RESERVE, AVAILABLE, qs_kwargs=self.qs_kwargs(obj)
         )
 
-    def get_unqualified_earnings(self, obj):
-        return account_balance(
-            None, TransactionRecord.UNPROCESSED_EARNINGS, AVAILABLE, qs_kwargs=self.qs_kwargs(obj),
-        )
-
+    @lru_cache
     def get_refunded_on(self, obj):
         if refund := TransactionRecord.objects.filter(
             source=TransactionRecord.ESCROW, payer=obj.seller, status=TransactionRecord.SUCCESS,
@@ -747,7 +760,8 @@ class OrderValuesSerializer(serializers.ModelSerializer):
         model = Order
         fields = (
             'id', 'created_on', 'status', 'seller', 'buyer', 'price', 'charged_on', 'payment_type', 'still_in_escrow',
-            'artist_payment', 'in_reserve', 'sales_tax_collected', 'unqualified_earnings', 'refunded_on',
+            'artist_earnings', 'in_reserve', 'sales_tax_collected', 'refunded_on', 'extra',
+            'fees_collected',
         )
 
 

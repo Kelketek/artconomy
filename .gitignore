@@ -285,3 +285,6 @@ jest-mock-promise/**
 
 # Let's not shoot ourselves in the foot.
 **/*.sql
+
+# Mypy cache
+.mypy_cache/*
