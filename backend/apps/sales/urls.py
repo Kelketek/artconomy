@@ -95,7 +95,6 @@ urlpatterns = [
         name='commissions-status-image'
     ),
     path('v1/order-auth/', views.OrderAuth.as_view(), name='order_auth'),
-    path('v1/reports/overview/', views.OverviewReport.as_view(), name='overview_report'),
     path('v1/reports/customer-holdings/', views.CustomerHoldings.as_view(), name='customer_holdings_report'),
     path('v1/reports/customer-holdings/csv/', views.CustomerHoldingsCSV.as_view(), name='customer_holdings_report_csv'),
     path('v1/reports/order-values/csv/', views.OrderValues.as_view(), name='order_values_csv'),

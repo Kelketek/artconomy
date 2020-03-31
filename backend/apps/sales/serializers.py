@@ -717,17 +717,6 @@ class OrderValuesSerializer(serializers.ModelSerializer):
             None, TransactionRecord.MONEY_HOLE, AVAILABLE, qs_kwargs=self.qs_kwargs(obj)
         )
 
-    def get_fees_collected(self, obj):
-        initial = self.charge_transactions(obj).filter(
-            destination__in=[TransactionRecord.UNPROCESSED_EARNINGS, TransactionRecord.RESERVE],
-        ).aggregate(total=Sum('amount'))['total'] or 0
-        return initial - (
-            TransactionRecord.objects.filter(
-                source=TransactionRecord.RESERVE, destination=TransactionRecord.HOLDINGS,
-                payee=obj.seller, **self.qs_kwargs(obj),
-            ).aggregate(total=Sum('amount'))['total'] or 0
-        )
-
     def get_extra(self, obj):
         _, subtotals = get_totals(obj.line_items.all())
         return sum([value.amount for line, value in subtotals.items() if line.type == EXTRA])
@@ -747,6 +736,11 @@ class OrderValuesSerializer(serializers.ModelSerializer):
             None, TransactionRecord.RESERVE, AVAILABLE, qs_kwargs=self.qs_kwargs(obj)
         )
 
+    def get_unqualified_earnings(self, obj):
+        return account_balance(
+            None, TransactionRecord.UNPROCESSED_EARNINGS, AVAILABLE, qs_kwargs=self.qs_kwargs(obj),
+        )
+
     @lru_cache
     def get_refunded_on(self, obj):
         if refund := TransactionRecord.objects.filter(
@@ -761,7 +755,7 @@ class OrderValuesSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'created_on', 'status', 'seller', 'buyer', 'price', 'charged_on', 'payment_type', 'still_in_escrow',
             'artist_earnings', 'in_reserve', 'sales_tax_collected', 'refunded_on', 'extra',
-            'fees_collected',
+            'unqualified_earnings',
         )
 
 

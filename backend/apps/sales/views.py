@@ -1,14 +1,17 @@
 from collections import OrderedDict
+from datetime import datetime
 from functools import lru_cache
 from typing import Union, List
 from uuid import uuid4
 
+from dateutil.parser import ParserError, parse
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.auth import login
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
 from django.http import HttpRequest
+from django.utils.timezone import make_aware
 from django.views.static import serve
 from django.db.models import When, F, Case, BooleanField, Q, Count, QuerySet, IntegerField, Sum
 from django.shortcuts import get_object_or_404
@@ -30,9 +33,10 @@ from rest_framework import status
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, CreateAPIView, RetrieveAPIView, \
     GenericAPIView, ListAPIView, DestroyAPIView, RetrieveUpdateAPIView
+from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_csv.renderers import CSVRenderer, JSONRenderer
+from rest_framework_csv.renderers import CSVRenderer
 from short_stuff import slugify
 
 from apps.lib.models import DISPUTE, REFUND, COMMENT, Subscription, ORDER_UPDATE, SALE_UPDATE, REVISION_UPLOADED, \
@@ -55,7 +59,7 @@ from apps.sales.permissions import (
     OrderStatusPermission, HasRevisionsPermission, OrderTimeUpPermission, NoOrderOutput, PaidOrderPermission,
     LineItemTypePermission, OrderNoProduct)
 from apps.sales.models import Product, Order, CreditCardToken, Revision, BankAccount, \
-    WEIGHTED_STATUSES, Rating, TransactionRecord, buyer_subscriptions, BASE_PRICE, ADD_ON, TAX, EXTRA, \
+    WEIGHTED_STATUSES, Rating, TransactionRecord, BASE_PRICE, ADD_ON, TAX, EXTRA, \
     TABLE_SERVICE, TIP, LineItem, SHIELD, inventory_change, InventoryError, InventoryTracker
 from apps.sales.serializers import (
     ProductSerializer, ProductNewOrderSerializer, OrderViewSerializer, CardSerializer,
@@ -1779,21 +1783,6 @@ class CreateInvoice(GenericAPIView):
         return Response(data=OrderViewSerializer(instance=order, context=self.get_serializer_context()).data)
 
 
-class OverviewReport(APIView):
-    permission_classes = [IsSuperuser]
-
-    def get(self, request):
-        data = OrderedDict()
-        data['earned'] = str(account_balance(None, TransactionRecord.HOLDINGS))
-        data['unprocessed'] = str(account_balance(None, TransactionRecord.UNPROCESSED_EARNINGS))
-        data['escrow'] = str(account_balance(ALL, TransactionRecord.ESCROW))
-        data['reserve'] = str(account_balance(None, TransactionRecord.RESERVE))
-        data['holdings'] = str(
-                account_balance(ALL, TransactionRecord.HOLDINGS) - account_balance(None, TransactionRecord.HOLDINGS)
-        )
-        return Response(data=data)
-
-
 class CustomerHoldings(ListAPIView):
     permission_classes = [IsSuperuser]
     serializer_class = HoldingsSummarySerializer
@@ -1813,13 +1802,47 @@ class CustomerHoldingsCSV(CustomerHoldings):
 
 
 class DateConstrained:
-    request: HttpRequest
+    request: Request
     date_field = 'created_on'
 
-    def get_date_kwargs(self):
-        start_date = self.request.GET('start_date', None)
-        if start_date:
+    @property
+    def start_date(self) -> datetime:
+        start_date = None
+        default_start = timezone.now().replace(
+            day=1, hour=0, minute=0, second=0, microsecond=0,
+        )
+        date_string = self.request.GET.get('start_date', '')
+        try:
+            start_date = make_aware(parse(date_string))
+        except ParserError:
             pass
+        if not start_date:
+            start_date = default_start
+        return start_date
+
+    @property
+    def end_date(self) -> Union[datetime, None]:
+        end_date = None
+        date_string = self.request.GET.get('end_date', '')
+        default_end = self.start_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        default_end += relativedelta(months=1)
+        if default_end > timezone.now():
+            default_end = timezone.now()
+        try:
+            end_date = make_aware(parse(date_string))
+        except ParserError:
+            pass
+        if not end_date:
+            end_date = default_end
+        return end_date
+
+    @property
+    def date_kwargs(self):
+        kwargs = {
+            f'{self.date_field}__gte': self.start_date,
+            f'{self.date_field}__lte': self.end_date,
+        }
+        return kwargs
 
 
 class OrderValues(ListAPIView, DateConstrained):
@@ -1829,7 +1852,7 @@ class OrderValues(ListAPIView, DateConstrained):
     pagination_class = None
 
     def get_queryset(self):
-        return Order.objects.filter(escrow_disabled=False).exclude(
+        return Order.objects.filter(escrow_disabled=False, **self.date_kwargs).exclude(
             status__in=[Order.CANCELLED, Order.NEW, Order.PAYMENT_PENDING],
         ).order_by('created_on')
 
@@ -1855,7 +1878,7 @@ class OrderValues(ListAPIView, DateConstrained):
         return context
 
 
-class SubscriptionReportCSV(ListAPIView):
+class SubscriptionReportCSV(ListAPIView, DateConstrained):
     serializer_class = SimpleTransactionSerializer
     permission_classes = [IsSuperuser]
     renderer_classes = [CSVRenderer]
@@ -1876,10 +1899,11 @@ class SubscriptionReportCSV(ListAPIView):
     def get_queryset(self):
         return TransactionRecord.objects.filter(
             category__in=[TransactionRecord.SUBSCRIPTION_DUES, TransactionRecord.SUBSCRIPTION_REFUND],
+            **self.date_kwargs,
         ).exclude(status=TransactionRecord.FAILURE)
 
 
-class PayoutReportCSV(ListAPIView):
+class PayoutReportCSV(ListAPIView, DateConstrained):
     serializer_class = PayoutTransactionSerializer
     permission_classes = [IsSuperuser]
     renderer_classes = [CSVRenderer]
@@ -1906,10 +1930,11 @@ class PayoutReportCSV(ListAPIView):
             payer=F('payee'),
             source=TransactionRecord.HOLDINGS,
             destination=TransactionRecord.BANK,
+            **self.date_kwargs,
         ).exclude(payer=None).exclude(status=TransactionRecord.FAILURE).order_by('-created_on')
 
 
-class DwollaSetupFees(ListAPIView):
+class DwollaSetupFees(ListAPIView, DateConstrained):
     serializer_class = SimpleTransactionSerializer
     permission_classes = [IsSuperuser]
     renderer_classes = [CSVRenderer]
@@ -1931,6 +1956,7 @@ class DwollaSetupFees(ListAPIView):
             payee=None,
             destination=TransactionRecord.ACH_MISC_FEES,
             category=TransactionRecord.THIRD_PARTY_FEE,
+            **self.date_kwargs,
         ).exclude(status=TransactionRecord.FAILURE)
 
 

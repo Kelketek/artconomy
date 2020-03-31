@@ -2,38 +2,31 @@
   <v-container>
     <v-row>
       <v-col cols="12" lg="4">
-        <v-toolbar dense><v-toolbar-title>Overview</v-toolbar-title></v-toolbar>
-        <ac-load-section :controller="overview">
-          <v-data-table :items="overviewItems" :headers="overviewHeaders" hide-default-footer hide-default-header>
-            <template v-slot:item.label="{ item }">
-              <strong>{{item.label}}</strong>
-            </template>
-            <template v-slot:item.value="{ item }">
-              ${{item.value}}
-            </template>
-          </v-data-table>
-        </ac-load-section>
+        <v-subheader>Start Date</v-subheader>
+        <v-date-picker v-model="startDate" label="Start Date"></v-date-picker>
+        <v-subheader>End Date</v-subheader>
+        <v-date-picker v-model="endDate" label="End Date"></v-date-picker>
       </v-col>
       <v-col cols="12" lg="7" offset-lg="1">
-        <v-toolbar dense><v-toolbar-title>Holdings by Customer</v-toolbar-title></v-toolbar>
+        <v-toolbar dense><v-toolbar-title>Current Holdings by Customer</v-toolbar-title></v-toolbar>
         <v-row no-gutters>
           <v-col><a href="/api/sales/v1/reports/customer-holdings/csv/" download>Download CSV</a></v-col>
         </v-row>
         <v-toolbar dense><v-toolbar-title>Order report</v-toolbar-title></v-toolbar>
         <v-row no-gutters>
-          <v-col><a href="/api/sales/v1/reports/order-values/csv/" download>Download CSV</a></v-col>
+          <v-col><a :href="`/api/sales/v1/reports/order-values/csv/${rangeString}`" download>Download CSV</a></v-col>
         </v-row>
         <v-toolbar dense><v-toolbar-title>Subscription Report</v-toolbar-title></v-toolbar>
         <v-row no-gutters>
-          <v-col><a href="/api/sales/v1/reports/subscription-report/csv/" download>Download CSV</a></v-col>
+          <v-col><a :href="`/api/sales/v1/reports/subscription-report/csv/${rangeString}`" download>Download CSV</a></v-col>
         </v-row>
         <v-toolbar dense><v-toolbar-title>Payout Report</v-toolbar-title></v-toolbar>
         <v-row no-gutters>
-          <v-col><a href="/api/sales/v1/reports/payout-report/csv/" download>Download CSV</a></v-col>
+          <v-col><a :href="`/api/sales/v1/reports/payout-report/csv/${rangeString}`" download>Download CSV</a></v-col>
         </v-row>
         <v-toolbar dense><v-toolbar-title>Dwolla Report</v-toolbar-title></v-toolbar>
         <v-row no-gutters>
-          <v-col><a href="/api/sales/v1/reports/dwolla-report/csv/" download>Download CSV</a></v-col>
+          <v-col><a :href="`/api/sales/v1/reports/dwolla-report/csv/${rangeString}`" download>Download CSV</a></v-col>
         </v-row>
       </v-col>
     </v-row>
@@ -79,43 +72,24 @@ export default class App extends Vue {
       sortable: false,
       align: 'center',
     }]
-    public overviewHeaders = [{text: 'Label', value: 'label'}, {text: 'Value', value: 'value'}]
-    public get overviewItems() {
-      if (!this.overview.x) {
-        return []
+    public startDate = ''
+    public endDate = ''
+    public get rangeKwargs() {
+      const kwargs: {[key: string]: string} = {}
+      if (this.startDate) {
+        kwargs.start_date = this.startDate
       }
-      return [
-        {label: 'Unqualified earnings', value: this.overview.x.unprocessed},
-        {label: 'Reserve (may be given as Landscape bonus)', value: this.overview.x.reserve},
-        {label: 'Held in escrow', value: this.overview.x.escrow},
-        {label: 'Customer holdings awaiting withdraw', value: this.overview.x.holdings},
-      ]
-    }
-    public get holdingsItems() {
-      return this.holdings.list.map((x) => x.x)
-    }
-    public get holdingsPagination() {
-      return {
-        page: this.holdings.currentPage,
-        rowsPerPage: this.holdings.pageSize,
-        totalItems: this.holdings.count,
-        sortBy: 'id',
-        descending: false,
+      if (this.endDate) {
+        kwargs.end_date = this.endDate
       }
+      return kwargs
     }
-    public set holdingsPagination(obj: any) {
-      this.holdings.currentPage = obj.page
-    }
-    public downloadHoldings() {
-      artCall({
-        url: this.holdings.endpoint, method: 'get', responseType: 'blob', headers: {Accept: 'text/csv'}},
-      ).then((response) => {
-        const url = window.URL.createObjectURL(new Blob([response]))
-        const link = document.createElement('a')
-        link.href = url
-        link.setAttribute('download', `holdings-${moment.now()}.csv`)
-        link.click()
-      })
+    public get rangeString() {
+      const str = Object.keys(this.rangeKwargs).map(key => key + '=' + this.rangeKwargs[key]).join('&')
+      if (str) {
+        return `?${str}`
+      }
+      return ''
     }
     public created() {
       this.overview = this.$getSingle('overviewReport', {endpoint: '/api/sales/v1/reports/overview/'})
