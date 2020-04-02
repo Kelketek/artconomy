@@ -36,7 +36,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='TransactionRecord',
             fields=[
-                ('id', models.UUIDField(db_index=True, default=short_stuff.lib.gen_unique_id, primary_key=True, serialize=False)),
+                ('id', models.UUIDField(db_index=True, default=short_stuff.lib.gen_shortcode_uuid, primary_key=True, serialize=False)),
                 ('status', models.IntegerField(choices=[(0, 'Successful'), (1, 'Failed'), (2, 'Pending')], db_index=True)),
                 ('source', models.IntegerField(choices=[(300, 'Credit Card Account'), (301, 'Bank Account'), (302, 'Escrow'), (303, 'Customer Finalized Earnings'), (304, 'Contingency reserve'), (305, 'Unannotated earnings'), (306, 'Card transaction fees'), (307, 'Other card fees'), (307, 'ACH Transaction fees'), (308, 'Other ACH fees')], db_index=True)),
                 ('destination', models.IntegerField(choices=[(300, 'Credit Card Account'), (301, 'Bank Account'), (302, 'Escrow'), (303, 'Customer Finalized Earnings'), (304, 'Contingency reserve'), (305, 'Unannotated earnings'), (306, 'Card transaction fees'), (307, 'Other card fees'), (307, 'ACH Transaction fees'), (308, 'Other ACH fees')], db_index=True)),

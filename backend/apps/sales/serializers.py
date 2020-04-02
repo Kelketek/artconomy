@@ -13,7 +13,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import SerializerMethodField, DecimalField, IntegerField, FloatField, EmailField
 from short_stuff import slugify
-from short_stuff.django import ShortUIDField
+from short_stuff.django.serializers import ShortCodeField
 
 from apps.lib.models import ref_for_instance
 from apps.lib.serializers import (
@@ -87,7 +87,6 @@ class ProductSerializer(ProductMixin, RelatedAtomicMixin, serializers.ModelSeria
 
 class ProductNewOrderSerializer(serializers.ModelSerializer):
     email = EmailField(write_only=True, required=False, allow_blank=True)
-    id = ShortUIDField(read_only=True)
     seller = RelatedUserSerializer(read_only=True)
     buyer = RelatedUserSerializer(read_only=True)
 
@@ -195,7 +194,7 @@ class OrderViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
     def get_claim_token(self, order):
         user = self.context['request'].user
         if user == order.buyer and order.claim_token:
-            return slugify(order.claim_token)
+            return order.claim_token
         return None
 
     @property
@@ -469,7 +468,7 @@ class WithdrawSerializer(serializers.Serializer):
 
 
 class TransactionRecordSerializer(serializers.ModelSerializer):
-    id = ShortUIDField()
+    id = ShortCodeField()
     payer = RelatedUserSerializer(read_only=True)
     payee = RelatedUserSerializer(read_only=True)
     target = EventTargetRelatedField(read_only=True)
@@ -653,7 +652,7 @@ class SubmissionFromOrderSerializer(RelatedAtomicMixin, serializers.ModelSeriali
 
 class OrderAuthSerializer(serializers.Serializer):
     id = serializers.IntegerField()
-    claim_token = ShortUIDField()
+    claim_token = ShortCodeField()
     chown = serializers.BooleanField()
 
 
@@ -760,7 +759,7 @@ class OrderValuesSerializer(serializers.ModelSerializer):
 
 
 class PayoutTransactionSerializer(serializers.ModelSerializer):
-    id = ShortUIDField()
+    id = ShortCodeField()
     payee = serializers.StringRelatedField(read_only=True)
     status = serializers.SerializerMethodField()
     amount = MoneyToFloatField()
@@ -801,7 +800,7 @@ class PayoutTransactionSerializer(serializers.ModelSerializer):
 
 
 class SimpleTransactionSerializer(serializers.ModelSerializer):
-    id = ShortUIDField()
+    id = ShortCodeField()
     payer = serializers.StringRelatedField(read_only=True)
     payee = serializers.StringRelatedField(read_only=True)
     category = serializers.SerializerMethodField()

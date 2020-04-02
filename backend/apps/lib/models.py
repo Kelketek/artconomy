@@ -16,6 +16,8 @@ from easy_thumbnails.fields import ThumbnailerImageField
 from easy_thumbnails.signals import saved_file
 from uuid import uuid4
 
+from short_stuff import unslugify
+
 from apps.lib.abstract_models import ALLOWED_EXTENSIONS
 from apps.lib.permissions import CommentViewPermission
 from apps.lib.tasks import generate_thumbnails, check_asset_associations
@@ -219,9 +221,12 @@ class GenericReference(Model):
 def ref_for_instance(instance: Model) -> GenericReference:
     if isinstance(instance, GenericReference):
         return instance
+    pk = instance.pk
+    if isinstance(pk, str):
+        pk = unslugify(pk)
     result, _created = GenericReference.objects.get_or_create(
         content_type=ContentType.objects.get_for_model(instance),
-        object_id=instance.id,
+        object_id=pk,
     )
     return result
 

@@ -50,4 +50,4 @@ uWSGI==2.0.18
 whoosh==2.7.4
 qrcode==6.1
 django-markdown2==0.3.1
-git+https://github.com/Artconomy/short_stuff.git@0.1.2#egg=short_stuff
+short-stuff==1.0.1

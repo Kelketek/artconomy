@@ -3,7 +3,6 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import Union, List
-from uuid import uuid4
 from warnings import warn
 
 from django.db import transaction, models, IntegrityError
@@ -15,7 +14,6 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models import (
     Model, CharField, ForeignKey, IntegerField, BooleanField, DateTimeField, ManyToManyField,
     SET_NULL, PositiveIntegerField, URLField, CASCADE, DecimalField, Avg, DateField, EmailField, Sum,
-    UUIDField,
     TextField,
     SlugField,
     PROTECT)
@@ -26,7 +24,8 @@ from django.dispatch import receiver
 from django.utils import timezone
 from djmoney.models.fields import MoneyField
 from moneyed import Money
-from short_stuff import gen_unique_id, slugify
+from short_stuff import slugify, gen_shortcode
+from short_stuff.django.models import ShortCodeField
 
 from apps.lib.models import Comment, Subscription, SALE_UPDATE, ORDER_UPDATE, REVISION_UPLOADED, COMMENT, NEW_PRODUCT, \
     Event, ref_for_instance
@@ -291,7 +290,7 @@ class Order(Model):
     revisions = IntegerField(default=0)
     revisions_hidden = BooleanField(default=True)
     final_uploaded = BooleanField(default=False)
-    claim_token = UUIDField(blank=True, null=True)
+    claim_token = ShortCodeField(blank=True, null=True)
     customer_email = EmailField(blank=True)
     details = CharField(max_length=5000)
     adjustment_expected_turnaround = DecimalField(default=0, max_digits=5, decimal_places=2)
@@ -369,9 +368,9 @@ class Order(Model):
         if request.user.guest:
             data['name'] = 'ClaimOrder'
             if not self.claim_token:
-                self.claim_token = uuid4()
+                self.claim_token = gen_shortcode()
                 self.save()
-            data['params']['claimToken'] = str(self.claim_token)
+            data['params']['claimToken'] = self.claim_token
             return data
         data['name'] = 'Order'
         return data
@@ -413,7 +412,7 @@ def auto_subscribe_order(sender, instance, created=False, **_kwargs):
     ] + buyer_subscriptions(instance, order_type=order_type)
     Subscription.objects.bulk_create(subscriptions, ignore_conflicts=True)
     if (not instance.buyer) or instance.buyer.guest:
-        instance.claim_token = uuid4()
+        instance.claim_token = gen_shortcode()
         instance.save()
 
 
@@ -529,7 +528,7 @@ def issue_order_claim(sender: type, instance: Order, created=False, **kwargs):
     send_transaction_email(
         f'You have a new invoice from {instance.seller.username}!',
         'invoice_issued.html', instance.customer_email,
-        {'order': instance, 'claim_token': slugify(instance.claim_token)}
+        {'order': instance, 'claim_token': instance.claim_token}
     )
 
 
@@ -924,7 +923,7 @@ class TransactionRecord(Model):
         (MANUAL_PAYOUT, 'Manual Payout')
     )
 
-    id = UUIDField(primary_key=True, db_index=True, default=gen_unique_id)
+    id = ShortCodeField(primary_key=True, db_index=True, default=gen_shortcode)
 
     status = IntegerField(choices=STATUSES, db_index=True)
     source = IntegerField(choices=ACCOUNT_TYPES, db_index=True)

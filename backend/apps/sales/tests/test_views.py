@@ -3955,7 +3955,7 @@ class TestOrderAuth(APITestCase):
         response = self.client.post(
             '/api/sales/v1/order-auth/',
             {
-                'claim_token': slugify(order.claim_token),
+                'claim_token': order.claim_token,
                 'id': order.id,
                 'chown': False,
             },
@@ -3969,7 +3969,7 @@ class TestOrderAuth(APITestCase):
         response = self.client.post(
             '/api/sales/v1/order-auth/',
             {
-                'claim_token': slugify(order.claim_token),
+                'claim_token': order.claim_token,
                 'id': order.id,
                 'chown': False,
             },
@@ -3986,7 +3986,7 @@ class TestOrderAuth(APITestCase):
         response = self.client.post(
             '/api/sales/v1/order-auth/',
             {
-                'claim_token': slugify(order.claim_token),
+                'claim_token': order.claim_token,
                 'id': order.id,
                 'chown': True,
             },
@@ -4000,7 +4000,7 @@ class TestOrderAuth(APITestCase):
         response = self.client.post(
             '/api/sales/v1/order-auth/',
             {
-                'claim_token': slugify(order.claim_token),
+                'claim_token': order.claim_token,
                 'id': order.id,
                 'chown': True,
             },
@@ -4015,7 +4015,7 @@ class TestOrderAuth(APITestCase):
         response = self.client.post(
             '/api/sales/v1/order-auth/',
             {
-                'claim_token': slugify(order.claim_token),
+                'claim_token': order.claim_token,
                 'id': order.id,
                 'chown': True,
             },

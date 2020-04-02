@@ -276,7 +276,7 @@ class OrderInvite(GenericAPIView):
         send_transaction_email(
             subject,
             template, order.customer_email,
-            {'order': order, 'claim_token': slugify(order.claim_token)}
+            {'order': order, 'claim_token': order.claim_token}
         )
         return Response(status=status.HTTP_200_OK, data=self.get_serializer(instance=order).data)
 
@@ -2085,7 +2085,7 @@ class OrderAuth(GenericAPIView):
             target_email = (order.buyer and order.buyer.guest_email) or order.customer_email
             send_transaction_email(
                 f'Claim Link for order #{order.id}.',
-                'new_claim_link.html', target_email, {'order': order, 'claim_token': slugify(order.claim_token)}
+                'new_claim_link.html', target_email, {'order': order, 'claim_token': order.claim_token}
             )
             return Response(
                 status=status.HTTP_401_UNAUTHORIZED, data={'detail': invalid},

@@ -5,7 +5,7 @@ from avatar.templatetags.avatar_tags import avatar_url
 from dateutil.relativedelta import relativedelta
 from django.db.models import Case, When, F, IntegerField, Q
 from django.utils import timezone
-from short_stuff import gen_guid, slugify
+from short_stuff import gen_shortcode
 
 from apps.lib.models import REFERRAL_LANDSCAPE_CREDIT, REFERRAL_PORTRAIT_CREDIT, Comment
 from apps.lib.utils import notify, destroy_comment
@@ -137,7 +137,7 @@ def empty_user(request):
 
 def create_guest_user(email: str) -> User:
     # Start with a username unlikely to cause collision
-    username = f'__{slugify(gen_guid())}'
+    username = f'__{gen_shortcode()}'
     user = User.objects.create(
         guest=True, email=f'{username}@localhost', guest_email=email, username=username
     )

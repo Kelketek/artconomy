@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
             name='OrderToken',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('activation_code', models.CharField(default=short_stuff.gen_unique_id, max_length=8)),
+                ('activation_code', models.CharField(default=short_stuff.gen_shortcode, max_length=8)),
                 ('expires_on', models.DateTimeField(db_index=True, default=datetime.datetime.now)),
                 ('email', models.EmailField(max_length=254)),
                 ('product', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='sales.Product')),

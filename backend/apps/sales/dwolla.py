@@ -14,6 +14,7 @@ from ipware import get_client_ip
 
 from apps.sales.models import BankAccount, TransactionRecord, Order
 from apps.sales.utils import account_balance
+from short_stuff import unslugify
 
 TRANSACTION_STATUS_MAP = {
     'pending': TransactionRecord.PENDING,
