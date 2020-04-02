@@ -471,7 +471,7 @@ class TransactionRecordSerializer(serializers.ModelSerializer):
     id = ShortCodeField()
     payer = RelatedUserSerializer(read_only=True)
     payee = RelatedUserSerializer(read_only=True)
-    target = EventTargetRelatedField(read_only=True)
+    targets = EventTargetRelatedField(read_only=True, many=True)
     card = CardSerializer(read_only=True)
     amount = MoneyToFloatField()
 
@@ -487,7 +487,7 @@ class TransactionRecordSerializer(serializers.ModelSerializer):
         model = TransactionRecord
         fields = (
             'id', 'source', 'destination', 'status', 'category', 'card', 'payer', 'payee', 'amount', 'remote_id',
-            'created_on', 'response_message', 'finalized_on', 'target'
+            'created_on', 'response_message', 'finalized_on', 'targets'
         )
         read_only_fields = fields
 

@@ -211,6 +211,13 @@ class GenericReference(Model):
     content_type = ForeignKey(ContentType, on_delete=SET_NULL, null=True, blank=False)
     target = GenericForeignKey('content_type', 'object_id')
 
+    def notification_serialize(self, context):
+        from apps.lib.serializers import get_link
+        return {
+            'model': self.target and self.target.__class__.__name__, 'id': self.target and self.target.pk,
+            'link': get_link(self.target, context=context),
+        }
+
     def __str__(self):
         return f'::ref#{self.id}:: {self.target}'
 

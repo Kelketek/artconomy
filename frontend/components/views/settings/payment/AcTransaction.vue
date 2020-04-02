@@ -30,7 +30,7 @@
       <v-card>
         <v-card-text>
           <v-row no-gutters  >
-            <v-col cols="6">TXN ID: {{transaction.id}}</v-col>
+            <v-col cols="6">TXN ID: <ac-link :to="transactionLink" :new-tab="true">{{transaction.id}}</ac-link></v-col>
             <v-col cols="6">Category: {{CATEGORY_TYPES[transaction.category]}}</v-col>
             <v-col cols="6">Status: {{STATUSES[transaction.status]}}</v-col>
             <v-col cols="6">Payer: {{displayName(transaction.payer)}}</v-col>
@@ -43,6 +43,14 @@
               </strong>
             </v-col>
             <v-col cols="6" v-if="transaction.card">Card: {{issuer.name}} x{{transaction.card.last_four}}</v-col>
+            <v-col cols="6">
+              <v-subheader>Refs:</v-subheader>
+              <ul>
+                <li v-for="ref, index in transaction.targets" :key="index">
+                  <ac-link :to="ref.link">{{ref.model}} #{{ref.id}}</ac-link>
+                </li>
+              </ul>
+            </v-col>
           </v-row>
         </v-card-text>
         <v-card-actions class="text-right">
@@ -61,8 +69,10 @@ import {Prop} from 'vue-property-decorator'
 import {User} from '@/store/profiles/types/User'
 import Formatting from '@/mixins/formatting'
 import {ISSUERS} from '@/lib/lib'
-
-@Component
+import AcLink from '@/components/wrappers/AcLink.vue'
+@Component({
+  components: {AcLink},
+})
 export default class AcTransaction extends mixins(Subjective, Formatting) {
     @Prop({required: true})
     public transaction!: Transaction
@@ -155,6 +165,12 @@ export default class AcTransaction extends mixins(Subjective, Formatting) {
       }
       // @ts-ignore
       return ISSUERS[this.transaction.card.type]
+    }
+    public get transactionLink() {
+      if (!this.isSuperuser) {
+        return null
+      }
+      return `/admin/sales/transactionrecord/${this.transaction.id}/`
     }
     public displayName(target: User|null) {
       if (!target) {
