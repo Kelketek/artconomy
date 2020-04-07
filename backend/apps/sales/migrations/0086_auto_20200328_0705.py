@@ -4,6 +4,8 @@ from django.db import migrations
 
 
 # Status types
+from short_stuff import slugify
+
 SUCCESS = 0
 FAILURE = 1
 PENDING = 2
@@ -130,10 +132,11 @@ def annotate_payouts(apps, schema):
             targets__in=references, source=ESCROW, destination=HOLDINGS,
         ).order_by('created_on')
         for transaction in transactions:
-            payout_transaction = TransactionRecord.objects.filter(
+            payout_transactions = TransactionRecord.objects.filter(
                 payer=transaction.payee, source=HOLDINGS, destination=BANK, status__in=[SUCCESS, PENDING],
-                created_on__gte=transaction.created_on,
-            ).order_by('created_on').first()
+                created_on__gte=transaction.created_on.replace(microsecond=0),
+            ).order_by('created_on')
+            payout_transaction = payout_transactions.first()
             if not payout_transaction:
                 continue
             order_targets = transaction.targets.filter(content_type_id=order_content_type_id)
