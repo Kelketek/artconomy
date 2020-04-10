@@ -288,3 +288,8 @@ jest-mock-promise/**
 
 # Mypy cache
 .mypy_cache/*
+
+# Exports/imports from financial utilities.
+**/*.csv
+**/*.xls
+**/*.xlsx

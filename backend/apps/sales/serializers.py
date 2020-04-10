@@ -1,6 +1,7 @@
 from decimal import Decimal
 from functools import lru_cache
 from pprint import pprint
+from typing import List
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
@@ -767,10 +768,10 @@ class PayoutTransactionSerializer(serializers.ModelSerializer):
     total_drafted = serializers.SerializerMethodField()
     targets = serializers.SerializerMethodField()
 
-    def get_category(self, obj):
+    def get_category(self, obj: TransactionRecord):
         return obj.get_category_display()
 
-    def get_status(self, obj):
+    def get_status(self, obj: TransactionRecord):
         return obj.get_status_display()
 
     @lru_cache
@@ -780,14 +781,19 @@ class PayoutTransactionSerializer(serializers.ModelSerializer):
             or Decimal('0')
         )
 
-    def get_targets(self, obj):
-        targets = [
-            f'{target.target.__class__.__name__} #{target.target.id}'
-            for target in obj.targets.order_by('content_type_id').all() if target.target
-        ]
-        return ', '.join(targets)
+    def get_targets(self, obj: TransactionRecord):
+        targets = obj.targets.order_by('content_type_id').all()
+        items: List[str] = []
+        for target in targets:
+            if not target:
+                continue
+            base = f'{target.target.__class__.__name__} #{target.target.id}'
+            if target.content_type.model_class == TransactionRecord:
+                base += f' ({target.target.amount.amount})'
+            items.append(base)
+        return ', '.join(items)
 
-    def get_total_drafted(self, obj):
+    def get_total_drafted(self, obj: TransactionRecord):
         return obj.amount.amount + self.get_fees(obj)
 
     class Meta:

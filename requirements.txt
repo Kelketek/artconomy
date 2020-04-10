@@ -1,4 +1,5 @@
 ansible==2.9.4
+arrow==0.15.5
 pycountry
 authorizenet==1.1.3
 bok_choy==1.0.1

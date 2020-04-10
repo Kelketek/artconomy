@@ -106,17 +106,19 @@ class Product(ImageModel, HitsMixin):
     @property
     def line_items(self) -> List['LineItemSim']:
         lines = [
-            LineItemSim(amount=self.base_price, priority=0, type=BASE_PRICE),
+            LineItemSim(amount=self.base_price, priority=0, type=BASE_PRICE, id=0),
         ]
         if self.table_product:
             lines.extend([
                 LineItemSim(
+                    id=300,
                     percentage=settings.TABLE_PERCENTAGE_FEE, priority=300,
                     amount=Money(settings.TABLE_STATIC_FEE, 'USD'),
                     type=TABLE_SERVICE, cascade_percentage=True,
                     cascade_amount=False,
                 ),
                 LineItemSim(
+                    id=600,
                     percentage=settings.TABLE_TAX, priority=600, type=TAX, cascade_percentage=True, cascade_amount=True,
                     back_into_percentage=True,
                 ),
@@ -124,6 +126,7 @@ class Product(ImageModel, HitsMixin):
         elif self.base_price and not self.escrow_disabled:
             lines.extend([
                 LineItemSim(
+                    id=200,
                     amount=Money(settings.SERVICE_STATIC_FEE, 'USD'),
                     percentage=settings.SERVICE_PERCENTAGE_FEE, priority=200,
                     type=SHIELD,
@@ -131,6 +134,7 @@ class Product(ImageModel, HitsMixin):
                     cascade_amount=True,
                 ),
                 LineItemSim(
+                    id=201,
                     amount=Money(settings.PREMIUM_STATIC_BONUS, 'USD'),
                     percentage=settings.PREMIUM_PERCENTAGE_BONUS, priority=200,
                     type=BONUS,
@@ -1078,6 +1082,7 @@ class LineItem(Model):
 
 @dataclass(frozen=True)
 class LineItemSim:
+    id: int
     priority: int
     amount: Money = Money('0', 'USD')
     percentage: Decimal = Decimal(0)
