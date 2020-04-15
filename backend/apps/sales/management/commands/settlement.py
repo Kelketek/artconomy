@@ -1,4 +1,3 @@
-import sys
 from collections import defaultdict
 from csv import DictReader, DictWriter
 from dataclasses import dataclass
@@ -10,7 +9,6 @@ from dateutil.relativedelta import relativedelta
 from django.core.management import BaseCommand, CommandParser
 from django.core.management.base import OutputWrapper
 from moneyed import Money
-from short_stuff import gen_shortcode
 
 from apps.lib.permissions import Any
 from apps.sales.models import LineItemSim
@@ -139,12 +137,22 @@ def settlement_sanity_check(transaction_sets: TransactionSets, date_map: DateMap
 
 
 def divvy_fees(transactions: List[CaptureSpec], fees: Decimal):
+    counter = 0
+
+    def inc():
+        nonlocal counter
+        counter += 1
+        return counter
+
     line_item_set = tuple(
-        (LineItemSim(priority=0, amount=Money(capture_spec.amount, 'USD'), description=gen_shortcode()), capture_spec)
+        (
+            LineItemSim(priority=0, amount=Money(capture_spec.amount, 'USD'), id=inc()),
+            capture_spec,
+        )
         for capture_spec in transactions
     )
     lines = (list((item for item, _ in line_item_set)) +
-        [LineItemSim(priority=1, amount=Money(fees, 'USD'), cascade_amount=True)])
+             [LineItemSim(priority=1, amount=Money(fees, 'USD'), cascade_amount=True, id=inc())])
     total, line_totals = get_totals(lines)
     return (
         (spec, spec.amount - line_totals[line].amount) for line, spec in line_item_set
@@ -167,7 +175,7 @@ def output_csv(*, transaction_sets: TransactionSets, date_map: DateMap, output: 
     )
     writer.writeheader()
     for key, value in sorted(transaction_sets.items()):
-        writer.writerow({
+        writer.writerows({
             'auth_date': transaction.auth_date,
             'settlement_date': key,
             'amount': transaction.amount,
