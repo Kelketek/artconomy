@@ -72,6 +72,7 @@ import Redirect from '@/components/views/Redirect.vue'
 import ShieldCommissioner from '@/components/views/landing/ShieldCommissioner.vue'
 import AlwaysOpen from '@/components/views/landing/AlwaysOpen.vue'
 import ShieldArtist from '@/components/views/landing/ShieldArtist.vue'
+import RedirectToViewer from '@/components/views/RedirectToViewer.vue'
 
 function orderLists() {
   const orderRoutes: RouteConfig[] = []
@@ -257,6 +258,12 @@ export const routes = [
         props: true,
       },
     ],
+  },
+  {
+    path: '/my/:viewName/',
+    name: 'MyView',
+    component: RedirectToViewer,
+    props: true,
   },
   {
     path: '/profile/:username/settings/',
