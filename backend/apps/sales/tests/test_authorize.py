@@ -122,8 +122,10 @@ class TestAuthorize(TestCase):
     @patch('apps.sales.authorize.execute')
     def test_refund_transaction(self, mock_execute):
         mock_execute.return_value.transactionResponse.transId = '1234'
-        remote_id = refund_transaction('1234567', '1111', Decimal('5.00'))
+        mock_execute.return_value.transactionResponse.authCode = 'ABC123'
+        remote_id, auth_code = refund_transaction('1234567', '1111', Decimal('5.00'))
         self.assertEqual(remote_id, '1234')
+        self.assertEqual(auth_code, 'ABC123')
 
     @patch('apps.sales.authorize.execute')
     def test_delete_card(self, mock_execute):

@@ -243,6 +243,7 @@ def allocate_bonus(order: 'Order', source_record: 'TransactionRecord'):
         amount=amount,
         status=TransactionRecord.SUCCESS,
         remote_id=source_record.remote_id,
+        auth_code=source_record.auth_code,
     )
     if order.seller.landscape:
         bonus.payee = order.seller
@@ -272,6 +273,7 @@ def finalize_table_fees(order: 'Order'):
         status=TransactionRecord.SUCCESS,
         category=TransactionRecord.TABLE_SERVICE,
         remote_id=record.remote_id,
+        auth_code=record.auth_code,
     )
     tax_record = TransactionRecord.objects.get(
         payee=None, destination=TransactionRecord.MONEY_HOLE_STAGE,
@@ -286,6 +288,7 @@ def finalize_table_fees(order: 'Order'):
         status=TransactionRecord.SUCCESS,
         category=TransactionRecord.TABLE_SERVICE,
         remote_id=tax_record.remote_id,
+        auth_code=tax_record.auth_code,
     )
     tax_burned.targets.add(ref)
 
@@ -316,6 +319,7 @@ def finalize_order(order, user=None):
             category=TransactionRecord.ESCROW_RELEASE,
             status=TransactionRecord.SUCCESS,
             remote_id=record.remote_id,
+            auth_code=record.auth_code,
         )
         to_holdings.targets.add(ref_for_instance(order))
         if not order.table_order:
@@ -358,6 +362,7 @@ def split_fee(transaction: 'TransactionRecord') -> 'TransactionRecord':
         source=TransactionRecord.RESERVE,
         destination=TransactionRecord.UNPROCESSED_EARNINGS,
         remote_id=transaction.remote_id,
+        auth_code=transaction.auth_code,
         status=TransactionRecord.SUCCESS,
         target=transaction.target,
         category=TransactionRecord.SHIELD_FEE,
@@ -581,11 +586,12 @@ def issue_refund(transaction_set: Iterator['TransactionRecord'], category: int) 
     amount = sum(transaction.amount for transaction in card_transactions)
     if card_transactions:
         try:
-            remote_id = refund_transaction(remote_id, last_four, amount)
+            remote_id, auth_code = refund_transaction(remote_id, last_four, amount)
             for transaction in refund_transactions:
                 transaction.status = TransactionRecord.SUCCESS
                 if transaction.destination == TransactionRecord.CARD:
                     transaction.remote_id = remote_id
+                    transaction.auth_code = auth_code
                 transaction.response_message = ''
         except Exception as err:
             for transaction in refund_transactions:

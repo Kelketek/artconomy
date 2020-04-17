@@ -64,7 +64,9 @@ def renew(user_id, service, card_id=None):
     )
     record.targets.add(ref_for_instance(user))
     try:
-        remote_id = charge_saved_card(profile_id=card.profile_id, payment_id=card.payment_id, amount=price.amount)
+        remote_id, auth_code = charge_saved_card(
+            profile_id=card.profile_id, payment_id=card.payment_id, amount=price.amount,
+        )
     except AuthorizeException as err:
         record.response_message = str(err)
         record.save()
@@ -75,6 +77,7 @@ def renew(user_id, service, card_id=None):
     else:
         record.status = TransactionRecord.SUCCESS
         record.remote_id = remote_id
+        record.auth_code = auth_code
         record.finalized = True
         record.response_message = 'Upgraded to {}'.format(service)
         card.cvv_verified = True

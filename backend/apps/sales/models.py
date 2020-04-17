@@ -942,6 +942,7 @@ class TransactionRecord(Model):
     targets = ManyToManyField(to='lib.GenericReference', related_name='referencing_transactions')
 
     remote_id = CharField(max_length=40, blank=True, default='')
+    auth_code = CharField(max_length=6, default='', db_index=True)
     response_message = TextField(default='', blank=True)
     note = TextField(default='', blank=True)
 
@@ -990,7 +991,9 @@ class TransactionRecord(Model):
         )
         record.targets.set(self.targets.all())
         try:
-            record.remote_id = refund_transaction(self.remote_id, self.card.last_four, self.amount.amount)
+            record.remote_id, record.auth_code = refund_transaction(
+                self.remote_id, self.card.last_four, self.amount.amount,
+            )
             record.status = TransactionRecord.SUCCESS
             record.save()
         except Exception as err:

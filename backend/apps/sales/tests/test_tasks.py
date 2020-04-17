@@ -46,7 +46,7 @@ class TestAutoRenewal(TestCase):
     @patch('apps.sales.tasks.charge_saved_card')
     @freeze_time('2018-02-10 12:00:00')
     def test_renew_portrait(self, mock_charge_card):
-        mock_charge_card.return_value = 'Trans123'
+        mock_charge_card.return_value = ('Trans123', 'ABC123')
         card = CreditCardTokenFactory.create(
             user__portrait_enabled=True, user__portrait_paid_through=date(2018, 2, 10),
             token='1234', user__authorize_token='5678'
@@ -74,7 +74,7 @@ class TestAutoRenewal(TestCase):
     @patch('apps.sales.tasks.charge_saved_card')
     @freeze_time('2018-02-10 12:00:00')
     def test_renew_no_primary(self, mock_charge_card):
-        mock_charge_card.return_value = 'Trans123'
+        mock_charge_card.return_value = 'Trans123', 'ABC123'
         card = CreditCardTokenFactory.create(
             user__portrait_enabled=True, user__portrait_paid_through=date(2018, 2, 10),
             token='1234', user__authorize_token='5678'
@@ -114,7 +114,7 @@ class TestAutoRenewal(TestCase):
     @patch('apps.sales.tasks.charge_saved_card')
     @freeze_time('2018-02-10 12:00:00')
     def test_renew_landscape(self, mock_charge_card):
-        mock_charge_card.return_value = 'Trans123'
+        mock_charge_card.return_value = ('Trans123', 'ABC123')
         card = CreditCardTokenFactory.create(
             user__landscape_enabled=True, user__landscape_paid_through=date(2018, 2, 10)
         )
@@ -191,7 +191,7 @@ class TestAutoRenewal(TestCase):
     @freeze_time('2018-02-10 12:00:00')
     def test_already_renewed(self, mock_charge_card):
         # Still mock out capture here to avoid chance of contacting outside server.
-        mock_charge_card.return_value = 'Trans123'
+        mock_charge_card.return_value = ('Trans123', 'ABC123')
         card = CreditCardTokenFactory.create(
             user__portrait_enabled=True, user__portrait_paid_through=date(2018, 2, 11)
         )
@@ -208,7 +208,7 @@ class TestAutoRenewal(TestCase):
     @patch('apps.sales.tasks.charge_saved_card')
     @freeze_time('2018-02-10 12:00:00')
     def test_card_override(self, mock_charge_card):
-        mock_charge_card.return_value = 'Trans123'
+        mock_charge_card.return_value = ('Trans123', 'ABC123')
         primary_card = CreditCardTokenFactory.create(
             user__portrait_enabled=True, user__portrait_paid_through=date(2018, 2, 10),
         )

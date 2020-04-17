@@ -4,16 +4,15 @@ from functools import lru_cache
 from typing import Union, List
 from uuid import uuid4
 
-from dateutil.parser import ParserError, parse
+from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.auth import login
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
-from django.http import HttpRequest
 from django.utils.timezone import make_aware
 from django.views.static import serve
-from django.db.models import When, F, Case, BooleanField, Q, Count, QuerySet, IntegerField, Sum
+from django.db.models import When, F, Case, BooleanField, Q, Count, QuerySet, IntegerField
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
@@ -49,7 +48,7 @@ from apps.profiles.permissions import ObjectControls, UserControls, IsUser, IsSu
 from apps.profiles.serializers import UserSerializer, SubmissionSerializer
 from apps.profiles.utils import credit_referral, create_guest_user, empty_user
 from apps.sales.authorize import AuthorizeException, charge_saved_card, CardInfo, AddressInfo, \
-    create_customer_profile, charge_card, card_token_from_transaction, get_card_type
+    create_customer_profile, charge_card, card_token_from_transaction, get_card_type, transaction_details
 from apps.sales.dwolla import add_bank_account, make_dwolla_account, \
     destroy_bank_account
 from apps.sales.permissions import (
@@ -1046,9 +1045,20 @@ class PaymentMixin:
         return True, transactions
 
     def from_remote_id(self, data: dict, amount: Money, user: User, remote_id: str):
+        # First, let's verify this remote ID is real.
+        details = transaction_details(remote_id)
+        auth_code = details['auth_code']
+        if not auth_code:
+            raise AuthorizeException('Transaction ID is for failed transaction.')
+        if details['auth_amount'] != amount:
+            raise AuthorizeException(
+                f'This transaction ID is for the wrong amount. {amount} != {details["auth_amount"]}')
+        if TransactionRecord.objects.filter(auth_code=auth_code).exists():
+            raise AuthorizeException('An order with this transaction ID already exists.')
         transactions = self.init_transactions(data, amount, user)
         for transaction in transactions:
             transaction.status = TransactionRecord.SUCCESS
+            transaction.auth_code = auth_code
             transaction.remote_id = remote_id
         self.post_success(transactions, data, user)
         for transaction in transactions:
@@ -1088,12 +1098,13 @@ class PaymentMixin:
             user.save()
         transactions = self.init_transactions(data, amount, user)
         try:
-            remote_id = charge_card(card_info, address_info, amount.amount)
+            remote_id, auth_code = charge_card(card_info, address_info, amount.amount)
         except Exception as err:
             return self.annotate_error(transactions, err, data, user)
         for transaction in transactions:
             transaction.status = TransactionRecord.SUCCESS
             transaction.remote_id = remote_id
+            transaction.auth_code = auth_code
         self.post_success(transactions, data, user)
         for transaction in transactions:
             transaction.save()
@@ -1128,7 +1139,7 @@ class PaymentMixin:
         for transaction in transactions:
             transaction.card = card
         try:
-            remote_id = charge_saved_card(
+            remote_id, auth_code = charge_saved_card(
                 profile_id=card.profile_id,
                 payment_id=card.payment_id, amount=amount.amount, cvv=data.get('cvv', None),
             )
@@ -1137,6 +1148,7 @@ class PaymentMixin:
         for transaction in transactions:
             transaction.status = TransactionRecord.SUCCESS
             transaction.remote_id = remote_id
+            transaction.auth_code = auth_code
         self.post_success(transactions, data, user)
         for transaction in transactions:
             transaction.save()
@@ -1221,6 +1233,7 @@ class MakePayment(PaymentMixin, GenericAPIView):
             source=TransactionRecord.RESERVE,
             destination=TransactionRecord.UNPROCESSED_EARNINGS,
             remote_id=fee_record.remote_id,
+            auth_code=fee_record.auth_code,
             status=TransactionRecord.SUCCESS,
             category=TransactionRecord.SHIELD_FEE,
         )

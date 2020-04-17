@@ -3,17 +3,19 @@ import re
 import traceback
 from collections import namedtuple, OrderedDict
 from decimal import Decimal
+from typing import TypedDict
 
 from authorizenet import apicontractsv1
 from authorizenet.apicontrollers import (
     createCustomerProfileController, createCustomerPaymentProfileController,
     deleteCustomerPaymentProfileController,
     createTransactionController,
-    createCustomerProfileFromTransactionController)
+    createCustomerProfileFromTransactionController, getTransactionDetailsController)
 from authorizenet.apicontrollersbase import APIOperationBase
 from authorizenet.constants import constants
 from django.conf import settings
 from lxml.etree import tostring
+from moneyed import Money
 
 logger = logging.getLogger(__name__)
 
@@ -153,7 +155,26 @@ def create_card(card_info: CardInfo, address_info: AddressInfo, profile_id: str)
     return response.customerPaymentProfileId
 
 
-def charge_card(card_info: CardInfo, address_info: AddressInfo, amount: Decimal, ip=None) -> str:
+class TransactionDetails(TypedDict):
+    auth_code: str
+    auth_amount: Money
+
+
+def transaction_details(remote_id: str) -> TransactionDetails:
+    request = apicontractsv1.getTransactionDetailsRequest()
+    request.merchantAuthentication = authenticate()
+    request.transId = remote_id
+
+    controller = getTransactionDetailsController(request)
+    transaction = execute(controller).transaction
+
+    return {
+        'auth_code': transaction.authCode,
+        'auth_amount': Money(str(transaction.authAmount), 'USD'),
+    }
+
+
+def charge_card(card_info: CardInfo, address_info: AddressInfo, amount: Decimal, ip=None) -> (str, str):
     transaction_request = apicontractsv1.transactionRequestType()
     transaction_request.amount = amount
     transaction_request.transactionType = "authCaptureTransaction"
@@ -170,7 +191,7 @@ def charge_card(card_info: CardInfo, address_info: AddressInfo, amount: Decimal,
     controller = createTransactionController(
         create_transaction_request)
     response = execute(controller)
-    return str(response.transactionResponse.transId)
+    return str(response.transactionResponse.transId), str(response.transactionResponse.authCode)
 
 
 def card_token_from_transaction(transaction_id: str, profile_id: str) -> str:
@@ -184,7 +205,9 @@ def card_token_from_transaction(transaction_id: str, profile_id: str) -> str:
     return response.customerPaymentProfileIdList[0].numericString
 
 
-def charge_saved_card(profile_id: str = None, payment_id: str = None, amount: Decimal = None, cvv=None, ip=None):
+def charge_saved_card(
+        profile_id: str = None, payment_id: str = None, amount: Decimal = None, cvv=None, ip=None,
+) -> (str, str):
     """
     Creates an authorization/capture for a card.
     """
@@ -211,7 +234,9 @@ def charge_saved_card(profile_id: str = None, payment_id: str = None, amount: De
     create_transaction_request.transactionRequest = transaction_request
     controller = createTransactionController(create_transaction_request)
 
-    return execute(controller).transactionResponse.transId
+    response = execute(controller).transactionResponse
+
+    return str(response.transId), str(response.authCode)
 
 
 def delete_card(profile_id: str = None, payment_id: str = None):
@@ -251,7 +276,7 @@ def refund_transaction(txn_id: str, last_four: str, amount: Decimal):
     request.transactionRequest = transaction
     controller = createTransactionController(request)
     response = execute(controller)
-    return response.transactionResponse.transId
+    return str(response.transactionResponse.transId), str(response.transactionResponse.authCode)
 
 
 def derive_authnet_error(err):
