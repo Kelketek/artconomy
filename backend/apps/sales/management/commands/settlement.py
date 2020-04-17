@@ -39,6 +39,7 @@ class DateParams(TypedDict):
 class CaptureSpec:
     amount: Decimal
     auth_date: date
+    auth_code: str
 
 
 TransactionSets = Dict[date, List[CaptureSpec]]
@@ -77,7 +78,12 @@ def get_transaction_sets(*, dates: DateParams, transactions: TextIO, output: Out
             break
         current_set: List[CaptureSpec] = transaction_sets[target_date]
         current_set.append(
-            CaptureSpec(amount=Decimal(transaction['SettleAmount']), auth_date=file_to_date(transaction['AuthDate'])),
+            CaptureSpec(
+                amount=Decimal(
+                    transaction['SettleAmount']),
+                auth_date=file_to_date(transaction['AuthDate']),
+                auth_code=transaction['ApprovalCode'],
+            ),
         )
     return transaction_sets
 
@@ -164,6 +170,7 @@ def output_csv(*, transaction_sets: TransactionSets, date_map: DateMap, output: 
         output,
         fieldnames=[
             'auth_date',
+            'auth_code',
             'settlement_date',
             'amount',
             'fee',
@@ -177,6 +184,7 @@ def output_csv(*, transaction_sets: TransactionSets, date_map: DateMap, output: 
     for key, value in sorted(transaction_sets.items()):
         writer.writerows({
             'auth_date': transaction.auth_date,
+            'auth_code': transaction.auth_code,
             'settlement_date': key,
             'amount': transaction.amount,
             'fee': fee,

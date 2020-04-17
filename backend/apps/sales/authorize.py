@@ -169,7 +169,7 @@ def transaction_details(remote_id: str) -> TransactionDetails:
     transaction = execute(controller).transaction
 
     return {
-        'auth_code': transaction.authCode,
+        'auth_code': str(transaction.authCode).zfill(6),
         'auth_amount': Money(str(transaction.authAmount), 'USD'),
     }
 
