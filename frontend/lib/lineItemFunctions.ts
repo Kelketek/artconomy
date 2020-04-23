@@ -91,11 +91,60 @@ export function priorityTotal(current: LineAccumulator, prioritySet: LineItem[])
   return {total: currentTotal.plus(addOn), map: newTotals}
 }
 
+export function toDistribute(total: Big, map: LineMoneyMap): Big {
+  const values = [...map.values()]
+  const combinedSum = sum(values.map((value: Big) => value.round(2, 0)))
+  const difference = total.minus(combinedSum)
+  const upperBound = Big(values.length).times(Big('0.01'))
+  if (difference.gt(upperBound)) {
+    throw Error('Too many fractions!')
+  }
+  return difference
+}
+
+export function biggestFirst(a: [LineItem, Big], b: [LineItem, Big]) {
+  // Sort function for [LineItem, Big] pairs, used for allocating reduction amounts.
+  const aLineItem = a[0]
+  const aAmount = a[1]
+  const bLineItem = b[0]
+  const bAmount = b[1]
+  if (aAmount.eq(bAmount)) {
+    return aLineItem.id - bLineItem.id
+  } else {
+    return parseFloat(aAmount.minus(bAmount).toExponential())
+  }
+}
+
+export function distributeDifference(difference: Big, map: LineMoneyMap): LineMoneyMap {
+  const updatedMap = new Map(map)
+  const testMap = new Map(map)
+  for (const key of testMap.keys()) {
+    const amount = testMap.get(key) as Big
+    testMap.set(key, amount.minus(amount.round(2, 0)))
+  }
+  const sortedValues = [...testMap].sort(biggestFirst)
+  let remaining = difference
+  for (const key of updatedMap.keys()) {
+    updatedMap.set(key, updatedMap.get(key)!.round(2, 0))
+  }
+  while (remaining.gt(Big('0'))) {
+    const amount = Big('0.01')
+    const key = sortedValues.shift()![0]
+    updatedMap.set(key, updatedMap.get(key)!.plus(amount))
+    remaining = remaining.minus(amount)
+  }
+  return updatedMap
+}
+
+// @ts-ignore
+window.Big = Big
+
 export function getTotals(lines: LineItem[]): LineAccumulator {
   const prioritySets = linesByPriority(lines)
   const baseSet = prioritySets.reduce(priorityTotal, {total: Big(0), map: new Map() as LineMoneyMap} as LineAccumulator)
-  for (const key of baseSet.map.keys()) {
-    baseSet.map.set(key, quantize(baseSet.map.get(key) as Big))
+  const difference = toDistribute(baseSet.total, baseSet.map)
+  if (difference.gt(Big('0'))) {
+    baseSet.map = distributeDifference(difference, baseSet.map)
   }
   return baseSet
 }

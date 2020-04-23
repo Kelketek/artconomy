@@ -2,7 +2,7 @@ from collections import defaultdict
 from csv import DictReader, DictWriter
 from dataclasses import dataclass
 from datetime import date
-from decimal import Decimal
+from decimal import Decimal, localcontext, ROUND_HALF_EVEN
 from typing import TypedDict,  List, TextIO, Dict
 
 from dateutil.relativedelta import relativedelta
@@ -12,7 +12,7 @@ from moneyed import Money
 
 from apps.lib.permissions import Any
 from apps.sales.models import LineItemSim
-from apps.sales.utils import get_totals
+from apps.sales.utils import get_totals, decimal_context
 
 
 def file_to_date(file_date: str) -> date:
@@ -210,6 +210,7 @@ class Command(BaseCommand):
                  "section of EVO's reporting tools.",
         )
 
+    @decimal_context
     def handle(self, *args: Any, **options: Any):
         with open(options['settlements'], 'r') as settlements:
             date_map = get_date_map(settlements)

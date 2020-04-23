@@ -537,13 +537,13 @@ class NewInvoiceSerializer(serializers.Serializer):
     price = serializers.DecimalField(
         max_digits=6, decimal_places=2,
     )
-    completed = serializers.BooleanField(allow_null=True)
+    completed = serializers.NullBooleanField()
     task_weight = serializers.IntegerField(min_value=0)
     revisions = serializers.IntegerField(min_value=0)
     private = serializers.BooleanField()
     details = serializers.CharField(max_length=5000)
-    paid = serializers.BooleanField(allow_null=True)
-    hold = serializers.BooleanField(allow_null=True)
+    paid = serializers.NullBooleanField()
+    hold = serializers.NullBooleanField()
     expected_turnaround = serializers.DecimalField(
         max_digits=5, decimal_places=2, min_value=settings.MINIMUM_TURNAROUND,
     )

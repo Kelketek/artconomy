@@ -75,12 +75,12 @@ describe('lineItemFunctions.ts', () => {
     expect(result).toEqual({
       total: Big('10'),
       map: new Map([
-        [genLineItem({amount: 10, priority: 0}), Big('9.09')],
+        [genLineItem({amount: 10, priority: 0}), Big('9.10')],
         [
           genLineItem(
             {percentage: 10, priority: 1, cascade_percentage: true, back_into_percentage: true},
           ),
-          Big('.91')],
+          Big('.90')],
       ]),
     })
   })
@@ -215,10 +215,10 @@ describe('lineItemFunctions.ts', () => {
     expect(result).toEqual({
       total: Big('110.00'),
       map: new Map([
-        [genLineItem({amount: 100.0, priority: 0, percentage: 0.0}), Big('82.58')],
-        [genLineItem({amount: 5.0, priority: 100}), Big('4.11')],
-        [genLineItem({amount: 5.0, percentage: 10.0, cascade_percentage: true, cascade_amount: false, priority: 300}), Big('14.23')],
-        [genLineItem({amount: 0.0, percentage: 8.25, cascade_percentage: true, cascade_amount: true, priority: 600}), Big('9.08')],
+        [genLineItem({amount: 100.0, priority: 0, percentage: 0.0}), Big('82.59')],
+        [genLineItem({amount: 5.0, priority: 100}), Big('4.12')],
+        [genLineItem({amount: 5.0, percentage: 10.0, cascade_percentage: true, cascade_amount: false, priority: 300}), Big('14.22')],
+        [genLineItem({amount: 0.0, percentage: 8.25, cascade_percentage: true, cascade_amount: true, priority: 600}), Big('9.07')],
       ]),
     })
   })

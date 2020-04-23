@@ -2,7 +2,7 @@ import logging
 from collections import defaultdict
 from decimal import Decimal, InvalidOperation, ROUND_HALF_EVEN, localcontext
 from functools import reduce
-from typing import Union, Type, TYPE_CHECKING, List, Dict, Iterator
+from typing import Union, Type, TYPE_CHECKING, List, Dict, Iterator, Callable
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
@@ -633,3 +633,11 @@ def update_order_payments(order: 'Order'):
         source__in=[TransactionRecord.CARD, TransactionRecord.CASH_DEPOSIT],
         targets__object_id=order.id, targets__content_type=ContentType.objects.get_for_model(order),
     ).update(payer=order.buyer)
+
+
+def decimal_context(wrapped: Callable):
+    def wrapper(*args, **kwargs):
+        with localcontext() as ctx:
+            ctx.rounding = ROUND_HALF_EVEN
+            return wrapped(*args, **kwargs)
+    return wrapper

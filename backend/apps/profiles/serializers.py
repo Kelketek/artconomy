@@ -37,7 +37,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     csrftoken = serializers.SerializerMethodField()
     recaptcha = ReCaptchaField(write_only=True)
     registration_code = serializers.CharField(required=False, write_only=True, allow_blank=True)
-    mail = serializers.BooleanField(write_only=True, required=False, allow_null=True)
+    mail = serializers.NullBooleanField(write_only=True, required=False)
     order_claim = serializers.UUIDField(required=False)
 
     def create(self, validated_data):

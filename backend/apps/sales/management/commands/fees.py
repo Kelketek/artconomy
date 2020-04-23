@@ -1,5 +1,6 @@
 from csv import DictReader
 from datetime import datetime
+from decimal import localcontext, ROUND_HALF_EVEN
 from typing import Any, TypedDict, List, Dict
 
 import pendulum
@@ -12,6 +13,7 @@ from mypy.api import TextIO
 
 from apps.lib.models import ref_for_instance
 from apps.sales.models import TransactionRecord
+from apps.sales.utils import decimal_context
 
 
 class TransactionSpec(TypedDict):
@@ -96,6 +98,7 @@ class Command(BaseCommand):
             help="Path to output CSV from the settlement command."
         )
 
+    @decimal_context
     def handle(self, *args: Any, **options: Any):
         with open(options['processed'], 'r') as processed:
             transactions = get_transactions_list(processed)
