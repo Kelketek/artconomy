@@ -240,6 +240,44 @@ describe('lineItemFunctions.ts', () => {
       ]),
     })
   })
+  it('Handles fixed-point calculation scenario 2 sanely', () => {
+    let source = [
+      genLineItem({amount: 20, priority: 0}),
+      genLineItem({amount: 10, priority: 100}),
+      genLineItem({amount: 5.0, percentage: 10.0, cascade_percentage: true, cascade_amount: false, priority: 300}),
+      genLineItem({amount: 0, percentage: 8.25, cascade_percentage: true, cascade_amount: true, priority: 600}),
+    ]
+    let result = getTotals(source)
+    expect(result).toEqual({
+      total: Big('35.00'),
+      discount: Big('0'),
+      map: new Map([
+        [genLineItem({amount: 20, priority: 0}), Big('16.52')],
+        [genLineItem({amount: 10, priority: 100}), Big('8.26')],
+        [genLineItem({amount: 5.0, percentage: 10.0, cascade_percentage: true, cascade_amount: false, priority: 300}), Big('7.33')],
+        [genLineItem({amount: 0.0, percentage: 8.25, cascade_percentage: true, cascade_amount: true, priority: 600}), Big('2.89')],
+      ]),
+    })
+  })
+  it('Handles fixed-point calculation scenario 3 sanely', () => {
+    let source = [
+      genLineItem({amount: 20, priority: 0}),
+      genLineItem({amount: 5, priority: 100}),
+      genLineItem({amount: 5.0, percentage: 10.0, cascade_percentage: true, cascade_amount: false, priority: 300}),
+      genLineItem({amount: 0, percentage: 8.25, cascade_percentage: true, cascade_amount: true, priority: 600}),
+    ]
+    let result = getTotals(source)
+    expect(result).toEqual({
+      total: Big('30.00'),
+      discount: Big('0'),
+      map: new Map([
+        [genLineItem({amount: 20, priority: 0}), Big('16.52')],
+        [genLineItem({amount: 5, priority: 100}), Big('4.13')],
+        [genLineItem({amount: 5.0, percentage: 10.0, cascade_percentage: true, cascade_amount: false, priority: 300}), Big('6.88')],
+        [genLineItem({amount: 0.0, percentage: 8.25, cascade_percentage: true, cascade_amount: true, priority: 600}), Big('2.47')],
+      ]),
+    })
+  })
   it('Handles a zero total', () => {
     let source = [
       genLineItem({amount: 0, priority: 0}),

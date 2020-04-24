@@ -103,6 +103,7 @@ export function toDistribute(total: Big, map: LineMoneyMap): Big {
   const combinedSum = sum(values.map((value: Big) => value.round(2, 0)))
   const difference = total.minus(combinedSum)
   const upperBound = Big(values.length).times(Big('0.01'))
+  /* istanbul ignore if */
   if (difference.gt(upperBound)) {
     throw Error('Too many fractions!')
   }
