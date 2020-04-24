@@ -29,6 +29,9 @@ export function distributeReduction(total: Big, distributedAmount: Big, lineValu
   }
   for (const line of lineValues.keys()) {
     const originalValue = lineValues.get(line) as Big
+    if (originalValue.lt(Big(0))) {
+      continue
+    }
     const multiplier = originalValue.div(total)
     reductions.set(line, distributedAmount.times(multiplier))
   }
@@ -38,6 +41,7 @@ export function distributeReduction(total: Big, distributedAmount: Big, lineValu
 export function priorityTotal(current: LineAccumulator, prioritySet: LineItem[]): LineAccumulator {
   const currentTotal = current['total']
   const subtotals = current['map']
+  let discount = current['discount']
   const workingSubtotals: LineMoneyMap = new Map()
   const summableTotals: LineMoneyMap = new Map()
   const reductions: LineMoneyMap[] = []
@@ -72,12 +76,15 @@ export function priorityTotal(current: LineAccumulator, prioritySet: LineItem[])
           lineValues.set(key, subtotals.get(key) as Big)
         }
       }
-      reductions.push(distributeReduction(currentTotal, cascadedAmount, lineValues))
+      reductions.push(distributeReduction(currentTotal.minus(discount), cascadedAmount, lineValues))
     }
     if (!addedAmount.eq(Big(0))) {
       summableTotals.set(line, addedAmount)
     }
     workingSubtotals.set(line, workingAmount)
+    if (workingAmount.lt(Big('0'))) {
+      discount = discount.plus(workingAmount)
+    }
   }
   const newSubtotals: LineMoneyMap = new Map([...subtotals])
   for (const reductionSet of reductions) {
@@ -88,7 +95,7 @@ export function priorityTotal(current: LineAccumulator, prioritySet: LineItem[])
   }
   const addOn = sum([...summableTotals.values()])
   const newTotals = new Map([...newSubtotals, ...workingSubtotals])
-  return {total: currentTotal.plus(addOn), map: newTotals}
+  return {total: currentTotal.plus(addOn), map: newTotals, discount}
 }
 
 export function toDistribute(total: Big, map: LineMoneyMap): Big {
@@ -111,7 +118,7 @@ export function biggestFirst(a: [LineItem, Big], b: [LineItem, Big]) {
   if (aAmount.eq(bAmount)) {
     return aLineItem.id - bLineItem.id
   } else {
-    return parseFloat(aAmount.minus(bAmount).toExponential())
+    return parseFloat(bAmount.minus(aAmount).toExponential())
   }
 }
 
@@ -141,7 +148,8 @@ window.Big = Big
 
 export function getTotals(lines: LineItem[]): LineAccumulator {
   const prioritySets = linesByPriority(lines)
-  const baseSet = prioritySets.reduce(priorityTotal, {total: Big(0), map: new Map() as LineMoneyMap} as LineAccumulator)
+  const baseSet = prioritySets.reduce(
+    priorityTotal, {total: Big(0), discount: Big(0), map: new Map() as LineMoneyMap} as LineAccumulator)
   const difference = toDistribute(baseSet.total, baseSet.map)
   if (difference.gt(Big('0'))) {
     baseSet.map = distributeDifference(difference, baseSet.map)

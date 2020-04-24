@@ -392,6 +392,7 @@ class Order(Model):
     class Meta:
         ordering = ['created_on']
 
+
 @receiver(post_save, sender=Order)
 @disable_on_load
 def auto_subscribe_order(sender, instance, created=False, **_kwargs):

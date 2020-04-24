@@ -393,14 +393,14 @@ describe('ProductDetail.vue', () => {
     expect(totalForTypes(getTotals(vm.lineItems.list.map(
       (x: SingleController<LineItem>) => x.x)),
     [LineTypes.TABLE_SERVICE]),
-    ).toEqual(Big('5.51'))
+    ).toEqual(Big('5.50'))
     expect(totalForTypes(getTotals(vm.lineItems.list.map(
       (x: SingleController<LineItem>) => x.x)),
     [LineTypes.SHIELD, LineTypes.BONUS]),
     ).toEqual(Big('0'))
   })
   it('Handles a shield product', async() => {
-    const data = prepData()
+    prepData()
     wrapper = mount(ProductDetail, {
       localVue,
       router,

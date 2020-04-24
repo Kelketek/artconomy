@@ -213,10 +213,11 @@ class TestLineCalculations(TestCase):
             result,
             (
                 Money('10.00', 'USD'),
+                Money('0.00', 'USD'),
                 {LineItemSim(amount=Money('10.00', 'USD'), priority=0, id=1): Money('10.00', 'USD')},
             ),
         )
-        self.assertEqual(result[0], sum(result[1].values()))
+        self.assertEqual(result[0], sum(result[2].values()))
 
     def test_get_totals_percentage_line(self):
         source = [
@@ -228,13 +229,14 @@ class TestLineCalculations(TestCase):
             result,
             (
                 Money('11.00', 'USD'),
+                Money('0.00', 'USD'),
                 {
                     LineItemSim(amount=Money('10.00', 'USD'), priority=0, id=1): Money('10.00', 'USD'),
                     LineItemSim(percentage=Decimal(10), priority=1, id=2): Money('1.00', 'USD'),
                 },
             ),
         )
-        self.assertEqual(result[0], sum(result[1].values()))
+        self.assertEqual(result[0], sum(result[2].values()))
 
     def test_get_totals_percentage_cascade(self):
         source = [
@@ -246,6 +248,7 @@ class TestLineCalculations(TestCase):
             result,
             (
                 Money('10.00', 'USD'),
+                Money('0.00', 'USD'),
                 {
                     LineItemSim(amount=Money('10.00', 'USD'), priority=0, id=1): Money('9.00', 'USD'),
                     LineItemSim(
@@ -254,7 +257,7 @@ class TestLineCalculations(TestCase):
                 },
             ),
         )
-        self.assertEqual(result[0], sum(result[1].values()))
+        self.assertEqual(result[0], sum(result[2].values()))
 
     def test_get_totals_percentage_backed_in_cascade(self):
         source = [
@@ -266,6 +269,7 @@ class TestLineCalculations(TestCase):
             result,
             (
                 Money('10.00', 'USD'),
+                Money('0.00', 'USD'),
                 {
                     LineItemSim(amount=Money('10.00', 'USD'), priority=0, id=1): Money('9.09', 'USD'),
                     LineItemSim(
@@ -275,7 +279,7 @@ class TestLineCalculations(TestCase):
                 },
             ),
         )
-        self.assertEqual(result[0], sum(result[1].values()))
+        self.assertEqual(result[0], sum(result[2].values()))
 
     def test_get_totals_percentage_with_static(self):
         source = [
@@ -287,6 +291,7 @@ class TestLineCalculations(TestCase):
             result,
             (
                 Money('11.25', 'USD'),
+                Money('0.00', 'USD'),
                 {
                     LineItemSim(amount=Money('10.00', 'USD'), priority=0, id=1): Money('10.00', 'USD'),
                     LineItemSim(
@@ -296,7 +301,7 @@ class TestLineCalculations(TestCase):
                 },
             ),
         )
-        self.assertEqual(result[0], sum(result[1].values()))
+        self.assertEqual(result[0], sum(result[2].values()))
 
     def test_get_totals_percentage_with_static_cascade(self):
         source = [
@@ -311,6 +316,7 @@ class TestLineCalculations(TestCase):
             result,
             (
                 Money('10.00', 'USD'),
+                Money('0.00', 'USD'),
                 {
                     LineItemSim(amount=Money('10.00', 'USD'), priority=0, id=1): Money('8.75', 'USD'),
                     LineItemSim(
@@ -320,7 +326,7 @@ class TestLineCalculations(TestCase):
                 },
             ),
         )
-        self.assertEqual(result[0], sum(result[1].values()))
+        self.assertEqual(result[0], sum(result[2].values()))
 
     def test_get_totals_percentage_no_cascade_amount(self):
         source = [
@@ -335,6 +341,7 @@ class TestLineCalculations(TestCase):
             result,
             (
                 Money('10.25', 'USD'),
+                Money('0.00', 'USD'),
                 {
                     LineItemSim(amount=Money('10.00', 'USD'), priority=0, id=1): Money('9.00', 'USD'),
                     LineItemSim(
@@ -344,7 +351,7 @@ class TestLineCalculations(TestCase):
                 },
             ),
         )
-        self.assertEqual(result[0], sum(result[1].values()))
+        self.assertEqual(result[0], sum(result[2].values()))
 
     def test_get_totals_concurrent_priorities(self):
         source = [
@@ -357,6 +364,7 @@ class TestLineCalculations(TestCase):
             result,
             (
                 Money('11.50', 'USD'),
+                Money('0.00', 'USD'),
                 {
                     LineItemSim(amount=Money('10.00', 'USD'), priority=0, id=1): Money('10.00', 'USD'),
                     LineItemSim(percentage=Decimal(10), priority=1, id=2): Money('1.00', 'USD'),
@@ -364,7 +372,7 @@ class TestLineCalculations(TestCase):
                 },
             ),
         )
-        self.assertEqual(result[0], sum(result[1].values()))
+        self.assertEqual(result[0], sum(result[2].values()))
 
     def test_get_totals_concurrent_priorities_cascade(self):
         source = [
@@ -377,6 +385,7 @@ class TestLineCalculations(TestCase):
             result,
             (
                 Money('10.00', 'USD'),
+                Money('0.00', 'USD'),
                 {
                     LineItemSim(amount=Money('10.00', 'USD'), priority=0, id=1): Money('8.50', 'USD'),
                     LineItemSim(
@@ -386,7 +395,7 @@ class TestLineCalculations(TestCase):
                 },
             ),
         )
-        self.assertEqual(result[0], sum(result[1].values()))
+        self.assertEqual(result[0], sum(result[2].values()))
 
     def test_get_totals_multi_priority_cascade(self):
         source = [
@@ -399,6 +408,7 @@ class TestLineCalculations(TestCase):
             result,
             (
                 Money('10.00', 'USD'),
+                Money('0.00', 'USD'),
                 {
                     LineItemSim(amount=Money('10.00', 'USD'), priority=0, id=1): Money('7.20', 'USD'),
                     LineItemSim(
@@ -411,7 +421,7 @@ class TestLineCalculations(TestCase):
                 },
             ),
         )
-        self.assertEqual(result[0], sum(result[1].values()))
+        self.assertEqual(result[0], sum(result[2].values()))
 
     def test_get_totals_multi_priority_cascade_on_concurrent_priority(self):
         source = [
@@ -425,6 +435,7 @@ class TestLineCalculations(TestCase):
             result,
             (
                 Money('10.00', 'USD'),
+                Money('0.00', 'USD'),
                 {
                     LineItemSim(amount=Money('2.00', 'USD'), priority=0, id=1): Money('1.44', 'USD'),
                     LineItemSim(amount=Money('8.00', 'USD'), priority=0, id=2): Money('5.76', 'USD'),
@@ -437,7 +448,7 @@ class TestLineCalculations(TestCase):
                 },
             ),
         )
-        self.assertEqual(result[0], sum(result[1].values()))
+        self.assertEqual(result[0], sum(result[2].values()))
 
     def test_fixed_point_decisions(self):
         source = [
@@ -453,6 +464,7 @@ class TestLineCalculations(TestCase):
             result,
             (
                 Money('110.00', 'USD'),
+                Money('0.00', 'USD'),
                 {
                     LineItemSim(amount=Money('100', 'USD'), priority=0, id=1): Money('82.58', 'USD'),
                     LineItemSim(amount=Money('5.00', 'USD'), priority=100, id=2): Money('4.11', 'USD'),
@@ -466,12 +478,36 @@ class TestLineCalculations(TestCase):
                 }
             )
         )
-        self.assertEqual(result[0], sum(result[1].values()))
+        self.assertEqual(result[0], sum(result[2].values()))
 
     def test_reckon_lines(self):
         source = [
             LineItemSim(amount=Money('1.00', 'USD'), priority=0, id=1),
             LineItemSim(amount=Money('5.00', 'USD'), priority=1, id=2),
-            LineItemSim(amount=Money('4.00', 'USD'), priority=2, id=3)
+            LineItemSim(amount=Money('4.00', 'USD'), priority=2, id=3),
         ]
         self.assertEqual(reckon_lines(source), Money('10.00', 'USD'))
+
+    def test_zero_total(self):
+        source = [
+            LineItemSim(amount=Money('0', 'USD'), priority=0, id=1),
+            LineItemSim(amount=Money('8', 'USD'), cascade_percentage=True, cascade_amount=True, priority=100, id=2),
+        ]
+        result = get_totals(source)
+        self.assertEqual(
+            result,
+            (
+                Money('0.00', 'USD'),
+                Money('0.00', 'USD'),
+                {
+                    LineItemSim(amount=Money('0', 'USD'), priority=0, id=1): Money('0', 'USD'),
+                    LineItemSim(
+                        amount=Money('8.00', 'USD'),
+                        cascade_percentage=True,
+                        cascade_amount=True,
+                        priority=100,
+                        id=2,
+                    ): Money('8.00', 'USD'),
+                }
+            )
+        )

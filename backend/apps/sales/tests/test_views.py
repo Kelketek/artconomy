@@ -3585,7 +3585,9 @@ class TestCreateInvoice(APITestCase):
             'private': False,
             'task_weight': 3,
             'revisions': 3,
-            'expected_turnaround': 4
+            'expected_turnaround': 4,
+            'hold': False,
+            'paid': False,
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['seller']['id'], user.id)
@@ -3638,6 +3640,8 @@ class TestCreateInvoice(APITestCase):
             'private': False,
             'task_weight': 3,
             'revisions': 3,
+            'paid': False,
+            'hold': False,
             'expected_turnaround': 4
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -3691,7 +3695,9 @@ class TestCreateInvoice(APITestCase):
             'private': True,
             'task_weight': 3,
             'revisions': 3,
-            'expected_turnaround': 4
+            'expected_turnaround': 4,
+            'hold': False,
+            'paid': False,
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['seller']['id'], user.id)
@@ -3728,6 +3734,7 @@ class TestCreateInvoice(APITestCase):
             'revisions': 3,
             'expected_turnaround': 4,
             'paid': False,
+            'hold': False,
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['seller']['id'], user.id)
@@ -3799,6 +3806,8 @@ class TestCreateInvoice(APITestCase):
             'private': True,
             'revisions': 3,
             'expected_turnaround': 4,
+            'hold': False,
+            'paid': False,
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['seller']['id'], user.id)

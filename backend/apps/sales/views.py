@@ -1225,7 +1225,7 @@ class MakePayment(PaymentMixin, GenericAPIView):
         if order.table_order:
             return
         reserve_item = order.line_items.get(type=SHIELD)
-        _value, subtotals = get_totals(order.line_items.all())
+        _value, discount, subtotals = get_totals(order.line_items.all())
         record = TransactionRecord.objects.create(
             payer=None,
             payee=None,

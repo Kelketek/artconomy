@@ -374,7 +374,7 @@ def get_bonus_amount(order: 'Order') -> Money:
     bonus = order.line_items.filter(type=BONUS).first()
     if not bonus:
         return Money(0, 'USD')
-    return get_totals(order.line_items.all())[1][bonus]
+    return get_totals(order.line_items.all())[2][bonus]
 
 
 def recuperate_fee(record: 'TransactionRecord') -> 'TransactionRecord':
@@ -454,14 +454,14 @@ def distribute_reduction(
 
 
 def priority_total(
-        current: (Money, 'LineMoneyMap'), priority_set: List['Line']
+        current: (Money, Money, 'LineMoneyMap'), priority_set: List['Line']
 ) -> (Money, 'LineMoneyMap'):
     """
     Get the effect on the total of a priority set. First runs any percentage increase, then
     adds in the static amount. Calculates the difference of each separately to make sure they're not affecting each
     other.
     """
-    current_total, subtotals = current
+    current_total, discount, subtotals = current
     working_subtotals = {}
     summable_totals = {}
     reductions: List['LineMoneyMap'] = []
@@ -495,7 +495,7 @@ def priority_total(
     for reduction_set in reductions:
         for line, reduction in reduction_set.items():
             new_subtotals[line] -= reduction
-    return current_total + sum(summable_totals.values()), {**new_subtotals, **working_subtotals}
+    return current_total + sum(summable_totals.values()), discount, {**new_subtotals, **working_subtotals}
 
 
 def get_totals(
@@ -503,17 +503,19 @@ def get_totals(
     priority_sets = lines_by_priority(lines)
     with localcontext() as ctx:
         ctx.rounding = ROUND_HALF_EVEN
-        value, subtotals = reduce(priority_total, priority_sets, (Money('0.00', 'USD'), {}))
+        value, discount, subtotals = reduce(
+            priority_total, priority_sets, (Money('0.00', 'USD'), Money('0.00', 'USD'), {}),
+        )
         for key, amount in subtotals.items():
             subtotals[key] = amount.round(2)
-    return value.round(2), subtotals
+    return value.round(2), discount, subtotals
 
 
 def reckon_lines(lines) -> Money:
     """
     Reckons all line items to produce a total value.
     """
-    value, _subtotals = get_totals(lines)
+    value, discount, _subtotals = get_totals(lines)
     return value.round(2)
 
 
@@ -530,7 +532,7 @@ def lines_to_transaction_specs(lines: Iterator['LineItem']) -> 'TransactionSpecM
         EXTRA: TransactionRecord.EXTRA_ITEM,
     }
     priority_sets = lines_by_priority(lines)
-    _, subtotals = reduce(priority_total, priority_sets, (Money('0.00', 'USD'), {}))
+    _, __, subtotals = reduce(priority_total, priority_sets, (Money('0.00', 'USD'), Money('0.00', 'USD'), {}))
     transaction_specs = defaultdict(lambda: Money('0.00', 'USD'))
     for line_item, subtotal in subtotals.items():
         transaction_specs[

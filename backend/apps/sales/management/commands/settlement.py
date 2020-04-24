@@ -159,7 +159,7 @@ def divvy_fees(transactions: List[CaptureSpec], fees: Decimal):
     )
     lines = (list((item for item, _ in line_item_set)) +
              [LineItemSim(priority=1, amount=Money(fees, 'USD'), cascade_amount=True, id=inc())])
-    total, line_totals = get_totals(lines)
+    total, discount, line_totals = get_totals(lines)
     return (
         (spec, spec.amount - line_totals[line].amount) for line, spec in line_item_set
     )

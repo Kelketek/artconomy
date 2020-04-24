@@ -718,7 +718,7 @@ class OrderValuesSerializer(serializers.ModelSerializer):
         )
 
     def get_extra(self, obj):
-        _, subtotals = get_totals(obj.line_items.all())
+        _, discount, subtotals = get_totals(obj.line_items.all())
         return sum([value.amount for line, value in subtotals.items() if line.type == EXTRA])
 
     def get_still_in_escrow(self, obj):
