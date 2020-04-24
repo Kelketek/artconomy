@@ -243,7 +243,7 @@ class LineItemSerializer(serializers.ModelSerializer):
         model = LineItem
         fields = (
             'id', 'priority', 'percentage', 'amount', 'type', 'destination_account', 'destination_user',
-            'description', 'cascade_percentage', 'cascade_amount',
+            'description', 'cascade_percentage', 'cascade_amount', 'back_into_percentage',
         )
         read_only_fields = ['id', 'priority', 'destination_account', 'destination_user']
 
@@ -264,6 +264,8 @@ class LineItemSerializer(serializers.ModelSerializer):
             permitted_types = [ADD_ON]
         elif user == order.buyer:
             permitted_types = [TIP]
+        else:
+            permitted_types = []
         if value not in permitted_types:
             raise ValidationError('You do not have permission to create/modify line items of this type.')
         return value

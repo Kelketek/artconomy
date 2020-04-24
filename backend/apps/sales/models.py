@@ -24,7 +24,7 @@ from django.dispatch import receiver
 from django.utils import timezone
 from djmoney.models.fields import MoneyField
 from moneyed import Money
-from short_stuff import slugify, gen_shortcode
+from short_stuff import gen_shortcode
 from short_stuff.django.models import ShortCodeField
 
 from apps.lib.models import Comment, Subscription, SALE_UPDATE, ORDER_UPDATE, REVISION_UPLOADED, COMMENT, NEW_PRODUCT, \
@@ -473,13 +473,13 @@ def idempotent_lines(instance: Order):
         LineItem.objects.filter(
             type=EXTRA, destination_account=TransactionRecord.RESERVE, description='Table Service', order=instance,
         ).delete()
-        LineItem.objects.filter(type=TAX).delete()
+        LineItem.objects.filter(type=TAX, order=instance).delete()
     else:
         instance.line_items.filter(type__in=[BONUS, SHIELD]).delete()
         LineItem.objects.filter(
             type=EXTRA, destination_account=TransactionRecord.RESERVE, description='Table Service', order=instance,
         ).delete()
-        LineItem.objects.filter(type=TAX).delete()
+        LineItem.objects.filter(type=TAX, order=instance).delete()
 
 
 @receiver(post_save, sender=Order)
