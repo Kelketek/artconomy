@@ -1,6 +1,6 @@
 import logging
 from collections import defaultdict
-from decimal import Decimal, InvalidOperation, ROUND_HALF_EVEN, localcontext
+from decimal import Decimal, InvalidOperation, ROUND_HALF_EVEN, localcontext, ROUND_FLOOR
 from functools import reduce
 from typing import Union, Type, TYPE_CHECKING, List, Dict, Iterator, Callable
 
@@ -234,6 +234,22 @@ def early_finalize(order, user: User):
         finalize_order(order, user)
 
 
+def floor_context(wrapped: Callable):
+    def wrapper(*args, **kwargs):
+        with localcontext() as ctx:
+            ctx.rounding = ROUND_FLOOR
+            return wrapped(*args, **kwargs)
+    return wrapper
+
+
+def half_even_context(wrapped: Callable):
+    def wrapper(*args, **kwargs):
+        with localcontext() as ctx:
+            ctx.rounding = ROUND_HALF_EVEN
+            return wrapped(*args, **kwargs)
+    return wrapper
+
+
 def allocate_bonus(order: 'Order', source_record: 'TransactionRecord'):
     from apps.sales.models import TransactionRecord, ref_for_instance
     amount = get_bonus_amount(order)
@@ -448,6 +464,8 @@ def distribute_reduction(
     if total.amount == 0:
         return reductions
     for line, original_value in line_values.items():
+        if original_value < Money(0, 'USD'):
+            continue
         multiplier = (original_value / total).quantize(Decimal('.01'))
         reductions[line] = Money(distributed_amount.amount * multiplier, 'USD')
     return reductions
@@ -485,12 +503,14 @@ def priority_total(
         working_amount += line.amount
         if cascaded_amount:
             reductions.append(distribute_reduction(
-                total=current_total, distributed_amount=cascaded_amount, line_values={
+                total=current_total - discount, distributed_amount=cascaded_amount, line_values={
                     key: value for key, value in subtotals.items() if key.priority < line.priority
             }))
         if added_amount:
             summable_totals[line] = added_amount
         working_subtotals[line] = working_amount
+        if working_amount < Money(0, 'USD'):
+            discount += working_amount
     new_subtotals = {**subtotals}
     for reduction_set in reductions:
         for line, reduction in reduction_set.items():
@@ -498,16 +518,67 @@ def priority_total(
     return current_total + sum(summable_totals.values()), discount, {**new_subtotals, **working_subtotals}
 
 
-def get_totals(
-        lines: Iterator['Line']) -> (Money, 'LineMoneyMap'):
+# export function toDistribute(total: Big, map: LineMoneyMap): Big {
+#   const values = [...map.values()]
+#   const combinedSum = sum(values.map((value: Big) => value.round(2, 0)))
+#   const difference = total.minus(combinedSum)
+#   const upperBound = Big(values.length).times(Big('0.01'))
+#   /* istanbul ignore if */
+#   if (difference.gt(upperBound)) {
+#     throw Error('Too many fractions!')
+#   }
+#   return difference
+# }
+
+@floor_context
+def to_distribute(total: Decimal, money_map: 'LineMoneyMap') -> Money:
+    combined_sum = sum([value.round(2) for value in money_map.values()])
+    difference = total - combined_sum
+    upper_bound = Money(len(money_map) * Decimal('0.01'), 'USD')
+    if (difference > upper_bound):
+        raise ValueError(f'Too many fractions! {difference} > {upper_bound}')
+    return difference
+
+
+def biggest_first(item: ('LineItem', Decimal)) -> (Decimal, 'LineItem'):
+    return -item[1], item[0].id
+
+
+@floor_context
+def distribute_difference(difference: Money, money_map: 'LineMoneyMap') -> 'LineMoneyMap':
+    """
+    So. We have a few leftover pennies. To figure out where we should allocate them,
+    we need to zero out everything but the remainder (that is, everything but what's beyond
+    the cents place), and then compare what remains. The largest numbers are the numbers that
+    were closest to rolling over into another penny, so we put them there first.
+
+    We also floor all of the amounts to make sure that the discrete total of all values will be
+    the correct target, and each value will be representable as a real monetary value-- that is,
+    something no more fractionalized than cents.
+    """
+    updated_map = {key: value.round(2) for key, value in money_map.items()}
+    test_map = {key: value - value.round(2) for key, value in money_map.items()}
+    sorted_values = [(key, value) for key, value in test_map.items()]
+    sorted_values.sort(key=biggest_first)
+    remaining = difference
+    while remaining > Money('0', 'USD'):
+        amount = Money('0.01', 'USD')
+        key = sorted_values.pop(0)[0]
+        updated_map[key] = updated_map[key] + amount
+        remaining -= amount
+    return updated_map
+
+
+def get_totals(lines: Iterator['Line']) -> (Money, 'LineMoneyMap'):
     priority_sets = lines_by_priority(lines)
     with localcontext() as ctx:
         ctx.rounding = ROUND_HALF_EVEN
         value, discount, subtotals = reduce(
             priority_total, priority_sets, (Money('0.00', 'USD'), Money('0.00', 'USD'), {}),
         )
-        for key, amount in subtotals.items():
-            subtotals[key] = amount.round(2)
+    difference = to_distribute(value, subtotals)
+    if difference > Money('0', 'USD'):
+        subtotals = distribute_difference(difference, subtotals)
     return value.round(2), discount, subtotals
 
 
@@ -635,11 +706,3 @@ def update_order_payments(order: 'Order'):
         source__in=[TransactionRecord.CARD, TransactionRecord.CASH_DEPOSIT],
         targets__object_id=order.id, targets__content_type=ContentType.objects.get_for_model(order),
     ).update(payer=order.buyer)
-
-
-def decimal_context(wrapped: Callable):
-    def wrapper(*args, **kwargs):
-        with localcontext() as ctx:
-            ctx.rounding = ROUND_HALF_EVEN
-            return wrapped(*args, **kwargs)
-    return wrapper

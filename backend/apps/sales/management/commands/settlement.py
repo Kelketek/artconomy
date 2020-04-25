@@ -12,7 +12,7 @@ from moneyed import Money
 
 from apps.lib.permissions import Any
 from apps.sales.models import LineItemSim
-from apps.sales.utils import get_totals, decimal_context
+from apps.sales.utils import get_totals, half_even_context
 
 
 def file_to_date(file_date: str) -> date:
@@ -210,7 +210,7 @@ class Command(BaseCommand):
                  "section of EVO's reporting tools.",
         )
 
-    @decimal_context
+    @half_even_context
     def handle(self, *args: Any, **options: Any):
         with open(options['settlements'], 'r') as settlements:
             date_map = get_date_map(settlements)

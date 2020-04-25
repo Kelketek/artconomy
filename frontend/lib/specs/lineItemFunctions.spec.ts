@@ -278,6 +278,37 @@ describe('lineItemFunctions.ts', () => {
       ]),
     })
   })
+  it('Handles a complex discount scenario', () => {
+    let source = [
+      genLineItem({amount: 0.01, priority: 0, id: 1}),
+      genLineItem({amount: 0.01, priority: 100, id: 2}),
+      genLineItem({amount: 0.01, priority: 100, id: 3}),
+      genLineItem({amount: -5.00, priority: 100, id: 4}),
+      genLineItem({amount: 10.00, priority: 100, id: 5}),
+      genLineItem({
+        amount: 0.75, percentage: 8.0, cascade_percentage: true, cascade_amount: true, priority: 300,
+      }),
+    ]
+    let result = getTotals(source)
+    expect(result).toEqual({
+      total: Big('5.03'),
+      discount: Big('-5'),
+      map: new Map([
+        [genLineItem({amount: 0.01, priority: 0, id: 1}), Big('0.01')],
+        [genLineItem({amount: 0.01, priority: 100, id: 2}), Big('0.01')],
+        [genLineItem({amount: 0.01, priority: 100, id: 3}), Big('0.01')],
+        [genLineItem({amount: -5.00, priority: 100, id: 4}), Big('-5.00')],
+        [genLineItem({amount: 10.00, priority: 100, id: 5}), Big('8.85')],
+        [genLineItem({
+          amount: 0.75,
+          percentage: 8.0,
+          cascade_percentage: true,
+          cascade_amount: true,
+          priority: 300,
+        }), Big('1.15')],
+      ]),
+    })
+  })
   it('Handles a zero total', () => {
     let source = [
       genLineItem({amount: 0, priority: 0}),

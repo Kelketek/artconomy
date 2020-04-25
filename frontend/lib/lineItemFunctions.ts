@@ -50,7 +50,7 @@ export function priorityTotal(current: LineAccumulator, prioritySet: LineItem[])
     let cascadedAmount = Big(0)
     let addedAmount = Big(0)
     let workingAmount: Big
-    let multiplier = Big('0.01').times(quantize(Big(line.percentage)))
+    let multiplier = Big('0.01').times(Big(line.percentage))
     if (line.back_into_percentage) {
       workingAmount = currentTotal.div(multiplier.plus(Big('1.00'))).times(multiplier)
     } else {
@@ -62,7 +62,7 @@ export function priorityTotal(current: LineAccumulator, prioritySet: LineItem[])
     } else {
       addedAmount = addedAmount.plus(workingAmount)
     }
-    const staticAmount = quantize(Big(line.amount))
+    const staticAmount = Big(line.amount)
     if (line.cascade_amount) {
       cascadedAmount = cascadedAmount.plus(staticAmount)
     } else {
@@ -110,14 +110,14 @@ export function toDistribute(total: Big, map: LineMoneyMap): Big {
   return difference
 }
 
-export function biggestFirst(a: [LineItem, Big], b: [LineItem, Big]) {
+export function biggestFirst(a: [LineItem, Big], b: [LineItem, Big]): number {
   // Sort function for [LineItem, Big] pairs, used for allocating reduction amounts.
   const aLineItem = a[0]
   const aAmount = a[1]
   const bLineItem = b[0]
   const bAmount = b[1]
   if (aAmount.eq(bAmount)) {
-    return aLineItem.id - bLineItem.id
+    return bLineItem.id - aLineItem.id
   } else {
     return parseFloat(bAmount.minus(aAmount).toExponential())
   }
@@ -143,9 +143,6 @@ export function distributeDifference(difference: Big, map: LineMoneyMap): LineMo
   }
   return updatedMap
 }
-
-// @ts-ignore
-window.Big = Big
 
 export function getTotals(lines: LineItem[]): LineAccumulator {
   const prioritySets = linesByPriority(lines)
