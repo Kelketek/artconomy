@@ -2,7 +2,7 @@ from collections import defaultdict
 from csv import DictReader, DictWriter
 from dataclasses import dataclass
 from datetime import date
-from decimal import Decimal, localcontext, ROUND_HALF_EVEN
+from decimal import Decimal
 from typing import TypedDict,  List, TextIO, Dict
 
 from dateutil.relativedelta import relativedelta
@@ -159,7 +159,12 @@ def divvy_fees(transactions: List[CaptureSpec], fees: Decimal):
     )
     lines = (list((item for item, _ in line_item_set)) +
              [LineItemSim(priority=1, amount=Money(fees, 'USD'), cascade_amount=True, id=inc())])
-    total, discount, line_totals = get_totals(lines)
+    try:
+        total, discount, line_totals = get_totals(lines)
+    except ValueError:
+        from pprint import pprint
+        pprint(lines)
+        raise
     return (
         (spec, spec.amount - line_totals[line].amount) for line, spec in line_item_set
     )
@@ -210,7 +215,6 @@ class Command(BaseCommand):
                  "section of EVO's reporting tools.",
         )
 
-    @half_even_context
     def handle(self, *args: Any, **options: Any):
         with open(options['settlements'], 'r') as settlements:
             date_map = get_date_map(settlements)

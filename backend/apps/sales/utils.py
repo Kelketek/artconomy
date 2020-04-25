@@ -2,7 +2,7 @@ import logging
 from collections import defaultdict
 from decimal import Decimal, InvalidOperation, ROUND_HALF_EVEN, localcontext, ROUND_FLOOR
 from functools import reduce
-from typing import Union, Type, TYPE_CHECKING, List, Dict, Iterator, Callable
+from typing import Union, Type, TYPE_CHECKING, List, Dict, Iterator, Callable, Tuple
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
@@ -531,17 +531,22 @@ def priority_total(
 # }
 
 @floor_context
-def to_distribute(total: Decimal, money_map: 'LineMoneyMap') -> Money:
+def to_distribute(total: Money, money_map: 'LineMoneyMap') -> Money:
     combined_sum = sum([value.round(2) for value in money_map.values()])
-    difference = total - combined_sum
-    upper_bound = Money(len(money_map) * Decimal('0.01'), 'USD')
-    if (difference > upper_bound):
-        raise ValueError(f'Too many fractions! {difference} > {upper_bound}')
+    difference = total.round(2) - combined_sum
     return difference
 
 
-def biggest_first(item: ('LineItem', Decimal)) -> (Decimal, 'LineItem'):
+def biggest_first(item: Tuple['LineItem', Decimal]) -> Tuple[Decimal, 'LineItem']:
     return -item[1], item[0].id
+
+
+def round_robin_lines(lines: List[Tuple['LineItem', Decimal]]):
+    if not len(lines):
+        raise ValueError('Cannot round robin an empty list.')
+    while True:
+        for line in lines:
+            yield line
 
 
 @floor_context
@@ -561,10 +566,11 @@ def distribute_difference(difference: Money, money_map: 'LineMoneyMap') -> 'Line
     sorted_values = [(key, value) for key, value in test_map.items()]
     sorted_values.sort(key=biggest_first)
     remaining = difference
-    while remaining > Money('0', 'USD'):
-        amount = Money('0.01', 'USD')
-        key = sorted_values.pop(0)[0]
-        updated_map[key] = updated_map[key] + amount
+    amount = Money('0.01', 'USD')
+    for key, value in round_robin_lines(sorted_values):
+        if remaining <= Money('0', 'USD'):
+            break
+        updated_map[key] += amount
         remaining -= amount
     return updated_map
 

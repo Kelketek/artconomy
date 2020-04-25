@@ -101,7 +101,7 @@ export function priorityTotal(current: LineAccumulator, prioritySet: LineItem[])
 export function toDistribute(total: Big, map: LineMoneyMap): Big {
   const values = [...map.values()]
   const combinedSum = sum(values.map((value: Big) => value.round(2, 0)))
-  const difference = total.minus(combinedSum)
+  const difference = total.round(2, 0).minus(combinedSum)
   const upperBound = Big(values.length).times(Big('0.01'))
   /* istanbul ignore if */
   if (difference.gt(upperBound)) {
