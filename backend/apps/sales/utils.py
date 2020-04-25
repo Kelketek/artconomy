@@ -1,3 +1,8 @@
+"""
+The functions in this file are meant to mirror the functions in frontend/lib/lineItemFunctions. There's not a good way
+to ensure that they're both updated at the same time, but they should, hopefully, be easy enough to keep in sync.
+If enough code has to be repeated between the two bases it may be worth looking into a transpiler.
+"""
 import logging
 from collections import defaultdict
 from decimal import Decimal, InvalidOperation, ROUND_HALF_EVEN, localcontext, ROUND_FLOOR
@@ -466,11 +471,12 @@ def distribute_reduction(
     for line, original_value in line_values.items():
         if original_value < Money(0, 'USD'):
             continue
-        multiplier = (original_value / total).quantize(Decimal('.01'))
+        multiplier = original_value / total
         reductions[line] = Money(distributed_amount.amount * multiplier, 'USD')
     return reductions
 
 
+@half_even_context
 def priority_total(
         current: (Money, Money, 'LineMoneyMap'), priority_set: List['Line']
 ) -> (Money, 'LineMoneyMap'):
@@ -518,35 +524,18 @@ def priority_total(
     return current_total + sum(summable_totals.values()), discount, {**new_subtotals, **working_subtotals}
 
 
-# export function toDistribute(total: Big, map: LineMoneyMap): Big {
-#   const values = [...map.values()]
-#   const combinedSum = sum(values.map((value: Big) => value.round(2, 0)))
-#   const difference = total.minus(combinedSum)
-#   const upperBound = Big(values.length).times(Big('0.01'))
-#   /* istanbul ignore if */
-#   if (difference.gt(upperBound)) {
-#     throw Error('Too many fractions!')
-#   }
-#   return difference
-# }
-
 @floor_context
 def to_distribute(total: Money, money_map: 'LineMoneyMap') -> Money:
     combined_sum = sum([value.round(2) for value in money_map.values()])
-    difference = total.round(2) - combined_sum
+    difference = total - combined_sum
+    upper_bound = Money(Decimal(len(money_map)) * Decimal('0.01'), 'USD')
+    if difference > upper_bound:
+        raise ValueError(f'Too many fractions! {difference} > {upper_bound}')
     return difference
 
 
 def biggest_first(item: Tuple['LineItem', Decimal]) -> Tuple[Decimal, 'LineItem']:
     return -item[1], item[0].id
-
-
-def round_robin_lines(lines: List[Tuple['LineItem', Decimal]]):
-    if not len(lines):
-        raise ValueError('Cannot round robin an empty list.')
-    while True:
-        for line in lines:
-            yield line
 
 
 @floor_context
@@ -567,25 +556,26 @@ def distribute_difference(difference: Money, money_map: 'LineMoneyMap') -> 'Line
     sorted_values.sort(key=biggest_first)
     remaining = difference
     amount = Money('0.01', 'USD')
-    for key, value in round_robin_lines(sorted_values):
-        if remaining <= Money('0', 'USD'):
-            break
+    while remaining > Money('0.00', 'USD'):
+        key = sorted_values.pop(0)[0]
         updated_map[key] += amount
         remaining -= amount
     return updated_map
 
 
+@floor_context
 def get_totals(lines: Iterator['Line']) -> (Money, 'LineMoneyMap'):
     priority_sets = lines_by_priority(lines)
-    with localcontext() as ctx:
-        ctx.rounding = ROUND_HALF_EVEN
-        value, discount, subtotals = reduce(
-            priority_total, priority_sets, (Money('0.00', 'USD'), Money('0.00', 'USD'), {}),
-        )
-    difference = to_distribute(value, subtotals)
+    total, discount, subtotals = reduce(
+        priority_total, priority_sets, (Money('0.00', 'USD'), Money('0.00', 'USD'), {}),
+    )
+    total = total.round(2)
+    difference = to_distribute(total, subtotals)
     if difference > Money('0', 'USD'):
         subtotals = distribute_difference(difference, subtotals)
-    return value.round(2), discount, subtotals
+    else:
+        subtotals = {key: value.round(2) for key, value in subtotals.items()}
+    return total, discount, subtotals
 
 
 def reckon_lines(lines) -> Money:

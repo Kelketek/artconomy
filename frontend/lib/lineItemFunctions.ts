@@ -105,7 +105,7 @@ export function toDistribute(total: Big, map: LineMoneyMap): Big {
   const upperBound = Big(values.length).times(Big('0.01'))
   /* istanbul ignore if */
   if (difference.gt(upperBound)) {
-    throw Error('Too many fractions!')
+    throw Error(`Too many fractions! ${difference} > {upperBound}`)
   }
   return difference
 }
@@ -124,6 +124,8 @@ export function biggestFirst(a: [LineItem, Big], b: [LineItem, Big]): number {
 }
 
 export function distributeDifference(difference: Big, map: LineMoneyMap): LineMoneyMap {
+  // After all amounts are floored, there are likely to be leftover pennies. Distribute
+  // them in the most sane way possible.
   const updatedMap = new Map(map)
   const testMap = new Map(map)
   for (const key of testMap.keys()) {
@@ -157,7 +159,7 @@ export function getTotals(lines: LineItem[]): LineAccumulator {
 
 export function reckonLines(lines: LineItem[]): Big {
   const totals = getTotals(lines)
-  return quantize(totals['total'])
+  return totals['total'].round(2, 0)
 }
 
 export function quantize(value: Big) {
@@ -167,7 +169,7 @@ export function quantize(value: Big) {
 export function totalForTypes(accumulator: LineAccumulator, types: LineTypes[]) {
   let relevant = [...accumulator.map.keys()].filter((line: LineItem) => types.includes(line.type))
   const totals = relevant.map((line: LineItem) => accumulator.map.get(line) as Big)
-  return quantize(sum(totals))
+  return sum(totals).round(2, 0)
 }
 
 export function sum(list: Big[]): Big {

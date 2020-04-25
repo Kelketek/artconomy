@@ -45,8 +45,6 @@ Vue.config.productionTip = false
 
 Vue.filter('formatSize', formatSize)
 
-Big.DP = 2
-Big.RM = 2
 // @ts-ignore
 window.Big = Big
 

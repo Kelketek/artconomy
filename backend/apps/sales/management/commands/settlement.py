@@ -162,6 +162,10 @@ def divvy_fees(transactions: List[CaptureSpec], fees: Decimal):
     try:
         total, discount, line_totals = get_totals(lines)
     except ValueError:
+        # genLineItem({amount: 0.01, priority: 0, id: 1}), Big('0.01')
+        import json
+        for line in lines:
+            print('genLineItem(' + json.dumps({'amount': str(line.amount.amount), 'priority': line.priority, 'cascade_amount': line.cascade_amount, 'id': line.id}) + '),')
         from pprint import pprint
         pprint(lines)
         raise

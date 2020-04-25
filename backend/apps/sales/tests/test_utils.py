@@ -467,14 +467,14 @@ class TestLineCalculations(TestCase):
                 Money('0.00', 'USD'),
                 {
                     LineItemSim(amount=Money('100', 'USD'), priority=0, id=1): Money('82.58', 'USD'),
-                    LineItemSim(amount=Money('5.00', 'USD'), priority=100, id=2): Money('4.11', 'USD'),
+                    LineItemSim(amount=Money('5.00', 'USD'), priority=100, id=2): Money('4.13', 'USD'),
                     LineItemSim(
                         amount=Money('5.00', 'USD'), percentage=Decimal(10), cascade_percentage=True, priority=300,
                         id=3,
-                    ): Money('14.23', 'USD'),
+                    ): Money('14.22', 'USD'),
                     LineItemSim(
                         percentage=Decimal('8.25'), cascade_percentage=True, priority=600, id=4,
-                    ): Money('9.08', 'USD'),
+                    ): Money('9.07', 'USD'),
                 }
             )
         )
@@ -503,6 +503,53 @@ class TestLineCalculations(TestCase):
     def test_fixed_point_calculations_2(self):
         source = [
             LineItemSim(amount=Money('20', 'USD'), priority=0, id=1),
+            LineItemSim(amount=Money('10.00', 'USD'), priority=100, id=2),
+            LineItemSim(
+                amount=Money('5.00', 'USD'), percentage=Decimal(10), cascade_percentage=True, priority=300, id=3,
+            ),
+            LineItemSim(percentage=Decimal('8.25'), cascade_percentage=True, priority=600, id=4)
+        ]
+        result = get_totals(source)
+        self.assertEqual(
+            result,
+            (
+                Money('35.00', 'USD'),
+                Money('0.00', 'USD'),
+                {
+                    LineItemSim(amount=Money('20', 'USD'), priority=0, id=1): Money('16.51', 'USD'),
+                    LineItemSim(amount=Money('10.00', 'USD'), priority=100, id=2): Money('8.26', 'USD'),
+                    LineItemSim(
+                        amount=Money('5.00', 'USD'), percentage=Decimal(10), cascade_percentage=True, priority=300, id=3,
+                    ): Money('7.34', 'USD'),
+                    LineItemSim(
+                        percentage=Decimal('8.25'), cascade_percentage=True, priority=600, id=4,
+                    ): Money('2.89', 'USD'),
+                }
+            )
+        )
+        self.assertEqual(result[0], sum(result[2].values()))
+#   it('Handles fixed-point calculation scenario 3 sanely', () => {
+    #     let source = [
+    #       genLineItem({amount: 20, priority: 0}),
+    #       genLineItem({amount: 5, priority: 100}),
+    #       genLineItem({amount: 5.0, percentage: 10.0, cascade_percentage: true, cascade_amount: false, priority: 300}),
+    #       genLineItem({amount: 0, percentage: 8.25, cascade_percentage: true, cascade_amount: true, priority: 600}),
+    #     ]
+    #     let result = getTotals(source)
+    #     expect(result).toEqual({
+    #       total: Big('30.00'),
+    #       discount: Big('0'),
+    #       map: new Map([
+    #         [genLineItem({amount: 20, priority: 0}), Big('16.52')],
+    #         [genLineItem({amount: 5, priority: 100}), Big('4.13')],
+    #         [genLineItem({amount: 5.0, percentage: 10.0, cascade_percentage: true, cascade_amount: false, priority: 300}), Big('6.88')],
+    #         [genLineItem({amount: 0.0, percentage: 8.25, cascade_percentage: true, cascade_amount: true, priority: 600}), Big('2.47')],
+    #       ]),
+    #     })
+    #   })
+    def test_fixed_point_calculations_3(self):
+        source = [
+            LineItemSim(amount=Money('20', 'USD'), priority=0, id=1),
             LineItemSim(amount=Money('5.00', 'USD'), priority=100, id=2),
             LineItemSim(
                 amount=Money('5.00', 'USD'), percentage=Decimal(10), cascade_percentage=True, priority=300, id=3,
@@ -528,25 +575,6 @@ class TestLineCalculations(TestCase):
             )
         )
         self.assertEqual(result[0], sum(result[2].values()))
-    #   it('Handles fixed-point calculation scenario 3 sanely', () => {
-    #     let source = [
-    #       genLineItem({amount: 20, priority: 0}),
-    #       genLineItem({amount: 5, priority: 100}),
-    #       genLineItem({amount: 5.0, percentage: 10.0, cascade_percentage: true, cascade_amount: false, priority: 300}),
-    #       genLineItem({amount: 0, percentage: 8.25, cascade_percentage: true, cascade_amount: true, priority: 600}),
-    #     ]
-    #     let result = getTotals(source)
-    #     expect(result).toEqual({
-    #       total: Big('30.00'),
-    #       discount: Big('0'),
-    #       map: new Map([
-    #         [genLineItem({amount: 20, priority: 0}), Big('16.52')],
-    #         [genLineItem({amount: 5, priority: 100}), Big('4.13')],
-    #         [genLineItem({amount: 5.0, percentage: 10.0, cascade_percentage: true, cascade_amount: false, priority: 300}), Big('6.88')],
-    #         [genLineItem({amount: 0.0, percentage: 8.25, cascade_percentage: true, cascade_amount: true, priority: 600}), Big('2.47')],
-    #       ]),
-    #     })
-    #   })
 
     def test_reckon_lines(self):
         source = [
