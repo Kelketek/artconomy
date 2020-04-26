@@ -823,7 +823,7 @@ class ArchivedMixin(object):
 class CancelledMixin(object):
     @staticmethod
     def extra_filter(qs):
-        return qs.filter(status__in=[Order.CANCELLED, Order.REFUNDED])
+        return qs.filter(status__in=[Order.CANCELLED, Order.REFUNDED]).order_by('-created_on')
 
 
 class OrderListBase(ListAPIView):
