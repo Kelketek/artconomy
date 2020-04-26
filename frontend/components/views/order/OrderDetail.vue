@@ -709,7 +709,7 @@ export default class OrderDetail extends mixins(Viewer, Formatting, Ratings) {
 
   public get priceData(): LineAccumulator {
     if (!this.lineItems) {
-      return {total: Big(0), map: new Map()}
+      return {total: Big(0), map: new Map(), discount: Big(0)}
     }
     return getTotals(this.bareLines)
   }
