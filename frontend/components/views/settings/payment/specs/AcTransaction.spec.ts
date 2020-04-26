@@ -120,4 +120,38 @@ describe('AcTransaction.vue', () => {
       attachToDocument: true,
     })
   })
+  it('Handles a transaction link', async() => {
+    const user = genUser()
+    user.is_superuser = true
+    setViewer(store, user)
+    const transaction = genTransaction()
+    transaction.card = genCard()
+    wrapper = mount(AcTransaction, {
+      localVue,
+      store,
+      vuetify,
+      propsData: {transaction, username: 'Fox', currentAccount: 300},
+      sync: false,
+      attachToDocument: true,
+    })
+    const vm = wrapper.vm as any
+    expect(vm.transactionLink).toEqual(`/admin/sales/transactionrecord/${transaction.id}/`)
+  })
+  it('Does not give a transaction link if the user is not a superuser', async() => {
+    const user = genUser()
+    user.is_superuser = false
+    setViewer(store, user)
+    const transaction = genTransaction()
+    transaction.card = genCard()
+    wrapper = mount(AcTransaction, {
+      localVue,
+      store,
+      vuetify,
+      propsData: {transaction, username: 'Fox', currentAccount: 300},
+      sync: false,
+      attachToDocument: true,
+    })
+    const vm = wrapper.vm as any
+    expect(vm.transactionLink).toBe(null)
+  })
 })

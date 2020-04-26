@@ -32,7 +32,7 @@ export function Shortcuts(Vue: typeof _Vue): void {
   Vue.mixin({
     methods: {
       $img(asset, thumbName, fallback) {
-        if (!asset) {
+        if (!asset || !asset.file) {
           return '/static/images/default-avatar.png'
         }
         // Viewer must be defined elsewhere. In near all cases, should be from the Viewer mixin.
