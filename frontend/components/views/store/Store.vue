@@ -18,7 +18,6 @@ import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcBankToggle from '@/components/fields/AcBankToggle.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import AcBoundField from '@/components/fields/AcBoundField'
-import AcAddButton from '@/components/AcAddButton.vue'
 import AcNewProduct from '@/components/views/store/AcNewProduct.vue'
 import AcSubjectiveProductList from '@/components/views/store/AcSubjectiveProductList.vue'
 import {State} from 'vuex-class'
@@ -26,7 +25,6 @@ import {State} from 'vuex-class'
     components: {
       AcSubjectiveProductList,
       AcNewProduct,
-      AcAddButton,
       AcBoundField,
       AcPatchField,
       AcBankToggle,

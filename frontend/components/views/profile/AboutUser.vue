@@ -27,7 +27,6 @@ import Subjective from '@/mixins/subjective'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import AcEditingToggle from '@/components/navigation/AcEditingToggle.vue'
 import AcRendered from '@/components/wrappers/AcRendered'
-import {Patch} from '@/store/singles/patcher'
 import Editable from '@/mixins/editable'
   @Component({
     components: {AcRendered, AcEditingToggle, AcPatchField, AcJournals},

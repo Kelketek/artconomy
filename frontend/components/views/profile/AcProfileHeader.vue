@@ -112,6 +112,21 @@
         />
       </v-navigation-drawer>
     </v-dialog>
+    <v-menu offset-x left v-if="controls && showEdit">
+      <template v-slot:activator="{on}">
+        <v-btn icon v-on="on" class="more-button"><v-icon>more_horiz</v-icon></v-btn>
+      </template>
+      <v-list dense>
+        <v-list-item @click.stop="editing = !editing" v-if="showEdit">
+          <v-list-item-action>
+            <v-icon v-if="editing">lock</v-icon>
+            <v-icon v-else>edit</v-icon>
+          </v-list-item-action>
+          <v-list-item-title v-if="editing">Lock</v-list-item-title>
+          <v-list-item-title v-else>Edit</v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-menu>
   </v-toolbar>
 </template>
 
@@ -128,13 +143,16 @@ import AcNavLinks from '@/components/navigation/AcNavLinks.vue'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import Formatting from '@/mixins/formatting'
+import Editable from '@/mixins/editable'
 
   @Component({
     components: {AcLink, AcExpandedProperty, AcNavLinks, AcAvatar, AcConfirmation},
   })
-export default class AcProfileHeader extends mixins(Subjective, Formatting) {
+export default class AcProfileHeader extends mixins(Subjective, Formatting, Editable) {
     @Prop({default: false})
     public dense!: boolean
+    @Prop({default: false})
+    public showEdit!: boolean
     public showMenu = false
     public get showActions() {
       return !this.isCurrent && this.isRegistered

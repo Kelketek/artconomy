@@ -1,4 +1,5 @@
 <template>
+  <div class="d-flex d-md-none">
   <v-speed-dial bottom right fixed v-model="editing" elevation-10 style="z-index: 4">
     <ac-speed-button
         slot="activator"
@@ -18,6 +19,7 @@
       </v-btn>
     </ac-speed-button>
   </v-speed-dial>
+  </div>
 </template>
 
 <script lang="ts">

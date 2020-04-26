@@ -18,9 +18,13 @@
               <v-btn icon v-on="on" class="more-button"><v-icon>more_horiz</v-icon></v-btn>
             </template>
             <v-list dense>
-              <v-list-item @click="editing = true" v-if="!editing && controls">
-                <v-list-item-action><v-icon>edit</v-icon></v-list-item-action>
-                <v-list-item-title>Edit</v-list-item-title>
+              <v-list-item @click.stop="editing = !editing">
+                <v-list-item-action>
+                  <v-icon v-if="editing">lock</v-icon>
+                  <v-icon v-else>edit</v-icon>
+                </v-list-item-action>
+                <v-list-item-title v-if="editing">Lock</v-list-item-title>
+                <v-list-item-title v-else>Edit</v-list-item-title>
               </v-list-item>
               <v-list-item @click.stop="journal.patch({subscribed: !journal.x.subscribed})">
                 <v-list-item-action>
@@ -106,7 +110,6 @@ import AcCommentSection from '@/components/comments/AcCommentSection.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import Formatting from '@/mixins/formatting'
 import AcLink from '@/components/wrappers/AcLink.vue'
-import {profileLink} from '@/lib/lib'
 
   @Component({components: {
     AcLink,

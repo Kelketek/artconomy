@@ -1,6 +1,11 @@
 <template>
   <v-container fluid class="pa-0" :id="id">
     <ac-tab-nav :items="items"></ac-tab-nav>
+    <v-row class="d-none d-md-flex" v-if="controls">
+      <v-col class="text-right">
+        <v-btn @click="showUpload = true" color="green"><v-icon left>add</v-icon>New Submission</v-btn>
+      </v-col>
+    </v-row>
     <router-view class="pa-0 pt-3" v-if="subject" :key="`${username}-${$route.name}`"></router-view>
     <ac-add-button v-model="showUpload" v-if="controls">New Submission</ac-add-button>
     <ac-new-submission ref="newSubmissionForm" :username="username" v-model="showUpload"></ac-new-submission>
@@ -26,9 +31,9 @@ import Upload from '@/mixins/upload'
 import AcNewSubmission from '@/components/AcNewSubmission.vue'
 import {Watch} from 'vue-property-decorator'
 import AcTabNav from '@/components/navigation/AcTabNav.vue'
-  @Component({
-    components: {AcTabNav, AcNewSubmission, AcAddButton, AcTab},
-  })
+@Component({
+  components: {AcTabNav, AcNewSubmission, AcAddButton, AcTab},
+})
 export default class Gallery extends mixins(Subjective, Upload) {
     public art: ListController<Submission> = null as unknown as ListController<Submission>
     public collection: ListController<Submission> = null as unknown as ListController<Submission>

@@ -63,7 +63,7 @@
                   <v-col cols="12" v-if="commissionLink">
                     <v-btn color="green" block :to="submission.x.commission_link">
                       <v-icon left>palette</v-icon>
-                      Commission the artist!
+                      Commission me!
                     </v-btn>
                   </v-col>
                   <v-col cols="12">
@@ -133,6 +133,14 @@
                             <v-btn icon v-on="on" class="more-button"><v-icon>more_horiz</v-icon></v-btn>
                           </template>
                           <v-list dense>
+                            <v-list-item @click.stop="editing = !editing">
+                              <v-list-item-action>
+                                <v-icon v-if="editing">lock</v-icon>
+                                <v-icon v-else>edit</v-icon>
+                              </v-list-item-action>
+                              <v-list-item-title v-if="editing">Lock</v-list-item-title>
+                              <v-list-item-title v-else>Edit</v-list-item-title>
+                            </v-list-item>
                             <v-list-item @click.stop="submission.patch({private: !submission.x.private})">
                               <v-list-item-action>
                                 <v-icon v-if="submission.x.private">visibility_off</v-icon>

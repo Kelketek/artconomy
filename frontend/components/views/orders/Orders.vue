@@ -7,8 +7,7 @@
             <h1>
               <router-link style="text-decoration: underline;"
                            :to="{name: 'BuyAndSell', params: {question: 'awoo-workload-management'}}">
-                AWOO
-              </router-link>
+                AWOO</router-link>
               Panel
             </h1>
             <v-row no-gutters  >
@@ -22,26 +21,32 @@
               <v-col cols="6">{{stats.x.new_orders}}</v-col>
             </v-row>
           </v-col>
-          <v-col cols="12" md="6" v-if="closed">
-            <strong>You are currently unable to take new commissions because:</strong>
-            <ul>
-              <li v-if="stats.x.commissions_closed">You have set your 'commissions closed' setting.</li>
-              <li v-if="stats.x.load >= stats.x.max_load">You have met or exceeded your maximum load. You can increase your
-                maximum load setting to take on more commissions at one time.
-              </li>
-              <li v-else-if="stats.x.products_available === 0">You have no products available for customers to purchase. This
-                may mean there are none, they are hidden, they have reached their 'Max at Once' level, or you do not have
-                enough load remaining to take any of your existing products on.
-              </li>
-              <li v-if="stats.x.commissions_disabled && stats.x.new_orders">You have outstanding new orders to process. Please
-                accept or reject the outstanding orders. Outstanding orders must be handled before you are opened up for new
-                commissions.
-              </li>
-            </ul>
-          </v-col>
-          <v-col v-else>
-            You are currently able to take commissions.
-            <router-link :to="{name: 'Store', params: {username}}">Manage your store here.</router-link>
+          <v-col cols="12" md="6" class="pb-2">
+            <div v-if="closed">
+              <strong>You are currently unable to take new commissions because:</strong>
+              <ul>
+                <li v-if="stats.x.commissions_closed">You have set your 'commissions closed' setting.</li>
+                <li v-if="stats.x.load >= stats.x.max_load">You have filled all of your slots. You can increase your
+                  maximum slots to take on more commissions at one time in your artist settings.
+                </li>
+                <li v-else-if="stats.x.products_available === 0">You have no products available for customers to purchase. This
+                  may mean there are none, they are hidden, they have reached their 'Max at Once' level, or you do not have
+                  enough slots to take any of your existing products on.
+                </li>
+                <li v-if="stats.x.commissions_disabled && stats.x.new_orders">You have outstanding new orders to process. Please
+                  accept or reject the outstanding orders. Outstanding orders must be handled before you are opened up for new
+                  commissions, if they've been around for a while.
+                </li>
+              </ul>
+            </div>
+            <div v-else>
+              <p>You are currently able to take commissions.
+                <router-link :to="{name: 'Store', params: {username}}">Manage your store here.</router-link></p>
+              <div class="py-5 d-none d-md-flex"></div>
+            </div>
+            <div class="flex align-self-end d-none d-md-flex">
+              <v-btn color="green" @click="showNewInvoice = true"><v-icon left>receipt</v-icon>New Invoice</v-btn>
+            </div>
           </v-col>
         </v-row>
       </template>

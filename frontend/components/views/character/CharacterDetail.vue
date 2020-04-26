@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <ac-character-toolbar :username="username" :character-name="characterName" :character-avatar="false" />
+    <ac-character-toolbar :username="username" :character-name="characterName" :character-avatar="false" :show-edit="true" />
     <ac-load-section :controller="character.profile" tag="v-layout" class="mt-3">
       <template v-slot:default>
         <v-card class="mb-2">
@@ -160,7 +160,6 @@ import AcTagDisplay from '@/components/AcTagDisplay.vue'
 import AcContextGallery from '@/components/views/character/AcContextGallery.vue'
 import Submission from '@/types/Submission'
 import AcLink from '@/components/wrappers/AcLink.vue'
-import AcShareButton from '@/components/AcShareButton.vue'
 import {FormController} from '@/store/forms/form-controller'
 import AcRelatedManager from '@/components/wrappers/AcRelatedManager.vue'
 import AcCharacterToolbar from '@/components/views/character/AcCharacterToolbar.vue'
@@ -174,7 +173,6 @@ import AcCharacterPreview from '@/components/AcCharacterPreview.vue'
   AcExpandedProperty,
   AcCharacterToolbar,
   AcRelatedManager,
-  AcShareButton,
   AcLink,
   AcContextGallery,
   AcTagDisplay,

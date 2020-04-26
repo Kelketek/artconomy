@@ -25,6 +25,14 @@
             <v-btn icon v-on="on" class="more-button"><v-icon>more_horiz</v-icon></v-btn>
           </template>
           <v-list dense>
+            <v-list-item @click.stop="editing = !editing" v-if="showEdit">
+              <v-list-item-action>
+                <v-icon v-if="editing">lock</v-icon>
+                <v-icon v-else>edit</v-icon>
+              </v-list-item-action>
+              <v-list-item-title v-if="editing">Lock</v-list-item-title>
+              <v-list-item-title v-else>Edit</v-list-item-title>
+            </v-list-item>
             <v-list-item @click.stop="character.profile.patch({private: !character.profile.x.private})">
               <v-list-item-action>
                 <v-icon v-if="character.profile.x.private">visibility_off</v-icon>
@@ -71,6 +79,7 @@ import AcNewSubmission from '@/components/AcNewSubmission.vue'
 import AcShareManager from '@/components/AcShareManager.vue'
 import AcMiniCharacter from '@/components/AcMiniCharacter.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
+import Editable from '@/mixins/editable'
 
   @Component({
     components: {
@@ -88,9 +97,11 @@ import AcLink from '@/components/wrappers/AcLink.vue'
       AcConfirmation,
       Fragment},
   })
-export default class AcCharacterToolbar extends mixins(CharacterCentric, Upload) {
+export default class AcCharacterToolbar extends mixins(CharacterCentric, Upload, Editable) {
     @Prop({default: true})
     public characterAvatar!: boolean
+    @Prop({default: false})
+    public showEdit!: boolean
     public newShare: FormController = null as unknown as FormController
     public newUpload: FormController = null as unknown as FormController
     public step = 1

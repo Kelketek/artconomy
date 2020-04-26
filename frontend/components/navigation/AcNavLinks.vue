@@ -80,7 +80,7 @@
         <v-list-item-action>
           <v-icon>monetization_on</v-icon>
         </v-list-item-action>
-        <v-list-item-title>Sales</v-list-item-title>
+        <v-list-item-title>Sales/Invoicing</v-list-item-title>
       </v-list-item>
       <v-divider />
     </v-list>

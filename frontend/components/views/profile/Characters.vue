@@ -1,5 +1,10 @@
 <template>
   <v-container fluid class="pa-0">
+    <v-row class="d-none d-md-flex">
+      <v-col class="text-right">
+        <v-btn color="green" @click="showNew = true" v-if="controls"><v-icon left>add</v-icon>New Character</v-btn>
+      </v-col>
+    </v-row>
     <ac-paginated :list="characters">
       <v-col class="pa-1" lg="2" md="3" cols="6" v-for="character in characters.list" :key="character.x.id">
         <ac-character-preview :character="character.x" :key="character.key"></ac-character-preview>

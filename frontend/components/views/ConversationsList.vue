@@ -2,7 +2,10 @@
   <v-row no-gutters>
     <v-col v-if="conversations.ready">
       <v-container>
-        <v-row no-gutters  >
+        <v-row no-gutters>
+          <v-col cols="12" class="text-right py-2 d-none d-md-block" v-if="isCurrent">
+            <v-btn color="green" @click="showNew = true"><v-icon left>add</v-icon>New Conversation</v-btn>
+          </v-col>
           <v-col cols="12">
             <ac-paginated :list="conversations" :auto-run="false" :track-pages="true">
               <v-card v-slot="empty">

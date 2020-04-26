@@ -1,5 +1,5 @@
 <template>
-  <div class="add-button-container">
+  <div class="add-button-container d-flex d-md-none">
     <div class="tooltip-holder">
       <div class="tooltip-content" :style="style"><slot /></div>
     </div>

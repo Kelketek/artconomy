@@ -82,6 +82,14 @@
                       <v-btn icon v-on="on" class="more-button"><v-icon>more_horiz</v-icon></v-btn>
                     </template>
                     <v-list dense>
+                      <v-list-item @click.stop="editing = !editing">
+                        <v-list-item-action>
+                          <v-icon v-if="editing">lock</v-icon>
+                          <v-icon v-else>edit</v-icon>
+                        </v-list-item-action>
+                        <v-list-item-title v-if="editing">Lock</v-list-item-title>
+                        <v-list-item-title v-else>Edit</v-list-item-title>
+                      </v-list-item>
                       <v-list-item @click.stop="product.patch({hidden: !product.x.hidden})">
                         <v-list-item-action>
                           <v-icon v-if="product.x.hidden">visibility_off</v-icon>

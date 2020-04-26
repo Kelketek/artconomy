@@ -817,7 +817,7 @@ class CurrentMixin(object):
 class ArchivedMixin(object):
     @staticmethod
     def extra_filter(qs):
-        return qs.filter(status=Order.COMPLETED)
+        return qs.filter(status=Order.COMPLETED).order_by('-created_on')
 
 
 class CancelledMixin(object):

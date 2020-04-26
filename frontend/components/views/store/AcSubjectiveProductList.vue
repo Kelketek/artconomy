@@ -1,5 +1,10 @@
 <template>
   <ac-load-section :controller="products">
+    <v-row class="d-none d-md-flex" v-if="controls && !iFrame && !firstProduct">
+      <v-col class="text-right">
+        <v-btn color="green" @click="showNew = true"><v-icon left>add</v-icon>New Product</v-btn>
+      </v-col>
+    </v-row>
     <ac-product-list :products="products" v-show="!firstProduct"></ac-product-list>
     <ac-add-button v-model="showNew" v-if="controls && !iFrame">New Product</ac-add-button>
     <ac-new-product :username="username" v-model="showNew" v-if="controls && !iFrame"></ac-new-product>
