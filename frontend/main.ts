@@ -1,7 +1,6 @@
 import 'intersection-observer'
 import './artconomy.css'
 import Vuetify from 'vuetify/lib'
-import VImg from 'vuetify/src/components/VImg'
 import * as Sentry from '@sentry/browser'
 import * as Integrations from '@sentry/integrations'
 import Vue from 'vue'
