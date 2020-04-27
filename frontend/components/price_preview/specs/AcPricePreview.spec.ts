@@ -88,6 +88,46 @@ describe('AcPricePreview.vue', () => {
     await vm.$nextTick()
     expect(vm.payout).toEqual(Big('76.30'))
   })
+  it('Calculates hourly rate for escrow', async() => {
+    setViewer(store, user)
+    const wrapper = mount(AcPricePreview, {
+      localVue,
+      store,
+      vuetify,
+      router,
+      sync: false,
+      attachToDocument: true,
+      propsData: {
+        lineItems,
+        username: user.username,
+        isSeller: true,
+        escrow: true,
+      },
+    })
+    const vm = wrapper.vm as any
+    vm.hours = 2
+    expect(vm.hourly).toEqual('36.42')
+  })
+  it('Calculates hourly rate for non-escrow', async() => {
+    setViewer(store, user)
+    const wrapper = mount(AcPricePreview, {
+      localVue,
+      store,
+      vuetify,
+      router,
+      sync: false,
+      attachToDocument: true,
+      propsData: {
+        lineItems,
+        username: user.username,
+        isSeller: true,
+        escrow: false,
+      },
+    })
+    const vm = wrapper.vm as any
+    vm.hours = 2
+    expect(vm.hourly).toEqual('40')
+  })
   afterEach(() => {
     cleanUp(wrapper)
   })

@@ -37,9 +37,15 @@
             <v-col class="text-right pr-1" cols="6" ><strong>Total Price:</strong></v-col>
             <v-col class="text-left pl-1" cols="6" >${{rawPrice.toFixed(2)}}</v-col>
           </v-row>
-          <v-row no-gutters>
+          <v-row>
             <v-col class="text-right pr-1" cols="6" v-if="isSeller && escrow"><strong>Your Payout:</strong></v-col>
             <v-col class="text-left pl-1" align-self="center" cols="6" v-if="isSeller && escrow"><strong>${{payout.toFixed(2)}}</strong></v-col>
+            <v-col v-if="isSeller" cols="12" md="6">
+              <v-text-field v-model="hours" type="number" label="If I worked for this many hours..." min="0" step="1"></v-text-field>
+            </v-col>
+            <v-col v-if="isSeller && hourly" cols="12" md="6">
+              I would earn <strong>${{hourly}}/hour.</strong>
+            </v-col>
           </v-row>
           <v-row v-if="isSeller && escrow && !landscape">
             <v-col class="text-center" cols="12">
@@ -89,6 +95,7 @@ export default class AcPricePreview extends mixins(Subjective) {
   public editable!: boolean
   @Prop({default: false})
   public editBase!: boolean
+  public hours = null
 
   public get rawPrice() {
     return this.priceData.total
@@ -104,6 +111,19 @@ export default class AcPricePreview extends mixins(Subjective) {
       types.push(LineTypes.BONUS)
     }
     return totalForTypes(this.priceData, types)
+  }
+
+  public get hourly() {
+    const hours = this.hours || 0
+    let currentPrice = this.rawPrice
+    if (this.escrow) {
+      currentPrice = this.payout
+    }
+    try {
+      return currentPrice.div(Big(hours)).round(2, 0) + ''
+    } catch {
+      return ''
+    }
   }
 
   public get rawLineItems() {
