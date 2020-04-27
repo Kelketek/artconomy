@@ -640,14 +640,16 @@ export default class ProductDetail extends mixins(ProductCentric, Formatting, Ed
       }).catch(this.setError)
       this.pricing = this.$getSingle('pricing', {endpoint: '/api/sales/v1/pricing-info/'})
       this.pricing.get()
-      this.inventory = this.$getSingle(`product__${this.productId}__inventory`, {endpoint: `${this.url}inventory/`})
+      this.inventory = this.$getSingle(
+        `product__${this.productId}__inventory`, {endpoint: `${this.url}inventory/`},
+      )
       this.pricing.get()
       this.samples = this.$getList(`product__${this.productId}__samples`, {endpoint: `${this.url}samples/`})
-      this.samples.firstRun()
+      this.samples.firstRun().catch(this.statusOk(404))
       this.recommended = this.$getList(
         `product__${this.productId}__recommendations`, {endpoint: `${this.url}recommendations/`, pageSize: 12}
       )
-      this.recommended.firstRun()
+      this.recommended.firstRun().catch(this.statusOk(404))
       this.subjectHandler.artistProfile.get().catch(this.setError)
       this.$listenForForm(`product${this.productId}__order`)
     }

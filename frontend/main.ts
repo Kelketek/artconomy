@@ -1,6 +1,7 @@
 import 'intersection-observer'
 import './artconomy.css'
 import Vuetify from 'vuetify/lib'
+import VImg from 'vuetify/src/components/VImg'
 import * as Sentry from '@sentry/browser'
 import * as Integrations from '@sentry/integrations'
 import Vue from 'vue'
@@ -72,6 +73,16 @@ if (productionMode && isValidBrowser) {
   })
 } else if (process.env.NODE_ENV === 'production') {
   console.log('Unsupported browser. Automatic error reports will not be sent.')
+} else {
+  // Ignore image loading errors.
+  const ogError = console.error
+  console.error = (message: any) => {
+    const converted = message + ''
+    if (converted.startsWith('[Vuetify] Image load failed')) {
+      return
+    }
+    ogError(message)
+  }
 }
 
 const vuetifySettings = {

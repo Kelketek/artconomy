@@ -33,6 +33,14 @@ export const actions: ActionTree<UserStoreState, RootState> = {
 const mutations: MutationTree<UserStoreState> = {
   setViewerUsername(state, username: string) {
     Vue.set(state, 'viewerRawUsername', username)
+    /* istanbul ignore next */
+    try {
+      Sentry.configureScope(scope => {
+        scope.setUser({username})
+      })
+    } catch {
+      // Ignore.
+    }
   },
 }
 

@@ -1,7 +1,7 @@
-New support request from: {{ username }}
+New support request from: {{ username|safe }}
 
 IP: {{ ip }} (Unverified)
-URL: {{ path }}
-User Agent: {{ user_agent }}
+URL: {{ path|safe }}
+User Agent: {{ user_agent|safe }}
 
-{{ body }}
+{{ body|safe }}

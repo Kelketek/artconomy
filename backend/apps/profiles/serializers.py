@@ -728,7 +728,7 @@ def user_value_taken(property_name):
 class ContactSerializer(serializers.Serializer):
     email = serializers.EmailField()
     body = serializers.CharField(max_length=10000)
-    referring_url = serializers.CharField(max_length=1000)
+    referring_url = serializers.CharField(max_length=1000, required=False)
 
 
 # noinspection PyAbstractClass

@@ -9,7 +9,7 @@ import * as VToolbar from 'vuetify/es5/components/VToolbar'
 
 @Component
 export default class AcRendered extends mixins(Formatting) {
-  @Prop()
+  @Prop({default: ''})
   public value!: string
   @Prop({default: 'v-col'})
   public tag!: string
@@ -42,7 +42,7 @@ export default class AcRendered extends mixins(Formatting) {
       render: compileToFunctions(this.dynamicTemplate).render,
     }
   }
-  public get availableText() {
+  public get availableText(): string {
     if (this.more) {
       return this.value
     }
