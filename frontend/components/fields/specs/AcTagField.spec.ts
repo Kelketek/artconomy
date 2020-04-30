@@ -76,4 +76,38 @@ describe('ac-tag-field', () => {
     expect((wrapper.vm as any).tags).toEqual(['Test'])
     expect((wrapper.vm as any).queryStore).toBe('')
   })
+  it('Performs the string-value workaround for mobile Chrome 81.', async() => {
+    const tagList: string[] = ['Test']
+    wrapper = mount(
+      AcTagField, {
+        localVue,
+        vuetify,
+        propsData: {value: tagList},
+        sync: false,
+        attachToDocument: true,
+      })
+    const vm = wrapper.vm as any
+    vm.tags = 'Stuff'
+    await jest.runAllTimers()
+    await wrapper.vm.$nextTick()
+    expect((wrapper.vm as any).tags).toEqual(['Test', 'Stuff'])
+    expect((wrapper.vm as any).queryStore).toBe('')
+  })
+  it('Reverts the tag list Chrome 81.', async() => {
+    const tagList: string[] = ['Test']
+    wrapper = mount(
+      AcTagField, {
+        localVue,
+        vuetify,
+        propsData: {value: tagList},
+        sync: false,
+        attachToDocument: true,
+      })
+    const vm = wrapper.vm as any
+    vm.tags = ' ,'
+    await jest.runAllTimers()
+    await wrapper.vm.$nextTick()
+    expect((wrapper.vm as any).tags).toEqual(['Test'])
+    expect((wrapper.vm as any).queryStore).toBe('')
+  })
 })
