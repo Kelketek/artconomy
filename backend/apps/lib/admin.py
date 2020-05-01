@@ -16,6 +16,7 @@ class AssetAdmin(admin.ModelAdmin):
 class GenericReferenceAdmin(admin.ModelAdmin):
     list_filter = ['content_type']
     search_fields = ['object_id']
+    readonly_fields = ['target']
 
 
 class CommentAdmin(admin.ModelAdmin):

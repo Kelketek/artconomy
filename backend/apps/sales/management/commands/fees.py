@@ -1,9 +1,9 @@
-from csv import DictReader
+from csv import DictReader, DictWriter
 from datetime import datetime
-from decimal import localcontext, ROUND_HALF_EVEN
 from typing import Any, TypedDict, List, Dict
 
 import pendulum
+from django.core.management.base import OutputWrapper
 from pendulum import DateTime
 from dateutil.relativedelta import relativedelta
 from django.core.management import BaseCommand, CommandParser
@@ -37,12 +37,30 @@ def get_transactions_list(handle: TextIO) -> List[TransactionSpec]:
             'auth_code': line['auth_code'],
             'amount': Money(line['amount'], 'USD'),
             'fee': Money(line['fee'], 'USD'),
+            'batch_gross': line['batch_gross'],
+            'batch_fees': line['batch_fees'],
+            'batch_net_deposit': line['batch_net_deposit'],
         }
         for line in DictReader(handle)
     ]
 
 
-def create_fee_transaction(source_transactions: List[TransactionRecord], auth_code: str, fee: Money, date: datetime):
+def new_output_row(transaction: TransactionSpec, for_note: str, writer: DictWriter):
+    row = {
+        **transaction,
+        'for': for_note,
+    }
+    row['auth_date'] = row['auth_date'].to_formatted_date_string()
+    row['settlement_date'] = row['settlement_date'].to_formatted_date_string()
+    row['amount'] = str(row['amount'].amount)
+    row['fee'] = str(row['fee'].amount)
+    writer.writerow(row)
+
+
+def create_fee_transaction(
+        source_transactions: List[TransactionRecord], transaction: TransactionSpec, date: datetime,
+        writer: DictWriter,
+):
     refs = [ref_for_instance(source_transaction) for source_transaction in source_transactions]
     sub_refs = []
     for relevant_transaction in source_transactions:
@@ -53,7 +71,7 @@ def create_fee_transaction(source_transactions: List[TransactionRecord], auth_co
             source=TransactionRecord.UNPROCESSED_EARNINGS,
             destination=TransactionRecord.CARD_TRANSACTION_FEES,
             category=TransactionRecord.THIRD_PARTY_FEE,
-            auth_code=auth_code,
+            auth_code=transaction['auth_code'],
             targets__in=refs,
         ).distinct().get()
     except TransactionRecord.DoesNotExist:
@@ -62,18 +80,21 @@ def create_fee_transaction(source_transactions: List[TransactionRecord], auth_co
             source=TransactionRecord.UNPROCESSED_EARNINGS,
             destination=TransactionRecord.CARD_TRANSACTION_FEES,
             category=TransactionRecord.THIRD_PARTY_FEE,
-            amount=fee,
+            amount=transaction['fee'],
         )
-    fee_transaction.amount = fee
-    fee_transaction.auth_code = auth_code
+    fee_transaction.amount = transaction['fee']
+    fee_transaction.auth_code = transaction['auth_code']
     fee_transaction.payer = None
     fee_transaction.payee = None
     fee_transaction.created_on = date
     fee_transaction.save()
-    fee_transaction.targets.set([*refs] + [*sub_refs])
+    all_refs = {*refs, *sub_refs}
+    fee_transaction.targets.set(all_refs)
+    fee_note = ', '.join(str(ref.target) for ref in all_refs)
+    new_output_row(transaction, for_note=fee_note, writer=writer)
 
 
-def distribute_fees(transaction: TransactionSpec):
+def distribute_fees(transaction: TransactionSpec, writer: DictWriter, err: OutputWrapper):
     candidates = list(TransactionRecord.objects.filter(
         created_on__gte=(transaction['auth_date'] - relativedelta(weeks=1)),
         created_on__lte=(transaction['auth_date'] + relativedelta(weeks=1)),
@@ -82,12 +103,13 @@ def distribute_fees(transaction: TransactionSpec):
         status=TransactionRecord.SUCCESS,
     ))
     if not candidates:
-        print('No matching transactions found for', transaction)
+        new_output_row(transaction, for_note='<UNKNOWN: Transaction made off-site?>', writer=writer)
+        print('WARNING: No matching transactions found for', transaction, file=err)
         return
     total = sum((record.amount for record in candidates))
     if total != transaction['amount']:
-        print(f'WARNING: Inexact match found. {total} != {transaction["amount"]}', transaction)
-    create_fee_transaction(candidates, transaction['auth_code'], transaction['fee'], candidates[0].created_on)
+        print(f'WARNING: Inexact match found. {total} != {transaction["amount"]}', transaction, file=err)
+    create_fee_transaction(candidates, transaction, candidates[0].created_on, writer)
 
 
 class Command(BaseCommand):
@@ -102,7 +124,18 @@ class Command(BaseCommand):
     def handle(self, *args: Any, **options: Any):
         with open(options['processed'], 'r') as processed:
             transactions = get_transactions_list(processed)
+        writer = DictWriter(self.stdout, fieldnames=[
+            'auth_code',
+            'for',
+            'amount',
+            'fee',
+            'batch_gross',
+            'batch_fees',
+            'batch_net_deposit',
+            'auth_date',
+            'settlement_date',
+        ])
+        writer.writeheader()
         with atomic():
             for transaction in transactions:
-                distribute_fees(transaction)
-            raise RuntimeError()
+                distribute_fees(transaction, writer, self.stderr)

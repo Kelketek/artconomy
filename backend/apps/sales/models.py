@@ -949,7 +949,7 @@ class TransactionRecord(Model):
 
     def __str__(self):
         return (
-            f'{self.get_status_display()}: {self.amount} from '
+            f'{self.get_status_display()} [{self.get_category_display()}]: {self.amount} from '
             f'{self.payer or "(Artconomy)"} [{self.get_source_display()}] to '
             f'{self.payee or "(Artconomy)"} [{self.get_destination_display()}] for '
             f'{self.target_string}'

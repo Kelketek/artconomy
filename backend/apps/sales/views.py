@@ -4,7 +4,7 @@ from functools import lru_cache
 from typing import Union, List
 from uuid import uuid4
 
-from dateutil.parser import parse
+from dateutil.parser import parse, ParserError
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.auth import login
@@ -1883,9 +1883,12 @@ class OrderValues(ListAPIView, DateConstrained):
             'still_in_escrow',
             'artist_earnings',
             'in_reserve',
-            'sales_tax_collected',
             'extra',
-            'unqualified_earnings',
+            'our_fees',
+            'sales_tax_collected',
+            'card_fees',
+            'ach_fees',
+            'profit',
             'refunded_on',
         ]
         return context

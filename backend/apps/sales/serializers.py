@@ -13,7 +13,7 @@ from moneyed import Money
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import SerializerMethodField, DecimalField, IntegerField, FloatField, EmailField
-from short_stuff import slugify
+from short_stuff import slugify, unslugify
 from short_stuff.django.serializers import ShortCodeField
 
 from apps.lib.models import ref_for_instance
@@ -26,7 +26,7 @@ from apps.profiles.models import User, Submission, Character
 from apps.profiles.serializers import CharacterSerializer, SubmissionSerializer
 from apps.profiles.utils import available_users
 from apps.sales.models import Product, Order, CreditCardToken, Revision, BankAccount, \
-    Rating, TransactionRecord, LineItem, ADD_ON, TIP, BASE_PRICE, InventoryTracker, EXTRA
+    Rating, TransactionRecord, LineItem, ADD_ON, TIP, BASE_PRICE, InventoryTracker, EXTRA, LineItemSim
 from apps.sales.utils import account_balance, PENDING, POSTED_ONLY, AVAILABLE, get_totals
 
 
@@ -674,7 +674,10 @@ class OrderValuesSerializer(serializers.ModelSerializer):
     artist_earnings = serializers.SerializerMethodField()
     in_reserve = serializers.SerializerMethodField()
     sales_tax_collected = serializers.SerializerMethodField()
-    unqualified_earnings = serializers.SerializerMethodField()
+    our_fees = serializers.SerializerMethodField()
+    card_fees = serializers.SerializerMethodField()
+    ach_fees = serializers.SerializerMethodField()
+    profit = serializers.SerializerMethodField()
     refunded_on = serializers.SerializerMethodField()
     extra = serializers.SerializerMethodField()
 
@@ -689,7 +692,7 @@ class OrderValuesSerializer(serializers.ModelSerializer):
         else:
             return '(Empty)'
 
-    @lru_cache
+    @lru_cache(4)
     def charge_transactions(self, obj):
         return TransactionRecord.objects.filter(
             status=TransactionRecord.SUCCESS,
@@ -698,7 +701,7 @@ class OrderValuesSerializer(serializers.ModelSerializer):
             **self.qs_kwargs(obj),
         )
 
-    @lru_cache
+    @lru_cache(4)
     def qs_kwargs(self, obj):
         return {
             'targets__content_type': ContentType.objects.get_for_model(obj),
@@ -738,10 +741,67 @@ class OrderValuesSerializer(serializers.ModelSerializer):
             None, TransactionRecord.RESERVE, AVAILABLE, qs_kwargs=self.qs_kwargs(obj)
         )
 
-    def get_unqualified_earnings(self, obj):
-        return account_balance(
-            None, TransactionRecord.UNPROCESSED_EARNINGS, AVAILABLE, qs_kwargs=self.qs_kwargs(obj),
-        )
+    @lru_cache(4)
+    def get_card_fees(self, obj):
+        return TransactionRecord.objects.filter(
+            payer=None, payee=None, status=TransactionRecord.SUCCESS,
+            source=TransactionRecord.UNPROCESSED_EARNINGS, destination=TransactionRecord.CARD_TRANSACTION_FEES,
+            **self.qs_kwargs(obj),
+        ).aggregate(total=Sum('amount'))['total']
+
+    @lru_cache(4)
+    def get_our_fees(self, obj):
+        return TransactionRecord.objects.filter(
+            payer=None, payee=None, status=TransactionRecord.SUCCESS,
+            source=TransactionRecord.RESERVE, destination=TransactionRecord.UNPROCESSED_EARNINGS,
+            **self.qs_kwargs(obj),
+        ).aggregate(total=Sum('amount'))['total']
+
+    @lru_cache(4)
+    def get_ach_fees(self, obj):
+        transaction = TransactionRecord.objects.filter(
+            payer=obj.seller, payee=obj.seller, status=TransactionRecord.SUCCESS,
+            source=TransactionRecord.HOLDINGS, destination=TransactionRecord.BANK,
+            **self.qs_kwargs(obj),
+        ).first()
+        if not transaction:
+            return None
+        fee = TransactionRecord.objects.filter(
+            payer=None, payee=None, status=TransactionRecord.SUCCESS,
+            source=TransactionRecord.UNPROCESSED_EARNINGS, destination=TransactionRecord.ACH_TRANSACTION_FEES,
+            targets__content_type=ContentType.objects.get_for_model(transaction),
+            targets__object_id=unslugify(transaction.id),
+        ).first()
+        if not fee:
+            # Something's wrong here. Will need to find out why this transaction was not annotated.
+            return
+        orders = []
+        order_type = ContentType.objects.get_for_model(Order)
+        for target in transaction.targets.all():
+            if target.content_type == order_type:
+                orders.append(target.target)
+        lines = {}
+        for order in orders:
+            lines[order] = LineItemSim(
+                id=order.id,
+                amount=Money(TransactionRecord.objects.filter(
+                    source=TransactionRecord.ESCROW, destination=TransactionRecord.HOLDINGS, **self.qs_kwargs(obj),
+                ).aggregate(total=Sum('amount'))['total'], 'USD'),
+                priority=0,
+            )
+        lines[None] = LineItemSim(id=-1, amount=fee.amount, cascade_amount=True, priority=1)
+        _total, _discount, subtotals = get_totals(lines.values())
+        return (lines[obj].amount - subtotals[lines[obj]]).amount
+
+    def get_profit(self, obj):
+        if not self.get_our_fees(obj):
+            return
+        base = self.get_our_fees(obj)
+        if not base:
+            return
+        if not self.get_ach_fees(obj):
+            return
+        return base - self.get_ach_fees(obj) - self.get_card_fees(obj)
 
     @lru_cache
     def get_refunded_on(self, obj):
@@ -756,8 +816,8 @@ class OrderValuesSerializer(serializers.ModelSerializer):
         model = Order
         fields = (
             'id', 'created_on', 'status', 'seller', 'buyer', 'price', 'charged_on', 'payment_type', 'still_in_escrow',
-            'artist_earnings', 'in_reserve', 'sales_tax_collected', 'refunded_on', 'extra',
-            'unqualified_earnings',
+            'artist_earnings', 'in_reserve', 'sales_tax_collected', 'refunded_on', 'extra', 'ach_fees', 'our_fees',
+            'card_fees', 'profit',
         )
 
 
