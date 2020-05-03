@@ -15,7 +15,7 @@
             label="I'm looking for..."
         />
       </v-col>
-      <v-col class="text-center" cols="12" offset-sm="2" lg="6" offset-lg="3" >
+      <v-col class="text-center" cols="12" lg="6" offset-lg="3" >
         Try terms like:
         <v-chip color="secondary" @click="search({q: term})" class="mx-1" v-for="term in searchTerms" :key="term">{{term}}</v-chip>
       </v-col>
