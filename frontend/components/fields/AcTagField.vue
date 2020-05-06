@@ -8,7 +8,6 @@
       :items="items"
       auto-select-first
       deletable-chips
-      hide-selected
       ref="input"
       v-bind="fieldAttrs"
   />
@@ -51,20 +50,7 @@ export default class AcTagField extends Vue {
     @Watch('tags')
     private syncUpstream() {
       if (typeof this.tags === 'string') {
-        // Weird case that happens with some older browsers.
-        let val = this.tags as string
-        val = this.prepVal(val)
-        if (!val) {
-          // Put it back to how it was.
-          Vue.set(this, 'tags', [...this.value])
-          this.query = ''
-          return
-        }
-        const newVal = [...this.value]
-        newVal.push(val)
-        Vue.set(this, 'tags', newVal)
-        this.query = ''
-        return
+        this.tags = [this.tags]
       }
       this.$emit('input', this.tags)
       if (this.tags.length !== this.oldCount) {
@@ -85,19 +71,14 @@ export default class AcTagField extends Vue {
       return this.queryStore
     }
 
-    private prepVal(val: string) {
-      val = val.replace(/\s+/g, '')
-      val = val.replace(/,/g, '')
-      return val.trim()
-    }
-
     private set query(val: string) {
       val = val || ''
-      let prepped = this.prepVal(val)
-      if (val.endsWith(' ') && prepped) {
+      if (val.endsWith(' ') && val.trim()) {
         this.queryStore = ''
-        if (this.tags.indexOf(prepped) === -1) {
-          this.tags.push(prepped)
+        val = val.replace(/\s+/g, '')
+        val = val.replace(/,/g, '')
+        if (this.tags.indexOf(val) === -1) {
+          this.tags.push(val)
         }
         return
       }
