@@ -199,6 +199,7 @@ import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
     AcAvatar},
 })
 export default class AcComment extends mixins(Subjective, Formatting) {
+    name = 'AcComment'
     @Prop({required: true})
     public comment!: SingleController<Comment>
     @Prop({required: true})
