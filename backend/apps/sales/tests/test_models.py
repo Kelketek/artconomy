@@ -97,7 +97,10 @@ class TestProduct(TestCase):
 class TestTransactionRecord(TestCase):
     def test_string(self):
         record = TransactionRecordFactory.create(payer__username='Dude', payee__username='Chick')
-        self.assertEqual(str(record), 'Successful: $10.00 from Dude [Credit Card] to Chick [Escrow] for None')
+        self.assertEqual(
+            str(record),
+            'Successful [Escrow hold]: $10.00 from Dude [Credit Card] to Chick [Escrow] for None',
+        )
 
     @patch('apps.sales.models.warn')
     @patch('apps.sales.models.refund_transaction')
