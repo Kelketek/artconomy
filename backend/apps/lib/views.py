@@ -104,11 +104,10 @@ class Comments(ListCreateAPIView):
                 raise invalid_model
         except (LookupError, IndexError):
             raise invalid_model
-        self.target = get_object_or_404(model, id=self.kwargs['object_id'])
-        return self.target
+        return get_object_or_404(model, id=self.kwargs['object_id'])
 
     def get_queryset(self):
-        qs = self.target.comments.all()
+        qs = self.get_object().comments.all()
         if not (self.request.user.is_staff and self.request.GET.get('history', False)):
             qs = qs.filter(thread_deleted=False)
         return qs.select_related('user').order_by('-created_on')
@@ -124,14 +123,15 @@ class Comments(ListCreateAPIView):
         return super(Comments, self).get(*args, **kwargs)
 
     def perform_create(self, serializer):
-        if isinstance(self.target, Comment):
-            top = self.target.top
+        target = self.get_object()
+        if isinstance(target, Comment):
+            top = target.top
         else:
-            top = self.target
+            top = target
         comment = serializer.save(
             user=self.request.user,
-            content_type=ContentType.objects.get_for_model(self.target),
-            object_id=self.target.id,
+            content_type=ContentType.objects.get_for_model(target),
+            object_id=target.id,
             top_object_id=top.id,
             top_content_type=ContentType.objects.get_for_model(top)
         )
