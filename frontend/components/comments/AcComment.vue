@@ -199,7 +199,6 @@ import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
     AcAvatar},
 })
 export default class AcComment extends mixins(Subjective, Formatting) {
-    name = 'AcComment'
     @Prop({required: true})
     public comment!: SingleController<Comment>
     @Prop({required: true})
@@ -233,6 +232,8 @@ export default class AcComment extends mixins(Subjective, Formatting) {
       // Avoid circular definition loop.
       // @ts-ignore
       this.$options.components.AcCommentSection = require('@/components/comments/AcCommentSection.vue').default
+      // @ts-ignore
+      this.$options.components.AcComment = AcComment
     }
 
     public get canHaveChildren() {
