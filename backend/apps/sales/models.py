@@ -924,6 +924,7 @@ class TransactionRecord(Model):
         (INTERNAL_TRANSFER, 'Internal Transfer'),
         (THIRD_PARTY_REFUND, 'Third party refund'),
         (CORRECTION, 'Correction'),
+        (TABLE_SERVICE, 'Table Service'),
         (TAX, 'Tax'),
         (MANUAL_PAYOUT, 'Manual Payout')
     )

@@ -307,7 +307,7 @@ def finalize_table_fees(order: 'Order'):
         amount=tax_record.amount,
         payer=None, payee=None,
         status=TransactionRecord.SUCCESS,
-        category=TransactionRecord.TABLE_SERVICE,
+        category=TransactionRecord.TAX,
         remote_id=tax_record.remote_id,
         auth_code=tax_record.auth_code,
     )
