@@ -77,6 +77,13 @@ from apps.sales.utils import available_products, service_price, set_service, \
 from apps.sales.tasks import renew
 
 
+def user_products(username: str, requester: User):
+    qs = Product.objects.filter(user__username__iexact=username, active=True)
+    if not (requester.username.lower() == username.lower() or requester.is_staff):
+        qs = qs.filter(hidden=False, table_product=False)
+    qs = qs.order_by('-created_on')
+    return qs
+
 class ProductList(ListCreateAPIView):
     serializer_class = ProductSerializer
     permission_classes = [Any(IsSafeMethod, All(IsRegistered, UserControls))]
@@ -96,12 +103,7 @@ class ProductList(ListCreateAPIView):
         return product
 
     def get_queryset(self):
-        username = self.kwargs['username']
-        qs = Product.objects.filter(user__username__iexact=self.kwargs['username'], active=True)
-        if not (self.request.user.username.lower() == username.lower() or self.request.user.is_staff):
-            qs = qs.filter(hidden=False, table_product=False)
-        qs = qs.order_by('-created_on')
-        return qs
+        return user_products(self.kwargs['username'], self.request.user)
 
 
 class ProductManager(RetrieveUpdateDestroyAPIView):
@@ -1609,9 +1611,13 @@ class StorePreview(BasePreview):
     def context(self, username):
         user = get_object_or_404(User, username__iexact=username)
         return {
-            'title': "{}'s store",
+            'title': f"{username}'s store",
             'description': demark(user.artist_profile.commission_info),
-            'image_link': user.avatar_url
+            'image_link': user.avatar_url,
+            'additional_images': [
+                (product.preview_link, product.name)
+                for product in user_products(username, self.request.user)[:24]
+            ]
         }
 
     @method_decorator(xframe_options_exempt)

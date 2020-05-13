@@ -88,6 +88,28 @@ from apps.tg_bot.models import TelegramDevice
 logger = logging.getLogger(__name__)
 
 
+def user_submissions(user: User, request, is_artist: bool):
+    qs = available_submissions(
+        request, request.user,
+    )
+    if is_artist:
+        qs = qs.filter(artists=user)
+        qs = qs.annotate(all_mine=Case(
+            When(owner=user, then=0),
+            default=1,
+            output_field=IntegerField()))
+        qs = qs.order_by('file', 'all_mine').distinct('file').values('id')
+        qs = Submission.objects.filter(id__in=Subquery(qs))
+    else:
+        qs = qs.filter(owner=user).exclude(artists=user)
+    return qs.order_by('-created_on')
+
+
+def character_submissions(char: Character, request):
+    qs = char.submissions.filter(rating__lte=request.max_rating).exclude(tags__in=request.blacklist)
+    return qs.order_by('-created_on')
+
+
 class Register(CreateAPIView):
     serializer_class = RegisterSerializer
 
@@ -283,8 +305,7 @@ class CharacterSubmissions(ListAPIView):
             Character, user__username__iexact=self.kwargs['username'], name=self.kwargs['character']
         )
         self.check_object_permissions(self.request, char)
-        qs = char.submissions.filter(rating__lte=self.request.max_rating).exclude(tags__in=self.request.blacklist)
-        return qs.order_by('-created_on')
+        return character_submissions(char, self.request)
 
 
 class CharacterManager(RetrieveUpdateDestroyAPIView):
@@ -1004,20 +1025,7 @@ class FilteredSubmissionList(ListAPIView):
 
     def get_queryset(self):
         user = get_object_or_404(User, username=self.kwargs['username'])
-        qs = available_submissions(
-            self.request, self.request.user,
-        )
-        if self.kwargs.get('is_artist', False):
-            qs = qs.filter(artists=user)
-            qs = qs.annotate(all_mine=Case(
-                When(owner=user, then=0),
-                default=1,
-                output_field=IntegerField()))
-            qs = qs.order_by('file', 'all_mine').distinct('file').values('id')
-            qs = Submission.objects.filter(id__in=Subquery(qs))
-        else:
-            qs = qs.filter(owner=user).exclude(artists=user)
-        return qs.order_by('-created_on')
+        return user_submissions(user, self.request, self.kwargs.get('is_artist', False))
 
 
 class SubmissionSharedList(ListCreateAPIView):
@@ -1374,7 +1382,33 @@ class CharacterPreview(BasePreview):
         char_context['title'] = f'{demark(character.name)} - {character.user.username} on Artconomy.com'
         char_context['description'] = demark(character.description)[:160]
         char_context['image_link'] = character.preview_image(self.request)
+        submissions = character_submissions(character, self.request)
+        char_context['additional_images'] = [
+            (submission.preview_link, submission.title) for submission in submissions[:24]
+        ]
         return char_context
+
+
+class ArtPreview(BasePreview):
+    is_artist = True
+    def context(self, username):
+        art_context = {}
+        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        if self.is_artist:
+            art_context['title'] = f"{user.username}'s art gallery"
+        else:
+            art_context['title'] = f"{user.username}'s collection"
+        art_context['description'] = f"See the work of {demark(user.username)}"
+        art_context['image_link'] = user.avatar_url
+        submissions = user_submissions(user, self.request, self.is_artist)[:24]
+        art_context['additional_images'] = [
+            (submission.preview_link, demark(submission.title)) for submission in submissions
+        ]
+        return art_context
+
+
+class CollectionPreview(ArtPreview):
+    is_artist = False
 
 
 class SubmissionPreview(BasePreview):
