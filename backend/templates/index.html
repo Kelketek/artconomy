@@ -10,8 +10,13 @@
   <script src="https://www.google.com/recaptcha/api.js?onload=vueRecaptchaApiLoaded&render=explicit" async defer></script>
   <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons' rel="stylesheet">
   <link rel="icon" type="image/png" href="/static/images/logo.png">
-  <meta property="og:image" content="{{image_link}}" />
-  <meta property="twitter:image" content="{{image_link}}" />
+  {% for link in image_links %}
+    <meta property="og:image" content="{{link}}" />
+    <meta property="twitter:image" content="{{link}}" />
+  {% empty %}
+    <meta property="og:image" content="/static/images/logo.png" />
+    <meta property="twitter:image" content="/static/images/logo.png" />
+  {% endfor %}
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:site" content="@ArtconomyArt" />
   <meta property="og:title" content="{{title}}" />

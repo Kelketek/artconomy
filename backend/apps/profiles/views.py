@@ -1381,11 +1381,10 @@ class CharacterPreview(BasePreview):
             return char_context
         char_context['title'] = f'{demark(character.name)} - {character.user.username} on Artconomy.com'
         char_context['description'] = demark(character.description)[:160]
-        char_context['image_link'] = character.preview_image(self.request)
         submissions = character_submissions(character, self.request)
-        char_context['additional_images'] = [
-            (submission.preview_link, submission.title) for submission in submissions[:24]
-        ]
+        char_context['image_links'] = [
+            submission.preview_link for submission in submissions[:24]
+        ] + [character.preview_image(self.request)]
         return char_context
 
 
@@ -1399,10 +1398,9 @@ class ArtPreview(BasePreview):
         else:
             art_context['title'] = f"{user.username}'s collection"
         art_context['description'] = f"See the work of {demark(user.username)}"
-        art_context['image_link'] = user.avatar_url
         submissions = user_submissions(user, self.request, self.is_artist)[:24]
-        art_context['additional_images'] = [
-            (submission.preview_link, demark(submission.title)) for submission in submissions
+        art_context['additional_images'] = [user.avatar_url] + [
+            submission.preview_link for submission in submissions
         ]
         return art_context
 
@@ -1418,17 +1416,18 @@ class SubmissionPreview(BasePreview):
         submission = get_object_or_404(Submission, id=submission_id)
         if not self.check_object_permissions(self.request, submission):
             return {}
-
         try:
             image = preview_rating(self.request, submission.rating, submission.preview_link)
         except Exception as err:
             logger.exception(err)
             image = None
-        return {
+        data = {
             'title': demark(submission.title),
             'description': demark(submission.caption),
-            'image_link': image
         }
+        if image:
+            data['image_links'] = [image]
+        return data
 
 
 class ReferralStats(APIView):

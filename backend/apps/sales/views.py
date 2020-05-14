@@ -1613,11 +1613,10 @@ class StorePreview(BasePreview):
         return {
             'title': f"{username}'s store",
             'description': demark(user.artist_profile.commission_info),
-            'image_link': user.avatar_url,
-            'additional_images': [
+            'image_links': [
                 (product.preview_link, product.name)
                 for product in user_products(username, self.request.user)[:24]
-            ]
+            ] + [user.avatar_url]
         }
 
     @method_decorator(xframe_options_exempt)
@@ -1628,11 +1627,18 @@ class StorePreview(BasePreview):
 class ProductPreview(BasePreview):
     def context(self, username, product_id):
         product = get_object_or_404(Product, id=product_id, active=True, hidden=False)
-        return {
+        image = preview_rating(self.request, product.rating, product.preview_link)
+        data = {
             'title': demark(product.name),
             'description': product.preview_description,
-            'image_link': preview_rating(self.request, product.rating, product.preview_link)
+            'image_links': [
+            preview_rating(self.request, sample.rating, sample.preview_link) for sample in
+                product.samples.filter(private=False)
+            ]
         }
+        if image:
+            data['image_links'] += [image]
+        return data
 
 
 class CommissionStatusImage(View):
