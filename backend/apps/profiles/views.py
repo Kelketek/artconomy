@@ -1399,7 +1399,7 @@ class ArtPreview(BasePreview):
             art_context['title'] = f"{user.username}'s collection"
         art_context['description'] = f"See the work of {demark(user.username)}"
         submissions = user_submissions(user, self.request, self.is_artist)[:24]
-        art_context['additional_images'] = [user.avatar_url] + [
+        art_context['image_links'] = [user.avatar_url] + [
             submission.preview_link for submission in submissions
         ]
         return art_context

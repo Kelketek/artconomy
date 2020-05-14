@@ -39,11 +39,6 @@
 {% include env_file %}
 <noscript>
   <p>Hey, we're one of those newfangled single page apps, so please enable JavaScript or the site won't work!</p>
-  {% if additional_images %}
-    {% for image, description in additional_images %}
-      <img src="{{image}}" alt="{{description}}" style="display: none"/>
-    {% endfor %}
-  {% endif %}
 </noscript>
 </body>
 </html>
