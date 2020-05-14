@@ -78,6 +78,7 @@ describe('AcCharacterToolbar.vue', () => {
       ...rq('/api/profiles/v1/account/Fox/characters/Kai/', 'delete')
     )
     mockAxios.mockResponse(rs(undefined))
+    await vm.$nextTick()
     expect(mockReplace).toHaveBeenCalledWith({name: 'Profile', params: {username: 'Fox'}})
   })
 })

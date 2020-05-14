@@ -175,7 +175,12 @@ export function setCookie(name: string, value: any, days?: number) {
     date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000))
     expires = '; expires=' + date.toUTCString()
   }
-  document.cookie = name + '=' + value + expires + '; path=/' + '; Secure;'
+  let cookieVal = name + '=' + value + expires + '; path=/'
+  /* istanbul ignore if */
+  if (process.env.NODE_ENV === 'production') {
+    cookieVal += 'l Secure;'
+  }
+  document.cookie = cookieVal
 }
 
 export function deleteCookie(name: string) {

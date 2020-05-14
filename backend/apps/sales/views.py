@@ -1614,7 +1614,7 @@ class StorePreview(BasePreview):
             'title': f"{username}'s store",
             'description': demark(user.artist_profile.commission_info),
             'image_links': [
-                (product.preview_link, product.name)
+                product.preview_link
                 for product in user_products(username, self.request.user)[:24]
             ] + [user.avatar_url]
         }
