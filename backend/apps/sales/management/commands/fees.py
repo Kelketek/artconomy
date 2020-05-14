@@ -108,7 +108,7 @@ def distribute_fees(transaction: TransactionSpec, writer: DictWriter, err: Outpu
         return
     total = sum((record.amount for record in candidates))
     if total != transaction['amount']:
-        print(f'WARNING: Inexact match found. {total} != {transaction["amount"]}', transaction, file=err)
+        print(f'WARNING: Inexact match found. Transactions total to {total} but card was charged {transaction["amount"]}', transaction, file=err)
     create_fee_transaction(candidates, transaction, candidates[0].created_on, writer)
 
 

@@ -941,7 +941,7 @@ class TransactionRecord(Model):
     created_on = DateTimeField(db_index=True, default=timezone.now)
     finalized_on = DateTimeField(db_index=True, default=None, null=True, blank=True)
     amount = MoneyField(max_digits=6, decimal_places=2, default_currency='USD')
-    targets = ManyToManyField(to='lib.GenericReference', related_name='referencing_transactions')
+    targets = ManyToManyField(to='lib.GenericReference', related_name='referencing_transactions', blank=True)
 
     remote_id = CharField(max_length=40, blank=True, default='')
     auth_code = CharField(max_length=6, default='', db_index=True)
