@@ -1870,11 +1870,27 @@ class DateConstrained:
         return kwargs
 
 
-class OrderValues(ListAPIView, DateConstrained):
+class CSVReport:
+    report_name = 'report'
+    renderer_classes = [CSVRenderer]
+    start_date: datetime
+    end_date: datetime
+    def finalize_response(self, request, response, *args, **kwargs):
+        response = super().finalize_response(request, response, *args, **kwargs)
+        name = self.report_name
+        if self.start_date:
+            name += '-from-' + str(self.start_date.date())
+        if self.end_date:
+            name += '-to-' + str(self.end_date.date())
+        response['Content-Disposition'] = f'attachment; filename={name}.csv'
+        return response
+
+
+class OrderValues(CSVReport, ListAPIView, DateConstrained):
     serializer_class = OrderValuesSerializer
     permission_classes = [IsSuperuser]
-    renderer_classes = [CSVRenderer]
     pagination_class = None
+    report_name = 'order-report'
 
     def get_queryset(self):
         return Order.objects.filter(escrow_disabled=False, **self.date_kwargs).exclude(
@@ -1906,11 +1922,11 @@ class OrderValues(ListAPIView, DateConstrained):
         return context
 
 
-class SubscriptionReportCSV(ListAPIView, DateConstrained):
+class SubscriptionReportCSV(CSVReport, ListAPIView, DateConstrained):
     serializer_class = SimpleTransactionSerializer
     permission_classes = [IsSuperuser]
-    renderer_classes = [CSVRenderer]
     pagination_class = None
+    report_name = 'subscription-report'
 
     def get_renderer_context(self):
         context = super().get_renderer_context()
@@ -1931,11 +1947,11 @@ class SubscriptionReportCSV(ListAPIView, DateConstrained):
         ).exclude(status=TransactionRecord.FAILURE)
 
 
-class PayoutReportCSV(ListAPIView, DateConstrained):
+class PayoutReportCSV(CSVReport, ListAPIView, DateConstrained):
     serializer_class = PayoutTransactionSerializer
     permission_classes = [IsSuperuser]
-    renderer_classes = [CSVRenderer]
     pagination_class = None
+    report_name = 'payout-report'
 
     def get_renderer_context(self):
         context = super().get_renderer_context()
@@ -1962,11 +1978,11 @@ class PayoutReportCSV(ListAPIView, DateConstrained):
         ).exclude(payer=None).exclude(status=TransactionRecord.FAILURE).order_by('-created_on')
 
 
-class DwollaSetupFees(ListAPIView, DateConstrained):
+class DwollaSetupFees(CSVReport, ListAPIView, DateConstrained):
     serializer_class = SimpleTransactionSerializer
     permission_classes = [IsSuperuser]
-    renderer_classes = [CSVRenderer]
     pagination_class = None
+    report_name = 'dwolla-report'
 
     def get_renderer_context(self):
         context = super().get_renderer_context()

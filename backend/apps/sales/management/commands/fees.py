@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Any, TypedDict, List, Dict
 
 import pendulum
+from django.contrib.contenttypes.models import ContentType
 from django.core.management.base import OutputWrapper
 from pendulum import DateTime
 from dateutil.relativedelta import relativedelta
@@ -12,6 +13,7 @@ from moneyed import Money
 from mypy.api import TextIO
 
 from apps.lib.models import ref_for_instance
+from apps.profiles.models import User
 from apps.sales.models import TransactionRecord
 from apps.sales.utils import half_even_context
 
@@ -90,7 +92,17 @@ def create_fee_transaction(
     fee_transaction.save()
     all_refs = {*refs, *sub_refs}
     fee_transaction.targets.set(all_refs)
-    fee_note = ', '.join(str(ref.target) for ref in all_refs)
+    simplified_refs = []
+    # Eliminate transaction refs that have targets. This should ensure the only direct transaction refs are the ones
+    # That go to, say, subscriptions, which have no targets.
+    for ref in all_refs:
+        if not isinstance(ref.target, TransactionRecord):
+            simplified_refs.append(ref)
+            continue
+        if ref.target.targets.exclude(content_type=ContentType.objects.get_for_model(User)).exists():
+            continue
+        simplified_refs.append(ref)
+    fee_note = ', '.join(str(ref.target) for ref in simplified_refs)
     new_output_row(transaction, for_note=fee_note, writer=writer)
 
 

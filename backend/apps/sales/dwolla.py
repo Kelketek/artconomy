@@ -83,17 +83,6 @@ def destroy_bank_account(account):
     account.save()
 
 
-def derive_dwolla_fee(amount: Money):
-    with localcontext() as ctx:
-        ctx.rounding = ROUND_HALF_EVEN
-        fee = (amount * settings.DWOLLA_PERCENTAGE_FEE * Decimal('.01')).round(2)
-    if fee < settings.DWOLLA_MIN_FEE:
-        return settings.DWOLLA_MIN_FEE
-    elif fee > settings.DWOLLA_MAX_FEE:
-        return settings.DWOLLA_MAX_FEE
-    return fee
-
-
 @transaction.atomic
 @require_lock(TransactionRecord, 'ACCESS EXCLUSIVE')
 def initiate_withdraw(user, bank, amount, test_only=True):

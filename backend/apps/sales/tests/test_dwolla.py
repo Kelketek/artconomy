@@ -11,7 +11,7 @@ from apps.lib.models import ref_for_instance
 from apps.profiles.tests.factories import UserFactory
 from apps.sales.apis import DwollaContext
 from apps.sales.dwolla import make_dwolla_account, add_bank_account, destroy_bank_account, initiate_withdraw, \
-    perform_transfer, derive_dwolla_fee
+    perform_transfer
 from apps.sales.models import BankAccount, TransactionRecord, Order
 from apps.sales.tests.factories import BankAccountFactory, TransactionRecordFactory, OrderFactory
 
@@ -190,14 +190,6 @@ TEST_VALUES = (
     ('1024', '5'),
     ('100000', '5')
 )
-
-
-@ddt
-class TestDwollaFee(TestCase):
-    @unpack
-    @data(*TEST_VALUES)
-    def test_dwolla_fee(self, amount, fee):
-        self.assertEqual(derive_dwolla_fee(Money(Decimal(amount), 'USD')), Money(fee, 'USD'))
 
 
 @patch('apps.sales.apis.client')

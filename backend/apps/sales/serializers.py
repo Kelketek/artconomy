@@ -794,14 +794,12 @@ class OrderValuesSerializer(serializers.ModelSerializer):
         return (lines[obj].amount - subtotals[lines[obj]]).amount
 
     def get_profit(self, obj):
-        if not self.get_our_fees(obj):
-            return
         base = self.get_our_fees(obj)
-        if not base:
+        ach_fees = self.get_ach_fees(obj)
+        card_fees = self.get_card_fees(obj)
+        if not all([base, ach_fees, card_fees]):
             return
-        if not self.get_ach_fees(obj):
-            return
-        return base - self.get_ach_fees(obj) - self.get_card_fees(obj)
+        return base - ach_fees - card_fees
 
     @lru_cache
     def get_refunded_on(self, obj):
