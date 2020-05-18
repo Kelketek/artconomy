@@ -655,7 +655,7 @@ def issue_refund(transaction_set: Iterator['TransactionRecord'], category: int) 
     amount = sum(transaction.amount for transaction in card_transactions)
     if card_transactions:
         try:
-            remote_id, auth_code = refund_transaction(remote_id, last_four, amount)
+            remote_id, auth_code = refund_transaction(remote_id, last_four, amount.amount)
             for transaction in refund_transactions:
                 transaction.status = TransactionRecord.SUCCESS
                 if transaction.destination == TransactionRecord.CARD:
