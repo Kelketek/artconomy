@@ -1,3 +1,7 @@
+@font-face {
+    font-display: swap;
+}
+
 fieldset {
     border: 0;
 }
