@@ -2,77 +2,77 @@ import Router, {Route, RouteConfig} from 'vue-router'
 import {clearMetaTag, paramsKey, saneNav, setCookie, setMetaContent} from '@/lib/lib'
 import {ArtStore} from '@/store'
 import {VueRouter} from 'vue-router/types/router'
-const Reload = () => import('@/components/views/Reload.vue')
-const Login = () => import('@/components/views/Login.vue')
-const CommissionAgreement = () => import('@/components/views/legal/CommissionAgreement.vue')
-const RefundPolicy = () => import('@/components/views/legal/RefundPolicy.vue')
-const TermsOfService = () => import('@/components/views/legal/TermsOfService.vue')
-const PrivacyPolicy = () => import('@/components/views/legal/PrivacyPolicy.vue')
-const Notifications = () => import('@/components/views/notifications/Notifications.vue')
-const Profile = () => import('@/components/views/profile/Profile.vue')
-const Policies = () => import('@/components/views/legal/Policies.vue')
-const Contact = () => import('@/components/views/Contact.vue')
-const Store = () => import('@/components/views/store/Store.vue')
-const Reports = () => import('@/components/views/Reports.vue')
-const Journal = () => import('@/components/views/Journal.vue')
-const ProductDetail = () => import('@/components/views/product/ProductDetail.vue')
-const FAQ = () => import('@/components/views/faq/FAQ.vue')
-const Settings = () => import('@/components/views/settings/Settings.vue')
-const Options = () => import('@/components/views/settings/Options.vue')
-const Artist = () => import('@/components/views/settings/Artist.vue')
-const Credentials = () => import('@/components/views/settings/Credentials.vue')
-const Avatar = () => import('@/components/views/settings/Avatar.vue')
-const Payment = () => import('@/components/views/settings/payment/Payment.vue')
-const Submission = () => import('@/components/views/submission/SubmissionDetail.vue')
-const Search = () => import('@/components/views/search/Search.vue')
-const CharacterGallery = () => import('@/components/views/character/CharacterGallery.vue')
-const NotFound = () => import('@/components/views/NotFound.vue')
-const ConversationDetail = () => import('@/components/views/ConversationDetail.vue')
-const PasswordReset = () => import('@/components/views/PasswordReset.vue')
-const Purchase = () => import('@/components/views/settings/payment/Purchase.vue')
-const TransactionHistory = () => import('@/components/views/settings/payment/TransactionHistory.vue')
-const Payout = () => import('@/components/views/settings/payment/Payout.vue')
-const NotificationsList = () => import('@/components/views/notifications/NotificationsList.vue')
-const About = () => import('@/components/views/faq/About.vue')
-const BuyAndSell = () => import('@/components/views/faq/BuyAndSell.vue')
-const Other = () => import('@/components/views/faq/Other.vue')
-const ConversationsList = () => import('@/components/views/ConversationsList.vue')
-const AboutUser = () => import('@/components/views/profile/AboutUser.vue')
-const Products = () => import('@/components/views/profile/Products.vue')
-const Characters = () => import('@/components/views/profile/Characters.vue')
-const Gallery = () => import('@/components/views/profile/Gallery.vue')
-const Watchlists = () => import('@/components/views/profile/Watchlists.vue')
-const CharacterDetail = () => import('@/components/views/character/CharacterDetail.vue')
-const SubmissionList = () => import('@/components/views/profile/SubmissionList.vue')
-const SearchProducts = () => import('@/components/views/search/SearchProducts.vue')
-const SearchCharacters = () => import('@/components/views/search/SearchCharacters.vue')
-const SearchProfiles = () => import('@/components/views/search/SearchProfiles.vue')
-const SearchSubmissions = () => import('@/components/views/search/SearchSubmissions.vue')
-const ProductHints = () => import('@/components/views/search/hints/ProductHints.vue')
-const SubmissionHints = () => import('@/components/views/search/hints/SubmissionHints.vue')
-const CharacterHints = () => import('@/components/views/search/hints/CharacterHints.vue')
-const ProfileHints = () => import('@/components/views/search/hints/ProfileHints.vue')
-const Home = () => import('@/components/views/Home.vue')
-const ProductExtra = () => import('@/components/views/search/extra/ProductExtra.vue')
-const NewOrder = () => import('@/components/views/product/NewOrder.vue')
-const OrderDetail = () => import('@/components/views/order/OrderDetail.vue')
-const OrderList = () => import('@/components/views/orders/OrderList.vue')
-const Orders = () => import('@/components/views/orders/Orders.vue')
-const SessionSettings = () => import('@/components/views/SessionSettings.vue')
-const Ratings = () => import('@/components/views/Ratings.vue')
-const SubmissionExtra = () => import('@/components/views/search/extra/SubmissionExtra.vue')
-const ReferralsAndTools = () => import('@/components/views/referrals/ReferralsAndTools.vue')
-const LinksAndStats = () => import('@/components/views/referrals/LinksAndStats.vue')
-const Tools = () => import('@/components/views/referrals/Tools.vue')
-const Upgrade = () => import('@/components/views/Upgrade.vue')
-const WatchList = () => import('@/components/views/profile/WatchList.vue')
-const ClaimOrder = () => import('@/components/views/ClaimOrder.vue')
-const Premium = () => import('@/components/views/settings/Premium.vue')
-const Redirect = () => import('@/components/views/Redirect.vue')
-const ShieldCommissioner = () => import('@/components/views/landing/ShieldCommissioner.vue')
-const AlwaysOpen = () => import('@/components/views/landing/AlwaysOpen.vue')
-const ShieldArtist = () => import('@/components/views/landing/ShieldArtist.vue')
-const RedirectToViewer = () => import('@/components/views/RedirectToViewer.vue')
+import Reload from '@/components/views/Reload.vue'
+import Login from '@/components/views/Login.vue'
+import CommissionAgreement from '@/components/views/legal/CommissionAgreement.vue'
+import RefundPolicy from '@/components/views/legal/RefundPolicy.vue'
+import TermsOfService from '@/components/views/legal/TermsOfService.vue'
+import PrivacyPolicy from '@/components/views/legal/PrivacyPolicy.vue'
+import Notifications from '@/components/views/notifications/Notifications.vue'
+import Profile from '@/components/views/profile/Profile.vue'
+import Policies from '@/components/views/legal/Policies.vue'
+import Contact from '@/components/views/Contact.vue'
+import Store from '@/components/views/store/Store.vue'
+import Reports from '@/components/views/Reports.vue'
+import Journal from '@/components/views/Journal.vue'
+import ProductDetail from '@/components/views/product/ProductDetail.vue'
+import FAQ from '@/components/views/faq/FAQ.vue'
+import Settings from '@/components/views/settings/Settings.vue'
+import Options from '@/components/views/settings/Options.vue'
+import Artist from '@/components/views/settings/Artist.vue'
+import Credentials from '@/components/views/settings/Credentials.vue'
+import Avatar from '@/components/views/settings/Avatar.vue'
+import Payment from '@/components/views/settings/payment/Payment.vue'
+import Submission from '@/components/views/submission/SubmissionDetail.vue'
+import Search from '@/components/views/search/Search.vue'
+import CharacterGallery from '@/components/views/character/CharacterGallery.vue'
+import NotFound from '@/components/views/NotFound.vue'
+import ConversationDetail from '@/components/views/ConversationDetail.vue'
+import PasswordReset from '@/components/views/PasswordReset.vue'
+import Purchase from '@/components/views/settings/payment/Purchase.vue'
+import TransactionHistory from '@/components/views/settings/payment/TransactionHistory.vue'
+import Payout from '@/components/views/settings/payment/Payout.vue'
+import NotificationsList from '@/components/views/notifications/NotificationsList.vue'
+import About from '@/components/views/faq/About.vue'
+import BuyAndSell from '@/components/views/faq/BuyAndSell.vue'
+import Other from '@/components/views/faq/Other.vue'
+import ConversationsList from '@/components/views/ConversationsList.vue'
+import AboutUser from '@/components/views/profile/AboutUser.vue'
+import Products from '@/components/views/profile/Products.vue'
+import Characters from '@/components/views/profile/Characters.vue'
+import Gallery from '@/components/views/profile/Gallery.vue'
+import Watchlists from '@/components/views/profile/Watchlists.vue'
+import CharacterDetail from '@/components/views/character/CharacterDetail.vue'
+import SubmissionList from '@/components/views/profile/SubmissionList.vue'
+import SearchProducts from '@/components/views/search/SearchProducts.vue'
+import SearchCharacters from '@/components/views/search/SearchCharacters.vue'
+import SearchProfiles from '@/components/views/search/SearchProfiles.vue'
+import SearchSubmissions from '@/components/views/search/SearchSubmissions.vue'
+import ProductHints from '@/components/views/search/hints/ProductHints.vue'
+import SubmissionHints from '@/components/views/search/hints/SubmissionHints.vue'
+import CharacterHints from '@/components/views/search/hints/CharacterHints.vue'
+import ProfileHints from '@/components/views/search/hints/ProfileHints.vue'
+import Home from '@/components/views/Home.vue'
+import ProductExtra from '@/components/views/search/extra/ProductExtra.vue'
+import NewOrder from '@/components/views/product/NewOrder.vue'
+import OrderDetail from '@/components/views/order/OrderDetail.vue'
+import OrderList from '@/components/views/orders/OrderList.vue'
+import Orders from '@/components/views/orders/Orders.vue'
+import SessionSettings from '@/components/views/SessionSettings.vue'
+import Ratings from '@/components/views/Ratings.vue'
+import SubmissionExtra from '@/components/views/search/extra/SubmissionExtra.vue'
+import ReferralsAndTools from '@/components/views/referrals/ReferralsAndTools.vue'
+import LinksAndStats from '@/components/views/referrals/LinksAndStats.vue'
+import Tools from '@/components/views/referrals/Tools.vue'
+import Upgrade from '@/components/views/Upgrade.vue'
+import WatchList from '@/components/views/profile/WatchList.vue'
+import ClaimOrder from '@/components/views/ClaimOrder.vue'
+import Premium from '@/components/views/settings/Premium.vue'
+import Redirect from '@/components/views/Redirect.vue'
+import ShieldCommissioner from '@/components/views/landing/ShieldCommissioner.vue'
+import AlwaysOpen from '@/components/views/landing/AlwaysOpen.vue'
+import ShieldArtist from '@/components/views/landing/ShieldArtist.vue'
+import RedirectToViewer from '@/components/views/RedirectToViewer.vue'
 
 function orderLists() {
   const orderRoutes: RouteConfig[] = []
