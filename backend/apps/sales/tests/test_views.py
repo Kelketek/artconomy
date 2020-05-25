@@ -2556,6 +2556,12 @@ class TestOrderStateChange(SignalsDisabledMixin, APITestCase):
         self.assertFalse(self.order.revisions_hidden)
         self.assertTrue(self.order.escrow_disabled)
 
+    def test_accept_order_customer_email(self, _mock_notify):
+        self.order.buyer = None
+        self.order.customer_email = 'test_email@example.com'
+        self.order.save()
+        self.state_assertion('seller', 'accept/')
+
     def test_in_progress(self, _mock_notify):
         self.order.stream_link = 'https://google.com/'
         self.state_assertion('seller', 'start/', initial_status=Order.QUEUED)

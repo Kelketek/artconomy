@@ -311,7 +311,7 @@ class OrderAccept(GenericAPIView):
             send_transaction_email(
                 subject,
                 template, order.customer_email,
-                {'order': order, 'claim_token': slugify(order.claim_token)}
+                {'order': order, 'claim_token': order.claim_token}
             )
         notify(ORDER_UPDATE, order, unique=True, mark_unread=True)
         return Response(data)
