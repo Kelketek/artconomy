@@ -400,6 +400,7 @@ class ArtistProfileSerializer(serializers.ModelSerializer):
         fields = (
             'commissions_closed', 'max_load', 'commission_info',
             'auto_withdraw', 'escrow_disabled', 'bank_account_status', 'max_rating',
+            'artist_of_color', 'lgbt',
         )
         extra_kwargs = {field: {'required': False} for field in fields}
 

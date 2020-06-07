@@ -10,5 +10,7 @@ export interface ArtistProfile {
   commission_info: string,
   auto_withdraw: boolean,
   escrow_disabled: boolean,
+  lgbt: boolean,
+  artist_of_color: boolean,
   bank_account_status: BankStatus,
 }

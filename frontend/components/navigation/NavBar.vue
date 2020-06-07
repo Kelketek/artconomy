@@ -173,6 +173,7 @@ import Nav from '@/mixins/nav'
 import {State} from 'vuex-class'
 import AcNavLinks from '@/components/navigation/AcNavLinks.vue'
 import {mdiDiscord} from '@mdi/js'
+import PrerenderMixin from '@/mixins/PrerenderMixin'
 
 const startValue = localStorage.getItem('drawerOpen')
 let initDrawerValue: boolean|null = null
@@ -183,11 +184,10 @@ if (startValue !== null) {
   @Component({
     components: {AcNavLinks, AcBoundField, AcPatchField, AcSettingNav},
   })
-export default class NavBar extends mixins(Viewer, Nav) {
+export default class NavBar extends mixins(Viewer, Nav, PrerenderMixin) {
     @State('iFrame') public iFrame!: boolean
     public drawerStore: null|boolean = null
     public searchForm: FormController = null as unknown as FormController
-    public prerendering = false
     public discordPath = mdiDiscord
 
     public get loginLink() {
@@ -205,7 +205,6 @@ export default class NavBar extends mixins(Viewer, Nav) {
     }
 
     public created() {
-      this.prerendering = Boolean(window.PRERENDERING || 0)
       this.searchForm = this.$getForm('search')
       if (this.$vuetify.breakpoint.mdAndDown) {
         // Never begin with the drawer open on a small screen.

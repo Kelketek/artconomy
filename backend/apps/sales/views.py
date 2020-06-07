@@ -1343,6 +1343,8 @@ class ProductSearch(ListAPIView):
         shield_only = search_serializer.validated_data.get('shield_only', False)
         by_rating = search_serializer.validated_data.get('by_rating', False)
         featured = search_serializer.validated_data.get('featured', False)
+        lgbt = search_serializer.validated_data.get('lgbt', False)
+        artists_of_color = search_serializer.validated_data.get('artists_of_color', False)
         watchlist_only = False
         if self.request.user.is_authenticated:
             watchlist_only = search_serializer.validated_data.get('watch_list')
@@ -1363,6 +1365,10 @@ class ProductSearch(ListAPIView):
             products = products.exclude(starting_price=0).exclude(user__artist_profile__escrow_disabled=True)
         if featured:
             products = products.filter(featured=True)
+        if artists_of_color:
+            products = products.filter(user__artist_profile__artist_of_color=True)
+        if lgbt:
+            products = products.filter(user__artist_profile__lgbt=True)
         if by_rating:
             products = products.order_by(
                 F('user__stars').desc(nulls_last=True), '-edited_on', 'id').distinct('user__stars', 'created_on', 'id')
@@ -1685,6 +1691,21 @@ class HighlyRatedProducts(ListAPIView):
 
     def get_queryset(self):
         return Product.objects.filter(user__stars__gte=4.5, available=True).exclude(featured=True).order_by('?')
+
+
+class LgbtProducts(ListAPIView):
+    serializer_class = ProductSerializer
+
+    def get_queryset(self):
+        return Product.objects.filter(user__artist_profile__lgbt=True, available=True).order_by('?')
+
+
+class ArtistsOfColor(ListAPIView):
+    serializer_class = ProductSerializer
+
+    def get_queryset(self):
+        return Product.objects.filter(user__artist_profile__artist_of_color=True, available=True).order_by('?')
+
 
 
 class NewArtistProducts(ListAPIView):

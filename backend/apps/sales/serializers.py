@@ -528,6 +528,8 @@ class SearchQuerySerializer(serializers.Serializer):
     watch_list = serializers.BooleanField(required=False)
     by_rating = serializers.BooleanField(required=False)
     featured = serializers.BooleanField(required=False)
+    artists_of_color = serializers.BooleanField(required=False)
+    lgbt = serializers.BooleanField(required=False)
     min_price = serializers.DecimalField(decimal_places=2, max_digits=6, required=False)
     max_price = serializers.DecimalField(decimal_places=2, max_digits=6, required=False)
 

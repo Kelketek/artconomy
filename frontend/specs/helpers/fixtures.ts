@@ -62,6 +62,8 @@ export function genArtistProfile(): ArtistProfile {
     has_products: false,
     commissions_closed: false,
     auto_withdraw: true,
+    lgbt: false,
+    artist_of_color: false,
     escrow_disabled: false,
     max_rating: 2,
     bank_account_status: 0 as BankStatus.UNSET,

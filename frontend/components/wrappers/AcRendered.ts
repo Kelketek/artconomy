@@ -17,6 +17,8 @@ export default class AcRendered extends mixins(Formatting) {
   public inline!: boolean
   @Prop({default: false})
   public truncate!: boolean|number
+  @Prop({default: true})
+  public showMore!: boolean
 
   public more = false
 
@@ -37,8 +39,12 @@ export default class AcRendered extends mixins(Formatting) {
   }
 
   public get renderedComponent() {
+    const self = this
     return {
       components: {AcAvatar, ...VGrid, ...VToolbar},
+      data() {
+        return {showMore: self.showMore}
+      },
       render: compileToFunctions(this.dynamicTemplate).render,
     }
   }
@@ -65,7 +71,7 @@ export default class AcRendered extends mixins(Formatting) {
     if (!this.truncated) {
       return ''
     }
-    return '<v-toolbar class="read-more-bar" dense @click="$parent.more=true" color="black">' +
+    return '<v-toolbar v-if="showMore" class="read-more-bar" dense @click="$parent.more=true" color="black">' +
       '<v-col class="text-center"><strong>Read More</strong></v-col>' +
       '</v-toolbar>'
   }

@@ -288,6 +288,8 @@ class ArtistProfile(Model):
     )
     has_products = BooleanField(default=False, db_index=True)
     escrow_disabled = BooleanField(default=False, db_index=True)
+    artist_of_color = BooleanField(default=False, db_index=True)
+    lgbt = BooleanField(default=False, db_index=True)
     auto_withdraw = BooleanField(default=True)
     dwolla_url = URLField(blank=True, default='')
     commission_info = CharField(max_length=5000, blank=True, default='')

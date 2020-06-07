@@ -13,6 +13,8 @@
                 <v-chip v-if="searchForm.fields.rating.value" color="yellow" class="mx-1" light>high rated</v-chip>
                 <v-chip v-if="searchForm.fields.max_price.value" color="red" class="mx-1">max price</v-chip>
                 <v-chip v-if="searchForm.fields.min_price.value" color="black" class="mx-1">min price</v-chip>
+                <v-chip v-if="searchForm.fields.artists_of_color.value" color="orange" class="mx-1" light>Artists of Color</v-chip>
+                <v-chip v-if="searchForm.fields.lgbt.value" color="purple" class="mx-1">LGBT+</v-chip>
               </v-col>
             </v-row>
           </v-expansion-panel-header>
@@ -57,13 +59,31 @@
                 </v-col>
                 <v-col cols="12" sm="6" md="4">
                   <ac-bound-field
+                    :field="searchForm.fields.artists_of_color"
+                    field-type="v-checkbox"
+                    label="Artists of Color"
+                    :persistent-hint="true"
+                    hint="Find products from Artists of Color."
+                  />
+                </v-col>
+                <v-col cols="12" sm="6" md="4">
+                  <ac-bound-field
+                    :field="searchForm.fields.lgbt"
+                    field-type="v-checkbox"
+                    label="LGBT+"
+                    :persistent-hint="true"
+                    hint="Find products from LGBTQ+ artists."
+                  />
+                </v-col>
+                <v-col cols="12" sm="6" md="6">
+                  <ac-bound-field
                     :field="searchForm.fields.max_price"
                     label="Max Price"
                     :persistent-hint="true"
                     hint="Only show products with a price equal to or lower than this amount."
                   />
                 </v-col>
-                <v-col cols="12" sm="6" md="4">
+                <v-col cols="12" sm="6" md="6">
                   <ac-bound-field
                     :field="searchForm.fields.min_price"
                     label="Min Price"

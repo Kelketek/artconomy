@@ -1,5 +1,5 @@
 <template>
-  <v-tab :to="destination">
+  <v-tab :to="destination" :value="value">
     <v-icon left v-if="icon">{{icon}}</v-icon>
     <slot></slot>
     <span v-if="count">&nbsp;({{count}})</span>
@@ -13,6 +13,7 @@ import {ListController} from '@/store/lists/controller'
 import {Prop} from 'vue-property-decorator'
 import {cloneDeep} from 'lodash'
 import {Route} from 'vue-router'
+import {TabSpec} from '@/types/TabSpec'
 
   @Component
 export default class AcTab extends Vue {
@@ -24,6 +25,8 @@ export default class AcTab extends Vue {
     public count!: number
     @Prop()
     public to!: Route
+    @Prop({required: false})
+    public value!: TabSpec
     @Prop({default: true})
     public trackPages!: boolean
     @Prop({default: 'page'})
