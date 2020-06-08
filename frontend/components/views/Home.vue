@@ -194,7 +194,7 @@
           </v-card>
         </v-col>
       </v-row>
-      <v-row>
+      <v-row v-if="showCommunities">
         <v-col class="text-center">
           <v-card color="secondary">
             <v-card-text class="text-center">
@@ -203,9 +203,9 @@
           </v-card>
         </v-col>
       </v-row>
-      <ac-tabs :items="communityItems" v-model="communitySection" />
-      <v-tabs-items :value="communitySection">
-        <v-tab-item>
+      <ac-tabs :items="communityItems" v-model="communitySection" v-if="showCommunities" />
+      <v-tabs-items :value="communitySection" v-if="showCommunities">
+        <v-tab-item v-if="artistsOfColor.list.length">
           <v-carousel height="420" :show-arrows="true" v-model="artistsOfColorSlider" :continuous="true" :hide-delimiters="true">
             <v-carousel-item v-for="product in artistsOfColor.list" :key="product.x.id">
               <ac-product-preview :carousel="true" :product="product.x" />
@@ -213,7 +213,7 @@
           </v-carousel>
           <v-btn block color="primary" @click="search({featured: true})">See More</v-btn>
         </v-tab-item>
-        <v-tab-item>
+        <v-tab-item v-if="lgbt.list.length">
           <v-carousel height="420" :show-arrows="true" v-model="lgbtSlider" :continuous="true" :hide-delimiters="true">
             <v-carousel-item v-for="product in lgbt.list" :key="product.x.id">
               <ac-product-preview :carousel="true" :product="product.x" />
@@ -396,6 +396,10 @@ export default class Home extends mixins(Viewer, Formatting, PrerenderMixin) {
       return shuffle(['refsheet', 'ych', 'stickers', 'badge']).slice(0, 3)
     }
 
+    public get showCommunities() {
+      return (this.lgbt.list.length || this.artistsOfColor.list.length)
+    }
+
     public get mainSectionItems() {
       return [
         {value: 0, text: 'Featured', icon: 'star'},
@@ -406,10 +410,14 @@ export default class Home extends mixins(Viewer, Formatting, PrerenderMixin) {
     }
 
     public get communityItems() {
-      return [
-        {value: 0, text: 'Artists of Color', icon: ''},
-        {value: 1, text: 'LGBTQ+', icon: ''},
-      ]
+      const items = []
+      if (this.artistsOfColor.list.length) {
+        items.push({value: 0, text: 'Artists of Color', icon: ''})
+      }
+      if (this.lgbt.list.length) {
+        items.push({value: 1, text: 'LGBTQ+', icon: ''})
+      }
+      return items
     }
 
     public searchReplace(data: RawData) {
