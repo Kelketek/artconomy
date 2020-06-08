@@ -127,7 +127,7 @@
           <v-btn color="primary" @click="search({})" block>Browse Everyone Open</v-btn>
         </v-tab-item>
       </v-tabs-items>
-      <v-row no-gutters>
+      <v-row no-gutters class="pt-3">
         <v-col cols="12" md="6" class="pa-1">
           <v-card :color="$vuetify.theme.currentTheme.darkBase.darken4">
             <v-toolbar dense color="secondary">
@@ -147,8 +147,9 @@
         </v-col>
         <v-col cols="12" md="6" class="pa-1">
           <v-card :color="$vuetify.theme.currentTheme.darkBase.darken4">
-            <v-card-title class="d-block text-center">Community Resources</v-card-title>
-          </v-card>
+            <v-toolbar dense color="secondary">
+              <v-toolbar-title>Community Resources</v-toolbar-title>
+            </v-toolbar>
           <v-row>
             <v-col cols="6" class="text-center" v-if="!prerendering" align-self="center">
               <v-img src="/static/images/Discord.png"></v-img>
@@ -190,11 +191,12 @@
               </v-col>
             </v-col>
           </v-row>
+          </v-card>
         </v-col>
       </v-row>
       <v-row>
         <v-col class="text-center">
-          <v-card color="primary">
+          <v-card color="secondary">
             <v-card-text class="text-center">
               <h2>Find Your Community</h2>
             </v-card-text>
@@ -209,7 +211,7 @@
               <ac-product-preview :carousel="true" :product="product.x" />
             </v-carousel-item>
           </v-carousel>
-          <v-btn block color="primary" @click="search({featured: true})">See All Featured</v-btn>
+          <v-btn block color="primary" @click="search({featured: true})">See More</v-btn>
         </v-tab-item>
         <v-tab-item>
           <v-carousel height="420" :show-arrows="true" v-model="lgbtSlider" :continuous="true" :hide-delimiters="true">
