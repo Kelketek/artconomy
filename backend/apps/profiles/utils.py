@@ -47,6 +47,7 @@ def available_chars(requester, query='', commissions=False, tagging=False, self_
     else:
         q = Q()
     q = Character.objects.filter(q)
+    q = q.exclude(user__is_active=False)
     if requester.is_authenticated:
         if commissions:
             exclude_exception = Q(shared_with=requester) & Q(open_requests=True)
@@ -64,7 +65,7 @@ def available_chars(requester, query='', commissions=False, tagging=False, self_
 
 
 def available_artists(requester):
-    qs = User.objects.filter(Q(id=requester.id) | Q(taggable=True))
+    qs = User.objects.filter(Q(id=requester.id) | Q(taggable=True), is_active=True)
     if not requester.is_staff and requester.is_authenticated:
         qs = qs.exclude(blocking=requester)
     return qs
@@ -72,6 +73,7 @@ def available_artists(requester):
 
 def available_submissions(request, requester):
     exclude = Q(private=True)
+    exclude |= Q(owner__is_active=False)
     if not request.user.is_staff and request.user.is_authenticated:
         exclude |= Q(owner__blocking=requester)
         exclude |= Q(owner__blocked_by=requester)
@@ -86,8 +88,8 @@ def available_submissions(request, requester):
 
 def available_users(request):
     if request.user.is_staff or not request.user.is_authenticated:
-        return User.objects.all()
-    return User.objects.exclude(id__in=request.user.blocked_by.all().values('id'))
+        return User.objects.exclude(is_active=False)
+    return User.objects.exclude(id__in=request.user.blocked_by.all().values('id')).exclude(is_active=False)
 
 
 def extend_landscape(user, months):
