@@ -222,7 +222,7 @@
           <v-btn block color="primary" @click="search({lgbt: true})">See More</v-btn>
         </v-tab-item>
       </v-tabs-items>
-      <v-row no-gutters>
+      <v-row no-gutters class="pt-3">
         <v-col cols="12" md="6" class="pa-1">
           <v-card :color="$vuetify.theme.currentTheme.darkBase.darken4">
             <v-toolbar dense color="secondary">
