@@ -211,7 +211,7 @@
               <ac-product-preview :carousel="true" :product="product.x" />
             </v-carousel-item>
           </v-carousel>
-          <v-btn block color="primary" @click="search({featured: true})">See More</v-btn>
+          <v-btn block color="primary" @click="search({artists_of_color: true})">See More</v-btn>
         </v-tab-item>
         <v-tab-item v-if="lgbt.list.length">
           <v-carousel height="420" :show-arrows="true" v-model="lgbtSlider" :continuous="true" :hide-delimiters="true">
@@ -219,7 +219,7 @@
               <ac-product-preview :carousel="true" :product="product.x" />
             </v-carousel-item>
           </v-carousel>
-          <v-btn block color="primary" @click="search({featured: true})">See More</v-btn>
+          <v-btn block color="primary" @click="search({lgbt: true})">See More</v-btn>
         </v-tab-item>
       </v-tabs-items>
       <v-row no-gutters>
