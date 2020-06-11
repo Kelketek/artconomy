@@ -88,31 +88,33 @@
       </v-row>
     </v-container>
     <v-container fluid>
-      <ac-tabs :items="mainSectionItems" v-model="mainSection" />
-      <v-tabs-items :value="mainSection">
-        <v-tab-item>
-          <v-card-text>High quality products by artists who have been vetted by our team.</v-card-text>
-          <ac-product-slider :list="featured" />
-          <v-btn block color="primary" @click="search({featured: true})">See All Featured</v-btn>
-        </v-tab-item>
-        <v-tab-item>
-          <v-card-text>Products by artists given high ratings by previous commissioners</v-card-text>
-          <ac-product-slider :list="rated" />
-          <v-btn block color="primary" @click="search({rating: true})">See More</v-btn>
-        </v-tab-item>
-        <v-tab-item>
-          <v-card-text>Looking for something lower-budget? Check out these offerings from our artists, $30 or less!</v-card-text>
-          <ac-product-slider :list="lowPriced" />
-          <v-btn block color="primary" @click="search({max_price: '30.00'})" class="low-price-more">See More</v-btn>
-        </v-tab-item>
-        <v-tab-item>
-          <v-card-text>Feeling lucky? Here are some offers from our artists at random!</v-card-text>
-          <ac-product-slider :list="randomProducts" />
-          <v-btn color="primary" @click="search({})" block>Browse Everyone Open</v-btn>
-        </v-tab-item>
-      </v-tabs-items>
-      <v-row no-gutters class="pt-3">
-        <v-col cols="12" md="6" class="pa-1">
+      <v-row no-gutters>
+        <v-col cols="12" order="1">
+          <ac-tabs :items="mainSectionItems" v-model="mainSection" />
+          <v-tabs-items :value="mainSection">
+            <v-tab-item>
+              <v-card-text>High quality products by artists who have been vetted by our team.</v-card-text>
+              <ac-product-slider :list="featured" />
+              <v-btn block color="primary" @click="search({featured: true})">See All Featured</v-btn>
+            </v-tab-item>
+            <v-tab-item>
+              <v-card-text>Products by artists given high ratings by previous commissioners</v-card-text>
+              <ac-product-slider :list="rated" />
+              <v-btn block color="primary" @click="search({rating: true})">See More</v-btn>
+            </v-tab-item>
+            <v-tab-item>
+              <v-card-text>Looking for something lower-budget? Check out these offerings from our artists, $30 or less!</v-card-text>
+              <ac-product-slider :list="lowPriced" />
+              <v-btn block color="primary" @click="search({max_price: '30.00'})" class="low-price-more">See More</v-btn>
+            </v-tab-item>
+            <v-tab-item>
+              <v-card-text>Feeling lucky? Here are some offers from our artists at random!</v-card-text>
+              <ac-product-slider :list="randomProducts" />
+              <v-btn color="primary" @click="search({})" block>Browse Everyone Open</v-btn>
+            </v-tab-item>
+          </v-tabs-items>
+        </v-col>
+        <v-col cols="12" md="12" lg="6" class="py-2 px-1" order="5" order-lg="2">
           <v-card :color="$vuetify.theme.currentTheme.darkBase.darken4">
             <v-toolbar dense color="secondary">
               <v-toolbar-title>Recent Commissions</v-toolbar-title>
@@ -121,7 +123,7 @@
             <ac-load-section :controller="commissions">
               <template v-slot:default>
                 <v-row dense>
-                  <v-col cols="6" sm="4" v-for="submission in commissionsList" :key="submission.id">
+                  <v-col cols="6" sm="4" md="3" lg="4" v-for="submission in commissionsList" :key="submission.id">
                     <ac-gallery-preview :submission="submission.x" :mini="true" />
                   </v-col>
                 </v-row>
@@ -129,16 +131,16 @@
             </ac-load-section>
           </v-card>
         </v-col>
-        <v-col cols="12" md="6" class="pa-1 fill-height">
+        <v-col cols="12" md="12" lg="6" class="px-1 py-2 fill-height" order="2" order-lg="3">
           <v-card :color="$vuetify.theme.currentTheme.darkBase.darken4">
             <v-toolbar dense color="secondary">
               <v-toolbar-title>Community Resources</v-toolbar-title>
             </v-toolbar>
             <v-row no-gutters>
-              <v-col cols="6" class="text-center" v-if="!prerendering" align-self="center">
+              <v-col cols="6" md="3" lg="6" class="text-center" v-if="!prerendering" align-self="center">
                 <v-img src="/static/images/Discord.png" :aspect-ratio="3/2" contain></v-img>
               </v-col>
-              <v-col cols="6" class="text-center" align-self="center">
+              <v-col cols="6" md="3" lg="6" class="text-center" align-self="center">
                 <v-responsive :aspect-ratio="3/2" class="pa-1">
                   <v-row no-gutters justify="center" class="fill-height">
                     <v-col align-self="center">
@@ -160,7 +162,7 @@
                   </v-row>
                 </v-responsive>
               </v-col>
-              <v-col cols="6" align-self="center">
+              <v-col cols="6" md="3" lg="6" align-self="center">
                 <v-col class="text-center">
                   <v-img :src="articles[0].image" alt="" :aspect-ratio="3/2" contain></v-img>
                 </v-col>
@@ -170,7 +172,7 @@
                   </strong>
                 </v-col>
               </v-col>
-              <v-col cols="6" align-self="center">
+              <v-col cols="6" md="3" lg="6" align-self="center">
                 <v-col class="text-center">
                   <v-img :src="articles[1].image" alt="" :aspect-ratio="3/2" contain></v-img>
                 </v-col>
@@ -183,29 +185,27 @@
             </v-row>
           </v-card>
         </v-col>
-      </v-row>
-      <v-row>
-        <v-col class="text-center">
+        <v-col cols="12" class="text-center" order="3" order-lg="4">
           <v-card color="secondary">
             <v-card-text class="text-center">
               <h2>Find Your Community</h2>
             </v-card-text>
           </v-card>
         </v-col>
-      </v-row>
-      <ac-tabs :items="communityItems" v-model="communitySection" v-if="showCommunities" />
-      <v-tabs-items :value="communitySection" v-if="showCommunities">
-        <v-tab-item v-if="artistsOfColor.list.length">
-          <ac-product-slider :list="artistsOfColor"></ac-product-slider>
-          <v-btn block color="primary" @click="search({artists_of_color: true})">See More</v-btn>
-        </v-tab-item>
-        <v-tab-item v-if="lgbt.list.length">
-          <ac-product-slider :list="lgbt"></ac-product-slider>
-          <v-btn block color="primary" @click="search({lgbt: true})">See More</v-btn>
-        </v-tab-item>
-      </v-tabs-items>
-      <v-row no-gutters class="pt-3">
-        <v-col cols="12" md="6" class="pa-1">
+        <v-col cols="12" order="4" order-lg="5">
+          <ac-tabs :items="communityItems" v-model="communitySection" v-if="showCommunities" />
+          <v-tabs-items :value="communitySection" v-if="showCommunities">
+            <v-tab-item v-if="artistsOfColor.list.length">
+              <ac-product-slider :list="artistsOfColor"></ac-product-slider>
+              <v-btn block color="primary" @click="search({artists_of_color: true})">See More</v-btn>
+            </v-tab-item>
+            <v-tab-item v-if="lgbt.list.length">
+              <ac-product-slider :list="lgbt"></ac-product-slider>
+              <v-btn block color="primary" @click="search({lgbt: true})">See More</v-btn>
+            </v-tab-item>
+          </v-tabs-items>
+        </v-col>
+        <v-col cols="12" md="6" class="px-1 py-2" order="6">
           <v-card :color="$vuetify.theme.currentTheme.darkBase.darken4">
             <v-toolbar dense color="secondary">
               <v-toolbar-title>Recent Submissions</v-toolbar-title>
@@ -226,7 +226,7 @@
             </ac-load-section>
           </v-card>
         </v-col>
-        <v-col cols="12" md="6" class="pa-1">
+        <v-col cols="12" md="6" class="px-1 py-2" order="7">
           <v-card :color="$vuetify.theme.currentTheme.darkBase.darken4">
             <v-toolbar dense color="secondary">
               <v-toolbar-title>New Characters</v-toolbar-title>
@@ -306,7 +306,7 @@ export default class Home extends mixins(Viewer, Formatting, PrerenderMixin) {
     public lgbt: ListController<Product> = null as unknown as ListController<Product>
     public artistsOfColor: ListController<Product> = null as unknown as ListController<Product>
     public mainSection = 0
-    public communitySection = 0
+    public communitySection = shuffle([0, 1])[0]
     public discordPath = mdiDiscord
     public banners = [
       {file: 'halcy0n-artconomy-banner-A1-1440x200.png', username: 'Halcyon'},
@@ -416,12 +416,15 @@ export default class Home extends mixins(Viewer, Formatting, PrerenderMixin) {
       this.$router.push({name: 'SearchSubmissions'})
     }
 
-    public listPreview(list: ListController<any>) {
+    public listPreview(list: ListController<any>, long?: boolean) {
       // Gives a few items from the list depending on screen size. Useful for things like the home page where we have many
       // sections to display at once, but don't want to crowd the screen too much.
       /* istanbul ignore if */
       if (this.$vuetify.breakpoint.xsOnly) {
         return list.list.slice(0, 2)
+      }
+      if (this.$vuetify.breakpoint.mdOnly && long) {
+        return list.list.slice(0, 4)
       }
       /* istanbul ignore if */
       if (this.$vuetify.breakpoint.lgAndUp) {
@@ -432,7 +435,7 @@ export default class Home extends mixins(Viewer, Formatting, PrerenderMixin) {
     }
 
     public get commissionsList() {
-      return this.listPreview(this.commissions)
+      return this.listPreview(this.commissions, true)
     }
 
     public get submissionsList() {
