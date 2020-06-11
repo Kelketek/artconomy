@@ -1,15 +1,15 @@
 <template>
   <v-responsive aspect-ratio="16/9">
-    <ac-load-section :controller="list">
+    <ac-load-section :controller="list" @click.native="cycle=false">
       <template v-slot:default>
-        <v-carousel :show-arrows="true" height="100%" v-model="slider" :cycle="cycle" :hide-delimiters="true" @click="cycle=false">
+        <v-carousel :show-arrows="true" height="100%" v-model="slider" :cycle="cycle" :hide-delimiters="true">
           <v-carousel-item v-for="product in list.list" :key="product.x.id">
             <ac-product-preview :carousel="true" :product="product.x" />
           </v-carousel-item>
         </v-carousel>
       </template>
       <template v-slot:loading-spinner>
-        <v-carousel :show-arrows="false" height="100%" v-model="slider" :cycle="cycle" :hide-delimiters="true" @click="cycle=false">
+        <v-carousel :show-arrows="false" height="100%" v-model="slider" :hide-delimiters="true">
           <v-carousel-item>
             <v-sheet height="100%" :color="$vuetify.theme.themes.dark.darkBase.darken2">
               <v-row
