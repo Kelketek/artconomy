@@ -92,38 +92,22 @@
       <v-tabs-items :value="mainSection">
         <v-tab-item>
           <v-card-text>High quality products by artists who have been vetted by our team.</v-card-text>
-          <v-carousel height="420" :show-arrows="true" v-model="featuredSlider" :continuous="true" :hide-delimiters="true">
-            <v-carousel-item v-for="product in featuredList" :key="product.x.id">
-              <ac-product-preview :carousel="true" :product="product.x" />
-            </v-carousel-item>
-          </v-carousel>
+          <ac-product-slider :list="featured" />
           <v-btn block color="primary" @click="search({featured: true})">See All Featured</v-btn>
         </v-tab-item>
         <v-tab-item>
           <v-card-text>Products by artists given high ratings by previous commissioners</v-card-text>
-          <v-carousel height="420" :show-arrows="true" v-model="ratedSlider" :continuous="true" :cycle="true" :hide-delimiters="true">
-            <v-carousel-item v-for="product in rated.list" :key="product.x.id">
-              <ac-product-preview :carousel="true" :product="product.x" />
-            </v-carousel-item>
-          </v-carousel>
+          <ac-product-slider :list="rated" />
           <v-btn block color="primary" @click="search({rating: true})">See More</v-btn>
         </v-tab-item>
         <v-tab-item>
           <v-card-text>Looking for something lower-budget? Check out these offerings from our artists, $30 or less!</v-card-text>
-          <v-carousel height="420" :show-arrows="true" v-model="dealSlider" :continuous="true" :cycle="true" :hide-delimiters="true">
-            <v-carousel-item v-for="product in lowPriced.list" :key="product.x.id">
-              <ac-product-preview :carousel="true" :product="product.x" />
-            </v-carousel-item>
-          </v-carousel>
+          <ac-product-slider :list="lowPriced" />
           <v-btn block color="primary" @click="search({max_price: '30.00'})" class="low-price-more">See More</v-btn>
         </v-tab-item>
         <v-tab-item>
           <v-card-text>Feeling lucky? Here are some offers from our artists at random!</v-card-text>
-          <v-carousel height="420" :show-arrows="true" v-model="randomSlider" :continuous="true" :cycle="true" :hide-delimiters="true">
-            <v-carousel-item v-for="product in randomProducts.list" :key="product.x.id">
-              <ac-product-preview :carousel="true" :product="product.x" />
-            </v-carousel-item>
-          </v-carousel>
+          <ac-product-slider :list="randomProducts" />
           <v-btn color="primary" @click="search({})" block>Browse Everyone Open</v-btn>
         </v-tab-item>
       </v-tabs-items>
@@ -145,56 +129,62 @@
             </ac-load-section>
           </v-card>
         </v-col>
-        <v-col cols="12" md="6" class="pa-1">
+        <v-col cols="12" md="6" class="pa-1 fill-height">
           <v-card :color="$vuetify.theme.currentTheme.darkBase.darken4">
             <v-toolbar dense color="secondary">
               <v-toolbar-title>Community Resources</v-toolbar-title>
             </v-toolbar>
-          <v-row>
-            <v-col cols="6" class="text-center" v-if="!prerendering" align-self="center">
-              <v-img src="/static/images/Discord.png"></v-img>
-            </v-col>
-            <v-col cols="6" class="text-center" align-self="center">
-              <p><strong>Want your voice to be heard, to network with artists, and meet new friends?</strong></p>
-              <p>Check out our Discord!</p>
-              <v-btn
-                href="https://discord.gg/4nWK9mf"
-                target="_blank"
-                rel="nofollow,noopener"
-                color="primary"
-                v-if="!prerendering"
-              >
-                Join now!
-              </v-btn>
-              <v-btn v-else color="primary">
-                Join now!
-              </v-btn>
-            </v-col>
-            <v-col cols="6" align-self="center">
-              <v-col class="text-center">
-                <v-img :src="articles[0].image" alt=""></v-img>
+            <v-row no-gutters>
+              <v-col cols="6" class="text-center" v-if="!prerendering" align-self="center">
+                <v-img src="/static/images/Discord.png" :aspect-ratio="3/2" contain></v-img>
               </v-col>
-              <v-col class="text-center">
-                <strong>
-                  <a :href="articles[0].link" target="_blank">{{articles[0].title}}</a>
-                </strong>
+              <v-col cols="6" class="text-center" align-self="center">
+                <v-responsive :aspect-ratio="3/2" class="pa-1">
+                  <v-row no-gutters justify="center" class="fill-height">
+                    <v-col align-self="center">
+                      <p><strong>Want your voice to be heard, to network with artists, and meet new friends?</strong></p>
+                      <p>Check out our Discord!</p>
+                      <v-btn
+                        href="https://discord.gg/4nWK9mf"
+                        target="_blank"
+                        rel="nofollow,noopener"
+                        color="primary"
+                        v-if="!prerendering"
+                      >
+                        Join now!
+                      </v-btn>
+                      <v-btn v-else color="primary">
+                        Join now!
+                      </v-btn>
+                    </v-col>
+                  </v-row>
+                </v-responsive>
               </v-col>
-            </v-col>
-            <v-col cols="6" align-self="center">
-              <v-col class="text-center">
-                <v-img :src="articles[1].image" alt=""></v-img>
+              <v-col cols="6" align-self="center">
+                <v-col class="text-center">
+                  <v-img :src="articles[0].image" alt="" :aspect-ratio="3/2" contain></v-img>
+                </v-col>
+                <v-col class="text-center">
+                  <strong>
+                    <a :href="articles[0].link" target="_blank">{{articles[0].title}}</a>
+                  </strong>
+                </v-col>
               </v-col>
-              <v-col class="text-center">
-                <strong>
-                  <a :href="articles[1].link" target="_blank">{{articles[1].title}}</a>
-                </strong>
+              <v-col cols="6" align-self="center">
+                <v-col class="text-center">
+                  <v-img :src="articles[1].image" alt="" :aspect-ratio="3/2" contain></v-img>
+                </v-col>
+                <v-col class="text-center">
+                  <strong>
+                    <a :href="articles[1].link" target="_blank">{{articles[1].title}}</a>
+                  </strong>
+                </v-col>
               </v-col>
-            </v-col>
-          </v-row>
+            </v-row>
           </v-card>
         </v-col>
       </v-row>
-      <v-row v-if="showCommunities">
+      <v-row>
         <v-col class="text-center">
           <v-card color="secondary">
             <v-card-text class="text-center">
@@ -206,19 +196,11 @@
       <ac-tabs :items="communityItems" v-model="communitySection" v-if="showCommunities" />
       <v-tabs-items :value="communitySection" v-if="showCommunities">
         <v-tab-item v-if="artistsOfColor.list.length">
-          <v-carousel height="420" :show-arrows="true" v-model="artistsOfColorSlider" :continuous="true" :hide-delimiters="true">
-            <v-carousel-item v-for="product in artistsOfColor.list" :key="product.x.id">
-              <ac-product-preview :carousel="true" :product="product.x" />
-            </v-carousel-item>
-          </v-carousel>
+          <ac-product-slider :list="artistsOfColor"></ac-product-slider>
           <v-btn block color="primary" @click="search({artists_of_color: true})">See More</v-btn>
         </v-tab-item>
         <v-tab-item v-if="lgbt.list.length">
-          <v-carousel height="420" :show-arrows="true" v-model="lgbtSlider" :continuous="true" :hide-delimiters="true">
-            <v-carousel-item v-for="product in lgbt.list" :key="product.x.id">
-              <ac-product-preview :carousel="true" :product="product.x" />
-            </v-carousel-item>
-          </v-carousel>
+          <ac-product-slider :list="lgbt"></ac-product-slider>
           <v-btn block color="primary" @click="search({lgbt: true})">See More</v-btn>
         </v-tab-item>
       </v-tabs-items>
@@ -294,9 +276,11 @@ import AcRendered from '@/components/wrappers/AcRendered'
 import AcAvatar from '@/components/AcAvatar.vue'
 import {mdiDiscord} from '@mdi/js'
 import PrerenderMixin from '@/mixins/PrerenderMixin'
+import AcProductSlider from '@/components/AcProductSlider.vue'
 
 @Component({
   components: {
+    AcProductSlider,
     AcAvatar,
     AcRendered,
     AcAsset,
@@ -322,13 +306,7 @@ export default class Home extends mixins(Viewer, Formatting, PrerenderMixin) {
     public lgbt: ListController<Product> = null as unknown as ListController<Product>
     public artistsOfColor: ListController<Product> = null as unknown as ListController<Product>
     public mainSection = 0
-    public featuredSlider = 0
-    public randomSlider = 0
-    public ratedSlider = 0
-    public dealSlider = 0
     public communitySection = 0
-    public artistsOfColorSlider = 0
-    public lgbtSlider = 0
     public discordPath = mdiDiscord
     public banners = [
       {file: 'halcy0n-artconomy-banner-A1-1440x200.png', username: 'Halcyon'},
@@ -410,14 +388,10 @@ export default class Home extends mixins(Viewer, Formatting, PrerenderMixin) {
     }
 
     public get communityItems() {
-      const items = []
-      if (this.artistsOfColor.list.length) {
-        items.push({value: 0, text: 'Artists of Color', icon: ''})
-      }
-      if (this.lgbt.list.length) {
-        items.push({value: 1, text: 'LGBTQ+', icon: ''})
-      }
-      return items
+      return [
+        {value: 0, text: 'Artists of Color', icon: ''},
+        {value: 1, text: 'LGBTQ+', icon: ''},
+      ]
     }
 
     public searchReplace(data: RawData) {
@@ -455,10 +429,6 @@ export default class Home extends mixins(Viewer, Formatting, PrerenderMixin) {
       }
       /* istanbul ignore if */
       return list.list.slice(0, 3)
-    }
-
-    public get featuredList() {
-      return this.listPreview(this.featured)
     }
 
     public get commissionsList() {
