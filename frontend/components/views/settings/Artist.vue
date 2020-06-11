@@ -177,9 +177,5 @@ export default class Options extends mixins(Viewer, Subjective, Alerts) {
       this.artistProfile = this.subjectHandler.artistProfile
       this.artistProfile.get().then()
     }
-
-    private get url() {
-      return `/api/profiles/v1/account/${this.username}/artist-profile/`
-    }
 }
 </script>

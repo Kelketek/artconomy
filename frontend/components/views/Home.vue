@@ -128,6 +128,18 @@
                   </v-col>
                 </v-row>
               </template>
+              <template v-slot:loading-spinner>
+                <v-row dense>
+                  <v-col cols="6" sm="4" md="3" lg="4" v-for="i in Array(listSizer(true)).keys()" :key="i">
+                    <v-responsive aspect-ratio="1" max-height="100%" max-width="100%">
+                      <v-skeleton-loader
+                        max-height="100%"
+                        type="image"
+                      ></v-skeleton-loader>
+                    </v-responsive>
+                  </v-col>
+                </v-row>
+              </template>
             </ac-load-section>
           </v-card>
         </v-col>
@@ -193,8 +205,8 @@
           </v-card>
         </v-col>
         <v-col cols="12" order="4" order-lg="5">
-          <ac-tabs :items="communityItems" v-model="communitySection" v-if="showCommunities" />
-          <v-tabs-items :value="communitySection" v-if="showCommunities">
+          <ac-tabs :items="communityItems" v-model="communitySection" />
+          <v-tabs-items :value="communitySection">
             <v-tab-item v-if="artistsOfColor.list.length">
               <ac-product-slider :list="artistsOfColor"></ac-product-slider>
               <v-btn block color="primary" @click="search({artists_of_color: true})">See More</v-btn>
@@ -223,6 +235,18 @@
                   </v-col>
                 </v-row>
               </template>
+              <template v-slot:loading-spinner>
+                <v-row dense>
+                  <v-col cols="6" sm="4" v-for="i in Array(listSizer()).keys()" :key="i">
+                    <v-responsive aspect-ratio="1" max-height="100%" max-width="100%">
+                      <v-skeleton-loader
+                        max-height="100%"
+                        type="image"
+                      ></v-skeleton-loader>
+                    </v-responsive>
+                  </v-col>
+                </v-row>
+              </template>
             </ac-load-section>
           </v-card>
         </v-col>
@@ -241,6 +265,18 @@
                 <v-row dense>
                   <v-col cols="6" sm="4" v-for="character in charactersList" :key="character.id">
                     <ac-character-preview :character="character.x" :mini="true" />
+                  </v-col>
+                </v-row>
+              </template>
+              <template v-slot:loading-spinner>
+                <v-row dense>
+                  <v-col cols="6" sm="4" v-for="i in Array(listSizer()).keys()" :key="i">
+                    <v-responsive aspect-ratio="1" max-height="100%" max-width="100%">
+                      <v-skeleton-loader
+                        max-height="100%"
+                        type="image"
+                      ></v-skeleton-loader>
+                    </v-responsive>
                   </v-col>
                 </v-row>
               </template>
@@ -308,24 +344,6 @@ export default class Home extends mixins(Viewer, Formatting, PrerenderMixin) {
     public mainSection = 0
     public communitySection = shuffle([0, 1])[0]
     public discordPath = mdiDiscord
-    public banners = [
-      {file: 'halcy0n-artconomy-banner-A1-1440x200.png', username: 'Halcyon'},
-      {file: 'halcy0n-artconomy-banner-A2-1440x200.png', username: 'Halcyon'},
-      {file: 'halcy0n-artconomy-banner-A3-1440x200.png', username: 'Halcyon'},
-      {file: 'halcy0n-artconomy-banner-A4-1440x200.png', username: 'Halcyon'},
-      {file: 'halcy0n-artconomy-banner-B1-1440x200.png', username: 'Halcyon'},
-      {file: 'halcy0n-artconomy-banner-B2-1440x200.png', username: 'Halcyon'},
-      {file: 'halcy0n-artconomy-banner-B3-1440x200.png', username: 'Halcyon'},
-      {file: 'halcy0n-artconomy-banner-B4-1440x200.png', username: 'Halcyon'},
-      {file: 'halcy0n-artconomy-banner-C1-1440x200.png', username: 'Halcyon'},
-      {file: 'halcy0n-artconomy-banner-C2-1440x200.png', username: 'Halcyon'},
-      {file: 'halcy0n-artconomy-banner-C3-1440x200.png', username: 'Halcyon'},
-      {file: 'halcy0n-artconomy-banner-C4-1440x200.png', username: 'Halcyon'},
-      {file: 'halcy0n-artconomy-banner-D1-1440x200.png', username: 'Halcyon'},
-      {file: 'halcy0n-artconomy-banner-D2-1440x200.png', username: 'Halcyon'},
-      {file: 'halcy0n-artconomy-banner-D3-1440x200.png', username: 'Halcyon'},
-      {file: 'halcy0n-artconomy-banner-D4-1440x200.png', username: 'Halcyon'},
-    ]
     public blogEntries = [
       {
         link: 'https://artconomy.com/blog/posts/2020/04/29/7-tips-on-pricing-your-artwork/',
@@ -360,10 +378,6 @@ export default class Home extends mixins(Viewer, Formatting, PrerenderMixin) {
         image: 'https://artconomy.com/blog/wp-content/uploads/2019/06/wrong-question.png',
       },
     ]
-    public get randomBanner() {
-      // Lazy calculation, so should always match on a specific render.
-      return shuffle(this.banners)[0]
-    }
 
     public get articles() {
       const articles = shuffle(this.blogEntries)
@@ -372,10 +386,6 @@ export default class Home extends mixins(Viewer, Formatting, PrerenderMixin) {
 
     public get searchTerms() {
       return shuffle(['refsheet', 'ych', 'stickers', 'badge']).slice(0, 3)
-    }
-
-    public get showCommunities() {
-      return (this.lgbt.list.length || this.artistsOfColor.list.length)
     }
 
     public get mainSectionItems() {
@@ -416,22 +426,26 @@ export default class Home extends mixins(Viewer, Formatting, PrerenderMixin) {
       this.$router.push({name: 'SearchSubmissions'})
     }
 
+    public listSizer(long?: boolean) {
+      if (this.$vuetify.breakpoint.xsOnly) {
+        return 2
+      }
+      if (this.$vuetify.breakpoint.mdOnly && long) {
+        return 4
+      }
+      /* istanbul ignore if */
+      if (this.$vuetify.breakpoint.lgAndUp) {
+        return 6
+      }
+      /* istanbul ignore if */
+      return 3
+    }
+
     public listPreview(list: ListController<any>, long?: boolean) {
       // Gives a few items from the list depending on screen size. Useful for things like the home page where we have many
       // sections to display at once, but don't want to crowd the screen too much.
       /* istanbul ignore if */
-      if (this.$vuetify.breakpoint.xsOnly) {
-        return list.list.slice(0, 2)
-      }
-      if (this.$vuetify.breakpoint.mdOnly && long) {
-        return list.list.slice(0, 4)
-      }
-      /* istanbul ignore if */
-      if (this.$vuetify.breakpoint.lgAndUp) {
-        return list.list.slice(0, 6)
-      }
-      /* istanbul ignore if */
-      return list.list.slice(0, 3)
+      return list.list.slice(0, this.listSizer(long))
     }
 
     public get commissionsList() {

@@ -1,6 +1,6 @@
 <template>
   <v-container class="pa-0" :fluid="fluid">
-    <v-container class="pa-0 loading-spinner-container" v-if="controller.fetching && growPermitting">
+    <v-container class="pa-0 loading-spinner-container" v-if="controller.fetching && growPermitting" :fluid="fluid">
       <slot name="loading-spinner">
         <ac-loading-spinner />
       </slot>

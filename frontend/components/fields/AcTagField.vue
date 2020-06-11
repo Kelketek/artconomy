@@ -49,9 +49,6 @@ export default class AcTagField extends Vue {
 
     @Watch('tags')
     private syncUpstream() {
-      if (typeof this.tags === 'string') {
-        this.tags = [this.tags]
-      }
       this.$emit('input', this.tags)
       if (this.tags.length !== this.oldCount) {
         this.queryStore = ''

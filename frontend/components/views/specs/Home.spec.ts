@@ -62,7 +62,6 @@ describe('Home.vue', () => {
     setViewer(store, genUser())
     const push = jest.fn()
     wrapper = mount(Home, {localVue, store, vuetify, mocks: {$router: {push}}, stubs: ['router-link']})
-    console.log(wrapper.html())
     await wrapper.vm.$nextTick()
     wrapper.findAll('.v-tab').at(2).trigger('click')
     await wrapper.vm.$nextTick()
