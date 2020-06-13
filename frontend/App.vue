@@ -135,14 +135,14 @@ export default class App extends mixins(Viewer, Nav) {
     public supportForm: FormController = null as unknown as FormController
     public alertDismissed: boolean = false
     public searchForm: FormController = null as unknown as FormController
-    public couchConStore: boolean = JSON.parse(getCookie('couchCon') || 'true')
+    public couchConStore: boolean = JSON.parse(getCookie('couchCon2020') || 'true')
 
     public get couchCon() {
       return this.couchConStore
     }
 
     public set couchCon(val) {
-      setCookie('couchCon', (val && '1') || '0')
+      setCookie('couchCon2020', (val && 'true') || 'false')
     }
 
     public created() {
