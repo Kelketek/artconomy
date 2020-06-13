@@ -37,7 +37,7 @@
             <ac-patch-field field-type="ac-tag-field" :patcher="patcher" />
           </v-col>
           <v-col cols="12" v-show="!editing">
-            <v-chip v-for="tag in patcher.rawValue" :key="tag">
+            <v-chip v-for="tag in patcher.rawValue" :key="tag" class="mx-1">
               <ac-link :to="tagLink(tag)">{{tag}}</ac-link>
             </v-chip>
           </v-col>

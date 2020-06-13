@@ -730,8 +730,9 @@ export function saneNav(originalFunction: (location: RawLocation) => Promise<Rou
   function wrapped(this: Router, location) {
     originalFunction.call(this, location).catch((err: Error) => {
       /* istanbul ignore else */
-      if (err && err.name === 'NavigationDuplicated') {
-        // This never matters.
+      // @ts-ignore
+      if (err && err.type === 4) {
+        // NavigationDuplicated. This never matters.
         return
       }
       /* istanbul ignore next */

@@ -2,9 +2,9 @@
 <template>
   <v-app dark>
     <nav-bar/>
-    <v-content class="main-content">
+    <v-main class="main-content">
       <v-container v-if="couchCon">
-        <v-alert class="info" dismissible="true" v-model="couchCon">
+        <v-alert class="info" :dismissible="true" v-model="couchCon">
           Artconomy will be at
           <a href="https://couchcon.org/" target="_blank" rel="nofollow,noopener">CouchCon!</a>
           Come join us June 25-28th!
@@ -81,9 +81,9 @@
         </v-btn>
       </v-snackbar>
       <ac-markdown-explanation v-model="showMarkdownHelp" />
-    </v-content>
-    <v-content>
-      <v-row no-gutters>
+    </v-main>
+    <v-main>
+      <v-row no-gutters class="mb-4">
         <v-col class="text-right px-2">
           <router-link :to="{name: 'PrivacyPolicy'}">Privacy Policy</router-link>
         </v-col>
@@ -92,7 +92,7 @@
           <router-link :to="{name: 'TermsOfService'}">Terms of Service</router-link>
         </v-col>
       </v-row>
-    </v-content>
+    </v-main>
   </v-app>
 </template>
 
@@ -135,7 +135,7 @@ export default class App extends mixins(Viewer, Nav) {
     public supportForm: FormController = null as unknown as FormController
     public alertDismissed: boolean = false
     public searchForm: FormController = null as unknown as FormController
-    public couchConStore: boolean = JSON.parse(getCookie('couchCon') || '1')
+    public couchConStore: boolean = JSON.parse(getCookie('couchCon') || 'true')
 
     public get couchCon() {
       return this.couchConStore

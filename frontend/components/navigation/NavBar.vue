@@ -99,7 +99,7 @@
             placeholder="Search..."
             single-line
             @keyup="runSearch"
-            append-icon="search"
+            prepend-icon="search"
             @click:append="runSearch"
             color="white"
             hide-details

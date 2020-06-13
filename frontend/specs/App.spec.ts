@@ -9,7 +9,6 @@ import {FormController} from '@/store/forms/form-controller'
 import {cleanUp, createVuetify, dialogExpects, genAnon, rq, rs, vueSetup} from './helpers'
 import {Vuetify} from 'vuetify/types'
 
-jest.useFakeTimers()
 const localVue = vueSetup()
 let wrapper: Wrapper<Vue>
 let vuetify: Vuetify
@@ -19,6 +18,7 @@ describe('App.vue', () => {
   beforeEach(() => {
     store = createStore()
     vuetify = createVuetify()
+    jest.useFakeTimers()
   })
   afterEach(() => {
     cleanUp(wrapper)
@@ -230,6 +230,7 @@ describe('App.vue', () => {
     store.commit('pushAlert', {message: 'I am an alert!', category: 'error'})
     await wrapper.vm.$nextTick()
     await jest.runOnlyPendingTimers()
+    await wrapper.vm.$nextTick()
     expect(wrapper.find('#alert-bar').exists()).toBe(false)
     expect((wrapper.vm as any).alertDismissed).toBe(true)
   })

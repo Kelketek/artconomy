@@ -10,6 +10,7 @@
             :field="searchForm.fields.q"
             @keyup="$router.push({name: 'SearchProducts'})"
             label="I'm looking for..."
+            prepend-icon="search"
           />
         </v-col>
         <v-col class="text-center" cols="12" lg="6" offset-lg="3" >
