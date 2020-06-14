@@ -208,11 +208,11 @@
         <v-col cols="12" order="4" order-lg="5">
           <ac-tabs :items="communityItems" v-model="communitySection" />
           <v-tabs-items :value="communitySection">
-            <v-tab-item v-if="artistsOfColor.list.length">
+            <v-tab-item>
               <ac-product-slider :list="artistsOfColor"></ac-product-slider>
               <v-btn block color="primary" @click="search({artists_of_color: true})">See More</v-btn>
             </v-tab-item>
-            <v-tab-item v-if="lgbt.list.length">
+            <v-tab-item>
               <ac-product-slider :list="lgbt"></ac-product-slider>
               <v-btn block color="primary" @click="search({lgbt: true})">See More</v-btn>
             </v-tab-item>
