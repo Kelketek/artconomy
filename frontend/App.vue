@@ -2,7 +2,7 @@
 <template>
   <v-app dark>
     <nav-bar/>
-    <v-main class="main-content">
+    <v-content class="main-content">
       <v-container v-if="couchCon">
         <v-alert class="info" :dismissible="true" v-model="couchCon">
           Artconomy will be at
@@ -81,8 +81,8 @@
         </v-btn>
       </v-snackbar>
       <ac-markdown-explanation v-model="showMarkdownHelp" />
-    </v-main>
-    <v-main>
+    </v-content>
+    <v-content>
       <v-row no-gutters class="mb-4">
         <v-col class="text-right px-2">
           <router-link :to="{name: 'PrivacyPolicy'}">Privacy Policy</router-link>
@@ -92,7 +92,7 @@
           <router-link :to="{name: 'TermsOfService'}">Terms of Service</router-link>
         </v-col>
       </v-row>
-    </v-main>
+    </v-content>
   </v-app>
 </template>
 

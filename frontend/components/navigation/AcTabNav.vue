@@ -1,6 +1,6 @@
 <template>
   <v-container fluid class="pa-0">
-    <v-tabs grow centered show-arrows="mobile" class="hidden-sm-and-down">
+    <v-tabs grow centered show-arrows class="hidden-sm-and-down">
       <ac-tab :to="item.value" v-for="item in items" :key="item.text" :count="item.count" :icon="item.icon">
         {{item.text}}
       </ac-tab>
