@@ -136,6 +136,7 @@ export default class App extends mixins(Viewer, Nav) {
     public alertDismissed: boolean = false
     public searchForm: FormController = null as unknown as FormController
     public couchConStore: boolean = JSON.parse(getCookie('couchCon2020') || 'true')
+    public searchInitialized = false
 
     public get couchCon() {
       return this.couchConStore
@@ -143,6 +144,27 @@ export default class App extends mixins(Viewer, Nav) {
 
     public set couchCon(val) {
       setCookie('couchCon2020', (val && 'true') || 'false')
+    }
+
+    @Watch('$route.name')
+    public initializeSearch(nameVal: null|string) {
+      if (!nameVal) {
+        return
+      }
+      if (this.searchInitialized) {
+        return
+      }
+      const query = {...this.$route.query}
+      this.searchForm.fields.q.update(fallback(query, 'q', ''))
+      this.searchForm.fields.watch_list.update(fallbackBoolean(query, 'watch_list', null))
+      this.searchForm.fields.shield_only.update(fallbackBoolean(query, 'shield_only', null))
+      this.searchForm.fields.featured.update(fallbackBoolean(query, 'featured', null))
+      this.searchForm.fields.rating.update(fallbackBoolean(query, 'rating', null))
+      this.searchForm.fields.artists_of_color.update(fallbackBoolean(query, 'artists_of_color', null))
+      this.searchForm.fields.lgbt.update(fallbackBoolean(query, 'lgbt', null))
+      this.searchForm.fields.max_price.update(fallback(query, 'max_price', ''))
+      this.searchForm.fields.min_price.update(fallback(query, 'min_price', ''))
+      this.searchInitialized = true
     }
 
     public created() {
@@ -153,19 +175,8 @@ export default class App extends mixins(Viewer, Nav) {
           email: {value: '', validators: [{name: 'email'}, {name: 'required'}]},
           referring_url: {value: this.$route.fullPath},
         },
-      }
-      )
-      const query = this.$route.query
+      })
       this.searchForm = this.$getForm('search', searchSchema())
-      this.searchForm.fields.q.update(fallback(query, 'q', ''))
-      this.searchForm.fields.watch_list.update(fallbackBoolean(query, 'watch_list', null))
-      this.searchForm.fields.shield_only.update(fallbackBoolean(query, 'shield_only', null))
-      this.searchForm.fields.featured.update(fallbackBoolean(query, 'featured', null))
-      this.searchForm.fields.rating.update(fallbackBoolean(query, 'rating', null))
-      this.searchForm.fields.artists_of_color.update(fallbackBoolean(query, 'artists_of_color', null))
-      this.searchForm.fields.lgbt.update(fallbackBoolean(query, 'lgbt', null))
-      this.searchForm.fields.max_price.update(fallback(query, 'max_price', ''))
-      this.searchForm.fields.min_price.update(fallback(query, 'min_price', ''))
     }
 
     public showSuccess() {

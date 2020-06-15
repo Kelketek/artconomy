@@ -267,11 +267,13 @@ describe('App.vue', () => {
       store,
       localVue,
       vuetify,
-      mocks: {$route: {fullPath: '/', params: {}, query: {q: 'Stuff', featured: 'true'}}},
+      mocks: {$route: {fullPath: '/', params: {}, query: {q: 'Stuff', featured: 'true'}, name: null}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
       sync: false,
     })
     const vm = wrapper.vm as any
+    vm.$route.name = 'Home'
+    await vm.$nextTick()
     expect(vm.searchForm.fields.q.value).toBe('Stuff')
   })
   it('Shows the markdown help section', async() => {
