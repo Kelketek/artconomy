@@ -25,17 +25,17 @@ class DeliverableAdmin(admin.ModelAdmin):
         CommentInline
     ]
     raw_id_fields = ['arbitrator', 'characters']
-    list_display = ('product', 'buyer', 'seller', 'shield_protected', 'status')
+    list_display = ('id', 'name', 'product', 'buyer', 'seller', 'shield_protected', 'status')
     list_filter = ('escrow_disabled', 'status')
 
     def product(self, obj):
-        return obj.product
+        return obj.order.product
 
     def buyer(self, obj):
-        return obj.buyer
+        return obj.order.buyer
 
     def seller(self, obj):
-        return obj.seller
+        return obj.order.seller
 
     def shield_protected(self, obj):
         return not obj.escrow_disabled
