@@ -304,7 +304,7 @@ export const NOTIFICATION_MAPPING: TypeToValue = {
   19: 'ac-sale-update',
   21: 'ac-submission-artist-tag',
   22: 'ac-revision-uploaded',
-  23: 'ac-asset-shared',
+  23: 'ac-submission-shared',
   24: 'ac-char-shared',
   25: 'ac-new-pm',
   26: 'ac-streaming',

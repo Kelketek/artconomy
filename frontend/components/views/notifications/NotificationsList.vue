@@ -42,7 +42,6 @@ import AcCharTag from './events/AcCharTag.vue'
 import AcSubmissionCharTag from './events/AcSubmissionCharTag.vue'
 import AcRevisionUploaded from './events/AcRevisionUploaded.vue'
 import AcCommentNotification from './events/AcCommentNotification.vue'
-import AcAssetShared from './events/AcAssetShared.vue'
 import AcCharShared from './events/AcCharShared.vue'
 import AcNewCharacter from './events/AcNewCharacter.vue'
 import AcNewProduct from './events/AcNewProduct.vue'
@@ -62,8 +61,10 @@ import AcGrowSpinner from '@/components/AcGrowSpinner.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import Component, {mixins} from 'vue-class-component'
 import AcReferenceUploaded from '@/components/views/notifications/events/AcReferenceUploaded.vue'
+import AcSubmissionShared from '@/components/views/notifications/events/AcSubmissionShared.vue'
 
 @Component({components: {
+  AcSubmissionShared,
   AcReferenceUploaded,
   AcPaginated,
   AcGrowSpinner,
@@ -79,7 +80,6 @@ import AcReferenceUploaded from '@/components/views/notifications/events/AcRefer
   AcCommissionsOpen,
   AcStreaming,
   AcCharShared,
-  AcAssetShared,
   AcCommentNotification,
   AcRevisionUploaded,
   AcSubmissionCharTag,
