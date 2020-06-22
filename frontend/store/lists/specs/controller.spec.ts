@@ -1,7 +1,7 @@
 import {ListController} from '../controller'
-import {listRegistry} from '../registry'
+import {listRegistry, Lists} from '../registry'
 import {ArtStore, createStore} from '../../index'
-import {createLocalVue, shallowMount} from '@vue/test-utils'
+import {createLocalVue, mount, shallowMount} from '@vue/test-utils'
 import mockAxios from '@/specs/helpers/mock-axios'
 import Vue from 'vue'
 import Vuex from 'vuex'
@@ -9,12 +9,15 @@ import {rq, rs} from '@/specs/helpers'
 import flushPromises from 'flush-promises'
 import {ListModuleOpts} from '../types/ListModuleOpts'
 import {singleRegistry, Singles} from '../../singles/registry'
+import Empty from '@/specs/helpers/dummy_components/empty.vue'
+import {SingleController} from '@/store/singles/controller'
 
 let store: ArtStore
 let state: any
 Vue.use(Vuex)
 const localVue = createLocalVue()
 localVue.use(Singles)
+localVue.use(Lists)
 
 const mockError = jest.spyOn(console, 'error')
 
@@ -260,6 +263,20 @@ describe('List controller', () => {
     controller.response = {count: 3, size: 10}
     expect(state.example.response).toEqual({count: 3, size: 10})
     expect(controller.response).toEqual({count: 3, size: 10})
+  })
+  it('Listens for a list', async() => {
+    const wrapper = mount(Empty, {localVue, store, sync: false})
+    const vm = wrapper.vm as any
+    wrapper.vm.$listenForList('testList')
+    expect(listRegistry.listeners['testList']).toEqual([vm._uid])
+    const otherWrapper = mount(Empty, {localVue, store, sync: false})
+    otherWrapper.vm.$getList('testList', {endpoint: '/'}).setList([{id: 1}, {id: 2}, {id: 3}])
+    await vm.$nextTick()
+    otherWrapper.destroy()
+    await wrapper.vm.$nextTick()
+    expect(
+      wrapper.vm.$getList('testList').list.map((item: SingleController<any>) => item.x),
+    ).toEqual([{id: 1}, {id: 2}, {id: 3}])
   })
   it('Fetches the next page', () => {
     const controller = makeController()

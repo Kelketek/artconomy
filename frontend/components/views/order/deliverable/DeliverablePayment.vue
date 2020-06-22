@@ -241,7 +241,7 @@ export default class DeliverablePayment extends mixins(DeliverableMixin, Formatt
     this.paymentForm.fields.remote_id.update('')
   }
 
-  @Watch('totalCharge')
+  @Watch('proxyTotalCharge')
   public updateAmount(newValue: Big, oldValue: Big|undefined) {
     this.paymentForm.fields.amount.update(this.totalCharge)
     /* istanbul ignore if */
@@ -259,10 +259,20 @@ export default class DeliverablePayment extends mixins(DeliverableMixin, Formatt
   }
 
   public get priceData(): LineAccumulator {
+    /* istanbul ignore if */
     if (!this.lineItems) {
       return {total: Big(0), map: new Map(), discount: Big(0)}
     }
     return getTotals(this.bareLines)
+  }
+
+  public get proxyTotalCharge(): Big|undefined {
+    // We return zero on the normal priceData if lineItems is null, but this causes the
+    // watcher to trigger when it shouldn't.
+    if (this.lineItems === null) {
+      return undefined
+    }
+    return this.totalCharge
   }
 
   public get bareLines() {

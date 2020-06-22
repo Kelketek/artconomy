@@ -420,6 +420,7 @@ export default class DeliverableDetail extends mixins(DeliverableMixin, Formatti
     this.$listenForList(`${this.prefix}__lineItems`)
     this.$listenForSingle(`${this.prefix}__rate__buyer`)
     this.$listenForSingle(`${this.prefix}__rate__seller`)
+    this.$listenForSingle(`${this.prefix}__revision.*`)
     this.$listenForSingle(`pricing`)
     if (this.$route.query.showAdd) {
       this.viewSettings.patchers.showAddSubmission.model = true

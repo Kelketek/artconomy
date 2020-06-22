@@ -73,6 +73,10 @@ export function genRegistryBase<K extends AttrKeys, T extends Registerable<K>>()
         self.controllers[controller.name] = controller
         const baseUIDs = []
         for (const pattern of Object.keys(self.listeners)) {
+          /* istanbul ignore else */
+          if (pattern === '__ob__') {
+            continue
+          }
           if (RegExp(pattern).test(controller.name)) {
             baseUIDs.push(...self.listeners[pattern])
           }

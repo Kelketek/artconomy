@@ -44,7 +44,6 @@ export class BaseController<S, D extends AttrKeys> extends Vue {
   }
 
   public register(path?: string[]) {
-    const state = this.state
     let data: Partial<D> = {}
     path = path || this.path
     if (this.state) {

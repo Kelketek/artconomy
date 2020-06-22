@@ -147,7 +147,7 @@ describe('Single controller', () => {
       ...rq('/endpoint/', 'get', {stuff: 'Wat'}, {cancelToken: expect.any(Object)})
     )
   })
-  it('Listens to a pattern', () => {
+  it('Listens for a pattern', () => {
     const wrapper = mount(Empty, {localVue, store})
     const vm = wrapper.vm as any
     wrapper.vm.$listenForSingle('*')

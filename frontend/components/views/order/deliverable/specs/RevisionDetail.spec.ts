@@ -95,7 +95,7 @@ describe('DeliverableOverview.vue', () => {
     await vm.$nextTick()
     expect(vm.isFinal).toBe(true)
   })
-  it('Determines if the deliverable has been archived', async () => {
+  it('Determines if the deliverable has been archived', async() => {
     const user = genUser()
     setViewer(store, user)
     router.push('/orders/Fox/order/1/deliverables/5/revisions/3/')
