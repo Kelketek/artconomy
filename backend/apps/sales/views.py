@@ -70,7 +70,8 @@ from apps.sales.serializers import (
     HoldingsSummarySerializer, ProductSampleSerializer, OrderPreviewSerializer,
     AccountQuerySerializer, DeliverableCharacterTagSerializer, SubmissionFromOrderSerializer, OrderAuthSerializer,
     LineItemSerializer, DeliverableValuesSerializer, SimpleTransactionSerializer, InventorySerializer,
-    PayoutTransactionSerializer, OrderViewSerializer, ReferenceSerializer, DeliverableReferenceSerializer)
+    PayoutTransactionSerializer, OrderViewSerializer, ReferenceSerializer, DeliverableReferenceSerializer,
+    NewDeliverableSerializer)
 from apps.sales.tasks import renew
 from apps.sales.utils import available_products, service_price, set_service, \
     check_charge_required, available_products_by_load, finalize_deliverable, account_balance, \
@@ -257,17 +258,67 @@ class OrderManager(RetrieveUpdateAPIView):
         return order
 
 
-class OrderDeliverables(ListAPIView):
-    permission_classes = [OrderViewPermission]
-    serializer_class = DeliverableViewSerializer
+class OrderDeliverables(ListCreateAPIView):
+    permission_classes = [
+        Any(
+            All(OrderViewPermission, IsSafeMethod),
+            OrderSellerPermission,
+        )
+    ]
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['seller'] = self.get_object().seller
+        return context
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return NewDeliverableSerializer
+        else:
+            return DeliverableViewSerializer
 
     def get_queryset(self):
         return self.get_object().deliverables.all().order_by('-created_on')
 
+    @lru_cache(256)
     def get_object(self):
         order = get_object_or_404(Order, id=self.kwargs['order_id'])
         self.check_object_permissions(self.request, order)
         return order
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        data = DeliverableViewSerializer(instance=serializer.instance, context=self.get_serializer_context()).data
+        headers = self.get_success_headers(data)
+        return Response(data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def perform_create(self, serializer):
+        serializer.is_valid(raise_exception=True)
+        order = self.get_object()
+        self.check_object_permissions(self.request, order)
+        product = order.product
+        facts = get_order_facts(product, serializer, order.seller)
+        deliverable_facts = {key: value for key, value in facts.items() if key not in (
+            'price', 'adjustment', 'hold', 'paid',
+        )}
+        deliverable = serializer.save(
+            order=order,
+            commission_info=order.seller.artist_profile.commission_info,
+            **deliverable_facts,
+        )
+        deliverable.line_items.get_or_create(
+            type=BASE_PRICE, amount=facts['price'], priority=0, destination_account=TransactionRecord.ESCROW,
+            destination_user=order.seller,
+        )
+        if facts['adjustment']:
+            deliverable.line_items.get_or_create(
+                type=ADD_ON, amount=facts['adjustment'], priority=1, destination_account=TransactionRecord.ESCROW,
+                destination_user=order.seller,
+            )
+        # Trigger line item creation.
+        deliverable.save()
 
 
 
@@ -1877,12 +1928,70 @@ class RandomProducts(ListAPIView):
         return Product.objects.filter(featured=False, available=True).order_by('?')
 
 
+def get_order_facts(product, serializer, seller):
+    facts = {
+        'table_order': False,
+        'hold': serializer.validated_data.get('hold', False),
+    }
+    from pprint import pprint
+    pprint(serializer.validated_data)
+    if serializer.validated_data['completed']:
+        raw_task_weight = 0
+        raw_expected_turnaround = 0
+        raw_revisions = 0
+    else:
+        raw_task_weight = serializer.validated_data['task_weight']
+        raw_expected_turnaround = serializer.validated_data['expected_turnaround']
+        raw_revisions = serializer.validated_data['revisions']
+    if product:
+        facts['price'] = product.base_price
+        facts['adjustment'] = Money(serializer.validated_data['price'], 'USD') - product.get_starting_price()
+        facts['task_weight'] = product.task_weight
+        facts['adjustment_task_weight'] = raw_task_weight - product.task_weight
+        facts['adjustment_expected_turnaround'] = raw_expected_turnaround - product.expected_turnaround
+        facts['expected_turnaround'] = product.expected_turnaround
+        facts['revisions'] = product.revisions
+        facts['adjustment_revisions'] = raw_revisions - product.revisions
+        facts['table_order'] = product.table_product
+    else:
+        facts['price'] = Money(serializer.validated_data['price'], 'USD')
+        facts['task_weight'] = raw_task_weight
+        facts['expected_turnaround'] = raw_expected_turnaround
+        facts['revisions'] = raw_revisions
+        facts['adjustment_task_weight'] = 0
+        facts['adjustment_expected_turnaround'] = 0
+        facts['adjustment_revisions'] = 0
+        facts['adjustment'] = Money('0.00', 'USD')
+    facts['paid'] = serializer.validated_data['paid'] or ((facts['price'] + facts['adjustment']) == Money('0', 'USD'))
+    facts['escrow_disabled'] = (
+            facts['paid'] or ((seller.artist_profile.bank_account_status != HAS_US_ACCOUNT) and not product.table_product)
+    )
+    if facts['paid']:
+        if serializer.validated_data['completed']:
+            # Seller still has to upload revisions.
+            facts['status'] = IN_PROGRESS
+        else:
+            facts['status'] = QUEUED
+        facts['revisions_hidden'] = False
+    elif facts['hold']:
+        facts['status'] = NEW
+        facts['revisions_hidden'] = True
+    else:
+        facts['status'] = PAYMENT_PENDING
+        facts['revisions_hidden'] = True
+    return facts
+
 class CreateInvoice(GenericAPIView):
     """
     Used to create a new order from the seller's side.
     """
     permission_classes = [IsRegistered, UserControls, BankingConfigured]
     serializer_class = NewInvoiceSerializer
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['seller'] = self.request.subject
+        return context
 
     def post(self, request, username):
         user = get_object_or_404(User, username=username)
@@ -1891,35 +2000,7 @@ class CreateInvoice(GenericAPIView):
         serializer.is_valid(raise_exception=True)
         buyer = serializer.validated_data['buyer']
         product = serializer.validated_data.get('product', None)
-        hold = serializer.validated_data.get('hold', False)
-        table_order = False
-        if serializer.validated_data['completed']:
-            raw_task_weight = 0
-            raw_expected_turnaround = 0
-            raw_revisions = 0
-        else:
-            raw_task_weight = serializer.validated_data['task_weight']
-            raw_expected_turnaround = serializer.validated_data['expected_turnaround']
-            raw_revisions = serializer.validated_data['revisions']
-        if product:
-            price = product.base_price
-            adjustment = Money(serializer.validated_data['price'], 'USD') - product.get_starting_price()
-            task_weight = product.task_weight
-            adjustment_task_weight = raw_task_weight - product.task_weight
-            adjustment_expected_turnaround = raw_expected_turnaround - product.expected_turnaround
-            expected_turnaround = product.expected_turnaround
-            revisions = product.revisions
-            adjustment_revisions = raw_revisions - product.revisions
-            table_order = product.table_product
-        else:
-            price = Money(serializer.validated_data['price'], 'USD')
-            task_weight = raw_task_weight
-            expected_turnaround = raw_expected_turnaround
-            revisions = raw_revisions
-            adjustment_task_weight = 0
-            adjustment_expected_turnaround = 0
-            adjustment_revisions = 0
-            adjustment = Money('0.00', 'USD')
+        facts = get_order_facts(product, serializer, user)
 
         if isinstance(buyer, str) or buyer is None:
             customer_email = buyer or ''
@@ -1927,23 +2008,6 @@ class CreateInvoice(GenericAPIView):
         else:
             buyer = buyer
             customer_email = ''
-        paid = serializer.validated_data['paid'] or ((price + adjustment) == Money('0', 'USD'))
-        escrow_disabled = (
-                paid or ((user.artist_profile.bank_account_status != HAS_US_ACCOUNT) and not product.table_product)
-        )
-        if paid:
-            if serializer.validated_data['completed']:
-                # Seller still has to upload revisions.
-                order_status = IN_PROGRESS
-            else:
-                order_status = QUEUED
-            revisions_hidden = False
-        elif hold:
-            order_status = NEW
-            revisions_hidden = True
-        else:
-            order_status = PAYMENT_PENDING
-            revisions_hidden = True
         try:
             with inventory_change(product):
                 order = Order.objects.create(
@@ -1953,29 +2017,23 @@ class CreateInvoice(GenericAPIView):
                     product=product,
                     private=serializer.validated_data['private'],
                 )
+                deliverable_facts = {key: value for key, value in facts.items() if key not in (
+                    'price', 'adjustment', 'hold', 'paid',
+                )}
                 deliverable = Deliverable.objects.create(
                     name='Main',
                     order=order,
-                    table_order=table_order,
                     details=serializer.validated_data['details'],
-                    adjustment_task_weight=adjustment_task_weight,
-                    task_weight=task_weight,
-                    adjustment_expected_turnaround=adjustment_expected_turnaround,
-                    expected_turnaround=expected_turnaround,
-                    escrow_disabled=escrow_disabled,
-                    revisions_hidden=revisions_hidden,
-                    revisions=revisions,
-                    adjustment_revisions=adjustment_revisions,
                     commission_info=request.subject.artist_profile.commission_info,
-                    status=order_status,
+                    **deliverable_facts,
                 )
                 deliverable.line_items.get_or_create(
-                    type=BASE_PRICE, amount=price, priority=0, destination_account=TransactionRecord.ESCROW,
+                    type=BASE_PRICE, amount=facts['price'], priority=0, destination_account=TransactionRecord.ESCROW,
                     destination_user=order.seller,
                 )
-                if adjustment:
+                if facts['adjustment']:
                     deliverable.line_items.get_or_create(
-                        type=ADD_ON, amount=adjustment, priority=1, destination_account=TransactionRecord.ESCROW,
+                        type=ADD_ON, amount=facts['adjustment'], priority=1, destination_account=TransactionRecord.ESCROW,
                         destination_user=order.seller,
                     )
                 # Trigger line item creation.

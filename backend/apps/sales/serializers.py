@@ -91,7 +91,30 @@ class ProductSerializer(ProductMixin, RelatedAtomicMixin, serializers.ModelSeria
         extra_kwargs = {'price': {'required': True}}
 
 
-class ProductNewOrderSerializer(serializers.ModelSerializer):
+class CharacterValidationMixin:
+    def validate_characters(self, value):
+        value = Character.objects.filter(id__in=value)
+        for character in value:
+            user = self.context['request'].user
+            if not (user.is_staff or character.user == user):
+                private = character.private and not character.shared_with.filter(id=user.id)
+                if private or not character.open_requests:
+                    raise serializers.ValidationError(
+                        'You are not permitted to commission pieces for all of the characters you have specified, or '
+                        'one or more characters you specified does not exist.'
+                    )
+        return value
+
+
+class PriceValidationMixin:
+    def validate_price(self, value):
+        if not self.context['seller'].artist_profile.escrow_disabled:
+            if value and (value < settings.MINIMUM_PRICE):
+                raise ValidationError('Must be $0 or at least ${}'.format(settings.MINIMUM_PRICE))
+        return value
+
+
+class ProductNewOrderSerializer(serializers.ModelSerializer, CharacterValidationMixin):
     email = EmailField(write_only=True, required=False, allow_blank=True)
     seller = RelatedUserSerializer(read_only=True)
     buyer = RelatedUserSerializer(read_only=True)
@@ -116,19 +139,6 @@ class ProductNewOrderSerializer(serializers.ModelSerializer):
                 'characters', 'details', 'rating', 'email',
             )}
         return super().create(data)
-
-    def validate_characters(self, value):
-        value = Character.objects.filter(id__in=value)
-        for character in value:
-            user = self.context['request'].user
-            if not (user.is_staff or character.user == user):
-                private = character.private and not character.shared_with.filter(id=user.id)
-                if private or not character.open_requests:
-                    raise serializers.ValidationError(
-                        'You are not permitted to commission pieces for all of the characters you have specified, or '
-                        'one or more characters you specified does not exist.'
-                    )
-        return value
 
     class Meta:
         model = Order
@@ -187,6 +197,36 @@ class OrderViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
         )
 
 
+class NewDeliverableSerializer(
+    RelatedAtomicMixin, CharacterValidationMixin, PriceValidationMixin, serializers.ModelSerializer,
+):
+    characters = ListField(child=IntegerField(), required=False)
+    price = serializers.DecimalField(
+        max_digits=6, decimal_places=2,
+    )
+    task_weight = serializers.IntegerField(min_value=0)
+    revisions = serializers.IntegerField(min_value=0)
+    details = serializers.CharField(max_length=5000)
+    hold = serializers.NullBooleanField()
+    completed = serializers.NullBooleanField()
+    paid = serializers.NullBooleanField()
+    expected_turnaround = serializers.DecimalField(
+        max_digits=5, decimal_places=2, min_value=settings.MINIMUM_TURNAROUND,
+    )
+
+    def create(self, validated_data):
+        validated_data = {**validated_data}
+        for field_name in ['hold', 'completed', 'paid', 'price']:
+            validated_data.pop(field_name, None)
+        return super(NewDeliverableSerializer, self).create(validated_data)
+
+    class Meta:
+        model = Deliverable
+        fields = (
+            'name', 'characters', 'price', 'revisions', 'details', 'details', 'hold', 'expected_turnaround',
+            'completed', 'paid', 'task_weight',
+        )
+
 
 class DeliverableViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
     arbitrator = RelatedUserSerializer(read_only=True)
@@ -215,6 +255,7 @@ class DeliverableViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer)
                     self.fields[field_name].read_only = False
             # Should never be harmful. Helpful in many statuses.
             self.fields['stream_link'].read_only = False
+            self.fields['name'].read_only = False
         elif self.is_buyer:
             if self.instance.status == PAYMENT_PENDING and self.instance.order.seller.landscape:
                 self.fields['tip'].read_only = False
@@ -588,7 +629,7 @@ class SearchQuerySerializer(serializers.Serializer):
 
 
 # noinspection PyAbstractClass
-class NewInvoiceSerializer(serializers.Serializer):
+class NewInvoiceSerializer(serializers.Serializer, PriceValidationMixin):
     product = serializers.IntegerField(allow_null=True)
     buyer = serializers.CharField(allow_null=True, allow_blank=True)
     price = serializers.DecimalField(
@@ -630,12 +671,6 @@ class NewInvoiceSerializer(serializers.Serializer):
         if not product:
             raise ValidationError("You don't have a product with that ID.")
         return product
-
-    def validate_price(self, value):
-        if not self.context['request'].subject.artist_profile.escrow_disabled:
-            if value and (value < settings.MINIMUM_PRICE):
-                raise ValidationError('Must be $0 or at least ${}'.format(settings.MINIMUM_PRICE))
-        return value
 
 
 class HoldingsSummarySerializer(serializers.ModelSerializer):

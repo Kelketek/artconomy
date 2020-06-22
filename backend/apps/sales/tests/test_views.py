@@ -1900,3 +1900,53 @@ class TestReferences(APITestCase):
         self.assertEqual(len(response.data), 3)
         # Should be unpaginated.
         self.assertNotIn('results', response.data)
+
+
+class TestCreateDeliverable(APITestCase):
+    def test_create_deliverable(self):
+        old_deliverable = DeliverableFactory.create(
+            order__product__expected_turnaround=2,
+            order__product__task_weight=5,
+            order__product__revisions=1,
+            order__product__base_price=Money('3.00', 'USD'),
+            order__product__user__artist_profile__bank_account_status=HAS_US_ACCOUNT,
+        )
+        product = old_deliverable.order.product
+        self.login(old_deliverable.order.seller)
+        response = self.client.post(f'/api/sales/v1/order/{old_deliverable.order.id}/deliverables/', {
+            'name': 'Boop',
+            'completed': False,
+            'price': '5.00',
+            'details': 'wat',
+            'task_weight': 3,
+            'revisions': 3,
+            'expected_turnaround': 4,
+            'hold': False,
+            'paid': False,
+        })
+        deliverable = Deliverable.objects.get(id=response.data['id'])
+        order = deliverable.order
+        self.assertEqual(response.data['status'], PAYMENT_PENDING)
+        self.assertEqual(response.data['details'], 'wat')
+        self.assertEqual(order.private, False)
+        self.assertEqual(response.data['adjustment_task_weight'], -2)
+        self.assertEqual(response.data['adjustment_expected_turnaround'], 2.00)
+        self.assertEqual(response.data['adjustment_revisions'], 2)
+        self.assertTrue(response.data['revisions_hidden'])
+        self.assertFalse(response.data['escrow_disabled'])
+        self.assertEqual(order.product, product)
+
+        deliverable = Deliverable.objects.get(id=response.data['id'])
+        item = deliverable.line_items.get(type=ADD_ON)
+        self.assertEqual(item.amount, Money('2.00', 'USD'))
+        self.assertEqual(item.priority, 100)
+        self.assertEqual(item.destination_user, order.seller)
+        self.assertEqual(item.destination_account, TransactionRecord.ESCROW)
+        self.assertEqual(item.percentage, 0)
+        item = deliverable.line_items.get(type=BASE_PRICE)
+        self.assertEqual(item.amount, Money('3.00', 'USD'))
+        self.assertEqual(item.priority, 0)
+        self.assertEqual(item.destination_user, order.seller)
+        self.assertEqual(item.destination_account, TransactionRecord.ESCROW)
+        self.assertEqual(item.percentage, 0)
+        self.assertIsNone(order.claim_token)
