@@ -527,7 +527,8 @@ class LineItemManager(RetrieveUpdateDestroyAPIView):
                 Any(
                     All(
                         OrderSellerPermission, Any(
-                            LineItemTypePermission(ADD_ON), All(OrderNoProduct, All(LineItemTypePermission(BASE_PRICE), IsMethod('PATCH'))),
+                            LineItemTypePermission(ADD_ON),
+                            All(OrderNoProduct, All(LineItemTypePermission(BASE_PRICE), IsMethod('PATCH'))),
                         )
                     ),
                     All(OrderBuyerPermission, LineItemTypePermission(TIP)),

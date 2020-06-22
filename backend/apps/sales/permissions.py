@@ -163,8 +163,7 @@ class OrderNoProduct(BasePermission):
     message = 'You may only perform this action on orders without an associated product.'
     def has_object_permission(self, request, view, obj):
         from apps.sales.models import Order
-        if not isinstance(obj, Order):
-            obj = obj.order
+        obj = derive_order(obj)
         if obj.product:
             return False
         return True

@@ -17,7 +17,7 @@ from apps.profiles.models import VERIFIED
 from apps.profiles.tests.factories import UserFactory, CharacterFactory
 from apps.profiles.utils import create_guest_user
 from apps.sales.models import Deliverable, Order, NEW, ADD_ON, TransactionRecord, TIP, SHIELD, QUEUED, IN_PROGRESS, \
-    REVIEW, DISPUTED, COMPLETED, PAYMENT_PENDING, BASE_PRICE
+    REVIEW, DISPUTED, COMPLETED, PAYMENT_PENDING, BASE_PRICE, LineItem, EXTRA
 from apps.sales.tests.factories import ProductFactory, DeliverableFactory, add_adjustment, RevisionFactory, \
     LineItemFactory
 from apps.sales.tests.test_utils import TransactionCheckMixin
@@ -416,6 +416,19 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         deliverable = DeliverableFactory.create()
         line_item = add_adjustment(deliverable, Money('5.00', 'USD'))
         self.login(deliverable.order.seller)
+        response = self.client.delete(
+            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/{line_item.id}/',
+        )
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+
+    def test_delete_extra_line_item(self):
+        deliverable = DeliverableFactory.create()
+        line_item = add_adjustment(deliverable, Money('5.00', 'USD'))
+        line_item.type = EXTRA
+        line_item.save()
+        staff = UserFactory.create(is_staff=True)
+        self.login(staff)
         response = self.client.delete(
             f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/{line_item.id}/',
         )

@@ -194,7 +194,7 @@ class DeliverableViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer)
     subscribed = SubscribedField(required=False)
     expected_turnaround = FloatField(read_only=True)
     tip = MoneyToFloatField(read_only=True, validators=[MinValueValidator(0)])
-    adjustment_expected_turnaround = FloatField(read_only=True)
+    adjustment_expected_turnaround = FloatField(read_only=True, max_value=1000, min_value=-1000)
     display = serializers.SerializerMethodField()
     order = OrderViewSerializer(read_only=True)
 
@@ -284,6 +284,10 @@ class DeliverableViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer)
             'tip', 'table_order', 'trust_finalized', 'order', 'name',
         )
         read_only_fields = [field for field in fields if field != 'subscribed']
+        extra_kwargs = {
+            'adjustment_task_weight': {'max_value': 1000, 'min_value': -1000},
+            'adjustment_revisions': {'max_value': 1000, 'min_value': -1000},
+        }
 
 
 class LineItemSerializer(serializers.ModelSerializer):
