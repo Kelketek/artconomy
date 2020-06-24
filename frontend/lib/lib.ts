@@ -696,6 +696,25 @@ export function baseCardSchema(endpoint: string): NamelessFormSchema {
   }
 }
 
+export function baseInvoiceSchema(endpoint: string): NamelessFormSchema {
+  return {
+    method: 'post',
+    endpoint,
+    fields: {
+      price: {value: 25},
+      completed: {value: false},
+      task_weight: {value: 0},
+      revisions: {value: 1},
+      private: {value: false},
+      rating: {value: 0},
+      details: {value: ''},
+      paid: {value: false},
+      hold: {value: false},
+      expected_turnaround: {value: 1},
+    },
+  }
+}
+
 export function deriveDisplayName(username: string) {
   if (!username) {
     return ''

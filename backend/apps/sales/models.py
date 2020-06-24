@@ -550,23 +550,23 @@ def buyer_subscriptions(instance, order_type=None):
 
 
 # noinspection PyUnusedLocal
-@receiver(post_save, sender=Order)
+@receiver(post_save, sender=Deliverable)
 @disable_on_load
-def issue_order_claim(sender: type, instance: Order, created=False, **kwargs):
+def issue_order_claim(sender: type, instance: Deliverable, created=False, **kwargs):
     if not created:
         return
-    if (not instance.buyer) or instance.buyer.guest:
-        instance.claim_token = gen_shortcode()
-        instance.save()
+    if (not instance.order.buyer) or instance.order.buyer.guest:
+        instance.order.claim_token = gen_shortcode()
+        instance.order.save()
     else:
         return
-    if instance.deliverables.filter(status=NEW).exists():
+    if instance.status == NEW:
         # Seller has opted to not send off this notification yet.
         return
     send_transaction_email(
-        f'You have a new invoice from {instance.seller.username}!',
-        'invoice_issued.html', instance.customer_email,
-        {'deliverable': instance, 'claim_token': instance.claim_token}
+        f'You have a new invoice from {instance.order.seller.username}!',
+        'invoice_issued.html', instance.order.customer_email,
+        {'deliverable': instance, 'claim_token': instance.order.claim_token}
     )
 
 

@@ -8,7 +8,7 @@
         <v-row dense>
           <v-col cols="12">
             <ac-link :to="deliverableLink">
-              Deliverable #{{ deliverable.id }}</ac-link>
+              {{deliverable.name}}</ac-link>
           </v-col>
           <v-col cols="12" class="text-center">
             <ac-deliverable-status :deliverable="deliverable" />

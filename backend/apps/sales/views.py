@@ -60,7 +60,7 @@ from apps.sales.permissions import (
     OrderPlacePermission, EscrowPermission, EscrowDisabledPermission, RevisionsVisible,
     BankingConfigured,
     DeliverableStatusPermission, HasRevisionsPermission, OrderTimeUpPermission, NoOrderOutput, PaidOrderPermission,
-    LineItemTypePermission, OrderNoProduct)
+    LineItemTypePermission, OrderNoProduct, LandscapePermission)
 from apps.sales.serializers import (
     ProductSerializer, ProductNewOrderSerializer, DeliverableViewSerializer, CardSerializer,
     NewCardSerializer, PaymentSerializer, RevisionSerializer,
@@ -262,7 +262,7 @@ class OrderDeliverables(ListCreateAPIView):
     permission_classes = [
         Any(
             All(OrderViewPermission, IsSafeMethod),
-            OrderSellerPermission,
+            All(OrderSellerPermission, LandscapePermission),
         )
     ]
 
@@ -319,6 +319,9 @@ class OrderDeliverables(ListCreateAPIView):
             )
         # Trigger line item creation.
         deliverable.save()
+        deliverable.characters.set(serializer.validated_data.get('characters', []))
+        deliverable.reference_set.set(serializer.validated_data.get('references', []))
+        notify(ORDER_UPDATE, deliverable, unique=True, mark_unread=True)
 
 
 
@@ -1003,7 +1006,7 @@ class ApproveFinal(GenericAPIView):
 class CurrentMixin(object):
     @staticmethod
     def extra_filter(qs):
-        return qs.filter(deliverables__status__in=[NEW, PAYMENT_PENDING, QUEUED, IN_PROGRESS, REVIEW, DISPUTED])
+        return qs.filter(deliverables__status__in=[NEW, PAYMENT_PENDING, QUEUED, IN_PROGRESS, REVIEW, DISPUTED]).distinct().order_by('-created_on')
 
 
 class ArchivedMixin(object):
@@ -1011,14 +1014,15 @@ class ArchivedMixin(object):
     def extra_filter(qs):
         return qs.exclude(deliverables__status__in=[NEW, PAYMENT_PENDING, QUEUED, IN_PROGRESS, REVIEW, DISPUTED]).filter(
             deliverables__status=COMPLETED,
-        )
+        ).distinct().order_by('-created_on')
 
 
 class CancelledMixin(object):
     @staticmethod
     def extra_filter(qs):
         return qs.exclude(
-            deliverables__status__in=[NEW, PAYMENT_PENDING, QUEUED, IN_PROGRESS, DISPUTED, REVIEW, COMPLETED])
+            deliverables__status__in=[NEW, PAYMENT_PENDING, QUEUED, IN_PROGRESS, DISPUTED, REVIEW, COMPLETED],
+        ).distinct().order_by('-created_on')
 
 
 class OrderListBase(ListAPIView):
@@ -1932,9 +1936,8 @@ def get_order_facts(product, serializer, seller):
     facts = {
         'table_order': False,
         'hold': serializer.validated_data.get('hold', False),
+        'rating': serializer.validated_data.get('rating', 0),
     }
-    from pprint import pprint
-    pprint(serializer.validated_data)
     if serializer.validated_data['completed']:
         raw_task_weight = 0
         raw_expected_turnaround = 0
@@ -2038,6 +2041,7 @@ class CreateInvoice(GenericAPIView):
                     )
                 # Trigger line item creation.
                 deliverable.save()
+                notify(ORDER_UPDATE, deliverable, unique=True, mark_unread=True)
         except InventoryError:
             return Response(data={'detail': 'This product is out of stock.'}, status=status.HTTP_400_BAD_REQUEST)
         return Response(data=DeliverableViewSerializer(instance=deliverable, context=self.get_serializer_context()).data)

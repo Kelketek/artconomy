@@ -57,7 +57,7 @@ export function genGuest(): User {
   return user
 }
 
-export function genArtistProfile(): ArtistProfile {
+export function genArtistProfile(overrides?: Partial<ArtistProfile>): ArtistProfile {
   return {
     max_load: 10,
     commission_info: 'I draw porn',
@@ -70,6 +70,7 @@ export function genArtistProfile(): ArtistProfile {
     escrow_disabled: false,
     max_rating: 2,
     bank_account_status: 0 as BankStatus.UNSET,
+    ...overrides,
   }
 }
 
@@ -153,7 +154,7 @@ export function genProduct(): Product {
   }
 }
 
-export function genDeliverable(): Deliverable {
+export function genDeliverable(overrides?: Partial<Deliverable>): Deliverable {
   return {
     id: 5,
     name: 'Main',
@@ -194,6 +195,7 @@ export function genDeliverable(): Deliverable {
       preview: null,
     },
     order: genOrder(),
+    ...overrides,
   }
 }
 
@@ -229,6 +231,7 @@ export function genOrder(): Order {
     customer_email: '',
     claim_token: null,
     private: false,
+    deliverable_count: 1,
     default_path: {name: 'Order', params: {orderId: '1', username: 'Fox'}},
     display: {
       file: {

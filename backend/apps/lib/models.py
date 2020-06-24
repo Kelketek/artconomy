@@ -147,12 +147,12 @@ EVENT_TYPES = (
 
 EMAIL_SUBJECTS = {
     COMMISSIONS_OPEN: 'Commissions are open for {{ target.username }}!',
-    ORDER_UPDATE: 'Order #{{ target.id}} has been updated!',
+    ORDER_UPDATE: 'Order #{{ target.order.id}} [{{target.name}}] has been updated!',
     REVISION_UPLOADED: 'New revision for order #{{ target.order.id }} [{{target.name}}]!',
     REFERENCE_UPLOADED: 'New reference for order #{{ target.order.id }} [{{target.name}}]!',
-    SALE_UPDATE: '{% if target.status == 1 %}New Sale!{% else %}Sale #{{ target.id }} has been updated!{% endif %}'
+    SALE_UPDATE: '{% if target.status == 1 %}New Sale!{% else %}Sale #{{ target.order.id }} [{{target.name}}] has been updated!{% endif %}'
                  ' #{{target.id}}',
-    REFUND: 'A refund was issued for Order #{{ target.id }}',
+    REFUND: 'A refund was issued for Order #{{ target.order.id }} [{{target.name}}]',
     COMMENT: '{% if data.subject %}{{ data.subject }}{% else %}New comment on {{ data.name }}{% endif %}',
     RENEWAL_FAILURE: 'Issue with your subscription',
     SUBSCRIPTION_DEACTIVATED: 'Your subscription has been deactivated.',

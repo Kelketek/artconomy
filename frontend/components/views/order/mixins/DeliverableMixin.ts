@@ -9,7 +9,7 @@ import Deliverable from '@/types/Deliverable'
 import {ListController} from '@/store/lists/controller'
 import Submission from '@/types/Submission'
 import {FormController} from '@/store/forms/form-controller'
-import {baseCardSchema} from '@/lib/lib'
+import {baseCardSchema, baseInvoiceSchema} from '@/lib/lib'
 import {LineTypes} from '@/types/LineTypes'
 import DeliverableViewSettings from '@/types/DeliverableViewSettings'
 import {VIEWER_TYPE} from '@/types/VIEWER_TYPE'
@@ -19,6 +19,7 @@ import Revision from '@/types/Revision'
 import LinkedCharacter from '@/types/LinkedCharacter'
 import LineItem from '@/types/LineItem'
 import LinkedReference from '@/types/LinkedReference'
+import Pricing from '@/types/Pricing'
 /*
 
 This mixin is used by all deliverable routes. Some crucial operations only occur in DeliverableDetail as it is the host
@@ -40,6 +41,7 @@ export default class DeliverableMixin extends mixins(Viewer) {
   public order: SingleController<Order> = null as unknown as SingleController<Order>
   public viewSettings = null as unknown as SingleController<DeliverableViewSettings>
   public deliverable: SingleController<Deliverable> = null as unknown as SingleController<Deliverable>
+  public pricing: SingleController<Pricing> = null as unknown as SingleController<Pricing>
   public characters: ListController<LinkedCharacter> = null as unknown as ListController<LinkedCharacter>
   public comments: ListController<Comment> = null as unknown as ListController<Comment>
   public revisions: ListController<Revision> = null as unknown as ListController<Revision>
@@ -49,6 +51,7 @@ export default class DeliverableMixin extends mixins(Viewer) {
   public paymentForm: FormController = null as unknown as FormController
   public tipForm: FormController = null as unknown as FormController
   public addSubmission: FormController = null as unknown as FormController
+  public addDeliverable: FormController = null as unknown as FormController
   public orderEmail: FormController = null as unknown as FormController
   public lineItems: ListController<LineItem> = null as unknown as ListController<LineItem>
   public NEW = 1
@@ -308,11 +311,17 @@ export default class DeliverableMixin extends mixins(Viewer) {
     this.viewSettings = this.$getSingle(
       `${this.prefix}__viewSettings`, {
         x: {
-          viewerType: VIEWER_TYPE.UNSET, showAddSubmission: false, showPayment: false,
+          viewerType: VIEWER_TYPE.UNSET,
+          showAddSubmission: false,
+          showPayment: false,
+          characterInitItems: [],
+          showAddDeliverable: false,
         },
         endpoint: '#',
       },
     )
+    this.pricing = this.$getSingle('pricing', {endpoint: '/api/sales/v1/pricing-info/'})
+    this.pricing.get()
     this.viewSettings.ready = true
     this.order = this.$getSingle(`order${this.orderId}`, {endpoint: this.orderUrl})
     this.deliverable = this.$getSingle(
@@ -372,5 +381,10 @@ export default class DeliverableMixin extends mixins(Viewer) {
         comments_disabled: {value: false},
       },
     })
+    const invoiceSchema = baseInvoiceSchema(`/api/sales/v1/order/${this.orderId}/deliverables/`)
+    invoiceSchema.fields.characters = {value: []}
+    invoiceSchema.fields.references = {value: []}
+    invoiceSchema.fields.name = {value: 'New Deliverable'}
+    this.addDeliverable = this.$getForm(`${this.prefix}__addDeliverable`, invoiceSchema)
   }
 }

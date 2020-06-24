@@ -2,6 +2,7 @@ import logging
 import uuid
 from functools import lru_cache
 
+import html2text
 from avatar.models import Avatar
 from avatar.signals import avatar_updated
 from avatar.templatetags.avatar_tags import avatar_url
@@ -9,7 +10,7 @@ from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.auth import login, authenticate, logout, update_session_auth_hash
 from django.contrib.contenttypes.models import ContentType
-from django.core.mail import EmailMessage
+from django.core.mail import EmailMultiAlternatives
 from django.db.models import Q, Count, QuerySet, Case, When, F, IntegerField, Subquery
 from django.shortcuts import get_object_or_404
 from django.template.loader import get_template
@@ -84,6 +85,7 @@ from apps.sales.models import Order, Reference, Deliverable
 from apps.sales.serializers import SearchQuerySerializer
 from apps.sales.utils import claim_order_by_token
 from apps.tg_bot.models import TelegramDevice
+from shortcuts import gen_textifier
 
 logger = logging.getLogger(__name__)
 
@@ -1300,8 +1302,9 @@ class StartPasswordReset(APIView):
             'user': user,
         }
         message = get_template('profiles/email/password_reset.html').render(ctx)
-        msg = EmailMessage(subject, message, to=to, from_email=from_email)
-        msg.content_subtype = 'html'
+        textifier = gen_textifier()
+        msg = EmailMultiAlternatives(subject, textifier.handle(message), from_email=from_email, to=to)
+        msg.attach_alternative(message, 'text/html')
         msg.send()
         return Response(status=status.HTTP_204_NO_CONTENT)
 

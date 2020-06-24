@@ -27,36 +27,6 @@ describe('DeliverableReferences.vue', () => {
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('Adds character tags to submission form', async() => {
-    setViewer(store, genUser())
-    router.push('/orders/Fox/order/1/deliverables/5')
-    wrapper = mount(
-      DeliverableReferences, {
-        localVue,
-        store,
-        router,
-        vuetify,
-        propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-        sync: false,
-        attachToDocument: true,
-        stubs: ['router-link'],
-      })
-    const vm = wrapper.vm as any
-    vm.deliverable.setX(genDeliverable())
-    vm.deliverable.fetching = false
-    vm.deliverable.ready = true
-    vm.fetching = false
-    vm.revisions.setList([])
-    vm.revisions.fetching = false
-    vm.revisions.ready = true
-    const characterRequest = mockAxios.getReqByUrl('/api/sales/v1/order/1/deliverables/5/characters/')
-    const character = genCharacter()
-    character.tags = ['stuff', 'things', 'wat']
-    mockAxios.mockResponse(rs([{id: 1, character}]), characterRequest)
-    await flushPromises()
-    await vm.$nextTick()
-    expect([...vm.addSubmission.fields.tags.value].sort()).toEqual(['stuff', 'things', 'wat'])
-  })
   it('Autosubmits a reference when a new file is added', async() => {
     const fox = genUser()
     fox.username = 'Fox'

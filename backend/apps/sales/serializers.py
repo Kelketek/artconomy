@@ -17,6 +17,7 @@ from rest_framework.fields import SerializerMethodField, DecimalField, IntegerFi
 from short_stuff import slugify, unslugify
 from short_stuff.django.serializers import ShortCodeField
 
+from apps.lib.abstract_models import GENERAL, EXTREME
 from apps.lib.models import ref_for_instance
 from apps.lib.serializers import (
     RelatedUserSerializer, RelatedAssetField, EventTargetRelatedField, SubscribedField,
@@ -159,6 +160,10 @@ class OrderViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
     seller = RelatedUserSerializer(read_only=True)
     buyer = RelatedUserSerializer(read_only=True)
     product = ProductSerializer(read_only=True)
+    deliverable_count = serializers.SerializerMethodField()
+
+    def get_deliverable_count(self, obj):
+        return obj.deliverables.count()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -194,6 +199,7 @@ class OrderViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
         model = Order
         fields = (
             'id', 'seller', 'buyer', 'product', 'private', 'customer_email', 'claim_token',
+            'deliverable_count',
         )
 
 
@@ -201,6 +207,7 @@ class NewDeliverableSerializer(
     RelatedAtomicMixin, CharacterValidationMixin, PriceValidationMixin, serializers.ModelSerializer,
 ):
     characters = ListField(child=IntegerField(), required=False)
+    references = ListField(child=IntegerField(), required=False)
     price = serializers.DecimalField(
         max_digits=6, decimal_places=2,
     )
@@ -208,15 +215,19 @@ class NewDeliverableSerializer(
     revisions = serializers.IntegerField(min_value=0)
     details = serializers.CharField(max_length=5000)
     hold = serializers.NullBooleanField()
+    rating = serializers.IntegerField(min_value=GENERAL, max_value=EXTREME)
     completed = serializers.NullBooleanField()
     paid = serializers.NullBooleanField()
     expected_turnaround = serializers.DecimalField(
         max_digits=5, decimal_places=2, min_value=settings.MINIMUM_TURNAROUND,
     )
 
+    def validate_references(self, references):
+        return Reference.objects.filter(id__in=references, deliverables__order__seller=self.context['seller'])
+
     def create(self, validated_data):
         validated_data = {**validated_data}
-        for field_name in ['hold', 'completed', 'paid', 'price']:
+        for field_name in ['hold', 'completed', 'paid', 'price', 'characters', 'references']:
             validated_data.pop(field_name, None)
         return super(NewDeliverableSerializer, self).create(validated_data)
 
@@ -224,7 +235,7 @@ class NewDeliverableSerializer(
         model = Deliverable
         fields = (
             'name', 'characters', 'price', 'revisions', 'details', 'details', 'hold', 'expected_turnaround',
-            'completed', 'paid', 'task_weight',
+            'completed', 'paid', 'task_weight', 'references', 'rating',
         )
 
 
@@ -251,11 +262,11 @@ class DeliverableViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer)
             if self.instance.status in [NEW, PAYMENT_PENDING]:
                 for field_name in [
                     'adjustment_expected_turnaround', 'adjustment_task_weight', 'adjustment_revisions',
+                    'name'
                 ]:
                     self.fields[field_name].read_only = False
             # Should never be harmful. Helpful in many statuses.
             self.fields['stream_link'].read_only = False
-            self.fields['name'].read_only = False
         elif self.is_buyer:
             if self.instance.status == PAYMENT_PENDING and self.instance.order.seller.landscape:
                 self.fields['tip'].read_only = False
@@ -639,6 +650,7 @@ class NewInvoiceSerializer(serializers.Serializer, PriceValidationMixin):
     task_weight = serializers.IntegerField(min_value=0)
     revisions = serializers.IntegerField(min_value=0)
     private = serializers.BooleanField()
+    rating = serializers.IntegerField(min_value=GENERAL, max_value=EXTREME)
     details = serializers.CharField(max_length=5000)
     paid = serializers.NullBooleanField()
     hold = serializers.NullBooleanField()

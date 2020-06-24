@@ -32,6 +32,7 @@ dwollav2==2.0.0
 easy_thumbnails==2.7
 factory_boy==2.12.0
 freezegun==0.3.14
+html2text==2020.1.16
 ipython==7.12.0
 mailchimp3==3.0.12
 markdown==3.1.1

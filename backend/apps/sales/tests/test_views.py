@@ -1,14 +1,17 @@
 from decimal import Decimal
 from unittest.mock import patch, Mock
 
+from dateutil.relativedelta import relativedelta
 from ddt import data, unpack, ddt
 from django.core import mail
 from django.test import override_settings
+from django.utils import timezone
 from django.utils.datetime_safe import date
 from freezegun import freeze_time
 from moneyed import Money
 from rest_framework import status
 
+from apps.lib.abstract_models import ADULT
 from apps.lib.models import Comment
 from apps.lib.test_resources import APITestCase, PermissionsTestCase, MethodAccessMixin
 from apps.lib.tests.factories import TagFactory, AssetFactory
@@ -1301,6 +1304,7 @@ class TestCreateInvoice(APITestCase):
             'price': '5.00',
             'details': 'wat',
             'private': False,
+            'rating': ADULT,
             'task_weight': 3,
             'revisions': 3,
             'expected_turnaround': 4,
@@ -1354,6 +1358,7 @@ class TestCreateInvoice(APITestCase):
             'details': 'wat',
             'private': False,
             'task_weight': 3,
+            'rating': ADULT,
             'revisions': 3,
             'paid': False,
             'hold': False,
@@ -1408,6 +1413,7 @@ class TestCreateInvoice(APITestCase):
             'buyer': 'test@example.com',
             'price': '5.00',
             'details': 'oh',
+            'rating': ADULT,
             'private': True,
             'task_weight': 3,
             'revisions': 3,
@@ -1442,6 +1448,7 @@ class TestCreateInvoice(APITestCase):
             'buyer': 'test@example.com',
             'price': '5.00',
             'details': 'oh',
+            'rating': ADULT,
             'private': True,
             'task_weight': 3,
             'revisions': 3,
@@ -1474,6 +1481,7 @@ class TestCreateInvoice(APITestCase):
             'price': '5.00',
             'details': 'oh',
             'private': True,
+            'rating': ADULT,
             'task_weight': 2,
             'paid': False,
             'hold': False,
@@ -1514,6 +1522,7 @@ class TestCreateInvoice(APITestCase):
             'price': '5.00',
             'task_weight': 3,
             'details': 'bla bla',
+            'rating': ADULT,
             'private': True,
             'revisions': 3,
             'expected_turnaround': 4,
@@ -1550,6 +1559,7 @@ class TestCreateInvoice(APITestCase):
             'price': '5.00',
             'paid': True,
             'hold': False,
+            'rating': ADULT,
             'details': 'wat',
             'private': False,
             'task_weight': 3,
@@ -1588,6 +1598,7 @@ class TestCreateInvoice(APITestCase):
             'price': '5.00',
             'paid': True,
             'hold': False,
+            'rating': ADULT,
             'details': 'wat',
             'private': False,
             'task_weight': 3,
@@ -1605,6 +1616,7 @@ class TestCreateInvoice(APITestCase):
         self.assertEqual(response.data['adjustment_expected_turnaround'], -2)
         self.assertEqual(response.data['adjustment_revisions'], -1)
         self.assertFalse(response.data['revisions_hidden'])
+        self.assertEqual(response.data['rating'], ADULT)
         self.assertTrue(response.data['escrow_disabled'])
         self.assertEqual(order.product, product)
         self.assertIsNone(order.claim_token)
@@ -1666,10 +1678,10 @@ class TestPremiumInfo(APITestCase):
 
 class TestOrderAuth(APITestCase):
     def test_anon_to_existing_guest(self):
-        order = OrderFactory.create(buyer=UserFactory.create(
+        order = DeliverableFactory.create(order__buyer=UserFactory.create(
             email='wat@localhost', guest_email='test@example.com', guest=True,
             username='__3'
-        ))
+        )).order
         response = self.client.post(
             '/api/sales/v1/order-auth/',
             {
@@ -1683,7 +1695,7 @@ class TestOrderAuth(APITestCase):
         self.assertEqual(response.data['id'], order.buyer.id)
 
     def test_anon_to_new_guest(self):
-        order = OrderFactory.create(buyer=None, customer_email='test@example.com')
+        order = DeliverableFactory.create(order__buyer=None, order__customer_email='test@example.com').order
         response = self.client.post(
             '/api/sales/v1/order-auth/',
             {
@@ -1700,7 +1712,7 @@ class TestOrderAuth(APITestCase):
         self.assertEqual(response.data['id'], order.buyer.id)
 
     def test_anon_chown_attempt(self):
-        order = OrderFactory.create(buyer=None, customer_email='test@example.com')
+        order = DeliverableFactory.create(order__buyer=None, order__customer_email='test@example.com').order
         response = self.client.post(
             '/api/sales/v1/order-auth/',
             {
@@ -1713,7 +1725,7 @@ class TestOrderAuth(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_seller_chown_attempt(self):
-        order = OrderFactory.create(buyer=None, customer_email='test@example.com')
+        order = DeliverableFactory.create(order__buyer=None, order__customer_email='test@example.com').order
         self.login(order.seller)
         response = self.client.post(
             '/api/sales/v1/order-auth/',
@@ -1727,7 +1739,7 @@ class TestOrderAuth(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_chown_no_guest(self):
-        order = OrderFactory.create(buyer=None, customer_email='test@example.com')
+        order = DeliverableFactory.create(order__buyer=None, order__customer_email='test@example.com').order
         user = UserFactory.create()
         self.login(user)
         response = self.client.post(
@@ -1746,7 +1758,7 @@ class TestOrderAuth(APITestCase):
         self.assertEqual(order.customer_email, '')
 
     def test_order_already_claimed(self):
-        order = OrderFactory.create()
+        order = DeliverableFactory.create().order
         response = self.client.post(
             '/api/sales/v1/order-auth/',
             {
@@ -1759,10 +1771,10 @@ class TestOrderAuth(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_guest_revisiting(self):
-        order = OrderFactory.create(buyer=UserFactory.create(
+        order = DeliverableFactory.create(order__buyer=UserFactory.create(
             email='wat@localhost', guest_email='test@example.com', guest=True,
             username='__3'
-        ))
+        )).order
         self.login(order.buyer)
         response = self.client.post(
             '/api/sales/v1/order-auth/',
@@ -1777,10 +1789,10 @@ class TestOrderAuth(APITestCase):
         self.assertEqual(response.data['username'], '__3')
 
     def test_invalid_token(self):
-        order = OrderFactory.create(buyer=UserFactory.create(
+        order = DeliverableFactory.create(order__buyer=UserFactory.create(
             email='wat@localhost', guest_email='test@example.com', guest=True,
             username='__3'
-        ))
+        )).order
         response = self.client.post(
             '/api/sales/v1/order-auth/',
             {
@@ -1910,6 +1922,7 @@ class TestCreateDeliverable(APITestCase):
             order__product__revisions=1,
             order__product__base_price=Money('3.00', 'USD'),
             order__product__user__artist_profile__bank_account_status=HAS_US_ACCOUNT,
+            order__product__user__landscape_paid_through=timezone.now() + relativedelta(days=5),
         )
         product = old_deliverable.order.product
         self.login(old_deliverable.order.seller)
@@ -1920,6 +1933,7 @@ class TestCreateDeliverable(APITestCase):
             'details': 'wat',
             'task_weight': 3,
             'revisions': 3,
+            'rating': ADULT,
             'expected_turnaround': 4,
             'hold': False,
             'paid': False,
@@ -1931,6 +1945,7 @@ class TestCreateDeliverable(APITestCase):
         self.assertEqual(order.private, False)
         self.assertEqual(response.data['adjustment_task_weight'], -2)
         self.assertEqual(response.data['adjustment_expected_turnaround'], 2.00)
+        self.assertEqual(response.data['rating'], ADULT)
         self.assertEqual(response.data['adjustment_revisions'], 2)
         self.assertTrue(response.data['revisions_hidden'])
         self.assertFalse(response.data['escrow_disabled'])
@@ -1950,3 +1965,51 @@ class TestCreateDeliverable(APITestCase):
         self.assertEqual(item.destination_account, TransactionRecord.ESCROW)
         self.assertEqual(item.percentage, 0)
         self.assertIsNone(order.claim_token)
+
+    def test_create_deliverable_non_landscape(self):
+        old_deliverable = DeliverableFactory.create(
+            order__product__expected_turnaround=2,
+            order__product__task_weight=5,
+            order__product__revisions=1,
+            order__product__base_price=Money('3.00', 'USD'),
+            order__product__user__artist_profile__bank_account_status=HAS_US_ACCOUNT,
+            order__product__user__landscape_paid_through=timezone.now() - relativedelta(days=5),
+        )
+        self.login(old_deliverable.order.seller)
+        response = self.client.post(f'/api/sales/v1/order/{old_deliverable.order.id}/deliverables/', {
+            'name': 'Boop',
+            'completed': False,
+            'price': '5.00',
+            'details': 'wat',
+            'task_weight': 3,
+            'rating': ADULT,
+            'revisions': 3,
+            'expected_turnaround': 4,
+            'hold': False,
+            'paid': False,
+        })
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_create_deliverable_buyer_fail(self):
+        old_deliverable = DeliverableFactory.create(
+            order__product__expected_turnaround=2,
+            order__product__task_weight=5,
+            order__product__revisions=1,
+            order__product__base_price=Money('3.00', 'USD'),
+            order__product__user__artist_profile__bank_account_status=HAS_US_ACCOUNT,
+            order__product__user__landscape_paid_through=timezone.now() + relativedelta(days=5),
+        )
+        self.login(old_deliverable.order.buyer)
+        response = self.client.post(f'/api/sales/v1/order/{old_deliverable.order.id}/deliverables/', {
+            'name': 'Boop',
+            'completed': False,
+            'price': '5.00',
+            'details': 'wat',
+            'task_weight': 3,
+            'revisions': 3,
+            'rating': ADULT,
+            'expected_turnaround': 4,
+            'hold': False,
+            'paid': False,
+        })
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

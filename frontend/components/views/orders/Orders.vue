@@ -61,106 +61,7 @@
     </v-tabs-items>
     <ac-add-button v-if="isSales" v-model="showNewInvoice">Create Invoice</ac-add-button>
     <ac-form-dialog v-bind="newInvoice.bind" @submit.prevent="newInvoice.submitThen(goToOrder)" v-model="showNewInvoice" :large="true" title="Issue new Invoice">
-      <v-row>
-        <v-col cols="12" sm="6" >
-          <ac-bound-field
-            :field="newInvoice.fields.product"
-            field-type="ac-product-select"
-            :multiple="false"
-            :username="username"
-            label="Product"
-            hint="Optional: Specify which of your product this invoice is for. This can help with organization.
-                  If no product is specified, this will be considered a custom order."
-            :persistent-hint="true"
-          ></ac-bound-field>
-        </v-col>
-        <v-col cols="12" sm="6">
-          <ac-price-preview  :lineItems="lineItems" :escrow="!escrowDisabled" :username="username" />
-        </v-col>
-        <v-col cols="12" sm="6" >
-          <ac-bound-field
-            :field="newInvoice.fields.price"
-            field-type="ac-price-field"
-            label="Total Price"
-          ></ac-bound-field>
-        </v-col>
-        <v-col cols="12" sm="6" >
-          <ac-bound-field
-            label="Customer username/email"
-            :field="newInvoice.fields.buyer"
-            field-type="ac-user-select"
-            item-value="username"
-            :multiple="false"
-            :allow-raw="true"
-            hint="Enter the username or the email address of the customer this commission is for.
-                  This can be left blank if you only want to use this order for tracking purposes."
-          />
-        </v-col>
-        <v-col cols="12" sm="4" >
-          <ac-bound-field field-type="v-checkbox"
-                          label="Paid"
-                          :field="newInvoice.fields.paid"
-                          hint="If the commissioner has already paid, and you just want to track this order,
-                                please check this box."
-                          :persistent-hint="true"
-          />
-        </v-col>
-        <v-col cols="12" sm="4" >
-          <ac-bound-field field-type="v-checkbox"
-                          label="Already Complete"
-                          :field="newInvoice.fields.completed"
-                          hint="If you have already completed the commission you're invoicing, please check this box."
-                          :persistent-hint="true"
-          />
-        </v-col>
-        <v-col cols="12" sm="4" >
-          <ac-bound-field field-type="v-checkbox"
-                          label="Hold for Edit"
-                          :disabled="newInvoice.fields.paid.model"
-                          :field="newInvoice.fields.hold"
-                          hint="If you want to edit the line items on this invoice before sending it for payment, check this box."
-                          :persistent-hint="true"
-          />
-        </v-col>
-        <v-col cols="12" sm="4" >
-          <ac-bound-field
-            label="Slots taken"
-            :field="newInvoice.fields.task_weight"
-            :persistent-hint="true"
-            :disabled="newInvoice.fields.completed.value"
-            hint="How many of your slots this commission will take up."
-          />
-        </v-col>
-        <v-col cols="12" sm="4" >
-          <ac-bound-field
-            label="Revisions included"
-            :field="newInvoice.fields.revisions"
-            :persistent-hint="true"
-            :disabled="newInvoice.fields.completed.value"
-            hint="The total number of times the buyer will be able to ask for revisions.
-                  This does not include the final, so if there are no revisions, set this to zero."
-            />
-        </v-col>
-        <v-col cols="12" sm="4" >
-          <ac-bound-field
-            label="Expected turnaround (days)"
-            :field="newInvoice.fields.revisions"
-            :persistent-hint="true"
-            :disabled="newInvoice.fields.completed.value"
-            hint="The total number of business days you expect this task will take."
-          />
-        </v-col>
-        <v-col cols="12" >
-          <ac-bound-field
-            label="description"
-            :field="newInvoice.fields.details"
-            field-type="ac-editor"
-            :save-indicator="false"
-            hint="Enter any information you need to remember in order to complete this commission.
-                  NOTE: This information will be visible to the buyer."
-          />
-        </v-col>
-      </v-row>
+      <ac-invoice-form :escrow-disabled="escrowDisabled" :line-items="lineItems" :new-invoice="newInvoice" :username="username" />
     </ac-form-dialog>
   </v-container>
 </template>
@@ -179,12 +80,13 @@ import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import AcBoundField from '@/components/fields/AcBoundField'
 import Product from '@/types/Product'
 import AcPricePreview from '@/components/price_preview/AcPricePreview.vue'
-import Order from '@/types/Order'
-import LineItem from '@/types/LineItem'
-import {LineTypes} from '@/types/LineTypes'
 import Pricing from '@/types/Pricing'
+import {baseInvoiceSchema} from '@/lib/lib'
+import AcInvoiceForm from '@/components/views/orders/AcInvoiceForm.vue'
+import {invoiceLines} from '@/lib/lineItemFunctions'
+import Deliverable from '@/types/Deliverable'
 @Component({
-  components: {AcPricePreview, AcBoundField, AcFormDialog, AcAddButton, AcPaginated, AcLoadSection},
+  components: {AcInvoiceForm, AcPricePreview, AcBoundField, AcFormDialog, AcAddButton, AcPaginated, AcLoadSection},
 })
 export default class Orders extends mixins(Subjective) {
   public pricing: SingleController<Pricing> = null as unknown as SingleController<Pricing>
@@ -229,110 +131,23 @@ export default class Orders extends mixins(Subjective) {
     this.newInvoice.fields.task_weight.update(val)
   }
 
-  public goToOrder(order: Order) {
-    this.$router.push({name: 'Sale', params: {username: this.username, orderId: order.id + ''}})
+  public goToOrder(deliverable: Deliverable) {
+    this.$router.push({
+      name: 'SaleDeliverableOverview',
+      params: {username: this.username, orderId: deliverable.order.id + '', deliverableId: deliverable.id + ''},
+    })
   }
 
   public get lineItems() {
-    const linesController = this.$getList('newProductLines', {endpoint: '????', paginated: false})
+    const linesController = this.$getList('newProductLines', {endpoint: '#', paginated: false})
     linesController.ready = true
-    if (!(this.pricing.x)) {
-      linesController.setList([])
-      return linesController
-    }
-    const lines: LineItem[] = []
-    let addOnPrice = parseFloat(this.newInvoice.fields.price.value)
-    const shieldLines: LineItem[] = [
-      {
-        id: -5,
-        priority: 300,
-        type: LineTypes.SHIELD,
-        cascade_percentage: true,
-        cascade_amount: true,
-        back_into_percentage: false,
-        amount: this.pricing.x.standard_static,
-        percentage: this.pricing.x.standard_percentage,
-        description: '',
-      }, {
-        id: -6,
-        priority: 300,
-        type: LineTypes.BONUS,
-        cascade_percentage: true,
-        cascade_amount: true,
-        back_into_percentage: false,
-        amount: this.pricing.x.premium_static_bonus,
-        percentage: this.pricing.x.premium_percentage_bonus,
-        description: '',
-      },
-    ]
-    if (this.invoiceProduct.x) {
-      lines.push({
-        id: -1,
-        priority: 0,
-        type: LineTypes.BASE_PRICE,
-        amount: this.invoiceProduct.x.base_price,
-        percentage: 0,
-        description: '',
-        cascade_amount: false,
-        cascade_percentage: false,
-        back_into_percentage: false,
-      })
-      addOnPrice = addOnPrice - this.invoiceProduct.x.starting_price
-      if (!isNaN(addOnPrice) && addOnPrice) {
-        lines.push({
-          id: -2,
-          priority: 100,
-          type: LineTypes.ADD_ON,
-          amount: addOnPrice,
-          percentage: 0,
-          description: '',
-          cascade_amount: false,
-          cascade_percentage: false,
-          back_into_percentage: false,
-        })
-      }
-      if (this.invoiceProduct.x.table_product) {
-        lines.push({
-          id: -3,
-          priority: 400,
-          type: LineTypes.TABLE_SERVICE,
-          cascade_percentage: true,
-          cascade_amount: false,
-          back_into_percentage: false,
-          amount: this.pricing.x.table_static,
-          percentage: this.pricing.x.table_percentage,
-          description: '',
-        }, {
-          id: -4,
-          priority: 700,
-          type: LineTypes.TAX,
-          cascade_percentage: true,
-          cascade_amount: true,
-          back_into_percentage: true,
-          percentage: this.pricing.x.table_tax,
-          description: '',
-          amount: 0,
-        })
-      } else if (!this.escrowDisabled) {
-        lines.push(...shieldLines)
-      }
-    } else if (!isNaN(addOnPrice)) {
-      lines.push({
-        id: -1,
-        priority: 0,
-        type: LineTypes.BASE_PRICE,
-        amount: addOnPrice,
-        percentage: 0,
-        description: '',
-        cascade_amount: false,
-        cascade_percentage: false,
-        back_into_percentage: true,
-      })
-      if (!this.escrowDisabled) {
-        lines.push(...shieldLines)
-      }
-    }
-    linesController.setList(lines)
+    invoiceLines({
+      linesController,
+      pricing: (this.pricing.x || null),
+      escrowDisabled: this.escrowDisabled,
+      product: (this.invoiceProduct.x || null),
+      value: this.newInvoice.fields.price.value,
+    })
     return linesController
   }
 
@@ -383,22 +198,11 @@ export default class Orders extends mixins(Subjective) {
       this.stats.get()
       this.subjectHandler.artistProfile.get()
     }
-    this.newInvoice = this.$getForm('newInvoice', {
-      endpoint: `/api/sales/v1/account/${this.username}/create-invoice/`,
-      fields: {
-        product: {value: null},
-        buyer: {value: ''},
-        price: {value: 25},
-        completed: {value: false},
-        task_weight: {value: 0},
-        revisions: {value: 1},
-        private: {value: false},
-        details: {value: ''},
-        paid: {value: false},
-        hold: {value: !this.isCurrent},
-        expected_turnaround: {value: 1},
-      },
-    })
+    const invoiceSchema = baseInvoiceSchema(`/api/sales/v1/account/${this.username}/create-invoice/`)
+    invoiceSchema.fields.hold.value = !this.isCurrent
+    invoiceSchema.fields.product = {value: null}
+    invoiceSchema.fields.buyer = {value: ''}
+    this.newInvoice = this.$getForm('newInvoice', invoiceSchema)
   }
 }
 </script>

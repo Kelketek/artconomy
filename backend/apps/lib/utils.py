@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
-from django.core.mail import EmailMessage
+from django.core.mail import EmailMessage, EmailMultiAlternatives
 from django.db import connection
 from django.db.models import Q, Model, Subquery, IntegerField
 from django.db.models.signals import pre_delete
@@ -31,7 +31,7 @@ from telegram import Bot
 
 from apps.lib.models import Subscription, Event, Notification, Tag, Comment, COMMENT, \
     NEW_PRODUCT, COMMISSIONS_OPEN, NEW_CHARACTER, STREAMING, EMAIL_SUBJECTS, NEW_JOURNAL
-from shortcuts import make_url, disable_on_load
+from shortcuts import make_url, disable_on_load, gen_textifier
 
 BOT = None
 logger = logging.getLogger(__name__)
@@ -315,10 +315,11 @@ def notify(
             to = [subscription.subscriber.guest_email or subscription.subscriber.email]
             from_email = settings.DEFAULT_FROM_EMAIL
             message = get_template(template_path).render(ctx)
-            msg = EmailMessage(
-                subject, message, to=to, from_email=from_email, headers={'Return-Path': settings.RETURN_PATH_EMAIL}
+            textifier = gen_textifier()
+            msg = EmailMultiAlternatives(
+                subject, textifier.handle(message), to=to, from_email=from_email, headers={'Return-Path': settings.RETURN_PATH_EMAIL}
             )
-            msg.content_subtype = 'html'
+            msg.attach_alternative(message, 'text/html')
             msg.send()
 
     telegram_subscriptions = subscriptions.filter(telegram=True)
@@ -610,11 +611,12 @@ def send_transaction_email(subject, template_name, user, context):
         to = [user.email]
     from_email = settings.DEFAULT_FROM_EMAIL
     message = get_template(template_path).render(context)
-    msg = EmailMessage(
-        subject, message, to=to, from_email=from_email,
+    textifier = gen_textifier()
+    msg = EmailMultiAlternatives(
+        subject, textifier.handle(message), to=to, from_email=from_email,
         headers={'Return-Path': settings.RETURN_PATH_EMAIL}
     )
-    msg.content_subtype = 'html'
+    msg.attach_alternative(message, 'text/html')
     msg.send()
 
 

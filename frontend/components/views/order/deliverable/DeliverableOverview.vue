@@ -32,7 +32,8 @@
                   <h2><span v-if="isSeller">Sale</span>
                     <span v-else-if="isArbitrator">Case</span>
                     <span v-else>Order</span>
-                    #{{order.x.id}} - [{{deliverable.x.name}}] Details:</h2>
+                    #{{order.x.id}} <span v-if="!isSeller || !(is(NEW) || is(PAYMENT_PENDING))">- [{{deliverable.x.name}}] Details:</span></h2>
+                  <ac-patch-field :patcher="deliverable.patchers.name" label="Deliverable Name" v-if="isSeller && (is(NEW) || is(PAYMENT_PENDING))"></ac-patch-field>
                 </v-col>
                 <v-col class="text-right" align-self="center">
                   <v-chip color="white" light v-if="order.x.private" class="ma-1">
@@ -78,6 +79,14 @@
                   </ac-form-container>
                 </ac-form>
               </v-col>
+              <v-row>
+                <v-col class="text-center" v-if="isSeller && seller.landscape">
+                  <v-btn color="green" class="add-deliverable" @click="viewSettings.patchers.showAddDeliverable.model = true">Add Stage/Deliverable</v-btn>
+                </v-col>
+                <v-col class="text-center" v-if="order.x.deliverable_count > 1">
+                  <v-btn color="primary" :to="{name: baseName, params: {orderId, username: $route.params.username}}">See All Deliverables</v-btn>
+                </v-col>
+              </v-row>
               <v-subheader v-if="commissionInfo">Commission Info</v-subheader>
               <ac-rendered :value="commissionInfo" :truncate="200" />
             </v-card-text>

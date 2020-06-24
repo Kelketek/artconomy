@@ -3,7 +3,7 @@ from collections import OrderedDict
 from django.apps import apps
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
-from django.core.mail import EmailMessage
+from django.core.mail import EmailMessage, EmailMultiAlternatives
 from django.db.models.query import ModelIterable
 
 from django.http import Http404
@@ -36,6 +36,7 @@ from apps.lib.utils import (
 from apps.profiles.models import User
 from apps.profiles.permissions import ObjectControls, IsRegistered
 from apps.profiles.serializers import ContactSerializer
+from shortcuts import gen_textifier
 from views import bad_request, base_template
 
 
@@ -340,12 +341,14 @@ class SupportRequest(APIView):
             'user_agent': request.META.get('HTTP_USER_AGENT')
         }
         message = get_template('support_email.txt').render(ctx)
-        msg = EmailMessage(
+        textifier = gen_textifier()
+        msg = EmailMultiAlternatives(
             subject,
-            message,
+            textifier(message),
             to=[settings.ADMINS[0][1]],
             headers={'Reply-To': from_email}
         )
+        msg.attach_alternative(message, 'text/html')
         msg.send()
         return Response(status=status.HTTP_204_NO_CONTENT)
 

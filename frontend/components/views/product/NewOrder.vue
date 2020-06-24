@@ -101,6 +101,7 @@
                     <v-col cols="12">
                       <v-alert type="info" :value="true">
                         Once your order is placed, the artist will review your request, make any adjustments to the quote as needed, and present them for your approval and payment. We will update you via email as things progress.
+                        <strong>You will have the opportunity to attach additional reference images after the order is placed.</strong>
                       </v-alert>
                     </v-col>
                     <v-col class="text-center" cols="12" >

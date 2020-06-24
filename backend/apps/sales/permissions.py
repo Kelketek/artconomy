@@ -173,3 +173,9 @@ class ReferenceViewPermission(BasePermission):
     message = 'You are not permitted to get that reference.'
     def has_object_permission(self, request, view, obj):
         return obj.deliverables.filter(Q(order__buyer=request.user) | Q(order__seller=request.user)).exists()
+
+
+class LandscapePermission(BasePermission):
+    message = 'This feature only available to Landscape subscribers.'
+    def has_permission(self, request, view):
+        return request.user.landscape

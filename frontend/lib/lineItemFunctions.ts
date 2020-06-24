@@ -6,6 +6,10 @@ import {LineMoneyMap} from '@/types/LineMoneyMap'
 import LineAccumulator from '@/types/LineAccumulator'
 import {LineTypes} from '@/types/LineTypes'
 import Big from 'big.js'
+import {ListController} from '@/store/lists/controller'
+import {SingleController} from '@/store/singles/controller'
+import Pricing from '@/types/Pricing'
+import Product from '@/types/Product'
 
 export function linesByPriority(lines: LineItem[]): Array<LineItem[]> {
   const prioritySets: {[key: number]: LineItem[]} = {}
@@ -174,4 +178,117 @@ export function totalForTypes(accumulator: LineAccumulator, types: LineTypes[]) 
 
 export function sum(list: Big[]): Big {
   return list.reduce((a: Big, b: Big) => (a.plus(b)), Big(0))
+}
+
+export function invoiceLines(
+  options: {
+    linesController: ListController<LineItem>,
+    pricing: Pricing|null,
+    value: string,
+    escrowDisabled: boolean,
+    product: Product|null,
+  }
+) {
+  const pricing = options.pricing
+  const value = options.value
+  const linesController = options.linesController
+  const escrowDisabled = options.escrowDisabled
+  const product = options.product
+  if (!(pricing)) {
+    linesController.setList([])
+    return linesController
+  }
+  const lines: LineItem[] = []
+  let addOnPrice = parseFloat(value)
+  const shieldLines: LineItem[] = [
+    {
+      id: -5,
+      priority: 300,
+      type: LineTypes.SHIELD,
+      cascade_percentage: true,
+      cascade_amount: true,
+      back_into_percentage: false,
+      amount: pricing.standard_static,
+      percentage: pricing.standard_percentage,
+      description: '',
+    }, {
+      id: -6,
+      priority: 300,
+      type: LineTypes.BONUS,
+      cascade_percentage: true,
+      cascade_amount: true,
+      back_into_percentage: false,
+      amount: pricing.premium_static_bonus,
+      percentage: pricing.premium_percentage_bonus,
+      description: '',
+    },
+  ]
+  if (product) {
+    lines.push({
+      id: -1,
+      priority: 0,
+      type: LineTypes.BASE_PRICE,
+      amount: product.base_price,
+      percentage: 0,
+      description: '',
+      cascade_amount: false,
+      cascade_percentage: false,
+      back_into_percentage: false,
+    })
+    addOnPrice = addOnPrice - product.starting_price
+    if (!isNaN(addOnPrice) && addOnPrice) {
+      lines.push({
+        id: -2,
+        priority: 100,
+        type: LineTypes.ADD_ON,
+        amount: addOnPrice,
+        percentage: 0,
+        description: '',
+        cascade_amount: false,
+        cascade_percentage: false,
+        back_into_percentage: false,
+      })
+    }
+    if (product.table_product) {
+      lines.push({
+        id: -3,
+        priority: 400,
+        type: LineTypes.TABLE_SERVICE,
+        cascade_percentage: true,
+        cascade_amount: false,
+        back_into_percentage: false,
+        amount: pricing.table_static,
+        percentage: pricing.table_percentage,
+        description: '',
+      }, {
+        id: -4,
+        priority: 700,
+        type: LineTypes.TAX,
+        cascade_percentage: true,
+        cascade_amount: true,
+        back_into_percentage: true,
+        percentage: pricing.table_tax,
+        description: '',
+        amount: 0,
+      })
+    } else if (!escrowDisabled) {
+      lines.push(...shieldLines)
+    }
+  } else if (!isNaN(addOnPrice)) {
+    lines.push({
+      id: -1,
+      priority: 0,
+      type: LineTypes.BASE_PRICE,
+      amount: addOnPrice,
+      percentage: 0,
+      description: '',
+      cascade_amount: false,
+      cascade_percentage: false,
+      back_into_percentage: true,
+    })
+    if (!escrowDisabled) {
+      lines.push(...shieldLines)
+    }
+  }
+  linesController.setList(lines)
 }

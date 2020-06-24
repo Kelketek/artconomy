@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import {Vuetify} from 'vuetify/types'
-import {cleanUp, confirmAction, createVuetify, flushPromises, rs, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, flushPromises, rs, setViewer, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import {mount, Wrapper} from '@vue/test-utils'
 import DeliverableDetail from '@/components/views/order/DeliverableDetail.vue'
@@ -13,6 +13,7 @@ import Router from 'vue-router'
 import Order from '@/types/Order'
 import {deliverableRouter} from '@/components/views/order/specs/helpers'
 import {VIEWER_TYPE} from '@/types/VIEWER_TYPE'
+import {genCharacter} from '@/store/characters/specs/fixtures'
 
 const localVue = vueSetup()
 localVue.use(Router)
@@ -467,5 +468,66 @@ describe('DeliverableDetail.vue', () => {
     vm.order.makeReady(deliverable.order)
     await vm.$nextTick()
     expect(vm.revisionCount).toBe(3)
+  })
+  it('Adds character tags to submission form', async() => {
+    setViewer(store, genUser())
+    router.push('/orders/Fox/order/1/deliverables/5')
+    wrapper = mount(
+      DeliverableDetail, {
+        localVue,
+        store,
+        router,
+        vuetify,
+        propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
+        sync: false,
+        attachToDocument: true,
+        stubs: ['router-link'],
+      })
+    const vm = wrapper.vm as any
+    vm.deliverable.setX(genDeliverable())
+    vm.deliverable.fetching = false
+    vm.deliverable.ready = true
+    vm.fetching = false
+    vm.revisions.setList([])
+    vm.revisions.fetching = false
+    vm.revisions.ready = true
+    await vm.$nextTick()
+    const characterRequest = mockAxios.getReqByUrl('/api/sales/v1/order/1/deliverables/5/characters/')
+    const character = genCharacter()
+    character.tags = ['stuff', 'things', 'wat']
+    mockAxios.mockResponse(rs([{id: 1, character}]), characterRequest)
+    await flushPromises()
+    await vm.$nextTick()
+    expect([...vm.addSubmission.fields.tags.value].sort()).toEqual(['stuff', 'things', 'wat'])
+  })
+  it('Visits a newly created Deliverable', async() => {
+    const vulpes = genUser({username: 'Vulpes', landscape: true})
+    setViewer(store, vulpes)
+    router.push('/orders/Vulpes/order/1/deliverables/5/overview')
+    const mockPush = jest.spyOn(router, 'push')
+    wrapper = mount(
+      DeliverableDetail, {
+        localVue,
+        store,
+        router,
+        vuetify,
+        propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Vulpes'},
+        sync: false,
+        attachToDocument: true,
+        stubs: ['router-link'],
+      })
+    const vm = wrapper.vm as any
+    const deliverable = genDeliverable()
+    const order = deliverable.order
+    order.seller = vulpes
+    vm.deliverable.makeReady(deliverable)
+    vm.order.makeReady(order)
+    mockAxios.reset()
+    vm.addDeliverable.submitThen(vm.visitDeliverable)
+    const newDeliverable = genDeliverable({id: 20})
+    mockAxios.mockResponse(rs(newDeliverable))
+    await flushPromises()
+    await vm.$nextTick()
+    expect(mockPush).toHaveBeenCalledWith({name: 'OrderDeliverableOverview', params: {orderId: '1', deliverableId: '20', username: 'Vulpes'}})
   })
 })

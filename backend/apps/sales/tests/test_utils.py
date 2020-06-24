@@ -95,7 +95,7 @@ class BalanceTestCase(SignalsDisabledMixin, FixtureBase, TestCase):
 class TestClaim(TestCase):
     def test_order_claim(self):
         user = UserFactory.create()
-        order = OrderFactory.create(buyer=None)
+        order = DeliverableFactory.create(order__buyer=None).order
         claim_order_by_token(str(order.claim_token), user)
         order.refresh_from_db()
         self.assertEqual(order.buyer, user)
@@ -103,7 +103,7 @@ class TestClaim(TestCase):
 
     def test_order_claim_fail_self(self):
         user = UserFactory.create()
-        order = OrderFactory.create(buyer=None, seller=user, product__user=user)
+        order = DeliverableFactory.create(order__buyer=None, order__seller=user, order__product__user=user).order
         original_token = order.claim_token
         claim_order_by_token(str(order.claim_token), user)
         order.refresh_from_db()
@@ -114,7 +114,7 @@ class TestClaim(TestCase):
     @patch('apps.sales.utils.transfer_order')
     def test_order_claim_none(self, mock_transfer):
         user = UserFactory.create()
-        order = OrderFactory.create(buyer=None)
+        order = DeliverableFactory.create(order__buyer=None).order
         claim_order_by_token(None, user)
         mock_transfer.assert_not_called()
         order.refresh_from_db()
@@ -122,7 +122,7 @@ class TestClaim(TestCase):
 
     def test_order_claim_string(self):
         user = UserFactory.create()
-        order = OrderFactory.create(buyer=None)
+        order = DeliverableFactory.create(order__buyer=None).order
         claim_order_by_token(str(order.claim_token), user)
         order.refresh_from_db()
         self.assertEqual(order.buyer, user)

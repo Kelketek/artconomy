@@ -49,12 +49,9 @@
 
 <script lang="ts">
 import Component, {mixins} from 'vue-class-component'
-import {ListController} from '@/store/lists/controller'
-import LinkedCharacter from '@/types/LinkedCharacter'
 import DeliverableMixin from '@/components/views/order/mixins/DeliverableMixin'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcCharacterDisplay from '@/components/views/submission/AcCharacterDisplay.vue'
-import LinkedReference from '@/types/LinkedReference'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcBoundField from '@/components/fields/AcBoundField'
@@ -68,15 +65,6 @@ import AcLink from '@/components/wrappers/AcLink.vue'
 })
 export default class DeliverableReferences extends mixins(DeliverableMixin) {
   public newReference: FormController = null as unknown as FormController
-
-  public addTags() {
-    const tags = []
-    for (const char of this.characters.list) {
-      const character = char.x as LinkedCharacter
-      tags.push(...character.character.tags)
-    }
-    this.addSubmission.fields.tags.update([...new Set(tags)])
-  }
 
   public get isRoute() {
     return this.$route.name === `${this.baseName}DeliverableReferences`
@@ -100,7 +88,6 @@ export default class DeliverableReferences extends mixins(DeliverableMixin) {
   }
 
   public created() {
-    this.characters.firstRun().then(this.addTags)
     this.references.firstRun()
     /* istanbul ignore next */
     const deliverableRating = this.deliverable.x && this.deliverable.x.rating
