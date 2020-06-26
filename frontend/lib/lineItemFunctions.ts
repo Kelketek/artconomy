@@ -182,7 +182,6 @@ export function sum(list: Big[]): Big {
 
 export function invoiceLines(
   options: {
-    linesController: ListController<LineItem>,
     pricing: Pricing|null,
     value: string,
     escrowDisabled: boolean,
@@ -191,12 +190,10 @@ export function invoiceLines(
 ) {
   const pricing = options.pricing
   const value = options.value
-  const linesController = options.linesController
   const escrowDisabled = options.escrowDisabled
   const product = options.product
   if (!(pricing)) {
-    linesController.setList([])
-    return linesController
+    return []
   }
   const lines: LineItem[] = []
   let addOnPrice = parseFloat(value)
@@ -290,5 +287,5 @@ export function invoiceLines(
       lines.push(...shieldLines)
     }
   }
-  linesController.setList(lines)
+  return lines
 }

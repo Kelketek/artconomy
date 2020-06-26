@@ -2013,3 +2013,29 @@ class TestCreateDeliverable(APITestCase):
             'paid': False,
         })
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class TestBroadcast(APITestCase):
+    def test_no_orders(self):
+        user = UserFactory.create()
+        self.login(user)
+        response = self.client.post(f'/api/sales/v1/account/{user.username}/broadcast/', {'text': 'Boop'})
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.data['detail'], 'You have no open orders to broadcast to.')
+
+    def test_broadcast(self):
+        deliverable = DeliverableFactory.create()
+        self.login(deliverable.order.seller)
+        deliverable2 = DeliverableFactory.create(order=deliverable.order)
+        deliverable3 = DeliverableFactory.create(order__seller=deliverable.order.seller)
+        deliverable4 = DeliverableFactory.create()
+        response = self.client.post(
+            f'/api/sales/v1/account/{deliverable.order.seller.username}/broadcast/', {'text': 'Boop'},
+        )
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(deliverable.comments.all().count() + deliverable2.comments.all().count(), 1)
+        self.assertEqual(deliverable3.comments.all().count(), 1)
+        comment = deliverable3.comments.all()[0]
+        self.assertEqual(comment.text, 'Boop')
+        self.assertEqual(comment.user, deliverable3.order.seller)
+        self.assertEqual(deliverable4.comments.all().count(), 0)

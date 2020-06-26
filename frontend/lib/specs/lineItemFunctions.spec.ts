@@ -1,6 +1,7 @@
-import {genLineItem} from '@/lib/specs/helpers'
-import {getTotals, linesByPriority, reckonLines, sum} from '@/lib/lineItemFunctions'
+import {genLineItem, genPricing} from '@/lib/specs/helpers'
+import {getTotals, invoiceLines, linesByPriority, reckonLines, sum} from '@/lib/lineItemFunctions'
 import Big from 'big.js'
+import {genProduct} from '@/specs/helpers/fixtures'
 
 describe('lineItemFunctions.ts', () => {
   it('Sorts by priority', () => {
@@ -522,5 +523,202 @@ describe('lineItemFunctions.ts', () => {
       total: Big('315'),
       discount: Big('0.00'),
     })
+  })
+  it('Generates preview line items for a null product', async() => {
+    expect(invoiceLines({escrowDisabled: false, pricing: genPricing(), value: '25.00', product: null})).toEqual([
+      {
+        id: -1,
+        priority: 0,
+        type: 0,
+        amount: 25,
+        percentage: 0,
+        description: '',
+        cascade_amount: false,
+        cascade_percentage: false,
+        back_into_percentage: true,
+      },
+      {
+        id: -5,
+        priority: 300,
+        type: 2,
+        cascade_percentage: true,
+        cascade_amount: true,
+        back_into_percentage: false,
+        amount: 0.5,
+        percentage: 4,
+        description: '',
+      },
+      {
+        id: -6,
+        priority: 300,
+        type: 3,
+        cascade_percentage: true,
+        cascade_amount: true,
+        back_into_percentage: false,
+        amount: 0.25,
+        percentage: 4,
+        description: '',
+      },
+    ])
+  })
+  it('Generates preview line items for a product', async() => {
+    expect(invoiceLines({escrowDisabled: false, pricing: genPricing(), value: '25.00', product: genProduct()})).toEqual([
+      {
+        id: -1,
+        priority: 0,
+        type: 0,
+        amount: 10,
+        percentage: 0,
+        description: '',
+        cascade_amount: false,
+        cascade_percentage: false,
+        back_into_percentage: false,
+      },
+      {
+        id: -2,
+        priority: 100,
+        type: 1,
+        amount: 15,
+        percentage: 0,
+        description: '',
+        cascade_amount: false,
+        cascade_percentage: false,
+        back_into_percentage: false,
+      },
+      {
+        id: -5,
+        priority: 300,
+        type: 2,
+        cascade_percentage: true,
+        cascade_amount: true,
+        back_into_percentage: false,
+        amount: 0.5,
+        percentage: 4,
+        description: '',
+      },
+      {
+        id: -6,
+        priority: 300,
+        type: 3,
+        cascade_percentage: true,
+        cascade_amount: true,
+        back_into_percentage: false,
+        amount: 0.25,
+        percentage: 4,
+        description: '',
+      },
+    ])
+  })
+  it('Generates preview for a table product', async() => {
+    expect(invoiceLines({
+      escrowDisabled: false,
+      pricing: genPricing(),
+      value: '25.00',
+      product: genProduct({table_product: true}),
+    })).toEqual([
+      {
+        id: -1,
+        priority: 0,
+        type: 0,
+        amount: 10,
+        percentage: 0,
+        description: '',
+        cascade_amount: false,
+        cascade_percentage: false,
+        back_into_percentage: false,
+      },
+      {
+        id: -2,
+        priority: 100,
+        type: 1,
+        amount: 15,
+        percentage: 0,
+        description: '',
+        cascade_amount: false,
+        cascade_percentage: false,
+        back_into_percentage: false,
+      },
+      {
+        id: -3,
+        priority: 400,
+        type: 5,
+        cascade_percentage: true,
+        cascade_amount: false,
+        back_into_percentage: false,
+        amount: 5,
+        percentage: 10,
+        description: '',
+      },
+      {
+        id: -4,
+        priority: 700,
+        type: 6,
+        cascade_percentage: true,
+        cascade_amount: true,
+        back_into_percentage: true,
+        percentage: 8.25,
+        description: '',
+        amount: 0,
+      },
+    ])
+  })
+  it('Generates preview line items for a null product with no escrow', async() => {
+    expect(invoiceLines({escrowDisabled: true, pricing: genPricing(), value: '25.00', product: null})).toEqual([
+      {
+        id: -1,
+        priority: 0,
+        type: 0,
+        amount: 25,
+        percentage: 0,
+        description: '',
+        cascade_amount: false,
+        cascade_percentage: false,
+        back_into_percentage: true,
+      },
+    ])
+  })
+  it('Generates preview line items for a product with no escrow', async() => {
+    expect(invoiceLines({escrowDisabled: true, pricing: genPricing(), value: '25.00', product: genProduct()})).toEqual([
+      {
+        id: -1,
+        priority: 0,
+        type: 0,
+        amount: 10,
+        percentage: 0,
+        description: '',
+        cascade_amount: false,
+        cascade_percentage: false,
+        back_into_percentage: false,
+      },
+      {
+        id: -2,
+        priority: 100,
+        type: 1,
+        amount: 15,
+        percentage: 0,
+        description: '',
+        cascade_amount: false,
+        cascade_percentage: false,
+        back_into_percentage: false,
+      },
+    ])
+  })
+  it('Handles line items for a product with no escrow and a nonsense value', async() => {
+    expect(invoiceLines({escrowDisabled: true, pricing: genPricing(), value: 'boop', product: genProduct()})).toEqual([
+      {
+        id: -1,
+        priority: 0,
+        type: 0,
+        amount: 10,
+        percentage: 0,
+        description: '',
+        cascade_amount: false,
+        cascade_percentage: false,
+        back_into_percentage: false,
+      },
+    ])
+  })
+  it('Handles line item for no product, no escrow and a nonsense value', async() => {
+    expect(invoiceLines({escrowDisabled: true, pricing: genPricing(), value: 'boop', product: null})).toEqual([])
   })
 })

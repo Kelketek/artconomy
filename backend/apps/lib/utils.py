@@ -38,6 +38,7 @@ logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from apps.profiles.models import User
+    from apps.lib.serializers import NewCommentSerializer
 
 
 def get_bot():
@@ -664,3 +665,17 @@ def destroy_comment(instance):
         real_destroy_comment(instance)
     if hasattr(instance.top, 'comment_deleted'):
         instance.top.comment_deleted(instance)
+
+
+def create_comment(target: Model, serializer: 'NewCommentSerializer', user: 'User') -> Comment:
+    if isinstance(target, Comment):
+        top = target.top
+    else:
+        top = target
+    return serializer.save(
+        user=user,
+        content_type=ContentType.objects.get_for_model(target),
+        object_id=target.id,
+        top_object_id=top.id,
+        top_content_type=ContentType.objects.get_for_model(top)
+    )

@@ -531,13 +531,12 @@ export default class DeliverableDetail extends mixins(DeliverableMixin, Formatti
   public get newLineItems() {
     const linesController = this.$getList('newDeliverableLines', {endpoint: '#', paginated: false})
     linesController.ready = true
-    invoiceLines({
-      linesController,
+    linesController.setList(invoiceLines({
       pricing: (this.pricing.x || null),
       escrowDisabled: this.newEscrowDisabled,
       product: (this.product),
       value: this.addDeliverable.fields.price.value,
-    })
+    }))
     return linesController
   }
 

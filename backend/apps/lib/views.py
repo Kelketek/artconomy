@@ -32,7 +32,7 @@ from apps.lib.serializers import CommentSerializer, CommentSubscriptionSerialize
 from apps.lib.utils import (
     countries_tweaked, safe_add, default_context,
     get_client_ip,
-    destroy_comment)
+    destroy_comment, create_comment)
 from apps.profiles.models import User
 from apps.profiles.permissions import ObjectControls, IsRegistered
 from apps.profiles.serializers import ContactSerializer
@@ -124,19 +124,7 @@ class Comments(ListCreateAPIView):
         return super(Comments, self).get(*args, **kwargs)
 
     def perform_create(self, serializer):
-        target = self.get_object()
-        if isinstance(target, Comment):
-            top = target.top
-        else:
-            top = target
-        comment = serializer.save(
-            user=self.request.user,
-            content_type=ContentType.objects.get_for_model(target),
-            object_id=target.id,
-            top_object_id=top.id,
-            top_content_type=ContentType.objects.get_for_model(top)
-        )
-        return comment
+        return create_comment(self.get_object(), serializer, self.request.user)
 
 
 def annotate_revision(version):

@@ -44,8 +44,15 @@
                 <router-link :to="{name: 'Store', params: {username}}">Manage your store here.</router-link></p>
               <div class="py-5 d-none d-md-flex"></div>
             </div>
-            <div class="flex align-self-end d-none d-md-flex">
-              <v-btn color="green" @click="showNewInvoice = true"><v-icon left>receipt</v-icon>New Invoice</v-btn>
+            <div class="flex align-self-end">
+              <v-row>
+                <v-col class="text-center d-none d-md-flex">
+                  <v-btn color="green" @click="showNewInvoice = true"><v-icon left>receipt</v-icon>New Invoice</v-btn>
+                </v-col>
+                <v-col class="text-center">
+                  <v-btn color="primary" @click="showBroadcast = true"><v-icon left>campaign</v-icon>Broadcast to buyers</v-btn>
+                </v-col>
+              </v-row>
             </div>
           </v-col>
         </v-row>
@@ -62,6 +69,32 @@
     <ac-add-button v-if="isSales" v-model="showNewInvoice">Create Invoice</ac-add-button>
     <ac-form-dialog v-bind="newInvoice.bind" @submit.prevent="newInvoice.submitThen(goToOrder)" v-model="showNewInvoice" :large="true" title="Issue new Invoice">
       <ac-invoice-form :escrow-disabled="escrowDisabled" :line-items="lineItems" :new-invoice="newInvoice" :username="username" />
+    </ac-form-dialog>
+    <ac-form-dialog v-if="isSales" v-bind="broadcastForm.bind" v-model="showBroadcast" @submit.prevent="broadcastForm.submitThen(() => {confirmBroadcast = true})">
+      <v-row v-if="!confirmBroadcast">
+        <v-col cols="12" class="text-center">
+          <h1>Add a comment to all of your orders at once.</h1>
+        </v-col>
+        <v-col cols="12">
+          <ac-bound-field field-type="ac-editor" :field="broadcastForm.fields.text" :save-indicator="false"/>
+        </v-col>
+      </v-row>
+      <v-row v-else>
+        <v-col cols="12" class="text-center">
+          <span class="title">Broadcast sent!</span>
+        </v-col>
+        <v-col cols="12" class="text-center">
+          <v-icon x-large color="green">check_circle</v-icon>
+        </v-col>
+      </v-row>
+      <template v-slot:bottom-buttons v-if="confirmBroadcast">
+        <v-card-actions row wrap class="hidden-sm-and-down">
+        </v-card-actions>
+      </template>
+      <template v-slot:top-buttons v-if="confirmBroadcast">
+        <v-card-actions row wrap class="hidden-sm-and-down">
+        </v-card-actions>
+      </template>
     </ac-form-dialog>
   </v-container>
 </template>
@@ -94,8 +127,11 @@ export default class Orders extends mixins(Subjective) {
   @Prop({required: true})
   public baseName!: string
   public showNewInvoice = false
+  public showBroadcast = false
+  public confirmBroadcast = false
   public newInvoice: FormController = null as unknown as FormController
   public invoiceProduct: SingleController<Product> = null as unknown as SingleController<Product>
+  public broadcastForm: FormController = null as unknown as FormController
 
   @Watch('newInvoice.fields.product.value')
   public updateProduct(val: undefined|null|number) {
@@ -141,13 +177,12 @@ export default class Orders extends mixins(Subjective) {
   public get lineItems() {
     const linesController = this.$getList('newProductLines', {endpoint: '#', paginated: false})
     linesController.ready = true
-    invoiceLines({
-      linesController,
+    linesController.setList(invoiceLines({
       pricing: (this.pricing.x || null),
       escrowDisabled: this.escrowDisabled,
       product: (this.invoiceProduct.x || null),
       value: this.newInvoice.fields.price.value,
-    })
+    }))
     return linesController
   }
 
@@ -203,6 +238,10 @@ export default class Orders extends mixins(Subjective) {
     invoiceSchema.fields.product = {value: null}
     invoiceSchema.fields.buyer = {value: ''}
     this.newInvoice = this.$getForm('newInvoice', invoiceSchema)
+    this.broadcastForm = this.$getForm('broadcast', {
+      endpoint: `/api/sales/v1/account/${this.username}/broadcast/`,
+      fields: {text: {value: ''}, extra_data: {value: {}}},
+    })
   }
 }
 </script>

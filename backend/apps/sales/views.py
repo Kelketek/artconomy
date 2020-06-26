@@ -36,12 +36,12 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_csv.renderers import CSVRenderer
-from short_stuff import slugify
 
 from apps.lib.models import DISPUTE, REFUND, COMMENT, Subscription, ORDER_UPDATE, SALE_UPDATE, REVISION_UPLOADED, \
-    NEW_PRODUCT, STREAMING, ref_for_instance, REFERENCE_UPLOADED
+    NEW_PRODUCT, STREAMING, ref_for_instance, REFERENCE_UPLOADED, Comment
 from apps.lib.permissions import IsStaff, IsSafeMethod, Any, All, IsMethod
-from apps.lib.utils import notify, recall_notification, demark, preview_rating, send_transaction_email
+from apps.lib.serializers import CommentSerializer
+from apps.lib.utils import notify, recall_notification, demark, preview_rating, send_transaction_email, create_comment
 from apps.lib.views import BasePreview
 from apps.profiles.models import User, Submission, HAS_US_ACCOUNT
 from apps.profiles.permissions import ObjectControls, UserControls, IsUser, IsSuperuser, IsRegistered
@@ -2396,3 +2396,35 @@ class OrderAuth(GenericAPIView):
         order.claim_token = uuid4()
         order.save()
         return Response(status=status.HTTP_200_OK, data=self.user_info(order.buyer))
+
+
+class Broadcast(CreateAPIView):
+    serializer_class = CommentSerializer
+    permission_classes = [IsRegistered, UserControls]
+
+    def get_object(self):
+        return self.request.subject
+
+    def create(self, request, *args, **kwargs):
+        try:
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+        except Http404:
+            return Response(
+                status=status.HTTP_404_NOT_FOUND, data={'detail': 'You have no open orders to broadcast to.'},
+            )
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def perform_create(self, serializer):
+        self.check_object_permissions(self.request, self.get_object())
+        checks = WEIGHTED_STATUSES + [REVIEW, DISPUTED, NEW]
+        deliverables = Deliverable.objects.filter(
+            status__in=checks, order__seller=self.request.subject,
+        ).order_by('order_id').distinct('order_id')
+        comment = None
+        for deliverable in deliverables:
+            comment = create_comment(deliverable, serializer, self.request.user)
+            serializer.instance = Comment()
+        if comment is None:
+            raise Http404

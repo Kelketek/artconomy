@@ -121,7 +121,7 @@ export function genRevision(overrides?: Partial<Revision>): Revision {
   }
 }
 
-export function genProduct(): Product {
+export function genProduct(overrides?: Partial<Product>): Product {
   return {
     id: 1,
     name: 'Test product',
@@ -151,6 +151,7 @@ export function genProduct(): Product {
     tags: [],
     available: true,
     featured: false,
+    ...overrides,
   }
 }
 
