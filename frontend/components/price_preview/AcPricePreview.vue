@@ -66,7 +66,7 @@ import {SingleController} from '@/store/singles/controller'
 import Pricing from '@/types/Pricing'
 import Component, {mixins} from 'vue-class-component'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import {getTotals, quantize, totalForTypes, sum} from '@/lib/lineItemFunctions'
+import {getTotals, totalForTypes, sum} from '@/lib/lineItemFunctions'
 import LineItem from '@/types/LineItem'
 import AcLineItemPreview from '@/components/price_preview/AcLineItemPreview.vue'
 import {LineTypes} from '@/types/LineTypes'
@@ -77,6 +77,7 @@ import AcNewLineItem from '@/components/price_preview/AcNewLineItem.vue'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import Big from 'big.js'
+import {flatten} from '@/lib/lib'
 
 @Component({
   components: {AcForm, AcFormContainer, AcNewLineItem, AcLineItemEditor, AcLineItemPreview, AcLoadSection},
@@ -246,7 +247,7 @@ export default class AcPricePreview extends mixins(Subjective) {
   public created() {
     this.pricing = this.$getSingle('pricing', {endpoint: '/api/sales/v1/pricing-info/'})
     this.pricing.get()
-    this.addOnForm = this.$getForm('addOn', {
+    this.addOnForm = this.$getForm(flatten(`${this.lineItems.name}/addOn`), {
       endpoint: this.lineItems.endpoint,
       fields: {
         amount: {value: 0, validators: [{name: 'numeric'}]},
@@ -255,7 +256,7 @@ export default class AcPricePreview extends mixins(Subjective) {
         percentage: {value: 0},
       },
     })
-    this.extraForm = this.$getForm('extra', {
+    this.extraForm = this.$getForm(flatten(`${this.lineItems.name}/extra`), {
       endpoint: this.lineItems.endpoint,
       fields: {
         amount: {value: 0, validators: [{name: 'numeric'}]},
