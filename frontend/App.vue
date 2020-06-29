@@ -3,13 +3,6 @@
   <v-app dark>
     <nav-bar/>
     <v-content class="main-content">
-      <v-container v-if="couchCon">
-        <v-alert class="info" :dismissible="true" v-model="couchCon">
-          Artconomy will be at
-          <a href="https://couchcon.org/" target="_blank" rel="nofollow,noopener">CouchCon!</a>
-          Come join us June 25-28th!
-        </v-alert>
-      </v-container>
       <ac-error/>
       <router-view v-if="displayRoute" :key="routeKey"/>
       <ac-form-dialog
@@ -115,7 +108,7 @@ import Viewer from '@/mixins/viewer'
 import {UserStoreState} from '@/store/profiles/types/UserStoreState'
 import {Alert} from '@/store/state'
 import AcMarkdownExplanation from '@/components/fields/AcMarkdownExplination.vue'
-import {fallback, fallbackBoolean, getCookie, paramsKey, searchSchema, setCookie} from './lib/lib'
+import {fallback, fallbackBoolean, paramsKey, searchSchema} from './lib/lib'
 import {User} from '@/store/profiles/types/User'
 import Nav from '@/mixins/nav'
 
@@ -135,17 +128,7 @@ export default class App extends mixins(Viewer, Nav) {
     public supportForm: FormController = null as unknown as FormController
     public alertDismissed: boolean = false
     public searchForm: FormController = null as unknown as FormController
-    public couchConStore: boolean = JSON.parse(getCookie('couchCon2020') || 'true')
     public searchInitialized = false
-
-    public get couchCon() {
-      return this.couchConStore
-    }
-
-    /* istanbul ignore next */
-    public set couchCon(val) {
-      setCookie('couchCon2020', (val && 'true') || 'false')
-    }
 
     @Watch('$route.name')
     public initializeSearch(nameVal: null|string) {

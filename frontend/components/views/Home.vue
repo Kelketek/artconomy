@@ -78,7 +78,8 @@
                 <v-col cols="6" md="12" order="1" order-md="2">
                   <v-row class="justify-content fill-height"  align="center" >
                     <v-col>
-                      Once completed, you can catalog and show off your completed piece to the world! If you have a character, you can add it to your character's gallery, too!
+                      <p>Once completed, you can catalog and show off your completed piece to the world! If you have a character, you can add it to your character's gallery, too!</p>
+                      <p><small>Vulpy images by <a target="_blank" href="https://artconomy.com/profile/Halcyon/products/">Halcyon</a></small></p>
                     </v-col>
                   </v-row>
                 </v-col>
