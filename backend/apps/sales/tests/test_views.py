@@ -1845,38 +1845,38 @@ class TestOrderOutputs(APITestCase):
 
 class TestOrderInvite(APITestCase):
     def test_order_invite_no_buyer(self):
-        order = OrderFactory.create(buyer=None, customer_email='test@example.com')
-        self.login(order.seller)
-        request = self.client.post(f'/api/sales/v1/order/{order.id}/invite/')
+        deliverable = DeliverableFactory.create(order__buyer=None, order__customer_email='test@example.com')
+        self.login(deliverable.order.seller)
+        request = self.client.post(f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/invite/')
         self.assertEqual(request.status_code, status.HTTP_200_OK)
-        self.assertEqual(mail.outbox[0].subject, f'You have a new invoice from {order.seller.username}!')
+        self.assertEqual(mail.outbox[0].subject, f'You have a new invoice from {deliverable.order.seller.username}!')
         self.assertIn('This artist should', mail.outbox[0].body)
 
     def test_order_invite_buyer_not_guest(self):
-        order = OrderFactory.create(customer_email='test@example.com')
-        self.login(order.seller)
-        request = self.client.post(f'/api/sales/v1/order/{order.id}/invite/')
+        deliverable = DeliverableFactory.create(order__customer_email='test@example.com')
+        self.login(deliverable.order.seller)
+        request = self.client.post(f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/invite/')
         self.assertEqual(request.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(mail.outbox), 0)
 
     def test_order_invite_buyer_guest(self):
-        order = OrderFactory.create(
-            buyer__guest=True, buyer__guest_email='test@wat.com',
+        deliverable = DeliverableFactory.create(
+            order__buyer__guest=True, order__buyer__guest_email='test@wat.com',
         )
-        self.login(order.seller)
-        order.customer_email = 'test@example.com'
-        order.save()
-        request = self.client.post(f'/api/sales/v1/order/{order.id}/invite/')
+        self.login(deliverable.order.seller)
+        deliverable.order.customer_email = 'test@example.com'
+        deliverable.order.save()
+        request = self.client.post(f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/invite/')
         self.assertEqual(request.status_code, status.HTTP_200_OK)
-        self.assertEqual(mail.outbox[0].subject, f'Claim Link for order #{order.id}.')
+        self.assertEqual(mail.outbox[0].subject, f'Claim Link for order #{deliverable.order.id}.')
         self.assertIn('resend your claim link', mail.outbox[0].body)
-        order.refresh_from_db()
-        self.assertEqual(order.buyer.guest_email, 'test@example.com')
+        deliverable.order.refresh_from_db()
+        self.assertEqual(deliverable.order.buyer.guest_email, 'test@example.com')
 
     def test_order_invite_email_not_set(self):
-        order = OrderFactory.create(buyer=None, customer_email='')
-        self.login(order.seller)
-        request = self.client.post(f'/api/sales/v1/order/{order.id}/invite/')
+        deliverable = DeliverableFactory.create(order__buyer=None, order__customer_email='')
+        self.login(deliverable.order.seller)
+        request = self.client.post(f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/invite/')
         self.assertEqual(request.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(mail.outbox), 0)
 

@@ -345,7 +345,7 @@ export default class DeliverableMixin extends mixins(Viewer) {
     )
     // Used as wrapper for state change events.
     this.stateChange = this.$getForm(`${this.prefix}__stateChange`, {endpoint: this.url, fields: {}})
-    this.orderEmail = this.$getForm(`order${this.orderId}__email`, {endpoint: `${this.orderUrl}invite/`, fields: {}})
+    this.orderEmail = this.$getForm(`order${this.orderId}__email`, {endpoint: `${this.url}invite/`, fields: {}})
     const schema = baseCardSchema(`${this.url}pay/`)
     schema.fields = {
       ...schema.fields,

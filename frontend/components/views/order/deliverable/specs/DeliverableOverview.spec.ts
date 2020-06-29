@@ -112,7 +112,7 @@ describe('DeliverableOverview.vue', () => {
     mockAxios.reset()
     wrapper.find('.send-invite-button').trigger('click')
     const lastRequest = mockAxios.lastReqGet()
-    expect(lastRequest.url).toBe('/api/sales/v1/order/1/invite/')
+    expect(lastRequest.url).toBe('/api/sales/v1/order/1/deliverables/5/invite/')
     mockAxios.mockResponse(rs(deliverable.order))
     await flushPromises()
     await vm.$nextTick()

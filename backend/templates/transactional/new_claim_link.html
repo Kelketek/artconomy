@@ -3,13 +3,9 @@
 {% block header_message %}New Claim Link!{% endblock %}
 {% block message %}
 <p>We received a request to resend your claim link for Order #{{order.id}}. If you did not request this, please ignore this email, or reply to it to talk with support.<p>
-<p>Here's a preview of the order's description:</p>
-<div class="message-preview">
-    {{order.details|markdown:"safe"}}
-</div>
 <p>Visit the link below to claim your order!</p>
 {% endblock message %}
 
 {% block action %}
-<a href="/claim-order/{{order.id}}/{{ claim_token }}/{{deliverable.id}}">View your order here!</a>
+<a href="/claim-order/{{order.id}}/{{ claim_token }}/{% if deliverable %}{{deliverable.id}}{% endif %}">View your order here!</a>
 {% endblock %}

@@ -335,7 +335,7 @@ class DeliverableManager(RetrieveUpdateAPIView):
         return order
 
 
-class OrderInvite(GenericAPIView):
+class DeliverableInvite(GenericAPIView):
     permission_classes = [OrderSellerPermission]
     serializer_class = OrderViewSerializer
 
@@ -344,28 +344,28 @@ class OrderInvite(GenericAPIView):
         return order
 
     def post(self, request, **kwargs):
-        order = self.get_object()
-        self.check_object_permissions(self.request, order)
-        if order.buyer and not order.buyer.guest:
+        deliverable = get_object_or_404(Deliverable, order=self.get_object(), id=self.kwargs['deliverable_id'])
+        self.check_object_permissions(self.request, deliverable)
+        if deliverable.order.buyer and not deliverable.order.buyer.guest:
             return Response(data={'detail': 'This order has already been claimed.'}, status=status.HTTP_400_BAD_REQUEST)
-        if not order.customer_email:
+        if not deliverable.order.customer_email:
             return Response(
                 data={'detail': 'Customer email not set. Cannot send an invite!'}, status=status.HTTP_400_BAD_REQUEST,
             )
-        if order.buyer:
-            order.buyer.guest_email = order.customer_email
-            order.buyer.save()
-            subject = f'Claim Link for order #{order.id}.'
+        if deliverable.order.buyer:
+            deliverable.order.buyer.guest_email = deliverable.order.customer_email
+            deliverable.order.buyer.save()
+            subject = f'Claim Link for order #{deliverable.order.id}.'
             template = 'new_claim_link.html'
         else:
-            subject = f'You have a new invoice from {order.seller.username}!'
+            subject = f'You have a new invoice from {deliverable.order.seller.username}!'
             template = 'invoice_issued.html'
         send_transaction_email(
             subject,
-            template, order.customer_email,
-            {'order': order, 'claim_token': order.claim_token}
+            template, deliverable.order.customer_email,
+            {'deliverable': deliverable, 'order': deliverable.order, 'claim_token': deliverable.order.claim_token}
         )
-        return Response(status=status.HTTP_200_OK, data=self.get_serializer(instance=order).data)
+        return Response(status=status.HTTP_200_OK, data=self.get_serializer(instance=deliverable.order).data)
 
 
 class DeliverableAccept(GenericAPIView):
