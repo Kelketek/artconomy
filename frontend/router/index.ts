@@ -142,7 +142,7 @@ function orderLists() {
   const orderRoutes: RouteConfig[] = []
   for (const baseName of ['Orders', 'Sales', 'Cases']) {
     const children: RouteConfig[] = []
-    let categories = ['current', 'archived', 'cancelled']
+    let categories = ['current', 'archived', 'waiting', 'cancelled']
     if (baseName === 'Cases') {
       categories = ['current', 'archived']
     }

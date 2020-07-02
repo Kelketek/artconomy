@@ -317,6 +317,7 @@ export const NOTIFICATION_MAPPING: TypeToValue = {
   33: 'ac-portrait-referral',
   34: 'ac-landscape-referral',
   35: 'ac-reference-uploaded',
+  36: 'ac-waitlist-updated',
 }
 
 export const ORDER_STATUSES: TypeToValue = {

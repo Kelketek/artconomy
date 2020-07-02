@@ -62,8 +62,10 @@ import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import Component, {mixins} from 'vue-class-component'
 import AcReferenceUploaded from '@/components/views/notifications/events/AcReferenceUploaded.vue'
 import AcSubmissionShared from '@/components/views/notifications/events/AcSubmissionShared.vue'
+import AcWaitlistUpdated from '@/components/views/notifications/events/AcWaitlistUpdated.vue'
 
 @Component({components: {
+  AcWaitlistUpdated,
   AcSubmissionShared,
   AcReferenceUploaded,
   AcPaginated,

@@ -60,6 +60,7 @@
     </ac-load-section>
     <v-tabs fixed-tabs>
       <v-tab :to="{name: 'Current' + baseName, params: {username}}">Current</v-tab>
+      <v-tab v-if="!isCases" :to="{name: 'Waiting' + baseName, params: {username}}">Waiting</v-tab>
       <v-tab :to="{name: 'Archived' + baseName, params: {username}}">Archived</v-tab>
       <v-tab v-if="!isCases" :to="{name: 'Cancelled' + baseName, params: {username}}">Cancelled</v-tab>
     </v-tabs>
@@ -226,6 +227,7 @@ export default class Orders extends mixins(Subjective) {
     })
     this.$listenForList(`orders__${this.username}__${type}__archived`)
     this.$listenForList(`orders__${this.username}__${type}__current`)
+    this.$listenForList(`orders__${this.username}__${type}__waiting`)
     if (this.isCurrentRoute) {
       this.$router.replace({name: 'Current' + this.baseName, params: {username: this.username}})
     }

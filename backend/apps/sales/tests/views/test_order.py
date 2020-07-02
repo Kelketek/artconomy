@@ -11,6 +11,7 @@ from moneyed import Money
 from rest_framework import status
 
 from apps.lib.abstract_models import ADULT, MATURE, GENERAL
+from apps.lib.models import Event, SALE_UPDATE, ORDER_UPDATE, WAITLIST_UPDATED
 from apps.lib.test_resources import APITestCase
 from apps.lib.tests.factories import AssetFactory
 from apps.profiles.models import VERIFIED
@@ -74,6 +75,24 @@ class TestOrder(TransactionCheckMixin, APITestCase):
             }
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_place_order_waitlisted_product(self):
+        user = UserFactory.create()
+        self.login(user)
+        product = ProductFactory.create(task_weight=5, expected_turnaround=3, wait_list=True)
+        response = self.client.post(
+            '/api/sales/v1/account/{}/products/{}/order/'.format(product.user.username, product.id),
+            {
+                'details': 'Draw me some porn!',
+                'rating': ADULT,
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertFalse(Event.objects.filter(type=SALE_UPDATE).exists())
+        self.assertTrue(Event.objects.filter(type=WAITLIST_UPDATED).exists())
+        self.assertTrue(Event.objects.filter(type=ORDER_UPDATE).exists())
+        product.user.refresh_from_db()
+        self.assertEqual(product.user.artist_profile.load, 0)
 
     def test_place_order_inventory_product_out_of_stock(self):
         user = UserFactory.create()

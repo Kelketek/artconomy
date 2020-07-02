@@ -23,6 +23,7 @@ import Notification from '../mixins/notification'
 import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification'
 
 const ORDER_STATUSES = {
+  0: 'has been added to your waitlist.',
   1: 'has been placed, and is awaiting your acceptance!',
   2: 'is waiting on the commissioner to pay.',
   3: 'has been added to your queue.',

@@ -11,6 +11,7 @@ import Product from '@/types/Product'
 import {genSubmission} from '@/store/submissions/specs/fixtures'
 import Deliverable from '@/types/Deliverable'
 import Reference from '@/types/Reference'
+import CommissionStats from '@/types/CommissionStats'
 
 export function genUser(overrides?: Partial<User>): User {
   return {
@@ -151,6 +152,7 @@ export function genProduct(overrides?: Partial<Product>): Product {
     tags: [],
     available: true,
     featured: false,
+    wait_list: false,
     ...overrides,
   }
 }
@@ -215,7 +217,7 @@ export function genReference(): Reference {
   }
 }
 
-export function genOrder(): Order {
+export function genOrder(overrides?: Partial<Order>): Order {
   const buyer = genUser()
   buyer.username = 'Fox'
   buyer.id = 1
@@ -244,5 +246,19 @@ export function genOrder(): Order {
       },
       preview: null,
     },
+    ...overrides,
+  }
+}
+
+export function genCommissionStats(overrides?: Partial<CommissionStats>): CommissionStats {
+  return {
+    load: 5,
+    max_load: 10,
+    commissions_closed: false,
+    commissions_disabled: false,
+    products_available: 2,
+    active_orders: 1,
+    new_orders: 2,
+    ...overrides,
   }
 }

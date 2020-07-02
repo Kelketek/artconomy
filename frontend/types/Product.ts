@@ -20,4 +20,5 @@ export default interface Product {
   track_inventory: boolean,
   table_product: boolean,
   primary_submission: null|Submission,
+  wait_list: boolean,
 }

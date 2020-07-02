@@ -52,6 +52,7 @@ export default class AcOrderPreview extends mixins(Subjective, Formatting) {
     }
 
     public get name() {
+      /* istanbul ignore if */
       if (!this.order.x) {
         return
       }
@@ -75,12 +76,6 @@ export default class AcOrderPreview extends mixins(Subjective, Formatting) {
         return null
       }
       return {name: 'Profile', params: {username: order.buyer.username}}
-    }
-
-    public get routeName() {
-      // In: 'sales'
-      // Out: 'Sale'
-      return this.type[0].toUpperCase() + this.type.slice(1, this.type.length - 1)
     }
 }
 </script>

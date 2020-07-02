@@ -1,7 +1,7 @@
 <template>
   <div class="add-button-container d-flex d-md-none">
     <div class="tooltip-holder">
-      <div class="tooltip-content" :style="style"><slot /></div>
+      <div class="tooltip-content"><slot /></div>
     </div>
     <v-btn
         dark
@@ -51,22 +51,10 @@
 <script>
 export default {
   name: 'ac-add-button',
-  props: ['value', 'nudgeRight', 'nudgeTop', 'text'],
+  props: ['value', 'text'],
   methods: {
     launch() {
       this.$emit('input', true)
-    },
-  },
-  computed: {
-    style() {
-      let styleString = ''
-      if (this.nudgeRight) {
-        styleString += `margin-right: ${this.nudgeRight};`
-      }
-      if (this.nudgeTop) {
-        styleString += `margin-top: ${this.nudgeTop};`
-      }
-      return styleString
     },
   },
 }

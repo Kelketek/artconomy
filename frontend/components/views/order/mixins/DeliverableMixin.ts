@@ -54,6 +54,7 @@ export default class DeliverableMixin extends mixins(Viewer) {
   public addDeliverable: FormController = null as unknown as FormController
   public orderEmail: FormController = null as unknown as FormController
   public lineItems: ListController<LineItem> = null as unknown as ListController<LineItem>
+  public WAITING = 0
   public NEW = 1
   public PAYMENT_PENDING = 2
   public QUEUED = 3

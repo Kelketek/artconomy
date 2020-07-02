@@ -120,6 +120,7 @@ def available_products(requester, query='', ordering=True):
     else:
         qs = Product.objects.filter(available=True)
     qs = qs.exclude(active=False)
+    qs = qs.exclude(wait_list=True, user__landscape_paid_through__lte=timezone.now())
     if requester.is_authenticated:
         if not requester.is_staff:
             qs = qs.exclude(user__blocking=requester)
@@ -174,7 +175,7 @@ def available_products_by_load(seller_profile, load=None):
     if load is None:
         load = seller_profile.load
     return Product.objects.filter(user_id=seller_profile.user_id, active=True, hidden=False).exclude(
-        task_weight__gt=seller_profile.max_load - load
+        task_weight__gt=seller_profile.max_load - load, wait_list=False,
     ).exclude(Q(parallel__gte=F('max_parallel')) & ~Q(max_parallel=0))
 
 

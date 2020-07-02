@@ -10,6 +10,18 @@
                 <ac-form-container @submit.prevent="stateChange.submitThen(updateDeliverable)" :errors="stateChange.errors" :sending="stateChange.sending">
                   <v-card-text>
                     <v-row dense>
+                      <v-col v-if="is(WAITING) && isBuyer" cols="12">
+                        <p>Your order has been placed in the artist's waitlist. Waitlisted orders are not guaranteed by
+                          Artconomy to be accepted in any order and every artist's policy is different in how they are handled.
+                          If your artist has not listed their waitlist policy for this commission in the product details,
+                          or in their commission info under the Overview tab, you may want to message them for clarification.</p>
+                      </v-col>
+                      <v-col v-if="is(WAITING) && isSeller" cols="12">
+                        <p>This order is in your waitlist. You should put your waitlist policy in your commission info in your
+                          <router-link :to="{name: 'Artist', params: {username: seller.username}}">Artist Settings</router-link>
+                          if you have not already, or else add it to the details of the product this order is associated with.
+                        </p>
+                      </v-col>
                       <v-col v-if="is(NEW) && isBuyer" cols="12">
                         <p>Your order has been placed and is awaiting the artist's review. You will receive an email when the
                           artist has accepted or rejected the order, or if they have any comments.</p>
@@ -97,7 +109,7 @@
                           </template>
                         </ac-confirmation>
                       </v-col>
-                      <v-row v-if="is(NEW) || is(PAYMENT_PENDING)">
+                      <v-row v-if="is(WAITING) || is(NEW) || is(PAYMENT_PENDING)">
                         <v-col class="text-center">
                           <ac-confirmation :action="statusEndpoint('cancel')">
                             <template v-slot:default="{on}">

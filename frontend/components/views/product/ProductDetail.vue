@@ -235,6 +235,7 @@
                         </strong>
                       </p>
                     </div>
+                    <v-alert v-if="product.x.wait_list" :value="true" type="info">This product is waitlisted.</v-alert>
                     <v-btn color="green" block :to="{name: 'NewOrder', params: {username, productId}}" v-if="!product.x.table_product">
                       <v-icon left>shopping_basket</v-icon>
                       Order
@@ -264,15 +265,27 @@
                   <ac-expanded-property v-model="showWorkload" :large="true">
                     <span slot="title">Edit Workload Settings</span>
                     <v-row no-gutters  >
-                      <v-col cols="12" sm="6">
+                      <v-col cols="12" class="text-center">
                         <h2>AWOO Workload Settings</h2>
                         <v-divider />
                         <p>You can set these settings to help the Artconomy Workdload Organization and Overview tool manage your workload for you.</p>
                         <p><strong>If you're not sure what to do here, or would like to set these settings later, the defaults should be safe.</strong></p>
                       </v-col>
+                      <v-col cols="12" sm="6" v-if="product.patchers.wait_list.model || subject.landscape">
+                        <ac-patch-field :patcher="product.patchers.wait_list"
+                                        label="Wait List Product"
+                                        field-type="v-checkbox"
+                                        hint="Marks this product as a waitlist product. Orders will be put in your
+                                        waitlist queue which is separate from your normal order queue. You should specify
+                                        your waitlist policy in the product description or in your commission info.
+                                        This setting takes precedence over all other workload settings."
+                                        :persistent-hint="true"
+                        />
+                      </v-col>
                       <v-col cols="12" sm="6">
                         <ac-patch-field :patcher="product.patchers.task_weight" number
-                                        label="Slots"
+                                        label="Slots consumed by each order"
+                                        :disabled="product.patchers.wait_list.model"
                                         hint="How many slots an order of this product should take up. If this task is
                                         particularly big, you may want it to take up more than one slot."
                                         :persistent-hint="true"
@@ -281,6 +294,7 @@
                       <v-col cols="12" sm="6">
                         <v-checkbox v-model="limitAtOnce" :persistent-hint="true"
                                     label="Limit Availability"
+                                    :disabled="product.patchers.wait_list.model"
                                     hint="If you would like to make sure you're never doing more than a few of these at a time, check this box."
                         />
                       </v-col>
@@ -290,6 +304,7 @@
                                         type="number"
                                         label="Maximum at Once"
                                         min="1"
+                                        :disabled="product.patchers.wait_list.model"
                                         hint="If you already have this many orders of this product, don't allow customers to order any more."
                         />
                       </v-col>
@@ -300,6 +315,7 @@
                                     v-if="isStaff || landscape || product.patchers.inventory"
                                     field-type="v-checkbox"
                                     label="Inventory"
+                                    :disabled="product.patchers.wait_list.model"
                                     hint="Check if you only want to sell this product a limited number of times total."
                         />
                       </v-col>
@@ -310,6 +326,7 @@
                                             :patcher="inventory.patchers.count"
                                             type="number"
                                             min="0"
+                                            :disabled="product.patchers.wait_list.model"
                                             hint="Number of times left you'll allow this product to be ordered."
                             />
                           </template>

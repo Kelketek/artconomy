@@ -14,6 +14,7 @@ import Deliverable from '@/types/Deliverable'
 @Component
 export default class AcDeliverableStatus extends Vue {
   public STATUSES = {
+    0: {text: 'Waiting', icon: 'schedule', color: 'white', dark: false},
     1: {text: 'NEW!', icon: 'star', color: 'primary', dark: true},
     2: {text: 'Unpaid', icon: 'credit_card', color: 'orange', dark: true},
     3: {text: 'Queued', icon: 'list', color: 'secondary', dark: true},

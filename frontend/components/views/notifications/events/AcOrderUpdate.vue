@@ -18,6 +18,7 @@ import Formatting from '../../../../mixins/formatting'
 import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification'
 
 const ORDER_STATUSES = {
+  0: 'has been added to the artist\'s waitlist.',
   1: 'has been placed, and is waiting for the artist to accept.',
   2: 'requires payment to continue.',
   3: 'has been added to the artist\'s queue!',

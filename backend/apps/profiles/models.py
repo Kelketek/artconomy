@@ -35,7 +35,7 @@ from apps.lib.models import (
     NEW_CHARACTER, RENEWAL_FAILURE, SUBSCRIPTION_DEACTIVATED, RENEWAL_FIXED, NEW_JOURNAL,
     TRANSFER_FAILED, SUBMISSION_ARTIST_TAG, REFERRAL_LANDSCAPE_CREDIT, REFERRAL_PORTRAIT_CREDIT,
     WATCHING,
-    Notification)
+    Notification, WAITLIST_UPDATED)
 from apps.lib.utils import (
     clear_events, tag_list_cleaner, notify, recall_notification, preview_rating,
     send_transaction_email,
@@ -227,6 +227,7 @@ def create_user_subscriptions(instance):
             (SUBSCRIPTION_DEACTIVATED, True), (RENEWAL_FIXED, True),
             (TRANSFER_FAILED, True), (REFERRAL_LANDSCAPE_CREDIT, True),
             (REFERRAL_PORTRAIT_CREDIT, True),
+            (WAITLIST_UPDATED, False),
         ]],
         ignore_conflicts=True,
     )

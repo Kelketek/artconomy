@@ -16,10 +16,10 @@ from apps.lib.models import (
     ORDER_UPDATE, SALE_UPDATE, COMMENT, Subscription, SUBMISSION_SHARED, CHAR_SHARED, NEW_CHARACTER,
     NEW_PRODUCT, STREAMING, NEW_JOURNAL, FAVORITE, SUBMISSION_ARTIST_TAG,
     Asset,
-    DISPUTE, REFERENCE_UPLOADED)
+    DISPUTE, REFERENCE_UPLOADED, WAITLIST_UPDATED)
 from apps.lib.utils import tag_list_cleaner, add_check, set_tags
 from apps.profiles.models import User, Submission, Character, Journal, Conversation
-from apps.sales.models import Revision, Product, Order
+from apps.sales.models import Revision, Product, Order, WAITING
 from shortcuts import make_url
 
 
@@ -465,6 +465,13 @@ def streaming(obj, context):
     }
 
 
+def waitlist_updated(obj, context):
+    return {
+        'display': notification_display(obj.target, context),
+        'count': obj.target.sales.filter(deliverables__status=WAITING).distinct().count()
+    }
+
+
 def new_journal(obj, context):
     journal = Journal.objects.get(id=obj.data['journal'])
     return {
@@ -507,6 +514,7 @@ NOTIFICATION_TYPE_MAP = {
     FAVORITE: favorite,
     DISPUTE: order_update,
     SUBMISSION_ARTIST_TAG: submission_artist_tag,
+    WAITLIST_UPDATED: waitlist_updated,
 }
 
 

@@ -38,7 +38,7 @@ from rest_framework.views import APIView
 from rest_framework_csv.renderers import CSVRenderer
 
 from apps.lib.models import DISPUTE, REFUND, COMMENT, Subscription, ORDER_UPDATE, SALE_UPDATE, REVISION_UPLOADED, \
-    NEW_PRODUCT, STREAMING, ref_for_instance, REFERENCE_UPLOADED, Comment
+    NEW_PRODUCT, STREAMING, ref_for_instance, REFERENCE_UPLOADED, Comment, WAITLIST_UPDATED
 from apps.lib.permissions import IsStaff, IsSafeMethod, Any, All, IsMethod
 from apps.lib.serializers import CommentSerializer
 from apps.lib.utils import notify, recall_notification, demark, preview_rating, send_transaction_email, create_comment
@@ -54,7 +54,7 @@ from apps.sales.dwolla import add_bank_account, make_dwolla_account, \
 from apps.sales.models import Product, Order, CreditCardToken, Revision, BankAccount, \
     WEIGHTED_STATUSES, Rating, TransactionRecord, BASE_PRICE, ADD_ON, TAX, EXTRA, \
     TABLE_SERVICE, TIP, LineItem, SHIELD, inventory_change, InventoryError, InventoryTracker, NEW, PAYMENT_PENDING, \
-    QUEUED, COMPLETED, IN_PROGRESS, DISPUTED, REVIEW, CANCELLED, REFUNDED, Deliverable, Reference
+    QUEUED, COMPLETED, IN_PROGRESS, DISPUTED, REVIEW, CANCELLED, REFUNDED, Deliverable, Reference, WAITING
 from apps.sales.permissions import (
     OrderViewPermission, OrderSellerPermission, OrderBuyerPermission,
     OrderPlacePermission, EscrowPermission, EscrowDisabledPermission, RevisionsVisible,
@@ -216,8 +216,13 @@ class PlaceOrder(CreateAPIView):
         order = serializer.save(
             product=product, buyer=user, seller=product.user,
         )
+        if product.wait_list:
+            order_status = WAITING
+        else:
+            order_status = NEW
         deliverable = Deliverable.objects.create(
             order=order,
+            status=order_status,
             name='Main',
             escrow_disabled=product.user.artist_profile.escrow_disabled,
             rating=serializer.validated_data['rating'],
@@ -230,7 +235,10 @@ class PlaceOrder(CreateAPIView):
         else:
             order.customer_email = user.guest_email
             order.save()
-        notify(SALE_UPDATE, deliverable, unique=True, mark_unread=True)
+        if product.wait_list:
+            notify(WAITLIST_UPDATED, order.seller, unique=True, mark_unread=True)
+        else:
+            notify(SALE_UPDATE, deliverable, unique=True, mark_unread=True)
         notify(ORDER_UPDATE, deliverable, unique=True, mark_unread=True)
         return order
 
@@ -472,7 +480,7 @@ class DeliverableCancel(GenericAPIView):
     permission_classes = [
         OrderViewPermission,
         DeliverableStatusPermission(
-            NEW, PAYMENT_PENDING,
+            WAITING, NEW, PAYMENT_PENDING,
             error_message='You cannot cancel this order. It is either already cancelled, finalized, '
                           'or must be refunded instead.',
         ),
@@ -502,7 +510,7 @@ class DeliverableLineItems(ListCreateAPIView):
                     IsSafeMethod,
                     All(
                         IsMethod('POST'), DeliverableStatusPermission(
-                            NEW, PAYMENT_PENDING,
+                            NEW, PAYMENT_PENDING, WAITING,
                         )
                     )
                 ),
@@ -577,7 +585,7 @@ class LineItemManager(RetrieveUpdateDestroyAPIView):
             All(IsSafeMethod, OrderViewPermission),
             All(
                 IsMethod('PATCH', 'DELETE'),
-                DeliverableStatusPermission(NEW, PAYMENT_PENDING),
+                DeliverableStatusPermission(NEW, PAYMENT_PENDING, WAITING),
                 Any(
                     All(
                         OrderSellerPermission, Any(
@@ -617,7 +625,7 @@ class DeliverableRevisions(ListCreateAPIView):
         Any(
             All(IsSafeMethod, OrderViewPermission, Any(RevisionsVisible, OrderSellerPermission)),
             All(OrderSellerPermission, IsMethod('POST'), DeliverableStatusPermission(
-                IN_PROGRESS, PAYMENT_PENDING, NEW, QUEUED, DISPUTED,
+                IN_PROGRESS, PAYMENT_PENDING, NEW, QUEUED, DISPUTED, WAITING,
                 error_message='You may not upload revisions while the order is in this state.',
             )),
         ),
@@ -758,7 +766,7 @@ class RevisionManager(RetrieveDestroyAPIView):
                 OrderSellerPermission,
                 Any(
                     DeliverableStatusPermission(
-                        REVIEW, PAYMENT_PENDING, NEW, IN_PROGRESS,
+                        REVIEW, PAYMENT_PENDING, NEW, IN_PROGRESS, WAITING,
                         error_message=delete_forbidden_message,
                     ),
                     All(
@@ -1006,14 +1014,17 @@ class ApproveFinal(GenericAPIView):
 class CurrentMixin(object):
     @staticmethod
     def extra_filter(qs):
-        return qs.filter(deliverables__status__in=[NEW, PAYMENT_PENDING, QUEUED, IN_PROGRESS, REVIEW, DISPUTED]).distinct().order_by('-created_on')
+        return qs.filter(
+            deliverables__status__in=[NEW, PAYMENT_PENDING, QUEUED, IN_PROGRESS, REVIEW, DISPUTED],
+        ).distinct().order_by('-created_on')
 
 
 class ArchivedMixin(object):
     @staticmethod
     def extra_filter(qs):
-        return qs.exclude(deliverables__status__in=[NEW, PAYMENT_PENDING, QUEUED, IN_PROGRESS, REVIEW, DISPUTED]).filter(
-            deliverables__status=COMPLETED,
+        return qs.exclude(
+            deliverables__status__in=[WAITING, NEW, PAYMENT_PENDING, QUEUED, IN_PROGRESS, REVIEW, DISPUTED]).filter(
+                deliverables__status=COMPLETED,
         ).distinct().order_by('-created_on')
 
 
@@ -1021,8 +1032,14 @@ class CancelledMixin(object):
     @staticmethod
     def extra_filter(qs):
         return qs.exclude(
-            deliverables__status__in=[NEW, PAYMENT_PENDING, QUEUED, IN_PROGRESS, DISPUTED, REVIEW, COMPLETED],
+            deliverables__status__in=[WAITING, NEW, PAYMENT_PENDING, QUEUED, IN_PROGRESS, DISPUTED, REVIEW, COMPLETED],
         ).distinct().order_by('-created_on')
+
+
+class WaitingMixin(object):
+    @staticmethod
+    def extra_filter(qs):
+        return qs.filter(deliverables__status=WAITING).distinct().order_by('-created_on')
 
 
 class OrderListBase(ListAPIView):
@@ -1058,6 +1075,10 @@ class CancelledOrderList(CancelledMixin, OrderListBase):
     pass
 
 
+class WaitingOrderList(WaitingMixin, OrderListBase):
+    pass
+
+
 class SalesListBase(ListAPIView):
     permission_classes = [ObjectControls]
     serializer_class = OrderPreviewSerializer
@@ -1089,6 +1110,28 @@ class ArchivedSalesList(ArchivedMixin, SalesListBase):
 
 class CancelledSalesList(CancelledMixin, SalesListBase):
     pass
+
+
+class SearchWaiting(ListAPIView):
+    permission_classes = [IsRegistered, UserControls]
+    serializer_class = OrderPreviewSerializer
+
+    def get_object(self):
+        user = get_object_or_404(User, username=self.kwargs['username'])
+        self.check_object_permissions(self.request, user)
+        return user
+
+    def get_queryset(self):
+        query = self.request.GET.get('q', '').strip()
+        qs = Order.objects.filter(deliverables__status=WAITING, seller=self.request.subject)
+        if not query:
+            return qs.distinct().order_by('created_on')
+        return qs.filter(
+            Q(buyer__username__istartswith=query)
+            | Q(buyer__email__istartswith=query)
+            | Q(customer_email__istartswith=query)
+            | Q(buyer__guest=True, buyer__guest_email__istartswith=query)
+        ).distinct().order_by('created_on')
 
 
 class CasesListBase(ListAPIView):

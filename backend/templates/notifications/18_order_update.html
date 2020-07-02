@@ -1,7 +1,9 @@
 {% extends 'email_base.html' %}
 {% block header_message %}Update!{% endblock %}
 {% block message %}
-{% if target.status == 1 %}
+{% if target.status == 0 %}
+Your order has been placed into the artist's waitlist. We will update you if they accept your order request!
+{% elif target.status == 1 %}
 Your order has been placed and will be reviewed by the artist soon. We will update you once they have accepted your commission!
 {% elif target.status == 2 %}
 Your order has been accepted by the artist and is ready for payment!

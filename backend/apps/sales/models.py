@@ -78,6 +78,7 @@ class Product(ImageModel, HitsMixin):
     active = BooleanField(default=True, db_index=True)
     available = BooleanField(default=True, db_index=True)
     featured = BooleanField(default=False, db_index=True)
+    wait_list = BooleanField(default=False, db_index=True)
     table_product = BooleanField(default=False, db_index=True)
     track_inventory = BooleanField(default=False, db_index=True)
     revisions = IntegerField(validators=[MinValueValidator(0), MaxValueValidator(10)])
@@ -257,6 +258,7 @@ def inventory_change(product: Union['Product', None], delta: int = -1):
         tracker.save()
 
 
+WAITING = 0
 NEW = 1
 PAYMENT_PENDING = 2
 QUEUED = 3
@@ -270,6 +272,7 @@ REFUNDED = 9
 PAID_STATUSES = (QUEUED, IN_PROGRESS, REVIEW, REFUNDED, COMPLETED)
 
 DELIVERABLE_STATUSES = (
+    (WAITING, 'Waiting List'),
     (NEW, 'New'),
     (PAYMENT_PENDING, 'Payment Pending'),
     (QUEUED, 'Queued'),
@@ -303,7 +306,7 @@ class Deliverable(Model):
         validators=[MinValueValidator(settings.MINIMUM_TURNAROUND)],
         help_text="Number of days completion is expected to take.",
         max_digits=5, decimal_places=2,
-        default=0
+        default=0,
     )
     created_on = DateTimeField(db_index=True, default=timezone.now)
     disputed_on = DateTimeField(blank=True, null=True, db_index=True)
@@ -348,6 +351,9 @@ class Deliverable(Model):
             base_string = f'Case #{self.order.id}'
         else:
             base_string = self.order.notification_name(context)
+        result = f'{base_string} [{self.name}]'
+        if self.status == WAITING:
+            result += ' (Waitlisted)'
         return f'{base_string} [{self.name}]'
 
     def notification_link(self, context):

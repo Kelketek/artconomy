@@ -24,7 +24,7 @@
                 <span v-if="isSeller">Slots taken: <strong>{{taskWeight}}</strong></span>
               </div>
             </v-col>
-            <v-col cols="12" sm="6" v-if="(is(NEW) || is(PAYMENT_PENDING)) && isSeller">
+            <v-col cols="12" sm="6" v-if="(is(NEW) || is(PAYMENT_PENDING) || is(WAITING)) && isSeller">
               <v-row no-gutters  >
                 <v-col cols="12">
                   <ac-patch-field
@@ -52,7 +52,7 @@
                   />
                 </v-col>
                 <v-col class="text-center" cols="12" >
-                  <ac-confirmation :action="statusEndpoint('accept')" v-if="is(NEW)">
+                  <ac-confirmation :action="statusEndpoint('accept')" v-if="is(NEW) || is(WAITING)">
                     <template v-slot:default="{on}">
                       <v-btn v-on="on" color="green" class="accept-order">Accept Order</v-btn>
                     </template>
@@ -80,7 +80,7 @@
                     :line-items="lineItems"
                     :username="order.x.seller.username"
                     :is-seller="isSeller"
-                    :editable="(is(NEW) || is(PAYMENT_PENDING)) && (isSeller || isArbitrator)"
+                    :editable="(is(NEW) || is(PAYMENT_PENDING) || is(WAITING)) && (isSeller || isArbitrator)"
                     :editBase="!product"
                     :escrow="!deliverable.x.escrow_disabled"
                   />
