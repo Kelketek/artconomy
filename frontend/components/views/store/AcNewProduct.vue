@@ -91,7 +91,7 @@
               </v-stepper-content>
               <v-stepper-content :step="3">
                 <v-row>
-                  <v-col cols="12" sm="6">
+                  <v-col cols="12">
                     <h2>AWOO Workload Settings</h2>
                     <v-divider />
                     <p>You can set these settings to help the Artconomy Workdload Organization and Overview tool manage your workload for you.</p>
@@ -104,6 +104,21 @@
                                         particularly big, you may want it to take up more than one slot."
                                     :persistent-hint="true"
                     />
+                  </v-col>
+                  <v-col cols="12" sm="6">
+                    <ac-bound-field :field="newProduct.fields.wait_list"
+                                    label="Wait List Product"
+                                    field-type="v-checkbox"
+                                    :disabled="!subject.landscape"
+                                    hint="Marks this product as a waitlist product. Orders will be put in your
+                                        waitlist queue which is separate from your normal order queue. You should specify
+                                        your waitlist policy in the product description or in your commission info.
+                                        This setting takes precedence over all other workload settings."
+                                    :persistent-hint="true"
+                    />
+                    <div v-if="!subject.landscape">
+                      This feature only available for <router-link :to="{name: 'Upgrade'}">Landscape</router-link> subscribers.
+                    </div>
                   </v-col>
                   <v-col cols="12" sm="6">
                     <v-checkbox v-model="limitAtOnce" :persistent-hint="true"
@@ -291,6 +306,7 @@ export default class AcNewProduct extends Subjective {
           description: {value: ''},
           base_price: {value: '25.00', step: 2, validators: [{name: 'numeric'}]},
           expected_turnaround: {value: 5, step: 2, validators: [{name: 'numeric'}]},
+          wait_list: {value: false},
           task_weight: {value: 1, step: 3},
           revisions: {value: 1, step: 2},
           max_parallel: {value: 0, step: 3},

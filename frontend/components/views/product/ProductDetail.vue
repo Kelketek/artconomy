@@ -271,16 +271,20 @@
                         <p>You can set these settings to help the Artconomy Workdload Organization and Overview tool manage your workload for you.</p>
                         <p><strong>If you're not sure what to do here, or would like to set these settings later, the defaults should be safe.</strong></p>
                       </v-col>
-                      <v-col cols="12" sm="6" v-if="product.patchers.wait_list.model || subject.landscape">
+                      <v-col cols="12" sm="6">
                         <ac-patch-field :patcher="product.patchers.wait_list"
                                         label="Wait List Product"
                                         field-type="v-checkbox"
+                                        :disabled="!(product.patchers.wait_list.model || subject.landscape)"
                                         hint="Marks this product as a waitlist product. Orders will be put in your
                                         waitlist queue which is separate from your normal order queue. You should specify
                                         your waitlist policy in the product description or in your commission info.
                                         This setting takes precedence over all other workload settings."
                                         :persistent-hint="true"
                         />
+                        <div v-if="!subject.landscape">
+                          This feature only avaialable to <router-link :to="{name: 'Upgrade'}">Landscape</router-link> subscribers.
+                        </div>
                       </v-col>
                       <v-col cols="12" sm="6">
                         <ac-patch-field :patcher="product.patchers.task_weight" number
