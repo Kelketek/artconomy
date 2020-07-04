@@ -379,7 +379,7 @@ class DeliverableInvite(GenericAPIView):
 class DeliverableAccept(GenericAPIView):
     permission_classes = [
         OrderSellerPermission,
-        DeliverableStatusPermission(NEW, error_message="Approval can only be applied to new orders."),
+        DeliverableStatusPermission(NEW, WAITING, error_message="Approval can only be applied to new orders."),
     ]
 
     def get_object(self):

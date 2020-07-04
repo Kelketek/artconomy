@@ -17,7 +17,7 @@ from apps.profiles.models import User
 from apps.profiles.tests.factories import UserFactory, CharacterFactory, SubmissionFactory
 from apps.sales.authorize import AuthorizeException
 from apps.sales.models import Revision, idempotent_lines, QUEUED, NEW, PAYMENT_PENDING, COMPLETED, IN_PROGRESS, \
-    TransactionRecord, REVIEW, DISPUTED, Order, Deliverable
+    TransactionRecord, REVIEW, DISPUTED, Order, Deliverable, WAITING
 from apps.sales.tests.factories import DeliverableFactory, RevisionFactory, LineItemFactory, TransactionRecordFactory, \
     CreditCardTokenFactory
 
@@ -77,6 +77,9 @@ class TestDeliverableStateChange(SignalsDisabledMixin, APITestCase):
 
     def test_accept_deliverable(self, _mock_notify):
         self.state_assertion('seller', 'accept/')
+
+    def test_accept_deliverable_waitlist(self, _mock_notify):
+        self.state_assertion('seller', 'accept/', initial_status=WAITING)
 
     def test_accept_deliverable_send_email(self, _mock_notify):
         self.deliverable.order.buyer = None
