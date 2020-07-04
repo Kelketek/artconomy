@@ -1230,7 +1230,15 @@ class Revision(ImageModel):
         )
 
     def notification_link(self, context):
-        return order_context_to_link(order_context(order=self.deliverable.order, logged_in=False, user=context['request'].user))
+        return order_context_to_link(
+            order_context(
+                order=self.deliverable.order,
+                logged_in=False,
+                user=context['request'].user,
+                extra_params={'revisionId': self.id},
+                view_name='DeliverableRevision',
+            ),
+        )
 
     def notification_name(self, context):
         return f'Revision ID #{self.id} on {self.deliverable.notification_name(context)}'

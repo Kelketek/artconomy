@@ -745,7 +745,7 @@ def order_context(
     context = {'view_name': view_name or '', 'order_id': order.id, 'extra_params': extra_params or {}}
     if order.seller == user:
         context['base_name'] = 'Sale'
-    if deliverable and deliverable.arbitrator == user:
+    elif deliverable and deliverable.arbitrator == user:
         context['base_name'] = 'Case'
     else:
         context['base_name'] = 'Order'

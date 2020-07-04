@@ -19,6 +19,7 @@ def revision_subscriptions(apps, schema):
                 type=COMMENT,
                 object_id=revision.id,
                 content_type_id=content_type_id,
+                email=True,
             )
         ]
         if revision.deliverable.order.buyer:
@@ -28,6 +29,7 @@ def revision_subscriptions(apps, schema):
                     type=COMMENT,
                     object_id=revision.id,
                     content_type_id=content_type_id,
+                    email=True,
                 )
             )
         if revision.deliverable.arbitrator:
@@ -37,6 +39,7 @@ def revision_subscriptions(apps, schema):
                     type=COMMENT,
                     object_id=revision.id,
                     content_type_id=content_type_id,
+                    email=True,
                 )
             )
         Subscription.objects.bulk_create(subscriptions, ignore_conflicts=True)
