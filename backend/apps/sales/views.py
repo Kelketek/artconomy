@@ -720,6 +720,12 @@ class DeliverableReferences(ListCreateAPIView):
                 content_type=content_type,
                 object_id=reference.id,
             )
+        if deliverable.arbitrator:
+            Subscription.objects.get_or_create(
+                subscriber=deliverable.arbitrator, type=COMMENT, email=True,
+                content_type=content_type,
+                object_id=reference.id,
+            )
         notify(
             REFERENCE_UPLOADED,
             deliverable,

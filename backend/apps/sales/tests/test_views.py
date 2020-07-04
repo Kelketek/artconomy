@@ -3,6 +3,7 @@ from unittest.mock import patch, Mock
 
 from dateutil.relativedelta import relativedelta
 from ddt import data, unpack, ddt
+from django.contrib.contenttypes.models import ContentType
 from django.core import mail
 from django.test import override_settings
 from django.utils import timezone
@@ -12,7 +13,7 @@ from moneyed import Money
 from rest_framework import status
 
 from apps.lib.abstract_models import ADULT
-from apps.lib.models import Comment
+from apps.lib.models import Comment, Subscription, COMMENT
 from apps.lib.test_resources import APITestCase, PermissionsTestCase, MethodAccessMixin
 from apps.lib.tests.factories import TagFactory, AssetFactory
 from apps.profiles.models import User, HAS_US_ACCOUNT, NO_US_ACCOUNT, UNSET
@@ -1892,7 +1893,7 @@ class TestReferences(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_attach_reference(self):
-        deliverable = DeliverableFactory.create()
+        deliverable = DeliverableFactory.create(arbitrator=UserFactory.create())
         reference = ReferenceFactory.create(owner=deliverable.order.seller)
         self.login(deliverable.order.seller)
         response = self.client.post(
@@ -1900,6 +1901,24 @@ class TestReferences(APITestCase):
             {'reference_id': reference.id}
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        Subscription.objects.get(
+            type=COMMENT,
+            subscriber=deliverable.order.buyer,
+            content_type=ContentType.objects.get_for_model(reference),
+            object_id=response.data['reference']['id'],
+        )
+        Subscription.objects.get(
+            type=COMMENT,
+            subscriber=deliverable.order.seller,
+            content_type=ContentType.objects.get_for_model(reference),
+            object_id=response.data['reference']['id'],
+        )
+        Subscription.objects.get(
+            type=COMMENT,
+            subscriber=deliverable.arbitrator,
+            content_type=ContentType.objects.get_for_model(reference),
+            object_id=response.data['reference']['id'],
+        )
 
     def test_list_references(self):
         deliverable = DeliverableFactory.create()

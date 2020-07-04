@@ -1257,6 +1257,10 @@ def deliverable_from_context(context):
 
 
 class Reference(ImageModel):
+    """
+    NOTE: References have to have their subscriptions created at the point of creation, as signals would not indicate
+    which deliverable is being dealt with.
+    """
     comment_permissions = [Any(ReferenceViewPermission, IsStaff)]
     preserve_comments = True
     deliverables = ManyToManyField(Deliverable)
@@ -1309,7 +1313,15 @@ def auto_subscribe_image(sender, instance, created=False, **kwargs):
         email=True,
         type=COMMENT
     )
-    if not instance.deliverable.buyer:
+    if instance.deliverable.arbitrator:
+        Subscription.objects.create(
+            subscriber=instance.deliverable.arbitrator,
+            content_type=content_type,
+            object_id=instance.id,
+            email=True,
+            type=COMMENT
+        )
+    if not instance.deliverable.order.buyer:
         return
     Subscription.objects.create(
         subscriber=instance.deliverable.order.buyer,
@@ -1319,8 +1331,7 @@ def auto_subscribe_image(sender, instance, created=False, **kwargs):
         type=COMMENT
     )
 
-receiver(post_delete, sender=Revision)(auto_subscribe_image)
-receiver(post_delete, sender=Reference)(auto_subscribe_image)
+revision_comment_receiver = receiver(post_save, sender=Revision)(auto_subscribe_image)
 
 @receiver(post_delete, sender=Reference)
 @disable_on_load

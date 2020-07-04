@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 from dateutil.relativedelta import relativedelta
 from ddt import ddt, data
+from django.contrib.contenttypes.models import ContentType
 from django.test import override_settings
 from django.utils import timezone
 from django.utils.datetime_safe import date
@@ -11,14 +12,14 @@ from moneyed import Money
 from rest_framework import status
 
 from apps.lib.abstract_models import ADULT, MATURE, GENERAL
-from apps.lib.models import Event, SALE_UPDATE, ORDER_UPDATE, WAITLIST_UPDATED
+from apps.lib.models import Event, SALE_UPDATE, ORDER_UPDATE, WAITLIST_UPDATED, Subscription, COMMENT
 from apps.lib.test_resources import APITestCase
 from apps.lib.tests.factories import AssetFactory
 from apps.profiles.models import VERIFIED
 from apps.profiles.tests.factories import UserFactory, CharacterFactory
 from apps.profiles.utils import create_guest_user
 from apps.sales.models import Deliverable, Order, NEW, ADD_ON, TransactionRecord, TIP, SHIELD, QUEUED, IN_PROGRESS, \
-    REVIEW, DISPUTED, COMPLETED, PAYMENT_PENDING, BASE_PRICE, LineItem, EXTRA
+    REVIEW, DISPUTED, COMPLETED, PAYMENT_PENDING, BASE_PRICE, EXTRA, Revision
 from apps.sales.tests.factories import ProductFactory, DeliverableFactory, add_adjustment, RevisionFactory, \
     LineItemFactory
 from apps.sales.tests.test_utils import TransactionCheckMixin
@@ -478,7 +479,9 @@ class TestOrder(TransactionCheckMixin, APITestCase):
     def test_revision_upload(self):
         user = UserFactory.create()
         self.login(user)
-        deliverable = DeliverableFactory.create(order__seller=user, status=QUEUED, revisions=1, rating=ADULT)
+        deliverable = DeliverableFactory.create(
+            order__seller=user, status=QUEUED, revisions=1, rating=ADULT, arbitrator=UserFactory.create(),
+        )
         asset = AssetFactory.create(uploaded_by=user)
         response = self.client.post(
             f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/',
@@ -509,6 +512,28 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         deliverable.refresh_from_db()
         self.assertEqual(deliverable.auto_finalize_on, None)
         self.assertEqual(deliverable.status, IN_PROGRESS)
+        subscription = Subscription.objects.get(
+            object_id=response.data['id'],
+            content_type=ContentType.objects.get_for_model(Revision),
+            type=COMMENT,
+            subscriber=user,
+        )
+        self.assertTrue(subscription.email)
+        subscription = Subscription.objects.get(
+            object_id=response.data['id'],
+            content_type=ContentType.objects.get_for_model(Revision),
+            type=COMMENT,
+            subscriber=deliverable.order.buyer,
+        )
+        self.assertTrue(subscription.email)
+        subscription = Subscription.objects.get(
+            object_id=response.data['id'],
+            content_type=ContentType.objects.get_for_model(Revision),
+            type=COMMENT,
+            subscriber=deliverable.arbitrator,
+        )
+        self.assertTrue(subscription.email)
+
 
     @freeze_time('2012-08-01 12:00:00')
     def test_final_revision_upload(self):
