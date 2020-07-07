@@ -2155,6 +2155,7 @@ class DateConstrained:
             f'{self.date_field}__gte': self.start_date,
             f'{self.date_field}__lte': self.end_date,
         }
+        print(kwargs)
         return kwargs
 
 
@@ -2181,7 +2182,7 @@ class OrderValues(CSVReport, ListAPIView, DateConstrained):
     report_name = 'order-report'
 
     def get_queryset(self):
-        return Order.objects.filter(escrow_disabled=False).exclude(
+        return Deliverable.objects.filter(escrow_disabled=False, **self.date_kwargs).exclude(
             status__in=[CANCELLED, NEW, PAYMENT_PENDING],
         ).order_by('created_on')
 

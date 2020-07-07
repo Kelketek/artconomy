@@ -794,7 +794,7 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
         if obj.order.buyer and obj.order.buyer.guest:
             return f'Guest #{obj.id}'
         elif obj.order.buyer:
-            return obj.buyer.username
+            return obj.order.buyer.username
         else:
             return '(Empty)'
 
@@ -837,7 +837,7 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
 
     def get_still_in_escrow(self, obj):
         return account_balance(
-            obj.seller, TransactionRecord.ESCROW, AVAILABLE, qs_kwargs=self.qs_kwargs(obj)
+            obj.order.seller, TransactionRecord.ESCROW, AVAILABLE, qs_kwargs=self.qs_kwargs(obj)
         )
 
     def get_artist_earnings(self, obj):
@@ -869,7 +869,7 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
     @lru_cache(4)
     def get_ach_fees(self, obj):
         transaction = TransactionRecord.objects.filter(
-            payer=obj.seller, payee=obj.seller, status=TransactionRecord.SUCCESS,
+            payer=obj.order.seller, payee=obj.order.seller, status=TransactionRecord.SUCCESS,
             source=TransactionRecord.HOLDINGS, destination=TransactionRecord.BANK,
             **self.qs_kwargs(obj),
         ).first()
@@ -884,13 +884,13 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
         if not fee:
             # Something's wrong here. Will need to find out why this transaction was not annotated.
             return
-        orders = []
-        order_type = ContentType.objects.get_for_model(Order)
+        deliverables = []
+        deliverable_type = ContentType.objects.get_for_model(Deliverable)
         for target in transaction.targets.all():
-            if target.content_type == order_type:
-                orders.append(target.target)
+            if target.content_type == deliverable_type:
+                deliverables.append(target.target)
         lines = {}
-        for order in orders:
+        for order in deliverables:
             lines[order] = LineItemSim(
                 id=order.id,
                 amount=Money(TransactionRecord.objects.filter(
@@ -913,8 +913,8 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
     @lru_cache
     def get_refunded_on(self, obj):
         if refund := TransactionRecord.objects.filter(
-                source=TransactionRecord.ESCROW, payer=obj.seller, status=TransactionRecord.SUCCESS,
-                payee=obj.buyer,
+                source=TransactionRecord.ESCROW, payer=obj.order.seller, status=TransactionRecord.SUCCESS,
+                payee=obj.order.buyer,
                 **self.qs_kwargs(obj),
         ).first():
             return refund.created_on

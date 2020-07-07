@@ -168,6 +168,8 @@ class ImageModel(AssetThumbnailMixin, models.Model):
                 break
             except InvalidImageFormatError:
                 return None
+            except ValueError:
+                return None
         return self.file.file.url
 
     def ref_name(self, field_name):
