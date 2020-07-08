@@ -15,15 +15,6 @@
                 <v-row no-gutters  >
                   <v-col>
                     <div class="text-left" >{{ submission.title }}</div>
-                      <v-row no-gutters>
-                        <v-col class="text-left" >
-                          <v-icon small>favorite</v-icon>
-                          {{ submission.favorite_count }}
-                          <v-icon small>comment</v-icon>
-                          {{ submission.comment_count }}
-                        </v-col>
-                        <slot name="stats-append" />
-                      </v-row>
                   </v-col>
                 </v-row>
               </ac-link>

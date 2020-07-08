@@ -5,6 +5,7 @@ from typing import Any, TypedDict, List, Dict
 import pendulum
 from django.contrib.contenttypes.models import ContentType
 from django.core.management.base import OutputWrapper
+from django.db.models import Q
 from pendulum import DateTime
 from dateutil.relativedelta import relativedelta
 from django.core.management import BaseCommand, CommandParser
@@ -107,19 +108,29 @@ def create_fee_transaction(
 
 
 def distribute_fees(transaction: TransactionSpec, writer: DictWriter, err: OutputWrapper):
-    candidates = list(TransactionRecord.objects.filter(
-        created_on__gte=(transaction['auth_date'] - relativedelta(weeks=1)),
-        created_on__lte=(transaction['auth_date'] + relativedelta(weeks=1)),
-        auth_code=transaction['auth_code'],
-        source=TransactionRecord.CARD,
-        status=TransactionRecord.SUCCESS,
-    ))
+    if transaction['auth_code']:
+        candidates = list(TransactionRecord.objects.filter(
+                auth_code=transaction['auth_code'],
+                source=TransactionRecord.CARD,
+                status=TransactionRecord.SUCCESS,
+                created_on__gte=(transaction['auth_date'] - relativedelta(weeks=1)),
+                created_on__lte=(transaction['auth_date'] + relativedelta(weeks=1)),
+        ))
+    else:
+        candidates = list(TransactionRecord.objects.filter(
+            destination=TransactionRecord.CARD,
+            auth_code='',
+            category=TransactionRecord.ESCROW_REFUND,
+            status=TransactionRecord.SUCCESS,
+            created_on__gte=(transaction['auth_date'] - relativedelta(days=2)),
+            created_on__lte=(transaction['auth_date'] + relativedelta(days=2)),
+        ))
     if not candidates:
         new_output_row(transaction, for_note='<UNKNOWN: Transaction made off-site?>', writer=writer)
         print('WARNING: No matching transactions found for', transaction, file=err)
         return
     total = sum((record.amount for record in candidates))
-    if total != transaction['amount']:
+    if total != abs(transaction['amount']):
         print(f'WARNING: Inexact match found. Transactions total to {total} but card was charged {transaction["amount"]}', transaction, file=err)
     create_fee_transaction(candidates, transaction, candidates[0].created_on, writer)
 

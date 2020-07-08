@@ -98,7 +98,7 @@ def initiate_withdraw(user, bank, amount, test_only=True):
     main_record.save()
     main_record.targets.add(ref_for_instance(bank))
     deliverables = list(Deliverable.objects.select_for_update().filter(
-        payout_sent=False, order__seller=user, status=COMPLETED,
+        payout_sent=False, order__seller=user, status=COMPLETED, escrow_disabled=False,
     ))
     main_record.targets.add(*(ref_for_instance(deliverable) for deliverable in deliverables))
     Deliverable.objects.filter(id__in=[deliverable.id for deliverable in deliverables]).update(payout_sent=True)

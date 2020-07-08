@@ -985,7 +985,7 @@ class TransactionRecord(Model):
     targets = ManyToManyField(to='lib.GenericReference', related_name='referencing_transactions', blank=True)
 
     remote_id = CharField(max_length=40, blank=True, default='')
-    auth_code = CharField(max_length=6, default='', db_index=True)
+    auth_code = CharField(max_length=6, default='', db_index=True, blank=True)
     response_message = TextField(default='', blank=True)
     note = TextField(default='', blank=True)
 

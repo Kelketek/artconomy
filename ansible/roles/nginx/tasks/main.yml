@@ -4,6 +4,7 @@
     name:
       - nginx
       - nginx-extras
+      - python-requests
     state: present
 
 - name: Link ssl certs
@@ -33,6 +34,23 @@
     - upstream
   notify:
     - reload nginx
+
+- name: Ensure real IP configuration
+  copy:
+    content: ""
+    dest: /etc/nginx/includes/real_ip.conf
+    force: no
+    group: root
+    owner: root
+    mode: 0755
+
+- name: Add cron task for Cloudflare configuration
+  copy:
+    src: files/cloudflare_ips.py
+    dest: /etc/cron.hourly/cloudflare_ips.py
+    owner: root
+    group: root
+    mode: 0755
 
 - name: Add NginX extra configuration templates
   template: src=templates/conf.d/{{ item }}.conf dest=/etc/nginx/conf.d/{{ item }}.conf
