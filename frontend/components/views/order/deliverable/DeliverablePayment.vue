@@ -84,6 +84,11 @@
                     :editBase="!product"
                     :escrow="!deliverable.x.escrow_disabled"
                   />
+                  <v-row v-if="deliverable.x.paid_on">
+                    <v-col class="text-center">
+                      <v-icon left color="green">check_circle</v-icon> Paid on {{formatDate(deliverable.x.paid_on)}}
+                    </v-col>
+                  </v-row>
                   <v-row v-if="isBuyer && is(NEW)">
                     <v-col class="text-center">
                       <p><strong>Note:</strong> The artist may adjust the above price based on the requirements you have given before accepting it.</p>
