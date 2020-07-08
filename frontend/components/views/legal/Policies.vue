@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <v-row no-gutters  >
+    <v-row>
       <v-col cols="12" md="3">
         <v-card>
           <router-link :to="{name: 'CommissionAgreement'}">

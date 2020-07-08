@@ -1,16 +1,16 @@
 <!--suppress HtmlUnknownTarget -->
 <template>
-  <div class="container">
-    <div class="row">
-      <div class="col-12">
+  <v-container>
+    <v-row>
+      <v-col cols="12">
         <div class="col-12 text-center">
           <img class="legal-logo" src="/static/images/logo.svg" alt="Artconomy.com"/>
         </div>
         <div class="col-12 text-center home-title">
           <h1>Refund Policy</h1>
         </div>
-      </div>
-      <div class="col-12-sm">
+      </v-col>
+      <v-col cols="12">
         <p><strong>Last updated: November 29, 2019</strong></p>
         <p>
           Artconomy endeavors to satisfy all of its customers of any issues they have with products purchased through
@@ -69,9 +69,9 @@
           Artconomy does not collect fees on commissions not covered by Artconomy Shield, but fees may be assessed
           according to the terms of any payment processor the commissioner and artist agree to use.
         </p>
-      </div>
-    </div>
-  </div>
+      </v-col>
+    </v-row>
+  </v-container>
 </template>
 
 <script lang="ts">
