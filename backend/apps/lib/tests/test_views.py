@@ -37,3 +37,12 @@ class TestComment(SignalsDisabledMixin, APITestCase):
         response = self.client.get(f'/api/lib/v1/comments/profiles.Submission/{submission.id}/')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['results'][0]['id'], comment.id)
+
+
+class TestSupportRequest(APITestCase):
+    def test_send_request(self):
+        self.client.post('/api/lib/v1/support/request/', {
+            'email': 'test@example.com',
+            'body': 'beep boop.',
+            'referring_url': 'https://example.com/',
+        })

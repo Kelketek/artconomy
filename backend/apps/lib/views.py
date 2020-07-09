@@ -332,7 +332,7 @@ class SupportRequest(APIView):
         textifier = gen_textifier()
         msg = EmailMultiAlternatives(
             subject,
-            textifier(message),
+            textifier.handle(message),
             to=[settings.ADMINS[0][1]],
             headers={'Reply-To': from_email}
         )
