@@ -1,5 +1,5 @@
 <template>
-  <ac-load-section :controller="product" v-if="currentRoute">
+  <ac-load-section :controller="product" v-if="currentRoute" itemscope itemtype="http://schema.org/Product">
     <template v-slot:default>
       <v-row>
         <v-col class="hidden-md-and-up" cols="12" style="position: relative">
@@ -120,12 +120,14 @@
                 <v-col cols="12">
                   <ac-patch-field label="Title" :patcher="product.patchers.name"
                                   v-if="controls" v-show="editing" />
-                  <h1 v-show="!editing">{{product.x.name}}</h1>
+                  <h1 v-show="!editing" itemprop="name">{{product.x.name}}</h1>
                 </v-col>
                 <v-col cols="12">
                   <v-row dense>
                     <v-col class="shrink">
-                      <router-link :to="{name: 'Ratings', params: {username}}">
+                      <router-link :to="{name: 'Ratings', params: {username}}" itemprop="aggregateRating"
+                                   itemscope itemtype="http://schema.org/AggregateRating">
+                        <span itemprop="ratingValue" :content="product.x.user.stars" v-if="product.x.user.stars"></span>
                         <v-rating :value="product.x.user.stars" dense small half-increments readonly v-if="product.x.user.stars" />
                       </router-link>
                     </v-col>
@@ -138,7 +140,7 @@
                   <v-divider />
                 </v-col>
                 <v-col cols="12" class="pt-2">
-                  <ac-rendered :value="product.x.description" v-show="!editing"/>
+                  <ac-rendered :value="product.x.description" v-show="!editing" itemprop="description" />
                   <ac-patch-field
                       field-type="ac-editor"
                       :auto-save="false"
@@ -183,8 +185,10 @@
           <v-card :color="$vuetify.theme.currentTheme.darkBase.darken2">
             <v-card-text>
               <v-row dense>
-                <v-col class="title" cols="12" >
-                  ${{product.x.starting_price.toFixed(2)}}
+                <v-col class="title" cols="12">
+                  <span itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+                    <span itemprop="priceCurrency" content="USD">$</span><span itemprop="price" :content="product.x.starting_price.toFixed(2)">{{product.x.starting_price.toFixed(2)}}</span>
+                  </span>
                   <v-btn v-show="editing" icon color="primary" @click="showTerms = true"><v-icon>edit</v-icon></v-btn>
                   <ac-expanded-property v-model="showTerms" :large="true">
                     <span slot="title">Edit Terms</span>

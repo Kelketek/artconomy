@@ -20,6 +20,7 @@
       </div>
       <v-img :src="displayImage" :aspect-ratio="ratio" :contain="contain" v-if="renderImage && isImage"
              max-height="90vh" max-width="100%" class="asset-image" ref="imgContainer"
+             itemprop="image"
              @click="fullscreen=true"
       />
       <v-col class="text-center" v-else-if="renderImage && !isImage" cols="12" >
