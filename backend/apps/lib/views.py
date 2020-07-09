@@ -329,10 +329,9 @@ class SupportRequest(APIView):
             'user_agent': request.META.get('HTTP_USER_AGENT')
         }
         message = get_template('support_email.txt').render(ctx)
-        textifier = gen_textifier()
         msg = EmailMultiAlternatives(
             subject,
-            textifier.handle(message),
+            message,
             to=[settings.ADMINS[0][1]],
             headers={'Reply-To': from_email}
         )
