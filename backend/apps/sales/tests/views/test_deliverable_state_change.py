@@ -79,7 +79,8 @@ class TestDeliverableStateChange(SignalsDisabledMixin, APITestCase):
         self.state_assertion('seller', 'accept/')
 
     def test_accept_deliverable_waitlist(self, _mock_notify):
-        self.state_assertion('seller', 'accept/', initial_status=WAITING)
+        idempotent_lines(self.deliverable)
+        self.state_assertion('seller', 'accept/', initial_status=WAITING, target_status=PAYMENT_PENDING)
 
     def test_accept_deliverable_send_email(self, _mock_notify):
         self.deliverable.order.buyer = None

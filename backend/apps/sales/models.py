@@ -451,7 +451,7 @@ def auto_subscribe_deliverable(sender, instance, created=False, **_kwargs):
 
 
 def idempotent_lines(instance: Deliverable):
-    if instance.status not in [NEW, PAYMENT_PENDING]:
+    if instance.status not in [WAITING, NEW, PAYMENT_PENDING]:
         return
     if instance.order.product:
         LineItem.objects.update_or_create(

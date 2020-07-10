@@ -19,7 +19,7 @@ from apps.profiles.models import VERIFIED
 from apps.profiles.tests.factories import UserFactory, CharacterFactory
 from apps.profiles.utils import create_guest_user
 from apps.sales.models import Deliverable, Order, NEW, ADD_ON, TransactionRecord, TIP, SHIELD, QUEUED, IN_PROGRESS, \
-    REVIEW, DISPUTED, COMPLETED, PAYMENT_PENDING, BASE_PRICE, EXTRA, Revision
+    REVIEW, DISPUTED, COMPLETED, PAYMENT_PENDING, BASE_PRICE, EXTRA, Revision, LineItem
 from apps.sales.tests.factories import ProductFactory, DeliverableFactory, add_adjustment, RevisionFactory, \
     LineItemFactory
 from apps.sales.tests.test_utils import TransactionCheckMixin
@@ -94,6 +94,7 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.assertTrue(Event.objects.filter(type=ORDER_UPDATE).exists())
         product.user.refresh_from_db()
         self.assertEqual(product.user.artist_profile.load, 0)
+        self.assertTrue(Order.objects.get(id=response.data['id']).deliverables.first().total())
 
     def test_place_order_inventory_product_out_of_stock(self):
         user = UserFactory.create()
