@@ -151,6 +151,7 @@ class User(AbstractEmailUser, HitsMixin):
     biography = CharField(max_length=5000, blank=True, default='')
     blocking = ManyToManyField('User', symmetrical=False, related_name='blocked_by', blank=True)
     stars = DecimalField(default=None, null=True, blank=True, max_digits=3, decimal_places=2, db_index=True)
+    rating_count = IntegerField(default=0, blank=True)
     notifications = ManyToManyField('lib.Event', through='lib.Notification')
     # Random default value to make extra sure it will never be invoked by mistake.
     reset_token = CharField(max_length=36, blank=True, default=uuid.uuid4)

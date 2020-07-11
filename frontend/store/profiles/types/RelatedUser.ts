@@ -3,6 +3,7 @@ export interface RelatedUser {
   username: string,
   avatar_url: string,
   stars: number|null,
+  rating_count: number,
   is_staff: boolean,
   is_superuser: boolean,
   artist_mode: boolean|null,

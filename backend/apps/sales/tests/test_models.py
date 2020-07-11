@@ -24,6 +24,7 @@ class TestRating(TestCase):
         RatingFactory.create(target=user, stars=4, rater=rater)
         user.refresh_from_db()
         self.assertEqual(user.stars, Decimal('3.67'))
+        self.assertEqual(user.rating_count, 3)
 
 
 class TestPromo(TestCase):

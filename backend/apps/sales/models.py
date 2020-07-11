@@ -712,6 +712,7 @@ class Rating(Model):
 @disable_on_load
 def tabulate_stars(sender, instance, **_kwargs):
     instance.target.stars = instance.target.ratings.all().aggregate(Avg('stars'))['stars__avg']
+    instance.target.rating_count = instance.target.ratings.all().count()
     instance.target.save()
 
 

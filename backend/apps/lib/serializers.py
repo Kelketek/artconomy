@@ -64,7 +64,7 @@ class RelatedUserSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             'id', 'username', 'avatar_url', 'stars', 'is_staff', 'is_superuser', 'guest', 'artist_mode', 'taggable',
-            'landscape', 'portrait',
+            'landscape', 'portrait', 'rating_count',
         )
         read_only_fields = fields
 
