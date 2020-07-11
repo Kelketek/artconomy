@@ -23,6 +23,7 @@ export interface User {
   biography: string,
   taggable: boolean
   stars: number | null,
+  rating_count: number,
   portrait: boolean,
   portrait_enabled: boolean,
   landscape: boolean,

@@ -763,7 +763,7 @@ class UserInfoSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
         model = User
         fields = (
             'id', 'username', 'avatar_url', 'biography', 'favorites_hidden', 'watching', 'blocking',
-            'stars', 'is_staff', 'is_superuser', 'guest', 'artist_mode', 'hits', 'watches',
+            'stars', 'is_staff', 'is_superuser', 'guest', 'artist_mode', 'hits', 'watches', 'rating_count',
         )
         read_only_fields = [field for field in fields if field not in ['watching', 'blocking']]
 

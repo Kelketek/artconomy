@@ -20,6 +20,7 @@ export function genSubmission(): Submission {
       username: 'Fox',
       avatar_url: 'https://www.gravatar.com/avatar/d3e61c0076b54b4cf19751e2cf8e17ed.jpg?s=80',
       stars: null,
+      rating_count: 0,
       is_staff: true,
       is_superuser: true,
       guest: false,

@@ -519,12 +519,12 @@ class UserSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
             'blacklist', 'biography', 'taggable', 'watching', 'blocking',
             'stars', 'portrait', 'portrait_enabled', 'portrait_paid_through',
             'landscape', 'landscape_enabled', 'landscape_paid_through', 'telegram_link', 'sfw_mode',
-            'offered_mailchimp', 'guest', 'artist_mode', 'hits', 'watches', 'guest_email',
+            'offered_mailchimp', 'guest', 'artist_mode', 'hits', 'watches', 'guest_email', 'rating_count',
         )
         read_only_fields = [field for field in fields if field not in [
             'rating', 'sfw_mode', 'taggable',
             'offered_mailchimp', 'artist_mode', 'favorites_hidden',
-            'blacklist', 'biography',
+            'blacklist', 'biography', 'rating_count',
         ]]
         extra_kwargs = {field: {'required': False} for field in fields}
 
