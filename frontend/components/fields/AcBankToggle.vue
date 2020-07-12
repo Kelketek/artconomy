@@ -43,8 +43,8 @@
         title="Add Bank"
     >
       <v-row no-gutters  >
-        <v-col class="text-center" cols="12">
-          <p class="title"><strong>Note: There will be a one-time connection fee of $1 assessed, as required by our payment processor.</strong></p>
+        <v-col class="text-center" slot="header" >
+          <p><strong>Note: There will be a one-time connection fee of $1 assessed, as required by our payment processor.</strong></p>
         </v-col>
         <v-col cols="12" sm="6">
           <ac-bound-field :field="newBank.fields.first_name" label="First Name" hint="The first name of the person primarily responsible for the account."></ac-bound-field>

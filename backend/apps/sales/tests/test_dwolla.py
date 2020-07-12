@@ -55,7 +55,6 @@ class DwollaTestCase(TestCase):
                 'routingNumber': '1111',
                 'accountNumber': '12345678',
                 'bankAccountType': 'checking',
-                'type': 'receive-only',
                 'name': 'testuser (ID: {}) - Checking 5678'.format(user.id)
             }
         )
