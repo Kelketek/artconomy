@@ -27,6 +27,7 @@ def make_dwolla_account(request, user, first_name, last_name):
         'firstName': first_name,
         'lastName': last_name,
         'email': user.email,
+        'type': 'receive-only',
         'ipAddress': get_client_ip(request)[0]
     }
 

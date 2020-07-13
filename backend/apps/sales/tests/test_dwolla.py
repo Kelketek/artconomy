@@ -29,6 +29,7 @@ class DwollaTestCase(TestCase):
             'customers', {
                 'firstName': 'Jim',
                 'lastName': 'Bob',
+                'type': 'receive-only',
                 'email': 'test@example.com',
                 'ipAddress': '100.0.0.0'
             }
