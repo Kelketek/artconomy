@@ -48,7 +48,6 @@ def add_bank_account(user, account_number, routing_number, account_type):
         'routingNumber': routing_number,
         'accountNumber': account_number,
         'bankAccountType': type_label,
-        "type": "receive-only",
         'name': '{} - {} {}'.format(
             '{} (ID: {})'.format(user.username, user.id), type_label.title(), account_number[-4:]
         )
