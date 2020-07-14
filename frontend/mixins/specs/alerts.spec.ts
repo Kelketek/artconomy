@@ -31,7 +31,7 @@ describe('Alerts mixin', () => {
     expect(spy).toHaveBeenCalledWith({category: 'error', message: 'Stuff broke.'})
     expect(mockTrace).toHaveBeenCalledWith({})
     expect(store.state.alerts[0].message).toBe(
-      'Stuff broke.'
+      'Stuff broke.',
     )
     expect(store.state.alerts[0].category).toBe(AlertCategory.ERROR)
     expect(store.state.alerts[0].timeout).toBe(7000)
@@ -51,7 +51,7 @@ describe('Alerts mixin', () => {
     const spy = jest.spyOn((wrapper.vm as any), '$alert')
     func({})
     expect(spy).toHaveBeenCalledWith(
-      {category: 'error', message: 'We had an issue contacting the server. Please try again later!'}
+      {category: 'error', message: 'We had an issue contacting the server. Please try again later!'},
     )
     expect(mockTrace).toHaveBeenCalledWith({})
   })
@@ -61,7 +61,7 @@ describe('Alerts mixin', () => {
     const spy = jest.spyOn((wrapper.vm as any), '$alert')
     func({})
     expect(spy).toHaveBeenCalledWith(
-      {category: 'error', message: 'Stuff broke', timeout: 1000}
+      {category: 'error', message: 'Stuff broke', timeout: 1000},
     )
     expect(mockTrace).toHaveBeenCalledWith({})
   })

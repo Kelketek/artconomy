@@ -72,6 +72,7 @@ export default class App extends Vue {
       sortable: false,
       align: 'center',
     }]
+
     public startDate = ''
     public endDate = ''
     public get rangeKwargs() {
@@ -84,6 +85,7 @@ export default class App extends Vue {
       }
       return kwargs
     }
+
     public get rangeString() {
       const str = Object.keys(this.rangeKwargs).map(key => key + '=' + this.rangeKwargs[key]).join('&')
       if (str) {
@@ -91,6 +93,7 @@ export default class App extends Vue {
       }
       return ''
     }
+
     public created() {
       this.overview = this.$getSingle('overviewReport', {endpoint: '/api/sales/v1/reports/overview/'})
       this.overview.get()

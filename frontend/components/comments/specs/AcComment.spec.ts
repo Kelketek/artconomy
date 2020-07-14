@@ -2,7 +2,17 @@ import Vue from 'vue'
 import {mount, Wrapper} from '@vue/test-utils'
 import {Vuetify} from 'vuetify/types'
 import {ArtStore, createStore} from '@/store'
-import {cleanUp, confirmAction, createVuetify, flushPromises, rq, rs, setViewer, vueSetup} from '@/specs/helpers'
+import {
+  cleanUp,
+  confirmAction,
+  createVuetify,
+  docTarget,
+  flushPromises,
+  rq,
+  rs,
+  setViewer,
+  vueSetup,
+} from '@/specs/helpers'
 import {genUser} from '@/specs/helpers/fixtures'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import {commentSet} from './fixtures'
@@ -13,7 +23,6 @@ import {goToNameSpace} from '@/plugins/shortcuts'
 
 const localVue = vueSetup()
 localVue.use(Router)
-jest.useFakeTimers()
 let store: ArtStore
 let wrapper: Wrapper<Vue>
 let router: Router
@@ -21,9 +30,11 @@ let vuetify: Vuetify
 
 describe('AcComment.vue', () => {
   beforeEach(() => {
+    jest.useFakeTimers()
     store = createStore()
     vuetify = createVuetify()
-    router = new Router({mode: 'history',
+    router = new Router({
+      mode: 'history',
       routes: [{
         path: '/',
         name: 'Home',
@@ -36,13 +47,14 @@ describe('AcComment.vue', () => {
           {path: 'products', name: 'Products', component: Empty},
         ],
       },
-      ]})
+      ],
+    })
   })
   afterEach(() => {
     cleanUp(wrapper)
   })
   it('Handles a comment', async() => {
-    const empty = mount(Empty, {localVue, store, router, sync: false})
+    const empty = mount(Empty, {localVue, store, router})
     const commentList = empty.vm.$getList('commentList', {endpoint: '/api/comments/'})
     commentList.response = {...commentSet}
     commentList.setList(commentSet.results)
@@ -56,14 +68,14 @@ describe('AcComment.vue', () => {
         comment: commentList.list[0],
         username: commentList.list[0].x.user.username,
       },
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     expect(wrapper.find('.alternate').exists()).toBe(false)
     expect(wrapper.find('.subcomments').exists()).toBe(false)
   })
   it('Handles a comment with children', async() => {
-    const empty = mount(Empty, {localVue, store, router, sync: false})
+    const empty = mount(Empty, {localVue, store, router})
     const commentList = empty.vm.$getList('commentList', {endpoint: '/api/comments/'})
     commentList.response = {...commentSet}
     commentList.setList(commentSet.results)
@@ -77,13 +89,13 @@ describe('AcComment.vue', () => {
         comment: commentList.list[1],
         username: commentList.list[1].x.user.username,
       },
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     expect(wrapper.find('.subcomments').exists()).toBe(true)
   })
   it('Scrolls to the comment if it is to be highlighted', async() => {
-    const empty = mount(Empty, {localVue, store, router, sync: false})
+    const empty = mount(Empty, {localVue, store, router})
     const mockScrollTo = jest.spyOn(goToNameSpace, 'goTo')
     const commentList = empty.vm.$getList('commentList', {endpoint: '/api/comments/'})
     commentList.response = {...commentSet}
@@ -99,14 +111,14 @@ describe('AcComment.vue', () => {
         comment: commentList.list[0],
         username: commentList.list[0].x.user.username,
       },
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     await wrapper.vm.$nextTick()
     expect(mockScrollTo).toHaveBeenCalledWith('#comment-17')
   })
   it('Sets an alternate coloration', async() => {
-    const empty = mount(Empty, {localVue, store, router, sync: false})
+    const empty = mount(Empty, {localVue, store, router})
     const commentList = empty.vm.$getList('commentList', {endpoint: '/api/comments/'})
     commentList.response = {...commentSet}
     commentList.setList(commentSet.results)
@@ -121,14 +133,14 @@ describe('AcComment.vue', () => {
         username: commentList.list[1].x.user.username,
         alternate: true,
       },
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     expect(wrapper.find('.alternate').exists()).toBe(true)
   })
   it('Allows for a reply', async() => {
     setViewer(store, genUser())
-    const empty = mount(Empty, {localVue, store, router, sync: false})
+    const empty = mount(Empty, {localVue, store, router})
     const commentList = empty.vm.$getList('commentList', {endpoint: '/api/comments/'})
     commentList.response = {...commentSet}
     commentList.setList(commentSet.results)
@@ -143,8 +155,8 @@ describe('AcComment.vue', () => {
         username: commentList.list[0].x.user.username,
         nesting: true,
       },
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     const replyButton = wrapper.find('.reply-button')
     expect(replyButton.exists()).toBe(true)
@@ -162,7 +174,7 @@ describe('AcComment.vue', () => {
     user.is_staff = false
     user.is_superuser = false
     setViewer(store, user)
-    const empty = mount(Empty, {localVue, store, router, sync: false})
+    const empty = mount(Empty, {localVue, store, router})
     const commentList = empty.vm.$getList('commentList', {endpoint: '/api/comments/'})
     const comments = {...commentSet, ...{results: [commentSet.results[0]]}}
     commentList.response = {...comments}
@@ -178,8 +190,8 @@ describe('AcComment.vue', () => {
         username: 'Fox',
         nesting: true,
       },
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     const replyButton = wrapper.find('.reply-button')
     expect(replyButton.exists()).toBe(true)
@@ -192,7 +204,7 @@ describe('AcComment.vue', () => {
   })
   it('Does not allow for a reply when nesting is disabled', async() => {
     setViewer(store, genUser())
-    const empty = mount(Empty, {localVue, store, router, sync: false})
+    const empty = mount(Empty, {localVue, store, router})
     const commentList = empty.vm.$getList('commentList', {endpoint: '/api/comments/'})
     commentList.response = {...commentSet}
     commentList.setList(commentSet.results)
@@ -207,14 +219,14 @@ describe('AcComment.vue', () => {
         username: commentList.list[0].x.user.username,
         nesting: false,
       },
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     expect(wrapper.find('.reply-button').exists()).toBe(false)
   })
   it('Edits a comment', async() => {
     setViewer(store, genUser())
-    const empty = mount(Empty, {localVue, store, router, sync: false})
+    const empty = mount(Empty, {localVue, store, router})
     const commentList = empty.vm.$getList('commentList', {endpoint: '/api/comments/'})
     commentList.response = {...commentSet}
     commentList.setList(commentSet.results)
@@ -229,8 +241,8 @@ describe('AcComment.vue', () => {
         username: commentList.list[0].x.user.username,
         nesting: false,
       },
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     wrapper.find('.more-button').trigger('click')
     await wrapper.vm.$nextTick()
@@ -269,7 +281,7 @@ describe('AcComment.vue', () => {
   })
   it('Deletes a comment', async() => {
     setViewer(store, genUser({is_staff: true}))
-    const empty = mount(Empty, {localVue, store, router, sync: false})
+    const empty = mount(Empty, {localVue, store, router})
     const commentList = empty.vm.$getList('commentList', {endpoint: '/api/comments/'})
     commentList.response = {...commentSet}
     commentList.setList(commentSet.results)
@@ -284,8 +296,8 @@ describe('AcComment.vue', () => {
         username: null,
         nesting: false,
       },
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     expect((wrapper.vm as any).comment.x).toBeTruthy()
     await wrapper.vm.$nextTick()
@@ -300,7 +312,7 @@ describe('AcComment.vue', () => {
   })
   it('Deletes a thread', async() => {
     setViewer(store, genUser())
-    const empty = mount(Empty, {localVue, store, router, sync: false})
+    const empty = mount(Empty, {localVue, store, router})
     const commentList = empty.vm.$getList('commentList', {endpoint: '/api/comments/'})
     commentList.response = {...commentSet}
     commentList.setList(commentSet.results)
@@ -315,8 +327,8 @@ describe('AcComment.vue', () => {
         username: null,
         nesting: false,
       },
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     const vm = wrapper.vm as any
     expect(vm.comment.x).toBeTruthy()
@@ -331,7 +343,7 @@ describe('AcComment.vue', () => {
   })
   it('Does not delete a thread in history mode', async() => {
     setViewer(store, genUser())
-    const empty = mount(Empty, {localVue, store, router, sync: false})
+    const empty = mount(Empty, {localVue, store, router})
     const commentList = empty.vm.$getList('commentList', {endpoint: '/api/comments/'})
     commentList.response = {...commentSet}
     commentList.setList(commentSet.results)
@@ -347,8 +359,8 @@ describe('AcComment.vue', () => {
         nesting: false,
         showHistory: true,
       },
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     const vm = wrapper.vm as any
     expect(vm.comment.x).toBeTruthy()
@@ -363,7 +375,7 @@ describe('AcComment.vue', () => {
   })
   it('Does not delete a thread when displaying actual history', async() => {
     setViewer(store, genUser())
-    const empty = mount(Empty, {localVue, store, router, sync: false})
+    const empty = mount(Empty, {localVue, store, router})
     const commentList = empty.vm.$getList('commentList', {endpoint: '/api/comments/'})
     commentList.response = {...commentSet}
     commentList.setList(commentSet.results)
@@ -379,8 +391,8 @@ describe('AcComment.vue', () => {
         nesting: false,
         inHistory: true,
       },
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     const vm = wrapper.vm as any
     expect(vm.comment.x).toBeTruthy()
@@ -395,7 +407,7 @@ describe('AcComment.vue', () => {
   })
   it('Renders historical comments', async() => {
     setViewer(store, genUser())
-    const empty = mount(Empty, {localVue, store, router, sync: false})
+    const empty = mount(Empty, {localVue, store, router})
     const commentList = empty.vm.$getList('commentList', {endpoint: '/api/comments/'})
     commentList.response = {...commentSet}
     commentList.setList(commentSet.results)
@@ -411,8 +423,8 @@ describe('AcComment.vue', () => {
         nesting: false,
         showHistory: true,
       },
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     mockAxios.reset()
     const vm = wrapper.vm as any

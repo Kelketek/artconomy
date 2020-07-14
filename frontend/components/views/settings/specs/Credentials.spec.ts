@@ -4,7 +4,7 @@ import {mount, shallowMount, Wrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
 import VueRouter from 'vue-router'
 import {genUser} from '@/specs/helpers/fixtures'
-import {cleanUp, createVuetify, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, setViewer, vueSetup} from '@/specs/helpers'
 import Credentials from '../Credentials.vue'
 import Settings from '../Settings.vue'
 
@@ -53,8 +53,8 @@ describe('Credentials.vue', () => {
       store,
       vuetify,
       propsData: {username: 'Fox'},
-      attachToDocument: true,
-      sync: false,
+      attachTo: docTarget(),
+
     })
     await wrapper.vm.$nextTick()
   })
@@ -65,8 +65,8 @@ describe('Credentials.vue', () => {
       store,
       vuetify,
       propsData: {username: 'Fox'},
-      attachToDocument: true,
-      sync: false,
+      attachTo: docTarget(),
+
     })
     const vm = wrapper.vm as any
     expect(vm.url).toBe('/api/profiles/v1/account/Fox/auth/credentials/')
@@ -85,8 +85,8 @@ describe('Credentials.vue', () => {
       store,
       vuetify,
       propsData: {username: 'Fox'},
-      attachToDocument: true,
-      sync: false,
+      attachTo: docTarget(),
+
     })
     const vm = wrapper.vm as any
     vm.emailForm.fields.email.update('test@example.com')
@@ -105,23 +105,23 @@ describe('Credentials.vue', () => {
   `('should set emailDisabled $result when email is $email and email2 is ' +
     '$email2 and current_password is $currentPassword and form disability ' +
     'is $disabled', async({currentPassword, email, email2, disabled, result}) => {
-  setViewer(store, genUser())
-  wrapper = shallowMount(Credentials, {
-    localVue,
-    store,
-    vuetify,
-    propsData: {username: 'Fox'},
-    attachToDocument: true,
-    sync: false,
+    setViewer(store, genUser())
+    wrapper = shallowMount(Credentials, {
+      localVue,
+      store,
+      vuetify,
+      propsData: {username: 'Fox'},
+      attachTo: docTarget(),
+
+    })
+    const vm = wrapper.vm as any
+    vm.emailForm.fields.current_password.update(currentPassword)
+    vm.emailForm.fields.email.update(email)
+    vm.emailForm.fields.email2.update(email2)
+    store.commit('forms/updateMeta', {name: 'emailChange', meta: {disabled}})
+    await vm.$nextTick()
+    expect(vm.emailDisabled).toBe(result)
   })
-  const vm = wrapper.vm as any
-  vm.emailForm.fields.current_password.update(currentPassword)
-  vm.emailForm.fields.email.update(email)
-  vm.emailForm.fields.email2.update(email2)
-  store.commit('forms/updateMeta', {name: 'emailChange', meta: {disabled}})
-  await vm.$nextTick()
-  expect(vm.emailDisabled).toBe(result)
-})
   it.each`
     currentPassword   | password              | password2             | disabled | result
     ${''}             | ${''}                 | ${'test@example.com'} | ${false} | ${true}
@@ -131,24 +131,24 @@ describe('Credentials.vue', () => {
     ${'test'}         | ${'test@example.com'} | ${'test@example.com'} | ${false} | ${false}
   `('should set emailDisabled $result when new_password is $password and new_password2 is ' +
     '$new_password2 and current_password is $currentPassword and form disability is $disabled',
-async({currentPassword, password, password2, disabled, result}) => {
-  setViewer(store, genUser())
-  wrapper = shallowMount(Credentials, {
-    localVue,
-    store,
-    vuetify,
-    propsData: {username: 'Fox'},
-    attachToDocument: true,
-    sync: false,
+  async({currentPassword, password, password2, disabled, result}) => {
+    setViewer(store, genUser())
+    wrapper = shallowMount(Credentials, {
+      localVue,
+      store,
+      vuetify,
+      propsData: {username: 'Fox'},
+      attachTo: docTarget(),
+
+    })
+    const vm = wrapper.vm as any
+    vm.passwordForm.fields.current_password.update(currentPassword)
+    vm.passwordForm.fields.new_password.update(password)
+    vm.passwordForm.fields.new_password2.update(password2)
+    store.commit('forms/updateMeta', {name: 'passwordChange', meta: {disabled}})
+    await vm.$nextTick()
+    expect(vm.passwordDisabled).toBe(result)
   })
-  const vm = wrapper.vm as any
-  vm.passwordForm.fields.current_password.update(currentPassword)
-  vm.passwordForm.fields.new_password.update(password)
-  vm.passwordForm.fields.new_password2.update(password2)
-  store.commit('forms/updateMeta', {name: 'passwordChange', meta: {disabled}})
-  await vm.$nextTick()
-  expect(vm.passwordDisabled).toBe(result)
-})
   it('Hides all of the modals when the user is saved', async() => {
     setViewer(store, genUser())
     wrapper = mount(Credentials, {
@@ -156,8 +156,8 @@ async({currentPassword, password, password2, disabled, result}) => {
       store,
       vuetify,
       propsData: {username: 'Fox'},
-      attachToDocument: true,
-      sync: false,
+      attachTo: docTarget(),
+
     })
     const vm = wrapper.vm as any
     vm.showUsernameChange = true

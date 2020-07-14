@@ -40,14 +40,19 @@ import {RawData} from '@/store/forms/types/RawData'
 export default class AcUppyFile extends mixins(ExtendedInput) {
     @Prop({default: '/api/lib/v1/asset/'})
     public endpoint!: string
+
     @Prop({default: ''})
     public value!: string
+
     @Prop({default: true})
     public inForm!: boolean
+
     @Prop({default: null})
     public success!: (data: RawData) => {} | null
+
     @Prop({default: true})
     public showReset!: boolean
+
     @Prop({default: false})
     public showClear!: boolean
 

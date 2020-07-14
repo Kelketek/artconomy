@@ -1,4 +1,4 @@
-import {cleanUp, createVuetify, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, setViewer, vueSetup} from '@/specs/helpers'
 import {mount, Wrapper} from '@vue/test-utils'
 import {Vue} from 'vue/types/vue'
 import {ArtStore, createStore} from '@/store'
@@ -61,9 +61,10 @@ describe('Home.vue', () => {
   it('Performs a premade search for products', async() => {
     setViewer(store, genUser())
     const push = jest.fn()
-    wrapper = mount(Home, {localVue, store, vuetify, mocks: {$router: {push}}, stubs: ['router-link']})
+    wrapper = mount(Home, {localVue, store, vuetify, mocks: {$router: {push}}, stubs: ['router-link'], attachTo: docTarget()})
     await wrapper.vm.$nextTick()
     wrapper.findAll('.v-tab').at(2).trigger('click')
+    await wrapper.vm.$nextTick()
     await wrapper.vm.$nextTick()
     wrapper.find('.low-price-more').trigger('click')
     await wrapper.vm.$nextTick()
@@ -72,7 +73,9 @@ describe('Home.vue', () => {
   it('Performs a search for characters', async() => {
     setViewer(store, genUser())
     const push = jest.fn()
-    wrapper = mount(Home, {localVue, store, vuetify, mocks: {$router: {push}}, stubs: ['router-link']})
+    wrapper = mount(Home, {
+      localVue, store, vuetify, mocks: {$router: {push}}, stubs: ['router-link'], attachTo: docTarget(),
+    })
     searchForm.fields.q.update('test')
     wrapper.find('.search-characters').trigger('click')
     await wrapper.vm.$nextTick()
@@ -84,6 +87,7 @@ describe('Home.vue', () => {
     const push = jest.fn()
     wrapper = mount(Home, {localVue, store, vuetify, mocks: {$router: {push}}, stubs: ['router-link']})
     searchForm.fields.q.update('test')
+    await wrapper.vm.$nextTick()
     wrapper.find('.search-submissions').trigger('click')
     await wrapper.vm.$nextTick()
     expect(push).toHaveBeenCalledWith({name: 'SearchSubmissions'})

@@ -58,6 +58,7 @@ export default class AcContextGallery extends mixins(CharacterCentric) {
     const character = this.character.profile.x as Character
     return character.primary_submission || this.character.submissions.list[0].x
   }
+
   public created() {
     this.character.submissions.firstRun().then()
   }
@@ -66,10 +67,11 @@ export default class AcContextGallery extends mixins(CharacterCentric) {
     let submissions = [...this.character.submissions.list]
     submissions = submissions.filter(
       (submission: SingleController<Submission>) =>
-        (submission.x as Submission).id !== (this.featured as Submission).id
+        (submission.x as Submission).id !== (this.featured as Submission).id,
     )
     return submissions.slice(0, 4)
   }
+
   public get featuredClasses() {
     const single = this.prunedSubmissions.length === 0
     return {
@@ -80,6 +82,7 @@ export default class AcContextGallery extends mixins(CharacterCentric) {
       'align-self-center': true,
     }
   }
+
   public get more() {
     return (this.prunedSubmissions.length < (this.character.submissions.list.length - 1))
   }

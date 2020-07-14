@@ -34,14 +34,17 @@ import AcDeliverablePreview from '@/components/AcDeliverablePreview.vue'
 export default class DeliverableListing extends mixins(Viewer, Formatting, Ratings) {
   @Prop({required: true})
   public orderId!: number
+
   public deliverables: ListController<Deliverable> = null as unknown as ListController<Deliverable>
   public order: SingleController<Order> = null as unknown as SingleController<Order>
   public get url() {
     return `/api/sales/v1/order/${this.orderId}/`
   }
+
   public get isCurrentRoute() {
     return ['Order', 'Sale', 'Case'].indexOf(this.$route.name!) !== -1
   }
+
   public created() {
     this.order = this.$getSingle(`order${this.orderId}`, {endpoint: this.url})
     this.order.get().catch(this.setError)

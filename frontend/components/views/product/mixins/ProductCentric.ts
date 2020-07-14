@@ -9,6 +9,7 @@ import {Prop} from 'vue-property-decorator'
 export default class ProductCentric extends mixins(Subjective) {
   @Prop({required: true})
   public productId!: number
+
   public product: SingleController<Product> = null as unknown as SingleController<Product>
 
   public get url() {

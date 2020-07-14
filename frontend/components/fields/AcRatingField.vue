@@ -17,7 +17,7 @@
           :color="ratingColor[scratch]"
           :disabled="disabled"
       >
-        <template v-slot:thumb-label="props"></template>
+        <template v-slot:thumb-label></template>
       </v-slider>
       <v-row no-gutters   :class="{disabled}">
         <v-col class="text-center" cols="12" ><h2>{{ratingOptions[scratch]}}</h2></v-col>
@@ -50,12 +50,16 @@ import ExtendedInput from '@/components/fields/mixins/extended_input'
 export default class AcRatingField extends mixins(ExtendedInput) {
     @Prop({default: false})
     public disabled!: boolean
+
     @Prop({required: true})
     public value!: number
+
     @Prop()
     public label!: string
+
     @Prop({default: 3})
     public max!: number
+
     public ratingLabels = Object.values(RATINGS_SHORT)
     public ratingLongDesc = RATING_LONG_DESC
     public ratingColor = RATING_COLOR
@@ -64,6 +68,7 @@ export default class AcRatingField extends mixins(ExtendedInput) {
     public get scratch() {
       return this.value
     }
+
     public set scratch(val: number) {
       this.$emit('input', val)
     }

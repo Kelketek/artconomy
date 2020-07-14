@@ -49,6 +49,7 @@ import Deliverable from '@/types/Deliverable'
 export default class RevisionDetail extends mixins(DeliverableMixin) {
   @Prop()
   public revisionId!: string
+
   public revision!: SingleController<Revision>
   public revisionComments!: ListController<Comment>
 

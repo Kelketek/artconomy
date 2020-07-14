@@ -15,8 +15,10 @@ export default class UserProp extends Vue {
 
     @userHandle('userHandler')
     public subject!: User | null
+
     @userHandle('undefinedHandler')
     public target!: User | null
+
     @userHandle('forgettable', false)
     public forgetMe!: User | null
 

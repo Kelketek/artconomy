@@ -70,10 +70,12 @@ export default class Characters extends mixins(Subjective) {
 
     public created() {
       this.characters = this.$getList(`${this.username}-characters`, {endpoint: this.url, keyProp: 'name'})
-      this.form = this.$getForm(`${this.username}-newCharacter`, {endpoint: this.url,
+      this.form = this.$getForm(`${this.username}-newCharacter`, {
+        endpoint: this.url,
         fields: {
           name: {value: ''}, private: {value: false},
-        }})
+        },
+      })
       this.characters.firstRun().then()
     }
 }

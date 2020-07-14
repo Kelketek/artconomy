@@ -112,7 +112,7 @@ const mutations: MutationTree<RootFormState> = {
   },
   addField(state: RootFormState, payload: {
              name: string, field: { name: string, schema: FieldSchema },
-           }
+           },
   ) {
     // Adds a field to the form, with whatever data and optionally with errors pre-added.
     Vue.set(state[payload.name].fields, payload.field.name, fieldFromSchema(payload.field.schema))

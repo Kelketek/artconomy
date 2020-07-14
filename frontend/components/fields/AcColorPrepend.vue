@@ -23,6 +23,7 @@ import {Prop, Watch} from 'vue-property-decorator'
 export default class AcColorPrepend extends Vue {
     @Prop()
     public value!: string
+
     public scratch = ''
 
     @Watch('scratch')

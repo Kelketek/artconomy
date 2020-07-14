@@ -22,15 +22,18 @@ import {Prop} from 'vue-property-decorator'
 export default class Redirect extends Vue {
   @Prop({required: true})
   public endpoint!: string
+
   public get portString() {
     if (window.location.port) {
       return ':80'
     }
     return ''
   }
+
   public get url() {
     return `${window.location.protocol}//${window.location.host}${this.portString}${this.endpoint}`
   }
+
   public created() {
     setMetaContent('prerender-status-code', '', {content: this.url})
     // @ts-ignore

@@ -4,7 +4,7 @@ import {mount, Wrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
 import Router from 'vue-router'
 import {genUser} from '@/specs/helpers/fixtures'
-import {cleanUp, createVuetify, flushPromises, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, flushPromises, setViewer, vueSetup} from '@/specs/helpers'
 import Payment from '../Payment.vue'
 import Purchase from '../Purchase.vue'
 import Payout from '../Payout.vue'
@@ -68,8 +68,8 @@ describe('DeliverablePayment.vue', () => {
       router,
       vuetify,
       propsData: {username: 'Fox'},
-      attachToDocument: true,
-      sync: false,
+      attachTo: docTarget(),
+
     })
     await wrapper.vm.$nextTick()
     expect(router.currentRoute.name).toBe('Purchase')
@@ -83,8 +83,8 @@ describe('DeliverablePayment.vue', () => {
       router,
       vuetify,
       propsData: {username: 'Fox'},
-      attachToDocument: true,
-      sync: false,
+      attachTo: docTarget(),
+
     })
     await wrapper.vm.$nextTick()
     expect(wrapper.find('#payout-component').exists()).toBe(false)

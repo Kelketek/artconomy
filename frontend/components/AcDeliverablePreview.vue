@@ -37,8 +37,10 @@ import Formatting from '@/mixins/formatting'
 export default class AcDeliverablePreview extends mixins(Formatting) {
   @Prop({required: true})
   public deliverable!: Deliverable
+
   @Prop({required: true})
   public order!: Order
+
   @Prop({required: true})
   public scope!: string
 

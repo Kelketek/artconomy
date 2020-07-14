@@ -1,4 +1,4 @@
-import {cleanUp, createVuetify, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, vueSetup} from '@/specs/helpers'
 import {mount, Wrapper} from '@vue/test-utils'
 import Vue from 'vue'
 import {ArtStore, createStore} from '@/store'
@@ -26,8 +26,8 @@ describe('AcShareManager.vue', () => {
       store,
       vuetify,
       propsData: {controller: list},
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
       stubs: ['ac-bound-field'],
     })
   })

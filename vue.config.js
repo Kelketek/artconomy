@@ -4,7 +4,7 @@ const VuetifyLoaderPlugin = require('vuetify-loader/lib/plugin')
 const SentryWebpackPlugin = require('@sentry/webpack-plugin')
 const webpack = require('webpack')
 
-let commitHash = require('child_process')
+const commitHash = require('child_process')
   .execSync('git rev-parse --short HEAD')
   .toString()
 

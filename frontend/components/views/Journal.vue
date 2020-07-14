@@ -119,18 +119,21 @@ import Formatting from '@/mixins/formatting'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 
-@Component({components: {
-  AcLoadSection,
-  AcLink,
-  AcPatchField,
-  AcCommentSection,
-  AcConfirmation,
-  AcEditingToggle,
-  AcSpeedButton,
-  AcLoadingSpinner,
-  AcEditor,
-  AcRendered,
-  AcAvatar}})
+@Component({
+  components: {
+    AcLoadSection,
+    AcLink,
+    AcPatchField,
+    AcCommentSection,
+    AcConfirmation,
+    AcEditingToggle,
+    AcSpeedButton,
+    AcLoadingSpinner,
+    AcEditor,
+    AcRendered,
+    AcAvatar,
+  },
+})
 export default class extends mixins(Subjective, Editable, Formatting) {
     @Prop({required: true})
     public journalId!: number
@@ -161,6 +164,7 @@ export default class extends mixins(Subjective, Editable, Formatting) {
       this.commentsDisabled = this.$makePatcher(
         {modelProp: 'journal', attrName: 'comments_disabled'})
     }
+
     public deleteJournal() {
       return this.journal.delete().then(this.goBack)
     }
@@ -168,6 +172,7 @@ export default class extends mixins(Subjective, Editable, Formatting) {
     public get locked() {
       return !(this.journal.x) || this.journal.x.comments_disabled
     }
+
     public goBack() {
       this.$router.push({name: 'Profile', params: {username: this.username}})
     }

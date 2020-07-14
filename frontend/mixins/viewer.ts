@@ -18,27 +18,32 @@ export default class Viewer extends mixins(ErrorHandling) {
     }
     return this.viewer.rating
   }
+
   public get isLoggedIn(): boolean {
     if (!this.viewer) {
       return false
     }
     return Boolean(this.viewer.username !== '_')
   }
+
   public get isSuperuser(): boolean {
     if (!this.isLoggedIn) {
       return false
     }
     return Boolean((this.viewer as User).is_superuser)
   }
+
   public get isRegistered(): boolean {
     return this.isLoggedIn && !(this.viewer as User).guest
   }
+
   public get isStaff(): boolean {
     if (!this.isLoggedIn) {
       return false
     }
     return Boolean((this.viewer as User).is_staff)
   }
+
   public get landscape() {
     if (!this.viewer) {
       return false
@@ -48,6 +53,7 @@ export default class Viewer extends mixins(ErrorHandling) {
     }
     return this.viewer.landscape
   }
+
   public get portrait() {
     if (!this.viewer) {
       return false
@@ -57,6 +63,7 @@ export default class Viewer extends mixins(ErrorHandling) {
     }
     return this.viewer.portrait
   }
+
   public get viewerName() {
     return this.viewerHandler.displayName
   }
@@ -67,7 +74,7 @@ export default class Viewer extends mixins(ErrorHandling) {
 
   public created() {
     this.viewerHandler = this.$getProfile(
-      this.rawViewerName, {persistent: true, viewer: true}
+      this.rawViewerName, {persistent: true, viewer: true},
     )
     if (!this.viewerHandler.user.x) {
       this.viewerHandler.user.get().catch(this.setError)

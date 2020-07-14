@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import {Vuetify} from 'vuetify'
 import Router from 'vue-router'
-import {cleanUp, createVuetify, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import {mount, Wrapper} from '@vue/test-utils'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
@@ -39,7 +39,7 @@ describe('AlwaysOpen.vue', () => {
     cleanUp(wrapper)
   })
   it('Calls Search', async() => {
-    const wrapper = mount(AlwaysOpen, {localVue, store, router, vuetify, attachToDocument: true, sync: false})
+    const wrapper = mount(AlwaysOpen, {localVue, store, router, vuetify, attachTo: docTarget()})
     wrapper.find('.commission-cta').trigger('click')
     await wrapper.vm.$nextTick()
     expect(router.currentRoute.name).toBe('SearchProducts')

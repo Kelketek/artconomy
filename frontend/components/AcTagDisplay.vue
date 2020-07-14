@@ -72,8 +72,10 @@ export default class AcTagDisplay extends mixins(Subjective) {
     public searchForm: FormController = null as unknown as FormController
     @Prop({required: true})
     public patcher!: Patch
+
     @Prop({default: false})
     public editable!: boolean
+
     @Prop({required: true})
     public scope!: string
 
@@ -95,6 +97,7 @@ export default class AcTagDisplay extends mixins(Subjective) {
       this.searchForm.fields.q.update(tag)
       this.$router.push(this.tagLink(tag))
     }
+
     public tagLink(tag: string) {
       return {name: 'Search' + this.scope, query: {q: tag}}
     }
@@ -102,6 +105,7 @@ export default class AcTagDisplay extends mixins(Subjective) {
     public get displayedTags() {
       return this.patcher.rawValue.slice(0, 10)
     }
+
     public get controls() {
       if (this.editable && this.isRegistered) {
         return true
@@ -111,9 +115,11 @@ export default class AcTagDisplay extends mixins(Subjective) {
       }
       return this.isStaff
     }
+
     public get moreTags() {
       return this.patcher.rawValue.length - this.displayedTags.length
     }
+
     public created() {
       this.searchForm = this.$getForm('search')
     }

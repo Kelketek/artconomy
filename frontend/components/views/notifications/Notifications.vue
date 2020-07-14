@@ -29,6 +29,7 @@ export default class NotificationsCenter extends mixins(Viewer) {
 
     public community: ListController<
       AcNotification<any, any>> = null as unknown as ListController<AcNotification<any, any>>
+
     public sales: ListController<
       AcNotification<any, any>> = null as unknown as ListController<AcNotification<any, any>>
 

@@ -12,7 +12,7 @@ declare type AxiosRequestMockType = AxiosMockType & { request: requestHandler }
 export const MockAxiosRequest: AxiosRequestMockType = {
   ...MockAxios as any,
   request: (
-    config: { method: HttpVerbs, url: string, data: any, [key: string]: any }
+    config: { method: HttpVerbs, url: string, data: any, [key: string]: any },
   ): any => {
     const args = {...config}
     delete args.method

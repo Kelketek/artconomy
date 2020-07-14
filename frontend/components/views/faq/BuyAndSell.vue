@@ -768,6 +768,7 @@ export default class BuyAndSell extends mixins(Viewer, QuestionSet) {
       this.searchForm.reset()
       this.$router.push({name: 'SearchProducts'})
     }
+
     public created() {
       this.searchForm = this.$getForm('search')
     }

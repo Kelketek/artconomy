@@ -22,7 +22,8 @@ describe('AcCommentSection', () => {
   beforeEach(() => {
     store = createStore()
     vuetify = createVuetify()
-    router = new Router({mode: 'history',
+    router = new Router({
+      mode: 'history',
       routes: [{
         path: '/',
         name: 'Home',
@@ -38,7 +39,8 @@ describe('AcCommentSection', () => {
         path: '/login/:tabName/',
         name: 'Login',
         component: Empty,
-      }]})
+      }],
+    })
   })
   afterEach(() => {
     cleanUp(wrapper)
@@ -55,12 +57,12 @@ describe('AcCommentSection', () => {
       store,
       router,
       vuetify,
-      attachToDocument: false,
-      sync: false,
+
       propsData: {
         showHistory: false,
         commentList,
-      }})
+      },
+    })
     const vm = wrapper.vm as any
     await vm.$nextTick()
     expect(mockAxios.get).toHaveBeenCalledWith(...rq('/api/comments/', 'get', undefined, {
@@ -84,12 +86,12 @@ describe('AcCommentSection', () => {
         store,
         router,
         vuetify,
-        attachToDocument: false,
-        sync: false,
+
         propsData: {
           showHistory: true,
           commentList,
-        }})
+        },
+      })
     }).toThrow('Comment lists should always be reversed!')
   })
   it('Toggle history mode', async() => {
@@ -103,12 +105,12 @@ describe('AcCommentSection', () => {
       store,
       router,
       vuetify,
-      attachToDocument: false,
-      sync: false,
+
       propsData: {
         showHistory: true,
         commentList,
-      }})
+      },
+    })
     const vm = wrapper.vm as any
     await vm.$nextTick()
     expect(mockAxios.get).toHaveBeenCalledWith(...rq('/api/comments/', 'get', undefined, {

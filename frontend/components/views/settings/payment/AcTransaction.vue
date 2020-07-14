@@ -146,18 +146,21 @@ export default class AcTransaction extends mixins(Subjective, Formatting) {
       }
       return this.transaction.payer
     }
+
     public get otherAccount() {
       if (this.outbound) {
         return this.transaction.destination
       }
       return this.transaction.source
     }
+
     public get amount() {
       if (this.outbound) {
         return 0 - this.transaction.amount
       }
       return this.transaction.amount
     }
+
     public get issuer() {
       /* istanbul ignore if */
       if (!this.transaction.card) {
@@ -166,12 +169,14 @@ export default class AcTransaction extends mixins(Subjective, Formatting) {
       // @ts-ignore
       return ISSUERS[this.transaction.card.type]
     }
+
     public get transactionLink() {
       if (!this.isSuperuser) {
         return null
       }
       return `/admin/sales/transactionrecord/${this.transaction.id}/`
     }
+
     public displayName(target: User|null) {
       if (!target) {
         return '[Artconomy]'

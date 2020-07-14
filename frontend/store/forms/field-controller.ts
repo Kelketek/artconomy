@@ -25,8 +25,10 @@ export class FieldController extends Vue {
   // Manages the state of a field. Useful for plugging into forms.
   @Prop()
   public fieldName!: string
+
   @Prop()
   public formName!: string
+
   public validate!: ReturnType<typeof debounce>
   public cancelSource: CancelTokenSource = axios.CancelToken.source()
   public localCache: any = null
@@ -92,7 +94,7 @@ export class FieldController extends Vue {
 
   public created() {
     this.validate = debounce(
-      this.runValidation, this.debounceRate, {trailing: true}
+      this.runValidation, this.debounceRate, {trailing: true},
     )
   }
 
@@ -133,7 +135,7 @@ export class FieldController extends Vue {
   public attr(attrName: keyof Field): any {
     const form = this.$store.state.forms[this.formName]
     return dotTraverse(
-      this, `$store.state.forms.${this.formName}.fields.${this.fieldName}.${attrName}`, true
+      this, `$store.state.forms.${this.formName}.fields.${this.fieldName}.${attrName}`, true,
     )
   }
 
@@ -182,7 +184,7 @@ export class FieldController extends Vue {
       const args = cloneDeep(validator.args || [])
       args.unshift(this.cancelSource.token)
       promiseSet.push(
-        formRegistry.asyncValidators[validator.name](this, ...args).catch(axiosCatch)
+        formRegistry.asyncValidators[validator.name](this, ...args).catch(axiosCatch),
       )
     }
     // Batch up the results of all validators to avoid having the form error messages bounce back and forth between

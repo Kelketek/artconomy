@@ -18,25 +18,28 @@ import * as VSlider from 'vuetify/es5/components/VSlider'
 import * as VSelect from 'vuetify/es5/components/VSelect'
 
 // Any components that might be used as a field and which aren't in Vuetify must be added here to resolve.
-@Component({components: {
-  AcUserSelect,
-  AcEditor,
-  AcTagField,
-  AcRatingField,
-  AcUppyFile,
-  AcCharacterSelect,
-  AcPriceField,
-  AcProductSelect,
-  ...VTextField,
-  ...VSwitch,
-  ...VCheckbox,
-  ...VAutocomplete,
-  ...VSlider,
-  ...VSelect,
-}})
+@Component({
+  components: {
+    AcUserSelect,
+    AcEditor,
+    AcTagField,
+    AcRatingField,
+    AcUppyFile,
+    AcCharacterSelect,
+    AcPriceField,
+    AcProductSelect,
+    ...VTextField,
+    ...VSwitch,
+    ...VCheckbox,
+    ...VAutocomplete,
+    ...VSlider,
+    ...VSelect,
+  },
+})
 export default class AcBoundField extends Vue {
   @Prop({default: 'v-text-field'})
   public fieldType!: string
+
   @Prop({required: true})
   public field!: FieldController
 
@@ -44,10 +47,12 @@ export default class AcBoundField extends Vue {
     const base = {...this.field.bind, ref: 'input'}
     return {...base, ...this.$attrs}
   }
+
   public get listeners() {
     const base = {...this.field.on}
     return {...base, ...this.$listeners}
   }
+
   public get attrs() {
     // We don't really know which keys are props and which are attrs. That's for the child component to decide, for the
     // most part. Here, we try to make our best guess and send almost everything except for things we know Vuetify
@@ -57,6 +62,7 @@ export default class AcBoundField extends Vue {
     delete attrs.disabled
     return attrs
   }
+
   public render(h: CreateElement) {
     const children = Object.entries(this.$slots).map(([key, value]) => {
       // @ts-ignore

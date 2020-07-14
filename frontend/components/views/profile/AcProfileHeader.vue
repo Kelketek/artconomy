@@ -151,12 +151,15 @@ import Editable from '@/mixins/editable'
 export default class AcProfileHeader extends mixins(Subjective, Formatting, Editable) {
     @Prop({default: false})
     public dense!: boolean
+
     @Prop({default: false})
     public showEdit!: boolean
+
     public showMenu = false
     public get showActions() {
       return !this.isCurrent && this.isRegistered
     }
+
     public startConversation() {
       artCall({
         url: `/api/profiles/v1/account/${this.viewerName}/conversations/`,

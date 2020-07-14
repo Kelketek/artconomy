@@ -94,12 +94,12 @@ export class ProfileController extends BaseController<ProfileModuleOpts, Profile
   public created() {
     this.register()
     Vue.set(this, 'user', this.$getSingle(
-      userPathFor(this.name).join('/'), {endpoint: endpointFor(this.name)}
+      userPathFor(this.name).join('/'), {endpoint: endpointFor(this.name)},
     ))
     Vue.set(this, 'artistProfile', this.$getSingle(
       artistProfilePathFor(this.name).join('/'), {
         endpoint: artistProfileEndpointFor(this.name), params: {view: 'true'},
-      }
+      },
     ))
   }
 

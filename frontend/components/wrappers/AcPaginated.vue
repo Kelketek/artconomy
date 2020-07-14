@@ -56,16 +56,22 @@ import AcGrowSpinner from '@/components/AcGrowSpinner.vue'
 export default class AcPaginated extends mixins(ErrorHandling) {
     @Prop({default: true})
     public autoRun!: boolean
+
     @Prop({default: false})
     public trackPages!: boolean
+
     @Prop({default: 'page'})
     public pageVariable!: string
+
     @Prop({required: true})
     public list!: ListController<any>
+
     @Prop({default: () => []})
     public okStatuses!: number[]
+
     @Prop({default: true})
     public showPagination!: boolean
+
     public prerendering = window.PRERENDERING || 0
 
     @Watch('list.currentPage')
@@ -81,6 +87,7 @@ export default class AcPaginated extends mixins(ErrorHandling) {
       route[this.pageVariable] = val + ''
       this.$router.replace({query: route})
     }
+
     public created() {
       if (this.trackPages) {
         if (this.$route.query[this.pageVariable]) {

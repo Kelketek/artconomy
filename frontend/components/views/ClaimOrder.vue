@@ -44,12 +44,16 @@ import {User} from '@/store/profiles/types/User'
 export default class ClaimOrder extends mixins(Viewer) {
   @Prop()
   public username!: string
+
   @Prop()
   public orderId!: string
+
   @Prop()
   public token!: string
+
   @Prop()
   public deliverableId!: string
+
   public claimForm: FormController = null as unknown as FormController
   public failed = false
 

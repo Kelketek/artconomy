@@ -134,7 +134,7 @@
             <ac-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">
               <v-tooltip bottom v-if="!product.escrow_disabled">
                 <template v-slot:activator="{on}">
-                  <v-icon slot="activator" color="green" class="pl-1">fa-shield</v-icon>
+                  <v-icon slot="activator" color="green" class="pl-1" v-on="on">fa-shield</v-icon>
                 </template>
                 <span>Protected by Artconomy Shield</span>
               </v-tooltip>
@@ -209,16 +209,21 @@ import Formatting from '@/mixins/formatting'
 export default class AcProductPreview extends mixins(Formatting) {
     @Prop({required: true})
     public product!: Product
+
     @Prop({default: false})
     public mini!: boolean
+
     @Prop({default: false})
     public carousel!: boolean
+
     public get productLink() {
       return {name: 'Product', params: {username: this.product.user.username, productId: this.product.id}}
     }
+
     public get unavailable() {
       return !this.product.available
     }
+
     public get turnaround() {
       return Math.ceil(this.product.expected_turnaround)
     }

@@ -59,37 +59,37 @@ describe('Field validators', () => {
     ${'test@ example.com'} | ${['Emails cannot have a space in the section after the @.']}
     ${'test@example'}      | ${['Emails without a full domain are not supported. (Did you forget the .com?)']}
   `('should return $result when handed the email $email.', async({email, result}) => {
-  store.commit('forms/initForm', {
-    name: 'example',
-    fields: {email: {value: email, validators: [{name: 'email'}]}},
+    store.commit('forms/initForm', {
+      name: 'example',
+      fields: {email: {value: email, validators: [{name: 'email'}]}},
+    })
+    const controller = new FieldController({store, propsData: {formName: 'example', fieldName: 'email'}})
+    controller.validate()
+    controller.validate.flush()
+    await flushPromises()
+    expect(controller.errors).toEqual(result)
   })
-  const controller = new FieldController({store, propsData: {formName: 'example', fieldName: 'email'}})
-  controller.validate()
-  controller.validate.flush()
-  await flushPromises()
-  expect(controller.errors).toEqual(result)
-})
   it.each`
     value1       | value2     | error             | result
     ${'test'}    | ${'test'}  | ${undefined}      | ${[]}
     ${'test'}    | ${'tess'}  | ${undefined}      | ${['Values do not match.']}
     ${'test'}    | ${'tess'}  | ${'Fail'}         | ${['Fail']}
   `('should return $result when matching $value1 and $value2 when message is set to $error.', async(
-  {value1, value2, error, result}
-) => {
-  const wrapper = shallowMount(Empty, {localVue, store})
-  const controller = wrapper.vm.$getForm('example', {
-    endpoint: '',
-    fields: {
-      field1: {value: value1},
-      field2: {value: value2, validators: [{name: 'matches', args: ['field1', error]}]},
-    },
-  }).fields.field2
-  controller.validate()
-  controller.validate.flush()
-  await flushPromises()
-  expect(controller.errors).toEqual(result)
-})
+    {value1, value2, error, result},
+  ) => {
+    const wrapper = shallowMount(Empty, {localVue, store})
+    const controller = wrapper.vm.$getForm('example', {
+      endpoint: '',
+      fields: {
+        field1: {value: value1},
+        field2: {value: value2, validators: [{name: 'matches', args: ['field1', error]}]},
+      },
+    }).fields.field2
+    controller.validate()
+    controller.validate.flush()
+    await flushPromises()
+    expect(controller.errors).toEqual(result)
+  })
   it.each`
     status | result
     ${200} | ${true}
@@ -101,8 +101,8 @@ describe('Field validators', () => {
     ${401} | ${false}
     ${104} | ${false}
   `('should designate the success status of $status as $result.', async({status, result}) => {
-  expect(validateStatus(status)).toBe(result)
-})
+    expect(validateStatus(status)).toBe(result)
+  })
   it('Generates an async validator that checks for a common error pattern.', async() => {
     const validator = simpleAsyncValidator('/api/profiles/v1/form-validators/email/')
     store.commit('forms/initForm', {
@@ -115,7 +115,7 @@ describe('Field validators', () => {
     expect(mockAxios.post).toHaveBeenCalledWith(
       '/api/profiles/v1/form-validators/email/',
       {email: 'test@example.com'},
-      {cancelToken: expect.any(Object), headers: {'Content-Type': 'application/json; charset=utf-8'}, validateStatus}
+      {cancelToken: expect.any(Object), headers: {'Content-Type': 'application/json; charset=utf-8'}, validateStatus},
     )
     expect(mockAxios.post).toHaveBeenCalledTimes(1)
   })
@@ -158,17 +158,17 @@ describe('Field validators', () => {
     ${'05/02'}              | ${['This card has expired.']}
     ${'12/99'}              | ${[]}
   `('should return $result when handed the expiration date $date.', async({date, result}) => {
-  MockDate.set('2019-6-19')
-  store.commit('forms/initForm', {
-    name: 'example',
-    fields: {exp_date: {value: date, validators: [{name: 'cardExp'}]}},
+    MockDate.set('2019-6-19')
+    store.commit('forms/initForm', {
+      name: 'example',
+      fields: {exp_date: {value: date, validators: [{name: 'cardExp'}]}},
+    })
+    const controller = new FieldController({store, propsData: {formName: 'example', fieldName: 'exp_date'}})
+    controller.validate()
+    controller.validate.flush()
+    await flushPromises()
+    expect(controller.errors).toEqual(result)
   })
-  const controller = new FieldController({store, propsData: {formName: 'example', fieldName: 'exp_date'}})
-  controller.validate()
-  controller.validate.flush()
-  await flushPromises()
-  expect(controller.errors).toEqual(result)
-})
   it.each`
     cardNumber               | result
     ${'0'}                   | ${['That is not a valid card number. Please check the card.']}
@@ -178,16 +178,16 @@ describe('Field validators', () => {
     ${'4111-1111-1111-1111'} | ${[]}
     ${'4242 4242 4242 4999'} | ${['That is not a valid card number. Please check the card.']}
   `('should return $result when handed the card number $cardNumber.', async({cardNumber, result}) => {
-  store.commit('forms/initForm', {
-    name: 'example',
-    fields: {card_number: {value: cardNumber, validators: [{name: 'creditCard'}]}},
+    store.commit('forms/initForm', {
+      name: 'example',
+      fields: {card_number: {value: cardNumber, validators: [{name: 'creditCard'}]}},
+    })
+    const controller = new FieldController({store, propsData: {formName: 'example', fieldName: 'card_number'}})
+    controller.validate()
+    controller.validate.flush()
+    await flushPromises()
+    expect(controller.errors).toEqual(result)
   })
-  const controller = new FieldController({store, propsData: {formName: 'example', fieldName: 'card_number'}})
-  controller.validate()
-  controller.validate.flush()
-  await flushPromises()
-  expect(controller.errors).toEqual(result)
-})
   it.each`
     cardNumber               | result
     ${'37000'}               | ${'amex'}
@@ -202,8 +202,8 @@ describe('Field validators', () => {
     ${'38000000000006'}      | ${'diners'}
     ${'853'}                 | ${'unknown'}
   `('should identify $result when handed the card number $cardNumber.', async({cardNumber, result}) => {
-  expect(cardType(cardNumber)).toEqual(result)
-})
+    expect(cardType(cardNumber)).toEqual(result)
+  })
   it.each`
     cardNumber               | cvv       | result
     ${'37000'}               | ${'025'}  | ${['Must be 4 digits long']}
@@ -211,27 +211,28 @@ describe('Field validators', () => {
     ${'5424'}                | ${'vsd'}  | ${['Digits only, please']}
     ${'5424000000000015'}    | ${'001'}  | ${[]}
     ${'42'}                  | ${'0125'} | ${['Must be 3 digits long']}
-  `('should return $result when handed the card number $cardNumber and the CVV $cvv.', async({cardNumber, cvv, result}
-) => {
-  store.commit('forms/initForm', {
-    name: 'example',
-    fields: {card_number: {value: cardNumber}, cvv: {value: cvv, validators: [{name: 'cvv'}]}},
-  })
-  const wrapper = mount(Empty, {localVue, store})
-  const controller = wrapper.vm.$getForm('example', {
-    fields: {
-      card_number: {value: cardNumber},
-      cvv: {value: cvv,
-        validators: [{name: 'cvv', args: ['card_number']}],
+  `('should return $result when handed the card number $cardNumber and the CVV $cvv.', async({cardNumber, cvv, result},
+  ) => {
+    store.commit('forms/initForm', {
+      name: 'example',
+      fields: {card_number: {value: cardNumber}, cvv: {value: cvv, validators: [{name: 'cvv'}]}},
+    })
+    const wrapper = mount(Empty, {localVue, store})
+    const controller = wrapper.vm.$getForm('example', {
+      fields: {
+        card_number: {value: cardNumber},
+        cvv: {
+          value: cvv,
+          validators: [{name: 'cvv', args: ['card_number']}],
+        },
       },
-    },
-    endpoint: '/',
-  }).fields.cvv
-  controller.validate()
-  controller.validate.flush()
-  await flushPromises()
-  expect(controller.errors).toEqual(result)
-})
+      endpoint: '/',
+    }).fields.cvv
+    controller.validate()
+    controller.validate.flush()
+    await flushPromises()
+    expect(controller.errors).toEqual(result)
+  })
   it.each`
     input       | result
     ${'#000'}   | ${['The color must be in the form of an RGB reference, like #000000 #FFFFFF or #c4c4c4.']}
@@ -240,46 +241,46 @@ describe('Field validators', () => {
     ${'    '}   | ${['The color must be in the form of an RGB reference, like #000000 #FFFFFF or #c4c4c4.']}
     ${'#5566ab'}| ${[]}
   `('Should validate a color reference', async({input, result}) => {
-  store.commit('forms/initForm', {
-    name: 'example',
-    fields: {color: {value: input, validators: [{name: 'colorRef'}]}},
+    store.commit('forms/initForm', {
+      name: 'example',
+      fields: {color: {value: input, validators: [{name: 'colorRef'}]}},
+    })
+    const controller = new FieldController({store, propsData: {formName: 'example', fieldName: 'color'}})
+    controller.validate()
+    controller.validate.flush()
+    await flushPromises()
+    expect(controller.errors).toEqual(result)
   })
-  const controller = new FieldController({store, propsData: {formName: 'example', fieldName: 'color'}})
-  controller.validate()
-  controller.validate.flush()
-  await flushPromises()
-  expect(controller.errors).toEqual(result)
-})
   it.each`
     input              | result
     ${'Hello there'}   | ${['Too long. Maximum length: 5.']}
     ${'Wat'}           | ${[]}
   `('Should validate a max length string', async({input, result}) => {
-  store.commit('forms/initForm', {
-    name: 'example',
-    fields: {name: {value: input, validators: [{name: 'maxLength', args: [5]}]}},
+    store.commit('forms/initForm', {
+      name: 'example',
+      fields: {name: {value: input, validators: [{name: 'maxLength', args: [5]}]}},
+    })
+    const controller = new FieldController({store, propsData: {formName: 'example', fieldName: 'name'}})
+    controller.validate()
+    controller.validate.flush()
+    await flushPromises()
+    expect(controller.errors).toEqual(result)
   })
-  const controller = new FieldController({store, propsData: {formName: 'example', fieldName: 'name'}})
-  controller.validate()
-  controller.validate.flush()
-  await flushPromises()
-  expect(controller.errors).toEqual(result)
-})
   it.each`
     input              | result
     ${'Hello there'}   | ${[]}
     ${'Wat'}           | ${['Too short. Minimum length: 5.']}
   `('Should validate a min length string', async({input, result}) => {
-  store.commit('forms/initForm', {
-    name: 'example',
-    fields: {name: {value: input, validators: [{name: 'minLength', args: [5]}]}},
+    store.commit('forms/initForm', {
+      name: 'example',
+      fields: {name: {value: input, validators: [{name: 'minLength', args: [5]}]}},
+    })
+    const controller = new FieldController({store, propsData: {formName: 'example', fieldName: 'name'}})
+    controller.validate()
+    controller.validate.flush()
+    await flushPromises()
+    expect(controller.errors).toEqual(result)
   })
-  const controller = new FieldController({store, propsData: {formName: 'example', fieldName: 'name'}})
-  controller.validate()
-  controller.validate.flush()
-  await flushPromises()
-  expect(controller.errors).toEqual(result)
-})
   it.each`
     input         | result
     ${'5'}        | ${[]}
@@ -288,16 +289,16 @@ describe('Field validators', () => {
     ${'1234.45'}  | ${[]}
     ${'-12.34'}   | ${[]}
   `('Validates a numeric entry', async({input, result}) => {
-  store.commit('forms/initForm', {
-    name: 'example',
-    fields: {items: {value: input, validators: [{name: 'numeric', args: [5]}]}},
+    store.commit('forms/initForm', {
+      name: 'example',
+      fields: {items: {value: input, validators: [{name: 'numeric', args: [5]}]}},
+    })
+    const controller = new FieldController({store, propsData: {formName: 'example', fieldName: 'items'}})
+    controller.validate()
+    controller.validate.flush()
+    await flushPromises()
+    expect(controller.errors).toEqual(result)
   })
-  const controller = new FieldController({store, propsData: {formName: 'example', fieldName: 'items'}})
-  controller.validate()
-  controller.validate.flush()
-  await flushPromises()
-  expect(controller.errors).toEqual(result)
-})
   it.each`
     input  | result
     ${'3'} | ${['The artist has not indicated that they wish to work with content at ' +
@@ -305,22 +306,22 @@ describe('Field validators', () => {
     ${'2'} | ${[]}
     ${'1'} | ${[]}
   `('Identifies a rating which is over the maximum of an artist', async({input, result}) => {
-  store.commit('forms/initForm', {
-    name: 'example',
-    fields: {rating: {value: input, validators: [{name: 'artistRating', args: ['Fox'], async: true}]}},
-  })
-  setViewer(store, genUser())
-  const controller = new FieldController({store, propsData: {formName: 'example', fieldName: 'rating'}})
-  const profileController = controller.$getProfile('Fox', {})
-  const profile = genArtistProfile()
-  profile.max_rating = 2
-  await profileController.$nextTick()
-  profileController.artistProfile.setX(profile)
-  profileController.artistProfile.ready = true
-  profileController.artistProfile.fetching = false
-  controller.validate()
-  controller.validate.flush()
-  await flushPromises()
-  expect(controller.errors).toEqual(result)
-})
+                  store.commit('forms/initForm', {
+                    name: 'example',
+                    fields: {rating: {value: input, validators: [{name: 'artistRating', args: ['Fox'], async: true}]}},
+                  })
+                  setViewer(store, genUser())
+                  const controller = new FieldController({store, propsData: {formName: 'example', fieldName: 'rating'}})
+                  const profileController = controller.$getProfile('Fox', {})
+                  const profile = genArtistProfile()
+                  profile.max_rating = 2
+                  await profileController.$nextTick()
+                  profileController.artistProfile.setX(profile)
+                  profileController.artistProfile.ready = true
+                  profileController.artistProfile.fetching = false
+                  controller.validate()
+                  controller.validate.flush()
+                  await flushPromises()
+                  expect(controller.errors).toEqual(result)
+                })
 })

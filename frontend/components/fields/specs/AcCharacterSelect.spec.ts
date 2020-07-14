@@ -1,6 +1,6 @@
 import {mount, Wrapper} from '@vue/test-utils'
 import Vue from 'vue'
-import {cleanUp, createVuetify, flushPromises, rs, setViewer, vueSetup, vuetifySetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, flushPromises, rs, setViewer, vueSetup, vuetifySetup} from '@/specs/helpers'
 import AcCharacterSelect from '@/components/fields/AcCharacterSelect.vue'
 import mockAxios from '@/__mocks__/axios'
 import {Vuetify} from 'vuetify/types'
@@ -29,8 +29,8 @@ describe('AcCharacterSelect.vue', () => {
       localVue,
       vuetify,
       store,
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
       propsData: {value: tagList},
     })
     wrapper.find('input').setValue('Test')
@@ -40,7 +40,8 @@ describe('AcCharacterSelect.vue', () => {
       results: [
         {name: 'Test', id: 1, user: {username: 'Fox'}},
         {name: 'Test2', id: 2, user: {username: 'Dude'}},
-      ]}
+      ],
+    },
     ))
     await flushPromises()
     await wrapper.vm.$nextTick()

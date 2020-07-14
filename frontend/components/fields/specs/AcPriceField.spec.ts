@@ -2,7 +2,7 @@ import {mount, Wrapper} from '@vue/test-utils'
 import Vue from 'vue'
 import {Vuetify} from 'vuetify/types'
 import {ArtStore, createStore} from '@/store'
-import {cleanUp, createVuetify, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, vueSetup} from '@/specs/helpers'
 import AcPriceField from '@/components/fields/AcPriceField.vue'
 
 const localVue = vueSetup()
@@ -19,8 +19,7 @@ describe('AcPriceField.vue', () => {
     cleanUp(wrapper)
   })
   it('Creates a field based on a field controller', async() => {
-    wrapper = mount(AcPriceField, {
-      localVue, store, vuetify, sync: false, attachToDocument: true, propsData: {value: 1}}
+    wrapper = mount(AcPriceField, {localVue, store, vuetify, attachTo: docTarget(), propsData: {value: 1}},
     )
     const vm = wrapper.vm as any
     await vm.$nextTick()

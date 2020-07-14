@@ -48,7 +48,7 @@ describe('Profile controller', () => {
         },
         $router: {replace},
       },
-      sync: false,
+
     })
     const vm = wrapper.vm as any
     vm.profile.setX(genCharacter())
@@ -58,7 +58,7 @@ describe('Profile controller', () => {
     expect(replace).toHaveBeenCalled()
     expect(replace).toHaveBeenCalledWith({
       name: 'Place', params: {username: 'Fox', characterName: 'Zorro'}, query: {stuff: 'things'}, hash: 'Wheee',
-    }
+    },
     )
   })
   it('Leaves the route alone if no username is in it.', async() => {
@@ -75,7 +75,7 @@ describe('Profile controller', () => {
         },
         $router: {replace},
       },
-      sync: false,
+
     })
     const vm = wrapper.vm as any
     vm.profile.setX(genCharacter())
@@ -98,7 +98,7 @@ describe('Profile controller', () => {
         },
         $router: {replace},
       },
-      sync: false,
+
     })
     const vm = wrapper.vm as any
     vm.profile.setX(genCharacter())
@@ -121,7 +121,7 @@ describe('Profile controller', () => {
         },
         $router: {replace},
       },
-      sync: false,
+
     })
     const vm = wrapper.vm as any
     vm.profile.setX(genCharacter())
@@ -144,7 +144,7 @@ describe('Profile controller', () => {
         },
         $router: {replace},
       },
-      sync: false,
+
     })
     const vm = wrapper.vm as any
     vm.profile.setX(genCharacter())

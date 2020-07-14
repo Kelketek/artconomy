@@ -2,7 +2,7 @@ import Vue from 'vue'
 import {Vuetify} from 'vuetify/types'
 import {mount, Wrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
-import {cleanUp, createVuetify, rq, rs, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, rq, rs, setViewer, vueSetup} from '@/specs/helpers'
 import {genUser} from '@/specs/helpers/fixtures'
 import Router from 'vue-router'
 import mockAxios from '@/__mocks__/axios'
@@ -32,7 +32,8 @@ describe('CharacterDetail.vue', () => {
     vulpes.is_superuser = false
     vulpes.id = 2
     vulpes.artist_mode = false
-    router = new Router({mode: 'history',
+    router = new Router({
+      mode: 'history',
       routes: [
         {
           path: '/profile/:username',
@@ -55,7 +56,8 @@ describe('CharacterDetail.vue', () => {
           component: Empty,
           props: true,
         },
-      ]})
+      ],
+    })
     mount(Empty, {localVue, store}).vm.$getForm('search', searchSchema())
   })
   afterEach(() => {
@@ -69,12 +71,13 @@ describe('CharacterDetail.vue', () => {
       router,
       vuetify,
       propsData: {username: 'Vulpes', characterName: 'Kai'},
-      sync: false,
-      attachToDocument: true}
+
+      attachTo: docTarget(),
+    },
     )
     await wrapper.vm.$nextTick()
     expect(mockAxios.get).toHaveBeenCalledWith(
-      ...rq('/api/profiles/v1/account/Vulpes/characters/Kai/', 'get')
+      ...rq('/api/profiles/v1/account/Vulpes/characters/Kai/', 'get'),
     )
     expect(mockAxios.get).toHaveBeenCalledWith(
       ...rq('/api/profiles/v1/account/Vulpes/characters/Kai/attributes/', 'get',
@@ -99,8 +102,9 @@ describe('CharacterDetail.vue', () => {
       router,
       vuetify,
       propsData: {username: 'Vulpes', characterName: 'Kai'},
-      sync: false,
-      attachToDocument: true}
+
+      attachTo: docTarget(),
+    },
     )
     const character = genCharacter();
     (character.primary_submission as Submission).id = 100

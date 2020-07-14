@@ -28,6 +28,7 @@ import {TabSpec} from '@/types/TabSpec'
 export default class AcTabs extends Vue {
   @Prop({required: true})
   public value!: number
+
   @Prop({required: true})
   public items!: TabSpec[]
 
@@ -42,6 +43,7 @@ export default class AcTabs extends Vue {
     // Match the name or any parent route name. Ignores params.
     return this.value
   }
+
   public set tab(val: number) {
     this.$emit('input', val)
   }

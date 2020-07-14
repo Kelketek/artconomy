@@ -2,7 +2,7 @@ import {mount, Wrapper} from '@vue/test-utils'
 import AcLoadingSpinner from '../AcLoadingSpinner.vue'
 import Vue from 'vue'
 import {Vuetify} from 'vuetify/types'
-import {cleanUp, createVuetify, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, vueSetup} from '@/specs/helpers'
 
 // Must use it directly, due to issues with package imports upstream.
 const localVue = vueSetup()
@@ -21,8 +21,8 @@ describe('ac-form-container.vue', () => {
     wrapper = mount(AcLoadingSpinner, {
       localVue,
       vuetify,
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     expect(wrapper.find('.v-progress-circular').exists()).toBe(true)
   })

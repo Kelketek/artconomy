@@ -3,7 +3,7 @@ import {mount, shallowMount, Wrapper} from '@vue/test-utils'
 import Login from '../Login.vue'
 import {ArtStore, createStore} from '@/store'
 import mockAxios from '@/specs/helpers/mock-axios'
-import {cleanUp, createVuetify, expectFields, fieldEl, makeSpace, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, expectFields, fieldEl, makeSpace, vueSetup} from '@/specs/helpers'
 import {userResponse} from '@/specs/helpers/fixtures'
 import flushPromises from 'flush-promises'
 import {deleteCookie} from '@/lib/lib'
@@ -36,7 +36,7 @@ describe('Login.vue', () => {
       vuetify,
       mocks: {$router: {replace: jest.fn()}, $route: {name: 'Login', params: {}, query: {}}},
       stubs: ['router-link'],
-      attachToDocument: true,
+      attachTo: docTarget(),
     })
     expect((wrapper.vm as any).loginTab).toBe('')
   })
@@ -47,7 +47,7 @@ describe('Login.vue', () => {
       vuetify,
       mocks: {$router: {}, $route: {name: 'Login', params: {tabName: 'login'}, query: {}}},
       stubs: ['router-link'],
-      attachToDocument: true,
+      attachTo: docTarget(),
     })
     const fields = wrapper.vm.$getForm('login').fields
     expectFields(fields, ['email', 'password', 'token', 'order_claim'])
@@ -65,7 +65,7 @@ describe('Login.vue', () => {
     expect(mockAxios.post).toHaveBeenCalledWith(
       '/api/profiles/v1/login/',
       {email: 'test@example.com', password: 'pass', token: ''},
-      {headers: {'Content-Type': 'application/json; charset=utf-8'}}
+      {headers: {'Content-Type': 'application/json; charset=utf-8'}},
     )
   })
   it('Retrieves and sends an order token', () => {
@@ -78,7 +78,7 @@ describe('Login.vue', () => {
         $route: {name: 'Login', params: {tabName: 'login'}, query: {claim: '0e59f96e-700f-48f0-ac13-f565846497d5'}},
       },
       stubs: ['router-link'],
-      attachToDocument: true,
+      attachTo: docTarget(),
     })
     const fields = wrapper.vm.$getForm('login').fields
     expect(fields.order_claim.value).toBe('0e59f96e-700f-48f0-ac13-f565846497d5')
@@ -93,7 +93,7 @@ describe('Login.vue', () => {
         $route: {name: 'Login', params: {}, query: {artist_mode: 'true'}},
       },
       stubs: ['router-link'],
-      attachToDocument: true,
+      attachTo: docTarget(),
     })
     const fields = wrapper.vm.$getForm('register').fields
     expect(fields.artist_mode.value).toBe(true)
@@ -106,8 +106,8 @@ describe('Login.vue', () => {
       vuetify,
       mocks: {$router: {push}, $route: {name: 'Login', params: {tabName: 'login'}, query: {}}},
       stubs: ['router-link'],
-      attachToDocument: true,
-      sync: false,
+      attachTo: docTarget(),
+
     })
     const submit = wrapper.find('#loginSubmit')
     expect((wrapper.vm as any).viewer).toBe(null)
@@ -128,8 +128,8 @@ describe('Login.vue', () => {
       vuetify,
       mocks: {$router: {push}, $route: {name: 'Login', params: {tabName: 'login'}, query: {}}},
       stubs: ['router-link'],
-      attachToDocument: true,
-      sync: false,
+      attachTo: docTarget(),
+
     })
     const controller = wrapper.vm.$getForm('login')
     const submit = wrapper.find('#loginSubmit')
@@ -152,8 +152,8 @@ describe('Login.vue', () => {
       vuetify,
       mocks: {$router: {push}, $route: {name: 'Login', params: {tabName: 'login'}, query: {}}},
       stubs: ['router-link'],
-      attachToDocument: true,
-      sync: false,
+      attachTo: docTarget(),
+
     })
     const controller = wrapper.vm.$getForm('login')
     await wrapper.vm.$nextTick()
@@ -175,8 +175,8 @@ describe('Login.vue', () => {
       vuetify,
       mocks: {$router: {push}, $route: {name: 'Login', params: {tabName: 'login'}, query: {}}},
       stubs: ['router-link'],
-      attachToDocument: true,
-      sync: false,
+      attachTo: docTarget(),
+
     })
     const submit = wrapper.find('#loginSubmit')
     expect((wrapper.vm as any).viewer).toBe(null)
@@ -195,8 +195,8 @@ describe('Login.vue', () => {
       vuetify,
       mocks: {$router: {push}, $route: {name: 'Login', params: {tabName: 'login'}, query: {next: '/destination/'}}},
       stubs: ['router-link'],
-      attachToDocument: true,
-      sync: false,
+      attachTo: docTarget(),
+
     })
     const submit = wrapper.find('#loginSubmit')
     expect((wrapper.vm as any).viewer).toBe(null)
@@ -215,8 +215,8 @@ describe('Login.vue', () => {
       vuetify,
       mocks: {$router: {push}, $route: {name: 'Login', params: {tabName: 'login'}, query: {next: '/'}}},
       stubs: ['router-link'],
-      attachToDocument: true,
-      sync: false,
+      attachTo: docTarget(),
+
     })
     const submit = wrapper.find('#loginSubmit')
     expect((wrapper.vm as any).viewer).toBe(null)
@@ -234,8 +234,8 @@ describe('Login.vue', () => {
       vuetify,
       mocks: {$router: jest.fn(), $route: {name: 'Login', params: {tabName: 'login'}, query: {}}},
       stubs: ['router-link'],
-      attachToDocument: true,
-      sync: false,
+      attachTo: docTarget(),
+
     })
     const controller = wrapper.vm.$getForm('login')
     mockAxios.reset()
@@ -255,8 +255,8 @@ describe('Login.vue', () => {
       vuetify,
       mocks: {$router: jest.fn(), $route: {name: 'Login', params: {tabName: 'login'}, query: {}}},
       stubs: ['router-link'],
-      attachToDocument: true,
-      sync: false,
+      attachTo: docTarget(),
+
     })
     const controller = wrapper.vm.$getForm('login')
     controller.fields.email.update('test@example.com', false)
@@ -271,8 +271,8 @@ describe('Login.vue', () => {
       vuetify,
       mocks: {$router: jest.fn(), $route: {name: 'Login', params: {tabName: 'login'}, query: {}}},
       stubs: ['router-link'],
-      attachToDocument: true,
-      sync: false,
+      attachTo: docTarget(),
+
     })
     const controller = wrapper.vm.$getForm('login')
     controller.fields.email.update('test@example.com', false)
@@ -294,8 +294,8 @@ describe('Login.vue', () => {
       vuetify,
       mocks: {$router: jest.fn(), $route: {name: 'Login', params: {tabName: 'login'}, query: {}}},
       stubs: ['router-link'],
-      attachToDocument: true,
-      sync: false,
+      attachTo: docTarget(),
+
     })
     const controller = wrapper.vm.$getForm('login')
     controller.fields.email.update('test@example.com', false)
@@ -316,8 +316,8 @@ describe('Login.vue', () => {
       vuetify,
       mocks: {$router: {push}, $route: {name: 'Login', params: {tabName: 'login'}, query: {}}},
       stubs: ['router-link'],
-      attachToDocument: true,
-      sync: false,
+      attachTo: docTarget(),
+
     })
     const controller = wrapper.vm.$getForm('login')
     controller.fields.email.update('test@example.com', false)
@@ -331,7 +331,7 @@ describe('Login.vue', () => {
     expect(mockAxios.post).toHaveBeenCalledWith(
       '/api/profiles/v1/login/',
       {email: 'test@example.com', password: 'pass', token: '086 456'},
-      {headers: {'Content-Type': 'application/json; charset=utf-8'}}
+      {headers: {'Content-Type': 'application/json; charset=utf-8'}},
     )
     mockAxios.mockResponse(userResponse())
     await flushPromises()
@@ -347,8 +347,8 @@ describe('Login.vue', () => {
       vuetify,
       mocks: {$router: {push, replace: jest.fn()}, $route: {name: 'Login', params: {}, query: {}}},
       stubs: ['router-link'],
-      attachToDocument: true,
-      sync: false,
+      attachTo: docTarget(),
+
     })
     const fields = wrapper.vm.$getForm('login').fields;
     (wrapper.vm as any).showTokenPrompt = true
@@ -370,8 +370,8 @@ describe('Login.vue', () => {
       vuetify,
       mocks: {$router: {push}, $route: {name: 'Login', params: {tabName: 'register'}, query: {}}},
       stubs: ['router-link'],
-      attachToDocument: true,
-      sync: false,
+      attachTo: docTarget(),
+
     })
     expect((wrapper.vm as any).loginTab).toBe('tab-register')
     const fields = wrapper.vm.$getForm('register').fields
@@ -404,8 +404,8 @@ describe('Login.vue', () => {
       vuetify,
       mocks: {$router: {push}, $route: {name: 'Login', params: {tabName: 'register'}, query: {}}},
       stubs: ['router-link'],
-      attachToDocument: true,
-      sync: false,
+      attachTo: docTarget(),
+
     })
     const fields = wrapper.vm.$getForm('register').fields
     fields.username.update('Goofball', false)
@@ -427,7 +427,7 @@ describe('Login.vue', () => {
         username: 'Goofball',
         artist_mode: false,
       },
-      {headers: {'Content-Type': 'application/json; charset=utf-8'}}
+      {headers: {'Content-Type': 'application/json; charset=utf-8'}},
     )
   })
   it('Handles a failed registration', async() => {
@@ -438,8 +438,8 @@ describe('Login.vue', () => {
       vuetify,
       mocks: {$router: {push}, $route: {name: 'Login', params: {tabName: 'register'}, query: {}}},
       stubs: ['router-link'],
-      attachToDocument: true,
-      sync: false,
+      attachTo: docTarget(),
+
     })
     const form = wrapper.vm.$getForm('register')
     const fields = form.fields
@@ -461,8 +461,8 @@ describe('Login.vue', () => {
       vuetify,
       mocks: {$router: {push}, $route: {name: 'Login', params: {tabName: 'register'}, query: {}}},
       stubs: ['router-link'],
-      attachToDocument: true,
-      sync: false,
+      attachTo: docTarget(),
+
     })
     const submit = wrapper.find('#registerSubmit')
     mockAxios.reset()
@@ -479,8 +479,8 @@ describe('Login.vue', () => {
       vuetify,
       mocks: {$router: {push}, $route: {name: 'Login', params: {tabName: 'forgot'}, query: {}}},
       stubs: ['router-link'],
-      attachToDocument: true,
-      sync: false,
+      attachTo: docTarget(),
+
     })
     await wrapper.vm.$nextTick()
     const fields = wrapper.vm.$getForm('forgot').fields
@@ -499,8 +499,8 @@ describe('Login.vue', () => {
       vuetify,
       mocks: {$router: {push}, $route: {name: 'Login', params: {tabName: 'forgot'}, query: {}}},
       stubs: ['router-link'],
-      attachToDocument: true,
-      sync: false,
+      attachTo: docTarget(),
+
     })
     const fields = wrapper.vm.$getForm('forgot').fields
     fields.email.update('Test', false)
@@ -512,7 +512,7 @@ describe('Login.vue', () => {
       {
         email: 'Test',
       },
-      {headers: {'Content-Type': 'application/json; charset=utf-8'}}
+      {headers: {'Content-Type': 'application/json; charset=utf-8'}},
     )
   })
   it('Handles a forgotten password response', async() => {
@@ -523,7 +523,7 @@ describe('Login.vue', () => {
       vuetify,
       mocks: {$router: {push}, $route: {name: 'Login', params: {tabName: 'forgot'}, query: {}}},
       stubs: ['router-link'],
-      attachToDocument: true,
+      attachTo: docTarget(),
     })
     const submit = wrapper.find('#forgotSubmit')
     mockAxios.reset()

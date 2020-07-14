@@ -19,7 +19,8 @@ export const faqRoutes = {
       {path: 'buying-and-selling/:question?', component: BuyAndSell, name: 'BuyAndSell', props: true},
       {path: 'about/:question?', component: About, name: 'About', props: true},
       {path: 'other/:question?', component: Other, name: 'Other', props: true},
-    ]}, {
+    ],
+  }, {
     path: '/search/products/',
     name: 'SearchProducts',
     component: Empty,

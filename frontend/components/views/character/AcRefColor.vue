@@ -58,11 +58,13 @@ export default class AcRefColor extends mixins(Subjective, Editable) {
       'background-color': this.color.patchers.color.model,
     }
   }
+
   public get savedStyle() {
     return {
       'background-color': this.color.patchers.color.rawValue,
     }
   }
+
     @Prop({required: true})
     public color!: SingleController<Color>
 }

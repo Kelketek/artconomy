@@ -15,7 +15,7 @@ export default class Alerts extends Vue {
 
   // noinspection JSUnusedGlobalSymbols
   public $errAlert(
-    message?: string, timeout?: number
+    message?: string, timeout?: number,
   ): (error: AxiosError) => void {
     return (error, ignore?: boolean) => {
       const partial: Partial<Alert> = {message: message || deriveErrors(error, []).errors[0]}

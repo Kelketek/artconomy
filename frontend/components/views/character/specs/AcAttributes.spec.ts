@@ -4,7 +4,7 @@ import {ArtStore, createStore} from '@/store'
 import {mount, Wrapper} from '@vue/test-utils'
 import mockAxios from '@/__mocks__/axios'
 import {genCharacter} from '@/store/characters/specs/fixtures'
-import {cleanUp, createVuetify, flushPromises, rs, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, flushPromises, rs, setViewer, vueSetup} from '@/specs/helpers'
 import {genUser} from '@/specs/helpers/fixtures'
 import {Character} from '@/store/characters/types/Character'
 import AcAttributes from '@/components/views/character/AcAttributes.vue'
@@ -34,8 +34,8 @@ describe('AcAttributes.vue', () => {
         propsData: {username: 'Fox', characterName: 'Kai'},
         mocks: {$route: {name: 'Character', params: {username: 'Fox', characterName: 'Kai'}, query: {}}},
         stubs: ['router-link'],
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
       })
     const vm = wrapper.vm as any
     const attributes = []
@@ -58,8 +58,8 @@ describe('AcAttributes.vue', () => {
         propsData: {username: 'Fox', characterName: 'Kai'},
         mocks: {$route: {name: 'Character', params: {username: 'Fox', characterName: 'Kai'}, query: {editing: 'true'}}},
         stubs: ['router-link'],
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
       })
     const vm = wrapper.vm as any
     vm.character.profile.setX(character)
@@ -83,8 +83,8 @@ describe('AcAttributes.vue', () => {
         propsData: {username: 'Fox', characterName: 'Kai'},
         mocks: {$route: {name: 'Character', params: {username: 'Fox', characterName: 'Kai'}, query: {editing: 'true'}}},
         stubs: ['router-link'],
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
       })
     const vm = wrapper.vm as any
     vm.character.profile.setX(character)

@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import Router, {RouteConfig} from 'vue-router'
-import {cleanUp, createVuetify, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import {mount, Wrapper} from '@vue/test-utils'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
@@ -36,8 +36,8 @@ describe('AcLink.vue', () => {
       router,
       vuetify,
       propsData: {to: {name: 'Test'}},
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     const mockPush = jest.spyOn(wrapper.vm.$router, 'push')
     wrapper.find('a').trigger('click')
@@ -53,8 +53,8 @@ describe('AcLink.vue', () => {
       router,
       vuetify,
       propsData: {to: {name: 'Test'}},
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     wrapper.find('a').trigger('click')
     expect(mockOpen).toHaveBeenCalledWith('/test', '_blank')

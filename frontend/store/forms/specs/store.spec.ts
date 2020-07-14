@@ -43,14 +43,14 @@ describe('Forms store', () => {
   it('Creates a form with a different method', () => {
     store.commit(
       'forms/initForm',
-      {name: 'example', method: 'get', fields: {name: {value: 'Fox'}, age: {value: 30}}}
+      {name: 'example', method: 'get', fields: {name: {value: 'Fox'}, age: {value: 30}}},
     )
     expect(state.example.method).toBe('get')
   })
   it('Creates a form with errors', () => {
     store.commit(
       'forms/initForm',
-      {name: 'example', fields: {name: {value: 'Fox', errors: ['Too cool.']}, age: {value: 30}}}
+      {name: 'example', fields: {name: {value: 'Fox', errors: ['Too cool.']}, age: {value: 30}}},
     )
     expect(state.example.fields.name.value).toBe('Fox')
     expect(state.example.fields.age.value).toBe(30)
@@ -60,7 +60,7 @@ describe('Forms store', () => {
   it('Updates form data', () => {
     store.commit(
       'forms/initForm',
-      {name: 'example', fields: {name: {value: 'Fox', errors: ['Too cool.']}, age: {value: 30}}}
+      {name: 'example', fields: {name: {value: 'Fox', errors: ['Too cool.']}, age: {value: 30}}},
     )
     expect(state.example.fields.name.errors).toEqual(['Too cool.'])
     store.commit('forms/updateValues', {name: 'example', data: {name: 'Wolf'}})
@@ -84,7 +84,7 @@ describe('Forms store', () => {
   it('Updates meta errors', () => {
     store.commit(
       'forms/initForm',
-      {name: 'example', fields: {name: {value: 'Fox', errors: ['Too cool.']}, age: {value: 30}}}
+      {name: 'example', fields: {name: {value: 'Fox', errors: ['Too cool.']}, age: {value: 30}}},
     )
     store.commit('forms/setMetaErrors', {name: 'example', errors: ['Borked.']})
     expect(state.example.errors).toEqual(['Borked.'])
@@ -92,7 +92,7 @@ describe('Forms store', () => {
   it('Updates field errors', () => {
     store.commit(
       'forms/initForm',
-      {name: 'example', fields: {name: {value: 'Fox', errors: ['Too cool.']}}}
+      {name: 'example', fields: {name: {value: 'Fox', errors: ['Too cool.']}}},
     )
     store.commit('forms/setFieldErrors', {name: 'example', fields: {name: ['Way too cool!']}})
     expect(state.example.fields.name.errors).toEqual(['Way too cool!'])
@@ -104,7 +104,7 @@ describe('Forms store', () => {
         name: 'example',
         fields: {name: {value: 'Fox', errors: ['Too cool.']}, age: {value: 30}},
         errors: ['Borked.'],
-      }
+      },
     )
     expect(state.example.fields.name.errors).toEqual(['Too cool.'])
     expect(state.example.errors).toEqual(['Borked.'])
@@ -119,7 +119,7 @@ describe('Forms store', () => {
         name: 'example',
         fields: {name: {value: 'Fox', errors: ['Too cool.']}, age: {value: 30}},
         errors: ['Borked.'],
-      }
+      },
     )
     expect(state.example.fields.name.errors).toEqual(['Too cool.'])
     expect(state.example.errors).toEqual(['Borked.'])
@@ -139,7 +139,7 @@ describe('Forms store', () => {
     store.commit('forms/initForm', {name: 'example', fields: {name: {value: 'Fox'}, age: {value: 30}}})
     store.commit(
       'forms/addField',
-      {name: 'example', field: {name: 'sex', schema: {value: 'Male', errors: ['So much dick!']}}}
+      {name: 'example', field: {name: 'sex', schema: {value: 'Male', errors: ['So much dick!']}}},
     )
     expect(state.example.fields.name.value).toBe('Fox')
     expect(state.example.fields.sex.value).toBe('Male')
@@ -160,7 +160,7 @@ describe('Forms store', () => {
     expect(mockAxios.post).toHaveBeenCalledWith(
       '/test/endpoint/',
       {name: 'Fox', age: 30},
-      {headers: {'Content-Type': 'application/json; charset=utf-8'}}
+      {headers: {'Content-Type': 'application/json; charset=utf-8'}},
     )
   })
   it('Resets after submission', async() => {
@@ -198,7 +198,7 @@ describe('Forms store', () => {
     expect(mockAxios.post).toHaveBeenCalledWith(
       '/test/endpoint/',
       {name: 'Fox'},
-      {headers: {'Content-Type': 'application/json; charset=utf-8'}}
+      {headers: {'Content-Type': 'application/json; charset=utf-8'}},
     )
   })
   it('Merges defaults for field Schemas', () => {
@@ -213,7 +213,7 @@ describe('Forms store', () => {
       value: 'Derp',
       debounce: null,
       step: 1,
-    }
+    },
     )
     field = fieldFromSchema({value: 'Derp', debounce: 200, validators: [{name: 'Herp', args: ['wat']}]})
     expect(field).toEqual({
@@ -226,7 +226,7 @@ describe('Forms store', () => {
       value: 'Derp',
       debounce: 200,
       step: 1,
-    }
+    },
     )
   })
 })

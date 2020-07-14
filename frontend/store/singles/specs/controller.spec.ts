@@ -34,7 +34,7 @@ describe('Single controller', () => {
       },
       // eslint-disable-next-line new-cap
       extends: new localVue({store}).$options,
-    }
+    },
     )
   }
   beforeEach(() => {
@@ -104,7 +104,7 @@ describe('Single controller', () => {
   it('Throws an error when trying to pull a controller from a non-existent cache', async() => {
     const component = mount(Empty, {localVue, store}).vm
     expect(() => { component.$getSingle('test') }).toThrow(
-      Error("Attempt to pull a Single which does not exist, 'test', from cache.")
+      Error("Attempt to pull a Single which does not exist, 'test', from cache."),
     )
   })
   it('Allows deletion of a single through the controller', async() => {
@@ -123,7 +123,7 @@ describe('Single controller', () => {
     }).toThrow(TypeError("Cannot read property 'addChild' of undefined"))
     expect(mockError).toHaveBeenCalledWith(
       'Failed registering ["blank","fox"].Likely, the parent path is not registered, but check error for ' +
-      'more detail. It could also be an error in a watcher/computed property.'
+      'more detail. It could also be an error in a watcher/computed property.',
     )
   })
   it('Returns an object from toJSON to prevent the testing pretty printer from hanging forever', async() => {
@@ -144,7 +144,7 @@ describe('Single controller', () => {
     expect(controller.patchers.stuff.model).toBe('Things')
     controller.patchers.stuff.rawSet('Wat')
     expect(mockAxios.patch).toHaveBeenCalledWith(
-      ...rq('/endpoint/', 'get', {stuff: 'Wat'}, {cancelToken: expect.any(Object)})
+      ...rq('/endpoint/', 'get', {stuff: 'Wat'}, {cancelToken: expect.any(Object)}),
     )
   })
   it('Listens for a pattern', () => {

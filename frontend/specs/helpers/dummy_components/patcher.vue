@@ -25,10 +25,10 @@ export default class Patcher extends Vue {
       this.subjectHandler = this.$getProfile('Fox', {})
       this.subjectHandler.artistProfile.setX(genArtistProfile())
       this.maxLoad = this.$makePatcher(
-        {modelProp: 'subjectHandler.artistProfile', debounceRate: 200, attrName: 'max_load'}
+        {modelProp: 'subjectHandler.artistProfile', debounceRate: 200, attrName: 'max_load'},
       )
       this.sfwMode = this.$makePatcher(
-        {modelProp: 'subjectHandler.user', attrName: 'sfw_mode'}
+        {modelProp: 'subjectHandler.user', attrName: 'sfw_mode'},
       )
       this.localShare = this.$getSingle('TestSingle', {endpoint: '#'})
     }

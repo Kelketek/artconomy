@@ -168,25 +168,28 @@ import {Watch} from 'vue-property-decorator'
 import {setMetaContent, textualize, updateTitle} from '@/lib/lib'
 import AcCharacterPreview from '@/components/AcCharacterPreview.vue'
 
-@Component({components: {
-  AcCharacterPreview,
-  AcExpandedProperty,
-  AcCharacterToolbar,
-  AcRelatedManager,
-  AcLink,
-  AcContextGallery,
-  AcTagDisplay,
-  AcColors,
-  AcAttributes,
-  AcConfirmation,
-  AcBoundField,
-  AcFormContainer,
-  AcLoadSection,
-  AcEditingToggle,
-  AcRendered,
-  AcPatchField,
-  AcAvatar,
-  AcAsset}})
+@Component({
+  components: {
+    AcCharacterPreview,
+    AcExpandedProperty,
+    AcCharacterToolbar,
+    AcRelatedManager,
+    AcLink,
+    AcContextGallery,
+    AcTagDisplay,
+    AcColors,
+    AcAttributes,
+    AcConfirmation,
+    AcBoundField,
+    AcFormContainer,
+    AcLoadSection,
+    AcEditingToggle,
+    AcRendered,
+    AcPatchField,
+    AcAvatar,
+    AcAsset,
+  },
+})
 export default class CharacterDetail extends mixins(Subjective, CharacterCentric, Editable) {
     public newShare: FormController = null as unknown as FormController
     public name: Patch = null as unknown as Patch

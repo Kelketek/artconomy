@@ -2,7 +2,7 @@ import {Vuetify} from 'vuetify/types'
 import {mount, Wrapper} from '@vue/test-utils'
 import Vue from 'vue'
 import {ArtStore, createStore} from '@/store'
-import {cleanUp, createVuetify, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, vueSetup} from '@/specs/helpers'
 import AcRatingField from '@/components/fields/AcRatingField.vue'
 
 const localVue = vueSetup()
@@ -23,8 +23,8 @@ describe('AcRatingField.vue', () => {
       localVue,
       store,
       vuetify,
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
       propsData: {value: 1},
     })
     const vm = wrapper.vm as any

@@ -16,7 +16,7 @@ export class SingleModule<T> {
   public constructor(options: {
                        x?: T | false | null, endpoint: string, persistent?: boolean,
                        attempted?: boolean, fetching?: boolean, ready?: boolean, failed?: boolean,
-                     }
+                     },
   ) {
     const defaults = {
       x: null, persistent: false, attempted: false, fetching: false, failed: false, ready: false, params: null,

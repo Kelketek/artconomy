@@ -1,5 +1,5 @@
 import {genDeliverable, genUser} from '@/specs/helpers/fixtures'
-import {cleanUp, confirmAction, createVuetify, flushPromises, rs, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, confirmAction, createVuetify, docTarget, flushPromises, rs, setViewer, vueSetup} from '@/specs/helpers'
 import {mount, Wrapper} from '@vue/test-utils'
 import DeliverablePayment from '@/components/views/order/deliverable/DeliverablePayment.vue'
 import {DeliverableStatus} from '@/types/DeliverableStatus'
@@ -44,8 +44,8 @@ describe('DeliverablePayment.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
       })
     const vm = wrapper.vm as any
     const deliverable = genDeliverable()
@@ -86,8 +86,8 @@ describe('DeliverablePayment.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
         stubs: ['ac-revision-manager'],
       })
     const vm = wrapper.vm as any
@@ -129,8 +129,8 @@ describe('DeliverablePayment.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Sale', username: 'Vulpes'},
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
         stubs: ['ac-revision-manager'],
       })
     const vm = wrapper.vm as any
@@ -172,8 +172,8 @@ describe('DeliverablePayment.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
         stubs: ['ac-revision-manager'],
       })
     const vm = wrapper.vm as any
@@ -208,8 +208,8 @@ describe('DeliverablePayment.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
         stubs: ['ac-revision-manager'],
       })
     const vm = wrapper.vm as any
@@ -249,8 +249,8 @@ describe('DeliverablePayment.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
         stubs: ['ac-revision-manager'],
       })
     const vm = wrapper.vm as any
@@ -300,8 +300,8 @@ describe('DeliverablePayment.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
         stubs: ['ac-revision-manager'],
       })
     const vm = wrapper.vm as any

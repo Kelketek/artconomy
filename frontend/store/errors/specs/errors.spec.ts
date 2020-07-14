@@ -25,11 +25,11 @@ describe('Errors store', () => {
   })
   it('Resolves to a generic image if the code is unknown', () => {
     store.commit('errors/setError', {response: {status: 600}})
-    expect((store.getters as any)['errors/logo']).toBe(`/static/images/generic-error.png`)
+    expect((store.getters as any)['errors/logo']).toBe('/static/images/generic-error.png')
   })
   it('Resolves to 503 if no response was received', () => {
     store.commit('errors/setError', {})
-    expect((store.getters as any)['errors/logo']).toBe(`/static/images/503.png`)
+    expect((store.getters as any)['errors/logo']).toBe('/static/images/503.png')
   })
   it('Clears the error', () => {
     store.commit('errors/setError', {response: {status: 500}})

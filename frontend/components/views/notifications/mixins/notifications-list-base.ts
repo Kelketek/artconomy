@@ -12,14 +12,17 @@ import {ListController} from '@/store/lists/controller'
 export default class NotificationsListBase extends mixins(Viewer) {
   @Prop({default: true})
   public autoRead!: boolean
+
   @Prop({required: true})
   public subset!: string
+
   public notifications: ListController<
     AcNotification<any, any>> = null as unknown as ListController<AcNotification<any, any>>
+
   public toMark: Array<Partial<AcNotification<any, any>>> = []
   public marking: Array<Partial<AcNotification<any, any>>> = []
   public marked: Array<Partial<AcNotification<any, any>>> = []
-  public readUrl = `/api/profiles/v1/data/notifications/mark-read/`
+  public readUrl = '/api/profiles/v1/data/notifications/mark-read/'
   public loopId: number = 0
 
   // noinspection JSMethodCanBeStatic
@@ -33,10 +36,10 @@ export default class NotificationsListBase extends mixins(Viewer) {
     }
     notification.updateX({read: true})
     artCall({
-      url: `/api/profiles/v1/data/notifications/mark-read/`,
+      url: '/api/profiles/v1/data/notifications/mark-read/',
       method: 'patch',
       data: [{id: (notification.x as AcNotification<any, any>).id, read: true}],
-    }
+    },
     ).then(this.sendUpdateEvent)
   }
 
@@ -85,7 +88,7 @@ export default class NotificationsListBase extends mixins(Viewer) {
     if (this.toMark.length && !this.marking.length) {
       this.marking = this.toMark
       artCall(
-        {url: this.readUrl, method: 'patch', data: this.marking}
+        {url: this.readUrl, method: 'patch', data: this.marking},
       ).then(this.postMark).catch(this.clearMarking)
     }
   }

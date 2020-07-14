@@ -310,6 +310,7 @@ import AcLink from '@/components/wrappers/AcLink.vue'
 export default class SubmissionDetail extends mixins(Viewer, Formatting, Editable) {
     @Prop({required: true})
     public submissionId!: number
+
     public submission: SingleController<Submission> = null as unknown as SingleController<Submission>
     public comments: ListController<Journal> = null as unknown as ListController<Journal>
     public artists: ListController<TerseUser> = null as unknown as ListController<TerseUser>
@@ -415,7 +416,7 @@ export default class SubmissionDetail extends mixins(Viewer, Formatting, Editabl
 
     public created() {
       this.submission = this.$getSingle(
-        `submission__${this.submissionId}`, {endpoint: this.url, params: {view: 'true'}}
+        `submission__${this.submissionId}`, {endpoint: this.url, params: {view: 'true'}},
       )
       this.artists = this.$getList(`submission__${this.submissionId}__artists`, {
         endpoint: `${this.url}artists/`, paginated: false,
@@ -445,7 +446,7 @@ export default class SubmissionDetail extends mixins(Viewer, Formatting, Editabl
           endpoint: this.url,
           fields: {file: {value: ''}, preview: {value: ''}},
           method: 'patch',
-        }
+        },
       )
       this.submission.get().catch(this.setError)
       this.artists.firstRun()

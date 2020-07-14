@@ -2,7 +2,17 @@ import Vue from 'vue'
 import {mount, Wrapper} from '@vue/test-utils'
 import {Vuetify} from 'vuetify'
 import {ArtStore, createStore} from '@/store'
-import {cleanUp, confirmAction, createVuetify, flushPromises, rq, rs, setViewer, vueSetup} from '@/specs/helpers'
+import {
+  cleanUp,
+  confirmAction,
+  createVuetify,
+  docTarget,
+  flushPromises,
+  rq,
+  rs,
+  setViewer,
+  vueSetup,
+} from '@/specs/helpers'
 import {genUser} from '@/specs/helpers/fixtures'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import Router from 'vue-router'
@@ -22,7 +32,8 @@ describe('Journal.vue', () => {
   beforeEach(() => {
     store = createStore()
     vuetify = createVuetify()
-    router = new Router({mode: 'history',
+    router = new Router({
+      mode: 'history',
       routes: [{
         path: '/',
         name: 'Home',
@@ -39,14 +50,14 @@ describe('Journal.vue', () => {
         name: 'Login',
         component: Empty,
       },
-      ]})
+      ],
+    })
   })
   afterEach(() => {
     cleanUp(wrapper)
   })
   it('Mounts a journal', async() => {
-    wrapper = mount(Journal, {
-      localVue, store, router, vuetify, propsData: {journalId: 1, username: 'Fox'}, sync: false, attachToDocument: true}
+    wrapper = mount(Journal, {localVue, store, router, vuetify, propsData: {journalId: 1, username: 'Fox'}, attachTo: docTarget()},
     )
     expect(mockAxios.get).toHaveBeenCalledWith(...rq('/api/profiles/v1/account/Fox/journals/1/', 'get'))
     expect(wrapper.find('.edit-toggle').exists()).toBe(false)
@@ -55,8 +66,7 @@ describe('Journal.vue', () => {
   it('Deletes a journal', async() => {
     router.push('/')
     setViewer(store, genUser({is_staff: true}))
-    wrapper = mount(Journal, {
-      localVue, store, router, vuetify, propsData: {journalId: 1, username: 'Fox'}, sync: false, attachToDocument: true}
+    wrapper = mount(Journal, {localVue, store, router, vuetify, propsData: {journalId: 1, username: 'Fox'}, attachTo: docTarget()},
     )
     const vm = wrapper.vm as any
     vm.journal.makeReady(genJournal())

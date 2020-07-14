@@ -102,6 +102,7 @@ export default class AlwaysOpen extends Vue {
     this.searchForm.reset()
     this.$router.push({name: 'SearchProducts', query: this.searchForm.rawData})
   }
+
   public created() {
     this.searchForm = this.$getForm('search')
   }

@@ -1,7 +1,7 @@
 import {mount, Wrapper} from '@vue/test-utils'
 import Vue from 'vue'
 import {Vuetify} from 'vuetify/types'
-import {createVuetify, setViewer, vueSetup, vuetifySetup} from '@/specs/helpers'
+import {createVuetify, docTarget, setViewer, vueSetup, vuetifySetup} from '@/specs/helpers'
 import mockAxios from '@/__mocks__/axios'
 import AcProductSelect from '@/components/fields/AcProductSelect.vue'
 import {genUser} from '@/specs/helpers/fixtures'
@@ -32,14 +32,15 @@ describe('AcProductSelect.vue', () => {
         localVue,
         store,
         vuetify,
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
         propsData: {
           value: 1,
           multiple: false,
           username: 'Fox',
           initItems: [{name: 'Test', id: 1, starting_price: 2.50}, {username: 'Test2', id: 2, starting_price: 2.50}],
-        }}
+        },
+      },
     )
   })
 })

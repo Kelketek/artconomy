@@ -27,6 +27,7 @@ import {LineTypes} from '@/types/LineTypes'
 export default class AcLineItemEditor extends Vue {
   @Prop({required: true})
   public line!: SingleController<LineItem>
+
   @Prop({required: true})
   public priceData!: LineAccumulator
 

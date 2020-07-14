@@ -64,20 +64,22 @@ export default class PasswordReset extends mixins(Viewer) {
     public validator: SingleController<any> = null as unknown as SingleController<any>
     @Prop({required: true})
     public resetToken!: string
+
     @Prop({required: true})
     public username!: string
 
     public postReset(response: User) {
       this.viewerHandler.user.x = response
       this.$router.push(
-        {name: 'Profile', params: {username: (this.viewer as User).username}, query: {editing: 'true'}}
+        {name: 'Profile', params: {username: (this.viewer as User).username}, query: {editing: 'true'}},
       )
     }
+
     public created() {
       this.validator = this.$getSingle(
         'passwordToken', {
           endpoint: `/api/profiles/v1/forgot-password/token-check/${this.username}/${this.resetToken}/`,
-        }
+        },
       )
       this.validator.get()
       this.resetForm = this.$getForm(
@@ -85,12 +87,14 @@ export default class PasswordReset extends mixins(Viewer) {
           endpoint: `/api/profiles/v1/forgot-password/perform-reset/${this.username}/${this.resetToken}/`,
           fields: {
             new_password: {value: ''},
-            new_password2: {value: '',
+            new_password2: {
+              value: '',
               validators: [{
                 name: 'matches', args: ['new_password', 'Passwords do not match.'],
-              }]},
+              }],
+            },
           },
-        }
+        },
       )
     }
 }

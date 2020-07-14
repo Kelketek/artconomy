@@ -41,8 +41,7 @@ describe('AcTagDisplay.vue', () => {
       propsData: {patcher: single.patchers.tags, username: 'Fox', scope: 'Submissions'},
       mocks: {$route: {name: 'Profile', params: {username: 'Fox'}, query: {editing: false}}},
       stubs: ['router-link'],
-      sync: false,
-      attachToDocument: false,
+
     })
   })
   it('Exposes an editing interface', async() => {
@@ -58,8 +57,7 @@ describe('AcTagDisplay.vue', () => {
       propsData: {patcher: single.patchers.tags, username: 'Fox', scope: 'Submissions'},
       mocks: {$route: {name: 'Profile', params: {username: 'Fox'}, query: {editing: false}}},
       stubs: ['router-link'],
-      sync: false,
-      attachToDocument: false,
+
     })
     const vm = wrapper.vm as any
     expect(vm.toggle).toBe(false)
@@ -82,8 +80,7 @@ describe('AcTagDisplay.vue', () => {
       propsData: {patcher: single.patchers.tags, username: 'Fox', scope: 'Submissions'},
       mocks: {$route: {name: 'Profile', params: {username: 'Fox', scope: 'Submissions'}, query: {editing: false}}},
       stubs: ['router-link'],
-      sync: false,
-      attachToDocument: false,
+
     })
     const vm = wrapper.vm as any
     expect(vm.toggle).toBe(false)
@@ -113,8 +110,7 @@ describe('AcTagDisplay.vue', () => {
       },
       mocks: {$route: {name: 'Profile', params: {username: 'Vulpes'}, query: {editing: false}}},
       stubs: ['router-link'],
-      sync: false,
-      attachToDocument: false,
+
     })
     const vm = wrapper.vm as any
     expect(vm.controls).toBe(true)
@@ -133,8 +129,7 @@ describe('AcTagDisplay.vue', () => {
       propsData: {patcher: single.patchers.tags, username: 'Fox', scope: 'Submissions'},
       mocks: {$route: {name: 'Profile', params: {username: 'Fox'}, query: {editing: false}}, $router: {push}},
       stubs: ['router-link'],
-      sync: false,
-      attachToDocument: false,
+
     })
     wrapper.find('.tag-search-link').trigger('click')
     await wrapper.vm.$nextTick()

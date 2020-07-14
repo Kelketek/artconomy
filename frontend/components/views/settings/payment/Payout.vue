@@ -75,14 +75,15 @@ export default class Payout extends mixins(Subjective) {
       const profile = this.subjectHandler.artistProfile
       return profile.x && (profile.patchers.bank_account_status.model === this.NO_US_ACCOUNT)
     }
+
     public created() {
       this.subjectHandler.artistProfile.get().catch(this.setError)
       this.banks = this.$getList(
-        `${this.username}__banks`, {endpoint: `/api/sales/v1/account/${this.username}/banks/`, paginated: false}
+        `${this.username}__banks`, {endpoint: `/api/sales/v1/account/${this.username}/banks/`, paginated: false},
       )
       this.banks.firstRun()
       this.balance = this.$getSingle(
-        `${this.username}__balance`, {endpoint: `/api/sales/v1/account/${this.username}/balance/`}
+        `${this.username}__balance`, {endpoint: `/api/sales/v1/account/${this.username}/balance/`},
       )
       this.balance.get()
     }

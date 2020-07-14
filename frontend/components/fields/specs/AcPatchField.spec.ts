@@ -2,7 +2,7 @@ import {mount, Wrapper} from '@vue/test-utils'
 import Vue from 'vue'
 import {Vuetify} from 'vuetify'
 import {ArtStore, createStore} from '@/store'
-import {cleanUp, createVuetify, rq, rs, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, rq, rs, vueSetup} from '@/specs/helpers'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import {SingleController} from '@/store/singles/controller'
@@ -20,7 +20,7 @@ describe('AcPatchField.ts', () => {
   beforeEach(() => {
     store = createStore()
     vuetify = createVuetify()
-    empty = mount(Empty, {localVue, store, sync: false})
+    empty = mount(Empty, {localVue, store})
     single = empty.vm.$getSingle('stuff', {endpoint: '/'})
     single.setX({test: 'Things'})
     store.commit('singles/stuff/setReady', true)
@@ -34,8 +34,8 @@ describe('AcPatchField.ts', () => {
       localVue,
       store,
       vuetify,
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
       propsData: {patcher: single.patchers.test, id: 'stuff-patch'},
     })
     await wrapper.vm.$nextTick()
@@ -46,8 +46,8 @@ describe('AcPatchField.ts', () => {
       localVue,
       store,
       vuetify,
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
       propsData: {patcher: single.patchers.test, id: 'stuff-patch', enterSave: true},
     })
     const field = wrapper.find('#stuff-patch')
@@ -56,7 +56,7 @@ describe('AcPatchField.ts', () => {
     await wrapper.vm.$nextTick()
     await jest.runAllTimers()
     expect(mockAxios.patch).toHaveBeenCalledWith(
-      ...rq('/', 'patch', {test: 'TEST'}, {cancelToken: expect.any(Object)})
+      ...rq('/', 'patch', {test: 'TEST'}, {cancelToken: expect.any(Object)}),
     )
     mockAxios.mockResponse(rs({test: 'TEST'}))
   })
@@ -65,8 +65,8 @@ describe('AcPatchField.ts', () => {
       localVue,
       store,
       vuetify,
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
       propsData: {patcher: single.patchers.test, id: 'stuff-patch', enterSave: false, autoSave: false},
     })
     const field = wrapper.find('#stuff-patch')
@@ -81,8 +81,8 @@ describe('AcPatchField.ts', () => {
       localVue,
       store,
       vuetify,
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
       propsData: {patcher: single.patchers.test, id: 'stuff-patch', autoSave: false},
     })
     const field = wrapper.find('#stuff-patch')
@@ -101,8 +101,8 @@ describe('AcPatchField.ts', () => {
       localVue,
       store,
       vuetify,
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
       propsData: {patcher: single.patchers.test, id: 'stuff-patch', autoSave: false},
     })
     const field = wrapper.find('#stuff-patch')
@@ -117,8 +117,8 @@ describe('AcPatchField.ts', () => {
       localVue,
       store,
       vuetify,
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
       propsData: {patcher: single.patchers.test, id: 'stuff-patch', autoSave: false, handlesSaving: true},
     })
     single.patchers.test.model = 'TEST'
@@ -132,8 +132,8 @@ describe('AcPatchField.ts', () => {
       localVue,
       store,
       vuetify,
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
       propsData: {patcher: single.patchers.test, id: 'stuff-patch', autoSave: false, handlesSaving: true},
     })
     const vm = wrapper.vm as any
@@ -150,8 +150,8 @@ describe('AcPatchField.ts', () => {
       localVue,
       store,
       vuetify,
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
       propsData: {patcher: single.patchers.test, id: 'stuff-patch', autoSave: false, handlesSaving: true},
     })
     const vm = wrapper.vm as any

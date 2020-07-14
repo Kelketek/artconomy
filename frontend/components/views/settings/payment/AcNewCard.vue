@@ -106,10 +106,13 @@ import {mask} from 'vue-the-mask'
 export default class AcNewCard extends mixins(Viewer) {
   @Prop({default: false})
   public firstCard!: boolean
+
   @Prop({default: true})
   public showSave!: boolean
+
   @Prop({required: true})
   public ccForm!: FormController
+
   public countries: SingleController<Countries> = null as unknown as SingleController<Countries>
 
   public get countryOptions() {

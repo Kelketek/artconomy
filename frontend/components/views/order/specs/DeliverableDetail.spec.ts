@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import {Vuetify} from 'vuetify/types'
-import {cleanUp, createVuetify, flushPromises, rs, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, flushPromises, rs, setViewer, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import {mount, Wrapper} from '@vue/test-utils'
 import DeliverableDetail from '@/components/views/order/DeliverableDetail.vue'
@@ -44,8 +44,8 @@ describe('DeliverableDetail.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
         stubs: ['ac-revision-manager'],
       })
     const vm = wrapper.vm as any
@@ -77,8 +77,8 @@ describe('DeliverableDetail.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
         stubs: ['ac-revision-manager'],
       })
     const vm = wrapper.vm as any
@@ -102,8 +102,8 @@ describe('DeliverableDetail.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
         stubs: ['ac-revision-manager'],
       })
     const vm = wrapper.vm as any
@@ -130,8 +130,8 @@ describe('DeliverableDetail.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
         stubs: ['ac-revision-manager'],
       })
     const vm = wrapper.vm as any
@@ -167,8 +167,8 @@ describe('DeliverableDetail.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
         stubs: ['ac-revision-manager'],
       })
     const vm = wrapper.vm as any
@@ -181,7 +181,7 @@ describe('DeliverableDetail.vue', () => {
     await vm.$nextTick()
   })
   it('Handles different view modes', async() => {
-    let user = genUser({is_staff: true})
+    const user = genUser({is_staff: true})
     user.username = 'Dude'
     setViewer(store, user)
     router.push('/orders/Fox/order/1/deliverables/5')
@@ -192,8 +192,8 @@ describe('DeliverableDetail.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
         stubs: ['ac-revision-manager'],
       })
     const vm = wrapper.vm as any
@@ -226,7 +226,7 @@ describe('DeliverableDetail.vue', () => {
     expect(vm.isArbitrator).toBe(true)
   })
   it('Figures if non-completion time has elapsed', async() => {
-    let user = genUser()
+    const user = genUser()
     user.username = 'Dude'
     setViewer(store, user)
     router.push('/orders/Fox/order/1/deliverables/5')
@@ -237,8 +237,8 @@ describe('DeliverableDetail.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
         stubs: ['ac-revision-manager'],
       })
     const vm = wrapper.vm as any
@@ -262,7 +262,7 @@ describe('DeliverableDetail.vue', () => {
     expect(vm.disputeTimeElapsed).toBe(false)
   })
   it('Determines if the dispute window is open', async() => {
-    let user = genUser()
+    const user = genUser()
     user.username = 'Dude'
     setViewer(store, user)
     router.push('/orders/Fox/order/1/deliverables/5')
@@ -273,8 +273,8 @@ describe('DeliverableDetail.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
         stubs: ['ac-revision-manager'],
       })
     const vm = wrapper.vm as any
@@ -302,8 +302,8 @@ describe('DeliverableDetail.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
         stubs: ['ac-revision-manager'],
       })
     const vm = wrapper.vm as any
@@ -330,8 +330,8 @@ describe('DeliverableDetail.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
         stubs: ['ac-revision-manager'],
       })
     const vm = wrapper.vm as any
@@ -361,8 +361,8 @@ describe('DeliverableDetail.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
         stubs: ['ac-revision-manager'],
       })
     const vm = wrapper.vm as any
@@ -378,8 +378,8 @@ describe('DeliverableDetail.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
         stubs: ['ac-revision-manager'],
       })
     const vm = wrapper.vm as any
@@ -397,8 +397,8 @@ describe('DeliverableDetail.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: '__1'},
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
         stubs: ['ac-revision-manager'],
       })
     const vm = wrapper.vm as any
@@ -427,8 +427,8 @@ describe('DeliverableDetail.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
         stubs: ['ac-revision-manager'],
       })
     const vm = wrapper.vm as any
@@ -455,8 +455,8 @@ describe('DeliverableDetail.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
         stubs: ['ac-revision-manager'],
       })
     const vm = wrapper.vm as any
@@ -479,8 +479,8 @@ describe('DeliverableDetail.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
         stubs: ['router-link'],
       })
     const vm = wrapper.vm as any
@@ -512,8 +512,8 @@ describe('DeliverableDetail.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Vulpes'},
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
         stubs: ['router-link'],
       })
     const vm = wrapper.vm as any

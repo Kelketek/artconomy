@@ -18,6 +18,7 @@ import {State} from 'vuex-class'
 export default class AcLink extends Vue {
   @Prop()
   public to!: Location
+
   @State('iFrame') public iFrame!: boolean
   // Must be used with string location
   @Prop({default: false})

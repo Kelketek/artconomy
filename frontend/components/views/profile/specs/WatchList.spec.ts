@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import {Vuetify} from 'vuetify/types'
 import Router from 'vue-router'
-import {cleanUp, createVuetify, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, setViewer, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import {mount, Wrapper} from '@vue/test-utils'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
@@ -52,8 +52,7 @@ describe('WatchList.vue', () => {
       router,
       vuetify,
       propsData: {username: 'Fox', nameSpace: 'watching', endpoint: '/test/'},
-      attachToDocument: true,
-      sync: false,
+      attachTo: docTarget(),
     })
     const vm = wrapper.vm as any
     vm.watch.setList([genUser()])

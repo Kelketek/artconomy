@@ -1,7 +1,7 @@
 import {mount, Wrapper} from '@vue/test-utils'
 import AcTgDevice from '../AcTgDevice.vue'
 import {ArtStore, createStore} from '@/store'
-import {cleanUp, createVuetify, flushPromises, rq, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, flushPromises, rq, setViewer, vueSetup} from '@/specs/helpers'
 import Vue from 'vue'
 import {genUser} from '@/specs/helpers/fixtures'
 import {ListController} from '@/store/lists/controller'
@@ -36,7 +36,7 @@ describe('AcTgDevice.vue', () => {
       localVue,
       vuetify,
       propsData: {username: 'Fox', device: controller.list[0]},
-      sync: false,
+
     })
     expect(wrapper.findAll('.v-stepper__step').length).toBe(3)
   })
@@ -48,7 +48,7 @@ describe('AcTgDevice.vue', () => {
       localVue,
       vuetify,
       propsData: {username: 'Fox', device: controller.list[0]},
-      sync: false,
+
     })
     expect(wrapper.findAll('.v-stepper__step').length).toBe(0)
   })
@@ -60,14 +60,14 @@ describe('AcTgDevice.vue', () => {
       localVue,
       vuetify,
       propsData: {username: 'Fox', device: controller.list[0]},
-      sync: false,
+
     })
     mockAxios.reset()
     wrapper.find('.delete-phone-2fa').trigger('click')
     await wrapper.vm.$nextTick()
     wrapper.find('.confirmation-button').trigger('click')
     expect(mockAxios.delete).toHaveBeenCalledWith(
-      ...rq('/test/1/', 'delete')
+      ...rq('/test/1/', 'delete'),
     )
     mockAxios.mockResponse({status: 204, data: {}})
     await flushPromises()
@@ -82,8 +82,8 @@ describe('AcTgDevice.vue', () => {
       localVue,
       vuetify,
       propsData: {username: 'Fox', device: controller.list[0]},
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     wrapper.find('.send-tg-code').trigger('click')
     expect(mockAxios.post).toHaveBeenCalledWith(
@@ -98,8 +98,8 @@ describe('AcTgDevice.vue', () => {
       localVue,
       vuetify,
       propsData: {username: 'Fox', device: controller.list[0]},
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     const form = wrapper.vm.$getForm('telegramOTP')
     form.fields.code.update('123456')
@@ -118,7 +118,7 @@ describe('AcTgDevice.vue', () => {
       localVue,
       vuetify,
       propsData: {username: 'Fox', device: controller.list[0]},
-      sync: false,
+
     })
     expect((wrapper.vm as any).url).toBe('/api/profiles/v1/account/Fox/auth/two-factor/tg/')
     wrapper.setProps({username: 'Vulpes', device: {...controller.list[0]}})

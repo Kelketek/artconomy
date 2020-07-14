@@ -31,7 +31,7 @@ describe('AcAsset.vue', () => {
       vuetify,
       stubs: ['router-link'],
       propsData: {asset: genSubmission(), thumbName: 'full'},
-      sync: false,
+
     })
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
@@ -48,8 +48,9 @@ describe('AcAsset.vue', () => {
       localVue,
       vuetify,
       stubs: ['router-link'],
-      sync: false,
-      propsData: {asset: submission, thumbName: 'full'}},
+
+      propsData: {asset: submission, thumbName: 'full'},
+    },
     )
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
@@ -67,9 +68,10 @@ describe('AcAsset.vue', () => {
       store,
       localVue,
       vuetify,
-      sync: false,
+
       stubs: ['router-link'],
-      propsData: {asset: submission, thumbName: 'full'}}
+      propsData: {asset: submission, thumbName: 'full'},
+    },
     )
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
@@ -89,9 +91,10 @@ describe('AcAsset.vue', () => {
         store,
         localVue,
         vuetify,
-        sync: false,
+
         stubs: ['router-link'],
-        propsData: {asset: submission, thumbName: 'full', aspectRatio: null}},
+        propsData: {asset: submission, thumbName: 'full', aspectRatio: null},
+      },
       )
       await wrapper.vm.$nextTick()
       const vm = wrapper.vm as any
@@ -107,9 +110,10 @@ describe('AcAsset.vue', () => {
       store,
       localVue,
       vuetify,
-      sync: false,
+
       stubs: ['router-link'],
-      propsData: {asset: null, thumbName: 'full'}},
+      propsData: {asset: null, thumbName: 'full'},
+    },
     )
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
@@ -129,9 +133,10 @@ describe('AcAsset.vue', () => {
       store,
       localVue,
       vuetify,
-      sync: false,
+
       stubs: ['router-link'],
-      propsData: {asset: null, thumbName: 'full', fallbackImage: 'boop.jpg'}},
+      propsData: {asset: null, thumbName: 'full', fallbackImage: 'boop.jpg'},
+    },
     )
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
@@ -153,9 +158,10 @@ describe('AcAsset.vue', () => {
       store,
       localVue,
       vuetify,
-      sync: false,
+
       stubs: ['router-link'],
-      propsData: {asset: submission, thumbName: 'full', aspectRatio: null}},
+      propsData: {asset: submission, thumbName: 'full', aspectRatio: null},
+    },
     )
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
@@ -171,9 +177,10 @@ describe('AcAsset.vue', () => {
       store,
       localVue,
       vuetify,
-      sync: false,
+
       stubs: ['router-link'],
-      propsData: {asset: null, thumbName: 'full'}},
+      propsData: {asset: null, thumbName: 'full'},
+    },
     )
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
@@ -191,8 +198,9 @@ describe('AcAsset.vue', () => {
       localVue,
       vuetify,
       stubs: ['router-link'],
-      sync: false,
-      propsData: {asset: submission, thumbName: 'full'}},
+
+      propsData: {asset: submission, thumbName: 'full'},
+    },
     )
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
@@ -207,14 +215,15 @@ describe('AcAsset.vue', () => {
       store,
       localVue,
       vuetify,
-      sync: false,
+
       stubs: ['router-link'],
-      propsData: {asset: submission, thumbName: 'thumbnail'}},
+      propsData: {asset: submission, thumbName: 'thumbnail'},
+    },
     )
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
     expect(vm.$refs.imgContainer.src).toBe(
-      'https://artconomy.vulpinity.com/media/art/2019/07/26/kairef-color.png.300x300_q85_crop-,0.png'
+      'https://artconomy.vulpinity.com/media/art/2019/07/26/kairef-color.png.300x300_q85_crop-,0.png',
     )
   })
   it('Displays a preview', async() => {
@@ -226,14 +235,15 @@ describe('AcAsset.vue', () => {
       store,
       localVue,
       vuetify,
-      sync: false,
+
       stubs: ['router-link'],
-      propsData: {asset: submission, thumbName: 'thumbnail'}},
+      propsData: {asset: submission, thumbName: 'thumbnail'},
+    },
     )
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
     expect(vm.$refs.imgContainer.src).toBe(
-      'https://example.com/thing.jpg'
+      'https://example.com/thing.jpg',
     )
   })
   it('Handles a non-previewable file type', async() => {
@@ -245,14 +255,14 @@ describe('AcAsset.vue', () => {
       store,
       localVue,
       vuetify,
-      sync: false,
+
       stubs: ['router-link'],
       propsData: {asset: submission, thumbName: 'thumbnail'},
     })
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
     expect(vm.$refs.imgContainer.src).toBe(
-      'http://localhost/static/icons/DOC.png'
+      'http://localhost/static/icons/DOC.png',
     )
   })
   it('Handles the special case of an SVG', async() => {
@@ -264,14 +274,15 @@ describe('AcAsset.vue', () => {
       store,
       localVue,
       vuetify,
-      sync: false,
+
       stubs: ['router-link'],
-      propsData: {asset: submission, thumbName: 'thumbnail'}},
+      propsData: {asset: submission, thumbName: 'thumbnail'},
+    },
     )
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
     expect(vm.$refs.imgContainer.src).toBe(
-      'https://example.com/thing.svg'
+      'https://example.com/thing.svg',
     )
   })
   it('Handles the special case of a GIF', async() => {
@@ -287,14 +298,15 @@ describe('AcAsset.vue', () => {
       store,
       localVue,
       vuetify,
-      sync: false,
+
       stubs: ['router-link'],
-      propsData: {asset: submission, thumbName: 'gallery'}},
+      propsData: {asset: submission, thumbName: 'gallery'},
+    },
     )
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
     expect(vm.$refs.imgContainer.src).toBe(
-      'https://example.com/thing.gif'
+      'https://example.com/thing.gif',
     )
   })
   it('Fetches asset tags', async() => {
@@ -308,7 +320,7 @@ describe('AcAsset.vue', () => {
       vuetify,
       stubs: ['router-link'],
       propsData: {asset: submission, thumbName: 'thumbnail'},
-      sync: false,
+
     })
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
@@ -332,7 +344,7 @@ describe('AcAsset.vue', () => {
       vuetify,
       stubs: ['router-link'],
       propsData: {asset: submission, thumbName: 'thumbnail'},
-      sync: false,
+
     })
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any

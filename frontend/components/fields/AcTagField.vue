@@ -25,6 +25,7 @@ import {cloneDeep, debounce} from 'lodash'
 export default class AcTagField extends Vue {
     @Prop({required: true})
     public value!: string[]
+
     private queryStore = ''
     private tags: string[] = []
     private oldCount = 0
@@ -41,9 +42,9 @@ export default class AcTagField extends Vue {
       this.cancelSource.cancel()
       this.cancelSource = axios.CancelToken.source()
       artCall(
-        {url: `/api/profiles/v1/search/tag/`, params: {q: val}, method: 'get', cancelToken: this.cancelSource.token}
+        {url: '/api/profiles/v1/search/tag/', params: {q: val}, method: 'get', cancelToken: this.cancelSource.token},
       ).then(
-        (response) => { this.items = response }
+        (response) => { this.items = response },
       )
     }
 

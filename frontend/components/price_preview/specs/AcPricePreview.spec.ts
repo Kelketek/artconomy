@@ -2,7 +2,7 @@ import {mount, Wrapper} from '@vue/test-utils'
 import Vue from 'vue'
 import {Vuetify} from 'vuetify'
 import {ArtStore, createStore} from '@/store'
-import {cleanUp, createVuetify, setPricing, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, setPricing, setViewer, vueSetup} from '@/specs/helpers'
 import AcPricePreview from '@/components/price_preview/AcPricePreview.vue'
 import {genUser} from '@/specs/helpers/fixtures'
 import Router from 'vue-router'
@@ -36,7 +36,7 @@ describe('AcPricePreview.vue', () => {
       }],
     })
     setPricing(store, localVue)
-    lineItems = mount(Empty, {localVue, store, sync: false}).vm.$getList('lines', {endpoint: '/'})
+    lineItems = mount(Empty, {localVue, store}).vm.$getList('lines', {endpoint: '/'})
     lineItems.setList(dummyLineItems())
     lineItems.ready = true
     user = genUser()
@@ -48,8 +48,8 @@ describe('AcPricePreview.vue', () => {
       store,
       vuetify,
       router,
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
       propsData: {
         lineItems,
         username: user.username,
@@ -73,8 +73,8 @@ describe('AcPricePreview.vue', () => {
       store,
       vuetify,
       router,
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
       propsData: {
         lineItems,
         username: user.username,
@@ -95,8 +95,8 @@ describe('AcPricePreview.vue', () => {
       store,
       vuetify,
       router,
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
       propsData: {
         lineItems,
         username: user.username,
@@ -115,8 +115,8 @@ describe('AcPricePreview.vue', () => {
       store,
       vuetify,
       router,
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
       propsData: {
         lineItems,
         username: user.username,

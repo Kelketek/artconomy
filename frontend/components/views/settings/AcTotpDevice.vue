@@ -184,6 +184,7 @@ import {mask} from 'vue-the-mask'
 export default class AcTotpDevice extends mixins(Subjective) {
   @Prop({required: true})
   private device!: SingleController<TOTPDevice>
+
   private QRCode = QRCode
   private image: string = ''
   private totpForm: FormController = null as unknown as FormController

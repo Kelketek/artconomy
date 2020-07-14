@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import {mount, Wrapper} from '@vue/test-utils'
-import {cleanUp, createVuetify, flushPromises, rq, rs, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, flushPromises, rq, rs, vueSetup} from '@/specs/helpers'
 import {genSubmission} from '@/store/submissions/specs/fixtures'
 import AcMarkdownViewer from '@/components/AcMarkdownViewer.vue'
 import mockAxios from '@/__mocks__/axios'
@@ -27,8 +27,8 @@ describe('AcMarkdownViewer.vue', () => {
       localVue,
       vuetify,
       propsData: {asset: submission},
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     const vm = wrapper.vm as any
     expect(mockAxios.get).toHaveBeenCalledWith(...rq('https://example.com/test.txt', 'get', undefined, {}))

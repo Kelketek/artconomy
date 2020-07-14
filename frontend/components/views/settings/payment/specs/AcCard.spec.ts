@@ -4,7 +4,7 @@ import AcCard from '@/components/views/settings/payment/AcCard.vue'
 import {Vuetify} from 'vuetify/types'
 import {ArtStore, createStore} from '@/store'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
-import {cleanUp, createVuetify, flushPromises, rq, rs, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, flushPromises, rq, rs, vueSetup} from '@/specs/helpers'
 import {ListController} from '@/store/lists/controller'
 import {CreditCardToken} from '@/types/CreditCardToken'
 import mockAxios from '@/__mocks__/axios'
@@ -25,7 +25,7 @@ describe('AcCard.vue', () => {
     cardList.setList([{id: 1, last_four: '1234', primary: true, type: 1, cvv_verified: true}])
     wrapper = mount(
       AcCard, {
-        localVue, store, vuetify, sync: false, attachToDocument: true, propsData: {cardList, card: cardList.list[0]},
+        localVue, store, vuetify, attachTo: docTarget(), propsData: {cardList, card: cardList.list[0]},
       })
   })
   afterEach(() => {

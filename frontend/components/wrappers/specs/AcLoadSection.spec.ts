@@ -5,7 +5,7 @@ import {ArtStore, createStore} from '@/store'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import {ListController} from '@/store/lists/controller'
-import {cleanUp, createVuetify, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, vueSetup} from '@/specs/helpers'
 
 describe('AcLoadSection.vue', () => {
   const localVue = vueSetup()
@@ -21,7 +21,7 @@ describe('AcLoadSection.vue', () => {
       localVue,
       store,
       vuetify,
-      sync: false,
+
     })
     list = empty.vm.$getList('demo', {endpoint: '/endpoint/'})
   })
@@ -35,8 +35,8 @@ describe('AcLoadSection.vue', () => {
       store,
       vuetify,
       propsData: {controller: list},
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     expect(wrapper.find('.default-loaded-data').exists()).toBe(false)
     expect(wrapper.find('.retry-button').exists()).toBe(true)
@@ -49,8 +49,8 @@ describe('AcLoadSection.vue', () => {
       store,
       vuetify,
       propsData: {controller: list},
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     const button = wrapper.find('.support-button')
     expect(button.exists()).toBe(true)
@@ -68,8 +68,8 @@ describe('AcLoadSection.vue', () => {
       store,
       vuetify,
       propsData: {controller: list, loadOnGrow: false},
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     await wrapper.vm.$nextTick()
     let button = wrapper.find('.loading-spinner-container')

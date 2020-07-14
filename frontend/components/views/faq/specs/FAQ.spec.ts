@@ -4,7 +4,7 @@ import FAQ from '@/components/views/faq/FAQ.vue'
 import {faqRoutes} from './helpers'
 import {mount, Wrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
-import {cleanUp, createVuetify, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, vueSetup} from '@/specs/helpers'
 import {Vuetify} from 'vuetify/types'
 
 const localVue = vueSetup()
@@ -25,7 +25,7 @@ describe('FAQ.vue', () => {
   })
   it('mounts', async() => {
     router.push('/faq/')
-    wrapper = mount(FAQ, {localVue, router, store, vuetify, sync: false, attachToDocument: true})
+    wrapper = mount(FAQ, {localVue, router, store, vuetify, attachTo: docTarget()})
     await wrapper.vm.$nextTick()
     expect(router.currentRoute.name).toEqual('About')
   })

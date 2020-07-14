@@ -34,6 +34,7 @@ import {Prop} from 'vue-property-decorator'
 export default class AcEscrowLabel extends Vue {
   @Prop({required: true})
   public escrow!: boolean
+
   @Prop({required: true})
   public name!: string
 }

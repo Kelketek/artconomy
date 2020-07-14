@@ -10,6 +10,7 @@ export default class Upload extends Vue {
   public get showUpload() {
     return this.uploadVisible
   }
+
   public set showUpload(val: boolean) {
     this.setUploadVisible(val)
   }

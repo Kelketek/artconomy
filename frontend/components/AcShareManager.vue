@@ -35,6 +35,7 @@ import {TerseUser} from '@/store/profiles/types/TerseUser'
 export default class AcShareManager extends Vue {
     @Prop({required: true})
     public controller!: ListController<TerseUser>
+
     public newShare: FormController = null as unknown as FormController
     public created() {
       this.newShare = this.$getForm('share_' + genId(), {

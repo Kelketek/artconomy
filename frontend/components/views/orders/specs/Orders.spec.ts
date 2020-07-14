@@ -1,4 +1,4 @@
-import {cleanUp, createVuetify, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, setViewer, vueSetup} from '@/specs/helpers'
 import Router from 'vue-router'
 import {ArtStore, createStore} from '@/store'
 import {mount, Wrapper} from '@vue/test-utils'
@@ -10,6 +10,7 @@ import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import {genPricing} from '@/lib/specs/helpers'
 import OrderList from '@/components/views/orders/OrderList.vue'
 import {BankStatus} from '@/store/profiles/types/BankStatus'
+import mockAxios from '@/__mocks__/axios'
 
 const localVue = vueSetup()
 localVue.use(Router)
@@ -36,6 +37,17 @@ describe('Orders.vue', () => {
           {name: 'WaitingSales', path: '/waiting', component: OrderList},
         ],
       }, {
+        name: 'Orders',
+        path: '/orders/:username/',
+        props: true,
+        component: Empty,
+        children: [
+          {name: 'CurrentOrders', path: '/current', component: OrderList},
+          {name: 'ArchivedOrders', path: '/archived', component: OrderList},
+          {name: 'CancelledOrders', path: '/canceled', component: OrderList},
+          {name: 'WaitingOrders', path: '/waiting', component: OrderList},
+        ],
+      }, {
         name: 'BuyAndSell',
         props: true,
         component: Empty,
@@ -47,6 +59,7 @@ describe('Orders.vue', () => {
         path: '/store/:username',
       }],
     })
+    jest.useFakeTimers()
   })
   afterEach(() => {
     cleanUp(wrapper)
@@ -58,8 +71,7 @@ describe('Orders.vue', () => {
       store,
       vuetify,
       router,
-      attachToDocument: true,
-      sync: false,
+      attachTo: docTarget(),
       propsData: {username: 'Fox', seller: true, baseName: 'Sales'},
     })
     const vm = wrapper.vm as any
@@ -75,8 +87,7 @@ describe('Orders.vue', () => {
       store,
       vuetify,
       router,
-      attachToDocument: true,
-      sync: false,
+      attachTo: docTarget(),
       propsData: {username: 'Fox', seller: true, baseName: 'Sales'},
     })
     const vm = wrapper.vm as any
@@ -85,23 +96,57 @@ describe('Orders.vue', () => {
     await vm.$nextTick()
     expect(vm.closed).toBe(false)
   })
-  // it('Loads an invoicing form', async() => {
-  //   setViewer(store, genUser())
-  //   const wrapper = mount(Orders, {
-  //     localVue,
-  //     store,
-  //     vuetify,
-  //     router,
-  //     attachToDocument: true,
-  //     sync: false,
-  //     propsData: {username: 'Fox', seller: true, baseName: 'Sales'},
-  //   })
-  //   const vm = wrapper.vm as any
-  //   vm.viewerHandler.artistProfile.makeReady(genArtistProfile({bank_account_status: BankStatus.HAS_US_ACCOUNT}))
-  //   vm.stats.makeReady(genCommissionStats())
-  //   wrapper.find('.ac-add-button').trigger('click')
-  //   await vm.$nextTick()
-  //   console.log(wrapper.html())
-  //   expect(vm.showNewInvoice).toBe(true)
-  // })
+  it('Triggers the invoicing form, and evaluates requisite functions', async() => {
+    setViewer(store, genUser())
+    const wrapper = mount(Orders, {
+      localVue,
+      store,
+      vuetify,
+      router,
+      attachTo: docTarget(),
+      propsData: {username: 'Fox', seller: true, baseName: 'Sales'},
+    })
+    const vm = wrapper.vm as any
+    vm.viewerHandler.artistProfile.makeReady(genArtistProfile({bank_account_status: BankStatus.HAS_US_ACCOUNT}))
+    vm.stats.makeReady(genCommissionStats())
+    wrapper.find('.ac-add-button').trigger('click')
+    expect(vm.showNewInvoice).toBe(true)
+    expect(vm.sellerName).toBe('Fox')
+    expect(vm.invoiceEscrowDisabled).toBe(false)
+    vm.newInvoice.fields.paid.update(true)
+    await vm.$nextTick()
+    expect(vm.invoiceEscrowDisabled).toBe(true)
+  })
+  it('Redirects to the right subview', async() => {
+    await router.replace({name: 'Sales', params: {username: 'Fox'}})
+    const mockPush = jest.spyOn(router, 'replace')
+    setViewer(store, genUser())
+    const wrapper = mount(Orders, {
+      localVue,
+      store,
+      vuetify,
+      router,
+      attachTo: docTarget(),
+      propsData: {username: 'Fox', seller: true, baseName: 'Sales'},
+    })
+    await wrapper.vm.$nextTick()
+    expect(mockPush).toHaveBeenCalledWith({name: 'CurrentSales', params: {username: 'Fox'}})
+  })
+  it('Does not ask for unneeded info if this is for orders instead of sales', async() => {
+    setViewer(store, genUser())
+    mockAxios.reset()
+    const wrapper = mount(Orders, {
+      localVue,
+      store,
+      vuetify,
+      router,
+      attachTo: docTarget(),
+      propsData: {username: 'Fox', seller: false, baseName: 'Orders'},
+    })
+    await wrapper.vm.$nextTick()
+    const vm = wrapper.vm as any
+    expect(() => mockAxios.getReqByUrl(vm.stats.endpoint)).toThrow(
+      Error('Could not find request for URL /api/sales/v1/account/Fox/sales/stats/'),
+    )
+  })
 })

@@ -4,7 +4,7 @@ import {User} from './types/User'
 declare type handleDecorator = (cls: Vue, propName: string) => void
 
 export function userHandle(
-  source: string, setError?: boolean
+  source: string, setError?: boolean,
 ): handleDecorator {
   return (cls, propName) => {
     if (setError === undefined) {
@@ -20,7 +20,7 @@ export function userHandle(
         }
         if (!((typeof (self as any)[source] === 'object') && (!propSource.profile_handler__))) {
           console.warn(
-            `Expected profile controller on property named '${source}', got `, propSource, ' instead.'
+            `Expected profile controller on property named '${source}', got `, propSource, ' instead.',
           )
           return null
         }

@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import {shallowMount, Wrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
-import {cleanUp, createVuetify, genAnon, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, genAnon, setViewer, vueSetup} from '@/specs/helpers'
 import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
 import {genSubmission} from '@/store/submissions/specs/fixtures'
 import {Vuetify} from 'vuetify/types'
@@ -28,8 +28,8 @@ describe('AcGalleryPreview.vue', () => {
       store,
       vuetify,
       propsData: {submission},
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
       stubs: ['router-link'],
     })
     const vm = wrapper.vm as any

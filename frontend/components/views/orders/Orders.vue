@@ -124,6 +124,7 @@ export default class Orders extends mixins(Subjective, InvoicingMixin) {
   public stats: SingleController<CommissionStats> = null as unknown as SingleController<CommissionStats>
   @Prop({required: true})
   public baseName!: string
+
   public showNewInvoice = false
   public showBroadcast = false
   public confirmBroadcast = false

@@ -24,7 +24,8 @@ describe('AcRendered.ts', () => {
       vuetify,
       propsData: {
         value: 'This is a section of text.', truncate: 10,
-      }})
+      },
+    })
     expect(wrapper.text()).toBe('This is a... Read More')
   })
   it('Allows the user to read more', async() => {
@@ -33,8 +34,9 @@ describe('AcRendered.ts', () => {
       store,
       vuetify,
       propsData: {
-        value: 'This is a section of text.', truncate: 10, sync: false,
-      }})
+        value: 'This is a section of text.', truncate: 10,
+      },
+    })
     wrapper.find('.read-more-bar').trigger('click')
     await wrapper.vm.$nextTick()
     expect(wrapper.text()).toBe('This is a section of text.')
@@ -45,8 +47,9 @@ describe('AcRendered.ts', () => {
       store,
       vuetify,
       propsData: {
-        value: ''.padStart(1500, 'A'), truncate: true, sync: false,
-      }})
+        value: ''.padStart(1500, 'A'), truncate: true,
+      },
+    })
     expect(wrapper.text()).toBe(''.padStart(1000, 'A') + '... Read More')
   })
 })

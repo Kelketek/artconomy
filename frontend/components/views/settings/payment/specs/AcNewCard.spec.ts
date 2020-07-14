@@ -4,7 +4,7 @@ import {Vuetify} from 'vuetify/types'
 import {ArtStore, createStore} from '@/store'
 import {
   cleanUp,
-  createVuetify,
+  createVuetify, docTarget,
   expectFields,
   fieldEl,
   flushPromises,
@@ -45,7 +45,7 @@ describe('AcNewCard.vue', () => {
     const ccForm = mount(Empty, {localVue, store}).vm.$getForm('newCard', baseCardSchema('/test/'))
     wrapper = mount(
       AcNewCard, {
-        localVue, store, vuetify, sync: false, attachToDocument: true, propsData: {username: 'Fox', ccForm},
+        localVue, store, vuetify, attachTo: docTarget(), propsData: {username: 'Fox', ccForm},
       })
     cards = (wrapper.vm as any).cards
   })
@@ -55,7 +55,7 @@ describe('AcNewCard.vue', () => {
   it('Fetches the initial data', async() => {
     const countriesRequest = mockAxios.lastReqGet()
     expect(mockAxios.get).toHaveBeenCalledWith(...[
-      ...rq(`/api/lib/v1/countries/`, 'get', undefined),
+      ...rq('/api/lib/v1/countries/', 'get', undefined),
     ])
     mockAxios.mockResponse(rs({US: 'United States', CA: 'Canada'}), countriesRequest)
     await flushPromises()
@@ -71,17 +71,17 @@ describe('AcNewCard.vue', () => {
     wrapper.setProps({firstCard: true})
     await wrapper.vm.$nextTick()
     expectFields(
-      ccForm.fields, ['first_name', 'last_name', 'zip', 'number', 'exp_date', 'cvv', 'country', 'make_primary']
+      ccForm.fields, ['first_name', 'last_name', 'zip', 'number', 'exp_date', 'cvv', 'country', 'make_primary'],
     )
     // Doesn't show 'make primary' when there are no cards.
     Object.values(ccForm.fields).filter(
-      (field) => ['make_primary', 'card_id'].indexOf(field.fieldName) === -1
+      (field) => ['make_primary', 'card_id'].indexOf(field.fieldName) === -1,
     ).map((field: FieldController) => fieldEl(wrapper, field))
     expect(wrapper.find('#' + ccForm.fields.make_primary.id).exists()).toBe(false)
     wrapper.setProps({firstCard: false})
     await wrapper.vm.$nextTick()
     Object.values(ccForm.fields).filter((field) => field.fieldName !== 'card_id').map(
-      (field: FieldController) => fieldEl(wrapper, field)
+      (field: FieldController) => fieldEl(wrapper, field),
     )
   })
   it('Considers the card type unknown if it cannot be identified', async() => {
@@ -102,7 +102,7 @@ describe('AcNewCard.vue', () => {
     ccForm.fields.number.update('4111111111111111', false)
     await wrapper.vm.$nextTick()
     expect((wrapper.vm as any).hints).toEqual(
-      {mask: '#### #### #### ####', cvv: '3 digit number on back of card'}
+      {mask: '#### #### #### ####', cvv: '3 digit number on back of card'},
     )
   })
   it('Loads the correct hints for amex', async() => {
@@ -112,7 +112,7 @@ describe('AcNewCard.vue', () => {
     expect((wrapper.vm as any).ccType).toBe('amex')
     await wrapper.vm.$nextTick()
     expect((wrapper.vm as any).hints).toEqual(
-      {mask: '#### ###### #####', cvv: '4 digit number on front of card'}
+      {mask: '#### ###### #####', cvv: '4 digit number on front of card'},
     )
   })
 })

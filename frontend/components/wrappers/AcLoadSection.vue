@@ -56,12 +56,16 @@ import {Prop} from 'vue-property-decorator'
 export default class AcLoadSection extends Vue {
     @Prop({required: true})
     public controller!: SingleController<any>|ListController<any>
+
     @Prop({default: true})
     public fluid!: boolean
+
     @Prop({default: false})
     public forceRender!: boolean
+
     @Prop({default: true})
     public loadOnGrow!: boolean
+
     public prerendering = false
 
     public created() {

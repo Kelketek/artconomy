@@ -46,7 +46,7 @@ export function genConversation(): Conversation {
       is_superuser: true,
       guest: false,
       artist_mode: true,
-      'taggable': true,
+      taggable: true,
     }] as TerseUser[],
     created_on: '2019-11-26T11:20:14.715623-06:00',
     read: false,
@@ -72,5 +72,6 @@ export function genConversation(): Conversation {
       deleted: false,
       subscribed: false,
       system: false,
-    }}
+    },
+  }
 }

@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import {cleanUp, createVuetify, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, setViewer, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import {mount, Wrapper} from '@vue/test-utils'
 import AcTransaction from '@/components/views/settings/payment/AcTransaction.vue'
@@ -68,8 +68,8 @@ describe('AcTransaction.vue', () => {
       store,
       vuetify,
       propsData: {transaction: genTransaction(), username: 'Fox', currentAccount: 300},
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
   })
   it('Displays a transaction as the payer', async() => {
@@ -90,8 +90,8 @@ describe('AcTransaction.vue', () => {
       store,
       vuetify,
       propsData: {transaction, username: 'Fox', currentAccount: 301},
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
   })
   it('Displays a transaction as the payer with a null payee', async() => {
@@ -105,8 +105,8 @@ describe('AcTransaction.vue', () => {
       store,
       vuetify,
       propsData: {transaction, username: 'Vulpes', currentAccount: 300},
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
   })
   it('Handles a card', async() => {
@@ -118,8 +118,8 @@ describe('AcTransaction.vue', () => {
       store,
       vuetify,
       propsData: {transaction, username: 'Fox', currentAccount: 300},
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
   })
   it('Handles a transaction link', async() => {
@@ -133,8 +133,8 @@ describe('AcTransaction.vue', () => {
       store,
       vuetify,
       propsData: {transaction, username: 'Fox', currentAccount: 300},
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     const vm = wrapper.vm as any
     expect(vm.transactionLink).toEqual(`/admin/sales/transactionrecord/${transaction.id}/`)
@@ -150,8 +150,8 @@ describe('AcTransaction.vue', () => {
       store,
       vuetify,
       propsData: {transaction, username: 'Fox', currentAccount: 300},
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     const vm = wrapper.vm as any
     expect(vm.transactionLink).toBe(null)

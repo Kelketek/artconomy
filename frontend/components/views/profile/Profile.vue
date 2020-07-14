@@ -24,7 +24,8 @@ import AcTabNav from '@/components/navigation/AcTabNav.vue'
       AcTabNav,
       AcLoadSection,
       AcProfileHeader,
-      AcLoadingSpinner},
+      AcLoadingSpinner,
+    },
   })
 export default class Profile extends mixins(Subjective) {
     @Watch('subject.artist_mode', {immediate: true})
@@ -40,22 +41,25 @@ export default class Profile extends mixins(Subjective) {
       }
     }
   }
+
     @Watch('$route.name')
     public routeNameCheck() {
       this.setDefaultRoute()
     }
+
     public get needsSpace() {
       return [
         'Gallery', 'Art', 'Collection', 'Watchers', 'Watching', 'Watchlists',
       ].indexOf(this.$route.name + '') === -1
     }
+
     public get items() {
       const items = [
         {value: {name: 'AboutUser', params: {username: this.username}}, icon: 'person', text: 'About'},
       ]
       if (this.subject && this.subject.artist_mode) {
         items.push(
-          {value: {name: 'Products', params: {username: this.username}}, icon: 'shopping_basket', text: 'Products'}
+          {value: {name: 'Products', params: {username: this.username}}, icon: 'shopping_basket', text: 'Products'},
         )
       }
       items.push({
@@ -69,6 +73,7 @@ export default class Profile extends mixins(Subjective) {
       })
       return items
     }
+
     public created() {
       this.subjectHandler.artistProfile.get().catch(this.setError)
       this.$listenForList(`${this.username}-products`)

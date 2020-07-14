@@ -21,6 +21,7 @@ import Viewer from '@/mixins/viewer'
 export default class AcProductList extends mixins(Viewer) {
     @Prop({required: true})
     public products!: ListController<Product>
+
     public created() {
       this.products.firstRun().catch(this.setError)
     }

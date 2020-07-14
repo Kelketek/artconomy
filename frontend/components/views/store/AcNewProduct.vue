@@ -178,6 +178,7 @@ export default class AcNewProduct extends Subjective {
     public pricing: SingleController<Pricing> = null as unknown as SingleController<Pricing>
     @Prop({required: true})
     public value!: boolean
+
     public newProduct: FormController = null as unknown as FormController
 
     public get url() {
@@ -291,7 +292,7 @@ export default class AcNewProduct extends Subjective {
 
     public goToProduct(product: Product) {
       this.$router.push(
-        {name: 'Product', params: {username: this.username, productId: product.id + ''}, query: {editing: 'true'}}
+        {name: 'Product', params: {username: this.username, productId: product.id + ''}, query: {editing: 'true'}},
       )
     }
 

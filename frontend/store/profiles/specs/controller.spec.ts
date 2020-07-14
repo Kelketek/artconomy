@@ -39,7 +39,7 @@ describe('Profile controller', () => {
         $route: {name: 'Place', params: {username: 'Fox'}, query: {stuff: 'things'}, hash: 'Wheee'},
         $router: {replace},
       },
-      sync: false,
+
     })
     await wrapper.vm.$nextTick();
     (wrapper.vm as any).user.updateX({username: 'Vulpes_Veritas'})
@@ -47,7 +47,7 @@ describe('Profile controller', () => {
     expect(replace).toHaveBeenCalled()
     expect(replace).toHaveBeenCalledWith({
       name: 'Place', params: {username: 'Vulpes_Veritas'}, query: {stuff: 'things'}, hash: 'Wheee',
-    }
+    },
     )
     // Should udpate the viewer name as well.
     expect((store.state as any).profiles.viewerRawUsername).toBe('Vulpes_Veritas')
@@ -64,7 +64,7 @@ describe('Profile controller', () => {
         $route: {name: 'Place', params: {username: 'Fennec'}, query: {stuff: 'things'}, hash: 'Wheee'},
         $router: {replace},
       },
-      sync: false,
+
     })
     await wrapper.vm.$nextTick()
     const arctic = genUser()
@@ -88,7 +88,7 @@ describe('Profile controller', () => {
         $route: {name: 'Place', params: {wat: 'Do'}, query: {stuff: 'things'}, hash: 'Wheee'},
         $router: {replace},
       },
-      sync: false,
+
     });
     (wrapper.vm as any).user.updateX({username: 'Vulpes_Veritas'})
     await wrapper.vm.$nextTick()
@@ -107,7 +107,7 @@ describe('Profile controller', () => {
         $route: {name: 'Place', params: {wat: 'Do'}, query: {stuff: 'things'}, hash: 'Wheee'},
         $router: {replace},
       },
-      sync: false,
+
     });
     (wrapper.vm as any).subjectHandler.user.updateX({username: 'Fox', email: 'test@example.com'})
     await wrapper.vm.$nextTick()
@@ -120,7 +120,7 @@ describe('Profile controller', () => {
       localVue,
       store,
       propsData: {initName: 'Fox', schema: {}},
-      sync: false,
+
     }).vm as ProfileController
     expect((store.state as any).userModules.goof).toBeFalsy()
     expect((store.state as any).userModules.Fox).toBeTruthy()
@@ -144,7 +144,7 @@ describe('Profile controller', () => {
       localVue,
       store,
       propsData: {initName: 'Fox', schema: {}},
-      sync: false,
+
     }).vm as ProfileController
     controller.user.setX(user)
     await controller.$nextTick()
@@ -157,7 +157,7 @@ describe('Profile controller', () => {
       localVue,
       store,
       propsData: {initName: 'Fox', schema: {}},
-      sync: false,
+
     }).vm as ProfileController
     controller.artistProfile.setX(genArtistProfile())
     controller.artistProfile.fetching = false
@@ -174,9 +174,9 @@ describe('Profile controller', () => {
       localVue,
       store,
       propsData: {initName: 'Fox', schema: {}},
-      sync: false,
+
     }).vm as ProfileController
-    let profile = genArtistProfile()
+    const profile = genArtistProfile()
     profile.auto_withdraw = false
     controller.artistProfile.setX(genArtistProfile())
     controller.artistProfile.fetching = false

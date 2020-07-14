@@ -75,20 +75,28 @@ import AcForm from '@/components/wrappers/AcForm.vue'
 export default class AcFormDialog extends mixins(Dialog) {
     @Prop()
     public sending!: boolean
+
     @Prop()
     public disabled!: boolean
+
     @Prop()
     public errors!: string[]
+
     @Prop({default: 'Submit'})
     public submitText!: string
+
     @Prop({default: ''})
     public title!: string
+
     @Prop()
     public submit!: () => void
+
     @Prop()
     public id!: string
+
     @Prop({default: false})
     public fluid!: boolean
+
     @Prop({default: false})
     public eager!: boolean
 

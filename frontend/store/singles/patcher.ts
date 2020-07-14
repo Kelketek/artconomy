@@ -40,17 +40,23 @@ export function errorSend(config: Patch): (error: AxiosError) => void {
 export class Patch extends Vue {
   @Prop({required: true})
   public target!: any
+
   @Prop({required: true})
   public modelProp!: string
+
   @Prop({required: true})
   public attrName!: string
+
   @Prop({default: 250})
   public debounceRate!: number
+
   // Used for automaticly generated patchers which may throw errors during initialization/dereference
   @Prop({default: false})
   public silent!: boolean
+
   @Prop({default: true})
   public refresh!: boolean
+
   public cancelSource = axios.CancelToken.source()
   public errors: string[] = []
   public dirty = false
@@ -87,7 +93,7 @@ export class Patch extends Vue {
       method: 'patch',
       data,
       cancelToken: this.cancelSource.token,
-    }
+    },
     ).then(
       (response) => {
         handler.updateX(response)
@@ -95,7 +101,7 @@ export class Patch extends Vue {
           this.dirty = false
         }
         this.patching = false
-      }
+      },
     ).catch(errorSend(this))
   }
 
@@ -124,7 +130,7 @@ export class Patch extends Vue {
       /* istanbul ignore else */
       if (!this.silent) {
         console.warn(
-          `Expected object in property named '${this.modelProp}', got `, model, ' instead.'
+          `Expected object in property named '${this.modelProp}', got `, model, ' instead.',
         )
       }
       this.loaded = false

@@ -41,7 +41,7 @@ export class ListModule<T extends {}> {
   public constructor(options: {
                        grow?: boolean, currentPage?: number, endpoint: string, pageSize?: number, persistent?: boolean,
                        keyProp?: keyof T, name: string, reverse?: boolean, failed?: boolean,
-                     }
+                     },
   ) {
     const defaults = {
       grow: false,
@@ -167,10 +167,12 @@ export class ListModule<T extends {}> {
         }
         let params = state.params || {}
         if (state.paginated) {
-          params = {...params,
+          params = {
+            ...params,
             ...{
               page: state.currentPage, size: state.pageSize,
-            }}
+            },
+          }
         }
         if (Object.keys(params).length) {
           callOptions.params = params

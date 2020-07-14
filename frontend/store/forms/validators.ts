@@ -165,7 +165,7 @@ export function simpleAsyncValidator(url: string) {
     const data: RawData = {}
     sendAs = sendAs || field.fieldName
     data[sendAs] = field.value
-    return artCall({url, method: 'post', data, cancelToken, validateStatus}
+    return artCall({url, method: 'post', data, cancelToken, validateStatus},
     ).then((responseData: any) => {
       return responseData[sendAs as string] || []
     })
@@ -173,7 +173,7 @@ export function simpleAsyncValidator(url: string) {
 }
 
 export async function artistRating(
-  field: FieldController, cancelToken: CancelToken, targetUsername: string
+  field: FieldController, cancelToken: CancelToken, targetUsername: string,
 ): Promise<string[]> {
   const profile = field.$getProfile(targetUsername, {})
   return profile.artistProfile.get().then(() => {

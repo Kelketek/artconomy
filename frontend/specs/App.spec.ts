@@ -6,7 +6,7 @@ import {ArtStore, createStore} from '../store'
 import flushPromises from 'flush-promises'
 import {userResponse} from './helpers/fixtures'
 import {FormController} from '@/store/forms/form-controller'
-import {cleanUp, createVuetify, dialogExpects, genAnon, rq, rs, vueSetup} from './helpers'
+import {cleanUp, createVuetify, dialogExpects, docTarget, genAnon, rq, rs, vueSetup} from './helpers'
 import {Vuetify} from 'vuetify/types'
 
 const localVue = vueSetup()
@@ -30,7 +30,7 @@ describe('App.vue', () => {
       vuetify,
       stubs: ['router-link', 'router-view'],
       mocks: {$route: {fullPath: '/', params: {}, query: {}}},
-      sync: false,
+
     })
     expect(mockAxios.get).toHaveBeenCalledTimes(1)
     mockAxios.mockResponse(userResponse())
@@ -46,7 +46,7 @@ describe('App.vue', () => {
       vuetify,
       mocks: {$route: {fullPath: '/', params: {}, query: {}}},
       stubs: ['nav-bar', 'router-view', 'router-link'],
-      sync: false,
+
     })
     mockAxios.mockError!({
       response: {status: 500, request: {url: 'thing'}},
@@ -55,7 +55,7 @@ describe('App.vue', () => {
     const state = wrapper.vm.$store.state
     expect(state.errors.code).toBe(500)
     expect(
-      wrapper.find('.error-container img').attributes().src).toBe('/static/images/500.png'
+      wrapper.find('.error-container img').attributes().src).toBe('/static/images/500.png',
     )
   })
   it('Detects when a full interface should not be used due to a specific name', async() => {
@@ -65,7 +65,7 @@ describe('App.vue', () => {
       vuetify,
       mocks: {$route: {fullPath: '/order/', name: 'NewOrder', params: {}, query: {}}},
       stubs: ['nav-bar', 'router-view', 'router-link'],
-      sync: false,
+
     })
     const vm = wrapper.vm as any
     expect(vm.fullInterface).toBe(false)
@@ -77,7 +77,7 @@ describe('App.vue', () => {
       vuetify,
       mocks: {$route: {fullPath: '/order/', name: 'LandingStuff', params: {}, query: {}}},
       stubs: ['nav-bar', 'router-view', 'router-link'],
-      sync: false,
+
     })
     const vm = wrapper.vm as any
     expect(vm.fullInterface).toBe(false)
@@ -89,7 +89,7 @@ describe('App.vue', () => {
       vuetify,
       mocks: {$route: {fullPath: '/order/', name: 'Thingsf', params: {}, query: {}}},
       stubs: ['nav-bar', 'router-view', 'router-link'],
-      sync: false,
+
     })
     const vm = wrapper.vm as any
     expect(vm.fullInterface).toBe(true)
@@ -101,7 +101,7 @@ describe('App.vue', () => {
       vuetify,
       mocks: {$route: {fullPath: '/order/', params: {}, query: {}}},
       stubs: ['nav-bar', 'router-view', 'router-link'],
-      sync: false,
+
     })
     const vm = wrapper.vm as any
     expect(vm.fullInterface).toBe(true)
@@ -113,7 +113,7 @@ describe('App.vue', () => {
       vuetify,
       mocks: {$route: {fullPath: '/', params: {}, query: {}}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
-      sync: false,
+
     })
     const state = wrapper.vm.$store.state
     expect(state.showSupport).toBe(false)
@@ -150,7 +150,7 @@ describe('App.vue', () => {
       vuetify,
       mocks: {$route: {fullPath: '/', params: {}, query: {}}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
-      sync: false,
+
     })
     const supportForm = (wrapper.vm as any).supportForm
     expect(supportForm.fields.email.value).toBe('')
@@ -173,7 +173,7 @@ describe('App.vue', () => {
       vuetify,
       mocks: {$route: {fullPath: '/', params: {}, query: {}}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
-      sync: false,
+
     })
     const supportForm = (wrapper.vm as any).supportForm
     expect(supportForm.fields.email.value).toBe('')
@@ -197,7 +197,7 @@ describe('App.vue', () => {
       vuetify,
       mocks: {$route: {fullPath: '/', params: {}, query: {}}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
-      sync: false,
+
     })
     const supportForm = (wrapper.vm as any).supportForm
     expect(supportForm.fields.referring_url.value).toBe('/')
@@ -212,7 +212,7 @@ describe('App.vue', () => {
       vuetify,
       mocks: {$route: {fullPath: '/', params: {}, query: {}}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
-      sync: false,
+
     })
     store.commit('pushAlert', {message: 'I am an alert!', category: 'error'})
     await wrapper.vm.$nextTick()
@@ -225,7 +225,7 @@ describe('App.vue', () => {
       vuetify,
       mocks: {$route: {fullPath: '/', params: {}, query: {}}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
-      sync: false,
+
     })
     store.commit('pushAlert', {message: 'I am an alert!', category: 'error'})
     await wrapper.vm.$nextTick()
@@ -241,7 +241,7 @@ describe('App.vue', () => {
       vuetify,
       mocks: {$route: {fullPath: '/', params: {}, query: {}}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
-      sync: false,
+
     })
     store.commit('pushAlert', {message: 'I am an alert!', category: 'error'})
     await wrapper.vm.$nextTick()
@@ -256,7 +256,7 @@ describe('App.vue', () => {
       vuetify,
       mocks: {$route: {fullPath: '/', params: {}, query: {}}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
-      sync: false,
+
     });
     (wrapper.vm as any).alertDismissed = true;
     (wrapper.vm as any).showAlert = true
@@ -269,7 +269,7 @@ describe('App.vue', () => {
       vuetify,
       mocks: {$route: {fullPath: '/', params: {}, query: {q: 'Stuff', featured: 'true'}, name: null}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
-      sync: false,
+
     })
     const vm = wrapper.vm as any
     vm.$route.name = 'Home'
@@ -283,7 +283,7 @@ describe('App.vue', () => {
       vuetify,
       mocks: {$route: {fullPath: '/', params: {}, query: {}}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
-      sync: false,
+
     })
     const vm = wrapper.vm as any
     await wrapper.vm.$nextTick()
@@ -305,8 +305,8 @@ describe('App.vue', () => {
       vuetify,
       mocks: {$route: {fullPath: '/', params: {stuff: 'things'}, query: {}}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     const vm = wrapper.vm as any
     await vm.$nextTick()

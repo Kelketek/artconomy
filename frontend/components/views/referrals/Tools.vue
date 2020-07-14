@@ -45,6 +45,7 @@ export default class Tools extends mixins(Subjective) {
   public get host() {
     return window.location.hostname
   }
+
   public get protocol() {
     return window.location.protocol
   }

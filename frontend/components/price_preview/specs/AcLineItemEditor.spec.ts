@@ -21,7 +21,7 @@ describe('AcLineItemEditor.vue', () => {
   beforeEach(() => {
     store = createStore()
     vuetify = createVuetify()
-    empty = mount(Empty, {localVue, store, vuetify, sync: false}).vm
+    empty = mount(Empty, {localVue, store, vuetify}).vm
   })
   it('Mounts', async() => {
     const lineItems = dummyLineItems()

@@ -41,6 +41,7 @@ import Reference from '@/types/Reference'
 export default class referenceDetail extends mixins(DeliverableMixin) {
   @Prop()
   public referenceId!: string
+
   public reference!: SingleController<Reference>
   public referenceComments!: ListController<Comment>
 

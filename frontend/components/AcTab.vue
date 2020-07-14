@@ -19,16 +19,22 @@ import {TabSpec} from '@/types/TabSpec'
 export default class AcTab extends Vue {
     @Prop()
     public icon!: string
+
     @Prop()
     public list!: ListController<any>|null
+
     @Prop()
     public count!: number
+
     @Prop()
     public to!: Route
+
     @Prop({required: false})
     public value!: TabSpec
+
     @Prop({default: true})
     public trackPages!: boolean
+
     @Prop({default: 'page'})
     public pageVariable!: string
 

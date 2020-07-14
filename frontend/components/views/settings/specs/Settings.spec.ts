@@ -5,7 +5,7 @@ import Settings from '../Settings.vue'
 import {ArtStore, createStore} from '@/store'
 import Router from 'vue-router'
 import {genUser} from '@/specs/helpers/fixtures'
-import {setViewer, vueSetup, cleanUp, createVuetify} from '@/specs/helpers'
+import {setViewer, vueSetup, cleanUp, createVuetify, docTarget} from '@/specs/helpers'
 import Credentials from '../Credentials.vue'
 import Avatar from '../Avatar.vue'
 import Payment from '../payment/Payment.vue'
@@ -111,8 +111,8 @@ describe('Settings.vue', () => {
       router,
       vuetify,
       propsData: {username: 'Fox'},
-      attachToDocument: true,
-      sync: false,
+      attachTo: docTarget(),
+
     })
     expect((wrapper.vm as any).drawer).toBe(false)
     expect(wrapper.find('.v-navigation-drawer--open').exists()).toBe(false)
@@ -129,8 +129,8 @@ describe('Settings.vue', () => {
       router,
       vuetify,
       propsData: {username: 'Fox'},
-      attachToDocument: true,
-      sync: false,
+      attachTo: docTarget(),
+
     })
     await wrapper.vm.$nextTick()
     expect(router.currentRoute.name).toBe('Options')
@@ -144,8 +144,7 @@ describe('Settings.vue', () => {
       router,
       vuetify,
       propsData: {username: 'Fox'},
-      attachToDocument: true,
-      sync: false,
+      attachTo: docTarget(),
     })
     await wrapper.vm.$nextTick()
     expect(wrapper.find('#avatar-settings').exists()).toBe(false)

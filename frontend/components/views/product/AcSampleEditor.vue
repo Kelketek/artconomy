@@ -86,17 +86,22 @@ import LinkedSubmission from '@/types/LinkedSubmission'
       AcNewSubmission,
       AcPatchField,
       AcExpandedProperty,
-      Fragment},
+      Fragment,
+    },
   })
 export default class AcSampleEditor extends mixins(Subjective) {
     @Prop({required: true})
     public product!: SingleController<Product>
+
     @Prop({required: true})
     public samples!: ListController<LinkedSubmission>
+
     @Prop({required: true})
     public value!: boolean
+
     @Prop({required: true})
     public productId!: number
+
     public art: ListController<Submission> = null as unknown as ListController<Submission>
     public localSamples: ListController<LinkedSubmission> = null as unknown as ListController<LinkedSubmission>
     public newSubmission: FormController = null as unknown as FormController
@@ -135,9 +140,11 @@ export default class AcSampleEditor extends mixins(Subjective) {
       const product = this.product.x as Product
       return (!product.primary_submission) && this.samples.empty && this.art.empty
     }
+
     public toggle(value: boolean) {
       this.$emit('input', value)
     }
+
     public artToSample(value: Submission) {
       this.localSamples.post({submission_id: value.id}).then((result: any) => {
         this.localSamples.uniquePush(result)
@@ -148,6 +155,7 @@ export default class AcSampleEditor extends mixins(Subjective) {
         }
       })
     }
+
     public addSample(value: Submission) {
       this.art.uniquePush(value)
       this.localSamples.post({submission_id: value.id}).then((result: any) => {
@@ -164,6 +172,7 @@ export default class AcSampleEditor extends mixins(Subjective) {
       // @ts-ignore
       this.product.patch({primary_submission: value.id})
     }
+
     public unlinkSubmission(submission: SingleController<any>) {
       const oldValue = submission.x
       const id = submission.x.submission.id
@@ -183,7 +192,7 @@ export default class AcSampleEditor extends mixins(Subjective) {
       window.editor = this
       this.localSamples = this.$getList(
         // We don't want to use the outer scope's sample list because it will paginate separately.
-        `product-${this.productId}-sample-select`, {endpoint: this.product.endpoint + 'samples/'}
+        `product-${this.productId}-sample-select`, {endpoint: this.product.endpoint + 'samples/'},
       )
       this.localSamples.firstRun().then(() => {
         if (this.localSamples.empty) {

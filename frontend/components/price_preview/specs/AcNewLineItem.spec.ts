@@ -2,7 +2,7 @@ import {mount, Wrapper} from '@vue/test-utils'
 import Vue from 'vue'
 import {Vuetify} from 'vuetify'
 import {ArtStore, createStore} from '@/store'
-import {cleanUp, createVuetify, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, vueSetup} from '@/specs/helpers'
 import Router from 'vue-router'
 import {LineTypes} from '@/types/LineTypes'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
@@ -21,7 +21,7 @@ describe('AcNewLineItem.vue', () => {
   beforeEach(() => {
     store = createStore()
     vuetify = createVuetify()
-    empty = mount(Empty, {localVue, store, vuetify, sync: false}).vm
+    empty = mount(Empty, {localVue, store, vuetify}).vm
     addOnForm = empty.$getForm('addOn', {
       endpoint: '/test/',
       fields: {
@@ -36,8 +36,8 @@ describe('AcNewLineItem.vue', () => {
     wrapper = mount(AcNewLineItem, {
       localVue,
       store,
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
       propsData: {form: addOnForm, price: -2},
     })
     await wrapper.vm.$nextTick()
@@ -48,8 +48,8 @@ describe('AcNewLineItem.vue', () => {
     wrapper = mount(AcNewLineItem, {
       localVue,
       store,
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
       propsData: {form: addOnForm, price: 10},
     })
     await wrapper.vm.$nextTick()
@@ -60,8 +60,8 @@ describe('AcNewLineItem.vue', () => {
     wrapper = mount(AcNewLineItem, {
       localVue,
       store,
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
       propsData: {form: addOnForm, price: 10},
     })
     await wrapper.vm.$nextTick()

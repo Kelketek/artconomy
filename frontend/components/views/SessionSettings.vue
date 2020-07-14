@@ -83,6 +83,7 @@ export default class SessionSettings extends mixins(Viewer) {
   public get patchers() {
     return this.viewerHandler.user.patchers
   }
+
   public created() {
     if (this.isRegistered) {
       this.$router.replace({name: 'Settings', params: {username: this.rawViewerName}})

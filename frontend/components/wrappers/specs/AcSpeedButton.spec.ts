@@ -2,7 +2,7 @@ import Vue from 'vue'
 import AcSpeedButton from '@/components/wrappers/AcSpeedButton.vue'
 import {mount, Wrapper} from '@vue/test-utils'
 import {Vuetify} from 'vuetify/types'
-import {cleanUp, createVuetify, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, vueSetup} from '@/specs/helpers'
 
 describe('AcSpeedButton.vue', () => {
   const localVue = vueSetup()
@@ -21,8 +21,8 @@ describe('AcSpeedButton.vue', () => {
       localVue,
       vuetify,
       propsData: {value: false, text: 'I am a label'},
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     const vm = wrapper.vm as any
     expect(vm.showTooltip).toBe(false)

@@ -38,14 +38,18 @@ import {getExt} from '@/lib/lib'
 export default class AcMiniCharacter extends mixins(AssetBase) {
     @Prop({required: true})
     public character!: Character
+
     @Prop({default: true})
     public showName!: boolean
+
     @Prop({default: false})
     public removable!: boolean
+
     public thumbName = 'thumbnail'
     public get asset() {
       return this.character.primary_submission as Asset
     }
+
     public get route() {
       return {name: 'Character', params: {username: this.character.user.username, characterName: this.character.name}}
     }

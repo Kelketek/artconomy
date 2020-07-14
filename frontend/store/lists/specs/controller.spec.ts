@@ -33,7 +33,7 @@ describe('List controller', () => {
         schema: {...{endpoint: '/endpoint/'}, ...extra},
       },
       localVue,
-    }
+    },
     ).vm as ListController<any>
   }
 
@@ -174,14 +174,14 @@ describe('List controller', () => {
     controller.replace(replacement)
     expect(state.example.refs).toEqual(['1', '2', '3'])
     expect(mockError).toHaveBeenCalledWith(
-      'Attempt to replace non-existent entry based on key \'id\':', replacement
+      'Attempt to replace non-existent entry based on key \'id\':', replacement,
     )
   })
   it('Fetches from the desired endpoint', () => {
     const controller = makeController()
     controller.get().then()
     expect(mockAxios.get).toHaveBeenCalledWith(
-      ...rq('/endpoint/', 'post', undefined, {params: {page: 1, size: 24}, cancelToken: expect.any(Object)})
+      ...rq('/endpoint/', 'post', undefined, {params: {page: 1, size: 24}, cancelToken: expect.any(Object)}),
     )
   })
   it('Sets from the resulting response', async() => {
@@ -265,11 +265,11 @@ describe('List controller', () => {
     expect(controller.response).toEqual({count: 3, size: 10})
   })
   it('Listens for a list', async() => {
-    const wrapper = mount(Empty, {localVue, store, sync: false})
+    const wrapper = mount(Empty, {localVue, store})
     const vm = wrapper.vm as any
     wrapper.vm.$listenForList('testList')
-    expect(listRegistry.listeners['testList']).toEqual([vm._uid])
-    const otherWrapper = mount(Empty, {localVue, store, sync: false})
+    expect(listRegistry.listeners.testList).toEqual([vm._uid])
+    const otherWrapper = mount(Empty, {localVue, store})
     otherWrapper.vm.$getList('testList', {endpoint: '/'}).setList([{id: 1}, {id: 2}, {id: 3}])
     await vm.$nextTick()
     otherWrapper.destroy()
@@ -379,7 +379,7 @@ describe('List controller', () => {
     store.commit('lists/example/setFailed', true)
     controller.retryGet().then()
     expect(mockAxios.get).toHaveBeenCalledWith(
-      ...rq('/endpoint/', 'get', undefined, {params: {size: 24, page: 1}, cancelToken: expect.any(Object)})
+      ...rq('/endpoint/', 'get', undefined, {params: {size: 24, page: 1}, cancelToken: expect.any(Object)}),
     )
   })
   it('Grows on command', async() => {
@@ -387,7 +387,7 @@ describe('List controller', () => {
     controller.response = {count: 100, size: 10}
     controller.grower(true)
     expect(mockAxios.get).toHaveBeenCalledWith(
-      ...rq('/endpoint/', 'get', undefined, {params: {size: 24, page: 2}, cancelToken: expect.any(Object)})
+      ...rq('/endpoint/', 'get', undefined, {params: {size: 24, page: 2}, cancelToken: expect.any(Object)}),
     )
     mockAxios.reset()
     controller.grower(true)
@@ -408,7 +408,7 @@ describe('List controller', () => {
     const controller = makeController({paginated: false})
     controller.firstRun().then()
     expect(mockAxios.get).toHaveBeenCalledWith(
-      ...rq('/endpoint/', 'get', undefined, {cancelToken: expect.any(Object)})
+      ...rq('/endpoint/', 'get', undefined, {cancelToken: expect.any(Object)}),
     )
     mockAxios.mockResponse(rs([{id: 1}, {id: 2}]))
     await flushPromises()

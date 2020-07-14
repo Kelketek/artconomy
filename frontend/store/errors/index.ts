@@ -8,7 +8,7 @@ const getters: GetterTree<ErrorState, RootState> = {
     if ([500, 503, 400, 404, 403].indexOf(state.code) !== -1) {
       return `/static/images/${state.code}.png`
     } else {
-      return `/static/images/generic-error.png`
+      return '/static/images/generic-error.png'
     }
   },
 }

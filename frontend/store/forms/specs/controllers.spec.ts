@@ -11,6 +11,7 @@ import flushPromises from 'flush-promises'
 import {CancelToken} from 'axios'
 import ErrorScrollTests from '@/specs/helpers/dummy_components/scroll-tests.vue'
 import {RootFormState} from '@/store/forms/types/RootFormState'
+import {docTarget} from '@/specs/helpers'
 
 Vue.use(Vuex)
 const localVue = createLocalVue()
@@ -66,7 +67,7 @@ describe('Form and field controllers', () => {
           fields: {name: {value: 'Fox', errors: ['Too cool.']}, age: {value: 30}},
         },
       },
-    }
+    },
     )
     expect(controller.name).toBe('example')
     expect(controller.purged).toBe(false)
@@ -164,7 +165,7 @@ describe('Form and field controllers', () => {
           fields: {name: {value: 'Fox'}, age: {value: 20}},
         },
       },
-    }
+    },
     )
     controller.submitThen(success).then()
     store.dispatch('forms/submit', {name: 'example'}).then()
@@ -186,7 +187,7 @@ describe('Form and field controllers', () => {
           fields: {name: {value: 'Fox'}, age: {value: 20, step: 2}, stuff: {value: 2, step: 3}},
         },
       },
-    }
+    },
     )
     controller.step = 3
     expect(controller.step).toBe(3)
@@ -208,7 +209,7 @@ describe('Form and field controllers', () => {
           fields: {name: {value: 'Fox'}, age: {value: 20}},
         },
       },
-    }
+    },
     )
     controller.submitThen(success).then()
     store.dispatch('forms/submit', {name: 'example'}).then()
@@ -232,7 +233,7 @@ describe('Form and field controllers', () => {
           fields: {name: {value: 'Fox'}, age: {value: 20}},
         },
       },
-    }
+    },
     )
     controller.submitThen(success).then()
     store.dispatch('forms/submit', {name: 'example'}).then()
@@ -254,7 +255,7 @@ describe('Form and field controllers', () => {
           fields: {name: {value: 'Fox'}, age: {value: 20}},
         },
       },
-    }
+    },
     )
     controller.submitThen(success).then()
     store.dispatch('forms/submit', {name: 'example'}).then()
@@ -278,7 +279,7 @@ describe('Form and field controllers', () => {
           fields: {name: {value: 'Fox'}, age: {value: 20}},
         },
       },
-    }
+    },
     )
     controller.submitThen(success).then()
     store.dispatch('forms/submit', {name: 'example'}).then()
@@ -291,7 +292,7 @@ describe('Form and field controllers', () => {
       [
         'Whoops! We had a coding error. Please contact support and tell them the following: ' +
         'other_field: You forgot me.',
-      ]
+      ],
     )
   })
   it('Adds a field to the FormController when the schema is updated', () => {
@@ -304,10 +305,10 @@ describe('Form and field controllers', () => {
           fields: {name: {value: 'Fox'}, age: {value: 30}},
         },
       },
-    }
+    },
     )
     store.commit(
-      'forms/addField', {name: 'example', field: {name: 'sex', schema: {value: 'Male'}}}
+      'forms/addField', {name: 'example', field: {name: 'sex', schema: {value: 'Male'}}},
     )
     expect(controller.fields.sex).toBeTruthy()
     expect(controller.fields.sex.fieldName).toBe('sex')
@@ -324,7 +325,7 @@ describe('Form and field controllers', () => {
           errors: ['Borked.'],
         },
       },
-    }
+    },
     )
     // eslint-disable-next-line no-new
     new FormController({
@@ -337,10 +338,10 @@ describe('Form and field controllers', () => {
           errors: ['Borked.'],
         },
       },
-    }
+    },
     )
     store.commit(
-      'forms/addField', {name: 'example2', field: {name: 'sex', schema: {value: 'Male'}}}
+      'forms/addField', {name: 'example2', field: {name: 'sex', schema: {value: 'Male'}}},
     )
     expect(controller.fields.sex).toBe(undefined)
   })
@@ -354,10 +355,10 @@ describe('Form and field controllers', () => {
           fields: {name: {value: 'Fox'}, age: {value: 30}},
         },
       },
-    }
+    },
     )
     store.commit(
-      'forms/delField', {name: 'example', field: 'age'}
+      'forms/delField', {name: 'example', field: 'age'},
     )
     expect(controller.fields.age).toBe(undefined)
   })
@@ -371,7 +372,7 @@ describe('Form and field controllers', () => {
           fields: {name: {value: 'Fox', errors: ['Too cool.']}, age: {value: 30}},
         },
       },
-    }
+    },
     )
     // eslint-disable-next-line no-new
     new FormController({
@@ -383,10 +384,10 @@ describe('Form and field controllers', () => {
           fields: {name: {value: 'Fox', errors: ['Too cool.']}, age: {value: 30}},
         },
       },
-    }
+    },
     )
     store.commit(
-      'forms/delField', {name: 'example2', field: 'age'}
+      'forms/delField', {name: 'example2', field: 'age'},
     )
     expect(controller.fields.age).toBeTruthy()
   })
@@ -400,10 +401,10 @@ describe('Form and field controllers', () => {
           fields: {name: {value: 'Fox'}, age: {value: 30}},
         },
       },
-    }
+    },
     )
     store.commit(
-      'forms/delForm', {name: 'example'}
+      'forms/delForm', {name: 'example'},
     )
     expect(Object.keys(controller.fields)).toEqual([])
     expect(controller.purged).toBe(true)
@@ -419,10 +420,10 @@ describe('Form and field controllers', () => {
           fields: {name: {value: 'Fox'}, age: {value: 30}},
         },
       },
-    }
+    },
     )
     store.commit(
-      'forms/delForm', {name: 'example2'}
+      'forms/delForm', {name: 'example2'},
     )
     expect(Object.keys(controller.fields)).toBeTruthy()
     expect(controller.purged).toBe(false)
@@ -437,7 +438,7 @@ describe('Form and field controllers', () => {
           fields: {},
         },
       },
-    }
+    },
     )
     expect(state.example.endpoint).toBe('/endpoint/')
     controller.endpoint = '/wat/'
@@ -453,7 +454,7 @@ describe('Form and field controllers', () => {
           fields: {},
         },
       },
-    }
+    },
     )
     expect(controller.attr('endpoint')).toBe('/endpoint/')
   })
@@ -467,7 +468,7 @@ describe('Form and field controllers', () => {
           fields: {stuff: {value: 'things'}, wat: {value: 'do', omitIf: 'do'}, goober: {value: 100}},
         },
       },
-    }
+    },
     )
     expect(controller.rawData).toEqual({stuff: 'things', goober: 100})
   })
@@ -506,7 +507,7 @@ describe('Form and field controllers', () => {
     wrapper = shallowMount(ErrorScrollTests, {
       localVue,
       propsData: {test: 'scrollableText'},
-      attachToDocument: true,
+      attachTo: docTarget(),
     })
     await wrapper.vm.$nextTick()
     const element = document.querySelector('#scrollable-text-error') as Element
@@ -527,7 +528,7 @@ describe('Form and field controllers', () => {
     wrapper = shallowMount(ErrorScrollTests, {
       localVue,
       propsData: {test: 'idOnly'},
-      attachToDocument: true,
+      attachTo: docTarget(),
     })
     await wrapper.vm.$nextTick()
     const element = document.querySelector('#id-only-error') as Element
@@ -548,7 +549,7 @@ describe('Form and field controllers', () => {
     wrapper = shallowMount(ErrorScrollTests, {
       localVue,
       propsData: {test: 'noError'},
-      attachToDocument: true,
+      attachTo: docTarget(),
     })
     await wrapper.vm.$nextTick()
     controller.scrollToError()
@@ -568,7 +569,7 @@ describe('Form and field controllers', () => {
     wrapper = shallowMount(ErrorScrollTests, {
       localVue,
       propsData: {test: 'noErrorNoId'},
-      attachToDocument: true,
+      attachTo: docTarget(),
     })
     await wrapper.vm.$nextTick()
     controller.scrollToError()
@@ -622,11 +623,11 @@ describe('Form and field controllers', () => {
         disabled: false,
         checked: true,
         id: 'field-example__name',
-      }
+      },
     )
     expect(controller.on).toEqual({
       change: controller.update, input: controller.update, blur: controller.forceValidate,
-    }
+    },
     )
   })
   it('Retrieves attributes', () => {
@@ -712,7 +713,7 @@ describe('Form and field controllers', () => {
     controller.update(20, false)
     expect(controller.errors).toEqual(['Old error'])
   })
-  it('Exposes a field as a model', () => {
+  it('Exposes a field as a model', async () => {
     store.commit('forms/initForm', {
       name: 'example', fields: {name: {value: 'Fox'}}, endpoint: '/test/endpoint/',
     })
@@ -720,6 +721,7 @@ describe('Form and field controllers', () => {
     expect(state.example.fields.name.value).toBe('Fox')
     expect(controller.model).toBe('Fox')
     controller.model = 'Amber'
+    await controller.$nextTick()
     expect(controller.model).toBe('Amber')
     expect(state.example.fields.name.value).toBe('Amber')
   })

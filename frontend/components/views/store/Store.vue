@@ -32,7 +32,8 @@ import {State} from 'vuex-class'
       AcFormDialog,
       AcProfileHeader,
       AcProductList,
-    }})
+    },
+  })
 export default class Store extends mixins(Subjective) {
     @State('iFrame') public iFrame!: boolean
     public get currentRoute() {

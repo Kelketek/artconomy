@@ -94,8 +94,10 @@ import QRCode from 'qrcode'
 export default class AcShareButton extends mixins(Dialog, Viewer) {
   @Prop({default: true})
   public social!: boolean
+
   @Prop({required: true})
   public title!: string
+
   public showModal = false
   public referral = true
   public showQr = false
@@ -120,9 +122,11 @@ export default class AcShareButton extends mixins(Dialog, Viewer) {
       this.image = str
     })
   }
+
   public get titleText() {
     return encodeURIComponent(this.title)
   }
+
   public get rawLocation() {
     /* istanbul ignore next */
     const route = {...this.$route, name: this.$route.name || undefined}
@@ -136,9 +140,10 @@ export default class AcShareButton extends mixins(Dialog, Viewer) {
     route.query = query
     return window.location.protocol + '//' + window.location.host + this.$router.resolve(route).href
   }
+
   public get location() {
     return encodeURIComponent(
-      this.rawLocation
+      this.rawLocation,
     )
   }
 }

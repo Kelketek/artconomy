@@ -113,6 +113,7 @@ export default class AcAttributes extends mixins(Subjective, CharacterCentric, E
           this.character.profile.updateX({tags: character.tags})
         })
     }
+
     @Watch('character.attributes.endpoint')
     public updateEndpoint(value: string|undefined) {
       /* istanbul ignore if */
@@ -121,6 +122,7 @@ export default class AcAttributes extends mixins(Subjective, CharacterCentric, E
       }
       this.newAttribute.endpoint = value
     }
+
     public addAttribute(result: Attribute) {
       this.character.attributes.push(result)
       const element = document.querySelector('#' + this.newAttribute.fields.key.id) as HTMLInputElement
@@ -136,6 +138,7 @@ export default class AcAttributes extends mixins(Subjective, CharacterCentric, E
         })
       })
     }
+
     public get stickies() {
       if (!this.character) {
         return null
@@ -146,6 +149,7 @@ export default class AcAttributes extends mixins(Subjective, CharacterCentric, E
         }
       })
     }
+
     public created() {
       this.newAttribute = this.$getForm(flatten(`${this.character.attributes.name}/newAttribute`), {
         endpoint: this.character.attributes.endpoint,

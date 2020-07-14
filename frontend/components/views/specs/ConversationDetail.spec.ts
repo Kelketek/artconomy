@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import {cleanUp, confirmAction, createVuetify, flushPromises, rs, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, confirmAction, createVuetify, docTarget, flushPromises, rs, setViewer, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import {mount, Wrapper} from '@vue/test-utils'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
@@ -59,8 +59,8 @@ describe('ConversationDetail.vue', () => {
       router,
       vuetify,
       propsData: {username: 'Fox', conversationId: 23},
-      attachToDocument: true,
-      sync: false,
+      attachTo: docTarget(),
+
     })
     const vm = wrapper.vm as any
     vm.conversation.setX(genConversation())
@@ -78,8 +78,8 @@ describe('ConversationDetail.vue', () => {
       router,
       vuetify,
       propsData: {username: 'Fox', conversationId: 23},
-      attachToDocument: true,
-      sync: false,
+      attachTo: docTarget(),
+
     })
     const vm = wrapper.vm as any
     vm.conversation.setX(genConversation())
@@ -97,8 +97,8 @@ describe('ConversationDetail.vue', () => {
       router,
       vuetify,
       propsData: {username: 'Fox', conversationId: 23},
-      attachToDocument: true,
-      sync: false,
+      attachTo: docTarget(),
+
     })
     const vm = wrapper.vm as any
     vm.conversation.setX(genConversation())

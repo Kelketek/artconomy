@@ -29,6 +29,6 @@ import {Prop} from 'vue-property-decorator'
     components: {AcAvatar},
   })
 export default class AcUserSelect extends mixins(Autocomplete) {
-  public url = `/api/profiles/v1/search/user/`
+  public url = '/api/profiles/v1/search/user/'
 }
 </script>

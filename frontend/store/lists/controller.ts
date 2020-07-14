@@ -86,7 +86,7 @@ export class ListController<T> extends BaseController<ListModuleOpts, ListState<
     }
     let controllers = this.attr('refs').map((ref: string) => this.$getSingle(
       // Vestigil endpoint-- the controller may not be cached but the list should have defined it in the store.
-      `${this.prefix}items/${ref}`, {endpoint: ''}
+      `${this.prefix}items/${ref}`, {endpoint: ''},
     ))
     controllers = controllers.filter((controller: SingleController<T>) => controller.x !== false)
     return controllers

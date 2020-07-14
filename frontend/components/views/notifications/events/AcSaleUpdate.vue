@@ -50,7 +50,8 @@ export default {
           orderId: this.event.target.order.id,
           username: this.viewer.username,
           deliverableId: this.event.target.id,
-        }}
+        },
+      }
     },
     message() {
       return ORDER_STATUSES[this.event.target.status]

@@ -16,27 +16,34 @@ declare interface IdModel {
 export default class Autocomplete extends Vue {
   @Prop({required: true})
   public value!: number[]|number
+
   @Prop()
   public initItems!: IdModel[]
+
   @Prop({default: true})
   public multiple!: boolean
+
   @Prop({default: false})
   public tagging!: false
+
   @Prop({default: null})
   public filter!: (item: IdModel, queryText: string, itemText: string) => boolean
+
   // Can override this to, say, username.
   @Prop({default: 'id'})
   public itemValue!: string
+
   // Allow a raw string to be used
   @Prop({default: false})
   public allowRaw!: boolean
+
   // Made null by child component at times.
   public query: string|null = ''
   public tags: (number[]|number|null|string) = []
   public cancelSource: CancelTokenSource = axios.CancelToken.source()
   public oldValue: any = undefined
   public itemStore: IdModel[] = []
-  public url = `/endpoint/`
+  public url = '/endpoint/'
 
   public created() {
     if (this.initItems) {
@@ -54,9 +61,9 @@ export default class Autocomplete extends Vue {
       params.tagging = true
     }
     artCall(
-      {url: this.url, params, method: 'get', cancelToken: this.cancelSource.token}
+      {url: this.url, params, method: 'get', cancelToken: this.cancelSource.token},
     ).then(
-      (response) => { this.items = response.results }
+      (response) => { this.items = response.results },
     ).catch((err) => {
       /* istanbul ignore next */
       if (axios.isCancel(err)) {
@@ -175,6 +182,7 @@ export default class Autocomplete extends Vue {
       return this.items.filter((val) => (this.tags as number) !== val[this.itemValue])
     }
   }
+
   public get searchTags() {
     return debounce(this._searchTags, 100, {trailing: true})
   }

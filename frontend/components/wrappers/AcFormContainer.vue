@@ -59,8 +59,10 @@ import {Prop, Watch} from 'vue-property-decorator'
 export default class AcFormContainer extends Vue {
     @Prop({default: false})
     public sending!: boolean
+
     @Prop({default: () => []})
     public errors!: string[]
+
     public savedErrors: string[] = []
 
     public toggleError(val: boolean, index: number) {

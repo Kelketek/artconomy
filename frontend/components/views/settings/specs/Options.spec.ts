@@ -4,7 +4,7 @@ import {mount, Wrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
 import VueRouter from 'vue-router'
 import {genUser} from '@/specs/helpers/fixtures'
-import {createVuetify, setViewer, vueSetup} from '@/specs/helpers'
+import {createVuetify, docTarget, setViewer, vueSetup} from '@/specs/helpers'
 import Options from '../Options.vue'
 
 jest.useFakeTimers()
@@ -26,8 +26,7 @@ describe('Options.vue', () => {
       store,
       vuetify,
       propsData: {username: 'Fox'},
-      attachToDocument: true,
-      sync: false,
+      attachTo: docTarget(),
     })
     await wrapper.vm.$nextTick()
   })
@@ -38,8 +37,7 @@ describe('Options.vue', () => {
       store,
       vuetify,
       propsData: {username: 'Fox'},
-      attachToDocument: true,
-      sync: false,
+      attachTo: docTarget(),
     })
     expect((wrapper.vm as any).settingsUrl).toBe('/api/profiles/v1/account/Fox/')
   })

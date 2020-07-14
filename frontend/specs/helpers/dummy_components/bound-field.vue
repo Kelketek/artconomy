@@ -15,7 +15,8 @@ export default class BoundField extends Vue {
     public form: FormController = null as unknown as FormController
 
     public created() {
-      this.form = this.$getForm('boundFields', {endpoint: '/',
+      this.form = this.$getForm('boundFields', {
+        endpoint: '/',
         fields: {
           name: {value: 'Wat'},
           age: {value: 20},

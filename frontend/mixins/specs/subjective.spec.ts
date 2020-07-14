@@ -4,7 +4,7 @@ import {ArtStore, createStore} from '@/store'
 import Vue, {VueConstructor} from 'vue'
 import Vuex from 'vuex'
 import SubjectiveComponent from '@/specs/helpers/dummy_components/subjective-component.vue'
-import {setViewer} from '@/specs/helpers'
+import {docTarget, setViewer} from '@/specs/helpers'
 import {singleRegistry, Singles} from '@/store/singles/registry'
 import {profileRegistry, Profiles} from '@/store/profiles/registry'
 import {Lists} from '@/store/lists/registry'
@@ -35,7 +35,7 @@ describe('Subjective.ts', () => {
   })
   it('Fetches the subject', async() => {
     setViewer(store, genUser())
-    wrapper = shallowMount(SubjectiveComponent, {localVue, store, propsData: {username: 'Fox'}, sync: false})
+    wrapper = shallowMount(SubjectiveComponent, {localVue, store, propsData: {username: 'Fox'}})
     expect((wrapper.vm as any).username).toBe('Fox')
     expect((wrapper.vm as any).subjectHandler).toBeTruthy()
     expect((wrapper.vm as any).subject.username).toBe('Fox')
@@ -44,7 +44,7 @@ describe('Subjective.ts', () => {
     setViewer(store, genUser())
     store.commit('profiles/saveUser', genUser())
     wrapper = shallowMount(
-      SubjectiveComponent, {localVue, store, propsData: {username: 'Fox'}, sync: false, attachToDocument: true}
+      SubjectiveComponent, {localVue, store, propsData: {username: 'Fox'}, attachTo: docTarget()},
     )
     expect((wrapper.vm as any).subject.email).toBe('fox@artconomy.com');
     (wrapper.vm as any).subjectHandler.user.updateX({email: 'test@example.com'})
@@ -62,7 +62,7 @@ describe('Subjective.ts', () => {
       mocks: {
         $route: {name: 'Place', params: {}, query: {}, hash: ''},
       },
-      sync: false,
+
     });
     (wrapper.vm as any).subjectHandler.user.updateX({username: 'Vulpes_Veritas'})
     await wrapper.vm.$nextTick()
@@ -84,7 +84,7 @@ describe('Subjective.ts', () => {
       mocks: {
         $route: {name: 'Place', params: {}, query: {}, hash: ''},
       },
-      sync: false,
+
     })
     await wrapper.vm.$nextTick()
     expect((store.state as any).errors.code).toBe(0)
@@ -101,7 +101,7 @@ describe('Subjective.ts', () => {
       mocks: {
         $route: {name: 'Place', params: {}, query: {}, hash: ''},
       },
-      sync: false,
+
     })
     await wrapper.vm.$nextTick()
     expect((store.state as any).errors.code).toBe(403)
@@ -123,7 +123,7 @@ describe('Subjective.ts', () => {
         mocks: {
           $route: {name: 'Place', params: {}, query: {}, hash: ''},
         },
-        sync: false,
+
       })
       await wrapper.vm.$nextTick()
       expect((store.state as any).errors.code).toBe(0)
@@ -145,7 +145,7 @@ describe('Subjective.ts', () => {
         mocks: {
           $route: {name: 'Place', params: {}, query: {}, hash: ''},
         },
-        sync: false,
+
       })
       await wrapper.vm.$nextTick()
       expect((store.state as any).errors.code).toBe(403)
@@ -167,7 +167,7 @@ describe('Subjective.ts', () => {
         mocks: {
           $route: {name: 'Place', params: {}, query: {}, hash: ''},
         },
-        sync: false,
+
       })
       await wrapper.vm.$nextTick()
       expect((store.state as any).errors.code).toBe(0)

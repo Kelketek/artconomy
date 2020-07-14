@@ -41,7 +41,7 @@ describe('Form and field controllers', () => {
           fields: {name: {value: 'Fox'}, age: {value: 30}},
         },
       },
-    }
+    },
     )
     expect(formRegistry.controllers.example).toBeTruthy()
     formRegistry.reset()
@@ -55,13 +55,13 @@ describe('Form and field controllers', () => {
       {
         endpoint: '/endpoint/',
         fields: {name: {value: 'Fox'}, age: {value: 30}},
-      }
+      },
     )
     const newController = wrapper.vm.$getForm('example',
       {
         endpoint: '/endpoint/',
         fields: {name: {value: 'Fox'}, age: {value: 30}},
-      }
+      },
     )
     expect(newController).toBe(oldController)
   })
@@ -71,13 +71,13 @@ describe('Form and field controllers', () => {
       {
         endpoint: '/endpoint/',
         fields: {name: {value: 'Fox'}, age: {value: 30}},
-      }
+      },
     )
     const newController = wrapper.vm.$getForm('example2',
       {
         endpoint: '/endpoint/',
         fields: {stuff: {value: 'Thing'}},
-      }
+      },
     )
     expect(newController.name).toBe('example2')
     expect(newController.fields.stuff).toBeTruthy()

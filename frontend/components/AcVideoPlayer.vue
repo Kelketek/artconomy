@@ -23,10 +23,12 @@ const VID_TYPES = {
 export default class AcVideoPlayer extends Vue {
     @Prop()
     public asset!: Asset
+
     public get type() {
       // @ts-ignore
       return VID_TYPES[getExt(this.asset.file.full)] || 'type/unknown'
     }
+
     public get width() {
       return 800
     }

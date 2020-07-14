@@ -59,13 +59,13 @@ export class BaseController<S, D extends AttrKeys> extends Vue {
     try {
       this.$store.registerModule(
         // eslint-disable-next-line new-cap
-        path, new this.baseClass({...this.schema, ...data, ...{name: path.join('/')}})
+        path, new this.baseClass({...this.schema, ...data, ...{name: path.join('/')}}),
       )
     } catch (err) {
       console.error(
         `Failed registering ${JSON.stringify(path)}.` +
-        `Likely, the parent path is not registered, but check error for more detail. It could also be an error ` +
-        `in a watcher/computed property.`
+        'Likely, the parent path is not registered, but check error for more detail. It could also be an error ' +
+        'in a watcher/computed property.',
       )
       throw err
     }

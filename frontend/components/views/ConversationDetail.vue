@@ -84,12 +84,14 @@ import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
 export default class ConversationDetail extends mixins(Subjective, Formatting) {
     @Prop()
     public conversationId!: string
+
     public conversation: SingleController<Conversation> = null as unknown as SingleController<Conversation>
     public conversationComments: ListController<Comment> = null as unknown as ListController<Comment>
     public locked = true
     public goBack() {
       this.$router.push({name: 'Conversations', params: {username: this.username}})
     }
+
     public get inConversation() {
       /* istanbul ignore next */
       if (!this.conversation.x) {
@@ -97,6 +99,7 @@ export default class ConversationDetail extends mixins(Subjective, Formatting) {
       }
       return this.conversation.x.participants.map((user) => user.username).indexOf(this.rawViewerName) !== -1
     }
+
     public created() {
       this.conversation = this.$getSingle('conversation-' + this.conversationId, {endpoint: this.url})
       this.conversation.get().catch(this.setError)
@@ -107,12 +110,14 @@ export default class ConversationDetail extends mixins(Subjective, Formatting) {
           reverse: true,
           grow: true,
           pageSize: 5,
-        }
+        },
       )
     }
+
     public get url(): string {
       return `/api/profiles/v1/account/${this.username}/conversations/${this.conversationId}/`
     }
+
     public leaveConversation() {
       this.conversation.delete().then(this.goBack)
     }

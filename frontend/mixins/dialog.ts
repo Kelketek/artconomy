@@ -6,8 +6,10 @@ import {Prop} from 'vue-property-decorator'
 export default class Dialog extends Vue {
   @Prop({default: false})
   public value!: boolean
+
   @Prop({default: false})
   public large!: boolean
+
   @Prop({default: true})
   public persistent!: boolean
 

@@ -28,8 +28,10 @@ import Big from 'big.js'
 export default class AcLineItemPreview extends Vue {
   @Prop({required: true})
   public line!: LineItem
+
   @Prop({required: true})
   public priceData!: LineAccumulator
+
   @Prop({default: false})
   public editing!: boolean
 

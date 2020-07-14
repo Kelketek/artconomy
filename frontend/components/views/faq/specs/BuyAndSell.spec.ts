@@ -5,7 +5,7 @@ import {faqRoutes} from './helpers'
 import {mount, Wrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
 import BuyAndSell from '@/components/views/faq/BuyAndSell.vue'
-import {cleanUp, createVuetify, setPricing, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, setPricing, vueSetup} from '@/specs/helpers'
 import searchSchema from '@/components/views/search/specs/fixtures'
 import {FormController} from '@/store/forms/form-controller'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
@@ -30,7 +30,7 @@ describe('About.vue', () => {
   })
   it('Shows the buy and sell FAQ', async() => {
     await router.push('/faq/buying-and-selling/')
-    wrapper = mount(BuyAndSell, {localVue, router, store, vuetify, sync: false, attachToDocument: true})
+    wrapper = mount(BuyAndSell, {localVue, router, store, vuetify, attachTo: docTarget()})
     const vm = wrapper.vm as any
     await wrapper.vm.$nextTick()
     expect(router.currentRoute.params).toEqual({question: 'how-to-buy'})
@@ -40,7 +40,7 @@ describe('About.vue', () => {
   it('Sends the user to search', async() => {
     searchForm.fields.q.update('stuff', false)
     await router.push('/faq/buying-and-selling/')
-    wrapper = mount(BuyAndSell, {localVue, router, store, vuetify, sync: false, attachToDocument: true})
+    wrapper = mount(BuyAndSell, {localVue, router, store, vuetify, attachTo: docTarget()})
     const vm = wrapper.vm as any
     await wrapper.vm.$nextTick()
     wrapper.find('.who-is-open-link').trigger('click')

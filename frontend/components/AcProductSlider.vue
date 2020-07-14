@@ -70,6 +70,7 @@ import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 export default class AcProductSlider extends Vue {
   @Prop()
   public list!: ListController<Product>
+
   public slider = 0
   public cycle = true
 }

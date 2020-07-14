@@ -5,7 +5,7 @@ import {faqRoutes} from './helpers'
 import {mount, Wrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
 import About from '@/components/views/faq/About.vue'
-import {cleanUp, createVuetify, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, vueSetup} from '@/specs/helpers'
 
 const localVue = vueSetup()
 localVue.use(Router)
@@ -25,13 +25,13 @@ describe('About.vue', () => {
   })
   it('mounts', async() => {
     await router.push('/faq/about/')
-    wrapper = mount(About, {localVue, router, store, vuetify, sync: false, attachToDocument: true})
+    wrapper = mount(About, {localVue, router, store, vuetify, attachTo: docTarget()})
     await wrapper.vm.$nextTick()
     expect(router.currentRoute.params).toEqual({question: 'what-is-artconomy'})
   })
   it('sets a question', async() => {
     await router.push('/faq/about/what-is-artconomy/')
-    wrapper = mount(About, {localVue, router, store, vuetify, sync: false, attachToDocument: true})
+    wrapper = mount(About, {localVue, router, store, vuetify, attachTo: docTarget()})
     await wrapper.vm.$nextTick()
     const header = wrapper.findAll('.v-expansion-panel-header').at(1)
     header.trigger('click')

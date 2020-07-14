@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import {Vuetify} from 'vuetify'
 import {mount, Wrapper} from '@vue/test-utils'
-import {cleanUp, createVuetify, flushPromises, rs, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, flushPromises, rs, setViewer, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import {genUser} from '@/specs/helpers/fixtures'
 import DummySubmit from '@/components/specs/DummySubmit.vue'
@@ -32,8 +32,8 @@ describe('AcNewSubmission.vue', () => {
       vuetify,
       propsData: {username: 'Fox'},
       mocks: {$route: {name: 'Profile', params: {username: 'Fox'}, query: {editing: false}}},
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
   })
   it('Toggles the isArtist computed field', async() => {
@@ -46,8 +46,8 @@ describe('AcNewSubmission.vue', () => {
       vuetify,
       propsData: {username: 'Fox'},
       mocks: {$route: {name: 'Profile', params: {username: 'Fox'}, query: {editing: false}}},
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     const vm = wrapper.vm as any
     await vm.$nextTick()
@@ -79,8 +79,8 @@ describe('AcNewSubmission.vue', () => {
         $route: {name: 'Profile', params: {username: 'Fox'}, query: {editing: false}},
         $router: {push: mockPush},
       },
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     const vm = wrapper.vm as any
     await vm.$nextTick()
@@ -114,8 +114,8 @@ describe('AcNewSubmission.vue', () => {
         $route: {name: 'Profile', params: {username: 'Fox'}, query: {editing: false}},
         $router: {push: mockPush},
       },
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     await wrapper.vm.$nextTick()
     expect(wrapper.find('.v-dialog__content--active').exists()).toBe(true)

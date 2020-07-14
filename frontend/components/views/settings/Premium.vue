@@ -84,6 +84,7 @@ export default class Premium extends mixins(Viewer, Subjective, Formatting) {
       this.subjectHandler.user.setX,
     )
   }
+
   public get subscriptionType() {
     const subject = this.subject as User
     /* istanbul ignore if */
@@ -98,6 +99,7 @@ export default class Premium extends mixins(Viewer, Subjective, Formatting) {
       return 'Portrait'
     }
   }
+
   public get paidThrough() {
     const subject = this.subject as User
     /* istanbul ignore if */

@@ -21,19 +21,19 @@ describe('Legal Pages', () => {
     cleanUp(wrapper)
   })
   it('Renders the privacy policy', async() => {
-    wrapper = shallowMount(PrivacyPolicy, {localVue, vuetify, sync: false})
+    wrapper = shallowMount(PrivacyPolicy, {localVue, vuetify})
     expect(wrapper.find('.legal-logo').exists()).toBe(true)
   })
   it('Renders the refund policy', async() => {
-    wrapper = shallowMount(RefundPolicy, {localVue, vuetify, sync: false})
+    wrapper = shallowMount(RefundPolicy, {localVue, vuetify})
     expect(wrapper.find('.legal-logo').exists()).toBe(true)
   })
   it('Renders the commission agreement', async() => {
-    wrapper = shallowMount(CommissionAgreement, {localVue, vuetify, sync: false})
+    wrapper = shallowMount(CommissionAgreement, {localVue, vuetify})
     expect(wrapper.find('.legal-logo').exists()).toBe(true)
   })
   it('Renders the terms of service', async() => {
-    wrapper = shallowMount(TermsOfService, {localVue, vuetify, sync: false})
+    wrapper = shallowMount(TermsOfService, {localVue, vuetify})
     expect(wrapper.find('.legal-logo').exists()).toBe(true)
   })
 })

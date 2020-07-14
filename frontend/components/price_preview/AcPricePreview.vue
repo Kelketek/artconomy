@@ -88,14 +88,19 @@ export default class AcPricePreview extends mixins(Subjective) {
   public extraForm: FormController = null as unknown as FormController
   @Prop({required: true})
   public lineItems!: ListController<LineItem>
+
   @Prop({default: true})
   public isSeller!: boolean
+
   @Prop({default: true})
   public escrow!: boolean
+
   @Prop({default: false})
   public editable!: boolean
+
   @Prop({default: false})
   public editBase!: boolean
+
   public hours = null
 
   public get rawPrice() {
@@ -168,7 +173,7 @@ export default class AcPricePreview extends mixins(Subjective) {
       (line: LineItem) => [LineTypes.SHIELD, LineTypes.BONUS].includes(line.type),
     )
     const modded = this.rawLineItems.filter(
-      (line: LineItem) => (![LineTypes.SHIELD, LineTypes.BONUS].includes(line.type))
+      (line: LineItem) => (![LineTypes.SHIELD, LineTypes.BONUS].includes(line.type)),
     )
     if (toConsolidate.length) {
       const consolidated = {

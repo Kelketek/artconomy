@@ -4,7 +4,7 @@ import {ArtStore, createStore} from '@/store'
 import {mount, Wrapper} from '@vue/test-utils'
 import mockAxios from '@/__mocks__/axios'
 import {genCharacter} from '@/store/characters/specs/fixtures'
-import {cleanUp, confirmAction, createVuetify, rq, rs, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, confirmAction, createVuetify, docTarget, rq, rs, setViewer, vueSetup} from '@/specs/helpers'
 import {genUser} from '@/specs/helpers/fixtures'
 import {Character} from '@/store/characters/types/Character'
 import AcCharacterToolbar from '@/components/views/character/AcCharacterToolbar.vue'
@@ -39,8 +39,8 @@ describe('AcCharacterToolbar.vue', () => {
           $router: {resolve: mockResolve},
         },
         stubs: ['router-link'],
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
       })
     const vm = wrapper.vm as any
     vm.character.profile.setX(character)
@@ -65,8 +65,8 @@ describe('AcCharacterToolbar.vue', () => {
           $router: {resolve: mockResolve, replace: mockReplace},
         },
         stubs: ['router-link', 'ac-share-button'],
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
       })
     const vm = wrapper.vm as any
     vm.character.profile.setX(character)
@@ -75,7 +75,7 @@ describe('AcCharacterToolbar.vue', () => {
     mockAxios.reset()
     await confirmAction(wrapper, ['.more-button', '.delete-button'])
     expect(mockAxios.delete).toHaveBeenCalledWith(
-      ...rq('/api/profiles/v1/account/Fox/characters/Kai/', 'delete')
+      ...rq('/api/profiles/v1/account/Fox/characters/Kai/', 'delete'),
     )
     mockAxios.mockResponse(rs(undefined))
     await vm.$nextTick()

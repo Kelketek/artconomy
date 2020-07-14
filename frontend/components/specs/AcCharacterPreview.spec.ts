@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import {cleanUp, createVuetify, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, setViewer, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import {mount, Wrapper} from '@vue/test-utils'
 import AcCharacterPreview from '@/components/AcCharacterPreview.vue'
@@ -29,8 +29,8 @@ describe('AcCharacterPreview.ts', () => {
         vuetify,
         stubs: ['router-link'],
         propsData: {character: genCharacter()},
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
       })
   })
 })

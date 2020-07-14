@@ -25,6 +25,7 @@ export default class AcDeliverableStatus extends Vue {
     8: {text: 'Completed', icon: 'check_circle', color: 'green', dark: true},
     9: {text: 'Refunded', icon: 'assignment_return', color: 'black', dark: true},
   }
+
   @Prop({required: true})
   public deliverable!: Deliverable
 }

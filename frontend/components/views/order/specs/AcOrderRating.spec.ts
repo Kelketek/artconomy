@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import {Vuetify} from 'vuetify/types'
-import {cleanUp, createVuetify, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import {mount, Wrapper} from '@vue/test-utils'
 import AcDeliverableRating from '@/components/views/order/AcDeliverableRating.vue'
@@ -24,8 +24,8 @@ describe('AcDeliverableRating.vue', () => {
       store,
       vuetify,
       propsData: {orderId: 3, end: 'buyer', deliverableId: 5},
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
   })
 })

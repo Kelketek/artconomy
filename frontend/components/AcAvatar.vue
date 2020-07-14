@@ -61,18 +61,25 @@ export default class AcAvatar extends Vue {
     // store the user in Vuex.
     @Prop({default: false})
     public noLink!: boolean
+
     @Prop({default: ''})
     public username!: string
+
     @Prop()
     public user!: TerseUser
+
     @Prop()
     public userId!: number
+
     @Prop({default: true})
     public showName!: boolean
+
     @Prop({default: false})
     public showRating!: boolean
+
     @Prop({default: false})
     public removable!: boolean
+
     @Prop({default: () => undefined})
     public remove!: () => void
 

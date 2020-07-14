@@ -196,28 +196,37 @@ import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
     AcFormContainer,
     AcBoundField,
     AcRendered,
-    AcAvatar},
+    AcAvatar,
+  },
 })
 export default class AcComment extends mixins(Subjective, Formatting) {
     @Prop({required: true})
     public comment!: SingleController<Comment>
+
     @Prop({required: true})
     public commentList!: ListController<Comment>
+
     // Used to make sure every other comment is a different style.
     @Prop({default: false})
     public alternate!: boolean
+
     // When true, allows replies.
     @Prop({default: true})
     public nesting!: boolean
+
     // When greater than zero, we won't allow direct replies. They must be at the thread level.
     @Prop({default: 0})
     public level!: number
+
     @Prop({default: false})
     public locked!: boolean
+
     @Prop({default: false})
     public showHistory!: boolean
+
     @Prop({default: false})
     public inHistory!: boolean
+
     public subCommentList: ListController<Comment> = null as unknown as ListController<Comment>
     public historyList: ListController<Comment> = null as unknown as ListController<Comment>
     public commentText: Patch = null as unknown as Patch
@@ -242,15 +251,18 @@ export default class AcComment extends mixins(Subjective, Formatting) {
       }
       return this.level === 0
     }
+
     public get color() {
       if (this.alternate) {
         // @ts-ignore
         return this.$vuetify.theme.currentTheme.darkBase.darken4
       }
     }
+
     public get canReply() {
       return this.canHaveChildren && this.isRegistered && !this.locked
     }
+
     public get selected() {
       if (this.$route.query && this.$route.query.commentId) {
         if (this.$route.query.commentId === (this.comment.x as Comment).id + '') {
@@ -258,12 +270,14 @@ export default class AcComment extends mixins(Subjective, Formatting) {
         }
       }
     }
+
     public checkAlternate(index: number) {
       if (this.alternate) {
         index += 1
       }
       return !(index % 2)
     }
+
     @Watch('subCommentList.list.length')
     public syncDeletion(val: number) {
       if (this.showHistory || this.inHistory) {
@@ -277,6 +291,7 @@ export default class AcComment extends mixins(Subjective, Formatting) {
         }
       }
     }
+
     @Watch('historyDisplay')
     public historyRender(val: boolean) {
       /* istanbul ignore else */
@@ -284,6 +299,7 @@ export default class AcComment extends mixins(Subjective, Formatting) {
         this.renderHistory = true
       }
     }
+
     public mounted() {
       this.$nextTick(() => {
         if (this.selected && !this.scrolled) {
@@ -292,11 +308,12 @@ export default class AcComment extends mixins(Subjective, Formatting) {
         }
       })
     }
+
     public created() {
       const comment = this.comment.x as Comment
       if (this.controls) {
         this.commentText = this.$makePatcher(
-          {modelProp: 'comment', attrName: 'text', debounceRate: 300, refresh: false}
+          {modelProp: 'comment', attrName: 'text', debounceRate: 300, refresh: false},
         )
       }
       this.subCommentList = this.$getList(flatten(this.comment.name) + '_comments', {

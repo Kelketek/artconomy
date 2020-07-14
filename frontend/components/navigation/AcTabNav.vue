@@ -40,6 +40,7 @@ export default class AcTabNav extends Vue {
       return this.items.filter(
         (item) => this.$route.matched.filter((match) => match.name === item.value.name).length)[0]
     }
+
     public set tab(val) {
       this.$router.replace(val as RawLocation)
     }

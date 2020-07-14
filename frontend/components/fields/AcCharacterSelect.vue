@@ -35,7 +35,7 @@ import {RawData} from '@/store/forms/types/RawData'
     components: {AcAvatar},
   })
 export default class AcCharacterSelect extends mixins(Autocomplete, Viewer) {
-    public url = `/api/profiles/v1/search/character/`
+    public url = '/api/profiles/v1/search/character/'
     public formatName(item: Character) {
       /* istanbul ignore if */
       if (Array.isArray(item)) {

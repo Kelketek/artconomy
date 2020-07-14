@@ -36,7 +36,7 @@ export default {
   methods: {
     visitOrder() {
       this.$router.push(
-        {name: 'Order', params: {orderId: this.event.target.id, username: this.event.target.buyer.username}}
+        {name: 'Order', params: {orderId: this.event.target.id, username: this.event.target.buyer.username}},
       )
     },
     claimDispute() {

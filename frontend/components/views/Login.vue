@@ -233,21 +233,27 @@ export default class Login extends mixins(Viewer) {
     // @ts-ignore
     @Watch('loginForm.fields.email.value')
     private loginEmailSync = syncTo(['registerForm', 'email'], ['forgotForm', 'email'])
+
     // @ts-ignore
     @Watch('registerForm.fields.email.value')
     private registerEmailSync = syncTo(['loginForm', 'email'], ['forgotForm', 'email'])
+
     // @ts-ignore
     @Watch('forgotForm.fields.email.value')
     private forgotEmailSync = syncTo(['loginForm', 'email'], ['registerForm', 'email'])
+
     // @ts-ignore
     @Watch('loginForm.fields.password.value')
     private loginPasswordSync = syncTo(['registerForm', 'password'])
+
     // @ts-ignore
     @Watch('registerForm.fields.password.value')
     private registerPasswordSync = syncTo(['loginForm', 'password'])
+
     // @ts-ignore
     @Watch('loginForm.fields.order_claim.value')
     private loginOrderClaimSync = syncTo(['registerForm', 'order_claim'])
+
     // @ts-ignore
     @Watch('registerForm.fields.order_claim.value')
     private registerOrderClaimSync = syncTo(['loginForm', 'order_claim'])
@@ -309,7 +315,7 @@ export default class Login extends mixins(Viewer) {
 
     private sendToProfile() {
       this.$router.push(
-        {name: 'Profile', params: {username: (this.viewer as User).username}, query: {editing: 'true'}}
+        {name: 'Profile', params: {username: (this.viewer as User).username}, query: {editing: 'true'}},
       )
     }
 

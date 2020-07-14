@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import {cleanUp, createVuetify, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, setViewer, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import {mount, Wrapper} from '@vue/test-utils'
 import {genUser} from '@/specs/helpers/fixtures'
@@ -26,8 +26,7 @@ describe('AcTransaction.vue', () => {
       store,
       vuetify,
       propsData: {username: 'Fox'},
-      sync: false,
-      attachToDocument: true,
+      attachTo: docTarget(),
     })
     const vm = wrapper.vm as any
     expect(vm.transactionFilter.fields.account.value).toBe(300)

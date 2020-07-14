@@ -4,7 +4,7 @@ import {Vuetify} from 'vuetify/types'
 import {ArtStore, createStore} from '@/store'
 import {
   cleanUp,
-  confirmAction, createVuetify,
+  confirmAction, createVuetify, docTarget,
   flushPromises,
   rs,
   setPricing,
@@ -39,11 +39,11 @@ function prepData() {
   setPricing(store, localVue)
   const data = {
     productSingle: mount(
-      Empty, {localVue, router, store, sync: false}).vm.$getSingle('product__1', {endpoint: '/wat/'}),
+      Empty, {localVue, router, store}).vm.$getSingle('product__1', {endpoint: '/wat/'}),
     samplesList: mount(
-      Empty, {localVue, router, store, sync: false}).vm.$getList('product__1__samples', {endpoint: '/dude/'}),
+      Empty, {localVue, router, store}).vm.$getList('product__1__samples', {endpoint: '/dude/'}),
     recommendedList: mount(
-      Empty, {localVue, router, store, sync: false}).vm.$getList('product__1__recommendations', {endpoint: '/sweet/'}),
+      Empty, {localVue, router, store}).vm.$getList('product__1__recommendations', {endpoint: '/sweet/'}),
   }
   data.productSingle.setX(genProduct())
   data.productSingle.ready = true
@@ -115,7 +115,7 @@ describe('ProductDetail.vue', () => {
     store = createStore()
     vuetify = createVuetify()
     router = new Router(routes)
-    form = mount(Empty, {localVue, router, store, sync: false}).vm.$getForm('search', searchSchema())
+    form = mount(Empty, {localVue, router, store}).vm.$getForm('search', searchSchema())
     setPricing(store, localVue)
     Big.DP = 2
   })
@@ -126,7 +126,7 @@ describe('ProductDetail.vue', () => {
     setViewer(store, genUser())
     setPricing(store, localVue)
     wrapper = mount(ProductDetail, {
-      localVue, router, store, vuetify, sync: false, attachToDocument: true, propsData: {username: 'Fox', productId: 1},
+      localVue, router, store, vuetify, attachTo: docTarget(), propsData: {username: 'Fox', productId: 1},
     })
     expect((wrapper.vm as any).slides).toEqual([])
     const product = genProduct()
@@ -143,8 +143,8 @@ describe('ProductDetail.vue', () => {
       router,
       store,
       vuetify,
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
       propsData: {username: 'Fox', productId: 1},
       stubs: ['ac-sample-editor'],
     })
@@ -183,8 +183,8 @@ describe('ProductDetail.vue', () => {
       router,
       store,
       vuetify,
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
       propsData: {username: 'Fox', productId: 1},
       stubs: ['ac-sample-editor', 'v-carousel', 'v-carousel-item'],
     })
@@ -203,8 +203,8 @@ describe('ProductDetail.vue', () => {
       router,
       store,
       vuetify,
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
       propsData: {username: 'Fox', productId: 1},
       stubs: ['ac-sample-editor', 'v-carousel', 'v-carousel-item'],
     })
@@ -226,8 +226,8 @@ describe('ProductDetail.vue', () => {
       router,
       store,
       vuetify,
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
       propsData: {username: 'Fox', productId: 1},
       stubs: ['ac-sample-editor', 'v-carousel', 'v-carousel-item'],
     })
@@ -249,8 +249,8 @@ describe('ProductDetail.vue', () => {
       router,
       store,
       vuetify,
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
       propsData: {username: 'Fox', productId: 1},
       stubs: ['ac-sample-editor', 'v-carousel', 'v-carousel-item'],
     })
@@ -276,8 +276,8 @@ describe('ProductDetail.vue', () => {
       router,
       store,
       vuetify,
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
       propsData: {username: 'Fox', productId: 1},
       stubs: ['ac-sample-editor', 'v-carousel', 'v-carousel-item'],
     })
@@ -299,8 +299,8 @@ describe('ProductDetail.vue', () => {
       router,
       store,
       vuetify,
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
       propsData: {username: 'Fox', productId: 1},
       stubs: ['ac-sample-editor', 'v-carousel', 'v-carousel-item'],
     })
@@ -320,8 +320,8 @@ describe('ProductDetail.vue', () => {
       router,
       store,
       vuetify,
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
       propsData: {username: 'Fox', productId: 1},
       stubs: ['ac-sample-editor', 'v-carousel', 'v-carousel-item'],
     })
@@ -341,8 +341,8 @@ describe('ProductDetail.vue', () => {
       router,
       store,
       vuetify,
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
       propsData: {username: 'Fox', productId: 1},
       stubs: ['ac-sample-editor', 'v-carousel', 'v-carousel-item'],
     })
@@ -367,8 +367,8 @@ describe('ProductDetail.vue', () => {
       router,
       store,
       vuetify,
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
       propsData: {username: 'Fox', productId: 1},
       stubs: ['ac-sample-editor', 'v-carousel', 'v-carousel-item'],
     })
@@ -389,8 +389,8 @@ describe('ProductDetail.vue', () => {
       router,
       store,
       vuetify,
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
       propsData: {username: 'Fox', productId: 1},
       stubs: ['ac-sample-editor', 'v-carousel', 'v-carousel-item'],
     })
@@ -411,8 +411,8 @@ describe('ProductDetail.vue', () => {
       router,
       store,
       vuetify,
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
       propsData: {username: 'Fox', productId: 1},
       stubs: ['ac-sample-editor', 'v-carousel', 'v-carousel-item'],
     })

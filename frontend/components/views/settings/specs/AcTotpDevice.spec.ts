@@ -1,7 +1,7 @@
 import {mount, Wrapper} from '@vue/test-utils'
 import AcTotpDevice from '../AcTotpDevice.vue'
 import {ArtStore, createStore} from '@/store'
-import {cleanUp, createVuetify, flushPromises, rq, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, flushPromises, rq, setViewer, vueSetup} from '@/specs/helpers'
 import Vue from 'vue'
 import {genUser} from '@/specs/helpers/fixtures'
 import {ListController} from '@/store/lists/controller'
@@ -36,7 +36,7 @@ describe('AcTotpDevice.vue', () => {
       localVue,
       vuetify,
       propsData: {username: 'Fox', device: controller.list[0]},
-      sync: false,
+
     })
     expect(wrapper.findAll('.v-stepper__step').length).toBe(3)
   })
@@ -48,7 +48,7 @@ describe('AcTotpDevice.vue', () => {
       localVue,
       vuetify,
       propsData: {username: 'Fox', device: controller.list[0]},
-      sync: false,
+
     })
     expect(wrapper.findAll('.v-stepper__step').length).toBe(0)
   })
@@ -60,14 +60,14 @@ describe('AcTotpDevice.vue', () => {
       localVue,
       vuetify,
       propsData: {username: 'Fox', device: controller.list[0]},
-      sync: false,
+
     })
     mockAxios.reset()
     wrapper.find('.delete-phone-2fa').trigger('click')
     await wrapper.vm.$nextTick()
     wrapper.find('.confirmation-button').trigger('click')
     expect(mockAxios.delete).toHaveBeenCalledWith(
-      ...rq('/test/1/', 'delete')
+      ...rq('/test/1/', 'delete'),
     )
     mockAxios.mockResponse({status: 204, data: null})
     await flushPromises()
@@ -82,7 +82,7 @@ describe('AcTotpDevice.vue', () => {
       localVue,
       vuetify,
       propsData: {username: 'Fox', device: controller.list[0]},
-      sync: false,
+
     })
     expect(mockError).toHaveBeenCalledWith(Error('No input text'))
   })
@@ -95,8 +95,8 @@ describe('AcTotpDevice.vue', () => {
       localVue,
       vuetify,
       propsData: {username: 'Fox', device: controller.list[0]},
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     const form = wrapper.vm.$getForm('1_totpForm')
     form.fields.code.update('123456')

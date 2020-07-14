@@ -1,11 +1,11 @@
 import {mount, Wrapper} from '@vue/test-utils'
 import AcConfirmation from '../AcConfirmation.vue'
-import {createVuetify, vueSetup} from '@/specs/helpers'
+import {createVuetify, docTarget, vueSetup} from '@/specs/helpers'
 import Vue from 'vue'
 import {Vuetify} from 'vuetify/types'
 import flushPromises from 'flush-promises'
 
-let localVue = vueSetup()
+const localVue = vueSetup()
 let wrapper: Wrapper<Vue>
 let vuetify: Vuetify
 
@@ -20,8 +20,8 @@ describe('ac-confirmation.vue', () => {
       localVue,
       vuetify,
       propsData: {action},
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     expect(wrapper.find('.v-dialog--active').exists()).toBe(false)
     wrapper.find('.confirm-launch').trigger('click')
@@ -38,8 +38,8 @@ describe('ac-confirmation.vue', () => {
       localVue,
       vuetify,
       propsData: {action},
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     });
     (wrapper.vm as any).showModal = true
     await wrapper.vm.$nextTick()
@@ -57,8 +57,8 @@ describe('ac-confirmation.vue', () => {
       localVue,
       vuetify,
       propsData: {action},
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     });
     (wrapper.vm as any).showModal = true
     await wrapper.vm.$nextTick()

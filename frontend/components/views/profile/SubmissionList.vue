@@ -24,14 +24,19 @@ import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 export default class SubmissionList extends mixins(Subjective) {
     @Prop()
     public listName!: string
+
     @Prop()
     public endpoint!: string
+
     @Prop({default: false})
     public trackPages!: false
+
     @Prop({default: () => []})
     public okStatuses!: number[]
+
     @Prop({default: 'This content is disabled or unavailable.'})
     public failureMessage!: string
+
     public list: ListController<Submission> = null as unknown as ListController<Submission>
     public created() {
       let listName = this.listName

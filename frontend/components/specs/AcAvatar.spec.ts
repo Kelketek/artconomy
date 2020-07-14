@@ -30,16 +30,15 @@ describe('Avatar', () => {
       vuetify,
       propsData: {username: 'Fox'},
       stubs: {RouterLink: RouterLinkStub},
-      sync: false,
     })
     expect(mockAxios.get).toHaveBeenCalledWith(...rq('/api/profiles/v1/account/Fox/', 'get'))
     expect(mockAxios.get).toHaveBeenCalledTimes(1)
-    expect(wrapper.find(RouterLinkStub).exists()).toBeFalsy()
+    expect(wrapper.findComponent(RouterLinkStub).exists()).toBeFalsy()
     mockAxios.mockResponse(userResponse())
     await flushPromises()
-    expect(wrapper.find(RouterLinkStub).props().to).toEqual({name: 'Products', params: {username: 'Fox'}})
+    expect(wrapper.findComponent(RouterLinkStub).props().to).toEqual({name: 'Products', params: {username: 'Fox'}})
     expect((wrapper.find('img').attributes().src)).toBe(
-      'https://www.gravatar.com/avatar/d3e61c0076b54b4cf19751e2cf8e17ed.jpg?s=80'
+      'https://www.gravatar.com/avatar/d3e61c0076b54b4cf19751e2cf8e17ed.jpg?s=80',
     )
   })
   it('Populates via ID remotely', async() => {
@@ -49,17 +48,17 @@ describe('Avatar', () => {
       vuetify,
       propsData: {userId: 1},
       stubs: {RouterLink: RouterLinkStub},
-      sync: false,
+
     })
     expect(mockAxios.get).toHaveBeenCalledTimes(1)
     expect(mockAxios.get).toHaveBeenCalledWith(...rq('/api/profiles/v1/data/user/id/1/', 'get', undefined, {}))
-    expect(wrapper.find(RouterLinkStub).exists()).toBeFalsy()
+    expect(wrapper.findComponent(RouterLinkStub).exists()).toBeFalsy()
     mockAxios.mockResponse(userResponse())
     await flushPromises()
     await wrapper.vm.$nextTick()
-    expect(wrapper.find(RouterLinkStub).props().to).toEqual({name: 'Products', params: {username: 'Fox'}})
+    expect(wrapper.findComponent(RouterLinkStub).props().to).toEqual({name: 'Products', params: {username: 'Fox'}})
     expect((wrapper.find('img').attributes().src)).toBe(
-      'https://www.gravatar.com/avatar/d3e61c0076b54b4cf19751e2cf8e17ed.jpg?s=80'
+      'https://www.gravatar.com/avatar/d3e61c0076b54b4cf19751e2cf8e17ed.jpg?s=80',
     )
   })
   it('Populates via ID locally', async() => {
@@ -70,12 +69,12 @@ describe('Avatar', () => {
       vuetify,
       propsData: {userId: 1},
       stubs: {RouterLink: RouterLinkStub},
-      sync: false,
+
     })
     expect(mockAxios.get).not.toHaveBeenCalled()
-    expect(wrapper.find(RouterLinkStub).props().to).toEqual({name: 'Products', params: {username: 'Fox'}})
+    expect(wrapper.findComponent(RouterLinkStub).props().to).toEqual({name: 'Products', params: {username: 'Fox'}})
     expect((wrapper.find('img').attributes().src)).toBe(
-      'https://www.gravatar.com/avatar/d3e61c0076b54b4cf19751e2cf8e17ed.jpg?s=80'
+      'https://www.gravatar.com/avatar/d3e61c0076b54b4cf19751e2cf8e17ed.jpg?s=80',
     )
   })
   it('Throws an error if it has insufficient information', async() => {
@@ -86,18 +85,18 @@ describe('Avatar', () => {
         store,
         vuetify,
         stubs: {RouterLink: RouterLinkStub},
-        sync: false,
+
       })
     }).toThrow(Error('No username, no ID. We cannot load an avatar.'))
   })
   it('Ignores a username update if the value is false', async() => {
     setViewer(store, genUser())
     const wrapper = mount(AcAvatar, {
-      localVue, store, propsData: {username: 'Fox'}, stubs: {RouterLink: RouterLinkStub}, sync: false,
+      localVue, store, propsData: {username: 'Fox'}, stubs: {RouterLink: RouterLinkStub},
     })
     wrapper.setProps({username: ''})
     await wrapper.vm.$nextTick()
-    expect(wrapper.find(RouterLinkStub).props().to).toEqual({name: 'Products', params: {username: 'Fox'}})
+    expect(wrapper.findComponent(RouterLinkStub).props().to).toEqual({name: 'Products', params: {username: 'Fox'}})
   })
   it('Repopulates if the username changes', async() => {
     setViewer(store, genUser())
@@ -107,7 +106,6 @@ describe('Avatar', () => {
       vuetify,
       propsData: {username: 'Fox'},
       stubs: {RouterLink: RouterLinkStub},
-      sync: false,
     })
     await wrapper.vm.$nextTick()
     expect(mockAxios.get).not.toHaveBeenCalled()
@@ -120,9 +118,9 @@ describe('Avatar', () => {
     vulpes.avatar_url = '/static/stuff.jpg/'
     mockAxios.mockResponse(rs(vulpes))
     await wrapper.vm.$nextTick()
-    expect(wrapper.find(RouterLinkStub).props().to).toEqual({name: 'Products', params: {username: 'Vulpes'}})
+    expect(wrapper.findComponent(RouterLinkStub).props().to).toEqual({name: 'Products', params: {username: 'Vulpes'}})
     expect((wrapper.find('img').attributes().src)).toBe(
-      '/static/stuff.jpg/'
+      '/static/stuff.jpg/',
     )
   })
   it('Bootstraps straight from a user', async() => {
@@ -133,13 +131,12 @@ describe('Avatar', () => {
       vuetify,
       propsData: {user: genUser()},
       stubs: {RouterLink: RouterLinkStub},
-      sync: false,
     })
     await wrapper.vm.$nextTick()
     expect(mockAxios.get).not.toHaveBeenCalled()
-    expect(wrapper.find(RouterLinkStub).props().to).toEqual({name: 'Products', params: {username: 'Fox'}})
+    expect(wrapper.findComponent(RouterLinkStub).props().to).toEqual({name: 'Products', params: {username: 'Fox'}})
     expect((wrapper.find('img').attributes().src)).toBe(
-      'https://www.gravatar.com/avatar/d3e61c0076b54b4cf19751e2cf8e17ed.jpg?s=80'
+      'https://www.gravatar.com/avatar/d3e61c0076b54b4cf19751e2cf8e17ed.jpg?s=80',
     )
   })
   it('Sends to about tab if not an artist', async() => {
@@ -152,13 +149,13 @@ describe('Avatar', () => {
       vuetify,
       propsData: {user},
       stubs: {RouterLink: RouterLinkStub},
-      sync: false,
+
     })
     await wrapper.vm.$nextTick()
     expect(mockAxios.get).not.toHaveBeenCalled()
-    expect(wrapper.find(RouterLinkStub).props().to).toEqual({name: 'AboutUser', params: {username: 'Fox'}})
+    expect(wrapper.findComponent(RouterLinkStub).props().to).toEqual({name: 'AboutUser', params: {username: 'Fox'}})
     expect((wrapper.find('img').attributes().src)).toBe(
-      'https://www.gravatar.com/avatar/d3e61c0076b54b4cf19751e2cf8e17ed.jpg?s=80'
+      'https://www.gravatar.com/avatar/d3e61c0076b54b4cf19751e2cf8e17ed.jpg?s=80',
     )
   })
   it('Handles a guest account', async() => {
@@ -172,7 +169,7 @@ describe('Avatar', () => {
       vuetify,
       propsData: {user},
       stubs: {RouterLink: RouterLinkStub},
-      sync: false,
+
     })
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
@@ -188,7 +185,6 @@ describe('Avatar', () => {
       vuetify,
       propsData: {user, noLink: true},
       stubs: {RouterLink: RouterLinkStub},
-      sync: false,
     })
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any

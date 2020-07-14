@@ -27,7 +27,8 @@ describe('AcSettingNav.vue', () => {
         store,
         vuetify,
         stubs: ['router-link'],
-        propsData: {username: 'Fox'}}
+        propsData: {username: 'Fox'},
+      },
     )
     const vm = wrapper.vm as any
     vm.subjectHandler.user.setX(genUser())
@@ -41,7 +42,8 @@ describe('AcSettingNav.vue', () => {
         store,
         vuetify,
         stubs: ['router-link'],
-        propsData: {username: 'Fox'}}
+        propsData: {username: 'Fox'},
+      },
     )
     const vm = wrapper.vm as any
     const user = genUser()
@@ -59,7 +61,8 @@ describe('AcSettingNav.vue', () => {
         store,
         vuetify,
         stubs: ['router-link'],
-        propsData: {username: 'Fox'}}
+        propsData: {username: 'Fox'},
+      },
     )
     const vm = wrapper.vm as any
     const user = genUser()

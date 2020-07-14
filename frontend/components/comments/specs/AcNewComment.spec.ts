@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import {mount, Wrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
-import {cleanUp, createVuetify, flushPromises, rq, rs, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, flushPromises, rq, rs, setViewer, vueSetup} from '@/specs/helpers'
 import {genUser} from '@/specs/helpers/fixtures'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import {commentSet} from './fixtures'
@@ -21,7 +21,8 @@ describe('AcNewComment.vue', () => {
   beforeEach(() => {
     store = createStore()
     vuetify = createVuetify()
-    router = new Router({mode: 'history',
+    router = new Router({
+      mode: 'history',
       routes: [{
         path: '/',
         name: 'Home',
@@ -38,14 +39,15 @@ describe('AcNewComment.vue', () => {
         name: 'Login',
         component: Empty,
       },
-      ]})
+      ],
+    })
   })
   afterEach(() => {
     cleanUp(wrapper)
   })
   it('Posts a new comment', async() => {
     setViewer(store, genUser())
-    const empty = mount(Empty, {localVue, store, router, sync: false})
+    const empty = mount(Empty, {localVue, store, router})
     const commentList = empty.vm.$getList('commentList', {endpoint: '/api/comments/'})
     commentList.response = {...commentSet}
     commentList.setList(commentSet.results)
@@ -59,14 +61,14 @@ describe('AcNewComment.vue', () => {
         commentList,
         extraData: {test: 1},
       },
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     wrapper.find('textarea').setValue('New comment!')
     await wrapper.vm.$nextTick()
     wrapper.find('.submit-button').trigger('click')
     expect(mockAxios.post).toHaveBeenCalledWith(
-      ...rq('/api/comments/', 'post', {text: 'New comment!', extra_data: {test: 1}}, {})
+      ...rq('/api/comments/', 'post', {text: 'New comment!', extra_data: {test: 1}}, {}),
     )
     mockAxios.mockResponse(rs({
       id: 17,
@@ -96,7 +98,7 @@ describe('AcNewComment.vue', () => {
   })
   it('Updates the extra data', async() => {
     setViewer(store, genUser())
-    const empty = mount(Empty, {localVue, store, router, sync: false})
+    const empty = mount(Empty, {localVue, store, router})
     const commentList = empty.vm.$getList('commentList', {endpoint: '/api/comments/'})
     commentList.response = {...commentSet}
     commentList.setList(commentSet.results)
@@ -110,8 +112,8 @@ describe('AcNewComment.vue', () => {
         commentList,
         extraData: {test: 1},
       },
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     wrapper.setProps({
       extraData: {test: 3},
@@ -120,7 +122,7 @@ describe('AcNewComment.vue', () => {
     await wrapper.vm.$nextTick()
     wrapper.find('.submit-button').trigger('click')
     expect(mockAxios.post).toHaveBeenCalledWith(
-      ...rq('/api/comments/', 'post', {text: 'New comment!', extra_data: {test: 3}}, {})
+      ...rq('/api/comments/', 'post', {text: 'New comment!', extra_data: {test: 3}}, {}),
     )
   })
 })

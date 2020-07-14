@@ -47,8 +47,7 @@ export default class Gallery extends mixins(Subjective, Upload) {
 
     public get items() {
       return [{
-        value: {
-          name: 'Art', params: {username: this.username}},
+        value: {name: 'Art', params: {username: this.username}},
         count: this.art.count,
         icon: 'palette',
         text: `${this.possessive} Art`,

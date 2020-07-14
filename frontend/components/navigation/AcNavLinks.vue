@@ -141,16 +141,22 @@ export default class AcNavDrawer extends Vue {
     public searchForm: FormController = null as unknown as FormController
     @Prop({required: true})
     public value!: boolean
+
     @Prop({required: true})
     public subjectHandler!: ProfileController
+
     @Prop({required: true})
     public isRegistered!: boolean
+
     @Prop({required: true})
     public isLoggedIn!: boolean
+
     @Prop({default: false})
     public embedded!: boolean
+
     @Prop({required: true})
     public isStaff!: boolean
+
     @Prop({required: true})
     public isSuperuser!: boolean
 

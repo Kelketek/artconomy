@@ -6,7 +6,7 @@ import {ArtStore, createStore} from '@/store'
 import {genUser} from '@/specs/helpers/fixtures'
 import {
   cleanUp,
-  createVuetify,
+  createVuetify, docTarget,
   flushPromises,
   genAnon,
   rq,
@@ -16,6 +16,7 @@ import {
 } from '@/specs/helpers'
 import mockAxios from '@/specs/helpers/mock-axios'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
+import {useMockStorage} from '@/lib/specs/helpers'
 
 // Must use it directly, due to issues with package imports upstream.
 const localVue = vueSetup()
@@ -28,10 +29,11 @@ describe('NavBar.vue', () => {
   beforeEach(() => {
     mockAxios.reset()
     store = createStore()
-    vuetify = createVuetify()
     jest.useFakeTimers()
+    vuetify = createVuetify()
     empty = mount(Empty, {localVue, store})
     empty.vm.$getForm('search', {endpoint: '/', fields: {q: {value: ''}}})
+    useMockStorage()
   })
   afterEach(() => {
     cleanUp(wrapper)
@@ -44,10 +46,11 @@ describe('NavBar.vue', () => {
       store,
       localVue,
       vuetify,
+      propsData: {initialState: null},
       mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}},
-      sync: false,
-      attachToDocument: true,
+      attachTo: docTarget(),
     })
+    await wrapper.vm.$nextTick()
     expect((wrapper.vm as any).drawer).toBe(false)
   })
   it('Starts with the drawer open on large screens', async() => {
@@ -58,9 +61,9 @@ describe('NavBar.vue', () => {
       store,
       localVue,
       vuetify,
+      propsData: {initialState: null},
       mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}},
-      sync: false,
-      attachToDocument: true,
+      attachTo: docTarget(),
     })
     expect((wrapper.vm as any).drawer).toBe(true)
   })
@@ -71,7 +74,6 @@ describe('NavBar.vue', () => {
       localVue,
       vuetify,
       mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}},
-      sync: false,
     })
     dispatch.mockClear()
     mockAxios.mockResponse(rs(genUser()))
@@ -86,7 +88,6 @@ describe('NavBar.vue', () => {
       localVue,
       vuetify,
       mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}},
-      sync: false,
     })
     // Have to start as logged in to trigger the event.
     mockAxios.mockResponse(rs(genUser()))
@@ -103,7 +104,7 @@ describe('NavBar.vue', () => {
       localVue,
       vuetify,
       mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}},
-      sync: false,
+
     })
     mockAxios.mockResponse(rs(genUser()))
     await wrapper.vm.$nextTick()
@@ -117,7 +118,7 @@ describe('NavBar.vue', () => {
       localVue,
       vuetify,
       mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}},
-      sync: false,
+      attachTo: docTarget(),
     })
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
@@ -138,7 +139,7 @@ describe('NavBar.vue', () => {
       localVue,
       vuetify,
       mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}},
-      sync: false,
+
     })
     await wrapper.vm.$nextTick()
     expect((wrapper.vm as any).profileRoute).toEqual({name: 'Profile', params: {username: 'Goober'}})
@@ -151,8 +152,8 @@ describe('NavBar.vue', () => {
       vuetify,
       mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}},
       stubs: ['router-link'],
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     await wrapper.vm.$nextTick()
     expect(store.state.showSupport).toBe(false)
@@ -169,8 +170,8 @@ describe('NavBar.vue', () => {
       vuetify,
       mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}, $router: {push: mockPush}},
       stubs: ['router-link'],
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     await wrapper.vm.$nextTick()
     mockAxios.reset()
@@ -192,8 +193,8 @@ describe('NavBar.vue', () => {
       vuetify,
       mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}, $router: {push: mockPush, replace: mockReplace}},
       stubs: ['router-link'],
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     await wrapper.vm.$nextTick()
     mockAxios.reset()
@@ -214,8 +215,8 @@ describe('NavBar.vue', () => {
       vuetify,
       mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}},
       stubs: ['router-link'],
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
@@ -232,8 +233,8 @@ describe('NavBar.vue', () => {
       vuetify,
       mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}, $router: {push: mockPush}},
       stubs: ['router-link'],
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     const field = wrapper.find('#field-search__q')
     field.setValue('Stuff')
@@ -249,8 +250,8 @@ describe('NavBar.vue', () => {
       vuetify,
       mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}, $router: {push: mockPush}},
       stubs: ['router-link'],
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     await wrapper.vm.$nextTick()
     wrapper.find('.who-is-open').trigger('click')
@@ -265,8 +266,8 @@ describe('NavBar.vue', () => {
       vuetify,
       mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}, $router: {push: mockPush}},
       stubs: ['router-link'],
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     await wrapper.vm.$nextTick()
     wrapper.find('.recent-art').trigger('click')
@@ -280,8 +281,8 @@ describe('NavBar.vue', () => {
       vuetify,
       mocks: {$route: {fullPath: '/search/products', name: 'SearchProducts', path: '/'}, $router: {push: mockPush}},
       stubs: ['router-link'],
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     const field = wrapper.find('#field-search__q')
     field.setValue('Stuff')

@@ -193,6 +193,7 @@ import Formatting from '@/mixins/formatting'
 export default class AcMarkdownExplination extends mixins(Formatting) {
     @Prop({required: true})
     public value!: boolean
+
     public display = false
     public headers = [
       {
@@ -206,6 +207,7 @@ export default class AcMarkdownExplination extends mixins(Formatting) {
         value: 'input',
       },
     ]
+
     public basicsItems = [
       {input: '*Emphasis*'},
       {input: '_Also Emphasis_'},
@@ -216,12 +218,14 @@ export default class AcMarkdownExplination extends mixins(Formatting) {
       {input: '~~Deleted~~'},
       {input: '`code`'},
     ]
+
     public linksItems = [
       {input: 'https://artconomy.com/'},
       {input: '[A link](https://artconomy.com/)'},
       {input: 'contact@artconomy.com'},
       {input: '[Email us](mailto:contact@artconomy.com)'},
     ]
+
     public blocksItems = [
       {input: 'This is a test.\nThis is only a test.'},
       {input: 'This is a test.\n\nThis is only a test.'},
@@ -229,13 +233,17 @@ export default class AcMarkdownExplination extends mixins(Formatting) {
       {input: '> This is another block quote.\n> \n> We can add blank lines to quotes this way.'},
       {input: '```\n# This is a code block.\n\nfunction greet():\n    print("Hello, world!")\n\ngreet()\n```'},
     ]
+
     public listsItems = [
       {input: '1. Put on shoes\n1. Tie laces\n1. Grab keys\n1. Forget wallet'},
       {input: '* Fox\n* Wolf\n* Human\n* Elf'},
       {input: '- Fox\n+ Wolf\n+ Human\n- Elf'},
-      {input: '1. First item\n    * Sub item\n    * Sub item 2\n2. Second item\n\n    ' +
-              'This is a test paragraph.\n\n1. Third item'},
+      {
+        input: '1. First item\n    * Sub item\n    * Sub item 2\n2. Second item\n\n    ' +
+              'This is a test paragraph.\n\n1. Third item',
+      },
     ]
+
     public headersItems = [
       {input: '# Header 1'},
       {input: 'Header 1\n==='},
@@ -246,8 +254,10 @@ export default class AcMarkdownExplination extends mixins(Formatting) {
       {input: '##### Header 5'},
       {input: '###### Header 6'},
     ]
+
     public extrasItems = [
-      {input: '**Tables**\n\n' +
+      {
+        input: '**Tables**\n\n' +
               '| Headers       | Go            | Here  |\n' +
               '| ------------- |:-------------:| -----:|\n' +
               '| col 3 is      | right-aligned |  $600 |\n' +
@@ -255,9 +265,12 @@ export default class AcMarkdownExplination extends mixins(Formatting) {
               '| zebra stripes | are neat      |    $1 |\n',
       },
       {input: '**Images**\n\n![Artconomy Logo](https://artconomy.com/static/images/logo.png)'},
-      {input: `**Dividers**\n\nWe thought driving downtown wouldn't take that long.\n\n***\n\nThree hours later...` +
-              `\n\n---\n\n"Why did we do this again?"`},
+      {
+        input: '**Dividers**\n\nWe thought driving downtown wouldn\'t take that long.\n\n***\n\nThree hours later...' +
+              '\n\n---\n\n"Why did we do this again?"',
+      },
     ]
+
     public get toggle() {
       if (this.value) {
         // Lazy evaluation with caching of all the Markdown examples.
@@ -265,6 +278,7 @@ export default class AcMarkdownExplination extends mixins(Formatting) {
       }
       return this.value
     }
+
     public set toggle(val: boolean) {
       this.$emit('input', val)
     }

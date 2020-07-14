@@ -35,7 +35,7 @@ const actions: ActionTree<NotificationsState, RootState> = {
     commit('setLoop', 0)
   },
   runFetch({commit}) {
-    artCall({url: '/api/profiles/v1/data/notifications/unread/', method: 'get'}
+    artCall({url: '/api/profiles/v1/data/notifications/unread/', method: 'get'},
     ).then((response: NotificationStats) => {
       commit('setStats', response)
     }).catch(() => {})

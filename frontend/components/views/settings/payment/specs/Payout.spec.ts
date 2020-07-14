@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import {Vuetify} from 'vuetify/types'
-import {cleanUp, createVuetify, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, setViewer, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import {mount, Wrapper} from '@vue/test-utils'
 import Payout from '@/components/views/settings/payment/Payout.vue'
@@ -21,11 +21,11 @@ describe('Payout.vue', () => {
   })
   it('Mounts', async() => {
     setViewer(store, genUser())
-    wrapper = mount(Payout, {localVue, store, propsData: {username: 'Fox'}, sync: false, attachToDocument: true})
+    wrapper = mount(Payout, {localVue, store, propsData: {username: 'Fox'}, attachTo: docTarget()})
   })
   it('Recognizes us or non-us account status', async() => {
     setViewer(store, genUser())
-    wrapper = mount(Payout, {localVue, store, propsData: {username: 'Fox'}, sync: false, attachToDocument: true})
+    wrapper = mount(Payout, {localVue, store, propsData: {username: 'Fox'}, attachTo: docTarget()})
     const vm = wrapper.vm as any
     expect(vm.nonUsAccount).toBe(null)
     vm.subjectHandler.artistProfile.setX(genArtistProfile())

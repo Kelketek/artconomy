@@ -73,10 +73,12 @@ import * as VListComponents from 'vuetify/es5/components/VList'
 @Component({
   components: {
     ...VListComponents,
-  }})
+  },
+})
 export default class AcSettingNav extends mixins(Viewer, Subjective) {
   @Prop({default: false})
   public nested!: boolean
+
   public HAS_US_ACCOUNT = 1 as BankStatus
 
   public get hasUSAccount() {

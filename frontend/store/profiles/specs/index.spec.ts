@@ -30,7 +30,7 @@ describe('Profiles store', () => {
   })
   it('Sets the viewer username to a token value if the user is not logged in', async() => {
     expect((store.state as any).profiles.viewerRawUsername).toBe('_')
-    const wrapper = mount(ViewerComponent, {localVue, store, sync: false})
+    const wrapper = mount(ViewerComponent, {localVue, store})
     mockAxios.mockResponse(rs({rating: Ratings.GENERAL}))
     await flushPromises()
     expect((store.state as any).profiles.viewerRawUsername).toBe('_')

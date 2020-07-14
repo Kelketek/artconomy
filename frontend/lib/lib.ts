@@ -19,6 +19,7 @@ import {HttpVerbs} from '@/store/forms/types/HttpVerbs'
 
 // Needed for Matomo.
 declare global {
+  // noinspection JSUnusedGlobalSymbols
   interface Window {
     _paq: Array<any[]>
   }
@@ -43,7 +44,7 @@ type TokenRenderer = (
 ) => string
 
 export const defaultRender: TokenRenderer = (
-  tokens: Token[], idx: number, options: Options, env: any, self: Renderer
+  tokens: Token[], idx: number, options: Options, env: any, self: Renderer,
 ): string => {
   return self.renderToken(tokens, idx, options)
 }
@@ -94,9 +95,6 @@ md.renderer.rules.link_close = (tokens, idx, options, env, self) => {
 }
 
 export function mention(state: StateCore, silent?: boolean) {
-  let start: number
-  let max: number
-  let marker: string
   let token: Token
   let pos = state.pos
   const ch = state.src.charCodeAt(pos)
@@ -107,9 +105,9 @@ export function mention(state: StateCore, silent?: boolean) {
     if (!/^\s+$/.test(prCh)) { return }
   }
   if (ch !== 0x40/* @ */) { return false }
-  start = pos
+  const start = pos
   pos++
-  max = state.posMax
+  const max = state.posMax
 
   while (pos < max && /[-a-zA-Z_0-9]/.test(state.src[pos])) { pos++ }
   if (pos - start === 1) {
@@ -117,7 +115,7 @@ export function mention(state: StateCore, silent?: boolean) {
     return
   }
 
-  marker = state.src.slice(start, pos)
+  const marker = state.src.slice(start, pos)
 
   // Never found an instance where this is true, but the MarkdownIt rules require handling it.
   /* istanbul ignore else */
@@ -133,7 +131,7 @@ md.renderer.rules.mention = (tokens, idx) => {
   const token = tokens[idx]
   const username = token.content.slice(1, token.content.length)
   // Must have no returns, or will affect spacing.
-  return `<span style="display:inline-block;vertical-align: bottom;">` +
+  return '<span style="display:inline-block;vertical-align: bottom;">' +
     `<ac-avatar username="${username}"></ac-avatar></span>`
 }
 
@@ -345,10 +343,6 @@ export const ISSUERS = {
   5: {name: 'Diner\'s Club', icon: 'fa-cc-diners-club'},
 }
 
-// export function accountTypes() {
-//   return genOptions(ACCOUNT_TYPES)
-// }
-
 export function textualize(markdown: string) {
   const container = document.createElement('div')
   container.innerHTML = md.render(markdown)
@@ -388,7 +382,7 @@ export function singleQ(value: string | Array<string | null>): string {
 declare type paramDecorator = (cls: Vue, propName: string) => void
 
 export function paramHandleMap(
-  handleName: string, clearList?: string[], permittedNames?: string[], defaultTab?: string
+  handleName: string, clearList?: string[], permittedNames?: string[], defaultTab?: string,
 ): paramDecorator {
   return (cls, propName) => {
     Object.defineProperty(cls, propName, {
@@ -553,10 +547,10 @@ export const RATING_LONG_DESC = {
 }
 
 export const RATING_COLOR = {
-  0: `green`,
-  1: `blue`,
-  2: `red`,
-  3: `black`,
+  0: 'green',
+  1: 'blue',
+  2: 'red',
+  3: 'black',
 }
 
 export function dotTraverse(start: any, dotPath: string, silent?: boolean) {

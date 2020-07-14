@@ -22,7 +22,7 @@ describe('AcRefColor.vue', () => {
   })
   it('Mounts', async() => {
     setViewer(store, genUser())
-    const empty = mount(Empty, {localVue, store, sync: false})
+    const empty = mount(Empty, {localVue, store})
     const color = empty.vm.$getSingle('color', {endpoint: '/endpoint/'})
     color.setX({color: '#555555', note: 'This is a test color'})
     wrapper = mount(AcRefColor, {
@@ -30,7 +30,7 @@ describe('AcRefColor.vue', () => {
       localVue,
       store,
       vuetify,
-      sync: false,
+
       mocks: {
         $route: {name: 'Character', params: {}, query: {}},
       },
@@ -38,7 +38,7 @@ describe('AcRefColor.vue', () => {
   })
   it('Launches a color picker', async() => {
     setViewer(store, genUser())
-    const empty = mount(Empty, {localVue, store, sync: false})
+    const empty = mount(Empty, {localVue, store})
     const color = empty.vm.$getSingle('color', {endpoint: '/endpoint/'})
     color.setX({color: '#555555', note: 'This is a test color'})
     wrapper = mount(AcRefColor, {
@@ -46,7 +46,7 @@ describe('AcRefColor.vue', () => {
       localVue,
       store,
       vuetify,
-      sync: false,
+
       mocks: {
         $route: {name: 'Character', params: {}, query: {}},
       },

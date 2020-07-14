@@ -16,7 +16,7 @@ export function userPathFor(username: string) {
 
 export function endpointFor(username: string) {
   if (username === '_') {
-    return `/api/profiles/v1/data/requester/`
+    return '/api/profiles/v1/data/requester/'
   }
   return `/api/profiles/v1/account/${username}/`
 }

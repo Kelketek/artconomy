@@ -473,27 +473,27 @@ export default class Home extends mixins(Viewer, Formatting, PrerenderMixin) {
       this.lowPriced = this.$getList('lowPriced', {endpoint: '/api/sales/v1/low-price/', pageSize: 6})
       this.lowPriced.firstRun()
       this.newArtistProducts = this.$getList(
-        'newArtistProducts', {endpoint: '/api/sales/v1/new-artist-products/', pageSize: 6}
+        'newArtistProducts', {endpoint: '/api/sales/v1/new-artist-products/', pageSize: 6},
       )
       this.lgbt = this.$getList(
-        'lgbt', {endpoint: '/api/sales/v1/lgbt/', pageSize: 6}
+        'lgbt', {endpoint: '/api/sales/v1/lgbt/', pageSize: 6},
       )
       this.artistsOfColor = this.$getList(
-        'artistsOfColor', {endpoint: '/api/sales/v1/artists-of-color/', pageSize: 6}
+        'artistsOfColor', {endpoint: '/api/sales/v1/artists-of-color/', pageSize: 6},
       )
       this.randomProducts = this.$getList(
-        'randomProducts', {endpoint: '/api/sales/v1/random/', pageSize: 6}
+        'randomProducts', {endpoint: '/api/sales/v1/random/', pageSize: 6},
       )
       this.randomProducts.firstRun()
       this.newArtistProducts.firstRun()
       this.artistsOfColor.firstRun()
       this.lgbt.firstRun()
       this.commissions = this.$getList(
-        'commissions', {endpoint: '/api/profiles/v1/recent-commissions/', pageSize: 6}
+        'commissions', {endpoint: '/api/profiles/v1/recent-commissions/', pageSize: 6},
       )
       this.commissions.firstRun()
       this.submissions = this.$getList(
-        'submissions', {endpoint: '/api/profiles/v1/recent-submissions/', pageSize: 6}
+        'submissions', {endpoint: '/api/profiles/v1/recent-submissions/', pageSize: 6},
       )
       this.submissions.firstRun()
       this.characters = this.$getList('newCharacters', {endpoint: '/api/profiles/v1/new-characters/', pageSize: 6})

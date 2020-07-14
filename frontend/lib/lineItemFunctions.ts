@@ -43,9 +43,9 @@ export function distributeReduction(total: Big, distributedAmount: Big, lineValu
 }
 
 export function priorityTotal(current: LineAccumulator, prioritySet: LineItem[]): LineAccumulator {
-  const currentTotal = current['total']
-  const subtotals = current['map']
-  let discount = current['discount']
+  const currentTotal = current.total
+  const subtotals = current.map
+  let discount = current.discount
   const workingSubtotals: LineMoneyMap = new Map()
   const summableTotals: LineMoneyMap = new Map()
   const reductions: LineMoneyMap[] = []
@@ -54,7 +54,7 @@ export function priorityTotal(current: LineAccumulator, prioritySet: LineItem[])
     let cascadedAmount = Big(0)
     let addedAmount = Big(0)
     let workingAmount: Big
-    let multiplier = Big('0.01').times(Big(line.percentage))
+    const multiplier = Big('0.01').times(Big(line.percentage))
     if (line.back_into_percentage) {
       workingAmount = currentTotal.div(multiplier.plus(Big('1.00'))).times(multiplier)
     } else {
@@ -163,7 +163,7 @@ export function getTotals(lines: LineItem[]): LineAccumulator {
 
 export function reckonLines(lines: LineItem[]): Big {
   const totals = getTotals(lines)
-  return totals['total'].round(2, 0)
+  return totals.total.round(2, 0)
 }
 
 export function quantize(value: Big) {
@@ -171,7 +171,7 @@ export function quantize(value: Big) {
 }
 
 export function totalForTypes(accumulator: LineAccumulator, types: LineTypes[]) {
-  let relevant = [...accumulator.map.keys()].filter((line: LineItem) => types.includes(line.type))
+  const relevant = [...accumulator.map.keys()].filter((line: LineItem) => types.includes(line.type))
   const totals = relevant.map((line: LineItem) => accumulator.map.get(line) as Big)
   return sum(totals).round(2, 0)
 }
@@ -186,7 +186,7 @@ export function invoiceLines(
     value: string,
     escrowDisabled: boolean,
     product: Product|null,
-  }
+  },
 ) {
   const pricing = options.pricing
   const value = options.value

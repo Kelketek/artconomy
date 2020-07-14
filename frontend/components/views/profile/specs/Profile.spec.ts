@@ -2,7 +2,7 @@ import Vue from 'vue'
 import {mount, Wrapper} from '@vue/test-utils'
 import {Vuetify} from 'vuetify/types'
 import {ArtStore, createStore} from '@/store'
-import {cleanUp, createVuetify, flushPromises, rq, rs, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, flushPromises, rq, rs, setViewer, vueSetup} from '@/specs/helpers'
 import {genArtistProfile, genUser} from '@/specs/helpers/fixtures'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import Router from 'vue-router'
@@ -56,7 +56,8 @@ describe('Profile.vue', () => {
         name: 'Conversation',
         component: Empty,
       },
-      ]})
+      ],
+    })
     vulpes = genUser()
     vulpes.username = 'Vulpes'
     vulpes.is_staff = false
@@ -71,8 +72,7 @@ describe('Profile.vue', () => {
     const fox = genUser()
     fox.artist_mode = false
     router.push({name: 'Profile', params: {username: fox.username}})
-    wrapper = mount(Profile, {
-      localVue, store, router, vuetify, propsData: {username: 'Fox'}, sync: false, attachToDocument: true}
+    wrapper = mount(Profile, {localVue, store, router, vuetify, propsData: {username: 'Fox'}, attachTo: docTarget()},
     )
     expect(mockAxios.get).toHaveBeenCalledWith(...rq('/api/profiles/v1/account/Fox/', 'get'))
     mockAxios.mockResponse(rs(fox))
@@ -90,15 +90,14 @@ describe('Profile.vue', () => {
     const fox = genUser()
     fox.artist_mode = true
     router.push({name: 'Profile', params: {username: fox.username}})
-    wrapper = mount(Profile, {
-      localVue, store, router, vuetify, propsData: {username: 'Fox'}, sync: false, attachToDocument: true}
+    wrapper = mount(Profile, {localVue, store, router, vuetify, propsData: {username: 'Fox'}, attachTo: docTarget()},
     )
     expect(mockAxios.get).toHaveBeenCalledWith(...rq('/api/profiles/v1/account/Fox/', 'get'))
     mockAxios.mockResponse(rs(fox))
     expect(mockAxios.get).toHaveBeenCalledWith(
       ...rq('/api/profiles/v1/account/Fox/artist-profile/', 'get', undefined, {
         params: {view: 'true'}, cancelToken: expect.any(Object),
-      })
+      }),
     )
     mockAxios.mockResponse(rs(genArtistProfile()))
     await flushPromises()
@@ -114,10 +113,10 @@ describe('Profile.vue', () => {
       router,
       vuetify,
       propsData: {username: 'Fox'},
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
       stubs: ['ac-journals'],
-    }
+    },
     )
     mockAxios.mockResponse(rs(genUser()))
     await wrapper.vm.$nextTick()
@@ -126,7 +125,7 @@ describe('Profile.vue', () => {
     await wrapper.vm.$nextTick()
     expect(mockAxios.post).toHaveBeenCalledWith(
       ...rq('/api/profiles/v1/account/Vulpes/conversations/', 'post',
-        {participants: [1]}, {})
+        {participants: [1]}, {}),
     )
     mockAxios.mockResponse(rs(genConversation()))
     await flushPromises()

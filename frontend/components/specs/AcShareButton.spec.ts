@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import {Vuetify} from 'vuetify/types'
 import {mount, Wrapper} from '@vue/test-utils'
-import {cleanUp, createVuetify, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, setViewer, vueSetup} from '@/specs/helpers'
 import {genSubmission} from '@/store/submissions/specs/fixtures'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import {ArtStore, createStore} from '@/store'
@@ -27,7 +27,7 @@ describe('AcTagDisplay.vue', () => {
   it('Mounts a share button and resolves a URL', async() => {
     setViewer(store, genUser())
     const submission = genSubmission()
-    const single = mount(Empty, {localVue, store, attachToDocument: true, sync: false}).vm.$getSingle('submission', {endpoint: '/'})
+    const single = mount(Empty, {localVue, store, attachTo: docTarget()}).vm.$getSingle('submission', {endpoint: '/'})
     const mockResolve = jest.fn()
     single.setX(submission)
     mockResolve.mockImplementation(() => ({href: '/stuff/'}))
@@ -40,8 +40,7 @@ describe('AcTagDisplay.vue', () => {
         $route: {name: 'Profile', params: {username: 'Fox'}, query: {editing: false}},
         $router: {resolve: mockResolve},
       },
-      sync: false,
-      attachToDocument: false,
+
     })
     expect(mockResolve).toHaveBeenCalledWith({
       name: 'Profile', params: {username: 'Fox'}, query: {editing: false, referred_by: 'Fox'},
@@ -60,7 +59,7 @@ describe('AcTagDisplay.vue', () => {
   it('Closes out of the whole menu when the QR menu is closed', async() => {
     setViewer(store, genUser())
     const submission = genSubmission()
-    const single = mount(Empty, {localVue, store, attachToDocument: true, sync: false}).vm.$getSingle('submission', {endpoint: '/'})
+    const single = mount(Empty, {localVue, store, attachTo: docTarget()}).vm.$getSingle('submission', {endpoint: '/'})
     const mockResolve = jest.fn()
     single.setX(submission)
     mockResolve.mockImplementation(() => ({href: '/stuff/'}))
@@ -73,8 +72,7 @@ describe('AcTagDisplay.vue', () => {
         $route: {name: 'Profile', params: {username: 'Fox'}, query: {editing: false}},
         $router: {resolve: mockResolve},
       },
-      sync: false,
-      attachToDocument: false,
+
     })
     const vm = wrapper.vm as any
     const share = vm.$refs.shareButton

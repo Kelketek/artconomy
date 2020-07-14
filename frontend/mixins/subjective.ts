@@ -13,6 +13,7 @@ import {profileRegistry} from '@/store/profiles/registry'
 export default class Subjective extends mixins(Viewer) {
   @Prop({required: true})
   public username!: string
+
   public protectedView: boolean = false
   public privateView: boolean = false
   public missingOk: boolean = false

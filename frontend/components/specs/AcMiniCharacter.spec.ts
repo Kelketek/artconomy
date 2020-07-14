@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import {mount, Wrapper} from '@vue/test-utils'
 import {Vuetify} from 'vuetify/types'
-import {cleanUp, createVuetify, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, setViewer, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import {genUser} from '@/specs/helpers/fixtures'
 import AcMiniCharacter from '@/components/AcMiniCharacter.vue'
@@ -30,11 +30,11 @@ describe('AcMiniCharacter.vue', () => {
         store,
         localVue,
         vuetify,
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
         propsData: {character: genCharacter()},
         stubs: ['router-link'],
-      }
+      },
     )
   })
 })

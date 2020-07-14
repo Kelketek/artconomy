@@ -34,7 +34,7 @@ describe('AcColors.vue', () => {
         propsData: {username: 'Fox', characterName: 'Kai'},
         mocks: {$route: {name: 'Character', params: {username: 'Fox', characterName: 'Kai'}, query: {}}},
         stubs: ['router-link'],
-        sync: false,
+
       })
     const vm = wrapper.vm as any
     const colors = []
@@ -58,7 +58,7 @@ describe('AcColors.vue', () => {
         propsData: {username: 'Fox', characterName: 'Kai'},
         mocks: {$route: {name: 'Character', params: {username: 'Fox', characterName: 'Kai'}, query: {}}},
         stubs: ['router-link'],
-        sync: false,
+
       })
     const vm = wrapper.vm as any
     vm.character.profile.setX(character)

@@ -64,33 +64,40 @@ import * as VSlider from 'vuetify/es5/components/VSlider'
 import * as VSelect from 'vuetify/es5/components/VSelect'
 
 // @ts-ignore
-@Component({components: {
-  AcStarField,
-  AcPriceField,
-  AcBankToggle,
-  AcSubmissionSelect,
-  AcUppyFile,
-  AcRatingField,
-  AcTagField,
-  AcEditor,
-  ...VTextField,
-  ...VCheckbox,
-  ...VSwitch,
-  ...VAutocomplete,
-  ...VSlider,
-  ...VSelect,
-}})
+@Component({
+  components: {
+    AcStarField,
+    AcPriceField,
+    AcBankToggle,
+    AcSubmissionSelect,
+    AcUppyFile,
+    AcRatingField,
+    AcTagField,
+    AcEditor,
+    ...VTextField,
+    ...VCheckbox,
+    ...VSwitch,
+    ...VAutocomplete,
+    ...VSlider,
+    ...VSelect,
+  },
+})
 export default class AcPatchField extends Vue {
     @Prop({default: 'v-text-field'})
     public fieldType!: string
+
     @Prop({required: true})
     public patcher!: Patch
+
     @Prop({default: true})
     public saveIndicator!: boolean
+
     @Prop({default: true})
     public autoSave!: boolean
+
     @Prop({default: false})
     public enterSave!: boolean
+
     @Prop()
     public id!: string
 

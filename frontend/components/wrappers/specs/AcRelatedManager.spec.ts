@@ -2,7 +2,7 @@ import Vue from 'vue'
 import {mount, Wrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
 import mockAxios from '@/__mocks__/axios'
-import {cleanUp, createVuetify, flushPromises, rq, rs, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, flushPromises, rq, rs, vueSetup} from '@/specs/helpers'
 import {genUser} from '@/specs/helpers/fixtures'
 import DummyRelated from '@/components/wrappers/specs/DummyRelated.vue'
 import {Vuetify} from 'vuetify/types'
@@ -24,12 +24,12 @@ describe('AcRelatedManager.vue', () => {
       localVue,
       store,
       vuetify,
-      sync: false,
+
       stubs: ['router-link'],
-      attachToDocument: true,
+      attachTo: docTarget(),
     })
     expect(mockAxios.get).toHaveBeenCalledWith(
-      ...rq('/endpoint/', 'get', undefined, {cancelToken: expect.any(Object)})
+      ...rq('/endpoint/', 'get', undefined, {cancelToken: expect.any(Object)}),
     )
     const user1 = genUser()
     user1.id = 1
@@ -45,12 +45,12 @@ describe('AcRelatedManager.vue', () => {
       localVue,
       store,
       vuetify,
-      sync: false,
+
       stubs: ['router-link'],
-      attachToDocument: true,
+      attachTo: docTarget(),
     })
     expect(mockAxios.get).toHaveBeenCalledWith(
-      ...rq('/endpoint/', 'get', undefined, {cancelToken: expect.any(Object)})
+      ...rq('/endpoint/', 'get', undefined, {cancelToken: expect.any(Object)}),
     )
     const user1 = genUser()
     user1.id = 1
@@ -74,19 +74,19 @@ describe('AcRelatedManager.vue', () => {
       localVue,
       store,
       vuetify,
-      sync: false,
+
       stubs: ['router-link'],
-      attachToDocument: true,
+      attachTo: docTarget(),
     })
     expect(mockAxios.get).toHaveBeenCalledWith(
-      ...rq('/endpoint/', 'get', undefined, {cancelToken: expect.any(Object)})
+      ...rq('/endpoint/', 'get', undefined, {cancelToken: expect.any(Object)}),
     )
     mockAxios.reset()
     const vm = wrapper.vm as any
     vm.userForm.fields.user_id.update(3)
     await vm.$nextTick()
     expect(mockAxios.post).toHaveBeenCalledWith(
-      ...rq('/endpoint/', 'post', {user_id: 3}, {})
+      ...rq('/endpoint/', 'post', {user_id: 3}, {}),
     )
     const user = genUser()
     user.id = 3

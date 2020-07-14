@@ -43,6 +43,7 @@ import AcDeliverableStatus from '@/components/AcDeliverableStatus.vue'
 export default class AcOrderPreview extends mixins(Subjective, Formatting) {
     @Prop({required: true})
     public type!: string
+
     @Prop({required: true})
     public order!: SingleController<Order>
 

@@ -1,7 +1,7 @@
 import {mount, Wrapper} from '@vue/test-utils'
 import {Vuetify} from 'vuetify/types'
 import Vue from 'vue'
-import {cleanUp, createVuetify, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import Editor from '@/specs/helpers/dummy_components/editor.vue'
 
@@ -27,8 +27,8 @@ describe('ac-editor', () => {
       localVue,
       store,
       vuetify,
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
   })
   it('Auto saves changes', async() => {
@@ -36,8 +36,8 @@ describe('ac-editor', () => {
       localVue,
       store,
       vuetify,
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     const mockEmit = jest.spyOn(wrapper.vm.$refs.auto as any, '$emit')
     wrapper.find('#editor textarea').setValue('Hello there!')
@@ -60,8 +60,8 @@ describe('ac-editor', () => {
       localVue,
       store,
       vuetify,
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     const mockEmit = jest.spyOn(wrapper.vm.$refs.auto as any, '$emit');
     (wrapper.vm as any).things = 'Hello there!'
@@ -74,8 +74,8 @@ describe('ac-editor', () => {
       localVue,
       store,
       vuetify,
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     wrapper.find('#editor-manual textarea').setValue('# Hello there!')
     await wrapper.vm.$nextTick()

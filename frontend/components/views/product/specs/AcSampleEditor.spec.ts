@@ -5,7 +5,7 @@ import {mount, Wrapper} from '@vue/test-utils'
 import {searchSchema} from '@/lib/lib'
 import {
   cleanUp,
-  createVuetify,
+  createVuetify, docTarget,
   flushPromises, makeSpace,
   rq,
   rs,
@@ -41,7 +41,7 @@ describe('AcSampleEditor.vue', () => {
   beforeEach(() => {
     store = createStore()
     vuetify = createVuetify()
-    const empty = mount(Empty, {localVue, store, vuetify, sync: false}).vm
+    const empty = mount(Empty, {localVue, store, vuetify}).vm
     form = empty.$getForm('search', searchSchema())
     setPricing(store, localVue)
     product = empty.$getSingle('product', {endpoint: '/product/'})
@@ -56,7 +56,7 @@ describe('AcSampleEditor.vue', () => {
     localSamples.setList([])
     localSamples.ready = true
     localSamples.fetching = false
-    art = empty.$getList(`Fox-art`, {endpoint: '/art/'})
+    art = empty.$getList('Fox-art', {endpoint: '/art/'})
     art.setList([])
     art.fetching = false
     art.ready = true
@@ -69,13 +69,13 @@ describe('AcSampleEditor.vue', () => {
   })
   it('Clears the showcased submission', async() => {
     setViewer(store, genUser())
-    wrapper = mount(AcSampleEditor, {localVue,
+    wrapper = mount(AcSampleEditor, {
+      localVue,
       store,
       vuetify,
-      propsData: {
-        product, productId: (product.x as Product).id, username: 'Fox', value: true, samples: samplesList},
-      attachToDocument: true,
-      sync: false,
+      propsData: {product, productId: (product.x as Product).id, username: 'Fox', value: true, samples: samplesList},
+      attachTo: docTarget(),
+
       stubs: ['ac-new-submission'],
     })
     await flushPromises()
@@ -87,7 +87,7 @@ describe('AcSampleEditor.vue', () => {
     const newVersion = {...product.x as Product}
     newVersion.primary_submission = null
     expect(mockAxios.patch).toHaveBeenCalledWith(
-      ...rq('/product/', 'patch', {primary_submission: null})
+      ...rq('/product/', 'patch', {primary_submission: null}),
     )
     mockAxios.mockResponse(rs(newVersion))
     await flushPromises()
@@ -108,13 +108,13 @@ describe('AcSampleEditor.vue', () => {
     localSamples.setList([...samples])
     samplesList.response = response
     localSamples.response = response
-    wrapper = mount(AcSampleEditor, {localVue,
+    wrapper = mount(AcSampleEditor, {
+      localVue,
       store,
       vuetify,
-      propsData: {
-        product, productId: (product.x as Product).id, username: 'Fox', value: true, samples: samplesList},
-      attachToDocument: true,
-      sync: false,
+      propsData: {product, productId: (product.x as Product).id, username: 'Fox', value: true, samples: samplesList},
+      attachTo: docTarget(),
+
       stubs: ['ac-new-submission', 'router-link'],
     })
     await wrapper.vm.$nextTick()
@@ -141,13 +141,13 @@ describe('AcSampleEditor.vue', () => {
     samplesList.response = response
     localSamples.response = response
     product.updateX({primary_submission: submission.submission})
-    wrapper = mount(AcSampleEditor, {localVue,
+    wrapper = mount(AcSampleEditor, {
+      localVue,
       store,
       vuetify,
-      propsData: {
-        product, productId: (product.x as Product).id, username: 'Fox', value: true, samples: samplesList},
-      attachToDocument: true,
-      sync: false,
+      propsData: {product, productId: (product.x as Product).id, username: 'Fox', value: true, samples: samplesList},
+      attachTo: docTarget(),
+
       stubs: ['ac-new-submission', 'router-link'],
     })
     await wrapper.vm.$nextTick()
@@ -171,7 +171,8 @@ describe('AcSampleEditor.vue', () => {
     const samples = [submission, submission2, submission3]
     art.response = {count: 3, size: 24}
     art.setList(samples)
-    wrapper = mount(AcSampleEditor, {localVue,
+    wrapper = mount(AcSampleEditor, {
+      localVue,
       store,
       vuetify,
       propsData: {
@@ -181,8 +182,8 @@ describe('AcSampleEditor.vue', () => {
         value: true,
         samples: samplesList,
       },
-      attachToDocument: true,
-      sync: false,
+      attachTo: docTarget(),
+
       stubs: ['ac-new-submission', 'router-link'],
     })
     await wrapper.vm.$nextTick()
@@ -208,13 +209,13 @@ describe('AcSampleEditor.vue', () => {
     const samples = [submission, submission2, submission3]
     art.response = {count: 3, size: 24}
     art.setList(samples)
-    wrapper = mount(AcSampleEditor, {localVue,
+    wrapper = mount(AcSampleEditor, {
+      localVue,
       store,
       vuetify,
-      propsData: {
-        product, productId: (product.x as Product).id, username: 'Fox', value: true, samples: samplesList},
-      attachToDocument: true,
-      sync: false,
+      propsData: {product, productId: (product.x as Product).id, username: 'Fox', value: true, samples: samplesList},
+      attachTo: docTarget(),
+
       stubs: ['ac-new-submission', 'router-link'],
     })
     await wrapper.vm.$nextTick()
@@ -232,13 +233,13 @@ describe('AcSampleEditor.vue', () => {
   })
   it('Adds a new sample', async() => {
     setViewer(store, genUser())
-    wrapper = mount(AcSampleEditor, {localVue,
+    wrapper = mount(AcSampleEditor, {
+      localVue,
       store,
       vuetify,
-      propsData: {
-        product, productId: (product.x as Product).id, username: 'Fox', value: true, samples: samplesList},
-      attachToDocument: true,
-      sync: false,
+      propsData: {product, productId: (product.x as Product).id, username: 'Fox', value: true, samples: samplesList},
+      attachTo: docTarget(),
+
       stubs: ['ac-new-submission', 'router-link'],
     })
     const vm = wrapper.vm as any
@@ -257,13 +258,13 @@ describe('AcSampleEditor.vue', () => {
   it('Adds a new sample and sets the primary submission', async() => {
     setViewer(store, genUser())
     product.updateX({primary_submission: null})
-    wrapper = mount(AcSampleEditor, {localVue,
+    wrapper = mount(AcSampleEditor, {
+      localVue,
       store,
       vuetify,
-      propsData: {
-        product, productId: (product.x as Product).id, username: 'Fox', value: true, samples: samplesList},
-      attachToDocument: true,
-      sync: false,
+      propsData: {product, productId: (product.x as Product).id, username: 'Fox', value: true, samples: samplesList},
+      attachTo: docTarget(),
+
       stubs: ['ac-new-submission', 'router-link'],
     })
     const vm = wrapper.vm as any
@@ -277,7 +278,7 @@ describe('AcSampleEditor.vue', () => {
     await flushPromises()
     await vm.$nextTick()
     expect(mockAxios.patch).toHaveBeenCalledWith(
-      ...rq('/product/', 'patch', {primary_submission: 1337})
+      ...rq('/product/', 'patch', {primary_submission: 1337}),
     )
     mockAxios.mockResponse(rs({...product.x, ...{primary_submission: submission}}))
     await flushPromises()
@@ -287,13 +288,13 @@ describe('AcSampleEditor.vue', () => {
   })
   it('Toggles', async() => {
     setViewer(store, genUser())
-    wrapper = mount(AcSampleEditor, {localVue,
+    wrapper = mount(AcSampleEditor, {
+      localVue,
       store,
       vuetify,
-      propsData: {
-        product, productId: (product.x as Product).id, username: 'Fox', value: true, samples: samplesList},
-      attachToDocument: true,
-      sync: false,
+      propsData: {product, productId: (product.x as Product).id, username: 'Fox', value: true, samples: samplesList},
+      attachTo: docTarget(),
+
       stubs: ['router-link', 'ac-new-submission'],
     })
     const mock = jest.spyOn(wrapper.vm, '$emit')

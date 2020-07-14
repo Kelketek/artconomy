@@ -62,16 +62,22 @@ import {makeSpace} from '@/specs/helpers'
 export default class AcSubmissionSelect extends mixins(ExtendedInput) {
     @Prop()
     public list!: ListController<Submission>
+
     @Prop({required: true})
     public value!: Submission|number|null
+
     @Prop()
     public saveComparison!: Submission|null
+
     @Prop()
     public queryEndpoint!: string
+
     @Prop({default: false})
     public related!: boolean
+
     @Prop({default: false})
     public removable!: boolean
+
     public submissionList: ListController<Submission> = null as unknown as ListController<Submission>
     public loading: number|false = false
 

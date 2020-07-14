@@ -19,7 +19,7 @@ describe('shortcuts.ts', () => {
     vuetify = createVuetify()
     store = createStore()
     setViewer(store, fox)
-    vm = mount(ViewerComponent, {sync: false, vuetify, store, localVue}).vm
+    vm = mount(ViewerComponent, {vuetify, store, localVue}).vm
   })
   afterEach(() => {
     cleanUp()

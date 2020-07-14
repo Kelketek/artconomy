@@ -70,14 +70,18 @@ export default class AcCardManager extends mixins(Subjective, Alerts) {
     public cards: ListController<CreditCardToken> = null as unknown as ListController<CreditCardToken>
     @Prop({required: true})
     public ccForm!: FormController
+
     @Prop({default: true})
     public showSave!: boolean
+
     public countries: SingleController<Countries> = null as unknown as SingleController<Countries>
     public tab: string = ''
     @Prop({default: true})
     public fieldMode!: boolean
+
     @Prop()
     public value!: number|null
+
     public lastCard: null|number = null
 
     public created() {

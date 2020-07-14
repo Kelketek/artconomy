@@ -1,5 +1,5 @@
 import {genDeliverable, genRevision, genUser} from '@/specs/helpers/fixtures'
-import {cleanUp, createVuetify, flushPromises, rs, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, flushPromises, rs, setViewer, vueSetup} from '@/specs/helpers'
 import {mount, Wrapper} from '@vue/test-utils'
 import Router from 'vue-router'
 import {ArtStore, createStore} from '@/store'
@@ -8,7 +8,7 @@ import {Vuetify} from 'vuetify'
 import {deliverableRouter} from '@/components/views/order/specs/helpers'
 import DeliverableRevisions from '@/components/views/order/deliverable/DeliverableRevisions.vue'
 import {DeliverableStatus} from '@/types/DeliverableStatus'
-import mockAxios from '@/__mocks__/axios';
+import mockAxios from '@/__mocks__/axios'
 
 const localVue = vueSetup()
 localVue.use(Router)
@@ -39,8 +39,8 @@ describe('DeliverableRevisions.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
       })
     const vm = wrapper.vm as any
     const deliverable = genDeliverable()
@@ -65,8 +65,8 @@ describe('DeliverableRevisions.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
       })
     const vm = wrapper.vm as any
     const deliverable = genDeliverable()
@@ -94,8 +94,8 @@ describe('DeliverableRevisions.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
       })
     const vm = wrapper.vm as any
     const spySubmit = jest.spyOn(vm.newRevision, 'submitThen')
@@ -126,8 +126,8 @@ describe('DeliverableRevisions.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
         stubs: ['ac-revision-manager'],
       })
     const vm = wrapper.vm as any

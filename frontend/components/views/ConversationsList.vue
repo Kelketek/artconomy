@@ -8,14 +8,16 @@
           </v-col>
           <v-col cols="12">
             <ac-paginated :list="conversations" :auto-run="false" :track-pages="true">
-              <v-card v-slot="empty">
-                <v-card-text>
-                  <v-col class="text-center" >
-                    <p>You have no conversations at this time.</p>
-                    <v-btn color="primary" v-if="isCurrent" @click="showNew = true">Start a Conversation</v-btn>
-                  </v-col>
-                </v-card-text>
-              </v-card>
+              <template v-slot:empty>
+                <v-card>
+                  <v-card-text>
+                    <v-col class="text-center" >
+                      <p>You have no conversations at this time.</p>
+                      <v-btn color="primary" v-if="isCurrent" @click="showNew = true">Start a Conversation</v-btn>
+                    </v-col>
+                  </v-card-text>
+                </v-card>
+              </template>
               <template v-slot:default>
                 <v-col>
                   <v-list three-line>
@@ -83,7 +85,7 @@ export default class ConversationsList extends mixins(Subjective, Formatting) {
 
     public otherParticipants(participants: TerseUser[]) {
       return participants.filter(
-        (participant) => participant.username !== this.username
+        (participant) => participant.username !== this.username,
       )
     }
 

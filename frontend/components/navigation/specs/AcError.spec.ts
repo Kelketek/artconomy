@@ -20,18 +20,18 @@ describe('ac-error', () => {
   })
   it('Shows an error message.', async() => {
     wrapper = shallowMount(AcError, {
-      store, localVue, vuetify, sync: false,
+      store, localVue, vuetify,
     })
     store.commit('errors/setError', {response: {status: 500}})
     await wrapper.vm.$nextTick()
     expect(
-      wrapper.find('.error-container img').attributes().src).toBe('/static/images/500.png'
+      wrapper.find('.error-container img').attributes().src).toBe('/static/images/500.png',
     )
   })
   it('Clears out when error is removed', async() => {
     store.commit('errors/setError', {response: {status: 500}})
     wrapper = shallowMount(AcError, {
-      store, localVue, vuetify, sync: false,
+      store, localVue, vuetify,
     })
     store.commit('errors/clearError')
     await wrapper.vm.$nextTick()

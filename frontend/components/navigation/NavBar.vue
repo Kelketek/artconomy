@@ -163,7 +163,7 @@
 import {makeQueryParams} from '@/lib/lib'
 import Viewer from '../../mixins/viewer'
 import Component, {mixins} from 'vue-class-component'
-import {Watch} from 'vue-property-decorator'
+import {Prop, Watch} from 'vue-property-decorator'
 import AcSettingNav from './AcSettingNav.vue'
 import {User} from '@/store/profiles/types/User'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
@@ -181,13 +181,16 @@ let initDrawerValue: boolean|null = null
 if (startValue !== null) {
   initDrawerValue = JSON.parse(startValue) as boolean
 }
-  @Component({
-    components: {AcNavLinks, AcBoundField, AcPatchField, AcSettingNav},
-  })
+@Component({
+  components: {AcNavLinks, AcBoundField, AcPatchField, AcSettingNav},
+})
 export default class NavBar extends mixins(Viewer, Nav, PrerenderMixin) {
     @State('iFrame') public iFrame!: boolean
     public drawerStore: null|boolean = null
     public searchForm: FormController = null as unknown as FormController
+    @Prop({default: initDrawerValue})
+    public initialState!: null|boolean
+
     public discordPath = mdiDiscord
 
     public get loginLink() {
@@ -210,7 +213,7 @@ export default class NavBar extends mixins(Viewer, Nav, PrerenderMixin) {
         // Never begin with the drawer open on a small screen.
         this.drawer = false
       } else {
-        this.drawer = initDrawerValue
+        this.drawer = this.initialState
       }
     }
 
@@ -243,13 +246,6 @@ export default class NavBar extends mixins(Viewer, Nav, PrerenderMixin) {
       return {name: 'Profile', params: {username: viewer.username}}
     }
 
-    @Watch('drawer', {immediate: true})
-    public defaultDrawer(val: null|boolean) {
-      if (val === null) {
-        this.drawer = this.$vuetify.breakpoint.lgAndUp
-      }
-    }
-
     public get sfwMode() {
       return this.viewerHandler.user.patchers.sfw_mode
     }
@@ -260,9 +256,8 @@ export default class NavBar extends mixins(Viewer, Nav, PrerenderMixin) {
 
     public set drawer(val: boolean|null) {
       if (val === null) {
-        localStorage.removeItem('drawerOpen')
-        this.drawerStore = null
-        return
+        val = this.$vuetify.breakpoint.lgAndUp
+        this.drawerStore = this.$vuetify.breakpoint.lgAndUp
       }
       localStorage.setItem('drawerOpen', val + '')
       this.drawerStore = val

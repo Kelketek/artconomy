@@ -10,7 +10,7 @@
         </v-tooltip>
         <v-tooltip top v-else>
           <template v-slot:activator="{on}">
-            <v-icon>palette</v-icon>
+            <v-icon v-on="on">palette</v-icon>
           </template>
           Artists
         </v-tooltip>
@@ -61,9 +61,11 @@ import AcBoundField from '@/components/fields/AcBoundField'
 export default class AcArtistDisplay extends Vue {
     @Prop({required: true})
     public controller!: ListController<TerseUser>
+
     public tagArtist: FormController = null as unknown as FormController
     @Prop({required: true})
     public submissionId!: number
+
     public toggle = false
     @Prop({required: true})
     public editable!: boolean

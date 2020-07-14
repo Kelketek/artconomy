@@ -16,7 +16,8 @@ from django.db.models import (
     SET_NULL, PositiveIntegerField, URLField, CASCADE, DecimalField, Avg, DateField, EmailField, Sum,
     TextField,
     SlugField,
-    PROTECT, Count)
+    PROTECT,
+)
 
 # Create your models here.
 from django.db.models.signals import post_delete, post_save, pre_delete

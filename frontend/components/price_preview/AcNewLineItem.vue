@@ -40,6 +40,7 @@ import {LineTypes} from '@/types/LineTypes'
 export default class AcNewLineItem extends Vue {
   @Prop({required: true})
   public form!: FormController
+
   @Prop({required: true})
   public price!: number
 

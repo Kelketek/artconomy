@@ -21,6 +21,7 @@ export default class WatchList extends mixins(Subjective) {
   public watch: ListController<User> = null as unknown as ListController<User>
   @Prop({required: true})
   public endpoint!: string
+
   @Prop({required: true})
   public nameSpace!: string
 

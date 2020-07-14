@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import {Vuetify} from 'vuetify/types'
 import Router from 'vue-router'
-import {cleanUp, createVuetify, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import {mount, Wrapper} from '@vue/test-utils'
 import Search from '@/components/views/search/Search.vue'
@@ -73,16 +73,16 @@ describe('Search.vue', () => {
         }],
       }],
     })
-    searchForm = mount(Empty, {localVue, store, sync: false}).vm.$getForm('search', searchSchema())
+    searchForm = mount(Empty, {localVue, store}).vm.$getForm('search', searchSchema())
   })
   afterEach(() => {
     cleanUp(wrapper)
   })
   it('Mounts', () => {
-    wrapper = mount(Search, {localVue, store, vuetify, router, sync: false, attachToDocument: true})
+    wrapper = mount(Search, {localVue, store, vuetify, router, attachTo: docTarget()})
   })
   it('Tabs through each search option', async() => {
-    wrapper = mount(Search, {localVue, store, vuetify, router, sync: false, attachToDocument: true})
+    wrapper = mount(Search, {localVue, store, vuetify, router, attachTo: docTarget()})
     const routes = ['SearchProducts', 'SearchSubmissions', 'SearchCharacters', 'SearchProfiles']
     for (const [index, el] of wrapper.findAll('.v-item-group .v-btn').wrappers.entries()) {
       el.trigger('click')
@@ -93,14 +93,14 @@ describe('Search.vue', () => {
   it('Opens the default view', async() => {
     router.push({name: 'Search'})
     searchForm.fields.featured.update(true)
-    wrapper = mount(Search, {localVue, store, vuetify, router, sync: false, attachToDocument: true})
+    wrapper = mount(Search, {localVue, store, vuetify, router, attachTo: docTarget()})
     await wrapper.vm.$nextTick()
     expect(wrapper.vm.$route.name).toBe('SearchProducts')
   })
   it('Updates the route when the values change', async() => {
     // Need to start the fake timers here or else things get weird during the test.
     router.push({name: 'SearchProducts'})
-    wrapper = mount(SearchProducts, {localVue, store, router, sync: false, attachToDocument: true})
+    wrapper = mount(SearchProducts, {localVue, store, router, attachTo: docTarget()})
     const vm = wrapper.vm as any
     const mockUpdate = jest.spyOn(vm, 'debouncedUpdate')
     mockUpdate.mockImplementation(vm.rawUpdate)

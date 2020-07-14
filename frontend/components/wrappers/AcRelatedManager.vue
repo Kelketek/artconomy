@@ -27,6 +27,7 @@ import {SingleController} from '@/store/singles/controller'
 export default class AcRelatedManager extends Vue {
     @Prop({required: true})
     public listController!: ListController<any>
+
     @Prop({required: true})
     public fieldController!: FieldController
 

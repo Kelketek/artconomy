@@ -503,9 +503,9 @@ export default class ProductDetail extends mixins(ProductCentric, Formatting, Ed
       if (product.starting_price) {
         prefix = `[Starts at $${product.starting_price.toFixed(2)}] - `
       } else {
-        prefix = `[Starts at FREE] - `
+        prefix = '[Starts at FREE] - '
       }
-      let description = textualize(product.description).slice(0, 160 - prefix.length)
+      const description = textualize(product.description).slice(0, 160 - prefix.length)
       setMetaContent('description', prefix + description)
     }
 
@@ -650,7 +650,7 @@ export default class ProductDetail extends mixins(ProductCentric, Formatting, Ed
         const primary = this.product.x.primary_submission
         submissions = submissions.filter(
           (submission: SingleController<LinkedSubmission>) =>
-            submission.x && submission.x.submission.id !== primary.id
+            submission.x && submission.x.submission.id !== primary.id,
         )
       }
       return submissions.slice(0, 4)
@@ -675,7 +675,7 @@ export default class ProductDetail extends mixins(ProductCentric, Formatting, Ed
       this.samples = this.$getList(`product__${this.productId}__samples`, {endpoint: `${this.url}samples/`})
       this.samples.firstRun().catch(this.statusOk(404))
       this.recommended = this.$getList(
-        `product__${this.productId}__recommendations`, {endpoint: `${this.url}recommendations/`, pageSize: 12}
+        `product__${this.productId}__recommendations`, {endpoint: `${this.url}recommendations/`, pageSize: 12},
       )
       this.recommended.firstRun().catch(this.statusOk(404))
       this.subjectHandler.artistProfile.get().catch(this.setError)

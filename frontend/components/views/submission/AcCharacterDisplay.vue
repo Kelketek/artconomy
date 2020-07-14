@@ -10,7 +10,7 @@
         </v-tooltip>
         <v-tooltip top v-else>
           <template v-slot:activator="{on}">
-            <v-icon>people</v-icon>
+            <v-icon v-on="on">people</v-icon>
           </template>
           Characters
         </v-tooltip>
@@ -58,16 +58,20 @@ import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
 import AcBoundField from '@/components/fields/AcBoundField'
 import AcMiniCharacter from '@/components/AcMiniCharacter.vue'
 
-  @Component({components: {
-    AcMiniCharacter,
-    AcBoundField,
-    AcExpandedProperty,
-    AcAvatar,
-    AcRelatedManager,
-    AcLoadSection}})
+  @Component({
+    components: {
+      AcMiniCharacter,
+      AcBoundField,
+      AcExpandedProperty,
+      AcAvatar,
+      AcRelatedManager,
+      AcLoadSection,
+    },
+  })
 export default class AcCharacterDisplay extends Vue {
     @Prop({required: true})
     public controller!: ListController<TerseUser>
+
     public tagCharacter: FormController = null as unknown as FormController
     public toggle = false
     @Prop({required: true})

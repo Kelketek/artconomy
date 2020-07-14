@@ -16,8 +16,10 @@ import {ListController} from '@/store/lists/controller'
 export default class AcGrowSpinner extends Vue {
     @Prop({default: '3rem'})
     public minHeight!: string
+
     @Prop({required: true})
     public list!: ListController<any>
+
     public visible = false
 
     @Watch('list.fetching', {immediate: true})

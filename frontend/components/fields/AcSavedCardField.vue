@@ -31,6 +31,7 @@ import Vue from 'vue'
 export default class AcSavedCards extends Vue {
     @Prop({required: true})
     public cards!: ListController<CreditCardToken>
+
     @Prop({default: null})
     public value!: number
 

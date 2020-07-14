@@ -1,4 +1,4 @@
-import {cleanUp, createVuetify, flushPromises, rs, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, flushPromises, rs, setViewer, vueSetup} from '@/specs/helpers'
 import Router from 'vue-router'
 import {ArtStore, createStore} from '@/store'
 import {mount, Wrapper} from '@vue/test-utils'
@@ -39,8 +39,8 @@ describe('DeliverableReferences.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
       })
     const vm = wrapper.vm as any
     const spySubmit = jest.spyOn(vm.newReference, 'submitThen')

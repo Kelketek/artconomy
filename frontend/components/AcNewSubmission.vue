@@ -112,12 +112,16 @@ export default class AcNewSubmission extends mixins(Subjective, Upload) {
     // be prepopulated. There may be a better way to do this, but it should work for now.
     @Prop({default: true})
     public showCharacters!: boolean
+
     @Prop({default: () => []})
     public characterInitItems!: Character[]
+
     @Prop({default: ''})
     public title!: string
+
     @Prop({required: true})
     public value!: boolean
+
     public newUpload: FormController = null as unknown as FormController
 
     public get success() {

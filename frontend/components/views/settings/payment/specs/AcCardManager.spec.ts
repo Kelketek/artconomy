@@ -3,7 +3,7 @@ import {mount, Wrapper} from '@vue/test-utils'
 import AcCardManager from '@/components/views/settings/payment/AcCardManager.vue'
 import {Vuetify} from 'vuetify/types'
 import {ArtStore, createStore} from '@/store'
-import {cleanUp, createVuetify, flushPromises, rq, rs, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, flushPromises, rq, rs, setViewer, vueSetup} from '@/specs/helpers'
 import {ListController} from '@/store/lists/controller'
 import {CreditCardToken} from '@/types/CreditCardToken'
 import mockAxios from '@/__mocks__/axios'
@@ -36,8 +36,8 @@ describe('AcCardManager.vue', () => {
         localVue,
         store,
         vuetify,
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
         propsData: {username: 'Fox', ccForm},
       })
     cards = (wrapper.vm as any).cards
@@ -47,7 +47,7 @@ describe('AcCardManager.vue', () => {
   })
   it('Fetches the initial data', async() => {
     expect(mockAxios.get.mock.calls[0]).toEqual(
-      rq(`/api/sales/v1/account/Fox/cards/`, 'get', undefined, {cancelToken: expect.any(Object)})
+      rq('/api/sales/v1/account/Fox/cards/', 'get', undefined, {cancelToken: expect.any(Object)}),
     )
   })
   it('Updates the endpoint when the username is changed', async() => {

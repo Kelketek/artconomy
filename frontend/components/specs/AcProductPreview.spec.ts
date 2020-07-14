@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import {cleanUp, createVuetify, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, setViewer, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import {mount, Wrapper} from '@vue/test-utils'
 import {genProduct, genUser} from '@/specs/helpers/fixtures'
@@ -28,8 +28,8 @@ describe('AcProductPreview.ts', () => {
         vuetify,
         stubs: ['router-link'],
         propsData: {product: genProduct()},
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
       })
   })
 })

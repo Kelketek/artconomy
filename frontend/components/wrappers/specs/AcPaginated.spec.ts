@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import {mount, Wrapper} from '@vue/test-utils'
-import {cleanUp, createVuetify, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import {genSubmission} from '@/store/submissions/specs/fixtures'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
@@ -33,7 +33,7 @@ describe('AcPaginated.vue', () => {
     const paginatedList = mount(Empty, {
       localVue,
       store,
-      sync: false,
+
     }).vm.$getList('stuff', {endpoint: '/wat/'})
     const firstPage = []
     for (let i = 1; i <= 10; i++) {
@@ -57,14 +57,14 @@ describe('AcPaginated.vue', () => {
       store,
       vuetify,
       propsData: {list: paginatedList, autoRun: false},
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     expect(paginatedList.fetching).toBe(false)
   })
   it('Updates the router when changing pages', async() => {
     const paginatedList = mount(
-      Empty, {localVue, store}
+      Empty, {localVue, store},
     ).vm.$getList('stuff', {endpoint: '/wat/'})
     const firstPage = []
     for (let i = 1; i <= 10; i++) {
@@ -79,8 +79,8 @@ describe('AcPaginated.vue', () => {
       store,
       vuetify,
       propsData: {list: paginatedList, trackPages: true},
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
       mocks: {$router: router, $route: route},
     })
     paginatedList.currentPage = 2
@@ -89,7 +89,7 @@ describe('AcPaginated.vue', () => {
   })
   it('Does not update the router if told not to', async() => {
     const paginatedList = mount(
-      Empty, {localVue, store}
+      Empty, {localVue, store},
     ).vm.$getList('stuff', {endpoint: '/wat/'})
     const firstPage = []
     for (let i = 1; i <= 10; i++) {
@@ -104,8 +104,8 @@ describe('AcPaginated.vue', () => {
       store,
       vuetify,
       propsData: {list: paginatedList},
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
       mocks: {$router: router, $route: route},
     })
     paginatedList.currentPage = 2
@@ -114,7 +114,7 @@ describe('AcPaginated.vue', () => {
   })
   it('Loads the right page to start', async() => {
     const paginatedList = mount(
-      Empty, {localVue, store}
+      Empty, {localVue, store},
     ).vm.$getList('stuff', {endpoint: '/wat/'})
     // @ts-ignore
     route.query.page = '2'
@@ -123,8 +123,8 @@ describe('AcPaginated.vue', () => {
       store,
       vuetify,
       propsData: {list: paginatedList, trackPages: true},
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
       mocks: {$router: router, $route: route},
     })
     await wrapper.vm.$nextTick()

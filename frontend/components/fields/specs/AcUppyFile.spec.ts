@@ -2,7 +2,7 @@ import AcUppyFile from '../AcUppyFile.vue'
 import {Vuetify} from 'vuetify/types'
 import Vue from 'vue'
 import {mount, Wrapper} from '@vue/test-utils'
-import {cleanUp, createVuetify, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, vueSetup} from '@/specs/helpers'
 import flushPromises from 'flush-promises'
 import {UppyFile} from '@uppy/core'
 
@@ -21,8 +21,8 @@ describe('ac-uppy-file.vue', () => {
     wrapper = mount(AcUppyFile, {
       localVue,
       vuetify,
-      attachToDocument: true,
-      sync: false,
+      attachTo: docTarget(),
+
     })
     await flushPromises()
     expect((wrapper.vm as any).uppy).toBeTruthy()
@@ -31,8 +31,8 @@ describe('ac-uppy-file.vue', () => {
     wrapper = mount(AcUppyFile, {
       localVue,
       vuetify,
-      attachToDocument: true,
-      sync: false,
+      attachTo: docTarget(),
+
       propsData: {value: '123'},
     })
     await flushPromises()
@@ -46,8 +46,8 @@ describe('ac-uppy-file.vue', () => {
     wrapper = mount(AcUppyFile, {
       localVue,
       vuetify,
-      attachToDocument: true,
-      sync: false,
+      attachTo: docTarget(),
+
       propsData: {value: '123'},
     })
     await flushPromises()
@@ -62,8 +62,8 @@ describe('ac-uppy-file.vue', () => {
     wrapper = mount(AcUppyFile, {
       localVue,
       vuetify,
-      attachToDocument: true,
-      sync: false,
+      attachTo: docTarget(),
+
       propsData: {value: ''},
     })
     await flushPromises()
@@ -78,8 +78,8 @@ describe('ac-uppy-file.vue', () => {
     wrapper = mount(AcUppyFile, {
       localVue,
       vuetify,
-      attachToDocument: true,
-      sync: false,
+      attachTo: docTarget(),
+
       propsData: {value: '123', showClear: true},
     })
     await flushPromises()
@@ -91,13 +91,12 @@ describe('ac-uppy-file.vue', () => {
     wrapper = mount(AcUppyFile, {
       localVue,
       vuetify,
-      attachToDocument: true,
-      sync: false,
+      attachTo: docTarget(),
+
     })
     await wrapper.vm.$nextTick()
     const spyEmit = jest.spyOn(wrapper.vm, '$emit')
-    let file: UppyFile
-    file = {
+    const file = {
       data: new Blob(),
       extension: 'jpg',
       isRemote: false,
@@ -118,8 +117,8 @@ describe('ac-uppy-file.vue', () => {
     wrapper = mount(AcUppyFile, {
       localVue,
       vuetify,
-      attachToDocument: true,
-      sync: false,
+      attachTo: docTarget(),
+
       propsData: {success: mockSuccess},
     })
     await wrapper.vm.$nextTick() // Created
@@ -145,8 +144,8 @@ describe('ac-uppy-file.vue', () => {
     wrapper = mount(AcUppyFile, {
       localVue,
       vuetify,
-      attachToDocument: true,
-      sync: false,
+      attachTo: docTarget(),
+
       propsData: {errorMessages},
     })
     await wrapper.vm.$nextTick()
@@ -158,8 +157,8 @@ describe('ac-uppy-file.vue', () => {
     wrapper = mount(AcUppyFile, {
       localVue,
       vuetify,
-      attachToDocument: true,
-      sync: false,
+      attachTo: docTarget(),
+
       propsData: {errorMessages},
     })
     await wrapper.vm.$nextTick()

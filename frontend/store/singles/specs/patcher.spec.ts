@@ -5,7 +5,7 @@ import Patcher from '@/specs/helpers/dummy_components/patcher.vue'
 import PatcherBroken from '@/specs/helpers/dummy_components/patcher-broken.vue'
 import {createLocalVue, mount, shallowMount, Wrapper} from '@vue/test-utils'
 import flushPromises from 'flush-promises'
-import {rq, rs, setViewer} from '@/specs/helpers'
+import {docTarget, rq, rs, setViewer} from '@/specs/helpers'
 import {singleRegistry, Singles} from '@/store/singles/registry'
 import {Profiles} from '@/store/profiles/registry'
 import {ArtStore, createStore} from '@/store'
@@ -55,7 +55,7 @@ describe('Patcher', () => {
     expect(mockAxios.patch).toHaveBeenCalledTimes(1)
     const request = rq(
       '/api/profiles/v1/account/Fox/',
-      'patch', {sfw_mode: true}
+      'patch', {sfw_mode: true},
     )
     request[2].cancelToken = expect.any(Object)
     expect(mockAxios.patch).toHaveBeenCalledWith(...request)
@@ -66,7 +66,7 @@ describe('Patcher', () => {
       viewerType: VIEWER_TYPE.BUYER,
       showPayment: false,
       showAddSubmission: false,
-    });
+    })
     await wrapper.vm.$nextTick();
     (wrapper.vm as any).localShare.patchers.showPayment.model = true
     await wrapper.vm.$nextTick()
@@ -107,7 +107,7 @@ describe('Patcher', () => {
   })
   // Reactivity broken for test lib? This works in real application.
   // it('Properly reacts to upstream changes', async () => {
-  //   const wrapper = mount(Patcher, {localVue, sync: false, attachToDocument: true})
+  //   const wrapper = mount(Patcher, {localVue, attachTo: docTarget()})
   //   expect(wrapper.find('#sfw_mode').text()).toBe('false');
   //   (wrapper.vm as any).subject.sfw_mode = true
   //   await wrapper.vm.$nextTick()
@@ -124,7 +124,7 @@ describe('Patcher', () => {
   })
   it('Alerts us when setting a field on a nonsense model on a patcher', async() => {
     mockWarn.mockImplementationOnce(() => undefined)
-    wrapper = shallowMount(PatcherBroken, {localVue, store, sync: false, attachToDocument: true})
+    wrapper = shallowMount(PatcherBroken, {localVue, store, attachTo: docTarget()})
     mockError.mockImplementationOnce(() => undefined)
     expect((wrapper.vm as any).sfwMode.model).toBe(undefined);
     (wrapper.vm as any).sfwMode.model = true
@@ -134,14 +134,14 @@ describe('Patcher', () => {
   })
   it('Alerts us if we are trying to get a property which does not exist', async() => {
     mockError.mockImplementationOnce(() => undefined)
-    wrapper = shallowMount(PatcherNonExist, {localVue, store, sync: false, attachToDocument: true})
+    wrapper = shallowMount(PatcherNonExist, {localVue, store, attachTo: docTarget()})
     expect((wrapper.vm as any).maxLoad.model).toBe(undefined)
     expect(mockError).toHaveBeenCalledWith(
-      `"max_load" is undefined on model "subjectHandler.user"`)
+      '"max_load" is undefined on model "subjectHandler.user"')
   })
   it('Alerts us if we are trying to set a property which does not exist', async() => {
     mockError.mockImplementationOnce(() => undefined)
-    wrapper = shallowMount(PatcherNonExist, {localVue, store, sync: false, attachToDocument: true})
+    wrapper = shallowMount(PatcherNonExist, {localVue, store, attachTo: docTarget()})
     mockError.mockClear()
     mockError.mockImplementationOnce(() => undefined);
     (wrapper.vm as any).maxLoad.model = 100
@@ -150,7 +150,7 @@ describe('Patcher', () => {
     expect(mockError).toHaveBeenCalledWith(Error('Cannot set undefined key on model: max_load'))
   })
   it('Stores errors for the field', async() => {
-    wrapper = mount(Patcher, {localVue, store, sync: false, attachToDocument: true});
+    wrapper = mount(Patcher, {localVue, store, attachTo: docTarget()});
     (wrapper.vm as any).sfwMode.model = true
     await flushPromises()
     jest.runAllTimers()
@@ -160,7 +160,7 @@ describe('Patcher', () => {
     expect((wrapper.vm as any).sfwMode.errors).toEqual(['Porn is essential!'])
   })
   it('Stores errors for server errors', async() => {
-    wrapper = mount(Patcher, {localVue, store, sync: false, attachToDocument: true});
+    wrapper = mount(Patcher, {localVue, store, attachTo: docTarget()});
     (wrapper.vm as any).sfwMode.model = true
     await flushPromises()
     jest.runAllTimers()
@@ -169,7 +169,7 @@ describe('Patcher', () => {
     expect((wrapper.vm as any).sfwMode.errors).toEqual(['Nope.'])
   })
   it('Stores an error if we do not know what happened', async() => {
-    wrapper = mount(Patcher, {localVue, store, sync: false, attachToDocument: true});
+    wrapper = mount(Patcher, {localVue, store, attachTo: docTarget()});
     (wrapper.vm as any).sfwMode.model = true
     await flushPromises()
     jest.runAllTimers()
@@ -178,11 +178,11 @@ describe('Patcher', () => {
     await flushPromises()
     // deriveErrors will also call it.
     expect((wrapper.vm as any).sfwMode.errors).toEqual(
-      ['We had an issue contacting the server. Please try again later!']
+      ['We had an issue contacting the server. Please try again later!'],
     )
   })
   it('Stores an error if the server times out', async() => {
-    wrapper = mount(Patcher, {localVue, store, sync: false, attachToDocument: true});
+    wrapper = mount(Patcher, {localVue, store, attachTo: docTarget()});
     (wrapper.vm as any).sfwMode.model = true
     await flushPromises()
     jest.runAllTimers()
@@ -191,13 +191,13 @@ describe('Patcher', () => {
     await flushPromises()
     // deriveErrors will also call it.
     expect((wrapper.vm as any).sfwMode.errors).toEqual(
-      ['Timed out or aborted. Please try again or contact support!']
+      ['Timed out or aborted. Please try again or contact support!'],
     )
   })
   it('Ignores axios cancel errors', () => {
     mockError.mockClear()
     mockTrace.mockClear()
-    wrapper = mount(Patcher, {localVue, store, sync: false, attachToDocument: true})
+    wrapper = mount(Patcher, {localVue, store, attachTo: docTarget()})
     errorSend((wrapper.vm as any).sfwMode)({config: {}, __CANCEL__: true} as unknown as AxiosError)
     expect(mockTrace).not.toHaveBeenCalled()
     expect(mockError).not.toHaveBeenCalled()

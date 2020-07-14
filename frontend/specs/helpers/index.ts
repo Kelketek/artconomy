@@ -1,8 +1,8 @@
 /* istanbul ignore file */
 import {AxiosRequestConfig, AxiosResponse} from 'axios'
-import {csrfSafeMethod, getCookie, saneNav} from '@/lib/lib'
+import {csrfSafeMethod, genId, getCookie, saneNav} from '@/lib/lib'
 import {createLocalVue, mount, Wrapper} from '@vue/test-utils'
-import Vue, {VueConstructor} from 'vue'
+import Vue, {CreateElement, VueConstructor} from 'vue'
 import {FieldController} from '@/store/forms/field-controller'
 import {FieldBank} from '@/store/forms/form-controller'
 import flushPromisesUpstream from 'flush-promises'
@@ -33,6 +33,7 @@ import {ArtStore} from '@/store'
 import Router from 'vue-router'
 import {HttpVerbs} from '@/store/forms/types/HttpVerbs'
 import {Shortcuts} from '@/plugins/shortcuts'
+import {useRealStorage} from '@/lib/specs/helpers'
 
 export interface ExtraData {
   status?: number,
@@ -108,11 +109,11 @@ export function setViewer(store: Store<any>, user: User|AnonUser|TerseUser) {
   store.registerModule(pathFor(username), new ProfileModule({viewer: true}))
   store.registerModule(
     userPathFor(username),
-    new SingleModule<User|AnonUser|TerseUser>({x: user, endpoint: endpointFor(username)})
+    new SingleModule<User|AnonUser|TerseUser>({x: user, endpoint: endpointFor(username)}),
   )
   store.registerModule(
     artistProfilePathFor(username),
-    new SingleModule<User|AnonUser|TerseUser>({x: null, endpoint: artistProfileEndpointFor(username)})
+    new SingleModule<User|AnonUser|TerseUser>({x: null, endpoint: artistProfileEndpointFor(username)}),
   )
   store.commit('profiles/setViewerUsername', username)
   store.commit(`userModules/${username}/user/setReady`, true)
@@ -195,6 +196,7 @@ export function cleanUp(wrapper?: Wrapper<Vue>) {
   listRegistry.reset()
   formRegistry.reset()
   characterRegistry.reset()
+  useRealStorage()
 }
 
 export function setPricing(store: ArtStore, localVue: VueConstructor<Vue>) {
@@ -225,3 +227,18 @@ export async function sleep(fn: Function, ms: number, ...args: any[]) {
   await timeout(ms)
   return fn(...args)
 }
+
+export function docTarget() {
+  const rootDiv = document.createElement('div')
+  rootDiv.setAttribute('id', genId())
+  document.querySelector('body')!.appendChild(rootDiv)
+  return rootDiv
+}
+
+export const transitionStub = () => ({
+  // @ts-ignore
+  render: function(h) {
+    // @ts-ignore
+    return h('div', {children: this.$options._renderChildren})
+  },
+})

@@ -30,7 +30,7 @@ import Subjective from '@/mixins/subjective'
   components: {AcAvatar},
 })
 export default class AcProductSelect extends mixins(Autocomplete, Subjective) {
-  public url = `/api/sales/v1/search/product/mine/`
+  public url = '/api/sales/v1/search/product/mine/'
   public formatName(item: Product) {
     /* istanbul ignore if */
     if (Array.isArray(item)) {
@@ -39,6 +39,7 @@ export default class AcProductSelect extends mixins(Autocomplete, Subjective) {
     }
     return `${item.name} starting at $${item.starting_price.toFixed(2)}`
   }
+
   public created() {
     this.url = `/api/sales/v1/search/product/${this.username}/`
   }

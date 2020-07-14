@@ -87,26 +87,27 @@ export class CharacterController extends BaseController<CharacterModuleOpts, Cha
     this.setEndpoints()
     this.updateRoute(newName, oldName)
   }
+
   public created() {
     this.register()
     const baseEndpoint = characterEndpoint(this.attr('username'), this.attr('characterName'))
     Vue.set(this, 'profile', this.$getSingle(
-      this.path.concat(['profile']).join('/'), {endpoint: ''}
+      this.path.concat(['profile']).join('/'), {endpoint: ''},
     ))
     Vue.set(this, 'attributes', this.$getList(
-      this.path.concat(['attributes']).join('/'), {endpoint: '', paginated: false}
+      this.path.concat(['attributes']).join('/'), {endpoint: '', paginated: false},
     ))
     Vue.set(this, 'colors', this.$getList(
-      this.path.concat(['colors']).join('/'), {endpoint: '', paginated: false}
+      this.path.concat(['colors']).join('/'), {endpoint: '', paginated: false},
     ))
     Vue.set(this, 'submissions', this.$getList(
-      this.path.concat(['submissions']).join('/'), {endpoint: ''}
+      this.path.concat(['submissions']).join('/'), {endpoint: ''},
     ))
     Vue.set(this, 'sharedWith', this.$getList(
-      this.path.concat(['sharedWith']).join('/'), {endpoint: '', paginated: false}
+      this.path.concat(['sharedWith']).join('/'), {endpoint: '', paginated: false},
     ))
     Vue.set(this, 'recommended', this.$getList(
-      this.path.concat(['recommended']).join('/'), {endpoint: '', pageSize: 6}
+      this.path.concat(['recommended']).join('/'), {endpoint: '', pageSize: 6},
     ))
     this.setEndpoints()
   }

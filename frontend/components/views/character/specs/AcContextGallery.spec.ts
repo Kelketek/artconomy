@@ -33,8 +33,8 @@ describe('AcContextGallery.vue', () => {
         propsData: {username: 'Fox', characterName: 'Kai'},
         mocks: {$route: {name: 'Character', params: {username: 'Fox', characterName: 'Kai'}, query: {}}},
         stubs: ['router-link'],
-        sync: false,
-      }
+
+      },
     )
     const vm = wrapper.vm as any
     const character = genCharacter()

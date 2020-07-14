@@ -80,14 +80,19 @@ import {RawData} from '@/store/forms/types/RawData'
 export default class AcNewComment extends mixins(Viewer, Formatting) {
     @Prop({required: true})
     public commentList!: ListController<Comment>
+
     @Prop({default: false})
     public alternate!: boolean
+
     @Prop({default: false})
     public value!: boolean
+
     @Prop({default: false})
     public guestOk!: boolean
+
     @Prop({default: () => ({})})
     public extraData!: RawData
+
     public newCommentForm: FormController = null as unknown as FormController
 
     public get color() {

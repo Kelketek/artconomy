@@ -72,8 +72,10 @@ import {Fragment} from 'vue-fragment'
 export default class AcConfirmation extends Vue {
     @Prop({required: true})
     private action!: () => Promise<any>
+
     @Prop()
     private cardClass!: string
+
     private showModal: boolean = false
     private sending: boolean = false
 
@@ -86,6 +88,7 @@ export default class AcConfirmation extends Vue {
       event.stopPropagation()
       this.showModal = true
     }
+
     private submit() {
       this.sending = true
       const promise = this.action()

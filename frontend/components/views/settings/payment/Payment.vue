@@ -11,7 +11,7 @@ import Component, {mixins} from 'vue-class-component'
 import Subjective from '@/mixins/subjective'
 import {FormController} from '@/store/forms/form-controller'
 
-  @Component
+@Component
 export default class Payment extends mixins(Subjective) {
     public ccForm: FormController = null as unknown as FormController
     public created() {

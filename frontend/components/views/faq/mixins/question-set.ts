@@ -34,9 +34,11 @@ export default class QuestionSet extends Vue {
       target.scrollIntoView({block: 'center', behavior: 'smooth'})
     })
   }
+
   public mounted() {
     this.scrollToQuestion()
   }
+
   public created() {
     this.pricing = this.$getSingle('pricing', {endpoint: '/api/sales/v1/pricing-info/'})
     this.pricing.get().then()

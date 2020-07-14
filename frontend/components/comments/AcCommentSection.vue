@@ -62,20 +62,28 @@ import {RawData} from '@/store/forms/types/RawData'
 export default class AcCommentSection extends mixins(Viewer) {
     @Prop({default: false})
     public nesting!: boolean
+
     @Prop()
     public parent!: SingleController<Comment>
+
     @Prop({default: false})
     public locked!: boolean
+
     @Prop({default: false})
     public guestOk!: boolean
+
     @Prop({default: false})
     public showHistory!: boolean
+
     @Prop({default: false})
     public inHistory!: boolean
+
     @Prop({default: false})
     public hardFail!: boolean
+
     @Prop({default: () => ({})})
     public extraData!: RawData
+
     @Prop({required: true})
     public commentList!: ListController<Comment>
 

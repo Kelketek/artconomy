@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import {cleanUp, createVuetify, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, setViewer, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import {mount, Wrapper} from '@vue/test-utils'
 import {genGuest, genOrder, genUser} from '@/specs/helpers/fixtures'
@@ -20,7 +20,7 @@ describe('AcOrderPreview.ts', () => {
     store = createStore()
     vuetify = createVuetify()
     setViewer(store, genUser())
-    order = mount(Empty, {localVue, store, sync: false}).vm.$getSingle('order', {endpoint: '#', x: genOrder()})
+    order = mount(Empty, {localVue, store}).vm.$getSingle('order', {endpoint: '#', x: genOrder()})
   })
   afterEach(() => {
     cleanUp(wrapper)
@@ -33,8 +33,8 @@ describe('AcOrderPreview.ts', () => {
         vuetify,
         stubs: ['router-link'],
         propsData: {order, username: 'Fox', type: 'Sale'},
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
       })
     const vm = wrapper.vm as any
     expect(vm.isBuyer).toBe(true)
@@ -53,8 +53,8 @@ describe('AcOrderPreview.ts', () => {
         vuetify,
         stubs: ['router-link'],
         propsData: {order, username: 'Fox', type: 'Sale'},
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
       })
     const vm = wrapper.vm as any
     expect(vm.isBuyer).toBe(null)
@@ -69,8 +69,8 @@ describe('AcOrderPreview.ts', () => {
         vuetify,
         stubs: ['router-link'],
         propsData: {order, username: 'Fox', type: 'Sale'},
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
       })
     const vm = wrapper.vm as any
     expect(vm.isBuyer).toBe(false)

@@ -54,7 +54,7 @@ describe('artCall', () => {
     expect(mockAxios.get).toHaveBeenCalledWith(
       '/test/location/',
       {test: 'data'},
-      {headers: {'Content-Type': 'application/json; charset=utf-8'}}
+      {headers: {'Content-Type': 'application/json; charset=utf-8'}},
     )
     mockAxios.mockResponse({data: {successful: 'call'}})
     expect(thenFn).toHaveBeenCalledWith({successful: 'call'})
@@ -67,7 +67,7 @@ describe('artCall', () => {
     expect(mockAxios.post).toHaveBeenCalledWith(
       '/test/location2/',
       {test: 'data2'},
-      {headers: {'Content-Type': 'application/json; charset=utf-8'}}
+      {headers: {'Content-Type': 'application/json; charset=utf-8'}},
     )
     mockAxios.mockResponse({data: {successful: 'call2'}})
     expect(thenFn).toHaveBeenCalledWith({successful: 'call2'})
@@ -78,7 +78,7 @@ describe('artCall', () => {
     artCall({url: '/test/location2/', method: 'post', data: {test: 'data2'}, preSuccess}).then()
     mockAxios.mockResponse({status: 205, data: {test: 'thing'}})
     expect(preSuccess).toHaveBeenCalledWith(
-      {config: {}, data: {test: 'thing'}, headers: {}, status: 205, statusText: 'OK'}
+      {config: {}, data: {test: 'thing'}, headers: {}, status: 205, statusText: 'OK'},
     )
   })
 })
@@ -90,8 +90,8 @@ describe('Filenname modifiers', () => {
     ${'test'}              | ${'TEST'}
     ${'test.JPG'}          | ${'JPG'}
   `('should derive the extension $extension from $filename.', ({filename, extension}) => {
-  expect(getExt(filename)).toBe(extension)
-})
+    expect(getExt(filename)).toBe(extension)
+  })
   it.each`
     filename               | result
     ${'test.exe'}          | ${false}
@@ -104,9 +104,9 @@ describe('Filenname modifiers', () => {
     ${'test.png'}          | ${true}
     ${'test.GIF'}          | ${true}
   `('should decide that file name $filename refers to an image is $result.',
-  ({filename, result}) => {
-    expect(isImage(filename)).toBe(result)
-  })
+    ({filename, result}) => {
+      expect(isImage(filename)).toBe(result)
+    })
   it.each`
     filename               | result
     ${'test'}              | ${'/static/icons/UN.KNOWN.png'}
@@ -116,9 +116,9 @@ describe('Filenname modifiers', () => {
     ${'test.jpEg'}         | ${'/static/icons/JPEG.png'}
     ${'test.doc'}          | ${'/static/icons/DOC.png'}
   `('should should produce the correct extension preview path for $filename.',
-  ({filename, result}) => {
-    expect(extPreview(filename)).toBe(result)
-  })
+    ({filename, result}) => {
+      expect(extPreview(filename)).toBe(result)
+    })
   it.each`
     markdown               | text
     ${'test'}              | ${'test'}
@@ -127,9 +127,9 @@ describe('Filenname modifiers', () => {
     ${''}                  | ${''}
     ${'1. First'}          | ${'First'}
   `('should reduce $markdown to $text.',
-  ({markdown, text}) => {
-    expect(textualize(markdown)).toBe(text)
-  })
+    ({markdown, text}) => {
+      expect(textualize(markdown)).toBe(text)
+    })
 })
 describe('Meta tag managers', () => {
   it('Sets arbitrary meta tags', () => {
@@ -190,7 +190,7 @@ describe('Enumerators', () => {
         {text: 'Clean/Safe', value: '0'}, {text: 'Risque', value: '1'},
         {text: 'Adult content', value: '2'},
         {text: 'Offensive/Disturbing', value: '3'},
-      ]
+      ],
     )
   })
   it('Generates a set of rating options', () => {
@@ -212,7 +212,7 @@ describe('Enumerators', () => {
     wrapper = shallowMount(Empty, {localVue, store})
     const handler = wrapper.vm.$getProfile('person', {})
     expect(newUploadSchema(handler.user)).toEqual({
-      endpoint: `/api/profiles/v1/account/person/submissions/`,
+      endpoint: '/api/profiles/v1/account/person/submissions/',
       fields: {
         title: {value: '', step: 2},
         caption: {value: '', step: 2},
@@ -233,19 +233,19 @@ describe('HTTP Helpers', () => {
     setCookie('csrftoken', 'Stuff')
     setCookie('referredBy', 'Jimmy')
     expect(getHeaders('post', '/test/')).toEqual(
-      {'Content-Type': 'application/json; charset=utf-8', 'X-CSRFToken': 'Stuff', 'X-Referred-By': 'Jimmy'}
+      {'Content-Type': 'application/json; charset=utf-8', 'X-CSRFToken': 'Stuff', 'X-Referred-By': 'Jimmy'},
     )
   })
   it('Constructs the appropriate headers for an outside POST request', () => {
     setCookie('csrftoken', 'Stuff')
     expect(getHeaders('post', 'https://example.com/')).toEqual(
-      {'Content-Type': 'application/json; charset=utf-8'}
+      {'Content-Type': 'application/json; charset=utf-8'},
     )
   })
   it('Constructs the appropriate headers for a GET request', () => {
     setCookie('csrftoken', 'Stuff')
     expect(getHeaders('get', '/test/')).toEqual(
-      {'Content-Type': 'application/json; charset=utf-8'}
+      {'Content-Type': 'application/json; charset=utf-8'},
     )
   })
   it.each`
@@ -255,9 +255,9 @@ describe('HTTP Helpers', () => {
     ${window.location}       | ${false}
     ${'/'}                   | ${false}
   `('should determine the cross-domain status of $url to be $result.',
-  ({url, result}) => {
-    expect(crossDomain(url)).toBe(result)
-  })
+    ({url, result}) => {
+      expect(crossDomain(url)).toBe(result)
+    })
   it.each`
     method       | result
     ${'get'}     | ${true}
@@ -270,8 +270,8 @@ describe('HTTP Helpers', () => {
     ${'deLEte'}  | ${false}
     ${'unknown'} | ${false}
   `('Should determine the CSRF safety of method $method to be $result', ({method, result}) => {
-  expect(csrfSafeMethod(method)).toBe(result)
-})
+    expect(csrfSafeMethod(method)).toBe(result)
+  })
   it('Sets a cookie', () => {
     setCookie('test', 'value')
     expect(getCookie('test')).toBe('value')
@@ -306,7 +306,7 @@ describe('Formatters', () => {
   })
   it('Does not truncate text that is under the limit', () => {
     expect(truncateText('This is a test string. It is 49 characters long.', 50)).toBe(
-      'This is a test string. It is 49 characters long.'
+      'This is a test string. It is 49 characters long.',
     )
   })
   it('Truncates text that is over the limit', () => {
@@ -317,12 +317,12 @@ describe('Formatters', () => {
   })
   it('Does not truncate text mid-word if it can be avoided', () => {
     expect(truncateText('This is a test string. It is 49 characters long.', 12)).toBe(
-      'This is a...'
+      'This is a...',
     )
   })
   it('Truncates mid-word if it has no other choice', () => {
     expect(truncateText('This is a test string. It is 49 characters long.', 2)).toBe(
-      'Th...'
+      'Th...',
     )
   })
   it.each`
@@ -333,8 +333,8 @@ describe('Formatters', () => {
     ${10000000000}   | ${'9.31 GB'}
     ${10000000000000}| ${'9.09 TB'}
   `('Makes the byte size $size human readable as $result', ({size, result}) => {
-  expect(formatSize(size)).toBe(result)
-})
+    expect(formatSize(size)).toBe(result)
+  })
   it('Renders markdown with links', () => {
     expect(md.render(`# Hello there.
 
@@ -380,11 +380,11 @@ Here's an email: support@artconomy.com`)).toBe(`<h1>Hello there.</h1>
   })
   it('Renders markdown with Avatars', () => {
     expect(md.render(
-      `Hello, @Foxie. Is this @Vulpine creature as cu@te @ as I'd hope? Maybe @Fox's tricks will tell us.`)).toBe(
-      `<p>Hello, <span style="display:inline-block;vertical-align: bottom;"><ac-avatar username="Foxie">` +
-      `</ac-avatar></span>. Is this <span style="display:inline-block;vertical-align: bottom;">` +
-      `<ac-avatar username="Vulpine"></ac-avatar></span> creature as cu@te @ as I'd hope? Maybe ` +
-      `<span style="display:inline-block;vertical-align: bottom;">` +
+      'Hello, @Foxie. Is this @Vulpine creature as cu@te @ as I\'d hope? Maybe @Fox\'s tricks will tell us.')).toBe(
+      '<p>Hello, <span style="display:inline-block;vertical-align: bottom;"><ac-avatar username="Foxie">' +
+      '</ac-avatar></span>. Is this <span style="display:inline-block;vertical-align: bottom;">' +
+      '<ac-avatar username="Vulpine"></ac-avatar></span> creature as cu@te @ as I\'d hope? Maybe ' +
+      '<span style="display:inline-block;vertical-align: bottom;">' +
       `<ac-avatar username="Fox"></ac-avatar></span>'s tricks will tell us.</p>
 `)
   })
@@ -395,8 +395,8 @@ Here's an email: support@artconomy.com`)).toBe(`<h1>Hello there.</h1>
     ${'stuff.wut'}                  | ${'stuff_wut'}
     ${'this.thing/is/quite.nested'} | ${'this_thing_is_quite_nested'}
   `('Should flatten $input into $result', ({input, result}) => {
-  expect(flatten(input)).toBe(result)
-})
+    expect(flatten(input)).toBe(result)
+  })
   it.each`
   userList                       | additional    | result
   ${['user1', 'user2', 'user3']} | ${0}          | ${'user1, user2, and user3'}
@@ -405,8 +405,8 @@ Here's an email: support@artconomy.com`)).toBe(`<h1>Hello there.</h1>
   ${['user1', 'user2']}          | ${0}          | ${'user1 and user2'}
   ${['user1']}                   | ${0}          | ${'user1'}
   `('Should format a posse', ({userList, additional, result}) => {
-  expect(posse(userList, additional)).toEqual(result)
-})
+    expect(posse(userList, additional)).toEqual(result)
+  })
   it.each`
   userName         | result
   ${'_'}           | ${''}
@@ -415,16 +415,16 @@ Here's an email: support@artconomy.com`)).toBe(`<h1>Hello there.</h1>
   ${null}          | ${''}
   ${'__deleted45'} | ${'[deleted]'}
   `('Should format a display name based on a username', ({userName, result}) => {
-  expect(deriveDisplayName(userName)).toBe(result)
-})
+    expect(deriveDisplayName(userName)).toBe(result)
+  })
   it.each`
   userName       | result
   ${'Guest #5'}  | ${true}
   ${'__5'}       | ${true}
   ${'Fox'}       | ${false}
   `('Can determine whether a username belongs to a guest account', ({userName, result}) => {
-  expect(guestName(userName)).toBe(result)
-})
+    expect(guestName(userName)).toBe(result)
+  })
 })
 
 describe('Path helpers', () => {
@@ -436,8 +436,8 @@ describe('Path helpers', () => {
     ${[null]}            | ${''}
     ${null}              | ${''}
   `('Should derive $result from query param set $paramSet', ({paramSet, result}) => {
-  expect(singleQ(paramSet)).toBe(result)
-})
+    expect(singleQ(paramSet)).toBe(result)
+  })
 })
 
 describe('Tab manager', () => {
@@ -508,7 +508,7 @@ describe('dotTraverse', () => {
   })
   it('Raises an exception if the path does not exist', () => {
     expect(() => dotTraverse(item, 'thing.stuff.org.wat')).toThrow(
-      Error(`Property thing.stuff.org is not defined.`)
+      Error('Property thing.stuff.org is not defined.'),
     )
   })
   it('Returns undefined if silenced and the path does not exist', () => {

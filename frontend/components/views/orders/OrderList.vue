@@ -42,8 +42,10 @@ import AcBoundField from '@/components/fields/AcBoundField'
 export default class OrderList extends mixins(Subjective, SearchField) {
     @Prop({required: true})
     public type!: string
+
     @Prop({required: true})
     public category!: string
+
     public list: ListController<Order> = null as unknown as ListController<Order>
     public debouncedUpdate!: ((newData: RawData) => void) & Cancelable
     public searchForm: FormController = null as unknown as FormController

@@ -33,10 +33,10 @@ export default class FAQ extends mixins(Viewer) {
 
   public created() {
     this.pricing = this.$getSingle('pricing', {endpoint: '/api/sales/v1/pricing-info/'})
-    updateTitle(`Frequently Asked Questions -- Artconomy`)
+    updateTitle('Frequently Asked Questions -- Artconomy')
     setMetaContent(
       'description',
-      'Learn how Artconomy works, how to buy art safely online, and how to make money selling your art!'
+      'Learn how Artconomy works, how to buy art safely online, and how to make money selling your art!',
     )
     if (this.$route.name === 'FAQ') {
       this.$router.replace({name: 'About'})

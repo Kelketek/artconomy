@@ -183,7 +183,7 @@ export class FormController extends BaseController<NamelessFormSchema, FormState
       this.fields,
       mutation.payload.field.name,
       new FieldController(
-        {store: this.$store, propsData: {formName: this.name, fieldName: mutation.payload.field.name}})
+        {store: this.$store, propsData: {formName: this.name, fieldName: mutation.payload.field.name}}),
     )
   }
 

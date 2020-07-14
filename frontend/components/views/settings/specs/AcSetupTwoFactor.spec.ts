@@ -1,7 +1,17 @@
 import {mount, Wrapper} from '@vue/test-utils'
 import {Vuetify} from 'vuetify/types'
 import Vue from 'vue'
-import {cleanUp, createVuetify, flushPromises, rq, rs, setViewer, vueSetup, vuetifySetup} from '@/specs/helpers'
+import {
+  cleanUp,
+  createVuetify,
+  docTarget,
+  flushPromises,
+  rq,
+  rs,
+  setViewer,
+  vueSetup,
+  vuetifySetup,
+} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import AcSetupTwoFactor from '../AcSetupTwoFactor.vue'
 import mockAxios from '@/__mocks__/axios'
@@ -26,13 +36,13 @@ describe('ac-setup-two-factor', () => {
   it('Fetches the relevant 2FA data', async() => {
     mount(AcSetupTwoFactor, {localVue, store, vuetify, propsData: {username: 'Fox'}})
     expect(mockAxios.get).toHaveBeenCalledWith(
-      ...rq('/api/profiles/v1/account/Fox/auth/two-factor/tg/', 'get')
+      ...rq('/api/profiles/v1/account/Fox/auth/two-factor/tg/', 'get'),
     )
     expect(mockAxios.get).toHaveBeenCalledWith(...rq(
       '/api/profiles/v1/account/Fox/auth/two-factor/totp/',
       'get',
       undefined,
-      {params: {page: 1, size: 24}, cancelToken: expect.any(Object)})
+      {params: {page: 1, size: 24}, cancelToken: expect.any(Object)}),
     )
   })
   it('Handles a missing Telegram 2FA', async() => {
@@ -53,15 +63,15 @@ describe('ac-setup-two-factor', () => {
     mockError.mockImplementationOnce(() => undefined)
     wrapper = mount(AcSetupTwoFactor, {localVue, store, vuetify, propsData: {username: 'Fox'}})
     const vm = wrapper.vm as any
-    expect(vm.url).toBe(`/api/profiles/v1/account/Fox/auth/two-factor/`)
+    expect(vm.url).toBe('/api/profiles/v1/account/Fox/auth/two-factor/')
     wrapper.setProps({username: 'Vulpes'})
-    expect(vm.url).toBe(`/api/profiles/v1/account/Vulpes/auth/two-factor/`)
+    expect(vm.url).toBe('/api/profiles/v1/account/Vulpes/auth/two-factor/')
   })
   it('Creates a Telegram Device', async() => {
     setViewer(store, genUser())
     wrapper = mount(
       AcSetupTwoFactor,
-      {localVue, store, vuetify, propsData: {username: 'Fox'}, sync: false, attachToDocument: true}
+      {localVue, store, vuetify, propsData: {username: 'Fox'}, attachTo: docTarget()},
     )
     const vm = wrapper.vm as any
     mockAxios.mockResponse(rs({results: [], count: 0, size: 0}))
@@ -70,14 +80,14 @@ describe('ac-setup-two-factor', () => {
     await wrapper.vm.$nextTick()
     wrapper.find('.setup-telegram').trigger('click')
     expect(mockAxios.put).toHaveBeenCalledWith(
-      ...rq('/api/profiles/v1/account/Fox/auth/two-factor/tg/', 'put')
+      ...rq('/api/profiles/v1/account/Fox/auth/two-factor/tg/', 'put'),
     )
   })
   it('Creates a TOTP Device', async() => {
     setViewer(store, genUser())
     wrapper = mount(
       AcSetupTwoFactor,
-      {localVue, store, vuetify, propsData: {username: 'Fox'}, sync: false, attachToDocument: true}
+      {localVue, store, vuetify, propsData: {username: 'Fox'}, attachTo: docTarget()},
     )
     const vm = wrapper.vm as any
     mockAxios.mockResponse(rs({results: [], count: 0, size: 0}))
@@ -86,7 +96,7 @@ describe('ac-setup-two-factor', () => {
     await wrapper.vm.$nextTick()
     wrapper.find('.setup-totp').trigger('click')
     expect(mockAxios.post).toHaveBeenCalledWith(
-      ...rq('/api/profiles/v1/account/Fox/auth/two-factor/totp/', 'post', {name: 'Phone'})
+      ...rq('/api/profiles/v1/account/Fox/auth/two-factor/totp/', 'post', {name: 'Phone'}),
     )
   })
 })

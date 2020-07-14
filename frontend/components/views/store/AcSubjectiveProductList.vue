@@ -56,9 +56,11 @@ export default class AcSubjectiveProductList extends mixins(Subjective) {
         this.products.empty
       )
     }
+
     public get url() {
       return `/api/sales/v1/account/${this.username}/products/`
     }
+
     public created() {
       this.products = this.$getList(flatten(`${this.username}-products`), {endpoint: this.url})
       this.products.firstRun()

@@ -21,7 +21,7 @@ describe('Editable.ts', () => {
         localVue,
         propsData: {controls: true},
         mocks: {$router: {replace}, $route: {query: {editing: true}}},
-        sync: false}
+      },
     )
     const vm = wrapper.vm as any
     expect(vm.editing).toBe(true)
@@ -33,7 +33,7 @@ describe('Editable.ts', () => {
         localVue,
         propsData: {controls: true},
         mocks: {$router: {replace}, $route: {query: {}}},
-        sync: false}
+      },
     )
     const vm = wrapper.vm as any
     expect(vm.editing).toBe(false)
@@ -45,7 +45,7 @@ describe('Editable.ts', () => {
         localVue,
         propsData: {controls: false},
         mocks: {$router: {replace}, $route: {query: {editing: true}}},
-        sync: false}
+      },
     )
     const vm = wrapper.vm as any
     expect(vm.editing).toBe(false)
@@ -57,7 +57,7 @@ describe('Editable.ts', () => {
         localVue,
         propsData: {controls: true},
         mocks: {$router: {replace}, $route: {query: {editing: true, what: 'things'}}},
-        sync: false}
+      },
     )
     const vm = wrapper.vm as any
     vm.editing = false
@@ -70,7 +70,7 @@ describe('Editable.ts', () => {
         localVue,
         propsData: {controls: true},
         mocks: {$router: {replace}, $route: {query: {what: 'things'}}},
-        sync: false}
+      },
     )
     const vm = wrapper.vm as any
     vm.editing = true

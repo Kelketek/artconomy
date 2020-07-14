@@ -152,6 +152,7 @@ import {mask} from 'vue-the-mask'
 export default class AcTgDevice extends mixins(Subjective) {
     @Prop({required: true})
     private device!: SingleController<TGDevice>
+
     private form: FormController = null as unknown as FormController
     private step: number = 1
 

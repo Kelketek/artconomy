@@ -87,3 +87,36 @@ export function genPricing() {
     table_tax: 8.25,
   }
 }
+
+const originalLocalStorage = localStorage
+
+class LocalStorageMock {
+  store: {[key: string]: string}
+  constructor() {
+    this.store = {}
+  }
+
+  clear() {
+    this.store = {}
+  }
+
+  getItem(key: string) {
+    return this.store[key] || null
+  }
+
+  setItem(key: string, value: any) {
+    this.store[key] = value.toString()
+  }
+
+  removeItem(key: string) {
+    delete this.store[key]
+  }
+}
+
+export function useMockStorage() {
+  Object.defineProperty(window, 'localStorage', {value: new LocalStorageMock()})
+}
+
+export function useRealStorage() {
+  Object.defineProperty(window, 'localStorage', {value: originalLocalStorage})
+}

@@ -95,13 +95,16 @@ import Editable from '@/mixins/editable'
       AcLoadSection,
       AcShareButton,
       AcConfirmation,
-      Fragment},
+      Fragment,
+    },
   })
 export default class AcCharacterToolbar extends mixins(CharacterCentric, Upload, Editable) {
     @Prop({default: true})
     public characterAvatar!: boolean
+
     @Prop({default: false})
     public showEdit!: boolean
+
     public newShare: FormController = null as unknown as FormController
     public newUpload: FormController = null as unknown as FormController
     public step = 1

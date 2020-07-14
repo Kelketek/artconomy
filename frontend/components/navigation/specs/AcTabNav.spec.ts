@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import {Vuetify} from 'vuetify/types'
 import Router from 'vue-router'
-import {cleanUp, createVuetify, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, vueSetup} from '@/specs/helpers'
 import {mount, Wrapper} from '@vue/test-utils'
 import AcTabNav from '@/components/navigation/AcTabNav.vue'
 import {VueRouter} from 'vue-router/types/router'
@@ -38,33 +38,39 @@ describe('AcTabNav.vue', () => {
   })
   it('Renders tabs', async() => {
     router.replace('/profile/Fox/')
-    wrapper = mount(AcTabNav, {router,
+    wrapper = mount(AcTabNav, {
+      router,
       localVue,
       vuetify,
-      propsData: {items: [{
-        value: {name: 'Characters', params: {username: 'Fox'}}, icon: 'people', text: 'Characters', count: 2,
-      }, {
-        value: {name: 'Gallery', params: {username: 'Fox'}}, icon: 'image', text: 'Gallery',
-      }]},
-      sync: false,
-      attachToDocument: true,
+      propsData: {
+        items: [{
+          value: {name: 'Characters', params: {username: 'Fox'}}, icon: 'people', text: 'Characters', count: 2,
+        }, {
+          value: {name: 'Gallery', params: {username: 'Fox'}}, icon: 'image', text: 'Gallery',
+        }],
+      },
+
+      attachTo: docTarget(),
     })
     expect(wrapper.find('.v-tab').text().replace(/\s\s+/g, ' ')).toBe(
-      'people Characters (2)'
+      'people Characters (2)',
     )
   })
   it('Navigates via tab', async() => {
     router.replace('/profile/Fox/')
-    wrapper = mount(AcTabNav, {router,
+    wrapper = mount(AcTabNav, {
+      router,
       localVue,
       vuetify,
-      propsData: {items: [{
-        value: {name: 'Characters', params: {username: 'Fox'}}, icon: 'people', text: 'Characters', count: 2,
-      }, {
-        value: {name: 'Gallery', params: {username: 'Fox'}}, icon: 'image', text: 'Gallery',
-      }]},
-      sync: false,
-      attachToDocument: true,
+      propsData: {
+        items: [{
+          value: {name: 'Characters', params: {username: 'Fox'}}, icon: 'people', text: 'Characters', count: 2,
+        }, {
+          value: {name: 'Gallery', params: {username: 'Fox'}}, icon: 'image', text: 'Gallery',
+        }],
+      },
+
+      attachTo: docTarget(),
     })
     expect(wrapper.vm.$route.name).toBe('Profile')
     wrapper.find('.v-tab').trigger('click')
@@ -73,16 +79,19 @@ describe('AcTabNav.vue', () => {
   })
   it('Navigates via dropdown', async() => {
     router.replace('/profile/Fox/')
-    wrapper = mount(AcTabNav, {router,
+    wrapper = mount(AcTabNav, {
+      router,
       localVue,
       vuetify,
-      propsData: {items: [{
-        value: {name: 'Characters', params: {username: 'Fox'}}, icon: 'people', text: 'Characters', count: 2,
-      }, {
-        value: {name: 'Gallery', params: {username: 'Fox'}}, icon: 'image', text: 'Gallery',
-      }]},
-      sync: false,
-      attachToDocument: true,
+      propsData: {
+        items: [{
+          value: {name: 'Characters', params: {username: 'Fox'}}, icon: 'people', text: 'Characters', count: 2,
+        }, {
+          value: {name: 'Gallery', params: {username: 'Fox'}}, icon: 'image', text: 'Gallery',
+        }],
+      },
+
+      attachTo: docTarget(),
     })
     expect(wrapper.vm.$route.name).toBe('Profile')
     wrapper.find('.v-select__selections').trigger('click')

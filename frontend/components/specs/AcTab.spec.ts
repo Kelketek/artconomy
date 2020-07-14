@@ -18,12 +18,14 @@ describe('AcTab.vue', () => {
   beforeEach(() => {
     store = createStore()
     vuetify = createVuetify()
-    router = new Router({mode: 'history',
+    router = new Router({
+      mode: 'history',
       routes: [{
         name: 'Place',
         component: Empty,
         path: '/place/',
-      }]})
+      }],
+    })
   })
   afterEach(() => {
     cleanUp(wrapper)
@@ -38,8 +40,7 @@ describe('AcTab.vue', () => {
       router,
       vuetify,
       propsData: {trackPages: true, to: {name: 'Place'}, list},
-      attachToDocument: false,
-      sync: true,
+
     })
     const vm = wrapper.vm as any
     expect(vm.destination).toEqual({name: 'Place'})
@@ -57,8 +58,7 @@ describe('AcTab.vue', () => {
       router,
       vuetify,
       propsData: {trackPages: false, to: {name: 'Place'}},
-      attachToDocument: false,
-      sync: true,
+
     })
     const vm = wrapper.vm as any
     expect(vm.destination).toEqual({name: 'Place'})
@@ -70,8 +70,7 @@ describe('AcTab.vue', () => {
       router,
       vuetify,
       propsData: {},
-      attachToDocument: false,
-      sync: true,
+
     })
     const vm = wrapper.vm as any
     expect(vm.destination).toBe(undefined)

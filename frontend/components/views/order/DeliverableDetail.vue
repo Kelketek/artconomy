@@ -353,29 +353,32 @@ import LinkedReference from '@/types/LinkedReference'
 import InvoicingMixin from '@/components/views/order/mixins/InvoicingMixin'
 import {ListController} from '@/store/lists/controller'
 
-@Component({components: {
-  AcInvoiceForm,
-  AcTabNav,
-  AcForm,
-  AcExpandedProperty,
-  AcDeliverableStatus,
-  AcEscrowLabel,
-  AcDeliverableRating,
-  AcBoundField,
-  AcCardManager,
-  AcFormDialog,
-  AcConfirmation,
-  AcPricePreview,
-  AcPatchField,
-  AcFormContainer,
-  AcCommentSection,
-  AcCharacterDisplay,
-  AcAvatar,
-  AcRendered,
-  AcLink,
-  AcAsset,
-  AcProductPreview,
-  AcLoadSection}})
+@Component({
+  components: {
+    AcInvoiceForm,
+    AcTabNav,
+    AcForm,
+    AcExpandedProperty,
+    AcDeliverableStatus,
+    AcEscrowLabel,
+    AcDeliverableRating,
+    AcBoundField,
+    AcCardManager,
+    AcFormDialog,
+    AcConfirmation,
+    AcPricePreview,
+    AcPatchField,
+    AcFormContainer,
+    AcCommentSection,
+    AcCharacterDisplay,
+    AcAvatar,
+    AcRendered,
+    AcLink,
+    AcAsset,
+    AcProductPreview,
+    AcLoadSection,
+  },
+})
 export default class DeliverableDetail extends mixins(DeliverableMixin, Formatting, Ratings, InvoicingMixin) {
   public parentDeliverables: ListController<Deliverable> = null as unknown as ListController<Deliverable>
   // We only place this on DeliverableDetail so it doesn't get run multiple times. All subcomponents are reliant on it,
@@ -520,7 +523,7 @@ export default class DeliverableDetail extends mixins(DeliverableMixin, Formatti
     this.newInvoice.fields.references.update(
       this.references.list.map((x: SingleController<LinkedReference>) => {
         return x.x && x.x.reference.id
-      })
+      }),
     )
   }
 
@@ -562,7 +565,7 @@ export default class DeliverableDetail extends mixins(DeliverableMixin, Formatti
     this.$listenForSingle(`${this.prefix}__rate__buyer`)
     this.$listenForSingle(`${this.prefix}__rate__seller`)
     this.$listenForSingle(`${this.prefix}__revision.*`)
-    this.$listenForSingle(`pricing`)
+    this.$listenForSingle('pricing')
     if (this.$route.query.showAdd) {
       this.viewSettings.patchers.showAddSubmission.model = true
     }

@@ -19,6 +19,7 @@ export default class SearchField extends Vue {
   public updateParams(newData: RawData) {
     this.debouncedUpdate(newData)
   }
+
   public rawUpdate(newData: RawData) {
     const newParams = makeQueryParams(newData)
     const oldParams = this.list.params
@@ -44,6 +45,7 @@ export default class SearchField extends Vue {
     }
     this.list.reset().catch(this.searchForm.setErrors)
   }
+
   public created() {
     this.debouncedUpdate = debounce(this.rawUpdate, 250, {trailing: true})
   }

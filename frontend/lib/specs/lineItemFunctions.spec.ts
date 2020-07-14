@@ -219,13 +219,13 @@ describe('lineItemFunctions.ts', () => {
     expect(reckonLines(source)).toEqual(Big('10'))
   })
   it('Handles fixed-point calculations sanely', () => {
-    let source = [
+    const source = [
       genLineItem({amount: 100, priority: 0}),
       genLineItem({amount: 5.0, priority: 100}),
       genLineItem({amount: 5.0, percentage: 10.0, cascade_percentage: true, cascade_amount: false, priority: 300}),
       genLineItem({amount: 0, percentage: 8.25, cascade_percentage: true, cascade_amount: true, priority: 600}),
     ]
-    let result = getTotals(source)
+    const result = getTotals(source)
     expect(result).toEqual({
       total: Big('110.00'),
       discount: Big('0'),
@@ -238,13 +238,13 @@ describe('lineItemFunctions.ts', () => {
     })
   })
   it('Handles fixed-point calculation scenario 2 sanely', () => {
-    let source = [
+    const source = [
       genLineItem({amount: 20, priority: 0}),
       genLineItem({amount: 10, priority: 100}),
       genLineItem({amount: 5.0, percentage: 10.0, cascade_percentage: true, cascade_amount: false, priority: 300}),
       genLineItem({amount: 0, percentage: 8.25, cascade_percentage: true, cascade_amount: true, priority: 600}),
     ]
-    let result = getTotals(source)
+    const result = getTotals(source)
     expect(result).toEqual({
       total: Big('35.00'),
       discount: Big('0'),
@@ -257,13 +257,13 @@ describe('lineItemFunctions.ts', () => {
     })
   })
   it('Handles fixed-point calculation scenario 3 sanely', () => {
-    let source = [
+    const source = [
       genLineItem({amount: 20, priority: 0}),
       genLineItem({amount: 5, priority: 100}),
       genLineItem({amount: 5.0, percentage: 10.0, cascade_percentage: true, cascade_amount: false, priority: 300}),
       genLineItem({amount: 0, percentage: 8.25, cascade_percentage: true, cascade_amount: true, priority: 600}),
     ]
-    let result = getTotals(source)
+    const result = getTotals(source)
     expect(result).toEqual({
       total: Big('30.00'),
       discount: Big('0'),
@@ -276,7 +276,7 @@ describe('lineItemFunctions.ts', () => {
     })
   })
   it('Handles a complex discount scenario', () => {
-    let source = [
+    const source = [
       genLineItem({amount: 0.01, priority: 0, id: 1}),
       genLineItem({amount: 0.01, priority: 100, id: 2}),
       genLineItem({amount: 0.01, priority: 100, id: 3}),
@@ -286,7 +286,7 @@ describe('lineItemFunctions.ts', () => {
         amount: 0.75, percentage: 8.0, cascade_percentage: true, cascade_amount: true, priority: 300,
       }),
     ]
-    let result = getTotals(source)
+    const result = getTotals(source)
     expect(result).toEqual({
       total: Big('5.03'),
       discount: Big('-5'),
@@ -307,11 +307,11 @@ describe('lineItemFunctions.ts', () => {
     })
   })
   it('Handles a zero total', () => {
-    let source = [
+    const source = [
       genLineItem({amount: 0, priority: 0}),
       genLineItem({amount: 8, cascade_percentage: true, cascade_amount: true, priority: 600}),
     ]
-    let result = getTotals(source)
+    const result = getTotals(source)
     expect(result).toEqual({
       total: Big('0'),
       discount: Big('0'),
@@ -322,25 +322,25 @@ describe('lineItemFunctions.ts', () => {
     })
   })
   it('Handles many transactions divvied up for fees', () => {
-    let source = [
-      genLineItem({'amount': 25.00, 'priority': 0, 'cascade_amount': false, 'id': 1}),
-      genLineItem({'amount': 25.00, 'priority': 0, 'cascade_amount': false, 'id': 2}),
-      genLineItem({'amount': 35.00, 'priority': 0, 'cascade_amount': false, 'id': 3}),
-      genLineItem({'amount': 55.00, 'priority': 0, 'cascade_amount': false, 'id': 4}),
-      genLineItem({'amount': 10.00, 'priority': 0, 'cascade_amount': false, 'id': 5}),
-      genLineItem({'amount': 5.00, 'priority': 0, 'cascade_amount': false, 'id': 6}),
-      genLineItem({'amount': 30.00, 'priority': 0, 'cascade_amount': false, 'id': 7}),
-      genLineItem({'amount': 55.00, 'priority': 0, 'cascade_amount': false, 'id': 8}),
-      genLineItem({'amount': 25.00, 'priority': 0, 'cascade_amount': false, 'id': 9}),
-      genLineItem({'amount': 5.00, 'priority': 0, 'cascade_amount': false, 'id': 10}),
-      genLineItem({'amount': 6.00, 'priority': 0, 'cascade_amount': false, 'id': 11}),
-      genLineItem({'amount': 25.00, 'priority': 0, 'cascade_amount': false, 'id': 12}),
-      genLineItem({'amount': 6.00, 'priority': 0, 'cascade_amount': false, 'id': 13}),
-      genLineItem({'amount': 3.00, 'priority': 0, 'cascade_amount': false, 'id': 14}),
-      genLineItem({'amount': 5.00, 'priority': 0, 'cascade_amount': false, 'id': 15}),
-      genLineItem({'amount': 10.06, 'priority': 1, 'cascade_amount': true, 'id': 16}),
+    const source = [
+      genLineItem({amount: 25.00, priority: 0, cascade_amount: false, id: 1}),
+      genLineItem({amount: 25.00, priority: 0, cascade_amount: false, id: 2}),
+      genLineItem({amount: 35.00, priority: 0, cascade_amount: false, id: 3}),
+      genLineItem({amount: 55.00, priority: 0, cascade_amount: false, id: 4}),
+      genLineItem({amount: 10.00, priority: 0, cascade_amount: false, id: 5}),
+      genLineItem({amount: 5.00, priority: 0, cascade_amount: false, id: 6}),
+      genLineItem({amount: 30.00, priority: 0, cascade_amount: false, id: 7}),
+      genLineItem({amount: 55.00, priority: 0, cascade_amount: false, id: 8}),
+      genLineItem({amount: 25.00, priority: 0, cascade_amount: false, id: 9}),
+      genLineItem({amount: 5.00, priority: 0, cascade_amount: false, id: 10}),
+      genLineItem({amount: 6.00, priority: 0, cascade_amount: false, id: 11}),
+      genLineItem({amount: 25.00, priority: 0, cascade_amount: false, id: 12}),
+      genLineItem({amount: 6.00, priority: 0, cascade_amount: false, id: 13}),
+      genLineItem({amount: 3.00, priority: 0, cascade_amount: false, id: 14}),
+      genLineItem({amount: 5.00, priority: 0, cascade_amount: false, id: 15}),
+      genLineItem({amount: 10.06, priority: 1, cascade_amount: true, id: 16}),
     ]
-    let result = getTotals(source)
+    const result = getTotals(source)
     expect(result).toEqual({
       map: new Map([
         [genLineItem({

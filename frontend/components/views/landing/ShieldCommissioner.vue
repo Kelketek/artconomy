@@ -103,6 +103,7 @@ export default class ShieldCommissioner extends Vue {
     this.searchForm.fields.shield_only.update(true)
     this.$router.push({name: 'SearchProducts', query: this.searchForm.rawData})
   }
+
   public created() {
     this.searchForm = this.$getForm('search')
   }

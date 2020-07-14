@@ -11,12 +11,16 @@ import * as VToolbar from 'vuetify/es5/components/VToolbar'
 export default class AcRendered extends mixins(Formatting) {
   @Prop({default: ''})
   public value!: string
+
   @Prop({default: 'v-col'})
   public tag!: string
+
   @Prop({default: false})
   public inline!: boolean
+
   @Prop({default: false})
   public truncate!: boolean|number
+
   @Prop({default: true})
   public showMore!: boolean
 
@@ -48,6 +52,7 @@ export default class AcRendered extends mixins(Formatting) {
       render: compileToFunctions(this.dynamicTemplate).render,
     }
   }
+
   public get availableText(): string {
     if (this.more) {
       return this.value
@@ -64,9 +69,11 @@ export default class AcRendered extends mixins(Formatting) {
     }
     return value
   }
+
   public get truncated() {
     return !(this.availableText === this.value)
   }
+
   public get readMore() {
     if (!this.truncated) {
       return ''

@@ -125,8 +125,10 @@ import {Balance} from '@/types/Balance'
 export default class AcBankToggle extends mixins(Subjective) {
     @Prop({required: true})
     public value!: BankStatus
+
     @Prop({default: false})
     public manageBanks!: boolean
+
     public balance: SingleController<Balance> = null as unknown as SingleController<Balance>
     public banks: ListController<Bank> = null as unknown as ListController<Bank>
     public showAddBank = false
@@ -138,45 +140,57 @@ export default class AcBankToggle extends mixins(Subjective) {
     public input(val: BankStatus) {
       this.$emit('input', val)
     }
+
     public get bankUrl() {
       return `/api/sales/v1/account/${this.username}/banks/`
     }
+
     public addBank(response: Bank) {
       this.banks.push(response)
       this.showAddBank = false
     }
+
     public get canAddBank() {
       return this.balance.x && (parseFloat(this.balance.x.available) >= 1)
     }
+
     public created() {
       this.banks = this.$getList(
-        `${this.username}__banks`, {endpoint: this.bankUrl, paginated: false}
+        `${this.username}__banks`, {endpoint: this.bankUrl, paginated: false},
       )
       this.banks.firstRun()
       this.balance = this.$getSingle(
-        `${this.username}__balance`, {endpoint: `/api/sales/v1/account/${this.username}/balance/`}
+        `${this.username}__balance`, {endpoint: `/api/sales/v1/account/${this.username}/balance/`},
       )
       this.balance.get()
-      this.newBank = this.$getForm(genId(), {fields: {
-        type: {value: null},
-        first_name: {value: '', validators: [{name: 'required'}]},
-        last_name: {value: '', validators: [{name: 'required'}]},
-        account_number: {value: '',
-          validators: [
-            {name: 'numeric'}, {name: 'required'}, {name: 'minLength', args: [4]},
-            {name: 'maxLength', args: [17]},
-          ]},
-        account_number_confirmation: {value: '',
-          validators: [
-            {name: 'matches', args: ['account_number', 'Account numbers do not match!']},
-          ]},
-        routing_number: {value: '',
-          validators: [
-            {name: 'numeric'}, {name: 'required'}, {name: 'minLength', args: [9]},
-            {name: 'maxLength', args: [9]},
-          ]},
-      },
-      endpoint: this.bankUrl})
+      this.newBank = this.$getForm(genId(), {
+        fields: {
+          type: {value: null},
+          first_name: {value: '', validators: [{name: 'required'}]},
+          last_name: {value: '', validators: [{name: 'required'}]},
+          account_number: {
+            value: '',
+            validators: [
+              {name: 'numeric'}, {name: 'required'}, {name: 'minLength', args: [4]},
+              {name: 'maxLength', args: [17]},
+            ],
+          },
+          account_number_confirmation: {
+            value: '',
+            validators: [
+              {name: 'matches', args: ['account_number', 'Account numbers do not match!']},
+            ],
+          },
+          routing_number: {
+            value: '',
+            validators: [
+              {name: 'numeric'}, {name: 'required'}, {name: 'minLength', args: [9]},
+              {name: 'maxLength', args: [9]},
+            ],
+          },
+        },
+        endpoint: this.bankUrl,
+      })
     }
 }
 </script>

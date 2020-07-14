@@ -1,6 +1,6 @@
 import {mount, Wrapper} from '@vue/test-utils'
 import Vue from 'vue'
-import {cleanUp, createVuetify, flushPromises, rs, vueSetup, vuetifySetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, flushPromises, rs, vueSetup, vuetifySetup} from '@/specs/helpers'
 import AcUserSelect from '@/components/fields/AcUserSelect.vue'
 import mockAxios from '@/__mocks__/axios'
 import {genUser} from '@/specs/helpers/fixtures'
@@ -24,8 +24,8 @@ describe('AcUserSelect.vue', () => {
     wrapper = mount(AcUserSelect, {
       localVue,
       vuetify,
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
       propsData: {value: tagList},
     })
     wrapper.find('input').setValue('Test')
@@ -35,7 +35,7 @@ describe('AcUserSelect.vue', () => {
     expect(mockAxios.get).toHaveBeenCalledWith(
       '/api/profiles/v1/search/user/',
       undefined,
-      {cancelToken: expect.any(Object), headers: {'Content-Type': 'application/json; charset=utf-8'}, params: {q: 'Test'}}
+      {cancelToken: expect.any(Object), headers: {'Content-Type': 'application/json; charset=utf-8'}, params: {q: 'Test'}},
     )
   })
   it('Searches for users with a tagging modifier', async() => {
@@ -44,9 +44,10 @@ describe('AcUserSelect.vue', () => {
       AcUserSelect, {
         localVue,
         vuetify,
-        sync: false,
-        attachToDocument: true,
-        propsData: {value: tagList, tagging: true}},
+
+        attachTo: docTarget(),
+        propsData: {value: tagList, tagging: true},
+      },
     )
     wrapper.find('input').setValue('Test')
     await wrapper.vm.$nextTick()
@@ -59,7 +60,7 @@ describe('AcUserSelect.vue', () => {
         cancelToken: expect.any(Object),
         headers: {'Content-Type': 'application/json; charset=utf-8'},
         params: {q: 'Test', tagging: true},
-      }
+      },
     )
   })
   it('Accepts a response from the server on its query', async() => {
@@ -67,8 +68,8 @@ describe('AcUserSelect.vue', () => {
     wrapper = mount(AcUserSelect, {
       localVue,
       vuetify,
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
       propsData: {value: tagList},
     })
     wrapper.find('input').setValue('Test')
@@ -85,9 +86,10 @@ describe('AcUserSelect.vue', () => {
       AcUserSelect, {
         localVue,
         vuetify,
-        sync: false,
-        attachToDocument: true,
-        propsData: {value: tagList}},
+
+        attachTo: docTarget(),
+        propsData: {value: tagList},
+      },
     )
     wrapper.find('input').setValue('Test')
     await wrapper.vm.$nextTick()
@@ -105,9 +107,10 @@ describe('AcUserSelect.vue', () => {
       AcUserSelect, {
         localVue,
         vuetify,
-        sync: false,
-        attachToDocument: true,
-        propsData: {value: null, multiple: false}},
+
+        attachTo: docTarget(),
+        propsData: {value: null, multiple: false},
+      },
     )
     wrapper.find('input').setValue('Test')
     await wrapper.vm.$nextTick()
@@ -126,10 +129,10 @@ describe('AcUserSelect.vue', () => {
       AcUserSelect, {
         localVue,
         vuetify,
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
         propsData: {value: tagList},
-      }
+      },
     )
     wrapper.find('input').setValue('Test')
     await wrapper.vm.$nextTick()
@@ -148,11 +151,12 @@ describe('AcUserSelect.vue', () => {
       AcUserSelect, {
         localVue,
         vuetify,
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
         propsData: {
           value: tagList, initItems: [{username: 'Test', id: 1}, {username: 'Test2', id: 2}],
-        }}
+        },
+      },
     )
     expect((wrapper.vm as any).items).toEqual([{username: 'Test', id: 1}, {username: 'Test2', id: 2}])
   })
@@ -162,11 +166,12 @@ describe('AcUserSelect.vue', () => {
       AcUserSelect, {
         localVue,
         vuetify,
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
         propsData: {
           value: tagList, initItems: [{username: 'Test', id: 1}, {username: 'Test2', id: 2}],
-        }}
+        },
+      },
     )
     wrapper.find('input').setValue('Test')
     await wrapper.vm.$nextTick()
@@ -181,11 +186,12 @@ describe('AcUserSelect.vue', () => {
       AcUserSelect, {
         localVue,
         vuetify,
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
         propsData: {
           value: tagList, initItems: [{username: 'Test', id: 1}, {username: 'Test2', id: 2}],
-        }}
+        },
+      },
     )
     wrapper.find('input').setValue('Test')
     await wrapper.vm.$nextTick()
@@ -200,11 +206,12 @@ describe('AcUserSelect.vue', () => {
       AcUserSelect, {
         localVue,
         vuetify,
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
         propsData: {
           value: tagList, initItems: [{username: 'Test', id: 1}, {username: 'Test2', id: 2}],
-        }}
+        },
+      },
     )
     const vm = wrapper.vm as any
     const user = genUser()
@@ -215,11 +222,12 @@ describe('AcUserSelect.vue', () => {
       AcUserSelect, {
         localVue,
         vuetify,
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
         propsData: {
           value: null, multiple: false, initItems: [{username: 'Test', id: 1}, {username: 'Test2', id: 2}],
-        }}
+        },
+      },
     )
     const vm = wrapper.vm as any
     const user = {username: 'Test', id: 1}
@@ -235,14 +243,15 @@ describe('AcUserSelect.vue', () => {
       AcUserSelect, {
         localVue,
         vuetify,
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
         propsData: {
           value: 1,
           multiple: false,
           initItems: [{username: 'Test', id: 1}, {username: 'Test2', id: 2}],
           filter: mockFilter,
-        }}
+        },
+      },
     )
     const vm = wrapper.vm as any
     const user = {username: 'Test', id: 1}
@@ -254,11 +263,12 @@ describe('AcUserSelect.vue', () => {
       AcUserSelect, {
         localVue,
         vuetify,
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
         propsData: {
           value: [1], initItems: [{username: 'Test', id: 1}, {username: 'Test2', id: 2}],
-        }}
+        },
+      },
     )
     const vm = wrapper.vm as any
     expect(vm.tags).toEqual([1])

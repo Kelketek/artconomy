@@ -32,10 +32,13 @@ export default class DeliverableMixin extends mixins(Viewer) {
   @Mutation('supportDialog') public setSupport: any
   @Prop({required: true})
   public orderId!: string
+
   @Prop({required: true})
   public deliverableId!: string
+
   @Prop({required: true})
   public baseName!: string
+
   public buyerHandler: ProfileController|null = null
   public sellerHandler: ProfileController = null as unknown as ProfileController
   public arbitratorHandler: ProfileController|null = null
@@ -340,7 +343,7 @@ export default class DeliverableMixin extends mixins(Viewer) {
       `${this.prefix}__characters`, {endpoint: `${this.url}characters/`, paginated: false},
     )
     this.revisions = this.$getList(
-      `${this.prefix}__revisions`, {endpoint: `${this.url}revisions/`, paginated: false}
+      `${this.prefix}__revisions`, {endpoint: `${this.url}revisions/`, paginated: false},
     )
     this.references = this.$getList(
       `${this.prefix}__references`, {endpoint: `${this.url}references/`, paginated: false},

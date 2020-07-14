@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import {Vuetify} from 'vuetify/types'
-import {cleanUp, createVuetify, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, vueSetup} from '@/specs/helpers'
 import {mount, Wrapper} from '@vue/test-utils'
 import AcTabs from '@/components/navigation/AcTabs.vue'
 
@@ -27,11 +27,11 @@ describe('AcTabNav.vue', () => {
         }],
         value: 0,
       },
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     expect(wrapper.find('.v-tab').text().replace(/\s\s+/g, ' ')).toBe(
-      'people Characters (2)'
+      'people Characters (2)',
     )
   })
   it('Navigates via dropdown', async() => {
@@ -46,13 +46,13 @@ describe('AcTabNav.vue', () => {
         }],
         value: 0,
       },
-      sync: false,
-      attachToDocument: true,
+
+      attachTo: docTarget(),
     })
     expect(wrapper.find('.v-select__selections').exists())
     await wrapper.vm.$nextTick()
     expect(wrapper.find('.v-tab').text().replace(/\s\s+/g, ' ')).toBe(
-      'people Characters (2)'
+      'people Characters (2)',
     )
   })
 })

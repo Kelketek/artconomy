@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import {createVuetify, rs, setViewer, vueSetup} from '@/specs/helpers'
+import {createVuetify, docTarget, rs, setViewer, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import {mount, Wrapper} from '@vue/test-utils'
 import {genUser} from '@/specs/helpers/fixtures'
@@ -32,8 +32,8 @@ describe('AcBankToggle.vue', () => {
         vuetify,
         propsData: {username: 'Fox', value: 1},
         stubs: ['router-link'],
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
       })
   })
   it('Changes the bank status setting', async() => {
@@ -45,8 +45,8 @@ describe('AcBankToggle.vue', () => {
         vuetify,
         propsData: {username: 'Fox', value: 1},
         stubs: ['router-link'],
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
       })
     const mockEmit = jest.spyOn(wrapper.vm, '$emit')
     wrapper.find('.no-us-account').trigger('click')
@@ -62,8 +62,8 @@ describe('AcBankToggle.vue', () => {
         vuetify,
         propsData: {username: 'Fox', value: 1, manageBanks: true},
         stubs: ['router-link'],
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
       })
     const vm = wrapper.vm as any
     vm.banks.setList([])

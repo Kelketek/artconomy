@@ -1,6 +1,6 @@
 import {mount, Wrapper} from '@vue/test-utils'
 import Vue from 'vue'
-import {cleanUp, createVuetify, genAnon, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, genAnon, setViewer, vueSetup} from '@/specs/helpers'
 import AcSubmissionSelect from '@/components/fields/AcSubmissionSelect.vue'
 import {ArtStore, createStore} from '@/store'
 import {genSubmission} from '@/store/submissions/specs/fixtures'
@@ -33,10 +33,10 @@ describe('AcSubmissionSelect.vue', () => {
         propsData: {
           value: 2, queryEndpoint: '/stuff/', saveComparison: currentSubmission,
         },
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
         stubs: ['router-link'],
-      }
+      },
     )
     const vm = wrapper.vm as any
     const submissions = [currentSubmission, genSubmission(), genSubmission()]
@@ -63,10 +63,10 @@ describe('AcSubmissionSelect.vue', () => {
           saveComparison: currentSubmission,
           related: true,
         },
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
         stubs: ['router-link'],
-      }
+      },
     )
     const vm = wrapper.vm as any
     const submissions = [
@@ -95,10 +95,10 @@ describe('AcSubmissionSelect.vue', () => {
         propsData: {
           value: 2, queryEndpoint: '/stuff/',
         },
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
         stubs: ['router-link'],
-      }
+      },
     )
     const vm = wrapper.vm as any
     const submissions = [genSubmission(), genSubmission(), genSubmission()]
@@ -123,10 +123,10 @@ describe('AcSubmissionSelect.vue', () => {
         propsData: {
           value: 1, queryEndpoint: '/stuff/', saveComparison: currentSubmission,
         },
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
         stubs: ['router-link'],
-      }
+      },
     )
     const vm = wrapper.vm as any
     const submissions = [genSubmission(), genSubmission(), genSubmission()]
@@ -157,10 +157,10 @@ describe('AcSubmissionSelect.vue', () => {
         propsData: {
           value: 1, queryEndpoint: '/stuff/', saveComparison: currentSubmission,
         },
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
         stubs: ['router-link'],
-      }
+      },
     )
     const vm = wrapper.vm as any
     const submissions = [genSubmission(), genSubmission(), genSubmission()]
@@ -191,10 +191,10 @@ describe('AcSubmissionSelect.vue', () => {
         propsData: {
           value: 1, saveComparison: currentSubmission,
         },
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
         stubs: ['router-link'],
-      }
+      },
     )
     const vm = wrapper.vm as any
     const submissions = [genSubmission(), genSubmission(), genSubmission()]
@@ -227,10 +227,10 @@ describe('AcSubmissionSelect.vue', () => {
         propsData: {
           value: 1, queryEndpoint: '/stuff/', saveComparison: currentSubmission,
         },
-        sync: false,
-        attachToDocument: true,
+
+        attachTo: docTarget(),
         stubs: ['router-link'],
-      }
+      },
     )
     const vm = wrapper.vm as any
     const submissions = [currentSubmission, genSubmission(), genSubmission()]
