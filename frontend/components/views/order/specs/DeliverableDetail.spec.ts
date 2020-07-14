@@ -173,7 +173,7 @@ describe('DeliverableDetail.vue', () => {
       })
     const vm = wrapper.vm as any
     const deliverable = genDeliverable()
-    deliverable.order.product = null
+    deliverable.product = null
     deliverable.status = DeliverableStatus.COMPLETED
     const orderRequest = mockAxios.getReqByUrl('/api/sales/v1/order/1/deliverables/5/')
     mockAxios.mockResponse(rs(deliverable), orderRequest)
@@ -198,7 +198,7 @@ describe('DeliverableDetail.vue', () => {
       })
     const vm = wrapper.vm as any
     const deliverable = genDeliverable()
-    deliverable.order.product = null
+    deliverable.product = null
     deliverable.status = DeliverableStatus.COMPLETED
     const orderRequest = mockAxios.getReqByUrl('/api/sales/v1/order/1/deliverables/5/')
     mockAxios.mockResponse(rs(deliverable), orderRequest)
@@ -243,7 +243,7 @@ describe('DeliverableDetail.vue', () => {
       })
     const vm = wrapper.vm as any
     const deliverable = genDeliverable()
-    deliverable.order.product = null
+    deliverable.product = null
     deliverable.status = DeliverableStatus.COMPLETED
     const orderRequest = mockAxios.getReqByUrl('/api/sales/v1/order/1/deliverables/5/')
     mockAxios.mockResponse(rs(deliverable), orderRequest)
@@ -279,7 +279,7 @@ describe('DeliverableDetail.vue', () => {
       })
     const vm = wrapper.vm as any
     const deliverable = genDeliverable()
-    deliverable.order.product = null
+    deliverable.product = null
     deliverable.trust_finalized = true
     deliverable.auto_finalize_on = moment().add(7, 'days').toISOString()
     deliverable.status = DeliverableStatus.COMPLETED
@@ -308,7 +308,7 @@ describe('DeliverableDetail.vue', () => {
       })
     const vm = wrapper.vm as any
     const deliverable = genDeliverable()
-    deliverable.order.product = null
+    deliverable.product = null
     deliverable.status = DeliverableStatus.COMPLETED
     deliverable.revisions_hidden = false
     vm.deliverable.setX(deliverable)
@@ -337,7 +337,7 @@ describe('DeliverableDetail.vue', () => {
     const vm = wrapper.vm as any
     const deliverable = genDeliverable()
     deliverable.order.buyer = {...user}
-    deliverable.order.product = null
+    deliverable.product = null
     deliverable.status = DeliverableStatus.COMPLETED
     deliverable.order.claim_token = 'sdvi397awr'
     deliverable.revisions_hidden = false
@@ -434,7 +434,7 @@ describe('DeliverableDetail.vue', () => {
     const vm = wrapper.vm as any
     const deliverable = genDeliverable()
     deliverable.order.buyer = {...user}
-    deliverable.order.product = null
+    deliverable.product = null
     deliverable.status = DeliverableStatus.COMPLETED
     deliverable.expected_turnaround = 3
     deliverable.order.claim_token = 'sdvi397awr'
@@ -462,7 +462,7 @@ describe('DeliverableDetail.vue', () => {
     const vm = wrapper.vm as any
     const deliverable = genDeliverable()
     deliverable.order.buyer = {...user}
-    deliverable.order.product = null
+    deliverable.product = null
     deliverable.revisions = 3
     vm.deliverable.makeReady(deliverable)
     vm.order.makeReady(deliverable.order)
@@ -523,7 +523,7 @@ describe('DeliverableDetail.vue', () => {
     vm.deliverable.makeReady(deliverable)
     vm.order.makeReady(order)
     mockAxios.reset()
-    vm.addDeliverable.submitThen(vm.visitDeliverable)
+    vm.newInvoice.submitThen(vm.visitDeliverable)
     const newDeliverable = genDeliverable({id: 20})
     mockAxios.mockResponse(rs(newDeliverable))
     await flushPromises()

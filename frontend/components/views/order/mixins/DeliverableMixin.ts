@@ -20,6 +20,7 @@ import LinkedCharacter from '@/types/LinkedCharacter'
 import LineItem from '@/types/LineItem'
 import LinkedReference from '@/types/LinkedReference'
 import Pricing from '@/types/Pricing'
+import InvoicingMixin from '@/components/views/order/mixins/InvoicingMixin'
 /*
 
 This mixin is used by all deliverable routes. Some crucial operations only occur in DeliverableDetail as it is the host
@@ -51,7 +52,7 @@ export default class DeliverableMixin extends mixins(Viewer) {
   public paymentForm: FormController = null as unknown as FormController
   public tipForm: FormController = null as unknown as FormController
   public addSubmission: FormController = null as unknown as FormController
-  public addDeliverable: FormController = null as unknown as FormController
+  public newInvoice: FormController = null as unknown as FormController
   public orderEmail: FormController = null as unknown as FormController
   public lineItems: ListController<LineItem> = null as unknown as ListController<LineItem>
   public WAITING = 0
@@ -67,13 +68,13 @@ export default class DeliverableMixin extends mixins(Viewer) {
 
   public get product() {
     /* istanbul ignore if */
-    if (!this.order.x) {
+    if (!this.deliverable.x) {
       return null
     }
-    if (!this.order.x.product) {
+    if (!this.deliverable.x.product) {
       return null
     }
-    return this.order.x.product
+    return this.deliverable.x.product
   }
 
   public is(status: number) {
@@ -386,6 +387,6 @@ export default class DeliverableMixin extends mixins(Viewer) {
     invoiceSchema.fields.characters = {value: []}
     invoiceSchema.fields.references = {value: []}
     invoiceSchema.fields.name = {value: 'New Deliverable'}
-    this.addDeliverable = this.$getForm(`${this.prefix}__addDeliverable`, invoiceSchema)
+    this.newInvoice = this.$getForm(`${this.prefix}__addDeliverable`, invoiceSchema)
   }
 }

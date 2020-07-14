@@ -335,11 +335,11 @@ class SubmissionCharacterTagSerializer(serializers.ModelSerializer):
 class SubmissionMixin:
     def get_product(self, obj):
         from apps.sales.serializers import ProductSerializer
-        if not (obj.deliverable and obj.deliverable.order.product):
+        if not (obj.deliverable and obj.deliverable.product):
             return
-        if not obj.deliverable.order.product.available:
+        if not obj.deliverable.product.available:
             return
-        return ProductSerializer(instance=obj.deliverable.order.product, context=self.context).data
+        return ProductSerializer(instance=obj.deliverable.product, context=self.context).data
 
     def get_thumbnail_url(self, obj):
         return self.context['request'].build_absolute_uri(obj.file.file.url)

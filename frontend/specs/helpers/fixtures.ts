@@ -2,7 +2,6 @@ import {rs} from './index'
 import {User} from '@/store/profiles/types/User'
 import {ArtistProfile} from '@/store/profiles/types/ArtistProfile'
 import {BankStatus} from '@/store/profiles/types/BankStatus'
-import colors from 'vuetify/es5/util/colors'
 import {CreditCardToken} from '@/types/CreditCardToken'
 import Revision from '@/types/Revision'
 import Order from '@/types/Order'
@@ -80,20 +79,6 @@ export function userResponse() {
   return rs(genUser())
 }
 
-export function vuetifyOptions() {
-  return {
-    theme: {
-      primary: colors.blue,
-      secondary: colors.purple,
-      danger: colors.red,
-      darkBase: colors.grey,
-    },
-    options: {
-      customProperties: true,
-    },
-  }
-}
-
 export function genCard(base?: Partial<CreditCardToken>): CreditCardToken {
   base = base || {}
   return {
@@ -160,6 +145,7 @@ export function genProduct(overrides?: Partial<Product>): Product {
 }
 
 export function genDeliverable(overrides?: Partial<Deliverable>): Deliverable {
+  const order = genOrder()
   return {
     id: 5,
     name: 'Main',
@@ -189,6 +175,8 @@ export function genDeliverable(overrides?: Partial<Deliverable>): Deliverable {
     final_uploaded: false,
     rating: 0,
     arbitrator: null,
+    order,
+    product: genProduct({user: order.seller}),
     display: {
       file: {
         thumbnail: 'https://artconomy.vulpinity.com/media/art/2019/07/26/kairef-color.png.300x300_q85_crop-,0.png',
@@ -199,7 +187,6 @@ export function genDeliverable(overrides?: Partial<Deliverable>): Deliverable {
       },
       preview: null,
     },
-    order: genOrder(),
     ...overrides,
   }
 }
@@ -230,12 +217,12 @@ export function genOrder(overrides?: Partial<Order>): Order {
   return {
     id: 1,
     created_on: '2019-07-26T15:04:41.078424-05:00',
-    product: genProduct(),
     seller,
     buyer,
     customer_email: '',
     claim_token: null,
     private: false,
+    product_name: 'Test product',
     deliverable_count: 1,
     default_path: {name: 'Order', params: {orderId: '1', username: 'Fox'}},
     display: {

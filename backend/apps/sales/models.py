@@ -167,7 +167,7 @@ class Product(ImageModel, HitsMixin):
 
     def proto_delete(self, *args, **kwargs):
         self.samples.clear()
-        if self.order_set.all().count():
+        if self.deliverables.all().count():
             self.active = False
             self.save()
             auto_remove_product_notifications(Product, self)
@@ -291,6 +291,7 @@ class Deliverable(Model):
 
     status = IntegerField(choices=DELIVERABLE_STATUSES, default=NEW, db_index=True)
     order = models.ForeignKey('Order', null=False, on_delete=CASCADE, related_name='deliverables')
+    product = models.ForeignKey('Product', null=True, on_delete=SET_NULL, related_name='deliverables')
     revisions = IntegerField(default=0)
     revisions_hidden = BooleanField(default=True)
     final_uploaded = BooleanField(default=False)
@@ -342,7 +343,7 @@ class Deliverable(Model):
         else:
             revision = self.revision_set.all().last()
         if revision is None:
-            return ProductSerializer(instance=self.order.product, context=context).data['primary_submission']
+            return ProductSerializer(instance=self.product, context=context).data['primary_submission']
         else:
             return RevisionSerializer(instance=revision, context=context).data
 
@@ -378,7 +379,6 @@ class Order(Model):
     preserve_comments = True
     comment_permissions = [OrderViewPermission]
 
-    product = ForeignKey('Product', null=True, blank=True, on_delete=SET_NULL)
     seller = ForeignKey(User, related_name='sales', on_delete=CASCADE)
     buyer = ForeignKey(User, related_name='buys', on_delete=CASCADE, null=True, blank=True)
     claim_token = ShortCodeField(blank=True, null=True)
@@ -400,7 +400,10 @@ class Order(Model):
         else:
             revision = revisions.filter(deliverable__revisions_hidden=False).order_by('-created_on').first()
         if revision is None:
-            return ProductSerializer(instance=self.product, context=context).data['primary_submission']
+            return ProductSerializer(
+                instance=self.deliverables.order_by('-created_on').first().product,
+                context=context,
+            ).data['primary_submission']
         else:
             return RevisionSerializer(instance=revision, context=context).data
 
@@ -453,10 +456,10 @@ def auto_subscribe_deliverable(sender, instance, created=False, **_kwargs):
 def idempotent_lines(instance: Deliverable):
     if instance.status not in [WAITING, NEW, PAYMENT_PENDING]:
         return
-    if instance.order.product:
+    if instance.product:
         LineItem.objects.update_or_create(
-            {'amount': instance.order.product.base_price},
-            deliverable=instance, amount=instance.order.product.base_price, type=BASE_PRICE,
+            {'amount': instance.product.base_price},
+            deliverable=instance, amount=instance.product.base_price, type=BASE_PRICE,
             destination_user=instance.order.seller,
             destination_account=TransactionRecord.ESCROW,
         )
@@ -627,11 +630,11 @@ def update_artist_load(sender, instance, **_kwargs):
         order__seller_id=seller.id, status__in=WEIGHTED_STATUSES
     ).aggregate(base_load=Sum('task_weight'), added_load=Sum('adjustment_task_weight'))
     load = (result['base_load'] or 0) + (result['added_load'] or 0)
-    if isinstance(instance, Deliverable) and instance.order.product:
-        instance.order.product.parallel = Order.objects.filter(
-            product_id=instance.order.product.id, deliverables__status__in=WEIGHTED_STATUSES
+    if isinstance(instance, Deliverable) and instance.product:
+        instance.product.parallel = Deliverable.objects.filter(
+            product_id=instance.product.id, status__in=WEIGHTED_STATUSES
         ).distinct().count()
-        instance.order.product.save()
+        instance.product.save()
     # Availability update could be recursive, so get the latest version of the user.
     seller = User.objects.get(id=seller.id)
     update_availability(seller, load, seller.artist_profile.commissions_disabled)
@@ -661,10 +664,8 @@ def update_user_availability(sender, instance, **kwargs):
 
 
 @receiver(post_save, sender=Product)
-def update_order_line_items(sender, instance, **kwargs):
-    deliverables = Deliverable.objects.filter(order__product=instance, status__in=[NEW, PAYMENT_PENDING])
-    deliverables = deliverables.exclude(
-        id__in=deliverables.annotate(total_deliverables=Count('order__deliverables')).filter(total_deliverables__gt=1))
+def update_deliverable_line_items(sender, instance, **kwargs):
+    deliverables = Deliverable.objects.filter(product=instance, status__in=[NEW, PAYMENT_PENDING])
     LineItem.objects.filter(deliverable__in=deliverables, type=BASE_PRICE).update(amount=instance.base_price)
 
 

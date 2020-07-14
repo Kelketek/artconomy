@@ -69,7 +69,7 @@
     </v-tabs-items>
     <ac-add-button v-if="isSales" v-model="showNewInvoice">Create Invoice</ac-add-button>
     <ac-form-dialog v-bind="newInvoice.bind" @submit.prevent="newInvoice.submitThen(goToOrder)" v-model="showNewInvoice" :large="true" title="Issue new Invoice">
-      <ac-invoice-form :escrow-disabled="escrowDisabled" :line-items="lineItems" :new-invoice="newInvoice" :username="username" />
+      <ac-invoice-form :escrow-disabled="invoiceEscrowDisabled" :line-items="invoiceLineItems" :new-invoice="newInvoice" :username="username" />
     </ac-form-dialog>
     <ac-form-dialog v-if="isSales" v-bind="broadcastForm.bind" v-model="showBroadcast" @submit.prevent="broadcastForm.submitThen(() => {confirmBroadcast = true})">
       <v-row v-if="!confirmBroadcast">
@@ -105,7 +105,7 @@ import AcLoadSection from '../../wrappers/AcLoadSection.vue'
 import Component, {mixins} from 'vue-class-component'
 import Subjective from '../../../mixins/subjective'
 import AcPaginated from '../../wrappers/AcPaginated.vue'
-import {Prop, Watch} from 'vue-property-decorator'
+import {Prop} from 'vue-property-decorator'
 import {SingleController} from '@/store/singles/controller'
 import CommissionStats from '@/types/CommissionStats'
 import {FormController} from '@/store/forms/form-controller'
@@ -114,16 +114,13 @@ import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import AcBoundField from '@/components/fields/AcBoundField'
 import Product from '@/types/Product'
 import AcPricePreview from '@/components/price_preview/AcPricePreview.vue'
-import Pricing from '@/types/Pricing'
 import {baseInvoiceSchema} from '@/lib/lib'
 import AcInvoiceForm from '@/components/views/orders/AcInvoiceForm.vue'
-import {invoiceLines} from '@/lib/lineItemFunctions'
-import Deliverable from '@/types/Deliverable'
+import InvoicingMixin from '@/components/views/order/mixins/InvoicingMixin'
 @Component({
   components: {AcInvoiceForm, AcPricePreview, AcBoundField, AcFormDialog, AcAddButton, AcPaginated, AcLoadSection},
 })
-export default class Orders extends mixins(Subjective) {
-  public pricing: SingleController<Pricing> = null as unknown as SingleController<Pricing>
+export default class Orders extends mixins(Subjective, InvoicingMixin) {
   public stats: SingleController<CommissionStats> = null as unknown as SingleController<CommissionStats>
   @Prop({required: true})
   public baseName!: string
@@ -133,59 +130,6 @@ export default class Orders extends mixins(Subjective) {
   public newInvoice: FormController = null as unknown as FormController
   public invoiceProduct: SingleController<Product> = null as unknown as SingleController<Product>
   public broadcastForm: FormController = null as unknown as FormController
-
-  @Watch('newInvoice.fields.product.value')
-  public updateProduct(val: undefined|null|number) {
-    if (val === undefined) {
-      return
-    }
-    if (!val) {
-      this.invoiceProduct.kill()
-      this.invoiceProduct.setX(null)
-      return
-    }
-    this.invoiceProduct.endpoint = `/api/sales/v1/account/${this.username}/products/${val}/`
-    this.invoiceProduct.kill()
-    this.invoiceProduct.get()
-  }
-
-  @Watch('invoiceProduct.x', {deep: true})
-  public updatePrice(val: Product|null) {
-    if (!val) {
-      return
-    }
-    this.newInvoice.fields.price.update(val.starting_price)
-    this.newInvoice.fields.task_weight.update(val.task_weight)
-    this.newInvoice.fields.revisions.update(val.revisions)
-    this.newInvoice.fields.expected_turnaround.update(val.expected_turnaround)
-  }
-
-  @Watch('invoiceProduct.x.task_weight')
-  public updateWeight(val: number|undefined) {
-    if (val === undefined) {
-      return
-    }
-    this.newInvoice.fields.task_weight.update(val)
-  }
-
-  public goToOrder(deliverable: Deliverable) {
-    this.$router.push({
-      name: 'SaleDeliverableOverview',
-      params: {username: this.username, orderId: deliverable.order.id + '', deliverableId: deliverable.id + ''},
-    })
-  }
-
-  public get lineItems() {
-    const linesController = this.$getList('newProductLines', {endpoint: '#', paginated: false})
-    linesController.ready = true
-    linesController.setList(invoiceLines({
-      pricing: (this.pricing.x || null),
-      escrowDisabled: this.escrowDisabled,
-      product: (this.invoiceProduct.x || null),
-      value: this.newInvoice.fields.price.value,
-    }))
-    return linesController
-  }
 
   public get isSales() {
     return this.baseName === 'Sales'
@@ -199,6 +143,10 @@ export default class Orders extends mixins(Subjective) {
     return this.$route.name === this.baseName
   }
 
+  public get sellerName() {
+    return this.username
+  }
+
   public get closed() {
     const stats = this.stats.x as CommissionStats
     if (!stats) {
@@ -207,7 +155,7 @@ export default class Orders extends mixins(Subjective) {
     return stats.commissions_closed || stats.commissions_disabled || stats.load >= stats.max_load
   }
 
-  public get escrowDisabled() {
+  public get invoiceEscrowDisabled() {
     if (!this.subjectHandler.artistProfile.x) {
       return true
     }
@@ -218,10 +166,7 @@ export default class Orders extends mixins(Subjective) {
   }
 
   public created() {
-    this.pricing = this.$getSingle('pricing', {endpoint: '/api/sales/v1/pricing-info/'})
-    this.pricing.get()
     const type = this.baseName.toLocaleLowerCase()
-    this.invoiceProduct = this.$getSingle('invoiceProduct', {endpoint: ''})
     this.stats = this.$getSingle(`stats__sales__${this.username}`, {
       endpoint: `/api/sales/v1/account/${this.username}/sales/stats/`,
     })
@@ -237,7 +182,6 @@ export default class Orders extends mixins(Subjective) {
     }
     const invoiceSchema = baseInvoiceSchema(`/api/sales/v1/account/${this.username}/create-invoice/`)
     invoiceSchema.fields.hold.value = !this.isCurrent
-    invoiceSchema.fields.product = {value: null}
     invoiceSchema.fields.buyer = {value: ''}
     this.newInvoice = this.$getForm('newInvoice', invoiceSchema)
     this.broadcastForm = this.$getForm('broadcast', {

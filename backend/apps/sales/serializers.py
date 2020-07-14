@@ -14,7 +14,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import SerializerMethodField, DecimalField, IntegerField, FloatField, EmailField, ModelField, \
     ListField
-from short_stuff import slugify, unslugify
+from short_stuff import unslugify
 from short_stuff.django.serializers import ShortCodeField
 
 from apps.lib.abstract_models import GENERAL, EXTREME
@@ -30,7 +30,7 @@ from apps.profiles.utils import available_users
 from apps.sales.models import (
     Product, Order, CreditCardToken, Revision, BankAccount,
     LineItemSim, Rating, TransactionRecord, LineItem, ADD_ON, TIP, BASE_PRICE, InventoryTracker,
-    EXTRA, PAYMENT_PENDING, NEW, DISPUTED, COMPLETED, REFUNDED, CANCELLED, Deliverable, REVIEW, IN_PROGRESS, Reference,
+    EXTRA, PAYMENT_PENDING, NEW, Deliverable, Reference,
     WAITING,
 )
 from apps.sales.utils import account_balance, PENDING, POSTED_ONLY, AVAILABLE, get_totals, order_context, \
@@ -111,6 +111,17 @@ class CharacterValidationMixin:
         return value
 
 
+class ProductValidationMixin:
+    def validate_product(self, value):
+        if value is None:
+            return None
+        product = self.context['seller'].products.exclude(active=False).filter(id=value).first()
+        if not product:
+            raise ValidationError("You don't have a product with that ID.")
+        return product
+
+
+
 class PriceValidationMixin:
     def validate_price(self, value):
         if not self.context['seller'].artist_profile.escrow_disabled:
@@ -127,6 +138,7 @@ class ProductNewOrderSerializer(serializers.ModelSerializer, CharacterValidation
     rating = ModelField(model_field=Deliverable()._meta.get_field('rating'))
     details = ModelField(model_field=Deliverable()._meta.get_field('details'))
     default_path = serializers.SerializerMethodField()
+    product_name = serializers.SerializerMethodField()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -138,6 +150,16 @@ class ProductNewOrderSerializer(serializers.ModelSerializer, CharacterValidation
     def get_default_path(self, order):
         return order.notification_link(context=self.context)
 
+    def product_name(self, order):
+        try:
+            deliverable = order.deliverables.get()
+        except Deliverable.MultipleObjectsReturned:
+            return '(Multi-part order)'
+        name = deliverable.product and deliverable.product.name
+        if not name:
+            return '(Custom Order)'
+        return name
+
     def create(self, validated_data):
         data = {
             key: value for key, value in validated_data.items() if key not in (
@@ -148,14 +170,14 @@ class ProductNewOrderSerializer(serializers.ModelSerializer, CharacterValidation
     class Meta:
         model = Order
         fields = (
-            'id', 'created_on', 'product', 'rating', 'details', 'seller', 'buyer', 'private',
+            'id', 'created_on', 'rating', 'details', 'seller', 'buyer', 'private',
             'email', 'characters', 'default_path',
         )
         extra_kwargs = {
             'characters': {'required': False},
         }
         read_only_fields = (
-            'status', 'id', 'created_on', 'product', 'default_path',
+            'status', 'id', 'created_on', 'default_path',
         )
 
 
@@ -163,7 +185,6 @@ class OrderViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
     claim_token = serializers.SerializerMethodField()
     seller = RelatedUserSerializer(read_only=True)
     buyer = RelatedUserSerializer(read_only=True)
-    product = ProductSerializer(read_only=True)
     deliverable_count = serializers.SerializerMethodField()
 
     def get_deliverable_count(self, obj):
@@ -202,16 +223,18 @@ class OrderViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = (
-            'id', 'seller', 'buyer', 'product', 'private', 'customer_email', 'claim_token',
+            'id', 'seller', 'buyer', 'private', 'customer_email', 'claim_token',
             'deliverable_count',
         )
 
 
 class NewDeliverableSerializer(
     RelatedAtomicMixin, CharacterValidationMixin, PriceValidationMixin, serializers.ModelSerializer,
+    ProductValidationMixin,
 ):
     characters = ListField(child=IntegerField(), required=False)
     references = ListField(child=IntegerField(), required=False)
+    product = serializers.IntegerField(allow_null=True)
     price = serializers.DecimalField(
         max_digits=6, decimal_places=2,
     )
@@ -239,13 +262,14 @@ class NewDeliverableSerializer(
         model = Deliverable
         fields = (
             'name', 'characters', 'price', 'revisions', 'details', 'details', 'hold', 'expected_turnaround',
-            'completed', 'paid', 'task_weight', 'references', 'rating',
+            'completed', 'paid', 'task_weight', 'references', 'rating', 'product',
         )
 
 
 class DeliverableViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
     arbitrator = RelatedUserSerializer(read_only=True)
     outputs = SubmissionSerializer(many=True, read_only=True)
+    product = ProductSerializer(read_only=True)
     subscribed = SubscribedField(required=False)
     expected_turnaround = FloatField(read_only=True)
     tip = MoneyToFloatField(read_only=True, validators=[MinValueValidator(0)])
@@ -276,14 +300,14 @@ class DeliverableViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer)
                 self.fields['tip'].read_only = False
 
     def validate_adjustment_revisions(self, val):
-        base = self.instance.order.product or self.instance
+        base = self.instance.product or self.instance
         if base.revisions + val < 0:
             raise ValidationError('Total revisions may not be less than 0.')
         return val
 
     def validate_adjustment_task_weight(self, val):
         adjustment_task_weight = Decimal(val)
-        base = self.instance.order.product or self.instance
+        base = self.instance.product or self.instance
         if base.task_weight + adjustment_task_weight < 1:
             raise ValidationError('Task weight may not be less than 1.')
         return adjustment_task_weight
@@ -297,7 +321,7 @@ class DeliverableViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer)
     def validate_adjustment_expected_turnaround(self, val):
         adjustment_expected_turnaround = Decimal(val)
         if (
-                self.instance.order.product.expected_turnaround
+                self.instance.product.expected_turnaround
                 + adjustment_expected_turnaround < settings.MINIMUM_TURNAROUND
         ):
             raise ValidationError('Expected turnaround may not be less than {}'.format(
@@ -337,7 +361,7 @@ class DeliverableViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer)
             'adjustment_expected_turnaround', 'expected_turnaround', 'task_weight', 'paid_on', 'dispute_available_on',
             'auto_finalize_on', 'started_on', 'escrow_disabled', 'revisions_hidden', 'final_uploaded', 'arbitrator',
             'display', 'rating', 'commission_info', 'adjustment_revisions',
-            'tip', 'table_order', 'trust_finalized', 'order', 'name',
+            'tip', 'table_order', 'trust_finalized', 'order', 'name', 'product',
         )
         read_only_fields = [field for field in fields if field != 'subscribed']
         extra_kwargs = {
@@ -373,7 +397,7 @@ class LineItemSerializer(serializers.ModelSerializer):
             permitted_types = [EXTRA, ADD_ON, TIP]
         elif user == deliverable.order.seller:
             permitted_types = [ADD_ON]
-            if deliverable.order.product is None:
+            if deliverable.product is None:
                 permitted_types.append(BASE_PRICE)
         elif user == deliverable.order.buyer:
             permitted_types = [TIP]
@@ -394,7 +418,6 @@ class LineItemSerializer(serializers.ModelSerializer):
 class OrderPreviewSerializer(serializers.ModelSerializer):
     seller = RelatedUserSerializer(read_only=True)
     buyer = RelatedUserSerializer(read_only=True)
-    product = ProductSerializer(read_only=True)
     display = serializers.SerializerMethodField()
     default_path = serializers.SerializerMethodField()
 
@@ -407,7 +430,7 @@ class OrderPreviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = (
-            'id', 'created_on', 'product', 'seller', 'buyer', 'private', 'display', 'default_path',
+            'id', 'created_on', 'seller', 'buyer', 'private', 'display', 'default_path',
         )
         read_only_fields = [field for field in fields]
 
@@ -644,7 +667,7 @@ class SearchQuerySerializer(serializers.Serializer):
 
 
 # noinspection PyAbstractClass
-class NewInvoiceSerializer(serializers.Serializer, PriceValidationMixin):
+class NewInvoiceSerializer(serializers.Serializer, PriceValidationMixin, ProductValidationMixin):
     product = serializers.IntegerField(allow_null=True)
     buyer = serializers.CharField(allow_null=True, allow_blank=True)
     price = serializers.DecimalField(
@@ -679,14 +702,6 @@ class NewInvoiceSerializer(serializers.Serializer, PriceValidationMixin):
         if not user:
             raise ValidationError("User with that username not found, or they are blocking you.")
         return user
-
-    def validate_product(self, value):
-        if value is None:
-            return None
-        product = self.context['request'].subject.products.exclude(active=False).filter(id=value).first()
-        if not product:
-            raise ValidationError("You don't have a product with that ID.")
-        return product
 
 
 class HoldingsSummarySerializer(serializers.ModelSerializer):

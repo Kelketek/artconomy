@@ -76,19 +76,4 @@ describe('AcOrderPreview.ts', () => {
     expect(vm.isBuyer).toBe(false)
     expect(vm.buyerProfile).toEqual(null)
   })
-  it('Handles a null product', async() => {
-    order.setX(genOrder({product: null}))
-    wrapper = mount(
-      AcOrderPreview, {
-        localVue,
-        store,
-        vuetify,
-        stubs: ['router-link'],
-        propsData: {order, username: 'Fox', type: 'Sale'},
-        sync: false,
-        attachToDocument: true,
-      })
-    const vm = wrapper.vm as any
-    expect(vm.name).toBe('(Custom Project)')
-  })
 })

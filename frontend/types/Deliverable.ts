@@ -11,6 +11,7 @@ export default interface Deliverable {
   name: string,
   created_on: string,
   status: DeliverableStatus,
+  product: Product|null,
   price: number,
   details: string,
   commission_info: string,

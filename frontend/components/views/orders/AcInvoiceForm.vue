@@ -1,18 +1,18 @@
 <template>
-  <v-row>
-    <slot name="first">
-      <v-col cols="12" sm="6" >
-        <ac-bound-field
-          :field="newInvoice.fields.product"
-          field-type="ac-product-select"
-          :multiple="false"
-          :username="username"
-          label="Product"
-          hint="Optional: Specify which of your product this invoice is for. This can help with organization.
-                    If no product is specified, this will be considered a custom order."
-          :persistent-hint="true"
-        ></ac-bound-field>
-      </v-col>
+  <v-row class="ac-invoice-form">
+    <v-col cols="12" sm="6" >
+      <ac-bound-field
+        :field="newInvoice.fields.product"
+        field-type="ac-product-select"
+        :multiple="false"
+        :username="username"
+        label="Product"
+        hint="Optional: Specify which of your product this invoice is for. This can help with organization.
+                  If no product is specified, this will be considered a custom order."
+        :persistent-hint="true"
+      ></ac-bound-field>
+    </v-col>
+    <slot name="second">
     </slot>
     <v-col cols="12" sm="6">
       <ac-price-preview  :lineItems="lineItems" :escrow="!escrowDisabled" :username="username" />

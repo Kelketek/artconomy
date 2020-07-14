@@ -60,7 +60,7 @@ from apps.sales.permissions import (
     OrderPlacePermission, EscrowPermission, EscrowDisabledPermission, RevisionsVisible,
     BankingConfigured,
     DeliverableStatusPermission, HasRevisionsPermission, OrderTimeUpPermission, NoOrderOutput, PaidOrderPermission,
-    LineItemTypePermission, OrderNoProduct, LandscapePermission)
+    LineItemTypePermission, DeliverableNoProduct, LandscapeSellerPermission)
 from apps.sales.serializers import (
     ProductSerializer, ProductNewOrderSerializer, DeliverableViewSerializer, CardSerializer,
     NewCardSerializer, PaymentSerializer, RevisionSerializer,
@@ -214,7 +214,7 @@ class PlaceOrder(CreateAPIView):
                 user = create_guest_user(serializer.validated_data['email'])
                 login(self.request, user)
         order = serializer.save(
-            product=product, buyer=user, seller=product.user,
+            buyer=user, seller=product.user,
         )
         if product.wait_list:
             order_status = WAITING
@@ -222,6 +222,7 @@ class PlaceOrder(CreateAPIView):
             order_status = NEW
         deliverable = Deliverable.objects.create(
             order=order,
+            product=product,
             status=order_status,
             name='Main',
             escrow_disabled=product.user.artist_profile.escrow_disabled,
@@ -270,7 +271,7 @@ class OrderDeliverables(ListCreateAPIView):
     permission_classes = [
         Any(
             All(OrderViewPermission, IsSafeMethod),
-            All(OrderSellerPermission, LandscapePermission),
+            All(OrderSellerPermission, LandscapeSellerPermission),
         )
     ]
 
@@ -306,7 +307,7 @@ class OrderDeliverables(ListCreateAPIView):
         serializer.is_valid(raise_exception=True)
         order = self.get_object()
         self.check_object_permissions(self.request, order)
-        product = order.product
+        product = serializer.validated_data.get('product', None)
         facts = get_order_facts(product, serializer, order.seller)
         deliverable_facts = {key: value for key, value in facts.items() if key not in (
             'price', 'adjustment', 'hold', 'paid',
@@ -390,9 +391,9 @@ class DeliverableAccept(GenericAPIView):
     def post(self, request, *args, **kwargs):
         deliverable = self.get_object()
         deliverable.status = PAYMENT_PENDING
-        deliverable.task_weight = (deliverable.order.product and deliverable.order.product.task_weight) or deliverable.task_weight
-        deliverable.expected_turnaround = (deliverable.order.product and deliverable.order.product.expected_turnaround) or deliverable.expected_turnaround
-        deliverable.revisions = (deliverable.order.product and deliverable.order.product.revisions) or deliverable.revisions
+        deliverable.task_weight = (deliverable.product and deliverable.product.task_weight) or deliverable.task_weight
+        deliverable.expected_turnaround = (deliverable.product and deliverable.product.expected_turnaround) or deliverable.expected_turnaround
+        deliverable.revisions = (deliverable.product and deliverable.product.revisions) or deliverable.revisions
         if deliverable.total() <= Money('0', 'USD'):
             deliverable.status = QUEUED
             deliverable.revisions_hidden = False
@@ -433,10 +434,10 @@ class MarkPaid(GenericAPIView):
             deliverable.status = IN_PROGRESS
         else:
             deliverable.status = QUEUED
-        if deliverable.order.product:
-            deliverable.task_weight = deliverable.order.product.task_weight
-            deliverable.expected_turnaround = deliverable.order.product.expected_turnaround
-            deliverable.revisions = deliverable.order.product.revisions
+        if deliverable.product:
+            deliverable.task_weight = deliverable.product.task_weight
+            deliverable.expected_turnaround = deliverable.product.expected_turnaround
+            deliverable.revisions = deliverable.product.revisions
         deliverable.revisions_hidden = False
         deliverable.commission_info = deliverable.order.seller.artist_profile.commission_info
         deliverable.escrow_disabled = True
@@ -590,7 +591,7 @@ class LineItemManager(RetrieveUpdateDestroyAPIView):
                     All(
                         OrderSellerPermission, Any(
                             LineItemTypePermission(ADD_ON),
-                            All(OrderNoProduct, All(LineItemTypePermission(BASE_PRICE), IsMethod('PATCH'))),
+                            All(DeliverableNoProduct, All(LineItemTypePermission(BASE_PRICE), IsMethod('PATCH'))),
                         )
                     ),
                     All(OrderBuyerPermission, LineItemTypePermission(TIP)),
@@ -1521,11 +1522,11 @@ class MakePayment(PaymentMixin, GenericAPIView):
         deliverable.revisions_hidden = False
         # Save the original turnaround/weight.
         deliverable.task_weight = (
-                (deliverable.order.product and deliverable.order.product.task_weight)
+                (deliverable.product and deliverable.product.task_weight)
                 or deliverable.task_weight
         )
         deliverable.expected_turnaround = (
-                (deliverable.order.product and deliverable.order.product.expected_turnaround)
+                (deliverable.product and deliverable.product.expected_turnaround)
                 or deliverable.expected_turnaround
         )
         deliverable.dispute_available_on = (
@@ -2066,7 +2067,6 @@ class CreateInvoice(GenericAPIView):
                     seller=user,
                     buyer=buyer,
                     customer_email=customer_email,
-                    product=product,
                     private=serializer.validated_data['private'],
                 )
                 deliverable_facts = {key: value for key, value in facts.items() if key not in (
@@ -2076,6 +2076,7 @@ class CreateInvoice(GenericAPIView):
                     name='Main',
                     order=order,
                     details=serializer.validated_data['details'],
+                    product=product,
                     commission_info=request.subject.artist_profile.commission_info,
                     **deliverable_facts,
                 )
@@ -2381,8 +2382,8 @@ class DeliverableOutputs(ListCreateAPIView):
             if request.user == character.user and not character.primary_submission:
                 character.primary_submission = instance
                 character.save()
-        if deliverable.order.product and request.user == deliverable.order.seller:
-            deliverable.order.product.samples.add(instance)
+        if deliverable.product and request.user == deliverable.order.seller:
+            deliverable.product.samples.add(instance)
         return Response(
             data=SubmissionSerializer(instance=instance, context=self.get_serializer_context()).data,
             status=status.HTTP_201_CREATED,

@@ -55,7 +55,7 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         order = Order.objects.get(id=response.data['id'])
         for character in characters:
             self.assertTrue(character.shared_with.filter(username=order.seller.username).exists())
-        self.assertEqual(order.product, product)
+        self.assertEqual(order.deliverables.get().product, product)
         self.assertEqual(deliverable.status, NEW)
         self.assertEqual(deliverable.details, 'Draw me some porn!')
         # These should be set at the point of payment.
@@ -231,7 +231,7 @@ class TestOrder(TransactionCheckMixin, APITestCase):
     def test_add_line_item_too_low(self):
         user = UserFactory.create()
         self.login(user)
-        deliverable = DeliverableFactory.create(order__seller=user, order__product__base_price=Money('15.00', 'USD'))
+        deliverable = DeliverableFactory.create(order__seller=user, product__base_price=Money('15.00', 'USD'))
         response = self.client.post(
             f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/',
             {
@@ -321,7 +321,7 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         user = UserFactory.create()
         user2 = UserFactory.create()
         self.login(user2)
-        deliverable = DeliverableFactory.create(order__seller=user2, order__buyer=user, order__product=None)
+        deliverable = DeliverableFactory.create(order__seller=user2, order__buyer=user, product=None)
         deliverable.line_items.filter(type=BASE_PRICE).update(amount=Money('100.00', 'USD'))
         response = self.client.post(
             f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/',

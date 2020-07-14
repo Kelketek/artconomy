@@ -247,21 +247,21 @@
                       </ac-form-dialog>
                       <ac-form-dialog
                         v-if="isSeller && seller"
-                        @submit.prevent="addDeliverable.submitThen(visitDeliverable)"
+                        @submit.prevent="newInvoice.submitThen(visitDeliverable)"
                         v-model="viewSettings.patchers.showAddDeliverable.model"
-                        v-bind="addDeliverable.bind"
+                        v-bind="newInvoice.bind"
                         :large="true"
                         :eager="true"
                         :title="'Add new Deliverable to Order.'"
                       >
                         <v-container class="pa-0">
-                          <ac-invoice-form :new-invoice="addDeliverable" :username="seller.username" :line-items="newLineItems" :escrow-disabled="newEscrowDisabled" :show-buyer="false">
-                            <template v-slot:first>
-                              <v-col cols="12">
+                          <ac-invoice-form :new-invoice="newInvoice" :username="seller.username" :line-items="invoiceLineItems" :escrow-disabled="invoiceEcrowDisabled" :show-buyer="false">
+                            <template v-slot:second>
+                              <v-col cols="12" sm="6">
                                 <v-row no-gutters>
                                   <v-col cols="12" sm="6" md="4" offset-sm="3" offset-md="4">
                                     <ac-bound-field
-                                      :field="addDeliverable.fields.name"
+                                      :field="newInvoice.fields.name"
                                       label="Deliverable Name"
                                       hint="Give this deliverable a name, like 'Page 2' or 'Inks'. This will help distinguish it from the other deliverables in the order."
                                     />
@@ -276,7 +276,7 @@
                                 />
                               </v-col>
                               <v-col cols="12" sm="6">
-                                <ac-bound-field :field="addDeliverable.fields.characters"
+                                <ac-bound-field :field="newInvoice.fields.characters"
                                                 :init-items="viewSettings.patchers.characterInitItems.model"
                                                 field-type="ac-character-select" label="Characters"
                                                 hint="Tag the character(s) to be referenced in this deliverable. If they're not listed on Artconomy, you can skip this step." />
@@ -348,10 +348,10 @@ import {VIEWER_TYPE} from '@/types/VIEWER_TYPE'
 import LinkedCharacter from '@/types/LinkedCharacter'
 import {Character} from '@/store/characters/types/Character'
 import AcInvoiceForm from '@/components/views/orders/AcInvoiceForm.vue'
-import {invoiceLines} from '@/lib/lineItemFunctions'
 import {SingleController} from '@/store/singles/controller'
-import Reference from '@/types/Reference'
 import LinkedReference from '@/types/LinkedReference'
+import InvoicingMixin from '@/components/views/order/mixins/InvoicingMixin'
+import {ListController} from '@/store/lists/controller'
 
 @Component({components: {
   AcInvoiceForm,
@@ -376,7 +376,8 @@ import LinkedReference from '@/types/LinkedReference'
   AcAsset,
   AcProductPreview,
   AcLoadSection}})
-export default class DeliverableDetail extends mixins(DeliverableMixin, Formatting, Ratings) {
+export default class DeliverableDetail extends mixins(DeliverableMixin, Formatting, Ratings, InvoicingMixin) {
+  public parentDeliverables: ListController<Deliverable> = null as unknown as ListController<Deliverable>
   // We only place this on DeliverableDetail so it doesn't get run multiple times. All subcomponents are reliant on it,
   // however, so keep this in mind during tests.
   @Watch('deliverable.x.id')
@@ -391,11 +392,8 @@ export default class DeliverableDetail extends mixins(DeliverableMixin, Formatti
     this.outputs.fetching = false
     this.outputs.ready = true
     this.addSubmission.fields.private.update(order.private)
-    this.addDeliverable.fields.details.update(deliverable.details)
-    this.addDeliverable.fields.rating.update(deliverable.rating)
-    this.addDeliverable.fields.revisions.update(this.revisionCount)
-    this.addDeliverable.fields.expected_turnaround.update(this.expectedTurnaround)
-    this.addDeliverable.fields.task_weight.update(this.taskWeight)
+    this.newInvoice.fields.details.update(deliverable.details)
+    this.newInvoice.fields.rating.update(deliverable.rating)
     this.order.setX(order)
     this.order.ready = true
   }
@@ -432,6 +430,13 @@ export default class DeliverableDetail extends mixins(DeliverableMixin, Formatti
 
   public visitSubmission(submission: Submission) {
     this.$router.push({name: 'Submission', params: {submissionId: submission.id + ''}, query: {editing: 'true'}})
+  }
+
+  public get sellerName() {
+    if (this.seller) {
+      return this.seller.username
+    }
+    return ''
   }
 
   public get registerLink() {
@@ -489,6 +494,9 @@ export default class DeliverableDetail extends mixins(DeliverableMixin, Formatti
 
   public visitDeliverable(deliverable: Deliverable) {
     this.order.updateX({deliverable_count: (this.order.x as Order).deliverable_count + 1})
+    if (this.parentDeliverables.list.length) {
+      this.parentDeliverables.push(deliverable)
+    }
     this.$router.push({
       name: `${this.baseName}DeliverableOverview`,
       params: {orderId: this.orderId + '', deliverableId: deliverable.id + '', username: this.$route.params.username},
@@ -504,30 +512,30 @@ export default class DeliverableDetail extends mixins(DeliverableMixin, Formatti
       characters.push(character.character)
     }
     this.addSubmission.fields.tags.update([...new Set(tags)])
-    this.addDeliverable.fields.characters.update(characters.map((char: Character) => char.id))
+    this.newInvoice.fields.characters.update(characters.map((char: Character) => char.id))
     this.viewSettings.patchers.characterInitItems.model = characters
   }
 
   public setReferences() {
-    this.addDeliverable.fields.references.update(
+    this.newInvoice.fields.references.update(
       this.references.list.map((x: SingleController<LinkedReference>) => {
         return x.x && x.x.reference.id
       })
     )
   }
 
-  public get newEscrowDisabled() {
+  public get invoiceEcrowDisabled() {
     if (!this.sellerHandler.artistProfile.x) {
       return true
     }
-    if (this.addDeliverable.fields.paid.value) {
+    if (this.newInvoice.fields.paid.value) {
       return true
     }
     return this.sellerHandler.artistProfile.x.escrow_disabled
   }
 
   public get keepReferences() {
-    return Boolean(this.addDeliverable.fields.references.value.length)
+    return Boolean(this.newInvoice.fields.references.value.length)
   }
 
   // Can't even get this to render during tests :/
@@ -536,26 +544,18 @@ export default class DeliverableDetail extends mixins(DeliverableMixin, Formatti
     if (val) {
       this.setReferences()
     } else {
-      this.addDeliverable.fields.references.update([])
+      this.newInvoice.fields.references.update([])
     }
-  }
-
-  public get newLineItems() {
-    const linesController = this.$getList('newDeliverableLines', {endpoint: '#', paginated: false})
-    linesController.ready = true
-    linesController.setList(invoiceLines({
-      pricing: (this.pricing.x || null),
-      escrowDisabled: this.newEscrowDisabled,
-      product: (this.product),
-      value: this.addDeliverable.fields.price.value,
-    }))
-    return linesController
   }
 
   public created() {
     this.deliverable.get().catch(this.setError)
     this.characters.firstRun().then(this.addTags)
     this.references.firstRun()
+    // Used when adding the deliverable to keep state sane upstream.
+    this.parentDeliverables = this.$getList(
+      `order${this.orderId}__deliverables`, {endpoint: `${this.url}deliverables/`},
+    )
     this.$listenForList(`${this.prefix}__characters`)
     this.$listenForList(`${this.prefix}__revisions`)
     this.$listenForList(`${this.prefix}__lineItems`)

@@ -13,8 +13,8 @@ class OrderAdmin(admin.ModelAdmin):
     inlines = [
         CommentInline
     ]
-    raw_id_fields = ['buyer', 'seller', 'product']
-    list_display = ('product', 'buyer', 'seller')
+    raw_id_fields = ['buyer', 'seller']
+    list_display = ('buyer', 'seller')
 
     def shield_protected(self, obj):
         return not obj.escrow_disabled
@@ -24,12 +24,9 @@ class DeliverableAdmin(admin.ModelAdmin):
     inlines = [
         CommentInline
     ]
-    raw_id_fields = ['arbitrator', 'characters']
+    raw_id_fields = ['arbitrator', 'characters', 'product']
     list_display = ('id', 'name', 'product', 'buyer', 'seller', 'shield_protected', 'status')
     list_filter = ('escrow_disabled', 'status')
-
-    def product(self, obj):
-        return obj.order.product
 
     def buyer(self, obj):
         return obj.order.buyer

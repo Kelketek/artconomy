@@ -3,7 +3,7 @@
 {% block header_message %}{% if target.status == 1 %}New Sale!{% else %}Sale update!{% endif %} #{{target.id}}{% endblock %}
 {% block message %}
 {% if target.status == 1 or target.status == 0 %}
-<p>You have a new sale of your product, "{{target.order.product.name}}" to <a href="/profile/{{target.order.buyer.username}}/">{{target.order.buyer.username}}</a>.</p>
+<p>You have a new sale of your product, "{{target.product.name}}" to <a href="/profile/{{target.order.buyer.username}}/">{{target.order.buyer.username}}</a>.</p>
 
 {% if target.status == 0 %}
 <p><strong>NOTE: THIS IS A WAITLISTED ORDER.</strong></p>

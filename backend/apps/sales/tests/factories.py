@@ -30,13 +30,13 @@ class OrderFactory(DjangoModelFactory):
         model = Order
 
     buyer = SubFactory(UserFactory)
-    seller = SelfAttribute('product.user')
-    product = SubFactory(ProductFactory)
+    seller = SubFactory(UserFactory)
 
 
 class DeliverableFactory(DjangoModelFactory):
     name = Sequence(lambda x: 'Stage {}'.format(x))
     order = SubFactory(OrderFactory)
+    product = SubFactory(ProductFactory, user=SelfAttribute('..order.seller'))
 
     class Meta:
         model = Deliverable
@@ -112,7 +112,7 @@ class LineItemFactory(DjangoModelFactory):
     type = ADD_ON
     deliverable = SubFactory(DeliverableFactory)
     priority = 1
-    amount = SelfAttribute('deliverable.order.product.base_price')
+    amount = SelfAttribute('deliverable.product.base_price')
     destination_user = SelfAttribute('deliverable.order.seller')
     destination_account = TransactionRecord.ESCROW
 

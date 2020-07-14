@@ -707,6 +707,7 @@ export function baseInvoiceSchema(endpoint: string): NamelessFormSchema {
       task_weight: {value: 0},
       revisions: {value: 1},
       private: {value: false},
+      product: {value: null},
       rating: {value: 0},
       details: {value: ''},
       paid: {value: false},

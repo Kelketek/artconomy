@@ -80,7 +80,7 @@ describe('DeliverableOverview.vue', () => {
     const vm = wrapper.vm as any
     expect(vm.commissionInfo).toBe('')
     const deliverable = genDeliverable()
-    deliverable.order.product = null
+    deliverable.product = null
     vm.order.makeReady(deliverable.order)
     vm.deliverable.makeReady(deliverable)
     await vm.$nextTick()

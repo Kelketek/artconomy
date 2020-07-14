@@ -28,7 +28,7 @@ class TestOrderPayment(TransactionCheckMixin, APITestCase):
         user = UserFactory.create()
         self.login(user)
         deliverable = DeliverableFactory.create(
-            order__buyer=user, status=PAYMENT_PENDING, order__product__base_price=Money('10.00', 'USD'),
+            order__buyer=user, status=PAYMENT_PENDING, product__base_price=Money('10.00', 'USD'),
         )
         add_adjustment(deliverable, Money('2.00', 'USD'))
         subscription = Subscription.objects.get(subscriber=deliverable.order.seller, type=SALE_UPDATE)
@@ -55,7 +55,7 @@ class TestOrderPayment(TransactionCheckMixin, APITestCase):
         user = UserFactory.create(authorize_token='6969')
         self.login(user)
         deliverable = DeliverableFactory.create(
-            order__buyer=user, status=PAYMENT_PENDING, order__product__base_price=Money('10.00', 'USD'),
+            order__buyer=user, status=PAYMENT_PENDING, product__base_price=Money('10.00', 'USD'),
         )
         add_adjustment(deliverable, Money('2.00', 'USD'))
         mock_charge_card.return_value = ('36985214745', 'ABC123')
@@ -93,8 +93,8 @@ class TestOrderPayment(TransactionCheckMixin, APITestCase):
         user = UserFactory.create()
         self.login(user)
         deliverable = DeliverableFactory.create(
-            order__buyer=user, status=PAYMENT_PENDING, order__product__base_price=Money('10.00', 'USD'),
-            order__product__task_weight=1, order__product__expected_turnaround=2,
+            order__buyer=user, status=PAYMENT_PENDING, product__base_price=Money('10.00', 'USD'),
+            product__task_weight=1, product__expected_turnaround=2,
             adjustment_task_weight=3, adjustment_expected_turnaround=4
         )
         add_adjustment(deliverable, Money('2.00', 'USD'))
@@ -121,7 +121,7 @@ class TestOrderPayment(TransactionCheckMixin, APITestCase):
         user = UserFactory.create()
         self.login(user)
         deliverable = DeliverableFactory.create(
-            order__buyer=user, status=PAYMENT_PENDING, order__product__base_price=Money('10.00', 'USD'),
+            order__buyer=user, status=PAYMENT_PENDING, product__base_price=Money('10.00', 'USD'),
             revisions_hidden=True,
         )
         add_adjustment(deliverable, Money('2.00', 'USD'))
@@ -146,7 +146,7 @@ class TestOrderPayment(TransactionCheckMixin, APITestCase):
         user = UserFactory.create()
         self.login(user)
         deliverable = DeliverableFactory.create(
-            order__buyer=user, status=PAYMENT_PENDING, order__product__base_price=Money('10.00', 'USD'),
+            order__buyer=user, status=PAYMENT_PENDING, product__base_price=Money('10.00', 'USD'),
             revisions_hidden=True, final_uploaded=True,
         )
         add_adjustment(deliverable, Money('2.00', 'USD'))
@@ -174,8 +174,8 @@ class TestOrderPayment(TransactionCheckMixin, APITestCase):
         user.referred_by = UserFactory.create()
         user.save()
         deliverable = DeliverableFactory.create(
-            order__buyer=user, status=PAYMENT_PENDING, order__product__base_price=Money('10.00', 'USD'),
-            order__product__user__referred_by=UserFactory.create()
+            order__buyer=user, status=PAYMENT_PENDING, product__base_price=Money('10.00', 'USD'),
+            order__seller__referred_by=UserFactory.create()
         )
         add_adjustment(deliverable, Money('2.00', 'USD'))
         self.assertFalse(user.bought_shield_on)
@@ -213,7 +213,7 @@ class TestOrderPayment(TransactionCheckMixin, APITestCase):
         user = UserFactory.create()
         self.login(user)
         deliverable = DeliverableFactory.create(
-            order__buyer=user, status=PAYMENT_PENDING, order__product__base_price=Money('10.00', 'USD'),
+            order__buyer=user, status=PAYMENT_PENDING, product__base_price=Money('10.00', 'USD'),
             escrow_disabled=True
         )
         add_adjustment(deliverable, Money('2.00', 'USD'))
@@ -232,7 +232,7 @@ class TestOrderPayment(TransactionCheckMixin, APITestCase):
         user = UserFactory.create()
         self.login(user)
         deliverable = DeliverableFactory.create(
-            order__buyer=user, status=PAYMENT_PENDING, order__product__base_price=Money('10.00', 'USD'),
+            order__buyer=user, status=PAYMENT_PENDING, product__base_price=Money('10.00', 'USD'),
         )
         add_adjustment(deliverable, Money('2.00', 'USD'))
         mock_charge_card.return_value = ('36985214745', 'ABC123')
@@ -252,7 +252,7 @@ class TestOrderPayment(TransactionCheckMixin, APITestCase):
         user = UserFactory.create()
         self.login(user)
         deliverable = DeliverableFactory.create(
-            order__buyer=user, status=PAYMENT_PENDING, order__product__base_price=Money('10.00', 'USD'),
+            order__buyer=user, status=PAYMENT_PENDING, product__base_price=Money('10.00', 'USD'),
         )
         add_adjustment(deliverable, Money('2.00', 'USD'))
         mock_charge_card.return_value = ('36985214745', 'ABC123')
@@ -272,7 +272,7 @@ class TestOrderPayment(TransactionCheckMixin, APITestCase):
         user = UserFactory.create()
         self.login(user)
         deliverable = DeliverableFactory.create(
-            order__buyer=user, status=PAYMENT_PENDING, order__product__base_price=Money('10.00', 'USD'),
+            order__buyer=user, status=PAYMENT_PENDING, product__base_price=Money('10.00', 'USD'),
         )
         add_adjustment(deliverable, Money('2.00', 'USD'))
         mock_charge_card.side_effect = AuthorizeException("It failed!")
@@ -311,7 +311,7 @@ class TestOrderPayment(TransactionCheckMixin, APITestCase):
         user = UserFactory.create()
         self.login(user)
         deliverable = DeliverableFactory.create(
-            order__buyer=user, status=PAYMENT_PENDING, order__product__base_price=Money('10.00', 'USD'),
+            order__buyer=user, status=PAYMENT_PENDING, product__base_price=Money('10.00', 'USD'),
         )
         add_adjustment(deliverable, Money('2.00', 'USD'))
         mock_charge_card.side_effect = AuthorizeException("It failed!")
@@ -359,7 +359,7 @@ class TestOrderPayment(TransactionCheckMixin, APITestCase):
         user = UserFactory.create()
         self.login(user)
         deliverable = DeliverableFactory.create(
-            order__buyer=user, status=PAYMENT_PENDING, order__product__base_price=Money('10.00', 'USD'),
+            order__buyer=user, status=PAYMENT_PENDING, product__base_price=Money('10.00', 'USD'),
         )
         add_adjustment(deliverable, Money('2.00', 'USD'))
         mock_charge_card.return_value = ('36985214745', 'ABC123')
@@ -379,7 +379,7 @@ class TestOrderPayment(TransactionCheckMixin, APITestCase):
         user = UserFactory.create()
         self.login(user)
         deliverable = DeliverableFactory.create(
-            order__buyer=user, status=PAYMENT_PENDING, order__product__base_price=Money('10.00', 'USD'),
+            order__buyer=user, status=PAYMENT_PENDING, product__base_price=Money('10.00', 'USD'),
         )
         add_adjustment(deliverable, Money('2.00', 'USD'))
         mock_charge_card.return_value = '36985214745'
@@ -400,7 +400,7 @@ class TestOrderPayment(TransactionCheckMixin, APITestCase):
         user2 = UserFactory.create()
         self.login(user2)
         deliverable = DeliverableFactory.create(
-            order__buyer=user, status=PAYMENT_PENDING, order__product__base_price=Money('10.00', 'USD'),
+            order__buyer=user, status=PAYMENT_PENDING, product__base_price=Money('10.00', 'USD'),
         )
         add_adjustment(deliverable, Money('2.00', 'USD'))
         mock_charge_card.return_value = '36985214745'
@@ -421,7 +421,7 @@ class TestOrderPayment(TransactionCheckMixin, APITestCase):
         user2 = UserFactory.create()
         self.login(user2)
         deliverable = DeliverableFactory.create(
-            order__buyer=user, status=PAYMENT_PENDING, order__product__base_price=Money('10.00', 'USD'),
+            order__buyer=user, status=PAYMENT_PENDING, product__base_price=Money('10.00', 'USD'),
             order__seller=user2,
         )
         mock_charge_card.return_value = '36985214745'
@@ -441,7 +441,7 @@ class TestOrderPayment(TransactionCheckMixin, APITestCase):
         user = UserFactory.create(is_staff=True)
         self.login(user)
         deliverable = DeliverableFactory.create(
-            status=PAYMENT_PENDING, order__product__base_price=Money('10.00', 'USD'),
+            status=PAYMENT_PENDING, product__base_price=Money('10.00', 'USD'),
         )
         add_adjustment(deliverable, Money('2.00', 'USD'))
         mock_charge_card.return_value = ('36985214745', 'ABC123')
@@ -461,7 +461,7 @@ class TestOrderPayment(TransactionCheckMixin, APITestCase):
         user = UserFactory.create(is_staff=True)
         self.login(user)
         deliverable = DeliverableFactory.create(
-            status=PAYMENT_PENDING, order__product__base_price=Money('10.00', 'USD'),
+            status=PAYMENT_PENDING, product__base_price=Money('10.00', 'USD'),
             order__buyer=None, order__customer_email='test@example.com',
         )
         self.assertIsNone(deliverable.order.buyer)
@@ -485,7 +485,7 @@ class TestOrderPayment(TransactionCheckMixin, APITestCase):
         user = UserFactory.create(is_staff=True)
         self.login(user)
         deliverable = DeliverableFactory.create(
-            status=PAYMENT_PENDING, order__product__base_price=Money('10.00', 'USD'),
+            status=PAYMENT_PENDING, product__base_price=Money('10.00', 'USD'),
             order__buyer=None,
         )
         self.assertIsNone(deliverable.order.buyer)
@@ -505,7 +505,7 @@ class TestOrderPayment(TransactionCheckMixin, APITestCase):
         user = UserFactory.create(is_staff=True)
         self.login(user)
         deliverable = DeliverableFactory.create(
-            status=PAYMENT_PENDING, order__product__base_price=Money('10.00', 'USD'),
+            status=PAYMENT_PENDING, product__base_price=Money('10.00', 'USD'),
         )
         add_adjustment(deliverable, Money('2.00', 'USD'))
         response = self.client.post(
@@ -522,7 +522,7 @@ class TestOrderPayment(TransactionCheckMixin, APITestCase):
         user = UserFactory.create()
         self.login(user)
         deliverable = DeliverableFactory.create(
-            order__buyer=user, status=PAYMENT_PENDING, order__product__base_price=Money('10.00', 'USD'),
+            order__buyer=user, status=PAYMENT_PENDING, product__base_price=Money('10.00', 'USD'),
         )
         add_adjustment(deliverable, Money('2.00', 'USD'))
         response = self.client.post(
@@ -539,7 +539,7 @@ class TestOrderPayment(TransactionCheckMixin, APITestCase):
         user = UserFactory.create(is_staff=True)
         self.login(user)
         deliverable = DeliverableFactory.create(
-            status=PAYMENT_PENDING, order__product__base_price=Money('10.00', 'USD'),
+            status=PAYMENT_PENDING, product__base_price=Money('10.00', 'USD'),
         )
         add_adjustment(deliverable, Money('2.00', 'USD'))
         mock_details.return_value = {
@@ -560,7 +560,7 @@ class TestOrderPayment(TransactionCheckMixin, APITestCase):
         user = UserFactory.create()
         self.login(user)
         deliverable = DeliverableFactory.create(
-            order__buyer=user, status=PAYMENT_PENDING, order__product__base_price=Money('10.00', 'USD'),
+            order__buyer=user, status=PAYMENT_PENDING, product__base_price=Money('10.00', 'USD'),
         )
         add_adjustment(deliverable, Money('2.00', 'USD'))
         response = self.client.post(
@@ -577,7 +577,7 @@ class TestOrderPayment(TransactionCheckMixin, APITestCase):
         user = UserFactory.create()
         self.login(user)
         deliverable = DeliverableFactory.create(
-            order__buyer=user, status=PAYMENT_PENDING, order__product__base_price=Money('10.00', 'USD'),
+            order__buyer=user, status=PAYMENT_PENDING, product__base_price=Money('10.00', 'USD'),
             table_order=True
         )
         add_adjustment(deliverable, Money('2.00', 'USD'))

@@ -56,10 +56,7 @@ export default class AcOrderPreview extends mixins(Subjective, Formatting) {
       if (!this.order.x) {
         return
       }
-      if (!this.order.x.product) {
-        return '(Custom Project)'
-      }
-      return this.order.x.product.name
+      return this.order.x.product_name
     }
 
     public get isBuyer() {

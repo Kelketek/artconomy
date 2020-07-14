@@ -13,6 +13,7 @@
         bottom
         large
         @click="launch"
+        class="ac-add-button"
     >
       <v-icon x-large>add</v-icon>
     </v-btn>

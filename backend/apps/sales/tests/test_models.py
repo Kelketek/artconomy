@@ -156,7 +156,7 @@ class TestTransactionRecord(TestCase):
 )
 class TestDeliverable(TestCase):
     def test_total(self):
-        deliverable = DeliverableFactory.create(order__product__base_price=Money(5, 'USD'))
+        deliverable = DeliverableFactory.create(product__base_price=Money(5, 'USD'))
         self.assertEqual(deliverable.total(), Money('5.00', 'USD'))
         LineItemFactory.create(deliverable=deliverable, amount=Money('2.00', 'USD'))
         self.assertEqual(deliverable.total(), Money('7.00', 'USD'))
@@ -248,14 +248,14 @@ class TestDeliverable(TestCase):
 
     def test_notification_display(self):
         deliverable, context = self.deliverable_and_context()
-        deliverable.order.product.primary_submission = SubmissionFactory.create()
+        deliverable.product.primary_submission = SubmissionFactory.create()
         output = deliverable.notification_display(context)
-        self.assertEqual(output['id'], deliverable.order.product.primary_submission.id)
-        self.assertEqual(output['title'], deliverable.order.product.primary_submission.title)
+        self.assertEqual(output['id'], deliverable.product.primary_submission.id)
+        self.assertEqual(output['title'], deliverable.product.primary_submission.title)
 
     def test_notification_display_revision(self):
         deliverable, context = self.deliverable_and_context()
-        deliverable.order.product.primary_submission = SubmissionFactory.create()
+        deliverable.product.primary_submission = SubmissionFactory.create()
         deliverable.revisions_hidden = False
         revision = RevisionFactory.create(deliverable=deliverable)
         output = deliverable.notification_display(context)
@@ -263,7 +263,7 @@ class TestDeliverable(TestCase):
         self.assertIn(revision.file.file.name, output['file']['full'])
 
     def test_create_line_items_escrow(self):
-        deliverable = DeliverableFactory.create(order__product__base_price=Money('15.00', 'USD'))
+        deliverable = DeliverableFactory.create(product__base_price=Money('15.00', 'USD'))
         base_price = deliverable.line_items.get(type=BASE_PRICE)
         self.assertEqual(base_price.amount, Money('15.00', 'USD'))
         self.assertEqual(base_price.percentage, 0)
@@ -282,7 +282,7 @@ class TestDeliverable(TestCase):
         self.assertEqual(deliverable.line_items.all().count(), 3)
 
     def test_create_line_items_non_escrow(self):
-        deliverable = DeliverableFactory.create(order__product__base_price=Money('15.00', 'USD'), escrow_disabled=True)
+        deliverable = DeliverableFactory.create(product__base_price=Money('15.00', 'USD'), escrow_disabled=True)
         base_price = deliverable.line_items.get(type=BASE_PRICE)
         self.assertEqual(base_price.amount, Money('15.00', 'USD'))
         self.assertEqual(base_price.percentage, 0)
@@ -290,7 +290,7 @@ class TestDeliverable(TestCase):
         self.assertEqual(deliverable.line_items.all().count(), 1)
 
     def test_create_line_items_table_service(self):
-        deliverable = DeliverableFactory.create(order__product__base_price=Money('15.00', 'USD'), table_order=True)
+        deliverable = DeliverableFactory.create(product__base_price=Money('15.00', 'USD'), table_order=True)
         base_price = deliverable.line_items.get(type=BASE_PRICE)
         self.assertEqual(base_price.amount, Money('15.00', 'USD'))
         self.assertEqual(base_price.percentage, 0)
@@ -326,7 +326,7 @@ class TestRevision(TestCase):
         buyer = UserFactory.create()
         revision = RevisionFactory.create(
             owner=user, deliverable__order__seller=user,
-            deliverable__order__product__user=user, deliverable__order__buyer=buyer,
+            deliverable__product__user=user, deliverable__order__buyer=buyer,
         )
         other = UserFactory.create()
         self.assertTrue(revision.can_reference_asset(revision.owner))
@@ -341,12 +341,12 @@ class TestLoadAdjustment(TestCase):
         user = UserFactory.create()
         user.artist_profile.max_load = 10
         user.artist_profile.save()
-        DeliverableFactory.create(task_weight=5, status=QUEUED, order__product__user=user)
+        DeliverableFactory.create(task_weight=5, status=QUEUED, order__seller=user)
         user.refresh_from_db()
         self.assertEqual(user.artist_profile.load, 5)
         self.assertFalse(user.artist_profile.commissions_disabled)
         self.assertFalse(user.artist_profile.commissions_closed)
-        order = DeliverableFactory.create(task_weight=5, status=NEW, order__product__user=user)
+        order = DeliverableFactory.create(task_weight=5, status=NEW, order__seller=user)
         user.refresh_from_db()
         self.assertEqual(user.artist_profile.load, 5)
         self.assertFalse(user.artist_profile.commissions_disabled)
@@ -358,7 +358,7 @@ class TestLoadAdjustment(TestCase):
         self.assertEqual(user.artist_profile.load, 10)
         self.assertTrue(user.artist_profile.commissions_disabled)
         self.assertFalse(user.artist_profile.commissions_closed)
-        order2 = DeliverableFactory.create(task_weight=5, status=NEW, order__product__user=user, order__seller=user)
+        order2 = DeliverableFactory.create(task_weight=5, status=NEW, order__seller=user)
         user.refresh_from_db()
         # Now we have an order in a new state. This shouldn't undo the disability.
         self.assertEqual(user.artist_profile.load, 10)

@@ -43,9 +43,9 @@ class TestDeliverableStateChange(SignalsDisabledMixin, APITestCase):
                 )
             ]
             self.deliverable = DeliverableFactory.create(
-                order__seller=self.seller, order__buyer=self.buyer, order__product__base_price=Money('5.00', 'USD'),
-                adjustment_task_weight=1, adjustment_expected_turnaround=2, order__product__task_weight=3,
-                order__product__expected_turnaround=4
+                order__seller=self.seller, order__buyer=self.buyer, product__base_price=Money('5.00', 'USD'),
+                adjustment_task_weight=1, adjustment_expected_turnaround=2, product__task_weight=3,
+                product__expected_turnaround=4
             )
             self.deliverable.characters.add(*characters)
             self.final = RevisionFactory.create(deliverable=self.deliverable, rating=ADULT, owner=self.seller)
@@ -101,7 +101,7 @@ class TestDeliverableStateChange(SignalsDisabledMixin, APITestCase):
         self.state_assertion('staffer', 'accept/')
 
     def test_accept_deliverable_free(self, _mock_notify):
-        item = LineItemFactory.create(deliverable=self.deliverable, amount=-self.deliverable.order.product.base_price)
+        item = LineItemFactory.create(deliverable=self.deliverable, amount=-self.deliverable.product.base_price)
         idempotent_lines(self.deliverable)
         self.state_assertion('seller', 'accept/')
         self.deliverable.refresh_from_db()
@@ -262,8 +262,8 @@ class TestDeliverableStateChange(SignalsDisabledMixin, APITestCase):
     )
     @patch('apps.sales.tasks.withdraw_all.delay')
     def test_approve_table_deliverable(self, mock_withdraw, _mock_notify):
-        self.deliverable.order.product.base_price = Money('15.00', 'USD')
-        self.deliverable.order.product.save()
+        self.deliverable.product.base_price = Money('15.00', 'USD')
+        self.deliverable.product.save()
         self.deliverable.table_order = True
         self.deliverable.status = NEW
         self.deliverable.save()

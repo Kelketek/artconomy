@@ -24,7 +24,7 @@ from apps.sales.models import (
     PAYMENT_PENDING,
     REVIEW, QUEUED, DISPUTED, CANCELLED, DELIVERABLE_STATUSES, REFUNDED, Deliverable)
 from apps.sales.tests.factories import DeliverableFactory, CreditCardTokenFactory, ProductFactory, RevisionFactory, \
-    RatingFactory, OrderFactory, ReferenceFactory
+    RatingFactory, ReferenceFactory
 from apps.sales.views import (
     CurrentOrderList, CurrentSalesList, CurrentCasesList,
     CancelledOrderList,
@@ -892,7 +892,7 @@ class TestProduct(APITestCase):
         user = UserFactory.create()
         self.login(user)
         products = [ProductFactory.create(user=user) for __ in range(3)]
-        OrderFactory.create(product=products[1])
+        DeliverableFactory.create(product=products[1])
         self.assertTrue(products[1].active)
         response = self.client.delete('/api/sales/v1/account/{}/products/{}/'.format(user.username, products[1].id))
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
@@ -905,7 +905,7 @@ class TestProduct(APITestCase):
     def test_product_delete_not_logged_in(self):
         user = UserFactory.create()
         products = [ProductFactory.create(user=user) for __ in range(3)]
-        OrderFactory.create(product=products[1])
+        DeliverableFactory.create(product=products[1])
         self.assertTrue(products[1].active)
         response = self.client.delete('/api/sales/v1/account/{}/products/{}/'.format(user.username, products[1].id))
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -920,7 +920,7 @@ class TestProduct(APITestCase):
         user2 = UserFactory.create()
         self.login(user2)
         products = [ProductFactory.create(user=user) for __ in range(3)]
-        OrderFactory.create(product=products[1])
+        DeliverableFactory.create(product=products[1])
         self.assertTrue(products[1].active)
         response = self.client.delete('/api/sales/v1/account/{}/products/{}/'.format(user.username, products[1].id))
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -935,7 +935,7 @@ class TestProduct(APITestCase):
         user2 = UserFactory.create()
         self.login(user)
         products = [ProductFactory.create(user=user2) for __ in range(3)]
-        OrderFactory.create(product=products[1])
+        DeliverableFactory.create(product=products[1])
         self.assertTrue(products[1].active)
         response = self.client.delete('/api/sales/v1/account/{}/products/{}/'.format(user.username, products[1].id))
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -950,7 +950,7 @@ class TestProduct(APITestCase):
         user = UserFactory.create()
         self.login(staffer)
         products = [ProductFactory.create(user=user) for __ in range(3)]
-        OrderFactory.create(product=products[1])
+        DeliverableFactory.create(product=products[1])
         self.assertTrue(products[1].active)
         response = self.client.delete(
             '/api/sales/v1/account/{}/products/{}/'.format(user.username, products[1].id)
@@ -998,8 +998,8 @@ class TestProductSearch(APITestCase):
                 name='Test4 overload', task_weight=5, user__artist_profile__load=10, user__artist_profile__max_load=10,
             )
             maxed = ProductFactory.create(name='Test5 maxed', max_parallel=2)
-            DeliverableFactory.create(order__product=maxed, status=IN_PROGRESS)
-            DeliverableFactory.create(order__product=maxed, status=QUEUED)
+            DeliverableFactory.create(product=maxed, status=IN_PROGRESS)
+            DeliverableFactory.create(product=maxed, status=QUEUED)
             maxed.refresh_from_db()
             overloaded = ProductFactory.create(name='Test6 overloaded', task_weight=1, user__artist_profile__max_load=5)
             DeliverableFactory.create(order__seller=overloaded.user, task_weight=7, status=IN_PROGRESS)
@@ -1034,8 +1034,8 @@ class TestProductSearch(APITestCase):
             # Overweighted.
             ProductFactory.create(name='Test4', task_weight=100, user=user)
             product4 = ProductFactory.create(name='Test5', max_parallel=2, user=user)
-            DeliverableFactory.create(order__product=product4)
-            DeliverableFactory.create(order__product=product4)
+            DeliverableFactory.create(product=product4)
+            DeliverableFactory.create(product=product4)
             # Product from blocked user. Shouldn't be in results.
             ProductFactory.create(name='Test Blocked', user=user2)
             user.blocking.add(user2)
@@ -1079,8 +1079,8 @@ class TestProductSearch(APITestCase):
             )
             overloaded = ProductFactory.create(name='Test6', max_parallel=2)
             ProductFactory.create(user__artist_profile__commissions_closed=True)
-            DeliverableFactory.create(order__product=overloaded, status=IN_PROGRESS)
-            DeliverableFactory.create(order__product=overloaded, status=QUEUED)
+            DeliverableFactory.create(product=overloaded, status=IN_PROGRESS)
+            DeliverableFactory.create(product=overloaded, status=QUEUED)
 
             UserFactory.create(username='Fox')
             self.save_fixture('search-different-user')
@@ -1324,7 +1324,7 @@ class TestCreateInvoice(APITestCase):
         self.assertEqual(response.data['adjustment_revisions'], 2)
         self.assertTrue(response.data['revisions_hidden'])
         self.assertFalse(response.data['escrow_disabled'])
-        self.assertEqual(order.product, product)
+        self.assertEqual(response.data['product']['id'], product.id)
 
         deliverable = Deliverable.objects.get(id=response.data['id'])
         item = deliverable.line_items.get(type=ADD_ON)
@@ -1377,11 +1377,7 @@ class TestCreateInvoice(APITestCase):
         self.assertEqual(response.data['adjustment_revisions'], 2)
         self.assertTrue(response.data['revisions_hidden'])
         self.assertFalse(response.data['escrow_disabled'])
-        self.assertEqual(order.product, product)
-        self.assertEqual(order.product.base_price, Money('3.00', 'USD'))
-        self.assertEqual(order.product.task_weight, 5)
-        self.assertEqual(order.product.expected_turnaround, 2.00)
-        self.assertEqual(order.product.revisions, 1)
+        self.assertEqual(response.data['product']['id'], product.id)
 
         deliverable = Deliverable.objects.get(id=response.data['id'])
         # Actual price will be $8-- $3 plus the $5 static fee. Setting the order price to $15 will make a $7 adjustment.
@@ -1430,7 +1426,7 @@ class TestCreateInvoice(APITestCase):
         self.assertEqual(response.data['adjustment_expected_turnaround'], 2.00)
         self.assertEqual(response.data['adjustment_revisions'], 2)
         self.assertFalse(response.data['escrow_disabled'])
-        self.assertEqual(order.product, product)
+        self.assertEqual(response.data['product']['id'], product.id)
         self.assertEqual(order.customer_email, 'test@example.com')
         self.assertTrue(order.claim_token)
 
@@ -1465,7 +1461,7 @@ class TestCreateInvoice(APITestCase):
         self.assertEqual(response.data['adjustment_expected_turnaround'], -2)
         self.assertEqual(response.data['adjustment_revisions'], -1)
         self.assertFalse(response.data['escrow_disabled'])
-        self.assertEqual(order.product, product)
+        self.assertEqual(response.data['product']['id'], product.id)
 
         self.assertEqual(order.customer_email, 'test@example.com')
         self.assertTrue(order.claim_token)
@@ -1501,7 +1497,7 @@ class TestCreateInvoice(APITestCase):
         self.assertEqual(response.data['details'], 'oh')
         self.assertEqual(response.data['expected_turnaround'], 4)
         self.assertFalse(response.data['escrow_disabled'])
-        self.assertIsNone(order.product)
+        self.assertEqual(response.data['product'], None)
 
         self.assertEqual(order.customer_email, 'test@example.com')
         self.assertTrue(order.claim_token)
@@ -1540,7 +1536,7 @@ class TestCreateInvoice(APITestCase):
         self.assertEqual(response.data['adjustment_expected_turnaround'], 2.00)
         self.assertEqual(response.data['adjustment_revisions'], 2)
         self.assertTrue(response.data['escrow_disabled'])
-        self.assertEqual(order.product, product)
+        self.assertEqual(response.data['product']['id'], product.id)
         self.assertIsNone(order.claim_token)
 
     def test_create_invoice_paid(self):
@@ -1579,7 +1575,7 @@ class TestCreateInvoice(APITestCase):
         self.assertEqual(response.data['adjustment_revisions'], 2)
         self.assertFalse(response.data['revisions_hidden'])
         self.assertTrue(response.data['escrow_disabled'])
-        self.assertEqual(order.product, product)
+        self.assertEqual(response.data['product']['id'], product.id)
         self.assertIsNone(order.claim_token)
 
     def test_create_invoice_paid_and_completed(self):
@@ -1619,7 +1615,7 @@ class TestCreateInvoice(APITestCase):
         self.assertFalse(response.data['revisions_hidden'])
         self.assertEqual(response.data['rating'], ADULT)
         self.assertTrue(response.data['escrow_disabled'])
-        self.assertEqual(order.product, product)
+        self.assertEqual(response.data['product']['id'], product.id)
         self.assertIsNone(order.claim_token)
 
 
@@ -1936,14 +1932,16 @@ class TestReferences(APITestCase):
 class TestCreateDeliverable(APITestCase):
     def test_create_deliverable(self):
         old_deliverable = DeliverableFactory.create(
-            order__product__expected_turnaround=2,
-            order__product__task_weight=5,
-            order__product__revisions=1,
-            order__product__base_price=Money('3.00', 'USD'),
-            order__product__user__artist_profile__bank_account_status=HAS_US_ACCOUNT,
-            order__product__user__landscape_paid_through=timezone.now() + relativedelta(days=5),
+            order__seller__artist_profile__bank_account_status=HAS_US_ACCOUNT,
+            order__seller__landscape_paid_through=timezone.now() + relativedelta(days=5),
         )
-        product = old_deliverable.order.product
+        product = ProductFactory.create(
+            expected_turnaround=2,
+            task_weight=5,
+            revisions=1,
+            base_price=Money('3.00', 'USD'),
+            user=old_deliverable.order.seller,
+        )
         self.login(old_deliverable.order.seller)
         response = self.client.post(f'/api/sales/v1/order/{old_deliverable.order.id}/deliverables/', {
             'name': 'Boop',
@@ -1952,6 +1950,7 @@ class TestCreateDeliverable(APITestCase):
             'details': 'wat',
             'task_weight': 3,
             'revisions': 3,
+            'product': product.id,
             'rating': ADULT,
             'expected_turnaround': 4,
             'hold': False,
@@ -1968,7 +1967,7 @@ class TestCreateDeliverable(APITestCase):
         self.assertEqual(response.data['adjustment_revisions'], 2)
         self.assertTrue(response.data['revisions_hidden'])
         self.assertFalse(response.data['escrow_disabled'])
-        self.assertEqual(order.product, product)
+        self.assertEqual(response.data['product']['id'], product.id)
 
         deliverable = Deliverable.objects.get(id=response.data['id'])
         item = deliverable.line_items.get(type=ADD_ON)
@@ -1987,12 +1986,12 @@ class TestCreateDeliverable(APITestCase):
 
     def test_create_deliverable_non_landscape(self):
         old_deliverable = DeliverableFactory.create(
-            order__product__expected_turnaround=2,
-            order__product__task_weight=5,
-            order__product__revisions=1,
-            order__product__base_price=Money('3.00', 'USD'),
-            order__product__user__artist_profile__bank_account_status=HAS_US_ACCOUNT,
-            order__product__user__landscape_paid_through=timezone.now() - relativedelta(days=5),
+            product__expected_turnaround=2,
+            product__task_weight=5,
+            product__revisions=1,
+            product__base_price=Money('3.00', 'USD'),
+            product__user__artist_profile__bank_account_status=HAS_US_ACCOUNT,
+            product__user__landscape_paid_through=timezone.now() - relativedelta(days=5),
         )
         self.login(old_deliverable.order.seller)
         response = self.client.post(f'/api/sales/v1/order/{old_deliverable.order.id}/deliverables/', {
@@ -2011,12 +2010,12 @@ class TestCreateDeliverable(APITestCase):
 
     def test_create_deliverable_buyer_fail(self):
         old_deliverable = DeliverableFactory.create(
-            order__product__expected_turnaround=2,
-            order__product__task_weight=5,
-            order__product__revisions=1,
-            order__product__base_price=Money('3.00', 'USD'),
-            order__product__user__artist_profile__bank_account_status=HAS_US_ACCOUNT,
-            order__product__user__landscape_paid_through=timezone.now() + relativedelta(days=5),
+            product__expected_turnaround=2,
+            product__task_weight=5,
+            product__revisions=1,
+            product__base_price=Money('3.00', 'USD'),
+            product__user__artist_profile__bank_account_status=HAS_US_ACCOUNT,
+            product__user__landscape_paid_through=timezone.now() + relativedelta(days=5),
         )
         self.login(old_deliverable.order.buyer)
         response = self.client.post(f'/api/sales/v1/order/{old_deliverable.order.id}/deliverables/', {

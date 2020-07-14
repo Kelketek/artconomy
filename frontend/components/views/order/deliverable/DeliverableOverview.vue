@@ -46,7 +46,6 @@
                   </v-btn>
                 </v-col>
               </v-row>
-              <ac-rendered :value="deliverable.x.details" />
               <v-col v-if="isSeller && (!buyer || buyer.guest) && !(is(COMPLETED) || is(DISPUTED) || is(REFUNDED) || is(CANCELLED))" cols="12">
                 <ac-form @submit.prevent="orderEmail.submitThen(markInviteSent)">
                   <ac-form-container v-bind="orderEmail.bind">
@@ -87,6 +86,7 @@
                   <v-btn color="primary" :to="{name: baseName, params: {orderId, username: $route.params.username}}">See All Deliverables</v-btn>
                 </v-col>
               </v-row>
+              <ac-rendered :value="deliverable.x.details" />
               <v-subheader v-if="commissionInfo">Commission Info</v-subheader>
               <ac-rendered :value="commissionInfo" :truncate="200" />
             </v-card-text>

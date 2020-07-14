@@ -159,11 +159,12 @@ def LineItemTypePermission(*args, error_message='You are not permitted to edit l
     return TypeCheckPermission
 
 
-class OrderNoProduct(BasePermission):
-    message = 'You may only perform this action on orders without an associated product.'
+class DeliverableNoProduct(BasePermission):
+    message = 'You may only perform this action on deliverables without an associated product.'
     def has_object_permission(self, request, view, obj):
-        from apps.sales.models import Order
-        obj = derive_order(obj)
+        from apps.sales.models import Deliverable
+        if not isinstance(obj, Deliverable):
+            obj = obj.deliverable
         if obj.product:
             return False
         return True
@@ -175,7 +176,7 @@ class ReferenceViewPermission(BasePermission):
         return obj.deliverables.filter(Q(order__buyer=request.user) | Q(order__seller=request.user)).exists()
 
 
-class LandscapePermission(BasePermission):
+class LandscapeSellerPermission(BasePermission):
     message = 'This feature only available to Landscape subscribers.'
-    def has_permission(self, request, view):
-        return request.user.landscape
+    def has_object_permission(self, request, view, obj):
+        return derive_order(obj).seller.landscape

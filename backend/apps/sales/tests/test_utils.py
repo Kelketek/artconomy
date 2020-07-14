@@ -103,7 +103,7 @@ class TestClaim(TestCase):
 
     def test_order_claim_fail_self(self):
         user = UserFactory.create()
-        order = DeliverableFactory.create(order__buyer=None, order__seller=user, order__product__user=user).order
+        order = DeliverableFactory.create(order__buyer=None, order__seller=user, product__user=user).order
         original_token = order.claim_token
         claim_order_by_token(str(order.claim_token), user)
         order.refresh_from_db()

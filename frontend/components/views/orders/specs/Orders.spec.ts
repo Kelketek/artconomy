@@ -35,6 +35,16 @@ describe('Orders.vue', () => {
           {name: 'CancelledSales', path: '/canceled', component: OrderList},
           {name: 'WaitingSales', path: '/waiting', component: OrderList},
         ],
+      }, {
+        name: 'BuyAndSell',
+        props: true,
+        component: Empty,
+        path: '/b-n-s',
+      }, {
+        name: 'Store',
+        props: true,
+        component: Empty,
+        path: '/store/:username',
       }],
     })
   })
@@ -75,4 +85,23 @@ describe('Orders.vue', () => {
     await vm.$nextTick()
     expect(vm.closed).toBe(false)
   })
+  // it('Loads an invoicing form', async() => {
+  //   setViewer(store, genUser())
+  //   const wrapper = mount(Orders, {
+  //     localVue,
+  //     store,
+  //     vuetify,
+  //     router,
+  //     attachToDocument: true,
+  //     sync: false,
+  //     propsData: {username: 'Fox', seller: true, baseName: 'Sales'},
+  //   })
+  //   const vm = wrapper.vm as any
+  //   vm.viewerHandler.artistProfile.makeReady(genArtistProfile({bank_account_status: BankStatus.HAS_US_ACCOUNT}))
+  //   vm.stats.makeReady(genCommissionStats())
+  //   wrapper.find('.ac-add-button').trigger('click')
+  //   await vm.$nextTick()
+  //   console.log(wrapper.html())
+  //   expect(vm.showNewInvoice).toBe(true)
+  // })
 })

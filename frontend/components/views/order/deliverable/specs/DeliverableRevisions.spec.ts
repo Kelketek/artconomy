@@ -132,7 +132,7 @@ describe('DeliverableRevisions.vue', () => {
       })
     const vm = wrapper.vm as any
     const deliverable = genDeliverable()
-    deliverable.order.product = null
+    deliverable.product = null
     deliverable.status = DeliverableStatus.PAYMENT_PENDING
     deliverable.revisions_hidden = true
     vm.order.makeReady(deliverable.order)
