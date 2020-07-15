@@ -170,10 +170,6 @@
               Artists who are unable to use Artconomy Shield (such as those without US Bank Accounts) can still
               list products and take orders on Artconomy, but must arrange payment with commissioners manually.
             </p>
-            <p>
-              Orders made without Artconomy Shield may also have ads on the product, profile, and order pages
-              to help pay for the cost of providing Artconomy's service.
-            </p>
             <p>Artists using Shield will be assessed a one-time setup fee, required by our payment processor, of
               <strong>$1.00</strong>.
               This fee is not assessed until the artist has earned at least $1 through sales, and is non-refundable.
@@ -185,7 +181,7 @@
               >
                 Artconomy Shield
               </router-link>
-              are {{pricing.x.standard_percentage}}% + ${{pricing.x.standard_static.toFixed(2)}} for
+              are {{pricing.x.standard_percentage + pricing.x.premium_percentage_bonus}}% + ${{(pricing.x.standard_static + pricing.x.premium_static_bonus).toFixed(2)}} for
               each order.
             </p>
             <p v-if="pricing.x">
@@ -315,7 +311,7 @@
               >
                 Artconomy Shield
               </router-link>
-              are {{pricing.x.standard_percentage}}% + ${{pricing.x.standard_static}} for
+              are {{pricing.x.standard_percentage + pricing.x.premium_percentage_bonus}}% + ${{pricing.x.standard_static + pricing.x.premium_static_bonus}} for
               each order.
             </p>
             <p v-if="pricing.x">
