@@ -191,7 +191,7 @@ export function genDeliverable(overrides?: Partial<Deliverable>): Deliverable {
   }
 }
 
-export function genReference(): Reference {
+export function genReference(overrides?: Partial<Reference>): Reference {
   return {
     id: 6,
     created_on: '2019-07-26T15:04:41.078424-05:00',
@@ -203,6 +203,7 @@ export function genReference(): Reference {
       full: 'https://artconomy.vulpinity.com/media/art/2019/07/26/kairef-color.png',
       __type__: 'data:image',
     },
+    ...overrides,
   }
 }
 

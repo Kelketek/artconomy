@@ -255,7 +255,7 @@
                         :title="'Add new Deliverable to Order.'"
                       >
                         <v-container class="pa-0">
-                          <ac-invoice-form :new-invoice="newInvoice" :username="seller.username" :line-items="invoiceLineItems" :escrow-disabled="invoiceEcrowDisabled" :show-buyer="false">
+                          <ac-invoice-form :new-invoice="newInvoice" :username="seller.username" :line-items="invoiceLineItems" :escrow-disabled="invoiceEscrowDisabled" :show-buyer="false">
                             <template v-slot:second>
                               <v-col cols="12" sm="6">
                                 <v-row no-gutters>
@@ -403,6 +403,7 @@ export default class DeliverableDetail extends mixins(DeliverableMixin, Formatti
 
   @Watch('references.list.length')
   public updateReferences(val: number|undefined) {
+    /* istanbul ignore if */
     if (val === undefined) {
       return
     }
@@ -527,7 +528,7 @@ export default class DeliverableDetail extends mixins(DeliverableMixin, Formatti
     )
   }
 
-  public get invoiceEcrowDisabled() {
+  public get invoiceEscrowDisabled() {
     if (!this.sellerHandler.artistProfile.x) {
       return true
     }

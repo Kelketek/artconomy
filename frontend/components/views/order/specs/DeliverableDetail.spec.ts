@@ -4,7 +4,7 @@ import {cleanUp, createVuetify, docTarget, flushPromises, rs, setViewer, vueSetu
 import {ArtStore, createStore} from '@/store'
 import {mount, Wrapper} from '@vue/test-utils'
 import DeliverableDetail from '@/components/views/order/DeliverableDetail.vue'
-import {genDeliverable, genGuest, genUser} from '@/specs/helpers/fixtures'
+import {genArtistProfile, genDeliverable, genGuest, genReference, genUser} from '@/specs/helpers/fixtures'
 import mockAxios from '@/__mocks__/axios'
 import {genSubmission} from '@/store/submissions/specs/fixtures'
 import {DeliverableStatus} from '@/types/DeliverableStatus'
@@ -512,7 +512,6 @@ describe('DeliverableDetail.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Vulpes'},
-
         attachTo: docTarget(),
         stubs: ['router-link'],
       })
@@ -529,5 +528,131 @@ describe('DeliverableDetail.vue', () => {
     await flushPromises()
     await vm.$nextTick()
     expect(mockPush).toHaveBeenCalledWith({name: 'OrderDeliverableOverview', params: {orderId: '1', deliverableId: '20', username: 'Vulpes'}})
+  })
+  it('Determines whether an invoice should be marked escrow disabled', async() => {
+    const vulpes = genUser({username: 'Vulpes', landscape: true})
+    setViewer(store, vulpes)
+    await router.push('/orders/Vulpes/order/1/deliverables/5/overview')
+    wrapper = mount(
+      DeliverableDetail, {
+        localVue,
+        store,
+        router,
+        vuetify,
+        propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Vulpes'},
+        attachTo: docTarget(),
+        stubs: ['router-link'],
+      })
+    const vm = wrapper.vm as any
+    vm.deliverable.setX(genDeliverable())
+    await vm.$nextTick()
+    expect(vm.invoiceEscrowDisabled).toBe(true)
+    vm.sellerHandler.artistProfile.makeReady(genArtistProfile())
+    await vm.$nextTick()
+    expect(vm.invoiceEscrowDisabled).toBe(false)
+    vm.newInvoice.fields.paid.update(true)
+    await vm.$nextTick()
+    expect(vm.invoiceEscrowDisabled).toBe(true)
+  })
+  it('Takes the user to a new deliverable', async() => {
+    const vulpes = genUser({username: 'Vulpes', landscape: true})
+    setViewer(store, vulpes)
+    await router.push('/orders/Vulpes/order/1/deliverables/5/overview')
+    const mockPush = jest.spyOn(router, 'push')
+    wrapper = mount(
+      DeliverableDetail, {
+        localVue,
+        store,
+        router,
+        vuetify,
+        propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Vulpes'},
+        attachTo: docTarget(),
+        stubs: ['router-link'],
+      })
+    const vm = wrapper.vm as any
+    const deliverable = genDeliverable()
+    vm.deliverable.setX(genDeliverable())
+    await vm.$nextTick()
+    vm.visitDeliverable(genDeliverable({id: 100}))
+    expect(mockPush).toHaveBeenCalledWith({
+      name: 'OrderDeliverableOverview',
+      params: {
+        username: 'Vulpes', deliverableId: '100', orderId: deliverable.order.id + '',
+      },
+    })
+    await vm.$nextTick()
+  })
+  it('Adds a new deliverable to the parent list', async() => {
+    const vulpes = genUser({username: 'Vulpes', landscape: true})
+    setViewer(store, vulpes)
+    await router.push('/orders/Vulpes/order/1/deliverables/5/overview')
+    const mockPush = jest.spyOn(router, 'push')
+    wrapper = mount(
+      DeliverableDetail, {
+        localVue,
+        store,
+        router,
+        vuetify,
+        propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Vulpes'},
+        attachTo: docTarget(),
+        stubs: ['router-link'],
+      })
+    const vm = wrapper.vm as any
+    const deliverable = genDeliverable({id: 1})
+    vm.deliverable.setX(deliverable)
+    vm.parentDeliverables.setList([genDeliverable(({id: 1}))])
+    await vm.$nextTick()
+    vm.visitDeliverable(genDeliverable({id: 100}))
+    await vm.$nextTick()
+    expect(vm.parentDeliverables.list.length).toBe(2)
+    expect(vm.parentDeliverables.list[1].x.id).toBe(100)
+  })
+  it('Sets the references on a new invoice', async() => {
+    const fox = genUser({username: 'Fox', landscape: true})
+    setViewer(store, fox)
+    await router.push('/orders/Fox/order/1/deliverables/5/overview')
+    const mockPush = jest.spyOn(router, 'push')
+    wrapper = mount(
+      DeliverableDetail, {
+        localVue,
+        store,
+        router,
+        vuetify,
+        propsData: {orderId: 1, deliverableId: 5, baseName: 'Sale', username: 'Fox'},
+        attachTo: docTarget(),
+        stubs: ['router-link'],
+      })
+    const vm = wrapper.vm as any
+    const deliverable = genDeliverable()
+    vm.deliverable.setX(genDeliverable())
+    vm.references.setList([{id: 1, reference: genReference({id: 3})}, {id: 2, reference: genReference({id: 4})}])
+    await vm.$nextTick()
+    vm.newInvoice.keepReferences = false
+    await vm.$nextTick()
+    vm.newInvoice.keepReferences = true
+    await vm.$nextTick()
+    expect(vm.newInvoice.fields.references.value).toEqual([3, 4])
+  })
+  it('Determines the sellerName', async() => {
+    const fox = genUser({username: 'Fox', landscape: true})
+    setViewer(store, fox)
+    await router.push('/orders/Fox/order/1/deliverables/5/overview')
+    const mockPush = jest.spyOn(router, 'push')
+    wrapper = mount(
+      DeliverableDetail, {
+        localVue,
+        store,
+        router,
+        vuetify,
+        propsData: {orderId: 1, deliverableId: 5, baseName: 'Sale', username: 'Fox'},
+        attachTo: docTarget(),
+        stubs: ['router-link'],
+      })
+    const vm = wrapper.vm as any
+    expect(vm.sellerName).toBe('')
+    const deliverable = genDeliverable()
+    vm.deliverable.setX(genDeliverable())
+    await vm.$nextTick()
+    expect(vm.sellerName).toBe('Vulpes')
   })
 })

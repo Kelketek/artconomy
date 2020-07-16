@@ -34,8 +34,10 @@ export default class SearchField extends Vue {
     if (!(this.list && this.list.reset)) {
       return
     }
+    /* istanbul ignore else */
     if (this.updateRouter) {
-      // My error logs say we sometimes end up with the query string attached to a nonsense place
+      // My error logs say we sometimes end up with the query string attached to a nonsense place. If this is undefined,
+      // it should bail.
       this.$router.replace({query: newParams})
     }
     // Same issue here.

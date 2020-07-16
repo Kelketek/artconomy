@@ -106,15 +106,15 @@ describe('Patcher', () => {
     expect((wrapper2.vm as any).maxLoad.model).toBe(10)
   })
   // Reactivity broken for test lib? This works in real application.
-  // it('Properly reacts to upstream changes', async () => {
-  //   const wrapper = mount(Patcher, {localVue, attachTo: docTarget()})
-  //   expect(wrapper.find('#sfw_mode').text()).toBe('false');
-  //   (wrapper.vm as any).subject.sfw_mode = true
-  //   await wrapper.vm.$nextTick()
-  //   expect((wrapper.vm as any).sfwMode).toBe(true)
-  //   // This is where it fails.
-  //   expect(wrapper.find('#sfw_mode').text()).toBe('true')
-  // })
+  it('Properly reacts to upstream changes', async() => {
+    const wrapper = mount(Patcher, {localVue, store, attachTo: docTarget()})
+    expect(wrapper.find('#sfw_mode').text()).toBe('false');
+    (wrapper.vm as any).sfwMode.model = true
+    await wrapper.vm.$nextTick()
+    expect((wrapper.vm as any).sfwMode.model).toBe(true)
+    // This is where it fails.
+    expect(wrapper.find('#sfw_mode').text()).toBe('true')
+  })
   it('Gives a warning when using a nonsense model on a patcher', async() => {
     mockWarn.mockImplementationOnce(() => undefined)
     wrapper = shallowMount(PatcherBroken, {localVue, store})

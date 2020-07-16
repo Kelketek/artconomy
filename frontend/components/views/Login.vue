@@ -206,6 +206,7 @@ function syncTo(...fields: Array<[string, string]>): SyncFunc {
     for (const field of fields) {
       const formName = field[0]
       const fieldName = field[1]
+      /* istanbul ignore if */
       if (!this[formName]) {
         // Form isn't (yet) defined, can't sync.
         return
