@@ -11,7 +11,8 @@ from apps.lib.models import REFERRAL_LANDSCAPE_CREDIT, REFERRAL_PORTRAIT_CREDIT,
 from apps.lib.utils import notify, destroy_comment
 from apps.profiles.models import Character, Submission, User, Conversation, ConversationParticipant
 from apps.sales.dwolla import destroy_bank_account
-from apps.sales.models import Order, TransactionRecord, DISPUTED, IN_PROGRESS, QUEUED, REVIEW, PAYMENT_PENDING, NEW
+from apps.sales.models import TransactionRecord, DISPUTED, IN_PROGRESS, QUEUED, REVIEW, PAYMENT_PENDING, NEW, \
+    Deliverable, WAITING
 from apps.sales.utils import account_balance, PENDING, cancel_deliverable
 
 
@@ -153,21 +154,23 @@ def create_guest_user(email: str) -> User:
 def clear_user(user: User):
     # Clears out as much user data as is practical. Uses normal iterators, despite being slow, to ensure all cleanup
     # hooks are run.
+    assert user
     holdup_statuses = [DISPUTED, IN_PROGRESS, QUEUED, REVIEW]
-    if user.sales.filter(status__in=holdup_statuses).exists():
+    clearable_statuses = [NEW, PAYMENT_PENDING, WAITING]
+    if user.sales.filter(deliverables__status__in=holdup_statuses).exists():
         raise RuntimeError('User has outstanding sales to finish. Cannot remove!')
-    if user.buys.filter(status__in=holdup_statuses).exists():
+    if user.buys.filter(deliverables__status__in=holdup_statuses).exists():
         raise RuntimeError('User has outstanding orders which are unfinished. Cannot remove!')
-    for sale in user.sales.filter(status__in=[NEW, PAYMENT_PENDING]):
-        cancel_deliverable(sale, user)
-    for order in user.buys.filter(status__in=[NEW, PAYMENT_PENDING]):
-        cancel_deliverable(order, user)
     stoppers = [
         account_balance(user, TransactionRecord.HOLDINGS),
         account_balance(user, TransactionRecord.HOLDINGS, PENDING)
     ]
     if any(stoppers):
         raise RuntimeError('User has uncleared transactions! Cannot remove!')
+    for sale in Deliverable.objects.filter(status__in=clearable_statuses, order__seller=user):
+        cancel_deliverable(sale, user)
+    for order in Deliverable.objects.filter(status__in=clearable_statuses, order__buyer=user):
+        cancel_deliverable(order, user)
 
     notes = user.notes
     if notes:
