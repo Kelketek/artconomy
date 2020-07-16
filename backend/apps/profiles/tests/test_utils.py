@@ -1,6 +1,7 @@
 from unittest.mock import Mock, patch
 from uuid import UUID
 
+from avatar.models import Avatar
 from django.core.exceptions import ObjectDoesNotExist
 from django.test import TestCase
 from django.utils.datetime_safe import date
@@ -10,7 +11,7 @@ from moneyed import Money
 from apps.lib.abstract_models import GENERAL, ADULT
 from apps.lib.test_resources import APITestCase
 from apps.lib.tests.factories_interdepend import CommentFactory
-from apps.profiles.tests.factories import UserFactory, SubmissionFactory, CharacterFactory
+from apps.profiles.tests.factories import UserFactory, SubmissionFactory, CharacterFactory, AvatarFactory
 from apps.profiles.utils import extend_portrait, extend_landscape, empty_user, clear_user
 from apps.sales.models import NEW, IN_PROGRESS, PAYMENT_PENDING, WAITING, CANCELLED, TransactionRecord, COMPLETED
 from apps.sales.tests.factories import DeliverableFactory, TransactionRecordFactory, ProductFactory, BankAccountFactory
@@ -195,6 +196,7 @@ class TestClearUser(TestCase):
             SubmissionFactory(owner=user),
             ProductFactory(user=user),
             CharacterFactory(user=user),
+            AvatarFactory.create(user=user),
         ]
         # Counteract auto-generated bank fee.
         TransactionRecord.objects.create(
@@ -217,6 +219,7 @@ class TestClearUser(TestCase):
             favorite,
             BankAccountFactory(),
             bank_account,
+            AvatarFactory.create()
         ]
         clear_user(user)
         for item in to_destroy:

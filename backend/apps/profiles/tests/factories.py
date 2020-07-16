@@ -1,6 +1,7 @@
+from avatar.models import Avatar
 from django_otp.plugins.otp_totp.models import TOTPDevice
 from factory import Sequence, PostGenerationMethodCall, SubFactory, RelatedFactory
-from factory.django import DjangoModelFactory
+from factory.django import DjangoModelFactory, ImageField
 from django.conf import settings
 
 from apps.lib.tests.factories import AssetFactory
@@ -81,3 +82,12 @@ class AttributeFactory(DjangoModelFactory):
 
     class Meta:
         model = Attribute
+
+
+class AvatarFactory(DjangoModelFactory):
+    user = SubFactory(UserFactory)
+    avatar = ImageField(color='blue')
+    primary = True
+
+    class Meta:
+        model = Avatar
