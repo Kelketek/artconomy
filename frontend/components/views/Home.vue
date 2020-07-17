@@ -17,14 +17,17 @@
           Try terms like:
           <v-chip color="secondary" @click="search({q: term})" class="mx-1" v-for="term in searchTerms" :key="term">{{term}}</v-chip>
         </v-col>
-        <v-col class="text-center pt-3" cols="12" lg="6" offset-lg="3">
-          <v-btn color="primary" @click="search({})">Browse Everyone Open</v-btn>
+        <v-col class="text-center text-lg-right pt-3 px-lg-2" cols="12" lg="6">
+          <v-btn color="primary" @click="search({})"><v-icon left>search</v-icon>Browse Everyone Open</v-btn>
+        </v-col>
+        <v-col class="text-center text-lg-left pt-3 px-lg-2" cols="12" lg="6">
+          <v-btn color="secondary" :to="{name: 'LandingArtistTools'}"><v-icon left>palette</v-icon>Are you an artist?</v-btn>
         </v-col>
       </v-row>
       <v-row no-gutters class="pt-2">
         <v-col class="text-center d-flex" cols="12" md="4" >
           <v-row no-gutters >
-            <v-col class="grow pa-1" >
+            <v-col class="grow pa-1">
               <v-row no-gutters>
                 <v-col cols="6" md="12" order="2" order-md="1">
                   <v-img src="/static/images/laptop.png" max-height="20vh" contain />
@@ -312,7 +315,6 @@ import AcAsset from '@/components/AcAsset.vue'
 import Formatting from '@/mixins/formatting'
 import AcRendered from '@/components/wrappers/AcRendered'
 import AcAvatar from '@/components/AcAvatar.vue'
-import {mdiDiscord} from '@mdi/js'
 import PrerenderMixin from '@/mixins/PrerenderMixin'
 import AcProductSlider from '@/components/AcProductSlider.vue'
 
@@ -345,7 +347,6 @@ export default class Home extends mixins(Viewer, Formatting, PrerenderMixin) {
     public artistsOfColor: ListController<Product> = null as unknown as ListController<Product>
     public mainSection = 0
     public communitySection = shuffle([0, 1])[0]
-    public discordPath = mdiDiscord
     public blogEntries = [
       {
         link: 'https://artconomy.com/blog/posts/2020/04/29/7-tips-on-pricing-your-artwork/',

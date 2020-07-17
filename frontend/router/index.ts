@@ -81,6 +81,7 @@ import ShieldCommissioner from '@/components/views/landing/ShieldCommissioner.vu
 import AlwaysOpen from '@/components/views/landing/AlwaysOpen.vue'
 import ShieldArtist from '@/components/views/landing/ShieldArtist.vue'
 import RedirectToViewer from '@/components/views/RedirectToViewer.vue'
+import ArtistTools from '@/components/views/landing/ArtistTools.vue'
 
 function orderViews() {
   const orderRoutes: RouteConfig[] = []
@@ -625,6 +626,11 @@ export const routes = [
     path: '/landing/always-open-for-commissions/',
     name: 'LandingAlwaysOpen',
     component: AlwaysOpen,
+  },
+  {
+    path: '/landing/artist-tools/',
+    name: 'LandingArtistTools',
+    component: ArtistTools,
   },
   {
     path: '/who-is-open/',
