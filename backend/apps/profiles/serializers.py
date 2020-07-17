@@ -111,6 +111,7 @@ class SubmissionSerializer(IdWritable, RelatedAtomicMixin, serializers.ModelSeri
     characters = CharacterListField(tag_check=True, back_name='submissions', write_only=True, required=False)
     subscribed = SubscribedField(required=False)
     tags = TagListField(required=False)
+    private = serializers.NullBooleanField(default=False)
 
     # noinspection PyMethodMayBeStatic
     def get_comment_count(self, obj):

@@ -461,8 +461,8 @@ class NewCardSerializer(serializers.Serializer):
     exp_date = serializers.CharField(max_length=5, min_length=4)
     zip = serializers.CharField(max_length=20, required=False)
     cvv = serializers.CharField(max_length=4, min_length=3, validators=[RegexValidator(r'^[0-9]{3,4}$')])
-    make_primary = serializers.BooleanField()
-    save_card = serializers.BooleanField()
+    make_primary = serializers.NullBooleanField(default=False)
+    save_card = serializers.NullBooleanField(default=False)
 
     # noinspection PyMethodMayBeStatic
     def validate_exp_date(self, value):
