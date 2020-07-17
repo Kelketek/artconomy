@@ -38,19 +38,6 @@
         <v-row dense>
           <v-col class="text-left" ><strong>{{ submission.title }}</strong></v-col>
         </v-row>
-        <v-row dense>
-          <v-col>
-            <v-row no-gutters class="submission-stats">
-              <v-col class="text-left" >
-                <v-icon>favorite</v-icon>&nbsp;
-                <span>{{ submission.favorite_count }}</span>&nbsp;
-                <v-icon>comment</v-icon>&nbsp;
-                <span>{{ submission.comment_count }}</span>&nbsp;
-              </v-col>
-              <slot name="stats-append"><v-spacer /></slot>
-            </v-row>
-          </v-col>
-        </v-row>
       </v-card-text>
     </ac-link>
   </v-card>
