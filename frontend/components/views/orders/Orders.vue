@@ -11,9 +11,9 @@
               Panel
             </h1>
             <v-row no-gutters  >
-              <v-col cols="6">Max Load:</v-col>
+              <v-col cols="6">Total Slots:</v-col>
               <v-col cols="6">{{stats.x.max_load}}</v-col>
-              <v-col cols="6">Current Load:</v-col>
+              <v-col cols="6">Slots filled:</v-col>
               <v-col cols="6">{{stats.x.load}}</v-col>
               <v-col cols="6">Active Orders:</v-col>
               <v-col cols="6">{{stats.x.active_orders}}</v-col>
