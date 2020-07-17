@@ -6,13 +6,14 @@ from django.test import TestCase, override_settings
 from moneyed import Money
 
 from apps.lib.models import NEW_PRODUCT
+from apps.lib.test_resources import SignalsDisabledMixin
 from apps.profiles.models import NO_US_ACCOUNT, HAS_US_ACCOUNT
 from apps.profiles.tests.factories import UserFactory, SubmissionFactory
 from apps.sales.models import TransactionRecord, BASE_PRICE, SHIELD, BONUS, TABLE_SERVICE, TAX, COMPLETED, QUEUED, NEW, \
     CANCELLED, Product
 from apps.sales.tests.factories import RatingFactory, PromoFactory, TransactionRecordFactory, ProductFactory, \
     DeliverableFactory, \
-    CreditCardTokenFactory, RevisionFactory, LineItemFactory
+    CreditCardTokenFactory, RevisionFactory, LineItemFactory, OrderFactory
 
 
 class TestRating(TestCase):
@@ -411,3 +412,9 @@ class TestLoadAdjustment(TestCase):
         user.refresh_from_db()
         self.assertFalse(user.artist_profile.commissions_closed)
         self.assertFalse(user.artist_profile.commissions_disabled)
+
+
+class TestOrder(SignalsDisabledMixin, TestCase):
+    def test_order_string(self):
+        order = OrderFactory.create(seller__username='Jim', buyer__username='Bob')
+        self.assertEqual(str(order), f'#{order.id} by Jim for Bob')

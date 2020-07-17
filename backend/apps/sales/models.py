@@ -388,9 +388,7 @@ class Order(Model):
     private = BooleanField(default=False)
 
     def __str__(self):
-        return "#{} {} for {} by {}".format(
-            self.id, (self.product and self.product.name) or '<Custom>', self.buyer, self.seller,
-        )
+        return f"#{self.id} by {self.seller} for {self.buyer}"
 
     def notification_display(self, context):
         from .serializers import ProductSerializer
