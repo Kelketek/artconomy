@@ -196,4 +196,9 @@ export class FieldController extends Vue {
       this.$store.commit('forms/setFieldErrors', {name: this.formName, fields: errorFields})
     })
   }
+
+  public toJSON() {
+    // Used to prevent the pretty printing service from exhausting all memory.
+    return {type: this.constructor.name, name: this.fieldName, state: this.value}
+  }
 }

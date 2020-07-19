@@ -234,4 +234,9 @@ export class FormController extends BaseController<NamelessFormSchema, FormState
     this.$nextTick(this.scrollToError)
     return error
   }
+
+  public toJSON() {
+    // Used to prevent the pretty printing service from exhausting all memory.
+    return {type: this.constructor.name, name: this.name, state: this.rawData}
+  }
 }

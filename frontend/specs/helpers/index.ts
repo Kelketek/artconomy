@@ -1,8 +1,8 @@
 /* istanbul ignore file */
 import {AxiosRequestConfig, AxiosResponse} from 'axios'
 import {csrfSafeMethod, genId, getCookie, saneNav} from '@/lib/lib'
-import {createLocalVue, mount, Wrapper} from '@vue/test-utils'
-import Vue, {CreateElement, VueConstructor} from 'vue'
+import {createLocalVue, mount, ThisTypedMountOptions, VueClass, Wrapper} from '@vue/test-utils'
+import Vue, {VueConstructor} from 'vue'
 import {FieldController} from '@/store/forms/field-controller'
 import {FieldBank} from '@/store/forms/form-controller'
 import flushPromisesUpstream from 'flush-promises'
@@ -29,7 +29,7 @@ import {FormControllers, formRegistry} from '@/store/forms/registry'
 import {characterRegistry, Characters} from '@/store/characters/registry'
 import mockAxios from '@/__mocks__/axios'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
-import {ArtStore} from '@/store'
+import {ArtStore, createStore} from '@/store'
 import Router from 'vue-router'
 import {HttpVerbs} from '@/store/forms/types/HttpVerbs'
 import {Shortcuts} from '@/plugins/shortcuts'
@@ -235,10 +235,22 @@ export function docTarget() {
   return rootDiv
 }
 
-export const transitionStub = () => ({
-  // @ts-ignore
-  render: function(h) {
-    // @ts-ignore
-    return h('div', {children: this.$options._renderChildren})
-  },
-})
+export function qMount<V extends Vue>(component: VueClass<V>, options?: ThisTypedMountOptions<V>): Wrapper<Vue> {
+  return mount(component, prepTest(options))
+}
+
+export function prepTest<V extends Vue>(overrides?: Partial<ThisTypedMountOptions<V>>) {
+  overrides = {...overrides}
+  if (overrides.attachTo === undefined) {
+    // Should fail if empty string, which is what we'll use to indicate non-attachment.
+    overrides.attachTo = docTarget()
+  } else if (overrides?.attachTo === '') {
+    overrides.attachTo = undefined
+  }
+  return {
+    store: overrides?.store || createStore(),
+    vuetify: overrides?.vuetify || createVuetify(),
+    localVue: overrides?.localVue || vueSetup(),
+    ...overrides,
+  }
+}

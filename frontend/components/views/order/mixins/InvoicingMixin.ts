@@ -19,6 +19,7 @@ export default class InvoicingMixin extends Vue {
 
   @Watch('newInvoice.fields.product.value')
   public updateProduct(val: undefined|null|number) {
+    /* istanbul ignore if */
     if (val === undefined) {
       return
     }
@@ -34,6 +35,7 @@ export default class InvoicingMixin extends Vue {
 
   @Watch('invoiceProduct.x', {deep: true})
   public updatePrice(val: Product|null) {
+    /* istanbul ignore if */
     if (!val) {
       return
     }
@@ -41,14 +43,6 @@ export default class InvoicingMixin extends Vue {
     this.newInvoice.fields.task_weight.update(val.task_weight)
     this.newInvoice.fields.revisions.update(val.revisions)
     this.newInvoice.fields.expected_turnaround.update(val.expected_turnaround)
-  }
-
-  @Watch('invoiceProduct.x.task_weight')
-  public updateWeight(val: number|undefined) {
-    if (val === undefined) {
-      return
-    }
-    this.newInvoice.fields.task_weight.update(val)
   }
 
   public goToOrder(deliverable: Deliverable) {

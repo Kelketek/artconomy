@@ -822,4 +822,19 @@ describe('Form and field controllers', () => {
     controller.reset()
     expect(controller.fields.age.value).toBe(30)
   })
+  it('Simplifies JSON rendering', () => {
+    wrapper = shallowMount(Empty, {localVue, store})
+    const controller = wrapper.vm.$getForm('example', {
+      fields: {
+        age: {value: 30},
+      },
+      endpoint: '/test/endpoint/',
+    })
+    expect(JSON.parse(JSON.stringify(controller))).toEqual({
+      type: 'FormController', state: {age: 30}, name: 'example',
+    })
+    expect(JSON.parse(JSON.stringify(controller.fields.age))).toEqual({
+      type: 'FieldController', state: 30, name: 'age',
+    })
+  })
 })

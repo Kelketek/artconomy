@@ -183,7 +183,6 @@ export default class Orders extends mixins(Subjective, InvoicingMixin) {
     }
     const invoiceSchema = baseInvoiceSchema(`/api/sales/v1/account/${this.username}/create-invoice/`)
     invoiceSchema.fields.hold.value = !this.isCurrent
-    invoiceSchema.fields.buyer = {value: ''}
     this.newInvoice = this.$getForm('newInvoice', invoiceSchema)
     this.broadcastForm = this.$getForm('broadcast', {
       endpoint: `/api/sales/v1/account/${this.username}/broadcast/`,

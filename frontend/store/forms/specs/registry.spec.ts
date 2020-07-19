@@ -7,7 +7,6 @@ import {ArtStore, createStore} from '../../index'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import mockAxios from '@/specs/helpers/mock-axios'
 import {RootFormState} from '@/store/forms/types/RootFormState'
-import {neutralize} from '@/lib/lib'
 
 Vue.use(Vuex)
 const localVue = createLocalVue()

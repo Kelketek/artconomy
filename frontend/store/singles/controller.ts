@@ -6,7 +6,6 @@ import {BaseController} from '@/store/controller-base'
 import {singleRegistry} from '@/store/singles/registry'
 import {RawData} from '@/store/forms/types/RawData'
 import {SinglePatchers} from '@/store/singles/types/SinglePatchers'
-import {Proxify} from '@/store/singles/types/Proxify'
 import {Patch} from '@/store/singles/patcher'
 
 @Component
