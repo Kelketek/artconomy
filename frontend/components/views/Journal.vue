@@ -39,15 +39,12 @@
                         <span v-else>off</span>
                       </v-list-item-title>
                     </v-list-item>
-                    <v-list-item @click.stop="journal.patch({comments_disabled: !journal.x.comments_disabled})">
+                    <v-list-item @click.stop="journal.patchers.comments_disabled.model = !journal.patchers.comments_disabled.model">
                       <v-list-item-action>
-                        <v-icon v-if="journal.x.comments_disabled">mode_comment</v-icon>
-                        <v-icon v-else>comment</v-icon>
+                        <v-switch :value="journal.patchers.comments_disabled.model"></v-switch>
                       </v-list-item-action>
                       <v-list-item-title>
-                        Comments
-                        <span v-if="journal.x.comments_disabled">locked</span>
-                        <span v-else>allowed</span>
+                        Comments Disabled
                       </v-list-item-title>
                     </v-list-item>
                     <ac-confirmation :action="deleteJournal" v-if="controls">
