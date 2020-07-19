@@ -107,14 +107,19 @@
         />
       </v-row>
       <v-spacer />
-      <v-btn
-          class="hidden-xs-only"
-          v-if="viewer && viewer.rating > 0 && fullInterface"
+      <v-card class="px-2 py-1 hidden-xs-only"
+              :color="sfwMode.model? 'blue darken-3' : 'black'"
+              v-if="viewer && viewer.rating > 0 && fullInterface"
+      >
+        <v-switch
           v-model="sfwMode.model"
-          :color="sfwMode.model? 'blue' : 'black'"
           @click="sfwMode.model = !sfwMode.model"
-      ><span v-if="!sfwMode.model">N</span>SFW
-      </v-btn>
+          label="SFW"
+          color="blue lighten-1"
+          :hide-details="true"
+        >
+        </v-switch>
+      </v-card>
       <v-toolbar-items v-if="fullInterface">
         <v-btn text class="hidden-md-and-up px-1" icon :to="{name: 'SearchProducts'}">
           <v-icon large>search</v-icon>

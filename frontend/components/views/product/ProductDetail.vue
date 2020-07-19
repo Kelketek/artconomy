@@ -90,14 +90,14 @@
                         <v-list-item-title v-if="editing">Lock</v-list-item-title>
                         <v-list-item-title v-else>Edit</v-list-item-title>
                       </v-list-item>
-                      <v-list-item @click.stop="product.patch({hidden: !product.x.hidden})">
+                      <v-list-item @click.stop="product.patchers.hidden.model = !product.patchers.hidden.model">
                         <v-list-item-action>
-                          <v-icon v-if="product.x.hidden">visibility_off</v-icon>
-                          <v-icon v-else>visibility</v-icon>
+                          <v-switch :value="product.patchers.hidden.model"
+                                    :hide-details="true"
+                          />
                         </v-list-item-action>
                         <v-list-item-title>
-                          <span v-if="product.x.hidden">Hidden</span>
-                          <span v-else>Public</span>
+                          Hidden
                         </v-list-item-title>
                       </v-list-item>
                       <ac-confirmation :action="deleteProduct">

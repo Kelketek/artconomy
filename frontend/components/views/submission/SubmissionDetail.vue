@@ -141,25 +141,24 @@
                               <v-list-item-title v-if="editing">Lock</v-list-item-title>
                               <v-list-item-title v-else>Edit</v-list-item-title>
                             </v-list-item>
-                            <v-list-item @click.stop="submission.patch({private: !submission.x.private})">
+                            <v-list-item @click.stop="submission.patchers.private.model = !submission.patchers.private.model">
                               <v-list-item-action>
-                                <v-icon v-if="submission.x.private">visibility_off</v-icon>
-                                <v-icon v-else>visibility</v-icon>
+                                <v-switch :value="submission.patchers.private.model"
+                                          :hide-details="true"
+                                />
                               </v-list-item-action>
                               <v-list-item-title>
-                                <span v-if="submission.x.private">Hidden</span>
-                                <span v-else>Public</span>
+                                Private
                               </v-list-item-title>
                             </v-list-item>
-                            <v-list-item @click.stop="submission.patch({comments_disabled: !submission.x.comments_disabled})" v-if="controls">
+                            <v-list-item @click.stop="submission.patchers.comments_disabled.model = !submission.patchers.comments_disabled.model">
                               <v-list-item-action>
-                                <v-icon v-if="submission.x.comments_disabled">mode_comment</v-icon>
-                                <v-icon v-else>comment</v-icon>
+                                <v-switch :value="submission.patchers.comments_disabled.model"
+                                          :hide-details="true"
+                                />
                               </v-list-item-action>
                               <v-list-item-title>
-                                Comments
-                                <span v-if="submission.x.comments_disabled">locked</span>
-                                <span v-else>allowed</span>
+                                Comments Disabled
                               </v-list-item-title>
                             </v-list-item>
                             <ac-confirmation :action="deleteSubmission">

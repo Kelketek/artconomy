@@ -1,18 +1,20 @@
 <template>
   <v-container fluid>
     <v-row class="justify-content fill-height"  align="center">
-      <v-col cols="12" md="6" class="text-center" order="1" order-md="1">
+      <v-col cols="12" md="6" lg="4" offset-lg="1" class="text-center" order="1" order-md="1">
         <h2>List all of your products</h2>
         <p>With samples, commission info, and tags on a beautiful, mobile-ready site.</p>
-        <v-btn large color="green" :to="url" :block="block" class="commission-cta"><v-icon left>store</v-icon>Open Your Store!</v-btn>
+        <v-btn x-large color="green" :to="url" :block="block" class="commission-cta"><v-icon left>store</v-icon>Open Your Store!</v-btn>
       </v-col>
-      <v-col cols="12" md="6" order="2" order-md="2" class="pa-2">
+      <v-col cols="12" md="6" order="2" order-md="2" class="pa-2" offset-lg="1">
         <v-img src="/static/images/marketing/product-detail.jpg" :elevation="14" :aspect-ratio="1357/565" />
       </v-col>
       <v-col cols="12" md="6" class="pa-2" order="4" order-md="3">
         <v-img src="/static/images/marketing/AWOO.jpg" :elevation="14" :aspect-ratio="1591/844" />
       </v-col>
       <v-col cols="12" md="6" lg="4" offset-lg="1" class="text-center" order="3" order-md="4">
+        <hr class="hidden-md-and-up" />
+        <div class="py-3 hidden-md-and-up"></div>
         <h2>Never say</h2>
         <p><s>"Note me if I owe you art"</s></p>
         <p>Meet <strong>AWOO</strong>, the
@@ -26,12 +28,14 @@
           <strong>Never forget a task.</strong> Even if you took an order off Artconomy, <strong>AWOO</strong> invoices
           can still help you keep track of it, and in touch with your commissioner.
         </p>
-        <v-btn large color="green" :to="url" :block="block" class="commission-cta"><v-icon left>assignment</v-icon>Get Organized</v-btn>
+        <v-btn x-large color="green" :to="url" :block="block" class="commission-cta"><v-icon left>assignment</v-icon>Get Organized</v-btn>
       </v-col>
       <v-col cols="12" md="6" class="text-center pa-2" order="7" order-lg="7">
         <v-img src="/static/images/marketing/discord-channel-log.jpg" :elevation="14" :aspect-ratio="1591/844" />
       </v-col>
       <v-col cols="12" md="6" class="text-center pa-2" order="6" order-lg="6">
+        <hr class="hidden-md-and-up" />
+        <div class="py-3 hidden-md-and-up"></div>
         <h2>A Community-- You are not alone.</h2>
         <p>The artistic journey is one of persistence, and it can't be done alone.
           Engage with a community of artists from different walks of life, at any level of their career.</p>
@@ -40,7 +44,7 @@
         <v-row>
           <v-col cols="12" lg="6">
             <v-btn
-              large
+              x-large
               v-if="!prerendering"
               href="https://discord.gg/4nWK9mf"
               target="_blank"
@@ -49,7 +53,7 @@
               Join our Discord
             </v-btn>
             <v-btn v-else
-                large
+                x-large
                 :block="block"
                 color="primary"><v-icon left>{{discordPath}}</v-icon>
                 Join our Discord
@@ -57,7 +61,7 @@
           </v-col>
           <v-col cols="12" lg="6">
             <v-btn
-              large
+              x-large
               color="secondary"
               href="https://artconomy.com/blog/"
               target="_blank"
@@ -66,7 +70,9 @@
           </v-col>
         </v-row>
       </v-col>
-      <v-col cols="12" md="6" lg="4" offset-lg="1" class="text-center pa-2" order="9">
+      <v-col cols="12" md="6" lg="4" offset-lg="1" class="text-center pa-2" order="8" order-md="9">
+        <hr class="hidden-md-and-up" />
+        <div class="py-3 hidden-md-and-up"></div>
         <h2>Flexible, helpful tools</h2>
         <p>Communicate directly with your customer, directly on each revision. Set how many revisions are included up front.</p>
         <p>Customer wants wings? Add a line item for it.
@@ -80,8 +86,9 @@
           Premade agreements, and little reminders to take care of yourself keep you on the path to running a
           stable businesses.
         </p>
+        <v-btn x-large color="green" :to="url" :block="block" class="commission-cta"><v-icon left>construction</v-icon>Equip Yourself!</v-btn>
       </v-col>
-      <v-col cols="12" md="6" class="text-center pa-2" order="8">
+      <v-col cols="12" md="6" class="text-center pa-2" order="9" order-md="9">
         <v-img src="/static/images/marketing/pricing.jpg" :aspect-ratio="2356/1018" contain></v-img>
       </v-col>
     </v-row>
@@ -96,7 +103,7 @@
         <v-icon color="green">fa-shield</v-icon>
         <p><small>Artconomy shield currently only available to those with US Bank accounts.
           You can still handle orders through Artconomy if you do not have one, but will have to take payment from an outside source.</small></p>
-        <v-btn large color="green" :to="url" :block="block" class="commission-cta"><v-icon left>lock</v-icon>Get Protected</v-btn>
+        <v-btn x-large color="green" :to="url" :block="block" class="commission-cta"><v-icon left>lock</v-icon>Get Protected</v-btn>
       </v-col>
       <v-col cols="12">
         <hr />
@@ -117,10 +124,12 @@
       </v-col>
     </v-row>
     <v-row>
-      <v-col cols="12" class="text-center">
+      <v-col cols="12" md="6" offset-md="3" lg="4" offset-lg="4" class="text-center">
+        <hr class="hidden-md-and-up" />
+        <div class="py-3 hidden-md-and-up"></div>
         <h1>Ready?</h1>
-        <p>Let's be better with help from each other!</p>
-        <v-btn large color="green" :to="url" :block="block" class="commission-cta"><v-icon left>edit</v-icon>Get started!</v-btn>
+        <p>Let's grow together!</p>
+        <v-btn x-large color="green" :to="url" :block="block" class="commission-cta"><v-icon left>edit</v-icon>Get started!</v-btn>
       </v-col>
     </v-row>
   </v-container>
@@ -149,7 +158,8 @@ export default class ArtistTools extends mixins(PrerenderMixin, Viewer) {
   }
 
   public get block() {
-    return this.$vuetify.breakpoint.xsOnly
+    return true
+    // return this.$vuetify.breakpoint.xsOnly
   }
 }
 </script>

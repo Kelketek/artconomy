@@ -33,14 +33,14 @@
               <v-list-item-title v-if="editing">Lock</v-list-item-title>
               <v-list-item-title v-else>Edit</v-list-item-title>
             </v-list-item>
-            <v-list-item @click.stop="character.profile.patch({private: !character.profile.x.private})">
+            <v-list-item @click.stop="character.profile.patchers.private.model = !character.profile.patchers.private.model">
               <v-list-item-action>
-                <v-icon v-if="character.profile.x.private">visibility_off</v-icon>
-                <v-icon v-else>visibility</v-icon>
+                <v-switch :value="character.profile.patchers.private.model"
+                          :hide-details="true"
+                />
               </v-list-item-action>
               <v-list-item-title>
-                <span v-if="character.profile.x.private">Hidden</span>
-                <span v-else>Listed</span>
+                Private
               </v-list-item-title>
             </v-list-item>
             <ac-confirmation :action="deleteCharacter">
