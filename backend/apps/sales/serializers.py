@@ -458,7 +458,7 @@ class NewCardSerializer(serializers.Serializer):
     last_name = serializers.CharField(max_length=50)
     country = serializers.ChoiceField(choices=country_choices())
     number = serializers.CharField(max_length=25)
-    exp_date = serializers.CharField(max_length=5, min_length=4)
+    exp_date = serializers.CharField(max_length=7, min_length=4)
     zip = serializers.CharField(max_length=20, required=False)
     cvv = serializers.CharField(max_length=4, min_length=3, validators=[RegexValidator(r'^[0-9]{3,4}$')])
     make_primary = serializers.NullBooleanField(default=False)
@@ -474,8 +474,11 @@ class NewCardSerializer(serializers.Serializer):
             # Avoid Y3K problem while still supporting two digit year.
             month = int(params[0])
             year = int(params[1])
-            hundreds = datetime.today().year // 100
-            year = hundreds * 100 + year
+            if year < 100:
+                hundreds = datetime.today().year // 100
+                year = hundreds * 100 + year
+            if year > 9999 or year < 1000:
+                raise TypeError
             exp_date = date(month=month, year=year, day=1)
         except ValueError:
             raise serializers.ValidationError("That is not a valid date.")

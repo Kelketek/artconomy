@@ -148,15 +148,18 @@ describe('Field validators', () => {
     await flushPromises()
   })
   it.each`
-    date                   | result
-    ${''}                  | ${[]}
-    ${'0820'}              | ${['Please write the date in the format MM/YY, like 08/22.']}
-    ${'0'}                 | ${['Please write the date in the format MM/YY, like 08/22.']}
-    ${'12'}                | ${['Please write the date in the format MM/YY, like 08/22.']}
-    ${'14/23'}              | ${['That is not a valid month.']}
-    ${'@stuff'}            | ${['Please write the date in the format MM/YY, like 08/22.']}
-    ${'05/02'}              | ${['This card has expired.']}
-    ${'12/99'}              | ${[]}
+    date                      | result
+    ${''}                     | ${[]}
+    ${'0820'}                 | ${['Please write the date in the format MM/YY, like 08/22.']}
+    ${'0'}                    | ${['Please write the date in the format MM/YY, like 08/22.']}
+    ${'12'}                   | ${['Please write the date in the format MM/YY, like 08/22.']}
+    ${'14/23'}                | ${['That is not a valid month.']}
+    ${'@stuff'}               | ${['Please write the date in the format MM/YY, like 08/22.']}
+    ${'05/02'}                | ${['This card has expired.']}
+    ${'12/99'}                | ${[]}
+    ${'12/2000'}              | ${['This card has expired.']}
+    ${'12/2020'}              | ${[]}
+    ${'12/202'}               | ${['Please enter a two digit year.']}
   `('should return $result when handed the expiration date $date.', async({date, result}) => {
     MockDate.set('2019-6-19')
     store.commit('forms/initForm', {

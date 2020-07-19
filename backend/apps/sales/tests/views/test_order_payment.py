@@ -88,6 +88,46 @@ class TestOrderPayment(TransactionCheckMixin, APITestCase):
         self.assertEqual(card.profile_id, '6969')
         self.assertEqual(card.payment_id, '5634')
 
+    @freeze_time('2018-08-01 12:00:00')
+    @patch('apps.sales.views.card_token_from_transaction')
+    @patch('apps.sales.views.charge_card')
+    def test_pay_order_new_card_four_digit_year(self, mock_charge_card, mock_create_token):
+        user = UserFactory.create(authorize_token='6969')
+        self.login(user)
+        deliverable = DeliverableFactory.create(
+            order__buyer=user, status=PAYMENT_PENDING, product__base_price=Money('10.00', 'USD'),
+        )
+        add_adjustment(deliverable, Money('2.00', 'USD'))
+        mock_charge_card.return_value = ('36985214745', 'ABC123')
+        mock_create_token.return_value = '5634'
+        response = self.client.post(
+            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/pay/',
+            {
+                'number': '4111111111111111',
+                'zip': '64345',
+                'first_name': 'Fox',
+                'last_name': 'Piacenti',
+                'country': 'US',
+                'amount': '12.00',
+                'cvv': '100',
+                'exp_date': '08/2025',
+                'make_primary': True,
+                'save_card': True,
+                'card_id': None,
+            },
+            format='json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        card_info = CardInfo(number='4111111111111111', exp_month=8, exp_year=2025, cvv='100')
+        address_info = AddressInfo(first_name='Fox', last_name='Piacenti', country='US', postal_code='64345')
+        mock_charge_card.assert_called_with(
+            card_info, address_info, Decimal('12.00'),
+        )
+        card = user.credit_cards.all()[0]
+        self.assertTrue(card.active)
+        self.assertEqual(card.profile_id, '6969')
+        self.assertEqual(card.payment_id, '5634')
+
     @patch('apps.sales.views.charge_saved_card')
     def test_pay_order_weights_set(self, mock_charge_card):
         user = UserFactory.create()

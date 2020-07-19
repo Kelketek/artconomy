@@ -134,7 +134,14 @@ export function cardExp(field: FieldController) {
   const currentYear = now.getFullYear()
   const yearFloor = currentYear - (currentYear % 100)
   const currentMonth = now.getMonth()
-  const year = parseInt(field.value.slice(3), 10) + yearFloor
+  const yearString = field.value.slice(3)
+  let year = parseInt(yearString, 10)
+  if (yearString.length === 2) {
+    year += yearFloor
+    // We'll silently support a four digit year as well, since this confuses some customers.
+  } else if (yearString.length !== 4) {
+    return ['Please enter a two digit year.']
+  }
   // Months are zero indexed.
   const month = parseInt(field.value.slice(0, 2), 10) - 1
   if ((month > 11) || (month < 0)) {

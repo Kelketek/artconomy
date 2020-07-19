@@ -43,7 +43,7 @@
             <ac-bound-field
               :field="ccForm.fields.exp_date"
               label="Exp Date"
-              v-mask="'##/##'"
+              v-mask="'##/####'"
               placeholder="MM/YY"
             />
           </v-col>
