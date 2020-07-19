@@ -86,7 +86,7 @@
         </v-col>
       </v-row>
     </v-content>
-    <div class="dev-mode-overlay text-center">
+    <div class="dev-mode-overlay text-center" v-if="devMode">
       <v-icon size="50vw">construction</v-icon>
     </div>
   </v-app>
