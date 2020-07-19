@@ -305,7 +305,6 @@ describe('App.vue', () => {
       vuetify,
       mocks: {$route: {fullPath: '/', params: {stuff: 'things'}, query: {}}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
-
       attachTo: docTarget(),
     })
     const vm = wrapper.vm as any
@@ -317,5 +316,24 @@ describe('App.vue', () => {
     expect(vm.routeKey).toEqual('characterName:Dude|username:Bob|')
     Vue.set(vm.$route.params, 'submissionId', '555')
     expect(vm.routeKey).toEqual('characterName:Dude|submissionId:555|username:Bob|')
+  })
+  it('Determines whether or not we are in dev mode', async() => {
+    wrapper = mount(App, {
+      store,
+      localVue,
+      vuetify,
+      mocks: {$route: {fullPath: '/', params: {stuff: 'things'}, query: {}}},
+      stubs: ['router-link', 'router-view', 'nav-bar'],
+      attachTo: docTarget(),
+    })
+    const vm = wrapper.vm as any
+    expect(vm.mode()).toBe('test')
+    expect(vm.devMode).toBe(false)
+    const mockMode = jest.spyOn(vm, 'mode')
+    mockMode.mockImplementation(() => 'development')
+    expect(vm.mode()).toBe('development')
+    vm.forceRecompute += 1
+    await vm.$nextTick()
+    expect(vm.devMode).toBe(true)
   })
 })
