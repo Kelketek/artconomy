@@ -155,7 +155,8 @@
             </v-toolbar>
             <v-row no-gutters>
               <v-col cols="6" md="3" lg="6" class="text-center" v-if="!prerendering" align-self="center">
-                <v-img src="/static/images/Discord.png" :aspect-ratio="3/2" contain></v-img>
+                <v-img src="/static/images/Discord.png" :aspect-ratio="3/2" contain v-if="!prerendering" />
+                <v-img src="/static/images/Discord.png" :aspect-ratio="3/2" contain v-else />
               </v-col>
               <v-col cols="6" md="3" lg="6" class="text-center" align-self="center">
                 <v-responsive :aspect-ratio="3/2" class="pa-1">
@@ -181,7 +182,7 @@
               </v-col>
               <v-col cols="6" md="3" lg="6" align-self="center">
                 <v-col class="text-center">
-                  <v-img :src="articles[0].image" alt="" :aspect-ratio="3/2" contain></v-img>
+                  <a :href="articles[0].link" target="_blank"><v-img :src="articles[0].image" alt="" :aspect-ratio="3/2" contain /></a>
                 </v-col>
                 <v-col class="text-center">
                   <strong>
@@ -191,7 +192,7 @@
               </v-col>
               <v-col cols="6" md="3" lg="6" align-self="center">
                 <v-col class="text-center">
-                  <v-img :src="articles[1].image" alt="" :aspect-ratio="3/2" contain></v-img>
+                  <a :href="articles[1].link" target="_blank"><v-img :src="articles[1].image" alt="" :aspect-ratio="3/2" contain /></a>
                 </v-col>
                 <v-col class="text-center">
                   <strong>
