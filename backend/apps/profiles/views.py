@@ -125,7 +125,10 @@ class Register(CreateAPIView):
         # noinspection SpellCheckingInspection
         instance.offered_mailchimp = True
         add_to_newsletter = serializer.validated_data.get('mail')
-        instance.rating = self.request.max_rating
+        instance.rating = self.request.rating
+        instance.sfw_mode = self.request.sfw_mode
+        instance.birthday = self.request.birthday
+
         referrer = self.request.META.get('HTTP_X_REFERRED_BY', None)
         if referrer:
             instance.referred_by = User.objects.filter(username__iexact=referrer).first()
@@ -455,9 +458,14 @@ class CurrentUserInfo(UserInfo):
         base_settings = empty_user(request)
         serializer = SessionSettingsSerializer(data={**base_settings, **request.data})
         serializer.is_valid(raise_exception=True)
-        request.session.update(serializer.data)
+        data = {**serializer.data}
+        birthday = data.get('birthday', None)
+        birthday = birthday and birthday.isoformat()
+        data['birthday'] = birthday
+        request.session.update(data)
         sfw_mode = serializer.data['sfw_mode']
         request.max_rating = GENERAL if sfw_mode else serializer.data['rating']
+        request.birthday = serializer.data['birthday']
         request.rating = serializer.data['rating']
         request.sfw_mode = sfw_mode
         request.session.save()

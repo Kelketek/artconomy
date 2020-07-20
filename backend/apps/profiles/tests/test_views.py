@@ -429,8 +429,10 @@ class TestSettings(APITestCase):
         self.login(user)
         response = self.client.patch(
             '/api/profiles/v1/account/{}/'.format(user.username), {
+                'birthday': '1988-08-01',
                 'rating': ADULT,
-            }
+            },
+            format='json',
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['rating'], ADULT)

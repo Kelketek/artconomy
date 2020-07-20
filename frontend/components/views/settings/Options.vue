@@ -39,7 +39,14 @@
           <v-subheader>Content/Browsing</v-subheader>
           <v-card-text :class="{disabled: sfwMode.model}">
             <v-row no-gutters>
-              <v-col>Select the maximum content rating you'd like to see when browsing.</v-col>
+              <v-col cols="12" md="6" lg="4">
+                <ac-patch-field
+                  field-type="ac-birthday-field"
+                  label="Birthday"
+                  :patcher="subjectHandler.user.patchers.birthday"
+                ></ac-patch-field>
+              </v-col>
+              <v-col cols="12">Select the maximum content rating you'd like to see when browsing.</v-col>
             </v-row>
             <ac-patch-field
                 field-type="v-slider"
@@ -50,7 +57,6 @@
                 ticks="always"
                 tick-size="2"
                 :color="ratingColor[maxRating.model]"
-                :disabled="sfwMode.model"
             >
             </ac-patch-field>
             <v-row no-gutters  >
@@ -97,6 +103,7 @@ import Alerts from '@/mixins/alerts'
 import AcTagField from '@/components/fields/AcTagField.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import {Patch} from '@/store/singles/patcher'
+import moment from 'moment'
 
   @Component({
     components: {AcTagField, AcLoadingSpinner, AcPatchField},
@@ -114,6 +121,18 @@ export default class Options extends mixins(Viewer, Subjective, Alerts) {
     private ratingLongDesc = RATING_LONG_DESC
     private ratingColor = RATING_COLOR
 
+    public get adultAllowed() {
+      if (this.sfwMode.model) {
+        return false
+      }
+      // @ts-ignore
+      const birthday = this.subjectHandler.user.patchers.birthday.model
+      if (birthday === null) {
+        return false
+      }
+      return moment().diff(moment(birthday), 'years') >= 18
+    }
+
     public created() {
       this.maxRating = this.$makePatcher({modelProp: 'subjectHandler.user', attrName: 'rating'})
       this.sfwMode = this.$makePatcher({modelProp: 'subjectHandler.user', attrName: 'sfw_mode'})
@@ -121,10 +140,6 @@ export default class Options extends mixins(Viewer, Subjective, Alerts) {
       this.favoritesHidden = this.$makePatcher({modelProp: 'subjectHandler.user', attrName: 'favorites_hidden'})
       this.taggable = this.$makePatcher({modelProp: 'subjectHandler.user', attrName: 'taggable'})
       this.blacklist = this.$makePatcher({modelProp: 'subjectHandler.user', attrName: 'blacklist'})
-    }
-
-    private get settingsUrl() {
-      return `/api/profiles/v1/account/${this.username}/`
     }
 }
 </script>

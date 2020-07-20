@@ -135,7 +135,13 @@ def credit_referral(deliverable):
 
 
 def empty_user(request):
-    return {'blacklist': [], 'rating': request.rating, 'sfw_mode': request.sfw_mode, 'username': '_'}
+    return {
+        'blacklist': [],
+        'rating': request.rating,
+        'sfw_mode': request.sfw_mode,
+        'username': '_',
+        'birthday': request.birthday and request.birthday.isoformat(),
+    }
 
 
 def create_guest_user(email: str) -> User:

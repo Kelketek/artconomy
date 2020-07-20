@@ -45,6 +45,7 @@ export function genUser(overrides?: Partial<User>): User {
     hits: 1,
     watches: 0,
     guest_email: '',
+    birthday: '1988-08-01',
     ...overrides,
   }
 }

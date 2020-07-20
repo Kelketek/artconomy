@@ -123,6 +123,7 @@ class User(AbstractEmailUser, HitsMixin):
     registration_code = ForeignKey('sales.Promo', null=True, blank=True, on_delete=SET_NULL)
     # Whether the user's been offered the mailing list
     offered_mailchimp = BooleanField(default=False)
+    birthday = DateField(null=True, default=None, db_index=True)
     guest = BooleanField(default=False, db_index=True)
     referred_by = ForeignKey('User', related_name='referrals', blank=True, on_delete=PROTECT, null=True)
     tg_key = CharField(db_index=True, default=tg_key_gen, max_length=30)

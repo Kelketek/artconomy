@@ -62,10 +62,12 @@ import * as VTextField from 'vuetify/es5/components/VTextField'
 import * as VAutocomplete from 'vuetify/es5/components/VAutocomplete'
 import * as VSlider from 'vuetify/es5/components/VSlider'
 import * as VSelect from 'vuetify/es5/components/VSelect'
+import AcBirthdayField from '@/components/fields/AcBirthdayField.vue'
 
 // @ts-ignore
 @Component({
   components: {
+    AcBirthdayField,
     AcStarField,
     AcPriceField,
     AcBankToggle,

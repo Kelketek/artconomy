@@ -11,7 +11,7 @@
                       field-type="ac-rating-field"
                       label="Select the maximum content rating you'd like to see when browsing."
                       :patcher="patchers.rating"
-                      :disabled="patchers.sfw_mode.model"
+                      :disabled="adultAllowed"
                       :max="2"
                   >
                   </ac-patch-field>
@@ -76,12 +76,25 @@ import Component, {mixins} from 'vue-class-component'
 import Viewer from '@/mixins/viewer'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-  @Component({
-    components: {AcLoadSection, AcPatchField},
-  })
+import moment from 'moment'
+@Component({
+  components: {AcLoadSection, AcPatchField},
+})
 export default class SessionSettings extends mixins(Viewer) {
   public get patchers() {
     return this.viewerHandler.user.patchers
+  }
+
+  public get adultAllowed() {
+    if (this.patchers.sfw_mode.model) {
+      return false
+    }
+    // @ts-ignore
+    const birthday = this.patchers.birthday.model
+    if (birthday === null) {
+      return false
+    }
+    return moment().diff(moment(birthday), 'years') >= 18
   }
 
   public created() {

@@ -1,6 +1,8 @@
+from datetime import date
 from urllib.parse import quote_plus
 from uuid import UUID
 
+from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.validators import UnicodeUsernameValidator
@@ -512,6 +514,15 @@ class UserSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
             return None
         return Token.objects.get(user_id=obj.id).key
 
+    def validate(self, attrs):
+        if attrs.get('rating', 0):
+            birthday = attrs.get('birthday', self.instance.birthday)
+            if birthday is None:
+                raise ValidationError({'rating': 'You must indicate your birthday to view adult content.'})
+            if relativedelta(date.today(), birthday).years < 18:
+                raise ValidationError({'rating': 'You must be at least 18 years old to view adult content.'})
+        return attrs
+
     class Meta:
         model = User
         fields = (
@@ -521,11 +532,12 @@ class UserSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
             'stars', 'portrait', 'portrait_enabled', 'portrait_paid_through',
             'landscape', 'landscape_enabled', 'landscape_paid_through', 'telegram_link', 'sfw_mode',
             'offered_mailchimp', 'guest', 'artist_mode', 'hits', 'watches', 'guest_email', 'rating_count',
+            'birthday',
         )
         read_only_fields = [field for field in fields if field not in [
             'rating', 'sfw_mode', 'taggable',
             'offered_mailchimp', 'artist_mode', 'favorites_hidden',
-            'blacklist', 'biography', 'rating_count',
+            'blacklist', 'biography', 'rating_count', 'birthday',
         ]]
         extra_kwargs = {field: {'required': False} for field in fields}
 
@@ -534,7 +546,16 @@ class UserSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
 class SessionSettingsSerializer(serializers.Serializer):
     rating = serializers.ChoiceField(choices=RATINGS_ANON)
     sfw_mode = serializers.BooleanField()
+    birthday = serializers.DateField(allow_null=True)
 
+    def validate(self, attrs):
+        if attrs.get('rating', 0):
+            birthday = attrs.get('birthday')
+            if birthday is None:
+                raise ValidationError({'rating': 'You must indicate your birthday to view adult content.'})
+            if relativedelta(date.today(), birthday).years < 18:
+                raise ValidationError({'rating': 'You must be at least 18 years old to view adult content.'})
+        return attrs
 
 class ReadMarkerField(serializers.Field):
     save_related = True

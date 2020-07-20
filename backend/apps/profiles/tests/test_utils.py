@@ -83,8 +83,15 @@ class TestEmptyUser(APITestCase):
         request.sfw_mode = True
         request.rating = ADULT
         request.max_rating = GENERAL
+        request.birthday = date(year=1988, month=8, day=1)
         self.assertEqual(
-            empty_user(request), {'blacklist': [], 'rating': ADULT, 'sfw_mode': True, 'username': '_'},
+            empty_user(request), {
+                'blacklist': [],
+                'rating': ADULT,
+                'sfw_mode': True,
+                'username': '_',
+                'birthday': '1988-08-01',
+            },
         )
 
 

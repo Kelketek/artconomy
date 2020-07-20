@@ -1,3 +1,5 @@
+from datetime import date
+
 from apps.lib.abstract_models import GENERAL, MATURE, ADULT, EXTREME
 from apps.profiles.models import User
 from django.shortcuts import get_object_or_404
@@ -15,6 +17,7 @@ class RatingMiddleware:
         blacklist = []
         if request.user.is_registered:
             sfw_mode = request.user.sfw_mode
+            birthday = request.user.birthday
             if not sfw_mode:
                 rating = request.user.rating
                 blacklist = request.user.blacklist.all()
@@ -23,8 +26,15 @@ class RatingMiddleware:
             if rating not in [GENERAL, MATURE, ADULT]:
                 rating = GENERAL
             sfw_mode = request.session.get('sfw_mode', False)
+            birthday = request.session.get('birthday', None)
+            if birthday is not None:
+                try:
+                    birthday = date.fromisoformat(birthday)
+                except ValueError:
+                    birthday = None
         request.sfw_mode = sfw_mode
         request.rating = rating
+        request.birthday = birthday
         request.max_rating = GENERAL if sfw_mode else rating
         request.blacklist = blacklist
 
