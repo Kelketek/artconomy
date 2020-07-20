@@ -1,5 +1,6 @@
 import logging
 import uuid
+from datetime import date
 from functools import lru_cache
 
 import html2text
@@ -458,14 +459,10 @@ class CurrentUserInfo(UserInfo):
         base_settings = empty_user(request)
         serializer = SessionSettingsSerializer(data={**base_settings, **request.data})
         serializer.is_valid(raise_exception=True)
-        data = {**serializer.data}
-        birthday = data.get('birthday', None)
-        birthday = birthday and birthday.isoformat()
-        data['birthday'] = birthday
-        request.session.update(data)
+        request.session.update(serializer.data)
         sfw_mode = serializer.data['sfw_mode']
         request.max_rating = GENERAL if sfw_mode else serializer.data['rating']
-        request.birthday = serializer.data['birthday']
+        request.birthday = serializer.data['birthday'] and date.fromisoformat(serializer.data['birthday'])
         request.rating = serializer.data['rating']
         request.sfw_mode = sfw_mode
         request.session.save()

@@ -436,6 +436,7 @@ class TestSettings(APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['rating'], ADULT)
+        self.assertEqual(response.data['birthday'], '1988-08-01')
         user.refresh_from_db()
         self.assertEqual(user.rating, ADULT)
 

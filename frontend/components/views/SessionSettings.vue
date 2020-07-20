@@ -5,14 +5,25 @@
         <v-card>
           <v-card-text>
             <v-row no-gutters  >
+              <v-col cols="12" md="6" lg="4">
+                <ac-patch-field
+                  field-type="ac-birthday-field"
+                  label="Birthday"
+                  :patcher="patchers.birthday"
+                  :persistent-hint="true"
+                  hint="You must be at least 18 years old to view adult content."
+                ></ac-patch-field>
+              </v-col>
               <v-col cols="12">
                 <v-card-text :class="{disabled: patchers.sfw_mode.model}">
                   <ac-patch-field
                       field-type="ac-rating-field"
                       label="Select the maximum content rating you'd like to see when browsing."
                       :patcher="patchers.rating"
-                      :disabled="adultAllowed"
+                      :disabled="!adultAllowed"
                       :max="2"
+                      :persistent-hint="true"
+                      hint="You must be at least 18 years old to view adult content."
                   >
                   </ac-patch-field>
                 </v-card-text>

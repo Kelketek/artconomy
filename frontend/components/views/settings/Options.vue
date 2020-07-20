@@ -44,9 +44,11 @@
                   field-type="ac-birthday-field"
                   label="Birthday"
                   :patcher="subjectHandler.user.patchers.birthday"
+                  :persistent-hint="true"
+                  hint="You must be at least 18 years old to view adult content."
                 ></ac-patch-field>
               </v-col>
-              <v-col cols="12">Select the maximum content rating you'd like to see when browsing.</v-col>
+              <v-col cols="12" class="pt-5"><strong>Select the maximum content rating you'd like to see when browsing.</strong></v-col>
             </v-row>
             <ac-patch-field
                 field-type="v-slider"

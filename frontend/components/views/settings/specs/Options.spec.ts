@@ -30,15 +30,4 @@ describe('Options.vue', () => {
     })
     await wrapper.vm.$nextTick()
   })
-  it('Generates the settings URL', async() => {
-    setViewer(store, genUser())
-    wrapper = mount(Options, {
-      localVue,
-      store,
-      vuetify,
-      propsData: {username: 'Fox'},
-      attachTo: docTarget(),
-    })
-    expect((wrapper.vm as any).settingsUrl).toBe('/api/profiles/v1/account/Fox/')
-  })
 })
