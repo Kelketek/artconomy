@@ -34,7 +34,7 @@
       />
     </ac-link>
     <ac-link :to="submissionLink" v-if="showFooter">
-      <v-card-text class="pa-1">
+      <v-card-text class="pa-1" v-if="submission.title">
         <v-row dense>
           <v-col class="text-left" ><strong>{{ submission.title }}</strong></v-col>
         </v-row>
