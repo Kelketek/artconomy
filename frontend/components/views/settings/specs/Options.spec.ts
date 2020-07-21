@@ -1,10 +1,9 @@
 import Vue from 'vue'
-import {Vuetify} from 'vuetify/types'
-import {mount, Wrapper} from '@vue/test-utils'
+import {Wrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
 import VueRouter from 'vue-router'
 import {genUser} from '@/specs/helpers/fixtures'
-import {createVuetify, docTarget, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, qMount, setViewer, vueSetup} from '@/specs/helpers'
 import Options from '../Options.vue'
 
 jest.useFakeTimers()
@@ -12,22 +11,38 @@ jest.useFakeTimers()
 describe('Options.vue', () => {
   let store: ArtStore
   let wrapper: Wrapper<Vue>
-  let vuetify: Vuetify
   const localVue = vueSetup()
   beforeEach(() => {
     store = createStore()
-    vuetify = createVuetify()
     localVue.use(VueRouter)
+  })
+  afterEach(() => {
+    cleanUp(wrapper)
   })
   it('Mounts the options page', async() => {
     setViewer(store, genUser())
-    wrapper = mount(Options, {
+    wrapper = qMount(Options, {
       localVue,
       store,
-      vuetify,
       propsData: {username: 'Fox'},
-      attachTo: docTarget(),
     })
     await wrapper.vm.$nextTick()
+  })
+  it('Conditionally permits the rating to be adjusted', async() => {
+    setViewer(store, genUser({birthday: null, username: 'Fox'}))
+    wrapper = qMount(Options, {
+      localVue,
+      store,
+      propsData: {username: 'Fox'},
+    })
+    const vm = wrapper.vm as any
+    await vm.$nextTick()
+    expect(vm.adultAllowed).toBe(false)
+    vm.subjectHandler.user.updateX({birthday: '1988-08-01'})
+    await vm.$nextTick()
+    expect(vm.adultAllowed).toBe(true)
+    vm.subjectHandler.user.updateX({sfw_mode: true})
+    await vm.$nextTick()
+    expect(vm.adultAllowed).toBe(false)
   })
 })

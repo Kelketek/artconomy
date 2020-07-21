@@ -119,8 +119,15 @@ export function setViewer(store: Store<any>, user: User|AnonUser|TerseUser) {
   store.commit(`userModules/${username}/user/setReady`, true)
 }
 
-export function genAnon(): AnonUser {
-  return {rating: Ratings.GENERAL, blacklist: [], sfw_mode: false, username: '_'}
+export function genAnon(overrides?: Partial<AnonUser>): AnonUser {
+  return {
+    rating: Ratings.GENERAL,
+    blacklist: [],
+    sfw_mode: false,
+    username: '_',
+    birthday: null,
+    ...overrides,
+  }
 }
 
 export async function confirmAction(wrapper: Wrapper<Vue>, selectors: string[]) {

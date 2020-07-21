@@ -9,7 +9,7 @@
     v-bind="$attrs"
   >
     <template v-slot:activator="{ on }">
-      <v-text-field :value="value" @input="update" v-bind="$attrs" v-on="on" prepend-icon="event"
+      <v-text-field :value="value" v-bind="$attrs" v-on="on" prepend-icon="event"
                     readonly>
         <slot v-for="(_, name) in $slots" :name="name" :slot="name"/>
       </v-text-field>
@@ -40,6 +40,7 @@ export default class AcBirthdayField extends Vue {
 
   @Watch('menu')
   public setDate(toggle: boolean) {
+    /* istanbul ignore else */
     if (toggle) {
       setTimeout(() => ((this.$refs.picker as any).activePicker = 'YEAR'))
     }
@@ -50,6 +51,7 @@ export default class AcBirthdayField extends Vue {
     this.scratch = val
   }
 
+  @Watch('scratch')
   public update(value: string) {
     this.$emit('input', value)
   }

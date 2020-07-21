@@ -111,7 +111,6 @@ import moment from 'moment'
     components: {AcTagField, AcLoadingSpinner, AcPatchField},
   })
 export default class Options extends mixins(Viewer, Subjective, Alerts) {
-    private ratingLabels = Object.values(RATINGS_SHORT)
     private ratingOptions = RATINGS_SHORT
     private maxRating: Patch = null as unknown as Patch
     private sfwMode: Patch = null as unknown as Patch
@@ -127,6 +126,7 @@ export default class Options extends mixins(Viewer, Subjective, Alerts) {
       if (this.sfwMode.model) {
         return false
       }
+      // @ts-ignore
       // @ts-ignore
       const birthday = this.subjectHandler.user.patchers.birthday.model
       if (birthday === null) {

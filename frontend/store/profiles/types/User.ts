@@ -32,5 +32,5 @@ export interface User {
   artist_mode: boolean,
   hits: number,
   watches: number,
-  birthday: string,
+  birthday: string|null,
 }

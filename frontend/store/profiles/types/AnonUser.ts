@@ -4,5 +4,6 @@ export interface AnonUser {
   rating: Ratings,
   blacklist: string[],
   sfw_mode: boolean,
-  username: '_'
+  username: '_',
+  birthday: null|string,
 }
