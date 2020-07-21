@@ -23,7 +23,7 @@ from apps.lib.serializers import (
     RelatedUserSerializer, RelatedAssetField, EventTargetRelatedField, SubscribedField,
     TagListField, RelatedAtomicMixin,
     MoneyToFloatField)
-from apps.lib.utils import country_choices, add_check
+from apps.lib.utils import country_choices, add_check, check_read
 from apps.profiles.models import User, Submission, Character
 from apps.profiles.serializers import CharacterSerializer, SubmissionSerializer
 from apps.profiles.utils import available_users
@@ -276,6 +276,10 @@ class DeliverableViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer)
     adjustment_expected_turnaround = FloatField(read_only=True, max_value=1000, min_value=-1000)
     display = serializers.SerializerMethodField()
     order = OrderViewSerializer(read_only=True)
+    read = serializers.SerializerMethodField()
+
+    def get_read(self, obj):
+        return check_read(obj=obj, user=self.context['request'].user)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -361,7 +365,7 @@ class DeliverableViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer)
             'adjustment_expected_turnaround', 'expected_turnaround', 'task_weight', 'paid_on', 'dispute_available_on',
             'auto_finalize_on', 'started_on', 'escrow_disabled', 'revisions_hidden', 'final_uploaded', 'arbitrator',
             'display', 'rating', 'commission_info', 'adjustment_revisions',
-            'tip', 'table_order', 'trust_finalized', 'order', 'name', 'product',
+            'tip', 'table_order', 'trust_finalized', 'order', 'name', 'product', 'read',
         )
         read_only_fields = [field for field in fields if field != 'subscribed']
         extra_kwargs = {
@@ -420,6 +424,10 @@ class OrderPreviewSerializer(serializers.ModelSerializer):
     buyer = RelatedUserSerializer(read_only=True)
     display = serializers.SerializerMethodField()
     default_path = serializers.SerializerMethodField()
+    read = serializers.SerializerMethodField()
+
+    def get_read(self, obj):
+        return check_read(obj=obj, user=self.context['request'].user)
 
     def get_display(self, obj):
         return obj.notification_display(context=self.context)
@@ -430,7 +438,7 @@ class OrderPreviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = (
-            'id', 'created_on', 'seller', 'buyer', 'private', 'display', 'default_path',
+            'id', 'created_on', 'seller', 'buyer', 'private', 'display', 'default_path', 'read',
         )
         read_only_fields = [field for field in fields]
 
@@ -552,19 +560,23 @@ class RevisionSerializer(serializers.ModelSerializer):
     owner = serializers.SlugRelatedField(slug_field='username', read_only=True)
     file = RelatedAssetField(thumbnail_namespace='sales.Revision.file')
     final = serializers.BooleanField(default=False, required=False, write_only=True)
+    read = serializers.SerializerMethodField()
 
     def create(self, validated_data):
         data = {**validated_data}
         data.pop('final', None)
         return super().create(data)
 
+    def get_read(self, obj):
+        return check_read(obj=obj, user=self.context['request'].user)
+
     def get_thumbnail_url(self, obj):
         return self.context['request'].build_absolute_uri(obj.file.file.url)
 
     class Meta:
         model = Revision
-        fields = ('id', 'rating', 'file', 'created_on', 'owner', 'deliverable', 'final')
-        read_only_fields = ('id', 'deliverable', 'owner')
+        fields = ('id', 'rating', 'file', 'created_on', 'owner', 'deliverable', 'final', 'read')
+        read_only_fields = ('id', 'deliverable', 'owner', 'read')
 
 
 # noinspection PyMethodMayBeStatic
@@ -1028,13 +1040,17 @@ class ReferenceSerializer(serializers.ModelSerializer):
     id = ShortCodeField(read_only=True)
     owner = serializers.SlugRelatedField(slug_field='username', read_only=True)
     file = RelatedAssetField(thumbnail_namespace='sales.Reference.file')
+    read = serializers.SerializerMethodField()
+
+    def get_read(self, obj):
+        return check_read(obj=obj, user=self.context['request'].user)
 
     def get_thumbnail_url(self, obj):
         return self.context['request'].build_absolute_uri(obj.file.file.url)
 
     class Meta:
         model = Reference
-        fields = ('owner', 'file', 'rating', 'id')
+        fields = ('owner', 'file', 'rating', 'id', 'read')
 
 
 class DeliverableReferenceSerializer(serializers.ModelSerializer):

@@ -5,7 +5,11 @@
         <ac-load-section :controller="order">
           <template v-slot:default>
             <v-row>
-              <ac-deliverable-preview :scope="$route.name" :order="order.x" :deliverable="deliverable.x" v-for="deliverable in deliverables.list" :key="deliverable.x.id" class="col-12 col-sm-6 col-md-4 col-lg-3" />
+              <v-col cols="12" sm="6" md="4" lg="3" v-for="deliverable in deliverables.list" :key="deliverable.x.id">
+                <ac-unread-marker :read="deliverable.x.read">
+                  <ac-deliverable-preview :scope="$route.name" :order="order.x" :deliverable="deliverable.x" />
+                </ac-unread-marker>
+              </v-col>
             </v-row>
           </template>
         </ac-load-section>
@@ -28,8 +32,9 @@ import {Prop} from 'vue-property-decorator'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import AcDeliverablePreview from '@/components/AcDeliverablePreview.vue'
+import AcUnreadMarker from '@/components/AcUnreadMarker.vue'
 @Component({
-  components: {AcDeliverablePreview, AcPaginated, AcLoadSection},
+  components: {AcUnreadMarker, AcDeliverablePreview, AcPaginated, AcLoadSection},
 })
 export default class DeliverableListing extends mixins(Viewer, Formatting, Ratings) {
   @Prop({required: true})

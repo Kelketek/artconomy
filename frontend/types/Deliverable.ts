@@ -38,4 +38,5 @@ export default interface Deliverable {
   rating: Ratings,
   display: {file: FileSpec, preview: FileSpec|null}|null,
   order: Order,
+  read: boolean,
 }

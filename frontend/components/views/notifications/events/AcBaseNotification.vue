@@ -1,6 +1,6 @@
 <template>
   <v-list-item>
-    <v-list-item-avatar>
+    <v-list-item-action>
     <ac-link :to="assetLink">
       <v-badge left overlap :value="!notification.read">
         <template v-slot:badge>
@@ -14,7 +14,7 @@
         </slot>
       </v-badge>
     </ac-link>
-    </v-list-item-avatar>
+    </v-list-item-action>
     <v-list-item-content>
       <v-list-item-title>
         <slot name="title" />

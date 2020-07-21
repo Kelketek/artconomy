@@ -105,6 +105,7 @@ export function genRevision(overrides?: Partial<Revision>): Revision {
       full: 'https://artconomy.vulpinity.com/media/art/2019/07/26/kairef-color.png',
       __type__: 'data:image',
     },
+    read: true,
     ...overrides,
   }
 }
@@ -175,6 +176,7 @@ export function genDeliverable(overrides?: Partial<Deliverable>): Deliverable {
     revisions_hidden: false,
     final_uploaded: false,
     rating: 0,
+    read: true,
     arbitrator: null,
     order,
     product: genProduct({user: order.seller}),
@@ -197,6 +199,7 @@ export function genReference(overrides?: Partial<Reference>): Reference {
     id: 6,
     created_on: '2019-07-26T15:04:41.078424-05:00',
     owner: 'Fox',
+    read: true,
     file: {
       thumbnail: 'https://artconomy.vulpinity.com/media/art/2019/07/26/kairef-color.png.300x300_q85_crop-,0.png',
       gallery: 'https://artconomy.vulpinity.com/media/art/2019/07/26/kairef-color.png.1000x700_q85.png',
@@ -226,6 +229,7 @@ export function genOrder(overrides?: Partial<Order>): Order {
     private: false,
     product_name: 'Test product',
     deliverable_count: 1,
+    read: true,
     default_path: {name: 'Order', params: {orderId: '1', username: 'Fox'}},
     display: {
       file: {

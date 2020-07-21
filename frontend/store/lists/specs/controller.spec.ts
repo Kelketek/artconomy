@@ -19,7 +19,7 @@ const localVue = createLocalVue()
 localVue.use(Singles)
 localVue.use(Lists)
 
-const mockError = jest.spyOn(console, 'error')
+const mockWarning = jest.spyOn(console, 'warn')
 
 describe('List controller', () => {
   function makeController(extra?: Partial<ListModuleOpts>) {
@@ -162,20 +162,6 @@ describe('List controller', () => {
     store.commit('lists/example/setList', [item1, item2, item3])
     controller.remove({test: 4})
     expect(state.example.refs).toEqual(['1', '2', '3'])
-  })
-  it('Logs an error if attempting to replace a non-existent item', () => {
-    mockError.mockImplementationOnce(() => undefined)
-    const controller = makeController()
-    const item1 = {id: 1, test: 'Hello'}
-    const item2 = {id: 2, test: 'Goodbye'}
-    const item3 = {id: 3, test: 'Aloha'}
-    store.commit('lists/example/setList', [item1, item2, item3])
-    const replacement = {id: 4, test: 'Surprise, Mothafucka'}
-    controller.replace(replacement)
-    expect(state.example.refs).toEqual(['1', '2', '3'])
-    expect(mockError).toHaveBeenCalledWith(
-      'Attempt to replace non-existent entry based on key \'id\':', replacement,
-    )
   })
   it('Fetches from the desired endpoint', () => {
     const controller = makeController()

@@ -34,6 +34,7 @@ import AcCommentSection from '@/components/comments/AcCommentSection.vue'
 import {ListController} from '@/store/lists/controller'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
 import Reference from '@/types/Reference'
+import {markRead, updateLinked} from '@/lib/lib'
 
 @Component({
   components: {AcConfirmation, AcCommentSection, AcLoadSection, AcAsset},
@@ -63,7 +64,10 @@ export default class referenceDetail extends mixins(DeliverableMixin) {
     this.reference = this.$getSingle(`${this.prefix}__reference${this.referenceId}`, {
       endpoint: `${this.url}references/${this.referenceId}/`,
     })
-    this.reference.get()
+    this.reference.get().then(
+      () => markRead(this.reference, 'sales.Reference')).then(
+      () => updateLinked({list: this.references, key: 'reference', newValue: this.reference.x}),
+    )
     this.referenceComments = this.$getList(`${this.prefix}__reference${this.referenceId}__comments`, {
       endpoint: `/api/lib/v1/comments/sales.Reference/${this.referenceId}/`,
       reverse: true,

@@ -12,7 +12,9 @@
         <v-container fluid class="pa-0">
           <v-row no-gutters  >
             <v-col cols="12" sm="6" md="4" lg="2" v-for="order in list.list" :key="order.x.id">
-              <ac-order-preview :order="order" :type="type" :username="username"></ac-order-preview>
+              <ac-unread-marker :read="order.x.read">
+                <ac-order-preview :order="order" :type="type" :username="username"></ac-order-preview>
+              </ac-unread-marker>
             </v-col>
           </v-row>
         </v-container>
@@ -35,9 +37,10 @@ import {RawData} from '@/store/forms/types/RawData'
 import {Cancelable, debounce} from 'lodash'
 import SearchField from '@/components/views/search/mixins/SearchField'
 import AcBoundField from '@/components/fields/AcBoundField'
+import AcUnreadMarker from '@/components/AcUnreadMarker.vue'
 
 @Component({
-  components: {AcBoundField, AcOrderPreview, AcPaginated, AcLoadSection},
+  components: {AcUnreadMarker, AcBoundField, AcOrderPreview, AcPaginated, AcLoadSection},
 })
 export default class OrderList extends mixins(Subjective, SearchField) {
     @Prop({required: true})

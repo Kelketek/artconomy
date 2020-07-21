@@ -352,6 +352,7 @@ import {SingleController} from '@/store/singles/controller'
 import LinkedReference from '@/types/LinkedReference'
 import InvoicingMixin from '@/components/views/order/mixins/InvoicingMixin'
 import {ListController} from '@/store/lists/controller'
+import {markRead} from '@/lib/lib'
 
 @Component({
   components: {
@@ -553,8 +554,11 @@ export default class DeliverableDetail extends mixins(DeliverableMixin, Formatti
   }
 
   public created() {
-    this.deliverable.get().catch(this.setError)
+    this.deliverable.get().then(() => markRead(this.deliverable, 'sales.Deliverable')).then(
+      () => this.parentDeliverables.replace(this.deliverable.x as Deliverable),
+    ).catch(this.setError)
     this.characters.firstRun().then(this.addTags)
+    this.revisions.firstRun()
     this.references.firstRun()
     // Used when adding the deliverable to keep state sane upstream.
     this.parentDeliverables = this.$getList(

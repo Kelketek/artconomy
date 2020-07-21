@@ -5,6 +5,7 @@ from apps.lib import views
 app_name = 'lib'
 
 urlpatterns = [
+    path('v1/read-marker/<content_type>/<object_id>/', views.MarkRead.as_view()),
     path('v1/comments/<content_type>/<object_id>/', views.Comments.as_view()),
     # Convenience alias so that comment singles can chain URLs on the front-end.
     path(

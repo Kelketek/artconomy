@@ -32,11 +32,10 @@ from apps.lib.serializers import CommentSerializer, CommentSubscriptionSerialize
 from apps.lib.utils import (
     countries_tweaked, safe_add, default_context,
     get_client_ip,
-    destroy_comment, create_comment)
+    destroy_comment, create_comment, mark_read)
 from apps.profiles.models import User
 from apps.profiles.permissions import ObjectControls, IsRegistered
 from apps.profiles.serializers import ContactSerializer
-from shortcuts import gen_textifier
 from views import bad_request, base_template
 
 
@@ -78,16 +77,7 @@ class CommentUpdate(RetrieveUpdateDestroyAPIView):
         return CommentSubscriptionSerializer(instance=instance, *args, **kwargs)
 
 
-class Comments(ListCreateAPIView):
-    permission_classes = [
-        Any(
-            All(IsSafeMethod, CanListComments),
-            All(IsMethod('POST'), IsAuthenticated, CanComment, CommentDepthPermission),
-        ),
-    ]
-    serializer_class = CommentSerializer
-    pagination_class = OlderThanPagination
-
+class UniversalViewMixin:
     # noinspection PyAttributeOutsideInit
     def get_object(self):
         invalid_model = ValidationError({
@@ -107,6 +97,18 @@ class Comments(ListCreateAPIView):
             raise invalid_model
         return get_object_or_404(model, id=self.kwargs['object_id'])
 
+
+
+class Comments(UniversalViewMixin, ListCreateAPIView):
+    permission_classes = [
+        Any(
+            All(IsSafeMethod, CanListComments),
+            All(IsMethod('POST'), IsAuthenticated, CanComment, CommentDepthPermission),
+        ),
+    ]
+    serializer_class = CommentSerializer
+    pagination_class = OlderThanPagination
+
     def get_queryset(self):
         qs = self.get_object().comments.all()
         if not (self.request.user.is_staff and self.request.GET.get('history', False)):
@@ -125,6 +127,13 @@ class Comments(ListCreateAPIView):
 
     def perform_create(self, serializer):
         return create_comment(self.get_object(), serializer, self.request.user)
+
+
+class MarkRead(UniversalViewMixin, GenericAPIView):
+    def post(self, *args, **kwargs):
+        target = self.get_object()
+        mark_read(obj=target, user=self.request.user)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 def annotate_revision(version):
@@ -329,13 +338,12 @@ class SupportRequest(APIView):
             'user_agent': request.META.get('HTTP_USER_AGENT')
         }
         message = get_template('support_email.txt').render(ctx)
-        msg = EmailMultiAlternatives(
+        msg = EmailMessage(
             subject,
             message,
             to=[settings.ADMINS[0][1]],
             headers={'Reply-To': from_email}
         )
-        msg.attach_alternative(message, 'text/html')
         msg.send()
         return Response(status=status.HTTP_204_NO_CONTENT)
 

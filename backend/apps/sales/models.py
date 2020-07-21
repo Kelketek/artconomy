@@ -35,7 +35,7 @@ from apps.lib.permissions import Any, IsStaff
 from apps.lib.utils import (
     clear_events, recall_notification, require_lock,
     send_transaction_email,
-    demark)
+    demark, mark_modified, mark_read, clear_markers)
 from apps.profiles.models import User, ArtistProfile
 from apps.sales.authorize import create_customer_profile, create_card, AddressInfo, CardInfo, \
     refund_transaction
@@ -335,6 +335,9 @@ class Deliverable(Model):
         from .serializers import DeliverableViewSerializer
         return DeliverableViewSerializer(instance=self, context=context).data
 
+    def modified_kwargs(self, _data):
+        return {'order': self.order, 'deliverable': self}
+
     # noinspection PyUnusedLocal
     def notification_display(self, context):
         from .serializers import ProductSerializer
@@ -389,6 +392,9 @@ class Order(Model):
 
     def __str__(self):
         return f"#{self.id} by {self.seller} for {self.buyer}"
+
+    def modified_kwargs(self, _data):
+        return {'order': self}
 
     def notification_display(self, context):
         from .serializers import ProductSerializer
@@ -617,6 +623,7 @@ def auto_remove_order(sender, instance, **_kwargs):
 
 
 remove_deliverable_events = receiver(pre_delete, sender=Deliverable)(disable_on_load(clear_events))
+remove_deliverable_markers = receiver(post_delete, sender=Deliverable)(disable_on_load(clear_markers))
 
 
 @transaction.atomic
@@ -1224,6 +1231,9 @@ class Revision(ImageModel):
         Comment, related_query_name='revisions', content_type_field='content_type', object_id_field='object_id'
     )
 
+    def modified_kwargs(self, _data):
+        return {'order': self.deliverable.order, 'deliverable': self.deliverable}
+
     def can_reference_asset(self, user):
         return (
             (user == self.owner and not self.deliverable.order.private)
@@ -1249,17 +1259,19 @@ class Revision(ImageModel):
 
 
 revision_thumbnailer = receiver(post_save, sender=Revision)(thumbnail_hook)
+revision_clear = receiver(post_delete, sender=Revision)(clear_markers)
 
 
-def deliverable_from_context(context):
+def deliverable_from_context(context, check_request=True):
     # This data not to be trusted. It is user provided.
     deliverable = context['extra_data'].get('deliverable', None)
     if deliverable is not None:
         try:
             deliverable = int(deliverable)
             deliverable = Deliverable.objects.get(id=deliverable)
-            if not OrderViewPermission().has_object_permission(context['request'], None, deliverable):
-                raise ValueError
+            if check_request:
+                if not OrderViewPermission().has_object_permission(context['request'], None, deliverable):
+                    raise ValueError
             return deliverable
         except (ValueError, Deliverable.DoesNotExist):
             return None
@@ -1280,6 +1292,14 @@ class Reference(ImageModel):
     def can_reference_asset(self, user):
         # Despite this being a reference, it should never be the source for any other models/sharing.
         return False
+
+    def modified_kwargs(self, data):
+        deliverable = deliverable_from_context({'extra_data': data}, check_request=False)
+        if deliverable is None:
+            return {}
+        if not self.deliverables.filter(id=deliverable.id).exists():
+            return {}
+        return {'order': deliverable.order, 'deliverable': deliverable}
 
     def notification_display(self, context):
         from apps.sales.serializers import ReferenceSerializer
@@ -1308,12 +1328,15 @@ class Reference(ImageModel):
 
 
 reference_thumbnailer = receiver(post_save, sender=Reference)(thumbnail_hook)
+reference_clear = receiver(post_delete, sender=Reference)(clear_markers)
 
 
 @disable_on_load
 def auto_subscribe_image(sender, instance, created=False, **kwargs):
     if not created:
         return
+    mark_modified(obj=instance, **instance.modified_kwargs({}))
+    mark_read(obj=instance, user=instance.owner)
     content_type = ContentType.objects.get_for_model(instance)
     Subscription.objects.create(
         subscriber=instance.deliverable.order.seller,

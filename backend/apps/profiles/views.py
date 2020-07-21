@@ -82,7 +82,7 @@ from apps.profiles.tasks import mailchimp_subscribe
 from apps.profiles.utils import (
     available_chars, char_ordering, available_submissions,
     empty_user)
-from apps.sales.models import Order, Reference, Deliverable
+from apps.sales.models import Order, Reference, Deliverable, Revision
 from apps.sales.serializers import SearchQuerySerializer
 from apps.sales.utils import claim_order_by_token
 from apps.tg_bot.models import TelegramDevice
@@ -795,6 +795,7 @@ def order_comment_types():
     ORDER_COMMENT_TYPES_STORE = (
         ContentType.objects.get_for_model(Order),
         ContentType.objects.get_for_model(Reference),
+        ContentType.objects.get_for_model(Revision),
         ContentType.objects.get_for_model(Deliverable),
     )
     return ORDER_COMMENT_TYPES_STORE

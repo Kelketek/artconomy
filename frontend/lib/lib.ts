@@ -16,6 +16,8 @@ import {SimpleQueryParams} from '@/store/helpers/SimpleQueryParams'
 import {Dictionary} from 'vue-router/types/router'
 import {NamelessFormSchema} from '@/store/forms/types/NamelessFormSchema'
 import {HttpVerbs} from '@/store/forms/types/HttpVerbs'
+import {ListController} from '@/store/lists/controller'
+import {cloneDeep} from 'lodash'
 
 // Needed for Matomo.
 declare global {
@@ -814,4 +816,41 @@ export function shuffle(array: any[]) {
   }
 
   return array
+}
+
+export async function markRead(controller: SingleController<{id: number|string, read: boolean}>, contentType: string) {
+  if (!controller.x) {
+    return
+  }
+  if (controller.x.read) {
+    return
+  }
+  return artCall({
+    url: `/api/lib/v1/read-marker/${contentType}/${controller.x.id}/`,
+    method: 'post',
+  }).then(() => {
+    controller.updateX({read: true})
+  })
+}
+
+declare type LinkUpdateOptions = {
+  list: ListController<any>,
+  key: string,
+  subKey?: string,
+  newValue: any
+}
+
+export function updateLinked(options: LinkUpdateOptions) {
+  options = {...options}
+  if (!options.subKey) {
+    options.subKey = 'id'
+  }
+  if (!options.newValue) {
+    return
+  }
+  let updateItems = options.list.list.map(x => cloneDeep(x.x))
+  updateItems = updateItems.filter(
+    (x) => x[options.key][options.subKey as string] === options.newValue[options.subKey as string])
+  updateItems.map((x) => { x[options.key] = options.newValue })
+  updateItems.map(options.list.replace)
 }

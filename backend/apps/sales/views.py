@@ -41,7 +41,8 @@ from apps.lib.models import DISPUTE, REFUND, COMMENT, Subscription, ORDER_UPDATE
     NEW_PRODUCT, STREAMING, ref_for_instance, REFERENCE_UPLOADED, Comment, WAITLIST_UPDATED
 from apps.lib.permissions import IsStaff, IsSafeMethod, Any, All, IsMethod
 from apps.lib.serializers import CommentSerializer
-from apps.lib.utils import notify, recall_notification, demark, preview_rating, send_transaction_email, create_comment
+from apps.lib.utils import notify, recall_notification, demark, preview_rating, send_transaction_email, create_comment, \
+    mark_modified, mark_read
 from apps.lib.views import BasePreview
 from apps.profiles.models import User, Submission, HAS_US_ACCOUNT
 from apps.profiles.permissions import ObjectControls, UserControls, IsUser, IsSuperuser, IsRegistered
@@ -735,6 +736,8 @@ class DeliverableReferences(ListCreateAPIView):
             mark_unread=True,
             exclude=[self.request.user],
         )
+        mark_modified(obj=reference, deliverable=deliverable, order=deliverable.order)
+        mark_read(obj=reference, user=self.request.user)
         return deliverable_reference
 
 

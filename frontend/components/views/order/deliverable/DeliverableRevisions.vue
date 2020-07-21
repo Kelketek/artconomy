@@ -47,7 +47,9 @@
               <v-row dense>
                 <v-col cols="12">
                   <router-link :to="{name: `${baseName}DeliverableRevision`, params: {...$route.params, revisionId: revision.x.id}}">
-                    <ac-asset :asset="revision.x" thumb-name="thumbnail" />
+                    <ac-unread-marker :read="revision.x.read" content-type="sales.Revision">
+                      <ac-asset :asset="revision.x" thumb-name="thumbnail" />
+                    </ac-unread-marker>
                   </router-link>
                 </v-col>
                 <v-col class="text-center" cols="12" v-if="deliverable.x.final_uploaded && (index === revisions.list.length - 1)">
@@ -119,9 +121,11 @@ import AcBoundField from '@/components/fields/AcBoundField'
 import AcAsset from '@/components/AcAsset.vue'
 import {FormController} from '@/store/forms/form-controller'
 import Revision from '@/types/Revision'
+import AcUnreadMarker from '@/components/AcUnreadMarker.vue'
 
 @Component({
   components: {
+    AcUnreadMarker,
     AcAsset,
     AcBoundField,
     AcFormContainer,

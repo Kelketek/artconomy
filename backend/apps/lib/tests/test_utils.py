@@ -5,7 +5,8 @@ from freezegun import freeze_time
 
 from apps.lib.models import FAVORITE, Notification, SYSTEM_ANNOUNCEMENT, Event, Subscription
 from apps.lib.test_resources import SignalsDisabledMixin
-from apps.lib.utils import notify, recall_notification, send_transaction_email, subscribe
+from apps.lib.utils import notify, recall_notification, send_transaction_email, subscribe, mark_read, check_read, \
+    mark_modified
 from apps.profiles.models import Submission
 from apps.profiles.tests.factories import SubmissionFactory, UserFactory
 
@@ -259,3 +260,14 @@ class NotificationsTestCase(SignalsDisabledMixin, TestCase):
     def test_transaction_email(self):
         user = UserFactory.create()
         send_transaction_email('Test transaction', 'registration_code.html', user, {})
+
+
+class TestMarkers(TestCase):
+    def test_edit_marker(self):
+        user = UserFactory.create()
+        submission = SubmissionFactory.create()
+        self.assertTrue(check_read(obj=submission, user=user))
+        mark_modified(obj=submission)
+        self.assertFalse(check_read(obj=submission, user=user))
+        mark_read(obj=submission, user=user)
+        self.assertTrue(check_read(obj=submission, user=user))

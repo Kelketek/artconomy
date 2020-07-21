@@ -14,4 +14,5 @@ export default interface Order {
   display: {file: FileSpec, preview: FileSpec|null}|null,
   default_path: Location,
   deliverable_count: number,
+  read: boolean,
 }

@@ -1367,7 +1367,8 @@ class TestConversations(APITestCase):
         relationships = [ConversationParticipantFactory.create(user=user) for _ in range(3)]
         conversations = [relationship.conversation for relationship in relationships]
         CommentFactory.create(
-            object_id=conversations[0].id, content_type=ContentType.objects.get_for_model(Conversation)
+            object_id=conversations[0].id, content_type=ContentType.objects.get_for_model(Conversation),
+            top=conversations[0],
         )
         self.login(user)
         response = self.client.get('/api/profiles/v1/account/{}/conversations/'.format(user.username))

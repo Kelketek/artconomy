@@ -7,9 +7,7 @@ from apps.profiles.tests.factories import JournalFactory, SubmissionFactory
 class TestComment(SignalsDisabledMixin, APITestCase):
     def test_delete_comment_with_child(self):
         journal = JournalFactory.create()
-        comment = CommentFactory.create(user=journal.user)
-        comment.content_object = journal
-        comment.save()
+        comment = CommentFactory.create(user=journal.user, content_object=journal, top=journal)
         subcomment = CommentFactory.create()
         subcomment.content_object = comment
         subcomment.save()
@@ -24,7 +22,7 @@ class TestComment(SignalsDisabledMixin, APITestCase):
 
     def test_delete_comment(self):
         journal = JournalFactory.create()
-        comment = CommentFactory.create(user=journal.user)
+        comment = CommentFactory.create(user=journal.user, content_object=journal, top=journal)
         self.login(comment.user)
         response = self.client.delete(f'/api/lib/v1/comments/profiles.Journal/{journal.id}/{comment.id}/')
         self.assertEqual(response.status_code, 204)
@@ -32,7 +30,7 @@ class TestComment(SignalsDisabledMixin, APITestCase):
 
     def test_list_comments(self):
         submission = SubmissionFactory.create()
-        comment = CommentFactory.create(user=submission.owner)
+        comment = CommentFactory.create(user=submission.owner, content_object=submission, top=submission)
         submission.comments.add(comment)
         response = self.client.get(f'/api/lib/v1/comments/profiles.Submission/{submission.id}/')
         self.assertEqual(response.status_code, 200)

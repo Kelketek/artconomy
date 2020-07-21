@@ -37,11 +37,12 @@ import AcAsset from '@/components/AcAsset.vue'
 import {SingleController} from '@/store/singles/controller'
 import Revision from '@/types/Revision'
 import DeliverableMixin from '@/components/views/order/mixins/DeliverableMixin'
-import {Prop} from 'vue-property-decorator'
+import {Prop, Watch} from 'vue-property-decorator'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcCommentSection from '@/components/comments/AcCommentSection.vue'
 import {ListController} from '@/store/lists/controller'
 import Deliverable from '@/types/Deliverable'
+import {markRead, updateLinked} from '@/lib/lib'
 
 @Component({
   components: {AcCommentSection, AcLoadSection, AcAsset},
@@ -80,7 +81,10 @@ export default class RevisionDetail extends mixins(DeliverableMixin) {
     this.revision = this.$getSingle(`${this.prefix}__revision${this.revisionId}`, {
       endpoint: `${this.url}revisions/${this.revisionId}/`,
     })
-    this.revision.get()
+    this.revision.get().then(
+      () => markRead(this.revision, 'sales.Revision')).then(
+      () => this.revisions.replace(this.revision.x as Revision),
+    )
     this.revisions.firstRun()
     this.revisionComments = this.$getList(`${this.prefix}__revision${this.deliverableId}__comments`, {
       endpoint: `/api/lib/v1/comments/sales.Revision/${this.revisionId}/`,

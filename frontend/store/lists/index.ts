@@ -109,7 +109,6 @@ export class ListModule<T extends {}> {
       replace(state: ListState<T>, item: T) {
         const index = state.refs.indexOf(item[state.keyProp] + '')
         if (index === -1) {
-          console.error(`Attempt to replace non-existent entry based on key '${state.keyProp}':`, item)
           return
         }
         (state as any).items[(item as any)[state.keyProp]].x = item

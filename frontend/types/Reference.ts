@@ -5,4 +5,5 @@ export default interface Reference {
   file: FileSpec,
   owner: string,
   created_on: string,
+  read: boolean,
 }

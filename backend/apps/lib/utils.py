@@ -1,14 +1,14 @@
 import logging
 import os
 from pathlib import Path
-from typing import Optional, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING, Type
 
 import markdown
 from bs4 import BeautifulSoup
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
-from django.core.mail import EmailMessage, EmailMultiAlternatives
+from django.core.mail import EmailMultiAlternatives
 from django.db import connection
 from django.db.models import Q, Model, Subquery, IntegerField
 from django.db.models.signals import pre_delete
@@ -30,7 +30,7 @@ from rest_framework.response import Response
 from telegram import Bot
 
 from apps.lib.models import Subscription, Event, Notification, Tag, Comment, COMMENT, \
-    NEW_PRODUCT, COMMISSIONS_OPEN, NEW_CHARACTER, STREAMING, EMAIL_SUBJECTS, NEW_JOURNAL
+    NEW_PRODUCT, COMMISSIONS_OPEN, NEW_CHARACTER, STREAMING, EMAIL_SUBJECTS, NEW_JOURNAL, ReadMarker, ModifiedMarker
 from shortcuts import make_url, disable_on_load, gen_textifier
 
 BOT = None
@@ -39,6 +39,7 @@ logger = logging.getLogger(__name__)
 if TYPE_CHECKING:
     from apps.profiles.models import User
     from apps.lib.serializers import NewCommentSerializer
+    from apps.sales.models import Deliverable, Order
 
 
 def get_bot():
@@ -679,3 +680,51 @@ def create_comment(target: Model, serializer: 'NewCommentSerializer', user: 'Use
         top_object_id=top.id,
         top_content_type=ContentType.objects.get_for_model(top)
     )
+
+
+def check_read(*, obj: Model, user: 'User'):
+    from apps.sales.models import Order, Deliverable
+    q = Q(content_type=ContentType.objects.get_for_model(obj), object_id=obj.id)
+    if isinstance(obj, Order):
+        q |= Q(order=obj)
+    if isinstance(obj, Deliverable):
+        q |= Q(deliverable=obj)
+    markers = ModifiedMarker.objects.filter(q)
+    if not markers.exists():
+        return True
+    q = Q()
+    for marker in markers:
+        q |= Q(content_type=marker.content_type, object_id=marker.object_id, last_read_on__gte=marker.modified_on)
+    return ReadMarker.objects.filter(q).filter(user=user).exists()
+
+
+def mark_read(*, obj: Model, user: 'User'):
+    content_type = ContentType.objects.get_for_model(obj)
+    ReadMarker.objects.update_or_create(
+        {'last_read_on': timezone.now()},
+        user=user,
+        content_type=ContentType.objects.get_for_model(obj),
+        object_id=obj.id,
+    )
+    Notification.objects.filter(event__content_type=content_type, event__object_id=obj.id, user=user).update(read=True)
+
+
+def mark_modified(*, obj: Model, deliverable: 'Deliverable' = None, order: 'Order' = None):
+    kwargs = {}
+    if deliverable is not None:
+        kwargs['deliverable'] = deliverable
+    if order is not None:
+        kwargs['order'] = order
+    ModifiedMarker.objects.update_or_create(
+        {'modified_on': timezone.now(), **kwargs},
+        content_type=ContentType.objects.get_for_model(obj),
+        object_id=obj.id,
+    )
+
+
+# To be used as a post-delete receiver
+def clear_markers(sender: Type[Model], instance: Model, **kwargs):
+    from apps.lib.models import ReadMarker, ModifiedMarker
+    content_type = ContentType.objects.get_for_model(instance)
+    ModifiedMarker.objects.filter(content_type=content_type, object_id=instance.id).delete()
+    ReadMarker.objects.filter(content_type=content_type, object_id=instance.id).delete()

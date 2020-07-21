@@ -4,5 +4,6 @@ import {Ratings} from '@/store/profiles/types/Ratings'
 export default interface Revision {
   id: number,
   file: FileSpec,
-  rating: Ratings
+  rating: Ratings,
+  read: boolean,
 }

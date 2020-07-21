@@ -6,8 +6,8 @@ from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelatio
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import JSONField
 from django.core.validators import FileExtensionValidator
-from django.db import models, DEFAULT_DB_ALIAS
-from django.db.models import DateTimeField, Model, SlugField, CASCADE, PositiveIntegerField, ForeignKey, SET_NULL, \
+from django.db import models
+from django.db.models import DateTimeField, Model, SlugField, CASCADE, ForeignKey, SET_NULL, \
     UUIDField
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -274,7 +274,7 @@ def auto_subscribe_thread(sender, instance, created=False, **_kwargs):
             subscription.removed = False
             subscription.implicit = True
             subscription.save()
-        from apps.lib.utils import notify
+        from apps.lib.utils import notify, mark_modified, mark_read
         primary_target = instance.content_object
         # Notify who is subscribed to the parent comment or the top level if there isn't one.
         notify(
@@ -287,6 +287,8 @@ def auto_subscribe_thread(sender, instance, created=False, **_kwargs):
             exclude=[instance.user],
             force_create=True,
         )
+        mark_modified(obj=instance.top, **getattr(instance.top, 'modified_kwargs', lambda x: {})(instance.extra_data))
+        mark_read(obj=instance.top, user=instance.user)
         # Notify whoever is subscribed to top level, if that's not what we already notified.
         target = instance
         while isinstance(target, Comment) and target.content_object:
@@ -344,6 +346,31 @@ class Asset(Model):
         if not cleanup:
             raise AssertionError('Never attempt to delete an asset directly. Use the purge_asset task.')
         super().delete(using=using, keep_parents=keep_parents)
+
+
+class ReadMarker(Model):
+    id = models.UUIDField(primary_key=True, default=uuid4)
+    user = models.ForeignKey('profiles.User', on_delete=CASCADE)
+    last_read_on = models.DateTimeField(default=None, db_index=True)
+    content_type = models.ForeignKey(ContentType, on_delete=CASCADE)
+    object_id = models.UUIDField(db_index=True)
+    target = GenericForeignKey('content_type', 'object_id')
+
+    class Meta:
+        unique_together = ('content_type', 'object_id', 'user')
+
+class ModifiedMarker(Model):
+    id = models.UUIDField(primary_key=True, default=uuid4)
+    modified_on = models.DateTimeField(db_index=True)
+    content_type = models.ForeignKey(ContentType, on_delete=CASCADE)
+    object_id = models.UUIDField(db_index=True)
+    target = GenericForeignKey('content_type', 'object_id')
+    # Efficiency shortcuts for deeply nested items.
+    order = models.ForeignKey('sales.Order', on_delete=CASCADE, null=True)
+    deliverable = models.ForeignKey('sales.Deliverable', on_delete=CASCADE, null=True)
+
+    class Meta:
+        unique_together = ('content_type', 'object_id')
 
 
 @receiver(post_save, sender=Asset)

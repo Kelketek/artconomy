@@ -12,7 +12,7 @@ import {
   getCookie,
   getExt,
   getHeaders, guestName,
-  isImage, makeQueryParams,
+  isImage, makeQueryParams, markRead,
   md, newUploadSchema, posse,
   ratings,
   ratingsNonExtreme,
@@ -20,7 +20,7 @@ import {
   setCookie,
   setMetaContent,
   singleQ,
-  textualize, thumbFromSpec, truncateText,
+  textualize, thumbFromSpec, truncateText, updateLinked,
 } from '@/lib/lib'
 import VueRouter from 'vue-router'
 import {createLocalVue, mount, shallowMount, Wrapper} from '@vue/test-utils'
@@ -34,6 +34,8 @@ import {Singles} from '@/store/singles/registry'
 import {Lists} from '@/store/lists/registry'
 import {Profiles} from '@/store/profiles/registry'
 import {ArtStore, createStore} from '@/store'
+import {cleanUp, flushPromises, qMount, rs} from '@/specs/helpers'
+import mock = jest.mock
 
 Vue.use(Vuetify)
 Vue.use(Vuex)
@@ -531,5 +533,91 @@ describe('makeQueryParams', () => {
   it('Wat', () => {
     const testData = {stuff: false, things: true, wat: 2}
     expect(makeQueryParams(testData)).toEqual({stuff: 'false', things: 'true', wat: '2'})
+  })
+})
+
+describe('Mark Read handler', () => {
+  beforeEach(() => {
+    mockAxios.reset()
+  })
+  afterEach(() => {
+    cleanUp()
+  })
+  it('Marks an item as read', async() => {
+    const target = qMount(Empty, {attachTo: ''}).vm.$getSingle(
+      'boop', {endpoint: '/test/', x: {id: 1, read: false}},
+    )
+    markRead(target, 'stuff.Things')
+    const req = mockAxios.lastReqGet()
+    expect(req.url).toBe('/api/lib/v1/read-marker/stuff.Things/1/')
+    expect(req.method).toBe('post')
+    mockAxios.mockResponse(rs({}))
+    await flushPromises()
+    expect(target.x.read).toBe(true)
+  })
+  it('Bails early if the object is null', () => {
+    const target = qMount(Empty, {attachTo: ''}).vm.$getSingle(
+      'boop', {endpoint: '/test/', x: null},
+    )
+    markRead(target, 'stuff.Things')
+    expect(mockAxios.lastReqGet()).toBe(undefined)
+  })
+  it('Bails early if the object has already been read', () => {
+    const target = qMount(Empty, {attachTo: ''}).vm.$getSingle(
+      'boop', {endpoint: '/test/', x: {id: 1, read: true}},
+    )
+    markRead(target, 'stuff.Things')
+    expect(mockAxios.lastReqGet()).toBe(undefined)
+  })
+})
+
+describe('Linked update handler', () => {
+  it('Updates a list with linked references', () => {
+    const targetList = qMount(Empty, {attachTo: ''}).vm.$getList(
+      'boop', {endpoint: '/test/'},
+    )
+    targetList.setList([
+      {id: 1, thing: {id: 2, read: false}},
+      {id: 2, thing: {id: 4, read: false}},
+      {id: 3, thing: {id: 1, read: false}},
+    ])
+    updateLinked({list: targetList, newValue: {id: 2, read: true}, key: 'thing'})
+    expect(targetList.list.map(x => x.x)).toEqual([
+      {id: 1, thing: {id: 2, read: true}},
+      {id: 2, thing: {id: 4, read: false}},
+      {id: 3, thing: {id: 1, read: false}},
+    ])
+  })
+  it('Handles a subKey', () => {
+    const targetList = qMount(Empty, {attachTo: ''}).vm.$getList(
+      'boop', {endpoint: '/test/'},
+    )
+    targetList.setList([
+      {id: 1, thing: {stuff: 2, read: false}},
+      {id: 2, thing: {stuff: 4, read: false}},
+      {id: 3, thing: {stuff: 1, read: false}},
+    ])
+    updateLinked({list: targetList, newValue: {stuff: 2, read: true}, key: 'thing', subKey: 'stuff'})
+    expect(targetList.list.map(x => x.x)).toEqual([
+      {id: 1, thing: {stuff: 2, read: true}},
+      {id: 2, thing: {stuff: 4, read: false}},
+      {id: 3, thing: {stuff: 1, read: false}},
+    ])
+  })
+  it('Bails early if the value is null', () => {
+    const targetList = qMount(Empty, {attachTo: ''}).vm.$getList(
+      'boop', {endpoint: '/test/'},
+    )
+    targetList.setList([
+      {id: 1, thing: {id: 2, read: false}},
+      {id: 2, thing: {id: 4, read: false}},
+      {id: 3, thing: {id: 1, read: false}},
+    ])
+    updateLinked({list: targetList, newValue: null, key: 'thing'})
+    expect(targetList.list.map(x => x.x)).toEqual([
+      {id: 1, thing: {id: 2, read: false}},
+      {id: 2, thing: {id: 4, read: false}},
+      {id: 3, thing: {id: 1, read: false}},
+    ])
   })
 })
