@@ -273,6 +273,16 @@ class TestUpdateTransaction(TestCase):
         self.deliverable.refresh_from_db()
         self.assertFalse(self.deliverable.payout_sent)
 
+    def test_check_transaction_status_failed(self, mock_api):
+        mock_api.return_value.get.return_value.body = {'status': 'cancelled'}
+        update_transfer_status(self.record.id)
+        self.assertEqual(TransactionRecord.objects.all().count(), 1)
+        self.record.refresh_from_db()
+        self.assertEqual(self.record.status, TransactionRecord.FAILURE)
+        self.assertTrue(self.record.finalized_on)
+        self.deliverable.refresh_from_db()
+        self.assertFalse(self.deliverable.payout_sent)
+
     def test_check_transaction_status_processed(self, mock_api):
         mock_api.return_value.get.return_value.body = {'status': 'processed'}
         update_transfer_status(self.record.id)

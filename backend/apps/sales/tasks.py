@@ -136,7 +136,7 @@ def update_transfer_status(record_id):
             TransactionRecord.objects.filter(
                 targets=ref_for_instance(record), category=TransactionRecord.THIRD_PARTY_FEE,
             ).update(status=TransactionRecord.SUCCESS)
-        if status.body['status'] == 'cancelled':
+        if status.body['status'] in ['cancelled', 'failed']:
             record.status = TransactionRecord.FAILURE
             record.save()
             notify(
