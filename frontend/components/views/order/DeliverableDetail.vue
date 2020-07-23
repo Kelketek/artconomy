@@ -558,7 +558,7 @@ export default class DeliverableDetail extends mixins(DeliverableMixin, Formatti
       () => this.parentDeliverables.replace(this.deliverable.x as Deliverable),
     ).catch(this.setError)
     this.characters.firstRun().then(this.addTags)
-    this.revisions.firstRun()
+    this.revisions.firstRun().catch(this.statusOk(403))
     this.references.firstRun()
     // Used when adding the deliverable to keep state sane upstream.
     this.parentDeliverables = this.$getList(

@@ -96,7 +96,7 @@
               </template>
             </ac-confirmation>
           </v-col>
-          <v-col class="d-flex" cols="12" sm="6" md="8" v-if="isBuyer && (is(COMPLETED) || is(REFUNDED))" >
+          <v-col cols="12" v-if="isBuyer && (is(COMPLETED) || is(REFUNDED))" >
             <ac-deliverable-rating end="seller" :order-id="orderId" :deliverable-id="deliverableId" key="seller" />
           </v-col>
           <v-col cols="12" v-if="buyer && isSeller && (is(COMPLETED) || is(REFUNDED))">
@@ -202,7 +202,6 @@ export default class DeliverableRevisions extends mixins(DeliverableMixin) {
         },
       },
     )
-    this.revisions.firstRun().catch(() => {})
   }
 }
 </script>
