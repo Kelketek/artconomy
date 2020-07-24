@@ -1,18 +1,18 @@
 <template>
   <v-col>
       <v-card>
-        <ac-link :to="orderLink">
+        <ac-link :to="order.x.default_path">
           <ac-asset :asset="order.x.display" thumb-name="thumbnail" />
         </ac-link>
         <v-card-text>
           <v-row dense>
             <v-col cols="12">
-              <ac-link :to="orderLink">
+              <ac-link :to="order.x.default_path">
                 {{ name }}</ac-link>
               <span v-if="!isBuyer"> commissioned </span>by
               <ac-link v-if="isBuyer" :to="{name: 'Profile', params: {username: order.x.seller.username}}">
                 {{ order.x.seller.username }}</ac-link>
-              <ac-link v-else-if="order.x.buyer" :to="buyerProfile">
+              <ac-link v-else-if="order.x.buyer" :to="profileLink(order.x.buyer)">
                 {{ deriveDisplayName(order.x.buyer.username) }}</ac-link>
               <span v-else>
                 (Pending)
@@ -47,11 +47,6 @@ export default class AcOrderPreview extends mixins(Subjective, Formatting) {
     @Prop({required: true})
     public order!: SingleController<Order>
 
-    public get orderLink() {
-      const order = this.order.x as Order
-      return order.default_path
-    }
-
     public get name() {
       /* istanbul ignore if */
       if (!this.order.x) {
@@ -63,17 +58,6 @@ export default class AcOrderPreview extends mixins(Subjective, Formatting) {
     public get isBuyer() {
       const order = this.order.x as Order
       return order.buyer && order.buyer.username === this.rawViewerName
-    }
-
-    public get buyerProfile() {
-      const order = this.order.x as Order
-      if (!order.buyer) {
-        return null
-      }
-      if (this.guestName(order.buyer.username)) {
-        return null
-      }
-      return {name: 'Profile', params: {username: order.buyer.username}}
     }
 }
 </script>

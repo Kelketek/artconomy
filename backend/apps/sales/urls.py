@@ -65,6 +65,7 @@ urlpatterns = [
     path('v1/account/<username>/cancel-premium/', views.CancelPremium.as_view(), name='cancel_premium'),
     path('v1/account/<username>/products/', views.ProductList.as_view(), name='product_list'),
     path('v1/account/<username>/products/<int:product>/', views.ProductManager.as_view(), name='product_manager'),
+    path('v1/account/<username>/products/<int:product>/clear-waitlist/', views.ClearWaitlist.as_view(), name='clear_waitlist'),
     path('v1/account/<username>/products/<int:product>/feature/', views.FeatureProduct.as_view(),
          name='feature_product'),
     path('v1/account/<username>/products/<int:product>/inventory/', views.ProductInventoryManager.as_view(),

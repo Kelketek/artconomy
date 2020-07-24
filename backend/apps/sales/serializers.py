@@ -34,7 +34,7 @@ from apps.sales.models import (
     WAITING,
 )
 from apps.sales.utils import account_balance, PENDING, POSTED_ONLY, AVAILABLE, get_totals, order_context, \
-    order_context_to_link
+    order_context_to_link, default_deliverable
 
 
 class ProductMixin:
@@ -130,7 +130,19 @@ class PriceValidationMixin:
         return value
 
 
-class ProductNewOrderSerializer(serializers.ModelSerializer, CharacterValidationMixin):
+class ProductNameMixin:
+    def get_product_name(self, order):
+        try:
+            deliverable = order.deliverables.get()
+        except Deliverable.MultipleObjectsReturned:
+            return '(Multi-part order)'
+        name = deliverable.product and deliverable.product.name
+        if not name:
+            return '(Custom Order)'
+        return name
+
+
+class ProductNewOrderSerializer(ProductNameMixin, serializers.ModelSerializer, CharacterValidationMixin):
     email = EmailField(write_only=True, required=False, allow_blank=True)
     seller = RelatedUserSerializer(read_only=True)
     buyer = RelatedUserSerializer(read_only=True)
@@ -149,16 +161,6 @@ class ProductNewOrderSerializer(serializers.ModelSerializer, CharacterValidation
 
     def get_default_path(self, order):
         return order.notification_link(context=self.context)
-
-    def product_name(self, order):
-        try:
-            deliverable = order.deliverables.get()
-        except Deliverable.MultipleObjectsReturned:
-            return '(Multi-part order)'
-        name = deliverable.product and deliverable.product.name
-        if not name:
-            return '(Custom Order)'
-        return name
 
     def create(self, validated_data):
         data = {
@@ -181,11 +183,12 @@ class ProductNewOrderSerializer(serializers.ModelSerializer, CharacterValidation
         )
 
 
-class OrderViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
+class OrderViewSerializer(ProductNameMixin, RelatedAtomicMixin, serializers.ModelSerializer):
     claim_token = serializers.SerializerMethodField()
     seller = RelatedUserSerializer(read_only=True)
     buyer = RelatedUserSerializer(read_only=True)
     deliverable_count = serializers.SerializerMethodField()
+    product_name = serializers.SerializerMethodField()
 
     def get_deliverable_count(self, obj):
         return obj.deliverables.count()
@@ -224,7 +227,7 @@ class OrderViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
         model = Order
         fields = (
             'id', 'seller', 'buyer', 'private', 'customer_email', 'claim_token',
-            'deliverable_count',
+            'deliverable_count', 'product_name',
         )
 
 
@@ -419,12 +422,13 @@ class LineItemSerializer(serializers.ModelSerializer):
         return value
 
 
-class OrderPreviewSerializer(serializers.ModelSerializer):
+class OrderPreviewSerializer(ProductNameMixin, serializers.ModelSerializer):
     seller = RelatedUserSerializer(read_only=True)
     buyer = RelatedUserSerializer(read_only=True)
     display = serializers.SerializerMethodField()
     default_path = serializers.SerializerMethodField()
     read = serializers.SerializerMethodField()
+    product_name = serializers.SerializerMethodField()
 
     def get_read(self, obj):
         return check_read(obj=obj, user=self.context['request'].user)
@@ -438,7 +442,7 @@ class OrderPreviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = (
-            'id', 'created_on', 'seller', 'buyer', 'private', 'display', 'default_path', 'read',
+            'id', 'created_on', 'seller', 'buyer', 'private', 'display', 'default_path', 'read', 'product_name',
         )
         read_only_fields = [field for field in fields]
 

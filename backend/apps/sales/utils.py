@@ -12,6 +12,7 @@ from typing import Union, Type, TYPE_CHECKING, List, Dict, Iterator, Callable, T
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import MultipleObjectsReturned
+from django.db import IntegrityError
 from django.db.models import Sum, Q, IntegerField, Case, When, F
 from django.db.transaction import atomic
 from django.utils import timezone
@@ -27,7 +28,7 @@ from apps.profiles.models import User, VERIFIED
 from apps.sales.authorize import refund_transaction
 
 if TYPE_CHECKING:
-    from apps.sales.models import LineItemSim, LineItem, TransactionRecord, Deliverable, Revision, REVIEW
+    from apps.sales.models import LineItemSim, LineItem, TransactionRecord, Deliverable, Revision, REVIEW, CANCELLED
 
     Line = Union[LineItem, LineItemSim]
     LineMoneyMap = Dict[Line, Money]
@@ -780,3 +781,23 @@ def order_context_to_link(context: OrderContext):
             **context['extra_params'],
         },
     }
+
+@atomic
+def destroy_deliverable(deliverable: 'Deliverable'):
+    if deliverable.status != CANCELLED:
+        raise IntegrityError('Can only destroy cancelled orders!')
+    references = list(deliverable.reference_set.all())
+    deliverable.reference_set.clear()
+    for reference in references:
+        if not reference.deliverables.exists():
+            # Need to clear comments, subscriptions
+            reference.delete()
+    for revision in deliverable.revisions.all():
+        # Need to clear comments, subscriptions
+        revision.delete()
+    order = deliverable.order
+    # Need to clear comments, subscriptions
+    deliverable.delete()
+    if not order.deliverables.exists():
+        # What messages might be attached to this? Need to clear subscriptions.
+        order.delete()

@@ -504,6 +504,19 @@ class DeliverableCancel(GenericAPIView):
         return Response(data)
 
 
+class ClearWaitlist(GenericAPIView):
+    permission_classes = [UserControls]
+    def get_object(self):
+        product = get_object_or_404(Product, user__username=self.kwargs['username'], id=self.kwargs['product'])
+        self.check_object_permissions(self.request, product)
+        return product
+
+    def post(self, *args, **kwargs):
+        for deliverable in self.get_object().deliverables.filter(status=WAITING):
+            cancel_deliverable(deliverable, self.request.user)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 class DeliverableLineItems(ListCreateAPIView):
     permission_classes = [
         Any(
@@ -1133,7 +1146,11 @@ class SearchWaiting(ListAPIView):
 
     def get_queryset(self):
         query = self.request.GET.get('q', '').strip()
-        qs = Order.objects.filter(deliverables__status=WAITING, seller=self.request.subject)
+        try:
+            kwargs = {'deliverables__product_id': int(self.request.GET.get('product', ''))}
+        except (ValueError, TypeError):
+            kwargs = {}
+        qs = Order.objects.filter(deliverables__status=WAITING, seller=self.request.subject, **kwargs)
         if not query:
             return qs.distinct().order_by('created_on')
         return qs.filter(

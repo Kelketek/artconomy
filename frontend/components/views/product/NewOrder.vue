@@ -99,15 +99,15 @@
                   </v-row>
                   <v-row>
                     <v-col cols="12">
-                      <v-alert type="info" :value="true">
-                        Once your order is placed, the artist will review your request, make any adjustments to the quote as needed, and present them for your approval and payment. We will update you via email as things progress.
-                        <strong>You will have the opportunity to attach additional reference images after the order is placed.</strong>
-                      </v-alert>
                       <v-alert type="warning" :value="true" v-if="product.x.wait_list">
                         This order will be waitlisted. Waitlisted orders are not guaranteed to be accepted on any
                         particular time table and may not be fulfilled in the order they are received. Please check the
                         product description for further details or contact the artist if there is any confusion.
                         <strong>You will not be expected to pay for this order unless and until it is accepted.</strong>
+                      </v-alert>
+                      <v-alert type="info" :value="true">
+                        Once your order is placed, the artist will review your request, make any adjustments to the quote as needed, and present them for your approval and payment. We will update you via email as things progress.
+                        <strong>You will have the opportunity to attach additional reference images after the order is placed.</strong>
                       </v-alert>
                     </v-col>
                     <v-col class="text-center" cols="12" >
