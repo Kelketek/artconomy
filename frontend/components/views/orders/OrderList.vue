@@ -18,7 +18,9 @@
           <v-col class="shrink">
             <ac-confirmation :action="clearWaitlist">
               <template v-slot:default="{on}">
-                <v-btn color="red" :disabled="(!searchForm.fields.product.value) || inProgress" v-on="on"><v-icon>delete</v-icon></v-btn>
+                <v-btn class="clear-waitlist" color="red" :disabled="(!searchForm.fields.product.value) || inProgress" v-on="on">
+                  <v-icon>delete</v-icon>
+                </v-btn>
               </template>
               <template v-slot:confirmation-text>
                 <v-col>
@@ -83,7 +85,6 @@
 </style>
 
 <script lang="ts">
-import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import Component, {mixins} from 'vue-class-component'
 import Subjective from '@/mixins/subjective'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
@@ -105,7 +106,7 @@ import Formatting from '@/mixins/formatting'
 import AcLink from '@/components/wrappers/AcLink.vue'
 
 @Component({
-  components: {AcLink, AcConfirmation, AcUnreadMarker, AcBoundField, AcOrderPreview, AcPaginated, AcLoadSection},
+  components: {AcLink, AcConfirmation, AcUnreadMarker, AcBoundField, AcOrderPreview, AcPaginated},
 })
 export default class OrderList extends mixins(Subjective, SearchField, Formatting) {
   @Prop({required: true})
