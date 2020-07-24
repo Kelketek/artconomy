@@ -19,7 +19,7 @@ export default {
         name: 'Journal',
         params: {
           username: this.event.target.username,
-          journalID: this.event.data.journal.id + '',
+          journalId: this.event.data.journal.id + '',
         },
       }
     },
