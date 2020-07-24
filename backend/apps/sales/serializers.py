@@ -173,7 +173,7 @@ class ProductNewOrderSerializer(ProductNameMixin, serializers.ModelSerializer, C
         model = Order
         fields = (
             'id', 'created_on', 'rating', 'details', 'seller', 'buyer', 'private',
-            'email', 'characters', 'default_path',
+            'email', 'characters', 'default_path', 'product_name',
         )
         extra_kwargs = {
             'characters': {'required': False},

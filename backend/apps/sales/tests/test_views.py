@@ -22,7 +22,7 @@ from apps.sales.authorize import AuthorizeException, CardInfo, AddressInfo
 from apps.sales.models import (
     Order, CreditCardToken, Product, TransactionRecord, ADD_ON, BASE_PRICE, NEW, COMPLETED, IN_PROGRESS,
     PAYMENT_PENDING,
-    REVIEW, QUEUED, DISPUTED, CANCELLED, DELIVERABLE_STATUSES, REFUNDED, Deliverable)
+    REVIEW, QUEUED, DISPUTED, CANCELLED, DELIVERABLE_STATUSES, REFUNDED, Deliverable, WAITING)
 from apps.sales.tests.factories import DeliverableFactory, CreditCardTokenFactory, ProductFactory, RevisionFactory, \
     RatingFactory, ReferenceFactory
 from apps.sales.views import (
@@ -2057,3 +2057,37 @@ class TestBroadcast(APITestCase):
         self.assertEqual(comment.text, 'Boop')
         self.assertEqual(comment.user, deliverable3.order.seller)
         self.assertEqual(deliverable4.comments.all().count(), 0)
+
+
+class TestClearWaitlist(APITestCase):
+    def test_clear_waitlist(self):
+        deliverable = DeliverableFactory.create(status=WAITING)
+        deliverable2 = DeliverableFactory.create(status=WAITING, product=deliverable.product)
+        deliverable3 = DeliverableFactory.create(order__seller=deliverable.order.seller, status=WAITING)
+        deliverable4 = DeliverableFactory.create(
+            order__seller=deliverable.order.seller, product=deliverable.product, status=IN_PROGRESS,
+        )
+        deliverable5 = DeliverableFactory.create(status=COMPLETED)
+        self.login(deliverable.order.buyer)
+        response = self.client.post(
+            f'/api/sales/v1/account/{deliverable.order.buyer.username}/products/{deliverable.product.id}/clear-waitlist/',
+        )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        response = self.client.post(
+            f'/api/sales/v1/account/{deliverable.product.user.username}/products/'
+            f'{deliverable.product.id}/clear-waitlist/',
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.login(deliverable.product.user)
+        response = self.client.post(
+            f'/api/sales/v1/account/{deliverable.product.user.username}/products/'
+            f'{deliverable.product.id}/clear-waitlist/',
+        )
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        for item in [deliverable, deliverable2, deliverable3, deliverable4, deliverable5]:
+            item.refresh_from_db()
+        self.assertEqual(deliverable.status, CANCELLED)
+        self.assertEqual(deliverable2.status, CANCELLED)
+        self.assertEqual(deliverable3.status, WAITING)
+        self.assertEqual(deliverable4.status, IN_PROGRESS)
+        self.assertEqual(deliverable5.status, COMPLETED)

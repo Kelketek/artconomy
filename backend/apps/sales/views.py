@@ -505,7 +505,7 @@ class DeliverableCancel(GenericAPIView):
 
 
 class ClearWaitlist(GenericAPIView):
-    permission_classes = [UserControls]
+    permission_classes = [ObjectControls]
     def get_object(self):
         product = get_object_or_404(Product, user__username=self.kwargs['username'], id=self.kwargs['product'])
         self.check_object_permissions(self.request, product)
