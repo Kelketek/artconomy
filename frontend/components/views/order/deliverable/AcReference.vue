@@ -3,7 +3,7 @@
     <v-col cols="12">
       <ac-unread-marker :read="reference.read">
         <div class="pop-out-container">
-          <v-btn fab absolute right color="secondary" class="pop-out-button" @click="refTab">
+          <v-btn fab absolute left color="secondary" class="pop-out-button" @click="refTab">
             <v-icon>tab</v-icon>
           </v-btn>
           <ac-link :to="{name: `${baseName}DeliverableReference`, params: {...$route.params, referenceId: reference.id}}">
