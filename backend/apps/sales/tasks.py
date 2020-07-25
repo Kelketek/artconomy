@@ -15,8 +15,8 @@ from apps.profiles.models import User
 from apps.sales.apis import dwolla
 from apps.sales.authorize import AuthorizeException, charge_saved_card
 from apps.sales.dwolla import initiate_withdraw, perform_transfer, TRANSACTION_STATUS_MAP
-from apps.sales.models import CreditCardToken, Order, TransactionRecord, REVIEW, NEW, Deliverable
-from apps.sales.utils import service_price, set_service, finalize_deliverable, account_balance
+from apps.sales.models import CreditCardToken, Order, TransactionRecord, REVIEW, NEW, Deliverable, CANCELLED
+from apps.sales.utils import service_price, set_service, finalize_deliverable, account_balance, destroy_deliverable
 from conf.celery_config import celery_app
 
 
@@ -250,3 +250,19 @@ def get_transaction_fees(self, transaction_id: str):
             amount=Money(transaction['amount']['value'], transaction['amount']['currency'])
         )
         fee.targets.add(ref_for_instance(record))
+
+
+@celery_app.task
+def clear_deliverable(deliverable_id):
+    try:
+        deliverable = Deliverable.objects.get(id=deliverable_id, status=CANCELLED)
+    except Deliverable.DoesNotExist:
+        return
+    destroy_deliverable(deliverable)
+
+
+@celery_app.task
+def clear_cancelled_deliverables():
+    to_destroy = Deliverable.objects.filter(status=CANCELLED, cancelled_on__lte=timezone.now() - relativedelta(weeks=2))
+    for deliverable in to_destroy:
+        clear_deliverable(deliverable.id)

@@ -15,9 +15,10 @@ from apps.lib.models import SUBSCRIPTION_DEACTIVATED, Notification, RENEWAL_FAIL
     ref_for_instance
 from apps.profiles.tests.factories import UserFactory
 from apps.sales.authorize import AuthorizeException
-from apps.sales.models import TransactionRecord, REVIEW, PAYMENT_PENDING, NEW
+from apps.sales.models import TransactionRecord, REVIEW, PAYMENT_PENDING, NEW, CANCELLED, IN_PROGRESS
 from apps.sales.tasks import run_billing, renew, update_transfer_status, remind_sales, remind_sale, check_transactions, \
-    withdraw_all, auto_finalize_run, auto_finalize, get_transaction_fees
+    withdraw_all, auto_finalize_run, auto_finalize, get_transaction_fees, clear_cancelled_deliverables, \
+    clear_deliverable
 from apps.sales.tests.factories import CreditCardTokenFactory, TransactionRecordFactory, DeliverableFactory, \
     BankAccountFactory
 from apps.sales.tests.factories import OrderFactory
@@ -502,3 +503,27 @@ class TestGetTransactionFees(TestCase):
         self.assertEqual(pending_fee_record.destination, TransactionRecord.ACH_TRANSACTION_FEES)
         self.assertEqual(pending_fee_record.remote_id, 'sdvibnwer98')
         self.assertEqual(pending_fee_record.created_on, parse('2019-09-26T06:59:25.597Z'))
+
+
+class TestDeliverableClear(TestCase):
+    @patch('apps.sales.tasks.clear_deliverable')
+    def test_clear_deliverables(self, mock_clear):
+        chosen = DeliverableFactory(status=CANCELLED, cancelled_on=timezone.now() - relativedelta(months=2))
+        DeliverableFactory(status=CANCELLED, cancelled_on=timezone.now())
+        DeliverableFactory(status=CANCELLED, cancelled_on=None)
+        DeliverableFactory(status=CANCELLED, cancelled_on=None)
+        clear_cancelled_deliverables()
+        mock_clear.assert_called_with(chosen.id)
+        self.assertEqual(mock_clear.call_count, 1)
+
+    @patch('apps.sales.tasks.destroy_deliverable')
+    def test_clear_deliverable(self, mock_destroy):
+        not_relevant = DeliverableFactory(status=IN_PROGRESS)
+        clear_deliverable(not_relevant.id)
+        mock_destroy.assert_not_called()
+        # Non-existent
+        clear_deliverable(-1)
+        mock_destroy.assert_not_called()
+        relevent = DeliverableFactory(status=CANCELLED)
+        clear_deliverable(relevent.id)
+        mock_destroy.assert_called_with(relevent)

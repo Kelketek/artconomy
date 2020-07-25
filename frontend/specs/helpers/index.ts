@@ -255,9 +255,9 @@ export function prepTest<V extends Vue>(overrides?: Partial<ThisTypedMountOption
     overrides.attachTo = undefined
   }
   return {
+    localVue: overrides?.localVue || vueSetup(),
     store: overrides?.store || createStore(),
     vuetify: overrides?.vuetify || createVuetify(),
-    localVue: overrides?.localVue || vueSetup(),
     ...overrides,
   }
 }

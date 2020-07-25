@@ -457,6 +457,10 @@ CELERYBEAT_SCHEDULE = {
     'remind_sales': {
         'task': 'apps.sales.tasks.remind_sales',
         'schedule': crontab(hour=15, minute=30)
+    },
+    'destroy_cancelled': {
+        'task': 'apps.sales.tasks.clear_cancelled_deliverables',
+        'schedule': crontab(hour=3, minute=10)
     }
 }
 

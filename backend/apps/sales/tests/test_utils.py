@@ -3,6 +3,8 @@ from datetime import date
 from decimal import Decimal
 from unittest.mock import patch
 
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import IntegrityError
 from django.test import TestCase
 from freezegun import freeze_time
 from moneyed import Money
@@ -11,11 +13,12 @@ from apps.lib.models import Notification, ORDER_UPDATE, Subscription, COMMISSION
 from apps.lib.test_resources import SignalsDisabledMixin, FixtureBase
 from apps.profiles.models import User
 from apps.profiles.tests.factories import UserFactory
-from apps.sales.models import TransactionRecord, LineItemSim
-from apps.sales.tests.factories import TransactionRecordFactory, OrderFactory, ProductFactory, DeliverableFactory
+from apps.sales.models import TransactionRecord, LineItemSim, CANCELLED, IN_PROGRESS
+from apps.sales.tests.factories import TransactionRecordFactory, OrderFactory, ProductFactory, DeliverableFactory, \
+    RevisionFactory, ReferenceFactory
 from apps.sales.utils import claim_order_by_token, \
     check_charge_required, available_products, set_service, account_balance, POSTED_ONLY, PENDING, lines_by_priority, \
-    get_totals, reckon_lines
+    get_totals, reckon_lines, destroy_deliverable
 
 
 class BalanceTestCase(SignalsDisabledMixin, FixtureBase, TestCase):
@@ -682,3 +685,52 @@ class TransactionCheckMixin:
         self.assertEqual(unprocessed.amount, Money('.98', 'USD'))
         self.assertIsNone(unprocessed.payer)
         self.assertIsNone(unprocessed.payee)
+
+
+class TestDestroyDeliverable(TestCase):
+    def test_destroy_deliverable_fail_not_cancelled(self):
+        deliverable = DeliverableFactory(status=IN_PROGRESS)
+        self.assertRaises(IntegrityError, destroy_deliverable, deliverable)
+
+    @patch('apps.lib.utils.clear_events_subscriptions_and_comments')
+    def test_destroy_deliverable(self, mock_clear):
+        deliverable = DeliverableFactory(status=CANCELLED)
+        seller = deliverable.order.seller
+        buyer = deliverable.order.buyer
+        revision = RevisionFactory(deliverable=deliverable)
+        unrelated_revision = RevisionFactory()
+        reused_reference = ReferenceFactory()
+        reference = ReferenceFactory()
+        deliverable.reference_set.add(reference)
+        other_deliverable = DeliverableFactory()
+        other_deliverable.reference_set.add(reused_reference)
+        other_deliverable.refresh_from_db()
+
+        to_preserve = {
+            'other_deliverable': other_deliverable,
+            'reused_reference': reused_reference,
+            'unrelated_revision': unrelated_revision,
+            'buyer': buyer,
+            'seller': seller,
+        }
+        to_destroy = {
+            'deliverable': deliverable,
+            'reference': reference,
+            'revision': revision,
+        }
+        destroy_deliverable(deliverable)
+        for name, target in to_preserve.items():
+            # try:
+            #     mock_clear.assert_called_with(target)
+            # except AssertionError:
+            #     raise AssertionError(f'{name} did not have incidental data cleared!')
+            try:
+                target.refresh_from_db()
+            except ObjectDoesNotExist:
+                raise AssertionError(f'{name} was destroyed when it should not have been!')
+        for name, target in to_destroy.items():
+            try:
+                target.refresh_from_db()
+                raise AssertionError(f'{name} was preserved when it should not have been!')
+            except ObjectDoesNotExist:
+                continue

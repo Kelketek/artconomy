@@ -1,7 +1,7 @@
 import logging
 import os
 from pathlib import Path
-from typing import Optional, TYPE_CHECKING, Type
+from typing import Optional, TYPE_CHECKING, Type, List
 
 import markdown
 from bs4 import BeautifulSoup
@@ -728,3 +728,12 @@ def clear_markers(sender: Type[Model], instance: Model, **kwargs):
     content_type = ContentType.objects.get_for_model(instance)
     ModifiedMarker.objects.filter(content_type=content_type, object_id=instance.id).delete()
     ReadMarker.objects.filter(content_type=content_type, object_id=instance.id).delete()
+    clear_events_subscriptions_and_comments(instance)
+
+
+def clear_events_subscriptions_and_comments(target: Model):
+    content_type = ContentType.objects.get_for_model(target)
+    Subscription.objects.filter(content_type=content_type, object_id=target.id).delete()
+    Event.objects.filter(content_type=content_type, object_id=target.id).delete()
+    for comment in Comment.objects.filter(top_content_type=content_type, top_object_id=target.id):
+        real_destroy_comment(comment)

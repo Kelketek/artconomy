@@ -3,10 +3,11 @@ from django.test import TestCase
 from django.utils import timezone
 from freezegun import freeze_time
 
-from apps.lib.models import FAVORITE, Notification, SYSTEM_ANNOUNCEMENT, Event, Subscription
+from apps.lib.models import FAVORITE, Notification, SYSTEM_ANNOUNCEMENT, Event, Subscription, Comment
 from apps.lib.test_resources import SignalsDisabledMixin
+from apps.lib.tests.factories_interdepend import CommentFactory
 from apps.lib.utils import notify, recall_notification, send_transaction_email, subscribe, mark_read, check_read, \
-    mark_modified
+    mark_modified, clear_events_subscriptions_and_comments
 from apps.profiles.models import Submission
 from apps.profiles.tests.factories import SubmissionFactory, UserFactory
 
@@ -271,3 +272,23 @@ class TestMarkers(TestCase):
         self.assertFalse(check_read(obj=submission, user=user))
         mark_read(obj=submission, user=user)
         self.assertTrue(check_read(obj=submission, user=user))
+
+
+class TestClearCommentsEventsSubscriptions(TestCase):
+    def test_clear_related_data(self):
+        submission = SubmissionFactory()
+        unrelated_submission = SubmissionFactory()
+        event = Event.objects.create(target=submission, type=FAVORITE)
+        unrelated_event = Event.objects.create(target=unrelated_submission, type=FAVORITE)
+        comment = CommentFactory(top=submission)
+        unrelated_comment = CommentFactory(top=unrelated_submission)
+        clear_events_subscriptions_and_comments(submission)
+        content_type = ContentType.objects.get_for_model(Submission)
+        self.assertFalse(Subscription.objects.filter(content_type=content_type, object_id=submission.id).exists())
+        self.assertTrue(Subscription.objects.filter(
+            content_type=content_type, object_id=unrelated_submission.id,
+        ).exists())
+        self.assertRaises(Event.DoesNotExist, event.refresh_from_db)
+        unrelated_event.refresh_from_db()
+        self.assertRaises(Comment.DoesNotExist, comment.refresh_from_db)
+        unrelated_comment.refresh_from_db()

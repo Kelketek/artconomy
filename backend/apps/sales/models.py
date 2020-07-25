@@ -35,7 +35,7 @@ from apps.lib.permissions import Any, IsStaff
 from apps.lib.utils import (
     clear_events, recall_notification, require_lock,
     send_transaction_email,
-    demark, mark_modified, mark_read, clear_markers)
+    demark, mark_modified, mark_read, clear_markers, clear_events_subscriptions_and_comments)
 from apps.profiles.models import User, ArtistProfile
 from apps.sales.authorize import create_customer_profile, create_card, AddressInfo, CardInfo, \
     refund_transaction
@@ -315,6 +315,7 @@ class Deliverable(Model):
     started_on = DateTimeField(blank=True, null=True)
     paid_on = DateTimeField(blank=True, null=True, db_index=True)
     dispute_available_on = DateField(blank=True, null=True)
+    cancelled_on = DateTimeField(blank=True, null=True)
     auto_finalize_on = DateField(blank=True, null=True, db_index=True)
     arbitrator = ForeignKey(User, related_name='cases', null=True, blank=True, on_delete=SET_NULL)
     stream_link = URLField(blank=True, default='')
@@ -590,36 +591,7 @@ WEIGHTED_STATUSES = [IN_PROGRESS, PAYMENT_PENDING, QUEUED]
 @receiver(post_delete, sender=Deliverable)
 @disable_on_load
 def auto_remove_order(sender, instance, **_kwargs):
-    Subscription.objects.filter(
-        subscriber=instance.seller,
-        content_type=ContentType.objects.get_for_model(model=sender),
-        object_id=instance.id,
-        type=SALE_UPDATE
-    ).delete()
-    Subscription.objects.filter(
-        subscriber=instance.buyer,
-        content_type=ContentType.objects.get_for_model(model=sender),
-        object_id=instance.id,
-        type=ORDER_UPDATE
-    ).delete()
-    Subscription.objects.filter(
-        subscriber=instance.buyer,
-        content_type=ContentType.objects.get_for_model(model=sender),
-        object_id=instance.id,
-        type=REVISION_UPLOADED
-    ).delete()
-    Subscription.objects.filter(
-        subscriber=instance.buyer,
-        content_type=ContentType.objects.get_for_model(model=sender),
-        object_id=instance.id,
-        type=COMMENT
-    ).delete()
-    Subscription.objects.filter(
-        subscriber=instance.seller,
-        content_type=ContentType.objects.get_for_model(model=sender),
-        object_id=instance.id,
-        type=COMMENT
-    ).delete()
+    clear_events_subscriptions_and_comments(instance)
 
 
 remove_deliverable_events = receiver(pre_delete, sender=Deliverable)(disable_on_load(clear_events))

@@ -23,12 +23,13 @@ from short_stuff import gen_shortcode
 
 from apps.lib.models import Subscription, COMMISSIONS_OPEN, Event, DISPUTE, SALE_UPDATE, Notification, \
     Comment, ORDER_UPDATE, COMMENT
-from apps.lib.utils import notify, recall_notification, commissions_open_subscription
+from apps.lib.utils import notify, recall_notification, commissions_open_subscription, \
+    clear_events_subscriptions_and_comments
 from apps.profiles.models import User, VERIFIED
 from apps.sales.authorize import refund_transaction
 
 if TYPE_CHECKING:
-    from apps.sales.models import LineItemSim, LineItem, TransactionRecord, Deliverable, Revision, REVIEW, CANCELLED
+    from apps.sales.models import LineItemSim, LineItem, TransactionRecord, Deliverable, Revision
 
     Line = Union[LineItem, LineItemSim]
     LineMoneyMap = Dict[Line, Money]
@@ -431,6 +432,7 @@ def transfer_order(order, old_buyer, new_buyer, force=False):
 def cancel_deliverable(deliverable, requested_by):
     from apps.sales.models import CANCELLED
     deliverable.status = CANCELLED
+    deliverable.cancelled_on = timezone.now()
     deliverable.save()
     if requested_by != deliverable.order.seller:
         notify(SALE_UPDATE, deliverable, unique=True, mark_unread=True)
@@ -784,20 +786,17 @@ def order_context_to_link(context: OrderContext):
 
 @atomic
 def destroy_deliverable(deliverable: 'Deliverable'):
+    from apps.sales.models import CANCELLED
     if deliverable.status != CANCELLED:
         raise IntegrityError('Can only destroy cancelled orders!')
     references = list(deliverable.reference_set.all())
     deliverable.reference_set.clear()
     for reference in references:
         if not reference.deliverables.exists():
-            # Need to clear comments, subscriptions
             reference.delete()
-    for revision in deliverable.revisions.all():
-        # Need to clear comments, subscriptions
+    for revision in deliverable.revision_set.all():
         revision.delete()
     order = deliverable.order
-    # Need to clear comments, subscriptions
     deliverable.delete()
     if not order.deliverables.exists():
-        # What messages might be attached to this? Need to clear subscriptions.
         order.delete()

@@ -14,15 +14,7 @@
         <template v-slot:default>
           <v-row>
             <v-col cols="6" sm="4" v-for="reference in references.list" :key="reference.x.id" >
-              <v-row dense>
-                <v-col cols="12">
-                  <ac-unread-marker :read="reference.x.reference.read">
-                    <ac-link :to="{name: `${baseName}DeliverableReference`, params: {...$route.params, referenceId: reference.x.reference.id}}">
-                      <ac-asset :asset="reference.x.reference" thumb-name="thumbnail" />
-                    </ac-link>
-                  </ac-unread-marker>
-                </v-col>
-              </v-row>
+              <ac-reference :reference="reference.x.reference" :base-name="baseName" />
             </v-col>
           </v-row>
           <v-col cols="12" v-if="isBuyer || isSeller">
@@ -63,8 +55,19 @@ import {Watch} from 'vue-property-decorator'
 import AcAsset from '@/components/AcAsset.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import AcUnreadMarker from '@/components/AcUnreadMarker.vue'
+import AcReference from '@/components/views/order/deliverable/AcReference.vue'
 @Component({
-  components: {AcUnreadMarker, AcLink, AcAsset, AcBoundField, AcFormContainer, AcForm, AcCharacterDisplay, AcLoadSection},
+  components: {
+    AcReference,
+    AcUnreadMarker,
+    AcLink,
+    AcAsset,
+    AcBoundField,
+    AcFormContainer,
+    AcForm,
+    AcCharacterDisplay,
+    AcLoadSection,
+  },
 })
 export default class DeliverableReferences extends mixins(DeliverableMixin) {
   public newReference: FormController = null as unknown as FormController
