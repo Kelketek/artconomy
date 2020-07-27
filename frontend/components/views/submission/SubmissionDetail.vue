@@ -100,6 +100,7 @@
                     <ac-gallery-preview
                         :submission="submission.x"
                         :show-footer="false"
+                        :text="false"
                     />
                   </v-col>
                 </v-row>

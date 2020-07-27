@@ -30,6 +30,7 @@
         :thumb-name="thumbName"
         :contain="contain"
         :compact="compact"
+        :text="text"
         :aspect-ratio="aspectRatio"
       />
     </ac-link>
@@ -80,6 +81,9 @@ export default {
     },
     mini: {
       default: false,
+    },
+    text: {
+      default: true,
     },
   },
   computed: {
