@@ -90,7 +90,7 @@
     <v-col cols="12" sm="4" >
       <ac-bound-field
         label="Expected turnaround (days)"
-        :field="newInvoice.fields.revisions"
+        :field="newInvoice.fields.expected_turnaround"
         :persistent-hint="true"
         :disabled="newInvoice.fields.completed.value"
         hint="The total number of business days you expect this task will take."
