@@ -37,7 +37,7 @@
                   <v-col cols="12" sm="6" order="3" order-sm="2" >
                     <ac-bound-field
                         :field="newProduct.fields.hidden" label="Hide Product"
-                        field-type="v-checkbox"
+                        field-type="ac-checkbox"
                         :persistent-hint="true"
                         hint="This product will not be immediately available. You will need to unhide the product in order for customers to order." />
                   </v-col>
@@ -108,7 +108,7 @@
                   <v-col cols="12" sm="6">
                     <ac-bound-field :field="newProduct.fields.wait_list"
                                     label="Wait List Product"
-                                    field-type="v-checkbox"
+                                    field-type="ac-checkbox"
                                     :disabled="!subject.landscape"
                                     hint="Marks this product as a waitlist product. Orders will be put in your
                                         waitlist queue which is separate from your normal order queue. You should specify

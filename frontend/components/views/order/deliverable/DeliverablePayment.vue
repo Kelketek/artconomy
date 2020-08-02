@@ -111,7 +111,7 @@
                       <ac-form-dialog v-model="showManualTransaction" @submit.prevent="paymentForm.submitThen(updateDeliverable)" v-bind="paymentForm.bind" title="Enter transaction ID">
                         <v-row>
                           <v-col cols="6">
-                            <ac-bound-field :field="paymentForm.fields.cash" label="Cash transaction" hint="Tick this box if the customer has handed you cash." field-type="v-checkbox" />
+                            <ac-bound-field :field="paymentForm.fields.cash" label="Cash transaction" hint="Tick this box if the customer has handed you cash." field-type="ac-checkbox" />
                           </v-col>
                           <v-col cols="6">
                             <ac-bound-field :disabled="paymentForm.fields.cash.value" :field="paymentForm.fields.remote_id" label="Transaction ID" hint="Enter the transaction ID given to you by the Authorize.net app." />

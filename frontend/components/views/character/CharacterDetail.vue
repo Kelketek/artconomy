@@ -78,7 +78,7 @@
         <v-card v-if="editing || character.profile.x.open_requests" class="mt-3">
           <v-card-text>
             <v-row no-gutters   class="mb-2">
-              <ac-patch-field field-type="v-checkbox"
+              <ac-patch-field field-type="ac-checkbox"
                               hint="If this is checked, permits others to commission art involving your characters."
                               label="Open Requests"
                               :persistent-hint="true"

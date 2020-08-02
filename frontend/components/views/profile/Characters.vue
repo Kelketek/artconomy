@@ -25,7 +25,7 @@
         </v-col>
         <v-col cols="12">
           <ac-bound-field :field="form.fields.private"
-                          field-type="v-checkbox"
+                          field-type="ac-checkbox"
                           :persistent-hint="true"
                           label="Private"
                           hint="If checked, this character will not appear in search listings and will only be visible to users you explicitly share them with."

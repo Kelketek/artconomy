@@ -76,7 +76,7 @@
                         label="Keep Me up to Date"
                         hint="Keep up to date with the latest news on Artconomy using our mailing list"
                         :field="registerForm.fields.mail"
-                        field-type="v-checkbox"
+                        field-type="ac-checkbox"
                         :persistent-hint="true"
                       />
                     </v-col>
@@ -85,7 +85,7 @@
                         label="I'm an artist!"
                         hint="Enable artist tools in your account. You can change this later."
                         :field="registerForm.fields.artist_mode"
-                        field-type="v-checkbox"
+                        field-type="ac-checkbox"
                         :persistent-hint="true"
                       >
                       </ac-bound-field>

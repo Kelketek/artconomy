@@ -24,7 +24,7 @@
                 <v-col cols="12" sm="6" md="4" v-if="isRegistered">
                   <ac-bound-field
                     :field="searchForm.fields.watch_list"
-                    field-type="v-checkbox"
+                    field-type="ac-checkbox"
                     label="Watch List"
                     :persistent-hint="true"
                     hint="Only return results from artists on my watch list."
@@ -33,7 +33,7 @@
                 <v-col cols="12" sm="6" md="4">
                   <ac-bound-field
                     :field="searchForm.fields.shield_only"
-                    field-type="v-checkbox"
+                    field-type="ac-checkbox"
                     label="Shield Only"
                     :persistent-hint="true"
                     hint="Only show products guaranteed by Artconomy Shield."
@@ -42,7 +42,7 @@
                 <v-col cols="12" sm="6" md="4">
                   <ac-bound-field
                     :field="searchForm.fields.featured"
-                    field-type="v-checkbox"
+                    field-type="ac-checkbox"
                     label="Featured"
                     :persistent-hint="true"
                     hint="Only show featured products curated by Artconomy.com's staff."
@@ -51,7 +51,7 @@
                 <v-col cols="12" sm="6" md="4">
                   <ac-bound-field
                     :field="searchForm.fields.rating"
-                    field-type="v-checkbox"
+                    field-type="ac-checkbox"
                     label="Best Reviewed First"
                     :persistent-hint="true"
                     hint="Sort from highest reviewed product to lowest."
@@ -60,7 +60,7 @@
                 <v-col cols="12" sm="6" md="4">
                   <ac-bound-field
                     :field="searchForm.fields.artists_of_color"
-                    field-type="v-checkbox"
+                    field-type="ac-checkbox"
                     label="Artists of Color"
                     :persistent-hint="true"
                     hint="Find products from Artists of Color."
@@ -69,7 +69,7 @@
                 <v-col cols="12" sm="6" md="4">
                   <ac-bound-field
                     :field="searchForm.fields.lgbt"
-                    field-type="v-checkbox"
+                    field-type="ac-checkbox"
                     label="LGBT+"
                     :persistent-hint="true"
                     hint="Find products from LGBTQ+ artists."

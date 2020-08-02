@@ -47,7 +47,7 @@
           />
         </v-col>
         <v-col cols="12" sm="10" offset-sm="1" offset-md="2" md="8">
-          <ac-bound-field :field="newJournal.fields.comments_disabled" field-type="v-checkbox" :persistent-hint="true"
+          <ac-bound-field :field="newJournal.fields.comments_disabled" field-type="ac-checkbox" :persistent-hint="true"
                           label="Comments Disabled"
                           hint="If checked, prevents people from commenting on this journal."
           />

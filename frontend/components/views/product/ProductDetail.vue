@@ -279,7 +279,7 @@
                       <v-col cols="12" sm="6">
                         <ac-patch-field :patcher="product.patchers.wait_list"
                                         label="Wait List Product"
-                                        field-type="v-checkbox"
+                                        field-type="ac-checkbox"
                                         :disabled="!(product.patchers.wait_list.model || subject.landscape)"
                                         hint="Marks this product as a waitlist product. Orders will be put in your
                                         waitlist queue which is separate from your normal order queue. You should specify
@@ -322,7 +322,7 @@
                       <v-col cols="12" sm="6">
                         <ac-patch-field :patcher="product.patchers.track_inventory" :persistent-hint="true"
                                     v-if="isStaff || landscape || product.patchers.inventory"
-                                    field-type="v-checkbox"
+                                    field-type="ac-checkbox"
                                     label="Inventory"
                                     :disabled="product.patchers.wait_list.model"
                                     hint="Check if you only want to sell this product a limited number of times total."

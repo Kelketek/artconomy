@@ -17,7 +17,7 @@
                 <v-col cols="12" sm="6" md="4">
                   <ac-bound-field
                       :field="searchForm.fields.watch_list"
-                      field-type="v-checkbox"
+                      field-type="ac-checkbox"
                       label="Watch List"
                       :persistent-hint="true"
                       hint="Only return results from artists on my watch list."

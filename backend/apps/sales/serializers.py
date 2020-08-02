@@ -244,10 +244,10 @@ class NewDeliverableSerializer(
     task_weight = serializers.IntegerField(min_value=0)
     revisions = serializers.IntegerField(min_value=0)
     details = serializers.CharField(max_length=5000)
-    hold = serializers.NullBooleanField()
+    hold = serializers.BooleanField()
     rating = serializers.IntegerField(min_value=GENERAL, max_value=EXTREME)
-    completed = serializers.NullBooleanField()
-    paid = serializers.NullBooleanField()
+    completed = serializers.BooleanField()
+    paid = serializers.BooleanField()
     expected_turnaround = serializers.DecimalField(
         max_digits=5, decimal_places=2, min_value=settings.MINIMUM_TURNAROUND,
     )
@@ -473,8 +473,8 @@ class NewCardSerializer(serializers.Serializer):
     exp_date = serializers.CharField(max_length=7, min_length=4)
     zip = serializers.CharField(max_length=20, required=False)
     cvv = serializers.CharField(max_length=4, min_length=3, validators=[RegexValidator(r'^[0-9]{3,4}$')])
-    make_primary = serializers.NullBooleanField(default=False)
-    save_card = serializers.NullBooleanField(default=False)
+    make_primary = serializers.BooleanField(default=False)
+    save_card = serializers.BooleanField(default=False)
 
     # noinspection PyMethodMayBeStatic
     def validate_exp_date(self, value):
@@ -692,14 +692,14 @@ class NewInvoiceSerializer(serializers.Serializer, PriceValidationMixin, Product
     price = serializers.DecimalField(
         max_digits=6, decimal_places=2,
     )
-    completed = serializers.NullBooleanField()
+    completed = serializers.BooleanField()
     task_weight = serializers.IntegerField(min_value=0)
     revisions = serializers.IntegerField(min_value=0)
     private = serializers.BooleanField()
     rating = serializers.IntegerField(min_value=GENERAL, max_value=EXTREME)
     details = serializers.CharField(max_length=5000)
-    paid = serializers.NullBooleanField()
-    hold = serializers.NullBooleanField()
+    paid = serializers.BooleanField()
+    hold = serializers.BooleanField()
     expected_turnaround = serializers.DecimalField(
         max_digits=5, decimal_places=2, min_value=settings.MINIMUM_TURNAROUND,
     )

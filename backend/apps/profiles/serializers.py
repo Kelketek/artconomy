@@ -41,7 +41,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     csrftoken = serializers.SerializerMethodField()
     recaptcha = ReCaptchaField(write_only=True)
     registration_code = serializers.CharField(required=False, write_only=True, allow_blank=True)
-    mail = serializers.NullBooleanField(write_only=True, required=False)
+    mail = serializers.BooleanField(write_only=True, required=False)
     order_claim = ShortCodeField(required=False, allow_null=True)
 
     def create(self, validated_data):
@@ -113,7 +113,7 @@ class SubmissionSerializer(IdWritable, RelatedAtomicMixin, serializers.ModelSeri
     characters = CharacterListField(tag_check=True, back_name='submissions', write_only=True, required=False)
     subscribed = SubscribedField(required=False)
     tags = TagListField(required=False)
-    private = serializers.NullBooleanField(default=False)
+    private = serializers.BooleanField(default=False)
 
     # noinspection PyMethodMayBeStatic
     def get_comment_count(self, obj):
@@ -481,7 +481,6 @@ class CredentialsSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
-    # dwolla_configured = serializers.SerializerMethodField()
     csrftoken = serializers.SerializerMethodField()
     authtoken = serializers.SerializerMethodField()
     portrait_paid_through = serializers.DateField(read_only=True)
@@ -489,7 +488,7 @@ class UserSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
     telegram_link = serializers.SerializerMethodField()
     watching = UserRelationField(required=False)
     blocking = UserRelationField(required=False)
-    artist_mode = serializers.NullBooleanField(required=False)
+    artist_mode = serializers.BooleanField(required=False)
     blacklist = TagListField(required=False)
     stars = serializers.FloatField(required=False)
 

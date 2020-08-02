@@ -125,7 +125,7 @@
               <v-col cols="12" sm="6">
                 <ac-patch-field
                   :patcher="artistProfile.patchers.artist_of_color"
-                  field-type="v-checkbox"
+                  field-type="ac-checkbox"
                   :save-indicator="false"
                   label="An Artist of Color"
                  />
@@ -133,7 +133,7 @@
               <v-col cols="12" sm="6">
                 <ac-patch-field
                   :patcher="artistProfile.patchers.lgbt"
-                  field-type="v-checkbox"
+                  field-type="ac-checkbox"
                   :save-indicator="false"
                   label="A member of the LGBTQ+ community"
                 />

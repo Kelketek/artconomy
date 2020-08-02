@@ -37,7 +37,7 @@
       />
     </v-col>
     <v-col cols="12" sm="4" >
-      <ac-bound-field field-type="v-checkbox"
+      <ac-bound-field field-type="ac-checkbox"
                       label="Paid"
                       :field="newInvoice.fields.paid"
                       hint="If the commissioner has already paid, and you just want to track this order,
@@ -46,7 +46,7 @@
       />
     </v-col>
     <v-col cols="12" sm="4" >
-      <ac-bound-field field-type="v-checkbox"
+      <ac-bound-field field-type="ac-checkbox"
                       label="Already Complete"
                       :field="newInvoice.fields.completed"
                       hint="If you have already completed the commission you're invoicing, please check this box."
@@ -54,7 +54,7 @@
       />
     </v-col>
     <v-col cols="12" sm="4" >
-      <ac-bound-field field-type="v-checkbox"
+      <ac-bound-field field-type="ac-checkbox"
                       label="Hold for Edit"
                       :disabled="newInvoice.fields.paid.model"
                       :field="newInvoice.fields.hold"

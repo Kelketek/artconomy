@@ -233,12 +233,12 @@
                               />
                             </v-col>
                             <v-col cols="12" sm="6">
-                              <ac-bound-field :field="addSubmission.fields.private" label="Private" field-type="v-checkbox"
+                              <ac-bound-field :field="addSubmission.fields.private" label="Private" field-type="ac-checkbox"
                                               hint="If checked, will not show this submission to anyone you've not explicitly shared it with."
                               />
                             </v-col>
                             <v-col cols="12" sm="6">
-                              <ac-bound-field :field="addSubmission.fields.comments_disabled" label="Comments Disabled" field-type="v-checkbox"
+                              <ac-bound-field :field="addSubmission.fields.comments_disabled" label="Comments Disabled" field-type="ac-checkbox"
                                               hint="If checked, prevents others from commenting on this submission."
                               />
                             </v-col>

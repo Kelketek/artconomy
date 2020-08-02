@@ -51,13 +51,13 @@
               <ac-bound-field field-type="ac-editor" :field="newUpload.fields.caption" label="Caption" hint="Tell viewers a little about the piece." :save-indicator="false" />
             </v-col>
             <v-col class="px-2" cols="12" md="4" >
-              <ac-bound-field field-type="v-checkbox" :field="newUpload.fields.private" label="Private"
+              <ac-bound-field field-type="ac-checkbox" :field="newUpload.fields.private" label="Private"
                               hint="If checked, will not show this submission to anyone you've not explicitly shared it with."
                               :persistent-hint="true"
               />
             </v-col>
             <v-col class="px-2" cols="12" md="4" >
-              <ac-bound-field field-type="v-checkbox" :field="newUpload.fields.comments_disabled" label="Comments Disabled"
+              <ac-bound-field field-type="ac-checkbox" :field="newUpload.fields.comments_disabled" label="Comments Disabled"
                               hint="If checked, prevents others from commenting on this submission."
                               :persistent-hint="true"
               />

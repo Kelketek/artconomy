@@ -59,14 +59,14 @@
           </v-col>
           <v-col cols="12" sm="6" v-if="isRegistered && showSave">
             <ac-bound-field
-              fieldType="v-checkbox"
+              fieldType="ac-checkbox"
               label="Save Card"
               :field="ccForm.fields.save_card"
             />
           </v-col>
           <v-col cols="12" :class="{sm6: showSave}" v-if="!firstCard && isRegistered">
             <ac-bound-field
-              fieldType="v-checkbox"
+              fieldType="ac-checkbox"
               label="Make this my default card"
               :field="ccForm.fields.make_primary"
             />

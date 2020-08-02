@@ -63,6 +63,7 @@ import * as VAutocomplete from 'vuetify/es5/components/VAutocomplete'
 import * as VSlider from 'vuetify/es5/components/VSlider'
 import * as VSelect from 'vuetify/es5/components/VSelect'
 import AcBirthdayField from '@/components/fields/AcBirthdayField.vue'
+import AcCheckbox from '@/components/fields/AcCheckbox.vue'
 
 // @ts-ignore
 @Component({
@@ -76,6 +77,7 @@ import AcBirthdayField from '@/components/fields/AcBirthdayField.vue'
     AcRatingField,
     AcTagField,
     AcEditor,
+    AcCheckbox,
     ...VTextField,
     ...VCheckbox,
     ...VSwitch,

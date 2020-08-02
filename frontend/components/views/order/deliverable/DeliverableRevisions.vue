@@ -14,7 +14,7 @@
                     <div class="shrink flex text-center">
                       <ac-bound-field
                         :field="newRevision.fields.final"
-                        field-type="v-checkbox"
+                        field-type="ac-checkbox"
                         label="This is the final version"
                       />
                     </div>

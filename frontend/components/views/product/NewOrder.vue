@@ -85,7 +85,7 @@
                   <v-row>
                     <v-col cols="12" sm="6">
                       <ac-bound-field
-                          field-type="v-checkbox" :field="orderForm.fields.private" label="Private Order" :persistent-hint="true"
+                          field-type="ac-checkbox" :field="orderForm.fields.private" label="Private Order" :persistent-hint="true"
                           hint="Hides the resulting submission from public view and tells the artist you want this commission
                     to be private. The artist may charge an additional fee, since they will not be able to use the piece
                     in their portfolio."

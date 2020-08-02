@@ -10,6 +10,7 @@ import AcUppyFile from '@/components/fields/AcUppyFile.vue'
 import AcCharacterSelect from '@/components/fields/AcCharacterSelect.vue'
 import AcPriceField from '@/components/fields/AcPriceField.vue'
 import AcProductSelect from '@/components/fields/AcProductSelect.vue'
+import AcCheckbox from '@/components/fields/AcCheckbox.vue'
 import * as VCheckbox from 'vuetify/es5/components/VCheckbox'
 import * as VSwitch from 'vuetify/es5/components/VSwitch'
 import * as VTextField from 'vuetify/es5/components/VTextField'
@@ -28,6 +29,7 @@ import * as VSelect from 'vuetify/es5/components/VSelect'
     AcCharacterSelect,
     AcPriceField,
     AcProductSelect,
+    AcCheckbox,
     ...VTextField,
     ...VSwitch,
     ...VCheckbox,
