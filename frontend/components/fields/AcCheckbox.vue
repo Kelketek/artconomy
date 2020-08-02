@@ -1,5 +1,7 @@
 <template>
-  <v-checkbox v-model="scratch" v-bind="$attrs" />
+  <v-checkbox v-model="scratch" v-bind="$attrs">
+    <slot v-for="(_, name) in $slots" :name="name" :slot="name"/>
+  </v-checkbox>
 </template>
 
 <script lang="ts">
