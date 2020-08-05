@@ -191,7 +191,7 @@ def charge_card(card_info: CardInfo, address_info: AddressInfo, amount: Decimal,
     controller = createTransactionController(
         create_transaction_request)
     response = execute(controller)
-    return str(response.transactionResponse.transId), str(response.transactionResponse.authCode)
+    return str(response.transactionResponse.transId), str(response.transactionResponse.authCode).zfill(6)
 
 
 def card_token_from_transaction(transaction_id: str, profile_id: str) -> str:
@@ -276,7 +276,7 @@ def refund_transaction(txn_id: str, last_four: str, amount: Decimal):
     request.transactionRequest = transaction
     controller = createTransactionController(request)
     response = execute(controller)
-    return str(response.transactionResponse.transId), str(response.transactionResponse.authCode)
+    return str(response.transactionResponse.transId), str(response.transactionResponse.authCode).zfill(6)
 
 
 def derive_authnet_error(err):
