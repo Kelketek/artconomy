@@ -16,7 +16,12 @@ export default class AcCheckbox extends Vue {
 
   public scratch = false
 
-  @Watch('scratch', {immediate: true})
+  @Watch('value')
+  public updateScratch(val: boolean) {
+    this.scratch = val
+  }
+
+  @Watch('scratch')
   public fixFalse(val: boolean|null) {
     this.$emit('input', !!val)
   }

@@ -15,7 +15,7 @@
                   {{formatDateTime(journal.x.created_on)}}
                   <span v-if="journal.x.edited"><br/>Edited: {{formatDateTime(journal.x.edited_on)}}</span>
                 </v-tooltip>
-                <v-menu offset-x left>
+                <v-menu offset-x left :close-on-content-click="false">
                   <template v-slot:activator="{on}">
                     <v-btn icon v-on="on" class="more-button"><v-icon>more_horiz</v-icon></v-btn>
                   </template>
@@ -39,9 +39,9 @@
                         <span v-else>off</span>
                       </v-list-item-title>
                     </v-list-item>
-                    <v-list-item @click.stop="journal.patchers.comments_disabled.model = !journal.patchers.comments_disabled.model">
+                    <v-list-item>
                       <v-list-item-action>
-                        <v-switch :value="journal.patchers.comments_disabled.model"></v-switch>
+                        <v-switch v-model="journal.patchers.comments_disabled.model"></v-switch>
                       </v-list-item-action>
                       <v-list-item-title>
                         Comments Disabled

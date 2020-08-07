@@ -129,7 +129,7 @@
                         <v-toolbar-title class="ml-1"><ac-link :to="profileLink(submission.x.owner)">{{submission.x.owner.username}}</ac-link></v-toolbar-title>
                       </v-col>
                       <v-col class="shrink" align-self="center">
-                        <v-menu offset-x left v-if="controls">
+                        <v-menu offset-x left v-if="controls" :close-on-content-click="false">
                           <template v-slot:activator="{on}">
                             <v-btn icon v-on="on" class="more-button"><v-icon>more_horiz</v-icon></v-btn>
                           </template>
@@ -142,9 +142,9 @@
                               <v-list-item-title v-if="editing">Lock</v-list-item-title>
                               <v-list-item-title v-else>Edit</v-list-item-title>
                             </v-list-item>
-                            <v-list-item @click.stop="submission.patchers.private.model = !submission.patchers.private.model">
+                            <v-list-item>
                               <v-list-item-action>
-                                <v-switch :value="submission.patchers.private.model"
+                                <v-switch v-model="submission.patchers.private.model"
                                           :hide-details="true"
                                 />
                               </v-list-item-action>
@@ -152,9 +152,9 @@
                                 Private
                               </v-list-item-title>
                             </v-list-item>
-                            <v-list-item @click.stop="submission.patchers.comments_disabled.model = !submission.patchers.comments_disabled.model">
+                            <v-list-item>
                               <v-list-item-action>
-                                <v-switch :value="submission.patchers.comments_disabled.model"
+                                <v-switch v-model="submission.patchers.comments_disabled.model"
                                           :hide-details="true"
                                 />
                               </v-list-item-action>

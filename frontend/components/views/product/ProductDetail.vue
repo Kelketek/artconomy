@@ -77,7 +77,7 @@
             <v-col class="shrink d-flex" v-if="controls">
               <v-row no-gutters class="justify-content"  align="center" >
                 <v-col>
-                  <v-menu offset-x left>
+                  <v-menu offset-x left :close-on-content-click="false">
                     <template v-slot:activator="{on}">
                       <v-btn icon v-on="on" class="more-button"><v-icon>more_horiz</v-icon></v-btn>
                     </template>
@@ -90,9 +90,9 @@
                         <v-list-item-title v-if="editing">Lock</v-list-item-title>
                         <v-list-item-title v-else>Edit</v-list-item-title>
                       </v-list-item>
-                      <v-list-item @click.stop="product.patchers.hidden.model = !product.patchers.hidden.model">
+                      <v-list-item>
                         <v-list-item-action>
-                          <v-switch :value="product.patchers.hidden.model"
+                          <v-switch v-model="product.patchers.hidden.model"
                                     :hide-details="true"
                           />
                         </v-list-item-action>

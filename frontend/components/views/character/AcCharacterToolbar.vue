@@ -20,7 +20,7 @@
                            :username="username"
                            v-if="controls"
         />
-        <v-menu offset-x left v-if="controls">
+        <v-menu offset-x left v-if="controls" :close-on-content-click="false">
           <template v-slot:activator="{on}">
             <v-btn icon v-on="on" class="more-button"><v-icon>more_horiz</v-icon></v-btn>
           </template>
@@ -33,9 +33,9 @@
               <v-list-item-title v-if="editing">Lock</v-list-item-title>
               <v-list-item-title v-else>Edit</v-list-item-title>
             </v-list-item>
-            <v-list-item @click.stop="character.profile.patchers.private.model = !character.profile.patchers.private.model">
+            <v-list-item>
               <v-list-item-action>
-                <v-switch :value="character.profile.patchers.private.model"
+                <v-switch v-model="character.profile.patchers.private.model"
                           :hide-details="true"
                 />
               </v-list-item-action>
