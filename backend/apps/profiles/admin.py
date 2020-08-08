@@ -2,8 +2,9 @@ from custom_user.admin import EmailUserAdmin
 from django.contrib import admin
 
 from django.contrib.admin import ModelAdmin
+from django.contrib.admin.options import InlineModelAdmin, TabularInline
 
-from apps.profiles.models import User, Submission, RefColor, ArtistProfile
+from apps.profiles.models import User, Submission, RefColor, ArtistProfile, Character
 
 
 class ArtconomyUserAdmin(EmailUserAdmin):
@@ -25,15 +26,26 @@ class ArtconomyUserAdmin(EmailUserAdmin):
 class SubmissionAdmin(ModelAdmin):
     raw_id_fields = ['tags', 'characters', 'owner', 'artists', 'shared_with', 'file', 'preview']
 
+
 class ArtistProfileAdmin(ModelAdmin):
     list_display = ('user', 'commissions_disabled', 'commissions_closed', 'max_load', 'load')
 
+
 class RefColorAdmin(ModelAdmin):
     raw_id_fields = ['character']
+
+
+class InlineRefColor(TabularInline):
+    model = RefColor
+
+
+class CharacterAdmin(ModelAdmin):
+    inlines = [InlineRefColor]
+    raw_id_fields = ['primary_submission', 'user', 'tags', 'shared_with']
 
 
 admin.site.register(User, ArtconomyUserAdmin)
 admin.site.register(Submission, SubmissionAdmin)
 admin.site.register(RefColor, RefColorAdmin)
 admin.site.register(ArtistProfile, ArtistProfileAdmin)
-
+admin.site.register(Character, CharacterAdmin)
