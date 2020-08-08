@@ -188,8 +188,6 @@ export default class AcSampleEditor extends mixins(Subjective) {
     }
 
     public created() {
-      // @ts-ignore
-      window.editor = this
       this.localSamples = this.$getList(
         // We don't want to use the outer scope's sample list because it will paginate separately.
         `product-${this.productId}-sample-select`, {endpoint: this.product.endpoint + 'samples/'},

@@ -2,7 +2,7 @@
   <ac-load-section :controller="product" v-if="currentRoute" itemscope itemtype="http://schema.org/Product">
     <template v-slot:default>
       <v-row>
-        <v-col class="hidden-md-and-up" cols="12" style="position: relative">
+        <v-col class="hidden-md-and-up" cols="12" style="position: relative" v-if="$vuetify.breakpoint.smAndDown">
           <ac-sample-editor v-model="showChangePrimary" :large="true" :username="username" :product="product" :product-id="productId" :samples="samples" />
           <div class="edit-overlay" v-if="editing" v-ripple="{ center: true }" @click="showChangePrimary = true">
             <v-container fluid class="pa-0 edit-container">
@@ -33,7 +33,7 @@
             </v-carousel-item>
           </v-carousel>
         </v-col>
-        <v-col class="hidden-sm-and-down" md="4" lg="5" >
+        <v-col v-else md="4" lg="5" >
           <v-responsive max-height="80vh">
             <v-row no-gutters  >
               <v-col cols="2" v-if="showExtra">
