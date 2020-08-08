@@ -190,6 +190,7 @@ class TestCharacterAPICase(SignalsDisabledMixin, APITestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertRaises(ObjectDoesNotExist, char.refresh_from_db)
 
+
 class TestSubmission(APITestCase):
     def test_submission_edit(self):
         char = CharacterFactory.create()

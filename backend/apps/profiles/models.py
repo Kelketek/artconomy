@@ -410,7 +410,9 @@ class Character(Model, HitsMixin):
     """
     name = CharField(
         max_length=150, validators=[
-            RegexValidator(r'^[^/\\?%&+#]+$', message='Names may not contain /, \\, ?, #, or &.')
+            RegexValidator(r'^[^/\\?%&+#]+$', message='Names may not contain /, \\, ?, #, or &.'),
+            RegexValidator(r'^[^.]', message='Names may not start with a period.'),
+            RegexValidator(r'[^.]$', message='Names may not end with a period.'),
         ]
     )
     description = CharField(max_length=20000, blank=True, default='')
@@ -428,7 +430,7 @@ class Character(Model, HitsMixin):
         blank=True,
         default=''
     )
-    primary_submission = ForeignKey('profiles.Submission', null=True, on_delete=SET_NULL)
+    primary_submission = ForeignKey('profiles.Submission', null=True, on_delete=SET_NULL, blank=True)
     taggable = BooleanField(default=True, db_index=True)
     user = ForeignKey('User', related_name='characters', on_delete=CASCADE)
     created_on = DateTimeField(auto_now_add=True)

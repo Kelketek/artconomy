@@ -1,10 +1,12 @@
 from unittest.mock import Mock
 
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 
 from apps.lib import models
 from apps.lib.models import Subscription
+from apps.profiles.models import Character
 from apps.profiles.tests.factories import UserFactory, SubmissionFactory
 
 
@@ -52,3 +54,16 @@ class TestSubmissionSerializer(TestCase):
         request.user = submission.owner
         result = submission.notification_serialize({'request': request})
         self.assertEqual(result['id'], submission.id)
+
+
+class TestCharacter(TestCase):
+    def test_character_name(self):
+        user = UserFactory.create()
+        character = Character(name='.stuff', user=user)
+        self.assertRaises(ValidationError, character.full_clean)
+        character.name = 'stuff.'
+        self.assertRaises(ValidationError, character.full_clean)
+        character.name = 'thing?thing'
+        self.assertRaises(ValidationError, character.full_clean)
+        character.name = 'wat'
+        character.full_clean()
