@@ -15,7 +15,7 @@ from apps.lib.models import SUBSCRIPTION_DEACTIVATED, Notification, RENEWAL_FAIL
     ref_for_instance
 from apps.profiles.tests.factories import UserFactory
 from apps.sales.authorize import AuthorizeException
-from apps.sales.models import TransactionRecord, REVIEW, PAYMENT_PENDING, NEW, CANCELLED, IN_PROGRESS
+from apps.sales.models import TransactionRecord, REVIEW, PAYMENT_PENDING, NEW, CANCELLED, IN_PROGRESS, Deliverable
 from apps.sales.tasks import run_billing, renew, update_transfer_status, remind_sales, remind_sale, check_transactions, \
     withdraw_all, auto_finalize_run, auto_finalize, get_transaction_fees, clear_cancelled_deliverables, \
     clear_deliverable
@@ -358,6 +358,7 @@ class TestWithdrawAll(TestCase):
         bank = BankAccountFactory.create(user=user)
         mock_initiate.assert_not_called()
         mock_balance.return_value = Decimal('25.00')
+        mock_initiate.return_value = None, Deliverable.objects.none()
         withdraw_all(user.id)
         # Normally, three dollars would be removed here for the connection fee,
         # but we're always returning a balance of $25.
@@ -391,6 +392,7 @@ class TestWithdrawAll(TestCase):
         mock_initiate.assert_not_called()
         mock_balance.return_value = Decimal('25.00')
         mock_perform_transfer.side_effect = RuntimeError('Wat')
+        mock_initiate.return_value = None, Deliverable.objects.none()
         withdraw_all(user.id)
         mock_initiate.assert_called_with(user, bank, Money('25.00', 'USD'), test_only=False)
         notifications = Notification.objects.filter(event__type=TRANSFER_FAILED)
@@ -401,9 +403,9 @@ class TestWithdrawAll(TestCase):
 
 class TestReminders(TestCase):
     @freeze_time('2018-02-10 12:00:00')
-    @patch('apps.sales.tasks.Order')
+    @patch('apps.sales.tasks.Deliverable')
     @patch('apps.sales.tasks.remind_sale')
-    def test_reminder_emails(self, mock_remind_sale, mock_order):
+    def test_reminder_emails(self, mock_remind_sale, mock_deliverable):
         def build_calls(order_list, differences):
             for i in differences:
                 mock = Mock()
@@ -417,7 +419,7 @@ class TestReminders(TestCase):
         all_orders = [*to_remind]
         # To be ignored.
         build_calls(all_orders, [7, 8, 10, 11, 13, 14, 16, 17, 19, 21, 22, 23, 24, 26, 27, 28])
-        mock_order.objects.filter.return_value = all_orders
+        mock_deliverable.objects.filter.return_value = all_orders
         remind_sales()
         self.assertEqual(mock_remind_sale.delay.call_count, 12)
         to_remind = [
@@ -426,7 +428,7 @@ class TestReminders(TestCase):
         mock_remind_sale.delay.assert_has_calls(to_remind, any_order=True)
         timestamp = timezone.now()
         timestamp = timestamp.replace(year=2018, month=2, day=9, hour=12, minute=0)
-        mock_order.objects.filter.assert_called_with(
+        mock_deliverable.objects.filter.assert_called_with(
             status=NEW, created_on__lte=timestamp,
         )
 

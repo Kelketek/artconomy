@@ -1,6 +1,8 @@
 from django.contrib import admin
 
 # Register your models here.
+from django.utils.html import format_html
+
 from apps.lib.admin import CommentInline
 from apps.sales.models import Product, Order, Revision, Promo, TransactionRecord, Rating, Deliverable
 
@@ -25,7 +27,7 @@ class DeliverableAdmin(admin.ModelAdmin):
         CommentInline
     ]
     raw_id_fields = ['arbitrator', 'characters', 'product', 'order']
-    list_display = ('id', 'name', 'product', 'buyer', 'seller', 'shield_protected', 'status')
+    list_display = ('id', 'name', 'product', 'buyer', 'seller', 'shield_protected', 'status', 'link')
     list_filter = ('escrow_disabled', 'status')
 
     def buyer(self, obj):
@@ -36,6 +38,12 @@ class DeliverableAdmin(admin.ModelAdmin):
 
     def shield_protected(self, obj):
         return not obj.escrow_disabled
+
+    def link(self, obj):
+        return format_html(
+            f'<a href="/sales/{obj.order.seller.username}/sale/{obj.order.id}'
+            f'/deliverables/{obj.id}/overview/">visit</a>',
+        )
 
 
 class TransactionRecordAdmin(admin.ModelAdmin):

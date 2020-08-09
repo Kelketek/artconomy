@@ -79,14 +79,13 @@ def destroy_bank_account(account):
     account.save()
 
 
-@transaction.atomic
 @require_lock(TransactionRecord, 'ACCESS EXCLUSIVE')
 def initiate_withdraw(user, bank, amount, test_only=True):
     balance = account_balance(user, TransactionRecord.HOLDINGS)
     if amount.amount > balance:
         raise ValidationError({'amount': ['Amount cannot be greater than current balance of {}.'.format(balance)]})
     if test_only:
-        return
+        return None, Deliverable.objects.none()
     main_record = TransactionRecord(
         category=TransactionRecord.CASH_WITHDRAW,
         payee=user,
@@ -98,20 +97,16 @@ def initiate_withdraw(user, bank, amount, test_only=True):
     )
     main_record.save()
     main_record.targets.add(ref_for_instance(bank))
-    deliverables = list(Deliverable.objects.select_for_update().filter(
+    deliverables = Deliverable.objects.select_for_update().filter(
         payout_sent=False, order__seller=user, status=COMPLETED, escrow_disabled=False,
-    ))
+    )
     main_record.targets.add(*(ref_for_instance(deliverable) for deliverable in deliverables))
-    Deliverable.objects.filter(id__in=[deliverable.id for deliverable in deliverables]).update(payout_sent=True)
-    return main_record
+    return main_record, deliverables
 
 
-def perform_transfer(record, note='Disbursement'):
+def perform_transfer(record, deliverables, note='Disbursement'):
     from .tasks import get_transaction_fees
     bank = record.targets.filter(content_type=ContentType.objects.get_for_model(BankAccount)).get().target
-    deliverable_ids = [int(order_id) for order_id in record.targets.filter(
-        content_type=ContentType.objects.get_for_model(Deliverable),
-    ).values_list('object_id', flat=True)]
     transfer_request = {
         '_links': {
             'source': {
@@ -136,11 +131,11 @@ def perform_transfer(record, note='Disbursement'):
             record.remote_id = transfer.headers['location'].split('/transfers/')[-1].strip('/')
             record.remote_message = ''
             record.save()
+            deliverables.update(payout_sent=True)
+            get_transaction_fees.delay(str(record.id))
         except Exception as err:
             record.status = TransactionRecord.FAILURE
             record.remote_message = str(err)
             record.save()
-            Deliverable.objects.filter(id__in=deliverable_ids).update(payout_sent=False)
             raise
-        get_transaction_fees.delay(str(record.id))
         return record

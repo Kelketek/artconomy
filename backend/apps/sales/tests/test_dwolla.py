@@ -77,25 +77,25 @@ class DwollaTestCase(TestCase):
     @patch('apps.sales.dwolla.account_balance')
     def test_initiate_withdraw(self, mock_account_balance, _mock_api):
         account = BankAccountFactory.create(url='http://whatever.com/')
-        included_order = DeliverableFactory.create(order__seller=account.user, status=COMPLETED)
-        self.assertFalse(included_order.payout_sent)
+        included_deliverable = DeliverableFactory.create(order__seller=account.user, status=COMPLETED)
+        self.assertFalse(included_deliverable.payout_sent)
         unincluded_deliverables = [
             DeliverableFactory.create(order__seller=account.user, status=IN_PROGRESS),
             DeliverableFactory.create(status=IN_PROGRESS),
         ]
         mock_account_balance.return_value = Decimal('10.00')
-        record = initiate_withdraw(account.user, account, Money('5.00', 'USD'), False)
+        record, deliverables = initiate_withdraw(account.user, account, Money('5.00', 'USD'), False)
         self.assertEqual(record.status, TransactionRecord.PENDING)
         self.assertEqual(record.amount, Money('5.00', 'USD'))
         self.assertEqual(record.targets.first().target, account)
         self.assertEqual(record.category, TransactionRecord.CASH_WITHDRAW)
         self.assertEqual(record.source, TransactionRecord.HOLDINGS)
         self.assertEqual(record.destination, TransactionRecord.BANK)
-        included_order.refresh_from_db()
-        self.assertTrue(included_order.payout_sent)
+        included_deliverable.refresh_from_db()
+        self.assertIn(included_deliverable, deliverables)
         unincluded_deliverables = Deliverable.objects.filter(id__in=[deliverable.id for deliverable in unincluded_deliverables])
-        self.assertFalse(unincluded_deliverables[0].payout_sent)
-        self.assertFalse(unincluded_deliverables[1].payout_sent)
+        self.assertNotIn(unincluded_deliverables[0], deliverables)
+        self.assertNotIn(unincluded_deliverables[1], deliverables)
         self.assertEqual(unincluded_deliverables.count(), 2)
 
     @patch('apps.sales.dwolla.account_balance')
@@ -104,7 +104,7 @@ class DwollaTestCase(TestCase):
         # Remove the post-creation hook payment record.
         TransactionRecord.objects.all().delete()
         mock_account_balance.return_value = Decimal('10.00')
-        record = initiate_withdraw(account.user, account, Money('5.00', 'USD'), True)
+        record, _deliverables = initiate_withdraw(account.user, account, Money('5.00', 'USD'), True)
         self.assertIsNone(record)
         self.assertEqual(TransactionRecord.objects.all().count(), 0)
 
@@ -120,7 +120,7 @@ class DwollaTestCase(TestCase):
         )
         record.targets.add(ref_for_instance(account))
         mock_api.return_value.post.return_value.headers = {'location': 'http://transfers/123'}
-        perform_transfer(record)
+        perform_transfer(record, Deliverable.objects.none())
         mock_api.return_value.post.assert_called_with(
             'transfers', {
                 '_links': {
@@ -147,8 +147,7 @@ class DwollaTestCase(TestCase):
 
     def test_perform_transfer_failure(self, mock_api):
         account = BankAccountFactory.create(url='http://whatever.com/')
-        deliverable = DeliverableFactory.create(payout_sent=True)
-        self.assertTrue(deliverable.payout_sent)
+        deliverable = DeliverableFactory.create()
         record = TransactionRecordFactory.create(
             category=TransactionRecord.CASH_WITHDRAW,
             status=TransactionRecord.PENDING,
@@ -159,12 +158,10 @@ class DwollaTestCase(TestCase):
         )
         record.targets.add(ref_for_instance(account), ref_for_instance(deliverable))
         mock_api.return_value.post.side_effect = ValueError()
-        self.assertRaises(ValueError, perform_transfer, record)
+        self.assertRaises(ValueError, perform_transfer, record, Deliverable.objects.none())
         record.refresh_from_db()
         self.assertEqual(record.remote_id, 'N/A')
         self.assertEqual(record.status, TransactionRecord.FAILURE)
-        deliverable.refresh_from_db()
-        self.assertFalse(deliverable.payout_sent)
 
 
 TEST_VALUES = (

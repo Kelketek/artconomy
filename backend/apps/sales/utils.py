@@ -784,6 +784,7 @@ def order_context_to_link(context: OrderContext):
         },
     }
 
+
 @atomic
 def destroy_deliverable(deliverable: 'Deliverable'):
     from apps.sales.models import CANCELLED

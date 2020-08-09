@@ -3,6 +3,7 @@ import logging
 from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
 from django.contrib.contenttypes.models import ContentType
+from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
 from django.utils.datetime_safe import date
@@ -188,11 +189,12 @@ def withdraw_all(user_id):
     balance = account_balance(user, TransactionRecord.HOLDINGS)
     if balance <= 0:
         return
-    record = initiate_withdraw(user, banks[0], Money(balance, 'USD'), test_only=False)
-    try:
-        perform_transfer(record, note='Disbursement')
-    except Exception as err:
-        notify(TRANSFER_FAILED, user, data={'error': str(err)})
+    with transaction.atomic():
+        record, deliverables = initiate_withdraw(user, banks[0], Money(balance, 'USD'), test_only=False)
+        try:
+            perform_transfer(record, deliverables, note='Disbursement')
+        except Exception as err:
+            notify(TRANSFER_FAILED, user, data={'error': str(err)})
 
 
 @celery_app.task
@@ -210,25 +212,25 @@ def remind_sale(order_id):
 @celery_app.task
 def remind_sales():
     to_remind = []
-    orders = Order.objects.filter(
+    deliverables = Deliverable.objects.filter(
         status=NEW, created_on__lte=timezone.now() - relativedelta(days=1),
     )
-    for order in orders:
-        delta = (timezone.now() - order.created_on).days
+    for deliverable in deliverables:
+        delta = (timezone.now() - deliverable.created_on).days
         if delta <= 5:
-            to_remind.append(order)
+            to_remind.append(deliverable)
             continue
         elif delta <= 20 and not (delta % 3):
-            to_remind.append(order)
+            to_remind.append(deliverable)
             continue
         elif delta > 20 and not delta % 5:
-            to_remind.append(order)
-    for order in to_remind:
-        remind_sale.delay(order.id)
+            to_remind.append(deliverable)
+    for deliverable in to_remind:
+        remind_sale.delay(deliverable.id)
 
 
 @celery_app.task(
-    bind=True, autoretry_for=(HTTPError,), retry_kwargs={'max_retries': 5}, exponential_backoff=2, retry_jitter=True,
+    bind=True, autoretry_for=(HTTPError,), retry_kwargs={'max_retries': 30}, exponential_backoff=2, retry_jitter=True,
 )
 def get_transaction_fees(self, transaction_id: str):
     record = TransactionRecord.objects.get(id=transaction_id)
