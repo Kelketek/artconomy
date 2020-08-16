@@ -47,7 +47,7 @@
               I would earn <strong>${{hourly}}/hour.</strong>
             </v-col>
           </v-row>
-          <v-row v-if="isSeller && escrow && !landscape">
+          <v-row v-if="isSeller && escrow && !subject.landscape">
             <v-col class="text-center" cols="12">
               You could earn <strong>${{bonus.toFixed(2)}}</strong> more with
               <router-link :to="{name: 'Upgrade'}">Artconomy Landscape</router-link>!
@@ -66,7 +66,7 @@ import {SingleController} from '@/store/singles/controller'
 import Pricing from '@/types/Pricing'
 import Component, {mixins} from 'vue-class-component'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import {getTotals, totalForTypes, sum} from '@/lib/lineItemFunctions'
+import {getTotals, sum, totalForTypes} from '@/lib/lineItemFunctions'
 import LineItem from '@/types/LineItem'
 import AcLineItemPreview from '@/components/price_preview/AcLineItemPreview.vue'
 import {LineTypes} from '@/types/LineTypes'
@@ -112,8 +112,8 @@ export default class AcPricePreview extends mixins(Subjective) {
   }
 
   public get payout() {
-    const types = [LineTypes.BASE_PRICE, LineTypes.ADD_ON]
-    if (this.landscape) {
+    const types = [LineTypes.BASE_PRICE, LineTypes.ADD_ON, LineTypes.TIP]
+    if (this.subject!.landscape) {
       types.push(LineTypes.BONUS)
     }
     return totalForTypes(this.priceData, types)
@@ -166,7 +166,7 @@ export default class AcPricePreview extends mixins(Subjective) {
 
   public get moddedItems() {
     // Modify the items for user-facing calculation.
-    if (this.isSeller && this.landscape) {
+    if (this.isSeller && this.subject!.landscape) {
       return this.rawLineItems
     }
     const toConsolidate = this.rawLineItems.filter(

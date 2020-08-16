@@ -1320,12 +1320,28 @@ class PaymentMixin:
         details = transaction_details(remote_id)
         auth_code = details['auth_code']
         if not auth_code:
-            raise AuthorizeException('Transaction ID is for failed transaction.')
+            return self.annotate_error(
+                [],
+                AuthorizeException('Transaction ID is for failed transaction.'),
+                data,
+                user,
+            )
         if details['auth_amount'] != amount:
-            raise AuthorizeException(
-                f'This transaction ID is for the wrong amount. {amount} != {details["auth_amount"]}')
-        if TransactionRecord.objects.filter(auth_code=auth_code).exists():
-            raise AuthorizeException('An order with this transaction ID already exists.')
+            return self.annotate_error(
+                [],
+                AuthorizeException(
+                    f'This transaction ID is for the wrong amount. {amount} != {details["auth_amount"]}',
+                ),
+                data,
+                user,
+            )
+        if TransactionRecord.objects.filter(auth_code=auth_code, status=TransactionRecord.SUCCESS).exists():
+            return self.annotate_error(
+                [],
+                AuthorizeException('An order with this authorization code already exists.'),
+                data,
+                user,
+            )
         transactions = self.init_transactions(data, amount, user)
         for transaction in transactions:
             transaction.status = TransactionRecord.SUCCESS

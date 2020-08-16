@@ -590,7 +590,7 @@ class AccountBalanceSerializer(serializers.ModelSerializer):
     pending = serializers.SerializerMethodField()
 
     def get_escrow(self, obj):
-        return str(account_balance(obj, TransactionRecord.ESCROW_HOLD))
+        return str(account_balance(obj, TransactionRecord.ESCROW))
 
     def get_available(self, obj):
         return str(account_balance(obj, TransactionRecord.HOLDINGS))
