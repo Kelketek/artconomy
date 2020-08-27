@@ -18,10 +18,9 @@ from apps.sales.authorize import AuthorizeException
 from apps.sales.models import TransactionRecord, REVIEW, PAYMENT_PENDING, NEW, CANCELLED, IN_PROGRESS, Deliverable
 from apps.sales.tasks import run_billing, renew, update_transfer_status, remind_sales, remind_sale, check_transactions, \
     withdraw_all, auto_finalize_run, auto_finalize, get_transaction_fees, clear_cancelled_deliverables, \
-    clear_deliverable
+    clear_deliverable, recover_returned_balance
 from apps.sales.tests.factories import CreditCardTokenFactory, TransactionRecordFactory, DeliverableFactory, \
     BankAccountFactory
-from apps.sales.tests.factories import OrderFactory
 
 
 class TestAutoRenewal(TestCase):
@@ -454,6 +453,12 @@ def gen_dwolla_response():
     }
 
 
+def gen_dwolla_balance(amount: Money):
+    return {
+        'balance': {'value': str(amount.amount), 'currency': str(amount.currency)},
+    }
+
+
 @patch('apps.sales.apis.DwollaContext.dwolla_api', new_callable=PropertyMock)
 class TestGetTransactionFees(TestCase):
     def test_get_transaction_fee(self, mock_api):
@@ -529,3 +534,67 @@ class TestDeliverableClear(TestCase):
         relevent = DeliverableFactory(status=CANCELLED)
         clear_deliverable(relevent.id)
         mock_destroy.assert_called_with(relevent)
+
+
+@patch('apps.sales.apis.DwollaContext.dwolla_api', new_callable=PropertyMock)
+class TestRecoverReturnedBalance(TestCase):
+    @override_settings(DWOLLA_MASTER_BALANCE_KEY='', DWOLLA_FUNDING_SOURCE_KEY='')
+    def test_bail_no_keys_set(self, mock_dwolla):
+        recover_returned_balance()
+        mock_dwolla.return_value.get.assert_not_called()
+        mock_dwolla.return_value.post.assert_not_called()
+
+    @override_settings(DWOLLA_MASTER_BALANCE_KEY='', DWOLLA_FUNDING_SOURCE_KEY='https://example.com/')
+    def test_bail_no_funding_key(self, mock_dwolla):
+        recover_returned_balance()
+        mock_dwolla.return_value.get.assert_not_called()
+        mock_dwolla.return_value.post.assert_not_called()
+
+    @override_settings(DWOLLA_MASTER_BALANCE_KEY='https://example.com/', DWOLLA_FUNDING_SOURCE_KEY='')
+    def test_bail_no_balance_key(self, mock_dwolla):
+        recover_returned_balance()
+        mock_dwolla.return_value.get.assert_not_called()
+        mock_dwolla.return_value.post.assert_not_called()
+
+    @override_settings(
+        DWOLLA_MASTER_BALANCE_KEY='https://example.com/master-balance/',
+        DWOLLA_FUNDING_SOURCE_KEY='https://example.com/funding-source/',
+    )
+    def test_retrieve_negative_balance(self, mock_dwolla):
+        mock_dwolla.return_value.get.return_value.body = gen_dwolla_balance(Money('-5', 'USD'))
+        recover_returned_balance()
+        mock_dwolla.return_value.get.assert_called_with('https://example.com/master-balance/')
+        mock_dwolla.return_value.post.assert_not_called()
+
+    @override_settings(
+        DWOLLA_MASTER_BALANCE_KEY='https://example.com/master-balance/',
+        DWOLLA_FUNDING_SOURCE_KEY='https://example.com/funding-source/',
+    )
+    def test_retrieve_zero_balance(self, mock_dwolla):
+        mock_dwolla.return_value.get.return_value.body = gen_dwolla_balance(Money('0', 'USD'))
+        recover_returned_balance()
+        mock_dwolla.return_value.get.assert_called_with('https://example.com/master-balance/')
+        mock_dwolla.return_value.post.assert_not_called()
+
+    @override_settings(
+        DWOLLA_MASTER_BALANCE_KEY='https://example.com/master-balance/',
+        DWOLLA_FUNDING_SOURCE_KEY='https://example.com/funding-source/',
+    )
+    def test_retrieve_positive_balance(self, mock_dwolla):
+        mock_dwolla.return_value.get.return_value.body = gen_dwolla_balance(Money('5', 'USD'))
+        recover_returned_balance()
+        mock_dwolla.return_value.get.assert_called_with('https://example.com/master-balance/')
+        mock_dwolla.return_value.post.assert_called_with('transfers', {
+            '_links': {
+                'source': {
+                    'href': 'https://example.com/master-balance/',
+                },
+                'destination': {
+                    'href': 'https://example.com/funding-source/',
+                }
+            },
+            'amount': {
+                'currency': 'USD',
+                'value': '5',
+            },
+        })

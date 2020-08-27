@@ -2,6 +2,7 @@ import logging
 
 from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
+from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
 from django.db.models import Q
@@ -16,7 +17,7 @@ from apps.profiles.models import User
 from apps.sales.apis import dwolla
 from apps.sales.authorize import AuthorizeException, charge_saved_card
 from apps.sales.dwolla import initiate_withdraw, perform_transfer, TRANSACTION_STATUS_MAP
-from apps.sales.models import CreditCardToken, Order, TransactionRecord, REVIEW, NEW, Deliverable, CANCELLED
+from apps.sales.models import CreditCardToken, TransactionRecord, REVIEW, NEW, Deliverable, CANCELLED
 from apps.sales.utils import service_price, set_service, finalize_deliverable, account_balance, destroy_deliverable
 from conf.celery_config import celery_app
 
@@ -268,3 +269,31 @@ def clear_cancelled_deliverables():
     to_destroy = Deliverable.objects.filter(status=CANCELLED, cancelled_on__lte=timezone.now() - relativedelta(weeks=2))
     for deliverable in to_destroy:
         clear_deliverable(deliverable.id)
+
+
+@celery_app.task
+def recover_returned_balance():
+    if not (settings.DWOLLA_MASTER_BALANCE_KEY and settings.DWOLLA_FUNDING_SOURCE_KEY):
+        return
+    with dwolla as api:
+        response = api.get(settings.DWOLLA_MASTER_BALANCE_KEY)
+        balance = Money(response.body['balance']['value'], response.body['balance']['currency'])
+        if balance <= Money('0', 'USD'):
+            return
+
+    transfer_request = {
+        '_links': {
+            'source': {
+                'href': settings.DWOLLA_MASTER_BALANCE_KEY
+            },
+            'destination': {
+                'href': settings.DWOLLA_FUNDING_SOURCE_KEY
+            }
+        },
+        'amount': {
+            'currency': str(balance.currency),
+            'value': str(balance.amount),
+        },
+    }
+    with dwolla as api:
+        api.post('transfers', transfer_request)

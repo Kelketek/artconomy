@@ -247,9 +247,13 @@ THUMBNAIL_PRESERVE_EXTENSIONS = True
 
 DWOLLA_KEY = get_env('DWOLLA_KEY', '')
 DWOLLA_SECRET = get_env('DWOLLA_SECRET', '')
-# Named 'key' here mostly to make sure it gets filtered out of error emails.
+# These two Dwolla variables named 'key' here mostly to make sure it gets filtered out of error emails. They're URLs.
 DWOLLA_FUNDING_SOURCE_KEY = get_env(
     'DWOLLA_FUNDING_SOURCE_KEY', ''
+)
+
+DWOLLA_MASTER_BALANCE_KEY = get_env(
+    'DWOLLA_MASTER_BALANCE_KEY', ''
 )
 
 AUTHORIZE_KEY = get_env('AUTHORIZE_KEY', '')
@@ -453,6 +457,10 @@ CELERYBEAT_SCHEDULE = {
     'auto_finalize_run': {
         'task': 'apps.sales.tasks.auto_finalize_run',
         'schedule': crontab(hour=1, minute=0)
+    },
+    'recover_returned_balance': {
+        'task': 'apps.sales.tasks.recover_returned_balance',
+        'schedule': crontab(minute='*/30')
     },
     'remind_sales': {
         'task': 'apps.sales.tasks.remind_sales',
