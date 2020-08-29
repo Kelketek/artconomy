@@ -18,5 +18,6 @@ export interface State {
   markdownHelp: boolean,
   uploadVisible: boolean,
   iFrame: boolean,
+  searchInitialized: boolean,
   alerts: Alert[]
 }

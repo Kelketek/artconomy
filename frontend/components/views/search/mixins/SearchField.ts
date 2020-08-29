@@ -17,6 +17,9 @@ export default class SearchField extends Vue {
   public updateRouter = true
   @Watch('searchForm.rawData', {deep: true})
   public updateParams(newData: RawData) {
+    if (!this.$store.state.searchInitialized) {
+      return
+    }
     this.debouncedUpdate(newData)
   }
 
@@ -45,7 +48,11 @@ export default class SearchField extends Vue {
     if (!(this.list && this.list.reset)) {
       return
     }
-    this.list.reset().catch(this.searchForm.setErrors)
+    if (this.list.ready || this.list.fetching || this.list.failed) {
+      this.list.reset().catch(this.searchForm.setErrors)
+    } else {
+      this.list.get().catch(this.searchForm.setErrors)
+    }
   }
 
   public created() {

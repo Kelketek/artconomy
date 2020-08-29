@@ -74,6 +74,7 @@ describe('Search.vue', () => {
       }],
     })
     searchForm = mount(Empty, {localVue, store}).vm.$getForm('search', searchSchema())
+    store.commit('setSearchInitialized', true)
   })
   afterEach(() => {
     cleanUp(wrapper)

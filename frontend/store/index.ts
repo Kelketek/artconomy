@@ -18,6 +18,7 @@ export function storeDefaults(): StoreOptions<State> {
       markdownHelp: false,
       uploadVisible: false,
       iFrame: false,
+      searchInitialized: false,
       alerts: [],
     },
     mutations: {
@@ -44,6 +45,9 @@ export function storeDefaults(): StoreOptions<State> {
       },
       setiFrame(state) {
         state.iFrame = true
+      },
+      setSearchInitialized(state, value: boolean) {
+        state.searchInitialized = value
       },
     },
     getters: {

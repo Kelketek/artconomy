@@ -154,7 +154,7 @@ export default class App extends mixins(Viewer, Nav) {
       return
     }
     /* istanbul ignore if */
-    if (this.searchInitialized) {
+    if (this.$store.state.searchInitialized) {
       return
     }
     const query = {...this.$route.query}
@@ -167,7 +167,7 @@ export default class App extends mixins(Viewer, Nav) {
     this.searchForm.fields.lgbt.update(fallbackBoolean(query, 'lgbt', false))
     this.searchForm.fields.max_price.update(fallback(query, 'max_price', ''))
     this.searchForm.fields.min_price.update(fallback(query, 'min_price', ''))
-    this.searchInitialized = true
+    this.$store.commit('setSearchInitialized', true)
   }
 
   public created() {

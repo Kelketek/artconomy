@@ -18,7 +18,10 @@ import AcAvatar from '@/components/AcAvatar.vue'
 export default class SearchProfiles extends mixins(SearchList) {
     public list: ListController<TerseUser> = null as unknown as ListController<TerseUser>
     public created() {
-      this.list = this.$getList('searchProfiles', {endpoint: '/api/profiles/v1/search/user/'})
+      this.list = this.$getList('searchProfiles', {
+        endpoint: '/api/profiles/v1/search/user/',
+        persistent: true,
+      })
     }
 }
 </script>

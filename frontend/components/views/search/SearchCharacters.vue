@@ -27,7 +27,10 @@ import AcCharacterPreview from '@/components/AcCharacterPreview.vue'
 export default class SearchCharacters extends mixins(SearchList) {
     public list: ListController<Character> = null as unknown as ListController<Character>
     public created() {
-      this.list = this.$getList('searchCharacters', {endpoint: '/api/profiles/v1/search/character/'})
+      this.list = this.$getList('searchCharacters', {
+        endpoint: '/api/profiles/v1/search/character/',
+        persistent: true,
+      })
     }
 }
 </script>

@@ -29,7 +29,9 @@ import AcProductPreview from '@/components/AcProductPreview.vue'
 export default class SearchProducts extends mixins(SearchList) {
     public list: ListController<Product> = null as unknown as ListController<Product>
     public created() {
-      this.list = this.$getList('searchProducts', {endpoint: '/api/sales/v1/search/product/'})
+      this.list = this.$getList('searchProducts', {
+        endpoint: '/api/sales/v1/search/product/', persistent: true,
+      })
     }
 }
 </script>
