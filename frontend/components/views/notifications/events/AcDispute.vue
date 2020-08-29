@@ -1,13 +1,13 @@
 <template>
   <v-list-item>
-      <router-link :to="{name: 'Case', params: {orderId: event.target.id, username: viewer.username}}">
+      <router-link :to="casePath">
         <v-list-item-avatar>
           <img :src="$img(event.data.display, 'notification', true)"/>
         </v-list-item-avatar>
       </router-link>
     <v-list-item-content>
       <v-list-item-title>
-        A Dispute has been filed for Order #{{event.target.id}}.
+        A Dispute has been filed for Deliverable #{{event.target.id}}.
       </v-list-item-title>
     </v-list-item-content>
     <v-list-item-action>
@@ -35,9 +35,7 @@ export default {
   },
   methods: {
     visitOrder() {
-      this.$router.push(
-        {name: 'Order', params: {orderId: this.event.target.id, username: this.event.target.buyer.username}},
-      )
+      this.$router.push(this.casePath)
     },
     claimDispute() {
       artCall({url: `${this.url}claim/`, method: 'post'}).then(this.visitOrder)
@@ -45,7 +43,13 @@ export default {
   },
   computed: {
     url() {
-      return `/api/sales/v1/order/${this.event.target.id}/`
+      return `/api/sales/v1/order/${this.event.target.order.id}/deliverables/${this.event.target.id}/`
+    },
+    casePath() {
+      return {
+        name: 'CaseDeliverableOverview',
+        params: {orderId: this.event.target.order.id, username: this.viewerName, deliverableId: this.event.target.id},
+      }
     },
   },
 }
