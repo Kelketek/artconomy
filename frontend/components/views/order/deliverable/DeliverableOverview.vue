@@ -87,8 +87,6 @@
                 </v-col>
               </v-row>
               <ac-rendered :value="deliverable.x.details" />
-              <v-subheader v-if="commissionInfo">Commission Info</v-subheader>
-              <ac-rendered :value="commissionInfo" :truncate="200" />
             </v-card-text>
           </v-card>
         </v-col>
@@ -169,23 +167,6 @@ export default class DeliverableOverview extends mixins(DeliverableMixin, Format
   @Watch('order.patchers.customer_email.model')
   public resetSent() {
     this.inviteSent = false
-  }
-
-  public get commissionInfo() {
-    if (!this.sellerHandler) {
-      return ''
-    }
-    if (this.is(this.NEW) || this.is(this.PAYMENT_PENDING)) {
-      if (!this.sellerHandler.artistProfile.x) {
-        return ''
-      }
-      return this.sellerHandler.artistProfile.x.commission_info
-    }
-    /* istanbul ignore if */
-    if (!this.deliverable.x) {
-      return ''
-    }
-    return this.deliverable.x.commission_info
   }
 
   public get inviteDisabled() {

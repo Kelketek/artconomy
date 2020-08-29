@@ -167,8 +167,17 @@ export default class DeliverableMixin extends mixins(Viewer) {
   }
 
   public get deliveryDate() {
-    // @ts-ignore
-    return (moment() as Moment).businessAdd(Math.ceil(this.expectedTurnaround))
+    let time: Moment
+    const deliverable = this.deliverable.x
+    if (!deliverable) {
+      return null
+    }
+    if (deliverable.paid_on) {
+      time = moment(deliverable.paid_on)
+    } else {
+      time = moment()
+    }
+    return time.businessAdd(Math.ceil(this.expectedTurnaround))
   }
 
   public get disputeWindow() {

@@ -194,6 +194,14 @@
                 </v-card-text>
               </v-card>
             </v-col>
+            <v-col cols="12">
+              <v-card>
+                <v-card-text>
+                  <v-subheader v-if="commissionInfo">Commission Info</v-subheader>
+                  <ac-rendered :value="commissionInfo" :truncate="200" />
+                </v-card-text>
+              </v-card>
+            </v-col>
           </v-row>
         </template>
       </ac-load-section>
@@ -222,6 +230,7 @@ import AcForm from '@/components/wrappers/AcForm.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import Formatting from '@/mixins/formatting'
 import AcBoundField from '@/components/fields/AcBoundField'
+import AcRendered from '@/components/wrappers/AcRendered'
 @Component({
   components: {
     AcBoundField,
@@ -234,6 +243,7 @@ import AcBoundField from '@/components/fields/AcBoundField'
     AcEscrowLabel,
     AcPricePreview,
     AcLoadSection,
+    AcRendered,
   },
 })
 export default class DeliverablePayment extends mixins(DeliverableMixin, Formatting) {
@@ -278,6 +288,23 @@ export default class DeliverablePayment extends mixins(DeliverableMixin, Formatt
       return undefined
     }
     return this.totalCharge
+  }
+
+  public get commissionInfo() {
+    if (!this.sellerHandler) {
+      return ''
+    }
+    if (this.is(this.NEW) || this.is(this.PAYMENT_PENDING)) {
+      if (!this.sellerHandler.artistProfile.x) {
+        return ''
+      }
+      return this.sellerHandler.artistProfile.x.commission_info
+    }
+    /* istanbul ignore if */
+    if (!this.deliverable.x) {
+      return ''
+    }
+    return this.deliverable.x.commission_info
   }
 
   public get bareLines() {

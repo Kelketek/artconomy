@@ -27,41 +27,6 @@ describe('DeliverableOverview.vue', () => {
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('Gracefully handles commission info', async() => {
-    const user = genUser()
-    setViewer(store, user)
-    router.push('/orders/Fox/order/1/deliverables/5/overview')
-    wrapper = mount(
-      DeliverableOverview, {
-        localVue,
-        store,
-        router,
-        vuetify,
-        propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-
-        attachTo: docTarget(),
-        stubs: ['ac-revision-manager'],
-      })
-    const vm = wrapper.vm as any
-    expect(vm.commissionInfo).toBe('')
-    const deliverable = genDeliverable()
-    vm.order.makeReady(deliverable.order)
-    deliverable.status = DeliverableStatus.PAYMENT_PENDING
-    vm.deliverable.setX(deliverable)
-    vm.deliverable.fetching = false
-    vm.deliverable.ready = true
-    await vm.$nextTick()
-    vm.deliverable.updateX({commission_info: 'Stuff and things'})
-    vm.sellerHandler.artistProfile.updateX({commission_info: 'This is a test'})
-    await vm.$nextTick()
-    expect(vm.commissionInfo).toBe('This is a test')
-    vm.deliverable.updateX({status: DeliverableStatus.NEW})
-    await vm.$nextTick()
-    expect(vm.commissionInfo).toBe('This is a test')
-    vm.deliverable.updateX({status: DeliverableStatus.QUEUED})
-    await vm.$nextTick()
-    expect(vm.commissionInfo).toBe('Stuff and things')
-  })
   it('Handles a null product', async() => {
     const user = genUser()
     setViewer(store, user)
@@ -78,7 +43,6 @@ describe('DeliverableOverview.vue', () => {
         stubs: ['ac-revision-manager'],
       })
     const vm = wrapper.vm as any
-    expect(vm.commissionInfo).toBe('')
     const deliverable = genDeliverable()
     deliverable.product = null
     vm.order.makeReady(deliverable.order)

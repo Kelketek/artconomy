@@ -5,6 +5,7 @@ import DeliverablePayment from '@/components/views/order/deliverable/Deliverable
 import {DeliverableStatus} from '@/types/DeliverableStatus'
 import {dummyLineItems} from '@/lib/specs/helpers'
 import mockAxios from '@/__mocks__/axios'
+import MockDate from 'mockdate'
 import {LineTypes} from '@/types/LineTypes'
 import {genSubmission} from '@/store/submissions/specs/fixtures'
 import Router from 'vue-router'
@@ -14,6 +15,7 @@ import {Vuetify} from 'vuetify'
 import {deliverableRouter} from '@/components/views/order/specs/helpers'
 import {SingleController} from '@/store/singles/controller'
 import LineItem from '@/types/LineItem'
+import moment from 'moment/moment'
 
 const localVue = vueSetup()
 localVue.use(Router)
@@ -28,9 +30,12 @@ describe('DeliverablePayment.vue', () => {
     store = createStore()
     vuetify = createVuetify()
     router = deliverableRouter()
+    // This is a saturday.
+    MockDate.set(moment('2020-08-01').toDate())
   })
   afterEach(() => {
     cleanUp(wrapper)
+    MockDate.reset()
   })
   it('Updates after payment', async() => {
     const fox = genUser()
@@ -116,6 +121,41 @@ describe('DeliverablePayment.vue', () => {
       percentage: 0,
       type: LineTypes.TIP,
     })
+  })
+  it('Gracefully handles commission info', async() => {
+    const user = genUser()
+    setViewer(store, user)
+    router.push('/orders/Fox/order/1/deliverables/5/overview')
+    wrapper = mount(
+      DeliverablePayment, {
+        localVue,
+        store,
+        router,
+        vuetify,
+        propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
+
+        attachTo: docTarget(),
+        stubs: ['ac-revision-manager'],
+      })
+    const vm = wrapper.vm as any
+    expect(vm.commissionInfo).toBe('')
+    const deliverable = genDeliverable()
+    vm.order.makeReady(deliverable.order)
+    deliverable.status = DeliverableStatus.PAYMENT_PENDING
+    vm.deliverable.setX(deliverable)
+    vm.deliverable.fetching = false
+    vm.deliverable.ready = true
+    await vm.$nextTick()
+    vm.deliverable.updateX({commission_info: 'Stuff and things'})
+    vm.sellerHandler.artistProfile.updateX({commission_info: 'This is a test'})
+    await vm.$nextTick()
+    expect(vm.commissionInfo).toBe('This is a test')
+    vm.deliverable.updateX({status: DeliverableStatus.NEW})
+    await vm.$nextTick()
+    expect(vm.commissionInfo).toBe('This is a test')
+    vm.deliverable.updateX({status: DeliverableStatus.QUEUED})
+    await vm.$nextTick()
+    expect(vm.commissionInfo).toBe('Stuff and things')
   })
   it('Sends a status update', async() => {
     const vulpes = genUser()
@@ -327,5 +367,34 @@ describe('DeliverablePayment.vue', () => {
     await vm.$nextTick()
     expect(vm.tip).toBeTruthy()
     expect(vm.tip.patchers.amount.model).toBe('20.00')
+  })
+  it('Calculates the correct completion date.', async() => {
+    const fox = genUser()
+    fox.username = 'Fox'
+    setViewer(store, fox)
+    router.push('/orders/Fox/order/1/deliverables/5')
+    wrapper = mount(
+      DeliverablePayment, {
+        localVue,
+        store,
+        router,
+        vuetify,
+        propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
+
+        attachTo: docTarget(),
+        stubs: ['ac-revision-manager'],
+      })
+    const vm = wrapper.vm as any
+    expect(vm.deliveryDate).toBe(null)
+    const deliverable = genDeliverable({
+      expected_turnaround: 2, paid_on: null, adjustment_expected_turnaround: 1,
+    })
+    vm.deliverable.setX(deliverable)
+    vm.deliverable.ready = true
+    // August first is a saturday. Sunday, then two work days days, plus one more day for adjustment.
+    expect(vm.deliveryDate.toDate()).toEqual(moment('2020-08-06').toDate())
+    vm.deliverable.updateX({paid_on: moment('2020-06-01').toISOString()})
+    await vm.$nextTick()
+    expect(vm.deliveryDate.toDate()).toEqual(moment('2020-06-05').toDate())
   })
 })

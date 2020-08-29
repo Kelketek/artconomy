@@ -124,7 +124,7 @@
                             params: {...$route.params}}"
                             @click="scrollToSection"
                             class="review-terms-button"
-                          >Review Terms<span v-if="is(PAYMENT_PENDING) && isBuyer">/Pay</span></v-btn>
+                          >Review Terms/Pricing<span v-if="is(PAYMENT_PENDING) && isBuyer">/Pay</span></v-btn>
                         </v-col>
                         <v-col v-if="isBuyer" class="text-center">
                           <v-btn color="secondary" v-if="$route.params.deliverableId" :to="{name: `${baseName}DeliverableReferences`, params: {...$route.params}}">Add References</v-btn>
@@ -477,7 +477,7 @@ export default class DeliverableDetail extends mixins(DeliverableMixin, Formatti
         value: {name: `${this.baseName}DeliverableReferences`, params}, text: 'References/Characters',
       },
       {
-        value: {name: `${this.baseName}DeliverablePayment`, params}, text: 'Payment',
+        value: {name: `${this.baseName}DeliverablePayment`, params}, text: 'Payment/Terms',
       },
       {
         value: {name: `${this.baseName}DeliverableRevisions`, params}, text: 'Revisions',
