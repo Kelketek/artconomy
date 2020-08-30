@@ -198,6 +198,13 @@
                       <v-col v-if="is(CANCELLED) && isSeller">
                         <p>This order has been cancelled. There is nothing more to do.</p>
                       </v-col>
+                      <v-col v-if="!(is(CANCELLED) || is(REFUNDED) || is(COMPLETED)) && escrow" cols="12">
+                        <p><strong class="danger">WARNING:</strong> Any conversations made off-site, such as over
+                          instant messanger or text, cannot be viewed or verified by Artconomy staff and will not be
+                          considered in the case of a dispute. For your safety, any material discussion should be made
+                          via comments on this order. If you must use instant messanger, copy a summary here of your
+                          discussion for record, and have the other person affirm it is accurate.</p>
+                      </v-col>
                       <ac-form-dialog
                         v-if="is(COMPLETED)"
                         @submit.prevent="addSubmission.submitThen(visitSubmission)"
