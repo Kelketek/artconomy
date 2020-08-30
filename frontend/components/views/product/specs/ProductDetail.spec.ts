@@ -122,18 +122,21 @@ describe('ProductDetail.vue', () => {
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('Mounts', async() => {
+  it('Determines the slides to show for a product.', async() => {
     setViewer(store, genUser())
     setPricing(store, localVue)
     wrapper = mount(ProductDetail, {
       localVue, router, store, vuetify, attachTo: docTarget(), propsData: {username: 'Fox', productId: 1},
     })
-    expect((wrapper.vm as any).slides).toEqual([])
-    const product = genProduct()
-    product.primary_submission = null
-    mockAxios.mockResponse(rs(product))
-    await flushPromises()
-    await wrapper.vm.$nextTick()
+    const vm = wrapper.vm as any
+    expect(vm.slides).toEqual([])
+    const submission = genSubmission()
+    const product = genProduct({primary_submission: submission})
+    vm.product.makeReady(product)
+    await vm.$nextTick()
+    expect(submission).toEqual(vm.slides[0])
+    vm.product.updateX({primary_submission: null})
+    expect(vm.slides).toEqual([])
   })
   it('Deletes a product', async() => {
     const data = prepData()
