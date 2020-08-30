@@ -369,6 +369,7 @@ def comment_made(obj, context):
     context = dict(**context)
     # This data not to be trusted, as it is user provided.
     context['extra_data'] = comment.extra_data
+    context['view_name'] = 'DeliverableOverview'
     link = get_link(comment.top, context)
     if link:
         if 'query' in link:

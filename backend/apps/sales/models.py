@@ -364,7 +364,13 @@ class Deliverable(Model):
 
     def notification_link(self, context):
         return order_context_to_link(
-            order_context(order=self.order, deliverable=self, logged_in=False, user=context['request'].user),
+            order_context(
+                order=self.order,
+                deliverable=self,
+                logged_in=False,
+                user=context['request'].user,
+                view_name=context.get('view_name', None),
+            ),
         )
 
     def total(self):
