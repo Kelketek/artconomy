@@ -148,7 +148,7 @@ class ProductNewOrderSerializer(ProductNameMixin, serializers.ModelSerializer, C
     buyer = RelatedUserSerializer(read_only=True)
     characters = ListField(child=IntegerField(), required=False)
     rating = ModelField(model_field=Deliverable()._meta.get_field('rating'))
-    details = ModelField(model_field=Deliverable()._meta.get_field('details'))
+    details = ModelField(model_field=Deliverable()._meta.get_field('details'), max_length=5000)
     default_path = serializers.SerializerMethodField()
     product_name = serializers.SerializerMethodField()
 
