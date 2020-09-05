@@ -3,7 +3,7 @@ import re
 import traceback
 from collections import namedtuple, OrderedDict
 from decimal import Decimal
-from typing import TypedDict
+from typing import TypedDict, Any
 
 from authorizenet import apicontractsv1
 from authorizenet.apicontrollers import (
@@ -169,7 +169,7 @@ def transaction_details(remote_id: str) -> TransactionDetails:
     transaction = execute(controller).transaction
 
     return {
-        'auth_code': str(transaction.authCode).zfill(6),
+        'auth_code': to_authcode(transaction.authCode),
         'auth_amount': Money(str(transaction.authAmount), 'USD'),
     }
 
@@ -191,7 +191,7 @@ def charge_card(card_info: CardInfo, address_info: AddressInfo, amount: Decimal,
     controller = createTransactionController(
         create_transaction_request)
     response = execute(controller)
-    return str(response.transactionResponse.transId), str(response.transactionResponse.authCode).zfill(6)
+    return str(response.transactionResponse.transId), to_authcode(response.transactionResponse.authCode)
 
 
 def card_token_from_transaction(transaction_id: str, profile_id: str) -> str:
@@ -236,7 +236,7 @@ def charge_saved_card(
 
     response = execute(controller).transactionResponse
 
-    return str(response.transId), str(response.authCode)
+    return str(response.transId), to_authcode(response.authCode)
 
 
 def delete_card(profile_id: str = None, payment_id: str = None):
@@ -276,7 +276,7 @@ def refund_transaction(txn_id: str, last_four: str, amount: Decimal):
     request.transactionRequest = transaction
     controller = createTransactionController(request)
     response = execute(controller)
-    return str(response.transactionResponse.transId), str(response.transactionResponse.authCode).zfill(6)
+    return str(response.transactionResponse.transId), to_authcode(response.transactionResponse.authCode)
 
 
 def derive_authnet_error(err):
@@ -308,3 +308,10 @@ def get_card_type(number):
     for card_type, card_type_re in CARD_TYPES.items():
         if re.match(card_type_re, number):
             return card_type
+
+
+def to_authcode(value: Any) -> str:
+    value = str(value)
+    if not value:
+        return ''
+    return value.zfill(6)

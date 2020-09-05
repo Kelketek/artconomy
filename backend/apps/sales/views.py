@@ -87,6 +87,7 @@ def user_products(username: str, requester: User):
     qs = qs.order_by('-created_on')
     return qs
 
+
 class ProductList(ListCreateAPIView):
     serializer_class = ProductSerializer
     permission_classes = [Any(IsSafeMethod, All(IsRegistered, UserControls))]
@@ -332,7 +333,6 @@ class OrderDeliverables(ListCreateAPIView):
         deliverable.characters.set(serializer.validated_data.get('characters', []))
         deliverable.reference_set.set(serializer.validated_data.get('references', []))
         notify(ORDER_UPDATE, deliverable, unique=True, mark_unread=True)
-
 
 
 class DeliverableManager(RetrieveUpdateAPIView):
@@ -2220,7 +2220,7 @@ class OrderValues(CSVReport, ListAPIView, DateConstrained):
 
     def get_queryset(self):
         return Deliverable.objects.filter(escrow_disabled=False, **self.date_kwargs).exclude(
-            status__in=[CANCELLED, NEW, PAYMENT_PENDING],
+            status__in=[CANCELLED, NEW, PAYMENT_PENDING, WAITING],
         ).order_by('created_on')
 
     def get_renderer_context(self):
