@@ -1,5 +1,6 @@
 <template>
-  <div class="ac-avatar shrink text-center flex">
+  <ac-link :to="profileLink" v-if="inline">@{{username}}</ac-link>
+  <div class="ac-avatar shrink text-center flex" v-else>
     <div class="flex">
       <div class="flex">
         <ac-link :to="profileLink">
@@ -82,6 +83,9 @@ export default class AcAvatar extends Vue {
 
     @Prop({default: () => undefined})
     public remove!: () => void
+
+    @Prop({default: false})
+    public inline!: boolean
 
     @userHandle('subjectHandler')
     public subject!: User | null

@@ -382,12 +382,12 @@ Here's an email: support@artconomy.com`)).toBe(`<h1>Hello there.</h1>
   })
   it('Renders markdown with Avatars', () => {
     expect(md.render(
-      'Hello, @Foxie. Is this @Vulpine creature as cu@te @ as I\'d hope? Maybe @Fox\'s tricks will tell us.')).toBe(
-      '<p>Hello, <span style="display:inline-block;vertical-align: bottom;"><ac-avatar username="Foxie">' +
-      '</ac-avatar></span>. Is this <span style="display:inline-block;vertical-align: bottom;">' +
-      '<ac-avatar username="Vulpine"></ac-avatar></span> creature as cu@te @ as I\'d hope? Maybe ' +
-      '<span style="display:inline-block;vertical-align: bottom;">' +
-      `<ac-avatar username="Fox"></ac-avatar></span>'s tricks will tell us.</p>
+      'Hello, @Foxie. Is this @Vulpine creature as \\@sweet and cu@te @ as I\'d hope? Maybe @Fox\'s tricks ' +
+      'will tell us.')).toBe(
+      '<p>Hello, <ac-avatar username="Foxie" :inline="true"></ac-avatar>.' +
+      ' Is this <ac-avatar username="Vulpine" :inline="true"></ac-avatar> creature ' +
+      'as @sweet and cu@te @ as I\'d hope? Maybe <ac-avatar username="Fox" :inline="true"></ac-avatar>\'s ' +
+      `tricks will tell us.</p>
 `)
   })
   it.each`

@@ -107,6 +107,7 @@ export function mention(state: StateCore, silent?: boolean) {
     if (!/^\s+$/.test(prCh)) { return }
   }
   if (ch !== 0x40/* @ */) { return false }
+  if (state.src[pos - 2] === '\\') { return false }
   const start = pos
   pos++
   const max = state.posMax
@@ -133,8 +134,7 @@ md.renderer.rules.mention = (tokens, idx) => {
   const token = tokens[idx]
   const username = token.content.slice(1, token.content.length)
   // Must have no returns, or will affect spacing.
-  return '<span style="display:inline-block;vertical-align: bottom;">' +
-    `<ac-avatar username="${username}"></ac-avatar></span>`
+  return `<ac-avatar username="${username}" :inline="true"></ac-avatar>`
 }
 
 md.inline.ruler.push('mention', mention, ['mention'])
