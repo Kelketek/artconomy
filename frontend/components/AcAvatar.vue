@@ -1,6 +1,5 @@
 <template>
-  <ac-link :to="profileLink" v-if="inline">@{{username}}</ac-link>
-  <div class="ac-avatar shrink text-center flex" v-else>
+  <div class="ac-avatar shrink text-center flex">
     <div class="flex">
       <div class="flex">
         <ac-link :to="profileLink">

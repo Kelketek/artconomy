@@ -1,6 +1,6 @@
 import Component, {mixins} from 'vue-class-component'
 import {Prop} from 'vue-property-decorator'
-import AcAvatar from '@/components/AcAvatar.vue'
+import InlineAvatar from '@/components/InlineAvatar.vue'
 import Formatting from '@/mixins/formatting'
 import {compileToFunctions} from 'vue-template-compiler'
 import {CreateElement} from 'vue'
@@ -45,7 +45,7 @@ export default class AcRendered extends mixins(Formatting) {
   public get renderedComponent() {
     const self = this
     return {
-      components: {AcAvatar, ...VGrid, ...VToolbar},
+      components: {InlineAvatar, ...VGrid, ...VToolbar},
       data() {
         return {showMore: self.showMore}
       },

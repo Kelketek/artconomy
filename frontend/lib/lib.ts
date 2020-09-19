@@ -134,7 +134,7 @@ md.renderer.rules.mention = (tokens, idx) => {
   const token = tokens[idx]
   const username = token.content.slice(1, token.content.length)
   // Must have no returns, or will affect spacing.
-  return `<ac-avatar username="${username}" :inline="true"></ac-avatar>`
+  return `<inline-avatar username="${username}" />`
 }
 
 md.inline.ruler.push('mention', mention, ['mention'])

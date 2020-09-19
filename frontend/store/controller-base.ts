@@ -47,8 +47,8 @@ export class BaseController<S, D extends AttrKeys> extends Vue {
     let data: Partial<D> = {}
     path = path || this.path
     if (this.state) {
-      if (deepEqual(path, this.path)) {
-        // Already registered.
+      if (deepEqual(path, this.path) || this.stateFor(path)) {
+        // Already registered. Don't attempt to recreate the target module.
         return
       }
       data = {...this.state}
@@ -103,15 +103,19 @@ export class BaseController<S, D extends AttrKeys> extends Vue {
     return this.derivePath(this.name)
   }
 
-  public get state() {
+  public stateFor(path: string[]) {
     let state = this.$store.state
-    for (const namespace of this.path) {
+    for (const namespace of path) {
       if (state === undefined) {
         return undefined
       }
       state = state[namespace]
     }
     return state
+  }
+
+  public get state() {
+    return this.stateFor(this.path)
   }
 
   public attr(attrName: keyof D) {

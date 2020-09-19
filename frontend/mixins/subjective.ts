@@ -51,6 +51,8 @@ export default class Subjective extends mixins(Viewer) {
     const promise = this.subjectHandler.user.get()
     if (!this.missingOk) {
       promise.catch(this.setError)
+    } else {
+      promise.catch(() => undefined)
     }
   }
 
