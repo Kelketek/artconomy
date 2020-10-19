@@ -541,7 +541,7 @@ def buyer_subscriptions(instance, order_type=None):
     return [
         Subscription(
             subscriber=instance.order.buyer,
-            content_type=ContentType.objects.get_for_model(instance),
+            content_type=order_type,
             object_id=instance.id,
             email=True,
             type=ORDER_UPDATE,
