@@ -16,7 +16,7 @@
         </v-tooltip>
       </v-col>
       <v-col v-for="tag in displayedTags" :key="tag" class="shrink">
-        <v-chip @click="setSearch(tag)" class="tag-search-link">
+        <v-chip @click.stop.native="setSearch(tag)" class="tag-search-link">
           <ac-link :to="tagLink(tag)">{{tag}}</ac-link>
         </v-chip>
       </v-col>
