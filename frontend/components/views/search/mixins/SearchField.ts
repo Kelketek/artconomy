@@ -33,6 +33,10 @@ export default class SearchField extends Vue {
     // I'm not entirely sure how, but this seems to create a situation, sometimes, where we no longer have the list.
     // It might be that I'm reacting to something that destroys this component based on this change.
     this.list.params = newParams
+    if (!oldParams && (this.list.ready || this.list.fetching)) {
+      // Already in the process of pulling for the first time. Bail.
+      return
+    }
     /* istanbul ignore if */
     if (!(this.list && this.list.reset)) {
       return

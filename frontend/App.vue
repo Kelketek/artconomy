@@ -147,7 +147,7 @@ export default class App extends mixins(Viewer, Nav) {
   // For testing.
   public forceRecompute = 0
 
-  @Watch('$route.name')
+  @Watch('$route.name', {immediate: true})
   public initializeSearch(nameVal: null|string) {
     /* istanbul ignore if */
     if (!nameVal) {
@@ -158,6 +158,7 @@ export default class App extends mixins(Viewer, Nav) {
       return
     }
     const query = {...this.$route.query}
+    this.searchForm = this.$getForm('search', searchSchema())
     this.searchForm.fields.q.update(fallback(query, 'q', ''))
     this.searchForm.fields.watch_list.update(fallbackBoolean(query, 'watch_list', false))
     this.searchForm.fields.shield_only.update(fallbackBoolean(query, 'shield_only', false))
@@ -179,7 +180,6 @@ export default class App extends mixins(Viewer, Nav) {
         referring_url: {value: this.$route.fullPath},
       },
     })
-    this.searchForm = this.$getForm('search', searchSchema())
   }
 
   public showSuccess() {
