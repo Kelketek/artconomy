@@ -37,6 +37,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_csv.renderers import CSVRenderer
 
+from apps.lib.abstract_models import GENERAL
 from apps.lib.models import DISPUTE, REFUND, COMMENT, Subscription, ORDER_UPDATE, SALE_UPDATE, REVISION_UPLOADED, \
     NEW_PRODUCT, STREAMING, ref_for_instance, REFERENCE_UPLOADED, Comment, WAITLIST_UPDATED
 from apps.lib.permissions import IsStaff, IsSafeMethod, Any, All, IsMethod
@@ -1638,7 +1639,10 @@ class ProductSearch(ListAPIView):
         featured = search_serializer.validated_data.get('featured', False)
         lgbt = search_serializer.validated_data.get('lgbt', False)
         artists_of_color = search_serializer.validated_data.get('artists_of_color', False)
-        content_ratings = search_serializer.validated_data.get('content_ratings', False)
+        content_rating = search_serializer.validated_data.get('minimum_content_rating', 0)
+        if content_rating and content_rating > self.request.max_rating:
+            # Ignore rating setting if higher than the user's settings support.
+            content_rating = GENERAL
         watchlist_only = False
         if self.request.user.is_authenticated:
             watchlist_only = search_serializer.validated_data.get('watch_list')
@@ -1663,8 +1667,8 @@ class ProductSearch(ListAPIView):
             products = products.filter(user__artist_profile__artist_of_color=True)
         if lgbt:
             products = products.filter(user__artist_profile__lgbt=True)
-        if content_ratings:
-            products = products.filter(user__artist_profile__max_rating__gte=min(content_ratings))
+        if content_rating:
+            products = products.filter(user__artist_profile__max_rating__gte=content_rating)
         if by_rating:
             products = products.order_by(
                 F('user__stars').desc(nulls_last=True), '-edited_on', 'id').distinct('user__stars', 'created_on', 'id')

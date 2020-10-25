@@ -11,6 +11,7 @@ export default function searchSchema() {
       lgbt: {value: null, omitIf: null},
       artists_of_color: {value: null, omitIf: null},
       content_ratings: {value: '', omitIf: ''},
+      minimum_content_rating: {value: 0, omitIf: 0},
       max_price: {value: '', omitIf: ''},
       min_price: {value: '', omitIf: ''},
     },

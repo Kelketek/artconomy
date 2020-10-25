@@ -17,7 +17,7 @@ from rest_framework.fields import SerializerMethodField, DecimalField, IntegerFi
 from short_stuff import unslugify
 from short_stuff.django.serializers import ShortCodeField
 
-from apps.lib.abstract_models import GENERAL, EXTREME
+from apps.lib.abstract_models import GENERAL, EXTREME, RATINGS
 from apps.lib.models import ref_for_instance
 from apps.lib.serializers import (
     RelatedUserSerializer, RelatedAssetField, EventTargetRelatedField, SubscribedField,
@@ -678,6 +678,7 @@ class SearchQuerySerializer(serializers.Serializer):
     shield_only = serializers.BooleanField(required=False)
     watch_list = serializers.BooleanField(required=False)
     by_rating = serializers.BooleanField(required=False)
+    minimum_content_rating = serializers.ChoiceField(choices=RATINGS, required=False)
     content_ratings = serializers.RegexField(r'^[0-4](,[0-4]){0,3}$', required=False)
     featured = serializers.BooleanField(required=False)
     artists_of_color = serializers.BooleanField(required=False)

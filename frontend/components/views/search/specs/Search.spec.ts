@@ -131,7 +131,7 @@ describe('Search.vue', () => {
     const vm = wrapper.vm as any
     await vm.$nextTick()
     expect(wrapper.find('.v-alert').exists()).toBe(false)
-    searchForm.fields.content_ratings.update('2,3')
+    searchForm.fields.minimum_content_rating.update('3')
     await vm.$nextTick()
     expect(wrapper.find('.v-alert').exists()).toBe(true)
     expect((wrapper.find('.v-alert a').element as HTMLAnchorElement).href).toEqual('http://localhost/settings')
