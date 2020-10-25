@@ -160,6 +160,7 @@ export default class App extends mixins(Viewer, Nav) {
     const query = {...this.$route.query}
     this.searchForm = this.$getForm('search', searchSchema())
     this.searchForm.fields.q.update(fallback(query, 'q', ''))
+    this.searchForm.fields.content_ratings.update(fallback(query, 'content_ratings', ''))
     this.searchForm.fields.watch_list.update(fallbackBoolean(query, 'watch_list', false))
     this.searchForm.fields.shield_only.update(fallbackBoolean(query, 'shield_only', false))
     this.searchForm.fields.featured.update(fallbackBoolean(query, 'featured', false))

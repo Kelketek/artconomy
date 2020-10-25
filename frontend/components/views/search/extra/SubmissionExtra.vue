@@ -13,8 +13,8 @@
           </v-expansion-panel-header>
           <v-expansion-panel-content>
             <v-card-text>
-              <v-row no-gutters>
-                <v-col cols="12" sm="6" md="4">
+              <v-row dense>
+                <v-col cols="12" sm="6" md="4" offset-md="2">
                   <ac-bound-field
                       :field="searchForm.fields.watch_list"
                       field-type="ac-checkbox"
@@ -23,11 +23,31 @@
                       hint="Only return results from artists on my watch list."
                   />
                 </v-col>
+                <v-col cols="12" sm="6" md="4" v-if="showRatings">
+                  <v-select
+                      :field="searchForm.fields.min_price"
+                      field-type="v-select"
+                      label="Content Ratings"
+                      :persistent-hint="true"
+                      :items="ratingItems"
+                      v-model="contentRatings"
+                      solo-inverted
+                      multiple
+                      chips
+                      hint="Only show submissions with these ratings."
+                  />
+                </v-col>
               </v-row>
             </v-card-text>
           </v-expansion-panel-content>
         </v-expansion-panel>
       </v-expansion-panels>
+    </v-col>
+    <v-col v-if="maxSelected > rating" class="py-2">
+      <v-alert type="warning">
+        Some results may be hidden because your content rating settings are too low.
+        <router-link :to="settingsPage">Adjust your content rating settings.</router-link>
+      </v-alert>
     </v-col>
   </v-row>
 </template>
@@ -43,10 +63,11 @@ import Component, {mixins} from 'vue-class-component'
 import SearchHints from '../mixins/SearchHints'
 import AcBoundField from '@/components/fields/AcBoundField'
 import Viewer from '@/mixins/viewer'
+import SearchContentRatingMixin from '@/components/views/search/mixins/SearchContentRatingMixin'
   @Component({
     components: {AcBoundField},
   })
-export default class SubmissionExtra extends mixins(SearchHints, Viewer) {
+export default class SubmissionExtra extends mixins(SearchHints, SearchContentRatingMixin, Viewer) {
     public panel: null|number = null
 }
 </script>

@@ -9,13 +9,13 @@ from rest_framework import status
 
 from apps.lib.models import (
     Subscription, COMMENT, Notification, SUBMISSION_SHARED, CHAR_SHARED,
-    NEW_PRODUCT, NEW_CHARACTER,
+    NEW_PRODUCT, NEW_CHARACTER, Tag,
 )
 from apps.lib.tests.factories import AssetFactory
 from apps.lib.tests.factories_interdepend import CommentFactory
 from apps.lib.utils import watch_subscriptions
 from apps.profiles.models import Character, Submission, Conversation, User, ConversationParticipant
-from apps.lib.abstract_models import MATURE, ADULT, GENERAL
+from apps.lib.abstract_models import MATURE, ADULT, GENERAL, EXTREME
 from apps.lib.test_resources import APITestCase, SignalsDisabledMixin, PermissionsTestCase, MethodAccessMixin
 from apps.profiles.tests.factories import (
     UserFactory, CharacterFactory, SubmissionFactory,
@@ -640,6 +640,23 @@ class ValidatorChecks(APITestCase):
     def test_username_validator_available(self):
         response = self.client.post('/api/profiles/v1/form-validators/username/', {'username': 'stuff'}, format='json')
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+
+class TestSubmissionSearch(APITestCase):
+    def test_submission_rating_search(self):
+        artist = UserFactory.create()
+        Tag.objects.create(name='stuff')
+        SubmissionFactory.create(rating=GENERAL, owner=artist).tags.add('stuff')
+        submission_risque = SubmissionFactory.create(rating=MATURE, owner=artist)
+        submission_risque.tags.add('stuff')
+        SubmissionFactory.create(rating=ADULT, title='Stuff', owner=artist).tags.add('stuff')
+        submission_extreme = SubmissionFactory.create(rating=EXTREME, title='Stuff', owner=artist)
+        submission_extreme.tags.add('stuff')
+        self.login(user=UserFactory.create(rating=EXTREME))
+        response = self.client.get('/api/profiles/v1/search/submission/?q=stuff&content_ratings=1,3')
+        self.assertEqual(len(response.data['results']), 2)
+        self.assertIDInList(submission_risque, response.data['results'])
+        self.assertIDInList(submission_extreme, response.data['results'])
 
 
 class TestCharacterSearch(APITestCase):

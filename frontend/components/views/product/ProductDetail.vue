@@ -163,9 +163,17 @@
                 <v-col cols="12">
                   <ac-load-section :controller="subjectHandler.artistProfile">
                     <template v-slot:default>
-                      <v-subheader v-if="subjectHandler.artistProfile.x.commission_info" v-show="!editing">Commission Info</v-subheader>
-                      <ac-rendered :value="subjectHandler.artistProfile.x.commission_info" :truncate="500" v-show="!editing" />
-                      <ac-patch-field
+                      <v-row no-gutters>
+                        <v-col cols="12">
+                          <strong>Maximum Content Rating:</strong>
+                          <v-btn class="mx-2 rating-button" x-small :color="ratingColor[subjectHandler.artistProfile.x.max_rating]" :ripple="editing">
+                            {{ratingsShort[subjectHandler.artistProfile.x.max_rating]}}
+                          </v-btn>
+                        </v-col>
+                        <v-col cols="12">
+                          <v-subheader v-if="subjectHandler.artistProfile.x.commission_info" v-show="!editing">Commission Info</v-subheader>
+                          <ac-rendered :value="subjectHandler.artistProfile.x.commission_info" :truncate="500" v-show="!editing" />
+                          <ac-patch-field
                               field-type="ac-editor"
                               :auto-save="false"
                               :patcher="subjectHandler.artistProfile.patchers.commission_info"
@@ -175,6 +183,8 @@
                               hint="This information will be shown on ALL of your product pages. It could contain terms of service or
               other information used to set expectations with your clients."
                               :save-comparison="subjectHandler.artistProfile.x.commission_info" />
+                        </v-col>
+                      </v-row>
                     </template>
                   </ac-load-section>
                 </v-col>
@@ -429,7 +439,7 @@ import {RawLocation} from 'vue-router'
 import LinkedSubmission from '@/types/LinkedSubmission'
 import ProductCentric from '@/components/views/product/mixins/ProductCentric'
 import AcEscrowLabel from '@/components/AcEscrowLabel.vue'
-import {setMetaContent, textualize, updateTitle} from '@/lib/lib'
+import {RATING_COLOR, RATINGS_SHORT, setMetaContent, textualize, updateTitle} from '@/lib/lib'
 import AcShareButton from '@/components/AcShareButton.vue'
 import LineItem from '@/types/LineItem'
 import Pricing from '@/types/Pricing'
@@ -468,6 +478,8 @@ export default class ProductDetail extends mixins(ProductCentric, Formatting, Ed
     public shown: null|Submission = null
     public samples: ListController<LinkedSubmission> = null as unknown as ListController<LinkedSubmission>
     public recommended: ListController<Product> = null as unknown as ListController<Product>
+    public ratingsShort = RATINGS_SHORT
+    public ratingColor = RATING_COLOR
 
     public get escrowDisabled() {
       /* istanbul ignore if */

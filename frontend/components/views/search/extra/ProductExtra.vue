@@ -15,12 +15,18 @@
                 <v-chip v-if="searchForm.fields.min_price.value" color="black" class="mx-1">min price</v-chip>
                 <v-chip v-if="searchForm.fields.artists_of_color.value" color="orange" class="mx-1" light>Artists of Color</v-chip>
                 <v-chip v-if="searchForm.fields.lgbt.value" color="purple" class="mx-1">LGBT+</v-chip>
+                <v-chip v-if="searchForm.fields.content_ratings.value" color="white" light class="mx-1">Content
+                  <template v-for="contentRating in contentRatings">
+                    <span class="px-1" :key="contentRating + '-spacer'"/>
+                    <v-badge dot :color="ratingColor[contentRating]" :key="contentRating" />
+                  </template>
+                </v-chip>
               </v-col>
             </v-row>
           </v-expansion-panel-header>
           <v-expansion-panel-content>
             <v-card-text>
-              <v-row no-gutters  >
+              <v-row dense>
                 <v-col cols="12" sm="6" md="4" v-if="isRegistered">
                   <ac-bound-field
                     :field="searchForm.fields.watch_list"
@@ -75,7 +81,7 @@
                     hint="Find products from LGBTQ+ artists."
                   />
                 </v-col>
-                <v-col cols="12" sm="6" md="6">
+                <v-col cols="12" sm="6" :md="showRatings ? 4 : 6">
                   <ac-bound-field
                     :field="searchForm.fields.max_price"
                     label="Max Price"
@@ -83,7 +89,7 @@
                     hint="Only show products with a price equal to or lower than this amount."
                   />
                 </v-col>
-                <v-col cols="12" sm="6" md="6">
+                <v-col cols="12" sm="6" :md="showRatings ? 4 : 6">
                   <ac-bound-field
                     :field="searchForm.fields.min_price"
                     label="Min Price"
@@ -91,11 +97,31 @@
                     hint="Only show products with a price equal to or higher than this amount."
                   />
                 </v-col>
+                <v-col cols="12" sm="6" md="4" v-if="showRatings">
+                  <v-select
+                      :field="searchForm.fields.min_price"
+                      field-type="v-select"
+                      label="Content Ratings"
+                      :persistent-hint="true"
+                      :items="ratingItems"
+                      v-model="contentRatings"
+                      solo-inverted
+                      multiple
+                      chips
+                      hint="Only show products if artists are willing to create with these content ratings."
+                  />
+                </v-col>
               </v-row>
             </v-card-text>
           </v-expansion-panel-content>
         </v-expansion-panel>
       </v-expansion-panels>
+    </v-col>
+    <v-col v-if="maxSelected > rating" class="py-2">
+      <v-alert type="warning">
+        Some results may be hidden because your content rating settings are too low.
+        <router-link :to="settingsPage">Adjust your content rating settings.</router-link>
+      </v-alert>
     </v-col>
   </v-row>
 </template>
@@ -111,10 +137,12 @@ import Component, {mixins} from 'vue-class-component'
 import SearchHints from '../mixins/SearchHints'
 import AcBoundField from '@/components/fields/AcBoundField'
 import Viewer from '@/mixins/viewer'
+import {RATING_COLOR, RATINGS_SHORT} from '@/lib/lib'
+import SearchContentRatingMixin from '@/components/views/search/mixins/SearchContentRatingMixin'
   @Component({
     components: {AcBoundField},
   })
-export default class ProductExtra extends mixins(SearchHints, Viewer) {
+export default class ProductExtra extends mixins(SearchHints, SearchContentRatingMixin, Viewer) {
     public panel: null|number = null
 }
 </script>

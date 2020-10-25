@@ -634,6 +634,7 @@ export function searchSchema() {
       rating: {value: false, omitIf: false},
       lgbt: {value: false, omitIf: false},
       artists_of_color: {value: false, omitIf: false},
+      content_ratings: {value: '', omitIf: ''},
       max_price: {value: '', omitIf: ''},
       min_price: {value: '', omitIf: ''},
     },

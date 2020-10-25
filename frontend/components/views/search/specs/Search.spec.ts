@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import {Vuetify} from 'vuetify/types'
 import Router from 'vue-router'
-import {cleanUp, createVuetify, docTarget, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, genAnon, setViewer, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import {mount, Wrapper} from '@vue/test-utils'
 import Search from '@/components/views/search/Search.vue'
@@ -17,6 +17,9 @@ import CharacterHints from '@/components/views/search/hints/CharacterHints.vue'
 import ProfileHints from '@/components/views/search/hints/ProfileHints.vue'
 import searchSchema from '@/components/views/search/specs/fixtures'
 import {FormController} from '@/store/forms/form-controller'
+import {genUser} from '@/specs/helpers/fixtures'
+import {Ratings} from '@/store/profiles/types/Ratings'
+import SubmissionExtra from '@/components/views/search/extra/SubmissionExtra.vue'
 
 const localVue = vueSetup()
 localVue.use(Router)
@@ -52,6 +55,7 @@ describe('Search.vue', () => {
           components: {
             default: SearchSubmissions,
             hints: SubmissionHints,
+            extra: SubmissionExtra,
           },
           props: true,
         }, {
@@ -71,6 +75,16 @@ describe('Search.vue', () => {
           },
           props: true,
         }],
+      }, {
+        name: 'SessionSettings',
+        path: '/settings/',
+        component: Empty,
+        props: true,
+      }, {
+        name: 'Options',
+        path: '/profile/:username/settings/options',
+        component: Empty,
+        props: true,
       }],
     })
     searchForm = mount(Empty, {localVue, store}).vm.$getForm('search', searchSchema())
@@ -109,5 +123,36 @@ describe('Search.vue', () => {
     searchForm.fields.featured.update(true)
     await wrapper.vm.$nextTick()
     expect(wrapper.vm.$route.query).toEqual({featured: 'true'})
+  })
+  it('Shows an alert when an anonymous user has a max rating under the current search', async() => {
+    router.push({name: 'SearchProducts'})
+    setViewer(store, genAnon())
+    wrapper = mount(Search, {localVue, store, router, attachTo: docTarget(), stubs: ['v-badge']})
+    const vm = wrapper.vm as any
+    await vm.$nextTick()
+    expect(wrapper.find('.v-alert').exists()).toBe(false)
+    searchForm.fields.content_ratings.update('2,3')
+    await vm.$nextTick()
+    expect(wrapper.find('.v-alert').exists()).toBe(true)
+    expect((wrapper.find('.v-alert a').element as HTMLAnchorElement).href).toEqual('http://localhost/settings')
+  })
+  it('Shows an alert when a registered user has a max rating under the current search', async() => {
+    router.push({name: 'SearchSubmissions'})
+    searchForm.fields.content_ratings.update('2,3')
+    setViewer(store, genUser({username: 'Fox', rating: Ratings.GENERAL}))
+    wrapper = mount(Search, {localVue, store, router, attachTo: docTarget(), stubs: ['v-badge']})
+    const vm = wrapper.vm as any
+    await vm.$nextTick()
+    expect(wrapper.find('.v-alert').exists()).toBe(true)
+    expect((wrapper.find('.v-alert a').element as HTMLAnchorElement).href).toEqual(
+      'http://localhost/profile/Fox/settings/options',
+    )
+  })
+  it('Properly handles setting and getting the allowed content ratings', async() => {
+    wrapper = mount(SubmissionExtra, {localVue, store, router, attachTo: docTarget(), stubs: ['v-badge']})
+    const vm = wrapper.vm as any
+    vm.contentRatings = ['1', '3', '0']
+    expect(vm.contentRatings).toEqual(['0', '1', '3'])
+    expect(searchForm.fields.content_ratings.value).toBe('0,1,3')
   })
 })

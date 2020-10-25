@@ -10,6 +10,7 @@ export default function searchSchema() {
       rating: {value: null, omitIf: null},
       lgbt: {value: null, omitIf: null},
       artists_of_color: {value: null, omitIf: null},
+      content_ratings: {value: '', omitIf: ''},
       max_price: {value: '', omitIf: ''},
       min_price: {value: '', omitIf: ''},
     },
