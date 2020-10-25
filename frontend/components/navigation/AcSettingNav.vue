@@ -13,8 +13,8 @@
         <v-icon>palette</v-icon>
       </v-list-item-icon>
     </v-list-item>
-    <v-list-item :to="{name: 'Credentials', params: {username}}">
-      <v-list-item-title>Credentials</v-list-item-title>
+    <v-list-item :to="{name: 'Login Details', params: {username}}">
+      <v-list-item-title>Login Details</v-list-item-title>
       <v-list-item-icon>
         <v-icon>lock</v-icon>
       </v-list-item-icon>

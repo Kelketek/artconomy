@@ -49,6 +49,12 @@
               <ac-form @submit.prevent="registerForm.submitThen(loginHandler)">
                 <ac-form-container :sending="loginForm.sending" :errors="loginForm.errors">
                   <ac-bound-field
+                      label="Username"
+                      placeholder=""
+                      :field="registerForm.fields.username"
+                      hint="You can change this later."
+                  />
+                  <ac-bound-field
                       label="Email"
                       placeholder="test@example.com"
                       :field="registerForm.fields.email"
@@ -59,16 +65,11 @@
                       :field="registerForm.fields.password"
                   />
                   <ac-bound-field
-                      label="Username"
-                      placeholder=""
-                      :field="registerForm.fields.username"
-                      hint="You can change this later."
-                  />
-                  <ac-bound-field
                       label="Promo Code"
                       placeholder=""
                       :field="registerForm.fields.registration_code"
                       hint="If you've been given a promo code, please enter it here!"
+                      prepend-icon="local_offer"
                   />
                   <v-row>
                     <v-col cols="12" sm="6" >

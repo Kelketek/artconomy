@@ -28,7 +28,7 @@ const settingRoutes = [{
   },
   children: [
     {
-      name: 'Credentials',
+      name: 'Login Details',
       path: 'credentials',
       component: Credentials,
       props: true,
