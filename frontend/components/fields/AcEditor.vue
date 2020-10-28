@@ -8,7 +8,7 @@
         </v-row>
       </v-col>
       <v-col cols="12" v-else>
-        <v-textarea v-bind="inputAttrs" ref="input" v-model="scratch" outlined :auto-grow="autoGrow" :rows="rows || this.defaultRows" />
+        <v-textarea v-bind="inputAttrs" ref="input" v-model="scratch" outlined :auto-grow="autoGrow" />
       </v-col>
       <v-col cols="12">
         <v-row dense>
@@ -118,14 +118,10 @@ export default class AcEditor extends Vue {
     @Prop({default: false})
     public disabled!: boolean
 
-    @Prop({default: 0})
-    public rows!: number
-
     @Mutation('setMarkdownHelp')
     public setMarkdownHelp: any
 
     public previewMode = false
-    public markdownHelp = false
 
     public scratch: string = ''
 
@@ -157,10 +153,6 @@ export default class AcEditor extends Vue {
       delete attrs.value
       delete attrs.autoSave
       return attrs
-    }
-
-    public get defaultRows() {
-      return this.value.split(/\r\n|\r|\n/).length
     }
 
     public get saved() {
