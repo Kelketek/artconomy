@@ -4,7 +4,7 @@ import deepEqual from 'fast-deep-equal'
 import {makeQueryParams} from '@/lib/lib'
 import {ListController} from '@/store/lists/controller'
 import {FormController} from '@/store/forms/form-controller'
-import {Cancelable, debounce} from 'lodash'
+import {debounce} from 'lodash'
 import {Watch} from 'vue-property-decorator'
 import Component from 'vue-class-component'
 
@@ -13,7 +13,7 @@ export default class SearchField extends Vue {
   // list and searchForm must be defined on subclass.
   public list!: ListController<any>
   public searchForm!: FormController
-  public debouncedUpdate!: ((newData: RawData) => void) & Cancelable
+  public debouncedUpdate!: ((newData: RawData) => void)
   public updateRouter = true
   @Watch('searchForm.rawData', {deep: true})
   public updateParams(newData: RawData) {

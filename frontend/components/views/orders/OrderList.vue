@@ -94,7 +94,6 @@ import Order from '@/types/Order'
 import AcOrderPreview from '@/components/AcOrderPreview.vue'
 import {FormController} from '@/store/forms/form-controller'
 import {RawData} from '@/store/forms/types/RawData'
-import {Cancelable} from 'lodash'
 import SearchField from '@/components/views/search/mixins/SearchField'
 import AcBoundField from '@/components/fields/AcBoundField'
 import AcUnreadMarker from '@/components/AcUnreadMarker.vue'
@@ -120,7 +119,7 @@ export default class OrderList extends mixins(Subjective, SearchField, Formattin
   public inProgress = false
 
   public list: ListController<Order> = null as unknown as ListController<Order>
-  public debouncedUpdate!: ((newData: RawData) => void) & Cancelable
+  public debouncedUpdate!: ((newData: RawData) => void)
   public searchForm: FormController = null as unknown as FormController
   public productInitItems: Product[] = []
 
