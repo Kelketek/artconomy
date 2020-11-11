@@ -2173,6 +2173,7 @@ class DateConstrained:
         default_start = timezone.now().replace(
             day=1, hour=0, minute=0, second=0, microsecond=0,
         )
+        default_start -= relativedelta(months=2)
         date_string = self.request.GET.get('start_date', '')
         try:
             start_date = make_aware(parse(date_string))
@@ -2186,10 +2187,7 @@ class DateConstrained:
     def end_date(self) -> Union[datetime, None]:
         end_date = None
         date_string = self.request.GET.get('end_date', '')
-        default_end = self.start_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        default_end += relativedelta(months=1)
-        if default_end > timezone.now():
-            default_end = timezone.now()
+        default_end = timezone.now()
         try:
             end_date = make_aware(parse(date_string))
         except ParserError:
@@ -2204,7 +2202,6 @@ class DateConstrained:
             f'{self.date_field}__gte': self.start_date,
             f'{self.date_field}__lte': self.end_date,
         }
-        print(kwargs)
         return kwargs
 
 
@@ -2234,7 +2231,7 @@ class OrderValues(CSVReport, ListAPIView, DateConstrained):
     def get_queryset(self):
         return Deliverable.objects.filter(escrow_disabled=False, **self.date_kwargs).exclude(
             status__in=[CANCELLED, NEW, PAYMENT_PENDING, WAITING],
-        ).order_by('-created_on')
+        ).order_by('created_on')
 
     def get_renderer_context(self):
         context = super().get_renderer_context()
@@ -2283,7 +2280,7 @@ class SubscriptionReportCSV(CSVReport, ListAPIView, DateConstrained):
         return TransactionRecord.objects.filter(
             category__in=[TransactionRecord.SUBSCRIPTION_DUES, TransactionRecord.SUBSCRIPTION_REFUND],
             **self.date_kwargs,
-        ).exclude(status=TransactionRecord.FAILURE)
+        ).exclude(status=TransactionRecord.FAILURE).order_by('created_on')
 
 
 class PayoutReportCSV(CSVReport, ListAPIView, DateConstrained):
@@ -2314,7 +2311,7 @@ class PayoutReportCSV(CSVReport, ListAPIView, DateConstrained):
             source=TransactionRecord.HOLDINGS,
             destination=TransactionRecord.BANK,
             **self.date_kwargs,
-        ).exclude(payer=None).exclude(status=TransactionRecord.FAILURE).order_by('-created_on')
+        ).exclude(payer=None).exclude(status=TransactionRecord.FAILURE).order_by('created_on')
 
 
 class DwollaSetupFees(CSVReport, ListAPIView, DateConstrained):
@@ -2340,7 +2337,7 @@ class DwollaSetupFees(CSVReport, ListAPIView, DateConstrained):
             destination=TransactionRecord.ACH_MISC_FEES,
             category=TransactionRecord.THIRD_PARTY_FEE,
             **self.date_kwargs,
-        ).exclude(status=TransactionRecord.FAILURE).order_by('-created_on')
+        ).exclude(status=TransactionRecord.FAILURE).order_by('created_on')
 
 
 class ProductRecommendations(ListAPIView):
