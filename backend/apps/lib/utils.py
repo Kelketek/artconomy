@@ -572,7 +572,7 @@ class MinimumOrZero:
 
 def default_context():
     return {
-        'title': 'Artconomy-- Easy Online Art Commissions!',
+        'title': 'Artconomy-- Easy Online Art Commissions.',
         'description': 'Artconomy.com makes it easy, safe, and fun for you to get custom art of your '
                        'original characters!',
     }
