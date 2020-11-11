@@ -2007,7 +2007,6 @@ class ArtistsOfColor(ListAPIView):
         return Product.objects.filter(user__artist_profile__artist_of_color=True, available=True).order_by('?')
 
 
-
 class NewArtistProducts(ListAPIView):
     serializer_class = ProductSerializer
 
@@ -2076,6 +2075,7 @@ def get_order_facts(product, serializer, seller):
         facts['status'] = PAYMENT_PENDING
         facts['revisions_hidden'] = True
     return facts
+
 
 class CreateInvoice(GenericAPIView):
     """
@@ -2157,6 +2157,11 @@ class CustomerHoldingsCSV(CustomerHoldings):
         context['header'] = ['id', 'username', 'escrow', 'holdings']
         return context
 
+    def finalize_response(self, request, response, *args, **kwargs):
+        response = super().finalize_response(request, response, *args, **kwargs)
+        response['Content-Disposition'] = f'attachment; filename=holdings.csv'
+        return response
+
 
 class DateConstrained:
     request: Request
@@ -2208,6 +2213,7 @@ class CSVReport:
     renderer_classes = [CSVRenderer]
     start_date: datetime
     end_date: datetime
+
     def finalize_response(self, request, response, *args, **kwargs):
         response = super().finalize_response(request, response, *args, **kwargs)
         name = self.report_name
@@ -2228,7 +2234,7 @@ class OrderValues(CSVReport, ListAPIView, DateConstrained):
     def get_queryset(self):
         return Deliverable.objects.filter(escrow_disabled=False, **self.date_kwargs).exclude(
             status__in=[CANCELLED, NEW, PAYMENT_PENDING, WAITING],
-        ).order_by('created_on')
+        ).order_by('-created_on')
 
     def get_renderer_context(self):
         context = super().get_renderer_context()
@@ -2334,7 +2340,7 @@ class DwollaSetupFees(CSVReport, ListAPIView, DateConstrained):
             destination=TransactionRecord.ACH_MISC_FEES,
             category=TransactionRecord.THIRD_PARTY_FEE,
             **self.date_kwargs,
-        ).exclude(status=TransactionRecord.FAILURE)
+        ).exclude(status=TransactionRecord.FAILURE).order_by('-created_on')
 
 
 class ProductRecommendations(ListAPIView):

@@ -1,0 +1,17 @@
+---
+- name: Load app settings
+  include_vars: "keys/{{env_prefix}}/app_settings.yml"
+
+- name: Dump database
+  shell: 'pg_dump {{app_settings["DB_NAME"]}} > "/var/lib/postgresql/{{ env_prefix }}.sql"'
+  become_user: postgres
+  become: yes
+  args:
+    warn: false
+
+- name: Fetch file
+  fetch:
+    src: "/var/lib/postgresql/{{ env_prefix }}.sql"
+    dest: "./production.sql"
+    flat: yes
+

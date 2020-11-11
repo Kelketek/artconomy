@@ -43,6 +43,7 @@ services:
       - SERVICE_PERCENTAGE_FEE=5
       - PREMIUM_PERCENTAGE_BONUS=3
       - LANDSCAPE_PRICE=8
+      - ENV_NAME=dev
     command: /usr/bin/python3.8 manage.py runserver 0.0.0.0:8002
     ports:
       - "8001:8001"

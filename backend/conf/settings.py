@@ -472,7 +472,7 @@ CELERYBEAT_SCHEDULE = {
     }
 }
 
-ENV_NAME = get_env('ENV_NAME', 'dev')
+ENV_NAME = get_env('ENV_NAME', 'prod')
 
 OTP_TOTP_ISSUER = get_env('OTP_TOTP_ISSUER', 'Artconomy')
 

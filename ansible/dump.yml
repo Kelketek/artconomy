@@ -1,0 +1,8 @@
+---
+- name: Artconomy Database Dump and Pull
+  become: true
+  become_user: root
+  hosts: production
+
+  roles:
+    - dump
