@@ -3,7 +3,6 @@ import uuid
 from datetime import date
 from functools import lru_cache
 
-import html2text
 from avatar.models import Avatar
 from avatar.signals import avatar_updated
 from avatar.templatetags.avatar_tags import avatar_url
@@ -86,6 +85,7 @@ from apps.profiles.utils import (
 from apps.sales.models import Order, Reference, Deliverable, Revision
 from apps.sales.serializers import SearchQuerySerializer
 from apps.sales.utils import claim_order_by_token
+from apps.sales.tasks import withdraw_all
 from apps.tg_bot.models import TelegramDevice
 from shortcuts import gen_textifier
 
@@ -173,14 +173,19 @@ class ArtistProfileSettings(RetrieveUpdateAPIView):
         return user.artist_profile
 
     def patch(self, *args, **kwargs):
-        user = self.get_object()
-        self.check_object_permissions(self.request, user)
-        return super().patch(*args, **kwargs)
+        return self.base_update('patch', *args, **kwargs)
+
+    def base_update(self, method, *args, **kwargs):
+        artist_profile = self.get_object()
+        auto_withdraw = artist_profile.auto_withdraw
+        self.check_object_permissions(self.request, artist_profile)
+        response = getattr(super(), method)(*args, **kwargs)
+        if not auto_withdraw and artist_profile.auto_withdraw:
+            withdraw_all.apply_async((artist_profile.user_id,), countdown=10)
+        return response
 
     def put(self, *args, **kwargs):
-        user = self.get_object()
-        self.check_object_permissions(self.request, user)
-        return super().patch(*args, **kwargs)
+        return self.base_update('put', *args, **kwargs)
 
     def get(self, *args, **kwargs):
         user = self.get_object()
