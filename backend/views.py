@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from telegram import Bot
 
 from apps.lib.utils import default_context
+from shortcuts import make_url
 
 
 def base_template(request, extra=None):
@@ -13,7 +14,7 @@ def base_template(request, extra=None):
         return bad_endpoint(request)
     if request.content_type == 'application/json':
         return bad_endpoint(request)
-    context = {'debug': settings.DEBUG, 'env_file': 'envs/{}.html'.format(settings.ENV_NAME)}
+    context = {'debug': settings.DEBUG, 'env_file': 'envs/{}.html'.format(settings.ENV_NAME), 'base_url': make_url('')}
     context.update(extra or default_context())
     return render(
         request, 'index.html', context
