@@ -27,16 +27,16 @@
   </script>
   {% render_bundle 'chunk-vendors' 'css'%}
   {% for link in image_links %}
-    <meta property="og:image" content="{{link}}" />
-    <meta property="twitter:image" content="{{link}}" />
+    <meta name="og:image" content="{{link}}" />
+    <meta name="twitter:image" content="{{link}}" />
   {% empty %}
-    <meta property="og:image" content="/static/images/logo.png" />
-    <meta property="twitter:image" content="/static/images/logo.png" />
+    <meta name="og:image" content="/static/images/logo.png" />
+    <meta name="twitter:image" content="/static/images/logo.png" />
   {% endfor %}
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:site" content="@ArtconomyArt" />
-  <meta property="og:title" content="{{title}}" />
-  <meta property="og:description" content="{{description}}" />
+  <meta name="og:title" content="{{title}}" />
+  <meta name="og:description" content="{{description}}" />
   <title>{{title}}</title>
 </head>
 <body>
