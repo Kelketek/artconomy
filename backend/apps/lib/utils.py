@@ -573,8 +573,8 @@ class MinimumOrZero:
 def default_context():
     return {
         'title': 'Artconomy-- Where characters come alive!',
-        'description': 'Provides a platform that makes it as easy for people to '
-                       'commission artists online as it is in person.',
+        'description': 'Artconomy.com makes it easy, safe, and fun for you to get custom art of your '
+                       'original characters!',
     }
 
 
