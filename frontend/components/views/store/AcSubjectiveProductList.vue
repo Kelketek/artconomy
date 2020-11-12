@@ -62,7 +62,7 @@ export default class AcSubjectiveProductList extends mixins(Subjective) {
     }
 
     public created() {
-      this.products = this.$getList(flatten(`${this.username}-products`), {endpoint: this.url})
+      this.products = this.$getList(`${flatten(this.username)}-products`, {endpoint: this.url})
       this.products.firstRun()
       this.subjectHandler.artistProfile.get()
     }

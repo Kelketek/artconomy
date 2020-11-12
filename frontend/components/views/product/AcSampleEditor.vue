@@ -70,7 +70,7 @@ import Product from '@/types/Product'
 import {ListController} from '@/store/lists/controller'
 import {Fragment} from 'vue-fragment'
 import AcNewSubmission from '@/components/AcNewSubmission.vue'
-import {newUploadSchema} from '@/lib/lib'
+import {flatten, newUploadSchema} from '@/lib/lib'
 import {FormController} from '@/store/forms/form-controller'
 import Submission from '@/types/Submission'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
@@ -197,8 +197,8 @@ export default class AcSampleEditor extends mixins(Subjective) {
           this.tab = 'tab-add-new'
         }
       })
-      this.newSubmission = this.$getForm(`${this.username}-newSubmission`, newUploadSchema(this.subjectHandler.user))
-      this.art = this.$getList(`${this.username}-art`, {
+      this.newSubmission = this.$getForm(`${flatten(this.username)}-newSubmission`, newUploadSchema(this.subjectHandler.user))
+      this.art = this.$getList(`${flatten(this.username)}-art`, {
         endpoint: `/api/profiles/v1/account/${this.username}/submissions/art/`,
       })
       this.art.firstRun().catch(() => {})

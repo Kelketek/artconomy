@@ -61,6 +61,7 @@ import AcPatchField from '@/components/fields/AcPatchField.vue'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import {ListController} from '@/store/lists/controller'
 import {Bank} from '@/types/Bank'
+import {flatten} from '@/lib/lib'
   @Component({
     components: {AcFormDialog, AcPatchField, AcLoadSection, AcBankToggle},
   })
@@ -79,11 +80,11 @@ export default class Payout extends mixins(Subjective) {
     public created() {
       this.subjectHandler.artistProfile.get().catch(this.setError)
       this.banks = this.$getList(
-        `${this.username}__banks`, {endpoint: `/api/sales/v1/account/${this.username}/banks/`, paginated: false},
+        flatten(`${flatten(this.username)}__banks`), {endpoint: `/api/sales/v1/account/${this.username}/banks/`, paginated: false},
       )
       this.banks.firstRun()
       this.balance = this.$getSingle(
-        `${this.username}__balance`, {endpoint: `/api/sales/v1/account/${this.username}/balance/`},
+        `${flatten(this.username)}__balance`, {endpoint: `/api/sales/v1/account/${this.username}/balance/`},
       )
       this.balance.get()
     }

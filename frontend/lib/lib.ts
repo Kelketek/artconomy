@@ -573,7 +573,10 @@ export function dotTraverse(start: any, dotPath: string, silent?: boolean) {
 }
 
 export function flatten(name: string) {
-  return name.replace(/[./]/g, '_')
+  // Note: This also makes any underscore a double underscore. This is so if we have something like two userames,
+  // 'test.person' and 'test_person', it won't have the same output. It does mean that it will grow every time you
+  // apply it to an already transformed string, however.
+  return name.replace(/[_]/g, '__').replace(/[./]/g, '_')
 }
 
 export function posse(userList: string[], additional: number) {

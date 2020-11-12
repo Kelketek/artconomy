@@ -117,7 +117,7 @@ export default class AcNewComment extends mixins(Viewer, Formatting) {
     }
 
     public created() {
-      this.newCommentForm = this.$getForm(flatten(this.commentList.name) + '_new', {
+      this.newCommentForm = this.$getForm(this.commentList.name + '_new', {
         endpoint: this.commentList.endpoint, fields: {text: {value: ''}, extra_data: {value: this.extraData}},
       })
     }

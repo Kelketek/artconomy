@@ -11,12 +11,13 @@
 <script lang="ts">
 import Component, {mixins} from 'vue-class-component'
 import Subjective from '@/mixins/subjective'
+import {flatten} from '@/lib/lib'
 
   @Component
 export default class Watchlists extends mixins(Subjective) {
   public created() {
-    this.$listenForList(`${this.username}__watching`)
-    this.$listenForList(`${this.username}__watchers`)
+    this.$listenForList(`${flatten(this.username)}__watching`)
+    this.$listenForList(`${flatten(this.username)}__watchers`)
     if (this.$route.name === 'Watchlists') {
       this.$router.push({name: 'Watching', params: {username: this.username}})
     }

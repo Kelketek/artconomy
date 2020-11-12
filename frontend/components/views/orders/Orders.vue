@@ -114,7 +114,7 @@ import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import AcBoundField from '@/components/fields/AcBoundField'
 import Product from '@/types/Product'
 import AcPricePreview from '@/components/price_preview/AcPricePreview.vue'
-import {baseInvoiceSchema} from '@/lib/lib'
+import {baseInvoiceSchema, flatten} from '@/lib/lib'
 import AcInvoiceForm from '@/components/views/orders/AcInvoiceForm.vue'
 import InvoicingMixin from '@/components/views/order/mixins/InvoicingMixin'
 @Component({
@@ -168,12 +168,12 @@ export default class Orders extends mixins(Subjective, InvoicingMixin) {
 
   public created() {
     const type = this.baseName.toLocaleLowerCase()
-    this.stats = this.$getSingle(`stats__sales__${this.username}`, {
+    this.stats = this.$getSingle(`stats__sales__${flatten(this.username)}`, {
       endpoint: `/api/sales/v1/account/${this.username}/sales/stats/`,
     })
-    this.$listenForList(`orders__${this.username}__${type}__archived`)
-    this.$listenForList(`orders__${this.username}__${type}__current`)
-    this.$listenForList(`orders__${this.username}__${type}__waiting`)
+    this.$listenForList(`orders__${flatten(this.username)}__${type}__archived`)
+    this.$listenForList(`orders__${flatten(this.username)}__${type}__current`)
+    this.$listenForList(`orders__${flatten(this.username)}__${type}__waiting`)
     if (this.isCurrentRoute) {
       this.$router.replace({name: 'Current' + this.baseName, params: {username: this.username}})
     }

@@ -49,7 +49,7 @@ import Component, {mixins} from 'vue-class-component'
 import Subjective from '@/mixins/subjective'
 import AcCardManager from './AcCardManager.vue'
 import {FormController} from '@/store/forms/form-controller'
-import {baseCardSchema} from '@/lib/lib'
+import {baseCardSchema, flatten} from '@/lib/lib'
 import {Watch} from 'vue-property-decorator'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import {ListController} from '@/store/lists/controller'
@@ -89,8 +89,8 @@ export default class Purchase extends mixins(Subjective) {
   public created() {
     const schema = baseCardSchema(this.url)
     delete schema.fields.save_card
-    this.ccForm = this.$getForm(`${this.username}__cards__new`, baseCardSchema(this.url))
-    this.cards = this.$getList(`${this.username}__creditCards`, {
+    this.ccForm = this.$getForm(flatten(`${flatten(this.username)}__cards__new`), baseCardSchema(this.url))
+    this.cards = this.$getList(`${flatten(this.username)}__creditCards`, {
       endpoint: this.url,
       paginated: false,
     })

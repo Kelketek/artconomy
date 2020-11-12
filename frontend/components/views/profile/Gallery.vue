@@ -24,7 +24,7 @@ import Subjective from '@/mixins/subjective'
 import {ListController} from '@/store/lists/controller'
 import Submission from '@/types/Submission'
 import {FormController} from '@/store/forms/form-controller'
-import {genId, newUploadSchema} from '@/lib/lib'
+import {flatten, genId, newUploadSchema} from '@/lib/lib'
 import AcTab from '@/components/AcTab.vue'
 import AcAddButton from '@/components/AcAddButton.vue'
 import Upload from '@/mixins/upload'
@@ -78,11 +78,11 @@ export default class Gallery extends mixins(Subjective, Upload) {
     }
 
     public created() {
-      this.newSubmission = this.$getForm(`${this.username}-newSubmission`, newUploadSchema(this.subjectHandler.user))
+      this.newSubmission = this.$getForm(`${flatten(this.username)}-newSubmission`, newUploadSchema(this.subjectHandler.user))
       this.art = this.$getList(`${this.username}-art`, {
         endpoint: `/api/profiles/v1/account/${this.username}/submissions/art/`,
       })
-      this.collection = this.$getList(`${this.username}-collection`, {
+      this.collection = this.$getList(`${flatten(this.username)}-collection`, {
         endpoint: `/api/profiles/v1/account/${this.username}/submissions/collection/`,
       })
       // Conditionally fetch. If we're on these pages, we want to give the paginator a chance to set the page before

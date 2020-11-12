@@ -47,6 +47,7 @@ import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import {SingleController} from '@/store/singles/controller'
 import {Balance} from '@/types/Balance'
 import {RawData} from '@/store/forms/types/RawData'
+import {flatten} from '@/lib/lib'
 
   @Component({
     components: {AcLoadSection, AcTransaction, AcPaginated, AcBoundField},
@@ -76,15 +77,15 @@ export default class TransactionHistory extends mixins(Subjective) {
     }
 
     public created() {
-      this.transactionFilter = this.$getForm(`transactions_form__${this.username}`, {
+      this.transactionFilter = this.$getForm(`transactions_form__${flatten(this.username)}`, {
         endpoint: '', fields: {account: {value: 300}},
       })
-      this.transactions = this.$getList(`transactions__${this.username}`, {
+      this.transactions = this.$getList(`transactions__${flatten(this.username)}`, {
         endpoint: `/api/sales/v1/account/${this.username}/transactions/`,
         params: this.transactionFilter.rawData,
       })
       this.transactions.firstRun()
-      this.summary = this.$getSingle(`account_summary__${this.username}`, {
+      this.summary = this.$getSingle(flatten(`account_summary__${this.username}`), {
         endpoint: `/api/sales/v1/account/${this.username}/account-status/`, params: this.transactionFilter.rawData,
       })
       this.summary.get()

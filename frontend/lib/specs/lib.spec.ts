@@ -396,6 +396,7 @@ Here's an email: support@artconomy.com`)).toBe(`<h1>Hello there.</h1>
     ${'lists/thing'}                | ${'lists_thing'}
     ${'stuff.wut'}                  | ${'stuff_wut'}
     ${'this.thing/is/quite.nested'} | ${'this_thing_is_quite_nested'}
+    ${'this_has_underscores'}       | ${'this__has__underscores'}
   `('Should flatten $input into $result', ({input, result}) => {
     expect(flatten(input)).toBe(result)
   })

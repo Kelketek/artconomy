@@ -11,6 +11,7 @@ import {dataFromForm} from '@/store/forms/index'
 import StepSpec from '@/store/forms/types/StepSpec'
 import {FormState} from '@/store/forms/types/FormState'
 import {RawData} from '@/store/forms/types/RawData'
+import {flatten} from '@/lib/lib'
 
 export interface FieldBank {
   [key: string]: FieldController
@@ -99,7 +100,7 @@ export class FormController extends BaseController<NamelessFormSchema, FormState
   }
 
   public get bind() {
-    return {errors: this.errors, sending: this.sending, id: `form-${this.name}`}
+    return {errors: this.errors, sending: this.sending, id: `form-${flatten(this.name)}`}
   }
 
   public get rawData(): RawData {

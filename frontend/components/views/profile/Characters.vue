@@ -49,6 +49,7 @@ import AcAddButton from '@/components/AcAddButton.vue'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import {FormController} from '@/store/forms/form-controller'
 import AcBoundField from '@/components/fields/AcBoundField'
+import {flatten} from '@/lib/lib'
 
   @Component({components: {AcBoundField, AcFormDialog, AcAddButton, AcPaginated, AcCharacterPreview}})
 export default class Characters extends mixins(Subjective) {
@@ -69,8 +70,8 @@ export default class Characters extends mixins(Subjective) {
     }
 
     public created() {
-      this.characters = this.$getList(`${this.username}-characters`, {endpoint: this.url, keyProp: 'name'})
-      this.form = this.$getForm(`${this.username}-newCharacter`, {
+      this.characters = this.$getList(`${flatten(this.username)}-characters`, {endpoint: this.url, keyProp: 'name'})
+      this.form = this.$getForm(`${flatten(this.username)}-newCharacter`, {
         endpoint: this.url,
         fields: {
           name: {value: ''}, private: {value: false},

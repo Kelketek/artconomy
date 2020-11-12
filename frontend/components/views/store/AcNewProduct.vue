@@ -172,6 +172,7 @@ import LineItem from '@/types/LineItem'
 import {LineTypes} from '@/types/LineTypes'
 import {SingleController} from '@/store/singles/controller'
 import Pricing from '@/types/Pricing'
+import {flatten} from '@/lib/lib'
 
 @Component({components: {AcPricePreview, AcBoundField, AcPatchField, AcLoadSection, AcFormDialog}})
 export default class AcNewProduct extends Subjective {
@@ -300,7 +301,7 @@ export default class AcNewProduct extends Subjective {
       this.subjectHandler.artistProfile.get().catch(this.setError)
       this.pricing = this.$getSingle('pricing', {endpoint: '/api/sales/v1/pricing-info/'})
       this.pricing.get()
-      this.newProduct = this.$getForm(`${this.username}__newProduct`, {
+      this.newProduct = this.$getForm(`${flatten(this.username)}__newProduct`, {
         endpoint: this.url,
         fields: {
           name: {value: ''},

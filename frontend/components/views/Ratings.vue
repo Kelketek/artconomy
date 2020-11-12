@@ -39,6 +39,7 @@ import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import AcAvatar from '@/components/AcAvatar.vue'
 import AcRendered from '@/components/wrappers/AcRendered'
 import AcProfileHeader from '@/components/views/profile/AcProfileHeader.vue'
+import {flatten} from '@/lib/lib'
   @Component({
     components: {AcProfileHeader, AcRendered, AcAvatar, AcPaginated, AcLoadSection},
   })
@@ -47,7 +48,7 @@ export default class Ratings extends mixins(Subjective) {
 
     public created() {
       this.ratings = this.$getList(
-        `ratings__${this.username}`, {endpoint: `/api/sales/v1/account/${this.username}/ratings/`},
+        `ratings__${flatten(this.username)}`, {endpoint: `/api/sales/v1/account/${this.username}/ratings/`},
       )
       this.ratings.firstRun()
     }

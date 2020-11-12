@@ -61,7 +61,7 @@ import AcCard from '@/components/views/settings/payment/AcCard.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcNewCard from '@/components/views/settings/payment/AcNewCard.vue'
 import AcSavedCardField from '@/components/fields/AcSavedCardField.vue'
-import {cardHelperMap} from '@/lib/lib'
+import {cardHelperMap, flatten} from '@/lib/lib'
 
   @Component({
     components: {AcSavedCardField, AcNewCard, AcLoadSection, AcCard, AcBoundField, AcLoadingSpinner},
@@ -85,7 +85,7 @@ export default class AcCardManager extends mixins(Subjective, Alerts) {
     public lastCard: null|number = null
 
     public created() {
-      this.cards = this.$getList(`${this.username}__creditCards`, {endpoint: this.url, paginated: false})
+      this.cards = this.$getList(`${flatten(this.username)}__creditCards`, {endpoint: this.url, paginated: false})
       this.cards.get().then(this.initialize)
       // @ts-ignore
       window.cardThing = this

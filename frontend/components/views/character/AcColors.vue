@@ -118,7 +118,7 @@ export default class AcColors extends mixins(Subjective, CharacterCentric, Edita
     }
 
     public created() {
-      this.newColor = this.$getForm(flatten(`${flatten(this.character.colors.name)}/newColor`), {
+      this.newColor = this.$getForm(`${this.character.colors.name}__newColor`, {
         endpoint: this.character.colors.endpoint,
         fields: {
           note: {value: '', validators: [{name: 'required'}]},

@@ -5,7 +5,7 @@ import {Prop, Watch} from 'vue-property-decorator'
 import {cloneDeep, debounce} from 'lodash'
 import axios, {CancelTokenSource} from 'axios'
 import deepEqual from 'fast-deep-equal'
-import {dotTraverse} from '@/lib/lib'
+import {dotTraverse, flatten} from '@/lib/lib'
 import {FormError} from '@/store/forms/types/FormError'
 import {FormState} from '@/store/forms/types/FormState'
 import {ValidatorSpec} from '@/store/forms/types/ValidatorSpec'
@@ -77,7 +77,7 @@ export class FieldController extends Vue {
   }
 
   public get id() {
-    return `field-${this.formName}__${this.fieldName}`
+    return `field-${flatten(this.formName)}__${flatten(this.fieldName)}`
   }
 
   public get bind() {

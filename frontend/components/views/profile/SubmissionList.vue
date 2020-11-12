@@ -18,6 +18,7 @@ import Submission from '@/types/Submission'
 import {Prop} from 'vue-property-decorator'
 import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
+import {flatten} from '@/lib/lib'
   @Component({
     components: {AcPaginated, AcGalleryPreview, AcLoadSection},
   })
@@ -41,7 +42,7 @@ export default class SubmissionList extends mixins(Subjective) {
     public created() {
       let listName = this.listName
       if (this.username) {
-        listName = `${this.username}-${listName}`
+        listName = `${flatten(this.username)}-${listName}`
       }
       this.list = this.$getList(listName, {endpoint: this.endpoint})
     }

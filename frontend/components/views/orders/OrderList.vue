@@ -97,7 +97,7 @@ import {RawData} from '@/store/forms/types/RawData'
 import SearchField from '@/components/views/search/mixins/SearchField'
 import AcBoundField from '@/components/fields/AcBoundField'
 import AcUnreadMarker from '@/components/AcUnreadMarker.vue'
-import {artCall, fallback, fallbackBoolean} from '@/lib/lib'
+import {artCall, fallback, fallbackBoolean, flatten} from '@/lib/lib'
 import Product from '@/types/Product'
 import Vue from 'vue'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
@@ -186,7 +186,7 @@ export default class OrderList extends mixins(Subjective, SearchField, Formattin
     } else {
       this.showProduct = true
     }
-    this.list = this.$getList(`orders__${this.username}__${this.type}__${this.category}`, {
+    this.list = this.$getList(`orders__${flatten(this.username)}__${this.type}__${this.category}`, {
       endpoint: `/api/sales/v1/account/${this.username}/${this.type}/${this.category}/`,
     })
   }

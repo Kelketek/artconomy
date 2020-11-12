@@ -316,13 +316,13 @@ export default class AcComment extends mixins(Subjective, Formatting) {
           {modelProp: 'comment', attrName: 'text', debounceRate: 300, refresh: false},
         )
       }
-      this.subCommentList = this.$getList(flatten(this.comment.name) + '_comments', {
+      this.subCommentList = this.$getList(this.comment.name + '_comments', {
         endpoint: `/api/lib/v1/comments/lib.Comment/${comment.id}/`,
         pageSize: 5,
         grow: true,
         reverse: true,
       })
-      this.historyList = this.$getList(flatten(this.comment.name) + '_history', {
+      this.historyList = this.$getList(this.comment.name + '_history', {
         endpoint: `/api/lib/v1/comments/lib.Comment/${comment.id}/history/`,
         pageSize: 5,
         grow: true,

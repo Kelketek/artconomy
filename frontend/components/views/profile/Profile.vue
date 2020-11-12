@@ -18,6 +18,7 @@ import AcProfileHeader from '@/components/views/profile/AcProfileHeader.vue'
 import {Watch} from 'vue-property-decorator'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcTabNav from '@/components/navigation/AcTabNav.vue'
+import {flatten} from '@/lib/lib'
 
   @Component({
     components: {
@@ -76,13 +77,13 @@ export default class Profile extends mixins(Subjective) {
 
     public created() {
       this.subjectHandler.artistProfile.get().catch(this.setError)
-      this.$listenForList(`${this.username}-products`)
-      this.$listenForList(`${this.username}-art`)
-      this.$listenForList(`${this.username}-collection`)
-      this.$listenForList(`${this.username}-characters`)
-      this.$listenForList(`${this.username}-journals`)
-      this.$listenForForm(`${this.username}-newJournal`)
-      this.$listenForForm(`${this.username}-newSubmission`)
+      this.$listenForList(`${flatten(this.username)}-products`)
+      this.$listenForList(`${flatten(this.username)}-art`)
+      this.$listenForList(`${flatten(this.username)}-collection`)
+      this.$listenForList(`${flatten(this.username)}-characters`)
+      this.$listenForList(`${flatten(this.username)}-journals`)
+      this.$listenForForm(`${flatten(this.username)}-newJournal`)
+      this.$listenForForm(`${flatten(this.username)}-newSubmission`)
       this.$listenForProfile('.*')
     }
 }

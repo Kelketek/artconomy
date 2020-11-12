@@ -252,7 +252,7 @@ export default class AcPricePreview extends mixins(Subjective) {
   public created() {
     this.pricing = this.$getSingle('pricing', {endpoint: '/api/sales/v1/pricing-info/'})
     this.pricing.get()
-    this.addOnForm = this.$getForm(flatten(`${this.lineItems.name}/addOn`), {
+    this.addOnForm = this.$getForm(`${this.lineItems.name}_addOn`, {
       endpoint: this.lineItems.endpoint,
       fields: {
         amount: {value: 0, validators: [{name: 'numeric'}]},
@@ -261,7 +261,7 @@ export default class AcPricePreview extends mixins(Subjective) {
         percentage: {value: 0},
       },
     })
-    this.extraForm = this.$getForm(flatten(`${this.lineItems.name}/extra`), {
+    this.extraForm = this.$getForm(`${this.lineItems.name}_extra`, {
       endpoint: this.lineItems.endpoint,
       fields: {
         amount: {value: 0, validators: [{name: 'numeric'}]},

@@ -113,7 +113,7 @@ import {ListController} from '@/store/lists/controller'
 import {Bank} from '@/types/Bank'
 import {FormController} from '@/store/forms/form-controller'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
-import {genId} from '@/lib/lib'
+import {flatten, genId} from '@/lib/lib'
 import Subjective from '@/mixins/subjective'
 import AcBoundField from '@/components/fields/AcBoundField'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
@@ -156,11 +156,11 @@ export default class AcBankToggle extends mixins(Subjective) {
 
     public created() {
       this.banks = this.$getList(
-        `${this.username}__banks`, {endpoint: this.bankUrl, paginated: false},
+        `${flatten(this.username)}__banks`, {endpoint: this.bankUrl, paginated: false},
       )
       this.banks.firstRun()
       this.balance = this.$getSingle(
-        `${this.username}__balance`, {endpoint: `/api/sales/v1/account/${this.username}/balance/`},
+        `${flatten(this.username)}__balance`, {endpoint: `/api/sales/v1/account/${this.username}/balance/`},
       )
       this.balance.get()
       this.newBank = this.$getForm(genId(), {

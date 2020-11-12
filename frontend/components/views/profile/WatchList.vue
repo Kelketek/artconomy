@@ -14,6 +14,7 @@ import AcAvatar from '@/components/AcAvatar.vue'
 import {Prop} from 'vue-property-decorator'
 import {ListController} from '@/store/lists/controller'
 import {User} from '@/store/profiles/types/User'
+import {flatten} from '@/lib/lib'
 @Component({
   components: {AcAvatar, AcPaginated},
 })
@@ -26,7 +27,7 @@ export default class WatchList extends mixins(Subjective) {
   public nameSpace!: string
 
   public created() {
-    this.watch = this.$getList(`${this.username}__${this.nameSpace}`, {endpoint: this.endpoint})
+    this.watch = this.$getList(`${flatten(this.username)}__${this.nameSpace}`, {endpoint: this.endpoint})
     this.watch.firstRun()
   }
 }
