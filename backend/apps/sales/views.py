@@ -79,6 +79,7 @@ from apps.sales.utils import available_products, service_price, set_service, \
     check_charge_required, available_products_by_load, finalize_deliverable, account_balance, \
     recuperate_fee, POSTED_ONLY, PENDING, transfer_order, early_finalize, cancel_deliverable, lines_to_transaction_specs, \
     get_totals, verify_total, issue_refund, ensure_buyer
+from shortcuts import make_url
 
 
 def user_products(username: str, requester: User):
@@ -1916,13 +1917,18 @@ class CancelPremium(APIView):
 class StorePreview(BasePreview):
     def context(self, username):
         user = get_object_or_404(User, username__iexact=username)
+        avatar_url = user.avatar_url
+        if avatar_url.startswith('/'):
+            avatar_url = make_url(avatar_url)
         return {
             'title': f"{username}'s store",
             'description': demark(user.artist_profile.commission_info),
             'image_links': [
-                product.preview_link
-                for product in user_products(username, self.request.user)[:24]
-            ] + [user.avatar_url]
+                make_url(product.preview_link)
+                # product.preview_link should always be true in production but may be None in debugging development
+                # since we don't have all the uploads locally when running off a copy of the DB.
+                for product in user_products(username, self.request.user)[:24] if product.preview_link
+            ] + [avatar_url]
         }
 
     @method_decorator(xframe_options_exempt)
