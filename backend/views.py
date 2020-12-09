@@ -1,3 +1,5 @@
+from hashlib import sha256
+
 from django.conf import settings
 from django.shortcuts import render
 from rest_framework import status
@@ -14,10 +16,19 @@ def base_template(request, extra=None):
         return bad_endpoint(request)
     if request.content_type == 'application/json':
         return bad_endpoint(request)
-    context = {'debug': settings.DEBUG, 'env_file': 'envs/{}.html'.format(settings.ENV_NAME), 'base_url': make_url('')}
+    context = {
+        'debug': settings.DEBUG,
+        'env_file': 'envs/{}.html'.format(settings.ENV_NAME),
+        'base_url': make_url(''),
+    }
+    if request.user.is_authenticated:
+        context['user_email'] = request.user.guest_email or request.user.email
+        email_hash = sha256()
+        email_hash.update(context['user_email'].encode('utf-8'))
+        context['user_email_hash'] = email_hash.hexdigest()
     context.update(extra or default_context())
     return render(
-        request, 'index.html', context
+        request, 'index.html', context,
     )
 
 
