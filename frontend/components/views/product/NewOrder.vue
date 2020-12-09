@@ -199,6 +199,21 @@ export default class NewOrder extends mixins(ProductCentric, Formatting) {
       this.orderForm.fields.email.update(newVal)
     }
 
+    public sendEvent() {
+      window.pintrk(
+        'track',
+        'checkout', {
+          value: this.product.x!.starting_price,
+          order_quantity: 1,
+          currency: 'USD',
+          line_items: [
+            {
+              product_id: this.product.x!.id,
+            },
+          ],
+        })
+    }
+
     public goToOrder(order: Order) {
       // Could take a while. Let's not make it look like we're done.
       this.orderForm.sending = true
@@ -208,6 +223,7 @@ export default class NewOrder extends mixins(ProductCentric, Formatting) {
         link.params!.username = this.rawViewerName
         this.viewerHandler.refresh().then(() => {
           this.$router.push(link)
+          this.sendEvent()
         })
         return
       }

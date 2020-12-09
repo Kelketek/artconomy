@@ -13,7 +13,6 @@ import {FormControllers} from '@/store/forms/registry'
 import {Shortcuts} from './plugins/shortcuts'
 import Bowser from 'bowser'
 import Big from 'big.js'
-import * as lineItemFunctions from '@/lib/lineItemFunctions'
 import {formatSize} from './lib/lib'
 import {Lists} from '@/store/lists/registry'
 import {Singles} from '@/store/singles/registry'
@@ -21,12 +20,12 @@ import colors from 'vuetify/es5/util/colors'
 import {Profiles} from '@/store/profiles/registry'
 import {Characters} from '@/store/characters/registry'
 import VueObserveVisibility from 'vue-observe-visibility'
-import {genLineItem} from '@/lib/specs/helpers'
 
 declare global {
   interface Window {
     artconomy: Vue,
     PRERENDERING: number,
+    pintrk: (...value: any) => void,
   }
 }
 
@@ -127,6 +126,11 @@ https://discord.gg/4nWK9mf
   console.log(splash)
 }
 
+if (!window.pintrk) {
+  // In production, this will always be defined with a useful function before we get here.
+  window.pintrk = () => undefined
+}
+
 const vuetifySettings = {
   icons: {
     iconfont: 'mdiSvg',
@@ -161,7 +165,3 @@ window.artconomy = new Vue({
 })
 
 window.artconomy.$mount('#app')
-// @ts-ignore
-window.lines = lineItemFunctions
-// @ts-ignore
-window.genLineItem = genLineItem
