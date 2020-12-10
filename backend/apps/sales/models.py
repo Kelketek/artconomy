@@ -82,6 +82,7 @@ class Product(ImageModel, HitsMixin):
     wait_list = BooleanField(default=False, db_index=True)
     table_product = BooleanField(default=False, db_index=True)
     track_inventory = BooleanField(default=False, db_index=True)
+    catalog_enabled = BooleanField(default=True, db_index=True)
     revisions = IntegerField(validators=[MinValueValidator(0), MaxValueValidator(10)])
     max_parallel = IntegerField(
         validators=[MinValueValidator(0)], help_text="How many of these you are willing to have in your "

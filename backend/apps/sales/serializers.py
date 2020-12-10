@@ -34,7 +34,7 @@ from apps.sales.models import (
     WAITING,
 )
 from apps.sales.utils import account_balance, PENDING, POSTED_ONLY, AVAILABLE, get_totals, order_context, \
-    order_context_to_link, default_deliverable
+    order_context_to_link
 
 
 class ProductMixin:
@@ -81,6 +81,7 @@ class ProductSerializer(ProductMixin, RelatedAtomicMixin, serializers.ModelSeria
             return
         if request.user.is_staff:
             self.fields['featured'].read_only = False
+            self.fields['catalog_enabled'].read_only = False
         subject = getattr(request, 'subject', None)
         if subject and subject.is_registered and subject.landscape:
             self.fields['wait_list'].read_only = False
@@ -90,7 +91,7 @@ class ProductSerializer(ProductMixin, RelatedAtomicMixin, serializers.ModelSeria
         fields = (
             'id', 'name', 'description', 'revisions', 'hidden', 'max_parallel', 'task_weight',
             'expected_turnaround', 'user', 'base_price', 'starting_price', 'tags', 'available', 'primary_submission',
-            'featured', 'hits', 'escrow_disabled', 'table_product', 'track_inventory', 'wait_list',
+            'featured', 'hits', 'escrow_disabled', 'table_product', 'track_inventory', 'wait_list', 'catalog_enabled',
         )
         read_only_fields = ('tags', 'featured', 'table_product', 'starting_price')
         extra_kwargs = {'price': {'required': True}}

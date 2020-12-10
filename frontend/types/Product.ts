@@ -21,4 +21,5 @@ export default interface Product {
   table_product: boolean,
   primary_submission: null|Submission,
   wait_list: boolean,
+  catalog_enabled: boolean,
 }
