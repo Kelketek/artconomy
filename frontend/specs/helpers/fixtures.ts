@@ -142,6 +142,7 @@ export function genProduct(overrides?: Partial<Product>): Product {
     available: true,
     featured: false,
     wait_list: false,
+    catalog_enabled: true,
     ...overrides,
   }
 }
