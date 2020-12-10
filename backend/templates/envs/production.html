@@ -21,10 +21,6 @@ _paq.push(['enableLinkTracking']);
     t=document.createElement("script");t.async=!0,t.src=e;var
     r=document.getElementsByTagName("script")[0];
     r.parentNode.insertBefore(t,r)}}("https://s.pinimg.com/ct/core.js");
-  {% if user_email %}
-      pintrk('load', '2614118947445', {em: '{{user_email}}'});
-  {% endif %}
-  pintrk('page');
 </script>
 <noscript>
   {% if user_email_hash %}

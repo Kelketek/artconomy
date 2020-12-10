@@ -13,6 +13,8 @@ const localVue = vueSetup()
 let wrapper: Wrapper<Vue>
 let vuetify: Vuetify
 
+window.pintrk = () => undefined
+
 describe('App.vue', () => {
   let store: ArtStore
   beforeEach(() => {

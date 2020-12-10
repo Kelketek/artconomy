@@ -173,6 +173,7 @@ import {Watch} from 'vue-property-decorator'
 import AcRendered from '@/components/wrappers/AcRendered'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
+import Product from '@/types/Product'
   @Component({
     components: {
       AcLink,
@@ -200,15 +201,16 @@ export default class NewOrder extends mixins(ProductCentric, Formatting) {
     }
 
     public sendEvent() {
+      const product = this.product.x as Product
       window.pintrk(
         'track',
         'checkout', {
-          value: this.product.x!.starting_price,
+          value: product.starting_price,
           order_quantity: 1,
           currency: 'USD',
           line_items: [
             {
-              product_id: this.product.x!.id,
+              product_id: product.id,
             },
           ],
         })
@@ -227,6 +229,7 @@ export default class NewOrder extends mixins(ProductCentric, Formatting) {
         })
         return
       }
+      this.sendEvent()
       this.$router.push(link)
     }
 

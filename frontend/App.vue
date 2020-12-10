@@ -248,6 +248,8 @@ export default class App extends mixins(Viewer, Nav) {
       return
     }
     this.supportForm.fields.email.update(val || '', false)
+    window.pintrk('load', '2614118947445', {em: val})
+    window.pintrk('page')
   }
 
   @Watch('viewer.guest_email')
@@ -256,6 +258,8 @@ export default class App extends mixins(Viewer, Nav) {
       return
     }
     this.supportForm.fields.email.update(val, false)
+    window.pintrk('load', '2614118947445', {em: val})
+    window.pintrk('page')
   }
 
   @Watch('$route', {immediate: true, deep: true})
