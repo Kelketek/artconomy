@@ -1059,7 +1059,7 @@ class PinSerializer(serializers.ModelSerializer):
 
     def get_additional_image_link(self, product):
         return ','.join(
-            sample.preview_link for sample in product.samples.filter(rating=GENERAL, private=False)[:10]
+            make_url(sample.preview_link) for sample in product.samples.filter(rating=GENERAL, private=False)[:10]
             if sample.preview_link
         )
 

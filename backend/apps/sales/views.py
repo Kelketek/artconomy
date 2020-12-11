@@ -2548,6 +2548,6 @@ class PinterestCatalog(ListAPIView):
 
     def finalize_response(self, request, response, *args, **kwargs):
         response = super().finalize_response(request, response, *args, **kwargs)
-        name = f'pinterest-catalog-{timezone.now()}.csv'.replace(':', '__')
+        name = f'pinterest-catalog-{timezone.now()}.csv'.replace(':', '__').replace('+', '_')
         response['Content-Disposition'] = f'attachment; filename={name}'
         return response
