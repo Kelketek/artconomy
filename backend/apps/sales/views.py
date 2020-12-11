@@ -1,3 +1,4 @@
+from _csv import QUOTE_ALL
 from datetime import datetime
 from decimal import Decimal
 from functools import lru_cache
@@ -2548,6 +2549,26 @@ class PinterestCatalog(ListAPIView):
 
     def finalize_response(self, request, response, *args, **kwargs):
         response = super().finalize_response(request, response, *args, **kwargs)
-        name = f'pinterest-catalog-{timezone.now()}.csv'.replace(':', '__').replace('+', '_')
+        name = f'pinterest-catalog-{timezone.now()}'
+        name = name.replace(':', '__').replace('+', '_').replace(' ', '_').replace('.', '_')
+        name = name + '.csv'
         response['Content-Disposition'] = f'attachment; filename={name}'
         return response
+
+    def get_renderer_context(self):
+        context = super().get_renderer_context()
+        context['header'] = [
+            'id',
+            'description',
+            'link',
+            'image_link',
+            'price',
+            'availability',
+            'additional_image_link',
+            'brand',
+        ]
+        context['writer_opts'] = {
+            'quoting': QUOTE_ALL,
+            'dialect': 'unix',
+        }
+        return context
