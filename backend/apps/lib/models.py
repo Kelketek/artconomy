@@ -359,6 +359,7 @@ class ReadMarker(Model):
     class Meta:
         unique_together = ('content_type', 'object_id', 'user')
 
+
 class ModifiedMarker(Model):
     id = models.UUIDField(primary_key=True, default=uuid4)
     modified_on = models.DateTimeField(db_index=True)

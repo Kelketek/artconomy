@@ -73,7 +73,7 @@ from apps.sales.serializers import (
     AccountQuerySerializer, DeliverableCharacterTagSerializer, SubmissionFromOrderSerializer, OrderAuthSerializer,
     LineItemSerializer, DeliverableValuesSerializer, SimpleTransactionSerializer, InventorySerializer,
     PayoutTransactionSerializer, OrderViewSerializer, ReferenceSerializer, DeliverableReferenceSerializer,
-    NewDeliverableSerializer)
+    NewDeliverableSerializer, PinSerializer)
 from apps.sales.tasks import renew
 from apps.sales.utils import available_products, service_price, set_service, \
     check_charge_required, available_products_by_load, finalize_deliverable, account_balance, \
@@ -2531,3 +2531,23 @@ class Broadcast(CreateAPIView):
             serializer.instance = Comment()
         if comment is None:
             raise Http404
+
+
+class PinterestCatalog(ListAPIView):
+    renderer_classes = [CSVRenderer]
+    serializer_class = PinSerializer
+    pagination_class = None
+
+    def get_queryset(self):
+        return Product.objects.filter(
+            primary_submission__rating=GENERAL,
+            catalog_enabled=True,
+            hidden=False,
+            user__is_active=True,
+        )
+
+    def finalize_response(self, request, response, *args, **kwargs):
+        response = super().finalize_response(request, response, *args, **kwargs)
+        name = f'pinterest-catalog-{timezone.now()}.csv'.replace(':', '__')
+        response['Content-Disposition'] = f'attachment; filename={name}'
+        return response

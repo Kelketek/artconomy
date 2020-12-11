@@ -556,6 +556,7 @@ class SessionSettingsSerializer(serializers.Serializer):
                 raise ValidationError({'rating': 'You must be at least 18 years old to view adult content.'})
         return attrs
 
+
 class ReadMarkerField(serializers.Field):
     save_related = True
 
@@ -720,7 +721,6 @@ class TelegramDeviceSerializer(serializers.ModelSerializer):
         read_only_fields = (
             'id', 'confirmed'
         )
-
 
 
 class ReferralStatsSerializer(serializers.ModelSerializer):

@@ -7,6 +7,7 @@ from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.validators import RegexValidator, EmailValidator, MinValueValidator
 from django.db.models import Sum, QuerySet
+from django.urls import reverse
 from django.utils.datetime_safe import datetime, date
 from luhn import verify
 from moneyed import Money
@@ -23,7 +24,7 @@ from apps.lib.serializers import (
     RelatedUserSerializer, RelatedAssetField, EventTargetRelatedField, SubscribedField,
     TagListField, RelatedAtomicMixin,
     MoneyToFloatField)
-from apps.lib.utils import country_choices, add_check, check_read
+from apps.lib.utils import country_choices, add_check, check_read, demark
 from apps.profiles.models import User, Submission, Character
 from apps.profiles.serializers import CharacterSerializer, SubmissionSerializer
 from apps.profiles.utils import available_users
@@ -35,6 +36,7 @@ from apps.sales.models import (
 )
 from apps.sales.utils import account_balance, PENDING, POSTED_ONLY, AVAILABLE, get_totals, order_context, \
     order_context_to_link
+from shortcuts import make_url
 
 
 class ProductMixin:
@@ -1012,6 +1014,68 @@ class PayoutTransactionSerializer(serializers.ModelSerializer):
             'created_on', 'finalized_on', 'targets',
         )
         read_only_fields = fields
+
+
+def pin_link(url):
+    return f'{url}?mtm_campaign=Pinterest&mtm_source=Pin'
+
+
+def ad_link(url):
+    return f'{url}?mtm_campaign=Pinterest&mtm_source=Ad'
+
+
+def product_link(product):
+    return make_url(
+        reverse('store:product_preview', kwargs={'product_id': product.id, 'username': product.user.username}),
+    )
+
+
+class PinSerializer(serializers.ModelSerializer):
+    availability = serializers.SerializerMethodField()
+    price = serializers.SerializerMethodField()
+    description = serializers.SerializerMethodField()
+    image_link = serializers.SerializerMethodField()
+    additional_image_link = serializers.SerializerMethodField()
+    link = serializers.SerializerMethodField()
+    brand = serializers.StringRelatedField(source='user.username', read_only=True)
+
+    def get_link(self, product):
+        return pin_link(product_link(product))
+
+    def get_price(self, product):
+        return f'{product.starting_price.amount}{product.starting_price.currency}'
+
+    def get_ad_link(self, product):
+        return ad_link(product_link(product))
+
+    def get_image_link(self, product):
+        return product.preview_link
+
+    def get_description(self, product):
+        return demark(product.description)
+
+    def get_title(self, product):
+        return demark(product.name)
+
+    def get_additional_image_link(self, product):
+        return ','.join(
+            sample.preview_link for sample in product.samples.filter(rating=GENERAL, private=False)[:10]
+            if sample.preview_link
+        )
+
+    def get_availability(self, product):
+        if product.available:
+            if product.wait_list:
+                return 'preorder'
+            return 'in stock'
+        return 'out of stock'
+
+    class Meta:
+        model = Product
+        fields = (
+            'id', 'name', 'price', 'availability', 'description', 'link', 'image_link', 'brand',
+            'additional_image_link',
+        )
 
 
 class SimpleTransactionSerializer(serializers.ModelSerializer):
