@@ -8,4 +8,4 @@
 SHELL=/bin/sh
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 
-0 */12 * * * {{ env_prefix }} source {{ home }}/bin/activate && cd {{ home }}/artconomy/ && mkdir -p {{ home }}/artconomy/public/dist/csv/ && ./manage.py pinterest_catalog > {{ home }}/artconomy/public/dist/csv/pinterest.csv
+10 */2 * * * {{ env_prefix }} source {{ home }}/bin/activate && cd {{ home }}/artconomy/ && mkdir -p {{ home }}/artconomy/public/dist/csv/ && ./manage.py pinterest_catalog > {{ home }}/artconomy/public/dist/csv/pinterest.csv

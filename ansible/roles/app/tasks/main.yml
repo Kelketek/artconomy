@@ -189,3 +189,9 @@
 
 - name: Start uwsgi service
   service: name=uwsgi state=started
+
+- name: Set up pinterest cron job
+  template:
+    src: "cron/pinterest"
+    dest: "/etc/cron.d/pinterest"
+    mode: 0755

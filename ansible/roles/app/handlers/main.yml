@@ -28,9 +28,3 @@
   shell: "source ~/.profile && source ~/bin/activate && cd ~/artconomy && ./manage.py set_webhook"
   args:
     executable: "/bin/bash"
-
-- name: Set up pinterest cron job
-  template:
-    src: "cron/pinterest"
-    dest: "/etc/cron.d/pinterest"
-    mode: 0755
