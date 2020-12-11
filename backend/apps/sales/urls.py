@@ -20,7 +20,7 @@ urlpatterns = [
     path('v1/references/', views.References.as_view(), name='references'),
     # Pinterest requires the file name to have .csv on the end of it. We should see about doing a batch processing job
     # to dump completed files in a consistent place instead.
-    path('v1/pinterest-catalog.CSV', views.PinterestCatalog.as_view(), name='pinterest_catalog'),
+    path('v1/pinterest-catalog/', views.PinterestCatalog.as_view(), name='pinterest_catalog'),
     path('v1/order/<int:order_id>/deliverables/<int:deliverable_id>/outputs/', views.DeliverableOutputs.as_view(), name='accept_order'),
     path('v1/order/<int:order_id>/deliverables/<int:deliverable_id>/characters/', views.DeliverableCharacterList.as_view(), name='accept_order'),
     path('v1/order/<int:order_id>/deliverables/<int:deliverable_id>/revisions/', views.DeliverableRevisions.as_view(), name='deliverable_revisions'),
