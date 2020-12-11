@@ -2559,6 +2559,7 @@ class PinterestCatalog(ListAPIView):
         context = super().get_renderer_context()
         context['header'] = [
             'id',
+            'title',
             'description',
             'link',
             'image_link',
