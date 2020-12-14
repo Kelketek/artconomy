@@ -5,7 +5,7 @@ import {mount, Wrapper} from '@vue/test-utils'
 import AcTransaction from '@/components/views/settings/payment/AcTransaction.vue'
 import {genCard, genUser} from '@/specs/helpers/fixtures'
 import Transaction from '@/types/Transaction'
-import {Vuetify} from 'vuetify/types'
+import Vuetify from 'vuetify/lib'
 
 const localVue = vueSetup()
 let store: ArtStore

@@ -7,7 +7,7 @@ import flushPromises from 'flush-promises'
 import {userResponse} from './helpers/fixtures'
 import {FormController} from '@/store/forms/form-controller'
 import {cleanUp, createVuetify, dialogExpects, docTarget, genAnon, rq, rs, vueSetup} from './helpers'
-import {Vuetify} from 'vuetify/types'
+import Vuetify from 'vuetify/lib'
 
 const localVue = vueSetup()
 let wrapper: Wrapper<Vue>

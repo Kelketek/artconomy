@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import {Vuetify} from 'vuetify/types'
+import Vuetify from 'vuetify/lib'
 import {cleanUp, createVuetify, docTarget, vueSetup} from '@/specs/helpers'
 import {mount, Wrapper} from '@vue/test-utils'
 import AcTabs from '@/components/navigation/AcTabs.vue'

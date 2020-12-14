@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import {Vuetify} from 'vuetify/types'
+import Vuetify from 'vuetify/lib'
 import {cleanUp, createVuetify, setViewer, vueSetup} from '@/specs/helpers'
 import {mount, Wrapper} from '@vue/test-utils'
 import ProductHints from '@/components/views/search/hints/ProductHints.vue'

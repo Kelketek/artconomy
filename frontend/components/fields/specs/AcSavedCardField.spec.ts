@@ -6,7 +6,7 @@ import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import {ListController} from '@/store/lists/controller'
 import {CreditCardToken} from '@/types/CreditCardToken'
 import {genCard} from '@/specs/helpers/fixtures'
-import {Vuetify} from 'vuetify/types'
+import Vuetify from 'vuetify/lib'
 
 const localVue = vueSetup()
 let store: ArtStore

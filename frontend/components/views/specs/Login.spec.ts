@@ -8,7 +8,7 @@ import {userResponse} from '@/specs/helpers/fixtures'
 import flushPromises from 'flush-promises'
 import {deleteCookie} from '@/lib/lib'
 import {UserStoreState} from '@/store/profiles/types/UserStoreState'
-import {Vuetify} from 'vuetify/types'
+import Vuetify from 'vuetify/lib'
 
 const localVue = vueSetup()
 let profiles: UserStoreState

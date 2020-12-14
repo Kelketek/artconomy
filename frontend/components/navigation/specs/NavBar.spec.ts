@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import {Vuetify} from 'vuetify/types'
+import Vuetify from 'vuetify/lib'
 import {mount, shallowMount, Wrapper} from '@vue/test-utils'
 import NavBar from '../NavBar.vue'
 import {ArtStore, createStore} from '@/store'

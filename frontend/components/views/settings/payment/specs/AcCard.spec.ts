@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import {mount, Wrapper} from '@vue/test-utils'
 import AcCard from '@/components/views/settings/payment/AcCard.vue'
-import {Vuetify} from 'vuetify/types'
+import Vuetify from 'vuetify/lib'
 import {ArtStore, createStore} from '@/store'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import {cleanUp, createVuetify, docTarget, flushPromises, rq, rs, vueSetup} from '@/specs/helpers'

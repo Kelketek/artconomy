@@ -1,5 +1,5 @@
 import AcUppyFile from '../AcUppyFile.vue'
-import {Vuetify} from 'vuetify/types'
+import Vuetify from 'vuetify/lib'
 import Vue from 'vue'
 import {mount, Wrapper} from '@vue/test-utils'
 import {cleanUp, createVuetify, docTarget, vueSetup} from '@/specs/helpers'

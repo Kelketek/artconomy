@@ -1,6 +1,6 @@
 import {mount, Wrapper} from '@vue/test-utils'
 import Vue from 'vue'
-import {Vuetify} from 'vuetify/types'
+import Vuetify from 'vuetify/lib'
 import {createVuetify, docTarget, setViewer, vueSetup, vuetifySetup} from '@/specs/helpers'
 import mockAxios from '@/__mocks__/axios'
 import AcProductSelect from '@/components/fields/AcProductSelect.vue'

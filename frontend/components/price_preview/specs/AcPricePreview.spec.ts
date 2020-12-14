@@ -1,6 +1,6 @@
 import {mount, Wrapper} from '@vue/test-utils'
 import Vue from 'vue'
-import {Vuetify} from 'vuetify'
+import Vuetify from 'vuetify/lib'
 import {ArtStore, createStore} from '@/store'
 import {cleanUp, createVuetify, docTarget, setPricing, setViewer, vueSetup} from '@/specs/helpers'
 import AcPricePreview from '@/components/price_preview/AcPricePreview.vue'

@@ -1,5 +1,5 @@
 import Vue, {VueConstructor} from 'vue'
-import {Vuetify} from 'vuetify/types'
+import Vuetify from 'vuetify/lib'
 import {mount, Wrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
 import Router from 'vue-router'

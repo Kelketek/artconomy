@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import {mount, Wrapper} from '@vue/test-utils'
 import AcCardManager from '@/components/views/settings/payment/AcCardManager.vue'
-import {Vuetify} from 'vuetify/types'
+import Vuetify from 'vuetify/lib'
 import {ArtStore, createStore} from '@/store'
 import {cleanUp, createVuetify, docTarget, flushPromises, rq, rs, setViewer, vueSetup} from '@/specs/helpers'
 import {ListController} from '@/store/lists/controller'

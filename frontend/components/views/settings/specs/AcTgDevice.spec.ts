@@ -6,7 +6,7 @@ import Vue from 'vue'
 import {genUser} from '@/specs/helpers/fixtures'
 import {ListController} from '@/store/lists/controller'
 import {TOTPDevice} from '@/store/profiles/types/TOTPDevice'
-import {Vuetify} from 'vuetify/types'
+import Vuetify from 'vuetify/lib'
 import mockAxios from '@/specs/helpers/mock-axios'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 

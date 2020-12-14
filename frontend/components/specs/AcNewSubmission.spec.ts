@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import {Vuetify} from 'vuetify'
+import Vuetify from 'vuetify/lib'
 import {mount, Wrapper} from '@vue/test-utils'
 import {cleanUp, createVuetify, docTarget, flushPromises, rs, setViewer, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'

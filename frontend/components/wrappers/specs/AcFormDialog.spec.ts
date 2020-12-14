@@ -1,6 +1,6 @@
 import {mount} from '@vue/test-utils'
 import FormDialogContainer from '../../../specs/helpers/dummy_components/form-dialog-container.vue'
-import {Vuetify} from 'vuetify/types'
+import Vuetify from 'vuetify/lib'
 import {createVuetify, vueSetup} from '@/specs/helpers'
 
 const localVue = vueSetup()

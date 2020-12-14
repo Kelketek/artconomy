@@ -7,7 +7,7 @@ import {genUser} from '@/specs/helpers/fixtures'
 import searchSchema from '@/components/views/search/specs/fixtures'
 import {FormController} from '@/store/forms/form-controller'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
-import {Vuetify} from 'vuetify/types'
+import Vuetify from 'vuetify/lib'
 
 const localVue = vueSetup()
 let wrapper: Wrapper<Vue>

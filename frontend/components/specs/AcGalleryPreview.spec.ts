@@ -4,7 +4,7 @@ import {ArtStore, createStore} from '@/store'
 import {cleanUp, createVuetify, docTarget, genAnon, setViewer, vueSetup} from '@/specs/helpers'
 import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
 import {genSubmission} from '@/store/submissions/specs/fixtures'
-import {Vuetify} from 'vuetify/types'
+import Vuetify from 'vuetify/lib'
 
 const localVue = vueSetup()
 let store: ArtStore

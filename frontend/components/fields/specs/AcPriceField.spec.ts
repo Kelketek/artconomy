@@ -1,6 +1,6 @@
 import {mount, Wrapper} from '@vue/test-utils'
 import Vue from 'vue'
-import {Vuetify} from 'vuetify/types'
+import Vuetify from 'vuetify/lib'
 import {ArtStore, createStore} from '@/store'
 import {cleanUp, createVuetify, docTarget, vueSetup} from '@/specs/helpers'
 import AcPriceField from '@/components/fields/AcPriceField.vue'

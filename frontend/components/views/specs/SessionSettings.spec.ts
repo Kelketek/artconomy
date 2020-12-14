@@ -4,7 +4,7 @@ import {cleanUp, createVuetify, genAnon, qMount, setViewer, vueSetup} from '@/sp
 import {Wrapper} from '@vue/test-utils'
 import SessionSettings from '@/components/views/SessionSettings.vue'
 import {genUser} from '@/specs/helpers/fixtures'
-import {Vuetify} from 'vuetify/types'
+import Vuetify from 'vuetify/lib'
 
 const localVue = vueSetup()
 let store: ArtStore

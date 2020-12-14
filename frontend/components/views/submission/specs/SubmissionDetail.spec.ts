@@ -19,7 +19,7 @@ import {genSubmission} from '@/store/submissions/specs/fixtures'
 import SubmissionDetail from '@/components/views/submission/SubmissionDetail.vue'
 import {RelatedUser} from '@/store/profiles/types/RelatedUser'
 import {searchSchema} from '@/lib/lib'
-import {Vuetify} from 'vuetify/types'
+import Vuetify from 'vuetify/lib'
 
 const localVue = vueSetup()
 localVue.use(Router)

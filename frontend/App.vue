@@ -2,7 +2,7 @@
 <template>
   <v-app dark>
     <nav-bar/>
-    <v-content class="main-content">
+    <v-main class="main-content">
       <ac-error/>
       <router-view v-if="displayRoute" :key="routeKey"/>
       <ac-form-dialog
@@ -74,8 +74,8 @@
         </v-btn>
       </v-snackbar>
       <ac-markdown-explanation v-model="showMarkdownHelp" />
-    </v-content>
-    <v-content>
+    </v-main>
+    <v-main>
       <v-row no-gutters class="mb-4">
         <v-col class="text-right px-2">
           <router-link :to="{name: 'PrivacyPolicy'}">Privacy Policy</router-link>
@@ -85,7 +85,7 @@
           <router-link :to="{name: 'TermsOfService'}">Terms of Service</router-link>
         </v-col>
       </v-row>
-    </v-content>
+    </v-main>
     <div class="dev-mode-overlay text-center" v-if="devMode">
       <v-icon size="50vw">construction</v-icon>
     </div>

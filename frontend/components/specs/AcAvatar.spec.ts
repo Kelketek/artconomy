@@ -5,7 +5,7 @@ import {cleanUp, createVuetify, flushPromises, rq, rs, setViewer, vueSetup, vuet
 import {genUser, userResponse} from '@/specs/helpers/fixtures'
 import AcAvatar from '@/components/AcAvatar.vue'
 import mockAxios from '@/__mocks__/axios'
-import {Vuetify} from 'vuetify/types'
+import Vuetify from 'vuetify/lib'
 
 const localVue = vueSetup()
 let store: ArtStore

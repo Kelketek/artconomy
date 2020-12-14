@@ -4,7 +4,7 @@ import {ArtStore, createStore} from '@/store'
 import {mount, Wrapper} from '@vue/test-utils'
 import {genUser} from '@/specs/helpers/fixtures'
 import TransactionHistory from '@/components/views/settings/payment/TransactionHistory.vue'
-import {Vuetify} from 'vuetify'
+import Vuetify from 'vuetify/lib'
 
 const localVue = vueSetup()
 let store: ArtStore

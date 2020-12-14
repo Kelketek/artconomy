@@ -6,7 +6,7 @@ import {genUser} from '@/specs/helpers/fixtures'
 import AcBankToggle from '@/components/fields/AcBankToggle.vue'
 import mockAxios from '@/__mocks__/axios'
 import flushPromises from 'flush-promises'
-import {Vuetify} from 'vuetify/types'
+import Vuetify from 'vuetify/lib'
 
 const localVue = vueSetup()
 let store: ArtStore

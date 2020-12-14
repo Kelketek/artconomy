@@ -5,7 +5,7 @@ import {mount, Wrapper} from '@vue/test-utils'
 import AcCharacterPreview from '@/components/AcCharacterPreview.vue'
 import {genCharacter} from '@/store/characters/specs/fixtures'
 import {genUser} from '@/specs/helpers/fixtures'
-import {Vuetify} from 'vuetify/types'
+import Vuetify from 'vuetify/lib'
 
 const localVue = vueSetup()
 let wrapper: Wrapper<Vue>

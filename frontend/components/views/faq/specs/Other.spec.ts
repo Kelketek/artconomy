@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import {Vuetify} from 'vuetify/types'
+import Vuetify from 'vuetify/lib'
 import Router from 'vue-router'
 import {faqRoutes} from './helpers'
 import {mount, Wrapper} from '@vue/test-utils'

@@ -8,7 +8,7 @@ import Submission from '@/types/Submission'
 import {cleanUp, createVuetify, setViewer, vueSetup} from '@/specs/helpers'
 import {genUser} from '@/specs/helpers/fixtures'
 import {SingleController} from '@/store/singles/controller'
-import {Vuetify} from 'vuetify'
+import Vuetify from 'vuetify/lib'
 
 const localVue = vueSetup()
 let vuetify: Vuetify

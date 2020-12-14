@@ -5,7 +5,7 @@ import {mount, Wrapper} from '@vue/test-utils'
 import {genCard, genUser} from '@/specs/helpers/fixtures'
 import Purchase from '@/components/views/settings/payment/Purchase.vue'
 import mockAxios from '@/__mocks__/axios'
-import {Vuetify} from 'vuetify'
+import Vuetify from 'vuetify/lib'
 
 const localVue = vueSetup()
 let store: ArtStore

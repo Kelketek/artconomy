@@ -4,7 +4,7 @@ import Vue from 'vue'
 import {ArtStore, createStore} from '@/store'
 import AcShareManager from '@/components/AcShareManager.vue'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
-import {Vuetify} from 'vuetify'
+import Vuetify from 'vuetify/lib'
 
 const localVue = vueSetup()
 let wrapper: Wrapper<Vue>

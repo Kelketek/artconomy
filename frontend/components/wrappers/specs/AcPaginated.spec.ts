@@ -6,7 +6,7 @@ import {genSubmission} from '@/store/submissions/specs/fixtures'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import {Route} from 'vue-router/types/router'
-import {Vuetify} from 'vuetify/types'
+import Vuetify from 'vuetify/lib'
 
 const localVue = vueSetup()
 let wrapper: Wrapper<Vue>

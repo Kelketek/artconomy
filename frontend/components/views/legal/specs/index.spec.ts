@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import {Vuetify} from 'vuetify/types'
+import Vuetify from 'vuetify/lib'
 import {shallowMount, Wrapper} from '@vue/test-utils'
 import PrivacyPolicy from '../PrivacyPolicy.vue'
 import RefundPolicy from '../RefundPolicy.vue'

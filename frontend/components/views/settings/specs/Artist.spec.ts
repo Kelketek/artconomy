@@ -1,5 +1,5 @@
 import {mount} from '@vue/test-utils'
-import {Vuetify} from 'vuetify/types'
+import Vuetify from 'vuetify/lib'
 import Artist from '@/components/views/settings/Artist.vue'
 import {ArtStore, createStore} from '@/store'
 import {cleanUp, createVuetify, setViewer, vueSetup} from '@/specs/helpers'

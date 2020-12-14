@@ -8,7 +8,7 @@ import {commentSet} from './fixtures'
 import Router from 'vue-router'
 import mockAxios from '@/__mocks__/axios'
 import AcNewComment from '@/components/comments/AcNewComment.vue'
-import {Vuetify} from 'vuetify/types'
+import Vuetify from 'vuetify/lib'
 
 const localVue = vueSetup()
 localVue.use(Router)

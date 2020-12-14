@@ -3,7 +3,7 @@ import {mount, Wrapper} from '@vue/test-utils'
 import {cleanUp, createVuetify, vueSetup} from '@/specs/helpers'
 import {genSubmission} from '@/store/submissions/specs/fixtures'
 import AcVideoPlayer from '@/components/AcVideoPlayer.vue'
-import {Vuetify} from 'vuetify/types'
+import Vuetify from 'vuetify/lib'
 
 const localVue = vueSetup()
 let wrapper: Wrapper<Vue>

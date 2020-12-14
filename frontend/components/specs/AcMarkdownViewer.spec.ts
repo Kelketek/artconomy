@@ -4,7 +4,7 @@ import {cleanUp, createVuetify, docTarget, flushPromises, rq, rs, vueSetup} from
 import {genSubmission} from '@/store/submissions/specs/fixtures'
 import AcMarkdownViewer from '@/components/AcMarkdownViewer.vue'
 import mockAxios from '@/__mocks__/axios'
-import {Vuetify} from 'vuetify/types'
+import Vuetify from 'vuetify/lib'
 
 const localVue = vueSetup()
 let wrapper: Wrapper<Vue>

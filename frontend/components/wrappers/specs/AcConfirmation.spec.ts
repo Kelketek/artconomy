@@ -2,7 +2,7 @@ import {mount, Wrapper} from '@vue/test-utils'
 import AcConfirmation from '../AcConfirmation.vue'
 import {createVuetify, docTarget, vueSetup} from '@/specs/helpers'
 import Vue from 'vue'
-import {Vuetify} from 'vuetify/types'
+import Vuetify from 'vuetify/lib'
 import flushPromises from 'flush-promises'
 
 const localVue = vueSetup()

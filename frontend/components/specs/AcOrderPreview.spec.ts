@@ -3,7 +3,7 @@ import {cleanUp, createVuetify, docTarget, setViewer, vueSetup} from '@/specs/he
 import {ArtStore, createStore} from '@/store'
 import {mount, Wrapper} from '@vue/test-utils'
 import {genGuest, genOrder, genUser} from '@/specs/helpers/fixtures'
-import {Vuetify} from 'vuetify'
+import Vuetify from 'vuetify/lib'
 import AcOrderPreview from '@/components/AcOrderPreview.vue'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import {SingleController} from '@/store/singles/controller'

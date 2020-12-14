@@ -5,7 +5,7 @@ import mockAxios from '@/__mocks__/axios'
 import {cleanUp, createVuetify, docTarget, flushPromises, rq, rs, vueSetup} from '@/specs/helpers'
 import {genUser} from '@/specs/helpers/fixtures'
 import DummyRelated from '@/components/wrappers/specs/DummyRelated.vue'
-import {Vuetify} from 'vuetify/types'
+import Vuetify from 'vuetify/lib'
 
 describe('AcRelatedManager.vue', () => {
   let wrapper: Wrapper<Vue>

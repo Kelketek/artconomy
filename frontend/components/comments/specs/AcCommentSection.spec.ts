@@ -8,7 +8,7 @@ import AcCommentSection from '@/components/comments/AcCommentSection.vue'
 import mockAxios from '@/__mocks__/axios'
 import {commentSet} from '@/components/comments/specs/fixtures'
 import {genUser} from '@/specs/helpers/fixtures'
-import {Vuetify} from 'vuetify/types'
+import Vuetify from 'vuetify/lib'
 
 const localVue = vueSetup()
 localVue.use(Router)

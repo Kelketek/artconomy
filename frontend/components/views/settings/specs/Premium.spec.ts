@@ -17,7 +17,7 @@ import {genUser} from '@/specs/helpers/fixtures'
 import Premium from '@/components/views/settings/Premium.vue'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import mockAxios from '@/__mocks__/axios'
-import {Vuetify} from 'vuetify/types'
+import Vuetify from 'vuetify/lib'
 
 const localVue = vueSetup()
 localVue.use(Router)

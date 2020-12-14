@@ -5,7 +5,7 @@ import AcSubmissionSelect from '@/components/fields/AcSubmissionSelect.vue'
 import {ArtStore, createStore} from '@/store'
 import {genSubmission} from '@/store/submissions/specs/fixtures'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
-import {Vuetify} from 'vuetify/types'
+import Vuetify from 'vuetify/lib'
 
 const localVue = vueSetup()
 let store: ArtStore

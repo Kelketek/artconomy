@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import {mount, Wrapper} from '@vue/test-utils'
-import {Vuetify} from 'vuetify/types'
+import Vuetify from 'vuetify/lib'
 import {cleanUp, createVuetify, docTarget, setViewer, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import {genUser} from '@/specs/helpers/fixtures'

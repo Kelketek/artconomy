@@ -1,7 +1,7 @@
 import {mount, Wrapper} from '@vue/test-utils'
 import Vue from 'vue'
 import {cleanUp, createVuetify, docTarget, flushPromises, rs, vueSetup} from '@/specs/helpers'
-import {Vuetify} from 'vuetify/types'
+import Vuetify from 'vuetify/lib'
 import AcTagField from '@/components/fields/AcTagField.vue'
 import mockAxios from '@/__mocks__/axios'
 

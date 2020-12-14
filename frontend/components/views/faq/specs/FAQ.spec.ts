@@ -5,7 +5,7 @@ import {faqRoutes} from './helpers'
 import {mount, Wrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
 import {cleanUp, createVuetify, docTarget, vueSetup} from '@/specs/helpers'
-import {Vuetify} from 'vuetify/types'
+import Vuetify from 'vuetify/lib'
 
 const localVue = vueSetup()
 localVue.use(Router)

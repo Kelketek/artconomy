@@ -8,7 +8,7 @@ import {genUser} from '@/specs/helpers/fixtures'
 import ConversationDetail from '@/components/views/ConversationDetail.vue'
 import {genConversation} from '@/components/views/specs/fixtures'
 import mockAxios from '@/__mocks__/axios'
-import {Vuetify} from 'vuetify/types'
+import Vuetify from 'vuetify/lib'
 
 const localVue = vueSetup()
 localVue.use(Router)

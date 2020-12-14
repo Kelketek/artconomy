@@ -3,7 +3,7 @@ import FormContainer from '@/specs/helpers/dummy_components/form-container.vue'
 import {AxiosError} from 'axios'
 import {createVuetify, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
-import {Vuetify} from 'vuetify'
+import Vuetify from 'vuetify/lib'
 
 const mockTrace = jest.spyOn(console, 'trace')
 

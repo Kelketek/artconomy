@@ -1,7 +1,7 @@
 import {mount, Wrapper} from '@vue/test-utils'
 import AcLoadingSpinner from '../AcLoadingSpinner.vue'
 import Vue from 'vue'
-import {Vuetify} from 'vuetify/types'
+import Vuetify from 'vuetify/lib'
 import {cleanUp, createVuetify, docTarget, vueSetup} from '@/specs/helpers'
 
 // Must use it directly, due to issues with package imports upstream.

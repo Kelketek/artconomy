@@ -7,7 +7,7 @@ import {cleanUp, createVuetify, setViewer, vueSetup} from '@/specs/helpers'
 import {genUser} from '@/specs/helpers/fixtures'
 import AcColors from '@/components/views/character/AcColors.vue'
 import {Character} from '@/store/characters/types/Character'
-import {Vuetify} from 'vuetify/types'
+import Vuetify from 'vuetify/lib'
 
 const localVue = vueSetup()
 let vuetify: Vuetify

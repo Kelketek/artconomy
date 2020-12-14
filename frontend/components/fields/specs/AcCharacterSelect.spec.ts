@@ -3,7 +3,7 @@ import Vue from 'vue'
 import {cleanUp, createVuetify, docTarget, flushPromises, rs, setViewer, vueSetup, vuetifySetup} from '@/specs/helpers'
 import AcCharacterSelect from '@/components/fields/AcCharacterSelect.vue'
 import mockAxios from '@/__mocks__/axios'
-import {Vuetify} from 'vuetify/types'
+import Vuetify from 'vuetify/lib'
 import {ArtStore, createStore} from '@/store'
 import {genUser} from '@/specs/helpers/fixtures'
 

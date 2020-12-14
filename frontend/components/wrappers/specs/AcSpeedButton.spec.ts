@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import AcSpeedButton from '@/components/wrappers/AcSpeedButton.vue'
 import {mount, Wrapper} from '@vue/test-utils'
-import {Vuetify} from 'vuetify/types'
+import Vuetify from 'vuetify/lib'
 import {cleanUp, createVuetify, docTarget, vueSetup} from '@/specs/helpers'
 
 describe('AcSpeedButton.vue', () => {

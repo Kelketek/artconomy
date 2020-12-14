@@ -1,4 +1,4 @@
-import {Vuetify} from 'vuetify/types'
+import Vuetify from 'vuetify/lib'
 import {createVuetify, vueSetup} from '@/specs/helpers'
 import {mount} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'

@@ -1,6 +1,6 @@
 <template>
   <div class="d-flex d-md-none">
-  <v-speed-dial bottom right fixed v-model="editing" elevation-10 style="z-index: 4">
+  <v-speed-dial bottom right fixed elevation-10 style="z-index: 4">
     <ac-speed-button
         slot="activator"
         :text="editing ? 'Lock' : 'Edit'"
@@ -11,7 +11,7 @@
              fab
              hover
              large
-             v-model="editing"
+             @click="editing = !editing"
              class="edit-toggle"
       >
         <v-icon v-if="editing">lock</v-icon>

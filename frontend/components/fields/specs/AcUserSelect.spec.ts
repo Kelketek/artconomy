@@ -4,7 +4,7 @@ import {cleanUp, createVuetify, docTarget, flushPromises, rs, vueSetup, vuetifyS
 import AcUserSelect from '@/components/fields/AcUserSelect.vue'
 import mockAxios from '@/__mocks__/axios'
 import {genUser} from '@/specs/helpers/fixtures'
-import {Vuetify} from 'vuetify/types'
+import Vuetify from 'vuetify/lib'
 
 const localVue = vueSetup()
 jest.useFakeTimers()

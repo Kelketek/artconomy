@@ -1,8 +1,8 @@
 <template>
   <v-app>
-    <v-content>
+    <v-main>
       <ac-new-submission ref="submissionForm" title="Sharable thing!" :username="username" v-model="showUpload"></ac-new-submission>
-    </v-content>
+    </v-main>
   </v-app>
 </template>
 <script lang="ts">
