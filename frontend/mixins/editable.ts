@@ -17,12 +17,10 @@ export default class Editable extends Vue {
 
   public get editing() {
     const value = Boolean(this.controls && this.$route.query.editing)
-    console.log('Value is', value)
     return value
   }
 
   public set editing(value) {
-    console.error(`Setting to ${value}`)
     if (value) {
       this.unlock()
     } else {
