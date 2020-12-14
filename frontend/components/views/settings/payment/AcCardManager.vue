@@ -87,8 +87,6 @@ export default class AcCardManager extends mixins(Subjective, Alerts) {
     public created() {
       this.cards = this.$getList(`${flatten(this.username)}__creditCards`, {endpoint: this.url, paginated: false})
       this.cards.get().then(this.initialize)
-      // @ts-ignore
-      window.cardThing = this
     }
 
     public setCard(val: number|null) {
