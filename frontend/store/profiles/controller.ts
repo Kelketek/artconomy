@@ -42,7 +42,6 @@ export class ProfileController extends BaseController<ProfileModuleOpts, Profile
     if (!oldUsername) {
       return
     }
-    console.log('route is', this.$route)
     // Most relevant routes will have the username right in them, so we need to change these.
     /* istanbul ignore next */
     const name = this.$route.name || undefined

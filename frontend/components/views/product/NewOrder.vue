@@ -269,7 +269,7 @@ export default class NewOrder extends mixins(ProductCentric, Formatting) {
             (response) => this.initCharacters.push(response),
           ).catch(() => {
             this.orderForm.fields.characters.model = this.orderForm.fields.characters.model.filter(
-              (val) => val !== charId,
+              (val: number) => val !== charId,
             )
           }))
         }
