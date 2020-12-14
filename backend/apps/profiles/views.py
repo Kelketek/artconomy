@@ -26,7 +26,7 @@ from rest_framework.decorators import api_view
 from rest_framework.exceptions import ValidationError, PermissionDenied
 from rest_framework.generics import (
     ListCreateAPIView, CreateAPIView, RetrieveUpdateDestroyAPIView, RetrieveUpdateAPIView, GenericAPIView, ListAPIView,
-    DestroyAPIView
+    DestroyAPIView, RetrieveAPIView
 )
 from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated
@@ -330,6 +330,18 @@ class CharacterManager(RetrieveUpdateDestroyAPIView):
 
     def get_object(self):
         character = get_object_or_404(Character, user__username=self.kwargs['username'], name=self.kwargs['character'])
+        self.check_object_permissions(self.request, character)
+        return character
+
+
+class CharacterById(RetrieveAPIView):
+    serializer_class = CharacterManagementSerializer
+    permission_classes = [Any(
+        All(IsRegistered, SharedWith), ObjectControls,
+    )]
+
+    def get_object(self):
+        character = get_object_or_404(Character, id=self.kwargs['character_id'])
         self.check_object_permissions(self.request, character)
         return character
 

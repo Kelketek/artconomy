@@ -43,7 +43,10 @@
                           field-type="ac-character-select" :field="orderForm.fields.characters" label="Characters"
                           hint="Start typing a character's name to search. If you've set up characters on Artconomy, you can
                   attach them to this order for easy referencing by the artist! If you haven't added any characters, or
-                  no characters are in this piece, you may leave this blank." />
+                  no characters are in this piece, you may leave this blank."
+                          v-if="showCharacters"
+                          :init-items="initCharacters"
+                      />
                     </v-col>
                   </v-row>
                   <v-row>
@@ -111,7 +114,7 @@
                       </v-alert>
                     </v-col>
                     <v-col class="text-center" cols="12" >
-                      <v-btn color="primary" type="submit">Place Order</v-btn>
+                      <v-btn color="primary" type="submit" id="place-order-button">Place Order</v-btn>
                     </v-col>
                   </v-row>
                 </v-card-text>
@@ -174,6 +177,8 @@ import AcRendered from '@/components/wrappers/AcRendered'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import Product from '@/types/Product'
+import {artCall} from '@/lib/lib'
+import {Character} from '@/store/characters/types/Character'
   @Component({
     components: {
       AcLink,
@@ -190,6 +195,8 @@ import Product from '@/types/Product'
 export default class NewOrder extends mixins(ProductCentric, Formatting) {
     public orderForm: FormController = null as unknown as FormController
     public loginForm: FormController = null as unknown as FormController
+    public initCharacters: Character[] = []
+    public showCharacters = false
 
     @Watch('viewer.guest_email')
     public updateEmail(newVal: string) {
@@ -226,11 +233,13 @@ export default class NewOrder extends mixins(ProductCentric, Formatting) {
         this.viewerHandler.refresh().then(() => {
           this.$router.push(link)
           this.sendEvent()
+          this.orderForm.sending = false
         })
         return
       }
       this.sendEvent()
       this.$router.push(link)
+      this.orderForm.sending = false
     }
 
     public created() {
@@ -239,8 +248,9 @@ export default class NewOrder extends mixins(ProductCentric, Formatting) {
       window.scrollTo(0, 0)
       this.product.get()
       const viewer = this.viewer as User
-      this.orderForm = this.$getForm(`product${this.productId}__order`, {
+      this.orderForm = this.$getForm('newOrder', {
         endpoint: this.product.endpoint + 'order/',
+        persistent: true,
         fields: {
           email: {value: (viewer.guest_email || ''), validators: [{name: 'email'}]},
           private: {value: false},
@@ -250,6 +260,21 @@ export default class NewOrder extends mixins(ProductCentric, Formatting) {
         },
       })
       this.subjectHandler.artistProfile.get().then()
+      if (this.orderForm.fields.characters.value.length === 0) {
+        this.showCharacters = true
+      } else {
+        const promises = []
+        for (const charId of this.orderForm.fields.characters.model) {
+          promises.push(artCall({url: `/api/profiles/v1/data/character/id/${charId}/`, method: 'get'}).then(
+            (response) => this.initCharacters.push(response),
+          ).catch(() => {
+            this.orderForm.fields.characters.model = this.orderForm.fields.characters.model.filter(
+              (val) => val !== charId,
+            )
+          }))
+        }
+        Promise.all(promises).then(() => { this.showCharacters = true })
+      }
     }
 }
 </script>

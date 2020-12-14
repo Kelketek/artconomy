@@ -1,6 +1,6 @@
 import {Character} from '@/store/characters/types/Character'
 
-export function genCharacter() {
+export function genCharacter(overrides?: Partial<Character>) {
   return {
     id: 1,
     name: 'Kai',
@@ -72,7 +72,7 @@ export function genCharacter() {
       'red_panda', 'female', 'wah', 'stuff', 'cool', 'awesome', 'fuzzy', 'floofy',
       'notable', 'fuckable', 'soft_paws', 'feets', 'nosings',
     ],
-    colors: [],
     taggable: true,
+    ...overrides,
   } as Character
 }

@@ -35,6 +35,7 @@ urlpatterns = [
          name='community_notifications'),
     path('v1/data/notifications/sales/', views.SalesNotificationsList.as_view(), name='sales_notifications'),
     path('v1/data/user/id/<int:user_id>/', views.UserInfoByID.as_view(), name='user_info'),
+    path('v1/data/character/id/<int:character_id>/', views.CharacterById().as_view(), name='character_info_by_id'),
     path('v1/search/character/', views.CharacterSearch.as_view(), name='character_search'),
     path('v1/search/character/indexed/', views.CharacterSearch.as_view(), name='indexed_character_search'),
     path('v1/search/user/', views.UserSearch.as_view(), name='character_search'),
