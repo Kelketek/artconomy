@@ -1,61 +1,63 @@
 <template>
   <ac-load-section :controller="pricing">
-    <template v-slot:default>
-      <ac-load-section :controller="lineItems" v-if="validPrice" class="compact-fields">
-        <template v-slot:default>
-          <template v-if="editable && editBase">
-            <ac-line-item-editor :line="line" v-for="line in baseItems" :key="line.x.id" :price-data="priceData" :editing="editable" />
+    <ac-load-section :controller="subjectHandler">
+      <template v-slot:default>
+        <ac-load-section :controller="lineItems" v-if="validPrice" class="compact-fields">
+          <template v-slot:default>
+            <template v-if="editable && editBase">
+              <ac-line-item-editor :line="line" v-for="line in baseItems" :key="line.x.id" :price-data="priceData" :editing="editable" />
+            </template>
+            <template v-else>
+              <ac-line-item-preview :line="line.x" v-for="line in baseItems" :key="line.x.id" :price-data="priceData" :editing="editable" />
+            </template>
+            <template v-if="editable">
+              <ac-line-item-editor :line="line" v-for="line in addOns" :key="line.x.id" :price-data="priceData" :editing="editable" />
+              <ac-form-container v-bind="addOnForm.bind">
+                <ac-form @submit.prevent="addOnForm.submitThen(lineItems.push)">
+                  <ac-new-line-item :form="addOnForm" :price="priceData.map.get(addOnFormItem) || 0" />
+                </ac-form>
+              </ac-form-container>
+            </template>
+            <template v-else>
+              <ac-line-item-preview :line="line.x" v-for="line in addOns" :key="line.x.id" :price-data="priceData" />
+            </template>
+            <ac-line-item-preview :line="line" v-for="line in modifiers" :key="line.id" :price-data="priceData" :editing="editable" />
+            <template v-if="editable && isStaff">
+              <ac-line-item-editor :line="line" v-for="line in extras" :key="line.x.id" :price-data="priceData" :editing="editable" />
+              <ac-form-container v-bind="extraForm.bind">
+                <ac-form @submit.prevent="extraForm.submitThen(lineItems.push)">
+                  <ac-new-line-item :form="extraForm" :price="priceData.map.get(extraFormItem) || 0" />
+                </ac-form>
+              </ac-form-container>
+            </template>
+            <template v-else>
+              <ac-line-item-preview :line="line.x" v-for="line in extras" :key="line.x.id" :price-data="priceData" />
+            </template>
+            <ac-line-item-preview :line="line" v-for="line in taxes" :key="line.id" :price-data="priceData" :editing="editable" />
+            <v-row no-gutters>
+              <v-col class="text-right pr-1" cols="6" ><strong>Total Price:</strong></v-col>
+              <v-col class="text-left pl-1" cols="6" >${{rawPrice.toFixed(2)}}</v-col>
+            </v-row>
+            <v-row>
+              <v-col class="text-right pr-1" cols="6" v-if="isSeller && escrow"><strong>Your Payout:</strong></v-col>
+              <v-col class="text-left pl-1" align-self="center" cols="6" v-if="isSeller && escrow"><strong>${{payout.toFixed(2)}}</strong></v-col>
+              <v-col v-if="isSeller" cols="12" md="6">
+                <v-text-field v-model="hours" type="number" label="If I worked for this many hours..." min="0" step="1"></v-text-field>
+              </v-col>
+              <v-col v-if="isSeller && hourly" cols="12" md="6">
+                I would earn <strong>${{hourly}}/hour.</strong>
+              </v-col>
+            </v-row>
+            <v-row v-if="isSeller && escrow && !subject.landscape">
+              <v-col class="text-center" cols="12">
+                You could earn <strong>${{bonus.toFixed(2)}}</strong> more with
+                <router-link :to="{name: 'Upgrade'}">Artconomy Landscape</router-link>!
+              </v-col>
+            </v-row>
           </template>
-          <template v-else>
-            <ac-line-item-preview :line="line.x" v-for="line in baseItems" :key="line.x.id" :price-data="priceData" :editing="editable" />
-          </template>
-          <template v-if="editable">
-            <ac-line-item-editor :line="line" v-for="line in addOns" :key="line.x.id" :price-data="priceData" :editing="editable" />
-            <ac-form-container v-bind="addOnForm.bind">
-              <ac-form @submit.prevent="addOnForm.submitThen(lineItems.push)">
-                <ac-new-line-item :form="addOnForm" :price="priceData.map.get(addOnFormItem) || 0" />
-              </ac-form>
-            </ac-form-container>
-          </template>
-          <template v-else>
-            <ac-line-item-preview :line="line.x" v-for="line in addOns" :key="line.x.id" :price-data="priceData" />
-          </template>
-          <ac-line-item-preview :line="line" v-for="line in modifiers" :key="line.id" :price-data="priceData" :editing="editable" />
-          <template v-if="editable && isStaff">
-            <ac-line-item-editor :line="line" v-for="line in extras" :key="line.x.id" :price-data="priceData" :editing="editable" />
-            <ac-form-container v-bind="extraForm.bind">
-              <ac-form @submit.prevent="extraForm.submitThen(lineItems.push)">
-                <ac-new-line-item :form="extraForm" :price="priceData.map.get(extraFormItem) || 0" />
-              </ac-form>
-            </ac-form-container>
-          </template>
-          <template v-else>
-            <ac-line-item-preview :line="line.x" v-for="line in extras" :key="line.x.id" :price-data="priceData" />
-          </template>
-          <ac-line-item-preview :line="line" v-for="line in taxes" :key="line.id" :price-data="priceData" :editing="editable" />
-          <v-row no-gutters>
-            <v-col class="text-right pr-1" cols="6" ><strong>Total Price:</strong></v-col>
-            <v-col class="text-left pl-1" cols="6" >${{rawPrice.toFixed(2)}}</v-col>
-          </v-row>
-          <v-row>
-            <v-col class="text-right pr-1" cols="6" v-if="isSeller && escrow"><strong>Your Payout:</strong></v-col>
-            <v-col class="text-left pl-1" align-self="center" cols="6" v-if="isSeller && escrow"><strong>${{payout.toFixed(2)}}</strong></v-col>
-            <v-col v-if="isSeller" cols="12" md="6">
-              <v-text-field v-model="hours" type="number" label="If I worked for this many hours..." min="0" step="1"></v-text-field>
-            </v-col>
-            <v-col v-if="isSeller && hourly" cols="12" md="6">
-              I would earn <strong>${{hourly}}/hour.</strong>
-            </v-col>
-          </v-row>
-          <v-row v-if="isSeller && escrow && !subject.landscape">
-            <v-col class="text-center" cols="12">
-              You could earn <strong>${{bonus.toFixed(2)}}</strong> more with
-              <router-link :to="{name: 'Upgrade'}">Artconomy Landscape</router-link>!
-            </v-col>
-          </v-row>
-        </template>
-      </ac-load-section>
-    </template>
+        </ac-load-section>
+      </template>
+    </ac-load-section>
   </ac-load-section>
 </template>
 
