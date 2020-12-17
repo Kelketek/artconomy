@@ -11,7 +11,7 @@ services:
     image: nginx:latest
     container_name: ng01
     ports:
-      - "8000:8000"
+      - "443:8000"
     volumes:
       - ./config/nginx:/etc/nginx/conf.d
       - ./dev_keys:/etc/nginx/dev_keys
