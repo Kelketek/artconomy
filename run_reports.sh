@@ -16,14 +16,11 @@ TRANSACTIONS_FILE=transactions.csv
 SETTLEMENTS_FILE=settlements.csv
 PROCESSED_FILE=processed.csv
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-ACTIVATION_SCRIPT="${SCRIPT_DIR}/../env/bin/activate"
 REPORTS_DIR="reports/financial/$(date +'%B-%d-%Y')"
 # This is only to be run within docker for now, so we need the path for docker.
 DUMP_FILE="/app/ansible/production.sql"
 CARD_TRANSACTIONS_FILE="${REPORTS_DIR}/card_transactions.csv"
 
-cd "${SCRIPT_DIR}"
-source "${ACTIVATION_SCRIPT}"
 cd "${SCRIPT_DIR}/ansible"
 ansible-playbook -i inventory dump.yml
 cd "${SCRIPT_DIR}"
