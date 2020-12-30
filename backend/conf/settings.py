@@ -32,7 +32,7 @@ os.sys.path = [BACKEND_ROOT] + os.sys.path
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
 
-ADMINS = os.environ.get('ADMINS', [('Fox', 'fox@vulpinity.com')])
+ADMINS = os.environ.get('ADMINS', [('Fox', 'fox@artconomy.com')])
 
 
 class UNSET:
