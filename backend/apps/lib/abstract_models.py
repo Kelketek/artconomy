@@ -129,17 +129,10 @@ class ImageModel(AssetThumbnailMixin, models.Model):
         'lib.Asset', on_delete=models.SET_NULL, null=True,
         related_name='full_%(app_label)s_%(class)s', blank=True,
     )
-    # To be removed once we're in production and it's proven safe without data loss for a while.
-    file_old = ThumbnailerImageField(
-        upload_to='art/%Y/%m/%d/', validators=[FileExtensionValidator(allowed_extensions=ALLOWED_EXTENSIONS)],
-        blank=True,
-    )
     preview = models.ForeignKey(
         'lib.Asset', on_delete=models.SET_NULL, null=True, related_name='preview_%(app_label)s_%(class)s',
         blank=True,
     )
-    # To be removed once we're in production and it's proven safe without data loss for a while.
-    preview_old = ThumbnailerImageField(upload_to='thumbs/%Y/%m/%d/', blank=True, null=True, default='')
     created_on = DateTimeField(default=timezone.now)
     owner = ForeignKey(
         settings.AUTH_USER_MODEL, related_name='owned_%(app_label)s_%(class)s', on_delete=CASCADE,
