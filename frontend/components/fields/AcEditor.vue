@@ -4,7 +4,7 @@
     <v-row no-gutters>
       <v-col cols="12" v-if="previewMode">
         <v-row no-gutters  >
-          <ac-rendered xs12 :value="scratch" class="editor-preview" />
+          <ac-rendered :value="scratch" :classes="{'editor-preview': true, col: true}" />
         </v-row>
       </v-col>
       <v-col cols="12" v-else>

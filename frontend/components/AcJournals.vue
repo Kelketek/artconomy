@@ -58,7 +58,6 @@
 </template>
 
 <script lang="ts">
-// import Paginated from './mixins/paginated'
 import Formatting from '@/mixins/formatting'
 import {truncateText} from '@/lib/lib'
 import Component, {mixins} from 'vue-class-component'
@@ -68,13 +67,12 @@ import {Journal} from '@/types/Journal'
 import {ListController} from '@/store/lists/controller'
 import {FormController} from '@/store/forms/form-controller'
 import AcBoundField from '@/components/fields/AcBoundField'
-import AcRendered from '@/components/wrappers/AcRendered'
 import AcLoadingSpinner from '@/components/wrappers/AcLoadingSpinner.vue'
 import AcGrowSpinner from '@/components/AcGrowSpinner.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 
   @Component({
-    components: {AcPaginated, AcGrowSpinner, AcLoadingSpinner, AcRendered, AcBoundField, AcFormDialog},
+    components: {AcPaginated, AcGrowSpinner, AcLoadingSpinner, AcBoundField, AcFormDialog},
   })
 export default class AcJournals extends mixins(Subjective, Formatting) {
     public firstRun: boolean = true

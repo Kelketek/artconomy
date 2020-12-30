@@ -26,7 +26,7 @@ describe('AcRendered.ts', () => {
         value: 'This is a section of text.', truncate: 10,
       },
     })
-    expect(wrapper.text()).toBe('This is a... Read More')
+    expect(wrapper.text()).toBe('This is a...\nRead More')
   })
   it('Allows the user to read more', async() => {
     wrapper = mount(AcRendered, {
@@ -50,6 +50,6 @@ describe('AcRendered.ts', () => {
         value: ''.padStart(1500, 'A'), truncate: true,
       },
     })
-    expect(wrapper.text()).toBe(''.padStart(1000, 'A') + '... Read More')
+    expect(wrapper.text()).toBe(''.padStart(1000, 'A') + '...\nRead More')
   })
 })

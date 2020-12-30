@@ -24,7 +24,7 @@
                   </ac-link>
               </v-col>
               <v-col cols="12" class="text-center hidden-md-and-up">
-                <strong><ac-rendered inline="true" tag="span" :value="product.name" /></strong>
+                <strong><ac-rendered inline="true" tag="span" :classes="{}" :value="product.name" /></strong>
               </v-col>
               <v-col cols="12" class="hidden-md-and-up">
                 <v-row no-gutters>
@@ -194,7 +194,6 @@
 </style>
 
 <script lang="ts">
-import Vue from 'vue'
 import Component, {mixins} from 'vue-class-component'
 import Product from '@/types/Product'
 import {Prop} from 'vue-property-decorator'

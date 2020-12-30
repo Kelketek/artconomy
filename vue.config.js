@@ -48,5 +48,5 @@ module.exports = {
   },
   outputDir: 'public',
   publicPath: '/static/',
-  runtimeCompiler: true,
+  runtimeCompiler: false,
 }

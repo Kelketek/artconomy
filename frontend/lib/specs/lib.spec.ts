@@ -384,9 +384,9 @@ Here's an email: support@artconomy.com`)).toBe(`<h1>Hello there.</h1>
     expect(md.render(
       'Hello, @Foxie. Is this @Vulpine creature as \\@sweet and cu@te @ as I\'d hope? Maybe @Fox\'s tricks ' +
       'will tell us.')).toBe(
-      '<p>Hello, <inline-avatar username="Foxie" />.' +
-      ' Is this <inline-avatar username="Vulpine" /> creature ' +
-      'as @sweet and cu@te @ as I\'d hope? Maybe <inline-avatar username="Fox" />\'s ' +
+      '<p>Hello, <a href="/profile/Foxie/about" onclick="artconomy.$router.push(\'/profile/Foxie/about\');return false">@Foxie</a>.' +
+      ' Is this <a href="/profile/Vulpine/about" onclick="artconomy.$router.push(\'/profile/Vulpine/about\');return false">@Vulpine</a> creature ' +
+      'as @sweet and cu@te @ as I\'d hope? Maybe <a href="/profile/Fox/about" onclick="artconomy.$router.push(\'/profile/Fox/about\');return false">@Fox</a>\'s ' +
       `tricks will tell us.</p>
 `)
   })

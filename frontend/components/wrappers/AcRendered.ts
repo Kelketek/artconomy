@@ -1,19 +1,34 @@
+/**
+ * AcRendered.ts
+ *
+ * This component renders markdown conveniently with truncation by default.
+ *
+ * We used to pass all of the markdown over to Vue's internal templating system, but it ballooned the size of the
+ * file users must download. It has now been augmented with a series of manual rendering hacks to make it no longer
+ * necessary to include the full template compiler.
+ */
 import Component, {mixins} from 'vue-class-component'
 import {Prop} from 'vue-property-decorator'
-import InlineAvatar from '@/components/InlineAvatar.vue'
 import Formatting from '@/mixins/formatting'
-import {compileToFunctions} from 'vue-template-compiler'
 import {CreateElement} from 'vue'
-import * as VGrid from 'vuetify/es5/components/VGrid'
-import * as VToolbar from 'vuetify/es5/components/VToolbar'
+import {genId} from '@/lib/lib'
+
+// @ts-ignore
+if (!window.renderAnchors) {
+  // @ts-ignore
+  window.renderAnchors = {}
+}
 
 @Component
 export default class AcRendered extends mixins(Formatting) {
   @Prop({default: ''})
   public value!: string
 
-  @Prop({default: 'v-col'})
+  @Prop({default: 'div'})
   public tag!: string
+
+  @Prop({default: () => ({col: true})})
+  public classes!: {[key: string]: boolean}
 
   @Prop({default: false})
   public inline!: boolean
@@ -26,6 +41,8 @@ export default class AcRendered extends mixins(Formatting) {
 
   public more = false
 
+  public refId = genId()
+
   public get rendered() {
     if (this.inline) {
       return this.mdRenderInline(this.availableText)
@@ -35,22 +52,12 @@ export default class AcRendered extends mixins(Formatting) {
   }
 
   public render(h: CreateElement) {
-    return h(this.renderedComponent)
-  }
-
-  public get dynamicTemplate() {
-    return `<${this.tag}>${this.rendered}${this.readMore}</${this.tag}>`
-  }
-
-  public get renderedComponent() {
-    const self = this
-    return {
-      components: {InlineAvatar, ...VGrid, ...VToolbar},
-      data() {
-        return {showMore: self.showMore}
+    return h(this.tag, {
+      domProps: {
+        innerHTML: this.rendered + this.readMore,
       },
-      render: compileToFunctions(this.dynamicTemplate).render,
-    }
+      class: this.classes,
+    })
   }
 
   public get availableText(): string {
@@ -75,11 +82,30 @@ export default class AcRendered extends mixins(Formatting) {
   }
 
   public get readMore() {
-    if (!this.truncated) {
+    if ((!this.truncated) || !this.showMore) {
       return ''
     }
-    return '<v-toolbar v-if="showMore" class="read-more-bar" dense @click="$parent.more=true" color="black">' +
-      '<v-col class="text-center"><strong>Read More</strong></v-col>' +
-      '</v-toolbar>'
+    return (
+      `<header class="read-more-bar v-sheet theme--dark v-toolbar v-toolbar--dense black"
+        onclick="window.renderAnchors['${this.refId}'].more = true"
+      >` +
+        '<div class="v-toolbar__content" style="height: 48px;">' +
+          '<div class="text-center col">' +
+            '<strong>Read More</strong>' +
+          '</div>' +
+        '</div>' +
+      '</header>'
+    )
+  }
+
+  // We need a way to reference this object from our ad-hoc js calls.
+  public created() {
+    // @ts-ignore
+    window.renderAnchors[this.refId] = this
+  }
+
+  public destroy() {
+    // @ts-ignore
+    delete window.renderAnchors[this.refId]
   }
 }

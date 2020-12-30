@@ -119,7 +119,6 @@ export function mention(state: StateCore, silent?: boolean) {
   }
 
   const marker = state.src.slice(start, pos)
-
   // Never found an instance where this is true, but the MarkdownIt rules require handling it.
   /* istanbul ignore else */
   if (!silent) {
@@ -134,7 +133,8 @@ md.renderer.rules.mention = (tokens, idx) => {
   const token = tokens[idx]
   const username = token.content.slice(1, token.content.length)
   // Must have no returns, or will affect spacing.
-  return `<inline-avatar username="${username}" />`
+  const url = `/profile/${encodeURIComponent(username)}/about`
+  return `<a href="${url}" onclick="artconomy.$router.push('${url}');return false">@${username}</a>`
 }
 
 md.inline.ruler.push('mention', mention, ['mention'])

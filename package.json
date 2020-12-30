@@ -12,8 +12,7 @@
     "lint:fix": "vue-cli-service lint frontend --fix",
     "clear-jest": "vue-cli-service test:unit --clearCache",
     "inspect": "vue-cli-service inspect",
-    "test:unit:watch": "vue-cli-service test:unit --watchAll --maxWorkers=1 --collectCoverage",
-    "test:unit:watch:host": "vue-cli-service test:unit --watchAll --collectCoverage"
+    "test:unit:watch": "vue-cli-service test:unit --watchAll --collectCoverage"
   },
   "dependencies": {
     "@sentry/browser": "^5.29.0",
@@ -97,7 +96,6 @@
     "ts-jest": "^24.3.0",
     "tslint-eslint-rules": "^5.4.0",
     "typescript": "^3.9.7",
-    "vue-template-compiler": "^2.6.12",
     "vue-the-mask": "^0.11.1",
     "vuetify-loader": "^1.6.0",
     "webpack-bundle-tracker": "^0.4.2-beta"

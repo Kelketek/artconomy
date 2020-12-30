@@ -314,7 +314,6 @@ import AcTabs from '@/components/navigation/AcTabs.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import AcAsset from '@/components/AcAsset.vue'
 import Formatting from '@/mixins/formatting'
-import AcRendered from '@/components/wrappers/AcRendered'
 import AcAvatar from '@/components/AcAvatar.vue'
 import PrerenderMixin from '@/mixins/PrerenderMixin'
 import AcProductSlider from '@/components/AcProductSlider.vue'
@@ -323,7 +322,6 @@ import AcProductSlider from '@/components/AcProductSlider.vue'
   components: {
     AcProductSlider,
     AcAvatar,
-    AcRendered,
     AcAsset,
     AcLink,
     AcTabs,
