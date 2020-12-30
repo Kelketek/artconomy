@@ -11,6 +11,7 @@ from django.conf import settings
 from django.contrib.auth import login, authenticate, logout, update_session_auth_hash
 from django.contrib.contenttypes.models import ContentType
 from django.core.mail import EmailMultiAlternatives
+from django.db import transaction
 from django.db.models import Q, Count, QuerySet, Case, When, F, IntegerField, Subquery
 from django.shortcuts import get_object_or_404
 from django.template.loader import get_template
@@ -773,8 +774,12 @@ class AttributeList(ListCreateAPIView):
             raise PermissionDenied(
                 "You may not have more than {} attributes on one character.".format(settings.MAX_ATTRS)
             )
-        if character.attributes.filter(key__iexact=serializer.validated_data['key']).exists():
-            raise ValidationError({'key': ['There is already an attribute with this name.']})
+        with transaction.atomic():
+            existing = character.attributes.filter(
+                key__iexact=serializer.validated_data['key'],
+            ).select_for_update().first()
+            if existing:
+                serializer.instance = existing
         serializer.save(character=character)
 
 

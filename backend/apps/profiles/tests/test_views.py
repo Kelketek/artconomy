@@ -1559,6 +1559,45 @@ class TestAttributes(APITestCase):
         for attr in attributes:
             self.assertIDInList(attr, response.data)
 
+    def test_create_attribute(self):
+        character = CharacterFactory.create()
+        self.login(character.user)
+        response = self.client.post(
+            f'/api/profiles/v1/account/{character.user.username}/characters/{character.name}/attributes/',
+            {'key': 'Test', 'value': 'Thing'}
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['key'], 'test')
+        self.assertEqual(response.data['value'], 'Thing')
+
+    def test_edit_attribute(self):
+        attribute = AttributeFactory.create()
+        character = attribute.character
+        self.login(character.user)
+        response = self.client.patch(
+            f'/api/profiles/v1/account/{character.user.username}/characters/'
+            f'{character.name}/attributes/{attribute.id}/',
+            {'key': 'Beep', 'value': 'Boop'}
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        attribute.refresh_from_db()
+        self.assertEqual(attribute.key, 'beep')
+        self.assertEqual(attribute.value, 'Boop')
+
+    def test_replace_existing(self):
+        attribute = AttributeFactory.create(key='beep')
+        character = attribute.character
+        self.login(character.user)
+        response = self.client.post(
+            f'/api/profiles/v1/account/{character.user.username}/characters/'
+            f'{character.name}/attributes/',
+            {'key': 'Beep', 'value': 'Blorp'}
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        attribute.refresh_from_db()
+        self.assertEqual(attribute.key, 'beep')
+        self.assertEqual(attribute.value, 'Blorp')
+
 
 @ddt
 class TestWithdrawOnAutoWithdrawEnabled(APITestCase):
