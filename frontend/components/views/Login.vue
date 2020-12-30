@@ -124,7 +124,7 @@
             <v-card-text>
             <p>Enter your username or email address below, and we will send you a link to reset your password.</p>
               <ac-form @submit.prevent="forgotForm.submitThen(forgotHandler)">
-                <ac-form-container :sending="loginForm.sending" :errors="loginForm.errors">
+                <ac-form-container v-bind="forgotForm.bind">
                   <ac-bound-field
                       label="Email or Username"
                       :field="forgotForm.fields.email"
@@ -133,6 +133,7 @@
                     Email sent! Please check your inbox (and your spam folder)!
                   </v-alert>
                   <v-btn color="primary" id="forgotSubmit"
+                         class="mb-2"
                          type="submit">
                     Reset
                   </v-btn>

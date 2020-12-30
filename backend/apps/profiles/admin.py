@@ -2,7 +2,7 @@ from custom_user.admin import EmailUserAdmin
 from django.contrib import admin
 
 from django.contrib.admin import ModelAdmin
-from django.contrib.admin.options import InlineModelAdmin, TabularInline
+from django.contrib.admin.options import TabularInline
 
 from apps.profiles.models import User, Submission, RefColor, ArtistProfile, Character
 
