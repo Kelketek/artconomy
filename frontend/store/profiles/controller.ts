@@ -29,6 +29,7 @@ export class ProfileController extends BaseController<ProfileModuleOpts, Profile
   public baseModuleName = 'userModules'
   // eslint-disable-next-line camelcase
   public profile_controller__ = true
+  public isFetchableController = false
   public user: SingleController<User|TerseUser|AnonUser> = null as unknown as SingleController<User|TerseUser|AnonUser>
   public artistProfile: SingleController<ArtistProfile> = null as unknown as SingleController<ArtistProfile>
   public products: ListController<Product> = null as unknown as ListController<Product>

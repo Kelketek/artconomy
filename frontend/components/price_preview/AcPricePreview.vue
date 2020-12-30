@@ -1,6 +1,6 @@
 <template>
   <ac-load-section :controller="pricing">
-    <ac-load-section :controller="subjectHandler">
+    <ac-load-section :controller="subjectHandler.user">
       <template v-slot:default>
         <ac-load-section :controller="lineItems" v-if="validPrice" class="compact-fields">
           <template v-slot:default>

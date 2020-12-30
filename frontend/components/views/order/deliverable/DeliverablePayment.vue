@@ -211,7 +211,6 @@
 
 <script lang="ts">
 import Component, {mixins} from 'vue-class-component'
-import {ListController} from '@/store/lists/controller'
 import LineItem from '@/types/LineItem'
 import DeliverableMixin from '@/components/views/order/mixins/DeliverableMixin'
 import {Watch} from 'vue-property-decorator'

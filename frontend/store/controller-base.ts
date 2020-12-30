@@ -10,6 +10,9 @@ export class BaseController<S, D extends AttrKeys> extends Vue {
   @Prop({required: true})
   public initName!: string
 
+  // Set this to false if the controller never fetches anything, and so should never be waited on to load.
+  public isFetchableController = true
+
   @Prop({required: true})
   public schema!: S
 
