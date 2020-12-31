@@ -2,7 +2,7 @@
   <v-container class="pa-0" fluid>
     <v-row no-gutters>
       <v-col class="shrink text-center" cols="12">
-        <v-pagination :length="list.totalPages" v-model="list.currentPage" v-if="list.totalPages > 1 && showPagination" :class="{prerendering}" />
+        <v-pagination :length="list.totalPages" v-model="list.currentPage" v-if="list.totalPages > 1 && showPagination" :class="{prerendering}" v-bind="extraParams" />
       </v-col>
       <v-col cols="12">
         <ac-load-section :controller="list" class="load-section" :force-render="list.grow && list.list.length" :load-on-grow="false">
@@ -86,6 +86,12 @@ export default class AcPaginated extends mixins(ErrorHandling) {
       const route = {...this.$route.query}
       route[this.pageVariable] = val + ''
       this.$router.replace({query: route})
+    }
+
+    public get extraParams() {
+      if (this.prerendering) {
+        return {'total-visible': 5}
+      }
     }
 
     public created() {
