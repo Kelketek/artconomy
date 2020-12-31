@@ -4,7 +4,7 @@ import {ArtStore, createStore} from '@/store'
 import {mount, Wrapper} from '@vue/test-utils'
 import Vue from 'vue'
 import Vuetify from 'vuetify/lib'
-import {genArtistProfile, genDeliverable, genOrder, genProduct, genUser} from '@/specs/helpers/fixtures'
+import {genArtistProfile, genOrder, genProduct, genUser} from '@/specs/helpers/fixtures'
 import NewOrder from '@/components/views/product/NewOrder.vue'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import mockAxios from '@/__mocks__/axios'
@@ -75,42 +75,41 @@ describe('NewOrder.vue', () => {
       },
     })
   })
-  // it('Submits a form with an unregistered user', async() => {
-  //   setViewer(store, genAnon())
-  //   // Need to be on a route for the 'viewer reset' controller code to be able to run.
-  //   wrapper = mount(NewOrder, {
-  //     localVue, store, vuetify, router, propsData: {productId: '1', username: 'Fox'}, attachTo: docTarget(),
-  //   })
-  //   const vm = wrapper.vm as any
-  //   await vm.$router.replace({name: 'Test'})
-  //   console.log(vm.$route)
-  //   vm.subjectHandler.user.makeReady(genUser())
-  //   vm.subjectHandler.artistProfile.makeReady(genArtistProfile())
-  //   vm.product.makeReady(genProduct({id: 1}))
-  //   await vm.$nextTick()
-  //   expect(wrapper.find('#field-newOrder__details').exists()).toBeTruthy()
-  //   const mockPush = jest.spyOn(vm.$router, 'push')
-  //   wrapper.find('#place-order-button').trigger('click')
-  //   await vm.$nextTick()
-  //   const submitted = mockAxios.getReqByUrl('/api/sales/v1/account/Fox/products/1/order/')
-  //   mockAxios.mockResponse(rs(genOrder()), submitted)
-  //   await flushPromises()
-  //   await vm.$nextTick()
-  //   const refresh = mockAxios.getReqByUrl('/api/profiles/v1/data/requester/')
-  //   mockAxios.mockResponse(rs(genUser({username: 'boop'})), refresh)
-  //   await flushPromises()
-  //   await vm.$nextTick()
-  //   expect(mockPush).toHaveBeenCalledWith({
-  //     name: 'Order',
-  //     params: {
-  //       orderId: '1',
-  //       username: '_',
-  //     },
-  //     query: {
-  //       showConfirm: 'true',
-  //     },
-  //   })
-  // })
+  it('Submits a form with an unregistered user', async() => {
+    setViewer(store, genAnon())
+    // Need to be on a route for the 'viewer reset' controller code to be able to run.
+    wrapper = mount(NewOrder, {
+      localVue, store, vuetify, router, propsData: {productId: '1', username: 'Fox'}, attachTo: docTarget(),
+    })
+    const vm = wrapper.vm as any
+    await vm.$router.replace({name: 'Test'})
+    vm.subjectHandler.user.makeReady(genUser())
+    vm.subjectHandler.artistProfile.makeReady(genArtistProfile())
+    vm.product.makeReady(genProduct({id: 1}))
+    await vm.$nextTick()
+    expect(wrapper.find('#field-newOrder__details').exists()).toBeTruthy()
+    const mockPush = jest.spyOn(vm.$router, 'push')
+    wrapper.find('#place-order-button').trigger('click')
+    await vm.$nextTick()
+    const submitted = mockAxios.getReqByUrl('/api/sales/v1/account/Fox/products/1/order/')
+    mockAxios.mockResponse(rs(genOrder()), submitted)
+    await flushPromises()
+    await vm.$nextTick()
+    const refresh = mockAxios.getReqByUrl('/api/profiles/v1/data/requester/')
+    mockAxios.mockResponse(rs(genAnon()), refresh)
+    await flushPromises()
+    await vm.$nextTick()
+    expect(mockPush).toHaveBeenCalledWith({
+      name: 'Order',
+      params: {
+        orderId: '1',
+        username: '_',
+      },
+      query: {
+        showConfirm: 'true',
+      },
+    })
+  })
   it('Fetches character info', async() => {
     const user = genUser()
     setViewer(store, user)
