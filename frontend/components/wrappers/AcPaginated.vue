@@ -29,7 +29,7 @@
         <ac-grow-spinner :list="list" />
       </v-col>
       <v-col class="shrink text-center" cols="12">
-        <v-pagination :length="list.totalPages" v-model="list.currentPage" v-if="list.totalPages > 1 && showPagination" :class="{prerendering}" />
+        <v-pagination :length="list.totalPages" v-model="list.currentPage" v-if="list.totalPages > 1 && showPagination" :class="{prerendering}" v-bind="extraParams" />
       </v-col>
     </v-row>
   </v-container>
