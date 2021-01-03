@@ -4,7 +4,14 @@ After=network.target
 
 [Service]
 Type=simple
-User={{ env_prefix }}
-WorkingDirectory=/home/{{env_prefix}}/artconomy
-ExecStart=/home/{{ env_prefix }}/env/bin/daphnedaphne -p 9001 apps.asgi:application
+User=stage
+WorkingDirectory=/home/stage/artconomy/backend
+Environment=DJANGO_SETTINGS_MODULE=conf.settings
+{% for key, value in app_settings.items() %}
+Environment={{key}}={{value}}
+{% endfor %}
+{% for key, value in app_settings_complex.items() %}
+Environment={{key}}={{value|to_json|b64encode}}
+{% endfor %}
+ExecStart=/home/stage/bin/daphne -p 9001 conf.asgi:application
 WantedBy=multi-user.target
