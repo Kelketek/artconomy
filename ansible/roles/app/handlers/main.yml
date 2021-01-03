@@ -37,4 +37,6 @@
 - name: rebuild pinterest
   become: yes
   become_user: "{{ env_prefix }}"
-  shell: "source ~/.profile && source ~/bin/activate && cd ~/artconomy  && mkdir -p {{ home }}/artconomy/public/dist/csv/ && ./manage.py pinterest_catalog > {{ home }}/artconomy/public/dist/csv/pinterest.csv"
+  shell: "source ~/.profile && source ~/bin/activate && cd ~/artconomy  && mkdir -p ~/artconomy/public/dist/csv/ && ./manage.py pinterest_catalog > ~/artconomy/public/dist/csv/pinterest.csv"
+  args:
+    executable: "/bin/bash"
