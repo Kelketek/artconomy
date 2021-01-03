@@ -70,6 +70,7 @@
   notify:
     - collect static assets
     - restart uwsgi
+    - restart daphne
     - restart celery
     - restart celerybeat
 
@@ -106,6 +107,7 @@
   notify:
     - collect static assets
 
+
 - name: Unzip filetype icons
   become: yes
   become_user: "{{ env_prefix }}"
@@ -128,6 +130,7 @@
   notify:
     - collect static assets
     - restart uwsgi
+    - restart daphne
     - restart celery
     - restart celerybeat
 
@@ -138,6 +141,7 @@
   notify:
     - collect static assets
     - restart uwsgi
+    - restart daphne
     - set tg webhook
     - restart celery
     - restart celerybeat
@@ -184,11 +188,24 @@
   notify:
     - reload systemd
 
+- name: Create Daphne Service
+  template:
+    src: "system/artconomy-daphne.service"
+    dest: "/etc/systemd/system/artconomy-daphne.service"
+  notify:
+    - reload systemd
+
 - name: Enable uwsgi service
   service: name=uwsgi enabled=true
 
 - name: Start uwsgi service
   service: name=uwsgi state=started
+
+- name: Enable daphne service
+  service: name=artconomy-daphne enabled=true
+
+- name: Start daphne service
+  service: name=artconomy-daphne state=started
 
 - name: Set up pinterest cron job
   template:

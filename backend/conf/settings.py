@@ -87,6 +87,7 @@ INSTALLED_APPS = [
     'reversion',
     'hitcount',
     'django_markdown2',
+    'channels',
     'django_otp',
     'django_otp.plugins.otp_totp',
     'django_otp.plugins.otp_static',
@@ -131,7 +132,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'wsgi.application'
+ASGI_APPLICATION = 'wsgi.application'
+ASGI_APPLICATION = 'asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases

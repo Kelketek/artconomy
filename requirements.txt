@@ -6,6 +6,7 @@ bok_choy==1.0.1
 bs4==0.0.1
 celery==4.4.0
 celery-haystack==0.10
+channels==3.0.3
 coverage==5.0.3
 python-dateutil==2.8.1
 ddt==1.2.2

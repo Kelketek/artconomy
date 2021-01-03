@@ -18,9 +18,14 @@
   args:
     executable: "/bin/bash"
   register: result
+  notify:
+    - rebuild pinterest
 
 - name: restart uwsgi
   service: name=uwsgi state=restarted
+
+- name: restart daphne
+  service: name=artconomy-daphne state=restarted
 
 - name: set tg webhook
   become: yes
@@ -28,3 +33,8 @@
   shell: "source ~/.profile && source ~/bin/activate && cd ~/artconomy && ./manage.py set_webhook"
   args:
     executable: "/bin/bash"
+
+- name: rebuild pinterest
+  become: yes
+  become_user: "{{ env_prefix }}"
+  shell: "source ~/.profile && source ~/bin/activate && cd ~/artconomy  && mkdir -p {{ home }}/artconomy/public/dist/csv/ && ./manage.py pinterest_catalog > {{ home }}/artconomy/public/dist/csv/pinterest.csv"

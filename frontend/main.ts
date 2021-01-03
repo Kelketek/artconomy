@@ -167,4 +167,9 @@ window.artconomy = new Vue({
   components: {App}, // , NavBar},
 })
 
+const socket = new WebSocket(`wss://${window.location.host}/ws/events/`)
+
+// @ts-ignore
+window.artconomy.socket = socket
+
 window.artconomy.$mount('#app')

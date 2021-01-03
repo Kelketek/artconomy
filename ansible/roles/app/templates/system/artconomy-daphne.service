@@ -1,0 +1,10 @@
+[Unit]
+Description=Artconomy Daphne Service
+After=network.target
+
+[Service]
+Type=simple
+User={{ env_prefix }}
+WorkingDirectory=/home/{{env_prefix}}/artconomy
+ExecStart=/home/{{ env_prefix }}/env/bin/daphnedaphne -p 9001 apps.asgi:application
+WantedBy=multi-user.target
