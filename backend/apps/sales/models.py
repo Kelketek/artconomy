@@ -606,9 +606,6 @@ remove_deliverable_markers = receiver(post_delete, sender=Deliverable)(disable_o
 
 
 @transaction.atomic
-@require_lock(User, 'ACCESS EXCLUSIVE')
-@require_lock(Deliverable, 'ACCESS EXCLUSIVE')
-@require_lock(Product, 'ACCESS EXCLUSIVE')
 def update_artist_load(sender, instance, **_kwargs):
     seller = instance.order.seller
     result = Deliverable.objects.filter(
@@ -630,9 +627,6 @@ order_load_check = receiver(post_save, sender=Deliverable, dispatch_uid='load')(
 
 # noinspection PyUnusedLocal
 @transaction.atomic
-@require_lock(User, 'ACCESS EXCLUSIVE')
-@require_lock(Deliverable, 'ACCESS EXCLUSIVE')
-@require_lock(Product, 'ACCESS EXCLUSIVE')
 def update_product_availability(sender, instance, **kwargs):
     update_availability(
         instance.user, instance.user.artist_profile.load, instance.user.artist_profile.commissions_disabled
@@ -641,9 +635,6 @@ def update_product_availability(sender, instance, **kwargs):
 
 # noinspection PyUnusedLocal,PyUnusedLocal
 @transaction.atomic
-@require_lock(User, 'ACCESS EXCLUSIVE')
-@require_lock(Deliverable, 'ACCESS EXCLUSIVE')
-@require_lock(Product, 'ACCESS EXCLUSIVE')
 def update_user_availability(sender, instance, **kwargs):
     update_availability(instance.user, instance.load, instance.commissions_disabled)
 
