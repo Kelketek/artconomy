@@ -1036,6 +1036,7 @@ class PinSerializer(serializers.ModelSerializer):
     description = serializers.SerializerMethodField()
     image_link = serializers.SerializerMethodField()
     additional_image_link = serializers.SerializerMethodField()
+    title = serializers.SerializerMethodField()
     link = serializers.SerializerMethodField()
     brand = serializers.StringRelatedField(source='user.username', read_only=True)
 
@@ -1073,7 +1074,7 @@ class PinSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = (
-            'id', 'name', 'price', 'availability', 'description', 'link', 'image_link', 'brand',
+            'id', 'title', 'price', 'availability', 'description', 'link', 'image_link', 'brand',
             'additional_image_link',
         )
 
