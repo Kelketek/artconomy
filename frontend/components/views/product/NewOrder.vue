@@ -259,6 +259,9 @@ export default class NewOrder extends mixins(ProductCentric, Formatting) {
           details: {value: ''},
         },
       })
+      // Since we allow the form to persist, we want to make sure if the user moves to another product, we update the
+      // endpoint.
+      this.orderForm.endpoint = this.product.endpoint + 'order/'
       this.subjectHandler.artistProfile.get().then()
       if (this.orderForm.fields.characters.value.length === 0) {
         this.showCharacters = true
