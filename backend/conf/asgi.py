@@ -1,24 +1,23 @@
 """
-WSGI config for artconomy project.
+ASGI config for artconomy project.
 
-It exposes the WSGI callable as a module-level variable named ``application``.
+It exposes the ASGI callable as a module-level variable named ``application``.
 
 For more information on this file, see
-https://docs.djangoproject.com/en/1.8/howto/deployment/wsgi/
+https://docs.djangoproject.com/en/1.8/howto/deployment/asgi/
 """
+import django
 
-import os
+django.setup()
 
 from channels.auth import AuthMiddlewareStack
 from channels.routing import ProtocolTypeRouter, URLRouter
 from django.core.asgi import get_asgi_application
-
 from apps.lib.routing import websocket_urlpatterns
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "conf.settings")
 
 application = ProtocolTypeRouter({
-    'http': get_asgi_application(),  # pylint: disable=invalid-name,
+    'http': get_asgi_application(),
     'websocket': AuthMiddlewareStack(
         URLRouter(
             websocket_urlpatterns,
