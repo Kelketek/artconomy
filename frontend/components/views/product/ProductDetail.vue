@@ -126,8 +126,8 @@
                   <v-row dense>
                     <v-col class="shrink">
                       <router-link :to="{name: 'Ratings', params: {username}}" itemprop="aggregateRating"
-                                   itemscope itemtype="http://schema.org/AggregateRating">
-                        <span itemprop="ratingValue" :content="product.x.user.stars || 0"></span>
+                                   itemscope itemtype="http://schema.org/AggregateRating" v-if="product.x.user.stars">
+                        <span itemprop="ratingValue" :content="product.x.user.stars"></span>
                         <span itemprop="ratingCount" :content="product.x.user.rating_count"></span>
                         <v-rating :value="product.x.user.stars" dense small half-increments readonly v-if="product.x.user.stars" />
                       </router-link>
