@@ -63,6 +63,9 @@ if (productionMode && isValidBrowser) {
     dsn: 'https://8efd301a6c794f3e9a84e741edef2cfe@sentry.io/1406820',
     // @ts-ignore
     release: __COMMIT_HASH__,
+    ignoreErrors: [
+      'ResizeObserver loop limit exceeded', 'ResizeObserver loop completed with undelivered notifications.',
+    ],
     integrations: [new (Integrations as any).Vue({
       Vue,
       attachProps: true,

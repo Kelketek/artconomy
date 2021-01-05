@@ -16,7 +16,7 @@
                           If your artist has not listed their waitlist policy for this commission in the product details,
                           or in their commission info under the Overview tab, you may want to message them for clarification.</p>
                       </v-col>
-                      <v-col v-if="is(WAITING) && isSeller" cols="12">
+                      <v-col v-if="is(WAITING) && isSeller && seller" cols="12">
                         <p>This order is in your waitlist. You should put your waitlist policy in your commission info in your
                           <router-link :to="{name: 'Artist', params: {username: seller.username}}">Artist Settings</router-link>
                           if you have not already, or else add it to the details of the product this order is associated with.
