@@ -23,9 +23,16 @@
             <v-col class="shrink">
               <v-btn color="purple" fab small @click="showQr = true" class="qr-button"><v-icon>fa-qrcode</v-icon></v-btn>
             </v-col>
+            <v-col class="shrink" v-if="clean">
+              <v-btn color="red" fab small :href="`https://www.pinterest.com/pin/create/button/?canonicalUrl=${this.location}&description=${this.titleText}&media=${encodeURIComponent(this.mediaUrl)}`"
+                     rel="nofollow noopener"
+                     target="_blank">
+                <v-icon>fa-pinterest</v-icon>
+              </v-btn>
+            </v-col>
             <v-col class="shrink">
               <v-btn color="red" fab small :href="`https://reddit.com/submit?url=${location}&title=${titleText}`"
-                     rel="nofollow"
+                     rel="nofollow noopener"
                      target="_blank">
                 <v-icon>fa-reddit</v-icon>
               </v-btn>
@@ -33,7 +40,7 @@
             <v-col class="shrink">
               <v-btn color="blue" fab small :href="`https://telegram.me/share/url?url=${location}`"
                      target="_blank"
-                     rel="nofollow"
+                     rel="nofollow noopener"
               >
                 <v-icon>fa-telegram</v-icon>
               </v-btn>
@@ -42,14 +49,14 @@
               <v-btn color="blue" fab small
                      :href="`https://twitter.com/share?text=${titleText}&url=${location}&hashtags=Artconomy`"
                      target="_blank"
-                     rel="nofollow">
+                     rel="nofollow noopener">
                 <v-icon>fa-twitter</v-icon>
               </v-btn>
             </v-col>
             <v-col class="shrink">
               <v-btn color="grey darken-4" fab small :href="`https://www.tumblr.com/share/link?url=${location}&name=${titleText}`"
                      target="_blank"
-                     rel="nofollow">
+                     rel="nofollow noopener">
                 <v-icon>fa-tumblr</v-icon>
               </v-btn>
             </v-col>
@@ -105,6 +112,13 @@ export default class AcShareButton extends mixins(Dialog, Viewer) {
   @Prop()
   public block!: boolean
 
+  // "Clean" art suitable for general audiences. Useful for social networks with restrictions.
+  @Prop({required: true})
+  public clean!: boolean
+
+  @Prop({required: true})
+  public mediaUrl!: string
+
   @Watch('showQr')
   public syncClose(newVal: boolean, oldVal: boolean) {
     if (oldVal && !newVal) {
@@ -127,6 +141,10 @@ export default class AcShareButton extends mixins(Dialog, Viewer) {
     return encodeURIComponent(this.title)
   }
 
+  public get imageUrl() {
+    return encodeURIComponent(this.mediaUrl)
+  }
+
   public get rawLocation() {
     /* istanbul ignore next */
     const route = {...this.$route, name: this.$route.name || undefined}
@@ -134,6 +152,7 @@ export default class AcShareButton extends mixins(Dialog, Viewer) {
     const query = {...this.$route.query}
     if (this.referral && this.isRegistered) {
       query.referred_by = this.rawViewerName
+      query.mtm_campaign = 'Pinned'
     } else {
       delete query.referred_by
     }

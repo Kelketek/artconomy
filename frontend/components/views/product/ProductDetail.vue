@@ -260,7 +260,7 @@
                   <v-alert v-else :value="true" type="info">This product is not currently available.</v-alert>
                 </v-col>
                 <v-col cols="12">
-                  <ac-share-button :title="product.x.name" :block="true" />
+                  <ac-share-button :title="product.x.name" :block="true" :media-url="shareMediaUrl" :clean="shareMediaClean" />
                 </v-col>
                 <v-col class="text-center" cols="12" >
                   <v-col v-if="escrowDisabled">
@@ -448,6 +448,7 @@ import LineItem from '@/types/LineItem'
 import Pricing from '@/types/Pricing'
 import Inventory from '@/types/Inventory'
 import {LineTypes} from '@/types/LineTypes'
+import Sharable from '@/mixins/sharable'
 
 @Component({
   components: {
@@ -472,7 +473,7 @@ import {LineTypes} from '@/types/LineTypes'
     Fragment,
   },
 })
-export default class ProductDetail extends mixins(ProductCentric, Formatting, Editable) {
+export default class ProductDetail extends mixins(ProductCentric, Formatting, Editable, Sharable) {
     public pricing: SingleController<Pricing> = null as unknown as SingleController<Pricing>
     public inventory: SingleController<Inventory> = null as unknown as SingleController<Inventory>
     public showTerms = false
@@ -636,6 +637,17 @@ export default class ProductDetail extends mixins(ProductCentric, Formatting, Ed
       }
       linesController.setList(lines)
       return linesController
+    }
+
+    public get shareMedia() {
+      const product = this.product.x as Product
+      if (!product) {
+        return null
+      }
+      if (!product.primary_submission) {
+        return null
+      }
+      return product.primary_submission
     }
 
     public get more() {

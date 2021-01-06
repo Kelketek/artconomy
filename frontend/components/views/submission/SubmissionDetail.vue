@@ -67,7 +67,7 @@
                     </v-btn>
                   </v-col>
                   <v-col cols="12">
-                    <ac-share-button block :title="windowTitle">
+                    <ac-share-button block :title="windowTitle" :media-url="shareMediaUrl" :clean="shareMediaClean">
                       <span slot="title">Share {{submission.x.title}}</span>
                       <template v-slot:footer v-if="controls">
                         <ac-load-section :controller="sharedWith">
@@ -261,7 +261,14 @@ import Formatting from '@/mixins/formatting'
 import {ListController} from '@/store/lists/controller'
 import {Journal} from '@/types/Journal'
 import AcCommentSection from '@/components/comments/AcCommentSection.vue'
-import {posse, RATING_COLOR, RATINGS_SHORT, setMetaContent, textualize, updateTitle, profileLink} from '@/lib/lib'
+import {
+  posse,
+  RATING_COLOR,
+  RATINGS_SHORT,
+  setMetaContent,
+  textualize,
+  updateTitle,
+} from '@/lib/lib'
 import AcAvatar from '@/components/AcAvatar.vue'
 import Editable from '@/mixins/editable'
 import AcEditingToggle from '@/components/navigation/AcEditingToggle.vue'
@@ -282,6 +289,7 @@ import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
 import AcShareButton from '@/components/AcShareButton.vue'
 import AcShareManager from '@/components/AcShareManager.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
+import Sharable from '@/mixins/sharable'
 
   @Component({
     components: {
@@ -307,7 +315,7 @@ import AcLink from '@/components/wrappers/AcLink.vue'
       AcLoadSection,
     },
   })
-export default class SubmissionDetail extends mixins(Viewer, Formatting, Editable) {
+export default class SubmissionDetail extends mixins(Viewer, Formatting, Editable, Sharable) {
     @Prop({required: true})
     public submissionId!: number
 
@@ -381,6 +389,10 @@ export default class SubmissionDetail extends mixins(Viewer, Formatting, Editabl
 
     public get locked() {
       return !(this.submission.x) || this.submission.x.comments_disabled
+    }
+
+    public get shareMedia() {
+      return this.submission.x as Submission
     }
 
     public setMeta(submission: Submission|null|false) {

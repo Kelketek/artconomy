@@ -6,7 +6,7 @@
         <v-toolbar-title><ac-link :to="{name: 'Character', params: {username, characterName}}">{{characterName}}</ac-link></v-toolbar-title>
       </template>
       <v-toolbar-items class="text-center text-md-right" v-if="character.profile.x">
-        <ac-share-button :title="`${characterName} by ${username} - Artconomy`">
+        <ac-share-button :title="`${characterName} by ${username} - Artconomy`" :media-url="shareMediaUrl" :clean="shareMediaClean">
           <span slot="title">Share {{characterName}}</span>
           <template v-slot:footer v-if="controls">
             <ac-load-section :controller="character.sharedWith">
@@ -80,25 +80,26 @@ import AcShareManager from '@/components/AcShareManager.vue'
 import AcMiniCharacter from '@/components/AcMiniCharacter.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import Editable from '@/mixins/editable'
+import Sharable from '@/mixins/sharable'
 
-  @Component({
-    components: {
-      AcLink,
-      AcMiniCharacter,
-      AcShareManager,
-      AcNewSubmission,
-      AcFormDialog,
-      AcSubjectiveToolbar,
-      AcAvatar,
-      AcBoundField,
-      AcRelatedManager,
-      AcLoadSection,
-      AcShareButton,
-      AcConfirmation,
-      Fragment,
-    },
-  })
-export default class AcCharacterToolbar extends mixins(CharacterCentric, Upload, Editable) {
+@Component({
+  components: {
+    AcLink,
+    AcMiniCharacter,
+    AcShareManager,
+    AcNewSubmission,
+    AcFormDialog,
+    AcSubjectiveToolbar,
+    AcAvatar,
+    AcBoundField,
+    AcRelatedManager,
+    AcLoadSection,
+    AcShareButton,
+    AcConfirmation,
+    Fragment,
+  },
+})
+export default class AcCharacterToolbar extends mixins(CharacterCentric, Upload, Editable, Sharable) {
     @Prop({default: true})
     public characterAvatar!: boolean
 
@@ -128,6 +129,17 @@ export default class AcCharacterToolbar extends mixins(CharacterCentric, Upload,
       if (this.newUpload.fields.characters.model.indexOf(val.id) === -1) {
         this.newUpload.fields.characters.model.push(val.id)
       }
+    }
+
+    public get shareMedia() {
+      const character = this.character.profile.x as Character
+      if (!character) {
+        return null
+      }
+      if (!character.primary_submission) {
+        return null
+      }
+      return character.primary_submission
     }
 
     public created() {
