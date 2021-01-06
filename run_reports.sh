@@ -17,6 +17,8 @@ SETTLEMENTS_FILE=settlements.csv
 PROCESSED_FILE=processed.csv
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 REPORTS_DIR="reports/financial/$(date +'%B-%d-%Y')"
+# User ID to chown report file to. Should match the UID of host user so that it can be worked with.
+TARGET_UID=1000
 # This is only to be run within docker for now, so we need the path for docker.
 DUMP_FILE="/app/ansible/production.sql"
 CARD_TRANSACTIONS_FILE="${REPORTS_DIR}/card_transactions.csv"
@@ -29,6 +31,7 @@ set -e
 ./manage.py replace_db < "${DUMP_FILE}"
 ./manage.py settlement --transactions="${TRANSACTIONS_FILE}" --settlements="${SETTLEMENTS_FILE}" > "${PROCESSED_FILE}"
 mkdir -p "${REPORTS_DIR}"
+chown -R "${TARGET_UID}" "${REPORTS_DIR}"
 ./manage.py fees --processed "${PROCESSED_FILE}" > "${CARD_TRANSACTIONS_FILE}"
 EOF
 cp -a "${REPORTS_DIR}" ~/Nextcloud/work/Books/
