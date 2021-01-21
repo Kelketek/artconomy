@@ -14,6 +14,8 @@ let wrapper: Wrapper<Vue>
 let vuetify: Vuetify
 
 window.pintrk = () => undefined
+// @ts-ignore
+window.__COMMIT_HASH__ = 'bogusHash'
 
 describe('App.vue', () => {
   let store: ArtStore
@@ -31,8 +33,9 @@ describe('App.vue', () => {
       localVue,
       vuetify,
       stubs: ['router-link', 'router-view'],
-      mocks: {$route: {fullPath: '/', params: {}, query: {}}},
-
+      mocks: {
+        $route: {fullPath: '/', params: {}, query: {}},
+      },
     })
     expect(mockAxios.get).toHaveBeenCalledTimes(1)
     mockAxios.mockResponse(userResponse())
@@ -48,7 +51,6 @@ describe('App.vue', () => {
       vuetify,
       mocks: {$route: {fullPath: '/', params: {}, query: {}}},
       stubs: ['nav-bar', 'router-view', 'router-link'],
-
     })
     mockAxios.mockError!({
       response: {status: 500, request: {url: 'thing'}},
@@ -67,7 +69,6 @@ describe('App.vue', () => {
       vuetify,
       mocks: {$route: {fullPath: '/order/', name: 'NewOrder', params: {}, query: {}}},
       stubs: ['nav-bar', 'router-view', 'router-link'],
-
     })
     const vm = wrapper.vm as any
     expect(vm.fullInterface).toBe(false)

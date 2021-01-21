@@ -15,7 +15,7 @@ let vuetify: Vuetify
 
 const mockError = jest.spyOn(console, 'error')
 
-describe('AcTagDisplay.vue', () => {
+describe('AcShareButton.vue', () => {
   beforeEach(() => {
     vuetify = createVuetify()
     store = createStore()

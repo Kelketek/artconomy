@@ -14,7 +14,7 @@
 - name: collect static assets
   become: yes
   become_user: "{{ env_prefix }}"
-  shell: "source ~/.profile && source ~/bin/activate && cd ~/artconomy  && npm run build && ./manage.py collectstatic -v0 --noinput && cp webpack-stats{,-saved}.json && echo '{{ static_status.digest }}' > {{ home }}/.static_hash"
+  shell: "source ~/.profile && source ~/bin/activate && cd ~/artconomy  && npm run build && ./manage.py collectstatic -v0 --noinput && cp webpack-stats{,-saved}.json && echo '{{ static_status.digest }}' > {{ home }}/.static_hash && git rev-parse HEAD > ~/artconomy/.static_hash_head"
   args:
     executable: "/bin/bash"
   register: result

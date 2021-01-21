@@ -76,6 +76,30 @@
       <ac-markdown-explanation v-model="showMarkdownHelp" />
     </v-main>
     <v-main>
+      <v-snackbar
+          :timeout="-1"
+          :value="socketState.x.serverVersion && (socketState.x.version !== socketState.x.serverVersion)"
+          color="green"
+          shaped
+          width="100vw"
+          rounded="pill"
+      >
+        <div class="d-flex text-center">
+          <strong>Artconomy has updated! Things might not quite work right until you refresh.</strong>
+          <v-btn color="primary" class="ml-1" fab small @click="location.reload()"><v-icon>update</v-icon></v-btn>
+        </div>
+      </v-snackbar>
+      <v-snackbar
+          :timeout="-1"
+          :value="socketState.x.serverVersion && socketState.x.status === CLOSED"
+          color="info"
+          shaped
+          rounded="pill"
+      >
+        <div class="text-center">
+          <strong>Reconnecting...</strong>
+        </div>
+      </v-snackbar>
       <v-row no-gutters class="mb-4">
         <v-col class="text-right px-2">
           <router-link :to="{name: 'PrivacyPolicy'}">Privacy Policy</router-link>
@@ -126,6 +150,9 @@ import AcMarkdownExplanation from '@/components/fields/AcMarkdownExplination.vue
 import {fallback, fallbackBoolean, paramsKey, searchSchema} from './lib/lib'
 import {User} from '@/store/profiles/types/User'
 import Nav from '@/mixins/nav'
+import {SingleController} from '@/store/singles/controller'
+import {ConnectionStatus} from '@/types/ConnectionStatus'
+import {SocketState} from '@/types/SocketState'
 
 @Component({components: {AcMarkdownExplanation, AcError, AcFormDialog, NavBar}})
 export default class App extends mixins(Viewer, Nav) {
@@ -143,9 +170,12 @@ export default class App extends mixins(Viewer, Nav) {
   public supportForm: FormController = null as unknown as FormController
   public alertDismissed: boolean = false
   public searchForm: FormController = null as unknown as FormController
+  public socketState: SingleController<SocketState> = null as unknown as SingleController<SocketState>
   public searchInitialized = false
   // For testing.
   public forceRecompute = 0
+  public location = location
+  public CLOSED = ConnectionStatus.CLOSED
 
   @Watch('$route.name', {immediate: true})
   public initializeSearch(nameVal: null|string) {
@@ -182,6 +212,31 @@ export default class App extends mixins(Viewer, Nav) {
         referring_url: {value: this.$route.fullPath},
       },
     })
+    this.socketState = this.$getSingle('socketState', {
+      endpoint: '#',
+      persist: true,
+      x: {
+        status: ConnectionStatus.CONNECTING,
+        // @ts-ignore
+        // eslint-disable-next-line no-undef
+        version: __COMMIT_HASH__,
+        serverVersion: '',
+      },
+    })
+    this.$sock.addListener('version', this.getVersion)
+    // To listen in to all messages, uncomment the following.
+    // this.$sock.addListener('*', (data: any) => console.log(data))
+    this.$sock.connectListeners.push(() => {
+      this.socketState.updateX({status: ConnectionStatus.CONNECTED})
+      this.$sock.send('version', {})
+    })
+    this.$sock.disconnectListeners.push(() => {
+      this.socketState.updateX({status: ConnectionStatus.CLOSED})
+    })
+  }
+
+  public getVersion(versionData: {version: string}) {
+    this.socketState.updateX({serverVersion: versionData.version})
   }
 
   public showSuccess() {

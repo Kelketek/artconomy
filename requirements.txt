@@ -1,3 +1,4 @@
+aiofile==3.3.3
 ansible==2.9.4
 pendulum==2.1.0
 pycountry

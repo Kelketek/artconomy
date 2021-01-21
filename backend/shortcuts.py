@@ -18,12 +18,14 @@ def disable_on_load(signal_handler):
         signal_handler(*args, **kwargs)
     return wrapper
 
+
 _textifier = html2text.HTML2Text()
 _textifier.ignore_links = False
 _textifier.reference_links = True
 _textifier.body_width = float('inf')
 
 invalid_tags = (('table', 'div'), ('td', 'span'), ('tr', 'div'))
+
 
 def strip_tags(html):
     soup = bs4.BeautifulSoup(html, features='lxml')
@@ -41,9 +43,11 @@ def strip_tags(html):
 
 class Textifier:
     parser = _textifier
+
     def handle(self, html):
         soup = strip_tags(html)
         return self.parser.handle(str(soup))
+
 
 def gen_textifier():
     return Textifier()

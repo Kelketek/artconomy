@@ -20,6 +20,7 @@ import colors from 'vuetify/es5/util/colors'
 import {Profiles} from '@/store/profiles/registry'
 import {Characters} from '@/store/characters/registry'
 import VueObserveVisibility from 'vue-observe-visibility'
+import {VueSocket} from '@/plugins/socket'
 
 declare global {
   interface Window {
@@ -31,6 +32,7 @@ declare global {
 
 Vue.use(VueRouter)
 Vue.use(Vuex)
+Vue.use(VueSocket, {endpoint: `wss://${window.location.host}/ws/events/`})
 Vue.use(Shortcuts)
 Vue.use(Vuetify)
 Vue.use(FormControllers)
@@ -166,10 +168,5 @@ window.artconomy = new Vue({
   vuetify: new Vuetify(vuetifySettings),
   components: {App}, // , NavBar},
 })
-
-const socket = new WebSocket(`wss://${window.location.host}/ws/events/`)
-
-// @ts-ignore
-window.artconomy.socket = socket
 
 window.artconomy.$mount('#app')

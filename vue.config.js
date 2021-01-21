@@ -6,7 +6,7 @@ const webpack = require('webpack')
 
 const commitHash = require('child_process')
   .execSync('git rev-parse --short HEAD')
-  .toString()
+  .toString().trim()
 
 module.exports = {
   assetsDir: 'dist',
@@ -19,7 +19,7 @@ module.exports = {
     config.plugins.push(new webpack.DefinePlugin({
       __COMMIT_HASH__: JSON.stringify(commitHash),
     }))
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.NODE_ENV === 'production' && !process.env.SKIP_SENTRY) {
       config.plugins.push(new SentryWebpackPlugin({
         include: '.',
         ignoreFile: '.sentrycliignore',

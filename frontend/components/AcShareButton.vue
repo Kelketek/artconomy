@@ -24,21 +24,21 @@
               <v-btn color="purple" fab small @click="showQr = true" class="qr-button"><v-icon>fa-qrcode</v-icon></v-btn>
             </v-col>
             <v-col class="shrink" v-if="clean">
-              <v-btn color="red" fab small :href="`https://www.pinterest.com/pin/create/button/?canonicalUrl=${this.location}&description=${this.titleText}&media=${encodeURIComponent(this.mediaUrl)}`"
+              <v-btn color="red" fab small :href="`https://www.pinterest.com/pin/create/button/?canonicalUrl=${this.location({mtm_campaign: 'Pinned'})}&description=${this.titleText}&media=${encodeURIComponent(this.mediaUrl)}`"
                      rel="nofollow noopener"
                      target="_blank">
                 <v-icon>fa-pinterest</v-icon>
               </v-btn>
             </v-col>
             <v-col class="shrink">
-              <v-btn color="red" fab small :href="`https://reddit.com/submit?url=${location}&title=${titleText}`"
+              <v-btn color="red" fab small :href="`https://reddit.com/submit?url=${location()}&title=${titleText}`"
                      rel="nofollow noopener"
                      target="_blank">
                 <v-icon>fa-reddit</v-icon>
               </v-btn>
             </v-col>
             <v-col class="shrink">
-              <v-btn color="blue" fab small :href="`https://telegram.me/share/url?url=${location}`"
+              <v-btn color="blue" fab small :href="`https://telegram.me/share/url?url=${location()}`"
                      target="_blank"
                      rel="nofollow noopener"
               >
@@ -47,14 +47,14 @@
             </v-col>
             <v-col class="shrink">
               <v-btn color="blue" fab small
-                     :href="`https://twitter.com/share?text=${titleText}&url=${location}&hashtags=Artconomy`"
+                     :href="`https://twitter.com/share?text=${titleText}&url=${location()}&hashtags=Artconomy`"
                      target="_blank"
                      rel="nofollow noopener">
                 <v-icon>fa-twitter</v-icon>
               </v-btn>
             </v-col>
             <v-col class="shrink">
-              <v-btn color="grey darken-4" fab small :href="`https://www.tumblr.com/share/link?url=${location}&name=${titleText}`"
+              <v-btn color="grey darken-4" fab small :href="`https://www.tumblr.com/share/link?url=${location()}&name=${titleText}`"
                      target="_blank"
                      rel="nofollow noopener">
                 <v-icon>fa-tumblr</v-icon>
@@ -97,6 +97,10 @@ import {Prop, Watch} from 'vue-property-decorator'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
 import QRCode from 'qrcode'
 
+declare interface ExtraReferred {
+  [key: string]: string,
+}
+
 @Component({components: {AcExpandedProperty, Fragment}})
 export default class AcShareButton extends mixins(Dialog, Viewer) {
   @Prop({default: true})
@@ -128,7 +132,7 @@ export default class AcShareButton extends mixins(Dialog, Viewer) {
 
   @Watch('location', {immediate: true})
   public renderCode() {
-    QRCode.toString(this.rawLocation, {}, (err: Error, str: string) => {
+    QRCode.toString(this.rawLocation(), {}, (err: Error, str: string) => {
       /* istanbul ignore if */
       if (err) {
         console.error(err)
@@ -145,14 +149,14 @@ export default class AcShareButton extends mixins(Dialog, Viewer) {
     return encodeURIComponent(this.mediaUrl)
   }
 
-  public get rawLocation() {
+  public rawLocation(extraReferred?: ExtraReferred) {
     /* istanbul ignore next */
     const route = {...this.$route, name: this.$route.name || undefined}
     route.name = route.name || undefined
     const query = {...this.$route.query}
     if (this.referral && this.isRegistered) {
       query.referred_by = this.rawViewerName
-      query.mtm_campaign = 'Pinned'
+      Object.assign(query, extraReferred || {})
     } else {
       delete query.referred_by
     }
@@ -160,9 +164,9 @@ export default class AcShareButton extends mixins(Dialog, Viewer) {
     return window.location.protocol + '//' + window.location.host + this.$router.resolve(route).href
   }
 
-  public get location() {
+  public location(extraReferred: ExtraReferred) {
     return encodeURIComponent(
-      this.rawLocation,
+      this.rawLocation(extraReferred),
     )
   }
 }
