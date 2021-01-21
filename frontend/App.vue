@@ -85,8 +85,10 @@
           rounded="pill"
       >
         <div class="d-flex text-center">
-          <strong>Artconomy has updated! Things might not quite work right until you refresh.</strong>
-          <v-btn color="primary" class="ml-1" fab small @click="location.reload()"><v-icon>update</v-icon></v-btn>
+          <div class="align-self-center">
+            <strong>Artconomy has updated! Things might not quite work right until you refresh.</strong>
+          </div>
+          <v-btn color="primary" class="ml-2" fab small @click="location.reload()"><v-icon>update</v-icon></v-btn>
         </div>
       </v-snackbar>
       <v-snackbar
