@@ -306,7 +306,6 @@ export default class App extends mixins(Viewer, Nav) {
     }
     this.supportForm.fields.email.update(val || '', false)
     window.pintrk('load', '2614118947445', {em: val})
-    window.pintrk('page')
   }
 
   @Watch('viewer.guest_email')
@@ -316,7 +315,20 @@ export default class App extends mixins(Viewer, Nav) {
     }
     this.supportForm.fields.email.update(val, false)
     window.pintrk('load', '2614118947445', {em: val})
-    window.pintrk('page')
+  }
+
+  @Watch('$route.fullPath', {immediate: true})
+  private trackPage(newPath, oldPath) {
+    // Let's do next tick since sometimes meta information is modified on route load.
+    this.$nextTick(() => {
+      window._paq.push(['setCustomUrl', window.location + ''])
+      window._paq.push(['setDocumentTitle', document.title])
+      if (oldPath) {
+        window._paq.push(['setReferrerUrl', window.location.origin + oldPath])
+      }
+      window._paq.push(['trackPageView'])
+      window.pintrk('track', 'pagevisit', {url: window.location + ''})
+    })
   }
 
   @Watch('$route', {immediate: true, deep: true})

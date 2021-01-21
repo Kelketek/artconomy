@@ -703,13 +703,4 @@ export function configureHooks(vueRouter: Router, store: ArtStore): void {
     }
     next()
   })
-  vueRouter.afterEach((to, from) => {
-    if (deepEqual(to, from)) {
-      return
-    }
-    window._paq.push(['setCustomUrl', to.fullPath])
-    window._paq.push(['setDocumentTitle', document.title])
-    window._paq.push(['setReferrerUrl', from.fullPath])
-    window._paq.push(['trackPageView'])
-  })
 }
