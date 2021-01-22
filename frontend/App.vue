@@ -236,6 +236,7 @@ export default class App extends mixins(Viewer, Nav) {
       this.socketState.updateX({status: ConnectionStatus.CLOSED})
     })
     window.pintrk('load', '2614118947445')
+    window.pintrk('page')
   }
 
   public getVersion(versionData: {version: string}) {

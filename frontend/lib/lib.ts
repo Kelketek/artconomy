@@ -870,5 +870,10 @@ export function createPinterestQueue(): PinterestQueue {
 
   pintrk.queue = []
   pintrk.version = '3.0'
+  // TODO: Remove this if it turns out not to be needed.
+  pintrk.newLoad = (tagId: string) => {
+    delete pintrk.tagId
+    pintrk('load', tagId)
+  }
   return pintrk
 }
