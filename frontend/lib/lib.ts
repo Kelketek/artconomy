@@ -18,6 +18,7 @@ import {NamelessFormSchema} from '@/store/forms/types/NamelessFormSchema'
 import {HttpVerbs} from '@/store/forms/types/HttpVerbs'
 import {ListController} from '@/store/lists/controller'
 import {cloneDeep} from 'lodash'
+import {PinterestQueue} from '@/types/PinterestQueue'
 
 // Needed for Matomo.
 declare global {
@@ -858,4 +859,16 @@ export function updateLinked(options: LinkUpdateOptions) {
     (x) => x[options.key][options.subKey as string] === options.newValue[options.subKey as string])
   updateItems.map((x) => { x[options.key] = options.newValue })
   updateItems.map(options.list.replace)
+}
+
+export function createPinterestQueue(): PinterestQueue {
+  const pintrkBase = (...args: any) => {
+    pintrk.queue.push(Array.prototype.slice.call(args))
+  }
+
+  const pintrk = pintrkBase as PinterestQueue
+
+  pintrk.queue = []
+  pintrk.version = '3.0'
+  return pintrk
 }

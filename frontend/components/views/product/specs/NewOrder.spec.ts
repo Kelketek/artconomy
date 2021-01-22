@@ -33,6 +33,7 @@ describe('NewOrder.vue', () => {
       ],
     })
     window.scrollTo = jest.fn()
+    // @ts-ignore
     window.pintrk = jest.fn()
   })
   afterEach(() => {

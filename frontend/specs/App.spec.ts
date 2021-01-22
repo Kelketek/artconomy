@@ -8,12 +8,13 @@ import {userResponse} from './helpers/fixtures'
 import {FormController} from '@/store/forms/form-controller'
 import {cleanUp, createVuetify, dialogExpects, docTarget, genAnon, rq, rs, vueSetup} from './helpers'
 import Vuetify from 'vuetify/lib'
+import {createPinterestQueue} from '@/lib/lib'
 
 const localVue = vueSetup()
 let wrapper: Wrapper<Vue>
 let vuetify: Vuetify
 
-window.pintrk = () => undefined
+window.pintrk = createPinterestQueue()
 // @ts-ignore
 window.__COMMIT_HASH__ = 'bogusHash'
 

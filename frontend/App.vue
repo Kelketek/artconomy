@@ -235,6 +235,7 @@ export default class App extends mixins(Viewer, Nav) {
     this.$sock.disconnectListeners.push(() => {
       this.socketState.updateX({status: ConnectionStatus.CLOSED})
     })
+    window.pintrk('load', '2614118947445')
   }
 
   public getVersion(versionData: {version: string}) {
@@ -305,7 +306,6 @@ export default class App extends mixins(Viewer, Nav) {
       return
     }
     this.supportForm.fields.email.update(val || '', false)
-    window.pintrk('load', '2614118947445', {em: val})
   }
 
   @Watch('viewer.guest_email')
@@ -314,7 +314,6 @@ export default class App extends mixins(Viewer, Nav) {
       return
     }
     this.supportForm.fields.email.update(val, false)
-    window.pintrk('load', '2614118947445', {em: val})
   }
 
   @Watch('$route.fullPath', {immediate: true})
