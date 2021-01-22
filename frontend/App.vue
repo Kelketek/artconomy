@@ -317,7 +317,7 @@ export default class App extends mixins(Viewer, Nav) {
   }
 
   @Watch('$route.fullPath', {immediate: true})
-  private trackPage(newPath, oldPath) {
+  private trackPage(newPath: string, oldPath: string|undefined) {
     // Let's do next tick since sometimes meta information is modified on route load.
     this.$nextTick(() => {
       window._paq.push(['setCustomUrl', window.location + ''])
