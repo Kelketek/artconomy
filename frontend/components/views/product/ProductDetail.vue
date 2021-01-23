@@ -683,6 +683,17 @@ export default class ProductDetail extends mixins(ProductCentric, Formatting, Ed
       return submissions.slice(0, 4)
     }
 
+    public trackPageView() {
+      const product = this.product.x as Product
+      window.pintrk('track', 'pagevisit', {
+        product_id: product.id,
+        product_brand: product.user.username,
+        product_name: product.name,
+        product_price: product.starting_price,
+        currency: 'USD',
+      })
+    }
+
     public deleteProduct() {
       this.product.delete().then(() => {
         this.$router.replace({name: 'Profile', params: {username: this.username}})
@@ -692,7 +703,8 @@ export default class ProductDetail extends mixins(ProductCentric, Formatting, Ed
     public created() {
       this.product.get().then((product: Product) => {
         this.shown = product.primary_submission
-      }).catch(this.setError)
+        this.trackPageView()
+      }).catch()
       this.pricing = this.$getSingle('pricing', {endpoint: '/api/sales/v1/pricing-info/'})
       this.pricing.get()
       this.inventory = this.$getSingle(

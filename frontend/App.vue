@@ -236,7 +236,6 @@ export default class App extends mixins(Viewer, Nav) {
       this.socketState.updateX({status: ConnectionStatus.CLOSED})
     })
     window.pintrk('load', '2614118947445')
-    window.pintrk('page')
   }
 
   public getVersion(versionData: {version: string}) {
@@ -327,7 +326,11 @@ export default class App extends mixins(Viewer, Nav) {
         window._paq.push(['setReferrerUrl', window.location.origin + oldPath])
       }
       window._paq.push(['trackPageView'])
-      window.pintrk('track', 'pagevisit', {url: window.location + ''})
+      window.pintrk('page')
+      // For products, we need to track this elsewhere.
+      if (!this.$route.params.productId) {
+        window.pintrk('track', 'pagevisit')
+      }
     })
   }
 

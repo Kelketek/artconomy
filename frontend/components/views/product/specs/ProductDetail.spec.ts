@@ -14,7 +14,7 @@ import {
 import ProductDetail from '@/components/views/product/ProductDetail.vue'
 import {genArtistProfile, genProduct, genUser} from '@/specs/helpers/fixtures'
 import mockAxios from '@/__mocks__/axios'
-import {searchSchema} from '@/lib/lib'
+import {createPinterestQueue, searchSchema} from '@/lib/lib'
 import {FormController} from '@/store/forms/form-controller'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import Router, {RouterOptions} from 'vue-router'
@@ -118,6 +118,7 @@ describe('ProductDetail.vue', () => {
     form = mount(Empty, {localVue, router, store}).vm.$getForm('search', searchSchema())
     setPricing(store, localVue)
     Big.DP = 2
+    window.pintrk = createPinterestQueue()
   })
   afterEach(() => {
     cleanUp(wrapper)
