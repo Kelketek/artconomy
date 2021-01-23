@@ -212,15 +212,13 @@ export default class NewOrder extends mixins(ProductCentric, Formatting) {
       window.pintrk(
         'track',
         'checkout', {
-          value: product.starting_price,
-          order_quantity: 1,
+          product_id: product.id,
+          product_brand: product.user.username,
+          product_name: product.name,
+          product_price: product.starting_price,
           currency: 'USD',
-          line_items: [
-            {
-              product_id: product.id,
-            },
-          ],
-        })
+        },
+      )
     }
 
     public goToOrder(order: Order) {
@@ -242,11 +240,22 @@ export default class NewOrder extends mixins(ProductCentric, Formatting) {
       this.orderForm.sending = false
     }
 
+    public trackCart() {
+      const product = this.product.x as Product
+      window.pintrk('track', 'addtocart', {
+        product_id: product.id,
+        product_brand: product.user.username,
+        product_name: product.name,
+        product_price: product.starting_price,
+        currency: 'USD',
+      })
+    }
+
     public created() {
       // The way we're constructed allows us to avoid refetching if we arrive through the product page, but
       // leaves us in the same scroll position as we were. Fix that here.
       window.scrollTo(0, 0)
-      this.product.get()
+      this.product.get().then(this.trackCart)
       const viewer = this.viewer as User
       this.orderForm = this.$getForm('newOrder', {
         endpoint: this.product.endpoint + 'order/',
