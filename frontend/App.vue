@@ -325,6 +325,10 @@ export default class App extends mixins(Viewer, Nav) {
       if (oldPath) {
         window._paq.push(['setReferrerUrl', window.location.origin + oldPath])
       }
+      const excluded: any[] = ['FAQ', 'Profile', 'About', 'BuyAndSell', 'Other']
+      if (!this.$route || excluded.includes(this.$route.name)) {
+        return
+      }
       window._paq.push(['trackPageView'])
       window.pintrk('page')
       // For products, we need to track this elsewhere.

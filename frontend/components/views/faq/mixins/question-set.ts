@@ -42,5 +42,11 @@ export default class QuestionSet extends Vue {
   public created() {
     this.pricing = this.$getSingle('pricing', {endpoint: '/api/sales/v1/pricing-info/'})
     this.pricing.get().then()
+    if (!this.$route.params.question) {
+      return
+    }
+    window._paq.push(['trackPageView'])
+    window.pintrk('page')
+    window.pintrk('track', 'pagevisit')
   }
 }
