@@ -34,8 +34,7 @@ import Router from 'vue-router'
 import {HttpVerbs} from '@/store/forms/types/HttpVerbs'
 import {Shortcuts} from '@/plugins/shortcuts'
 import {useRealStorage} from '@/lib/specs/helpers'
-import {socketNameSpace, VueSocket} from '@/plugins/socket'
-import WS from 'jest-websocket-mock'
+import {VueSocket} from '@/plugins/socket'
 
 export interface ExtraData {
   status?: number,
@@ -153,8 +152,6 @@ export function vueSetup() {
   Vue.use(Vuex)
   Vue.use(Vuetify)
   const localVue = createLocalVue()
-  // @ts-ignore
-  socketNameSpace.socketClass = WS
   localVue.use(VueSocket, {endpoint: 'ws://localhost/test/url'})
   localVue.use(Singles)
   localVue.use(Lists)
