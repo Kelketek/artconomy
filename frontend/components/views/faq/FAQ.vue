@@ -11,6 +11,7 @@ import Viewer from '@/mixins/viewer'
 import {SingleController} from '@/store/singles/controller'
 import Pricing from '@/types/Pricing'
 import AcTabNav from '@/components/navigation/AcTabNav.vue'
+import {Watch} from 'vue-property-decorator'
 @Component({
   components: {AcTabNav},
 })
@@ -29,6 +30,16 @@ export default class FAQ extends mixins(Viewer) {
         value: {name: 'Other'}, text: 'Other/Misc',
       },
     ]
+  }
+
+  @Watch('$route')
+  public updateTracker() {
+    if (!this.$route.params.question) {
+      return
+    }
+    window._paq.push(['trackPageView'])
+    window.pintrk('page')
+    window.pintrk('track', 'pagevisit')
   }
 
   public created() {
