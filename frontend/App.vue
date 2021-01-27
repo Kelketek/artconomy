@@ -1,7 +1,7 @@
 <!--suppress JSUnusedGlobalSymbols -->
 <template>
   <v-app dark>
-    <nav-bar/>
+    <nav-bar v-if="searchForm"/>
     <v-main class="main-content">
       <ac-error/>
       <router-view v-if="displayRoute" :key="routeKey"/>
