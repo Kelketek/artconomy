@@ -145,10 +145,6 @@ export default class AcShareButton extends mixins(Dialog, Viewer) {
     return encodeURIComponent(this.title)
   }
 
-  public get imageUrl() {
-    return encodeURIComponent(this.mediaUrl)
-  }
-
   public rawLocation(extraReferred?: ExtraReferred) {
     /* istanbul ignore next */
     const route = {...this.$route, name: this.$route.name || undefined}

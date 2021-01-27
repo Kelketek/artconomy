@@ -89,6 +89,7 @@ export default class AcPaginated extends mixins(ErrorHandling) {
     }
 
     public get extraParams() {
+      /* istanbul ignore if */
       if (this.prerendering) {
         return {'total-visible': 5}
       }

@@ -1,8 +1,8 @@
 import Vue from 'vue'
 import Vuetify from 'vuetify/lib'
-import {cleanUp, createVuetify, docTarget, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, vueSetup, mount} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
-import {mount, Wrapper} from '@vue/test-utils'
+import {Wrapper} from '@vue/test-utils'
 import AcDeliverableRating from '@/components/views/order/AcDeliverableRating.vue'
 
 const localVue = vueSetup()

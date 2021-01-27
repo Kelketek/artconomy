@@ -98,7 +98,6 @@ class UniversalViewMixin:
         return get_object_or_404(model, id=self.kwargs['object_id'])
 
 
-
 class Comments(UniversalViewMixin, ListCreateAPIView):
     permission_classes = [
         Any(

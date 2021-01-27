@@ -645,9 +645,11 @@ export default class ProductDetail extends mixins(ProductCentric, Formatting, Ed
 
     public get shareMedia() {
       const product = this.product.x as Product
+      /* istanbul ignore if */
       if (!product) {
         return null
       }
+      /* istanbul ignore if */
       if (!product.primary_submission) {
         return null
       }

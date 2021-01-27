@@ -428,7 +428,15 @@ export default class SubmissionDetail extends mixins(Viewer, Formatting, Editabl
 
     public created() {
       this.submission = this.$getSingle(
-        `submission__${this.submissionId}`, {endpoint: this.url, params: {view: 'true'}},
+          `submission__${this.submissionId}`, {
+            endpoint: this.url,
+            params: {view: 'true'},
+            socketSettings: {
+              appLabel: 'profiles',
+              modelName: 'Submission',
+              serializer: 'SubmissionSerializer',
+            },
+          },
       )
       this.artists = this.$getList(`submission__${this.submissionId}__artists`, {
         endpoint: `${this.url}artists/`, paginated: false,

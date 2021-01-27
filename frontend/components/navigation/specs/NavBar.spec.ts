@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import Vuetify from 'vuetify/lib'
-import {mount, shallowMount, Wrapper} from '@vue/test-utils'
+import {shallowMount, Wrapper} from '@vue/test-utils'
 import NavBar from '../NavBar.vue'
 import {ArtStore, createStore} from '@/store'
 import {genUser} from '@/specs/helpers/fixtures'
@@ -13,6 +13,7 @@ import {
   rs,
   setViewer,
   vueSetup,
+  mount,
 } from '@/specs/helpers'
 import mockAxios from '@/specs/helpers/mock-axios'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
@@ -75,22 +76,25 @@ describe('NavBar.vue', () => {
       vuetify,
       mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}},
     })
-    dispatch.mockClear()
-    mockAxios.mockResponse(rs(genUser()))
+    const vm = wrapper.vm as any
+    vm.viewerHandler.user.makeReady(genUser())
     await wrapper.vm.$nextTick()
     expect((wrapper.vm as any).viewer.username).toBe('Fox')
     expect(dispatch).toHaveBeenCalledWith('notifications/startLoop')
   })
   it('Stops the notifications loop when a viewer is set and is anonymous.', async() => {
     const dispatch = jest.spyOn(store, 'dispatch')
-    wrapper = shallowMount(NavBar, {
+    wrapper = mount(NavBar, {
       store,
       localVue,
       vuetify,
       mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}},
+      stubs: ['router-link'],
+      attachTo: docTarget(),
     })
     // Have to start as logged in to trigger the event.
-    mockAxios.mockResponse(rs(genUser()))
+    const vm = wrapper.vm as any
+    vm.viewerHandler.user.makeReady(genUser())
     await wrapper.vm.$nextTick()
     dispatch.mockClear();
     (wrapper.vm as any).viewerHandler.user.setX(genAnon())
@@ -106,7 +110,8 @@ describe('NavBar.vue', () => {
       mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}},
 
     })
-    mockAxios.mockResponse(rs(genUser()))
+    const vm = wrapper.vm as any
+    vm.viewerHandler.user.makeReady(genUser())
     await wrapper.vm.$nextTick()
     dispatch.mockClear()
     wrapper.destroy()

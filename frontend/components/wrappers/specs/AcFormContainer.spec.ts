@@ -1,7 +1,6 @@
-import {mount} from '@vue/test-utils'
 import FormContainer from '@/specs/helpers/dummy_components/form-container.vue'
 import {AxiosError} from 'axios'
-import {createVuetify, vueSetup} from '@/specs/helpers'
+import {createVuetify, vueSetup, mount} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import Vuetify from 'vuetify/lib'
 

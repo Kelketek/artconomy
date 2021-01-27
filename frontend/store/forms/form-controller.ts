@@ -25,10 +25,9 @@ export class FormController extends BaseController<NamelessFormSchema, FormState
   public fields: FieldBank = {}
   public watcherMap: { [key: string]: (mutation: MutationPayload) => void } = {}
 
-  // @ts-ignore
-  public registry = formRegistry
-
   public baseModuleName = 'forms'
+
+  public typeName = 'Form'
   // tslint:disable-next-line:no-empty
   private unsubscribe: (() => void) = null as unknown as (() => void)
 

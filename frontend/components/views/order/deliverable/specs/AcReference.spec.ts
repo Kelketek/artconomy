@@ -1,4 +1,4 @@
-import {cleanUp, qMount} from '@/specs/helpers'
+import {cleanUp, qMount, mount} from '@/specs/helpers'
 import {Wrapper} from '@vue/test-utils'
 import AcReference from '@/components/views/order/deliverable/AcReference.vue'
 import {genReference} from '@/specs/helpers/fixtures'

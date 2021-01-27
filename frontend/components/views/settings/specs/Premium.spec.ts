@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import {mount, Wrapper} from '@vue/test-utils'
+import {Wrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
 import {
   cleanUp,
@@ -12,6 +12,7 @@ import {
   rs,
   setViewer,
   vueSetup,
+  mount,
 } from '@/specs/helpers'
 import {genUser} from '@/specs/helpers/fixtures'
 import Premium from '@/components/views/settings/Premium.vue'

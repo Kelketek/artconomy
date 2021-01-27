@@ -108,7 +108,6 @@ export function mention(state: StateCore, silent?: boolean) {
     if (!/^\s+$/.test(prCh)) { return }
   }
   if (ch !== 0x40/* @ */) { return false }
-  if (state.src[pos - 2] === '\\') { return false }
   const start = pos
   pos++
   const max = state.posMax
@@ -221,6 +220,7 @@ export function getHeaders(method: HttpVerbs, url: string): Headers {
     if (referredBy) {
       headers['X-Referred-By'] = referredBy
     }
+    headers['X-Window-ID'] = window.windowId
   }
   return headers
 }
@@ -762,7 +762,7 @@ export function saneNav(originalFunction: (location: RawLocation) => Promise<Rou
       // @ts-ignore
       if (err && err.name === 'NavigationDuplicated') {
         // This never matters.
-        return
+        return this.currentRoute
       }
       /* istanbul ignore next */
       throw err
@@ -870,10 +870,5 @@ export function createPinterestQueue(): PinterestQueue {
 
   pintrk.queue = []
   pintrk.version = '3.0'
-  // TODO: Remove this if it turns out not to be needed.
-  pintrk.newLoad = (tagId: string) => {
-    delete pintrk.tagId
-    pintrk('load', tagId)
-  }
   return pintrk
 }

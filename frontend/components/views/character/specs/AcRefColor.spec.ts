@@ -1,10 +1,10 @@
 import Vue from 'vue'
 import Vuetify from 'vuetify/lib'
-import {mount, Wrapper} from '@vue/test-utils'
+import {Wrapper} from '@vue/test-utils'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import {ArtStore, createStore} from '@/store'
 import AcRefColor from '@/components/views/character/AcRefColor.vue'
-import {cleanUp, createVuetify, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, setViewer, vueSetup, mount} from '@/specs/helpers'
 import {genUser} from '@/specs/helpers/fixtures'
 
 const localVue = vueSetup()

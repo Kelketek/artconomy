@@ -1,6 +1,6 @@
 import {genArtistProfile, genUser} from '@/specs/helpers/fixtures'
-import {flushPromises, genAnon, rs, setViewer, vueSetup} from '@/specs/helpers'
-import {mount, shallowMount, Wrapper} from '@vue/test-utils'
+import {flushPromises, genAnon, rs, setViewer, vueSetup, mount} from '@/specs/helpers'
+import {shallowMount, Wrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
 import Vue from 'vue'
 import mockAxios from '@/specs/helpers/mock-axios'
@@ -134,22 +134,6 @@ describe('Profile controller', () => {
     expect((store.state as any).userModules.goof).toBeTruthy()
     expect((store.state as any).userModules.goof.user).toBeTruthy()
     expect((store.state as any).userModules.Fox).toBeFalsy()
-  })
-  it('Updates authentication tokens', async() => {
-    setViewer(store, genUser())
-    const user = genUser()
-    user.csrftoken = 'Hello!'
-    user.authtoken = 'Howdy!'
-    const controller = mount(ProfileController, {
-      localVue,
-      store,
-      propsData: {initName: 'Fox', schema: {}},
-
-    }).vm as ProfileController
-    controller.user.setX(user)
-    await controller.$nextTick()
-    expect(getCookie('csrftoken')).toBe('Hello!')
-    expect(getCookie('authtoken')).toBe('Howdy!')
   })
   it('Refreshes user data to an anonymous user', async() => {
     setViewer(store, genUser())

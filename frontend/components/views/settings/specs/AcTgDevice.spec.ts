@@ -1,8 +1,8 @@
-import {mount, Wrapper} from '@vue/test-utils'
+import {Wrapper} from '@vue/test-utils'
 import AcTgDevice from '../AcTgDevice.vue'
 import {ArtStore, createStore} from '@/store'
-import {cleanUp, createVuetify, docTarget, flushPromises, rq, setViewer, vueSetup} from '@/specs/helpers'
-import Vue from 'vue'
+import {cleanUp, createVuetify, docTarget, flushPromises, rq, setViewer, vueSetup, mount} from '@/specs/helpers'
+import Vue, {VueConstructor} from 'vue'
 import {genUser} from '@/specs/helpers/fixtures'
 import {ListController} from '@/store/lists/controller'
 import {TOTPDevice} from '@/store/profiles/types/TOTPDevice'
@@ -12,15 +12,16 @@ import Empty from '@/specs/helpers/dummy_components/empty.vue'
 
 const qrImageUrl = 'otpauth://totp/Artconomy%20Dev%3Afox%40vulpinity.com?secret=KJZWLZLDMVY3XJAX72V4WAXDKKZZDA76' +
   '&algorithm=SHA1&digits=6&period=30&issuer=Artconomy+Dev'
+let localVue: VueConstructor<Vue>
 
 describe('AcTgDevice.vue', () => {
   const mockError = jest.spyOn(console, 'error')
-  const localVue = vueSetup()
   let store: ArtStore
   let wrapper: Wrapper<Vue>
   let controller: ListController<TOTPDevice>
   let vuetify: Vuetify
   beforeEach(() => {
+    localVue = vueSetup()
     store = createStore()
     vuetify = createVuetify()
     controller = mount(Empty, {localVue, store}).vm.$getList('totpDevices', {endpoint: '/test/'})

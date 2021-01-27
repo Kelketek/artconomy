@@ -1,6 +1,6 @@
 import Vue from 'vue'
-import {mount, Wrapper} from '@vue/test-utils'
-import {cleanUp, createVuetify, docTarget, flushPromises, rq, rs, vueSetup} from '@/specs/helpers'
+import {Wrapper} from '@vue/test-utils'
+import {cleanUp, createVuetify, docTarget, flushPromises, rq, rs, vueSetup, mount} from '@/specs/helpers'
 import {genSubmission} from '@/store/submissions/specs/fixtures'
 import AcMarkdownViewer from '@/components/AcMarkdownViewer.vue'
 import mockAxios from '@/__mocks__/axios'

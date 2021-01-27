@@ -1,17 +1,19 @@
 import Vuetify from 'vuetify/lib'
 import {ArtStore, createStore} from '@/store'
 import Router from 'vue-router'
-import {mount, Wrapper} from '@vue/test-utils'
+import {Wrapper} from '@vue/test-utils'
 import {searchSchema} from '@/lib/lib'
 import {
   cleanUp,
-  createVuetify, docTarget,
-  flushPromises, makeSpace,
+  createVuetify,
+  docTarget,
+  flushPromises,
   rq,
   rs,
   setPricing,
   setViewer,
   vueSetup,
+  mount,
 } from '@/specs/helpers'
 import Vue from 'vue'
 import {FormController} from '@/store/forms/form-controller'

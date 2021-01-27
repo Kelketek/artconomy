@@ -6,7 +6,7 @@ import RefundPolicy from '../RefundPolicy.vue'
 import CommissionAgreement from '../CommissionAgreement.vue'
 import TermsOfService from '../TermsOfService.vue'
 import VueRouter from 'vue-router'
-import {cleanUp, createVuetify, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, vueSetup, mount} from '@/specs/helpers'
 
 const localVue = vueSetup()
 localVue.use(VueRouter)

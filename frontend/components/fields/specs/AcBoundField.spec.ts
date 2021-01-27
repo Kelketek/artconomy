@@ -1,9 +1,9 @@
-import {mount, Wrapper} from '@vue/test-utils'
+import {Wrapper} from '@vue/test-utils'
 import Vue from 'vue'
 import Vuetify from 'vuetify/lib'
 import BoundField from '@/specs/helpers/dummy_components/bound-field.vue'
 import {ArtStore, createStore} from '@/store'
-import {cleanUp, createVuetify, docTarget, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, vueSetup, mount} from '@/specs/helpers'
 
 const localVue = vueSetup()
 let store: ArtStore

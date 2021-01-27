@@ -1,26 +1,19 @@
 import Vue from 'vue'
-import Vuex from 'vuex'
 import mockAxios from '@/specs/helpers/mock-axios'
 import Patcher from '@/specs/helpers/dummy_components/patcher.vue'
 import PatcherBroken from '@/specs/helpers/dummy_components/patcher-broken.vue'
-import {createLocalVue, mount, shallowMount, Wrapper} from '@vue/test-utils'
+import {shallowMount, Wrapper} from '@vue/test-utils'
 import flushPromises from 'flush-promises'
-import {docTarget, rq, rs, setViewer} from '@/specs/helpers'
+import {docTarget, rq, rs, setViewer, vueSetup, mount} from '@/specs/helpers'
 import {singleRegistry, Singles} from '@/store/singles/registry'
-import {Profiles} from '@/store/profiles/registry'
 import {ArtStore, createStore} from '@/store'
 import {genUser} from '@/specs/helpers/fixtures'
 import PatcherNonExist from '@/specs/helpers/dummy_components/patcher-non-exist.vue'
 import {errorSend} from '@/store/singles/patcher'
 import {AxiosError} from 'axios'
-import {Lists} from '@/store/lists/registry'
 import {VIEWER_TYPE} from '@/types/VIEWER_TYPE'
 
-Vue.use(Vuex)
-const localVue = createLocalVue()
-localVue.use(Singles)
-localVue.use(Lists)
-localVue.use(Profiles)
+const localVue = vueSetup()
 let store: ArtStore
 const mockWarn = jest.spyOn(console, 'warn')
 const mockError = jest.spyOn(console, 'error')

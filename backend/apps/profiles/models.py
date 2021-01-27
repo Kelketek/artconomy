@@ -5,7 +5,9 @@ import hashlib
 import uuid
 from urllib.parse import urlencode, urljoin
 
+from asgiref.sync import async_to_sync
 from avatar.models import Avatar
+from channels.layers import get_channel_layer
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from custom_user.models import AbstractEmailUser
@@ -40,12 +42,12 @@ from apps.lib.utils import (
     clear_events, tag_list_cleaner, notify, recall_notification, preview_rating,
     send_transaction_email,
     watch_subscriptions,
-    remove_watch_subscriptions
+    remove_watch_subscriptions, websocket_send, exclude_request, update_websocket
 )
 from apps.profiles.permissions import (
     SubmissionViewPermission, SubmissionCommentPermission, MessageReadPermission,
     JournalCommentPermission,
-    IsRegistered)
+    IsRegistered, UserControls)
 from shortcuts import make_url, disable_on_load
 
 
@@ -163,6 +165,7 @@ class User(AbstractEmailUser, HitsMixin):
         'hitcount.HitCount', object_id_field='object_pk',
         related_query_name='hit_counter')
     mailchimp_id = models.CharField(max_length=32, db_index=True, default='')
+    watch_permissions = {'UserSerializer': [UserControls], 'UserInfoSerializer': []}
     @property
     def landscape(self) -> bool:
         return bool(self.landscape_paid_through and self.landscape_paid_through >= date.today())
@@ -199,11 +202,36 @@ class ArtconomyAnonymousUser(AnonymousUser):
         return False
 
 
+socket_user_update = update_websocket(post_save, User, 'UserSerializer')
+socket_terse_user_update = update_websocket(post_save, User, 'UserInfoSerializer')
+
 # Replace Django's internal AnonymousUser model with our own that has the is_registered flag, needed to distinguish
 # guests from normal users.
-from django.contrib.auth import models as auth_models
+from django.contrib.auth import models as auth_models, user_logged_in, user_logged_out
 
 auth_models.AnonymousUser = ArtconomyAnonymousUser
+
+
+def trigger_reconnect(request):
+    """
+    Forces listeners on an IP to reconnect, as long as they aren't the current listener.
+    """
+    if not getattr(request, 'ip', None):
+        return []
+    websocket_send(group=f'client.address.{request.ip}', command='reset', exclude=exclude_request(request))
+
+
+def signal_trigger_reconnect(sender, user, request, **kwargs):
+    """
+    Trigger reconnect, but for Django signals.
+    """
+    # Middleware should set this, but doesn't always during tests.
+    trigger_reconnect(request)
+
+
+user_logged_in.connect(signal_trigger_reconnect)
+user_logged_out.connect(signal_trigger_reconnect)
+
 
 # noinspection PyUnusedLocal
 @receiver(pre_save, sender=User)
@@ -296,9 +324,13 @@ class ArtistProfile(Model):
     auto_withdraw = BooleanField(default=True)
     dwolla_url = URLField(blank=True, default='')
     commission_info = CharField(max_length=5000, blank=True, default='')
+    watch_permissions = {'ArtistProfileSerializer': []}
 
     def __str__(self):
         return f'Artist profile for {self.user and self.user.username}'
+
+
+socket_artist_profile_update = update_websocket(post_save, ArtistProfile, 'ArtistProfileSerializer')
 
 
 @receiver(pre_save, sender=ArtistProfile)
@@ -337,6 +369,7 @@ class Submission(ImageModel, HitsMixin):
     shared_with__max = 150  # Dunbar limit
 
     comment_view_permissions = [SubmissionViewPermission]
+    watch_permissions = {'SubmissionSerializer': [SubmissionViewPermission]}
     comment_permissions = [IsRegistered, SubmissionViewPermission, SubmissionCommentPermission]
 
     def __str__(self):
@@ -360,6 +393,9 @@ class Submission(ImageModel, HitsMixin):
 
     def favorite_count(self):
         return self.favorites.all().count()
+
+
+socket_submission_update = update_websocket(post_save, Submission, 'SubmissionSerializer')
 
 
 @receiver(post_save, sender=Submission)

@@ -1,5 +1,5 @@
-import {cleanUp, createVuetify, docTarget, vueSetup} from '@/specs/helpers'
-import {mount, Wrapper} from '@vue/test-utils'
+import {cleanUp, createVuetify, docTarget, vueSetup, mount} from '@/specs/helpers'
+import {Wrapper} from '@vue/test-utils'
 import Vue from 'vue'
 import {ArtStore, createStore} from '@/store'
 import AcShareManager from '@/components/AcShareManager.vue'

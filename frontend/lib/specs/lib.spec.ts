@@ -23,7 +23,7 @@ import {
   textualize, thumbFromSpec, truncateText, updateLinked,
 } from '@/lib/lib'
 import VueRouter from 'vue-router'
-import {createLocalVue, mount, shallowMount, Wrapper} from '@vue/test-utils'
+import {createLocalVue, shallowMount, Wrapper} from '@vue/test-utils'
 import ParamTabbed from '@/specs/helpers/dummy_components/param-tabbed.vue'
 import Routed from '@/specs/helpers/dummy_components/routed.vue'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
@@ -34,7 +34,7 @@ import {Singles} from '@/store/singles/registry'
 import {Lists} from '@/store/lists/registry'
 import {Profiles} from '@/store/profiles/registry'
 import {ArtStore, createStore} from '@/store'
-import {cleanUp, flushPromises, qMount, rs} from '@/specs/helpers'
+import {cleanUp, flushPromises, qMount, rs, mount} from '@/specs/helpers'
 import mock = jest.mock
 
 Vue.use(Vuetify)
@@ -380,7 +380,7 @@ Here's an email: support@artconomy.com`)).toBe(`<h1>Hello there.</h1>
 <p>Here's an email: support@artconomy.com</p>
 `)
   })
-  it('Renders markdown with Avatars', () => {
+  it('Renders markdown with Mentions', () => {
     expect(md.render(
       'Hello, @Foxie. Is this @Vulpine creature as \\@sweet and cu@te @ as I\'d hope? Maybe @Fox\'s tricks ' +
       'will tell us.')).toBe(

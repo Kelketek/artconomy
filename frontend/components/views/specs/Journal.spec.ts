@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import {mount, Wrapper} from '@vue/test-utils'
+import {Wrapper} from '@vue/test-utils'
 import Vuetify from 'vuetify/lib'
 import {ArtStore, createStore} from '@/store'
 import {
@@ -12,6 +12,7 @@ import {
   rs,
   setViewer,
   vueSetup,
+  mount,
 } from '@/specs/helpers'
 import {genUser} from '@/specs/helpers/fixtures'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'

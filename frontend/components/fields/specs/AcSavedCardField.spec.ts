@@ -1,6 +1,5 @@
-import {createVuetify, vueSetup} from '@/specs/helpers'
+import {createVuetify, vueSetup, mount} from '@/specs/helpers'
 import AcSavedCardField from '@/components/fields/AcSavedCardField.vue'
-import {mount} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import {ListController} from '@/store/lists/controller'

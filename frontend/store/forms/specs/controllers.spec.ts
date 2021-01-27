@@ -11,7 +11,7 @@ import flushPromises from 'flush-promises'
 import {CancelToken} from 'axios'
 import ErrorScrollTests from '@/specs/helpers/dummy_components/scroll-tests.vue'
 import {RootFormState} from '@/store/forms/types/RootFormState'
-import {docTarget} from '@/specs/helpers'
+import {docTarget, mount} from '@/specs/helpers'
 
 Vue.use(Vuex)
 const localVue = createLocalVue()

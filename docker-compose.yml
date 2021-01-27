@@ -21,6 +21,10 @@ services:
     image: rabbitmq
     ports:
       - "5672:5672"
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
   web:
     build: .
     entrypoint: /app/docker-entrypoint.sh
@@ -44,6 +48,7 @@ services:
       - PREMIUM_PERCENTAGE_BONUS=3
       - LANDSCAPE_PRICE=8
       - ENV_NAME=dev
+      - CHANNELS_HOST=redis
     command: /usr/bin/python3.8 manage.py runserver 0.0.0.0:8002
     ports:
       - "8001:8001"
@@ -51,6 +56,7 @@ services:
     depends_on:
       - db
       - rabbit
+      - redis
     volumes:
       - ./:/app
       - ./node_modules:/app/node_modules

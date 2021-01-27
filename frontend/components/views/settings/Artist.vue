@@ -18,7 +18,7 @@
                           invoiced or granted a token for."
                     :persistent-hint="true"
                     :save-indicator="false"
-                    :patcher="artistProfile.patchers.commissions_closed"
+                    :patcher="subjectHandler.artistProfile.patchers.commissions_closed"
                 ></ac-patch-field>
               </v-col>
               <v-col cols="12" sm="6" md="4">

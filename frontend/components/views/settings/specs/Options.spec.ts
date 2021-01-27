@@ -3,7 +3,7 @@ import {Wrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
 import VueRouter from 'vue-router'
 import {genUser} from '@/specs/helpers/fixtures'
-import {cleanUp, qMount, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, qMount, setViewer, vueSetup, mount} from '@/specs/helpers'
 import Options from '../Options.vue'
 
 jest.useFakeTimers()

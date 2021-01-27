@@ -1,15 +1,10 @@
 import {genUser} from '@/specs/helpers/fixtures'
-import {setViewer} from '@/specs/helpers'
-import {createLocalVue, mount, shallowMount, Wrapper} from '@vue/test-utils'
+import {cleanUp, setViewer, vueSetup, mount} from '@/specs/helpers'
+import {Wrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
 import Vue, {VueConstructor} from 'vue'
 import mockAxios from '@/specs/helpers/mock-axios'
-import Vuex from 'vuex'
-import {singleRegistry, Singles} from '@/store/singles/registry'
-import {profileRegistry, Profiles} from '@/store/profiles/registry'
-import {Characters} from '@/store/characters/registry'
 import {CharacterController} from '@/store/characters/controller'
-import {Lists} from '@/store/lists/registry'
 import {genCharacter} from '@/store/characters/specs/fixtures'
 
 describe('Profile controller', () => {
@@ -18,21 +13,12 @@ describe('Profile controller', () => {
   let wrapper: Wrapper<Vue> | null
   beforeEach(() => {
     mockAxios.reset()
-    localVue = createLocalVue()
-    localVue.use(Vuex)
-    localVue.use(Singles)
-    localVue.use(Lists)
-    localVue.use(Profiles)
-    localVue.use(Characters)
-    singleRegistry.reset()
-    profileRegistry.reset()
+    localVue = vueSetup()
     store = createStore()
     wrapper = null
   })
   afterEach(() => {
-    if (wrapper) {
-      wrapper.destroy()
-    }
+    cleanUp(wrapper || undefined)
   })
   it('Updates the route if the character name changed', async() => {
     const user = genUser()

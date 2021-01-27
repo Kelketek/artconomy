@@ -11,6 +11,7 @@ from rest_framework.fields import SerializerMethodField, empty
 from rest_framework_bulk import BulkSerializerMixin, BulkListSerializer
 
 from apps.lib.abstract_models import THUMBNAIL_IMAGE_EXTENSIONS
+from apps.lib.consumers import register_serializer
 from apps.lib.models import (
     Comment, Notification, Event, CHAR_TAG, SUBMISSION_CHAR_TAG, Tag, REVISION_UPLOADED,
     ORDER_UPDATE, SALE_UPDATE, COMMENT, Subscription, SUBMISSION_SHARED, CHAR_SHARED, NEW_CHARACTER,
@@ -576,7 +577,7 @@ class TagListField(serializers.ListSerializer):
 
     def to_representation(self, value):
         if hasattr(value, 'all'):
-            return value.all().values_list('name', flat=True)
+            return list(value.all().values_list('name', flat=True))
         return [getattr(val, 'name', str(val)) for val in value]
 
     def to_internal_value(self, value):
@@ -703,7 +704,7 @@ class UserListField(RelatedSetMixin, serializers.ListSerializer):
             data.append(self.context.get('request').user.id)
         data = list(set(data))
         if self.block_check:
-            qs = available_users(self.context.get('request')).filter(id__in=data)
+            qs = available_users(self.context.get('request').user).filter(id__in=data)
         else:
             qs = User.objects.filter(id__in=data)
         if self.tag_check:
@@ -755,6 +756,7 @@ class CharacterListField(RelatedSetMixin, serializers.ListSerializer):
         return data
 
 
+@register_serializer
 class UserInfoSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
     watching = UserRelationField(required=False)
     blocking = UserRelationField(required=False)
@@ -786,3 +788,10 @@ class MoneyToFloatField(serializers.FloatField):
     """
     def to_representation(self, value):
         return float(value.amount)
+
+
+class WatchSpecSerializer(serializers.Serializer):
+    app_label = serializers.CharField()
+    model_name = serializers.CharField()
+    serializer = serializers.CharField()
+    pk = serializers.CharField()

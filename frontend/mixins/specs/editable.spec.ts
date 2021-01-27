@@ -1,7 +1,7 @@
 import {createLocalVue, shallowMount, Wrapper} from '@vue/test-utils'
 import Vue from 'vue'
 import Editable from '@/specs/helpers/dummy_components/editable.vue'
-import {cleanUp, vueSetup} from '@/specs/helpers'
+import {cleanUp, vueSetup, mount} from '@/specs/helpers'
 
 const mockError = jest.spyOn(console, 'error')
 

@@ -1,6 +1,6 @@
-import {mount, Wrapper} from '@vue/test-utils'
+import {Wrapper} from '@vue/test-utils'
 import Vue from 'vue'
-import {cleanUp, createVuetify, docTarget, flushPromises, rs, vueSetup, vuetifySetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, flushPromises, rs, vueSetup, vuetifySetup, mount} from '@/specs/helpers'
 import AcUserSelect from '@/components/fields/AcUserSelect.vue'
 import mockAxios from '@/__mocks__/axios'
 import {genUser} from '@/specs/helpers/fixtures'
@@ -107,7 +107,6 @@ describe('AcUserSelect.vue', () => {
       AcUserSelect, {
         localVue,
         vuetify,
-
         attachTo: docTarget(),
         propsData: {value: null, multiple: false},
       },
@@ -206,7 +205,6 @@ describe('AcUserSelect.vue', () => {
       AcUserSelect, {
         localVue,
         vuetify,
-
         attachTo: docTarget(),
         propsData: {
           value: tagList, initItems: [{username: 'Test', id: 1}, {username: 'Test2', id: 2}],
@@ -235,6 +233,7 @@ describe('AcUserSelect.vue', () => {
     wrapper.setProps({
       value: 1, multiple: false, initItems: [{username: 'Test', id: 1}, {username: 'Test2', id: 2}],
     })
+    await wrapper.vm.$nextTick()
     expect(vm.itemFilter(user, 'Test', 'Test')).toBe(false)
   })
   it('Calls a custom filter', () => {

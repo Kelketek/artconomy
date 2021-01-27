@@ -1,7 +1,6 @@
 import Vue from 'vue'
 import ViewerComponent from '@/specs/helpers/dummy_components/viewer.vue'
-import {mount} from '@vue/test-utils'
-import {cleanUp, createVuetify, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, setViewer, vueSetup, mount} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import Vuetify from 'vuetify/lib'
 import {genSubmission} from '@/store/submissions/specs/fixtures'

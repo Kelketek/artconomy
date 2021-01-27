@@ -124,10 +124,11 @@ export default class AcPatchField extends Vue {
       }
     }
 
-    @Watch('patcher.model')
+    @Watch('patcher.rawValue')
     public watchValue(val: any) {
       if (this.autoSave || this.handlesSaving) {
         this.scratch = val
+      } else {
       }
     }
 

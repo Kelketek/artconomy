@@ -9,16 +9,15 @@ from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.contrib.contenttypes.models import ContentType
 from django.db import connection
 from django.db.transaction import atomic
-from django.middleware.csrf import get_token
 from django.utils import timezone
 from django_otp.plugins.otp_totp.models import TOTPDevice
 from recaptcha.fields import ReCaptchaField
 from rest_framework import serializers
-from rest_framework.authtoken.models import Token
 from rest_framework.exceptions import ValidationError
 from short_stuff.django.serializers import ShortCodeField
 
-from apps.lib.abstract_models import RATINGS, RATINGS_ANON
+from apps.lib.abstract_models import RATINGS_ANON
+from apps.lib.consumers import register_serializer
 from apps.lib.serializers import (
     RelatedUserSerializer, RelatedAssetField, TagSerializer, SubscribedField,
     TagListField,
@@ -38,7 +37,6 @@ from apps.tg_bot.models import TelegramDevice
 
 
 class RegisterSerializer(serializers.ModelSerializer):
-    csrftoken = serializers.SerializerMethodField()
     recaptcha = ReCaptchaField(write_only=True)
     registration_code = serializers.CharField(required=False, write_only=True, allow_blank=True)
     mail = serializers.BooleanField(write_only=True, required=False)
@@ -49,10 +47,6 @@ class RegisterSerializer(serializers.ModelSerializer):
             'recaptcha', 'mail', 'order_claim'
         ]}
         return super(RegisterSerializer, self).create(data)
-
-    # noinspection PyUnusedLocal
-    def get_csrftoken(self, value):
-        return get_token(self.context['request'])
 
     @staticmethod
     def validate_registration_code(value):
@@ -88,11 +82,8 @@ class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'username', 'email', 'password', 'csrftoken', 'recaptcha', 'mail', 'registration_code', 'order_claim',
+            'username', 'email', 'password', 'recaptcha', 'mail', 'registration_code', 'order_claim',
             'artist_mode',
-        )
-        read_only_fields = (
-            'csrftoken',
         )
         extra_kwargs = {
             'username': {'write_only': True},
@@ -102,6 +93,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         }
 
 
+@register_serializer
 class SubmissionSerializer(IdWritable, RelatedAtomicMixin, serializers.ModelSerializer):
     owner = RelatedUserSerializer(read_only=True)
     comment_count = serializers.SerializerMethodField()
@@ -399,6 +391,7 @@ class SubmissionManagementSerializer(RelatedAtomicMixin, SubmissionMixin, serial
         )
 
 
+@register_serializer
 class ArtistProfileSerializer(serializers.ModelSerializer):
 
     @staticmethod
@@ -410,7 +403,7 @@ class ArtistProfileSerializer(serializers.ModelSerializer):
         fields = (
             'commissions_closed', 'max_load', 'commission_info',
             'auto_withdraw', 'escrow_disabled', 'bank_account_status', 'max_rating',
-            'artist_of_color', 'lgbt',
+            'artist_of_color', 'lgbt', 'id',
         )
         extra_kwargs = {field: {'required': False} for field in fields}
 
@@ -480,9 +473,8 @@ class CredentialsSerializer(serializers.ModelSerializer):
         )
 
 
+@register_serializer
 class UserSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
-    csrftoken = serializers.SerializerMethodField()
-    authtoken = serializers.SerializerMethodField()
     portrait_paid_through = serializers.DateField(read_only=True)
     landscape_paid_through = serializers.DateField(read_only=True)
     telegram_link = serializers.SerializerMethodField()
@@ -492,26 +484,12 @@ class UserSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
     blacklist = TagListField(required=False)
     stars = serializers.FloatField(required=False)
 
-    # noinspection PyUnusedLocal
-    def get_csrftoken(self, obj):
-        # This will be the CSRFToken of the requesting user rather than the target user-- not a security risk,
-        # but also not intuitively clear that it's not the right data if someone were trying to attack.
-        return get_token(self.context['request'])
-
     @staticmethod
     def get_telegram_link(obj):
         # tg://resolve?domain=ArtconomyDevBot&start=Fox_9c005d61-8b84-4ad0-81b3-dae876
         return 'https://t.me/{}/?start={}_{}'.format(
             settings.TELEGRAM_BOT_USERNAME, quote_plus(obj.username), obj.tg_key
         )
-
-    def get_authtoken(self, obj):
-        request = self.context.get('request')
-        if not request:
-            return None
-        if not request.user == obj:
-            return None
-        return Token.objects.get(user_id=obj.id).key
 
     def validate(self, attrs):
         if attrs.get('rating', 0):
@@ -526,7 +504,7 @@ class UserSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
         model = User
         fields = (
             'rating', 'username', 'id', 'is_staff', 'is_superuser',
-            'csrftoken', 'avatar_url', 'email', 'authtoken', 'favorites_hidden',
+            'avatar_url', 'email', 'favorites_hidden',
             'blacklist', 'biography', 'taggable', 'watching', 'blocking',
             'stars', 'portrait', 'portrait_enabled', 'portrait_paid_through',
             'landscape', 'landscape_enabled', 'landscape_paid_through', 'telegram_link', 'sfw_mode',

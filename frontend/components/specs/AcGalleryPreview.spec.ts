@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import {shallowMount, Wrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
-import {cleanUp, createVuetify, docTarget, genAnon, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, genAnon, setViewer, vueSetup, mount} from '@/specs/helpers'
 import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
 import {genSubmission} from '@/store/submissions/specs/fixtures'
 import Vuetify from 'vuetify/lib'

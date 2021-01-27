@@ -1,4 +1,4 @@
-import {mount, Wrapper} from '@vue/test-utils'
+import {Wrapper} from '@vue/test-utils'
 import Vue from 'vue'
 import Vuetify from 'vuetify/lib'
 import {ArtStore, createStore} from '@/store'
@@ -10,6 +10,7 @@ import {
   setPricing,
   setViewer,
   vueSetup,
+  mount,
 } from '@/specs/helpers'
 import ProductDetail from '@/components/views/product/ProductDetail.vue'
 import {genArtistProfile, genProduct, genUser} from '@/specs/helpers/fixtures'

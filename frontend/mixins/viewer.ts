@@ -76,8 +76,5 @@ export default class Viewer extends mixins(ErrorHandling) {
     this.viewerHandler = this.$getProfile(
       this.rawViewerName, {persistent: true, viewer: true},
     )
-    if (!this.viewerHandler.user.x) {
-      this.viewerHandler.user.get().catch(this.setError)
-    }
   }
 }

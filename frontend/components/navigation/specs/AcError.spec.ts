@@ -2,7 +2,7 @@ import Vue from 'vue'
 import {shallowMount, Wrapper} from '@vue/test-utils'
 import AcError from '../AcError.vue'
 import {ArtStore, createStore} from '../../../store'
-import {cleanUp, createVuetify, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, vueSetup, mount} from '@/specs/helpers'
 import Vuetify from 'vuetify/lib'
 
 const localVue = vueSetup()

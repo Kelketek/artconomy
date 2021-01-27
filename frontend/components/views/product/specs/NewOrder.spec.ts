@@ -1,7 +1,7 @@
-import {cleanUp, createVuetify, docTarget, flushPromises, genAnon, rs, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, flushPromises, genAnon, rs, setViewer, vueSetup, mount} from '@/specs/helpers'
 import Router from 'vue-router'
 import {ArtStore, createStore} from '@/store'
-import {mount, Wrapper} from '@vue/test-utils'
+import {Wrapper} from '@vue/test-utils'
 import Vue from 'vue'
 import Vuetify from 'vuetify/lib'
 import {genArtistProfile, genOrder, genProduct, genUser} from '@/specs/helpers/fixtures'
@@ -141,5 +141,27 @@ describe('NewOrder.vue', () => {
     expect(form.fields.characters.model).toEqual([50])
     expect(vm.initCharacters).toEqual([character])
     expect(vm.showCharacters).toBeTruthy()
+  })
+  it('Updates the form when the user is silently registered', async() => {
+    const user = genAnon()
+    setViewer(store, user)
+    const form = mount(Empty, {localVue, store, vuetify, router}).vm.$getForm('newOrder', {
+      endpoint: '/boop/',
+      persistent: true,
+      fields: {
+        email: {value: ('')},
+        private: {value: false},
+        characters: {value: [23, 50]},
+        rating: {value: 0},
+        details: {value: ''},
+      },
+    })
+    wrapper = mount(NewOrder, {localVue, store, vuetify, router, propsData: {productId: '1', username: 'Fox'}})
+    const vm = wrapper.vm as any
+    await vm.$nextTick()
+    expect(form.fields.email.value).toEqual('')
+    vm.viewerHandler.user.updateX({guest_email: 'boop@snoot.com'})
+    await vm.$nextTick()
+    expect(form.fields.email.value).toEqual('boop@snoot.com')
   })
 })

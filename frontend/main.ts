@@ -13,7 +13,7 @@ import {FormControllers} from '@/store/forms/registry'
 import {Shortcuts} from './plugins/shortcuts'
 import Bowser from 'bowser'
 import Big from 'big.js'
-import {createPinterestQueue, formatSize} from './lib/lib'
+import {createPinterestQueue, formatSize, genId} from './lib/lib'
 import {Lists} from '@/store/lists/registry'
 import {Singles} from '@/store/singles/registry'
 import colors from 'vuetify/es5/util/colors'
@@ -28,6 +28,7 @@ declare global {
     artconomy: Vue,
     PRERENDERING: number,
     pintrk: PinterestQueue,
+    windowId: string,
   }
 }
 
@@ -48,6 +49,9 @@ Vue.filter('formatSize', formatSize)
 
 // @ts-ignore
 window.Big = Big
+// The 'window ID' is used to distinguish one tab from another when making requests to the server. This is useful for
+// some websocket activities where one tab is the originator of a change and others need to pick it up.
+window.windowId = genId()
 
 const browser = Bowser.getParser(window.navigator.userAgent)
 const isValidBrowser = browser.satisfies({

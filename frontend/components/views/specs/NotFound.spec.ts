@@ -3,7 +3,7 @@ import Vuetify from 'vuetify/lib'
 import {shallowMount, Wrapper} from '@vue/test-utils'
 import NotFound from '../NotFound.vue'
 import {ArtStore, createStore} from '@/store'
-import {cleanUp, createVuetify, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, vueSetup, mount} from '@/specs/helpers'
 
 const localVue = vueSetup()
 let vuetify: Vuetify

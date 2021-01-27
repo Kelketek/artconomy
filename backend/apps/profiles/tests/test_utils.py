@@ -11,6 +11,7 @@ from moneyed import Money
 from apps.lib.abstract_models import GENERAL, ADULT
 from apps.lib.test_resources import APITestCase
 from apps.lib.tests.factories_interdepend import CommentFactory
+from apps.profiles.models import ArtconomyAnonymousUser
 from apps.profiles.tests.factories import UserFactory, SubmissionFactory, CharacterFactory, AvatarFactory
 from apps.profiles.utils import extend_portrait, extend_landscape, empty_user, clear_user
 from apps.sales.models import NEW, IN_PROGRESS, PAYMENT_PENDING, WAITING, CANCELLED, TransactionRecord, COMPLETED
@@ -79,13 +80,14 @@ class ExtendPremiumTest(TestCase):
 
 class TestEmptyUser(APITestCase):
     def test_empty_user(self):
-        request = Mock()
-        request.sfw_mode = True
-        request.rating = ADULT
-        request.max_rating = GENERAL
-        request.birthday = date(year=1988, month=8, day=1)
+        session = {
+            'sfw_mode': True,
+            'rating': ADULT,
+            'max_rating': GENERAL,
+            'birthday': '1988-08-01',
+        }
         self.assertEqual(
-            empty_user(request), {
+            empty_user(user=ArtconomyAnonymousUser(), session=session), {
                 'blacklist': [],
                 'rating': ADULT,
                 'sfw_mode': True,

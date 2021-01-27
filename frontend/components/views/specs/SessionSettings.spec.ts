@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import {ArtStore, createStore} from '@/store'
-import {cleanUp, createVuetify, genAnon, qMount, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, genAnon, qMount, setViewer, vueSetup, mount} from '@/specs/helpers'
 import {Wrapper} from '@vue/test-utils'
 import SessionSettings from '@/components/views/SessionSettings.vue'
 import {genUser} from '@/specs/helpers/fixtures'

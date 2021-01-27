@@ -34,6 +34,7 @@ export default class FAQ extends mixins(Viewer) {
 
   @Watch('$route')
   public updateTracker() {
+    /* istanbul ignore if */
     if (!this.$route.params.question) {
       return
     }

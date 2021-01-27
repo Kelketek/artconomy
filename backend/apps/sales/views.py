@@ -1,8 +1,8 @@
+import uuid
 from _csv import QUOTE_ALL
 from datetime import datetime
 from decimal import Decimal
 from functools import lru_cache
-# Create your views here.
 from math import ceil
 from typing import Union, List
 from uuid import uuid4
@@ -2450,7 +2450,7 @@ class OrderAuth(GenericAPIView):
         serializer = UserSerializer(instance=user, context=self.get_serializer_context())
         data = serializer.data
         if not user.is_registered:
-            patch_data = empty_user(self.request)
+            patch_data = empty_user(user=self.request.user, session=self.request.session)
             del patch_data['username']
             data = {**data, **patch_data}
         return data

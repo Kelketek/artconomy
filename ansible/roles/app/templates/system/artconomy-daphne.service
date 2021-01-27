@@ -13,5 +13,5 @@ Environment={{key}}={{value}}
 {% for key, value in app_settings_complex.items() %}
 Environment={{key}}={{value|to_json|b64encode}}
 {% endfor %}
-ExecStart=/home/{{ env_prefix }}/bin/daphne -p 9001 conf.asgi:application
+ExecStart=/home/{{ env_prefix }}/bin/daphne -p 9001 conf.asgi:application --proxy-headers
 WantedBy=multi-user.target

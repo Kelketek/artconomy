@@ -11,6 +11,11 @@
     line: "127.0.0.1 {{ inventory_hostname.split('.')[0] }}"
     path: /etc/hosts
 
+- name: Add redis PPA
+  apt_repository:
+    repo: ppa:chris-lea/redis-server
+
+
 - name: Update Packages
   apt:
     cache_valid_time: 8400
@@ -26,3 +31,18 @@
       - build-essential
       - unattended-upgrades
     state: present
+
+- name: Enable overcommit memory
+  lineinfile:
+    destfile: /etc/sysctl.conf
+    line: vm.overcommit_memory=1
+  notify:
+    reload_sysctl
+
+- name: Disable transparent hugepages
+  copy:
+    src: files/rc.local
+    dest: /etc/rc.local
+    mode: '0777'
+  notify:
+    force_disable_hugepages

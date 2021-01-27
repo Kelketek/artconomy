@@ -1,8 +1,8 @@
 import Vuetify from 'vuetify/lib'
-import {mount, Wrapper} from '@vue/test-utils'
+import {Wrapper} from '@vue/test-utils'
 import Vue from 'vue'
 import {ArtStore, createStore} from '@/store'
-import {cleanUp, createVuetify, docTarget, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, vueSetup, mount} from '@/specs/helpers'
 import AcRatingField from '@/components/fields/AcRatingField.vue'
 
 const localVue = vueSetup()

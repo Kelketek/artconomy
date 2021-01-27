@@ -59,7 +59,7 @@ from apps.lib.views import BasePreview
 from apps.profiles.models import (
     User, Character, Submission, RefColor, Attribute, Conversation,
     ConversationParticipant, Journal,
-    ArtistProfile
+    ArtistProfile, trigger_reconnect
 )
 from apps.profiles.permissions import (
     ObjectControls, UserControls, SubmissionViewPermission, SubmissionControls,
@@ -441,11 +441,11 @@ class UserInfo(APIView):
             serializer = serializer_class(instance=user, context=self.get_serializer_context())
             data = serializer.data
             if not request.user.is_registered:
-                patch_data = empty_user(request)
+                patch_data = empty_user(user=request.user, session=request.session)
                 del patch_data['username']
                 data = {**data, **patch_data}
         else:
-            data = empty_user(request)
+            data = empty_user(user=request.user, session=request.session)
         return Response(data=data, status=status.HTTP_200_OK)
 
     # noinspection PyUnusedLocal
@@ -472,12 +472,12 @@ class CurrentUserInfo(UserInfo):
     def get(self, request, **kwargs):
         if request.user.is_authenticated:
             return super().get(request, **kwargs)
-        return Response(status=status.HTTP_200_OK, data=empty_user(request))
+        return Response(status=status.HTTP_200_OK, data=empty_user(session=request.session, user=request.user))
 
     def patch(self, request, **kwargs):
         if request.user.is_registered:
             return super().patch(request, **kwargs)
-        base_settings = empty_user(request)
+        base_settings = empty_user(user=request.user, session=request.session)
         serializer = SessionSettingsSerializer(data={**base_settings, **request.data})
         serializer.is_valid(raise_exception=True)
         request.session.update(serializer.data)
@@ -487,11 +487,12 @@ class CurrentUserInfo(UserInfo):
         request.rating = serializer.data['rating']
         request.sfw_mode = sfw_mode
         request.session.save()
-        data = empty_user(request)
+        data = empty_user(session=request.session, user=request.user)
         if request.user.is_authenticated:
             base_data = UserSerializer(instance=request.user, context=self.get_serializer_context()).data
             del data['username']
             data = {**base_data, **data}
+        trigger_reconnect(request)
         return Response(status=status.HTTP_200_OK, data=data)
 
     def get_object(self):
@@ -1397,7 +1398,7 @@ class JournalManager(RetrieveUpdateDestroyAPIView):
 def perform_logout(request):
     logout(request)
     request.session.pop('rating', None)
-    return Response(status=status.HTTP_200_OK, data=empty_user(request))
+    return Response(status=status.HTTP_200_OK, data=empty_user(user=request.user, session=request.session))
 
 
 class CharacterPreview(BasePreview):
@@ -1535,6 +1536,7 @@ class RecommendedSubmissions(ListAPIView):
             ),
         ).order_by('same_artist', 'same_collector', '?')
         return qs
+
 
 class RecommendedCharacters(ListAPIView):
     serializer_class = CharacterSerializer

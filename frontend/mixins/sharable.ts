@@ -6,6 +6,7 @@ import Component from 'vue-class-component'
 
 @Component
 export default class Sharable extends Vue {
+  /* istanbul ignore next */
   public get shareMedia(): null|{file: FileSpec, rating: Ratings} {
     return null
   }

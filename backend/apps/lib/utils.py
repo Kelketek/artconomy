@@ -4,7 +4,9 @@ from pathlib import Path
 from typing import Optional, TYPE_CHECKING, Type, List
 
 import markdown
+from asgiref.sync import async_to_sync
 from bs4 import BeautifulSoup
+from channels.layers import get_channel_layer
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
@@ -737,3 +739,47 @@ def clear_events_subscriptions_and_comments(target: Model):
     Event.objects.filter(content_type=content_type, object_id=target.id).delete()
     for comment in Comment.objects.filter(top_content_type=content_type, top_object_id=target.id):
         real_destroy_comment(comment)
+
+
+def websocket_send(*, group: str, command: str, payload: Optional[dict] = None, exclude: Optional[List[str]]):
+    """
+    Broadcasts a message to a specific websocket group.
+    """
+    layer = get_channel_layer()
+    async_to_sync(layer.group_send)(
+        group,
+        {'type': 'broadcast', 'contents': {'command': command, 'payload': payload or {}, 'exclude': exclude or []}},
+    )
+
+
+def exclude_request(request: HttpRequest) -> List[str]:
+    """
+    Shorthand function for getting a websocket_send exclude list from a request.
+    """
+    window_id = request.META.get('HTTP_X_WINDOW_ID', None)
+    if window_id:
+        return [window_id]
+    return []
+
+
+def update_websocket(signal, model, *serializer_names):
+    """
+    Used to connect a model to broadcast out changes when updates are made. Attach a signal to have the instance run
+    through the specified serializers and broadcasted to the listening clients.
+    """
+    def update_broadcaster(instance: Model, **kwargs):
+        layer = get_channel_layer()
+        app_label = model._meta.app_label
+        model_name = model.__name__
+        for serializer_name in serializer_names:
+            async_to_sync(layer.group_send)(
+                f'{app_label}.{model_name}.update.{serializer_name}.{instance.pk}',
+                {'type': 'update_model', 'contents': {
+                    'model_name': model_name,
+                    'app_label': app_label,
+                    'serializer': serializer_name,
+                    'pk': instance.pk,
+                }}
+            )
+    # Need to return the function because the name of a receiver has to be defined to run.
+    return receiver(signal, sender=model)(update_broadcaster)

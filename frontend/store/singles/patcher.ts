@@ -58,6 +58,7 @@ export class Patch extends Vue {
   public refresh!: boolean
 
   public cancelSource = axios.CancelToken.source()
+  public forceRecompute = 0
   public errors: string[] = []
   public dirty = false
   public cached = null
@@ -117,13 +118,20 @@ export class Patch extends Vue {
     this.debouncedSet.apply(this, [val])
   }
 
-  public get rawValue(): any {
+  public get handler(): any {
+    // Needed to make this a separate handler in order to make sure recomputation is always triggered in patch fields
+    // when the raw X value is replaced by setX.
     let handler: SingleController<any>
     if (!this.modelProp) {
       handler = this.target
     } else {
       handler = dotTraverse(this.target, this.modelProp, true) || {}
     }
+    return handler
+  }
+
+  public get rawValue(): any {
+    const handler = this.handler
     const model = handler.x
     // Believe it or not, typeof null is 'object'.
     if ((typeof model !== 'object') || model === null) {

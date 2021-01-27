@@ -13,7 +13,6 @@ import Submission from '@/types/Submission'
 import {TerseUser} from '@/store/profiles/types/TerseUser'
 import {CharacterModule} from '@/store/characters/index'
 import {Watch} from 'vue-property-decorator'
-import {characterRegistry} from '@/store/characters/registry'
 
 @Component
 export class CharacterController extends BaseController<CharacterModuleOpts, CharacterState> {
@@ -26,8 +25,7 @@ export class CharacterController extends BaseController<CharacterModuleOpts, Cha
   public submoduleKeys = ['profile', 'attributes', 'colors', 'submissions', 'sharedWith', 'recommended']
   public baseClass = CharacterModule
   public baseModuleName = 'characterModules'
-  // @ts-ignore
-  public registry = characterRegistry
+  public typeName = 'Character'
 
   public setEndpoints() {
     const baseEndpoint = characterEndpoint(this.attr('username'), this.attr('characterName'))

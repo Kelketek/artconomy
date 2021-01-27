@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import Vuetify from 'vuetify/lib'
-import {cleanUp, createVuetify, docTarget, vueSetup} from '@/specs/helpers'
-import {mount, Wrapper} from '@vue/test-utils'
+import {cleanUp, createVuetify, docTarget, vueSetup, mount} from '@/specs/helpers'
+import {Wrapper} from '@vue/test-utils'
 import AcTabs from '@/components/navigation/AcTabs.vue'
 
 const localVue = vueSetup()

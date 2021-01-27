@@ -1,5 +1,5 @@
-import Vue from 'vue'
-import {mount, Wrapper} from '@vue/test-utils'
+import Vue, {VueConstructor} from 'vue'
+import {Wrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
 import {
   cleanUp,
@@ -8,6 +8,7 @@ import {
   rs,
   setViewer,
   vueSetup,
+  mount,
 } from '@/specs/helpers'
 import {genUser} from '@/specs/helpers/fixtures'
 import Router from 'vue-router'
@@ -21,8 +22,7 @@ import {RelatedUser} from '@/store/profiles/types/RelatedUser'
 import {searchSchema} from '@/lib/lib'
 import Vuetify from 'vuetify/lib'
 
-const localVue = vueSetup()
-localVue.use(Router)
+let localVue: VueConstructor
 let store: ArtStore
 let wrapper: Wrapper<Vue>
 let router: Router
@@ -31,6 +31,8 @@ let vuetify: Vuetify
 
 describe('SubmissionDetail.vue', () => {
   beforeEach(() => {
+    localVue = vueSetup()
+    localVue.use(Router)
     store = createStore()
     vulpes = genUser()
     vulpes.username = 'Vulpes'

@@ -1,20 +1,24 @@
 import _Vue from 'vue'
-import ReconnectingWebSocket from 'reconnecting-websocket'
+import ReconnectingWebSocket, {CloseEvent, Event} from 'reconnecting-websocket'
+import {neutralize} from '@/lib/lib'
+
+declare interface SocketManager {
+  socket?: ReconnectingWebSocket,
+  messageListeners: {[key: string]: {[key: string]: Function}},
+  connectListeners: {[key: string]: Function},
+  disconnectListeners: {[key: string]: Function},
+  addListener: (command: string, name: string, func: (any)) => void,
+  removeListener: (command: string, name: string) => void,
+  send: (command: string, payload: any) => void,
+  reset: () => void,
+  open: () => void,
+}
 
 declare module 'vue/types/vue' {
   // Global properties can be declared
   // on the `VueConstructor` interface
   interface Vue {
-    $sock: {
-      socket?: ReconnectingWebSocket,
-      messageListeners: {[key: string]: Function[]},
-      connectListeners: Function[],
-      disconnectListeners: Function[],
-      addListener: (name: string, func: (any)) => void,
-      send: (name: string, payload: any) => void,
-      reset: () => void,
-      open: () => void,
-    },
+    $sock: SocketManager
   }
 }
 
@@ -25,29 +29,34 @@ export const socketNameSpace: {socketClass: typeof WebSocket|typeof Reconnecting
 
 export const VueSocket = {
   install(Vue: typeof _Vue, options: {endpoint: string}): void {
-    Vue.prototype.$sock = {
+    const $sock: SocketManager = {
       messageListeners: {},
-      connectListeners: [],
-      disconnectListeners: [],
+      connectListeners: {},
+      disconnectListeners: {},
       open() {
-        Vue.prototype.$sock.socket = new ReconnectingWebSocket(options.endpoint)
-        Vue.prototype.$sock.socket.onopen = (event: Event) => {
-          for (const listener of Vue.prototype.$sock.connectListeners) {
-            listener(event)
+        $sock.socket = new ReconnectingWebSocket(options.endpoint)
+        $sock.socket.onopen = (event: Event) => {
+          for (const key of Object.keys($sock.connectListeners)) {
+            $sock.connectListeners[key](event)
           }
         }
-        Vue.prototype.$sock.socket.onclose = (event: Event) => {
-          for (const listener of Vue.prototype.$sock.disconnectListeners) {
-            listener(event)
+        $sock.socket.onclose = (event: CloseEvent) => {
+          for (const key of Object.keys($sock.disconnectListeners)) {
+            $sock.disconnectListeners[key](event)
           }
         }
-        Vue.prototype.$sock.socket.onmessage = (event: MessageEvent) => {
+        $sock.socket.onmessage = (event: MessageEvent) => {
           const data = JSON.parse(event.data)
-          if (!data.name) {
+          if (!data.command) {
             throw Error(`Received undefined command! Message data was: ${event.data}`)
           }
-          const listeners = Vue.prototype.$sock.messageListeners[data.name] || []
-          listeners.push(...(Vue.prototype.$sock.messageListeners['*'] || []))
+          if (data.exclude && data.exclude.includes(window.windowId)) {
+            // This message is intended to be ignored by the current tab. Useful for when the tab is the one that
+            // instigated the command.
+            return
+          }
+          const listeners = Object.values($sock.messageListeners[data.command] || {})
+          listeners.push(...(Object.values($sock.messageListeners['*'] || {})))
           for (const listener of listeners) {
             try {
               // Reparse each time to assure unique objects.
@@ -58,19 +67,32 @@ export const VueSocket = {
           }
         }
       },
-      addListener(name: string, func: Function) {
-        const current = Vue.prototype.$sock.messageListeners[name] || []
-        current.push(func)
-        Vue.prototype.$sock.messageListeners[name] = current
+      addListener(command: string, name: string, func: Function) {
+        const current = $sock.messageListeners[command] || {}
+        current[name] = func
+        $sock.messageListeners[command] = current
       },
-      send(name: string, payload: any) {
-        Vue.prototype.$sock.socket.send(JSON.stringify({name, payload}))
+      removeListener(command: string, name: string) {
+        const current = $sock.messageListeners[command] || {}
+        delete current[name]
+        if (Object.keys(current).length === 0) {
+          delete $sock.messageListeners[command]
+        }
+      },
+      send(command: string, payload: any) {
+        $sock.socket!.send(JSON.stringify({command, payload}))
       },
       reset() {
-        Vue.prototype.$sock.messageListeners = {}
-        Vue.prototype.$sock.connectListeners = []
-        Vue.prototype.$sock.disconnectListeners = []
+        $sock.messageListeners = {}
+        $sock.connectListeners = {}
+        $sock.disconnectListeners = {}
       },
     }
+    neutralize($sock)
+    Vue.mixin({
+      computed: {
+        $sock: () => $sock,
+      },
+    })
   },
 }

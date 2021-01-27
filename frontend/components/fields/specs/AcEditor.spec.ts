@@ -1,7 +1,7 @@
-import {mount, Wrapper} from '@vue/test-utils'
+import {Wrapper} from '@vue/test-utils'
 import Vuetify from 'vuetify/lib'
 import Vue from 'vue'
-import {cleanUp, createVuetify, docTarget, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, vueSetup, mount} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import Editor from '@/specs/helpers/dummy_components/editor.vue'
 

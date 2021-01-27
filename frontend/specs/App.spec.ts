@@ -1,12 +1,12 @@
 import mockAxios from './helpers/mock-axios'
 import Vue, {VueConstructor} from 'vue'
-import {mount, shallowMount, Wrapper} from '@vue/test-utils'
+import {Wrapper} from '@vue/test-utils'
 import App from '../App.vue'
 import {ArtStore, createStore} from '../store'
 import flushPromises from 'flush-promises'
-import {userResponse} from './helpers/fixtures'
+import {genUser} from './helpers/fixtures'
 import {FormController} from '@/store/forms/form-controller'
-import {cleanUp, createVuetify, dialogExpects, docTarget, genAnon, rq, rs, vueSetup} from './helpers'
+import {cleanUp, createVuetify, dialogExpects, docTarget, genAnon, rq, rs, vueSetup, mount} from './helpers'
 import Vuetify from 'vuetify/lib'
 import {createPinterestQueue} from '@/lib/lib'
 import {WS} from 'jest-websocket-mock'
@@ -32,41 +32,6 @@ describe('App.vue', () => {
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('Fetches the user upon creation', async() => {
-    wrapper = shallowMount(App, {
-      store,
-      localVue,
-      vuetify,
-      stubs: ['router-link', 'router-view'],
-      mocks: {
-        $route: {fullPath: '/', params: {}, query: {}},
-      },
-    })
-    expect(mockAxios.get).toHaveBeenCalledTimes(1)
-    mockAxios.mockResponse(userResponse())
-    await flushPromises()
-    const viewer = (wrapper.vm as any).viewer
-    expect(viewer).toBeTruthy()
-    expect(viewer.username).toBe('Fox')
-  })
-  it('Shows an error message if the user doesn\'t load.', async() => {
-    wrapper = mount(App, {
-      store,
-      localVue,
-      vuetify,
-      mocks: {$route: {fullPath: '/', params: {}, query: {}}},
-      stubs: ['nav-bar', 'router-view', 'router-link'],
-    })
-    mockAxios.mockError!({
-      response: {status: 500, request: {url: 'thing'}},
-    })
-    await flushPromises()
-    const state = wrapper.vm.$store.state
-    expect(state.errors.code).toBe(500)
-    expect(
-      wrapper.find('.error-container img').attributes().src).toBe('/static/images/500.png',
-    )
-  })
   it('Detects when a full interface should not be used due to a specific name', async() => {
     wrapper = mount(App, {
       store,
@@ -85,7 +50,6 @@ describe('App.vue', () => {
       vuetify,
       mocks: {$route: {fullPath: '/order/', name: 'LandingStuff', params: {}, query: {}}},
       stubs: ['nav-bar', 'router-view', 'router-link'],
-
     })
     const vm = wrapper.vm as any
     expect(vm.fullInterface).toBe(false)
@@ -121,18 +85,18 @@ describe('App.vue', () => {
       vuetify,
       mocks: {$route: {fullPath: '/', params: {}, query: {}}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
-
+      attachTo: docTarget(),
     })
     const state = wrapper.vm.$store.state
     expect(state.showSupport).toBe(false)
     const vm = wrapper.vm as any
     expect(vm.showTicketSuccess).toBe(false)
-    mockAxios.mockResponse(userResponse())
     const supportForm: FormController = (wrapper.vm as any).supportForm
-    await flushPromises()
     vm.setSupport(true)
+    vm.viewerHandler.user.setX(genUser())
     await vm.$nextTick()
     supportForm.fields.body.update('This is a test.')
+    await vm.$nextTick()
     const submit = dialogExpects({wrapper, formName: 'supportRequest', fields: ['email', 'body']})
     submit.trigger('click')
     const response = rq('/api/lib/v1/support/request/', 'post',
@@ -156,22 +120,23 @@ describe('App.vue', () => {
       store,
       localVue,
       vuetify,
-      mocks: {$route: {fullPath: '/', params: {}, query: {}}},
+      mocks: {$route: {fullPath: '/', params: {}, query: {}}, $router: {push: jest.fn()}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
 
     })
-    const supportForm = (wrapper.vm as any).supportForm
+    const vm = wrapper.vm as any
+    const supportForm = vm.supportForm
     expect(supportForm.fields.email.value).toBe('')
-    mockAxios.mockResponse(userResponse())
-    await flushPromises()
+    vm.setSupport(true)
+    vm.viewerHandler.user.setX(genUser())
+    await vm.$nextTick()
     expect(supportForm.fields.email.value).toBe('fox@artconomy.com')
-    const editedUser = userResponse()
-    editedUser.data.email = 'test@example.com';
-    (wrapper.vm as any).viewerHandler.user.setX(editedUser.data)
+    const editedUser = genUser({email: 'test@example.com'})
+    vm.viewerHandler.user.setX(editedUser)
     await wrapper.vm.$nextTick()
     expect(supportForm.fields.email.value).toBe('test@example.com')
-    ;(wrapper.vm as any).viewerHandler.user.setX(genAnon())
-    await wrapper.vm.$nextTick()
+    vm.viewerHandler.user.setX(genAnon())
+    await vm.$nextTick()
     expect(supportForm.fields.email.value).toBe('')
   })
   it('Updates the email field when the viewer\'s guest email is updated.', async() => {
@@ -179,22 +144,20 @@ describe('App.vue', () => {
       store,
       localVue,
       vuetify,
-      mocks: {$route: {fullPath: '/', params: {}, query: {}}},
+      mocks: {$route: {fullPath: '/', params: {}, query: {}}, $router: {push: jest.fn()}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
-
     })
-    const supportForm = (wrapper.vm as any).supportForm
+    const vm = wrapper.vm as any
+    const supportForm = vm.supportForm
     expect(supportForm.fields.email.value).toBe('')
-    mockAxios.mockResponse(userResponse())
-    await flushPromises()
+    vm.viewerHandler.user.setX(genUser())
+    await vm.$nextTick()
     expect(supportForm.fields.email.value).toBe('fox@artconomy.com')
-    const editedUser = userResponse()
-    editedUser.data.email = 'test@example.com'
-    editedUser.data.guest_email = 'test2@example.com'
-    ;(wrapper.vm as any).viewerHandler.user.setX(editedUser.data)
+    const editedUser = genUser({email: 'test@example.com', guest_email: 'test2@example.com'})
+    vm.viewerHandler.user.setX(editedUser)
     await wrapper.vm.$nextTick()
     expect(supportForm.fields.email.value).toBe('test2@example.com')
-    ;(wrapper.vm as any).viewerHandler.user.setX(genAnon())
+    vm.viewerHandler.user.setX(genAnon())
     await wrapper.vm.$nextTick()
     expect(supportForm.fields.email.value).toBe('')
   })
@@ -361,6 +324,46 @@ describe('App.vue', () => {
     await wrapper.vm.$nextTick()
     expect(wrapper.text()).toContain('Reconnecting...')
   })
+  it('Resets the connection', async() => {
+    jest.useRealTimers()
+    const server = new WS('ws://localhost/test/url', {jsonProtocol: true})
+    wrapper = mount(App, {
+      store,
+      localVue,
+      vuetify,
+      mocks: {$route: {fullPath: '/', params: {stuff: 'things'}, query: {}}},
+      stubs: ['router-link', 'router-view', 'nav-bar'],
+      attachTo: docTarget(),
+    })
+    const vm = wrapper.vm
+    const mockClose = jest.spyOn(vm.$sock.socket!, 'close')
+    const mockReconnect = jest.spyOn(vm.$sock.socket!, 'reconnect')
+    await server.connected
+    expect(mockClose).not.toHaveBeenCalled()
+    expect(mockReconnect).not.toHaveBeenCalled()
+    server.send({command: 'reset', payload: {}})
+    await wrapper.vm.$nextTick()
+    expect(mockClose).toHaveBeenCalledTimes(1)
+    expect(mockReconnect).toHaveBeenCalledTimes(1)
+  })
+  it('Sets the viewer', async() => {
+    jest.useRealTimers()
+    const server = new WS('ws://localhost/test/url', {jsonProtocol: true})
+    wrapper = mount(App, {
+      store,
+      localVue,
+      vuetify,
+      mocks: {$route: {fullPath: '/', params: {stuff: 'things'}, query: {}}},
+      stubs: ['router-link', 'router-view', 'nav-bar'],
+      attachTo: docTarget(),
+    })
+    await server.connected
+    const person = genUser({username: 'Person'})
+    server.send({command: 'viewer', payload: person})
+    const vm = wrapper.vm as any
+    await vm.$nextTick()
+    expect(vm.viewer.username).toBe('Person')
+  })
   it('Gets the current version', async() => {
     jest.useRealTimers()
     const server = new WS('ws://localhost/test/url', {jsonProtocol: true})
@@ -373,8 +376,8 @@ describe('App.vue', () => {
       attachTo: docTarget(),
     })
     await server.connected
-    await expect(server).toReceiveMessage({name: 'version', payload: {}})
-    server.send({name: 'version', payload: {version: 'beep'}})
+    await expect(server).toReceiveMessage({command: 'version', payload: {}})
+    server.send({command: 'version', payload: {version: 'beep'}})
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
     expect(vm.socketState.x.serverVersion).toEqual('beep')

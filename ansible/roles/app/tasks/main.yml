@@ -18,6 +18,7 @@
       - uwsgi-plugin-python3
       - libpq-dev
       - software-properties-common
+      - redis-server
 
 - name: Load app settings
   include_vars: "keys/{{env_prefix}}/app_settings.yml"
@@ -207,8 +208,9 @@
 - name: Start daphne service
   service: name=artconomy-daphne state=started
 
-- name: Set up pinterest cron job
-  template:
-    src: "cron/pinterest"
-    dest: "/etc/cron.d/pinterest"
-    mode: 0755
+# Not needed until Pinterest supports services.
+#- name: Set up pinterest cron job
+#  template:
+#    src: "cron/pinterest"
+#    dest: "/etc/cron.d/pinterest"
+#    mode: 0755

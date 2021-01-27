@@ -4,7 +4,7 @@ import Vuex from 'vuex'
 import Vuetify from 'vuetify'
 import {createLocalVue} from '@vue/test-utils'
 import {ArtStore, createStore} from '../../index'
-import {rq, rs} from '@/specs/helpers'
+import {rq, rs, mount} from '@/specs/helpers'
 import flushPromises from 'flush-promises'
 
 // Must use it directly, due to issues with package imports upstream.

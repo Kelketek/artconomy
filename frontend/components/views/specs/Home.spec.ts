@@ -1,5 +1,5 @@
-import {cleanUp, createVuetify, docTarget, setViewer, vueSetup} from '@/specs/helpers'
-import {mount, Wrapper} from '@vue/test-utils'
+import {cleanUp, createVuetify, docTarget, setViewer, vueSetup, mount} from '@/specs/helpers'
+import {Wrapper} from '@vue/test-utils'
 import {Vue} from 'vue/types/vue'
 import {ArtStore, createStore} from '@/store'
 import Home from '@/components/views/Home.vue'

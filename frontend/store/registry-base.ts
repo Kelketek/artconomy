@@ -13,7 +13,9 @@ declare interface Registerable<K extends AttrKeys> extends Vue {
   initName: string,
   name: string,
   migrate: (newName: string) => void,
-  attr: (attrName: keyof K) => any
+  attr: (attrName: keyof K) => any,
+  socketOpened: () => void,
+  socketUnmount: () => void,
 }
 
 export interface Registry<K extends AttrKeys, T extends Registerable<K>> {
@@ -23,6 +25,7 @@ export interface Registry<K extends AttrKeys, T extends Registerable<K>> {
   uidListenerTracking: {[key: number]: string[]}
   listeners: { [key: string]: number[] },
   register: (uid: number, controller: T) => void,
+  registerSocketListeners: () => void,
   listen: (uid: number, name: string) => void,
   ignore: (uid: number, name: string) => void,
   unhook: (uid: number, controller: T) => void,
@@ -66,6 +69,7 @@ export function genRegistryBase<K extends AttrKeys, T extends Registerable<K>>()
       uidTracking: neutralize({}),
       listeners: neutralize({}),
       uidListenerTracking: neutralize({}),
+      socketListeners: neutralize([]),
     },
     methods: {
       register(uid: number, controller: T) {
@@ -199,8 +203,8 @@ export function genRegistryPluginBase<K extends AttrKeys, O, T extends Registera
     const self = this as any
     registry.listen(self._uid, name)
   }
-
   (base.methods as DefaultMethods<_Vue>)[`$get${typeName}`] = getter;
-  (base.methods as DefaultMethods<_Vue>)[`$listenFor${typeName}`] = listener
+  (base.methods as DefaultMethods<_Vue>)[`$listenFor${typeName}`] = listener;
+  (base.methods as DefaultMethods<_Vue>)[`$registryFor${typeName}`] = () => registry
   return base
 }

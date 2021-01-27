@@ -132,7 +132,7 @@ TEMPLATES = [
     },
 ]
 
-ASGI_APPLICATION = 'wsgi.application'
+WSGI_APPLICATION = 'wsgi.application'
 ASGI_APPLICATION = 'asgi.application'
 
 # Database
@@ -147,6 +147,17 @@ DATABASES = {
         'HOST': get_env('DB_HOST', 'db'),
         'PORT': int(get_env('DB_PORT', '5432')),
     },
+}
+
+# Channels
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': get_env('CHANNELS_BACKEND', 'channels_redis.core.RedisChannelLayer'),
+        'CONFIG': {
+            "hosts": [(get_env('CHANNELS_HOST', '127.0.0.1'), int(get_env('CHANNELS_PORT', '6379')))]
+        }
+    }
 }
 
 # Password validation

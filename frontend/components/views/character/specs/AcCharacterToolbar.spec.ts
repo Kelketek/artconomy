@@ -1,10 +1,10 @@
 import Vue from 'vue'
 import Vuetify from 'vuetify/lib'
 import {ArtStore, createStore} from '@/store'
-import {mount, Wrapper} from '@vue/test-utils'
+import {Wrapper} from '@vue/test-utils'
 import mockAxios from '@/__mocks__/axios'
 import {genCharacter} from '@/store/characters/specs/fixtures'
-import {cleanUp, confirmAction, createVuetify, docTarget, rq, rs, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, confirmAction, createVuetify, docTarget, rq, rs, setViewer, vueSetup, mount} from '@/specs/helpers'
 import {genUser} from '@/specs/helpers/fixtures'
 import {Character} from '@/store/characters/types/Character'
 import AcCharacterToolbar from '@/components/views/character/AcCharacterToolbar.vue'
@@ -39,7 +39,6 @@ describe('AcCharacterToolbar.vue', () => {
           $router: {resolve: mockResolve},
         },
         stubs: ['router-link'],
-
         attachTo: docTarget(),
       })
     const vm = wrapper.vm as any
@@ -80,5 +79,51 @@ describe('AcCharacterToolbar.vue', () => {
     mockAxios.mockResponse(rs(undefined))
     await vm.$nextTick()
     expect(mockReplace).toHaveBeenCalledWith({name: 'Profile', params: {username: 'Fox'}})
+  })
+  it('Determines which asset to share', async() => {
+    setViewer(store, genUser())
+    const mockResolve = jest.fn()
+    mockResolve.mockImplementation(() => ({href: '/target/url/'}))
+    wrapper = mount(
+      AcCharacterToolbar, {
+        localVue,
+        store,
+        vuetify,
+        propsData: {username: 'Fox', characterName: 'Kai'},
+        mocks: {
+          $route: {name: 'Character', params: {username: 'Fox', characterName: 'Kai'}, query: {}},
+          $router: {resolve: mockResolve},
+        },
+        stubs: ['router-link'],
+        attachTo: docTarget(),
+      })
+    const character = genCharacter()
+    const vm = wrapper.vm as any
+    vm.character.profile.setX(character)
+    await vm.$nextTick()
+    expect(vm.shareMedia).toBeTruthy()
+    expect(vm.shareMedia).toEqual(character.primary_submission)
+  })
+  it('Handles a character with no primary asset', async() => {
+    setViewer(store, genUser())
+    const mockResolve = jest.fn()
+    mockResolve.mockImplementation(() => ({href: '/target/url/'}))
+    wrapper = mount(
+      AcCharacterToolbar, {
+        localVue,
+        store,
+        vuetify,
+        propsData: {username: 'Fox', characterName: 'Kai'},
+        mocks: {
+          $route: {name: 'Character', params: {username: 'Fox', characterName: 'Kai'}, query: {}},
+          $router: {resolve: mockResolve},
+        },
+        stubs: ['router-link'],
+        attachTo: docTarget(),
+      })
+    const character = genCharacter({primary_submission: null})
+    const vm = wrapper.vm as any
+    vm.character.profile.setX(character)
+    expect(vm.shareMedia).toBeNull()
   })
 })

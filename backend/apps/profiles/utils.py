@@ -9,6 +9,7 @@ from short_stuff import gen_shortcode
 
 from apps.lib.models import REFERRAL_LANDSCAPE_CREDIT, REFERRAL_PORTRAIT_CREDIT, Comment
 from apps.lib.utils import notify, destroy_comment
+from apps.profiles.middleware import derive_session_settings
 from apps.profiles.models import Character, Submission, User, Conversation, ConversationParticipant
 from apps.sales.dwolla import destroy_bank_account
 from apps.sales.models import TransactionRecord, DISPUTED, IN_PROGRESS, QUEUED, REVIEW, PAYMENT_PENDING, NEW, \
@@ -87,10 +88,10 @@ def available_submissions(request, requester):
     ).exclude(tags__in=request.blacklist)
 
 
-def available_users(request):
-    if request.user.is_staff or not request.user.is_authenticated:
+def available_users(user):
+    if user.is_staff or not user.is_authenticated:
         return User.objects.exclude(is_active=False)
-    return User.objects.exclude(id__in=request.user.blocked_by.all().values('id')).exclude(is_active=False)
+    return User.objects.exclude(id__in=user.blocked_by.all().values('id')).exclude(is_active=False)
 
 
 def extend_landscape(user, months):
@@ -134,13 +135,14 @@ def credit_referral(deliverable):
         notify(REFERRAL_PORTRAIT_CREDIT, deliverable.order.buyer.referred_by, unique=False)
 
 
-def empty_user(request):
+def empty_user(*, session, user):
+    session_settings = derive_session_settings(user=user, session=session)
     return {
         'blacklist': [],
-        'rating': request.rating,
-        'sfw_mode': request.sfw_mode,
+        'rating': session_settings['rating'],
+        'sfw_mode': session_settings['sfw_mode'],
         'username': '_',
-        'birthday': request.birthday and request.birthday.isoformat(),
+        'birthday': session_settings['birthday'] and session_settings['birthday'].isoformat(),
     }
 
 

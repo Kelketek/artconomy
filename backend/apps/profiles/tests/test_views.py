@@ -1486,7 +1486,6 @@ class TestRegister(APITestCase):
             'recaptcha': 'dummy',
         })
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertIn('csrftoken', response.data)
         user = User.objects.get(username='Goober')
         self.assertEqual(user.email, 'test@example.com')
         self.assertTrue(user.check_password('test_password'))

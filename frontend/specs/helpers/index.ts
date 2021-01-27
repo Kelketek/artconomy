@@ -1,7 +1,7 @@
 /* istanbul ignore file */
 import {AxiosRequestConfig, AxiosResponse} from 'axios'
 import {csrfSafeMethod, genId, getCookie, saneNav} from '@/lib/lib'
-import {createLocalVue, mount, ThisTypedMountOptions, VueClass, Wrapper} from '@vue/test-utils'
+import {createLocalVue, mount as upstreamMount, ThisTypedMountOptions, VueClass, Wrapper} from '@vue/test-utils'
 import Vue, {VueConstructor} from 'vue'
 import {FieldController} from '@/store/forms/field-controller'
 import {FieldBank} from '@/store/forms/form-controller'
@@ -36,6 +36,7 @@ import {Shortcuts} from '@/plugins/shortcuts'
 import {useRealStorage} from '@/lib/specs/helpers'
 import {VueSocket} from '@/plugins/socket'
 import WS from 'jest-websocket-mock'
+import Component, {mixins} from 'vue-class-component'
 
 export interface ExtraData {
   status?: number,
@@ -267,4 +268,10 @@ export function prepTest<V extends Vue>(overrides?: Partial<ThisTypedMountOption
     vuetify: overrides?.vuetify || createVuetify(),
     ...overrides,
   }
+}
+
+export function mount<V extends Vue>(component: VueClass<V>, options?: ThisTypedMountOptions<V>): Wrapper<V> {
+  // I'm not sure I'm going to need this. But it looked like I did once, and it was a pain in the ass to convert
+  // everything over, so I'm keeping it.
+  return upstreamMount(component, options)
 }

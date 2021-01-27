@@ -1,9 +1,9 @@
 import Vue from 'vue'
 import Vuetify from 'vuetify/lib'
 import Router from 'vue-router'
-import {cleanUp, createVuetify, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, vueSetup, mount} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
-import {mount, Wrapper} from '@vue/test-utils'
+import {Wrapper} from '@vue/test-utils'
 import AcTab from '@/components/AcTab.vue'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 

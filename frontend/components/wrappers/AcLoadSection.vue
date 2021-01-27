@@ -70,6 +70,7 @@ export default class AcLoadSection extends Vue {
 
     public created() {
       this.prerendering = Boolean(window.PRERENDERING || 0)
+      /* istanbul ignore if */
       if (!this.controller.isFetchableController) {
         console.error(JSON.stringify(this.controller))
         throw Error('HANDED AN INVALID OBJECT FOR A CONTROLLER. THIS WILL NEVER LOAD!')

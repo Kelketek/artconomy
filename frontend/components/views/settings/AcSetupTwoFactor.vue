@@ -82,7 +82,7 @@ export default class AcSetupTwoFactor extends mixins(Viewer, Subjective, Alerts)
 
     public created() {
       this.totpDevices = this.$getList('totpDevices', {endpoint: `${this.url}totp/`})
-      this.totpDevices.get().catch(this.$errAlert())
+      this.totpDevices.firstRun().catch(this.$errAlert())
       this.tgDevice = this.$getSingle('tgDevice', {endpoint: `${this.url}tg/`})
       this.tgDevice.get().catch(() => {
         this.tgDevice.x = false

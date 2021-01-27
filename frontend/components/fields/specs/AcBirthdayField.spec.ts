@@ -1,7 +1,7 @@
 import {Wrapper} from '@vue/test-utils'
 import Vue from 'vue'
 import {ArtStore, createStore} from '@/store'
-import {cleanUp, qMount, vueSetup} from '@/specs/helpers'
+import {cleanUp, qMount, vueSetup, mount} from '@/specs/helpers'
 import AcBirthdayField from '@/components/fields/AcBirthdayField.vue'
 
 const localVue = vueSetup()

@@ -1,8 +1,38 @@
 from datetime import date
+from uuid import uuid4
 
 from apps.lib.abstract_models import GENERAL, MATURE, ADULT, EXTREME
 from apps.profiles.models import User
 from django.shortcuts import get_object_or_404
+
+
+def derive_session_settings(*, user, session):
+    rating = GENERAL
+    blacklist = []
+    session_settings = {}
+    if user.is_registered:
+        sfw_mode = user.sfw_mode
+        birthday = user.birthday
+        if not sfw_mode:
+            rating = user.rating
+            blacklist = user.blacklist.all()
+    else:
+        rating = session.get('rating', GENERAL)
+        if rating not in [GENERAL, MATURE, ADULT]:
+            rating = GENERAL
+        sfw_mode = session.get('sfw_mode', False)
+        birthday = session.get('birthday', None)
+        if birthday is not None:
+            try:
+                birthday = date.fromisoformat(birthday)
+            except ValueError:
+                birthday = None
+    session_settings['sfw_mode'] = sfw_mode
+    session_settings['rating'] = rating
+    session_settings['birthday'] = birthday
+    session_settings['max_rating'] = GENERAL if sfw_mode else rating
+    session_settings['blacklist'] = blacklist
+    return session_settings
 
 
 class RatingMiddleware:
@@ -13,37 +43,11 @@ class RatingMiddleware:
         # Code to be executed for each request before
         # the view (and later middleware) are called.
 
-        rating = GENERAL
-        blacklist = []
-        if request.user.is_registered:
-            sfw_mode = request.user.sfw_mode
-            birthday = request.user.birthday
-            if not sfw_mode:
-                rating = request.user.rating
-                blacklist = request.user.blacklist.all()
-        else:
-            rating = request.session.get('rating', GENERAL)
-            if rating not in [GENERAL, MATURE, ADULT]:
-                rating = GENERAL
-            sfw_mode = request.session.get('sfw_mode', False)
-            birthday = request.session.get('birthday', None)
-            if birthday is not None:
-                try:
-                    birthday = date.fromisoformat(birthday)
-                except ValueError:
-                    birthday = None
-        request.sfw_mode = sfw_mode
-        request.rating = rating
-        request.birthday = birthday
-        request.max_rating = GENERAL if sfw_mode else rating
-        request.blacklist = blacklist
-
-        response = self.get_response(request)
-
-        # Code to be executed for each request/response after
-        # the view is called.
-
-        return response
+        session_settings = derive_session_settings(user=request.user, session=request.session)
+        # Annotate the session object with the session settings.
+        for (key, value) in session_settings.items():
+            setattr(request, key, value)
+        return self.get_response(request)
 
 
 class SubjectMiddleware:

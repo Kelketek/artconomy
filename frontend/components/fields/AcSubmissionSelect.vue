@@ -54,7 +54,7 @@ import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
 import ExtendedInput from '@/components/fields/mixins/extended_input'
 import {genId} from '@/lib/lib'
 import {SingleController} from '@/store/singles/controller'
-import {makeSpace} from '@/specs/helpers'
+import {makeSpace, mount} from '@/specs/helpers'
 
   @Component({
     components: {AcGalleryPreview, AcPaginated, AcLoadSection, AcAsset},

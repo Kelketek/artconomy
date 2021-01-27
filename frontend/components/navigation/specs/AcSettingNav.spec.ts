@@ -1,11 +1,11 @@
 import Vue from 'vue'
 import AcSettingNav from '@/components/navigation/AcSettingNav.vue'
-import {mount, Wrapper} from '@vue/test-utils'
+import {Wrapper} from '@vue/test-utils'
 import Vuetify from 'vuetify/lib'
 import {ArtStore, createStore} from '@/store'
 import {genArtistProfile, genUser} from '@/specs/helpers/fixtures'
 import {BankStatus} from '@/store/profiles/types/BankStatus'
-import {cleanUp, createVuetify, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, vueSetup, mount} from '@/specs/helpers'
 
 const localVue = vueSetup()
 let store: ArtStore

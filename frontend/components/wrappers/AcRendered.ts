@@ -13,6 +13,7 @@ import Formatting from '@/mixins/formatting'
 import {CreateElement} from 'vue'
 import {genId} from '@/lib/lib'
 
+/* istanbul ignore else */
 // @ts-ignore
 if (!window.renderAnchors) {
   // @ts-ignore
@@ -105,6 +106,8 @@ export default class AcRendered extends mixins(Formatting) {
   }
 
   public destroy() {
+    // Can't test this circuit through Jest for some reason.
+    /* istanbul ignore next */
     // @ts-ignore
     delete window.renderAnchors[this.refId]
   }

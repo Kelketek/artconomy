@@ -3,20 +3,20 @@ import {SingleModuleOpts} from './types/SingleModuleOpts'
 import {SingleState} from './types/SingleState'
 import {SingleModule} from './index'
 import {BaseController} from '@/store/controller-base'
-import {singleRegistry} from '@/store/singles/registry'
 import {RawData} from '@/store/forms/types/RawData'
 import {SinglePatchers} from '@/store/singles/types/SinglePatchers'
 import {Patch} from '@/store/singles/patcher'
+import {Watch} from 'vue-property-decorator'
+import {SingleSocketSettings} from '@/store/singles/types/SingleSocketSettings'
 
 @Component
 export class SingleController<T extends {}> extends BaseController<SingleModuleOpts<T>, SingleState<T>> {
   public baseClass = SingleModule
   public forceRecomputeCounter = 0
 
-  // @ts-ignore
-  public registry = singleRegistry
-
   public baseModuleName = 'singles'
+
+  public typeName = 'Single'
 
   // eslint-disable-next-line camelcase
   public single_controller__ = true
@@ -39,6 +39,13 @@ export class SingleController<T extends {}> extends BaseController<SingleModuleO
 
   public put(data?: any) {
     return this.dispatch('put', data)
+  }
+
+  @Watch('ready', {immediate: true})
+  public startWatcher(currentValue: boolean) {
+    if (currentValue) {
+      this.socketOpened()
+    }
   }
 
   public setX(x: T | null | false) {
@@ -112,6 +119,14 @@ export class SingleController<T extends {}> extends BaseController<SingleModuleO
     return this.attr('ready')
   }
 
+  public get socketSettings(): SingleSocketSettings|null {
+    return this.attr('socketSettings')
+  }
+
+  public set socketSettings(val: SingleSocketSettings|null) {
+    this.commit('setSocketSettings', val)
+  }
+
   public set ready(val: boolean) {
     this.commit('setReady', val)
   }
@@ -150,5 +165,58 @@ export class SingleController<T extends {}> extends BaseController<SingleModuleO
     // eslint-disable-next-line no-unused-expressions
     this.forceRecomputeCounter
     return this.getPatcher() as unknown as SinglePatchers<T>
+  }
+
+  public get socketUpdateParams() {
+    const socketSettings = this.attr('socketSettings')
+    if (!this.attr('socketSettings') || !this.x) {
+      return null
+    }
+    const pk = this.x[(socketSettings.keyField || 'id') as keyof T]
+    if (!pk) {
+      return null
+    }
+    const data = {
+      app_label: socketSettings.appLabel,
+      model_name: socketSettings.modelName,
+      serializer: socketSettings.serializer,
+      pk: `${pk}`,
+    }
+    if (!data.pk) {
+      return null
+    }
+    return data
+  }
+
+  public get updateLabel() {
+    const data = this.socketUpdateParams
+    if (!data) {
+      return ''
+    }
+    return `${data.app_label}.${data.model_name}.update.${data.serializer}.${data.pk}`
+  }
+
+  public socketOpened() {
+    const data = this.socketUpdateParams
+    if (!this.$sock?.socket || !data) {
+      return
+    }
+    this.$sock.addListener(
+      this.updateLabel,
+      this.socketLabelBase,
+      // Use update to update in place so we don't have to recompute everything. Also because some weirdness happens
+      // with reference changes.
+      this.updateX,
+    )
+    this.$sock.send('watch', data)
+  }
+
+  public socketUnmount() {
+    const updateLabel = this.updateLabel
+    if (!updateLabel || !this.$sock?.socket) {
+      return
+    }
+    this.$sock.send('clear_watch', this.socketUpdateParams)
+    this.$sock.removeListener(updateLabel, this.socketLabelBase)
   }
 }

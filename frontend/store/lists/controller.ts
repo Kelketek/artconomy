@@ -4,7 +4,6 @@ import {SingleController} from '../singles/controller'
 import {BaseController} from '@/store/controller-base'
 import {ListState} from '@/store/lists/types/ListState'
 import {ListModule} from '@/store/lists/index'
-import {listRegistry} from '@/store/lists/registry'
 import {PaginatedResponse} from '@/store/lists/types/PaginatedResponse'
 import {QueryParams} from '@/store/helpers/QueryParams'
 
@@ -12,10 +11,9 @@ import {QueryParams} from '@/store/helpers/QueryParams'
 export class ListController<T> extends BaseController<ListModuleOpts, ListState<T>> {
   public baseClass = ListModule
 
-  // @ts-ignore
-  public registry = listRegistry
-
   public baseModuleName = 'lists'
+
+  public typeName = 'List'
 
   public created() {
     this.register()

@@ -10,6 +10,8 @@ export class BaseController<S, D extends AttrKeys> extends Vue {
   @Prop({required: true})
   public initName!: string
 
+  public _uid!: number
+
   // Set this to false if the controller never fetches anything, and so should never be waited on to load.
   public isFetchableController = true
 
@@ -21,8 +23,10 @@ export class BaseController<S, D extends AttrKeys> extends Vue {
   // Replace this with the default module new instances should be installed under, like 'lists' or 'singles'.
   public baseModuleName = 'base'
 
+  // Name of the type of objects, like 'List' or 'Single'.
+  public typeName = 'Base'
+
   public baseClass: any = NullClass
-  public registry!: Registry<D, BaseController<S, D>>
 
   // When migrating data, these keys will be excluded, expected to be handled by submodules.
   // For some reason, Array<keyof D> set as the type does not work as expected, and so we lose some type safety here.
@@ -37,6 +41,7 @@ export class BaseController<S, D extends AttrKeys> extends Vue {
     for (const key of this.submoduleKeys) {
       (this as any)[key].abandon((this as any)._uid)
     }
+    this.socketUnmount()
     this.kill()
     this.$store.unregisterModule(path)
   }
@@ -49,6 +54,10 @@ export class BaseController<S, D extends AttrKeys> extends Vue {
   public register(path?: string[]) {
     let data: Partial<D> = {}
     path = path || this.path
+    // Not sure why I have to invoke this at the root here, but I do, at least in the test environment. :/
+    if (this.$sock) {
+      this.$sock.connectListeners[`${(this as any)._uid}`] = this.socketOpened
+    }
     if (this.state) {
       if (deepEqual(path, this.path) || this.stateFor(path)) {
         // Already registered. Don't attempt to recreate the target module.
@@ -74,6 +83,19 @@ export class BaseController<S, D extends AttrKeys> extends Vue {
     }
   }
 
+  public get registry(): Registry<D, BaseController<S, D>> {
+    return this[`$registryFor${this.typeName}` as keyof BaseController<S, D>]()
+  }
+
+  public socketOpened() {
+    // Any calls, such as update listening registration, that the controller should make upon the socket opening should
+    // be placed here.
+  }
+
+  public socketUnmount() {
+    // Any actions that should be taken when unmounting as they pertain to sockets should be placed here.
+  }
+
   public abandon(uid: number) {
     this.registry.unhook(uid, this)
   }
@@ -83,7 +105,6 @@ export class BaseController<S, D extends AttrKeys> extends Vue {
       // We're already here. Might mean that another parent module that referenced this one was updated.
       return
     }
-    const oldState = this.state
     const oldName = this.name
     this.register(this.derivePath(name))
     this.name = name
@@ -143,6 +164,10 @@ export class BaseController<S, D extends AttrKeys> extends Vue {
 
   public dispatch(actionName: string, payload?: any) {
     return this.$store.dispatch(`${this.prefix}${actionName}`, payload)
+  }
+
+  public get socketLabelBase() {
+    return `${this.typeName}Controller::${this._uid}`
   }
 
   public created() {

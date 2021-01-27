@@ -4,11 +4,10 @@ import reversion
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.postgres.fields import JSONField
 from django.core.validators import FileExtensionValidator
 from django.db import models
 from django.db.models import DateTimeField, Model, SlugField, CASCADE, ForeignKey, SET_NULL, \
-    UUIDField
+    UUIDField, JSONField
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
@@ -53,6 +52,7 @@ class Comment(models.Model):
     )
 
     comment_permissions = [CommentViewPermission]
+    watch_permissions = {CommentViewPermission}
 
     def save(self, *args, **kwargs):
         if self.id is not None:

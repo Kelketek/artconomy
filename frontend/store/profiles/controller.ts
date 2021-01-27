@@ -18,7 +18,6 @@ import {
   userPathFor,
 } from '@/store/profiles/helpers'
 import {BaseController} from '@/store/controller-base'
-import {profileRegistry} from '@/store/profiles/registry'
 import {ListController} from '@/store/lists/controller'
 import Product from '@/types/Product'
 
@@ -27,14 +26,13 @@ export class ProfileController extends BaseController<ProfileModuleOpts, Profile
   public baseClass = ProfileModule
   public submoduleKeys = ['user', 'artistProfile']
   public baseModuleName = 'userModules'
+  public typeName = 'Profile'
   // eslint-disable-next-line camelcase
   public profile_controller__ = true
   public isFetchableController = false
   public user: SingleController<User|TerseUser|AnonUser> = null as unknown as SingleController<User|TerseUser|AnonUser>
   public artistProfile: SingleController<ArtistProfile> = null as unknown as SingleController<ArtistProfile>
   public products: ListController<Product> = null as unknown as ListController<Product>
-  // @ts-ignore
-  public registry = profileRegistry
 
   public updateRoute(newUsername: string, oldUsername: string|undefined) {
     if (newUsername === '_') {
@@ -95,11 +93,27 @@ export class ProfileController extends BaseController<ProfileModuleOpts, Profile
   public created() {
     this.register()
     Vue.set(this, 'user', this.$getSingle(
-      userPathFor(this.name).join('/'), {endpoint: endpointFor(this.name)},
+      userPathFor(this.name).join('/'),
+      {
+        endpoint: endpointFor(this.name),
+        socketSettings: {
+          appLabel: 'profiles',
+          modelName: 'User',
+          keyField: 'id',
+          serializer: this.viewer ? 'UserSerializer' : 'UserInfoSerializer',
+        },
+      },
     ))
     Vue.set(this, 'artistProfile', this.$getSingle(
       artistProfilePathFor(this.name).join('/'), {
-        endpoint: artistProfileEndpointFor(this.name), params: {view: 'true'},
+        endpoint: artistProfileEndpointFor(this.name),
+        params: {view: 'true'},
+        socketSettings: {
+          appLabel: 'profiles',
+          modelName: 'ArtistProfile',
+          keyField: 'id',
+          serializer: 'ArtistProfileSerializer',
+        },
       },
     ))
   }
@@ -121,16 +135,6 @@ export class ProfileController extends BaseController<ProfileModuleOpts, Profile
     this.user.endpoint = endpointFor(newUsername)
     this.artistProfile.endpoint = artistProfileEndpointFor(newUsername)
     this.updateRoute(newUsername, oldUsername)
-  }
-
-  @Watch('user.x.csrftoken')
-  public updateAuth(newVal: string|undefined) {
-    if (!newVal) {
-      return
-    }
-    setCookie('csrftoken', newVal)
-    const user = this.user.x as User
-    setCookie('authtoken', user.authtoken)
   }
 
   public attr(name: keyof ProfileState) {

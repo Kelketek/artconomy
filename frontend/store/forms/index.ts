@@ -73,6 +73,7 @@ const mutations: MutationTree<RootFormState> = {
   },
   setErrors(state: RootFormState, payload: { name: string, errors: FormErrorSet }) {
     // Sets the errors across an entire form. Fills in blanks for any missing fields.
+    /* istanbul ignore if */
     if (state[payload.name] === undefined) {
       // Form was unloaded, no place to set errors.
       return
@@ -95,6 +96,7 @@ const mutations: MutationTree<RootFormState> = {
     }
   },
   setFieldErrors(state: RootFormState, payload: { name: string, fields: FormError }) {
+    /* istanbul ignore if */
     if (state[payload.name] === undefined) {
       // Form was unloaded. No place to set errors.
       return

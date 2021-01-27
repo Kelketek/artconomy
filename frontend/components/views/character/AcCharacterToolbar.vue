@@ -133,6 +133,7 @@ export default class AcCharacterToolbar extends mixins(CharacterCentric, Upload,
 
     public get shareMedia() {
       const character = this.character.profile.x as Character
+      /* istanbul ignore if */
       if (!character) {
         return null
       }

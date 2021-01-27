@@ -5,6 +5,7 @@ import {SingleState} from './types/SingleState'
 import _Vue from 'vue'
 import {QueryParams} from '@/store/helpers/QueryParams'
 import axios from 'axios'
+import {SingleSocketSettings} from '@/store/singles/types/SingleSocketSettings'
 
 export class SingleModule<T> {
   public state: SingleState<T>
@@ -45,6 +46,9 @@ export class SingleModule<T> {
       },
       setX(state: SingleState<T>, x: T | null | false) {
         _Vue.set(state, 'x', x)
+      },
+      setSocketSettings(state: SingleState<T>, val: SingleSocketSettings|null) {
+        _Vue.set(state, 'socketSettings', val)
       },
       setParams(state: SingleState<T>, params: QueryParams|null) {
         if (params === null) {

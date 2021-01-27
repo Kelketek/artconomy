@@ -1,6 +1,5 @@
 import Vuetify from 'vuetify/lib'
-import {createVuetify, vueSetup} from '@/specs/helpers'
-import {mount} from '@vue/test-utils'
+import {createVuetify, vueSetup, mount} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import {ListController} from '@/store/lists/controller'

@@ -1,10 +1,10 @@
 import Vue from 'vue'
 import Vuetify from 'vuetify/lib'
-import {mount, shallowMount, Wrapper} from '@vue/test-utils'
+import {shallowMount, Wrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
 import VueRouter from 'vue-router'
 import {genUser} from '@/specs/helpers/fixtures'
-import {cleanUp, createVuetify, docTarget, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, setViewer, vueSetup, mount} from '@/specs/helpers'
 import Credentials from '../Credentials.vue'
 import Settings from '../Settings.vue'
 

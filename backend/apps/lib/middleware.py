@@ -51,14 +51,16 @@ class IPMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        ip4 = request.META.get('HTTP_CF_CONNECTING_IP', request.META.get('REMOTE_ADDR')).strip()
-        if ip_pattern.match(ip4):
-            request.ip4 = ip4
+        ip = request.META.get('HTTP_CF_CONNECTING_IP', request.META.get('REMOTE_ADDR')).strip()
+        if ip_pattern.match(ip):
+            request.ip4 = ip
             request.ip6 = None
         else:
             request.ip4 = None
-            request.ip6 = ip4
+            request.ip6 = ip
+        request.ip = ip
         return self.get_response(request)
+
 
 # Monkey patch the hitcount detector
 def patched_get_ip(request):

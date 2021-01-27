@@ -1,21 +1,27 @@
-import {cleanUp, createVuetify, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, vueSetup, mount} from '@/specs/helpers'
 import Vuetify from 'vuetify/lib'
 import Vue from 'vue'
-import {mount, Wrapper} from '@vue/test-utils'
+import {Wrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
 import AcRendered from '../AcRendered'
 
 describe('AcRendered.ts', () => {
   const localVue = vueSetup()
   let wrapper: Wrapper<Vue>
+  let anchored: Wrapper<Vue>
   let store: ArtStore
   let vuetify: Vuetify
   beforeEach(() => {
     vuetify = createVuetify()
     store = createStore()
+    // @ts-ignore
+    window.renderAnchors = {}
   })
   afterEach(() => {
     cleanUp(wrapper)
+    if (anchored) {
+      anchored.destroy()
+    }
   })
   it('Truncates text at a specific length', () => {
     wrapper = mount(AcRendered, {

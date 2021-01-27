@@ -1,8 +1,8 @@
 import Vue from 'vue'
 import Vuetify from 'vuetify/lib'
-import {cleanUp, createVuetify, docTarget, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, setViewer, vueSetup, mount} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
-import {mount, Wrapper} from '@vue/test-utils'
+import {Wrapper} from '@vue/test-utils'
 import Payout from '@/components/views/settings/payment/Payout.vue'
 import {genArtistProfile, genUser} from '@/specs/helpers/fixtures'
 

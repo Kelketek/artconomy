@@ -1,6 +1,6 @@
 import Vue from 'vue'
-import {cleanUp, docTarget, vueSetup} from '@/specs/helpers'
-import {mount, Wrapper} from '@vue/test-utils'
+import {cleanUp, docTarget, vueSetup, mount} from '@/specs/helpers'
+import {Wrapper} from '@vue/test-utils'
 import AcAddButton from '@/components/AcAddButton.vue'
 
 const localVue = vueSetup()

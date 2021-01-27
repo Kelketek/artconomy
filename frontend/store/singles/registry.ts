@@ -42,4 +42,4 @@ declare module 'vue/types/vue' {
   }
 }
 
-(window as any).singleRegistry = singleRegistry
+(window as any).singleRegistry = () => singleRegistry

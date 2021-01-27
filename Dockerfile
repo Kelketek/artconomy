@@ -10,16 +10,11 @@ RUN apt-get update --fix-missing
 RUN apt-get install software-properties-common apt-utils -y
 RUN add-apt-repository ppa:deadsnakes/ppa -y
 RUN apt-get update
-RUN apt-get install python3-pip python3.8 python3.8-dev build-essential npm firefox curl git xvfb wget postgresql-client psmisc libpq-dev -y
+RUN apt-get install python3-pip python3.8 python3.8-dev build-essential npm curl git wget postgresql-client psmisc libpq-dev -y
 RUN apt-get upgrade -y
 RUN apt-get autoremove -y
 RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
 RUN apt-get install -y nodejs
-RUN wget "https://github.com/mozilla/geckodriver/releases/download/v0.21.0/geckodriver-v0.21.0-linux64.tar.gz"
-RUN tar -xvzf geckodriver-v0.21.0-linux64.tar.gz
-RUN rm geckodriver-v0.21.0-linux64.tar.gz
-RUN chmod +x geckodriver
-RUN cp geckodriver /usr/local/bin/
 RUN mkdir /app
 WORKDIR /app
 ADD . .

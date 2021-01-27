@@ -1,6 +1,6 @@
 import Vue from 'vue'
-import {mount, Wrapper} from '@vue/test-utils'
-import {cleanUp, createVuetify, docTarget, vueSetup} from '@/specs/helpers'
+import {Wrapper} from '@vue/test-utils'
+import {cleanUp, createVuetify, docTarget, vueSetup, mount} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import {genSubmission} from '@/store/submissions/specs/fixtures'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'

@@ -2,10 +2,10 @@ import Vue from 'vue'
 import Vuetify from 'vuetify/lib'
 import Router from 'vue-router'
 import {faqRoutes} from './helpers'
-import {mount, Wrapper} from '@vue/test-utils'
+import {Wrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
 import About from '@/components/views/faq/About.vue'
-import {cleanUp, createVuetify, docTarget, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, vueSetup, mount} from '@/specs/helpers'
 import {createPinterestQueue} from '@/lib/lib'
 
 const localVue = vueSetup()

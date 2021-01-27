@@ -1,19 +1,16 @@
-import {ListModuleOpts} from '@/store/lists/types/ListModuleOpts'
-import {SingleController} from '@/store/singles/controller'
 import {ArtStore, createStore} from '@/store'
 import Vue from 'vue'
-import Vuex from 'vuex'
-import {createLocalVue, mount} from '@vue/test-utils'
-import {singleRegistry, Singles} from '@/store/singles/registry'
+import {Wrapper} from '@vue/test-utils'
+import {singleRegistry} from '@/store/singles/registry'
 import mockAxios from '@/specs/helpers/mock-axios'
-import {flushPromises, rq, rs} from '@/specs/helpers'
+import {cleanUp, flushPromises, rq, rs, vueSetup, mount} from '@/specs/helpers'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
+import {SingleModuleOpts} from '@/store/singles/types/SingleModuleOpts'
 
 let store: ArtStore
 let state: any
-Vue.use(Vuex)
-const localVue = createLocalVue()
-localVue.use(Singles)
+let empty: Wrapper<Vue>
+const localVue = vueSetup()
 
 const mockError = jest.spyOn(console, 'error')
 
@@ -22,26 +19,19 @@ declare interface TestType {
 }
 
 describe('Single controller', () => {
-  function makeController(extra?: Partial<ListModuleOpts>) {
-    if (extra === undefined) {
-      extra = {}
-    }
-    return new SingleController<TestType>({
-      store,
-      propsData: {
-        initName: 'example',
-        schema: {...{endpoint: '/endpoint/'}, ...extra},
-      },
-      // eslint-disable-next-line new-cap
-      extends: new localVue({store}).$options,
-    },
-    )
+  function makeController(extra?: Partial<SingleModuleOpts<any>>) {
+    const schema = {...{endpoint: '/endpoint/'}, ...extra}
+    return empty.vm.$getSingle('example', schema)
   }
   beforeEach(() => {
     singleRegistry.reset()
     store = createStore()
     state = (store.state as any).singles
     mockAxios.reset()
+    empty = mount(Empty, {localVue, store})
+  })
+  afterEach(() => {
+    cleanUp(empty)
   })
   it('Creates a singles module upon invocation', async() => {
     makeController()

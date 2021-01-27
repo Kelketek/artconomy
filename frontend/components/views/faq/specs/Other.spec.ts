@@ -2,10 +2,10 @@ import Vue from 'vue'
 import Vuetify from 'vuetify/lib'
 import Router from 'vue-router'
 import {faqRoutes} from './helpers'
-import {mount, Wrapper} from '@vue/test-utils'
+import {Wrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
 import Other from '@/components/views/faq/Other.vue'
-import {cleanUp, createVuetify, docTarget, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, vueSetup, mount} from '@/specs/helpers'
 
 const localVue = vueSetup()
 localVue.use(Router)

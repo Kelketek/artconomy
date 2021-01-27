@@ -1,4 +1,4 @@
-import {mount, Wrapper} from '@vue/test-utils'
+import {Wrapper} from '@vue/test-utils'
 import Vuetify from 'vuetify/lib'
 import Vue from 'vue'
 import {
@@ -10,7 +10,7 @@ import {
   rs,
   setViewer,
   vueSetup,
-  vuetifySetup,
+  mount,
 } from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import AcSetupTwoFactor from '../AcSetupTwoFactor.vue'
@@ -65,6 +65,7 @@ describe('ac-setup-two-factor', () => {
     const vm = wrapper.vm as any
     expect(vm.url).toBe('/api/profiles/v1/account/Fox/auth/two-factor/')
     wrapper.setProps({username: 'Vulpes'})
+    await vm.$nextTick()
     expect(vm.url).toBe('/api/profiles/v1/account/Vulpes/auth/two-factor/')
   })
   it('Creates a Telegram Device', async() => {
@@ -73,7 +74,6 @@ describe('ac-setup-two-factor', () => {
       AcSetupTwoFactor,
       {localVue, store, vuetify, propsData: {username: 'Fox'}, attachTo: docTarget()},
     )
-    const vm = wrapper.vm as any
     mockAxios.mockResponse(rs({results: [], count: 0, size: 0}))
     mockAxios.mockError({status: 404})
     await flushPromises()

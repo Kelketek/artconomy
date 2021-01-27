@@ -1,6 +1,6 @@
 import {genDeliverable, genRevision, genUser} from '@/specs/helpers/fixtures'
-import {cleanUp, createVuetify, docTarget, flushPromises, rs, setViewer, vueSetup} from '@/specs/helpers'
-import {mount, Wrapper} from '@vue/test-utils'
+import {cleanUp, createVuetify, docTarget, flushPromises, rs, setViewer, vueSetup, mount} from '@/specs/helpers'
+import {Wrapper} from '@vue/test-utils'
 import Router from 'vue-router'
 import {ArtStore, createStore} from '@/store'
 import Vue from 'vue'

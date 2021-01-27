@@ -149,12 +149,13 @@ import Viewer from '@/mixins/viewer'
 import {UserStoreState} from '@/store/profiles/types/UserStoreState'
 import {Alert} from '@/store/state'
 import AcMarkdownExplanation from '@/components/fields/AcMarkdownExplination.vue'
-import {fallback, fallbackBoolean, paramsKey, searchSchema} from './lib/lib'
+import {fallback, fallbackBoolean, getCookie, paramsKey, searchSchema} from './lib/lib'
 import {User} from '@/store/profiles/types/User'
 import Nav from '@/mixins/nav'
 import {SingleController} from '@/store/singles/controller'
 import {ConnectionStatus} from '@/types/ConnectionStatus'
 import {SocketState} from '@/types/SocketState'
+import {AnonUser} from '@/store/profiles/types/AnonUser'
 
 @Component({components: {AcMarkdownExplanation, AcError, AcFormDialog, NavBar}})
 export default class App extends mixins(Viewer, Nav) {
@@ -180,6 +181,13 @@ export default class App extends mixins(Viewer, Nav) {
   public CLOSED = ConnectionStatus.CLOSED
   public showNav = false
 
+  @Watch('viewer.username')
+  public sendHome(newName: string, oldName: string) {
+    if (oldName && (oldName !== '_') && newName === '_') {
+      this.$router.push('/')
+    }
+  }
+
   @Watch('$route.name', {immediate: true})
   public initializeSearch(nameVal: null|string) {
     /* istanbul ignore if */
@@ -188,6 +196,8 @@ export default class App extends mixins(Viewer, Nav) {
     }
     /* istanbul ignore if */
     if (this.$store.state.searchInitialized) {
+      this.searchForm = this.$getForm('search')
+      this.$nextTick(() => { this.showNav = true })
       return
     }
     const query = {...this.$route.query}
@@ -228,22 +238,33 @@ export default class App extends mixins(Viewer, Nav) {
         serverVersion: '',
       },
     })
-    this.$sock.addListener('version', this.getVersion)
+    this.$sock.addListener('version', 'App', this.getVersion)
+    this.$sock.addListener('viewer', 'App', this.setUser)
+    this.$sock.addListener('error', 'App', console.error)
+    this.$sock.addListener('reset', 'App', (payload: {exclude?: string[]}) => {
+      this.$sock.socket!.close()
+      this.$sock.socket!.reconnect()
+    })
     // To listen in to all messages, uncomment the following.
-    // this.$sock.addListener('*', (data: any) => console.log(data))
-    this.$sock.connectListeners.push(() => {
+    this.$sock.connectListeners.initialize = () => {
       this.socketState.updateX({status: ConnectionStatus.CONNECTED})
       this.$sock.send('version', {})
-    })
-    this.$sock.disconnectListeners.push(() => {
+      this.$sock.send('viewer', {})
+    }
+    this.$sock.disconnectListeners.disconnected = () => {
       this.socketState.updateX({status: ConnectionStatus.CLOSED})
-    })
+    }
     window.pintrk('load', '2614118947445')
     this.$sock.open()
   }
 
   public getVersion(versionData: {version: string}) {
     this.socketState.updateX({serverVersion: versionData.version})
+  }
+
+  public setUser(user: AnonUser|User) {
+    this.viewerHandler.user.x = user
+    this.viewerHandler.user.ready = true
   }
 
   public showSuccess() {
@@ -287,6 +308,8 @@ export default class App extends mixins(Viewer, Nav) {
   }
 
   public get devMode() {
+    // Accessing a property registers that property as a listener. Even if we do nothing with it, changing its value
+    // will force recomputation of this value.
     // eslint-disable-next-line no-unused-expressions
     this.forceRecompute
     return this.mode() === 'development'

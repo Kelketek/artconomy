@@ -1,6 +1,6 @@
 import Vue from 'vue'
-import {mount, Wrapper} from '@vue/test-utils'
-import {cleanUp, createVuetify, vueSetup} from '@/specs/helpers'
+import {Wrapper} from '@vue/test-utils'
+import {cleanUp, createVuetify, vueSetup, mount} from '@/specs/helpers'
 import {genSubmission} from '@/store/submissions/specs/fixtures'
 import AcAudioPlayer from '@/components/AcAudioPlayer.vue'
 import Vuetify from 'vuetify/lib'

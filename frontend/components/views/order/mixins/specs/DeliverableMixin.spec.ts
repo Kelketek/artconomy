@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import {cleanUp, qMount, vueSetup} from '@/specs/helpers'
+import {cleanUp, qMount, vueSetup, mount} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import DummyInvoice from '@/specs/helpers/dummy_components/DummyInvoice.vue'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'

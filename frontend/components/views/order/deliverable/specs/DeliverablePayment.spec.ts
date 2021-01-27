@@ -1,6 +1,6 @@
 import {genDeliverable, genUser} from '@/specs/helpers/fixtures'
-import {cleanUp, confirmAction, createVuetify, docTarget, flushPromises, rs, setViewer, vueSetup} from '@/specs/helpers'
-import {mount, Wrapper} from '@vue/test-utils'
+import {cleanUp, confirmAction, createVuetify, docTarget, flushPromises, rs, setViewer, vueSetup, mount} from '@/specs/helpers'
+import {Wrapper} from '@vue/test-utils'
 import DeliverablePayment from '@/components/views/order/deliverable/DeliverablePayment.vue'
 import {DeliverableStatus} from '@/types/DeliverableStatus'
 import {dummyLineItems} from '@/lib/specs/helpers'

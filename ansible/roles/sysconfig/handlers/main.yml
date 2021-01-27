@@ -1,0 +1,10 @@
+---
+- name: reload_sysctl
+  shell: "sysctl --system"
+  args:
+    executable: "/bin/bash"
+
+- name: force_disable_hugepages
+  shell: "echo never > /sys/kernel/mm/transparent_hugepage/enabled"
+  args:
+    executable: "/bin/bash"

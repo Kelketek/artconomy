@@ -1,11 +1,11 @@
 import Vuetify from 'vuetify/lib'
 import Vue from 'vue'
-import {mount, Wrapper} from '@vue/test-utils'
+import {Wrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import {ListController} from '@/store/lists/controller'
-import {cleanUp, createVuetify, docTarget, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, vueSetup, mount} from '@/specs/helpers'
 
 describe('AcLoadSection.vue', () => {
   const localVue = vueSetup()
