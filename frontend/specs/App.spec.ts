@@ -1,5 +1,5 @@
 import mockAxios from './helpers/mock-axios'
-import Vue from 'vue'
+import Vue, {VueConstructor} from 'vue'
 import {mount, shallowMount, Wrapper} from '@vue/test-utils'
 import App from '../App.vue'
 import {ArtStore, createStore} from '../store'
@@ -9,21 +9,25 @@ import {FormController} from '@/store/forms/form-controller'
 import {cleanUp, createVuetify, dialogExpects, docTarget, genAnon, rq, rs, vueSetup} from './helpers'
 import Vuetify from 'vuetify/lib'
 import {createPinterestQueue} from '@/lib/lib'
+import {WS} from 'jest-websocket-mock'
+import {socketNameSpace} from '@/plugins/socket'
 
-const localVue = vueSetup()
+let localVue: VueConstructor
 let wrapper: Wrapper<Vue>
 let vuetify: Vuetify
 
-window.pintrk = createPinterestQueue()
 // @ts-ignore
 window.__COMMIT_HASH__ = 'bogusHash'
+socketNameSpace.socketClass = WebSocket
 
 describe('App.vue', () => {
   let store: ArtStore
   beforeEach(() => {
+    localVue = vueSetup()
     store = createStore()
     vuetify = createVuetify()
     jest.useFakeTimers()
+    window.pintrk = createPinterestQueue()
   })
   afterEach(() => {
     cleanUp(wrapper)
@@ -339,5 +343,76 @@ describe('App.vue', () => {
     vm.forceRecompute += 1
     await vm.$nextTick()
     expect(vm.devMode).toBe(true)
+  })
+  it('Shows a reconnecting banner if we have lost connection', async() => {
+    jest.useRealTimers()
+    const server = new WS('ws://localhost/test/url')
+    wrapper = mount(App, {
+      store,
+      localVue,
+      vuetify,
+      mocks: {$route: {fullPath: '/', params: {stuff: 'things'}, query: {}}},
+      stubs: ['router-link', 'router-view', 'nav-bar'],
+      attachTo: docTarget(),
+    })
+    await server.connected
+    server.close()
+    await server.closed
+    await wrapper.vm.$nextTick()
+    expect(wrapper.text()).toContain('Reconnecting...')
+  })
+  it('Gets the current version', async() => {
+    jest.useRealTimers()
+    const server = new WS('ws://localhost/test/url', {jsonProtocol: true})
+    wrapper = mount(App, {
+      store,
+      localVue,
+      vuetify,
+      mocks: {$route: {fullPath: '/', params: {stuff: 'things'}, query: {}}},
+      stubs: ['router-link', 'router-view', 'nav-bar'],
+      attachTo: docTarget(),
+    })
+    await server.connected
+    await expect(server).toReceiveMessage({name: 'version', payload: {}})
+    server.send({name: 'version', payload: {version: 'beep'}})
+    await wrapper.vm.$nextTick()
+    const vm = wrapper.vm as any
+    expect(vm.socketState.x.serverVersion).toEqual('beep')
+  })
+  it('Sends tracking data', async () => {
+    wrapper = mount(App, {
+      store,
+      localVue,
+      vuetify,
+      mocks: {$route: {fullPath: '/', params: {stuff: 'things'}, query: {}}},
+      stubs: ['router-link', 'router-view', 'nav-bar'],
+      attachTo: docTarget(),
+    })
+    await wrapper.vm.$nextTick()
+    expect(window.pintrk.queue).toEqual([['load', expect.any(String)], ['page'], ['track', 'pagevisit']])
+  })
+  it('Does not send tracking data for special pages', async () => {
+    wrapper = mount(App, {
+      store,
+      localVue,
+      vuetify,
+      mocks: {$route: {fullPath: '/', params: {stuff: 'things'}, query: {}, name: 'FAQ'}},
+      stubs: ['router-link', 'router-view', 'nav-bar'],
+      attachTo: docTarget(),
+    })
+    await wrapper.vm.$nextTick()
+    expect(window.pintrk.queue).toEqual([['load', expect.any(String)]])
+  })
+  it('Sends partial tracking info for product oriented pages.', async () => {
+    wrapper = mount(App, {
+      store,
+      localVue,
+      vuetify,
+      mocks: {$route: {fullPath: '/', params: {productId: '42'}, query: {}, name: 'Wat'}},
+      stubs: ['router-link', 'router-view', 'nav-bar'],
+      attachTo: docTarget(),
+    })
+    await wrapper.vm.$nextTick()
+    expect(window.pintrk.queue).toEqual([['load', expect.any(String)], ['page']])
   })
 })

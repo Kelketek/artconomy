@@ -20,7 +20,6 @@ import Component, {mixins} from 'vue-class-component'
 import Viewer from '@/mixins/viewer'
 import {ListController} from '@/store/lists/controller'
 import AcNotification from '@/types/AcNotification'
-// import AcListNotifications from './ac-list-notifications'
 
   @Component
 export default class NotificationsCenter extends mixins(Viewer) {

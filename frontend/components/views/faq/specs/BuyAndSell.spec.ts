@@ -9,6 +9,7 @@ import {cleanUp, createVuetify, docTarget, setPricing, vueSetup} from '@/specs/h
 import searchSchema from '@/components/views/search/specs/fixtures'
 import {FormController} from '@/store/forms/form-controller'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
+import {createPinterestQueue} from '@/lib/lib'
 
 const localVue = vueSetup()
 localVue.use(Router)
@@ -24,6 +25,7 @@ describe('About.vue', () => {
     store = createStore()
     vuetify = createVuetify()
     searchForm = mount(Empty, {localVue, store}).vm.$getForm('search', searchSchema())
+    window.pintrk = createPinterestQueue()
   })
   afterEach(() => {
     cleanUp(wrapper)

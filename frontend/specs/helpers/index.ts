@@ -35,6 +35,7 @@ import {HttpVerbs} from '@/store/forms/types/HttpVerbs'
 import {Shortcuts} from '@/plugins/shortcuts'
 import {useRealStorage} from '@/lib/specs/helpers'
 import {VueSocket} from '@/plugins/socket'
+import WS from 'jest-websocket-mock'
 
 export interface ExtraData {
   status?: number,
@@ -203,6 +204,7 @@ export function cleanUp(wrapper?: Wrapper<Vue>) {
     }
     wrapper.destroy()
   }
+  WS.clean()
   singleRegistry.reset()
   profileRegistry.reset()
   listRegistry.reset()
