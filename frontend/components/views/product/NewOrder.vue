@@ -207,6 +207,19 @@ export default class NewOrder extends mixins(ProductCentric, Formatting) {
       this.orderForm.fields.email.update(newVal)
     }
 
+    @Watch('product.x')
+    public trackCart(newProduct: null|Product, oldProduct: null|Product) {
+      if (newProduct && !oldProduct) {
+        window.pintrk('track', 'addtocart', {
+          product_id: newProduct.id,
+          product_brand: newProduct.user.username,
+          product_name: newProduct.name,
+          product_price: newProduct.starting_price,
+          currency: 'USD',
+        })
+      }
+    }
+
     public sendEvent() {
       const product = this.product.x as Product
       window.pintrk(
@@ -240,22 +253,11 @@ export default class NewOrder extends mixins(ProductCentric, Formatting) {
       this.orderForm.sending = false
     }
 
-    public trackCart() {
-      const product = this.product.x as Product
-      window.pintrk('track', 'addtocart', {
-        product_id: product.id,
-        product_brand: product.user.username,
-        product_name: product.name,
-        product_price: product.starting_price,
-        currency: 'USD',
-      })
-    }
-
     public created() {
       // The way we're constructed allows us to avoid refetching if we arrive through the product page, but
       // leaves us in the same scroll position as we were. Fix that here.
       window.scrollTo(0, 0)
-      this.product.get().then(this.trackCart)
+      this.product.get()
       const viewer = this.viewer as User
       this.orderForm = this.$getForm('newOrder', {
         endpoint: this.product.endpoint + 'order/',
