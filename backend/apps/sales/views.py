@@ -1637,7 +1637,7 @@ class ProductSearch(ListAPIView):
         max_price = search_serializer.validated_data.get('max_price', None)
         min_price = search_serializer.validated_data.get('min_price', None)
         shield_only = search_serializer.validated_data.get('shield_only', False)
-        by_rating = search_serializer.validated_data.get('by_rating', False)
+        by_rating = search_serializer.validated_data.get('rating', False)
         featured = search_serializer.validated_data.get('featured', False)
         lgbt = search_serializer.validated_data.get('lgbt', False)
         artists_of_color = search_serializer.validated_data.get('artists_of_color', False)
