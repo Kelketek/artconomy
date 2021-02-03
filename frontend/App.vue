@@ -1,7 +1,7 @@
 <!--suppress JSUnusedGlobalSymbols -->
 <template>
   <v-app dark>
-    <nav-bar v-if="searchForm"/>
+    <nav-bar v-if="showNav"/>
     <v-main class="main-content">
       <ac-error/>
       <router-view v-if="displayRoute" :key="routeKey"/>
@@ -178,6 +178,7 @@ export default class App extends mixins(Viewer, Nav) {
   public forceRecompute = 0
   public location = location
   public CLOSED = ConnectionStatus.CLOSED
+  public showNav = false
 
   @Watch('$route.name', {immediate: true})
   public initializeSearch(nameVal: null|string) {
@@ -203,6 +204,8 @@ export default class App extends mixins(Viewer, Nav) {
     this.searchForm.fields.max_price.update(fallback(query, 'max_price', ''))
     this.searchForm.fields.min_price.update(fallback(query, 'min_price', ''))
     this.$store.commit('setSearchInitialized', true)
+    // Make damn sure that the NavBar doesn't load before we have fully initialized search.
+    this.$nextTick(() => { this.showNav = true })
   }
 
   public created() {
