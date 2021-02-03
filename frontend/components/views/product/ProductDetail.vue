@@ -510,9 +510,13 @@ export default class ProductDetail extends mixins(ProductCentric, Formatting, Ed
     }
 
     @Watch('product.x', {deep: true})
-    public updateMeta(product: Product|null) {
+    public updateMeta(product: Product|null, oldProduct: Product|null) {
       if (!product) {
         return
+      }
+      if (!oldProduct) {
+        this.shown = product.primary_submission
+        this.trackPageView()
       }
       updateTitle(`${product.name} by ${product.user.username} -- Artconomy`)
       let prefix: string
@@ -701,10 +705,6 @@ export default class ProductDetail extends mixins(ProductCentric, Formatting, Ed
     }
 
     public created() {
-      this.product.get().then((product: Product) => {
-        this.shown = product.primary_submission
-        this.trackPageView()
-      }).catch()
       this.pricing = this.$getSingle('pricing', {endpoint: '/api/sales/v1/pricing-info/'})
       this.pricing.get()
       this.inventory = this.$getSingle(
