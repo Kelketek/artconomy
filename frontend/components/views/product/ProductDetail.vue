@@ -514,7 +514,7 @@ export default class ProductDetail extends mixins(ProductCentric, Formatting, Ed
       if (!product) {
         return
       }
-      if (!oldProduct) {
+      if (product && !oldProduct) {
         this.shown = product.primary_submission
         this.trackPageView()
       }
@@ -705,6 +705,7 @@ export default class ProductDetail extends mixins(ProductCentric, Formatting, Ed
     }
 
     public created() {
+      this.product.get()
       this.pricing = this.$getSingle('pricing', {endpoint: '/api/sales/v1/pricing-info/'})
       this.pricing.get()
       this.inventory = this.$getSingle(
