@@ -19,16 +19,21 @@ import {HttpVerbs} from '@/store/forms/types/HttpVerbs'
 import {ListController} from '@/store/lists/controller'
 import {cloneDeep} from 'lodash'
 import {PinterestQueue} from '@/types/PinterestQueue'
+import {LogLevels} from '@/types/LogLevels'
 
 // Needed for Matomo.
 declare global {
   // noinspection JSUnusedGlobalSymbols
   interface Window {
-    _paq: Array<any[]>
+    _paq: Array<any[]>,
+    __LOG_LEVEL__: LogLevels,
   }
 }
 
 window._paq = window._paq || []
+if (window.__LOG_LEVEL__ === undefined) {
+  window.__LOG_LEVEL__ = LogLevels.INFO
+}
 
 // Useful for attaching dummy observers to objects that Vue needs to ignore.
 export const Observer = (new Vue()).$data.__ob__.constructor
@@ -876,4 +881,27 @@ export function createPinterestQueue(): PinterestQueue {
   pintrk.queue = []
   pintrk.version = '3.0'
   return pintrk
+}
+
+export const log = {
+  debug(...args: any[]) {
+    if (window.__LOG_LEVEL__ <= LogLevels.ERROR) {
+      console.debug(...args)
+    }
+  },
+  info(...args: any[]) {
+    if (window.__LOG_LEVEL__ <= LogLevels.INFO) {
+      console.info(...args)
+    }
+  },
+  warn(...args: any[]) {
+    if (window.__LOG_LEVEL__ <= LogLevels.WARN) {
+      console.warn(...args)
+    }
+  },
+  error(...args: any[]) {
+    if (window.__LOG_LEVEL__ <= LogLevels.ERROR) {
+      console.error(...args)
+    }
+  },
 }

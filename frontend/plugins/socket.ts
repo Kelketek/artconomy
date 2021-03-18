@@ -1,6 +1,6 @@
 import _Vue from 'vue'
 import ReconnectingWebSocket, {CloseEvent, Event} from 'reconnecting-websocket'
-import {neutralize} from '@/lib/lib'
+import {log, neutralize} from '@/lib/lib'
 
 declare interface SocketManager {
   socket?: ReconnectingWebSocket,
@@ -47,6 +47,7 @@ export const VueSocket = {
         }
         $sock.socket.onmessage = (event: MessageEvent) => {
           const data = JSON.parse(event.data)
+          log.debug('Websocket receive:', data)
           if (!data.command) {
             throw Error(`Received undefined command! Message data was: ${event.data}`)
           }
@@ -80,6 +81,7 @@ export const VueSocket = {
         }
       },
       send(command: string, payload: any) {
+        log.debug('Websocket send:', command, payload)
         $sock.socket!.send(JSON.stringify({command, payload}))
       },
       reset() {
