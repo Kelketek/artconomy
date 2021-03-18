@@ -22,6 +22,7 @@ describe('AcAudioPlayer.vue', () => {
   it('Loads and types an audio file', async() => {
     const submission = genSubmission()
     submission.file = {full: 'https://example.com/thing.mp3'}
+    // @ts-ignore
     wrapper = mount(AcAudioPlayer, {localVue, propsData: {asset: submission}})
     const vm = wrapper.vm as any
     expect(vm.type).toBe('audio/mp3')

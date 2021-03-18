@@ -23,6 +23,7 @@ describe('AcMarkdownViewer.vue', () => {
   it('Loads and renders a markdown document', async() => {
     const submission = genSubmission()
     submission.file = {full: 'https://example.com/test.txt'}
+    // @ts-ignore
     wrapper = mount(AcMarkdownViewer, {
       localVue,
       vuetify,

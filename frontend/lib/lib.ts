@@ -824,7 +824,12 @@ export function shuffle(array: any[]) {
   return array
 }
 
-export async function markRead(controller: SingleController<{id: number|string, read: boolean}>, contentType: string) {
+declare interface ReadMarkable {
+  id: number|string,
+  read: boolean,
+}
+
+export async function markRead<T extends ReadMarkable>(controller: SingleController<T>, contentType: string) {
   if (!controller.x) {
     return
   }
@@ -835,7 +840,7 @@ export async function markRead(controller: SingleController<{id: number|string, 
     url: `/api/lib/v1/read-marker/${contentType}/${controller.x.id}/`,
     method: 'post',
   }).then(() => {
-    controller.updateX({read: true})
+    controller.updateX({read: true} as Partial<T>)
   })
 }
 

@@ -36,7 +36,6 @@ import {Shortcuts} from '@/plugins/shortcuts'
 import {useRealStorage} from '@/lib/specs/helpers'
 import {VueSocket} from '@/plugins/socket'
 import WS from 'jest-websocket-mock'
-import Component, {mixins} from 'vue-class-component'
 
 export interface ExtraData {
   status?: number,

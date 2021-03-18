@@ -11,6 +11,7 @@ describe('AcAddButton.vue', () => {
     cleanUp(wrapper)
   })
   it('Sends an input event', async() => {
+    // @ts-ignore
     const wrapper = mount(AcAddButton, {localVue, attachTo: docTarget()})
     const mockEmit = jest.spyOn(wrapper.vm, '$emit')
     wrapper.find('.ac-add-button').trigger('click')

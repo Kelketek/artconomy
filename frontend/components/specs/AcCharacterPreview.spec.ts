@@ -23,6 +23,7 @@ describe('AcCharacterPreview.ts', () => {
   it('Mounts', async() => {
     setViewer(store, genUser())
     wrapper = mount(
+      // @ts-ignore
       AcCharacterPreview, {
         localVue,
         store,
