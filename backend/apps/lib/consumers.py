@@ -180,7 +180,7 @@ class EventConsumer(AsyncJsonWebsocketConsumer):
             # NOTE: To make this work correctly, we have to translate IP addresses to handle CloudFlare's proxy.
             # This is handled in middleware.
             await self.channel_layer.group_add(
-                f'client.address.{self.scope["client"][0]}',
+                f'client.address.{self.scope["client"][0].replace(":", "-")}',
                 self.channel_name,
             )
         if self.scope['user'].is_authenticated:
@@ -192,7 +192,7 @@ class EventConsumer(AsyncJsonWebsocketConsumer):
     async def disconnect(self, code):
         if self.scope["client"][0]:
             await self.channel_layer.group_discard(
-                f'client.address.{self.scope["client"][0]}',
+                f'client.address.{self.scope["client"][0].replace(":", "-")}',
                 self.channel_name,
             )
 

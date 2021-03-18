@@ -218,7 +218,9 @@ def trigger_reconnect(request):
     """
     if not getattr(request, 'ip', None):
         return []
-    websocket_send(group=f'client.address.{request.ip}', command='reset', exclude=exclude_request(request))
+    websocket_send(
+        group=f'client.address.{str(request.ip).replace(":", "-")}', command='reset', exclude=exclude_request(request),
+    )
 
 
 def signal_trigger_reconnect(sender, user, request, **kwargs):
