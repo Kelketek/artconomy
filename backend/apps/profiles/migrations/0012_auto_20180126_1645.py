@@ -3,13 +3,11 @@
 from __future__ import unicode_literals
 
 from django.db import migrations
-from rest_framework.authtoken.models import Token
 
 
 def gen_tokens(apps, schema):
-    user_cls = apps.get_model('profiles.User')
-    for user in user_cls.objects.all():
-        Token.objects.get_or_create(user_id=user.id)
+    # We're no longer generating tokens and, besides, this would be better off as a management command.
+    pass
 
 
 class Migration(migrations.Migration):

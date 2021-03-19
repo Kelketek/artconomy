@@ -22,7 +22,6 @@ from django_otp.plugins.otp_totp.models import TOTPDevice
 from hitcount.views import HitCountMixin
 from hitcount.models import HitCount
 from rest_framework import status
-from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view
 from rest_framework.exceptions import ValidationError, PermissionDenied
 from rest_framework.generics import (
@@ -213,8 +212,6 @@ class CredentialsAPI(GenericAPIView):
         if request.user == serializer.instance:
             # make sure the user stays logged in
             update_session_auth_hash(request, serializer.instance)
-            request.user.auth_token.delete()
-            Token.objects.create(user_id=request.user.id)
 
         return Response(
             status=status.HTTP_200_OK, data=UserSerializer(

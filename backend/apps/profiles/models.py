@@ -28,7 +28,6 @@ from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.datetime_safe import date
 from django.utils.encoding import force_bytes
-from rest_framework.authtoken.models import Token
 
 from apps.lib.abstract_models import GENERAL, RATINGS, ImageModel, thumbnail_hook, HitsMixin
 from apps.lib.models import (
@@ -274,7 +273,6 @@ def auto_subscribe(sender, instance, created=False, **_kwargs):
     if created:
         if not instance.guest:
             create_user_subscriptions(instance)
-        Token.objects.create(user_id=instance.id)
         set_avatar_url(instance)
     if instance.is_staff:
         Subscription.objects.get_or_create(
