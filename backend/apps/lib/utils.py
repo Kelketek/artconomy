@@ -11,7 +11,7 @@ from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.mail import EmailMultiAlternatives
-from django.db import connection
+from django.db import connection, transaction
 from django.db.models import Q, Model, Subquery, IntegerField
 from django.db.models.signals import pre_delete
 from django.db.transaction import atomic
@@ -768,6 +768,10 @@ def update_websocket(signal, model, *serializer_names):
     through the specified serializers and broadcasted to the listening clients.
     """
     def update_broadcaster(instance: Model, **kwargs):
+        if not transaction.get_autocommit():
+            # If we're in a transaction, delay this until we're completely finished.
+            transaction.on_commit(lambda: update_broadcaster(instance, **kwargs))
+            return
         layer = get_channel_layer()
         app_label = model._meta.app_label
         model_name = model.__name__

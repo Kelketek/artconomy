@@ -264,6 +264,7 @@ def create_user_subscriptions(instance):
         ignore_conflicts=True,
     )
 
+
 # noinspection PyUnusedLocal
 @receiver(post_save, sender=User)
 @disable_on_load

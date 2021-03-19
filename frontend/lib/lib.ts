@@ -884,8 +884,10 @@ export function createPinterestQueue(): PinterestQueue {
 }
 
 export const log = {
+  // Eventually I want to filter log statements based on their label.
+  filter: [],
   debug(...args: any[]) {
-    if (window.__LOG_LEVEL__ <= LogLevels.ERROR) {
+    if (window.__LOG_LEVEL__ <= LogLevels.DEBUG) {
       console.debug(...args)
     }
   },
