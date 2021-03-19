@@ -216,10 +216,11 @@ def trigger_reconnect(request):
     """
     Forces listeners on an IP to reconnect, as long as they aren't the current listener.
     """
-    if not getattr(request, 'ip', None):
-        return []
+    socket_key = request.COOKIES.get('ArtconomySocketKey')
+    if not socket_key:
+        return
     websocket_send(
-        group=f'client.address.{str(request.ip).replace(":", "-")}', command='reset', exclude=exclude_request(request),
+        group=f'client.socket_key.{socket_key}', command='reset', exclude=exclude_request(request),
     )
 
 

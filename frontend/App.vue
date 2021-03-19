@@ -149,7 +149,7 @@ import Viewer from '@/mixins/viewer'
 import {UserStoreState} from '@/store/profiles/types/UserStoreState'
 import {Alert} from '@/store/state'
 import AcMarkdownExplanation from '@/components/fields/AcMarkdownExplination.vue'
-import {fallback, fallbackBoolean, getCookie, paramsKey, searchSchema} from './lib/lib'
+import {fallback, fallbackBoolean, genId, getCookie, paramsKey, searchSchema, setCookie} from './lib/lib'
 import {User} from '@/store/profiles/types/User'
 import Nav from '@/mixins/nav'
 import {SingleController} from '@/store/singles/controller'
@@ -227,6 +227,7 @@ export default class App extends mixins(Viewer, Nav) {
         referring_url: {value: this.$route.fullPath},
       },
     })
+    window.pintrk('load', '2614118947445')
     this.socketState = this.$getSingle('socketState', {
       endpoint: '#',
       persist: true,
@@ -238,6 +239,19 @@ export default class App extends mixins(Viewer, Nav) {
         serverVersion: '',
       },
     })
+    // If several tabs are open at once (like restoring from a crash), they might set this key rapidly next to each
+    // other. Defer to next tick to severely reduce the chance of a race condition.
+    if (!getCookie('ArtconomySocketKey')) {
+      // Note: This cookie isn't secure from potential code injection attacks, so we only use it to determine
+      // if we should reset the connection upon a login/logout event. The login cookie is HTTPS only.
+      setCookie('ArtconomySocketKey', genId())
+      this.$nextTick(this.socketStart)
+    } else {
+      this.$nextTick(this.socketStart)
+    }
+  }
+
+  public socketStart() {
     this.$sock.addListener('version', 'App', this.getVersion)
     this.$sock.addListener('viewer', 'App', this.setUser)
     this.$sock.addListener('error', 'App', console.error)
@@ -245,16 +259,14 @@ export default class App extends mixins(Viewer, Nav) {
       this.$sock.socket!.close()
       this.$sock.socket!.reconnect()
     })
-    // To listen in to all messages, uncomment the following.
     this.$sock.connectListeners.initialize = () => {
       this.socketState.updateX({status: ConnectionStatus.CONNECTED})
       this.$sock.send('version', {})
-      this.$sock.send('viewer', {})
+      this.$sock.send('viewer', {socket_key: getCookie('ArtconomySocketKey')})
     }
     this.$sock.disconnectListeners.disconnected = () => {
       this.socketState.updateX({status: ConnectionStatus.CLOSED})
     }
-    window.pintrk('load', '2614118947445')
     this.$sock.open()
   }
 

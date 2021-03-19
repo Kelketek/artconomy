@@ -187,7 +187,7 @@ export function setCookie(name: string, value: any, days?: number) {
   let cookieVal = name + '=' + value + expires + '; path=/'
   /* istanbul ignore if */
   if (process.env.NODE_ENV === 'production') {
-    cookieVal += 'l Secure;'
+    cookieVal += ';secure'
   }
   document.cookie = cookieVal
 }

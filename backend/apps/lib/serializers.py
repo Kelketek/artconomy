@@ -3,7 +3,7 @@ from typing import Union, List
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Q, Subquery
+from django.db.models import Q
 from django.db.transaction import atomic
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -788,10 +788,3 @@ class MoneyToFloatField(serializers.FloatField):
     """
     def to_representation(self, value):
         return float(value.amount)
-
-
-class WatchSpecSerializer(serializers.Serializer):
-    app_label = serializers.CharField()
-    model_name = serializers.CharField()
-    serializer = serializers.CharField()
-    pk = serializers.CharField()

@@ -11,8 +11,9 @@ from django.apps import apps
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Model
-from rest_framework.serializers import ModelSerializer
+from rest_framework.serializers import ModelSerializer, Serializer
 
+from apps.lib.consumer_serializers import WatchSpecSerializer, ViewerParamsSerializer, EmptySerializer
 from apps.lib.utils import FakeRequest
 from apps.profiles.models import User
 from apps.profiles.utils import empty_user
@@ -69,13 +70,18 @@ async def version(consumer, _payload):
         return {'command': 'version', 'payload': {'version': '######'}}
 
 
-async def viewer(consumer, _payload):
+async def viewer(consumer, payload):
     """
     Gets information about the current user.
     """
     session = consumer.scope['session']
     user = consumer.scope['user']
     user_info = await detailed_user_info(user=user, session=session)
+    consumer.scope['socket_key'] = payload['socket_key']
+    await consumer.channel_layer.group_add(
+        f'client.socket_key.{payload["socket_key"]}',
+        consumer.channel_name,
+    )
     return {'command': 'viewer', 'payload': user_info}
 
 
@@ -108,10 +114,10 @@ async def watch(consumer, payload: Dict):
     Subscribes to changes on an object. The subscription must pass a permissions check,
     and must specify the serializer it's expecting to receive data from.
     """
-    from apps.lib.serializers import WatchSpecSerializer
+    from apps.lib.consumer_serializers import WatchSpecSerializer
     serializer = WatchSpecSerializer(data=payload)
     if not serializer.is_valid():
-        return error_command(','.join(f'{key}: {",".join(value)}' for key, value in serializer.errors))
+        return error_command(flatten_errors(serializer))
     app_label, model_name, serializer_name, pk = (
         payload['app_label'], payload['model_name'], payload['serializer'], payload['pk'],
     )
@@ -132,15 +138,18 @@ async def watch(consumer, payload: Dict):
         return error_command(str(err))
 
 
+def flatten_errors(serializer: Serializer):
+    return ','.join(f'{key}: {",".join(value)}' for key, value in serializer.errors.items())
+
+
 async def clear_watch(consumer, payload: Dict):
     """
     Subscribes to changes on an object. The subscription must pass a permissions check,
     and must specify the serializer it's expecting to receive data from.
     """
-    from apps.lib.serializers import WatchSpecSerializer
     serializer = WatchSpecSerializer(data=payload)
     if not serializer.is_valid():
-        return error_command(','.join(f'{key}: {",".join(value)}' for key, value in serializer.errors))
+        return error_command(flatten_errors(serializer))
     app_label, model_name, serializer, pk = (
         payload['app_label'], payload['model_name'], payload['serializer'], payload['pk'],
     )
@@ -156,53 +165,37 @@ def get_instance(model, pk: Any):
 
 
 COMMANDS = {
-    'version': version,
-    'viewer': viewer,
-    'watch': watch,
-    'clear_watch': clear_watch,
+    'version': {'func': version, 'serializer': EmptySerializer},
+    'viewer': {'func': viewer, 'serializer': ViewerParamsSerializer},
+    'watch': {'func': watch, 'serializer': WatchSpecSerializer},
+    'clear_watch': {'func': clear_watch, 'serializer': WatchSpecSerializer}
 }
 
 
 class EventConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
         await self.accept()
-        if self.scope['client'][0]:
-            # Create a listener channel for this IP. This allows us to make sure that if login details change on an IP,
-            # we can have the websocket reconnect and renegotiate to verify the right user is still connected.
-            # This should work even if the user is doing private browsing/multiple containers,
-            # since we're not pushing the user to all connections on this IP address. We're just telling all users on
-            # the IP to check.
-            #
-            # You would think you could easily check if someone had logged in, but because the connection is established
-            # before any login data might be sent, there's not an obvious way to update an existing websocket in another
-            # tab that the user signed in. So, telling all listeners on an IP to reconnect should work.
-            #
-            # NOTE: To make this work correctly, we have to translate IP addresses to handle CloudFlare's proxy.
-            # This is handled in middleware.
-            await self.channel_layer.group_add(
-                f'client.address.{self.scope["client"][0].replace(":", "-")}',
-                self.channel_name,
-            )
-        if self.scope['user'].is_authenticated:
-            await self.channel_layer.group_add(
-                f'profiles.User.update.UserSerializer.{self.scope["user"].id}',
-                self.channel_name,
-            )
 
     async def disconnect(self, code):
-        if self.scope["client"][0]:
+        key = self.scope.get('socket_key')
+        if key:
             await self.channel_layer.group_discard(
-                f'client.address.{self.scope["client"][0].replace(":", "-")}',
+                f'client.socket_key.{key}',
                 self.channel_name,
             )
 
     async def receive_json(self, content, **_kwargs):
         command_name = content.get('command')
         if command_name is None or not COMMANDS[command_name]:
-            result = {'command': 'error', 'payload': {'message': 'Invalid command.'}}
+            result = {'command': 'error', 'payload': {'message': f'Invalid command: {command_name}'}}
             await aprint(result)
         else:
-            result = await COMMANDS[command_name](self, content.get('payload'))
+            payload = content.get('payload', {})
+            serializer = COMMANDS[command_name]['serializer'](data=payload)
+            if not serializer.is_valid():
+                result = error_command(flatten_errors(serializer))
+            else:
+                result = await COMMANDS[command_name]['func'](self, payload)
 
         if not result:
             # Command with no response.

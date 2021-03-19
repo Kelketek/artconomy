@@ -336,6 +336,8 @@ describe('App.vue', () => {
       attachTo: docTarget(),
     })
     const vm = wrapper.vm
+    // Need to make sure the cookie for the socket key is set, which can happen on next tick.
+    await vm.$nextTick()
     const mockClose = jest.spyOn(vm.$sock.socket!, 'close')
     const mockReconnect = jest.spyOn(vm.$sock.socket!, 'reconnect')
     await server.connected
