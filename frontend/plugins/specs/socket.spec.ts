@@ -30,6 +30,7 @@ describe('socket.ts message handlers', () => {
   })
   it('Uses a registered handler', async() => {
     const used = jest.fn()
+    const used2 = jest.fn()
     const fails = jest.fn()
     const unused = jest.fn()
     const mockError = jest.spyOn(console, 'error')
@@ -37,18 +38,38 @@ describe('socket.ts message handlers', () => {
     fails.mockImplementation(() => {
       throw Error('I broke!')
     })
-    empty.vm.$sock.addListener('used', 'AppUsed', fails)
-    empty.vm.$sock.addListener('used', 'AppFailed', used)
+    empty.vm.$sock.addListener('used', 'AppFailed', fails)
+    empty.vm.$sock.addListener('used', 'Used2', used2)
+    empty.vm.$sock.addListener('used', 'AppUsed', used)
     empty.vm.$sock.addListener('unused', 'AppUnused', unused)
     empty.vm.$sock.open()
     await server.connected
     server.send({command: 'used', payload: {test: 'stuff'}})
     expect(unused).not.toHaveBeenCalled()
     expect(used).toHaveBeenCalledWith({test: 'stuff'})
+    expect(used2).toHaveBeenCalledWith({test: 'stuff'})
     expect(fails).toHaveBeenCalledWith({test: 'stuff'})
     expect(mockError).toHaveBeenCalledWith(Error('I broke!'))
     server.close()
     await server.closed
+  })
+  it('Clears handlers', async ()=> {
+    const used = jest.fn()
+    const used2 = jest.fn()
+    const unused = jest.fn()
+    empty.vm.$sock.addListener('used', 'Used2', used2)
+    empty.vm.$sock.addListener('used', 'AppFailed', used)
+    empty.vm.$sock.addListener('unused', 'AppUnused', unused)
+    empty.vm.$sock.removeListener('used', 'Used2')
+    empty.vm.$sock.removeListener('unused', 'AppUnused')
+    // Removing a listener that doesn't exist shouldn't break things.
+    empty.vm.$sock.removeListener('stuff', 'Things')
+    empty.vm.$sock.open()
+    await server.connected
+    server.send({command: 'used', payload: {test: 'stuff'}})
+    expect(unused).not.toHaveBeenCalled()
+    expect(used).toHaveBeenCalledWith({test: 'stuff'})
+    expect(used2).not.toHaveBeenCalled()
   })
   it('Skips us if we are excluded', async() => {
     window.windowId = genId()

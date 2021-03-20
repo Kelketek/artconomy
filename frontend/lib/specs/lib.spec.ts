@@ -5,22 +5,36 @@ import {
   artCall,
   clearMetaTag,
   crossDomain,
-  csrfSafeMethod, deriveDisplayName, dotTraverse,
-  extPreview, flatten,
-  formatDate, formatDateTerse,
-  formatDateTime, formatSize,
+  csrfSafeMethod,
+  deriveDisplayName,
+  dotTraverse,
+  extPreview,
+  flatten,
+  formatDate,
+  formatDateTerse,
+  formatDateTime,
+  formatSize,
   getCookie,
   getExt,
-  getHeaders, guestName,
-  isImage, makeQueryParams, markRead,
-  md, newUploadSchema, posse,
+  getHeaders,
+  guestName,
+  isImage,
+  log,
+  makeQueryParams,
+  markRead,
+  md,
+  newUploadSchema,
+  posse,
   ratings,
   ratingsNonExtreme,
   ratingsShort,
   setCookie,
   setMetaContent,
   singleQ,
-  textualize, thumbFromSpec, truncateText, updateLinked,
+  textualize,
+  thumbFromSpec,
+  truncateText,
+  updateLinked,
 } from '@/lib/lib'
 import VueRouter from 'vue-router'
 import {createLocalVue, shallowMount, Wrapper} from '@vue/test-utils'
@@ -34,8 +48,9 @@ import {Singles} from '@/store/singles/registry'
 import {Lists} from '@/store/lists/registry'
 import {Profiles} from '@/store/profiles/registry'
 import {ArtStore, createStore} from '@/store'
-import {cleanUp, flushPromises, qMount, rs, mount} from '@/specs/helpers'
-import mock = jest.mock
+import {cleanUp, flushPromises, mount, qMount, rs} from '@/specs/helpers'
+import {LogLevels} from "@/types/LogLevels";
+import SpyInstance = jest.SpyInstance;
 
 Vue.use(Vuetify)
 Vue.use(Vuex)
@@ -620,5 +635,78 @@ describe('Linked update handler', () => {
       {id: 2, thing: {id: 4, read: false}},
       {id: 3, thing: {id: 1, read: false}},
     ])
+  })
+})
+
+describe('Logger', () => {
+  const debug = jest.spyOn(console, 'debug')
+  debug.mockImplementation(() => undefined)
+  const info = jest.spyOn(console, 'info')
+  info.mockImplementation(() => undefined)
+  const warn = jest.spyOn(console, 'warn')
+  warn.mockImplementation(() => undefined)
+  const error = jest.spyOn(console, 'error')
+  error.mockImplementation(() => undefined)
+  beforeEach(() => {
+    debug.mockReset()
+    info.mockReset()
+    warn.mockReset()
+    error.mockReset()
+  })
+  const sendMessages = () => {
+    log.debug('TestDebug')
+    log.info('TestInfo')
+    log.warn('TestWarn')
+    log.error('TestError')
+  }
+  it('Sends only errors', () => {
+    window.__LOG_LEVEL__ = LogLevels.ERROR
+    sendMessages()
+    expect(debug).not.toHaveBeenCalled()
+    expect(info).not.toHaveBeenCalled()
+    expect(warn).not.toHaveBeenCalled()
+    expect(error).toHaveBeenCalledWith('TestError')
+    expect(error).toHaveBeenCalledTimes(1)
+  })
+  it('Sends warnings and up', () => {
+    window.__LOG_LEVEL__ = LogLevels.WARN
+    sendMessages()
+    expect(debug).not.toHaveBeenCalled()
+    expect(info).not.toHaveBeenCalled()
+    expect(warn).toHaveBeenCalledWith('TestWarn')
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(error).toHaveBeenCalledWith('TestError')
+    expect(error).toHaveBeenCalledTimes(1)
+  })
+  it('Sends info and up', () => {
+    window.__LOG_LEVEL__ = LogLevels.INFO
+    sendMessages()
+    expect(debug).not.toHaveBeenCalled()
+    expect(info).toHaveBeenCalledWith('TestInfo')
+    expect(info).toHaveBeenCalledTimes(1)
+    expect(warn).toHaveBeenCalledWith('TestWarn')
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(error).toHaveBeenCalledWith('TestError')
+    expect(error).toHaveBeenCalledTimes(1)
+  })
+  it('Sends all logging levels', () => {
+    window.__LOG_LEVEL__ = LogLevels.DEBUG
+    sendMessages()
+    expect(debug).toHaveBeenCalledWith('TestDebug')
+    expect(debug).toHaveBeenCalledTimes(1)
+    expect(info).toHaveBeenCalledWith('TestInfo')
+    expect(info).toHaveBeenCalledTimes(1)
+    expect(warn).toHaveBeenCalledWith('TestWarn')
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(error).toHaveBeenCalledWith('TestError')
+    expect(error).toHaveBeenCalledTimes(1)
+  })
+  it('Sends all logging levels if the log level is super high', () => {
+    window.__LOG_LEVEL__ = LogLevels.ERROR + 1
+    sendMessages()
+    expect(debug).not.toHaveBeenCalled()
+    expect(info).not.toHaveBeenCalled()
+    expect(warn).not.toHaveBeenCalled()
+    expect(debug).not.toHaveBeenCalled()
   })
 })

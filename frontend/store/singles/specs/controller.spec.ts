@@ -1,16 +1,19 @@
 import {ArtStore, createStore} from '@/store'
-import Vue from 'vue'
+import Vue, {VueConstructor} from 'vue'
 import {Wrapper} from '@vue/test-utils'
 import {singleRegistry} from '@/store/singles/registry'
 import mockAxios from '@/specs/helpers/mock-axios'
 import {cleanUp, flushPromises, rq, rs, vueSetup, mount} from '@/specs/helpers'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import {SingleModuleOpts} from '@/store/singles/types/SingleModuleOpts'
+import {SingleSocketSettings} from '@/store/singles/types/SingleSocketSettings'
+import WS from "jest-websocket-mock";
 
 let store: ArtStore
 let state: any
 let empty: Wrapper<Vue>
-const localVue = vueSetup()
+let socketSettings: SingleSocketSettings
+let localVue: VueConstructor
 
 const mockError = jest.spyOn(console, 'error')
 
@@ -24,6 +27,10 @@ describe('Single controller', () => {
     return empty.vm.$getSingle('example', schema)
   }
   beforeEach(() => {
+    localVue = vueSetup()
+    socketSettings = {
+      appLabel: 'boop', modelName: 'snoot', serializer: 'BoopSerializer',
+    }
     singleRegistry.reset()
     store = createStore()
     state = (store.state as any).singles
@@ -60,6 +67,28 @@ describe('Single controller', () => {
     const controller = makeController()
     controller.endpoint = '/test/'
     expect(state.example.endpoint).toBe('/test/')
+  })
+  it('Gets the socket settings', () => {
+    const controller = makeController({socketSettings})
+    expect(controller.socketSettings).toEqual(socketSettings)
+  })
+  it('Sets the socket settings', () => {
+    const controller = makeController()
+    controller.socketSettings = socketSettings
+    expect(state.example.socketSettings).toEqual(socketSettings)
+  })
+  it('Generates socket update parameters', () => {
+    const controller = makeController({socketSettings, x: {id: 5}})
+    expect(controller.socketUpdateParams).toEqual({
+      app_label: 'boop', model_name: 'snoot', serializer: 'BoopSerializer', pk: '5',
+    })
+  })
+  it('Returns null if no pk can be derived', () => {
+    const socketSettings = {
+      appLabel: 'boop', modelName: 'snoot', serializer: 'BoopSerializer',
+    }
+    const controller = makeController({socketSettings, x: null})
+    expect(controller.socketUpdateParams).toBe(null)
   })
   it('Fetches the item from the server', async() => {
     const controller = makeController()
@@ -162,5 +191,21 @@ describe('Single controller', () => {
     controller.refresh()
     expect(controller.ready).toBe(false)
     expect(mockGet).toHaveBeenCalled()
+  })
+  it('Syncs with the server', async() => {
+    const controller = makeController({socketSettings, x: {id: 5}})
+    const server = new WS('ws://localhost/test/url', {jsonProtocol: true})
+    controller.$root.$sock.open()
+    await server.connected
+    await expect(server).toReceiveMessage({
+      command: 'watch', payload: {app_label: 'boop', model_name: 'snoot', pk: '5', serializer: 'BoopSerializer'},
+    })
+    server.send({command: 'boop.snoot.update.BoopSerializer.5', payload: {id: 5, name: 'stuff'}})
+    await controller.$nextTick()
+    expect(controller.x!.name).toBe('stuff')
+    controller.purge()
+    await expect(server).toReceiveMessage({
+      command: 'clear_watch', payload: {app_label: 'boop', model_name: 'snoot', pk: '5', serializer: 'BoopSerializer'},
+    })
   })
 })

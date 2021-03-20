@@ -176,16 +176,12 @@ export class SingleController<T extends {}> extends BaseController<SingleModuleO
     if (!pk) {
       return null
     }
-    const data = {
+    return {
       app_label: socketSettings.appLabel,
       model_name: socketSettings.modelName,
       serializer: socketSettings.serializer,
       pk: `${pk}`,
     }
-    if (!data.pk) {
-      return null
-    }
-    return data
   }
 
   public get updateLabel() {

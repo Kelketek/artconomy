@@ -31,6 +31,7 @@ declare global {
 }
 
 window._paq = window._paq || []
+/* istanbul ignore else */
 if (window.__LOG_LEVEL__ === undefined) {
   window.__LOG_LEVEL__ = LogLevels.INFO
 }
