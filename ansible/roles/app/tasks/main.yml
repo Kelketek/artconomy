@@ -20,6 +20,12 @@
       - software-properties-common
       - redis-server
 
+- name: Enable redis service
+  service: name=redis-server enabled=true
+
+- name: Start redis service
+  service: name=redis-server state=started
+
 - name: Load app settings
   include_vars: "keys/{{env_prefix}}/app_settings.yml"
 
