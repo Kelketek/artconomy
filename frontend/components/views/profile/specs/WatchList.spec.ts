@@ -27,7 +27,7 @@ describe('WatchList.vue', () => {
         component: Empty,
         props: true,
       }, {
-        name: 'Products',
+        name: 'AboutUser',
         path: '/profiles/:username/products/',
         component: Empty,
         props: true,

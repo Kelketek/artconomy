@@ -26,7 +26,7 @@ describe('NewOrder.vue', () => {
       routes: [
         {path: '/test/', name: 'Test', component: Empty},
         {path: '/commission-agreement/', name: 'CommissionAgreement', component: Empty},
-        {path: '/user/:username/products/', name: 'Products', component: Empty},
+        {path: '/user/:username/about/', name: 'AboutUser', component: Empty},
         {path: '/orders/:username/order/:orderId', name: 'Order', component: Empty},
         {path: '/auth/login', name: 'Login', component: Empty},
         {path: '/orders/:username/order/:orderId/:deliverableId', name: 'Deliverable', component: Empty},

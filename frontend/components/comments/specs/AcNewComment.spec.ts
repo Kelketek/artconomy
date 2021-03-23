@@ -32,7 +32,7 @@ describe('AcNewComment.vue', () => {
         name: 'Profile',
         component: Empty,
         children: [
-          {path: 'products', name: 'Products', component: Empty},
+          {path: 'products', name: 'AboutUser', component: Empty},
         ],
       }, {
         path: '/login/',

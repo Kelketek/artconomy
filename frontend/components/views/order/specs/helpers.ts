@@ -62,9 +62,9 @@ export function deliverableRouter() {
       path: '/submissions/:submissionId/',
       props: true,
     }, {
-      name: 'Products',
+      name: 'AboutUser',
       component: Empty,
-      path: '/profiles/:username/products/',
+      path: '/profiles/:username/about/',
       props: true,
     }, {
       name: 'Product',

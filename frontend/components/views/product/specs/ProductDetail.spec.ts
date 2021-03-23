@@ -81,8 +81,8 @@ const routes: RouterOptions = {
     component: Empty,
     props: true,
     children: [{
-      name: 'Products',
-      path: '/products/',
+      name: 'AboutUser',
+      path: '/about/',
       component: Empty,
       props: true,
     }],

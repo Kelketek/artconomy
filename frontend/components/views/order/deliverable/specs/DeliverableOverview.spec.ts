@@ -6,7 +6,6 @@ import Vue from 'vue'
 import Vuetify from 'vuetify/lib'
 import {deliverableRouter} from '@/components/views/order/specs/helpers'
 import {genDeliverable, genUser} from '@/specs/helpers/fixtures'
-import {DeliverableStatus} from '@/types/DeliverableStatus'
 import DeliverableOverview from '@/components/views/order/deliverable/DeliverableOverview.vue'
 import mockAxios from '@/__mocks__/axios'
 

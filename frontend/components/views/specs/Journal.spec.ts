@@ -44,7 +44,7 @@ describe('Journal.vue', () => {
         name: 'Profile',
         component: Empty,
         children: [
-          {path: 'products', name: 'Products', component: Empty},
+          {path: 'about', name: 'AboutUser', component: Empty},
         ],
       }, {
         path: '/login/',

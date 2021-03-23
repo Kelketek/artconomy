@@ -245,9 +245,6 @@ export default class NavBar extends mixins(Viewer, Nav, PrerenderMixin) {
 
     public get profileRoute() {
       const viewer = this.viewer as User
-      if (viewer.artist_mode) {
-        return {name: 'Products', params: {username: viewer.username}}
-      }
       return {name: 'Profile', params: {username: viewer.username}}
     }
 
