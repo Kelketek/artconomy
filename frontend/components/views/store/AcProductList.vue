@@ -1,8 +1,11 @@
 <template>
   <ac-paginated :list="products" :track-pages="true">
     <v-col cols="12" sm="3" md="4" lg="3" xl="2" v-for="product in products.list" :key="product.x.id" class="pa-1">
-      <ac-product-preview :product="product.x"></ac-product-preview>
+      <ac-product-preview :product="product.x" :show-username="false" :mini="mini" />
     </v-col>
+    <template slot="empty">
+      <slot name="empty"></slot>
+    </template>
   </ac-paginated>
 </template>
 
@@ -21,6 +24,9 @@ import Viewer from '@/mixins/viewer'
 export default class AcProductList extends mixins(Viewer) {
     @Prop({required: true})
     public products!: ListController<Product>
+
+    @Prop({default: false})
+    public mini!: boolean
 
     public created() {
       this.products.firstRun().catch(this.setError)

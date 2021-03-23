@@ -6,6 +6,7 @@
       </ac-gallery-preview>
     </v-col>
     <v-col class="text-center" slot="failure" v-if="okStatuses"><p>{{failureMessage}}</p></v-col>
+    <v-col class="text-center" slot="empty" v-if="emptyMessage"><p>{{emptyMessage}}</p></v-col>
   </ac-paginated>
 </template>
 
@@ -37,6 +38,9 @@ export default class SubmissionList extends mixins(Subjective) {
 
     @Prop({default: 'This content is disabled or unavailable.'})
     public failureMessage!: string
+
+    @Prop({default: ''})
+    public emptyMessage!: string
 
     public list: ListController<Submission> = null as unknown as ListController<Submission>
     public created() {

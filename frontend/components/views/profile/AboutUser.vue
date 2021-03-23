@@ -2,8 +2,8 @@
   <ac-load-section :controller="subjectHandler.user">
     <template v-slot:default>
       <v-container>
-        <v-row dense>
-          <v-col cols="12" md="8">
+        <v-row dense class="fill-height">
+          <v-col cols="12" :md="subject.artist_mode ? 4 : 8" order="1">
             <v-card>
               <v-card-text>
                 <h2>About {{username}}</h2>
@@ -17,11 +17,33 @@
                 <small><strong>Views:</strong> {{subject.hits}} <strong>Watchers: </strong>{{subject.watches}}</small>
                 <ac-patch-field field-type="ac-editor" :patcher="subjectHandler.user.patchers.biography" v-show="editing"
                                 :auto-save="false" v-if="controls" />
-                <ac-rendered v-show="!editing" :value="subject.biography" :truncate="true" />
+                <ac-rendered v-show="!editing" :value="subject.biography" :truncate="true">
+                  <template slot="empty">
+                    <v-col v-if="isCurrent" class="text-center">
+                      You haven't added any profile information yet.
+                      <v-btn block color="green" @click="() => editing = true">Add some.</v-btn>
+                    </v-col>
+                  </template>
+                </ac-rendered>
               </v-card-text>
             </v-card>
           </v-col>
-          <v-col cols="12" md="4">
+          <v-col cols="12" md="8" v-if="subject.artist_mode" order="2" class="justify-center">
+            <ac-subjective-product-list :username="username" :mini="true" :hide-new-button="true" />
+          </v-col>
+          <v-col cols="12" :md="subject.artist_mode ? 8 : 12" :order="subject.artist_mode ? 2 : 3">
+            <v-card>
+              <v-card-text>
+                <v-card-title>{{username}}'s {{artList.label}}</v-card-title>
+                <submission-list
+                    :list-name="artList.listName" :endpoint="artList.endpoint" :username="username"
+                    :empty-message="artList.emptyMessage"
+                />
+                <v-btn v-if="isCurrent" block :to="artList.buttonDest" color="green" class="mt-2">{{artList.buttonText}}</v-btn>
+              </v-card-text>
+            </v-card>
+          </v-col>
+          <v-col cols="12" md="4" :order="subject.artist_mode ? 4 : 2">
             <ac-journals :username="username" />
           </v-col>
         </v-row>
@@ -40,6 +62,13 @@ import AcEditingToggle from '@/components/navigation/AcEditingToggle.vue'
 import AcRendered from '@/components/wrappers/AcRendered'
 import Editable from '@/mixins/editable'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
+import AcSubjectiveProductList from '@/components/views/store/AcSubjectiveProductList.vue'
+import AcProductList from '@/components/views/store/AcProductList.vue'
+import {flatten} from '@/lib/lib'
+import {ListController} from '@/store/lists/controller'
+import Product from '@/types/Product'
+import Submission from '@/types/Submission'
+import SubmissionList from '@/components/views/profile/SubmissionList.vue'
 
 declare interface ProfileBadge {
   label: string,
@@ -48,9 +77,21 @@ declare interface ProfileBadge {
 }
 
   @Component({
-    components: {AcLoadSection, AcRendered, AcEditingToggle, AcPatchField, AcJournals},
+    components: {
+      SubmissionList,
+      AcProductList,
+      AcSubjectiveProductList,
+      AcLoadSection,
+      AcRendered,
+      AcEditingToggle,
+      AcPatchField,
+      AcJournals,
+    },
   })
 export default class AboutUser extends mixins(Subjective, Editable) {
+  public products = null as unknown as ListController<Product>
+  public art = null as unknown as ListController<Submission>
+  public collection = null as unknown as ListController<Submission>
   public get badges(): ProfileBadge[] {
     const badges: ProfileBadge[] = []
     if (!this.subjectHandler.artistProfile.x) {
@@ -63,6 +104,48 @@ export default class AboutUser extends mixins(Subjective, Editable) {
       badges.push({label: 'Artist of Color', color: 'orange', light: true})
     }
     return badges
+  }
+
+  public get productUrl() {
+    return `/api/sales/v1/account/${this.username}/products/`
+  }
+
+  public get artList() {
+    let buttonText: string
+    // eslint-disable-next-line camelcase
+    if (this.subject?.artist_mode) {
+      if (this.isCurrent) {
+        buttonText = 'Manage my art'
+      } else {
+        buttonText = 'View gallery'
+      }
+      return {
+        listName: 'art',
+        label: 'Gallery',
+        endpoint: `/api/profiles/v1/account/${this.username}/submissions/art/`,
+        emptyMessage: 'You have not yet uploaded any art where you are tagged as the artist.',
+        buttonText: buttonText,
+        buttonDest: {name: 'Gallery', params: {username: this.username}},
+      }
+    }
+    if (this.isCurrent) {
+      buttonText = 'Manage my collection'
+    } else {
+      buttonText = 'View collection'
+    }
+    return {
+      listName: 'collection',
+      label: 'Collection',
+      endpoint: `/api/profiles/v1/account/${this.username}/submissions/collection/`,
+      emptyMessage: 'You have not uploaded any art to your collection. Your collection ' +
+          'holds all art artists have made for you.',
+      buttonText: buttonText,
+      buttonDest: {name: 'Collection', params: {username: this.username}},
+    }
+  }
+
+  public created() {
+    this.products = this.$getList(`${flatten(this.username)}-products`, {endpoint: this.productUrl})
   }
 }
 </script>

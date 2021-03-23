@@ -23,6 +23,9 @@
           <template slot="failure">
             <slot name="failure"/>
           </template>
+          <template slot="empty">
+            <slot name="empty"></slot>
+          </template>
         </ac-load-section>
       </v-col>
       <v-col class="text-center" cols="12" v-if="list.grow">

@@ -53,6 +53,9 @@ export default class AcRendered extends mixins(Formatting) {
   }
 
   public render(h: CreateElement) {
+    if (!this.availableText && this.$slots.empty) {
+      return this.$slots.empty
+    }
     return h(this.tag, {
       domProps: {
         innerHTML: this.rendered + this.readMore,

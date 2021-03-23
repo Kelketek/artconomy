@@ -119,8 +119,10 @@
       <v-row no-gutters >
         <v-col class="text-left" >
           <ac-link :to="productLink">{{product.name}}</ac-link>
-          By
-          <ac-link :to="{name: 'Products', params: {username: product.user.username}}">{{product.user.username}}</ac-link>
+          <span v-if="showUsername">
+            By
+            <ac-link :to="{name: 'Products', params: {username: product.user.username}}">{{product.user.username}}</ac-link>
+          </span>
         </v-col>
         <v-spacer />
       </v-row>
@@ -214,6 +216,9 @@ export default class AcProductPreview extends mixins(Formatting) {
 
     @Prop({default: false})
     public carousel!: boolean
+
+    @Prop({default: true})
+    public showUsername!: boolean
 
     public get productLink() {
       return {name: 'Product', params: {username: this.product.user.username, productId: this.product.id}}

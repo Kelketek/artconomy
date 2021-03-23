@@ -803,11 +803,7 @@ export function profileLink(user: User|TerseUser|null) {
   if (guestName(user.username)) {
     return null
   }
-  if (user.artist_mode) {
-    return {name: 'Products', params: {username: user.username}}
-  } else {
-    return {name: 'AboutUser', params: {username: user.username}}
-  }
+  return {name: 'AboutUser', params: {username: user.username}}
 }
 
 export function shuffle(array: any[]) {
