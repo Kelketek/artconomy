@@ -584,9 +584,8 @@ def demark(text):
     return BeautifulSoup(markdown.markdown(text), features="lxml").get_text()
 
 
-def preview_rating(request, target_rating, real_link, sub_link='/static/images/logo.png'):
-    real_link = make_url(real_link)
-    sub_link = make_url(sub_link)
+def preview_rating(request, target_rating, real_link, sub_link=''):
+    sub_link = sub_link or make_url('/static/images/logo.png')
     if request.user.is_authenticated:
         if request.max_rating < target_rating:
             return sub_link
