@@ -1,6 +1,6 @@
 <template>
   <fragment>
-    <v-toolbar :dense="$vuetify.breakpoint.smAndDown" color="black">
+    <v-toolbar :dense="true" color="black">
       <slot name="avatar">
         <ac-avatar :username="username" :show-name="false" />
         <v-toolbar-title class="ml-1"><ac-link :to="profileLink(subject)">{{subjectHandler.displayName}}</ac-link></v-toolbar-title>

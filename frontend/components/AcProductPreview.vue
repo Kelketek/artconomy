@@ -69,7 +69,7 @@
                 </v-col>
               </v-col>
               <v-col cols="12" class="hidden-sm-and-down">
-                <v-toolbar color="black">
+                <v-toolbar color="black" dense>
                   <ac-avatar :user="product.user" :show-name="false"></ac-avatar>
                   <v-toolbar-title>{{product.user.username}}</v-toolbar-title>
                 </v-toolbar>
