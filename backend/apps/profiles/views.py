@@ -1409,9 +1409,9 @@ class CharacterPreview(BasePreview):
         char_context['title'] = f'{demark(character.name)} - {character.user.username} on Artconomy.com'
         char_context['description'] = demark(character.description)[:160]
         submissions = character_submissions(character, self.request)
-        char_context['image_links'] = [
+        char_context['image_links'] = [character.preview_image(self.request)] + [
             submission.preview_link for submission in submissions[:24]
-        ] + [character.preview_image(self.request)]
+        ]
         return char_context
 
 

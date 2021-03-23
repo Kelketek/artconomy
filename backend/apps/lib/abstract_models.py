@@ -12,8 +12,7 @@ from easy_thumbnails.fields import ThumbnailerImageField
 from easy_thumbnails.files import ThumbnailerImageFieldFile, get_thumbnailer
 from hitcount.models import HitCount
 
-from shortcuts import disable_on_load
-
+from shortcuts import disable_on_load, make_url
 
 ALLOWED_EXTENSIONS = (
     'ACC', 'AE', 'AI', 'AN', 'AVI', 'BMP', 'DGN', 'DOC', 'DOCH', 'DOCM', 'DOCX', 'DOTH', 'DW', 'DWFX',
@@ -148,7 +147,7 @@ class ImageModel(AssetThumbnailMixin, models.Model):
         if self.preview:
             options = aliases.get('thumbnail', target=self.ref_name('preview'))
             try:
-                return self.preview.file.get_thumbnail(options).url
+                return make_url(self.preview.file.get_thumbnail(options).url)
             except (OSError, InvalidImageFormatError):
                 pass
         for thumb in ['gallery', 'preview', 'thumbnail']:
@@ -156,14 +155,14 @@ class ImageModel(AssetThumbnailMixin, models.Model):
                 options = aliases.get(thumb, target=self.ref_name('file'))
                 if not options:
                     continue
-                return self.file.file.get_thumbnail(options).url
+                return make_url(self.file.file.get_thumbnail(options).url)
             except OSError:
                 break
             except InvalidImageFormatError:
                 return None
             except ValueError:
                 return None
-        return self.file.file.url
+        return make_url(self.file.file.url)
 
     def ref_name(self, field_name):
         return f'{self._meta.app_label}.{self.__class__.__name__}.{field_name}'
