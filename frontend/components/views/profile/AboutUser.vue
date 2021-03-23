@@ -29,7 +29,12 @@
             </v-card>
           </v-col>
           <v-col cols="12" md="8" v-if="subject.artist_mode" order="2" class="justify-center">
-            <ac-subjective-product-list :username="username" :mini="true" :hide-new-button="true" />
+            <v-col>
+              <ac-subjective-product-list :username="username" :mini="true" :hide-new-button="true" />
+            </v-col>
+            <v-col align-self="end">
+              <v-btn block color="green" :to="{name: 'Products', params: {username}}">View full store</v-btn>
+            </v-col>
           </v-col>
           <v-col cols="12" :md="subject.artist_mode ? 8 : 12" :order="subject.artist_mode ? 2 : 3">
             <v-card>
@@ -37,9 +42,9 @@
                 <v-card-title>{{username}}'s {{artList.label}}</v-card-title>
                 <submission-list
                     :list-name="artList.listName" :endpoint="artList.endpoint" :username="username"
-                    :empty-message="artList.emptyMessage"
+                    :empty-message="artList.emptyMessage" :track-pages="false" :show-pagination="false"
                 />
-                <v-btn v-if="isCurrent" block :to="artList.buttonDest" color="green" class="mt-2">{{artList.buttonText}}</v-btn>
+                <v-btn block :to="artList.buttonDest" color="green" class="mt-2">{{artList.buttonText}}</v-btn>
               </v-card-text>
             </v-card>
           </v-col>
@@ -117,11 +122,11 @@ export default class AboutUser extends mixins(Subjective, Editable) {
       if (this.isCurrent) {
         buttonText = 'Manage my art'
       } else {
-        buttonText = 'View gallery'
+        buttonText = 'View full gallery'
       }
       return {
         listName: 'art',
-        label: 'Gallery',
+        label: 'Art',
         endpoint: `/api/profiles/v1/account/${this.username}/submissions/art/`,
         emptyMessage: 'You have not yet uploaded any art where you are tagged as the artist.',
         buttonText: buttonText,
@@ -131,7 +136,7 @@ export default class AboutUser extends mixins(Subjective, Editable) {
     if (this.isCurrent) {
       buttonText = 'Manage my collection'
     } else {
-      buttonText = 'View collection'
+      buttonText = 'View full collection'
     }
     return {
       listName: 'collection',

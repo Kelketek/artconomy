@@ -1,5 +1,5 @@
 <template>
-  <ac-paginated :list="list" :track-pages="trackPages" :ok-statuses="okStatuses">
+  <ac-paginated :list="list" :track-pages="trackPages" :ok-statuses="okStatuses" :show-pagination="showPagination">
     <v-col cols="4" sm="3" lg="2" v-for="submission in list.list" :key="submission.x.id">
       <ac-gallery-preview class="pa-1"
                           :submission="submission.x" :show-footer="false">
@@ -41,6 +41,9 @@ export default class SubmissionList extends mixins(Subjective) {
 
     @Prop({default: ''})
     public emptyMessage!: string
+
+    @Prop({default: true})
+    public showPagination!: boolean
 
     public list: ListController<Submission> = null as unknown as ListController<Submission>
     public created() {
