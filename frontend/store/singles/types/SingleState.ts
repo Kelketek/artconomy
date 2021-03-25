@@ -8,6 +8,7 @@ export interface SingleState<T> {
   fetching: boolean,
   ready: boolean,
   failed: boolean,
+  deleted: boolean,
   params: QueryParams|null,
   socketSettings?: SingleSocketSettings|null,
 }

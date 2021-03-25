@@ -4,7 +4,7 @@ import {cleanUp, createVuetify, docTarget, setViewer, vueSetup, mount} from '@/s
 import {ArtStore, createStore} from '@/store'
 import {Wrapper} from '@vue/test-utils'
 import Payout from '@/components/views/settings/payment/Payout.vue'
-import {genArtistProfile, genUser} from '@/specs/helpers/fixtures'
+import {genUser} from '@/specs/helpers/fixtures'
 
 const localVue = vueSetup()
 let store: ArtStore
@@ -22,17 +22,5 @@ describe('Payout.vue', () => {
   it('Mounts', async() => {
     setViewer(store, genUser())
     wrapper = mount(Payout, {localVue, store, propsData: {username: 'Fox'}, attachTo: docTarget()})
-  })
-  it('Recognizes us or non-us account status', async() => {
-    setViewer(store, genUser())
-    wrapper = mount(Payout, {localVue, store, propsData: {username: 'Fox'}, attachTo: docTarget()})
-    const vm = wrapper.vm as any
-    expect(vm.nonUsAccount).toBe(null)
-    vm.subjectHandler.artistProfile.setX(genArtistProfile())
-    await vm.$nextTick()
-    expect(vm.nonUsAccount).toBe(false)
-    vm.subjectHandler.artistProfile.updateX({bank_account_status: 2})
-    await vm.$nextTick()
-    expect(vm.nonUsAccount).toBe(true)
   })
 })

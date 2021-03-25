@@ -1,48 +1,51 @@
 import {ListController} from '../controller'
-import {listRegistry, Lists} from '../registry'
+import {listRegistry} from '../registry'
 import {ArtStore, createStore} from '../../index'
-import {createLocalVue, shallowMount} from '@vue/test-utils'
+import {Wrapper} from '@vue/test-utils'
 import mockAxios from '@/specs/helpers/mock-axios'
-import Vue from 'vue'
-import Vuex from 'vuex'
-import {rq, rs, mount} from '@/specs/helpers'
+import Vue, {VueConstructor} from 'vue'
+import {rq, rs, mount, cleanUp, vueSetup} from '@/specs/helpers'
 import flushPromises from 'flush-promises'
 import {ListModuleOpts} from '../types/ListModuleOpts'
-import {singleRegistry, Singles} from '../../singles/registry'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import {SingleController} from '@/store/singles/controller'
+import WS from 'jest-websocket-mock'
+import {ListSocketSettings} from '@/store/lists/types/ListSocketSettings'
+import { cloneDeep } from 'lodash'
 
 let store: ArtStore
 let state: any
-Vue.use(Vuex)
-const localVue = createLocalVue()
-localVue.use(Singles)
-localVue.use(Lists)
+let empty: Wrapper<Vue>
+let socketSettings: ListSocketSettings
+let localVue: VueConstructor
 
 const mockWarning = jest.spyOn(console, 'warn')
 
 describe('List controller', () => {
   function makeController(extra?: Partial<ListModuleOpts>) {
-    if (extra === undefined) {
-      extra = {}
-    }
-    return shallowMount(ListController, {
-      store,
-      propsData: {
-        initName: 'example',
-        schema: {...{endpoint: '/endpoint/'}, ...extra},
-      },
-      localVue,
-    },
-    ).vm as ListController<any>
+    const schema = {...{endpoint: '/endpoint/'}, ...extra}
+    return empty.vm.$getList('example', schema)
   }
 
   beforeEach(() => {
-    listRegistry.reset()
-    singleRegistry.reset()
+    localVue = vueSetup()
     store = createStore()
     state = (store.state as any).lists
-    mockAxios.reset()
+    empty = mount(Empty, {localVue, store})
+    socketSettings = {
+      appLabel: 'sales',
+      modelName: 'LineItem',
+      serializer: 'LineItemSerializer',
+      list: {
+        listName: 'line_items',
+        pk: '100',
+        appLabel: 'sales',
+        modelName: 'Deliverable',
+      },
+    }
+  })
+  afterEach(() => {
+    cleanUp()
   })
   it('Initializes a list', () => {
     const controller = makeController()
@@ -407,5 +410,96 @@ describe('List controller', () => {
     mockAxios.mockResponse(rs([{id: 1}, {id: 2}]))
     await flushPromises()
     expect(controller.list.length).toBe(2)
+  })
+  it('Receives new items from the server.', async() => {
+    const controller = makeController({socketSettings})
+    const server = new WS(controller.$sock.endpoint, {jsonProtocol: true})
+    controller.$root.$sock.open()
+    controller.makeReady([])
+    await server.connected
+    await controller.$nextTick()
+    // await expect(server).toReceiveMessage()
+    server.send({command: 'sales.Deliverable.pk.100.line_items.LineItemSerializer.new', payload: {id: 5, name: 'stuff'}})
+    await controller.$nextTick()
+    expect(controller.list[0].x.name).toBe('stuff')
+    const mockSend = jest.spyOn(controller.$sock, 'send')
+    controller.purge()
+    // The mock socket doesn't recognize this as being sent no matter what I do, so capturing it here.
+    expect(mockSend).toHaveBeenCalledWith(
+      'clear_watch_new',
+      {
+        app_label: 'sales',
+        model_name: 'Deliverable',
+        pk: '100',
+        list_name: 'line_items',
+        serializer: 'LineItemSerializer',
+      },
+    )
+  })
+  it('Receives new items from the server, sans primary key.', async() => {
+    const settings = cloneDeep(socketSettings)
+    delete settings.list.pk
+    const controller = makeController({socketSettings: settings})
+    const server = new WS(controller.$sock.endpoint, {jsonProtocol: true})
+    controller.$root.$sock.open()
+    controller.makeReady([])
+    await server.connected
+    await controller.$nextTick()
+    // await expect(server).toReceiveMessage()
+    server.send({command: 'sales.Deliverable.line_items.LineItemSerializer.new', payload: {id: 5, name: 'stuff'}})
+    await controller.$nextTick()
+    expect(controller.list[0].x.name).toBe('stuff')
+    const mockSend = jest.spyOn(controller.$sock, 'send')
+    controller.purge()
+    // The mock socket doesn't recognize this as being sent no matter what I do, so capturing it here.
+    expect(mockSend).toHaveBeenCalledWith(
+      'clear_watch_new',
+      {
+        app_label: 'sales',
+        model_name: 'Deliverable',
+        list_name: 'line_items',
+        serializer: 'LineItemSerializer',
+      },
+    )
+  })
+  it('Detects if the content is stale and refetches upon reconnection.', async() => {
+    const controller = makeController({socketSettings})
+    controller.makeReady([])
+    let server = new WS(controller.$sock.endpoint, {jsonProtocol: true})
+    controller.$root.$sock.open()
+    await server.connected
+    await controller.$nextTick()
+    await expect(server).toReceiveMessage({
+      command: 'watch_new',
+      payload: {
+        app_label: 'sales',
+        model_name: 'Deliverable',
+        list_name: 'line_items',
+        pk: '100',
+        serializer: 'LineItemSerializer',
+      },
+    })
+    controller.$sock.socket!.close()
+    controller.$sock.endpoint = 'ws://localhost/boop/snoot'
+    await server.close()
+    await controller.$nextTick()
+    expect(controller.stale).toBe(true)
+    mockAxios.reset()
+    WS.clean()
+    await flushPromises()
+    server = new WS(controller.$sock.endpoint, {jsonProtocol: true})
+    await controller.$root.$sock.open()
+    await server.connected
+    await flushPromises()
+    await controller.$nextTick()
+    const lastRequest = mockAxios.lastReqGet()
+    expect(lastRequest.url).toBe('/endpoint/')
+  })
+  it('Reads and sets socket settings.', async() => {
+    const controller = makeController()
+    expect(controller.socketSettings).toBe(null)
+    controller.socketSettings = socketSettings
+    expect(controller.socketSettings).toEqual(socketSettings)
+    expect(controller.attr('socketSettings')).toEqual(socketSettings)
   })
 })

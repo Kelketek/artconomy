@@ -20,7 +20,6 @@ import LinkedCharacter from '@/types/LinkedCharacter'
 import LineItem from '@/types/LineItem'
 import LinkedReference from '@/types/LinkedReference'
 import Pricing from '@/types/Pricing'
-import InvoicingMixin from '@/components/views/order/mixins/InvoicingMixin'
 /*
 
 This mixin is used by all deliverable routes. Some crucial operations only occur in DeliverableDetail as it is the host
@@ -263,6 +262,10 @@ export default class DeliverableMixin extends mixins(Viewer) {
   }
 
   public get viewMode() {
+    // Race condition in a subcomponent watcher lets this jump in before it's set.
+    if (this.viewSettings === null) {
+      return VIEWER_TYPE.UNSET
+    }
     return this.viewSettings.model.viewerType
   }
 
@@ -339,7 +342,14 @@ export default class DeliverableMixin extends mixins(Viewer) {
     this.viewSettings.ready = true
     this.order = this.$getSingle(`order${this.orderId}`, {endpoint: this.orderUrl})
     this.deliverable = this.$getSingle(
-      `${this.prefix}`, {endpoint: this.url},
+      `${this.prefix}`, {
+        endpoint: this.url,
+        socketSettings: {
+          appLabel: 'sales',
+          modelName: 'Deliverable',
+          serializer: 'DeliverableViewSerializer',
+        },
+      },
     )
     this.comments = this.$getList(
       `${this.prefix}__comments`, {
@@ -373,6 +383,17 @@ export default class DeliverableMixin extends mixins(Viewer) {
     this.lineItems = this.$getList(`${this.prefix}__lineItems`, {
       endpoint: `${this.url}line-items/`,
       paginated: false,
+      socketSettings: {
+        appLabel: 'sales',
+        modelName: 'LineItem',
+        serializer: 'LineItemSerializer',
+        list: {
+          appLabel: 'sales',
+          modelName: 'Deliverable',
+          pk: `${this.deliverableId}`,
+          listName: 'line_items',
+        },
+      },
     })
     this.lineItems.firstRun()
     this.tipForm = this.$getForm(`${this.prefix}__tip`, {

@@ -11,6 +11,13 @@
   args:
     executable: "/bin/bash"
 
+- name: stripe webhooks
+  become: yes
+  become_user: "{{ env_prefix }}"
+  shell: "source ~/.profile && source ~/bin/activate && cd ~/artconomy && ./manage.py stripe_webhooks"
+  args:
+    executable: "/bin/bash"
+
 - name: collect static assets
   become: yes
   become_user: "{{ env_prefix }}"

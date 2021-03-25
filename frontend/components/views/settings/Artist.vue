@@ -15,7 +15,7 @@
                     label="Commissions Closed"
                     field-type="v-switch"
                     hint="When on, delists all of your products, and only allows orders you've specifically
-                          invoiced or granted a token for."
+                          invoiced."
                     :persistent-hint="true"
                     :save-indicator="false"
                     :patcher="subjectHandler.artistProfile.patchers.commissions_closed"
@@ -32,7 +32,7 @@
                     :persistent-hint="true"></ac-patch-field>
               </v-col>
               <v-col cols="12" sm="6" md="4">
-                <v-row no-gutters  >
+                <v-row no-gutters>
                   <v-col cols="12">
                     <ac-patch-field
                         field-type="v-slider"

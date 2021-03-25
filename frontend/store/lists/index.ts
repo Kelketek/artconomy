@@ -8,6 +8,8 @@ import {PaginatedResponse} from '@/store/lists/types/PaginatedResponse'
 import {SingleModule} from '../singles'
 import {QueryParams} from '@/store/helpers/QueryParams'
 import {HttpVerbs} from '@/store/forms/types/HttpVerbs'
+import {ListSocketSettings} from '@/store/lists/types/ListSocketSettings'
+import {SingleSocketSettings} from '@/store/singles/types/SingleSocketSettings'
 
 function registerItems(store: Store<any>, state: ListState<any>, items: any[]) {
   if ((state as any).items === undefined) {
@@ -23,8 +25,17 @@ function registerItems(store: Store<any>, state: ListState<any>, items: any[]) {
     if (target !== undefined) {
       store.unregisterModule(path)
     }
+    let socketSettings: SingleSocketSettings|null
+    if (state.socketSettings !== null) {
+      socketSettings = {...state.socketSettings}
+    } else {
+      socketSettings = null
+    }
     store.registerModule(path, new SingleModule({
-      x: item, endpoint: state.endpoint + item[state.keyProp] + '/',
+      x: item,
+      endpoint: state.endpoint + item[state.keyProp] + '/',
+      ready: true,
+      socketSettings: socketSettings,
     }))
     entries.push(item[state.keyProp] + '')
   }
@@ -63,8 +74,9 @@ export class ListModule<T extends {}> {
   public namespaced: boolean
 
   public constructor(options: {
-                       grow?: boolean, endpoint: string, persistent?: boolean,
-                       keyProp?: keyof T, name: string, reverse?: boolean, failed?: boolean, params?: QueryParams,
+                       grow?: boolean, currentPage?: number, endpoint: string, pageSize?: number, persistent?: boolean,
+                       keyProp?: keyof T, name: string, reverse?: boolean, failed?: boolean, stale?: boolean,
+                       socketSettings?: ListSocketSettings, params?: QueryParams,
                      },
   ) {
     const defaults = {
@@ -79,6 +91,8 @@ export class ListModule<T extends {}> {
       failed: false,
       paginated: true,
       params: null,
+      socketSettings: null,
+      stale: false,
     }
     const cancel = {source: axios.CancelToken.source()}
     this.state = {...defaults, ...options}
@@ -117,6 +131,9 @@ export class ListModule<T extends {}> {
       setFailed(state: ListState<T>, value: boolean) {
         state.failed = value
       },
+      setStale(state: ListState<T>, value: boolean) {
+        state.stale = value
+      },
       remove(state: ListState<T>, item: T) {
         let index = state.refs.indexOf((item as any)[state.keyProp] + '')
         if (index === -1) {
@@ -139,6 +156,9 @@ export class ListModule<T extends {}> {
       setList(state: ListState<T>, items: string[]) {
         const entries = registerItems(this as unknown as Store<any>, state, items)
         Vue.set(state, 'refs', entries)
+      },
+      setSocketSettings(state: ListState<T>, socketSettings: ListSocketSettings) {
+        Vue.set(state, 'socketSettings', socketSettings)
       },
       setParams(state: ListState<T>, params: QueryParams|null) {
         state.params = defaultParams(state, params)

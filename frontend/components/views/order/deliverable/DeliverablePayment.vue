@@ -120,75 +120,81 @@
                       </ac-form-dialog>
                     </v-col>
                     <v-btn color="green" @click="showPayment = true" class="payment-button">Send Payment</v-btn>
-                    <ac-form-dialog v-model="showPayment" @submit.prevent="paymentForm.submitThen(updateDeliverable)" :large="true" v-bind="paymentForm.bind">
-                      <v-row>
-                        <v-col class="text-center" cols="12" >Total Charge: <strong>${{totalCharge.toFixed(2)}}</strong></v-col>
-                        <v-col cols="12">
-                          <ac-load-section :controller="order">
-                            <template v-slot:default>
-                              <ac-card-manager
-                                ref="cardManager"
-                                :payment="true"
-                                :username="buyer.username"
-                                :cc-form="paymentForm"
-                                :field-mode="true"
-                                v-model="paymentForm.fields.card_id.model"
-                              />
-                            </template>
-                          </ac-load-section>
-                        </v-col>
-                        <v-col cols="12" v-if="seller.landscape && !deliverable.x.escrow_disabled" class="text-xs-center">
-                          <v-card elevation="5">
-                            <v-card-title>Add a tip?</v-card-title>
-                            <v-card-text>
-                              <ac-form-container v-bind="tipForm.bind">
-                                <ac-form @submit.prevent="tipForm.submitThen(lineItems.uniquePush)">
-                                  <v-row>
-                                    <v-col cols="12">
-                                      <strong>Tips are not required, as artists set their own prices,</strong> but they are always appreciated. Your tip is protected
-                                      by Artconomy Shield, along with the rest of your order.
-                                    </v-col>
-                                    <v-col cols="4" sm="2" offset-sm="3" class="text-center">
-                                      <v-btn small color="secondary" class="preset10" fab @click="setTip(.1)"><strong>10%</strong></v-btn>
-                                    </v-col>
-                                    <v-col cols="4" sm="2" class="text-center">
-                                      <v-btn small color="secondary" class="preset15" fab @click="setTip(.15)"><strong>15%</strong></v-btn>
-                                    </v-col>
-                                    <v-col cols="4" sm="2" class="text-center">
-                                      <v-btn small color="secondary" class="preset20" fab @click="setTip(.2)"><strong>20%</strong></v-btn>
-                                    </v-col>
-                                    <v-col cols="12" v-if="tip">
-                                      <ac-patch-field
-                                        :patcher="tip.patchers.amount"
-                                        field-type="ac-price-field"
-                                        label="Tip"
-                                      />
-                                    </v-col>
-                                    <v-col cols="12" v-else class="text-center">
-                                      <v-btn color="secondary" @click="setTip(0)">Custom Tip</v-btn>
-                                    </v-col>
-                                  </v-row>
-                                </ac-form>
-                              </ac-form-container>
-                            </v-card-text>
-                          </v-card>
-                        </v-col>
-                        <v-col class="text-center" cols="12" v-if="tip">
-                          <ac-price-preview
-                            :price="deliverable.x.price"
-                            :line-items="lineItems"
-                            :username="order.x.seller.username"
-                            :is-seller="isSeller"
-                            :escrow="!order.x.escrow_disabled"
-                          />
-                        </v-col>
-                        <v-col class="text-center" cols="12" >
-                          <p>Use of Artconomy is subject to the
-                            <router-link :to="{name: 'TermsOfService'}">Terms of Service</router-link>.<br />
-                            This order is subject to the <router-link :to="{name: 'CommissionAgreement'}">Commission Agreement</router-link>.<br />
-                            Artconomy is based in the United States of America.</p>
-                        </v-col>
-                      </v-row>
+                    <ac-form-dialog
+                        v-model="showPayment" @submit.prevent="paymentSubmit"
+                        :large="true" v-bind="paymentForm.bind"
+                    >
+                        <v-row>
+                          <v-col class="text-center" cols="12" >Total Charge: <strong>${{totalCharge.toFixed(2)}}</strong></v-col>
+                          <v-col cols="12">
+                            <ac-load-section :controller="deliverable">
+                              <template v-slot:default>
+                                <ac-card-manager
+                                  ref="cardManager"
+                                  :payment="true"
+                                  :username="buyer.username"
+                                  :processor="deliverable.x.processor"
+                                  :cc-form="paymentForm"
+                                  :field-mode="true"
+                                  :client-secret="(clientSecret.x && clientSecret.x.secret) || ''"
+                                  v-model="paymentForm.fields.card_id.model"
+                                  @paymentSent="hideForm"
+                                />
+                              </template>
+                            </ac-load-section>
+                          </v-col>
+                          <v-col cols="12" v-if="seller.landscape && !deliverable.x.escrow_disabled" class="text-xs-center">
+                            <v-card elevation="5">
+                              <v-card-title>Add a tip?</v-card-title>
+                              <v-card-text>
+                                <ac-form-container v-bind="tipForm.bind">
+                                  <ac-form @submit.prevent="tipForm.submitThen(lineItems.uniquePush)">
+                                    <v-row>
+                                      <v-col cols="12">
+                                        <strong>Tips are not required, as artists set their own prices,</strong> but they are always appreciated. Your tip is protected
+                                        by Artconomy Shield, along with the rest of your order.
+                                      </v-col>
+                                      <v-col cols="4" sm="2" offset-sm="3" class="text-center">
+                                        <v-btn small color="secondary" class="preset10" fab @click="setTip(.1)"><strong>10%</strong></v-btn>
+                                      </v-col>
+                                      <v-col cols="4" sm="2" class="text-center">
+                                        <v-btn small color="secondary" class="preset15" fab @click="setTip(.15)"><strong>15%</strong></v-btn>
+                                      </v-col>
+                                      <v-col cols="4" sm="2" class="text-center">
+                                        <v-btn small color="secondary" class="preset20" fab @click="setTip(.2)"><strong>20%</strong></v-btn>
+                                      </v-col>
+                                      <v-col cols="12" v-if="tip">
+                                        <ac-patch-field
+                                          :patcher="tip.patchers.amount"
+                                          field-type="ac-price-field"
+                                          label="Tip"
+                                        />
+                                      </v-col>
+                                      <v-col cols="12" v-else class="text-center">
+                                        <v-btn color="secondary" @click="setTip(0)">Custom Tip</v-btn>
+                                      </v-col>
+                                    </v-row>
+                                  </ac-form>
+                                </ac-form-container>
+                              </v-card-text>
+                            </v-card>
+                          </v-col>
+                          <v-col class="text-center" cols="12" v-if="tip">
+                            <ac-price-preview
+                              :price="deliverable.x.price"
+                              :line-items="lineItems"
+                              :username="order.x.seller.username"
+                              :is-seller="isSeller"
+                              :escrow="!order.x.escrow_disabled"
+                            />
+                          </v-col>
+                          <v-col class="text-center" cols="12" >
+                            <p>Use of Artconomy is subject to the
+                              <router-link :to="{name: 'TermsOfService'}">Terms of Service</router-link>.<br />
+                              This order is subject to the <router-link :to="{name: 'CommissionAgreement'}">Commission Agreement</router-link>.<br />
+                              Artconomy is based in the United States of America.</p>
+                          </v-col>
+                        </v-row>
                     </ac-form-dialog>
                   </v-col>
                 </v-card-text>
@@ -230,8 +236,16 @@ import AcPatchField from '@/components/fields/AcPatchField.vue'
 import Formatting from '@/mixins/formatting'
 import AcBoundField from '@/components/fields/AcBoundField'
 import AcRendered from '@/components/wrappers/AcRendered'
+import {SingleController} from '@/store/singles/controller'
+import ClientSecret from '@/types/ClientSecret'
+import {PROCESSORS} from '@/types/PROCESSORS'
+import AcStripeCharge from '@/components/AcStripeCharge.vue'
+import {SocketState} from '@/types/SocketState'
+import StripeHostMixin from '@/components/views/order/mixins/StripeHostMixin'
+
 @Component({
   components: {
+    AcStripeCharge,
     AcBoundField,
     AcPatchField,
     AcForm,
@@ -245,9 +259,12 @@ import AcRendered from '@/components/wrappers/AcRendered'
     AcRendered,
   },
 })
-export default class DeliverablePayment extends mixins(DeliverableMixin, Formatting) {
+export default class DeliverablePayment extends mixins(DeliverableMixin, Formatting, StripeHostMixin) {
   public showPayment = false
   public showManualTransaction = false
+  public clientSecret = null as unknown as SingleController<ClientSecret>
+  public PROCESSORS = PROCESSORS
+  public socketState = null as unknown as SingleController<SocketState>
 
   @Watch('showManualTransaction')
   public clearManualTransactionSettings() {
@@ -272,6 +289,27 @@ export default class DeliverablePayment extends mixins(DeliverableMixin, Formatt
     }
   }
 
+  public get stripeEnabled() {
+    const deliverable = this.deliverable.x
+    if (!deliverable) {
+      return false
+    }
+    return deliverable.processor === PROCESSORS.STRIPE
+  }
+
+  public hideForm() {
+    this.showPayment = false
+    this.paymentForm.sending = false
+  }
+
+  @Watch('isBuyer', {immediate: false})
+  public fetchSecret(isBuyer: boolean) {
+    if (!isBuyer) {
+      return
+    }
+    this.updateIntent()
+  }
+
   public get priceData(): LineAccumulator {
     /* istanbul ignore if */
     if (!this.lineItems) {
@@ -287,6 +325,14 @@ export default class DeliverablePayment extends mixins(DeliverableMixin, Formatt
       return undefined
     }
     return this.totalCharge
+  }
+
+  public paymentSubmit() {
+    if (!this.stripeEnabled) {
+      this.paymentForm.submitThen(this.updateDeliverable)
+    }
+    const cardManager = this.$refs.cardManager as any
+    cardManager.stripeSubmit()
   }
 
   public get commissionInfo() {
@@ -335,6 +381,14 @@ export default class DeliverablePayment extends mixins(DeliverableMixin, Formatt
 
   public get tip() {
     return this.lineItems && this.lineItems.list.filter((x) => x.x && x.x.type === LineTypes.TIP)[0]
+  }
+
+  public created() {
+    this.socketState = this.$getSingle('socketState')
+    this.clientSecret = this.$getSingle(
+        `${this.prefix}__clientSecret`, {
+          endpoint: `${this.url}payment-intent/`,
+        })
   }
 }
 </script>

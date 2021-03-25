@@ -1,4 +1,5 @@
 import {Ratings} from './Ratings'
+import {PROCESSORS} from '@/types/PROCESSORS'
 
 export interface User {
   portrait_paid_through: string | null,
@@ -31,4 +32,5 @@ export interface User {
   hits: number,
   watches: number,
   birthday: string|null,
+  processor: PROCESSORS,
 }

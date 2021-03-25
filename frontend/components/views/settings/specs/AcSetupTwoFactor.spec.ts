@@ -57,7 +57,8 @@ describe('ac-setup-two-factor', () => {
     await flushPromises()
     const vm = wrapper.vm as any
     await vm.$nextTick()
-    expect(vm.tgDevice.x).toBe(false)
+    expect(vm.tgDevice.x).toBe(null)
+    expect(vm.tgDevice.ready).toBe(true)
   })
   it('Updates the relevant URLs', async() => {
     mockError.mockImplementationOnce(() => undefined)

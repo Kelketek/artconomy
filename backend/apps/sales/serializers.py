@@ -2,6 +2,7 @@ from collections import Iterable
 from decimal import Decimal
 from functools import lru_cache
 from typing import List
+from urllib.parse import urlparse
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
@@ -19,7 +20,9 @@ from short_stuff import unslugify
 from short_stuff.django.serializers import ShortCodeField
 
 from apps.lib.abstract_models import GENERAL, EXTREME, RATINGS
-from apps.lib.models import ref_for_instance, Asset
+from apps.lib.models import Asset
+from apps.lib.consumers import register_serializer
+from apps.lib.models import ref_for_instance
 from apps.lib.serializers import (
     RelatedUserSerializer, RelatedAssetField, EventTargetRelatedField, SubscribedField,
     TagListField, RelatedAtomicMixin,
@@ -28,12 +31,14 @@ from apps.lib.utils import country_choices, add_check, check_read, demark
 from apps.profiles.models import User, Submission, Character
 from apps.profiles.serializers import CharacterSerializer, SubmissionSerializer
 from apps.profiles.utils import available_users
+from apps.sales.apis import AUTHORIZE, STRIPE
 from apps.sales.models import (
     Product, Order, CreditCardToken, Revision, BankAccount,
     LineItemSim, Rating, TransactionRecord, LineItem, ADD_ON, TIP, BASE_PRICE, InventoryTracker,
     EXTRA, PAYMENT_PENDING, NEW, Deliverable, Reference,
-    WAITING,
+    WAITING, StripeAccount,
 )
+from apps.sales.stripe import stripe
 from apps.sales.utils import account_balance, PENDING, POSTED_ONLY, AVAILABLE, get_totals, order_context, \
     order_context_to_link
 from shortcuts import make_url
@@ -122,7 +127,6 @@ class ProductValidationMixin:
         if not product:
             raise ValidationError("You don't have a product with that ID.")
         return product
-
 
 
 class PriceValidationMixin:
@@ -288,6 +292,7 @@ class NewDeliverableSerializer(
         )
 
 
+@register_serializer
 class DeliverableViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
     arbitrator = RelatedUserSerializer(read_only=True)
     outputs = SubmissionSerializer(many=True, read_only=True)
@@ -297,6 +302,7 @@ class DeliverableViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer)
     tip = MoneyToFloatField(read_only=True, validators=[MinValueValidator(0)])
     adjustment_expected_turnaround = FloatField(read_only=True, max_value=1000, min_value=-1000)
     display = serializers.SerializerMethodField()
+    processor = serializers.CharField(read_only=True)
     order = OrderViewSerializer(read_only=True)
     read = serializers.SerializerMethodField()
 
@@ -370,7 +376,7 @@ class DeliverableViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer)
         tip = attrs.get('tip', None)
         if tip is None:
             return attrs
-        current_total = self.instance.total()
+        current_total = self.instance.invoice.total()
         current_total -= self.instance.tip
         if (current_total.amount / 2) < tip:
             raise ValidationError({'tip': 'Tip should not be more than half of the original price.'})
@@ -387,7 +393,7 @@ class DeliverableViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer)
             'adjustment_expected_turnaround', 'expected_turnaround', 'task_weight', 'paid_on', 'dispute_available_on',
             'auto_finalize_on', 'started_on', 'escrow_disabled', 'revisions_hidden', 'final_uploaded', 'arbitrator',
             'display', 'rating', 'commission_info', 'adjustment_revisions',
-            'tip', 'table_order', 'trust_finalized', 'order', 'name', 'product', 'read',
+            'tip', 'table_order', 'trust_finalized', 'order', 'name', 'product', 'read', 'processor',
         )
         read_only_fields = [field for field in fields if field != 'subscribed']
         extra_kwargs = {
@@ -396,6 +402,7 @@ class DeliverableViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer)
         }
 
 
+@register_serializer
 class LineItemSerializer(serializers.ModelSerializer):
     percentage = serializers.FloatField()
     amount = MoneyToFloatField()
@@ -469,14 +476,18 @@ class OrderPreviewSerializer(ProductNameMixin, serializers.ModelSerializer):
 class CardSerializer(serializers.ModelSerializer):
     user = RelatedUserSerializer(read_only=True)
     primary = SerializerMethodField('is_primary')
+    processor = SerializerMethodField()
 
     # noinspection PyMethodMayBeStatic
     def is_primary(self, obj):
         return obj.user.primary_card_id == obj.id
 
+    def get_processor(self, obj):
+        return AUTHORIZE if obj.token else STRIPE
+
     class Meta:
         model = CreditCardToken
-        fields = ('id', 'user', 'last_four', 'type', 'primary', 'cvv_verified')
+        fields = ('id', 'user', 'last_four', 'type', 'primary', 'cvv_verified', 'processor')
         read_only_fields = fields
 
 
@@ -563,6 +574,9 @@ class PaymentSerializer(MakePaymentMixin, NewCardSerializer):
         if not len(value) >= 10:
             raise ValidationError('Authorize.net transaction IDs are 10 or more digits in length.')
         return value
+
+    def validate_amount(self, value: Decimal):
+        return Money(value, 'USD')
 
 
 # noinspection PyAbstractClass
@@ -891,7 +905,7 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
         )
 
     def get_extra(self, obj):
-        _, discount, subtotals = get_totals(obj.line_items.all())
+        _, discount, subtotals = get_totals(obj.invoice.line_items.all())
         return sum([value.amount for line, value in subtotals.items() if line.type == EXTRA])
 
     def get_still_in_escrow(self, obj):
@@ -1159,3 +1173,42 @@ class DeliverableReferenceSerializer(serializers.ModelSerializer):
             'id', 'reference', 'reference_id',
         )
         model = Reference.deliverables.through
+
+
+class PaymentIntentSettings(serializers.Serializer):
+    make_primary = serializers.BooleanField(default=False)
+    save_card = serializers.BooleanField(default=False)
+
+
+class PremiumIntentSettings(serializers.Serializer):
+    make_primary = serializers.BooleanField(default=False)
+    save_card = serializers.BooleanField(default=False)
+    service = serializers.ChoiceField(choices=('portrait', 'landscape'))
+
+
+@register_serializer
+class StripeAccountSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StripeAccount
+        fields = ('id', 'active', 'country')
+        read_only_fields = ('id', 'active', 'country')
+
+
+class StripeBankSetupSerializer(serializers.Serializer):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        with stripe as api:
+            self.fields['country'].choices = self.context.get('countries')
+    country = serializers.ChoiceField(choices=[])
+    url = serializers.URLField()
+
+    def validate_url(self, value):
+        try:
+            parsed = urlparse(value)
+        except ValueError as err:
+            raise ValidationError(str(err))
+        # * should only be in settings.ALLOWED_HOSTS in debug environments where someone may have stood up a random
+        # external domain name, like with Ngrok.
+        if parsed.hostname not in settings.ALLOWED_HOSTS and '*' not in settings.ALLOWED_HOSTS:
+            raise ValidationError('Unrecognized domain.')
+        return value

@@ -7,30 +7,36 @@ import logging
 from collections import defaultdict
 from decimal import Decimal, InvalidOperation, ROUND_HALF_EVEN, localcontext, ROUND_FLOOR
 from functools import reduce
-from typing import Union, Type, TYPE_CHECKING, List, Dict, Iterator, Callable, Tuple, TypedDict
+from math import ceil
+from typing import Union, Type, TYPE_CHECKING, List, Dict, Iterator, Callable, Tuple, TypedDict, Optional
 
+from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import MultipleObjectsReturned
 from django.db import IntegrityError
 from django.db.models import Sum, Q, IntegerField, Case, When, F
 from django.db.transaction import atomic
+from django.http import Http404
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.datetime_safe import date
 from moneyed import Money
+from pandas.tseries.offsets import BDay
 from rest_framework.exceptions import ValidationError
 from short_stuff import gen_shortcode
 
 from apps.lib.models import Subscription, COMMISSIONS_OPEN, Event, DISPUTE, SALE_UPDATE, Notification, \
-    Comment, ORDER_UPDATE, COMMENT
-from apps.lib.utils import notify, recall_notification, commissions_open_subscription, \
-    clear_events_subscriptions_and_comments
+    Comment, ORDER_UPDATE, COMMENT, ref_for_instance
+from apps.lib.utils import notify, recall_notification, commissions_open_subscription
 from apps.profiles.models import User, VERIFIED
-from apps.sales.authorize import refund_transaction
+from apps.sales.authorize import refund_transaction, CardInfo, AddressInfo, create_customer_profile, get_card_type, \
+    card_token_from_transaction, charge_saved_card, charge_card, AuthorizeException, transaction_details
+from apps.sales.stripe import refund_payment_intent, stripe
 
 if TYPE_CHECKING:
-    from apps.sales.models import LineItemSim, LineItem, TransactionRecord, Deliverable, Revision
-
+    from apps.sales.models import LineItemSim, LineItem, TransactionRecord, Deliverable, Revision, CreditCardToken, \
+    SHIELD, Invoice, OPEN, SUBSCRIPTION
     Line = Union[LineItem, LineItemSim]
     LineMoneyMap = Dict[Line, Money]
     TransactionSpecKey = (Union[User, None], int, int)
@@ -154,7 +160,9 @@ def set_service(user, service, target_date=None):
         user.portrait_paid_through = target_date
         for watched in user.watching.all():
             commissions_open_subscription(user, watched, target_date)
-    user.save()
+    user.save(
+        update_fields=['landscape_enabled', 'portrait_enabled', 'portrait_paid_through', 'landscape_paid_through'],
+    )
 
 
 def check_charge_required(user, service):
@@ -259,29 +267,6 @@ def half_even_context(wrapped: Callable):
     return wrapper
 
 
-def allocate_bonus(deliverable: 'Deliverable', source_record: 'TransactionRecord'):
-    from apps.sales.models import TransactionRecord, ref_for_instance
-    amount = get_bonus_amount(deliverable)
-    bonus = TransactionRecord(
-        payer=None,
-        source=TransactionRecord.RESERVE,
-        amount=amount,
-        status=TransactionRecord.SUCCESS,
-        remote_id=source_record.remote_id,
-        auth_code=source_record.auth_code,
-    )
-    if deliverable.order.seller.landscape:
-        bonus.payee = deliverable.order.seller
-        bonus.destination = TransactionRecord.HOLDINGS
-        bonus.category = TransactionRecord.PREMIUM_BONUS
-    else:
-        bonus.payee = None
-        bonus.destination = TransactionRecord.UNPROCESSED_EARNINGS
-        bonus.category = TransactionRecord.SHIELD_FEE
-    bonus.save()
-    bonus.targets.add(ref_for_instance(deliverable))
-
-
 def finalize_table_fees(deliverable: 'Deliverable'):
     from apps.sales.models import TransactionRecord, ref_for_instance
     ref = ref_for_instance(deliverable)
@@ -330,15 +315,17 @@ def finalize_deliverable(deliverable, user=None):
         deliverable.status = COMPLETED
         deliverable.save()
         notify(SALE_UPDATE, deliverable, unique=True, mark_unread=True)
-        record = TransactionRecord.objects.get(
+        records = TransactionRecord.objects.filter(
             payee=deliverable.order.seller, destination=TransactionRecord.ESCROW,
             status=TransactionRecord.SUCCESS,
             targets__object_id=deliverable.id, targets__content_type=ContentType.objects.get_for_model(deliverable),
         )
+        # There will always be at least one.
+        record = records[0]
         to_holdings = TransactionRecord.objects.create(
             payer=deliverable.order.seller,
             payee=deliverable.order.seller,
-            amount=record.amount,
+            amount=sum((item.amount for item in records)),
             source=TransactionRecord.ESCROW,
             destination=TransactionRecord.HOLDINGS,
             category=TransactionRecord.ESCROW_RELEASE,
@@ -347,9 +334,7 @@ def finalize_deliverable(deliverable, user=None):
             auth_code=record.auth_code,
         )
         to_holdings.targets.add(ref_for_instance(deliverable))
-        if not deliverable.table_order:
-            allocate_bonus(deliverable, record)
-        else:
+        if deliverable.table_order:
             finalize_table_fees(deliverable)
     # Don't worry about whether it's time to withdraw or not. This will make sure that an attempt is made in case
     # there's money to withdraw that hasn't been taken yet, and another process will try again if it settles later.
@@ -372,29 +357,6 @@ def claim_order_by_token(order_claim, user, force=False):
         order.claim_token = None
         order.save()
     transfer_order(order, order.buyer, user, force=force)
-
-
-def get_bonus_amount(deliverable: 'Deliverable') -> Money:
-    from apps.sales.models import BONUS
-    bonus = deliverable.line_items.filter(type=BONUS).first()
-    if not bonus:
-        return Money(0, 'USD')
-    return get_totals(deliverable.line_items.all())[2][bonus]
-
-
-def recuperate_fee(record: 'TransactionRecord') -> None:
-    from apps.sales.models import TransactionRecord, Deliverable
-    amount = get_bonus_amount(record.targets.filter(content_type=ContentType.objects.get_for_model(Deliverable)).get().target)
-    record = TransactionRecord.objects.create(
-        status=TransactionRecord.SUCCESS,
-        payer=None,
-        payee=None,
-        source=TransactionRecord.RESERVE,
-        destination=TransactionRecord.UNPROCESSED_EARNINGS,
-        amount=amount,
-        category=TransactionRecord.SHIELD_FEE,
-    )
-    record.targets.set(record.targets.all())
 
 
 def transfer_order(order, old_buyer, new_buyer, force=False):
@@ -458,10 +420,10 @@ def distribute_reduction(
     if total.amount == 0:
         return reductions
     for line, original_value in line_values.items():
-        if original_value < Money(0, 'USD'):
+        if original_value < Money(0, total.currency):
             continue
         multiplier = original_value / total
-        reductions[line] = Money(distributed_amount.amount * multiplier, 'USD')
+        reductions[line] = Money(distributed_amount.amount * multiplier, total.currency)
     return reductions
 
 
@@ -479,8 +441,8 @@ def priority_total(
     summable_totals = {}
     reductions: List['LineMoneyMap'] = []
     for line in priority_set:
-        cascaded_amount = Money(0, 'USD')
-        added_amount = Money(0, 'USD')
+        cascaded_amount = Money(0, current_total.currency)
+        added_amount = Money(0, current_total.currency)
         # Percentages with equal priorities should not stack.
         multiplier = (Decimal('.01') * line.percentage)
         if line.back_into_percentage:
@@ -504,7 +466,7 @@ def priority_total(
         if added_amount:
             summable_totals[line] = added_amount
         working_subtotals[line] = working_amount
-        if working_amount < Money(0, 'USD'):
+        if working_amount < Money(0, working_amount.currency):
             discount += working_amount
     new_subtotals = {**subtotals}
     for reduction_set in reductions:
@@ -517,7 +479,7 @@ def priority_total(
 def to_distribute(total: Money, money_map: 'LineMoneyMap') -> Money:
     combined_sum = sum([value.round(2) for value in money_map.values()])
     difference = total - combined_sum
-    upper_bound = Money(Decimal(len(money_map)) * Decimal('0.01'), 'USD')
+    upper_bound = Money(Decimal(len(money_map)) * Decimal('0.01'), total.currency)
     if difference > upper_bound:
         raise ValueError(f'Too many fractions! {difference} > {upper_bound}')
     return difference
@@ -544,8 +506,8 @@ def distribute_difference(difference: Money, money_map: 'LineMoneyMap') -> 'Line
     sorted_values = [(key, value) for key, value in test_map.items()]
     sorted_values.sort(key=biggest_first)
     remaining = difference
-    amount = Money('0.01', 'USD')
-    while remaining > Money('0.00', 'USD'):
+    amount = Money('0.01', remaining.currency)
+    while remaining > Money('0.00', remaining.currency):
         key = sorted_values.pop(0)[0]
         updated_map[key] += amount
         remaining -= amount
@@ -560,7 +522,7 @@ def get_totals(lines: Iterator['Line']) -> (Money, 'LineMoneyMap'):
     )
     total = total.round(2)
     difference = to_distribute(total, subtotals)
-    if difference > Money('0', 'USD'):
+    if difference > Money('0', difference.currency):
         subtotals = distribute_difference(difference, subtotals)
     else:
         subtotals = {key: value.round(2) for key, value in subtotals.items()}
@@ -602,7 +564,7 @@ if TYPE_CHECKING:
 
 
 def verify_total(deliverable: 'Deliverable'):
-    total = deliverable.total()
+    total = deliverable.invoice.total()
     if total < Money(0, 'USD'):
         raise ValidationError({'amount': ['Total cannot end up less than $0.']})
     if total == Money(0, 'USD'):
@@ -611,8 +573,8 @@ def verify_total(deliverable: 'Deliverable'):
         raise ValidationError({'amount': [f'Total cannot end up less than ${settings.MINIMUM_PRICE}.']})
 
 
-def issue_refund(transaction_set: Iterator['TransactionRecord'], category: int) -> List['TransactionRecord']:
-    from apps.sales.models import TransactionRecord
+def issue_refund(transaction_set: Iterator['TransactionRecord'], category: int, processor: str) -> List['TransactionRecord']:
+    from apps.sales.models import TransactionRecord, STRIPE, AUTHORIZE
     remote_id = ''
     last_four = None
     transactions = [*transaction_set]
@@ -622,10 +584,11 @@ def issue_refund(transaction_set: Iterator['TransactionRecord'], category: int) 
     card_transactions = [transaction for transaction in transaction_set if transaction.source == TransactionRecord.CARD]
     for transaction in card_transactions:
         remote_id = transaction.remote_id
-        last_four = transaction.card.last_four
+        last_four = transaction.card and transaction.card.last_four
+        break
     if not len(cash_transactions) == len(transactions):
         assert remote_id, 'Could not find a remote transaction ID to refund.'
-        assert last_four, 'Could not determine the last four digits of the relevant card.'
+        assert (processor == STRIPE) or last_four, 'Could not determine the last four digits of the relevant card.'
     refund_transactions = []
     for transaction in transactions:
         record = TransactionRecord.objects.create(
@@ -644,7 +607,20 @@ def issue_refund(transaction_set: Iterator['TransactionRecord'], category: int) 
     amount = sum(transaction.amount for transaction in card_transactions)
     if card_transactions:
         try:
-            remote_id, auth_code = refund_transaction(remote_id, last_four, amount.amount)
+            if processor == STRIPE:
+                auth_code = '******'
+                try:
+                    intent_token = remote_id.split(';')[0]
+                except ValueError:
+                    raise ValueError('Invalid Stripe payment ID. Please contact support!')
+                with stripe as stripe_api:
+                    # Note: We will assume success here. If there is a refund failure we'll have to dive into it
+                    # manually anyway and will find it during the accounting rounds.
+                    remote_id = refund_payment_intent(amount=amount, api=stripe_api, intent_token=intent_token)['id']
+            elif processor == AUTHORIZE:
+                remote_id, auth_code = refund_transaction(remote_id, last_four, amount.amount)
+            else:
+                raise RuntimeError('Unsupported card processor!')
             for transaction in refund_transactions:
                 transaction.status = TransactionRecord.SUCCESS
                 if transaction.destination == TransactionRecord.CARD:
@@ -801,3 +777,438 @@ def destroy_deliverable(deliverable: 'Deliverable'):
     deliverable.delete()
     if not order.deliverables.exists():
         order.delete()
+
+
+class UserPaymentException(Exception):
+    pass
+
+
+class PaymentAttempt(TypedDict, total=False):
+    cash: bool
+    remote_id: str
+    card_id: int
+    amount: Money
+    number: str
+    exp_date: date
+    cvv: str
+    first_name: str
+    last_name: str
+    country: str
+    zip: str
+    save_card: bool
+    make_primary: bool
+    # Used only in premium upgrade transactions
+    service: str
+    # Should never exist unless through a webhook.
+    stripe_event: dict
+
+
+TransactionInitiator = Callable[[PaymentAttempt, Money, User, dict], List['TransactionRecord']]
+TransactionMutator = Callable[[List['TransactionRecord'], PaymentAttempt, User, dict], None]
+
+
+def dummy_mutator(transactions: List['TransactionRecord'], attempt: PaymentAttempt, user: User, context: dict):
+    """No-op mutator function for use in perform_charge's hooks."""
+    pass
+
+
+def perform_charge(
+        *, attempt: PaymentAttempt, amount: Money, user: User, requesting_user: User,
+        initiate_transactions: TransactionInitiator, post_success: TransactionMutator = dummy_mutator,
+        post_save: TransactionMutator = dummy_mutator, context: dict,
+) -> List['TransactionRecord']:
+    """
+    Convenience function for web-facing charges. Takes a payment data dictionary and determines which kind of payment
+    is being submitted from the client, then routes the payment according to permissions and payment type.
+    """
+    if attempt.get('cash', False) and requesting_user.is_staff:
+        return from_cash(
+            attempt=attempt, amount=amount, user=user, initiate_transactions=initiate_transactions,
+            post_save=post_save, post_success=post_success, context=context,
+        )
+    if attempt.get('remote_id') and (requesting_user.is_staff or attempt.get('stripe_event')):
+        return from_remote_id(
+            attempt=attempt, amount=amount, user=user, remote_id=attempt.get('remote_id'),
+            initiate_transactions=initiate_transactions, post_save=post_save, post_success=post_success,
+            context=context,
+        )
+    if attempt.get('card_id'):
+        return charge_existing_card(
+            attempt=attempt, amount=amount, user=user, post_save=post_save, post_success=post_success,
+            initiate_transactions=initiate_transactions, context=context,
+        )
+    else:
+        return charge_new_card(
+            attempt=attempt, amount=amount, user=user, post_save=post_save, post_success=post_success,
+            initiate_transactions=initiate_transactions, context=context,
+        )
+
+
+def from_cash(
+        *, attempt: PaymentAttempt, amount: Money, user: User, initiate_transactions: TransactionInitiator,
+        post_success: TransactionMutator, post_save: TransactionMutator, context: dict,
+):
+    """
+    Function for marking payment made via cash. This should only ever be invoked through permission checked staff
+    channels because we're essentially telling the system 'trust me, this has been paid for' and to just move the
+    transaction along.
+    """
+    from apps.sales.models import TransactionRecord
+    transactions = initiate_transactions(attempt, amount, user, context)
+    for transaction in transactions:
+        transaction.status = TransactionRecord.SUCCESS
+        transaction.source = TransactionRecord.CASH_DEPOSIT
+    post_success(transactions, attempt, user, context)
+    for transaction in transactions:
+        transaction.save()
+    post_save(transactions, attempt, user, context)
+    return transactions
+
+
+def from_remote_id(
+        *, attempt: PaymentAttempt, amount: Money, user: User, remote_id: str,
+        initiate_transactions: TransactionInitiator, post_success: TransactionMutator,
+        post_save: TransactionMutator, context: dict,
+):
+    """
+    Mark this as paid via remote transaction ID from the card processor.
+
+    TODO: Make this work with Stripe.
+    """
+    from apps.sales.models import TransactionRecord
+    # This may not work if charging via stripe terminal.
+    if not attempt.get('stripe_event'):
+        # First, let's verify this remote ID is real.
+        details = transaction_details(remote_id)
+        auth_code = details['auth_code']
+    else:
+        # We'll be checking this elsewhere if the stripe event is provided.
+        details = {'auth_amount': attempt['amount']}
+        # Bogus auth code so things don't break.
+        auth_code = '******'
+    if not auth_code:
+        raise annotate_error(
+            transactions=[],
+            error=AuthorizeException('Transaction ID is for failed transaction.'),
+            attempt=attempt,
+            user=user,
+            post_save=post_save,
+            context=context,
+        )
+    if details['auth_amount'] != amount:
+        raise annotate_error(
+            transactions=[],
+            error=AuthorizeException(
+                f'This transaction ID is for the wrong amount. {amount} != {details["auth_amount"]}',
+            ),
+            attempt=attempt,
+            user=user,
+            post_save=post_save,
+            context=context,
+        )
+    stripe_event = attempt.get('stripe_event', None)
+    if (
+            not stripe_event
+            and TransactionRecord.objects.filter(auth_code=auth_code, status=TransactionRecord.SUCCESS).exists()
+    ):
+        raise annotate_error(
+            transactions=[],
+            error=AuthorizeException('An order with this authorization code already exists.'),
+            attempt=attempt,
+            user=user,
+            post_save=post_save,
+            context=context,
+        )
+    if stripe_event and stripe_event['status'] not in ['succeeded', 'failed']:
+        raise annotate_error(
+            transactions=[],
+            # RuntimeError shouldn't be caught, ensuring this throws properly.
+            error=RuntimeError(f'Unhandled charge status, {stripe_event["status"]} for remote_id {remote_id}'),
+            attempt=attempt,
+            user=user,
+            post_save=post_save,
+            context=context,
+        )
+    transactions = initiate_transactions(attempt, amount, user, context)
+    if stripe_event and stripe_event['status'] == 'failed':
+        raise annotate_error(
+            transactions=transactions,
+            error=UserPaymentException(f'{stripe_event["failure_code"]}: {stripe_event["failure_message"]}'),
+            attempt=attempt,
+            user=user,
+            post_save=post_save,
+            context=context,
+        )
+    # We're assuming we'll not be encountering 'pending' here. We have no card transactions which should require it.
+    mark_successful(
+        transactions=transactions, remote_id=remote_id, auth_code=auth_code, post_success=post_success,
+        post_save=post_save, context=context, attempt=attempt, user=user,
+    )
+    return transactions
+
+
+def annotate_error(
+        *, transactions: List['TransactionRecord'], error: Exception, attempt: PaymentAttempt, user: User,
+        post_save: TransactionMutator, context: dict,
+) -> Exception:
+    """
+    Annotates a set of transactions with an error and then returns the appropriate status code.
+    """
+    response_message = str(error)
+    for transaction in transactions:
+        transaction.response_message = response_message
+        transaction.save()
+    post_save(transactions, attempt, user, context)
+    return UserPaymentException(response_message)
+
+
+def charge_new_card(
+        *, attempt: PaymentAttempt, amount: Money, user: User, initiate_transactions: TransactionInitiator,
+        post_success: TransactionMutator, post_save: TransactionMutator, context: dict,
+) -> (bool, List['TransactionRecord']):
+    """
+    Creates a new card and charges it. This will only work with Authorize.net, not Stripe.
+    """
+    from apps.sales.models import CreditCardToken
+    card_info = CardInfo(
+        number=attempt['number'],
+        exp_year=attempt['exp_date'].year,
+        exp_month=attempt['exp_date'].month,
+        cvv=attempt.get('cvv', None),
+    )
+    address_info = AddressInfo(
+        first_name=attempt['first_name'],
+        last_name=attempt['last_name'],
+        postal_code=attempt['zip'],
+        country=attempt['country'],
+    )
+    if not user.authorize_token:
+        user.authorize_token = create_customer_profile(user.email)
+        user.save()
+    transactions = initiate_transactions(attempt, amount, user, context)
+    try:
+        remote_id, auth_code = charge_card(card_info, address_info, amount.amount)
+    except Exception as err:
+        raise annotate_error(
+            transactions=transactions, error=err, attempt=attempt, user=user, post_save=post_save, context=context,
+        )
+    mark_successful(
+        transactions=transactions, remote_id=remote_id, auth_code=auth_code, post_success=post_success,
+        post_save=post_save, context=context, attempt=attempt, user=user,
+    )
+
+    card_args = dict(
+        type=CreditCardToken.TYPE_TRANSLATION[get_card_type(attempt['number'])],
+        cvv_verified=True, user=user, last_four=attempt['number'][-4:],
+    )
+    if attempt['save_card'] and user.is_registered:
+        card_args['token'] = card_token_from_transaction(remote_id, profile_id=user.authorize_token)
+    else:
+        card_args['token'] = 'XXXX'
+        card_args['active'] = False
+    card = CreditCardToken.objects.create(**card_args)
+    if card.active and (user.primary_card is None or attempt['make_primary']):
+        user.primary_card = card
+        user.save()
+    for transaction in transactions:
+        transaction.card = card
+        transaction.save()
+
+    return transactions
+
+
+def mark_successful(
+        *, transactions: List['TransactionRecord'], remote_id: str, auth_code: str, post_success: TransactionMutator,
+        post_save: TransactionMutator, attempt: PaymentAttempt, user: User, context: dict,
+):
+    """
+    Marks a set of transactions as successful.
+    """
+    from apps.sales.models import TransactionRecord
+    for transaction in transactions:
+        transaction.status = TransactionRecord.SUCCESS
+        transaction.remote_id = remote_id
+        transaction.auth_code = auth_code
+        # We have a failure message that gets set here by default. Clear it.
+        transaction.response_message = ''
+    post_success(transactions, attempt, user, context)
+    for transaction in transactions:
+        transaction.save()
+    post_save(transactions, attempt, user, context)
+
+
+def charge_existing_card(
+        *, attempt: PaymentAttempt, amount: Money, user: User, initiate_transactions: TransactionInitiator,
+        post_success: TransactionMutator, post_save: TransactionMutator, context: dict,
+):
+    """
+    Charge an existing card for this transaction. Note: this only works with Authorize.net at the moment.
+    """
+    from apps.sales.models import CreditCardToken
+    card = get_object_or_404(CreditCardToken, id=attempt['card_id'], active=True, user=user)
+    if not card.cvv_verified and not attempt.get('cvv', None):
+        raise UserPaymentException('You must enter the security code for this card.')
+    transactions = initiate_transactions(attempt, amount, user, context)
+    for transaction in transactions:
+        transaction.card = card
+    try:
+        remote_id, auth_code = charge_saved_card(
+            profile_id=card.profile_id,
+            payment_id=card.payment_id, amount=amount.amount, cvv=attempt.get('cvv', None),
+        )
+    except Exception as err:
+        raise annotate_error(
+            transactions=transactions, error=err, attempt=attempt, user=user, post_save=post_save, context=context,
+        )
+    mark_successful(
+        transactions=transactions, remote_id=remote_id, auth_code=auth_code, post_success=post_success,
+        post_save=post_save, context=context, attempt=attempt, user=user,
+    )
+    card.cvv_verified = True
+    card.save()
+    return transactions
+
+
+def deliverable_initialize_transactions(
+        attempt: PaymentAttempt, amount: Money, user: User, context: dict,
+) -> List['TransactionRecord']:
+    from apps.sales.models import TransactionRecord
+    deliverable = context['deliverable']
+    transaction_specs = lines_to_transaction_specs(deliverable.invoice.line_items.all())
+    transactions = [
+        TransactionRecord(
+            payer=deliverable.order.buyer,
+            status=TransactionRecord.FAILURE,
+            category=category,
+            source=TransactionRecord.CARD,
+            payee=destination_user,
+            destination=destination_account,
+            amount=value,
+            response_message="Failed when contacting payment processor.",
+        ) for ((destination_user, destination_account, category), value) in transaction_specs.items()
+    ]
+    return transactions
+
+
+def deliverable_post_save(transactions: List['TransactionRecord'], attempt: PaymentAttempt, user: User, context: dict):
+    """
+    Post-save perform_charge hook for deliverable.
+    """
+    deliverable = context['deliverable']
+    deliverable_ref = ref_for_instance(deliverable)
+    invoice_ref = ref_for_instance(deliverable.invoice)
+    for transaction in transactions:
+        transaction.targets.add(invoice_ref, deliverable_ref)
+
+
+def premium_initiate_transactions(
+        data: PaymentAttempt, amount: Money, user: User, context: dict,
+) -> List['TransactionRecord']:
+    from apps.sales.models import TransactionRecord
+    return [TransactionRecord.objects.create(
+        payer=user,
+        payee=None,
+        source=TransactionRecord.CARD,
+        destination=TransactionRecord.UNPROCESSED_EARNINGS,
+        category=TransactionRecord.SUBSCRIPTION_DUES,
+        status=TransactionRecord.FAILURE,
+        amount=amount,
+        response_message='Failed when contacting payment processor.',
+    )]
+
+
+def premium_post_success(invoice):
+    from apps.sales.models import PAID
+
+    def wrapped(transactions: List['TransactionRecord'], data: PaymentAttempt, user: User, context: dict):
+        for transaction in transactions:
+            transaction.response_message = 'Upgraded to {}'.format(data['service'])
+        set_service(user, data['service'], target_date=date.today() + relativedelta(months=1))
+        invoice.paid_on = timezone.now()
+        invoice.status = PAID
+        invoice.save()
+        user.current_intent = ''
+        user.save(update_fields=['current_intent'])
+    return wrapped
+
+
+def premium_post_save(invoice, remote_id=None):
+    def wrapped(transactions: List['TransactionRecord'], data: PaymentAttempt, user: User, context: dict):
+        invoice_ref = ref_for_instance(invoice)
+        for transaction in transactions:
+            transaction.targets.add(invoice_ref)
+            if remote_id:
+                transaction.remote_id = remote_id
+    return wrapped
+
+
+def pay_deliverable(*, attempt: PaymentAttempt, deliverable: 'Deliverable', requesting_user: User) -> List['TransactionRecord']:
+    from apps.sales.models import IN_PROGRESS, QUEUED, REVIEW
+    from apps.profiles.utils import credit_referral
+    if attempt['amount'] != deliverable.invoice.total():
+        raise UserPaymentException('The price has changed. Please refresh.')
+    try:
+        ensure_buyer(deliverable.order)
+    except AssertionError:
+        raise UserPaymentException('No buyer is set for this order, nor is there a customer email set.')
+    records = perform_charge(
+        attempt=attempt, amount=attempt['amount'], user=deliverable.order.buyer,
+        requesting_user=requesting_user, post_save=deliverable_post_save,
+        context={'deliverable': deliverable}, initiate_transactions=deliverable_initialize_transactions,
+    )
+    if deliverable.final_uploaded:
+        deliverable.status = REVIEW
+        deliverable.auto_finalize_on = (timezone.now() + relativedelta(days=2)).date()
+        early_finalize(deliverable, requesting_user)
+    elif deliverable.revision_set.all().exists():
+        deliverable.status = IN_PROGRESS
+    else:
+        deliverable.status = QUEUED
+    deliverable.revisions_hidden = False
+    # Save the original turnaround/weight.
+    deliverable.task_weight = (
+            (deliverable.product and deliverable.product.task_weight)
+            or deliverable.task_weight
+    )
+    deliverable.expected_turnaround = (
+            (deliverable.product and deliverable.product.expected_turnaround)
+            or deliverable.expected_turnaround
+    )
+    deliverable.dispute_available_on = (
+            timezone.now() + BDay(ceil(ceil(deliverable.expected_turnaround) * 1.25))
+    ).date()
+    deliverable.paid_on = timezone.now()
+    # Preserve this so it can't be changed during disputes.
+    deliverable.commission_info = deliverable.order.seller.artist_profile.commission_info
+    deliverable.save()
+    notify(SALE_UPDATE, deliverable, unique=True, mark_unread=True)
+    credit_referral(deliverable)
+    return records
+
+
+def get_term_invoice(user: User) -> 'Invoice':
+    from apps.sales.models import Invoice, OPEN, SUBSCRIPTION
+    return Invoice.objects.get_or_create(status=OPEN, bill_to=user, type=SUBSCRIPTION)[0]
+
+
+def get_intent_card_token(user: User, card_id: Optional[str]):
+    from apps.sales.models import CreditCardToken
+    if card_id:
+        stripe_token = get_object_or_404(CreditCardToken, id=card_id, user=user).stripe_token
+        if not stripe_token:
+            raise Http404('That card ID is not a stripe card.')
+        return stripe_token
+    if user.primary_card and user.primary_card.stripe_token:
+        return user.primary_card.stripe_token
+    return None
+
+
+def get_user_processor(user: User):
+    from apps.sales.models import STRIPE, AUTHORIZE
+    if user.processor_override:
+        return user.processor_override
+    if hasattr(user, 'stripe_account'):
+        return STRIPE
+    if user.banks.filter(deleted=False).exists():
+        return AUTHORIZE
+    return settings.DEFAULT_CARD_PROCESSOR

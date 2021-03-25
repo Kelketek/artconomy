@@ -57,6 +57,7 @@ export class BaseController<S, D extends AttrKeys> extends Vue {
     // Not sure why I have to invoke this at the root here, but I do, at least in the test environment. :/
     if (this.$sock) {
       this.$sock.connectListeners[`${(this as any)._uid}`] = this.socketOpened
+      this.$sock.disconnectListeners[`${(this as any)._uid}`] = this.socketClosed
     }
     if (this.state) {
       if (deepEqual(path, this.path) || this.stateFor(path)) {
@@ -90,6 +91,10 @@ export class BaseController<S, D extends AttrKeys> extends Vue {
   public socketOpened() {
     // Any calls, such as update listening registration, that the controller should make upon the socket opening should
     // be placed here.
+  }
+
+  public socketClosed() {
+
   }
 
   public socketUnmount() {

@@ -48,6 +48,9 @@ services:
       - LANDSCAPE_PRICE=8
       - ENV_NAME=dev
       - CHANNELS_HOST=redis
+      - STRIPE_PUBLIC_KEY=pk_test_5lB4V6MnoGYhtEuL0iEVa7Xu00oT23zRr5
+      - STRIPE_KEY=sk_test_tgpnmm2xxdzgMkv5KeZ3LT0200clEdHF8X
+      - DEFAULT_CARD_PROCESSOR=authorize
     command: /usr/bin/python3.8 manage.py runserver 0.0.0.0:8002
     ports:
       - "8001:8001"

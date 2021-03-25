@@ -360,6 +360,7 @@ import LinkedReference from '@/types/LinkedReference'
 import InvoicingMixin from '@/components/views/order/mixins/InvoicingMixin'
 import {ListController} from '@/store/lists/controller'
 import {markRead} from '@/lib/lib'
+import StripeMixin from './mixins/StripeMixin'
 
 @Component({
   components: {
@@ -387,7 +388,9 @@ import {markRead} from '@/lib/lib'
     AcLoadSection,
   },
 })
-export default class DeliverableDetail extends mixins(DeliverableMixin, Formatting, Ratings, InvoicingMixin) {
+export default class DeliverableDetail extends mixins(
+  DeliverableMixin, Formatting, Ratings, InvoicingMixin, StripeMixin,
+) {
   public parentDeliverables: ListController<Deliverable> = null as unknown as ListController<Deliverable>
   // We only place this on DeliverableDetail so it doesn't get run multiple times. All subcomponents are reliant on it,
   // however, so keep this in mind during tests.
@@ -578,6 +581,7 @@ export default class DeliverableDetail extends mixins(DeliverableMixin, Formatti
     this.$listenForSingle(`${this.prefix}__rate__seller`)
     this.$listenForSingle(`${this.prefix}__revision.*`)
     this.$listenForSingle('pricing')
+    this.$listenForSingle(`${this.prefix}__clientSecret`)
     if (this.$route.query.showAdd) {
       this.viewSettings.patchers.showAddSubmission.model = true
     }

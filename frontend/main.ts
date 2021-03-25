@@ -23,6 +23,11 @@ import VueObserveVisibility from 'vue-observe-visibility'
 import {VueSocket} from '@/plugins/socket'
 import {PinterestQueue} from '@/types/PinterestQueue'
 import {User} from '@/store/profiles/types/User'
+// eslint-disable-next-line import/no-duplicates
+import '@stripe/stripe-js'
+// eslint-disable-next-line import/no-duplicates
+import {StripeConstructor, Stripe} from '@stripe/stripe-js'
+import {PROCESSORS} from '@/types/PROCESSORS'
 
 declare global {
   interface Window {
@@ -32,6 +37,10 @@ declare global {
     windowId: string,
     USER_PRELOAD: User|undefined,
     RECAPTCHA_SITE_KEY: string,
+    STRIPE_PUBLIC_KEY: string,
+    DEFAULT_CARD_PROCESSOR: PROCESSORS,
+    Stripe?: StripeConstructor,
+    StripeInstance: Stripe,
   }
 }
 

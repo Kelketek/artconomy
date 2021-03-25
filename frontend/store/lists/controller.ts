@@ -6,6 +6,8 @@ import {ListState} from '@/store/lists/types/ListState'
 import {ListModule, pageFromParams, pageSizeFromParams} from '@/store/lists/index'
 import {PaginatedResponse} from '@/store/lists/types/PaginatedResponse'
 import {QueryParams} from '@/store/helpers/QueryParams'
+import {ListSocketSettings} from '@/store/lists/types/ListSocketSettings'
+import {Watch} from 'vue-property-decorator'
 
 @Component
 export class ListController<T> extends BaseController<ListModuleOpts, ListState<T>> {
@@ -63,6 +65,12 @@ export class ListController<T> extends BaseController<ListModuleOpts, ListState<
     return this.dispatch('retryGet')
   }
 
+  public makeReady(array: T[]) {
+    this.setList(array)
+    this.fetching = false
+    this.ready = true
+  }
+
   public reset() {
     return this.dispatch('reset')
   }
@@ -86,7 +94,7 @@ export class ListController<T> extends BaseController<ListModuleOpts, ListState<
       // Vestigil endpoint-- the controller may not be cached but the list should have defined it in the store.
       `${this.prefix}items/${ref}`, {endpoint: ''},
     ))
-    controllers = controllers.filter((controller: SingleController<T>) => controller.x !== false)
+    controllers = controllers.filter((controller: SingleController<T>) => !(controller.deleted) && !(controller.x === null))
     return controllers
   }
 
@@ -150,7 +158,7 @@ export class ListController<T> extends BaseController<ListModuleOpts, ListState<
 
   public get empty() {
     return (
-      this.currentPage === 1 &&
+      (!this.paginated || (this.currentPage === 1)) &&
       this.ready &&
       this.list.length === 0
     )
@@ -168,6 +176,10 @@ export class ListController<T> extends BaseController<ListModuleOpts, ListState<
     return this.attr('failed')
   }
 
+  public get paginated() {
+    return this.attr('paginated')
+  }
+
   public get count() {
     return this.response && this.response.count
   }
@@ -178,5 +190,98 @@ export class ListController<T> extends BaseController<ListModuleOpts, ListState<
 
   public set ready(val: boolean) {
     this.commit('setReady', val)
+  }
+
+  public get stale(): boolean {
+    return this.attr('stale')
+  }
+
+  public set stale(val: boolean) {
+    this.commit('setStale', val)
+  }
+
+  @Watch('ready', {immediate: true})
+  public startWatcher(currentValue: boolean) {
+    if (currentValue) {
+      this.socketOpened()
+    }
+  }
+
+  public get socketSettings(): ListSocketSettings|null {
+    return this.attr('socketSettings')
+  }
+
+  public set socketSettings(val: ListSocketSettings|null) {
+    this.commit('setSocketSettings', val)
+  }
+
+  public get socketNewItemParams() {
+    const socketSettings = this.attr('socketSettings')
+
+    if (!this.socketSettings) {
+      return null
+    }
+    let pk = this.socketSettings.list.pk
+    if (pk) {
+      pk = `${pk}`
+    }
+    return {
+      app_label: socketSettings.list.appLabel,
+      model_name: socketSettings.list.modelName,
+      serializer: socketSettings.serializer,
+      pk: pk || undefined,
+      list_name: socketSettings.list.listName,
+    }
+  }
+
+  public get newItemLabel() {
+    const data = this.socketNewItemParams
+    if (!data) {
+      return ''
+    }
+    let pathName = `${data.app_label}.${data.model_name}`
+    if (data.pk) {
+      pathName += `.pk.${data.pk}`
+    }
+    return `${pathName}.${data.list_name}.${data.serializer}.new`
+  }
+
+  public socketUnmount() {
+    const newItemLabel = this.newItemLabel
+    if (!this.$sock?.socket) {
+      return
+    }
+    /* istanbul ignore else */
+    if (newItemLabel) {
+      this.$sock.send('clear_watch_new', this.socketNewItemParams)
+      this.$sock.removeListener(newItemLabel, `${this.socketLabelBase}.new`)
+    }
+  }
+
+  public socketOpened() {
+    const data = this.socketNewItemParams
+    if (!this.$sock?.socket || !data || !this.ready) {
+      return
+    }
+    if (this.stale) {
+      this.ready = false
+      this.get().then(() => undefined)
+      this.stale = false
+      return
+    }
+    this.$sock.addListener(
+      this.newItemLabel,
+      `${this.socketLabelBase}.new`,
+      this.uniquePush,
+    )
+    this.$sock.send('watch_new', data)
+  }
+
+  public socketClosed() {
+    if (!this.state) {
+      // Should only happen in testing.
+      return
+    }
+    this.stale = true
   }
 }

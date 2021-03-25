@@ -1,10 +1,10 @@
-import uuid
+import logging
 from _csv import QUOTE_ALL
 from datetime import datetime
 from decimal import Decimal
 from functools import lru_cache
-from math import ceil
-from typing import Union, List
+from pprint import pformat
+from typing import Union
 from uuid import uuid4
 
 from dateutil.parser import parse, ParserError
@@ -12,12 +12,11 @@ from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.auth import login
 from django.contrib.contenttypes.models import ContentType
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from django.db.models import When, F, Case, BooleanField, Q, Count, QuerySet, IntegerField
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from django.utils.datetime_safe import date
 from django.utils.decorators import method_decorator
 from django.utils.timezone import make_aware
 from django.views import View
@@ -26,8 +25,6 @@ from django.views.static import serve
 from hitcount.models import HitCount
 from hitcount.views import HitCountMixin
 from moneyed import Money
-# BDay is business day, not birthday.
-from pandas.tseries.offsets import BDay
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, RetrieveAPIView, \
@@ -40,24 +37,26 @@ from rest_framework_csv.renderers import CSVRenderer
 
 from apps.lib.abstract_models import GENERAL
 from apps.lib.models import DISPUTE, REFUND, COMMENT, Subscription, ORDER_UPDATE, SALE_UPDATE, REVISION_UPLOADED, \
-    NEW_PRODUCT, STREAMING, ref_for_instance, REFERENCE_UPLOADED, Comment, WAITLIST_UPDATED
+    NEW_PRODUCT, STREAMING, REFERENCE_UPLOADED, Comment, WAITLIST_UPDATED, ref_for_instance
 from apps.lib.permissions import IsStaff, IsSafeMethod, Any, All, IsMethod
 from apps.lib.serializers import CommentSerializer
 from apps.lib.utils import notify, recall_notification, demark, preview_rating, send_transaction_email, create_comment, \
     mark_modified, mark_read
 from apps.lib.views import BasePreview
-from apps.profiles.models import User, Submission, HAS_US_ACCOUNT
+from apps.profiles.models import User, Submission, IN_SUPPORTED_COUNTRY
 from apps.profiles.permissions import ObjectControls, UserControls, IsUser, IsSuperuser, IsRegistered
 from apps.profiles.serializers import UserSerializer, SubmissionSerializer
-from apps.profiles.utils import credit_referral, create_guest_user, empty_user
-from apps.sales.authorize import AuthorizeException, charge_saved_card, CardInfo, AddressInfo, \
-    create_customer_profile, charge_card, card_token_from_transaction, get_card_type, transaction_details
+from apps.profiles.utils import create_guest_user, empty_user
+from apps.sales.apis import STRIPE
+from apps.sales.stripe import stripe, create_stripe_account, create_account_link, get_country_list, money_to_stripe
+from apps.sales.authorize import AuthorizeException
 from apps.sales.dwolla import add_bank_account, make_dwolla_account, \
     destroy_bank_account
 from apps.sales.models import Product, Order, CreditCardToken, Revision, BankAccount, \
     WEIGHTED_STATUSES, Rating, TransactionRecord, BASE_PRICE, ADD_ON, TAX, EXTRA, \
-    TABLE_SERVICE, TIP, LineItem, SHIELD, inventory_change, InventoryError, InventoryTracker, NEW, PAYMENT_PENDING, \
-    QUEUED, COMPLETED, IN_PROGRESS, DISPUTED, REVIEW, CANCELLED, REFUNDED, Deliverable, Reference, WAITING
+    TABLE_SERVICE, TIP, LineItem, inventory_change, InventoryError, InventoryTracker, NEW, PAYMENT_PENDING, \
+    QUEUED, COMPLETED, IN_PROGRESS, DISPUTED, REVIEW, CANCELLED, REFUNDED, Deliverable, Reference, WAITING, \
+    PREMIUM_SUBSCRIPTION, StripeAccount, WebhookRecord
 from apps.sales.permissions import (
     OrderViewPermission, OrderSellerPermission, OrderBuyerPermission,
     OrderPlacePermission, EscrowPermission, EscrowDisabledPermission, RevisionsVisible,
@@ -74,13 +73,19 @@ from apps.sales.serializers import (
     AccountQuerySerializer, DeliverableCharacterTagSerializer, SubmissionFromOrderSerializer, OrderAuthSerializer,
     LineItemSerializer, DeliverableValuesSerializer, SimpleTransactionSerializer, InventorySerializer,
     PayoutTransactionSerializer, OrderViewSerializer, ReferenceSerializer, DeliverableReferenceSerializer,
-    NewDeliverableSerializer, PinSerializer)
-from apps.sales.tasks import renew
+    NewDeliverableSerializer, PinSerializer, PaymentIntentSettings, PremiumIntentSettings, StripeAccountSerializer,
+    StripeBankSetupSerializer)
+from apps.sales.tasks import renew, withdraw_all
 from apps.sales.utils import available_products, service_price, set_service, \
     check_charge_required, available_products_by_load, finalize_deliverable, account_balance, \
-    recuperate_fee, POSTED_ONLY, PENDING, transfer_order, early_finalize, cancel_deliverable, lines_to_transaction_specs, \
-    get_totals, verify_total, issue_refund, ensure_buyer
+    POSTED_ONLY, PENDING, transfer_order, early_finalize, cancel_deliverable, \
+    verify_total, issue_refund, ensure_buyer, perform_charge, premium_post_success, premium_initiate_transactions, \
+    UserPaymentException, pay_deliverable, get_term_invoice, get_intent_card_token, premium_post_save, \
+    get_user_processor
 from shortcuts import make_url
+
+
+logger = logging.getLogger(__name__)
 
 
 def user_products(username: str, requester: User):
@@ -232,6 +237,7 @@ class PlaceOrder(CreateAPIView):
             name='Main',
             escrow_disabled=product.user.artist_profile.escrow_disabled,
             rating=serializer.validated_data['rating'],
+            processor=get_user_processor(product.user),
             details=serializer.validated_data['details'],
         )
         deliverable.characters.set(serializer.validated_data.get('characters', []))
@@ -325,12 +331,12 @@ class OrderDeliverables(ListCreateAPIView):
             commission_info=order.seller.artist_profile.commission_info,
             **deliverable_facts,
         )
-        deliverable.line_items.get_or_create(
+        deliverable.invoice.line_items.get_or_create(
             type=BASE_PRICE, amount=facts['price'], priority=0, destination_account=TransactionRecord.ESCROW,
             destination_user=order.seller,
         )
         if facts['adjustment']:
-            deliverable.line_items.get_or_create(
+            deliverable.invoice.line_items.get_or_create(
                 type=ADD_ON, amount=facts['adjustment'], priority=1, destination_account=TransactionRecord.ESCROW,
                 destination_user=order.seller,
             )
@@ -346,9 +352,9 @@ class DeliverableManager(RetrieveUpdateAPIView):
     serializer_class = DeliverableViewSerializer
 
     def get_object(self):
-        order = get_object_or_404(Deliverable, order_id=self.kwargs['order_id'], id=self.kwargs['deliverable_id'])
-        self.check_object_permissions(self.request, order)
-        return order
+        deliverable = get_object_or_404(Deliverable, order_id=self.kwargs['order_id'], id=self.kwargs['deliverable_id'])
+        self.check_object_permissions(self.request, deliverable)
+        return deliverable
 
 
 class DeliverableInvite(GenericAPIView):
@@ -401,7 +407,7 @@ class DeliverableAccept(GenericAPIView):
         deliverable.task_weight = (deliverable.product and deliverable.product.task_weight) or deliverable.task_weight
         deliverable.expected_turnaround = (deliverable.product and deliverable.product.expected_turnaround) or deliverable.expected_turnaround
         deliverable.revisions = (deliverable.product and deliverable.product.revisions) or deliverable.revisions
-        if deliverable.total() <= Money('0', 'USD'):
+        if deliverable.invoice.total() <= Money('0', 'USD'):
             deliverable.status = QUEUED
             deliverable.revisions_hidden = False
             deliverable.escrow_disabled = True
@@ -550,7 +556,7 @@ class DeliverableLineItems(ListCreateAPIView):
 
     def get_queryset(self):
         deliverable = self.get_object()
-        return deliverable.line_items.exclude(type=TIP, amount=0)
+        return deliverable.invoice.line_items.exclude(type=TIP, amount=0)
 
     def get_serializer_context(self):
         return {**super().get_serializer_context(), 'deliverable': self.get_object()}
@@ -569,6 +575,7 @@ class DeliverableLineItems(ListCreateAPIView):
         item_type = serializer.validated_data.get('type', ADD_ON)
         deliverable = self.get_object()
         destination_user = deliverable.order.seller
+        new_line = None
         if item_type in [TAX, EXTRA, TABLE_SERVICE]:
             destination_user = None
         accounts = {
@@ -580,7 +587,7 @@ class DeliverableLineItems(ListCreateAPIView):
             EXTRA: TransactionRecord.UNPROCESSED_EARNINGS,
         }
         destination_account = accounts[item_type]
-        tip = deliverable.line_items.filter(type=TIP).first()
+        tip = deliverable.invoice.line_items.filter(type=TIP).first()
         if item_type == TIP and tip:
             tip.amount = serializer.validated_data['amount']
             tip.save()
@@ -589,13 +596,14 @@ class DeliverableLineItems(ListCreateAPIView):
         if item_type == BASE_PRICE and serializer.validated_data.get('percentage', 0):
             raise ValidationError({'percentage': ['Base price may not have percentage.']})
         with transaction.atomic():
-            base_price = deliverable.line_items.filter(type=BASE_PRICE).first()
+            base_price = deliverable.invoice.line_items.filter(type=BASE_PRICE).first()
             if base_price and item_type == BASE_PRICE:
                 base_price.amount = serializer.validated_data['amount']
                 base_price.save()
             else:
-                serializer.save(
-                    destination_user=destination_user, destination_account=destination_account, deliverable=deliverable,
+                new_line = serializer.save(
+                    destination_user=destination_user, destination_account=destination_account,
+                    invoice=deliverable.invoice,
                 )
             verify_total(deliverable)
 
@@ -625,7 +633,8 @@ class LineItemManager(RetrieveUpdateDestroyAPIView):
 
     @lru_cache
     def get_object(self):
-        line_item = LineItem.objects.get(id=self.kwargs['line_item_id'], deliverable__id=self.kwargs['deliverable_id'])
+        deliverable = get_object_or_404(Deliverable, id=self.kwargs['deliverable_id'])
+        line_item = get_object_or_404(LineItem, id=self.kwargs['line_item_id'], invoice_id=deliverable.invoice_id)
         self.check_object_permissions(self.request, line_item)
         return line_item
 
@@ -635,7 +644,7 @@ class LineItemManager(RetrieveUpdateDestroyAPIView):
     def perform_update(self, serializer):
         with transaction.atomic():
             serializer.save()
-            deliverable = serializer.instance.deliverable
+            deliverable = serializer.instance.invoice.deliverables.get()
             verify_total(deliverable)
         # Trigger automatic creation/destruction of shield lines.
         deliverable.save()
@@ -995,8 +1004,11 @@ class DeliverableRefund(GenericAPIView):
             serializer = self.get_serializer(instance=deliverable, context=self.get_serializer_context())
             return Response(status=status.HTTP_200_OK, data=serializer.data)
         target = ref_for_instance(deliverable)
-        original_record = TransactionRecord.objects.get(
-            targets=target, payer=deliverable.order.buyer,
+        # Sanity check. Should only return one transaction.
+        TransactionRecord.objects.get(
+            source__in=[TransactionRecord.CARD, TransactionRecord.CASH_DEPOSIT],
+            targets=target,
+            payer=deliverable.order.buyer,
             payee=deliverable.order.seller,
             destination=TransactionRecord.ESCROW,
             status=TransactionRecord.SUCCESS,
@@ -1006,12 +1018,11 @@ class DeliverableRefund(GenericAPIView):
             targets=target,
             status=TransactionRecord.SUCCESS,
         ).exclude(category=TransactionRecord.SHIELD_FEE)
-        record = issue_refund(transaction_set, TransactionRecord.ESCROW_REFUND)[0]
+        record = issue_refund(transaction_set, TransactionRecord.ESCROW_REFUND, processor=deliverable.processor)[0]
         if record.status == TransactionRecord.FAILURE:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'detail': record.response_message})
         deliverable.status = REFUNDED
         deliverable.save()
-        recuperate_fee(original_record)
         notify(REFUND, deliverable, unique=True, mark_unread=True)
         notify(ORDER_UPDATE, deliverable, unique=True, mark_unread=True)
         if request.user != deliverable.order.seller:
@@ -1203,6 +1214,25 @@ class CancelledCasesList(CancelledMixin, CasesListBase):
     pass
 
 
+class SetupIntent(APIView):
+    permission_classes = [UserControls]
+
+    def get_object(self):
+        user = get_object_or_404(User, username=self.kwargs['username'])
+        self.check_object_permissions(self.request, user)
+        return user
+
+    def post(self):
+        user = self.get_object()
+        if not user.stripe_customer_id:
+            with stripe as api:
+                user.stripe_customer_id = api.customer.create(email=user.guest_email or user.email)['id']
+                user.save()
+        return stripe.SetupIntent.create(
+            payment_method_types=["card"],
+        )['id']
+
+
 class CardList(ListCreateAPIView):
     permission_classes = [
         Any(
@@ -1217,6 +1247,10 @@ class CardList(ListCreateAPIView):
         user = get_object_or_404(User, username=self.kwargs['username'])
         self.check_object_permissions(self.request, user)
         qs = user.credit_cards.filter(active=True)
+        if self.kwargs.get('stripe'):
+            qs = qs.exclude(stripe_token='')
+        elif self.kwargs.get('authorize'):
+            qs = qs.exclude(token='')
         # Primary card should always be listed first.
         qs = qs.annotate(
             primary=Case(
@@ -1297,188 +1331,68 @@ class MakePrimary(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class PaymentMixin:
-    def perform_charge(
-            self, data: dict, amount: Money, user: User,
-    ) -> (bool, Union[Response, List[TransactionRecord]]):
-        if data.get('cash', False) and self.request.user.is_staff:
-            return self.from_cash(data, amount, user)
-        if data.get('remote_id') and self.request.user.is_staff:
-            return self.from_remote_id(data, amount, user, data.get('remote_id'))
-        if data.get('card_id'):
-            return self.charge_existing_card(data, amount, user)
-        else:
-            return self.charge_new_card(data, amount, user)
+PAYMENT_PERMISSIONS = (
+    OrderBuyerPermission, EscrowPermission,
+    DeliverableStatusPermission(
+        PAYMENT_PENDING,
+        error_message='This has already been paid for, or is not ready for payment. '
+                      'Please refresh the page or contact support.',
+    ),
+)
 
-    def from_cash(self, data: dict, amount: Money, user: User):
-        transactions = self.init_transactions(data, amount, user)
-        for transaction in transactions:
-            transaction.status = TransactionRecord.SUCCESS
-            transaction.source = TransactionRecord.CASH_DEPOSIT
-        self.post_success(transactions, data, user)
-        for transaction in transactions:
-            transaction.save()
-        self.post_save(transactions, data, user)
-        return True, transactions
 
-    def from_remote_id(self, data: dict, amount: Money, user: User, remote_id: str):
-        # First, let's verify this remote ID is real.
-        details = transaction_details(remote_id)
-        auth_code = details['auth_code']
-        if not auth_code:
-            return self.annotate_error(
-                [],
-                AuthorizeException('Transaction ID is for failed transaction.'),
-                data,
-                user,
-            )
-        if details['auth_amount'] != amount:
-            return self.annotate_error(
-                [],
-                AuthorizeException(
-                    f'This transaction ID is for the wrong amount. {amount} != {details["auth_amount"]}',
-                ),
-                data,
-                user,
-            )
-        if TransactionRecord.objects.filter(auth_code=auth_code, status=TransactionRecord.SUCCESS).exists():
-            return self.annotate_error(
-                [],
-                AuthorizeException('An order with this authorization code already exists.'),
-                data,
-                user,
-            )
-        transactions = self.init_transactions(data, amount, user)
-        for transaction in transactions:
-            transaction.status = TransactionRecord.SUCCESS
-            transaction.auth_code = auth_code
-            transaction.remote_id = remote_id
-        self.post_success(transactions, data, user)
-        for transaction in transactions:
-            transaction.save()
-        self.post_save(transactions, data, user)
-        return True, transactions
+class DeliverablePaymentIntent(APIView):
+    permission_classes = PAYMENT_PERMISSIONS
 
-    def annotate_error(
-            self, transactions: List[TransactionRecord], err: Exception, data: dict, user: User
-    ) -> (False, Response):
-        response_message = str(err)
-        for transaction in transactions:
-            transaction.response_message = response_message
-            transaction.save()
-        self.post_save(transactions, data, user)
-        return False, Response(
-            status=status.HTTP_400_BAD_REQUEST, data={'detail': response_message}
+    def get_object(self):
+        deliverable = get_object_or_404(
+            Deliverable, order_id=self.kwargs['order_id'], id=self.kwargs['deliverable_id'], processor=STRIPE,
+            order__buyer__isnull=False
         )
+        self.check_object_permissions(self.request, deliverable)
+        return deliverable
 
-    def charge_new_card(
-            self, data: dict, amount: Money, user: User,
-    ) -> (bool, Union[Response, TransactionRecord]):
-        card_info = CardInfo(
-            number=data['number'],
-            exp_year=data['exp_date'].year,
-            exp_month=data['exp_date'].month,
-            cvv=data.get('cvv', None),
-        )
-        address_info = AddressInfo(
-            first_name=data['first_name'],
-            last_name=data['last_name'],
-            postal_code=data['zip'],
-            country=data['country'],
-        )
-        if not user.authorize_token:
-            user.authorize_token = create_customer_profile(user.email)
-            user.save()
-        transactions = self.init_transactions(data, amount, user)
-        try:
-            remote_id, auth_code = charge_card(card_info, address_info, amount.amount)
-        except Exception as err:
-            return self.annotate_error(transactions, err, data, user)
-        for transaction in transactions:
-            transaction.status = TransactionRecord.SUCCESS
-            transaction.remote_id = remote_id
-            transaction.auth_code = auth_code
-        self.post_success(transactions, data, user)
-        for transaction in transactions:
-            transaction.save()
-        self.post_save(transactions, data, user)
-
-        card_args = dict(
-            type=CreditCardToken.TYPE_TRANSLATION[get_card_type(data['number'])],
-            cvv_verified=True, user=user, last_four=data['number'][-4:],
-        )
-        if data['save_card'] and user.is_registered:
-            card_args['token'] = card_token_from_transaction(remote_id, profile_id=user.authorize_token)
-        else:
-            card_args['token'] = 'XXXX'
-            card_args['active'] = False
-        card = CreditCardToken.objects.create(**card_args)
-        if card.active and (user.primary_card is None or data['make_primary']):
-            user.primary_card = card
-            user.save()
-        for transaction in transactions:
-            transaction.card = card
-            transaction.save()
-
-        return True, transactions
-
-    def charge_existing_card(self, data: dict, amount: Money, user: User):
-        card = get_object_or_404(CreditCardToken, id=data['card_id'], active=True, user=user)
-        if not card.cvv_verified and not data.get('cvv', None):
-            return False, Response(
-                status=status.HTTP_400_BAD_REQUEST, data={'detail': 'You must enter the security code for this card.'}
-            )
-        transactions = self.init_transactions(data, amount, user)
-        for transaction in transactions:
-            transaction.card = card
-        try:
-            remote_id, auth_code = charge_saved_card(
-                profile_id=card.profile_id,
-                payment_id=card.payment_id, amount=amount.amount, cvv=data.get('cvv', None),
-            )
-        except Exception as err:
-            return self.annotate_error(transactions, err, data, user)
-        for transaction in transactions:
-            transaction.status = TransactionRecord.SUCCESS
-            transaction.remote_id = remote_id
-            transaction.auth_code = auth_code
-        self.post_success(transactions, data, user)
-        for transaction in transactions:
-            transaction.save()
-        self.post_save(transactions, data, user)
-        card.cvv_verified = True
-        card.save()
-        return True, transactions
-
-    def init_transactions(self, data: dict, amount: Money, user: User) -> List[TransactionRecord]:  # pragma: no cover
-        """
-        Override to create the initial transaction.
-        """
-        raise NotImplementedError('Subclass must implement init_transaction.')
-
-    def post_success(self, transactions: List[TransactionRecord], data: dict, user: User):  # pragma: no cover
-        """
-        Override to further annotate the successful transaction.
-        """
-        pass
-
-    def post_save(self, transactions: List[TransactionRecord], data: dict, user: User):  # pragma: no cover
-        """
-        Override for actions that should be taken after the transactions are saved (such as adding targets)
-        """
-        pass
+    def post(self, *args, **kwargs):
+        deliverable = self.get_object()
+        stripe_token = get_intent_card_token(deliverable.order.buyer, self.request.data.get('card_id'))
+        serializer = PaymentIntentSettings(data=self.request.data)
+        serializer.is_valid(raise_exception=True)
+        save_card = serializer.validated_data['save_card'] and not deliverable.order.buyer.guest
+        make_primary = (save_card and serializer.validated_data['make_primary']) and not deliverable.order.buyer.guest
+        if not deliverable:
+            return Response(status=status.HTTP_403_FORBIDDEN, data={'detail': 'This deliverable does not use stripe.'})
+        total = deliverable.invoice.total()
+        with stripe as stripe_api:
+            # Can only do string values, so won't be json true value.
+            metadata = {**deliverable.stripe_metadata, 'make_primary': make_primary, 'save_card': save_card}
+            intent_kwargs = {
+                # Need to figure out how to do this per-currency.
+                'amount': int(total.amount * total.currency.sub_unit),
+                'currency': str(total.currency).lower(),
+                'customer': deliverable.order.buyer.stripe_token or None,
+                # Note: If we expand the payment types, we may need to take into account that linking the
+                # charge_id to the source_transaction field of the payout transfer could cause problems. See:
+                # https://stripe.com/docs/connect/charges-transfers#transfer-availability
+                'payment_method_types': ['card'],
+                'payment_method': stripe_token,
+                'transfer_group': f'ACInvoice#{deliverable.invoice.id}',
+                'metadata': metadata,
+                'receipt_email': deliverable.order.buyer.guest_email or deliverable.order.buyer.email,
+            }
+            if save_card:
+                intent_kwargs['setup_future_usage'] = 'off_session'
+            if deliverable.current_intent:
+                intent = stripe_api.PaymentIntent.modify(deliverable.current_intent, **intent_kwargs)
+                return Response({'secret': intent['client_secret']})
+            intent = stripe_api.PaymentIntent.create(**intent_kwargs)
+            deliverable.current_intent = intent['id']
+            deliverable.save()
+            return Response({'secret': intent['client_secret']})
 
 
-class MakePayment(PaymentMixin, GenericAPIView):
+class MakePayment(GenericAPIView):
     serializer_class = PaymentSerializer
-    permission_classes = [
-        OrderBuyerPermission, EscrowPermission,
-        DeliverableStatusPermission(
-            PAYMENT_PENDING,
-            error_message='This has already been paid for, or is not ready for payment. '
-                          'Please refresh the page or contact support.',
-        )
-    ]
+    permission_classes = PAYMENT_PERMISSIONS
 
     @lru_cache()
     def get_object(self):
@@ -1486,100 +1400,16 @@ class MakePayment(PaymentMixin, GenericAPIView):
         self.check_object_permissions(self.request, deliverable)
         return deliverable
 
-    @lru_cache()
-    def transaction_specs(self):
-        return lines_to_transaction_specs(self.get_object().line_items.all())
-
-    def init_transactions(self, data: dict, amount: Money, user: User) -> List[TransactionRecord]:
-        deliverable = self.get_object()
-        transaction_specs = self.transaction_specs()
-        transactions = [
-            TransactionRecord(
-                payer=deliverable.order.buyer,
-                status=TransactionRecord.FAILURE,
-                category=category,
-                source=TransactionRecord.CARD,
-                payee=destination_user,
-                destination=destination_account,
-                amount=value,
-                response_message="Failed when contacting payment processor.",
-            ) for ((destination_user, destination_account, category), value) in transaction_specs.items()
-        ]
-        return transactions
-
-    def post_save(self, transactions: List[TransactionRecord], data: dict, user: User):
-        deliverable = self.get_object()
-        for transaction in transactions:
-            transaction.targets.add(ref_for_instance(deliverable))
-
-    def post_success(self, transactions: List[TransactionRecord], data: dict, user: User):
-        escrow_record, fee_record, *other = transactions
-        deliverable = self.get_object()
-        if deliverable.table_order:
-            return
-        reserve_item = deliverable.line_items.get(type=SHIELD)
-        _value, discount, subtotals = get_totals(deliverable.line_items.all())
-        record = TransactionRecord.objects.create(
-            payer=None,
-            payee=None,
-            amount=subtotals[reserve_item],
-            source=TransactionRecord.RESERVE,
-            destination=TransactionRecord.UNPROCESSED_EARNINGS,
-            remote_id=fee_record.remote_id,
-            auth_code=fee_record.auth_code,
-            status=TransactionRecord.SUCCESS,
-            category=TransactionRecord.SHIELD_FEE,
-        )
-        record.targets.add(ref_for_instance(deliverable))
-
     # noinspection PyUnusedLocal
     def post(self, *args, **kwargs):
         deliverable = self.get_object()
         attempt = self.get_serializer(data=self.request.data, context=self.get_serializer_context())
         attempt.is_valid(raise_exception=True)
         attempt = attempt.validated_data
-        if attempt['amount'] != deliverable.total().amount:
-            return Response(
-                status=status.HTTP_400_BAD_REQUEST, data={'detail': 'The price has changed. Please refresh the page.'}
-            )
         try:
-            ensure_buyer(deliverable.order)
-        except AssertionError:
-            return Response(
-                status=status.HTTP_400_BAD_REQUEST, data={
-                    'detail': 'No buyer is set for this order, nor is there a customer email set.',
-                }
-            )
-        success, response = self.perform_charge(attempt, Money(attempt['amount'], 'USD'), deliverable.order.buyer)
-        if not success:
-            return response
-        if deliverable.final_uploaded:
-            deliverable.status = REVIEW
-            deliverable.auto_finalize_on = (timezone.now() + relativedelta(days=2)).date()
-            early_finalize(deliverable, self.request.user)
-        elif deliverable.revision_set.all().exists():
-            deliverable.status = IN_PROGRESS
-        else:
-            deliverable.status = QUEUED
-        deliverable.revisions_hidden = False
-        # Save the original turnaround/weight.
-        deliverable.task_weight = (
-                (deliverable.product and deliverable.product.task_weight)
-                or deliverable.task_weight
-        )
-        deliverable.expected_turnaround = (
-                (deliverable.product and deliverable.product.expected_turnaround)
-                or deliverable.expected_turnaround
-        )
-        deliverable.dispute_available_on = (
-                timezone.now() + BDay(ceil(ceil(deliverable.expected_turnaround) * 1.25))
-        ).date()
-        deliverable.paid_on = timezone.now()
-        # Preserve this so it can't be changed during disputes.
-        deliverable.commission_info = deliverable.order.seller.artist_profile.commission_info
-        deliverable.save()
-        notify(SALE_UPDATE, deliverable, unique=True, mark_unread=True)
-        credit_referral(deliverable)
+            pay_deliverable(attempt=attempt, deliverable=deliverable, requesting_user=self.request.user)
+        except UserPaymentException as err:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={'detail': str(err)})
         data = DeliverableViewSerializer(instance=deliverable, context=self.get_serializer_context()).data
         return Response(data=data)
 
@@ -1862,26 +1692,9 @@ class PremiumInfo(APIView):
         )
 
 
-class Premium(PaymentMixin, GenericAPIView):
+class Premium(GenericAPIView):
     serializer_class = ServicePaymentSerializer
     permission_classes = [IsRegistered]
-
-    def init_transactions(self, data: dict, amount: Money, user: User) -> List[TransactionRecord]:
-        return [TransactionRecord.objects.create(
-            payer=user,
-            payee=None,
-            source=TransactionRecord.CARD,
-            destination=TransactionRecord.UNPROCESSED_EARNINGS,
-            category=TransactionRecord.SUBSCRIPTION_DUES,
-            status=TransactionRecord.FAILURE,
-            amount=amount,
-            response_message='Failed when contacting payment processor.',
-        )]
-
-    def post_success(self, transactions: List[TransactionRecord], data: dict, user: User):
-        for transaction in transactions:
-            transaction.response_message = 'Upgraded to {}'.format(data['service'])
-        set_service(user, data['service'], target_date=date.today() + relativedelta(months=1))
 
     def post(self, request):
         serializer = self.get_serializer(data=self.request.data, context=self.get_serializer_context())
@@ -1895,11 +1708,64 @@ class Premium(PaymentMixin, GenericAPIView):
                 data=UserSerializer(instance=self.request.user, context=self.get_serializer_context()).data
             )
         amount = service_price(request.user, data['service'])
-        success, output = self.perform_charge(data, amount, self.request.user)
-        if not success:
-            return output
+        try:
+            invoice = get_term_invoice(request.user)
+            invoice.line_items.update_or_create(
+                defaults={'amount': amount, 'description': data['service'].title()},
+                destination_account=TransactionRecord.UNPROCESSED_EARNINGS,
+                type=PREMIUM_SUBSCRIPTION,
+                destination_user=None,
+            )
+            perform_charge(
+                attempt=data,
+                amount=amount,
+                user=self.request.user,
+                requesting_user=self.request.user,
+                post_success=premium_post_success(invoice),
+                post_save=premium_post_save(invoice),
+                context={},
+                initiate_transactions=premium_initiate_transactions,
+            )
+        except UserPaymentException as err:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={'detail': str(err)})
         response_data = UserSerializer(instance=request.user, context=self.get_serializer_context()).data
         return Response(data=response_data)
+
+
+class PremiumPaymentIntent(APIView):
+    permission_classes = [IsRegistered]
+
+    def post(self, *args, **kwargs):
+        card = get_intent_card_token(self.request.user, self.kwargs.get('card_id'))
+        serializer = PremiumIntentSettings(data=self.request.data)
+        serializer.is_valid(raise_exception=True)
+        make_primary = serializer.validated_data['make_primary']
+        service = serializer.validated_data['service']
+        total = service_price(self.request.user, service)
+        with stripe as stripe_api:
+            # Can only do string values, so won't be json true value.
+            metadata = {'make_primary': make_primary, 'save_card': True, 'service': service}
+            intent_kwargs = {
+                # Need to figure out how to do this per-currency.
+                'amount': int(total.amount * total.currency.sub_unit),
+                'currency': str(total.currency).lower(),
+                'customer': self.request.user.stripe_token,
+                # Note: If we expand the payment types, we may need to take into account that linking the
+                # charge_id to the source_transaction field of the payout transfer could cause problems. See:
+                # https://stripe.com/docs/connect/charges-transfers#transfer-availability
+                'payment_method_types': ['card'],
+                'payment_method': card,
+                'metadata': metadata,
+                'receipt_email': self.request.user.email,
+                'setup_future_usage': 'off_session',
+            }
+            if self.request.user.current_intent:
+                intent = stripe_api.PaymentIntent.modify(self.request.user.current_intent, **intent_kwargs)
+                return Response({'secret': intent['client_secret']})
+            intent = stripe_api.PaymentIntent.create(**intent_kwargs)
+            self.request.user.current_intent = intent['id']
+            self.request.user.save()
+            return Response({'secret': intent['client_secret']})
 
 
 class CancelPremium(APIView):
@@ -2067,7 +1933,7 @@ def get_order_facts(product, serializer, seller):
         facts['adjustment'] = Money('0.00', 'USD')
     facts['paid'] = serializer.validated_data['paid'] or ((facts['price'] + facts['adjustment']) == Money('0', 'USD'))
     facts['escrow_disabled'] = (
-            facts['paid'] or ((seller.artist_profile.bank_account_status != HAS_US_ACCOUNT) and not product.table_product)
+            facts['paid'] or ((seller.artist_profile.bank_account_status != IN_SUPPORTED_COUNTRY) and not product.table_product)
     )
     if facts['paid']:
         if serializer.validated_data['completed']:
@@ -2123,20 +1989,22 @@ class CreateInvoice(GenericAPIView):
                 deliverable_facts = {key: value for key, value in facts.items() if key not in (
                     'price', 'adjustment', 'hold', 'paid',
                 )}
+                processor = get_user_processor(user)
                 deliverable = Deliverable.objects.create(
                     name='Main',
                     order=order,
                     details=serializer.validated_data['details'],
                     product=product,
+                    processor=processor,
                     commission_info=request.subject.artist_profile.commission_info,
                     **deliverable_facts,
                 )
-                deliverable.line_items.get_or_create(
+                deliverable.invoice.line_items.get_or_create(
                     type=BASE_PRICE, amount=facts['price'], priority=0, destination_account=TransactionRecord.ESCROW,
                     destination_user=order.seller,
                 )
                 if facts['adjustment']:
-                    deliverable.line_items.get_or_create(
+                    deliverable.invoice.line_items.get_or_create(
                         type=ADD_ON, amount=facts['adjustment'], priority=1, destination_account=TransactionRecord.ESCROW,
                         destination_user=order.seller,
                     )
@@ -2579,8 +2447,8 @@ class PinterestCatalog(ListAPIView):
 class WillIncurBankFee(GenericAPIView):
     permission_classes = [IsRegistered, UserControls]
 
-    def get_object(self):
-        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+    def get_object(self) -> Any:
+        user = get_object_or_404(User, username__iexact=self.kwargs.get('username'))
         self.check_object_permissions(self.request, user)
         return user
 
@@ -2589,3 +2457,240 @@ class WillIncurBankFee(GenericAPIView):
         if user.banks.all().exists():
             return Response(data={'value': False})
         return Response(data={'value': True})
+
+
+def create_account(*, user: User, country: str):
+    """
+    Create a stripe account for a user.
+    Note: The account might already exist and be the wrong country code. In this case we need to delete the existing
+    account.
+
+    But in doing so, we'll need to start a new transaction to begin again, so we call this function one more time.
+    """
+    restart = False
+    with transaction.atomic(), stripe as api:
+        account, created = StripeAccount.objects.get_or_create(
+            user=user, defaults={'token': 'XXX', 'country': country},
+        )
+        if not account.active and account.country != country:
+            account.delete()
+            restart = True
+        if created:
+            account_data = create_stripe_account(api=api, country=country)
+            account.token = account_data['id']
+            account.save()
+    if restart:
+        return create_account(user=user, country=country)
+    return account
+
+
+class StripeAccountLink(GenericAPIView):
+    permission_classes = [UserControls]
+    serializer_class = StripeBankSetupSerializer
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        with stripe as api:
+            countries = tuple(
+                (item['value'], item['text']) for item in get_country_list(api=api)
+            )
+            context['countries'] = countries
+        return context
+
+    def get_object(self):
+        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        self.check_object_permissions(self.request, user)
+        return user
+
+    def post(self, *_args, **_kwargs):
+        user = self.get_object()
+        serializer = self.get_serializer(data=self.request.data)
+        serializer.is_valid(raise_exception=True)
+        country = serializer.validated_data['country']
+        try:
+            account = create_account(user=user, country=country)
+        except IntegrityError as err:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={'detail': str(err)})
+        url = serializer.validated_data['url']
+        with stripe as api:
+            account_link = create_account_link(
+                api=api,
+                token=account.token,
+                refresh_url=url,
+                return_url=url,
+            )
+        return Response(status=200, data={'link': account_link['url']})
+
+
+class StripeAccounts(ListAPIView):
+    """
+    StripeAccount is actually one-to-one, but we want to subscribe to this object being created, so we're piggy-backing
+    on list creation for our websockets' sake.
+
+    If we have many more singletons like this, it will be worth making a new websocket command.
+    """
+    permission_classes = [UserControls]
+    serializer_class = StripeAccountSerializer
+    pagination_class = None
+
+    def get_object(self):
+        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        self.check_object_permissions(self.request, user)
+        return user
+
+    def get_queryset(self):
+        return StripeAccount.objects.filter(user=self.get_object())
+
+
+class StripeCountries(APIView):
+    def get(self, _request):
+        with stripe as api:
+            return Response(data={'countries': get_country_list(api=api)})
+
+
+def remote_id_from_charge(charge_event):
+    return f'{charge_event["payment_intent"]};{charge_event["id"]}'
+
+
+def service_charge(*, event, amount: Money, preflight_checks=True):
+    charge_event = event['data']['object']
+    metadata = charge_event['metadata']
+    user = User.objects.get(stripe_token=charge_event['customer'])
+    invoice = get_term_invoice(user)
+    return perform_charge(
+        attempt={
+            'stripe_event': charge_event,
+            'amount': amount,
+            'service': metadata['service'],
+            'remote_id': f'{charge_event["payment_intent"]};{charge_event["id"]}',
+        },
+        amount=amount,
+        user=user,
+        requesting_user=user,
+        post_success=premium_post_success(invoice),
+        post_save=premium_post_save(invoice, remote_id_from_charge(charge_event)),
+        context={},
+        initiate_transactions=premium_initiate_transactions,
+    )
+
+
+def deliverable_charge(*, event, amount: Money, preflight_checks=True):
+    charge_event = event['data']['object']
+    metadata = charge_event['metadata']
+    # Not catching because I want this to throw if this is somehow missing or busted.
+    deliverable = Deliverable.objects.get(id=metadata['deliverable_id'], order_id=metadata['order_id'])
+    if preflight_checks:
+        if deliverable.current_intent != charge_event['payment_intent']:
+            raise UserPaymentException(
+                f'Mismatched intent ID! What happened? Received ID was '
+                f'{charge_event["payment_intent"]} while current intent is {deliverable.current_intent}'
+            )
+
+    if preflight_checks and (amount != deliverable.invoice.total()):
+        raise UserPaymentException(
+            f'Mismatched amount! Customer paid {amount} while total was {deliverable.invoice.total()}',
+        )
+    return pay_deliverable(
+        attempt={
+            'stripe_event': charge_event,
+            'amount': amount,
+            'remote_id': remote_id_from_charge(charge_event),
+        },
+        requesting_user=deliverable.order.buyer,
+        deliverable=deliverable,
+    )
+
+
+CHARGE_ROUTES = {
+    'deliverable_id': deliverable_charge,
+    'service': service_charge,
+}
+
+
+def handle_charge_event(event, preflight_checks=True, save_if_valid=True):
+    charge_event = event['data']['object']
+    metadata = charge_event['metadata']
+    amount = Money(
+        (Decimal(charge_event['amount']) / Decimal('100')).quantize(Decimal('0.00')),
+        charge_event['currency'].upper(),
+    )
+    for key, value in CHARGE_ROUTES.items():
+        if key in metadata:
+            records = value(event=event, preflight_checks=preflight_checks, amount=amount)
+            break
+    else:
+        logger.warning('Charge for unknown item:')
+        logger.warning(pformat(event))
+        return
+    if save_if_valid and metadata.get('save_card') == 'True':
+        user = User.objects.get(stripe_token=charge_event['customer'])
+        details = charge_event['payment_method_details']['card']
+        card = CreditCardToken.objects.create(
+            user=user, last_four=details['last4'],
+            stripe_token=charge_event['payment_method'],
+            type=CreditCardToken.TYPE_TRANSLATION[details['brand']],
+            cvv_verified=True,
+        )
+        if not user.primary_card or (metadata.get('make_primary') == 'True'):
+            user.primary_card_id = card.id
+            user.save(update_fields=['primary_card'])
+        TransactionRecord.objects.filter(id__in=[record.id for record in records]).update(card=card)
+
+
+def charge_succeeded(event):
+    handle_charge_event(event, preflight_checks=True, save_if_valid=True)
+
+
+def charge_failed(event):
+    try:
+        handle_charge_event(event, preflight_checks=False, save_if_valid=False)
+    except UserPaymentException:
+        pass
+
+
+def account_updated(event):
+    account_data = event['data']['object']
+    account = StripeAccount.objects.get(token=account_data['id'])
+    account.active = account_data['payouts_enabled']
+    account.save()
+    if account.active:
+        Deliverable.objects.filter(
+            order__seller=account.user, status__in=[NEW, PAYMENT_PENDING],
+        ).update(processor=STRIPE)
+        account.user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
+        account.user.artist_profile.save()
+        withdraw_all(account.user.id)
+
+
+STRIPE_WEBHOOK_ROUTES = {
+    'charge.succeeded': charge_succeeded,
+    'charge.failed': charge_failed,
+    'account.updated': account_updated,
+}
+
+
+class StripeWebhooks(APIView):
+    """
+    Function for processing stripe webhook events.
+    """
+    permission_classes = []
+
+    def post(self, request, connect):
+        with stripe as stripe_api:
+            try:
+                sig_header = request.META['HTTP_STRIPE_SIGNATURE']
+                secret = WebhookRecord.objects.get(connect=connect).secret
+                # If the secret is missing, we cannot verify the signature. Die dramatically until an admin fixes.
+                assert secret
+                event = stripe_api.Webhook.construct_event(request.body, sig_header, secret)
+            except ValueError as err:
+                return Response(status=status.HTTP_400_BAD_REQUEST, data={'detail': str(err)})
+            handler = STRIPE_WEBHOOK_ROUTES.get(event['type'], None)
+            if not handler:
+                logger.warning('Unsupported event "%s" received from Stripe.', event['type'])
+                return Response(
+                    status=status.HTTP_400_BAD_REQUEST,
+                    data={'detail': f'Unsupported command "{event["type"]}"'}
+                )
+            handler(event)
+        return Response(status=status.HTTP_204_NO_CONTENT)

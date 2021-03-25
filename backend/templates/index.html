@@ -37,6 +37,8 @@
   {% if request.META.HTTP_X_PRERENDER == '1' %}PRERENDERING = 1;{% else %}PRERENDERING = 0;{% endif %}
   USER_PRELOAD={{ user_serialized|safe }};
   RECAPTCHA_SITE_KEY='{{ recaptcha_key }}';
+  STRIPE_PUBLIC_KEY = "{{ settings.STRIPE_PUBLIC_KEY }}";
+  DEFAULT_CARD_PROCESSOR = "{{ settings.DEFAULT_CARD_PROCESSOR }}";
 </script>
 <div id="app"></div>
 {% if not debug %}

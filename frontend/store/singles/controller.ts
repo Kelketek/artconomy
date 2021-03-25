@@ -33,8 +33,19 @@ export class SingleController<T extends {}> extends BaseController<SingleModuleO
     return this.dispatch('patch', data)
   }
 
+  public post(data?: any) {
+    return this.dispatch('post', data)
+  }
+
   public delete() {
     return this.dispatch('delete')
+  }
+
+  public markDeleted() {
+    this.socketUnmount()
+    this.deleted = true
+    this.ready = false
+    this.x = null
   }
 
   public put(data?: any) {
@@ -48,7 +59,7 @@ export class SingleController<T extends {}> extends BaseController<SingleModuleO
     }
   }
 
-  public setX(x: T | null | false) {
+  public setX(x: T | null) {
     // Also available as a setter.
     if (this.x && !x) {
       this.forceRecomputeCounter += 1
@@ -91,11 +102,11 @@ export class SingleController<T extends {}> extends BaseController<SingleModuleO
     return this.dispatch('retryGet')
   }
 
-  public get x(): T | null | false {
+  public get x(): T | null {
     return this.attr('x')
   }
 
-  public set x(x: T | null | false) {
+  public set x(x: T | null) {
     this.setX(x)
   }
 
@@ -167,6 +178,14 @@ export class SingleController<T extends {}> extends BaseController<SingleModuleO
     return this.getPatcher() as unknown as SinglePatchers<T>
   }
 
+  public get deleted(): boolean {
+    return this.attr('deleted')
+  }
+
+  public set deleted(val: boolean) {
+    this.commit('setDeleted', val)
+  }
+
   public get socketUpdateParams() {
     const socketSettings = this.attr('socketSettings')
     if (!this.attr('socketSettings') || !this.x) {
@@ -192,6 +211,14 @@ export class SingleController<T extends {}> extends BaseController<SingleModuleO
     return `${data.app_label}.${data.model_name}.update.${data.serializer}.${data.pk}`
   }
 
+  public get deleteLabel() {
+    const data = this.socketUpdateParams
+    if (!data) {
+      return ''
+    }
+    return `${data.app_label}.${data.model_name}.delete.${data.pk}`
+  }
+
   public socketOpened() {
     const data = this.socketUpdateParams
     if (!this.$sock?.socket || !data) {
@@ -199,20 +226,32 @@ export class SingleController<T extends {}> extends BaseController<SingleModuleO
     }
     this.$sock.addListener(
       this.updateLabel,
-      this.socketLabelBase,
+      `${this.socketLabelBase}.update`,
       // Use update to update in place so we don't have to recompute everything. Also because some weirdness happens
       // with reference changes.
       this.updateX,
+    )
+    this.$sock.addListener(
+      this.deleteLabel,
+      `${this.socketLabelBase}.delete`,
+      // Use update to update in place so we don't have to recompute everything. Also because some weirdness happens
+      // with reference changes.
+      this.markDeleted,
     )
     this.$sock.send('watch', data)
   }
 
   public socketUnmount() {
     const updateLabel = this.updateLabel
-    if (!updateLabel || !this.$sock?.socket) {
+    if (!this.$sock?.socket) {
       return
     }
-    this.$sock.send('clear_watch', this.socketUpdateParams)
-    this.$sock.removeListener(updateLabel, this.socketLabelBase)
+    if (this.updateLabel) {
+      this.$sock.send('clear_watch', this.socketUpdateParams)
+      this.$sock.removeListener(updateLabel, `${this.socketLabelBase}.update`)
+    }
+    if (this.deleteLabel) {
+      this.$sock.removeListener(this.deleteLabel, `${this.socketLabelBase}.delete`)
+    }
   }
 }

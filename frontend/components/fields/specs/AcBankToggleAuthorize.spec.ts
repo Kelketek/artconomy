@@ -3,17 +3,17 @@ import {createVuetify, docTarget, rs, setViewer, vueSetup, mount, cleanUp} from 
 import {ArtStore, createStore} from '@/store'
 import {Wrapper} from '@vue/test-utils'
 import {genUser} from '@/specs/helpers/fixtures'
-import AcBankToggle from '@/components/fields/AcBankToggle.vue'
 import mockAxios from '@/__mocks__/axios'
 import flushPromises from 'flush-promises'
 import Vuetify from 'vuetify/lib'
+import AcBankToggleAuthorize from '@/components/fields/AcBankToggleAuthorize.vue'
 
 const localVue = vueSetup()
 let store: ArtStore
 let wrapper: Wrapper<Vue>
 let vuetify: Vuetify
 
-describe('AcBankToggle.vue', () => {
+describe('AcBankToggleAuthorize.vue', () => {
   beforeEach(() => {
     store = createStore()
     vuetify = createVuetify()
@@ -24,7 +24,7 @@ describe('AcBankToggle.vue', () => {
   it('Mounts', async() => {
     setViewer(store, genUser())
     wrapper = mount(
-      AcBankToggle, {
+      AcBankToggleAuthorize, {
         localVue,
         store,
         vuetify,
@@ -36,7 +36,7 @@ describe('AcBankToggle.vue', () => {
   it('Changes the bank status setting', async() => {
     setViewer(store, genUser())
     wrapper = mount(
-      AcBankToggle, {
+      AcBankToggleAuthorize, {
         localVue,
         store,
         vuetify,
@@ -52,7 +52,7 @@ describe('AcBankToggle.vue', () => {
   it('Adds a bank when the user has enough balance', async() => {
     setViewer(store, genUser())
     wrapper = mount(
-      AcBankToggle, {
+      AcBankToggleAuthorize, {
         localVue,
         store,
         vuetify,
@@ -78,13 +78,13 @@ describe('AcBankToggle.vue', () => {
     mockAxios.mockResponse(rs({id: 2, last_four: '1234', type: 0}))
     await flushPromises()
     await vm.$nextTick()
-    expect(wrapper.find('.bank-label').text()).toContain('Checking')
-    expect(wrapper.find('.bank-label').text()).toContain('ending in 1234')
+    expect(vm.banks.list.length).toBe(1)
+    expect(vm.banks.list[0].x.last_four).toBe('1234')
   })
   it('Adds a bank when the user will not incur a fee', async() => {
     setViewer(store, genUser())
     wrapper = mount(
-      AcBankToggle, {
+      AcBankToggleAuthorize, {
         localVue,
         store,
         vuetify,
@@ -111,13 +111,13 @@ describe('AcBankToggle.vue', () => {
     mockAxios.mockResponse(rs({id: 2, last_four: '1234', type: 0}))
     await flushPromises()
     await vm.$nextTick()
-    expect(wrapper.find('.bank-label').text()).toContain('Checking')
-    expect(wrapper.find('.bank-label').text()).toContain('ending in 1234')
+    expect(vm.banks.list.length).toBe(1)
+    expect(vm.banks.list[0].x.last_four).toBe('1234')
   })
   it('Prevents addition when the user will incur a fee and has insufficient balance.', async() => {
     setViewer(store, genUser())
     wrapper = mount(
-      AcBankToggle, {
+      AcBankToggleAuthorize, {
         localVue,
         store,
         vuetify,

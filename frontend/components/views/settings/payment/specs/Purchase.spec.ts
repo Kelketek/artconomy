@@ -1,11 +1,12 @@
 import Vue from 'vue'
-import {cleanUp, createVuetify, docTarget, flushPromises, makeSpace, rq, rs, setViewer, vueSetup, mount} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, flushPromises, mount, rq, rs, setViewer, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import {Wrapper} from '@vue/test-utils'
 import {genCard, genUser} from '@/specs/helpers/fixtures'
 import Purchase from '@/components/views/settings/payment/Purchase.vue'
 import mockAxios from '@/__mocks__/axios'
 import Vuetify from 'vuetify/lib'
+import {PROCESSORS} from '@/types/PROCESSORS'
 
 const localVue = vueSetup()
 let store: ArtStore
@@ -31,6 +32,7 @@ describe('Purchase.vue', () => {
   beforeEach(() => {
     vuetify = createVuetify()
     store = createStore()
+    window.DEFAULT_CARD_PROCESSOR = PROCESSORS.AUTHORIZE
   })
   afterEach(() => {
     cleanUp(wrapper)
@@ -60,34 +62,13 @@ describe('Purchase.vue', () => {
       localVue, store, vuetify, propsData: {username: 'Fox'}, attachTo: docTarget(),
     })
     const vm = wrapper.vm as any
-    vm.cards.setList([genCard({id: 1, primary: true}), genCard({id: 2}), genCard({id: 4})])
+    const cards = [genCard({id: 1, primary: true}), genCard({id: 2}), genCard({id: 4})]
+    vm.cards.setList(cards)
     vm.cards.fetching = false
     vm.cards.ready = true
-    await vm.$nextTick()
-    mockAxios.reset()
-    wrapper.find('.add-card-button').trigger('click')
-    await vm.$nextTick()
-    expect(mockAxios.post).toHaveBeenCalledWith(
-      ...rq('/api/sales/v1/account/Fox/cards/', 'post', emptyForm(), {}))
-    const card = genCard({id: 5, primary: true})
-    mockAxios.mockResponse(rs(card))
-    await flushPromises()
-    expect(vm.cards.list.length).toBe(4)
-    const output = vm.cards.list[vm.cards.list.length - 1].x
-    expect(output.id).toBe(5)
-    expect(output.primary).toBe(true)
-  })
-  it('Replaces the primary card with a new one', async() => {
-    const user = genUser()
-    user.landscape = true
-    setViewer(store, user)
-    wrapper = mount(Purchase, {
-      localVue, store, vuetify, propsData: {username: 'Fox'}, attachTo: docTarget(),
-    })
-    const vm = wrapper.vm as any
-    vm.cards.setList([genCard({id: 1, primary: true}), genCard({id: 2}), genCard({id: 4})])
-    vm.cards.fetching = false
-    vm.cards.ready = true
+    vm.$refs.cardManager.cards.setList(cards)
+    vm.$refs.cardManager.cards.ready = true
+    vm.$refs.cardManager.cards.fetching = false
     await vm.$nextTick()
     mockAxios.reset()
     wrapper.find('.add-card-button').trigger('click')
@@ -112,9 +93,13 @@ describe('Purchase.vue', () => {
       localVue, store, vuetify, propsData: {username: 'Fox'}, attachTo: docTarget(),
     })
     const vm = wrapper.vm as any
-    vm.cards.setList([genCard({id: 1, primary: true}), genCard({id: 2}), genCard({id: 4})])
+    const cards = [genCard({id: 1, primary: true}), genCard({id: 2}), genCard({id: 4})]
+    vm.cards.setList(cards)
     vm.cards.fetching = false
     vm.cards.ready = true
+    vm.$refs.cardManager.cards.setList(cards)
+    vm.$refs.cardManager.cards.ready = true
+    vm.$refs.cardManager.cards.fetching = false
     await vm.$nextTick()
     mockAxios.reset()
     wrapper.find('.add-card-button').trigger('click')

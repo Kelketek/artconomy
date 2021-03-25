@@ -9,7 +9,7 @@ import {genArtistProfile, genCommissionStats, genUser} from '@/specs/helpers/fix
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import {genPricing} from '@/lib/specs/helpers'
 import OrderList from '@/components/views/orders/OrderList.vue'
-import {BankStatus} from '@/store/profiles/types/BankStatus'
+import {BANK_STATUSES} from '@/store/profiles/types/BANK_STATUSES'
 import mockAxios from '@/__mocks__/axios'
 
 const localVue = vueSetup()
@@ -76,7 +76,7 @@ describe('Orders.vue', () => {
     })
     const vm = wrapper.vm as any
     vm.pricing.makeReady(genPricing())
-    vm.viewerHandler.artistProfile.makeReady(genArtistProfile({bank_account_status: BankStatus.HAS_US_ACCOUNT}))
+    vm.viewerHandler.artistProfile.makeReady(genArtistProfile({bank_account_status: BANK_STATUSES.IN_SUPPORTED_COUNTRY}))
     await vm.$nextTick()
     expect(vm.closed).toBe(undefined)
   })
@@ -91,7 +91,7 @@ describe('Orders.vue', () => {
       propsData: {username: 'Fox', seller: true, baseName: 'Sales'},
     })
     const vm = wrapper.vm as any
-    vm.viewerHandler.artistProfile.makeReady(genArtistProfile({bank_account_status: BankStatus.HAS_US_ACCOUNT}))
+    vm.viewerHandler.artistProfile.makeReady(genArtistProfile({bank_account_status: BANK_STATUSES.IN_SUPPORTED_COUNTRY}))
     vm.stats.setX(genCommissionStats())
     await vm.$nextTick()
     expect(vm.closed).toBe(false)
@@ -107,7 +107,7 @@ describe('Orders.vue', () => {
       propsData: {username: 'Fox', seller: true, baseName: 'Sales'},
     })
     const vm = wrapper.vm as any
-    vm.viewerHandler.artistProfile.makeReady(genArtistProfile({bank_account_status: BankStatus.HAS_US_ACCOUNT}))
+    vm.viewerHandler.artistProfile.makeReady(genArtistProfile({bank_account_status: BANK_STATUSES.IN_SUPPORTED_COUNTRY}))
     vm.stats.makeReady(genCommissionStats())
     wrapper.find('.ac-add-button').trigger('click')
     expect(vm.showNewInvoice).toBe(true)

@@ -29,6 +29,7 @@ cd "${SCRIPT_DIR}"
 docker exec -i artconomy_web_1 /bin/bash <<EOF
 set -e
 ./manage.py replace_db < "${DUMP_FILE}"
+./manage.py migrate
 ./manage.py settlement --transactions="${TRANSACTIONS_FILE}" --settlements="${SETTLEMENTS_FILE}" > "${PROCESSED_FILE}"
 mkdir -p "${REPORTS_DIR}"
 chown -R "${TARGET_UID}" "${REPORTS_DIR}"

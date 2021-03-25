@@ -150,7 +150,7 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.assertTrue(Event.objects.filter(type=ORDER_UPDATE).exists())
         product.user.refresh_from_db()
         self.assertEqual(product.user.artist_profile.load, 0)
-        self.assertTrue(Order.objects.get(id=response.data['id']).deliverables.first().total())
+        self.assertTrue(Order.objects.get(id=response.data['id']).deliverables.first().invoice.total())
 
     def test_place_order_waitlisted_product_email(self):
         user = UserFactory.create()
@@ -294,7 +294,7 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         deliverable.refresh_from_db()
-        line_item = deliverable.line_items.get(type=ADD_ON)
+        line_item = deliverable.invoice.line_items.get(type=ADD_ON)
         self.assertEqual(line_item.amount, Money('2.03', 'USD'))
         self.assertEqual(line_item.destination_account, TransactionRecord.ESCROW)
         self.assertEqual(line_item.destination_user, user)
@@ -313,7 +313,7 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         deliverable.refresh_from_db()
-        self.assertFalse(deliverable.line_items.filter(type=ADD_ON).exists())
+        self.assertFalse(deliverable.invoice.line_items.filter(type=ADD_ON).exists())
 
     def test_add_line_item_buyer_fail(self):
         user = UserFactory.create()
@@ -346,7 +346,7 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         deliverable.refresh_from_db()
-        line_item = deliverable.line_items.get(type=TIP)
+        line_item = deliverable.invoice.line_items.get(type=TIP)
         self.assertEqual(line_item.amount, Money('2.03', 'USD'))
         self.assertEqual(line_item.destination_account, TransactionRecord.ESCROW)
         self.assertEqual(line_item.destination_user, user2)
@@ -356,7 +356,9 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         user2 = UserFactory.create()
         self.login(user)
         deliverable = DeliverableFactory.create(order__seller=user2, order__buyer=user)
-        LineItemFactory.create(deliverable=deliverable, type=TIP, amount=Money('5.00', 'USD'))
+        LineItemFactory.create(
+            invoice=deliverable.invoice, type=TIP, amount=Money('5.00', 'USD'), destination_user=user2,
+        )
         response = self.client.post(
             f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/',
             {
@@ -367,7 +369,7 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         deliverable.refresh_from_db()
-        line_item = deliverable.line_items.get(type=TIP)
+        line_item = deliverable.invoice.line_items.get(type=TIP)
         self.assertEqual(line_item.amount, Money('2.03', 'USD'))
         self.assertEqual(line_item.destination_account, TransactionRecord.ESCROW)
         self.assertEqual(line_item.destination_user, user2)
@@ -377,7 +379,7 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         user2 = UserFactory.create()
         self.login(user)
         deliverable = DeliverableFactory.create(order__seller=user2, order__buyer=user)
-        LineItemFactory.create(deliverable=deliverable, type=TIP, amount=Money('5.00', 'USD'))
+        LineItemFactory.create(invoice=deliverable.invoice, type=TIP, amount=Money('5.00', 'USD'))
         response = self.client.post(
             f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/',
             {
@@ -393,7 +395,7 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         user2 = UserFactory.create()
         self.login(user2)
         deliverable = DeliverableFactory.create(order__seller=user2, order__buyer=user, product=None)
-        deliverable.line_items.filter(type=BASE_PRICE).update(amount=Money('100.00', 'USD'))
+        deliverable.invoice.line_items.filter(type=BASE_PRICE).update(amount=Money('100.00', 'USD'))
         response = self.client.post(
             f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/',
             {
@@ -403,7 +405,7 @@ class TestOrder(TransactionCheckMixin, APITestCase):
             }
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        line_item = deliverable.line_items.get(type=BASE_PRICE)
+        line_item = deliverable.invoice.line_items.get(type=BASE_PRICE)
         self.assertEqual(line_item.amount, Money('15.00', 'USD'))
 
     def test_add_line_item_outsider(self):
@@ -449,7 +451,7 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         deliverable.refresh_from_db()
-        line_item = deliverable.line_items.get(type=ADD_ON)
+        line_item = deliverable.invoice.line_items.get(type=ADD_ON)
         self.assertEqual(line_item.amount, Money('2.03', 'USD'))
         self.assertEqual(line_item.destination_account, TransactionRecord.ESCROW)
         self.assertEqual(line_item.destination_user, user)
@@ -1024,8 +1026,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_order_get_rating_seller(self):
-        line_item = LineItemFactory.create(deliverable__status=COMPLETED)
-        deliverable = line_item.deliverable
+        deliverable = DeliverableFactory.create(status=COMPLETED)
+        line_item = LineItemFactory.create(invoice=deliverable.invoice)
         self.login(deliverable.order.seller)
         response = self.client.get(
             f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/rate/buyer/',
@@ -1034,8 +1036,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_order_get_rating_staff_buyer_end(self):
-        line_item = LineItemFactory.create(deliverable__status=COMPLETED)
-        deliverable = line_item.deliverable
+        deliverable = DeliverableFactory.create(status=COMPLETED)
+        line_item = LineItemFactory.create(invoice=deliverable.invoice)
         self.login(UserFactory.create(is_staff=True))
         response = self.client.get(
             f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/rate/buyer/',

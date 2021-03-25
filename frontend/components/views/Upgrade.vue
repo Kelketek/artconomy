@@ -75,12 +75,6 @@
                           </v-list-item>
                           <v-divider/>
                           <v-list-item>
-                            <v-list-item-content class="item-flatten">
-                              Be eligible for quicker payouts with the <router-link :to="{name: 'BuyAndSell', params: {question: 'trusted-artists'}}">Trusted Artist</router-link> program!
-                            </v-list-item-content>
-                          </v-list-item>
-                          <v-divider/>
-                          <v-list-item>
                             <v-list-item-content>
                               ...All for ${{pricing.x.landscape_price}}/Month!
                             </v-list-item-content>
@@ -104,9 +98,9 @@
       </v-tab-item>
       <v-tab-item value="payment">
         <v-card>
-          <ac-form @submit.prevent="paymentForm.submitThen(postPay)">
+          <ac-form @submit.prevent="paymentSubmit">
             <ac-form-container v-bind="paymentForm.bind">
-              <v-row no-gutters   class="mt-3" v-if="selection !== null">
+              <v-row class="mt-3" v-if="selection !== null">
                 <v-col cols="12">
                   <ac-card-manager
                       ref="cardManager"
@@ -116,13 +110,16 @@
                       :field-mode="true"
                       v-model="paymentForm.fields.card_id.model"
                       :show-save="false"
+                      :processor="processor"
+                      @paymentSent="postPay"
+                      :client-secret="(clientSecret.x && clientSecret.x.secret) || ''"
                   />
                 </v-col>
                 <v-col cols="12" class="pricing-container text-center" >
                   <strong>Monthly charge: ${{price}}</strong> <br/>
                   <div class="mt-2 text-center">
-                    <v-btn @click="selection=null">Go back</v-btn>
-                    <v-btn type="submit" color="primary">
+                    <v-btn @click="selection=null" class="mx-1">Go back</v-btn>
+                    <v-btn type="submit" color="primary" class="mx-1">
                       Start Service
                     </v-btn>
                     <p>Premium services, as with all use of Artconomy's offerings, are subject to the
@@ -161,12 +158,14 @@ import {FormController} from '@/store/forms/form-controller'
 import {baseCardSchema} from '@/lib/lib'
 import {Watch} from 'vue-property-decorator'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
-import {User} from '@/store/profiles/types/User'
 import AcForm from '@/components/wrappers/AcForm.vue'
-  @Component({
-    components: {AcForm, AcFormContainer, AcCardManager, AcLoadSection},
-  })
-export default class Upgrade extends mixins(Viewer) {
+import StripeHostMixin from '@/components/views/order/mixins/StripeHostMixin'
+import {PROCESSORS} from '@/types/PROCESSORS'
+
+@Component({
+  components: {AcForm, AcFormContainer, AcCardManager, AcLoadSection},
+})
+export default class Upgrade extends mixins(Viewer, StripeHostMixin) {
     public pricing: SingleController<Pricing> = null as unknown as SingleController<Pricing>
     public paymentForm: FormController = null as unknown as FormController
     public selection: null|string = null
@@ -190,17 +189,33 @@ export default class Upgrade extends mixins(Viewer) {
       return this.pricing.x[this.selection + '_price']
     }
 
+    public get processor() {
+      return window.DEFAULT_CARD_PROCESSOR
+    }
+
+    public get stripeEnabled() {
+      return this.processor === PROCESSORS.STRIPE
+    }
+
     @Watch('selection')
     public setSelection(value: string) {
       if (!value) {
         return
       }
       this.paymentForm.fields.service.update(value)
+      this.updateIntent()
     }
 
-    public postPay(response: User) {
+    public paymentSubmit() {
+      if (!this.stripeEnabled) {
+        this.paymentForm.submitThen(this.postPay)
+      }
+      const cardManager = this.$refs.cardManager as any
+      cardManager.stripeSubmit()
+    }
+
+    public postPay() {
       this.paid = true
-      this.viewerHandler.user.setX(response)
     }
 
     public created() {
@@ -213,6 +228,11 @@ export default class Upgrade extends mixins(Viewer) {
         service: {value: null},
       }
       this.paymentForm = this.$getForm('serviceUpgrade', schema)
+      this.clientSecret = this.$getSingle(
+        'upgrade__clientSecret', {
+          endpoint: '/api/sales/v1/premium/intent/',
+          params: {service: this.selection || 'landscape'},
+        })
     }
 }
 </script>

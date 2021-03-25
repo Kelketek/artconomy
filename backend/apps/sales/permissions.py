@@ -7,9 +7,11 @@ from apps.sales.utils import available_products_from_user
 
 
 def derive_order(instance):
-    from apps.sales.models import Order, Deliverable
+    from apps.sales.models import Order, Deliverable, LineItem
     if isinstance(instance, Order):
         return instance
+    if isinstance(instance, LineItem):
+        instance = instance.invoice.deliverables.get()
     if not isinstance(instance, Deliverable):
         instance = instance.deliverable
     return instance.order
@@ -97,10 +99,12 @@ class BankingConfigured(BasePermission):
 
 
 def DeliverableStatusPermission(*args, error_message='The deliverable is not in the right status for that.'):
-    from apps.sales.models import Deliverable
+    from apps.sales.models import Deliverable, LineItem
     class StatusCheckPermission(BasePermission):
         message = error_message
         def has_object_permission(self, request, view, obj):
+            if isinstance(obj, LineItem):
+                obj = obj.invoice.deliverables.get()
             if not isinstance(obj, Deliverable):
                 obj = obj.deliverable
             if obj.status in args:
@@ -141,7 +145,7 @@ class NoOrderOutput(BasePermission):
 class PaidOrderPermission(BasePermission):
     message = 'You may not rate an order which was free.'
     def has_object_permission(self, request, view, obj):
-        if obj.total().amount <= 0:
+        if obj.invoice.total().amount <= 0:
             return False
         return True
 
@@ -162,7 +166,9 @@ def LineItemTypePermission(*args, error_message='You are not permitted to edit l
 class DeliverableNoProduct(BasePermission):
     message = 'You may only perform this action on deliverables without an associated product.'
     def has_object_permission(self, request, view, obj):
-        from apps.sales.models import Deliverable
+        from apps.sales.models import Deliverable, LineItem
+        if isinstance(obj, LineItem):
+            obj = obj.invoice.deliverables.get()
         if not isinstance(obj, Deliverable):
             obj = obj.deliverable
         if obj.product:

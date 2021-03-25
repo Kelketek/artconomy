@@ -15,12 +15,21 @@ export class SingleModule<T> {
   public namespaced: boolean
 
   public constructor(options: {
-                       x?: T | false | null, endpoint: string, persistent?: boolean,
-                       attempted?: boolean, fetching?: boolean, ready?: boolean, failed?: boolean,
+                       x?: T | null, endpoint: string, persistent?: boolean,
+                       attempted?: boolean, fetching?: boolean, ready?: boolean, failed?: boolean, deleted?: boolean,
+                       socketSettings?: SingleSocketSettings|null,
                      },
   ) {
     const defaults = {
-      x: null, persistent: false, attempted: false, fetching: false, failed: false, ready: false, params: null,
+      x: null,
+      persistent: false,
+      attempted: false,
+      fetching: false,
+      failed: false,
+      ready: false,
+      params: null,
+      deleted: false,
+      socketSettings: null,
     }
     this.state = {...defaults, ...options}
     const cancel = {source: axios.CancelToken.source()}
@@ -49,6 +58,9 @@ export class SingleModule<T> {
       },
       setSocketSettings(state: SingleState<T>, val: SingleSocketSettings|null) {
         _Vue.set(state, 'socketSettings', val)
+      },
+      setDeleted(state: SingleState<T>, val: boolean) {
+        _Vue.set(state, 'deleted', val)
       },
       setParams(state: SingleState<T>, params: QueryParams|null) {
         if (params === null) {
@@ -99,8 +111,9 @@ export class SingleModule<T> {
           method: 'delete',
           cancelToken: cancel.source.token,
         }).then((response) => {
+          commit('setDeleted', true)
           commit('setReady', false)
-          commit('setX', false)
+          commit('setX', null)
         })
       },
       put({state, commit}, data: Partial<T> | undefined) {
@@ -122,6 +135,15 @@ export class SingleModule<T> {
           cancelToken: cancel.source.token,
         }).then((response) => {
           commit('setX', response)
+        })
+      },
+      post({state, commit}, data: any) {
+        commit('kill')
+        return artCall({
+          url: state.endpoint,
+          method: 'post',
+          data,
+          cancelToken: cancel.source.token,
         })
       },
     }

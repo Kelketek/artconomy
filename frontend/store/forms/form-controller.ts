@@ -85,6 +85,10 @@ export class FormController extends BaseController<NamelessFormSchema, FormState
     return this.attr('errors')
   }
 
+  public set errors(errors: string[]) {
+    this.$store.commit('forms/setMetaErrors', {name: this.name, errors})
+  }
+
   public get disabled(): boolean {
     return this.sending || this.attr('disabled')
   }

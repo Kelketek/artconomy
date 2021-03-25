@@ -1,4 +1,5 @@
 import re
+from threading import currentThread
 
 from dateutil import parser
 from hitcount.utils import get_ip
@@ -77,3 +78,21 @@ class MonkeyPatchMiddleWare:
 
     def __call__(self, request):
         return self.get_response(request)
+
+
+_requests = {}
+
+
+def get_request():
+    return _requests.get(currentThread(), None)
+
+
+class GlobalRequestMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        _requests[currentThread()] = request
+        response = self.get_response(request)
+        _requests.pop(currentThread())
+        return response

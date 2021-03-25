@@ -1,5 +1,6 @@
 import {PaginatedResponse} from '@/store/lists/types/PaginatedResponse'
 import {QueryParams} from '@/store/helpers/QueryParams'
+import {ListSocketSettings} from '@/store/lists/types/ListSocketSettings'
 
 export interface ListState<T> {
   response: PaginatedResponse | null,
@@ -15,5 +16,7 @@ export interface ListState<T> {
   reverse: boolean,
   failed: boolean,
   paginated: boolean,
+  stale: boolean,
   params: QueryParams|null,
+  socketSettings: ListSocketSettings|null,
 }

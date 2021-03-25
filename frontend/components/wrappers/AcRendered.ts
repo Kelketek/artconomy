@@ -82,7 +82,7 @@ export default class AcRendered extends mixins(Formatting) {
   }
 
   public get truncated() {
-    return !(this.availableText === this.value)
+    return !(this.availableText === (this.value || ''))
   }
 
   public get readMore() {

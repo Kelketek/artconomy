@@ -1,6 +1,6 @@
 /* istanbul ignore file */
 import {AxiosRequestConfig, AxiosResponse} from 'axios'
-import {csrfSafeMethod, genId, getCookie, saneNav} from '@/lib/lib'
+import {csrfSafeMethod, genId, getCookie, immediate, saneNav} from '@/lib/lib'
 import {createLocalVue, mount as upstreamMount, ThisTypedMountOptions, VueClass, Wrapper} from '@vue/test-utils'
 import Vue, {VueConstructor} from 'vue'
 import {FieldController} from '@/store/forms/field-controller'
@@ -153,7 +153,9 @@ export function vueSetup() {
   Vue.use(Vuex)
   Vue.use(Vuetify)
   const localVue = createLocalVue()
-  localVue.use(VueSocket, {endpoint: 'ws://localhost/test/url'})
+  // Can't trust the websocket library to clean itself properly, so we make sure that the socket's at a new URL each
+  // time.
+  localVue.use(VueSocket, {endpoint: `ws://localhost/test/url/${genId()}`})
   localVue.use(Singles)
   localVue.use(Lists)
   localVue.use(Profiles)
@@ -272,5 +274,31 @@ export function prepTest<V extends Vue>(overrides?: Partial<ThisTypedMountOption
 export function mount<V extends Vue>(component: VueClass<V>, options?: ThisTypedMountOptions<V>): Wrapper<V> {
   // I'm not sure I'm going to need this. But it looked like I did once, and it was a pain in the ass to convert
   // everything over, so I'm keeping it.
+  options = options || {}
+  if (!options?.attachTo) {
+    options.attachTo = docTarget()
+  }
   return upstreamMount(component, options)
 }
+
+export const mockCardMount = jest.fn()
+export const mockCardCreate = jest.fn()
+export const mockStripe = () => {
+  const stripeInstance = {
+    elements: () => {
+      return {
+        create: mockCardCreate,
+      }
+    },
+    confirmCardPayment: async() => {
+      return immediate(stripeInstance.paymentValue)
+    },
+    // Set this to whatever you want confirmCardPayment to return.
+    paymentValue: null as any,
+  }
+  return stripeInstance
+}
+export const mockStripeInitializer = jest.fn()
+mockStripeInitializer.mockImplementation(mockStripe)
+mockCardCreate.mockImplementation(() => ({mount: mockCardMount}))
+window.Stripe = mockStripeInitializer

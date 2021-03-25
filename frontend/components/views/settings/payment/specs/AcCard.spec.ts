@@ -4,10 +4,11 @@ import AcCard from '@/components/views/settings/payment/AcCard.vue'
 import Vuetify from 'vuetify/lib'
 import {ArtStore, createStore} from '@/store'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
-import {cleanUp, createVuetify, docTarget, flushPromises, rq, rs, vueSetup, mount} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, flushPromises, mount, rq, rs, vueSetup} from '@/specs/helpers'
 import {ListController} from '@/store/lists/controller'
 import {CreditCardToken} from '@/types/CreditCardToken'
 import mockAxios from '@/__mocks__/axios'
+import {PROCESSORS} from '@/types/PROCESSORS'
 
 const localVue = vueSetup()
 let store: ArtStore
@@ -22,7 +23,7 @@ describe('AcCard.vue', () => {
     vuetify = createVuetify()
     generator = mount(Empty, {localVue, store})
     cardList = generator.vm.$getList('creditCards', {endpoint: '/cards/'})
-    cardList.setList([{id: 1, last_four: '1234', primary: true, type: 1, cvv_verified: true}])
+    cardList.setList([{id: 1, last_four: '1234', primary: true, type: 1, cvv_verified: true, processor: PROCESSORS.AUTHORIZE}])
     wrapper = mount(
       AcCard, {
         localVue, store, vuetify, attachTo: docTarget(), propsData: {cardList, card: cardList.list[0]},
@@ -49,9 +50,9 @@ describe('AcCard.vue', () => {
   })
   it('Marks a card as primary', async() => {
     cardList.list[0].updateX({primary: false})
-    cardList.push({id: 2, cvv_verified: true, last_four: '5432', primary: true, type: 2})
-    cardList.push({id: 3, cvv_verified: true, last_four: '4563', primary: false, type: 3})
-    cardList.list[2].setX(false)
+    cardList.push({id: 2, cvv_verified: true, last_four: '5432', primary: true, type: 2, processor: PROCESSORS.AUTHORIZE})
+    cardList.push({id: 3, cvv_verified: true, last_four: '4563', primary: false, type: 3, processor: PROCESSORS.AUTHORIZE})
+    cardList.list[2].setX(null)
     await wrapper.vm.$nextTick()
     wrapper.find('.make-default').trigger('click')
     // Confirmation.
@@ -61,5 +62,19 @@ describe('AcCard.vue', () => {
     await flushPromises()
     expect((cardList.list[0].x as CreditCardToken).primary).toBe(true)
     expect((cardList.list[1].x as CreditCardToken).primary).toBe(false)
+  })
+  it('Shows the correct icon for a card', async() => {
+    const vm = wrapper.vm as any
+    vm.card.updateX({type: 1})
+    await vm.$nextTick()
+    expect(wrapper.find('.fa-cc-visa').exists()).toBe(true)
+    vm.card.updateX({type: 2})
+    await vm.$nextTick()
+    expect(wrapper.find('.fa-cc-mastercard').exists()).toBe(true)
+    vm.card.setX(null)
+    await vm.$nextTick()
+    // This will never actually be displayed, because a non-existent card shouldn't be rendered.
+    expect(wrapper.find('.fa-credit-card-alt').exists()).toBe(false)
+    expect(vm.cardIcon).toBe('fa-credit-card-alt')
   })
 })

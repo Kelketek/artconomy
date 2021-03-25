@@ -61,8 +61,8 @@ SECRET_KEY = get_env('DJANGO_SECRET_KEY', UNSET)
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = bool(int(get_env('DEBUG', 1)))
 
-ALLOWED_HOSTS = get_env('ALLOWED_HOSTS', ['artconomy.vulpinity.com', 'localhost', 'f3f609d8.ngrok.io'], unpack=True)
-if TESTING:
+ALLOWED_HOSTS = get_env('ALLOWED_HOSTS', ['artconomy.vulpinity.com', 'localhost'], unpack=True)
+if TESTING or DEBUG:
     ALLOWED_HOSTS = ['*']
 
 # Application definition
@@ -100,6 +100,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'apps.lib.middleware.GlobalRequestMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -127,6 +128,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'apps.lib.context_processors.settings_context',
             ],
         },
     },
@@ -271,6 +273,16 @@ DWOLLA_MASTER_BALANCE_KEY = get_env(
 
 AUTHORIZE_KEY = get_env('AUTHORIZE_KEY', '')
 AUTHORIZE_SECRET = get_env('AUTHORIZE_SECRET', '')
+
+STRIPE_KEY = get_env('STRIPE_KEY', '')
+STRIPE_PUBLIC_KEY = get_env('STRIPE_PUBLIC_KEY', '')
+
+DEFAULT_CARD_PROCESSOR = get_env('DEFAULT_CARD_PROCESSOR', 'authorize')
+
+if TESTING:
+    # Development system may have a stripe key, but we don't want to be making entries on the Stripe test service
+    STRIPE_KEY = ''
+    STRIPE_PUBLIC_KEY = ''
 
 DEFAULT_PROTOCOL = get_env('DEFAULT_PROTOCOL', 'https')
 DEFAULT_DOMAIN = get_env('DEFAULT_DOMAIN', 'artconomy.vulpinity.com')
@@ -519,3 +531,5 @@ CACHES = {
         'LOCATION': f'{get_env("CHANNELS_HOST", "127.0.0.1")}:{get_env("CHANNELS_PORT", "6379")}',
     },
 }
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
