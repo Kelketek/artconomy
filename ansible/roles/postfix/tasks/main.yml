@@ -15,10 +15,12 @@
     - restart postfix
 
 - name: Ensure header checks configuration file
-  file:
-    path: /etc/postfix/header_checks
-    state: touch
-  changed_when: false
+  template:
+    src: "templates/header_checks"
+    dest: "/etc/postfix/header_checks"
+  notify:
+    - postmap
+    - restart postfix
 
 - name: Add dkim key
   copy:

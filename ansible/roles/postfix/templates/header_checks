@@ -1,0 +1,2 @@
+/^Subject:/     WARN
+/Message-Id:\s+<(.*?)@localhost>/ REPLACE Message-Id: <$1@{{mail_domain}}>
