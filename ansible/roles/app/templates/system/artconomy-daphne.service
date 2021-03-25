@@ -13,5 +13,4 @@ Environment={{key}}={{value}}
 {% for key, value in app_settings_complex.items() %}
 Environment={{key}}={{value|to_json|b64encode}}
 {% endfor %}
-ExecStart=/home/{{ env_prefix }}/bin/uvicorn -p 9001 conf.asgi:application --proxy-headers --workers 6
-WantedBy=multi-user.target
+ExecStart=/home/{{ env_prefix }}/bin/uvicorn --port 9001 conf.asgi:application --proxy-headers --workers 6
