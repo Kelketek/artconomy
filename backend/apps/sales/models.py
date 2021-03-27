@@ -297,7 +297,7 @@ class Deliverable(Model):
     revisions = IntegerField(default=0)
     revisions_hidden = BooleanField(default=True)
     final_uploaded = BooleanField(default=False)
-    details = CharField(max_length=5000)
+    details = TextField(max_length=5000)
     adjustment_expected_turnaround = DecimalField(default=0, max_digits=5, decimal_places=2)
     adjustment_task_weight = IntegerField(default=0)
     adjustment_revisions = IntegerField(default=0)
