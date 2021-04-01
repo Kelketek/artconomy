@@ -103,7 +103,7 @@ describe('Profile.vue', () => {
     await flushPromises()
     await wrapper.vm.$nextTick()
     await flushPromises()
-    expect(wrapper.vm.$route.name).toBe('Products')
+    expect(wrapper.vm.$route.name).toBe('AboutUser')
   })
   it('Sends a message', async() => {
     setViewer(store, vulpes)

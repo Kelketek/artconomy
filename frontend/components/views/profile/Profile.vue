@@ -35,11 +35,7 @@ export default class Profile extends mixins(Subjective) {
       return
     }
     if (this.$route.name === 'Profile') {
-      if (this.subject.artist_mode) {
-        this.$router.replace({name: 'Products', params: {username: this.username}})
-      } else {
-        this.$router.replace({name: 'AboutUser', params: {username: this.username}})
-      }
+      this.$router.replace({name: 'AboutUser', params: {username: this.username}})
     }
   }
 

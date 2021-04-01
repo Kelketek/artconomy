@@ -134,7 +134,7 @@ describe('NavBar.vue', () => {
     expect(vm.drawer).toBe(true)
     wrapper.destroy()
   })
-  it('Generates a profile link for non-artists', async() => {
+  it('Generates a profile link', async() => {
     const user = genUser()
     user.username = 'Goober'
     user.artist_mode = false
@@ -147,7 +147,7 @@ describe('NavBar.vue', () => {
 
     })
     await wrapper.vm.$nextTick()
-    expect((wrapper.vm as any).profileRoute).toEqual({name: 'Profile', params: {username: 'Goober'}})
+    expect((wrapper.vm as any).profileRoute).toEqual({name: 'AboutUser', params: {username: 'Goober'}})
   })
   it('Toggles the support form', async() => {
     setViewer(store, genUser())
