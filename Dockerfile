@@ -16,11 +16,15 @@ RUN apt-get autoremove -y
 RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
 RUN apt-get install -y nodejs
 RUN mkdir /app
+RUN groupadd -g 1000 dev
+RUN useradd -u 1000 -d /app -g dev dev
+RUN chown 1000:1000 /app
 WORKDIR /app
+USER 1000
 ADD . .
 ENV LANG=C.UTF-8
-RUN /usr/bin/python3.8 -m pip install --upgrade pip
-RUN /usr/bin/python3.8 -m pip install -r requirements.txt
+#RUN /usr/bin/python3.8 -m pip install --upgrade pip
+#RUN /usr/bin/python3.8 -m pip install -r requirements.txt
 # RUN npm install
 # RUN npm run build
 #RUN npm run build
