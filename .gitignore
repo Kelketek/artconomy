@@ -294,3 +294,7 @@ jest-mock-promise/**
 **/*.csv
 **/*.xls
 **/*.xlsx
+
+.bash_history
+.config/**
+.local/**
