@@ -48,8 +48,36 @@
   {% endif %}
 </script>
 <div id="app"></div>
-{% render_bundle 'app' 'js' %}
-{% render_bundle 'chunk-vendors' 'js' %}
+{% if not debug %}
+  {% get_files 'chunk-vendors' 'js' as vendors_js_files %}
+  {% for file in vendors_js_files %}
+    <script type=module src="{{file.publicPath}}"></script>
+  {% endfor %}
+  {% get_files 'app' 'js' as app_js_files %}
+  {% for file in app_js_files %}
+    <script type=module src="{{file.publicPath}}"></script>
+  {% endfor %}
+    <script>!function () {
+        var e = document, t = e.createElement('script')
+        if (!('noModule' in t) && 'onbeforeload' in t) {
+            var n = !1
+            e.addEventListener('beforeload', function (e) {
+                if (e.target === t) n = !0 else if (!e.target.hasAttribute('nomodule') || !n) return
+                e.preventDefault()
+            }, !0), t.type = 'module', t.src = '.', e.head.appendChild(t), t.remove()
+        }
+    }()</script>
+  {% get_files 'chunk-vendors' 'js' config='LEGACY' as vendors_legacy_js_files %}
+    {% for file in vendors_legacy_js_files %}
+      <script src="{{file.publicPath}}" nomodule></script>
+  {% endfor %}
+  {% get_files 'app' 'js' config='LEGACY' as app_legacy_js_files %}
+  {% for file in app_legacy_js_files %}
+    <script src="{{file.publicPath}}" nomodule></script>
+  {% endfor %}
+{% else %}
+  {% render_bundle 'app' %}
+{% endif %}
 {% include env_file %}
 <noscript>
   <p>Hey, we're one of those newfangled single page apps, so please enable JavaScript or the site won't work!</p>
