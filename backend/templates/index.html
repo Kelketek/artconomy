@@ -9,7 +9,7 @@
   <meta name="fragment" content="!">
   <script src="https://use.fontawesome.com/b04fe3f35a.js" async></script>
   <script src="https://www.google.com/recaptcha/api.js?onload=vueRecaptchaApiLoaded&render=explicit" async defer></script>
-  <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons' rel="stylesheet">
+  <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons&display=swap' rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'">
   <link rel="icon" type="image/png" href="/static/images/logo.png">
   {% get_files 'app' 'css' as app_css_files %}
   {% for css_file in app_css_files %}
@@ -48,7 +48,7 @@
   {% endif %}
 </script>
 <div id="app"></div>
-{% if not debug %}
+{% if not settings.DEBUG %}
   {% get_files 'chunk-vendors' 'js' as vendors_js_files %}
   {% for file in vendors_js_files %}
     <script type=module src="{{file.publicPath}}"></script>
@@ -57,16 +57,6 @@
   {% for file in app_js_files %}
     <script type=module src="{{file.publicPath}}"></script>
   {% endfor %}
-    <script>!function () {
-        var e = document, t = e.createElement('script')
-        if (!('noModule' in t) && 'onbeforeload' in t) {
-            var n = !1
-            e.addEventListener('beforeload', function (e) {
-                if (e.target === t) n = !0 else if (!e.target.hasAttribute('nomodule') || !n) return
-                e.preventDefault()
-            }, !0), t.type = 'module', t.src = '.', e.head.appendChild(t), t.remove()
-        }
-    }()</script>
   {% get_files 'chunk-vendors' 'js' config='LEGACY' as vendors_legacy_js_files %}
     {% for file in vendors_legacy_js_files %}
       <script src="{{file.publicPath}}" nomodule></script>
@@ -76,7 +66,8 @@
     <script src="{{file.publicPath}}" nomodule></script>
   {% endfor %}
 {% else %}
-  {% render_bundle 'app' %}
+  {% render_bundle 'app' 'js' %}
+  {% render_bundle 'chunk-vendors' 'js' %}
 {% endif %}
 {% include env_file %}
 <noscript>

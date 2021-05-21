@@ -121,7 +121,7 @@
         </v-switch>
       </v-card>
       <v-toolbar-items v-if="fullInterface">
-        <v-btn text class="hidden-md-and-up px-1" icon :to="{name: 'SearchProducts'}">
+        <v-btn text class="hidden-md-and-up px-1" icon :to="{name: 'SearchProducts'}" aria-label="Search">
           <v-icon large>search</v-icon>
         </v-btn>
         <v-btn icon v-if="isRegistered" @click="notificationLoad" class="notifications-button">
@@ -141,7 +141,7 @@
           <div style="padding-left: 1rem;" v-if="isLoggedIn">{{ viewer.username }}</div>
         </v-btn>
         <v-btn v-else-if="viewer" class="nav-login-item" text :to="loginLink">Login</v-btn>
-        <v-btn v-else class="nav-login-item"/>
+        <v-btn v-else class="nav-login-item" aria-label="Login button loading."/>
       </v-toolbar-items>
     </v-app-bar>
   </div>
