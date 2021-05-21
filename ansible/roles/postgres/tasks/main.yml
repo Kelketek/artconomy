@@ -6,6 +6,9 @@
       - python-psycopg2
     state: present
 
+- name: Ensure postgres running
+  service: name=postgresql state=started enabled=yes
+
 - name: Load app settings
   include_vars: "keys/{{env_prefix}}/app_settings.yml"
 

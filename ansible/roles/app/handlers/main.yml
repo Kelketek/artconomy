@@ -40,3 +40,6 @@
   shell: "source ~/.profile && source ~/bin/activate && cd ~/artconomy  && mkdir -p ~/artconomy/public/dist/csv/ && ./manage.py pinterest_catalog > ~/artconomy/public/dist/csv/pinterest.csv"
   args:
     executable: "/bin/bash"
+  tags:
+    # Disabling since Pinterest doesn't support our catalog.
+    - never
