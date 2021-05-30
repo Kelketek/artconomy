@@ -1606,7 +1606,8 @@ class BankAccounts(ListCreateAPIView):
         self.check_object_permissions(self.request, user)
         # validated_data will have the additional fields, whereas data only contains fields for model creation.
         data = serializer.validated_data
-        if account_balance(user, TransactionRecord.HOLDINGS) < Decimal('1.00'):
+        has_bank = user.banks.all().exists()
+        if (not has_bank) and (account_balance(user, TransactionRecord.HOLDINGS) < Decimal('1.00')):
             raise PermissionDenied('You do not have sufficient balance to cover the $1.00 connection fee yet.')
         make_dwolla_account(self.request, user, data['first_name'], data['last_name'])
         account = add_bank_account(user, data['account_number'], data['routing_number'], data['type'])
@@ -2573,3 +2574,18 @@ class PinterestCatalog(ListAPIView):
             'dialect': 'unix',
         }
         return context
+
+
+class WillIncurBankFee(GenericAPIView):
+    permission_classes = [IsRegistered, UserControls]
+
+    def get_object(self):
+        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        self.check_object_permissions(self.request, user)
+        return user
+
+    def get(self, *_args, **_kwargs):
+        user = self.get_object()
+        if user.banks.all().exists():
+            return Response(data={'value': False})
+        return Response(data={'value': True})

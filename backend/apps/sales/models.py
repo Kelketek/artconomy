@@ -1373,17 +1373,18 @@ def ensure_shield(sender, instance, created=False, **_kwargs):
         return
     instance.user.escrow_disabled = False
     instance.user.save()
-    record = TransactionRecord.objects.create(
-        payer=instance.user,
-        amount=Money('1.00', 'USD'),
-        category=TransactionRecord.THIRD_PARTY_FEE,
-        payee=None,
-        source=TransactionRecord.HOLDINGS,
-        destination=TransactionRecord.ACH_MISC_FEES,
-        status=TransactionRecord.SUCCESS,
-        note='Bank Connection Fee'
-    )
-    record.targets.add(ref_for_instance(instance))
+    if not instance.user.banks.exclude(id=instance.id).exists():
+        record = TransactionRecord.objects.create(
+            payer=instance.user,
+            amount=Money('1.00', 'USD'),
+            category=TransactionRecord.THIRD_PARTY_FEE,
+            payee=None,
+            source=TransactionRecord.HOLDINGS,
+            destination=TransactionRecord.ACH_MISC_FEES,
+            status=TransactionRecord.SUCCESS,
+            note='Bank Connection Fee'
+        )
+        record.targets.add(ref_for_instance(instance))
     from apps.sales.tasks import withdraw_all
     withdraw_all(instance.user.id)
 

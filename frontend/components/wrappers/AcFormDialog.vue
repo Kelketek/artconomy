@@ -33,7 +33,9 @@
       </v-toolbar>
       <v-card-text class="scrollableText" :class="{'pa-0': fluid}">
         <ac-form @submit.prevent="reSend">
-          <slot name="header"/>
+          <v-container class="pa-0">
+            <slot name="header" />
+          </v-container>
           <ac-form-container
               :errors="errors"
               :sending="sending"

@@ -124,8 +124,7 @@ class TestBankAccounts(APITestCase):
     def test_bank_addition(self, mock_account_balance, mock_add_bank_account, _mock_make_dwolla_account):
         user = UserFactory.create()
         self.login(user)
-        mock_add_bank_account.return_value = BankAccountFactory.create(user=user)
-        value = Decimal('3.00')
+        mock_add_bank_account.side_effect = lambda *args, **kwargs: BankAccountFactory.create(user=user)
         mock_account_balance.return_value = Decimal('3.00')
         response = self.client.post(
             f'/api/sales/v1/account/{user.username}/banks/',
@@ -143,7 +142,7 @@ class TestBankAccounts(APITestCase):
     def test_bank_addition_insufficient_funds(self, mock_add_bank_account, _mock_make_dwolla_account):
         user = UserFactory.create()
         self.login(user)
-        mock_add_bank_account.return_value = BankAccountFactory.create(user=user)
+        mock_add_bank_account.side_effect = lambda *args, **kwargs: BankAccountFactory.create(user=user)
         response = self.client.post(
             f'/api/sales/v1/account/{user.username}/banks/',
             {
@@ -155,6 +154,25 @@ class TestBankAccounts(APITestCase):
         self.assertEqual(
             response.data['detail'], 'You do not have sufficient balance to cover the $1.00 connection fee yet.',
         )
+
+    @patch('apps.sales.views.make_dwolla_account')
+    @patch('apps.sales.views.add_bank_account')
+    @patch('apps.sales.views.account_balance')
+    def test_bank_addition_already_paid_fee(self, mock_account_balance, mock_add_bank_account, _mock_make_dwolla_account):
+        user = UserFactory.create()
+        self.login(user)
+        BankAccountFactory.create(user=user, deleted=True)
+        mock_add_bank_account.side_effect = lambda *args, **kwargs: BankAccountFactory.create(user=user)
+        response = self.client.post(
+            f'/api/sales/v1/account/{user.username}/banks/',
+            {
+                'type': BankAccount.CHECKING, 'account_number': '123434', 'routing_number': '123455666',
+                'first_name': 'Jim', 'last_name': 'Bob',
+            }, format='json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        mock_account_balance.assert_not_called()
+        mock_add_bank_account.assert_called_with(user, '123434', '123455666', BankAccount.CHECKING)
 
     def test_bank_listing_staff(self):
         user = UserFactory.create()

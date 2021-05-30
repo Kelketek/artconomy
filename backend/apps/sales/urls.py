@@ -108,6 +108,7 @@ urlpatterns = [
     path('v1/account/<username>/cards/<int:card_id>/primary/', views.MakePrimary.as_view(), name='card_primary'),
     path('v1/account/<username>/balance/', views.AccountBalance.as_view(), name='account_balance'),
     path('v1/account/<username>/banks/', views.BankAccounts.as_view(), name='bank_list'),
+    path('v1/account/<username>/banks/fee-check/', views.WillIncurBankFee.as_view(), name='bank_fee_check'),
     path('v1/account/<username>/banks/<int:account>/', views.BankManager.as_view(), name='bank_manager'),
     path('v1/account/<username>/account-status/', views.AccountStatus.as_view(), name='account_status'),
     path('v1/account/<username>/transactions/', views.AccountHistory.as_view(), name='account_history'),

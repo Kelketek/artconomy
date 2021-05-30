@@ -42,10 +42,14 @@
         @submit.prevent="newBank.submitThen(addBank)"
         title="Add Bank"
     >
-      <v-row no-gutters  >
-        <v-col class="text-center" slot="header" >
-          <p><strong>Note: There will be a one-time connection fee of $1 assessed, as required by our payment processor.</strong></p>
-        </v-col>
+      <template v-slot:header v-if="willIncurFee.x.value">
+        <v-row>
+          <v-col class="text-center">
+            <p><strong>Note: There will be a one-time connection fee of $1 assessed, as required by our payment processor.</strong></p>
+          </v-col>
+        </v-row>
+      </template>
+      <v-row no-gutters>
         <v-col cols="12" sm="6">
           <ac-bound-field :field="newBank.fields.first_name" label="First Name" hint="The first name of the person primarily responsible for the account."></ac-bound-field>
         </v-col>
@@ -105,7 +109,6 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
 import Component, {mixins} from 'vue-class-component'
 import {Prop} from 'vue-property-decorator'
 import {BankStatus} from '@/store/profiles/types/BankStatus'
@@ -119,6 +122,12 @@ import AcBoundField from '@/components/fields/AcBoundField'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
 import {SingleController} from '@/store/singles/controller'
 import {Balance} from '@/types/Balance'
+
+// Will probably never use this again, but can factor it out if I do.
+declare type RemoteFlag = {
+  value: boolean
+}
+
   @Component({
     components: {AcConfirmation, AcBoundField, AcFormDialog},
   })
@@ -131,6 +140,7 @@ export default class AcBankToggle extends mixins(Subjective) {
 
     public balance: SingleController<Balance> = null as unknown as SingleController<Balance>
     public banks: ListController<Bank> = null as unknown as ListController<Bank>
+    public willIncurFee: SingleController<RemoteFlag> = null as unknown as SingleController<RemoteFlag>
     public showAddBank = false
     public newBank: FormController = null as unknown as FormController
     public UNSET = 0 as BankStatus
@@ -151,6 +161,12 @@ export default class AcBankToggle extends mixins(Subjective) {
     }
 
     public get canAddBank() {
+      if (!this.willIncurFee.x) {
+        return false
+      }
+      if (!this.willIncurFee.x.value) {
+        return true
+      }
       return this.balance.x && (parseFloat(this.balance.x.available) >= 1)
     }
 
@@ -163,6 +179,11 @@ export default class AcBankToggle extends mixins(Subjective) {
         `${flatten(this.username)}__balance`, {endpoint: `/api/sales/v1/account/${this.username}/balance/`},
       )
       this.balance.get()
+      this.willIncurFee = this.$getSingle(
+          `${flatten(this.username)}__bankFeeCheck`,
+          {endpoint: `/api/sales/v1/account/${this.username}/banks/fee-check/`},
+      )
+      this.willIncurFee.get()
       this.newBank = this.$getForm(genId(), {
         fields: {
           type: {value: null},
