@@ -90,7 +90,7 @@
     "jest-websocket-mock": "^2.2.0",
     "mock-socket": "^9.0.3",
     "mockdate": "^2.0.5",
-    "node-sass": "^6.0.0",
+    "node-sass": "^6.0.1",
     "sass": "^1.30.0",
     "sass-loader": "^8.0.2",
     "style-loader": "^0.23.1",
