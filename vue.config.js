@@ -44,7 +44,7 @@ module.exports = {
   },
   devServer: {
     public: 'https://artconomy.vulpinity.com',
-    allowedHosts: ['localhost', '.vulpinity.com', '.artconomy.com'],
+    allowedHosts: ['localhost', '.vulpinity.com', '.artconomy.com', 'art-dev.ngrok.io'],
   },
   outputDir: 'public',
   publicPath: '/static/',
