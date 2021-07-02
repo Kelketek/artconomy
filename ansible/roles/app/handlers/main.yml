@@ -17,6 +17,9 @@
   shell: "source ~/.profile && source ~/bin/activate && cd ~/artconomy  && npm run build && ./manage.py collectstatic -v0 --noinput && cp webpack-stats{,-saved}.json && echo '{{ static_status.digest }}' > {{ home }}/.static_hash && git rev-parse --short HEAD > ~/artconomy/.static_hash_head"
   args:
     executable: "/bin/bash"
+  environment:
+    # Memory leak somewhere? This is enough for this task for now.
+    NODE_OPTIONS: --max-old-space-size=6144
   register: result
   notify:
     - rebuild pinterest

@@ -13,8 +13,8 @@
   <link rel="icon" type="image/png" href="/static/images/logo.png">
   {% get_files 'app' 'css' as app_css_files %}
   {% for css_file in app_css_files %}
-    <link rel="preload" href="{{css_file.publicPath}}" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="{{css_file.publicPath}}"></noscript>
+    <link rel="preload" href="{{css_file.url}}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="{{css_file.url}}"></noscript>
   {% endfor %}
   <!-- preload polyfill. -->
   <script>
@@ -36,26 +36,16 @@
 <body>
 <script>
   {% if request.META.HTTP_X_PRERENDER == '1' %}PRERENDERING = 1;{% else %}PRERENDERING = 0;{% endif %}
-  STRIPE_PUBLIC_KEY = "{{ settings.STRIPE_PUBLIC_KEY }}";
-  DEFAULT_CARD_PROCESSOR = "{{ settings.DEFAULT_CARD_PROCESSOR }}";
 </script>
 <div id="app"></div>
 {% if not debug %}
-  {% get_files 'chunk-vendors' 'js' as vendors_js_files %}
-  {% for file in vendors_js_files %}
-    <script type=module src="{{file.publicPath}}"></script>
-  {% endfor %}
   {% get_files 'app' 'js' as app_js_files %}
   {% for file in app_js_files %}
-    <script type=module src="{{file.publicPath}}"></script>
-  {% endfor %}
-  {% get_files 'chunk-vendors' 'js' config='LEGACY' as vendors_legacy_js_files %}
-    {% for file in vendors_legacy_js_files %}
-      <script src="{{file.publicPath}}" nomodule></script>
+    <script type=module src="{{file.url}}"></script>
   {% endfor %}
   {% get_files 'app' 'js' config='LEGACY' as app_legacy_js_files %}
   {% for file in app_legacy_js_files %}
-    <script src="{{file.publicPath}}" nomodule></script>
+    <script src="{{file.url}}" nomodule></script>
   {% endfor %}
 {% else %}
   {% render_bundle 'app' 'js' %}

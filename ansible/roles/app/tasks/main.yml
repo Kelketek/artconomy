@@ -40,6 +40,20 @@
     name: nodejs
     state: present
 
+- name: Install node version manager
+  npm:
+    registry: http://registry.npmjs.org/
+    global: yes
+    name: n
+
+- name: Check version of node
+  shell: node --version
+  register: node_version
+
+- name: Ensure correct version of node
+  shell: n 14.17.2
+  when: node_version.stdout != "v14.17.2"
+
 - name: Add app user
   user:
     name: "{{ env_prefix }}"
