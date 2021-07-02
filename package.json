@@ -15,6 +15,7 @@
     "test:unit:watch": "vue-cli-service test:unit --watchAll --collectCoverage"
   },
   "dependencies": {
+    "@hcaptcha/vue-hcaptcha": "^0.3.0",
     "@sentry/browser": "^6.0.2",
     "@sentry/integrations": "^6.0.2",
     "@sentry/webpack-plugin": "^1.14.0",

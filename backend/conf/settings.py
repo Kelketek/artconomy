@@ -361,6 +361,9 @@ if not DEBUG:
         'rest_framework.renderers.JSONRenderer',
     )
 
+# This could be set back to Google Recaptcha if necessary, which is https://www.google.com/recaptcha/api/siteverify
+GR_CAPTCHA_URL = get_env('GR_CAPTCHA_URL', 'https://hcaptcha.com/siteverify')
+
 GR_CAPTCHA_SECRET_KEY = get_env('GR_CAPTCHA_SECRET_KEY', '')
 
 GR_CAPTCHA_PUBLIC_KEY = get_env('GR_CAPTCHA_PUBLIC_KEY', '')

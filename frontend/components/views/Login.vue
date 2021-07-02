@@ -95,7 +95,7 @@
                   <v-input v-bind="registerForm.fields.recaptcha.bind" class="mt-4">
                     <v-col class="text-center" >
                       <div style="display: inline-block">
-                        <vue-recaptcha
+                        <vue-hcaptcha
                             :sitekey="siteKey"
                             ref="recaptcha"
                             @verify="registerForm.fields.recaptcha.update"
@@ -193,7 +193,7 @@ import {FormController} from '@/store/forms/form-controller'
 import {Watch} from 'vue-property-decorator'
 import AcFormContainer from '../wrappers/AcFormContainer.vue'
 import {AxiosError, AxiosResponse} from 'axios'
-import VueRecaptcha from 'vue-recaptcha'
+import VueHcaptcha from '@hcaptcha/vue-hcaptcha'
 import {UserStoreState} from '@/store/profiles/types/UserStoreState'
 import Viewer from '../../mixins/viewer'
 import {User} from '@/store/profiles/types/User'
@@ -222,7 +222,7 @@ function syncTo(...fields: Array<[string, string]>): SyncFunc {
 
 @Component({
   name: 'Login',
-  components: {AcBoundField, AcForm, AcFormContainer, VueRecaptcha},
+  components: {AcBoundField, AcForm, AcFormContainer, VueHcaptcha},
   directives: {mask},
 })
 export default class Login extends mixins(Viewer) {
