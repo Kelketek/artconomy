@@ -10,9 +10,6 @@ const commitHash = require('child_process')
 
 module.exports = {
   assetsDir: 'dist',
-  css: {
-    sourceMap: true,
-  },
   configureWebpack: config => {
     let packName = './webpack-stats.json'
     if (process.env.VUE_CLI_MODERN_MODE && !process.env.VUE_CLI_MODERN_BUILD) {
