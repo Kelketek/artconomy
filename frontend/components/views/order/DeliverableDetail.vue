@@ -312,7 +312,7 @@
             </v-row>
           </v-col>
         </v-row>
-        <ac-tab-nav :items="navItems"></ac-tab-nav>
+        <ac-tab-nav :items="navItems" label="See more"></ac-tab-nav>
         <div class="section-scroll-target"></div>
         <router-view></router-view>
       </v-container>

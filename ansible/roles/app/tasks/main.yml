@@ -95,6 +95,9 @@
     - restart celery
     - restart celerybeat
 
+- name: Copy Robots.txt
+  copy: src="keys/{{ env_prefix }}/robots.txt" dest="{{ home }}/" owner="{{ env_prefix }}" mode=0600 directory_mode=0700 force=yes
+
 - name: Initialize virtual environment
   become: yes
   become_user: "{{ env_prefix }}"

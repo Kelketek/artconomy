@@ -48,8 +48,8 @@ describe('AcTabNav.vue', () => {
         }, {
           value: {name: 'Gallery', params: {username: 'Fox'}}, icon: 'image', text: 'Gallery',
         }],
+        label: 'Stuff',
       },
-
       attachTo: docTarget(),
     })
     expect(wrapper.find('.v-tab').text().replace(/\s\s+/g, ' ')).toBe(
@@ -68,8 +68,8 @@ describe('AcTabNav.vue', () => {
         }, {
           value: {name: 'Gallery', params: {username: 'Fox'}}, icon: 'image', text: 'Gallery',
         }],
+        label: 'Stuff',
       },
-
       attachTo: docTarget(),
     })
     expect(wrapper.vm.$route.name).toBe('Profile')
@@ -89,8 +89,8 @@ describe('AcTabNav.vue', () => {
         }, {
           value: {name: 'Gallery', params: {username: 'Fox'}}, icon: 'image', text: 'Gallery',
         }],
+        label: 'Stuff',
       },
-
       attachTo: docTarget(),
     })
     expect(wrapper.vm.$route.name).toBe('Profile')

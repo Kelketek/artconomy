@@ -7,6 +7,7 @@
     </v-tabs>
     <v-select :items="items"
               v-model="tab"
+              :label="label"
               :prepend-inner-icon="tab && tab.icon"
               class="hidden-md-and-up"
               :item-text="renderText"
@@ -25,6 +26,9 @@ import AcTab from '@/components/AcTab.vue'
     components: {AcTab},
   })
 export default class AcTabNav extends Vue {
+    @Prop({required: true})
+    public label!: string
+
     @Prop({required: true})
     public items!: TabNavSpec[]
 

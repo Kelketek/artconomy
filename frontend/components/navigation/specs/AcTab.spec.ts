@@ -26,6 +26,7 @@ describe('AcTabNav.vue', () => {
           value: {name: 'Gallery', params: {username: 'Fox'}}, icon: 'image', text: 'Gallery',
         }],
         value: 0,
+        label: 'Stuff',
       },
 
       attachTo: docTarget(),
@@ -45,6 +46,7 @@ describe('AcTabNav.vue', () => {
           value: {name: 'Gallery', params: {username: 'Fox'}}, icon: 'image', text: 'Gallery',
         }],
         value: 0,
+        label: 'Stuff',
       },
 
       attachTo: docTarget(),

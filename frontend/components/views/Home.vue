@@ -95,7 +95,7 @@
     <v-container fluid>
       <v-row no-gutters>
         <v-col cols="12" order="1">
-          <ac-tabs :items="mainSectionItems" v-model="mainSection" />
+          <ac-tabs :items="mainSectionItems" v-model="mainSection" label="Categories" />
           <v-tabs-items :value="mainSection">
             <v-tab-item>
               <v-card-text>High quality products by artists who have been vetted by our team.</v-card-text>

@@ -3,7 +3,7 @@
     <ac-load-section :controller="subjectHandler.user">
       <template v-slot:default>
         <ac-profile-header :username="username" :show-edit="$route.name === 'AboutUser'" :dense="true"/>
-        <ac-tab-nav :items="items" />
+        <ac-tab-nav :items="items" label="See more" />
         <router-view class="pa-0" :class="{'pt-3': needsSpace}" />
       </template>
     </ac-load-section>

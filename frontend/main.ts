@@ -148,7 +148,7 @@ const vuetifySettings = {
     dark: true,
     themes: {
       dark: {
-        primary: colors.blue,
+        primary: colors.blue.darken2,
         secondary: colors.purple,
         danger: colors.red,
         darkBase: colors.grey,

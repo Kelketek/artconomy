@@ -1,6 +1,6 @@
 <template>
   <v-container fluid class="pa-0" :id="id">
-    <ac-tab-nav :items="items"></ac-tab-nav>
+    <ac-tab-nav :items="items" label="Select gallery"></ac-tab-nav>
     <v-row class="d-none d-md-flex" v-if="controls">
       <v-col class="text-right">
         <v-btn @click="showUpload = true" color="green"><v-icon left>add</v-icon>New Submission</v-btn>

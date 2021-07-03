@@ -300,3 +300,5 @@ jest-mock-promise/**
 .bash_history
 .config/**
 .local/**
+
+robots.txt

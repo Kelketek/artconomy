@@ -695,7 +695,8 @@ export function configureHooks(vueRouter: Router, store: ArtStore): void {
       document.title = 'Artconomy-- The easy and safe way to commission art!'
       setMetaContent(
         'description',
-        'Artconomy helps you find artists to draw your OCs. Get a commission of your character today!',
+        '',
+        {content: 'Artconomy.com makes it easy, safe, and fun for you to get custom art of your original characters!'},
       )
     }
     if (to.query.referred_by) {
