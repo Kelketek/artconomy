@@ -4,7 +4,7 @@ import deepEqual from 'fast-deep-equal'
 import {makeQueryParams} from '@/lib/lib'
 import {ListController} from '@/store/lists/controller'
 import {FormController} from '@/store/forms/form-controller'
-import {debounce} from 'lodash'
+import debounce from 'lodash/debounce'
 import {Watch} from 'vue-property-decorator'
 import Component from 'vue-class-component'
 

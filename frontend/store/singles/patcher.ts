@@ -2,7 +2,8 @@
 // singles module instead.
 import Vue from 'vue'
 import {artCall, dotTraverse} from '@/lib/lib'
-import {debounce, cloneDeep} from 'lodash'
+import cloneDeep from 'lodash/cloneDeep'
+import debounce from 'lodash/debounce'
 import axios, {AxiosError, CancelTokenSource} from 'axios'
 import {deriveErrors} from '@/store/forms/helpers'
 import Component from 'vue-class-component'

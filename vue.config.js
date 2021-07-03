@@ -30,6 +30,7 @@ module.exports = {
         configFile: 'sentry.properties',
       }))
     }
+    config.plugins.push(new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/))
     config.entry = {
       app: [
         './frontend/main.ts',

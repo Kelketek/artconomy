@@ -241,7 +241,7 @@ describe('NavBar.vue', () => {
 
       attachTo: docTarget(),
     })
-    const field = wrapper.find('#field-search__q')
+    const field = wrapper.find('#nav-bar-search')
     field.setValue('Stuff')
     field.trigger('keyup')
     expect(mockPush).toHaveBeenCalledWith({name: 'SearchProducts', query: {q: 'Stuff'}})
@@ -289,7 +289,7 @@ describe('NavBar.vue', () => {
 
       attachTo: docTarget(),
     })
-    const field = wrapper.find('#field-search__q')
+    const field = wrapper.find('#nav-bar-search')
     field.setValue('Stuff')
     field.trigger('keyup')
     expect(mockPush).not.toHaveBeenCalled()

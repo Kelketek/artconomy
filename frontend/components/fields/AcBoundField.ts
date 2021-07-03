@@ -42,11 +42,17 @@ export default class AcBoundField extends Vue {
   @Prop({default: 'v-text-field'})
   public fieldType!: string
 
+  @Prop()
+  public fieldId!: string|undefined
+
   @Prop({required: true})
   public field!: FieldController
 
   public get binds() {
     const base = {...this.field.bind, ref: 'input'}
+    if (this.fieldId) {
+      base.id = this.fieldId
+    }
     return {...base, ...this.$attrs}
   }
 

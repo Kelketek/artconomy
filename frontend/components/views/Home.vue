@@ -211,7 +211,7 @@
           </v-card>
         </v-col>
         <v-col cols="12" order="4" order-lg="5">
-          <ac-tabs :items="communityItems" v-model="communitySection" />
+          <ac-tabs :items="communityItems" v-model="communitySection" label="Communities" />
           <v-tabs-items :value="communitySection">
             <v-tab-item>
               <ac-product-slider :list="artistsOfColor"></ac-product-slider>

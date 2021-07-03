@@ -11,7 +11,7 @@ import Vue from 'vue'
 import Component from 'vue-class-component'
 import {ListController} from '@/store/lists/controller'
 import {Prop} from 'vue-property-decorator'
-import {cloneDeep} from 'lodash'
+import cloneDeep from 'lodash/cloneDeep'
 import {Route} from 'vue-router'
 import {TabSpec} from '@/types/TabSpec'
 

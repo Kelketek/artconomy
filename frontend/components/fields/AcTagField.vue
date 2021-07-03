@@ -19,7 +19,8 @@ import axios, {CancelTokenSource} from 'axios'
 import {artCall} from '@/lib/lib'
 import {Prop, Watch} from 'vue-property-decorator'
 import Component from 'vue-class-component'
-import {cloneDeep, debounce} from 'lodash'
+import cloneDeep from 'lodash/cloneDeep'
+import debounce from 'lodash/debounce'
 
   @Component
 export default class AcTagField extends Vue {

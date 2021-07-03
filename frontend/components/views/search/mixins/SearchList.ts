@@ -1,5 +1,5 @@
 import Component, {mixins} from 'vue-class-component'
-import {debounce} from 'lodash'
+import debounce from 'lodash/debounce'
 import {ListController} from '@/store/lists/controller'
 import {FormController} from '@/store/forms/form-controller'
 import {RawData} from '@/store/forms/types/RawData'

@@ -75,7 +75,7 @@
         :scroll-threshold="150"
         v-if="!iFrame"
     >
-      <v-app-bar-nav-icon v-if="viewer && fullInterface && !prerendering" @click.stop="drawer = !drawer"/>
+      <v-app-bar-nav-icon v-if="viewer && fullInterface && !prerendering" @click.stop="drawer = !drawer" name="Main Menu"/>
       <v-row no-gutters class="hidden-xs-only" >
         <v-toolbar-title class="mr-5 align-center hide-sm hide-xs">
           <v-btn text to="/">
@@ -103,7 +103,7 @@
             @click:append="runSearch"
             color="white"
             hide-details
-            id="nav-bar-search"
+            field-id="nav-bar-search"
             v-if="fullInterface"
         />
       </v-row>
