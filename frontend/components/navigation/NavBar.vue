@@ -44,7 +44,7 @@
             text
             href="https://discord.gg/4nWK9mf"
             target="_blank"
-            rel="nofollow noopenner"
+            rel="nofollow noopener"
             :class="{'phone-padding': $vuetify.breakpoint.smAndDown, 'pb-2': $vuetify.breakpoint.mdAndUp}"
             class="pt-2"
           >
@@ -103,7 +103,7 @@
             @click:append="runSearch"
             color="white"
             hide-details
-            aria-id="nav-bar-search"
+            id="nav-bar-search"
             v-if="fullInterface"
         />
       </v-row>
