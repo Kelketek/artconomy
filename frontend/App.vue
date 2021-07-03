@@ -219,6 +219,7 @@ export default class App extends mixins(Viewer, Nav) {
   }
 
   public created() {
+    this.setUser(window.USER_PRELOAD)
     this.supportForm = this.$getForm('supportRequest', {
       endpoint: '/api/lib/v1/support/request/',
       fields: {

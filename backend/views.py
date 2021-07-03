@@ -1,5 +1,6 @@
 from hashlib import sha256
 
+import json
 from django.conf import settings
 from django.shortcuts import render
 from rest_framework import status
@@ -8,6 +9,8 @@ from rest_framework.response import Response
 from telegram import Bot
 
 from apps.lib.utils import default_context
+from apps.profiles.serializers import UserSerializer
+from apps.profiles.utils import empty_user
 from shortcuts import make_url
 
 
@@ -16,10 +19,15 @@ def base_template(request, extra=None):
         return bad_endpoint(request)
     if request.content_type == 'application/json':
         return bad_endpoint(request)
+    if request.user.is_authenticated:
+        user_data = UserSerializer(instance=request.user, context={'request': request}).data
+    else:
+        user_data = empty_user(session=request.session, user=request.user)
     context = {
         'debug': settings.DEBUG,
         'env_file': 'envs/{}.html'.format(settings.ENV_NAME),
         'base_url': make_url(''),
+        'user_serialized': json.dumps(user_data)
     }
     if request.user.is_authenticated:
         context['user_email'] = request.user.guest_email or request.user.email
