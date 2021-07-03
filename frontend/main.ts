@@ -22,6 +22,7 @@ import {Characters} from '@/store/characters/registry'
 import VueObserveVisibility from 'vue-observe-visibility'
 import {VueSocket} from '@/plugins/socket'
 import {PinterestQueue} from '@/types/PinterestQueue'
+import {User} from '@/store/profiles/types/User'
 
 declare global {
   interface Window {
@@ -29,6 +30,7 @@ declare global {
     PRERENDERING: number,
     pintrk: PinterestQueue,
     windowId: string,
+    USER_PRELOAD: User|undefined,
   }
 }
 
