@@ -22,6 +22,12 @@ Initially we considered using a license like WTFPL, which allows you to 'Just do
 
 There does not appear to be a well known proven legal license that can effectively prevent this while still allowing private use and non-distribution. At least, not in our judgement. As a result, we feel the AGPLv3 creates the least harm and best benefit to the community given the legal frameworks in which we live. Until such a time as intellectual property is abolished, the AGPLv3 appears the best license for the job. It nullifies (or, at least, greatly disincentivizes) the capacity to weaponize the code against others in almost any case we could expect this to be done.
 
+## Content warning
+
+Expect some swear words in the code. I wrote this platform because the options for commissioning pornography were abysmal and fraught with danger. Since the code was going to be used to facilitate porn creation, I saw little reason to censor myself in comments, tests, and constants.
+
+That's not to say that Artconomy is only for adult work. In practice we've had just as many (maybe more) clean commissions made through the site, just that it was the case I had directly in mind when building the platform, and so that's reflected in my comments.
+
 ## How to run this code
 
 The codebase assumes you're running Ubuntu Linux. It should be trivially easy to add support for any other linux flavor (small modifications to the Makefile will do) since dev work happens in Docker. The target deployment OS is Ubuntu. If you want to deploy to an actual webserver, additional work will need to be done, and variables/secrets filled in.
