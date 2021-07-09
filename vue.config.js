@@ -22,13 +22,19 @@ module.exports = {
     config.plugins.push(new webpack.DefinePlugin({
       __COMMIT_HASH__: JSON.stringify(commitHash),
     }))
-    if (process.env.NODE_ENV === 'production' && !process.env.SKIP_SENTRY) {
-      config.plugins.push(new SentryWebpackPlugin({
-        include: '.',
-        ignoreFile: '.sentrycliignore',
-        ignore: ['node_modules', 'vue.config.js', 'jest.config.js', 'reports'],
-        configFile: 'sentry.properties',
-      }))
+    if (process.env.NODE_ENV === 'production' && process.env.SENTRY_ORG) {
+      if (process.env.SENTRY_ORG) {
+        config.plugins.push(new SentryWebpackPlugin({
+          include: '.',
+          ignoreFile: '.sentrycliignore',
+          ignore: ['node_modules', 'vue.config.js', 'jest.config.js', 'reports'],
+          org: process.env.SENTRY_ORG,
+          project: process.env.SENTRY_PROJECT,
+          authToken: process.env.SENTRY_AUTH_TOKEN,
+        }))
+      } else {
+        console.log('Skipping sentry plugin.')
+      }
     }
     config.plugins.push(new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/))
     config.entry = {
