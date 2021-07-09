@@ -31,6 +31,7 @@ declare global {
     pintrk: PinterestQueue,
     windowId: string,
     USER_PRELOAD: User|undefined,
+    RECAPTCHA_SITE_KEY: string,
   }
 }
 

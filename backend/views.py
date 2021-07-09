@@ -27,6 +27,7 @@ def base_template(request, extra=None):
         'debug': settings.DEBUG,
         'env_file': 'envs/{}.html'.format(settings.ENV_NAME),
         'base_url': make_url(''),
+        'recaptcha_key': settings.GR_CAPTCHA_PUBLIC_KEY,
         'user_serialized': json.dumps(user_data)
     }
     if request.user.is_authenticated:

@@ -540,8 +540,6 @@ export function genId() {
   return text
 }
 
-export const RECAPTCHA_SITE_KEY = 'af2d3b9d-591e-4965-8e58-1debf4cad021'
-
 export const RATING_LONG_DESC = {
   0: `Content which can be safely viewed in most workplaces. Pieces with nudity
                     or especially suggestive clothing do not belong in this category. Pieces with violence or
