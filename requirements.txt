@@ -1,5 +1,5 @@
 aiofile==3.3.3
-ansible==2.9.4
+ansible==2.9.20
 pendulum==2.1.0
 pycountry
 authorizenet==1.1.3
