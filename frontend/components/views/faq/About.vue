@@ -115,6 +115,20 @@
         </v-card>
       </v-expansion-panel-content>
     </v-expansion-panel>
+    <v-expansion-panel>
+      <v-expansion-panel-header><strong>Where's the source code?</strong></v-expansion-panel-header>
+      <v-expansion-panel-content>
+        <v-card>
+          <v-card-text>
+            <p>
+              <a href="https://github.com/Kelketek/artconomy">Right here.</a>
+              If you end up playing with it, please swing by the <code>#tech-nerd-zone</code> channel on our
+              <a href="https://discord.gg/4nWK9mf" rel="nofollow">Discord!</a>
+            </p>
+          </v-card-text>
+        </v-card>
+      </v-expansion-panel-content>
+    </v-expansion-panel>
   </v-expansion-panels>
 </template>
 
@@ -124,7 +138,7 @@ import Viewer from '@/mixins/viewer'
 import {paramHandleArray} from '@/lib/lib'
 import QuestionSet from '@/components/views/faq/mixins/question-set'
 
-const about = ['what-is-artconomy', 'cost', 'team']
+const about = ['what-is-artconomy', 'cost', 'team', 'source-code']
   @Component
 export default class About extends mixins(Viewer, QuestionSet) {
     @paramHandleArray('question', about)

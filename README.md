@@ -14,9 +14,9 @@ Furthermore, we've invested a lot of work into making a great deal of automation
 
 Over time we intend to improve documentation to make the codebase more accessible (and documentation is a great way to contribute!)
 
-## Why AGPLv3
+## Why AGPLv3?
 
-We dislike intellectual property, for many reasons. Generally we think it creates the wrong incentives, and aside from this, enforcement is out of reach for small-time artists trying to make it on their own. In practice the handful of times it's used to help small artists pales in comparison to the destructive capacity it gives large corporations.
+We dislike intellectual property, for many reasons. Generally we think it creates the wrong incentives, and aside from this, enforcement is out of reach for small-time artists trying to make it on their own. In practice the handful of times it's used to help small artists pales in comparison to the destructive capacity it gives large corporations. You can learn more about why intellectual property should be viewed with intense skepticism by [watching this video](https://www.youtube.com/watch?v=jIM6dN3ogbk) and [this follow-up video](https://www.youtube.com/watch?v=mnnYCJNhw7w). The site itself, of course, lets artists set what terms they like in their commission info. We're not forcing artists to join us on this mindset, but we are proving the sincerity of our belief by putting our code out there for anyone to take and use.
 
 Initially we considered using a license like WTFPL, which allows you to 'Just do what the fuck you want.' However in context of the legal system of intellectual property, it became apparent that 'what the fuck you want' might have unexpected consequences. The software could, for instance, be used in a larger context to build software patents. Those patents could then be weaponized.
 
