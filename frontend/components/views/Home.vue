@@ -129,7 +129,7 @@
               <template v-slot:default>
                 <v-row dense>
                   <v-col cols="6" sm="4" md="3" lg="4" v-for="submission in commissionsList" :key="submission.id">
-                    <ac-gallery-preview :submission="submission.x" :mini="true" />
+                    <ac-gallery-preview :submission="submission.x" :show-footer="false"/>
                   </v-col>
                 </v-row>
               </template>
@@ -237,7 +237,7 @@
               <template v-slot:default>
                 <v-row dense>
                   <v-col cols="6" sm="4" v-for="submission in submissionsList" :key="submission.id">
-                    <ac-gallery-preview :submission="submission.x" :mini="true" />
+                    <ac-gallery-preview :submission="submission.x" :show-footer="false" />
                   </v-col>
                 </v-row>
               </template>
@@ -270,7 +270,7 @@
               <template v-slot:default>
                 <v-row dense>
                   <v-col cols="6" sm="4" v-for="character in charactersList" :key="character.id">
-                    <ac-character-preview :character="character.x" :mini="true" />
+                    <ac-character-preview :character="character.x" :show-footer="false" />
                   </v-col>
                 </v-row>
               </template>
