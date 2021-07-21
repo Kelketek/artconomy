@@ -1,9 +1,10 @@
 from collections import OrderedDict
+from hashlib import sha256
 
 from django.apps import apps
 from django.conf import settings
-from django.contrib.contenttypes.models import ContentType
-from django.core.mail import EmailMessage, EmailMultiAlternatives
+from django.core.cache import cache
+from django.core.mail import EmailMessage
 from django.db.models.query import ModelIterable
 
 from django.http import Http404
@@ -32,7 +33,7 @@ from apps.lib.serializers import CommentSerializer, CommentSubscriptionSerialize
 from apps.lib.utils import (
     countries_tweaked, safe_add, default_context,
     get_client_ip,
-    destroy_comment, create_comment, mark_read)
+    destroy_comment, create_comment, mark_read, digest_for_file)
 from apps.profiles.models import User
 from apps.profiles.permissions import ObjectControls, IsRegistered
 from apps.profiles.serializers import ContactSerializer
@@ -348,7 +349,7 @@ class SupportRequest(APIView):
 
 
 class AssetUpload(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = []
     parser_classes = (MultiPartParser,)
 
     # noinspection PyMethodMayBeStatic
@@ -356,7 +357,17 @@ class AssetUpload(APIView):
         file_obj = request.data.get('files[]')
         if not file_obj:
             raise ValidationError({'files[]': ['This field is required.']})
-        asset = Asset(file=file_obj, uploaded_by=request.user)
-        asset.clean()
-        asset.save()
+        if request.user.is_authenticated:
+            user = request.user
+        else:
+            user = None
+        digest = digest_for_file(file_obj)
+        asset = Asset.objects.filter(hash=digest).first()
+        # If we already have a file with this hash, there's no need to store it again.
+        if not asset:
+            asset = Asset(file=file_obj, uploaded_by=user, hash=digest)
+            asset.clean()
+            asset.save()
+        else:
+            cache.set(f'upload_grant_{request.session.session_key}', str(asset.id), timeout=3600)
         return Response(data={'id': str(asset.id)})

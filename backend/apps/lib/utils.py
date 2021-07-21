@@ -1,7 +1,10 @@
 import logging
 import os
+from hashlib import sha256
+from itertools import chain
 from pathlib import Path
 from typing import Optional, TYPE_CHECKING, Type, List
+from uuid import uuid4
 
 import markdown
 from asgiref.sync import async_to_sync
@@ -11,7 +14,7 @@ from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.mail import EmailMultiAlternatives
-from django.db import connection, transaction
+from django.db import connection, transaction, IntegrityError
 from django.db.models import Q, Model, Subquery, IntegerField
 from django.db.models.signals import pre_delete
 from django.db.transaction import atomic
@@ -32,7 +35,8 @@ from rest_framework.response import Response
 from telegram import Bot
 
 from apps.lib.models import Subscription, Event, Notification, Tag, Comment, COMMENT, \
-    NEW_PRODUCT, COMMISSIONS_OPEN, NEW_CHARACTER, STREAMING, EMAIL_SUBJECTS, NEW_JOURNAL, ReadMarker, ModifiedMarker
+    NEW_PRODUCT, COMMISSIONS_OPEN, NEW_CHARACTER, STREAMING, EMAIL_SUBJECTS, NEW_JOURNAL, ReadMarker, ModifiedMarker, \
+    Asset
 from shortcuts import make_url, disable_on_load, gen_textifier
 
 BOT = None
@@ -234,9 +238,22 @@ def remove_watch_subscriptions(watcher, watched):
     ).delete()
 
 
+class FakeSession:
+    def __init__(self, data: dict = None):
+        self.data = data or {}
+        self.session_key = str(uuid4())
+
+    def __getitem__(self, item):
+        return self.data[item]
+
+    def __setitem__(self, item, value):
+        self.data[item] = value
+
+
 class FakeRequest:
-    def __init__(self, user):
+    def __init__(self, user, session=None):
         self.user = user
+        self.session = session or FakeSession()
 
     @staticmethod
     def build_absolute_uri(value):
@@ -786,3 +803,124 @@ def update_websocket(signal, model, *serializer_names):
             )
     # Need to return the function because the name of a receiver has to be defined to run.
     return receiver(signal, sender=model)(update_broadcaster)
+
+
+def digest_for_file(file_obj):
+    """
+    Gets the sha256 digest for a file without creating a full copy in memory (hopefully)
+    """
+    hasher = sha256()
+    segment = file_obj.read(1)
+    while segment:
+        segment = file_obj.file.read(1024 * 1024)
+        hasher.update(segment)
+    # Return to the beginning of the file.
+    file_obj.seek(0)
+    return hasher.digest()
+
+
+def dedup_asset(asset):
+    """
+    Find any duplicates of this asset and replace them, destroying the asset if needed.
+    """
+    replacement = Asset.objects.exclude(id=asset.id).exclude(
+        created_on__gt=asset.created_on,
+    ).filter(hash=asset.hash).order_by('created_on', 'id').first()
+    if not replacement:
+        return
+    print(f'Replacing {asset} with {replacement}')
+    replace_foreign_references(asset, replacement)
+    purge_asset(asset)
+
+
+def get_related_field_info(field):
+    try:
+        related_name = field.related_name
+    except AttributeError:
+        related_name = None
+        field = field.related
+    auto = False
+    if related_name is None:
+        related_name = field.name
+        auto = True
+    if related_name == '+':
+        return None, field
+    if not field.one_to_one and auto:
+        related_name += '_set'
+    return related_name, field
+
+
+def replace_related_for_field(instance, field, replacement):
+    """
+    Replaes all references to instance with replacement instead.
+    """
+    related_name, field = get_related_field_info(field)
+    if related_name is None:
+        # Can't trace it, can't replace it.
+        raise IntegrityError(f'Could not reverse field for replacement: {field}')
+    if field.one_to_one:
+        setattr(replacement, related_name + '_id', getattr(instance, related_name + '_id'))
+        # This may fail if the field is not permitted to be null.
+        setattr(instance, related_name, None)
+        instance.save()
+        replacement.save()
+        return
+    if field.one_to_many or field.many_to_many:
+        getattr(replacement, related_name).add(*getattr(instance, related_name).all())
+        getattr(instance, related_name).clear()
+        return
+    raise RuntimeError(f'Unknown related field type, {field}')
+
+
+def related_iterable_from_field(instance, field, check_existence=False):
+    related_name, field = get_related_field_info(field)
+    if related_name is None:
+        return []
+    if field.one_to_one:
+        if check_existence:
+            if getattr(instance, related_name + '_id'):
+                return [True]
+            return []
+        # This may be wrong but I'm not using it anywhere yet.
+        obj = getattr(instance, related_name)
+        if obj:
+            return [obj]
+        return []
+    if field.one_to_many or field.many_to_many:
+        if check_existence:
+            if getattr(instance, related_name).exists():
+                return [True]
+            return []
+        return getattr(instance, related_name).all()
+    raise RuntimeError(f'Unknown related field type, {field}')
+
+
+def get_all_foreign_references(instance, check_existence=False):
+    check_fields = [field for field in instance._meta.get_fields() if (any(
+        (field.one_to_many, field.many_to_many, field.one_to_one))
+    )]
+    yield from chain.from_iterable(
+        (related_iterable_from_field(instance, field, check_existence=check_existence) for field in check_fields),
+    )
+
+
+@transaction.atomic
+def replace_foreign_references(instance, replacement):
+    """
+    Find all places where this instance is referenced and replace them with another instance.
+    """
+    # Foreign keys first.
+    check_fields = [field for field in instance._meta.get_fields() if (any(
+        (field.one_to_many, field.many_to_many, field.one_to_one))
+    )]
+    for field in check_fields:
+        replace_related_for_field(instance, field, replacement)
+
+
+def purge_asset(asset):
+    """
+    Deletes related files for an asset, then clears from DB. DO NOT RUN UNTIL YOU'VE CHECKED FOR REFERENCES.
+    """
+    asset.file.delete_thumbnails()
+    asset.file.delete()
+    asset.delete(cleanup=True)

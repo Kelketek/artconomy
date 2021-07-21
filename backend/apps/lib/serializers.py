@@ -142,7 +142,7 @@ class RelatedAssetField(serializers.UUIDField):
         asset = Asset.objects.filter(id=data).first()
         if not asset:
             self.fail('non_existent')
-        if not asset.can_reference(self.context['request'].user):
+        if not asset.can_reference(self.context['request']):
             self.fail('non_existent')
         return asset
 

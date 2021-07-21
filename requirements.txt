@@ -18,6 +18,7 @@ django-celery-email==3.0.0
 django-haystack==2.8.1
 git+https://github.com/thornomad/django-hitcount.git@90840a11fae32877c70de58e1bed7b3bf1a67a95#egg=django-hitcount
 django-ipware==2.1.0
+django-redis-cache==3.0.0
 djangorestframework==3.12.2
 djangorestframework-bulk==0.2.1
 django-rest-recaptcha==1.0.2

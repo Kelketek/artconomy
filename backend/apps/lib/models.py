@@ -1,9 +1,8 @@
-from itertools import chain
-
 import reversion
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
+from django.core.cache import cache
 from django.core.validators import FileExtensionValidator
 from django.db import models
 from django.db.models import DateTimeField, Model, SlugField, CASCADE, ForeignKey, SET_NULL, \
@@ -326,10 +325,15 @@ class Asset(Model):
     file = ThumbnailerImageField(
         upload_to='art/%Y/%m/%d/', validators=[FileExtensionValidator(allowed_extensions=ALLOWED_EXTENSIONS)]
     )
+    hash = models.BinaryField(max_length=32, default=b'', db_index=True)
     created_on = DateTimeField(default=timezone.now)
     edited_on = DateTimeField(auto_now=True)
 
-    def can_reference(self, user):
+    def can_reference(self, request):
+        from apps.lib.utils import get_all_foreign_references
+        if cache.get(f'upload_grant_{request.session.session_key}'):
+            return True
+        user = request.user
         if not user.is_authenticated:
             # Why are we even letting the user submit in this case?
             return False
@@ -340,7 +344,6 @@ class Asset(Model):
             if getattr(item, 'can_reference_asset', lambda x: False)(user):
                 return True
         return False
-
 
     def delete(self, using=None, keep_parents=False, cleanup=False):
         if not cleanup:
@@ -381,45 +384,3 @@ def cleanup_old_asset(sender, instance, created=False, **kwargs):
         return
     # Assets will expire after an hour of non-reference.
     check_asset_associations.apply_async(countdown=60 * 60, args=[str(instance.id)])
-
-
-def related_iterable_from_field(instance, field, check_existence=False):
-    try:
-        related_name = field.related_name
-    except AttributeError:
-        related_name = None
-        field = field.related
-    auto = False
-    if related_name is None:
-        related_name = field.name
-        auto = True
-    if related_name == '+':
-        return []
-    if field.one_to_one:
-        if check_existence:
-            if getattr(instance, related_name + '_id'):
-                return [True]
-            return []
-        # This may be wrong but I'm not using it anywhere yet.
-        obj = getattr(instance, related_name)
-        if obj:
-            return [obj]
-        return []
-    if auto:
-        related_name += '_set'
-    if field.one_to_many or field.many_to_many:
-        if check_existence:
-            if getattr(instance, related_name).exists():
-                return [True]
-            return []
-        return getattr(instance, related_name).all()
-    raise RuntimeError(f'Unknown related field type, {field}')
-
-
-def get_all_foreign_references(instance, check_existence=False):
-    check_fields = [field for field in instance._meta.get_fields() if (any(
-        (field.one_to_many, field.many_to_many, field.one_to_one))
-    )]
-    yield from chain.from_iterable(
-        (related_iterable_from_field(instance, field, check_existence=check_existence) for field in check_fields),
-    )

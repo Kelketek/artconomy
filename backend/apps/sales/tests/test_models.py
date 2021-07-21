@@ -7,6 +7,7 @@ from moneyed import Money
 
 from apps.lib.models import NEW_PRODUCT
 from apps.lib.test_resources import SignalsDisabledMixin
+from apps.lib.utils import FakeRequest
 from apps.profiles.models import NO_US_ACCOUNT, HAS_US_ACCOUNT
 from apps.profiles.tests.factories import UserFactory, SubmissionFactory
 from apps.sales.models import TransactionRecord, BASE_PRICE, SHIELD, BONUS, TABLE_SERVICE, TAX, COMPLETED, QUEUED, NEW, \

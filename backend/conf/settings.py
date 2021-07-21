@@ -512,3 +512,10 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+CACHES = {
+    'default': {
+        'BACKEND': 'redis_cache.RedisCache',
+        'LOCATION': f'{get_env("CHANNELS_HOST", "127.0.0.1")}:{get_env("CHANNELS_PORT", "6379")}',
+    },
+}
