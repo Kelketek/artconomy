@@ -6,11 +6,6 @@ from apps.lib.models import Asset
 from apps.lib.utils import digest_for_file, dedup_asset
 
 
-def ensure_asset_hash(asset):
-    if asset.hash:
-        return
-
-
 class Command(BaseCommand):
     """
     This command should only ever need to be run once.

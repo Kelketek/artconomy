@@ -91,14 +91,16 @@ class AssetThumbnailMixin:
 
 
 @disable_on_load
-def thumbnail_hook(sender, instance, **kwargs):
+def thumbnail_hook(sender, instance, force=False, **kwargs):
     # Receiver to be attached to the post_save hook of any model using AssetThumbnailMixin.
     new_values = {field_name: getattr(instance, field_name) for field_name in instance._asset_fields}
     to_thumbnail = []
     old_values = []
     for key, value in new_values.items():
-        if value != instance._asset_field_map[key]:
+        has_new_value = value != instance._asset_field_map[key]
+        if force or has_new_value:
             to_thumbnail.append((key, value))
+        if has_new_value:
             old_values.append(instance._asset_field_map[key])
     for field_name, value in to_thumbnail:
         gen_subjective_thumbnails(instance, field_name, value)
