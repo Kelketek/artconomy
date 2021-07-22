@@ -23,5 +23,6 @@ class Command(BaseCommand):
             except FileNotFoundError:
                 print(f'MISSING FILE FOR {asset}!')
             asset.save()
+            asset.file.close()
         for asset in Asset.objects.exclude(hash=b''):
             dedup_asset(asset)
