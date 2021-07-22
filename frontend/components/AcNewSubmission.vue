@@ -13,11 +13,18 @@
       <v-stepper-items>
         <v-stepper-content :step="1">
           <v-row no-gutters  >
-            <v-col cols="12" md="6">
+            <v-col cols="12">
               <ac-bound-field :field="newUpload.fields.file" field-type="ac-uppy-file" label="Upload your submission" />
             </v-col>
-            <v-col cols="12" md="6">
+            <v-col cols="12" v-if="addThumbnail">
               <ac-bound-field :field="newUpload.fields.preview" field-type="ac-uppy-file" label="Upload a preview image (Optional)" />
+            </v-col>
+            <v-col cols="12" v-else>
+              <v-row no-gutters>
+                <v-col cols="12" md="6" lg="4" offset-md="3" offset-lg="4" class="text-center">
+                  <v-checkbox label="Upload custom thumbnail?" v-model="addThumbnail" class="d-inline-block" />
+                </v-col>
+              </v-row>
             </v-col>
             <v-col cols="12">
               <ac-bound-field :field="newUpload.fields.rating" label="Content Rating" field-type="ac-rating-field" />
@@ -123,6 +130,8 @@ export default class AcNewSubmission extends mixins(Subjective, Upload) {
     public value!: boolean
 
     public newUpload: FormController = null as unknown as FormController
+
+    public addThumbnail = false
 
     public get success() {
       return this.$listeners.success || this.goToSubmission
