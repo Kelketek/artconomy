@@ -8,114 +8,136 @@
                 :errors="orderForm.errors"
                 :sending="orderForm.sending"
             >
+              <template slot="top-buttons" />
               <v-card>
+                <v-card-title>
+                  <span class="title">New Commission Order</span>
+                </v-card-title>
                 <v-toolbar v-if="isRegistered" dense color="black">
                   <ac-avatar :user="viewer" :show-name="false" />
                   <v-toolbar-title class="ml-1">{{viewerName}}</v-toolbar-title>
                 </v-toolbar>
-                <v-card-title>
-                  <span class="title">New Commission Order</span>
-                </v-card-title>
-                <v-card-text>
-                  <v-row>
-                    <v-col cols="12" sm="6" v-if="!isRegistered">
-                      <v-subheader>Checkout as Guest</v-subheader>
-                      <ac-bound-field label="Email" v-if="!isRegistered" :field="orderForm.fields.email" />
-                    </v-col>
-                    <v-col cols="12" sm="6" class="text-center" v-if="!isRegistered">
-                      <p>Or, if you have an account,</p>
-                      <v-btn :to="{name: 'Login', params: {tabName: 'login'}, query: {next: $route.fullPath}}" color="primary">Log in here!</v-btn>
-                    </v-col>
-                  </v-row>
-                  <v-row>
-                    <v-col cols="12">
-                      <ac-bound-field
-                          label="Content Rating of Piece"
-                          field-type="ac-rating-field" :field="orderForm.fields.rating"
-                          :persistent-hint="true"
-                          hint="Please select the desired content rating of the piece you are commissioning."
-                      />
-                    </v-col>
-                  </v-row>
-                  <v-row>
-                    <v-col cols="12" v-if="isRegistered">
-                      <ac-bound-field
-                          field-type="ac-character-select" :field="orderForm.fields.characters" label="Characters"
-                          hint="Start typing a character's name to search. If you've set up characters on Artconomy, you can
-                  attach them to this order for easy referencing by the artist! If you haven't added any characters, or
-                  no characters are in this piece, you may leave this blank."
-                          v-if="showCharacters"
-                          :init-items="initCharacters"
-                      />
-                    </v-col>
-                  </v-row>
-                  <v-row>
-                    <v-col cols="12" sm="6" class="pt-3" order="2" order-sm="1">
-                      <ac-bound-field
-                          :field="orderForm.fields.details" field-type="ac-editor" label="Description"
-                          :rows="7"
-                          :save-indicator="false"
-                      />
-                    </v-col>
-                    <v-col cols="12" sm="6" order="1" order-sm="2">
+                <v-stepper v-model="orderForm.step" class="submission-stepper" non-linear>
+                  <v-stepper-header>
+                    <v-stepper-step editable :complete="orderForm.steps[1].complete" :step="1" :rules="orderForm.steps[1].rules">Basics</v-stepper-step>
+                    <v-divider />
+                    <v-stepper-step editable :step="2" :rules="orderForm.steps[2].rules">Details</v-stepper-step>
+                    <v-divider />
+                    <v-stepper-step editable :step="3" :rules="orderForm.steps[3].rules">Notices and Agreements</v-stepper-step>
+                  </v-stepper-header>
+                  <v-stepper-items>
+                    <v-stepper-content :step="1">
                       <v-row>
-                        <v-col class="d-flex justify-content justify-center align-content-center" cols="3" style="flex-direction: column">
-                          <v-img src="/static/images/laptop.png" max-height="30vh" :contain="true" />
+                        <v-col cols="12" sm="6" v-if="!isRegistered">
+                          <v-subheader>Checkout as Guest</v-subheader>
+                          <ac-bound-field label="Email" v-if="!isRegistered" :field="orderForm.fields.email" />
                         </v-col>
-                        <v-col cols="9">
-                          <v-subheader>Example description</v-subheader>
-                            Vulpy:<br />
-                            * is a fox<br />
-                            * is about three feet tall<br />
-                            * has orange fur, with white on his belly, cheeks, 'socks', and inner ears<br />
-                            * has a paintbrush tail that can be any color, but is black for this piece.<br />
-                            * has pink pawpads<br /><br />
-                            Please draw Vulpy sitting and typing away excitedly on a computer!
+                        <v-col cols="12" sm="6" class="text-center" v-if="!isRegistered">
+                          <p>Or, if you have an account,</p>
+                          <v-btn :to="{name: 'Login', params: {tabName: 'login'}, query: {next: $route.fullPath}}" color="primary">Log in here!</v-btn>
                         </v-col>
                       </v-row>
-                    </v-col>
-                  </v-row>
-                  <v-row no-gutters  >
-                    <v-col cols="12">
-                      <ac-load-section :controller="subjectHandler.artistProfile">
-                        <template v-slot:default>
-                          <v-subheader v-if="subjectHandler.artistProfile.x.commission_info">Commission Info</v-subheader>
-                          <ac-rendered :value="subjectHandler.artistProfile.x.commission_info" :truncate="500" />
-                        </template>
-                      </ac-load-section>
-                    </v-col>
-                  </v-row>
-                  <v-row>
-                    <v-col cols="12" sm="6">
-                      <ac-bound-field
-                          field-type="ac-checkbox" :field="orderForm.fields.private" label="Private Order" :persistent-hint="true"
-                          hint="Hides the resulting submission from public view and tells the artist you want this commission
+                      <v-row>
+                        <v-col cols="12">
+                          <ac-bound-field
+                              label="Content Rating of Piece"
+                              field-type="ac-rating-field" :field="orderForm.fields.rating"
+                              :persistent-hint="true"
+                              hint="Please select the desired content rating of the piece you are commissioning."
+                          />
+                        </v-col>
+                      </v-row>
+                      <v-row>
+                        <v-col cols="12" v-if="isRegistered">
+                          <ac-bound-field
+                              field-type="ac-character-select" :field="orderForm.fields.characters" label="Characters"
+                              hint="Start typing a character's name to search. If you've set up characters on Artconomy, you can
+                  attach them to this order for easy referencing by the artist! If you haven't added any characters, or
+                  no characters are in this piece, you may leave this blank."
+                              v-if="showCharacters"
+                              :init-items="initCharacters"
+                          />
+                        </v-col>
+                      </v-row>
+                      <v-row>
+                        <v-col cols="12" sm="6">
+                          <ac-bound-field
+                              field-type="ac-checkbox" :field="orderForm.fields.private" label="Private Order" :persistent-hint="true"
+                              hint="Hides the resulting submission from public view and tells the artist you want this commission
                     to be private. The artist may charge an additional fee, since they will not be able to use the piece
                     in their portfolio."
-                      />
-                    </v-col>
-                    <v-col class="text-center" cols="12" sm="6" align-self="center">
-                      <h3>All orders are bound by the
-                        <router-link :to="{name: 'CommissionAgreement'}">Commission Agreement.</router-link>
-                      </h3>
-                    </v-col>
-                  </v-row>
-                  <v-row>
-                    <v-col cols="12">
-                      <v-alert type="warning" :value="true" v-if="product.x.wait_list">
-                        This order will be waitlisted. Waitlisted orders are not guaranteed to be accepted on any
-                        particular time table and may not be fulfilled in the order they are received. Please check the
-                        product description for further details or contact the artist if there is any confusion.
-                        <strong>You will not be expected to pay for this order unless and until it is accepted.</strong>
-                      </v-alert>
-                      <v-alert type="info" :value="true">
-                        Once your order is placed, the artist will review your request, make any adjustments to the quote as needed, and present them for your approval and payment. We will update you via email as things progress.
-                        <strong>You will have the opportunity to attach additional reference images after the order is placed.</strong>
-                      </v-alert>
-                    </v-col>
-                    <v-col class="text-center" cols="12" >
-                      <v-btn color="primary" type="submit" id="place-order-button">Place Order</v-btn>
-                    </v-col>
+                          />
+                        </v-col>
+                      </v-row>
+                    </v-stepper-content>
+                    <v-stepper-content step="2">
+                      <v-row>
+                        <v-col cols="12" sm="6" class="pt-3" order="2" order-sm="1">
+                          <ac-bound-field
+                              :field="orderForm.fields.details" field-type="ac-editor" label="Description"
+                              :rows="7"
+                              :save-indicator="false"
+                          />
+                        </v-col>
+                        <v-col cols="12" sm="6" order="1" order-sm="2">
+                          <v-row>
+                            <v-col class="d-flex justify-content justify-center align-content-center" cols="3" style="flex-direction: column">
+                              <v-img src="/static/images/laptop.png" max-height="30vh" :contain="true" />
+                            </v-col>
+                            <v-col cols="9">
+                              <v-subheader>Example description</v-subheader>
+                              Vulpy:<br />
+                              * is a fox<br />
+                              * is about three feet tall<br />
+                              * has orange fur, with white on his belly, cheeks, 'socks', and inner ears<br />
+                              * has a paintbrush tail that can be any color, but is black for this piece.<br />
+                              * has pink pawpads<br /><br />
+                              Please draw Vulpy sitting and typing away excitedly on a computer!
+                            </v-col>
+                          </v-row>
+                        </v-col>
+                      </v-row>
+                    </v-stepper-content>
+                    <v-stepper-content step="3">
+                      <v-row>
+                        <v-col cols="12">
+                          <v-alert type="warning" :value="true" v-if="product.x.wait_list">
+                            This order will be waitlisted. Waitlisted orders are not guaranteed to be accepted on any
+                            particular time table and may not be fulfilled in the order they are received. Please check the
+                            product description for further details or contact the artist if there is any confusion.
+                            <strong>You will not be expected to pay for this order unless and until it is accepted.</strong>
+                          </v-alert>
+                          <v-alert type="info" :value="true">
+                            Once your order is placed, the artist will review your request, make any adjustments to the quote as needed, and present them for your approval and payment. We will update you via email as things progress.
+                          </v-alert>
+                        </v-col>
+                        <v-col cols="12">
+                          <ac-load-section :controller="subjectHandler.artistProfile">
+                            <template v-slot:default>
+                              <v-subheader v-if="subjectHandler.artistProfile.x.commission_info">Commission Info</v-subheader>
+                              <ac-rendered :value="subjectHandler.artistProfile.x.commission_info" :truncate="500" />
+                            </template>
+                          </ac-load-section>
+                        </v-col>
+                      </v-row>
+                      <v-col class="text-center" cols="12" sm="6" align-self="center">
+                        <h3>All orders are bound by the
+                          <router-link :to="{name: 'CommissionAgreement'}">Commission Agreement.</router-link>
+                        </h3>
+                      </v-col>
+                    </v-stepper-content>
+                  </v-stepper-items>
+                </v-stepper>
+                <v-card-actions row wrap>
+                  <v-spacer></v-spacer>
+                  <v-btn @click.prevent="orderForm.step -= 1" v-if="orderForm.step > 1" color="secondary">Previous</v-btn>
+                  <v-btn @click.prevent="orderForm.step += 1" v-if="orderForm.step < 3" color="primary">Next</v-btn>
+                  <v-btn type="submit" v-if="orderForm.step === 3" color="primary" class="submit-button">Agree and Place Order</v-btn>
+                </v-card-actions>
+              </v-card>
+              <v-card>
+                <v-card-text>
+                  <v-row no-gutters>
                   </v-row>
                 </v-card-text>
               </v-card>
@@ -263,11 +285,12 @@ export default class NewOrder extends mixins(ProductCentric, Formatting) {
         endpoint: this.product.endpoint + 'order/',
         persistent: true,
         fields: {
-          email: {value: (viewer.guest_email || ''), validators: [{name: 'email'}]},
-          private: {value: false},
-          characters: {value: []},
-          rating: {value: 0, validators: [{name: 'artistRating', async: true, args: [this.username]}]},
-          details: {value: ''},
+          email: {value: (viewer.guest_email || ''), step: 1, validators: [{name: 'email'}]},
+          private: {value: false, step: 1},
+          characters: {value: [], step: 2},
+          rating: {value: 0, validators: [{name: 'artistRating', async: true, args: [this.username]}], step: 2},
+          details: {value: '', step: 2},
+          references: {value: [], step: 3},
         },
       })
       // Since we allow the form to persist, we want to make sure if the user moves to another product, we update the
