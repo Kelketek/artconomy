@@ -487,7 +487,7 @@ export default class DeliverableDetail extends mixins(DeliverableMixin, Formatti
         value: {name: `${this.baseName}DeliverablePayment`, params}, text: 'Payment/Terms',
       },
       {
-        value: {name: `${this.baseName}DeliverableRevisions`, params}, text: 'Revisions',
+        value: {name: `${this.baseName}DeliverableRevisions`, params}, text: 'Revisions/WIPs',
       },
     ]
   }
