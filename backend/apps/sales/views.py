@@ -241,6 +241,9 @@ class PlaceOrder(CreateAPIView):
         else:
             order.customer_email = user.guest_email
             order.save()
+        for asset in serializer.validated_data.get('references', []):
+            reference = Reference.objects.create(file=asset, owner=user)
+            reference.deliverables.add(deliverable)
         if product.wait_list:
             notify(WAITLIST_UPDATED, order.seller, unique=True, mark_unread=True)
         else:

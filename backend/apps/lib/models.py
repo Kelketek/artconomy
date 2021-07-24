@@ -331,7 +331,7 @@ class Asset(Model):
 
     def can_reference(self, request):
         from apps.lib.utils import get_all_foreign_references
-        if cache.get(f'upload_grant_{request.session.session_key}'):
+        if cache.get(f'upload_grant_{request.session.session_key}-to-{self.id}'):
             return True
         user = request.user
         if not user.is_authenticated:

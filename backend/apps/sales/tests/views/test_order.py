@@ -4,6 +4,7 @@ from unittest.mock import patch
 from dateutil.relativedelta import relativedelta
 from ddt import ddt, data
 from django.contrib.contenttypes.models import ContentType
+from django.core.cache import cache
 from django.test import override_settings
 from django.utils import timezone
 from django.utils.datetime_safe import date
@@ -61,6 +62,60 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         # These should be set at the point of payment.
         self.assertEqual(deliverable.task_weight, 0)
         self.assertEqual(deliverable.expected_turnaround, 0)
+
+    def test_place_order_references(self):
+        user = UserFactory.create()
+        self.login(user)
+        product = ProductFactory.create(task_weight=5, expected_turnaround=3)
+        asset_ids = [AssetFactory.create(uploaded_by=user).id for _ in range(3)]
+        response = self.client.post(
+            '/api/sales/v1/account/{}/products/{}/order/'.format(product.user.username, product.id),
+            {
+                'details': 'Draw me some porn!',
+                'rating': ADULT,
+                'references': asset_ids,
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        deliverable = Deliverable.objects.get(id=response.data['default_path']['params']['deliverableId'])
+        for asset_id in asset_ids:
+            self.assertTrue(deliverable.reference_set.filter(file__id=asset_id).exists())
+
+    def test_place_order_references_disallowed(self):
+        user = UserFactory.create()
+        self.login(user)
+        product = ProductFactory.create(task_weight=5, expected_turnaround=3)
+        asset_ids = [AssetFactory.create(uploaded_by=None).id for _ in range(3)]
+        response = self.client.post(
+            '/api/sales/v1/account/{}/products/{}/order/'.format(product.user.username, product.id),
+            {
+                'details': 'Draw me some porn!',
+                'rating': ADULT,
+                'references': asset_ids,
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('references', response.data)
+
+    def test_place_order_references_anon(self):
+        product = ProductFactory.create(task_weight=5, expected_turnaround=3)
+        asset_ids = [str(AssetFactory.create(uploaded_by=None).id) for _ in range(3)]
+        # Forcibly set the cache key here.
+        for asset_id in asset_ids:
+            cache.set(f'upload_grant_{self.client.session.session_key}-to-{asset_id}', True, timeout=10)
+        response = self.client.post(
+            '/api/sales/v1/account/{}/products/{}/order/'.format(product.user.username, product.id),
+            {
+                'details': 'Draw me some porn!',
+                'email': 'test@example.com',
+                'rating': ADULT,
+                'references': asset_ids,
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        deliverable = Deliverable.objects.get(id=response.data['default_path']['params']['deliverableId'])
+        for asset_id in asset_ids:
+            self.assertTrue(deliverable.reference_set.filter(file__id=asset_id).exists())
 
     def test_place_order_inventory_product(self):
         user = UserFactory.create()

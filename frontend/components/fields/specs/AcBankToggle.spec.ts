@@ -111,7 +111,6 @@ describe('AcBankToggle.vue', () => {
     mockAxios.mockResponse(rs({id: 2, last_four: '1234', type: 0}))
     await flushPromises()
     await vm.$nextTick()
-    console.log(wrapper.html())
     expect(wrapper.find('.bank-label').text()).toContain('Checking')
     expect(wrapper.find('.bank-label').text()).toContain('ending in 1234')
   })

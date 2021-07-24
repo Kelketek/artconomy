@@ -19,7 +19,7 @@ from short_stuff import unslugify
 from short_stuff.django.serializers import ShortCodeField
 
 from apps.lib.abstract_models import GENERAL, EXTREME, RATINGS
-from apps.lib.models import ref_for_instance
+from apps.lib.models import ref_for_instance, Asset
 from apps.lib.serializers import (
     RelatedUserSerializer, RelatedAssetField, EventTargetRelatedField, SubscribedField,
     TagListField, RelatedAtomicMixin,
@@ -150,6 +150,10 @@ class ProductNewOrderSerializer(ProductNameMixin, serializers.ModelSerializer, C
     seller = RelatedUserSerializer(read_only=True)
     buyer = RelatedUserSerializer(read_only=True)
     characters = ListField(child=IntegerField(), required=False)
+    references = ListField(
+        child=serializers.CharField(), required=False, write_only=True,
+        max_length=10,
+    )
     rating = ModelField(model_field=Deliverable()._meta.get_field('rating'))
     details = ModelField(model_field=Deliverable()._meta.get_field('details'), max_length=5000)
     default_path = serializers.SerializerMethodField()
@@ -165,10 +169,22 @@ class ProductNewOrderSerializer(ProductNameMixin, serializers.ModelSerializer, C
     def get_default_path(self, order):
         return order.notification_link(context=self.context)
 
+    def validate_references(self, value):
+        assets = Asset.objects.filter(id__in=value)
+        error_message = 'Either you do not have permission to use those assets for reference, those asset IDs are ' \
+                        'invalid, or they have expired. Please try re-uploading.'
+        if assets.count() < len(value):
+            raise serializers.ValidationError(error_message)
+        for asset in assets:
+            request = self.context['request']
+            if not asset.can_reference(request):
+                raise serializers.ValidationError(error_message)
+        return assets
+
     def create(self, validated_data):
         data = {
             key: value for key, value in validated_data.items() if key not in (
-                'characters', 'details', 'rating', 'email',
+                'characters', 'references', 'details', 'rating', 'email',
             )}
         return super().create(data)
 
@@ -176,7 +192,7 @@ class ProductNewOrderSerializer(ProductNameMixin, serializers.ModelSerializer, C
         model = Order
         fields = (
             'id', 'created_on', 'rating', 'details', 'seller', 'buyer', 'private',
-            'email', 'characters', 'default_path', 'product_name',
+            'email', 'characters', 'references', 'default_path', 'product_name',
         )
         extra_kwargs = {
             'characters': {'required': False},

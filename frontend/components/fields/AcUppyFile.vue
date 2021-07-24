@@ -56,6 +56,9 @@ export default class AcUppyFile extends mixins(ExtendedInput) {
     @Prop({default: false})
     public showClear!: boolean
 
+    @Prop({default: 1})
+    public maxNumberOfFiles!: number
+
     // noinspection SpellCheckingInspection
     public uppy: Uppy.Uppy | null = null
     // noinspection SpellCheckingInspection
@@ -85,7 +88,7 @@ export default class AcUppyFile extends mixins(ExtendedInput) {
         debug: false,
         restrictions: {
           maxFileSize: null,
-          maxNumberOfFiles: 1,
+          maxNumberOfFiles: this.maxNumberOfFiles,
           minNumberOfFiles: 1,
         },
       }))
@@ -97,6 +100,7 @@ export default class AcUppyFile extends mixins(ExtendedInput) {
         note: 'Images only.',
         height: 250,
         width: 250,
+        theme: 'dark',
         proudlyDisplayPoweredByUppy: false,
         showLinkToFileUploadResult: false,
       })
@@ -107,7 +111,11 @@ export default class AcUppyFile extends mixins(ExtendedInput) {
         },
       })
       uppy.on('upload-success', (file: UppyFile, response: any) => {
-        this.$emit('input', response.body.id)
+        if (this.maxNumberOfFiles > 1) {
+          this.$emit('input', [...this.value, response.body.id])
+        } else {
+          this.$emit('input', response.body.id)
+        }
         if (this.success) {
           this.success(response.body)
         }

@@ -71,8 +71,8 @@
                       </v-row>
                     </v-stepper-content>
                     <v-stepper-content step="2">
-                      <v-row>
-                        <v-col cols="12" sm="6" class="pt-3" order="2" order-sm="1">
+                      <v-row class="justify-center">
+                        <v-col cols="12" sm="6" order="2" order-sm="1" class="align-self-center pt-5">
                           <ac-bound-field
                               :field="orderForm.fields.details" field-type="ac-editor" label="Description"
                               :rows="7"
@@ -81,11 +81,11 @@
                         </v-col>
                         <v-col cols="12" sm="6" order="1" order-sm="2">
                           <v-row>
-                            <v-col class="d-flex justify-content justify-center align-content-center" cols="3" style="flex-direction: column">
+                            <v-col class="d-flex justify-content justify-center align-content-center" cols="5" style="flex-direction: column">
                               <v-img src="/static/images/laptop.png" max-height="30vh" :contain="true" />
                             </v-col>
-                            <v-col cols="9">
-                              <v-subheader>Example description</v-subheader>
+                            <v-col cols="7">
+                              <h2>Example description</h2>
                               Vulpy:<br />
                               * is a fox<br />
                               * is about three feet tall<br />
@@ -95,6 +95,17 @@
                               Please draw Vulpy sitting and typing away excitedly on a computer!
                             </v-col>
                           </v-row>
+                        </v-col>
+                      </v-row>
+                      <v-row>
+                        <v-col cols="12" order="3">
+                          <ac-bound-field
+                              field-type="ac-uppy-file"
+                              :field="orderForm.fields.references"
+                              :max-number-of-files="5"
+                              label="(Optional) Add some reference images!"
+                              :persistent-hint="true"
+                          ></ac-bound-field>
                         </v-col>
                       </v-row>
                     </v-stepper-content>
@@ -119,19 +130,20 @@
                             </template>
                           </ac-load-section>
                         </v-col>
+                        <v-col cols="12">
+                          <v-alert type="info" :value="true">
+                            All orders are bound by the
+                            <router-link :to="{name: 'CommissionAgreement'}">Commission Agreement.</router-link>
+                          </v-alert>
+                        </v-col>
                       </v-row>
-                      <v-col class="text-center" cols="12" sm="6" align-self="center">
-                        <h3>All orders are bound by the
-                          <router-link :to="{name: 'CommissionAgreement'}">Commission Agreement.</router-link>
-                        </h3>
-                      </v-col>
                     </v-stepper-content>
                   </v-stepper-items>
                 </v-stepper>
                 <v-card-actions row wrap>
                   <v-spacer></v-spacer>
-                  <v-btn @click.prevent="orderForm.step -= 1" v-if="orderForm.step > 1" color="secondary">Previous</v-btn>
-                  <v-btn @click.prevent="orderForm.step += 1" v-if="orderForm.step < 3" color="primary">Next</v-btn>
+                  <v-btn @click.prevent="orderForm.step -= 1" v-if="orderForm.step > 1" color="secondary" class="previous-button">Previous</v-btn>
+                  <v-btn @click.prevent="orderForm.step += 1" v-if="orderForm.step < 3" color="primary" class="next-button">Next</v-btn>
                   <v-btn type="submit" v-if="orderForm.step === 3" color="primary" class="submit-button">Agree and Place Order</v-btn>
                 </v-card-actions>
               </v-card>
@@ -242,6 +254,11 @@ export default class NewOrder extends mixins(ProductCentric, Formatting) {
       }
     }
 
+    @Watch('orderForm.step')
+    public updateRoute(val: number) {
+      this.$router.replace({params: {stepId: `${val}`}})
+    }
+
     public sendEvent() {
       const product = this.product.x as Product
       window.pintrk(
@@ -281,16 +298,25 @@ export default class NewOrder extends mixins(ProductCentric, Formatting) {
       window.scrollTo(0, 0)
       this.product.get()
       const viewer = this.viewer as User
+      let step = parseInt(this.$route.params.stepId) || 1
+      if (step > 3) {
+        step = 3
+      } else if (step < 1) {
+        step = 1
+      }
       this.orderForm = this.$getForm('newOrder', {
         endpoint: this.product.endpoint + 'order/',
         persistent: true,
+        step,
         fields: {
           email: {value: (viewer.guest_email || ''), step: 1, validators: [{name: 'email'}]},
           private: {value: false, step: 1},
           characters: {value: [], step: 2},
           rating: {value: 0, validators: [{name: 'artistRating', async: true, args: [this.username]}], step: 2},
           details: {value: '', step: 2},
-          references: {value: [], step: 3},
+          references: {value: [], step: 2},
+          // Let there be a 'step 3' even if there's not an actual field there.
+          dummy: {value: '', step: 3}
         },
       })
       // Since we allow the form to persist, we want to make sure if the user moves to another product, we update the

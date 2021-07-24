@@ -267,13 +267,13 @@ export const routes = [
     children: [
       {
         name: 'Product',
-        path: 'product/:productId/',
+        path: 'product/:productId',
         component: ProductDetail,
         props: true,
         children: [
           {
             name: 'NewOrder',
-            path: 'order',
+            path: 'order/:stepId?/',
             component: NewOrder,
             props: true,
           },

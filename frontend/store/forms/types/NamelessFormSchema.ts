@@ -12,4 +12,5 @@ export interface NamelessFormSchema {
   debounce?: number,
   // If set true, the formController will not be reaped when all references to it in the registry are removed.
   persistent?: boolean,
+  step?: number,
 }

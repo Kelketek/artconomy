@@ -1,5 +1,4 @@
 from collections import OrderedDict
-from hashlib import sha256
 
 from django.apps import apps
 from django.conf import settings
@@ -369,5 +368,5 @@ class AssetUpload(APIView):
             asset.clean()
             asset.save()
         else:
-            cache.set(f'upload_grant_{request.session.session_key}', str(asset.id), timeout=3600)
+            cache.set(f'upload_grant_{request.session.session_key}-to-{asset.id}', True, timeout=3600)
         return Response(data={'id': str(asset.id)})

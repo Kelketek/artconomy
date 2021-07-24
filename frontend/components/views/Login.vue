@@ -357,7 +357,7 @@ export default class Login extends mixins(Viewer) {
 
     // noinspection JSUnusedLocalSymbols,JSMethodCanBeStatic
     private get siteKey() {
-      return window.RECAPTCHA_SITE_KEY
+      return window.RECAPTCHA_SITE_KEY || 'undefined'
     }
 
     // noinspection JSUnusedLocalSymbols

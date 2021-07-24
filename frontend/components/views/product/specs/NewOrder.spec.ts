@@ -30,8 +30,10 @@ describe('NewOrder.vue', () => {
         {path: '/orders/:username/order/:orderId', name: 'Order', component: Empty},
         {path: '/auth/login', name: 'Login', component: Empty},
         {path: '/orders/:username/order/:orderId/:deliverableId', name: 'Deliverable', component: Empty},
+        {path: '/store/:username/products/:productId/order/:stepId?/', name: 'NewOrder', component: Empty},
       ],
     })
+    router.push({name: 'NewOrder', params: {productId: '1', username: 'Fox', stepId: '1'}})
     window.scrollTo = jest.fn()
     // @ts-ignore
     window.pintrk = jest.fn()
@@ -59,7 +61,9 @@ describe('NewOrder.vue', () => {
     await vm.$nextTick()
     expect(wrapper.find('#field-newOrder__details').exists()).toBeTruthy()
     const mockPush = jest.spyOn(vm.$router, 'push')
-    wrapper.find('#place-order-button').trigger('click')
+    vm.orderForm.step = 3
+    await vm.$nextTick()
+    wrapper.find('.submit-button').trigger('click')
     await vm.$nextTick()
     const submitted = mockAxios.getReqByUrl('/api/sales/v1/account/Fox/products/1/order/')
     mockAxios.mockResponse(rs(genOrder()), submitted)
@@ -90,7 +94,11 @@ describe('NewOrder.vue', () => {
     await vm.$nextTick()
     expect(wrapper.find('#field-newOrder__details').exists()).toBeTruthy()
     const mockPush = jest.spyOn(vm.$router, 'push')
-    wrapper.find('#place-order-button').trigger('click')
+    const mockReplace = jest.spyOn(vm.$router, 'replace')
+    vm.orderForm.step = 3
+    await vm.$nextTick()
+    expect(mockReplace).toHaveBeenCalledWith({params: {stepId: '3'}})
+    wrapper.find('.submit-button').trigger('click')
     await vm.$nextTick()
     const submitted = mockAxios.getReqByUrl('/api/sales/v1/account/Fox/products/1/order/')
     mockAxios.mockResponse(rs(genOrder()), submitted)
@@ -117,15 +125,28 @@ describe('NewOrder.vue', () => {
     const form = mount(Empty, {localVue, store, vuetify, router}).vm.$getForm('newOrder', {
       endpoint: '/boop/',
       persistent: true,
+      step: 1,
       fields: {
-        email: {value: ('')},
-        private: {value: false},
-        characters: {value: [23, 50]},
-        rating: {value: 0},
-        details: {value: ''},
+        email: {value: '', step: 1, validators: [{name: 'email'}]},
+        private: {value: false, step: 1},
+        characters: {value: [23, 50], step: 2},
+        rating: {value: 0, step: 2},
+        details: {value: '', step: 2},
+        references: {value: [], step: 2},
+        // Let there be a 'step 3' even if there's not an actual field there.
+        dummy: {value: '', step: 3}
       },
     })
-    wrapper = mount(NewOrder, {localVue, store, vuetify, router, propsData: {productId: '1', username: 'Fox'}})
+    wrapper = mount(
+      NewOrder,
+      {
+        localVue,
+        store,
+        vuetify,
+        router,
+        propsData: {productId: '1', username: 'Fox', stepId: '1'},
+        attachTo: docTarget(),
+      })
     const vm = wrapper.vm as any
     vm.subjectHandler.user.makeReady(genUser())
     vm.subjectHandler.artistProfile.makeReady(genArtistProfile())
@@ -163,5 +184,35 @@ describe('NewOrder.vue', () => {
     vm.viewerHandler.user.updateX({guest_email: 'boop@snoot.com'})
     await vm.$nextTick()
     expect(form.fields.email.value).toEqual('boop@snoot.com')
+  })
+  it('Redirects to step one if using the old order URL', async() => {
+    const user = genAnon()
+    setViewer(store, user)
+    router.replace({name: 'NewOrder', params: {username: 'Fox', productId: '1'}})
+    const mockReplace = jest.spyOn(router, 'replace')
+    wrapper = mount(NewOrder, {localVue, store, vuetify, router, propsData: {productId: '1', username: 'Fox'}})
+    const vm = wrapper.vm as any
+    await vm.$nextTick()
+    expect(mockReplace).toHaveBeenCalledWith({params: {stepId: '1'}})
+  })
+  it('Redirects to step one if the starting URL marks a lower number', async() => {
+    const user = genAnon()
+    setViewer(store, user)
+    router.replace({name: 'NewOrder', params: {username: 'Fox', productId: '1', stepId: '-1'}})
+    const mockReplace = jest.spyOn(router, 'replace')
+    wrapper = mount(NewOrder, {localVue, store, vuetify, router, propsData: {productId: '1', username: 'Fox'}})
+    const vm = wrapper.vm as any
+    await vm.$nextTick()
+    expect(mockReplace).toHaveBeenCalledWith({params: {stepId: '1'}})
+  })
+  it('Redirects to step three if the starting URL marks a lower number', async() => {
+    const user = genAnon()
+    setViewer(store, user)
+    router.replace({name: 'NewOrder', params: {username: 'Fox', productId: '1', stepId: '4'}})
+    const mockReplace = jest.spyOn(router, 'replace')
+    wrapper = mount(NewOrder, {localVue, store, vuetify, router, propsData: {productId: '1', username: 'Fox'}})
+    const vm = wrapper.vm as any
+    await vm.$nextTick()
+    expect(mockReplace).toHaveBeenCalledWith({params: {stepId: '3'}})
   })
 })

@@ -251,7 +251,7 @@
                       </p>
                     </div>
                     <v-alert v-if="product.x.wait_list" :value="true" type="info">This product is waitlisted.</v-alert>
-                    <v-btn color="green" block :to="{name: 'NewOrder', params: {username, productId}}" v-if="!product.x.table_product">
+                    <v-btn color="green" block :to="{name: 'NewOrder', params: {username, productId, stepId: 1}}" v-if="!product.x.table_product">
                       <v-icon left>shopping_basket</v-icon>
                       Order
                     </v-btn>
