@@ -298,7 +298,7 @@
                                         :persistent-hint="true"
                         />
                         <div v-if="!subject.landscape">
-                          This feature only avaialable to <router-link :to="{name: 'Upgrade'}">Landscape</router-link> subscribers.
+                          This feature only available to <router-link :to="{name: 'Upgrade'}">Landscape</router-link> subscribers.
                         </div>
                       </v-col>
                       <v-col cols="12" sm="6">

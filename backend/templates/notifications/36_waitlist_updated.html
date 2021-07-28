@@ -1,0 +1,9 @@
+{% extends 'email_base.html' %}
+{% block header_message %}Update!{% endblock %}
+{% block message %}
+A new order has been added to your waitlist!
+{% endblock message %}
+
+{% block action %}
+<a href="/sales/{{target.username}}/waiting">View your Waitlist here!</a>
+{% endblock %}

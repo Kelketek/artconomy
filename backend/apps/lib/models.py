@@ -160,7 +160,8 @@ EMAIL_SUBJECTS = {
     RENEWAL_FIXED: 'Subscription renewed successfully',
     TRANSFER_FAILED: 'Bank transfer failed.',
     REFERRAL_PORTRAIT_CREDIT: "One of your referrals just made a purchase!",
-    REFERRAL_LANDSCAPE_CREDIT: "One of your referrals just made a sale!"
+    REFERRAL_LANDSCAPE_CREDIT: "One of your referrals just made a sale!",
+    WAITLIST_UPDATED: "A new order has been added to your waitlist!",
 }
 
 

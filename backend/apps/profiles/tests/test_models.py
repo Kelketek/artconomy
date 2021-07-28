@@ -15,7 +15,7 @@ expected_subscriptions = (
     (models.SUBSCRIPTION_DEACTIVATED, True), (models.RENEWAL_FIXED, True),
     (models.TRANSFER_FAILED, True), (models.REFERRAL_LANDSCAPE_CREDIT, True),
     (models.REFERRAL_PORTRAIT_CREDIT, True),
-    (models.WAITLIST_UPDATED, False),
+    (models.WAITLIST_UPDATED, True),
 )
 
 

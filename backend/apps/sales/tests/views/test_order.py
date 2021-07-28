@@ -4,6 +4,7 @@ from unittest.mock import patch
 from dateutil.relativedelta import relativedelta
 from ddt import ddt, data
 from django.contrib.contenttypes.models import ContentType
+from django.core import mail
 from django.core.cache import cache
 from django.test import override_settings
 from django.utils import timezone
@@ -150,6 +151,21 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         product.user.refresh_from_db()
         self.assertEqual(product.user.artist_profile.load, 0)
         self.assertTrue(Order.objects.get(id=response.data['id']).deliverables.first().total())
+
+    def test_place_order_waitlisted_product_email(self):
+        user = UserFactory.create()
+        self.login(user)
+        product = ProductFactory.create(task_weight=5, expected_turnaround=3, wait_list=True)
+        self.assertEqual(len(mail.outbox), 0)
+        response = self.client.post(
+            '/api/sales/v1/account/{}/products/{}/order/'.format(product.user.username, product.id),
+            {
+                'details': 'Draw me some porn!',
+                'rating': ADULT,
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(len(mail.outbox), 2)
 
     def test_place_order_inventory_product_out_of_stock(self):
         user = UserFactory.create()

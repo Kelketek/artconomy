@@ -259,7 +259,7 @@ def create_user_subscriptions(instance):
             (SUBSCRIPTION_DEACTIVATED, True), (RENEWAL_FIXED, True),
             (TRANSFER_FAILED, True), (REFERRAL_LANDSCAPE_CREDIT, True),
             (REFERRAL_PORTRAIT_CREDIT, True),
-            (WAITLIST_UPDATED, False),
+            (WAITLIST_UPDATED, True),
         ]],
         ignore_conflicts=True,
     )
