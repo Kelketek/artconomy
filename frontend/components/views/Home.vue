@@ -123,6 +123,10 @@
           <v-card :color="$vuetify.theme.currentTheme.darkBase.darken4">
             <v-toolbar dense color="secondary">
               <v-toolbar-title>Recent Commissions</v-toolbar-title>
+              <v-spacer />
+              <v-toolbar-items>
+                <v-btn color="primary" @click="searchSubmissions({commissions: true})" class="search-submissions">See More</v-btn>
+              </v-toolbar-items>
             </v-toolbar>
             <v-card-text>Commissions recently completed by our artists</v-card-text>
             <ac-load-section :controller="commissions">
@@ -229,7 +233,7 @@
               <v-toolbar-title>Recent Submissions</v-toolbar-title>
               <v-spacer />
               <v-toolbar-items>
-                <v-btn color="primary" @click="searchSubmissions()" class="search-submissions">See More</v-btn>
+                <v-btn color="primary" @click="searchSubmissions({})" class="search-submissions">See More</v-btn>
               </v-toolbar-items>
             </v-toolbar>
             <v-card-text>Art uploaded by our users</v-card-text>
@@ -423,9 +427,9 @@ export default class Home extends mixins(Viewer, Formatting, PrerenderMixin) {
       this.$router.push({name: 'SearchCharacters'})
     }
 
-    public searchSubmissions() {
-      this.searchReplace({})
-      this.$router.push({name: 'SearchSubmissions'})
+    public searchSubmissions(data: RawData) {
+      this.searchReplace(data)
+      this.$router.push({name: 'SearchSubmissions', query: data})
     }
 
     public listSizer(long?: boolean) {

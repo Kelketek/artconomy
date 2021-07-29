@@ -696,6 +696,7 @@ class SearchQuerySerializer(serializers.Serializer):
     q = serializers.CharField(required=False)
     shield_only = serializers.BooleanField(required=False)
     watch_list = serializers.BooleanField(required=False)
+    commissions = serializers.BooleanField(required=False)
     rating = serializers.BooleanField(required=False)
     minimum_content_rating = serializers.ChoiceField(choices=RATINGS, required=False)
     content_ratings = serializers.RegexField(r'^[0-4](,[0-4]){0,3}$', required=False)

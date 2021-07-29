@@ -575,6 +575,13 @@ class SubmissionSearch(ListAPIView):
             qs = qs.filter(artists__in=self.request.user.watching.all())
         if search_serializer.validated_data.get('content_ratings', False):
             qs = qs.filter(rating__in=search_serializer.validated_data['content_ratings'])
+        if search_serializer.validated_data.get('commissions', False):
+            qs = qs.filter(deliverable__isnull=False)
+            qs = qs.annotate(artist_copy=Case(
+                When(artists=F('owner'), then=0),
+                default=1,
+                output_field=IntegerField())).order_by('file', 'artist_copy').distinct('file')
+            qs = Submission.objects.filter(id__in=Subquery(qs.values('pk')))
         return qs.order_by('-created_on').distinct()
 
     def get(self, *args, **kwargs):

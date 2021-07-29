@@ -209,6 +209,7 @@ export default class App extends mixins(Viewer, Nav) {
     this.searchForm.fields.shield_only.update(fallbackBoolean(query, 'shield_only', false))
     this.searchForm.fields.featured.update(fallbackBoolean(query, 'featured', false))
     this.searchForm.fields.rating.update(fallbackBoolean(query, 'rating', false))
+    this.searchForm.fields.commissions.update(fallbackBoolean(query, 'commissions', false))
     this.searchForm.fields.artists_of_color.update(fallbackBoolean(query, 'artists_of_color', false))
     this.searchForm.fields.lgbt.update(fallbackBoolean(query, 'lgbt', false))
     this.searchForm.fields.max_price.update(fallback(query, 'max_price', ''))
