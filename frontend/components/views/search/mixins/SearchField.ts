@@ -6,15 +6,22 @@ import {ListController} from '@/store/lists/controller'
 import {FormController} from '@/store/forms/form-controller'
 import debounce from 'lodash/debounce'
 import {Watch} from 'vue-property-decorator'
-import Component from 'vue-class-component'
+import Component, {mixins} from 'vue-class-component'
+import Viewer from '@/mixins/viewer'
 
 @Component
-export default class SearchField extends Vue {
+export default class SearchField extends mixins(Viewer) {
   // list and searchForm must be defined on subclass.
   public list!: ListController<any>
   public searchForm!: FormController
   public debouncedUpdate!: ((newData: RawData) => void)
   public updateRouter = true
+
+  @Watch('rating')
+  public triggerRefetch() {
+    this.list.reset().catch(this.searchForm.setErrors)
+  }
+
   @Watch('searchForm.rawData', {deep: true})
   public updateParams(newData: RawData) {
     if (!this.$store.state.searchInitialized) {

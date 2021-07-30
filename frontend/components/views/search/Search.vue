@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container v-if="searchForm">
     <v-row no-gutters  >
       <v-col cols="12" sm="6" md="3" lg="4" order="1" order-sm="1">
         <ac-bound-field :field="searchForm.fields.q" label="I'm looking for..." :autofocus="true" />

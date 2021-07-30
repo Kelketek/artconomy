@@ -20,6 +20,9 @@ export function storeDefaults(): StoreOptions<State> {
       iFrame: false,
       searchInitialized: false,
       alerts: [],
+      ageAsked: false,
+      contentRating: 0,
+      showAgeVerification: false,
     },
     mutations: {
       supportDialog(state, value: boolean) {
@@ -49,6 +52,15 @@ export function storeDefaults(): StoreOptions<State> {
       setSearchInitialized(state, value: boolean) {
         state.searchInitialized = value
       },
+      setAgeAsked(state, value: boolean) {
+        state.ageAsked = value
+      },
+      setContentRating(state, value: number) {
+        state.contentRating = value
+      },
+      setShowAgeVerification(state, value: boolean) {
+        state.showAgeVerification = value
+      }
     },
     getters: {
       latestAlert(state) {

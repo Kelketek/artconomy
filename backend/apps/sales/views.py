@@ -1646,9 +1646,6 @@ class ProductSearch(ListAPIView):
         lgbt = search_serializer.validated_data.get('lgbt', False)
         artists_of_color = search_serializer.validated_data.get('artists_of_color', False)
         content_rating = search_serializer.validated_data.get('minimum_content_rating', 0)
-        if content_rating and content_rating > self.request.max_rating:
-            # Ignore rating setting if higher than the user's settings support.
-            content_rating = GENERAL
         watchlist_only = False
         if self.request.user.is_authenticated:
             watchlist_only = search_serializer.validated_data.get('watch_list')

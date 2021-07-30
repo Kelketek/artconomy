@@ -23,6 +23,7 @@ import Component, {mixins} from 'vue-class-component'
 import Submission from '@/types/Submission'
 import SearchList from '@/components/views/search/mixins/SearchList'
 import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
+import {Watch} from 'vue-property-decorator'
   @Component({
     components: {AcGalleryPreview, AcPaginated},
   })

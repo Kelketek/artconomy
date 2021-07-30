@@ -115,7 +115,7 @@
     <v-col v-if="searchForm.fields.minimum_content_rating.value > rating" class="py-2">
       <v-alert type="warning">
         Some results may be hidden because your content rating settings are too low.
-        <router-link :to="settingsPage">Adjust your content rating settings.</router-link>
+        <v-btn class="rating-button" small @click="ageCheck({value: searchForm.fields.minimum_content_rating.value, force: true})">Adjust your content rating settings.</v-btn>
       </v-alert>
     </v-col>
   </v-row>
@@ -133,10 +133,17 @@ import SearchHints from '../mixins/SearchHints'
 import AcBoundField from '@/components/fields/AcBoundField'
 import Viewer from '@/mixins/viewer'
 import SearchContentRatingMixin from '@/components/views/search/mixins/SearchContentRatingMixin'
+import {Watch} from 'vue-property-decorator'
   @Component({
     components: {AcBoundField},
   })
 export default class ProductExtra extends mixins(SearchHints, SearchContentRatingMixin, Viewer) {
     public panel: null|number = null
+    @Watch('searchForm.fields.minimum_content_rating.value', {immediate: true})
+    public triggerCheck(value: number) {
+      if (value) {
+        this.ageCheck({value})
+      }
+    }
 }
 </script>

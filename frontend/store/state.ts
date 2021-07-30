@@ -19,5 +19,8 @@ export interface State {
   uploadVisible: boolean,
   iFrame: boolean,
   searchInitialized: boolean,
-  alerts: Alert[]
+  alerts: Alert[],
+  ageAsked: boolean,
+  contentRating: number,
+  showAgeVerification: boolean,
 }

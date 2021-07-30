@@ -58,6 +58,70 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
+      <ac-form-dialog
+        :value="$store.state.showAgeVerification"
+        @input="closeAgeVerification"
+        v-if="viewerHandler.user.x && !prerendering"
+        @submit="closeAgeVerification"
+        :large="true"
+      >
+        <v-row>
+          <v-col cols="12" class="text-center">
+            <span class="title">Warning: {{ratingsShort[$store.state.contentRating]}}. Please verify your age and content preferences.</span>
+          </v-col>
+          <v-col v-if="$store.state.contentRating === OFFENSIVE && !isRegistered" cols="12">
+            <v-alert type="error">Some or all of the content on this page is marked as offensive or disturbing.
+              Offensive content is only available to registered users.
+              You may adjust your settings below, but to view all the content on this page, you will need to
+              <router-link :to="{name: 'Login', params: {tabName: 'register'}}">
+                <span @click="closeAgeVerification">register</span>
+              </router-link> or
+              <router-link :to="{name: 'Login'}" @click="closeAgeVerification">
+                <span @click="closeAgeVerification">log in.</span>
+              </router-link>
+            </v-alert>
+          </v-col>
+          <v-col cols="12" md="6">
+            <ac-patch-field
+                field-type="ac-birthday-field"
+                label="Birthday"
+                :patcher="viewerHandler.user.patchers.birthday"
+                :persistent-hint="true"
+                :save-indicator="false"
+                hint="You must be at least 18 years old to view adult content."
+            />
+          </v-col>
+          <v-col cols="12" sm="6">
+            <ac-patch-field field-type="v-switch" label="SFW Mode"
+                            :patcher="viewerHandler.user.patchers.sfw_mode"
+                            hint="Overrides your content preferences to only allow clean content. Useful if viewing the site
+                      from a work machine."
+                            :save-indicator="false"
+                            persistent-hint></ac-patch-field>
+          </v-col>
+          <v-col cols="12">
+            <v-card-text :class="{disabled: viewerHandler.user.patchers.sfw_mode.model}">
+              <ac-patch-field
+                  field-type="ac-rating-field"
+                  label="Select the maximum content rating you'd like to see when browsing."
+                  :patcher="viewerHandler.user.patchers.rating"
+                  :disabled="!adultAllowed"
+                  :max="isRegistered ? 3 : 2"
+                  :persistent-hint="true"
+                  hint="You must be at least 18 years old to view adult content."
+              >
+              </ac-patch-field>
+            </v-card-text>
+          </v-col>
+          <v-col></v-col>
+        </v-row>
+        <template v-slot:bottom-buttons>
+          <v-card-actions row wrap class="hidden-sm-and-down">
+            <v-spacer></v-spacer>
+            <v-btn color="primary" type="submit" class="dialog-submit">Done</v-btn>
+          </v-card-actions>
+        </template>
+      </ac-form-dialog>
       <v-snackbar v-model="showAlert" v-if="latestAlert"
                   :color="latestAlert.category"
                   :timeout="latestAlert.timeout"
@@ -149,16 +213,20 @@ import Viewer from '@/mixins/viewer'
 import {UserStoreState} from '@/store/profiles/types/UserStoreState'
 import {Alert} from '@/store/state'
 import AcMarkdownExplanation from '@/components/fields/AcMarkdownExplination.vue'
-import {fallback, fallbackBoolean, genId, getCookie, paramsKey, searchSchema, setCookie} from './lib/lib'
+import {fallback, fallbackBoolean, genId, getCookie, paramsKey, RATINGS_SHORT, searchSchema, setCookie} from './lib/lib'
 import {User} from '@/store/profiles/types/User'
 import Nav from '@/mixins/nav'
 import {SingleController} from '@/store/singles/controller'
 import {ConnectionStatus} from '@/types/ConnectionStatus'
 import {SocketState} from '@/types/SocketState'
 import {AnonUser} from '@/store/profiles/types/AnonUser'
+import AcForm from '@/components/wrappers/AcForm.vue'
+import AcPatchField from '@/components/fields/AcPatchField.vue'
+import moment from 'moment'
+import PrerenderMixin from '@/mixins/PrerenderMixin'
 
-@Component({components: {AcMarkdownExplanation, AcError, AcFormDialog, NavBar}})
-export default class App extends mixins(Viewer, Nav) {
+@Component({components: {AcPatchField, AcForm, AcMarkdownExplanation, AcError, AcFormDialog, NavBar}})
+export default class App extends mixins(Viewer, Nav, PrerenderMixin) {
   @State('profiles') public p!: UserStoreState
   @Mutation('supportDialog') public setSupport: any
   @Mutation('popAlert') public popAlert: any
@@ -168,7 +236,9 @@ export default class App extends mixins(Viewer, Nav) {
   @Getter('logo', {namespace: 'errors'}) public errorLogo!: string
   @Getter('latestAlert') public latestAlert!: Alert | null
   @State('iFrame') public iFrame!: boolean
+  public OFFENSIVE = 3
   public showTicketSuccess = false
+  public ratingsShort = RATINGS_SHORT
   public loaded = false
   public supportForm: FormController = null as unknown as FormController
   public alertDismissed: boolean = false
@@ -321,6 +391,10 @@ export default class App extends mixins(Viewer, Nav) {
   // To make testing easier via spies without doing anything to the environment.
   public mode() {
     return process.env.NODE_ENV
+  }
+
+  public closeAgeVerification() {
+    this.$store.commit('setShowAgeVerification', false)
   }
 
   public get devMode() {

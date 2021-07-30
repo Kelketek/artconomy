@@ -125,7 +125,7 @@
               <v-toolbar-title>Recent Commissions</v-toolbar-title>
               <v-spacer />
               <v-toolbar-items>
-                <v-btn color="primary" @click="searchSubmissions({commissions: true})" class="search-submissions">See More</v-btn>
+                <v-btn color="primary" @click="searchSubmissions({commissions: true})" class="search-commissions">See More</v-btn>
               </v-toolbar-items>
             </v-toolbar>
             <v-card-text>Commissions recently completed by our artists</v-card-text>

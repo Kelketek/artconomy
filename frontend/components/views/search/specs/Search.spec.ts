@@ -97,6 +97,7 @@ describe('Search.vue', () => {
     wrapper = mount(Search, {localVue, store, vuetify, router, attachTo: docTarget()})
   })
   it('Tabs through each search option', async() => {
+    setViewer(store, genUser())
     wrapper = mount(Search, {localVue, store, vuetify, router, attachTo: docTarget()})
     const routes = ['SearchProducts', 'SearchSubmissions', 'SearchCharacters', 'SearchProfiles']
     for (const [index, el] of wrapper.findAll('.v-item-group .v-btn').wrappers.entries()) {
@@ -106,6 +107,7 @@ describe('Search.vue', () => {
     }
   })
   it('Opens the default view', async() => {
+    setViewer(store, genUser())
     router.push({name: 'Search'})
     searchForm.fields.featured.update(true)
     wrapper = mount(Search, {localVue, store, vuetify, router, attachTo: docTarget()})
@@ -113,7 +115,7 @@ describe('Search.vue', () => {
     expect(wrapper.vm.$route.name).toBe('SearchProducts')
   })
   it('Updates the route when the values change', async() => {
-    // Need to start the fake timers here or else things get weird during the test.
+    setViewer(store, genUser())
     router.push({name: 'SearchProducts'})
     wrapper = mount(SearchProducts, {localVue, store, router, attachTo: docTarget()})
     const vm = wrapper.vm as any
@@ -134,7 +136,7 @@ describe('Search.vue', () => {
     searchForm.fields.minimum_content_rating.update('3')
     await vm.$nextTick()
     expect(wrapper.find('.v-alert').exists()).toBe(true)
-    expect((wrapper.find('.v-alert a').element as HTMLAnchorElement).href).toEqual('http://localhost/settings')
+    expect(wrapper.find('.v-alert .rating-button').exists()).toBe(true)
   })
   it('Shows an alert when a registered user has a max rating under the current search', async() => {
     router.push({name: 'SearchSubmissions'})
@@ -144,11 +146,10 @@ describe('Search.vue', () => {
     const vm = wrapper.vm as any
     await vm.$nextTick()
     expect(wrapper.find('.v-alert').exists()).toBe(true)
-    expect((wrapper.find('.v-alert a').element as HTMLAnchorElement).href).toEqual(
-      'http://localhost/profile/Fox/settings/options',
-    )
+    expect(wrapper.find('.v-alert .rating-button').exists()).toBe(true)
   })
   it('Properly handles setting and getting the allowed content ratings', async() => {
+    setViewer(store, genUser())
     wrapper = mount(SubmissionExtra, {localVue, store, router, attachTo: docTarget(), stubs: ['v-badge']})
     const vm = wrapper.vm as any
     vm.contentRatings = ['1', '3', '0']

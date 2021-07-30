@@ -290,6 +290,7 @@ import AcShareButton from '@/components/AcShareButton.vue'
 import AcShareManager from '@/components/AcShareManager.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import Sharable from '@/mixins/sharable'
+import PrerenderMixin from '@/mixins/PrerenderMixin'
 
   @Component({
     components: {
@@ -315,7 +316,7 @@ import Sharable from '@/mixins/sharable'
       AcLoadSection,
     },
   })
-export default class SubmissionDetail extends mixins(Viewer, Formatting, Editable, Sharable) {
+export default class SubmissionDetail extends mixins(Viewer, Formatting, Editable, Sharable, PrerenderMixin) {
     @Prop({required: true})
     public submissionId!: number
 
@@ -377,6 +378,13 @@ export default class SubmissionDetail extends mixins(Viewer, Formatting, Editabl
     public get tagControls() {
       const submission = this.submission.x as Submission
       return (this.controls || submission.owner.taggable) && this.isRegistered
+    }
+
+    @Watch('submission.x.rating')
+    public runAgeCheck(value: number) {
+      if (value && !this.prerendering) {
+        this.ageCheck({value})
+      }
     }
 
     public get commissionLink() {

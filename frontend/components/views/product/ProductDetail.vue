@@ -677,6 +677,26 @@ export default class ProductDetail extends mixins(ProductCentric, Formatting, Ed
       return list
     }
 
+    @Watch('maxSampleRating')
+    public triggerAgeCheck(value: number) {
+      this.ageCheck({value})
+    }
+
+    public get maxSampleRating() {
+      if (!this.samples) {
+        return 0
+      }
+      const list = this.samples.list
+      const ratings = list.map((x) => {
+        const linkedSubmission = x.x as LinkedSubmission
+        return linkedSubmission.submission.rating
+      })
+      if (!ratings.length) {
+        return 0
+      }
+      return Math.max(...ratings)
+    }
+
     public get prunedSubmissions() {
       let submissions = [...this.samples.list]
       if (this.product.x && this.product.x.primary_submission) {

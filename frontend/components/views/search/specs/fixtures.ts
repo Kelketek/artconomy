@@ -8,6 +8,7 @@ export default function searchSchema() {
       shield_only: {value: null, omitIf: null},
       featured: {value: null, omitIf: null},
       rating: {value: null, omitIf: null},
+      commissions: {value: false, omitIf: false},
       lgbt: {value: null, omitIf: null},
       artists_of_color: {value: null, omitIf: null},
       content_ratings: {value: '', omitIf: ''},

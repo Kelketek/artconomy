@@ -61,7 +61,7 @@
     <v-col v-if="maxSelected > rating" class="py-2">
       <v-alert type="warning">
         Some results may be hidden because your content rating settings are too low.
-        <router-link :to="settingsPage">Adjust your content rating settings.</router-link>
+        <v-btn small @click="ageCheck({value: maxSelected, force: true})" class="rating-button">Adjust your content rating settings.</v-btn>
       </v-alert>
     </v-col>
   </v-row>
@@ -79,10 +79,15 @@ import SearchHints from '../mixins/SearchHints'
 import AcBoundField from '@/components/fields/AcBoundField'
 import Viewer from '@/mixins/viewer'
 import SearchContentRatingMixin from '@/components/views/search/mixins/SearchContentRatingMixin'
+import { Watch } from 'vue-property-decorator'
   @Component({
     components: {AcBoundField},
   })
 export default class SubmissionExtra extends mixins(SearchHints, SearchContentRatingMixin, Viewer) {
     public panel: null|number = null
+    @Watch('maxSelected')
+    public triggerCheck(value: number) {
+      this.ageCheck({value})
+    }
 }
 </script>

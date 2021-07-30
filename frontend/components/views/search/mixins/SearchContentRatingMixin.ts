@@ -35,6 +35,9 @@ export default class SearchContentRatingMixin extends mixins(Viewer) {
   }
 
   public get contentRatings(): string[] {
+    if (!this.searchForm) {
+      return []
+    }
     return this.searchForm.fields.content_ratings.value.split(',').sort().filter((val: string) => val !== '')
   }
 

@@ -40,8 +40,7 @@
                   <p v-if="nerfed" class="nerfed-message">Please toggle SFW mode off to see this piece.</p>
                   <p v-else-if="isRegistered && !terse" class="rating-info">
                     This piece is rated '{{ ratingText }}'. <br/>
-                    You can change your content rating settings in your
-                    <router-link :to="{name: 'Settings', params: {username: viewer.username}}">settings panel.</router-link>
+                    <v-btn @click="ageCheck({force: true, value: asset.rating})" class="mt-2" color="primary">Adjust my Settings</v-btn>
                   </p>
                   <p v-else-if="!terse">
                     This piece is rated '{{ ratingText }}'. <br/>
@@ -49,10 +48,7 @@
                       Content of this rating is only available to
                       <router-link :to="{name: 'Login', params: {tabName: 'register'}}">registered users.</router-link>
                     </span>
-                    <span v-else>
-                      You can change your content rating settings in the
-                      <router-link :to="{name: 'SessionSettings'}">settings panel.</router-link>
-                    </span>
+                    <v-btn v-else @click="ageCheck({force: true, value: asset.rating})" color="primary" class="mt-2">Adjust my Settings</v-btn>
                   </p>
                 </div>
                 <div v-if="blacklisted.length" class="blacklist-info">

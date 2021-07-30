@@ -8,7 +8,7 @@ import {
   rs,
   setViewer,
   vueSetup,
-  mount,
+  mount, genAnon,
 } from '@/specs/helpers'
 import {genUser} from '@/specs/helpers/fixtures'
 import Router from 'vue-router'
@@ -161,6 +161,18 @@ describe('SubmissionDetail.vue', () => {
     wrapper.find('.rating-button').trigger('click')
     await vm.$nextTick()
     expect(vm.ratingDialog).toBe(true)
+  })
+  it('Nudges the viewer to adjust their settings', async() => {
+    setViewer(store, genAnon())
+    const submission = genSubmission({rating: 2, id: 123})
+    wrapper = mount(SubmissionDetail, {
+      localVue, store, router, vuetify, propsData: {submissionId: '123'}, attachTo: docTarget(),
+    })
+    const vm = wrapper.vm as any
+    const mockAgeCheck = spyOn(vm, 'ageCheck')
+    vm.submission.makeReady(submission)
+    await vm.$nextTick()
+    expect(mockAgeCheck).toHaveBeenCalledWith({value: 2})
   })
   it('Does not show a rating edit dialog if not in editing mode', async() => {
     setViewer(store, vulpes)

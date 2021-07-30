@@ -90,7 +90,7 @@ describe('Home.vue', () => {
     await wrapper.vm.$nextTick()
     wrapper.find('.search-submissions').trigger('click')
     await wrapper.vm.$nextTick()
-    expect(push).toHaveBeenCalledWith({name: 'SearchSubmissions'})
+    expect(push).toHaveBeenCalledWith({name: 'SearchSubmissions', query: {}})
     expect(searchForm.fields.q.value).toBe('')
   })
 })

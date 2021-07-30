@@ -1,6 +1,6 @@
 import Submission from '@/types/Submission'
 
-export function genSubmission(): Submission {
+export function genSubmission(overrides?: Partial<Submission>): Submission {
   return {
     id: 322,
     title: '',
@@ -39,5 +39,6 @@ export function genSubmission(): Submission {
     hits: 5,
     favorites: false,
     commission_link: null,
+    ...overrides,
   }
 }

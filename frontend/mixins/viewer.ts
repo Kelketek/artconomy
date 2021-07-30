@@ -5,6 +5,7 @@ import {ProfileController} from '@/store/profiles/controller'
 import {userHandle} from '@/store/profiles/handles'
 import {Ratings} from '@/store/profiles/types/Ratings'
 import ErrorHandling from '@/mixins/ErrorHandling'
+import moment from 'moment'
 
 @Component
 export default class Viewer extends mixins(ErrorHandling) {
@@ -70,6 +71,35 @@ export default class Viewer extends mixins(ErrorHandling) {
 
   public get rawViewerName() {
     return this.$store.state.profiles.viewerRawUsername
+  }
+
+  public get adultAllowed() {
+    if (this.viewerHandler.user.patchers.sfw_mode.model) {
+      return false
+    }
+    // @ts-ignore
+    const birthday = this.viewerHandler.user.patchers.birthday.model
+    if (birthday === null) {
+      return false
+    }
+    return moment().diff(moment(birthday), 'years') >= 18
+  }
+
+  public ageCheck({value, force}: {value: number, force?: boolean}) {
+    if (!value) {
+      return
+    }
+    if (!force) {
+      if (this.viewer!.birthday) {
+        return
+      }
+      if (this.$store.state.ageAsked) {
+        return
+      }
+    }
+    this.$store.commit('setContentRating', value)
+    this.$store.commit('setShowAgeVerification', true)
+    this.$store.commit('setAgeAsked', true)
   }
 
   public created() {
