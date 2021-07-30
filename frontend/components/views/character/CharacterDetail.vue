@@ -219,6 +219,10 @@ export default class CharacterDetail extends mixins(Subjective, CharacterCentric
       }
       updateTitle(`${character.name} - ${character.user.username} on Artconomy.com`)
       setMetaContent('description', textualize(character.description).slice(0, 160))
+      if (!character.primary_submission) {
+        return
+      }
+      this.ageCheck({value: character.primary_submission.rating})
     }
 
     public created() {
