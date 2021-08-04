@@ -8,7 +8,7 @@
         <v-col cols="8" offset="2" lg="4" offset-lg="4">
           <ac-bound-field
             :field="searchForm.fields.q"
-            @keyup="$router.push({name: 'SearchProducts'})"
+            @keyup="searchFromField"
             label="I'm looking for..."
             prepend-icon="search"
           />
@@ -313,7 +313,7 @@ import Submission from '@/types/Submission'
 import {RawData} from '@/store/forms/types/RawData'
 import AcCharacterPreview from '@/components/AcCharacterPreview.vue'
 import {Character} from '@/store/characters/types/Character'
-import {shuffle} from '@/lib/lib'
+import {makeQueryParams, shuffle} from '@/lib/lib'
 import AcTabs from '@/components/navigation/AcTabs.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import AcAsset from '@/components/AcAsset.vue'
@@ -420,6 +420,10 @@ export default class Home extends mixins(Viewer, Formatting, PrerenderMixin) {
     public search(data: RawData) {
       this.searchReplace(data)
       this.$router.push({name: 'SearchProducts', query: data})
+    }
+
+    public searchFromField() {
+      this.$router.push({name: 'SearchProducts', query: makeQueryParams(this.searchForm.rawData)})
     }
 
     public searchCharacters() {
