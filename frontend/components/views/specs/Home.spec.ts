@@ -79,7 +79,7 @@ describe('Home.vue', () => {
     searchForm.fields.q.update('test')
     wrapper.find('.search-characters').trigger('click')
     await wrapper.vm.$nextTick()
-    expect(push).toHaveBeenCalledWith({name: 'SearchCharacters'})
+    expect(push).toHaveBeenCalledWith({name: 'SearchCharacters', query: {}})
     expect(searchForm.fields.q.value).toBe('')
   })
   it('Performs a search for submissions', async() => {

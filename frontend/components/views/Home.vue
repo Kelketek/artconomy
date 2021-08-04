@@ -419,7 +419,7 @@ export default class Home extends mixins(Viewer, Formatting, PrerenderMixin) {
 
     public search(data: RawData) {
       this.searchReplace(data)
-      this.$router.push({name: 'SearchProducts', query: data})
+      this.$router.push({name: 'SearchProducts', query: makeQueryParams(this.searchForm.rawData)})
     }
 
     public searchFromField() {
@@ -428,12 +428,12 @@ export default class Home extends mixins(Viewer, Formatting, PrerenderMixin) {
 
     public searchCharacters() {
       this.searchReplace({})
-      this.$router.push({name: 'SearchCharacters'})
+      this.$router.push({name: 'SearchCharacters', query: makeQueryParams(this.searchForm.rawData)})
     }
 
     public searchSubmissions(data: RawData) {
       this.searchReplace(data)
-      this.$router.push({name: 'SearchSubmissions', query: data})
+      this.$router.push({name: 'SearchSubmissions', query: makeQueryParams(this.searchForm.rawData)})
     }
 
     public listSizer(long?: boolean) {
