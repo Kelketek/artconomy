@@ -11,6 +11,10 @@ export default class SearchList extends mixins(SearchField) {
   // Must be defined in created function of child.
   public list!: ListController<any>
   public debouncedUpdate!: ((newData: RawData) => void)
+  public mounted() {
+    this.rawUpdate(this.searchForm.rawData)
+  }
+
   public created() {
     this.searchForm = this.$getForm('search')
     this.debouncedUpdate = debounce(this.rawUpdate, 250, {trailing: true})

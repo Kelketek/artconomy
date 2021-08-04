@@ -284,6 +284,21 @@ export default class App extends mixins(Viewer, Nav, PrerenderMixin) {
     this.searchForm.fields.lgbt.update(fallbackBoolean(query, 'lgbt', false))
     this.searchForm.fields.max_price.update(fallback(query, 'max_price', ''))
     this.searchForm.fields.min_price.update(fallback(query, 'min_price', ''))
+    this.$getList('searchProfiles', {
+      endpoint: '/api/profiles/v1/search/user/',
+      persistent: true,
+    })
+    this.$getList('searchProducts', {
+      endpoint: '/api/sales/v1/search/product/', persistent: true,
+    })
+    this.$getList('searchCharacters', {
+      endpoint: '/api/profiles/v1/search/character/',
+      persistent: true,
+    })
+    this.$getList('searchProfiles', {
+      endpoint: '/api/profiles/v1/search/user/',
+      persistent: true,
+    })
     this.$store.commit('setSearchInitialized', true)
     // Make damn sure that the NavBar doesn't load before we have fully initialized search.
     this.$nextTick(() => { this.showNav = true })

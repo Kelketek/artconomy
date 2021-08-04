@@ -32,6 +32,7 @@ export default class SearchProducts extends mixins(SearchList) {
       this.list = this.$getList('searchProducts', {
         endpoint: '/api/sales/v1/search/product/', persistent: true,
       })
+      this.rawUpdate(this.searchForm.rawData)
     }
 }
 </script>
