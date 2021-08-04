@@ -24,7 +24,7 @@ DUMP_FILE="/app/ansible/production.sql"
 CARD_TRANSACTIONS_FILE="${REPORTS_DIR}/card_transactions.csv"
 
 cd "${SCRIPT_DIR}/ansible"
-ansible-playbook -i inventory dump.yml
+ansible-playbook -i keys/inventory dump.yml
 cd "${SCRIPT_DIR}"
 docker exec -i artconomy_web_1 /bin/bash <<EOF
 set -e
