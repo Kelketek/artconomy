@@ -3,7 +3,7 @@ import {ListModuleOpts} from './types/ListModuleOpts'
 import {SingleController} from '../singles/controller'
 import {BaseController} from '@/store/controller-base'
 import {ListState} from '@/store/lists/types/ListState'
-import {ListModule} from '@/store/lists/index'
+import {ListModule, pageFromParams, pageSizeFromParams} from '@/store/lists/index'
 import {PaginatedResponse} from '@/store/lists/types/PaginatedResponse'
 import {QueryParams} from '@/store/helpers/QueryParams'
 
@@ -107,7 +107,7 @@ export class ListController<T> extends BaseController<ListModuleOpts, ListState<
   }
 
   public get currentPage(): number {
-    return this.attr('currentPage')
+    return pageFromParams(this.attr('params'))
   }
 
   public set currentPage(val: number) {
@@ -115,7 +115,7 @@ export class ListController<T> extends BaseController<ListModuleOpts, ListState<
   }
 
   public get pageSize(): number {
-    return this.attr('pageSize')
+    return pageSizeFromParams(this.attr('params'))
   }
 
   public get purged() {

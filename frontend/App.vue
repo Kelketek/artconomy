@@ -284,6 +284,7 @@ export default class App extends mixins(Viewer, Nav, PrerenderMixin) {
     this.searchForm.fields.lgbt.update(fallbackBoolean(query, 'lgbt', false))
     this.searchForm.fields.max_price.update(fallback(query, 'max_price', ''))
     this.searchForm.fields.min_price.update(fallback(query, 'min_price', ''))
+    this.searchForm.fields.page.update(fallback(query, 'page', 1))
     this.$getList('searchProfiles', {
       endpoint: '/api/profiles/v1/search/user/',
       persistent: true,

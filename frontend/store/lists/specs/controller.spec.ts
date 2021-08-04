@@ -67,7 +67,7 @@ describe('List controller', () => {
     expect(state.example.endpoint).toBe('/test/')
   })
   it('Retrieves the page size', () => {
-    const controller = makeController({pageSize: 5})
+    const controller = makeController({params: {size: 5}})
     expect(controller.pageSize).toBe(5)
   })
   it('Proclaims the total pagecount as 1 when response is null', () => {
@@ -118,11 +118,19 @@ describe('List controller', () => {
   })
   it('Grabs and sets the params', () => {
     const controller = makeController({params: {stuff: 'things', wat: 'do'}})
-    expect(controller.params).toEqual({stuff: 'things', wat: 'do'})
+    expect(controller.params).toEqual({stuff: 'things', wat: 'do', page: 1, size: 24})
     controller.params = {dude: 'sweet'}
-    expect(controller.params).toEqual({dude: 'sweet'})
+    expect(controller.params).toEqual({dude: 'sweet', page: 1, size: 24})
     controller.params = null
-    expect(controller.params).toBe(null)
+    expect(controller.params).toEqual({page: 1, size: 24})
+  })
+  it('Grabs and sets the params without pagination', () => {
+    const controller = makeController({params: {stuff: 'things', wat: 'do'}, paginated: false})
+    expect(controller.params).toEqual({stuff: 'things', wat: 'do'})
+    controller.params = {dude: 'sweet', page: 2}
+    expect(controller.params).toEqual({dude: 'sweet', page: 2})
+    controller.params = null
+    expect(controller.params).toEqual(null)
   })
   it('Removes an item from the list', async() => {
     const controller = makeController()

@@ -31,6 +31,30 @@ function registerItems(store: Store<any>, state: ListState<any>, items: any[]) {
   return entries
 }
 
+export const pageFromParams = (params: null|QueryParams) => {
+  const rawData = params || {page: 1}
+  return parseInt(`${rawData.page}`, 10)
+}
+
+export const pageSizeFromParams = (params: null|QueryParams) => {
+  const rawData = params || {size: 24}
+  return parseInt(`${rawData.size}`, 10)
+}
+
+const defaultParams = (state: ListState<any>, params: null|QueryParams) => {
+  let newParams = params
+  if (state.paginated) {
+    newParams = newParams || {}
+    if (!newParams.page) {
+      newParams.page = 1
+    }
+    if (!newParams.size) {
+      newParams.size = 24
+    }
+  }
+  return newParams
+}
+
 export class ListModule<T extends {}> {
   public state: ListState<T>
   public mutations: MutationTree<ListState<T>>
@@ -39,16 +63,14 @@ export class ListModule<T extends {}> {
   public namespaced: boolean
 
   public constructor(options: {
-                       grow?: boolean, currentPage?: number, endpoint: string, pageSize?: number, persistent?: boolean,
-                       keyProp?: keyof T, name: string, reverse?: boolean, failed?: boolean,
+                       grow?: boolean, endpoint: string, persistent?: boolean,
+                       keyProp?: keyof T, name: string, reverse?: boolean, failed?: boolean, params?: QueryParams,
                      },
   ) {
     const defaults = {
       grow: false,
       response: null,
-      currentPage: 1,
       refs: [],
-      pageSize: 24,
       persistent: false,
       ready: false,
       keyProp: 'id' as keyof T,
@@ -60,6 +82,7 @@ export class ListModule<T extends {}> {
     }
     const cancel = {source: axios.CancelToken.source()}
     this.state = {...defaults, ...options}
+    this.state.params = defaultParams(this.state, this.state.params)
     this.mutations = {
       setEndpoint(state: ListState<T>, endpoint: string) {
         state.endpoint = endpoint
@@ -118,11 +141,7 @@ export class ListModule<T extends {}> {
         Vue.set(state, 'refs', entries)
       },
       setParams(state: ListState<T>, params: QueryParams|null) {
-        if (params === null) {
-          state.params = null
-          return
-        }
-        state.params = {...params}
+        state.params = defaultParams(state, params)
       },
       setFetching(state, val: boolean) {
         state.fetching = val
@@ -148,7 +167,9 @@ export class ListModule<T extends {}> {
         Vue.set(state, 'refs', entries)
       },
       setCurrentPage(state, val: number) {
-        state.currentPage = val
+        const params = state.params || {}
+        params.page = val
+        state.params = params
       },
     }
     this.actions = {
@@ -164,15 +185,7 @@ export class ListModule<T extends {}> {
           method: 'get' as HttpVerbs,
           cancelToken: cancel.source.token,
         }
-        let params = state.params || {}
-        if (state.paginated) {
-          params = {
-            ...params,
-            ...{
-              page: state.currentPage, size: state.pageSize,
-            },
-          }
-        }
+        const params = state.params || {}
         if (Object.keys(params).length) {
           callOptions.params = params
         }
@@ -234,10 +247,10 @@ export class ListModule<T extends {}> {
         return dispatch('firstRun')
       },
       next({state, commit, dispatch, getters}) {
-        if (state.currentPage >= getters.totalPages) {
+        if (state.params && pageFromParams(state.params) >= getters.totalPages) {
           return
         }
-        dispatch('getPage', state.currentPage + 1)
+        dispatch('getPage', pageFromParams(state.params) + 1)
       },
       async retryGet({state, commit, dispatch, getters}) {
         commit('setFailed', false)
@@ -245,7 +258,7 @@ export class ListModule<T extends {}> {
         return dispatch('get')
       },
       getPage({state, commit, dispatch}, pageNum: number) {
-        if (state.currentPage === pageNum) {
+        if (pageFromParams(state.params) === pageNum) {
           return
         }
         commit('setFailed', false)
@@ -261,7 +274,8 @@ export class ListModule<T extends {}> {
         return Math.ceil(state.response.count / state.response.size)
       },
       moreAvailable(state, localGetters) {
-        return (!state.fetching) && (localGetters.totalPages > state.currentPage)
+        const currentPage = pageFromParams(state.params)
+        return (!state.fetching) && (localGetters.totalPages > currentPage)
       },
     }
     this.namespaced = true
