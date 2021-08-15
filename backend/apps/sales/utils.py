@@ -288,8 +288,8 @@ def finalize_table_fees(deliverable: 'Deliverable'):
     record = TransactionRecord.objects.get(
         payee=None, destination=TransactionRecord.RESERVE,
         status=TransactionRecord.SUCCESS,
+        targets=ref,
     )
-    record.targets.add(ref)
     TransactionRecord.objects.create(
         source=TransactionRecord.RESERVE,
         destination=TransactionRecord.UNPROCESSED_EARNINGS,
