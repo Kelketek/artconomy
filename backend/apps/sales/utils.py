@@ -303,8 +303,8 @@ def finalize_table_fees(deliverable: 'Deliverable'):
     tax_record = TransactionRecord.objects.get(
         payee=None, destination=TransactionRecord.MONEY_HOLE_STAGE,
         status=TransactionRecord.SUCCESS,
+        targets=ref,
     )
-    tax_record.targets.add(ref)
     tax_burned = TransactionRecord.objects.create(
         source=TransactionRecord.MONEY_HOLE_STAGE,
         destination=TransactionRecord.MONEY_HOLE,
