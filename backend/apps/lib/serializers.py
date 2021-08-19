@@ -167,6 +167,9 @@ class RelatedAssetField(serializers.UUIDField):
         values = {}
         # Construct URLs manually and avoid hitting the disk/network.
         for key, val in settings.THUMBNAIL_ALIASES[self.thumbnail_namespace].items():
+            thumb_extension = value.name.split('.')[-1]
+            if extension.lower() == 'webp':
+                extension = 'png'
             values[key] = make_url('{}{}.{}x{}_q{}{}.{}'.format(
                 settings.MEDIA_URL,
                 value.name,
@@ -174,7 +177,7 @@ class RelatedAssetField(serializers.UUIDField):
                 val['size'][1],
                 85,
                 '_crop-{}'.format(val.get('crop')) if val.get('crop') else '',
-                value.name.split('.')[-1]
+                thumb_extension,
             ))
         values['full'] = make_url(settings.MEDIA_URL + value.name)
         values['__type__'] = 'data:image'

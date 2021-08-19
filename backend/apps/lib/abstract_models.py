@@ -177,7 +177,7 @@ class ImageModel(AssetThumbnailMixin, models.Model):
         return aliases.all(ref_name, include_global=True)
 
 
-THUMBNAIL_IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'bmp', 'gif', 'png']
+THUMBNAIL_IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'bmp', 'gif', 'png', 'webp']
 
 
 class HitsMixin:
