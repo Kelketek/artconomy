@@ -8,6 +8,7 @@ import debounce from 'lodash/debounce'
 import {Watch} from 'vue-property-decorator'
 import Component, {mixins} from 'vue-class-component'
 import Viewer from '@/mixins/viewer'
+import { Ratings } from '@/store/profiles/types/Ratings'
 
 @Component
 export default class SearchField extends mixins(Viewer) {
@@ -17,7 +18,20 @@ export default class SearchField extends mixins(Viewer) {
   public debouncedUpdate!: ((newData: RawData) => void)
   public updateRouter = true
 
-  @Watch('rating')
+  public get derivedRating() {
+    // The default 'rating' computed property falls back to 0, which means that we ALWAYS change from 0 if we're logged
+    // in and not currently using SFW settings. So, we have to make our own special rating property here for the purpose
+    // of triggering a refetch.
+    if (!this.viewer) {
+      return undefined
+    }
+    if (this.viewer.sfw_mode) {
+      return Ratings.GENERAL
+    }
+    return this.viewer.rating
+  }
+
+  @Watch('derivedRating')
   public triggerRefetch(newValue: number|undefined, oldValue: number|undefined) {
     if (newValue === undefined || oldValue === undefined) {
       return
