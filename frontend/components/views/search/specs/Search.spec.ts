@@ -124,7 +124,7 @@ describe('Search.vue', () => {
     await wrapper.vm.$nextTick()
     searchForm.fields.featured.update(true)
     await wrapper.vm.$nextTick()
-    expect(wrapper.vm.$route.query).toEqual({featured: 'true', page: 1, size: 24})
+    expect(wrapper.vm.$route.query).toEqual({featured: 'true', page: '1', size: '24'})
   })
   it('Shows an alert when an anonymous user has a max rating under the current search', async() => {
     router.push({name: 'SearchProducts'})

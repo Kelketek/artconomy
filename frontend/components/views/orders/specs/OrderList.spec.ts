@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import {cleanUp, confirmAction, qMount, rs, vueSetup, mount} from '@/specs/helpers'
+import {cleanUp, confirmAction, qMount, rs, vueSetup} from '@/specs/helpers'
 import {Wrapper} from '@vue/test-utils'
 import OrderList from '@/components/views/orders/OrderList.vue'
 import mockAxios from '@/__mocks__/axios'

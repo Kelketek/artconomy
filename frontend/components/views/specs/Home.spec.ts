@@ -68,7 +68,7 @@ describe('Home.vue', () => {
     await wrapper.vm.$nextTick()
     wrapper.find('.low-price-more').trigger('click')
     await wrapper.vm.$nextTick()
-    expect(push).toHaveBeenCalledWith({name: 'SearchProducts', query: {max_price: '30.00'}})
+    expect(push).toHaveBeenCalledWith({name: 'SearchProducts', query: {max_price: '30.00', page: '1', size: '24'}})
   })
   it('Performs a search for characters', async() => {
     setViewer(store, genUser())
@@ -79,7 +79,7 @@ describe('Home.vue', () => {
     searchForm.fields.q.update('test')
     wrapper.find('.search-characters').trigger('click')
     await wrapper.vm.$nextTick()
-    expect(push).toHaveBeenCalledWith({name: 'SearchCharacters', query: {}})
+    expect(push).toHaveBeenCalledWith({name: 'SearchCharacters', query: {page: '1', size: '24'}})
     expect(searchForm.fields.q.value).toBe('')
   })
   it('Performs a search for submissions', async() => {
@@ -90,7 +90,7 @@ describe('Home.vue', () => {
     await wrapper.vm.$nextTick()
     wrapper.find('.search-submissions').trigger('click')
     await wrapper.vm.$nextTick()
-    expect(push).toHaveBeenCalledWith({name: 'SearchSubmissions', query: {}})
+    expect(push).toHaveBeenCalledWith({name: 'SearchSubmissions', query: {page: '1', size: '24'}})
     expect(searchForm.fields.q.value).toBe('')
   })
 })

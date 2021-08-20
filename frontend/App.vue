@@ -290,7 +290,8 @@ export default class App extends mixins(Viewer, Nav, PrerenderMixin) {
       persistent: true,
     })
     this.$getList('searchProducts', {
-      endpoint: '/api/sales/v1/search/product/', persistent: true,
+      endpoint: '/api/sales/v1/search/product/',
+      persistent: true,
     })
     this.$getList('searchCharacters', {
       endpoint: '/api/profiles/v1/search/character/',

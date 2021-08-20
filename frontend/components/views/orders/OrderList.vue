@@ -177,7 +177,13 @@ export default class OrderList extends mixins(Subjective, SearchField, Formattin
 
   public created() {
     this.searchForm = this.$getForm('waitlistSearch', {
-      endpoint: '#', fields: {q: {value: ''}, product: {value: null, omitIf: null}},
+      endpoint: '#',
+      fields: {
+        q: {value: ''},
+        product: {value: null, omitIf: null},
+        size: {value: 24},
+        page: {value: 1},
+      },
     })
     this.searchForm.fields.q.update(fallback(this.$route.query, 'q', ''))
     this.searchForm.fields.product.update(fallbackBoolean(this.$route.query, 'product', null))

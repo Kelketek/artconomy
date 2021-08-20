@@ -43,6 +43,6 @@ describe('AlwaysOpen.vue', () => {
     wrapper.find('.commission-cta').trigger('click')
     await wrapper.vm.$nextTick()
     expect(router.currentRoute.name).toBe('SearchProducts')
-    expect(router.currentRoute.query).toEqual({})
+    expect(router.currentRoute.query).toEqual({page: 1, size: 24})
   })
 })

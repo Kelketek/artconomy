@@ -22,6 +22,22 @@ export default class SearchField extends mixins(Viewer) {
     this.list.reset().catch(this.searchForm.setErrors)
   }
 
+  @Watch('list.params.page')
+  public updatePage(newValue: number|undefined) {
+    if (newValue === undefined || this.searchForm === null) {
+      return
+    }
+    this.searchForm.fields.page.update(newValue)
+  }
+
+  @Watch('list.params.size')
+  public updateSize(newValue: number|undefined) {
+    if (newValue === undefined || this.searchForm === null) {
+      return
+    }
+    this.searchForm.fields.size.update(newValue)
+  }
+
   @Watch('searchForm.rawData', {deep: true})
   public updateParams(newData: RawData) {
     if (!this.$store.state.searchInitialized) {
@@ -32,7 +48,7 @@ export default class SearchField extends mixins(Viewer) {
 
   public rawUpdate(newData: RawData) {
     const newParams = makeQueryParams(newData)
-    const oldParams = this.list.params
+    const oldParams = makeQueryParams(this.list.params || {})
     /* istanbul ignore if */
     if (deepEqual(newParams, oldParams)) {
       return

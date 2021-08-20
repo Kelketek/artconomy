@@ -49,6 +49,6 @@ describe('Shield.vue', () => {
     wrapper.find('.commission-cta').trigger('click')
     await wrapper.vm.$nextTick()
     expect(router.currentRoute.name).toBe('SearchProducts')
-    expect(router.currentRoute.query).toEqual({shield_only: true})
+    expect(router.currentRoute.query).toEqual({shield_only: true, page: 1, size: 24})
   })
 })
