@@ -18,7 +18,10 @@ export default class SearchField extends mixins(Viewer) {
   public updateRouter = true
 
   @Watch('rating')
-  public triggerRefetch() {
+  public triggerRefetch(newValue: number|undefined, oldValue: number|undefined) {
+    if (newValue === undefined || oldValue === undefined) {
+      return
+    }
     this.list.reset().catch(this.searchForm.setErrors)
   }
 
