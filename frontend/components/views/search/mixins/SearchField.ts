@@ -85,5 +85,10 @@ export default class SearchField extends mixins(Viewer) {
 
   public created() {
     this.debouncedUpdate = debounce(this.rawUpdate, 250, {trailing: true})
+    this.$nextTick(() => {
+      if (!(this.list.ready || this.list.fetching || this.list.failed)) {
+        this.list.get().then()
+      }
+    })
   }
 }
