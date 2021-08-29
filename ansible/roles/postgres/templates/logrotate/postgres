@@ -4,6 +4,22 @@
   rotate 24
   nocompress
   nocreate
+  postrotate
+  sudo -u postgres pg_dump {{db_name}} > /var/lib/postgresql/backup/hourly/{{ db_name }}.sql
+  chown postgres:postgres /var/lib/postgresql/backup/hourly/{{ db_name }}.sql
+  gzip -c /var/lib/postgresql/backup/hourly/{{ db_name }}.sql > /var/lib/postgresql/backup/hourly/{{ db_name }}.sql.gz
+  chown postgres:postgres /var/lib/postgresql/backup/hourly/{{ db_name }}.sql.gz
+  endscript
+}
+/var/lib/postgresql/backup/daily/{{ db_name }}.sql.gz {
+  daily
+  missingok
+  rotate 8
+  nocompress
+  nocreate
+  postrotate
+  ln /var/lib/postgresql/backup/hourly/{{ db_name }}.sql.gz /var/lib/postgresql/backup/daily/{{ db_name }}.sql.gz
+  endscript
 }
 /var/lib/postgresql/backup/weekly/{{ db_name }}.sql.gz {
   weekly
@@ -11,4 +27,7 @@
   rotate 8
   nocompress
   nocreate
+  postrotate
+  ln /var/lib/postgresql/backup/hourly/{{ db_name }}.sql.gz /var/lib/postgresql/backup/weekly/{{ db_name }}.sql.gz
+  endscript
 }

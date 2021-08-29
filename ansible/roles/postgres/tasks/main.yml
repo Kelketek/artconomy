@@ -49,15 +49,18 @@
     - daily
     - weekly
 
-- name: Set up logrotate
+- name: Set up logrotate for backup
   template:
     src: "templates/logrotate/postgres"
     dest: "/etc/logrotate.d/postgres"
 
-- name: Set up cron
-  template:
-    src: "templates/cron/postgres"
-    dest: "/etc/cron.d/postgres"
+- name: Stat logrotate for cron
+  stat: path=/etc/cron.daily/logrotate
+  register: log_stat
+
+- name: Move logrotate cron entry
+  command: mv /etc/cron.daily/logrotate /etc/cron.hourly/logrotate
+  when: log_stat.stat.exists
 
 - name: Check for initial backup
   stat:
