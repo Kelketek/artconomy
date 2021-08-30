@@ -994,16 +994,16 @@ class DeliverableRefund(GenericAPIView):
             notify(ORDER_UPDATE, deliverable, unique=True, mark_unread=True)
             serializer = self.get_serializer(instance=deliverable, context=self.get_serializer_context())
             return Response(status=status.HTTP_200_OK, data=serializer.data)
-        order_type = ContentType.objects.get_for_model(deliverable)
+        target = ref_for_instance(deliverable)
         original_record = TransactionRecord.objects.get(
-            targets__object_id=deliverable.id, targets__content_type=order_type, payer=deliverable.order.buyer,
+            targets=target, payer=deliverable.order.buyer,
             payee=deliverable.order.seller,
             destination=TransactionRecord.ESCROW,
             status=TransactionRecord.SUCCESS,
         )
         transaction_set = TransactionRecord.objects.filter(
             source__in=[TransactionRecord.CARD, TransactionRecord.CASH_DEPOSIT],
-            targets__content_type=order_type, targets__object_id=deliverable.id,
+            targets=target,
             status=TransactionRecord.SUCCESS,
         ).exclude(category=TransactionRecord.SHIELD_FEE)
         record = issue_refund(transaction_set, TransactionRecord.ESCROW_REFUND)[0]
