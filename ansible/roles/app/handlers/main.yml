@@ -10,6 +10,8 @@
   shell: "source ~/.profile && source ~/bin/activate && cd ~/artconomy && yes no | ./manage.py migrate && ./manage.py createinitialrevisions && echo '{{ migrations_status.digest }}' > ~/.migrations_hash"
   args:
     executable: "/bin/bash"
+  notify:
+    - Set up stripe users
 
 - name: stripe webhooks
   become: yes
@@ -53,3 +55,12 @@
   tags:
     # Disabling since Pinterest doesn't support our catalog.
     - never
+
+- name: Set up stripe users
+  become: yes
+  become_user: "{{ env_prefix }}"
+  shell: "source ~/.profile && source ~/bin/activate && cd ~/artconomy && ./manage.py create_stripe_users && touch {{home}}/.stripe-users-created"
+  args:
+    executable: "/bin/bash"
+    creates: "{{ home }}/.stripe-users-created"
+    warn: false
