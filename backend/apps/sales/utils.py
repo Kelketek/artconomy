@@ -290,7 +290,7 @@ def finalize_table_fees(deliverable: 'Deliverable'):
         status=TransactionRecord.SUCCESS,
         targets=ref,
     )
-    TransactionRecord.objects.create(
+    service_fee = TransactionRecord.objects.create(
         source=TransactionRecord.RESERVE,
         destination=TransactionRecord.UNPROCESSED_EARNINGS,
         amount=record.amount,
@@ -300,6 +300,7 @@ def finalize_table_fees(deliverable: 'Deliverable'):
         remote_id=record.remote_id,
         auth_code=record.auth_code,
     )
+    service_fee.targets.add(ref)
     tax_record = TransactionRecord.objects.get(
         payee=None, destination=TransactionRecord.MONEY_HOLE_STAGE,
         status=TransactionRecord.SUCCESS,

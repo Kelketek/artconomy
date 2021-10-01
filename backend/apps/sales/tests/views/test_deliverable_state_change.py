@@ -307,6 +307,7 @@ class TestDeliverableStateChange(SignalsDisabledMixin, APITestCase):
         )
         self.assertEqual(service_fee.amount, Money('2.00', 'USD'))
         self.assertEqual(service_fee.category, TransactionRecord.TABLE_SERVICE)
+        self.assertEqual([target.target for target in service_fee.targets.all()], [self.deliverable])
         mock_withdraw.assert_called_with(self.deliverable.order.seller.id)
 
     @patch('apps.sales.utils.refund_transaction')
