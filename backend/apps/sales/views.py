@@ -2662,9 +2662,13 @@ def account_updated(event):
         withdraw_all(account.user.id)
 
 
-STRIPE_WEBHOOK_ROUTES = {
+STRIPE_DIRECT_WEBHOOK_ROUTES = {
     'charge.succeeded': charge_succeeded,
     'charge.failed': charge_failed,
+}
+
+
+STRIPE_CONNECT_WEBHOOK_ROUTES = {
     'account.updated': account_updated,
 }
 
@@ -2685,9 +2689,10 @@ class StripeWebhooks(APIView):
                 event = stripe_api.Webhook.construct_event(request.body, sig_header, secret)
             except ValueError as err:
                 return Response(status=status.HTTP_400_BAD_REQUEST, data={'detail': str(err)})
-            handler = STRIPE_WEBHOOK_ROUTES.get(event['type'], None)
+            routes = STRIPE_CONNECT_WEBHOOK_ROUTES if connect else STRIPE_DIRECT_WEBHOOK_ROUTES
+            handler = routes.get(event['type'], None)
             if not handler:
-                logger.warning('Unsupported event "%s" received from Stripe.', event['type'])
+                logger.warning('Unsupported event "%s" received from Stripe. Connect is %s', event['type'], connect)
                 return Response(
                     status=status.HTTP_400_BAD_REQUEST,
                     data={'detail': f'Unsupported command "{event["type"]}"'}
