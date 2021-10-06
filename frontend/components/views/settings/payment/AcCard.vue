@@ -1,8 +1,8 @@
 <template>
-  <v-col class="saved-card-container" cols="12" >
+  <v-col class="saved-card-container" cols="12" v-if="card.x">
     <v-row no-gutters  align="center">
       <v-col class="shrink px-2" v-if="fieldMode" >
-        <v-radio :value="card.x.id"></v-radio>
+        <v-radio :value="card.x.id" :disabled="wrongProcessor"></v-radio>
       </v-col>
       <v-col class="text-center fill-height shrink px-2" >
         <v-icon>{{cardIcon}}</v-icon>
@@ -13,6 +13,14 @@
         </v-row>
       </v-col>
       <v-col class="text-right fill-height grow" >
+        <v-tooltip v-if="wrongProcessor" top>
+          <template v-slot:activator="{on}">
+            <v-btn color="yellow" v-on="on" icon small class="default-indicator"><v-icon>warning</v-icon></v-btn>
+          </template>
+          <span>
+            Artconomy is transitioning processors. You may need to re-enter your card information to use this card.
+          </span>
+        </v-tooltip>
         <v-tooltip v-if="card.x.primary" top>
           <template v-slot:activator="{on}">
             <v-btn color="green" v-on="on" icon small class="default-indicator"><v-icon>star</v-icon></v-btn>
@@ -73,8 +81,18 @@ export default class AcCard extends Vue {
     @Prop({default: false})
     public fieldMode!: boolean
 
+    @Prop({default: ''})
+    public processor!: string
+
     public deleteCard() {
       this.card.delete().then(this.cardList.get)
+    }
+
+    public get wrongProcessor() {
+      if (!this.processor || !this.card.x) {
+        return false
+      }
+      return this.processor !== this.card.x.processor
     }
 
     public setPrimary() {
@@ -89,8 +107,10 @@ export default class AcCard extends Vue {
     }
 
     public get cardIcon() {
-      const card = this.card.x as CreditCardToken
-      return typeMap[card.type]
+      if (!this.card.x) {
+        return 'fa-credit-card-alt'
+      }
+      return typeMap[this.card.x.type]
     }
 }
 </script>

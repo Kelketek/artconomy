@@ -75,6 +75,28 @@ describe('AcComment.vue', () => {
     expect(wrapper.find('.alternate').exists()).toBe(false)
     expect(wrapper.find('.subcomments').exists()).toBe(false)
   })
+  it('Handles a nullified comment', async() => {
+    const empty = mount(Empty, {localVue, store, router})
+    const commentList = empty.vm.$getList('commentList', {endpoint: '/api/comments/'})
+    commentList.response = {...commentSet}
+    commentList.setList(commentSet.results)
+    wrapper = mount(AcComment, {
+      localVue,
+      store,
+      router,
+      vuetify,
+      propsData: {
+        commentList,
+        comment: commentList.list[0],
+        username: '',
+      },
+      attachTo: docTarget(),
+    })
+    commentList.list[0].markDeleted()
+    await wrapper.vm.$nextTick()
+    expect(wrapper.find('.alternate').exists()).toBe(false)
+    expect(wrapper.find('.subcomments').exists()).toBe(false)
+  })
   it('Handles a comment with children', async() => {
     const empty = mount(Empty, {localVue, store, router})
     const commentList = empty.vm.$getList('commentList', {endpoint: '/api/comments/'})
@@ -309,7 +331,9 @@ describe('AcComment.vue', () => {
     )
     mockAxios.mockResponse(rs(null))
     await flushPromises()
-    expect((wrapper.vm as any).comment.x).toBe(false)
+    expect((wrapper.vm as any).comment.x).toBe(null)
+    expect((wrapper.vm as any).comment.deleted).toBe(true)
+    expect((wrapper.vm as any).comment.ready).toBe(false)
   })
   it('Deletes a thread', async() => {
     setViewer(store, genUser())
@@ -328,7 +352,6 @@ describe('AcComment.vue', () => {
         username: null,
         nesting: false,
       },
-
       attachTo: docTarget(),
     })
     const vm = wrapper.vm as any
@@ -337,10 +360,10 @@ describe('AcComment.vue', () => {
     await vm.$nextTick()
     expect(vm.comment.x).toBeTruthy()
     for (const comment of vm.subCommentList.list) {
-      comment.setX(false)
+      comment.setX(null)
     }
     await vm.$nextTick()
-    expect(vm.comment.x).toBe(false)
+    expect(vm.comment.x).toBe(null)
   })
   it('Does not delete a thread in history mode', async() => {
     setViewer(store, genUser())
@@ -411,7 +434,7 @@ describe('AcComment.vue', () => {
     const empty = mount(Empty, {localVue, store, router})
     const commentList = empty.vm.$getList('commentList', {endpoint: '/api/comments/'})
     commentList.response = {...commentSet}
-    commentList.setList(commentSet.results)
+    commentList.setList([...commentSet.results])
     wrapper = mount(AcComment, {
       localVue,
       store,
@@ -424,7 +447,6 @@ describe('AcComment.vue', () => {
         nesting: false,
         showHistory: true,
       },
-
       attachTo: docTarget(),
     })
     mockAxios.reset()
@@ -435,7 +457,7 @@ describe('AcComment.vue', () => {
     await wrapper.vm.$nextTick()
     expect(mockAxios.lastReqGet().url).toBe('/api/lib/v1/comments/lib.Comment/13/history/')
     vm.historyList.response = {...commentSet}
-    vm.historyList.setList(commentSet.results)
+    vm.historyList.setList([...commentSet.results])
     vm.historyList.fetching = false
     vm.historyList.ready = true
     await vm.$nextTick()

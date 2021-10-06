@@ -1,4 +1,5 @@
 #!/bin/bash
+source /home/dev/.bashrc
 #apt-get install node npm
 #npm run build
 su dev

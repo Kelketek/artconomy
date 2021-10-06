@@ -27,7 +27,6 @@ describe('ac-editor', () => {
       localVue,
       store,
       vuetify,
-
       attachTo: docTarget(),
     })
   })
@@ -36,7 +35,6 @@ describe('ac-editor', () => {
       localVue,
       store,
       vuetify,
-
       attachTo: docTarget(),
     })
     const mockEmit = jest.spyOn(wrapper.vm.$refs.auto as any, '$emit')
@@ -60,7 +58,6 @@ describe('ac-editor', () => {
       localVue,
       store,
       vuetify,
-
       attachTo: docTarget(),
     })
     const mockEmit = jest.spyOn(wrapper.vm.$refs.auto as any, '$emit');
@@ -74,7 +71,6 @@ describe('ac-editor', () => {
       localVue,
       store,
       vuetify,
-
       attachTo: docTarget(),
     })
     wrapper.find('#editor-manual textarea').setValue('# Hello there!')

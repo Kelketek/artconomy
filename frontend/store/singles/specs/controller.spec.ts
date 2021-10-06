@@ -7,7 +7,7 @@ import {cleanUp, flushPromises, rq, rs, vueSetup, mount} from '@/specs/helpers'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import {SingleModuleOpts} from '@/store/singles/types/SingleModuleOpts'
 import {SingleSocketSettings} from '@/store/singles/types/SingleSocketSettings'
-import WS from "jest-websocket-mock";
+import WS from 'jest-websocket-mock'
 
 let store: ArtStore
 let state: any
@@ -31,7 +31,6 @@ describe('Single controller', () => {
     socketSettings = {
       appLabel: 'boop', modelName: 'snoot', serializer: 'BoopSerializer',
     }
-    singleRegistry.reset()
     store = createStore()
     state = (store.state as any).singles
     mockAxios.reset()
@@ -194,7 +193,7 @@ describe('Single controller', () => {
   })
   it('Syncs with the server', async() => {
     const controller = makeController({socketSettings, x: {id: 5}})
-    const server = new WS('ws://localhost/test/url', {jsonProtocol: true})
+    const server = new WS(controller.$sock.endpoint, {jsonProtocol: true})
     controller.$root.$sock.open()
     await server.connected
     await expect(server).toReceiveMessage({

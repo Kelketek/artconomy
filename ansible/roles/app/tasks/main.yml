@@ -30,7 +30,7 @@
   include_vars: "keys/{{env_prefix}}/app_settings.yml"
 
 - name: Install NPM repos
-  shell: "curl -sL https://deb.nodesource.com/setup_9.x | sudo -E bash -"
+  shell: "curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -"
   args:
     creates: /etc/apt/sources.list.d/nodesource.list
     warn: false
@@ -91,6 +91,7 @@
     - restart daphne
     - restart celery
     - restart celerybeat
+    - stripe webhooks
 
 - name: Copy Robots.txt
   copy: src="keys/{{ env_prefix }}/robots.txt" dest="{{ home }}/artconomy/" owner="{{ env_prefix }}" group=www-data mode=0644 directory_mode=0700 force=yes

@@ -58,4 +58,18 @@ describe('AcRendered.ts', () => {
     })
     expect(wrapper.text()).toBe(''.padStart(1000, 'A') + '...\nRead More')
   })
+  it('Shows default data', async() => {
+    wrapper = mount(AcRendered, {
+      localVue,
+      store,
+      vuetify,
+      propsData: {
+        value: null, truncate: true,
+      },
+      slots: {
+        empty: '<p>Nobody here but us chickens!</p>',
+      },
+    })
+    expect(wrapper.text()).toBe('Nobody here but us chickens!')
+  })
 })

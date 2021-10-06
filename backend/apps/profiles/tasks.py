@@ -5,6 +5,7 @@ from django.utils import timezone
 
 from apps.profiles.models import User, Conversation
 from apps.sales.apis import chimp
+from apps.sales.stripe import stripe
 from conf.celery_config import celery_app
 
 
@@ -39,3 +40,20 @@ def clear_blank_conversations():
             count=Count('comments')
     ).filter(count=0, created_on__lte=timezone.now() - relativedelta(days=1)):
         conversation.delete()
+
+
+@celery_app.task
+def create_or_update_stripe_user(user_id, force=False):
+    user = User.objects.get(id=user_id)
+    if user.stripe_token and not force:
+        return
+    if user.guest:
+        return
+    kwargs = {'email': user.email, 'metadata': {'user_id': user.id}}
+    with stripe as stripe_api:
+        if user.stripe_token:
+            stripe_api.Customer.modify(user.stripe_token, **kwargs)
+            return
+        response = stripe_api.Customer.create(**kwargs)
+        user.stripe_token = response['id']
+        user.save(update_fields=['stripe_token'])

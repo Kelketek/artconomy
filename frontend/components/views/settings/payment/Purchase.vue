@@ -9,7 +9,9 @@
           <v-col cols="12" sm="8" offset-sm="2" md="6" offset-md="3" lg="4" offset-lg="4">
             <v-card>
               <v-card-text>
-                <ac-card v-for="card in cards.list" :card="card" :key="card.id" :card-list="cards" />
+                <template v-for="card in cards.list">
+                  <ac-card :card="card" :key="card.x.id" :card-list="cards" :processor="processor" v-if="card.x" />
+                </template>
                 <v-col class="text-center" v-if="cards.empty" >
                   <p>Cards saved during purchase will be listed here for management.</p>
                 </v-col>
@@ -27,8 +29,8 @@
               </v-col>
               <ac-form @submit.prevent="ccForm.submitThen(addCard)">
                 <ac-form-container v-bind="ccForm.bind">
-                  <ac-card-manager :username="username" :cc-form="ccForm" :show-save="false" :field-mode="false" ref="cardManager">
-                    <template v-slot:new-card-bottom>
+                  <ac-card-manager :username="username" :cc-form="ccForm" :show-save="false" :field-mode="false" ref="cardManager" :show-all="true" :processor="processor">
+                    <template v-slot:new-card-button>
                       <v-col class="text-center" cols="12" >
                         <v-btn color="primary" type="submit" class="add-card-button">Add Card</v-btn>
                       </v-col>
@@ -65,6 +67,10 @@ export default class Purchase extends mixins(Subjective) {
 
   public get url() {
     return `/api/sales/v1/account/${this.username}/cards/`
+  }
+
+  public get processor() {
+    return window.DEFAULT_CARD_PROCESSOR
   }
 
   @Watch('username')

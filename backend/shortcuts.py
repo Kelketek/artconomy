@@ -3,11 +3,12 @@ from django.conf import settings
 import html2text
 
 
-def make_url(base_url):
+def make_url(base_url, overrides=None):
+    overrides = overrides or {}
+    context = {'proto': settings.DEFAULT_PROTOCOL, 'domain': settings.DEFAULT_DOMAIN, **overrides}
     return "{proto}://{domain}{base_url}".format(
-        proto=settings.DEFAULT_PROTOCOL,
-        domain=settings.DEFAULT_DOMAIN,
         base_url=base_url,
+        **context,
     )
 
 

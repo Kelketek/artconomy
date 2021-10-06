@@ -7,7 +7,7 @@ from apps.profiles.tests.factories import UserFactory
 from apps.sales.models import (
     Order, Product, CreditCardToken, Revision, BankAccount,
     Promo, Rating,
-    TransactionRecord, LineItem, ADD_ON, Deliverable, Reference)
+    TransactionRecord, LineItem, ADD_ON, Deliverable, Reference, Invoice, WebhookRecord)
 
 
 class ProductFactory(DjangoModelFactory):
@@ -33,9 +33,15 @@ class OrderFactory(DjangoModelFactory):
     seller = SubFactory(UserFactory)
 
 
+class InvoiceFactory(DjangoModelFactory):
+    class Meta:
+        model = Invoice
+
+
 class DeliverableFactory(DjangoModelFactory):
     name = Sequence(lambda x: 'Stage {}'.format(x))
     order = SubFactory(OrderFactory)
+    invoice = SubFactory(InvoiceFactory, bill_to=SelfAttribute('..order.buyer'))
     product = SubFactory(ProductFactory, user=SelfAttribute('..order.seller'))
 
     class Meta:
@@ -110,19 +116,26 @@ class RatingFactory(DjangoModelFactory):
 
 class LineItemFactory(DjangoModelFactory):
     type = ADD_ON
-    deliverable = SubFactory(DeliverableFactory)
+    invoice = SubFactory(InvoiceFactory)
     priority = 1
-    amount = SelfAttribute('deliverable.product.base_price')
-    destination_user = SelfAttribute('deliverable.order.seller')
+    amount = Money('15.00', 'USD')
+    destination_user = None
     destination_account = TransactionRecord.ESCROW
 
     class Meta:
         model = LineItem
 
 
+class WebhookRecordFactory(DjangoModelFactory):
+    secret = 'whsec_DvZSxlgF4ujHsFxNAfVJNC5ucgnxZBBF'
+
+    class Meta:
+        model = WebhookRecord
+
+
 def add_adjustment(deliverable, amount: Money):
     return LineItem.objects.create(
-        deliverable=deliverable, destination_user=deliverable.order.seller,
+        invoice=deliverable.invoice, destination_user=deliverable.order.seller,
         destination_account=TransactionRecord.ESCROW,
         amount=amount, type=ADD_ON,
     )

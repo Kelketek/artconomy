@@ -46,7 +46,6 @@ describe('AcPatchField.ts', () => {
       localVue,
       store,
       vuetify,
-
       attachTo: docTarget(),
       propsData: {patcher: single.patchers.test, id: 'stuff-patch', enterSave: true},
     })
@@ -65,7 +64,6 @@ describe('AcPatchField.ts', () => {
       localVue,
       store,
       vuetify,
-
       attachTo: docTarget(),
       propsData: {patcher: single.patchers.test, id: 'stuff-patch', enterSave: false, autoSave: false},
     })
@@ -81,7 +79,6 @@ describe('AcPatchField.ts', () => {
       localVue,
       store,
       vuetify,
-
       attachTo: docTarget(),
       propsData: {patcher: single.patchers.test, id: 'stuff-patch', autoSave: false},
     })
@@ -101,7 +98,6 @@ describe('AcPatchField.ts', () => {
       localVue,
       store,
       vuetify,
-
       attachTo: docTarget(),
       propsData: {patcher: single.patchers.test, id: 'stuff-patch', autoSave: false},
     })
@@ -117,7 +113,6 @@ describe('AcPatchField.ts', () => {
       localVue,
       store,
       vuetify,
-
       attachTo: docTarget(),
       propsData: {patcher: single.patchers.test, id: 'stuff-patch', autoSave: false, handlesSaving: true},
     })
@@ -132,7 +127,6 @@ describe('AcPatchField.ts', () => {
       localVue,
       store,
       vuetify,
-
       attachTo: docTarget(),
       propsData: {patcher: single.patchers.test, id: 'stuff-patch', autoSave: false, handlesSaving: true},
     })
@@ -150,7 +144,6 @@ describe('AcPatchField.ts', () => {
       localVue,
       store,
       vuetify,
-
       attachTo: docTarget(),
       propsData: {patcher: single.patchers.test, id: 'stuff-patch', autoSave: false, handlesSaving: true},
     })

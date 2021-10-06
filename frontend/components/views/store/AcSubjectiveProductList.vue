@@ -62,7 +62,20 @@ export default class AcSubjectiveProductList extends mixins(Subjective) {
     @Prop({default: false})
     public hideNewButton!: boolean
 
-    public showNew = false
+    public get showNew(): boolean {
+      return this.$route.query.new === 'true'
+    }
+
+    public set showNew(value: boolean) {
+      const query = {...this.$route.query}
+      if (value) {
+        query.new = 'true'
+      } else {
+        delete query.new
+      }
+      this.$router.replace({query})
+    }
+
     public get firstProduct() {
       return (
         this.isCurrent &&

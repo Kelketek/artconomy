@@ -134,7 +134,9 @@ class Register(CreateAPIView):
         referrer = self.request.META.get('HTTP_X_REFERRED_BY', None)
         if referrer:
             instance.referred_by = User.objects.filter(username__iexact=referrer).first()
-        instance.save()
+        # Specific fields here since other background operations may be happening in the interim.
+        # Most relevant during dev since celery is always eager and doesn't refresh the current object.
+        instance.save(update_fields=['offered_mailchimp', 'rating', 'sfw_mode', 'birthday', 'referred_by', 'password'])
         instance.artist_profile = ArtistProfile()
         instance.artist_profile.save()
         if add_to_newsletter:
@@ -204,15 +206,16 @@ class CredentialsAPI(GenericAPIView):
         return user
 
     def post(self, request, **_kwargs):
+        from apps.profiles.tasks import create_or_update_stripe_user
         user = self.get_object()
         self.check_object_permissions(request, user)
         serializer = self.get_serializer(data=request.data, instance=user)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        instance = serializer.save()
         if request.user == serializer.instance:
             # make sure the user stays logged in
-            update_session_auth_hash(request, serializer.instance)
-
+            update_session_auth_hash(request, instance)
+        create_or_update_stripe_user.delay(instance.id, force=True)
         return Response(
             status=status.HTTP_200_OK, data=UserSerializer(
                 instance=serializer.instance, context=self.get_serializer_context()

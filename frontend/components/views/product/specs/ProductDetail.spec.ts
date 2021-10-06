@@ -161,7 +161,9 @@ describe('ProductDetail.vue', () => {
     await flushPromises()
     await wrapper.vm.$nextTick()
     expect(wrapper.vm.$route.name).toBe('Profile')
-    expect(data.productSingle.x).toBe(false)
+    expect(data.productSingle.x).toBe(null)
+    expect(data.productSingle.ready).toBe(false)
+    expect(data.productSingle.deleted).toBe(true)
   })
   it('Knows if there is more', async() => {
     const data = prepData()

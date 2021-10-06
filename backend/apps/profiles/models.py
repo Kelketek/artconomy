@@ -5,9 +5,7 @@ import hashlib
 import uuid
 from urllib.parse import urlencode, urljoin
 
-from asgiref.sync import async_to_sync
 from avatar.models import Avatar
-from channels.layers import get_channel_layer
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from custom_user.models import AbstractEmailUser
@@ -41,12 +39,13 @@ from apps.lib.utils import (
     clear_events, tag_list_cleaner, notify, recall_notification, preview_rating,
     send_transaction_email,
     watch_subscriptions,
-    remove_watch_subscriptions, websocket_send, exclude_request, update_websocket
+    remove_watch_subscriptions, websocket_send, exclude_request
 )
 from apps.profiles.permissions import (
     SubmissionViewPermission, SubmissionCommentPermission, MessageReadPermission,
     JournalCommentPermission,
     IsRegistered, UserControls)
+from apps.sales.apis import PROCESSOR_CHOICES, STRIPE, AUTHORIZE
 from shortcuts import make_url, disable_on_load
 
 
@@ -77,16 +76,16 @@ def set_avatar_url(user):
         path = "%s.jpg?%s" % (hashlib.md5(force_bytes(getattr(user,
                                                               'email'))).hexdigest(), urlencode(params))
         user.avatar_url = urljoin('https://www.gravatar.com/avatar/', path)
-    user.save()
+    user.save(update_fields=['avatar_url'])
 
 
 UNSET = 0
-HAS_US_ACCOUNT = 1
-NO_US_ACCOUNT = 2
+IN_SUPPORTED_COUNTRY = 1
+NO_SUPPORTED_COUNTRY = 2
 BANK_STATUS_CHOICES = (
     (UNSET, "Unset"),
-    (HAS_US_ACCOUNT, "Has US Bank account"),
-    (NO_US_ACCOUNT, "No US Bank account")
+    (IN_SUPPORTED_COUNTRY, "In supported country"),
+    (NO_SUPPORTED_COUNTRY, "No supported country")
 )
 
 NORMAL = 0
@@ -113,6 +112,7 @@ class User(AbstractEmailUser, HitsMixin):
     favorites_hidden = BooleanField(default=False)
     taggable = BooleanField(default=True, db_index=True)
     authorize_token = CharField(max_length=50, default='', db_index=True)
+    stripe_token = CharField(max_length=50, default='', db_index=True)
     # Whether the user has made a shield purchase.
     bought_shield_on = DateTimeField(null=True, default=None, blank=True, db_index=True)
     sold_shield_on = DateTimeField(null=True, default=None, blank=True, db_index=True)
@@ -153,6 +153,9 @@ class User(AbstractEmailUser, HitsMixin):
     biography = CharField(max_length=5000, blank=True, default='')
     blocking = ManyToManyField('User', symmetrical=False, related_name='blocked_by', blank=True)
     stars = DecimalField(default=None, null=True, blank=True, max_digits=3, decimal_places=2, db_index=True)
+    processor_override = CharField(choices=PROCESSOR_CHOICES, blank=True, default='', max_length=24)
+    # Used for Stripe payment to upgrade account.
+    current_intent = CharField(max_length=30, db_index=True, default='', blank=True)
     rating_count = IntegerField(default=0, blank=True)
     notifications = ManyToManyField('lib.Event', through='lib.Notification')
     # Random default value to make extra sure it will never be invoked by mistake.
@@ -164,7 +167,8 @@ class User(AbstractEmailUser, HitsMixin):
         'hitcount.HitCount', object_id_field='object_pk',
         related_query_name='hit_counter')
     mailchimp_id = models.CharField(max_length=32, db_index=True, default='')
-    watch_permissions = {'UserSerializer': [UserControls], 'UserInfoSerializer': []}
+    watch_permissions = {'UserSerializer': [UserControls], 'UserInfoSerializer': [], None: [UserControls]}
+
     @property
     def landscape(self) -> bool:
         return bool(self.landscape_paid_through and self.landscape_paid_through >= date.today())
@@ -200,9 +204,6 @@ class ArtconomyAnonymousUser(AnonymousUser):
     def is_registered(self):
         return False
 
-
-socket_user_update = update_websocket(post_save, User, 'UserSerializer')
-socket_terse_user_update = update_websocket(post_save, User, 'UserInfoSerializer')
 
 # Replace Django's internal AnonymousUser model with our own that has the is_registered flag, needed to distinguish
 # guests from normal users.
@@ -299,6 +300,17 @@ def auto_subscribe(sender, instance, created=False, **_kwargs):
     mailchimp_tag.delay(instance.id)
 
 
+@receiver(post_save, sender=User)
+@disable_on_load
+def stripe_setup(sender, instance, created=False, **kwargs):
+    from apps.profiles.tasks import create_or_update_stripe_user
+    if not created:
+        return
+    if not settings.STRIPE_KEY:
+        return
+    create_or_update_stripe_user.delay(instance.id)
+
+
 class ArtistProfile(Model):
     user = OneToOneField(User, on_delete=CASCADE, related_name='artist_profile')
     load = IntegerField(default=0)
@@ -332,15 +344,16 @@ class ArtistProfile(Model):
         return f'Artist profile for {self.user and self.user.username}'
 
 
-socket_artist_profile_update = update_websocket(post_save, ArtistProfile, 'ArtistProfileSerializer')
-
-
 @receiver(pre_save, sender=ArtistProfile)
 def sync_escrow_status(sender, instance, **kwargs):
-    if instance.bank_account_status == HAS_US_ACCOUNT:
+    from apps.sales.models import StripeAccount
+    if instance.bank_account_status == IN_SUPPORTED_COUNTRY:
         instance.escrow_disabled = False
-    elif instance.bank_account_status == NO_US_ACCOUNT:
-        instance.escrow_disabled = True
+    elif instance.bank_account_status == NO_SUPPORTED_COUNTRY:
+        if not StripeAccount.objects.filter(user=instance.user, active=True):
+            instance.escrow_disabled = True
+        else:
+            instance.escrow_disabled = False
 
 
 class Submission(ImageModel, HitsMixin):
@@ -395,9 +408,6 @@ class Submission(ImageModel, HitsMixin):
 
     def favorite_count(self):
         return self.favorites.all().count()
-
-
-socket_submission_update = update_websocket(post_save, Submission, 'SubmissionSerializer')
 
 
 @receiver(post_save, sender=Submission)

@@ -60,7 +60,6 @@ describe('AcTotpDevice.vue', () => {
       localVue,
       vuetify,
       propsData: {username: 'Fox', device: controller.list[0]},
-
     })
     mockAxios.reset()
     wrapper.find('.delete-phone-2fa').trigger('click')

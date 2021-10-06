@@ -33,6 +33,7 @@ from apps.profiles.models import (
     ArtistProfile
 )
 from apps.sales.models import Promo
+from apps.sales.utils import get_user_processor
 from apps.tg_bot.models import TelegramDevice
 
 
@@ -483,6 +484,7 @@ class UserSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
     artist_mode = serializers.BooleanField(required=False)
     blacklist = TagListField(required=False)
     stars = serializers.FloatField(required=False)
+    processor = serializers.SerializerMethodField()
 
     @staticmethod
     def get_telegram_link(obj):
@@ -490,6 +492,9 @@ class UserSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
         return 'https://t.me/{}/?start={}_{}'.format(
             settings.TELEGRAM_BOT_USERNAME, quote_plus(obj.username), obj.tg_key
         )
+
+    def get_processor(self, user):
+        return get_user_processor(user)
 
     def validate(self, attrs):
         if attrs.get('rating', 0):
@@ -509,7 +514,7 @@ class UserSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
             'stars', 'portrait', 'portrait_enabled', 'portrait_paid_through',
             'landscape', 'landscape_enabled', 'landscape_paid_through', 'telegram_link', 'sfw_mode',
             'offered_mailchimp', 'guest', 'artist_mode', 'hits', 'watches', 'guest_email', 'rating_count',
-            'birthday',
+            'birthday', 'processor',
         )
         read_only_fields = [field for field in fields if field not in [
             'rating', 'sfw_mode', 'taggable',

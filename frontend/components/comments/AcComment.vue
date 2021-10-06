@@ -105,17 +105,19 @@
             <ac-load-section :controller="subCommentList">
               <template v-slot:default>
                 <div class="flex subcomments">
-                  <ac-comment
-                    :alternate="checkAlternate(index)"
-                    v-for="(comment, index) in subCommentList.list"
-                    :comment="comment"
-                    :comment-list="subCommentList"
-                    :username="comment.x.user.username"
-                    :level="level + 1"
-                    :key="comment.x.id"
-                    :nesting="nesting"
-                    :show-history="showHistory"
-                  />
+                  <template v-for="(comment, index) in subCommentList.list">
+                    <ac-comment
+                      :alternate="checkAlternate(index)"
+                      :comment="comment"
+                      :comment-list="subCommentList"
+                      :username="comment.x.user.username"
+                      :level="level + 1"
+                      :key="comment.x.id"
+                      :nesting="nesting"
+                      :show-history="showHistory"
+                      v-if="comment.x"
+                    />
+                  </template>
                 </div >
               </template>
             </ac-load-section>
@@ -263,6 +265,9 @@ export default class AcComment extends mixins(Subjective, Formatting) {
     }
 
     public get selected() {
+      if (!this.comment.x) {
+        return false
+      }
       if (this.$route.query && this.$route.query.commentId) {
         if (this.$route.query.commentId === (this.comment.x as Comment).id + '') {
           return true
@@ -282,11 +287,14 @@ export default class AcComment extends mixins(Subjective, Formatting) {
       if (this.showHistory || this.inHistory) {
         return
       }
+      if (this.comment.x === null) {
+        return
+      }
       if (val === 0) {
         // All children are deleted. Are we?
         if ((this.comment.x as Comment).deleted) {
           // Be gone, if so. We won't be on the server anymore, either!
-          this.comment.setX(false)
+          this.comment.setX(null)
         }
       }
     }

@@ -10,6 +10,7 @@ import mockAxios from '@/__mocks__/axios'
 import {genCard, genUser} from '@/specs/helpers/fixtures'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import {baseCardSchema} from '@/lib/lib'
+import {PROCESSORS} from '@/types/PROCESSORS'
 
 const localVue = vueSetup()
 let store: ArtStore
@@ -36,9 +37,8 @@ describe('AcCardManager.vue', () => {
         localVue,
         store,
         vuetify,
-
         attachTo: docTarget(),
-        propsData: {username: 'Fox', ccForm},
+        propsData: {username: 'Fox', ccForm, processor: PROCESSORS.AUTHORIZE},
       })
     cards = (wrapper.vm as any).cards
   })
@@ -47,22 +47,22 @@ describe('AcCardManager.vue', () => {
   })
   it('Fetches the initial data', async() => {
     expect(mockAxios.get.mock.calls[0]).toEqual(
-      rq('/api/sales/v1/account/Fox/cards/', 'get', undefined, {cancelToken: expect.any(Object)}),
+      rq('/api/sales/v1/account/Fox/cards/authorize/', 'get', undefined, {cancelToken: expect.any(Object)}),
     )
   })
   it('Updates the endpoint when the username is changed', async() => {
     const vm = wrapper.vm as any
-    expect(vm.cards.endpoint).toBe('/api/sales/v1/account/Fox/cards/')
+    expect(vm.cards.endpoint).toBe('/api/sales/v1/account/Fox/cards/authorize/')
     wrapper.setProps({username: 'Vulpes'})
     await wrapper.vm.$nextTick()
-    expect(vm.cards.endpoint).toBe('/api/sales/v1/account/Vulpes/cards/')
+    expect(vm.cards.endpoint).toBe('/api/sales/v1/account/Vulpes/cards/authorize/')
   })
   it('Switches tabs depending on whether cards are present', async() => {
     const vm = wrapper.vm as any
-    expect(vm.cards.endpoint).toBe('/api/sales/v1/account/Fox/cards/')
+    expect(vm.cards.endpoint).toBe('/api/sales/v1/account/Fox/cards/authorize/')
     wrapper.setProps({username: 'Vulpes'})
     await wrapper.vm.$nextTick()
-    expect(vm.cards.endpoint).toBe('/api/sales/v1/account/Vulpes/cards/')
+    expect(vm.cards.endpoint).toBe('/api/sales/v1/account/Vulpes/cards/authorize/')
     vm.cards.setList([genCard()])
     await wrapper.vm.$nextTick()
     expect(vm.tab).toBe('saved-cards')
@@ -72,7 +72,7 @@ describe('AcCardManager.vue', () => {
   })
   it('Saves the last valid card ID', async() => {
     const vm = wrapper.vm as any
-    expect(vm.cards.endpoint).toBe('/api/sales/v1/account/Fox/cards/')
+    expect(vm.cards.endpoint).toBe('/api/sales/v1/account/Fox/cards/authorize/')
     wrapper.setProps({value: 3})
     await wrapper.vm.$nextTick()
     expect(vm.lastCard).toBe(3)
@@ -88,5 +88,13 @@ describe('AcCardManager.vue', () => {
     await flushPromises()
     await wrapper.vm.$nextTick()
     expect(wrapper.find('.cvv-verify').exists()).toBe(true)
+  })
+  it('Generates a useful URL when no particular processor is selected', async() => {
+    const cardList = genList()
+    cardList[0].cvv_verified = false
+    wrapper.setProps({processor: undefined})
+    const vm = wrapper.vm as any
+    await vm.$nextTick()
+    expect(vm.url).toBe('/api/sales/v1/account/Fox/cards/')
   })
 })

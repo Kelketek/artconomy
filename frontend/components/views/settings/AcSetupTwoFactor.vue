@@ -85,7 +85,7 @@ export default class AcSetupTwoFactor extends mixins(Viewer, Subjective, Alerts)
       this.totpDevices.firstRun().catch(this.$errAlert())
       this.tgDevice = this.$getSingle('tgDevice', {endpoint: `${this.url}tg/`})
       this.tgDevice.get().catch(() => {
-        this.tgDevice.x = false
+        this.tgDevice.ready = true
       })
     }
 
@@ -100,7 +100,7 @@ export default class AcSetupTwoFactor extends mixins(Viewer, Subjective, Alerts)
     }
 
     private get noDevice() {
-      return this.tgDevice.x === false && this.totpDevices.ready && this.totpDevices.list.length === 0
+      return this.tgDevice.x === null && this.tgDevice.ready && this.totpDevices.ready && this.totpDevices.list.length === 0
     }
 }
 </script>

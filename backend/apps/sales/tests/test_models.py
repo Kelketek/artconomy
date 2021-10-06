@@ -8,7 +8,7 @@ from moneyed import Money
 from apps.lib.models import NEW_PRODUCT
 from apps.lib.test_resources import SignalsDisabledMixin
 from apps.lib.utils import FakeRequest
-from apps.profiles.models import NO_US_ACCOUNT, HAS_US_ACCOUNT
+from apps.profiles.models import NO_SUPPORTED_COUNTRY, IN_SUPPORTED_COUNTRY
 from apps.profiles.tests.factories import UserFactory, SubmissionFactory
 from apps.sales.models import TransactionRecord, BASE_PRICE, SHIELD, BONUS, TABLE_SERVICE, TAX, COMPLETED, QUEUED, NEW, \
     CANCELLED, Product
@@ -81,7 +81,7 @@ class TestProduct(TestCase):
     @unpack
     @data(*DESCRIPTION_VALUES)
     def test_preview_description(self, price: Decimal, prefix: str, escrow_disabled: bool):
-        account_status = NO_US_ACCOUNT if escrow_disabled else HAS_US_ACCOUNT
+        account_status = NO_SUPPORTED_COUNTRY if escrow_disabled else IN_SUPPORTED_COUNTRY
         product = ProductFactory.create(
             base_price=price, description='Test **Test** *Test*',
         )
@@ -159,9 +159,9 @@ class TestTransactionRecord(TestCase):
 class TestDeliverable(TestCase):
     def test_total(self):
         deliverable = DeliverableFactory.create(product__base_price=Money(5, 'USD'))
-        self.assertEqual(deliverable.total(), Money('5.00', 'USD'))
-        LineItemFactory.create(deliverable=deliverable, amount=Money('2.00', 'USD'))
-        self.assertEqual(deliverable.total(), Money('7.00', 'USD'))
+        self.assertEqual(deliverable.invoice.total(), Money('5.00', 'USD'))
+        LineItemFactory.create(invoice=deliverable.invoice, amount=Money('2.00', 'USD'))
+        self.assertEqual(deliverable.invoice.total(), Money('7.00', 'USD'))
 
     def deliverable_and_context(self):
         deliverable = DeliverableFactory.create()
@@ -266,48 +266,48 @@ class TestDeliverable(TestCase):
 
     def test_create_line_items_escrow(self):
         deliverable = DeliverableFactory.create(product__base_price=Money('15.00', 'USD'))
-        base_price = deliverable.line_items.get(type=BASE_PRICE)
+        base_price = deliverable.invoice.line_items.get(type=BASE_PRICE)
         self.assertEqual(base_price.amount, Money('15.00', 'USD'))
         self.assertEqual(base_price.percentage, 0)
         self.assertEqual(base_price.priority, 0)
-        shield = deliverable.line_items.get(type=SHIELD)
+        shield = deliverable.invoice.line_items.get(type=SHIELD)
         self.assertEqual(shield.percentage, Decimal('5'))
         self.assertEqual(shield.amount, Money('.25', 'USD'))
         self.assertTrue(shield.cascade_percentage)
         self.assertTrue(shield.cascade_amount)
-        bonus = deliverable.line_items.get(type=BONUS)
+        bonus = deliverable.invoice.line_items.get(type=BONUS)
         self.assertEqual(bonus.percentage, Decimal('4'))
         self.assertEqual(bonus.amount, Money('.10', 'USD'))
         self.assertTrue(bonus.cascade_percentage)
         self.assertTrue(bonus.cascade_amount)
         self.assertEqual(bonus.priority, shield.priority)
-        self.assertEqual(deliverable.line_items.all().count(), 3)
+        self.assertEqual(deliverable.invoice.line_items.all().count(), 3)
 
     def test_create_line_items_non_escrow(self):
         deliverable = DeliverableFactory.create(product__base_price=Money('15.00', 'USD'), escrow_disabled=True)
-        base_price = deliverable.line_items.get(type=BASE_PRICE)
+        base_price = deliverable.invoice.line_items.get(type=BASE_PRICE)
         self.assertEqual(base_price.amount, Money('15.00', 'USD'))
         self.assertEqual(base_price.percentage, 0)
         self.assertEqual(base_price.priority, 0)
-        self.assertEqual(deliverable.line_items.all().count(), 1)
+        self.assertEqual(deliverable.invoice.line_items.all().count(), 1)
 
     def test_create_line_items_table_service(self):
         deliverable = DeliverableFactory.create(product__base_price=Money('15.00', 'USD'), table_order=True)
-        base_price = deliverable.line_items.get(type=BASE_PRICE)
+        base_price = deliverable.invoice.line_items.get(type=BASE_PRICE)
         self.assertEqual(base_price.amount, Money('15.00', 'USD'))
         self.assertEqual(base_price.percentage, 0)
         self.assertEqual(base_price.priority, 0)
-        table_service = deliverable.line_items.get(type=TABLE_SERVICE)
+        table_service = deliverable.invoice.line_items.get(type=TABLE_SERVICE)
         self.assertEqual(table_service.percentage, Decimal('20'))
         self.assertEqual(table_service.amount, Money('2.00', 'USD'))
         self.assertTrue(table_service.cascade_percentage)
         self.assertFalse(table_service.cascade_amount)
         self.assertFalse(table_service.back_into_percentage)
-        set_on_fire = deliverable.line_items.get(type=TAX)
+        set_on_fire = deliverable.invoice.line_items.get(type=TAX)
         self.assertEqual(set_on_fire.percentage, Decimal('8'))
         self.assertEqual(set_on_fire.amount, Money('0.00', 'USD'))
         self.assertTrue(set_on_fire.back_into_percentage)
-        self.assertEqual(deliverable.line_items.all().count(), 3)
+        self.assertEqual(deliverable.invoice.line_items.all().count(), 3)
 
 
 class TestCreditCardToken(TestCase):

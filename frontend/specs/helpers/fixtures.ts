@@ -1,7 +1,7 @@
 import {rs} from './index'
 import {User} from '@/store/profiles/types/User'
 import {ArtistProfile} from '@/store/profiles/types/ArtistProfile'
-import {BankStatus} from '@/store/profiles/types/BankStatus'
+import {BANK_STATUSES} from '@/store/profiles/types/BANK_STATUSES'
 import {CreditCardToken} from '@/types/CreditCardToken'
 import Revision from '@/types/Revision'
 import Order from '@/types/Order'
@@ -11,6 +11,7 @@ import {genSubmission} from '@/store/submissions/specs/fixtures'
 import Deliverable from '@/types/Deliverable'
 import Reference from '@/types/Reference'
 import CommissionStats from '@/types/CommissionStats'
+import {PROCESSORS} from '@/types/PROCESSORS'
 
 export function genUser(overrides?: Partial<User>): User {
   return {
@@ -44,6 +45,7 @@ export function genUser(overrides?: Partial<User>): User {
     watches: 0,
     guest_email: '',
     birthday: '1988-08-01',
+    processor: PROCESSORS.AUTHORIZE,
     ...overrides,
   }
 }
@@ -69,7 +71,7 @@ export function genArtistProfile(overrides?: Partial<ArtistProfile>): ArtistProf
     artist_of_color: false,
     escrow_disabled: false,
     max_rating: 2,
-    bank_account_status: 0 as BankStatus.UNSET,
+    bank_account_status: 0 as BANK_STATUSES.UNSET,
     ...overrides,
   }
 }
@@ -87,6 +89,7 @@ export function genCard(base?: Partial<CreditCardToken>): CreditCardToken {
       cvv_verified: true,
       type: 2,
       primary: false,
+      processor: PROCESSORS.AUTHORIZE,
     },
     ...base,
   }
@@ -175,6 +178,7 @@ export function genDeliverable(overrides?: Partial<Deliverable>): Deliverable {
     revisions_hidden: false,
     final_uploaded: false,
     rating: 0,
+    processor: PROCESSORS.AUTHORIZE,
     read: true,
     arbitrator: null,
     order,

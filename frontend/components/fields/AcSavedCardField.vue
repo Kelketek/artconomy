@@ -3,7 +3,7 @@
     <template v-slot:default>
       <div class="flex card-group-container">
         <v-radio-group :hide-details="true" :value="value" @change="sendInput">
-          <ac-card v-for="card in cards.list" :card="card" :key="card.id" :card-list="cards" :value="value" :field-mode="true" />
+          <ac-card v-for="card in cards.list" :card="card" :key="card.id" :card-list="cards" :value="value" :field-mode="true" :processor="processor" />
         </v-radio-group>
       </div>
     </template>
@@ -34,6 +34,9 @@ export default class AcSavedCards extends Vue {
 
     @Prop({default: null})
     public value!: number
+
+    @Prop({default: ''})
+    public processor!: string
 
     public sendInput(value: number) {
       this.$emit('input', value)

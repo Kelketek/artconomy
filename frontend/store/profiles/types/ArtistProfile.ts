@@ -1,4 +1,4 @@
-import {BankStatus} from '@/store/profiles/types/BankStatus'
+import {BANK_STATUSES} from '@/store/profiles/types/BANK_STATUSES'
 import {Ratings} from '@/store/profiles/types/Ratings'
 
 export interface ArtistProfile {
@@ -12,5 +12,5 @@ export interface ArtistProfile {
   escrow_disabled: boolean,
   lgbt: boolean,
   artist_of_color: boolean,
-  bank_account_status: BankStatus,
+  bank_account_status: BANK_STATUSES,
 }

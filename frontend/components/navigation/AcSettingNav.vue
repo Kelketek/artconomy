@@ -65,7 +65,7 @@
 import Component, {mixins} from 'vue-class-component'
 import Viewer from '../../mixins/viewer'
 import Subjective from '../../mixins/subjective'
-import {BankStatus} from '@/store/profiles/types/BankStatus'
+import {BANK_STATUSES} from '@/store/profiles/types/BANK_STATUSES'
 import {User} from '@/store/profiles/types/User'
 import {Prop} from 'vue-property-decorator'
 import * as VListComponents from 'vuetify/es5/components/VList'
@@ -79,7 +79,7 @@ export default class AcSettingNav extends mixins(Viewer, Subjective) {
   @Prop({default: false})
   public nested!: boolean
 
-  public HAS_US_ACCOUNT = 1 as BankStatus
+  public HAS_US_ACCOUNT = 1 as BANK_STATUSES
 
   public get hasUSAccount() {
     const profile = this.subjectHandler.artistProfile

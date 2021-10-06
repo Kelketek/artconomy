@@ -1,6 +1,8 @@
 """artconomy URL Configuration
 """
 from django.urls import path
+from django.views.decorators.csrf import csrf_exempt
+
 from apps.sales import views
 
 app_name = 'sales'
@@ -17,7 +19,11 @@ urlpatterns = [
     path('v1/who-is-open/', views.WhoIsOpen.as_view(), name='who_is_open'),
     path('v1/pricing-info/', views.PremiumInfo.as_view(), name='pricing_info'),
     path('v1/premium/', views.Premium.as_view(), name='premium'),
+    path('v1/premium/intent/', views.PremiumPaymentIntent.as_view(), name='premium_intent'),
     path('v1/references/', views.References.as_view(), name='references'),
+    path('v1/stripe-webhooks/', csrf_exempt(views.StripeWebhooks.as_view()), name='stripe_webhooks', kwargs={'connect': False}),
+    path('v1/stripe-webhooks/connect/', csrf_exempt(views.StripeWebhooks.as_view()), name='stripe_webhooks_connect', kwargs={'connect': True}),
+    path('v1/stripe-countries/', views.StripeCountries.as_view(), name='stripe_countries'),
     # Pinterest requires the file name to have .csv on the end of it. We should see about doing a batch processing job
     # to dump completed files in a consistent place instead.
     path('v1/pinterest-catalog/', views.PinterestCatalog.as_view(), name='pinterest_catalog'),
@@ -59,6 +65,7 @@ urlpatterns = [
     path('v1/order/<int:order_id>/deliverables/<int:deliverable_id>/', views.DeliverableManager.as_view(), name='deliverable'),
     path('v1/order/<int:order_id>/deliverables/<int:deliverable_id>/rate/buyer/', views.RateBuyer.as_view(), name='deliverable_rate_buyer'),
     path('v1/order/<int:order_id>/deliverables/<int:deliverable_id>/rate/seller/', views.RateSeller.as_view(), name='deliverable_rate_seller'),
+    path('v1/order/<int:order_id>/deliverables/<int:deliverable_id>/payment-intent/', views.DeliverablePaymentIntent.as_view(), name='deliverable_payment_intent'),
     path('v1/order/<int:order_id>/deliverables/<int:deliverable_id>/invite/', views.DeliverableInvite.as_view(), name='order_invite'),
     path('v1/order/<int:order_id>/deliverables/', views.OrderDeliverables.as_view(), name='order_deliverables'),
     path('v1/order/<int:order_id>/', views.OrderManager.as_view(), name='order'),
@@ -104,9 +111,16 @@ urlpatterns = [
     path('v1/account/<username>/cases/archived/', views.ArchivedCasesList.as_view(), name='archived_cases'),
     path('v1/account/<username>/cases/cancelled/', views.CancelledCasesList.as_view(), name='cancelled_cases'),
     path('v1/account/<username>/cards/', views.CardList.as_view(), name='list_cards'),
+    path('v1/account/<username>/cards/stripe/', views.CardList.as_view(), name='list_cards', kwargs={'stripe': True}),
+    path('v1/account/<username>/cards/stripe/<int:card_id>/', views.CardManager.as_view(), name='card_manager'),
+    path('v1/account/<username>/cards/authorize/', views.CardList.as_view(), name='list_cards', kwargs={'authorize': True}),
+    path('v1/account/<username>/cards/authorize/<int:card_id>/', views.CardManager.as_view(), name='card_manager'),
+    path('v1/account/<username>/cards/setup-intent/', views.SetupIntent.as_view, name='setup_intent'),
     path('v1/account/<username>/cards/<int:card_id>/', views.CardManager.as_view(), name='card_manager'),
     path('v1/account/<username>/cards/<int:card_id>/primary/', views.MakePrimary.as_view(), name='card_primary'),
     path('v1/account/<username>/balance/', views.AccountBalance.as_view(), name='account_balance'),
+    path('v1/account/<username>/stripe-accounts/', views.StripeAccounts.as_view(), name='stripe_account_list'),
+    path('v1/account/<username>/stripe-accounts/link/', views.StripeAccountLink.as_view(), name='stripe_account_link'),
     path('v1/account/<username>/banks/', views.BankAccounts.as_view(), name='bank_list'),
     path('v1/account/<username>/banks/fee-check/', views.WillIncurBankFee.as_view(), name='bank_fee_check'),
     path('v1/account/<username>/banks/<int:account>/', views.BankManager.as_view(), name='bank_manager'),

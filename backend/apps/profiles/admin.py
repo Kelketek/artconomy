@@ -16,11 +16,13 @@ class ArtconomyUserAdmin(EmailUserAdmin):
         ('Premium Info', {'fields': (
             'landscape_enabled', 'landscape_paid_through', 'portrait_enabled', 'portrait_paid_through',
             'registration_code', 'trust_level',
-        )})
+        )}),
+        ('Preferences', {'fields': ('primary_card', 'processor_override')})
     )
     list_display = ('username', 'email', 'is_staff', 'is_superuser')
     list_filter = ['guest', 'artist_mode', 'trust_level']
     search_fields = ['username', 'email']
+    raw_id_fields = ['primary_card']
 
 
 class SubmissionAdmin(ModelAdmin):

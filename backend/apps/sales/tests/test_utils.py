@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError
+from django.db.models import Sum
 from django.test import TestCase
 from freezegun import freeze_time
 from moneyed import Money
@@ -484,26 +485,6 @@ class TestLineCalculations(TestCase):
         )
         self.assertEqual(result[0], sum(result[2].values()))
 
-#   it('Handles fixed-point calculation scenario 2 sanely', () => {
-    #     let source = [
-    #       genLineItem({amount: 20, priority: 0}),
-    #       genLineItem({amount: 10, priority: 100}),
-    #       genLineItem({amount: 5.0, percentage: 10.0, cascade_percentage: true, cascade_amount: false, priority: 300}),
-    #       genLineItem({amount: 0, percentage: 8.25, cascade_percentage: true, cascade_amount: true, priority: 600}),
-    #     ]
-    #     let result = getTotals(source)
-    #     expect(result).toEqual({
-    #       total: Big('35.00'),
-    #       discount: Big('0'),
-    #       map: new Map([
-    #         [genLineItem({amount: 20, priority: 0}), Big('16.52')],
-    #         [genLineItem({amount: 10, priority: 100}), Big('8.26')],
-    #         [genLineItem({amount: 5.0, percentage: 10.0, cascade_percentage: true, cascade_amount: false, priority: 300}), Big('7.33')],
-    #         [genLineItem({amount: 0.0, percentage: 8.25, cascade_percentage: true, cascade_amount: true, priority: 600}), Big('2.89')],
-    #       ]),
-    #     })
-    #   })
-
     def test_fixed_point_calculations_2(self):
         source = [
             LineItemSim(amount=Money('20', 'USD'), priority=0, id=1),
@@ -532,25 +513,7 @@ class TestLineCalculations(TestCase):
             )
         )
         self.assertEqual(result[0], sum(result[2].values()))
-#   it('Handles fixed-point calculation scenario 3 sanely', () => {
-    #     let source = [
-    #       genLineItem({amount: 20, priority: 0}),
-    #       genLineItem({amount: 5, priority: 100}),
-    #       genLineItem({amount: 5.0, percentage: 10.0, cascade_percentage: true, cascade_amount: false, priority: 300}),
-    #       genLineItem({amount: 0, percentage: 8.25, cascade_percentage: true, cascade_amount: true, priority: 600}),
-    #     ]
-    #     let result = getTotals(source)
-    #     expect(result).toEqual({
-    #       total: Big('30.00'),
-    #       discount: Big('0'),
-    #       map: new Map([
-    #         [genLineItem({amount: 20, priority: 0}), Big('16.52')],
-    #         [genLineItem({amount: 5, priority: 100}), Big('4.13')],
-    #         [genLineItem({amount: 5.0, percentage: 10.0, cascade_percentage: true, cascade_amount: false, priority: 300}), Big('6.88')],
-    #         [genLineItem({amount: 0.0, percentage: 8.25, cascade_percentage: true, cascade_amount: true, priority: 600}), Big('2.47')],
-    #       ]),
-    #     })
-    #   })
+
     def test_fixed_point_calculations_3(self):
         source = [
             LineItemSim(amount=Money('20', 'USD'), priority=0, id=1),
@@ -657,34 +620,39 @@ class TestLineCalculations(TestCase):
 
 class TransactionCheckMixin:
     def check_transactions(
-            self, deliverable, user, remote_id='36985214745', auth_code='ABC123', source=TransactionRecord.CARD
+            self, deliverable, user, remote_id='36985214745', auth_code='ABC123', source=TransactionRecord.CARD,
+            landscape=False,
     ):
-        escrow = TransactionRecord.objects.get(
+        escrow_transactions = TransactionRecord.objects.filter(
             remote_id=remote_id, auth_code=auth_code, source=source, destination=TransactionRecord.ESCROW,
         )
-        self.assertEqual(escrow.targets.get().target, deliverable)
+        if landscape:
+            bonus, escrow = escrow_transactions.order_by('amount')
+            self.assertEqual(bonus.status, TransactionRecord.SUCCESS)
+            self.assertEqual(bonus.amount, Money('.73', 'USD'))
+            self.assertEqual(bonus.payee, deliverable.order.seller)
+            self.assertEqual(bonus.payer, user)
+        else:
+            escrow = escrow_transactions.get()
+        self.assertEqual(escrow.targets.filter(content_type__model='deliverable').get().target, deliverable)
+        self.assertEqual(escrow.targets.filter(content_type__model='invoice').get().target, deliverable.invoice)
         self.assertEqual(escrow.amount, Money('10.29', 'USD'))
         self.assertEqual(escrow.payer, user)
         self.assertEqual(escrow.payee, deliverable.order.seller)
 
         fee = TransactionRecord.objects.get(
-            remote_id=remote_id, source=source, auth_code=auth_code, destination=TransactionRecord.RESERVE,
+            remote_id=remote_id, source=source, auth_code=auth_code, destination=TransactionRecord.UNPROCESSED_EARNINGS,
         )
         self.assertEqual(fee.status, TransactionRecord.SUCCESS)
-        self.assertEqual(fee.targets.get().target, deliverable)
-        self.assertEqual(fee.amount, Money('1.71', 'USD'))
+        self.assertEqual(fee.targets.filter(content_type__model='deliverable').get().target, deliverable)
+        self.assertEqual(fee.targets.filter(content_type__model='invoice').get().target, deliverable.invoice)
+        if landscape:
+            self.assertEqual(fee.amount, Money('0.98', 'USD'))
+        else:
+            self.assertEqual(fee.amount, Money('1.71', 'USD'))
         self.assertEqual(fee.payer, user)
         self.assertIsNone(fee.payee)
-
-        unprocessed = TransactionRecord.objects.get(
-            remote_id=remote_id, auth_code=auth_code, source=TransactionRecord.RESERVE,
-            destination=TransactionRecord.UNPROCESSED_EARNINGS,
-        )
-        self.assertEqual(unprocessed.status, TransactionRecord.SUCCESS)
-        self.assertEqual(unprocessed.targets.get().target, deliverable)
-        self.assertEqual(unprocessed.amount, Money('.98', 'USD'))
-        self.assertIsNone(unprocessed.payer)
-        self.assertIsNone(unprocessed.payee)
+        self.assertEqual(TransactionRecord.objects.all().aggregate(total=Sum('amount'))['total'], Decimal('12.00'))
 
 
 class TestDestroyDeliverable(TestCase):
@@ -720,10 +688,6 @@ class TestDestroyDeliverable(TestCase):
         }
         destroy_deliverable(deliverable)
         for name, target in to_preserve.items():
-            # try:
-            #     mock_clear.assert_called_with(target)
-            # except AssertionError:
-            #     raise AssertionError(f'{name} did not have incidental data cleared!')
             try:
                 target.refresh_from_db()
             except ObjectDoesNotExist:

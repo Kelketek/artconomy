@@ -1,5 +1,15 @@
 import {genDeliverable, genUser} from '@/specs/helpers/fixtures'
-import {cleanUp, confirmAction, createVuetify, docTarget, flushPromises, rs, setViewer, vueSetup, mount} from '@/specs/helpers'
+import {
+  cleanUp,
+  confirmAction,
+  createVuetify,
+  docTarget,
+  flushPromises,
+  mount,
+  rs,
+  setViewer,
+  vueSetup,
+} from '@/specs/helpers'
 import {Wrapper} from '@vue/test-utils'
 import DeliverablePayment from '@/components/views/order/deliverable/DeliverablePayment.vue'
 import {DeliverableStatus} from '@/types/DeliverableStatus'
@@ -16,6 +26,10 @@ import {deliverableRouter} from '@/components/views/order/specs/helpers'
 import {SingleController} from '@/store/singles/controller'
 import LineItem from '@/types/LineItem'
 import moment from 'moment/moment'
+import {ConnectionStatus} from '@/types/ConnectionStatus'
+import Empty from '@/specs/helpers/dummy_components/empty.vue'
+import {PROCESSORS} from '@/types/PROCESSORS'
+import {flush} from '@sentry/browser'
 
 const localVue = vueSetup()
 localVue.use(Router)
@@ -32,6 +46,15 @@ describe('DeliverablePayment.vue', () => {
     router = deliverableRouter()
     // This is a saturday.
     MockDate.set(moment('2020-08-01').toDate())
+    mount(Empty, {store, localVue}).vm.$getSingle('socketState', {
+      endpoint: '#',
+      persist: true,
+      x: {
+        status: ConnectionStatus.CONNECTING,
+        version: 'beep',
+        serverVersion: '',
+      },
+    })
   })
   afterEach(() => {
     cleanUp(wrapper)
@@ -79,6 +102,36 @@ describe('DeliverablePayment.vue', () => {
     await wrapper.vm.$nextTick()
     expect(vm.deliverable.x.status).toBe(DeliverableStatus.QUEUED)
   })
+  it('Handles deletion', async() => {
+    const fox = genUser()
+    fox.username = 'Fox'
+    setViewer(store, fox)
+    router.push('/orders/Fox/order/1/deliverables/5/payment')
+    wrapper = mount(
+      DeliverablePayment, {
+        localVue,
+        store,
+        router,
+        vuetify,
+        propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
+        attachTo: docTarget(),
+      })
+    const vm = wrapper.vm as any
+    const deliverable = genDeliverable({processor: PROCESSORS.STRIPE})
+    vm.deliverable.makeReady(deliverable)
+    vm.revisions.makeReady([])
+    vm.characters.makeReady([])
+    vm.order.makeReady(deliverable.order)
+    vm.lineItems.makeReady(dummyLineItems())
+    mockAxios.reset()
+    await vm.$nextTick()
+    vm.lineItems.ready = true
+    vm.lineItems.fetching = false
+    await vm.$nextTick()
+    vm.deliverable.markDeleted()
+    await vm.$nextTick()
+    expect(vm.stripeEnabled).toBe(false)
+  })
   it('Permits tipping', async() => {
     const fox = genUser()
     fox.username = 'Fox'
@@ -91,7 +144,6 @@ describe('DeliverablePayment.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-
         attachTo: docTarget(),
         stubs: ['ac-revision-manager'],
       })
@@ -133,7 +185,6 @@ describe('DeliverablePayment.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-
         attachTo: docTarget(),
         stubs: ['ac-revision-manager'],
       })
@@ -248,7 +299,6 @@ describe('DeliverablePayment.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-
         attachTo: docTarget(),
         stubs: ['ac-revision-manager'],
       })
@@ -380,7 +430,6 @@ describe('DeliverablePayment.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-
         attachTo: docTarget(),
         stubs: ['ac-revision-manager'],
       })
@@ -396,5 +445,160 @@ describe('DeliverablePayment.vue', () => {
     vm.deliverable.updateX({paid_on: moment('2020-06-01').toISOString()})
     await vm.$nextTick()
     expect(vm.deliveryDate.toDate()).toEqual(moment('2020-06-05').toDate())
+  })
+  it('Handles a Stripe Payment', async() => {
+    const fox = genUser()
+    fox.username = 'Fox'
+    setViewer(store, fox)
+    router.push('/orders/Fox/order/1/deliverables/5')
+    wrapper = mount(
+      DeliverablePayment, {
+        localVue,
+        store,
+        router,
+        vuetify,
+        propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
+        attachTo: docTarget(),
+        stubs: ['ac-revision-manager'],
+      })
+    const vm = wrapper.vm as any
+    const deliverable = genDeliverable({processor: PROCESSORS.STRIPE, status: DeliverableStatus.PAYMENT_PENDING})
+    vm.lineItems.makeReady(dummyLineItems())
+    vm.deliverable.makeReady(deliverable)
+    vm.revisions.makeReady([])
+    vm.characters.makeReady([])
+    vm.order.makeReady(deliverable.order)
+    vm.clientSecret.makeReady({secret: 'beep'})
+    await vm.$nextTick()
+    wrapper.find('.payment-button').trigger('click')
+    await vm.$nextTick()
+    expect(vm.showPayment).toBe(true)
+    vm.$refs.cardManager.stripe().paymentValue = {}
+    wrapper.find('.dialog-submit').trigger('click')
+    await vm.$nextTick()
+    expect(vm.showPayment).toBe(false)
+  })
+  it('Handles a Stripe Payment with an existing card', async() => {
+    const fox = genUser()
+    fox.username = 'Fox'
+    setViewer(store, fox)
+    router.push('/orders/Fox/order/1/deliverables/5')
+    wrapper = mount(
+      DeliverablePayment, {
+        localVue,
+        store,
+        router,
+        vuetify,
+        propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
+        attachTo: docTarget(),
+        stubs: ['ac-revision-manager'],
+      })
+    const vm = wrapper.vm as any
+    const deliverable = genDeliverable({processor: PROCESSORS.STRIPE, status: DeliverableStatus.PAYMENT_PENDING})
+    vm.lineItems.makeReady(dummyLineItems())
+    vm.deliverable.makeReady(deliverable)
+    vm.revisions.makeReady([])
+    vm.characters.makeReady([])
+    vm.order.makeReady(deliverable.order)
+    vm.clientSecret.makeReady({secret: 'beep'})
+    await vm.$nextTick()
+    wrapper.find('.payment-button').trigger('click')
+    await vm.$nextTick()
+    expect(vm.showPayment).toBe(true)
+    vm.$refs.cardManager.stripe().paymentValue = {}
+    vm.$refs.cardManager.tab = 'saved-cards'
+    vm.paymentForm.fields.card_id.update(15)
+    await vm.$nextTick()
+    wrapper.find('.dialog-submit').trigger('click')
+    await vm.$nextTick()
+    expect(vm.showPayment).toBe(false)
+  })
+  it('Handles a Stripe Payment Failure', async() => {
+    const fox = genUser()
+    fox.username = 'Fox'
+    setViewer(store, fox)
+    router.push('/orders/Fox/order/1/deliverables/5')
+    wrapper = mount(
+      DeliverablePayment, {
+        localVue,
+        store,
+        router,
+        vuetify,
+        propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
+        attachTo: docTarget(),
+        stubs: ['ac-revision-manager'],
+      })
+    const vm = wrapper.vm as any
+    const deliverable = genDeliverable({processor: PROCESSORS.STRIPE, status: DeliverableStatus.PAYMENT_PENDING})
+    vm.lineItems.makeReady(dummyLineItems())
+    vm.deliverable.makeReady(deliverable)
+    vm.revisions.makeReady([])
+    vm.characters.makeReady([])
+    vm.order.makeReady(deliverable.order)
+    vm.clientSecret.makeReady({secret: 'beep'})
+    await vm.$nextTick()
+    wrapper.find('.payment-button').trigger('click')
+    await vm.$nextTick()
+    expect(vm.showPayment).toBe(true)
+    vm.$refs.cardManager.stripe().paymentValue = {
+      error: {code: 'Failure', message: 'Shit broke.'},
+    }
+    wrapper.find('.dialog-submit').trigger('click')
+    await vm.$nextTick()
+    expect(vm.showPayment).toBe(true)
+    expect(vm.paymentForm.errors).toEqual(['Shit broke.'])
+    vm.$refs.cardManager.stripe().paymentValue = {
+      error: {code: 'Failure'},
+    }
+    wrapper.find('.dialog-submit').trigger('click')
+    expect(vm.showPayment).toBe(true)
+    await vm.$nextTick()
+    expect(vm.paymentForm.errors).toEqual(['An unknown error occurred while trying to reach Stripe. Please contact support.'])
+  })
+  const testTrippedForm = async(vm: any) => {
+    await vm.$nextTick()
+    const lastRequest = mockAxios.lastReqGet()
+    expect(lastRequest).toBeTruthy()
+    expect(vm.paymentForm.sending).toBe(true)
+    mockAxios.mockResponse(rs({secret: 'burp'}))
+    await flushPromises()
+    await vm.$nextTick()
+    expect(vm.paymentForm.sending).toBe(false)
+    await flushPromises()
+    mockAxios.reset()
+    await vm.$nextTick()
+  }
+  it('Refetches the secret when the card settings are toggled', async() => {
+    const fox = genUser()
+    fox.username = 'Fox'
+    setViewer(store, fox)
+    router.push('/orders/Fox/order/1/deliverables/5')
+    wrapper = mount(
+      DeliverablePayment, {
+        localVue,
+        store,
+        router,
+        vuetify,
+        propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
+        attachTo: docTarget(),
+        stubs: ['ac-revision-manager'],
+      })
+    const vm = wrapper.vm as any
+    const deliverable = genDeliverable({processor: PROCESSORS.STRIPE, status: DeliverableStatus.PAYMENT_PENDING})
+    vm.lineItems.makeReady(dummyLineItems())
+    vm.deliverable.makeReady(deliverable)
+    vm.revisions.makeReady([])
+    vm.characters.makeReady([])
+    vm.order.makeReady(deliverable.order)
+    vm.clientSecret.makeReady({secret: 'beep'})
+    await flushPromises()
+    mockAxios.reset()
+    await vm.$nextTick()
+    vm.paymentForm.fields.make_primary.update(!vm.paymentForm.fields.make_primary.value)
+    await testTrippedForm(vm)
+    vm.paymentForm.fields.save_card.update(!vm.paymentForm.fields.save_card.value)
+    await testTrippedForm(vm)
+    vm.paymentForm.fields.card_id.update(555)
+    await testTrippedForm(vm)
   })
 })

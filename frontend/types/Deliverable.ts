@@ -5,6 +5,7 @@ import Submission from '@/types/Submission'
 import {Ratings} from '@/store/profiles/types/Ratings'
 import FileSpec from '@/types/FileSpec'
 import Order from '@/types/Order'
+import {PROCESSORS} from '@/types/PROCESSORS'
 
 export default interface Deliverable {
   id: number,
@@ -36,6 +37,7 @@ export default interface Deliverable {
   table_order: boolean,
   final_uploaded: boolean,
   rating: Ratings,
+  processor: PROCESSORS,
   display: {file: FileSpec, preview: FileSpec|null}|null,
   order: Order,
   read: boolean,

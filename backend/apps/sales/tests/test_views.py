@@ -16,7 +16,7 @@ from apps.lib.abstract_models import ADULT
 from apps.lib.models import Comment, Subscription, COMMENT
 from apps.lib.test_resources import APITestCase, PermissionsTestCase, MethodAccessMixin
 from apps.lib.tests.factories import TagFactory, AssetFactory
-from apps.profiles.models import User, HAS_US_ACCOUNT, NO_US_ACCOUNT, UNSET
+from apps.profiles.models import User, IN_SUPPORTED_COUNTRY, NO_SUPPORTED_COUNTRY, UNSET
 from apps.profiles.tests.factories import UserFactory, SubmissionFactory
 from apps.sales.authorize import AuthorizeException, CardInfo, AddressInfo
 from apps.sales.models import (
@@ -237,6 +237,7 @@ class TestSamples(APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['submission']['id'], submission.id)
+
 
 class TestCardManagement(APITestCase):
     @freeze_time('2018-01-01 12:00:00')
@@ -552,6 +553,28 @@ class TestCardManagement(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         for card in cards:
             self.assertIDInList(card, response.data)
+
+    def test_card_listing_authorize(self):
+        user = UserFactory.create()
+        self.login(user)
+        authorize_cards = [CreditCardTokenFactory(user=user, token='boop', stripe_token='') for __ in range(3)]
+        _stripe_cards = [CreditCardTokenFactory(user=user, token='', stripe_token='boop') for __ in range(2)]
+        response = self.client.get('/api/sales/v1/account/{}/cards/authorize/'.format(user.username))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        for card in authorize_cards:
+            self.assertIDInList(card, response.data)
+        self.assertEqual(len(response.data), len(authorize_cards))
+
+    def test_card_listing_stripe(self):
+        user = UserFactory.create()
+        self.login(user)
+        _authorize_cards = [CreditCardTokenFactory(user=user, token='boop', stripe_token='') for __ in range(3)]
+        stripe_cards = [CreditCardTokenFactory(user=user, token='', stripe_token='boop') for __ in range(2)]
+        response = self.client.get('/api/sales/v1/account/{}/cards/stripe/'.format(user.username))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        for card in stripe_cards:
+            self.assertIDInList(card, response.data)
+        self.assertEqual(len(response.data), len(stripe_cards))
 
     def test_card_listing_not_logged_in(self):
         user = UserFactory.create()
@@ -1140,7 +1163,7 @@ class TestProductSearch(APITestCase):
 class TestPremium(APITestCase):
     @override_settings(PORTRAIT_PRICE=Decimal('2.00'))
     @freeze_time('2017-11-10 12:00:00')
-    @patch('apps.sales.views.charge_saved_card')
+    @patch('apps.sales.utils.charge_saved_card')
     def test_portrait(self, mock_charge_card):
         user = UserFactory.create()
         self.login(user)
@@ -1159,7 +1182,7 @@ class TestPremium(APITestCase):
 
     @freeze_time('2017-11-10 12:00:00')
     @override_settings(LANDSCAPE_PRICE=Decimal('6.00'))
-    @patch('apps.sales.views.charge_saved_card')
+    @patch('apps.sales.utils.charge_saved_card')
     def test_landscape(self, mock_charge_card):
         user = UserFactory.create()
         self.login(user)
@@ -1178,7 +1201,7 @@ class TestPremium(APITestCase):
 
     @freeze_time('2017-11-10 12:00:00')
     @override_settings(LANDSCAPE_PRICE=Decimal('6.00'), PORTRAIT_PRICE=Decimal('2.00'))
-    @patch('apps.sales.views.charge_saved_card')
+    @patch('apps.sales.utils.charge_saved_card')
     def test_upgrade(self, mock_charge_card):
         user = UserFactory.create()
         self.login(user)
@@ -1200,7 +1223,7 @@ class TestPremium(APITestCase):
 
     @freeze_time('2017-11-10 12:00:00')
     @override_settings(LANDSCAPE_PRICE=Decimal('6.00'), PORTRAIT_PRICE=Decimal('2.00'))
-    @patch('apps.sales.views.charge_saved_card')
+    @patch('apps.sales.utils.charge_saved_card')
     def test_upgrade_card_failure(self, mock_charge_card):
         user = UserFactory.create()
         self.login(user)
@@ -1222,7 +1245,7 @@ class TestPremium(APITestCase):
 
     @freeze_time('2017-11-10 12:00:00')
     @override_settings(PORTRAIT_PRICE=Decimal('2.00'))
-    @patch('apps.sales.views.charge_saved_card')
+    @patch('apps.sales.utils.charge_saved_card')
     def test_reenable_portrait(self, mock_charge_card):
         user = UserFactory.create()
         self.login(user)
@@ -1242,7 +1265,7 @@ class TestPremium(APITestCase):
 
     @freeze_time('2017-11-10 12:00:00')
     @override_settings(PORTRAIT_PRICE=Decimal('2.00'))
-    @patch('apps.sales.views.charge_saved_card')
+    @patch('apps.sales.utils.charge_saved_card')
     def test_enable_portrait_after_landscape(self, mock_charge_card):
         user = UserFactory.create()
         self.login(user)
@@ -1292,7 +1315,7 @@ class TestCreateInvoice(APITestCase):
         user = UserFactory.create()
         user2 = UserFactory.create()
         self.login(user)
-        user.artist_profile.bank_account_status = HAS_US_ACCOUNT
+        user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
         user.artist_profile.save()
         product = ProductFactory.create(
             user=user, base_price=Money('3.00', 'USD'), task_weight=5, expected_turnaround=2,
@@ -1327,13 +1350,13 @@ class TestCreateInvoice(APITestCase):
         self.assertEqual(response.data['product']['id'], product.id)
 
         deliverable = Deliverable.objects.get(id=response.data['id'])
-        item = deliverable.line_items.get(type=ADD_ON)
+        item = deliverable.invoice.line_items.get(type=ADD_ON)
         self.assertEqual(item.amount, Money('2.00', 'USD'))
         self.assertEqual(item.priority, 100)
         self.assertEqual(item.destination_user, order.seller)
         self.assertEqual(item.destination_account, TransactionRecord.ESCROW)
         self.assertEqual(item.percentage, 0)
-        item = deliverable.line_items.get(type=BASE_PRICE)
+        item = deliverable.invoice.line_items.get(type=BASE_PRICE)
         self.assertEqual(item.amount, Money('3.00', 'USD'))
         self.assertEqual(item.priority, 0)
         self.assertEqual(item.destination_user, order.seller)
@@ -1345,7 +1368,7 @@ class TestCreateInvoice(APITestCase):
         user = UserFactory.create()
         user2 = UserFactory.create()
         self.login(user)
-        user.artist_profile.bank_account_status = HAS_US_ACCOUNT
+        user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
         user.artist_profile.save()
         product = ProductFactory.create(
             user=user, base_price=Money('3.00', 'USD'), task_weight=5, expected_turnaround=2,
@@ -1381,13 +1404,13 @@ class TestCreateInvoice(APITestCase):
 
         deliverable = Deliverable.objects.get(id=response.data['id'])
         # Actual price will be $8-- $3 plus the $5 static fee. Setting the order price to $15 will make a $7 adjustment.
-        item = deliverable.line_items.get(type=ADD_ON)
+        item = deliverable.invoice.line_items.get(type=ADD_ON)
         self.assertEqual(item.amount, Money('7.00', 'USD'))
         self.assertEqual(item.priority, 100)
         self.assertEqual(item.destination_user, order.seller)
         self.assertEqual(item.destination_account, TransactionRecord.ESCROW)
         self.assertEqual(item.percentage, 0)
-        item = deliverable.line_items.get(type=BASE_PRICE)
+        item = deliverable.invoice.line_items.get(type=BASE_PRICE)
         self.assertEqual(item.amount, Money('3.00', 'USD'))
         self.assertEqual(item.priority, 0)
         self.assertEqual(item.destination_user, order.seller)
@@ -1398,7 +1421,7 @@ class TestCreateInvoice(APITestCase):
     def test_create_invoice_email(self):
         user = UserFactory.create()
         self.login(user)
-        user.artist_profile.bank_account_status = HAS_US_ACCOUNT
+        user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
         user.artist_profile.save()
         product = ProductFactory.create(
             user=user, base_price=Money('3.00', 'USD'), task_weight=5, expected_turnaround=2,
@@ -1433,7 +1456,7 @@ class TestCreateInvoice(APITestCase):
     def test_create_invoice_completed(self):
         user = UserFactory.create()
         self.login(user)
-        user.artist_profile.bank_account_status = HAS_US_ACCOUNT
+        user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
         user.artist_profile.save()
         product = ProductFactory.create(
             user=user, base_price=Money('3.00', 'USD'), task_weight=5, expected_turnaround=2,
@@ -1469,7 +1492,7 @@ class TestCreateInvoice(APITestCase):
     def test_create_invoice_no_product(self):
         user = UserFactory.create()
         self.login(user)
-        user.artist_profile.bank_account_status = HAS_US_ACCOUNT
+        user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
         user.artist_profile.save()
         response = self.client.post(f'/api/sales/v1/account/{user.username}/create-invoice/', {
             'completed': False,
@@ -1506,7 +1529,7 @@ class TestCreateInvoice(APITestCase):
         user = UserFactory.create(artist_mode=True)
         user2 = UserFactory.create()
         self.login(user)
-        user.artist_profile.bank_account_status = NO_US_ACCOUNT
+        user.artist_profile.bank_account_status = NO_SUPPORTED_COUNTRY
         user.artist_profile.save()
         product = ProductFactory.create(
             user=user, base_price=Money('3.00', 'USD'), task_weight=5, expected_turnaround=2,
@@ -1543,7 +1566,7 @@ class TestCreateInvoice(APITestCase):
         user = UserFactory.create()
         user2 = UserFactory.create()
         self.login(user)
-        user.artist_profile.bank_account_status = HAS_US_ACCOUNT
+        user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
         user.artist_profile.save()
         product = ProductFactory.create(
             user=user, base_price=Money('3.00', 'USD'), task_weight=5, expected_turnaround=2,
@@ -1582,7 +1605,7 @@ class TestCreateInvoice(APITestCase):
         user = UserFactory.create()
         user2 = UserFactory.create()
         self.login(user)
-        user.artist_profile.bank_account_status = HAS_US_ACCOUNT
+        user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
         user.artist_profile.save()
         product = ProductFactory.create(
             user=user, base_price=Money('3.00', 'USD'), task_weight=5, expected_turnaround=2,
@@ -1932,8 +1955,8 @@ class TestReferences(APITestCase):
 class TestCreateDeliverable(APITestCase):
     def test_create_deliverable(self):
         old_deliverable = DeliverableFactory.create(
-            order__seller__artist_profile__bank_account_status=HAS_US_ACCOUNT,
-            order__seller__landscape_paid_through=timezone.now() + relativedelta(days=5),
+            order__seller__artist_profile__bank_account_status=IN_SUPPORTED_COUNTRY,
+            order__seller__landscape_paid_through=(timezone.now() + relativedelta(days=5)).date(),
         )
         product = ProductFactory.create(
             expected_turnaround=2,
@@ -1970,13 +1993,13 @@ class TestCreateDeliverable(APITestCase):
         self.assertEqual(response.data['product']['id'], product.id)
 
         deliverable = Deliverable.objects.get(id=response.data['id'])
-        item = deliverable.line_items.get(type=ADD_ON)
+        item = deliverable.invoice.line_items.get(type=ADD_ON)
         self.assertEqual(item.amount, Money('2.00', 'USD'))
         self.assertEqual(item.priority, 100)
         self.assertEqual(item.destination_user, order.seller)
         self.assertEqual(item.destination_account, TransactionRecord.ESCROW)
         self.assertEqual(item.percentage, 0)
-        item = deliverable.line_items.get(type=BASE_PRICE)
+        item = deliverable.invoice.line_items.get(type=BASE_PRICE)
         self.assertEqual(item.amount, Money('3.00', 'USD'))
         self.assertEqual(item.priority, 0)
         self.assertEqual(item.destination_user, order.seller)
@@ -1990,7 +2013,7 @@ class TestCreateDeliverable(APITestCase):
             product__task_weight=5,
             product__revisions=1,
             product__base_price=Money('3.00', 'USD'),
-            product__user__artist_profile__bank_account_status=HAS_US_ACCOUNT,
+            product__user__artist_profile__bank_account_status=IN_SUPPORTED_COUNTRY,
             product__user__landscape_paid_through=timezone.now() - relativedelta(days=5),
         )
         self.login(old_deliverable.order.seller)
@@ -2014,7 +2037,7 @@ class TestCreateDeliverable(APITestCase):
             product__task_weight=5,
             product__revisions=1,
             product__base_price=Money('3.00', 'USD'),
-            product__user__artist_profile__bank_account_status=HAS_US_ACCOUNT,
+            product__user__artist_profile__bank_account_status=IN_SUPPORTED_COUNTRY,
             product__user__landscape_paid_through=timezone.now() + relativedelta(days=5),
         )
         self.login(old_deliverable.order.buyer)

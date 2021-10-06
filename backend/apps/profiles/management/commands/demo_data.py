@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 
 from apps.lib.abstract_models import MATURE
-from apps.profiles.models import HAS_US_ACCOUNT
+from apps.profiles.models import IN_SUPPORTED_COUNTRY
 from apps.profiles.tests.factories import UserFactory
 from django.conf import settings
 
@@ -17,7 +17,7 @@ class Command(BaseCommand):
             password='muffinmuffin', rating=MATURE,
             artist_mode=True, authorize_token='',
         )
-        fox.artist_profile.bank_account_status = HAS_US_ACCOUNT
+        fox.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
         fox.artist_profile.save()
         UserFactory.create(
             username='Vulpes', email='vulpes@vulpinity.com',

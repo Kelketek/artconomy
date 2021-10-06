@@ -12,7 +12,7 @@ from moneyed import Money
 
 from apps.lib.permissions import Any
 from apps.sales.models import LineItemSim
-from apps.sales.utils import get_totals, half_even_context
+from apps.sales.utils import get_totals
 
 
 def file_to_date(file_date: str) -> date:

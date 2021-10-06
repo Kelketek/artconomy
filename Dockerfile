@@ -13,7 +13,7 @@ RUN apt-get update --fix-missing
 RUN apt-get install --no-install-recommends python3-venv python3-pip python3.8 python3.8-dev build-essential npm curl git wget postgresql-client psmisc libpq-dev -y
 RUN apt-get upgrade -y
 RUN apt-get autoremove -y
-RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
 RUN apt-get install -y nodejs
 RUN /usr/bin/python3.8 -m pip install --upgrade pip
 RUN /usr/bin/python3.8 -m pip install --upgrade virtualenv

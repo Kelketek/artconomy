@@ -82,6 +82,7 @@ def tag_text(tag, level: int) -> str:  #pragma: no cover
 
 MockCustomerProfileResponse = namedtuple('MockCustomerProfileResponse', ('customerProfileId',))
 
+
 def has_transaction_error(response):
     return hasattr(response, 'transactionResponse') and hasattr(response.transactionResponse, 'errors')
 
@@ -298,6 +299,7 @@ CARD_TYPES = {
     'discover': r'6011\d{12}',
     'diners': r'(30[0-5]\d{11}|(36|38)\d{12})$'
 }
+
 
 def get_card_type(number):
     """

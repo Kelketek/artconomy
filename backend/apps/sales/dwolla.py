@@ -1,5 +1,4 @@
 from django.contrib.contenttypes.models import ContentType
-from django.db import transaction
 from dwollav2 import ValidationError as DwollaValidationError
 from rest_framework.exceptions import ValidationError
 
@@ -8,7 +7,7 @@ from apps.lib.utils import require_lock
 from apps.sales.apis import dwolla
 from ipware import get_client_ip
 
-from apps.sales.models import BankAccount, TransactionRecord, COMPLETED, Deliverable
+from apps.sales.models import BankAccount, TransactionRecord, COMPLETED, Deliverable, Invoice
 from apps.sales.utils import account_balance
 
 TRANSACTION_STATUS_MAP = {
@@ -100,7 +99,10 @@ def initiate_withdraw(user, bank, amount, test_only=True):
     deliverables = Deliverable.objects.select_for_update().filter(
         payout_sent=False, order__seller=user, status=COMPLETED, escrow_disabled=False,
     )
-    main_record.targets.add(*(ref_for_instance(deliverable) for deliverable in deliverables))
+    main_record.targets.add(
+        *(ref_for_instance(deliverable) for deliverable in deliverables),
+        *(ref_for_instance(deliverable.invoice) for deliverable in deliverables),
+    )
     return main_record, deliverables
 
 

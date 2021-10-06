@@ -1,6 +1,6 @@
 <!--suppress JSMethodCanBeStatic, JSUnusedLocalSymbols, HtmlUnknownTarget -->
 <template>
-  <v-row no-gutters  >
+  <v-row no-gutters v-if="device.x">
     <v-col v-if="device.x.confirmed">
       <v-col cols="12" sm="4" offset-sm="4">
         <v-card class="elevation-7">
@@ -220,8 +220,10 @@ export default class AcTotpDevice extends mixins(Subjective) {
   }
 
   private get url() {
-    const device = this.device.x as TOTPDevice
-    return `/api/profiles/v1/account/${this.username}/auth/two-factor/totp/${device.id}/`
+    if (!this.device.x) {
+      return '#'
+    }
+    return `/api/profiles/v1/account/${this.username}/auth/two-factor/totp/${this.device.x.id}/`
   }
 }
 </script>

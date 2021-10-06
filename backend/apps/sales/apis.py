@@ -63,3 +63,12 @@ class DwollaContext:
 
 
 dwolla = DwollaContext()
+
+
+AUTHORIZE = 'authorize'
+STRIPE = 'stripe'
+
+PROCESSOR_CHOICES = (
+    (AUTHORIZE, 'EVO Authorize.net'),
+    (STRIPE, 'Stripe'),
+)

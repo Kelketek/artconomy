@@ -768,10 +768,12 @@ def websocket_send(*, group: str, command: str, payload: Optional[dict] = None, 
     )
 
 
-def exclude_request(request: HttpRequest) -> List[str]:
+def exclude_request(request: Optional[HttpRequest]) -> List[str]:
     """
     Shorthand function for getting a websocket_send exclude list from a request.
     """
+    if request is None:
+        return []
     window_id = request.META.get('HTTP_X_WINDOW_ID', None)
     if window_id:
         return [window_id]

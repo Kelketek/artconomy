@@ -9,6 +9,7 @@ declare interface SocketManager {
   disconnectListeners: {[key: string]: Function},
   addListener: (command: string, name: string, func: (any)) => void,
   removeListener: (command: string, name: string) => void,
+  endpoint: string,
   send: (command: string, payload: any) => void,
   reset: () => void,
   open: () => void,
@@ -33,8 +34,9 @@ export const VueSocket = {
       messageListeners: {},
       connectListeners: {},
       disconnectListeners: {},
+      endpoint: options.endpoint,
       open() {
-        $sock.socket = new ReconnectingWebSocket(options.endpoint)
+        $sock.socket = new ReconnectingWebSocket($sock.endpoint)
         $sock.socket.onopen = (event: Event) => {
           for (const key of Object.keys($sock.connectListeners)) {
             $sock.connectListeners[key](event)
@@ -81,7 +83,7 @@ export const VueSocket = {
         }
       },
       send(command: string, payload: any) {
-        log.debug('Websocket send:', command, payload)
+        log.debug('Sending: ', command, payload)
         $sock.socket!.send(JSON.stringify({command, payload}))
       },
       reset() {

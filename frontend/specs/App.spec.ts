@@ -309,7 +309,6 @@ describe('App.vue', () => {
   })
   it('Shows a reconnecting banner if we have lost connection', async() => {
     jest.useRealTimers()
-    const server = new WS('ws://localhost/test/url')
     wrapper = mount(App, {
       store,
       localVue,
@@ -318,6 +317,7 @@ describe('App.vue', () => {
       stubs: ['router-link', 'router-view', 'nav-bar'],
       attachTo: docTarget(),
     })
+    const server = new WS(wrapper.vm.$sock.endpoint)
     await server.connected
     server.close()
     await server.closed
@@ -326,7 +326,6 @@ describe('App.vue', () => {
   })
   it('Resets the connection', async() => {
     jest.useRealTimers()
-    const server = new WS('ws://localhost/test/url', {jsonProtocol: true})
     wrapper = mount(App, {
       store,
       localVue,
@@ -336,6 +335,7 @@ describe('App.vue', () => {
       attachTo: docTarget(),
     })
     const vm = wrapper.vm
+    const server = new WS(wrapper.vm.$sock.endpoint, {jsonProtocol: true})
     // Need to make sure the cookie for the socket key is set, which can happen on next tick.
     await vm.$nextTick()
     const mockClose = jest.spyOn(vm.$sock.socket!, 'close')
@@ -350,7 +350,6 @@ describe('App.vue', () => {
   })
   it('Sets the viewer', async() => {
     jest.useRealTimers()
-    const server = new WS('ws://localhost/test/url', {jsonProtocol: true})
     wrapper = mount(App, {
       store,
       localVue,
@@ -359,6 +358,7 @@ describe('App.vue', () => {
       stubs: ['router-link', 'router-view', 'nav-bar'],
       attachTo: docTarget(),
     })
+    const server = new WS(wrapper.vm.$sock.endpoint, {jsonProtocol: true})
     await server.connected
     const person = genUser({username: 'Person'})
     server.send({command: 'viewer', payload: person})
@@ -368,7 +368,6 @@ describe('App.vue', () => {
   })
   it('Gets the current version', async() => {
     jest.useRealTimers()
-    const server = new WS('ws://localhost/test/url', {jsonProtocol: true})
     wrapper = mount(App, {
       store,
       localVue,
@@ -377,6 +376,7 @@ describe('App.vue', () => {
       stubs: ['router-link', 'router-view', 'nav-bar'],
       attachTo: docTarget(),
     })
+    const server = new WS(wrapper.vm.$sock.endpoint, {jsonProtocol: true})
     await server.connected
     await expect(server).toReceiveMessage({command: 'version', payload: {}})
     server.send({command: 'version', payload: {version: 'beep'}})

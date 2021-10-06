@@ -15,6 +15,7 @@ from apps.lib.models import DISPUTE, Subscription, COMMENT, REVISION_UPLOADED, r
 from apps.lib.test_resources import SignalsDisabledMixin, APITestCase
 from apps.profiles.models import User
 from apps.profiles.tests.factories import UserFactory, CharacterFactory, SubmissionFactory
+from apps.sales.apis import AUTHORIZE, STRIPE
 from apps.sales.authorize import AuthorizeException
 from apps.sales.models import Revision, idempotent_lines, QUEUED, NEW, PAYMENT_PENDING, COMPLETED, IN_PROGRESS, \
     TransactionRecord, REVIEW, DISPUTED, Order, Deliverable, WAITING
@@ -45,7 +46,8 @@ class TestDeliverableStateChange(SignalsDisabledMixin, APITestCase):
             self.deliverable = DeliverableFactory.create(
                 order__seller=self.seller, order__buyer=self.buyer, product__base_price=Money('5.00', 'USD'),
                 adjustment_task_weight=1, adjustment_expected_turnaround=2, product__task_weight=3,
-                product__expected_turnaround=4
+                product__expected_turnaround=4,
+                processor=AUTHORIZE,
             )
             self.deliverable.characters.add(*characters)
             self.final = RevisionFactory.create(deliverable=self.deliverable, rating=ADULT, owner=self.seller)
@@ -101,7 +103,7 @@ class TestDeliverableStateChange(SignalsDisabledMixin, APITestCase):
         self.state_assertion('staffer', 'accept/')
 
     def test_accept_deliverable_free(self, _mock_notify):
-        item = LineItemFactory.create(deliverable=self.deliverable, amount=-self.deliverable.product.base_price)
+        LineItemFactory.create(invoice=self.deliverable.invoice, amount=-self.deliverable.product.base_price)
         idempotent_lines(self.deliverable)
         self.state_assertion('seller', 'accept/')
         self.deliverable.refresh_from_db()
@@ -185,9 +187,8 @@ class TestDeliverableStateChange(SignalsDisabledMixin, APITestCase):
         self.state_assertion('staffer', 'mark-paid/', initial_status=PAYMENT_PENDING)
 
     @override_settings(SERVICE_PERCENTAGE_FEE=Decimal('10'), SERVICE_STATIC_FEE=Decimal('1.00'))
-    @patch('apps.sales.utils.get_bonus_amount')
     @patch('apps.sales.tasks.withdraw_all.delay')
-    def test_approve_deliverable_buyer(self, mock_withdraw, mock_bonus_amount, _mock_notify):
+    def test_approve_deliverable_buyer(self, mock_withdraw, _mock_notify):
         record = TransactionRecordFactory.create(
             payee=self.deliverable.order.seller,
             payer=self.deliverable.order.buyer,
@@ -196,31 +197,22 @@ class TestDeliverableStateChange(SignalsDisabledMixin, APITestCase):
             amount=Money('15.00', 'USD'),
         )
         record.targets.add(ref_for_instance(self.deliverable))
-        mock_bonus_amount.return_value = Money('5.00', 'USD')
         self.state_assertion('buyer', 'approve/', initial_status=REVIEW)
         record.refresh_from_db()
         records = TransactionRecord.objects.all()
-        self.assertEqual(records.count(), 3)
+        self.assertEqual(records.count(), 2)
         payment = records.get(payee=self.deliverable.order.seller, source=TransactionRecord.ESCROW)
         self.assertEqual(payment.amount, Money('15.00', 'USD'))
         self.assertEqual(payment.payer, self.deliverable.order.seller)
         self.assertEqual(payment.status, TransactionRecord.SUCCESS)
         self.assertEqual(payment.destination, TransactionRecord.HOLDINGS)
-        bonus = records.get(
-            payee__isnull=True, payer__isnull=True, source=TransactionRecord.RESERVE,
-            destination=TransactionRecord.UNPROCESSED_EARNINGS,
-        )
-        self.assertEqual(bonus.amount, Money('5.00', 'USD'))
-        self.assertEqual(bonus.category, TransactionRecord.SHIELD_FEE)
         mock_withdraw.assert_called_with(self.deliverable.order.seller.id)
 
-    @patch('apps.sales.utils.get_bonus_amount')
     @patch('apps.sales.utils.recall_notification')
-    def test_approve_deliverable_recall_notification(self, mock_recall, mock_bonus_amount, _mock_notify):
+    def test_approve_deliverable_recall_notification(self, mock_recall, _mock_notify):
         target_time = timezone.now()
         self.deliverable.disputed_on = target_time
         self.deliverable.save()
-        mock_bonus_amount.return_value = Money('2.50', 'USD')
         record = TransactionRecordFactory.create(
             payee=self.deliverable.order.seller,
             payer=self.deliverable.order.buyer,
@@ -235,9 +227,8 @@ class TestDeliverableStateChange(SignalsDisabledMixin, APITestCase):
         self.deliverable.refresh_from_db()
         self.assertEqual(self.deliverable.disputed_on, None)
 
-    @patch('apps.sales.utils.get_bonus_amount')
     @patch('apps.sales.utils.recall_notification')
-    def test_approve_deliverable_staffer_no_recall_notification(self, mock_recall, mock_bonus_amount, _mock_notify):
+    def test_approve_deliverable_staffer_no_recall_notification(self, mock_recall, _mock_notify):
         record = TransactionRecordFactory.create(
             payee=self.deliverable.order.seller,
             payer=self.deliverable.order.buyer,
@@ -247,7 +238,6 @@ class TestDeliverableStateChange(SignalsDisabledMixin, APITestCase):
             amount=Money('15.00', 'USD'),
         )
         record.targets.add(ref_for_instance(self.deliverable))
-        mock_bonus_amount.return_value = Money('2.50', 'USD')
         target_time = timezone.now()
         self.deliverable.disputed_on = target_time
         self.deliverable.save()
@@ -317,12 +307,11 @@ class TestDeliverableStateChange(SignalsDisabledMixin, APITestCase):
         self.state_assertion('seller', 'refund/', initial_status=DISPUTED)
         mock_refund_transaction.assert_not_called()
 
-    @patch('apps.sales.utils.get_bonus_amount')
     @patch('apps.sales.utils.refund_transaction')
     @override_settings(
         PREMIUM_PERCENTAGE_FEE=Decimal('5'), PREMIUM_STATIC_FEE=Decimal('0.10')
     )
-    def test_refund_card_seller(self, mock_refund_transaction, mock_bonus_amount, _mock_notify):
+    def test_refund_card_seller(self, mock_refund_transaction, _mock_notify):
         card = CreditCardTokenFactory.create()
         record = TransactionRecordFactory.create(
             card=card,
@@ -335,7 +324,6 @@ class TestDeliverableStateChange(SignalsDisabledMixin, APITestCase):
         )
         record.targets.add(ref_for_instance(self.deliverable))
         mock_refund_transaction.return_value = ('123', 'ABC456')
-        mock_bonus_amount.return_value = Money('2.50', 'USD')
         self.state_assertion('seller', 'refund/', initial_status=DISPUTED)
         refund_transaction = TransactionRecord.objects.get(
             status=TransactionRecord.SUCCESS,
@@ -346,11 +334,6 @@ class TestDeliverableStateChange(SignalsDisabledMixin, APITestCase):
         self.assertEqual(refund_transaction.amount, Money('15.00', 'USD'))
         self.assertEqual(refund_transaction.category, TransactionRecord.ESCROW_REFUND)
         self.assertEqual(refund_transaction.remote_id, '123')
-        TransactionRecord.objects.get(
-            payer=None, payee=None, source=TransactionRecord.RESERVE,
-            destination=TransactionRecord.UNPROCESSED_EARNINGS,
-            amount=Money('2.50', 'USD')
-        )
 
     @patch('apps.sales.utils.refund_transaction')
     def test_refund_card_seller_error(self, mock_refund_transaction, _mock_notify):
@@ -403,9 +386,8 @@ class TestDeliverableStateChange(SignalsDisabledMixin, APITestCase):
     def test_refund_card_outsider(self, _mock_notify):
         self.state_assertion('outsider', 'refund/', status.HTTP_403_FORBIDDEN, initial_status=DISPUTED)
 
-    @patch('apps.sales.utils.get_bonus_amount')
     @patch('apps.sales.utils.refund_transaction')
-    def test_refund_card_staffer(self, mock_refund_transaction, mock_bonus_amount, _mock_notify):
+    def test_refund_card_staffer_authorize(self, mock_refund_transaction, _mock_notify):
         card = CreditCardTokenFactory.create()
         record = TransactionRecordFactory.create(
             payee=self.deliverable.order.seller,
@@ -414,15 +396,23 @@ class TestDeliverableStateChange(SignalsDisabledMixin, APITestCase):
         )
         record.targets.add(ref_for_instance(self.deliverable))
         mock_refund_transaction.return_value = ('123', '87HSIF')
-        mock_bonus_amount.return_value = Money('2.50')
         self.state_assertion('staffer', 'refund/', initial_status=DISPUTED)
         record.refresh_from_db()
-        TransactionRecord.objects.get(
-            payer=None, payee=None, source=TransactionRecord.RESERVE,
-            destination=TransactionRecord.UNPROCESSED_EARNINGS,
-            amount=Money('2.50')
-        )
 
+    @patch('apps.sales.utils.refund_payment_intent')
+    def test_refund_card_staffer_stripe(self, mock_refund_transaction, _mock_notify):
+        card = CreditCardTokenFactory.create()
+        self.deliverable.processor = STRIPE
+        self.deliverable.save()
+        record = TransactionRecordFactory.create(
+            payee=self.deliverable.order.seller,
+            payer=self.deliverable.order.buyer,
+            card=card,
+        )
+        record.targets.add(ref_for_instance(self.deliverable))
+        mock_refund_transaction.return_value = {'id': '123456'}
+        self.state_assertion('staffer', 'refund/', initial_status=DISPUTED)
+        record.refresh_from_db()
 
     def test_approve_deliverable_seller_fail(self, _mock_notify):
         self.state_assertion('seller', 'approve/', status.HTTP_403_FORBIDDEN, initial_status=REVIEW)
@@ -433,15 +423,13 @@ class TestDeliverableStateChange(SignalsDisabledMixin, APITestCase):
     def test_approve_deliverable_seller(self, _mock_notify):
         self.state_assertion('seller', 'approve/', status.HTTP_403_FORBIDDEN, initial_status=REVIEW)
 
-    @patch('apps.sales.utils.get_bonus_amount')
-    def test_approve_deliverable_staffer(self, mock_bonus_amount, _mock_notify):
+    def test_approve_deliverable_staffer(self, _mock_notify):
         record = TransactionRecordFactory.create(
             payee=self.deliverable.order.seller,
             payer=self.deliverable.order.buyer,
             amount=Money('15.00', 'USD'),
         )
         record.targets.add(ref_for_instance(self.deliverable))
-        mock_bonus_amount.return_value = Money('2.50', 'USD')
         self.state_assertion('staffer', 'approve/', initial_status=REVIEW)
         record.refresh_from_db()
 
