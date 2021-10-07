@@ -7,7 +7,7 @@ import debounce from 'lodash/debounce'
 import {Watch} from 'vue-property-decorator'
 import Component, {mixins} from 'vue-class-component'
 import Viewer from '@/mixins/viewer'
-import { Ratings } from '@/store/profiles/types/Ratings'
+import {Ratings} from '@/store/profiles/types/Ratings'
 
 @Component
 export default class SearchField extends mixins(Viewer) {

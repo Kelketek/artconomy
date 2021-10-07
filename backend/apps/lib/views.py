@@ -356,6 +356,8 @@ class AssetUpload(APIView):
         file_obj = request.data.get('files[]')
         if not file_obj:
             raise ValidationError({'files[]': ['This field is required.']})
+        if '.' not in file_obj.name:
+            raise ValidationError({'files[]:': ['This file is missing an extension.']})
         if request.user.is_authenticated:
             user = request.user
         else:
