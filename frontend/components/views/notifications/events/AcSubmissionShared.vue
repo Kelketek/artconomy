@@ -24,8 +24,8 @@ export default {
   },
   computed: {
     assetLink() {
-      if (this.event.data.asset) {
-        return {name: 'Submission', params: {assetID: this.event.data.asset.id}}
+      if (this.event.data.submission) {
+        return {name: 'Submission', params: {assetID: this.event.data.submission.id}}
       } else {
         return {}
       }

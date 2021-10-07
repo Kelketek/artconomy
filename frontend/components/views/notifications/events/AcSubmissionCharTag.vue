@@ -11,7 +11,7 @@
     <v-badge left v-else overlap>
       <span slot="badge" v-if="!notification.read">*</span>
       <v-list-item-avatar>
-        <img :src="$img(event.target.primary_asset, 'notification', true)" alt="">
+        <img :src="$img(event.target.primary_submission, 'notification', true)" alt="">
       </v-list-item-avatar>
     </v-badge>
     <v-list-item-content>
@@ -27,7 +27,7 @@
       <router-link
           :to="{name: 'Character', params: {character: event.data.character.name, username: event.data.character.user.username}}">
         <v-avatar>
-          <img :src="$img(event.data.character.primary_asset, 'notification', true)" alt="">
+          <img :src="$img(event.data.character.primary_submission, 'notification', true)" alt="">
         </v-avatar>
       </router-link>
     </v-list-item-action>
