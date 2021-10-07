@@ -43,11 +43,13 @@ function registerItems(store: Store<any>, state: ListState<any>, items: any[]) {
 }
 
 export const pageFromParams = (params: null|QueryParams) => {
+  /* istanbul ignore next */
   const rawData = params || {page: 1}
   return parseInt(`${rawData.page}`, 10)
 }
 
 export const pageSizeFromParams = (params: null|QueryParams) => {
+  /* istanbul ignore next */
   const rawData = params || {size: 24}
   return parseInt(`${rawData.size}`, 10)
 }
@@ -187,6 +189,7 @@ export class ListModule<T extends {}> {
         Vue.set(state, 'refs', entries)
       },
       setCurrentPage(state, val: number) {
+        /* istanbul ignore next */
         const params = state.params || {}
         params.page = val
         state.params = params

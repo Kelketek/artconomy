@@ -73,6 +73,12 @@ describe('List controller', () => {
     const controller = makeController({params: {size: 5}})
     expect(controller.pageSize).toBe(5)
   })
+  it('Retrieves the page number', () => {
+    const controller = makeController({params: {page: 5}})
+    expect(controller.currentPage).toBe(5)
+    controller.params = {}
+    expect(controller.currentPage).toBe(1)
+  })
   it('Proclaims the total pagecount as 1 when response is null', () => {
     const controller = makeController()
     expect(controller.totalPages).toBe(1)

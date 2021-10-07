@@ -1,4 +1,3 @@
-import Vue from 'vue'
 import {RawData} from '@/store/forms/types/RawData'
 import deepEqual from 'fast-deep-equal'
 import {makeQueryParams} from '@/lib/lib'
@@ -41,6 +40,7 @@ export default class SearchField extends mixins(Viewer) {
 
   @Watch('list.params.page')
   public updatePage(newValue: number|undefined) {
+    /* istanbul ignore next */
     if (newValue === undefined || this.searchForm === null) {
       return
     }
@@ -49,6 +49,7 @@ export default class SearchField extends mixins(Viewer) {
 
   @Watch('list.params.size')
   public updateSize(newValue: number|undefined) {
+    /* istanbul ignore next */
     if (newValue === undefined || this.searchForm === null) {
       return
     }
@@ -65,6 +66,7 @@ export default class SearchField extends mixins(Viewer) {
 
   public rawUpdate(newData: RawData) {
     const newParams = makeQueryParams(newData)
+    /* istanbul ignore next */
     const oldParams = makeQueryParams(this.list.params || {})
     /* istanbul ignore if */
     if (deepEqual(newParams, oldParams)) {
@@ -73,7 +75,7 @@ export default class SearchField extends mixins(Viewer) {
     // I'm not entirely sure how, but this seems to create a situation, sometimes, where we no longer have the list.
     // It might be that I'm reacting to something that destroys this component based on this change.
     this.list.params = newParams
-    /* istanbul ignore if */
+    /* istanbul ignore next */
     if (!oldParams && (this.list.ready || this.list.fetching)) {
       // Already in the process of pulling for the first time. Bail.
       return

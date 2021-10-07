@@ -4,7 +4,7 @@ import {genUser} from '@/specs/helpers/fixtures'
 import {ArtStore, createStore} from '@/store'
 import Vue, {VueConstructor} from 'vue'
 import Vuex from 'vuex'
-import {genAnon, rs, setViewer, mount} from '@/specs/helpers'
+import {genAnon, setViewer} from '@/specs/helpers'
 import {Ratings} from '@/store/profiles/types/Ratings'
 import ViewerComponent from '@/specs/helpers/dummy_components/viewer.vue'
 import {profileRegistry, Profiles} from '@/store/profiles/registry'
@@ -50,6 +50,16 @@ describe('Viewer.ts', () => {
     setViewer(store, genAnon())
     wrapper = shallowMount(ViewerComponent, {localVue, store})
     expect((wrapper.vm as any).rating).toBe(Ratings.GENERAL)
+  })
+  it('Considers adult content "off" if sfw mode is on', async() => {
+    setViewer(store, genUser({rating: Ratings.ADULT, sfw_mode: true}))
+    wrapper = shallowMount(ViewerComponent, {localVue, store})
+    expect((wrapper.vm as any).adultAllowed).toBe(false)
+  })
+  it('Considers adult content "on" if sfw mode is off and rating is high enough', async() => {
+    setViewer(store, genUser({rating: Ratings.ADULT, sfw_mode: false}))
+    wrapper = shallowMount(ViewerComponent, {localVue, store})
+    expect((wrapper.vm as any).adultAllowed).toBe(true)
   })
   it('Reports the user as not logged if no viewer is set', async() => {
     wrapper = shallowMount(ViewerComponent, {localVue, store})

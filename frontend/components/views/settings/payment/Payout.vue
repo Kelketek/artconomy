@@ -137,6 +137,7 @@ export default class Payout extends mixins(Subjective) {
     public get inSupportedCountry() {
       // Should be synced this way.
       const profile = this.subjectHandler.artistProfile
+      /* istanbul ignore next */
       return profile.x && (profile.patchers.bank_account_status.model === this.IN_SUPPORTED_COUNTRY)
     }
 

@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import Vuetify from 'vuetify/lib'
 import Router from 'vue-router'
-import {cleanUp, createVuetify, docTarget, genAnon, setViewer, vueSetup, mount} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, genAnon, mount, setViewer, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import {Wrapper} from '@vue/test-utils'
 import Search from '@/components/views/search/Search.vue'
@@ -155,5 +155,26 @@ describe('Search.vue', () => {
     vm.contentRatings = ['1', '3', '0']
     expect(vm.contentRatings).toEqual(['0', '1', '3'])
     expect(searchForm.fields.content_ratings.value).toBe('0,1,3')
+  })
+  it('Determines the derived rating', async() => {
+    wrapper = mount(SearchProducts, {localVue, store, vuetify, router, attachTo: docTarget()})
+    const vm = wrapper.vm as any
+    expect(vm.derivedRating).toBe(undefined)
+    vm.viewerHandler.user.makeReady(genUser({rating: Ratings.GENERAL}))
+    await vm.$nextTick()
+    expect(vm.derivedRating).toBe(Ratings.GENERAL)
+    vm.viewerHandler.user.updateX({rating: Ratings.ADULT})
+    await vm.$nextTick()
+    expect(vm.derivedRating).toBe(Ratings.ADULT)
+    vm.viewerHandler.user.updateX({sfw_mode: true})
+    await vm.$nextTick()
+    expect(vm.derivedRating).toBe(Ratings.GENERAL)
+  })
+  it('Synchronizes the value of the form page value and the list page value', async() => {
+    wrapper = mount(SearchProducts, {localVue, store, vuetify, router, attachTo: docTarget()})
+    const vm = wrapper.vm as any
+    vm.list.currentPage = 3
+    await vm.$nextTick()
+    expect(vm.searchForm.fields.page.value).toEqual(3)
   })
 })

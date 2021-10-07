@@ -16,13 +16,6 @@ export default class SearchContentRatingMixin extends mixins(Viewer) {
     )
   }
 
-  public get settingsPage() {
-    if (this.isRegistered) {
-      return {name: 'Options', params: {username: this.viewer!.username}}
-    }
-    return {name: 'SessionSettings'}
-  }
-
   public get maxSelected() {
     if (!this.contentRatings.length) {
       return 0

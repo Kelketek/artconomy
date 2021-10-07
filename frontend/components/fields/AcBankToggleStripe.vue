@@ -99,22 +99,15 @@ export default class AcBankToggleStripe extends mixins(Subjective) {
     public IN_SUPPORTED_COUNTRY = 1 as BANK_STATUSES.IN_SUPPORTED_COUNTRY
     public NO_SUPPORTED_COUNTRY = 2 as BANK_STATUSES.NO_SUPPORTED_COUNTRY
 
-    public input(val: BANK_STATUSES) {
-      this.$emit('input', val)
-    }
-
-    public get bankUrl() {
-      return `/api/sales/v1/account/${this.username}/banks/`
-    }
-
     public get hasActiveStripe() {
-      return this.stripeAccounts.list.filter((controller) => controller.x!.active).length
+      return !!this.stripeAccounts.list.filter((controller) => controller.x!.active).length
     }
 
     public get needStripe() {
       return this.stripeAccounts.ready && this.stripeAccounts.list.length === 0
     }
 
+    /* istanbul ignore next */
     public redirect({link}: {link: string}) {
       window.location.href = link
     }
