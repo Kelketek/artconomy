@@ -34,56 +34,7 @@ class memoized_property(property):
     pass
 
 
-class FixtureMixin(object):
-    """
-    Loads a file in tests that need fixtures.
-    """
-    def load_fixture(self, filename):
-        directory = os.path.dirname(os.path.realpath(inspect.getfile(self.__class__)))
-        filename = os.path.join(directory, 'fixtures', filename)
-        with open(filename, 'r') as f:
-            return f.read()
-
-    def load_json_fixture(self, filename):
-        """
-        Loads a fixture as JSON
-        """
-        filename += '.json'
-        return json.loads(self.load_fixture(filename))
-
-
-def fixture_path(cls, name):
-    return str(Path(inspect.getfile(cls)).parent / 'fixtures' / (name + '.json'))
-
-
-class Fixtured(type):
-    fixture_list = []
-
-    @property
-    def fixtures(cls):
-        if not os.environ.get('REBUILD_FIXTURES', False):
-            return [fixture_path(cls, name) for name in cls.fixture_list]
-        return []
-
-
-class FixtureBase(metaclass=Fixtured):
-    fixtures_built = False
-
-    @classmethod
-    def save_fixture(cls, name):
-        create_fixture(fixture_path(cls, name))
-        cls.fixtures_built = True
-
-    @property
-    def rebuild_fixtures(self):
-        return os.environ.get('REBUILD_FIXTURES', False) or self.fixtures_built
-
-    def load_fixture(self, name):
-        for db_name in self._databases_names(include_mirrors=False):
-            call_command('loaddata', fixture_path(self.__class__, name), **{'verbosity': 0, 'database': db_name})
-
-
-class APITestCase(BaseAPITestCase, FixtureBase):
+class APITestCase(BaseAPITestCase):
     def login(self, user):
         result = self.client.login(email=user.email, password='Test')
         self.assertIs(result, True)
@@ -235,8 +186,6 @@ class NPMBuildTestRunner(DiscoverRunner):
         if not self.e2e:
             self.exclude_tags.add('e2e')
         self.max_time = kwargs.pop('max_time')
-        if kwargs.pop('rebuild_fixtures'):
-            os.environ['REBUILD_FIXTURES'] = '1'
         self.time_reports = Queue()
         self.class_time_reports = Queue()
         self.time_reports.cancel_join_thread()
@@ -351,12 +300,6 @@ class NPMBuildTestRunner(DiscoverRunner):
             help='Tests that take longer than this many seconds are marked red. Default: 3.5',
             default=3.5,
         )
-        parser.add_argument(
-            '--rebuild-fixtures', action='store_true', dest='rebuild_fixtures',
-        )
-        parser.add_argument(
-            '--no-coverage', action='store_true', dest='rebuild_fixtures',
-        )
 
 
 class DisableCSRF:
@@ -366,14 +309,6 @@ class DisableCSRF:
     def __call__(self, request):
         setattr(request, '_dont_enforce_csrf_checks', True)
         return self.get_response(request)
-
-
-def create_fixture(filename):
-    buf = StringIO()
-    management.call_command('dumpdata', stdout=buf)
-    buf.seek(0)
-    with open(filename, 'w') as f:
-        f.write(buf.read())
 
 
 class SimpleAuthRequestFactory(APIRequestFactory):

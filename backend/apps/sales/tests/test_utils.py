@@ -11,7 +11,7 @@ from freezegun import freeze_time
 from moneyed import Money
 
 from apps.lib.models import Notification, ORDER_UPDATE, Subscription, COMMISSIONS_OPEN
-from apps.lib.test_resources import SignalsDisabledMixin, FixtureBase
+from apps.lib.test_resources import SignalsDisabledMixin
 from apps.profiles.models import User
 from apps.profiles.tests.factories import UserFactory
 from apps.sales.models import TransactionRecord, LineItemSim, CANCELLED, IN_PROGRESS
@@ -22,59 +22,54 @@ from apps.sales.utils import claim_order_by_token, \
     get_totals, reckon_lines, destroy_deliverable
 
 
-class BalanceTestCase(SignalsDisabledMixin, FixtureBase, TestCase):
+class BalanceTestCase(SignalsDisabledMixin, TestCase):
     def setUp(self):
-        if self.rebuild_fixtures:
-            user1 = UserFactory.create(username='Fox')
-            user2 = UserFactory.create(username='Cat')
-            transaction = TransactionRecordFactory.create(
-                card=None,
-                payer=user1,
-                payee=user2,
-                source=TransactionRecord.CARD,
-                destination=TransactionRecord.ESCROW,
-                amount=Money('10.00', 'USD')
-            )
-            user1, user2 = transaction.payer, transaction.payee
-            TransactionRecordFactory.create(
-                card=None,
-                payer=user1,
-                payee=user2,
-                amount=Money('5.00', 'USD'),
-                source=TransactionRecord.RESERVE,
-                destination=TransactionRecord.ESCROW,
-            )
-            TransactionRecordFactory.create(
-                card=None,
-                payer=user2,
-                payee=user1,
-                source=TransactionRecord.ESCROW,
-                destination=TransactionRecord.ACH_MISC_FEES,
-                amount=Money('3.00', 'USD'),
-                status=TransactionRecord.PENDING,
-            )
-            TransactionRecordFactory.create(
-                card=None,
-                payer=user2,
-                payee=user1,
-                source=TransactionRecord.ESCROW,
-                destination=TransactionRecord.ACH_MISC_FEES,
-                amount=Money('3.00', 'USD'),
-                status=TransactionRecord.FAILURE,
-            )
-            TransactionRecordFactory.create(
-                card=None,
-                payer=user2,
-                payee=None,
-                source=TransactionRecord.ESCROW,
-                destination=TransactionRecord.ACH_MISC_FEES,
-                amount=Money('0.50', 'USD'),
-                status=TransactionRecord.SUCCESS,
-            )
-            self.save_fixture('balance-tests')
-        else:
-            self.load_fixture('balance-tests')
-
+        user1 = UserFactory.create(username='Fox')
+        user2 = UserFactory.create(username='Cat')
+        transaction = TransactionRecordFactory.create(
+            card=None,
+            payer=user1,
+            payee=user2,
+            source=TransactionRecord.CARD,
+            destination=TransactionRecord.ESCROW,
+            amount=Money('10.00', 'USD')
+        )
+        user1, user2 = transaction.payer, transaction.payee
+        TransactionRecordFactory.create(
+            card=None,
+            payer=user1,
+            payee=user2,
+            amount=Money('5.00', 'USD'),
+            source=TransactionRecord.RESERVE,
+            destination=TransactionRecord.ESCROW,
+        )
+        TransactionRecordFactory.create(
+            card=None,
+            payer=user2,
+            payee=user1,
+            source=TransactionRecord.ESCROW,
+            destination=TransactionRecord.ACH_MISC_FEES,
+            amount=Money('3.00', 'USD'),
+            status=TransactionRecord.PENDING,
+        )
+        TransactionRecordFactory.create(
+            card=None,
+            payer=user2,
+            payee=user1,
+            source=TransactionRecord.ESCROW,
+            destination=TransactionRecord.ACH_MISC_FEES,
+            amount=Money('3.00', 'USD'),
+            status=TransactionRecord.FAILURE,
+        )
+        TransactionRecordFactory.create(
+            card=None,
+            payer=user2,
+            payee=None,
+            source=TransactionRecord.ESCROW,
+            destination=TransactionRecord.ACH_MISC_FEES,
+            amount=Money('0.50', 'USD'),
+            status=TransactionRecord.SUCCESS,
+        )
         self.user1 = User.objects.get(username='Fox')
         self.user2 = User.objects.get(username='Cat')
         super().setUp()

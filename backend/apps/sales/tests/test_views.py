@@ -58,8 +58,12 @@ class TestOrderListBase(object):
     @unpack
     @data(*order_scenarios)
     def test_fetch_orders(self, category, included):
-        if self.rebuild_fixtures:
-            self.rebuild_fetch()
+        user = UserFactory.create(username='Fox')
+        kwargs = self.factory_kwargs(user)
+        [
+            DeliverableFactory.create(
+                status=order_status, **kwargs) for order_status in [x for x, y in DELIVERABLE_STATUSES]
+        ]
         user = User.objects.get(username='Fox')
         self.login(user)
         response = self.client.get(self.make_url(user, category))
@@ -67,12 +71,6 @@ class TestOrderListBase(object):
         for order in response.data['results']:
             self.assertIn(Deliverable.objects.filter(order_id=order['id']).first().status, included)
         self.assertEqual(len(response.data['results']), len(included))
-
-    def rebuild_fetch(self):
-        user = UserFactory.create(username='Fox')
-        kwargs = self.factory_kwargs(user)
-        [DeliverableFactory.create(status=order_status, **kwargs) for order_status in [x for x, y in DELIVERABLE_STATUSES]]
-        self.save_fixture(self.fixture_list[0])
 
 
 class TestOrderLists(TestOrderListBase, APITestCase):
@@ -1005,78 +1003,61 @@ class TestComment(APITestCase):
 
 class TestProductSearch(APITestCase):
     def test_query_not_logged_in(self):
-        if self.rebuild_fixtures:
-            ProductFactory.create(name='Test1')
-            product2 = ProductFactory.create(name='Wat product 2')
-            tag = TagFactory.create(name='test')
-            product2.tags.add(tag)
-            ProductFactory.create(
-                name='Test3', task_weight=5, user__artist_profile__load=2, user__artist_profile__max_load=10,
-            )
-            # Hidden products
-            ProductFactory.create(name='TestHidden', hidden=True)
-            hidden = ProductFactory.create(name='Wat2 hidden', hidden=True)
-            hidden.tags.add(tag)
-            ProductFactory.create(
-                name='Test4 overload', task_weight=5, user__artist_profile__load=10, user__artist_profile__max_load=10,
-            )
-            maxed = ProductFactory.create(name='Test5 maxed', max_parallel=2)
-            DeliverableFactory.create(product=maxed, status=IN_PROGRESS)
-            DeliverableFactory.create(product=maxed, status=QUEUED)
-            maxed.refresh_from_db()
-            overloaded = ProductFactory.create(name='Test6 overloaded', task_weight=1, user__artist_profile__max_load=5)
-            DeliverableFactory.create(order__seller=overloaded.user, task_weight=7, status=IN_PROGRESS)
-            ProductFactory.create(name='Test commissions closed', user__artist_profile__commissions_closed=True)
-            overloaded.user.refresh_from_db()
-            # for user in User.objects.filter(products__isnull=False):
-            #     update_availability(user, user.artist_profile.load, user.artist_profile.commissions_closed)
-            self.save_fixture('search-not-logged-in')
-        else:
-            self.load_fixture('search-not-logged-in')
-
-        product1, product2, product3 = Product.objects.filter(
-            name__in=['Test1', 'Wat product 2', 'Test3']
-        ).order_by('id').values_list('id', flat=True)
-
+        product1 = ProductFactory.create(name='Test1')
+        product2 = ProductFactory.create(name='Wat product 2')
+        tag = TagFactory.create(name='test')
+        product2.tags.add(tag)
+        product3 = ProductFactory.create(
+            name='Test3', task_weight=5, user__artist_profile__load=2, user__artist_profile__max_load=10,
+        )
+        # Hidden products
+        ProductFactory.create(name='TestHidden', hidden=True)
+        hidden = ProductFactory.create(name='Wat2 hidden', hidden=True)
+        hidden.tags.add(tag)
+        ProductFactory.create(
+            name='Test4 overload', task_weight=5, user__artist_profile__load=10, user__artist_profile__max_load=10,
+        )
+        maxed = ProductFactory.create(name='Test5 maxed', max_parallel=2)
+        DeliverableFactory.create(product=maxed, status=IN_PROGRESS)
+        DeliverableFactory.create(product=maxed, status=QUEUED)
+        maxed.refresh_from_db()
+        overloaded = ProductFactory.create(name='Test6 overloaded', task_weight=1, user__artist_profile__max_load=5)
+        DeliverableFactory.create(order__seller=overloaded.user, task_weight=7, status=IN_PROGRESS)
+        ProductFactory.create(name='Test commissions closed', user__artist_profile__commissions_closed=True)
+        overloaded.user.refresh_from_db()
 
         response = self.client.get('/api/sales/v1/search/product/', {'q': 'test'})
+
         self.assertIDInList(product1, response.data['results'])
         self.assertIDInList(product2, response.data['results'])
         self.assertIDInList(product3, response.data['results'])
         self.assertEqual(len(response.data['results']), 3)
 
     def test_query_logged_in(self):
-        if self.rebuild_fixtures:
-            user = UserFactory.create(username='Fox')
-            user2 = UserFactory.create()
-            ProductFactory.create(name='Test1')
-            product2 = ProductFactory.create(name='Wat')
-            tag = TagFactory.create(name='test')
-            product2.tags.add(tag)
-            ProductFactory.create(name='Test3', task_weight=5)
-            # Overweighted.
-            ProductFactory.create(name='Test4', task_weight=100, user=user)
-            product4 = ProductFactory.create(name='Test5', max_parallel=2, user=user)
-            DeliverableFactory.create(product=product4)
-            DeliverableFactory.create(product=product4)
-            # Product from blocked user. Shouldn't be in results.
-            ProductFactory.create(name='Test Blocked', user=user2)
-            user.blocking.add(user2)
+        user = UserFactory.create(username='Fox')
+        user2 = UserFactory.create()
+        product1 = ProductFactory.create(name='Test1')
+        product2 = ProductFactory.create(name='Wat')
+        tag = TagFactory.create(name='test')
+        product2.tags.add(tag)
+        product3 = ProductFactory.create(name='Test3', task_weight=5)
+        # Overweighted.
+        ProductFactory.create(name='Test4', task_weight=100, user=user)
+        product4 = ProductFactory.create(name='Test5', max_parallel=2, user=user)
+        DeliverableFactory.create(product=product4)
+        DeliverableFactory.create(product=product4)
+        # Product from blocked user. Shouldn't be in results.
+        ProductFactory.create(name='Test Blocked', user=user2)
+        user.blocking.add(user2)
 
-            ProductFactory.create(user__artist_profile__commissions_closed=True)
+        ProductFactory.create(user__artist_profile__commissions_closed=True)
 
-            user.artist_profile.max_load = 10
-            user.artist_profile.load = 2
-            user.artist_profile.save()
-            self.save_fixture('search-logged-in')
-        else:
-            self.load_fixture('search-logged-in')
+        user.artist_profile.max_load = 10
+        user.artist_profile.load = 2
+        user.artist_profile.save()
 
         user = User.objects.get(username='Fox')
         self.login(user)
-        product1, product2, product3, product4 = Product.objects.filter(name__in=[
-            'Test1', 'Wat', 'Test3', 'Test5'
-        ]).order_by('id').values_list('id', flat=True)
         response = self.client.get('/api/sales/v1/search/product/', {'q': 'test'})
         self.assertIDInList(product1, response.data['results'])
         self.assertIDInList(product2, response.data['results'])
@@ -1085,35 +1066,26 @@ class TestProductSearch(APITestCase):
         self.assertEqual(len(response.data['results']), 4)
 
     def test_query_different_user(self):
-        if self.rebuild_fixtures:
-            ProductFactory.create(name='Test1')
-            product2 = ProductFactory.create(name='Wat')
-            tag = TagFactory.create(name='test')
-            product2.tags.add(tag)
-            ProductFactory.create(
-                name='Test3', task_weight=5, user__artist_profile__load=2, user__artist_profile__max_load=10
-            )
-            # Hidden products
-            ProductFactory.create(name='Test4', hidden=True)
-            hidden = ProductFactory.create(name='Wat2', hidden=True)
-            hidden.tags.add(tag)
-            ProductFactory.create(
-                name='Test5', task_weight=5, user__artist_profile__load=8, user__artist_profile__max_load=10,
-            )
-            overloaded = ProductFactory.create(name='Test6', max_parallel=2)
-            ProductFactory.create(user__artist_profile__commissions_closed=True)
-            DeliverableFactory.create(product=overloaded, status=IN_PROGRESS)
-            DeliverableFactory.create(product=overloaded, status=QUEUED)
+        product1 = ProductFactory.create(name='Test1')
+        product2 = ProductFactory.create(name='Wat')
+        tag = TagFactory.create(name='test')
+        product2.tags.add(tag)
+        product3 = ProductFactory.create(
+            name='Test3', task_weight=5, user__artist_profile__load=2, user__artist_profile__max_load=10
+        )
+        # Hidden products
+        ProductFactory.create(name='Test4', hidden=True)
+        hidden = ProductFactory.create(name='Wat2', hidden=True)
+        hidden.tags.add(tag)
+        ProductFactory.create(
+            name='Test5', task_weight=5, user__artist_profile__load=8, user__artist_profile__max_load=10,
+        )
+        overloaded = ProductFactory.create(name='Test6', max_parallel=2)
+        ProductFactory.create(user__artist_profile__commissions_closed=True)
+        DeliverableFactory.create(product=overloaded, status=IN_PROGRESS)
+        DeliverableFactory.create(product=overloaded, status=QUEUED)
 
-            UserFactory.create(username='Fox')
-            self.save_fixture('search-different-user')
-        else:
-            self.load_fixture('search-different-user')
-
-        user = User.objects.get(username='Fox')
-        product1, product2, product3 = Product.objects.filter(
-            name__in=['Test1', 'Wat', 'Test3']
-        ).order_by('id').values_list('id', flat=True)
+        user = UserFactory.create(username='Fox')
         self.login(user)
         response = self.client.get('/api/sales/v1/search/product/', {'q': 'test'})
         self.assertIDInList(product1, response.data['results'])
@@ -1122,36 +1094,23 @@ class TestProductSearch(APITestCase):
         self.assertEqual(len(response.data['results']), 3)
 
     def test_blocked(self):
-        if self.rebuild_fixtures:
-            product = ProductFactory.create(name='Test1')
-            user = UserFactory.create(username='Fox')
-            user.blocking.add(product.user)
-            self.save_fixture('search-blocked')
-        else:
-            self.load_fixture('search-blocked')
-        user = User.objects.get(username='Fox')
+        product = ProductFactory.create(name='Test1')
+        user = UserFactory.create(username='Fox')
+        user.blocking.add(product.user)
         self.login(user)
         response = self.client.get('/api/sales/v1/search/product/', {'q': 'test'})
         self.assertEqual(len(response.data['results']), 0)
 
     def test_personal(self):
-        if self.rebuild_fixtures:
-            user = UserFactory.create(username='Fox')
-            ProductFactory.create(user=user, name='Test')
-            ProductFactory.create(user=user, name='Test2', hidden=True)
-            ProductFactory.create(user=user, task_weight=999, name='Test3')
-            # Inactive.
-            ProductFactory.create(user=user, active=False, name='Test4')
-            # Wrong user.
-            ProductFactory.create(name='Test5')
-            self.save_fixture('search-personal')
-        else:
-            self.load_fixture('search-personal')
+        user = UserFactory.create(username='Fox')
+        listed = ProductFactory.create(user=user, name='Test')
+        listed2 = ProductFactory.create(user=user, name='Test2', hidden=True)
+        listed3 = ProductFactory.create(user=user, task_weight=999, name='Test3')
+        # Inactive.
+        ProductFactory.create(user=user, active=False, name='Test4')
+        # Wrong user.
+        ProductFactory.create(name='Test5')
 
-        user = User.objects.get(username='Fox')
-        listed, listed2, listed3 = Product.objects.filter(
-            name__in=['Test', 'Test2', 'Test3']
-        ).order_by('id').values_list('id', flat=True)
         self.login(user)
         response = self.client.get('/api/sales/v1/search/product/Fox/', {'q': 'test'})
         self.assertIDInList(listed, response.data['results'])

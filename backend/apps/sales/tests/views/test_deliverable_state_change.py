@@ -29,34 +29,28 @@ class TestDeliverableStateChange(SignalsDisabledMixin, APITestCase):
 
     def setUp(self):
         super().setUp()
-        if self.rebuild_fixtures:
-            self.outsider = UserFactory.create(username='Outsider', email='outsider@example.com')
-            self.seller = UserFactory.create(username='Seller', email='seller@example.com')
-            self.buyer = UserFactory.create(username='Buyer', email='buyer@example.com')
-            self.staffer = UserFactory.create(is_staff=True, username='Staffer', email='staff@example.com')
-            characters = [
-                CharacterFactory.create(
-                    user=self.buyer, name='Pictured', primary_submission=SubmissionFactory.create()
-                ),
-                CharacterFactory.create(user=self.buyer, private=True, name='Unpictured1', primary_submission=None),
-                CharacterFactory.create(
-                    user=UserFactory.create(), open_requests=True, name='Unpictured2', primary_submission=None
-                )
-            ]
-            self.deliverable = DeliverableFactory.create(
-                order__seller=self.seller, order__buyer=self.buyer, product__base_price=Money('5.00', 'USD'),
-                adjustment_task_weight=1, adjustment_expected_turnaround=2, product__task_weight=3,
-                product__expected_turnaround=4,
-                processor=AUTHORIZE,
+        self.outsider = UserFactory.create(username='Outsider', email='outsider@example.com')
+        self.seller = UserFactory.create(username='Seller', email='seller@example.com')
+        self.buyer = UserFactory.create(username='Buyer', email='buyer@example.com')
+        self.staffer = UserFactory.create(is_staff=True, username='Staffer', email='staff@example.com')
+        characters = [
+            CharacterFactory.create(
+                user=self.buyer, name='Pictured', primary_submission=SubmissionFactory.create()
+            ),
+            CharacterFactory.create(user=self.buyer, private=True, name='Unpictured1', primary_submission=None),
+            CharacterFactory.create(
+                user=UserFactory.create(), open_requests=True, name='Unpictured2', primary_submission=None
             )
-            self.deliverable.characters.add(*characters)
-            self.final = RevisionFactory.create(deliverable=self.deliverable, rating=ADULT, owner=self.seller)
-            self.save_fixture('deliverable-state-change')
-
-        self.final = Revision.objects.all()[0]
-        self.deliverable = self.final.deliverable
+        ]
+        self.deliverable = DeliverableFactory.create(
+            order__seller=self.seller, order__buyer=self.buyer, product__base_price=Money('5.00', 'USD'),
+            adjustment_task_weight=1, adjustment_expected_turnaround=2, product__task_weight=3,
+            product__expected_turnaround=4,
+            processor=AUTHORIZE,
+        )
+        self.deliverable.characters.add(*characters)
+        self.final = RevisionFactory.create(deliverable=self.deliverable, rating=ADULT, owner=self.seller)
         self.url = '/api/sales/v1/order/{}/deliverables/{}/'.format(self.deliverable.order.id, self.deliverable.id)
-        self.outsider, self.seller, self.buyer, self.staffer = User.objects.order_by('id')[:4]
 
     def state_assertion(
             self, user_attr, url_ext='', target_response_code=status.HTTP_200_OK, initial_status=None, method='post',

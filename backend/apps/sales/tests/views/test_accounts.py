@@ -23,25 +23,15 @@ class TestAccountHistoryPermissions(PermissionsTestCase, MethodAccessMixin):
 class TestHistoryViews(SignalsDisabledMixin, APITestCase):
     def setUp(self):
         super().setUp()
-        if self.rebuild_fixtures:
-            self.provision_users()
-            self.save_fixture('history-views')
-        else:
-            self.load_fixture('history-views')
-        self.user = User.objects.get(username='Fox')
-        self.user2 = User.objects.get(username='Amber')
-
-    @staticmethod
-    def provision_users():
-        user = UserFactory.create(username='Fox')
-        user2 = UserFactory.create(username='Amber')
+        self.user = UserFactory.create(username='Fox')
+        self.user2 = UserFactory.create(username='Amber')
         card = CreditCardTokenFactory.create()
         [
             TransactionRecordFactory.create(
                 amount=Money(amount, 'USD'),
                 category=TransactionRecord.ESCROW_HOLD,
-                payer=user2,
-                payee=user,
+                payer=self.user2,
+                payee=self.user,
                 source=TransactionRecord.CARD,
                 destination=TransactionRecord.ESCROW,
                 card=card,
@@ -51,8 +41,8 @@ class TestHistoryViews(SignalsDisabledMixin, APITestCase):
         [
             TransactionRecordFactory.create(
                 amount=Money(amount, 'USD'),
-                payer=user,
-                payee=user,
+                payer=self.user,
+                payee=self.user,
                 source=TransactionRecord.ESCROW,
                 destination=TransactionRecord.HOLDINGS,
                 category=TransactionRecord.ESCROW_RELEASE,
@@ -62,8 +52,8 @@ class TestHistoryViews(SignalsDisabledMixin, APITestCase):
         [
             TransactionRecordFactory.create(
                 amount=Money(amount, 'USD'),
-                payer=user,
-                payee=user,
+                payer=self.user,
+                payee=self.user,
                 card=None,
                 source=TransactionRecord.HOLDINGS,
                 destination=TransactionRecord.BANK,
