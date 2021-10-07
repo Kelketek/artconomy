@@ -1293,7 +1293,7 @@ class StartPasswordReset(APIView):
         if not identifier:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'email': ['This field is required.']})
         try:
-            user = User.objects.exclude(guest=True).get(email=identifier)
+            user = User.objects.exclude(guest=True).get(email__iexact=identifier)
         except User.DoesNotExist:
             try:
                 user = User.objects.exclude(guest=True).get(username__iexact=identifier)
