@@ -22,7 +22,6 @@ describe('ac-uppy-file.vue', () => {
       localVue,
       vuetify,
       attachTo: docTarget(),
-
     })
     await flushPromises()
     expect((wrapper.vm as any).uppy).toBeTruthy()
@@ -32,7 +31,6 @@ describe('ac-uppy-file.vue', () => {
       localVue,
       vuetify,
       attachTo: docTarget(),
-
       propsData: {value: '123'},
     })
     await flushPromises()
@@ -63,7 +61,6 @@ describe('ac-uppy-file.vue', () => {
       localVue,
       vuetify,
       attachTo: docTarget(),
-
       propsData: {value: ''},
     })
     await flushPromises()
@@ -79,7 +76,6 @@ describe('ac-uppy-file.vue', () => {
       localVue,
       vuetify,
       attachTo: docTarget(),
-
       propsData: {value: '123', showClear: true},
     })
     await flushPromises()
@@ -92,7 +88,6 @@ describe('ac-uppy-file.vue', () => {
       localVue,
       vuetify,
       attachTo: docTarget(),
-
     })
     await wrapper.vm.$nextTick()
     const spyEmit = jest.spyOn(wrapper.vm, '$emit')
@@ -112,13 +107,38 @@ describe('ac-uppy-file.vue', () => {
     (wrapper.vm as any).uppy.emit('upload-success', file, {body: {id: 'wat'}})
     expect(spyEmit).toHaveBeenCalledWith('input', 'wat')
   })
+  it('Handles multiple files.', async() => {
+    wrapper = mount(AcUppyFile, {
+      localVue,
+      vuetify,
+      attachTo: docTarget(),
+      propsData: {maxNumberOfFiles: 3, value: ['wat']}
+    })
+    await wrapper.vm.$nextTick()
+    const spyEmit = jest.spyOn(wrapper.vm, '$emit')
+    const file = {
+      data: new Blob(),
+      extension: 'jpg',
+      isRemote: false,
+      id: '1',
+      meta: {name: 'test2.jpg'},
+      size: 100,
+      name: 'test2.jpg',
+      progress: {
+        uploadStarted: 1, uploadComplete: true, bytesTotal: 100, percentage: 100, bytesUploaded: 100,
+      },
+    };
+    const vm = wrapper.vm as any
+    vm.uppy.state.files['1'] = file
+    vm.uppy.emit('upload-success', file, {body: {id: 'do'}})
+    expect(spyEmit).toHaveBeenCalledWith('input', ['wat', 'do'])
+  })
   it('Calls a callback on a successfully uploaded file.', async() => {
     const mockSuccess = jest.fn()
     wrapper = mount(AcUppyFile, {
       localVue,
       vuetify,
       attachTo: docTarget(),
-
       propsData: {success: mockSuccess},
     })
     await wrapper.vm.$nextTick() // Created
@@ -145,7 +165,6 @@ describe('ac-uppy-file.vue', () => {
       localVue,
       vuetify,
       attachTo: docTarget(),
-
       propsData: {errorMessages},
     })
     await wrapper.vm.$nextTick()
@@ -158,7 +177,6 @@ describe('ac-uppy-file.vue', () => {
       localVue,
       vuetify,
       attachTo: docTarget(),
-
       propsData: {errorMessages},
     })
     await wrapper.vm.$nextTick()

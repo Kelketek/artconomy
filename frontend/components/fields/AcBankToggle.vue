@@ -36,7 +36,9 @@ export default class AcBankToggle extends mixins(Subjective) {
     @Prop({default: false})
     public manageBanks!: boolean
 
+    /* istanbul ignore next */
     public AUTHORIZE = PROCESSORS.AUTHORIZE
+    /* istanbul ignore next */
     public STRIPE = PROCESSORS.STRIPE
 }
 </script>

@@ -10,6 +10,7 @@
             :field="searchForm.fields.q"
             @keyup="searchFromField"
             label="I'm looking for..."
+            class="home-search-field"
             prepend-icon="search"
           />
         </v-col>

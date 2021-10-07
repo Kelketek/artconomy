@@ -123,4 +123,21 @@ describe('CharacterDetail.vue', () => {
     await vm.$nextTick()
     expect(vm.primarySubmissionLink).toBe(null)
   })
+  it('Does not break setting meta information if the primary submission is not set', async() => {
+    setViewer(store, vulpes)
+    wrapper = mount(CharacterDetail, {
+        localVue,
+        store,
+        router,
+        vuetify,
+        propsData: {username: 'Vulpes', characterName: 'Kai'},
+        attachTo: docTarget(),
+      },
+    )
+    const character = genCharacter();
+    character.primary_submission = null
+    const vm = wrapper.vm as any
+    vm.character.profile.setX(character)
+    await wrapper.vm.$nextTick()
+  })
 })

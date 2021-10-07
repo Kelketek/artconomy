@@ -69,6 +69,8 @@ describe('AcBankToggleAuthorize.vue', () => {
       escrow: '0.00',
       pending: '0.00',
     })
+    await vm.$nextTick()
+    expect(vm.canAddBank).toBe(false)
     vm.willIncurFee.makeReady({value: true})
     await flushPromises()
     mockAxios.reset()

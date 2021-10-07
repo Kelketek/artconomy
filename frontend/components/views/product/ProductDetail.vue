@@ -691,6 +691,9 @@ export default class ProductDetail extends mixins(ProductCentric, Formatting, Ed
         const linkedSubmission = x.x as LinkedSubmission
         return linkedSubmission.submission.rating
       })
+      if (this.product.x && this.product.x.primary_submission) {
+        ratings.push(this.product.x.primary_submission.rating)
+      }
       if (!ratings.length) {
         return 0
       }

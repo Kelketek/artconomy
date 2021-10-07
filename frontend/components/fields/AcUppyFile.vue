@@ -103,6 +103,7 @@ export default class AcUppyFile extends mixins(ExtendedInput) {
         theme: 'dark',
         proudlyDisplayPoweredByUppy: false,
         showLinkToFileUploadResult: false,
+        doneButtonHandler: null,
       })
       uppy.use(XHRUpload, {
         endpoint: this.endpoint,

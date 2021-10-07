@@ -93,4 +93,23 @@ describe('Home.vue', () => {
     expect(push).toHaveBeenCalledWith({name: 'SearchSubmissions', query: {page: '1', size: '24'}})
     expect(searchForm.fields.q.value).toBe('')
   })
+  it('Performs a search for Products', async() => {
+    setViewer(store, genUser())
+    const push = jest.fn()
+    wrapper = mount(
+      Home,
+      {
+        localVue,
+        store,
+        vuetify,
+        mocks: {$router: {push}},
+        stubs: ['router-link'],
+        attachTo: docTarget(),
+      })
+    searchForm.fields.q.update('test')
+    await wrapper.vm.$nextTick()
+    wrapper.find('.home-search-field input').trigger('keyup')
+    await wrapper.vm.$nextTick()
+    expect(push).toHaveBeenCalledWith({name: 'SearchProducts', query: {page: '1', size: '24', q: 'test'}})
+  })
 })

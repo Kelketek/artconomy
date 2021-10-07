@@ -6,7 +6,7 @@ import {ArtStore, createStore} from '../store'
 import flushPromises from 'flush-promises'
 import {genUser} from './helpers/fixtures'
 import {FormController} from '@/store/forms/form-controller'
-import {cleanUp, createVuetify, dialogExpects, docTarget, genAnon, rq, rs, vueSetup, mount} from './helpers'
+import {cleanUp, createVuetify, dialogExpects, docTarget, genAnon, rq, rs, vueSetup, mount, setViewer} from './helpers'
 import Vuetify from 'vuetify/lib'
 import {createPinterestQueue} from '@/lib/lib'
 import {WS} from 'jest-websocket-mock'
@@ -77,6 +77,26 @@ describe('App.vue', () => {
     })
     const vm = wrapper.vm as any
     expect(vm.fullInterface).toBe(true)
+  })
+  it('Opens and closes an age verification dialog', async() => {
+    wrapper = mount(App, {
+      store,
+      localVue,
+      vuetify,
+      mocks: {$route: {fullPath: '/order/', params: {}, query: {}}},
+      stubs: ['nav-bar', 'router-view', 'router-link'],
+      attachTo: docTarget(),
+    })
+    const vm = wrapper.vm as any
+    vm.viewerHandler.user.makeReady(genUser())
+    store.commit('setShowAgeVerification', true)
+    await vm.$nextTick()
+    expect(store.state.showAgeVerification).toBe(true)
+    expect(vm.prerendering).toBe(false)
+    expect(vm.viewerHandler.user.x).toBeTruthy()
+    wrapper.find('.dialog-closer').trigger('click')
+    await vm.$nextTick()
+    expect(wrapper.find('dialog-closer').exists()).toBe(false)
   })
   it('Submits the support request form', async() => {
     wrapper = mount(App, {
@@ -183,7 +203,6 @@ describe('App.vue', () => {
       vuetify,
       mocks: {$route: {fullPath: '/', params: {}, query: {}}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
-
     })
     store.commit('pushAlert', {message: 'I am an alert!', category: 'error'})
     await wrapper.vm.$nextTick()

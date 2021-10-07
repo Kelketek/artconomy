@@ -104,7 +104,6 @@ describe('AcCommentSection', () => {
       store,
       router,
       vuetify,
-
       propsData: {
         showHistory: true,
         commentList,

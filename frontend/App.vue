@@ -307,6 +307,7 @@ export default class App extends mixins(Viewer, Nav, PrerenderMixin) {
   }
 
   public created() {
+    /* istanbul ignore if */
     if (window.USER_PRELOAD) {
       this.setUser(window.USER_PRELOAD)
     }
@@ -366,8 +367,7 @@ export default class App extends mixins(Viewer, Nav, PrerenderMixin) {
   }
 
   public setUser(user: AnonUser|User) {
-    this.viewerHandler.user.x = user
-    this.viewerHandler.user.ready = true
+    this.viewerHandler.user.makeReady(user)
   }
 
   public showSuccess() {

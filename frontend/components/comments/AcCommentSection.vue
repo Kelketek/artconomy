@@ -100,6 +100,7 @@ export default class AcCommentSection extends mixins(Viewer) {
         /* istanbul ignore next */
         this.commentList.params = {...this.commentList.params || {} as QueryParams, ...{history: '1'}}
       } else {
+        /* istanbul ignore next */
         const params = {...this.commentList.params || {} as QueryParams}
         delete params.history
         this.commentList.params = params

@@ -4,13 +4,16 @@ import Vuetify from 'vuetify/lib'
 import {ArtStore, createStore} from '@/store'
 import {
   cleanUp,
-  confirmAction, createVuetify, docTarget,
+  confirmAction,
+  createVuetify,
+  docTarget,
   flushPromises,
+  genAnon,
+  mount,
   rs,
   setPricing,
   setViewer,
   vueSetup,
-  mount,
 } from '@/specs/helpers'
 import ProductDetail from '@/components/views/product/ProductDetail.vue'
 import {genArtistProfile, genProduct, genUser} from '@/specs/helpers/fixtures'
@@ -26,6 +29,7 @@ import {LineTypes} from '@/types/LineTypes'
 import {SingleController} from '@/store/singles/controller'
 import LineItem from '@/types/LineItem'
 import Big from 'big.js'
+import {Ratings} from '@/store/profiles/types/Ratings'
 
 const localVue = vueSetup()
 localVue.use(Router)
@@ -140,6 +144,19 @@ describe('ProductDetail.vue', () => {
     vm.product.updateX({primary_submission: null})
     expect(vm.slides).toEqual([])
   })
+  it('Prompts for age if the main sample is above the rating.', async() => {
+    setViewer(store, genAnon())
+    setPricing(store, localVue)
+    wrapper = mount(ProductDetail, {
+      localVue, router, store, vuetify, attachTo: docTarget(), propsData: {username: 'Fox', productId: 1},
+    })
+    const vm = wrapper.vm as any
+    vm.samples.setList([])
+    await vm.$nextTick()
+    vm.product.makeReady(genProduct({primary_submission: genSubmission({rating: Ratings.ADULT})}))
+    await vm.$nextTick()
+    expect(store.state.showAgeVerification).toBe(true)
+  })
   it('Deletes a product', async() => {
     const data = prepData()
     router.push({name: 'Product', params: {productId: '1'}})
@@ -148,7 +165,6 @@ describe('ProductDetail.vue', () => {
       router,
       store,
       vuetify,
-
       attachTo: docTarget(),
       propsData: {username: 'Fox', productId: 1},
       stubs: ['ac-sample-editor'],
@@ -190,7 +206,6 @@ describe('ProductDetail.vue', () => {
       router,
       store,
       vuetify,
-
       attachTo: docTarget(),
       propsData: {username: 'Fox', productId: 1},
       stubs: ['ac-sample-editor', 'v-carousel', 'v-carousel-item'],
@@ -210,7 +225,6 @@ describe('ProductDetail.vue', () => {
       router,
       store,
       vuetify,
-
       attachTo: docTarget(),
       propsData: {username: 'Fox', productId: 1},
       stubs: ['ac-sample-editor', 'v-carousel', 'v-carousel-item'],
@@ -256,7 +270,6 @@ describe('ProductDetail.vue', () => {
       router,
       store,
       vuetify,
-
       attachTo: docTarget(),
       propsData: {username: 'Fox', productId: 1},
       stubs: ['ac-sample-editor', 'v-carousel', 'v-carousel-item'],
@@ -283,7 +296,6 @@ describe('ProductDetail.vue', () => {
       router,
       store,
       vuetify,
-
       attachTo: docTarget(),
       propsData: {username: 'Fox', productId: 1},
       stubs: ['ac-sample-editor', 'v-carousel', 'v-carousel-item'],
@@ -306,7 +318,6 @@ describe('ProductDetail.vue', () => {
       router,
       store,
       vuetify,
-
       attachTo: docTarget(),
       propsData: {username: 'Fox', productId: 1},
       stubs: ['ac-sample-editor', 'v-carousel', 'v-carousel-item'],
@@ -327,7 +338,6 @@ describe('ProductDetail.vue', () => {
       router,
       store,
       vuetify,
-
       attachTo: docTarget(),
       propsData: {username: 'Fox', productId: 1},
       stubs: ['ac-sample-editor', 'v-carousel', 'v-carousel-item'],
@@ -348,7 +358,6 @@ describe('ProductDetail.vue', () => {
       router,
       store,
       vuetify,
-
       attachTo: docTarget(),
       propsData: {username: 'Fox', productId: 1},
       stubs: ['ac-sample-editor', 'v-carousel', 'v-carousel-item'],
@@ -374,7 +383,6 @@ describe('ProductDetail.vue', () => {
       router,
       store,
       vuetify,
-
       attachTo: docTarget(),
       propsData: {username: 'Fox', productId: 1},
       stubs: ['ac-sample-editor', 'v-carousel', 'v-carousel-item'],
@@ -396,7 +404,6 @@ describe('ProductDetail.vue', () => {
       router,
       store,
       vuetify,
-
       attachTo: docTarget(),
       propsData: {username: 'Fox', productId: 1},
       stubs: ['ac-sample-editor', 'v-carousel', 'v-carousel-item'],
@@ -418,7 +425,6 @@ describe('ProductDetail.vue', () => {
       router,
       store,
       vuetify,
-
       attachTo: docTarget(),
       propsData: {username: 'Fox', productId: 1},
       stubs: ['ac-sample-editor', 'v-carousel', 'v-carousel-item'],
