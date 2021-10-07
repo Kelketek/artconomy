@@ -474,6 +474,7 @@ class TestGetTransactionFees(TestCase):
         self.assertIsNone(fee_record.payer)
         self.assertIsNone(fee_record.payee)
         self.assertEqual(fee_record.category, TransactionRecord.THIRD_PARTY_FEE)
+        self.assertTrue(fee_record.created_on)
         self.assertEqual(fee_record.destination, TransactionRecord.ACH_TRANSACTION_FEES)
         self.assertEqual(fee_record.remote_id, 'c4ded785-d753-45e8-b225-1ec88c321a46')
         self.assertEqual(fee_record.created_on, parse('2018-09-26T06:59:25.597Z'))

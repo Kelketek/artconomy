@@ -1425,7 +1425,9 @@ def ensure_shield(sender, instance, created=False, **_kwargs):
             status=TransactionRecord.SUCCESS,
             note='Bank Connection Fee'
         )
+        record.finalized_on = record.created_on
         record.targets.add(ref_for_instance(instance))
+        record.save()
     from apps.sales.tasks import withdraw_all
     withdraw_all(instance.user.id)
     Deliverable.objects.filter(

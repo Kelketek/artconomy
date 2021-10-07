@@ -14,7 +14,7 @@ from apps.sales.models import TransactionRecord, BASE_PRICE, SHIELD, BONUS, TABL
     CANCELLED, Product
 from apps.sales.tests.factories import RatingFactory, PromoFactory, TransactionRecordFactory, ProductFactory, \
     DeliverableFactory, \
-    CreditCardTokenFactory, RevisionFactory, LineItemFactory, OrderFactory
+    CreditCardTokenFactory, RevisionFactory, LineItemFactory, OrderFactory, BankAccountFactory
 
 
 class TestRating(TestCase):
@@ -419,3 +419,12 @@ class TestOrder(SignalsDisabledMixin, TestCase):
     def test_order_string(self):
         order = OrderFactory.create(seller__username='Jim', buyer__username='Bob')
         self.assertEqual(str(order), f'#{order.id} by Jim for Bob')
+
+
+class TestBank(TestCase):
+    def test_fee_taken(self):
+        bank = BankAccountFactory.create()
+        fee_record = TransactionRecord.objects.get(payer=bank.user)
+        self.assertEqual(fee_record.amount, Money('1.00', 'USD'))
+        self.assertTrue(fee_record.created_on)
+        self.assertEqual(fee_record.created_on, fee_record.finalized_on)
