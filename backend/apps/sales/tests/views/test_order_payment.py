@@ -154,14 +154,15 @@ class TestOrderPayment(TransactionCheckMixin, APITestCase):
         self.assertEqual(card.profile_id, '6969')
         self.assertEqual(card.payment_id, '5634')
 
+    @freeze_time('2020-08-02')
     @patch('apps.sales.utils.charge_saved_card')
     def test_pay_order_weights_set(self, mock_charge_card):
         user = UserFactory.create()
         self.login(user)
         deliverable = DeliverableFactory.create(
             order__buyer=user, status=PAYMENT_PENDING, product__base_price=Money('10.00', 'USD'),
-            product__task_weight=1, product__expected_turnaround=2,
-            adjustment_task_weight=3, adjustment_expected_turnaround=4
+            product__task_weight=1, product__expected_turnaround=1,
+            adjustment_task_weight=3, adjustment_expected_turnaround=2
         )
         add_adjustment(deliverable, Money('2.00', 'USD'))
         subscription = Subscription.objects.get(subscriber=deliverable.order.seller, type=SALE_UPDATE)
@@ -178,9 +179,10 @@ class TestOrderPayment(TransactionCheckMixin, APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         deliverable.refresh_from_db()
         self.assertEqual(deliverable.task_weight, 1)
-        self.assertEqual(deliverable.expected_turnaround, 2)
+        self.assertEqual(deliverable.expected_turnaround, 1)
         self.assertEqual(deliverable.adjustment_task_weight, 3)
-        self.assertEqual(deliverable.adjustment_expected_turnaround, 4)
+        self.assertEqual(deliverable.adjustment_expected_turnaround, 2)
+        self.assertEqual(deliverable.dispute_available_on, date(year=2020, month=8, day=6))
 
     @patch('apps.sales.utils.charge_saved_card')
     def test_pay_order_revisions_exist(self, mock_charge_card):

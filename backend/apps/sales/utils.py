@@ -1176,7 +1176,9 @@ def pay_deliverable(*, attempt: PaymentAttempt, deliverable: 'Deliverable', requ
             or deliverable.expected_turnaround
     )
     deliverable.dispute_available_on = (
-            timezone.now() + BDay(ceil(ceil(deliverable.expected_turnaround) * 1.25))
+        timezone.now() + BDay(
+            ceil(
+                ceil(deliverable.expected_turnaround + deliverable.adjustment_expected_turnaround) * 1.25))
     ).date()
     deliverable.paid_on = timezone.now()
     # Preserve this so it can't be changed during disputes.
