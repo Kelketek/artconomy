@@ -270,7 +270,7 @@
                 <v-btn color="primary" @click.stop="searchCharacters()" class="search-characters">See More</v-btn>
               </v-toolbar-items>
             </v-toolbar>
-            <v-card-text>Characters catalogged by our users</v-card-text>
+            <v-card-text>Characters cataloged by our users</v-card-text>
             <ac-load-section :controller="characters">
               <template v-slot:default>
                 <v-row dense>
