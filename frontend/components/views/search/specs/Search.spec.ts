@@ -87,7 +87,11 @@ describe('Search.vue', () => {
         props: true,
       }],
     })
-    searchForm = mount(Empty, {localVue, store}).vm.$getForm('search', searchSchema())
+    searchForm = mount(Empty, {
+      localVue,
+      store,
+      vuetify,
+    }).vm.$getForm('search', searchSchema())
     store.commit('setSearchInitialized', true)
   })
   afterEach(() => {
@@ -117,7 +121,7 @@ describe('Search.vue', () => {
   it('Updates the route when the values change', async() => {
     setViewer(store, genUser())
     router.push({name: 'SearchProducts'})
-    wrapper = mount(SearchProducts, {localVue, store, router, attachTo: docTarget()})
+    wrapper = mount(SearchProducts, {localVue, store, vuetify, router, attachTo: docTarget()})
     const vm = wrapper.vm as any
     const mockUpdate = jest.spyOn(vm, 'debouncedUpdate')
     mockUpdate.mockImplementation(vm.rawUpdate)
@@ -129,7 +133,7 @@ describe('Search.vue', () => {
   it('Shows an alert when an anonymous user has a max rating under the current search', async() => {
     router.push({name: 'SearchProducts'})
     setViewer(store, genAnon())
-    wrapper = mount(Search, {localVue, store, router, attachTo: docTarget(), stubs: ['v-badge']})
+    wrapper = mount(Search, {localVue, store, vuetify, router, attachTo: docTarget(), stubs: ['v-badge']})
     const vm = wrapper.vm as any
     await vm.$nextTick()
     expect(wrapper.find('.v-alert').exists()).toBe(false)
@@ -142,7 +146,7 @@ describe('Search.vue', () => {
     router.push({name: 'SearchSubmissions'})
     searchForm.fields.content_ratings.update('2,3')
     setViewer(store, genUser({username: 'Fox', rating: Ratings.GENERAL}))
-    wrapper = mount(Search, {localVue, store, router, attachTo: docTarget(), stubs: ['v-badge']})
+    wrapper = mount(Search, {localVue, store, vuetify, router, attachTo: docTarget(), stubs: ['v-badge']})
     const vm = wrapper.vm as any
     await vm.$nextTick()
     expect(wrapper.find('.v-alert').exists()).toBe(true)
@@ -150,7 +154,7 @@ describe('Search.vue', () => {
   })
   it('Properly handles setting and getting the allowed content ratings', async() => {
     setViewer(store, genUser())
-    wrapper = mount(SubmissionExtra, {localVue, store, router, attachTo: docTarget(), stubs: ['v-badge']})
+    wrapper = mount(SubmissionExtra, {localVue, store, vuetify, router, attachTo: docTarget(), stubs: ['v-badge']})
     const vm = wrapper.vm as any
     vm.contentRatings = ['1', '3', '0']
     expect(vm.contentRatings).toEqual(['0', '1', '3'])

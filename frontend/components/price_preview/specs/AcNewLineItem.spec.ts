@@ -36,7 +36,7 @@ describe('AcNewLineItem.vue', () => {
     wrapper = mount(AcNewLineItem, {
       localVue,
       store,
-
+      vuetify,
       attachTo: docTarget(),
       propsData: {form: addOnForm, price: -2},
     })
@@ -48,7 +48,7 @@ describe('AcNewLineItem.vue', () => {
     wrapper = mount(AcNewLineItem, {
       localVue,
       store,
-
+      vuetify,
       attachTo: docTarget(),
       propsData: {form: addOnForm, price: 10},
     })
@@ -60,7 +60,7 @@ describe('AcNewLineItem.vue', () => {
     wrapper = mount(AcNewLineItem, {
       localVue,
       store,
-
+      vuetify,
       attachTo: docTarget(),
       propsData: {form: addOnForm, price: 10},
     })

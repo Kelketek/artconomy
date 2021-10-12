@@ -26,14 +26,24 @@ describe('AcLineItemEditor.vue', () => {
   it('Mounts', async() => {
     const lineItems = dummyLineItems()
     const line = empty.$getSingle('line', {endpoint: '/', x: lineItems[0]})
-    wrapper = mount(AcLineItemEditor, {localVue, store, propsData: {line, priceData: getTotals(lineItems)}})
+    wrapper = mount(AcLineItemEditor, {
+      localVue,
+      store,
+      vuetify,
+      propsData: {line, priceData: getTotals(lineItems)},
+    })
   })
   it('Gives a default label to a discount', async() => {
     const lineItems = dummyLineItems()
     const discount = genLineItem({type: LineTypes.ADD_ON, amount: -2, id: -500, priority: 100})
     lineItems.push(discount)
     const line = empty.$getSingle('line', {endpoint: '/', x: discount})
-    wrapper = mount(AcLineItemEditor, {localVue, store, propsData: {line, priceData: getTotals(lineItems)}})
+    wrapper = mount(AcLineItemEditor, {
+      localVue,
+      store,
+      vuetify,
+      propsData: {line, priceData: getTotals(lineItems)},
+    })
     await wrapper.vm.$nextTick()
     expect(wrapper.html()).toContain('Discount')
   })
@@ -42,7 +52,12 @@ describe('AcLineItemEditor.vue', () => {
     const addOn = genLineItem({type: LineTypes.ADD_ON, amount: 2, id: -500, priority: 100})
     lineItems.push(addOn)
     const line = empty.$getSingle('line', {endpoint: '/', x: addOn})
-    wrapper = mount(AcLineItemEditor, {localVue, store, propsData: {line, priceData: getTotals(lineItems)}})
+    wrapper = mount(AcLineItemEditor, {
+      localVue,
+      store,
+      vuetify,
+      propsData: {line, priceData: getTotals(lineItems)},
+    })
     await wrapper.vm.$nextTick()
     expect(wrapper.html()).toContain('Additional requirements')
   })
@@ -51,7 +66,12 @@ describe('AcLineItemEditor.vue', () => {
     const addOn = genLineItem({type: LineTypes.BASE_PRICE, amount: 2, id: -500, priority: 100})
     lineItems.push(addOn)
     const line = empty.$getSingle('line', {endpoint: '/', x: addOn})
-    wrapper = mount(AcLineItemEditor, {localVue, store, propsData: {line, priceData: getTotals(lineItems)}})
+    wrapper = mount(AcLineItemEditor, {
+      localVue,
+      store,
+      vuetify,
+      propsData: {line, priceData: getTotals(lineItems)},
+    })
     await wrapper.vm.$nextTick()
     expect(wrapper.html()).toContain('Base price')
   })
@@ -60,7 +80,12 @@ describe('AcLineItemEditor.vue', () => {
     const addOn = genLineItem({type: LineTypes.EXTRA, amount: 2, id: -500, priority: 400})
     lineItems.push(addOn)
     const line = empty.$getSingle('line', {endpoint: '/', x: addOn})
-    wrapper = mount(AcLineItemEditor, {localVue, store, propsData: {line, priceData: getTotals(lineItems)}})
+    wrapper = mount(AcLineItemEditor, {
+      localVue,
+      store,
+      vuetify,
+      propsData: {line, priceData: getTotals(lineItems)},
+    })
     await wrapper.vm.$nextTick()
     expect(wrapper.html()).toContain('Accessory item')
   })
@@ -69,7 +94,12 @@ describe('AcLineItemEditor.vue', () => {
     const addOn = genLineItem({type: 1234, amount: 2, id: -500, priority: 400})
     lineItems.push(addOn)
     const line = empty.$getSingle('line', {endpoint: '/', x: addOn})
-    wrapper = mount(AcLineItemEditor, {localVue, store, propsData: {line, priceData: getTotals(lineItems)}})
+    wrapper = mount(AcLineItemEditor, {
+      localVue,
+      store,
+      vuetify,
+      propsData: {line, priceData: getTotals(lineItems)},
+    })
     await wrapper.vm.$nextTick()
     expect(wrapper.html()).toContain('Other')
   })
