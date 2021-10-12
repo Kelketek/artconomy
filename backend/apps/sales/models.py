@@ -1259,6 +1259,10 @@ class Revision(ImageModel):
             ),
         )
 
+    def notification_display(self, context):
+        from apps.sales.serializers import RevisionSerializer
+        return RevisionSerializer(instance=self, context=context).data
+
     def notification_name(self, context):
         return f'Revision ID #{self.id} on {self.deliverable.notification_name(context)}'
 
