@@ -25,11 +25,10 @@ import Vuetify from 'vuetify/lib'
 import {deliverableRouter} from '@/components/views/order/specs/helpers'
 import {SingleController} from '@/store/singles/controller'
 import LineItem from '@/types/LineItem'
-import moment from 'moment/moment'
 import {ConnectionStatus} from '@/types/ConnectionStatus'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import {PROCESSORS} from '@/types/PROCESSORS'
-import {flush} from '@sentry/browser'
+import {parseISO} from '@/lib/lib'
 
 const localVue = vueSetup()
 localVue.use(Router)
@@ -45,7 +44,7 @@ describe('DeliverablePayment.vue', () => {
     vuetify = createVuetify()
     router = deliverableRouter()
     // This is a saturday.
-    MockDate.set(moment('2020-08-01').toDate())
+    MockDate.set(parseISO('2020-08-01'))
     mount(Empty, {store, localVue}).vm.$getSingle('socketState', {
       endpoint: '#',
       persist: true,
@@ -441,10 +440,10 @@ describe('DeliverablePayment.vue', () => {
     vm.deliverable.setX(deliverable)
     vm.deliverable.ready = true
     // August first is a saturday. Sunday, then two work days days, plus one more day for adjustment.
-    expect(vm.deliveryDate.toDate()).toEqual(moment('2020-08-06').toDate())
-    vm.deliverable.updateX({paid_on: moment('2020-06-01').toISOString()})
+    expect(vm.deliveryDate).toEqual(parseISO('2020-08-06'))
+    vm.deliverable.updateX({paid_on: parseISO('2020-06-01').toISOString()})
     await vm.$nextTick()
-    expect(vm.deliveryDate.toDate()).toEqual(moment('2020-06-05').toDate())
+    expect(vm.deliveryDate).toEqual(parseISO('2020-06-05'))
   })
   it('Handles a Stripe Payment', async() => {
     const fox = genUser()

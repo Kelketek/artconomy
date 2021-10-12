@@ -87,7 +87,9 @@ import Component, {mixins} from 'vue-class-component'
 import Viewer from '@/mixins/viewer'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import moment from 'moment'
+import {differenceInYears} from 'date-fns'
+import {parseISO} from '@/lib/lib'
+
 @Component({
   components: {AcLoadSection, AcPatchField},
 })
@@ -105,7 +107,7 @@ export default class SessionSettings extends mixins(Viewer) {
     if (birthday === null) {
       return false
     }
-    return moment().diff(moment(birthday), 'years') >= 18
+    return differenceInYears(new Date(), parseISO(birthday)) >= 18
   }
 
   public created() {

@@ -1,4 +1,3 @@
-import moment from 'moment-timezone'
 import axios, {AxiosRequestConfig, AxiosResponse, CancelToken} from 'axios'
 import MarkDownIt from 'markdown-it'
 import Vue from 'vue'
@@ -20,6 +19,7 @@ import {ListController} from '@/store/lists/controller'
 import cloneDeep from 'lodash/cloneDeep'
 import {PinterestQueue} from '@/types/PinterestQueue'
 import {LogLevels} from '@/types/LogLevels'
+import {format, parseISO as upstreamParseISO} from 'date-fns'
 
 // Needed for Matomo.
 declare global {
@@ -161,20 +161,28 @@ export function getCookie(name: string): string | null {
   return cookieValue
 }
 
+export function parseISO(dateString: string | Date) {
+  // Mimics moment's behavior of taking either a string or a date and returning a date.
+  if (dateString instanceof Date) {
+    return dateString
+  }
+  return upstreamParseISO(dateString)
+}
+
 export function formatDateTime(dateString: string) {
-  return moment(dateString).format('MMMM Do YYYY, h:mm:ss a')
+  return format(parseISO(dateString), 'MMMM do yyyy, h:mm:ss aaa')
 }
 
 export function formatDate(dateString: string) {
-  return moment(dateString).format('MMMM Do YYYY')
+  return format(parseISO(dateString), 'MMMM do yyyy')
 }
 
-export function formatDateTerse(dateString: string) {
-  const date = moment(dateString)
-  if (date.year() !== moment().year()) {
-    return date.format('MMM Do YY')
+export function formatDateTerse(dateString: string|Date) {
+  const date = parseISO(dateString)
+  if (date.getFullYear() !== new Date().getFullYear()) {
+    return format(date, 'MMM do yy')
   }
-  return date.format('MMM Do')
+  return format(date, 'MMM do')
 }
 
 // https://stackoverflow.com/questions/14573223/set-cookie-and-get-cookie-with-javascript

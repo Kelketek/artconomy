@@ -8,12 +8,12 @@ import {genArtistProfile, genDeliverable, genGuest, genReference, genUser} from 
 import mockAxios from '@/__mocks__/axios'
 import {genSubmission} from '@/store/submissions/specs/fixtures'
 import {DeliverableStatus} from '@/types/DeliverableStatus'
-import moment from 'moment'
 import Router from 'vue-router'
 import Order from '@/types/Order'
 import {deliverableRouter} from '@/components/views/order/specs/helpers'
 import {VIEWER_TYPE} from '@/types/VIEWER_TYPE'
 import {genCharacter} from '@/store/characters/specs/fixtures'
+import {add, formatISO} from 'date-fns'
 
 const localVue = vueSetup()
 localVue.use(Router)
@@ -250,7 +250,7 @@ describe('DeliverableDetail.vue', () => {
     await flushPromises()
     await vm.$nextTick()
     // @ts-ignore
-    vm.deliverable.updateX({dispute_available_on: moment().add(7, 'days').toISOString()})
+    vm.deliverable.updateX({dispute_available_on: formatISO(add(new Date(), {days: 7}))})
     await vm.$nextTick()
     // '2019-07-26T15:04:41.078424-05:00'
     expect(vm.disputeTimeElapsed).toBe(false)
@@ -281,7 +281,7 @@ describe('DeliverableDetail.vue', () => {
     const deliverable = genDeliverable()
     deliverable.product = null
     deliverable.trust_finalized = true
-    deliverable.auto_finalize_on = moment().add(7, 'days').toISOString()
+    deliverable.auto_finalize_on = formatISO(add(new Date(), {days: 7}))
     deliverable.status = DeliverableStatus.COMPLETED
     const orderRequest = mockAxios.getReqByUrl('/api/sales/v1/order/1/deliverables/5/')
     mockAxios.mockResponse(rs(deliverable), orderRequest)
@@ -290,6 +290,8 @@ describe('DeliverableDetail.vue', () => {
     expect(vm.disputeWindow).toBe(true)
     vm.deliverable.updateX({auto_finalize_on: '2019-07-26T15:04:41.078424-05:00'})
     await vm.$nextTick()
+    expect(vm.disputeWindow).toBe(false)
+    vm.deliverable.updateX({auto_finalize_on: null})
     expect(vm.disputeWindow).toBe(false)
   })
   it('Prompts to add revision to collection', async() => {

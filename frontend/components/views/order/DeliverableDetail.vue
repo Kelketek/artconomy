@@ -330,7 +330,6 @@ import AcLink from '@/components/wrappers/AcLink.vue'
 import Formatting from '@/mixins/formatting'
 import AcRendered from '@/components/wrappers/AcRendered'
 import AcAvatar from '@/components/AcAvatar.vue'
-import moment from 'moment-business-days'
 import AcCharacterDisplay from '@/components/views/submission/AcCharacterDisplay.vue'
 import AcCommentSection from '@/components/comments/AcCommentSection.vue'
 import Ratings from '@/mixins/ratings'
@@ -359,8 +358,9 @@ import {SingleController} from '@/store/singles/controller'
 import LinkedReference from '@/types/LinkedReference'
 import InvoicingMixin from '@/components/views/order/mixins/InvoicingMixin'
 import {ListController} from '@/store/lists/controller'
-import {markRead} from '@/lib/lib'
+import {markRead, parseISO} from '@/lib/lib'
 import StripeMixin from './mixins/StripeMixin'
+import {isBefore} from 'date-fns'
 
 @Component({
   components: {
@@ -439,8 +439,7 @@ export default class DeliverableDetail extends mixins(
     if (!deliverable.dispute_available_on) {
       return false
     }
-    // @ts-ignore
-    return moment(deliverable.dispute_available_on) < moment.now()
+    return isBefore(parseISO(deliverable.dispute_available_on), new Date())
   }
 
   public visitSubmission(submission: Submission) {

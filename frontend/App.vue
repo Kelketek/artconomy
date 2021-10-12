@@ -222,7 +222,6 @@ import {SocketState} from '@/types/SocketState'
 import {AnonUser} from '@/store/profiles/types/AnonUser'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
-import moment from 'moment'
 import PrerenderMixin from '@/mixins/PrerenderMixin'
 
 @Component({components: {AcPatchField, AcForm, AcMarkdownExplanation, AcError, AcFormDialog, NavBar}})

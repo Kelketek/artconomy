@@ -1,6 +1,5 @@
 /* tslint:disable:max-line-length */
 import mockAxios from '../../specs/helpers/mock-axios'
-import moment from 'moment-timezone'
 import {
   artCall,
   clearMetaTag,
@@ -50,7 +49,6 @@ import {Profiles} from '@/store/profiles/registry'
 import {ArtStore, createStore} from '@/store'
 import {cleanUp, flushPromises, mount, qMount, rs} from '@/specs/helpers'
 import {LogLevels} from "@/types/LogLevels";
-import SpyInstance = jest.SpyInstance;
 
 Vue.use(Vuetify)
 Vue.use(Vuex)
@@ -60,9 +58,6 @@ describe('artCall', () => {
     mockAxios.reset()
     // Let's make sure we clear out any existing meta tags to isolate the tests better.
     document.querySelectorAll('meta').forEach((element) => element.remove())
-  })
-  afterEach(() => {
-    moment.tz.setDefault()
   })
   it('Performs a GET request', () => {
     const catchFn = jest.fn()
@@ -301,10 +296,8 @@ describe('HTTP Helpers', () => {
 })
 describe('Formatters', () => {
   beforeEach(() => {
-    moment.tz.setDefault('America/Chicago')
   })
   afterEach(() => {
-    moment.tz.setDefault()
   })
   it('Formats a datetime string', () => {
     expect(formatDateTime('2019-05-03T15:41:36.902Z')).toBe('May 3rd 2019, 10:41:36 am')
@@ -313,7 +306,7 @@ describe('Formatters', () => {
     expect(formatDate('2019-05-03')).toBe('May 3rd 2019')
   })
   it('Formats a date string, tersely', () => {
-    expect(formatDateTerse(moment().year() + '-05-03')).toBe('May 3rd')
+    expect(formatDateTerse(new Date().getFullYear() + '-05-03')).toBe('May 3rd')
   })
   it('Falls back to full year display if asked to be terse but the year is different', () => {
     expect(formatDateTerse('2019-05-03')).toBe('May 3rd 19')

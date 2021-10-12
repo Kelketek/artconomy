@@ -1,11 +1,12 @@
 import Component, {mixins} from 'vue-class-component'
+import {differenceInYears} from 'date-fns'
 import {User} from '@/store/profiles/types/User'
 import {AnonUser} from '@/store/profiles/types/AnonUser'
 import {ProfileController} from '@/store/profiles/controller'
 import {userHandle} from '@/store/profiles/handles'
 import {Ratings} from '@/store/profiles/types/Ratings'
 import ErrorHandling from '@/mixins/ErrorHandling'
-import moment from 'moment'
+import {parseISO} from '@/lib/lib'
 
 @Component
 export default class Viewer extends mixins(ErrorHandling) {
@@ -82,7 +83,7 @@ export default class Viewer extends mixins(ErrorHandling) {
     if (birthday === null) {
       return false
     }
-    return moment().diff(moment(birthday), 'years') >= 18
+    return differenceInYears(new Date(), parseISO(birthday)) >= 18
   }
 
   public ageCheck({value, force}: {value: number, force?: boolean}) {

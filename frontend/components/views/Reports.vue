@@ -42,9 +42,7 @@ import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import {ListController} from '@/store/lists/controller'
 import CustomerHolding from '@/types/CustomerHolding'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
-import {axiosCatch} from '@/store/forms/field-controller'
-import {artCall} from '@/lib/lib'
-import moment from 'moment-timezone'
+
   @Component({
     components: {AcPaginated, AcLoadSection},
   })

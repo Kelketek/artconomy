@@ -9,17 +9,17 @@ import Deliverable from '@/types/Deliverable'
 import {ListController} from '@/store/lists/controller'
 import Submission from '@/types/Submission'
 import {FormController} from '@/store/forms/form-controller'
-import {baseCardSchema, baseInvoiceSchema} from '@/lib/lib'
+import {baseCardSchema, baseInvoiceSchema, parseISO} from '@/lib/lib'
 import {LineTypes} from '@/types/LineTypes'
 import DeliverableViewSettings from '@/types/DeliverableViewSettings'
 import {VIEWER_TYPE} from '@/types/VIEWER_TYPE'
-import moment, {Moment} from 'moment-business-days'
 import {User} from '@/store/profiles/types/User'
 import Revision from '@/types/Revision'
 import LinkedCharacter from '@/types/LinkedCharacter'
 import LineItem from '@/types/LineItem'
 import LinkedReference from '@/types/LinkedReference'
 import Pricing from '@/types/Pricing'
+import {addBusinessDays, isAfter} from 'date-fns'
 /*
 
 This mixin is used by all deliverable routes. Some crucial operations only occur in DeliverableDetail as it is the host
@@ -166,20 +166,21 @@ export default class DeliverableMixin extends mixins(Viewer) {
   }
 
   public get deliveryDate() {
-    let time: Moment
+    let time: Date
     const deliverable = this.deliverable.x
     if (!deliverable) {
       return null
     }
     if (deliverable.paid_on) {
-      time = moment(deliverable.paid_on)
+      time = parseISO(deliverable.paid_on)
     } else {
-      time = moment()
+      time = new Date()
     }
-    return time.businessAdd(Math.ceil(this.expectedTurnaround))
+    return addBusinessDays(time, Math.ceil(this.expectedTurnaround))
   }
 
   public get disputeWindow() {
+    let date: Date
     /* istanbul ignore if */
     if (!this.deliverable.x) {
       return false
@@ -187,8 +188,12 @@ export default class DeliverableMixin extends mixins(Viewer) {
     if (!this.deliverable.x.trust_finalized) {
       return false
     }
-    // @ts-ignore
-    return (moment(this.deliverable.x.auto_finalize_on) as Moment) >= (moment() as Moment)
+    if (this.deliverable.x.auto_finalize_on) {
+      date = parseISO(this.deliverable.x.auto_finalize_on)
+    } else {
+      return false
+    }
+    return isAfter(date, new Date())
   }
 
   public get escrow() {

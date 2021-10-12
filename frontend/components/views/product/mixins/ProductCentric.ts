@@ -2,8 +2,8 @@ import Subjective from '@/mixins/subjective'
 import Component, {mixins} from 'vue-class-component'
 import {SingleController} from '@/store/singles/controller'
 import Product from '@/types/Product'
-import moment, {Moment} from 'moment-business-days'
 import {Prop} from 'vue-property-decorator'
+import {addBusinessDays, formatISO} from 'date-fns'
 
 @Component
 export default class ProductCentric extends mixins(Subjective) {
@@ -19,7 +19,7 @@ export default class ProductCentric extends mixins(Subjective) {
   public get deliveryDate() {
     const product = this.product.x as Product
     // @ts-ignore
-    return (moment() as Moment).businessAdd(Math.ceil(product.expected_turnaround))
+    return formatISO(addBusinessDays(new Date(), product.expected_turnaround))
   }
 
   public created() {

@@ -105,9 +105,10 @@ import Alerts from '@/mixins/alerts'
 import AcTagField from '@/components/fields/AcTagField.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import {Patch} from '@/store/singles/patcher'
-import moment from 'moment'
+import {differenceInYears} from 'date-fns'
+import {parseISO} from '@/lib/lib'
 
-  @Component({
+@Component({
     components: {AcTagField, AcLoadingSpinner, AcPatchField},
   })
 export default class Options extends mixins(Viewer, Subjective, Alerts) {
@@ -132,7 +133,7 @@ export default class Options extends mixins(Viewer, Subjective, Alerts) {
       if (birthday === null) {
         return false
       }
-      return moment().diff(moment(birthday), 'years') >= 18
+      return differenceInYears(new Date(), parseISO(birthday)) >= 18
     }
 
     public created() {

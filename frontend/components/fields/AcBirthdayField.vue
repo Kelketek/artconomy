@@ -17,10 +17,11 @@
     <v-date-picker
       ref="picker"
       v-model="scratch"
+      :active-picker.sync="activePicker"
       :max="new Date().toISOString().substr(0, 10)"
       min="1900-01-01"
       @change="update"
-    ></v-date-picker>
+    />
   </v-menu>
 </template>
 
@@ -38,11 +39,13 @@ export default class AcBirthdayField extends Vue {
 
   public menu = false
 
+  public activePicker = null
+
   @Watch('menu')
   public setDate(toggle: boolean) {
     /* istanbul ignore else */
     if (toggle) {
-      setTimeout(() => ((this.$refs.picker as any).activePicker = 'YEAR'))
+      setTimeout(() => (this.activePicker = 'YEAR'))
     }
   }
 
