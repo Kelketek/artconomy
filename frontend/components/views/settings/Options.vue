@@ -99,51 +99,50 @@
 import Component, {mixins} from 'vue-class-component'
 import Viewer from '@/mixins/viewer'
 import Subjective from '@/mixins/subjective'
-import {RATING_COLOR, RATING_LONG_DESC, RATINGS_SHORT} from '@/lib/lib'
+import {RATING_COLOR, RATING_LONG_DESC, RATINGS_SHORT, parseISO} from '@/lib/lib'
 import AcLoadingSpinner from '@/components/wrappers/AcLoadingSpinner.vue'
 import Alerts from '@/mixins/alerts'
 import AcTagField from '@/components/fields/AcTagField.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import {Patch} from '@/store/singles/patcher'
 import {differenceInYears} from 'date-fns'
-import {parseISO} from '@/lib/lib'
 
 @Component({
-    components: {AcTagField, AcLoadingSpinner, AcPatchField},
-  })
+  components: {AcTagField, AcLoadingSpinner, AcPatchField},
+})
 export default class Options extends mixins(Viewer, Subjective, Alerts) {
-    private ratingOptions = RATINGS_SHORT
-    private maxRating: Patch = null as unknown as Patch
-    private sfwMode: Patch = null as unknown as Patch
-    private artistMode: Patch = null as unknown as Patch
-    private favoritesHidden: Patch = null as unknown as Patch
-    private taggable: Patch = null as unknown as Patch
-    private blacklist: Patch = null as unknown as Patch
+  private ratingOptions = RATINGS_SHORT
+  private maxRating: Patch = null as unknown as Patch
+  private sfwMode: Patch = null as unknown as Patch
+  private artistMode: Patch = null as unknown as Patch
+  private favoritesHidden: Patch = null as unknown as Patch
+  private taggable: Patch = null as unknown as Patch
+  private blacklist: Patch = null as unknown as Patch
 
-    private ratingLongDesc = RATING_LONG_DESC
-    private ratingColor = RATING_COLOR
+  private ratingLongDesc = RATING_LONG_DESC
+  private ratingColor = RATING_COLOR
 
-    public get adultAllowed() {
-      if (this.sfwMode.model) {
-        return false
-      }
-      // @ts-ignore
-      // @ts-ignore
-      const birthday = this.subjectHandler.user.patchers.birthday.model
-      if (birthday === null) {
-        return false
-      }
-      return differenceInYears(new Date(), parseISO(birthday)) >= 18
+  public get adultAllowed() {
+    if (this.sfwMode.model) {
+      return false
     }
-
-    public created() {
-      this.maxRating = this.$makePatcher({modelProp: 'subjectHandler.user', attrName: 'rating'})
-      this.sfwMode = this.$makePatcher({modelProp: 'subjectHandler.user', attrName: 'sfw_mode'})
-      this.artistMode = this.$makePatcher({modelProp: 'subjectHandler.user', attrName: 'artist_mode'})
-      this.favoritesHidden = this.$makePatcher({modelProp: 'subjectHandler.user', attrName: 'favorites_hidden'})
-      this.taggable = this.$makePatcher({modelProp: 'subjectHandler.user', attrName: 'taggable'})
-      this.blacklist = this.$makePatcher({modelProp: 'subjectHandler.user', attrName: 'blacklist'})
+    // @ts-ignore
+    // @ts-ignore
+    const birthday = this.subjectHandler.user.patchers.birthday.model
+    if (birthday === null) {
+      return false
     }
+    return differenceInYears(new Date(), parseISO(birthday)) >= 18
+  }
+
+  public created() {
+    this.maxRating = this.$makePatcher({modelProp: 'subjectHandler.user', attrName: 'rating'})
+    this.sfwMode = this.$makePatcher({modelProp: 'subjectHandler.user', attrName: 'sfw_mode'})
+    this.artistMode = this.$makePatcher({modelProp: 'subjectHandler.user', attrName: 'artist_mode'})
+    this.favoritesHidden = this.$makePatcher({modelProp: 'subjectHandler.user', attrName: 'favorites_hidden'})
+    this.taggable = this.$makePatcher({modelProp: 'subjectHandler.user', attrName: 'taggable'})
+    this.blacklist = this.$makePatcher({modelProp: 'subjectHandler.user', attrName: 'blacklist'})
+  }
 }
 </script>
 

@@ -39,7 +39,7 @@ export default class AcBirthdayField extends Vue {
 
   public menu = false
 
-  public activePicker = null
+  public activePicker: null|string = null
 
   @Watch('menu')
   public setDate(toggle: boolean) {

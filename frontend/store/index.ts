@@ -60,7 +60,7 @@ export function storeDefaults(): StoreOptions<State> {
       },
       setShowAgeVerification(state, value: boolean) {
         state.showAgeVerification = value
-      }
+      },
     },
     getters: {
       latestAlert(state) {
