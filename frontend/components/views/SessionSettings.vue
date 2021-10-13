@@ -5,7 +5,7 @@
         <v-card>
           <v-card-text>
             <v-row no-gutters  >
-              <v-col cols="12" md="6" lg="4">
+              <v-col cols="12" md="6" lg="4" order="2" order-md="1">
                 <ac-patch-field
                   field-type="ac-birthday-field"
                   label="Birthday"
@@ -14,7 +14,10 @@
                   hint="You must be at least 18 years old to view adult content."
                 ></ac-patch-field>
               </v-col>
-              <v-col cols="12">
+              <v-col cols="12" md="6" lg="8" class="text-center mt-5" order="1" order-md="2">
+                <v-btn @click="updateCookieSettings" color="secondary" class="cookie-settings-button">Update Cookie Settings</v-btn>
+              </v-col>
+              <v-col cols="12" order="3">
                 <v-card-text :class="{disabled: patchers.sfw_mode.model}">
                   <ac-patch-field
                       field-type="ac-rating-field"
@@ -28,7 +31,7 @@
                   </ac-patch-field>
                 </v-card-text>
               </v-col>
-              <v-col cols="12" sm="6">
+              <v-col cols="12" sm="6" order="4">
                 <ac-patch-field field-type="v-switch" label="SFW Mode"
                                 :patcher="patchers.sfw_mode"
                                 hint="Overrides your content preferences to only allow clean content. Useful if viewing the site
@@ -36,17 +39,17 @@
                                 :save-indicator="false"
                                 persistent-hint></ac-patch-field>
               </v-col>
-              <v-col class="pa-2 text-center" cols="12" sm="6" >
+              <v-col class="pa-2 text-center" cols="12" sm="6" order="5">
                 <p class="title">Register, and get access to more cool features like:</p>
               </v-col>
-              <v-col class="d-flex" cols="12" sm="6" >
+              <v-col class="d-flex" cols="12" sm="6" order="6">
                 <v-row no-gutters class="justify-content d-flex"  align="center" >
                   <v-col>
                     <v-img src="/static/images/laptop.png" max-height="30vh" :contain="true"></v-img>
                   </v-col>
                 </v-row>
               </v-col>
-              <v-col class="d-flex" cols="12" sm="6" >
+              <v-col class="d-flex" cols="12" sm="6" order="7">
                 <v-row no-gutters class="justify-content"  align="center">
                   <v-spacer />
                   <v-col>
@@ -71,7 +74,7 @@
                   <v-spacer />
                 </v-row>
               </v-col>
-              <v-col class="text-center pt-2" cols="12" >
+              <v-col class="text-center pt-2" cols="12" order="8">
                 <v-btn color="primary" :to="{name: 'Login', params: {tabName: 'register'}}">Sign up for FREE!</v-btn>
               </v-col>
             </v-row>
@@ -108,6 +111,10 @@ export default class SessionSettings extends mixins(Viewer) {
       return false
     }
     return differenceInYears(new Date(), parseISO(birthday)) >= 18
+  }
+
+  public updateCookieSettings() {
+    this.$store.commit('setShowCookieDialog', true)
   }
 
   public created() {

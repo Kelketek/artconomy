@@ -791,3 +791,8 @@ class MoneyToFloatField(serializers.FloatField):
     """
     def to_representation(self, value):
         return float(value.amount)
+
+
+class CookieConsent(serializers.Serializer):
+    first_party_analytics = serializers.BooleanField()
+    third_party_analytics = serializers.BooleanField()

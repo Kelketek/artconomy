@@ -17,7 +17,6 @@ import {
 } from '@/specs/helpers'
 import mockAxios from '@/specs/helpers/mock-axios'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
-import {useMockStorage} from '@/lib/specs/helpers'
 
 // Must use it directly, due to issues with package imports upstream.
 const localVue = vueSetup()
@@ -34,7 +33,6 @@ describe('NavBar.vue', () => {
     vuetify = createVuetify()
     empty = mount(Empty, {localVue, store})
     empty.vm.$getForm('search', {endpoint: '/', fields: {q: {value: ''}}})
-    useMockStorage()
   })
   afterEach(() => {
     cleanUp(wrapper)

@@ -3,8 +3,7 @@
     <v-card-text>
       <v-subheader>Community</v-subheader>
       <v-container fluid class="py-0">
-        <v-row no-gutters class="pb-4"   >
-
+        <v-row no-gutters class="pb-4">
           <v-col cols="12" sm="6" md="4">
             <ac-patch-field
                 field-type="v-switch"
@@ -39,7 +38,7 @@
           <v-subheader>Content/Browsing</v-subheader>
           <v-card-text :class="{disabled: sfwMode.model}">
             <v-row no-gutters>
-              <v-col cols="12" md="6" lg="4">
+              <v-col order="2" cols="12" order-md="1" md="6" lg="4">
                 <ac-patch-field
                   field-type="ac-birthday-field"
                   label="Birthday"
@@ -48,7 +47,10 @@
                   hint="You must be at least 18 years old to view adult content."
                 ></ac-patch-field>
               </v-col>
-              <v-col cols="12" class="pt-5"><strong>Select the maximum content rating you'd like to see when browsing.</strong></v-col>
+              <v-col order="1" cols="12" order-md="2" md="6" lg="8" class="text-center">
+                <v-btn color="secondary" @click="updateCookieSettings" class="cookie-settings-button">Update Cookie Settings</v-btn>
+              </v-col>
+              <v-col order="3" cols="12" class="pt-5"><strong>Select the maximum content rating you'd like to see when browsing.</strong></v-col>
             </v-row>
             <ac-patch-field
                 field-type="v-slider"
@@ -133,6 +135,10 @@ export default class Options extends mixins(Viewer, Subjective, Alerts) {
       return false
     }
     return differenceInYears(new Date(), parseISO(birthday)) >= 18
+  }
+
+  public updateCookieSettings() {
+    this.$store.commit('setShowCookieDialog', true)
   }
 
   public created() {

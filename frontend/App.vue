@@ -175,6 +175,7 @@
           <router-link :to="{name: 'TermsOfService'}">Terms of Service</router-link>
         </v-col>
       </v-row>
+      <ac-cookie-consent />
     </v-main>
     <div class="dev-mode-overlay text-center" v-if="devMode">
       <v-icon size="50vw">construction</v-icon>
@@ -223,8 +224,9 @@ import {AnonUser} from '@/store/profiles/types/AnonUser'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import PrerenderMixin from '@/mixins/PrerenderMixin'
+import AcCookieConsent from '@/components/AcCookieConsent.vue'
 
-@Component({components: {AcPatchField, AcForm, AcMarkdownExplanation, AcError, AcFormDialog, NavBar}})
+@Component({components: {AcCookieConsent, AcPatchField, AcForm, AcMarkdownExplanation, AcError, AcFormDialog, NavBar}})
 export default class App extends mixins(Viewer, Nav, PrerenderMixin) {
   @State('profiles') public p!: UserStoreState
   @Mutation('supportDialog') public setSupport: any

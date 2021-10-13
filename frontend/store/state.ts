@@ -23,4 +23,5 @@ export interface State {
   ageAsked: boolean,
   contentRating: number,
   showAgeVerification: boolean,
+  showCookieDialog: boolean,
 }

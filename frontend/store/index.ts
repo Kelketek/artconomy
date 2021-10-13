@@ -23,6 +23,7 @@ export function storeDefaults(): StoreOptions<State> {
       ageAsked: false,
       contentRating: 0,
       showAgeVerification: false,
+      showCookieDialog: false,
     },
     mutations: {
       supportDialog(state, value: boolean) {
@@ -60,6 +61,9 @@ export function storeDefaults(): StoreOptions<State> {
       },
       setShowAgeVerification(state, value: boolean) {
         state.showAgeVerification = value
+      },
+      setShowCookieDialog(state, value: boolean) {
+        state.showCookieDialog = value
       },
     },
     getters: {

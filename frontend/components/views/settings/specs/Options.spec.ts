@@ -45,4 +45,18 @@ describe('Options.vue', () => {
     await vm.$nextTick()
     expect(vm.adultAllowed).toBe(false)
   })
+  it('Reopens the cookie dialog', async() => {
+    setViewer(store, genUser({birthday: null, username: 'Fox'}))
+    wrapper = qMount(Options, {
+      localVue,
+      store,
+      propsData: {username: 'Fox'},
+    })
+    const vm = wrapper.vm as any
+    await vm.$nextTick()
+    expect(store.state.showCookieDialog).toBe(false)
+    wrapper.find('.cookie-settings-button').trigger('click')
+    await vm.$nextTick()
+    expect(store.state.showCookieDialog).toBe(true)
+  })
 })

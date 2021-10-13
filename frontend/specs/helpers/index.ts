@@ -33,7 +33,6 @@ import {ArtStore, createStore} from '@/store'
 import Router from 'vue-router'
 import {HttpVerbs} from '@/store/forms/types/HttpVerbs'
 import {Shortcuts} from '@/plugins/shortcuts'
-import {useRealStorage} from '@/lib/specs/helpers'
 import {VueSocket} from '@/plugins/socket'
 import WS from 'jest-websocket-mock'
 
@@ -212,7 +211,6 @@ export function cleanUp(wrapper?: Wrapper<Vue>) {
   listRegistry.reset()
   formRegistry.reset()
   characterRegistry.reset()
-  useRealStorage()
 }
 
 export function setPricing(store: ArtStore, localVue: VueConstructor<Vue>) {

@@ -1,6 +1,8 @@
 <!-- Matomo -->
 <script type="text/javascript">
 var _paq = window._paq || []
+// Don't track things that require cookies if the user has not consented.
+_paq.push(['requireCookieConsent'])
 /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
 _paq.push(['trackPageView'])
 _paq.push(['enableLinkTracking']);
@@ -14,9 +16,10 @@ _paq.push(['enableLinkTracking']);
 </script>
 <!-- End Matomo Code -->
 <!-- Pinterest Tag -->
-<script type="text/javascript">
-    !function(e){var t=document.createElement("script");t.async=!0,t.src=e;var
-        r=document.getElementsByTagName("script")[0];
-        r.parentNode.insertBefore(t,r)}("https://s.pinimg.com/ct/core.js");
-</script>
+<!-- Disabling pinterest tagging for now since we don't use it. When we re-enable it, we should have cookie consent banners that include it. -->
+<!--<script type="text/javascript">-->
+<!--    !function(e){var t=document.createElement("script");t.async=!0,t.src=e;var-->
+<!--        r=document.getElementsByTagName("script")[0];-->
+<!--        r.parentNode.insertBefore(t,r)}("https://s.pinimg.com/ct/core.js");-->
+<!--</script>-->
 <!-- end Pinterest Tag -->
