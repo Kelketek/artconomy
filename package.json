@@ -16,8 +16,8 @@
   },
   "dependencies": {
     "@hcaptcha/vue-hcaptcha": "^0.3.0",
-    "@sentry/browser": "^6.0.2",
-    "@sentry/integrations": "^6.0.2",
+    "@sentry/browser": "^6.13.3",
+    "@sentry/integrations": "^6.13.3",
     "@sentry/webpack-plugin": "^1.14.0",
     "@stripe/stripe-js": "^1.13.2",
     "@types/lodash": "^4.14.165",
