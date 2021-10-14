@@ -46,6 +46,7 @@ urlpatterns = [
         name='artist_profile_update',
     ),
     path('v1/account/<username>/auth/credentials/', views.CredentialsAPI.as_view(), name='credentials'),
+    path('v1/account/<username>/auth/delete-account/', views.DestroyAccount.as_view(), name='destroy_account'),
     path(
         'v1/account/<username>/auth/two-factor/totp/<int:totp_id>/',
         views.TOTPDeviceManager.as_view(), name='totp_manager'

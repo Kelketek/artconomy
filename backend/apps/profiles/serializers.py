@@ -758,3 +758,28 @@ class UsernameValidationSerializer(serializers.Serializer):
 # noinspection PyAbstractClass
 class EmailValidationSerializer(serializers.Serializer):
     email = serializers.EmailField(validators=[user_value_taken('email')])
+
+
+class DeleteUserSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    email = serializers.EmailField()
+    password = serializers.CharField()
+    verify = serializers.BooleanField(required=True)
+
+    def validate_username(self, username):
+        if self.context['user'].username.lower() != username.lower():
+            raise ValidationError('Username does not match.')
+        return username
+
+    def validate_password(self, password):
+        if not self.context['user'].check_password(password):
+            raise ValidationError('Wrong password.')
+
+    def validate_email(self, email):
+        if not self.context['user'].email.lower() == email:
+            raise ValidationError('Wrong email address.')
+
+    def validate_verify(self, verify):
+        if not verify:
+            raise ValidationError('You must give final confirmation.')
+        return verify

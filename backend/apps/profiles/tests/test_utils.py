@@ -13,7 +13,7 @@ from apps.lib.test_resources import APITestCase
 from apps.lib.tests.factories_interdepend import CommentFactory
 from apps.profiles.models import ArtconomyAnonymousUser
 from apps.profiles.tests.factories import UserFactory, SubmissionFactory, CharacterFactory, AvatarFactory
-from apps.profiles.utils import extend_portrait, extend_landscape, empty_user, clear_user
+from apps.profiles.utils import extend_portrait, extend_landscape, empty_user, clear_user, UserClearException
 from apps.sales.models import NEW, IN_PROGRESS, PAYMENT_PENDING, WAITING, CANCELLED, TransactionRecord, COMPLETED
 from apps.sales.tests.factories import DeliverableFactory, TransactionRecordFactory, ProductFactory, BankAccountFactory
 
@@ -101,16 +101,20 @@ class TestClearUser(TestCase):
     def test_fail_on_outstanding_order(self):
         user = UserFactory.create()
         DeliverableFactory.create(order__buyer=user, status=IN_PROGRESS)
-        with self.assertRaises(RuntimeError) as err:
+        with self.assertRaises(UserClearException) as err:
             clear_user(user)
-        self.assertEqual(str(err.exception), 'User has outstanding orders which are unfinished. Cannot remove!')
+        self.assertEqual(
+            str(err.exception), f'{user.username} has outstanding orders which are unfinished. Cannot remove!',
+        )
 
     def test_fail_on_outstanding_sale(self):
         user = UserFactory.create()
         DeliverableFactory.create(order__seller=user, status=IN_PROGRESS)
-        with self.assertRaises(RuntimeError) as err:
+        with self.assertRaises(UserClearException) as err:
             clear_user(user)
-        self.assertEqual(str(err.exception), 'User has outstanding sales to finish. Cannot remove!')
+        self.assertEqual(
+            str(err.exception), f'{user.username} has outstanding sales to complete or refund. Cannot remove!',
+        )
 
     def test_fail_balance(self):
         user = UserFactory()
@@ -120,9 +124,11 @@ class TestClearUser(TestCase):
             destination=TransactionRecord.HOLDINGS,
             status=TransactionRecord.SUCCESS,
         )
-        with self.assertRaises(RuntimeError) as err:
+        with self.assertRaises(UserClearException) as err:
             clear_user(user)
-        self.assertEqual(str(err.exception), 'User has uncleared transactions! Cannot remove!')
+        self.assertEqual(
+            str(err.exception), f'{user.username} has pending transactions! Cannot remove!',
+        )
 
     def test_fail_pending(self):
         user = UserFactory()
@@ -138,10 +144,11 @@ class TestClearUser(TestCase):
             source=TransactionRecord.HOLDINGS,
             status=TransactionRecord.PENDING,
         )
-        with self.assertRaises(RuntimeError) as err:
+        with self.assertRaises(UserClearException) as err:
             clear_user(user)
-        self.assertEqual(str(err.exception), 'User has uncleared transactions! Cannot remove!')
-
+        self.assertEqual(
+            str(err.exception), f'{user.username} has pending transactions! Cannot remove!',
+        )
 
     def test_zero_balance(self):
         user = UserFactory()

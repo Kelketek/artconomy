@@ -2,6 +2,7 @@ import logging
 import uuid
 from datetime import date
 from functools import lru_cache
+from typing import Dict
 
 from avatar.models import Avatar
 from avatar.signals import avatar_updated
@@ -77,11 +78,11 @@ from apps.profiles.serializers import (
     ArtistProfileSerializer,
     CharacterSharedSerializer,
     SubmissionArtistTagSerializer, SubmissionCharacterTagSerializer,
-    SubmissionSharedSerializer, AttributeListSerializer, CharacterManagementSerializer)
+    SubmissionSharedSerializer, AttributeListSerializer, CharacterManagementSerializer, DeleteUserSerializer)
 from apps.profiles.tasks import mailchimp_subscribe
 from apps.profiles.utils import (
     available_chars, char_ordering, available_submissions,
-    empty_user)
+    empty_user, clear_user, UserClearException)
 from apps.sales.models import Order, Reference, Deliverable, Revision
 from apps.sales.serializers import SearchQuerySerializer
 from apps.sales.utils import claim_order_by_token
@@ -492,7 +493,6 @@ class CurrentUserInfo(UserInfo):
             base_data = UserSerializer(instance=request.user, context=self.get_serializer_context()).data
             del data['username']
             data = {**base_data, **data}
-        trigger_reconnect(request)
         return Response(status=status.HTTP_200_OK, data=data)
 
     def get_object(self):
@@ -1568,3 +1568,30 @@ class RecommendedCharacters(ListAPIView):
             ),
         ).order_by('same_user', '?')
         return qs
+
+
+class DestroyAccount(GenericAPIView):
+    serializer_class = DeleteUserSerializer
+    permission_classes = [UserControls]
+
+    def get_object(self) -> User:
+        user = get_object_or_404(User, username=self.kwargs['username'])
+        self.check_object_permissions(self.request, user)
+        return user
+
+    def get_serializer_context(self) -> Dict[str, Any]:
+        context = super().get_serializer_context()
+        context['user'] = self.get_object()
+        return context
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            clear_user(serializer.context['user'])
+        except UserClearException as err:
+            raise ValidationError(str(err)) from err
+        if serializer.context['user'] == request.user:
+            logout(request)
+            trigger_reconnect(request, include_current=True)
+        return Response(status=status.HTTP_204_NO_CONTENT)

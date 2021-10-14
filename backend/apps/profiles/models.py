@@ -212,15 +212,18 @@ from django.contrib.auth import models as auth_models, user_logged_in, user_logg
 auth_models.AnonymousUser = ArtconomyAnonymousUser
 
 
-def trigger_reconnect(request):
+def trigger_reconnect(request, include_current=False):
     """
     Forces listeners on an IP to reconnect, as long as they aren't the current listener.
     """
     socket_key = request.COOKIES.get('ArtconomySocketKey')
     if not socket_key:
         return
+    exclude = exclude_request(request)
+    if include_current:
+        exclude = None
     websocket_send(
-        group=f'client.socket_key.{socket_key}', command='reset', exclude=exclude_request(request),
+        group=f'client.socket_key.{socket_key}', command='reset', exclude=exclude,
     )
 
 

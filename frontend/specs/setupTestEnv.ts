@@ -1,9 +1,10 @@
+/* This is run after initial Jest environment setup. It has access to the Jest globals, so we can access expect here. */
 
 export function testName() {
     return expect.getState().currentTestName
 }
 
-class LocalStorageMock {
+export class LocalStorageMock {
     store: {[key: string]: {[key: string]: string}}
     constructor() {
         this.store = {}

@@ -13,7 +13,7 @@ from apps.profiles.middleware import derive_session_settings
 from apps.profiles.models import Character, Submission, User, Conversation, ConversationParticipant
 from apps.sales.dwolla import destroy_bank_account
 from apps.sales.models import TransactionRecord, DISPUTED, IN_PROGRESS, QUEUED, REVIEW, PAYMENT_PENDING, NEW, \
-    Deliverable, WAITING
+    Deliverable, WAITING, StripeAccount, CreditCardToken
 from apps.sales.utils import account_balance, PENDING, cancel_deliverable
 
 
@@ -159,6 +159,12 @@ def create_guest_user(email: str) -> User:
     return user
 
 
+class UserClearException(Exception):
+    """
+    Exception raised in the case a user can't be deleted.
+    """
+
+
 def clear_user(user: User):
     # Clears out as much user data as is practical. Uses normal iterators, despite being slow, to ensure all cleanup
     # hooks are run.
@@ -166,15 +172,19 @@ def clear_user(user: User):
     holdup_statuses = [DISPUTED, IN_PROGRESS, QUEUED, REVIEW]
     clearable_statuses = [NEW, PAYMENT_PENDING, WAITING]
     if user.sales.filter(deliverables__status__in=holdup_statuses).exists():
-        raise RuntimeError('User has outstanding sales to finish. Cannot remove!')
+        raise UserClearException(f'{user.username} has outstanding sales to complete or refund. Cannot remove!')
     if user.buys.filter(deliverables__status__in=holdup_statuses).exists():
-        raise RuntimeError('User has outstanding orders which are unfinished. Cannot remove!')
+        raise UserClearException(f'{user.username} has outstanding orders which are unfinished. Cannot remove!')
+    if user.is_staff or user.is_superuser:
+        raise UserClearException(
+            f'{user.username} is an administrative account. It cannot be removed until it is deprivileged.',
+        )
     stoppers = [
         account_balance(user, TransactionRecord.HOLDINGS),
         account_balance(user, TransactionRecord.HOLDINGS, PENDING)
     ]
     if any(stoppers):
-        raise RuntimeError('User has uncleared transactions! Cannot remove!')
+        raise UserClearException(f'{user.username} has pending transactions! Cannot remove!')
     for sale in Deliverable.objects.filter(status__in=clearable_statuses, order__seller=user):
         cancel_deliverable(sale, user)
     for order in Deliverable.objects.filter(status__in=clearable_statuses, order__buyer=user):
@@ -183,18 +193,21 @@ def clear_user(user: User):
     notes = user.notes
     if notes:
         notes += f'\n\nUsername: {user.username}, Email: {user.email}, removed on {timezone.now()}'
-    user.username = f'__deleted{user.id}'
-    user.set_password(str(uuid4()))
-    user.email = f'{uuid4()}@local'
-    user.is_active = False
-    user.landscape_enabled = False
-    user.portrait_enabled = False
-    user.subscription_set.all().delete()
-    for avatar in Avatar.objects.filter(user=user):
-        avatar.avatar.delete()
-        avatar.delete()
-    user.avatar_url = avatar_url(user)
-    user.save()
+    for account in StripeAccount.objects.filter(user=user):
+        try:
+            account.delete()
+        except Exception as err:
+            raise UserClearException(f'Error removing stripe account for {user.username}: {err}') from err
+    for bank in user.banks.exclude(deleted=True):
+        try:
+            destroy_bank_account(bank)
+        except Exception as err:
+            raise UserClearException(f'Error removing bank account information: {err}') from err
+    for card in user.credit_cards.all():
+        try:
+            card.mark_deleted()
+        except Exception as err:
+            raise UserClearException(f'Error removing card information: {err}') from err
     for favorite in user.favorites.all():
         user.favorites.remove(favorite)
     for watcher in user.watched_by.all():
@@ -211,12 +224,20 @@ def clear_user(user: User):
         destroy_comment(comment)
     for product in user.products.all():
         product.delete()
-    for bank in user.banks.all():
-        destroy_bank_account(bank)
-    for card in user.credit_cards.all():
-        card.mark_deleted()
     # These can just be straight up cleared.
     user.notifications.all().delete()
+    user.username = f'__deleted{user.id}'
+    user.set_password(str(uuid4()))
+    user.email = f'{uuid4()}@local'
+    user.is_active = False
+    user.landscape_enabled = False
+    user.portrait_enabled = False
+    user.subscription_set.all().delete()
+    for avatar in Avatar.objects.filter(user=user):
+        avatar.avatar.delete()
+        avatar.delete()
+    user.avatar_url = avatar_url(user)
+    user.save()
 
 
 def leave_conversation(user: User, conversation: Conversation):

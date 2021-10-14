@@ -1611,3 +1611,92 @@ class TestWithdrawOnAutoWithdrawEnabled(APITestCase):
             mock_withdraw_all.apply_async.assert_called_with((user.id,), countdown=10)
         else:
             mock_withdraw_all.apply_async.assert_not_called()
+
+
+class TestDestroyUser(APITestCase):
+    def test_destroy_user(self):
+        user = UserFactory.create()
+        self.login(user)
+        self.assertTrue(user.is_active)
+        response = self.client.post(
+            f'/api/profiles/v1/account/{user.username}/auth/delete-account/',
+            {'username': user.username, 'password': 'Test', 'email': user.email, 'verify': True},
+        )
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        user.refresh_from_db()
+        self.assertFalse(user.is_active)
+
+    def test_destroy_user_fails_wrong_password(self):
+        user = UserFactory.create()
+        self.login(user)
+        self.assertTrue(user.is_active)
+        response = self.client.post(
+            f'/api/profiles/v1/account/{user.username}/auth/delete-account/',
+            {'username': user.username, 'password': 'WrongPassword', 'email': user.email, 'verify': True},
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('password', response.data)
+        user.refresh_from_db()
+        self.assertTrue(user.is_active)
+
+    def test_destroy_user_fails_no_verify(self):
+        user = UserFactory.create()
+        self.login(user)
+        self.assertTrue(user.is_active)
+        response = self.client.post(
+            f'/api/profiles/v1/account/{user.username}/auth/delete-account/',
+            {'username': user.username, 'password': 'WrongPassword', 'email': user.email, 'verify': False},
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('verify', response.data)
+        user.refresh_from_db()
+        self.assertTrue(user.is_active)
+
+    def test_destroy_user_fails_empty_request(self):
+        user = UserFactory.create()
+        self.login(user)
+        self.assertTrue(user.is_active)
+        response = self.client.post(
+            f'/api/profiles/v1/account/{user.username}/auth/delete-account/',
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('verify', response.data)
+        user.refresh_from_db()
+        self.assertTrue(user.is_active)
+
+    def test_destroy_user_fails_unauthenticated(self):
+        user = UserFactory.create()
+        self.assertTrue(user.is_active)
+        response = self.client.post(
+            f'/api/profiles/v1/account/{user.username}/auth/delete-account/',
+            {'username': user.username, 'password': 'Test', 'email': user.email, 'verify': True},
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        user.refresh_from_db()
+        self.assertTrue(user.is_active)
+
+    def test_destroy_user_fails_wrong_user(self):
+        user = UserFactory.create()
+        user2 = UserFactory.create()
+        self.login(user2)
+        self.assertTrue(user.is_active)
+        response = self.client.post(
+            f'/api/profiles/v1/account/{user.username}/auth/delete-account/',
+            {'username': user.username, 'password': 'Test', 'email': user.email, 'verify': True},
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        user.refresh_from_db()
+        self.assertTrue(user.is_active)
+
+    def test_destroy_user_staff(self):
+        user = UserFactory.create()
+        user2 = UserFactory.create(is_staff=True)
+        self.login(user2)
+        self.assertTrue(user.is_active)
+        response = self.client.post(
+            f'/api/profiles/v1/account/{user.username}/auth/delete-account/',
+            {'username': user.username, 'password': 'Test', 'email': user.email, 'verify': True},
+        )
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        user.refresh_from_db()
+        self.assertFalse(user.is_active)

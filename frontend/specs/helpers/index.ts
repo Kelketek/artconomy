@@ -211,6 +211,7 @@ export function cleanUp(wrapper?: Wrapper<Vue>) {
   listRegistry.reset()
   formRegistry.reset()
   characterRegistry.reset()
+  localStorage.clear()
 }
 
 export function setPricing(store: ArtStore, localVue: VueConstructor<Vue>) {
