@@ -398,6 +398,7 @@ class SetAvatar(APIView):
         user = get_object_or_404(User, username=username)
         self.check_object_permissions(request, user)
         file_obj = request.data.get('files[]')
+        file_obj.name = file_obj.name.rsplit('.')[0][:50] + '.' + file_obj.name.rsplit('.')[1][:4]
         if not file_obj:
             raise ValidationError({'files[]': ['This field is required.']})
         avatar = Avatar(user=request.user, primary=True, avatar=file_obj)
