@@ -10,6 +10,7 @@ from multiprocessing import Queue
 from pathlib import Path
 from pprint import pformat
 from subprocess import call
+from tempfile import TemporaryDirectory
 from unittest.mock import Mock, patch
 
 import coverage
@@ -17,8 +18,6 @@ import signal_disabler
 
 from ddt import ddt, data
 from django.conf import settings
-from django.core import management
-from django.core.management import call_command
 from django.db import connections
 from django.test.runner import DiscoverRunner, ParallelTestSuite
 from rest_framework.exceptions import PermissionDenied
@@ -191,6 +190,8 @@ class NPMBuildTestRunner(DiscoverRunner):
         self.time_reports.cancel_join_thread()
         self.class_time_reports.cancel_join_thread()
         self.coverage_reporter = None
+        self.media_root = TemporaryDirectory()
+        self.static_root = TemporaryDirectory()
 
     def instrument_time_checks(self):
         from unittest import TestCase
@@ -239,8 +240,14 @@ class NPMBuildTestRunner(DiscoverRunner):
         settings.WEBPACK_LOADER['DEFAULT']['STATS_FILE'] = os.path.join(
             settings.BASE_DIR, 'webpack-stats-saved.json'
         )
+        settings.MEDIA_ROOT = self.media_root.name
+        settings.STATIC_ROOT = self.static_root.name
         if self.time:
             self.instrument_time_checks()
+
+    def teardown_test_environment(self, **kwargs: dict) -> None:
+        self.media_root.cleanup()
+        self.static_root.cleanup()
 
     def run_time_report(self):
         def queue_yield():
