@@ -463,7 +463,7 @@ def priority_total(
             reductions.append(distribute_reduction(
                 total=current_total - discount, distributed_amount=cascaded_amount, line_values={
                     key: value for key, value in subtotals.items() if key.priority < line.priority
-            }))
+                }))
         if added_amount:
             summable_totals[line] = added_amount
         working_subtotals[line] = working_amount

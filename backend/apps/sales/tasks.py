@@ -191,6 +191,14 @@ def update_transfer_status(record_id):
         if status.body['status'] == 'processed':
             record.status = TransactionRecord.SUCCESS
             record.save()
+            new_record = TransactionRecord.objects.get_or_create(
+                remote_id=record.remote_id, amount=record.amount,
+                payer=record.payer, payee=record.payee, source=TransactionRecord.PAYOUT_MIRROR_SOURCE,
+                destination=TransactionRecord.PAYOUT_MIRROR_DESTINATION, status=TransactionRecord.SUCCESS,
+                category=TransactionRecord.CASH_WITHDRAW,
+                created_on=record.created_on, finalized_on=timezone.now(),
+            )[0]
+            new_record.targets.add(*record.targets.all())
             TransactionRecord.objects.filter(
                 targets=ref_for_instance(record), category=TransactionRecord.THIRD_PARTY_FEE,
             ).update(status=TransactionRecord.SUCCESS)
@@ -309,14 +317,15 @@ def stripe_transfer(record_id, stripe_id, deliverable_id=None):
     record = TransactionRecord.objects.get(id=record_id)
     base_settings['amount'], base_settings['currency'] = money_to_stripe(record.amount)
     base_settings['destination'] = stripe_account.token
+    base_settings['metadata'] = {'reference_transaction': record.id}
     assert record.payee == stripe_account.user
     with stripe as stripe_api:
         try:
             transfer = stripe_api.Transfer.create(
                 **base_settings,
             )
-            record.status = TransactionRecord.SUCCESS
-            record.remote_id = transfer.id
+            record.status = TransactionRecord.PENDING
+            record.remote_id = f'{transfer.destination_payment}|{transfer.id}'
             record.response_message = ''
             record.save()
         except Exception as err:

@@ -126,6 +126,7 @@ urlpatterns = [
     path('v1/account/<username>/banks/<int:account>/', views.BankManager.as_view(), name='bank_manager'),
     path('v1/account/<username>/account-status/', views.AccountStatus.as_view(), name='account_status'),
     path('v1/account/<username>/transactions/', views.AccountHistory.as_view(), name='account_history'),
+    path('v1/account/<username>/reports/payout/', views.UserPayoutReportCSV.as_view(), name='account_payouts'),
     path(
         'v1/account/<username>/commissions-status-image/',
         views.CommissionStatusImage.as_view(),

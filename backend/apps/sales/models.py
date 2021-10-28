@@ -940,11 +940,23 @@ class TransactionRecord(Model):
     # For when a customer gives us cash, like at an event.
     CASH_DEPOSIT = 407
 
+    # These next accounts are used to generate reports about what money was actually deposited into the payee's currency
+    # for tax purposes.
+
+    # The balance of this account will always be negative (or zero) and potentially incalculable because the currency
+    # could vary.
+    PAYOUT_MIRROR_SOURCE = 500
+    # The balance of this account will always be positive (or zero) and potentially incalculable because the currency
+    # could vary.
+    PAYOUT_MIRROR_DESTINATION = 501
+
     ACCOUNT_TYPES = (
         (CARD, 'Credit Card'),
         (BANK, 'Bank Account'),
         (ESCROW, 'Escrow'),
         (HOLDINGS, 'Finalized Earnings, available for withdraw'),
+        (PAYOUT_MIRROR_SOURCE, '(Local Currency) Finalized Earnings, available for withdraw'),
+        (PAYOUT_MIRROR_DESTINATION, '(Local Currency) Bank Account'),
         (RESERVE, 'Contingency reserve'),
         (UNPROCESSED_EARNINGS, 'Unannotated earnings'),
         (CARD_TRANSACTION_FEES, 'Card transaction fees'),

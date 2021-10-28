@@ -1,12 +1,16 @@
+import csv
 import logging
 from _csv import QUOTE_ALL
 from datetime import datetime
 from decimal import Decimal
 from functools import lru_cache
-from pprint import pformat
+from io import StringIO
+from pprint import pformat, pprint
 from typing import Union
 from uuid import uuid4
 
+import dateutil
+import requests
 from dateutil.parser import parse, ParserError
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
@@ -14,6 +18,7 @@ from django.contrib.auth import login
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction, IntegrityError
 from django.db.models import When, F, Case, BooleanField, Q, Count, QuerySet, IntegerField
+from django.db.transaction import atomic
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -24,7 +29,8 @@ from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.static import serve
 from hitcount.models import HitCount
 from hitcount.views import HitCountMixin
-from moneyed import Money
+from moneyed import Money, get_currency
+from requests.auth import HTTPBasicAuth
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, RetrieveAPIView, \
@@ -37,7 +43,7 @@ from rest_framework_csv.renderers import CSVRenderer
 
 from apps.lib.abstract_models import GENERAL
 from apps.lib.models import DISPUTE, REFUND, COMMENT, Subscription, ORDER_UPDATE, SALE_UPDATE, REVISION_UPLOADED, \
-    NEW_PRODUCT, STREAMING, REFERENCE_UPLOADED, Comment, WAITLIST_UPDATED, ref_for_instance
+    NEW_PRODUCT, STREAMING, REFERENCE_UPLOADED, Comment, WAITLIST_UPDATED, ref_for_instance, TRANSFER_FAILED
 from apps.lib.permissions import IsStaff, IsSafeMethod, Any, All, IsMethod
 from apps.lib.serializers import CommentSerializer
 from apps.lib.utils import notify, recall_notification, demark, preview_rating, send_transaction_email, create_comment, \
@@ -74,7 +80,7 @@ from apps.sales.serializers import (
     LineItemSerializer, DeliverableValuesSerializer, SimpleTransactionSerializer, InventorySerializer,
     PayoutTransactionSerializer, OrderViewSerializer, ReferenceSerializer, DeliverableReferenceSerializer,
     NewDeliverableSerializer, PinSerializer, PaymentIntentSettings, PremiumIntentSettings, StripeAccountSerializer,
-    StripeBankSetupSerializer)
+    StripeBankSetupSerializer, UserPayoutTransactionSerializer)
 from apps.sales.tasks import renew, withdraw_all
 from apps.sales.utils import available_products, service_price, set_service, \
     check_charge_required, available_products_by_load, finalize_deliverable, account_balance, \
@@ -2216,6 +2222,39 @@ class DwollaSetupFees(CSVReport, ListAPIView, DateConstrained):
         ).exclude(status=TransactionRecord.FAILURE).order_by('created_on')
 
 
+class UserPayoutReportCSV(CSVReport, ListAPIView, DateConstrained):
+    serializer_class = UserPayoutTransactionSerializer
+    permission_classes = [UserControls]
+    pagination_class = None
+    date_field = 'finalized_on'
+    report_name = 'user-payout-report'
+
+    def get_renderer_context(self):
+        context = super().get_renderer_context()
+        context['header'] = [
+            'id',
+            'status',
+            'targets',
+            'amount',
+            'currency',
+            'created_on',
+            'finalized_on',
+            'remote_id',
+        ]
+        return context
+
+    def get_queryset(self):
+        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        self.check_object_permissions(self.request, user)
+        return TransactionRecord.objects.filter(
+            payer=user,
+            payee=user,
+            source=TransactionRecord.PAYOUT_MIRROR_SOURCE,
+            destination=TransactionRecord.PAYOUT_MIRROR_DESTINATION,
+            **self.date_kwargs,
+        ).exclude(payer=None).exclude(status=TransactionRecord.FAILURE).order_by('finalized_on')
+
+
 class ProductRecommendations(ListAPIView):
     serializer_class = ProductSerializer
     permission_classes = [
@@ -2662,14 +2701,121 @@ def account_updated(event):
         withdraw_all(account.user.id)
 
 
+@atomic
+def pull_and_reconcile_report(report):
+    """
+    Given a Stripe ReportRun object as specified by payout_paid,
+    fetch the report file and then update our database with the transfer information.
+    """
+    result = requests.get(report.result['url'], auth=HTTPBasicAuth(settings.STRIPE_KEY, ''))
+    result.raise_for_status()
+    reader = csv.DictReader(StringIO(result.content.decode('utf-8')))
+    for row in reader:
+        # In reality, this should only ever be one row.
+        if not row['source_id']:
+            raise RuntimeError('No source ID!')
+        record = TransactionRecord.objects.get(
+            remote_id__startswith=row['source_id'] + '', source=TransactionRecord.HOLDINGS,
+            destination=TransactionRecord.BANK,
+        )
+        if row['automatic_payout_effective_at_utc']:
+            timestamp = dateutil.parser.isoparse(row['automatic_payout_effective_at_utc'])
+            timestamp = timestamp.replace(tzinfo=dateutil.tz.UTC)
+        else:
+            timestamp = timezone.now()
+        record.finalized_on = timestamp
+        record.status = TransactionRecord.SUCCESS
+        currency = get_currency(row['currency'].upper())
+        amount = Money(Decimal(row['gross']), currency)
+        new_record = TransactionRecord.objects.get_or_create(
+            remote_id=record.remote_id, amount=amount,
+            payer=record.payer, payee=record.payee, source=TransactionRecord.PAYOUT_MIRROR_SOURCE,
+            destination=TransactionRecord.PAYOUT_MIRROR_DESTINATION, status=TransactionRecord.SUCCESS,
+            category=TransactionRecord.CASH_WITHDRAW,
+            created_on=record.created_on, finalized_on=timestamp,
+        )[0]
+        new_record.targets.add(*record.targets.all())
+
+
+@atomic
+def payout_paid(event):
+    """
+    Stripe webhook for the payout.paid event. Unfortunately the payout information does not give us a full enough
+    picture for what we want. So we force a report generation, and then fetch the result of this information to get
+    the remaining info.
+    """
+    payout_data = event['data']['object']
+    with stripe as stripe_api:
+        report = stripe_api.reporting.ReportRun.create(
+            report_type='connected_account_payout_reconciliation.by_id.itemized.4',
+            parameters={
+                'payout': payout_data['id'],
+                'connected_account': event['account'],
+                'columns': [
+                    'source_id',
+                    'gross',
+                    'net',
+                    'fee',
+                    'currency',
+                    'automatic_payout_effective_at_utc',
+                ]
+            }
+        )
+        if report.result:
+            # This might happen if the request appeared to fail but actually succeeded silently.
+            pull_and_reconcile_report(report)
+
+
+def transfer_failed(event):
+    """
+    Webhook for the transfer failed event from Stripe.
+    """
+    transfer = event['data']['object']['id']
+    records = TransactionRecord.objects.filter(
+        remote_id__endswith=f'|{transfer}',
+    )
+    records.update(status=TransactionRecord.FAILURE)
+    record = records.order_by('created_on')[0]
+    notify(
+        TRANSFER_FAILED,
+        record.payer,
+        data={
+            'error': 'The bank rejected the transfer. Please try again, update your account information, '
+                     'or contact support.'
+        }
+    )
+
+
+def reconcile_payout_report(event):
+    """
+    This event handles a webhook for the specific report type we run to reconcile payouts with our own reporting.
+    """
+    pull_and_reconcile_report(event['data']['object'])
+
+
+REPORT_ROUTES = {
+    'connected_account_payout_reconciliation.by_id.itemized.4': reconcile_payout_report,
+}
+
+
+def reporting_report_run_succeeded(event):
+    report_type = event['data']['object']['report_type']
+    if report_type in REPORT_ROUTES:
+        REPORT_ROUTES[report_type](event)
+        return
+
+
 STRIPE_DIRECT_WEBHOOK_ROUTES = {
     'charge.succeeded': charge_succeeded,
     'charge.failed': charge_failed,
+    'transfer.failed': transfer_failed,
+    'reporting.report_run.succeeded': reporting_report_run_succeeded,
 }
 
 
 STRIPE_CONNECT_WEBHOOK_ROUTES = {
     'account.updated': account_updated,
+    'payout.paid': payout_paid,
 }
 
 

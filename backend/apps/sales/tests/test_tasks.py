@@ -286,11 +286,18 @@ class TestUpdateTransaction(TestCase):
     def test_check_transaction_status_processed(self, mock_api):
         mock_api.return_value.get.return_value.body = {'status': 'processed'}
         update_transfer_status(self.record.id)
-        self.assertEqual(TransactionRecord.objects.all().count(), 1)
+        self.assertEqual(TransactionRecord.objects.all().count(), 2)
         self.record.refresh_from_db()
         self.assertTrue(self.record.finalized_on)
         self.deliverable.refresh_from_db()
         self.assertTrue(self.deliverable.payout_sent)
+        additional_record = TransactionRecord.objects.get(
+            remote_id=self.record.remote_id, source=TransactionRecord.PAYOUT_MIRROR_SOURCE,
+        )
+        self.assertEqual(additional_record.amount, self.record.amount)
+        self.assertEqual(additional_record.destination, TransactionRecord.PAYOUT_MIRROR_DESTINATION)
+        self.assertEqual(additional_record.payee, self.record.payee)
+        self.assertEqual(additional_record.payer, self.record.payer)
 
     @patch('apps.sales.tasks.update_transfer_status')
     def test_update_transactions(self, mock_update_transfer_status, _mock_api):

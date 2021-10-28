@@ -27,7 +27,7 @@ from apps.lib.serializers import (
     RelatedUserSerializer, RelatedAssetField, EventTargetRelatedField, SubscribedField,
     TagListField, RelatedAtomicMixin,
     MoneyToFloatField)
-from apps.lib.utils import country_choices, add_check, check_read, demark
+from apps.lib.utils import country_choices, add_check, check_read, demark, FakeRequest
 from apps.profiles.models import User, Submission, Character
 from apps.profiles.serializers import CharacterSerializer, SubmissionSerializer
 from apps.profiles.utils import available_users
@@ -1042,6 +1042,57 @@ class PayoutTransactionSerializer(serializers.ModelSerializer):
         model = TransactionRecord
         fields = (
             'id', 'status', 'payee', 'amount', 'fees', 'total_drafted', 'remote_id',
+            'created_on', 'finalized_on', 'targets',
+        )
+        read_only_fields = fields
+
+
+class UserPayoutTransactionSerializer(serializers.ModelSerializer):
+    id = ShortCodeField()
+    amount = serializers.SerializerMethodField()
+    currency = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
+    targets = serializers.SerializerMethodField()
+    remote_id = serializers.SerializerMethodField()
+
+    def get_amount(self, obj: TransactionRecord):
+        return str(obj.amount.amount)
+
+    def get_currency(self, obj: TransactionRecord):
+        return str(obj.amount.currency.code)
+
+    def get_category(self, obj: TransactionRecord):
+        return obj.get_category_display()
+
+    def get_status(self, obj: TransactionRecord):
+        return obj.get_status_display()
+
+    def get_remote_id(self, obj: TransactionRecord):
+        return obj.remote_id.split('|')[0]
+
+    def get_targets(self, obj: TransactionRecord):
+        targets = obj.targets.order_by('content_type_id').all()
+        items: List[str] = []
+        for target in targets:
+            if not target.target:
+                continue
+            model_class = target.content_type.model_class()
+            if model_class == StripeAccount:
+                continue
+            if model_class == BankAccount:
+                continue
+            base = f'{target.target.__class__.__name__} #{target.target.id}'
+            if model_class == Deliverable:
+                base = target.target.notification_name(self.context)
+            if target.content_type.model_class() == TransactionRecord:
+                base += f' ({target.target.amount.amount})'
+            items.append(base)
+        return ', '.join(items)
+
+    class Meta:
+        model = TransactionRecord
+        fields = (
+            'id', 'status', 'amount', 'currency', 'remote_id',
             'created_on', 'finalized_on', 'targets',
         )
         read_only_fields = fields

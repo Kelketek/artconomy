@@ -82,15 +82,15 @@
         </v-list-item-action>
         <v-list-item-title>Sales/Invoicing</v-list-item-title>
       </v-list-item>
-      <v-divider />
-    </v-list>
-    <v-list v-if="isStaff">
-      <v-list-item :to="{name: 'Reports'}" v-if="isSuperuser">
+      <v-list-item :to="{name: 'Reports', params: {username: subject.username}}" v-if="isLoggedIn && subject.artist_mode || subject.is_superuser">
         <v-list-item-action>
           <v-icon>insert_chart</v-icon>
         </v-list-item-action>
         <v-list-item-title>Reports</v-list-item-title>
       </v-list-item>
+      <v-divider />
+    </v-list>
+    <v-list v-if="isStaff">
       <v-list-item :to="{name: 'CurrentCases', params: {username: subject.username}}">
         <v-list-item-action>
           <v-icon>gavel</v-icon>
