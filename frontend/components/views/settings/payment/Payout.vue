@@ -42,7 +42,7 @@
       <v-card>
         <v-card-text>
           <v-row>
-            <v-col cols="12" v-if="subject.processor === AUTHORIZE">
+            <v-col cols="12" v-if="defaultProcessor === AUTHORIZE">
               <h2>Your bank account is configured, and you are set up with Stripe!</h2>
               <p>Your products will be protected by <router-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">Artconomy Shield</router-link>.</p>
               <p>Eventually, all artists will be moved over to this processor. You are ahead of the game!</p>
@@ -60,7 +60,7 @@
     </v-col>
     <v-col v-if="banks.list.length">
       <v-row no-gutters>
-        <v-col v-if="subject.processor === STRIPE && !stripeAccounts.list.length">
+        <v-col v-if="defaultProcessor === STRIPE && !stripeAccounts.list.length">
           <h2>You are currently using the legacy payout system.</h2>
           <p>Please remove this bank from your account and complete Stripe setup.</p>
         </v-col>
@@ -130,6 +130,8 @@ export default class Payout extends mixins(Subjective) {
     public stripeAccounts: ListController<StripeAccount> = null as unknown as ListController<StripeAccount>
     // Can't use the enum in import or it will choke during testing. :/
     public IN_SUPPORTED_COUNTRY = BANK_STATUSES.IN_SUPPORTED_COUNTRY
+
+    public defaultProcessor = window.DEFAULT_CARD_PROCESSOR
 
     public AUTHORIZE = PROCESSORS.AUTHORIZE
     public STRIPE = PROCESSORS.STRIPE
