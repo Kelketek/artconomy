@@ -93,7 +93,7 @@
               where one could meet face-to-face with artists. He wanted to create a service where it was as easy
               to commission online as it is in person.</p>
             <p>And, yes, that is his legal name.</p>
-            <h3>President: Amber R. Criswell</h3>
+            <h3>President: Amber C. Piacenti</h3>
             <p>Amber is a supporter of all things artistic and exploratory. A writer and musician,
               she makes up for her lack of drawing talent by buying ALL the art and filling her home with it.</p>
             <p>A friend of hers who has supported himself with his art for over 30 years took her on a personalized

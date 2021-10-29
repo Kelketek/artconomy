@@ -7,9 +7,10 @@ from django.test import RequestFactory
 from rest_framework import status
 import stripe as stripe_api
 
+from apps.lib.models import ref_for_instance
 from apps.lib.test_resources import APITestCase
 from apps.profiles.tests.factories import UserFactory
-from apps.sales.models import PAYMENT_PENDING, QUEUED, STRIPE, CreditCardToken
+from apps.sales.models import PAYMENT_PENDING, QUEUED, STRIPE, CreditCardToken, TransactionRecord
 from apps.sales.tests.factories import DeliverableFactory, CreditCardTokenFactory, WebhookRecordFactory
 from apps.sales.utils import UserPaymentException
 from apps.sales.views import StripeWebhooks
@@ -329,6 +330,14 @@ class TestStripeWebhook(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         deliverable.refresh_from_db()
         self.assertEqual(deliverable.status, QUEUED)
+        transaction = TransactionRecord.objects.get(
+            source=TransactionRecord.CARD, destination=TransactionRecord.ESCROW, payer=deliverable.order.buyer,
+            payee=deliverable.order.seller,
+        )
+        targets = list(transaction.targets.all())
+        self.assertIn(ref_for_instance(deliverable), targets)
+        self.assertIn(ref_for_instance(deliverable.invoice), targets)
+        self.assertEqual(transaction.targets.count(), 2)
 
     def test_deliverable_wrong_amount_throws(self):
         event = base_charge_succeeded_event()

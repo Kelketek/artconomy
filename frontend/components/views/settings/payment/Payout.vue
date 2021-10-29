@@ -43,13 +43,13 @@
         <v-card-text>
           <v-row>
             <v-col cols="12" v-if="subject.processor === AUTHORIZE">
-              <h2>You are set up with Stripe!</h2>
+              <h2>Your bank account is configured, and you are set up with Stripe!</h2>
               <p>Your products will be protected by <router-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">Artconomy Shield</router-link>.</p>
               <p>Eventually, all artists will be moved over to this processor. You are ahead of the game!</p>
             </v-col>
             <v-col cols="12" v-else>
-              <h2>You can now list products!</h2>
-              <p>Your products will be protected by <router-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">Artconomy Shield</router-link>!</p>
+              <h2>Your bank account is configured, and you can now list products!</h2>
+              <p>Your products will be protected by <router-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">Artconomy Shield</router-link>.</p>
             </v-col>
             <v-col cols="12">
               <v-btn color="primary" :to="{name: 'Store', params: {username}}">Go to my Store</v-btn>

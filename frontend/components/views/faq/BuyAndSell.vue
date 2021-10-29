@@ -86,7 +86,7 @@
                 Artconomy Shield
               </router-link>
               . Please see the question below about bank accounts. If you cannot link a
-              US Bank account, you can opt out of
+              Bank account (for instance, if your country is not supported) you can opt out of
               <router-link
                   :to="{name: 'BuyAndSell', params: {question: 'shield'}}"
               >
@@ -167,12 +167,8 @@
             </p>
             <p>
               Artists and commissioners who use Artconomy Shield help build trust in the artistic community.
-              Artists who are unable to use Artconomy Shield (such as those without US Bank Accounts) can still
+              Artists who are unable to use Artconomy Shield (such as those outside of supported countries) can still
               list products and take orders on Artconomy, but must arrange payment with commissioners manually.
-            </p>
-            <p>Artists using Shield will be assessed a one-time setup fee, required by our payment processor, of
-              <strong>$1.00</strong>.
-              This fee is not assessed until the artist has earned at least $1 through sales, and is non-refundable.
             </p>
             <p v-if="pricing.x">
               Artconomy's fees for
@@ -271,26 +267,6 @@
       </v-expansion-panel-content>
     </v-expansion-panel>
     <v-expansion-panel>
-      <v-expansion-panel-header><strong>What is a 'trusted artist' and how does it affect payouts?</strong></v-expansion-panel-header>
-      <v-expansion-panel-content>
-        <p>While many artists are just starting out and Shield's normal workflow is a great way to establish trust, established
-          artists may need payouts to be delivered in a faster, more predictable manner.</p>
-        <p>At the end of a normal Shield-protected transaction, the commissioner is given up to five days to either
-          approve the final piece or file a dispute. While most will push one of these buttons within a day or two,
-          the fact that the extra step is required and that it may be forgotten can make payouts take longer.</p>
-        <p>However, in order to make sure it is always possible and safe to refund, the funds have to wait for finalization one way or the other. What can be done?</p>
-        <p><strong>Enter: Artconomy Trusted Artists</strong></p>
-        <p>Trusted Artists are verified by Artconomy Staff to consistently deliver on their promises.
-          Orders from these artists finalize immediately-- and the bank transfers begin as soon as possible. However,
-          commissioners are still protected by Shield's guarentee-- if there's a problem with the order which is covered
-          by Shield protection, customers can <a href="#" @click.prevent="setSupport(true)">contact support</a>, and, if
-          necessary, a refund will be issued. Artists under the trusted program are expected to work with Artconomy
-          staff for reimbursement in the case that a customer must be refunded.</p>
-        <p>The Trusted Artist program is available to Landscape subscribers.
-          <a href="#" @click.prevent="setSupport(true)">Contact support</a> to get verified as a Trusted artist!</p>
-      </v-expansion-panel-content>
-    </v-expansion-panel>
-    <v-expansion-panel>
       <v-expansion-panel-header>
         <strong>What are Artconomy Portrait and Landscape?</strong>
       </v-expansion-panel-header>
@@ -335,15 +311,15 @@
         <v-card>
           <v-card-text>
             <p>
-              At present, only US Bank accounts can be integrated with Artconomy. We are looking into ways to
-              support European and other banks but do not currently have a method of doing so. Artists must have a
-              bank
+              Many countries are supported and their banks can be
               linked to use
               <router-link
                   :to="{name: 'BuyAndSell', params: {question: 'shield'}}"
               >Artconomy Shield.
               </router-link>
-              However, Artconomy Shield is not required to list products and take orders on Artconomy.
+              When new countries are available from our processor, the setup page is automatically updated. However,
+              Artconomy Shield is not required to list products and take orders on Artconomy. If your country is not yet
+              supported, you can still take orders without Shield protection.
             </p>
           </v-card-text>
         </v-card>
@@ -541,7 +517,8 @@
               >Artconomy Shield
               </router-link>
               may elect to accept payment using PayPal, but will not be
-              protected by our verification and dispute resolution.
+              protected by our verification and dispute resolution. Artists can also elect to use PayPal for a particular
+              commission if both parties want to forego Shield protection for that commission.
             </p>
           </v-card-text>
         </v-card>
@@ -641,9 +618,11 @@
               probability of SQL injections and makes use of anti-clickjacking technology.
             </p>
             <p>
-              For especially sensitive data that must be stored on our servers (such as tax ID information), we use
+              For especially sensitive data that must be stored on our servers, we use
               encryption with offline, cold stored, secured keys, which are used only as long as explicit operations
               by our executive technical staff require.
+              <strong>Note: At the time of writing, no data of this nature is actually stored on Artconomy, but if we
+                end up having to store some, we will do so in this manner.</strong>
             </p>
             <p>
               These are only some of the things we do to keep your data safe, and we continue to keep security in
@@ -684,8 +663,8 @@
               <span v-else>
                       you may submit a withdrawal request.
                     </span>
-              Payouts take up to 5 business days to complete. If you're having an issue with your payout,
-              <a href="#" @click.prevent="setSupport(true)">please contact support!</a>
+              Payouts take up to 5 business days to complete, but usually complete in 2-3. If you're having an issue
+              with your payout, <a href="#" @click.prevent="setSupport(true)">please contact support!</a>
             </p>
           </v-card-text>
         </v-card>
@@ -746,7 +725,7 @@ import QuestionSet from '@/components/views/faq/mixins/question-set'
 import {FormController} from '@/store/forms/form-controller'
 
 const buySell = [
-  'how-to-buy', 'how-to-sell', 'shield', 'disputes', 'trusted-artists', 'portrait-and-landscape',
+  'how-to-buy', 'how-to-sell', 'shield', 'disputes', 'portrait-and-landscape',
   'bank-accounts',
   'awoo-workload-management', 'outside-orders',
   'why-commissions-disabled',
