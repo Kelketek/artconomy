@@ -85,7 +85,9 @@
               >
                 Artconomy Shield
               </router-link>
-              . Please see the question below about bank accounts. If you cannot link a
+              . Please see the question below about
+              <router-link :to="{name: 'BuyAndSell', params: {question: 'bank-accounts'}}">bank accounts</router-link>.
+              If you cannot link a
               Bank account (for instance, if your country is not supported) you can opt out of
               <router-link
                   :to="{name: 'BuyAndSell', params: {question: 'shield'}}"
@@ -305,7 +307,7 @@
     </v-expansion-panel>
     <v-expansion-panel>
       <v-expansion-panel-header>
-        <strong>What banks can be linked to Artconomy Shield?</strong>
+        <strong>What banks can be linked to Artconomy Shield? What are the supported countries?</strong>
       </v-expansion-panel-header>
       <v-expansion-panel-content>
         <v-card>
@@ -317,10 +319,16 @@
                   :to="{name: 'BuyAndSell', params: {question: 'shield'}}"
               >Artconomy Shield.
               </router-link>
-              When new countries are available from our processor, the setup page is automatically updated. However,
+              When new countries are available from our processor, this list will be updated. However,
               Artconomy Shield is not required to list products and take orders on Artconomy. If your country is not yet
               supported, you can still take orders without Shield protection.
             </p>
+            <p>The following countries are currently supported for shield protection:</p>
+            <ac-load-section :controller="stripeCountries">
+              <ul>
+                <li v-for="country in stripeCountries.x.countries" :key="country.value">{{country.text}}</li>
+              </ul>
+            </ac-load-section>
           </v-card-text>
         </v-card>
       </v-expansion-panel-content>
@@ -723,6 +731,9 @@ import Viewer from '@/mixins/viewer'
 import {paramHandleArray} from '@/lib/lib'
 import QuestionSet from '@/components/views/faq/mixins/question-set'
 import {FormController} from '@/store/forms/form-controller'
+import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
+import {SingleController} from '@/store/singles/controller'
+import StripeCountryList from '@/types/StripeCountryList'
 
 const buySell = [
   'how-to-buy', 'how-to-sell', 'shield', 'disputes', 'portrait-and-landscape',
@@ -733,9 +744,12 @@ const buySell = [
   'payouts', 'crypto-currencies',
   'auctions', 'physical-goods',
 ]
-  @Component
+@Component({
+  components: {AcLoadSection}
+})
 export default class BuyAndSell extends mixins(Viewer, QuestionSet) {
     public searchForm: FormController = null as unknown as FormController
+    public stripeCountries: SingleController<StripeCountryList> = null as unknown as SingleController<StripeCountryList>
     @paramHandleArray('question', buySell)
     public tab!: number
 
@@ -746,6 +760,8 @@ export default class BuyAndSell extends mixins(Viewer, QuestionSet) {
 
     public created() {
       this.searchForm = this.$getForm('search')
+      this.stripeCountries = this.$getSingle('stripeCountries')
+      this.stripeCountries.get()
     }
 }
 </script>

@@ -12,12 +12,13 @@ import {SingleController} from '@/store/singles/controller'
 import Pricing from '@/types/Pricing'
 import AcTabNav from '@/components/navigation/AcTabNav.vue'
 import {Watch} from 'vue-property-decorator'
+import StripeCountryList from '@/types/StripeCountryList'
 @Component({
   components: {AcTabNav},
 })
 export default class FAQ extends mixins(Viewer) {
   public pricing: SingleController<Pricing> = null as unknown as SingleController<Pricing>
-
+  public stripeCountries: SingleController<StripeCountryList> = null as unknown as SingleController<StripeCountryList>
   public get items() {
     return [
       {
@@ -45,6 +46,8 @@ export default class FAQ extends mixins(Viewer) {
 
   public created() {
     this.pricing = this.$getSingle('pricing', {endpoint: '/api/sales/v1/pricing-info/'})
+    this.stripeCountries = this.$getSingle('stripeCountries', {endpoint: '/api/sales/v1/stripe-countries/', persist: true, x: {countries: []}})
+    this.stripeCountries.get()
     updateTitle('Frequently Asked Questions -- Artconomy')
     setMetaContent(
       'description',

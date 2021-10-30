@@ -10,10 +10,13 @@ import searchSchema from '@/components/views/search/specs/fixtures'
 import {FormController} from '@/store/forms/form-controller'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import {createPinterestQueue} from '@/lib/lib'
+import {SingleController} from '@/store/singles/controller'
+import StripeCountryList from '@/types/StripeCountryList'
 
 const localVue = vueSetup()
 localVue.use(Router)
 let searchForm: FormController
+let countryList: SingleController<StripeCountryList>
 
 describe('About.vue', () => {
   let router: Router
@@ -25,6 +28,10 @@ describe('About.vue', () => {
     store = createStore()
     vuetify = createVuetify()
     searchForm = mount(Empty, {localVue, store}).vm.$getForm('search', searchSchema())
+    countryList = mount(Empty, {localVue, store}).vm.$getSingle('stripeCountries', {
+      x: {countries: [{value: 'stuff', text: 'things'}]},
+      endpoint: '/stuff/',
+    })
     window.pintrk = createPinterestQueue()
   })
   afterEach(() => {
