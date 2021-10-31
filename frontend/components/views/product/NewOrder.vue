@@ -21,7 +21,7 @@
                   <v-stepper-header>
                     <v-stepper-step editable :complete="orderForm.steps[1].complete" :step="1" :rules="orderForm.steps[1].rules">Basics</v-stepper-step>
                     <v-divider />
-                    <v-stepper-step editable :step="2" :rules="orderForm.steps[2].rules">Details</v-stepper-step>
+                    <v-stepper-step editable :step="2" :rules="orderForm.steps[2].rules" :complete="orderForm.steps[1].complete">Details</v-stepper-step>
                     <v-divider />
                     <v-stepper-step editable :step="3" :rules="orderForm.steps[3].rules">Notices and Agreements</v-stepper-step>
                   </v-stepper-header>
