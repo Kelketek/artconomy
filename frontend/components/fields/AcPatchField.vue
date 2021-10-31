@@ -105,6 +105,10 @@ export default class AcPatchField extends Vue {
     @Prop()
     public id!: string
 
+    // This will update the field from upstream pushes instantly. You don't want this for text. You do for booleans.
+    @Prop({default: false})
+    public instant: boolean
+
     public scratch: any = ''
 
     public created() {
@@ -125,10 +129,21 @@ export default class AcPatchField extends Vue {
     }
 
     @Watch('patcher.model')
-    public watchValue(val: any) {
+    public watchModel(val: any) {
+      if (this.instant) {
+        return
+      }
       if (this.autoSave || this.handlesSaving) {
         this.scratch = val
       }
+    }
+
+    @Watch('patcher.rawValue')
+    public watchRawValue(val: any) {
+      if (!this.instant) {
+        return
+      }
+      this.scratch = val
     }
 
     @Watch('patcher.cached')

@@ -81,6 +81,7 @@
                 hint="Overrides your content preferences to only allow clean content. Useful if viewing the site
                       from a work machine."
                 :save-indicator="false"
+                :instant="true"
                 persistent-hint></ac-patch-field>
           </v-col>
           <v-col cols="12" sm="6">

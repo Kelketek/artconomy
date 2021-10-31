@@ -34,6 +34,7 @@
               <v-col cols="12" sm="6" order="4">
                 <ac-patch-field field-type="v-switch" label="SFW Mode"
                                 :patcher="patchers.sfw_mode"
+                                :instant="true"
                                 hint="Overrides your content preferences to only allow clean content. Useful if viewing the site
                       from a work machine."
                                 :save-indicator="false"
