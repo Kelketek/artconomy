@@ -225,9 +225,15 @@ import AcForm from '@/components/wrappers/AcForm.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import PrerenderMixin from '@/mixins/PrerenderMixin'
 import AcCookieConsent from '@/components/AcCookieConsent.vue'
+import {ListController} from '@/store/lists/controller'
+import Product from '@/types/Product'
+import Submission from '@/types/Submission'
+import {Character} from '@/store/characters/types/Character'
+import {TerseUser} from '@/store/profiles/types/TerseUser'
+import RatingRefresh from '@/mixins/RatingRefresh'
 
 @Component({components: {AcCookieConsent, AcPatchField, AcForm, AcMarkdownExplanation, AcError, AcFormDialog, NavBar}})
-export default class App extends mixins(Viewer, Nav, PrerenderMixin) {
+export default class App extends mixins(Viewer, Nav, PrerenderMixin, RatingRefresh) {
   @State('profiles') public p!: UserStoreState
   @Mutation('supportDialog') public setSupport: any
   @Mutation('popAlert') public popAlert: any
@@ -245,12 +251,19 @@ export default class App extends mixins(Viewer, Nav, PrerenderMixin) {
   public alertDismissed: boolean = false
   public searchForm: FormController = null as unknown as FormController
   public socketState: SingleController<SocketState> = null as unknown as SingleController<SocketState>
+  // Search lists
+  public productSearch: ListController<Product>
+  public submissionSearch: ListController<Submission>
+  public characterSearch: ListController<Character>
+  public profileSearch: ListController<TerseUser>
   public searchInitialized = false
   // For testing.
   public forceRecompute = 0
   public location = location
   public CLOSED = ConnectionStatus.CLOSED
   public showNav = false
+
+  public refreshLists = ['submissionSearch', 'characterSearch', 'productSearch']
 
   @Watch('viewer.username')
   public sendHome(newName: string, oldName: string) {
@@ -286,19 +299,19 @@ export default class App extends mixins(Viewer, Nav, PrerenderMixin) {
     this.searchForm.fields.max_price.update(fallback(query, 'max_price', ''))
     this.searchForm.fields.min_price.update(fallback(query, 'min_price', ''))
     this.searchForm.fields.page.update(fallback(query, 'page', 1))
-    this.$getList('searchProfiles', {
-      endpoint: '/api/profiles/v1/search/user/',
+    this.submissionSearch = this.$getList('searchSubmissions', {
+      endpoint: '/api/profiles/v1/search/submission/',
       persistent: true,
     })
-    this.$getList('searchProducts', {
+    this.productSearch = this.$getList('searchProducts', {
       endpoint: '/api/sales/v1/search/product/',
       persistent: true,
     })
-    this.$getList('searchCharacters', {
+    this.characterSearch = this.$getList('searchCharacters', {
       endpoint: '/api/profiles/v1/search/character/',
       persistent: true,
     })
-    this.$getList('searchProfiles', {
+    this.profileSearch = this.$getList('searchProfiles', {
       endpoint: '/api/profiles/v1/search/user/',
       persistent: true,
     })

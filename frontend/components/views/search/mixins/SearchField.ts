@@ -10,14 +10,12 @@ import Viewer from '@/mixins/viewer'
 import RatingRefresh from '@/mixins/RatingRefresh'
 
 @Component
-export default class SearchField extends mixins(Viewer, RatingRefresh) {
+export default class SearchField extends mixins(Viewer) {
   // list and searchForm must be defined on subclass.
   public list!: ListController<any>
   public searchForm!: FormController
   public debouncedUpdate!: ((newData: RawData) => void)
   public updateRouter = true
-
-  public refreshLists = ['list']
 
   @Watch('list.params.page')
   public updatePage(newValue: number|undefined) {
