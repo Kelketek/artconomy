@@ -252,10 +252,10 @@ export default class App extends mixins(Viewer, Nav, PrerenderMixin, RatingRefre
   public searchForm: FormController = null as unknown as FormController
   public socketState: SingleController<SocketState> = null as unknown as SingleController<SocketState>
   // Search lists
-  public productSearch: ListController<Product>
-  public submissionSearch: ListController<Submission>
-  public characterSearch: ListController<Character>
-  public profileSearch: ListController<TerseUser>
+  public productSearch: ListController<Product> = null as unknown as ListController<Product>
+  public submissionSearch: ListController<Submission> = null as unknown as ListController<Submission>
+  public characterSearch: ListController<Character> = null as unknown as ListController<Character>
+  public profileSearch: ListController<TerseUser> = null as unknown as ListController<TerseUser>
   public searchInitialized = false
   // For testing.
   public forceRecompute = 0

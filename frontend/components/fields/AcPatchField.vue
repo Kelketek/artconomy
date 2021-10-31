@@ -107,7 +107,7 @@ export default class AcPatchField extends Vue {
 
     // This will update the field from upstream pushes instantly. You don't want this for text. You do for booleans.
     @Prop({default: false})
-    public instant: boolean
+    public instant!: boolean
 
     public scratch: any = ''
 
