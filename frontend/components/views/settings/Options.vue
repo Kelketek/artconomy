@@ -36,9 +36,9 @@
       <v-row no-gutters>
         <v-col>
           <v-subheader>Content/Browsing</v-subheader>
-          <v-card-text :class="{disabled: sfwMode.model}">
+          <v-card-text>
             <v-row no-gutters>
-              <v-col order="2" cols="12" order-md="1" md="6" lg="4">
+              <v-col order="2" cols="12" order-md="1" md="6" lg="4" :class="{disabled: sfwMode.model}">
                 <ac-patch-field
                   field-type="ac-birthday-field"
                   label="Birthday"
@@ -50,7 +50,7 @@
               <v-col order="1" cols="12" order-md="2" md="6" lg="8" class="text-center">
                 <v-btn color="secondary" @click="updateCookieSettings" class="cookie-settings-button">Update Cookie Settings</v-btn>
               </v-col>
-              <v-col order="3" cols="12" class="pt-5"><strong>Select the maximum content rating you'd like to see when browsing.</strong></v-col>
+              <v-col order="3" cols="12" class="pt-5" :class="{disabled: sfwMode.model}"><strong>Select the maximum content rating you'd like to see when browsing.</strong></v-col>
             </v-row>
             <ac-patch-field
                 field-type="v-slider"
