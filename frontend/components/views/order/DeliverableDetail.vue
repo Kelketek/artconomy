@@ -57,13 +57,13 @@
                           <strong>REMEMBER:</strong> As we are not handling payment for this order, you MUST tell your
                           commissioner how to pay you. Leave a comment telling them how if you have not done so already.
                           When the customer has paid, click the 'Mark Paid' button.</p>
-                        <p v-else>
+                        <p v-else-if="!deliverable.x.table_order">
                           You may mark this order as paid, if the customer has paid you through an outside method, or you wish to waive payment for this commission.
                         </p>
                         <v-col class="text-center" v-if="deliverable.x.escrow_disabled">
                           <v-btn color="primary" @click="statusEndpoint('mark-paid')()">Mark Paid</v-btn>
                         </v-col>
-                        <ac-confirmation :action="statusEndpoint('mark-paid')" v-else>
+                        <ac-confirmation :action="statusEndpoint('mark-paid')" v-else-if="!deliverable.x.table_order">
                           <template v-slot:default="{on}">
                             <v-col class="text-center" cols="12">
                               <v-btn color="primary" v-on="on">Mark Paid</v-btn>

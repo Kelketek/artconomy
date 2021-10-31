@@ -7,7 +7,8 @@ from django.contrib import admin
 from django.utils.html import format_html
 
 from apps.lib.admin import CommentInline
-from apps.sales.models import Product, Order, Revision, Promo, TransactionRecord, Rating, Deliverable, LineItem, Invoice
+from apps.sales.models import Product, Order, Revision, Promo, TransactionRecord, Rating, Deliverable, LineItem, \
+    Invoice, WebhookRecord
 
 
 class ProductAdmin(admin.ModelAdmin):
@@ -98,6 +99,10 @@ class RatingAdmin(admin.ModelAdmin):
     raw_id_fields = ['rater', 'target']
 
 
+class WebhookRecordAdmin(admin.ModelAdmin):
+    pass
+
+
 admin.site.register(Product, ProductAdmin)
 admin.site.register(Order, OrderAdmin)
 admin.site.register(Deliverable, DeliverableAdmin)
@@ -106,3 +111,4 @@ admin.site.register(Revision, admin.ModelAdmin)
 admin.site.register(Promo)
 admin.site.register(TransactionRecord, TransactionRecordAdmin)
 admin.site.register(Rating, RatingAdmin)
+admin.site.register(WebhookRecord, WebhookRecordAdmin)

@@ -1473,6 +1473,9 @@ class WebhookRecord(Model):
     connect = BooleanField(default=False)
     secret = CharField(max_length=250)
 
+    def __str__(self):
+        return f'Webhook {self.id} {"(Connect)" if self.connect else ""}'
+
 
 class StripeAccount(Model):
     id = ShortCodeField(primary_key=True, db_index=True, default=gen_shortcode)
