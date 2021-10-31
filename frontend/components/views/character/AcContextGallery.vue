@@ -51,9 +51,11 @@ import {Character} from '@/store/characters/types/Character'
 import CharacterCentric from '@/components/views/character/mixins/CharacterCentric'
 import Submission from '@/types/Submission'
 import {SingleController} from '@/store/singles/controller'
+import RatingRefresh from '@/mixins/RatingRefresh'
 
 @Component({components: {AcLoadSection, AcGalleryPreview}})
-export default class AcContextGallery extends mixins(CharacterCentric) {
+export default class AcContextGallery extends mixins(CharacterCentric, RatingRefresh) {
+  public refreshLists = ['character.submissions']
   public get featured() {
     const character = this.character.profile.x as Character
     return character.primary_submission || this.character.submissions.list[0].x

@@ -163,16 +163,15 @@ describe('Search.vue', () => {
   it('Determines the derived rating', async() => {
     wrapper = mount(SearchProducts, {localVue, store, vuetify, router, attachTo: docTarget()})
     const vm = wrapper.vm as any
-    expect(vm.derivedRating).toBe(undefined)
+    const resetSpy = jest.spyOn(vm.list, 'reset')
+    expect(vm.rawRating).toBe(undefined)
     vm.viewerHandler.user.makeReady(genUser({rating: Ratings.GENERAL}))
     await vm.$nextTick()
-    expect(vm.derivedRating).toBe(Ratings.GENERAL)
+    expect(vm.rawRating).toBe(Ratings.GENERAL)
+    expect(resetSpy).not.toHaveBeenCalled()
     vm.viewerHandler.user.updateX({rating: Ratings.ADULT})
     await vm.$nextTick()
-    expect(vm.derivedRating).toBe(Ratings.ADULT)
-    vm.viewerHandler.user.updateX({sfw_mode: true})
-    await vm.$nextTick()
-    expect(vm.derivedRating).toBe(Ratings.GENERAL)
+    expect(resetSpy).toHaveBeenCalledTimes(1)
   })
   it('Synchronizes the value of the form page value and the list page value', async() => {
     wrapper = mount(SearchProducts, {localVue, store, vuetify, router, attachTo: docTarget()})

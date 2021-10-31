@@ -21,6 +21,19 @@ export default class Viewer extends mixins(ErrorHandling) {
     return this.viewer.rating
   }
 
+  public get rawRating() {
+    // The default 'rating' computed property falls back to 0, which means that we ALWAYS change from 0 if we're logged
+    // in and not currently using SFW settings. So, if we want to watch for this value's change, but we want to ignore
+    // the default rating setting, we use this property instead.
+    if (!this.viewer) {
+      return undefined
+    }
+    if (this.viewer.sfw_mode) {
+      return Ratings.GENERAL
+    }
+    return this.viewer.rating
+  }
+
   public get isLoggedIn(): boolean {
     if (!this.viewer) {
       return false

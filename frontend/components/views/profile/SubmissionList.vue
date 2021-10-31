@@ -16,10 +16,11 @@ import Subjective from '@/mixins/subjective'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import {ListController} from '@/store/lists/controller'
 import Submission from '@/types/Submission'
-import {Prop} from 'vue-property-decorator'
+import {Prop, Watch} from 'vue-property-decorator'
 import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import {flatten} from '@/lib/lib'
+import {Ratings} from '@/store/profiles/types/Ratings'
   @Component({
     components: {AcPaginated, AcGalleryPreview, AcLoadSection},
   })
@@ -44,6 +45,14 @@ export default class SubmissionList extends mixins(Subjective) {
 
     @Prop({default: true})
     public showPagination!: boolean
+
+    @Watch('rawRating')
+    public refreshListing(newValue: Ratings, oldValue: Ratings|undefined) {
+      if (oldValue === undefined) {
+        return
+      }
+      this.list.get()
+    }
 
     public list: ListController<Submission> = null as unknown as ListController<Submission>
     public created() {

@@ -4,12 +4,13 @@ import {genUser} from '@/specs/helpers/fixtures'
 import {ArtStore, createStore} from '@/store'
 import Vue, {VueConstructor} from 'vue'
 import Vuex from 'vuex'
-import {genAnon, setViewer} from '@/specs/helpers'
+import {docTarget, genAnon, mount, setViewer} from '@/specs/helpers'
 import {Ratings} from '@/store/profiles/types/Ratings'
 import ViewerComponent from '@/specs/helpers/dummy_components/viewer.vue'
 import {profileRegistry, Profiles} from '@/store/profiles/registry'
 import {singleRegistry, Singles} from '@/store/singles/registry'
 import {Lists} from '@/store/lists/registry'
+import SearchProducts from '@/components/views/search/SearchProducts.vue'
 
 describe('Viewer.ts', () => {
   let store: ArtStore
@@ -252,5 +253,19 @@ describe('Viewer.ts', () => {
     expect(store.state.ageAsked).toBe(false)
     expect(store.state.showAgeVerification).toBe(false)
     expect(store.state.contentRating).toBe(0)
+  })
+  it('Determines the derived rating', async() => {
+    wrapper = shallowMount(ViewerComponent, {localVue, store})
+    const vm = wrapper.vm as any
+    expect(vm.rawRating).toBe(undefined)
+    vm.viewerHandler.user.makeReady(genUser({rating: Ratings.GENERAL}))
+    await vm.$nextTick()
+    expect(vm.rawRating).toBe(Ratings.GENERAL)
+    vm.viewerHandler.user.updateX({rating: Ratings.ADULT})
+    await vm.$nextTick()
+    expect(vm.rawRating).toBe(Ratings.ADULT)
+    vm.viewerHandler.user.updateX({sfw_mode: true})
+    await vm.$nextTick()
+    expect(vm.rawRating).toBe(Ratings.GENERAL)
   })
 })

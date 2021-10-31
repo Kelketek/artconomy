@@ -19,10 +19,14 @@ import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import AcCharacterToolbar from '@/components/views/character/AcCharacterToolbar.vue'
 import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
+import {Watch} from 'vue-property-decorator'
+import {Ratings} from '@/store/profiles/types/Ratings'
+import RatingRefresh from '@/mixins/RatingRefresh'
   @Component({
     components: {AcGalleryPreview, AcCharacterToolbar, AcPaginated, AcLoadSection},
   })
-export default class CharacterGallery extends mixins(Subjective, CharacterCentric) {
+export default class CharacterGallery extends mixins(Subjective, CharacterCentric, RatingRefresh) {
+  public refreshLists = ['character.submissions']
   public created() {
     this.character.profile.get().catch(this.setError)
     this.character.submissions.firstRun().catch(this.setError)
