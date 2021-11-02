@@ -25,6 +25,11 @@
                     </v-col>
                   </template>
                 </ac-rendered>
+                <v-btn block
+                       v-if="subjectHandler.artistProfile.x && subject.artist_mode && subjectHandler.artistProfile.x.public_queue"
+                       color="secondary"
+                       :to="{name: 'Queue', params: {username}}"
+                ><v-icon left>queue</v-icon>View Artist Queue</v-btn>
               </v-card-text>
             </v-card>
           </v-col>

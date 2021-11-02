@@ -1,6 +1,7 @@
 import {User} from '@/store/profiles/types/User'
 import FileSpec from '@/types/FileSpec'
 import {Location} from 'vue-router'
+import {DeliverableStatus} from '@/types/DeliverableStatus'
 
 export default interface Order {
   id: number,
@@ -14,5 +15,6 @@ export default interface Order {
   display: {file: FileSpec, preview: FileSpec|null}|null,
   default_path: Location,
   deliverable_count: number,
+  status: DeliverableStatus,
   read: boolean,
 }

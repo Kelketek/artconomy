@@ -9,8 +9,8 @@
                 Workload
               </strong>
             </v-subheader>
-            <v-row no-gutters class="pb-4"   >
-              <v-col cols="12" sm="6" md="4">
+            <v-row class="pb-4">
+              <v-col cols="12" sm="6" md="3">
                 <ac-patch-field
                     label="Commissions Closed"
                     field-type="v-switch"
@@ -21,7 +21,7 @@
                     :patcher="subjectHandler.artistProfile.patchers.commissions_closed"
                 ></ac-patch-field>
               </v-col>
-              <v-col cols="12" sm="6" md="4">
+              <v-col cols="12" sm="6" md="3">
                 <ac-patch-field
                     label="Auto Withdraw"
                     field-type="v-switch"
@@ -31,7 +31,16 @@
                     :save-indicator="false"
                     :persistent-hint="true"></ac-patch-field>
               </v-col>
-              <v-col cols="12" sm="6" md="4">
+              <v-col cols="12" sm="6" md="3">
+                <ac-patch-field
+                    label="Public Queue"
+                    field-type="v-switch"
+                    hint="Allows people to see what orders you're currently working on."
+                    :patcher="artistProfile.patchers.public_queue"
+                    :save-indicator="false"
+                    :persistent-hint="true"></ac-patch-field>
+              </v-col>
+              <v-col cols="12" sm="6" md="3">
                 <v-row no-gutters>
                   <v-col cols="12">
                     <ac-patch-field

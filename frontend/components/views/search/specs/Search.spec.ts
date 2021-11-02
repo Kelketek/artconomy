@@ -160,19 +160,6 @@ describe('Search.vue', () => {
     expect(vm.contentRatings).toEqual(['0', '1', '3'])
     expect(searchForm.fields.content_ratings.value).toBe('0,1,3')
   })
-  it('Determines the derived rating', async() => {
-    wrapper = mount(SearchProducts, {localVue, store, vuetify, router, attachTo: docTarget()})
-    const vm = wrapper.vm as any
-    const resetSpy = jest.spyOn(vm.list, 'reset')
-    expect(vm.rawRating).toBe(undefined)
-    vm.viewerHandler.user.makeReady(genUser({rating: Ratings.GENERAL}))
-    await vm.$nextTick()
-    expect(vm.rawRating).toBe(Ratings.GENERAL)
-    expect(resetSpy).not.toHaveBeenCalled()
-    vm.viewerHandler.user.updateX({rating: Ratings.ADULT})
-    await vm.$nextTick()
-    expect(resetSpy).toHaveBeenCalledTimes(1)
-  })
   it('Synchronizes the value of the form page value and the list page value', async() => {
     wrapper = mount(SearchProducts, {localVue, store, vuetify, router, attachTo: docTarget()})
     const vm = wrapper.vm as any

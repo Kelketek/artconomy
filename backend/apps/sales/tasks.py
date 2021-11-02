@@ -399,8 +399,6 @@ def remind_sales():
         elif delta <= 20 and not (delta % 3):
             to_remind.append(deliverable)
             continue
-        elif delta > 20 and not delta % 5:
-            to_remind.append(deliverable)
     for deliverable in to_remind:
         remind_sale.delay(deliverable.id)
 

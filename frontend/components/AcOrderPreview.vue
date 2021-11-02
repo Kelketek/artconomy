@@ -1,11 +1,14 @@
 <template>
-  <v-col>
+  <v-col v-if="order.x.seller">
       <v-card>
         <ac-link :to="order.x.default_path">
           <ac-asset :asset="order.x.display" thumb-name="thumbnail" />
         </ac-link>
         <v-card-text>
           <v-row dense>
+            <v-col cols="12">
+              <ac-deliverable-status :deliverable="{status: order.x.status}" class="ma-1" />
+            </v-col>
             <v-col cols="12">
               <ac-link :to="order.x.default_path">
                 {{ name }}</ac-link>
@@ -25,6 +28,15 @@
         </v-card-text>
       </v-card>
   </v-col>
+  <v-col v-else>
+    <v-card>
+      <ac-asset :asset="null" thumb-name="thumbnail" />
+      <v-card-text>
+        <strong>Private Order</strong>
+        <p>This order is private. No details or previews, sorry!</p>
+      </v-card-text>
+    </v-card>
+  </v-col>
 </template>
 
 <script lang="ts">
@@ -38,7 +50,7 @@ import Subjective from '@/mixins/subjective'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import AcDeliverableStatus from '@/components/AcDeliverableStatus.vue'
   @Component({
-    components: {AcLink, AcAsset},
+    components: {AcDeliverableStatus, AcLink, AcAsset},
   })
 export default class AcOrderPreview extends mixins(Subjective, Formatting) {
     @Prop({required: true})

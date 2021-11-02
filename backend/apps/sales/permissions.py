@@ -1,8 +1,10 @@
 from django.db.models import Q
 from django.utils import timezone
+from django.views import View
 from rest_framework.permissions import BasePermission
+from rest_framework.request import Request
 
-from apps.profiles.models import UNSET
+from apps.profiles.models import UNSET, User
 from apps.sales.utils import available_products_from_user
 
 
@@ -186,3 +188,10 @@ class LandscapeSellerPermission(BasePermission):
     message = 'This feature only available to Landscape subscribers.'
     def has_object_permission(self, request, view, obj):
         return derive_order(obj).seller.landscape
+
+
+class PublicQueue(BasePermission):
+    message = 'This queue is not public.'
+
+    def has_object_permission(self, request: Request, view: View, obj: User) -> bool:
+        return obj.artist_profile.public_queue

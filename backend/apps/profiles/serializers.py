@@ -402,7 +402,7 @@ class ArtistProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = ArtistProfile
         fields = (
-            'commissions_closed', 'max_load', 'commission_info',
+            'commissions_closed', 'max_load', 'commission_info', 'public_queue',
             'auto_withdraw', 'escrow_disabled', 'bank_account_status', 'max_rating',
             'artist_of_color', 'lgbt', 'id',
         )

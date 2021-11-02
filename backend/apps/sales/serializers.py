@@ -16,6 +16,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import SerializerMethodField, DecimalField, IntegerField, FloatField, EmailField, ModelField, \
     ListField
+from rest_framework.utils.serializer_helpers import ReturnDict
 from short_stuff import unslugify
 from short_stuff.django.serializers import ShortCodeField
 
@@ -455,6 +456,7 @@ class OrderPreviewSerializer(ProductNameMixin, serializers.ModelSerializer):
     default_path = serializers.SerializerMethodField()
     read = serializers.SerializerMethodField()
     product_name = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
 
     def get_read(self, obj):
         return check_read(obj=obj, user=self.context['request'].user)
@@ -463,12 +465,29 @@ class OrderPreviewSerializer(ProductNameMixin, serializers.ModelSerializer):
         return obj.notification_display(context=self.context)
 
     def get_default_path(self, order):
+        if not self.can_view(order):
+            return None
         return order_context_to_link(order_context(order=order, user=self.context['request'].user, logged_in=True))
+
+    def can_view(self, order):
+        requester = self.context['request'].user
+        return order.buyer == requester or order.seller == requester or requester.is_staff
+
+    def get_status(self, order):
+        last_order = order.deliverables.all().order_by('created_on').last()
+        return last_order and last_order.status
+
+    def to_representation(self, instance):
+        checks = self.can_view(instance)
+        if instance.private and not checks:
+            return {'private': True, 'id': instance.id}
+        return super().to_representation(instance)
 
     class Meta:
         model = Order
         fields = (
             'id', 'created_on', 'seller', 'buyer', 'private', 'display', 'default_path', 'read', 'product_name',
+            'status',
         )
         read_only_fields = [field for field in fields]
 

@@ -72,6 +72,7 @@ export function genArtistProfile(overrides?: Partial<ArtistProfile>): ArtistProf
     escrow_disabled: false,
     max_rating: 2,
     bank_account_status: 0 as BANK_STATUSES.UNSET,
+    public_queue: true,
     ...overrides,
   }
 }
@@ -234,6 +235,7 @@ export function genOrder(overrides?: Partial<Order>): Order {
     product_name: 'Test product',
     deliverable_count: 1,
     read: true,
+    status: DeliverableStatus.NEW,
     default_path: {name: 'Order', params: {orderId: '1', username: 'Fox'}},
     display: {
       file: {

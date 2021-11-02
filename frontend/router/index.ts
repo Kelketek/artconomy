@@ -82,6 +82,7 @@ const CharacterGallery = () => import('@/components/views/character/CharacterGal
 const NotFound = () => import('@/components/views/NotFound.vue')
 const ConversationDetail = () => import('@/components/views/ConversationDetail.vue')
 const SubmissionList = () => import('@/components/views/profile/SubmissionList.vue')
+const Queue = () => import('@/components/views/Queue.vue')
 
 function orderViews() {
   const orderRoutes: RouteConfig[] = []
@@ -398,6 +399,12 @@ export const routes = [
     path: '/profile/:username/ratings/',
     name: 'Ratings',
     component: Ratings,
+    props: true,
+  },
+  {
+    path: '/profile/:username/queue/',
+    name: 'Queue',
+    component: Queue,
     props: true,
   },
   {

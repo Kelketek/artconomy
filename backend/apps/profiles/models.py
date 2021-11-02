@@ -334,6 +334,10 @@ class ArtistProfile(Model):
         choices=RATINGS, db_index=True, default=GENERAL,
         help_text="The maximum content rating you are willing to create."
     )
+    public_queue = BooleanField(
+        default=True,
+        help_text='Allow people to see your queue.',
+    )
     has_products = BooleanField(default=False, db_index=True)
     escrow_disabled = BooleanField(default=False, db_index=True)
     artist_of_color = BooleanField(default=False, db_index=True)

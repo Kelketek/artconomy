@@ -68,7 +68,7 @@ from apps.sales.permissions import (
     OrderPlacePermission, EscrowPermission, EscrowDisabledPermission, RevisionsVisible,
     BankingConfigured,
     DeliverableStatusPermission, HasRevisionsPermission, OrderTimeUpPermission, NoOrderOutput, PaidOrderPermission,
-    LineItemTypePermission, DeliverableNoProduct, LandscapeSellerPermission)
+    LineItemTypePermission, DeliverableNoProduct, LandscapeSellerPermission, PublicQueue)
 from apps.sales.serializers import (
     ProductSerializer, ProductNewOrderSerializer, DeliverableViewSerializer, CardSerializer,
     NewCardSerializer, PaymentSerializer, RevisionSerializer,
@@ -1156,6 +1156,20 @@ class ArchivedSalesList(ArchivedMixin, SalesListBase):
 
 class CancelledSalesList(CancelledMixin, SalesListBase):
     pass
+
+
+class PublicSalesQueue(SalesListBase):
+    serializer_class = OrderPreviewSerializer
+    permission_classes = [Any(ObjectControls, PublicQueue)]
+
+    def get_object(self):
+        return get_object_or_404(User, username=self.kwargs['username'])
+
+    @staticmethod
+    def extra_filter(qs):  # pragma: no cover
+        return qs.filter(
+            deliverables__status__in=[PAYMENT_PENDING, QUEUED, IN_PROGRESS, REVIEW, DISPUTED],
+        ).distinct().order_by('-created_on')
 
 
 class SearchWaiting(ListAPIView):

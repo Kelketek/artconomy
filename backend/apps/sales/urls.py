@@ -102,6 +102,7 @@ urlpatterns = [
     path('v1/account/<username>/orders/current/', views.CurrentOrderList.as_view(), name='current_orders'),
     path('v1/account/<username>/orders/archived/', views.ArchivedOrderList.as_view(), name='archived_orders'),
     path('v1/account/<username>/orders/cancelled/', views.CancelledOrderList.as_view(), name='archived_orders'),
+    path('v1/account/<username>/queue/', views.PublicSalesQueue.as_view(), name='public_queue'),
     path('v1/account/<username>/sales/stats/', views.SalesStats.as_view(), name='sales_stats'),
     path('v1/account/<username>/sales/current/', views.CurrentSalesList.as_view(), name='current_sales'),
     path('v1/account/<username>/sales/archived/', views.ArchivedSalesList.as_view(), name='archived_sales'),

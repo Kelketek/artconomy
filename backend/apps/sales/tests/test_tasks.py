@@ -421,13 +421,13 @@ class TestReminders(TestCase):
                 order_list.append(mock)
 
         to_remind = []
-        build_calls(to_remind, [1, 2, 3, 4, 5, 6, 9, 12, 15, 18, 25, 30])
+        build_calls(to_remind, [1, 2, 3, 4, 5, 6, 9, 12, 15, 18])
         all_orders = [*to_remind]
         # To be ignored.
-        build_calls(all_orders, [7, 8, 10, 11, 13, 14, 16, 17, 19, 21, 22, 23, 24, 26, 27, 28])
+        build_calls(all_orders, [7, 8, 10, 11, 13, 14, 16, 17, 19, 21, 22, 23, 24, 25, 26, 27, 28, 30])
         mock_deliverable.objects.filter.return_value = all_orders
         remind_sales()
-        self.assertEqual(mock_remind_sale.delay.call_count, 12)
+        self.assertEqual(mock_remind_sale.delay.call_count, 10)
         to_remind = [
             call(order.id) for order in to_remind
         ]
