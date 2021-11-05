@@ -368,7 +368,7 @@ class SubmissionManagementSerializer(RelatedAtomicMixin, SubmissionMixin, serial
 
     def get_order(self, instance):
         if instance.deliverable:
-            return instance.deliverable.order.id
+            return {'order_id': instance.deliverable.order.id, 'deliverable_id': instance.deliverable.id}
 
     def get_commission_link(self, instance):
         artists = instance.artists.all()

@@ -211,10 +211,10 @@
                       <v-col class="text-center" cols="8" >{{formatDateTime(submission.x.created_on)}}</v-col>
                       <v-col cols="4"><strong>Favorites:</strong></v-col>
                       <v-col class="text-center" cols="8" >{{submission.x.favorite_count}}</v-col>
-                      <v-col cols="4" v-if="submission.x.order && controls"><strong>From Order:</strong></v-col>
+                      <v-col cols="4" v-if="submission.x.order && controls"><strong>From Deliverable:</strong></v-col>
                       <v-col class="text-center" cols="8" v-if="submission.x.order && controls">
-                        <router-link :to="{name: 'Order', params: {username: submission.x.owner.username, orderId: submission.x.order}}">
-                          {{submission.x.order}}
+                        <router-link :to="{name: 'SaleDeliverable', params: {username: submission.x.owner.username, orderId: submission.x.order.order_id, deliverableId: submission.x.order.deliverable_id}}">
+                          {{submission.x.order.deliverable_id}} from order {{submission.x.order.order_id}}
                         </router-link>
                       </v-col>
                       <v-col class="text-center" cols="12" >

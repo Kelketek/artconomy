@@ -14,7 +14,7 @@
             <ac-deliverable-status :deliverable="deliverable" />
           </v-col>
           <v-col cols="12">
-            Created on <span v-text="formatDateTime(order.created_on)" />
+            Created on <span v-text="formatDateTime(deliverable.created_on)" />
           </v-col>
         </v-row>
       </v-card-text>
