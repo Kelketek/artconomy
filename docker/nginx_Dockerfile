@@ -1,0 +1,4 @@
+# specify the node base image with your desired version node:<version>
+FROM nginx:latest
+RUN groupadd app -g 1000
+RUN useradd app -u 1000 -g 1000 -s /bin/bash -d /var/www
