@@ -45,8 +45,4 @@ class Migration(migrations.Migration):
             field=models.IntegerField(choices=[(300, 'Credit Card'), (301, 'Bank Account'), (302, 'Escrow'), (303, 'Finalized Earnings, available for withdraw'), (500, '(Local Currency) Finalized Earnings, available for withdraw'), (501, '(Local Currency) Bank Account'), (304, 'Contingency reserve'), (305, 'Unannotated earnings'), (306, 'Card transaction fees'), (307, 'Other card fees'), (407, 'Cash deposit'), (308, 'ACH Transaction fees'), (309, 'Other ACH fees'), (310, 'Tax staging'), (311, 'Tax')], db_index=True),
         ),
         migrations.RunPython(convert_ids, reverse_code=reverse_convert_ids),
-        migrations.RemoveField(
-            model_name='transactionrecord',
-            name='remote_id',
-        ),
     ]
