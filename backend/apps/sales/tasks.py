@@ -23,7 +23,7 @@ from apps.sales.models import CreditCardToken, TransactionRecord, Invoice, REVIE
     PREMIUM_SUBSCRIPTION, PAID, COMPLETED, StripeAccount
 from apps.sales.stripe import stripe, money_to_stripe
 from apps.sales.utils import service_price, set_service, finalize_deliverable, account_balance, destroy_deliverable, \
-    get_term_invoice, get_user_processor
+    get_term_invoice, get_user_processor, fetch_prefixed
 from conf.celery_config import celery_app
 
 
@@ -87,7 +87,7 @@ def renew_authorize_card(*, invoice, price, user, service, card):
         )
         return False
     record.status = TransactionRecord.SUCCESS
-    record.remote_id = remote_id
+    record.remote_ids = [remote_id]
     record.auth_code = auth_code
     record.finalized = True
     record.response_message = 'Upgraded to {}'.format(service)
@@ -187,12 +187,12 @@ def check_transactions():
 def update_transfer_status(record_id):
     record = TransactionRecord.objects.get(id=record_id)
     with dwolla as api:
-        status = api.get('https://api.dwolla.com/transfers/{}'.format(record.remote_id))
+        status = api.get('https://api.dwolla.com/transfers/{}'.format(record.remote_ids[0]))
         if status.body['status'] == 'processed':
             record.status = TransactionRecord.SUCCESS
             record.save()
             new_record = TransactionRecord.objects.get_or_create(
-                remote_id=record.remote_id, amount=record.amount,
+                remote_ids=record.remote_ids, amount=record.amount,
                 payer=record.payer, payee=record.payee, source=TransactionRecord.PAYOUT_MIRROR_SOURCE,
                 destination=TransactionRecord.PAYOUT_MIRROR_DESTINATION, status=TransactionRecord.SUCCESS,
                 category=TransactionRecord.CASH_WITHDRAW,
@@ -311,8 +311,11 @@ def stripe_transfer(record_id, stripe_id, deliverable_id=None):
             source=TransactionRecord.CARD, targets=ref_for_instance(deliverable),
             status=TransactionRecord.SUCCESS, destination=TransactionRecord.ESCROW,
         ).first()
-        if source_record and ';' in source_record.remote_id:
-            base_settings['source_transaction'] = source_record.remote_id.split(';')[1]
+        if source_record:
+            try:
+                base_settings['source_transaction'] = fetch_prefixed('ch_', source_record.remote_ids)
+            except ValueError:
+                pass
         assert deliverable.order.seller == stripe_account.user
     record = TransactionRecord.objects.get(id=record_id)
     base_settings['amount'], base_settings['currency'] = money_to_stripe(record.amount)
@@ -325,7 +328,7 @@ def stripe_transfer(record_id, stripe_id, deliverable_id=None):
                 **base_settings,
             )
             record.status = TransactionRecord.PENDING
-            record.remote_id = f'{transfer.destination_payment}|{transfer.id}'
+            record.remote_ids = [f'{transfer.destination_payment}|{transfer.id}']
             record.response_message = ''
             record.save()
         except Exception as err:
@@ -412,7 +415,7 @@ def get_transaction_fees(self, transaction_id: str):
         # We've already grabbed the fees. Bail.
         return
     with dwolla as api:
-        response = api.get(f'transfers/{record.remote_id}/fees')
+        response = api.get(f'transfers/{record.remote_ids[0]}/fees')
     for transaction in response.body['transactions']:
         fee = TransactionRecord.objects.create(
             status=TRANSACTION_STATUS_MAP[transaction['status']],
@@ -422,7 +425,7 @@ def get_transaction_fees(self, transaction_id: str):
             source=TransactionRecord.UNPROCESSED_EARNINGS,
             destination=TransactionRecord.ACH_TRANSACTION_FEES,
             category=TransactionRecord.THIRD_PARTY_FEE,
-            remote_id=transaction['id'],
+            remote_ids=[transaction['id']],
             amount=Money(transaction['amount']['value'], transaction['amount']['currency'])
         )
         fee.targets.add(ref_for_instance(record))

@@ -76,7 +76,7 @@ class RevisionFactory(DjangoModelFactory):
 
 class TransactionRecordFactory(DjangoModelFactory):
     status = TransactionRecord.SUCCESS
-    remote_id = Sequence(lambda x: '{}'.format(x))
+    remote_ids = Sequence(lambda x: ['{}'.format(x)])
     source = TransactionRecord.CARD
     destination = TransactionRecord.ESCROW
     payer = SubFactory(UserFactory)

@@ -619,8 +619,12 @@ class TransactionCheckMixin:
             landscape=False,
     ):
         escrow_transactions = TransactionRecord.objects.filter(
-            remote_id=remote_id, auth_code=auth_code, source=source, destination=TransactionRecord.ESCROW,
+            auth_code=auth_code, source=source, destination=TransactionRecord.ESCROW,
         )
+        if remote_id:
+            escrow_transactions = escrow_transactions.filter(remote_ids__contains=remote_id)
+        else:
+            escrow_transactions = escrow_transactions.filter(remote_ids=[])
         if landscape:
             bonus, escrow = escrow_transactions.order_by('amount')
             self.assertEqual(bonus.status, TransactionRecord.SUCCESS)
@@ -635,9 +639,15 @@ class TransactionCheckMixin:
         self.assertEqual(escrow.payer, user)
         self.assertEqual(escrow.payee, deliverable.order.seller)
 
-        fee = TransactionRecord.objects.get(
-            remote_id=remote_id, source=source, auth_code=auth_code, destination=TransactionRecord.UNPROCESSED_EARNINGS,
+        fee_candidates = TransactionRecord.objects.filter(
+            source=source, auth_code=auth_code,
+            destination=TransactionRecord.UNPROCESSED_EARNINGS,
         )
+        if remote_id:
+            fee_candidates = fee_candidates.filter(remote_ids__contains=remote_id)
+        else:
+            fee_candidates = fee_candidates.filter(remote_ids=[])
+        fee = fee_candidates.get()
         self.assertEqual(fee.status, TransactionRecord.SUCCESS)
         self.assertEqual(fee.targets.filter(content_type__model='deliverable').get().target, deliverable)
         self.assertEqual(fee.targets.filter(content_type__model='invoice').get().target, deliverable.invoice)

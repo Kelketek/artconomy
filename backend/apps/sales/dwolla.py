@@ -130,7 +130,7 @@ def perform_transfer(record, deliverables, note='Disbursement'):
     with dwolla as api:
         try:
             transfer = api.post('transfers', transfer_request)
-            record.remote_id = transfer.headers['location'].split('/transfers/')[-1].strip('/')
+            record.remote_ids = [transfer.headers['location'].split('/transfers/')[-1].strip('/')]
             record.remote_message = ''
             record.save()
             deliverables.update(payout_sent=True)

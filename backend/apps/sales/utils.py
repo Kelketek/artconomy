@@ -282,7 +282,7 @@ def finalize_table_fees(deliverable: 'Deliverable'):
         payer=None, payee=None,
         status=TransactionRecord.SUCCESS,
         category=TransactionRecord.TABLE_SERVICE,
-        remote_id=record.remote_id,
+        remote_ids=record.remote_ids,
         auth_code=record.auth_code,
     )
     service_fee.targets.add(ref)
@@ -298,7 +298,7 @@ def finalize_table_fees(deliverable: 'Deliverable'):
         payer=None, payee=None,
         status=TransactionRecord.SUCCESS,
         category=TransactionRecord.TAX,
-        remote_id=tax_record.remote_id,
+        remote_ids=tax_record.remote_ids,
         auth_code=tax_record.auth_code,
     )
     tax_burned.targets.add(ref)
@@ -331,7 +331,7 @@ def finalize_deliverable(deliverable, user=None):
             destination=TransactionRecord.HOLDINGS,
             category=TransactionRecord.ESCROW_RELEASE,
             status=TransactionRecord.SUCCESS,
-            remote_id=record.remote_id,
+            remote_ids=record.remote_ids,
             auth_code=record.auth_code,
         )
         to_holdings.targets.add(ref_for_instance(deliverable))
@@ -564,6 +564,13 @@ if TYPE_CHECKING:
     from apps.sales.models import Order, Deliverable
 
 
+def fetch_prefixed(prefix: str, values: List[str]) -> str:
+    for entry in values:
+        if entry.startswith(prefix):
+            return entry
+    raise ValueError(f'Could not find an entry starting with {prefix} in {values}')
+
+
 def verify_total(deliverable: 'Deliverable'):
     total = deliverable.invoice.total()
     if total < Money(0, 'USD'):
@@ -576,7 +583,6 @@ def verify_total(deliverable: 'Deliverable'):
 
 def issue_refund(transaction_set: Iterator['TransactionRecord'], category: int, processor: str) -> List['TransactionRecord']:
     from apps.sales.models import TransactionRecord, STRIPE, AUTHORIZE
-    remote_id = ''
     last_four = None
     transactions = [*transaction_set]
     cash_transactions = [
@@ -584,11 +590,11 @@ def issue_refund(transaction_set: Iterator['TransactionRecord'], category: int, 
     ]
     card_transactions = [transaction for transaction in transaction_set if transaction.source == TransactionRecord.CARD]
     for transaction in card_transactions:
-        remote_id = transaction.remote_id
+        remote_ids = transaction.remote_ids
         last_four = transaction.card and transaction.card.last_four
         break
     if not len(cash_transactions) == len(transactions):
-        assert remote_id, 'Could not find a remote transaction ID to refund.'
+        assert remote_ids, 'Could not find a remote transaction ID to refund.'
         assert (processor == STRIPE) or last_four, 'Could not determine the last four digits of the relevant card.'
     refund_transactions = []
     for transaction in transactions:
@@ -601,6 +607,7 @@ def issue_refund(transaction_set: Iterator['TransactionRecord'], category: int, 
             payee=transaction.payer,
             card=transaction.card,
             amount=transaction.amount,
+            remote_ids=transaction.remote_ids,
             response_message="Failed when contacting payment processor.",
         )
         record.targets.set(transaction.targets.all())
@@ -611,21 +618,24 @@ def issue_refund(transaction_set: Iterator['TransactionRecord'], category: int, 
             if processor == STRIPE:
                 auth_code = '******'
                 try:
-                    intent_token = remote_id.split(';')[0]
+                    intent_token = fetch_prefixed('pi_', remote_ids)
                 except ValueError:
                     raise ValueError('Invalid Stripe payment ID. Please contact support!')
                 with stripe as stripe_api:
                     # Note: We will assume success here. If there is a refund failure we'll have to dive into it
                     # manually anyway and will find it during the accounting rounds.
-                    remote_id = refund_payment_intent(amount=amount, api=stripe_api, intent_token=intent_token)['id']
+                    refund_payment_intent(amount=amount, api=stripe_api, intent_token=intent_token)['id']
             elif processor == AUTHORIZE:
-                remote_id, auth_code = refund_transaction(remote_id, last_four, amount.amount)
+                remote_id, auth_code = refund_transaction(remote_ids[0], last_four, amount.amount)
+                if remote_id:
+                    remote_ids += [remote_id]
+                    remote_ids = sorted(list(set(remote_ids)))
             else:
                 raise RuntimeError('Unsupported card processor!')
             for transaction in refund_transactions:
                 transaction.status = TransactionRecord.SUCCESS
                 if transaction.destination == TransactionRecord.CARD:
-                    transaction.remote_id = remote_id
+                    transaction.remote_ids = remote_ids
                     transaction.auth_code = auth_code
                 transaction.response_message = ''
         except Exception as err:
@@ -786,7 +796,7 @@ class UserPaymentException(Exception):
 
 class PaymentAttempt(TypedDict, total=False):
     cash: bool
-    remote_id: str
+    remote_ids: List[str]
     card_id: int
     amount: Money
     number: str
@@ -827,9 +837,9 @@ def perform_charge(
             attempt=attempt, amount=amount, user=user, initiate_transactions=initiate_transactions,
             post_save=post_save, post_success=post_success, context=context,
         )
-    if attempt.get('remote_id') and (requesting_user.is_staff or attempt.get('stripe_event')):
+    if attempt.get('remote_ids') and (requesting_user.is_staff or attempt.get('stripe_event')):
         return from_remote_id(
-            attempt=attempt, amount=amount, user=user, remote_id=attempt.get('remote_id'),
+            attempt=attempt, amount=amount, user=user, remote_ids=attempt.get('remote_ids'),
             initiate_transactions=initiate_transactions, post_save=post_save, post_success=post_success,
             context=context,
         )
@@ -867,7 +877,7 @@ def from_cash(
 
 
 def from_remote_id(
-        *, attempt: PaymentAttempt, amount: Money, user: User, remote_id: str,
+        *, attempt: PaymentAttempt, amount: Money, user: User, remote_ids: List[str],
         initiate_transactions: TransactionInitiator, post_success: TransactionMutator,
         post_save: TransactionMutator, context: dict,
 ):
@@ -880,7 +890,7 @@ def from_remote_id(
     # This may not work if charging via stripe terminal.
     if not attempt.get('stripe_event'):
         # First, let's verify this remote ID is real.
-        details = transaction_details(remote_id)
+        details = transaction_details(remote_ids[0])
         auth_code = details['auth_code']
     else:
         # We'll be checking this elsewhere if the stripe event is provided.
@@ -924,7 +934,7 @@ def from_remote_id(
         raise annotate_error(
             transactions=[],
             # RuntimeError shouldn't be caught, ensuring this throws properly.
-            error=RuntimeError(f'Unhandled charge status, {stripe_event["status"]} for remote_id {remote_id}'),
+            error=RuntimeError(f'Unhandled charge status, {stripe_event["status"]} for remote_ids {remote_ids}'),
             attempt=attempt,
             user=user,
             post_save=post_save,
@@ -942,7 +952,7 @@ def from_remote_id(
         )
     # We're assuming we'll not be encountering 'pending' here. We have no card transactions which should require it.
     mark_successful(
-        transactions=transactions, remote_id=remote_id, auth_code=auth_code, post_success=post_success,
+        transactions=transactions, remote_ids=remote_ids, auth_code=auth_code, post_success=post_success,
         post_save=post_save, context=context, attempt=attempt, user=user,
     )
     return transactions
@@ -994,7 +1004,7 @@ def charge_new_card(
             transactions=transactions, error=err, attempt=attempt, user=user, post_save=post_save, context=context,
         )
     mark_successful(
-        transactions=transactions, remote_id=remote_id, auth_code=auth_code, post_success=post_success,
+        transactions=transactions, remote_ids=[remote_id], auth_code=auth_code, post_success=post_success,
         post_save=post_save, context=context, attempt=attempt, user=user,
     )
 
@@ -1019,7 +1029,8 @@ def charge_new_card(
 
 
 def mark_successful(
-        *, transactions: List['TransactionRecord'], remote_id: str, auth_code: str, post_success: TransactionMutator,
+        *, transactions: List['TransactionRecord'], remote_ids: List[str], auth_code: str,
+        post_success: TransactionMutator,
         post_save: TransactionMutator, attempt: PaymentAttempt, user: User, context: dict,
 ):
     """
@@ -1028,7 +1039,8 @@ def mark_successful(
     from apps.sales.models import TransactionRecord
     for transaction in transactions:
         transaction.status = TransactionRecord.SUCCESS
-        transaction.remote_id = remote_id
+        transaction.remote_ids.extend(remote_ids)
+        transaction.remote_ids = list(set(transaction.remote_ids))
         transaction.auth_code = auth_code
         # We have a failure message that gets set here by default. Clear it.
         transaction.response_message = ''
@@ -1062,7 +1074,7 @@ def charge_existing_card(
             transactions=transactions, error=err, attempt=attempt, user=user, post_save=post_save, context=context,
         )
     mark_successful(
-        transactions=transactions, remote_id=remote_id, auth_code=auth_code, post_success=post_success,
+        transactions=transactions, remote_ids=[remote_id], auth_code=auth_code, post_success=post_success,
         post_save=post_save, context=context, attempt=attempt, user=user,
     )
     card.cvv_verified = True
@@ -1133,13 +1145,13 @@ def premium_post_success(invoice):
     return wrapped
 
 
-def premium_post_save(invoice, remote_id=None):
+def premium_post_save(invoice, remote_ids=None):
     def wrapped(transactions: List['TransactionRecord'], data: PaymentAttempt, user: User, context: dict):
         invoice_ref = ref_for_instance(invoice)
         for transaction in transactions:
             transaction.targets.add(invoice_ref)
-            if remote_id:
-                transaction.remote_id = remote_id
+            if remote_ids:
+                transaction.remote_ids = list(set(transaction.remote_ids + remote_ids))
     return wrapped
 
 

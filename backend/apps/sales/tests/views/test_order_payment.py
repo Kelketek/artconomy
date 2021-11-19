@@ -313,7 +313,11 @@ class TestOrderPayment(TransactionCheckMixin, APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         # noinspection PyTypeChecker
-        self.assertRaises(TransactionRecord.DoesNotExist, TransactionRecord.objects.get, remote_id='36985214745')
+        self.assertRaises(
+            TransactionRecord.DoesNotExist,
+            TransactionRecord.objects.get,
+            remote_ids__contains=['36985214745'],
+        )
 
     @patch('apps.sales.utils.charge_saved_card')
     def test_pay_order_cvv_already_verified(self, mock_charge_card):

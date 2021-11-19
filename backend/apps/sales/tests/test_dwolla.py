@@ -143,7 +143,7 @@ class DwollaTestCase(TestCase):
         )
         record.refresh_from_db()
         self.assertEqual(record.status, TransactionRecord.PENDING)
-        self.assertEqual(record.remote_id, '123')
+        self.assertIn('123', record.remote_ids)
 
     def test_perform_transfer_failure(self, mock_api):
         account = BankAccountFactory.create(url='http://whatever.com/')
@@ -154,13 +154,13 @@ class DwollaTestCase(TestCase):
             amount=Money('5.00', 'USD'),
             source=TransactionRecord.HOLDINGS,
             destination=TransactionRecord.BANK,
-            remote_id='N/A',
+            remote_ids=['N/A'],
         )
         record.targets.add(ref_for_instance(account), ref_for_instance(deliverable))
         mock_api.return_value.post.side_effect = ValueError()
         self.assertRaises(ValueError, perform_transfer, record, Deliverable.objects.none())
         record.refresh_from_db()
-        self.assertEqual(record.remote_id, 'N/A')
+        self.assertEqual(record.remote_ids, ['N/A'])
         self.assertEqual(record.status, TransactionRecord.FAILURE)
 
 

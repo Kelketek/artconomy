@@ -314,7 +314,7 @@ class TestDeliverableStateChange(SignalsDisabledMixin, APITestCase):
             amount=Money('15.00', 'USD'),
             source=TransactionRecord.CARD,
             destination=TransactionRecord.ESCROW,
-            remote_id='1234',
+            remote_ids=['1234'],
         )
         record.targets.add(ref_for_instance(self.deliverable))
         mock_refund_transaction.return_value = ('123', 'ABC456')
@@ -327,7 +327,7 @@ class TestDeliverableStateChange(SignalsDisabledMixin, APITestCase):
         )
         self.assertEqual(refund_transaction.amount, Money('15.00', 'USD'))
         self.assertEqual(refund_transaction.category, TransactionRecord.ESCROW_REFUND)
-        self.assertEqual(refund_transaction.remote_id, '123')
+        self.assertEqual(refund_transaction.remote_ids, ['123', '1234'])
 
     @patch('apps.sales.utils.refund_transaction')
     def test_refund_card_seller_error(self, mock_refund_transaction, _mock_notify):
@@ -402,6 +402,7 @@ class TestDeliverableStateChange(SignalsDisabledMixin, APITestCase):
             payee=self.deliverable.order.seller,
             payer=self.deliverable.order.buyer,
             card=card,
+            remote_ids=['pi_123546']
         )
         record.targets.add(ref_for_instance(self.deliverable))
         mock_refund_transaction.return_value = {'id': '123456'}

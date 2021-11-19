@@ -692,7 +692,7 @@ class TransactionRecordSerializer(serializers.ModelSerializer):
     class Meta:
         model = TransactionRecord
         fields = (
-            'id', 'source', 'destination', 'status', 'category', 'card', 'payer', 'payee', 'amount', 'remote_id',
+            'id', 'source', 'destination', 'status', 'category', 'card', 'payer', 'payee', 'amount', 'remote_ids',
             'created_on', 'response_message', 'finalized_on', 'targets'
         )
         read_only_fields = fields
@@ -1060,7 +1060,7 @@ class PayoutTransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = TransactionRecord
         fields = (
-            'id', 'status', 'payee', 'amount', 'fees', 'total_drafted', 'remote_id',
+            'id', 'status', 'payee', 'amount', 'fees', 'total_drafted', 'remote_ids',
             'created_on', 'finalized_on', 'targets',
         )
         read_only_fields = fields
@@ -1087,7 +1087,7 @@ class UserPayoutTransactionSerializer(serializers.ModelSerializer):
         return obj.get_status_display()
 
     def get_remote_id(self, obj: TransactionRecord):
-        return obj.remote_id.split('|')[0]
+        return obj.remote_ids[0]
 
     def get_targets(self, obj: TransactionRecord):
         targets = obj.targets.order_by('content_type_id').all()
@@ -1197,7 +1197,7 @@ class SimpleTransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = TransactionRecord
         fields = (
-            'id', 'source', 'status', 'payer', 'payee', 'amount', 'remote_id',
+            'id', 'source', 'status', 'payer', 'payee', 'amount', 'remote_ids',
             'category',
             'created_on', 'finalized_on',
         )

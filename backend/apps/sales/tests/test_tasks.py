@@ -65,7 +65,7 @@ class TestAutoRenewal(TestCase):
         self.assertIsNone(record.payee)
         self.assertTrue(record.finalized_on)
         self.assertEqual(record.status, TransactionRecord.SUCCESS)
-        self.assertEqual(record.remote_id, 'Trans123')
+        self.assertIn('Trans123', record.remote_ids)
         self.assertEqual(record.category, TransactionRecord.SUBSCRIPTION_DUES)
         self.assertEqual(record.amount, Money('2.00', 'USD'))
         mock_charge_card.assert_called_with(payment_id='1234', profile_id='5678', amount=Decimal('2.00'))
@@ -91,7 +91,7 @@ class TestAutoRenewal(TestCase):
         self.assertIsNone(record.payee)
         self.assertTrue(record.finalized_on)
         self.assertEqual(record.status, TransactionRecord.SUCCESS)
-        self.assertEqual(record.remote_id, 'Trans123')
+        self.assertIn('Trans123', record.remote_ids)
         self.assertEqual(record.category, TransactionRecord.SUBSCRIPTION_DUES)
         self.assertEqual(record.amount, Money('2.00', 'USD'))
         mock_charge_card.assert_called_with(payment_id='1234', profile_id='5678', amount=Decimal('2.00'))
@@ -132,7 +132,7 @@ class TestAutoRenewal(TestCase):
         self.assertIsNone(record.payee)
         self.assertTrue(record.finalized_on)
         self.assertEqual(record.status, TransactionRecord.SUCCESS)
-        self.assertEqual(record.remote_id, 'Trans123')
+        self.assertIn('Trans123', record.remote_ids)
         self.assertEqual(record.category, TransactionRecord.SUBSCRIPTION_DUES)
         self.assertEqual(record.amount, Money('6.00', 'USD'))
         self.assertEqual(record.card, card)
@@ -159,7 +159,7 @@ class TestAutoRenewal(TestCase):
         self.assertIsNone(record.payee)
         self.assertTrue(record.finalized_on)
         self.assertEqual(record.status, TransactionRecord.FAILURE)
-        self.assertEqual(record.remote_id, '')
+        self.assertEqual(record.remote_ids, [])
         self.assertEqual(record.category, TransactionRecord.SUBSCRIPTION_DUES)
         self.assertEqual(record.amount, Money('2.00', 'USD'))
         self.assertEqual(record.card, card)
@@ -227,7 +227,7 @@ class TestAutoRenewal(TestCase):
         self.assertIsNone(record.payee)
         self.assertTrue(record.finalized_on)
         self.assertEqual(record.status, TransactionRecord.SUCCESS)
-        self.assertEqual(record.remote_id, 'Trans123')
+        self.assertIn('Trans123', record.remote_ids)
         self.assertEqual(record.category, TransactionRecord.SUBSCRIPTION_DUES)
         self.assertEqual(record.amount, Money('2.00', 'USD'))
         self.assertEqual(card.user.primary_card, primary_card)
@@ -248,7 +248,7 @@ class TestUpdateTransaction(TestCase):
             category=TransactionRecord.CASH_WITHDRAW,
             source=TransactionRecord.HOLDINGS,
             destination=TransactionRecord.BANK,
-            remote_id='1234',
+            remote_ids=['1234'],
         )
         self.deliverable = DeliverableFactory.create(payout_sent=True)
         self.record.targets.add(ref_for_instance(self.deliverable))
@@ -292,7 +292,7 @@ class TestUpdateTransaction(TestCase):
         self.deliverable.refresh_from_db()
         self.assertTrue(self.deliverable.payout_sent)
         additional_record = TransactionRecord.objects.get(
-            remote_id=self.record.remote_id, source=TransactionRecord.PAYOUT_MIRROR_SOURCE,
+            remote_ids__contains=self.record.remote_ids, source=TransactionRecord.PAYOUT_MIRROR_SOURCE,
         )
         self.assertEqual(additional_record.amount, self.record.amount)
         self.assertEqual(additional_record.destination, TransactionRecord.PAYOUT_MIRROR_DESTINATION)
@@ -470,9 +470,9 @@ def gen_dwolla_balance(amount: Money):
 class TestGetTransactionFees(TestCase):
     def test_get_transaction_fee(self, mock_api):
         mock_api.return_value.get.return_value.body = gen_dwolla_response()
-        record = TransactionRecordFactory.create(remote_id=str(uuid4()))
+        record = TransactionRecordFactory.create(remote_ids=[str(uuid4())])
         get_transaction_fees(str(record.id))
-        mock_api.return_value.get.assert_called_with(f'transfers/{record.remote_id}/fees')
+        mock_api.return_value.get.assert_called_with(f'transfers/{record.remote_ids[0]}/fees')
         results = TransactionRecord.objects.filter(targets=ref_for_instance(record))
         self.assertEqual(results.count(), 1)
         fee_record = results[0]
@@ -483,7 +483,7 @@ class TestGetTransactionFees(TestCase):
         self.assertEqual(fee_record.category, TransactionRecord.THIRD_PARTY_FEE)
         self.assertTrue(fee_record.created_on)
         self.assertEqual(fee_record.destination, TransactionRecord.ACH_TRANSACTION_FEES)
-        self.assertEqual(fee_record.remote_id, 'c4ded785-d753-45e8-b225-1ec88c321a46')
+        self.assertEqual(fee_record.remote_ids, ['c4ded785-d753-45e8-b225-1ec88c321a46'])
         self.assertEqual(fee_record.created_on, parse('2018-09-26T06:59:25.597Z'))
 
     def test_get_transaction_fee_multiple(self, mock_api):
@@ -495,9 +495,9 @@ class TestGetTransactionFees(TestCase):
             'created': '2019-09-26T06:59:25.597Z'
         })
         mock_api.return_value.get.return_value.body = response
-        record = TransactionRecordFactory.create(remote_id=str(uuid4()))
+        record = TransactionRecordFactory.create(remote_ids=[str(uuid4())])
         get_transaction_fees(str(record.id))
-        mock_api.return_value.get.assert_called_with(f'transfers/{record.remote_id}/fees')
+        mock_api.return_value.get.assert_called_with(f'transfers/{record.remote_ids[0]}/fees')
         results = TransactionRecord.objects.filter(targets=ref_for_instance(record))
         self.assertEqual(results.count(), 2)
         fee_record = results.get(status=TransactionRecord.SUCCESS)
@@ -507,7 +507,7 @@ class TestGetTransactionFees(TestCase):
         self.assertIsNone(fee_record.payee)
         self.assertEqual(fee_record.category, TransactionRecord.THIRD_PARTY_FEE)
         self.assertEqual(fee_record.destination, TransactionRecord.ACH_TRANSACTION_FEES)
-        self.assertEqual(fee_record.remote_id, 'c4ded785-d753-45e8-b225-1ec88c321a46')
+        self.assertEqual(fee_record.remote_ids, ['c4ded785-d753-45e8-b225-1ec88c321a46'])
         self.assertEqual(fee_record.created_on, parse('2018-09-26T06:59:25.597Z'))
         pending_fee_record = results.get(status=TransactionRecord.PENDING)
         self.assertEqual(pending_fee_record.amount, Money('5', 'USD'))
@@ -516,7 +516,7 @@ class TestGetTransactionFees(TestCase):
         self.assertIsNone(pending_fee_record.payee)
         self.assertEqual(pending_fee_record.category, TransactionRecord.THIRD_PARTY_FEE)
         self.assertEqual(pending_fee_record.destination, TransactionRecord.ACH_TRANSACTION_FEES)
-        self.assertEqual(pending_fee_record.remote_id, 'sdvibnwer98')
+        self.assertEqual(pending_fee_record.remote_ids, ['sdvibnwer98'])
         self.assertEqual(pending_fee_record.created_on, parse('2019-09-26T06:59:25.597Z'))
 
 

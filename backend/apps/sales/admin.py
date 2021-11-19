@@ -76,24 +76,6 @@ class TransactionRecordAdmin(admin.ModelAdmin):
         else:
             return '(Artconomy)'
 
-    def remote_link(self, obj):
-        if not obj.remote_id:
-            return ''
-        try:
-            UUID(obj.remote_id)
-        except (ValueError, TypeError):
-            return ''
-        if obj.remote_id.starts_with('pi_'):
-            intent_id = obj.remote_id.split(';')[0]
-            test_flag = 'test/' if settings.CARD_FLAG else ''
-            return format_html(
-                f'<a href="https://dashboard.stripe.com/{test_flag}payments/{intent_id}">Stripe Link</a>'
-            )
-        format_html(
-            f'<a href="/sales/{obj.order.seller.username}/sale/{obj.order.id}'
-            f'/deliverables/{obj.id}/overview/">visit</a>',
-        )
-
 
 class RatingAdmin(admin.ModelAdmin):
     raw_id_fields = ['rater', 'target']

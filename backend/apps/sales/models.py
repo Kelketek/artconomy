@@ -17,7 +17,7 @@ from django.db.models import (
     SET_NULL, PositiveIntegerField, URLField, CASCADE, DecimalField, Avg, DateField, EmailField, Sum,
     TextField,
     SlugField,
-    PROTECT, OneToOneField,
+    PROTECT, OneToOneField, JSONField,
 )
 
 # Create your models here.
@@ -1024,8 +1024,8 @@ class TransactionRecord(Model):
     finalized_on = DateTimeField(db_index=True, default=None, null=True, blank=True)
     amount = MoneyField(max_digits=6, decimal_places=2, default_currency='USD')
     targets = ManyToManyField(to='lib.GenericReference', related_name='referencing_transactions', blank=True)
-    remote_id = CharField(max_length=60, blank=True, default='')
     auth_code = CharField(max_length=6, default='', db_index=True, blank=True)
+    remote_ids = JSONField(default=list)
     response_message = TextField(default='', blank=True)
     note = TextField(default='', blank=True)
 
@@ -1036,6 +1036,14 @@ class TransactionRecord(Model):
             f'{self.payee or "(Artconomy)"} [{self.get_destination_display()}] for '
             f'{self.target_string}'
         )
+
+    @property
+    def remote_id(self):
+        raise RuntimeError('Convert all references to remote_id to use remote_ids')
+
+    @remote_id.setter
+    def remote_id(self, value):
+        raise RuntimeError('Convert all references to remote_id to use remote_ids')
 
     @property
     def target_string(self):
@@ -1052,55 +1060,6 @@ class TransactionRecord(Model):
         if key in ['object_id', 'content_type', 'content_type_id', 'target']:
             raise AttributeError("Single target no longer supported. Add to 'targets' M2M field via GenericReference.")
         object.__setattr__(self, key, value)
-
-    def refund_card(self) -> 'TransactionRecord':
-        if self.category == TransactionRecord.SUBSCRIPTION_DUES:
-            category = TransactionRecord.SUBSCRIPTION_REFUND
-        elif self.category == TransactionRecord.ESCROW_HOLD:
-            category = TransactionRecord.ESCROW_REFUND
-        else:
-            raise RuntimeError(
-                f'Not sure what refund category this transaction applies to! Found {self.get_category_display()}',
-            )
-        record = TransactionRecord(
-            source=self.destination,
-            destination=self.source,
-            status=TransactionRecord.FAILURE,
-            category=category,
-            payer=self.payee,
-            payee=self.payer,
-            amount=self.amount,
-            response_message="Failed when contacting payment processor.",
-        )
-        record.targets.set(self.targets.all())
-        try:
-            record.remote_id, record.auth_code = refund_transaction(
-                self.remote_id, self.card.last_four, self.amount.amount,
-            )
-            record.status = TransactionRecord.SUCCESS
-            record.save()
-        except Exception as err:
-            record.response_message = str(err)
-            record.save()
-        return record
-
-    def refund_account(self):
-        raise NotImplementedError("Account refunds are not yet implemented.")
-
-    def refund(self):
-        warn('Deprecated refund function used.')
-        if self.status != TransactionRecord.SUCCESS:
-            raise ValueError("Cannot refund a failed transaction.")
-        if self.source == TransactionRecord.CARD:
-            return self.refund_card()
-        elif self.source == TransactionRecord.BANK:
-            raise NotImplementedError("ACH Refunds are not implemented.")
-        elif self.source == TransactionRecord.ESCROW:
-            raise ValueError(
-                "Cannot refund an escrow sourced payment. Are you sure you grabbed the right payment object?"
-            )
-        else:
-            return self.refund_account()
 
     def save(self, *args, **kwargs):
         if (self.status in [TransactionRecord.SUCCESS, TransactionRecord.FAILURE]) and (self.finalized_on is None):

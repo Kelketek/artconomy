@@ -7,7 +7,6 @@ from moneyed import Money
 
 from apps.lib.models import NEW_PRODUCT
 from apps.lib.test_resources import SignalsDisabledMixin
-from apps.lib.utils import FakeRequest
 from apps.profiles.models import NO_SUPPORTED_COUNTRY, IN_SUPPORTED_COUNTRY
 from apps.profiles.tests.factories import UserFactory, SubmissionFactory
 from apps.sales.models import TransactionRecord, BASE_PRICE, SHIELD, BONUS, TABLE_SERVICE, TAX, COMPLETED, QUEUED, NEW, \
@@ -104,46 +103,6 @@ class TestTransactionRecord(TestCase):
         self.assertEqual(
             str(record),
             'Successful [Escrow hold]: $10.00 from Dude [Credit Card] to Chick [Escrow] for None',
-        )
-
-    @patch('apps.sales.models.warn')
-    @patch('apps.sales.models.refund_transaction')
-    def test_default_refund(self, mock_refund_transaction, _mock_warn):
-        card = CreditCardTokenFactory.create(last_four='1234')
-        record = TransactionRecordFactory.create(card=card)
-        mock_refund_transaction.return_value = '5678'
-        record.refund()
-        mock_refund_transaction.assert_called_with(record.remote_id, '1234', Decimal('10.00'))
-
-    @patch('apps.sales.models.warn')
-    def test_refund_account(self, _mock_warn):
-        record = TransactionRecordFactory.create(source=TransactionRecord.ACH_MISC_FEES)
-        with self.assertRaises(NotImplementedError) as context_manager:
-            record.refund()
-        self.assertEqual(str(context_manager.exception), 'Account refunds are not yet implemented.')
-
-    @patch('apps.sales.models.warn')
-    def test_refund_failed(self, _mock_warn):
-        record = TransactionRecordFactory.create(status=TransactionRecord.FAILURE)
-        with self.assertRaises(ValueError) as context_manager:
-            record.refund()
-        self.assertEqual(str(context_manager.exception), 'Cannot refund a failed transaction.')
-
-    @patch('apps.sales.models.warn')
-    def test_refund_wrong_type(self, _mock_warn):
-        record = TransactionRecordFactory.create(source=TransactionRecord.BANK)
-        with self.assertRaises(NotImplementedError) as context_manager:
-            record.refund()
-        self.assertEqual(str(context_manager.exception), 'ACH Refunds are not implemented.')
-
-    @patch('apps.sales.models.warn')
-    def test_refund_escrow(self, _mock_warn):
-        record = TransactionRecordFactory.create(source=TransactionRecord.ESCROW)
-        with self.assertRaises(ValueError) as context_manager:
-            record.refund()
-        self.assertEqual(
-            str(context_manager.exception),
-            'Cannot refund an escrow sourced payment. Are you sure you grabbed the right payment object?',
         )
 
 

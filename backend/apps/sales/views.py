@@ -1426,6 +1426,8 @@ class MakePayment(GenericAPIView):
         attempt = self.get_serializer(data=self.request.data, context=self.get_serializer_context())
         attempt.is_valid(raise_exception=True)
         attempt = attempt.validated_data
+        if 'remote_id' in attempt:
+            attempt['remote_ids'] = [attempt.pop('remote_id')]
         try:
             pay_deliverable(attempt=attempt, deliverable=deliverable, requesting_user=self.request.user)
         except UserPaymentException as err:
@@ -2168,7 +2170,7 @@ class SubscriptionReportCSV(CSVReport, ListAPIView, DateConstrained):
             'payer',
             'amount',
             'created_on',
-            'remote_id',
+            'remote_ids',
         ]
         return context
 
@@ -2197,7 +2199,7 @@ class PayoutReportCSV(CSVReport, ListAPIView, DateConstrained):
             'total_drafted',
             'created_on',
             'finalized_on',
-            'remote_id',
+            'remote_ids',
         ]
         return context
 
@@ -2253,7 +2255,7 @@ class UserPayoutReportCSV(CSVReport, ListAPIView, DateConstrained):
             'currency',
             'created_on',
             'finalized_on',
-            'remote_id',
+            'remote_ids',
         ]
         return context
 
@@ -2601,8 +2603,8 @@ class StripeCountries(APIView):
             return Response(data={'countries': get_country_list(api=api)})
 
 
-def remote_id_from_charge(charge_event):
-    return f'{charge_event["payment_intent"]};{charge_event["id"]}'
+def remote_ids_from_charge(charge_event):
+    return [charge_event["payment_intent"], charge_event["id"]]
 
 
 def service_charge(*, event, amount: Money, preflight_checks=True):
@@ -2615,13 +2617,13 @@ def service_charge(*, event, amount: Money, preflight_checks=True):
             'stripe_event': charge_event,
             'amount': amount,
             'service': metadata['service'],
-            'remote_id': f'{charge_event["payment_intent"]};{charge_event["id"]}',
+            'remote_ids': [charge_event["payment_intent"], charge_event["id"]],
         },
         amount=amount,
         user=user,
         requesting_user=user,
         post_success=premium_post_success(invoice),
-        post_save=premium_post_save(invoice, remote_id_from_charge(charge_event)),
+        post_save=premium_post_save(invoice, remote_ids_from_charge(charge_event)),
         context={},
         initiate_transactions=premium_initiate_transactions,
     )
@@ -2647,7 +2649,7 @@ def deliverable_charge(*, event, amount: Money, preflight_checks=True):
         attempt={
             'stripe_event': charge_event,
             'amount': amount,
-            'remote_id': remote_id_from_charge(charge_event),
+            'remote_ids': remote_ids_from_charge(charge_event),
         },
         requesting_user=deliverable.order.buyer,
         deliverable=deliverable,
@@ -2742,7 +2744,7 @@ def pull_and_reconcile_report(report):
         currency = get_currency(row['currency'].upper())
         amount = Money(Decimal(row['gross']), currency)
         new_record = TransactionRecord.objects.get_or_create(
-            remote_id=record.remote_id, amount=amount,
+            remote_ids=record.remote_ids, amount=amount,
             payer=record.payer, payee=record.payee, source=TransactionRecord.PAYOUT_MIRROR_SOURCE,
             destination=TransactionRecord.PAYOUT_MIRROR_DESTINATION, status=TransactionRecord.SUCCESS,
             category=TransactionRecord.CASH_WITHDRAW,
