@@ -436,9 +436,9 @@ export default class App extends mixins(Viewer, Nav, PrerenderMixin, RatingRefre
 
   public set showPaymentNotification(val: boolean) {
     if (val) {
-      deleteCookie('hidePaymentNotification')
+      localStorage.removeItem('hidePaymentNotification')
     } else {
-      setCookie('hidePaymentNotification', '1')
+      localStorage.setItem('hidePaymentNotification', '1')
     }
     this.forceRecompute += 1
   }
@@ -448,7 +448,7 @@ export default class App extends mixins(Viewer, Nav, PrerenderMixin, RatingRefre
     // will force recomputation of this value.
     // eslint-disable-next-line no-unused-expressions
     this.forceRecompute
-    return !getCookie('hidePaymentNotification')
+    return !localStorage.getItem('hidePaymentNotification')
   }
 
   // To make testing easier via spies without doing anything to the environment.
