@@ -2731,7 +2731,7 @@ def pull_and_reconcile_report(report):
         if not row['source_id']:
             raise RuntimeError('No source ID!')
         record = TransactionRecord.objects.get(
-            remote_id__startswith=row['source_id'] + '', source=TransactionRecord.HOLDINGS,
+            remote_ids__contains=row['source_id'] + '', source=TransactionRecord.HOLDINGS,
             destination=TransactionRecord.BANK,
         )
         if row['automatic_payout_effective_at_utc']:
