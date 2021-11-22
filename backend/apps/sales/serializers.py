@@ -1072,7 +1072,7 @@ class UserPayoutTransactionSerializer(serializers.ModelSerializer):
     currency = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
     targets = serializers.SerializerMethodField()
-    remote_id = serializers.SerializerMethodField()
+    remote_ids = serializers.SerializerMethodField()
 
     def get_amount(self, obj: TransactionRecord):
         return str(obj.amount.amount)
@@ -1086,8 +1086,8 @@ class UserPayoutTransactionSerializer(serializers.ModelSerializer):
     def get_status(self, obj: TransactionRecord):
         return obj.get_status_display()
 
-    def get_remote_id(self, obj: TransactionRecord):
-        return obj.remote_ids[0]
+    def get_remote_ids(self, obj: TransactionRecord):
+        return ', '.join(obj.remote_ids)
 
     def get_targets(self, obj: TransactionRecord):
         targets = obj.targets.order_by('content_type_id').all()
@@ -1111,7 +1111,7 @@ class UserPayoutTransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = TransactionRecord
         fields = (
-            'id', 'status', 'amount', 'currency', 'remote_id',
+            'id', 'status', 'amount', 'currency', 'remote_ids',
             'created_on', 'finalized_on', 'targets',
         )
         read_only_fields = fields
