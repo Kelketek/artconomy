@@ -74,7 +74,7 @@
                   ending in {{bank.x.last_four}}
                 </v-col>
                 <v-col class="shrink" >
-                  <ac-confirmation :action="bank.delete">
+                  <ac-confirmation :action="() => bank.delete().then(subjectHandler.user.refresh)">
                     <template v-slot:default="confirmContext">
                       <v-btn icon color="danger" v-on="confirmContext.on">
                         <v-icon>delete</v-icon>
