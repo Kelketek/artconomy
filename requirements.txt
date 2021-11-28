@@ -34,7 +34,7 @@ django-stubs==1.5.0
 dwollav2==2.0.0
 easy_thumbnails==2.7
 factory_boy==3.2.0
-freezegun==0.3.14
+freezegun==1.1.0
 html2text==2020.1.16
 ipython==7.23.1
 mailchimp3==3.0.12

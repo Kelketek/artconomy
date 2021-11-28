@@ -1,5 +1,6 @@
 import logging
-from itertools import chain
+from collections import defaultdict
+from decimal import ROUND_CEILING, localcontext
 from typing import Dict, Union
 
 from dateutil.parser import parse
@@ -9,8 +10,9 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
-from django.utils.datetime_safe import date
+from django.utils.datetime_safe import date, datetime
 from moneyed import Money
+from pytz import UTC
 from urllib3.exceptions import HTTPError
 
 from apps.lib.models import RENEWAL_FAILURE, SUBSCRIPTION_DEACTIVATED, RENEWAL_FIXED, TRANSFER_FAILED, ref_for_instance
@@ -19,11 +21,11 @@ from apps.profiles.models import User
 from apps.sales.apis import dwolla, AUTHORIZE, STRIPE
 from apps.sales.authorize import AuthorizeException, charge_saved_card
 from apps.sales.dwolla import initiate_withdraw, perform_transfer, TRANSACTION_STATUS_MAP
-from apps.sales.models import CreditCardToken, TransactionRecord, Invoice, REVIEW, NEW, Deliverable, CANCELLED, SHIELD, \
+from apps.sales.models import CreditCardToken, TransactionRecord, REVIEW, NEW, Deliverable, CANCELLED, \
     PREMIUM_SUBSCRIPTION, PAID, COMPLETED, StripeAccount
 from apps.sales.stripe import stripe, money_to_stripe
 from apps.sales.utils import service_price, set_service, finalize_deliverable, account_balance, destroy_deliverable, \
-    get_term_invoice, get_user_processor, fetch_prefixed
+    get_term_invoice, get_user_processor, fetch_prefixed, take_cut, divide_amount, ceiling_context
 from conf.celery_config import celery_app
 
 
@@ -429,6 +431,109 @@ def get_transaction_fees(self, transaction_id: str):
             amount=Money(transaction['amount']['value'], transaction['amount']['currency'])
         )
         fee.targets.add(ref_for_instance(record))
+
+
+@transaction.atomic
+def annotate_connect_fees_for_year_month(*, year: int, month: int) -> None:
+    """
+    Stripe levies fees on the full transaction volume. This means calculating them by individual transfers could
+    lead to subtle differences between the amount we figure and they amount they actually charge us. So, we have to
+    run these calculations for the volume over a whole month and then divvy them up.
+
+    We create these entries in an idempotent manner so we can run them as we go along if we wish. By the end of the
+    month, the amount of fees we calculate should match the amount they took.
+
+    Note that this is done in two segments. All transfers out are subject to the general volume pricing, but those
+    which go internationally are subject to an additional fee atop the main one. Stripe levies this as a separate fee
+    so we calculate it separately and consolidate afterward.
+
+    This function may need to be optimized depending on how many transactions we end up dealing with. However
+    I'm optimizing for clarity of writing for now.
+
+    Stripe calculates its timezones on UTC.
+    """
+    start_datetime = datetime(year=year, month=month, day=1, hour=0, minute=0, second=0, microsecond=0, tzinfo=UTC)
+    end_datetime = min(datetime.now(tz=UTC), start_datetime + relativedelta(months=1))
+    target_transactions = list(TransactionRecord.objects.filter(
+        finalized_on__gte=start_datetime, finalized_on__lt=end_datetime, status=TransactionRecord.SUCCESS,
+        source=TransactionRecord.HOLDINGS, destination=TransactionRecord.BANK,
+        targets__content_type=ContentType.objects.get_for_model(StripeAccount)
+    ).distinct().order_by('finalized_on'))
+    if not len(target_transactions):
+        return
+    total_volume = sum([target_transaction.amount for target_transaction in target_transactions])
+    # Need to track all fees for each user since we'll add to them multiple times.
+    user_fees_map = defaultdict(list)
+    # Need to know which transactions were cross-border since they incur additional fees.
+    cross_border_fees_list = []
+    # And we'll need to tally the total from those transactions to derive the fee.
+    cross_border_transactions = []
+    with localcontext() as ctx:
+        ctx.rounding = ROUND_CEILING
+        base_fees = (total_volume * (settings.STRIPE_PAYOUT_PERCENTAGE / 100)).round(2)
+    fee_list = divide_amount(base_fees, len(target_transactions))
+    for record in target_transactions:
+        # Can't use update_or_create here since we are looking around the 'targets' many-to-many table.
+        fee_record = TransactionRecord.objects.filter(
+            source=TransactionRecord.UNPROCESSED_EARNINGS,
+            destination=TransactionRecord.ACH_TRANSACTION_FEES,
+            category=TransactionRecord.THIRD_PARTY_FEE,
+            targets=ref_for_instance(record),
+        ).first()
+        if not fee_record:
+            fee_record = TransactionRecord(
+                source=TransactionRecord.UNPROCESSED_EARNINGS,
+                destination=TransactionRecord.ACH_TRANSACTION_FEES,
+                category=TransactionRecord.THIRD_PARTY_FEE,
+            )
+        fee_record.finalized_on = record.finalized_on
+        fee_record.amount = fee_list.pop(0)
+        fee_record.status = TransactionRecord.SUCCESS
+        fee_record.remote_ids = record.remote_ids
+        fee_record.save()
+        fee_record.targets.add(*record.targets.all(), ref_for_instance(record))
+        user_fees_map[record.payer].append(fee_record)
+        fee_record.targets.add(*record.targets.all())
+        cross_border = TransactionRecord.objects.filter(
+            targets=ref_for_instance(record),
+            source=TransactionRecord.PAYOUT_MIRROR_SOURCE,
+            destination=TransactionRecord.PAYOUT_MIRROR_DESTINATION,
+        ).exclude(amount_currency='USD').exists()
+        if cross_border:
+            cross_border_fees_list.append(fee_record)
+            cross_border_transactions.append(record)
+    # Each user has a $2 fee per month if they have a payout. This is part of the 'connect' fee. It's going to be
+    # a challenge to find a way to mitigate the cost of this, but we can at least account for it to start.
+    for key, values in user_fees_map.items():
+        fee_list = divide_amount(settings.STRIPE_ACTIVE_ACCOUNT_MONTHLY_FEE, len(values))
+        for value in values:
+            value.amount += (fee_list.pop(0) + settings.STRIPE_PAYOUT_STATIC)
+            value.save()
+    if not cross_border_transactions:
+        return
+    cross_border_total = sum(
+        [cross_border_transaction.amount for cross_border_transaction in cross_border_transactions],
+    )
+    with localcontext() as ctx:
+        ctx.rounding = ROUND_CEILING
+        cross_border_fee = (cross_border_total * (settings.STRIPE_PAYOUT_CROSS_BORDER_PERCENTAGE / 100)).round(2)
+    fee_list = divide_amount(cross_border_fee, len(cross_border_transactions))
+    for fee_record in cross_border_fees_list:
+        fee_record.amount += fee_list.pop(0)
+        fee_record.save()
+
+
+@celery_app.task
+def annotate_connect_fees():
+    """
+    Runs through all payouts and tallies expected fees, creating entries for all of them.
+    """
+    target_date = timezone.now()
+    annotate_connect_fees_for_year_month(month=target_date.month, year=target_date.year)
+    if target_date.day == 1:
+        # Also do last month's to finish it off.
+        target_date -= relativedelta(months=1)
+        annotate_connect_fees_for_year_month(month=target_date.month, year=target_date.year)
 
 
 @celery_app.task

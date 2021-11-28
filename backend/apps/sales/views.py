@@ -62,7 +62,7 @@ from apps.sales.models import Product, Order, CreditCardToken, Revision, BankAcc
     WEIGHTED_STATUSES, Rating, TransactionRecord, BASE_PRICE, ADD_ON, TAX, EXTRA, \
     TABLE_SERVICE, TIP, LineItem, inventory_change, InventoryError, InventoryTracker, NEW, PAYMENT_PENDING, \
     QUEUED, COMPLETED, IN_PROGRESS, DISPUTED, REVIEW, CANCELLED, REFUNDED, Deliverable, Reference, WAITING, \
-    PREMIUM_SUBSCRIPTION, StripeAccount, WebhookRecord
+    PREMIUM_SUBSCRIPTION, StripeAccount, WebhookRecord, LineItemSim
 from apps.sales.permissions import (
     OrderViewPermission, OrderSellerPermission, OrderBuyerPermission,
     OrderPlacePermission, EscrowPermission, EscrowDisabledPermission, RevisionsVisible,
@@ -87,7 +87,7 @@ from apps.sales.utils import available_products, service_price, set_service, \
     POSTED_ONLY, PENDING, transfer_order, early_finalize, cancel_deliverable, \
     verify_total, issue_refund, ensure_buyer, perform_charge, premium_post_success, premium_initiate_transactions, \
     UserPaymentException, pay_deliverable, get_term_invoice, get_intent_card_token, premium_post_save, \
-    get_user_processor
+    get_user_processor, take_cut
 from shortcuts import make_url
 
 
@@ -581,7 +581,6 @@ class DeliverableLineItems(ListCreateAPIView):
         item_type = serializer.validated_data.get('type', ADD_ON)
         deliverable = self.get_object()
         destination_user = deliverable.order.seller
-        new_line = None
         if item_type in [TAX, EXTRA, TABLE_SERVICE]:
             destination_user = None
         accounts = {
@@ -607,7 +606,7 @@ class DeliverableLineItems(ListCreateAPIView):
                 base_price.amount = serializer.validated_data['amount']
                 base_price.save()
             else:
-                new_line = serializer.save(
+                serializer.save(
                     destination_user=destination_user, destination_account=destination_account,
                     invoice=deliverable.invoice,
                 )
@@ -2751,6 +2750,7 @@ def pull_and_reconcile_report(report):
             created_on=record.created_on, finalized_on=timestamp,
         )[0]
         new_record.targets.add(*record.targets.all())
+        new_record.targets.add(ref_for_instance(record))
 
 
 @atomic
@@ -2788,7 +2788,7 @@ def transfer_failed(event):
     """
     transfer = event['data']['object']['id']
     records = TransactionRecord.objects.filter(
-        remote_id__endswith=f'|{transfer}',
+        remote_ids=transfer,
     )
     records.update(status=TransactionRecord.FAILURE)
     record = records.order_by('created_on')[0]
@@ -2821,6 +2821,10 @@ def reporting_report_run_succeeded(event):
         return
 
 
+def spy_failure(event):
+    raise NotImplementedError('Bogus failure to trap real-world webhook.')
+
+
 STRIPE_DIRECT_WEBHOOK_ROUTES = {
     'charge.succeeded': charge_succeeded,
     'charge.failed': charge_failed,
@@ -2832,6 +2836,7 @@ STRIPE_DIRECT_WEBHOOK_ROUTES = {
 STRIPE_CONNECT_WEBHOOK_ROUTES = {
     'account.updated': account_updated,
     'payout.paid': payout_paid,
+    'payout.failed': spy_failure,
 }
 
 

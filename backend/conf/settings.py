@@ -277,6 +277,14 @@ AUTHORIZE_SECRET = get_env('AUTHORIZE_SECRET', '')
 STRIPE_KEY = get_env('STRIPE_KEY', '')
 STRIPE_PUBLIC_KEY = get_env('STRIPE_PUBLIC_KEY', '')
 
+STRIPE_CHARGE_STATIC = Money(get_env('STRIPE_CHARGE_STATIC', '0.30'), 'USD')
+STRIPE_CHARGE_PERCENTAGE = Decimal(get_env('STRIPE_CHARGE_PERCENTAGE', '2.90'))
+# Yes, this is .25% + $0.25. Not a copy-paste error.
+STRIPE_PAYOUT_STATIC = Money(get_env('STRIPE_PAYOUT_STATIC', '0.25'), 'USD')
+STRIPE_PAYOUT_PERCENTAGE = Decimal(get_env('STRIPE_PAYOUT_PERCENTAGE', '0.25'))
+STRIPE_PAYOUT_CROSS_BORDER_PERCENTAGE = Decimal(get_env('STRIPE_PAYOUT_CROSS_BORDER_PERCENTAGE', '0.25'))
+STRIPE_ACTIVE_ACCOUNT_MONTHLY_FEE = Money(get_env('STRIPE_ACTIVE_ACCOUNT_MONTHLY_FEE', '2.00'), 'USD')
+
 DEFAULT_CARD_PROCESSOR = get_env('DEFAULT_CARD_PROCESSOR', 'authorize')
 
 if TESTING:
@@ -480,23 +488,27 @@ CELERYBEAT_SCHEDULE = {
     },
     'check_transactions': {
         'task': 'apps.sales.tasks.check_transactions',
-        'schedule': crontab(minute=30)
+        'schedule': crontab(minute=30),
     },
     'auto_finalize_run': {
         'task': 'apps.sales.tasks.auto_finalize_run',
-        'schedule': crontab(hour=1, minute=0)
+        'schedule': crontab(hour=1, minute=0),
     },
     'recover_returned_balance': {
         'task': 'apps.sales.tasks.recover_returned_balance',
-        'schedule': crontab(minute='*/30')
+        'schedule': crontab(minute='*/30'),
     },
     'remind_sales': {
         'task': 'apps.sales.tasks.remind_sales',
-        'schedule': crontab(hour=15, minute=30)
+        'schedule': crontab(hour=15, minute=30),
     },
     'destroy_cancelled': {
         'task': 'apps.sales.tasks.clear_cancelled_deliverables',
-        'schedule': crontab(hour=3, minute=10)
+        'schedule': crontab(hour=3, minute=10),
+    },
+    'annotate_payouts': {
+        'task': 'apps.sales.tasks.annotate_connect_fees',
+        'schedule': crontab(hour=1, minute=30),
     }
 }
 

@@ -18,9 +18,9 @@ from apps.sales.authorize import AuthorizeException
 from apps.sales.models import TransactionRecord, REVIEW, PAYMENT_PENDING, NEW, CANCELLED, IN_PROGRESS, Deliverable
 from apps.sales.tasks import run_billing, renew, update_transfer_status, remind_sales, remind_sale, check_transactions, \
     withdraw_all, auto_finalize_run, auto_finalize, get_transaction_fees, clear_cancelled_deliverables, \
-    clear_deliverable, recover_returned_balance
+    clear_deliverable, recover_returned_balance, annotate_connect_fees_for_year_month, annotate_connect_fees
 from apps.sales.tests.factories import CreditCardTokenFactory, TransactionRecordFactory, DeliverableFactory, \
-    BankAccountFactory
+    BankAccountFactory, StripeAccountFactory
 
 
 class TestAutoRenewal(TestCase):
@@ -606,3 +606,230 @@ class TestRecoverReturnedBalance(TestCase):
                 'value': '5',
             },
         })
+
+
+"""
+STRIPE_PAYOUT_STATIC = Money(get_env('STRIPE_PAYOUT_STATIC', '0.25'), 'USD')
+STRIPE_PAYOUT_PERCENTAGE = Decimal(get_env('STRIPE_PAYOUT_PERCENTAGE', '0.25'))
+STRIPE_PAYOUT_CROSS_BORDER_PERCENTAGE = Decimal(get_env('STRIPE_PAYOUT_CROSS_BORDER_PERCENTAGE', '0.25'))
+STRIPE_ACTIVE_ACCOUNT_MONTHLY_FEE = Money(get_env('STRIPE_ACTIVE_ACCOUNT_MONTHLY_FEE', '2.00'), 'USD')
+"""
+
+
+@override_settings(
+    STRIPE_PAYOUT_STATIC=Money('0.25', 'USD'),
+    STRIPE_PAYOUT_PERCENTAGE=Decimal('0.25'),
+    STRIPE_PAYOUT_CROSS_BORDER_PERCENTAGE=Decimal('0.25'),
+    STRIPE_ACTIVE_ACCOUNT_MONTHLY_FEE=Money('2.00', 'USD'),
+)
+class TestAnnotatePayouts(TestCase):
+    @freeze_time('2021-08-01')
+    def test_allocate_connect_fees_one_record(self):
+        account = StripeAccountFactory.create()
+        record = TransactionRecordFactory.create(
+            payer=account.user, payee=account.user, source=TransactionRecord.HOLDINGS,
+            destination=TransactionRecord.BANK, amount=Money('100', 'USD'), category=TransactionRecord.CASH_WITHDRAW,
+            finalized_on=timezone.now(),
+        )
+        record.targets.add(ref_for_instance(account))
+        annotate_connect_fees_for_year_month(month=8, year=2021)
+        fee_record = TransactionRecord.objects.get(
+            source=TransactionRecord.UNPROCESSED_EARNINGS, destination=TransactionRecord.ACH_TRANSACTION_FEES,
+        )
+        self.assertEqual(fee_record.amount, Money('2.50', 'USD'))
+
+    @freeze_time('2021-08-01')
+    def test_allocate_connect_fees_multiple_records_one_user(self):
+        account = StripeAccountFactory.create()
+        record1 = TransactionRecordFactory.create(
+            payer=account.user, payee=account.user, source=TransactionRecord.HOLDINGS,
+            destination=TransactionRecord.BANK, amount=Money('50', 'USD'), category=TransactionRecord.CASH_WITHDRAW,
+            finalized_on=timezone.now(),
+        )
+        record2 = TransactionRecordFactory.create(
+            payer=account.user, payee=account.user, source=TransactionRecord.HOLDINGS,
+            destination=TransactionRecord.BANK, amount=Money('50', 'USD'), category=TransactionRecord.CASH_WITHDRAW,
+            finalized_on=timezone.now(),
+        )
+        record1.targets.add(ref_for_instance(account))
+        record2.targets.add(ref_for_instance(account))
+        annotate_connect_fees_for_year_month(month=8, year=2021)
+        fee_records = TransactionRecord.objects.filter(
+            source=TransactionRecord.UNPROCESSED_EARNINGS, destination=TransactionRecord.ACH_TRANSACTION_FEES,
+        )
+        fee_total = sum([fee_record.amount for fee_record in fee_records])
+        self.assertEqual(fee_total, Money('2.75', 'USD'))
+
+    @freeze_time('2021-08-10')
+    def test_multiple_connect_fees_multiple_records(self):
+        account1 = StripeAccountFactory.create()
+        account2 = StripeAccountFactory.create()
+        record1 = TransactionRecordFactory.create(
+            payer=account1.user, payee=account1.user, source=TransactionRecord.HOLDINGS,
+            destination=TransactionRecord.BANK, amount=Money('50', 'USD'), category=TransactionRecord.CASH_WITHDRAW,
+            finalized_on=timezone.now() - relativedelta(days=2),
+        )
+        record2 = TransactionRecordFactory.create(
+            payer=account1.user, payee=account1.user, source=TransactionRecord.HOLDINGS,
+            destination=TransactionRecord.BANK, amount=Money('50', 'USD'), category=TransactionRecord.CASH_WITHDRAW,
+            finalized_on=timezone.now() - relativedelta(days=1),
+        )
+        record3 = TransactionRecordFactory.create(
+            payer=account2.user, payee=account2.user, source=TransactionRecord.HOLDINGS,
+            destination=TransactionRecord.BANK, amount=Money('50', 'USD'), category=TransactionRecord.CASH_WITHDRAW,
+            finalized_on=timezone.now() - relativedelta(days=4),
+        )
+        record4 = TransactionRecordFactory.create(
+            payer=account2.user, payee=account2.user, source=TransactionRecord.HOLDINGS,
+            destination=TransactionRecord.BANK, amount=Money('50', 'USD'), category=TransactionRecord.CASH_WITHDRAW,
+            finalized_on=timezone.now() - relativedelta(days=3),
+        )
+        record1.targets.add(ref_for_instance(account1))
+        record2.targets.add(ref_for_instance(account1))
+        record3.targets.add(ref_for_instance(account2))
+        record4.targets.add(ref_for_instance(account2))
+        annotate_connect_fees_for_year_month(month=8, year=2021)
+        fee_records = TransactionRecord.objects.filter(
+            source=TransactionRecord.UNPROCESSED_EARNINGS, destination=TransactionRecord.ACH_TRANSACTION_FEES,
+        )
+        fee_total = sum([fee_record.amount for fee_record in fee_records])
+        self.assertEqual(fee_total, Money('5.50', 'USD'))
+        fee_total = sum([fee_record.amount for fee_record in fee_records.filter(targets__in=[
+            ref_for_instance(record3), ref_for_instance(record4)]
+        )])
+        self.assertEqual(fee_total, Money('2.76', 'USD'))
+        fee_total = sum([fee_record.amount for fee_record in fee_records.filter(targets__in=[
+            ref_for_instance(record1), ref_for_instance(record2)]
+        )])
+        self.assertEqual(fee_total, Money('2.74', 'USD'))
+
+    @freeze_time('2021-08-10')
+    def test_overseas_records(self):
+        account = StripeAccountFactory.create()
+        record1 = TransactionRecordFactory.create(
+            payer=account.user, payee=account.user, source=TransactionRecord.HOLDINGS,
+            destination=TransactionRecord.BANK, amount=Money('50', 'USD'), category=TransactionRecord.CASH_WITHDRAW,
+            finalized_on=timezone.now() - relativedelta(days=2),
+        )
+        record2 = TransactionRecordFactory.create(
+            payer=account.user, payee=account.user, source=TransactionRecord.HOLDINGS,
+            destination=TransactionRecord.BANK, amount=Money('50', 'USD'), category=TransactionRecord.CASH_WITHDRAW,
+            finalized_on=timezone.now() - relativedelta(days=1),
+        )
+        record1.targets.add(ref_for_instance(account))
+        record2.targets.add(ref_for_instance(account))
+        overseas_record1 = TransactionRecordFactory.create(
+            payer=account.user, payee=account.user, source=TransactionRecord.PAYOUT_MIRROR_SOURCE,
+            destination=TransactionRecord.PAYOUT_MIRROR_DESTINATION, amount=Money('20', 'CAD'),
+            finalized_on=record1.finalized_on,
+        )
+        overseas_record2 = TransactionRecordFactory.create(
+            payer=account.user, payee=account.user, source=TransactionRecord.PAYOUT_MIRROR_SOURCE,
+            destination=TransactionRecord.PAYOUT_MIRROR_DESTINATION, finalized_on=record2.finalized_on,
+            amount=Money('22', 'CAD'),
+        )
+        overseas_record1.targets.add(ref_for_instance(record1))
+        overseas_record2.targets.add(ref_for_instance(record2))
+        annotate_connect_fees_for_year_month(month=8, year=2021)
+        fee_records = TransactionRecord.objects.filter(
+            source=TransactionRecord.UNPROCESSED_EARNINGS, destination=TransactionRecord.ACH_TRANSACTION_FEES,
+        )
+        fee_total = sum([fee_record.amount for fee_record in fee_records])
+        self.assertEqual(fee_total, Money('3.00', 'USD'))
+
+    @freeze_time('2021-08-10')
+    def test_overseas_and_domestic_records(self):
+        account = StripeAccountFactory.create()
+        record1 = TransactionRecordFactory.create(
+            payer=account.user, payee=account.user, source=TransactionRecord.HOLDINGS,
+            destination=TransactionRecord.BANK, amount=Money('50', 'USD'), category=TransactionRecord.CASH_WITHDRAW,
+            finalized_on=timezone.now() - relativedelta(days=2),
+        )
+        record2 = TransactionRecordFactory.create(
+            payer=account.user, payee=account.user, source=TransactionRecord.HOLDINGS,
+            destination=TransactionRecord.BANK, amount=Money('50', 'USD'), category=TransactionRecord.CASH_WITHDRAW,
+            finalized_on=timezone.now() - relativedelta(days=1),
+        )
+        record1.targets.add(ref_for_instance(account))
+        record2.targets.add(ref_for_instance(account))
+        overseas_record1 = TransactionRecordFactory.create(
+            payer=account.user, payee=account.user, source=TransactionRecord.PAYOUT_MIRROR_SOURCE,
+            destination=TransactionRecord.PAYOUT_MIRROR_DESTINATION, amount=Money('20', 'CAD'),
+            finalized_on=record1.finalized_on,
+        )
+        overseas_record1.targets.add(ref_for_instance(record1))
+        annotate_connect_fees_for_year_month(month=8, year=2021)
+        fee_records = TransactionRecord.objects.filter(
+            source=TransactionRecord.UNPROCESSED_EARNINGS, destination=TransactionRecord.ACH_TRANSACTION_FEES,
+        )
+        fee_total = sum([fee_record.amount for fee_record in fee_records])
+        self.assertEqual(fee_total, Money('2.88', 'USD'))
+        fee_record = fee_records.get(targets=ref_for_instance(record1))
+        self.assertEqual(fee_record.amount, Money('1.51', 'USD'))
+        fee_record = fee_records.get(targets=ref_for_instance(record2))
+        self.assertEqual(fee_record.amount, Money('1.37', 'USD'))
+
+    @freeze_time('2021-08-10')
+    def test_idempotency(self):
+        account = StripeAccountFactory.create()
+        record1 = TransactionRecordFactory.create(
+            payer=account.user, payee=account.user, source=TransactionRecord.HOLDINGS,
+            destination=TransactionRecord.BANK, amount=Money('50', 'USD'), category=TransactionRecord.CASH_WITHDRAW,
+            finalized_on=timezone.now() - relativedelta(days=2),
+        )
+        record2 = TransactionRecordFactory.create(
+            payer=account.user, payee=account.user, source=TransactionRecord.HOLDINGS,
+            destination=TransactionRecord.BANK, amount=Money('50', 'USD'), category=TransactionRecord.CASH_WITHDRAW,
+            finalized_on=timezone.now() - relativedelta(days=1),
+        )
+        record1.targets.add(ref_for_instance(account))
+        record2.targets.add(ref_for_instance(account))
+        overseas_record1 = TransactionRecordFactory.create(
+            payer=account.user, payee=account.user, source=TransactionRecord.PAYOUT_MIRROR_SOURCE,
+            destination=TransactionRecord.PAYOUT_MIRROR_DESTINATION, amount=Money('20', 'CAD'),
+            finalized_on=record1.finalized_on,
+        )
+        overseas_record1.targets.add(ref_for_instance(record1))
+        annotate_connect_fees_for_year_month(month=8, year=2021)
+        annotate_connect_fees_for_year_month(month=8, year=2021)
+        fee_records = TransactionRecord.objects.filter(
+            source=TransactionRecord.UNPROCESSED_EARNINGS, destination=TransactionRecord.ACH_TRANSACTION_FEES,
+        )
+        fee_total = sum([fee_record.amount for fee_record in fee_records])
+        self.assertEqual(fee_total, Money('2.88', 'USD'))
+        fee_record = fee_records.get(targets=ref_for_instance(record1))
+        self.assertEqual(fee_record.amount, Money('1.51', 'USD'))
+        fee_record = fee_records.get(targets=ref_for_instance(record2))
+        self.assertEqual(fee_record.amount, Money('1.37', 'USD'))
+
+    @freeze_time('2021-08-10')
+    def test_celery_task(self):
+        account = StripeAccountFactory.create()
+        record1 = TransactionRecordFactory.create(
+            payer=account.user, payee=account.user, source=TransactionRecord.HOLDINGS,
+            destination=TransactionRecord.BANK, amount=Money('50', 'USD'), category=TransactionRecord.CASH_WITHDRAW,
+            finalized_on=timezone.now() - relativedelta(days=2),
+        )
+        record2 = TransactionRecordFactory.create(
+            payer=account.user, payee=account.user, source=TransactionRecord.HOLDINGS,
+            destination=TransactionRecord.BANK, amount=Money('50', 'USD'), category=TransactionRecord.CASH_WITHDRAW,
+            finalized_on=timezone.now() - relativedelta(days=1),
+        )
+        record1.targets.add(ref_for_instance(account))
+        record2.targets.add(ref_for_instance(account))
+        overseas_record1 = TransactionRecordFactory.create(
+            payer=account.user, payee=account.user, source=TransactionRecord.PAYOUT_MIRROR_SOURCE,
+            destination=TransactionRecord.PAYOUT_MIRROR_DESTINATION, amount=Money('20', 'CAD'),
+            finalized_on=record1.finalized_on,
+        )
+        overseas_record1.targets.add(ref_for_instance(record1))
+        annotate_connect_fees()
+        fee_records = TransactionRecord.objects.filter(
+            source=TransactionRecord.UNPROCESSED_EARNINGS, destination=TransactionRecord.ACH_TRANSACTION_FEES,
+        )
+        fee_total = sum([fee_record.amount for fee_record in fee_records])
+        self.assertEqual(fee_total, Money('2.88', 'USD'))
+        fee_record = fee_records.get(targets=ref_for_instance(record1))
+        self.assertEqual(fee_record.amount, Money('1.51', 'USD'))
+        fee_record = fee_records.get(targets=ref_for_instance(record2))
+        self.assertEqual(fee_record.amount, Money('1.37', 'USD'))

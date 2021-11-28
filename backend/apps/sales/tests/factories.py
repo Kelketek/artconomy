@@ -7,7 +7,7 @@ from apps.profiles.tests.factories import UserFactory
 from apps.sales.models import (
     Order, Product, CreditCardToken, Revision, BankAccount,
     Promo, Rating,
-    TransactionRecord, LineItem, ADD_ON, Deliverable, Reference, Invoice, WebhookRecord)
+    TransactionRecord, LineItem, ADD_ON, Deliverable, Reference, Invoice, WebhookRecord, StripeAccount)
 
 
 class ProductFactory(DjangoModelFactory):
@@ -124,6 +124,14 @@ class LineItemFactory(DjangoModelFactory):
 
     class Meta:
         model = LineItem
+
+
+class StripeAccountFactory(DjangoModelFactory):
+    user = SubFactory(UserFactory)
+    country = 'US'
+
+    class Meta:
+        model = StripeAccount
 
 
 class WebhookRecordFactory(DjangoModelFactory):

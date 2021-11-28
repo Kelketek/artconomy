@@ -5,7 +5,7 @@ If enough code has to be repeated between the two bases it may be worth looking 
 """
 import logging
 from collections import defaultdict
-from decimal import Decimal, InvalidOperation, ROUND_HALF_EVEN, localcontext, ROUND_FLOOR
+from decimal import Decimal, InvalidOperation, ROUND_HALF_EVEN, localcontext, ROUND_FLOOR, ROUND_DOWN, ROUND_CEILING
 from functools import reduce
 from math import ceil
 from typing import Union, Type, TYPE_CHECKING, List, Dict, Iterator, Callable, Tuple, TypedDict, Optional
@@ -21,7 +21,7 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.datetime_safe import date
-from moneyed import Money
+from moneyed import Money, Currency
 from pandas.tseries.offsets import BDay
 from rest_framework.exceptions import ValidationError
 from short_stuff import gen_shortcode
@@ -30,6 +30,7 @@ from apps.lib.models import Subscription, COMMISSIONS_OPEN, Event, DISPUTE, SALE
     Comment, ORDER_UPDATE, COMMENT, ref_for_instance
 from apps.lib.utils import notify, recall_notification, commissions_open_subscription
 from apps.profiles.models import User, VERIFIED
+from apps.sales.apis import STRIPE
 from apps.sales.authorize import refund_transaction, CardInfo, AddressInfo, create_customer_profile, get_card_type, \
     card_token_from_transaction, charge_saved_card, charge_card, AuthorizeException, transaction_details
 from apps.sales.stripe import refund_payment_intent, stripe
@@ -255,6 +256,14 @@ def floor_context(wrapped: Callable):
     def wrapper(*args, **kwargs):
         with localcontext() as ctx:
             ctx.rounding = ROUND_FLOOR
+            return wrapped(*args, **kwargs)
+    return wrapper
+
+
+def ceiling_context(wrapped: Callable):
+    def wrapper(*args, **kwargs):
+        with localcontext() as ctx:
+            ctx.rounding = ROUND_CEILING
             return wrapped(*args, **kwargs)
     return wrapper
 
@@ -516,7 +525,7 @@ def distribute_difference(difference: Money, money_map: 'LineMoneyMap') -> 'Line
 
 
 @floor_context
-def get_totals(lines: Iterator['Line']) -> (Money, 'LineMoneyMap'):
+def get_totals(lines: Iterator['Line']) -> (Money, Money, 'LineMoneyMap'):
     priority_sets = lines_by_priority(lines)
     total, discount, subtotals = reduce(
         priority_total, priority_sets, (Money('0.00', 'USD'), Money('0.00', 'USD'), {}),
@@ -536,6 +545,70 @@ def reckon_lines(lines) -> Money:
     """
     value, discount, _subtotals = get_totals(lines)
     return value.round(2)
+
+
+def digits(currency: Currency) -> int:
+    return len(str(currency.sub_unit)) - 1
+
+
+@floor_context
+def divide_amount(amount: Money, divisor: int) -> List[Money]:
+    """
+    Takes an amount of money, and divides it as evenly as possible according to divisor.
+    Then, allocate remaining 'pennies' of the currency to the entries until the total number of discrete values
+    is accounted for.
+
+    TODO: Replicate in JS version
+    """
+    assert amount == amount.round(digits(amount.currency))
+    target_amount = amount / divisor
+    target_amount = target_amount.round(digits(amount.currency))
+    difference = amount - (target_amount * divisor).round(digits(amount.currency))
+    difference *= target_amount.currency.sub_unit
+    difference = int(difference.amount)
+    result = [target_amount] * divisor
+    if digits(target_amount.currency):
+        penny_amount = Money(Decimal('0.' + ('0' * (digits(target_amount.currency) - 1)) + '1'), target_amount.currency)
+    else:
+        penny_amount = Money('1', target_amount.currency)
+    assert difference >= 0
+    # It's probably not possible for it to loop around again, but I'm not a confident
+    # enough mathematician to disprove it, especially since I'm unsure how having discrete values factors in for edge
+    # cases. If someone else can be more assured, I'm good with simplifying this loop.
+    while difference:
+        for index, item in enumerate(result):
+            result[index] += penny_amount
+            difference -= 1
+            if not difference:
+                break
+    return result
+
+
+def take_cut(
+        base_amount: Money, *, amount: Optional[Money] = None, percentage: Optional[Decimal] = Decimal('0'),
+) -> (Money, Money):
+    """
+    Convenience function. Given an amount and a specified percentage/amount with line spec flags, chop the amount
+    in two, with the first return being the cut amount from the base, and the second being the remainder.
+
+    The remainder is helpful to make sure you have a re-normalized amount left over you can perform future, separate
+    operations on and make sure all pieces still add up to the original amount.
+
+    NOTE: This probably needs to be redone. It doesn't match how stripe is running its calculations.
+
+    TODO: Replicate in JS version
+    """
+    from apps.sales.models import LineItemSim
+    if amount is None:
+        amount = Money('0', base_amount.currency)
+    base_line_item = LineItemSim(id=0, priority=0, amount=base_amount)
+    fee_line_item = LineItemSim(
+        id=1, priority=1, amount=amount, percentage=percentage, cascade_percentage=True, cascade_amount=True,
+    )
+    _total, _discount, line_map = get_totals([base_line_item, fee_line_item])
+    cut = line_map[fee_line_item]
+    remaining = line_map[base_line_item]
+    return cut, remaining
 
 
 def lines_to_transaction_specs(lines: Iterator['LineItem']) -> 'TransactionSpecMap':
@@ -883,8 +956,6 @@ def from_remote_id(
 ):
     """
     Mark this as paid via remote transaction ID from the card processor.
-
-    TODO: Make this work with Stripe.
     """
     from apps.sales.models import TransactionRecord
     # This may not work if charging via stripe terminal.
@@ -1082,6 +1153,22 @@ def charge_existing_card(
     return transactions
 
 
+@ceiling_context
+def initialize_stripe_charge_fees(amount: Money):
+    """Return a set of initialized transactions that mark what fees we paid to stripe for a card charge."""
+    from apps.sales.models import TransactionRecord
+    fee = (amount * (settings.STRIPE_CHARGE_PERCENTAGE / 100)).round(2)
+    fee += settings.STRIPE_CHARGE_STATIC
+    return [
+        TransactionRecord(
+            source=TransactionRecord.UNPROCESSED_EARNINGS,
+            destination=TransactionRecord.CARD_TRANSACTION_FEES,
+            category=TransactionRecord.THIRD_PARTY_FEE,
+            amount=fee,
+        )
+    ]
+
+
 def deliverable_initialize_transactions(
         attempt: PaymentAttempt, amount: Money, user: User, context: dict,
 ) -> List['TransactionRecord']:
@@ -1100,6 +1187,8 @@ def deliverable_initialize_transactions(
             response_message="Failed when contacting payment processor.",
         ) for ((destination_user, destination_account, category), value) in transaction_specs.items()
     ]
+    if deliverable.processor == STRIPE:
+        transactions.extend(initialize_stripe_charge_fees(amount=amount))
     return transactions
 
 
