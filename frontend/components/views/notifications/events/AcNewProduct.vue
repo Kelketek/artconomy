@@ -1,7 +1,7 @@
 <template>
   <ac-base-notification :notification="notification" :asset-link="productLink">
     <span slot="title"><ac-link :to="productLink">New Product: {{event.data.product.name}}</ac-link></span>
-    <span slot="subtitle"><ac-link :to="productLink">By {{event.data.product.user.username}} starting at ${{event.data.product.price}}</ac-link></span>
+    <span slot="subtitle"><ac-link :to="productLink">By {{event.data.product.user.username}} starting at ${{event.data.product.starting_price}}</ac-link></span>
   </ac-base-notification>
 </template>
 
