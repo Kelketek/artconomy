@@ -24,15 +24,15 @@ from apps.sales.dwolla import initiate_withdraw, perform_transfer, TRANSACTION_S
 from apps.sales.models import CreditCardToken, TransactionRecord, REVIEW, NEW, Deliverable, CANCELLED, \
     PREMIUM_SUBSCRIPTION, PAID, COMPLETED, StripeAccount
 from apps.sales.stripe import stripe, money_to_stripe
-from apps.sales.utils import service_price, set_service, finalize_deliverable, account_balance, destroy_deliverable, \
-    get_term_invoice, get_user_processor, fetch_prefixed, take_cut, divide_amount, ceiling_context
+from apps.sales.utils import set_premium, finalize_deliverable, account_balance, destroy_deliverable, \
+    get_term_invoice, get_user_processor, fetch_prefixed, divide_amount
 from conf.celery_config import celery_app
 
 
 logger = logging.getLogger(__name__)
 
 
-def renew_stripe_card(*, invoice, price, user, service, card):
+def renew_stripe_card(*, invoice, price, user, card):
     with stripe as stripe_api:
         amount, currency = money_to_stripe(price)
         kwargs = {
@@ -42,7 +42,7 @@ def renew_stripe_card(*, invoice, price, user, service, card):
             'customer': user.stripe_token,
             'confirm': True,
             'off_session': True,
-            'metadata': {'service': service}
+            'metadata': {'service': 'landscape'}
         }
         try:
             if user.current_intent:
@@ -63,7 +63,7 @@ def renew_stripe_card(*, invoice, price, user, service, card):
             return False
 
 
-def renew_authorize_card(*, invoice, price, user, service, card):
+def renew_authorize_card(*, invoice, price, user, card):
     record = TransactionRecord.objects.create(
         card=card,
         payer=user,
@@ -92,11 +92,11 @@ def renew_authorize_card(*, invoice, price, user, service, card):
     record.remote_ids = [remote_id]
     record.auth_code = auth_code
     record.finalized = True
-    record.response_message = 'Upgraded to {}'.format(service)
+    record.response_message = 'Upgraded to landscape'
     card.cvv_verified = True
     card.save()
     record.save()
-    set_service(user, service, target_date=date.today() + relativedelta(months=1))
+    set_premium(user, target_date=date.today() + relativedelta(months=1))
     invoice.paid_on = timezone.now()
     invoice.status = PAID
     invoice.save()
@@ -104,15 +104,15 @@ def renew_authorize_card(*, invoice, price, user, service, card):
 
 
 @celery_app.task
-def renew(user_id, service, card_id=None):
+def renew(user_id, card_id=None):
     user = User.objects.get(id=user_id)
-    enabled = getattr(user, service + '_enabled')
-    paid_through = getattr(user, service + '_paid_through')
+    enabled = user.landscape_enabled
+    paid_through = user.landscape_paid_through
     old = paid_through and paid_through <= date.today()
     if old is None:
         # This should never happen.
         logger.error(
-            "!!! {}({}) has NONE for {}_paid_through with {} enabled!".format(user.username, user.id, service, service)
+            "!!! {}({}) has NONE for landscape_paid_through with landscape enabled!".format(user.username, user.id)
         )
         return
     if not (enabled and old):
@@ -130,18 +130,18 @@ def renew(user_id, service, card_id=None):
             notify(RENEWAL_FAILURE, user, data={'error': 'No card on file!'}, unique=True)
             return
         card = cards[0]
-    price = service_price(user, service)
+    price = Money(settings.LANDSCAPE_PRICE, 'USD')
     invoice = get_term_invoice(user)
     invoice.line_items.update_or_create(
-        defaults={'amount': price, 'description': service.title()},
+        defaults={'amount': price, 'description': 'Landscape'},
         destination_account=TransactionRecord.UNPROCESSED_EARNINGS,
         type=PREMIUM_SUBSCRIPTION,
         destination_user=None,
     )
     if card.token:
-        success = renew_authorize_card(invoice=invoice, user=user, service=service, card=card, price=price)
+        success = renew_authorize_card(invoice=invoice, user=user, card=card, price=price)
     else:
-        success = renew_stripe_card(invoice=invoice, user=user, service=service, card=card, price=price)
+        success = renew_stripe_card(invoice=invoice, user=user, card=card, price=price)
     if not success:
         return
     if card_id or (paid_through < date.today()):
@@ -155,21 +155,16 @@ def renew(user_id, service, card_id=None):
 def run_billing():
     # Anyone we've not been able to renew for five days, assume won't be renewing automatically.
     users = User.objects.filter(
-        Q(portrait_enabled=True, portrait_paid_through__lte=date.today() - relativedelta(days=5)) |
         Q(landscape_enabled=True, landscape_paid_through__lte=date.today() - relativedelta(days=5))
     )
     for user in users:
         logger.info('Deactivated {}({})'.format(user.username, user.id))
         notify(SUBSCRIPTION_DEACTIVATED, user, unique=True)
-        user.portrait_enabled = False
         user.landscape_enabled = False
         user.save()
-    users = User.objects.filter(portrait_enabled=True, portrait_paid_through__lte=date.today())
-    for user in users:
-        renew.delay(user.id, 'portrait')
     users = User.objects.filter(landscape_enabled=True, landscape_paid_through__lte=date.today())
     for user in users:
-        renew.delay(user.id, 'landscape')
+        renew.delay(user.id)
 
 
 @celery_app.task

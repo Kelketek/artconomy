@@ -1,7 +1,7 @@
 <template>
   <ac-load-section :controller="subjectHandler.user">
     <template v-slot:default>
-      <v-row no-gutters id="purchase-settings" v-if="!(subject.landscape || subject.portrait || subject.landscape_enabled || subject.portrait_enabled)">
+      <v-row no-gutters id="purchase-settings" v-if="!(subject.landscape || subject.landscape_enabled)">
         <v-row no-gutters  >
           <v-col cols="12" sm="8" offset-sm="2" md="6" offset-md="3" lg="4" offset-lg="4">
             <v-subheader>Saved Cards</v-subheader>

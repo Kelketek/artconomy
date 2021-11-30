@@ -32,7 +32,7 @@ from apps.lib.models import (
     Comment, Subscription, FAVORITE, SYSTEM_ANNOUNCEMENT, DISPUTE, REFUND, Event,
     SUBMISSION_CHAR_TAG, CHAR_TAG, COMMENT, Tag, SUBMISSION_SHARED, CHAR_SHARED,
     NEW_CHARACTER, RENEWAL_FAILURE, SUBSCRIPTION_DEACTIVATED, RENEWAL_FIXED, NEW_JOURNAL,
-    TRANSFER_FAILED, SUBMISSION_ARTIST_TAG, REFERRAL_LANDSCAPE_CREDIT, REFERRAL_PORTRAIT_CREDIT,
+    TRANSFER_FAILED, SUBMISSION_ARTIST_TAG, REFERRAL_LANDSCAPE_CREDIT,
     WATCHING,
     Notification, WAITLIST_UPDATED)
 from apps.lib.utils import (
@@ -119,8 +119,6 @@ class User(AbstractEmailUser, HitsMixin):
     watching = ManyToManyField('User', symmetrical=False, related_name='watched_by', blank=True)
     landscape_enabled = BooleanField(default=False, db_index=True)
     landscape_paid_through = DateField(null=True, default=None, blank=True, db_index=True)
-    portrait_enabled = BooleanField(default=False, db_index=True)
-    portrait_paid_through = DateField(null=True, default=None, blank=True, db_index=True)
     registration_code = ForeignKey('sales.Promo', null=True, blank=True, on_delete=SET_NULL)
     # Whether the user's been offered the mailing list
     offered_mailchimp = BooleanField(default=False)
@@ -172,13 +170,6 @@ class User(AbstractEmailUser, HitsMixin):
     @property
     def landscape(self) -> bool:
         return bool(self.landscape_paid_through and self.landscape_paid_through >= date.today())
-
-    @property
-    def portrait(self) -> bool:
-        return bool(
-            self.landscape
-            or (self.portrait_paid_through and self.portrait_paid_through >= date.today())
-        )
 
     @property
     def is_registered(self):
@@ -262,7 +253,6 @@ def create_user_subscriptions(instance):
             (SUBMISSION_SHARED, False), (CHAR_SHARED, False), (RENEWAL_FAILURE, True),
             (SUBSCRIPTION_DEACTIVATED, True), (RENEWAL_FIXED, True),
             (TRANSFER_FAILED, True), (REFERRAL_LANDSCAPE_CREDIT, True),
-            (REFERRAL_PORTRAIT_CREDIT, True),
             (WAITLIST_UPDATED, True),
         ]],
         ignore_conflicts=True,

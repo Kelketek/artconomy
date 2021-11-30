@@ -606,7 +606,6 @@ class ServicePaymentSerializer(MakePaymentMixin, NewCardSerializer):
     remote_id = serializers.CharField(required=False, allow_blank=True)
     cash = serializers.BooleanField(default=False)
     card_id = IntegerField(allow_null=True)
-    service = serializers.ChoiceField(choices=('portrait', 'landscape'))
 
 
 class RevisionSerializer(serializers.ModelSerializer):
@@ -1253,7 +1252,6 @@ class PaymentIntentSettings(serializers.Serializer):
 class PremiumIntentSettings(serializers.Serializer):
     make_primary = serializers.BooleanField(default=False)
     save_card = serializers.BooleanField(default=False)
-    service = serializers.ChoiceField(choices=('portrait', 'landscape'))
 
 
 @register_serializer

@@ -54,7 +54,6 @@ import AcNewJournal from './events/AcNewJournal.vue'
 import NotificationsListBase from './mixins/notifications-list-base'
 import AcOrderTokenIssued from './events/AcOrderTokenIssued.vue'
 import AcWithdrawFailed from './events/AcWithdrawFailed.vue'
-import AcPortraitReferral from './events/AcPortraitReferral.vue'
 import AcLandscapeReferral from './events/AcLandscapeReferral.vue'
 import AcSubmissionArtistTag from './events/AcSubmissionArtistTag.vue'
 import AcGrowSpinner from '@/components/AcGrowSpinner.vue'
@@ -73,7 +72,6 @@ import AcWaitlistUpdated from '@/components/views/notifications/events/AcWaitlis
     AcGrowSpinner,
     AcSubmissionArtistTag,
     AcLandscapeReferral,
-    AcPortraitReferral,
     AcWithdrawFailed,
     AcOrderTokenIssued,
     AcNewJournal,

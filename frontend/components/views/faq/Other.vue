@@ -124,17 +124,7 @@
               from artists you are watching.
             </p>
             <p>
-              <router-link
-                  v-if="isRegistered"
-                  :to="{name: 'Upgrade'}"
-              >
-                Want to know the moment an artist is available for commissions? Artconomy Portrait gives you
-                real time notifications on artist availability!
-              </router-link>
-              <span v-else>
-                      Want to know the moment an artist is available for commissions? Artconomy Portrait gives you
-                      real time notifications on artist availability!
-                    </span>
+              You will also receive notifications when your watched artists are open for commissions!
             </p>
           </v-card-text>
         </v-card>

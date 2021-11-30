@@ -337,7 +337,6 @@ assert PREMIUM_STATIC_BONUS < SERVICE_STATIC_FEE
 # Applied to the fee amount.
 
 LANDSCAPE_PRICE = Decimal(get_env('LANDSCAPE_PRICE', '5.00'))
-PORTRAIT_PRICE = Decimal(get_env('PORTRAIT_PRICE', '3.00'))
 
 HIDE_TEST_BROWSER = bool(int(get_env('HIDE_TEST_BROWSER', '1')))
 

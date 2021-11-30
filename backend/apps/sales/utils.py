@@ -28,7 +28,7 @@ from short_stuff import gen_shortcode
 
 from apps.lib.models import Subscription, COMMISSIONS_OPEN, Event, DISPUTE, SALE_UPDATE, Notification, \
     Comment, ORDER_UPDATE, COMMENT, ref_for_instance
-from apps.lib.utils import notify, recall_notification, commissions_open_subscription
+from apps.lib.utils import notify, recall_notification
 from apps.profiles.models import User, VERIFIED
 from apps.sales.apis import STRIPE
 from apps.sales.authorize import refund_transaction, CardInfo, AddressInfo, create_customer_profile, get_card_type, \
@@ -142,42 +142,22 @@ def available_products(requester, query='', ordering=True):
 
 def service_price(user, service):
     price = Money(getattr(settings, service.upper() + '_PRICE'), 'USD')
-    if service == 'landscape':
-        if user.portrait_paid_through and user.portrait_paid_through > date.today():
-            price -= Money(settings.PORTRAIT_PRICE, 'USD')
     return price
 
 
-def set_service(user, service, target_date=None):
-    if service == 'portrait':
-        user.portrait_enabled = True
-        user.landscape_enabled = False
-    else:
-        user.landscape_enabled = True
-        user.portrait_enabled = False
+def set_premium(user, target_date=None):
+    user.landscape_enabled = True
     if target_date:
-        setattr(user, service + '_paid_through', target_date)
-        # Landscape includes portrait, so this is always set regardless.
-        user.portrait_paid_through = target_date
-        for watched in user.watching.all():
-            commissions_open_subscription(user, watched, target_date)
+        user.landscape_paid_through = target_date
     user.save(
-        update_fields=['landscape_enabled', 'portrait_enabled', 'portrait_paid_through', 'landscape_paid_through'],
+        update_fields=['landscape_enabled', 'landscape_paid_through'],
     )
 
 
-def check_charge_required(user, service):
-    if service == 'portrait':
-        if user.landscape_paid_through:
-            if user.landscape_paid_through >= date.today():
-                return False, user.landscape_paid_through
-        if user.portrait_paid_through:
-            if user.portrait_paid_through >= date.today():
-                return False, user.portrait_paid_through
-    else:
-        if user.landscape_paid_through:
-            if user.landscape_paid_through >= date.today():
-                return False, user.landscape_paid_through
+def check_charge_required(user):
+    if user.landscape_paid_through:
+        if user.landscape_paid_through >= date.today():
+            return False, user.landscape_paid_through
     return True, None
 
 
@@ -1126,7 +1106,7 @@ def charge_existing_card(
         post_success: TransactionMutator, post_save: TransactionMutator, context: dict,
 ):
     """
-    Charge an existing card for this transaction. Note: this only works with Authorize.net at the moment.
+    Charge an existing card for this transaction. Note: this only works with Authorize.net.
     """
     from apps.sales.models import CreditCardToken
     card = get_object_or_404(CreditCardToken, id=attempt['card_id'], active=True, user=user)
@@ -1224,8 +1204,8 @@ def premium_post_success(invoice):
 
     def wrapped(transactions: List['TransactionRecord'], data: PaymentAttempt, user: User, context: dict):
         for transaction in transactions:
-            transaction.response_message = 'Upgraded to {}'.format(data['service'])
-        set_service(user, data['service'], target_date=date.today() + relativedelta(months=1))
+            transaction.response_message = 'Upgraded to landscape'
+        set_premium(user, target_date=date.today() + relativedelta(months=1))
         invoice.paid_on = timezone.now()
         invoice.status = PAID
         invoice.save()

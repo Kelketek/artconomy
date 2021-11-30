@@ -82,12 +82,12 @@ from apps.sales.serializers import (
     NewDeliverableSerializer, PinSerializer, PaymentIntentSettings, PremiumIntentSettings, StripeAccountSerializer,
     StripeBankSetupSerializer, UserPayoutTransactionSerializer)
 from apps.sales.tasks import renew, withdraw_all
-from apps.sales.utils import available_products, service_price, set_service, \
+from apps.sales.utils import available_products, set_premium, \
     check_charge_required, available_products_by_load, finalize_deliverable, account_balance, \
     POSTED_ONLY, PENDING, transfer_order, early_finalize, cancel_deliverable, \
     verify_total, issue_refund, ensure_buyer, perform_charge, premium_post_success, premium_initiate_transactions, \
     UserPaymentException, pay_deliverable, get_term_invoice, get_intent_card_token, premium_post_save, \
-    get_user_processor, take_cut
+    get_user_processor
 from shortcuts import make_url
 
 
@@ -1297,9 +1297,7 @@ class CardList(ListCreateAPIView):
         except AuthorizeException as err:
             return Response(data={'detail': str(err)}, status=status.HTTP_400_BAD_REQUEST)
         if token.user.landscape_enabled:
-            renew.delay(token.user.id, 'landscape')
-        elif token.user.portrait_enabled:
-            renew.delay(token.user.id, 'portrait')
+            renew.delay(token.user.id)
         serializer = CardSerializer(instance=token)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
@@ -1704,7 +1702,6 @@ class PremiumInfo(APIView):
                 'landscape_price': settings.LANDSCAPE_PRICE,
                 'standard_percentage': settings.SERVICE_PERCENTAGE_FEE,
                 'standard_static': settings.SERVICE_STATIC_FEE,
-                'portrait_price': settings.PORTRAIT_PRICE,
                 'minimum_price': settings.MINIMUM_PRICE,
                 'table_percentage': settings.TABLE_PERCENTAGE_FEE,
                 'table_static': settings.TABLE_STATIC_FEE,
@@ -1721,18 +1718,18 @@ class Premium(GenericAPIView):
         serializer = self.get_serializer(data=self.request.data, context=self.get_serializer_context())
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
-        charge_required, target_date = check_charge_required(self.request.user, data['service'])
+        charge_required, target_date = check_charge_required(self.request.user)
         if not charge_required:
-            set_service(request.user, data['service'], target_date=target_date)
+            set_premium(request.user, target_date=target_date)
             return Response(
                 status=status.HTTP_200_OK,
                 data=UserSerializer(instance=self.request.user, context=self.get_serializer_context()).data
             )
-        amount = service_price(request.user, data['service'])
+        amount = Money(settings.LANDSCAPE_PRICE, 'USD')
         try:
             invoice = get_term_invoice(request.user)
             invoice.line_items.update_or_create(
-                defaults={'amount': amount, 'description': data['service'].title()},
+                defaults={'amount': amount, 'description': 'Landscape'},
                 destination_account=TransactionRecord.UNPROCESSED_EARNINGS,
                 type=PREMIUM_SUBSCRIPTION,
                 destination_user=None,
@@ -1761,11 +1758,10 @@ class PremiumPaymentIntent(APIView):
         serializer = PremiumIntentSettings(data=self.request.data)
         serializer.is_valid(raise_exception=True)
         make_primary = serializer.validated_data['make_primary']
-        service = serializer.validated_data['service']
-        total = service_price(self.request.user, service)
+        total = Money(settings.LANDSCAPE_PRICE, 'USD')
         with stripe as stripe_api:
             # Can only do string values, so won't be json true value.
-            metadata = {'make_primary': make_primary, 'save_card': True, 'service': service}
+            metadata = {'make_primary': make_primary, 'save_card': True, 'service': 'landscape'}
             intent_kwargs = {
                 # Need to figure out how to do this per-currency.
                 'amount': int(total.amount * total.currency.sub_unit),
@@ -1794,7 +1790,6 @@ class CancelPremium(APIView):
 
     def post(self, request, *args, **kwargs):
         self.check_permissions(request)
-        request.subject.portrait_enabled = False
         request.subject.landscape_enabled = False
         request.subject.save()
         return Response(

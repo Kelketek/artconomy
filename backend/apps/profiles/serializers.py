@@ -476,7 +476,6 @@ class CredentialsSerializer(serializers.ModelSerializer):
 
 @register_serializer
 class UserSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
-    portrait_paid_through = serializers.DateField(read_only=True)
     landscape_paid_through = serializers.DateField(read_only=True)
     telegram_link = serializers.SerializerMethodField()
     watching = UserRelationField(required=False)
@@ -511,8 +510,7 @@ class UserSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
             'rating', 'username', 'id', 'is_staff', 'is_superuser',
             'avatar_url', 'email', 'favorites_hidden',
             'blacklist', 'biography', 'taggable', 'watching', 'blocking',
-            'stars', 'portrait', 'portrait_enabled', 'portrait_paid_through',
-            'landscape', 'landscape_enabled', 'landscape_paid_through', 'telegram_link', 'sfw_mode',
+            'stars', 'landscape', 'landscape_enabled', 'landscape_paid_through', 'telegram_link', 'sfw_mode',
             'offered_mailchimp', 'guest', 'artist_mode', 'hits', 'watches', 'guest_email', 'rating_count',
             'birthday', 'processor',
         )
@@ -708,17 +706,11 @@ class TelegramDeviceSerializer(serializers.ModelSerializer):
 
 class ReferralStatsSerializer(serializers.ModelSerializer):
     total_referred = serializers.SerializerMethodField()
-    portrait_eligible = serializers.SerializerMethodField()
     landscape_eligible = serializers.SerializerMethodField()
 
     @staticmethod
     def get_total_referred(obj):
         return User.objects.filter(referred_by=obj).count()
-
-    # noinspection PyUnusedLocal
-    @staticmethod
-    def get_portrait_eligible(obj):
-        return User.objects.filter(referred_by=obj, bought_shield_on__isnull=False).count()
 
     @staticmethod
     def get_landscape_eligible(obj):
@@ -726,7 +718,7 @@ class ReferralStatsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('total_referred', 'portrait_eligible', 'landscape_eligible')
+        fields = ('total_referred', 'landscape_eligible')
 
 
 def user_value_taken(property_name):

@@ -224,7 +224,6 @@ export function setPricing(store: ArtStore, localVue: VueConstructor<Vue>) {
     landscape_price: 5.00,
     standard_percentage: 8,
     standard_static: 0.75,
-    portrait_price: 3.00,
     minimum_price: 1.10,
     table_percentage: 10,
     table_static: 5,

@@ -106,9 +106,9 @@ RENEWAL_FAILURE = 27
 SUBSCRIPTION_DEACTIVATED = 28
 RENEWAL_FIXED = 29
 NEW_JOURNAL = 30
-# ORDER_TOKEN_ISSUED = 31   -- Reserved for removed status.
+# ORDER_TOKEN_ISSUED = 31  -- Reserved for removed status.
 TRANSFER_FAILED = 32
-REFERRAL_PORTRAIT_CREDIT = 33
+# REFERRAL_PORTRAIT_CREDIT = 33  -- Reserved for removed status
 REFERRAL_LANDSCAPE_CREDIT = 34
 REFERENCE_UPLOADED = 35
 WAITLIST_UPDATED = 36
@@ -159,7 +159,6 @@ EMAIL_SUBJECTS = {
     SUBSCRIPTION_DEACTIVATED: 'Your subscription has been deactivated.',
     RENEWAL_FIXED: 'Subscription renewed successfully',
     TRANSFER_FAILED: 'Bank transfer failed.',
-    REFERRAL_PORTRAIT_CREDIT: "One of your referrals just made a purchase!",
     REFERRAL_LANDSCAPE_CREDIT: "One of your referrals just made a sale!",
     WAITLIST_UPDATED: "A new order has been added to your waitlist!",
 }

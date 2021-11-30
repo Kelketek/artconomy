@@ -13,47 +13,24 @@ from apps.lib.test_resources import APITestCase
 from apps.lib.tests.factories_interdepend import CommentFactory
 from apps.profiles.models import ArtconomyAnonymousUser
 from apps.profiles.tests.factories import UserFactory, SubmissionFactory, CharacterFactory, AvatarFactory
-from apps.profiles.utils import extend_portrait, extend_landscape, empty_user, clear_user, UserClearException
+from apps.profiles.utils import extend_landscape, empty_user, clear_user, UserClearException
 from apps.sales.models import NEW, IN_PROGRESS, PAYMENT_PENDING, WAITING, CANCELLED, TransactionRecord, COMPLETED
 from apps.sales.tests.factories import DeliverableFactory, TransactionRecordFactory, ProductFactory, BankAccountFactory
 
 
 class ExtendPremiumTest(TestCase):
     @freeze_time('2018-08-01')
-    def test_extend_portrait_from_none(self):
-        user = UserFactory.create()
-        self.assertIsNone(user.portrait_paid_through)
-        extend_portrait(user, months=1)
-        self.assertEqual(user.portrait_paid_through, date(2018, 9, 1))
-        self.assertIsNone(user.landscape_paid_through)
-
-    @freeze_time('2018-08-01')
-    def test_extend_portrait_from_past(self):
-        user = UserFactory.create(portrait_paid_through=date(2018, 7, 5))
-        extend_portrait(user, months=1)
-        self.assertEqual(user.portrait_paid_through, date(2018, 9, 1))
-        self.assertIsNone(user.landscape_paid_through)
-
-    @freeze_time('2018-08-01')
-    def test_extend_portrait_from_future(self):
-        user = UserFactory.create(portrait_paid_through=date(2018, 9, 5))
-        extend_portrait(user, months=1)
-        self.assertEqual(user.portrait_paid_through, date(2018, 10, 5))
-        self.assertIsNone(user.landscape_paid_through)
-
-    @freeze_time('2018-08-01')
     def test_extend_landscape_from_none(self):
         user = UserFactory.create()
         self.assertIsNone(user.landscape_paid_through)
         extend_landscape(user, months=1)
         self.assertEqual(user.landscape_paid_through, date(2018, 9, 1))
-        self.assertEqual(user.portrait_paid_through, date(2018, 9, 1))
 
     @freeze_time('2018-08-01')
     def test_extend_landscape_from_past(self):
         user = UserFactory.create(landscape_paid_through=date(2018, 7, 5))
         extend_landscape(user, months=1)
-        self.assertEqual(user.portrait_paid_through, date(2018, 9, 1))
+
         self.assertEqual(user.landscape_paid_through, date(2018, 9, 1))
 
     @freeze_time('2018-08-01')
@@ -61,21 +38,6 @@ class ExtendPremiumTest(TestCase):
         user = UserFactory.create(landscape_paid_through=date(2018, 9, 5))
         extend_landscape(user, months=1)
         self.assertEqual(user.landscape_paid_through, date(2018, 10, 5))
-        self.assertEqual(user.portrait_paid_through, date(2018, 10, 5))
-
-    @freeze_time('2018-08-01')
-    def test_extend_landscape_portrait_lags(self):
-        user = UserFactory.create(landscape_paid_through=date(2018, 9, 5), portrait_paid_through=date(2018, 1, 1))
-        extend_landscape(user, months=1)
-        self.assertEqual(user.landscape_paid_through, date(2018, 10, 5))
-        self.assertEqual(user.portrait_paid_through, date(2018, 10, 5))
-
-    @freeze_time('2018-08-01')
-    def test_extend_landscape_portrait_leads(self):
-        user = UserFactory.create(landscape_paid_through=date(2018, 8, 5), portrait_paid_through=date(2018, 10, 1))
-        extend_landscape(user, months=1)
-        self.assertEqual(user.landscape_paid_through, date(2018, 9, 5))
-        self.assertEqual(user.portrait_paid_through, date(2018, 10, 1))
 
 
 class TestEmptyUser(APITestCase):
@@ -192,7 +154,6 @@ class TestClearUser(TestCase):
             username='TestUser',
             is_active=True,
             email='test@example.com',
-            portrait_enabled=True,
             landscape_enabled=True,
         )
         clear_user(user)
@@ -201,7 +162,6 @@ class TestClearUser(TestCase):
         self.assertEqual(user.email, f'bde2aa86-b622-4811-97ff-efccf2001047@local')
         self.assertFalse(user.is_active)
         self.assertFalse(user.landscape_enabled)
-        self.assertFalse(user.portrait_enabled)
         self.assertEqual(user.avatar_url, 'https://example.com/test-reset.png')
 
     @patch('apps.sales.dwolla.dwolla')

@@ -7,7 +7,7 @@ from django.db.models import Case, When, F, IntegerField, Q
 from django.utils import timezone
 from short_stuff import gen_shortcode
 
-from apps.lib.models import REFERRAL_LANDSCAPE_CREDIT, REFERRAL_PORTRAIT_CREDIT, Comment
+from apps.lib.models import REFERRAL_LANDSCAPE_CREDIT, Comment
 from apps.lib.utils import notify, destroy_comment
 from apps.profiles.middleware import derive_session_settings
 from apps.profiles.models import Character, Submission, User, Conversation, ConversationParticipant
@@ -101,38 +101,21 @@ def extend_landscape(user, months):
     else:
         start_point = today
     user.landscape_paid_through = start_point + relativedelta(months=months)
-    if not (user.portrait_paid_through and user.portrait_paid_through > user.landscape_paid_through):
-        user.portrait_paid_through = user.landscape_paid_through
-    user.save()
-
-
-def extend_portrait(user, months):
-    today = timezone.now().date()
-    if user.portrait_paid_through and user.portrait_paid_through > today:
-        start_point = user.portrait_paid_through
-    else:
-        start_point = today
-    user.portrait_paid_through = start_point + relativedelta(months=months)
     user.save()
 
 
 def credit_referral(deliverable):
     seller_credit = False
-    buyer_credit = False
     if not deliverable.order.seller.sold_shield_on:
         seller_credit = True
         deliverable.order.seller.sold_shield_on = timezone.now()
         deliverable.order.seller.save()
     if deliverable.order.buyer and not deliverable.order.buyer.bought_shield_on:
-        buyer_credit = True
         deliverable.order.buyer.bought_shield_on = timezone.now()
         deliverable.order.buyer.save()
     if seller_credit and deliverable.order.seller.referred_by:
         extend_landscape(deliverable.order.seller, months=1)
         notify(REFERRAL_LANDSCAPE_CREDIT, deliverable.order.seller.referred_by, unique=False)
-    if buyer_credit and deliverable.order.buyer and deliverable.order.buyer.referred_by:
-        extend_portrait(deliverable.order.seller, months=1)
-        notify(REFERRAL_PORTRAIT_CREDIT, deliverable.order.buyer.referred_by, unique=False)
 
 
 def empty_user(*, session, user):
@@ -231,7 +214,6 @@ def clear_user(user: User):
     user.email = f'{uuid4()}@local'
     user.is_active = False
     user.landscape_enabled = False
-    user.portrait_enabled = False
     user.subscription_set.all().delete()
     for avatar in Avatar.objects.filter(user=user):
         avatar.avatar.delete()

@@ -69,16 +69,6 @@ export default class Viewer extends mixins(ErrorHandling) {
     return this.viewer.landscape
   }
 
-  public get portrait() {
-    if (!this.viewer) {
-      return false
-    }
-    if (!('portrait' in this.viewer)) {
-      return false
-    }
-    return this.viewer.portrait
-  }
-
   public get viewerName() {
     return this.viewerHandler.displayName
   }

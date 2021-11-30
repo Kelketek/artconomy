@@ -440,39 +440,10 @@ class TestCardManagement(APITestCase):
     @freeze_time('2018-01-01 12:00:00')
     @patch('apps.sales.models.create_card')
     @patch('apps.sales.views.renew')
-    def test_add_card_renew_portrait(self, mock_renew, mock_create_card):
-        user = UserFactory.create()
-        user.portrait_enabled = True
-        user.save()
-        self.login(user)
-        mock_create_card.return_value = '923047'
-        response = self.client.post(
-            '/api/sales/v1/account/{}/cards/'.format(user.username),
-            {
-                'first_name': 'Jim',
-                'last_name': 'Bob',
-                'country': 'US',
-                'number': '4111 1111 1111 1111',
-                'exp_date': '02/34',
-                'zip': '44444',
-                'cvv': '555',
-            }
-        )
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        mock_renew.delay.assert_called_with(user.id, 'portrait')
-        mock_create_card.assert_called_with(
-            CardInfo(number='4111111111111111', exp_month=2, exp_year=2034, cvv='555'),
-            AddressInfo(country='US', postal_code='44444', first_name='Jim', last_name='Bob'),
-            user.authorize_token,
-        )
-
-    @freeze_time('2018-01-01 12:00:00')
-    @patch('apps.sales.models.create_card')
-    @patch('apps.sales.views.renew')
     def test_add_card_renew_landscape(self, mock_renew, mock_create_card):
         user = UserFactory.create()
-        user.portrait_enabled = True
         user.landscape_enabled = True
+        user.landscape_paid_through = date(2017, 5, 1)
         user.save()
         self.login(user)
         mock_create_card.return_value = '923047'
@@ -489,7 +460,7 @@ class TestCardManagement(APITestCase):
             }
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        mock_renew.delay.assert_called_with(user.id, 'landscape')
+        mock_renew.delay.assert_called_with(user.id)
         mock_create_card.assert_called_with(
             CardInfo(number='4111111111111111', exp_month=2, exp_year=2034, cvv='555'),
             AddressInfo(country='US', postal_code='44444', first_name='Jim', last_name='Bob'),
@@ -1119,39 +1090,18 @@ class TestProductSearch(APITestCase):
         self.assertEqual(len(response.data['results']), 3)
 
 
+@override_settings(LANDSCAPE_PRICE=Decimal('6.00'))
 class TestPremium(APITestCase):
-    @override_settings(PORTRAIT_PRICE=Decimal('2.00'))
     @freeze_time('2017-11-10 12:00:00')
-    @patch('apps.sales.utils.charge_saved_card')
-    def test_portrait(self, mock_charge_card):
-        user = UserFactory.create()
-        self.login(user)
-        card = CreditCardTokenFactory.create(user=user, cvv_verified=True)
-        mock_charge_card.return_value = ('36985214745', 'ABC123')
-        response = self.client.post('/api/sales/v1/premium/', {'service': 'portrait', 'card_id': card.id})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        user.refresh_from_db()
-        self.assertTrue(user.portrait_enabled)
-        self.assertEqual(user.portrait_paid_through, date(2017, 12, 10))
-        self.assertFalse(user.landscape_enabled)
-        self.assertIsNone(user.landscape_paid_through)
-        mock_charge_card.assert_called_with(
-            payment_id=card.payment_id, profile_id=card.profile_id, amount=Decimal('2.00'), cvv=None
-        )
-
-    @freeze_time('2017-11-10 12:00:00')
-    @override_settings(LANDSCAPE_PRICE=Decimal('6.00'))
     @patch('apps.sales.utils.charge_saved_card')
     def test_landscape(self, mock_charge_card):
         user = UserFactory.create()
         self.login(user)
         card = CreditCardTokenFactory.create(user=user, cvv_verified=True)
         mock_charge_card.return_value = ('36985214745', 'ABC123')
-        response = self.client.post('/api/sales/v1/premium/', {'service': 'landscape', 'card_id': card.id})
+        response = self.client.post('/api/sales/v1/premium/', {'card_id': card.id})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         user.refresh_from_db()
-        self.assertFalse(user.portrait_enabled)
-        self.assertEqual(user.portrait_paid_through, date(2017, 12, 10))
         self.assertTrue(user.landscape_enabled)
         self.assertEqual(user.landscape_paid_through, date(2017, 12, 10))
         mock_charge_card.assert_called_with(
@@ -1159,105 +1109,33 @@ class TestPremium(APITestCase):
         )
 
     @freeze_time('2017-11-10 12:00:00')
-    @override_settings(LANDSCAPE_PRICE=Decimal('6.00'), PORTRAIT_PRICE=Decimal('2.00'))
     @patch('apps.sales.utils.charge_saved_card')
-    def test_upgrade(self, mock_charge_card):
+    def test_card_failure(self, mock_charge_card):
         user = UserFactory.create()
         self.login(user)
-        user.portrait_paid_through = date(2017, 11, 15)
-        user.portrait_enabled = True
-        user.save()
         card = CreditCardTokenFactory.create(user=user, cvv_verified=True)
-        mock_charge_card.return_value = ('36985214745', 'ABC123')
+        mock_charge_card.side_effect = AuthorizeException('It borked!')
         response = self.client.post('/api/sales/v1/premium/', {'service': 'landscape', 'card_id': card.id})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         user.refresh_from_db()
-        self.assertFalse(user.portrait_enabled)
-        self.assertEqual(user.portrait_paid_through, date(2017, 12, 10))
-        self.assertTrue(user.landscape_enabled)
-        self.assertEqual(user.landscape_paid_through, date(2017, 12, 10))
-        mock_charge_card.assert_called_with(
-            profile_id=card.profile_id, payment_id=card.payment_id, amount=Decimal('4.00'), cvv=None,
-        )
-
-    @freeze_time('2017-11-10 12:00:00')
-    @override_settings(LANDSCAPE_PRICE=Decimal('6.00'), PORTRAIT_PRICE=Decimal('2.00'))
-    @patch('apps.sales.utils.charge_saved_card')
-    def test_upgrade_card_failure(self, mock_charge_card):
-        user = UserFactory.create()
-        self.login(user)
-        user.portrait_paid_through = date(2017, 11, 15)
-        user.portrait_enabled = True
-        user.save()
-        card = CreditCardTokenFactory.create(user=user, cvv_verified=True)
-        mock_charge_card.return_value = ('36985214745', 'ABC123')
-        response = self.client.post('/api/sales/v1/premium/', {'service': 'landscape', 'card_id': card.id})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        user.refresh_from_db()
-        self.assertFalse(user.portrait_enabled)
-        self.assertEqual(user.portrait_paid_through, date(2017, 12, 10))
-        self.assertTrue(user.landscape_enabled)
-        self.assertEqual(user.landscape_paid_through, date(2017, 12, 10))
-        mock_charge_card.assert_called_with(
-            profile_id=card.profile_id, payment_id=card.payment_id, amount=Decimal('4.00'), cvv=None,
-        )
-
-    @freeze_time('2017-11-10 12:00:00')
-    @override_settings(PORTRAIT_PRICE=Decimal('2.00'))
-    @patch('apps.sales.utils.charge_saved_card')
-    def test_reenable_portrait(self, mock_charge_card):
-        user = UserFactory.create()
-        self.login(user)
-        user.portrait_paid_through = date(2017, 11, 15)
-        user.portrait_enabled = False
-        user.save()
-        card = CreditCardTokenFactory.create(user=user, cvv_verified=True)
-        mock_charge_card.return_value = '36985214745'
-        response = self.client.post('/api/sales/v1/premium/', {'service': 'portrait', 'card_id': card.id})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        user.refresh_from_db()
-        self.assertTrue(user.portrait_enabled)
-        self.assertEqual(user.portrait_paid_through, date(2017, 11, 15))
         self.assertFalse(user.landscape_enabled)
         self.assertIsNone(user.landscape_paid_through)
-        mock_charge_card.assert_not_called()
-
-    @freeze_time('2017-11-10 12:00:00')
-    @override_settings(PORTRAIT_PRICE=Decimal('2.00'))
-    @patch('apps.sales.utils.charge_saved_card')
-    def test_enable_portrait_after_landscape(self, mock_charge_card):
-        user = UserFactory.create()
-        self.login(user)
-        user.landscape_paid_through = date(2017, 11, 15)
-        user.landscape_enabled = False
-        user.save()
-        card = CreditCardTokenFactory.create(user=user, cvv_verified=True)
-        mock_charge_card.return_value = '36985214745'
-        response = self.client.post('/api/sales/v1/premium/', {'service': 'portrait', 'card_id': card.id})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        user.refresh_from_db()
-        self.assertTrue(user.portrait_enabled)
-        self.assertEqual(user.portrait_paid_through, date(2017, 11, 15))
-        self.assertFalse(user.landscape_enabled)
-        self.assertEqual(user.landscape_paid_through, date(2017, 11, 15))
-        mock_charge_card.assert_not_called()
+        mock_charge_card.assert_called_with(
+            profile_id=card.profile_id, payment_id=card.payment_id, amount=Decimal('6.00'), cvv=None,
+        )
 
 
 class TestCancelPremium(APITestCase):
     def test_cancel(self):
         user = UserFactory.create()
         self.login(user)
-        user.portrait_paid_through = date(2017, 11, 15)
         user.landscape_enabled = True
-        user.portrait_enabled = True
         user.landscape_paid_through = date(2017, 11, 18)
         user.save()
         response = self.client.post(f'/api/sales/v1/account/{user.username}/cancel-premium/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         user.refresh_from_db()
-        self.assertFalse(user.portrait_enabled)
         self.assertFalse(user.landscape_enabled)
-        self.assertEqual(user.portrait_paid_through, date(2017, 11, 15))
         self.assertEqual(user.landscape_paid_through, date(2017, 11, 18))
 
 

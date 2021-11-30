@@ -2,7 +2,6 @@ import {Ratings} from './Ratings'
 import {PROCESSORS} from '@/types/PROCESSORS'
 
 export interface User {
-  portrait_paid_through: string | null,
   landscape_paid_through: string | null,
   telegram_link: string,
   watching: boolean,
@@ -23,8 +22,6 @@ export interface User {
   taggable: boolean
   stars: number | null,
   rating_count: number,
-  portrait: boolean,
-  portrait_enabled: boolean,
   landscape: boolean,
   landscape_enabled: boolean,
   offered_mailchimp: boolean,

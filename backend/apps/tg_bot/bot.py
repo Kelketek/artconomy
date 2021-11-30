@@ -14,16 +14,15 @@ def start(update, context):
     if not context.args:
         context.bot.send_message(
             chat_id=update.message.chat_id,
-            text="I'm missing your key. Please click the link on your Artconomy "
-                 "Portrait tab in your settings to send a starting message with your key."
+            text="I'm missing your key. Please add your Telegram via your account settings to start this process."
         )
         return
     args = context.args[0].rsplit('_')
     if len(args) != 2:
         context.bot.send_message(
             chat_id=update.message.chat_id,
-            text="The key you sent me appears to be corrupt. Please click the link on your Artconomy "
-                 "Portrait tab in your settings to send a starting message with your key."
+            text="The key you sent me appears to be corrupt. Please add your telegram via your account settings to "
+                 "send a starting message with your key."
         )
         return
     try:
@@ -31,8 +30,8 @@ def start(update, context):
     except User.DoesNotExist:
         context.bot.send_message(
             chat_id=update.message.chat_id,
-            text="The key you sent me does not appear to match any account. Please click the link on your Artconomy "
-                 "Portrait tab in your settings to send a starting message with your key."
+            text="The key you sent me does not appear to match any account. Please add your telegram via your account "
+                 "settings to send a starting message with your key."
         )
         return
     user.tg_chat_id = update.message.chat_id
@@ -40,8 +39,7 @@ def start(update, context):
     user.save()
     context.bot.send_message(
         chat_id=update.message.chat_id,
-        text="Hi! I'm the Artconomy bot. I'll send messages for {}'s watchlist when artists become "
-             "available if they're subscribing to our Portrait service, or I can send Two Factor Authentication "
+        text="Hi! I'm the Artconomy bot. I'll send messages for {}'s Two Factor Authentication "
              "codes. Please visit the site for more information.".format(user.username)
     )
 

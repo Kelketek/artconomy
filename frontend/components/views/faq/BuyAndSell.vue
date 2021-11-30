@@ -185,7 +185,7 @@
             <p v-if="pricing.x">
               Artists using
               <router-link
-                  :to="{name: 'BuyAndSell', params: {question: 'portrait-and-landscape'}}"
+                  :to="{name: 'BuyAndSell', params: {question: 'landscape'}}"
               >Artconomy Landscape
               </router-link>
               receive a bonus amount of
@@ -270,18 +270,16 @@
     </v-expansion-panel>
     <v-expansion-panel>
       <v-expansion-panel-header>
-        <strong>What are Artconomy Portrait and Landscape?</strong>
+        <strong>What is Artconomy Landscape?</strong>
       </v-expansion-panel-header>
       <v-expansion-panel-content>
         <v-card>
           <v-card-text>
             <p>
-              Artconomy Portrait and Landscape are paid services that allow you to get more out
-              of your experience with Artconomy.
+              Artconomy Landscape is a paid services that allow you to get more out
+              of your experience with Artconomy. It gives you a bonus on each commission sale, and access
+              to extra features!
             </p>
-            <p>Artconomy Portrait allows you to <strong>receive messages over email and Telegram when your favorite
-              artists are available</strong> for commissions.</p>
-            <p>Artconomy Landscape includes Artconomy Portrait, and also gives artists a bonus on each commission sale!</p>
             <p v-if="pricing.x">
               Artconomy's fees for
               <router-link
@@ -372,9 +370,9 @@
               store so you don't receive more requests for them.
             </p>
             <p>
-              AWOO manages when you are considered 'open' for commissions, sending real-time alerts to Portrait and
-              Landscape subscribers when you are available. Note that you may still be closed for commissions even
-              if you have some workload to spare. See
+              AWOO manages when you are considered 'open' for commissions, sending real-time alerts to watchers when
+              you are available. Note that you may still be closed for commissions even  if you have some workload to
+              spare. See
               <router-link
                   :to="{name: 'BuyAndSell', params: {question: 'why-commissions-disabled'}}"
               >
@@ -736,7 +734,7 @@ import {SingleController} from '@/store/singles/controller'
 import StripeCountryList from '@/types/StripeCountryList'
 
 const buySell = [
-  'how-to-buy', 'how-to-sell', 'shield', 'disputes', 'portrait-and-landscape',
+  'how-to-buy', 'how-to-sell', 'shield', 'disputes', 'landscape',
   'bank-accounts',
   'awoo-workload-management', 'outside-orders',
   'why-commissions-disabled',

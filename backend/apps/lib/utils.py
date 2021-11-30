@@ -173,11 +173,13 @@ def commissions_open_subscription(watcher: 'User', watched: 'User', target_date:
 
 def watch_subscriptions(watcher, watched):
     # To be implemented when paid service is in place.
-    target_date = (
-        watcher.portrait_paid_through or watcher.landscape_paid_through or (date.today() - relativedelta(days=5))
-    )
-    commissions_open_subscription(watcher, watched, target_date)
     content_type = ContentType.objects.get_for_model(watched)
+    Subscription.objects.get_or_create(
+        subscriber=watcher,
+        content_type=content_type,
+        object_id=watched.id,
+        type=COMMISSIONS_OPEN
+    )
     Subscription.objects.get_or_create(
         subscriber=watcher,
         content_type=content_type,

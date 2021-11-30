@@ -110,29 +110,6 @@ describe('Viewer.ts', () => {
     wrapper = shallowMount(ViewerComponent, {localVue, store})
     expect((wrapper.vm as any).landscape).toBe(true)
   })
-  it('Reports portrait status as false when viewer is null', () => {
-    wrapper = shallowMount(ViewerComponent, {localVue, store})
-    expect((wrapper.vm as any).portrait).toBe(false)
-  })
-  it('Reports portrait status as false when viewer is empty', () => {
-    setViewer(store, genAnon())
-    wrapper = shallowMount(ViewerComponent, {localVue, store})
-    expect((wrapper.vm as any).portrait).toBe(false)
-  })
-  it('Reports portrait status as false when viewer portrait is false', () => {
-    const user = genUser()
-    user.portrait = false
-    setViewer(store, user)
-    wrapper = shallowMount(ViewerComponent, {localVue, store})
-    expect((wrapper.vm as any).portrait).toBe(false)
-  })
-  it('Reports portrait status as true when viewer portrait is true', () => {
-    const user = genUser()
-    user.portrait = true
-    setViewer(store, user)
-    wrapper = shallowMount(ViewerComponent, {localVue, store})
-    expect((wrapper.vm as any).portrait).toBe(true)
-  })
   it('Returns a guest username when the viewer is a guest.', () => {
     const user = genUser()
     user.guest = true

@@ -10,7 +10,7 @@ from freezegun import freeze_time
 from moneyed import Money
 from rest_framework import status
 
-from apps.lib.models import Subscription, SALE_UPDATE, Notification, REFERRAL_PORTRAIT_CREDIT, REFERRAL_LANDSCAPE_CREDIT
+from apps.lib.models import Subscription, SALE_UPDATE, Notification, REFERRAL_LANDSCAPE_CREDIT
 from apps.lib.test_resources import APITestCase
 from apps.profiles.tests.factories import UserFactory
 from apps.sales.authorize import CardInfo, AddressInfo, AuthorizeException
@@ -263,14 +263,9 @@ class TestOrderPayment(TransactionCheckMixin, APITestCase):
         self.check_transactions(deliverable, user)
         deliverable.order.seller.refresh_from_db()
         deliverable.order.buyer.refresh_from_db()
-        portrait_notification = Notification.objects.filter(event__type=REFERRAL_PORTRAIT_CREDIT)
         landscape_notification = Notification.objects.filter(event__type=REFERRAL_LANDSCAPE_CREDIT)
-        self.assertEqual(portrait_notification.count(), 1)
         self.assertEqual(landscape_notification.count(), 1)
-        portrait_notification = portrait_notification.first()
         landscape_notification = landscape_notification.first()
-        self.assertEqual(portrait_notification.user, deliverable.order.buyer.referred_by)
-        self.assertEqual(portrait_notification.event.target, deliverable.order.buyer.referred_by)
         self.assertEqual(landscape_notification.user, deliverable.order.seller.referred_by)
         self.assertEqual(landscape_notification.event.target, deliverable.order.seller.referred_by)
         self.assertTrue(deliverable.order.seller.sold_shield_on)

@@ -23,109 +23,32 @@ from apps.sales.tests.factories import CreditCardTokenFactory, TransactionRecord
     BankAccountFactory, StripeAccountFactory
 
 
+@override_settings(LANDSCAPE_PRICE=Decimal('6.00'))
 class TestAutoRenewal(TestCase):
     @patch('apps.sales.tasks.renew')
     @freeze_time('2018-02-10 12:00:00')
     def test_tasks_made(self, mock_renew):
-        disable1 = UserFactory.create(landscape_enabled=True, landscape_paid_through=date(2018, 2, 5))
-        disable2 = UserFactory.create(portrait_enabled=True, portrait_paid_through=date(2018, 2, 4))
-        renew_portrait = UserFactory.create(portrait_enabled=True, portrait_paid_through=date(2018, 2, 10))
+        disable = UserFactory.create(landscape_enabled=True, landscape_paid_through=date(2018, 2, 5))
         renew_landscape = UserFactory.create(landscape_enabled=True, landscape_paid_through=date(2018, 2, 9))
         run_billing()
-        disable1.refresh_from_db()
-        disable2.refresh_from_db()
-        self.assertFalse(disable1.landscape_enabled)
-        self.assertFalse(disable2.portrait_enabled)
-        mock_renew.delay.assert_has_calls([call(renew_portrait.id, 'portrait'), call(renew_landscape.id, 'landscape')])
-        self.assertEqual(Notification.objects.filter(event__type=SUBSCRIPTION_DEACTIVATED).count(), 2)
-        self.assertEqual(len(mail.outbox), 2)
+        disable.refresh_from_db()
+        self.assertFalse(disable.landscape_enabled)
+        mock_renew.delay.assert_has_calls([call(renew_landscape.id)])
+        self.assertEqual(Notification.objects.filter(event__type=SUBSCRIPTION_DEACTIVATED).count(), 1)
+        self.assertEqual(len(mail.outbox), 1)
         for letter in mail.outbox:
             self.assertEqual(letter.subject, 'Your subscription has been deactivated.')
 
-    @override_settings(PORTRAIT_PRICE=Decimal('2.00'))
-    @patch('apps.sales.tasks.charge_saved_card')
-    @freeze_time('2018-02-10 12:00:00')
-    def test_renew_portrait(self, mock_charge_card):
-        mock_charge_card.return_value = ('Trans123', 'ABC123')
-        card = CreditCardTokenFactory.create(
-            user__portrait_enabled=True, user__portrait_paid_through=date(2018, 2, 10),
-            token='1234', user__authorize_token='5678'
-        )
-        card.user.primary_card = card
-        card.user.save()
-        renew(card.user.id, 'portrait')
-        card.user.refresh_from_db()
-        self.assertEqual(card.user.portrait_paid_through, date(2018, 3, 10))
-        self.assertTrue(card.user.portrait_enabled)
-        self.assertFalse(card.user.landscape_enabled)
-        self.assertIsNone(card.user.landscape_paid_through)
-        records = TransactionRecord.objects.filter(payer=card.user)
-        self.assertEqual(records.count(), 1)
-        record = records[0]
-        self.assertIsNone(record.payee)
-        self.assertTrue(record.finalized_on)
-        self.assertEqual(record.status, TransactionRecord.SUCCESS)
-        self.assertIn('Trans123', record.remote_ids)
-        self.assertEqual(record.category, TransactionRecord.SUBSCRIPTION_DUES)
-        self.assertEqual(record.amount, Money('2.00', 'USD'))
-        mock_charge_card.assert_called_with(payment_id='1234', profile_id='5678', amount=Decimal('2.00'))
-
-    @override_settings(PORTRAIT_PRICE=Decimal('2.00'))
     @patch('apps.sales.tasks.charge_saved_card')
     @freeze_time('2018-02-10 12:00:00')
     def test_renew_no_primary(self, mock_charge_card):
         mock_charge_card.return_value = 'Trans123', 'ABC123'
         card = CreditCardTokenFactory.create(
-            user__portrait_enabled=True, user__portrait_paid_through=date(2018, 2, 10),
+            user__landscape_enabled=True, user__landscape_paid_through=date(2018, 2, 10),
             token='1234', user__authorize_token='5678'
         )
-        renew(card.user.id, 'portrait')
+        renew(card.user.id)
         card.user.refresh_from_db()
-        self.assertEqual(card.user.portrait_paid_through, date(2018, 3, 10))
-        self.assertTrue(card.user.portrait_enabled)
-        self.assertFalse(card.user.landscape_enabled)
-        self.assertIsNone(card.user.landscape_paid_through)
-        records = TransactionRecord.objects.filter(payer=card.user)
-        self.assertEqual(records.count(), 1)
-        record = records[0]
-        self.assertIsNone(record.payee)
-        self.assertTrue(record.finalized_on)
-        self.assertEqual(record.status, TransactionRecord.SUCCESS)
-        self.assertIn('Trans123', record.remote_ids)
-        self.assertEqual(record.category, TransactionRecord.SUBSCRIPTION_DUES)
-        self.assertEqual(record.amount, Money('2.00', 'USD'))
-        mock_charge_card.assert_called_with(payment_id='1234', profile_id='5678', amount=Decimal('2.00'))
-
-    @override_settings(PORTRAIT_PRICE=Decimal('2.00'))
-    @patch('apps.sales.tasks.charge_saved_card')
-    @freeze_time('2018-02-10 12:00:00')
-    def test_renew_invalid(self, mock_charge_card):
-        card = CreditCardTokenFactory.create(
-            token='1234', user__authorize_token='5678'
-        )
-        renew(card.user.id, 'portrait')
-        card.user.refresh_from_db()
-        self.assertEqual(card.user.portrait_paid_through, None)
-        self.assertFalse(card.user.portrait_enabled)
-        self.assertFalse(card.user.landscape_enabled)
-        mock_charge_card.assert_not_called()
-
-    @override_settings(LANDSCAPE_PRICE=Decimal('6.00'))
-    @patch('apps.sales.tasks.charge_saved_card')
-    @freeze_time('2018-02-10 12:00:00')
-    def test_renew_landscape(self, mock_charge_card):
-        mock_charge_card.return_value = ('Trans123', 'ABC123')
-        card = CreditCardTokenFactory.create(
-            user__landscape_enabled=True, user__landscape_paid_through=date(2018, 2, 10)
-        )
-        card.user.primary_card = card
-        card.user.save()
-        renew(card.user.id, 'landscape')
-        card.user.refresh_from_db()
-        self.assertEqual(card.user.landscape_paid_through, date(2018, 3, 10))
-        self.assertTrue(card.user.landscape_enabled)
-        self.assertFalse(card.user.portrait_enabled)
-        self.assertEqual(card.user.portrait_paid_through, date(2018, 3, 10))
         records = TransactionRecord.objects.filter(payer=card.user)
         self.assertEqual(records.count(), 1)
         record = records[0]
@@ -135,24 +58,32 @@ class TestAutoRenewal(TestCase):
         self.assertIn('Trans123', record.remote_ids)
         self.assertEqual(record.category, TransactionRecord.SUBSCRIPTION_DUES)
         self.assertEqual(record.amount, Money('6.00', 'USD'))
-        self.assertEqual(record.card, card)
-        mock_charge_card.assert_called_with(profile_id=card.profile_id, payment_id=card.payment_id,
-                                            amount=Decimal('6.00'))
+        mock_charge_card.assert_called_with(payment_id='1234', profile_id='5678', amount=Decimal('6.00'))
 
     @override_settings(PORTRAIT_PRICE=Decimal('2.00'))
+    @patch('apps.sales.tasks.charge_saved_card')
+    @freeze_time('2018-02-10 12:00:00')
+    def test_renew_invalid(self, mock_charge_card):
+        card = CreditCardTokenFactory.create(
+            token='1234', user__authorize_token='5678'
+        )
+        renew(card.user.id)
+        card.user.refresh_from_db()
+        self.assertEqual(card.user.landscape_paid_through, None)
+        self.assertFalse(card.user.landscape_enabled)
+        mock_charge_card.assert_not_called()
+
     @patch('apps.sales.tasks.charge_saved_card')
     @freeze_time('2018-02-10 12:00:00')
     def test_failed_renewal(self, mock_charge_card):
         mock_charge_card.side_effect = AuthorizeException('Crap.')
         card = CreditCardTokenFactory.create(
-            user__portrait_enabled=True, user__portrait_paid_through=date(2018, 2, 10)
+            user__landscape_enabled=True, user__landscape_paid_through=date(2018, 2, 10)
         )
         card.user.primary_card = card
         card.user.save()
-        renew(card.user.id, 'portrait')
+        renew(card.user.id)
         card.user.refresh_from_db()
-        self.assertTrue(card.user.portrait_enabled)
-        self.assertEqual(card.user.portrait_paid_through, date(2018, 2, 10))
         records = TransactionRecord.objects.filter(payer=card.user)
         self.assertEqual(records.count(), 1)
         record = records[0]
@@ -161,25 +92,24 @@ class TestAutoRenewal(TestCase):
         self.assertEqual(record.status, TransactionRecord.FAILURE)
         self.assertEqual(record.remote_ids, [])
         self.assertEqual(record.category, TransactionRecord.SUBSCRIPTION_DUES)
-        self.assertEqual(record.amount, Money('2.00', 'USD'))
+        self.assertEqual(record.amount, Money('6.00', 'USD'))
         self.assertEqual(record.card, card)
         self.assertEqual(record.response_message, 'Crap.')
         self.assertEqual(Notification.objects.filter(event__type=RENEWAL_FAILURE).count(), 1)
         self.assertEqual(len(mail.outbox), 1)
         self.assertEqual(mail.outbox[0].subject, 'Issue with your subscription')
         mock_charge_card.assert_called_with(profile_id=card.profile_id, payment_id=card.payment_id,
-                                            amount=Decimal('2.00'))
+                                            amount=Decimal('6.00'))
 
     @override_settings(PORTRAIT_PRICE=Decimal('2.00'))
     @patch('apps.sales.tasks.charge_saved_card')
     @freeze_time('2018-02-10 12:00:00')
     def test_failed_renewal_no_card(self, mock_charge_card):
         mock_charge_card.side_effect = AuthorizeException('Crap.')
-        user = UserFactory.create(portrait_enabled=True, portrait_paid_through=date(2018, 2, 10))
-        renew(user.id, 'portrait')
+        user = UserFactory.create(landscape_enabled=True, landscape_paid_through=date(2018, 2, 10))
+        renew(user.id)
         user.refresh_from_db()
-        self.assertTrue(user.portrait_enabled)
-        self.assertEqual(user.portrait_paid_through, date(2018, 2, 10))
+        self.assertEqual(user.landscape_paid_through, date(2018, 2, 10))
         records = TransactionRecord.objects.filter(payer=user)
         self.assertEqual(records.count(), 0)
         self.assertEqual(Notification.objects.filter(event__type=RENEWAL_FAILURE).count(), 1)
@@ -193,34 +123,31 @@ class TestAutoRenewal(TestCase):
         # Still mock out capture here to avoid chance of contacting outside server.
         mock_charge_card.return_value = ('Trans123', 'ABC123')
         card = CreditCardTokenFactory.create(
-            user__portrait_enabled=True, user__portrait_paid_through=date(2018, 2, 11)
+            user__landscape_enabled=True, user__landscape_paid_through=date(2018, 2, 11)
         )
         card.user.primary_card = card
         card.user.save()
-        renew(card.user.id, 'portrait')
+        renew(card.user.id)
         card.user.refresh_from_db()
-        self.assertEqual(card.user.portrait_enabled, True)
-        self.assertEqual(card.user.portrait_paid_through, date(2018, 2, 11))
+        self.assertEqual(card.user.landscape_enabled, True)
+        self.assertEqual(card.user.landscape_paid_through, date(2018, 2, 11))
         self.assertFalse(TransactionRecord.objects.all().exists())
         mock_charge_card.assert_not_called()
 
-    @override_settings(PORTRAIT_PRICE=Decimal('2.00'))
     @patch('apps.sales.tasks.charge_saved_card')
     @freeze_time('2018-02-10 12:00:00')
     def test_card_override(self, mock_charge_card):
         mock_charge_card.return_value = ('Trans123', 'ABC123')
         primary_card = CreditCardTokenFactory.create(
-            user__portrait_enabled=True, user__portrait_paid_through=date(2018, 2, 10),
+            user__landscape_enabled=True, user__landscape_paid_through=date(2018, 2, 10),
         )
         primary_card.user.primary_card = primary_card
         primary_card.user.save()
         card = CreditCardTokenFactory.create(user=primary_card.user)
-        renew(card.user.id, 'portrait', card_id=card.id)
+        renew(card.user.id, card_id=card.id)
         card.user.refresh_from_db()
-        self.assertEqual(card.user.portrait_paid_through, date(2018, 3, 10))
-        self.assertTrue(card.user.portrait_enabled)
-        self.assertFalse(card.user.landscape_enabled)
-        self.assertIsNone(card.user.landscape_paid_through)
+        self.assertEqual(card.user.landscape_paid_through, date(2018, 3, 10))
+        self.assertTrue(card.user.landscape_enabled)
         records = TransactionRecord.objects.filter(payer=card.user)
         self.assertEqual(records.count(), 1)
         record = records[0]
@@ -229,7 +156,7 @@ class TestAutoRenewal(TestCase):
         self.assertEqual(record.status, TransactionRecord.SUCCESS)
         self.assertIn('Trans123', record.remote_ids)
         self.assertEqual(record.category, TransactionRecord.SUBSCRIPTION_DUES)
-        self.assertEqual(record.amount, Money('2.00', 'USD'))
+        self.assertEqual(record.amount, Money('6.00', 'USD'))
         self.assertEqual(card.user.primary_card, primary_card)
         self.assertEqual(Notification.objects.filter(event__type=RENEWAL_FIXED).count(), 1)
         self.assertEqual(len(mail.outbox), 1)

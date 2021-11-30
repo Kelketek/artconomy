@@ -4,14 +4,14 @@
       <v-col cols="12">
         <h1>Refer a Friend and get Rewarded!</h1>
         <p>
-          Every time someone registers and buys or sells a
+          Every time someone registers sells a
           <router-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">
             Shield protected
           </router-link>
           product for the first time, you'll get a <strong>FREE</strong> month of
           <router-link
-              :to="{name: 'BuyAndSell', params: {question: 'portrait-and-landscape'}}">
-            Artconomy Portrait or Landscape.
+              :to="{name: 'BuyAndSell', params: {question: 'landscape'}}">
+            Artconomy Landscape.
           </router-link>
         </p>
       </v-col>
@@ -41,23 +41,11 @@
             <h2>Your Referral Stats</h2>
             <ul>
               <li>Total People Referred: {{stats.x.total_referred}}</li>
-              <li>Portrait Eligible Referrals: {{stats.x.portrait_eligible}}</li>
               <li>Landscape Eligible Referrals: {{stats.x.landscape_eligible}}</li>
             </ul>
-            <p class="mt-2">For a referral to be
-              <router-link
-                  :to="{name: 'BuyAndSell', params: {question: 'portrait-and-landscape'}}">
-                Portrait
-              </router-link>
-              Eligible, the referred person must commission a
-              <router-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">
-                Shield protected
-              </router-link>
-              product.
-            </p>
             <p>For a referral to be
               <router-link
-                  :to="{name: 'BuyAndSell', params: {question: 'portrait-and-landscape'}}">
+                  :to="{name: 'BuyAndSell', params: {question: 'landscape'}}">
                 Landscape
               </router-link>
               Eligible, the referred person must sell a

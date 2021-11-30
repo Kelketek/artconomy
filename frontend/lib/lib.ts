@@ -329,7 +329,6 @@ export const NOTIFICATION_MAPPING: TypeToValue = {
   30: 'ac-new-journal',
   31: 'ac-order-token-issued',
   32: 'ac-withdraw-failed',
-  33: 'ac-portrait-referral',
   34: 'ac-landscape-referral',
   35: 'ac-reference-uploaded',
   36: 'ac-waitlist-updated',

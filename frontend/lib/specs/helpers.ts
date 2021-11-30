@@ -80,7 +80,6 @@ export function genPricing() {
     landscape_price: 5.0,
     standard_percentage: 4.0,
     standard_static: 0.5,
-    portrait_price: 3.0,
     minimum_price: 1.0,
     table_percentage: 10.0,
     table_static: 5.0,

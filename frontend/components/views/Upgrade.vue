@@ -5,7 +5,6 @@
         <v-row no-gutters  >
           <v-col>
             <h1>Upgrade Your Account</h1>
-            <span class="subheading">Check out our options below to enhance your art experience!</span>
           </v-col>
         </v-row>
       </v-card-text>
@@ -15,37 +14,7 @@
         <ac-load-section :controller="pricing">
           <template v-slot:default>
             <v-row no-gutters   class="mt-3" v-if="selection === null">
-              <v-col cols="12" md="5">
-                <v-card style="height: 100%" class="service-container">
-                  <v-card-title>
-                    <v-col class="text-center" >
-                      <v-icon>portrait</v-icon>&nbsp;Artconomy Portrait
-                    </v-col>
-                  </v-card-title>
-                  <v-card-text>
-                    <v-row no-gutters >
-                      <v-col>
-                        <v-list>
-                          <v-list-item>Receive Notifications when your favorite artists become available</v-list-item>
-                          <v-divider/>
-                          <v-list-item>Get the opportunity to try experimental new features first!
-                          </v-list-item>
-                          <v-list-item>...for ${{pricing.x.portrait_price}}/Month!</v-list-item>
-                        </v-list>
-                      </v-col>
-                    </v-row>
-                  </v-card-text>
-                  <v-card-text class="card-bottom text-center">
-                    <v-btn color="primary" v-if="!viewer.landscape_enabled && !viewer.portrait_enabled"
-                           @click="selection='portrait'">Get Portrait!
-                    </v-btn>
-                    <v-btn v-else :to="{name: 'Premium', params: {username: viewer.username}}">Manage
-                      Portrait
-                    </v-btn>
-                  </v-card-text>
-                </v-card>
-              </v-col>
-              <v-col cols="12" md="5" offset-md="2">
+              <v-col cols="12" md="6" offset-md="3">
                 <v-card style="height: 100%">
                   <v-card-title text-center>
                     <v-col class="text-center" >

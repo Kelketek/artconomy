@@ -18,7 +18,7 @@ from apps.sales.models import TransactionRecord, LineItemSim, CANCELLED, IN_PROG
 from apps.sales.tests.factories import TransactionRecordFactory, OrderFactory, ProductFactory, DeliverableFactory, \
     RevisionFactory, ReferenceFactory
 from apps.sales.utils import claim_order_by_token, \
-    check_charge_required, available_products, set_service, account_balance, POSTED_ONLY, PENDING, lines_by_priority, \
+    check_charge_required, available_products, set_premium, account_balance, POSTED_ONLY, PENDING, lines_by_priority, \
     get_totals, reckon_lines, destroy_deliverable, divide_amount
 
 
@@ -146,8 +146,8 @@ class TestClaim(TestCase):
 class TestCheckChargeRequired(TestCase):
     @freeze_time('2018-02-10 12:00:00')
     def test_check_charge_not_required_landscape(self):
-        user = UserFactory.create(portrait_paid_through=date(2018, 2, 12), landscape_paid_through=date(2018, 2, 12))
-        self.assertEqual(check_charge_required(user, 'landscape'), (False, date(2018, 2, 12)))
+        user = UserFactory.create(landscape_paid_through=date(2018, 2, 12))
+        self.assertEqual(check_charge_required(user), (False, date(2018, 2, 12)))
 
 
 class TestAvailableProducts(TestCase):
@@ -161,19 +161,6 @@ class TestAvailableProducts(TestCase):
         user = UserFactory.create()
         ProductFactory.create()
         self.assertIn('ORDER BY', str(available_products(user).query))
-
-
-class TestSetService(TestCase):
-    @freeze_time('2018-02-10 12:00:00')
-    def test_set_landscape(self):
-        user = UserFactory.create()
-        other_user = UserFactory.create()
-        user.watching.add(other_user)
-        set_service(user, 'landscape', date(2018, 3, 10))
-        subscriptions = Subscription.objects.filter(type=COMMISSIONS_OPEN)
-        self.assertEqual(subscriptions.count(), 1)
-        subscription = subscriptions[0]
-        self.assertTrue(subscription.telegram)
 
 
 class TestLineCalculations(TestCase):

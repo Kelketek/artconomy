@@ -53,42 +53,11 @@ describe('Premium.vue', () => {
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('Recognizes a portrait user', async() => {
+  it('Removes the subscription', async() => {
     const user = genUser()
-    user.portrait_enabled = true
-    user.portrait = true
-    user.portrait_paid_through = '2019-07-26T15:04:41.078424-05:00'
-    setViewer(store, user)
-    wrapper = mount(Premium, {
-      localVue, store, router, vuetify, propsData: {username: 'Fox'}, attachTo: docTarget(),
-    })
-    const vm = wrapper.vm as any
-    await vm.$nextTick()
-    expect(vm.subscriptionType).toBe('Portrait')
-    expect(vm.paidThrough).toBe('2019-07-26T15:04:41.078424-05:00')
-  })
-  it('Recognizes a landscape user', async() => {
-    const user = genUser()
-    user.portrait_enabled = true
-    user.portrait = true
-    user.portrait_paid_through = '2019-06-26T15:04:41.078424-05:00'
     user.landscape_enabled = true
     user.landscape = true
     user.landscape_paid_through = '2019-07-26T15:04:41.078424-05:00'
-    setViewer(store, user)
-    wrapper = mount(Premium, {
-      localVue, store, router, vuetify, propsData: {username: 'Fox'}, attachTo: docTarget(),
-    })
-    const vm = wrapper.vm as any
-    await vm.$nextTick()
-    expect(vm.subscriptionType).toBe('Landscape')
-    expect(vm.paidThrough).toBe('2019-07-26T15:04:41.078424-05:00')
-  })
-  it('Removes the subscription', async() => {
-    const user = genUser()
-    user.portrait_enabled = true
-    user.portrait = true
-    user.portrait_paid_through = '2019-07-26T15:04:41.078424-05:00'
     setViewer(store, user)
     wrapper = mount(Premium, {
       localVue, store, router, vuetify, propsData: {username: 'Fox'}, attachTo: docTarget(),
@@ -102,6 +71,6 @@ describe('Premium.vue', () => {
     )
     mockAxios.mockResponse(rs(genUser()))
     await flushPromises()
-    expect(vm.subject.portrait).toBe(false)
+    expect(vm.subject.landscape).toBe(false)
   })
 })
