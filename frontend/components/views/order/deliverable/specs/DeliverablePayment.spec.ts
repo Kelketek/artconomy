@@ -445,7 +445,7 @@ describe('DeliverablePayment.vue', () => {
     await vm.$nextTick()
     expect(vm.deliveryDate).toEqual(parseISO('2020-06-05'))
   })
-  it('Handles a Stripe Payment', async() => {
+  it('Handles a Stripe Payment boop', async() => {
     const fox = genUser()
     fox.username = 'Fox'
     setViewer(store, fox)
@@ -461,7 +461,10 @@ describe('DeliverablePayment.vue', () => {
         stubs: ['ac-revision-manager'],
       })
     const vm = wrapper.vm as any
-    const deliverable = genDeliverable({processor: PROCESSORS.STRIPE, status: DeliverableStatus.PAYMENT_PENDING})
+    const deliverable = genDeliverable({
+      processor: PROCESSORS.STRIPE,
+      status: DeliverableStatus.PAYMENT_PENDING,
+    })
     vm.lineItems.makeReady(dummyLineItems())
     vm.deliverable.makeReady(deliverable)
     vm.revisions.makeReady([])
@@ -474,6 +477,7 @@ describe('DeliverablePayment.vue', () => {
     expect(vm.showPayment).toBe(true)
     vm.$refs.cardManager.stripe().paymentValue = {}
     wrapper.find('.dialog-submit').trigger('click')
+    await vm.$nextTick()
     await vm.$nextTick()
     expect(vm.showPayment).toBe(false)
   })
@@ -510,6 +514,7 @@ describe('DeliverablePayment.vue', () => {
     await vm.$nextTick()
     wrapper.find('.dialog-submit').trigger('click')
     await vm.$nextTick()
+    await vm.$nextTick()
     expect(vm.showPayment).toBe(false)
   })
   it('Handles a Stripe Payment Failure', async() => {
@@ -538,11 +543,13 @@ describe('DeliverablePayment.vue', () => {
     await vm.$nextTick()
     wrapper.find('.payment-button').trigger('click')
     await vm.$nextTick()
+    await vm.$nextTick()
     expect(vm.showPayment).toBe(true)
     vm.$refs.cardManager.stripe().paymentValue = {
       error: {code: 'Failure', message: 'Shit broke.'},
     }
     wrapper.find('.dialog-submit').trigger('click')
+    await vm.$nextTick()
     await vm.$nextTick()
     expect(vm.showPayment).toBe(true)
     expect(vm.paymentForm.errors).toEqual(['Shit broke.'])
@@ -551,6 +558,7 @@ describe('DeliverablePayment.vue', () => {
     }
     wrapper.find('.dialog-submit').trigger('click')
     expect(vm.showPayment).toBe(true)
+    await vm.$nextTick()
     await vm.$nextTick()
     expect(vm.paymentForm.errors).toEqual(['An unknown error occurred while trying to reach Stripe. Please contact support.'])
   })
