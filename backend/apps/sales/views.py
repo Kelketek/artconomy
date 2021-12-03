@@ -557,7 +557,7 @@ class DeliverableLineItems(ListCreateAPIView):
     @lru_cache()
     def get_object(self):
         return get_object_or_404(
-            Deliverable, order_id=self.kwargs['order_id'], id=self.kwargs['deliverable_id'],
+            Deliverable.objects.select_for_update(), order_id=self.kwargs['order_id'], id=self.kwargs['deliverable_id'],
         )
 
     def get_queryset(self):
@@ -567,11 +567,14 @@ class DeliverableLineItems(ListCreateAPIView):
     def get_serializer_context(self):
         return {**super().get_serializer_context(), 'deliverable': self.get_object()}
 
+    # Overkill, but only way to avoid writing a bunch of confusing, repetitive code
+    @transaction.atomic
     def get(self, request, *args, **kwargs):
         deliverable = self.get_object()
         self.check_object_permissions(request, deliverable)
         return super().get(request, *args, **kwargs)
 
+    @transaction.atomic
     def post(self, request, *args, **kwargs):
         deliverable = self.get_object()
         self.check_object_permissions(request, deliverable)
@@ -647,12 +650,15 @@ class LineItemManager(RetrieveUpdateDestroyAPIView):
         return {**super().get_serializer_context(), 'deliverable': self.get_object()}
 
     def perform_update(self, serializer):
-        with transaction.atomic():
-            serializer.save()
-            deliverable = serializer.instance.invoice.deliverables.get()
-            verify_total(deliverable)
+        serializer.save()
+        deliverable = serializer.instance.invoice.deliverables.select_for_update().get()
+        verify_total(deliverable)
         # Trigger automatic creation/destruction of shield lines.
         deliverable.save()
+
+
+LineItemManager.patch = transaction.atomic(LineItemManager.patch)
+LineItemManager.delete = transaction.atomic(LineItemManager.delete)
 
 
 class DeliverableRevisions(ListCreateAPIView):
@@ -1369,6 +1375,7 @@ class DeliverablePaymentIntent(APIView):
         self.check_object_permissions(self.request, deliverable)
         return deliverable
 
+    @transaction.atomic
     def post(self, *args, **kwargs):
         deliverable = self.get_object()
         stripe_token = get_intent_card_token(deliverable.order.buyer, self.request.data.get('card_id'))
