@@ -1363,8 +1363,8 @@ class DeliverablePaymentIntent(APIView):
 
     def get_object(self):
         deliverable = get_object_or_404(
-            Deliverable, order_id=self.kwargs['order_id'], id=self.kwargs['deliverable_id'], processor=STRIPE,
-            order__buyer__isnull=False
+            Deliverable.objects.select_for_update(), order_id=self.kwargs['order_id'], id=self.kwargs['deliverable_id'],
+            processor=STRIPE, order__buyer__isnull=False
         )
         self.check_object_permissions(self.request, deliverable)
         return deliverable
