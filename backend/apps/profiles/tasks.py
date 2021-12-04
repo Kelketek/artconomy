@@ -1,5 +1,6 @@
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
+from django.db import transaction
 from django.db.models import Count
 from django.utils import timezone
 
@@ -43,8 +44,9 @@ def clear_blank_conversations():
 
 
 @celery_app.task
+@transaction.atomic
 def create_or_update_stripe_user(user_id, force=False):
-    user = User.objects.get(id=user_id)
+    user = User.objects.select_for_update().get(id=user_id)
     if user.stripe_token and not force:
         return
     if user.guest:

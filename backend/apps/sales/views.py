@@ -52,6 +52,7 @@ from apps.lib.views import BasePreview
 from apps.profiles.models import User, Submission, IN_SUPPORTED_COUNTRY
 from apps.profiles.permissions import ObjectControls, UserControls, IsUser, IsSuperuser, IsRegistered
 from apps.profiles.serializers import UserSerializer, SubmissionSerializer
+from apps.profiles.tasks import create_or_update_stripe_user
 from apps.profiles.utils import create_guest_user, empty_user
 from apps.sales.apis import STRIPE
 from apps.sales.stripe import stripe, create_stripe_account, create_account_link, get_country_list, money_to_stripe
@@ -1378,6 +1379,8 @@ class DeliverablePaymentIntent(APIView):
     @transaction.atomic
     def post(self, *args, **kwargs):
         deliverable = self.get_object()
+        if deliverable.order.buyer.is_registered:
+            create_or_update_stripe_user(deliverable.order.buyer.id)
         stripe_token = get_intent_card_token(deliverable.order.buyer, self.request.data.get('card_id'))
         serializer = PaymentIntentSettings(data=self.request.data)
         serializer.is_valid(raise_exception=True)
@@ -1766,6 +1769,8 @@ class PremiumPaymentIntent(APIView):
         serializer.is_valid(raise_exception=True)
         make_primary = serializer.validated_data['make_primary']
         total = Money(settings.LANDSCAPE_PRICE, 'USD')
+        # In case the initial creation failed for some reason.
+        create_or_update_stripe_user(self.request.user.id)
         with stripe as stripe_api:
             # Can only do string values, so won't be json true value.
             metadata = {'make_primary': make_primary, 'save_card': True, 'service': 'landscape'}

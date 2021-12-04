@@ -17,6 +17,13 @@ from apps.sales.views import StripeWebhooks
 
 
 class TestDeliverablePaymentIntent(APITestCase):
+    def setUp(self) -> None:
+        self.patcher = patch('apps.sales.views.create_or_update_stripe_user')
+        self.patcher.start()
+
+    def tearDown(self) -> None:
+        self.patcher.stop()
+
     @patch('apps.sales.views.stripe')
     def test_create_payment_intent(self, mock_stripe):
         mock_api = Mock()
