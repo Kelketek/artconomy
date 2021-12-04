@@ -372,6 +372,22 @@ class TestLoadAdjustment(TestCase):
         user.refresh_from_db()
         self.assertFalse(user.artist_profile.commissions_closed)
         self.assertFalse(user.artist_profile.commissions_disabled)
+        # Commissions are always open if there's a waitlist.
+        product.task_weight = 20
+        product.wait_list = True
+        product.save()
+        user.refresh_from_db()
+        self.assertFalse(user.artist_profile.commissions_closed)
+        self.assertFalse(user.artist_profile.commissions_disabled)
+        # But a specific product that is too large will be considered unavailable.
+        other_product = ProductFactory.create(user=user, task_weight=20)
+        other_product.refresh_from_db()
+        self.assertFalse(other_product.available)
+        # It will be considered available if the weight is under the available slots.
+        other_product.task_weight = 5
+        other_product.save()
+        other_product.refresh_from_db()
+        self.assertTrue(other_product.available)
 
 
 class TestOrder(SignalsDisabledMixin, TestCase):

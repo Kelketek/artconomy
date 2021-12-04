@@ -202,7 +202,10 @@ def update_availability(seller, load, current_closed_status):
         seller_profile.save()
         products.update(available=True, edited_on=timezone.now())
         # Sanity setting.
-        seller.products.filter(Q(hidden=True) | Q(active=False) | Q(inventory__count=0)).update(
+        max_size = seller_profile.max_load - load
+        seller.products.filter(
+            Q(hidden=True) | Q(active=False) | Q(inventory__count=0) | Q(task_weight__gt=max_size)
+        ).exclude(wait_list=True).update(
             available=False, edited_on=timezone.now(),
         )
         if current_closed_status and not seller_profile.commissions_disabled:
