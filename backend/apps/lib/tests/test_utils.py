@@ -8,7 +8,7 @@ from apps.lib.test_resources import SignalsDisabledMixin
 from apps.lib.tests.factories_interdepend import CommentFactory
 from apps.lib.utils import notify, recall_notification, send_transaction_email, subscribe, mark_read, check_read, \
     mark_modified, clear_events_subscriptions_and_comments
-from apps.profiles.models import Submission
+from apps.profiles.models import Submission, ArtconomyAnonymousUser
 from apps.profiles.tests.factories import SubmissionFactory, UserFactory
 
 
@@ -272,6 +272,7 @@ class TestMarkers(TestCase):
         self.assertFalse(check_read(obj=submission, user=user))
         mark_read(obj=submission, user=user)
         self.assertTrue(check_read(obj=submission, user=user))
+        self.assertIsNone(check_read(obj=submission, user=ArtconomyAnonymousUser()))
 
 
 class TestClearCommentsEventsSubscriptions(TestCase):

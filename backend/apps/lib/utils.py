@@ -3,7 +3,7 @@ import os
 from hashlib import sha256
 from itertools import chain
 from pathlib import Path
-from typing import Optional, TYPE_CHECKING, Type, List
+from typing import Optional, TYPE_CHECKING, Type, List, Union
 from uuid import uuid4
 
 import markdown
@@ -43,7 +43,7 @@ BOT = None
 logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
-    from apps.profiles.models import User
+    from apps.profiles.models import User, ArtconomyAnonymousUser
     from apps.lib.serializers import NewCommentSerializer
     from apps.sales.models import Deliverable, Order
 
@@ -702,7 +702,9 @@ def create_comment(target: Model, serializer: 'NewCommentSerializer', user: 'Use
     )
 
 
-def check_read(*, obj: Model, user: 'User'):
+def check_read(*, obj: Model, user: Union['User', 'ArtconomyAnonymousUser']):
+    if not user.is_authenticated:
+        return None
     from apps.sales.models import Order, Deliverable
     q = Q(content_type=ContentType.objects.get_for_model(obj), object_id=obj.id)
     if isinstance(obj, Order):

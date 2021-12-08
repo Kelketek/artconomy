@@ -1951,3 +1951,10 @@ class TestClearWaitlist(APITestCase):
         self.assertEqual(deliverable3.status, WAITING)
         self.assertEqual(deliverable4.status, IN_PROGRESS)
         self.assertEqual(deliverable5.status, COMPLETED)
+
+
+class TestQueue(APITestCase):
+    def test_queue_anonymous(self):
+        deliverable = DeliverableFactory.create()
+        response = self.client.get(f'/api/sales/v1/account/{deliverable.order.seller.username}/queue/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
