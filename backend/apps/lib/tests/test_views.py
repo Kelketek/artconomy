@@ -1,7 +1,13 @@
+from importlib import import_module
+from unittest.mock import patch, Mock
+
+from django.conf import settings
+from django.core.files.uploadedfile import SimpleUploadedFile
+
 from apps.lib.models import Comment
 from apps.lib.test_resources import APITestCase, SignalsDisabledMixin
 from apps.lib.tests.factories_interdepend import CommentFactory
-from apps.profiles.tests.factories import JournalFactory, SubmissionFactory
+from apps.profiles.tests.factories import JournalFactory, SubmissionFactory, UserFactory
 
 
 class TestComment(SignalsDisabledMixin, APITestCase):
@@ -44,3 +50,25 @@ class TestSupportRequest(APITestCase):
             'body': 'beep boop.',
             'referring_url': 'https://example.com/',
         })
+
+
+class TestAssetUpload(APITestCase):
+    @patch('apps.lib.views.cache')
+    def test_upload_asset_no_login(self, mock_cache):
+        # Force a cookie to get set.
+        self.assertTrue(self.client.session)
+        self.upload_asset(mock_cache)
+
+    def upload_asset(self, mock_cache):
+        file = SimpleUploadedFile("file.mp4", b"file_content", content_type="video/mp4")
+        response = self.client.post('/api/lib/v1/asset/', {'files[]': file}, format='multipart')
+        self.assertEqual(response.status_code, 200)
+        mock_cache.set.assert_called_with(
+            f'upload_grant_{self.client.session.session_key}-to-{response.data["id"]}', True, timeout=3600,
+        )
+
+    @patch('apps.lib.views.cache')
+    def test_upload_asset_logged_in(self, mock_cache):
+        user = UserFactory.create()
+        self.login(user)
+        self.upload_asset(mock_cache)

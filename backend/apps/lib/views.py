@@ -27,7 +27,7 @@ from apps.lib.permissions import (
     CommentEditPermission, CommentViewPermission, CommentDepthPermission, Any, All,
     IsMethod, IsSafeMethod, CanComment,
     CanListComments,
-    IsAuthenticatedObj, IsStaff)
+    IsAuthenticatedObj, IsStaff, SessionKeySet)
 from apps.lib.serializers import CommentSerializer, CommentSubscriptionSerializer
 from apps.lib.utils import (
     countries_tweaked, safe_add, default_context,
@@ -348,7 +348,7 @@ class SupportRequest(APIView):
 
 
 class AssetUpload(APIView):
-    permission_classes = []
+    permission_classes = [SessionKeySet]
     parser_classes = (MultiPartParser,)
 
     # noinspection PyMethodMayBeStatic
@@ -369,6 +369,12 @@ class AssetUpload(APIView):
             asset = Asset(file=file_obj, uploaded_by=user, hash=digest)
             asset.clean()
             asset.save()
-        else:
-            cache.set(f'upload_grant_{request.session.session_key}-to-{asset.id}', True, timeout=3600)
+        cache.set(f'upload_grant_{request.session.session_key}-to-{asset.id}', True, timeout=3600)
         return Response(data={'id': str(asset.id)})
+
+
+class NoOp(APIView):
+    permission_classes = []
+
+    def get(self, *args, **kwargs):
+        return Response({})

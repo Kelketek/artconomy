@@ -1,7 +1,9 @@
 from logging import getLogger
 from typing import List, Type
 
+from django.views import View
 from rest_framework.permissions import BasePermission, SAFE_METHODS, IsAuthenticated
+from rest_framework.request import Request
 
 logger = getLogger(__name__)
 
@@ -193,3 +195,10 @@ def BlockedCheckPermission(ref_path=''):
                 target = getattr(obj, segment)
             return not target.blocking.filter(id=request.user.id).exists()
     return WrappedBlockedPermission
+
+
+class SessionKeySet(BasePermission):
+    message = 'You do not have a session key set. Get a cookie first.'
+
+    def has_permission(self, request: Request, view: View) -> bool:
+        return bool(request.session.session_key)

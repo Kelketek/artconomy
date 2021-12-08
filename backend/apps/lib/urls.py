@@ -21,4 +21,5 @@ urlpatterns = [
     ),
     path('v1/support/request/', views.SupportRequest.as_view(), name='support_request'),
     path('v1/asset/', views.AssetUpload.as_view(), name='asset_upload'),
+    path('v1/noop/', views.NoOp.as_view(), name='no_op'),
 ]

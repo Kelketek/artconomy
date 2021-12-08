@@ -38,6 +38,13 @@ class APITestCase(BaseAPITestCase):
         result = self.client.login(email=user.email, password='Test')
         self.assertIs(result, True)
 
+    def create_session(self):
+        """
+        Hacky method to force the creation of a session.
+        """
+        result = self.client.login(email='DoesNotExist@example.com', password='Test')
+        self.assertIs(result, False)
+
     @staticmethod
     def assertIDInList(member, container):
         if not isinstance(member, int):
