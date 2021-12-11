@@ -350,15 +350,19 @@ class Deliverable(Model):
     # noinspection PyUnusedLocal
     def notification_display(self, context):
         from .serializers import ProductSerializer
-        from .serializers import RevisionSerializer
+        from .serializers import RevisionSerializer, ReferenceSerializer
         if self.revisions_hidden and not (self.order.seller == context['request'].user):
             revision = None
         else:
             revision = self.revision_set.all().last()
-        if revision is None:
-            return ProductSerializer(instance=self.product, context=context).data['primary_submission']
-        else:
+        if revision:
             return RevisionSerializer(instance=revision, context=context).data
+        reference = self.reference_set.all().first()
+        if reference:
+            return ReferenceSerializer(instance=reference, context=context).data
+        if not self.product:
+            return None
+        return ProductSerializer(instance=self.product, context=context).data['primary_submission']
 
     def notification_name(self, context):
         if context['request'].user == self.arbitrator:
@@ -413,20 +417,7 @@ class Order(Model):
         return {'order': self}
 
     def notification_display(self, context):
-        from .serializers import ProductSerializer
-        from .serializers import RevisionSerializer
-        revisions = Revision.objects.filter(deliverable__order=self)
-        if self.seller == context['request'].user:
-            revision = revisions.order_by('-created_on').first()
-        else:
-            revision = revisions.filter(deliverable__revisions_hidden=False).order_by('-created_on').first()
-        if revision is None:
-            return ProductSerializer(
-                instance=self.deliverables.order_by('-created_on').first().product,
-                context=context,
-            ).data['primary_submission']
-        else:
-            return RevisionSerializer(instance=revision, context=context).data
+        return self.deliverables.first().notification_display(context)
 
     def notification_link(self, context):
         return order_context_to_link(order_context(order=self, logged_in=False, user=context['request'].user))
