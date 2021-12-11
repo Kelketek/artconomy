@@ -1201,6 +1201,9 @@ class Revision(ImageModel):
         Comment, related_query_name='revisions', content_type_field='content_type', object_id_field='object_id'
     )
 
+    def __str__(self):
+        return f'Revision {self.id} for {self.deliverable}'
+
     def modified_kwargs(self, _data):
         return {'order': self.deliverable.order, 'deliverable': self.deliverable}
 

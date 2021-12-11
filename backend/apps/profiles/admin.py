@@ -26,7 +26,9 @@ class ArtconomyUserAdmin(EmailUserAdmin):
 
 
 class SubmissionAdmin(ModelAdmin):
-    raw_id_fields = ['tags', 'characters', 'owner', 'artists', 'shared_with', 'file', 'preview']
+    raw_id_fields = [
+        'tags', 'characters', 'owner', 'artists', 'shared_with', 'file', 'preview', 'revision', 'deliverable',
+    ]
 
 
 class ArtistProfileAdmin(ModelAdmin):

@@ -12,7 +12,7 @@ from apps.sales.models import Product, Order, Revision, Promo, TransactionRecord
 
 
 class ProductAdmin(admin.ModelAdmin):
-    raw_id_fields = ['user', 'owner', 'primary_submission', 'samples', 'tags']
+    raw_id_fields = ['user', 'owner', 'primary_submission', 'samples', 'tags', 'file', 'preview']
 
 
 class OrderAdmin(admin.ModelAdmin):
@@ -85,11 +85,15 @@ class WebhookRecordAdmin(admin.ModelAdmin):
     pass
 
 
+class RevisionAdmin(admin.ModelAdmin):
+    raw_id_fields = ['owner', 'deliverable', 'file', 'preview']
+
+
 admin.site.register(Product, ProductAdmin)
 admin.site.register(Order, OrderAdmin)
 admin.site.register(Deliverable, DeliverableAdmin)
 admin.site.register(Invoice, InvoiceAdmin)
-admin.site.register(Revision, admin.ModelAdmin)
+admin.site.register(Revision, RevisionAdmin)
 admin.site.register(Promo)
 admin.site.register(TransactionRecord, TransactionRecordAdmin)
 admin.site.register(Rating, RatingAdmin)
