@@ -328,15 +328,8 @@ class TestLoadAdjustment(TestCase):
         order.status = COMPLETED
         order.save()
         user.refresh_from_db()
-        # We have reduced the load, but never took care of the new order, so commissions are still disabled.
-        self.assertEqual(user.artist_profile.load, 5)
-        self.assertTrue(user.artist_profile.commissions_disabled)
-        self.assertFalse(user.artist_profile.commissions_closed)
-        order2.status = CANCELLED
-        order2.save()
-        order.save()
-        # Cancalled the new order, so now the load is within parameters and there are no outstanding new orders.
-        user.refresh_from_db()
+        # We have reduced the load, but never took care of the new order. This used to result in commissions being
+        # disabled, but we've removed that functionality and they should be open now.
         self.assertEqual(user.artist_profile.load, 5)
         self.assertFalse(user.artist_profile.commissions_disabled)
         self.assertFalse(user.artist_profile.commissions_closed)
@@ -346,14 +339,6 @@ class TestLoadAdjustment(TestCase):
         self.assertTrue(user.artist_profile.commissions_closed)
         self.assertTrue(user.artist_profile.commissions_disabled)
         user.artist_profile.commissions_closed = False
-        order.status = NEW
-        order.save()
-        # Unclosing commissions shouldn't enable commissions if they still have an outstanding order.
-        user.refresh_from_db()
-        user.artist_profile.commissions_closed = False
-        user.save()
-        self.assertFalse(user.artist_profile.commissions_closed)
-        self.assertTrue(user.artist_profile.commissions_disabled)
         order.status = CANCELLED
         order.save()
         # We should be clear again.

@@ -194,7 +194,7 @@ def update_availability(seller, load, current_closed_status):
             seller_profile.commissions_disabled = True
         elif not products.exists():
             seller_profile.commissions_disabled = True
-        elif not seller.sales.filter(deliverables__status=NEW).exists():
+        else:
             seller_profile.commissions_disabled = False
         seller_profile.load = load
         if products.exists() and not seller_profile.commissions_disabled:

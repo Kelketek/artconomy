@@ -474,12 +474,6 @@
               <li>You still have some slots, but any products which DO fit in the remaining ones have
                 already reached their 'max at once' limit.
               </li>
-              <li>
-                You still have some slots, do not have commissions closed, and have viable products,
-                but you still have open requests left over from the last time you were open for commissions. You
-                must accept or reject these before you will be able to take new orders, in order to reduce the
-                incidence of customer service issues.
-              </li>
             </ul>
           </v-card-text>
         </v-card>

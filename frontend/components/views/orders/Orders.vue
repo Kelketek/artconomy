@@ -33,10 +33,6 @@
                   may mean there are none, they are hidden, they have reached their 'Max at Once' level, or you do not have
                   enough slots to take any of your existing products on.
                 </li>
-                <li v-if="stats.x.commissions_disabled && stats.x.new_orders">You have outstanding new orders to process. Please
-                  accept or reject the outstanding orders. Outstanding orders must be handled before you are opened up for new
-                  commissions, if they've been around for a while.
-                </li>
               </ul>
             </div>
             <div v-else>
