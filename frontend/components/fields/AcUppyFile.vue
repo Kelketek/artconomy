@@ -69,7 +69,7 @@ const uppyStore = (single: SingleController<UppyState>) => {
     subscribe: (listener: StateListener) => {
       listeners.push(listener)
       return () => listeners.splice(listeners.indexOf(listener), 1)
-    }
+    },
   }
 }
 

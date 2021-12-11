@@ -318,7 +318,7 @@ export default class NewOrder extends mixins(ProductCentric, Formatting) {
           details: {value: '', step: 2},
           references: {value: [], step: 2},
           // Let there be a 'step 3' even if there's not an actual field there.
-          dummy: {value: '', step: 3}
+          dummy: {value: '', step: 3},
         },
       })
       // Since we allow the form to persist, we want to make sure if the user moves to another product, we update the
