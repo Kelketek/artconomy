@@ -228,6 +228,7 @@ export function genOrder(overrides?: Partial<Order>): Order {
     seller,
     buyer,
     customer_email: '',
+    guest_email: '',
     claim_token: null,
     private: false,
     product_name: 'Test product',
