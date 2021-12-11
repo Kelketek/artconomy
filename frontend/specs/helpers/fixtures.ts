@@ -105,6 +105,7 @@ export function genRevision(overrides?: Partial<Revision>): Revision {
       __type__: 'data:image',
     },
     read: true,
+    submissions: [],
     ...overrides,
   }
 }

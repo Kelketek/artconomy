@@ -17,7 +17,7 @@ from apps.lib.models import Comment, Subscription, COMMENT
 from apps.lib.test_resources import APITestCase, PermissionsTestCase, MethodAccessMixin
 from apps.lib.tests.factories import TagFactory, AssetFactory
 from apps.profiles.models import User, IN_SUPPORTED_COUNTRY, NO_SUPPORTED_COUNTRY, UNSET
-from apps.profiles.tests.factories import UserFactory, SubmissionFactory
+from apps.profiles.tests.factories import UserFactory, SubmissionFactory, CharacterFactory
 from apps.sales.authorize import AuthorizeException, CardInfo, AddressInfo
 from apps.sales.models import (
     Order, CreditCardToken, Product, TransactionRecord, ADD_ON, BASE_PRICE, NEW, COMPLETED, IN_PROGRESS,
@@ -1666,7 +1666,8 @@ class TestOrderOutputs(APITestCase):
     def test_order_outputs_get(self):
         deliverable = DeliverableFactory.create(status=COMPLETED)
         self.login(deliverable.order.buyer)
-        submission = SubmissionFactory.create(deliverable=deliverable)
+        revision = RevisionFactory.create()
+        submission = SubmissionFactory.create(deliverable=deliverable, revision=revision)
         response = self.client.get(f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/outputs/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIDInList(submission, response.data)
@@ -1686,17 +1687,86 @@ class TestOrderOutputs(APITestCase):
         output = deliverable.outputs.all()[0]
         self.assertEqual(output.deliverable, deliverable)
 
-    def test_order_output_exists(self):
-        deliverable = DeliverableFactory.create(status=COMPLETED)
+    def test_order_outputs_post_specific_revision(self):
+        product = ProductFactory.create()
+        deliverable = DeliverableFactory.create(status=COMPLETED, final_uploaded=True, product=product)
+        revision_1 = RevisionFactory.create(deliverable=deliverable, created_on=timezone.now() - relativedelta(days=1))
+        RevisionFactory.create(deliverable=deliverable)
         self.login(deliverable.order.buyer)
-        deliverable.outputs.add(SubmissionFactory.create(deliverable=deliverable, owner=deliverable.order.buyer))
+        response = self.client.post(
+            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/outputs/', {
+                'caption': 'Stuff',
+                'tags': ['Things', 'wat'],
+                'revision': revision_1.id,
+                'title': 'Hi!'
+            })
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(deliverable.outputs.all().count(), 1)
+        output = deliverable.outputs.all()[0]
+        self.assertEqual(output.deliverable, deliverable)
+        self.assertEqual(output.revision, revision_1)
+        self.assertNotIn(output, product.samples.all())
+
+    def test_order_outputs_post_nonspecific_revision_buyer(self):
+        product = ProductFactory.create()
+        deliverable = DeliverableFactory.create(status=COMPLETED, final_uploaded=True, product=product)
+        character = CharacterFactory.create(primary_submission=None, user=deliverable.order.buyer)
+        deliverable.characters.add(character)
+        RevisionFactory.create(deliverable=deliverable, created_on=timezone.now() - relativedelta(days=1))
+        revision_2 = RevisionFactory.create(deliverable=deliverable)
+        self.login(deliverable.order.buyer)
         response = self.client.post(
             f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/outputs/', {
                 'caption': 'Stuff',
                 'tags': ['Things', 'wat'],
                 'title': 'Hi!'
             })
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(deliverable.outputs.all().count(), 1)
+        output = deliverable.outputs.all()[0]
+        self.assertEqual(output.deliverable, deliverable)
+        self.assertEqual(output.revision, revision_2)
+        product.refresh_from_db()
+        self.assertNotIn(output, product.samples.all())
+        character.refresh_from_db()
+        self.assertEqual(output, character.primary_submission)
+
+    def test_order_outputs_post_nonspecific_revision_seller(self):
+        product = ProductFactory.create()
+        deliverable = DeliverableFactory.create(status=COMPLETED, final_uploaded=True, product=product)
+        character = CharacterFactory.create(primary_submission=None, user=deliverable.order.buyer)
+        deliverable.characters.add(character)
+        RevisionFactory.create(deliverable=deliverable, created_on=timezone.now() - relativedelta(days=1))
+        revision_2 = RevisionFactory.create(deliverable=deliverable)
+        self.login(deliverable.order.seller)
+        response = self.client.post(
+            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/outputs/', {
+                'caption': 'Stuff',
+                'tags': ['Things', 'wat'],
+                'title': 'Hi!'
+            })
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(deliverable.outputs.all().count(), 1)
+        output = deliverable.outputs.all()[0]
+        self.assertEqual(output.deliverable, deliverable)
+        self.assertEqual(output.revision, revision_2)
+        product.refresh_from_db()
+        self.assertIn(output, product.samples.all())
+        character.refresh_from_db()
+        self.assertIsNone(character.primary_submission)
+
+    def test_order_output_exists(self):
+        deliverable = DeliverableFactory.create(status=COMPLETED)
+        self.login(deliverable.order.buyer)
+        revision = RevisionFactory.create(deliverable=deliverable)
+        SubmissionFactory.create(deliverable=deliverable, owner=deliverable.order.buyer, revision=revision)
+        response = self.client.post(
+            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/outputs/', {
+                'caption': 'Stuff',
+                'tags': ['Things', 'wat'],
+                'title': 'Hi!'
+            })
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(deliverable.outputs.all().count(), 1)
 
 

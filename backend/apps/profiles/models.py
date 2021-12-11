@@ -371,6 +371,7 @@ class Submission(ImageModel, HitsMixin):
     artists = ManyToManyField('User', related_name='art', blank=True)
     artists__max = 10
     deliverable = ForeignKey('sales.Deliverable', null=True, blank=True, on_delete=SET_NULL, related_name='outputs')
+    revision = ForeignKey('sales.Revision', null=True, blank=True, on_delete=SET_NULL, related_name='submissions')
     subscriptions = GenericRelation('lib.Subscription')
     # Can't be used as a direct access to the hit counter, no matter what the docs say.
     # Useful for querying and sorting by hitcount, though.

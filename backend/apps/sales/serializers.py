@@ -616,6 +616,7 @@ class RevisionSerializer(serializers.ModelSerializer):
     owner = serializers.SlugRelatedField(slug_field='username', read_only=True)
     file = RelatedAssetField(thumbnail_namespace='sales.Revision.file')
     final = serializers.BooleanField(default=False, required=False, write_only=True)
+    submissions = serializers.SerializerMethodField()
     read = serializers.SerializerMethodField()
 
     def create(self, validated_data):
@@ -629,9 +630,12 @@ class RevisionSerializer(serializers.ModelSerializer):
     def get_thumbnail_url(self, obj):
         return self.context['request'].build_absolute_uri(obj.file.file.url)
 
+    def get_submissions(self, obj):
+        return obj.submissions.all().values('owner_id', 'id')
+
     class Meta:
         model = Revision
-        fields = ('id', 'rating', 'file', 'created_on', 'owner', 'deliverable', 'final', 'read')
+        fields = ('id', 'rating', 'file', 'created_on', 'owner', 'deliverable', 'final', 'read', 'submissions')
         read_only_fields = ('id', 'deliverable', 'owner', 'read')
 
 
@@ -845,6 +849,7 @@ class SubmissionFromOrderSerializer(RelatedAtomicMixin, serializers.ModelSeriali
         model = Submission
         fields = (
             'id', 'title', 'caption', 'private', 'created_on', 'tags', 'comments_disabled',
+            'revision',
         )
         read_only_fields = (
             'tags',

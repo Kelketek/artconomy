@@ -44,7 +44,6 @@ describe('DeliverableDetail.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-
         attachTo: docTarget(),
         stubs: ['ac-revision-manager'],
       })
@@ -118,7 +117,7 @@ describe('DeliverableDetail.vue', () => {
       {text: 'Seller', value: VIEWER_TYPE.SELLER},
     ])
   })
-  it('Sends a user to their new submission', async() => {
+  it('Sends a seller to their new submission', async() => {
     const vulpes = genUser()
     vulpes.username = 'Vulpes'
     setViewer(store, vulpes)
@@ -130,7 +129,6 @@ describe('DeliverableDetail.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-
         attachTo: docTarget(),
         stubs: ['ac-revision-manager'],
       })
@@ -142,7 +140,8 @@ describe('DeliverableDetail.vue', () => {
     vm.deliverable.ready = true
     await vm.$nextTick()
     mockAxios.reset()
-    vm.viewSettings.model.showAddSubmission = true
+    wrapper.find('.gallery-add').trigger('click')
+    await vm.$nextTick()
     mockAxios.reset()
     await vm.$nextTick()
     wrapper.find('.dialog-submit').trigger('click')
@@ -167,7 +166,6 @@ describe('DeliverableDetail.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-
         attachTo: docTarget(),
         stubs: ['ac-revision-manager'],
       })
@@ -192,7 +190,6 @@ describe('DeliverableDetail.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-
         attachTo: docTarget(),
         stubs: ['ac-revision-manager'],
       })
@@ -237,7 +234,6 @@ describe('DeliverableDetail.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-
         attachTo: docTarget(),
         stubs: ['ac-revision-manager'],
       })
@@ -304,7 +300,6 @@ describe('DeliverableDetail.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-
         attachTo: docTarget(),
         stubs: ['ac-revision-manager'],
       })
@@ -319,6 +314,7 @@ describe('DeliverableDetail.vue', () => {
     await vm.$nextTick()
     expect(vm.showAdd)
     wrapper.find('.collection-add').trigger('click')
+    await vm.$nextTick()
     expect(vm.viewSettings.model.showAddSubmission).toBe(true)
   })
   it('Prompts to add revision to collection by registering if they are a guest', async() => {
@@ -332,7 +328,6 @@ describe('DeliverableDetail.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-
         attachTo: docTarget(),
         stubs: ['ac-revision-manager'],
       })
@@ -363,7 +358,6 @@ describe('DeliverableDetail.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-
         attachTo: docTarget(),
         stubs: ['ac-revision-manager'],
       })
@@ -399,7 +393,6 @@ describe('DeliverableDetail.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: '__1'},
-
         attachTo: docTarget(),
         stubs: ['ac-revision-manager'],
       })
@@ -429,7 +422,6 @@ describe('DeliverableDetail.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-
         attachTo: docTarget(),
         stubs: ['ac-revision-manager'],
       })
@@ -457,7 +449,6 @@ describe('DeliverableDetail.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-
         attachTo: docTarget(),
         stubs: ['ac-revision-manager'],
       })
@@ -481,7 +472,6 @@ describe('DeliverableDetail.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-
         attachTo: docTarget(),
         stubs: ['router-link'],
       })

@@ -1,4 +1,4 @@
-import {cleanUp, createVuetify, docTarget, setViewer, vueSetup, mount} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, mount, setViewer, vueSetup} from '@/specs/helpers'
 import Router from 'vue-router'
 import {ArtStore, createStore} from '@/store'
 import {Wrapper} from '@vue/test-utils'
@@ -37,7 +37,6 @@ describe('DeliverableOverview.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox', revisionId: 3},
-
         attachTo: docTarget(),
         stubs: ['ac-revision-manager'],
       })
@@ -94,6 +93,102 @@ describe('DeliverableOverview.vue', () => {
     await vm.$nextTick()
     expect(vm.isFinal).toBe(true)
   })
+  it('Determines if the revision has a submission in the current user\'s gallery', async() => {
+    const user = genUser()
+    setViewer(store, user)
+    router.push('/orders/Fox/order/1/deliverables/5/revisions/3/')
+    wrapper = mount(
+      RevisionDetail, {
+        localVue,
+        store,
+        router,
+        vuetify,
+        propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox', revisionId: 3},
+        attachTo: docTarget(),
+        stubs: ['ac-revision-manager'],
+      })
+    const vm = wrapper.vm as any
+    const deliverable = genDeliverable()
+    vm.order.makeReady(deliverable.order)
+    vm.deliverable.makeReady(deliverable)
+    await vm.$nextTick()
+    expect(vm.isLast).toBe(false)
+    const revision = genRevision({id: 3, submissions: []})
+    vm.revisions.makeReady([revision])
+    vm.revision.makeReady(revision)
+    await vm.$nextTick()
+    expect(vm.gallerySubmissionId).toBe(null)
+    expect(vm.isSubmitted).toBe(false)
+    expect(vm.galleryLink).toBe(null)
+    vm.revision.updateX({submissions: [{owner_id: user.id, id: 5}]})
+    await vm.$nextTick()
+    expect(vm.gallerySubmissionId).toBe(5)
+    expect(vm.isSubmitted).toBe(true)
+    expect(vm.galleryLink).toEqual({name: 'Submission', params: {submissionId: '5'}})
+    vm.deliverable.updateX({final_uploaded: true})
+    await vm.$nextTick()
+    expect(vm.isFinal).toBe(true)
+  })
+  it('Shows the submission button to a buyer only once the deliverable is completed', async() => {
+    const user = genUser()
+    setViewer(store, user)
+    router.push('/orders/Fox/order/1/deliverables/5/revisions/3/')
+    wrapper = mount(
+      RevisionDetail, {
+        localVue,
+        store,
+        router,
+        vuetify,
+        propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox', revisionId: 3},
+        attachTo: docTarget(),
+        stubs: ['ac-revision-manager'],
+      })
+    const vm = wrapper.vm as any
+    const deliverable = genDeliverable()
+    vm.order.makeReady(deliverable.order)
+    vm.deliverable.makeReady(deliverable)
+    await vm.$nextTick()
+    expect(vm.isLast).toBe(false)
+    const revision = genRevision({id: 3, submissions: []})
+    vm.revisions.makeReady([revision])
+    vm.revision.makeReady(revision)
+    await vm.$nextTick()
+    expect(wrapper.find('.prep-submission-button').exists()).toBe(false)
+    vm.deliverable.updateX({status: DeliverableStatus.COMPLETED})
+    await vm.$nextTick()
+    expect(wrapper.find('.prep-submission-button').exists()).toBe(true)
+  })
+  it('Prepares a revision for publication to gallery', async() => {
+    const user = genUser()
+    setViewer(store, user)
+    router.push('/orders/Fox/order/1/deliverables/5/revisions/3/')
+    wrapper = mount(
+      RevisionDetail, {
+        localVue,
+        store,
+        router,
+        vuetify,
+        propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox', revisionId: 3},
+        attachTo: docTarget(),
+        stubs: ['ac-revision-manager'],
+      })
+    const vm = wrapper.vm as any
+    const deliverable = genDeliverable({status: DeliverableStatus.COMPLETED})
+    vm.order.makeReady(deliverable.order)
+    vm.deliverable.makeReady(deliverable)
+    await vm.$nextTick()
+    expect(vm.isLast).toBe(false)
+    const revision = genRevision({id: 3, submissions: []})
+    vm.revisions.makeReady([revision])
+    vm.revision.makeReady(revision)
+    await vm.$nextTick()
+    expect(vm.addSubmission.fields.revision.value).toBe(null)
+    expect(vm.viewSettings.patchers.showAddSubmission.model).toBe(false)
+    wrapper.find('.prep-submission-button').trigger('click')
+    await vm.$nextTick()
+    expect(vm.addSubmission.fields.revision.value).toBe(3)
+    expect(vm.viewSettings.patchers.showAddSubmission.model).toBe(true)
+  })
   it('Determines if the deliverable has been archived', async() => {
     const user = genUser()
     setViewer(store, user)
@@ -105,7 +200,6 @@ describe('DeliverableOverview.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox', revisionId: 3},
-
         attachTo: docTarget(),
         stubs: ['ac-revision-manager'],
       })

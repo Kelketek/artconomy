@@ -184,7 +184,7 @@
                         <v-img src="/static/images/fridge.png" max-height="20vh" contain />
                         <v-btn v-if="sellerSubmission" color="primary"
                                :to="{name: 'Submission', params: {submissionId: sellerSubmission.x.id}}">Visit in Gallery</v-btn>
-                        <v-btn color="green" v-else @click="viewSettings.patchers.showAddSubmission.model = true">Add to my Gallery</v-btn>
+                        <v-btn color="green" v-else @click="addToGallery" class="gallery-add">Add to my Gallery</v-btn>
                       </v-col>
                       <v-col class="text-center" v-if="isBuyer && is(COMPLETED)" cols="12" >
                         <v-img src="/static/images/fridge.png" max-height="20vh" contain />
@@ -206,7 +206,7 @@
                           discussion for record, and have the other person affirm it is accurate.</p>
                       </v-col>
                       <ac-form-dialog
-                        v-if="is(COMPLETED)"
+                        v-if="is(COMPLETED) || isSeller"
                         @submit.prevent="addSubmission.submitThen(visitSubmission)"
                         v-model="viewSettings.patchers.showAddSubmission.model"
                         :sending="addSubmission.sending"
@@ -494,8 +494,14 @@ export default class DeliverableDetail extends mixins(
     ]
   }
 
+  public addToGallery() {
+    this.addSubmission.fields.revision.update(null)
+    this.viewSettings.model.showAddSubmission = true
+  }
+
   public addToCollection() {
     if (this.isRegistered) {
+      this.addSubmission.fields.revision.update(null)
       this.viewSettings.model.showAddSubmission = true
       return
     }

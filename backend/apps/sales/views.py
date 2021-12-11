@@ -2323,9 +2323,12 @@ class DeliverableCharacterList(ListAPIView):
 class DeliverableOutputs(ListCreateAPIView):
     permission_classes = [
         OrderViewPermission,
-        DeliverableStatusPermission(COMPLETED),
         Any(
-            All(IsRegistered, NoOrderOutput),
+            DeliverableStatusPermission(COMPLETED),
+            OrderSellerPermission,
+        ),
+        Any(
+            IsRegistered,
             IsSafeMethod,
         )
     ]
@@ -2341,7 +2344,7 @@ class DeliverableOutputs(ListCreateAPIView):
         return self.get_object().outputs.all()
 
     @lru_cache()
-    def get_object(self) -> Order:
+    def get_object(self) -> Deliverable:
         order = get_object_or_404(Deliverable, order_id=self.kwargs['order_id'], id=self.kwargs['deliverable_id'])
         self.check_object_permissions(self.request, order)
         return order
@@ -2350,22 +2353,39 @@ class DeliverableOutputs(ListCreateAPIView):
         deliverable = self.get_object()
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        revision = deliverable.revision_set.all().last()
-        if not revision:
+        revision = serializer.validated_data.get('revision')
+        last_revision = deliverable.revision_set.all().last()
+        if not last_revision:
             return Response(
                 data={'detail': 'You can not create a submission from an order with no revisions.'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        if not revision:
+            if not deliverable.status == COMPLETED:
+                return Response(
+                    data={'detail': 'You must specify a specific revision if the order is not completed.'}
+                )
+            revision = last_revision
+        else:
+            if not deliverable.revision_set.filter(id=revision.id):
+                raise ValidationError({'revision': 'The provided revision does not belong to this deliverable.'})
+        if Submission.objects.filter(deliverable=deliverable, revision=revision, owner=request.user).exists():
+            return Response(
+                data={'detail': 'You have already created a submission with this deliverable and revision.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         instance = serializer.save(
             owner=request.user, deliverable=deliverable, rating=deliverable.rating, file=revision.file,
+            revision=revision,
         )
         instance.characters.set(deliverable.characters.all())
         instance.artists.add(deliverable.order.seller)
+        is_final = last_revision == revision
         for character in instance.characters.all():
-            if request.user == character.user and not character.primary_submission:
+            if request.user == character.user and not character.primary_submission and is_final:
                 character.primary_submission = instance
                 character.save()
-        if deliverable.product and request.user == deliverable.order.seller:
+        if deliverable.product and (request.user == deliverable.order.seller) and is_final:
             deliverable.product.samples.add(instance)
         return Response(
             data=SubmissionSerializer(instance=instance, context=self.get_serializer_context()).data,

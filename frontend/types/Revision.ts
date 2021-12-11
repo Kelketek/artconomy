@@ -6,4 +6,5 @@ export default interface Revision {
   file: FileSpec,
   rating: Ratings,
   read: boolean,
+  submissions: {owner_id: number, id: number}[],
 }

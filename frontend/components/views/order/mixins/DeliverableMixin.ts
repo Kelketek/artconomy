@@ -418,6 +418,7 @@ export default class DeliverableMixin extends mixins(Viewer) {
         caption: {value: ''},
         private: {value: false},
         tags: {value: []},
+        revision: {value: null},
         comments_disabled: {value: false},
       },
     })

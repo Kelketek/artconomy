@@ -18,7 +18,7 @@ from apps.lib.models import Event, SALE_UPDATE, ORDER_UPDATE, WAITLIST_UPDATED, 
 from apps.lib.test_resources import APITestCase
 from apps.lib.tests.factories import AssetFactory
 from apps.profiles.models import VERIFIED
-from apps.profiles.tests.factories import UserFactory, CharacterFactory
+from apps.profiles.tests.factories import UserFactory, CharacterFactory, SubmissionFactory
 from apps.profiles.utils import create_guest_user
 from apps.sales.models import Deliverable, Order, NEW, ADD_ON, TransactionRecord, TIP, SHIELD, QUEUED, IN_PROGRESS, \
     REVIEW, DISPUTED, COMPLETED, PAYMENT_PENDING, BASE_PRICE, EXTRA, Revision, LineItem
@@ -548,6 +548,17 @@ class TestOrder(TransactionCheckMixin, APITestCase):
             }
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_revision_listing(self):
+        deliverable = DeliverableFactory.create(status=QUEUED, revisions_hidden=False)
+        self.login(deliverable.order.buyer)
+        revision = RevisionFactory.create(deliverable=deliverable)
+        submission = SubmissionFactory.create(deliverable=deliverable, revision=revision)
+        response = self.client.get(
+            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/',
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data[0]['submissions'][0], {'owner_id': submission.owner.id, 'id': submission.id})
 
     @freeze_time('2012-08-01 12:00:00')
     def test_revision_upload(self):
