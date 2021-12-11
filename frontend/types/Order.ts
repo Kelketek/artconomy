@@ -9,6 +9,8 @@ export default interface Order {
   seller: User,
   buyer: User|null,
   customer_email: string,
+  // This one's read only, available on the preview serializer to help sellers pick out guest users.
+  guest_email: string,
   private: boolean,
   claim_token: string|null,
   product_name: string,

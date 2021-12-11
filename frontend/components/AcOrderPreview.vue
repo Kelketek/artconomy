@@ -21,6 +21,9 @@
                 (Pending)
               </span>
             </v-col>
+            <v-col cols="12" v-if="order.x.guest_email">
+                <strong>{{order.x.guest_email}}</strong>
+            </v-col>
             <v-col cols="12">
               Placed on <span v-text="formatDateTime(order.x.created_on)" />
             </v-col>

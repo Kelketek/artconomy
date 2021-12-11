@@ -458,6 +458,7 @@ class OrderPreviewSerializer(ProductNameMixin, serializers.ModelSerializer):
     read = serializers.SerializerMethodField()
     product_name = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
+    guest_email = serializers.SerializerMethodField()
 
     def get_read(self, obj):
         return check_read(obj=obj, user=self.context['request'].user)
@@ -478,6 +479,16 @@ class OrderPreviewSerializer(ProductNameMixin, serializers.ModelSerializer):
         last_order = order.deliverables.all().order_by('created_on').last()
         return last_order and last_order.status
 
+    def get_guest_email(self, order):
+        user = self.context['request'].user
+        if not (user == order.seller or user.is_staff):
+            return ''
+        if order.buyer and order.buyer.guest:
+            return order.buyer.guest_email
+        elif not order.buyer:
+            return order.customer_email
+        return ''
+
     def to_representation(self, instance):
         checks = self.can_view(instance)
         if instance.private and not checks:
@@ -488,7 +499,7 @@ class OrderPreviewSerializer(ProductNameMixin, serializers.ModelSerializer):
         model = Order
         fields = (
             'id', 'created_on', 'seller', 'buyer', 'private', 'display', 'default_path', 'read', 'product_name',
-            'status',
+            'status', 'guest_email',
         )
         read_only_fields = [field for field in fields]
 
