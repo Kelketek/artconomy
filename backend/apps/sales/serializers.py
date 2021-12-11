@@ -175,6 +175,7 @@ class ProductNewOrderSerializer(ProductNameMixin, serializers.ModelSerializer, C
         return order.notification_link(context=self.context)
 
     def validate_references(self, value):
+        value = set(value)
         assets = Asset.objects.filter(id__in=value)
         error_message = 'Either you do not have permission to use those assets for reference, those asset IDs are ' \
                         'invalid, or they have expired. Please try re-uploading.'

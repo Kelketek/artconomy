@@ -16,6 +16,7 @@
                       <ac-patch-field
                           field-type="ac-uppy-file"
                           :patcher="submission.patchers.file"
+                          :uppy-id="`submission-${submissionId}-update`"
                           label="Upload a file for this submission"
                       />
                     </v-tab-item>
@@ -28,6 +29,7 @@
                                   field-type="ac-uppy-file"
                                   :patcher="submission.patchers.preview"
                                   label="Preview Image"
+                                  :uppy-id="`submission-${submissionId}-update-preview`"
                                   :show-reset="false" :show-clear="true"
                               />
                             </v-col>
@@ -481,6 +483,8 @@ export default class SubmissionDetail extends mixins(Viewer, Formatting, Editabl
       this.characters.firstRun()
       this.sharedWith.firstRun().catch(this.statusOk(403))
       this.recommended.firstRun()
+      this.$listenForSingle(`submission-${this.submissionId}-update-preview`)
+      this.$listenForSingle(`submission-${this.submissionId}-update`)
     }
 }
 </script>

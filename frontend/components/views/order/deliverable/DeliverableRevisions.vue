@@ -19,7 +19,7 @@
                       />
                     </div>
                     <v-col class="text-center" cols="12">
-                      <ac-bound-field :field="newRevision.fields.file" field-type="ac-uppy-file" />
+                      <ac-bound-field :field="newRevision.fields.file" field-type="ac-uppy-file" uppy-id="new-revision-file" />
                     </v-col>
                     <v-col class="text-center">
                       <v-card-text>

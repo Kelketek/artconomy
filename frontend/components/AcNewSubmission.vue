@@ -14,10 +14,10 @@
         <v-stepper-content :step="1">
           <v-row no-gutters  >
             <v-col cols="12">
-              <ac-bound-field :field="newUpload.fields.file" field-type="ac-uppy-file" label="Upload your submission" />
+              <ac-bound-field :field="newUpload.fields.file" field-type="ac-uppy-file" label="Upload your submission" uppy-id="new-submission-file"/>
             </v-col>
             <v-col cols="12" v-if="addThumbnail">
-              <ac-bound-field :field="newUpload.fields.preview" field-type="ac-uppy-file" label="Upload a preview image (Optional)" />
+              <ac-bound-field :field="newUpload.fields.preview" field-type="ac-uppy-file" label="Upload a preview image (Optional)" uppy-id="new-submission-file-preview" />
             </v-col>
             <v-col cols="12" v-else>
               <v-row no-gutters>
@@ -175,6 +175,8 @@ export default class AcNewSubmission extends mixins(Subjective, Upload) {
 
     public created() {
       this.newUpload = this.$getForm('newUpload', newUploadSchema(this.subjectHandler.user))
+      this.$listenForSingle('new-submission-file')
+      this.$listenForSingle('new-submission-file-preview')
     }
 }
 </script>

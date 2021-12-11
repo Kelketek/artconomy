@@ -101,10 +101,12 @@
                         <v-col cols="12" order="3">
                           <ac-bound-field
                               field-type="ac-uppy-file"
+                              uppy-id="uppy-new-order"
                               :field="orderForm.fields.references"
                               :max-number-of-files="5"
                               label="(Optional) Add some reference images!"
                               :persistent-hint="true"
+                              :persist="true"
                           ></ac-bound-field>
                         </v-col>
                       </v-row>

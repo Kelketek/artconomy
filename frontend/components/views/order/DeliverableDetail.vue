@@ -592,6 +592,11 @@ export default class DeliverableDetail extends mixins(
         hash: this.$route.hash,
       })
     }
+    // At the moment, these aren't much benefit, since dropping a file on the uploader immediately submits.
+    // But if I change the default behavior, not having these will introduce a subtle bug where the contents will
+    // disappear if we navigate away.
+    this.$listenForSingle('new-revision-file')
+    this.$listenForSingle('new-reference-file')
   }
 }
 </script>

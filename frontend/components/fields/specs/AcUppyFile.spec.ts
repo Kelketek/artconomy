@@ -5,34 +5,37 @@ import {Wrapper} from '@vue/test-utils'
 import {cleanUp, createVuetify, docTarget, vueSetup, mount} from '@/specs/helpers'
 import flushPromises from 'flush-promises'
 import {UppyFile} from '@uppy/core'
+import {ArtStore, createStore} from '@/store'
 
 const localVue = vueSetup()
 let wrapper: Wrapper<Vue>
 let vuetify: Vuetify
+let store: ArtStore
 
 describe('ac-uppy-file.vue', () => {
   beforeEach(() => {
     vuetify = createVuetify()
+    store = createStore()
   })
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('Mounts and initializes the uppy object', async() => {
-    wrapper = mount(AcUppyFile, {
+  const makeUppy = (propsData?: any) => {
+    return mount(AcUppyFile, {
       localVue,
       vuetify,
+      store,
       attachTo: docTarget(),
+      propsData: {uppyId: 'uppyTest', ...propsData}
     })
+  }
+  it('Mounts and initializes the uppy object', async() => {
+    wrapper = makeUppy()
     await flushPromises()
     expect((wrapper.vm as any).uppy).toBeTruthy()
   })
   it('Resets uppy when the reset button is clicked.', async() => {
-    wrapper = mount(AcUppyFile, {
-      localVue,
-      vuetify,
-      attachTo: docTarget(),
-      propsData: {value: '123'},
-    })
+    wrapper = makeUppy({value: '123'})
     await flushPromises()
     const spyEmit = jest.spyOn(wrapper.vm, '$emit')
     const spyReset = jest.spyOn((wrapper.vm as any).uppy, 'reset')
@@ -41,13 +44,7 @@ describe('ac-uppy-file.vue', () => {
     expect(spyReset).toHaveBeenCalled()
   })
   it('Resets uppy when the value is cleared.', async() => {
-    wrapper = mount(AcUppyFile, {
-      localVue,
-      vuetify,
-      attachTo: docTarget(),
-
-      propsData: {value: '123'},
-    })
+    wrapper = makeUppy({value: '123'})
     await flushPromises()
     const spyEmit = jest.spyOn(wrapper.vm, '$emit')
     const spyReset = jest.spyOn((wrapper.vm as any).uppy, 'reset')
@@ -57,12 +54,7 @@ describe('ac-uppy-file.vue', () => {
     expect(spyReset).toHaveBeenCalled()
   })
   it('Does not reset the value when uppy is populated.', async() => {
-    wrapper = mount(AcUppyFile, {
-      localVue,
-      vuetify,
-      attachTo: docTarget(),
-      propsData: {value: ''},
-    })
+    wrapper = makeUppy({value: ''})
     await flushPromises()
     const spyEmit = jest.spyOn(wrapper.vm, '$emit')
     const spyReset = jest.spyOn((wrapper.vm as any).uppy, 'reset')
@@ -72,23 +64,14 @@ describe('ac-uppy-file.vue', () => {
     expect(spyReset).not.toHaveBeenCalled()
   })
   it('Clears the file when the clear button is clicked.', async() => {
-    wrapper = mount(AcUppyFile, {
-      localVue,
-      vuetify,
-      attachTo: docTarget(),
-      propsData: {value: '123', showClear: true},
-    })
+    wrapper = makeUppy({value: '123', showClear: true})
     await flushPromises()
     const spyEmit = jest.spyOn(wrapper.vm, '$emit')
     wrapper.find('.uppy-clear-button').trigger('click')
     expect(spyEmit).toHaveBeenCalledWith('input', null)
   })
   it('Handles a successfully uploaded file.', async() => {
-    wrapper = mount(AcUppyFile, {
-      localVue,
-      vuetify,
-      attachTo: docTarget(),
-    })
+    wrapper = makeUppy()
     await wrapper.vm.$nextTick()
     const spyEmit = jest.spyOn(wrapper.vm, '$emit')
     const file = {
@@ -103,17 +86,12 @@ describe('ac-uppy-file.vue', () => {
         uploadStarted: 1, uploadComplete: true, bytesTotal: 100, percentage: 100, bytesUploaded: 100,
       },
     };
-    (wrapper.vm as any).uppy.state.files['1'] = file;
+    (wrapper.vm as any).uppy.setState({files: {'1': file}});
     (wrapper.vm as any).uppy.emit('upload-success', file, {body: {id: 'wat'}})
     expect(spyEmit).toHaveBeenCalledWith('input', 'wat')
   })
   it('Handles multiple files.', async() => {
-    wrapper = mount(AcUppyFile, {
-      localVue,
-      vuetify,
-      attachTo: docTarget(),
-      propsData: {maxNumberOfFiles: 3, value: ['wat']}
-    })
+    wrapper = makeUppy({maxNumberOfFiles: 3, value: ['wat']})
     await wrapper.vm.$nextTick()
     const spyEmit = jest.spyOn(wrapper.vm, '$emit')
     const file = {
@@ -129,18 +107,13 @@ describe('ac-uppy-file.vue', () => {
       },
     };
     const vm = wrapper.vm as any
-    vm.uppy.state.files['1'] = file
+    vm.uppy.setState({files: {'1': file}});
     vm.uppy.emit('upload-success', file, {body: {id: 'do'}})
     expect(spyEmit).toHaveBeenCalledWith('input', ['wat', 'do'])
   })
   it('Calls a callback on a successfully uploaded file.', async() => {
     const mockSuccess = jest.fn()
-    wrapper = mount(AcUppyFile, {
-      localVue,
-      vuetify,
-      attachTo: docTarget(),
-      propsData: {success: mockSuccess},
-    })
+    wrapper = makeUppy({success: mockSuccess, uppyId: 'uppyTest'})
     await wrapper.vm.$nextTick() // Created
     // await wrapper.vm.$nextTick() // Mounted
     const file: UppyFile = {
@@ -155,30 +128,20 @@ describe('ac-uppy-file.vue', () => {
         uploadStarted: 1, uploadComplete: true, bytesTotal: 100, percentage: 100, bytesUploaded: 100,
       },
     };
-    (wrapper.vm as any).uppy.state.files['1'] = file;
+    (wrapper.vm as any).uppy.setState({files: {'1': file}});
     (wrapper.vm as any).uppy.emit('upload-success', file, {body: {id: 'wat'}})
     expect(mockSuccess).toHaveBeenCalledWith({id: 'wat'})
   })
   it('Sets the proper label color when there are no errors.', async() => {
     const errorMessages: string[] = []
-    wrapper = mount(AcUppyFile, {
-      localVue,
-      vuetify,
-      attachTo: docTarget(),
-      propsData: {errorMessages},
-    })
+    wrapper = makeUppy({errorMessages})
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
     expect(vm.errorColor).toBe('primary')
   })
   it('Sets the proper label color when there are errors.', async() => {
     const errorMessages: string[] = ['Stuff']
-    wrapper = mount(AcUppyFile, {
-      localVue,
-      vuetify,
-      attachTo: docTarget(),
-      propsData: {errorMessages},
-    })
+    wrapper = makeUppy({errorMessages, uppyId: 'uppyTest'})
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
     expect(vm.errorColor).toBe('red')

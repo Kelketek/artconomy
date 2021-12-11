@@ -12,6 +12,7 @@
     </v-col>
     <v-col cols="12" sm="6" lg="3">
       <ac-uppy-file
+          uppy-id="uppy-avatar"
           :endpoint="url"
           :success="subjectHandler.updateX"
           label="Upload a new Avatar"
@@ -32,6 +33,10 @@ import AcUppyFile from '@/components/fields/AcUppyFile.vue'
 export default class Avatar extends mixins(Viewer, Subjective) {
   private get url() {
     return `/api/profiles/v1/account/${this.subject && this.subject.username}/avatar/`
+  }
+
+  public created() {
+    this.$listenForSingle('uppy-avatar')
   }
 }
 </script>

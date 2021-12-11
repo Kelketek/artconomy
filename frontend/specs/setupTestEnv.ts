@@ -33,3 +33,10 @@ export class LocalStorageMock {
 }
 
 Object.defineProperty(window, 'localStorage', {value: new LocalStorageMock()})
+
+// @ts-ignore
+window.ResizeObserver = window.ResizeObserver || jest.fn().mockImplementation(() => ({
+  disconnect: jest.fn(),
+  observe: jest.fn(),
+  unobserve: jest.fn(),
+}));

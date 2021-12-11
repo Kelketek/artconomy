@@ -23,7 +23,7 @@
                 <v-toolbar dense color="black"><v-toolbar-title>Upload Reference</v-toolbar-title></v-toolbar>
                 <v-row no-gutters align-content="center" justify="center">
                   <v-col class="text-center" cols="12">
-                    <ac-bound-field :field="newReference.fields.file" field-type="ac-uppy-file" />
+                    <ac-bound-field :field="newReference.fields.file" field-type="ac-uppy-file" uppy-id="new-reference-file" />
                   </v-col>
                   <v-col class="text-center">
                     <v-card-text>
