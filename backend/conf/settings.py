@@ -286,6 +286,7 @@ STRIPE_PAYOUT_CROSS_BORDER_PERCENTAGE = Decimal(get_env('STRIPE_PAYOUT_CROSS_BOR
 STRIPE_ACTIVE_ACCOUNT_MONTHLY_FEE = Money(get_env('STRIPE_ACTIVE_ACCOUNT_MONTHLY_FEE', '2.00'), 'USD')
 
 DEFAULT_CARD_PROCESSOR = get_env('DEFAULT_CARD_PROCESSOR', 'authorize')
+CARD_PROCESSOR_OVERRIDE = get_env('FORCE_CARD_PROCESSOR', '')
 
 if TESTING:
     # Development system may have a stripe key, but we don't want to be making entries on the Stripe test service

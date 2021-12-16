@@ -1294,6 +1294,9 @@ def get_user_processor(user: User):
     from apps.sales.models import STRIPE, AUTHORIZE
     if user.processor_override:
         return user.processor_override
+    if settings.CARD_PROCESSOR_OVERRIDE:
+        # Force use of provider for all users.
+        return settings.CARD_PROCESSOR_OVERRIDE
     if hasattr(user, 'stripe_account'):
         return STRIPE
     if user.banks.filter(deleted=False).exists():
