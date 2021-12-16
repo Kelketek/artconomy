@@ -32,7 +32,7 @@ class DeliverableAdmin(admin.ModelAdmin):
     ]
     raw_id_fields = ['arbitrator', 'characters', 'product', 'order', 'invoice']
     list_display = ('id', 'name', 'product', 'buyer', 'seller', 'shield_protected', 'status', 'link')
-    list_filter = ('escrow_disabled', 'status')
+    list_filter = ('escrow_disabled', 'status', 'processor')
 
     def buyer(self, obj):
         return obj.order.buyer
