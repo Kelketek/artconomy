@@ -1381,6 +1381,7 @@ class DeliverablePaymentIntent(APIView):
         deliverable = self.get_object()
         if deliverable.order.buyer.is_registered:
             create_or_update_stripe_user(deliverable.order.buyer.id)
+            deliverable.order.buyer.refresh_from_db()
         stripe_token = get_intent_card_token(deliverable.order.buyer, self.request.data.get('card_id'))
         serializer = PaymentIntentSettings(data=self.request.data)
         serializer.is_valid(raise_exception=True)
@@ -1771,6 +1772,7 @@ class PremiumPaymentIntent(APIView):
         total = Money(settings.LANDSCAPE_PRICE, 'USD')
         # In case the initial creation failed for some reason.
         create_or_update_stripe_user(self.request.user.id)
+        self.request.user.refresh_from_db()
         with stripe as stripe_api:
             # Can only do string values, so won't be json true value.
             metadata = {'make_primary': make_primary, 'save_card': True, 'service': 'landscape'}
