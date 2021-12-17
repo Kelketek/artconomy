@@ -179,6 +179,9 @@ class TestDeliverable(TestCase):
                     'claimToken': 'y1zGvlKfTnmA',
                     'orderId': deliverable.order.id,
                     'deliverableId': deliverable.id,
+                    'next': f'%7B%22name%22%3A%20%22OrderDeliverableOverview%22%2C%20%22params%22%3A%20'
+                            f'%7B%22username%22%3A%20%22_%22%2C%20%22orderId%22%3A%20{deliverable.order.id}'
+                            f'%2C%20%22deliverableId%22%3A%20{deliverable.id}%7D%7D'
                 },
             },
             deliverable.notification_link(context),

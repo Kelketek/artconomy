@@ -1,9 +1,9 @@
 {% extends 'email_base.html' %}
 {% load md2 %}
-{% block header_message %}{% if target.status == 1 %}New Sale!{% else %}Sale update!{% endif %} #{{target.id}}{% endblock %}
+{% block header_message %}{% if target.status == 1 %}New Sale!{% else %}Sale update!{% endif %} #{{target.id}} (From order #{{target.order.id}}){% endblock %}
 {% block message %}
 {% if target.status == 1 or target.status == 0 %}
-<p>You have a new sale of your product, "{{target.product.name}}" to <a href="/profile/{{target.order.buyer.username}}/">{{target.order.buyer.username}}</a>.</p>
+<p>You have a new sale of your product, "{{target.product.name}}" to {%if target.order.buyer.guest %}{% if target.order.buyer.guest_email %}{{target.order.buyer.guest_email}}{% else %}{{target.order.customer_email}}{% endif %}!{% else %}}<a href="/profile/{{target.order.buyer.username}}/">{{target.order.buyer.username}}</a>.</p>{% endif %}
 
 {% if target.status == 0 %}
 <p><strong>NOTE: THIS IS A WAITLISTED ORDER.</strong></p>

@@ -49,7 +49,7 @@ from apps.lib.serializers import CommentSerializer
 from apps.lib.utils import notify, recall_notification, demark, preview_rating, send_transaction_email, create_comment, \
     mark_modified, mark_read
 from apps.lib.views import BasePreview
-from apps.profiles.models import User, Submission, IN_SUPPORTED_COUNTRY
+from apps.profiles.models import User, Submission, IN_SUPPORTED_COUNTRY, trigger_reconnect
 from apps.profiles.permissions import ObjectControls, UserControls, IsUser, IsSuperuser, IsRegistered
 from apps.profiles.serializers import UserSerializer, SubmissionSerializer
 from apps.profiles.tasks import create_or_update_stripe_user
@@ -226,10 +226,12 @@ class PlaceOrder(CreateAPIView):
         if not user.is_authenticated:
             user = create_guest_user(serializer.validated_data['email'])
             login(self.request, user)
+            trigger_reconnect(self.request, include_current=True)
         elif not user.is_registered:
             if self.request.user.guest_email != serializer.validated_data['email']:
                 user = create_guest_user(serializer.validated_data['email'])
                 login(self.request, user)
+                trigger_reconnect(self.request, include_current=True)
         order = serializer.save(
             buyer=user, seller=product.user,
         )
