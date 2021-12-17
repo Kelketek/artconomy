@@ -174,11 +174,11 @@ class TestDeliverable(TestCase):
         context['request'].user = deliverable.order.buyer
         self.assertEqual(
             {
-                'name': 'OrderClaim',
+                'name': 'ClaimOrder',
                 'params': {
-                    'claim_token': 'y1zGvlKfTnmA',
-                    'order_id': deliverable.order.id,
-                    'deliverable_id': deliverable.id,
+                    'claimToken': 'y1zGvlKfTnmA',
+                    'orderId': deliverable.order.id,
+                    'deliverableId': deliverable.id,
                 },
             },
             deliverable.notification_link(context),

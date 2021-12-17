@@ -810,11 +810,11 @@ def order_context(
 def order_context_to_link(context: OrderContext):
     if context['claim']:
         return {
-            'name': 'OrderClaim',
+            'name': 'ClaimOrder',
             'params': {
-                'order_id': context['order_id'],
-                'claim_token': context['claim_token'],
-                'deliverable_id': context['deliverable_id'],
+                'orderId': context['order_id'],
+                'claimToken': context['claim_token'],
+                'deliverableId': context['deliverable_id'],
             },
         }
     return {

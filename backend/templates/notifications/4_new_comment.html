@@ -38,6 +38,6 @@ The link methods are already gnarly, too. Hmmm....
 {% elif data.link.name == 'CaseDeliverableRevision' %}
     <a href="/cases/{{data.link.params.username}}/case/{{data.link.params.orderId}}/deliverables/{{data.link.params.deliverableId}}/revisions/{{data.link.params.revisionId}}/?commentId={{data.most_recent_comment.id}}">View the revision here!</a>
 {% elif data.link.name == 'ClaimOrder' %}
-    <a href="/claim-order/{{data.link.params.orderId}}/{{target.claim_token}}/{{target.buyer.username}}/?commentId={{data.most_recent_comment.id}}">View your order here!</a>
+    <a href="/claim-order/{{data.link.params.orderId}}/{{data.link.params.claimToken}}/{{data.link.params.deliverableId}}/?commentId={{data.link.query.commentId}}">View your order here!</a>
 {% endif %}
 {% endblock %}
