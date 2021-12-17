@@ -551,7 +551,7 @@ export const routes = [
   ...orderViews(),
   ...orderLists(),
   {
-    path: '/claim-order/:orderId/:token/:deliverableId?',
+    path: '/claim-order/:orderId/:token/:deliverableId?/:next?/',
     name: 'ClaimOrder',
     component: ClaimOrder,
     props: true,

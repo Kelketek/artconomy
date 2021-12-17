@@ -32,8 +32,7 @@ import Component, {mixins} from 'vue-class-component'
 import Viewer from '@/mixins/viewer'
 import AcLoadingSpinner from '@/components/wrappers/AcLoadingSpinner.vue'
 import {Prop} from 'vue-property-decorator'
-import {artCall} from '@/lib/lib'
-import {RawLocation} from 'vue-router'
+import {Location} from 'vue-router'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import {FormController} from '@/store/forms/form-controller'
 import {User} from '@/store/profiles/types/User'
@@ -54,17 +53,29 @@ export default class ClaimOrder extends mixins(Viewer) {
   @Prop()
   public deliverableId!: string
 
+  @Prop()
+  public next!: string
+
   public claimForm: FormController = null as unknown as FormController
   public failed = false
 
   public visitOrder(user: User) {
-    let route: RawLocation = {name: 'Order', params: {orderId: this.orderId, username: this.rawViewerName}}
-    if (this.deliverableId) {
-      route = {name: 'OrderDeliverableOverview', params: {orderId: this.orderId, deliverableId: this.deliverableId, username: this.rawViewerName}}
+    const route: Location = {}
+    if (this.next) {
+      console.log('Next is', this.next)
+      Object.assign(route, JSON.parse(this.next) as Location)
+      if (route.query === undefined) {
+        route.query = {}
+      }
+    } else {
+      Object.assign(route, {name: 'Order', params: {orderId: this.orderId, username: this.rawViewerName}})
+      if (this.deliverableId) {
+        Object.assign(route, {name: 'OrderDeliverableOverview', params: {orderId: this.orderId, deliverableId: this.deliverableId, username: this.rawViewerName}})
+      }
     }
     const commentId = this.$route.query.commentId
     if (commentId) {
-      route.query = {commentId}
+      route.query!.commentId = commentId
     }
     this.viewerHandler.user.setX(user)
     if (user.guest) {
@@ -73,6 +84,7 @@ export default class ClaimOrder extends mixins(Viewer) {
       this.viewerHandler.artistProfile.ready = false
       this.viewerHandler.artistProfile.fetching = false
     }
+    // Weird limitation here, since Location is a valid type for Rawlocation...
     this.$router.replace(route)
   }
 

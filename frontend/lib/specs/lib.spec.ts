@@ -295,10 +295,6 @@ describe('HTTP Helpers', () => {
   })
 })
 describe('Formatters', () => {
-  beforeEach(() => {
-  })
-  afterEach(() => {
-  })
   it('Formats a datetime string', () => {
     expect(formatDateTime('2019-05-03T15:41:36.902Z')).toBe('May 3rd 2019, 10:41:36 am')
   })

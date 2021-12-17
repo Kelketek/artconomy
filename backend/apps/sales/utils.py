@@ -3,10 +3,13 @@ The functions in this file are meant to mirror the functions in frontend/lib/lin
 to ensure that they're both updated at the same time, but they should, hopefully, be easy enough to keep in sync.
 If enough code has to be repeated between the two bases it may be worth looking into a transpiler.
 """
+import json
 import logging
 from collections import defaultdict
 from decimal import Decimal, InvalidOperation, ROUND_HALF_EVEN, localcontext, ROUND_FLOOR, ROUND_DOWN, ROUND_CEILING
 from functools import reduce
+from urllib.parse import quote
+
 from math import ceil
 from typing import Union, Type, TYPE_CHECKING, List, Dict, Iterator, Callable, Tuple, TypedDict, Optional
 
@@ -808,16 +811,7 @@ def order_context(
 
 
 def order_context_to_link(context: OrderContext):
-    if context['claim']:
-        return {
-            'name': 'ClaimOrder',
-            'params': {
-                'orderId': context['order_id'],
-                'claimToken': context['claim_token'],
-                'deliverableId': context['deliverable_id'],
-            },
-        }
-    return {
+    goal_path = {
         'name': context['base_name'] + context['view_name'],
         'params': {
             'username': context['username'],
@@ -826,7 +820,18 @@ def order_context_to_link(context: OrderContext):
             **context['extra_params'],
         },
     }
-
+    if context['claim']:
+        goal_path['params']['username'] = '_'
+        return {
+            'name': 'ClaimOrder',
+            'params': {
+                'orderId': context['order_id'],
+                'claimToken': context['claim_token'],
+                'deliverableId': context['deliverable_id'],
+                'next': quote(json.dumps(goal_path), safe=''),
+            },
+        }
+    return goal_path
 
 @atomic
 def destroy_deliverable(deliverable: 'Deliverable'):
