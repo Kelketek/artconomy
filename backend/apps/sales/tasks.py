@@ -325,7 +325,7 @@ def stripe_transfer(record_id, stripe_id, deliverable_id=None):
                 **base_settings,
             )
             record.status = TransactionRecord.PENDING
-            record.remote_ids = [f'{transfer.destination_payment}|{transfer.id}']
+            record.remote_ids = [transfer.destination_payment, transfer.id]
             record.response_message = ''
             record.save()
         except Exception as err:
