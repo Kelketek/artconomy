@@ -5,15 +5,17 @@ from ddt import ddt, unpack, data
 from django.test import TestCase, override_settings
 from moneyed import Money
 
-from apps.lib.models import NEW_PRODUCT
+from apps.lib.models import NEW_PRODUCT, Event, COMMENT
+from apps.lib.serializers import CommentSerializer
 from apps.lib.test_resources import SignalsDisabledMixin
+from apps.lib.utils import create_comment
 from apps.profiles.models import NO_SUPPORTED_COUNTRY, IN_SUPPORTED_COUNTRY
 from apps.profiles.tests.factories import UserFactory, SubmissionFactory
 from apps.sales.models import TransactionRecord, BASE_PRICE, SHIELD, BONUS, TABLE_SERVICE, TAX, COMPLETED, QUEUED, NEW, \
     CANCELLED, Product
 from apps.sales.tests.factories import RatingFactory, PromoFactory, TransactionRecordFactory, ProductFactory, \
     DeliverableFactory, \
-    CreditCardTokenFactory, RevisionFactory, LineItemFactory, OrderFactory, BankAccountFactory
+    CreditCardTokenFactory, RevisionFactory, LineItemFactory, OrderFactory, BankAccountFactory, ReferenceFactory
 
 
 class TestRating(TestCase):

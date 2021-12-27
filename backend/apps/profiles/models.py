@@ -39,7 +39,7 @@ from apps.lib.utils import (
     clear_events, tag_list_cleaner, notify, recall_notification, preview_rating,
     send_transaction_email,
     watch_subscriptions,
-    remove_watch_subscriptions, websocket_send, exclude_request
+    remove_watch_subscriptions, websocket_send, exclude_request, clear_events_subscriptions_and_comments
 )
 from apps.profiles.permissions import (
     SubmissionViewPermission, SubmissionCommentPermission, MessageReadPermission,
@@ -742,6 +742,12 @@ class Conversation(Model):
     def notification_serialize(self, context):
         from .serializers import ConversationManagementSerializer
         return ConversationManagementSerializer(instance=self, context=context).data
+
+
+@receiver(post_delete, sender=Conversation)
+@disable_on_load
+def auto_remove_order(sender, instance, **_kwargs):
+    clear_events_subscriptions_and_comments(instance)
 
 
 class Journal(Model):

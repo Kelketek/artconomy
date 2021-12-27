@@ -1250,15 +1250,15 @@ class SetupIntent(APIView):
         self.check_object_permissions(self.request, user)
         return user
 
-    def post(self):
+    def post(self, request, *args, **kwargs):
         user = self.get_object()
-        if not user.stripe_customer_id:
-            with stripe as api:
-                user.stripe_customer_id = api.customer.create(email=user.guest_email or user.email)['id']
-                user.save()
-        return stripe.SetupIntent.create(
-            payment_method_types=["card"],
-        )['id']
+        create_or_update_stripe_user(user.id)
+        user.refresh_from_db()
+        with stripe as stripe_api:
+            return Response({'secret': stripe_api.SetupIntent.create(
+                payment_method_types=["card"],
+                customer=user.stripe_token,
+            )['client_secret']})
 
 
 class CardList(ListCreateAPIView):
@@ -2692,6 +2692,7 @@ CHARGE_ROUTES = {
 }
 
 
+@transaction.atomic
 def handle_charge_event(event, preflight_checks=True, save_if_valid=True):
     charge_event = event['data']['object']
     metadata = charge_event['metadata']
@@ -2710,7 +2711,7 @@ def handle_charge_event(event, preflight_checks=True, save_if_valid=True):
     if save_if_valid and metadata.get('save_card') == 'True':
         user = User.objects.get(stripe_token=charge_event['customer'])
         details = charge_event['payment_method_details']['card']
-        card = CreditCardToken.objects.create(
+        card, _created = CreditCardToken.objects.get_or_create(
             user=user, last_four=details['last4'],
             stripe_token=charge_event['payment_method'],
             type=CreditCardToken.TYPE_TRANSLATION[details['brand']],
@@ -2733,6 +2734,7 @@ def charge_failed(event):
         pass
 
 
+@transaction.atomic
 def account_updated(event):
     account_data = event['data']['object']
     account = StripeAccount.objects.get(token=account_data['id'])
@@ -2744,7 +2746,7 @@ def account_updated(event):
         ).update(processor=STRIPE)
         account.user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
         account.user.artist_profile.save()
-        withdraw_all(account.user.id)
+        withdraw_all.delay(account.user.id)
 
 
 @atomic
@@ -2840,6 +2842,26 @@ def reconcile_payout_report(event):
     pull_and_reconcile_report(event['data']['object'])
 
 
+@transaction.atomic
+def payment_method_attached(event):
+    card_info = event['data']['object']
+    if not card_info['type'] == 'card':
+        logger.warning('Attached unknown payment type:', card_info['type'])
+        logger.warning(pformat(event))
+        raise NotImplementedError
+    user = User.objects.get(stripe_token=card_info['customer'])
+    card, _created = CreditCardToken.objects.get_or_create(
+        user=user,
+        stripe_token=card_info['id'],
+        last_four=card_info['card']['last4'],
+        type=CreditCardToken.TYPE_TRANSLATION[card_info['card']['brand']],
+        defaults={'cvv_verified': True},
+    )
+    if not user.primary_card:
+        user.primary_card = card
+        user.save(update_fields=['primary_card'])
+
+
 REPORT_ROUTES = {
     'connected_account_payout_reconciliation.by_id.itemized.4': reconcile_payout_report,
 }
@@ -2861,6 +2883,7 @@ STRIPE_DIRECT_WEBHOOK_ROUTES = {
     'charge.failed': charge_failed,
     'transfer.failed': transfer_failed,
     'reporting.report_run.succeeded': reporting_report_run_succeeded,
+    'payment_method.attached': payment_method_attached,
 }
 
 

@@ -5,10 +5,9 @@ from django.core.exceptions import ValidationError
 from django.test import TestCase
 
 from apps.lib import models
-from apps.lib.models import Subscription
+from apps.lib.models import Subscription, Event, COMMENT
 from apps.profiles.models import Character
-from apps.profiles.tests.factories import UserFactory, SubmissionFactory
-
+from apps.profiles.tests.factories import UserFactory, SubmissionFactory, ConversationFactory
 
 expected_subscriptions = (
     (models.SUBMISSION_SHARED, False), (models.CHAR_SHARED, False), (models.RENEWAL_FAILURE, True),
@@ -66,3 +65,12 @@ class TestCharacter(TestCase):
         self.assertRaises(ValidationError, character.full_clean)
         character.name = 'wat'
         character.full_clean()
+
+
+class TestConversation(TestCase):
+    def test_comment_removal(self):
+        conversation = ConversationFactory.create()
+        Event.objects.create(type=COMMENT, target=conversation, data={})
+        self.assertTrue(Event.objects.filter(type=COMMENT).exists())
+        conversation.delete()
+        self.assertFalse(Event.objects.filter(type=COMMENT).exists())

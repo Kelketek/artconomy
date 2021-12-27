@@ -116,7 +116,7 @@ urlpatterns = [
     path('v1/account/<username>/cards/stripe/<int:card_id>/', views.CardManager.as_view(), name='card_manager'),
     path('v1/account/<username>/cards/authorize/', views.CardList.as_view(), name='list_cards', kwargs={'authorize': True}),
     path('v1/account/<username>/cards/authorize/<int:card_id>/', views.CardManager.as_view(), name='card_manager'),
-    path('v1/account/<username>/cards/setup-intent/', views.SetupIntent.as_view, name='setup_intent'),
+    path('v1/account/<username>/cards/setup-intent/', views.SetupIntent.as_view(), name='setup_intent'),
     path('v1/account/<username>/cards/<int:card_id>/', views.CardManager.as_view(), name='card_manager'),
     path('v1/account/<username>/cards/<int:card_id>/primary/', views.MakePrimary.as_view(), name='card_primary'),
     path('v1/account/<username>/balance/', views.AccountBalance.as_view(), name='account_balance'),

@@ -1,43 +1,39 @@
 <template>
   <ac-load-section :controller="subjectHandler.user">
     <template v-slot:default>
-      <v-row no-gutters id="purchase-settings" v-if="!(subject.landscape || subject.landscape_enabled)">
-        <v-row no-gutters  >
-          <v-col cols="12" sm="8" offset-sm="2" md="6" offset-md="3" lg="4" offset-lg="4">
-            <v-subheader>Saved Cards</v-subheader>
-          </v-col>
-          <v-col cols="12" sm="8" offset-sm="2" md="6" offset-md="3" lg="4" offset-lg="4">
-            <v-card>
-              <v-card-text>
-                <template v-for="card in cards.list">
-                  <ac-card :card="card" :key="card.x.id" :card-list="cards" :processor="processor" v-if="card.x" />
-                </template>
-                <v-col class="text-center" v-if="cards.empty" >
-                  <p>Cards saved during purchase will be listed here for management.</p>
-                </v-col>
-              </v-card-text>
-            </v-card>
-          </v-col>
-        </v-row>
-      </v-row>
-      <v-row no-gutters v-else>
+      <v-row no-gutters>
         <v-col cols="12">
           <v-card>
             <v-card-text>
               <v-col class="text-center" cols="12">
                 <p><strong>Your default card will be charged for subscription services.</strong></p>
               </v-col>
-              <ac-form @submit.prevent="ccForm.submitThen(addCard)">
-                <ac-form-container v-bind="ccForm.bind">
-                  <ac-card-manager :username="username" :cc-form="ccForm" :show-save="false" :field-mode="false" ref="cardManager" :show-all="true" :processor="processor">
-                    <template v-slot:new-card-button>
-                      <v-col class="text-center" cols="12" >
-                        <v-btn color="primary" type="submit" class="add-card-button">Add Card</v-btn>
-                      </v-col>
-                    </template>
-                  </ac-card-manager>
-                </ac-form-container>
-              </ac-form>
+              <ac-load-section :controller="clientSecret">
+                <template v-slot:default>
+                  <ac-form @submit.prevent="submitNewCard">
+                    <ac-form-container v-bind="ccForm.bind">
+                      <ac-card-manager
+                          :username="username"
+                          :cc-form="ccForm"
+                          :show-save="false"
+                          :field-mode="false"
+                          ref="cardManager"
+                          :show-all="true"
+                          :processor="processor"
+                          :save-only="true"
+                          @cardAdded="fetchSecret"
+                          :client-secret="(clientSecret.x && clientSecret.x.secret) || ''"
+                      >
+                        <template v-slot:new-card-button>
+                          <v-col class="text-center" cols="12" >
+                            <v-btn color="primary" type="submit" class="add-card-button">Add Card</v-btn>
+                          </v-col>
+                        </template>
+                      </ac-card-manager>
+                    </ac-form-container>
+                  </ac-form>
+                </template>
+              </ac-load-section>
             </v-card-text>
           </v-card>
         </v-col>
@@ -59,11 +55,15 @@ import {CreditCardToken} from '@/types/CreditCardToken'
 import AcCard from '@/components/views/settings/payment/AcCard.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcForm from '@/components/wrappers/AcForm.vue'
+import {SingleController} from '@/store/singles/controller'
+import ClientSecret from '@/types/ClientSecret'
+import { User } from '@/store/profiles/types/User'
 
 @Component({components: {AcForm, AcLoadSection, AcFormContainer, AcCardManager, AcCard}})
 export default class Purchase extends mixins(Subjective) {
   public cards: ListController<CreditCardToken> = null as unknown as ListController<CreditCardToken>
   public ccForm: FormController = null as unknown as FormController
+  public clientSecret = null as unknown as SingleController<ClientSecret>
 
   public get url() {
     return `/api/sales/v1/account/${this.username}/cards/`
@@ -92,13 +92,44 @@ export default class Purchase extends mixins(Subjective) {
     this.cards.push(card)
   }
 
+  public submitNewCard() {
+    if (this.processor === 'authorize') {
+      this.ccForm.submitThen(this.addCard)
+      return
+    }
+    // @ts-ignore
+    this.$refs.cardManager.stripeSubmit()
+  }
+
+  public fetchSecret() {
+    this.clientSecret.fetching = true
+    this.clientSecret.post().then(this.clientSecret.makeReady)
+  }
+
   public created() {
     const schema = baseCardSchema(this.url)
     delete schema.fields.save_card
+    this.clientSecret = this.$getSingle(
+    `${flatten(this.username)}__new_card__clientSecret`, {
+      endpoint: `/api/sales/v1/account/${this.username}/cards/setup-intent/`,
+    })
+    this.fetchSecret()
     this.ccForm = this.$getForm(flatten(`${flatten(this.username)}__cards__new`), baseCardSchema(this.url))
+    const viewer = this.viewer as User
     this.cards = this.$getList(`${flatten(this.username)}__creditCards`, {
       endpoint: this.url,
       paginated: false,
+      socketSettings: {
+        appLabel: 'sales',
+        modelName: 'CreditCardToken',
+        serializer: 'CardSerializer',
+        list: {
+          appLabel: 'profiles',
+          modelName: 'User',
+          pk: viewer.id + '',
+          listName: 'all_cards',
+        },
+      },
     })
   }
 }

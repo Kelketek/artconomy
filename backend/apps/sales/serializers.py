@@ -504,6 +504,7 @@ class OrderPreviewSerializer(ProductNameMixin, serializers.ModelSerializer):
         read_only_fields = [field for field in fields]
 
 
+@register_serializer
 class CardSerializer(serializers.ModelSerializer):
     user = RelatedUserSerializer(read_only=True)
     primary = SerializerMethodField('is_primary')

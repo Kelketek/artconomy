@@ -66,6 +66,8 @@ describe('Purchase.vue', () => {
     vm.cards.setList(cards)
     vm.cards.fetching = false
     vm.cards.ready = true
+    vm.clientSecret.makeReady({secret: 'secret'})
+    await vm.$nextTick()
     vm.$refs.cardManager.cards.setList(cards)
     vm.$refs.cardManager.cards.ready = true
     vm.$refs.cardManager.cards.fetching = false
@@ -97,6 +99,8 @@ describe('Purchase.vue', () => {
     vm.cards.setList(cards)
     vm.cards.fetching = false
     vm.cards.ready = true
+    vm.clientSecret.makeReady({secret: 'secret'})
+    await vm.$nextTick()
     vm.$refs.cardManager.cards.setList(cards)
     vm.$refs.cardManager.cards.ready = true
     vm.$refs.cardManager.cards.fetching = false

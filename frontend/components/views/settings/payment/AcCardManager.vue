@@ -36,7 +36,7 @@
               <ac-new-card :cc-form="ccForm" :username="username" :first-card="!cards.list.length" :show-save="showSave" v-if="processor === 'authorize'" />
               <v-row v-else>
                 <v-col sm="6" offset-sm="3" lg="4" offset-lg="4">
-                  <ac-stripe-charge @card="(card) => { this.stripeCard = card }"></ac-stripe-charge>
+                  <ac-stripe-charge @card="(card) => { this.stripeCard = card }" :key="clientSecret" />
                 </v-col>
                 <v-col sm="3" offset-sm="3" lg="2" offset-lg="4" v-if="isRegistered && showSave">
                   <ac-bound-field
@@ -84,6 +84,9 @@ import StripeMixin from '@/components/views/order/mixins/StripeMixin'
 import {StripeCardElement} from '@stripe/stripe-js'
 import AcStripeCharge from '@/components/AcStripeCharge.vue'
 import {RawData} from '@/store/forms/types/RawData'
+import {User} from '@/store/profiles/types/User'
+
+declare type StripeError = {error: null|{message: string}}
 
   @Component({
     components: {AcStripeCharge, AcSavedCardField, AcNewCard, AcLoadSection, AcCard, AcBoundField, AcLoadingSpinner},
@@ -113,15 +116,39 @@ export default class AcCardManager extends mixins(Subjective, Alerts, StripeMixi
     @Prop({default: false})
     public showAll!: boolean
 
+    @Prop({default: false})
+    public saveOnly!: boolean
+
     public lastCard: null|number = null
     public stripeCard: StripeCardElement|null = null
 
     public created() {
       let cardsName = `${flatten(this.username)}__creditCards`
+      let listName: string
       if (this.processor && !this.showAll) {
         cardsName += `__${this.processor}`
+        listName = `${this.processor}_cards`
+      } else {
+        listName = 'all_cards'
       }
-      this.cards = this.$getList(cardsName, {endpoint: this.url, paginated: false})
+      // Should be set by the time we're here, and this will only be needed
+      // when dealing with registered users.
+      const viewer = this.viewer as User
+      this.cards = this.$getList(cardsName, {
+        endpoint: this.url,
+        paginated: false,
+        socketSettings: {
+          appLabel: 'sales',
+          modelName: 'CreditCardToken',
+          serializer: 'CardSerializer',
+          list: {
+            appLabel: 'profiles',
+            modelName: 'User',
+            pk: viewer.id + '',
+            listName,
+          },
+        },
+      })
       this.cards.get().then(this.initialize)
     }
 
@@ -172,30 +199,55 @@ export default class AcCardManager extends mixins(Subjective, Alerts, StripeMixi
       }
     }
 
+    public handleStripeError(result: StripeError) {
+      let message = result.error && result.error.message
+      message = message || 'An unknown error occurred while trying to reach Stripe. Please contact support.'
+      this.ccForm.errors = [message]
+      this.ccForm.sending = false
+    }
+
     public stripeSubmit() {
       const stripe = this.stripe()
       const secret = this.clientSecret
       if (!(stripe && secret)) {
         return
       }
-      const data: RawData = {}
-      if (this.tab === 'new-card') {
-        data.payment_method = {card: this.stripeCard}
-      }
       this.ccForm.sending = true
-      stripe.confirmCardPayment(
-        secret,
-        data,
-      ).then((result) => {
-        if (result.error) {
-          let message = result.error && result.error.message
-          message = message || 'An unknown error occurred while trying to reach Stripe. Please contact support.'
-          this.ccForm.errors = [message]
+      if (this.saveOnly) {
+        stripe.confirmCardSetup(
+          secret,
+          {
+            payment_method: {
+              card: this.stripeCard!,
+              billing_details: {},
+            },
+          },
+        ).then((result:StripeError | any) => {
           this.ccForm.sending = false
-          return
+          if (result.error) {
+            this.handleStripeError(result)
+            return
+          }
+          this.tab = 'saved-cards'
+          this.$emit('cardAdded')
+        })
+      } else {
+        const data: RawData = {}
+        if (this.tab === 'new-card') {
+          data.payment_method = {card: this.stripeCard}
         }
-        this.$emit('paymentSent')
-      })
+        stripe.confirmCardPayment(
+          secret,
+          data,
+        ).then((result: StripeError | any) => {
+          if (result.error) {
+            this.handleStripeError(result)
+            this.ccForm.sending = false
+            return
+          }
+          this.$emit('paymentSent')
+        })
+      }
     }
 
     public get hints() {

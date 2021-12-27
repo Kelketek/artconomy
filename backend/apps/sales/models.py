@@ -781,6 +781,7 @@ class CreditCardToken(Model):
     active = BooleanField(default=True, db_index=True)
     cvv_verified = BooleanField(default=False, db_index=True)
     created_on = DateTimeField(auto_now_add=True, db_index=True)
+    watch_permissions = {'CardSerializer': [UserControls]}
 
     def __str__(self):
         return "%s ending in %s%s" % (
@@ -850,6 +851,14 @@ class CreditCardToken(Model):
         if len(parts) > 1:
             return parts[1]
         return self.token
+
+    def announce_channels(self):
+        channels = [f'profiles.User.pk.{self.user.id}.all_cards']
+        if self.stripe_token:
+            channels.append(f'profiles.User.pk.{self.user.id}.stripe_cards')
+        else:
+            channels.append(f'profiles.User.pk.{self.user.id}.authorize_cards')
+        return channels
 
     @classmethod
     def create(
