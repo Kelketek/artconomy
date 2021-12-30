@@ -37,12 +37,13 @@
                           <v-btn :to="{name: 'Login', params: {tabName: 'login'}, query: {next: $route.fullPath}}" color="primary">Log in here!</v-btn>
                         </v-col>
                       </v-row>
-                      <v-row>
+                      <v-row v-if="product.x.max_rating > 0">
                         <v-col cols="12">
                           <ac-bound-field
                               label="Content Rating of Piece"
                               field-type="ac-rating-field" :field="orderForm.fields.rating"
                               :persistent-hint="true"
+                              :max="product.x.max_rating"
                               hint="Please select the desired content rating of the piece you are commissioning."
                           />
                         </v-col>
@@ -254,6 +255,10 @@ export default class NewOrder extends mixins(ProductCentric, Formatting) {
           currency: 'USD',
         })
       }
+      if (!newProduct) {
+        return
+      }
+      this.orderForm.fields.rating.model = Math.min(newProduct.max_rating, this.orderForm.fields.rating.value)
     }
 
     @Watch('orderForm.step')
@@ -314,7 +319,7 @@ export default class NewOrder extends mixins(ProductCentric, Formatting) {
           email: {value: (viewer.guest_email || ''), step: 1, validators: [{name: 'email'}]},
           private: {value: false, step: 1},
           characters: {value: [], step: 2},
-          rating: {value: 0, validators: [{name: 'artistRating', async: true, args: [this.username]}], step: 2},
+          rating: {value: 0, step: 2},
           details: {value: '', step: 2},
           references: {value: [], step: 2},
           // Let there be a 'step 3' even if there's not an actual field there.

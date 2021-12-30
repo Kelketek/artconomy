@@ -73,36 +73,6 @@
               <v-col></v-col>
             </v-row>
           </v-container>
-          <v-row no-gutters>
-            <v-col>
-              <v-subheader>
-                <strong>Content</strong>
-              </v-subheader>
-              <v-card-text>
-                <v-row no-gutters>
-                  <v-col>Select the maximum rating of content you're willing to create.</v-col>
-                </v-row>
-                <ac-patch-field
-                    field-type="v-slider"
-                    :patcher="artistProfile.patchers.max_rating"
-                    :always-dirty="true"
-                    :max="3"
-                    step="1"
-                    ticks="always"
-                    tick-size="2"
-                    :color="ratingColor[artistProfile.patchers.max_rating.model]"
-                >
-                </ac-patch-field>
-                <v-row no-gutters  >
-                  <v-col class="text-center" cols="12" ><h2>{{ratingOptions[artistProfile.patchers.max_rating.model]}}</h2></v-col>
-                  <v-col cols="12">
-                    <span v-text="ratingLongDesc[artistProfile.patchers.max_rating.model]">
-                    </span>
-                  </v-col>
-                </v-row>
-              </v-card-text>
-            </v-col>
-          </v-row>
           <v-row no-gutters  >
             <v-col class="py-4" cols="12" >
               <v-divider></v-divider>

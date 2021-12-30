@@ -179,22 +179,6 @@ export function simpleAsyncValidator(url: string) {
   }
 }
 
-export async function artistRating(
-  field: FieldController, cancelToken: CancelToken, targetUsername: string,
-): Promise<string[]> {
-  const profile = field.$getProfile(targetUsername, {})
-  return profile.artistProfile.get().then(() => {
-    const artistProfile = profile.artistProfile.x as ArtistProfile
-    if (field.value <= artistProfile.max_rating) {
-      return []
-    }
-    return [
-      'The artist has not indicated that they wish to work with content at this rating level. ' +
-      'Your request is likely to be denied.',
-    ]
-  })
-}
-
 export function numeric(field: FieldController) {
   let value = field.value + ''
   value = value.trim()
@@ -246,5 +230,4 @@ export function registerValidators() {
   formRegistry.asyncValidators.username = username
   formRegistry.asyncValidators.email = emailAsync
   formRegistry.asyncValidators.password = password
-  formRegistry.asyncValidators.artistRating = artistRating
 }

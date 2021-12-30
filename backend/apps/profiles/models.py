@@ -320,10 +320,6 @@ class ArtistProfile(Model):
         default=False, db_index=True,
         help_text="Internal check for commissions that prevents taking on more work when max load is exceeded."
     )
-    max_rating = IntegerField(
-        choices=RATINGS, db_index=True, default=GENERAL,
-        help_text="The maximum content rating you are willing to create."
-    )
     public_queue = BooleanField(
         default=True,
         help_text='Allow people to see your queue.',

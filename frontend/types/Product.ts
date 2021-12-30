@@ -1,5 +1,6 @@
 import {RelatedUser} from '@/store/profiles/types/RelatedUser'
 import Submission from '@/types/Submission'
+import {Ratings} from '@/store/profiles/types/Ratings'
 
 export default interface Product {
   id: number,
@@ -8,6 +9,7 @@ export default interface Product {
   revisions: number,
   hidden: boolean,
   max_parallel: number,
+  max_rating: Ratings,
   task_weight: number
   expected_turnaround: number,
   escrow_disabled: boolean,

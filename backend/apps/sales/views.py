@@ -1533,7 +1533,7 @@ class ProductSearch(ListAPIView):
         if lgbt:
             products = products.filter(user__artist_profile__lgbt=True)
         if content_rating:
-            products = products.filter(user__artist_profile__max_rating__gte=content_rating)
+            products = products.filter(max_rating__gte=content_rating)
         if by_rating:
             products = products.order_by(
                 F('user__stars').desc(nulls_last=True), '-edited_on', 'id').distinct()

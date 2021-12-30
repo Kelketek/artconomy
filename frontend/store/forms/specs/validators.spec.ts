@@ -1,10 +1,10 @@
-import {ArtStore, createStore} from '../../index'
+import {ArtStore, createStore} from '@/store'
 import Vue from 'vue'
 import {FormControllers, formRegistry} from '../registry'
 import mockAxios from '@/specs/helpers/mock-axios'
 import Vuex from 'vuex'
 import {createLocalVue, shallowMount} from '@vue/test-utils'
-import {artistRating, cardType, registerValidators, required, simpleAsyncValidator, validateStatus} from '../validators'
+import {cardType, registerValidators, required, simpleAsyncValidator, validateStatus} from '../validators'
 import {FieldController} from '../field-controller'
 import flushPromises from 'flush-promises'
 import axios from 'axios'
@@ -302,29 +302,4 @@ describe('Field validators', () => {
     await flushPromises()
     expect(controller.errors).toEqual(result)
   })
-  it.each`
-    input  | result
-    ${'3'} | ${['The artist has not indicated that they wish to work with content at ' +
-                'this rating level. Your request is likely to be denied.']}
-    ${'2'} | ${[]}
-    ${'1'} | ${[]}
-  `('Identifies a rating which is over the maximum of an artist', async({input, result}) => {
-                  store.commit('forms/initForm', {
-                    name: 'example',
-                    fields: {rating: {value: input, validators: [{name: 'artistRating', args: ['Fox'], async: true}]}},
-                  })
-                  setViewer(store, genUser())
-                  const controller = new FieldController({store, propsData: {formName: 'example', fieldName: 'rating'}})
-                  const profileController = controller.$getProfile('Fox', {})
-                  const profile = genArtistProfile()
-                  profile.max_rating = 2
-                  await profileController.$nextTick()
-                  profileController.artistProfile.setX(profile)
-                  profileController.artistProfile.ready = true
-                  profileController.artistProfile.fetching = false
-                  controller.validate()
-                  controller.validate.flush()
-                  await flushPromises()
-                  expect(controller.errors).toEqual(result)
-                })
 })

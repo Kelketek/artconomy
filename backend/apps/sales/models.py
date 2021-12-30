@@ -76,6 +76,10 @@ class Product(ImageModel, HitsMixin):
         'profiles.Submission', on_delete=SET_NULL, related_name='featured_sample_for', null=True,
         blank=True,
     )
+    max_rating = IntegerField(
+        choices=RATINGS, db_index=True, default=GENERAL,
+        help_text="The maximum content rating you will support for this product."
+    )
     samples = ManyToManyField('profiles.Submission', related_name='is_sample_for', blank=True)
     created_on = DateTimeField(default=timezone.now, db_index=True)
     edited_on = DateTimeField(db_index=True, auto_now=True)

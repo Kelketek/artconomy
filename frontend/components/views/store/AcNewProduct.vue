@@ -87,6 +87,9 @@
                                     :persistent-hint="true"
                     />
                   </v-col>
+                  <v-col cols="12">
+                    <ac-bound-field :field="newProduct.fields.max_rating" label="Maximum Content Rating" field-type="ac-rating-field" />
+                  </v-col>
                 </v-row>
               </v-stepper-content>
               <v-stepper-content :step="3">
@@ -173,6 +176,7 @@ import {LineTypes} from '@/types/LineTypes'
 import {SingleController} from '@/store/singles/controller'
 import Pricing from '@/types/Pricing'
 import {flatten} from '@/lib/lib'
+import { Ratings } from '@/store/profiles/types/Ratings'
 
 @Component({components: {AcPricePreview, AcBoundField, AcPatchField, AcLoadSection, AcFormDialog}})
 export default class AcNewProduct extends Subjective {
@@ -308,6 +312,7 @@ export default class AcNewProduct extends Subjective {
           description: {value: ''},
           base_price: {value: '25.00', step: 2, validators: [{name: 'numeric'}]},
           expected_turnaround: {value: 5, step: 2, validators: [{name: 'numeric'}]},
+          max_rating: {value: Ratings.GENERAL, step: 2},
           wait_list: {value: false},
           task_weight: {value: 1, step: 3},
           revisions: {value: 1, step: 2},

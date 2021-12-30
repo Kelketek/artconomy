@@ -144,6 +144,10 @@ export class FieldController extends Vue {
     return this.$store.state.forms[this.formName][attrName]
   }
 
+  public get validators() {
+    return this.attr('validators')
+  }
+
   public update(value: any, validate?: boolean) {
     if (validate === undefined) {
       validate = true

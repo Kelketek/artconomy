@@ -97,7 +97,7 @@ class ProductSerializer(ProductMixin, RelatedAtomicMixin, serializers.ModelSeria
     class Meta:
         model = Product
         fields = (
-            'id', 'name', 'description', 'revisions', 'hidden', 'max_parallel', 'task_weight',
+            'id', 'name', 'description', 'revisions', 'hidden', 'max_parallel', 'max_rating', 'task_weight',
             'expected_turnaround', 'user', 'base_price', 'starting_price', 'tags', 'available', 'primary_submission',
             'featured', 'hits', 'escrow_disabled', 'table_product', 'track_inventory', 'wait_list', 'catalog_enabled',
         )

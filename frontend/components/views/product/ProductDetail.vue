@@ -152,8 +152,8 @@
                       hint="Tell the customer more about what you're offering."
                       :save-comparison="product.x.description"/>
                 </v-col>
+                <v-col cols="12" class="my-2"><v-divider /></v-col>
                 <v-col cols="12">
-                  <v-divider />
                   <ac-tag-display :patcher="product.patchers.tags"
                                   :editable="controls"
                                   :username="username"
@@ -164,11 +164,15 @@
                   <ac-load-section :controller="subjectHandler.artistProfile">
                     <template v-slot:default>
                       <v-row no-gutters>
-                        <v-col cols="12">
+                        <v-col cols="12" class="my-2">
                           <strong>Maximum Content Rating:</strong>
-                          <v-btn class="mx-2 rating-button" x-small :color="ratingColor[subjectHandler.artistProfile.x.max_rating]" :ripple="editing">
-                            {{ratingsShort[subjectHandler.artistProfile.x.max_rating]}}
+                          <v-btn class="mx-2 rating-button" x-small :color="ratingColor[product.x.max_rating]" @click="showRating" :ripple="editing">
+                            <v-icon left v-if="editing">edit</v-icon>
+                            {{ratingsShort[product.x.max_rating]}}
                           </v-btn>
+                          <ac-expanded-property v-model="ratingDialog">
+                            <ac-patch-field field-type="ac-rating-field" :patcher="product.patchers.max_rating" />
+                          </ac-expanded-property>
                         </v-col>
                         <v-col cols="12">
                           <v-subheader v-if="subjectHandler.artistProfile.x.commission_info" v-show="!editing">Commission Info</v-subheader>
@@ -479,6 +483,7 @@ export default class ProductDetail extends mixins(ProductCentric, Formatting, Ed
     public showTerms = false
     public showWorkload = false
     public showChangePrimary = false
+    public ratingDialog = false
     public shown: null|Submission = null
     public samples: ListController<LinkedSubmission> = null as unknown as ListController<LinkedSubmission>
     public recommended: ListController<Product> = null as unknown as ListController<Product>
@@ -527,6 +532,12 @@ export default class ProductDetail extends mixins(ProductCentric, Formatting, Ed
       }
       const description = textualize(product.description).slice(0, 160 - prefix.length)
       setMetaContent('description', prefix + description)
+    }
+
+    public showRating() {
+      if (this.editing) {
+        this.ratingDialog = true
+      }
     }
 
     @Watch('product.x.track_inventory')
