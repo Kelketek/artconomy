@@ -45,15 +45,9 @@ def renew_stripe_card(*, invoice, price, user, card):
             'metadata': {'service': 'landscape'}
         }
         try:
-            if user.current_intent:
-                stripe_api.PaymentIntent.modify(
-                    user.current_intent,
-                    **kwargs,
-                )
-            else:
-                stripe_api.PaymentIntent.create(
-                    **kwargs,
-                )
+            stripe_api.PaymentIntent.create(
+                **kwargs,
+            )
             return True
         except stripe_api.error.CardError as err:
             notify(

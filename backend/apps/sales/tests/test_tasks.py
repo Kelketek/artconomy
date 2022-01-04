@@ -534,15 +534,6 @@ class TestRecoverReturnedBalance(TestCase):
             },
         })
 
-
-"""
-STRIPE_PAYOUT_STATIC = Money(get_env('STRIPE_PAYOUT_STATIC', '0.25'), 'USD')
-STRIPE_PAYOUT_PERCENTAGE = Decimal(get_env('STRIPE_PAYOUT_PERCENTAGE', '0.25'))
-STRIPE_PAYOUT_CROSS_BORDER_PERCENTAGE = Decimal(get_env('STRIPE_PAYOUT_CROSS_BORDER_PERCENTAGE', '0.25'))
-STRIPE_ACTIVE_ACCOUNT_MONTHLY_FEE = Money(get_env('STRIPE_ACTIVE_ACCOUNT_MONTHLY_FEE', '2.00'), 'USD')
-"""
-
-
 @override_settings(
     STRIPE_PAYOUT_STATIC=Money('0.25', 'USD'),
     STRIPE_PAYOUT_PERCENTAGE=Decimal('0.25'),

@@ -13,12 +13,11 @@ from rest_framework import status
 from apps.lib.abstract_models import ADULT
 from apps.lib.models import DISPUTE, Subscription, COMMENT, REVISION_UPLOADED, ref_for_instance
 from apps.lib.test_resources import SignalsDisabledMixin, APITestCase
-from apps.profiles.models import User
 from apps.profiles.tests.factories import UserFactory, CharacterFactory, SubmissionFactory
 from apps.sales.apis import AUTHORIZE, STRIPE
 from apps.sales.authorize import AuthorizeException
-from apps.sales.models import Revision, idempotent_lines, QUEUED, NEW, PAYMENT_PENDING, COMPLETED, IN_PROGRESS, \
-    TransactionRecord, REVIEW, DISPUTED, Order, Deliverable, WAITING
+from apps.sales.models import idempotent_lines, QUEUED, NEW, PAYMENT_PENDING, COMPLETED, IN_PROGRESS, \
+    TransactionRecord, REVIEW, DISPUTED, Deliverable, WAITING
 from apps.sales.tests.factories import DeliverableFactory, RevisionFactory, LineItemFactory, TransactionRecordFactory, \
     CreditCardTokenFactory
 
