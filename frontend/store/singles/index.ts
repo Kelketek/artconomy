@@ -2,7 +2,6 @@ import {State as RootState} from '../state'
 import {ActionTree, GetterTree, MutationTree} from 'vuex'
 import {artCall, ArtCallOptions, immediate} from '@/lib/lib'
 import {SingleState} from './types/SingleState'
-import _Vue from 'vue'
 import {QueryParams} from '@/store/helpers/QueryParams'
 import axios from 'axios'
 import {SingleSocketSettings} from '@/store/singles/types/SingleSocketSettings'
@@ -34,7 +33,7 @@ export class SingleModule<T> {
     this.state = {...defaults, ...options}
     const cancel = {source: axios.CancelToken.source()}
     this.mutations = {
-      kill(state: SingleState<T>) {
+      kill() {
         cancel.source.cancel('Killed.')
         cancel.source = axios.CancelToken.source()
       },
@@ -51,16 +50,16 @@ export class SingleModule<T> {
         state.fetching = val
       },
       updateX(state: SingleState<T>, x: Partial<T>) {
-        _Vue.set(state, 'x', {...state.x, ...x})
+        state.x = {...state.x as T, ...x}
       },
-      setX(state: SingleState<T>, x: T | null | false) {
-        _Vue.set(state, 'x', x)
+      setX(state: SingleState<T>, x: T | null) {
+        state.x = x
       },
       setSocketSettings(state: SingleState<T>, val: SingleSocketSettings|null) {
-        _Vue.set(state, 'socketSettings', val)
+        state.socketSettings = val
       },
       setDeleted(state: SingleState<T>, val: boolean) {
-        _Vue.set(state, 'deleted', val)
+        state.deleted = val
       },
       setParams(state: SingleState<T>, params: QueryParams|null) {
         if (params === null) {
