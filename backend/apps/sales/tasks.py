@@ -46,12 +46,12 @@ def renew_stripe_card(*, invoice, price, user, card):
         }
         try:
             if user.current_intent:
-                stripe.PaymentIntent.update(
+                stripe_api.PaymentIntent.update(
                     user.current_intent,
                     **kwargs,
                 )
             else:
-                stripe.PaymentIntent.create(
+                stripe_api.PaymentIntent.create(
                     **kwargs,
                 )
             return True
