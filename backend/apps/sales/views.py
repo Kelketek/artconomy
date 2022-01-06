@@ -2773,6 +2773,7 @@ def pull_and_reconcile_report(report):
             timestamp = timezone.now()
         record.finalized_on = timestamp
         record.status = TransactionRecord.SUCCESS
+        record.save()
         currency = get_currency(row['currency'].upper())
         amount = Money(Decimal(row['gross']), currency)
         new_record = TransactionRecord.objects.get_or_create(
