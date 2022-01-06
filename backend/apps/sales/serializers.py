@@ -967,13 +967,15 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
             **self.qs_kwargs(obj),
         ).aggregate(total=Sum('amount'))['total']
 
-    @lru_cache(4)
     def get_our_fees(self, obj):
-        return TransactionRecord.objects.filter(
-            payer=None, payee=None, status=TransactionRecord.SUCCESS,
-            source=TransactionRecord.RESERVE, destination=TransactionRecord.UNPROCESSED_EARNINGS,
+        transactions = TransactionRecord.objects.filter(
+            payer=obj.order.buyer, payee=None, status=TransactionRecord.SUCCESS,
+            source=TransactionRecord.CARD, destination=TransactionRecord.UNPROCESSED_EARNINGS,
             **self.qs_kwargs(obj),
-        ).aggregate(total=Sum('amount'))['total']
+        )
+        print(transactions)
+        print(transactions.aggregate(total=Sum('amount'))['total'])
+        return transactions.aggregate(total=Sum('amount'))['total']
 
     @lru_cache(4)
     def get_ach_fees(self, obj):
