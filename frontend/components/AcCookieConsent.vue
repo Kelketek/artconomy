@@ -51,6 +51,14 @@
         <v-btn
             text
             v-bind="attrs"
+            @click="onlyEssential"
+            class="essential-cookies-button"
+        >
+          Decline Non-essential
+        </v-btn>
+        <v-btn
+            text
+            v-bind="attrs"
             @click="showDialog = true"
             class="customize-cookies-button"
         >

@@ -973,8 +973,6 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
             source=TransactionRecord.CARD, destination=TransactionRecord.UNPROCESSED_EARNINGS,
             **self.qs_kwargs(obj),
         )
-        print(transactions)
-        print(transactions.aggregate(total=Sum('amount'))['total'])
         return transactions.aggregate(total=Sum('amount'))['total']
 
     @lru_cache(4)
