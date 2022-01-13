@@ -188,8 +188,8 @@
                   :to="{name: 'BuyAndSell', params: {question: 'landscape'}}"
               >Artconomy Landscape
               </router-link>
-              receive a bonus amount of
-              {{pricing.x.premium_percentage_bonus}}% + ${{pricing.x.premium_static_bonus.toFixed(2)}} on each commission!
+              receive a bonus payout of
+              {{pricing.x.premium_percentage_bonus}}% + ${{pricing.x.premium_static_bonus.toFixed(2)}} from each commission!
             </p>
             <p>
               <em><strong>
