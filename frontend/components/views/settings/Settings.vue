@@ -1,7 +1,6 @@
 <!--suppress JSUnusedLocalSymbols -->
 <template>
-  <v-row no-gutters>
-    <v-col v-if="subject">
+  <ac-load-section :controller="subjectHandler.user">
       <v-navigation-drawer
           temporary
           v-model="drawer"
@@ -27,9 +26,7 @@
         </v-toolbar>
         <router-view />
       </v-container>
-    </v-col>
-    <ac-loading-spinner v-else />
-  </v-row>
+  </ac-load-section>
 </template>
 
 <script lang="ts">
@@ -41,9 +38,10 @@ import AcLoadingSpinner from '@/components/wrappers/AcLoadingSpinner.vue'
 import AcAvatar from '@/components/AcAvatar.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import Formatting from '@/mixins/formatting'
+import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 
   @Component({
-    components: {AcLink, AcAvatar, AcLoadingSpinner, AcSettingNav},
+    components: {AcLoadSection, AcLink, AcAvatar, AcLoadingSpinner, AcSettingNav},
   })
 export default class Settings extends mixins(Subjective, Formatting) {
     public privateView = true

@@ -7,4 +7,6 @@ export enum LineTypes {
   TABLE_SERVICE,
   TAX,
   EXTRA,
+  PREMIUM_SUBSCRIPTION,
+  OTHER_FEE,
 }

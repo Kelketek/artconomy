@@ -7,7 +7,7 @@ from apps.profiles.tests.factories import UserFactory
 from apps.sales.models import (
     Order, Product, CreditCardToken, Revision, BankAccount,
     Promo, Rating,
-    TransactionRecord, LineItem, ADD_ON, Deliverable, Reference, Invoice, WebhookRecord, StripeAccount)
+    TransactionRecord, LineItem, ADD_ON, Deliverable, Reference, Invoice, WebhookRecord, StripeAccount, ServicePlan)
 
 
 class ProductFactory(DjangoModelFactory):
@@ -139,6 +139,13 @@ class WebhookRecordFactory(DjangoModelFactory):
 
     class Meta:
         model = WebhookRecord
+
+
+class ServicePlanFactory(DjangoModelFactory):
+    name = Sequence(lambda x: f'Plan{x}')
+
+    class Meta:
+        model = ServicePlan
 
 
 def add_adjustment(deliverable, amount: Money):

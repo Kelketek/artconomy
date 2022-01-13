@@ -15,9 +15,8 @@ from apps.lib.models import DISPUTE, Subscription, COMMENT, REVISION_UPLOADED, r
 from apps.lib.test_resources import SignalsDisabledMixin, APITestCase
 from apps.profiles.tests.factories import UserFactory, CharacterFactory, SubmissionFactory
 from apps.sales.apis import AUTHORIZE, STRIPE
-from apps.sales.authorize import AuthorizeException
 from apps.sales.models import idempotent_lines, QUEUED, NEW, PAYMENT_PENDING, COMPLETED, IN_PROGRESS, \
-    TransactionRecord, REVIEW, DISPUTED, Deliverable, WAITING
+    TransactionRecord, REVIEW, DISPUTED, Deliverable, WAITING, REFUNDED
 from apps.sales.tests.factories import DeliverableFactory, RevisionFactory, LineItemFactory, TransactionRecordFactory, \
     CreditCardTokenFactory
 
@@ -293,18 +292,19 @@ class TestDeliverableStateChange(SignalsDisabledMixin, APITestCase):
         self.assertEqual([target.target for target in service_fee.targets.all()], [self.deliverable])
         mock_withdraw.assert_called_with(self.deliverable.order.seller.id)
 
-    @patch('apps.sales.utils.refund_transaction')
-    def test_refund_escrow_disabled(self, mock_refund_transaction, _mock_notify):
+    def test_refund_escrow_disabled(self, _mock_notify):
         self.deliverable.escrow_disabled = True
         self.deliverable.save()
-        self.state_assertion('seller', 'refund/', initial_status=DISPUTED)
-        mock_refund_transaction.assert_not_called()
+        self.state_assertion('seller', 'refund/', initial_status=REVIEW)
+        self.deliverable.refresh_from_db()
+        self.assertEqual(self.deliverable.status, REFUNDED)
+        self.assertEqual(TransactionRecord.objects.all().count(), 0)
 
-    @patch('apps.sales.utils.refund_transaction')
+    @patch('apps.sales.utils.refund_payment_intent')
     @override_settings(
         PREMIUM_PERCENTAGE_FEE=Decimal('5'), PREMIUM_STATIC_FEE=Decimal('0.10')
     )
-    def test_refund_card_seller(self, mock_refund_transaction, _mock_notify):
+    def test_refund_card_seller(self, _mock_refund_transaction, _mock_notify):
         card = CreditCardTokenFactory.create()
         record = TransactionRecordFactory.create(
             card=card,
@@ -313,10 +313,9 @@ class TestDeliverableStateChange(SignalsDisabledMixin, APITestCase):
             amount=Money('15.00', 'USD'),
             source=TransactionRecord.CARD,
             destination=TransactionRecord.ESCROW,
-            remote_ids=['1234'],
+            remote_ids=['pi_1234'],
         )
         record.targets.add(ref_for_instance(self.deliverable))
-        mock_refund_transaction.return_value = ('123', 'ABC456')
         self.state_assertion('seller', 'refund/', initial_status=DISPUTED)
         refund_transaction = TransactionRecord.objects.get(
             status=TransactionRecord.SUCCESS,
@@ -326,71 +325,13 @@ class TestDeliverableStateChange(SignalsDisabledMixin, APITestCase):
         )
         self.assertEqual(refund_transaction.amount, Money('15.00', 'USD'))
         self.assertEqual(refund_transaction.category, TransactionRecord.ESCROW_REFUND)
-        self.assertEqual(refund_transaction.remote_ids, ['123', '1234'])
-
-    @patch('apps.sales.utils.refund_transaction')
-    def test_refund_card_seller_error(self, mock_refund_transaction, _mock_notify):
-        card = CreditCardTokenFactory.create()
-        record = TransactionRecordFactory.create(
-            payee=self.deliverable.order.seller,
-            payer=self.deliverable.order.buyer,
-            source=TransactionRecord.CARD,
-            destination=TransactionRecord.ESCROW,
-            card=card,
-        )
-        record.targets.add(ref_for_instance(self.deliverable))
-        mock_refund_transaction.side_effect = AuthorizeException(
-            "It failed"
-        )
-        self.state_assertion('seller', 'refund/', status.HTTP_400_BAD_REQUEST, initial_status=DISPUTED)
-        TransactionRecord.objects.get(
-            response_message="It failed", status=TransactionRecord.FAILURE,
-            payee=self.deliverable.order.buyer, payer=self.deliverable.order.seller,
-            source=TransactionRecord.ESCROW,
-            destination=TransactionRecord.CARD,
-            category=TransactionRecord.ESCROW_REFUND,
-        )
-
-    @patch('apps.sales.utils.refund_transaction')
-    def test_refund_cash_only(self, mock_refund_transaction, _mock_notify):
-        record = TransactionRecordFactory.create(
-            payee=self.deliverable.order.seller,
-            payer=self.deliverable.order.buyer,
-            source=TransactionRecord.CASH_DEPOSIT,
-            destination=TransactionRecord.ESCROW,
-        )
-        record.targets.add(ref_for_instance(self.deliverable))
-        mock_refund_transaction.side_effect = AuthorizeException(
-            "It failed"
-        )
-        self.state_assertion('seller', 'refund/', status.HTTP_200_OK, initial_status=IN_PROGRESS)
-        mock_refund_transaction.assert_not_called()
-        TransactionRecord.objects.get(
-            response_message="", status=TransactionRecord.SUCCESS,
-            payee=self.deliverable.order.buyer, payer=self.deliverable.order.seller,
-            source=TransactionRecord.ESCROW,
-            destination=TransactionRecord.CASH_DEPOSIT,
-            category=TransactionRecord.ESCROW_REFUND,
-        )
+        self.assertEqual(refund_transaction.remote_ids, ['pi_1234'])
 
     def test_refund_card_buyer(self, _mock_notify):
         self.state_assertion('buyer', 'refund/', status.HTTP_403_FORBIDDEN, initial_status=DISPUTED)
 
     def test_refund_card_outsider(self, _mock_notify):
         self.state_assertion('outsider', 'refund/', status.HTTP_403_FORBIDDEN, initial_status=DISPUTED)
-
-    @patch('apps.sales.utils.refund_transaction')
-    def test_refund_card_staffer_authorize(self, mock_refund_transaction, _mock_notify):
-        card = CreditCardTokenFactory.create()
-        record = TransactionRecordFactory.create(
-            payee=self.deliverable.order.seller,
-            payer=self.deliverable.order.buyer,
-            card=card,
-        )
-        record.targets.add(ref_for_instance(self.deliverable))
-        mock_refund_transaction.return_value = ('123', '87HSIF')
-        self.state_assertion('staffer', 'refund/', initial_status=DISPUTED)
-        record.refresh_from_db()
 
     @patch('apps.sales.utils.refund_payment_intent')
     def test_refund_card_staffer_stripe(self, mock_refund_transaction, _mock_notify):

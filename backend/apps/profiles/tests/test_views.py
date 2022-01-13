@@ -14,6 +14,7 @@ from apps.lib.models import (
 )
 from apps.lib.tests.factories import AssetFactory
 from apps.lib.tests.factories_interdepend import CommentFactory
+from apps.lib.tests.test_utils import EnsurePlansMixin
 from apps.lib.utils import watch_subscriptions
 from apps.profiles.models import Character, Submission, Conversation, User, ConversationParticipant
 from apps.lib.abstract_models import MATURE, ADULT, GENERAL, EXTREME
@@ -1477,7 +1478,7 @@ class ListTestCase(APITestCase):
 
 
 @patch('recaptcha.fields.ReCaptchaField.to_internal_value')
-class TestRegister(APITestCase):
+class TestRegister(EnsurePlansMixin, APITestCase):
     def test_basic_user(self, _mock_captcha):
         response = self.client.post('/api/profiles/v1/register/', {
             'username': 'Goober',
@@ -1613,7 +1614,7 @@ class TestWithdrawOnAutoWithdrawEnabled(APITestCase):
             mock_withdraw_all.apply_async.assert_not_called()
 
 
-class TestDestroyUser(APITestCase):
+class TestDestroyUser(EnsurePlansMixin, APITestCase):
     def test_destroy_user(self):
         user = UserFactory.create()
         self.login(user)

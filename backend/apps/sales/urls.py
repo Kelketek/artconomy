@@ -1,11 +1,15 @@
 """artconomy URL Configuration
 """
-from django.urls import path
+from django.urls import path, register_converter
 from django.views.decorators.csrf import csrf_exempt
+from short_stuff.django.converters import ShortCodeConverter
 
 from apps.sales import views
 
 app_name = 'sales'
+
+register_converter(ShortCodeConverter, 'short_code')
+
 
 urlpatterns = [
     path('v1/new-products/', views.NewProducts.as_view(), name='new_products'),
@@ -33,7 +37,7 @@ urlpatterns = [
     path('v1/order/<int:order_id>/deliverables/<int:deliverable_id>/line-items/', views.DeliverableLineItems.as_view(), name='deliverable_line_items'),
     path(
         'v1/order/<int:order_id>/deliverables/<int:deliverable_id>/line-items/<int:line_item_id>/',
-        views.LineItemManager.as_view(),
+        views.DeliverableLineItemManager.as_view(),
         name='line_item_manager',
     ),
     path(
@@ -133,6 +137,9 @@ urlpatterns = [
         views.CommissionStatusImage.as_view(),
         name='commissions-status-image'
     ),
+    path('v1/invoices/<short_code:invoice>/', views.InvoiceDetail.as_view(), name='invoice_detail'),
+    path('v1/invoices/<short_code:invoice>/line-items/', views.InvoiceLineItems.as_view(), name='invoice_detail'),
+    path('v1/invoices/<short_code:invoice>/line-items/<int:line_item>/', views.InvoiceLineItemManager.as_view(), name='line_item_manager'),
     path('v1/order-auth/', views.OrderAuth.as_view(), name='order_auth'),
     path('v1/reports/customer-holdings/', views.CustomerHoldings.as_view(), name='customer_holdings_report'),
     path('v1/reports/customer-holdings/csv/', views.CustomerHoldingsCSV.as_view(), name='customer_holdings_report_csv'),

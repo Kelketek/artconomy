@@ -8,17 +8,19 @@ import logging
 from collections import defaultdict
 from decimal import Decimal, InvalidOperation, ROUND_HALF_EVEN, localcontext, ROUND_FLOOR, ROUND_DOWN, ROUND_CEILING
 from functools import reduce
+from itertools import chain
 from urllib.parse import quote
 
+from django.utils.module_loading import import_string
 from math import ceil
-from typing import Union, Type, TYPE_CHECKING, List, Dict, Iterator, Callable, Tuple, TypedDict, Optional
+from typing import Union, Type, TYPE_CHECKING, List, Dict, Iterator, Callable, Tuple, TypedDict, Optional, Any
 
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import MultipleObjectsReturned
-from django.db import IntegrityError
-from django.db.models import Sum, Q, IntegerField, Case, When, F
+from django.db import IntegrityError, transaction
+from django.db.models import Sum, Q, IntegerField, Case, When, F, Model
 from django.db.transaction import atomic
 from django.http import Http404
 from django.shortcuts import get_object_or_404
@@ -34,13 +36,11 @@ from apps.lib.models import Subscription, COMMISSIONS_OPEN, Event, DISPUTE, SALE
 from apps.lib.utils import notify, recall_notification
 from apps.profiles.models import User, VERIFIED
 from apps.sales.apis import STRIPE
-from apps.sales.authorize import refund_transaction, CardInfo, AddressInfo, create_customer_profile, get_card_type, \
-    card_token_from_transaction, charge_saved_card, charge_card, AuthorizeException, transaction_details
 from apps.sales.stripe import refund_payment_intent, stripe
 
 if TYPE_CHECKING:
     from apps.sales.models import LineItemSim, LineItem, TransactionRecord, Deliverable, Revision, CreditCardToken, \
-    SHIELD, Invoice, OPEN, SUBSCRIPTION
+        Invoice, ServicePlan
     Line = Union[LineItem, LineItemSim]
     LineMoneyMap = Dict[Line, Money]
     TransactionSpecKey = (Union[User, None], int, int)
@@ -132,7 +132,8 @@ def available_products(requester, query='', ordering=True):
     else:
         qs = Product.objects.filter(available=True)
     qs = qs.exclude(active=False)
-    qs = qs.exclude(wait_list=True, user__landscape_paid_through__lte=timezone.now())
+    # TODO: Recheck this for basic/free plan when we have orders that have been placed but they haven't upgraded.
+    qs = qs.exclude((Q(user__service_plan_paid_through__lte=timezone.now()) | ~Q(user__service_plan__name='Landscape')), wait_list=True)
     if requester.is_authenticated:
         if not requester.is_staff:
             qs = qs.exclude(user__blocking=requester)
@@ -148,12 +149,13 @@ def service_price(user, service):
     return price
 
 
-def set_premium(user, target_date=None):
-    user.landscape_enabled = True
+def set_premium(user, service_plan, target_date=None):
+    user.service_plan = service_plan
+    user.next_service_plan = service_plan
     if target_date:
-        user.landscape_paid_through = target_date
+        user.service_plan_paid_through = target_date
     user.save(
-        update_fields=['landscape_enabled', 'landscape_paid_through'],
+        update_fields=['service_plan', 'service_plan_paid_through', 'next_service_plan'],
     )
 
 
@@ -570,33 +572,6 @@ def divide_amount(amount: Money, divisor: int) -> List[Money]:
     return result
 
 
-def take_cut(
-        base_amount: Money, *, amount: Optional[Money] = None, percentage: Optional[Decimal] = Decimal('0'),
-) -> (Money, Money):
-    """
-    Convenience function. Given an amount and a specified percentage/amount with line spec flags, chop the amount
-    in two, with the first return being the cut amount from the base, and the second being the remainder.
-
-    The remainder is helpful to make sure you have a re-normalized amount left over you can perform future, separate
-    operations on and make sure all pieces still add up to the original amount.
-
-    NOTE: This probably needs to be redone. It doesn't match how stripe is running its calculations.
-
-    TODO: Replicate in JS version
-    """
-    from apps.sales.models import LineItemSim
-    if amount is None:
-        amount = Money('0', base_amount.currency)
-    base_line_item = LineItemSim(id=0, priority=0, amount=base_amount)
-    fee_line_item = LineItemSim(
-        id=1, priority=1, amount=amount, percentage=percentage, cascade_percentage=True, cascade_amount=True,
-    )
-    _total, _discount, line_map = get_totals([base_line_item, fee_line_item])
-    cut = line_map[fee_line_item]
-    remaining = line_map[base_line_item]
-    return cut, remaining
-
-
 def lines_to_transaction_specs(lines: Iterator['LineItem']) -> 'TransactionSpecMap':
     from apps.sales.models import BONUS, SHIELD, ADD_ON, BASE_PRICE, TABLE_SERVICE, TAX, EXTRA, TIP, TransactionRecord
     type_map = {
@@ -641,7 +616,7 @@ def verify_total(deliverable: 'Deliverable'):
 
 
 def issue_refund(transaction_set: Iterator['TransactionRecord'], category: int, processor: str) -> List['TransactionRecord']:
-    from apps.sales.models import TransactionRecord, STRIPE, AUTHORIZE
+    from apps.sales.models import TransactionRecord
     last_four = None
     transactions = [*transaction_set]
     cash_transactions = [
@@ -674,23 +649,16 @@ def issue_refund(transaction_set: Iterator['TransactionRecord'], category: int, 
     amount = sum(transaction.amount for transaction in card_transactions)
     if card_transactions:
         try:
-            if processor == STRIPE:
-                auth_code = '******'
-                try:
-                    intent_token = fetch_prefixed('pi_', remote_ids)
-                except ValueError:
-                    raise ValueError('Invalid Stripe payment ID. Please contact support!')
-                with stripe as stripe_api:
-                    # Note: We will assume success here. If there is a refund failure we'll have to dive into it
-                    # manually anyway and will find it during the accounting rounds.
-                    refund_payment_intent(amount=amount, api=stripe_api, intent_token=intent_token)['id']
-            elif processor == AUTHORIZE:
-                remote_id, auth_code = refund_transaction(remote_ids[0], last_four, amount.amount)
-                if remote_id:
-                    remote_ids += [remote_id]
-                    remote_ids = sorted(list(set(remote_ids)))
-            else:
-                raise RuntimeError('Unsupported card processor!')
+            auth_code = '******'
+            try:
+                intent_token = fetch_prefixed('pi_', remote_ids)
+            except ValueError:
+                raise ValueError('Invalid Stripe payment ID. Please contact support!')
+            with stripe as stripe_api:
+                # Note: We will assume success here. If there is a refund failure we'll have to dive into it
+                # manually anyway and will find it during the accounting rounds.
+                # TODO: Fix this.
+                refund_payment_intent(amount=amount, api=stripe_api, intent_token=intent_token)['id']
             for transaction in refund_transactions:
                 transaction.status = TransactionRecord.SUCCESS
                 if transaction.destination == TransactionRecord.CARD:
@@ -833,6 +801,7 @@ def order_context_to_link(context: OrderContext):
         }
     return goal_path
 
+
 @atomic
 def destroy_deliverable(deliverable: 'Deliverable'):
     from apps.sales.models import CANCELLED
@@ -870,7 +839,7 @@ class PaymentAttempt(TypedDict, total=False):
     save_card: bool
     make_primary: bool
     # Used only in premium upgrade transactions
-    service: str
+    service: 'ServicePlan'
     # Should never exist unless through a webhook.
     stripe_event: dict
 
@@ -904,16 +873,8 @@ def perform_charge(
             initiate_transactions=initiate_transactions, post_save=post_save, post_success=post_success,
             context=context,
         )
-    if attempt.get('card_id'):
-        return charge_existing_card(
-            attempt=attempt, amount=amount, user=user, post_save=post_save, post_success=post_success,
-            initiate_transactions=initiate_transactions, context=context,
-        )
     else:
-        return charge_new_card(
-            attempt=attempt, amount=amount, user=user, post_save=post_save, post_success=post_success,
-            initiate_transactions=initiate_transactions, context=context,
-        )
+        raise RuntimeError('Could not identify the right way to perform this charge.')
 
 
 def from_cash(
@@ -947,49 +908,12 @@ def from_remote_id(
     """
     from apps.sales.models import TransactionRecord
     # This may not work if charging via stripe terminal.
-    if not attempt.get('stripe_event'):
-        # First, let's verify this remote ID is real.
-        details = transaction_details(remote_ids[0])
-        auth_code = details['auth_code']
-    else:
-        # We'll be checking this elsewhere if the stripe event is provided.
-        details = {'auth_amount': attempt['amount']}
-        # Bogus auth code so things don't break.
-        auth_code = '******'
-    if not auth_code:
-        raise annotate_error(
-            transactions=[],
-            error=AuthorizeException('Transaction ID is for failed transaction.'),
-            attempt=attempt,
-            user=user,
-            post_save=post_save,
-            context=context,
-        )
-    if details['auth_amount'] != amount:
-        raise annotate_error(
-            transactions=[],
-            error=AuthorizeException(
-                f'This transaction ID is for the wrong amount. {amount} != {details["auth_amount"]}',
-            ),
-            attempt=attempt,
-            user=user,
-            post_save=post_save,
-            context=context,
-        )
-    stripe_event = attempt.get('stripe_event', None)
-    if (
-            not stripe_event
-            and TransactionRecord.objects.filter(auth_code=auth_code, status=TransactionRecord.SUCCESS).exists()
-    ):
-        raise annotate_error(
-            transactions=[],
-            error=AuthorizeException('An order with this authorization code already exists.'),
-            attempt=attempt,
-            user=user,
-            post_save=post_save,
-            context=context,
-        )
-    if stripe_event and stripe_event['status'] not in ['succeeded', 'failed']:
+    # We'll be checking this elsewhere if the stripe event is provided.
+    details = {'auth_amount': attempt['amount']}
+    # Bogus auth code so things don't break. Need to remove this eventually-- it's a holdover from Authorize.net.
+    auth_code = '******'
+    stripe_event = attempt['stripe_event']
+    if stripe_event['status'] not in ['succeeded', 'failed']:
         raise annotate_error(
             transactions=[],
             # RuntimeError shouldn't be caught, ensuring this throws properly.
@@ -1000,7 +924,7 @@ def from_remote_id(
             context=context,
         )
     transactions = initiate_transactions(attempt, amount, user, context)
-    if stripe_event and stripe_event['status'] == 'failed':
+    if stripe_event['status'] == 'failed':
         raise annotate_error(
             transactions=transactions,
             error=UserPaymentException(f'{stripe_event["failure_code"]}: {stripe_event["failure_message"]}'),
@@ -1032,61 +956,6 @@ def annotate_error(
     return UserPaymentException(response_message)
 
 
-def charge_new_card(
-        *, attempt: PaymentAttempt, amount: Money, user: User, initiate_transactions: TransactionInitiator,
-        post_success: TransactionMutator, post_save: TransactionMutator, context: dict,
-) -> (bool, List['TransactionRecord']):
-    """
-    Creates a new card and charges it. This will only work with Authorize.net, not Stripe.
-    """
-    from apps.sales.models import CreditCardToken
-    card_info = CardInfo(
-        number=attempt['number'],
-        exp_year=attempt['exp_date'].year,
-        exp_month=attempt['exp_date'].month,
-        cvv=attempt.get('cvv', None),
-    )
-    address_info = AddressInfo(
-        first_name=attempt['first_name'],
-        last_name=attempt['last_name'],
-        postal_code=attempt['zip'],
-        country=attempt['country'],
-    )
-    if not user.authorize_token:
-        user.authorize_token = create_customer_profile(user.email)
-        user.save()
-    transactions = initiate_transactions(attempt, amount, user, context)
-    try:
-        remote_id, auth_code = charge_card(card_info, address_info, amount.amount)
-    except Exception as err:
-        raise annotate_error(
-            transactions=transactions, error=err, attempt=attempt, user=user, post_save=post_save, context=context,
-        )
-    mark_successful(
-        transactions=transactions, remote_ids=[remote_id], auth_code=auth_code, post_success=post_success,
-        post_save=post_save, context=context, attempt=attempt, user=user,
-    )
-
-    card_args = dict(
-        type=CreditCardToken.TYPE_TRANSLATION[get_card_type(attempt['number'])],
-        cvv_verified=True, user=user, last_four=attempt['number'][-4:],
-    )
-    if attempt['save_card'] and user.is_registered:
-        card_args['token'] = card_token_from_transaction(remote_id, profile_id=user.authorize_token)
-    else:
-        card_args['token'] = 'XXXX'
-        card_args['active'] = False
-    card = CreditCardToken.objects.create(**card_args)
-    if card.active and (user.primary_card is None or attempt['make_primary']):
-        user.primary_card = card
-        user.save()
-    for transaction in transactions:
-        transaction.card = card
-        transaction.save()
-
-    return transactions
-
-
 def mark_successful(
         *, transactions: List['TransactionRecord'], remote_ids: List[str], auth_code: str,
         post_success: TransactionMutator,
@@ -1107,38 +976,6 @@ def mark_successful(
     for transaction in transactions:
         transaction.save()
     post_save(transactions, attempt, user, context)
-
-
-def charge_existing_card(
-        *, attempt: PaymentAttempt, amount: Money, user: User, initiate_transactions: TransactionInitiator,
-        post_success: TransactionMutator, post_save: TransactionMutator, context: dict,
-):
-    """
-    Charge an existing card for this transaction. Note: this only works with Authorize.net.
-    """
-    from apps.sales.models import CreditCardToken
-    card = get_object_or_404(CreditCardToken, id=attempt['card_id'], active=True, user=user)
-    if not card.cvv_verified and not attempt.get('cvv', None):
-        raise UserPaymentException('You must enter the security code for this card.')
-    transactions = initiate_transactions(attempt, amount, user, context)
-    for transaction in transactions:
-        transaction.card = card
-    try:
-        remote_id, auth_code = charge_saved_card(
-            profile_id=card.profile_id,
-            payment_id=card.payment_id, amount=amount.amount, cvv=attempt.get('cvv', None),
-        )
-    except Exception as err:
-        raise annotate_error(
-            transactions=transactions, error=err, attempt=attempt, user=user, post_save=post_save, context=context,
-        )
-    mark_successful(
-        transactions=transactions, remote_ids=[remote_id], auth_code=auth_code, post_success=post_success,
-        post_save=post_save, context=context, attempt=attempt, user=user,
-    )
-    card.cvv_verified = True
-    card.save()
-    return transactions
 
 
 @ceiling_context
@@ -1207,13 +1044,13 @@ def premium_initiate_transactions(
     )]
 
 
-def premium_post_success(invoice):
+def premium_post_success(invoice, service_plan):
     from apps.sales.models import PAID
 
     def wrapped(transactions: List['TransactionRecord'], data: PaymentAttempt, user: User, context: dict):
         for transaction in transactions:
             transaction.response_message = 'Upgraded to landscape'
-        set_premium(user, target_date=date.today() + relativedelta(months=1))
+        set_premium(user, service_plan, target_date=date.today() + relativedelta(months=1))
         invoice.paid_on = timezone.now()
         invoice.status = PAID
         invoice.save()
@@ -1295,15 +1132,63 @@ def get_intent_card_token(user: User, card_id: Optional[str]):
     return None
 
 
-def get_user_processor(user: User):
-    from apps.sales.models import STRIPE, AUTHORIZE
-    if user.processor_override:
-        return user.processor_override
-    if settings.CARD_PROCESSOR_OVERRIDE:
-        # Force use of provider for all users.
-        return settings.CARD_PROCESSOR_OVERRIDE
-    if hasattr(user, 'stripe_account'):
-        return STRIPE
-    if user.banks.filter(deleted=False).exists():
-        return AUTHORIZE
-    return settings.DEFAULT_CARD_PROCESSOR
+def default_callable(target: Model):
+    """
+    We'll determine what the default callable for this model is. For the moment, we're storing this value
+    as a property on the model, but we may eventually want to create some sort of registry if we end up factoring
+    this out.
+    """
+    return getattr(target, 'post_pay_hook', None)
+
+
+def post_pay_hook(*, billable: Union['Invoice', 'LineItem'], target: Model, context: dict) -> List['TransactionRecord']:
+    """
+    Determine the appropriate function call for a billable. These functions should always return a list of
+    TransactionRecords.
+    """
+    to_call = import_string(context.get('__callable__', default_callable(target)))
+    if not to_call:
+        return []
+    return to_call(billable=billable, target=target, context=context)
+
+
+def paired_iterator(always: Any, iterator: Iterator):
+    """
+    Generator function that always returns a tuple with the first value as it iterates over the second value.
+    """
+    for item in iterator:
+        yield always, item
+
+
+@transaction.atomic
+def invoice_post_payment(invoice: 'Invoice', context: dict) -> List['TransactionRecord']:
+    """
+    Post-pay hook. This iterates through all targets and all targets on all line items, and then runs hooks for
+    each. Any asynchronous operations that should occur should be scheduled tasks that can verify finished state
+    and start afterwards. Otherwise they might run with a DB that failed the transaction.
+
+    Note that a payment may be 'failed.' We still call the post-payment hooks as they may need to perform some task
+    like creating failed transaction records for reference. Payments that have failed will have successful=False in
+    the context dictionary.
+    """
+    from apps.sales.models import PAID
+    invoice.status = PAID
+    invoice.save()
+    all_targets = (
+        paired_iterator(invoice, invoice.targets.all()),
+        *(
+            paired_iterator(line_item, line_item.targets.all())
+            for line_item in invoice.line_items.all().prefetch_related('targets')
+        ),
+    )
+    records = []
+    for billable, target in chain(*all_targets):
+        if not target.target:
+            raise IntegrityError(
+                f'{target.__class__.__name__} for deleted item paid: #{invoice.id}, GenericReference {target.id}',
+            )
+        records.extend(post_pay_hook(billable=billable, target=target.target, context={**context, **billable.context_for(target)}))
+    if context['successful']:
+        invoice.status = PAID
+        invoice.save()
+    return records

@@ -21,9 +21,9 @@ from apps.profiles.models import VERIFIED
 from apps.profiles.tests.factories import UserFactory, CharacterFactory, SubmissionFactory
 from apps.profiles.utils import create_guest_user
 from apps.sales.models import Deliverable, Order, NEW, ADD_ON, TransactionRecord, TIP, SHIELD, QUEUED, IN_PROGRESS, \
-    REVIEW, DISPUTED, COMPLETED, PAYMENT_PENDING, BASE_PRICE, EXTRA, Revision, LineItem
+    REVIEW, DISPUTED, COMPLETED, PAYMENT_PENDING, BASE_PRICE, EXTRA, Revision, LineItem, ServicePlan
 from apps.sales.tests.factories import ProductFactory, DeliverableFactory, add_adjustment, RevisionFactory, \
-    LineItemFactory
+    LineItemFactory, ServicePlanFactory
 from apps.sales.tests.test_utils import TransactionCheckMixin
 
 
@@ -33,6 +33,9 @@ from apps.sales.tests.test_utils import TransactionCheckMixin
 )
 @ddt
 class TestOrder(TransactionCheckMixin, APITestCase):
+    def setUp(self):
+        self.landscape = ServicePlanFactory(name='Landscape')
+
     def test_place_order(self):
         user = UserFactory.create()
         user2 = UserFactory.create()
@@ -723,7 +726,7 @@ class TestOrder(TransactionCheckMixin, APITestCase):
     @freeze_time('2012-08-01 12:00:00')
     @patch('apps.sales.utils.finalize_deliverable')
     def test_order_mark_complete_trusted_finalize(self, mock_finalize):
-        user = UserFactory.create(landscape_paid_through=timezone.now() + relativedelta(months=1), trust_level=VERIFIED)
+        user = UserFactory.create(service_plan_paid_through=timezone.now() + relativedelta(months=1), trust_level=VERIFIED, service_plan=self.landscape)
         self.login(user)
         deliverable = DeliverableFactory.create(order__seller=user, status=IN_PROGRESS, revisions=1)
         RevisionFactory.create(deliverable=deliverable)

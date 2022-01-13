@@ -1,17 +1,28 @@
 import json
 import time
+from datetime import date
+from decimal import Decimal
 from unittest.mock import patch, Mock
 
+from dateutil.relativedelta import relativedelta
 from django.http import HttpRequest
-from django.test import RequestFactory
+from django.test import RequestFactory, override_settings
+from django.utils import timezone
+from freezegun import freeze_time
+from moneyed import Money
 from rest_framework import status
 import stripe as stripe_api
 
-from apps.lib.models import ref_for_instance
+from apps.lib.models import ref_for_instance, Subscription, SALE_UPDATE
 from apps.lib.test_resources import APITestCase
 from apps.profiles.tests.factories import UserFactory
-from apps.sales.models import PAYMENT_PENDING, QUEUED, STRIPE, CreditCardToken, TransactionRecord
-from apps.sales.tests.factories import DeliverableFactory, CreditCardTokenFactory, WebhookRecordFactory
+from apps.sales.apis import STRIPE
+from apps.sales.models import PAYMENT_PENDING, QUEUED, CreditCardToken, TransactionRecord, REVIEW, IN_PROGRESS, \
+    ServicePlan
+from apps.sales.stripe import money_to_stripe
+from apps.sales.tests.factories import DeliverableFactory, CreditCardTokenFactory, WebhookRecordFactory, InvoiceFactory, \
+    LineItemFactory, ServicePlanFactory, add_adjustment, RevisionFactory
+from apps.sales.tests.test_utils import TransactionCheckMixin
 from apps.sales.utils import UserPaymentException
 from apps.sales.views import StripeWebhooks
 
@@ -36,7 +47,7 @@ class TestDeliverablePaymentIntent(APITestCase):
         )
         self.assertEqual(response.data, {'secret': 'sneak'})
         deliverable.refresh_from_db()
-        self.assertEqual(deliverable.current_intent, 'raw_id')
+        self.assertEqual(deliverable.invoice.current_intent, 'raw_id')
         params = mock_api.PaymentIntent.create.call_args_list[0][1]
         self.assertEqual(params['amount'], deliverable.invoice.total().amount * 100)
         self.assertEqual(params['currency'], 'usd')
@@ -57,7 +68,7 @@ class TestDeliverablePaymentIntent(APITestCase):
         mock_api = Mock()
         mock_stripe.__enter__.return_value = mock_api
         mock_api.PaymentIntent.modify.return_value = {'id': 'raw_id', 'client_secret': 'sneak'}
-        deliverable = DeliverableFactory.create(status=PAYMENT_PENDING, current_intent='old_id', processor=STRIPE)
+        deliverable = DeliverableFactory.create(status=PAYMENT_PENDING, invoice__current_intent='old_id', processor=STRIPE)
         self.login(deliverable.order.buyer)
         response = self.client.post(
             f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/payment-intent/'
@@ -65,7 +76,7 @@ class TestDeliverablePaymentIntent(APITestCase):
         self.assertEqual(response.data, {'secret': 'sneak'})
         deliverable.refresh_from_db()
         # Should not have changed.
-        self.assertEqual(deliverable.current_intent, 'old_id')
+        self.assertEqual(deliverable.invoice.current_intent, 'old_id')
         mock_api.PaymentIntent.create.assert_not_called()
         self.assertEqual(mock_api.PaymentIntent.modify.call_args_list[0][0][0], 'old_id')
         params = mock_api.PaymentIntent.modify.call_args_list[0][1]
@@ -307,12 +318,17 @@ def generate_header(**kwargs):
     return header
 
 
-class TestStripeWebhook(APITestCase):
+@override_settings(
+    SERVICE_STATIC_FEE=Decimal('0.50'), SERVICE_PERCENTAGE_FEE=Decimal('4'),
+    PREMIUM_STATIC_BONUS=Decimal('0.25'), PREMIUM_PERCENTAGE_BONUS=Decimal('4'),
+)
+class TestStripeWebhook(TransactionCheckMixin, APITestCase):
     def setUp(self):
         super(TestStripeWebhook, self).setUp()
         self.webhook = WebhookRecordFactory.create()
         self.factory = RequestFactory()
         self.view = StripeWebhooks.as_view()
+        self.landscape = ServicePlanFactory(name='Landscape')
 
     def gen_request(self, event):
         event = json.dumps(event)
@@ -326,11 +342,11 @@ class TestStripeWebhook(APITestCase):
     def test_deliverable_paid(self):
         event = base_charge_succeeded_event()
         deliverable = DeliverableFactory.create(
-            status=PAYMENT_PENDING, current_intent=event['data']['object']['payment_intent'],
+            status=PAYMENT_PENDING, invoice__current_intent=event['data']['object']['payment_intent'],
             order__buyer__stripe_token='beep',
         )
         event = base_charge_succeeded_event()
-        event['data']['object']['metadata'] = {'deliverable_id': deliverable.id, 'order_id': deliverable.order.id}
+        event['data']['object']['metadata'] = {'invoice_id': deliverable.invoice.id, 'deliverable_id': deliverable.id, 'order_id': deliverable.order.id}
         event['data']['object']['customer'] = 'beep'
         request = self.gen_request(event)
         response = self.view(request, False)
@@ -350,10 +366,10 @@ class TestStripeWebhook(APITestCase):
         event = base_charge_succeeded_event()
         event['data']['object']['amount'] = 100
         deliverable = DeliverableFactory.create(
-            status=PAYMENT_PENDING, current_intent=event['data']['object']['payment_intent'],
+            status=PAYMENT_PENDING, invoice__current_intent=event['data']['object']['payment_intent'],
             order__buyer__stripe_token='beep',
         )
-        event['data']['object']['metadata'] = {'deliverable_id': deliverable.id, 'order_id': deliverable.order.id}
+        event['data']['object']['metadata'] = {'deliverable_id': deliverable.id, 'invoice_id': deliverable.invoice.id, 'order_id': deliverable.order.id}
         event['data']['object']['customer'] = 'beep'
         self.assertRaises(
             UserPaymentException,
@@ -368,13 +384,14 @@ class TestStripeWebhook(APITestCase):
     def test_deliverable_add_card_primary(self):
         event = base_charge_succeeded_event()
         deliverable = DeliverableFactory.create(
-            status=PAYMENT_PENDING, current_intent=event['data']['object']['payment_intent'],
+            status=PAYMENT_PENDING, invoice__current_intent=event['data']['object']['payment_intent'],
             order__buyer__stripe_token='beep',
         )
         CreditCardToken.objects.all().delete()
         event['data']['object']['metadata'] = {
             'deliverable_id': deliverable.id,
             'order_id': deliverable.order.id,
+            'invoice_id': deliverable.invoice.id,
             'save_card': 'True',
             'make_primary': 'True',
         }
@@ -391,13 +408,110 @@ class TestStripeWebhook(APITestCase):
     def test_service_extension(self):
         event = base_charge_succeeded_event()
         user = UserFactory.create(stripe_token='burp')
-        self.assertFalse(user.landscape)
+        self.assertIsNone(user.service_plan)
         CreditCardToken.objects.all().delete()
+        invoice = InvoiceFactory(bill_to=user, current_intent=event['data']['object']['payment_intent'])
+        line = LineItemFactory(invoice=invoice)
+        service_plan = ServicePlanFactory()
+        line.targets.add(ref_for_instance(service_plan))
         event['data']['object']['metadata'] = {
-            'service': 'landscape',
+            'invoice_id': invoice.id,
         }
         event['data']['object']['customer'] = 'burp'
         response = self.view(self.gen_request(event), False)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         user.refresh_from_db()
-        self.assertTrue(user.landscape)
+        self.assertEqual(user.service_plan, service_plan)
+
+    # These tests have been migrated over from the code that checked authorize transactions.
+    # Eventually, they need to be made independent of the code checking stripe transactions and only
+    # check whether proper post-payment events happen, independent of what processor did them.
+    # That will likely require some refactoring, so for now, they go here.
+    def test_pay_order_landscape(self):
+        event = base_charge_succeeded_event()
+        user = UserFactory.create()
+        deliverable = DeliverableFactory.create(
+            order__buyer=user, status=PAYMENT_PENDING, product__base_price=Money('10.00', 'USD'),
+            invoice__current_intent=event['data']['object']['payment_intent'],
+            order__seller__service_plan=self.landscape,
+            order__seller__service_plan_paid_through=(timezone.now() + relativedelta(days=5)).date(),
+        )
+        add_adjustment(deliverable, Money('2.00', 'USD'))
+        subscription = Subscription.objects.get(subscriber=deliverable.order.seller, type=SALE_UPDATE)
+        self.assertTrue(subscription.email)
+        event['data']['object']['amount'] = money_to_stripe(Money('12.00', 'USD'))[0]
+        event['data']['object']['metadata'] = {'invoice_id': deliverable.invoice.id, 'deliverable_id': deliverable.id, 'order_id': deliverable.order.id}
+        event['data']['object']['customer'] = 'beep'
+        response = self.view(self.gen_request(event), False)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.check_transactions(deliverable, user, remote_id=event['data']['object']['id'], landscape=True)
+
+    @freeze_time('2020-08-02')
+    def test_pay_order_weights_set(self):
+        event = base_charge_succeeded_event()
+        user = UserFactory.create()
+        self.login(user)
+        deliverable = DeliverableFactory.create(
+            order__buyer=user, status=PAYMENT_PENDING, product__base_price=Money('10.00', 'USD'),
+            invoice__current_intent=event['data']['object']['payment_intent'],
+            product__task_weight=1, product__expected_turnaround=1,
+            adjustment_task_weight=3, adjustment_expected_turnaround=2
+        )
+        add_adjustment(deliverable, Money('2.00', 'USD'))
+        subscription = Subscription.objects.get(subscriber=deliverable.order.seller, type=SALE_UPDATE)
+        self.assertTrue(subscription.email)
+        event['data']['object']['amount'] = money_to_stripe(Money('12.00', 'USD'))[0]
+        event['data']['object']['metadata'] = {'invoice_id': deliverable.invoice.id, 'deliverable_id': deliverable.id, 'order_id': deliverable.order.id}
+        event['data']['object']['customer'] = 'beep'
+        response = self.view(self.gen_request(event), False)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        deliverable.refresh_from_db()
+        self.assertEqual(deliverable.task_weight, 1)
+        self.assertEqual(deliverable.expected_turnaround, 1)
+        self.assertEqual(deliverable.adjustment_task_weight, 3)
+        self.assertEqual(deliverable.adjustment_expected_turnaround, 2)
+        self.assertEqual(deliverable.dispute_available_on, date(year=2020, month=8, day=6))
+
+    def test_pay_order_revisions_exist(self):
+        event = base_charge_succeeded_event()
+        user = UserFactory.create()
+        self.login(user)
+        deliverable = DeliverableFactory.create(
+            order__buyer=user, status=PAYMENT_PENDING, product__base_price=Money('10.00', 'USD'),
+            invoice__current_intent=event['data']['object']['payment_intent'],
+            revisions_hidden=True,
+        )
+        add_adjustment(deliverable, Money('2.00', 'USD'))
+        RevisionFactory.create(deliverable=deliverable)
+        event['data']['object']['amount'] = money_to_stripe(Money('12.00', 'USD'))[0]
+        event['data']['object']['metadata'] = {'invoice_id': deliverable.invoice.id, 'deliverable_id': deliverable.id, 'order_id': deliverable.order.id}
+        event['data']['object']['customer'] = 'beep'
+        self.view(self.gen_request(event), False)
+        deliverable.refresh_from_db()
+        self.assertEqual(deliverable.status, IN_PROGRESS)
+        self.assertFalse(deliverable.revisions_hidden)
+        self.assertFalse(deliverable.final_uploaded)
+
+    @freeze_time('2018-08-01 12:00:00')
+    def test_pay_order_final_uploaded(self):
+        event = base_charge_succeeded_event()
+        user = UserFactory.create()
+        self.login(user)
+        deliverable = DeliverableFactory.create(
+            order__buyer=user, status=PAYMENT_PENDING, product__base_price=Money('10.00', 'USD'),
+            invoice__current_intent=event['data']['object']['payment_intent'],
+            revisions_hidden=True, final_uploaded=True,
+        )
+        add_adjustment(deliverable, Money('2.00', 'USD'))
+        RevisionFactory.create(deliverable=deliverable)
+        event['data']['object']['amount'] = money_to_stripe(Money('12.00', 'USD'))[0]
+        event['data']['object']['metadata'] = {'invoice_id': deliverable.invoice.id, 'deliverable_id': deliverable.id, 'order_id': deliverable.order.id}
+        event['data']['object']['customer'] = 'beep'
+        self.view(self.gen_request(event), False)
+        deliverable.refresh_from_db()
+        self.assertEqual(deliverable.status, REVIEW)
+        self.assertFalse(deliverable.revisions_hidden)
+        self.assertTrue(deliverable.final_uploaded)
+        self.assertEqual(deliverable.auto_finalize_on, date(2018, 8, 3))
+
+    ### End ported tests that need to be redone.

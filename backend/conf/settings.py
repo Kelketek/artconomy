@@ -285,8 +285,13 @@ STRIPE_PAYOUT_PERCENTAGE = Decimal(get_env('STRIPE_PAYOUT_PERCENTAGE', '0.25'))
 STRIPE_PAYOUT_CROSS_BORDER_PERCENTAGE = Decimal(get_env('STRIPE_PAYOUT_CROSS_BORDER_PERCENTAGE', '0.25'))
 STRIPE_ACTIVE_ACCOUNT_MONTHLY_FEE = Money(get_env('STRIPE_ACTIVE_ACCOUNT_MONTHLY_FEE', '2.00'), 'USD')
 
-DEFAULT_CARD_PROCESSOR = get_env('DEFAULT_CARD_PROCESSOR', 'authorize')
-CARD_PROCESSOR_OVERRIDE = get_env('FORCE_CARD_PROCESSOR', '')
+# Stripe is now the only processor-- authorize.net has been removed. More work will be needed to abstract out
+# processors to make them further pluggable, but new processors will more closely match Stripe
+# (that is-- webhook driven) than Authorize.net (which we implemented all synchronous).
+#
+# Even if we re-implemented authorize.net, we should do so using its webhook structure instead of the synchronous
+# method we used previously.
+DEFAULT_CARD_PROCESSOR = get_env('DEFAULT_CARD_PROCESSOR', 'stripe')
 
 if TESTING:
     # Development system may have a stripe key, but we don't want to be making entries on the Stripe test service
@@ -545,3 +550,5 @@ CACHES = {
 }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+DEFAULT_SERVICE_PLAN_NAME = get_env('DEFAULT_SERVICE_PLAN_NAME', 'Free')

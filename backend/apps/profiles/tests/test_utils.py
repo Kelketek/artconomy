@@ -1,7 +1,6 @@
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 from uuid import UUID
 
-from avatar.models import Avatar
 from django.core.exceptions import ObjectDoesNotExist
 from django.test import TestCase
 from django.utils.datetime_safe import date
@@ -14,28 +13,32 @@ from apps.lib.tests.factories_interdepend import CommentFactory
 from apps.profiles.models import ArtconomyAnonymousUser
 from apps.profiles.tests.factories import UserFactory, SubmissionFactory, CharacterFactory, AvatarFactory
 from apps.profiles.utils import extend_landscape, empty_user, clear_user, UserClearException
-from apps.sales.models import NEW, IN_PROGRESS, PAYMENT_PENDING, WAITING, CANCELLED, TransactionRecord, COMPLETED
-from apps.sales.tests.factories import DeliverableFactory, TransactionRecordFactory, ProductFactory, BankAccountFactory
+from apps.sales.models import NEW, IN_PROGRESS, PAYMENT_PENDING, WAITING, CANCELLED, TransactionRecord, ServicePlan
+from apps.sales.tests.factories import DeliverableFactory, TransactionRecordFactory, ProductFactory, BankAccountFactory, \
+    ServicePlanFactory
 
 
 class ExtendPremiumTest(TestCase):
+    def setUp(self):
+        self.landscape = ServicePlanFactory(name='Landscape')
+
     @freeze_time('2018-08-01')
     def test_extend_landscape_from_none(self):
         user = UserFactory.create()
         self.assertIsNone(user.landscape_paid_through)
         extend_landscape(user, months=1)
         self.assertEqual(user.landscape_paid_through, date(2018, 9, 1))
+        self.assertEqual(user.service_plan, self.landscape)
 
     @freeze_time('2018-08-01')
     def test_extend_landscape_from_past(self):
-        user = UserFactory.create(landscape_paid_through=date(2018, 7, 5))
+        user = UserFactory.create(service_plan=self.landscape, service_plan_paid_through=date(2018, 7, 5))
         extend_landscape(user, months=1)
-
         self.assertEqual(user.landscape_paid_through, date(2018, 9, 1))
 
     @freeze_time('2018-08-01')
     def test_extend_landscape_from_future(self):
-        user = UserFactory.create(landscape_paid_through=date(2018, 9, 5))
+        user = UserFactory.create(service_plan=self.landscape, service_plan_paid_through=date(2018, 9, 5))
         extend_landscape(user, months=1)
         self.assertEqual(user.landscape_paid_through, date(2018, 10, 5))
 
@@ -60,6 +63,10 @@ class TestEmptyUser(APITestCase):
 
 
 class TestClearUser(TestCase):
+    def setUp(self):
+        self.landscape = ServicePlanFactory(name='Landscape')
+        self.free = ServicePlanFactory(name='Free')
+
     def test_fail_on_outstanding_order(self):
         user = UserFactory.create()
         DeliverableFactory.create(order__buyer=user, status=IN_PROGRESS)
@@ -174,11 +181,6 @@ class TestClearUser(TestCase):
             CharacterFactory(user=user),
             AvatarFactory.create(user=user),
         ]
-        # Counteract auto-generated bank fee.
-        TransactionRecord.objects.create(
-            source=TransactionRecord.ESCROW, destination=TransactionRecord.HOLDINGS, payer=user, payee=user,
-            amount=Money('1.00'), status=TransactionRecord.SUCCESS, category=TransactionRecord.ESCROW_RELEASE,
-        )
         # Product should prevent this from being deleted, since the product has a deliverable.
         deliverable = DeliverableFactory.create(order__seller=user)
         favorite = SubmissionFactory(title='Favorite')

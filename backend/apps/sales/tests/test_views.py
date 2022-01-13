@@ -16,15 +16,15 @@ from apps.lib.abstract_models import ADULT
 from apps.lib.models import Comment, Subscription, COMMENT
 from apps.lib.test_resources import APITestCase, PermissionsTestCase, MethodAccessMixin
 from apps.lib.tests.factories import TagFactory, AssetFactory
+from apps.lib.tests.test_utils import EnsurePlansMixin
 from apps.profiles.models import User, IN_SUPPORTED_COUNTRY, NO_SUPPORTED_COUNTRY, UNSET
 from apps.profiles.tests.factories import UserFactory, SubmissionFactory, CharacterFactory
-from apps.sales.authorize import AuthorizeException, CardInfo, AddressInfo
 from apps.sales.models import (
     Order, CreditCardToken, Product, TransactionRecord, ADD_ON, BASE_PRICE, NEW, COMPLETED, IN_PROGRESS,
     PAYMENT_PENDING,
-    REVIEW, QUEUED, DISPUTED, CANCELLED, DELIVERABLE_STATUSES, REFUNDED, Deliverable, WAITING)
+    REVIEW, QUEUED, DISPUTED, CANCELLED, DELIVERABLE_STATUSES, REFUNDED, Deliverable, WAITING, ServicePlan)
 from apps.sales.tests.factories import DeliverableFactory, CreditCardTokenFactory, ProductFactory, RevisionFactory, \
-    RatingFactory, ReferenceFactory
+    RatingFactory, ReferenceFactory, ServicePlanFactory
 from apps.sales.views import (
     CurrentOrderList, CurrentSalesList, CurrentCasesList,
     CancelledOrderList,
@@ -238,235 +238,6 @@ class TestSamples(APITestCase):
 
 
 class TestCardManagement(APITestCase):
-    @freeze_time('2018-01-01 12:00:00')
-    @patch('apps.sales.models.create_customer_profile')
-    @patch('apps.sales.models.create_card')
-    def test_add_card(self, mock_create_card, mock_create_customer_profile):
-        mock_create_customer_profile.return_value = '5643'
-        user = UserFactory.create(authorize_token='')
-        self.login(user)
-        mock_create_card.return_value = '567453'
-        response = self.client.post(
-            '/api/sales/v1/account/{}/cards/'.format(user.username),
-            {
-                'first_name': 'Jim',
-                'last_name': 'Bob',
-                'country': 'US',
-                'number': '4111 1111 1111 1111',
-                'exp_date': '02/34',
-                'zip': '44444',
-                'cvv': '555',
-            }
-        )
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data['type'], 1)
-        self.assertEqual(response.data['primary'], True)
-        self.assertEqual(response.data['user']['id'], user.id)
-        card = CreditCardToken.objects.get(user=user)
-        self.assertEqual(card.payment_id, '567453')
-        user.refresh_from_db()
-        self.assertEqual(user.authorize_token, '5643')
-        mock_create_card.assert_called_with(
-            CardInfo(number='4111111111111111', exp_month=2, exp_year=2034, cvv='555'),
-            AddressInfo(country='US', postal_code='44444', first_name='Jim', last_name='Bob'),
-            '5643',
-        )
-        mock_create_customer_profile.expect_called_with(user.email)
-
-    @freeze_time('2018-01-01 12:00:00')
-    @patch('apps.sales.models.create_customer_profile')
-    @patch('apps.sales.models.create_card')
-    def test_add_card_error(self, mock_create_card, mock_create_customer_profile):
-        user = UserFactory.create(authorize_token='')
-        self.login(user)
-        mock_create_customer_profile.side_effect = AuthorizeException('Wat')
-        response = self.client.post(
-            '/api/sales/v1/account/{}/cards/'.format(user.username),
-            {
-                'first_name': 'Jim',
-                'last_name': 'Bob',
-                'country': 'US',
-                'number': '4111 1111 1111 1111',
-                'exp_date': '02/34',
-                'zip': '44444',
-                'cvv': '555',
-            }
-        )
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['detail'], 'Wat')
-        mock_create_card.assert_not_called()
-
-    @patch('apps.sales.models.create_customer_profile')
-    @patch('apps.sales.models.create_card')
-    def test_add_card_primary_exists(self, mock_create_card, _mock_create_customer_profile):
-        user = UserFactory.create(authorize_token='12345')
-        self.login(user)
-        primary_card = CreditCardTokenFactory(user=user)
-        user.primary_card = primary_card
-        user.save()
-        mock_create_card.return_value = '64858'
-        response = self.client.post(
-            '/api/sales/v1/account/{}/cards/'.format(user.username),
-            {
-                'first_name': 'Jim',
-                'last_name': 'Bob',
-                'country': 'US',
-                'number': '4111 1111 1111 1111',
-                'exp_date': '02/34',
-                'security_code': '555',
-                'zip': '44444',
-                'cvv': '555',
-            }
-        )
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data['type'], 1)
-        self.assertEqual(response.data['primary'], False)
-        self.assertEqual(response.data['user']['id'], user.id)
-        self.assertEqual(CreditCardToken.objects.filter(user=user).count(), 2)
-        user.refresh_from_db()
-        self.assertEqual(user.primary_card.id, primary_card.id)
-
-    @patch('apps.sales.models.create_customer_profile')
-    @patch('apps.sales.models.create_card')
-    def test_add_card_new_primary(self, mock_create_card, mock_create_customer_profile):
-        user = UserFactory.create(authorize_token='12345')
-        self.login(user)
-        card = CreditCardTokenFactory(user=user)
-        user.primary_card = card
-        user.save()
-        mock_create_card.return_value = '6789'
-        response = self.client.post(
-            '/api/sales/v1/account/{}/cards/'.format(user.username),
-            {
-                'first_name': 'Jim',
-                'last_name': 'Bob',
-                'country': 'US',
-                'number': '4111 1111 1111 1111',
-                'exp_date': '02/34',
-                'security_code': '555',
-                'zip': '44444',
-                'cvv': '555',
-                'make_primary': True
-            }
-        )
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data['type'], 1)
-        self.assertEqual(response.data['primary'], True)
-        self.assertEqual(response.data['user']['id'], user.id)
-        self.assertEqual(CreditCardToken.objects.filter(user=user).count(), 2)
-        user.refresh_from_db()
-        self.assertEqual(user.primary_card.id, response.data['id'])
-        self.assertFalse(mock_create_customer_profile.called)
-
-    @patch('apps.sales.models.create_customer_profile')
-    @patch('apps.sales.models.create_card')
-    def test_card_add_not_logged_in(self, mock_create_card, _mock_create_customer_profile):
-        user = UserFactory.create()
-        primary_card = CreditCardTokenFactory(user=user)
-        user.primary_card = primary_card
-        user.save()
-        mock_create_card.return_value = '12345|6789'
-        response = self.client.post(
-            '/api/sales/v1/account/{}/cards/'.format(user.username),
-            {
-                'first_name': 'Jim',
-                'last_name': 'Bob',
-                'country': 'US',
-                'number': '4111 1111 1111 1111',
-                'exp_date': '02/34',
-                'security_code': '555',
-                'zip': '44444',
-                'cvv': '555',
-            }
-        )
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-    @patch('apps.sales.models.create_customer_profile')
-    @patch('apps.sales.models.create_card')
-    def test_add_card_outsider(self, mock_card_api, mock_create_customer_profile):
-        mock_create_customer_profile.return_value = '2345'
-        mock_card_api.return_value = '1234'
-        user = UserFactory.create()
-        user2 = UserFactory.create()
-        self.login(user2)
-        primary_card = CreditCardTokenFactory(user=user)
-        user.primary_card = primary_card
-        user.save()
-        response = self.client.post(
-            '/api/sales/v1/account/{}/cards/'.format(user.username),
-            {
-                'first_name': 'Jim',
-                'last_name': 'Bob',
-                'country': 'US',
-                'number': '4111 1111 1111 1111',
-                'exp_date': '02/34',
-                'security_code': '555',
-                'zip': '44444',
-                'cvv': '555',
-            }
-        )
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-    @freeze_time('2018-01-01 12:00:00')
-    @patch('apps.sales.models.create_customer_profile')
-    @patch('apps.sales.models.create_card')
-    def test_add_card_staffer(self, mock_create_card, mock_create_customer_profile):
-        mock_create_customer_profile.return_value = '1234'
-        user = UserFactory.create()
-        staffer = UserFactory.create(is_staff=True)
-        self.login(staffer)
-        mock_create_card.return_value = '6543'
-        response = self.client.post(
-            '/api/sales/v1/account/{}/cards/'.format(user.username),
-            {
-                'first_name': 'Jim',
-                'last_name': 'Bob',
-                'country': 'US',
-                'number': '4111 1111 1111 1111',
-                'exp_date': '02/34',
-                'security_code': '555',
-                'zip': '44444',
-                'cvv': '555',
-            }
-        )
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data['type'], 1)
-        self.assertEqual(response.data['primary'], True)
-        self.assertEqual(response.data['user']['id'], user.id)
-        self.assertEqual(response.data['last_four'], '1111')
-        card = CreditCardToken.objects.get(user=user)
-        self.assertEqual(card.payment_id, '6543')
-
-    @freeze_time('2018-01-01 12:00:00')
-    @patch('apps.sales.models.create_card')
-    @patch('apps.sales.views.renew')
-    def test_add_card_renew_landscape(self, mock_renew, mock_create_card):
-        user = UserFactory.create()
-        user.landscape_enabled = True
-        user.landscape_paid_through = date(2017, 5, 1)
-        user.save()
-        self.login(user)
-        mock_create_card.return_value = '923047'
-        response = self.client.post(
-            '/api/sales/v1/account/{}/cards/'.format(user.username),
-            {
-                'first_name': 'Jim',
-                'last_name': 'Bob',
-                'country': 'US',
-                'number': '4111 1111 1111 1111',
-                'exp_date': '02/34',
-                'zip': '44444',
-                'cvv': '555',
-            }
-        )
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        mock_renew.delay.assert_called_with(user.id)
-        mock_create_card.assert_called_with(
-            CardInfo(number='4111111111111111', exp_month=2, exp_year=2034, cvv='555'),
-            AddressInfo(country='US', postal_code='44444', first_name='Jim', last_name='Bob'),
-            user.authorize_token,
-        )
-
     def test_make_primary(self):
         user = UserFactory.create()
         cards = [CreditCardTokenFactory(user=user) for __ in range(4)]
@@ -523,17 +294,6 @@ class TestCardManagement(APITestCase):
         for card in cards:
             self.assertIDInList(card, response.data)
 
-    def test_card_listing_authorize(self):
-        user = UserFactory.create()
-        self.login(user)
-        authorize_cards = [CreditCardTokenFactory(user=user, token='boop', stripe_token='') for __ in range(3)]
-        _stripe_cards = [CreditCardTokenFactory(user=user, token='', stripe_token='boop') for __ in range(2)]
-        response = self.client.get('/api/sales/v1/account/{}/cards/authorize/'.format(user.username))
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        for card in authorize_cards:
-            self.assertIDInList(card, response.data)
-        self.assertEqual(len(response.data), len(authorize_cards))
-
     def test_card_listing_stripe(self):
         user = UserFactory.create()
         self.login(user)
@@ -560,11 +320,11 @@ class TestCardManagement(APITestCase):
         for card in cards:
             self.assertIDInList(card, response.data)
 
-    @patch('apps.sales.authorize.execute')
-    def test_card_removal(self, _mock_execute):
+    @patch('apps.sales.models.delete_payment_method')
+    def test_card_removal(self, _delete_payment_method):
         user = UserFactory.create()
         self.login(user)
-        cards = [CreditCardTokenFactory(user=user) for __ in range(4)]
+        cards = [CreditCardTokenFactory(user=user, stripe_token=f'{i}') for i in range(4)]
         self.assertEqual(cards[0].active, True)
         self.assertEqual(cards[2].active, True)
         response = self.client.delete('/api/sales/v1/account/{}/cards/{}/'.format(user.username, cards[2].id))
@@ -574,7 +334,7 @@ class TestCardManagement(APITestCase):
         cards[0].refresh_from_db()
         self.assertEqual(cards[0].active, True)
 
-    @patch('apps.sales.authorize.execute')
+    @patch('apps.sales.models.delete_payment_method')
     def test_card_removal_new_primary(self, _mock_execute):
         old_card = CreditCardTokenFactory.create()
         new_card = CreditCardTokenFactory.create(user=old_card.user)
@@ -587,34 +347,34 @@ class TestCardManagement(APITestCase):
         user.refresh_from_db()
         self.assertEqual(user.primary_card, old_card)
 
-    @patch('apps.sales.authorize.execute')
+    @patch('apps.sales.models.delete_payment_method')
     def test_card_removal_not_logged_in(self, _mock_execute):
         user = UserFactory.create()
-        cards = [CreditCardTokenFactory(user=user) for __ in range(4)]
+        cards = [CreditCardTokenFactory(user=user, stripe_token=f'{i}') for i in range(4)]
         self.assertEqual(cards[2].active, True)
         response = self.client.delete('/api/sales/v1/account/{}/cards/{}/'.format(user.username, cards[2].id))
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         cards[2].refresh_from_db()
         self.assertEqual(cards[2].active, True)
 
-    @patch('apps.sales.authorize.execute')
+    @patch('apps.sales.models.delete_payment_method')
     def test_card_removal_outsider(self, _mock_execute):
         user = UserFactory.create()
         user2 = UserFactory.create()
         self.login(user2)
-        cards = [CreditCardTokenFactory(user=user) for __ in range(4)]
+        cards = [CreditCardTokenFactory(user=user, stripe_token=f'{i}') for i in range(4)]
         self.assertEqual(cards[2].active, True)
         response = self.client.delete('/api/sales/v1/account/{}/cards/{}/'.format(user.username, cards[2].id))
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         cards[2].refresh_from_db()
         self.assertEqual(cards[2].active, True)
 
-    @patch('apps.sales.authorize.execute')
+    @patch('apps.sales.models.delete_payment_method')
     def test_card_removal_staff(self, _mock_execute):
         user = UserFactory.create()
         staffer = UserFactory.create(is_staff=True)
         self.login(staffer)
-        cards = [CreditCardTokenFactory(user=user) for __ in range(4)]
+        cards = [CreditCardTokenFactory(user=user, stripe_token=f'{i}') for i in range(4)]
         self.assertEqual(cards[0].active, True)
         self.assertEqual(cards[2].active, True)
         response = self.client.delete('/api/sales/v1/account/{}/cards/{}/'.format(user.username, cards[2].id))
@@ -1090,47 +850,13 @@ class TestProductSearch(APITestCase):
         self.assertEqual(len(response.data['results']), 3)
 
 
-@override_settings(LANDSCAPE_PRICE=Decimal('6.00'))
-class TestPremium(APITestCase):
-    @freeze_time('2017-11-10 12:00:00')
-    @patch('apps.sales.utils.charge_saved_card')
-    def test_landscape(self, mock_charge_card):
-        user = UserFactory.create()
-        self.login(user)
-        card = CreditCardTokenFactory.create(user=user, cvv_verified=True)
-        mock_charge_card.return_value = ('36985214745', 'ABC123')
-        response = self.client.post('/api/sales/v1/premium/', {'card_id': card.id})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        user.refresh_from_db()
-        self.assertTrue(user.landscape_enabled)
-        self.assertEqual(user.landscape_paid_through, date(2017, 12, 10))
-        mock_charge_card.assert_called_with(
-            payment_id=card.payment_id, profile_id=card.profile_id, amount=Decimal('6.00'), cvv=None
-        )
-
-    @freeze_time('2017-11-10 12:00:00')
-    @patch('apps.sales.utils.charge_saved_card')
-    def test_card_failure(self, mock_charge_card):
-        user = UserFactory.create()
-        self.login(user)
-        card = CreditCardTokenFactory.create(user=user, cvv_verified=True)
-        mock_charge_card.side_effect = AuthorizeException('It borked!')
-        response = self.client.post('/api/sales/v1/premium/', {'service': 'landscape', 'card_id': card.id})
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        user.refresh_from_db()
-        self.assertFalse(user.landscape_enabled)
-        self.assertIsNone(user.landscape_paid_through)
-        mock_charge_card.assert_called_with(
-            profile_id=card.profile_id, payment_id=card.payment_id, amount=Decimal('6.00'), cvv=None,
-        )
-
-
-class TestCancelPremium(APITestCase):
+class TestCancelPremium(EnsurePlansMixin, APITestCase):
     def test_cancel(self):
         user = UserFactory.create()
         self.login(user)
-        user.landscape_enabled = True
-        user.landscape_paid_through = date(2017, 11, 18)
+        user.service_plan = self.landscape
+        user.next_service_plan = self.landscape
+        user.service_plan_paid_through = date(2017, 11, 18)
         user.save()
         response = self.client.post(f'/api/sales/v1/account/{user.username}/cancel-premium/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -1896,10 +1622,14 @@ class TestReferences(APITestCase):
 
 
 class TestCreateDeliverable(APITestCase):
+    def setUp(self):
+        self.landscape = ServicePlanFactory.create(name='Landscape')
+
     def test_create_deliverable(self):
         old_deliverable = DeliverableFactory.create(
             order__seller__artist_profile__bank_account_status=IN_SUPPORTED_COUNTRY,
-            order__seller__landscape_paid_through=(timezone.now() + relativedelta(days=5)).date(),
+            order__seller__service_plan=self.landscape,
+            order__seller__service_plan_paid_through=(timezone.now() + relativedelta(days=5)).date(),
         )
         product = ProductFactory.create(
             expected_turnaround=2,
@@ -1957,7 +1687,8 @@ class TestCreateDeliverable(APITestCase):
             product__revisions=1,
             product__base_price=Money('3.00', 'USD'),
             product__user__artist_profile__bank_account_status=IN_SUPPORTED_COUNTRY,
-            product__user__landscape_paid_through=timezone.now() - relativedelta(days=5),
+            product__user__service_plan_paid_through=timezone.now() - relativedelta(days=5),
+            product__user__service_plan=self.landscape,
         )
         self.login(old_deliverable.order.seller)
         response = self.client.post(f'/api/sales/v1/order/{old_deliverable.order.id}/deliverables/', {

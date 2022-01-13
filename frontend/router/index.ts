@@ -83,6 +83,7 @@ const NotFound = () => import('@/components/views/NotFound.vue')
 const ConversationDetail = () => import('@/components/views/ConversationDetail.vue')
 const SubmissionList = () => import('@/components/views/profile/SubmissionList.vue')
 const Queue = () => import('@/components/views/Queue.vue')
+const InvoiceDetail = () => import('@/components/views/invoice/InvoiceDetail.vue')
 
 function orderViews() {
   const orderRoutes: RouteConfig[] = []
@@ -405,6 +406,12 @@ export const routes = [
     path: '/profile/:username/queue/',
     name: 'Queue',
     component: Queue,
+    props: true,
+  },
+  {
+    path: '/profile/:username/invoices/:invoiceId/',
+    name: 'InvoiceDetail',
+    component: InvoiceDetail,
     props: true,
   },
   {

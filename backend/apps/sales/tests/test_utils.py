@@ -12,6 +12,7 @@ from moneyed import Money
 
 from apps.lib.models import Notification, ORDER_UPDATE, Subscription, COMMISSIONS_OPEN
 from apps.lib.test_resources import SignalsDisabledMixin
+from apps.lib.tests.test_utils import EnsurePlansMixin
 from apps.profiles.models import User
 from apps.profiles.tests.factories import UserFactory
 from apps.sales.models import TransactionRecord, LineItemSim, CANCELLED, IN_PROGRESS
@@ -143,10 +144,10 @@ class TestClaim(TestCase):
         self.assertEqual(notification.event.target, deliverable)
 
 
-class TestCheckChargeRequired(TestCase):
+class TestCheckChargeRequired(EnsurePlansMixin, TestCase):
     @freeze_time('2018-02-10 12:00:00')
     def test_check_charge_not_required_landscape(self):
-        user = UserFactory.create(landscape_paid_through=date(2018, 2, 12))
+        user = UserFactory.create(service_plan_paid_through=date(2018, 2, 12), service_plan=self.landscape)
         self.assertEqual(check_charge_required(user), (False, date(2018, 2, 12)))
 
 
@@ -640,11 +641,11 @@ class TestMoneyHelpers(TestCase):
 
 class TransactionCheckMixin:
     def check_transactions(
-            self, deliverable, user, remote_id='36985214745', auth_code='ABC123', source=TransactionRecord.CARD,
+            self, deliverable, user, remote_id='36985214745', source=TransactionRecord.CARD,
             landscape=False,
     ):
         escrow_transactions = TransactionRecord.objects.filter(
-            auth_code=auth_code, source=source, destination=TransactionRecord.ESCROW,
+            source=source, destination=TransactionRecord.ESCROW,
         )
         if remote_id:
             escrow_transactions = escrow_transactions.filter(remote_ids__contains=remote_id)
@@ -665,7 +666,7 @@ class TransactionCheckMixin:
         self.assertEqual(escrow.payee, deliverable.order.seller)
 
         fee_candidates = TransactionRecord.objects.filter(
-            source=source, auth_code=auth_code,
+            source=source,
             destination=TransactionRecord.UNPROCESSED_EARNINGS,
         )
         if remote_id:

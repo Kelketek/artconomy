@@ -18,14 +18,13 @@ from urllib3.exceptions import HTTPError
 from apps.lib.models import RENEWAL_FAILURE, SUBSCRIPTION_DEACTIVATED, RENEWAL_FIXED, TRANSFER_FAILED, ref_for_instance
 from apps.lib.utils import notify, send_transaction_email, require_lock
 from apps.profiles.models import User
-from apps.sales.apis import dwolla, AUTHORIZE, STRIPE
-from apps.sales.authorize import AuthorizeException, charge_saved_card
-from apps.sales.dwolla import initiate_withdraw, perform_transfer, TRANSACTION_STATUS_MAP
+from apps.sales.apis import dwolla
+from apps.sales.dwolla import TRANSACTION_STATUS_MAP
 from apps.sales.models import CreditCardToken, TransactionRecord, REVIEW, NEW, Deliverable, CANCELLED, \
-    PREMIUM_SUBSCRIPTION, PAID, COMPLETED, StripeAccount
+    PREMIUM_SUBSCRIPTION, COMPLETED, StripeAccount, ServicePlan
 from apps.sales.stripe import stripe, money_to_stripe
-from apps.sales.utils import set_premium, finalize_deliverable, account_balance, destroy_deliverable, \
-    get_term_invoice, get_user_processor, fetch_prefixed, divide_amount
+from apps.sales.utils import finalize_deliverable, account_balance, destroy_deliverable, \
+    get_term_invoice, fetch_prefixed, divide_amount
 from conf.celery_config import celery_app
 
 
@@ -57,56 +56,18 @@ def renew_stripe_card(*, invoice, price, user, card):
             return False
 
 
-def renew_authorize_card(*, invoice, price, user, card):
-    record = TransactionRecord.objects.create(
-        card=card,
-        payer=user,
-        payee=None,
-        status=TransactionRecord.FAILURE,
-        source=TransactionRecord.CARD,
-        destination=TransactionRecord.UNPROCESSED_EARNINGS,
-        category=TransactionRecord.SUBSCRIPTION_DUES,
-        amount=price,
-        response_message="Failed when contacting payment processor.",
-    )
-    record.targets.add(ref_for_instance(user), ref_for_instance(invoice))
-    try:
-        remote_id, auth_code = charge_saved_card(
-            profile_id=card.profile_id, payment_id=card.payment_id, amount=price.amount,
-        )
-    except AuthorizeException as err:
-        record.response_message = str(err)
-        record.save()
-        notify(
-            RENEWAL_FAILURE, user, data={
-                'error': "Card ending in {} -- {}".format(card.last_four, record.response_message)}, unique=True
-        )
-        return False
-    record.status = TransactionRecord.SUCCESS
-    record.remote_ids = [remote_id]
-    record.auth_code = auth_code
-    record.finalized = True
-    record.response_message = 'Upgraded to landscape'
-    card.cvv_verified = True
-    card.save()
-    record.save()
-    set_premium(user, target_date=date.today() + relativedelta(months=1))
-    invoice.paid_on = timezone.now()
-    invoice.status = PAID
-    invoice.save()
-    return True
-
-
 @celery_app.task
 def renew(user_id, card_id=None):
     user = User.objects.get(id=user_id)
-    enabled = user.landscape_enabled
-    paid_through = user.landscape_paid_through
+    enabled = user.service_plan
+    paid_through = user.service_plan_paid_through
     old = paid_through and paid_through <= date.today()
     if old is None:
         # This should never happen.
         logger.error(
-            "!!! {}({}) has NONE for landscape_paid_through with landscape enabled!".format(user.username, user.id)
+            "!!! {}({}) has NONE for service_plan_paid_through with subscription enabled!".format(
+                user.username, user.id,
+            )
         )
         return
     if not (enabled and old):
@@ -124,18 +85,28 @@ def renew(user_id, card_id=None):
             notify(RENEWAL_FAILURE, user, data={'error': 'No card on file!'}, unique=True)
             return
         card = cards[0]
-    price = Money(settings.LANDSCAPE_PRICE, 'USD')
+    price = user.service_plan.monthly_charge
     invoice = get_term_invoice(user)
-    invoice.line_items.update_or_create(
-        defaults={'amount': price, 'description': 'Landscape'},
+    item, _created = invoice.line_items.update_or_create(
+        defaults={'amount': price, 'description': user.service_plan.name},
         destination_account=TransactionRecord.UNPROCESSED_EARNINGS,
         type=PREMIUM_SUBSCRIPTION,
         destination_user=None,
     )
-    if card.token:
-        success = renew_authorize_card(invoice=invoice, user=user, card=card, price=price)
-    else:
-        success = renew_stripe_card(invoice=invoice, user=user, card=card, price=price)
+    item.targets.add(ref_for_instance(user.service_plan))
+    # # The following to be enabled once the plan refactor is completed:
+    # for deliverable in Deliverable.objects.filter(service_invoice_marked=False, escrow_disabled=True):
+    #     item, _created = invoice.line_items.update_or_create(
+    #         defaults={
+    #             'amount': user.service_plan.per_deliverable_price,
+    #             'description': f'Tracking deliverable #{deliverable.id}',
+    #         }
+    #     )
+    #     item.targets.add(ref_for_instance(deliverable))
+    #     deliverable.service_invoice_marked = True
+    #     deliverable.save()
+
+    success = renew_stripe_card(invoice=invoice, user=user, card=card, price=price)
     if not success:
         return
     if card_id or (paid_through < date.today()):
@@ -149,14 +120,20 @@ def renew(user_id, card_id=None):
 def run_billing():
     # Anyone we've not been able to renew for five days, assume won't be renewing automatically.
     users = User.objects.filter(
-        Q(landscape_enabled=True, landscape_paid_through__lte=date.today() - relativedelta(days=5))
+        Q(service_plan__isnull=False, service_plan_paid_through__lte=date.today() - relativedelta(days=5))
+    ).exclude(
+        # We assume that the default plan is a free plan.
+        Q(service_plan__name=settings.DEFAULT_SERVICE_PLAN_NAME) & Q(service_plan__hidden=False),
     )
     for user in users:
         logger.info('Deactivated {}({})'.format(user.username, user.id))
         notify(SUBSCRIPTION_DEACTIVATED, user, unique=True)
-        user.landscape_enabled = False
+        user.service_plan = ServicePlan.objects.get(name=settings.DEFAULT_SERVICE_PLAN_NAME, hidden=False)
         user.save()
-    users = User.objects.filter(landscape_enabled=True, landscape_paid_through__lte=date.today())
+        # TODO: What other effects should happen if the user hasn't paid their dues?
+    users = User.objects.filter(
+        service_plan__isnull=False, service_plan_paid_through__lte=date.today(),
+    ).exclude(Q(service_plan__name=settings.DEFAULT_SERVICE_PLAN_NAME) & Q(service_plan__hidden=False))
     for user in users:
         renew.delay(user.id)
 
@@ -279,12 +256,13 @@ def record_to_deliverable_map(user, bank: StripeAccount, amount: Money) -> Recor
         source=TransactionRecord.HOLDINGS,
         payee=user,
         payer=user,
+        category=TransactionRecord.CASH_WITHDRAW,
         destination=TransactionRecord.BANK,
         status=TransactionRecord.PENDING,
         note='Remaining amount, not connected to deliverables. May need annotations later.'
     )
     record_map[None] = record
-    return record
+    return record_map
 
 
 @celery_app.task
@@ -336,35 +314,19 @@ def withdraw_all(user_id):
     user = User.objects.get(id=user_id)
     if not user.artist_profile.auto_withdraw:
         return
-    processor = get_user_processor(user)
-    if processor == AUTHORIZE:
-        banks = user.banks.filter(deleted=False)
-        if not banks:
-            return
-    elif processor == STRIPE:
-        if not hasattr(user, 'stripe_account'):
-            return
-        banks = [user.stripe_account]
-    else:
-        raise Exception(f"Unknown payment processor-- thus, unknown payout processor. Value was: {user.processor}")
+    if not hasattr(user, 'stripe_account'):
+        return
+    banks = [user.stripe_account]
     balance = account_balance(user, TransactionRecord.HOLDINGS)
     if balance <= 0:
         return
     with transaction.atomic():
-        if processor == 'authorize':
-            record, deliverables = initiate_withdraw(user, banks[0], Money(balance, 'USD'), test_only=False)
-            try:
-                perform_transfer(record, deliverables, note='Disbursement')
-            except Exception as err:
-                notify(TRANSFER_FAILED, user, data={'error': str(err)})
-        elif processor == 'stripe':
-            record_map = record_to_deliverable_map(user, banks[0], Money(balance, 'USD'))
-            for deliverable, record in record_map.items():
+        record_map = record_to_deliverable_map(user, banks[0], Money(balance, 'USD'))
+        for deliverable, record in record_map.items():
+            if deliverable:
                 deliverable.payout_sent = True
                 deliverable.save()
-                stripe_transfer.delay(record.id, banks[0].id, deliverable and deliverable.id)
-        else:
-            raise RuntimeError(f'Got unknown processor: {processor}')
+            stripe_transfer.delay(record.id, banks[0].id, deliverable and deliverable.id)
 
 
 @celery_app.task

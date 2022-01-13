@@ -13,7 +13,7 @@ from apps.profiles.middleware import derive_session_settings
 from apps.profiles.models import Character, Submission, User, Conversation, ConversationParticipant
 from apps.sales.dwolla import destroy_bank_account
 from apps.sales.models import TransactionRecord, DISPUTED, IN_PROGRESS, QUEUED, REVIEW, PAYMENT_PENDING, NEW, \
-    Deliverable, WAITING, StripeAccount, CreditCardToken
+    Deliverable, WAITING, StripeAccount, CreditCardToken, ServicePlan
 from apps.sales.utils import account_balance, PENDING, cancel_deliverable
 
 
@@ -96,11 +96,12 @@ def available_users(user):
 
 def extend_landscape(user, months):
     today = timezone.now().date()
-    if user.landscape_paid_through and user.landscape_paid_through > today:
+    if user.service_plan_paid_through and user.service_plan_paid_through > today:
         start_point = user.landscape_paid_through
     else:
         start_point = today
-    user.landscape_paid_through = start_point + relativedelta(months=months)
+    user.service_plan_paid_through = start_point + relativedelta(months=months)
+    user.service_plan = ServicePlan.objects.get(name='Landscape')
     user.save()
 
 

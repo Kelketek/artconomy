@@ -10,7 +10,7 @@ from apps.lib.utils import notify, recall_notification, send_transaction_email, 
     mark_modified, clear_events_subscriptions_and_comments
 from apps.profiles.models import Submission, ArtconomyAnonymousUser
 from apps.profiles.tests.factories import SubmissionFactory, UserFactory
-
+from apps.sales.models import ServicePlan
 
 LOGGING = {
     'version': 1,
@@ -293,3 +293,10 @@ class TestClearCommentsEventsSubscriptions(TestCase):
         unrelated_event.refresh_from_db()
         self.assertRaises(Comment.DoesNotExist, comment.refresh_from_db)
         unrelated_comment.refresh_from_db()
+
+
+class EnsurePlansMixin:
+    def setUp(self):
+        self.landscape = ServicePlan.objects.get_or_create(name='Landscape')[0]
+        self.free = ServicePlan.objects.get_or_create(name='Free')[0]
+        super().setUp()

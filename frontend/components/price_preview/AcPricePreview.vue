@@ -1,5 +1,5 @@
 <template>
-  <ac-load-section :controller="pricing">
+  <ac-load-section :controller="pricing" class="py-2">
     <ac-load-section :controller="subjectHandler.user">
       <template v-slot:default>
         <ac-load-section :controller="lineItems" v-if="validPrice" class="compact-fields">

@@ -1,4 +1,3 @@
-from collections import Iterable
 from decimal import Decimal
 from functools import lru_cache
 from typing import List
@@ -16,7 +15,6 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import SerializerMethodField, DecimalField, IntegerField, FloatField, EmailField, ModelField, \
     ListField
-from rest_framework.utils.serializer_helpers import ReturnDict
 from short_stuff import unslugify
 from short_stuff.django.serializers import ShortCodeField
 
@@ -37,7 +35,7 @@ from apps.sales.models import (
     Product, Order, CreditCardToken, Revision, BankAccount,
     LineItemSim, Rating, TransactionRecord, LineItem, ADD_ON, TIP, BASE_PRICE, InventoryTracker,
     EXTRA, PAYMENT_PENDING, NEW, Deliverable, Reference,
-    WAITING, StripeAccount,
+    WAITING, StripeAccount, Invoice,
 )
 from apps.sales.stripe import stripe
 from apps.sales.utils import account_balance, PENDING, POSTED_ONLY, AVAILABLE, get_totals, order_context, \
@@ -408,14 +406,15 @@ class DeliverableViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer)
 class LineItemSerializer(serializers.ModelSerializer):
     percentage = serializers.FloatField()
     amount = MoneyToFloatField()
+    targets = EventTargetRelatedField(read_only=True, many=True)
 
     class Meta:
         model = LineItem
         fields = (
             'id', 'priority', 'percentage', 'amount', 'type', 'destination_account', 'destination_user',
-            'description', 'cascade_percentage', 'cascade_amount', 'back_into_percentage',
+            'description', 'cascade_percentage', 'cascade_amount', 'back_into_percentage', 'targets',
         )
-        read_only_fields = ['id', 'priority', 'destination_account', 'destination_user']
+        read_only_fields = ['id', 'priority', 'destination_account', 'destination_user', 'targets']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -424,17 +423,20 @@ class LineItemSerializer(serializers.ModelSerializer):
                 self.fields['percentage'].read_only = True
             if self.instance.id:
                 self.fields['type'].read_only = True
+            if not self.context.get('deliverable') and self.context['request'].user.is_staff:
+                self.fields['destination_account'].read_only = False
+                self.fields['destination_user'].read_only = False
 
     def validate_type(self, value):
-        deliverable = self.context['deliverable']
+        deliverable = self.context.get('deliverable')
         user = self.context['request'].user
         if user.is_staff:
             permitted_types = [EXTRA, ADD_ON, TIP]
-        elif user == deliverable.order.seller:
+        elif deliverable and user == deliverable.order.seller:
             permitted_types = [ADD_ON]
             if deliverable.product is None:
                 permitted_types.append(BASE_PRICE)
-        elif user == deliverable.order.buyer:
+        elif deliverable and user == deliverable.order.buyer:
             permitted_types = [TIP]
         else:
             permitted_types = []
@@ -1302,3 +1304,13 @@ class StripeBankSetupSerializer(serializers.Serializer):
         if parsed.hostname not in settings.ALLOWED_HOSTS and '*' not in settings.ALLOWED_HOSTS:
             raise ValidationError('Unrecognized domain.')
         return value
+
+
+class InvoiceSerializer(serializers.ModelSerializer):
+    id = ShortCodeField()
+    bill_to = RelatedUserSerializer()
+
+    class Meta:
+        fields = ('id', 'status', 'type', 'bill_to', 'created_on', 'paid_on')
+        read_only_fields = fields
+        model = Invoice

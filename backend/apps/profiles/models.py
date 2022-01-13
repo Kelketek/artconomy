@@ -45,7 +45,7 @@ from apps.profiles.permissions import (
     SubmissionViewPermission, SubmissionCommentPermission, MessageReadPermission,
     JournalCommentPermission,
     IsRegistered, UserControls)
-from apps.sales.apis import PROCESSOR_CHOICES, STRIPE, AUTHORIZE
+from apps.sales.apis import PROCESSOR_CHOICES
 from shortcuts import make_url, disable_on_load
 
 
@@ -117,8 +117,12 @@ class User(AbstractEmailUser, HitsMixin):
     bought_shield_on = DateTimeField(null=True, default=None, blank=True, db_index=True)
     sold_shield_on = DateTimeField(null=True, default=None, blank=True, db_index=True)
     watching = ManyToManyField('User', symmetrical=False, related_name='watched_by', blank=True)
-    landscape_enabled = BooleanField(default=False, db_index=True)
-    landscape_paid_through = DateField(null=True, default=None, blank=True, db_index=True)
+    # Don't create the migration for removing these until service plans have been created and are active in production.
+    # landscape_enabled = BooleanField(default=False, db_index=True, null=True)
+    # landscape_paid_through = DateField(null=True, default=None, blank=True, db_index=True)
+    next_service_plan = ForeignKey('sales.ServicePlan', related_name='future_users', null=True, blank=True, on_delete=SET_NULL)
+    service_plan = ForeignKey('sales.ServicePlan', related_name='current_users', null=True, blank=True, on_delete=SET_NULL)
+    service_plan_paid_through = DateField(null=True, default=None, blank=True)
     registration_code = ForeignKey('sales.Promo', null=True, blank=True, on_delete=SET_NULL)
     # Whether the user's been offered the mailing list
     offered_mailchimp = BooleanField(default=False)
@@ -169,7 +173,28 @@ class User(AbstractEmailUser, HitsMixin):
 
     @property
     def landscape(self) -> bool:
-        return bool(self.landscape_paid_through and self.landscape_paid_through >= date.today())
+        return bool(
+                self.service_plan and self.service_plan.name == 'Landscape' and
+                self.service_plan_paid_through and self.service_plan_paid_through >= date.today()
+        )
+
+    @property
+    def landscape_paid_through(self):
+        if not (self.service_plan and self.service_plan.name == 'Landscape'):
+            return None
+        return self.service_plan_paid_through
+
+    @property
+    def landscape_enabled(self):
+        return bool(self.next_service_plan and self.next_service_plan.name == 'Landscape')
+
+    @landscape_enabled.setter
+    def landscape_enabled(self, value: bool):
+        from apps.sales.models import ServicePlan
+        if value:
+            self.next_service_plan = ServicePlan.objects.get(name='Landscape')
+        else:
+            self.next_service_plan = ServicePlan.objects.get(name=settings.DEFAULT_SERVICE_PLAN_NAME, hidden=False)
 
     @property
     def is_registered(self):
@@ -234,8 +259,10 @@ user_logged_out.connect(signal_trigger_reconnect)
 @receiver(pre_save, sender=User)
 @disable_on_load
 def reg_code_action(sender, instance, **_kwargs):
+    from apps.sales.models import ServicePlan
     if instance.id is None and instance.registration_code:
-        instance.landscape_paid_through = timezone.now().date() + relativedelta(months=1)
+        instance.service_plan = ServicePlan.objects.get(name='Landscape')
+        instance.service_plan_paid_through = timezone.now().date() + relativedelta(months=1)
         send_transaction_email('Welcome to Landscape.', 'registration_code.html', instance, {})
 
 

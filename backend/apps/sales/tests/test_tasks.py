@@ -14,22 +14,26 @@ from freezegun import freeze_time
 from apps.lib.models import SUBSCRIPTION_DEACTIVATED, Notification, RENEWAL_FAILURE, RENEWAL_FIXED, TRANSFER_FAILED, \
     ref_for_instance
 from apps.profiles.tests.factories import UserFactory
-from apps.sales.authorize import AuthorizeException
 from apps.sales.models import TransactionRecord, REVIEW, PAYMENT_PENDING, NEW, CANCELLED, IN_PROGRESS, Deliverable
 from apps.sales.tasks import run_billing, renew, update_transfer_status, remind_sales, remind_sale, check_transactions, \
     withdraw_all, auto_finalize_run, auto_finalize, get_transaction_fees, clear_cancelled_deliverables, \
     clear_deliverable, recover_returned_balance, annotate_connect_fees_for_year_month, annotate_connect_fees
 from apps.sales.tests.factories import CreditCardTokenFactory, TransactionRecordFactory, DeliverableFactory, \
-    BankAccountFactory, StripeAccountFactory
+    StripeAccountFactory, ServicePlanFactory
 
 
-@override_settings(LANDSCAPE_PRICE=Decimal('6.00'))
 class TestAutoRenewal(TestCase):
+
+    def setUp(self):
+        super().setUp()
+        ServicePlanFactory(monthly_charge=Money('0.00', 'USD'), name='Free')
+        self.service_plan = ServicePlanFactory(monthly_charge=Money('6.00', 'USD'))
+
     @patch('apps.sales.tasks.renew')
     @freeze_time('2018-02-10 12:00:00')
     def test_tasks_made(self, mock_renew):
-        disable = UserFactory.create(landscape_enabled=True, landscape_paid_through=date(2018, 2, 5))
-        renew_landscape = UserFactory.create(landscape_enabled=True, landscape_paid_through=date(2018, 2, 9))
+        disable = UserFactory.create(service_plan=self.service_plan, service_plan_paid_through=date(2018, 2, 5))
+        renew_landscape = UserFactory.create(service_plan=self.service_plan, service_plan_paid_through=date(2018, 2, 9))
         run_billing()
         disable.refresh_from_db()
         self.assertFalse(disable.landscape_enabled)
@@ -38,129 +42,6 @@ class TestAutoRenewal(TestCase):
         self.assertEqual(len(mail.outbox), 1)
         for letter in mail.outbox:
             self.assertEqual(letter.subject, 'Your subscription has been deactivated.')
-
-    @patch('apps.sales.tasks.charge_saved_card')
-    @freeze_time('2018-02-10 12:00:00')
-    def test_renew_no_primary(self, mock_charge_card):
-        mock_charge_card.return_value = 'Trans123', 'ABC123'
-        card = CreditCardTokenFactory.create(
-            user__landscape_enabled=True, user__landscape_paid_through=date(2018, 2, 10),
-            token='1234', user__authorize_token='5678'
-        )
-        renew(card.user.id)
-        card.user.refresh_from_db()
-        records = TransactionRecord.objects.filter(payer=card.user)
-        self.assertEqual(records.count(), 1)
-        record = records[0]
-        self.assertIsNone(record.payee)
-        self.assertTrue(record.finalized_on)
-        self.assertEqual(record.status, TransactionRecord.SUCCESS)
-        self.assertIn('Trans123', record.remote_ids)
-        self.assertEqual(record.category, TransactionRecord.SUBSCRIPTION_DUES)
-        self.assertEqual(record.amount, Money('6.00', 'USD'))
-        mock_charge_card.assert_called_with(payment_id='1234', profile_id='5678', amount=Decimal('6.00'))
-
-    @override_settings(PORTRAIT_PRICE=Decimal('2.00'))
-    @patch('apps.sales.tasks.charge_saved_card')
-    @freeze_time('2018-02-10 12:00:00')
-    def test_renew_invalid(self, mock_charge_card):
-        card = CreditCardTokenFactory.create(
-            token='1234', user__authorize_token='5678'
-        )
-        renew(card.user.id)
-        card.user.refresh_from_db()
-        self.assertEqual(card.user.landscape_paid_through, None)
-        self.assertFalse(card.user.landscape_enabled)
-        mock_charge_card.assert_not_called()
-
-    @patch('apps.sales.tasks.charge_saved_card')
-    @freeze_time('2018-02-10 12:00:00')
-    def test_failed_renewal(self, mock_charge_card):
-        mock_charge_card.side_effect = AuthorizeException('Crap.')
-        card = CreditCardTokenFactory.create(
-            user__landscape_enabled=True, user__landscape_paid_through=date(2018, 2, 10)
-        )
-        card.user.primary_card = card
-        card.user.save()
-        renew(card.user.id)
-        card.user.refresh_from_db()
-        records = TransactionRecord.objects.filter(payer=card.user)
-        self.assertEqual(records.count(), 1)
-        record = records[0]
-        self.assertIsNone(record.payee)
-        self.assertTrue(record.finalized_on)
-        self.assertEqual(record.status, TransactionRecord.FAILURE)
-        self.assertEqual(record.remote_ids, [])
-        self.assertEqual(record.category, TransactionRecord.SUBSCRIPTION_DUES)
-        self.assertEqual(record.amount, Money('6.00', 'USD'))
-        self.assertEqual(record.card, card)
-        self.assertEqual(record.response_message, 'Crap.')
-        self.assertEqual(Notification.objects.filter(event__type=RENEWAL_FAILURE).count(), 1)
-        self.assertEqual(len(mail.outbox), 1)
-        self.assertEqual(mail.outbox[0].subject, 'Issue with your subscription')
-        mock_charge_card.assert_called_with(profile_id=card.profile_id, payment_id=card.payment_id,
-                                            amount=Decimal('6.00'))
-
-    @override_settings(PORTRAIT_PRICE=Decimal('2.00'))
-    @patch('apps.sales.tasks.charge_saved_card')
-    @freeze_time('2018-02-10 12:00:00')
-    def test_failed_renewal_no_card(self, mock_charge_card):
-        mock_charge_card.side_effect = AuthorizeException('Crap.')
-        user = UserFactory.create(landscape_enabled=True, landscape_paid_through=date(2018, 2, 10))
-        renew(user.id)
-        user.refresh_from_db()
-        self.assertEqual(user.landscape_paid_through, date(2018, 2, 10))
-        records = TransactionRecord.objects.filter(payer=user)
-        self.assertEqual(records.count(), 0)
-        self.assertEqual(Notification.objects.filter(event__type=RENEWAL_FAILURE).count(), 1)
-        self.assertEqual(len(mail.outbox), 1)
-        self.assertEqual(mail.outbox[0].subject, 'Issue with your subscription')
-        mock_charge_card.assert_not_called()
-
-    @patch('apps.sales.tasks.charge_saved_card')
-    @freeze_time('2018-02-10 12:00:00')
-    def test_already_renewed(self, mock_charge_card):
-        # Still mock out capture here to avoid chance of contacting outside server.
-        mock_charge_card.return_value = ('Trans123', 'ABC123')
-        card = CreditCardTokenFactory.create(
-            user__landscape_enabled=True, user__landscape_paid_through=date(2018, 2, 11)
-        )
-        card.user.primary_card = card
-        card.user.save()
-        renew(card.user.id)
-        card.user.refresh_from_db()
-        self.assertEqual(card.user.landscape_enabled, True)
-        self.assertEqual(card.user.landscape_paid_through, date(2018, 2, 11))
-        self.assertFalse(TransactionRecord.objects.all().exists())
-        mock_charge_card.assert_not_called()
-
-    @patch('apps.sales.tasks.charge_saved_card')
-    @freeze_time('2018-02-10 12:00:00')
-    def test_card_override(self, mock_charge_card):
-        mock_charge_card.return_value = ('Trans123', 'ABC123')
-        primary_card = CreditCardTokenFactory.create(
-            user__landscape_enabled=True, user__landscape_paid_through=date(2018, 2, 10),
-        )
-        primary_card.user.primary_card = primary_card
-        primary_card.user.save()
-        card = CreditCardTokenFactory.create(user=primary_card.user)
-        renew(card.user.id, card_id=card.id)
-        card.user.refresh_from_db()
-        self.assertEqual(card.user.landscape_paid_through, date(2018, 3, 10))
-        self.assertTrue(card.user.landscape_enabled)
-        records = TransactionRecord.objects.filter(payer=card.user)
-        self.assertEqual(records.count(), 1)
-        record = records[0]
-        self.assertIsNone(record.payee)
-        self.assertTrue(record.finalized_on)
-        self.assertEqual(record.status, TransactionRecord.SUCCESS)
-        self.assertIn('Trans123', record.remote_ids)
-        self.assertEqual(record.category, TransactionRecord.SUBSCRIPTION_DUES)
-        self.assertEqual(record.amount, Money('6.00', 'USD'))
-        self.assertEqual(card.user.primary_card, primary_card)
-        self.assertEqual(Notification.objects.filter(event__type=RENEWAL_FIXED).count(), 1)
-        self.assertEqual(len(mail.outbox), 1)
-        self.assertEqual(mail.outbox[0].subject, 'Subscription renewed successfully')
 
 
 @patch('apps.sales.apis.DwollaContext.dwolla_api', new_callable=PropertyMock)
@@ -282,56 +163,35 @@ class TestFinalizers(TestCase):
 
 class TestWithdrawAll(TestCase):
     @patch('apps.sales.tasks.account_balance')
-    @patch('apps.sales.tasks.initiate_withdraw')
-    @patch('apps.sales.tasks.perform_transfer')
-    def test_withdraw_all(self, mock_perform_transfer, mock_initiate, mock_balance):
+    @patch('apps.sales.tasks.stripe_transfer.delay')
+    def test_withdraw_all(self, stripe_transfer, mock_balance):
         user = UserFactory.create()
         # Avoid initial call in post-creation hook.
         mock_balance.return_value = Decimal('0.00')
-        bank = BankAccountFactory.create(user=user)
-        mock_initiate.assert_not_called()
+        bank = StripeAccountFactory.create(user=user)
+        stripe_transfer.assert_not_called()
         mock_balance.return_value = Decimal('25.00')
-        mock_initiate.return_value = None, Deliverable.objects.none()
+        stripe_transfer.return_value = None, Deliverable.objects.none()
         withdraw_all(user.id)
         # Normally, three dollars would be removed here for the connection fee,
         # but we're always returning a balance of $25.
-        mock_initiate.assert_called_with(user, bank, Money('25.00', 'USD'), test_only=False)
-        mock_perform_transfer.assert_called()
+        record = TransactionRecord.objects.get(category=TransactionRecord.CASH_WITHDRAW)
+        stripe_transfer.assert_called_with(record.id, bank.id, None)
 
     @patch('apps.sales.tasks.account_balance')
-    @patch('apps.sales.tasks.initiate_withdraw')
-    @patch('apps.sales.tasks.perform_transfer')
-    def test_withdraw_all_no_auto(self, mock_perform_transfer, mock_initiate, mock_balance):
+    @patch('apps.sales.tasks.stripe_transfer.delay')
+    def test_withdraw_all_no_auto(self, stripe_transfer, mock_balance):
         user = UserFactory.create()
         user.artist_profile.auto_withdraw = False
         user.artist_profile.save()
         mock_balance.return_value = Decimal('0.00')
-        BankAccountFactory.create(user=user)
-        mock_initiate.assert_not_called()
+        StripeAccountFactory.create(user=user)
+        stripe_transfer.assert_not_called()
         mock_balance.return_value = Decimal('25.00')
         withdraw_all(user.id)
-        mock_initiate.assert_not_called()
-        mock_perform_transfer.assert_not_called()
+        stripe_transfer.assert_not_called()
 
-    @patch('apps.sales.tasks.account_balance')
-    @patch('apps.sales.tasks.initiate_withdraw')
-    @patch('apps.sales.tasks.perform_transfer')
-    def test_withdraw_exception(self, mock_perform_transfer, mock_initiate, mock_balance):
-        user = UserFactory.create()
-        user.artist_profile.auto_withdraw = True
-        user.artist_profile.save()
-        mock_balance.return_value = Decimal('0.00')
-        bank = BankAccountFactory.create(user=user)
-        mock_initiate.assert_not_called()
-        mock_balance.return_value = Decimal('25.00')
-        mock_perform_transfer.side_effect = RuntimeError('Wat')
-        mock_initiate.return_value = None, Deliverable.objects.none()
-        withdraw_all(user.id)
-        mock_initiate.assert_called_with(user, bank, Money('25.00', 'USD'), test_only=False)
-        notifications = Notification.objects.filter(event__type=TRANSFER_FAILED)
-        self.assertEqual(notifications.count(), 1)
-        notification = notifications[0]
-        self.assertEqual(notification.event.data, {'error': 'Wat'})
+    # TODO: Add in tests for deliverable annotations.
 
 
 class TestReminders(TestCase):

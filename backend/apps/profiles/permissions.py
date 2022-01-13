@@ -90,6 +90,10 @@ class SubmissionCommentPermission(BasePermission):
         return True
 
 
+def derive_user(obj):
+    return getattr(obj, 'user', getattr(obj, 'bill_to', None))
+
+
 class UserControls(BasePermission):
     """
     Checks to see whether this is a staffer or the current user. Ignore actions if comment is deleted.
@@ -100,9 +104,9 @@ class UserControls(BasePermission):
             return True
         if request.user == obj:
             return True
-        if hasattr(obj, 'user'):
-            if obj.user == request.user:
-                return True
+        user = derive_user(obj)
+        if user and user == request.user:
+            return True
 
 
 class NonPrivate(BasePermission):

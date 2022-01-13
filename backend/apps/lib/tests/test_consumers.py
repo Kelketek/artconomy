@@ -4,12 +4,11 @@ from asgiref.sync import sync_to_async
 from channels.testing import WebsocketCommunicator
 from django.test import TransactionTestCase
 
-from apps.lib.consumers import aprint
 from apps.profiles.models import ArtconomyAnonymousUser
 from apps.profiles.serializers import UserSerializer
 from apps.profiles.tests.factories import UserFactory
 from apps.profiles.utils import empty_user
-from apps.sales.tests.factories import DeliverableFactory, LineItemFactory
+from apps.sales.tests.factories import DeliverableFactory, LineItemFactory, ServicePlanFactory
 from conf.asgi import application
 
 SA = sync_to_async
@@ -20,6 +19,10 @@ SA = sync_to_async
 
 
 class TestConsumer(TransactionTestCase):
+    def setUp(self):
+        self.landscape = ServicePlanFactory(name='Landscape')
+        self.free = ServicePlanFactory(name='Free')
+
     def get_communicator(self, headers: Optional[List[Tuple[bytes, bytes]]] = None):
         com = WebsocketCommunicator(application, "/ws/events/", headers=headers)
         com.scope['client'] = ('127.0.0.1', '1234')

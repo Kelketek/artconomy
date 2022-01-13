@@ -1,3 +1,5 @@
+from typing import Any
+
 from django.db.models import Q
 from django.utils import timezone
 from django.views import View
@@ -195,3 +197,15 @@ class PublicQueue(BasePermission):
 
     def has_object_permission(self, request: Request, view: View, obj: User) -> bool:
         return obj.artist_profile.public_queue
+
+
+def InvoiceStatus(*statuses):
+
+    class InnerInvoiceStatus(BasePermission):
+        message = 'This invoice is not in the appropriate status for that action.'
+
+        def has_object_permission(self, request: Request, view: View, obj: Any) -> bool:
+            invoice = getattr(obj, 'invoice', obj)
+            return invoice.status in statuses
+
+    return InnerInvoiceStatus

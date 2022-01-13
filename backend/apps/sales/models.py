@@ -2,6 +2,7 @@ import re
 from contextlib import contextmanager
 from dataclasses import dataclass
 from decimal import Decimal
+from itertools import chain
 from typing import Union, List
 from warnings import warn
 
@@ -39,9 +40,7 @@ from apps.lib.utils import (
     demark, mark_modified, mark_read, clear_markers, clear_events_subscriptions_and_comments)
 from apps.profiles.models import User, ArtistProfile
 from apps.profiles.permissions import UserControls
-from apps.sales.apis import PROCESSOR_CHOICES, AUTHORIZE, STRIPE
-from apps.sales.authorize import create_customer_profile, create_card, AddressInfo, CardInfo, \
-    refund_transaction
+from apps.sales.apis import PROCESSOR_CHOICES
 from apps.sales.permissions import OrderViewPermission, ReferenceViewPermission
 from apps.sales.stripe import delete_payment_method, stripe
 from apps.sales.utils import update_availability, reckon_lines, order_context_to_link, order_context, get_totals
@@ -297,6 +296,7 @@ DELIVERABLE_STATUSES = (
 
 class Deliverable(Model):
     preserve_comments = True
+    post_pay_hook = 'apps.sales.views.deliverable_charge'
     comment_permissions = [OrderViewPermission]
     watch_permissions = {'DeliverableViewSerializer': [OrderViewPermission], None: [OrderViewPermission]}
     processor = models.CharField(choices=PROCESSOR_CHOICES, db_index=True, max_length=24)
@@ -315,6 +315,7 @@ class Deliverable(Model):
     escrow_disabled = BooleanField(default=False, db_index=True)
     trust_finalized = BooleanField(default=False, db_index=True)
     table_order = BooleanField(default=False, db_index=True)
+    service_invoice_marked = BooleanField(default=False, db_index=True)
     expected_turnaround = DecimalField(
         validators=[MinValueValidator(settings.MINIMUM_TURNAROUND)],
         help_text="Number of days completion is expected to take.",
@@ -471,17 +472,19 @@ def auto_subscribe_deliverable(sender, instance, created=False, **_kwargs):
 def idempotent_lines(instance: Deliverable):
     if instance.status not in [WAITING, NEW, PAYMENT_PENDING]:
         return
+    main_qs = instance.invoice.lines_for(instance)
     if instance.product:
-        LineItem.objects.update_or_create(
+        line = main_qs.update_or_create(
             defaults={'amount': instance.product.base_price},
             invoice=instance.invoice, amount=instance.product.base_price, type=BASE_PRICE,
             destination_user=instance.order.seller,
             destination_account=TransactionRecord.ESCROW,
-        )
-    total = reckon_lines(instance.invoice.line_items.filter(priority__lt=PRIORITY_MAP[SHIELD]))
+        )[0]
+        line.annotate(instance)
+    total = reckon_lines(main_qs.filter(priority__lt=PRIORITY_MAP[SHIELD]))
     escrow_enabled = (not instance.escrow_disabled) and total
     if instance.table_order:
-        LineItem.objects.update_or_create(
+        line = main_qs.update_or_create(
             defaults={
                 'percentage': settings.TABLE_PERCENTAGE_FEE,
                 'cascade_percentage': True,
@@ -490,16 +493,18 @@ def idempotent_lines(instance: Deliverable):
             },
             invoice=instance.invoice,
             destination_user=None, destination_account=TransactionRecord.RESERVE, type=TABLE_SERVICE,
-        )
-        LineItem.objects.update_or_create(
+        )[0]
+        line.annotate(instance)
+        line = main_qs.update_or_create(
             defaults={'percentage': settings.TABLE_TAX, 'cascade_percentage': True, 'cascade_amount': True,
              'back_into_percentage': True},
             invoice=instance.invoice, destination_user=None, destination_account=TransactionRecord.MONEY_HOLE_STAGE,
             type=TAX,
-        )
-        instance.invoice.line_items.filter(type__in=[BONUS, SHIELD]).delete()
+        )[0]
+        line.annotate(instance)
+        main_qs.filter(type__in=[BONUS, SHIELD]).delete()
     elif escrow_enabled:
-        LineItem.objects.update_or_create(
+        line = main_qs.update_or_create(
             defaults={
                 'percentage': settings.SERVICE_PERCENTAGE_FEE,
                 'amount': Money(settings.SERVICE_STATIC_FEE, 'USD'),
@@ -508,7 +513,8 @@ def idempotent_lines(instance: Deliverable):
             },
             invoice=instance.invoice,
             destination_user=None, destination_account=TransactionRecord.UNPROCESSED_EARNINGS, type=SHIELD,
-        )
+        )[0]
+        line.annotate(instance)
         if instance.order.seller.landscape:
             destination_kwargs = {
                 'destination_user': instance.order.seller,
@@ -519,7 +525,7 @@ def idempotent_lines(instance: Deliverable):
                 'destination_user': None,
                 'destination_account': TransactionRecord.UNPROCESSED_EARNINGS,
             }
-        LineItem.objects.update_or_create(
+        line = main_qs.update_or_create(
             defaults={
                 'percentage': settings.PREMIUM_PERCENTAGE_BONUS,
                 'amount': Money(settings.PREMIUM_STATIC_BONUS, 'USD'),
@@ -530,19 +536,20 @@ def idempotent_lines(instance: Deliverable):
             invoice=instance.invoice, percentage=settings.PREMIUM_PERCENTAGE_BONUS,
             amount=settings.PREMIUM_STATIC_BONUS,
             type=BONUS,
-        )
-        LineItem.objects.filter(
+        )[0]
+        line.annotate(instance)
+        main_qs.filter(
             type=EXTRA, destination_account=TransactionRecord.RESERVE, description='Table Service',
             invoice=instance.invoice,
         ).delete()
-        instance.invoice.line_items.filter(type=TAX).delete()
+        main_qs.filter(type=TAX).delete()
     else:
-        instance.invoice.line_items.filter(type__in=[BONUS, SHIELD]).delete()
-        LineItem.objects.filter(
+        main_qs.filter(type__in=[BONUS, SHIELD]).delete()
+        main_qs.filter(
             type=EXTRA, destination_account=TransactionRecord.RESERVE, description='Table Service',
             invoice=instance.invoice,
         ).delete()
-        instance.invoice.line_items.filter(type=TAX).delete()
+        main_qs.filter(type=TAX).delete()
 
 
 @receiver(pre_save, sender=Deliverable)
@@ -556,6 +563,7 @@ def ensure_invoice(sender, instance, **kwargs):
 @disable_on_load
 def ensure_line_items(sender, instance, **kwargs):
     idempotent_lines(instance)
+    instance.invoice.targets.add(ref_for_instance(instance))
 
 
 def buyer_subscriptions(instance, order_type=None):
@@ -808,12 +816,8 @@ class CreditCardToken(Model):
         Mark a card as deleted. Deleted cards are hidden away from the user, but kept for
         historical accounting purposes.
         """
-        from apps.sales.authorize import delete_card
-        if self.token:
-            delete_card(profile_id=self.profile_id, payment_id=self.payment_id)
-        else:
-            with stripe as stripe_api:
-                delete_payment_method(api=stripe_api, method_token=self.stripe_token)
+        with stripe as stripe_api:
+            delete_payment_method(api=stripe_api, method_token=self.stripe_token)
         self.active = False
         self.save()
         if self.user.primary_card == self:
@@ -863,34 +867,6 @@ class CreditCardToken(Model):
         else:
             channels.append(f'profiles.User.pk.{self.user.id}.authorize_cards')
         return channels
-
-    @classmethod
-    def create(
-            cls, user: User, first_name: str, last_name: str, number: str, cvv: str, exp_year: int, exp_month: int,
-            country: str, zip_code: str, make_primary: bool
-    ):
-        card_info = CardInfo(
-            number=number,
-            exp_year=exp_year,
-            exp_month=exp_month,
-            cvv=cvv,
-        )
-
-        address_info = AddressInfo(first_name=first_name, last_name=last_name, postal_code=zip_code, country=country)
-
-        if not user.authorize_token:
-            user.authorize_token = create_customer_profile(user.email)
-            user.save()
-        token = create_card(card_info, address_info, user.authorize_token)
-        token = cls(
-            user=user, type=resolve_card_type(number), last_four=number[-4:],
-            token=token, cvv_verified=True)
-
-        token.save()
-        if (not token.user.primary_card) or make_primary:
-            token.user.primary_card = token
-            token.user.save()
-        return token
 
     def save(self, **kwargs):
         if not (self.stripe_token or self.token):
@@ -1096,14 +1072,32 @@ class Invoice(models.Model):
     id = ShortCodeField(primary_key=True, db_index=True, default=gen_shortcode)
     status = models.IntegerField(default=OPEN, choices=INVOICE_STATUSES)
     type = models.IntegerField(default=SALE, choices=INVOICE_TYPES)
-    bill_to = models.ForeignKey(User, null=True, on_delete=CASCADE)
+    bill_to = models.ForeignKey(User, null=True, on_delete=CASCADE, related_name='invoices_billed_to')
     created_on = models.DateTimeField(default=timezone.now, db_index=True)
     paid_on = models.DateTimeField(null=True, db_index=True, blank=True)
     stripe_token = models.CharField(default='', db_index=True, max_length=50, blank=True)
+    current_intent = CharField(max_length=30, db_index=True, default='', blank=True)
+    # You should also add the targets to the line item annotations if adding them here. This is used
+    # to make lookups for things like 'the invoice for this deliverable' easier, though in the future
+    # it's possible that we could have multiple deliverables on an invoice.
+    #
+    # The reason why this is useful rather than just querying line items is that it's possible that
+    # someone might be billed for an action taken regarding a deliverable, rather than the invoice being
+    # for the work of the deliverable itself. This makes querying just a bit easier for the deliverable's
+    # work invoice.
     targets = ManyToManyField(to='lib.GenericReference', related_name='referencing_invoices', blank=True)
 
     def total(self) -> Money:
         return reckon_lines(self.line_items.all())
+
+    def context_for(self, target):
+        # Provided for compatibility in post_payment hook. We might eventually allow for more specific annotations
+        # like we do with LineItems.
+        return {}
+
+    def lines_for(self, target):
+        from apps.lib.models import ref_for_instance
+        return self.line_items.filter(targets=ref_for_instance(target))
 
     def __str__(self):
         result = f'Invoice {self.id} for {self.bill_to} in the amount of {self.total()}'
@@ -1114,6 +1108,16 @@ class Invoice(models.Model):
 
     class Meta:
         ordering = ('-created_on',)
+
+
+class LineItemAnnotation(models.Model):
+    """
+    Annotation for a line item on an invoice. Useful to trigger post-payment effects.
+    """
+    target = ForeignKey('lib.GenericReference', on_delete=CASCADE)
+    line_item = ForeignKey('sales.LineItem', on_delete=CASCADE)
+    # Do not allow users to set custom keys here, as it could lead to arbitrary code execution.
+    context = JSONField(default=dict)
 
 
 BASE_PRICE = 0
@@ -1172,6 +1176,7 @@ class LineItem(Model):
     destination_account = IntegerField(choices=TransactionRecord.ACCOUNT_TYPES)
     description = CharField(max_length=250, blank=True, default='')
     watch_permissions = {'LineItemSerializer': [OrderViewPermission]}
+    targets = ManyToManyField('lib.GenericReference', through=LineItemAnnotation, related_name='line_items')
 
     def __str__(self):
         return f'{self.get_type_display()} ({self.amount}, {self.percentage}) for #{self.invoice.id}, priority {self.priority}'
@@ -1187,6 +1192,13 @@ class LineItem(Model):
             channels.append(f'sales.Deliverable.pk.{deliverable.id}.line_items')
         channels.append(f'sales.Invoice.pk.{self.invoice.id}.line_items')
         return channels
+
+    def context_for(self, target):
+        return LineItemAnnotation.objects.get(target=target, line_item=self).context
+
+    def annotate(self, target):
+        ref = ref_for_instance(target)
+        return LineItemAnnotation.objects.get_or_create(target=ref, line_item=self)[0]
 
     def save(self, *args, **kwargs):
         self.priority = PRIORITY_MAP[self.type]
@@ -1369,6 +1381,12 @@ def delete_comments_and_events(sender, instance, **kwargs):
 
 
 class BankAccount(Model):
+    """
+    Deprecated. This was the model used to track Dwolla bank accounts for transfers.
+
+    It is no longer used-- payouts via Dwolla have been removed and we only retain these
+    for record keeping purposes.
+    """
     CHECKING = 0
     SAVINGS = 1
     ACCOUNT_TYPES = (
@@ -1386,36 +1404,6 @@ class BankAccount(Model):
     def notification_serialize(self, context):
         from .serializers import BankAccountSerializer
         return BankAccountSerializer(instance=self).data
-
-
-# noinspection PyUnusedLocal
-@receiver(post_save, sender=BankAccount)
-@disable_on_load
-def ensure_shield(sender, instance, created=False, **_kwargs):
-    if not created:
-        return
-    instance.user.escrow_disabled = False
-    instance.user.save()
-    if not instance.user.banks.exclude(id=instance.id).exists():
-        record = TransactionRecord.objects.create(
-            payer=instance.user,
-            amount=Money('1.00', 'USD'),
-            category=TransactionRecord.THIRD_PARTY_FEE,
-            payee=None,
-            source=TransactionRecord.HOLDINGS,
-            destination=TransactionRecord.ACH_MISC_FEES,
-            status=TransactionRecord.SUCCESS,
-            note='Bank Connection Fee'
-        )
-        record.finalized_on = record.created_on
-        record.targets.add(ref_for_instance(instance))
-        record.save()
-    from apps.sales.tasks import withdraw_all
-    withdraw_all(instance.user.id)
-    Deliverable.objects.filter(
-        order__seller=instance.user,
-        status__in=[NEW, PAYMENT_PENDING],
-    ).update(processor=AUTHORIZE)
 
 
 class Promo(Model):
@@ -1459,6 +1447,42 @@ class StripeAccount(Model):
         with stripe as api:
             api.Account.delete(self.token)
         return super(StripeAccount, self).delete()
+
+
+class ServicePlan(models.Model):
+    """
+    Service plans describe levels of service for users.
+    """
+    post_pay_hook = 'apps.sales.views.service_charge'
+    name = models.CharField(max_length=100)
+    description = models.CharField(max_length=1000)
+    features = JSONField(default=list)
+    sort_value = models.IntegerField(default=0, db_index=True)
+    monthly_charge = MoneyField(
+        default=Money('0.00', 'USD'), db_index=True, help_text='Monthly subscription price.',
+        max_digits=5, decimal_places=2,
+    )
+    per_deliverable_price = MoneyField(
+        default=Money('0.00', 'USD'), db_index=True, help_text='Amount we charge for each deliverable tracked.',
+        max_digits=5, decimal_places=2,
+    )
+    max_simultaneous_orders = models.IntegerField(
+        default=0, help_text='How many simultaneous orders are permitted. 0 means infinite.',
+    )
+    auto_shield = models.BooleanField(
+        default=False, help_text='Whether shield protection can be automatically made available on each product.',
+    )
+    shield_static_price = MoneyField(
+        default=Money('1.50', 'USD'), help_text='Static amount charged per shield order. Replaces the per deliverable '
+                                                'price on shield orders.',
+        max_digits=5, decimal_places=2,
+    )
+    shield_percentage_price = MoneyField(
+        default=Decimal('8'), help_text='Percentage amount applied to shield orders.',
+        max_digits=5, decimal_places=2,
+    )
+    hidden = models.BooleanField(default=False)
+
 
 # Force load of registrations for serializers.
 import apps.sales.serializers

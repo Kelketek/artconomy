@@ -32,8 +32,8 @@ from apps.profiles.models import (
     banned_prefix_validator,
     ArtistProfile
 )
-from apps.sales.models import Promo
-from apps.sales.utils import get_user_processor
+from apps.sales.apis import STRIPE
+from apps.sales.models import Promo, ServicePlan
 from apps.tg_bot.models import TelegramDevice
 
 
@@ -476,7 +476,7 @@ class CredentialsSerializer(serializers.ModelSerializer):
 
 @register_serializer
 class UserSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
-    landscape_paid_through = serializers.DateField(read_only=True)
+    landscape_paid_through = serializers.SerializerMethodField()
     telegram_link = serializers.SerializerMethodField()
     watching = UserRelationField(required=False)
     blocking = UserRelationField(required=False)
@@ -484,6 +484,11 @@ class UserSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
     blacklist = TagListField(required=False)
     stars = serializers.FloatField(required=False)
     processor = serializers.SerializerMethodField()
+
+    def get_landscape_paid_through(self, obj):
+        if not (obj.service_plan and obj.service_plan.name == 'Landscape'):
+            return None
+        return obj.service_plan_paid_through and obj.service_plan_paid_through.isoformat()
 
     @staticmethod
     def get_telegram_link(obj):
@@ -493,7 +498,8 @@ class UserSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
         )
 
     def get_processor(self, user):
-        return get_user_processor(user)
+        # Holdover. We need to remove authorize.net from the frontend, then we can remove this.
+        return STRIPE
 
     def validate(self, attrs):
         if attrs.get('rating', 0):

@@ -5,7 +5,7 @@ from datetime import datetime
 from decimal import Decimal
 from functools import lru_cache
 from io import StringIO
-from pprint import pformat, pprint
+from pprint import pformat
 from typing import Union, Optional
 from uuid import uuid4
 
@@ -55,21 +55,19 @@ from apps.profiles.serializers import UserSerializer, SubmissionSerializer
 from apps.profiles.tasks import create_or_update_stripe_user
 from apps.profiles.utils import create_guest_user, empty_user
 from apps.sales.apis import STRIPE
-from apps.sales.stripe import stripe, create_stripe_account, create_account_link, get_country_list, money_to_stripe
-from apps.sales.authorize import AuthorizeException
-from apps.sales.dwolla import add_bank_account, make_dwolla_account, \
-    destroy_bank_account
+from apps.sales.stripe import stripe, create_stripe_account, create_account_link, get_country_list
+from apps.sales.dwolla import destroy_bank_account
 from apps.sales.models import Product, Order, CreditCardToken, Revision, BankAccount, \
     WEIGHTED_STATUSES, Rating, TransactionRecord, BASE_PRICE, ADD_ON, TAX, EXTRA, \
     TABLE_SERVICE, TIP, LineItem, inventory_change, InventoryError, InventoryTracker, NEW, PAYMENT_PENDING, \
     QUEUED, COMPLETED, IN_PROGRESS, DISPUTED, REVIEW, CANCELLED, REFUNDED, Deliverable, Reference, WAITING, \
-    PREMIUM_SUBSCRIPTION, StripeAccount, WebhookRecord, LineItemSim
+    PREMIUM_SUBSCRIPTION, StripeAccount, WebhookRecord, Invoice, ServicePlan, OPEN, DRAFT
 from apps.sales.permissions import (
     OrderViewPermission, OrderSellerPermission, OrderBuyerPermission,
     OrderPlacePermission, EscrowPermission, EscrowDisabledPermission, RevisionsVisible,
     BankingConfigured,
     DeliverableStatusPermission, HasRevisionsPermission, OrderTimeUpPermission, NoOrderOutput, PaidOrderPermission,
-    LineItemTypePermission, DeliverableNoProduct, LandscapeSellerPermission, PublicQueue)
+    LineItemTypePermission, DeliverableNoProduct, LandscapeSellerPermission, PublicQueue, InvoiceStatus)
 from apps.sales.serializers import (
     ProductSerializer, ProductNewOrderSerializer, DeliverableViewSerializer, CardSerializer,
     NewCardSerializer, PaymentSerializer, RevisionSerializer,
@@ -81,14 +79,14 @@ from apps.sales.serializers import (
     LineItemSerializer, DeliverableValuesSerializer, SimpleTransactionSerializer, InventorySerializer,
     PayoutTransactionSerializer, OrderViewSerializer, ReferenceSerializer, DeliverableReferenceSerializer,
     NewDeliverableSerializer, PinSerializer, PaymentIntentSettings, PremiumIntentSettings, StripeAccountSerializer,
-    StripeBankSetupSerializer, UserPayoutTransactionSerializer)
-from apps.sales.tasks import renew, withdraw_all
+    StripeBankSetupSerializer, UserPayoutTransactionSerializer, InvoiceSerializer)
+from apps.sales.tasks import withdraw_all
 from apps.sales.utils import available_products, set_premium, \
     check_charge_required, available_products_by_load, finalize_deliverable, account_balance, \
     POSTED_ONLY, PENDING, transfer_order, early_finalize, cancel_deliverable, \
     verify_total, issue_refund, ensure_buyer, perform_charge, premium_post_success, premium_initiate_transactions, \
     UserPaymentException, pay_deliverable, get_term_invoice, get_intent_card_token, premium_post_save, \
-    get_user_processor
+    invoice_post_payment
 from shortcuts import make_url
 
 
@@ -246,7 +244,7 @@ class PlaceOrder(CreateAPIView):
             name='Main',
             escrow_disabled=product.user.artist_profile.escrow_disabled,
             rating=serializer.validated_data['rating'],
-            processor=get_user_processor(product.user),
+            processor=STRIPE,
             details=serializer.validated_data['details'],
         )
         deliverable.characters.set(serializer.validated_data.get('characters', []))
@@ -527,6 +525,7 @@ class DeliverableCancel(GenericAPIView):
 
 class ClearWaitlist(GenericAPIView):
     permission_classes = [ObjectControls]
+
     def get_object(self):
         product = get_object_or_404(Product, user__username=self.kwargs['username'], id=self.kwargs['product'])
         self.check_object_permissions(self.request, product)
@@ -536,6 +535,45 @@ class ClearWaitlist(GenericAPIView):
         for deliverable in self.get_object().deliverables.filter(status=WAITING):
             cancel_deliverable(deliverable, self.request.user)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class InvoiceLineItems(ListCreateAPIView):
+    permission_classes = [
+        Any(
+            All(IsSafeMethod, UserControls),
+            IsStaff,
+        )
+    ]
+    pagination_class = None
+    serializer_class = LineItemSerializer
+
+    def get_object(self):
+        invoice = get_object_or_404(Invoice, id=self.kwargs['invoice'])
+        self.check_object_permissions(self.request, invoice)
+        return invoice
+
+    def get_queryset(self) -> QuerySet:
+        return LineItem.objects.filter(invoice=self.get_object())
+
+    def perform_create(self, serializer: LineItemSerializer) -> None:
+        serializer.save(invoice=self.get_object())
+
+
+class InvoiceLineItemManager(RetrieveUpdateDestroyAPIView):
+    permission_classes = [
+        IsStaff,
+        InvoiceStatus(DRAFT, OPEN),
+    ]
+    serializer_class = LineItemSerializer
+
+    def get_object(self):
+        line_item = get_object_or_404(LineItem, invoice_id=self.kwargs['invoice'], id=self.kwargs['line_item'])
+        self.check_object_permissions(self.request, line_item.invoice)
+        return line_item
+
+
+InvoiceLineItemManager.patch = transaction.atomic(InvoiceLineItemManager.patch)
+InvoiceLineItemManager.delete = transaction.atomic(InvoiceLineItemManager.delete)
 
 
 class DeliverableLineItems(ListCreateAPIView):
@@ -619,7 +657,7 @@ class DeliverableLineItems(ListCreateAPIView):
             verify_total(deliverable)
 
 
-class LineItemManager(RetrieveUpdateDestroyAPIView):
+class DeliverableLineItemManager(RetrieveUpdateDestroyAPIView):
     permission_classes = [
         Any(
             All(IsSafeMethod, OrderViewPermission),
@@ -660,8 +698,8 @@ class LineItemManager(RetrieveUpdateDestroyAPIView):
         deliverable.save()
 
 
-LineItemManager.patch = transaction.atomic(LineItemManager.patch)
-LineItemManager.delete = transaction.atomic(LineItemManager.delete)
+DeliverableLineItemManager.patch = transaction.atomic(DeliverableLineItemManager.patch)
+DeliverableLineItemManager.delete = transaction.atomic(DeliverableLineItemManager.delete)
 
 
 class DeliverableRevisions(ListCreateAPIView):
@@ -1261,7 +1299,7 @@ class SetupIntent(APIView):
             )['client_secret']})
 
 
-class CardList(ListCreateAPIView):
+class CardList(ListAPIView):
     permission_classes = [
         Any(
             All(IsSafeMethod, UserControls),
@@ -1293,34 +1331,7 @@ class CardList(ListCreateAPIView):
         return qs.order_by('-primary', '-created_on')
 
     def get_serializer_class(self):
-        if self.request.method == 'POST':
-            return NewCardSerializer
-        else:
-            return CardSerializer
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        try:
-            token = self.perform_create(serializer)
-        except AuthorizeException as err:
-            return Response(data={'detail': str(err)}, status=status.HTTP_400_BAD_REQUEST)
-        if token.user.landscape_enabled:
-            renew.delay(token.user.id)
-        serializer = CardSerializer(instance=token)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
-    def perform_create(self, serializer):
-        data = serializer.validated_data
-        user = get_object_or_404(User, username=self.kwargs['username'])
-        self.check_object_permissions(self.request, user)
-        return CreditCardToken.create(
-            first_name=data['first_name'], last_name=data['last_name'], country=data['country'],
-            user=user, exp_month=data['exp_date'].month, exp_year=data['exp_date'].year,
-            number=data['number'], cvv=data['cvv'], zip_code=data.get('zip'),
-            make_primary=data['make_primary']
-        )
+        return CardSerializer
 
 
 class CardManager(RetrieveUpdateDestroyAPIView):
@@ -1368,6 +1379,11 @@ PAYMENT_PERMISSIONS = (
 
 
 class DeliverablePaymentIntent(APIView):
+    """
+    Creates a payment intent for a deliverable.
+
+    TODO: Remnove this in favor of a general invoice payment intent.
+    """
     permission_classes = PAYMENT_PERMISSIONS
 
     def get_object(self):
@@ -1411,12 +1427,12 @@ class DeliverablePaymentIntent(APIView):
             }
             if save_card:
                 intent_kwargs['setup_future_usage'] = 'off_session'
-            if deliverable.current_intent:
-                intent = stripe_api.PaymentIntent.modify(deliverable.current_intent, **intent_kwargs)
+            if deliverable.invoice.current_intent:
+                intent = stripe_api.PaymentIntent.modify(deliverable.invoice.current_intent, **intent_kwargs)
                 return Response({'secret': intent['client_secret']})
             intent = stripe_api.PaymentIntent.create(**intent_kwargs)
-            deliverable.current_intent = intent['id']
-            deliverable.save()
+            deliverable.invoice.current_intent = intent['id']
+            deliverable.invoice.save()
             return Response({'secret': intent['client_secret']})
 
 
@@ -1456,7 +1472,7 @@ class AccountBalance(RetrieveAPIView):
         return user
 
 
-class BankAccounts(ListCreateAPIView):
+class BankAccounts(ListAPIView):
     permission_classes = [IsUser]
     serializer_class = BankAccountSerializer
     pagination_class = None
@@ -1465,19 +1481,6 @@ class BankAccounts(ListCreateAPIView):
         user = get_object_or_404(User, username=self.kwargs['username'])
         self.check_object_permissions(self.request, user)
         return BankAccount.objects.filter(user=user).exclude(deleted=True).order_by('-id')
-
-    def perform_create(self, serializer):
-        user = get_object_or_404(User, username=self.kwargs['username'])
-        self.check_object_permissions(self.request, user)
-        # validated_data will have the additional fields, whereas data only contains fields for model creation.
-        data = serializer.validated_data
-        has_bank = user.banks.all().exists()
-        if (not has_bank) and (account_balance(user, TransactionRecord.HOLDINGS) < Decimal('1.00')):
-            raise PermissionDenied('You do not have sufficient balance to cover the $1.00 connection fee yet.')
-        make_dwolla_account(self.request, user, data['first_name'], data['last_name'])
-        account = add_bank_account(user, data['account_number'], data['routing_number'], data['type'])
-        serializer.instance = account
-        return account
 
 
 class BankManager(DestroyAPIView):
@@ -1732,8 +1735,10 @@ class Premium(GenericAPIView):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
         charge_required, target_date = check_charge_required(self.request.user)
+        # TODO: Change around this whole view to reflect multiple plans.
+        service_plan = ServicePlan.objects.get(name='Landscape')
         if not charge_required:
-            set_premium(request.user, target_date=target_date)
+            set_premium(request.user, target_date=target_date, service_plan=service_plan)
             return Response(
                 status=status.HTTP_200_OK,
                 data=UserSerializer(instance=self.request.user, context=self.get_serializer_context()).data
@@ -1752,8 +1757,8 @@ class Premium(GenericAPIView):
                 amount=amount,
                 user=self.request.user,
                 requesting_user=self.request.user,
-                post_success=premium_post_success(invoice),
-                post_save=premium_post_save(invoice),
+                post_success=premium_post_success(invoice, service_plan),
+                post_save=premium_post_save(invoice=invoice, service_plan=service_plan),
                 context={},
                 initiate_transactions=premium_initiate_transactions,
             )
@@ -1775,9 +1780,19 @@ class PremiumPaymentIntent(APIView):
         # In case the initial creation failed for some reason.
         create_or_update_stripe_user(self.request.user.id)
         self.request.user.refresh_from_db()
+        invoice = get_term_invoice(self.request.user)
+        service_plan = ServicePlan.objects.get(name='Landscape')
+        amount = Money(settings.LANDSCAPE_PRICE, 'USD')
+        item, _created = invoice.line_items.update_or_create(
+            defaults={'amount': amount, 'description': service_plan.name},
+            destination_account=TransactionRecord.UNPROCESSED_EARNINGS,
+            type=PREMIUM_SUBSCRIPTION,
+            destination_user=None,
+        )
+        item.targets.add(ref_for_instance(service_plan))
         with stripe as stripe_api:
             # Can only do string values, so won't be json true value.
-            metadata = {'make_primary': make_primary, 'save_card': True, 'service': 'landscape'}
+            metadata = {'make_primary': make_primary, 'save_card': True, 'invoice_id': invoice.id}
             intent_kwargs = {
                 # Need to figure out how to do this per-currency.
                 'amount': int(total.amount * total.currency.sub_unit),
@@ -1792,12 +1807,12 @@ class PremiumPaymentIntent(APIView):
                 'receipt_email': self.request.user.email,
                 'setup_future_usage': 'off_session',
             }
-            if self.request.user.current_intent:
-                intent = stripe_api.PaymentIntent.modify(self.request.user.current_intent, **intent_kwargs)
+            if invoice.current_intent:
+                intent = stripe_api.PaymentIntent.modify(invoice.current_intent, **intent_kwargs)
                 return Response({'secret': intent['client_secret']})
             intent = stripe_api.PaymentIntent.create(**intent_kwargs)
-            self.request.user.current_intent = intent['id']
-            self.request.user.save()
+            invoice.current_intent = intent['id']
+            invoice.save()
             return Response({'secret': intent['client_secret']})
 
 
@@ -2022,13 +2037,12 @@ class CreateInvoice(GenericAPIView):
                 deliverable_facts = {key: value for key, value in facts.items() if key not in (
                     'price', 'adjustment', 'hold', 'paid',
                 )}
-                processor = get_user_processor(user)
                 deliverable = Deliverable.objects.create(
                     name='Main',
                     order=order,
                     details=serializer.validated_data['details'],
                     product=product,
-                    processor=processor,
+                    processor=STRIPE,
                     commission_info=request.subject.artist_profile.commission_info,
                     **deliverable_facts,
                 )
@@ -2530,6 +2544,19 @@ class PinterestCatalog(ListAPIView):
         return context
 
 
+class InvoiceDetail(RetrieveUpdateAPIView):
+    permission_classes = [
+        UserControls,
+        Any(IsSafeMethod, IsStaff),
+    ]
+    serializer_class = InvoiceSerializer
+
+    def get_object(self):
+        invoice = Invoice.objects.get(id=self.kwargs['invoice'])
+        self.check_object_permissions(self.request, invoice)
+        return invoice
+
+
 class WillIncurBankFee(GenericAPIView):
     permission_classes = [IsRegistered, UserControls]
 
@@ -2638,44 +2665,36 @@ def remote_ids_from_charge(charge_event):
     return [charge_event["payment_intent"], charge_event["id"]]
 
 
-def service_charge(*, event, amount: Money, preflight_checks=True):
-    charge_event = event['data']['object']
-    metadata = charge_event['metadata']
+def service_charge(*, billable: Union[LineItem, Invoice], target: ServicePlan, context: dict):
+    charge_event = context['stripe_event']['data']['object']
     user = User.objects.get(stripe_token=charge_event['customer'])
     invoice = get_term_invoice(user)
-    return perform_charge(
+    amount = context['amount']
+    transactions = perform_charge(
         attempt={
             'stripe_event': charge_event,
             'amount': amount,
-            'service': metadata['service'],
+            'service': target,
             'remote_ids': [charge_event["payment_intent"], charge_event["id"]],
         },
         amount=amount,
         user=user,
         requesting_user=user,
-        post_success=premium_post_success(invoice),
+        post_success=premium_post_success(invoice, target),
         post_save=premium_post_save(invoice, remote_ids_from_charge(charge_event)),
         context={},
         initiate_transactions=premium_initiate_transactions,
     )
+    return transactions
 
 
-def deliverable_charge(*, event, amount: Money, preflight_checks=True):
-    charge_event = event['data']['object']
-    metadata = charge_event['metadata']
-    # Not catching because I want this to throw if this is somehow missing or busted.
-    deliverable = Deliverable.objects.get(id=metadata['deliverable_id'], order_id=metadata['order_id'])
-    if preflight_checks:
-        if deliverable.current_intent != charge_event['payment_intent']:
-            raise UserPaymentException(
-                f'Mismatched intent ID! What happened? Received ID was '
-                f'{charge_event["payment_intent"]} while current intent is {deliverable.current_intent}'
-            )
-
-    if preflight_checks and (amount != deliverable.invoice.total()):
-        raise UserPaymentException(
-            f'Mismatched amount! Customer paid {amount} while total was {deliverable.invoice.total()}',
-        )
+def deliverable_charge(*, billable: Union[LineItem, Invoice], target: Deliverable, context: dict):
+    if isinstance(billable, LineItem):
+        # As of yet, we don't have anything special here, but we may eventually.
+        return []
+    amount = context['amount']
+    charge_event = context['stripe_event']['data']['object']
+    deliverable = target
     return pay_deliverable(
         attempt={
             'stripe_event': charge_event,
@@ -2687,29 +2706,39 @@ def deliverable_charge(*, event, amount: Money, preflight_checks=True):
     )
 
 
-CHARGE_ROUTES = {
-    'deliverable_id': deliverable_charge,
-    'service': service_charge,
-}
-
-
 @transaction.atomic
-def handle_charge_event(event, preflight_checks=True, save_if_valid=True):
+def handle_charge_event(event, successful=True):
     charge_event = event['data']['object']
     metadata = charge_event['metadata']
     amount = Money(
         (Decimal(charge_event['amount']) / Decimal('100')).quantize(Decimal('0.00')),
         charge_event['currency'].upper(),
     )
-    for key, value in CHARGE_ROUTES.items():
-        if key in metadata:
-            records = value(event=event, preflight_checks=preflight_checks, amount=amount)
-            break
+    if 'invoice_id' in metadata:
+        invoice = Invoice.objects.get(id=metadata['invoice_id'])
+        if successful:
+            if invoice.current_intent != charge_event['payment_intent']:
+                raise UserPaymentException(
+                    f'Mismatched intent ID! What happened? Received ID was '
+                    f'{charge_event["payment_intent"]} while current intent is {invoice.current_intent}'
+                )
+
+        if successful and (amount != invoice.total()):
+            raise UserPaymentException(
+                f'Mismatched amount! Customer paid {amount} while total was {invoice.total()}',
+            )
+        records = invoice_post_payment(
+            invoice, {
+                'amount': amount,
+                'successful': successful,
+                'stripe_event': event,
+            },
+        )
     else:
         logger.warning('Charge for unknown item:')
         logger.warning(pformat(event))
         return
-    if save_if_valid and metadata.get('save_card') == 'True':
+    if successful and metadata.get('save_card') == 'True':
         user = User.objects.get(stripe_token=charge_event['customer'])
         details = charge_event['payment_method_details']['card']
         card, _created = CreditCardToken.objects.get_or_create(
@@ -2725,12 +2754,12 @@ def handle_charge_event(event, preflight_checks=True, save_if_valid=True):
 
 
 def charge_succeeded(event):
-    handle_charge_event(event, preflight_checks=True, save_if_valid=True)
+    handle_charge_event(event, successful=True)
 
 
 def charge_failed(event):
     try:
-        handle_charge_event(event, preflight_checks=False, save_if_valid=False)
+        handle_charge_event(event, successful=False)
     except UserPaymentException:
         pass
 
