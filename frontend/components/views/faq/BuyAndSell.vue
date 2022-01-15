@@ -173,13 +173,13 @@
               list products and take orders on Artconomy, but must arrange payment with commissioners manually.
             </p>
             <p v-if="pricing.x">
-              Artconomy's fees for
+              Artconomy's fee for
               <router-link
                   :to="{name: 'BuyAndSell', params: {question: 'shield'}}"
               >
                 Artconomy Shield
               </router-link>
-              are {{pricing.x.standard_percentage + pricing.x.premium_percentage_bonus}}% + ${{(pricing.x.standard_static + pricing.x.premium_static_bonus).toFixed(2)}} for
+              is {{pricing.x.standard_percentage + pricing.x.premium_percentage_bonus}}% + ${{(pricing.x.standard_static + pricing.x.premium_static_bonus).toFixed(2)}} for
               each order.
             </p>
             <p v-if="pricing.x">
@@ -188,8 +188,8 @@
                   :to="{name: 'BuyAndSell', params: {question: 'landscape'}}"
               >Artconomy Landscape
               </router-link>
-              receive a bonus payout of
-              {{pricing.x.premium_percentage_bonus}}% + ${{pricing.x.premium_static_bonus.toFixed(2)}} from each commission!
+              get a discounted fee of only
+              {{pricing.x.standard_percentage}}% + ${{pricing.x.standard_static.toFixed(2)}} per commission!
             </p>
             <p>
               <em><strong>
