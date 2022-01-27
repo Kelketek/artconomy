@@ -265,6 +265,7 @@ export default class DeliverablePayment extends mixins(DeliverableMixin, Formatt
   public clientSecret = null as unknown as SingleController<ClientSecret>
   public PROCESSORS = PROCESSORS
   public socketState = null as unknown as SingleController<SocketState>
+  public oldTotal: null | Big = null
 
   @Watch('showManualTransaction')
   public clearManualTransactionSettings() {
@@ -360,6 +361,17 @@ export default class DeliverablePayment extends mixins(DeliverableMixin, Formatt
     return this.priceData.total
   }
 
+  @Watch('totalCharge')
+  public forceRefetch(val: undefined | Big) {
+    if (val === undefined || !this.isBuyer) {
+      return
+    }
+    if (this.oldTotal && !this.oldTotal.eq(val)) {
+      this.updateIntent()
+    }
+    this.oldTotal = val
+  }
+
   public get sansOutsiders() {
     return this.bareLines.filter((x) => [
       LineTypes.BASE_PRICE, LineTypes.ADD_ON, LineTypes.BONUS, LineTypes.SHIELD,
@@ -371,12 +383,19 @@ export default class DeliverablePayment extends mixins(DeliverableMixin, Formatt
       LineTypes.BASE_PRICE, LineTypes.ADD_ON, LineTypes.BONUS, LineTypes.SHIELD,
     ])
     const tip = quantize(subTotal.times(multiplier))
+    let promise: Promise<LineItem | undefined>
     if (this.tip) {
-      this.tip.patchers.amount.model = tip.toFixed(2)
+      this.tipForm.sending = true
+      promise = this.tip.patch({amount: tip.toFixed(2)}).then(() => {
+        this.tip.patchers.amount.model = tip.toFixed(2)
+      })
     } else {
       this.tipForm.fields.amount.update(tip.toFixed(2))
-      this.tipForm.submitThen(this.lineItems.uniquePush)
+      promise = this.tipForm.submitThen(this.lineItems.uniquePush)
     }
+    promise.then(() => {
+      this.tipForm.sending = false
+    })
   }
 
   public get tip() {

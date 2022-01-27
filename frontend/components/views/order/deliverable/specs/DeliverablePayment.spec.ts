@@ -400,7 +400,7 @@ describe('DeliverablePayment.vue', () => {
     await vm.$nextTick()
     mockAxios.reset()
     const lines = dummyLineItems()
-    lines.push({
+    const sourceLine = {
       id: -20,
       amount: 5,
       percentage: 0,
@@ -410,9 +410,11 @@ describe('DeliverablePayment.vue', () => {
       cascade_amount: false,
       back_into_percentage: false,
       description: '',
-    })
+    }
+    lines.push(sourceLine)
     vm.lineItems.setList(lines)
     vm.setTip(0.25)
+    mockAxios.mockResponse(rs({...sourceLine, amount: '20.00'}))
     await vm.$nextTick()
     expect(vm.tip).toBeTruthy()
     expect(vm.tip.patchers.amount.model).toBe('20.00')
@@ -563,6 +565,7 @@ describe('DeliverablePayment.vue', () => {
     expect(vm.paymentForm.errors).toEqual(['An unknown error occurred while trying to reach Stripe. Please contact support.'])
   })
   const testTrippedForm = async(vm: any) => {
+    vm.debouncedUpdateIntent.flush()
     await vm.$nextTick()
     const lastRequest = mockAxios.lastReqGet()
     expect(lastRequest).toBeTruthy()
