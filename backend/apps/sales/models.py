@@ -1168,7 +1168,7 @@ class LineItem(Model):
     cascade_percentage = BooleanField(db_index=True, default=False)
     cascade_amount = BooleanField(db_index=True, default=False)
     back_into_percentage = BooleanField(db_index=True, default=False)
-    destination_user = ForeignKey(User, null=True, db_index=True, on_delete=CASCADE)
+    destination_user = ForeignKey(User, null=True, db_index=True, on_delete=CASCADE, blank=True)
     destination_account = IntegerField(choices=TransactionRecord.ACCOUNT_TYPES)
     description = CharField(max_length=250, blank=True, default='')
     watch_permissions = {'LineItemSerializer': [OrderViewPermission]}
