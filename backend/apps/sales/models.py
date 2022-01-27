@@ -1098,8 +1098,8 @@ class Invoice(models.Model):
     type = models.IntegerField(default=SALE, choices=INVOICE_TYPES)
     bill_to = models.ForeignKey(User, null=True, on_delete=CASCADE)
     created_on = models.DateTimeField(default=timezone.now, db_index=True)
-    paid_on = models.DateTimeField(null=True, db_index=True)
-    stripe_token = models.CharField(default='', db_index=True, max_length=50)
+    paid_on = models.DateTimeField(null=True, db_index=True, blank=True)
+    stripe_token = models.CharField(default='', db_index=True, max_length=50, blank=True)
     targets = ManyToManyField(to='lib.GenericReference', related_name='referencing_invoices', blank=True)
 
     def total(self) -> Money:
