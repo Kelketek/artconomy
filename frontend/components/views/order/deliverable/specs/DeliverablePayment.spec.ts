@@ -414,10 +414,10 @@ describe('DeliverablePayment.vue', () => {
     lines.push(sourceLine)
     vm.lineItems.setList(lines)
     vm.setTip(0.25)
-    mockAxios.mockResponse(rs({...sourceLine, amount: '20.00'}))
+    mockAxios.mockResponse(rs({...sourceLine, amount: 20}))
     await vm.$nextTick()
     expect(vm.tip).toBeTruthy()
-    expect(vm.tip.patchers.amount.model).toBe('20.00')
+    expect(vm.tip.patchers.amount.model).toBe(20)
   })
   it('Calculates the correct completion date.', async() => {
     const fox = genUser()

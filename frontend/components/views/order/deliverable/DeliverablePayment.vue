@@ -383,11 +383,12 @@ export default class DeliverablePayment extends mixins(DeliverableMixin, Formatt
       LineTypes.BASE_PRICE, LineTypes.ADD_ON, LineTypes.BONUS, LineTypes.SHIELD,
     ])
     const tip = quantize(subTotal.times(multiplier))
-    let promise: Promise<LineItem | undefined>
+    let promise: Promise<LineItem | void>
     if (this.tip) {
       this.tipForm.sending = true
-      promise = this.tip.patch({amount: tip.toFixed(2)}).then(() => {
-        this.tip.patchers.amount.model = tip.toFixed(2)
+      const amount = parseFloat(tip.toFixed(2))
+      promise = this.tip.patch({amount}).then(() => {
+        this.tip.patchers.amount.model = amount
       })
     } else {
       this.tipForm.fields.amount.update(tip.toFixed(2))
