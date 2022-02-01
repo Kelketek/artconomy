@@ -1055,7 +1055,11 @@ class PayoutTransactionSerializer(serializers.ModelSerializer):
     @lru_cache
     def get_fees(self, obj):
         return (
-                TransactionRecord.objects.filter(targets=ref_for_instance(obj)).aggregate(total=Sum('amount'))['total']
+                TransactionRecord.objects.filter(
+                    targets=ref_for_instance(obj),
+                    source=TransactionRecord.UNPROCESSED_EARNINGS,
+                    status=TransactionRecord.SUCCESS,
+                    destination=TransactionRecord.ACH_TRANSACTION_FEES).aggregate(total=Sum('amount'))['total']
                 or Decimal('0')
         )
 
