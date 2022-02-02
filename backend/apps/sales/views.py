@@ -6,7 +6,7 @@ from decimal import Decimal
 from functools import lru_cache
 from io import StringIO
 from pprint import pformat, pprint
-from typing import Union
+from typing import Union, Optional
 from uuid import uuid4
 
 import dateutil
@@ -1930,7 +1930,7 @@ class RandomProducts(ListAPIView):
         return Product.objects.filter(featured=False, available=True).order_by('?')
 
 
-def get_order_facts(product, serializer, seller):
+def get_order_facts(product: Optional[Product], serializer, seller: User):
     facts = {
         'table_order': False,
         'hold': serializer.validated_data.get('hold', False),
@@ -1965,7 +1965,8 @@ def get_order_facts(product, serializer, seller):
         facts['adjustment'] = Money('0.00', 'USD')
     facts['paid'] = serializer.validated_data['paid'] or ((facts['price'] + facts['adjustment']) == Money('0', 'USD'))
     facts['escrow_disabled'] = (
-            facts['paid'] or ((seller.artist_profile.bank_account_status != IN_SUPPORTED_COUNTRY) and not product.table_product)
+            facts['paid'] or ((seller.artist_profile.bank_account_status != IN_SUPPORTED_COUNTRY)
+                              and not (product and product.table_product))
     )
     if facts['paid']:
         if serializer.validated_data['completed']:

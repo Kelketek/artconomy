@@ -1362,6 +1362,42 @@ class TestCreateInvoice(APITestCase):
         self.assertEqual(order.customer_email, 'test@example.com')
         self.assertTrue(order.claim_token)
 
+    def test_create_invoice_no_product_nonsheild(self):
+        user = UserFactory.create()
+        self.login(user)
+        user.artist_profile.bank_account_status = NO_SUPPORTED_COUNTRY
+        user.artist_profile.save()
+        response = self.client.post(f'/api/sales/v1/account/{user.username}/create-invoice/', {
+            'completed': False,
+            'product': None,
+            'buyer': 'test@example.com',
+            'price': '5.00',
+            'details': 'oh',
+            'private': True,
+            'rating': ADULT,
+            'task_weight': 2,
+            'paid': False,
+            'hold': False,
+            'revisions': 3,
+            'expected_turnaround': 4
+        }, format='json')
+        order = Order.objects.get(id=response.data['order']['id'])
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(order.seller, user)
+        self.assertIsNone(order.buyer)
+        self.assertEqual(response.data['adjustment_task_weight'], 0)
+        self.assertEqual(response.data['adjustment_expected_turnaround'], 0)
+        self.assertEqual(response.data['adjustment_revisions'], 0)
+        self.assertEqual(response.data['task_weight'], 2)
+        self.assertEqual(response.data['revisions'], 3)
+        self.assertEqual(response.data['details'], 'oh')
+        self.assertEqual(response.data['expected_turnaround'], 4)
+        self.assertTrue(response.data['escrow_disabled'])
+        self.assertEqual(response.data['product'], None)
+
+        self.assertEqual(order.customer_email, 'test@example.com')
+        self.assertTrue(order.claim_token)
+
     def test_create_invoice_escrow_disabled(self):
         user = UserFactory.create(artist_mode=True)
         user2 = UserFactory.create()
