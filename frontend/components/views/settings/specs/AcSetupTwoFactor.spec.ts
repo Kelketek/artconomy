@@ -35,10 +35,10 @@ describe('ac-setup-two-factor', () => {
   })
   it('Fetches the relevant 2FA data', async() => {
     mount(AcSetupTwoFactor, {localVue, store, vuetify, propsData: {username: 'Fox'}})
-    expect(mockAxios.get).toHaveBeenCalledWith(
-      ...rq('/api/profiles/v1/account/Fox/auth/two-factor/tg/', 'get'),
+    expect(mockAxios.request).toHaveBeenCalledWith(
+      rq('/api/profiles/v1/account/Fox/auth/two-factor/tg/', 'get'),
     )
-    expect(mockAxios.get).toHaveBeenCalledWith(...rq(
+    expect(mockAxios.request).toHaveBeenCalledWith(rq(
       '/api/profiles/v1/account/Fox/auth/two-factor/totp/',
       'get',
       undefined,
@@ -80,8 +80,8 @@ describe('ac-setup-two-factor', () => {
     await flushPromises()
     await wrapper.vm.$nextTick()
     wrapper.find('.setup-telegram').trigger('click')
-    expect(mockAxios.put).toHaveBeenCalledWith(
-      ...rq('/api/profiles/v1/account/Fox/auth/two-factor/tg/', 'put'),
+    expect(mockAxios.request).toHaveBeenCalledWith(
+      rq('/api/profiles/v1/account/Fox/auth/two-factor/tg/', 'put'),
     )
   })
   it('Creates a TOTP Device', async() => {
@@ -96,8 +96,8 @@ describe('ac-setup-two-factor', () => {
     await flushPromises()
     await wrapper.vm.$nextTick()
     wrapper.find('.setup-totp').trigger('click')
-    expect(mockAxios.post).toHaveBeenCalledWith(
-      ...rq('/api/profiles/v1/account/Fox/auth/two-factor/totp/', 'post', {name: 'Phone'}),
+    expect(mockAxios.request).toHaveBeenCalledWith(
+      rq('/api/profiles/v1/account/Fox/auth/two-factor/totp/', 'post', {name: 'Phone'}),
     )
   })
 })

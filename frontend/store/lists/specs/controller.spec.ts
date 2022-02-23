@@ -11,7 +11,7 @@ import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import {SingleController} from '@/store/singles/controller'
 import WS from 'jest-websocket-mock'
 import {ListSocketSettings} from '@/store/lists/types/ListSocketSettings'
-import { cloneDeep } from 'lodash'
+import {cloneDeep} from 'lodash'
 
 let store: ArtStore
 let state: any
@@ -183,8 +183,8 @@ describe('List controller', () => {
   it('Fetches from the desired endpoint', () => {
     const controller = makeController()
     controller.get().then()
-    expect(mockAxios.get).toHaveBeenCalledWith(
-      ...rq('/endpoint/', 'post', undefined, {params: {page: 1, size: 24}, cancelToken: expect.any(Object)}),
+    expect(mockAxios.request).toHaveBeenCalledWith(
+      rq('/endpoint/', 'get', undefined, {params: {page: 1, size: 24}, cancelToken: expect.any(Object)}),
     )
   })
   it('Sets from the resulting response', async() => {
@@ -247,7 +247,7 @@ describe('List controller', () => {
   it('Posts to the list', async() => {
     const controller = makeController()
     controller.post({}).then()
-    expect(mockAxios.post).toHaveBeenCalledWith(...rq('/endpoint/', 'post', {}))
+    expect(mockAxios.request).toHaveBeenCalledWith(rq('/endpoint/', 'post', {}))
   })
   it('Posts, then pushes to the list', async() => {
     const controller = makeController()
@@ -291,7 +291,7 @@ describe('List controller', () => {
         {id: 6}, {id: 7}, {id: 8}, {id: 9}, {id: 10},
       ])
     })
-    expect(mockAxios.get).toHaveBeenCalled()
+    expect(mockAxios.request).toHaveBeenCalled()
     mockAxios.mockResponse(rs({
       results: [{id: 6}, {id: 7}, {id: 8}, {id: 9}, {id: 10}],
       count: 30,
@@ -304,7 +304,7 @@ describe('List controller', () => {
     controller.setList([{id: 1}, {id: 2}, {id: 3}, {id: 4}, {id: 5}])
     expect(controller.currentPage).toBe(1)
     controller.currentPage = 1
-    expect(mockAxios.get).not.toHaveBeenCalled()
+    expect(mockAxios.request).not.toHaveBeenCalled()
   })
   it('Determines whether more is available', async() => {
     const controller = makeController()
@@ -361,7 +361,7 @@ describe('List controller', () => {
     const controller = makeController()
     controller.response = {count: 2, size: 5}
     controller.next().then()
-    expect(mockAxios.get).not.toHaveBeenCalled()
+    expect(mockAxios.request).not.toHaveBeenCalled()
     expect(controller.currentPage).toBe(1)
   })
   it('Reports a verified empty list', () => {
@@ -381,20 +381,20 @@ describe('List controller', () => {
     const controller = makeController()
     store.commit('lists/example/setFailed', true)
     controller.retryGet().then()
-    expect(mockAxios.get).toHaveBeenCalledWith(
-      ...rq('/endpoint/', 'get', undefined, {params: {size: 24, page: 1}, cancelToken: expect.any(Object)}),
+    expect(mockAxios.request).toHaveBeenCalledWith(
+      rq('/endpoint/', 'get', undefined, {params: {size: 24, page: 1}, cancelToken: expect.any(Object)}),
     )
   })
   it('Grows on command', async() => {
     const controller = makeController()
     controller.response = {count: 100, size: 10}
     controller.grower(true)
-    expect(mockAxios.get).toHaveBeenCalledWith(
-      ...rq('/endpoint/', 'get', undefined, {params: {size: 24, page: 2}, cancelToken: expect.any(Object)}),
+    expect(mockAxios.request).toHaveBeenCalledWith(
+      rq('/endpoint/', 'get', undefined, {params: {size: 24, page: 2}, cancelToken: expect.any(Object)}),
     )
     mockAxios.reset()
     controller.grower(true)
-    expect(mockAxios.get).not.toHaveBeenCalled()
+    expect(mockAxios.request).not.toHaveBeenCalled()
   })
   it('Reports the count', async() => {
     const controller = makeController()
@@ -410,8 +410,8 @@ describe('List controller', () => {
   it('Handles a non-paginated list', async() => {
     const controller = makeController({paginated: false})
     controller.firstRun().then()
-    expect(mockAxios.get).toHaveBeenCalledWith(
-      ...rq('/endpoint/', 'get', undefined, {cancelToken: expect.any(Object)}),
+    expect(mockAxios.request).toHaveBeenCalledWith(
+      rq('/endpoint/', 'get', undefined, {cancelToken: expect.any(Object)}),
     )
     mockAxios.mockResponse(rs([{id: 1}, {id: 2}]))
     await flushPromises()

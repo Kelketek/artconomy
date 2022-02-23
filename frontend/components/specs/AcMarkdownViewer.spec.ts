@@ -32,7 +32,7 @@ describe('AcMarkdownViewer.vue', () => {
       attachTo: docTarget(),
     })
     const vm = wrapper.vm as any
-    expect(mockAxios.get).toHaveBeenCalledWith(...rq('https://example.com/test.txt', 'get', undefined, {}))
+    expect(mockAxios.request).toHaveBeenCalledWith(rq('https://example.com/test.txt', 'get', undefined, {}))
     mockAxios.mockResponse(rs('# Hello!'))
     await flushPromises()
     expect(wrapper.find('h1').text()).toEqual('Hello!')

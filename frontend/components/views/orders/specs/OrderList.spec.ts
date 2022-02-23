@@ -94,7 +94,7 @@ describe('OrderList.vue', () => {
       [
         genOrder({id: 1}),
         genOrder({id: 2, read: false}),
-        genOrder({id:3, buyer: null}),
+        genOrder({id: 3, buyer: null}),
       ],
     )
     vm.list.ready = true

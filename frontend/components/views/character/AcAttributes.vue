@@ -143,10 +143,11 @@ export default class AcAttributes extends mixins(Subjective, CharacterCentric, E
       if (!this.character) {
         return null
       }
-      return this.character.attributes.list.map((attribute) => {
+      return this.character.attributes.list.filter((attribute) => {
         if (attribute.x && attribute.x.sticky) {
           return attribute.x.value
         }
+        return undefined
       })
     }
 

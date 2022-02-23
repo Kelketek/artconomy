@@ -5,7 +5,6 @@ import {Wrapper} from '@vue/test-utils'
 import Vue from 'vue'
 import AcCookieConsent from '@/components/AcCookieConsent.vue'
 
-
 describe('AcCookieConsent.vue', () => {
   const localVue = vueSetup()
   let vuetify: Vuetify
@@ -18,16 +17,16 @@ describe('AcCookieConsent.vue', () => {
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('Shows a snackbar when cookie settings are not set.', async () => {
+  it('Shows a snackbar when cookie settings are not set.', async() => {
     wrapper = mount(AcCookieConsent, {localVue, vuetify, store})
     expect(wrapper.find('.customize-cookies-button').exists()).toBe(true)
   })
-  it('Does not show a snackbar when cookie settings are set.', async () => {
+  it('Does not show a snackbar when cookie settings are set.', async() => {
     localStorage.setItem('cookieOptionsSetV1', '1')
     wrapper = mount(AcCookieConsent, {localVue, vuetify, store})
     expect(wrapper.find('.customize-cookies-button').exists()).toBe(false)
   })
-  it('Accepts all cookies.', async () => {
+  it('Accepts all cookies.', async() => {
     wrapper = mount(AcCookieConsent, {localVue, vuetify, store})
     expect(localStorage.getItem('cookieOptionsSetV1')).toBe(null)
     expect(localStorage.getItem('firstPartyAnalytics')).toBe(null)
@@ -38,7 +37,7 @@ describe('AcCookieConsent.vue', () => {
     expect(localStorage.getItem('firstPartyAnalytics')).toBe('1')
     expect(localStorage.getItem('thirdPartyAnalytics')).toBe('1')
   })
-  it('Shows a dialog, hiding the snackbar while it is active.', async () => {
+  it('Shows a dialog, hiding the snackbar while it is active.', async() => {
     wrapper = mount(AcCookieConsent, {localVue, vuetify, store, attachTo: docTarget()})
     await wrapper.vm.$nextTick()
     expect(wrapper.find('.dialog-submit').exists()).toBe(false)
@@ -47,7 +46,7 @@ describe('AcCookieConsent.vue', () => {
     expect(wrapper.find('.customize-cookies-button').exists()).toBe(false)
     expect(wrapper.find('.dialog-submit').exists()).toBe(true)
   })
-  it('Enables only essential cookies.', async () => {
+  it('Enables only essential cookies.', async() => {
     wrapper = mount(AcCookieConsent, {localVue, vuetify, store, attachTo: docTarget()})
     await wrapper.vm.$nextTick()
     wrapper.find('.customize-cookies-button').trigger('click')
@@ -60,7 +59,7 @@ describe('AcCookieConsent.vue', () => {
     expect(localStorage.getItem('thirdPartyAnalytics')).toBe('0')
     expect(store.state.showCookieDialog).toBe(false)
   })
-  it('Saves specific cookies.', async () => {
+  it('Saves specific cookies.', async() => {
     wrapper = mount(AcCookieConsent, {localVue, vuetify, store, attachTo: docTarget()})
     await wrapper.vm.$nextTick()
     wrapper.find('.customize-cookies-button').trigger('click')

@@ -69,7 +69,6 @@ describe('AcComment.vue', () => {
         comment: commentList.list[0],
         username: commentList.list[0].x.user.username,
       },
-
       attachTo: docTarget(),
     })
     expect(wrapper.find('.alternate').exists()).toBe(false)
@@ -112,7 +111,6 @@ describe('AcComment.vue', () => {
         comment: commentList.list[1],
         username: commentList.list[1].x.user.username,
       },
-
       attachTo: docTarget(),
     })
     expect(wrapper.find('.subcomments').exists()).toBe(true)
@@ -134,7 +132,6 @@ describe('AcComment.vue', () => {
         comment: commentList.list[0],
         username: commentList.list[0].x.user.username,
       },
-
       attachTo: docTarget(),
     })
     await wrapper.vm.$nextTick()
@@ -156,7 +153,6 @@ describe('AcComment.vue', () => {
         username: commentList.list[1].x.user.username,
         alternate: true,
       },
-
       attachTo: docTarget(),
     })
     expect(wrapper.find('.alternate').exists()).toBe(true)
@@ -178,7 +174,6 @@ describe('AcComment.vue', () => {
         username: commentList.list[0].x.user.username,
         nesting: true,
       },
-
       attachTo: docTarget(),
     })
     const replyButton = wrapper.find('.reply-button')
@@ -213,7 +208,6 @@ describe('AcComment.vue', () => {
         username: 'Fox',
         nesting: true,
       },
-
       attachTo: docTarget(),
     })
     const replyButton = wrapper.find('.reply-button')
@@ -242,7 +236,6 @@ describe('AcComment.vue', () => {
         username: commentList.list[0].x.user.username,
         nesting: false,
       },
-
       attachTo: docTarget(),
     })
     expect(wrapper.find('.reply-button').exists()).toBe(false)
@@ -264,7 +257,6 @@ describe('AcComment.vue', () => {
         username: commentList.list[0].x.user.username,
         nesting: false,
       },
-
       attachTo: docTarget(),
     })
     wrapper.find('.more-button').trigger('click')
@@ -276,8 +268,8 @@ describe('AcComment.vue', () => {
     wrapper.find('.save-button').trigger('click')
     await wrapper.vm.$nextTick()
     await jest.runAllTimers()
-    expect(mockAxios.patch).toHaveBeenCalledWith(
-      ...rq('/api/comments/17/', 'patch', {text: 'Edited message'}, {cancelToken: expect.any(Object)}),
+    expect(mockAxios.request).toHaveBeenCalledWith(
+      rq('/api/comments/17/', 'patch', {text: 'Edited message'}, {cancelToken: expect.any(Object)}),
     )
     mockAxios.mockResponse(rs({
       id: 17,
@@ -319,15 +311,14 @@ describe('AcComment.vue', () => {
         username: null,
         nesting: false,
       },
-
       attachTo: docTarget(),
     })
     expect((wrapper.vm as any).comment.x).toBeTruthy()
     await wrapper.vm.$nextTick()
     await confirmAction(wrapper, ['.more-button', '.delete-button'])
     await wrapper.vm.$nextTick()
-    expect(mockAxios.delete).toHaveBeenCalledWith(
-      ...rq('/api/comments/13/', 'delete'),
+    expect(mockAxios.request).toHaveBeenCalledWith(
+      rq('/api/comments/13/', 'delete'),
     )
     mockAxios.mockResponse(rs(null))
     await flushPromises()
@@ -383,7 +374,6 @@ describe('AcComment.vue', () => {
         nesting: false,
         showHistory: true,
       },
-
       attachTo: docTarget(),
     })
     const vm = wrapper.vm as any
@@ -415,7 +405,6 @@ describe('AcComment.vue', () => {
         nesting: false,
         inHistory: true,
       },
-
       attachTo: docTarget(),
     })
     const vm = wrapper.vm as any

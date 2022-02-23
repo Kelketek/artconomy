@@ -31,7 +31,7 @@
 import Component, {mixins} from 'vue-class-component'
 import AcAvatar from '../AcAvatar.vue'
 import Subjective from '../../mixins/subjective'
-import {Fragment} from 'vue-fragment'
+import {Fragment} from 'vue-frag'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import Formatting from '@/mixins/formatting'
 

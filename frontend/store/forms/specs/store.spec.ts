@@ -2,16 +2,13 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import mockAxios from '@/specs/helpers/mock-axios'
 import {ArtStore, createStore} from '../../index'
-import {createLocalVue} from '@vue/test-utils'
 import {fieldFromSchema} from '../index'
 import {formRegistry} from '../registry'
-import {rs, mount} from '@/specs/helpers'
+import {rq, rs} from '@/specs/helpers'
 import flushPromises from 'flush-promises'
-import {HttpVerbs} from '@/store/forms/types/HttpVerbs'
 import {RootFormState} from '@/store/forms/types/RootFormState'
 
 Vue.use(Vuex)
-const localVue = createLocalVue()
 
 describe('Forms store', () => {
   let store: ArtStore
@@ -157,11 +154,13 @@ describe('Forms store', () => {
       name: 'example', fields: {name: {value: 'Fox'}, age: {value: 30}}, endpoint: '/test/endpoint/',
     })
     store.dispatch('forms/submit', {name: 'example'}).then()
-    expect(mockAxios.post).toHaveBeenCalledWith(
-      '/test/endpoint/',
-      {name: 'Fox', age: 30},
-      {headers: {'Content-Type': 'application/json; charset=utf-8'}},
-    )
+    expect(mockAxios.request).toHaveBeenCalledWith(
+      rq(
+        '/test/endpoint/',
+        'post',
+        {name: 'Fox', age: 30},
+        {headers: {'Content-Type': 'application/json; charset=utf-8'}},
+      ))
   })
   it('Resets after submission', async() => {
     store.commit('forms/initForm', {
@@ -195,11 +194,12 @@ describe('Forms store', () => {
       endpoint: '/test/endpoint/',
     })
     store.dispatch('forms/submit', {name: 'example'}).then()
-    expect(mockAxios.post).toHaveBeenCalledWith(
+    expect(mockAxios.request).toHaveBeenCalledWith(rq(
       '/test/endpoint/',
+      'post',
       {name: 'Fox'},
       {headers: {'Content-Type': 'application/json; charset=utf-8'}},
-    )
+    ))
   })
   it('Merges defaults for field Schemas', () => {
     let field = fieldFromSchema({value: 'Derp'})

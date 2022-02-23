@@ -32,7 +32,7 @@ describe('User Handles', () => {
   })
   it('Populates a user handler', async() => {
     const wrapper = shallowMount(UserProp, {localVue, store})
-    expect(mockAxios.get).toHaveBeenCalledTimes(1)
+    expect(mockAxios.request).toHaveBeenCalledTimes(1)
     expect((wrapper.vm as any).subject).toBe(null)
     mockAxios.mockResponse(userResponse())
     await flushPromises()

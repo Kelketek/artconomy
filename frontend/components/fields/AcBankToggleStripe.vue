@@ -148,7 +148,7 @@ export default class AcBankToggleStripe extends mixins(Subjective) {
           endpoint: `/api/sales/v1/account/${this.username}/stripe-accounts/link/`,
           fields: {
             country: {value: '', validators: [{name: 'required'}]},
-            url: {value: window.location + ''}
+            url: {value: window.location + ''},
           },
         },
       )

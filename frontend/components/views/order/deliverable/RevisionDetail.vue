@@ -91,7 +91,8 @@ export default class RevisionDetail extends mixins(DeliverableMixin) {
       return {}
     }
     const map: {[key: number]: number} = {}
-    this.revision.x.submissions.map((entry) => { map[entry.owner_id] = entry.id })
+
+    this.revision.x.submissions.map((entry) => { map[entry.owner_id] = entry.id }) // eslint-disable-line array-callback-return
     return map
   }
 

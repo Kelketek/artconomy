@@ -234,7 +234,9 @@ export function getHeaders(method: HttpVerbs, url: string): Headers {
     if (referredBy) {
       headers['X-Referred-By'] = referredBy
     }
-    headers['X-Window-ID'] = window.windowId
+    if (window.windowId) {
+      headers['X-Window-ID'] = window.windowId
+    }
   }
   return headers
 }
@@ -872,7 +874,7 @@ export function updateLinked(options: LinkUpdateOptions) {
   let updateItems = options.list.list.map(x => cloneDeep(x.x))
   updateItems = updateItems.filter(
     (x) => x[options.key][options.subKey as string] === options.newValue[options.subKey as string])
-  updateItems.map((x) => { x[options.key] = options.newValue })
+  updateItems.map((x) => { x[options.key] = options.newValue }) // eslint-disable-line array-callback-return
   updateItems.map(options.list.replace)
 }
 

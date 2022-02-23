@@ -14,7 +14,7 @@ let vuetify: Vuetify
 
 const mockError = jest.spyOn(console, 'error')
 
-describe('Avatar', () => {
+describe('AcAvatar', () => {
   beforeEach(() => {
     store = createStore()
     vuetify = createVuetify()
@@ -31,12 +31,14 @@ describe('Avatar', () => {
       propsData: {username: 'Fox'},
       stubs: {RouterLink: RouterLinkStub},
     })
-    expect(mockAxios.get).toHaveBeenCalledWith(...rq('/api/profiles/v1/account/Fox/', 'get'))
-    expect(mockAxios.get).toHaveBeenCalledTimes(1)
+    expect(mockAxios.request).toHaveBeenCalledWith(rq('/api/profiles/v1/account/Fox/', 'get'))
+    expect(mockAxios.request).toHaveBeenCalledTimes(1)
     expect(wrapper.findComponent(RouterLinkStub).exists()).toBeFalsy()
     mockAxios.mockResponse(userResponse())
     await flushPromises()
-    expect(wrapper.findComponent(RouterLinkStub).props().to).toEqual({name: 'AboutUser', params: {username: 'Fox'}})
+    await wrapper.vm.$nextTick()
+    const vm = wrapper.vm as any
+    expect(vm.profileLink).toEqual({name: 'AboutUser', params: {username: 'Fox'}})
     expect((wrapper.find('img').attributes().src)).toBe(
       'https://www.gravatar.com/avatar/d3e61c0076b54b4cf19751e2cf8e17ed.jpg?s=80',
     )
@@ -48,15 +50,14 @@ describe('Avatar', () => {
       vuetify,
       propsData: {userId: 1},
       stubs: {RouterLink: RouterLinkStub},
-
     })
-    expect(mockAxios.get).toHaveBeenCalledTimes(1)
-    expect(mockAxios.get).toHaveBeenCalledWith(...rq('/api/profiles/v1/data/user/id/1/', 'get', undefined, {}))
-    expect(wrapper.findComponent(RouterLinkStub).exists()).toBeFalsy()
+    expect(mockAxios.request).toHaveBeenCalledTimes(1)
+    expect(mockAxios.request).toHaveBeenCalledWith(rq('/api/profiles/v1/data/user/id/1/', 'get', undefined, {}))
     mockAxios.mockResponse(userResponse())
     await flushPromises()
     await wrapper.vm.$nextTick()
-    expect(wrapper.findComponent(RouterLinkStub).props().to).toEqual({name: 'AboutUser', params: {username: 'Fox'}})
+    const vm = wrapper.vm as any
+    expect(vm.profileLink).toEqual({name: 'AboutUser', params: {username: 'Fox'}})
     expect((wrapper.find('img').attributes().src)).toBe(
       'https://www.gravatar.com/avatar/d3e61c0076b54b4cf19751e2cf8e17ed.jpg?s=80',
     )
@@ -69,10 +70,10 @@ describe('Avatar', () => {
       vuetify,
       propsData: {userId: 1},
       stubs: {RouterLink: RouterLinkStub},
-
     })
-    expect(mockAxios.get).not.toHaveBeenCalled()
-    expect(wrapper.findComponent(RouterLinkStub).props().to).toEqual({name: 'AboutUser', params: {username: 'Fox'}})
+    expect(mockAxios.request).not.toHaveBeenCalled()
+    const vm = wrapper.vm as any
+    expect(vm.profileLink).toEqual({name: 'AboutUser', params: {username: 'Fox'}})
     expect((wrapper.find('img').attributes().src)).toBe(
       'https://www.gravatar.com/avatar/d3e61c0076b54b4cf19751e2cf8e17ed.jpg?s=80',
     )
@@ -85,7 +86,6 @@ describe('Avatar', () => {
         store,
         vuetify,
         stubs: {RouterLink: RouterLinkStub},
-
       })
     }).toThrow(Error('No username, no ID. We cannot load an avatar.'))
   })
@@ -96,7 +96,8 @@ describe('Avatar', () => {
     })
     wrapper.setProps({username: ''})
     await wrapper.vm.$nextTick()
-    expect(wrapper.findComponent(RouterLinkStub).props().to).toEqual({name: 'AboutUser', params: {username: 'Fox'}})
+    const vm = wrapper.vm as any
+    expect(vm.profileLink).toEqual({name: 'AboutUser', params: {username: 'Fox'}})
   })
   it('Repopulates if the username changes', async() => {
     setViewer(store, genUser())
@@ -108,17 +109,20 @@ describe('Avatar', () => {
       stubs: {RouterLink: RouterLinkStub},
     })
     await wrapper.vm.$nextTick()
-    expect(mockAxios.get).not.toHaveBeenCalled()
+    expect(mockAxios.request).not.toHaveBeenCalled()
     wrapper.setProps({username: 'Vulpes'})
     await wrapper.vm.$nextTick()
-    expect(mockAxios.get).toHaveBeenCalledWith(...rq('/api/profiles/v1/account/Vulpes/', 'get'))
-    expect(mockAxios.get).toHaveBeenCalledTimes(1)
+    await flushPromises()
+    expect(mockAxios.request).toHaveBeenCalledWith(rq('/api/profiles/v1/account/Vulpes/', 'get'))
+    expect(mockAxios.request).toHaveBeenCalledTimes(1)
     const vulpes = genUser()
     vulpes.username = 'Vulpes'
     vulpes.avatar_url = '/static/stuff.jpg/'
-    mockAxios.mockResponse(rs(vulpes))
+    mockAxios.mockResponseFor({url: '/api/profiles/v1/account/Vulpes/'}, rs(vulpes))
+    await flushPromises()
     await wrapper.vm.$nextTick()
-    expect(wrapper.findComponent(RouterLinkStub).props().to).toEqual({name: 'AboutUser', params: {username: 'Vulpes'}})
+    const vm = wrapper.vm as any
+    expect(vm.profileLink).toEqual({name: 'AboutUser', params: {username: 'Vulpes'}})
     expect((wrapper.find('img').attributes().src)).toBe(
       '/static/stuff.jpg/',
     )
@@ -133,8 +137,9 @@ describe('Avatar', () => {
       stubs: {RouterLink: RouterLinkStub},
     })
     await wrapper.vm.$nextTick()
-    expect(mockAxios.get).not.toHaveBeenCalled()
-    expect(wrapper.findComponent(RouterLinkStub).props().to).toEqual({name: 'AboutUser', params: {username: 'Fox'}})
+    expect(mockAxios.request).not.toHaveBeenCalled()
+    const vm = wrapper.vm as any
+    expect(vm.profileLink).toEqual({name: 'AboutUser', params: {username: 'Fox'}})
     expect((wrapper.find('img').attributes().src)).toBe(
       'https://www.gravatar.com/avatar/d3e61c0076b54b4cf19751e2cf8e17ed.jpg?s=80',
     )
@@ -150,7 +155,6 @@ describe('Avatar', () => {
       vuetify,
       propsData: {user},
       stubs: {RouterLink: RouterLinkStub},
-
     })
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any

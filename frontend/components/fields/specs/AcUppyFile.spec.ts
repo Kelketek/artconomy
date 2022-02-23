@@ -26,7 +26,7 @@ describe('ac-uppy-file.vue', () => {
       vuetify,
       store,
       attachTo: docTarget(),
-      propsData: {uppyId: 'uppyTest', ...propsData}
+      propsData: {uppyId: 'uppyTest', ...propsData},
     })
   }
   it('Mounts and initializes the uppy object', async() => {
@@ -86,7 +86,7 @@ describe('ac-uppy-file.vue', () => {
         uploadStarted: 1, uploadComplete: true, bytesTotal: 100, percentage: 100, bytesUploaded: 100,
       },
     };
-    (wrapper.vm as any).uppy.setState({files: {'1': file}});
+    (wrapper.vm as any).uppy.setState({files: {1: file}});
     (wrapper.vm as any).uppy.emit('upload-success', file, {body: {id: 'wat'}})
     expect(spyEmit).toHaveBeenCalledWith('input', 'wat')
   })
@@ -105,9 +105,9 @@ describe('ac-uppy-file.vue', () => {
       progress: {
         uploadStarted: 1, uploadComplete: true, bytesTotal: 100, percentage: 100, bytesUploaded: 100,
       },
-    };
+    }
     const vm = wrapper.vm as any
-    vm.uppy.setState({files: {'1': file}});
+    vm.uppy.setState({files: {1: file}})
     vm.uppy.emit('upload-success', file, {body: {id: 'do'}})
     expect(spyEmit).toHaveBeenCalledWith('input', ['wat', 'do'])
   })
@@ -128,7 +128,7 @@ describe('ac-uppy-file.vue', () => {
         uploadStarted: 1, uploadComplete: true, bytesTotal: 100, percentage: 100, bytesUploaded: 100,
       },
     };
-    (wrapper.vm as any).uppy.setState({files: {'1': file}});
+    (wrapper.vm as any).uppy.setState({files: {1: file}});
     (wrapper.vm as any).uppy.emit('upload-success', file, {body: {id: 'wat'}})
     expect(mockSuccess).toHaveBeenCalledWith({id: 'wat'})
   })

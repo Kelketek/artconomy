@@ -96,7 +96,7 @@ export default class AcCard extends Vue {
     }
 
     public setPrimary() {
-      this.cardList.list.map((card) => {
+      this.cardList.list.map((card) => { // eslint-disable-line array-callback-return
         card.updateX({primary: false})
       })
       this.card.setX({...(this.card.x as CreditCardToken), ...{primary: true}})

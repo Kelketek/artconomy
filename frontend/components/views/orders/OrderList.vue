@@ -55,6 +55,7 @@
       <template v-slot:default>
         <v-container fluid class="pa-0">
           <v-data-table :headers="headers" :items="orderItems" hide-default-footer v-if="dataMode" dense >
+            <!-- eslint-disable vue/valid-v-slot -->
             <template v-slot:item.id="{item}">
               <router-link :to="item.default_path">#{{item.id}}</router-link>
             </template>
@@ -62,6 +63,7 @@
               <ac-link :to="profileLink(item.buyer)">{{item.username}}</ac-link>
             </template>
           </v-data-table>
+          <!-- eslint-enable vue/valid-v-slot -->
           <v-row no-gutters v-else>
             <v-col cols="12" sm="6" md="4" lg="2" v-for="order in list.list" :key="order.x.id">
               <ac-unread-marker :read="order.x.read">

@@ -21,7 +21,7 @@ const actions: ActionTree<NotificationsState, RootState> = {
     if (state.loopID) {
       return
     }
-    commit('setLoop', (setInterval(() => {
+    commit('setLoop', (window.setInterval(() => {
       dispatch('runFetch')
     }, 10000)))
     // Run the first time immediately.
@@ -31,7 +31,7 @@ const actions: ActionTree<NotificationsState, RootState> = {
     if (!state.loopID) {
       return
     }
-    clearInterval(state.loopID)
+    window.clearInterval(state.loopID)
     commit('setLoop', 0)
   },
   runFetch({commit}) {

@@ -74,9 +74,9 @@ describe('Profile.vue', () => {
     router.push({name: 'Profile', params: {username: fox.username}})
     wrapper = mount(Profile, {localVue, store, router, vuetify, propsData: {username: 'Fox'}, attachTo: docTarget()},
     )
-    expect(mockAxios.get).toHaveBeenCalledWith(...rq('/api/profiles/v1/account/Fox/', 'get'))
+    expect(mockAxios.request).toHaveBeenCalledWith(rq('/api/profiles/v1/account/Fox/', 'get'))
     mockAxios.mockResponse(rs(fox))
-    expect(mockAxios.get).toHaveBeenCalledWith(...rq('/api/profiles/v1/account/Fox/artist-profile/', 'get', undefined, {
+    expect(mockAxios.request).toHaveBeenCalledWith(rq('/api/profiles/v1/account/Fox/artist-profile/', 'get', undefined, {
       params: {view: 'true'}, cancelToken: expect.any(Object),
     }))
     mockAxios.mockResponse(rs(genArtistProfile()))
@@ -92,10 +92,10 @@ describe('Profile.vue', () => {
     router.push({name: 'Profile', params: {username: fox.username}})
     wrapper = mount(Profile, {localVue, store, router, vuetify, propsData: {username: 'Fox'}, attachTo: docTarget()},
     )
-    expect(mockAxios.get).toHaveBeenCalledWith(...rq('/api/profiles/v1/account/Fox/', 'get'))
+    expect(mockAxios.request).toHaveBeenCalledWith(rq('/api/profiles/v1/account/Fox/', 'get'))
     mockAxios.mockResponse(rs(fox))
-    expect(mockAxios.get).toHaveBeenCalledWith(
-      ...rq('/api/profiles/v1/account/Fox/artist-profile/', 'get', undefined, {
+    expect(mockAxios.request).toHaveBeenCalledWith(
+      rq('/api/profiles/v1/account/Fox/artist-profile/', 'get', undefined, {
         params: {view: 'true'}, cancelToken: expect.any(Object),
       }),
     )
@@ -123,8 +123,8 @@ describe('Profile.vue', () => {
     mockAxios.reset()
     wrapper.find('.message-button').trigger('click')
     await wrapper.vm.$nextTick()
-    expect(mockAxios.post).toHaveBeenCalledWith(
-      ...rq('/api/profiles/v1/account/Vulpes/conversations/', 'post',
+    expect(mockAxios.request).toHaveBeenCalledWith(
+      rq('/api/profiles/v1/account/Vulpes/conversations/', 'post',
         {participants: [1]}, {}),
     )
     mockAxios.mockResponse(rs(genConversation()))

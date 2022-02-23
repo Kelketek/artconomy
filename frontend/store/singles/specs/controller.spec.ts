@@ -47,9 +47,9 @@ describe('Single controller', () => {
   it('Sends a put request', async() => {
     const controller = makeController()
     // @ts-ignore
-    mockAxios.put.mockImplementationOnce(mockAxios.post)
+    mockAxios.request.mockImplementationOnce(mockAxios.request)
     controller.put().then()
-    expect(mockAxios.put).toHaveBeenCalledWith(...rq('/endpoint/', 'put'))
+    expect(mockAxios.request).toHaveBeenCalledWith(rq('/endpoint/', 'put'))
   })
   it('Sets the result of a put request', async() => {
     const controller = makeController()
@@ -92,13 +92,13 @@ describe('Single controller', () => {
   it('Fetches the item from the server', async() => {
     const controller = makeController()
     controller.get().then()
-    expect(mockAxios.get).toHaveBeenCalledWith(...rq('/endpoint/', 'get'))
+    expect(mockAxios.request).toHaveBeenCalledWith(rq('/endpoint/', 'get'))
   })
   it('Retries fetching if it has not previously succeeded', async() => {
     const controller = makeController()
     store.commit('singles/example/setFailed', true)
     controller.retryGet().then()
-    expect(mockAxios.get).toHaveBeenCalledWith(...rq('/endpoint/', 'get'))
+    expect(mockAxios.request).toHaveBeenCalledWith(rq('/endpoint/', 'get'))
   })
   it('Sets the item from the server', async() => {
     const controller = makeController()
@@ -110,7 +110,7 @@ describe('Single controller', () => {
   it('Sends a patch request', () => {
     const controller = makeController()
     controller.patch({}).then()
-    expect(mockAxios.patch).toHaveBeenCalledWith(...rq('/endpoint/', 'patch', {}))
+    expect(mockAxios.request).toHaveBeenCalledWith(rq('/endpoint/', 'patch', {}))
   })
   it('Sets the result of a patch request', async() => {
     const controller = makeController()
@@ -161,8 +161,8 @@ describe('Single controller', () => {
     controller.setX({stuff: 'Things'})
     expect(controller.patchers.stuff.model).toBe('Things')
     controller.patchers.stuff.rawSet('Wat')
-    expect(mockAxios.patch).toHaveBeenCalledWith(
-      ...rq('/endpoint/', 'get', {stuff: 'Wat'}, {cancelToken: expect.any(Object)}),
+    expect(mockAxios.request).toHaveBeenCalledWith(
+      rq('/endpoint/', 'patch', {stuff: 'Wat'}),
     )
   })
   it('Listens for a pattern', () => {

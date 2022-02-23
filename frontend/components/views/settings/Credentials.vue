@@ -253,14 +253,14 @@ export default class Credentials extends mixins(Subjective, Alerts) {
             value: '',
           },
           password: {
-            value: ''
+            value: '',
           },
           email: {
             value: '', validators: [{name: 'email'}, {name: 'email'}],
           },
           verify: {
             value: false,
-          }
+          },
         },
       })
     }

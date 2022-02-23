@@ -1,6 +1,6 @@
 import {Wrapper} from '@vue/test-utils'
 import Vue from 'vue'
-import {cleanUp, createVuetify, docTarget, flushPromises, rs, vueSetup, vuetifySetup, mount} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, flushPromises, rs, vueSetup, vuetifySetup, mount, rq} from '@/specs/helpers'
 import AcUserSelect from '@/components/fields/AcUserSelect.vue'
 import mockAxios from '@/__mocks__/axios'
 import {genUser} from '@/specs/helpers/fixtures'
@@ -24,19 +24,19 @@ describe('AcUserSelect.vue', () => {
     wrapper = mount(AcUserSelect, {
       localVue,
       vuetify,
-
       attachTo: docTarget(),
       propsData: {value: tagList},
     })
     wrapper.find('input').setValue('Test')
     await wrapper.vm.$nextTick()
     await jest.runAllTimers()
-    expect(mockAxios.get).toHaveBeenCalled()
-    expect(mockAxios.get).toHaveBeenCalledWith(
+    expect(mockAxios.request).toHaveBeenCalled()
+    expect(mockAxios.request).toHaveBeenCalledWith(rq(
       '/api/profiles/v1/search/user/',
+      'get',
       undefined,
       {cancelToken: expect.any(Object), headers: {'Content-Type': 'application/json; charset=utf-8'}, params: {q: 'Test'}},
-    )
+    ))
   })
   it('Searches for users with a tagging modifier', async() => {
     const tagList: number[] = []
@@ -44,7 +44,6 @@ describe('AcUserSelect.vue', () => {
       AcUserSelect, {
         localVue,
         vuetify,
-
         attachTo: docTarget(),
         propsData: {value: tagList, tagging: true},
       },
@@ -52,23 +51,23 @@ describe('AcUserSelect.vue', () => {
     wrapper.find('input').setValue('Test')
     await wrapper.vm.$nextTick()
     await jest.runAllTimers()
-    expect(mockAxios.get).toHaveBeenCalled()
-    expect(mockAxios.get).toHaveBeenCalledWith(
+    expect(mockAxios.request).toHaveBeenCalled()
+    expect(mockAxios.request).toHaveBeenCalledWith(rq(
       '/api/profiles/v1/search/user/',
+      'get',
       undefined,
       {
         cancelToken: expect.any(Object),
         headers: {'Content-Type': 'application/json; charset=utf-8'},
         params: {q: 'Test', tagging: true},
       },
-    )
+    ))
   })
   it('Accepts a response from the server on its query', async() => {
     const tagList: number[] = []
     wrapper = mount(AcUserSelect, {
       localVue,
       vuetify,
-
       attachTo: docTarget(),
       propsData: {value: tagList},
     })
@@ -86,7 +85,6 @@ describe('AcUserSelect.vue', () => {
       AcUserSelect, {
         localVue,
         vuetify,
-
         attachTo: docTarget(),
         propsData: {value: tagList},
       },
@@ -128,7 +126,6 @@ describe('AcUserSelect.vue', () => {
       AcUserSelect, {
         localVue,
         vuetify,
-
         attachTo: docTarget(),
         propsData: {value: tagList},
       },
@@ -150,7 +147,6 @@ describe('AcUserSelect.vue', () => {
       AcUserSelect, {
         localVue,
         vuetify,
-
         attachTo: docTarget(),
         propsData: {
           value: tagList, initItems: [{username: 'Test', id: 1}, {username: 'Test2', id: 2}],
@@ -165,7 +161,6 @@ describe('AcUserSelect.vue', () => {
       AcUserSelect, {
         localVue,
         vuetify,
-
         attachTo: docTarget(),
         propsData: {
           value: tagList, initItems: [{username: 'Test', id: 1}, {username: 'Test2', id: 2}],
@@ -185,7 +180,6 @@ describe('AcUserSelect.vue', () => {
       AcUserSelect, {
         localVue,
         vuetify,
-
         attachTo: docTarget(),
         propsData: {
           value: tagList, initItems: [{username: 'Test', id: 1}, {username: 'Test2', id: 2}],
@@ -220,7 +214,6 @@ describe('AcUserSelect.vue', () => {
       AcUserSelect, {
         localVue,
         vuetify,
-
         attachTo: docTarget(),
         propsData: {
           value: null, multiple: false, initItems: [{username: 'Test', id: 1}, {username: 'Test2', id: 2}],
@@ -242,7 +235,6 @@ describe('AcUserSelect.vue', () => {
       AcUserSelect, {
         localVue,
         vuetify,
-
         attachTo: docTarget(),
         propsData: {
           value: 1,
@@ -262,7 +254,6 @@ describe('AcUserSelect.vue', () => {
       AcUserSelect, {
         localVue,
         vuetify,
-
         attachTo: docTarget(),
         propsData: {
           value: [1], initItems: [{username: 'Test', id: 1}, {username: 'Test2', id: 2}],

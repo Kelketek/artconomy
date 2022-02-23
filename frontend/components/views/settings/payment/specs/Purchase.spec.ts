@@ -75,8 +75,8 @@ describe('Purchase.vue', () => {
     mockAxios.reset()
     wrapper.find('.add-card-button').trigger('click')
     await vm.$nextTick()
-    expect(mockAxios.post).toHaveBeenCalledWith(
-      ...rq('/api/sales/v1/account/Fox/cards/', 'post', emptyForm(), {}))
+    expect(mockAxios.request).toHaveBeenCalledWith(
+      rq('/api/sales/v1/account/Fox/cards/', 'post', emptyForm(), {}))
     const card = genCard({id: 5, primary: true})
     mockAxios.mockResponse(rs(card))
     await flushPromises()
@@ -108,8 +108,8 @@ describe('Purchase.vue', () => {
     mockAxios.reset()
     wrapper.find('.add-card-button').trigger('click')
     await vm.$nextTick()
-    expect(mockAxios.post).toHaveBeenCalledWith(
-      ...rq('/api/sales/v1/account/Fox/cards/', 'post', emptyForm(), {}))
+    expect(mockAxios.request).toHaveBeenCalledWith(
+      rq('/api/sales/v1/account/Fox/cards/', 'post', emptyForm(), {}))
     const card = genCard({id: 5})
     mockAxios.mockResponse(rs(card))
     await flushPromises()

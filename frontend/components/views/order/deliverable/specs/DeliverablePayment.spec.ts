@@ -20,7 +20,7 @@ import {LineTypes} from '@/types/LineTypes'
 import {genSubmission} from '@/store/submissions/specs/fixtures'
 import Router from 'vue-router'
 import {ArtStore, createStore} from '@/store'
-import Vue from 'vue'
+import Vue, {VueConstructor} from 'vue'
 import Vuetify from 'vuetify/lib'
 import {deliverableRouter} from '@/components/views/order/specs/helpers'
 import {SingleController} from '@/store/singles/controller'
@@ -30,8 +30,7 @@ import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import {PROCESSORS} from '@/types/PROCESSORS'
 import {parseISO} from '@/lib/lib'
 
-const localVue = vueSetup()
-localVue.use(Router)
+let localVue: VueConstructor
 let store: ArtStore
 let wrapper: Wrapper<Vue>
 let router: Router
@@ -39,6 +38,8 @@ let vuetify: Vuetify
 
 describe('DeliverablePayment.vue', () => {
   beforeEach(() => {
+    localVue = vueSetup()
+    localVue.use(Router)
     jest.useFakeTimers()
     store = createStore()
     vuetify = createVuetify()

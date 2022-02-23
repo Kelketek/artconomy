@@ -89,7 +89,7 @@ describe('AcNewSubmission.vue', () => {
     form.step = 2
     await vm.$nextTick()
     wrapper.find('.submit-button').trigger('click')
-    expect(mockAxios.post).toHaveBeenCalled()
+    expect(mockAxios.request).toHaveBeenCalled()
     const submission = genSubmission()
     submission.id = 3
     mockAxios.mockResponse(rs(submission))

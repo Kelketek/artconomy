@@ -47,8 +47,8 @@ import {Singles} from '@/store/singles/registry'
 import {Lists} from '@/store/lists/registry'
 import {Profiles} from '@/store/profiles/registry'
 import {ArtStore, createStore} from '@/store'
-import {cleanUp, flushPromises, mount, qMount, rs} from '@/specs/helpers'
-import {LogLevels} from "@/types/LogLevels";
+import {cleanUp, flushPromises, mount, qMount, rq, rs} from '@/specs/helpers'
+import {LogLevels} from '@/types/LogLevels'
 
 Vue.use(Vuetify)
 Vue.use(Vuex)
@@ -63,11 +63,12 @@ describe('artCall', () => {
     const catchFn = jest.fn()
     const thenFn = jest.fn()
     artCall({url: '/test/location/', method: 'get', data: {test: 'data'}}).then(thenFn).catch(catchFn)
-    expect(mockAxios.get).toHaveBeenCalledWith(
+    expect(mockAxios.request).toHaveBeenCalledWith(rq(
       '/test/location/',
+      'get',
       {test: 'data'},
       {headers: {'Content-Type': 'application/json; charset=utf-8'}},
-    )
+    ))
     mockAxios.mockResponse({data: {successful: 'call'}})
     expect(thenFn).toHaveBeenCalledWith({successful: 'call'})
     expect(catchFn).not.toHaveBeenCalled()
@@ -76,11 +77,12 @@ describe('artCall', () => {
     const catchFn = jest.fn()
     const thenFn = jest.fn()
     artCall({url: '/test/location2/', method: 'post', data: {test: 'data2'}}).then(thenFn).catch(catchFn)
-    expect(mockAxios.post).toHaveBeenCalledWith(
+    expect(mockAxios.request).toHaveBeenCalledWith(rq(
       '/test/location2/',
+      'post',
       {test: 'data2'},
       {headers: {'Content-Type': 'application/json; charset=utf-8'}},
-    )
+    ))
     mockAxios.mockResponse({data: {successful: 'call2'}})
     expect(thenFn).toHaveBeenCalledWith({successful: 'call2'})
     expect(catchFn).not.toHaveBeenCalled()

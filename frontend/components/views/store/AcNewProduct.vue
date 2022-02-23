@@ -176,7 +176,7 @@ import {LineTypes} from '@/types/LineTypes'
 import {SingleController} from '@/store/singles/controller'
 import Pricing from '@/types/Pricing'
 import {flatten} from '@/lib/lib'
-import { Ratings } from '@/store/profiles/types/Ratings'
+import {Ratings} from '@/store/profiles/types/Ratings'
 
 @Component({components: {AcPricePreview, AcBoundField, AcPatchField, AcLoadSection, AcFormDialog}})
 export default class AcNewProduct extends Subjective {

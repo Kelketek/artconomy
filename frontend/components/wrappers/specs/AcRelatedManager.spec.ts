@@ -28,8 +28,8 @@ describe('AcRelatedManager.vue', () => {
       stubs: ['router-link'],
       attachTo: docTarget(),
     })
-    expect(mockAxios.get).toHaveBeenCalledWith(
-      ...rq('/endpoint/', 'get', undefined, {cancelToken: expect.any(Object)}),
+    expect(mockAxios.request).toHaveBeenCalledWith(
+      rq('/endpoint/', 'get', undefined, {cancelToken: expect.any(Object)}),
     )
     const user1 = genUser()
     user1.id = 1
@@ -49,8 +49,8 @@ describe('AcRelatedManager.vue', () => {
       stubs: ['router-link'],
       attachTo: docTarget(),
     })
-    expect(mockAxios.get).toHaveBeenCalledWith(
-      ...rq('/endpoint/', 'get', undefined, {cancelToken: expect.any(Object)}),
+    expect(mockAxios.request).toHaveBeenCalledWith(
+      rq('/endpoint/', 'get', undefined, {cancelToken: expect.any(Object)}),
     )
     const user1 = genUser()
     user1.id = 1
@@ -78,15 +78,15 @@ describe('AcRelatedManager.vue', () => {
       stubs: ['router-link'],
       attachTo: docTarget(),
     })
-    expect(mockAxios.get).toHaveBeenCalledWith(
-      ...rq('/endpoint/', 'get', undefined, {cancelToken: expect.any(Object)}),
+    expect(mockAxios.request).toHaveBeenCalledWith(
+      rq('/endpoint/', 'get', undefined, {cancelToken: expect.any(Object)}),
     )
     mockAxios.reset()
     const vm = wrapper.vm as any
     vm.userForm.fields.user_id.update(3)
     await vm.$nextTick()
-    expect(mockAxios.post).toHaveBeenCalledWith(
-      ...rq('/endpoint/', 'post', {user_id: 3}, {}),
+    expect(mockAxios.request).toHaveBeenCalledWith(
+      rq('/endpoint/', 'post', {user_id: 3}, {}),
     )
     const user = genUser()
     user.id = 3

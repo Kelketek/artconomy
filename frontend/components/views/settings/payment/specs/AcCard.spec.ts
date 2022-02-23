@@ -42,7 +42,7 @@ describe('AcCard.vue', () => {
     // Confirmation.
     await wrapper.vm.$nextTick()
     wrapper.find('.delete-confirm .confirmation-button').trigger('click')
-    expect(mockAxios.delete).toHaveBeenCalledWith(...rq('/cards/1/', 'delete'))
+    expect(mockAxios.request).toHaveBeenCalledWith(rq('/cards/1/', 'delete'))
     mockAxios.mockResponse({status: 204, data: {}})
     await flushPromises()
     await wrapper.vm.$nextTick()
@@ -56,8 +56,8 @@ describe('AcCard.vue', () => {
     await wrapper.vm.$nextTick()
     wrapper.find('.make-default').trigger('click')
     // Confirmation.
-    expect(mockAxios.post).toHaveBeenCalledWith(
-      ...rq('/cards/1/primary/', 'post', undefined, {}))
+    expect(mockAxios.request).toHaveBeenCalledWith(
+      rq('/cards/1/primary/', 'post', undefined, {}))
     mockAxios.mockResponse(rs({}))
     await flushPromises()
     expect((cardList.list[0].x as CreditCardToken).primary).toBe(true)

@@ -66,7 +66,7 @@
 import Vue from 'vue'
 import Component from 'vue-class-component'
 import {Prop} from 'vue-property-decorator'
-import {Fragment} from 'vue-fragment'
+import {Fragment} from 'vue-frag'
 
 @Component({components: {Fragment}})
 export default class AcConfirmation extends Vue {

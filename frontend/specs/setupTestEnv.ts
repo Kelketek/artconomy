@@ -1,34 +1,34 @@
 /* This is run after initial Jest environment setup. It has access to the Jest globals, so we can access expect here. */
 
 export function testName() {
-    return expect.getState().currentTestName
+  return expect.getState().currentTestName
 }
 
 export class LocalStorageMock {
     store: {[key: string]: {[key: string]: string}}
     constructor() {
-        this.store = {}
+      this.store = {}
     }
 
     clear() {
-        delete this.store[testName()]
+      delete this.store[testName()]
     }
 
     getItem(key: string) {
-        const specStore = this.store[testName()] || {}
-        return specStore[key] || null
+      const specStore = this.store[testName()] || {}
+      return specStore[key] || null
     }
 
     setItem(key: string, value: any) {
-        const name = testName()
-        if (!this.store[name]) {
-            this.store[name] = {}
-        }
-        this.store[name][key] = value.toString()
+      const name = testName()
+      if (!this.store[name]) {
+        this.store[name] = {}
+      }
+      this.store[name][key] = value.toString()
     }
 
     removeItem(key: string) {
-        delete this.store[testName()][key]
+      delete this.store[testName()][key]
     }
 }
 
@@ -39,4 +39,4 @@ window.ResizeObserver = window.ResizeObserver || jest.fn().mockImplementation(()
   disconnect: jest.fn(),
   observe: jest.fn(),
   unobserve: jest.fn(),
-}));
+}))

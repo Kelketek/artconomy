@@ -134,7 +134,7 @@ describe('NewOrder.vue', () => {
         details: {value: '', step: 2},
         references: {value: [], step: 2},
         // Let there be a 'step 3' even if there's not an actual field there.
-        dummy: {value: '', step: 3}
+        dummy: {value: '', step: 3},
       },
     })
     wrapper = mount(

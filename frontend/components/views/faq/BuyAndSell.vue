@@ -737,7 +737,7 @@ const buySell = [
   'auctions', 'physical-goods',
 ]
 @Component({
-  components: {AcLoadSection}
+  components: {AcLoadSection},
 })
 export default class BuyAndSell extends mixins(Viewer, QuestionSet) {
     public searchForm: FormController = null as unknown as FormController

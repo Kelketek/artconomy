@@ -67,8 +67,8 @@ describe('AcNewComment.vue', () => {
     wrapper.find('textarea').setValue('New comment!')
     await wrapper.vm.$nextTick()
     wrapper.find('.submit-button').trigger('click')
-    expect(mockAxios.post).toHaveBeenCalledWith(
-      ...rq('/api/comments/', 'post', {text: 'New comment!', extra_data: {test: 1}}, {}),
+    expect(mockAxios.request).toHaveBeenCalledWith(
+      rq('/api/comments/', 'post', {text: 'New comment!', extra_data: {test: 1}}, {}),
     )
     mockAxios.mockResponse(rs({
       id: 17,
@@ -121,8 +121,8 @@ describe('AcNewComment.vue', () => {
     wrapper.find('textarea').setValue('New comment!')
     await wrapper.vm.$nextTick()
     wrapper.find('.submit-button').trigger('click')
-    expect(mockAxios.post).toHaveBeenCalledWith(
-      ...rq('/api/comments/', 'post', {text: 'New comment!', extra_data: {test: 3}}, {}),
+    expect(mockAxios.request).toHaveBeenCalledWith(
+      rq('/api/comments/', 'post', {text: 'New comment!', extra_data: {test: 3}}, {}),
     )
   })
 })

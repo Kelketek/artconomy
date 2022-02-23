@@ -9,7 +9,7 @@
 <script lang="ts">
 import Vue from 'vue'
 import Component from 'vue-class-component'
-import {Fragment} from 'vue-fragment'
+import {Fragment} from 'vue-frag'
 import {Prop} from 'vue-property-decorator'
 import {Location} from 'vue-router'
 import {State} from 'vuex-class'

@@ -2,7 +2,7 @@ import mockAxios from './helpers/mock-axios'
 import Vue, {VueConstructor} from 'vue'
 import {Wrapper} from '@vue/test-utils'
 import App from '../App.vue'
-import {ArtStore, createStore} from '../store'
+import {ArtStore, createStore} from '@/store'
 import flushPromises from 'flush-promises'
 import {genUser} from './helpers/fixtures'
 import {FormController} from '@/store/forms/form-controller'
@@ -125,7 +125,7 @@ describe('App.vue', () => {
         body: 'This is a test.',
         referring_url: '/',
       }, {})
-    expect(mockAxios.post).toHaveBeenCalledWith(...response)
+    expect(mockAxios.request).toHaveBeenCalledWith(response)
     mockAxios.mockResponse(rs(undefined, {status: 204}))
     await flushPromises()
     expect(state.showSupport).toBe(false)
@@ -403,7 +403,7 @@ describe('App.vue', () => {
     const vm = wrapper.vm as any
     expect(vm.socketState.x.serverVersion).toEqual('beep')
   })
-  it('Sends tracking data', async () => {
+  it('Sends tracking data', async() => {
     wrapper = mount(App, {
       store,
       localVue,
@@ -415,7 +415,7 @@ describe('App.vue', () => {
     await wrapper.vm.$nextTick()
     expect(window.pintrk.queue).toEqual([['load', expect.any(String)], ['page'], ['track', 'pagevisit']])
   })
-  it('Does not send tracking data for special pages', async () => {
+  it('Does not send tracking data for special pages', async() => {
     wrapper = mount(App, {
       store,
       localVue,
@@ -427,7 +427,7 @@ describe('App.vue', () => {
     await wrapper.vm.$nextTick()
     expect(window.pintrk.queue).toEqual([['load', expect.any(String)]])
   })
-  it('Sends partial tracking info for product oriented pages.', async () => {
+  it('Sends partial tracking info for product oriented pages.', async() => {
     wrapper = mount(App, {
       store,
       localVue,

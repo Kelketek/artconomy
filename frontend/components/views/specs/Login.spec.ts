@@ -3,7 +3,7 @@ import {shallowMount, Wrapper} from '@vue/test-utils'
 import Login from '../Login.vue'
 import {ArtStore, createStore} from '@/store'
 import mockAxios from '@/specs/helpers/mock-axios'
-import {cleanUp, createVuetify, docTarget, expectFields, fieldEl, makeSpace, vueSetup, mount} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, expectFields, fieldEl, makeSpace, vueSetup, mount, rq} from '@/specs/helpers'
 import {userResponse} from '@/specs/helpers/fixtures'
 import flushPromises from 'flush-promises'
 import {deleteCookie} from '@/lib/lib'
@@ -61,12 +61,13 @@ describe('Login.vue', () => {
     const submit = wrapper.find('#loginSubmit')
     mockAxios.reset()
     submit.trigger('click')
-    expect(mockAxios.post).toHaveBeenCalledTimes(1)
-    expect(mockAxios.post).toHaveBeenCalledWith(
+    expect(mockAxios.request).toHaveBeenCalledTimes(1)
+    expect(mockAxios.request).toHaveBeenCalledWith(rq(
       '/api/profiles/v1/login/',
+      'post',
       {email: 'test@example.com', password: 'pass', token: ''},
       {headers: {'Content-Type': 'application/json; charset=utf-8'}},
-    )
+    ))
   })
   it('Retrieves and sends an order token', () => {
     wrapper = mount(Login, {
@@ -107,13 +108,12 @@ describe('Login.vue', () => {
       mocks: {$router: {push}, $route: {name: 'Login', params: {tabName: 'login'}, query: {}}},
       stubs: ['router-link'],
       attachTo: docTarget(),
-
     })
     const submit = wrapper.find('#loginSubmit')
     expect((wrapper.vm as any).viewer).toBe(null)
     mockAxios.reset()
     submit.trigger('click')
-    expect(mockAxios.post).toHaveBeenCalledTimes(1)
+    expect(mockAxios.request).toHaveBeenCalledTimes(1)
     const response = userResponse()
     // const user = response.data
     mockAxios.mockResponse(response)
@@ -129,14 +129,13 @@ describe('Login.vue', () => {
       mocks: {$router: {push}, $route: {name: 'Login', params: {tabName: 'login'}, query: {}}},
       stubs: ['router-link'],
       attachTo: docTarget(),
-
     })
     const controller = wrapper.vm.$getForm('login')
     const submit = wrapper.find('#loginSubmit')
     await wrapper.vm.$nextTick()
     mockAxios.reset()
     submit.trigger('click')
-    expect(mockAxios.post).toHaveBeenCalledTimes(1)
+    expect(mockAxios.request).toHaveBeenCalledTimes(1)
     mockTrace.mockImplementationOnce(() => undefined)
     mockAxios.mockError({})
     await flushPromises()
@@ -153,14 +152,13 @@ describe('Login.vue', () => {
       mocks: {$router: {push}, $route: {name: 'Login', params: {tabName: 'login'}, query: {}}},
       stubs: ['router-link'],
       attachTo: docTarget(),
-
     })
     const controller = wrapper.vm.$getForm('login')
     await wrapper.vm.$nextTick()
     const submit = wrapper.find('#loginSubmit')
     mockAxios.reset()
     submit.trigger('click')
-    expect(mockAxios.post).toHaveBeenCalledTimes(1)
+    expect(mockAxios.request).toHaveBeenCalledTimes(1)
     mockTrace.mockImplementationOnce(() => undefined)
     mockAxios.mockError({response: {}})
     await flushPromises()
@@ -176,7 +174,6 @@ describe('Login.vue', () => {
       mocks: {$router: {push}, $route: {name: 'Login', params: {tabName: 'login'}, query: {}}},
       stubs: ['router-link'],
       attachTo: docTarget(),
-
     })
     const submit = wrapper.find('#loginSubmit')
     expect((wrapper.vm as any).viewer).toBe(null)
@@ -196,7 +193,6 @@ describe('Login.vue', () => {
       mocks: {$router: {push}, $route: {name: 'Login', params: {tabName: 'login'}, query: {next: '/destination/'}}},
       stubs: ['router-link'],
       attachTo: docTarget(),
-
     })
     const submit = wrapper.find('#loginSubmit')
     expect((wrapper.vm as any).viewer).toBe(null)
@@ -216,7 +212,6 @@ describe('Login.vue', () => {
       mocks: {$router: {push}, $route: {name: 'Login', params: {tabName: 'login'}, query: {next: '/'}}},
       stubs: ['router-link'],
       attachTo: docTarget(),
-
     })
     const submit = wrapper.find('#loginSubmit')
     expect((wrapper.vm as any).viewer).toBe(null)
@@ -235,7 +230,6 @@ describe('Login.vue', () => {
       mocks: {$router: jest.fn(), $route: {name: 'Login', params: {tabName: 'login'}, query: {}}},
       stubs: ['router-link'],
       attachTo: docTarget(),
-
     })
     const controller = wrapper.vm.$getForm('login')
     mockAxios.reset()
@@ -256,7 +250,6 @@ describe('Login.vue', () => {
       mocks: {$router: jest.fn(), $route: {name: 'Login', params: {tabName: 'login'}, query: {}}},
       stubs: ['router-link'],
       attachTo: docTarget(),
-
     })
     const controller = wrapper.vm.$getForm('login')
     controller.fields.email.update('test@example.com', false)
@@ -272,7 +265,6 @@ describe('Login.vue', () => {
       mocks: {$router: jest.fn(), $route: {name: 'Login', params: {tabName: 'login'}, query: {}}},
       stubs: ['router-link'],
       attachTo: docTarget(),
-
     })
     const controller = wrapper.vm.$getForm('login')
     controller.fields.email.update('test@example.com', false)
@@ -295,7 +287,6 @@ describe('Login.vue', () => {
       mocks: {$router: jest.fn(), $route: {name: 'Login', params: {tabName: 'login'}, query: {}}},
       stubs: ['router-link'],
       attachTo: docTarget(),
-
     })
     const controller = wrapper.vm.$getForm('login')
     controller.fields.email.update('test@example.com', false)
@@ -317,7 +308,6 @@ describe('Login.vue', () => {
       mocks: {$router: {push}, $route: {name: 'Login', params: {tabName: 'login'}, query: {}}},
       stubs: ['router-link'],
       attachTo: docTarget(),
-
     })
     const controller = wrapper.vm.$getForm('login')
     controller.fields.email.update('test@example.com', false)
@@ -328,11 +318,12 @@ describe('Login.vue', () => {
     const submit = wrapper.find('#tokenSubmit')
     mockAxios.reset()
     submit.trigger('click')
-    expect(mockAxios.post).toHaveBeenCalledWith(
+    expect(mockAxios.request).toHaveBeenCalledWith(rq(
       '/api/profiles/v1/login/',
+      'post',
       {email: 'test@example.com', password: 'pass', token: '086 456'},
       {headers: {'Content-Type': 'application/json; charset=utf-8'}},
-    )
+    ))
     mockAxios.mockResponse(userResponse())
     await flushPromises()
     // On the first failure, we don't want to show errors since they're part of the normal login process.
@@ -348,7 +339,6 @@ describe('Login.vue', () => {
       mocks: {$router: {push, replace: jest.fn()}, $route: {name: 'Login', params: {}, query: {}}},
       stubs: ['router-link'],
       attachTo: docTarget(),
-
     })
     const fields = wrapper.vm.$getForm('login').fields;
     (wrapper.vm as any).showTokenPrompt = true
@@ -371,7 +361,6 @@ describe('Login.vue', () => {
       mocks: {$router: {push}, $route: {name: 'Login', params: {tabName: 'register'}, query: {}}},
       stubs: ['router-link'],
       attachTo: docTarget(),
-
     })
     expect((wrapper.vm as any).loginTab).toBe('tab-register')
     const fields = wrapper.vm.$getForm('register').fields
@@ -416,8 +405,9 @@ describe('Login.vue', () => {
     const submit = wrapper.find('#registerSubmit')
     mockAxios.reset()
     submit.trigger('click')
-    expect(mockAxios.post).toHaveBeenCalledWith(
+    expect(mockAxios.request).toHaveBeenCalledWith(rq(
       '/api/profiles/v1/register/',
+      'post',
       {
         email: 'test@example.com',
         mail: false,
@@ -428,7 +418,7 @@ describe('Login.vue', () => {
         artist_mode: false,
       },
       {headers: {'Content-Type': 'application/json; charset=utf-8'}},
-    )
+    ))
   })
   it('Handles a failed registration', async() => {
     const push = jest.fn()
@@ -439,7 +429,6 @@ describe('Login.vue', () => {
       mocks: {$router: {push}, $route: {name: 'Login', params: {tabName: 'register'}, query: {}}},
       stubs: ['router-link'],
       attachTo: docTarget(),
-
     })
     const form = wrapper.vm.$getForm('register')
     const fields = form.fields
@@ -462,7 +451,6 @@ describe('Login.vue', () => {
       mocks: {$router: {push}, $route: {name: 'Login', params: {tabName: 'register'}, query: {}}},
       stubs: ['router-link'],
       attachTo: docTarget(),
-
     })
     const submit = wrapper.find('#registerSubmit')
     mockAxios.reset()
@@ -480,7 +468,6 @@ describe('Login.vue', () => {
       mocks: {$router: {push}, $route: {name: 'Login', params: {tabName: 'forgot'}, query: {}}},
       stubs: ['router-link'],
       attachTo: docTarget(),
-
     })
     await wrapper.vm.$nextTick()
     const fields = wrapper.vm.$getForm('forgot').fields
@@ -500,20 +487,20 @@ describe('Login.vue', () => {
       mocks: {$router: {push}, $route: {name: 'Login', params: {tabName: 'forgot'}, query: {}}},
       stubs: ['router-link'],
       attachTo: docTarget(),
-
     })
     const fields = wrapper.vm.$getForm('forgot').fields
     fields.email.update('Test', false)
     const submit = wrapper.find('#forgotSubmit')
     mockAxios.reset()
     submit.trigger('click')
-    expect(mockAxios.post).toHaveBeenCalledWith(
+    expect(mockAxios.request).toHaveBeenCalledWith(rq(
       '/api/profiles/v1/forgot-password/',
+      'post',
       {
         email: 'Test',
       },
       {headers: {'Content-Type': 'application/json; charset=utf-8'}},
-    )
+    ))
   })
   it('Handles a forgotten password response', async() => {
     const push = jest.fn()

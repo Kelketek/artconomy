@@ -182,7 +182,7 @@ export class ListModule<T extends {}> {
           return
         }
         const toRemove = state.refs.filter((x) => entries.indexOf(x) === -1)
-        toRemove.map((x: string) => {
+        toRemove.map((x: string) => { // eslint-disable-line array-callback-return
           // @ts-ignore
           this.unregisterModule([...state.name.split('/'), 'items', x])
         })

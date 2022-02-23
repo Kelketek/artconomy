@@ -65,8 +65,8 @@ describe('AcTotpDevice.vue', () => {
     wrapper.find('.delete-phone-2fa').trigger('click')
     await wrapper.vm.$nextTick()
     wrapper.find('.confirmation-button').trigger('click')
-    expect(mockAxios.delete).toHaveBeenCalledWith(
-      ...rq('/test/1/', 'delete'),
+    expect(mockAxios.request).toHaveBeenCalledWith(
+      rq('/test/1/', 'delete'),
     )
     mockAxios.mockResponse({status: 204, data: null})
     await flushPromises()
@@ -100,7 +100,7 @@ describe('AcTotpDevice.vue', () => {
     const form = wrapper.vm.$getForm('1_totpForm')
     form.fields.code.update('123456')
     wrapper.find('.submit-button').trigger('click')
-    expect(mockAxios.patch).toHaveBeenCalledWith(
-      ...rq('/api/profiles/v1/account/Fox/auth/two-factor/totp/1/', 'patch', {code: '123456'}, {}))
+    expect(mockAxios.request).toHaveBeenCalledWith(
+      rq('/api/profiles/v1/account/Fox/auth/two-factor/totp/1/', 'patch', {code: '123456'}, {}))
   })
 })

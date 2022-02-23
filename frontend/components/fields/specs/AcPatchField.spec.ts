@@ -54,8 +54,8 @@ describe('AcPatchField.ts', () => {
     field.trigger('keydown.enter')
     await wrapper.vm.$nextTick()
     await jest.runAllTimers()
-    expect(mockAxios.patch).toHaveBeenCalledWith(
-      ...rq('/', 'patch', {test: 'TEST'}, {cancelToken: expect.any(Object)}),
+    expect(mockAxios.request).toHaveBeenCalledWith(
+      rq('/', 'patch', {test: 'TEST'}, {cancelToken: expect.any(Object)}),
     )
     mockAxios.mockResponse(rs({test: 'TEST'}))
   })
@@ -72,7 +72,7 @@ describe('AcPatchField.ts', () => {
     field.trigger('keydown.enter')
     await wrapper.vm.$nextTick()
     await jest.runAllTimers()
-    expect(mockAxios.patch).not.toHaveBeenCalled()
+    expect(mockAxios.request).not.toHaveBeenCalled()
   })
   it('Resets the saved value on failure if autoSave is false', async() => {
     wrapper = mount(AcPatchField, {

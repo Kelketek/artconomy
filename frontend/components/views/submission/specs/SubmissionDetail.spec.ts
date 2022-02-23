@@ -169,7 +169,7 @@ describe('SubmissionDetail.vue', () => {
       localVue, store, router, vuetify, propsData: {submissionId: '123'}, attachTo: docTarget(),
     })
     const vm = wrapper.vm as any
-    const mockAgeCheck = spyOn(vm, 'ageCheck')
+    const mockAgeCheck = jest.spyOn(vm, 'ageCheck')
     vm.submission.makeReady(submission)
     await vm.$nextTick()
     expect(mockAgeCheck).toHaveBeenCalledWith({value: 2})

@@ -53,7 +53,7 @@ describe('socket.ts message handlers', () => {
     server.close()
     await server.closed
   })
-  it('Clears handlers', async ()=> {
+  it('Clears handlers', async() => {
     const used = jest.fn()
     const used2 = jest.fn()
     const unused = jest.fn()

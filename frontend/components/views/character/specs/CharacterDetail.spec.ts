@@ -76,17 +76,17 @@ describe('CharacterDetail.vue', () => {
     },
     )
     await wrapper.vm.$nextTick()
-    expect(mockAxios.get).toHaveBeenCalledWith(
-      ...rq('/api/profiles/v1/account/Vulpes/characters/Kai/', 'get'),
+    expect(mockAxios.request).toHaveBeenCalledWith(
+      rq('/api/profiles/v1/account/Vulpes/characters/Kai/', 'get'),
     )
-    expect(mockAxios.get).toHaveBeenCalledWith(
-      ...rq('/api/profiles/v1/account/Vulpes/characters/Kai/attributes/', 'get',
+    expect(mockAxios.request).toHaveBeenCalledWith(
+      rq('/api/profiles/v1/account/Vulpes/characters/Kai/attributes/', 'get',
         undefined, {cancelToken: expect.any(Object)}))
-    expect(mockAxios.get).toHaveBeenCalledWith(
-      ...rq('/api/profiles/v1/account/Vulpes/characters/Kai/colors/', 'get',
+    expect(mockAxios.request).toHaveBeenCalledWith(
+      rq('/api/profiles/v1/account/Vulpes/characters/Kai/colors/', 'get',
         undefined, {cancelToken: expect.any(Object)}))
-    expect(mockAxios.get).toHaveBeenCalledWith(
-      ...rq('/api/profiles/v1/account/Vulpes/characters/Kai/share/', 'get',
+    expect(mockAxios.request).toHaveBeenCalledWith(
+      rq('/api/profiles/v1/account/Vulpes/characters/Kai/share/', 'get',
         undefined, {cancelToken: expect.any(Object)}))
     mockAxios.mockResponse(rs(genCharacter()))
     mockAxios.mockResponse(rs([]))
@@ -126,15 +126,15 @@ describe('CharacterDetail.vue', () => {
   it('Does not break setting meta information if the primary submission is not set', async() => {
     setViewer(store, vulpes)
     wrapper = mount(CharacterDetail, {
-        localVue,
-        store,
-        router,
-        vuetify,
-        propsData: {username: 'Vulpes', characterName: 'Kai'},
-        attachTo: docTarget(),
-      },
+      localVue,
+      store,
+      router,
+      vuetify,
+      propsData: {username: 'Vulpes', characterName: 'Kai'},
+      attachTo: docTarget(),
+    },
     )
-    const character = genCharacter();
+    const character = genCharacter()
     character.primary_submission = null
     const vm = wrapper.vm as any
     vm.character.profile.setX(character)

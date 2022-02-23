@@ -36,7 +36,7 @@ module.exports = {
         console.log('Skipping sentry plugin.')
       }
     }
-    config.plugins.push(new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/))
+    config.plugins.push(new webpack.IgnorePlugin({resourceRegExp: /^\.\/locale$/, contextRegExp: /moment$/}))
     config.entry = {
       app: [
         './frontend/main.ts',
@@ -53,7 +53,6 @@ module.exports = {
       })
   },
   devServer: {
-    public: 'https://artconomy.vulpinity.com',
     allowedHosts: ['localhost', '.vulpinity.com', '.artconomy.com', 'art-dev.ngrok.io'],
   },
   outputDir: 'public',

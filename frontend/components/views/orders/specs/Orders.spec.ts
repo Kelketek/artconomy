@@ -145,8 +145,6 @@ describe('Orders.vue', () => {
     })
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
-    expect(() => mockAxios.getReqByUrl(vm.stats.endpoint)).toThrow(
-      Error('Could not find request for URL /api/sales/v1/account/Fox/sales/stats/'),
-    )
+    expect(mockAxios.getReqByUrl(vm.stats.endpoint)).toBeUndefined()
   })
 })

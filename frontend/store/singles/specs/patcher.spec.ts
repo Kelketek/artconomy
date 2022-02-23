@@ -45,13 +45,13 @@ describe('Patcher', () => {
     wrapper = mount(Patcher, {localVue, store});
     (wrapper.vm as any).sfwMode.model = true
     jest.runAllTimers()
-    expect(mockAxios.patch).toHaveBeenCalledTimes(1)
+    expect(mockAxios.request).toHaveBeenCalledTimes(1)
     const request = rq(
       '/api/profiles/v1/account/Fox/',
       'patch', {sfw_mode: true},
     )
-    request[2].cancelToken = expect.any(Object)
-    expect(mockAxios.patch).toHaveBeenCalledWith(...request)
+    request.cancelToken = expect.any(Object)
+    expect(mockAxios.request).toHaveBeenCalledWith(request)
   })
   it('Does not send a patch request when the url is #', async() => {
     wrapper = mount(Patcher, {localVue, store});
@@ -64,7 +64,7 @@ describe('Patcher', () => {
     (wrapper.vm as any).localShare.patchers.showPayment.model = true
     await wrapper.vm.$nextTick()
     jest.runAllTimers()
-    expect(mockAxios.patch).not.toHaveBeenCalled()
+    expect(mockAxios.request).not.toHaveBeenCalled()
   })
   it('Returns a dirty value until the patch has settled', async() => {
     wrapper = mount(Patcher, {localVue, store});

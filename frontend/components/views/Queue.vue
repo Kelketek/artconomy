@@ -40,7 +40,7 @@ import AcOrderPreview from '@/components/AcOrderPreview.vue'
 import {ListController} from '@/store/lists/controller'
 import Order from '@/types/Order'
 @Component({
-  components: {AcOrderPreview, AcPaginated, AcProfileHeader, AcLoadSection}
+  components: {AcOrderPreview, AcPaginated, AcProfileHeader, AcLoadSection},
 })
 export default class Queue extends mixins(Subjective) {
   public list: ListController<Order> = null as unknown as ListController<Order>

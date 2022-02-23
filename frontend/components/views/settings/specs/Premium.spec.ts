@@ -66,8 +66,8 @@ describe('Premium.vue', () => {
     await vm.$nextTick()
     mockAxios.reset()
     await confirmAction(wrapper, ['.cancel-subscription'])
-    expect(mockAxios.post).toHaveBeenCalledWith(
-      ...rq('/api/sales/v1/account/Fox/cancel-premium/', 'post', undefined, {}),
+    expect(mockAxios.request).toHaveBeenCalledWith(
+      rq('/api/sales/v1/account/Fox/cancel-premium/', 'post', undefined, {}),
     )
     mockAxios.mockResponse(rs(genUser()))
     await flushPromises()

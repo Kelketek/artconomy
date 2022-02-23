@@ -46,7 +46,7 @@ describe('AcCardManager.vue', () => {
     cleanUp(wrapper)
   })
   it('Fetches the initial data', async() => {
-    expect(mockAxios.get.mock.calls[0]).toEqual(
+    expect(mockAxios.request.mock.calls[0][0]).toEqual(
       rq('/api/sales/v1/account/Fox/cards/authorize/', 'get', undefined, {cancelToken: expect.any(Object)}),
     )
   })

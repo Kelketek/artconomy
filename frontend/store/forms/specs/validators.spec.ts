@@ -10,8 +10,7 @@ import flushPromises from 'flush-promises'
 import axios from 'axios'
 import MockDate from 'mockdate'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
-import {setViewer, mount} from '@/specs/helpers'
-import {genArtistProfile, genUser} from '@/specs/helpers/fixtures'
+import {mount, rq} from '@/specs/helpers'
 import {profileRegistry, Profiles} from '@/store/profiles/registry'
 import {singleRegistry, Singles} from '@/store/singles/registry'
 import {RootFormState} from '@/store/forms/types/RootFormState'
@@ -112,12 +111,13 @@ describe('Field validators', () => {
     const controller = new FieldController({store, propsData: {formName: 'example2', fieldName: 'email'}})
     const source = axios.CancelToken.source()
     validator(controller, source.token).then()
-    expect(mockAxios.post).toHaveBeenCalledWith(
+    expect(mockAxios.request).toHaveBeenCalledWith(rq(
       '/api/profiles/v1/form-validators/email/',
+      'post',
       {email: 'test@example.com'},
       {cancelToken: expect.any(Object), headers: {'Content-Type': 'application/json; charset=utf-8'}, validateStatus},
-    )
-    expect(mockAxios.post).toHaveBeenCalledTimes(1)
+    ))
+    expect(mockAxios.request).toHaveBeenCalledTimes(1)
   })
   it('Returns errors from a generated async validator.', async() => {
     const validator = simpleAsyncValidator('/api/profiles/v1/form-validators/email/')

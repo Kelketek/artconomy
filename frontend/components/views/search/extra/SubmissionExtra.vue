@@ -79,7 +79,7 @@ import SearchHints from '../mixins/SearchHints'
 import AcBoundField from '@/components/fields/AcBoundField'
 import Viewer from '@/mixins/viewer'
 import SearchContentRatingMixin from '@/components/views/search/mixins/SearchContentRatingMixin'
-import { Watch } from 'vue-property-decorator'
+import {Watch} from 'vue-property-decorator'
   @Component({
     components: {AcBoundField},
   })

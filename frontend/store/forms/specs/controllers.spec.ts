@@ -713,7 +713,7 @@ describe('Form and field controllers', () => {
     controller.update(20, false)
     expect(controller.errors).toEqual(['Old error'])
   })
-  it('Exposes a field as a model', async () => {
+  it('Exposes a field as a model', async() => {
     store.commit('forms/initForm', {
       name: 'example', fields: {name: {value: 'Fox'}}, endpoint: '/test/endpoint/',
     })

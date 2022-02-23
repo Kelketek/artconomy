@@ -90,7 +90,7 @@
 
 <script lang="ts">
 import Viewer from '../mixins/viewer'
-import {Fragment} from 'vue-fragment'
+import {Fragment} from 'vue-frag'
 import Component, {mixins} from 'vue-class-component'
 import Dialog from '../mixins/dialog'
 import {Prop, Watch} from 'vue-property-decorator'

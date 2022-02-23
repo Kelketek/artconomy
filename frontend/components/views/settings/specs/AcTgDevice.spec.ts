@@ -67,8 +67,8 @@ describe('AcTgDevice.vue', () => {
     wrapper.find('.delete-phone-2fa').trigger('click')
     await wrapper.vm.$nextTick()
     wrapper.find('.confirmation-button').trigger('click')
-    expect(mockAxios.delete).toHaveBeenCalledWith(
-      ...rq('/test/1/', 'delete'),
+    expect(mockAxios.request).toHaveBeenCalledWith(
+      rq('/test/1/', 'delete'),
     )
     mockAxios.mockResponse({status: 204, data: {}})
     await flushPromises()
@@ -87,8 +87,8 @@ describe('AcTgDevice.vue', () => {
       attachTo: docTarget(),
     })
     wrapper.find('.send-tg-code').trigger('click')
-    expect(mockAxios.post).toHaveBeenCalledWith(
-      ...rq('/api/profiles/v1/account/Fox/auth/two-factor/tg/', 'post', undefined, {}))
+    expect(mockAxios.request).toHaveBeenCalledWith(
+      rq('/api/profiles/v1/account/Fox/auth/two-factor/tg/', 'post', undefined, {}))
   })
   it('Sends a verification code', async() => {
     setViewer(store, genUser())
@@ -105,8 +105,8 @@ describe('AcTgDevice.vue', () => {
     const form = wrapper.vm.$getForm('telegramOTP')
     form.fields.code.update('123456')
     wrapper.find('.submit-button').trigger('click')
-    expect(mockAxios.patch).toHaveBeenCalledWith(
-      ...rq('/api/profiles/v1/account/Fox/auth/two-factor/tg/', 'patch', {code: '123456'}, {}))
+    expect(mockAxios.request).toHaveBeenCalledWith(
+      rq('/api/profiles/v1/account/Fox/auth/two-factor/tg/', 'patch', {code: '123456'}, {}))
   })
   it('Updates the form URL if the username changes', async() => {
     const user = genUser()

@@ -15,7 +15,7 @@ import {
   vueSetup,
   mount,
 } from '@/specs/helpers'
-import Vue from 'vue'
+import Vue, {VueConstructor} from 'vue'
 import {FormController} from '@/store/forms/form-controller'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import {SingleController} from '@/store/singles/controller'
@@ -28,8 +28,7 @@ import mockAxios from '@/__mocks__/axios'
 import {genSubmission} from '@/store/submissions/specs/fixtures'
 import LinkedSubmission from '@/types/LinkedSubmission'
 
-const localVue = vueSetup()
-localVue.use(Router)
+let localVue: VueConstructor
 let store: ArtStore
 let vuetify: Vuetify
 let wrapper: Wrapper<Vue>
@@ -41,6 +40,8 @@ let art: ListController<Submission>
 
 describe('AcSampleEditor.vue', () => {
   beforeEach(() => {
+    localVue = vueSetup()
+    localVue.use(Router)
     store = createStore()
     vuetify = createVuetify()
     const empty = mount(Empty, {localVue, store, vuetify}).vm
@@ -64,10 +65,7 @@ describe('AcSampleEditor.vue', () => {
     art.ready = true
   })
   afterEach(() => {
-    if (wrapper) {
-      wrapper.destroy()
-    }
-    cleanUp()
+    cleanUp(wrapper)
   })
   it('Clears the showcased submission', async() => {
     setViewer(store, genUser())
@@ -77,7 +75,6 @@ describe('AcSampleEditor.vue', () => {
       vuetify,
       propsData: {product, productId: (product.x as Product).id, username: 'Fox', value: true, samples: samplesList},
       attachTo: docTarget(),
-
       stubs: ['ac-new-submission'],
     })
     await flushPromises()
@@ -88,8 +85,8 @@ describe('AcSampleEditor.vue', () => {
     await wrapper.vm.$nextTick()
     const newVersion = {...product.x as Product}
     newVersion.primary_submission = null
-    expect(mockAxios.patch).toHaveBeenCalledWith(
-      ...rq('/product/', 'patch', {primary_submission: null}),
+    expect(mockAxios.request).toHaveBeenCalledWith(
+      rq('/product/', 'patch', {primary_submission: null}),
     )
     mockAxios.mockResponse(rs(newVersion))
     await flushPromises()
@@ -116,12 +113,11 @@ describe('AcSampleEditor.vue', () => {
       vuetify,
       propsData: {product, productId: (product.x as Product).id, username: 'Fox', value: true, samples: samplesList},
       attachTo: docTarget(),
-
       stubs: ['ac-new-submission', 'router-link'],
     })
     await wrapper.vm.$nextTick()
     wrapper.find('.remove-submission').trigger('click')
-    expect(mockAxios.delete).toHaveBeenCalledWith(...rq('/samples/1/', 'delete', undefined))
+    expect(mockAxios.request).toHaveBeenCalledWith(rq('/samples/1/', 'delete', undefined))
     mockAxios.mockResponse(rs({}))
     await flushPromises()
     await wrapper.vm.$nextTick()
@@ -149,12 +145,11 @@ describe('AcSampleEditor.vue', () => {
       vuetify,
       propsData: {product, productId: (product.x as Product).id, username: 'Fox', value: true, samples: samplesList},
       attachTo: docTarget(),
-
       stubs: ['ac-new-submission', 'router-link'],
     })
     await wrapper.vm.$nextTick()
     wrapper.find('.remove-submission').trigger('click')
-    expect(mockAxios.delete).toHaveBeenCalledWith(...rq('/samples/1/', 'delete', undefined))
+    expect(mockAxios.request).toHaveBeenCalledWith(rq('/samples/1/', 'delete', undefined))
     mockAxios.mockResponse(rs({}))
     await flushPromises()
     await wrapper.vm.$nextTick()
@@ -185,14 +180,13 @@ describe('AcSampleEditor.vue', () => {
         samples: samplesList,
       },
       attachTo: docTarget(),
-
       stubs: ['ac-new-submission', 'router-link'],
     })
     await wrapper.vm.$nextTick()
     mockAxios.reset()
     const vm = wrapper.vm as any
     wrapper.find('.product-sample-option').trigger('click')
-    expect(mockAxios.post).toHaveBeenCalledWith(...rq('/samples/', 'post', {submission_id: 5}))
+    expect(mockAxios.request).toHaveBeenCalledWith(rq('/samples/', 'post', {submission_id: 5}))
     mockAxios.mockResponse(rs({id: 1, submission}))
     await flushPromises()
     await wrapper.vm.$nextTick()
@@ -217,17 +211,16 @@ describe('AcSampleEditor.vue', () => {
       vuetify,
       propsData: {product, productId: (product.x as Product).id, username: 'Fox', value: true, samples: samplesList},
       attachTo: docTarget(),
-
       stubs: ['ac-new-submission', 'router-link'],
     })
     await wrapper.vm.$nextTick()
     mockAxios.reset()
     wrapper.find('.product-sample-option').trigger('click')
-    expect(mockAxios.post).toHaveBeenCalledWith(...rq('/samples/', 'post', {submission_id: 5}))
+    expect(mockAxios.request).toHaveBeenCalledWith(rq('/samples/', 'post', {submission_id: 5}))
     mockAxios.mockResponse(rs({id: 1, submission}))
     await flushPromises()
     await wrapper.vm.$nextTick()
-    expect(mockAxios.patch).toHaveBeenCalledWith(...rq('/product/', 'patch', {primary_submission: 5}))
+    expect(mockAxios.request).toHaveBeenCalledWith(rq('/product/', 'patch', {primary_submission: 5}))
     mockAxios.mockResponse(rs({...product.x, ...{primary_submission: submission}}))
     expect(samplesList.list.length).toBe(1)
     expect(localSamples.list.length).toBe(1)
@@ -241,7 +234,6 @@ describe('AcSampleEditor.vue', () => {
       vuetify,
       propsData: {product, productId: (product.x as Product).id, username: 'Fox', value: true, samples: samplesList},
       attachTo: docTarget(),
-
       stubs: ['ac-new-submission', 'router-link'],
     })
     const vm = wrapper.vm as any
@@ -250,7 +242,7 @@ describe('AcSampleEditor.vue', () => {
     submission.id = 1337
     mockAxios.reset()
     vm.addSample(submission)
-    expect(mockAxios.post).toHaveBeenCalledWith(...rq('/samples/', 'post', {submission_id: 1337}))
+    expect(mockAxios.request).toHaveBeenCalledWith(rq('/samples/', 'post', {submission_id: 1337}))
     mockAxios.mockResponse(rs({id: 1, submission}))
     await flushPromises()
     await vm.$nextTick()
@@ -266,7 +258,6 @@ describe('AcSampleEditor.vue', () => {
       vuetify,
       propsData: {product, productId: (product.x as Product).id, username: 'Fox', value: true, samples: samplesList},
       attachTo: docTarget(),
-
       stubs: ['ac-new-submission', 'router-link'],
     })
     const vm = wrapper.vm as any
@@ -275,12 +266,12 @@ describe('AcSampleEditor.vue', () => {
     submission.id = 1337
     mockAxios.reset()
     vm.addSample(submission)
-    expect(mockAxios.post).toHaveBeenCalledWith(...rq('/samples/', 'post', {submission_id: 1337}))
+    expect(mockAxios.request).toHaveBeenCalledWith(rq('/samples/', 'post', {submission_id: 1337}))
     mockAxios.mockResponse(rs({id: 1, submission}))
     await flushPromises()
     await vm.$nextTick()
-    expect(mockAxios.patch).toHaveBeenCalledWith(
-      ...rq('/product/', 'patch', {primary_submission: 1337}),
+    expect(mockAxios.request).toHaveBeenCalledWith(
+      rq('/product/', 'patch', {primary_submission: 1337}),
     )
     mockAxios.mockResponse(rs({...product.x, ...{primary_submission: submission}}))
     await flushPromises()
@@ -296,7 +287,6 @@ describe('AcSampleEditor.vue', () => {
       vuetify,
       propsData: {product, productId: (product.x as Product).id, username: 'Fox', value: true, samples: samplesList},
       attachTo: docTarget(),
-
       stubs: ['router-link', 'ac-new-submission'],
     })
     const mock = jest.spyOn(wrapper.vm, '$emit')

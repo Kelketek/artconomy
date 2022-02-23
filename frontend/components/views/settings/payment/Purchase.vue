@@ -57,7 +57,7 @@ import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import {SingleController} from '@/store/singles/controller'
 import ClientSecret from '@/types/ClientSecret'
-import { User } from '@/store/profiles/types/User'
+import {User} from '@/store/profiles/types/User'
 
 @Component({components: {AcForm, AcLoadSection, AcFormContainer, AcCardManager, AcCard}})
 export default class Purchase extends mixins(Subjective) {

@@ -55,7 +55,7 @@ export function rs(data: any, extra?: ExtraData): AxiosResponse {
   }
 }
 
-export function rq(url: string, method: HttpVerbs, data?: any, config?: { [key: string]: any }) {
+export function rq(url: string, method: HttpVerbs, data?: any, config?: AxiosRequestConfig) {
   const starterHeaders: { [key: string]: string } = {'Content-Type': 'application/json; charset=utf-8'}
   config = config || {cancelToken: expect.any(Object)}
   if (!config.headers) {
@@ -66,7 +66,7 @@ export function rq(url: string, method: HttpVerbs, data?: any, config?: { [key: 
     starterHeaders['X-CSRFToken'] = token
   }
   config.headers = {...starterHeaders, ...config.headers}
-  return [url, data, config]
+  return {url, data, method, ...config}
 }
 
 export function dialogExpects(spec: { wrapper: any, formName: string, fields: string[] }) {
@@ -245,7 +245,7 @@ export async function sleep(fn: Function, ms: number, ...args: any[]) {
 export function docTarget() {
   const rootDiv = document.createElement('div')
   rootDiv.setAttribute('id', genId())
-  document.querySelector('body')!.appendChild(rootDiv)
+  document.body.appendChild(rootDiv)
   return rootDiv
 }
 

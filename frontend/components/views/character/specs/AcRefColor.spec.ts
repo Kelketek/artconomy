@@ -36,24 +36,4 @@ describe('AcRefColor.vue', () => {
       },
     })
   })
-  it('Launches a color picker', async() => {
-    setViewer(store, genUser())
-    const empty = mount(Empty, {localVue, store})
-    const color = empty.vm.$getSingle('color', {endpoint: '/endpoint/'})
-    color.setX({color: '#555555', note: 'This is a test color'})
-    wrapper = mount(AcRefColor, {
-      propsData: {color, username: 'Fox'},
-      localVue,
-      store,
-      vuetify,
-
-      mocks: {
-        $route: {name: 'Character', params: {}, query: {}},
-      },
-    })
-    const mockClick = jest.spyOn(wrapper.find('.picker').element, 'click')
-    wrapper.find('.picker-button').trigger('click')
-    await wrapper.vm.$nextTick()
-    expect(mockClick).toHaveBeenCalled()
-  })
 })

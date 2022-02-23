@@ -37,7 +37,6 @@ describe('DeliverableOverview.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-
         attachTo: docTarget(),
         stubs: ['ac-revision-manager'],
       })
@@ -90,7 +89,6 @@ describe('DeliverableOverview.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-
         attachTo: docTarget(),
         stubs: ['ac-revision-manager'],
       })

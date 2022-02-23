@@ -1,6 +1,6 @@
 import {Wrapper} from '@vue/test-utils'
 import Vue from 'vue'
-import {cleanUp, createVuetify, docTarget, flushPromises, rs, vueSetup, mount} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, flushPromises, rs, vueSetup, mount, rq} from '@/specs/helpers'
 import Vuetify from 'vuetify/lib'
 import AcTagField from '@/components/fields/AcTagField.vue'
 import mockAxios from '@/__mocks__/axios'
@@ -26,11 +26,12 @@ describe('ac-tag-field', () => {
     })
     wrapper.find('input').setValue('Test')
     await jest.runAllTimers()
-    expect(mockAxios.get).toHaveBeenCalledWith(
+    expect(mockAxios.request).toHaveBeenCalledWith(rq(
       '/api/profiles/v1/search/tag/',
+      'get',
       undefined,
       {cancelToken: expect.any(Object), headers: {'Content-Type': 'application/json; charset=utf-8'}, params: {q: 'Test'}},
-    )
+    ))
   })
   it('Accepts a response from the server on its query', async() => {
     const tagList: string[] = []
@@ -51,7 +52,6 @@ describe('ac-tag-field', () => {
         localVue,
         vuetify,
         propsData: {value: tagList},
-
         attachTo: docTarget(),
       })
     wrapper.find('input').setValue('Test ')
@@ -67,7 +67,6 @@ describe('ac-tag-field', () => {
         localVue,
         vuetify,
         propsData: {value: tagList},
-
         attachTo: docTarget(),
       })
     wrapper.find('input').setValue('Test ')
