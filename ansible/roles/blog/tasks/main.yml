@@ -27,6 +27,7 @@
   with_items:
     - unzip
     - python-mysqldb
+    - python3-mysqldb
     - php-fpm
     - php7.2-mysql
     - php7.2-gd
