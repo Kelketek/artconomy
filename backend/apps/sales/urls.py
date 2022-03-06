@@ -25,6 +25,8 @@ urlpatterns = [
     path('v1/premium/', views.Premium.as_view(), name='premium'),
     path('v1/premium/intent/', views.PremiumPaymentIntent.as_view(), name='premium_intent'),
     path('v1/references/', views.References.as_view(), name='references'),
+    path('v1/table/products/', views.TableProducts.as_view(), name='table_products'),
+    path('v1/table/orders/', views.TableOrders.as_view(), name='table_orders'),
     path('v1/stripe-webhooks/', csrf_exempt(views.StripeWebhooks.as_view()), name='stripe_webhooks', kwargs={'connect': False}),
     path('v1/stripe-webhooks/connect/', csrf_exempt(views.StripeWebhooks.as_view()), name='stripe_webhooks_connect', kwargs={'connect': True}),
     path('v1/stripe-countries/', views.StripeCountries.as_view(), name='stripe_countries'),

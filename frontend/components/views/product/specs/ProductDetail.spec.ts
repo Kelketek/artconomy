@@ -7,7 +7,7 @@ import {
   confirmAction,
   createVuetify,
   docTarget,
-  flushPromises,
+  flushPromises, genAnon,
   mount,
   rs,
   setPricing,
@@ -128,35 +128,35 @@ describe('ProductDetail.vue', () => {
   afterEach(() => {
     cleanUp(wrapper)
   })
-  // it('Determines the slides to show for a product.', async() => {
-  //   setViewer(store, genUser())
-  //   setPricing(store, localVue)
-  //   wrapper = mount(ProductDetail, {
-  //     localVue, router, store, vuetify, attachTo: docTarget(), propsData: {username: 'Fox', productId: 1},
-  //   })
-  //   const vm = wrapper.vm as any
-  //   expect(vm.slides).toEqual([])
-  //   const submission = genSubmission()
-  //   const product = genProduct({primary_submission: submission})
-  //   vm.product.makeReady(product)
-  //   await vm.$nextTick()
-  //   expect(submission).toEqual(vm.slides[0])
-  //   vm.product.updateX({primary_submission: null})
-  //   expect(vm.slides).toEqual([])
-  // })
-  // it('Prompts for age if the main sample is above the rating.', async() => {
-  //   setViewer(store, genAnon())
-  //   setPricing(store, localVue)
-  //   wrapper = mount(ProductDetail, {
-  //     localVue, router, store, vuetify, attachTo: docTarget(), propsData: {username: 'Fox', productId: 1},
-  //   })
-  //   const vm = wrapper.vm as any
-  //   vm.samples.setList([])
-  //   await vm.$nextTick()
-  //   vm.product.makeReady(genProduct({primary_submission: genSubmission({rating: Ratings.ADULT})}))
-  //   await vm.$nextTick()
-  //   expect(store.state.showAgeVerification).toBe(true)
-  // })
+  it('Determines the slides to show for a product.', async() => {
+    setViewer(store, genUser())
+    setPricing(store, localVue)
+    wrapper = mount(ProductDetail, {
+      localVue, router, store, vuetify, attachTo: docTarget(), propsData: {username: 'Fox', productId: 1},
+    })
+    const vm = wrapper.vm as any
+    expect(vm.slides).toEqual([])
+    const submission = genSubmission()
+    const product = genProduct({primary_submission: submission})
+    vm.product.makeReady(product)
+    await vm.$nextTick()
+    expect(submission).toEqual(vm.slides[0])
+    vm.product.updateX({primary_submission: null})
+    expect(vm.slides).toEqual([])
+  })
+  it('Prompts for age if the main sample is above the rating.', async() => {
+    setViewer(store, genAnon())
+    setPricing(store, localVue)
+    wrapper = mount(ProductDetail, {
+      localVue, router, store, vuetify, attachTo: docTarget(), propsData: {username: 'Fox', productId: 1},
+    })
+    const vm = wrapper.vm as any
+    vm.samples.setList([])
+    await vm.$nextTick()
+    vm.product.makeReady(genProduct({primary_submission: genSubmission({rating: Ratings.ADULT})}))
+    await vm.$nextTick()
+    expect(store.state.showAgeVerification).toBe(true)
+  })
   it('Deletes a product', async() => {
     const data = prepData()
     // The following line breaks things.

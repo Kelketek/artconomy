@@ -8,6 +8,7 @@ import {deliverableRouter} from '@/components/views/order/specs/helpers'
 import {genDeliverable, genUser} from '@/specs/helpers/fixtures'
 import DeliverableOverview from '@/components/views/order/deliverable/DeliverableOverview.vue'
 import mockAxios from '@/__mocks__/axios'
+import {VIEWER_TYPE} from '@/types/VIEWER_TYPE'
 
 const localVue = vueSetup()
 localVue.use(Router)
@@ -95,5 +96,30 @@ describe('DeliverableOverview.vue', () => {
     const vm = wrapper.vm as any
     await vm.$nextTick()
     expect(vm.showConfirm).toBe(true)
+  })
+  it.each`
+  mode                  | string
+  ${VIEWER_TYPE.STAFF}  | ${'Staff'}
+  ${VIEWER_TYPE.SELLER} | ${'Seller'}
+  ${VIEWER_TYPE.BUYER}  | ${'Buyer'}
+  ${VIEWER_TYPE.UNSET}  | ${'Wat'}
+  ${VIEWER_TYPE.UNSET}  | ${''}
+  `('Sets the viewerMode to $mode when $string is set as view_as.',
+    async({mode, string}: {mode: VIEWER_TYPE, string: string}) => {
+    setViewer(store, genUser({is_staff: true}))
+    await router.push(`/orders/Fox/order/1/deliverables/5/overview?view_as=${string}`)
+    wrapper = mount(
+      DeliverableOverview, {
+        localVue,
+        store,
+        router,
+        vuetify,
+        propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
+        attachTo: docTarget(),
+        stubs: ['ac-revision-manager'],
+      })
+    const vm = wrapper.vm as any
+    await vm.$nextTick()
+    expect(vm.viewSettings.x.viewerType).toBe(mode)
   })
 })

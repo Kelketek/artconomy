@@ -82,11 +82,17 @@
         </v-list-item-action>
         <v-list-item-title>Sales/Invoicing</v-list-item-title>
       </v-list-item>
-      <v-list-item :to="{name: 'Reports', params: {username: subject.username}}" v-if="isLoggedIn && subject.artist_mode || subject.is_superuser">
+      <v-list-item :to="{name: 'Reports', params: {username: subject.username}}" v-if="isLoggedIn && (subject.artist_mode || subject.is_superuser)">
         <v-list-item-action>
           <v-icon>insert_chart</v-icon>
         </v-list-item-action>
         <v-list-item-title>Reports</v-list-item-title>
+      </v-list-item>
+      <v-list-item :to="{name: 'TableProducts'}" v-if="isLoggedIn && subject.is_staff">
+        <v-list-item-action>
+          <v-icon>{{storeCogPath}}</v-icon>
+        </v-list-item-action>
+        <v-list-item-title>Table Dashboard</v-list-item-title>
       </v-list-item>
       <v-divider />
     </v-list>
@@ -134,62 +140,65 @@ import {FormController} from '@/store/forms/form-controller'
 import {ProfileController} from '@/store/profiles/controller'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import {artCall} from '@/lib/lib'
-  @Component({
-    components: {AcPatchField, AcSettingNav},
-  })
+import {mdiStoreCogOutline} from '@mdi/js'
+
+@Component({
+  components: {AcPatchField, AcSettingNav},
+})
 export default class AcNavDrawer extends Vue {
-    public searchForm: FormController = null as unknown as FormController
-    @Prop({required: true})
-    public value!: boolean
+  public storeCogPath = mdiStoreCogOutline
+  public searchForm: FormController = null as unknown as FormController
+  @Prop({required: true})
+  public value!: boolean
 
-    @Prop({required: true})
-    public subjectHandler!: ProfileController
+  @Prop({required: true})
+  public subjectHandler!: ProfileController
 
-    @Prop({required: true})
-    public isRegistered!: boolean
+  @Prop({required: true})
+  public isRegistered!: boolean
 
-    @Prop({required: true})
-    public isLoggedIn!: boolean
+  @Prop({required: true})
+  public isLoggedIn!: boolean
 
-    @Prop({default: false})
-    public embedded!: boolean
+  @Prop({default: false})
+  public embedded!: boolean
 
-    @Prop({required: true})
-    public isStaff!: boolean
+  @Prop({required: true})
+  public isStaff!: boolean
 
-    @Prop({required: true})
-    public isSuperuser!: boolean
+  @Prop({required: true})
+  public isSuperuser!: boolean
 
-    public get subject() {
-      return this.subjectHandler.user.x
-    }
+  public get subject() {
+    return this.subjectHandler.user.x
+  }
 
-    public get sfwMode() {
-      return this.subjectHandler.user.patchers.sfw_mode
-    }
+  public get sfwMode() {
+    return this.subjectHandler.user.patchers.sfw_mode
+  }
 
-    public searchOpen() {
-      this.searchForm.reset()
-      this.$router.push({name: 'SearchProducts'})
-    }
+  public searchOpen() {
+    this.searchForm.reset()
+    this.$router.push({name: 'SearchProducts'})
+  }
 
-    public searchSubmissions() {
-      this.searchForm.reset()
-      this.$router.push({name: 'SearchSubmissions'})
-    }
+  public searchSubmissions() {
+    this.searchForm.reset()
+    this.$router.push({name: 'SearchSubmissions'})
+  }
 
-    public logout() {
-      artCall({
-        url: '/api/profiles/v1/logout/',
-        method: 'post',
-      }).then(this.subjectHandler.user.setX).then(() => {
-        this.$router.push({name: 'Home'})
-        this.$emit('input', null)
-      })
-    }
+  public logout() {
+    artCall({
+      url: '/api/profiles/v1/logout/',
+      method: 'post',
+    }).then(this.subjectHandler.user.setX).then(() => {
+      this.$router.push({name: 'Home'})
+      this.$emit('input', null)
+    })
+  }
 
-    public created() {
-      this.searchForm = this.$getForm('search')
-    }
+  public created() {
+    this.searchForm = this.$getForm('search')
+  }
 }
 </script>

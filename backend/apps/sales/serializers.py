@@ -164,7 +164,11 @@ class ProductNewOrderSerializer(ProductNameMixin, serializers.ModelSerializer, C
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if not self.context['request'].user.is_authenticated:
+        requires_email = any([
+            not self.context['request'].user.is_authenticated,
+            self.context['request'].user.is_staff and self.context['product'].table_product,
+        ])
+        if requires_email:
             del self.fields['characters']
             self.fields['email'].required = True
             self.fields['email'].allow_blank = False

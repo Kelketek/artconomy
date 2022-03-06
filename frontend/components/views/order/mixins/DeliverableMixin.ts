@@ -307,10 +307,7 @@ export default class DeliverableMixin extends mixins(Viewer) {
   }
 
   public get isArbitrator() {
-    if (this.viewMode === VIEWER_TYPE.STAFF) {
-      return true
-    }
-    return false
+    return this.viewMode === VIEWER_TYPE.STAFF
   }
 
   public get isInvolved() {
@@ -329,11 +326,28 @@ export default class DeliverableMixin extends mixins(Viewer) {
     return this.product.name
   }
 
+  public getInitialViewSetting(setting: undefined | string | (string | null)[]) {
+    if (!this.isStaff) {
+      return false
+    }
+    switch (setting) {
+      case ('Seller'): {
+        return VIEWER_TYPE.SELLER
+      }
+      case ('Buyer'): {
+        return VIEWER_TYPE.BUYER
+      }
+      case ('Staff'): {
+        return VIEWER_TYPE.STAFF
+      }
+    }
+  }
+
   public created() {
     this.viewSettings = this.$getSingle(
       `${this.prefix}__viewSettings`, {
         x: {
-          viewerType: VIEWER_TYPE.UNSET,
+          viewerType: this.getInitialViewSetting(this.$route.query.view_as) || VIEWER_TYPE.UNSET,
           showAddSubmission: false,
           showPayment: false,
           characterInitItems: [],

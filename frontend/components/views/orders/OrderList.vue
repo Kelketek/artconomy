@@ -67,7 +67,7 @@
           <v-row no-gutters v-else>
             <v-col cols="12" sm="6" md="4" lg="2" v-for="order in list.list" :key="order.x.id">
               <ac-unread-marker :read="order.x.read">
-                <ac-order-preview :order="order" :type="type" :username="username"></ac-order-preview>
+                <ac-order-preview :order="order" :type="type" :username="username" />
               </ac-unread-marker>
             </v-col>
           </v-row>

@@ -1454,7 +1454,7 @@ class ServicePlan(models.Model):
     Service plans describe levels of service for users.
     """
     post_pay_hook = 'apps.sales.views.service_charge'
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, db_index=True, unique=True)
     description = models.CharField(max_length=1000)
     features = JSONField(default=list)
     sort_value = models.IntegerField(default=0, db_index=True)

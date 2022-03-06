@@ -132,6 +132,7 @@ def available_products(requester, query='', ordering=True):
     else:
         qs = Product.objects.filter(available=True)
     qs = qs.exclude(active=False)
+    qs = qs.exclude(table_product=True)
     # TODO: Recheck this for basic/free plan when we have orders that have been placed but they haven't upgraded.
     qs = qs.exclude((Q(user__service_plan_paid_through__lte=timezone.now()) | ~Q(user__service_plan__name='Landscape')), wait_list=True)
     if requester.is_authenticated:

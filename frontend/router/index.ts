@@ -84,6 +84,9 @@ const ConversationDetail = () => import('@/components/views/ConversationDetail.v
 const SubmissionList = () => import('@/components/views/profile/SubmissionList.vue')
 const Queue = () => import('@/components/views/Queue.vue')
 const InvoiceDetail = () => import('@/components/views/invoice/InvoiceDetail.vue')
+const TableDashboard = () => import('@/components/views/table/TableDashboard.vue')
+const TableProducts = () => import('@/components/views/table/TableProducts.vue')
+const TableOrders = () => import('@/components/views/table/TableOrders.vue')
 
 function orderViews() {
   const orderRoutes: RouteConfig[] = []
@@ -626,6 +629,20 @@ export const routes = [
     name: 'Reports',
     props: true,
     component: Reports,
+  },
+  {
+    path: '/table/',
+    name: 'TableDashboard',
+    component: TableDashboard,
+    children: [{
+      path: 'products',
+      name: 'TableProducts',
+      component: TableProducts,
+    }, {
+      path: 'orders',
+      name: 'TableOrders',
+      component: TableOrders,
+    }],
   },
   {
     path: '/landing/commission-safely-with-artconomy-shield/',

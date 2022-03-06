@@ -1,7 +1,7 @@
-import {Route} from 'vue-router'
+import {RawLocation} from 'vue-router'
 
 export interface TabNavSpec {
-  value: Route,
+  value: RawLocation,
   text: string,
   icon: string,
   count?: number,

@@ -30,6 +30,7 @@ describe('NewOrder.vue', () => {
         {path: '/orders/:username/order/:orderId', name: 'Order', component: Empty},
         {path: '/auth/login', name: 'Login', component: Empty},
         {path: '/orders/:username/order/:orderId/:deliverableId', name: 'Deliverable', component: Empty},
+        {path: '/orders/:username/order/:orderId/:deliverableId/payment', name: 'SaleDeliverablePayment', component: Empty},
         {path: '/store/:username/products/:productId/order/:stepId?/', name: 'NewOrder', component: Empty},
       ],
     })
@@ -77,6 +78,48 @@ describe('NewOrder.vue', () => {
       },
       query: {
         showConfirm: 'true',
+      },
+    })
+  })
+  it('Submits a table order', async() => {
+    const user = genUser()
+    setViewer(store, user)
+    wrapper = mount(NewOrder, {
+      localVue, store, vuetify, router, propsData: {productId: '1', username: 'Fox'}, attachTo: docTarget(),
+    })
+    const vm = wrapper.vm as any
+    vm.subjectHandler.user.makeReady(genUser({is_staff: true}))
+    vm.subjectHandler.artistProfile.makeReady(genArtistProfile())
+    vm.product.makeReady(genProduct({id: 1, table_product: true}))
+    await vm.$nextTick()
+    expect(wrapper.find('#field-newOrder__details').exists()).toBeTruthy()
+    const mockPush = jest.spyOn(vm.$router, 'push')
+    vm.orderForm.step = 3
+    await vm.$nextTick()
+    wrapper.find('.submit-button').trigger('click')
+    await vm.$nextTick()
+    const submitted = mockAxios.getReqByUrl('/api/sales/v1/account/Fox/products/1/order/')
+    mockAxios.mockResponse(rs(genOrder({
+      default_path: {
+        name: 'OrderDeliverableOverview',
+        params: {
+          orderId: '1',
+          deliverableId: '1',
+          username: 'Fox'
+        },
+      },
+    })), submitted)
+    await flushPromises()
+    await vm.$nextTick()
+    expect(mockPush).toHaveBeenCalledWith({
+      name: 'SaleDeliverablePayment',
+      params: {
+        orderId: '1',
+        deliverableId: '1',
+        username: 'Fox',
+      },
+      query: {
+        view_as: 'Seller',
       },
     })
   })

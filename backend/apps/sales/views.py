@@ -6,7 +6,7 @@ from decimal import Decimal
 from functools import lru_cache
 from io import StringIO
 from pprint import pformat
-from typing import Union, Optional
+from typing import Union, Optional, Dict
 from uuid import uuid4
 
 import dateutil
@@ -217,11 +217,18 @@ class PlaceOrder(CreateAPIView):
     def get_object(self):
         return get_object_or_404(Product, id=self.kwargs['product'], active=True)
 
+    def get_serializer_context(self) -> Dict[str, Any]:
+        context = super().get_serializer_context()
+        context['product'] = self.get_object()
+        return context
+
     def perform_create(self, serializer):
         product = self.get_object()
         self.check_object_permissions(self.request, product)
         user = self.request.user
-        if not user.is_authenticated:
+        if user.is_staff and product.table_product:
+            user = create_guest_user(serializer.validated_data['email'])
+        elif not user.is_authenticated:
             user = create_guest_user(serializer.validated_data['email'])
             login(self.request, user)
             trigger_reconnect(self.request, include_current=True)
@@ -241,6 +248,7 @@ class PlaceOrder(CreateAPIView):
             order=order,
             product=product,
             status=order_status,
+            table_order=product.table_product,
             name='Main',
             escrow_disabled=product.user.artist_profile.escrow_disabled,
             rating=serializer.validated_data['rating'],
@@ -1895,37 +1903,37 @@ class FeaturedProducts(ListAPIView):
     serializer_class = ProductSerializer
 
     def get_queryset(self):
-        return Product.objects.filter(featured=True, available=True, active=True).order_by('?')
+        return available_products(self.request.user, ordering=False).filter(featured=True).order_by('?')
 
 
 class LowPriceProducts(ListAPIView):
     serializer_class = ProductSerializer
 
     def get_queryset(self):
-        return Product.objects.filter(
-            starting_price__lte=Decimal('30'), available=True,
-        ).exclude(featured=True).exclude(table_product=True).order_by('?')
+        return available_products(self.request.user, ordering=False).filter(
+            starting_price__lte=Decimal('30'),
+        ).exclude(featured=True).order_by('?')
 
 
 class HighlyRatedProducts(ListAPIView):
     serializer_class = ProductSerializer
 
     def get_queryset(self):
-        return Product.objects.filter(user__stars__gte=4.5, available=True).exclude(featured=True).order_by('?')
+        return available_products(self.request.user, ordering=False).filter(user__stars__gte=4.5).exclude(featured=True).order_by('?')
 
 
 class LgbtProducts(ListAPIView):
     serializer_class = ProductSerializer
 
     def get_queryset(self):
-        return Product.objects.filter(user__artist_profile__lgbt=True, available=True).order_by('?')
+        return available_products(self.request.user, ordering=False).filter(user__artist_profile__lgbt=True).order_by('?')
 
 
 class ArtistsOfColor(ListAPIView):
     serializer_class = ProductSerializer
 
     def get_queryset(self):
-        return Product.objects.filter(user__artist_profile__artist_of_color=True, available=True).order_by('?')
+        return available_products(self.request.user, ordering=False).filter(user__artist_profile__artist_of_color=True).order_by('?')
 
 
 class NewArtistProducts(ListAPIView):
@@ -1933,16 +1941,16 @@ class NewArtistProducts(ListAPIView):
 
     def get_queryset(self):
         # Can't directly do order_by on this QS because the ORM breaks grouping by placing it before the annotation.
-        return Product.objects.filter(id__in=Product.objects.all().annotate(
+        return available_products(self.request.user, ordering=False).filter(id__in=Product.objects.all().annotate(
             completed_orders=Count('user__sales', filter=Q(user__sales__deliverables__status=COMPLETED))
-        ).filter(completed_orders=0, available=True)).order_by('?')
+        ).filter(completed_orders=0)).order_by('?')
 
 
 class RandomProducts(ListAPIView):
     serializer_class = ProductSerializer
 
     def get_queryset(self):
-        return Product.objects.filter(featured=False, available=True).order_by('?')
+        return available_products(self.request.user, ordering=False).filter(featured=False).order_by('?')
 
 
 def get_order_facts(product: Optional[Product], serializer, seller: User):
@@ -2951,3 +2959,24 @@ class StripeWebhooks(APIView):
                 )
             handler(event)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class TableProducts(ListAPIView):
+    serializer_class = ProductSerializer
+    permission_classes = [IsStaff]
+    pagination_class = None
+
+    def get_queryset(self) -> QuerySet:
+        return Product.objects.filter(table_product=True, hidden=False, active=True).order_by('user')
+
+
+class TableOrders(ListAPIView):
+    serializer_class = OrderPreviewSerializer
+    permission_classes = [IsStaff]
+    pagination_class = None
+
+    def get_queryset(self) -> QuerySet:
+        return Order.objects.filter(
+            deliverables__product__table_product=True,
+            deliverables__status__in=[NEW, PAYMENT_PENDING, QUEUED, IN_PROGRESS, REVIEW, DISPUTED],
+        ).distinct().order_by('seller', '-created_on')

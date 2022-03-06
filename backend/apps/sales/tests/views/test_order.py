@@ -17,7 +17,7 @@ from apps.lib.abstract_models import ADULT, MATURE, GENERAL
 from apps.lib.models import Event, SALE_UPDATE, ORDER_UPDATE, WAITLIST_UPDATED, Subscription, COMMENT
 from apps.lib.test_resources import APITestCase
 from apps.lib.tests.factories import AssetFactory
-from apps.profiles.models import VERIFIED
+from apps.profiles.models import VERIFIED, User
 from apps.profiles.tests.factories import UserFactory, CharacterFactory, SubmissionFactory
 from apps.profiles.utils import create_guest_user
 from apps.sales.models import Deliverable, Order, NEW, ADD_ON, TransactionRecord, TIP, SHIELD, QUEUED, IN_PROGRESS, \
@@ -169,6 +169,27 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(len(mail.outbox), 2)
+
+    @patch('apps.sales.views.login')
+    def test_place_order_table_product(self, mock_login):
+        user = UserFactory.create(is_staff=True)
+        self.login(user)
+        product = ProductFactory.create(table_product=True)
+        self.assertEqual(len(mail.outbox), 0)
+        response = self.client.post(
+            '/api/sales/v1/account/{}/products/{}/order/'.format(product.user.username, product.id),
+            {
+                'email': 'test_table_order@example.com',
+                'details': 'Draw me some porn!',
+                'rating': ADULT,
+            }
+        )
+        mock_login.assert_not_called()
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(len(mail.outbox), 2)
+        User.objects.get(guest_email='test_table_order@example.com', guest=True)
+        deliverable = Order.objects.get(id=response.data['id']).deliverables.get()
+        self.assertTrue(deliverable.table_order)
 
     def test_place_order_inventory_product_out_of_stock(self):
         user = UserFactory.create()

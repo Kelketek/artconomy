@@ -28,9 +28,10 @@
                   <v-stepper-items>
                     <v-stepper-content :step="1">
                       <v-row>
-                        <v-col cols="12" sm="6" v-if="!isRegistered">
-                          <v-subheader>Checkout as Guest</v-subheader>
-                          <ac-bound-field label="Email" v-if="!isRegistered" :field="orderForm.fields.email" />
+                        <v-col cols="12" sm="6" v-if="!isRegistered || product.x.table_product">
+                          <v-subheader v-if="!isRegistered">Checkout as Guest</v-subheader>
+                          <v-subheader v-else-if="product.x.table_product">Enter Commissioner's Email</v-subheader>
+                          <ac-bound-field label="Email" :field="orderForm.fields.email" />
                         </v-col>
                         <v-col cols="12" sm="6" class="text-center" v-if="!isRegistered">
                           <p>Or, if you have an account,</p>
@@ -49,7 +50,7 @@
                         </v-col>
                       </v-row>
                       <v-row>
-                        <v-col cols="12" v-if="isRegistered">
+                        <v-col cols="12" v-if="isRegistered && !product.x.table_product">
                           <ac-bound-field
                               field-type="ac-character-select" :field="orderForm.fields.characters" label="Characters"
                               hint="Start typing a character's name to search. If you've set up characters on Artconomy, you can
@@ -238,7 +239,6 @@ export default class NewOrder extends mixins(ProductCentric, Formatting) {
     @Watch('viewer.guest_email')
     public updateEmail(newVal: string) {
       if (!newVal) {
-        this.orderForm.fields.email.update('', false)
         return
       }
       this.orderForm.fields.email.update(newVal)
@@ -295,6 +295,12 @@ export default class NewOrder extends mixins(ProductCentric, Formatting) {
         return
       }
       this.sendEvent()
+      // Special case override for table events.
+      if (this.product.x?.table_product && this.isStaff) { // eslint-disable-line camelcase
+        link.query.view_as = 'Seller'
+        link.name = 'SaleDeliverablePayment'
+        delete link.query.showConfirm
+      }
       this.$router.push(link)
       this.orderForm.sending = false
     }
