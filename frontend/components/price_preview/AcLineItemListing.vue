@@ -6,7 +6,7 @@
     <template v-else>
       <ac-line-item-preview :line="line.x" v-for="line in baseItems" :key="line.x.id" :price-data="priceData" :editing="editable" />
     </template>
-    <template v-if="editable">
+    <template v-if="editable && editBase">
       <ac-line-item-editor :line="line" v-for="line in addOns" :key="line.x.id" :price-data="priceData" :editing="editable" />
       <ac-form-container v-bind="addOnForm.bind">
         <ac-form @submit.prevent="addOnForm.submitThen(lineItems.push)">

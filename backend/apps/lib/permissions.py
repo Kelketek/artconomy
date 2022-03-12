@@ -77,7 +77,7 @@ def ObjectStatus(statuses, message):
 
 
 class IsStaff(BasePermission):
-    def has_object_permission(self, request, view, obj):
+    def has_permission(self, request: Request, view: View) -> bool:
         return request.user.is_staff
 
 

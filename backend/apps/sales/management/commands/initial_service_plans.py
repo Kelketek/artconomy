@@ -13,7 +13,7 @@ from apps.sales.models import ServicePlan
 
 
 def build_initial_plans():
-    free = ServicePlan.objects.create(
+    ServicePlan.objects.create(
         name='Free',
         description="""
         For those just starting out. Allows you to track up to {{plan.max_simultaneous_orders}} for FREE.
@@ -35,7 +35,7 @@ def build_initial_plans():
             "Community Discord",
         ]
     )
-    basic = ServicePlan.objects.create(
+    ServicePlan.objects.create(
         name='Basic',
         description="""
         Good for artists getting consistent orders, but don't need the full features of Landscape. Pay per order
@@ -61,7 +61,7 @@ def build_initial_plans():
             "No order limit-- pay as you go!",
         ]
     )
-    landscape = ServicePlan.objects.create(
+    ServicePlan.objects.create(
         name='Landscape',
         description="""
         Best for those living off of, or making significant income from, their work. Significant reduction in fees
@@ -90,9 +90,6 @@ def build_initial_plans():
             "First Access to New Features",
         ],
     )
-    User.objects.filter(landscape_paid_through__gte=timezone.now().date()).update(service_plan=landscape)
-    User.objects.filter(landscape_enabled=True).update(next_service_plan=landscape)
-    User.objects.filter(landscape_enabled=False).filter(Q(landscape_paid_through__isnull=True) | Q(landscape_paid_through__lte=timezone.now().date())).update(service_plan=free, next_service_plan=free)
 
 
 class Command(BaseCommand):

@@ -30,7 +30,7 @@ import AcAvatar from '@/components/AcAvatar.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 
 @Component({
-  components: {AcProductPreview, AcLink, AcAvatar, AcLoadSection}
+  components: {AcProductPreview, AcLink, AcAvatar, AcLoadSection},
 })
 export default class TableProducts extends mixins(Viewer) {
   public productList = null as unknown as ListController<Product>

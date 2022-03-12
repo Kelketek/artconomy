@@ -26,7 +26,7 @@ import Order from '@/types/Order'
 import AcOrderPreview from '@/components/AcOrderPreview.vue'
 
 @Component({
-  components: {AcOrderPreview, AcProductPreview, AcLink, AcAvatar, AcLoadSection}
+  components: {AcOrderPreview, AcProductPreview, AcLink, AcAvatar, AcLoadSection},
 })
 export default class TableOrders extends mixins(Viewer) {
   public orderList = null as unknown as ListController<Order>

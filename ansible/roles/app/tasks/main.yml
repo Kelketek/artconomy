@@ -129,7 +129,6 @@
   notify:
     - collect static assets
 
-
 - name: Unzip filetype icons
   become: yes
   become_user: "{{ env_prefix }}"

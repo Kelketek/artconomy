@@ -3,6 +3,7 @@ from unittest.mock import patch, Mock
 
 from dateutil.relativedelta import relativedelta
 from ddt import data, unpack, ddt
+from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core import mail
 from django.test import override_settings
@@ -24,7 +25,7 @@ from apps.sales.models import (
     PAYMENT_PENDING,
     REVIEW, QUEUED, DISPUTED, CANCELLED, DELIVERABLE_STATUSES, REFUNDED, Deliverable, WAITING, ServicePlan)
 from apps.sales.tests.factories import DeliverableFactory, CreditCardTokenFactory, ProductFactory, RevisionFactory, \
-    RatingFactory, ReferenceFactory, ServicePlanFactory
+    RatingFactory, ReferenceFactory, ServicePlanFactory, InvoiceFactory
 from apps.sales.views import (
     CurrentOrderList, CurrentSalesList, CurrentCasesList,
     CancelledOrderList,
@@ -1795,3 +1796,35 @@ class TestQueue(APITestCase):
         deliverable = DeliverableFactory.create()
         response = self.client.get(f'/api/sales/v1/account/{deliverable.order.seller.username}/queue/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+class TestAnonymousInvoice(APITestCase):
+    def test_invoice_created(self):
+        UserFactory.create(username=settings.ANONYMOUS_USER_USERNAME)
+        user = UserFactory.create(is_staff=True)
+        self.login(user)
+        response = self.client.post('/api/sales/v1/create-anonymous-invoice/')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_fail_non_staff(self):
+        user = UserFactory.create()
+        self.login(user)
+        response = self.client.post('/api/sales/v1/create-anonymous-invoice/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class TestRecentInvoices(APITestCase):
+    def test_show_recent(self):
+        newest = InvoiceFactory.create(created_on=timezone.now().replace(year=2022, month=8, day=1))
+        oldest = InvoiceFactory.create(created_on=timezone.now().replace(year=2020, month=8, day=1))
+        middle = InvoiceFactory.create(created_on=timezone.now().replace(year=2021, month=8, day=1))
+        self.login(UserFactory.create(is_staff=True))
+        response = self.client.get('/api/sales/v1/recent-invoices/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        target_list = [newest.id, middle.id, oldest.id]
+        self.assertEqual(target_list, [invoice['id'] for invoice in response.data['results']])
+
+    def test_fail_non_staff(self):
+        self.login(UserFactory.create())
+        response = self.client.get('/api/sales/v1/recent-invoices/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

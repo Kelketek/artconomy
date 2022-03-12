@@ -12,6 +12,8 @@
     executable: "/bin/bash"
   notify:
     - Set up stripe users
+    - Set up initial service plans
+    - Create anonymous user
 
 - name: stripe webhooks
   become: yes
@@ -63,4 +65,24 @@
   args:
     executable: "/bin/bash"
     creates: "{{ home }}/.stripe-users-created"
+    warn: false
+
+
+- name: Set up initial service plans
+  become: yes
+  become_user: "{{ env_prefix }}"
+  shell: "source ~/.profile && source ~/bin/activate && cd ~/artconomy && ./manage.py initial_service_plans && touch {{home}}/.initial-service-plans-created"
+  args:
+    executable: "/bin/bash"
+    creates: "{{ home }}/.initial-service-plans-created"
+    warn: false
+
+
+- name: Create anonymous user
+  become: yes
+  become_user: "{{ env_prefix }}"
+  shell: "source ~/.profile && source ~/bin/activate && cd ~/artconomy && ./manage.py create_anonymous_user && touch {{home}}/.anonymous-user-created"
+  args:
+    executable: "/bin/bash"
+    creates: "{{ home }}/.anonymous-user-created"
     warn: false

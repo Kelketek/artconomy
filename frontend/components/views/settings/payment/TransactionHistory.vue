@@ -11,14 +11,17 @@
     <v-col cols="12">
       <ac-paginated :list="transactions">
         <template v-slot:default>
-          <v-col>
+          <v-row>
+            <v-col cols="12">
+
+            </v-col>
             <v-list three-line>
               <template v-for="transaction, index in transactions.list">
                 <ac-transaction :transaction="transaction.x" :username="username" :key="transaction.x.id" :current-account="transactionFilter.fields.account.value" />
                 <v-divider v-if="index + 1 < transactions.list.length" :key="index"/>
               </template>
             </v-list>
-          </v-col>
+          </v-row>
         </template>
       </ac-paginated>
     </v-col>

@@ -16,12 +16,13 @@ import {TabNavSpec} from '@/types/TabNavSpec'
 import AcTabNav from '@/components/navigation/AcTabNav.vue'
 
 @Component({
-  components: {AcTabNav, AcProductPreview, AcLink, AcAvatar, AcLoadSection}
+  components: {AcTabNav, AcProductPreview, AcLink, AcAvatar, AcLoadSection},
 })
 export default class TableDashboard extends mixins(Viewer) {
   public tabSpecs: TabNavSpec[] = [
     {value: {name: 'TableProducts'}, text: 'Products', icon: 'storefront'},
     {value: {name: 'TableOrders'}, text: 'Orders', icon: 'shopping_bag'},
+    {value: {name: 'TableInvoices'}, text: 'Invoices', icon: 'receipt'},
   ]
 
   created() {

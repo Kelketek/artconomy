@@ -1075,6 +1075,7 @@ class Invoice(models.Model):
     bill_to = models.ForeignKey(User, null=True, on_delete=CASCADE, related_name='invoices_billed_to')
     created_on = models.DateTimeField(default=timezone.now, db_index=True)
     paid_on = models.DateTimeField(null=True, db_index=True, blank=True)
+    # We don't currently use stripe Invoices, but we anticipate doing so.
     stripe_token = models.CharField(default='', db_index=True, max_length=50, blank=True)
     current_intent = CharField(max_length=30, db_index=True, default='', blank=True)
     # You should also add the targets to the line item annotations if adding them here. This is used

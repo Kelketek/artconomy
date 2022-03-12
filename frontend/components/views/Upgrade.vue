@@ -162,10 +162,6 @@ export default class Upgrade extends mixins(Viewer, StripeHostMixin) {
       return window.DEFAULT_CARD_PROCESSOR
     }
 
-    public get stripeEnabled() {
-      return this.processor === PROCESSORS.STRIPE
-    }
-
     @Watch('selection')
     public setSelection(value: string) {
       if (!value) {
@@ -176,9 +172,6 @@ export default class Upgrade extends mixins(Viewer, StripeHostMixin) {
     }
 
     public paymentSubmit() {
-      if (!this.stripeEnabled) {
-        this.paymentForm.submitThen(this.postPay)
-      }
       const cardManager = this.$refs.cardManager as any
       cardManager.stripeSubmit()
     }

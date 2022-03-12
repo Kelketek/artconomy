@@ -60,48 +60,6 @@ describe('DeliverablePayment.vue', () => {
     cleanUp(wrapper)
     MockDate.reset()
   })
-  it('Updates after payment', async() => {
-    const fox = genUser()
-    fox.username = 'Fox'
-    setViewer(store, fox)
-    router.push('/orders/Fox/order/1/deliverables/5/payment')
-    wrapper = mount(
-      DeliverablePayment, {
-        localVue,
-        store,
-        router,
-        vuetify,
-        propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-
-        attachTo: docTarget(),
-      })
-    const vm = wrapper.vm as any
-    const deliverable = genDeliverable()
-    deliverable.order.seller.landscape = true
-    deliverable.order.buyer!.landscape = false
-    deliverable.status = DeliverableStatus.PAYMENT_PENDING
-    vm.deliverable.makeReady(deliverable)
-    vm.revisions.ready = true
-    vm.characters.setList([])
-    vm.characters.fetching = false
-    vm.characters.ready = false
-    vm.order.makeReady(deliverable.order)
-    vm.lineItems.setList(dummyLineItems())
-    mockAxios.reset()
-    await vm.$nextTick()
-    vm.lineItems.ready = true
-    vm.lineItems.fetching = false
-    await vm.$nextTick()
-    wrapper.find('.payment-button').trigger('click')
-    await vm.$nextTick()
-    wrapper.find('.dialog-submit').trigger('click')
-    const paymentRequest = mockAxios.lastReqGet()
-    expect(paymentRequest.url).toBe('/api/sales/v1/order/1/deliverables/5/pay/')
-    mockAxios.mockResponse(rs({...deliverable, status: DeliverableStatus.QUEUED}), paymentRequest)
-    await flushPromises()
-    await wrapper.vm.$nextTick()
-    expect(vm.deliverable.x.status).toBe(DeliverableStatus.QUEUED)
-  })
   it('Handles deletion', async() => {
     const fox = genUser()
     fox.username = 'Fox'
@@ -130,7 +88,6 @@ describe('DeliverablePayment.vue', () => {
     await vm.$nextTick()
     vm.deliverable.markDeleted()
     await vm.$nextTick()
-    expect(vm.stripeEnabled).toBe(false)
   })
   it('Permits tipping', async() => {
     const fox = genUser()

@@ -429,7 +429,11 @@ class UserInfo(APIView):
             return UserInfoSerializer
 
     def get_object(self):
-        user = get_object_or_404(User, username__iexact=self.kwargs.get('username'), is_active=True)
+        if self.request.user.is_staff:
+            extra = Q()
+        else:
+            extra = Q(is_active=True)
+        user = get_object_or_404(User, extra, username__iexact=self.kwargs.get('username'))
         return user
 
     def get_serializer_context(self):

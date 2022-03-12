@@ -552,3 +552,12 @@ CACHES = {
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 DEFAULT_SERVICE_PLAN_NAME = get_env('DEFAULT_SERVICE_PLAN_NAME', 'Free')
+
+# Username for the 'anonymous user'-- The user which random purchases at the point of sale are attributed to.
+# This exists so the software can distinguish between None as a payer/payee, which means Artconomy, and someone who
+# doesn't have an account without having to create a guest user each time.
+#
+# The create_anonymous_user command must be run to create this user.
+ANONYMOUS_USER_USERNAME = get_env('ANONYMOUS_USER_USERNAME', 'Anonymous')
+
+ANONYMOUS_USER_EMAIL = get_env('ANONYMOUS_USER_EMAIL', 'anonymous@artconomy.com')

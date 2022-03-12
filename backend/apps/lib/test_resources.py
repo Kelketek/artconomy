@@ -369,13 +369,16 @@ class PermissionsTestCase(APITestCase):
         try:
             if not hasattr(self.view_class, request.method.lower()):
                 raise PermissionDenied(f'Method {request.method} not allowed on {self.view_class}.')
+            self.view.check_permissions(request)
             self.view.check_object_permissions(request, *args, **kwargs)
         except PermissionDenied:
             if fails:
                 return
             raise
         if fails:
-            raise AssertionError('Permission check passed when it should not have!')
+            raise AssertionError(
+                f'Permission check passed when it should not have! {request.method} - {self.user.label}',
+            )
 
     def mod_request(self, request):
         request.subject = self.user

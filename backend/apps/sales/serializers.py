@@ -427,9 +427,6 @@ class LineItemSerializer(serializers.ModelSerializer):
                 self.fields['percentage'].read_only = True
             if self.instance.id:
                 self.fields['type'].read_only = True
-            if not self.context.get('deliverable') and self.context['request'].user.is_staff:
-                self.fields['destination_account'].read_only = False
-                self.fields['destination_user'].read_only = False
 
     def validate_type(self, value):
         deliverable = self.context.get('deliverable')
@@ -1313,8 +1310,12 @@ class StripeBankSetupSerializer(serializers.Serializer):
 class InvoiceSerializer(serializers.ModelSerializer):
     id = ShortCodeField()
     bill_to = RelatedUserSerializer()
+    total = serializers.SerializerMethodField()
+
+    def get_total(self, invoice):
+        return str(invoice.total())
 
     class Meta:
-        fields = ('id', 'status', 'type', 'bill_to', 'created_on', 'paid_on')
+        fields = ('id', 'status', 'type', 'bill_to', 'created_on', 'paid_on', 'total')
         read_only_fields = fields
         model = Invoice

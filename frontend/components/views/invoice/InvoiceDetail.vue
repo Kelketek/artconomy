@@ -29,7 +29,7 @@
               <v-col>
                 <ac-load-section :controller="lineItems">
                   <template v-slot:default>
-                    <ac-line-item-listing :editable="editable" :edit-base="editable" :line-items="lineItems" :edit-extras="editable" />
+                    <ac-line-item-listing :editable="editable" :line-items="lineItems" :edit-extras="editable" />
                   </template>
                 </ac-load-section>
               </v-col>

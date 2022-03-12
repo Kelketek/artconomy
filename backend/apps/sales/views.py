@@ -53,7 +53,7 @@ from apps.profiles.models import User, Submission, IN_SUPPORTED_COUNTRY, trigger
 from apps.profiles.permissions import ObjectControls, UserControls, IsUser, IsSuperuser, IsRegistered
 from apps.profiles.serializers import UserSerializer, SubmissionSerializer
 from apps.profiles.tasks import create_or_update_stripe_user
-from apps.profiles.utils import create_guest_user, empty_user
+from apps.profiles.utils import create_guest_user, empty_user, get_anonymous_user
 from apps.sales.apis import STRIPE
 from apps.sales.stripe import stripe, create_stripe_account, create_account_link, get_country_list
 from apps.sales.dwolla import destroy_bank_account
@@ -61,7 +61,7 @@ from apps.sales.models import Product, Order, CreditCardToken, Revision, BankAcc
     WEIGHTED_STATUSES, Rating, TransactionRecord, BASE_PRICE, ADD_ON, TAX, EXTRA, \
     TABLE_SERVICE, TIP, LineItem, inventory_change, InventoryError, InventoryTracker, NEW, PAYMENT_PENDING, \
     QUEUED, COMPLETED, IN_PROGRESS, DISPUTED, REVIEW, CANCELLED, REFUNDED, Deliverable, Reference, WAITING, \
-    PREMIUM_SUBSCRIPTION, StripeAccount, WebhookRecord, Invoice, ServicePlan, OPEN, DRAFT
+    PREMIUM_SUBSCRIPTION, StripeAccount, WebhookRecord, Invoice, ServicePlan, OPEN, DRAFT, SALE
 from apps.sales.permissions import (
     OrderViewPermission, OrderSellerPermission, OrderBuyerPermission,
     OrderPlacePermission, EscrowPermission, EscrowDisabledPermission, RevisionsVisible,
@@ -564,7 +564,9 @@ class InvoiceLineItems(ListCreateAPIView):
         return LineItem.objects.filter(invoice=self.get_object())
 
     def perform_create(self, serializer: LineItemSerializer) -> None:
-        serializer.save(invoice=self.get_object())
+        if not serializer.validated_data['type'] == EXTRA:
+            raise ValidationError('Non add-on items not yet supported.')
+        serializer.save(invoice=self.get_object(), destination_account=TransactionRecord.UNPROCESSED_EARNINGS)
 
 
 class InvoiceLineItemManager(RetrieveUpdateDestroyAPIView):
@@ -2976,7 +2978,42 @@ class TableOrders(ListAPIView):
     pagination_class = None
 
     def get_queryset(self) -> QuerySet:
-        return Order.objects.filter(
+        qs = Order.objects.filter(
             deliverables__product__table_product=True,
-            deliverables__status__in=[NEW, PAYMENT_PENDING, QUEUED, IN_PROGRESS, REVIEW, DISPUTED],
-        ).distinct().order_by('seller', '-created_on')
+        )
+        qs = qs.exclude(
+            Q(deliverables__status__in=[CANCELLED, REFUNDED, COMPLETED])
+            & Q(created_on__lte=timezone.now() - relativedelta(days=60)),
+        )
+        qs = qs.distinct().order_by('seller', '-created_on')
+        return qs
+
+
+class CreateAnonymousInvoice(GenericAPIView):
+    """
+    Creates an invoice with sales tax applied, and returns it for filling out.
+    """
+    permission_classes = [IsStaff]
+    serializer_class = InvoiceSerializer
+
+    @transaction.atomic
+    def post(self, request):
+        invoice = Invoice.objects.create(bill_to=get_anonymous_user())
+        invoice.line_items.create(
+            percentage=settings.TABLE_TAX, cascade_percentage=True, cascade_amount=True,
+            back_into_percentage=True,
+            destination_user=None, destination_account=TransactionRecord.MONEY_HOLE_STAGE,
+            type=TAX,
+        )
+        return Response(
+            data=self.get_serializer(context=self.get_serializer_context(), instance=invoice).data,
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class RecentInvoices(ListAPIView):
+    permission_classes = [IsStaff]
+    serializer_class = InvoiceSerializer
+
+    def get_queryset(self) -> QuerySet:
+        return Invoice.objects.filter(targets__isnull=True, type=SALE).all().order_by('-created_on')

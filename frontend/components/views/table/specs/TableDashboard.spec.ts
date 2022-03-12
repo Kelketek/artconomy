@@ -24,17 +24,18 @@ describe('TableDashboard.vue', () => {
         path: '/table',
         name: 'TableDashboard',
         component: Empty,
-        props: true,
       }, {
         path: '/table/products',
         name: 'TableProducts',
         component: Empty,
-        props: true,
       }, {
         path: '/table/orders',
         name: 'TableOrders',
         component: Empty,
-        props: true,
+      }, {
+        path: '/table/invoices/',
+        name: 'TableInvoices',
+        component: Empty,
       }],
     }
     router = new Router(routes)

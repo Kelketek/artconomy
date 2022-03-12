@@ -3,6 +3,7 @@ from uuid import uuid4
 from avatar.models import Avatar
 from avatar.templatetags.avatar_tags import avatar_url
 from dateutil.relativedelta import relativedelta
+from django.conf import settings
 from django.db.models import Case, When, F, IntegerField, Q
 from django.utils import timezone
 from short_stuff import gen_shortcode
@@ -236,3 +237,11 @@ def leave_conversation(user: User, conversation: Conversation):
             return
     if participant:
         Comment(user=user, system=True, content_object=conversation, text='left the conversation.').save()
+
+
+def get_anonymous_user() -> User:
+    """
+    Grabs the anonymous user from the database and returns it. The anonymous user is created via the
+    create_anonymous_user command.
+    """
+    return User.objects.get(username=settings.ANONYMOUS_USER_USERNAME)

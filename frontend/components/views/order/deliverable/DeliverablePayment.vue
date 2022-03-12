@@ -290,14 +290,6 @@ export default class DeliverablePayment extends mixins(DeliverableMixin, Formatt
     }
   }
 
-  public get stripeEnabled() {
-    const deliverable = this.deliverable.x
-    if (!deliverable) {
-      return false
-    }
-    return deliverable.processor === PROCESSORS.STRIPE
-  }
-
   public hideForm() {
     this.showPayment = false
     this.paymentForm.sending = false
@@ -329,9 +321,6 @@ export default class DeliverablePayment extends mixins(DeliverableMixin, Formatt
   }
 
   public paymentSubmit() {
-    if (!this.stripeEnabled) {
-      this.paymentForm.submitThen(this.updateDeliverable)
-    }
     const cardManager = this.$refs.cardManager as any
     cardManager.stripeSubmit()
   }

@@ -87,6 +87,7 @@ const InvoiceDetail = () => import('@/components/views/invoice/InvoiceDetail.vue
 const TableDashboard = () => import('@/components/views/table/TableDashboard.vue')
 const TableProducts = () => import('@/components/views/table/TableProducts.vue')
 const TableOrders = () => import('@/components/views/table/TableOrders.vue')
+const TableInvoices = () => import('@/components/views/table/TableInvoices.vue')
 
 function orderViews() {
   const orderRoutes: RouteConfig[] = []
@@ -642,6 +643,10 @@ export const routes = [
       path: 'orders',
       name: 'TableOrders',
       component: TableOrders,
+    }, {
+      path: 'invoices',
+      name: 'TableInvoices',
+      component: TableInvoices,
     }],
   },
   {
