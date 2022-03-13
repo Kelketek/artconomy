@@ -73,7 +73,6 @@ urlpatterns = [
     path('v1/order/<int:order_id>/deliverables/<int:deliverable_id>/', views.DeliverableManager.as_view(), name='deliverable'),
     path('v1/order/<int:order_id>/deliverables/<int:deliverable_id>/rate/buyer/', views.RateBuyer.as_view(), name='deliverable_rate_buyer'),
     path('v1/order/<int:order_id>/deliverables/<int:deliverable_id>/rate/seller/', views.RateSeller.as_view(), name='deliverable_rate_seller'),
-    path('v1/order/<int:order_id>/deliverables/<int:deliverable_id>/payment-intent/', views.DeliverablePaymentIntent.as_view(), name='deliverable_payment_intent'),
     path('v1/order/<int:order_id>/deliverables/<int:deliverable_id>/invite/', views.DeliverableInvite.as_view(), name='order_invite'),
     path('v1/order/<int:order_id>/deliverables/', views.OrderDeliverables.as_view(), name='order_deliverables'),
     path('v1/order/<int:order_id>/', views.OrderManager.as_view(), name='order'),
@@ -142,7 +141,8 @@ urlpatterns = [
         name='commissions-status-image'
     ),
     path('v1/invoices/<short_code:invoice>/', views.InvoiceDetail.as_view(), name='invoice_detail'),
-    path('v1/invoices/<short_code:invoice>/line-items/', views.InvoiceLineItems.as_view(), name='invoice_detail'),
+    path('v1/invoices/<short_code:invoice>/payment-intent/', views.InvoicePaymentIntent.as_view(), name='invoice_detail'),
+    path('v1/invoices/<short_code:invoice>/line-items/', views.InvoiceLineItems.as_view(), name='invoice_payment_intent'),
     path('v1/invoices/<short_code:invoice>/line-items/<int:line_item>/', views.InvoiceLineItemManager.as_view(), name='line_item_manager'),
     path('v1/order-auth/', views.OrderAuth.as_view(), name='order_auth'),
     path('v1/reports/customer-holdings/', views.CustomerHoldings.as_view(), name='customer_holdings_report'),

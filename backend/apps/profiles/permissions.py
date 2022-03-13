@@ -98,6 +98,7 @@ class UserControls(BasePermission):
     """
     Checks to see whether this is a staffer or the current user. Ignore actions if comment is deleted.
     """
+    message = 'You may not affect changes for this account.'
 
     def has_object_permission(self, request, view, obj):
         if request.user.is_staff:

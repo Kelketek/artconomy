@@ -40,7 +40,8 @@ from apps.sales.stripe import refund_payment_intent, stripe
 
 if TYPE_CHECKING:
     from apps.sales.models import LineItemSim, LineItem, TransactionRecord, Deliverable, Revision, CreditCardToken, \
-        Invoice, ServicePlan
+    Invoice, ServicePlan, VOID
+
     Line = Union[LineItem, LineItemSim]
     LineMoneyMap = Dict[Line, Money]
     TransactionSpecKey = (Union[User, None], int, int)
@@ -391,10 +392,11 @@ def transfer_order(order, old_buyer, new_buyer, force=False):
 
 
 def cancel_deliverable(deliverable, requested_by):
-    from apps.sales.models import CANCELLED
+    from apps.sales.models import CANCELLED, VOID
     deliverable.status = CANCELLED
     deliverable.cancelled_on = timezone.now()
     deliverable.save()
+    deliverable.invoice.status = VOID
     if requested_by != deliverable.order.seller:
         notify(SALE_UPDATE, deliverable, unique=True, mark_unread=True)
     if requested_by != deliverable.order.buyer:

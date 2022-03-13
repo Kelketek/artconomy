@@ -16,7 +16,7 @@ from apps.lib.test_resources import SignalsDisabledMixin, APITestCase
 from apps.profiles.tests.factories import UserFactory, CharacterFactory, SubmissionFactory
 from apps.sales.apis import AUTHORIZE, STRIPE
 from apps.sales.models import idempotent_lines, QUEUED, NEW, PAYMENT_PENDING, COMPLETED, IN_PROGRESS, \
-    TransactionRecord, REVIEW, DISPUTED, Deliverable, WAITING, REFUNDED
+    TransactionRecord, REVIEW, DISPUTED, Deliverable, WAITING, REFUNDED, OPEN, PAID
 from apps.sales.tests.factories import DeliverableFactory, RevisionFactory, LineItemFactory, TransactionRecordFactory, \
     CreditCardTokenFactory
 
@@ -132,8 +132,11 @@ class TestDeliverableStateChange(SignalsDisabledMixin, APITestCase):
         self.state_assertion('seller', 'mark-paid/', initial_status=PAYMENT_PENDING, target_status=QUEUED)
         self.deliverable.refresh_from_db()
         self.assertFalse(self.deliverable.revisions_hidden)
+        self.assertTrue(self.deliverable.invoice.record_only)
+        self.assertEqual(self.deliverable.invoice.status, PAID)
 
     def test_mark_paid_disables_escrow(self, _mock_notify):
+        self.assertFalse(self.deliverable.invoice.record_only)
         self.assertFalse(self.deliverable.escrow_disabled)
         self.assertTrue(self.deliverable.revisions_hidden)
         self.deliverable.save()
@@ -142,6 +145,8 @@ class TestDeliverableStateChange(SignalsDisabledMixin, APITestCase):
         self.deliverable.refresh_from_db()
         self.assertFalse(self.deliverable.revisions_hidden)
         self.assertTrue(self.deliverable.escrow_disabled)
+        self.assertTrue(self.deliverable.invoice.record_only)
+        self.assertEqual(self.deliverable.invoice.status, PAID)
 
     def test_mark_paid_deliverable_final_uploaded(self, _mock_notify):
         self.deliverable.escrow_disabled = True

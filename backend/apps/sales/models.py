@@ -503,6 +503,7 @@ def idempotent_lines(instance: Deliverable):
         )[0]
         line.annotate(instance)
         main_qs.filter(type__in=[BONUS, SHIELD]).delete()
+        instance.invoice.record_only = False
     elif escrow_enabled:
         line = main_qs.update_or_create(
             defaults={
@@ -543,6 +544,7 @@ def idempotent_lines(instance: Deliverable):
             invoice=instance.invoice,
         ).delete()
         main_qs.filter(type=TAX).delete()
+        instance.invoice.record_only = False
     else:
         main_qs.filter(type__in=[BONUS, SHIELD]).delete()
         main_qs.filter(
@@ -550,6 +552,8 @@ def idempotent_lines(instance: Deliverable):
             invoice=instance.invoice,
         ).delete()
         main_qs.filter(type=TAX).delete()
+        instance.invoice.record_only = True
+    instance.invoice.save()
 
 
 @receiver(pre_save, sender=Deliverable)
@@ -1070,7 +1074,7 @@ INVOICE_TYPES = (
 
 class Invoice(models.Model):
     id = ShortCodeField(primary_key=True, db_index=True, default=gen_shortcode)
-    status = models.IntegerField(default=OPEN, choices=INVOICE_STATUSES)
+    status = models.IntegerField(default=DRAFT, choices=INVOICE_STATUSES)
     type = models.IntegerField(default=SALE, choices=INVOICE_TYPES)
     bill_to = models.ForeignKey(User, null=True, on_delete=CASCADE, related_name='invoices_billed_to')
     created_on = models.DateTimeField(default=timezone.now, db_index=True)
@@ -1078,6 +1082,7 @@ class Invoice(models.Model):
     # We don't currently use stripe Invoices, but we anticipate doing so.
     stripe_token = models.CharField(default='', db_index=True, max_length=50, blank=True)
     current_intent = CharField(max_length=30, db_index=True, default='', blank=True)
+    record_only = models.BooleanField(default=False, db_index=True)
     # You should also add the targets to the line item annotations if adding them here. This is used
     # to make lookups for things like 'the invoice for this deliverable' easier, though in the future
     # it's possible that we could have multiple deliverables on an invoice.

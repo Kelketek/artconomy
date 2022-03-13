@@ -309,9 +309,18 @@ class DeliverableViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer)
     processor = serializers.CharField(read_only=True)
     order = OrderViewSerializer(read_only=True)
     read = serializers.SerializerMethodField()
+    invoice = serializers.SerializerMethodField()
 
     def get_read(self, obj):
         return check_read(obj=obj, user=self.context['request'].user)
+
+    def get_invoice(self, obj):
+        # Can get triggered when loaded with a list. In that case there is no sensible answer.
+        if not isinstance(obj, Deliverable):
+            return ''
+        if self.is_buyer or self.context['request'].user.is_staff:
+            return obj.invoice.id
+        return None
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -367,11 +376,15 @@ class DeliverableViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer)
 
     @property
     def is_seller(self):
+        if not isinstance(self.instance, Deliverable):
+            return False
         user = self.context['request'].user
         return (user == self.instance.order.seller) or user.is_staff
 
     @property
     def is_buyer(self):
+        if not isinstance(self.instance, Deliverable):
+            return False
         user = self.context['request'].user
         return (user == self.instance.order.buyer) or user.is_staff
 
@@ -398,6 +411,7 @@ class DeliverableViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer)
             'auto_finalize_on', 'started_on', 'escrow_disabled', 'revisions_hidden', 'final_uploaded', 'arbitrator',
             'display', 'rating', 'commission_info', 'adjustment_revisions',
             'tip', 'table_order', 'trust_finalized', 'order', 'name', 'product', 'read', 'processor',
+            'invoice',
         )
         read_only_fields = [field for field in fields if field != 'subscribed']
         extra_kwargs = {
@@ -1316,6 +1330,6 @@ class InvoiceSerializer(serializers.ModelSerializer):
         return str(invoice.total())
 
     class Meta:
-        fields = ('id', 'status', 'type', 'bill_to', 'created_on', 'paid_on', 'total')
+        fields = ('id', 'status', 'type', 'bill_to', 'created_on', 'paid_on', 'total', 'record_only')
         read_only_fields = fields
         model = Invoice

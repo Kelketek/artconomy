@@ -266,6 +266,8 @@ export default class DeliverablePayment extends mixins(DeliverableMixin, Formatt
   public PROCESSORS = PROCESSORS
   public socketState = null as unknown as SingleController<SocketState>
   public oldTotal: null | Big = null
+  // Setting this false to avoid calling for the secret until we have the invoice ID.
+  public canUpdate = false
 
   @Watch('showManualTransaction')
   public clearManualTransactionSettings() {
@@ -288,6 +290,17 @@ export default class DeliverablePayment extends mixins(DeliverableMixin, Formatt
       // Refresh the line items, since if it's newly 0, or no longer 0, upstream may have changed.
       this.lineItems.get()
     }
+  }
+
+  @Watch('deliverable.x.invoice')
+  public updateSecretEndpoint(val: string | undefined) {
+    console.log('Updated!', val)
+    if (!val) {
+      return
+    }
+    this.clientSecret.endpoint = `/api/sales/v1/invoices/${val}/payment-intent/`
+    this.canUpdate = true
+    this.updateIntent()
   }
 
   public hideForm() {

@@ -61,7 +61,7 @@ from apps.sales.models import Product, Order, CreditCardToken, Revision, BankAcc
     WEIGHTED_STATUSES, Rating, TransactionRecord, BASE_PRICE, ADD_ON, TAX, EXTRA, \
     TABLE_SERVICE, TIP, LineItem, inventory_change, InventoryError, InventoryTracker, NEW, PAYMENT_PENDING, \
     QUEUED, COMPLETED, IN_PROGRESS, DISPUTED, REVIEW, CANCELLED, REFUNDED, Deliverable, Reference, WAITING, \
-    PREMIUM_SUBSCRIPTION, StripeAccount, WebhookRecord, Invoice, ServicePlan, OPEN, DRAFT, SALE
+    PREMIUM_SUBSCRIPTION, StripeAccount, WebhookRecord, Invoice, ServicePlan, OPEN, DRAFT, SALE, PAID
 from apps.sales.permissions import (
     OrderViewPermission, OrderSellerPermission, OrderBuyerPermission,
     OrderPlacePermission, EscrowPermission, EscrowDisabledPermission, RevisionsVisible,
@@ -427,6 +427,8 @@ class DeliverableAccept(GenericAPIView):
             deliverable.revisions_hidden = False
             deliverable.escrow_disabled = True
         deliverable.save()
+        deliverable.invoice.status = OPEN
+        deliverable.invoice.save()
         data = DeliverableViewSerializer(instance=deliverable, context=self.get_serializer_context()).data
         if (not deliverable.order.buyer) and deliverable.order.customer_email:
             subject = f'You have a new invoice from {deliverable.order.seller.username}!'
@@ -470,6 +472,9 @@ class MarkPaid(GenericAPIView):
         deliverable.commission_info = deliverable.order.seller.artist_profile.commission_info
         deliverable.escrow_disabled = True
         deliverable.save()
+        deliverable.invoice.record_only = True
+        deliverable.invoice.status = PAID
+        deliverable.invoice.save()
         data = self.serializer_class(instance=deliverable, context=self.get_serializer_context()).data
         notify(ORDER_UPDATE, deliverable, unique=True, mark_unread=True)
         return Response(data)
@@ -550,6 +555,10 @@ class InvoiceLineItems(ListCreateAPIView):
         Any(
             All(IsSafeMethod, UserControls),
             IsStaff,
+        ),
+        Any(
+            IsSafeMethod,
+            InvoiceStatus(DRAFT, OPEN)
         )
     ]
     pagination_class = None
@@ -1386,65 +1395,6 @@ PAYMENT_PERMISSIONS = (
                       'Please refresh the page or contact support.',
     ),
 )
-
-
-class DeliverablePaymentIntent(APIView):
-    """
-    Creates a payment intent for a deliverable.
-
-    TODO: Remnove this in favor of a general invoice payment intent.
-    """
-    permission_classes = PAYMENT_PERMISSIONS
-
-    def get_object(self):
-        deliverable = get_object_or_404(
-            Deliverable.objects.select_for_update(), order_id=self.kwargs['order_id'], id=self.kwargs['deliverable_id'],
-            processor=STRIPE, order__buyer__isnull=False
-        )
-        self.check_object_permissions(self.request, deliverable)
-        return deliverable
-
-    @transaction.atomic
-    def post(self, *args, **kwargs):
-        deliverable = self.get_object()
-        if deliverable.order.buyer.is_registered:
-            create_or_update_stripe_user(deliverable.order.buyer.id)
-            deliverable.order.buyer.refresh_from_db()
-        stripe_token = get_intent_card_token(deliverable.order.buyer, self.request.data.get('card_id'))
-        serializer = PaymentIntentSettings(data=self.request.data)
-        serializer.is_valid(raise_exception=True)
-        save_card = serializer.validated_data['save_card'] and not deliverable.order.buyer.guest
-        make_primary = (save_card and serializer.validated_data['make_primary']) and not deliverable.order.buyer.guest
-        if not deliverable:
-            return Response(status=status.HTTP_403_FORBIDDEN, data={'detail': 'This deliverable does not use stripe.'})
-        total = deliverable.invoice.total()
-        with stripe as stripe_api:
-            # Can only do string values, so won't be json true value.
-            metadata = {**deliverable.stripe_metadata, 'make_primary': make_primary, 'save_card': save_card}
-            intent_kwargs = {
-                # Need to figure out how to do this per-currency.
-                'amount': int(total.amount * total.currency.sub_unit),
-                'currency': str(total.currency).lower(),
-                'customer': deliverable.order.buyer.stripe_token or None,
-                # Note: If we expand the payment types, we may need to take into account that linking the
-                # charge_id to the source_transaction field of the payout transfer could cause problems. See:
-                # https://stripe.com/docs/connect/charges-transfers#transfer-availability
-                'payment_method_types': ['card'],
-                'payment_method': stripe_token,
-                'transfer_group': f'ACInvoice#{deliverable.invoice.id}',
-                'metadata': metadata,
-                'receipt_email': deliverable.order.buyer.guest_email or deliverable.order.buyer.email,
-            }
-            if save_card:
-                intent_kwargs['setup_future_usage'] = 'off_session'
-            if deliverable.invoice.current_intent:
-                intent = stripe_api.PaymentIntent.modify(deliverable.invoice.current_intent, **intent_kwargs)
-                return Response({'secret': intent['client_secret']})
-            intent = stripe_api.PaymentIntent.create(**intent_kwargs)
-            deliverable.invoice.current_intent = intent['id']
-            deliverable.invoice.save()
-            return Response({'secret': intent['client_secret']})
-
 
 class MakePayment(GenericAPIView):
     serializer_class = PaymentSerializer
@@ -2552,6 +2502,62 @@ class PinterestCatalog(ListAPIView):
             'dialect': 'unix',
         }
         return context
+
+
+class InvoicePaymentIntent(APIView):
+    """
+    Creates a payment intent for an invoice. Right now this only works for table
+    invoices-- Fixes for permissions will need to be made to make sure someone
+    doesn't pay for a deliverable in the wrong status.
+    """
+    permission_classes = [UserControls, InvoiceStatus(OPEN)]
+
+    def get_object(self):
+        invoice = get_object_or_404(
+            Invoice.objects.select_for_update(), id=self.kwargs['invoice'],
+            status__in=[OPEN, DRAFT], record_only=False,
+        )
+        self.check_object_permissions(self.request, invoice)
+        return invoice
+
+    @transaction.atomic
+    def post(self, *args, **kwargs):
+        invoice = self.get_object()
+        if invoice.bill_to.is_registered:
+            create_or_update_stripe_user(invoice.bill_to.id)
+            invoice.bill_to.refresh_from_db()
+        stripe_token = get_intent_card_token(invoice.bill_to, self.request.data.get('card_id'))
+        serializer = PaymentIntentSettings(data=self.request.data)
+        serializer.is_valid(raise_exception=True)
+        save_card = serializer.validated_data['save_card'] and not invoice.bill_to.guest
+        make_primary = (save_card and serializer.validated_data['make_primary']) and not invoice.bill_to.guest
+        total = invoice.total()
+        with stripe as stripe_api:
+            # Can only do string values, so won't be json true value.
+            metadata = {'invoice_id': invoice.id, 'make_primary': make_primary, 'save_card': save_card}
+            intent_kwargs = {
+                # Need to figure out how to do this per-currency.
+                'amount': int(total.amount * total.currency.sub_unit),
+                'currency': str(total.currency).lower(),
+                'customer': invoice.bill_to.stripe_token or None,
+                # Note: If we expand the payment types, we may need to take into account that linking the
+                # charge_id to the source_transaction field of the payout transfer could cause problems. See:
+                # https://stripe.com/docs/connect/charges-transfers#transfer-availability
+                'payment_method_types': ['card'],
+                'payment_method': stripe_token,
+                'transfer_group': f'ACInvoice#{invoice.id}',
+                'metadata': metadata,
+                'receipt_email': invoice.bill_to.guest_email or invoice.bill_to.email,
+            }
+            if save_card:
+                intent_kwargs['setup_future_usage'] = 'off_session'
+            if invoice.current_intent:
+                intent = stripe_api.PaymentIntent.modify(invoice.current_intent, **intent_kwargs)
+                return Response({'secret': intent['client_secret']})
+            intent = stripe_api.PaymentIntent.create(**intent_kwargs)
+            invoice.current_intent = intent['id']
+            invoice.save()
+            return Response({'secret': intent['client_secret']})
 
 
 class InvoiceDetail(RetrieveUpdateAPIView):

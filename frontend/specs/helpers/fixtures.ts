@@ -192,6 +192,7 @@ export function genDeliverable(overrides?: Partial<Deliverable>): Deliverable {
       },
       preview: null,
     },
+    invoice: '234gsdgsdfg4',
     ...overrides,
   }
 }

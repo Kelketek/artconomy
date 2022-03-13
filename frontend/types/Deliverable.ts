@@ -40,5 +40,6 @@ export default interface Deliverable {
   processor: PROCESSORS,
   display: {file: FileSpec, preview: FileSpec|null}|null,
   order: Order,
+  invoice: string | null,
   read: boolean,
 }

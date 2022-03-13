@@ -77,6 +77,8 @@ def ObjectStatus(statuses, message):
 
 
 class IsStaff(BasePermission):
+    message = 'You do not have sufficient privileges to perform this operation.'
+
     def has_permission(self, request: Request, view: View) -> bool:
         return request.user.is_staff
 
@@ -90,6 +92,7 @@ class IsSafeMethod(BasePermission):
     """
     Is a read-only request.
     """
+    message = 'You are not permitted to perform mutating operations on this endpoint.'
 
     def has_permission(self, request, view):
         return request.method in SAFE_METHODS

@@ -18,7 +18,7 @@ from apps.lib.test_resources import APITestCase
 from apps.profiles.tests.factories import UserFactory
 from apps.sales.apis import STRIPE
 from apps.sales.models import PAYMENT_PENDING, QUEUED, CreditCardToken, TransactionRecord, REVIEW, IN_PROGRESS, \
-    ServicePlan
+    ServicePlan, OPEN
 from apps.sales.stripe import money_to_stripe
 from apps.sales.tests.factories import DeliverableFactory, CreditCardTokenFactory, WebhookRecordFactory, InvoiceFactory, \
     LineItemFactory, ServicePlanFactory, add_adjustment, RevisionFactory
@@ -27,7 +27,7 @@ from apps.sales.utils import UserPaymentException
 from apps.sales.views import StripeWebhooks
 
 
-class TestDeliverablePaymentIntent(APITestCase):
+class TestInvoicePaymentIntent(APITestCase):
     def setUp(self) -> None:
         self.patcher = patch('apps.sales.views.create_or_update_stripe_user')
         self.patcher.start()
@@ -40,10 +40,10 @@ class TestDeliverablePaymentIntent(APITestCase):
         mock_api = Mock()
         mock_stripe.__enter__.return_value = mock_api
         mock_api.PaymentIntent.create.return_value = {'id': 'raw_id', 'client_secret': 'sneak'}
-        deliverable = DeliverableFactory.create(status=PAYMENT_PENDING, processor=STRIPE)
+        deliverable = DeliverableFactory.create(status=PAYMENT_PENDING, invoice__status=OPEN)
         self.login(deliverable.order.buyer)
         response = self.client.post(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/payment-intent/'
+            f'/api/sales/v1/invoices/{deliverable.invoice.id}/payment-intent/',
         )
         self.assertEqual(response.data, {'secret': 'sneak'})
         deliverable.refresh_from_db()
@@ -53,8 +53,6 @@ class TestDeliverablePaymentIntent(APITestCase):
         self.assertEqual(params['currency'], 'usd')
         self.assertIsNone(params['payment_method'])
         self.assertEqual(params['metadata'], {
-            'deliverable_id': deliverable.id,
-            'order_id': deliverable.order.id,
             'invoice_id': deliverable.invoice.id,
             'make_primary': False,
             'save_card': False,
@@ -68,10 +66,13 @@ class TestDeliverablePaymentIntent(APITestCase):
         mock_api = Mock()
         mock_stripe.__enter__.return_value = mock_api
         mock_api.PaymentIntent.modify.return_value = {'id': 'raw_id', 'client_secret': 'sneak'}
-        deliverable = DeliverableFactory.create(status=PAYMENT_PENDING, invoice__current_intent='old_id', processor=STRIPE)
+        deliverable = DeliverableFactory.create(
+            status=PAYMENT_PENDING, invoice__current_intent='old_id', processor=STRIPE,
+            invoice__status=OPEN,
+        )
         self.login(deliverable.order.buyer)
         response = self.client.post(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/payment-intent/'
+            f'/api/sales/v1/invoices/{deliverable.invoice.id}/payment-intent/',
         )
         self.assertEqual(response.data, {'secret': 'sneak'})
         deliverable.refresh_from_db()
@@ -85,8 +86,6 @@ class TestDeliverablePaymentIntent(APITestCase):
         self.assertEqual(
             params['metadata'],
             {
-                'deliverable_id': deliverable.id,
-                'order_id': deliverable.order.id,
                 'invoice_id': deliverable.invoice.id,
                 'make_primary': False,
                 'save_card': False
@@ -100,11 +99,11 @@ class TestDeliverablePaymentIntent(APITestCase):
         mock_api = Mock()
         mock_stripe.__enter__.return_value = mock_api
         mock_api.PaymentIntent.create.return_value = {'id': 'raw_id', 'client_secret': 'sneak'}
-        deliverable = DeliverableFactory.create(status=PAYMENT_PENDING, processor=STRIPE)
+        deliverable = DeliverableFactory.create(status=PAYMENT_PENDING, processor=STRIPE, invoice__status=OPEN)
         card = CreditCardTokenFactory(user=deliverable.order.buyer, stripe_token='butts', token='')
         self.login(deliverable.order.buyer)
         response = self.client.post(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/payment-intent/',
+            f'/api/sales/v1/invoices/{deliverable.invoice.id}/payment-intent/',
             {'card_id': card.id}
         )
         self.assertEqual(response.data, {'secret': 'sneak'})
@@ -113,29 +112,15 @@ class TestDeliverablePaymentIntent(APITestCase):
         self.assertEqual(params['payment_method'], 'butts')
 
     @patch('apps.sales.views.stripe')
-    def test_fail_card_wrong_backend(self, mock_stripe):
-        mock_api = Mock()
-        mock_stripe.__enter__.return_value = mock_api
-        mock_api.PaymentIntent.create.return_value = {'id': 'raw_id', 'client_secret': 'sneak'}
-        deliverable = DeliverableFactory.create(status=PAYMENT_PENDING, processor=STRIPE)
-        card = CreditCardTokenFactory(user=deliverable.order.buyer, stripe_token='', token='butts')
-        self.login(deliverable.order.buyer)
-        response = self.client.post(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/payment-intent/',
-            {'card_id': card.id}
-        )
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-    @patch('apps.sales.views.stripe')
     def test_fail_wrong_card_user(self, mock_stripe):
         mock_api = Mock()
         mock_stripe.__enter__.return_value = mock_api
         mock_api.PaymentIntent.create.return_value = {'id': 'raw_id', 'client_secret': 'sneak'}
-        deliverable = DeliverableFactory.create(status=PAYMENT_PENDING, processor=STRIPE)
+        deliverable = DeliverableFactory.create(status=PAYMENT_PENDING, processor=STRIPE, invoice__status=OPEN)
         card = CreditCardTokenFactory(stripe_token='butts', token='')
         self.login(deliverable.order.buyer)
         response = self.client.post(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/payment-intent/',
+            f'/api/sales/v1/invoices/{deliverable.invoice.id}/payment-intent/',
             {'card_id': card.id}
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -145,13 +130,13 @@ class TestDeliverablePaymentIntent(APITestCase):
         mock_api = Mock()
         mock_stripe.__enter__.return_value = mock_api
         mock_api.PaymentIntent.create.return_value = {'id': 'raw_id', 'client_secret': 'sneak'}
-        deliverable = DeliverableFactory.create(status=PAYMENT_PENDING, processor=STRIPE)
+        deliverable = DeliverableFactory.create(status=PAYMENT_PENDING, processor=STRIPE, invoice__status=OPEN)
         card = CreditCardTokenFactory(stripe_token='butts', token='', user=deliverable.order.buyer)
         deliverable.order.buyer.primary_card = card
         deliverable.order.buyer.save()
         self.login(deliverable.order.buyer)
         response = self.client.post(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/payment-intent/',
+            f'/api/sales/v1/invoices/{deliverable.invoice.id}/payment-intent/',
         )
         self.assertEqual(response.data, {'secret': 'sneak'})
         deliverable.refresh_from_db()
@@ -346,7 +331,7 @@ class TestStripeWebhook(TransactionCheckMixin, APITestCase):
             order__buyer__stripe_token='beep',
         )
         event = base_charge_succeeded_event()
-        event['data']['object']['metadata'] = {'invoice_id': deliverable.invoice.id, 'deliverable_id': deliverable.id, 'order_id': deliverable.order.id}
+        event['data']['object']['metadata'] = {'invoice_id': deliverable.invoice.id}
         event['data']['object']['customer'] = 'beep'
         request = self.gen_request(event)
         response = self.view(request, False)
@@ -369,7 +354,7 @@ class TestStripeWebhook(TransactionCheckMixin, APITestCase):
             status=PAYMENT_PENDING, invoice__current_intent=event['data']['object']['payment_intent'],
             order__buyer__stripe_token='beep',
         )
-        event['data']['object']['metadata'] = {'deliverable_id': deliverable.id, 'invoice_id': deliverable.invoice.id, 'order_id': deliverable.order.id}
+        event['data']['object']['metadata'] = {'invoice_id': deliverable.invoice.id}
         event['data']['object']['customer'] = 'beep'
         self.assertRaises(
             UserPaymentException,
@@ -440,7 +425,7 @@ class TestStripeWebhook(TransactionCheckMixin, APITestCase):
         subscription = Subscription.objects.get(subscriber=deliverable.order.seller, type=SALE_UPDATE)
         self.assertTrue(subscription.email)
         event['data']['object']['amount'] = money_to_stripe(Money('12.00', 'USD'))[0]
-        event['data']['object']['metadata'] = {'invoice_id': deliverable.invoice.id, 'deliverable_id': deliverable.id, 'order_id': deliverable.order.id}
+        event['data']['object']['metadata'] = {'invoice_id': deliverable.invoice.id}
         event['data']['object']['customer'] = 'beep'
         response = self.view(self.gen_request(event), False)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
@@ -461,7 +446,7 @@ class TestStripeWebhook(TransactionCheckMixin, APITestCase):
         subscription = Subscription.objects.get(subscriber=deliverable.order.seller, type=SALE_UPDATE)
         self.assertTrue(subscription.email)
         event['data']['object']['amount'] = money_to_stripe(Money('12.00', 'USD'))[0]
-        event['data']['object']['metadata'] = {'invoice_id': deliverable.invoice.id, 'deliverable_id': deliverable.id, 'order_id': deliverable.order.id}
+        event['data']['object']['metadata'] = {'invoice_id': deliverable.invoice.id}
         event['data']['object']['customer'] = 'beep'
         response = self.view(self.gen_request(event), False)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
@@ -484,7 +469,7 @@ class TestStripeWebhook(TransactionCheckMixin, APITestCase):
         add_adjustment(deliverable, Money('2.00', 'USD'))
         RevisionFactory.create(deliverable=deliverable)
         event['data']['object']['amount'] = money_to_stripe(Money('12.00', 'USD'))[0]
-        event['data']['object']['metadata'] = {'invoice_id': deliverable.invoice.id, 'deliverable_id': deliverable.id, 'order_id': deliverable.order.id}
+        event['data']['object']['metadata'] = {'invoice_id': deliverable.invoice.id}
         event['data']['object']['customer'] = 'beep'
         self.view(self.gen_request(event), False)
         deliverable.refresh_from_db()
@@ -505,7 +490,7 @@ class TestStripeWebhook(TransactionCheckMixin, APITestCase):
         add_adjustment(deliverable, Money('2.00', 'USD'))
         RevisionFactory.create(deliverable=deliverable)
         event['data']['object']['amount'] = money_to_stripe(Money('12.00', 'USD'))[0]
-        event['data']['object']['metadata'] = {'invoice_id': deliverable.invoice.id, 'deliverable_id': deliverable.id, 'order_id': deliverable.order.id}
+        event['data']['object']['metadata'] = {'invoice_id': deliverable.invoice.id}
         event['data']['object']['customer'] = 'beep'
         self.view(self.gen_request(event), False)
         deliverable.refresh_from_db()
