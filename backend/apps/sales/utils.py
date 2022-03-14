@@ -1163,6 +1163,58 @@ def paired_iterator(always: Any, iterator: Iterator):
         yield always, item
 
 
+def hacky_invoice_post_save(transactions: List['TransactionRecord'], attempt: PaymentAttempt, user: User, context: dict):
+    """
+    Post-save perform_charge hook for deliverable.
+    """
+    invoice = context['invoice']
+    invoice_ref = ref_for_instance(invoice)
+    for transaction in transactions:
+        transaction.targets.add(invoice_ref)
+
+
+def hacky_invoice_initiate_transactions(
+        attempt: PaymentAttempt, amount: Money, user: User, context: dict,
+) -> List['TransactionRecord']:
+    from apps.sales.models import TransactionRecord
+    invoice = context['invoice']
+    transaction_specs = lines_to_transaction_specs(invoice.line_items.all())
+    transactions = [
+        TransactionRecord(
+            payer=invoice.bill_to,
+            status=TransactionRecord.FAILURE,
+            category=category,
+            source=TransactionRecord.CARD,
+            payee=destination_user,
+            destination=destination_account,
+            amount=value,
+            response_message="Failed when contacting payment processor.",
+        ) for ((destination_user, destination_account, category), value) in transaction_specs.items()
+    ]
+    if attempt.get('stripe_event'):
+        transactions.extend(initialize_stripe_charge_fees(amount=amount))
+    return transactions
+
+
+def hacky_transaction_creation(invoice: 'Invoice', context: dict):
+    from apps.sales.views import remote_ids_from_charge
+    attempt = context.get('attempt')
+    if not attempt:
+        charge_event = context['stripe_event']['data']['object']
+        amount = context['amount']
+        attempt = {
+            'stripe_event': charge_event,
+            'amount': amount,
+            'remote_ids': remote_ids_from_charge(charge_event),
+        }
+    records = perform_charge(
+        attempt=attempt, amount=attempt['amount'], user=invoice.bill_to,
+        requesting_user=context.get('requesting_user', invoice.bill_to), post_save=hacky_invoice_post_save,
+        context={'invoice': invoice}, initiate_transactions=hacky_invoice_initiate_transactions,
+    )
+    return records
+
+
 @transaction.atomic
 def invoice_post_payment(invoice: 'Invoice', context: dict) -> List['TransactionRecord']:
     """
@@ -1175,8 +1227,6 @@ def invoice_post_payment(invoice: 'Invoice', context: dict) -> List['Transaction
     the context dictionary.
     """
     from apps.sales.models import PAID
-    invoice.status = PAID
-    invoice.save()
     all_targets = (
         paired_iterator(invoice, invoice.targets.all()),
         *(
@@ -1191,6 +1241,8 @@ def invoice_post_payment(invoice: 'Invoice', context: dict) -> List['Transaction
                 f'{target.__class__.__name__} for deleted item paid: #{invoice.id}, GenericReference {target.id}',
             )
         records.extend(post_pay_hook(billable=billable, target=target.target, context={**context, **billable.context_for(target)}))
+    if invoice.creates_own_transactions:
+        records.extend(hacky_transaction_creation(invoice, context))
     if context['successful']:
         invoice.status = PAID
         invoice.save()

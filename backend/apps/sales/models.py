@@ -989,6 +989,7 @@ class TransactionRecord(Model):
         (PREMIUM_BONUS, 'Premium service bonus'),
         (INTERNAL_TRANSFER, 'Internal Transfer'),
         (THIRD_PARTY_REFUND, 'Third party refund'),
+        (EXTRA_ITEM, 'Extra item'),
         (CORRECTION, 'Correction'),
         (TABLE_SERVICE, 'Table Service'),
         (TAX, 'Tax'),
@@ -1075,6 +1076,7 @@ INVOICE_TYPES = (
 class Invoice(models.Model):
     id = ShortCodeField(primary_key=True, db_index=True, default=gen_shortcode)
     status = models.IntegerField(default=DRAFT, choices=INVOICE_STATUSES)
+    watch_permissions = {'InvoiceSerializer': [UserControls], None: [UserControls]}
     type = models.IntegerField(default=SALE, choices=INVOICE_TYPES)
     bill_to = models.ForeignKey(User, null=True, on_delete=CASCADE, related_name='invoices_billed_to')
     created_on = models.DateTimeField(default=timezone.now, db_index=True)
@@ -1083,6 +1085,8 @@ class Invoice(models.Model):
     stripe_token = models.CharField(default='', db_index=True, max_length=50, blank=True)
     current_intent = CharField(max_length=30, db_index=True, default='', blank=True)
     record_only = models.BooleanField(default=False, db_index=True)
+    # This flag is a temporary hack until we migrate over to a unified method of handling these transactions.
+    creates_own_transactions = models.BooleanField(default=False, db_index=True)
     # You should also add the targets to the line item annotations if adding them here. This is used
     # to make lookups for things like 'the invoice for this deliverable' easier, though in the future
     # it's possible that we could have multiple deliverables on an invoice.

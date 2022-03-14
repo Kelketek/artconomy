@@ -1815,9 +1815,9 @@ class TestAnonymousInvoice(APITestCase):
 
 class TestRecentInvoices(APITestCase):
     def test_show_recent(self):
-        newest = InvoiceFactory.create(created_on=timezone.now().replace(year=2022, month=8, day=1))
-        oldest = InvoiceFactory.create(created_on=timezone.now().replace(year=2020, month=8, day=1))
-        middle = InvoiceFactory.create(created_on=timezone.now().replace(year=2021, month=8, day=1))
+        newest = InvoiceFactory.create(created_on=timezone.now().replace(year=2022, month=8, day=1), creates_own_transactions=True)
+        oldest = InvoiceFactory.create(created_on=timezone.now().replace(year=2020, month=8, day=1), creates_own_transactions=True)
+        middle = InvoiceFactory.create(created_on=timezone.now().replace(year=2021, month=8, day=1), creates_own_transactions=True)
         self.login(UserFactory.create(is_staff=True))
         response = self.client.get('/api/sales/v1/recent-invoices/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)

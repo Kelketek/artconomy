@@ -28,6 +28,7 @@ export default class TableDashboard extends mixins(Viewer) {
   created() {
     this.$listenForList('table_products')
     this.$listenForList('table_orders')
+    this.$listenForList('table_invoices')
     if (this.$route.name === 'TableDashboard') {
       this.$router.replace({name: 'TableProducts'})
     }

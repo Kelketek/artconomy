@@ -647,6 +647,12 @@ export const routes = [
       path: 'invoices',
       name: 'TableInvoices',
       component: TableInvoices,
+      children: [{
+        path: ':username/:invoiceId/',
+        name: 'TableInvoice',
+        component: InvoiceDetail,
+        props: true,
+      }]
     }],
   },
   {

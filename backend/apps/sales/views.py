@@ -61,7 +61,7 @@ from apps.sales.models import Product, Order, CreditCardToken, Revision, BankAcc
     WEIGHTED_STATUSES, Rating, TransactionRecord, BASE_PRICE, ADD_ON, TAX, EXTRA, \
     TABLE_SERVICE, TIP, LineItem, inventory_change, InventoryError, InventoryTracker, NEW, PAYMENT_PENDING, \
     QUEUED, COMPLETED, IN_PROGRESS, DISPUTED, REVIEW, CANCELLED, REFUNDED, Deliverable, Reference, WAITING, \
-    PREMIUM_SUBSCRIPTION, StripeAccount, WebhookRecord, Invoice, ServicePlan, OPEN, DRAFT, SALE, PAID
+    PREMIUM_SUBSCRIPTION, StripeAccount, WebhookRecord, Invoice, ServicePlan, OPEN, DRAFT, SALE, PAID, VOID
 from apps.sales.permissions import (
     OrderViewPermission, OrderSellerPermission, OrderBuyerPermission,
     OrderPlacePermission, EscrowPermission, EscrowDisabledPermission, RevisionsVisible,
@@ -86,7 +86,7 @@ from apps.sales.utils import available_products, set_premium, \
     POSTED_ONLY, PENDING, transfer_order, early_finalize, cancel_deliverable, \
     verify_total, issue_refund, ensure_buyer, perform_charge, premium_post_success, premium_initiate_transactions, \
     UserPaymentException, pay_deliverable, get_term_invoice, get_intent_card_token, premium_post_save, \
-    invoice_post_payment
+    invoice_post_payment, hacky_invoice_post_save, hacky_invoice_initiate_transactions
 from shortcuts import make_url
 
 
@@ -1396,7 +1396,38 @@ PAYMENT_PERMISSIONS = (
     ),
 )
 
-class MakePayment(GenericAPIView):
+
+class InvoicePayment(GenericAPIView):
+    serializer_class = PaymentSerializer
+    permission_classes = [IsStaff, InvoiceStatus(OPEN)]
+
+    @lru_cache()
+    def get_object(self):
+        invoice = get_object_or_404(Invoice,  id=self.kwargs['invoice'])
+        self.check_object_permissions(self.request, invoice)
+        return invoice
+
+    # noinspection PyUnusedLocal
+    def post(self, *args, **kwargs):
+        invoice = self.get_object()
+        attempt = self.get_serializer(data=self.request.data, context=self.get_serializer_context())
+        attempt.is_valid(raise_exception=True)
+        attempt = attempt.validated_data
+        try:
+            invoice_post_payment(
+                invoice,
+                context={
+                    'successful': True,
+                    'requesting_user': self.request.user,
+                    'attempt': attempt,
+                })
+        except UserPaymentException as err:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={'detail': str(err)})
+        data = InvoiceSerializer(instance=invoice, context=self.get_serializer_context()).data
+        return Response(data=data)
+
+
+class DeliverablePayment(GenericAPIView):
     serializer_class = PaymentSerializer
     permission_classes = PAYMENT_PERMISSIONS
 
@@ -3004,11 +3035,13 @@ class CreateAnonymousInvoice(GenericAPIView):
 
     @transaction.atomic
     def post(self, request):
-        invoice = Invoice.objects.create(bill_to=get_anonymous_user())
+        invoice = Invoice.objects.create(
+            bill_to=get_anonymous_user(), status=DRAFT, creates_own_transactions=True, type=SALE,
+        )
         invoice.line_items.create(
             percentage=settings.TABLE_TAX, cascade_percentage=True, cascade_amount=True,
             back_into_percentage=True,
-            destination_user=None, destination_account=TransactionRecord.MONEY_HOLE_STAGE,
+            destination_user=None, destination_account=TransactionRecord.MONEY_HOLE,
             type=TAX,
         )
         return Response(
@@ -3017,9 +3050,46 @@ class CreateAnonymousInvoice(GenericAPIView):
         )
 
 
-class RecentInvoices(ListAPIView):
+class TableInvoices(ListAPIView):
     permission_classes = [IsStaff]
     serializer_class = InvoiceSerializer
 
     def get_queryset(self) -> QuerySet:
-        return Invoice.objects.filter(targets__isnull=True, type=SALE).all().order_by('-created_on')
+        return Invoice.objects.filter(
+            targets__isnull=True,
+            type=SALE,
+            record_only=False,
+            creates_own_transactions=True,
+        ).all().order_by('-created_on')
+
+
+class FinalizeInvoice(GenericAPIView):
+    permission_classes = [IsStaff, InvoiceStatus(DRAFT)]
+    serializer_class = InvoiceSerializer
+
+    def get_object(self):
+        invoice = get_object_or_404(Invoice, id=self.kwargs.get('invoice'))
+        self.check_object_permissions(self.request, invoice)
+        return invoice
+
+    def post(self, *args, **kwargs):
+        invoice = self.get_object()
+        invoice.status = OPEN
+        invoice.save()
+        return Response(data=self.get_serializer(instance=invoice).data)
+
+
+class VoidInvoice(GenericAPIView):
+    permission_classes = [IsStaff, InvoiceStatus(OPEN, DRAFT)]
+    serializer_class = InvoiceSerializer
+
+    def get_object(self):
+        invoice = get_object_or_404(Invoice, id=self.kwargs.get('invoice'))
+        self.check_object_permissions(self.request, invoice)
+        return invoice
+
+    def post(self, *args, **kwargs):
+        invoice = self.get_object()
+        invoice.status = VOID
+        invoice.save()
+        return Response(data=self.get_serializer(instance=invoice).data)

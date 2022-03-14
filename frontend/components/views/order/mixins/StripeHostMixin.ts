@@ -11,8 +11,11 @@ import debounce from 'lodash/debounce'
 export default class StripeHostMixin extends Vue {
   public paymentForm!: FormController
   public clientSecret!: SingleController<ClientSecret>
+
   // Override this if fetching the secret isn't immediately possible.
-  public canUpdate = true
+  public get canUpdate() {
+    return true
+  }
 
   public rawUpdateIntent() {
     this.clientSecret.post(this.paymentForm.rawData).then(

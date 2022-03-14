@@ -1,5 +1,5 @@
 <template>
-  <v-container class="pa-0">
+  <v-container class="pa-0" v-if="currentRoute">
     <v-row>
       <v-col cols="12" class="text-center py-8">
         <ac-form-container v-bind="invoiceForm.bind">
@@ -19,7 +19,7 @@
             <v-list-item v-for="invoice in invoices.list" :key="invoice.x.id">
               <v-list-item-content>
                 <v-list-item-title>
-                  <ac-link :to="{name: 'InvoiceDetail', params: {username: invoice.x.bill_to.username, invoiceId: invoice.x.id}}">{{invoice.x.id}}</ac-link>
+                  <ac-link :to="linkFor(invoice.x)">{{invoice.x.id}}</ac-link>
                 </v-list-item-title>
                 <v-list-item-subtitle>
                   {{formatDateTime(invoice.x.created_on)}}
@@ -33,6 +33,14 @@
         </v-col>
       </template>
     </ac-paginated>
+  </v-container>
+  <v-container class="pa-0" v-else>
+    <v-toolbar>
+      <v-toolbar-items>
+        <v-btn @click="() => $router.go(-1)" color="secondary">Back</v-btn>
+      </v-toolbar-items>
+    </v-toolbar>
+    <router-view />
   </v-container>
 </template>
 
@@ -55,13 +63,26 @@ export default class TableInvoices extends mixins(Viewer, Formatting) {
   invoices = null as unknown as ListController<Invoice>
   invoiceForm = null as unknown as FormController
 
+  public get currentRoute() {
+    return this.$route.name === 'TableInvoices'
+  }
+
+  public usernameFor(invoice: Invoice) {
+    return (invoice.bill_to && invoice.bill_to.username) || this.viewer!.username
+  }
+
   public goToInvoice(invoice: Invoice) {
-    this.$router.push({name: 'InvoiceDetail', params: {username: invoice.bill_to.username, invoiceId: invoice.id}})
+    this.invoices.push(invoice)
+    this.$router.push(this.linkFor(invoice))
+  }
+
+  public linkFor(invoice: Invoice) {
+    return {name: 'TableInvoice', params: {username: this.usernameFor(invoice), invoiceId: invoice.id}}
   }
 
   public created() {
     this.invoiceForm = this.$getForm('new_invoice_button', {endpoint: '/api/sales/v1/create-anonymous-invoice/', fields: {}})
-    this.invoices = this.$getList('recent_invoices', {endpoint: '/api/sales/v1/recent-invoices/'})
+    this.invoices = this.$getList('table_invoices', {endpoint: '/api/sales/v1/recent-invoices/'})
     this.invoices.firstRun()
   }
 }

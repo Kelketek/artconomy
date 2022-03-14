@@ -1321,6 +1321,7 @@ class StripeBankSetupSerializer(serializers.Serializer):
         return value
 
 
+@register_serializer
 class InvoiceSerializer(serializers.ModelSerializer):
     id = ShortCodeField()
     bill_to = RelatedUserSerializer()
