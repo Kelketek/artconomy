@@ -46,7 +46,6 @@ class OrderSellerPermission(BasePermission):
 
 class OrderBuyerPermission(BasePermission):
     def has_object_permission(self, request, view, obj):
-        from apps.sales.models import Order
         obj = derive_order(obj)
         if request.user.is_staff:
             return True

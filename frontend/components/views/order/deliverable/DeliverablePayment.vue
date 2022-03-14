@@ -113,9 +113,6 @@
                           <v-col cols="6">
                             <ac-bound-field :field="paymentForm.fields.cash" label="Cash transaction" hint="Tick this box if the customer has handed you cash." field-type="ac-checkbox" />
                           </v-col>
-                          <v-col cols="6">
-                            <ac-bound-field :disabled="paymentForm.fields.cash.value" :field="paymentForm.fields.remote_id" label="Transaction ID" hint="Enter the transaction ID given to you by the Authorize.net app." />
-                          </v-col>
                         </v-row>
                       </ac-form-dialog>
                     </v-col>

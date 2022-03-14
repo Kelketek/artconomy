@@ -660,7 +660,7 @@ class RevisionSerializer(serializers.ModelSerializer):
         return self.context['request'].build_absolute_uri(obj.file.file.url)
 
     def get_submissions(self, obj):
-        return obj.submissions.all().values('owner_id', 'id')
+        return list(obj.submissions.all().values('owner_id', 'id'))
 
     class Meta:
         model = Revision
