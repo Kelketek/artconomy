@@ -1,10 +1,10 @@
 <!--suppress HtmlUnknownTarget -->
 <template>
-  <div>
+  <div class="main-navigation">
     <v-navigation-drawer
         fixed
         clipped
-        v-model="drawer"
+        v-model="navSettings.patchers.drawer.model"
         app
         width="300"
         v-if="viewer && !iFrame && fullInterface && !prerendering"
@@ -12,7 +12,7 @@
       <v-container fluid class="pa-0 fill-height">
         <v-row no-gutters>
           <v-col cols="12">
-            <ac-nav-links :subject-handler="viewerHandler" :is-logged-in="isLoggedIn" :is-registered="isRegistered" :is-superuser="isSuperuser" :is-staff="isStaff" v-model="drawer" />
+            <ac-nav-links :subject-handler="viewerHandler" :is-logged-in="isLoggedIn" :is-registered="isRegistered" :is-superuser="isSuperuser" :is-staff="isStaff" v-model="navSettings.patchers.drawer.model" />
           </v-col>
         </v-row>
         <v-spacer />
@@ -75,7 +75,7 @@
         :scroll-threshold="150"
         v-if="!iFrame"
     >
-      <v-app-bar-nav-icon v-if="viewer && fullInterface && !prerendering" @click.stop="drawer = !drawer" name="Main Menu"/>
+      <v-app-bar-nav-icon v-if="viewer && fullInterface && !prerendering" @click.stop="navSettings.patchers.drawer.model = !navSettings.patchers.drawer.model" name="Main Menu"/>
       <v-row no-gutters class="hidden-xs-only" >
         <v-toolbar-title class="mr-5 align-center hide-sm hide-xs">
           <v-btn text to="/">
@@ -166,7 +166,7 @@
 </style>
 
 <script lang="ts">
-import {makeQueryParams} from '@/lib/lib'
+import {makeQueryParams, initDrawerValue} from '@/lib/lib'
 import Viewer from '../../mixins/viewer'
 import Component, {mixins} from 'vue-class-component'
 import {Prop, Watch} from 'vue-property-decorator'
@@ -180,98 +180,102 @@ import {State} from 'vuex-class'
 import AcNavLinks from '@/components/navigation/AcNavLinks.vue'
 import {mdiDiscord} from '@mdi/js'
 import PrerenderMixin from '@/mixins/PrerenderMixin'
+import {SingleController} from '@/store/singles/controller'
+import {NavSettings} from '@/types/NavSettings'
 
-const startValue = localStorage.getItem('drawerOpen')
-let initDrawerValue: boolean|null = null
-/* istanbul ignore next */
-if (startValue !== null) {
-  initDrawerValue = JSON.parse(startValue) as boolean
-}
 @Component({
   components: {AcNavLinks, AcBoundField, AcPatchField, AcSettingNav},
 })
 export default class NavBar extends mixins(Viewer, Nav, PrerenderMixin) {
-    @State('iFrame') public iFrame!: boolean
-    public drawerStore: null|boolean = null
-    public searchForm: FormController = null as unknown as FormController
-    @Prop({default: initDrawerValue})
-    public initialState!: null|boolean
+  @State('iFrame') public iFrame!: boolean
+  public drawerStore: null|boolean = null
+  public searchForm: FormController = null as unknown as FormController
+  public navSettings = null as unknown as SingleController<NavSettings>
 
-    public discordPath = mdiDiscord
+  @Prop({default: initDrawerValue})
+  public initialState!: null|boolean
 
-    public get loginLink() {
-      if (this.$route.name === 'Login') {
-        return {name: 'Login', params: {tabName: 'login'}}
-      }
-      return {name: 'Login', params: {tabName: 'login'}, query: {next: this.$route.path}}
+  public discordPath = mdiDiscord
+
+  public get loginLink() {
+    if (this.$route.name === 'Login') {
+      return {name: 'Login', params: {tabName: 'login'}}
     }
+    return {name: 'Login', params: {tabName: 'login'}, query: {next: this.$route.path}}
+  }
 
-    public runSearch() {
-      if (this.$route.name && (this.$route.name.indexOf('Search') !== -1)) {
-        return
-      }
-      this.$router.push({name: 'SearchProducts', query: makeQueryParams(this.searchForm.rawData)})
+  public runSearch() {
+    if (this.$route.name && (this.$route.name.indexOf('Search') !== -1)) {
+      return
     }
+    this.$router.push({name: 'SearchProducts', query: makeQueryParams(this.searchForm.rawData)})
+  }
 
-    public created() {
-      this.searchForm = this.$getForm('search')
-      if (this.$vuetify.breakpoint.mdAndDown) {
-        // Never begin with the drawer open on a small screen.
-        this.drawer = false
+  public created() {
+    this.searchForm = this.$getForm('search')
+    let drawer: boolean
+    if (this.$vuetify.breakpoint.mdAndDown) {
+      // Never begin with the drawer open on a small screen.
+      drawer = false
+    } else {
+      if (this.initialState === null) {
+        drawer = this.$vuetify.breakpoint.lgAndUp
       } else {
-        this.drawer = this.initialState
+        drawer = this.initialState
       }
     }
+    this.navSettings = this.$getSingle('navSettings', {
+      endpoint: '#',
+      x: {drawer},
+    })
+    this.updateStorage(drawer)
+  }
 
-    public notificationLoad() {
-      if (['CommunityNotifications', 'SalesNotifications'].indexOf(this.$route.name + '') !== -1) {
-        this.$router.replace({name: 'Reload', params: {path: this.$route.path}})
-      } else {
-        this.$router.push({name: 'CommunityNotifications'})
-      }
+  public notificationLoad() {
+    if (['CommunityNotifications', 'SalesNotifications'].indexOf(this.$route.name + '') !== -1) {
+      this.$router.replace({name: 'Reload', params: {path: this.$route.path}})
+    } else {
+      this.$router.push({name: 'CommunityNotifications'})
     }
+  }
 
-    public showSupport() {
-      this.$store.commit('supportDialog', true)
-    }
+  public showSupport() {
+    this.$store.commit('supportDialog', true)
+  }
 
-    @Watch('isRegistered')
-    public viewerUpdate(val: boolean) {
-      if (val) {
-        this.$store.dispatch('notifications/startLoop').then()
-      } else {
-        this.$store.dispatch('notifications/stopLoop').then()
-      }
-    }
-
-    public get profileRoute() {
-      const viewer = this.viewer as User
-      return {name: 'AboutUser', params: {username: viewer.username}}
-    }
-
-    public get sfwMode() {
-      return this.viewerHandler.user.patchers.sfw_mode
-    }
-
-    public get drawer() {
-      return this.drawerStore
-    }
-
-    public set drawer(val: boolean|null) {
-      if (val === null) {
-        val = this.$vuetify.breakpoint.lgAndUp
-        this.drawerStore = this.$vuetify.breakpoint.lgAndUp
-      }
-      localStorage.setItem('drawerOpen', val + '')
-      this.drawerStore = val
-    }
-
-    public get counts() {
-      return this.$store.state.notifications.stats
-    }
-
-    public destroyed() {
+  @Watch('isRegistered')
+  public viewerUpdate(val: boolean) {
+    if (val) {
+      this.$store.dispatch('notifications/startLoop').then()
+    } else {
       this.$store.dispatch('notifications/stopLoop').then()
     }
+  }
+
+  @Watch('navSettings.patchers.drawer.model')
+  public updateStorage(val: boolean | null) {
+    if (val === null) {
+      val = this.$vuetify.breakpoint.lgAndUp
+      this.navSettings.patchers.drawer.model = val
+    }
+    localStorage.setItem('drawerOpen', val + '')
+  }
+
+  public get profileRoute() {
+    const viewer = this.viewer as User
+    return {name: 'AboutUser', params: {username: viewer.username}}
+  }
+
+  public get sfwMode() {
+    return this.viewerHandler.user.patchers.sfw_mode
+  }
+
+  public get counts() {
+    return this.$store.state.notifications.stats
+  }
+
+  public destroyed() {
+    this.$store.dispatch('notifications/stopLoop').then()
+  }
 }
 </script>

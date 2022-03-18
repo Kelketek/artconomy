@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <ac-tab-nav label="View" :items="tabSpecs" />
+    <ac-tab-nav label="View" :items="tabSpecs" class="table-dashboard-nav" />
     <router-view />
   </v-container>
 </template>

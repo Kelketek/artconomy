@@ -914,3 +914,10 @@ export const log = {
     }
   },
 }
+
+const startValue = localStorage.getItem('drawerOpen')
+export let initDrawerValue: boolean|null = null
+/* istanbul ignore next */
+if (startValue !== null) {
+  initDrawerValue = JSON.parse(startValue) as boolean
+}

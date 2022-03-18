@@ -35,14 +35,35 @@
     </ac-paginated>
   </v-container>
   <v-container class="pa-0" v-else>
-    <v-toolbar>
+    <v-toolbar class="table-invoice-toolbar">
       <v-toolbar-items>
-        <v-btn @click="() => $router.go(-1)" color="secondary">Back</v-btn>
+        <v-btn @click="() => $router.go(-1)" color="secondary">
+          <v-icon left>arrow_back</v-icon>
+          Back
+        </v-btn>
+        <v-btn color="primary" @click="performPrint">
+          <v-icon left>print</v-icon>
+          Print
+        </v-btn>
       </v-toolbar-items>
     </v-toolbar>
     <router-view />
   </v-container>
 </template>
+
+<style>
+@media print {
+  .table-invoice-toolbar {
+    display: none;
+  }
+  .table-dashboard-nav {
+    display: none;
+  }
+  .main-navigation {
+    display: none;
+  }
+}
+</style>
 
 <script lang="ts">
 import Component, {mixins} from 'vue-class-component'
@@ -55,6 +76,10 @@ import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import Formatting from '@/mixins/formatting'
+import {SingleController} from '@/store/singles/controller'
+import {NavSettings} from '@/types/NavSettings'
+import {Prop} from 'vue-property-decorator'
+import {initDrawerValue} from '@/lib/lib'
 
 @Component({
   components: {AcLink, AcForm, AcFormContainer, AcPaginated},
@@ -62,6 +87,10 @@ import Formatting from '@/mixins/formatting'
 export default class TableInvoices extends mixins(Viewer, Formatting) {
   invoices = null as unknown as ListController<Invoice>
   invoiceForm = null as unknown as FormController
+  navSettings = null as unknown as SingleController<NavSettings>
+
+  @Prop({default: initDrawerValue})
+  public initialState!: null|boolean
 
   public get currentRoute() {
     return this.$route.name === 'TableInvoices'
@@ -76,11 +105,30 @@ export default class TableInvoices extends mixins(Viewer, Formatting) {
     this.$router.push(this.linkFor(invoice))
   }
 
+  public performPrint() {
+    this.navSettings.patchers.drawer.model = false
+    setTimeout(() => {
+      window.print()
+    }, 500)
+  }
+
   public linkFor(invoice: Invoice) {
     return {name: 'TableInvoice', params: {username: this.usernameFor(invoice), invoiceId: invoice.id}}
   }
 
   public created() {
+    let drawer: boolean | null
+    if (this.$vuetify.breakpoint.mdAndDown) {
+      // Never begin with the drawer open on a small screen.
+      drawer = false
+    } else {
+      drawer = this.initialState
+    }
+    this.navSettings = this.$getSingle('navSettings', {
+      endpoint: '#',
+      x: {drawer},
+    })
+    this.navSettings = this.$getSingle('navSettings')
     this.invoiceForm = this.$getForm('new_invoice_button', {endpoint: '/api/sales/v1/create-anonymous-invoice/', fields: {}})
     this.invoices = this.$getList('table_invoices', {endpoint: '/api/sales/v1/recent-invoices/'})
     this.invoices.firstRun()

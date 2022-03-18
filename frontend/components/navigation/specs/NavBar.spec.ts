@@ -50,7 +50,7 @@ describe('NavBar.vue', () => {
       attachTo: docTarget(),
     })
     await wrapper.vm.$nextTick()
-    expect((wrapper.vm as any).drawer).toBe(false)
+    expect((wrapper.vm as any).navSettings.patchers.drawer.model).toBe(false)
   })
   it('Starts with the drawer open on large screens', async() => {
     (window as any).innerWidth = 1500
@@ -64,7 +64,7 @@ describe('NavBar.vue', () => {
       mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}},
       attachTo: docTarget(),
     })
-    expect((wrapper.vm as any).drawer).toBe(true)
+    expect((wrapper.vm as any).navSettings.patchers.drawer.model).toBe(true)
   })
   it('Starts the notifications loop when a viewer is set and is real.', async() => {
     const dispatch = jest.spyOn(store, 'dispatch')
@@ -106,7 +106,6 @@ describe('NavBar.vue', () => {
       localVue,
       vuetify,
       mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}},
-
     })
     const vm = wrapper.vm as any
     vm.viewerHandler.user.makeReady(genUser())
@@ -125,11 +124,11 @@ describe('NavBar.vue', () => {
     })
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
-    vm.drawer = false
-    expect(vm.drawer).toBe(false)
-    vm.drawer = null
+    vm.navSettings.patchers.drawer.model = false
+    expect(vm.navSettings.patchers.drawer.model).toBe(false)
+    vm.navSettings.patchers.drawer.model = null
     await wrapper.vm.$nextTick()
-    expect(vm.drawer).toBe(true)
+    expect(vm.navSettings.patchers.drawer.model).toBe(true)
     wrapper.destroy()
   })
   it('Generates a profile link', async() => {
@@ -142,7 +141,6 @@ describe('NavBar.vue', () => {
       localVue,
       vuetify,
       mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}},
-
     })
     await wrapper.vm.$nextTick()
     expect((wrapper.vm as any).profileRoute).toEqual({name: 'AboutUser', params: {username: 'Goober'}})
@@ -155,7 +153,6 @@ describe('NavBar.vue', () => {
       vuetify,
       mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}},
       stubs: ['router-link'],
-
       attachTo: docTarget(),
     })
     await wrapper.vm.$nextTick()
@@ -173,7 +170,6 @@ describe('NavBar.vue', () => {
       vuetify,
       mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}, $router: {push: mockPush}},
       stubs: ['router-link'],
-
       attachTo: docTarget(),
     })
     await wrapper.vm.$nextTick()

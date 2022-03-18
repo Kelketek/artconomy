@@ -133,7 +133,7 @@ import AcBoundField from '@/components/fields/AcBoundField'
     AcFormContainer,
     AcInvoiceStatus,
     AcLineItemListing,
-    AcLoadSection
+    AcLoadSection,
   },
 })
 export default class InvoiceDetail extends mixins(Subjective, Viewer, Formatting, StripeHostMixin) {
@@ -171,7 +171,6 @@ export default class InvoiceDetail extends mixins(Subjective, Viewer, Formatting
   @Watch('totalCharge')
   public updateForLines(newVal: Big, oldVal: Big) {
     this.paymentForm.fields.amount.model = newVal.toString()
-    console.log(newVal.toString())
     if (newVal.eq(oldVal)) {
       return
     }

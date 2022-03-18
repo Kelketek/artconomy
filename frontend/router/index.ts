@@ -652,7 +652,7 @@ export const routes = [
         name: 'TableInvoice',
         component: InvoiceDetail,
         props: true,
-      }]
+      }],
     }],
   },
   {
