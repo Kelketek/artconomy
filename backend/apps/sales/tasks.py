@@ -7,6 +7,7 @@ from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
+from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
@@ -24,7 +25,7 @@ from apps.sales.models import CreditCardToken, TransactionRecord, REVIEW, NEW, D
     PREMIUM_SUBSCRIPTION, COMPLETED, StripeAccount, ServicePlan
 from apps.sales.stripe import stripe, money_to_stripe
 from apps.sales.utils import finalize_deliverable, account_balance, destroy_deliverable, \
-    get_term_invoice, fetch_prefixed, divide_amount
+    get_term_invoice, fetch_prefixed, divide_amount, AccountMutex
 from conf.celery_config import celery_app
 
 
@@ -94,6 +95,7 @@ def renew(user_id, card_id=None):
         destination_user=None,
     )
     item.targets.add(ref_for_instance(user.service_plan))
+    # TODO: This section
     # # The following to be enabled once the plan refactor is completed:
     # for deliverable in Deliverable.objects.filter(service_invoice_marked=False, escrow_disabled=True):
     #     item, _created = invoice.line_items.update_or_create(
@@ -242,7 +244,7 @@ def record_to_deliverable_map(user, bank: StripeAccount, amount: Money) -> Recor
             payer=user,
             category=TransactionRecord.CASH_WITHDRAW,
             destination=TransactionRecord.BANK,
-            status=TransactionRecord.FAILURE,
+            status=TransactionRecord.PENDING,
             response_message='Failed to connect to server',
         )
         for sub_record in records:
@@ -317,16 +319,17 @@ def withdraw_all(user_id):
     if not hasattr(user, 'stripe_account'):
         return
     banks = [user.stripe_account]
-    balance = account_balance(user, TransactionRecord.HOLDINGS)
-    if balance <= 0:
-        return
-    with transaction.atomic():
-        record_map = record_to_deliverable_map(user, banks[0], Money(balance, 'USD'))
-        for deliverable, record in record_map.items():
-            if deliverable:
-                deliverable.payout_sent = True
-                deliverable.save()
-            stripe_transfer.delay(record.id, banks[0].id, deliverable and deliverable.id)
+    with cache.lock(f'account_user__{user.id}'):
+        balance = account_balance(user, TransactionRecord.HOLDINGS)
+        if balance <= 0:
+            return
+        with transaction.atomic():
+            record_map = record_to_deliverable_map(user, banks[0], Money(balance, 'USD'))
+            for deliverable, record in record_map.items():
+                if deliverable:
+                    deliverable.payout_sent = True
+                    deliverable.save()
+                stripe_transfer.delay(record.id, banks[0].id, deliverable and deliverable.id)
 
 
 @celery_app.task

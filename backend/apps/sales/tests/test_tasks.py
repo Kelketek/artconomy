@@ -1,12 +1,15 @@
 from datetime import date
 from decimal import Decimal
+from multiprocessing.pool import ThreadPool
+from time import sleep
 from unittest.mock import patch, call, PropertyMock, Mock
 from uuid import uuid4
 
 from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
 from django.core import mail
-from django.test import TestCase, override_settings
+from django.db import connection
+from django.test import TestCase, TransactionTestCase, override_settings
 from django.utils import timezone
 from djmoney.money import Money
 from freezegun import freeze_time
@@ -161,7 +164,14 @@ class TestFinalizers(TestCase):
         mock_finalize_deliverable.assert_not_called()
 
 
-class TestWithdrawAll(TestCase):
+def wrapped_withdraw(user_id):
+    try:
+        withdraw_all(user_id)
+    finally:
+        connection.close()
+
+
+class TestWithdrawAll(TransactionTestCase):
     @patch('apps.sales.tasks.account_balance')
     @patch('apps.sales.tasks.stripe_transfer.delay')
     def test_withdraw_all(self, stripe_transfer, mock_balance):
@@ -190,6 +200,23 @@ class TestWithdrawAll(TestCase):
         mock_balance.return_value = Decimal('25.00')
         withdraw_all(user.id)
         stripe_transfer.assert_not_called()
+
+    @patch('apps.sales.tasks.stripe_transfer.delay')
+    def test_withdraw_mutex(self, stripe_transfer):
+        user = UserFactory.create()
+        StripeAccountFactory(user=user)
+        TransactionRecordFactory(payee=user, destination=TransactionRecord.HOLDINGS, amount=Money('10.00', 'USD'))
+        def side_effect(x, y, z):
+            sleep(.25)
+            return None, Deliverable.objects.none()
+        stripe_transfer.side_effect = side_effect
+        pool = ThreadPool(processes=4)
+        pool.map(wrapped_withdraw, [user.id] * 4)
+        pool.close()
+        pool.join()
+        records = TransactionRecord.objects.filter(destination=TransactionRecord.BANK)
+        self.assertEqual(records.count(), 1)
+
 
     # TODO: Add in tests for deliverable annotations.
 

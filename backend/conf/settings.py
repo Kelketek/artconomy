@@ -96,7 +96,8 @@ INSTALLED_APPS = [
     'apps.profiles.apps.ProfilesConfig',
     'apps.sales.apps.SalesConfig',
     'apps.lib',
-    'apps.tg_bot.apps.TGBotConfig'
+    'apps.tg_bot.apps.TGBotConfig',
+    'db_mutex',
 ]
 
 MIDDLEWARE = [
@@ -544,8 +545,8 @@ AUTH_PASSWORD_VALIDATORS = [
 
 CACHES = {
     'default': {
-        'BACKEND': 'redis_cache.RedisCache',
-        'LOCATION': f'{get_env("CHANNELS_HOST", "127.0.0.1")}:{get_env("CHANNELS_PORT", "6379")}',
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': f'redis://{get_env("CHANNELS_HOST", "127.0.0.1")}:{get_env("CHANNELS_PORT", "6379")}/1',
     },
 }
 

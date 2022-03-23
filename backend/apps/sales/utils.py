@@ -18,6 +18,7 @@ from typing import Union, Type, TYPE_CHECKING, List, Dict, Iterator, Callable, T
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
+from django.core.cache import cache
 from django.core.exceptions import MultipleObjectsReturned
 from django.db import IntegrityError, transaction
 from django.db.models import Sum, Q, IntegerField, Case, When, F, Model
@@ -1247,3 +1248,26 @@ def invoice_post_payment(invoice: 'Invoice', context: dict) -> List['Transaction
         invoice.status = PAID
         invoice.save()
     return records
+
+
+class AccountMutex:
+    def __init__(self, users: List[User]):
+        # Not 100% sure on this, but I think we can avoid deadlocks if we always lock users in the same order, even if
+        # there are multiple, since one thread will always be ahead of the other.
+        self.users = sorted(list(set(users)))
+        self.mutexes = []
+        self.acquired = []
+
+    def __enter__(self):
+        for user in self.users:
+            lock_name = f'account_mutex__{user.id}'
+            self.mutexes.append(cache.lock(lock_name))
+        for lock in self.mutexes:
+            lock.__enter__()
+            self.acquired.append(lock)
+
+    def __exit__(self, exc_type=None, exc_val=None, exc_tb=None):
+        result = []
+        for lock in self.acquired:
+            result.append(lock.__exit__(exc_type, exc_val, exc_tb))
+        return all(result)
