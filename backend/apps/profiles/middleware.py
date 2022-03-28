@@ -1,5 +1,4 @@
 from datetime import date
-from uuid import uuid4
 
 from apps.lib.abstract_models import GENERAL, MATURE, ADULT, EXTREME
 from apps.profiles.models import User
@@ -18,7 +17,7 @@ def derive_session_settings(*, user, session):
             blacklist = user.blacklist.all()
     else:
         rating = session.get('rating', GENERAL)
-        if rating not in [GENERAL, MATURE, ADULT]:
+        if rating not in [GENERAL, MATURE, ADULT, EXTREME]:
             rating = GENERAL
         sfw_mode = session.get('sfw_mode', False)
         birthday = session.get('birthday', None)

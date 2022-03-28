@@ -110,7 +110,6 @@
                   label="Select the maximum content rating you'd like to see when browsing."
                   :patcher="viewerHandler.user.patchers.rating"
                   :disabled="!adultAllowed"
-                  :max="isRegistered ? 3 : 2"
                   :persistent-hint="true"
                   hint="You must be at least 18 years old to view adult content."
               >

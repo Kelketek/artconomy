@@ -69,6 +69,11 @@
                 <span v-text="ratingLongDesc[maxRating.model]">
                 </span>
               </v-col>
+              <v-col cols="12">
+                <v-alert type="warning" class="my-2" v-if="maxRating.model === EXTREME">
+                  What has been seen cannot be unseen. By selecting this rating you are willingly engaging with this content.
+                </v-alert>
+              </v-col>
             </v-row>
           </v-card-text>
         </v-col>
@@ -122,6 +127,7 @@ export default class Options extends mixins(Viewer, Subjective, Alerts) {
   private taggable: Patch = null as unknown as Patch
   private blacklist: Patch = null as unknown as Patch
 
+  private EXTREME = 3
   private ratingLongDesc = RATING_LONG_DESC
   private ratingColor = RATING_COLOR
 

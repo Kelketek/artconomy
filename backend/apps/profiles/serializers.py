@@ -16,7 +16,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from short_stuff.django.serializers import ShortCodeField
 
-from apps.lib.abstract_models import RATINGS_ANON
+from apps.lib.abstract_models import RATINGS
 from apps.lib.consumers import register_serializer
 from apps.lib.serializers import (
     RelatedUserSerializer, RelatedAssetField, TagSerializer, SubscribedField,
@@ -530,7 +530,7 @@ class UserSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
 
 # noinspection PyAbstractClass
 class SessionSettingsSerializer(serializers.Serializer):
-    rating = serializers.ChoiceField(choices=RATINGS_ANON)
+    rating = serializers.ChoiceField(choices=RATINGS)
     sfw_mode = serializers.BooleanField()
     birthday = serializers.DateField(allow_null=True)
 

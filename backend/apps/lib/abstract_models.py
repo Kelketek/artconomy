@@ -120,8 +120,6 @@ RATINGS = (
     (EXTREME, 'Offensive/Disturbing to most viewers, not safe for work'),
 )
 
-RATINGS_ANON = RATINGS[:-1]
-
 
 class ImageModel(AssetThumbnailMixin, models.Model):
     _asset_fields = ['file', 'preview']

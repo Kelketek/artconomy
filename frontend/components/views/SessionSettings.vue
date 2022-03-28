@@ -12,7 +12,7 @@
                   :patcher="patchers.birthday"
                   :persistent-hint="true"
                   hint="You must be at least 18 years old to view adult content."
-                ></ac-patch-field>
+                />
               </v-col>
               <v-col cols="12" md="6" lg="8" class="text-center mt-5" order="1" order-md="2">
                 <v-btn @click="updateCookieSettings" color="secondary" class="cookie-settings-button">Update Cookie Settings</v-btn>
@@ -24,33 +24,34 @@
                       label="Select the maximum content rating you'd like to see when browsing."
                       :patcher="patchers.rating"
                       :disabled="!adultAllowed"
-                      :max="2"
                       :persistent-hint="true"
                       hint="You must be at least 18 years old to view adult content."
-                  >
-                  </ac-patch-field>
+                  />
                 </v-card-text>
               </v-col>
-              <v-col cols="12" sm="6" order="4">
+              <v-col cols="12" order="4">
+zc
+              </v-col>
+              <v-col cols="12" sm="6" order="5">
                 <ac-patch-field field-type="v-switch" label="SFW Mode"
                                 :patcher="patchers.sfw_mode"
                                 :instant="true"
                                 hint="Overrides your content preferences to only allow clean content. Useful if viewing the site
                       from a work machine."
                                 :save-indicator="false"
-                                persistent-hint></ac-patch-field>
+                                persistent-hint />
               </v-col>
-              <v-col class="pa-2 text-center" cols="12" sm="6" order="5">
+              <v-col class="pa-2 text-center" cols="12" sm="6" order="6">
                 <p class="title">Register, and get access to more cool features like:</p>
               </v-col>
-              <v-col class="d-flex" cols="12" sm="6" order="6">
+              <v-col class="d-flex" cols="12" sm="6" order="7">
                 <v-row no-gutters class="justify-content d-flex"  align="center" >
                   <v-col>
                     <v-img src="/static/images/laptop.png" max-height="30vh" :contain="true"></v-img>
                   </v-col>
                 </v-row>
               </v-col>
-              <v-col class="d-flex" cols="12" sm="6" order="7">
+              <v-col class="d-flex" cols="12" sm="6" order="8">
                 <v-row no-gutters class="justify-content"  align="center">
                   <v-spacer />
                   <v-col>
@@ -92,12 +93,14 @@ import Viewer from '@/mixins/viewer'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import {differenceInYears} from 'date-fns'
-import {parseISO} from '@/lib/lib'
+import {parseISO, RATINGS} from '@/lib/lib'
 
 @Component({
   components: {AcLoadSection, AcPatchField},
 })
 export default class SessionSettings extends mixins(Viewer) {
+  public EXTREME = 3
+
   public get patchers() {
     return this.viewerHandler.user.patchers
   }
