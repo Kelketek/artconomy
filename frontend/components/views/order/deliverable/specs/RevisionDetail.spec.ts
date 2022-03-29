@@ -1,4 +1,4 @@
-import {cleanUp, createVuetify, docTarget, mount, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, mount, rs, setViewer, vueSetup} from '@/specs/helpers'
 import Router from 'vue-router'
 import {ArtStore, createStore} from '@/store'
 import {Wrapper} from '@vue/test-utils'
@@ -8,6 +8,9 @@ import {deliverableRouter} from '@/components/views/order/specs/helpers'
 import {genDeliverable, genRevision, genUser} from '@/specs/helpers/fixtures'
 import {DeliverableStatus} from '@/types/DeliverableStatus'
 import RevisionDetail from '@/components/views/order/deliverable/RevisionDetail.vue'
+import Revision from '@/types/Revision'
+import {SingleController} from '@/store/singles/controller'
+import mockAxios from '@/specs/helpers/mock-axios'
 
 const localVue = vueSetup()
 localVue.use(Router)
@@ -226,5 +229,41 @@ describe('DeliverableOverview.vue', () => {
     vm.deliverable.updateX({status: DeliverableStatus.REFUNDED})
     await vm.$nextTick()
     expect(vm.archived).toBe(true)
+  })
+  it('Deletes a revision and removes it from the list of revisions', async() => {
+    const user = genUser({username: 'Fox', is_staff: false})
+    setViewer(store, user)
+    router.push('/orders/Fox/order/1/deliverables/5/revisions/3/')
+    wrapper = mount(
+      RevisionDetail, {
+        localVue,
+        store,
+        router,
+        vuetify,
+        propsData: {orderId: 1, deliverableId: 5, baseName: 'Sale', username: 'Fox', revisionId: 3},
+        attachTo: docTarget(),
+        stubs: ['ac-revision-manager'],
+      })
+    const vm = wrapper.vm as any
+    const deliverable = genDeliverable()
+    deliverable.status = DeliverableStatus.IN_PROGRESS
+    deliverable.order.seller = user
+    deliverable.order.buyer = genUser({username: 'Vulpes'})
+    vm.order.makeReady(deliverable.order)
+    vm.deliverable.makeReady(deliverable)
+    const revision = genRevision({id: 1})
+    vm.revision.makeReady(revision)
+    const otherRevisions = [genRevision({id: 2}), genRevision({id: 3})]
+    vm.revisions.makeReady([...otherRevisions, revision])
+    await vm.$nextTick()
+    mockAxios.reset()
+    wrapper.find('.delete-revision').trigger('click')
+    await vm.$nextTick()
+    const lastRequest = mockAxios.lastReqGet()
+    expect(lastRequest.method).toBe('delete')
+    mockAxios.mockResponse(rs({}))
+    await vm.$nextTick()
+    const remaining = vm.revisions.list.map((rev: SingleController<Revision>) => ({...rev.x}))
+    expect(remaining).toEqual(otherRevisions)
   })
 })

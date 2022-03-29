@@ -126,4 +126,34 @@ describe('AcCharacterToolbar.vue', () => {
     vm.character.profile.setX(character)
     expect(vm.shareMedia).toBeNull()
   })
+  it('Handles an upload properly', async() => {
+    setViewer(store, genUser())
+    const mockResolve = jest.fn()
+    mockResolve.mockImplementation(() => ({href: '/target/url/'}))
+    wrapper = mount(
+      AcCharacterToolbar, {
+        localVue,
+        store,
+        vuetify,
+        propsData: {username: 'Fox', characterName: 'Kai'},
+        mocks: {
+          $route: {name: 'Character', params: {username: 'Fox', characterName: 'Kai'}, query: {}},
+          $router: {resolve: mockResolve},
+        },
+        stubs: ['router-link'],
+        attachTo: docTarget(),
+      })
+    const character = genCharacter({primary_submission: null})
+    const vm = wrapper.vm as any
+    vm.character.profile.makeReady(character)
+    await vm.$nextTick()
+    expect(vm.showUpload).toBe(false)
+    wrapper.find('.upload-button').trigger('click')
+    await vm.$nextTick()
+    expect(vm.showUpload).toBe(true)
+    wrapper.find('.submission-uploader').vm.$emit('success', 'test')
+    expect(vm.showUpload).toBe(false)
+    expect(wrapper.emitted().success).toBeTruthy()
+    expect(wrapper.emitted().success![0]).toEqual(['test'])
+  })
 })

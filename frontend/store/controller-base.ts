@@ -43,6 +43,10 @@ export class BaseController<S, D extends AttrKeys> extends Vue {
     }
     this.socketUnmount()
     this.kill()
+    if (this.$sock) {
+      delete this.$sock.connectListeners[`${(this as any)._uid}`]
+      delete this.$sock.disconnectListeners[`${(this as any)._uid}`]
+    }
     this.$store.unregisterModule(path)
   }
 

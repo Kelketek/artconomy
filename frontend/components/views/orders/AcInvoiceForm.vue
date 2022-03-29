@@ -15,13 +15,24 @@
     <slot name="second">
     </slot>
     <v-col cols="12" sm="6">
-      <ac-price-preview  :lineItems="lineItems" :escrow="!escrowDisabled" :username="username" />
+      <ac-price-preview  :lineItems="lineItems" :escrow="escrowEnabled" :username="username" />
     </v-col>
-    <v-col cols="12" sm="6" >
+    <v-col cols="12" md="3" >
       <ac-bound-field
         :field="newInvoice.fields.price"
         field-type="ac-price-field"
         label="Total Price"
+      ></ac-bound-field>
+    </v-col>
+    <v-col cols="12" md="3" >
+      <ac-bound-field
+          :field="newInvoice.fields.cascade_fees"
+          field-type="v-switch"
+          label="Absorb Fees"
+          :persistent-hint="true"
+          hint="If turned on, the price you set is the price your commissioner will see, and you
+                will pay all fees from that price. If turned off, the price you set is the amount you
+                take home, and the total the customer pays includes the fees."
       ></ac-bound-field>
     </v-col>
     <v-col cols="12" sm="6" v-if="showBuyer">
@@ -126,7 +137,7 @@ export default class AcInvoiceForm extends mixins(Subjective) {
   public newInvoice!: FormController
 
   @Prop({required: true})
-  public escrowDisabled!: boolean
+  public escrowEnabled!: boolean
 
   @Prop({required: true})
   public lineItems!: LineItem[]

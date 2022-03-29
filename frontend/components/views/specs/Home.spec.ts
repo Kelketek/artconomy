@@ -1,4 +1,4 @@
-import {cleanUp, createVuetify, docTarget, setViewer, vueSetup, mount} from '@/specs/helpers'
+import {cleanUp, createVuetify, docTarget, setViewer, vueSetup, mount, genAnon} from '@/specs/helpers'
 import {Wrapper} from '@vue/test-utils'
 import {Vue} from 'vue/types/vue'
 import {ArtStore, createStore} from '@/store'
@@ -94,7 +94,7 @@ describe('Home.vue', () => {
     expect(searchForm.fields.q.value).toBe('')
   })
   it('Performs a search for Products', async() => {
-    setViewer(store, genUser())
+    setViewer(store, genAnon())
     const push = jest.fn()
     wrapper = mount(
       Home,

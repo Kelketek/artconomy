@@ -51,11 +51,17 @@
         </v-list-item-action>
         <v-list-item-title>Payout Methods</v-list-item-title>
       </v-list-item>
+      <v-list-item :to="{name: 'Invoices', params: {username}}">
+        <v-list-item-action>
+          <v-icon>receipt</v-icon>
+        </v-list-item-action>
+        <v-list-item-title>Invoices</v-list-item-title>
+      </v-list-item>
       <v-list-item :to="{name: 'TransactionHistory', params: {username}}">
         <v-list-item-action>
           <v-icon>list</v-icon>
         </v-list-item-action>
-        <v-list-item-title>Transaction History</v-list-item-title>
+        <v-list-item-title>Raw Transaction History</v-list-item-title>
       </v-list-item>
     </v-list-group>
   </v-list>

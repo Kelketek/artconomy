@@ -1,3 +1,6 @@
+[Install]
+WantedBy=multi-user.target
+
 [Unit]
 Description=Artconomy Daphne Service
 After=network.target
@@ -8,9 +11,9 @@ User={{ env_prefix }}
 WorkingDirectory=/home/{{ env_prefix }}/artconomy/backend
 Environment=DJANGO_SETTINGS_MODULE=conf.settings
 {% for key, value in app_settings.items() %}
-Environment={{key}}={{value}}
+Environment={{key}}='{{value}}'
 {% endfor %}
 {% for key, value in app_settings_complex.items() %}
-Environment={{key}}={{value|to_json|b64encode}}
+Environment={{key}}='{{value|to_json|b64encode}}'
 {% endfor %}
 ExecStart=/home/{{ env_prefix }}/bin/uvicorn --port 9001 conf.asgi:application --proxy-headers --workers 6

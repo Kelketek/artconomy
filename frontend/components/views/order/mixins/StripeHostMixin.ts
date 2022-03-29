@@ -12,6 +12,7 @@ import ErrorHandling from '@/mixins/ErrorHandling'
 @Component
 export default class StripeHostMixin extends mixins(ErrorHandling) {
   public paymentForm!: FormController
+  // clientSecret must be provided by the inheriting component.
   public clientSecret!: SingleController<ClientSecret>
   public readers = null as unknown as ListController<StripeReader>
   public reader = null as unknown as SingleController<StripeReader>
@@ -19,6 +20,7 @@ export default class StripeHostMixin extends mixins(ErrorHandling) {
 
   // Override this if fetching the secret isn't immediately possible.
   public get canUpdate() {
+    /* istanbul ignore next */
     return true
   }
 
@@ -63,11 +65,8 @@ export default class StripeHostMixin extends mixins(ErrorHandling) {
     this.updateIntent()
   }
 
-  public fetchReaders() {
-    this.readers.fetching = true
-  }
-
   public get readerFormUrl(): string {
+    /* istanbul ignore next */
     throw Error('Not implemented')
   }
 

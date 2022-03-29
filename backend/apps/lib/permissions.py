@@ -1,5 +1,5 @@
 from logging import getLogger
-from typing import List, Type
+from typing import List, Type, Any
 
 from django.views import View
 from rest_framework.permissions import BasePermission, SAFE_METHODS, IsAuthenticated
@@ -80,6 +80,9 @@ class IsStaff(BasePermission):
     message = 'You do not have sufficient privileges to perform this operation.'
 
     def has_permission(self, request: Request, view: View) -> bool:
+        return request.user.is_staff
+
+    def has_object_permission(self, request: Request, view: View, obj: Any) -> bool:
         return request.user.is_staff
 
 

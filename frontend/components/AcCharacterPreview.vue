@@ -39,7 +39,7 @@
             :allow-preview="false"
         />
     </router-link>
-    <v-card-title>
+    <v-card-title v-if="showFooter">
       <router-link
           :to="characterLink">
         {{ character.name }}
@@ -82,6 +82,9 @@ export default {
     mini: {
       default: false,
     },
+    showFooter: {
+      default: true,
+    }
   },
 }
 </script>

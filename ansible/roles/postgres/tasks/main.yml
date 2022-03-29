@@ -49,11 +49,6 @@
     - daily
     - weekly
 
-- name: Set up logrotate for backup
-  template:
-    src: "templates/logrotate/postgres"
-    dest: "/etc/logrotate.d/postgres"
-
 - name: Stat logrotate for cron
   stat: path=/etc/cron.daily/logrotate
   register: log_stat
@@ -70,7 +65,12 @@
 - name: first backup
   become: yes
   become_user: "postgres"
-  shell: "pg_dump {{db_name}} --file=/var/lib/postgresql/backup/hourly/{{ db_name }}.sql && gzip /var/lib/postgresql/backup/hourly/{{ db_name }}.sql && cp /var/lib/postgresql/backup/hourly/{{ db_name }}.sql.gz /var/lib/postgresql/backup/weekly/"
+  shell: "pg_dump {{db_name}} --file=/var/lib/postgresql/backup/{{ db_name }}.sql && gzip /var/lib/postgresql/backup/{{ db_name }}.sql && cp /var/lib/postgresql/backup/{{ db_name }}.sql.gz /var/lib/postgresql/backup/hourly/ && cp /var/lib/postgresql/backup/{{ db_name }}.sql.gz /var/lib/postgresql/backup/daily/ && cp /var/lib/postgresql/backup/{{ db_name }}.sql.gz /var/lib/postgresql/backup/weekly/"
   args:
     executable: "/bin/bash"
   when: not backup.stat.exists
+
+- name: Set up logrotate for backup
+  template:
+    src: "templates/logrotate/postgres"
+    dest: "/etc/logrotate.d/postgres"

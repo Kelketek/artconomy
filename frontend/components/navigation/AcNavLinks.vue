@@ -25,23 +25,66 @@
         </v-list-item-action>
         <v-list-item-title>Private Messages</v-list-item-title>
       </v-list-item>
-      <v-list-item :to="{name: 'SearchProducts'}" @click.capture.stop.prevent="searchOpen">
-        <v-list-item-action class="who-is-open">
-          <v-icon>store</v-icon>
-        </v-list-item-action>
-        <v-list-item-title>Who's Open?</v-list-item-title>
-      </v-list-item>
-      <v-list-item :to="{name: 'SearchSubmissions'}" @click.capture.stop.prevent="searchSubmissions">
-        <v-list-item-action class="recent-art">
-          <v-icon>photo_library</v-icon>
-        </v-list-item-action>
-        <v-list-item-title>Recent Art</v-list-item-title>
-      </v-list-item>
       <v-list-item :to="{name: 'CurrentOrders', params: {username: subject.username}}" v-if="isLoggedIn">
         <v-list-item-action>
           <v-icon>shopping_basket</v-icon>
         </v-list-item-action>
         <v-list-item-title>Orders</v-list-item-title>
+      </v-list-item>
+      <v-list-group
+          no-action :value="true"
+          sub-group
+          v-if="isRegistered"
+      >
+        <template v-slot:activator>
+          <v-list-item-title>Who's Open?</v-list-item-title>
+        </template>
+        <v-list-item :exact="true" :to="{name: 'SearchProducts'}" @click.capture.stop.prevent="searchOpen({})">
+          <v-list-item-action class="who-is-open">
+            <v-icon>location_city</v-icon>
+          </v-list-item-action>
+          <v-list-item-title>All Openings</v-list-item-title>
+        </v-list-item>
+        <v-list-item :exact="true" :to="{name: 'SearchProducts', query: {watch_list: 'true'}}" @click.capture.stop.prevent="searchOpen({watch_list: true})">
+          <v-list-item-action class="who-is-open-watchlist">
+            <v-icon>store</v-icon>
+          </v-list-item-action>
+          <v-list-item-title>Artists on my Watchlist</v-list-item-title>
+        </v-list-item>
+      </v-list-group>
+      <v-list-item v-else :to="{name: 'SearchProducts'}" @click.capture.stop.prevent="searchOpen">
+        <v-list-item-action class="who-is-open">
+          <v-icon>store</v-icon>
+        </v-list-item-action>
+        <v-list-item-title>Who's Open?</v-list-item-title>
+      </v-list-item>
+      <v-list-group
+          no-action
+          :value="true"
+          sub-group
+          v-if="isRegistered"
+      >
+        <template v-slot:activator>
+          <v-list-item-title>Recent Art</v-list-item-title>
+        </template>
+        <v-list-item :exact="true" :to="{name: 'SearchSubmissions'}" @click.capture.stop.prevent="searchSubmissions({})">
+          <v-list-item-action class="recent-art">
+            <v-icon>photo_library</v-icon>
+          </v-list-item-action>
+          <v-list-item-title>All Submissions</v-list-item-title>
+        </v-list-item>
+        <v-list-item :exact="true" :to="{name: 'SearchSubmissions', query: {watch_list: 'true'}}" @click.capture.stop.prevent="searchSubmissions({watch_list: true})">
+          <v-list-item-action class="recent-art-watchlist">
+            <v-icon>visibility</v-icon>
+          </v-list-item-action>
+          <v-list-item-title>Recent Art from Watchlist</v-list-item-title>
+        </v-list-item>
+      </v-list-group>
+      <v-list-item v-else :to="{name: 'SearchSubmissions'}" @click.capture.stop.prevent="searchSubmissions({})">
+        <v-list-item-action class="recent-art">
+          <v-icon>photo_library</v-icon>
+        </v-list-item-action>
+        <v-list-item-title>Recent Art</v-list-item-title>
       </v-list-item>
       <v-list-item :to="{name: 'LinksAndStats', params: {username: subject.username}}" v-if="isRegistered">
         <v-list-item-action>
@@ -51,7 +94,7 @@
           Referrals, Rewards, and Tools!
         </v-list-item-title>
       </v-list-item>
-      <v-list-item :to="{name: 'Upgrade'}" v-if="isRegistered && !embedded">
+      <v-list-item :to="{name: 'Upgrade', params: {username: subject.username}}" v-if="isRegistered && !embedded">
         <v-list-item-action>
           <v-icon>arrow_upward</v-icon>
         </v-list-item-action>
@@ -139,8 +182,9 @@ import AcSettingNav from '@/components/navigation/AcSettingNav.vue'
 import {FormController} from '@/store/forms/form-controller'
 import {ProfileController} from '@/store/profiles/controller'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
-import {artCall} from '@/lib/lib'
+import {artCall, makeQueryParams} from '@/lib/lib'
 import {mdiStoreCogOutline} from '@mdi/js'
+import {RawData} from '@/store/forms/types/RawData'
 
 @Component({
   components: {AcPatchField, AcSettingNav},
@@ -177,14 +221,21 @@ export default class AcNavDrawer extends Vue {
     return this.subjectHandler.user.patchers.sfw_mode
   }
 
-  public searchOpen() {
-    this.searchForm.reset()
-    this.$router.push({name: 'SearchProducts'})
+  public searchOpen(data: RawData) {
+    this.searchReplace(data)
+    this.$router.push({name: 'SearchProducts', query: makeQueryParams(this.searchForm.rawData)})
   }
 
-  public searchSubmissions() {
+  public searchReplace(data: RawData) {
     this.searchForm.reset()
-    this.$router.push({name: 'SearchSubmissions'})
+    for (const key of Object.keys(data)) {
+      this.searchForm.fields[key].update(data[key])
+    }
+  }
+
+  public searchSubmissions(data: RawData) {
+    this.searchReplace(data)
+    this.$router.push({name: 'SearchSubmissions', query: makeQueryParams(this.searchForm.rawData)})
   }
 
   public logout() {

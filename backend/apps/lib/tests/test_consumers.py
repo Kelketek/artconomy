@@ -1,27 +1,30 @@
+from pathlib import Path
 from typing import Optional, List, Tuple
+from unittest.mock import patch
 
 from asgiref.sync import sync_to_async
 from channels.testing import WebsocketCommunicator
-from django.test import TransactionTestCase
+from django.test import TransactionTestCase, override_settings
 
+from apps.lib.consumers import git_version, aprint
+from apps.lib.test_resources import EnsurePlansMixin
 from apps.profiles.models import ArtconomyAnonymousUser
 from apps.profiles.serializers import UserSerializer
 from apps.profiles.tests.factories import UserFactory
 from apps.profiles.utils import empty_user
-from apps.sales.tests.factories import DeliverableFactory, LineItemFactory, ServicePlanFactory
+from apps.sales.tests.factories import DeliverableFactory, LineItemFactory
 from conf.asgi import application
 
 SA = sync_to_async
+
+fixtures_directory = Path(__file__).parent / 'fixtures'
+
 
 # We use TransactionTestCase instead of TestCase here because the consumer runs in a different thread. The secondary
 # thread does not use the same transaction as the host thread, so we must use TransactionTestCase instead, as it resets
 # the database by truncating tables rather than by rolling back a transaction.
 
-
-class TestConsumer(TransactionTestCase):
-    def setUp(self):
-        self.landscape = ServicePlanFactory(name='Landscape')
-        self.free = ServicePlanFactory(name='Free')
+class TestConsumer(EnsurePlansMixin, TransactionTestCase):
 
     def get_communicator(self, headers: Optional[List[Tuple[bytes, bytes]]] = None):
         com = WebsocketCommunicator(application, "/ws/events/", headers=headers)
@@ -76,15 +79,15 @@ class TestConsumer(TransactionTestCase):
                     'app_label': 'sales',
                     'model_name': 'Deliverable',
                     'pk': deliverable.pk,
-                    'serializer': 'DeliverableViewSerializer',
+                    'serializer': 'DeliverableSerializer',
                 },
             },
         )
         await com.receive_nothing()
         deliverable.details = 'boop'
         await SA(deliverable.save)()
-        updated = await com.receive_json_from()
-        self.assertEqual(updated['command'], f'sales.Deliverable.update.DeliverableViewSerializer.{deliverable.id}')
+        updated = await com.receive_json_from(timeout=1)
+        self.assertEqual(updated['command'], f'sales.Deliverable.update.DeliverableSerializer.{deliverable.id}')
         self.assertEqual(updated['payload']['details'], 'boop')
 
     async def test_nonexistent_model(self):
@@ -98,7 +101,7 @@ class TestConsumer(TransactionTestCase):
                     'app_label': 'sales',
                     'model_name': 'Deliverable',
                     'pk': '68765675',
-                    'serializer': 'DeliverableViewSerializer',
+                    'serializer': 'DeliverableSerializer',
                 },
             },
         )
@@ -117,7 +120,7 @@ class TestConsumer(TransactionTestCase):
                     'app_label': 'sales',
                     'model_name': 'Deliverable',
                     'pk': deliverable.pk,
-                    'serializer': 'DeliverableViewSerializer',
+                    'serializer': 'DeliverableSerializer',
                 },
             },
         )
@@ -143,7 +146,7 @@ class TestConsumer(TransactionTestCase):
         )
         await com.receive_nothing()
         line_item = await SA(LineItemFactory.create)(invoice=deliverable.invoice)
-        new_item = await com.receive_json_from()
+        new_item = await com.receive_json_from(timeout=1)
         self.assertEqual(new_item['command'], f'sales.Deliverable.pk.{deliverable.id}.line_items.LineItemSerializer.new')
         self.assertEqual(new_item['payload']['id'], line_item.id)
 
@@ -159,7 +162,7 @@ class TestConsumer(TransactionTestCase):
                     'app_label': 'sales',
                     'model_name': 'Deliverable',
                     'pk': deliverable.pk,
-                    'serializer': 'DeliverableViewSerializer',
+                    'serializer': 'DeliverableSerializer',
                 },
             },
         )
@@ -167,5 +170,38 @@ class TestConsumer(TransactionTestCase):
         # This will disappear when we delete.
         deliverable_id = deliverable.id
         await SA(deliverable.delete)()
-        delete_command = await com.receive_json_from()
+        delete_command = await com.receive_json_from(timeout=1)
         self.assertEqual(delete_command['command'], f'sales.Deliverable.delete.{deliverable_id}')
+
+    @override_settings(BASE_DIR=str(fixtures_directory), DEBUG=False)
+    async def test_get_version_production(self):
+        com = self.get_communicator()
+        connected, subprotocol = await com.connect()
+        assert connected
+        await com.send_json_to({'command': 'version', 'payload': {}})
+        version = await com.receive_json_from()
+        assert version == {'command': 'version', 'payload': {'version': 'deadbeef'}}
+
+    @override_settings(BASE_DIR=str(fixtures_directory), DEBUG=True)
+    async def test_get_version_dev(self):
+        com = self.get_communicator()
+        connected, subprotocol = await com.connect()
+        assert connected
+        await com.send_json_to({'command': 'version', 'payload': {}})
+        current_version = await git_version()
+        version = await com.receive_json_from()
+        self.assertEqual(version, {'command': 'version', 'payload': {'version': current_version}})
+
+    @override_settings(BASE_DIR=str(fixtures_directory / 'non-existent'), DEBUG=False)
+    async def test_get_version_dummy(self):
+        com = self.get_communicator()
+        connected, subprotocol = await com.connect()
+        assert connected
+        await com.send_json_to({'command': 'version', 'payload': {}})
+        version = await com.receive_json_from()
+        self.assertEqual(version, {'command': 'version', 'payload': {'version': '######'}})
+
+    @patch('apps.lib.consumers.pprint')
+    async def test_aprint(self, mock_pprint):
+        await aprint('This is a test.')
+        mock_pprint.assert_called_with('This is a test.')

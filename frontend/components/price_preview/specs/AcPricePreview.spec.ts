@@ -11,7 +11,7 @@ import {dummyLineItems} from '@/lib/specs/helpers'
 import {ListController} from '@/store/lists/controller'
 import LineItem from '@/types/LineItem'
 import {User} from '@/store/profiles/types/User'
-import Big from 'big.js'
+import {Decimal} from 'decimal.js'
 
 const localVue = vueSetup()
 localVue.use(Router)
@@ -48,7 +48,6 @@ describe('AcPricePreview.vue', () => {
       store,
       vuetify,
       router,
-
       attachTo: docTarget(),
       propsData: {
         lineItems,
@@ -58,35 +57,13 @@ describe('AcPricePreview.vue', () => {
       },
     })
     const vm = wrapper.vm as any
-    expect(vm.rawPrice).toEqual(Big('80'))
-    vm.addOnForm.fields.amount.update(Big('5'))
+    expect(vm.rawPrice).toEqual(new Decimal('80'))
+    vm.addOnForm.fields.amount.update(new Decimal('5'))
     await vm.$nextTick()
-    expect(vm.rawPrice).toEqual(Big('85'))
-    vm.extraForm.fields.amount.update(Big('10'))
+    expect(vm.rawPrice).toEqual(new Decimal('85'))
+    vm.extraForm.fields.amount.update(new Decimal('10'))
     await vm.$nextTick()
-    expect(vm.rawPrice).toEqual(Big('95'))
-  })
-  it('Adds in the payout bonus if landscape user', async() => {
-    setViewer(store, user)
-    const wrapper = mount(AcPricePreview, {
-      localVue,
-      store,
-      vuetify,
-      router,
-
-      attachTo: docTarget(),
-      propsData: {
-        lineItems,
-        username: user.username,
-        isSeller: true,
-        escrow: true,
-      },
-    })
-    const vm = wrapper.vm as any
-    expect(vm.payout).toEqual(Big('72.85'))
-    vm.viewerHandler.user.updateX({landscape: true})
-    await vm.$nextTick()
-    expect(vm.payout).toEqual(Big('76.30'))
+    expect(vm.rawPrice).toEqual(new Decimal('95'))
   })
   it('Calculates hourly rate for escrow', async() => {
     setViewer(store, user)
@@ -95,7 +72,6 @@ describe('AcPricePreview.vue', () => {
       store,
       vuetify,
       router,
-
       attachTo: docTarget(),
       propsData: {
         lineItems,
@@ -105,7 +81,8 @@ describe('AcPricePreview.vue', () => {
       },
     })
     const vm = wrapper.vm as any
-    vm.hours = 2
+    vm.hourlyForm.fields.hours.model = 2
+    await vm.$nextTick()
     expect(vm.hourly).toEqual('36.42')
   })
   it('Calculates hourly rate for non-escrow', async() => {
@@ -115,7 +92,6 @@ describe('AcPricePreview.vue', () => {
       store,
       vuetify,
       router,
-
       attachTo: docTarget(),
       propsData: {
         lineItems,
@@ -125,7 +101,8 @@ describe('AcPricePreview.vue', () => {
       },
     })
     const vm = wrapper.vm as any
-    vm.hours = 2
+    vm.hourlyForm.fields.hours.model = 2
+    await vm.$nextTick()
     expect(vm.hourly).toEqual('40')
   })
   afterEach(() => {

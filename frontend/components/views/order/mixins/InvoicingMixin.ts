@@ -12,7 +12,8 @@ import Pricing from '@/types/Pricing'
 export default class InvoicingMixin extends Vue {
   public newInvoice!: FormController
   public sellerName!: string
-  public invoiceEscrowDisabled!: boolean
+  public invoiceEscrowEnabled!: boolean
+  public international!: boolean
 
   public invoiceProduct: SingleController<Product> = null as unknown as SingleController<Product>
   public pricing: SingleController<Pricing> = null as unknown as SingleController<Pricing>
@@ -43,6 +44,7 @@ export default class InvoicingMixin extends Vue {
     this.newInvoice.fields.task_weight.update(val.task_weight)
     this.newInvoice.fields.revisions.update(val.revisions)
     this.newInvoice.fields.expected_turnaround.update(val.expected_turnaround)
+    this.newInvoice.fields.cascade_fees.update(val.cascade_fees)
   }
 
   public goToOrder(deliverable: Deliverable) {
@@ -52,12 +54,21 @@ export default class InvoicingMixin extends Vue {
     })
   }
 
+  /* istanbul ignore next */
+  public get planName(): string|null {
+    // Must be implemented by child. Get the plan name whose prices apply here.
+    return null
+  }
+
   public get invoiceLineItems() {
     const linesController = this.$getList('newInvoiceLines', {endpoint: '#', paginated: false})
     linesController.ready = true
     linesController.setList(invoiceLines({
+      planName: this.planName,
+      cascade: this.newInvoice.fields.cascade_fees.value,
       pricing: (this.pricing.x || null),
-      escrowDisabled: this.invoiceEscrowDisabled,
+      international: this.international,
+      escrowEnabled: this.invoiceEscrowEnabled,
       product: (this.invoiceProduct.x || null),
       value: this.newInvoice.fields.price.value,
     }))

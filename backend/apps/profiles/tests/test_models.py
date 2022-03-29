@@ -6,6 +6,7 @@ from django.test import TestCase
 
 from apps.lib import models
 from apps.lib.models import Subscription, Event, COMMENT
+from apps.lib.test_resources import EnsurePlansMixin
 from apps.profiles.models import Character
 from apps.profiles.tests.factories import UserFactory, SubmissionFactory, ConversationFactory
 
@@ -13,11 +14,11 @@ expected_subscriptions = (
     (models.SUBMISSION_SHARED, False), (models.CHAR_SHARED, False), (models.RENEWAL_FAILURE, True),
     (models.SUBSCRIPTION_DEACTIVATED, True), (models.RENEWAL_FIXED, True),
     (models.TRANSFER_FAILED, True), (models.REFERRAL_LANDSCAPE_CREDIT, True),
-    (models.WAITLIST_UPDATED, True),
+    (models.WAITLIST_UPDATED, True), (models.AUTO_CLOSED, True),
 )
 
 
-class SubscriptionsTestCase(TestCase):
+class SubscriptionsTestCase(EnsurePlansMixin, TestCase):
     def test_subscriptions_created_user(self):
         user = UserFactory.create()
         user_type = ContentType.objects.get_for_model(user)
@@ -45,7 +46,7 @@ class SubscriptionsTestCase(TestCase):
         ).exists())
 
 
-class TestSubmissionSerializer(TestCase):
+class TestSubmissionSerializer(EnsurePlansMixin, TestCase):
     def test_submission_serialization(self):
         submission = SubmissionFactory.create()
         request = Mock()
@@ -54,7 +55,7 @@ class TestSubmissionSerializer(TestCase):
         self.assertEqual(result['id'], submission.id)
 
 
-class TestCharacter(TestCase):
+class TestCharacter(EnsurePlansMixin, TestCase):
     def test_character_name(self):
         user = UserFactory.create()
         character = Character(name='.stuff', user=user)
@@ -67,7 +68,7 @@ class TestCharacter(TestCase):
         character.full_clean()
 
 
-class TestConversation(TestCase):
+class TestConversation(EnsurePlansMixin, TestCase):
     def test_comment_removal(self):
         conversation = ConversationFactory.create()
         Event.objects.create(type=COMMENT, target=conversation, data={})

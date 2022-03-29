@@ -5,13 +5,12 @@ from django.utils import timezone
 from freezegun import freeze_time
 
 from apps.lib.models import FAVORITE, Notification, SYSTEM_ANNOUNCEMENT, Event, Subscription, Comment
-from apps.lib.test_resources import SignalsDisabledMixin
+from apps.lib.test_resources import SignalsDisabledMixin, EnsurePlansMixin
 from apps.lib.tests.factories_interdepend import CommentFactory
 from apps.lib.utils import notify, recall_notification, send_transaction_email, subscribe, mark_read, check_read, \
     mark_modified, clear_events_subscriptions_and_comments, shift_position
 from apps.profiles.models import Submission, ArtconomyAnonymousUser
 from apps.profiles.tests.factories import SubmissionFactory, UserFactory
-from apps.sales.models import ServicePlan
 
 LOGGING = {
     'version': 1,
@@ -31,7 +30,7 @@ LOGGING = {
 }
 
 
-class NotificationsTestCase(SignalsDisabledMixin, TestCase):
+class NotificationsTestCase(EnsurePlansMixin, SignalsDisabledMixin, TestCase):
     def test_basic(self):
         # Implicitly creates subscription for uploader.
         submission = SubmissionFactory.create()
@@ -264,7 +263,7 @@ class NotificationsTestCase(SignalsDisabledMixin, TestCase):
         send_transaction_email('Test transaction', 'registration_code.html', user, {})
 
 
-class TestMarkers(TestCase):
+class TestMarkers(EnsurePlansMixin, TestCase):
     def test_edit_marker(self):
         user = UserFactory.create()
         submission = SubmissionFactory.create()
@@ -276,7 +275,7 @@ class TestMarkers(TestCase):
         self.assertIsNone(check_read(obj=submission, user=ArtconomyAnonymousUser()))
 
 
-class TestClearCommentsEventsSubscriptions(TestCase):
+class TestClearCommentsEventsSubscriptions(EnsurePlansMixin, TestCase):
     def test_clear_related_data(self):
         submission = SubmissionFactory()
         unrelated_submission = SubmissionFactory()
@@ -296,15 +295,8 @@ class TestClearCommentsEventsSubscriptions(TestCase):
         unrelated_comment.refresh_from_db()
 
 
-class EnsurePlansMixin:
-    def setUp(self):
-        self.landscape = ServicePlan.objects.get_or_create(name='Landscape')[0]
-        self.free = ServicePlan.objects.get_or_create(name='Free')[0]
-        super().setUp()
-
-
 @ddt.ddt
-class TestPositionShifts(TestCase):
+class TestPositionShifts(EnsurePlansMixin, TestCase):
     @ddt.unpack
     @ddt.data((1, 1), (-1, -1))
     def test_single_entry_shift(self, delta, result):
@@ -341,3 +333,4 @@ class TestPositionShifts(TestCase):
                 f'Expected delta of {delta} to result in position value of {result} with initial '
                 f'position {start}. {err}',
             )
+

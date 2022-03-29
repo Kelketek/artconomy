@@ -1,8 +1,14 @@
+from typing import TYPE_CHECKING
+
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 from django.views import View
 from rest_framework.permissions import BasePermission
 from rest_framework.request import Request
+
+
+if TYPE_CHECKING:
+    from apps.sales.models import Invoice
 
 
 class ObjectControls(BasePermission):
@@ -95,6 +101,9 @@ class SubmissionCommentPermission(BasePermission):
 
 
 def derive_user(obj):
+    from apps.profiles.models import User
+    if isinstance(obj, User):
+        return obj
     return getattr(obj, 'user', getattr(obj, 'bill_to', None))
 
 
@@ -112,6 +121,18 @@ class UserControls(BasePermission):
         user = derive_user(obj)
         if user and user == request.user:
             return True
+
+
+class IssuedBy(BasePermission):
+    def has_object_permission(self, request: Request, view: View, obj: 'Invoice') -> bool:
+        invoice = getattr(obj, 'invoice', obj)
+        return invoice.issued_by == request.user
+
+
+class BillTo(BasePermission):
+    def has_object_permission(self, request: Request, view: View, obj: 'Invoice') -> bool:
+        invoice = getattr(obj, 'invoice', obj)
+        return invoice.bill_to == request.user
 
 
 class NonPrivate(BasePermission):
@@ -223,3 +244,11 @@ def AccountAge(delta: relativedelta):
                 return False
             return request.user.date_joined < (timezone.now() - delta)
     return AccountAgePermission
+
+
+class AccountCurrentPermission(BasePermission):
+    message = 'You have an outstanding subscription invoice which must be paid first.'
+
+    def has_object_permission(self, request, view, obj):
+        user = derive_user(obj)
+        return not user.delinquent

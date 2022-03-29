@@ -112,10 +112,13 @@ TRANSFER_FAILED = 32
 REFERRAL_LANDSCAPE_CREDIT = 34
 REFERENCE_UPLOADED = 35
 WAITLIST_UPDATED = 36
+TIP_RECEIVED = 37
+AUTO_CLOSED = 38
 
 ORDER_NOTIFICATION_TYPES = (
     DISPUTE, SALE_UPDATE, ORDER_UPDATE, RENEWAL_FIXED, RENEWAL_FAILURE, SUBSCRIPTION_DEACTIVATED,
-    REVISION_UPLOADED, TRANSFER_FAILED, REFUND, REFERENCE_UPLOADED, WAITLIST_UPDATED,
+    REVISION_UPLOADED, TRANSFER_FAILED, REFUND, REFERENCE_UPLOADED, WAITLIST_UPDATED, TIP_RECEIVED,
+    AUTO_CLOSED,
 )
 
 EVENT_TYPES = (
@@ -144,6 +147,8 @@ EVENT_TYPES = (
     (NEW_JOURNAL, 'New Journal Posted'),
     (TRANSFER_FAILED, 'Bank Transfer Failed'),
     (WAITLIST_UPDATED, 'Wait list updated'),
+    (TIP_RECEIVED, 'Tip Received'),
+    (AUTO_CLOSED, 'Commissions automatically closed'),
 )
 
 EMAIL_SUBJECTS = {
@@ -151,7 +156,7 @@ EMAIL_SUBJECTS = {
     ORDER_UPDATE: 'Order #{{ target.order.id}} [{{target.name}}] has been updated!',
     REVISION_UPLOADED: 'New revision for order #{{ target.order.id }} [{{target.name}}]!',
     REFERENCE_UPLOADED: 'New reference for order #{{ target.order.id }} [{{target.name}}]!',
-    SALE_UPDATE: '{% if target.status == 1 %}New Sale!{% else %}Sale #{{ target.order.id }} [{{target.name}}] has been updated!{% endif %}'
+    SALE_UPDATE: '{% if target.status == 1 %}New Sale!{% elif target.status == 11 %}Your sale was cancelled.{% else %}Sale #{{ target.order.id }} [{{target.name}}] has been updated!{% endif %}'
                  ' #{{target.id}}',
     REFUND: 'A refund was issued for Order #{{ target.order.id }} [{{target.name}}]',
     COMMENT: '{% if data.subject %}{{ data.subject }}{% else %}New comment on {{ data.name }}{% endif %}',
@@ -161,6 +166,7 @@ EMAIL_SUBJECTS = {
     TRANSFER_FAILED: 'Bank transfer failed.',
     REFERRAL_LANDSCAPE_CREDIT: "One of your referrals just made a sale!",
     WAITLIST_UPDATED: "A new order has been added to your waitlist!",
+    AUTO_CLOSED: "Your commissions have been automatically closed."
 }
 
 

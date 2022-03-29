@@ -8,13 +8,13 @@ from django.db.models import Case, When, F, IntegerField, Q
 from django.utils import timezone
 from short_stuff import gen_shortcode
 
-from apps.lib.models import REFERRAL_LANDSCAPE_CREDIT, Comment
-from apps.lib.utils import notify, destroy_comment
+from apps.lib.models import Comment
+from apps.lib.utils import destroy_comment
 from apps.profiles.middleware import derive_session_settings
-from apps.profiles.models import Character, Submission, User, Conversation, ConversationParticipant
-from apps.sales.dwolla import destroy_bank_account
-from apps.sales.models import TransactionRecord, DISPUTED, IN_PROGRESS, QUEUED, REVIEW, PAYMENT_PENDING, NEW, \
-    Deliverable, WAITING, StripeAccount, CreditCardToken, ServicePlan
+from apps.profiles.models import Character, Submission, User, Conversation, ConversationParticipant, default_plan
+from apps.sales.models import Deliverable, StripeAccount, ServicePlan, Invoice
+from apps.sales.constants import WAITING, NEW, PAYMENT_PENDING, QUEUED, IN_PROGRESS, REVIEW, DISPUTED, HOLDINGS, \
+    TIPPING, DRAFT, OPEN, VOID, LIMBO
 from apps.sales.utils import account_balance, PENDING, cancel_deliverable
 
 
@@ -106,20 +106,6 @@ def extend_landscape(user, months):
     user.save()
 
 
-def credit_referral(deliverable):
-    seller_credit = False
-    if not deliverable.order.seller.sold_shield_on:
-        seller_credit = True
-        deliverable.order.seller.sold_shield_on = timezone.now()
-        deliverable.order.seller.save()
-    if deliverable.order.buyer and not deliverable.order.buyer.bought_shield_on:
-        deliverable.order.buyer.bought_shield_on = timezone.now()
-        deliverable.order.buyer.save()
-    if seller_credit and deliverable.order.seller.referred_by:
-        extend_landscape(deliverable.order.seller.referred_by, months=1)
-        notify(REFERRAL_LANDSCAPE_CREDIT, deliverable.order.seller.referred_by, unique=False)
-
-
 def empty_user(*, session, user):
     session_settings = derive_session_settings(user=user, session=session)
     return {
@@ -155,7 +141,7 @@ def clear_user(user: User):
     # hooks are run.
     assert user
     holdup_statuses = [DISPUTED, IN_PROGRESS, QUEUED, REVIEW]
-    clearable_statuses = [NEW, PAYMENT_PENDING, WAITING]
+    clearable_statuses = [NEW, PAYMENT_PENDING, WAITING, LIMBO]
     if user.sales.filter(deliverables__status__in=holdup_statuses).exists():
         raise UserClearException(f'{user.username} has outstanding sales to complete or refund. Cannot remove!')
     if user.buys.filter(deliverables__status__in=holdup_statuses).exists():
@@ -165,8 +151,8 @@ def clear_user(user: User):
             f'{user.username} is an administrative account. It cannot be removed until it is deprivileged.',
         )
     stoppers = [
-        account_balance(user, TransactionRecord.HOLDINGS),
-        account_balance(user, TransactionRecord.HOLDINGS, PENDING)
+        account_balance(user, HOLDINGS),
+        account_balance(user, HOLDINGS, PENDING)
     ]
     if any(stoppers):
         raise UserClearException(f'{user.username} has pending transactions! Cannot remove!')
@@ -174,6 +160,8 @@ def clear_user(user: User):
         cancel_deliverable(sale, user)
     for order in Deliverable.objects.filter(status__in=clearable_statuses, order__buyer=user):
         cancel_deliverable(order, user)
+    for invoice in Invoice.objects.filter(type=TIPPING, status__in=[DRAFT, OPEN, VOID], issued_by=user):
+        invoice.delete()
 
     notes = user.notes
     if notes:
@@ -183,11 +171,6 @@ def clear_user(user: User):
             account.delete()
         except Exception as err:
             raise UserClearException(f'Error removing stripe account for {user.username}: {err}') from err
-    for bank in user.banks.exclude(deleted=True):
-        try:
-            destroy_bank_account(bank)
-        except Exception as err:
-            raise UserClearException(f'Error removing bank account information: {err}') from err
     for card in user.credit_cards.all():
         try:
             card.mark_deleted()
@@ -215,7 +198,7 @@ def clear_user(user: User):
     user.set_password(str(uuid4()))
     user.email = f'{uuid4()}@local'
     user.is_active = False
-    user.landscape_enabled = False
+    user.next_service_plan = default_plan()
     user.subscription_set.all().delete()
     for avatar in Avatar.objects.filter(user=user):
         avatar.avatar.delete()

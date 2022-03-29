@@ -18,8 +18,7 @@ from rest_framework.serializers import ModelSerializer, Serializer
 
 from apps.lib.consumer_serializers import WatchSpecSerializer, ViewerParamsSerializer, EmptySerializer, \
     WatchNewSpecSerializer
-from apps.lib.middleware import get_request
-from apps.lib.utils import FakeRequest, exclude_request
+from apps.lib.utils import FakeRequest
 from apps.profiles.models import User
 from apps.profiles.utils import empty_user
 
@@ -48,7 +47,7 @@ def send_new(model: Type[Model], instance: Model):
                 f'{channel}.{serializer_name}',
                 {
                     'type': 'new_item',
-                    'exclude': exclude_request(get_request()),
+                    'exclude': [],
                     'contents': {
                         'model_name': model_name,
                         'app_label': app_label,
@@ -66,13 +65,12 @@ def send_updated(model, instance):
     layer = get_channel_layer()
     app_label = model._meta.app_label
     model_name = model.__name__
-    exclude = exclude_request(get_request()),
     for serializer_name in [key for key in model.watch_permissions.keys() if key]:
         async_to_sync(layer.group_send)(
             f'{app_label}.{model_name}.update.{serializer_name}.{instance.pk}',
             {
                 'type': 'update_model',
-                'exclude': exclude,
+                'exclude': [],
                 'contents': {
                     'model_name': model_name,
                     'app_label': app_label,
@@ -82,23 +80,22 @@ def send_updated(model, instance):
         )
 
 
-def send_deleted(model, instance):
+def send_deleted(model, instance, pk=None):
     """
-    Constructs and sends an 'updated' message to send out for an instance.
+    Constructs and sends a 'deleted' message to send out for an instance.
     """
     layer = get_channel_layer()
     app_label = model._meta.app_label
     model_name = model.__name__
-    exclude = exclude_request(get_request()),
     async_to_sync(layer.group_send)(
-        f'{app_label}.{model_name}.delete.{instance.pk}',
+        f'{app_label}.{model_name}.delete.{pk or instance.pk}',
         {
             'type': 'delete_model',
-            'exclude': exclude,
+            'exclude': [],
             'contents': {
                 'model_name': model_name,
                 'app_label': app_label,
-                'pk': instance.pk,
+                'pk': pk or instance.pk,
             }}
     )
 
@@ -119,11 +116,12 @@ def update_websocket(model):
             send_updated(model, instance)
 
     def delete_broadcaster(instance: Model, **kwargs):
+        pk = instance.pk or kwargs.get('pk', None)
         if not transaction.get_autocommit():
             # If we're in a transaction, delay this until we're completely finished.
-            transaction.on_commit(lambda: delete_broadcaster(instance, **kwargs))
+            transaction.on_commit(lambda: delete_broadcaster(instance, pk=pk, **kwargs))
             return
-        send_deleted(model, instance)
+        send_deleted(model, instance, pk=pk)
     post_save.connect(update_broadcaster, sender=model, weak=False)
     post_delete.connect(delete_broadcaster, sender=model, weak=False)
 
@@ -284,7 +282,7 @@ async def watch(consumer, payload: Dict):
             f'{app_label}.{model_name}.delete.{instance.pk}',
             consumer.channel_name,
         )
-    except (ObjectDoesNotExist, ValueError):
+    except ObjectDoesNotExist:
         return error_command(
             f'Could not find that object, or you do not have permission to watch it: '
             f'{app_label}.{model_name} pk={pk} serializer={serializer_name}')

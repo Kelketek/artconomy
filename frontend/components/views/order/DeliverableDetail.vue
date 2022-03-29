@@ -39,9 +39,9 @@
                         <v-divider />
                         <p>
                           <strong>Congratulations!</strong> Your artist has accepted your order. Please submit payment so that it can be added to their work queue.
-                          <span v-if="deliverable.x.escrow_disabled">Your artist will inform you on how to pay them.</span>
+                          <span v-if="!deliverable.x.escrow_enabled">Your artist will inform you on how to pay them.</span>
                         </p>
-                        <p v-if="!deliverable.x.escrow_disabled">
+                        <p v-if="deliverable.x.escrow_enabled">
                           <strong class="danger">WARNING:</strong> Only send payment using the <strong>'Send Payment'</strong> button in the '<strong>Payment</strong>' <span v-if="$vuetify.breakpoint.mdAndUp">tab</span><span v-else>dropdown option</span> directly below this section.
                           Do not use any other method, button, or link, or we will not be able to protect you from fraud. If your
                           artist asks for payment using another method, or if you are getting errors, please <a @click="setSupport(true)">contact support.</a>
@@ -53,14 +53,14 @@
                       <v-col v-if="is(PAYMENT_PENDING) && isSeller" cols="12">
                         <p>The commissioner has been informed that they must now pay in order for you to work on the order.
                           You may continue to comment and tweak pricing in the interim, or you may cancel the order if you need to.</p>
-                        <p v-if="deliverable.x.escrow_disabled">
+                        <p v-if="!deliverable.x.escrow_enabled">
                           <strong>REMEMBER:</strong> As we are not handling payment for this order, you MUST tell your
                           commissioner how to pay you. Leave a comment telling them how if you have not done so already.
                           When the customer has paid, click the 'Mark Paid' button.</p>
                         <p v-else-if="!deliverable.x.table_order">
                           You may mark this order as paid, if the customer has paid you through an outside method, or you wish to waive payment for this commission.
                         </p>
-                        <v-col class="text-center" v-if="deliverable.x.escrow_disabled">
+                        <v-col class="text-center" v-if="!deliverable.x.escrow_enabled">
                           <v-btn color="primary" @click="statusEndpoint('mark-paid')()">Mark Paid</v-btn>
                         </v-col>
                         <ac-confirmation :action="statusEndpoint('mark-paid')" v-else-if="!deliverable.x.table_order">
@@ -110,6 +110,9 @@
                         </ac-confirmation>
                       </v-col>
                       <v-row v-if="is(WAITING) || is(NEW) || is(PAYMENT_PENDING)">
+                        <v-col class="text-center" v-if="is(NEW) && canWaitlist">
+                          <v-btn color="secondary" @click="statusEndpoint('waitlist')()">Add to Waitlist</v-btn>
+                        </v-col>
                         <v-col class="text-center">
                           <ac-confirmation :action="statusEndpoint('cancel')">
                             <template v-slot:default="{on}">
@@ -124,7 +127,7 @@
                             params: {...$route.params}}"
                             @click="scrollToSection"
                             class="review-terms-button"
-                          >Review Terms/Pricing<span v-if="is(PAYMENT_PENDING) && isBuyer">/Pay</span></v-btn>
+                          >Review Terms/Pricing<span v-if="is(PAYMENT_PENDING) && isBuyer">/Pay</span><span v-else-if="(is(WAITING) || is(NEW)) && isSeller">/Accept</span></v-btn>
                         </v-col>
                         <v-col v-if="isBuyer" class="text-center">
                           <v-btn color="secondary" v-if="$route.params.deliverableId" :to="{name: `${baseName}DeliverableReferences`, params: {...$route.params}}">Add References</v-btn>
@@ -179,6 +182,22 @@
                           If you have not already, please add your bank account in your payout settings.</router-link></p>
                         <p>A transfer will automatically be initiated to your bank account.
                           Please wait up to five business days for payment to post.</p>
+                      </v-col>
+                      <v-col cols="12" v-if="deliverable.x.tip_invoice">
+                        <ac-tipping-prompt
+                            :invoice-id="deliverable.x.tip_invoice"
+                            :source-lines="lineItems"
+                            :username="buyer.username"
+                            :deliverable="deliverable"
+                            :key="deliverable.x.tip_invoice"
+                            :is-buyer="isBuyer"
+                        />
+                      </v-col>
+                      <v-col cols="12" v-if="isBuyer && (is(COMPLETED) || is(REFUNDED))" >
+                        <ac-deliverable-rating end="seller" :order-id="orderId" :deliverable-id="deliverableId" key="seller" />
+                      </v-col>
+                      <v-col cols="12" v-if="buyer && isSeller && (is(COMPLETED) || is(REFUNDED))">
+                        <ac-deliverable-rating end="buyer" :order-id="orderId" :deliverable-id="deliverableId" key="buyer" />
                       </v-col>
                       <v-col class="text-center" v-if="isSeller && is(COMPLETED) && !order.x.private" cols="12" >
                         <v-img src="/static/images/fridge.png" max-height="20vh" contain />
@@ -262,7 +281,7 @@
                         :title="'Add new Deliverable to Order.'"
                       >
                         <v-container class="pa-0">
-                          <ac-invoice-form :new-invoice="newInvoice" :username="seller.username" :line-items="invoiceLineItems" :escrow-disabled="invoiceEscrowDisabled" :show-buyer="false">
+                          <ac-invoice-form :new-invoice="newInvoice" :username="seller.username" :line-items="invoiceLineItems" :escrow-enabled="invoiceEscrowEnabled" :show-buyer="false">
                             <template v-slot:second>
                               <v-col cols="12" sm="6">
                                 <v-row no-gutters>
@@ -361,9 +380,12 @@ import {ListController} from '@/store/lists/controller'
 import {markRead, parseISO} from '@/lib/lib'
 import StripeMixin from './mixins/StripeMixin'
 import {isBefore} from 'date-fns'
+import AcTippingPrompt from '@/components/views/order/deliverable/AcTippingPrompt.vue'
+import {ServicePlan} from '@/types/ServicePlan'
 
 @Component({
   components: {
+    AcTippingPrompt,
     AcInvoiceForm,
     AcTabNav,
     AcForm,
@@ -451,6 +473,11 @@ export default class DeliverableDetail extends mixins(
       return this.seller.username
     }
     return ''
+  }
+
+  public get planName() {
+    // eslint-disable-next-line camelcase
+    return this.seller?.service_plan || null
   }
 
   public get registerLink() {
@@ -544,14 +571,32 @@ export default class DeliverableDetail extends mixins(
     )
   }
 
-  public get invoiceEscrowDisabled() {
+  public get international() {
+    // Note: This flag is currently used for new invoices based on the current deliverable-- I.E.,
+    // multi-stage orders. This assumes the artist has not migrated to or from the US between creating
+    // and issuing the next stage. This is such an edge case that I'm leaving this bug in for now,
+    // however, it should be addressed when we refactor multi-stage orders to be more intuitive.
+    return !!this.deliverable.x?.international
+  }
+
+  public get canWaitlist() {
+    if (!this.planName) {
+      return false
+    }
+    if (!this.pricing.x) {
+      return false
+    }
+    return this.pricing.x.plans.filter((plan: ServicePlan) => plan.name === this.planName)[0].waitlisting
+  }
+
+  public get invoiceEscrowEnabled() {
     if (!this.sellerHandler.artistProfile.x) {
-      return true
+      return false
     }
     if (this.newInvoice.fields.paid.value) {
-      return true
+      return false
     }
-    return this.sellerHandler.artistProfile.x.escrow_disabled
+    return this.sellerHandler.artistProfile.x.escrow_enabled
   }
 
   public get keepReferences() {

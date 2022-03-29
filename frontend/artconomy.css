@@ -10,6 +10,11 @@ img {
     color: #fff;
 }
 
+/* Force the cursor to have more contrast. */
+#app.theme--dark, .v-application .primary--text input,  .v-application .primary--text textarea {
+    caret-color: #fff !important;
+}
+
 #app a {
     font-weight: bold
 }

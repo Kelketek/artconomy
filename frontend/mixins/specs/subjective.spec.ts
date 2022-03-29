@@ -3,11 +3,13 @@ import {genUser} from '@/specs/helpers/fixtures'
 import {ArtStore, createStore} from '@/store'
 import Vue, {VueConstructor} from 'vue'
 import Vuex from 'vuex'
+import Router, {RouterMode} from 'vue-router'
 import SubjectiveComponent from '@/specs/helpers/dummy_components/subjective-component.vue'
-import {docTarget, setViewer, mount} from '@/specs/helpers'
+import {docTarget, setViewer} from '@/specs/helpers'
 import {singleRegistry, Singles} from '@/store/singles/registry'
 import {profileRegistry, Profiles} from '@/store/profiles/registry'
 import {Lists} from '@/store/lists/registry'
+import Empty from '@/specs/helpers/dummy_components/empty.vue'
 
 const mockError = jest.spyOn(console, 'error')
 
@@ -16,12 +18,22 @@ describe('Subjective.ts', () => {
   let vue: Vue
   let localVue: VueConstructor
   let wrapper: Wrapper<Vue> | null
+  let router: Router
   beforeEach(() => {
+    router = new Router({
+      mode: 'history' as RouterMode,
+      routes: [{
+        path: '/',
+        name: 'Login',
+        component: Empty,
+      }],
+    })
     localVue = createLocalVue()
     localVue.use(Vuex)
     localVue.use(Singles)
     localVue.use(Lists)
     localVue.use(Profiles)
+    localVue.use(Router)
     singleRegistry.reset()
     profileRegistry.reset()
     store = createStore()
@@ -35,7 +47,7 @@ describe('Subjective.ts', () => {
   })
   it('Fetches the subject', async() => {
     setViewer(store, genUser())
-    wrapper = shallowMount(SubjectiveComponent, {localVue, store, propsData: {username: 'Fox'}})
+    wrapper = shallowMount(SubjectiveComponent, {localVue, store, router, propsData: {username: 'Fox'}})
     expect((wrapper.vm as any).username).toBe('Fox')
     expect((wrapper.vm as any).subjectHandler).toBeTruthy()
     expect((wrapper.vm as any).subject.username).toBe('Fox')
@@ -44,7 +56,7 @@ describe('Subjective.ts', () => {
     setViewer(store, genUser())
     store.commit('profiles/saveUser', genUser())
     wrapper = shallowMount(
-      SubjectiveComponent, {localVue, store, propsData: {username: 'Fox'}, attachTo: docTarget()},
+      SubjectiveComponent, {localVue, store, router, propsData: {username: 'Fox'}, attachTo: docTarget()},
     )
     expect((wrapper.vm as any).subject.email).toBe('fox@artconomy.com');
     (wrapper.vm as any).subjectHandler.user.updateX({email: 'test@example.com'})
@@ -58,11 +70,11 @@ describe('Subjective.ts', () => {
     wrapper = shallowMount(SubjectiveComponent, {
       localVue,
       store,
+      router,
       propsData: {username: 'Fox'},
       mocks: {
         $route: {name: 'Place', params: {}, query: {}, hash: ''},
       },
-
     });
     (wrapper.vm as any).subjectHandler.user.updateX({username: 'Vulpes_Veritas'})
     await wrapper.vm.$nextTick()
@@ -77,6 +89,7 @@ describe('Subjective.ts', () => {
     wrapper = shallowMount(SubjectiveComponent, {
       localVue,
       store,
+      router,
       propsData: {username: 'Fox'},
       data() {
         return {privateView: true}
@@ -84,16 +97,17 @@ describe('Subjective.ts', () => {
       mocks: {
         $route: {name: 'Place', params: {}, query: {}, hash: ''},
       },
-
     })
     await wrapper.vm.$nextTick()
     expect((store.state as any).errors.code).toBe(0)
   })
   it('Sends the user to an error if they are not the subject and the view is private', async() => {
+    setViewer(store, genUser())
     expect((store.state as any).errors.code).toBe(0)
     wrapper = shallowMount(SubjectiveComponent, {
       localVue,
       store,
+      router,
       propsData: {username: 'Vulpes'},
       data() {
         return {privateView: true}
@@ -101,10 +115,27 @@ describe('Subjective.ts', () => {
       mocks: {
         $route: {name: 'Place', params: {}, query: {}, hash: ''},
       },
-
     })
     await wrapper.vm.$nextTick()
     expect((store.state as any).errors.code).toBe(403)
+  })
+  it('Redirects the user to login if they are not logged in and the view is private', async() => {
+    expect((store.state as any).errors.code).toBe(0)
+    wrapper = shallowMount(SubjectiveComponent, {
+      localVue,
+      store,
+      router,
+      propsData: {username: 'Vulpes'},
+      data() {
+        return {privateView: true}
+      },
+      mocks: {
+        $route: {name: 'Place', params: {}, query: {}, hash: ''},
+      },
+    })
+    await wrapper.vm.$nextTick()
+    expect((store.state as any).errors.code).toBe(0)
+    expect(wrapper.vm.$route.name).toBe('Login')
   })
   it('Allows the user to see if they are not the subject and the view is private but they are a staffer',
     async() => {
@@ -116,6 +147,7 @@ describe('Subjective.ts', () => {
       wrapper = shallowMount(SubjectiveComponent, {
         localVue,
         store,
+        router,
         propsData: {username: 'Vulpes'},
         data() {
           return {privateView: true}
@@ -123,7 +155,6 @@ describe('Subjective.ts', () => {
         mocks: {
           $route: {name: 'Place', params: {}, query: {}, hash: ''},
         },
-
       })
       await wrapper.vm.$nextTick()
       expect((store.state as any).errors.code).toBe(0)
@@ -138,6 +169,7 @@ describe('Subjective.ts', () => {
       wrapper = shallowMount(SubjectiveComponent, {
         localVue,
         store,
+        router,
         propsData: {username: 'Vulpes'},
         data() {
           return {protectedView: true, privateView: true}
@@ -145,7 +177,6 @@ describe('Subjective.ts', () => {
         mocks: {
           $route: {name: 'Place', params: {}, query: {}, hash: ''},
         },
-
       })
       await wrapper.vm.$nextTick()
       expect((store.state as any).errors.code).toBe(403)
@@ -160,6 +191,7 @@ describe('Subjective.ts', () => {
       wrapper = shallowMount(SubjectiveComponent, {
         localVue,
         store,
+        router,
         propsData: {username: 'Fox'},
         data() {
           return {protectedView: true, privateView: true}
@@ -167,7 +199,6 @@ describe('Subjective.ts', () => {
         mocks: {
           $route: {name: 'Place', params: {}, query: {}, hash: ''},
         },
-
       })
       await wrapper.vm.$nextTick()
       expect((store.state as any).errors.code).toBe(0)

@@ -23,6 +23,7 @@ export interface User {
   stars: number | null,
   rating_count: number,
   landscape: boolean,
+  international: boolean,
   landscape_enabled: boolean,
   offered_mailchimp: boolean,
   artist_mode: boolean,
@@ -30,4 +31,7 @@ export interface User {
   watches: number,
   birthday: string|null,
   processor: PROCESSORS,
+  service_plan: string,
+  next_service_plan: string,
+  verified_email: boolean,
 }

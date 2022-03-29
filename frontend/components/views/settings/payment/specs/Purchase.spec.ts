@@ -29,7 +29,7 @@ function emptyForm() {
   }
 }
 
-describe('Purchase.vue', () => {
+describe('Purchase.vue Authorize', () => {
   beforeEach(() => {
     vuetify = createVuetify()
     store = createStore()
@@ -121,5 +121,34 @@ describe('Purchase.vue', () => {
     const oldPrimary = vm.cards.list[0].x
     expect(oldPrimary.primary).toBe(true)
     expect(oldPrimary.id).toBe(1)
+  })
+})
+
+describe('Purchase.vue Stripe', () => {
+  beforeEach(() => {
+    vuetify = createVuetify()
+    store = createStore()
+    window.DEFAULT_CARD_PROCESSOR = PROCESSORS.STRIPE
+  })
+  afterEach(() => {
+    cleanUp(wrapper)
+  })
+  it('Sends a new card to Stripe', async() => {
+    const user = genUser({username: 'Fox'})
+    user.landscape = true
+    setViewer(store, user)
+    wrapper = mount(Purchase, {
+      localVue, store, vuetify, propsData: {username: 'Fox'}, attachTo: docTarget(),
+    })
+    const vm = wrapper.vm as any
+    const cards = [genCard({id: 1, primary: true}), genCard({id: 2}), genCard({id: 4})]
+    vm.cards.makeReady(cards)
+    vm.clientSecret.makeReady({secret: 'secret'})
+    await vm.$nextTick()
+    vm.$refs.cardManager.cards.makeReady(cards)
+    mockAxios.reset()
+    const mockSubmit = jest.spyOn(vm.$refs.cardManager, 'stripeSubmit')
+    wrapper.find('.add-card-button').trigger('click')
+    expect(mockSubmit).toHaveBeenCalled()
   })
 })

@@ -106,20 +106,20 @@ describe('DeliverableOverview.vue', () => {
   ${VIEWER_TYPE.UNSET}  | ${''}
   `('Sets the viewerMode to $mode when $string is set as view_as.',
     async({mode, string}: {mode: VIEWER_TYPE, string: string}) => {
-    setViewer(store, genUser({is_staff: true}))
-    await router.push(`/orders/Fox/order/1/deliverables/5/overview?view_as=${string}`)
-    wrapper = mount(
-      DeliverableOverview, {
-        localVue,
-        store,
-        router,
-        vuetify,
-        propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-        attachTo: docTarget(),
-        stubs: ['ac-revision-manager'],
-      })
-    const vm = wrapper.vm as any
-    await vm.$nextTick()
-    expect(vm.viewSettings.x.viewerType).toBe(mode)
-  })
+      setViewer(store, genUser({is_staff: true}))
+      await router.push(`/orders/Fox/order/1/deliverables/5/overview?view_as=${string}`)
+      wrapper = mount(
+        DeliverableOverview, {
+          localVue,
+          store,
+          router,
+          vuetify,
+          propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
+          attachTo: docTarget(),
+          stubs: ['ac-revision-manager'],
+        })
+      const vm = wrapper.vm as any
+      await vm.$nextTick()
+      expect(vm.viewSettings.x.viewerType).toBe(mode)
+    })
 })

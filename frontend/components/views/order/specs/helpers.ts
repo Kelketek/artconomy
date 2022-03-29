@@ -57,6 +57,50 @@ export function deliverableRouter() {
         }],
       }],
     }, {
+      name: 'Sale',
+      component: Empty,
+      path: '/sales/:username/sale/:orderId/',
+      props: true,
+      children: [{
+        name: 'SaleDeliverable',
+        component: Empty,
+        path: 'deliverables/:deliverableId/',
+        props,
+        children: [{
+          name: 'SaleDeliverableOverview',
+          component: Empty,
+          path: 'overview',
+          props,
+        }, {
+          name: 'SaleDeliverablePayment',
+          component: Empty,
+          path: 'payment',
+          props,
+        }, {
+          name: 'SaleDeliverableReferences',
+          component: Empty,
+          path: 'reference',
+          props,
+          children: [{
+            name: 'SaleDeliverableReference',
+            component: Empty,
+            path: ':referenceId',
+            props,
+          }],
+        }, {
+          name: 'SaleDeliverableRevisions',
+          component: Empty,
+          path: 'revisions',
+          props,
+          children: [{
+            name: 'SaleDeliverableRevision',
+            component: Empty,
+            path: ':revisionId',
+            props,
+          }],
+        }],
+      }],
+    }, {
       name: 'Submission',
       component: Empty,
       path: '/submissions/:submissionId/',

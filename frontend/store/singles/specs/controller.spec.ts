@@ -138,7 +138,7 @@ describe('Single controller', () => {
     mockError.mockImplementationOnce(() => undefined)
     expect(() => {
       controller.register(['blank', 'fox'])
-    }).toThrow(TypeError("Cannot read property 'addChild' of undefined"))
+    }).toThrow(TypeError("Cannot read properties of undefined (reading 'addChild')"))
     expect(mockError).toHaveBeenCalledWith(
       'Failed registering ["blank","fox"].Likely, the parent path is not registered, but check error for ' +
       'more detail. It could also be an error in a watcher/computed property.',

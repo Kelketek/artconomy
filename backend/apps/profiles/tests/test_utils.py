@@ -8,20 +8,17 @@ from freezegun import freeze_time
 from moneyed import Money
 
 from apps.lib.abstract_models import GENERAL, ADULT
-from apps.lib.test_resources import APITestCase
+from apps.lib.test_resources import APITestCase, EnsurePlansMixin
 from apps.lib.tests.factories_interdepend import CommentFactory
 from apps.profiles.models import ArtconomyAnonymousUser
 from apps.profiles.tests.factories import UserFactory, SubmissionFactory, CharacterFactory, AvatarFactory
 from apps.profiles.utils import extend_landscape, empty_user, clear_user, UserClearException
-from apps.sales.models import NEW, IN_PROGRESS, PAYMENT_PENDING, WAITING, CANCELLED, TransactionRecord, ServicePlan
-from apps.sales.tests.factories import DeliverableFactory, TransactionRecordFactory, ProductFactory, BankAccountFactory, \
-    ServicePlanFactory
+from apps.sales.constants import WAITING, NEW, PAYMENT_PENDING, IN_PROGRESS, CANCELLED, HOLDINGS, SUCCESS, PENDING, \
+    LIMBO, MISSED
+from apps.sales.tests.factories import DeliverableFactory, TransactionRecordFactory, ProductFactory, BankAccountFactory
 
 
-class ExtendPremiumTest(TestCase):
-    def setUp(self):
-        self.landscape = ServicePlanFactory(name='Landscape')
-
+class ExtendPremiumTest(EnsurePlansMixin, TestCase):
     @freeze_time('2018-08-01')
     def test_extend_landscape_from_none(self):
         user = UserFactory.create()
@@ -62,11 +59,7 @@ class TestEmptyUser(APITestCase):
         )
 
 
-class TestClearUser(TestCase):
-    def setUp(self):
-        self.landscape = ServicePlanFactory(name='Landscape')
-        self.free = ServicePlanFactory(name='Free')
-
+class TestClearUser(EnsurePlansMixin, TestCase):
     def test_fail_on_outstanding_order(self):
         user = UserFactory.create()
         DeliverableFactory.create(order__buyer=user, status=IN_PROGRESS)
@@ -90,8 +83,8 @@ class TestClearUser(TestCase):
         TransactionRecordFactory.create(
             payee=user,
             amount=Money('1.00', 'USD'),
-            destination=TransactionRecord.HOLDINGS,
-            status=TransactionRecord.SUCCESS,
+            destination=HOLDINGS,
+            status=SUCCESS,
         )
         with self.assertRaises(UserClearException) as err:
             clear_user(user)
@@ -104,14 +97,14 @@ class TestClearUser(TestCase):
         TransactionRecordFactory.create(
             payee=user,
             amount=Money('1.00', 'USD'),
-            destination=TransactionRecord.HOLDINGS,
-            status=TransactionRecord.SUCCESS,
+            destination=HOLDINGS,
+            status=SUCCESS,
         )
         TransactionRecordFactory.create(
             payer=user,
             amount=Money('1.00', 'USD'),
-            source=TransactionRecord.HOLDINGS,
-            status=TransactionRecord.PENDING,
+            source=HOLDINGS,
+            status=PENDING,
         )
         with self.assertRaises(UserClearException) as err:
             clear_user(user)
@@ -124,14 +117,14 @@ class TestClearUser(TestCase):
         TransactionRecordFactory.create(
             payee=user,
             amount=Money('1.00', 'USD'),
-            destination=TransactionRecord.HOLDINGS,
-            status=TransactionRecord.SUCCESS,
+            destination=HOLDINGS,
+            status=SUCCESS,
         )
         TransactionRecordFactory.create(
             payer=user,
             amount=Money('1.00', 'USD'),
-            source=TransactionRecord.HOLDINGS,
-            status=TransactionRecord.SUCCESS,
+            source=HOLDINGS,
+            status=SUCCESS,
         )
         clear_user(user)
 
@@ -142,8 +135,9 @@ class TestClearUser(TestCase):
         relevant_1 = DeliverableFactory.create(status=NEW, order__buyer=user)
         relevant_2 = DeliverableFactory.create(status=PAYMENT_PENDING, order__seller=user)
         relevant_3 = DeliverableFactory.create(status=WAITING, order__buyer=user)
+        relevant_4 = DeliverableFactory.create(status=LIMBO, order__buyer=user)
         clear_user(user)
-        to_refresh = [not_relevant, not_relevant_2, relevant_1, relevant_2, relevant_3]
+        to_refresh = [not_relevant, not_relevant_2, relevant_1, relevant_2, relevant_3, relevant_4]
         for order in to_refresh:
             order.refresh_from_db()
         self.assertEqual(not_relevant.status, IN_PROGRESS)
@@ -151,6 +145,7 @@ class TestClearUser(TestCase):
         self.assertEqual(relevant_1.status, CANCELLED)
         self.assertEqual(relevant_2.status, CANCELLED)
         self.assertEqual(relevant_3.status, CANCELLED)
+        self.assertEqual(relevant_4.status, MISSED)
 
     @patch('apps.profiles.utils.avatar_url')
     @patch('apps.profiles.utils.uuid4')
@@ -171,8 +166,7 @@ class TestClearUser(TestCase):
         self.assertFalse(user.landscape_enabled)
         self.assertEqual(user.avatar_url, 'https://example.com/test-reset.png')
 
-    @patch('apps.sales.dwolla.dwolla')
-    def test_delete_related(self, mock_dwolla):
+    def test_delete_related(self):
         user = UserFactory.create()
         to_destroy = [
             CommentFactory(user=user),
@@ -213,4 +207,3 @@ class TestClearUser(TestCase):
         self.assertEqual(user.watching.count(), 0)
         self.assertEqual(user.watched_by.count(), 0)
         self.assertEqual(user.subscription_set.count(), 0)
-        self.assertTrue(bank_account.deleted)

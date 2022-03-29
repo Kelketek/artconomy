@@ -6,8 +6,8 @@
           <v-col cols="12" md="6">
             <h1>
               <router-link style="text-decoration: underline;"
-                           :to="{name: 'BuyAndSell', params: {question: 'awoo-workload-management'}}">
-                AWOO</router-link>
+                           :to="{name: 'BuyAndSell', params: {question: 'workload-management'}}">
+                Workload Management</router-link>
               Panel
             </h1>
             <v-row no-gutters  >
@@ -22,9 +22,11 @@
             </v-row>
           </v-col>
           <v-col cols="12" md="6" class="pb-2">
-            <div v-if="closed">
+            <div v-if="closed" class="pb-2">
               <strong>You are currently unable to take new commissions because:</strong>
               <ul>
+                <li v-if="stats.x.delinquent">You have an unpaid invoice. Please find it in your
+                  <router-link :to="{name: 'Invoices', param: {username}}">invoice list and pay it.</router-link></li>
                 <li v-if="stats.x.commissions_closed">You have set your 'commissions closed' setting.</li>
                 <li v-if="stats.x.load >= stats.x.max_load">You have filled all of your slots. You can increase your
                   maximum slots to take on more commissions at one time in your artist settings.
@@ -65,7 +67,7 @@
     </v-tabs-items>
     <ac-add-button v-if="isSales" v-model="showNewInvoice">Create Invoice</ac-add-button>
     <ac-form-dialog v-bind="newInvoice.bind" @submit.prevent="newInvoice.submitThen(goToOrder)" v-model="showNewInvoice" :large="true" title="Issue new Invoice">
-      <ac-invoice-form :escrow-disabled="invoiceEscrowDisabled" :line-items="invoiceLineItems" :new-invoice="newInvoice" :username="username" />
+      <ac-invoice-form :escrow-enabled="invoiceEscrowEnabled" :line-items="invoiceLineItems" :new-invoice="newInvoice" :username="username" />
     </ac-form-dialog>
     <ac-form-dialog v-if="isSales" v-bind="broadcastForm.bind" v-model="showBroadcast" @submit.prevent="broadcastForm.submitThen(() => {confirmBroadcast = true})">
       <v-row v-if="!confirmBroadcast">
@@ -144,6 +146,15 @@ export default class Orders extends mixins(Subjective, InvoicingMixin) {
     return this.username
   }
 
+  public get international() {
+    return this.subject?.international || false
+  }
+
+  public get planName() {
+    // eslint-disable-next-line camelcase
+    return this.subject?.service_plan || null
+  }
+
   public get closed() {
     const stats = this.stats.x as CommissionStats
     if (!stats) {
@@ -152,14 +163,14 @@ export default class Orders extends mixins(Subjective, InvoicingMixin) {
     return stats.commissions_closed || stats.commissions_disabled || stats.load >= stats.max_load
   }
 
-  public get invoiceEscrowDisabled() {
+  public get invoiceEscrowEnabled() {
     if (!this.subjectHandler.artistProfile.x) {
-      return true
+      return false
     }
     if (this.newInvoice.fields.paid.value) {
-      return true
+      return false
     }
-    return this.subjectHandler.artistProfile.x.escrow_disabled
+    return this.subjectHandler.artistProfile.x.escrow_enabled
   }
 
   public created() {

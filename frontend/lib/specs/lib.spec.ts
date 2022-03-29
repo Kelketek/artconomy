@@ -251,7 +251,8 @@ describe('HTTP Helpers', () => {
     expect(getHeaders('post', '/test/')).toEqual(
       {
         'Content-Type': 'application/json; charset=utf-8',
-        'X-CSRFToken': 'Stuff', 'X-Referred-By': 'Jimmy',
+        'X-CSRFToken': 'Stuff',
+        'X-Referred-By': 'Jimmy',
         'X-Window-ID': 'Blabla',
       },
     )

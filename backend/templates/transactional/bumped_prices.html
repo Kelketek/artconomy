@@ -1,0 +1,14 @@
+{% extends 'email_base.html' %}
+{% load md2 %}
+{% block header_message %}Your prices have been automatically adjusted{% endblock %}
+{% block message %}
+<p>The prices for all of your product listings have been bumped upward by $5 in order to make sure your payouts are not
+    lowered by our recent changes in fees and plans. This change should result in a slight payout increase for you
+    when completing a commission, which we hope you will enjoy. To understand why this change was made (and to learn
+    about several new changes to the site), please follow the link below for an article on major changes to Artconomy.
+</p>
+{% endblock message %}
+
+{% block action %}
+<a href="https://artconomy.com/blog/posts/2023/03/21/major-site-update-2023-plans-fees-refinements-and-features/">Read the Article Here.</a>
+{% endblock %}

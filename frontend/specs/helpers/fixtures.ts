@@ -1,3 +1,4 @@
+import {genShortcode} from 'short-stuff'
 import {rs} from './index'
 import {User} from '@/store/profiles/types/User'
 import {ArtistProfile} from '@/store/profiles/types/ArtistProfile'
@@ -12,6 +13,8 @@ import Deliverable from '@/types/Deliverable'
 import Reference from '@/types/Reference'
 import CommissionStats from '@/types/CommissionStats'
 import {PROCESSORS} from '@/types/PROCESSORS'
+import Invoice from '@/types/Invoice'
+import {InvoiceStatus} from '@/types/InvoiceStatus'
 
 export function genUser(overrides?: Partial<User>): User {
   return {
@@ -38,11 +41,15 @@ export function genUser(overrides?: Partial<User>): User {
     telegram_link: 'https://t.me/ArtconomyDevBot/?start=Fox_a0b1a06d-7f8d-4294-96d9-4e3713',
     offered_mailchimp: true,
     artist_mode: true,
+    international: false,
     hits: 1,
     watches: 0,
     guest_email: '',
     birthday: '1988-08-01',
     processor: PROCESSORS.AUTHORIZE,
+    service_plan: 'Free',
+    next_service_plan: 'Free',
+    verified_email: false,
     ...overrides,
   }
 }
@@ -66,7 +73,7 @@ export function genArtistProfile(overrides?: Partial<ArtistProfile>): ArtistProf
     auto_withdraw: true,
     lgbt: false,
     artist_of_color: false,
-    escrow_disabled: false,
+    escrow_enabled: true,
     bank_account_status: 0 as BANK_STATUSES.UNSET,
     public_queue: true,
     ...overrides,
@@ -122,7 +129,8 @@ export function genProduct(overrides?: Partial<Product>): Product {
     expected_turnaround: 3.00,
     track_inventory: false,
     table_product: false,
-    escrow_disabled: false,
+    international: false,
+    escrow_enabled: true,
     user: {
       id: 1,
       username: 'Fox',
@@ -134,15 +142,19 @@ export function genProduct(overrides?: Partial<Product>): Product {
       guest: false,
       artist_mode: true,
       taggable: true,
+      verified_email: false,
     },
     primary_submission: genSubmission(),
     base_price: 10.00,
     starting_price: 10.00,
+    shield_price: 10.00,
     tags: [],
     available: true,
     featured: false,
     wait_list: false,
     catalog_enabled: true,
+    cascade_fees: true,
+    escrow_upgradable: false,
     ...overrides,
   }
 }
@@ -164,6 +176,7 @@ export function genDeliverable(overrides?: Partial<Deliverable>): Deliverable {
     outputs: [],
     subscribed: true,
     table_order: false,
+    international: false,
     adjustment_task_weight: 0,
     adjustment_expected_turnaround: 0,
     expected_turnaround: 1,
@@ -173,13 +186,14 @@ export function genDeliverable(overrides?: Partial<Deliverable>): Deliverable {
     dispute_available_on: null,
     auto_finalize_on: null,
     started_on: null,
-    escrow_disabled: false,
+    escrow_enabled: true,
     revisions_hidden: false,
     final_uploaded: false,
     rating: 0,
     processor: PROCESSORS.AUTHORIZE,
     read: true,
     arbitrator: null,
+    cascade_fees: true,
     order,
     product: genProduct({user: order.seller}),
     display: {
@@ -193,6 +207,7 @@ export function genDeliverable(overrides?: Partial<Deliverable>): Deliverable {
       preview: null,
     },
     invoice: '234gsdgsdfg4',
+    tip_invoice: null,
     ...overrides,
   }
 }
@@ -256,11 +271,24 @@ export function genCommissionStats(overrides?: Partial<CommissionStats>): Commis
   return {
     load: 5,
     max_load: 10,
+    delinquent: false,
     commissions_closed: false,
     commissions_disabled: false,
     products_available: 2,
     active_orders: 1,
     new_orders: 2,
+    ...overrides,
+  }
+}
+
+export function genInvoice(overrides?: Partial<Invoice>): Invoice {
+  return {
+    id: genShortcode(),
+    status: InvoiceStatus.OPEN,
+    created_on: '2019-07-26T15:04:41.078424-05:00',
+    bill_to: genUser({username: 'Fox'}),
+    issued_by: genUser({username: 'Vulpes'}),
+    targets: [],
     ...overrides,
   }
 }

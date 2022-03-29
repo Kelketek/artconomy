@@ -26,6 +26,7 @@ export function genSubmission(overrides?: Partial<Submission>): Submission {
       guest: false,
       artist_mode: true,
       taggable: true,
+      verified_email: false,
     },
     comment_count: 0,
     favorite_count: 0,

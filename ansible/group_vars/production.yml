@@ -12,3 +12,4 @@ mail_domain: outbound.artconomy.com
 app_version: master
 host_color: red
 password_protect: false
+swap_kilo_size: 8388608

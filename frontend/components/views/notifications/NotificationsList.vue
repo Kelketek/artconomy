@@ -62,9 +62,12 @@ import Component, {mixins} from 'vue-class-component'
 import AcReferenceUploaded from '@/components/views/notifications/events/AcReferenceUploaded.vue'
 import AcSubmissionShared from '@/components/views/notifications/events/AcSubmissionShared.vue'
 import AcWaitlistUpdated from '@/components/views/notifications/events/AcWaitlistUpdated.vue'
+import AcTipReceived from '@/components/views/notifications/events/AcTipReceived.vue'
+import AcAutoClosed from '@/components/views/notifications/events/AcAutoClosed.vue'
 
 @Component({
   components: {
+    AcAutoClosed,
     AcWaitlistUpdated,
     AcSubmissionShared,
     AcReferenceUploaded,
@@ -93,6 +96,7 @@ import AcWaitlistUpdated from '@/components/views/notifications/events/AcWaitlis
     AcOrderUpdate,
     AcNewCharacter,
     AcNewProduct,
+    AcTipReceived,
   },
 })
 export default class NotificationsList extends mixins(NotificationsListBase) {

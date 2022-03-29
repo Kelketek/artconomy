@@ -16,19 +16,17 @@ import {DeliverableStatus} from '@/types/DeliverableStatus'
 import {dummyLineItems} from '@/lib/specs/helpers'
 import mockAxios from '@/__mocks__/axios'
 import MockDate from 'mockdate'
-import {LineTypes} from '@/types/LineTypes'
 import {genSubmission} from '@/store/submissions/specs/fixtures'
 import Router from 'vue-router'
 import {ArtStore, createStore} from '@/store'
 import Vue, {VueConstructor} from 'vue'
 import Vuetify from 'vuetify/lib'
 import {deliverableRouter} from '@/components/views/order/specs/helpers'
-import {SingleController} from '@/store/singles/controller'
-import LineItem from '@/types/LineItem'
 import {ConnectionStatus} from '@/types/ConnectionStatus'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import {PROCESSORS} from '@/types/PROCESSORS'
 import {parseISO} from '@/lib/lib'
+import Deliverable from '@/types/Deliverable'
 
 let localVue: VueConstructor
 let store: ArtStore
@@ -88,48 +86,6 @@ describe('DeliverablePayment.vue', () => {
     await vm.$nextTick()
     vm.deliverable.markDeleted()
     await vm.$nextTick()
-  })
-  it('Permits tipping', async() => {
-    const fox = genUser()
-    fox.username = 'Fox'
-    setViewer(store, fox)
-    router.push('/orders/Fox/order/1/deliverables/5/payment')
-    wrapper = mount(
-      DeliverablePayment, {
-        localVue,
-        store,
-        router,
-        vuetify,
-        propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-        attachTo: docTarget(),
-        stubs: ['ac-revision-manager'],
-      })
-    const vm = wrapper.vm as any
-    const deliverable = genDeliverable()
-    deliverable.order.seller.landscape = true
-    deliverable.order.buyer!.landscape = false
-    deliverable.status = DeliverableStatus.PAYMENT_PENDING
-    vm.deliverable.makeReady(deliverable)
-    vm.revisions.ready = true
-    vm.characters.setList([])
-    vm.characters.fetching = false
-    vm.characters.ready = false
-    vm.order.makeReady(deliverable.order)
-    vm.lineItems.setList(dummyLineItems())
-    mockAxios.reset()
-    await vm.$nextTick()
-    vm.lineItems.ready = true
-    vm.lineItems.fetching = false
-    await vm.$nextTick()
-    wrapper.find('.payment-button').trigger('click')
-    await vm.$nextTick()
-    wrapper.find('.preset10').trigger('click')
-    await vm.$nextTick()
-    expect(mockAxios.lastReqGet().data).toEqual({
-      amount: '8.00',
-      percentage: 0,
-      type: LineTypes.TIP,
-    })
   })
   it('Gracefully handles commission info', async() => {
     const user = genUser()
@@ -271,100 +227,6 @@ describe('DeliverablePayment.vue', () => {
     await vm.$nextTick()
     expect(vm.paymentForm.fields.cash.value).toBe(false)
   })
-  it('Generates tip line item', async() => {
-    const fox = genUser()
-    fox.username = 'Fox'
-    setViewer(store, fox)
-    router.push('/orders/Fox/order/1/deliverables/5')
-    wrapper = mount(
-      DeliverablePayment, {
-        localVue,
-        store,
-        router,
-        vuetify,
-        propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-
-        attachTo: docTarget(),
-        stubs: ['ac-revision-manager'],
-      })
-    const vm = wrapper.vm as any
-    const deliverable = genDeliverable()
-    vm.deliverable.setX(deliverable)
-    vm.deliverable.ready = true
-    await vm.$nextTick()
-    mockAxios.reset()
-    vm.lineItems.setList(dummyLineItems())
-    vm.setTip(0.25)
-    const lastReq = mockAxios.lastReqGet()
-    expect(lastReq.url).toEqual('/api/sales/v1/order/1/deliverables/5/line-items/')
-    expect(lastReq.method).toEqual('post')
-    expect(lastReq.data).toEqual({
-      amount: '20.00',
-      percentage: 0,
-      type: LineTypes.TIP,
-    })
-    const tipLine = {
-      amount: 5,
-      percentage: 0,
-      type: LineTypes.TIP,
-      priority: 200,
-      cascade_percentage: false,
-      cascade_amount: false,
-    }
-    mockAxios.mockResponse(rs({
-      amount: 5,
-      percentage: 0,
-      type: LineTypes.TIP,
-      priority: 200,
-      cascade_percentage: false,
-      cascade_amount: false,
-    }))
-    await flushPromises()
-    expect(vm.lineItems.list.map((x: SingleController<LineItem>) => x.x)).toContainEqual(tipLine)
-  })
-  it('Updates an existing tip line item', async() => {
-    const fox = genUser()
-    fox.username = 'Fox'
-    setViewer(store, fox)
-    router.push('/orders/Fox/order/1/deliverables/5')
-    wrapper = mount(
-      DeliverablePayment, {
-        localVue,
-        store,
-        router,
-        vuetify,
-        propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-
-        attachTo: docTarget(),
-        stubs: ['ac-revision-manager'],
-      })
-    const vm = wrapper.vm as any
-    const deliverable = genDeliverable()
-    vm.deliverable.setX(deliverable)
-    vm.deliverable.ready = true
-    await vm.$nextTick()
-    mockAxios.reset()
-    const lines = dummyLineItems()
-    const sourceLine = {
-      id: -20,
-      amount: 5,
-      frozen_value: null,
-      percentage: 0,
-      type: LineTypes.TIP,
-      priority: 200,
-      cascade_percentage: false,
-      cascade_amount: false,
-      back_into_percentage: false,
-      description: '',
-    }
-    lines.push(sourceLine)
-    vm.lineItems.setList(lines)
-    vm.setTip(0.25)
-    mockAxios.mockResponse(rs({...sourceLine, amount: 20}))
-    await vm.$nextTick()
-    expect(vm.tip).toBeTruthy()
-    expect(vm.tip.patchers.amount.model).toBe(20)
-  })
   it('Calculates the correct completion date.', async() => {
     const fox = genUser()
     fox.username = 'Fox'
@@ -422,12 +284,12 @@ describe('DeliverablePayment.vue', () => {
     await vm.$nextTick()
     wrapper.find('.payment-button').trigger('click')
     await vm.$nextTick()
-    expect(vm.showPayment).toBe(true)
+    expect(vm.viewSettings.model.showPayment).toBe(true)
     vm.$refs.cardManager.stripe().paymentValue = {}
     wrapper.find('.dialog-submit').trigger('click')
     await vm.$nextTick()
     await vm.$nextTick()
-    expect(vm.showPayment).toBe(false)
+    expect(vm.viewSettings.model.showPayment).toBe(false)
   })
   it('Handles a Stripe Payment with an existing card', async() => {
     const fox = genUser()
@@ -455,7 +317,7 @@ describe('DeliverablePayment.vue', () => {
     await vm.$nextTick()
     wrapper.find('.payment-button').trigger('click')
     await vm.$nextTick()
-    expect(vm.showPayment).toBe(true)
+    expect(vm.viewSettings.model.showPayment).toBe(true)
     vm.$refs.cardManager.stripe().paymentValue = {}
     vm.$refs.cardManager.tab = 'saved-cards'
     vm.paymentForm.fields.card_id.update(15)
@@ -463,7 +325,7 @@ describe('DeliverablePayment.vue', () => {
     wrapper.find('.dialog-submit').trigger('click')
     await vm.$nextTick()
     await vm.$nextTick()
-    expect(vm.showPayment).toBe(false)
+    expect(vm.viewSettings.model.showPayment).toBe(false)
   })
   it('Handles a Stripe Payment Failure', async() => {
     const fox = genUser()
@@ -492,20 +354,20 @@ describe('DeliverablePayment.vue', () => {
     wrapper.find('.payment-button').trigger('click')
     await vm.$nextTick()
     await vm.$nextTick()
-    expect(vm.showPayment).toBe(true)
+    expect(vm.viewSettings.model.showPayment).toBe(true)
     vm.$refs.cardManager.stripe().paymentValue = {
       error: {code: 'Failure', message: 'Shit broke.'},
     }
     wrapper.find('.dialog-submit').trigger('click')
     await vm.$nextTick()
     await vm.$nextTick()
-    expect(vm.showPayment).toBe(true)
+    expect(vm.viewSettings.model.showPayment).toBe(true)
     expect(vm.paymentForm.errors).toEqual(['Shit broke.'])
     vm.$refs.cardManager.stripe().paymentValue = {
       error: {code: 'Failure'},
     }
     wrapper.find('.dialog-submit').trigger('click')
-    expect(vm.showPayment).toBe(true)
+    expect(vm.viewSettings.model.showPayment).toBe(true)
     await vm.$nextTick()
     await vm.$nextTick()
     expect(vm.paymentForm.errors).toEqual(['An unknown error occurred while trying to reach Stripe. Please contact support.'])
@@ -556,5 +418,183 @@ describe('DeliverablePayment.vue', () => {
     await testTrippedForm(vm)
     vm.paymentForm.fields.card_id.update(555)
     await testTrippedForm(vm)
+  })
+  it('Calculates the total expected turnaround days', async() => {
+    const fox = genUser()
+    fox.username = 'Fox'
+    setViewer(store, fox)
+    router.push('/orders/Fox/order/1/deliverables/5')
+    wrapper = mount(
+      DeliverablePayment, {
+        localVue,
+        store,
+        router,
+        vuetify,
+        propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
+        attachTo: docTarget(),
+        stubs: ['ac-revision-manager'],
+      })
+    const vm = wrapper.vm as any
+    const deliverable = genDeliverable({
+      processor: PROCESSORS.STRIPE,
+      status: DeliverableStatus.QUEUED,
+      expected_turnaround: 2,
+      adjustment_expected_turnaround: 3,
+    })
+    vm.deliverable.makeReady(deliverable)
+    await vm.$nextTick()
+    expect(vm.expectedTurnaround).toBe(5)
+  })
+  it('Calculates the total expected revisions', async() => {
+    const fox = genUser()
+    fox.username = 'Fox'
+    setViewer(store, fox)
+    router.push('/orders/Fox/order/1/deliverables/5')
+    wrapper = mount(
+      DeliverablePayment, {
+        localVue,
+        store,
+        router,
+        vuetify,
+        propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
+        attachTo: docTarget(),
+        stubs: ['ac-revision-manager'],
+      })
+    const vm = wrapper.vm as any
+    const deliverable = genDeliverable({
+      processor: PROCESSORS.STRIPE,
+      status: DeliverableStatus.QUEUED,
+      revisions: 2,
+      adjustment_revisions: 3,
+    })
+    vm.deliverable.makeReady(deliverable)
+    await vm.$nextTick()
+    expect(vm.revisionCount).toBe(5)
+  })
+})
+
+describe('DeliverablePayment.vue payment modal checks', () => {
+  let vm: any
+  let deliverable: Deliverable
+  beforeEach(() => {
+    localVue = vueSetup()
+    localVue.use(Router)
+    jest.useFakeTimers()
+    store = createStore()
+    vuetify = createVuetify()
+    router = deliverableRouter()
+    // This is a saturday.
+    MockDate.set(parseISO('2020-08-01'))
+    mount(Empty, {store, localVue}).vm.$getSingle('socketState', {
+      endpoint: '#',
+      persist: true,
+      x: {
+        status: ConnectionStatus.CONNECTING,
+        version: 'beep',
+        serverVersion: '',
+      },
+    })
+    wrapper = mount(
+      DeliverablePayment, {
+        localVue,
+        store,
+        router,
+        vuetify,
+        propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
+        attachTo: docTarget(),
+        stubs: ['ac-revision-manager'],
+      })
+    vm = wrapper.vm
+    deliverable = genDeliverable({
+      processor: PROCESSORS.STRIPE,
+      status: DeliverableStatus.PAYMENT_PENDING,
+    })
+    vm.lineItems.makeReady(dummyLineItems())
+    vm.deliverable.makeReady(deliverable)
+    vm.revisions.makeReady([])
+    vm.characters.makeReady([])
+    vm.order.makeReady(deliverable.order)
+    vm.clientSecret.makeReady({secret: 'beep'})
+  })
+  afterEach(() => {
+    jest.clearAllTimers()
+    cleanUp(wrapper)
+    MockDate.reset()
+  })
+  it('Switches to and from cash mode', async() => {
+    expect(vm.paymentForm.fields.cash.model).toBe(false)
+    vm.cardTabs = 2
+    await vm.$nextTick()
+    expect(vm.paymentForm.fields.cash.model).toBe(true)
+    vm.cardTabs = 0
+    await vm.$nextTick()
+    expect(vm.paymentForm.fields.cash.model).toBe(false)
+  })
+  it('Sets a default reader', async() => {
+    expect(vm.cardTabs).toBe(0)
+    vm.viewerHandler.user.updateX({is_staff: true})
+    expect(vm.paymentForm.fields.use_reader.model).toBe(false)
+    vm.readers.makeReady([{id: 'Test', name: 'Test Reader'}])
+    await vm.$nextTick()
+    // Should auto-switch.
+    expect(vm.cardTabs).toBe(1)
+    expect(vm.paymentForm.fields.use_reader.model).toBe(true)
+    expect(vm.readerForm.fields.reader.model).toBe('Test')
+    await vm.$nextTick()
+  })
+  it('Handles an empty reader list', async() => {
+    expect(vm.cardTabs).toBe(0)
+    vm.viewerHandler.user.updateX({is_staff: true})
+    expect(vm.paymentForm.fields.use_reader.model).toBe(false)
+    vm.cardTabs = 1
+    await vm.$nextTick()
+    expect(vm.paymentForm.fields.use_reader.model).toBe(true)
+    expect(vm.readerForm.fields.reader.model).toBe(null)
+    await vm.$nextTick()
+  })
+  it('Handles switching to manual key-in', async() => {
+    expect(vm.cardTabs).toBe(0)
+    vm.viewerHandler.user.updateX({is_staff: true})
+    expect(vm.paymentForm.fields.use_reader.model).toBe(false)
+    vm.readers.makeReady([{id: 'Test', name: 'Test Reader'}])
+    await vm.$nextTick()
+    // should auto-switch
+    expect(vm.cardTabs).toBe(1)
+    vm.cardTabs = 0
+    await vm.$nextTick()
+    expect(vm.paymentForm.fields.use_reader.model).toBe(false)
+    // Should not remove the readerForm value.
+    expect(vm.readerForm.fields.reader.model).toBe('Test')
+    await vm.$nextTick()
+  })
+  it('Handles switching from staff to non-staff', async() => {
+    expect(vm.cardTabs).toBe(0)
+    vm.viewerHandler.user.updateX({is_staff: true})
+    expect(vm.paymentForm.fields.use_reader.model).toBe(false)
+    vm.readers.makeReady([{id: 'Test', name: 'Test Reader'}])
+    await vm.$nextTick()
+    // should auto-switch
+    expect(vm.cardTabs).toBe(1)
+    vm.viewerHandler.user.updateX({is_staff: false})
+    await vm.$nextTick()
+    expect(vm.cardTabs).toBe(0)
+  })
+  it('Hides the payment form after marking a deliverable as paid by cash', async() => {
+    vm.viewerHandler.user.updateX({is_staff: true})
+    vm.cardTabs = 2
+    await vm.$nextTick()
+    mockAxios.reset()
+    wrapper.find('.payment-button').trigger('click')
+    await vm.$nextTick()
+    expect(vm.viewSettings.patchers.showPayment.model).toBe(true)
+    wrapper.find('.mark-paid-cash').trigger('click')
+    const lastRequest = mockAxios.lastReqGet()
+    expect(lastRequest.url).toBe(
+      `/api/sales/v1/invoice/${deliverable.invoice}/pay/`,
+    )
+    mockAxios.mockResponse(rs(deliverable))
+    await vm.$nextTick()
+    await vm.$nextTick()
+    expect(vm.viewSettings.patchers.showPayment.model).toBe(false)
   })
 })

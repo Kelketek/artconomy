@@ -140,6 +140,19 @@
                             <router-link :to="{name: 'CommissionAgreement'}">Commission Agreement.</router-link>
                           </v-alert>
                         </v-col>
+                        <v-col cols="12" v-if="product.escrow_enabled || !product.x.escrow_upgradable">
+                          <ac-escrow-label :escrow="product.x.escrow_enabled" name="product" />
+                        </v-col>
+                        <template v-else>
+                          <v-col cols="12" sm="6">
+                            <ac-escrow-label :escrow="product.x.escrow_enabled" :upgrade-available="true" name="product" />
+                          </v-col>
+                          <v-col cols="6">
+                            <ac-bound-field
+                                :field="orderForm.fields.escrow_upgrade" field-type="v-checkbox" :label="shieldUpgradeLabel"
+                            />
+                          </v-col>
+                        </template>
                       </v-row>
                     </v-stepper-content>
                   </v-stepper-items>
@@ -178,7 +191,10 @@
                   <ac-asset :asset="product.x.primary_submission" thumb-name="thumbnail" />
                 </v-col>
                 <v-col class="subtitle-1" cols="12">
-                  Starts at ${{product.x.starting_price.toFixed(2)}}
+                  Starts at ${{currentPrice.toFixed(2)}}
+                  <p v-if="shielded">
+                    <small>(${{product.x.starting_price.toFixed(2)}} + ${{shieldCost.toFixed(2)}} shield fee)</small>
+                  </p>
                 </v-col>
                 <v-col>
                   <span v-if="product.x.revisions">
@@ -217,8 +233,10 @@ import AcLink from '@/components/wrappers/AcLink.vue'
 import Product from '@/types/Product'
 import {artCall} from '@/lib/lib'
 import {Character} from '@/store/characters/types/Character'
+import AcEscrowLabel from '@/components/AcEscrowLabel.vue'
   @Component({
     components: {
+      AcEscrowLabel,
       AcLink,
       AcForm,
       AcRendered,
@@ -288,6 +306,49 @@ export default class NewOrder extends mixins(ProductCentric, Formatting) {
       this.orderForm.sending = false
     }
 
+    public get currentPrice() {
+      const product = this.product.x
+      if (!product) {
+        return NaN
+      }
+      if (this.shielded) {
+        return product.shield_price
+      }
+      return product.starting_price
+    }
+
+    public get shielded() {
+      const product = this.product.x
+      if (!product) {
+        return false
+      }
+      if (product.escrow_enabled) {
+        return true
+      }
+      return (product.escrow_upgradable && this.orderForm.fields.escrow_upgrade.value)
+    }
+
+    public get shieldCost() {
+      const product = this.product.x
+      if (!product) {
+        return 0
+      }
+      return product.shield_price - product.starting_price
+    }
+
+    public get shieldUpgradeLabel() {
+      const product = this.product.x
+      if (!product) {
+        return 'Add Shield Protection'
+      }
+      const text = 'Add Shield Protection for '
+      return text + `$${this.shieldCost.toFixed(2)}`
+    }
+
+    public get forceShield() {
+      return !!({...this.$route.query}.forceShield)
+    }
+
     public created() {
       // The way we're constructed allows us to avoid refetching if we arrive through the product page, but
       // leaves us in the same scroll position as we were. Fix that here.
@@ -311,10 +372,15 @@ export default class NewOrder extends mixins(ProductCentric, Formatting) {
           rating: {value: 0, step: 2},
           details: {value: '', step: 2},
           references: {value: [], step: 2},
-          // Let there be a 'step 3' even if there's not an actual field there.
-          dummy: {value: '', step: 3},
+          // Note: There are agreements and warnings to display on step 3 even if there aren't fields,
+          // so if this field gets moved to a lower step, a dummy field should be created for step 3 to persist.
+          escrow_upgrade: {value: this.forceShield, step: 3},
         },
       })
+      // Might be overwritten and set false if the form already exists and the visited another product.
+      if (this.forceShield) {
+        this.orderForm.fields.escrow_upgrade.model = true
+      }
       // Since we allow the form to persist, we want to make sure if the user moves to another product, we update the
       // endpoint.
       this.orderForm.endpoint = this.product.endpoint + 'order/'

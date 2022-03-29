@@ -6,7 +6,7 @@ import {ArtStore, createStore} from '@/store'
 import flushPromises from 'flush-promises'
 import {genUser} from './helpers/fixtures'
 import {FormController} from '@/store/forms/form-controller'
-import {cleanUp, createVuetify, dialogExpects, docTarget, genAnon, rq, rs, vueSetup, mount, setViewer} from './helpers'
+import {cleanUp, createVuetify, dialogExpects, docTarget, genAnon, rq, rs, vueSetup, mount} from './helpers'
 import Vuetify from 'vuetify/lib'
 import {WS} from 'jest-websocket-mock'
 import {socketNameSpace} from '@/plugins/socket'
@@ -25,7 +25,6 @@ describe('App.vue', () => {
     localVue = vueSetup()
     store = createStore()
     vuetify = createVuetify()
-    jest.useFakeTimers()
   })
   afterEach(() => {
     cleanUp(wrapper)
@@ -59,7 +58,6 @@ describe('App.vue', () => {
       vuetify,
       mocks: {$route: {fullPath: '/order/', name: 'Thingsf', params: {}, query: {}}},
       stubs: ['nav-bar', 'router-view', 'router-link'],
-
     })
     const vm = wrapper.vm as any
     expect(vm.fullInterface).toBe(true)
@@ -71,7 +69,6 @@ describe('App.vue', () => {
       vuetify,
       mocks: {$route: {fullPath: '/order/', params: {}, query: {}}},
       stubs: ['nav-bar', 'router-view', 'router-link'],
-
     })
     const vm = wrapper.vm as any
     expect(vm.fullInterface).toBe(true)
@@ -207,13 +204,17 @@ describe('App.vue', () => {
     expect(wrapper.find('#alert-bar').exists()).toBe(true)
   })
   it('Removes an alert automatically', async() => {
+    // NOTE: This test causes issues with timer cleanup, but there appears to be
+    // no solution for this now. The error given by jest about clearing native
+    // timers can safely be ignored. The next few tests may also be affected by
+    // this issue.
+    jest.useFakeTimers()
     wrapper = mount(App, {
       store,
       localVue,
       vuetify,
       mocks: {$route: {fullPath: '/', params: {}, query: {}}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
-
     })
     store.commit('pushAlert', {message: 'I am an alert!', category: 'error'})
     await wrapper.vm.$nextTick()
@@ -223,6 +224,7 @@ describe('App.vue', () => {
     expect((wrapper.vm as any).showAlert).toBe(false)
   })
   it('Resets the alert dismissal value after the alert has cleared.', async() => {
+    jest.useFakeTimers()
     wrapper = mount(App, {
       store,
       localVue,
@@ -236,6 +238,8 @@ describe('App.vue', () => {
     await jest.runOnlyPendingTimers()
     await wrapper.vm.$nextTick()
     expect((wrapper.vm as any).alertDismissed).toBe(false)
+    jest.runOnlyPendingTimers()
+    jest.useRealTimers()
   })
   it('Manually resets alert dismissal, if needed', async() => {
     wrapper = mount(App, {
@@ -257,7 +261,6 @@ describe('App.vue', () => {
       vuetify,
       mocks: {$route: {fullPath: '/', params: {}, query: {q: 'Stuff', featured: 'true'}, name: null}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
-
     })
     const vm = wrapper.vm as any
     vm.$route.name = 'Home'
@@ -401,5 +404,36 @@ describe('App.vue', () => {
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
     expect(vm.socketState.x.serverVersion).toEqual('beep')
+  })
+  it('Emits a tracking event', async() => {
+    jest.useRealTimers()
+    wrapper = mount(App, {
+      store,
+      localVue,
+      vuetify,
+      mocks: {$route: {fullPath: '/', params: {stuff: 'things'}, name: 'Home', query: {}}},
+      stubs: ['router-link', 'router-view', 'nav-bar'],
+      attachTo: docTarget(),
+    })
+    await wrapper.vm.$nextTick()
+    window._paq = []
+    wrapper.vm.$route.fullPath = '/test/'
+    await wrapper.vm.$nextTick()
+    expect(window._paq).toEqual([
+      ['setCustomUrl', 'http://localhost/test/'],
+      ['setDocumentTitle', ''],
+      ['setReferrerUrl', 'http://localhost/'],
+      ['trackPageView'],
+    ])
+    window._paq = []
+    // Should not send a tracking event, but others should be tracked.
+    wrapper.vm.$route.name = 'FAQ'
+    wrapper.vm.$route.fullPath = '/test/faq/'
+    await wrapper.vm.$nextTick()
+    expect(window._paq).toEqual([
+      ['setCustomUrl', 'http://localhost/test/faq/'],
+      ['setDocumentTitle', ''],
+      ['setReferrerUrl', 'http://localhost/test/'],
+    ])
   })
 })

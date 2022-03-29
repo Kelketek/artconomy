@@ -22,7 +22,7 @@ import LineItem from '@/types/LineItem'
 import Component from 'vue-class-component'
 import LineAccumulator from '@/types/LineAccumulator'
 import {LineTypes} from '@/types/LineTypes'
-import Big from 'big.js'
+import {Decimal} from 'decimal.js'
 
 @Component
 export default class AcLineItemPreview extends Vue {
@@ -34,6 +34,9 @@ export default class AcLineItemPreview extends Vue {
 
   @Prop({default: false})
   public editing!: boolean
+
+  @Prop({default: false})
+  public transfer!: boolean
 
   public get labelCols() {
     if (this.editing) {
@@ -51,9 +54,9 @@ export default class AcLineItemPreview extends Vue {
 
   public get price() {
     if (this.line.frozen_value !== null) {
-      return Big(this.line.frozen_value)
+      return new Decimal(this.line.frozen_value)
     }
-    return this.priceData.map.get(this.line) as Big
+    return this.priceData.subtotals.get(this.line) as Decimal
   }
 
   public get label() {
@@ -67,16 +70,27 @@ export default class AcLineItemPreview extends Vue {
         return 'Additional requirements'
       }
     }
+    if (this.line.type === LineTypes.TIP) {
+      if (this.transfer) {
+        return 'Tip net'
+      } else {
+        return 'Tip'
+      }
+    }
     const BASIC_TYPES: {[key: number]: string} = {
       0: 'Base price',
       2: 'Shield protection',
       3: 'Landscape bonus',
-      4: 'Tip',
+      4: 'Tip net',
       5: 'Table service',
       6: 'Tax',
       7: 'Accessory item',
+      8: 'Premium Subscription',
+      9: 'Other Fee',
+      10: 'Order Tracking',
+      11: 'Processing',
     }
-    return BASIC_TYPES[this.line.type]
+    return BASIC_TYPES[this.line.type] || 'Unknown'
   }
 }
 </script>

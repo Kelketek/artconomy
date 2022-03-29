@@ -15,6 +15,7 @@ import Artist from '../Artist.vue'
 import Payout from '@/components/views/settings/payment/Payout.vue'
 import TransactionHistory from '@/components/views/settings/payment/TransactionHistory.vue'
 import Premium from '@/components/views/settings/Premium.vue'
+import Invoices from '../payment/Invoices.vue'
 
 jest.useFakeTimers()
 
@@ -55,6 +56,12 @@ const settingRoutes = [{
           name: 'Payout',
           path: 'payout',
           component: Payout,
+          props: true,
+        },
+        {
+          name: 'Invoices',
+          path: 'invoices',
+          component: Invoices,
           props: true,
         },
         {

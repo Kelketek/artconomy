@@ -60,18 +60,58 @@
               </v-stepper-content>
               <v-stepper-content :step="2">
                 <v-row>
-                  <v-col cols="12" sm="6" >
-                    <ac-bound-field :field="newProduct.fields.base_price" label="List Price"
-                                    field-type="ac-price-field"
-                                    :hint="priceHint"
-
-                    />
+                  <v-col cols="6">
+                    <v-row>
+                      <v-col cols="12" sm="6">
+                        <ac-bound-field :field="newProduct.fields.base_price" :label="basePriceLabel"
+                                        field-type="ac-price-field"
+                                        :hint="priceHint"
+                        />
+                      </v-col>
+                      <v-col cols="12" sm="6">
+                        <ac-bound-field
+                            :field="newProduct.fields.cascade_fees" field-type="v-switch" label="Absorb fees" :persistent-hint="true"
+                            hint="If turned on, the price you set is the price your commissioner will see, and you
+                            will pay all fees from that price. If turned off, the price you set is the amount you
+                            take home, and the total the customer pays includes the fees."
+                            :true-value="true"
+                            :false-value="false"
+                        />
+                      </v-col>
+                      <v-col cols="12" sm="6" v-if="escrow">
+                        <ac-bound-field
+                            :field="newProduct.fields.escrow_enabled"
+                            field-type="v-switch"
+                            label="Shield enabled"
+                            :persistent-hint="true"
+                            hint="Enable shield protection for this product."
+                            :true-value="true"
+                            :false-value="false"
+                        />
+                      </v-col>
+                      <v-col cols="12" sm="6" v-if="escrow">
+                        <ac-bound-field
+                            :field="newProduct.fields.escrow_upgradable"
+                            field-type="v-switch"
+                            label="Allow Shield Upgrade"
+                            :persistent-hint="true"
+                            :disabled="newProduct.fields.escrow_enabled.value"
+                            :false-value="false"
+                            :true-value="true"
+                            hint="Allow user to upgrade to shield at their option, rather than requiring it. When upgrading, fee absorption is always off."
+                        />
+                      </v-col>
+                    </v-row>
                   </v-col>
-                  <v-col cols="12" sm="6" >
-                    <ac-price-preview
-                      :username="username" :line-items="lineItems" v-if="escrow"
-                    />
+                  <v-col>
+                    <v-col cols="12">
+                      <ac-price-comparison
+                          :username="username" :line-item-set-maps="lineItemSetMaps"
+                      />
+                    </v-col>
                   </v-col>
+                </v-row>
+                <v-row>
                   <v-col cols="12" sm="6" >
                     <ac-bound-field :field="newProduct.fields.expected_turnaround" number
                                     label="Expected Days Turnaround"
@@ -171,20 +211,30 @@ import {Prop} from 'vue-property-decorator'
 import AcPricePreview from '@/components/price_preview/AcPricePreview.vue'
 import {FormController} from '@/store/forms/form-controller'
 import Product from '@/types/Product'
-import LineItem from '@/types/LineItem'
-import {LineTypes} from '@/types/LineTypes'
 import {SingleController} from '@/store/singles/controller'
 import Pricing from '@/types/Pricing'
 import {flatten} from '@/lib/lib'
 import {Ratings} from '@/store/profiles/types/Ratings'
+import {deliverableLines} from '@/lib/lineItemFunctions'
+import AcPriceComparison from '@/components/price_preview/AcPriceComparison.vue'
+import {LineItemSetMap} from '@/types/LineItemSetMap'
 
-@Component({components: {AcPricePreview, AcBoundField, AcPatchField, AcLoadSection, AcFormDialog}})
+@Component({
+  components: {
+    AcPriceComparison,
+    AcPricePreview,
+    AcBoundField,
+    AcPatchField,
+    AcLoadSection,
+    AcFormDialog,
+  },
+})
 export default class AcNewProduct extends Subjective {
-    public pricing: SingleController<Pricing> = null as unknown as SingleController<Pricing>
+    public pricing = null as unknown as SingleController<Pricing>
     @Prop({required: true})
     public value!: boolean
 
-    public newProduct: FormController = null as unknown as FormController
+    public newProduct = null as unknown as FormController
 
     public get url() {
       return `/api/sales/v1/account/${this.username}/products/`
@@ -194,81 +244,52 @@ export default class AcNewProduct extends Subjective {
       return this.newProduct.fields.max_parallel.value !== 0
     }
 
-    public get lineItems() {
-      const linesController = this.$getList('newProductLines', {endpoint: '????', paginated: false})
-      linesController.ready = true
-      if (!(this.pricing.x)) {
-        linesController.setList([])
-        return linesController
-      }
+    public get lineItemSetMaps(): LineItemSetMap[] {
+      const sets = []
+      const escrowLinesController = this.$getList('newProductLinesEscrow', {
+        endpoint: '#',
+        paginated: false,
+      })
+      const nonEscrowLinesController = this.$getList('newProductLinesNonEscrow', {
+        endpoint: '#',
+        paginated: false,
+      })
+      const pricing = this.pricing.x
       const basePrice = parseFloat(this.newProduct.fields.base_price.value)
-      if (isNaN(basePrice)) {
-        linesController.setList([])
-        return linesController
-      }
-      const lines: LineItem[] = [{
-        id: -1,
-        priority: 0,
-        type: LineTypes.BASE_PRICE,
-        amount: basePrice,
-        frozen_value: null,
-        percentage: 0,
-        description: '',
-        cascade_amount: false,
-        cascade_percentage: false,
-        back_into_percentage: false,
-      }]
-      if (this.newProduct.fields.table_product.value) {
-        lines.push({
-          id: -2,
-          priority: 400,
-          type: LineTypes.TABLE_SERVICE,
-          cascade_percentage: true,
-          cascade_amount: false,
-          amount: this.pricing.x.table_static,
-          frozen_value: null,
-          percentage: this.pricing.x.table_percentage,
-          back_into_percentage: false,
-          description: '',
-        }, {
-          id: -3,
-          priority: 700,
-          type: LineTypes.TAX,
-          cascade_percentage: true,
-          cascade_amount: true,
-          back_into_percentage: true,
-          percentage: this.pricing.x.table_tax,
-          description: '',
-          amount: 0,
-          frozen_value: null,
+      // eslint-disable-next-line camelcase
+      const planName = this.subject?.service_plan
+      const international = !!this.subject?.international
+      const cascade = this.newProduct.fields.cascade_fees.value
+      const tableProduct = this.newProduct.fields.table_product.value
+      if (this.escrow && (this.newProduct.fields.escrow_enabled.value || this.newProduct.fields.escrow_upgradable.value)) {
+        const escrowLines = deliverableLines({
+          basePrice,
+          cascade: cascade && (this.newProduct.fields.escrow_enabled.value),
+          international,
+          planName,
+          pricing,
+          escrowEnabled: true,
+          tableProduct,
+          extraLines: [],
         })
-      } else if (this.escrow && basePrice > 0) {
-        lines.push({
-          id: -4,
-          priority: 300,
-          type: LineTypes.SHIELD,
-          cascade_percentage: true,
-          cascade_amount: true,
-          amount: this.pricing.x.standard_static,
-          frozen_value: null,
-          percentage: this.pricing.x.standard_percentage,
-          back_into_percentage: false,
-          description: '',
-        }, {
-          id: -5,
-          priority: 300,
-          type: LineTypes.BONUS,
-          cascade_percentage: true,
-          cascade_amount: true,
-          back_into_percentage: false,
-          amount: this.pricing.x.premium_static_bonus,
-          frozen_value: null,
-          percentage: this.pricing.x.premium_percentage_bonus,
-          description: '',
-        })
+        escrowLinesController.makeReady(escrowLines)
+        sets.push({name: 'Shield Protected', lineItems: escrowLinesController})
       }
-      linesController.setList(lines)
-      return linesController
+      if (!this.escrow || !this.newProduct.fields.escrow_enabled.value) {
+        const nonEscrowLines = deliverableLines({
+          basePrice,
+          cascade,
+          international,
+          planName,
+          pricing,
+          escrowEnabled: false,
+          tableProduct,
+          extraLines: [],
+        })
+        nonEscrowLinesController.makeReady(nonEscrowLines)
+        sets.push({name: 'Unprotected', lineItems: nonEscrowLinesController})
+      }
+      return sets
     }
 
     public set limitAtOnce(val: boolean) {
@@ -277,6 +298,14 @@ export default class AcNewProduct extends Subjective {
         field.update(field.value || 1)
       } else {
         field.update(0)
+      }
+    }
+
+    public get basePriceLabel() {
+      if (this.newProduct.fields.cascade_fees.model) {
+        return 'List Price'
+      } else {
+        return 'Take home amount'
       }
     }
 
@@ -325,6 +354,9 @@ export default class AcNewProduct extends Subjective {
           hidden: {value: false},
           table_product: {value: false},
           tags: {value: []},
+          cascade_fees: {value: false, step: 2},
+          escrow_enabled: {value: true, step: 2},
+          escrow_upgradable: {value: false, step: 2},
         },
       })
     }

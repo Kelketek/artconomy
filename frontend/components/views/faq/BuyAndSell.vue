@@ -19,7 +19,8 @@
             <p>
               Once you have found a product that you like, click the Order button on the product page and
               fill out the provided form. If you're registered with us, you can even attach your own character
-              references with our character profiles feature!
+              references with our character profiles feature! Even if you're not, you can still upload reference
+              images to your order.
             </p>
             <p>
               The artist will then review your request, ask any questions or make comments, and then will finalize
@@ -47,8 +48,7 @@
                     :to="{name: 'BuyAndSell', params: {question: 'shield'}}"
                 >
                   Artconomy Shield</router-link>,
-                you may approve the final piece, and the artist will be paid.
-              </li>
+                you may approve the final piece or dispute it. If you do neither, it will be auto-approved in a few days.</li>
               <li>Otherwise, the order will then be finalized.</li>
             </ul>
             <p>
@@ -79,26 +79,15 @@
               <router-link :to="{name: 'Store', params: {username: viewer.username}}"
                            v-if="isRegistered"
               >go to your store</router-link><span v-else>go to your store</span>,
-              where you can configure
+              where you can configure (or opt out of) the optional
               <router-link
                   :to="{name: 'BuyAndSell', params: {question: 'shield'}}"
               >
                 Artconomy Shield
               </router-link>
-              . Please see the question below about
-              <router-link :to="{name: 'BuyAndSell', params: {question: 'bank-accounts'}}">bank accounts</router-link>.
-              If you cannot link a
-              Bank account (for instance, if your country is not supported) you can opt out of
-              <router-link
-                  :to="{name: 'BuyAndSell', params: {question: 'shield'}}"
-              >
-                Artconomy Shield</router-link>, but you will not have access to its protections and features, and your
-              products will be marked to alert users that
-              <router-link
-                  :to="{name: 'BuyAndSell', params: {question: 'shield'}}"
-              >
-                Artconomy Shield</router-link>
-              is not available.
+              escrow service. Please see the question below about
+              <router-link :to="{name: 'BuyAndSell', params: {question: 'bank-accounts'}}">bank accounts</router-link>
+              to learn about which countries are supported for shield.
             </p>
             <p>
               After you have created a product, it will be listed on your profile page and on the recently created
@@ -110,7 +99,7 @@
               <strong>add any price adjustments necessary</strong>, such as those for shipping the original if you
               include that with your product, or <strong>any extra work that their request requires, like
               wings or backgrounds.</strong>
-              Finally, hit the approve button.
+              Finally, hit the 'Accept' button under the Payment tab.
             </p>
             <p>
               The commissioner will then review the offer and pay for it if they find it acceptable. If you are not
@@ -169,27 +158,7 @@
             </p>
             <p>
               Artists and commissioners who use Artconomy Shield help build trust in the artistic community.
-              Artists who are unable to use Artconomy Shield (such as those outside of supported countries) can still
-              list products and take orders on Artconomy, but must arrange payment with commissioners manually.
-            </p>
-            <p v-if="pricing.x">
-              Artconomy's fee for
-              <router-link
-                  :to="{name: 'BuyAndSell', params: {question: 'shield'}}"
-              >
-                Artconomy Shield
-              </router-link>
-              is {{pricing.x.standard_percentage + pricing.x.premium_percentage_bonus}}% + ${{(pricing.x.standard_static + pricing.x.premium_static_bonus).toFixed(2)}} for
-              each order.
-            </p>
-            <p v-if="pricing.x">
-              Artists using
-              <router-link
-                  :to="{name: 'BuyAndSell', params: {question: 'landscape'}}"
-              >Artconomy Landscape
-              </router-link>
-              get a discounted fee of only
-              {{pricing.x.standard_percentage}}% + ${{pricing.x.standard_static.toFixed(2)}} per commission!
+              However, use of Artconomy Sheild is optional-- you can use whatever payment processor you like.
             </p>
             <p>
               <em><strong>
@@ -270,6 +239,56 @@
     </v-expansion-panel>
     <v-expansion-panel>
       <v-expansion-panel-header>
+        <strong>What are the different service plans? Which one is right for me?</strong>
+      </v-expansion-panel-header>
+      <v-expansion-panel-content>
+        <v-card>
+          <v-card-text>
+            <p>Artconomy has three plans to choose from, depending on where you are in your professional journey.</p>
+            <h3>The Free Plan</h3>
+            <p>
+              The free plan is for people who take commissions on the side or only rarely take them. It allows you to
+              track up to one order for free. It handles all of the references, the description, communication with your
+              commissioner, and provides a place for you to upload revisions/WIPs for comment on that order.
+            </p>
+            <p>
+              The free plan is a great way to test if Artconomy is truly <strong>right for you and your workflow.</strong>
+            </p>
+            <p>For extra protection on an order, you can enable
+              <router-link
+                :to="{name: 'BuyAndSell', params: {question: 'shield'}}"
+              >Artconomy Shield,</router-link>
+              our escrow service, or you can use your payment processor of choice to handle the payment.</p>
+            <h3>The Basic Plan</h3>
+            <p>The basic plan is best for artists who don't have a high volume of orders, but are expecting to handle
+              more than one commission a month.</p>
+            <p>The basic plan allows you to track as many orders as you like on Artconomy.
+              If you use shield on your orders, the only cost will be the shield fee.
+              The basic plan comes with a slight discount on the shield fee.</p>
+            <p>If you want to track an order without using shield
+              (such as for when shield isn't available in your country, or your customer prefers PayPal or
+              another processor), you'll be assessed a small fee. At the end of your monthly billing cycle, your card
+              will be charged for however many orders were tracked without shield.</p>
+            <h3>Artconomy Landscape</h3>
+            <p>Artconomy Landscape is our premium offering. In exchange for a monthly fee, you get a sharp discount on
+              Artconomy Shield, and you can track as many non-shield orders as you like for free!</p>
+            <p>To learn more about
+              <router-link
+                  :to="{name: 'BuyAndSell', params: {question: 'landscape'}}"
+              >Landscape,</router-link>
+              check its main FAQ entry.</p>
+            <p v-if="isRegistered">
+              <router-link :to="{name: 'Upgrade', params: {username: viewerName}}">You can upgrade (or downgrade) to your preferred plan here.</router-link>
+            </p>
+            <p v-else>
+              Once you're logged in, you can use the "Upgrade" link in the sidebar to change your plan.
+            </p>
+          </v-card-text>
+        </v-card>
+      </v-expansion-panel-content>
+    </v-expansion-panel>
+    <v-expansion-panel>
+      <v-expansion-panel-header>
         <strong>What is Artconomy Landscape?</strong>
       </v-expansion-panel-header>
       <v-expansion-panel-content>
@@ -277,28 +296,107 @@
           <v-card-text>
             <p>
               Artconomy Landscape is a paid services that allow you to get more out
-              of your experience with Artconomy. It gives you a bonus on each commission sale, and access
-              to extra features!
+              of your experience with Artconomy. It sharply reduces your fees for Artconomy Shield, and allows you
+              to track as many orders as you like.
             </p>
-            <p v-if="pricing.x">
-              Artconomy's fees for
-              <router-link
-                  :to="{name: 'BuyAndSell', params: {question: 'shield'}}"
-              >
-                Artconomy Shield
-              </router-link>
-              are {{pricing.x.standard_percentage + pricing.x.premium_percentage_bonus}}% + ${{pricing.x.standard_static + pricing.x.premium_static_bonus}} for
-              each order.
-            </p>
-            <p v-if="pricing.x">
-              When using landscape, artists receive an additional bonus of
-              <strong>{{pricing.x.premium_percentage_bonus}}% + ${{pricing.x.premium_static_bonus.toFixed(2)}}!</strong>
-            </p>
-            <p>Premium users will also have access to new features early, allowing them to help shape and define
-              features that improve the site.</p>
-            <router-link v-if="isRegistered" :to="{name: 'Upgrade'}">Click this link for more details!
+            <p>Landscape also comes with many extra features, like:</p>
+            <ul>
+              <li>Waitlisted orders</li>
+              <li>Tipping after order completion</li>
+              <li>Multi-stage orders</li>
+              <li>Access to the Landscape channel on our Discord</li>
+              <li>First consideration for
+                <router-link :to="{name: 'BuyAndSell', params: {question: 'virtual-table'}}">Virtual Table Events.</router-link>
+              </li>
+            </ul>
+            <router-link v-if="isRegistered" :to="{name: 'Upgrade', params: {username: viewerName}}">Click this link to change plans!
             </router-link>
             <p v-else>Click the Upgrade link in the sidebar after you're logged in to upgrade your account!</p>
+          </v-card-text>
+        </v-card>
+      </v-expansion-panel-content>
+    </v-expansion-panel>
+    <v-expansion-panel>
+      <v-expansion-panel-header>
+        <strong>How are fees calculated? What determines your pricing?</strong>
+      </v-expansion-panel-header>
+      <v-expansion-panel-content>
+        <v-card>
+          <v-card-text>
+            <h3>Calculating Fees</h3>
+            <p>Fees differ depending on your
+              <router-link :to="{name: 'BuyAndSell', params: {question: 'compare-and-contrast-plans'}}">plan</router-link>
+              and whether or not you're using
+              <router-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">Shield</router-link>
+              to protect your order.
+            </p>
+            <p>When listing your products, you will have the option to pass on all fees to the customer, or to
+              absorb the fees into your pricing. By default, new products pass on the fees.
+              The customer will always see the final price up front, so if you're passing on fees, and you change your
+              plan, your prices will change, too.</p>
+            <p>Alternatively, if you turn on 'absorb fees', you will have control over the final price, but if you
+              change plans, it will change how much of that price goes to fees.</p>
+            <p>The price calculator is available on every order and every product-- it will show you the full
+              consequences of any price change on fees. It also includes a handy calculator that lets you estimate your
+              hourly rate so you can determine if your price is high enough to compensate for your time.</p>
+            <h3>A word on our pricing</h3>
+            <p>Artconomy Shield is an escrow service. Escrow services are uncommon online, and Stripe, our payment
+              processor, is capable of handling it, but isn't optimized for it.
+              <a href="https://artconomy.com/blog/posts/2022/11/16/escrow-for-art-commissions/" target="_blank" rel="noopener">We are firm believers in escrow</a>,
+              which is why we offer it. However, it does result in Stripe's fees being higher for us-- including a $2
+              fee for every connected account we pay out to <strong>each month</strong> on top of the credit card
+              fees.</p>
+            <p>As a result, shield fees must always incorporate this cost. However, with Landscape, this $2
+              (and other upstream fees) are chiefly covered every month by the subscription fee, so shield costs are
+              able to be reduced significantly. This is also why tips are only available to Landscape users.</p>
+            <p>For non-shield orders, there are still costs with hosting and maintaining the service. We offer our
+              free tier for small time artists trying to get started. On our basic plan, however, we do charge a fee
+              to offset costs on each non-shield order. We believe the order handling is the best out there for art
+              commissions, and that the time saved will always be worth more than the fee. The net for non-shield
+              orders on our basic plan is calculated to be $1 after Stripe's processing fees.</p>
+            <p>Our goal, then, is to try to make at least a dollar on each order, and always provide value worth
+              the cost. With this 'at least $1 an order' target (preferably a bit more), we can easily project and
+              guess how many orders we need to process to cover our costs and pay our team members.</p>
+            <p>Why lay all this out, you may ask? Because Artconomy's goal is to help artists run their business,
+              and that means helping them reason about pricing. The best way to do this is to lead by example,
+              showing you how we structure things. If you'd like to be engaged deeply, in real time, with our decision
+              making process, we encourage you to <a href="https://discord.gg/4nWK9mf">join our Discord server</a>,
+              where you can learn more in the <code>#business-tips</code> channel.
+              You can also read our
+              <a href="https://artconomy.com/blog/posts/2020/04/29/7-tips-on-pricing-your-artwork/" rel="noopener" target="_blank">tips on pricing your artwork.</a>
+            </p>
+          </v-card-text>
+        </v-card>
+      </v-expansion-panel-content>
+    </v-expansion-panel>
+    <v-expansion-panel>
+      <v-expansion-panel-header>
+        <strong>What is the Artconomy Virtual Table?</strong>
+      </v-expansion-panel-header>
+      <v-expansion-panel-content>
+        <v-card>
+          <v-card-text>
+            <p>
+              The Artconomy Virtual Table is an in-person/online hybrid experience run by Artconomy staffers at
+              conventions. During a virtual table event, selected artists are on standby to take commission orders
+              (often, con badges), which are printed on a printer and handed over during the convention. This way, you
+              get the benefit of taking orders at a convention without having to leave home!
+            </p>
+            <v-img src="/static/images/con-badge.jpg" :contain="true" max-height="40vh"></v-img>
+            <p>The Virtual Table is also an opportunity to sell your merch for events that you cannot physically attend.
+              If you can get the merchandise to us ahead of the event and we have room, we'll sell it for you.</p>
+            <p>The virtual table event is also quite social-- you'll be in a private Discord channel with other selected
+              artists. Our artists typically stream together as they complete orders. If the pieces are safe for work
+              (or the convention allows adult content) we'll stream the live drawing on a TV set right at our table!</p>
+            <p><strong>Virtual Table positions are limited--</strong> both based on how many events we have a booth at
+              per year, and how many artists we can accommodate at a time during the event. Priority always goes to
+              <router-link :to="{name: 'BuyAndSell', params: {question: 'landscape'}}">Landscape subscribers.</router-link>
+              Service fee pricing depends on the event.
+            </p>
+            <p>If you're interested in joining a virtual table event,
+              <a href="https://discord.gg/4nWK9mf">join our Discord</a> or
+              <a href="https://twitter.com/ArtconomyArt/">follow us on Twitter</a>.
+              for announcements.</p>
           </v-card-text>
         </v-card>
       </v-expansion-panel-content>
@@ -327,23 +425,52 @@
                 <li v-for="country in stripeCountries.x.countries" :key="country.value">{{country.text}}</li>
               </ul>
             </ac-load-section>
+            <p>
+              <strong>NOTE:</strong> This list is authoritative for shield. While Stripe's site says they do not support
+              some of the above countries, that's only half-true: They support many more countries for payout than they
+              do for fully featured platform accounts.
+              <strong>The site's onboarding will guide you through the creation of an 'Express' payout account with
+                Stripe-- you do not need to sign up directly on their website.</strong>
+            </p>
           </v-card-text>
         </v-card>
       </v-expansion-panel-content>
     </v-expansion-panel>
     <v-expansion-panel>
       <v-expansion-panel-header>
-        <strong>What is AWOO and how can it help me manage my workload?</strong>
+        <strong>How does Artconomy help me manage my workload?</strong>
       </v-expansion-panel-header>
       <v-expansion-panel-content>
         <v-card>
           <v-card-text>
             <p>
               Artconomy understand the problems artists have with managing their workload and communicating with
-              commissioners. That's why we created Artconomy Workload Organization and Overview (AWOO).
+              commissioners. That's why we created Artconomy's workload management system, nicknamed
+              <strong>"AWOO" (Artconomy Workflow Organization and Overview).</strong>
+            </p>
+            <h3>Getting an Overview</h3>
+            <p>AWOO's features start basic-- the
+              <router-link v-if="isRegistered" :to="{name: 'Sales', params: {username: viewerName}}">Sales</router-link>
+              <span v-else>'Sales'</span>
+              button in your sidebar will take you to the Workload panel, which shows all of your orders.
+              Any with new activity are highlighted, and you can message all of your commissioners at any time with the
+              'Broadcast to Buyers' button. That will add a comment on all of your orders for you.
             </p>
             <p>
-              AWOO begins with your
+              <strong>All orders offer a direct communication line with your commissioner.</strong>
+              Commenting on an order sends an email alert and notification to the commissioner for them to review.
+              This ensures that you do not have to keep individual track of customers' email addresses to get a
+              hold of them, and you never have to write a journal entry with the subject 'if I owe you art, message me.'
+              Feel free to comment and ask questions to make sure you can give your customers the best
+              experience possible!
+            </p>
+            <p>You can also use the green
+              <router-link :to="{name: 'BuyAndSell', params: {question: 'outside-orders'}}">'New Invoice'</router-link>
+              button to track sales made off-site.
+            </p>
+            <h3>Smart Availability</h3>
+            <p>AWOO is also able to intelligently manage your availability.
+              It begins with your
               <router-link
                   :to="{name: 'BuyAndSell', params: {questions: 'options'}}"
                   v-if="isRegistered"
@@ -392,16 +519,9 @@
                     </span>
               <strong>This is not recommended unless you are experienced in managing
                 your workload.</strong> Appearing to be open when you are not leads to customer service issues,
-              which can affect your rating and reputation. If you feel that you need more slots than the maximum setting,
-              <a href="#" @click.prevent="setSupport(true)">please contact support</a>.
-            </p>
-            <p>
-              <strong>All orders offer a direct communication line with your commissioner.</strong>
-              Commenting on an order sends an email alert and notification to the commissioner for them to review.
-              This ensures that you do not have to keep individual track of customers' email addresses to get a
-              hold of them, and you never have to write a journal entry with the subject 'if I owe you art, message me.'
-              Feel free to comment and ask questions to make sure you can give your customers the best
-              experience possible!
+              which can affect your rating and reputation.
+              Alternatively, you can use the
+              <router-link :to="{name: 'BuyAndSell', params: {question: 'waitlists'}}">Waitlist feature.</router-link>
             </p>
           </v-card-text>
         </v-card>
@@ -419,7 +539,7 @@
               from customers in your stream, you might want to create an order for tracking yourself,
               instead of having a customer do it.
               <router-link
-                  :to="{name: 'BuyAndSell', params: {question: 'awoo-workload-management'}}">
+                  :to="{name: 'BuyAndSell', params: {question: 'workload-management'}}">
                 AWOO
               </router-link>
               can help you keep track of these orders. You can create a new invoice from your
@@ -452,6 +572,32 @@
     </v-expansion-panel>
     <v-expansion-panel>
       <v-expansion-panel-header>
+        <strong>How does waitlisting work?</strong>
+      </v-expansion-panel-header>
+      <v-expansion-panel-content>
+        <v-card>
+          <v-card-text>
+            <p>
+              Waitlists allow you to take orders that you aren't committing to complete. There are a few times when you
+              might use waitlisting:
+            </p>
+            <ul>
+              <li>You want to gauge interest in a commission type by letting people pre-order it.</li>
+              <li>You're fully booked, but you want to keep track of interest for clients who are waiting.</li>
+              <li>You have a <a href="https://www.findlaw.com/legalblogs/small-business/top-5-tips-to-keep-raffles-contests-legal/#section-1-2-no-purchase-necessary">
+                no-entry-cost raffle</a> where customers enter commission information.</li>
+            </ul>
+            <p>Wailists are currently only available to Landscape subscribers. Waitlisted orders have no commitment on
+              the part of the artist-- they don't have to be taken in any particular order and they don't have to be
+              completed at all. You can also clear your waitlist at any time.</p>
+            <p>You can either enable waitlist on a particular product, or you can waitlist orders as they come in.
+              If a new order arrives and you wish to waitlist it, click the waitlist button at the top of the order.</p>
+          </v-card-text>
+        </v-card>
+      </v-expansion-panel-content>
+    </v-expansion-panel>
+    <v-expansion-panel>
+      <v-expansion-panel-header>
         <strong>Why are my commissions disabled?</strong>
       </v-expansion-panel-header>
       <v-expansion-panel-content>
@@ -459,7 +605,7 @@
           <v-card-text>
             <p>
               <router-link
-                  :to="{name: 'BuyAndSell', params: {question: 'awoo-workload-management'}}">
+                  :to="{name: 'BuyAndSell', params: {question: 'workload-management'}}">
                 AWOO
               </router-link>
               uses a smart algorithm to help determine if you should be considered open for commissions.
@@ -474,6 +620,7 @@
               <li>You still have some slots, but any products which DO fit in the remaining ones have
                 already reached their 'max at once' limit.
               </li>
+              <li>You may have an invoice with us which is past due.</li>
             </ul>
           </v-card-text>
         </v-card>
@@ -486,9 +633,12 @@
       <v-expansion-panel-content>
         <v-card>
           <v-card-text>
+            <p>You can! You can track an order and handle its payment off-site with PayPal.
+              However, you might want to consider using
+              <router-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">Artconomy Shield</router-link> instead.
+            </p>
             <p>
-              PayPal is a popular service used by Artists to take payments from commissioners,
-              however, it has several key limitations:
+              PayPal has several key limitations:
             </p>
             <ul>
               <li>PayPal has separate policies for business and personal use that can be confusing.</li>
@@ -501,24 +651,9 @@
               </li>
             </ul>
             <p>
-              <router-link
-                  :to="{name: 'BuyAndSell', params: {question: 'shield'}}"
-              >
-                Artconomy Shield
-              </router-link>
-              is built with the needs of commissioners and artists in mind, and specializes in the needs of both.
-              PayPal's limitations also prevent it from being a backend for Artconomy to take payments, so we are
-              unable to accept payments via PayPal.
-            </p>
-            <p>
-              Artists not using
-              <router-link
-                  :to="{name: 'BuyAndSell', params: {question: 'shield'}}"
-              >Artconomy Shield
-              </router-link>
-              may elect to accept payment using PayPal, but will not be
-              protected by our verification and dispute resolution. Artists can also elect to use PayPal for a particular
-              commission if both parties want to forego Shield protection for that commission.
+              For these reasons, we recommend using
+              <router-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">Artconomy Shield</router-link>
+              to protect your orders.
             </p>
           </v-card-text>
         </v-card>
@@ -705,10 +840,27 @@
         <v-card>
           <v-card-text>
             <p>
-              Artconomy does not presently support the sale of physical goods aside from original
-              pieces made during the commissioning process-- it does not have an inventory system.
-              However, we are looking into supporting this, as well as print and merchandising services for things
-              like T-shirts and hats.
+              Artconomy does not presently support the sale of physical goods <strong>aside from original
+              pieces made during the commissioning process--</strong> it does not have an inventory system. When
+              shipping physically commissioned goods while using Artconomy Shield, you must buy insurance to cover
+              the price of any shipment you make, including the commission price, and you must incorporate the
+              shipping price into the final sale price.
+            </p>
+            <p>We recommend asking the customer for their address before accepting the order so you can
+              precalculate these shipping costs.</p>
+          </v-card-text>
+        </v-card>
+      </v-expansion-panel-content>
+    </v-expansion-panel>
+    <v-expansion-panel>
+      <v-expansion-panel-header><strong>Does Artconomy handle digital download sales?</strong></v-expansion-panel-header>
+      <v-expansion-panel-content>
+        <v-card>
+          <v-card-text>
+            <p>
+              Artconomy is set up for custom art commissions, and those custom art commissions are usually digital in
+              nature. However it is not built for goods like premade digital download packs. Such functionality may be
+              available in the future.
             </p>
           </v-card-text>
         </v-card>
@@ -728,13 +880,14 @@ import {SingleController} from '@/store/singles/controller'
 import StripeCountryList from '@/types/StripeCountryList'
 
 const buySell = [
-  'how-to-buy', 'how-to-sell', 'shield', 'disputes', 'landscape',
-  'bank-accounts',
-  'awoo-workload-management', 'outside-orders',
+  'how-to-buy', 'how-to-sell', 'shield', 'disputes', 'compare-and-contrast-plans', 'landscape',
+  'fee-calculation',
+  'virtual-table', 'bank-accounts',
+  'workload-management', 'outside-orders', 'waitlists',
   'why-commissions-disabled',
   'why-not-paypal', 'patreon-comparison', 'featured-products', 'security',
   'payouts', 'crypto-currencies',
-  'auctions', 'physical-goods',
+  'auctions', 'physical-goods', 'digital-downloads',
 ]
 @Component({
   components: {AcLoadSection},

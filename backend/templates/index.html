@@ -39,6 +39,7 @@
   RECAPTCHA_SITE_KEY='{{ recaptcha_key }}';
   STRIPE_PUBLIC_KEY = "{{ settings.STRIPE_PUBLIC_KEY }}";
   DEFAULT_CARD_PROCESSOR = "{{ settings.DEFAULT_CARD_PROCESSOR }}";
+  DEFAULT_SERVICE_PLAN_NAME = "{{ settings.DEFAULT_SERVICE_PLAN_NAME }}";
 </script>
 <div id="app"></div>
 {% if not debug %}
@@ -46,7 +47,9 @@
   {% for file in app_js_files %}
     <script type=module src="{{file.url}}"></script>
   {% endfor %}
-  {% get_files 'app' 'js' config='LEGACY' as app_legacy_js_files %}
+  {%  if render_legacy %}
+    {% get_files 'app' 'js' config='LEGACY' as app_legacy_js_files %}
+  {% endif %}
   {% for file in app_legacy_js_files %}
     <script src="{{file.url}}" nomodule></script>
   {% endfor %}

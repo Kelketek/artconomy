@@ -112,10 +112,10 @@ describe('Orders.vue', () => {
     wrapper.find('.ac-add-button').trigger('click')
     expect(vm.showNewInvoice).toBe(true)
     expect(vm.sellerName).toBe('Fox')
-    expect(vm.invoiceEscrowDisabled).toBe(false)
+    expect(vm.invoiceEscrowEnabled).toBe(true)
     vm.newInvoice.fields.paid.update(true)
     await vm.$nextTick()
-    expect(vm.invoiceEscrowDisabled).toBe(true)
+    expect(vm.invoiceEscrowEnabled).toBe(false)
   })
   it('Redirects to the right subview', async() => {
     await router.replace({name: 'Sales', params: {username: 'Fox'}})

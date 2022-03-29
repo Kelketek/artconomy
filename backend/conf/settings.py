@@ -63,7 +63,11 @@ DEBUG = bool(int(get_env('DEBUG', 1)))
 
 ALLOWED_HOSTS = get_env('ALLOWED_HOSTS', ['artconomy.vulpinity.com', 'localhost'], unpack=True)
 if TESTING or DEBUG:
-    ALLOWED_HOSTS = ['*']
+    ALLOWED_HOSTS += ['*']
+
+ALLOWED_HOSTS
+
+CSRF_TRUSTED_ORIGINS = [f'https://{source}' for source in ALLOWED_HOSTS]
 
 # Application definition
 
@@ -73,6 +77,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'daphne',
     'django.contrib.staticfiles',
     'django_premailer',
     'djcelery_email',
@@ -98,7 +103,9 @@ INSTALLED_APPS = [
     'apps.lib',
     'apps.tg_bot.apps.TGBotConfig',
     'django_cleanup.apps.CleanupConfig',
+    'apps.discord_bot.apps.DiscordBotConfig'
 ]
+
 
 MIDDLEWARE = [
     'apps.lib.middleware.GlobalRequestMiddleware',
@@ -215,11 +222,15 @@ WEBPACK_LOADER = {
         'STATS_FILE': os.path.join(BASE_DIR, pack_file_name),
         'CACHE': not DEBUG
     },
-    'LEGACY': {
+}
+
+if not (DEBUG or TESTING):
+    # Legacy bundle only produced in production/stage environments.
+    WEBPACK_LOADER['LEGACY'] = {
         'BUNDLE_DIR_NAME': '',
         'STATS_FILE': os.path.join(BASE_DIR, 'webpack-stats-legacy.json'),
     }
-}
+
 
 THUMBNAIL_ALIASES = {
     'profiles.Submission.file': {
@@ -261,32 +272,24 @@ THUMBNAIL_ALIASES = {
 
 THUMBNAIL_PRESERVE_EXTENSIONS = True
 
-DWOLLA_KEY = get_env('DWOLLA_KEY', '')
-DWOLLA_SECRET = get_env('DWOLLA_SECRET', '')
-# These two Dwolla variables named 'key' here mostly to make sure it gets filtered out of error emails. They're URLs.
-DWOLLA_FUNDING_SOURCE_KEY = get_env(
-    'DWOLLA_FUNDING_SOURCE_KEY', ''
-)
-
-DWOLLA_MASTER_BALANCE_KEY = get_env(
-    'DWOLLA_MASTER_BALANCE_KEY', ''
-)
-
 AUTHORIZE_KEY = get_env('AUTHORIZE_KEY', '')
 AUTHORIZE_SECRET = get_env('AUTHORIZE_SECRET', '')
 
 STRIPE_KEY = get_env('STRIPE_KEY', '')
 STRIPE_PUBLIC_KEY = get_env('STRIPE_PUBLIC_KEY', '')
 
-STRIPE_CHARGE_STATIC = Money(get_env('STRIPE_CHARGE_STATIC', '0.30'), 'USD')
+DEFAULT_CURRENCY = get_env('DEFAULT_CURRENCY', 'USD')
+
+STRIPE_CHARGE_STATIC = Money(get_env('STRIPE_CHARGE_STATIC', '0.30'), DEFAULT_CURRENCY)
 STRIPE_CHARGE_PERCENTAGE = Decimal(get_env('STRIPE_CHARGE_PERCENTAGE', '2.90'))
+STRIPE_INTERNATIONAL_PERCENTAGE_ADDITION = Decimal(get_env('STRIPE_INTERNATIONAL_PERCENTAGE_ADDITION', '1.50'))
 STRIPE_CARD_PRESENT_PERCENTAGE = Decimal(get_env('STRIPE_CARD_PRESENT_PERCENTAGE', '2.70'))
-STRIPE_CARD_PRESENT_STATIC = Money(Decimal(get_env('STRIPE_CARD_PRESENT_PERCENTAGE', '0.05')), 'USD')
+STRIPE_CARD_PRESENT_STATIC = Money(get_env('STRIPE_CARD_PRESENT_PERCENTAGE', '0.05'), DEFAULT_CURRENCY)
 # Yes, this is .25% + $0.25. Not a copy-paste error.
-STRIPE_PAYOUT_STATIC = Money(get_env('STRIPE_PAYOUT_STATIC', '0.25'), 'USD')
+STRIPE_PAYOUT_STATIC = Money(get_env('STRIPE_PAYOUT_STATIC', '0.25'), DEFAULT_CURRENCY)
 STRIPE_PAYOUT_PERCENTAGE = Decimal(get_env('STRIPE_PAYOUT_PERCENTAGE', '0.25'))
 STRIPE_PAYOUT_CROSS_BORDER_PERCENTAGE = Decimal(get_env('STRIPE_PAYOUT_CROSS_BORDER_PERCENTAGE', '0.25'))
-STRIPE_ACTIVE_ACCOUNT_MONTHLY_FEE = Money(get_env('STRIPE_ACTIVE_ACCOUNT_MONTHLY_FEE', '2.00'), 'USD')
+STRIPE_ACTIVE_ACCOUNT_MONTHLY_FEE = Money(get_env('STRIPE_ACTIVE_ACCOUNT_MONTHLY_FEE', '2.00'), DEFAULT_CURRENCY)
 
 # Stripe is now the only processor-- authorize.net has been removed. More work will be needed to abstract out
 # processors to make them further pluggable, but new processors will more closely match Stripe
@@ -330,22 +333,25 @@ SENDGRID_ECHO_TO_STDOUT = DEBUG
 MAX_CHARACTER_COUNT = int(get_env('MAX_CHARACTER_COUNT', '30'))
 MAX_ATTRS = int(get_env('MAX_ATTRS', '10'))
 
-DEFAULT_CURRENCY = get_env('DEFAULT_CURRENCY', 'USD')
-
-SERVICE_PERCENTAGE_FEE = Decimal(get_env('SERVICE_PERCENTAGE_FEE', '4'))
-SERVICE_STATIC_FEE = Decimal(get_env('SERVICE_STATIC_FEE', '.50'))
-PREMIUM_STATIC_BONUS = Decimal(get_env('PREMIUM_STATIC_BONUS', '.25'))
-PREMIUM_PERCENTAGE_BONUS = Decimal(get_env('PREMIUM_PERCENTAGE_BONUS', '4'))
 TABLE_PERCENTAGE_FEE = Decimal(get_env('TABLE_PERCENTAGE_FEE', '10'))
-TABLE_STATIC_FEE = Decimal(get_env('TABLE_STATIC_FEE', '5.00'))
+TABLE_STATIC_FEE = Money(get_env('TABLE_STATIC_FEE', '5.00'), DEFAULT_CURRENCY)
 TABLE_TAX = Decimal(get_env('TABLE_TAX', '8.25'))
 
-DWOLLA_MIN_FEE = Money(Decimal(get_env('DWOLLA_MIN_FEE', '.05')), 'USD')
-DWOLLA_MAX_FEE = Money(Decimal(get_env('DWOLLA_MIN_FEE', '5')), 'USD')
-DWOLLA_PERCENTAGE_FEE = Decimal(get_env('DWOLLA_MIN_FEE', '.5'))
+# Add-on percentage to make sure we're always able to handle international conversions. 1% is always
+# enough, as no international converstion levied by Stripe is greater than that.
+#
+# It may be possible to lower fees further if we can dynamically determine what the actual payout fee will be,
+# but for the moment the effort level isn't worth it, and I'm not sure that there's an appropriate API endpoint for
+# this particular functionality.
+INTERNATIONAL_CONVERSION_PERCENTAGE = Decimal(get_env('INTERNATIONAL_CONVERSION_PERCENTAGE', '1'))
 
-assert PREMIUM_STATIC_BONUS < SERVICE_STATIC_FEE
-# Applied to the fee amount.
+# Fees for 'straight processing', like when we're handling tips. This is only very minimally above Stripe's fees,
+# since we're not handling disputes. However, we might have to deal with a fraud issue, or a hidden stripe fee
+# we're not calculating, so having some buffer for these kinds of transactions is needed.
+PROCESSING_PERCENTAGE = Decimal(get_env('PROCESSING_PERCENTAGE', '3.4'))
+PROCESSING_STATIC = Money(get_env('PROCESSING_PERCENTAGE', '.55'), DEFAULT_CURRENCY)
+# The country that the escrow account is housed in. In all reality this will probably always be the US.
+SOURCE_COUNTRY = get_env('SOURCE_COUNTRY', 'US')
 
 HIDE_TEST_BROWSER = bool(int(get_env('HIDE_TEST_BROWSER', '1')))
 
@@ -357,8 +363,23 @@ BANNED_USERNAMES = get_env('BANNED_USERNAMES', ['artconomy'], unpack=True)
 # Special username that is used by the frontend to indicate user is not logged in.
 BANNED_USERNAMES += ['_']
 
-MINIMUM_PRICE = Decimal(get_env('MINIMUM_PRICE', '1.00'))
+MINIMUM_PRICE = Money(get_env('MINIMUM_PRICE', '5.00'), DEFAULT_CURRENCY)
+MINIMUM_TIP = Money(get_env('MINIMUM_TIP', '1.00'), DEFAULT_CURRENCY)
+MAXIMUM_TIP = Money(get_env('MAXIMUM_TIP_AMOUNT', '100'), DEFAULT_CURRENCY)
 MINIMUM_TURNAROUND = Decimal(get_env('MINIMUM_TURNAROUND', '.01'))
+
+# Number of days after a commission is finalized where the user is prompted to tip.
+TIP_DAYS = int(get_env('TIP_DAYS', '5'))
+
+# Number of days an order will stay in Limbo before it is automatically cancelled.
+LIMBO_DAYS = int(get_env('LIMBO_DAYS', '10'))
+
+# Number of days until an order marked 'NEW' will automatically cancel and close the artist's commissions.
+# NOTE: This will only affect new/newly commented on orders.
+AUTO_CANCEL_DAYS = int(get_env('AUTO_CLOSE_DAYS', '20'))
+
+# Grace period for paying term invoices before new orders are disabled.
+TERM_GRACE_DAYS = int(get_env('TERM_GRACE_DAYS', '7'))
 
 REFUND_FEE = Decimal(get_env('REFUND_FEE', '2.00'))
 
@@ -399,7 +420,7 @@ GR_CAPTCHA_PUBLIC_KEY = get_env('GR_CAPTCHA_PUBLIC_KEY', '')
 
 LOGGING = None
 
-# Uncomment when tests need debugging, like when bok_choy isn't launching the browser.
+# Uncomment when tests need debugging.
 # Make sure to comment out the logging disable line in the next section as well.
 
 # if 'test' in argv:
@@ -476,6 +497,10 @@ AVATAR_EXPOSE_USERNAMES = False
 
 AVATAR_THUMB_FORMAT = 'PNG'
 
+# Django-avatar chokes when deleting files in a test environment
+if TESTING:
+    AVATAR_CLEANUP_DELETED = False
+
 # Default: one year.
 SESSION_COOKIE_AGE = int(get_env('SESSION_COOKIE_AGE', str(60 * 60 * 24 * 365)))
 
@@ -509,6 +534,18 @@ CELERYBEAT_SCHEDULE = {
     'annotate_payouts': {
         'task': 'apps.sales.tasks.annotate_connect_fees',
         'schedule': crontab(hour=1, minute=30),
+    },
+    'destroy_abandoned_tips': {
+        'task': 'apps.sales.tasks.destroy_abandoned_tips',
+        'schedule': crontab(hour=1, minute=45)
+    },
+    'clear_hitcount_tables': {
+        'task': 'apps.lib.tasks.clear_hitcount_tables',
+        'schedule': crontab(hour=2, minute=30),
+    },
+    'cancel_abandoned_orders': {
+        'task': 'apps.sales.tasks.cancel_abandoned_orders',
+        'schedule': crontab(hour=2, minute=45),
     }
 }
 
@@ -568,3 +605,10 @@ MASTODON_PROFILES = get_env(
     ],
     unpack=True,
 )
+
+# Discord bot settings
+DISCORD_BOT_KEY = get_env('DISCORD_BOT_KEY', 'fake-bot-key')
+DISCORD_CLIENT_KEY = get_env('DISCORD_CLIENT_KEY', 'discord-client-key')
+DISCORD_CLIENT_SECRET = get_env('DISCORD_CLIENT_SECRET', 'discord-client-secret')
+# Explicitly set to empty string if not filled out in .env file by docker-compose
+DISCORD_GUILD_ID = int(get_env('DISCORD_GUILD_ID', '12345678') or '0')

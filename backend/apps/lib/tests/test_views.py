@@ -1,16 +1,14 @@
-from importlib import import_module
-from unittest.mock import patch, Mock
+from unittest.mock import patch
 
-from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 from apps.lib.models import Comment
-from apps.lib.test_resources import APITestCase, SignalsDisabledMixin
+from apps.lib.test_resources import APITestCase
 from apps.lib.tests.factories_interdepend import CommentFactory
 from apps.profiles.tests.factories import JournalFactory, SubmissionFactory, UserFactory
 
 
-class TestComment(SignalsDisabledMixin, APITestCase):
+class TestComment(APITestCase):
     def test_delete_comment_with_child(self):
         journal = JournalFactory.create()
         comment = CommentFactory.create(user=journal.user, content_object=journal, top=journal)

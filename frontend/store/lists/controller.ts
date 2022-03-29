@@ -282,10 +282,6 @@ export class ListController<T> extends BaseController<ListModuleOpts, ListState<
   }
 
   public socketClosed() {
-    if (!this.state) {
-      // Should only happen in testing.
-      return
-    }
     this.stale = true
   }
 }

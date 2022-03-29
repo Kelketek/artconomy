@@ -17,7 +17,6 @@ import {NamelessFormSchema} from '@/store/forms/types/NamelessFormSchema'
 import {HttpVerbs} from '@/store/forms/types/HttpVerbs'
 import {ListController} from '@/store/lists/controller'
 import cloneDeep from 'lodash/cloneDeep'
-import {PinterestQueue} from '@/types/PinterestQueue'
 import {LogLevels} from '@/types/LogLevels'
 import {format, parseISO as upstreamParseISO} from 'date-fns'
 
@@ -334,6 +333,8 @@ export const NOTIFICATION_MAPPING: TypeToValue = {
   34: 'ac-landscape-referral',
   35: 'ac-reference-uploaded',
   36: 'ac-waitlist-updated',
+  37: 'ac-tip-received',
+  38: 'ac-auto-closed',
 }
 
 export const ORDER_STATUSES: TypeToValue = {
@@ -359,6 +360,13 @@ export const ISSUERS = {
   3: {name: 'American Express', icon: 'fa-cc-amex'},
   4: {name: 'Discover', icon: 'fa-cc-discover'},
   5: {name: 'Diner\'s Club', icon: 'fa-cc-diners-club'},
+}
+
+export const INVOICE_TYPES = {
+  0: 'Sale',
+  1: 'Subscription',
+  2: 'Term',
+  3: 'Tip',
 }
 
 export function textualize(markdown: string) {
@@ -734,6 +742,7 @@ export function baseInvoiceSchema(endpoint: string): NamelessFormSchema {
       paid: {value: false},
       hold: {value: false},
       buyer: {value: ''},
+      cascade_fees: {value: false},
       expected_turnaround: {value: 1},
     },
   }

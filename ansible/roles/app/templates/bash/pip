@@ -1,2 +1,2 @@
 #!/bin/bash
-{{home}}/bin/python3.8 -m pip "$@"
+{{home}}/bin/python3.11 -m pip "$@"

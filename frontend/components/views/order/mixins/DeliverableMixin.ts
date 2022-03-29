@@ -52,7 +52,6 @@ export default class DeliverableMixin extends mixins(Viewer) {
   public outputs: ListController<Submission> = null as unknown as ListController<Submission>
   public stateChange: FormController = null as unknown as FormController
   public paymentForm: FormController = null as unknown as FormController
-  public tipForm: FormController = null as unknown as FormController
   public addSubmission: FormController = null as unknown as FormController
   public newInvoice: FormController = null as unknown as FormController
   public orderEmail: FormController = null as unknown as FormController
@@ -67,6 +66,8 @@ export default class DeliverableMixin extends mixins(Viewer) {
   public DISPUTED = 7
   public COMPLETED = 8
   public REFUNDED = 9
+  public LIMBO = 10
+  public MISSED = 11
 
   public get product() {
     /* istanbul ignore if */
@@ -81,7 +82,7 @@ export default class DeliverableMixin extends mixins(Viewer) {
 
   public is(status: number) {
     /* istanbul ignore if */
-    if (!this.deliverable.x) {
+    if (!(this.deliverable && this.deliverable.x)) {
       return false
     }
     return this.deliverable.x.status === status
@@ -139,6 +140,7 @@ export default class DeliverableMixin extends mixins(Viewer) {
     }
     this.sellerHandler = this.$getProfile(order.seller.username, {})
     this.ensureHandler(this.sellerHandler, order.seller, true)
+    this.paymentForm.endpoint = `/api/sales/v1/invoice/${deliverable.invoice}/pay/`
     /* istanbul ignore if */
     if (this.viewMode !== VIEWER_TYPE.UNSET) {
       return
@@ -202,7 +204,7 @@ export default class DeliverableMixin extends mixins(Viewer) {
     if (!deliverable) {
       return false
     }
-    return !deliverable.escrow_disabled
+    return deliverable.escrow_enabled
   }
 
   public get expectedTurnaround() {
@@ -263,7 +265,7 @@ export default class DeliverableMixin extends mixins(Viewer) {
     if (!this.sellerHandler) {
       return null
     }
-    return this.sellerHandler.user.x
+    return this.sellerHandler.user.x as User
   }
 
   public get viewMode() {
@@ -314,9 +316,13 @@ export default class DeliverableMixin extends mixins(Viewer) {
     return this.isBuyer || this.isSeller || this.isArbitrator
   }
 
+  public get editable() {
+    return (this.is(this.NEW) || this.is(this.WAITING))
+  }
+
   public updateDeliverable(deliverable: Deliverable) {
     this.deliverable.updateX(deliverable)
-    this.viewSettings.model.showPayment = false
+    this.viewSettings.patchers.showPayment.model = false
   }
 
   public get name() {
@@ -366,7 +372,7 @@ export default class DeliverableMixin extends mixins(Viewer) {
         socketSettings: {
           appLabel: 'sales',
           modelName: 'Deliverable',
-          serializer: 'DeliverableViewSerializer',
+          serializer: 'DeliverableSerializer',
         },
       },
     )
@@ -389,6 +395,7 @@ export default class DeliverableMixin extends mixins(Viewer) {
     // Used as wrapper for state change events.
     this.stateChange = this.$getForm(`${this.prefix}__stateChange`, {endpoint: this.url, fields: {}})
     this.orderEmail = this.$getForm(`order${this.orderId}__email`, {endpoint: `${this.url}invite/`, fields: {}})
+    // Temporary endpoint URL-- we replace this in the setHandlers function upon loading the deliverable.
     const schema = baseCardSchema(`${this.url}pay/`)
     schema.fields = {
       ...schema.fields,
@@ -415,14 +422,6 @@ export default class DeliverableMixin extends mixins(Viewer) {
       },
     })
     this.lineItems.firstRun()
-    this.tipForm = this.$getForm(`${this.prefix}__tip`, {
-      endpoint: `${this.url}line-items/`,
-      fields: {
-        amount: {value: 0, validators: [{name: 'numeric'}]},
-        percentage: {value: 0},
-        type: {value: LineTypes.TIP},
-      },
-    })
     const outputUrl = `${this.url}outputs/`
     this.outputs = this.$getList(`${this.prefix}__outputs`, {endpoint: outputUrl})
     this.addSubmission = this.$getForm(`${this.prefix}__addSubmission`, {

@@ -8,7 +8,7 @@ export interface ArtistProfile {
   has_products: boolean,
   commission_info: string,
   auto_withdraw: boolean,
-  escrow_disabled: boolean,
+  escrow_enabled: boolean,
   lgbt: boolean,
   artist_of_color: boolean,
   bank_account_status: BANK_STATUSES,

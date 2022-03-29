@@ -35,7 +35,7 @@
                   <v-spacer></v-spacer>
                   <v-col class="shrink" align-self="end">
                     <ac-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">
-                      <v-tooltip bottom v-if="!product.escrow_disabled">
+                      <v-tooltip bottom v-if="product.escrow_enabled">
                         <template v-slot:activator="{on}">
                           <v-icon color="green" class="pl-1" small v-on="on">fa-shield</v-icon>
                         </template>
@@ -45,7 +45,7 @@
                   </v-col>
                 </v-row>
               </v-col>
-              <v-col class="text-center hidden-sm-and-down" cols="12" v-if="!product.escrow_disabled">
+              <v-col class="text-center hidden-sm-and-down" cols="12" v-if="product.escrow_enabled">
                 <ac-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">
                   <v-icon color="green" class="pr-1">fa-shield</v-icon>
                   <span>Protected by Artconomy Shield</span>
@@ -99,7 +99,7 @@
               <v-col class="grow" ><small>From</small> ${{product.starting_price.toFixed(2)}}</v-col>
               <v-col class="no-underline shrink">
                 <ac-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">
-                  <v-tooltip bottom v-if="!product.escrow_disabled">
+                  <v-tooltip bottom v-if="product.escrow_enabled">
                     <template v-slot:activator="{on}">
                       <v-icon color="green" class="pl-1" small v-on="on">fa-shield</v-icon>
                     </template>
@@ -137,11 +137,12 @@
             </ac-link>
             <v-spacer v-else />
             <ac-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">
-              <v-tooltip bottom v-if="!product.escrow_disabled">
+              <v-tooltip bottom v-if="product.escrow_enabled || product.escrow_upgradable">
                 <template v-slot:activator="{on}">
-                  <v-icon slot="activator" color="green" class="pl-1" v-on="on">fa-shield</v-icon>
+                  <v-icon slot="activator" :color="shieldColor" class="pl-1" v-on="on">fa-shield</v-icon>
                 </template>
-                <span>Protected by Artconomy Shield</span>
+                <span v-if="product.escrow_enabled || forceShield">Protected by Artconomy Shield</span>
+                <span v-else>Shield upgrade available for this product</span>
               </v-tooltip>
             </ac-link>
           </v-row>
@@ -173,7 +174,7 @@
               </v-col>
               <v-col cols="12">
                 <span class="currency-notation" v-if="product.starting_price">$</span>
-                <span class="price-display">{{product.starting_price.toFixed(2)}}</span>
+                <span class="price-display">{{startingPrice}}</span>
               </v-col>
             </v-row>
           </ac-link>
@@ -208,6 +209,7 @@ import AcRendered from '@/components/wrappers/AcRendered'
 import AcAvatar from '@/components/AcAvatar.vue'
 import Formatting from '@/mixins/formatting'
 import AcHiddenFlag from '@/components/AcHiddenFlag.vue'
+import {Location} from 'vue-router'
   @Component({
     components: {AcHiddenFlag, AcAvatar, AcRendered, AcLink, AcAsset},
   })
@@ -224,8 +226,35 @@ export default class AcProductPreview extends mixins(Formatting) {
     @Prop({default: true})
     public showUsername!: boolean
 
+    @Prop({default: false})
+    public forceShield!: boolean
+
+    public get startingPrice() {
+      if (this.forceShield) {
+        return this.product.shield_price.toFixed(2)
+      }
+      return this.product.starting_price.toFixed(2)
+    }
+
+    public get shieldColor() {
+      if (this.forceShield) {
+        return 'green'
+      }
+      if (this.product.escrow_enabled) {
+        return 'green'
+      }
+      return ''
+    }
+
     public get productLink() {
-      return {name: 'Product', params: {username: this.product.user.username, productId: this.product.id}}
+      const path: Location = {
+        name: 'Product',
+        params: {username: this.product.user.username, productId: `${this.product.id}`},
+      }
+      if (this.forceShield) {
+        path.query = {forceShield: 'true'}
+      }
+      return path
     }
 
     public get unavailable() {

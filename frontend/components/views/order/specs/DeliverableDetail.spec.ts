@@ -36,7 +36,7 @@ describe('DeliverableDetail.vue', () => {
     const fox = genUser()
     fox.username = 'Fox'
     setViewer(store, fox)
-    router.push('/orders/Fox/order/1/deliverables/5/')
+    await router.push('/orders/Fox/order/1/deliverables/5/')
     wrapper = mount(
       DeliverableDetail, {
         localVue,
@@ -68,7 +68,7 @@ describe('DeliverableDetail.vue', () => {
     const fox = genUser()
     fox.username = 'Fox'
     setViewer(store, fox)
-    router.push('/orders/Fox/order/1/deliverables/5/')
+    await router.push('/orders/Fox/order/1/deliverables/5/')
     wrapper = mount(
       DeliverableDetail, {
         localVue,
@@ -93,7 +93,7 @@ describe('DeliverableDetail.vue', () => {
     const vulpes = genUser()
     vulpes.username = 'Fox'
     setViewer(store, vulpes)
-    router.push('/orders/Fox/order/1/deliverables/5/')
+    await router.push('/orders/Fox/order/1/deliverables/5/')
     wrapper = mount(
       DeliverableDetail, {
         localVue,
@@ -101,7 +101,6 @@ describe('DeliverableDetail.vue', () => {
         router,
         vuetify,
         propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-
         attachTo: docTarget(),
         stubs: ['ac-revision-manager'],
       })
@@ -121,7 +120,7 @@ describe('DeliverableDetail.vue', () => {
     const vulpes = genUser()
     vulpes.username = 'Vulpes'
     setViewer(store, vulpes)
-    router.push('/orders/Fox/order/1/deliverables/5')
+    await router.push('/orders/Fox/order/1/deliverables/5')
     wrapper = mount(
       DeliverableDetail, {
         localVue,
@@ -158,7 +157,7 @@ describe('DeliverableDetail.vue', () => {
   })
   it('Handles an order without a product', async() => {
     setViewer(store, genUser())
-    router.push('/orders/Fox/order/1/')
+    await router.push('/orders/Fox/order/1/')
     wrapper = mount(
       DeliverableDetail, {
         localVue,
@@ -182,7 +181,7 @@ describe('DeliverableDetail.vue', () => {
     const user = genUser({is_staff: true})
     user.username = 'Dude'
     setViewer(store, user)
-    router.push('/orders/Fox/order/1/deliverables/5')
+    await router.push('/orders/Fox/order/1/deliverables/5')
     wrapper = mount(
       DeliverableDetail, {
         localVue,
@@ -226,7 +225,7 @@ describe('DeliverableDetail.vue', () => {
     const user = genUser()
     user.username = 'Dude'
     setViewer(store, user)
-    router.push('/orders/Fox/order/1/deliverables/5')
+    await router.push('/orders/Fox/order/1/deliverables/5')
     wrapper = mount(
       DeliverableDetail, {
         localVue,
@@ -261,7 +260,7 @@ describe('DeliverableDetail.vue', () => {
     const user = genUser()
     user.username = 'Dude'
     setViewer(store, user)
-    router.push('/orders/Fox/order/1/deliverables/5')
+    await router.push('/orders/Fox/order/1/deliverables/5')
     wrapper = mount(
       DeliverableDetail, {
         localVue,
@@ -292,7 +291,7 @@ describe('DeliverableDetail.vue', () => {
   })
   it('Prompts to add revision to collection', async() => {
     setViewer(store, genUser())
-    router.push('/orders/Fox/order/1/deliverables/5')
+    await router.push('/orders/Fox/order/1/deliverables/5')
     wrapper = mount(
       DeliverableDetail, {
         localVue,
@@ -320,7 +319,7 @@ describe('DeliverableDetail.vue', () => {
   it('Prompts to add revision to collection by registering if they are a guest', async() => {
     const user = genGuest()
     setViewer(store, user)
-    router.push('/orders/Fox/order/1/deliverables/5')
+    await router.push('/orders/Fox/order/1/deliverables/5')
     wrapper = mount(
       DeliverableDetail, {
         localVue,
@@ -350,7 +349,7 @@ describe('DeliverableDetail.vue', () => {
   })
   it('Does not have the submission adding form loaded by default', async() => {
     setViewer(store, genUser())
-    router.push('/orders/Fox/order/1/deliverables/5')
+    await router.push('/orders/Fox/order/1/deliverables/5')
     wrapper = mount(
       DeliverableDetail, {
         localVue,
@@ -366,7 +365,7 @@ describe('DeliverableDetail.vue', () => {
   })
   it('Loads with the submission prompt triggered', async() => {
     setViewer(store, genUser())
-    router.push('/orders/Fox/order/1/deliverables/5?showAdd=true')
+    await router.push('/orders/Fox/order/1/deliverables/5?showAdd=true')
     wrapper = mount(
       DeliverableDetail, {
         localVue,
@@ -414,7 +413,7 @@ describe('DeliverableDetail.vue', () => {
   it('Calculates the deliverable turnaround time', async() => {
     const user = genGuest()
     setViewer(store, user)
-    router.push('/orders/Fox/order/1/deliverables/5')
+    await router.push('/orders/Fox/order/1/deliverables/5')
     wrapper = mount(
       DeliverableDetail, {
         localVue,
@@ -441,7 +440,7 @@ describe('DeliverableDetail.vue', () => {
   it('Calculates revision time', async() => {
     const user = genGuest()
     setViewer(store, user)
-    router.push('/orders/Fox/order/1/deliverables/5')
+    await router.push('/orders/Fox/order/1/deliverables/5')
     wrapper = mount(
       DeliverableDetail, {
         localVue,
@@ -464,7 +463,7 @@ describe('DeliverableDetail.vue', () => {
   })
   it('Adds character tags to submission form', async() => {
     setViewer(store, genUser())
-    router.push('/orders/Fox/order/1/deliverables/5')
+    await router.push('/orders/Fox/order/1/deliverables/5')
     wrapper = mount(
       DeliverableDetail, {
         localVue,
@@ -495,7 +494,7 @@ describe('DeliverableDetail.vue', () => {
   it('Visits a newly created Deliverable', async() => {
     const vulpes = genUser({username: 'Vulpes', landscape: true})
     setViewer(store, vulpes)
-    router.push('/orders/Vulpes/order/1/deliverables/5/overview')
+    await router.push('/orders/Vulpes/order/1/deliverables/5/overview')
     const mockPush = jest.spyOn(router, 'push')
     wrapper = mount(
       DeliverableDetail, {
@@ -538,13 +537,13 @@ describe('DeliverableDetail.vue', () => {
     const vm = wrapper.vm as any
     vm.deliverable.setX(genDeliverable())
     await vm.$nextTick()
-    expect(vm.invoiceEscrowDisabled).toBe(true)
+    expect(vm.invoiceEscrowEnabled).toBe(false)
     vm.sellerHandler.artistProfile.makeReady(genArtistProfile())
     await vm.$nextTick()
-    expect(vm.invoiceEscrowDisabled).toBe(false)
+    expect(vm.invoiceEscrowEnabled).toBe(true)
     vm.newInvoice.fields.paid.update(true)
     await vm.$nextTick()
-    expect(vm.invoiceEscrowDisabled).toBe(true)
+    expect(vm.invoiceEscrowEnabled).toBe(false)
   })
   it('Takes the user to a new deliverable', async() => {
     const vulpes = genUser({username: 'Vulpes', landscape: true})

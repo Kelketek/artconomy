@@ -3,7 +3,7 @@
 {% block message %}
 <p>
 We're having some trouble renewing your subscription. This is most likely due to an issue with the card you have on file.
-We'll retry a few more times, or you can update your payment information using the link below.
+We'll retry a few more times, or you can try paying the invoice manually below.
 </p>
 <p>
   Here's the error we got: {{ data.error }}
@@ -11,5 +11,5 @@ We'll retry a few more times, or you can update your payment information using t
 {% endblock message %}
 
 {% block action %}
-<a href="/profile/{{target.username}}/settings/payment/purchase/">Update your payment information here!</a>
+<a href="/profile/{{target.username|urlencode:''}}/settings/payment/invoices/{{data.invoice_id}}">Update your payment information here!</a>
 {% endblock %}

@@ -2,7 +2,7 @@ from datetime import date
 from decimal import Decimal
 from multiprocessing.pool import ThreadPool
 from time import sleep
-from unittest.mock import patch, call, PropertyMock, Mock
+from unittest.mock import patch, call, Mock
 
 from dateutil.relativedelta import relativedelta
 from django.core import mail
@@ -11,30 +11,214 @@ from django.test import TestCase, TransactionTestCase, override_settings
 from django.utils import timezone
 from djmoney.money import Money
 from freezegun import freeze_time
+from stripe.error import CardError
 
-from apps.lib.models import SUBSCRIPTION_DEACTIVATED, Notification, RENEWAL_FAILURE, RENEWAL_FIXED, TRANSFER_FAILED, \
-    ref_for_instance
+from apps.lib.models import SUBSCRIPTION_DEACTIVATED, Notification, ref_for_instance
+from apps.lib.test_resources import EnsurePlansMixin
 from apps.profiles.tests.factories import UserFactory
-from apps.sales.models import TransactionRecord, REVIEW, PAYMENT_PENDING, NEW, CANCELLED, IN_PROGRESS, Deliverable
-from apps.sales.tasks import run_billing, update_transfer_status, remind_sales, remind_sale, \
+from apps.sales.models import TransactionRecord, Deliverable, Invoice
+from apps.sales.constants import NEW, PAYMENT_PENDING, IN_PROGRESS, REVIEW, CANCELLED, UNPROCESSED_EARNINGS, \
+    PAYOUT_MIRROR_DESTINATION, PAYOUT_MIRROR_SOURCE, HOLDINGS, CASH_WITHDRAW, BANK, ACH_TRANSACTION_FEES, COMPLETED, \
+    FAILURE, PENDING, CARD, ESCROW, SUCCESS, TERM, PAID, DRAFT, OPEN, VOID, LIMBO, MISSED
+from apps.sales.tasks import run_billing, remind_sales, remind_sale, \
     withdraw_all, auto_finalize_run, auto_finalize, clear_cancelled_deliverables, \
-    clear_deliverable, annotate_connect_fees_for_year_month, annotate_connect_fees
+    clear_deliverable, annotate_connect_fees_for_year_month, annotate_connect_fees, renew, renew_stripe_card, \
+    stripe_transfer, destroy_expired_invoices, cancel_abandoned_orders
 from apps.sales.tests.factories import TransactionRecordFactory, DeliverableFactory, \
-    StripeAccountFactory, ServicePlanFactory
+    StripeAccountFactory, ServicePlanFactory, CreditCardTokenFactory, LineItemFactory, InvoiceFactory
+from apps.sales.utils import get_subscription_invoice, get_term_invoice, \
+    add_service_plan_line
 
 
-class TestAutoRenewal(TestCase):
+@patch('apps.sales.tasks.stripe')
+class TestRenewStripeCard(EnsurePlansMixin, TestCase):
+    def test_successful_renewal(self, mock_stripe):
+        card = CreditCardTokenFactory.create(stripe_token='123', user__stripe_token='456')
+        user = card.user
+        invoice = get_term_invoice(user)
+        amount = Money('10.00', 'USD')
+        LineItemFactory.create(
+            amount=amount,
+            invoice=invoice,
+        )
+        mock_stripe.__enter__.return_value.PaymentIntent.create.return_value = {'id': 'beep'}
+        renew_stripe_card(card=card, invoice=invoice, user=user, price=amount)
+        invoice.refresh_from_db()
+        self.assertEqual(invoice.current_intent, 'beep')
+        mock_stripe.__enter__.return_value.PaymentIntent.create.assert_called_with(
+            amount=1000,
+            currency='usd',
+            payment_method='123',
+            customer='456',
+            off_session=True,
+            confirm=True,
+            # TODO: Needs to change per service name, or else be omitted since we'll be swapping methods for tracking
+            # subscriptions anyway.
+            metadata={'service': 'landscape', 'invoice_id': invoice.id}
+        )
 
+    def test_zero_renewal(self, mock_stripe):
+        card = CreditCardTokenFactory.create(stripe_token='123', user__stripe_token='456')
+        user = card.user
+        invoice = get_term_invoice(user)
+        renew_stripe_card(card=card, invoice=invoice, user=user, price=Money('0.00', 'USD'))
+        invoice.refresh_from_db()
+        self.assertEqual(invoice.status, PAID)
+        mock_stripe.__enter__.return_value.PaymentIntent.create.assert_not_called()
+
+    def test_failed_renewal(self, mock_stripe):
+        card = CreditCardTokenFactory.create(last_four='9999')
+        user = card.user
+        invoice = get_term_invoice(user)
+        amount = Money('10.00', 'USD')
+        LineItemFactory.create(
+            amount=amount,
+            invoice=invoice,
+        )
+        mock_stripe.__enter__.return_value.PaymentIntent.create.side_effect = CardError(
+            'Borked!', code='Boink', param='number',
+        )
+        self.assertEqual(len(mail.outbox), 0)
+        renew_stripe_card(card=card, invoice=invoice, user=user, price=amount)
+        self.assertEqual(len(mail.outbox), 1)
+
+
+@patch('apps.sales.tasks.renew_stripe_card')
+class TestRenew(EnsurePlansMixin, TestCase):
+    @freeze_time('2022-05-01')
+    def test_no_card_specified_has_primary(self, mock_renew_stripe_card):
+        card = CreditCardTokenFactory.create(
+            user__service_plan_paid_through=timezone.now().date(),
+            user__service_plan=self.landscape,
+            user__next_service_plan=self.landscape,
+        )
+        card.user.primary_card = card
+        card.user.save()
+        invoice = get_term_invoice(card.user)
+        add_service_plan_line(invoice, self.landscape)
+        renew(card.user.id)
+        mock_renew_stripe_card.assert_called_with(
+            invoice=invoice, user=card.user, card=card, price=self.landscape.monthly_charge,
+        )
+
+    def test_renew_free_plan(self, mock_renew_stripe_card):
+        user = UserFactory.create(
+            service_plan=self.landscape,
+            next_service_plan=self.free,
+            service_plan_paid_through=date.today(),
+        )
+        renew(user.id)
+        user.refresh_from_db()
+        self.assertEqual(user.service_plan, self.free)
+        mock_renew_stripe_card.assert_not_called()
+
+    @freeze_time('2022-05-01')
+    def test_no_card_specified(self, mock_renew_stripe_card):
+        card = CreditCardTokenFactory.create(
+            user__service_plan_paid_through=timezone.now().date(),
+            user__service_plan=self.landscape,
+            user__next_service_plan=self.landscape,
+        )
+        card2 = CreditCardTokenFactory.create(user=card.user)
+        card.user.primary_card = card
+        card.user.save()
+        invoice = get_term_invoice(card.user)
+        add_service_plan_line(invoice, self.landscape)
+        renew(card.user.id, card_id=card2.id)
+        mock_renew_stripe_card.assert_called_with(
+            invoice=invoice, user=card.user, card=card2, price=self.landscape.monthly_charge,
+        )
+
+    @freeze_time('2022-05-01')
+    def test_no_card_specified_no_primary_has_card(self, mock_renew_stripe_card):
+        card = CreditCardTokenFactory.create(
+            user__service_plan_paid_through=timezone.now().date(),
+            user__service_plan=self.landscape,
+            user__next_service_plan=self.landscape,
+        )
+        card.user.primary_card = None
+        card.user.save()
+        invoice = get_term_invoice(card.user)
+        add_service_plan_line(invoice, self.landscape)
+        renew(card.user.id)
+        mock_renew_stripe_card.assert_called_with(
+            invoice=invoice, user=card.user, card=card, price=self.landscape.monthly_charge,
+        )
+
+    @freeze_time('2022-05-01')
+    def test_no_card_specified_no_card(self, mock_renew_stripe_card):
+        user = UserFactory.create(
+            primary_card=None,
+            service_plan_paid_through=timezone.now().date(),
+            service_plan=self.landscape,
+            next_service_plan=self.landscape,
+        )
+        self.assertEqual(len(mail.outbox), 0)
+        renew(user.id)
+        mock_renew_stripe_card.assert_not_called()
+        self.assertEqual(len(mail.outbox), 1)
+
+    @freeze_time('2022-05-01')
+    def test_user_already_current(self, mock_renew_stripe_card):
+        user = UserFactory.create(
+            primary_card=None,
+            service_plan_paid_through=timezone.now().date() + relativedelta(days=5),
+            service_plan=self.landscape,
+            next_service_plan=self.landscape,
+        )
+        self.assertEqual(len(mail.outbox), 0)
+        renew(user.id)
+        mock_renew_stripe_card.assert_not_called()
+        self.assertEqual(len(mail.outbox), 0)
+
+    @freeze_time('2022-05-01')
+    def test_renewal_card_failure(self, mock_renew_stripe_card):
+        card = CreditCardTokenFactory.create(
+            user__service_plan_paid_through=timezone.now().date(),
+            user__service_plan=self.landscape,
+            user__next_service_plan=self.landscape,
+        )
+        self.assertEqual(len(mail.outbox), 0)
+        mock_renew_stripe_card.return_value = False
+        invoice = get_term_invoice(card.user)
+        add_service_plan_line(invoice, self.landscape)
+        renew(card.user.id)
+        mock_renew_stripe_card.assert_called_with(
+            invoice=invoice, user=card.user, card=card, price=self.landscape.monthly_charge,
+        )
+        # Mail would be sent by renew_stripe_card, which is mocked.
+        self.assertEqual(len(mail.outbox), 0)
+
+    @freeze_time('2022-05-01')
+    @patch('apps.sales.tasks.logger')
+    def test_subscription_date_corrupt(self, mock_logger, mock_renew_stripe_card):
+        card = CreditCardTokenFactory.create(
+            user__service_plan_paid_through=None,
+            user__service_plan=self.landscape,
+            user__next_service_plan=self.landscape,
+        )
+        user = card.user
+        self.assertEqual(len(mail.outbox), 0)
+        mock_renew_stripe_card.return_value = False
+        renew(user.id)
+        mock_renew_stripe_card.assert_not_called()
+        mock_logger.error.assert_called_with(
+            f'!!! {user.username}({user.id}) has NONE for service_plan_paid_through with subscription enabled!',
+        )
+        self.assertEqual(len(mail.outbox), 0)
+
+
+class TestAutoRenewal(EnsurePlansMixin, TestCase):
     def setUp(self):
         super().setUp()
-        ServicePlanFactory(monthly_charge=Money('0.00', 'USD'), name='Free')
         self.service_plan = ServicePlanFactory(monthly_charge=Money('6.00', 'USD'))
 
     @patch('apps.sales.tasks.renew')
     @freeze_time('2018-02-10 12:00:00')
+    @override_settings(TERM_GRACE_DAYS=5)
     def test_tasks_made(self, mock_renew):
-        disable = UserFactory.create(service_plan=self.service_plan, service_plan_paid_through=date(2018, 2, 5))
-        renew_landscape = UserFactory.create(service_plan=self.service_plan, service_plan_paid_through=date(2018, 2, 9))
+        disable = UserFactory.create(service_plan=self.service_plan, service_plan_paid_through=date(2018, 1, 1))
+        renew_landscape = UserFactory.create(service_plan=self.service_plan, service_plan_paid_through=date(2018, 2, 7))
         run_billing()
         disable.refresh_from_db()
         self.assertFalse(disable.landscape_enabled)
@@ -45,71 +229,7 @@ class TestAutoRenewal(TestCase):
             self.assertEqual(letter.subject, 'Your subscription has been deactivated.')
 
 
-@patch('apps.sales.apis.DwollaContext.dwolla_api', new_callable=PropertyMock)
-class TestUpdateTransaction(TestCase):
-    def setUp(self):
-        super().setUp()
-        user = UserFactory.create()
-        self.record = TransactionRecordFactory.create(
-            payee=user,
-            payer=user,
-            status=TransactionRecord.PENDING,
-            category=TransactionRecord.CASH_WITHDRAW,
-            source=TransactionRecord.HOLDINGS,
-            destination=TransactionRecord.BANK,
-            remote_ids=['1234'],
-        )
-        self.deliverable = DeliverableFactory.create(payout_sent=True)
-        self.record.targets.add(ref_for_instance(self.deliverable))
-
-    def test_check_transaction_status_no_change(self, mock_api):
-        mock_api.return_value.get.return_value.body = {'status': 'pending'}
-        update_transfer_status(self.record.id)
-        self.assertEqual(TransactionRecord.objects.all().count(), 1)
-        self.record.refresh_from_db()
-        self.assertEqual(self.record.status, TransactionRecord.PENDING)
-        self.assertIsNone(self.record.finalized_on)
-        self.deliverable.refresh_from_db()
-        self.assertTrue(self.deliverable.payout_sent)
-
-    def test_check_transaction_status_cancelled(self, mock_api):
-        mock_api.return_value.get.return_value.body = {'status': 'cancelled'}
-        update_transfer_status(self.record.id)
-        self.assertEqual(TransactionRecord.objects.all().count(), 1)
-        self.record.refresh_from_db()
-        self.assertEqual(self.record.status, TransactionRecord.FAILURE)
-        self.assertTrue(self.record.finalized_on)
-        self.deliverable.refresh_from_db()
-        self.assertFalse(self.deliverable.payout_sent)
-
-    def test_check_transaction_status_failed(self, mock_api):
-        mock_api.return_value.get.return_value.body = {'status': 'cancelled'}
-        update_transfer_status(self.record.id)
-        self.assertEqual(TransactionRecord.objects.all().count(), 1)
-        self.record.refresh_from_db()
-        self.assertEqual(self.record.status, TransactionRecord.FAILURE)
-        self.assertTrue(self.record.finalized_on)
-        self.deliverable.refresh_from_db()
-        self.assertFalse(self.deliverable.payout_sent)
-
-    def test_check_transaction_status_processed(self, mock_api):
-        mock_api.return_value.get.return_value.body = {'status': 'processed'}
-        update_transfer_status(self.record.id)
-        self.assertEqual(TransactionRecord.objects.all().count(), 2)
-        self.record.refresh_from_db()
-        self.assertTrue(self.record.finalized_on)
-        self.deliverable.refresh_from_db()
-        self.assertTrue(self.deliverable.payout_sent)
-        additional_record = TransactionRecord.objects.get(
-            remote_ids__contains=self.record.remote_ids, source=TransactionRecord.PAYOUT_MIRROR_SOURCE,
-        )
-        self.assertEqual(additional_record.amount, self.record.amount)
-        self.assertEqual(additional_record.destination, TransactionRecord.PAYOUT_MIRROR_DESTINATION)
-        self.assertEqual(additional_record.payee, self.record.payee)
-        self.assertEqual(additional_record.payer, self.record.payer)
-
-
-class TestFinalizers(TestCase):
+class TestFinalizers(EnsurePlansMixin, TestCase):
     @freeze_time('2018-02-10 12:00:00')
     @patch('apps.sales.tasks.auto_finalize')
     def test_auto_finalize_run(self, mock_auto_finalize):
@@ -164,7 +284,7 @@ def wrapped_withdraw(user_id):
         connection.close()
 
 
-class TestWithdrawAll(TransactionTestCase):
+class TestWithdrawAll(EnsurePlansMixin, TransactionTestCase):
     @patch('apps.sales.tasks.account_balance')
     @patch('apps.sales.tasks.stripe_transfer.delay')
     def test_withdraw_all(self, stripe_transfer, mock_balance):
@@ -178,7 +298,7 @@ class TestWithdrawAll(TransactionTestCase):
         withdraw_all(user.id)
         # Normally, three dollars would be removed here for the connection fee,
         # but we're always returning a balance of $25.
-        record = TransactionRecord.objects.get(category=TransactionRecord.CASH_WITHDRAW)
+        record = TransactionRecord.objects.get(category=CASH_WITHDRAW)
         stripe_transfer.assert_called_with(record.id, bank.id, None)
 
     @patch('apps.sales.tasks.account_balance')
@@ -198,7 +318,7 @@ class TestWithdrawAll(TransactionTestCase):
     def test_withdraw_mutex(self, stripe_transfer):
         user = UserFactory.create()
         StripeAccountFactory(user=user)
-        TransactionRecordFactory(payee=user, destination=TransactionRecord.HOLDINGS, amount=Money('10.00', 'USD'))
+        TransactionRecordFactory(payee=user, destination=HOLDINGS, amount=Money('10.00', 'USD'))
         def side_effect(x, y, z):
             sleep(.25)
             return None, Deliverable.objects.none()
@@ -207,14 +327,167 @@ class TestWithdrawAll(TransactionTestCase):
         pool.map(wrapped_withdraw, [user.id] * 4)
         pool.close()
         pool.join()
-        records = TransactionRecord.objects.filter(destination=TransactionRecord.BANK)
+        records = TransactionRecord.objects.filter(destination=BANK)
         self.assertEqual(records.count(), 1)
 
+    @patch('apps.sales.tasks.record_to_invoice_map')
+    def test_withdraw_all_bails_on_zero(self, mock_mapper):
+        user = UserFactory.create()
+        StripeAccountFactory(user=user)
+        withdraw_all(user.id)
+        mock_mapper.assert_not_called()
 
-    # TODO: Add in tests for deliverable annotations.
+    @patch('apps.sales.tasks.stripe_transfer.delay')
+    def test_withdraw_amount_matches(self, stripe_transfer):
+        user = UserFactory.create()
+        account = StripeAccountFactory(user=user)
+        record = TransactionRecordFactory(payee=user, destination=HOLDINGS, amount=Money('10.00', 'USD'))
+        deliverable = DeliverableFactory.create(order__seller=user, status=COMPLETED, invoice__payout_sent=False)
+        record.targets.add(ref_for_instance(deliverable), ref_for_instance(deliverable.invoice))
+        deliverable.invoice.payout_available = True
+        deliverable.invoice.status = PAID
+        deliverable.invoice.save()
+        withdraw_all(user.id)
+        transfer = TransactionRecord.objects.get(destination=BANK)
+        self.assertCountEqual(
+            [target.target for target in transfer.targets.all()], [deliverable, deliverable.invoice, account],
+        )
+        self.assertEqual(transfer.amount, Money('10.00', 'USD'))
+        deliverable.refresh_from_db()
+        self.assertEqual(deliverable.invoice.payout_sent, True)
+        stripe_transfer.assert_called_with(transfer.id, account.id, deliverable.invoice.id)
 
 
-class TestReminders(TestCase):
+@patch('apps.sales.tasks.stripe')
+class TestStripeTransfer(EnsurePlansMixin, TestCase):
+    def test_send_transfer_deliverable(self, mock_stripe):
+        deliverable = DeliverableFactory.create()
+        record = TransactionRecordFactory.create(
+            payee=deliverable.order.seller, amount=Money('10.00', 'USD'), status=FAILURE,
+        )
+        account = StripeAccountFactory.create(user=deliverable.order.seller, token='foo')
+        mock_stripe.__enter__.return_value.Transfer.create.return_value = {
+            'id': 'beep', 'destination_payment': 'boop', 'balance_transaction': '1234',
+        }
+        stripe_transfer(record.id, account.id, invoice_id=deliverable.invoice.id)
+        record.refresh_from_db()
+        self.assertEqual(record.status, PENDING)
+        mock_stripe.__enter__.return_value.Transfer.create.assert_called_with(
+            metadata={'reference_transaction': record.id},
+            transfer_group=f'ACInvoice#{deliverable.invoice.id}',
+            amount=1000,
+            currency='usd',
+            destination='foo',
+        )
+
+    def test_send_transfer_failed_with_invoice(self, mock_stripe):
+        deliverable = DeliverableFactory.create(invoice__payout_sent=True)
+        record = TransactionRecordFactory.create(
+            payee=deliverable.order.seller, amount=Money('10.00', 'USD'), status=FAILURE,
+        )
+        account = StripeAccountFactory.create(user=deliverable.order.seller, token='foo')
+        mock_stripe.__enter__.return_value.Transfer.create.side_effect = ValueError('Failed!')
+        stripe_transfer(record.id, account.id, invoice_id=deliverable.invoice.id)
+        record.refresh_from_db()
+        self.assertEqual(record.status, FAILURE)
+        self.assertEqual(record.response_message, 'Failed!')
+        deliverable.refresh_from_db()
+        self.assertFalse(deliverable.invoice.payout_sent)
+
+    def test_send_transfer_deliverable_with_source(self, mock_stripe):
+        deliverable = DeliverableFactory.create()
+        record = TransactionRecordFactory.create(
+            payee=deliverable.order.seller,
+            payer=deliverable.order.seller,
+            amount=Money('10.00', 'USD'),
+            status=FAILURE,
+        )
+        source_record = TransactionRecordFactory.create(
+            source=CARD,
+            destination=ESCROW,
+            status=SUCCESS,
+            remote_ids=['ch_stuff', 'things']
+        )
+        source_record.targets.add(ref_for_instance(deliverable.invoice))
+        account = StripeAccountFactory.create(user=deliverable.order.seller, token='foo')
+        mock_stripe.__enter__.return_value.Transfer.create.return_value = {
+            'id': 'beep', 'destination_payment': 'boop', 'balance_transaction': '1234',
+        }
+        stripe_transfer(record.id, account.id, invoice_id=deliverable.invoice.id)
+        record.refresh_from_db()
+        self.assertEqual(record.status, PENDING)
+        mock_stripe.__enter__.return_value.Transfer.create.assert_called_with(
+            metadata={'reference_transaction': record.id},
+            transfer_group=f'ACInvoice#{deliverable.invoice.id}',
+            amount=1000,
+            currency='usd',
+            destination='foo',
+            source_transaction='ch_stuff',
+        )
+
+    def test_send_transfer_deliverable_with_unmarked_source(self, mock_stripe):
+        deliverable = DeliverableFactory.create()
+        record = TransactionRecordFactory.create(
+            payee=deliverable.order.seller,
+            payer=deliverable.order.seller,
+            amount=Money('10.00', 'USD'),
+            status=FAILURE,
+        )
+        source_record = TransactionRecordFactory.create(
+            source=CARD,
+            destination=ESCROW,
+            status=SUCCESS,
+            remote_ids=['things']
+        )
+        source_record.targets.add(ref_for_instance(deliverable.invoice))
+        account = StripeAccountFactory.create(user=deliverable.order.seller, token='foo')
+        mock_stripe.__enter__.return_value.Transfer.create.return_value = {
+            'id': 'beep', 'destination_payment': 'boop', 'balance_transaction': '1234',
+        }
+        stripe_transfer(record.id, account.id, invoice_id=deliverable.invoice.id)
+        record.refresh_from_db()
+        self.assertEqual(record.status, PENDING)
+        mock_stripe.__enter__.return_value.Transfer.create.assert_called_with(
+            metadata={'reference_transaction': record.id},
+            transfer_group=f'ACInvoice#{deliverable.invoice.id}',
+            amount=1000,
+            currency='usd',
+            destination='foo',
+        )
+
+    def test_send_transfer_no_invoice(self, mock_stripe):
+        user = UserFactory.create()
+        record = TransactionRecordFactory.create(
+            payee=user, amount=Money('10.00', 'USD'), status=FAILURE,
+        )
+        account = StripeAccountFactory.create(user=user, token='foo')
+        mock_stripe.__enter__.return_value.Transfer.create.return_value = {
+            'id': 'beep', 'destination_payment': 'boop', 'balance_transaction': '1234',
+        }
+        stripe_transfer(record.id, account.id)
+        record.refresh_from_db()
+        self.assertEqual(record.status, PENDING)
+        mock_stripe.__enter__.return_value.Transfer.create.assert_called_with(
+            metadata={'reference_transaction': record.id},
+            amount=1000,
+            currency='usd',
+            destination='foo',
+        )
+
+    def test_send_transfer_fails_no_deliverable(self, mock_stripe):
+        user = UserFactory.create()
+        record = TransactionRecordFactory.create(
+            payee=user, amount=Money('10.00', 'USD'), status=FAILURE,
+        )
+        account = StripeAccountFactory.create(user=user, token='foo')
+        mock_stripe.__enter__.return_value.Transfer.create.side_effect = ValueError('Failed!')
+        stripe_transfer(record.id, account.id)
+        record.refresh_from_db()
+        self.assertEqual(record.status, FAILURE)
+        self.assertEqual(record.response_message, 'Failed!')
+
+
+class TestReminders(EnsurePlansMixin, TestCase):
     @freeze_time('2018-02-10 12:00:00')
     @patch('apps.sales.tasks.Deliverable')
     @patch('apps.sales.tasks.remind_sale')
@@ -224,29 +497,31 @@ class TestReminders(TestCase):
                 mock = Mock()
                 # Negative to make distinct so we know the arguments are in the right order.
                 mock.id = 0 - i
-                mock.created_on = timezone.now() - relativedelta(days=i)
+                mock.auto_cancel_on = timezone.now() - relativedelta(days=i)
                 order_list.append(mock)
 
         to_remind = []
-        build_calls(to_remind, [1, 2, 3, 4, 5, 6, 9, 12, 15, 18])
+        build_calls(to_remind, [3, 6, 9, 12, 15, 18])
         all_orders = [*to_remind]
         # To be ignored.
-        build_calls(all_orders, [7, 8, 10, 11, 13, 14, 16, 17, 19, 21, 22, 23, 24, 25, 26, 27, 28, 30])
+        build_calls(all_orders, [1, 2, 4, 7, 8, 10, 11, 13, 14, 16, 17, 19])
         mock_deliverable.objects.filter.return_value = all_orders
         remind_sales()
-        self.assertEqual(mock_remind_sale.delay.call_count, 10)
+        self.assertEqual(mock_remind_sale.delay.call_count, 6)
         to_remind = [
             call(order.id) for order in to_remind
         ]
         mock_remind_sale.delay.assert_has_calls(to_remind, any_order=True)
         timestamp = timezone.now()
-        timestamp = timestamp.replace(year=2018, month=2, day=9, hour=12, minute=0)
+        timestamp = timestamp.replace(year=2018, month=2, day=10, hour=12, minute=0)
         mock_deliverable.objects.filter.assert_called_with(
-            status=NEW, created_on__lte=timestamp,
+            status=NEW, auto_cancel_on__gte=timestamp, auto_cancel_on__isnull=False,
         )
 
     def test_send_reminder(self):
-        deliverable = DeliverableFactory.create(status=NEW, details='# This is a test\n\nDo things and stuff.')
+        deliverable = DeliverableFactory.create(
+            status=NEW, details='# This is a test\n\nDo things and stuff.', auto_cancel_on=timezone.now(),
+        )
         remind_sale(deliverable.id)
         self.assertEqual(mail.outbox[0].subject, 'Your commissioner is awaiting your response!')
 
@@ -256,24 +531,7 @@ class TestReminders(TestCase):
         self.assertEqual(len(mail.outbox), 0)
 
 
-def gen_dwolla_response():
-    return {
-            'transactions': [
-                {
-                 'id': 'c4ded785-d753-45e8-b225-1ec88c321a46',
-                 'status': 'processed',
-                 'amount': {'value': '0.12', 'currency': 'USD'},
-                 'created': '2018-09-26T06:59:25.597Z'}],
-    }
-
-
-def gen_dwolla_balance(amount: Money):
-    return {
-        'balance': {'value': str(amount.amount), 'currency': str(amount.currency)},
-    }
-
-
-class TestDeliverableClear(TestCase):
+class TestDeliverableClear(EnsurePlansMixin, TestCase):
     @patch('apps.sales.tasks.clear_deliverable')
     def test_clear_deliverables(self, mock_clear):
         chosen = DeliverableFactory(status=CANCELLED, cancelled_on=timezone.now() - relativedelta(months=2))
@@ -302,19 +560,19 @@ class TestDeliverableClear(TestCase):
     STRIPE_PAYOUT_CROSS_BORDER_PERCENTAGE=Decimal('0.25'),
     STRIPE_ACTIVE_ACCOUNT_MONTHLY_FEE=Money('2.00', 'USD'),
 )
-class TestAnnotatePayouts(TestCase):
+class TestAnnotatePayouts(EnsurePlansMixin, TestCase):
     @freeze_time('2021-08-01')
     def test_allocate_connect_fees_one_record(self):
         account = StripeAccountFactory.create()
         record = TransactionRecordFactory.create(
-            payer=account.user, payee=account.user, source=TransactionRecord.HOLDINGS,
-            destination=TransactionRecord.BANK, amount=Money('100', 'USD'), category=TransactionRecord.CASH_WITHDRAW,
+            payer=account.user, payee=account.user, source=HOLDINGS,
+            destination=BANK, amount=Money('100', 'USD'), category=CASH_WITHDRAW,
             finalized_on=timezone.now(),
         )
         record.targets.add(ref_for_instance(account))
         annotate_connect_fees_for_year_month(month=8, year=2021)
         fee_record = TransactionRecord.objects.get(
-            source=TransactionRecord.UNPROCESSED_EARNINGS, destination=TransactionRecord.ACH_TRANSACTION_FEES,
+            source=UNPROCESSED_EARNINGS, destination=ACH_TRANSACTION_FEES,
         )
         self.assertEqual(fee_record.amount, Money('2.50', 'USD'))
 
@@ -322,20 +580,20 @@ class TestAnnotatePayouts(TestCase):
     def test_allocate_connect_fees_multiple_records_one_user(self):
         account = StripeAccountFactory.create()
         record1 = TransactionRecordFactory.create(
-            payer=account.user, payee=account.user, source=TransactionRecord.HOLDINGS,
-            destination=TransactionRecord.BANK, amount=Money('50', 'USD'), category=TransactionRecord.CASH_WITHDRAW,
+            payer=account.user, payee=account.user, source=HOLDINGS,
+            destination=BANK, amount=Money('50', 'USD'), category=CASH_WITHDRAW,
             finalized_on=timezone.now(),
         )
         record2 = TransactionRecordFactory.create(
-            payer=account.user, payee=account.user, source=TransactionRecord.HOLDINGS,
-            destination=TransactionRecord.BANK, amount=Money('50', 'USD'), category=TransactionRecord.CASH_WITHDRAW,
+            payer=account.user, payee=account.user, source=HOLDINGS,
+            destination=BANK, amount=Money('50', 'USD'), category=CASH_WITHDRAW,
             finalized_on=timezone.now(),
         )
         record1.targets.add(ref_for_instance(account))
         record2.targets.add(ref_for_instance(account))
         annotate_connect_fees_for_year_month(month=8, year=2021)
         fee_records = TransactionRecord.objects.filter(
-            source=TransactionRecord.UNPROCESSED_EARNINGS, destination=TransactionRecord.ACH_TRANSACTION_FEES,
+            source=UNPROCESSED_EARNINGS, destination=ACH_TRANSACTION_FEES,
         )
         fee_total = sum([fee_record.amount for fee_record in fee_records])
         self.assertEqual(fee_total, Money('2.75', 'USD'))
@@ -345,23 +603,23 @@ class TestAnnotatePayouts(TestCase):
         account1 = StripeAccountFactory.create()
         account2 = StripeAccountFactory.create()
         record1 = TransactionRecordFactory.create(
-            payer=account1.user, payee=account1.user, source=TransactionRecord.HOLDINGS,
-            destination=TransactionRecord.BANK, amount=Money('50', 'USD'), category=TransactionRecord.CASH_WITHDRAW,
+            payer=account1.user, payee=account1.user, source=HOLDINGS,
+            destination=BANK, amount=Money('50', 'USD'), category=CASH_WITHDRAW,
             finalized_on=timezone.now() - relativedelta(days=2),
         )
         record2 = TransactionRecordFactory.create(
-            payer=account1.user, payee=account1.user, source=TransactionRecord.HOLDINGS,
-            destination=TransactionRecord.BANK, amount=Money('50', 'USD'), category=TransactionRecord.CASH_WITHDRAW,
+            payer=account1.user, payee=account1.user, source=HOLDINGS,
+            destination=BANK, amount=Money('50', 'USD'), category=CASH_WITHDRAW,
             finalized_on=timezone.now() - relativedelta(days=1),
         )
         record3 = TransactionRecordFactory.create(
-            payer=account2.user, payee=account2.user, source=TransactionRecord.HOLDINGS,
-            destination=TransactionRecord.BANK, amount=Money('50', 'USD'), category=TransactionRecord.CASH_WITHDRAW,
+            payer=account2.user, payee=account2.user, source=HOLDINGS,
+            destination=BANK, amount=Money('50', 'USD'), category=CASH_WITHDRAW,
             finalized_on=timezone.now() - relativedelta(days=4),
         )
         record4 = TransactionRecordFactory.create(
-            payer=account2.user, payee=account2.user, source=TransactionRecord.HOLDINGS,
-            destination=TransactionRecord.BANK, amount=Money('50', 'USD'), category=TransactionRecord.CASH_WITHDRAW,
+            payer=account2.user, payee=account2.user, source=HOLDINGS,
+            destination=BANK, amount=Money('50', 'USD'), category=CASH_WITHDRAW,
             finalized_on=timezone.now() - relativedelta(days=3),
         )
         record1.targets.add(ref_for_instance(account1))
@@ -370,7 +628,7 @@ class TestAnnotatePayouts(TestCase):
         record4.targets.add(ref_for_instance(account2))
         annotate_connect_fees_for_year_month(month=8, year=2021)
         fee_records = TransactionRecord.objects.filter(
-            source=TransactionRecord.UNPROCESSED_EARNINGS, destination=TransactionRecord.ACH_TRANSACTION_FEES,
+            source=UNPROCESSED_EARNINGS, destination=ACH_TRANSACTION_FEES,
         )
         fee_total = sum([fee_record.amount for fee_record in fee_records])
         self.assertEqual(fee_total, Money('5.50', 'USD'))
@@ -387,32 +645,32 @@ class TestAnnotatePayouts(TestCase):
     def test_overseas_records(self):
         account = StripeAccountFactory.create()
         record1 = TransactionRecordFactory.create(
-            payer=account.user, payee=account.user, source=TransactionRecord.HOLDINGS,
-            destination=TransactionRecord.BANK, amount=Money('50', 'USD'), category=TransactionRecord.CASH_WITHDRAW,
+            payer=account.user, payee=account.user, source=HOLDINGS,
+            destination=BANK, amount=Money('50', 'USD'), category=CASH_WITHDRAW,
             finalized_on=timezone.now() - relativedelta(days=2),
         )
         record2 = TransactionRecordFactory.create(
-            payer=account.user, payee=account.user, source=TransactionRecord.HOLDINGS,
-            destination=TransactionRecord.BANK, amount=Money('50', 'USD'), category=TransactionRecord.CASH_WITHDRAW,
+            payer=account.user, payee=account.user, source=HOLDINGS,
+            destination=BANK, amount=Money('50', 'USD'), category=CASH_WITHDRAW,
             finalized_on=timezone.now() - relativedelta(days=1),
         )
         record1.targets.add(ref_for_instance(account))
         record2.targets.add(ref_for_instance(account))
         overseas_record1 = TransactionRecordFactory.create(
-            payer=account.user, payee=account.user, source=TransactionRecord.PAYOUT_MIRROR_SOURCE,
-            destination=TransactionRecord.PAYOUT_MIRROR_DESTINATION, amount=Money('20', 'CAD'),
+            payer=account.user, payee=account.user, source=PAYOUT_MIRROR_SOURCE,
+            destination=PAYOUT_MIRROR_DESTINATION, amount=Money('20', 'CAD'),
             finalized_on=record1.finalized_on,
         )
         overseas_record2 = TransactionRecordFactory.create(
-            payer=account.user, payee=account.user, source=TransactionRecord.PAYOUT_MIRROR_SOURCE,
-            destination=TransactionRecord.PAYOUT_MIRROR_DESTINATION, finalized_on=record2.finalized_on,
+            payer=account.user, payee=account.user, source=PAYOUT_MIRROR_SOURCE,
+            destination=PAYOUT_MIRROR_DESTINATION, finalized_on=record2.finalized_on,
             amount=Money('22', 'CAD'),
         )
         overseas_record1.targets.add(ref_for_instance(record1))
         overseas_record2.targets.add(ref_for_instance(record2))
         annotate_connect_fees_for_year_month(month=8, year=2021)
         fee_records = TransactionRecord.objects.filter(
-            source=TransactionRecord.UNPROCESSED_EARNINGS, destination=TransactionRecord.ACH_TRANSACTION_FEES,
+            source=UNPROCESSED_EARNINGS, destination=ACH_TRANSACTION_FEES,
         )
         fee_total = sum([fee_record.amount for fee_record in fee_records])
         self.assertEqual(fee_total, Money('3.00', 'USD'))
@@ -421,26 +679,26 @@ class TestAnnotatePayouts(TestCase):
     def test_overseas_and_domestic_records(self):
         account = StripeAccountFactory.create()
         record1 = TransactionRecordFactory.create(
-            payer=account.user, payee=account.user, source=TransactionRecord.HOLDINGS,
-            destination=TransactionRecord.BANK, amount=Money('50', 'USD'), category=TransactionRecord.CASH_WITHDRAW,
+            payer=account.user, payee=account.user, source=HOLDINGS,
+            destination=BANK, amount=Money('50', 'USD'), category=CASH_WITHDRAW,
             finalized_on=timezone.now() - relativedelta(days=2),
         )
         record2 = TransactionRecordFactory.create(
-            payer=account.user, payee=account.user, source=TransactionRecord.HOLDINGS,
-            destination=TransactionRecord.BANK, amount=Money('50', 'USD'), category=TransactionRecord.CASH_WITHDRAW,
+            payer=account.user, payee=account.user, source=HOLDINGS,
+            destination=BANK, amount=Money('50', 'USD'), category=CASH_WITHDRAW,
             finalized_on=timezone.now() - relativedelta(days=1),
         )
         record1.targets.add(ref_for_instance(account))
         record2.targets.add(ref_for_instance(account))
         overseas_record1 = TransactionRecordFactory.create(
-            payer=account.user, payee=account.user, source=TransactionRecord.PAYOUT_MIRROR_SOURCE,
-            destination=TransactionRecord.PAYOUT_MIRROR_DESTINATION, amount=Money('20', 'CAD'),
+            payer=account.user, payee=account.user, source=PAYOUT_MIRROR_SOURCE,
+            destination=PAYOUT_MIRROR_DESTINATION, amount=Money('20', 'CAD'),
             finalized_on=record1.finalized_on,
         )
         overseas_record1.targets.add(ref_for_instance(record1))
         annotate_connect_fees_for_year_month(month=8, year=2021)
         fee_records = TransactionRecord.objects.filter(
-            source=TransactionRecord.UNPROCESSED_EARNINGS, destination=TransactionRecord.ACH_TRANSACTION_FEES,
+            source=UNPROCESSED_EARNINGS, destination=ACH_TRANSACTION_FEES,
         )
         fee_total = sum([fee_record.amount for fee_record in fee_records])
         self.assertEqual(fee_total, Money('2.88', 'USD'))
@@ -453,27 +711,27 @@ class TestAnnotatePayouts(TestCase):
     def test_idempotency(self):
         account = StripeAccountFactory.create()
         record1 = TransactionRecordFactory.create(
-            payer=account.user, payee=account.user, source=TransactionRecord.HOLDINGS,
-            destination=TransactionRecord.BANK, amount=Money('50', 'USD'), category=TransactionRecord.CASH_WITHDRAW,
+            payer=account.user, payee=account.user, source=HOLDINGS,
+            destination=BANK, amount=Money('50', 'USD'), category=CASH_WITHDRAW,
             finalized_on=timezone.now() - relativedelta(days=2),
         )
         record2 = TransactionRecordFactory.create(
-            payer=account.user, payee=account.user, source=TransactionRecord.HOLDINGS,
-            destination=TransactionRecord.BANK, amount=Money('50', 'USD'), category=TransactionRecord.CASH_WITHDRAW,
+            payer=account.user, payee=account.user, source=HOLDINGS,
+            destination=BANK, amount=Money('50', 'USD'), category=CASH_WITHDRAW,
             finalized_on=timezone.now() - relativedelta(days=1),
         )
         record1.targets.add(ref_for_instance(account))
         record2.targets.add(ref_for_instance(account))
         overseas_record1 = TransactionRecordFactory.create(
-            payer=account.user, payee=account.user, source=TransactionRecord.PAYOUT_MIRROR_SOURCE,
-            destination=TransactionRecord.PAYOUT_MIRROR_DESTINATION, amount=Money('20', 'CAD'),
+            payer=account.user, payee=account.user, source=PAYOUT_MIRROR_SOURCE,
+            destination=PAYOUT_MIRROR_DESTINATION, amount=Money('20', 'CAD'),
             finalized_on=record1.finalized_on,
         )
         overseas_record1.targets.add(ref_for_instance(record1))
         annotate_connect_fees_for_year_month(month=8, year=2021)
         annotate_connect_fees_for_year_month(month=8, year=2021)
         fee_records = TransactionRecord.objects.filter(
-            source=TransactionRecord.UNPROCESSED_EARNINGS, destination=TransactionRecord.ACH_TRANSACTION_FEES,
+            source=UNPROCESSED_EARNINGS, destination=ACH_TRANSACTION_FEES,
         )
         fee_total = sum([fee_record.amount for fee_record in fee_records])
         self.assertEqual(fee_total, Money('2.88', 'USD'))
@@ -486,26 +744,26 @@ class TestAnnotatePayouts(TestCase):
     def test_celery_task(self):
         account = StripeAccountFactory.create()
         record1 = TransactionRecordFactory.create(
-            payer=account.user, payee=account.user, source=TransactionRecord.HOLDINGS,
-            destination=TransactionRecord.BANK, amount=Money('50', 'USD'), category=TransactionRecord.CASH_WITHDRAW,
+            payer=account.user, payee=account.user, source=HOLDINGS,
+            destination=BANK, amount=Money('50', 'USD'), category=CASH_WITHDRAW,
             finalized_on=timezone.now() - relativedelta(days=2),
         )
         record2 = TransactionRecordFactory.create(
-            payer=account.user, payee=account.user, source=TransactionRecord.HOLDINGS,
-            destination=TransactionRecord.BANK, amount=Money('50', 'USD'), category=TransactionRecord.CASH_WITHDRAW,
+            payer=account.user, payee=account.user, source=HOLDINGS,
+            destination=BANK, amount=Money('50', 'USD'), category=CASH_WITHDRAW,
             finalized_on=timezone.now() - relativedelta(days=1),
         )
         record1.targets.add(ref_for_instance(account))
         record2.targets.add(ref_for_instance(account))
         overseas_record1 = TransactionRecordFactory.create(
-            payer=account.user, payee=account.user, source=TransactionRecord.PAYOUT_MIRROR_SOURCE,
-            destination=TransactionRecord.PAYOUT_MIRROR_DESTINATION, amount=Money('20', 'CAD'),
+            payer=account.user, payee=account.user, source=PAYOUT_MIRROR_SOURCE,
+            destination=PAYOUT_MIRROR_DESTINATION, amount=Money('20', 'CAD'),
             finalized_on=record1.finalized_on,
         )
         overseas_record1.targets.add(ref_for_instance(record1))
         annotate_connect_fees()
         fee_records = TransactionRecord.objects.filter(
-            source=TransactionRecord.UNPROCESSED_EARNINGS, destination=TransactionRecord.ACH_TRANSACTION_FEES,
+            source=UNPROCESSED_EARNINGS, destination=ACH_TRANSACTION_FEES,
         )
         fee_total = sum([fee_record.amount for fee_record in fee_records])
         self.assertEqual(fee_total, Money('2.88', 'USD'))
@@ -513,3 +771,118 @@ class TestAnnotatePayouts(TestCase):
         self.assertEqual(fee_record.amount, Money('1.51', 'USD'))
         fee_record = fee_records.get(targets=ref_for_instance(record2))
         self.assertEqual(fee_record.amount, Money('1.37', 'USD'))
+
+    @freeze_time('2022-08-02')
+    @patch('apps.sales.tasks.annotate_connect_fees_for_year_month')
+    def test_runs_once_normally(self, mock_annotate):
+        annotate_connect_fees()
+        mock_annotate.assert_called_once_with(month=8, year=2022)
+
+    @freeze_time('2022-01-01')
+    @patch('apps.sales.tasks.annotate_connect_fees_for_year_month')
+    def test_runs_twice_on_first(self, mock_annotate):
+        annotate_connect_fees()
+        mock_annotate.assert_any_call(month=1, year=2022)
+        # Checks the last call.
+        mock_annotate.assert_called_with(month=12, year=2021)
+
+    def test_no_records(self):
+        # Shouldn't raise anything.
+        annotate_connect_fees()
+        # Shouldn't create anything.
+        self.assertEqual(TransactionRecord.objects.all().count(), 0)
+
+
+class TestDestroyExpiredInvoices(EnsurePlansMixin, TestCase):
+    def test_destroy_invoices(self):
+        user = UserFactory.create()
+        for status in [DRAFT, OPEN, VOID]:
+            invoice = InvoiceFactory.create(status=status, bill_to=user, expires_on=timezone.now())
+            destroy_expired_invoices()
+            with self.assertRaises(Invoice.DoesNotExist):
+                invoice.refresh_from_db()
+
+    def test_ignore_non_expired(self):
+        # Should not be affected due to date.
+        invoice = InvoiceFactory.create(
+            status=OPEN, expires_on=timezone.now() + relativedelta(days=1, hours=1),
+        )
+        destroy_expired_invoices()
+        # Should still exist.
+        invoice.refresh_from_db()
+
+    def test_ignore_no_date(self):
+        # Should not be affected due to date.
+        invoice = InvoiceFactory.create(
+            status=OPEN, expires_on=None,
+        )
+        destroy_expired_invoices()
+        # Should still exist.
+        invoice.refresh_from_db()
+
+    def test_ignore_wrong_status(self):
+        # Should not be affected due to date.
+        invoice = InvoiceFactory.create(
+            status=PAID, expires_on=timezone.now(),
+        )
+        destroy_expired_invoices()
+        # Should still exist.
+        invoice.refresh_from_db()
+
+
+class TestCancelAbandonedOrders(EnsurePlansMixin, TestCase):
+    def test_cancel_deliverable_emails_and_closes(self):
+        to_cancel = DeliverableFactory.create(auto_cancel_on=timezone.now(), status=NEW)
+        self.assertEqual(len(mail.outbox), 0)
+        self.assertEqual(Notification.objects.all().count(), 0)
+        self.assertFalse(to_cancel.order.seller.artist_profile.commissions_closed)
+        cancel_abandoned_orders()
+        to_cancel.refresh_from_db()
+        self.assertEqual(to_cancel.status, CANCELLED)
+        self.assertTrue(to_cancel.order.seller.artist_profile.commissions_closed)
+        self.assertEqual(len(mail.outbox), 3)
+        subjects = [item.subject for item in mail.outbox]
+        self.assertIn('Your commissions have been automatically closed.', subjects)
+
+    @override_settings(LIMBO_DAYS=5)
+    def test_limbo_to_missed(self):
+        to_miss = DeliverableFactory.create(created_on=timezone.now() - relativedelta(days=10), status=LIMBO)
+        cancel_abandoned_orders()
+        to_miss.refresh_from_db()
+        self.assertEqual(to_miss.status, MISSED)
+        self.assertEqual(len(mail.outbox), 2)
+        self.assertEqual(Notification.objects.all().count(), 2)
+        self.assertFalse(to_miss.order.seller.artist_profile.commissions_closed)
+        self.assertIn('Your sale was cancelled.', mail.outbox[0].subject)
+
+    def test_limbo_too_early(self):
+        to_miss = DeliverableFactory.create(auto_cancel_on=timezone.now() - relativedelta(days=2), status=LIMBO)
+        cancel_abandoned_orders()
+        to_miss.refresh_from_db()
+        self.assertEqual(to_miss.status, LIMBO)
+        self.assertEqual(len(mail.outbox), 0)
+        self.assertEqual(Notification.objects.all().count(), 0)
+        self.assertFalse(to_miss.order.seller.artist_profile.commissions_closed)
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_not_cancelled_yet(self):
+        not_cancelled_yet = DeliverableFactory.create(auto_cancel_on=timezone.now() + relativedelta(days=2), status=NEW)
+        cancel_abandoned_orders()
+        not_cancelled_yet.refresh_from_db()
+        self.assertEqual(not_cancelled_yet.status, NEW)
+        self.assertEqual(len(mail.outbox), 0)
+        self.assertEqual(Notification.objects.all().count(), 0)
+        self.assertFalse(not_cancelled_yet.order.seller.artist_profile.commissions_closed)
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_wrong_status(self):
+        payment_pending = DeliverableFactory.create(
+            auto_cancel_on=timezone.now(), status=PAYMENT_PENDING,
+        )
+        cancel_abandoned_orders()
+        payment_pending.refresh_from_db()
+        self.assertEqual(payment_pending.status, PAYMENT_PENDING)
+        self.assertEqual(len(mail.outbox), 0)
+        self.assertEqual(Notification.objects.all().count(), 0)
+        self.assertFalse(payment_pending.order.seller.artist_profile.commissions_closed)
+        self.assertEqual(len(mail.outbox), 0)
