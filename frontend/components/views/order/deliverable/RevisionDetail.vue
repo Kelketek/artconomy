@@ -139,7 +139,7 @@ export default class RevisionDetail extends mixins(DeliverableMixin) {
       endpoint: `/api/lib/v1/comments/sales.Revision/${this.revisionId}/`,
       reverse: true,
       grow: true,
-      pageSize: 5,
+      params: {size: 5},
     })
     this.revisionComments.firstRun()
   }

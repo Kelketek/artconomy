@@ -76,7 +76,7 @@ export class ListModule<T extends {}> {
   public namespaced: boolean
 
   public constructor(options: {
-                       grow?: boolean, currentPage?: number, endpoint: string, pageSize?: number, persistent?: boolean,
+                       grow?: boolean, currentPage?: number, endpoint: string, persistent?: boolean,
                        keyProp?: keyof T, name: string, reverse?: boolean, failed?: boolean, stale?: boolean,
                        socketSettings?: ListSocketSettings, params?: QueryParams,
                      },

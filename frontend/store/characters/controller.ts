@@ -105,7 +105,7 @@ export class CharacterController extends BaseController<CharacterModuleOpts, Cha
       this.path.concat(['sharedWith']).join('/'), {endpoint: '', paginated: false},
     ))
     Vue.set(this, 'recommended', this.$getList(
-      this.path.concat(['recommended']).join('/'), {endpoint: '', pageSize: 6},
+      this.path.concat(['recommended']).join('/'), {endpoint: '', params: {size: 6}},
     ))
     this.setEndpoints()
   }

@@ -153,7 +153,7 @@ export default class extends mixins(Subjective, Editable, Formatting) {
           endpoint: `/api/lib/v1/comments/profiles.Journal/${this.journalId}/`,
           reverse: true,
           grow: true,
-          pageSize: 5,
+          params: {size: 5}
         })
       this.journalComments.firstRun()
       this.journalSubject = this.$makePatcher(

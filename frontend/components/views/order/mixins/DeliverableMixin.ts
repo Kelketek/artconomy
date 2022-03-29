@@ -375,7 +375,7 @@ export default class DeliverableMixin extends mixins(Viewer) {
         endpoint: `/api/lib/v1/comments/sales.Deliverable/${this.deliverableId}/`,
         reverse: true,
         grow: true,
-        pageSize: 5,
+        params: {size: 5},
       })
     this.characters = this.$getList(
       `${this.prefix}__characters`, {endpoint: `${this.url}characters/`, paginated: false},

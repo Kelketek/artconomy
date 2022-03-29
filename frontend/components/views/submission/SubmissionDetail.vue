@@ -464,12 +464,12 @@ export default class SubmissionDetail extends mixins(Viewer, Formatting, Editabl
           endpoint: `/api/lib/v1/comments/profiles.Submission/${this.submissionId}/`,
           reverse: true,
           grow: true,
-          pageSize: 5,
+          params: {size: 5},
         })
       this.recommended = this.$getList(
         `submission-${this.submissionId}-recommended`, {
           endpoint: `${this.url}recommended/`,
-          pageSize: 6,
+          params: {size: 6},
         })
       this.editAsset = this.$getForm(
         `submission__${this.submissionId}`, {

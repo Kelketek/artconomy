@@ -90,7 +90,7 @@ export default class AcJournals extends mixins(Subjective, Formatting) {
           comments_disabled: {value: false},
         },
       })
-      this.journals = this.$getList(this.username + '-journals', {endpoint: this.url, pageSize: 3})
+      this.journals = this.$getList(this.username + '-journals', {endpoint: this.url, params: {size: 3}})
       this.journals.firstRun().then()
     }
 

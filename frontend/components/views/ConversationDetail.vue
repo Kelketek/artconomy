@@ -109,7 +109,7 @@ export default class ConversationDetail extends mixins(Subjective, Formatting) {
           endpoint: `/api/lib/v1/comments/profiles.Conversation/${this.conversationId}/`,
           reverse: true,
           grow: true,
-          pageSize: 5,
+          params: {size: 5},
         },
       )
     }

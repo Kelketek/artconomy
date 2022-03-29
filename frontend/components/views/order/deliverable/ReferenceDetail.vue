@@ -72,7 +72,7 @@ export default class referenceDetail extends mixins(DeliverableMixin) {
       endpoint: `/api/lib/v1/comments/sales.Reference/${this.referenceId}/`,
       reverse: true,
       grow: true,
-      pageSize: 5,
+      params: {size: 5},
     })
     this.referenceComments.firstRun()
   }
