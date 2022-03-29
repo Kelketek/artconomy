@@ -1,5 +1,5 @@
 import {genLineItem, genPricing} from '@/lib/specs/helpers'
-import {getTotals, invoiceLines, linesByPriority, reckonLines, sum} from '@/lib/lineItemFunctions'
+import {getTotals, invoiceLines, linesByPriority, reckonLines} from '@/lib/lineItemFunctions'
 import Big from 'big.js'
 import {genProduct} from '@/specs/helpers/fixtures'
 
@@ -525,7 +525,14 @@ describe('lineItemFunctions.ts', () => {
     })
   })
   it('Generates preview line items for a null product', async() => {
-    expect(invoiceLines({escrowDisabled: false, pricing: genPricing(), value: '25.00', product: null})).toEqual([
+    expect(invoiceLines({
+      escrowDisabled: false,
+      pricing: genPricing(),
+      value: '25.00',
+      product: null,
+      cascade: true,
+      planName: 'Basic',
+    })).toEqual([
       {
         id: -1,
         priority: 0,
@@ -536,7 +543,7 @@ describe('lineItemFunctions.ts', () => {
         description: '',
         cascade_amount: false,
         cascade_percentage: false,
-        back_into_percentage: true,
+        back_into_percentage: false,
       },
       {
         id: -5,
@@ -545,27 +552,22 @@ describe('lineItemFunctions.ts', () => {
         cascade_percentage: true,
         cascade_amount: true,
         back_into_percentage: false,
-        amount: 0.5,
+        amount: 3.5,
         frozen_value: null,
-        percentage: 4,
-        description: '',
-      },
-      {
-        id: -6,
-        priority: 300,
-        type: 3,
-        cascade_percentage: true,
-        cascade_amount: true,
-        back_into_percentage: false,
-        amount: 0.25,
-        frozen_value: null,
-        percentage: 4,
+        percentage: 5,
         description: '',
       },
     ])
   })
   it('Generates preview line items for a product', async() => {
-    expect(invoiceLines({escrowDisabled: false, pricing: genPricing(), value: '25.00', product: genProduct()})).toEqual([
+    expect(invoiceLines({
+      escrowDisabled: false,
+      pricing: genPricing(),
+      value: '25.00',
+      product: genProduct(),
+      cascade: true,
+      planName: 'Basic',
+    })).toEqual([
       {
         id: -1,
         priority: 0,
@@ -597,21 +599,9 @@ describe('lineItemFunctions.ts', () => {
         cascade_percentage: true,
         cascade_amount: true,
         back_into_percentage: false,
-        amount: 0.5,
+        amount: 3.5,
         frozen_value: null,
-        percentage: 4,
-        description: '',
-      },
-      {
-        id: -6,
-        priority: 300,
-        type: 3,
-        cascade_percentage: true,
-        cascade_amount: true,
-        back_into_percentage: false,
-        amount: 0.25,
-        frozen_value: null,
-        percentage: 4,
+        percentage: 5,
         description: '',
       },
     ])
@@ -622,6 +612,8 @@ describe('lineItemFunctions.ts', () => {
       pricing: genPricing(),
       value: '25.00',
       product: genProduct({table_product: true}),
+      cascade: true,
+      planName: 'Basic',
     })).toEqual([
       {
         id: -1,
@@ -674,7 +666,14 @@ describe('lineItemFunctions.ts', () => {
     ])
   })
   it('Generates preview line items for a null product with no escrow', async() => {
-    expect(invoiceLines({escrowDisabled: true, pricing: genPricing(), value: '25.00', product: null})).toEqual([
+    expect(invoiceLines({
+      escrowDisabled: true,
+      pricing: genPricing(),
+      value: '25.00',
+      product: null,
+      cascade: true,
+      planName: 'Basic',
+    })).toEqual([
       {
         id: -1,
         priority: 0,
@@ -685,12 +684,31 @@ describe('lineItemFunctions.ts', () => {
         description: '',
         cascade_amount: false,
         cascade_percentage: false,
-        back_into_percentage: true,
+        back_into_percentage: false,
+      },
+      {
+        amount: 1.35,
+        back_into_percentage: false,
+        cascade_amount: true,
+        cascade_percentage: true,
+        description: '',
+        frozen_value: null,
+        id: -6,
+        percentage: 0,
+        priority: 115,
+        type: 10,
       },
     ])
   })
   it('Generates preview line items for a product with no escrow', async() => {
-    expect(invoiceLines({escrowDisabled: true, pricing: genPricing(), value: '25.00', product: genProduct()})).toEqual([
+    expect(invoiceLines({
+      escrowDisabled: true,
+      pricing: genPricing(),
+      value: '25.00',
+      product: genProduct(),
+      cascade: true,
+      planName: 'Basic',
+    })).toEqual([
       {
         id: -1,
         priority: 0,
@@ -715,10 +733,29 @@ describe('lineItemFunctions.ts', () => {
         cascade_percentage: false,
         back_into_percentage: false,
       },
+      {
+        amount: 1.35,
+        back_into_percentage: false,
+        cascade_amount: true,
+        cascade_percentage: true,
+        description: '',
+        frozen_value: null,
+        id: -6,
+        percentage: 0,
+        priority: 115,
+        type: 10,
+      },
     ])
   })
   it('Handles line items for a product with no escrow and a nonsense value', async() => {
-    expect(invoiceLines({escrowDisabled: true, pricing: genPricing(), value: 'boop', product: genProduct()})).toEqual([
+    expect(invoiceLines({
+      escrowDisabled: true,
+      pricing: genPricing(),
+      value: 'boop',
+      product: genProduct(),
+      cascade: true,
+      planName: 'Basic',
+    })).toEqual([
       {
         id: -1,
         priority: 0,
@@ -731,9 +768,39 @@ describe('lineItemFunctions.ts', () => {
         cascade_percentage: false,
         back_into_percentage: false,
       },
+      {
+        amount: 1.35,
+        back_into_percentage: false,
+        cascade_amount: true,
+        cascade_percentage: true,
+        description: '',
+        frozen_value: null,
+        id: -6,
+        percentage: 0,
+        priority: 115,
+        type: 10,
+      },
     ])
   })
   it('Handles line item for no product, no escrow and a nonsense value', async() => {
-    expect(invoiceLines({escrowDisabled: true, pricing: genPricing(), value: 'boop', product: null})).toEqual([])
+    expect(invoiceLines({
+      escrowDisabled: true,
+      pricing: genPricing(),
+      value: 'boop',
+      product: null,
+      cascade: true,
+      planName: 'Basic',
+    })).toEqual([{
+      amount: 1.35,
+      back_into_percentage: false,
+      cascade_amount: true,
+      cascade_percentage: true,
+      description: '',
+      frozen_value: null,
+      id: -6,
+      percentage: 0,
+      priority: 115,
+      type: 10,
+    }])
   })
 })

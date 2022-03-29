@@ -409,10 +409,11 @@ describe('ProductDetail.vue', () => {
       stubs: ['ac-sample-editor', 'v-carousel', 'v-carousel-item'],
     })
     const vm = wrapper.vm as any
+    vm.subjectHandler.user.makeReady(genUser())
     expect(totalForTypes(getTotals(vm.lineItems.list.map(
       (x: SingleController<LineItem>) => x.x)),
     [LineTypes.TABLE_SERVICE]),
-    ).toEqual(Big('5.50'))
+    ).toEqual(Big('5.46'))
     expect(totalForTypes(getTotals(vm.lineItems.list.map(
       (x: SingleController<LineItem>) => x.x)),
     [LineTypes.SHIELD, LineTypes.BONUS]),
@@ -430,6 +431,7 @@ describe('ProductDetail.vue', () => {
       stubs: ['ac-sample-editor', 'v-carousel', 'v-carousel-item'],
     })
     const vm = wrapper.vm as any
+    vm.subjectHandler.user.makeReady(genUser())
     vm.subjectHandler.artistProfile.setX(genArtistProfile())
     vm.subjectHandler.artistProfile.ready = true
     await vm.$nextTick()
@@ -439,7 +441,29 @@ describe('ProductDetail.vue', () => {
     ).toEqual(Big('0'))
     expect(totalForTypes(getTotals(vm.lineItems.list.map(
       (x: SingleController<LineItem>) => x.x)),
-    [LineTypes.SHIELD, LineTypes.BONUS]),
-    ).toEqual(Big('6.8'))
+    [LineTypes.SHIELD]),
+    ).toEqual(Big('4.05'))
+  })
+  it('Shows the rating modal only when editing', async() => {
+    prepData()
+    wrapper = mount(ProductDetail, {
+      localVue,
+      router,
+      store,
+      vuetify,
+      attachTo: docTarget(),
+      propsData: {username: 'Fox', productId: 1},
+      stubs: ['ac-sample-editor', 'v-carousel', 'v-carousel-item'],
+    })
+    const vm = wrapper.vm as any
+    await router.replace({query: {}})
+    vm.subjectHandler.artistProfile.makeReady(genArtistProfile())
+    await vm.$nextTick()
+    expect(vm.ratingDialog).toBe(false)
+    vm.showRating()
+    expect(vm.ratingDialog).toBe(false)
+    router.replace({query: {editing: 'true'}})
+    vm.showRating()
+    expect(vm.ratingDialog).toBe(true)
   })
 })

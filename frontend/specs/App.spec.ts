@@ -6,7 +6,7 @@ import {ArtStore, createStore} from '@/store'
 import flushPromises from 'flush-promises'
 import {genUser} from './helpers/fixtures'
 import {FormController} from '@/store/forms/form-controller'
-import {cleanUp, createVuetify, dialogExpects, docTarget, genAnon, rq, rs, vueSetup, mount, setViewer} from './helpers'
+import {cleanUp, createVuetify, dialogExpects, docTarget, genAnon, rq, rs, vueSetup, mount} from './helpers'
 import Vuetify from 'vuetify/lib'
 import {WS} from 'jest-websocket-mock'
 import {socketNameSpace} from '@/plugins/socket'
@@ -59,7 +59,6 @@ describe('App.vue', () => {
       vuetify,
       mocks: {$route: {fullPath: '/order/', name: 'Thingsf', params: {}, query: {}}},
       stubs: ['nav-bar', 'router-view', 'router-link'],
-
     })
     const vm = wrapper.vm as any
     expect(vm.fullInterface).toBe(true)
@@ -71,7 +70,6 @@ describe('App.vue', () => {
       vuetify,
       mocks: {$route: {fullPath: '/order/', params: {}, query: {}}},
       stubs: ['nav-bar', 'router-view', 'router-link'],
-
     })
     const vm = wrapper.vm as any
     expect(vm.fullInterface).toBe(true)
@@ -401,5 +399,36 @@ describe('App.vue', () => {
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
     expect(vm.socketState.x.serverVersion).toEqual('beep')
+  })
+  it('Emits a tracking event', async() => {
+    jest.useRealTimers()
+    wrapper = mount(App, {
+      store,
+      localVue,
+      vuetify,
+      mocks: {$route: {fullPath: '/', params: {stuff: 'things'}, name: 'Home', query: {}}},
+      stubs: ['router-link', 'router-view', 'nav-bar'],
+      attachTo: docTarget(),
+    })
+    await wrapper.vm.$nextTick()
+    window._paq = []
+    wrapper.vm.$route.fullPath = '/test/'
+    await wrapper.vm.$nextTick()
+    expect(window._paq).toEqual([
+      ['setCustomUrl', 'http://localhost/test/'],
+      ['setDocumentTitle', ''],
+      ['setReferrerUrl', 'http://localhost/'],
+      ['trackPageView'],
+    ])
+    window._paq = []
+    // Should not send a tracking event, but others should be tracked.
+    wrapper.vm.$route.name = 'FAQ'
+    wrapper.vm.$route.fullPath = '/test/faq/'
+    await wrapper.vm.$nextTick()
+    expect(window._paq).toEqual([
+      ['setCustomUrl', 'http://localhost/test/faq/'],
+      ['setDocumentTitle', ''],
+      ['setReferrerUrl', 'http://localhost/test/'],
+    ])
   })
 })

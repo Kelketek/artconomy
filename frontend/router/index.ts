@@ -302,12 +302,6 @@ export const routes = [
     },
   },
   {
-    path: '/upgrade/',
-    name: 'Upgrade',
-    component: Upgrade,
-    props: true,
-  },
-  {
     path: '/faq/',
     name: 'FAQ',
     component: FAQ,
@@ -403,6 +397,12 @@ export const routes = [
     ],
   },
   {
+    path: '/profile/:username/upgrade/',
+    name: 'Upgrade',
+    component: Upgrade,
+    props: true,
+  },
+  {
     path: '/profile/:username/ratings/',
     name: 'Ratings',
     component: Ratings,
@@ -415,7 +415,7 @@ export const routes = [
     props: true,
   },
   {
-    path: '/profile/:username/invoices/:invoiceId/',
+    path: '/profile/:username/invoice/:invoiceId/',
     name: 'InvoiceDetail',
     component: InvoiceDetail,
     props: true,

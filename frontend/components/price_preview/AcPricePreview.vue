@@ -14,7 +14,7 @@
               <ac-line-item-editor :line="line" v-for="line in addOns" :key="line.x.id" :price-data="priceData" :editing="editable" />
               <ac-form-container v-bind="addOnForm.bind">
                 <ac-form @submit.prevent="addOnForm.submitThen(lineItems.push)">
-                  <ac-new-line-item :form="addOnForm" :price="priceData.map.get(addOnFormItem) || 0" />
+                  <ac-new-line-item :form="addOnForm" :price="priceData.subtotals.get(addOnFormItem) || 0" />
                 </ac-form>
               </ac-form-container>
             </template>
@@ -26,7 +26,7 @@
               <ac-line-item-editor :line="line" v-for="line in extras" :key="line.x.id" :price-data="priceData" :editing="editable" />
               <ac-form-container v-bind="extraForm.bind">
                 <ac-form @submit.prevent="extraForm.submitThen(lineItems.push)">
-                  <ac-new-line-item :form="extraForm" :price="priceData.map.get(extraFormItem) || 0" />
+                  <ac-new-line-item :form="extraForm" :price="priceData.subtotals.get(extraFormItem) || 0" />
                 </ac-form>
               </ac-form-container>
             </template>
@@ -46,12 +46,6 @@
               </v-col>
               <v-col v-if="isSeller && hourly" cols="12" md="6">
                 I would earn <strong>${{hourly}}/hour.</strong>
-              </v-col>
-            </v-row>
-            <v-row v-if="isSeller && escrow && !subject.landscape">
-              <v-col class="text-center" cols="12">
-                You could earn <strong>${{bonus.toFixed(2)}}</strong> more with
-                <router-link :to="{name: 'Upgrade'}">Artconomy Landscape</router-link>!
               </v-col>
             </v-row>
           </template>
@@ -114,9 +108,6 @@ export default class AcPricePreview extends mixins(Subjective) {
 
   public get payout() {
     const types = [LineTypes.BASE_PRICE, LineTypes.ADD_ON, LineTypes.TIP]
-    if (this.subject!.landscape) {
-      types.push(LineTypes.BONUS)
-    }
     return totalForTypes(this.priceData, types)
   }
 
@@ -135,10 +126,6 @@ export default class AcPricePreview extends mixins(Subjective) {
 
   public get rawLineItems() {
     return this.lineItems.list.map((item) => item.x as LineItem)
-  }
-
-  public get bonus() {
-    return totalForTypes(getTotals(this.rawPlusForms), [LineTypes.BONUS])
   }
 
   public get baseItems() {
@@ -167,36 +154,14 @@ export default class AcPricePreview extends mixins(Subjective) {
 
   public get moddedItems() {
     // Modify the items for user-facing calculation.
-    if (this.isSeller && this.subject!.landscape) {
+    if (this.isSeller) {
       return this.rawLineItems
     }
-    const toConsolidate = this.rawLineItems.filter(
-      (line: LineItem) => [LineTypes.SHIELD, LineTypes.BONUS].includes(line.type),
+    // We eliminate the Deliverable tracking fee since that's just for the artist's reference-- it doesn't affect
+    // the price charged. It just tells the artist what they will be charged later.
+    return this.rawLineItems.filter(
+      (line: LineItem) => (![LineTypes.DELIVERABLE_TRACKING].includes(line.type)),
     )
-    const modded = this.rawLineItems.filter(
-      (line: LineItem) => (![LineTypes.SHIELD, LineTypes.BONUS].includes(line.type)),
-    )
-    if (toConsolidate.length) {
-      let frozenValue: number|null = null
-      const frozenItems = toConsolidate.filter((line: LineItem) => line.frozen_value !== null)
-      if (frozenItems.length === toConsolidate.length) {
-        frozenValue = parseFloat(sum(toConsolidate.map((line: LineItem) => Big(line.frozen_value as number))).toFixed(2))
-      }
-      const consolidated = {
-        id: -10,
-        amount: parseFloat(sum(toConsolidate.map((line: LineItem) => Big(line.amount))).toFixed(2)),
-        frozen_value: frozenValue,
-        percentage: parseFloat(sum(toConsolidate.map((line: LineItem) => Big(line.percentage))).toFixed(2)),
-        type: LineTypes.SHIELD,
-        priority: 300,
-        description: '',
-        back_into_percentage: false,
-        cascade_percentage: true,
-        cascade_amount: true,
-      }
-      modded.push(consolidated)
-    }
-    return modded
   }
 
   public get addOnFormItem(): LineItem {

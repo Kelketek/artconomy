@@ -41,7 +41,8 @@ urlpatterns = [
     url(r'^api/tg_bot/', include('apps.tg_bot.urls', namespace='tg_bot')),
     url(r'^api/', views.bad_endpoint, name='api404'),
     url(r'^force-error-email/', views.force_error_email, name='force_error'),
-    url(r'^test-telegram/', views.test_telegram, name='test_telegram')
+    url(r'^test-telegram/', views.test_telegram, name='test_telegram'),
+    url(r'^discord/', include('apps.discord_bot.urls', namespace='discord_bot'))
 ]
 
 

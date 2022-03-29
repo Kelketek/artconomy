@@ -277,11 +277,6 @@ whoosh_index
 static_resources/icons/*
 static/*
 
-backend/apps/sales/tests/fixtures/**
-backend/apps/sales/tests/views/fixtures/**
-backend/apps/profiles/tests/fixtures/**
-backend/apps/lib/tests/fixtures/**
-
 # Mock axios local install to try to fix promise catch-rethrow issue.
 jest-mock-promise/**
 

@@ -48,7 +48,6 @@ describe('AcPricePreview.vue', () => {
       store,
       vuetify,
       router,
-
       attachTo: docTarget(),
       propsData: {
         lineItems,
@@ -66,28 +65,6 @@ describe('AcPricePreview.vue', () => {
     await vm.$nextTick()
     expect(vm.rawPrice).toEqual(Big('95'))
   })
-  it('Adds in the payout bonus if landscape user', async() => {
-    setViewer(store, user)
-    const wrapper = mount(AcPricePreview, {
-      localVue,
-      store,
-      vuetify,
-      router,
-
-      attachTo: docTarget(),
-      propsData: {
-        lineItems,
-        username: user.username,
-        isSeller: true,
-        escrow: true,
-      },
-    })
-    const vm = wrapper.vm as any
-    expect(vm.payout).toEqual(Big('72.85'))
-    vm.viewerHandler.user.updateX({landscape: true})
-    await vm.$nextTick()
-    expect(vm.payout).toEqual(Big('76.30'))
-  })
   it('Calculates hourly rate for escrow', async() => {
     setViewer(store, user)
     const wrapper = mount(AcPricePreview, {
@@ -95,7 +72,6 @@ describe('AcPricePreview.vue', () => {
       store,
       vuetify,
       router,
-
       attachTo: docTarget(),
       propsData: {
         lineItems,
@@ -115,7 +91,6 @@ describe('AcPricePreview.vue', () => {
       store,
       vuetify,
       router,
-
       attachTo: docTarget(),
       propsData: {
         lineItems,

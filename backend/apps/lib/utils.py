@@ -41,7 +41,7 @@ from shortcuts import make_url, disable_on_load, gen_textifier
 BOT = None
 logger = logging.getLogger(__name__)
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from apps.profiles.models import User, ArtconomyAnonymousUser
     from apps.lib.serializers import NewCommentSerializer
     from apps.sales.models import Deliverable, Order

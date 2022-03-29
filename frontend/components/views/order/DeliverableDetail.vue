@@ -453,6 +453,11 @@ export default class DeliverableDetail extends mixins(
     return ''
   }
 
+  public get planName() {
+    // eslint-disable-next-line camelcase
+    return this.seller?.service_plan || null
+  }
+
   public get registerLink() {
     const order = this.order.x as Order
     const baseRoute: Location = {name: 'Login', params: {tabName: 'register'}, query: {}}

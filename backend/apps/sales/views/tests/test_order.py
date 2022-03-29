@@ -1,5 +1,6 @@
 from decimal import Decimal
 from unittest.mock import patch
+from uuid import uuid4
 
 from dateutil.relativedelta import relativedelta
 from ddt import ddt, data
@@ -20,22 +21,16 @@ from apps.lib.tests.factories import AssetFactory
 from apps.profiles.models import VERIFIED, User
 from apps.profiles.tests.factories import UserFactory, CharacterFactory, SubmissionFactory
 from apps.profiles.utils import create_guest_user
-from apps.sales.models import Deliverable, Order, NEW, ADD_ON, TransactionRecord, TIP, SHIELD, QUEUED, IN_PROGRESS, \
-    REVIEW, DISPUTED, COMPLETED, PAYMENT_PENDING, BASE_PRICE, EXTRA, Revision, LineItem, ServicePlan
+from apps.sales.models import Deliverable, Order, Revision
+from apps.sales.constants import BASE_PRICE, ADD_ON, SHIELD, TIP, EXTRA, COMPLETED, NEW, PAYMENT_PENDING, QUEUED, \
+    IN_PROGRESS, REVIEW, DISPUTED, ESCROW, UNPROCESSED_EARNINGS
 from apps.sales.tests.factories import ProductFactory, DeliverableFactory, add_adjustment, RevisionFactory, \
-    LineItemFactory, ServicePlanFactory
+    LineItemFactory
 from apps.sales.tests.test_utils import TransactionCheckMixin
 
 
-@override_settings(
-    SERVICE_STATIC_FEE=Decimal('0.50'), SERVICE_PERCENTAGE_FEE=Decimal('4'),
-    PREMIUM_STATIC_BONUS=Decimal('0.25'), PREMIUM_PERCENTAGE_BONUS=Decimal('4'),
-)
 @ddt
 class TestOrder(TransactionCheckMixin, APITestCase):
-    def setUp(self):
-        self.landscape = ServicePlanFactory(name='Landscape')
-
     def test_place_order(self):
         user = UserFactory.create()
         user2 = UserFactory.create()
@@ -84,6 +79,46 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         deliverable = Deliverable.objects.get(id=response.data['default_path']['params']['deliverableId'])
         for asset_id in asset_ids:
             self.assertTrue(deliverable.reference_set.filter(file__id=asset_id).exists())
+
+    def test_place_order_unowned_references(self):
+        user = UserFactory.create()
+        self.login(user)
+        product = ProductFactory.create(task_weight=5, expected_turnaround=3)
+        asset_ids = [AssetFactory.create().id for _ in range(1)]
+        response = self.client.post(
+            '/api/sales/v1/account/{}/products/{}/order/'.format(product.user.username, product.id),
+            {
+                'details': 'Draw me some porn!',
+                'rating': ADULT,
+                'references': asset_ids,
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.data['references'],
+            ['Either you do not have permission to use those assets for reference, those asset IDs are invalid, '
+             'or they have expired. Please try re-uploading.'],
+        )
+
+    def test_place_order_invalid_references(self):
+        user = UserFactory.create()
+        self.login(user)
+        product = ProductFactory.create(task_weight=5, expected_turnaround=3)
+        asset_ids = [AssetFactory.create().id for _ in range(1)]
+        response = self.client.post(
+            '/api/sales/v1/account/{}/products/{}/order/'.format(product.user.username, product.id),
+            {
+                'details': 'Draw me some porn!',
+                'rating': ADULT,
+                'references': [str(uuid4()), str(uuid4())],
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.data['references'],
+            ['Either you do not have permission to use those assets for reference, those asset IDs are invalid, '
+             'or they have expired. Please try re-uploading.'],
+        )
 
     def test_place_order_references_disallowed(self):
         user = UserFactory.create()
@@ -170,7 +205,7 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(len(mail.outbox), 2)
 
-    @patch('apps.sales.views.views.login')
+    @patch('apps.sales.views.main.login')
     def test_place_order_table_product(self, mock_login):
         user = UserFactory.create(is_staff=True)
         self.login(user)
@@ -295,14 +330,9 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         deliverable = DeliverableFactory.create(order__seller=user)
         response = self.client.get(
             f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/',
-            {
-                'type': ADD_ON,
-                'amount': '2.03',
-                'percentage': 0,
-            }
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 3)
+        self.assertEqual(len(response.data), 2)
 
     def test_add_line_item(self):
         user = UserFactory.create()
@@ -320,7 +350,7 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         deliverable.refresh_from_db()
         line_item = deliverable.invoice.line_items.get(type=ADD_ON)
         self.assertEqual(line_item.amount, Money('2.03', 'USD'))
-        self.assertEqual(line_item.destination_account, TransactionRecord.ESCROW)
+        self.assertEqual(line_item.destination_account, ESCROW)
         self.assertEqual(line_item.destination_user, user)
 
     def test_add_line_item_too_low(self):
@@ -372,7 +402,7 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         deliverable.refresh_from_db()
         line_item = deliverable.invoice.line_items.get(type=TIP)
         self.assertEqual(line_item.amount, Money('2.03', 'USD'))
-        self.assertEqual(line_item.destination_account, TransactionRecord.ESCROW)
+        self.assertEqual(line_item.destination_account, ESCROW)
         self.assertEqual(line_item.destination_user, user2)
 
     def test_update_tip_buyer(self):
@@ -395,7 +425,7 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         deliverable.refresh_from_db()
         line_item = deliverable.invoice.line_items.get(type=TIP)
         self.assertEqual(line_item.amount, Money('2.03', 'USD'))
-        self.assertEqual(line_item.destination_account, TransactionRecord.ESCROW)
+        self.assertEqual(line_item.destination_account, ESCROW)
         self.assertEqual(line_item.destination_user, user2)
 
     def test_no_base_percentage(self):
@@ -414,23 +444,40 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_update_base_price(self):
+    def test_update_base(self):
         user = UserFactory.create()
         user2 = UserFactory.create()
         self.login(user2)
         deliverable = DeliverableFactory.create(order__seller=user2, order__buyer=user, product=None)
-        deliverable.invoice.line_items.filter(type=BASE_PRICE).update(amount=Money('100.00', 'USD'))
-        response = self.client.post(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/',
+        line_item = LineItemFactory.create(
+            percentage=Decimal('0'),
+            type=BASE_PRICE,
+            amount=Money('100', 'USD'),
+            invoice=deliverable.invoice,
+        )
+        response = self.client.patch(
+            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/{line_item.id}/',
             {
-                'type': BASE_PRICE,
                 'amount': '15.00',
-                'percentage': 0,
             }
         )
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         line_item = deliverable.invoice.line_items.get(type=BASE_PRICE)
         self.assertEqual(line_item.amount, Money('15.00', 'USD'))
+
+    def test_update_base_price_with_product_fails(self):
+        user = UserFactory.create()
+        user2 = UserFactory.create()
+        self.login(user2)
+        deliverable = DeliverableFactory.create(order__seller=user2, order__buyer=user)
+        line_item = deliverable.invoice.line_items.get(type=BASE_PRICE)
+        response = self.client.post(
+            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/{line_item.id}/',
+            {
+                'amount': '15.00',
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_add_line_item_outsider(self):
         user = UserFactory.create()
@@ -477,8 +524,28 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         deliverable.refresh_from_db()
         line_item = deliverable.invoice.line_items.get(type=ADD_ON)
         self.assertEqual(line_item.amount, Money('2.03', 'USD'))
-        self.assertEqual(line_item.destination_account, TransactionRecord.ESCROW)
+        self.assertEqual(line_item.destination_account, ESCROW)
         self.assertEqual(line_item.destination_user, user)
+
+    def test_add_extra_item_staff(self):
+        staffer = UserFactory.create(is_staff=True)
+        user = UserFactory.create()
+        self.login(staffer)
+        deliverable = DeliverableFactory.create(order__seller=user)
+        response = self.client.post(
+            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/',
+            {
+                'type': EXTRA,
+                'amount': '2.03',
+                'percentage': 0,
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        deliverable.refresh_from_db()
+        line_item = deliverable.invoice.line_items.get(type=EXTRA)
+        self.assertEqual(line_item.amount, Money('2.03', 'USD'))
+        self.assertEqual(line_item.destination_account, UNPROCESSED_EARNINGS)
+        self.assertEqual(line_item.destination_user, None)
 
     def test_edit_line_item(self):
         deliverable = DeliverableFactory.create()
@@ -495,7 +562,6 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         line_item.refresh_from_db()
         self.assertEqual(line_item.amount, Money('2.03', 'USD'))
-
 
     def test_edit_line_item_buyer_fail(self):
         deliverable = DeliverableFactory.create()
@@ -529,7 +595,6 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         line_item.refresh_from_db()
         self.assertEqual(line_item.amount, Money('5.00', 'USD'))
 
-
     def test_delete_line_item(self):
         deliverable = DeliverableFactory.create()
         line_item = add_adjustment(deliverable, Money('5.00', 'USD'))
@@ -538,7 +603,6 @@ class TestOrder(TransactionCheckMixin, APITestCase):
             f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/{line_item.id}/',
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-
 
     def test_delete_extra_line_item(self):
         deliverable = DeliverableFactory.create()
@@ -1160,6 +1224,21 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         deliverable = Deliverable.objects.get(id=response.data['default_path']['params']['deliverableId'])
         self.assertEqual(deliverable.characters.all().count(), 0)
         self.assertEqual(deliverable.order.buyer, user)
+
+    def test_place_order_user_blocked(self):
+        user = UserFactory.create()
+        product = ProductFactory.create()
+        product.user.blocking.add(user)
+        self.login(user)
+        response = self.client.post(
+            f'/api/sales/v1/account/{product.user.username}/products/{product.id}/order/',
+            {
+                'details': 'Draw me some porn!',
+                'rating': ADULT,
+                'email': 'stuff@example.com',
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_place_order_guest_user_new_email(self):
         user = create_guest_user('stuff@example.com')

@@ -207,9 +207,17 @@
                   <v-btn v-show="editing" icon color="primary" @click="showTerms = true"><v-icon>edit</v-icon></v-btn>
                   <ac-expanded-property v-model="showTerms" :large="true">
                     <span slot="title">Edit Terms</span>
-                    <v-row no-gutters  >
-                      <v-col cols="12" sm="6">
+                    <v-row>
+                      <v-col cols="12" sm="3">
                         <ac-patch-field :patcher="product.patchers.base_price" field-type="ac-price-field" :save-comparison="product.x.base_price" />
+                      </v-col>
+                      <v-col cols="12" sm="3">
+                        <ac-patch-field
+                            :patcher="product.patchers.cascade_fees" field-type="v-switch" label="Absorb fees" :persistent-hint="true"
+                            hint="If turned on, the price you set is the price your commissioner will see, and you
+                            will pay all fees from that price. If turned off, the price you set is the amount you
+                            take home, and the total the customer pays includes the fees."
+                        />
                       </v-col>
                       <v-col cols="12" sm="6">
                         <ac-price-preview :line-items="lineItems" :username="username" />
@@ -456,6 +464,7 @@ import Pricing from '@/types/Pricing'
 import Inventory from '@/types/Inventory'
 import {LineTypes} from '@/types/LineTypes'
 import Sharable from '@/mixins/sharable'
+import {deliverableLines} from '@/lib/lineItemFunctions'
 
 @Component({
   components: {
@@ -585,79 +594,28 @@ export default class ProductDetail extends mixins(ProductCentric, Formatting, Ed
     }
 
     public get lineItems(): ListController<LineItem> {
-      const linesController = this.$getList(`product${this.productId}_previewLines`, {endpoint: '????', paginated: false})
-      linesController.ready = true
-      if (!(this.pricing.x && this.product.x)) {
-        linesController.setList([])
+      const linesController = this.$getList(`product${this.productId}_previewLines`, {endpoint: '#', paginated: false})
+      const pricing = this.pricing.x
+      if (!(this.product.x)) {
+        linesController.makeReady([])
         return linesController
       }
       const basePrice = parseFloat(this.product.patchers.base_price.model)
-      if (isNaN(basePrice)) {
-        linesController.setList([])
-        return linesController
-      }
-      const lines: LineItem[] = [{
-        id: -1,
-        priority: 0,
-        type: LineTypes.BASE_PRICE,
-        amount: basePrice,
-        frozen_value: null,
-        percentage: 0,
-        description: '',
-        cascade_amount: false,
-        cascade_percentage: false,
-        back_into_percentage: false,
-      }]
-      if (this.product.x.table_product) {
-        lines.push({
-          id: -2,
-          priority: 400,
-          type: LineTypes.TABLE_SERVICE,
-          cascade_percentage: true,
-          cascade_amount: false,
-          amount: this.pricing.x.table_static,
-          frozen_value: null,
-          percentage: this.pricing.x.table_percentage,
-          back_into_percentage: false,
-          description: '',
-        }, {
-          id: -3,
-          priority: 700,
-          type: LineTypes.TAX,
-          cascade_percentage: true,
-          cascade_amount: true,
-          percentage: this.pricing.x.table_tax,
-          back_into_percentage: false,
-          description: '',
-          amount: 0,
-          frozen_value: null,
-        })
-      } else if (!this.escrowDisabled) {
-        lines.push({
-          id: -4,
-          priority: 300,
-          type: LineTypes.SHIELD,
-          cascade_percentage: true,
-          cascade_amount: true,
-          amount: this.pricing.x.standard_static,
-          frozen_value: null,
-          percentage: this.pricing.x.standard_percentage,
-          back_into_percentage: false,
-          description: '',
-        }, {
-          id: -5,
-          priority: 300,
-          type: LineTypes.BONUS,
-          cascade_percentage: true,
-          cascade_amount: true,
-          amount: this.pricing.x.premium_static_bonus,
-          frozen_value: null,
-          percentage: this.pricing.x.premium_percentage_bonus,
-          back_into_percentage: false,
-          description: '',
-        })
-      }
-      linesController.setList(lines)
+      // eslint-disable-next-line camelcase
+      const planName = this.subject?.service_plan
+      const cascade = this.product.x.cascade_fees
+      const escrowDisabled = this.product.x.escrow_disabled
+      const tableProduct = this.product.x.table_product
+      const lines = deliverableLines({
+        basePrice,
+        cascade,
+        planName,
+        pricing,
+        escrowDisabled,
+        tableProduct,
+        extraLines: [],
+      })
+      linesController.makeReady(lines)
       return linesController
     }
 

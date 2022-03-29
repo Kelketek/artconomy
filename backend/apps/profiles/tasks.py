@@ -5,7 +5,7 @@ from django.db.models import Count
 from django.utils import timezone
 
 from apps.profiles.models import User, Conversation
-from apps.sales.apis import chimp
+from apps.sales.mailchimp import chimp
 from apps.sales.stripe import stripe
 from conf.celery_config import celery_app
 

@@ -109,9 +109,9 @@
                     </ac-confirmation>
                   </v-col>
                   <v-col class="text-center payment-section" v-if="is(PAYMENT_PENDING) && (isBuyer || isStaff) && !deliverable.x.escrow_disabled" cols="12" >
-                    <v-btn color="green" @click="showPayment = true" class="payment-button">Send Payment</v-btn>
+                    <v-btn color="green" @click="viewSettings.patchers.showPayment.model = true" class="payment-button">Send Payment</v-btn>
                     <ac-form-dialog
-                        v-model="showPayment" @submit.prevent="paymentSubmit"
+                        v-model="viewSettings.patchers.showPayment.model" @submit.prevent="paymentSubmit"
                         :large="true" v-bind="paymentForm.bind"
                         :show-submit="showSubmit"
                     >
@@ -173,7 +173,7 @@
                                   <v-tab-item>
                                     <v-row>
                                       <v-col cols="12" md="6" offset-md="3" class="pa-5">
-                                        <v-btn color="primary" block @click="paymentForm.submitThen(updateDeliverable)">
+                                        <v-btn color="primary" block class="mark-paid-cash" @click="paymentForm.submitThen(updateDeliverable)">
                                           Mark Paid by Cash
                                         </v-btn>
                                       </v-col>
@@ -303,7 +303,6 @@ import AcPaginated from '@/components/wrappers/AcPaginated.vue'
   },
 })
 export default class DeliverablePayment extends mixins(DeliverableMixin, Formatting, StripeHostMixin, StripeMixin) {
-  public showPayment = false
   public clientSecret = null as unknown as SingleController<ClientSecret>
   public PROCESSORS = PROCESSORS
   public socketState = null as unknown as SingleController<SocketState>
@@ -311,6 +310,7 @@ export default class DeliverablePayment extends mixins(DeliverableMixin, Formatt
   // Setting this false to avoid calling for the secret until we have the invoice ID.
   public canUpdateStorage = false
   public cardTabs = 0
+  public destroyed = false
 
   @Watch('cardTabs')
   public clearManualTransactionSettings(tabValue: number) {
@@ -319,11 +319,11 @@ export default class DeliverablePayment extends mixins(DeliverableMixin, Formatt
     } else {
       this.paymentForm.fields.cash.update(false)
     }
-    if ((tabValue === 1) && this.readers.list.length) {
-      if (!this.readerForm.fields.reader.value) {
+    if (tabValue === 1) {
+      this.paymentForm.fields.use_reader.update(true)
+      if (this.readers.list.length && !this.readerForm.fields.reader.value) {
         this.readerForm.fields.reader.update(this.readers.list[0].x!.id)
       }
-      this.paymentForm.fields.use_reader.update(true)
     } else {
       this.paymentForm.fields.use_reader.update(false)
     }
@@ -367,12 +367,12 @@ export default class DeliverablePayment extends mixins(DeliverableMixin, Formatt
   }
 
   public hideForm() {
-    this.showPayment = false
+    this.viewSettings.patchers.showPayment.model = false
     this.paymentForm.sending = false
   }
 
   public get invoiceUrl() {
-    return `/api/sales/v1/invoices/${this.deliverable.x?.invoice}/`
+    return `/api/sales/v1/invoice/${this.deliverable.x?.invoice}/`
   }
 
   public get readerFormUrl() {
@@ -395,29 +395,19 @@ export default class DeliverablePayment extends mixins(DeliverableMixin, Formatt
   }
 
   @Watch('isStaff')
-  public triggerFetchReaders(isStaff: boolean, oldVal: boolean) {
+  public setNonStaffTab(isStaff: boolean, oldVal: boolean) {
     if (!isStaff) {
       this.cardTabs = 0
-      this.paymentForm.fields.use_terminal.update(false)
+      this.paymentForm.fields.use_reader.update(false)
       this.paymentForm.fields.cash.update(false)
       this.updateIntent()
-      return
-    }
-    if (!oldVal && !(this.readers.ready || this.readers.fetching)) {
-      if (!this.stripe()) {
-        setTimeout(() => {
-          this.triggerFetchReaders(isStaff, oldVal)
-        }, 500)
-        return
-      }
-      this.fetchReaders()
     }
   }
 
   public get priceData(): LineAccumulator {
     /* istanbul ignore if */
     if (!this.lineItems) {
-      return {total: Big(0), map: new Map(), discount: Big(0)}
+      return {total: Big(0), subtotals: new Map(), discount: Big(0)}
     }
     return getTotals(this.bareLines)
   }

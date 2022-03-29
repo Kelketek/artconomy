@@ -144,6 +144,11 @@ export default class Orders extends mixins(Subjective, InvoicingMixin) {
     return this.username
   }
 
+  public get planName() {
+    // eslint-disable-next-line camelcase
+    return this.subject?.service_plan || null
+  }
+
   public get closed() {
     const stats = this.stats.x as CommissionStats
     if (!stats) {

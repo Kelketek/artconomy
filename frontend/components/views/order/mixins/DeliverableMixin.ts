@@ -263,7 +263,7 @@ export default class DeliverableMixin extends mixins(Viewer) {
     if (!this.sellerHandler) {
       return null
     }
-    return this.sellerHandler.user.x
+    return this.sellerHandler.user.x as User
   }
 
   public get viewMode() {
@@ -316,7 +316,7 @@ export default class DeliverableMixin extends mixins(Viewer) {
 
   public updateDeliverable(deliverable: Deliverable) {
     this.deliverable.updateX(deliverable)
-    this.viewSettings.model.showPayment = false
+    this.viewSettings.patchers.showPayment.model = false
   }
 
   public get name() {
@@ -366,7 +366,7 @@ export default class DeliverableMixin extends mixins(Viewer) {
         socketSettings: {
           appLabel: 'sales',
           modelName: 'Deliverable',
-          serializer: 'DeliverableViewSerializer',
+          serializer: 'DeliverableSerializer',
         },
       },
     )

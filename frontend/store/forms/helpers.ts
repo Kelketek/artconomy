@@ -31,6 +31,10 @@ export function deriveErrors(error: AxiosError, knownFields: string[]): FormErro
     return errorSet
   }
   const unresolved: FormError = {}
+  if (Array.isArray(error.response.data)) {
+    errorSet.errors.push(...error.response.data)
+    return errorSet
+  }
   for (const key of Object.keys(error.response.data)) {
     if (knownFields.indexOf(key) !== -1) {
       errorSet.fields[key] = error.response.data[key]

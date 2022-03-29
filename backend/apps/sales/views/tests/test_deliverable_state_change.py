@@ -9,20 +9,23 @@ from django.utils.datetime_safe import date
 from freezegun import freeze_time
 from moneyed import Money
 from rest_framework import status
+from stripe.error import InvalidRequestError
 
 from apps.lib.abstract_models import ADULT
 from apps.lib.models import DISPUTE, Subscription, COMMENT, REVISION_UPLOADED, ref_for_instance
-from apps.lib.test_resources import SignalsDisabledMixin, APITestCase
+from apps.lib.test_resources import APITestCase
 from apps.profiles.tests.factories import UserFactory, CharacterFactory, SubmissionFactory
-from apps.sales.apis import AUTHORIZE, STRIPE
-from apps.sales.models import idempotent_lines, QUEUED, NEW, PAYMENT_PENDING, COMPLETED, IN_PROGRESS, \
-    TransactionRecord, REVIEW, DISPUTED, Deliverable, WAITING, REFUNDED, OPEN, PAID
+from apps.sales.constants import STRIPE, AUTHORIZE, PAID, REFUNDED, COMPLETED, WAITING, NEW, PAYMENT_PENDING, QUEUED, \
+    IN_PROGRESS, REVIEW, DISPUTED, ESCROW_REFUND, SUCCESS, ESCROW, CARD, RESERVE, UNPROCESSED_EARNINGS, \
+    HOLDINGS, MONEY_HOLE_STAGE, ESCROW_HOLD, TABLE_HANDLING, CASH_DEPOSIT, FAILURE
+from apps.sales.models import idempotent_lines, TransactionRecord, Deliverable
 from apps.sales.tests.factories import DeliverableFactory, RevisionFactory, LineItemFactory, TransactionRecordFactory, \
-    CreditCardTokenFactory
+    CreditCardTokenFactory, ServicePlanFactory
+from apps.sales.utils import get_term_invoice
 
 
-@patch('apps.sales.views.views.notify')
-class TestDeliverableStateChange(SignalsDisabledMixin, APITestCase):
+@patch('apps.sales.views.main.notify')
+class TestDeliverableStatusChange(APITestCase):
     fixture_list = ['deliverable-state-change']
 
     def setUp(self):
@@ -134,6 +137,21 @@ class TestDeliverableStateChange(SignalsDisabledMixin, APITestCase):
         self.assertFalse(self.deliverable.revisions_hidden)
         self.assertTrue(self.deliverable.invoice.record_only)
         self.assertEqual(self.deliverable.invoice.status, PAID)
+        # By default we're on the free plan, which has no per-deliverable charge, and no monthly charge.
+        self.assertEqual(get_term_invoice(self.deliverable.order.seller).total(), Money('0', 'USD'))
+
+    def test_mark_paid_adds_line_for_term(self, _mock_notify):
+        self.deliverable.escrow_disabled = True
+        basic_plan = ServicePlanFactory.create(
+            monthly_charge=Money('0', 'USD'), per_deliverable_price=Money('1.10', 'USD'),
+        )
+        self.seller.service_plan = basic_plan
+        self.seller.save()
+        self.assertTrue(self.deliverable.revisions_hidden)
+        self.deliverable.save()
+        self.final.delete()
+        self.state_assertion('seller', 'mark-paid/', initial_status=PAYMENT_PENDING, target_status=QUEUED)
+        self.assertEqual(get_term_invoice(self.deliverable.order.seller).total(), Money('1.10', 'USD'))
 
     def test_mark_paid_disables_escrow(self, _mock_notify):
         self.assertFalse(self.deliverable.invoice.record_only)
@@ -189,8 +207,8 @@ class TestDeliverableStateChange(SignalsDisabledMixin, APITestCase):
         record = TransactionRecordFactory.create(
             payee=self.deliverable.order.seller,
             payer=self.deliverable.order.buyer,
-            source=TransactionRecord.CARD,
-            destination=TransactionRecord.ESCROW,
+            source=CARD,
+            destination=ESCROW,
             amount=Money('15.00', 'USD'),
         )
         record.targets.add(ref_for_instance(self.deliverable))
@@ -198,11 +216,11 @@ class TestDeliverableStateChange(SignalsDisabledMixin, APITestCase):
         record.refresh_from_db()
         records = TransactionRecord.objects.all()
         self.assertEqual(records.count(), 2)
-        payment = records.get(payee=self.deliverable.order.seller, source=TransactionRecord.ESCROW)
+        payment = records.get(payee=self.deliverable.order.seller, source=ESCROW)
         self.assertEqual(payment.amount, Money('15.00', 'USD'))
         self.assertEqual(payment.payer, self.deliverable.order.seller)
-        self.assertEqual(payment.status, TransactionRecord.SUCCESS)
-        self.assertEqual(payment.destination, TransactionRecord.HOLDINGS)
+        self.assertEqual(payment.status, SUCCESS)
+        self.assertEqual(payment.destination, HOLDINGS)
         mock_withdraw.assert_called_with(self.deliverable.order.seller.id)
 
     @patch('apps.sales.utils.recall_notification')
@@ -213,9 +231,9 @@ class TestDeliverableStateChange(SignalsDisabledMixin, APITestCase):
         record = TransactionRecordFactory.create(
             payee=self.deliverable.order.seller,
             payer=self.deliverable.order.buyer,
-            destination=TransactionRecord.ESCROW,
-            source=TransactionRecord.CARD,
-            category=TransactionRecord.ESCROW_HOLD,
+            destination=ESCROW,
+            source=CARD,
+            category=ESCROW_HOLD,
             amount=Money('15.00', 'USD'),
         )
         record.targets.add(ref_for_instance(self.deliverable))
@@ -229,9 +247,9 @@ class TestDeliverableStateChange(SignalsDisabledMixin, APITestCase):
         record = TransactionRecordFactory.create(
             payee=self.deliverable.order.seller,
             payer=self.deliverable.order.buyer,
-            destination=TransactionRecord.ESCROW,
-            source=TransactionRecord.CARD,
-            category=TransactionRecord.ESCROW_HOLD,
+            destination=ESCROW,
+            source=CARD,
+            category=ESCROW_HOLD,
             amount=Money('15.00', 'USD'),
         )
         record.targets.add(ref_for_instance(self.deliverable))
@@ -258,24 +276,24 @@ class TestDeliverableStateChange(SignalsDisabledMixin, APITestCase):
         record = TransactionRecordFactory.create(
             payee=self.deliverable.order.seller,
             payer=self.deliverable.order.buyer,
-            source=TransactionRecord.CARD,
-            destination=TransactionRecord.ESCROW,
+            source=CARD,
+            destination=ESCROW,
             amount=Money('15.00', 'USD'),
         )
         record.targets.add(ref_for_instance(self.deliverable))
         record2 = TransactionRecordFactory.create(
             payee=None,
             payer=self.deliverable.order.buyer,
-            source=TransactionRecord.CARD,
-            destination=TransactionRecord.RESERVE,
+            source=CARD,
+            destination=RESERVE,
             amount=Money('2.00', 'USD'),
         )
         record2.targets.add(ref_for_instance(self.deliverable))
         record3 = TransactionRecordFactory.create(
             payee=None,
             payer=self.deliverable.order.buyer,
-            source=TransactionRecord.CARD,
-            destination=TransactionRecord.MONEY_HOLE_STAGE,
+            source=CARD,
+            destination=MONEY_HOLE_STAGE,
             amount=Money('3.00', 'USD'),
         )
         record3.targets.add(ref_for_instance(self.deliverable))
@@ -283,17 +301,17 @@ class TestDeliverableStateChange(SignalsDisabledMixin, APITestCase):
         record.refresh_from_db()
         records = TransactionRecord.objects.all()
         self.assertEqual(records.count(), 6)
-        payment = records.get(payee=self.deliverable.order.seller, source=TransactionRecord.ESCROW)
+        payment = records.get(payee=self.deliverable.order.seller, source=ESCROW)
         self.assertEqual(payment.amount, Money('15.00', 'USD'))
         self.assertEqual(payment.payer, self.deliverable.order.seller)
-        self.assertEqual(payment.status, TransactionRecord.SUCCESS)
-        self.assertEqual(payment.destination, TransactionRecord.HOLDINGS)
+        self.assertEqual(payment.status, SUCCESS)
+        self.assertEqual(payment.destination, HOLDINGS)
         service_fee = records.get(
-            payee__isnull=True, payer__isnull=True, source=TransactionRecord.RESERVE,
-            destination=TransactionRecord.UNPROCESSED_EARNINGS,
+            payee__isnull=True, payer__isnull=True, source=RESERVE,
+            destination=UNPROCESSED_EARNINGS,
         )
         self.assertEqual(service_fee.amount, Money('2.00', 'USD'))
-        self.assertEqual(service_fee.category, TransactionRecord.TABLE_SERVICE)
+        self.assertEqual(service_fee.category, TABLE_HANDLING)
         self.assertEqual([target.target for target in service_fee.targets.all()], [self.deliverable])
         mock_withdraw.assert_called_with(self.deliverable.order.seller.id)
 
@@ -305,32 +323,94 @@ class TestDeliverableStateChange(SignalsDisabledMixin, APITestCase):
         self.assertEqual(self.deliverable.status, REFUNDED)
         self.assertEqual(TransactionRecord.objects.all().count(), 0)
 
-    @patch('apps.sales.utils.refund_payment_intent')
+    def test_refund_cash_staffer(self, _mock_stripe):
+        record = TransactionRecordFactory.create(
+            payee=self.deliverable.order.seller,
+            payer=self.deliverable.order.buyer,
+            amount=Money('15.00', 'USD'),
+            source=CASH_DEPOSIT,
+            destination=ESCROW,
+            remote_ids=[],
+        )
+        targets = [ref_for_instance(self.deliverable), ref_for_instance(self.deliverable.invoice)]
+        record.targets.set(targets)
+        self.state_assertion('staffer', 'refund/', initial_status=DISPUTED)
+        refund_transaction = TransactionRecord.objects.get(
+            status=SUCCESS,
+            payee=self.deliverable.order.buyer, payer=self.deliverable.order.seller,
+            source=ESCROW,
+            destination=CASH_DEPOSIT,
+        )
+        self.assertEqual(refund_transaction.amount, Money('15.00', 'USD'))
+        self.assertEqual(refund_transaction.category, ESCROW_REFUND)
+        self.assertEqual(refund_transaction.remote_ids, [])
+        self.assertCountEqual(list(refund_transaction.targets.all()), targets)
+
+    @patch('apps.sales.utils.stripe')
     @override_settings(
         PREMIUM_PERCENTAGE_FEE=Decimal('5'), PREMIUM_STATIC_FEE=Decimal('0.10')
     )
-    def test_refund_card_seller(self, _mock_refund_transaction, _mock_notify):
+    def test_refund_card_seller(self, mock_stripe, _mock_notify):
+        mock_stripe.__enter__.return_value.Refund.create.return_value = {'id': 'refund123'}
         card = CreditCardTokenFactory.create()
         record = TransactionRecordFactory.create(
             card=card,
             payee=self.deliverable.order.seller,
             payer=self.deliverable.order.buyer,
             amount=Money('15.00', 'USD'),
-            source=TransactionRecord.CARD,
-            destination=TransactionRecord.ESCROW,
+            source=CARD,
+            destination=ESCROW,
             remote_ids=['pi_1234'],
         )
-        record.targets.add(ref_for_instance(self.deliverable))
+        targets = [ref_for_instance(self.deliverable), ref_for_instance(self.deliverable.invoice)]
+        record.targets.set(targets)
         self.state_assertion('seller', 'refund/', initial_status=DISPUTED)
         refund_transaction = TransactionRecord.objects.get(
-            status=TransactionRecord.SUCCESS,
+            status=SUCCESS,
             payee=self.deliverable.order.buyer, payer=self.deliverable.order.seller,
-            source=TransactionRecord.ESCROW,
-            destination=TransactionRecord.CARD,
+            source=ESCROW,
+            destination=CARD,
         )
         self.assertEqual(refund_transaction.amount, Money('15.00', 'USD'))
-        self.assertEqual(refund_transaction.category, TransactionRecord.ESCROW_REFUND)
+        self.assertEqual(refund_transaction.category, ESCROW_REFUND)
+        self.assertCountEqual(refund_transaction.remote_ids, ['pi_1234', 'refund123'])
+        self.assertCountEqual(list(refund_transaction.targets.all()), targets)
+        mock_stripe.__enter__.return_value.Refund.create.assert_called_with(amount=1500, payment_intent='pi_1234')
+
+    @patch('apps.sales.utils.stripe')
+    @override_settings(
+        PREMIUM_PERCENTAGE_FEE=Decimal('5'), PREMIUM_STATIC_FEE=Decimal('0.10')
+    )
+    def test_refund_card_seller_exception(self, mock_stripe, _mock_notify):
+        mock_stripe.__enter__.return_value.Refund.create.side_effect = InvalidRequestError('Failed!', param=['test'])
+        card = CreditCardTokenFactory.create()
+        record = TransactionRecordFactory.create(
+            card=card,
+            payee=self.deliverable.order.seller,
+            payer=self.deliverable.order.buyer,
+            amount=Money('15.00', 'USD'),
+            source=CARD,
+            destination=ESCROW,
+            remote_ids=['pi_1234'],
+        )
+        targets = [ref_for_instance(self.deliverable), ref_for_instance(self.deliverable.invoice)]
+        record.targets.set(targets)
+        self.state_assertion(
+            'seller', 'refund/', initial_status=DISPUTED, target_response_code=status.HTTP_400_BAD_REQUEST,
+        )
+        refund_transaction = TransactionRecord.objects.get(
+            status=FAILURE,
+            payee=self.deliverable.order.buyer, payer=self.deliverable.order.seller,
+            source=ESCROW,
+            destination=CARD,
+        )
+        self.assertEqual(refund_transaction.amount, Money('15.00', 'USD'))
+        self.assertEqual(refund_transaction.category, ESCROW_REFUND)
         self.assertEqual(refund_transaction.remote_ids, ['pi_1234'])
+        self.assertCountEqual(list(refund_transaction.targets.all()), targets)
+        self.assertEqual(refund_transaction.response_message, 'Failed!')
+        mock_stripe.__enter__.return_value.Refund.create.assert_called_with(amount=1500, payment_intent='pi_1234')
+
 
     def test_refund_card_buyer(self, _mock_notify):
         self.state_assertion('buyer', 'refund/', status.HTTP_403_FORBIDDEN, initial_status=DISPUTED)
@@ -373,7 +453,6 @@ class TestDeliverableStateChange(SignalsDisabledMixin, APITestCase):
         self.state_assertion('staffer', 'approve/', initial_status=REVIEW)
         record.refresh_from_db()
 
-
     def test_claim_deliverable_staffer(self, _mock_notify):
         self.state_assertion('staffer', 'claim/', initial_status=DISPUTED)
         self.deliverable.refresh_from_db()
@@ -404,6 +483,13 @@ class TestDeliverableStateChange(SignalsDisabledMixin, APITestCase):
         self.deliverable.save()
         self.state_assertion('buyer', 'dispute/', status.HTTP_200_OK, initial_status=IN_PROGRESS)
 
+    @freeze_time('2019-02-01 12:00:00')
+    def test_file_dispute_buyer_no_escrow(self, _mock_notify):
+        self.deliverable.dispute_available_on = date(year=2019, month=1, day=1)
+        self.deliverable.escrow_disabled = True
+        self.deliverable.save()
+        self.state_assertion('buyer', 'dispute/', status.HTTP_403_FORBIDDEN, initial_status=IN_PROGRESS)
+
     @freeze_time('2019-01-01 12:00:00')
     def test_file_dispute_buyer_too_early(self, _mock_notify):
         self.deliverable.dispute_available_on = date(year=2019, month=5, day=3)
@@ -415,3 +501,93 @@ class TestDeliverableStateChange(SignalsDisabledMixin, APITestCase):
 
     def test_file_dispute_outsider_fail(self, _mock_notify):
         self.state_assertion('outsider', 'dispute/', status.HTTP_403_FORBIDDEN, initial_status=REVIEW)
+
+
+class TestDeliverableAdjustments(APITestCase):
+    def test_adjust_turnaround(self):
+        deliverable = DeliverableFactory.create(
+            product__expected_turnaround=1,
+            adjustment_expected_turnaround=0,
+        )
+        self.login(deliverable.order.seller)
+        response = self.client.patch(
+            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/',
+            {'adjustment_expected_turnaround': 1}
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        deliverable.refresh_from_db()
+        self.assertEqual(deliverable.adjustment_expected_turnaround, 1)
+
+    @override_settings(MINIMUM_TURNAROUND=Decimal('1'))
+    def test_adjust_turnaround_violates_minimum(self):
+        deliverable = DeliverableFactory.create(
+            product__expected_turnaround=1,
+            adjustment_expected_turnaround=0,
+        )
+        self.login(deliverable.order.seller)
+        response = self.client.patch(
+            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/',
+            {'adjustment_expected_turnaround': -1}
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.data['adjustment_expected_turnaround'], ['Expected turnaround may not be less than 1'],
+        )
+
+    def test_adjust_revisions(self):
+        deliverable = DeliverableFactory.create(
+            product__revisions=1,
+            adjustment_revisions=0,
+        )
+        self.login(deliverable.order.seller)
+        response = self.client.patch(
+            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/',
+            {'adjustment_revisions': 1}
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        deliverable.refresh_from_db()
+        self.assertEqual(deliverable.adjustment_revisions, 1)
+
+    def test_adjust_revisions_violates_minimum(self):
+        deliverable = DeliverableFactory.create(
+            product__revisions=1,
+            adjustment_revisions=0,
+        )
+        self.login(deliverable.order.seller)
+        response = self.client.patch(
+            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/',
+            {'adjustment_revisions': -2}
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.data['adjustment_revisions'], ['Total revisions may not be less than 0.'],
+        )
+
+    def test_adjust_task_weight(self):
+        deliverable = DeliverableFactory.create(
+            product__task_weight=1,
+            adjustment_task_weight=0,
+        )
+        self.login(deliverable.order.seller)
+        response = self.client.patch(
+            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/',
+            {'adjustment_task_weight': 1}
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        deliverable.refresh_from_db()
+        self.assertEqual(deliverable.adjustment_task_weight, 1)
+
+    def test_adjust_task_weight_violates_minimum(self):
+        deliverable = DeliverableFactory.create(
+            product__task_weight=1,
+            adjustment_task_weight=0,
+        )
+        self.login(deliverable.order.seller)
+        response = self.client.patch(
+            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/',
+            {'adjustment_task_weight': -1}
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.data['adjustment_task_weight'], ['Task weight may not be less than 1.'],
+        )

@@ -32,7 +32,7 @@ from apps.profiles.models import (
     banned_prefix_validator,
     ArtistProfile, ArtistTag
 )
-from apps.sales.apis import STRIPE
+from apps.sales.constants import STRIPE
 from apps.sales.models import Promo, ServicePlan
 from apps.tg_bot.models import TelegramDevice
 
@@ -484,6 +484,19 @@ class UserSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
     blacklist = TagListField(required=False)
     stars = serializers.FloatField(required=False)
     processor = serializers.SerializerMethodField()
+    service_plan = serializers.SerializerMethodField()
+    next_service_plan = serializers.SerializerMethodField()
+    international = serializers.SerializerMethodField()
+
+    def get_international(self, obj):
+        from apps.sales.models import StripeAccount
+        return StripeAccount.objects.filter(user=obj, country=settings.SOURCE_COUNTRY).exists()
+
+    def get_service_plan(self, obj):
+        return obj.service_plan.name
+
+    def get_next_service_plan(self, obj):
+        return obj.next_service_plan.name
 
     def get_landscape_paid_through(self, obj):
         if not (obj.service_plan and obj.service_plan.name == 'Landscape'):
@@ -518,7 +531,7 @@ class UserSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
             'blacklist', 'biography', 'taggable', 'watching', 'blocking',
             'stars', 'landscape', 'landscape_enabled', 'landscape_paid_through', 'telegram_link', 'sfw_mode',
             'offered_mailchimp', 'guest', 'artist_mode', 'hits', 'watches', 'guest_email', 'rating_count',
-            'birthday', 'processor',
+            'birthday', 'processor', 'service_plan', 'next_service_plan', 'international'
         )
         read_only_fields = [field for field in fields if field not in [
             'rating', 'sfw_mode', 'taggable',

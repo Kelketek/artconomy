@@ -83,6 +83,7 @@
 </template>
 
 <script lang="ts">
+// TODO: Remove this module. We no longer use Authorize.net and likely never will again.
 import Component, {mixins} from 'vue-class-component'
 import {Prop} from 'vue-property-decorator'
 import {BANK_STATUSES} from '@/store/profiles/types/BANK_STATUSES'

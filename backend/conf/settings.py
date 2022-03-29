@@ -98,6 +98,7 @@ INSTALLED_APPS = [
     'apps.lib',
     'apps.tg_bot.apps.TGBotConfig',
     'django_cleanup.apps.CleanupConfig',
+    'apps.discord_bot.apps.DiscordBotConfig'
 ]
 
 MIDDLEWARE = [
@@ -339,6 +340,9 @@ PREMIUM_PERCENTAGE_BONUS = Decimal(get_env('PREMIUM_PERCENTAGE_BONUS', '4'))
 TABLE_PERCENTAGE_FEE = Decimal(get_env('TABLE_PERCENTAGE_FEE', '10'))
 TABLE_STATIC_FEE = Decimal(get_env('TABLE_STATIC_FEE', '5.00'))
 TABLE_TAX = Decimal(get_env('TABLE_TAX', '8.25'))
+INTERNATIONAL_CONVERSION_PERCENTAGE = Decimal(get_env('INTERNATIONAL_CONVERSION_PERCENTAGE', '1'))
+# The country that the escrow account is housed in. In all reality this will probably always be the US.
+SOURCE_COUNTRY = get_env('SOURCE_COUNTRY', 'US')
 
 DWOLLA_MIN_FEE = Money(Decimal(get_env('DWOLLA_MIN_FEE', '.05')), 'USD')
 DWOLLA_MAX_FEE = Money(Decimal(get_env('DWOLLA_MIN_FEE', '5')), 'USD')
@@ -399,7 +403,7 @@ GR_CAPTCHA_PUBLIC_KEY = get_env('GR_CAPTCHA_PUBLIC_KEY', '')
 
 LOGGING = None
 
-# Uncomment when tests need debugging, like when bok_choy isn't launching the browser.
+# Uncomment when tests need debugging.
 # Make sure to comment out the logging disable line in the next section as well.
 
 # if 'test' in argv:
@@ -568,3 +572,9 @@ MASTODON_PROFILES = get_env(
     ],
     unpack=True,
 )
+
+# Discord bot settings
+DISCORD_BOT_KEY = get_env('DISCORD_BOT_KEY', 'fake-bot-key')
+DISCORD_CLIENT_KEY = get_env('DISCORD_CLIENT_KEY', 'discord-client-key')
+DISCORD_CLIENT_SECRET = get_env('DISCORD_CLIENT_SECRET', 'discord-client-secret')
+DISCORD_GUILD_ID = int(get_env('DISCORD_GUILD_ID', '12345678'))

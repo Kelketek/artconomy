@@ -36,7 +36,7 @@ export default class AcLineItemEditor extends Vue {
   }
 
   public get price() {
-    return this.priceData.map.get(this.line.x as LineItem) as Big
+    return this.priceData.subtotals.get(this.line.x as LineItem) as Big
   }
 
   public get placeholder() {

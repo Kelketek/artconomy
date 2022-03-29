@@ -1435,7 +1435,7 @@ class PasswordReset(GenericAPIView):
             )
         except User.DoesNotExist:
             raise ValidationError(
-                {'detail': ['This user does not exist or the token has expired. Please request a new reset link.']}
+                {'detail': 'This user does not exist or the token has expired. Please request a new reset link.'}
             )
         return user
 

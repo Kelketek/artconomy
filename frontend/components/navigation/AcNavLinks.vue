@@ -51,7 +51,7 @@
           Referrals, Rewards, and Tools!
         </v-list-item-title>
       </v-list-item>
-      <v-list-item :to="{name: 'Upgrade'}" v-if="isRegistered && !embedded">
+      <v-list-item :to="{name: 'Upgrade', params: {username: subject.username}}" v-if="isRegistered && !embedded">
         <v-list-item-action>
           <v-icon>arrow_upward</v-icon>
         </v-list-item-action>

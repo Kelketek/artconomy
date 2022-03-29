@@ -43,6 +43,8 @@ export function genUser(overrides?: Partial<User>): User {
     guest_email: '',
     birthday: '1988-08-01',
     processor: PROCESSORS.AUTHORIZE,
+    service_plan: 'Free',
+    next_service_plan: 'Free',
     ...overrides,
   }
 }
@@ -143,6 +145,7 @@ export function genProduct(overrides?: Partial<Product>): Product {
     featured: false,
     wait_list: false,
     catalog_enabled: true,
+    cascade_fees: true,
     ...overrides,
   }
 }
@@ -180,6 +183,7 @@ export function genDeliverable(overrides?: Partial<Deliverable>): Deliverable {
     processor: PROCESSORS.AUTHORIZE,
     read: true,
     arbitrator: null,
+    cascade_fees: true,
     order,
     product: genProduct({user: order.seller}),
     display: {

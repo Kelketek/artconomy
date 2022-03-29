@@ -10,7 +10,7 @@
       <ac-line-item-editor :line="line" v-for="line in addOns" :key="line.x.id" :price-data="priceData" :editing="editable" />
       <ac-form-container v-bind="addOnForm.bind">
         <ac-form @submit.prevent="addOnForm.submitThen(lineItems.push)">
-          <ac-new-line-item :form="addOnForm" :price="priceData.map.get(addOnFormItem) || 0" />
+          <ac-new-line-item :form="addOnForm" :price="priceData.subtotals.get(addOnFormItem) || 0" />
         </ac-form>
       </ac-form-container>
     </template>
@@ -22,7 +22,7 @@
       <ac-line-item-editor :line="line" v-for="line in extras" :key="line.x.id" :price-data="priceData" :editing="editable" />
       <ac-form-container v-bind="extraForm.bind">
         <ac-form @submit.prevent="extraForm.submitThen(lineItems.push)">
-          <ac-new-line-item :form="extraForm" :price="priceData.map.get(extraFormItem) || 0" />
+          <ac-new-line-item :form="extraForm" :price="priceData.subtotals.get(extraFormItem) || 0" />
         </ac-form>
       </ac-form-container>
     </template>

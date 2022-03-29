@@ -1,5 +1,7 @@
 # Library for asynchronous handling of files.
 aiofile
+# OAuth2 library used for our custom Discord Integration-- the non-bot part
+authlib
 # BeautifulSoup is an HTML/XML processing library which we primarily use to manipulate HTML structures before
 # extracting their text for the text version of emails
 bs4
@@ -18,6 +20,8 @@ coverage
 daphne
 # DDT 'Data Driven Tests'-- allows us to parameterize tests so we can write them once with several different inputs.
 ddt
+# The library we use for our Discord bot
+discord-py-interactions
 # Used to generate thumbnails for submissions.
 easy_thumbnails
 # The Django web framework is Artconomy's base web framework.

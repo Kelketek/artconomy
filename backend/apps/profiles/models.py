@@ -13,9 +13,10 @@ from django.contrib.auth.models import AnonymousUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.postgres.fields import CICharField
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, RegexValidator
-from django.db import models
+from django.db import models, ProgrammingError
 from django.db.models import (
     Model, CharField, ForeignKey, IntegerField, BooleanField, DateTimeField,
     URLField, SET_NULL, ManyToManyField, CASCADE, DecimalField, DateField, PROTECT,
@@ -47,7 +48,7 @@ from apps.profiles.permissions import (
     SubmissionViewPermission, SubmissionCommentPermission, MessageReadPermission,
     JournalCommentPermission,
     IsRegistered, UserControls)
-from apps.sales.apis import PROCESSOR_CHOICES
+from apps.sales.constants import PROCESSOR_CHOICES
 from shortcuts import make_url, disable_on_load
 
 
@@ -81,6 +82,18 @@ def set_avatar_url(user):
     user.save(update_fields=['avatar_url'])
 
 
+def default_plan():
+    from apps.sales.models import ServicePlan
+    try:
+        return ServicePlan.objects.filter(name=settings.DEFAULT_SERVICE_PLAN_NAME).first()
+    except ProgrammingError:
+        # During initialization, as Django is checking for common issues, it instantiates a copy of the User
+        # model to verify that certain attributes are defined correctly. Of course, instantiating before migrations
+        # have been run means that the tables for ServicePlan have not yet been created, so we have to catch
+        # the resulting exception in order to move forward.
+        return None
+
+
 UNSET = 0
 IN_SUPPORTED_COUNTRY = 1
 NO_SUPPORTED_COUNTRY = 2
@@ -103,7 +116,7 @@ class User(AbstractEmailUser, HitsMixin):
     """
     User model for Artconomy.
     """
-    username = CharField(
+    username = CICharField(
         max_length=40, unique=True, db_index=True, validators=[
             UnicodeUsernameValidator(), banned_named_validator, banned_prefix_validator,
         ]
@@ -123,7 +136,7 @@ class User(AbstractEmailUser, HitsMixin):
     landscape_enabled = BooleanField(default=False, db_index=True, null=True)
     landscape_paid_through = DateField(null=True, default=None, blank=True, db_index=True)
     next_service_plan = ForeignKey('sales.ServicePlan', related_name='future_users', null=True, blank=True, on_delete=SET_NULL)
-    service_plan = ForeignKey('sales.ServicePlan', related_name='current_users', null=True, blank=True, on_delete=SET_NULL)
+    service_plan = ForeignKey('sales.ServicePlan', related_name='current_users', null=True, blank=True, on_delete=SET_NULL, default=default_plan)
     service_plan_paid_through = DateField(null=True, default=None, blank=True)
     registration_code = ForeignKey('sales.Promo', null=True, blank=True, on_delete=SET_NULL)
     # Whether the user's been offered the mailing list
@@ -133,6 +146,7 @@ class User(AbstractEmailUser, HitsMixin):
     referred_by = ForeignKey('User', related_name='referrals', blank=True, on_delete=PROTECT, null=True)
     tg_key = CharField(db_index=True, default=tg_key_gen, max_length=30)
     tg_chat_id = CharField(db_index=True, default='', max_length=30)
+    discord_id = CharField(db_index=True, default='', max_length=30)
     guest_email = EmailField(db_index=True, default='', blank=True)
     avatar_url = URLField(blank=True)
     trust_level = IntegerField(choices=TRUST_LEVELS, default=NORMAL, db_index=True)
@@ -204,6 +218,7 @@ class User(AbstractEmailUser, HitsMixin):
 
     def save(self, *args, **kwargs):
         self.email = self.email and self.email.lower()
+        self.next_service_plan = self.next_service_plan or self.service_plan
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -262,10 +277,14 @@ user_logged_out.connect(signal_trigger_reconnect)
 @disable_on_load
 def reg_code_action(sender, instance, **_kwargs):
     from apps.sales.models import ServicePlan
-    if instance.id is None and instance.registration_code:
-        instance.service_plan = ServicePlan.objects.get(name='Landscape')
-        instance.service_plan_paid_through = timezone.now().date() + relativedelta(months=1)
-        send_transaction_email('Welcome to Landscape.', 'registration_code.html', instance, {})
+    if instance.service_plan is None and instance.id is None:
+        if instance.registration_code:
+            instance.service_plan = ServicePlan.objects.get(name='Landscape')
+            instance.service_plan_paid_through = timezone.now().date() + relativedelta(months=1)
+            send_transaction_email('Welcome to Landscape.', 'registration_code.html', instance, {})
+        else:
+            instance.service_plan = ServicePlan.objects.get(name=settings.DEFAULT_SERVICE_PLAN_NAME)
+            instance.service_plan_paid_through = timezone.now().date()
 
 
 def create_user_subscriptions(instance):

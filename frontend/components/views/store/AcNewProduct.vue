@@ -60,11 +60,19 @@
               </v-stepper-content>
               <v-stepper-content :step="2">
                 <v-row>
-                  <v-col cols="12" sm="6" >
+                  <v-col cols="12" sm="3" >
                     <ac-bound-field :field="newProduct.fields.base_price" label="List Price"
                                     field-type="ac-price-field"
                                     :hint="priceHint"
 
+                    />
+                  </v-col>
+                  <v-col cols="12" sm="3">
+                    <ac-bound-field
+                        :field="newProduct.fields.cascade_fees" field-type="v-switch" label="Absorb fees" :persistent-hint="true"
+                        hint="If turned on, the price you set is the price your commissioner will see, and you
+                            will pay all fees from that price. If turned off, the price you set is the amount you
+                            take home, and the total the customer pays includes the fees."
                     />
                   </v-col>
                   <v-col cols="12" sm="6" >
@@ -177,6 +185,7 @@ import {SingleController} from '@/store/singles/controller'
 import Pricing from '@/types/Pricing'
 import {flatten} from '@/lib/lib'
 import {Ratings} from '@/store/profiles/types/Ratings'
+import { deliverableLines } from '@/lib/lineItemFunctions'
 
 @Component({components: {AcPricePreview, AcBoundField, AcPatchField, AcLoadSection, AcFormDialog}})
 export default class AcNewProduct extends Subjective {
@@ -195,79 +204,27 @@ export default class AcNewProduct extends Subjective {
     }
 
     public get lineItems() {
-      const linesController = this.$getList('newProductLines', {endpoint: '????', paginated: false})
-      linesController.ready = true
-      if (!(this.pricing.x)) {
-        linesController.setList([])
-        return linesController
-      }
+      const linesController = this.$getList('newProductLines', {
+        endpoint: '#',
+        paginated: false,
+      })
+      const pricing = this.pricing.x
       const basePrice = parseFloat(this.newProduct.fields.base_price.value)
-      if (isNaN(basePrice)) {
-        linesController.setList([])
-        return linesController
-      }
-      const lines: LineItem[] = [{
-        id: -1,
-        priority: 0,
-        type: LineTypes.BASE_PRICE,
-        amount: basePrice,
-        frozen_value: null,
-        percentage: 0,
-        description: '',
-        cascade_amount: false,
-        cascade_percentage: false,
-        back_into_percentage: false,
-      }]
-      if (this.newProduct.fields.table_product.value) {
-        lines.push({
-          id: -2,
-          priority: 400,
-          type: LineTypes.TABLE_SERVICE,
-          cascade_percentage: true,
-          cascade_amount: false,
-          amount: this.pricing.x.table_static,
-          frozen_value: null,
-          percentage: this.pricing.x.table_percentage,
-          back_into_percentage: false,
-          description: '',
-        }, {
-          id: -3,
-          priority: 700,
-          type: LineTypes.TAX,
-          cascade_percentage: true,
-          cascade_amount: true,
-          back_into_percentage: true,
-          percentage: this.pricing.x.table_tax,
-          description: '',
-          amount: 0,
-          frozen_value: null,
-        })
-      } else if (this.escrow && basePrice > 0) {
-        lines.push({
-          id: -4,
-          priority: 300,
-          type: LineTypes.SHIELD,
-          cascade_percentage: true,
-          cascade_amount: true,
-          amount: this.pricing.x.standard_static,
-          frozen_value: null,
-          percentage: this.pricing.x.standard_percentage,
-          back_into_percentage: false,
-          description: '',
-        }, {
-          id: -5,
-          priority: 300,
-          type: LineTypes.BONUS,
-          cascade_percentage: true,
-          cascade_amount: true,
-          back_into_percentage: false,
-          amount: this.pricing.x.premium_static_bonus,
-          frozen_value: null,
-          percentage: this.pricing.x.premium_percentage_bonus,
-          description: '',
-        })
-      }
-      linesController.setList(lines)
+      // eslint-disable-next-line camelcase
+      const planName = this.subject?.service_plan
+      const cascade = this.newProduct.fields.cascade_fees.value
+      const escrowDisabled = !this.escrow
+      const tableProduct = this.newProduct.fields.table_product.value
+      const lines = deliverableLines({
+        basePrice,
+        cascade,
+        planName,
+        pricing,
+        escrowDisabled,
+        tableProduct,
+        extraLines: [],
+      })
+      linesController.makeReady(lines)
       return linesController
     }
 
@@ -325,6 +282,7 @@ export default class AcNewProduct extends Subjective {
           hidden: {value: false},
           table_product: {value: false},
           tags: {value: []},
+          cascade_fees: {value: false},
         },
       })
     }

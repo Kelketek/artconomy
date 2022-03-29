@@ -6,15 +6,15 @@ from django.utils import timezone
 from django.utils.timezone import make_aware
 from freezegun import freeze_time
 
-from apps.lib.test_resources import SignalsDisabledMixin
+from apps.lib.test_resources import EnsurePlansMixin
 from apps.lib.tests.factories_interdepend import CommentFactory
 from apps.profiles.models import Conversation
 from apps.profiles.tasks import clear_blank_conversations, derive_tags, mailchimp_tag
 from apps.profiles.tests.factories import ConversationFactory, UserFactory
-from apps.sales.apis import chimp
+from apps.sales.mailchimp import chimp
 
 
-class MessageClearTestCase(SignalsDisabledMixin, TestCase):
+class MessageClearTestCase(EnsurePlansMixin, TestCase):
     @freeze_time('2019-08-03')
     def test_clear_messages(self):
         conversation = ConversationFactory.create(created_on=make_aware(datetime(year=2019, month=8, day=1)))
@@ -37,7 +37,7 @@ class MessageClearTestCase(SignalsDisabledMixin, TestCase):
         conversation.refresh_from_db()
 
 
-class MailchimpTaskTestCase(SignalsDisabledMixin, TestCase):
+class MailchimpTaskTestCase(EnsurePlansMixin, TestCase):
     def test_derive_tags(self):
         user = UserFactory.create(artist_mode=False)
         self.assertEqual(derive_tags(user), [{'name': 'artist', 'status': 'inactive'}])

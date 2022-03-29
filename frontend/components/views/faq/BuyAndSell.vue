@@ -19,7 +19,8 @@
             <p>
               Once you have found a product that you like, click the Order button on the product page and
               fill out the provided form. If you're registered with us, you can even attach your own character
-              references with our character profiles feature!
+              references with our character profiles feature! Even if you're not, you can still upload reference
+              images to your order.
             </p>
             <p>
               The artist will then review your request, ask any questions or make comments, and then will finalize
@@ -172,25 +173,6 @@
               Artists who are unable to use Artconomy Shield (such as those outside of supported countries) can still
               list products and take orders on Artconomy, but must arrange payment with commissioners manually.
             </p>
-            <p v-if="pricing.x">
-              Artconomy's fee for
-              <router-link
-                  :to="{name: 'BuyAndSell', params: {question: 'shield'}}"
-              >
-                Artconomy Shield
-              </router-link>
-              is {{pricing.x.standard_percentage + pricing.x.premium_percentage_bonus}}% + ${{(pricing.x.standard_static + pricing.x.premium_static_bonus).toFixed(2)}} for
-              each order.
-            </p>
-            <p v-if="pricing.x">
-              Artists using
-              <router-link
-                  :to="{name: 'BuyAndSell', params: {question: 'landscape'}}"
-              >Artconomy Landscape
-              </router-link>
-              get a discounted fee of only
-              {{pricing.x.standard_percentage}}% + ${{pricing.x.standard_static.toFixed(2)}} per commission!
-            </p>
             <p>
               <em><strong>
                 Commissioning artists or taking orders without Artconomy Shield is done at your own risk, and
@@ -279,20 +261,6 @@
               Artconomy Landscape is a paid services that allow you to get more out
               of your experience with Artconomy. It gives you a bonus on each commission sale, and access
               to extra features!
-            </p>
-            <p v-if="pricing.x">
-              Artconomy's fees for
-              <router-link
-                  :to="{name: 'BuyAndSell', params: {question: 'shield'}}"
-              >
-                Artconomy Shield
-              </router-link>
-              are {{pricing.x.standard_percentage + pricing.x.premium_percentage_bonus}}% + ${{pricing.x.standard_static + pricing.x.premium_static_bonus}} for
-              each order.
-            </p>
-            <p v-if="pricing.x">
-              When using landscape, artists receive an additional bonus of
-              <strong>{{pricing.x.premium_percentage_bonus}}% + ${{pricing.x.premium_static_bonus.toFixed(2)}}!</strong>
             </p>
             <p>Premium users will also have access to new features early, allowing them to help shape and define
               features that improve the site.</p>

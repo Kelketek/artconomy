@@ -17,7 +17,7 @@ localVue.use(Router)
 let searchForm: FormController
 let countryList: SingleController<StripeCountryList>
 
-describe('About.vue', () => {
+describe('BuyAndSell.vue', () => {
   let router: Router
   let wrapper: Wrapper<Vue>
   let store: ArtStore

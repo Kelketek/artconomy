@@ -28,6 +28,10 @@ export default class DummyInvoice extends mixins(InvoicingMixin) {
     return this.username
   }
 
+  public get planName() {
+    return 'Basic'
+  }
+
   public created() {
     this.newInvoice = this.$getForm('invoice', baseInvoiceSchema('/test/'))
   }

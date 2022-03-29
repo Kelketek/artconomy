@@ -1,11 +1,10 @@
+import {ServicePlan} from '@/types/ServicePlan'
+
 export default interface Pricing {
-  premium_percentage_bonus: number,
-  premium_static_bonus: number,
-  landscape_price: number,
-  standard_percentage: number,
-  standard_static: number,
+  plans: ServicePlan[],
   minimum_price: number,
   table_percentage: number,
   table_static: number,
   table_tax: number,
+  international_conversion_percentage: number,
 }

@@ -5,10 +5,10 @@ from moneyed import Money
 
 from apps.lib.test_resources import MethodAccessMixin, PermissionsTestCase, SignalsDisabledMixin, APITestCase
 from apps.profiles.tests.factories import UserFactory
-from apps.sales.models import TransactionRecord
-from apps.sales.tests.factories import CreditCardTokenFactory, TransactionRecordFactory, BankAccountFactory
+from apps.sales.constants import HOLDINGS, CASH_WITHDRAW, BANK, ESCROW_RELEASE, ESCROW, CARD, ESCROW_HOLD
+from apps.sales.tests.factories import CreditCardTokenFactory, TransactionRecordFactory
 from apps.sales.utils import PENDING
-from apps.sales.views.views import AccountHistory
+from apps.sales.views.main import AccountHistory
 
 history_passes = {**MethodAccessMixin.passes, 'get': ['user', 'staff']}
 
@@ -27,11 +27,11 @@ class TestHistoryViews(SignalsDisabledMixin, APITestCase):
         [
             TransactionRecordFactory.create(
                 amount=Money(amount, 'USD'),
-                category=TransactionRecord.ESCROW_HOLD,
+                category=ESCROW_HOLD,
                 payer=self.user2,
                 payee=self.user,
-                source=TransactionRecord.CARD,
-                destination=TransactionRecord.ESCROW,
+                source=CARD,
+                destination=ESCROW,
                 card=card,
             )
             for amount in ('5.00', '10.00', '15.00')
@@ -41,9 +41,9 @@ class TestHistoryViews(SignalsDisabledMixin, APITestCase):
                 amount=Money(amount, 'USD'),
                 payer=self.user,
                 payee=self.user,
-                source=TransactionRecord.ESCROW,
-                destination=TransactionRecord.HOLDINGS,
-                category=TransactionRecord.ESCROW_RELEASE,
+                source=ESCROW,
+                destination=HOLDINGS,
+                category=ESCROW_RELEASE,
             )
             for amount in ('5.00', '10.00')
         ]
@@ -53,9 +53,9 @@ class TestHistoryViews(SignalsDisabledMixin, APITestCase):
                 payer=self.user,
                 payee=self.user,
                 card=None,
-                source=TransactionRecord.HOLDINGS,
-                destination=TransactionRecord.BANK,
-                category=TransactionRecord.CASH_WITHDRAW,
+                source=HOLDINGS,
+                destination=BANK,
+                category=CASH_WITHDRAW,
             )
             for amount in (1, 2, 3, 4)
         ]
@@ -93,62 +93,6 @@ class TestHistoryViews(SignalsDisabledMixin, APITestCase):
         response = self.client.get(f'/api/sales/v1/account/{self.user2.username}/transactions/?account=303')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['results']), 0)
-
-
-class TestBankAccounts(APITestCase):
-    def test_bank_listing(self):
-        user = UserFactory.create()
-        accounts = [BankAccountFactory.create(user=user) for _ in range(3)]
-        BankAccountFactory.create(user=user, deleted=True)
-        [BankAccountFactory.create() for _ in range(3)]
-        self.login(user)
-        response = self.client.get('/api/sales/v1/account/{}/banks/'.format(user.username))
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), len(accounts))
-
-    def test_bank_listing_staff(self):
-        user = UserFactory.create()
-        staffer = UserFactory.create(is_staff=True)
-        self.login(staffer)
-        response = self.client.get('/api/sales/v1/account/{}/banks/'.format(user.username))
-        self.assertEqual(response.status_code, 403)
-
-    def test_bank_listing_wrong_user(self):
-        user = UserFactory.create()
-        user2 = UserFactory.create()
-        self.login(user2)
-        response = self.client.get('/api/sales/v1/account/{}/banks/'.format(user.username))
-        self.assertEqual(response.status_code, 403)
-
-
-class TestBankManager(APITestCase):
-    def setUp(self):
-        super().setUp()
-        self.user = UserFactory.create()
-        self.account = BankAccountFactory.create(user=self.user)
-
-    @patch('apps.sales.views.views.destroy_bank_account')
-    def test_bank_account_destroy(self, _mock_destroy_account):
-        self.login(self.user)
-        response = self.client.delete('/api/sales/v1/account/{}/banks/{}/'.format(self.user.username, self.account.id))
-        self.assertEqual(response.status_code, 204)
-
-    def test_bank_account_destroy_wrong_user(self):
-        user2 = UserFactory.create()
-        self.login(user2)
-        response = self.client.delete('/api/sales/v1/account/{}/banks/{}/'.format(self.user.username, self.account.id))
-        self.assertEqual(response.status_code, 403)
-
-    @patch('apps.sales.views.views.destroy_bank_account')
-    def test_bank_account_destroy_staffer(self, _mock_destroy_account):
-        staffer = UserFactory.create(is_staff=True)
-        self.login(staffer)
-        response = self.client.delete('/api/sales/v1/account/{}/banks/{}/'.format(self.user.username, self.account.id))
-        self.assertEqual(response.status_code, 403)
-
-    def test_bank_account_destroy_not_logged_in(self):
-        response = self.client.delete('/api/sales/v1/account/{}/banks/{}/'.format(self.user.username, self.account.id))
-        self.assertEqual(response.status_code, 403)
 
 
 class TestAccountBalance(APITestCase):
@@ -190,6 +134,6 @@ class TestAccountBalance(APITestCase):
 def mock_balance(obj, account_type, status_filter=None):
     if status_filter == PENDING:
         return Decimal('10.00')
-    if account_type == TransactionRecord.HOLDINGS:
+    if account_type == HOLDINGS:
         return Decimal('100.00')
     return Decimal('50.00')

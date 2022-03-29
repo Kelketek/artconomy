@@ -69,7 +69,7 @@ CORRECTION = 310
 SUCCESS = 0
 
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from apps.sales.models import LineItemSim, LineItem
     Line = Union[LineItem, LineItemSim]
     LineMoneyMap = Dict[Line, Money]
@@ -209,7 +209,7 @@ def populate_line_items(apps, schema):
         expected_payout = expected_payout - (expected_payout * Decimal('.08')) - Decimal('.75')
         actual_payout = TransactionRecord.objects.filter(
             object_id=order.id, content_type_id=content_type_id, source=ESCROW, destination=HOLDINGS,
-            status=TransactionRecord.SUCCESS,
+            status=SUCCESS,
         ).aggregate(total=Sum('amount'))['total']
         if actual_payout:
             difference = expected_payout - actual_payout

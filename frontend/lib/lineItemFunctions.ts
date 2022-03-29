@@ -10,6 +10,7 @@ import {ListController} from '@/store/lists/controller'
 import {SingleController} from '@/store/singles/controller'
 import Pricing from '@/types/Pricing'
 import Product from '@/types/Product'
+import {ServicePlan} from '@/types/ServicePlan'
 
 export function linesByPriority(lines: LineItem[]): Array<LineItem[]> {
   const prioritySets: {[key: number]: LineItem[]} = {}
@@ -44,7 +45,7 @@ export function distributeReduction(total: Big, distributedAmount: Big, lineValu
 
 export function priorityTotal(current: LineAccumulator, prioritySet: LineItem[]): LineAccumulator {
   const currentTotal = current.total
-  const subtotals = current.map
+  const subtotals = current.subtotals
   let discount = current.discount
   const workingSubtotals: LineMoneyMap = new Map()
   const summableTotals: LineMoneyMap = new Map()
@@ -54,9 +55,25 @@ export function priorityTotal(current: LineAccumulator, prioritySet: LineItem[])
     let cascadedAmount = Big(0)
     let addedAmount = Big(0)
     let workingAmount: Big
+    const staticAmount = Big(line.amount)
+    if (line.cascade_amount) {
+      cascadedAmount = cascadedAmount.plus(staticAmount)
+    } else {
+      addedAmount = addedAmount.plus(staticAmount)
+    }
     const multiplier = Big('0.01').times(Big(line.percentage))
     if (line.back_into_percentage) {
-      workingAmount = currentTotal.div(multiplier.plus(Big('1.00'))).times(multiplier)
+      if (line.cascade_percentage) {
+        workingAmount = currentTotal.div(multiplier.plus(Big('1.00'))).times(multiplier)
+      } else {
+        const factor = Big('1.00').div(Big('1.00').minus(multiplier))
+        let additional = Big('0.00')
+        if (!line.cascade_amount) {
+          additional = staticAmount
+        }
+        const initialAmount = currentTotal.plus(additional)
+        workingAmount = initialAmount.times(factor).minus(initialAmount)
+      }
     } else {
       workingAmount = currentTotal.times(multiplier)
     }
@@ -65,12 +82,6 @@ export function priorityTotal(current: LineAccumulator, prioritySet: LineItem[])
       cascadedAmount = cascadedAmount.plus(workingAmount)
     } else {
       addedAmount = addedAmount.plus(workingAmount)
-    }
-    const staticAmount = Big(line.amount)
-    if (line.cascade_amount) {
-      cascadedAmount = cascadedAmount.plus(staticAmount)
-    } else {
-      addedAmount = addedAmount.plus(staticAmount)
     }
     workingAmount = workingAmount.plus(staticAmount)
     if (!cascadedAmount.eq(Big(0))) {
@@ -99,7 +110,7 @@ export function priorityTotal(current: LineAccumulator, prioritySet: LineItem[])
   }
   const addOn = sum([...summableTotals.values()])
   const newTotals = new Map([...newSubtotals, ...workingSubtotals])
-  return {total: currentTotal.plus(addOn), map: newTotals, discount}
+  return {total: currentTotal.plus(addOn), subtotals: newTotals, discount}
 }
 
 export function toDistribute(total: Big, map: LineMoneyMap): Big {
@@ -150,15 +161,20 @@ export function distributeDifference(difference: Big, map: LineMoneyMap): LineMo
   return updatedMap
 }
 
-export function getTotals(lines: LineItem[]): LineAccumulator {
-  const prioritySets = linesByPriority(lines)
+export function normalizedLines(prioritySets: Array<LineItem[]>) {
   const baseSet = prioritySets.reduce(
-    priorityTotal, {total: Big(0), discount: Big(0), map: new Map() as LineMoneyMap} as LineAccumulator)
-  const difference = toDistribute(baseSet.total, baseSet.map)
+    priorityTotal, {total: Big(0), discount: Big(0), subtotals: new Map() as LineMoneyMap} as LineAccumulator)
+  baseSet.total = baseSet.total.round(2, 0)
+  const difference = toDistribute(baseSet.total, baseSet.subtotals)
   if (difference.gt(Big('0'))) {
-    baseSet.map = distributeDifference(difference, baseSet.map)
+    baseSet.subtotals = distributeDifference(difference, baseSet.subtotals)
   }
   return baseSet
+}
+
+export function getTotals(lines: LineItem[]): LineAccumulator {
+  const prioritySets = linesByPriority(lines)
+  return normalizedLines(prioritySets)
 }
 
 export function reckonLines(lines: LineItem[]): Big {
@@ -171,8 +187,8 @@ export function quantize(value: Big) {
 }
 
 export function totalForTypes(accumulator: LineAccumulator, types: LineTypes[]) {
-  const relevant = [...accumulator.map.keys()].filter((line: LineItem) => types.includes(line.type))
-  const totals = relevant.map((line: LineItem) => accumulator.map.get(line) as Big)
+  const relevant = [...accumulator.subtotals.keys()].filter((line: LineItem) => types.includes(line.type))
+  const totals = relevant.map((line: LineItem) => accumulator.subtotals.get(line) as Big)
   return sum(totals).round(2, 0)
 }
 
@@ -182,117 +198,227 @@ export function sum(list: Big[]): Big {
 
 export function invoiceLines(
   options: {
+    planName: string|null|undefined,
     pricing: Pricing|null,
     value: string,
     escrowDisabled: boolean,
     product: Product|null,
+    cascade: boolean,
   },
 ) {
-  const pricing = options.pricing
-  const value = options.value
-  const escrowDisabled = options.escrowDisabled
-  const product = options.product
-  if (!(pricing)) {
-    return []
-  }
-  const lines: LineItem[] = []
+  const {planName, pricing, value, escrowDisabled, product, cascade} = options
+  const extraLines = []
   let addOnPrice = parseFloat(value)
-  const shieldLines: LineItem[] = [
-    {
-      id: -5,
-      priority: 300,
-      type: LineTypes.SHIELD,
-      cascade_percentage: true,
-      cascade_amount: true,
-      back_into_percentage: false,
-      amount: pricing.standard_static,
-      frozen_value: null,
-      percentage: pricing.standard_percentage,
-      description: '',
-    }, {
-      id: -6,
-      priority: 300,
-      type: LineTypes.BONUS,
-      cascade_percentage: true,
-      cascade_amount: true,
-      back_into_percentage: false,
-      amount: pricing.premium_static_bonus,
-      frozen_value: null,
-      percentage: pricing.premium_percentage_bonus,
-      description: '',
-    },
-  ]
+  let basePrice: number
+  // eslint-disable-next-line camelcase
+  const tableProduct = !!product?.table_product
   if (product) {
-    lines.push({
-      id: -1,
-      priority: 0,
-      type: LineTypes.BASE_PRICE,
-      amount: product.base_price,
-      frozen_value: null,
-      percentage: 0,
-      description: '',
-      cascade_amount: false,
-      cascade_percentage: false,
-      back_into_percentage: false,
-    })
     addOnPrice = addOnPrice - product.starting_price
-    if (!isNaN(addOnPrice) && addOnPrice) {
-      lines.push({
-        id: -2,
-        priority: 100,
-        type: LineTypes.ADD_ON,
-        amount: addOnPrice,
-        frozen_value: null,
-        percentage: 0,
-        description: '',
-        cascade_amount: false,
-        cascade_percentage: false,
-        back_into_percentage: false,
-      })
-    }
-    if (product.table_product) {
-      lines.push({
-        id: -3,
-        priority: 400,
-        type: LineTypes.TABLE_SERVICE,
-        cascade_percentage: true,
-        cascade_amount: false,
-        back_into_percentage: false,
-        amount: pricing.table_static,
-        frozen_value: null,
-        percentage: pricing.table_percentage,
-        description: '',
-      }, {
-        id: -4,
-        priority: 700,
-        type: LineTypes.TAX,
-        cascade_percentage: true,
-        cascade_amount: true,
-        back_into_percentage: true,
-        percentage: pricing.table_tax,
-        description: '',
-        amount: 0,
-        frozen_value: null,
-      })
-    } else if (!escrowDisabled) {
-      lines.push(...shieldLines)
-    }
-  } else if (!isNaN(addOnPrice)) {
-    lines.push({
-      id: -1,
-      priority: 0,
-      type: LineTypes.BASE_PRICE,
+    basePrice = product.base_price
+  } else {
+    basePrice = addOnPrice
+    addOnPrice = 0
+  }
+  if (!isNaN(addOnPrice) && addOnPrice) {
+    extraLines.push({
+      id: -2,
+      priority: 100,
+      type: LineTypes.ADD_ON,
       amount: addOnPrice,
       frozen_value: null,
       percentage: 0,
       description: '',
       cascade_amount: false,
       cascade_percentage: false,
-      back_into_percentage: true,
+      back_into_percentage: false,
     })
-    if (!escrowDisabled) {
-      lines.push(...shieldLines)
-    }
   }
+  return deliverableLines({
+    basePrice,
+    planName,
+    pricing,
+    escrowDisabled,
+    tableProduct,
+    cascade,
+    extraLines,
+  })
+  // const shieldLines: LineItem[] = [
+  //   {
+  //     id: -5,
+  //     priority: 300,
+  //     type: LineTypes.SHIELD,
+  //     cascade_percentage: true,
+  //     cascade_amount: cascade,
+  //     back_into_percentage: false,
+  //     amount: plan.shield_static_price,
+  //     frozen_value: null,
+  //     percentage: plan.shield_percentage_price,
+  //     description: '',
+  //   },
+  // ]
+  // if (product) {
+  //   lines.push({
+  //     id: -1,
+  //     priority: 0,
+  //     type: LineTypes.BASE_PRICE,
+  //     amount: product.base_price,
+  //     frozen_value: null,
+  //     percentage: 0,
+  //     description: '',
+  //     cascade_amount: false,
+  //     cascade_percentage: false,
+  //     back_into_percentage: false,
+  //   })
+  //   addOnPrice = addOnPrice - product.starting_price
+  //   if (!isNaN(addOnPrice) && addOnPrice) {
+  //     lines.push({
+  //       id: -2,
+  //       priority: 100,
+  //       type: LineTypes.ADD_ON,
+  //       amount: addOnPrice,
+  //       frozen_value: null,
+  //       percentage: 0,
+  //       description: '',
+  //       cascade_amount: false,
+  //       cascade_percentage: false,
+  //       back_into_percentage: false,
+  //     })
+  //   }
+  //   if (product.table_product) {
+  //     lines.push({
+  //       id: -3,
+  //       priority: 400,
+  //       type: LineTypes.TABLE_SERVICE,
+  //       cascade_percentage: cascade,
+  //       cascade_amount: false,
+  //       back_into_percentage: false,
+  //       amount: pricing.table_static,
+  //       frozen_value: null,
+  //       percentage: pricing.table_percentage,
+  //       description: '',
+  //     }, {
+  //       id: -4,
+  //       priority: 700,
+  //       type: LineTypes.TAX,
+  //       cascade_percentage: cascade,
+  //       cascade_amount: cascade,
+  //       back_into_percentage: true,
+  //       percentage: pricing.table_tax,
+  //       description: '',
+  //       amount: 0,
+  //       frozen_value: null,
+  //     })
+  //   } else if (!escrowDisabled) {
+  //     lines.push(...shieldLines)
+  //   }
+  // } else if (!isNaN(addOnPrice)) {
+  //   lines.push({
+  //     id: -1,
+  //     priority: 0,
+  //     type: LineTypes.BASE_PRICE,
+  //     amount: addOnPrice,
+  //     frozen_value: null,
+  //     percentage: 0,
+  //     description: '',
+  //     cascade_amount: false,
+  //     cascade_percentage: false,
+  //     back_into_percentage: false,
+  //   })
+  //   if (!escrowDisabled) {
+  //     lines.push(...shieldLines)
+  //   }
+  // }
+  // if (escrowDisabled && plan.per_deliverable_price && (!(product && product.table_product))) {
+  //   lines.push({
+  //     id: -6,
+  //     priority: 115,
+  //     type: LineTypes.DELIVERABLE_TRACKING,
+  //     cascade_percentage: true,
+  //     cascade_amount: cascade,
+  //     back_into_percentage: false,
+  //     amount: plan.per_deliverable_price,
+  //     frozen_value: null,
+  //     percentage: 0,
+  //     description: '',
+  //   })
+  // }
+  // return lines
+}
+
+export const deliverableLines = ({
+  basePrice, tableProduct, cascade, pricing, planName, escrowDisabled, extraLines,
+}: {
+  basePrice: number,
+  escrowDisabled: boolean,
+  tableProduct: boolean,
+  cascade: boolean,
+  planName: string|null|undefined,
+  pricing: Pricing|null,
+  extraLines: LineItem[],
+}) => {
+  if (!planName || !pricing) {
+    return []
+  }
+  if (isNaN(basePrice)) {
+    return []
+  }
+  const plan = pricing?.plans.filter((x) => x.name === planName)[0]
+  if (!plan) {
+    return []
+  }
+  const lines: LineItem[] = []
+  lines.push({
+    id: -1,
+    priority: 0,
+    type: LineTypes.BASE_PRICE,
+    amount: basePrice,
+    frozen_value: null,
+    percentage: 0,
+    description: '',
+    cascade_amount: false,
+    cascade_percentage: false,
+    back_into_percentage: false,
+  })
+  if (tableProduct) {
+    lines.push({
+      id: -2,
+      priority: 400,
+      type: LineTypes.TABLE_SERVICE,
+      cascade_percentage: cascade,
+      // We don't cascade this flat amount for table products. Might revisit this later.
+      cascade_amount: false,
+      amount: pricing.table_static,
+      frozen_value: null,
+      percentage: pricing.table_percentage,
+      back_into_percentage: !cascade,
+      description: '',
+    }, {
+      id: -3,
+      priority: 700,
+      type: LineTypes.TAX,
+      cascade_percentage: cascade,
+      cascade_amount: cascade,
+      percentage: pricing.table_tax,
+      back_into_percentage: true,
+      description: '',
+      amount: 0,
+      frozen_value: null,
+    })
+  } else if (!escrowDisabled) {
+    lines.push({
+      id: -4,
+      priority: 300,
+      type: LineTypes.SHIELD,
+      cascade_percentage: cascade,
+      cascade_amount: cascade,
+      amount: plan.shield_static_price,
+      frozen_value: null,
+      percentage: plan.shield_percentage_price,
+      back_into_percentage: !cascade,
+      description: '',
+    })
+  }
+  lines.push(...extraLines)
+  console.log(lines)
   return lines
 }

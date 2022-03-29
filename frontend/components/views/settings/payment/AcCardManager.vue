@@ -209,6 +209,7 @@ export default class AcCardManager extends mixins(Subjective, Alerts, StripeMixi
     public stripeSubmit() {
       const stripe = this.stripe()
       const secret = this.clientSecret
+      /* istanbul ignore if */
       if (!(stripe && secret)) {
         return
       }

@@ -42,4 +42,5 @@ export default interface Deliverable {
   order: Order,
   invoice: string | null,
   read: boolean,
+  cascade_fees: boolean,
 }

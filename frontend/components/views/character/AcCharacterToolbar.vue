@@ -14,7 +14,7 @@
             </ac-load-section>
           </template>
         </ac-share-button>
-        <v-btn color="green" @click="showUpload = true" v-if="controls"><v-icon left>fa-upload</v-icon> Upload</v-btn>
+        <v-btn color="green" @click="showUpload = true" v-if="controls" class="upload-button"><v-icon left>fa-upload</v-icon> Upload</v-btn>
         <ac-new-submission :show-characters="character.profile.x"
                            :character-init-items="preloadedCharacter"
                            v-model="showUpload"

@@ -30,4 +30,6 @@ export interface User {
   watches: number,
   birthday: string|null,
   processor: PROCESSORS,
+  service_plan: string,
+  next_service_plan: string,
 }

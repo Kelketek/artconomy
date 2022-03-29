@@ -3,7 +3,7 @@ from typing import Any
 
 from django.core.management import BaseCommand, CommandParser
 
-from apps.sales.utils import half_even_context
+from apps.sales.line_item_funcs import half_even_context
 from apps.sales.views.webhooks import handle_stripe_event
 
 

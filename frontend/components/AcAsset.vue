@@ -144,60 +144,60 @@ import {COMPONENT_EXTENSIONS, getExt} from '@/lib/lib'
 import AssetBase from '@/mixins/asset_base'
 import {Asset} from '@/types/Asset'
 
-  @Component({components: {AcVideoPlayer, AcAudioPlayer, AcMarkdownViewer}})
+@Component({components: {AcVideoPlayer, AcAudioPlayer, AcMarkdownViewer}})
 export default class AcAsset extends mixins(AssetBase) {
-    @Prop({default: null})
-    public asset!: Asset|null
+  @Prop({default: null})
+  public asset!: Asset|null
 
-    @Prop({default: 1})
-    public aspectRatio!: number|null
+  @Prop({default: 1})
+  public aspectRatio!: number|null
 
-    @Prop({required: true})
-    public thumbName!: string
+  @Prop({required: true})
+  public thumbName!: string
 
-    @Prop({required: false})
-    public editing!: boolean
+  @Prop({required: false})
+  public editing!: boolean
 
-    @Prop({default: true})
-    public text!: boolean
+  @Prop({default: true})
+  public text!: boolean
 
-    @Prop({default: true})
-    public allowPreview!: boolean
+  @Prop({default: true})
+  public allowPreview!: boolean
 
-    public fullscreen = false
+  public fullscreen = false
 
-    public mounted() {
-      window._paq.push(['MediaAnalytics::scanForMedia', this.$el])
+  public mounted() {
+    window._paq.push(['MediaAnalytics::scanForMedia', this.$el])
+  }
+
+  public get displayComponent() {
+    if (!this.asset) {
+      return null
     }
-
-    public get displayComponent() {
-      if (!this.asset) {
-        return null
-      }
-      const ext = getExt(this.asset.file.full)
-      if (['gallery', 'full', 'preview'].indexOf(this.thumbName) === -1) {
-        return null
-      }
-      // @ts-ignore
-      return COMPONENT_EXTENSIONS[ext]
+    const ext = getExt(this.asset.file.full)
+    if (['gallery', 'full', 'preview'].indexOf(this.thumbName) === -1) {
+      return null
     }
+    // @ts-ignore
+    return COMPONENT_EXTENSIONS[ext]
+  }
 
-    public get renderImage() {
-      return this.canDisplay && (this.isImage || !this.displayComponent)
-    }
+  public get renderImage() {
+    return this.canDisplay && (this.isImage || !this.displayComponent)
+  }
 
-    public get ratio() {
-      if ((!this.canDisplay) && (this.aspectRatio === null)) {
-        return 1
-      }
-      return this.aspectRatio
+  public get ratio() {
+    if ((!this.canDisplay) && (this.aspectRatio === null)) {
+      return 1
     }
+    return this.aspectRatio
+  }
 
-    public get fullUrl() {
-      if (this.asset === null) {
-        return this.fallbackImage
-      }
-      return this.asset.file.full
+  public get fullUrl() {
+    if (this.asset === null) {
+      return this.fallbackImage
     }
+    return this.asset.file.full
+  }
 }
 </script>

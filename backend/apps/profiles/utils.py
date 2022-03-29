@@ -12,9 +12,8 @@ from apps.lib.models import REFERRAL_LANDSCAPE_CREDIT, Comment
 from apps.lib.utils import notify, destroy_comment
 from apps.profiles.middleware import derive_session_settings
 from apps.profiles.models import Character, Submission, User, Conversation, ConversationParticipant
-from apps.sales.dwolla import destroy_bank_account
-from apps.sales.models import TransactionRecord, DISPUTED, IN_PROGRESS, QUEUED, REVIEW, PAYMENT_PENDING, NEW, \
-    Deliverable, WAITING, StripeAccount, CreditCardToken, ServicePlan
+from apps.sales.models import TransactionRecord, Deliverable, StripeAccount, ServicePlan
+from apps.sales.constants import WAITING, NEW, PAYMENT_PENDING, QUEUED, IN_PROGRESS, REVIEW, DISPUTED, HOLDINGS
 from apps.sales.utils import account_balance, PENDING, cancel_deliverable
 
 
@@ -165,8 +164,8 @@ def clear_user(user: User):
             f'{user.username} is an administrative account. It cannot be removed until it is deprivileged.',
         )
     stoppers = [
-        account_balance(user, TransactionRecord.HOLDINGS),
-        account_balance(user, TransactionRecord.HOLDINGS, PENDING)
+        account_balance(user, HOLDINGS),
+        account_balance(user, HOLDINGS, PENDING)
     ]
     if any(stoppers):
         raise UserClearException(f'{user.username} has pending transactions! Cannot remove!')
@@ -183,11 +182,6 @@ def clear_user(user: User):
             account.delete()
         except Exception as err:
             raise UserClearException(f'Error removing stripe account for {user.username}: {err}') from err
-    for bank in user.banks.exclude(deleted=True):
-        try:
-            destroy_bank_account(bank)
-        except Exception as err:
-            raise UserClearException(f'Error removing bank account information: {err}') from err
     for card in user.credit_cards.all():
         try:
             card.mark_deleted()

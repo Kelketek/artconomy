@@ -40,7 +40,7 @@ describe('TableDashboard.vue', () => {
     }
     router = new Router(routes)
   })
-  it('Mounts', async () => {
+  it('Mounts', async() => {
     await router.push({name: 'TableDashboard'})
     mount(TableDashboard, {localVue, store, router, vuetify})
   })

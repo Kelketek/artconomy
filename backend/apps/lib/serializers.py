@@ -20,7 +20,8 @@ from apps.lib.models import (
     DISPUTE, REFERENCE_UPLOADED, WAITLIST_UPDATED)
 from apps.lib.utils import tag_list_cleaner, add_check, set_tags
 from apps.profiles.models import User, Submission, Character, Journal, Conversation
-from apps.sales.models import Revision, Product, Order, WAITING, Deliverable
+from apps.sales.models import Revision, Product, Order, Deliverable
+from apps.sales.constants import WAITING
 from shortcuts import make_url
 
 
@@ -61,11 +62,21 @@ class RelatedAtomicMixin:
 
 class RelatedUserSerializer(serializers.ModelSerializer):
     stars = serializers.FloatField()
+    service_plan = serializers.SerializerMethodField
+    international = serializers.SerializerMethodField
+
+    def get_international(self, obj):
+        from apps.sales.models import StripeAccount
+        return StripeAccount.objects.filter(user=obj, country=settings.SOURCE_COUNTRY).exists()
+
+    def get_service_plan(self, obj):
+        return obj.service_plan.name
+
     class Meta:
         model = User
         fields = (
             'id', 'username', 'avatar_url', 'stars', 'is_staff', 'is_superuser', 'guest', 'artist_mode', 'taggable',
-            'landscape', 'rating_count',
+            'landscape', 'rating_count', 'service_plan',
         )
         read_only_fields = fields
 
@@ -780,12 +791,22 @@ class UserInfoSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
     watching = UserRelationField(required=False)
     blocking = UserRelationField(required=False)
     stars = serializers.FloatField(required=False, read_only=True)
+    service_plan = serializers.SerializerMethodField()
+    international = serializers.SerializerMethodField()
+
+    def get_international(self, obj):
+        from apps.sales.models import StripeAccount
+        return StripeAccount.objects.filter(user=obj, country=settings.SOURCE_COUNTRY).exists()
+
+    def get_service_plan(self, obj):
+        return obj.service_plan.name
 
     class Meta:
         model = User
         fields = (
             'id', 'username', 'avatar_url', 'biography', 'favorites_hidden', 'watching', 'blocking',
             'stars', 'is_staff', 'is_superuser', 'guest', 'artist_mode', 'hits', 'watches', 'rating_count',
+            'service_plan', 'international',
         )
         read_only_fields = [field for field in fields if field not in ['watching', 'blocking']]
 

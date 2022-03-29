@@ -53,7 +53,7 @@ export default class AcLineItemPreview extends Vue {
     if (this.line.frozen_value !== null) {
       return Big(this.line.frozen_value)
     }
-    return this.priceData.map.get(this.line) as Big
+    return this.priceData.subtotals.get(this.line) as Big
   }
 
   public get label() {

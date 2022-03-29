@@ -3,7 +3,7 @@
 from django.urls import path
 
 from apps.profiles import views
-from apps.sales.views import views as sales_views
+from apps.sales.views import main as sales_views
 
 app_name = "profiles"
 

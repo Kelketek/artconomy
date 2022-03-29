@@ -4,6 +4,7 @@ from asgiref.sync import sync_to_async
 from channels.testing import WebsocketCommunicator
 from django.test import TransactionTestCase
 
+from apps.lib.test_resources import EnsurePlansMixin
 from apps.profiles.models import ArtconomyAnonymousUser
 from apps.profiles.serializers import UserSerializer
 from apps.profiles.tests.factories import UserFactory
@@ -18,11 +19,7 @@ SA = sync_to_async
 # the database by truncating tables rather than by rolling back a transaction.
 
 
-class TestConsumer(TransactionTestCase):
-    def setUp(self):
-        self.landscape = ServicePlanFactory(name='Landscape')
-        self.free = ServicePlanFactory(name='Free')
-
+class TestConsumer(EnsurePlansMixin, TransactionTestCase):
     def get_communicator(self, headers: Optional[List[Tuple[bytes, bytes]]] = None):
         com = WebsocketCommunicator(application, "/ws/events/", headers=headers)
         com.scope['client'] = ('127.0.0.1', '1234')
@@ -76,7 +73,7 @@ class TestConsumer(TransactionTestCase):
                     'app_label': 'sales',
                     'model_name': 'Deliverable',
                     'pk': deliverable.pk,
-                    'serializer': 'DeliverableViewSerializer',
+                    'serializer': 'DeliverableSerializer',
                 },
             },
         )
@@ -84,7 +81,7 @@ class TestConsumer(TransactionTestCase):
         deliverable.details = 'boop'
         await SA(deliverable.save)()
         updated = await com.receive_json_from()
-        self.assertEqual(updated['command'], f'sales.Deliverable.update.DeliverableViewSerializer.{deliverable.id}')
+        self.assertEqual(updated['command'], f'sales.Deliverable.update.DeliverableSerializer.{deliverable.id}')
         self.assertEqual(updated['payload']['details'], 'boop')
 
     async def test_nonexistent_model(self):
@@ -98,7 +95,7 @@ class TestConsumer(TransactionTestCase):
                     'app_label': 'sales',
                     'model_name': 'Deliverable',
                     'pk': '68765675',
-                    'serializer': 'DeliverableViewSerializer',
+                    'serializer': 'DeliverableSerializer',
                 },
             },
         )
@@ -117,7 +114,7 @@ class TestConsumer(TransactionTestCase):
                     'app_label': 'sales',
                     'model_name': 'Deliverable',
                     'pk': deliverable.pk,
-                    'serializer': 'DeliverableViewSerializer',
+                    'serializer': 'DeliverableSerializer',
                 },
             },
         )
@@ -159,7 +156,7 @@ class TestConsumer(TransactionTestCase):
                     'app_label': 'sales',
                     'model_name': 'Deliverable',
                     'pk': deliverable.pk,
-                    'serializer': 'DeliverableViewSerializer',
+                    'serializer': 'DeliverableSerializer',
                 },
             },
         )

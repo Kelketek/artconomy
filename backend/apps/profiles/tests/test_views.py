@@ -1,6 +1,5 @@
 import logging
 from unittest.mock import patch
-from uuid import UUID
 
 from dateutil.relativedelta import relativedelta
 from ddt import ddt, data, unpack
@@ -16,7 +15,6 @@ from apps.lib.models import (
 )
 from apps.lib.tests.factories import AssetFactory
 from apps.lib.tests.factories_interdepend import CommentFactory
-from apps.lib.tests.test_utils import EnsurePlansMixin
 from apps.lib.utils import watch_subscriptions
 from apps.profiles.models import Character, Submission, Conversation, User, ConversationParticipant
 from apps.lib.abstract_models import MATURE, ADULT, GENERAL, EXTREME
@@ -1505,7 +1503,7 @@ class ListTestCase(APITestCase):
 
 
 @patch('recaptcha.fields.ReCaptchaField.to_internal_value')
-class TestRegister(EnsurePlansMixin, APITestCase):
+class TestRegister(APITestCase):
     def test_basic_user(self, _mock_captcha):
         response = self.client.post('/api/profiles/v1/register/', {
             'username': 'Goober',
@@ -1641,7 +1639,7 @@ class TestWithdrawOnAutoWithdrawEnabled(APITestCase):
             mock_withdraw_all.apply_async.assert_not_called()
 
 
-class TestDestroyUser(EnsurePlansMixin, APITestCase):
+class TestDestroyUser(APITestCase):
     def test_destroy_user(self):
         user = UserFactory.create()
         self.login(user)
@@ -1730,7 +1728,7 @@ class TestDestroyUser(EnsurePlansMixin, APITestCase):
         self.assertFalse(user.is_active)
 
 
-class TestProfilePreview(EnsurePlansMixin, APITestCase):
+class TestProfilePreview(APITestCase):
     def test_profile_preview(self):
         user = UserFactory.create(biography='Beep boop')
         response = self.client.get(f'/profile/{user.username}/about')

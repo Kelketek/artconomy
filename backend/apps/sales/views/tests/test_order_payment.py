@@ -1,22 +1,16 @@
-from datetime import date
 from decimal import Decimal
-from unittest.mock import patch
 
-from dateutil.relativedelta import relativedelta
 from ddt import ddt
 from django.db.models import Sum
 from django.test import override_settings
-from django.utils import timezone
-from freezegun import freeze_time
 from moneyed import Money
 from rest_framework import status
 
-from apps.lib.models import Subscription, SALE_UPDATE, Notification, REFERRAL_LANDSCAPE_CREDIT
 from apps.lib.test_resources import APITestCase
 from apps.profiles.tests.factories import UserFactory
-from apps.sales.apis import STRIPE
-from apps.sales.models import PAYMENT_PENDING, REVIEW, IN_PROGRESS, TransactionRecord
-from apps.sales.tests.factories import DeliverableFactory, add_adjustment, CreditCardTokenFactory, RevisionFactory
+from apps.sales.constants import STRIPE, PAYMENT_PENDING, CASH_DEPOSIT, CARD
+from apps.sales.models import TransactionRecord
+from apps.sales.tests.factories import DeliverableFactory, add_adjustment
 from apps.sales.tests.test_utils import TransactionCheckMixin
 
 
@@ -61,7 +55,7 @@ class TestOrderPayment(TransactionCheckMixin, APITestCase):
             }
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.check_transactions(deliverable, deliverable.order.buyer, remote_id='', source=TransactionRecord.CASH_DEPOSIT)
+        self.check_transactions(deliverable, deliverable.order.buyer, remote_id='', source=CASH_DEPOSIT)
 
     def test_pay_order_table_cash(self):
         user = UserFactory.create(is_staff=True)
@@ -79,7 +73,7 @@ class TestOrderPayment(TransactionCheckMixin, APITestCase):
             }
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        total = TransactionRecord.objects.filter(source__in=[TransactionRecord.CASH_DEPOSIT, TransactionRecord.CARD]).aggregate(total=Sum('amount'))['total']
+        total = TransactionRecord.objects.filter(source__in=[CASH_DEPOSIT, CARD]).aggregate(total=Sum('amount'))['total']
         self.assertEqual(total, Decimal('50.00'))
 
     def test_pay_order_table_edge_case(self):
@@ -99,7 +93,7 @@ class TestOrderPayment(TransactionCheckMixin, APITestCase):
             }
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        transactions = TransactionRecord.objects.filter(source__in=[TransactionRecord.CASH_DEPOSIT, TransactionRecord.CARD])
+        transactions = TransactionRecord.objects.filter(source__in=[CASH_DEPOSIT, CARD])
         total = transactions.aggregate(total=Sum('amount'))['total']
         self.assertEqual(total, Decimal('30.00'))
 

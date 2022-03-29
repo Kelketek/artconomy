@@ -19,6 +19,7 @@ export default class StripeHostMixin extends mixins(ErrorHandling) {
 
   // Override this if fetching the secret isn't immediately possible.
   public get canUpdate() {
+    /* istanbul ignore next */
     return true
   }
 
@@ -63,11 +64,8 @@ export default class StripeHostMixin extends mixins(ErrorHandling) {
     this.updateIntent()
   }
 
-  public fetchReaders() {
-    this.readers.fetching = true
-  }
-
   public get readerFormUrl(): string {
+    /* istanbul ignore next */
     throw Error('Not implemented')
   }
 

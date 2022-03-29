@@ -1,8 +1,14 @@
+from typing import TYPE_CHECKING
+
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 from django.views import View
 from rest_framework.permissions import BasePermission
 from rest_framework.request import Request
+
+
+if TYPE_CHECKING:
+    from apps.sales.models import Invoice
 
 
 class ObjectControls(BasePermission):
@@ -112,6 +118,16 @@ class UserControls(BasePermission):
         user = derive_user(obj)
         if user and user == request.user:
             return True
+
+
+class IssuedBy(BasePermission):
+    def has_object_permission(self, request: Request, view: View, obj: 'Invoice') -> bool:
+        return obj.issued_by == request.user
+
+
+class BillTo(BasePermission):
+    def has_object_permission(self, request: Request, view: View, obj: 'Invoice') -> bool:
+        return obj.bill_to == request.user
 
 
 class NonPrivate(BasePermission):

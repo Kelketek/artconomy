@@ -195,6 +195,7 @@ export default class AcProfileHeader extends mixins(Subjective, Formatting, Edit
 
     @Watch('subject')
     public populateRecipient(value: User) {
+      /* istanbul ignore if */
       if (!value) {
         return
       }

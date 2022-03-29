@@ -16,17 +16,14 @@ def derive_order(instance):
         return instance
     if isinstance(instance, LineItem):
         instance = instance.invoice.deliverables.get()
-    if not isinstance(instance, Deliverable):
+    if not isinstance(instance, Deliverable):  # pragma: no cover
         instance = instance.deliverable
     return instance.order
 
 
 class OrderViewPermission(BasePermission):
     def has_object_permission(self, request, view, obj):
-        from apps.sales.models import Order
         obj = derive_order(obj)
-        if not isinstance(obj, Order):
-            obj = obj.order
         if request.user.is_staff:
             return True
         if request.user == obj.buyer:
@@ -108,7 +105,7 @@ def DeliverableStatusPermission(*args, error_message='The deliverable is not in 
         def has_object_permission(self, request, view, obj):
             if isinstance(obj, LineItem):
                 obj = obj.invoice.deliverables.get()
-            if not isinstance(obj, Deliverable):
+            if not isinstance(obj, Deliverable):  # pragma: no cover
                 obj = obj.deliverable
             if obj.status in args:
                 return True
@@ -128,27 +125,8 @@ class OrderTimeUpPermission(BasePermission):
         if obj.dispute_available_on and (obj.dispute_available_on > timezone.now().date()):
             self.message = f'This order is not old enough to dispute. You can dispute it on {obj.dispute_available_on}.'
             return False
-        if not obj.dispute_available_on:
-            return False
-        return True
-
-
-class NoOrderOutput(BasePermission):
-    message = 'You may not create a submission based on this deliverable.'
-    def has_object_permission(self, request, view, obj):
-        assert request.user
-        if request.user not in [obj.order.seller, obj.order.buyer]:
-            return False
-        if obj.outputs.filter(owner=request.user).exists():
-            self.message = 'You have already created a submission based on this deliverable.'
-            return False
-        return True
-
-
-class PaidOrderPermission(BasePermission):
-    message = 'You may not rate an order which was free.'
-    def has_object_permission(self, request, view, obj):
-        if obj.invoice.total().amount <= 0:
+        if not obj.dispute_available_on:  # pragma: no cover
+            # Should never happen, because if this is a disputable status, this timestamp should be set.
             return False
         return True
 
@@ -172,7 +150,7 @@ class DeliverableNoProduct(BasePermission):
         from apps.sales.models import Deliverable, LineItem
         if isinstance(obj, LineItem):
             obj = obj.invoice.deliverables.get()
-        if not isinstance(obj, Deliverable):
+        if not isinstance(obj, Deliverable):  # pragma: no cover
             obj = obj.deliverable
         if obj.product:
             return False

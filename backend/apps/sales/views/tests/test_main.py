@@ -12,20 +12,19 @@ from django.utils.datetime_safe import date
 from moneyed import Money
 from rest_framework import status
 
-from apps.lib.abstract_models import ADULT
+from apps.lib.abstract_models import ADULT, GENERAL, EXTREME
 from apps.lib.models import Comment, Subscription, COMMENT
 from apps.lib.test_resources import APITestCase, PermissionsTestCase, MethodAccessMixin
 from apps.lib.tests.factories import TagFactory, AssetFactory
-from apps.lib.tests.test_utils import EnsurePlansMixin
 from apps.profiles.models import User, IN_SUPPORTED_COUNTRY, NO_SUPPORTED_COUNTRY, UNSET, ArtistTag
 from apps.profiles.tests.factories import UserFactory, SubmissionFactory, CharacterFactory
-from apps.sales.models import (
-    Order, Product, TransactionRecord, ADD_ON, BASE_PRICE, NEW, COMPLETED, IN_PROGRESS,
-    PAYMENT_PENDING,
-    REVIEW, QUEUED, DISPUTED, CANCELLED, DELIVERABLE_STATUSES, REFUNDED, Deliverable, WAITING, OPEN)
+from apps.sales.models import Order, Product, Reference, Deliverable
+from apps.sales.constants import BASE_PRICE, ADD_ON, DELIVERABLE_STATUSES, REFUNDED, COMPLETED, WAITING, NEW, \
+    PAYMENT_PENDING, QUEUED, IN_PROGRESS, REVIEW, CANCELLED, DISPUTED, ESCROW, EXTRA, OPEN, HOLDINGS, PENDING, DRAFT, \
+    VOID, PAID
 from apps.sales.tests.factories import DeliverableFactory, CreditCardTokenFactory, ProductFactory, RevisionFactory, \
-    RatingFactory, ReferenceFactory, ServicePlanFactory, InvoiceFactory
-from apps.sales.views.views import (
+    RatingFactory, ReferenceFactory, ServicePlanFactory, InvoiceFactory, LineItemFactory, TransactionRecordFactory
+from apps.sales.views.main import (
     CurrentOrderList, CurrentSalesList, CurrentCasesList,
     CancelledOrderList,
     ArchivedOrderList,
@@ -33,7 +32,9 @@ from apps.sales.views.views import (
     ArchivedSalesList,
     CancelledCasesList,
     ArchivedCasesList,
-    ProductList)
+    ProductList,
+)
+from shortcuts import make_url
 
 order_scenarios = (
     {
@@ -47,6 +48,10 @@ order_scenarios = (
     {
         'category': 'cancelled',
         'included': (REFUNDED, CANCELLED),
+    },
+    {
+        'category': 'waiting',
+        'included': (WAITING,),
     }
 )
 
@@ -95,6 +100,29 @@ class TestSaleLists(TestOrderListBase, APITestCase):
     @staticmethod
     def factory_kwargs(user):
         return {'order__seller': user, 'order__buyer': UserFactory.create()}
+
+    def test_show_email_when_appropriate(self):
+        artist = UserFactory.create()
+        self.login(artist)
+        normal_deliverable = DeliverableFactory.create(order__seller=artist)
+        guest_deliverable = DeliverableFactory.create(
+            order__buyer__guest=True,
+            order__buyer__guest_email='test@example.com',
+            order__seller=artist,
+        )
+        unregistered_deliverable = DeliverableFactory.create(
+            order__buyer=None,
+            order__customer_email='test2@example.com',
+            order__seller=artist,
+        )
+        response = self.client.get(self.make_url(artist, 'current'))
+        first, second, third = response.data['results']
+        self.assertEqual(first['id'], unregistered_deliverable.order.id)
+        self.assertEqual(first['guest_email'], 'test2@example.com')
+        self.assertEqual(second['id'], guest_deliverable.order.id)
+        self.assertEqual(second['guest_email'], 'test@example.com')
+        self.assertEqual(third['id'], normal_deliverable.order.id)
+        self.assertEqual(third['guest_email'], '')
 
 
 class TestCaseLists(TestOrderListBase, APITestCase):
@@ -184,7 +212,37 @@ class TestArchivedCasesListPermissions(PermissionsTestCase, StaffUserList, Metho
     view_class = ArchivedCasesList
 
 
-class TestSamples(APITestCase):
+class TestSearchWaiting(APITestCase):
+    def test_search_waiting_list_product_filter(self):
+        deliverable = DeliverableFactory.create(status=WAITING)
+        DeliverableFactory.create(order__seller=deliverable.order.seller, status=WAITING)
+        url = f'/api/sales/v1/account/{deliverable.order.seller.username}/sales/waiting/'
+        self.login(deliverable.order.seller)
+        response = self.client.get(url)
+        self.assertEqual(len(response.data['results']), 2)
+        response = self.client.get(f'{url}?product={deliverable.product.id}')
+        self.assertIDInList(deliverable.order, response.data['results'])
+        self.assertEqual(len(response.data['results']), 1)
+
+    def test_search_waiting_list_user_filter(self):
+        deliverable = DeliverableFactory.create(order__buyer__email='beep@boop.com', status=WAITING)
+        # This one shouldn't match.
+        DeliverableFactory.create(order__seller=deliverable.order.seller, status=WAITING)
+        url = f'/api/sales/v1/account/{deliverable.order.seller.username}/sales/waiting/?q=beep'
+        self.login(deliverable.order.seller)
+        response = self.client.get(url)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertIDInList(deliverable.order, response.data['results'])
+
+    def test_search_waiting_list_permissions(self):
+        deliverable = DeliverableFactory.create(order__buyer__email='beep@boop.com', status=WAITING)
+        url = f'/api/sales/v1/account/{deliverable.order.seller.username}/sales/waiting/?q=beep'
+        self.login(deliverable.order.buyer)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class TestProductSamples(APITestCase):
     def test_sample_list(self):
         product = ProductFactory.create()
         submission = SubmissionFactory.create()
@@ -235,6 +293,20 @@ class TestSamples(APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['submission']['id'], submission.id)
+
+    def test_add_untagged_sample_fails(self):
+        product = ProductFactory.create()
+        submission = SubmissionFactory.create()
+        self.login(product.user)
+        response = self.client.post(
+            f'/api/sales/v1/account/{product.user.username}/products/{product.id}/samples/',
+            {'submission_id': submission.id},
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.data['submission_id'],
+            ['Either this submission does not exist, or you are not tagged as the artist in it.'],
+        )
 
 
 class TestCardManagement(APITestCase):
@@ -320,8 +392,8 @@ class TestCardManagement(APITestCase):
         for card in cards:
             self.assertIDInList(card, response.data)
 
-    @patch('apps.sales.models.delete_payment_method')
-    def test_card_removal(self, _delete_payment_method):
+    @patch('apps.sales.models.stripe')
+    def test_card_removal(self, mock_stripe):
         user = UserFactory.create()
         self.login(user)
         cards = [CreditCardTokenFactory(user=user, stripe_token=f'{i}') for i in range(4)]
@@ -333,6 +405,7 @@ class TestCardManagement(APITestCase):
         self.assertEqual(cards[2].active, False)
         cards[0].refresh_from_db()
         self.assertEqual(cards[0].active, True)
+        mock_stripe.__enter__.return_value.PaymentMethod.detach.assert_called_with(cards[2].stripe_token)
 
     @patch('apps.sales.models.delete_payment_method')
     def test_card_removal_new_primary(self, _mock_execute):
@@ -640,6 +713,19 @@ class TestProduct(APITestCase):
             self.assertIDInList(product, response.data['results'])
         self.assertIDInList(hidden, response.data['results'])
 
+    def test_product_update(self):
+        user = UserFactory.create()
+        self.login(user)
+        products = [ProductFactory.create(user=user) for __ in range(3)]
+        DeliverableFactory.create(product=products[1])
+        self.assertTrue(products[1].active)
+        response = self.client.patch(
+            '/api/sales/v1/account/{}/products/{}/'.format(user.username, products[1].id),
+            {'task_weight': 100},
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['available'], False)
+
     def test_product_delete(self):
         user = UserFactory.create()
         self.login(user)
@@ -715,6 +801,59 @@ class TestProduct(APITestCase):
         products[1].refresh_from_db()
         self.assertFalse(products[1].active)
         self.assertEqual(Product.objects.filter(id=products[2].id).count(), 0)
+
+    def test_product_set_primary_submission(self):
+        product = ProductFactory.create()
+        submission = SubmissionFactory.create()
+        submission.artists.add(product.user)
+        self.login(product.user)
+        response = self.client.patch(
+            '/api/sales/v1/account/{}/products/{}/'.format(product.user.username, product.id),
+            {'primary_submission': submission.id},
+            format='json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['primary_submission']['id'], submission.id)
+
+    def test_product_set_primary_submission_fails_not_artist(self):
+        product = ProductFactory.create()
+        submission = SubmissionFactory.create()
+        self.login(product.user)
+        response = self.client.patch(
+            '/api/sales/v1/account/{}/products/{}/'.format(product.user.username, product.id),
+            {'primary_submission': submission.id},
+            format='json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.data['primary_submission'],
+            ['That submission does not exist, or you cannot use it as your sample.'],
+        )
+
+    def test_product_remove_primary_submission(self):
+        submission = SubmissionFactory.create()
+        product = ProductFactory.create(primary_submission=submission)
+        self.login(product.user)
+        response = self.client.patch(
+            '/api/sales/v1/account/{}/products/{}/'.format(product.user.username, product.id),
+            {'primary_submission': None},
+            format='json',
+        )
+        self.assertIsNone(response.data['primary_submission'])
+        product.refresh_from_db()
+        self.assertIsNone(product.primary_submission)
+
+    def test_product_add_tags(self):
+        product = ProductFactory.create()
+        self.login(product.user)
+        response = self.client.patch(
+            '/api/sales/v1/account/{}/products/{}/'.format(product.user.username, product.id),
+            {'tags': ['inks', 'full_body']},
+            format='json',
+        )
+        self.assertEqual(sorted(response.data['tags']), ['full_body', 'inks'])
+        product.refresh_from_db()
+        self.assertIsNone(product.primary_submission)
 
 
 class TestComment(APITestCase):
@@ -849,8 +988,111 @@ class TestProductSearch(APITestCase):
         self.assertIDInList(listed3, response.data['results'])
         self.assertEqual(len(response.data['results']), 3)
 
+    def test_price_filter(self):
+        # Reduce the number of DB calls by having the same user.
+        user = UserFactory.create()
+        low_price = ProductFactory.create(base_price=Money('20.00', 'USD'), user=user)
+        mid_price = ProductFactory.create(base_price=Money('75.00', 'USD'), user=user)
+        high_price = ProductFactory.create(base_price=Money('9999.00', 'USD'), user=user)
+        response = self.client.get('/api/sales/v1/search/product/', {'min_price': '75.00'})
+        self.assertIDInList(mid_price, response.data['results'])
+        self.assertIDInList(high_price, response.data['results'])
+        self.assertEqual(len(response.data['results']), 2)
+        response = self.client.get('/api/sales/v1/search/product/', {'max_price': '75.00'})
+        self.assertIDInList(mid_price, response.data['results'])
+        self.assertIDInList(low_price, response.data['results'])
+        self.assertEqual(len(response.data['results']), 2)
+        response = self.client.get('/api/sales/v1/search/product/', {'max_price': '100.00', 'min_price': '25.00'})
+        self.assertIDInList(mid_price, response.data['results'])
+        self.assertEqual(len(response.data['results']), 1)
 
-class TestCancelPremium(EnsurePlansMixin, APITestCase):
+    def test_minimum_rating(self):
+        user = UserFactory.create()
+        general = ProductFactory.create(max_rating=GENERAL, user=user)
+        adult = ProductFactory.create(max_rating=ADULT, user=user)
+        extreme = ProductFactory.create(max_rating=EXTREME, user=user)
+        response = self.client.get('/api/sales/v1/search/product/', {'minimum_content_rating': GENERAL})
+        self.assertIDInList(general, response.data['results'])
+        self.assertIDInList(adult, response.data['results'])
+        self.assertIDInList(extreme, response.data['results'])
+        self.assertEqual(len(response.data['results']), 3)
+        response = self.client.get('/api/sales/v1/search/product/', {'minimum_content_rating': ADULT})
+        self.assertIDInList(adult, response.data['results'])
+        self.assertIDInList(extreme, response.data['results'])
+        self.assertEqual(len(response.data['results']), 2)
+        response = self.client.get('/api/sales/v1/search/product/', {'minimum_content_rating': EXTREME})
+        self.assertIDInList(extreme, response.data['results'])
+        self.assertEqual(len(response.data['results']), 1)
+
+    def test_watchlist(self):
+        viewer = UserFactory.create()
+        staff = UserFactory.create(is_staff=True)
+        watched = ProductFactory.create()
+        viewer.watching.add(watched.user)
+        # Unwatched
+        ProductFactory.create()
+        response = self.client.get('/api/sales/v1/search/product/', {'watch_list': True})
+        # No difference, not logged in.
+        self.assertEqual(len(response.data['results']), 2)
+        self.login(viewer)
+        response = self.client.get('/api/sales/v1/search/product/', {'watch_list': True})
+        self.assertIDInList(watched, response.data['results'])
+        self.assertEqual(len(response.data['results']), 1)
+        self.login(staff)
+        # Now we're the staff user, who is watching no one.
+        response = self.client.get('/api/sales/v1/search/product/', {'watch_list': True})
+        self.assertEqual(len(response.data['results']), 0)
+        # Staff searching as user
+        response = self.client.get('/api/sales/v1/search/product/', {'watch_list': True, 'user': viewer.username})
+        self.assertIDInList(watched, response.data['results'])
+        self.assertEqual(len(response.data['results']), 1)
+
+    def test_community(self):
+        lgbt = ProductFactory.create(user__artist_profile__lgbt=True)
+        artist_of_color = ProductFactory.create(user__artist_profile__artist_of_color=True)
+        response = self.client.get('/api/sales/v1/search/product/', {'lgbt': True})
+        self.assertIDInList(lgbt, response.data['results'])
+        self.assertEqual(len(response.data['results']), 1)
+        response = self.client.get('/api/sales/v1/search/product/', {'artists_of_color': True})
+        self.assertIDInList(artist_of_color, response.data['results'])
+        self.assertEqual(len(response.data['results']), 1)
+
+    def test_ordering(self):
+        null_rated_mid_edited = ProductFactory.create(user__stars=None)
+        Product.objects.filter(id=null_rated_mid_edited.id).update(
+            edited_on=timezone.now().replace(year=2020),
+        )
+        low_rated_first_edited = ProductFactory.create(user__stars=1)
+        Product.objects.filter(id=low_rated_first_edited.id).update(
+            edited_on=timezone.now().replace(year=2022),
+        )
+        high_rated_last_edited = ProductFactory.create(user__stars=5)
+        Product.objects.filter(id=high_rated_last_edited.id).update(
+            edited_on=timezone.now().replace(year=2018),
+        )
+        response = self.client.get('/api/sales/v1/search/product/')
+        ids = [item['id'] for item in response.data['results']]
+        self.assertEqual(ids, [low_rated_first_edited.id, null_rated_mid_edited.id, high_rated_last_edited.id])
+        response = self.client.get('/api/sales/v1/search/product/', {'rating': True})
+        ids = [item['id'] for item in response.data['results']]
+        self.assertEqual(ids, [high_rated_last_edited.id, low_rated_first_edited.id, null_rated_mid_edited.id])
+
+    def test_featured(self):
+        featured = ProductFactory.create(featured=True)
+        # Non-featured
+        ProductFactory.create()
+        response = self.client.get('/api/sales/v1/search/product/', {'featured': True})
+        self.assertIDInList(featured, response.data['results'])
+
+    def test_shielded(self):
+        shielded = ProductFactory.create(user__artist_profile__bank_account_status=IN_SUPPORTED_COUNTRY)
+        # Non-featured
+        ProductFactory.create(user__artist_profile__bank_account_status=NO_SUPPORTED_COUNTRY)
+        response = self.client.get('/api/sales/v1/search/product/', {'shield_only': True})
+        self.assertIDInList(shielded, response.data['results'])
+
+
+class TestCancelPremium(APITestCase):
     def test_cancel(self):
         user = UserFactory.create()
         self.login(user)
@@ -889,6 +1131,7 @@ class TestCreateInvoice(APITestCase):
             'product': product.id,
             'buyer': user2.username,
             'price': '5.00',
+            'cascade_fees': True,
             'details': 'wat',
             'private': False,
             'rating': ADULT,
@@ -918,13 +1161,13 @@ class TestCreateInvoice(APITestCase):
         self.assertEqual(item.amount, Money('2.00', 'USD'))
         self.assertEqual(item.priority, 100)
         self.assertEqual(item.destination_user, order.seller)
-        self.assertEqual(item.destination_account, TransactionRecord.ESCROW)
+        self.assertEqual(item.destination_account, ESCROW)
         self.assertEqual(item.percentage, 0)
         item = deliverable.invoice.line_items.get(type=BASE_PRICE)
         self.assertEqual(item.amount, Money('3.00', 'USD'))
         self.assertEqual(item.priority, 0)
         self.assertEqual(item.destination_user, order.seller)
-        self.assertEqual(item.destination_account, TransactionRecord.ESCROW)
+        self.assertEqual(item.destination_account, ESCROW)
         self.assertEqual(item.percentage, 0)
         self.assertIsNone(order.claim_token)
         self.assertFalse(deliverable.invoice.record_only)
@@ -944,6 +1187,7 @@ class TestCreateInvoice(APITestCase):
             'product': product.id,
             'buyer': user2.username,
             'price': '15.00',
+            'cascade_fees': True,
             'details': 'wat',
             'private': False,
             'task_weight': 3,
@@ -973,13 +1217,13 @@ class TestCreateInvoice(APITestCase):
         self.assertEqual(item.amount, Money('7.00', 'USD'))
         self.assertEqual(item.priority, 100)
         self.assertEqual(item.destination_user, order.seller)
-        self.assertEqual(item.destination_account, TransactionRecord.ESCROW)
+        self.assertEqual(item.destination_account, ESCROW)
         self.assertEqual(item.percentage, 0)
         item = deliverable.invoice.line_items.get(type=BASE_PRICE)
         self.assertEqual(item.amount, Money('3.00', 'USD'))
         self.assertEqual(item.priority, 0)
         self.assertEqual(item.destination_user, order.seller)
-        self.assertEqual(item.destination_account, TransactionRecord.ESCROW)
+        self.assertEqual(item.destination_account, ESCROW)
         self.assertEqual(item.percentage, 0)
         self.assertIsNone(order.claim_token)
         self.assertFalse(deliverable.invoice.record_only)
@@ -998,6 +1242,7 @@ class TestCreateInvoice(APITestCase):
             'product': product.id,
             'buyer': 'test@example.com',
             'price': '5.00',
+            'cascade_fees': True,
             'details': 'oh',
             'rating': ADULT,
             'private': True,
@@ -1019,6 +1264,238 @@ class TestCreateInvoice(APITestCase):
         self.assertEqual(order.customer_email, 'test@example.com')
         self.assertTrue(order.claim_token)
 
+    def test_create_invoice_email_exists(self):
+        user = UserFactory.create()
+        user2 = UserFactory.create()
+        self.login(user)
+        user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
+        user.artist_profile.save()
+        product = ProductFactory.create(
+            user=user, base_price=Money('3.00', 'USD'), task_weight=5, expected_turnaround=2,
+            revisions=1,
+        )
+        response = self.client.post(f'/api/sales/v1/account/{user.username}/create-invoice/', {
+            'completed': False,
+            'product': product.id,
+            'buyer': user2.email,
+            'price': '5.00',
+            'cascade_fees': True,
+            'details': 'oh',
+            'rating': ADULT,
+            'private': True,
+            'task_weight': 3,
+            'revisions': 3,
+            'expected_turnaround': 4,
+            'hold': False,
+            'paid': False,
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        order = Order.objects.get(id=response.data['order']['id'])
+        self.assertEqual(order.seller, user)
+        self.assertEqual(order.buyer, user2)
+        self.assertEqual(response.data['adjustment_task_weight'], -2)
+        self.assertEqual(response.data['adjustment_expected_turnaround'], 2.00)
+        self.assertEqual(response.data['adjustment_revisions'], 2)
+        self.assertFalse(response.data['escrow_disabled'])
+        self.assertEqual(response.data['product']['id'], product.id)
+        self.assertEqual(order.customer_email, '')
+        self.assertIsNone(order.claim_token)
+
+    def test_create_invoice_no_buyer(self):
+        user = UserFactory.create()
+        self.login(user)
+        user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
+        user.artist_profile.save()
+        product = ProductFactory.create(
+            user=user, base_price=Money('3.00', 'USD'), task_weight=5, expected_turnaround=2,
+            revisions=1,
+        )
+        response = self.client.post(f'/api/sales/v1/account/{user.username}/create-invoice/', {
+            'completed': False,
+            'product': product.id,
+            'buyer': '',
+            'price': '5.00',
+            'cascade_fees': True,
+            'details': 'oh',
+            'rating': ADULT,
+            'private': True,
+            'task_weight': 3,
+            'revisions': 3,
+            'expected_turnaround': 4,
+            'hold': False,
+            'paid': False,
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        order = Order.objects.get(id=response.data['order']['id'])
+        self.assertEqual(order.seller, user)
+        self.assertIsNone(order.buyer)
+        self.assertEqual(response.data['adjustment_task_weight'], -2)
+        self.assertEqual(response.data['adjustment_expected_turnaround'], 2.00)
+        self.assertEqual(response.data['adjustment_revisions'], 2)
+        self.assertFalse(response.data['escrow_disabled'])
+        self.assertEqual(response.data['product']['id'], product.id)
+        self.assertEqual(order.customer_email, '')
+
+    def test_create_invoice_self_send_fails(self):
+        user = UserFactory.create()
+        self.login(user)
+        user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
+        user.artist_profile.save()
+        product = ProductFactory.create(
+            user=user, base_price=Money('3.00', 'USD'), task_weight=5, expected_turnaround=2,
+            revisions=1,
+        )
+        response = self.client.post(f'/api/sales/v1/account/{user.username}/create-invoice/', {
+            'completed': False,
+            'product': product.id,
+            'buyer': user.email,
+            'price': '5.00',
+            'cascade_fees': True,
+            'details': 'oh',
+            'rating': ADULT,
+            'private': True,
+            'task_weight': 3,
+            'revisions': 3,
+            'expected_turnaround': 4,
+            'hold': False,
+            'paid': False,
+        })
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['buyer'], ['You cannot send yourself an invoice.'])
+
+    def test_create_invoice_blocking_by_email(self):
+        user = UserFactory.create()
+        user2 = UserFactory.create()
+        user2.blocking.add(user)
+        self.login(user)
+        user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
+        user.artist_profile.save()
+        product = ProductFactory.create(
+            user=user, base_price=Money('3.00', 'USD'), task_weight=5, expected_turnaround=2,
+            revisions=1,
+        )
+        response = self.client.post(f'/api/sales/v1/account/{user.username}/create-invoice/', {
+            'completed': False,
+            'product': product.id,
+            'buyer': user2.email,
+            'price': '5.00',
+            'cascade_fees': True,
+            'details': 'oh',
+            'rating': ADULT,
+            'private': True,
+            'task_weight': 3,
+            'revisions': 3,
+            'expected_turnaround': 4,
+            'hold': False,
+            'paid': False,
+        })
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['buyer'], ['Cannot send an invoice to this user. They may be blocking you.'])
+
+    def test_create_invoice_blocking_by_username(self):
+        user = UserFactory.create()
+        user2 = UserFactory.create()
+        user2.blocking.add(user)
+        self.login(user)
+        user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
+        user.artist_profile.save()
+        product = ProductFactory.create(
+            user=user, base_price=Money('3.00', 'USD'), task_weight=5, expected_turnaround=2,
+            revisions=1,
+        )
+        response = self.client.post(f'/api/sales/v1/account/{user.username}/create-invoice/', {
+            'completed': False,
+            'product': product.id,
+            'buyer': user2.username,
+            'price': '5.00',
+            'cascade_fees': True,
+            'details': 'oh',
+            'rating': ADULT,
+            'private': True,
+            'task_weight': 3,
+            'revisions': 3,
+            'expected_turnaround': 4,
+            'hold': False,
+            'paid': False,
+        })
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['buyer'], ['User with that username not found, or they are blocking you.'])
+
+    def test_create_invoice_no_inventory(self):
+        user = UserFactory.create()
+        self.login(user)
+        user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
+        user.artist_profile.save()
+        product = ProductFactory.create(
+            user=user, base_price=Money('3.00', 'USD'), task_weight=5, expected_turnaround=2,
+            revisions=1, track_inventory=True
+        )
+        response = self.client.post(f'/api/sales/v1/account/{user.username}/create-invoice/', {
+            'completed': False,
+            'product': product.id,
+            'buyer': 'test@example.com',
+            'price': '5.00',
+            'cascade_fees': True,
+            'details': 'oh',
+            'rating': ADULT,
+            'private': True,
+            'task_weight': 3,
+            'revisions': 3,
+            'expected_turnaround': 4,
+            'hold': False,
+            'paid': False,
+        })
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, {'detail': 'This product is out of stock.'})
+
+    def test_create_invoice_wrong_product(self):
+        user = UserFactory.create()
+        self.login(user)
+        user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
+        user.artist_profile.save()
+        product = ProductFactory.create(base_price=Money('3.00', 'USD'))
+        response = self.client.post(f'/api/sales/v1/account/{user.username}/create-invoice/', {
+            'completed': False,
+            'product': product.id,
+            'buyer': 'test@example.com',
+            'price': '5.00',
+            'cascade_fees': True,
+            'details': 'oh',
+            'rating': ADULT,
+            'private': True,
+            'task_weight': 3,
+            'revisions': 3,
+            'expected_turnaround': 4,
+            'hold': False,
+            'paid': False,
+        })
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, {'product': ['You don\'t have a product with that ID.']})
+
+    @override_settings(MINIMUM_PRICE=Decimal('1.00'))
+    def test_create_invoice_bad_price(self):
+        user = UserFactory.create()
+        self.login(user)
+        user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
+        user.artist_profile.save()
+        response = self.client.post(f'/api/sales/v1/account/{user.username}/create-invoice/', {
+            'completed': False,
+            'product': None,
+            'buyer': 'test@example.com',
+            'price': '.50',
+            'cascade_fees': True,
+            'details': 'oh',
+            'rating': ADULT,
+            'private': True,
+            'task_weight': 3,
+            'revisions': 3,
+            'expected_turnaround': 4,
+            'hold': False,
+            'paid': False,
+        }, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, {'price': ['Must be $0 or at least $1.00']})
+
     def test_create_invoice_completed(self):
         user = UserFactory.create()
         self.login(user)
@@ -1033,6 +1510,7 @@ class TestCreateInvoice(APITestCase):
             'product': product.id,
             'buyer': 'test@example.com',
             'price': '5.00',
+            'cascade_fees': True,
             'details': 'oh',
             'rating': ADULT,
             'private': True,
@@ -1055,6 +1533,41 @@ class TestCreateInvoice(APITestCase):
         self.assertEqual(order.customer_email, 'test@example.com')
         self.assertTrue(order.claim_token)
 
+    def test_create_invoice_hold(self):
+        user = UserFactory.create()
+        self.login(user)
+        user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
+        user.artist_profile.save()
+        product = ProductFactory.create(
+            user=user, base_price=Money('3.00', 'USD'), task_weight=5, expected_turnaround=2,
+            revisions=1,
+        )
+        response = self.client.post(f'/api/sales/v1/account/{user.username}/create-invoice/', {
+            'completed': False,
+            'product': product.id,
+            'buyer': 'test@example.com',
+            'price': '5.00',
+            'cascade_fees': True,
+            'details': 'oh',
+            'rating': ADULT,
+            'private': True,
+            'task_weight': 3,
+            'revisions': 3,
+            'expected_turnaround': 4,
+            'paid': False,
+            'hold': True,
+        })
+        order = Order.objects.get(id=response.data['order']['id'])
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(order.seller, user)
+        self.assertIsNone(order.buyer)
+        self.assertEqual(response.data['status'], NEW)
+        self.assertFalse(response.data['escrow_disabled'])
+        self.assertEqual(response.data['product']['id'], product.id)
+        self.assertEqual(order.customer_email, 'test@example.com')
+        self.assertTrue(order.claim_token)
+        self.assertTrue(order.deliverables.get().revisions_hidden)
+
     def test_create_invoice_no_product(self):
         user = UserFactory.create()
         self.login(user)
@@ -1065,6 +1578,7 @@ class TestCreateInvoice(APITestCase):
             'product': None,
             'buyer': 'test@example.com',
             'price': '5.00',
+            'cascade_fees': True,
             'details': 'oh',
             'private': True,
             'rating': ADULT,
@@ -1074,8 +1588,8 @@ class TestCreateInvoice(APITestCase):
             'revisions': 3,
             'expected_turnaround': 4
         }, format='json')
-        order = Order.objects.get(id=response.data['order']['id'])
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        order = Order.objects.get(id=response.data['order']['id'])
         self.assertEqual(order.seller, user)
         self.assertIsNone(order.buyer)
         self.assertEqual(response.data['adjustment_task_weight'], 0)
@@ -1099,6 +1613,7 @@ class TestCreateInvoice(APITestCase):
         response = self.client.post(f'/api/sales/v1/account/{user.username}/create-invoice/', {
             'completed': False,
             'product': None,
+            'cascade_fees': True,
             'buyer': 'test@example.com',
             'price': '5.00',
             'details': 'oh',
@@ -1142,6 +1657,7 @@ class TestCreateInvoice(APITestCase):
             'product': product.id,
             'buyer': user2.username,
             'price': '5.00',
+            'cascade_fees': True,
             'task_weight': 3,
             'details': 'bla bla',
             'rating': ADULT,
@@ -1179,6 +1695,7 @@ class TestCreateInvoice(APITestCase):
             'product': product.id,
             'buyer': user2.username,
             'price': '5.00',
+            'cascade_fees': True,
             'paid': True,
             'hold': False,
             'rating': ADULT,
@@ -1218,6 +1735,7 @@ class TestCreateInvoice(APITestCase):
             'product': product.id,
             'buyer': user2.username,
             'price': '5.00',
+            'cascade_fees': True,
             'paid': True,
             'hold': False,
             'rating': ADULT,
@@ -1290,13 +1808,12 @@ class TestSalesStats(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
-class TestPremiumInfo(APITestCase):
-    @override_settings(PREMIUM_PERCENTAGE_BONUS=Decimal('69'))
-    def test_premium_info(self):
-        self.landscape = ServicePlanFactory.create(name='Landscape')
+class TestPricingInfo(APITestCase):
+    @override_settings(TABLE_PERCENTAGE_FEE=Decimal('69'))
+    def test_pricing_info(self):
         response = self.client.get(f'/api/sales/v1/pricing-info/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['premium_percentage_bonus'], Decimal('69'))
+        self.assertEqual(response.data['table_percentage'], Decimal('69'))
 
 
 class TestOrderAuth(APITestCase):
@@ -1429,6 +1946,26 @@ class TestOrderAuth(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
+class TestOrderManager(APITestCase):
+    def test_view_order(self):
+        deliverable = DeliverableFactory.create()
+        self.login(deliverable.order.seller)
+        response = self.client.get(f'/api/sales/v1/order/{deliverable.order.id}/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['id'], deliverable.order.id)
+
+    def test_update_order_hide_details(self):
+        deliverable = DeliverableFactory.create()
+        self.login(deliverable.order.seller)
+        response = self.client.get(f'/api/sales/v1/order/{deliverable.order.id}/')
+        self.assertFalse(response.data['hide_details'])
+        response = self.client.patch(
+            f'/api/sales/v1/order/{deliverable.order.id}/',
+            {'hide_details': True},
+        )
+        self.assertTrue(response.data['hide_details'])
+
+
 class TestOrderOutputs(APITestCase):
     def test_order_outputs_get(self):
         deliverable = DeliverableFactory.create(status=COMPLETED)
@@ -1477,6 +2014,22 @@ class TestOrderOutputs(APITestCase):
         self.assertEqual(output.revision, revision_1)
         self.assertNotIn(output, product.samples.all())
 
+    def test_order_outputs_post_specific_revision_wrong_deliverable(self):
+        product = ProductFactory.create()
+        deliverable = DeliverableFactory.create(status=COMPLETED, final_uploaded=True, product=product)
+        revision = RevisionFactory.create()
+        RevisionFactory.create(deliverable=deliverable)
+        self.login(deliverable.order.buyer)
+        response = self.client.post(
+            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/outputs/', {
+                'caption': 'Stuff',
+                'tags': ['Things', 'wat'],
+                'revision': revision.id,
+                'title': 'Hi!'
+            })
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, {'revision': 'The provided revision does not belong to this deliverable.'})
+
     def test_order_outputs_post_hidden_details_buyer(self):
         deliverable = DeliverableFactory.create(status=COMPLETED, final_uploaded=True, order__hide_details=True)
         RevisionFactory.create(deliverable=deliverable)
@@ -1506,6 +2059,34 @@ class TestOrderOutputs(APITestCase):
         output = deliverable.outputs.all()[0]
         tag = ArtistTag.objects.get(user=deliverable.order.seller, submission=output)
         self.assertFalse(tag.hidden)
+
+    def test_order_outputs_no_revisions(self):
+        deliverable = DeliverableFactory.create(status=COMPLETED, final_uploaded=False, order__hide_details=True)
+        self.login(deliverable.order.seller)
+        response = self.client.post(
+            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/outputs/', {
+                'caption': 'Stuff',
+                'tags': ['Things', 'wat'],
+                'title': 'Hi!'
+            })
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, {'detail': 'You can not create a submission from an order with no revisions.'})
+
+    def test_order_outputs_incomplete_non_specific(self):
+        deliverable = DeliverableFactory.create(status=IN_PROGRESS, final_uploaded=False, order__hide_details=True)
+        RevisionFactory.create(deliverable=deliverable)
+        RevisionFactory.create(deliverable=deliverable)
+        self.login(deliverable.order.seller)
+        response = self.client.post(
+            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/outputs/', {
+                'caption': 'Stuff',
+                'tags': ['Things', 'wat'],
+                'title': 'Hi!'
+            })
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.data, {'detail': 'You must specify a specific revision if the order is not completed.'},
+        )
 
     def test_order_outputs_post_nonspecific_revision_buyer(self):
         product = ProductFactory.create()
@@ -1646,6 +2227,20 @@ class TestReferences(APITestCase):
             object_id=response.data['reference']['id'],
         )
 
+    def test_attach_unpermitted_reference(self):
+        deliverable = DeliverableFactory.create(arbitrator=UserFactory.create())
+        reference = ReferenceFactory.create()
+        self.login(deliverable.order.seller)
+        response = self.client.post(
+            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/references/',
+            {'reference_id': reference.id}
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.data['reference_id'],
+            ['Either this reference does not exist, or you are not allowed to use it.'],
+        )
+
     def test_list_references(self):
         deliverable = DeliverableFactory.create()
         deliverable.reference_set.add(ReferenceFactory.create(), ReferenceFactory.create(), ReferenceFactory.create())
@@ -1658,10 +2253,39 @@ class TestReferences(APITestCase):
         # Should be unpaginated.
         self.assertNotIn('results', response.data)
 
+    def test_add_comment(self):
+        deliverable = DeliverableFactory.create()
+        reference = ReferenceFactory.create(owner=deliverable.order.buyer)
+        deliverable.reference_set.add(reference)
+        self.login(deliverable.order.buyer)
+        response = self.client.post(
+            f'/api/lib/v1/comments/sales.Reference/{reference.id}/',
+            {'text': 'This is a comment'}
+        )
+        self.assertEqual(response.data['text'], 'This is a comment')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-class TestCreateDeliverable(APITestCase):
-    def setUp(self):
-        self.landscape = ServicePlanFactory.create(name='Landscape')
+    def test_comment_not_permitted(self):
+        deliverable = DeliverableFactory.create()
+        reference = ReferenceFactory.create(owner=deliverable.order.buyer)
+        deliverable.reference_set.add(reference)
+        self.login(UserFactory.create(is_staff=False))
+        response = self.client.post(
+            f'/api/lib/v1/comments/sales.Reference/{reference.id}/',
+            {'text': 'This is a comment'}
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class TestOrderDeliverables(APITestCase):
+    def test_list_deliverables(self):
+        deliverable1 = DeliverableFactory.create()
+        deliverable2 = DeliverableFactory.create(order=deliverable1.order)
+        # Unrelated deliverable
+        DeliverableFactory.create()
+        self.login(deliverable1.order.seller)
+        response = self.client.get(f'/api/sales/v1/order/{deliverable1.order.id}/deliverables/')
+        self.assertCountEqual([entry['id'] for entry in response.data['results']], [deliverable1.id, deliverable2.id])
 
     def test_create_deliverable(self):
         old_deliverable = DeliverableFactory.create(
@@ -1708,15 +2332,42 @@ class TestCreateDeliverable(APITestCase):
         self.assertEqual(item.amount, Money('2.00', 'USD'))
         self.assertEqual(item.priority, 100)
         self.assertEqual(item.destination_user, order.seller)
-        self.assertEqual(item.destination_account, TransactionRecord.ESCROW)
+        self.assertEqual(item.destination_account, ESCROW)
         self.assertEqual(item.percentage, 0)
         item = deliverable.invoice.line_items.get(type=BASE_PRICE)
         self.assertEqual(item.amount, Money('3.00', 'USD'))
         self.assertEqual(item.priority, 0)
         self.assertEqual(item.destination_user, order.seller)
-        self.assertEqual(item.destination_account, TransactionRecord.ESCROW)
+        self.assertEqual(item.destination_account, ESCROW)
         self.assertEqual(item.percentage, 0)
         self.assertIsNone(order.claim_token)
+
+    def test_create_deliverable_with_references(self):
+        old_deliverable = DeliverableFactory.create(
+            order__seller__artist_profile__bank_account_status=IN_SUPPORTED_COUNTRY,
+            order__seller__service_plan=self.landscape,
+            order__seller__service_plan_paid_through=(timezone.now() + relativedelta(days=5)).date(),
+        )
+        reference = ReferenceFactory.create()
+        reference.deliverables.add(old_deliverable)
+        self.login(old_deliverable.order.seller)
+        response = self.client.post(f'/api/sales/v1/order/{old_deliverable.order.id}/deliverables/', {
+            'name': 'Boop',
+            'completed': False,
+            'product': None,
+            'price': '5.00',
+            'details': 'wat',
+            'task_weight': 3,
+            'revisions': 3,
+            'rating': ADULT,
+            'expected_turnaround': 4,
+            'hold': False,
+            'paid': False,
+            'references': [reference.id]
+        }, format='json')
+        deliverable = Deliverable.objects.get(id=response.data['id'])
+        # Should not throw.
+        Reference.objects.get(deliverables=deliverable)
 
     def test_create_deliverable_non_landscape(self):
         old_deliverable = DeliverableFactory.create(
@@ -1830,9 +2481,25 @@ class TestClearWaitlist(APITestCase):
 
 class TestQueue(APITestCase):
     def test_queue_anonymous(self):
-        deliverable = DeliverableFactory.create()
+        deliverable = DeliverableFactory.create(
+            status=QUEUED, order__buyer__guest=True,
+            order__buyer__guest_email='test@example.com'
+        )
+        deliverable_private = DeliverableFactory.create(
+            status=QUEUED, order__private=True,
+            order__seller=deliverable.order.seller,
+        )
+        deliverable_hidden = DeliverableFactory.create(
+            status=QUEUED, order__hide_details=True,
+            order__seller=deliverable.order.seller,
+        )
         response = self.client.get(f'/api/sales/v1/account/{deliverable.order.seller.username}/queue/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['results']), 3)
+        first, second, third = response.data['results']
+        self.assertEqual(first, {'id': deliverable_hidden.order.id, 'private': True})
+        self.assertEqual(second, {'id': deliverable_private.order.id, 'private': True})
+        self.assertEqual(third['seller']['username'], deliverable.order.seller.username)
 
 
 class TestAnonymousInvoice(APITestCase):
@@ -1852,9 +2519,9 @@ class TestAnonymousInvoice(APITestCase):
 
 class TestRecentInvoices(APITestCase):
     def test_show_recent(self):
-        newest = InvoiceFactory.create(created_on=timezone.now().replace(year=2022, month=8, day=1), creates_own_transactions=True)
-        oldest = InvoiceFactory.create(created_on=timezone.now().replace(year=2020, month=8, day=1), creates_own_transactions=True)
-        middle = InvoiceFactory.create(created_on=timezone.now().replace(year=2021, month=8, day=1), creates_own_transactions=True)
+        newest = InvoiceFactory.create(created_on=timezone.now().replace(year=2022, month=8, day=1), manually_created=True)
+        oldest = InvoiceFactory.create(created_on=timezone.now().replace(year=2020, month=8, day=1), manually_created=True)
+        middle = InvoiceFactory.create(created_on=timezone.now().replace(year=2021, month=8, day=1), manually_created=True)
         self.login(UserFactory.create(is_staff=True))
         response = self.client.get('/api/sales/v1/recent-invoices/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -1865,3 +2532,413 @@ class TestRecentInvoices(APITestCase):
         self.login(UserFactory.create())
         response = self.client.get('/api/sales/v1/recent-invoices/')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class TestServicePlans(APITestCase):
+    def test_list_service_plans(self):
+        ServicePlanFactory(name='wat', hidden=True)
+        response = self.client.get('/api/sales/v1/service-plans/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIDInList(self.free.id, response.data)
+        self.assertIDInList(self.landscape.id, response.data)
+        self.assertEqual(len(response.data), 2)
+
+
+class TestInvoiceLineItems(APITestCase):
+    def test_invoice_line_items(self):
+        deliverable = DeliverableFactory.create(product__base_price=Money('10.00', 'USD'))
+        self.login(deliverable.order.seller)
+        response = self.client.get(f'/api/sales/v1/invoice/{deliverable.invoice.id}/line-items/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data[0]['amount'], 10.0)
+
+    def test_create_line_item(self):
+        staff = UserFactory.create(is_staff=True)
+        deliverable = DeliverableFactory.create(product__base_price=Money('10.00', 'USD'))
+        self.login(staff)
+        response = self.client.post(
+            f'/api/sales/v1/invoice/{deliverable.invoice.id}/line-items/',
+            {'description': 'Stuff', 'amount': 5, 'percentage': 0, 'type': EXTRA},
+        )
+        self.assertEqual(response.data['amount'], 5)
+
+    def test_modify_base_line_item(self):
+        staff = UserFactory.create(is_staff=True)
+        deliverable = DeliverableFactory.create(product__base_price=Money('10.00', 'USD'))
+        self.login(staff)
+        line_item = deliverable.invoice.line_items.get(type=BASE_PRICE)
+        response = self.client.patch(
+            f'/api/sales/v1/invoice/{deliverable.invoice.id}/line-items/{line_item.id}/',
+            {'amount': 5, 'percentage': 5},
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        line_item.refresh_from_db()
+        self.assertEqual(line_item.amount, Money('5.00', 'USD'))
+        # Should have ignored our request to set a percentage on the base price.
+        self.assertEqual(line_item.percentage, 0)
+
+    def test_create_line_item_wrong_type(self):
+        staff = UserFactory.create(is_staff=True)
+        deliverable = DeliverableFactory.create(product__base_price=Money('10.00', 'USD'))
+        self.login(staff)
+        response = self.client.post(
+            f'/api/sales/v1/invoice/{deliverable.invoice.id}/line-items/',
+            {'description': 'Stuff', 'amount': 5, 'percentage': 0, 'type': ADD_ON},
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('type', response.data)
+
+    def test_create_line_item_wrong_user(self):
+        deliverable = DeliverableFactory.create(product__base_price=Money('10.00', 'USD'))
+        self.login(deliverable.order.seller)
+        response = self.client.post(
+            f'/api/sales/v1/invoice/{deliverable.invoice.id}/line-items/',
+            {'description': 'Stuff', 'amount': 5, 'type': ADD_ON},
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class TestLineItemManager(APITestCase):
+    def test_retrieve_line_item(self):
+        staff = UserFactory.create(is_staff=True)
+        line_item = LineItemFactory.create(amount=Money('5.00', 'USD'))
+        self.login(staff)
+        response = self.client.get(
+            f'/api/sales/v1/invoice/{line_item.invoice.id}/line-items/{line_item.id}/',
+        )
+        self.assertEqual(response.data['id'], line_item.id)
+
+
+class TestReferenceManager(APITestCase):
+    def test_get_reference(self):
+        reference = ReferenceFactory.create()
+        deliverable = DeliverableFactory.create()
+        deliverable.reference_set.add(reference)
+        self.login(deliverable.order.seller)
+        response = self.client.get(
+            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/references/{reference.id}/',
+        )
+        self.assertEqual(response.data['id'], reference.id)
+
+    def test_delete_reference(self):
+        deliverable = DeliverableFactory.create()
+        reference = ReferenceFactory.create(owner=deliverable.order.seller)
+        deliverable2 = DeliverableFactory.create(order__seller=deliverable.order.seller)
+        deliverable.reference_set.add(reference)
+        deliverable2.reference_set.add(reference)
+        self.login(deliverable.order.seller)
+        response = self.client.delete(
+            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/references/{reference.id}/',
+        )
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        # Should not throw.
+        reference.refresh_from_db()
+
+    def test_delete_reference_last_deliverable(self):
+        deliverable = DeliverableFactory.create()
+        reference = ReferenceFactory.create(owner=deliverable.order.seller)
+        deliverable.reference_set.add(reference)
+        self.login(deliverable.order.seller)
+        response = self.client.delete(
+            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/references/{reference.id}/',
+        )
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        with self.assertRaises(Reference.DoesNotExist):
+            reference.refresh_from_db()
+
+    def test_delete_reference_not_owner(self):
+        deliverable = DeliverableFactory.create()
+        reference = ReferenceFactory.create(owner=deliverable.order.buyer)
+        deliverable.reference_set.add(reference)
+        self.login(deliverable.order.seller)
+        response = self.client.delete(
+            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/references/{reference.id}/',
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class TestInvoicePayment(APITestCase):
+    def test_pay_cash(self):
+        line_item = LineItemFactory.create(invoice__status=OPEN)
+        staff = UserFactory.create(is_staff=True)
+        self.login(staff)
+        response = self.client.post(
+            f'/api/sales/v1/invoice/{line_item.invoice.id}/pay/',
+            {
+                'amount': line_item.invoice.total().amount,
+                'cash': True,
+            })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_pay_cash_wrong_amount(self):
+        line_item = LineItemFactory.create(invoice__status=OPEN)
+        staff = UserFactory.create(is_staff=True)
+        self.login(staff)
+        response = self.client.post(
+            f'/api/sales/v1/invoice/{line_item.invoice.id}/pay/',
+            {
+                'amount': '12345',
+                'cash': True,
+            })
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class TestSetPlan(APITestCase):
+    def test_set_next_plan_free(self):
+        user = UserFactory.create(
+            service_plan=self.landscape,
+            next_service_plan=self.landscape,
+            service_plan_paid_through=timezone.now().date(),
+        )
+        self.login(user)
+        response = self.client.post(f'/api/sales/v1/account/{user.username}/set-plan/', {'service': 'Free'})
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        user.refresh_from_db()
+        self.assertEqual(user.service_plan, self.landscape)
+        self.assertEqual(user.next_service_plan, self.free)
+
+    def test_set_current_plan_free(self):
+        user = UserFactory.create(
+            service_plan=self.landscape,
+            next_service_plan=self.landscape,
+            service_plan_paid_through=timezone.now() - relativedelta(days=3),
+        )
+        self.login(user)
+        response = self.client.post(f'/api/sales/v1/account/{user.username}/set-plan/', {'service': 'Free'})
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        user.refresh_from_db()
+        self.assertEqual(user.service_plan, self.free)
+        self.assertEqual(user.next_service_plan, self.free)
+
+    def test_allow_paid_noop(self):
+        user = UserFactory.create(
+            service_plan=self.landscape,
+            next_service_plan=self.landscape,
+            service_plan_paid_through=timezone.now(),
+        )
+        self.login(user)
+        response = self.client.post(f'/api/sales/v1/account/{user.username}/set-plan/', {'service': 'Landscape'})
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        user.refresh_from_db()
+        self.assertEqual(user.service_plan, self.landscape)
+        self.assertEqual(user.next_service_plan, self.landscape)
+
+    def test_disallow_paid_upgrade(self):
+        user = UserFactory.create(
+            service_plan=self.free,
+            next_service_plan=self.free,
+            service_plan_paid_through=timezone.now(),
+        )
+        self.login(user)
+        response = self.client.post(f'/api/sales/v1/account/{user.username}/set-plan/', {'service': 'Landscape'})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        user.refresh_from_db()
+        self.assertEqual(user.service_plan, self.free)
+        self.assertEqual(user.next_service_plan, self.free)
+
+
+class TestAccountStatus(APITestCase):
+    def test_account_status(self):
+        user = UserFactory.create()
+        TransactionRecordFactory.create(
+            payer=None, payee=user, destination=HOLDINGS, amount=Money('10.0', 'USD'),
+        )
+        TransactionRecordFactory.create(
+            payer=user, payee=None, source=HOLDINGS, amount=Money('2.0', 'USD'),
+        )
+        TransactionRecordFactory.create(
+            payer=user, payee=None, source=HOLDINGS, amount=Money('1.00', 'USD'), status=PENDING,
+        )
+        self.login(user)
+        response = self.client.get(f'/api/sales/v1/account/{user.username}/account-status/', {'account': HOLDINGS})
+        self.assertEqual(response.data, {'available': 7.0, 'pending': -1.0, 'posted': 8.0})
+
+
+class TestStorePreview(APITestCase):
+    def test_store_preview(self):
+        submission = SubmissionFactory.create()
+        product = ProductFactory.create(primary_submission=submission, user=submission.owner)
+        response = self.client.get(f'/store/{product.user.username}')
+        self.assertIn(product.preview_link, response.content.decode('utf-8'))
+
+    def test_store_preview_avatar_url(self):
+        submission = SubmissionFactory.create()
+        product = ProductFactory.create(primary_submission=submission, user=submission.owner)
+        User.objects.filter(id=submission.owner.id).update(avatar_url='/test.jpg')
+        response = self.client.get(f'/store/{product.user.username}')
+        self.assertIn(make_url('/test.jpg'), response.content.decode('utf-8'))
+
+
+class TestProductPreview(APITestCase):
+    def test_product_preview(self):
+        submission = SubmissionFactory.create()
+        product = ProductFactory.create(primary_submission=submission, user=submission.owner)
+        response = self.client.get(f'/store/{product.user.username}/product/{product.id}')
+        self.assertIn(product.preview_link, response.content.decode('utf-8'))
+
+
+class TestCommissionsStatus(APITestCase):
+    def test_commissions_open(self):
+        product = ProductFactory.create()
+        # Should be enabled by default.
+        response = self.client.get(f'/api/sales/v1/account/{product.user.username}/commissions-status-image/')
+        self.assertIn(b'commissions-open.png', response.serialize_headers())
+
+    def test_commissions_closed(self):
+        product = ProductFactory.create(user__artist_profile__commissions_closed=True)
+        # Should be enabled by default.
+        response = self.client.get(f'/api/sales/v1/account/{product.user.username}/commissions-status-image/')
+        self.assertIn(b'commissions-closed.png', response.serialize_headers())
+
+
+class TestFeatureProduct(APITestCase):
+    def test_feature_product(self):
+        product = ProductFactory.create()
+        self.assertFalse(product.featured)
+        user = UserFactory.create(is_staff=True)
+        self.login(user)
+        self.client.post(f'/api/sales/v1/account/{product.user.username}/products/{product.id}/feature/', {})
+        product.refresh_from_db()
+        self.assertTrue(product.featured)
+
+    def test_unfeature_product(self):
+        product = ProductFactory.create(featured=True)
+        self.assertTrue(product.featured)
+        user = UserFactory.create(is_staff=True)
+        self.login(user)
+        self.client.post(f'/api/sales/v1/account/{product.user.username}/products/{product.id}/feature/', {})
+        product.refresh_from_db()
+        self.assertFalse(product.featured)
+
+    def test_feature_non_staff_fails(self):
+        product = ProductFactory.create()
+        self.login(product.user)
+        response = self.client.post(f'/api/sales/v1/account/{product.user.username}/products/{product.id}/feature/', {})
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class TestPremadeSearches(APITestCase):
+    def test_lgbt(self):
+        lgbt = ProductFactory.create(user__artist_profile__lgbt=True)
+        # Unrelated
+        ProductFactory.create()
+        response = self.client.get('/api/sales/v1/lgbt/')
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertIDInList(lgbt, response.data['results'])
+
+    def test_artists_of_color(self):
+        artist_of_color = ProductFactory.create(user__artist_profile__artist_of_color=True)
+        # Unrelated
+        ProductFactory.create()
+        response = self.client.get('/api/sales/v1/artists-of-color/')
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertIDInList(artist_of_color, response.data['results'])
+
+    def test_highly_rated(self):
+        highly_rated = ProductFactory.create(user__stars=5)
+        # Not high enough
+        ProductFactory.create(user__stars=3)
+        # Unrated
+        ProductFactory.create()
+        response = self.client.get('/api/sales/v1/highly-rated/')
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertIDInList(highly_rated, response.data['results'])
+
+    def test_new_artist(self):
+        veteran = ProductFactory.create()
+        DeliverableFactory.create(product=veteran, order__seller=veteran.user, status=COMPLETED)
+        new_product = ProductFactory.create()
+        response = self.client.get('/api/sales/v1/new-artist-products/')
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertIDInList(new_product, response.data['results'])
+
+    def test_low_price(self):
+        low_price = ProductFactory.create(base_price=Money('10.00', 'USD'))
+        ProductFactory.create(base_price=Money('50.00', 'USD'))
+        response = self.client.get('/api/sales/v1/low-price/')
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertIDInList(low_price, response.data['results'])
+
+    def test_table_products(self):
+        table_product = ProductFactory.create(table_product=True)
+        ProductFactory.create()
+        user = UserFactory.create(is_staff=True)
+        self.login(user)
+        response = self.client.get('/api/sales/v1/table/products/')
+        self.assertEqual(len(response.data), 1)
+        self.assertIDInList(table_product, response.data)
+
+    def test_random(self):
+        products = tuple(ProductFactory.create().id for _ in range(5))
+        id_sets = [
+            tuple(item['id'] for item in self.client.get('/api/sales/v1/random/').data['results']) for _ in range(5)
+        ]
+        for id_set in id_sets:
+            self.assertCountEqual(products, id_set)
+        # Should be incredibly improbable for this to be true, though this test might fail once in a long while.
+        self.assertNotEqual(len(id_sets), 1)
+
+
+class TestInvoiceStatus(APITestCase):
+    def test_finalize_invoice(self):
+        invoice = InvoiceFactory.create(status=DRAFT)
+        user = UserFactory.create(is_staff=True)
+        self.login(user)
+        self.client.post(f'/api/sales/v1/invoice/{invoice.id}/finalize/')
+        invoice.refresh_from_db()
+        self.assertEqual(invoice.status, OPEN)
+
+    def test_finalize_invoice_already_open(self):
+        invoice = InvoiceFactory.create(status=OPEN)
+        user = UserFactory.create(is_staff=True)
+        self.login(user)
+        response = self.client.post(f'/api/sales/v1/invoice/{invoice.id}/finalize/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_void_invoice(self):
+        invoice = InvoiceFactory.create(status=OPEN)
+        user = UserFactory.create(is_staff=True)
+        self.login(user)
+        self.client.post(f'/api/sales/v1/invoice/{invoice.id}/void/')
+        invoice.refresh_from_db()
+        self.assertEqual(invoice.status, VOID)
+
+    def test_void_invoice_wrong_status(self):
+        invoice = InvoiceFactory.create(status=PAID)
+        user = UserFactory.create(is_staff=True)
+        self.login(user)
+        response = self.client.post(f'/api/sales/v1/invoice/{invoice.id}/void/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class TestInvoiceDetail(APITestCase):
+    def test_invoice_detail(self):
+        invoice = InvoiceFactory()
+        self.login(invoice.bill_to)
+        response = self.client.get(f'/api/sales/v1/invoice/{invoice.id}/')
+        self.assertEqual(response.data['id'], invoice.id)
+
+
+class TestTableOrders(APITestCase):
+    def test_table_orders(self):
+        user = UserFactory.create(is_staff=True)
+        deliverable = DeliverableFactory(table_order=True)
+        # Unrelated
+        DeliverableFactory.create()
+        self.login(user)
+        response = self.client.get(f'/api/sales/v1/table/orders/')
+        self.assertIDInList(deliverable.order, response.data)
+        self.assertEqual(len(response.data), 1)
+
+
+class TestProductRecommendations(APITestCase):
+    def test_productRecommendations(self):
+        product = ProductFactory.create()
+        for i in range(3):
+            ProductFactory.create(user=product.user)
+        other_user_product = ProductFactory.create()
+        response = self.client.get(
+            f'/api/sales/v1/account/{product.user.username}/products/{product.id}/recommendations/',
+        )
+        id_list = [result['user']['id'] for result in response.data['results']]
+        self.assertEqual([product.user.id] * 3 + [other_user_product.user.id], id_list)

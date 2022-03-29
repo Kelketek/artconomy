@@ -24,4 +24,5 @@ export default interface Product {
   primary_submission: null|Submission,
   wait_list: boolean,
   catalog_enabled: boolean,
+  cascade_fees: boolean,
 }

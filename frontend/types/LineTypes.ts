@@ -9,4 +9,5 @@ export enum LineTypes {
   EXTRA,
   PREMIUM_SUBSCRIPTION,
   OTHER_FEE,
+  DELIVERABLE_TRACKING,
 }
