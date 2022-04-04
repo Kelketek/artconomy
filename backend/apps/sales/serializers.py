@@ -944,14 +944,6 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
         }
 
     def get_price(self, obj):
-        # TODO: Cash-based transactions are allocating the cost of a credit card fee as an extra cash input. Find and fix.
-        print('========')
-        print(obj.id)
-        for trans in self.charge_transactions(obj):
-            print(trans)
-        print(self.charge_transactions(obj).aggregate(total=Sum('amount'))['total'])
-        print('========')
-        return obj.invoice.total()
         return self.charge_transactions(obj).aggregate(total=Sum('amount'))['total']
 
     def get_payment_type(self, obj):
