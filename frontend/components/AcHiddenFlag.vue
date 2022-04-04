@@ -1,6 +1,6 @@
 <template>
   <div class="hidden-marker-container" v-if="value">
-    <v-icon class="ml-2 mt-2">visibility_off</v-icon>
+    <v-icon class="ml-2 mt-2 elevation-20 background-black">visibility_off</v-icon>
   </div>
 </template>
 
@@ -10,6 +10,10 @@
     height: 100%;
     width: 100%;
     z-index: 1;
+  }
+  .background-black {
+    background-color: #000;
+    border-radius: 20px;
   }
 </style>
 
