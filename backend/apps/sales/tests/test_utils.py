@@ -685,7 +685,6 @@ class TransactionCheckMixin:
         self.assertIsNone(fee.payee)
         self.assertEqual(TransactionRecord.objects.all().aggregate(total=Sum('amount'))['total'], Decimal('12.00'))
 
-
 class TestDestroyDeliverable(TestCase):
     def test_destroy_deliverable_fail_not_cancelled(self):
         deliverable = DeliverableFactory(status=IN_PROGRESS)

@@ -516,9 +516,7 @@ def distribute_difference(difference: Money, money_map: 'LineMoneyMap') -> 'Line
     return updated_map
 
 
-@floor_context
-def get_totals(lines: Iterator['Line']) -> (Money, Money, 'LineMoneyMap'):
-    priority_sets = lines_by_priority(lines)
+def normalized_lines(priority_sets: List[List[Union['LineItem', 'LineItemSim']]]):
     total, discount, subtotals = reduce(
         priority_total, priority_sets, (Money('0.00', 'USD'), Money('0.00', 'USD'), {}),
     )
@@ -529,6 +527,12 @@ def get_totals(lines: Iterator['Line']) -> (Money, Money, 'LineMoneyMap'):
     else:
         subtotals = {key: value.round(2) for key, value in subtotals.items()}
     return total, discount, subtotals
+
+
+@floor_context
+def get_totals(lines: Iterator['Line']) -> (Money, Money, 'LineMoneyMap'):
+    priority_sets = lines_by_priority(lines)
+    return normalized_lines(priority_sets)
 
 
 def reckon_lines(lines) -> Money:
@@ -576,6 +580,7 @@ def divide_amount(amount: Money, divisor: int) -> List[Money]:
     return result
 
 
+@floor_context
 def lines_to_transaction_specs(lines: Iterator['LineItem']) -> 'TransactionSpecMap':
     from apps.sales.models import BONUS, SHIELD, ADD_ON, BASE_PRICE, TABLE_SERVICE, TAX, EXTRA, TIP, TransactionRecord
     type_map = {
@@ -589,7 +594,7 @@ def lines_to_transaction_specs(lines: Iterator['LineItem']) -> 'TransactionSpecM
         EXTRA: TransactionRecord.EXTRA_ITEM,
     }
     priority_sets = lines_by_priority(lines)
-    _, __, subtotals = reduce(priority_total, priority_sets, (Money('0.00', 'USD'), Money('0.00', 'USD'), {}))
+    total, __, subtotals = normalized_lines(priority_sets)
     transaction_specs = defaultdict(lambda: Money('0.00', 'USD'))
     for line_item, subtotal in subtotals.items():
         transaction_specs[
@@ -1008,19 +1013,24 @@ def deliverable_initialize_transactions(
     from apps.sales.models import TransactionRecord
     deliverable = context['deliverable']
     transaction_specs = lines_to_transaction_specs(deliverable.invoice.line_items.all())
+    # TODO: This should probably be decided some other way/earlier in the process.
+    if attempt.get('cash'):
+        source = TransactionRecord.CASH_DEPOSIT
+    else:
+        source = TransactionRecord.CARD
     transactions = [
         TransactionRecord(
             payer=deliverable.order.buyer,
             status=TransactionRecord.FAILURE,
             category=category,
-            source=TransactionRecord.CARD,
+            source=source,
             payee=destination_user,
             destination=destination_account,
             amount=value,
             response_message="Failed when contacting payment processor.",
         ) for ((destination_user, destination_account, category), value) in transaction_specs.items()
     ]
-    if deliverable.processor == STRIPE:
+    if deliverable.processor == STRIPE and source == TransactionRecord.CARD:
         transactions.extend(initialize_stripe_charge_fees(amount=amount))
     return transactions
 
@@ -1086,7 +1096,7 @@ def pay_deliverable(*, attempt: PaymentAttempt, deliverable: 'Deliverable', requ
         ensure_buyer(deliverable.order)
     except AssertionError:
         return False, [], 'No buyer is set for this order, nor is there a customer email set.'
-    success, records, message= perform_charge(
+    success, records, message = perform_charge(
         attempt=attempt, amount=attempt['amount'], user=deliverable.order.buyer,
         requesting_user=requesting_user, post_save=deliverable_post_save,
         context={'deliverable': deliverable}, initiate_transactions=deliverable_initialize_transactions,
