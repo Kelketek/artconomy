@@ -9,6 +9,7 @@
         <v-row no-gutters align-content="center" justify="center">
           <v-col cols="6" sm="12" lg="8">
             <ac-link :to="{name: 'Product', params: {productId: product.id, username: product.user.username}}">
+              <ac-hidden-flag :value="product.table_product || product.hidden" />
               <ac-asset :asset="product.primary_submission" thumb-name="thumbnail" />
             </ac-link>
           </v-col>
@@ -86,6 +87,7 @@
         <v-row no-gutters class="pb-2" >
           <v-col cols="8" offset="2">
             <ac-link :to="productLink">
+              <ac-hidden-flag :value="product.table_product || product.hidden" />
               <ac-asset :text="false" :asset="product.primary_submission" thumb-name="thumbnail" />
             </ac-link>
           </v-col>
@@ -113,6 +115,7 @@
   </v-responsive>
   <v-card class="product-preview" :class="{unavailable}" v-else>
     <ac-link :to="productLink">
+      <ac-hidden-flag :value="product.table_product || product.hidden" />
       <ac-asset :asset="product.primary_submission" thumb-name="thumbnail" />
     </ac-link>
     <v-card-text class="pt-2">
@@ -204,8 +207,9 @@ import AcLink from '@/components/wrappers/AcLink.vue'
 import AcRendered from '@/components/wrappers/AcRendered'
 import AcAvatar from '@/components/AcAvatar.vue'
 import Formatting from '@/mixins/formatting'
+import AcHiddenFlag from '@/components/AcHiddenFlag.vue'
   @Component({
-    components: {AcAvatar, AcRendered, AcLink, AcAsset},
+    components: {AcHiddenFlag, AcAvatar, AcRendered, AcLink, AcAsset},
   })
 export default class AcProductPreview extends mixins(Formatting) {
     @Prop({required: true})
