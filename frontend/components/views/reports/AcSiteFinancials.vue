@@ -32,6 +32,10 @@
         <v-row no-gutters>
           <v-col><a :href="`/api/sales/v1/reports/payout-report/csv/${rangeString}`" download>Download CSV</a></v-col>
         </v-row>
+        <v-toolbar dense><v-toolbar-title>Unaffiliated Sales Report</v-toolbar-title></v-toolbar>
+        <v-row no-gutters>
+          <v-col><a :href="`/api/sales/v1/reports/unaffiliated-sales/csv/${rangeString}`" download>Download CSV</a></v-col>
+        </v-row>
         <v-toolbar dense><v-toolbar-title>Dwolla Report</v-toolbar-title></v-toolbar>
         <v-row no-gutters>
           <v-col><a :href="`/api/sales/v1/reports/dwolla-report/csv/${rangeString}`" download>Download CSV</a></v-col>

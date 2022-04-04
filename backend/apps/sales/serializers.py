@@ -944,6 +944,8 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
         }
 
     def get_price(self, obj):
+        # TODO: Cash-based transactions are allocating the cost of a credit card fee as an extra cash input. Find and fix.
+        return obj.invoice.total()
         return self.charge_transactions(obj).aggregate(total=Sum('amount'))['total']
 
     def get_payment_type(self, obj):
@@ -985,9 +987,13 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
         ).aggregate(total=Sum('amount'))['total']
 
     def get_our_fees(self, obj):
+        destinations = [TransactionRecord.UNPROCESSED_EARNINGS]
+        if obj.status == None:
+            destinations.append(TransactionRecord.RESERVE)
         transactions = TransactionRecord.objects.filter(
             payer=obj.order.buyer, payee=None, status=TransactionRecord.SUCCESS,
-            source=TransactionRecord.CARD, destination=TransactionRecord.UNPROCESSED_EARNINGS,
+            source__in=[TransactionRecord.CARD, TransactionRecord.CASH_DEPOSIT],
+            destination__in=[TransactionRecord.UNPROCESSED_EARNINGS],
             **self.qs_kwargs(obj),
         )
         return transactions.aggregate(total=Sum('amount'))['total']
@@ -1238,6 +1244,52 @@ class SimpleTransactionSerializer(serializers.ModelSerializer):
             'id', 'source', 'status', 'payer', 'payee', 'amount', 'remote_ids',
             'category',
             'created_on', 'finalized_on',
+        )
+        read_only_fields = fields
+
+
+class UnaffiliatedInvoiceSerializer(serializers.ModelSerializer):
+    id = ShortCodeField()
+    source = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
+    total = MoneyToFloatField()
+    tax = serializers.SerializerMethodField()
+    card_fees = serializers.SerializerMethodField()
+    net = serializers.SerializerMethodField()
+
+    def get_source(self, obj):
+        records = TransactionRecord.objects.filter(targets=ref_for_instance(obj), status=TransactionRecord.SUCCESS)
+        if records.filter(source=TransactionRecord.CASH_DEPOSIT).exists():
+            return 'Cash'
+        if records.filter(source=TransactionRecord.CARD).exists():
+            return 'Card'
+        return '????'
+
+    def get_status(self, obj):
+        return obj.get_status_display()
+
+    def get_tax(self, obj):
+        return str(TransactionRecord.objects.filter(
+            targets=ref_for_instance(obj),
+            status=TransactionRecord.SUCCESS,
+            destination=TransactionRecord.MONEY_HOLE,
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0.00'))
+
+    def get_card_fees(self, obj):
+        return str(TransactionRecord.objects.filter(
+            targets=ref_for_instance(obj),
+            status=TransactionRecord.SUCCESS,
+            destination=TransactionRecord.CARD_TRANSACTION_FEES,
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0.00'))
+
+    def get_net(self, obj):
+        return str(obj.total().amount - Decimal(self.get_card_fees(obj)) - Decimal(self.get_tax(obj)))
+
+    class Meta:
+        model = TransactionRecord
+        fields = (
+            'id', 'source', 'status', 'total', 'card_fees', 'tax', 'net',
+            'created_on',
         )
         read_only_fields = fields
 

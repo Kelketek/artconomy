@@ -303,6 +303,7 @@ class Deliverable(Model):
     status = IntegerField(choices=DELIVERABLE_STATUSES, default=NEW, db_index=True)
     order = models.ForeignKey('Order', null=False, on_delete=CASCADE, related_name='deliverables')
     product = models.ForeignKey('Product', null=True, on_delete=SET_NULL, related_name='deliverables')
+    # TODO: Remove this field in favor of invoice target(s)
     invoice = models.ForeignKey('Invoice', null=True, on_delete=SET_NULL, related_name='deliverables')
     revisions = IntegerField(default=0)
     revisions_hidden = BooleanField(default=True)

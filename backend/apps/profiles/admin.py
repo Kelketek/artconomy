@@ -14,7 +14,8 @@ class ArtconomyUserAdmin(EmailUserAdmin):
                                     'groups', 'user_permissions', 'guest')}),
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
         ('Premium Info', {'fields': (
-            'landscape_enabled', 'landscape_paid_through',
+            'service_plan', 'service_plan_paid_through',
+            'next_service_plan',
             'registration_code', 'trust_level',
         )}),
         ('Preferences', {'fields': ('primary_card', 'processor_override')})

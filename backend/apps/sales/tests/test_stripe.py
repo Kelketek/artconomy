@@ -330,7 +330,6 @@ class TestStripeWebhook(TransactionCheckMixin, APITestCase):
             status=PAYMENT_PENDING, invoice__current_intent=event['data']['object']['payment_intent'],
             order__buyer__stripe_token='beep',
         )
-        event = base_charge_succeeded_event()
         event['data']['object']['metadata'] = {'invoice_id': deliverable.invoice.id}
         event['data']['object']['customer'] = 'beep'
         request = self.gen_request(event)
@@ -340,8 +339,32 @@ class TestStripeWebhook(TransactionCheckMixin, APITestCase):
         self.assertEqual(deliverable.status, QUEUED)
         transaction = TransactionRecord.objects.get(
             source=TransactionRecord.CARD, destination=TransactionRecord.ESCROW, payer=deliverable.order.buyer,
-            payee=deliverable.order.seller,
+            payee=deliverable.order.seller, status=TransactionRecord.SUCCESS,
         )
+        targets = list(transaction.targets.all())
+        self.assertIn(ref_for_instance(deliverable), targets)
+        self.assertIn(ref_for_instance(deliverable.invoice), targets)
+        self.assertEqual(transaction.targets.count(), 2)
+
+    def test_deliverable_payment_failed(self):
+        event = base_charge_succeeded_event()
+        deliverable = DeliverableFactory.create(
+            status=PAYMENT_PENDING, invoice__current_intent=event['data']['object']['payment_intent'],
+            order__buyer__stripe_token='beep',
+        )
+        event['data']['object']['metadata'] = {'invoice_id': deliverable.invoice.id}
+        event['data']['object']['customer'] = 'beep'
+        event['type'] = 'charge.failed'
+        event['data']['object']['status'] = 'failed'
+        request = self.gen_request(event)
+        response = self.view(request, False)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        transaction = TransactionRecord.objects.get(
+            source=TransactionRecord.CARD, destination=TransactionRecord.ESCROW, payer=deliverable.order.buyer,
+            payee=deliverable.order.seller, status=TransactionRecord.FAILURE,
+        )
+        deliverable.refresh_from_db()
+        self.assertEqual(deliverable.status, PAYMENT_PENDING)
         targets = list(transaction.targets.all())
         self.assertIn(ref_for_instance(deliverable), targets)
         self.assertIn(ref_for_instance(deliverable.invoice), targets)

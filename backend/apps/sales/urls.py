@@ -154,4 +154,5 @@ urlpatterns = [
     path('v1/reports/subscription-report/csv/', views.SubscriptionReportCSV.as_view(), name='subscription_report_csv'),
     path('v1/reports/payout-report/csv/', views.PayoutReportCSV.as_view(), name='payout_report_csv'),
     path('v1/reports/dwolla-report/csv/', views.DwollaSetupFees.as_view(), name='dwolla_report_csv'),
+    path('v1/reports/unaffiliated-sales/csv/', views.UnaffiliatedSaleReportCSV.as_view(), name='unaffiliated_sales_csv'),
 ]

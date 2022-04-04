@@ -6,7 +6,7 @@ from decimal import Decimal
 from functools import lru_cache
 from io import StringIO
 from pprint import pformat
-from typing import Union, Optional, Dict
+from typing import Union, Optional, Dict, List
 from uuid import uuid4
 
 import dateutil
@@ -79,14 +79,14 @@ from apps.sales.serializers import (
     LineItemSerializer, DeliverableValuesSerializer, SimpleTransactionSerializer, InventorySerializer,
     PayoutTransactionSerializer, OrderViewSerializer, ReferenceSerializer, DeliverableReferenceSerializer,
     NewDeliverableSerializer, PinSerializer, PaymentIntentSettings, PremiumIntentSettings, StripeAccountSerializer,
-    StripeBankSetupSerializer, UserPayoutTransactionSerializer, InvoiceSerializer)
+    StripeBankSetupSerializer, UserPayoutTransactionSerializer, InvoiceSerializer, UnaffiliatedInvoiceSerializer)
 from apps.sales.tasks import withdraw_all
 from apps.sales.utils import available_products, set_premium, \
     check_charge_required, available_products_by_load, finalize_deliverable, account_balance, \
     POSTED_ONLY, PENDING, transfer_order, early_finalize, cancel_deliverable, \
     verify_total, issue_refund, ensure_buyer, perform_charge, premium_post_success, premium_initiate_transactions, \
     UserPaymentException, pay_deliverable, get_term_invoice, get_intent_card_token, premium_post_save, \
-    invoice_post_payment, hacky_invoice_post_save, hacky_invoice_initiate_transactions
+    invoice_post_payment
 from shortcuts import make_url
 
 
@@ -474,6 +474,7 @@ class MarkPaid(GenericAPIView):
         deliverable.save()
         deliverable.invoice.record_only = True
         deliverable.invoice.status = PAID
+        deliverable.invoice.paid_on = timezone.now()
         deliverable.invoice.save()
         data = self.serializer_class(instance=deliverable, context=self.get_serializer_context()).data
         notify(ORDER_UPDATE, deliverable, unique=True, mark_unread=True)
@@ -1445,10 +1446,9 @@ class DeliverablePayment(GenericAPIView):
         attempt = attempt.validated_data
         if 'remote_id' in attempt:
             attempt['remote_ids'] = [attempt.pop('remote_id')]
-        try:
-            pay_deliverable(attempt=attempt, deliverable=deliverable, requesting_user=self.request.user)
-        except UserPaymentException as err:
-            return Response(status=status.HTTP_400_BAD_REQUEST, data={'detail': str(err)})
+        success, records, message = pay_deliverable(attempt=attempt, deliverable=deliverable, requesting_user=self.request.user)
+        if not success:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={'detail': message})
         data = DeliverableViewSerializer(instance=deliverable, context=self.get_serializer_context()).data
         return Response(data=data)
 
@@ -2197,6 +2197,37 @@ class SubscriptionReportCSV(CSVReport, ListAPIView, DateConstrained):
         ).exclude(status=TransactionRecord.FAILURE).order_by('created_on')
 
 
+class UnaffiliatedSaleReportCSV(CSVReport, ListAPIView, DateConstrained):
+    serializer_class = UnaffiliatedInvoiceSerializer
+    permission_classes = [IsSuperuser]
+    pagination_class = None
+    report_name = 'unaffiliated-sales-report'
+
+    def get_renderer_context(self):
+        context = super().get_renderer_context()
+        context['header'] = [
+            'id',
+            'status',
+            'total',
+            'created_on',
+            'tax',
+            'card_fees',
+            'net',
+            'source',
+        ]
+        return context
+
+    def get_queryset(self):
+        result = Invoice.objects.filter(
+            status=PAID,
+            **self.date_kwargs,
+            type=SALE,
+            targets__isnull=True,
+            deliverables__isnull=True,
+        ).order_by('created_on')
+        return result
+
+
 class PayoutReportCSV(CSVReport, ListAPIView, DateConstrained):
     serializer_class = PayoutTransactionSerializer
     permission_classes = [IsSuperuser]
@@ -2735,14 +2766,15 @@ def service_charge(*, billable: Union[LineItem, Invoice], target: ServicePlan, c
     return transactions
 
 
-def deliverable_charge(*, billable: Union[LineItem, Invoice], target: Deliverable, context: dict):
+def deliverable_charge(*, billable: Union[LineItem, Invoice], target: Deliverable, context: dict) -> List['TransactionRecord']:
     if isinstance(billable, LineItem):
         # As of yet, we don't have anything special here, but we may eventually.
         return []
     amount = context['amount']
     charge_event = context['stripe_event']['data']['object']
     deliverable = target
-    return pay_deliverable(
+    # TODO: Unify handling of success flag to make this more consistent.
+    _, records, message = pay_deliverable(
         attempt={
             'stripe_event': charge_event,
             'amount': amount,
@@ -2751,6 +2783,7 @@ def deliverable_charge(*, billable: Union[LineItem, Invoice], target: Deliverabl
         requesting_user=deliverable.order.buyer,
         deliverable=deliverable,
     )
+    return records
 
 
 @transaction.atomic

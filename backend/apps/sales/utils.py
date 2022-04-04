@@ -861,7 +861,7 @@ def perform_charge(
         *, attempt: PaymentAttempt, amount: Money, user: User, requesting_user: User,
         initiate_transactions: TransactionInitiator, post_success: TransactionMutator = dummy_mutator,
         post_save: TransactionMutator = dummy_mutator, context: dict,
-) -> List['TransactionRecord']:
+) -> Tuple[bool, List['TransactionRecord'], str]:
     """
     Convenience function for web-facing charges. Takes a payment data dictionary and determines which kind of payment
     is being submitted from the client, then routes the payment according to permissions and payment type.
@@ -899,14 +899,14 @@ def from_cash(
     for transaction in transactions:
         transaction.save()
     post_save(transactions, attempt, user, context)
-    return transactions
+    return True, transactions, ''
 
 
 def from_remote_id(
         *, attempt: PaymentAttempt, amount: Money, user: User, remote_ids: List[str],
         initiate_transactions: TransactionInitiator, post_success: TransactionMutator,
         post_save: TransactionMutator, context: dict,
-):
+) -> Tuple[bool, List['TransactionRecord'], str]:
     """
     Mark this as paid via remote transaction ID from the card processor.
     """
@@ -918,46 +918,50 @@ def from_remote_id(
     auth_code = '******'
     stripe_event = attempt['stripe_event']
     if stripe_event['status'] not in ['succeeded', 'failed']:
-        raise annotate_error(
+        error = f'Unhandled charge status, {stripe_event["status"]} for remote_ids {remote_ids}'
+        return False, annotate_error(
             transactions=[],
             # RuntimeError shouldn't be caught, ensuring this throws properly.
-            error=RuntimeError(f'Unhandled charge status, {stripe_event["status"]} for remote_ids {remote_ids}'),
+            error=error,
             attempt=attempt,
             user=user,
             post_save=post_save,
             context=context,
-        )
+        ), error
     transactions = initiate_transactions(attempt, amount, user, context)
     if stripe_event['status'] == 'failed':
-        raise annotate_error(
+        error = f'{stripe_event["failure_code"]}: {stripe_event["failure_message"]}'
+        return False, annotate_error(
             transactions=transactions,
-            error=UserPaymentException(f'{stripe_event["failure_code"]}: {stripe_event["failure_message"]}'),
+            error=error,
             attempt=attempt,
             user=user,
             post_save=post_save,
             context=context,
-        )
+        ), error
     # We're assuming we'll not be encountering 'pending' here. We have no card transactions which should require it.
     mark_successful(
         transactions=transactions, remote_ids=remote_ids, auth_code=auth_code, post_success=post_success,
         post_save=post_save, context=context, attempt=attempt, user=user,
     )
-    return transactions
+    return True, transactions, ''
 
 
 def annotate_error(
-        *, transactions: List['TransactionRecord'], error: Exception, attempt: PaymentAttempt, user: User,
+        *, transactions: List['TransactionRecord'], error: str, attempt: PaymentAttempt, user: User,
         post_save: TransactionMutator, context: dict,
-) -> Exception:
+) -> List['TransactionRecord']:
     """
     Annotates a set of transactions with an error and then returns the appropriate status code.
     """
-    response_message = str(error)
+    from apps.sales.models import TransactionRecord
+    response_message = error
     for transaction in transactions:
+        transaction.status = TransactionRecord.FAILURE
         transaction.response_message = response_message
         transaction.save()
     post_save(transactions, attempt, user, context)
-    return UserPaymentException(response_message)
+    return transactions
 
 
 def mark_successful(
@@ -1073,20 +1077,22 @@ def premium_post_save(invoice, remote_ids=None):
     return wrapped
 
 
-def pay_deliverable(*, attempt: PaymentAttempt, deliverable: 'Deliverable', requesting_user: User) -> List['TransactionRecord']:
+def pay_deliverable(*, attempt: PaymentAttempt, deliverable: 'Deliverable', requesting_user: User) -> Tuple[bool, List['TransactionRecord'], str]:
     from apps.sales.models import IN_PROGRESS, QUEUED, REVIEW
     from apps.profiles.utils import credit_referral
     if attempt['amount'] != deliverable.invoice.total():
-        raise UserPaymentException('The price has changed. Please refresh.')
+        return False, [], 'The price has changed. Please refresh.'
     try:
         ensure_buyer(deliverable.order)
     except AssertionError:
-        raise UserPaymentException('No buyer is set for this order, nor is there a customer email set.')
-    records = perform_charge(
+        return False, [], 'No buyer is set for this order, nor is there a customer email set.'
+    success, records, message= perform_charge(
         attempt=attempt, amount=attempt['amount'], user=deliverable.order.buyer,
         requesting_user=requesting_user, post_save=deliverable_post_save,
         context={'deliverable': deliverable}, initiate_transactions=deliverable_initialize_transactions,
     )
+    if not success:
+        return success, records, message
     if deliverable.final_uploaded:
         deliverable.status = REVIEW
         deliverable.auto_finalize_on = (timezone.now() + relativedelta(days=2)).date()
@@ -1116,7 +1122,7 @@ def pay_deliverable(*, attempt: PaymentAttempt, deliverable: 'Deliverable', requ
     deliverable.save()
     notify(SALE_UPDATE, deliverable, unique=True, mark_unread=True)
     credit_referral(deliverable)
-    return records
+    return success, records, message
 
 
 def get_term_invoice(user: User) -> 'Invoice':
@@ -1208,7 +1214,7 @@ def hacky_transaction_creation(invoice: 'Invoice', context: dict):
             'amount': amount,
             'remote_ids': remote_ids_from_charge(charge_event),
         }
-    records = perform_charge(
+    success, records, message = perform_charge(
         attempt=attempt, amount=attempt['amount'], user=invoice.bill_to,
         requesting_user=context.get('requesting_user', invoice.bill_to), post_save=hacky_invoice_post_save,
         context={'invoice': invoice}, initiate_transactions=hacky_invoice_initiate_transactions,
@@ -1245,6 +1251,7 @@ def invoice_post_payment(invoice: 'Invoice', context: dict) -> List['Transaction
     if invoice.creates_own_transactions:
         records.extend(hacky_transaction_creation(invoice, context))
     if context['successful']:
+        invoice.paid_on = timezone.now()
         invoice.status = PAID
         invoice.save()
     return records
