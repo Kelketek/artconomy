@@ -1,3 +1,0 @@
----
-- name: restart prerender
-  service: name=prerender state=restarted

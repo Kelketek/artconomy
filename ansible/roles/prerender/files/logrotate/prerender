@@ -1,8 +1,0 @@
-/home/prerender/logs/*.log {
-	rotate 7
-	daily
-	missingok
-	notifempty
-	delaycompress
-	compress
-}
