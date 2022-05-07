@@ -2,15 +2,15 @@ import os
 
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.validators import FileExtensionValidator
 from django.db import models
-from django.db.models import DateTimeField, ForeignKey, CASCADE
+from django.db.models import DateTimeField, ForeignKey, CASCADE, FloatField
 from django.utils import timezone
 from easy_thumbnails.alias import aliases
 from easy_thumbnails.exceptions import InvalidImageFormatError
 from easy_thumbnails.fields import ThumbnailerImageField
 from easy_thumbnails.files import ThumbnailerImageFieldFile, get_thumbnailer
 from hitcount.models import HitCount
+from sequences import get_next_value
 
 from shortcuts import disable_on_load, make_url
 
@@ -182,3 +182,29 @@ class HitsMixin:
     def hits(self):
         hit_counter = HitCount.objects.get_for_object(self)
         return hit_counter.hits
+
+
+def get_next_display_position():
+    return get_next_value('display_position')
+
+
+class ReorderableMixin(models.Model):
+    """
+    Add to any tag through model or any model which may be ordered and hidden without a tag association.
+    """
+    display_position = FloatField(db_index=True, default=get_next_display_position)
+
+    # def save(self, *args, **kwargs):
+    #     if self.display_position is None:
+    #         last = self.display_position = self.__class__.objects.all().order_by('-display_position')[0:1].values_list(
+    #             'display_position', flat=True,
+    #         )
+    #         if last:
+    #             self.display_position = last[0] + 1
+    #         else:
+    #             self.display_position = 0
+    #     super().save(*args, **kwargs)
+
+    class Meta:
+        abstract = True
+        ordering = ('-display_position', 'id')

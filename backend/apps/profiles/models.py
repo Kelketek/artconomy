@@ -26,8 +26,10 @@ from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.datetime_safe import date
 from django.utils.encoding import force_bytes
+from short_stuff import gen_shortcode
+from short_stuff.django.models import ShortCodeField
 
-from apps.lib.abstract_models import GENERAL, RATINGS, ImageModel, thumbnail_hook, HitsMixin
+from apps.lib.abstract_models import GENERAL, RATINGS, ImageModel, thumbnail_hook, HitsMixin, ReorderableMixin
 from apps.lib.models import (
     Comment, Subscription, FAVORITE, SYSTEM_ANNOUNCEMENT, DISPUTE, REFUND, Event,
     SUBMISSION_CHAR_TAG, CHAR_TAG, COMMENT, Tag, SUBMISSION_SHARED, CHAR_SHARED,
@@ -376,7 +378,7 @@ def sync_escrow_status(sender, instance, **kwargs):
             instance.escrow_disabled = False
 
 
-class Submission(ImageModel, HitsMixin):
+class Submission(ImageModel, HitsMixin, ReorderableMixin):
     """
     Uploaded submission
     """
@@ -391,7 +393,7 @@ class Submission(ImageModel, HitsMixin):
         Comment, related_query_name='order', content_type_field='content_type', object_id_field='object_id'
     )
     comments_disabled = BooleanField(default=False)
-    artists = ManyToManyField('User', related_name='art', blank=True)
+    artists = ManyToManyField('User', related_name='art', blank=True, through='ArtistTag')
     artists__max = 10
     deliverable = ForeignKey('sales.Deliverable', null=True, blank=True, on_delete=SET_NULL, related_name='outputs')
     revision = ForeignKey('sales.Revision', null=True, blank=True, on_delete=SET_NULL, related_name='submissions')
@@ -471,6 +473,13 @@ def auto_remove_image_subscriptions(sender, instance, **kwargs):
 
 remove_submission_events = receiver(pre_delete, sender=Submission)(clear_events)
 submission_thumbnailer = receiver(post_save, sender=Submission)(thumbnail_hook)
+
+
+class ArtistTag(ReorderableMixin):
+    id = ShortCodeField(default=gen_shortcode, db_index=True, primary_key=True)
+    user = ForeignKey('User', on_delete=CASCADE)
+    submission = ForeignKey('Submission', on_delete=CASCADE)
+    hidden = BooleanField(default=False, db_index=True)
 
 
 class Character(Model, HitsMixin):

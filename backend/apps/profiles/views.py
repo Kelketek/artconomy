@@ -59,7 +59,7 @@ from apps.lib.views import BasePreview
 from apps.profiles.models import (
     User, Character, Submission, RefColor, Attribute, Conversation,
     ConversationParticipant, Journal,
-    ArtistProfile, trigger_reconnect
+    ArtistProfile, trigger_reconnect, ArtistTag
 )
 from apps.profiles.permissions import (
     ObjectControls, UserControls, SubmissionViewPermission, SubmissionControls,
@@ -617,13 +617,13 @@ class SubmissionArtistList(ListCreateAPIView):
         self.check_object_permissions(self.request, target)
         return super(SubmissionArtistList, self).create(request, *args, **kwargs)
 
-    def perform_create(self, serializer) -> Submission.artists.through:
+    def perform_create(self, serializer) -> ArtistTag:
         submission = self.get_object()
         try:
             add_check(submission, 'artists', serializer.validated_data['user_id'])
         except ValidationError as err:
             raise PermissionDenied(''.join(err.detail))
-        relation, _ = Submission.artists.through.objects.get_or_create(
+        relation, _ = ArtistTag.objects.get_or_create(
             submission=self.get_object(), user_id=serializer.validated_data['user_id'],
         )
         if submission.owner != self.request.user:
@@ -650,7 +650,7 @@ class SubmissionArtistList(ListCreateAPIView):
         return relation
 
     def get_queryset(self) -> QuerySet:
-        return Submission.artists.through.objects.filter(submission=self.get_object())
+        return ArtistTag.objects.filter(submission=self.get_object())
 
     @lru_cache()
     def get_object(self) -> Submission:
@@ -710,13 +710,13 @@ class SubmissionArtistManager(DestroyAPIView):
     permission_classes = [IsRegistered, SubmissionTagPermission]
     serializer_class = RelatedUserSerializer
 
-    def get_object(self) -> Submission.artists.through:
+    def get_object(self) -> ArtistTag:
         return get_object_or_404(
-            Submission.artists.through, id=self.kwargs['tag_id'],
+            ArtistTag, id=self.kwargs['tag_id'],
             submission__id=self.kwargs['submission_id'],
         )
 
-    def perform_destroy(self, instance: Submission.artists.through):
+    def perform_destroy(self, instance: ArtistTag):
         recall_notification(
             ARTIST_TAG, instance.user, data={'submission': instance.submission.id}
         )
@@ -744,13 +744,13 @@ class SubmissionCharacterManager(DestroyAPIView):
     permission_classes = [IsRegistered, SubmissionTagPermission]
     serializer_class = CharacterSerializer
 
-    def get_object(self) -> Submission.artists.through:
+    def get_object(self) -> ArtistTag:
         return get_object_or_404(
             Submission.characters.through, id=self.kwargs['tag_id'],
             submission__id=self.kwargs['submission_id'],
         )
 
-    def perform_destroy(self, instance: Submission.artists.through):
+    def perform_destroy(self, instance: ArtistTag):
         recall_notification(
             CHAR_TAG, instance.character, data={'submission': instance.submission.id}
         )
