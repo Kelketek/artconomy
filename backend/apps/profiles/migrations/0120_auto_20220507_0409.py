@@ -48,4 +48,24 @@ class Migration(migrations.Migration):
             field=models.FloatField(db_index=True, default=0),
             preserve_default=False,
         ),
+        migrations.CreateModel(
+            name='CharacterTag',
+            fields=[
+                ('display_position', models.FloatField(db_index=True)),
+                ('id', short_stuff.django.models.ShortCodeField(db_index=True, default=short_stuff.lib.gen_shortcode, primary_key=True, serialize=False)),
+                ('hidden', models.BooleanField(db_index=True, default=False)),
+                ('reference', models.BooleanField(db_index=True, default=False)),
+                ('submission', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='profiles.submission')),
+                ('character', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='profiles.character')),
+            ],
+            options={
+                'ordering': ('-display_position', 'id'),
+                'abstract': False,
+            },
+        ),
+        migrations.AddField(
+            model_name='submission',
+            name='characters_new',
+            field=models.ManyToManyField(blank=True, related_name='submissions_new', through='profiles.CharacterTag', to='profiles.Character'),
+        ),
     ]

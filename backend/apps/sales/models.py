@@ -18,7 +18,7 @@ from django.db.models import (
     SET_NULL, PositiveIntegerField, URLField, CASCADE, DecimalField, Avg, DateField, EmailField, Sum,
     TextField,
     SlugField,
-    PROTECT, OneToOneField, JSONField,
+    PROTECT, OneToOneField, JSONField, FloatField,
 )
 
 # Create your models here.
@@ -27,6 +27,7 @@ from django.dispatch import receiver
 from django.utils import timezone
 from djmoney.models.fields import MoneyField
 from moneyed import Money
+from sequences import get_next_value
 from short_stuff import gen_shortcode
 from short_stuff.django.models import ShortCodeField
 
@@ -401,6 +402,27 @@ class Deliverable(Model):
         super().save(*args, **kwargs)
 
 
+def get_next_order_position():
+    """
+    Must be defined in root for migrations.
+    """
+    return get_next_value('order_position')
+
+
+def get_next_sale_position():
+    """
+    Must be defined in root for migrations.
+    """
+    return get_next_value('sale_position')
+
+
+def get_next_case_position():
+    """
+    Must be defined in root for migrations.
+    """
+    return get_next_value('case_position')
+
+
 class Order(Model):
     """
     Record of Order
@@ -415,6 +437,11 @@ class Order(Model):
     customer_email = EmailField(blank=True)
     created_on = DateTimeField(db_index=True, default=timezone.now)
     private = BooleanField(default=False)
+    order_display_position = FloatField(db_index=True, default=get_next_order_position)
+    sale_display_position = FloatField(db_index=True, default=get_next_sale_position)
+    # Note: This will affect all arbitrators across all deliverables for this order.
+    # This may result in strange behavior, but at least it won't be consumer-facing.
+    case_display_position = FloatField(db_index=True, default=get_next_case_position)
 
     def __str__(self):
         return f"#{self.id} by {self.seller} for {self.buyer}"

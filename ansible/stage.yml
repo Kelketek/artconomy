@@ -12,7 +12,6 @@
     - letsencrypt
     - nginx
     - app
-    - prerender
     # - blog
     - rabbitmq
     - celery

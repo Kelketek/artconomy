@@ -85,7 +85,7 @@ urlpatterns = [
         views.SubmissionCharacterList.as_view(), name='submission_character_list'
     ),
     path(
-        r'v1/submission/<int:submission_id>/characters/<int:tag_id>/',
+        r'v1/submission/<int:submission_id>/characters/<short_code:tag_id>/',
         views.SubmissionCharacterManager.as_view(), name='submission_character_manager'
     ),
     path(

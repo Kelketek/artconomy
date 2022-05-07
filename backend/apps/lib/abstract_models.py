@@ -194,17 +194,6 @@ class ReorderableMixin(models.Model):
     """
     display_position = FloatField(db_index=True, default=get_next_display_position)
 
-    # def save(self, *args, **kwargs):
-    #     if self.display_position is None:
-    #         last = self.display_position = self.__class__.objects.all().order_by('-display_position')[0:1].values_list(
-    #             'display_position', flat=True,
-    #         )
-    #         if last:
-    #             self.display_position = last[0] + 1
-    #         else:
-    #             self.display_position = 0
-    #     super().save(*args, **kwargs)
-
     class Meta:
         abstract = True
         ordering = ('-display_position', 'id')
