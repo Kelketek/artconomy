@@ -93,6 +93,7 @@ INSTALLED_APPS = [
     'django_otp.plugins.otp_static',
     # Needed to subclass the model. We don't use email for 2FA since we allow password resets as well.
     'django_otp.plugins.otp_email',
+    'sequences.apps.SequencesConfig',
     'apps.profiles.apps.ProfilesConfig',
     'apps.sales.apps.SalesConfig',
     'apps.lib',

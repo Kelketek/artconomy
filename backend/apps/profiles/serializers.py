@@ -30,7 +30,7 @@ from apps.profiles.models import (
     Character, Submission, User, RefColor, Attribute, Conversation,
     ConversationParticipant, Journal, banned_named_validator,
     banned_prefix_validator,
-    ArtistProfile
+    ArtistProfile, ArtistTag
 )
 from apps.sales.apis import STRIPE
 from apps.sales.models import Promo, ServicePlan
@@ -306,7 +306,7 @@ class SubmissionArtistTagSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'user', 'user_id',
         )
-        model = Submission.artists.through
+        model = ArtistTag
 
 
 class SubmissionCharacterTagSerializer(serializers.ModelSerializer):

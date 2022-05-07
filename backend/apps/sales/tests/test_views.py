@@ -9,7 +9,6 @@ from django.core import mail
 from django.test import override_settings
 from django.utils import timezone
 from django.utils.datetime_safe import date
-from freezegun import freeze_time
 from moneyed import Money
 from rest_framework import status
 
@@ -21,7 +20,7 @@ from apps.lib.tests.test_utils import EnsurePlansMixin
 from apps.profiles.models import User, IN_SUPPORTED_COUNTRY, NO_SUPPORTED_COUNTRY, UNSET
 from apps.profiles.tests.factories import UserFactory, SubmissionFactory, CharacterFactory
 from apps.sales.models import (
-    Order, CreditCardToken, Product, TransactionRecord, ADD_ON, BASE_PRICE, NEW, COMPLETED, IN_PROGRESS,
+    Order, Product, TransactionRecord, ADD_ON, BASE_PRICE, NEW, COMPLETED, IN_PROGRESS,
     PAYMENT_PENDING,
     REVIEW, QUEUED, DISPUTED, CANCELLED, DELIVERABLE_STATUSES, REFUNDED, Deliverable, WAITING, ServicePlan)
 from apps.sales.tests.factories import DeliverableFactory, CreditCardTokenFactory, ProductFactory, RevisionFactory, \

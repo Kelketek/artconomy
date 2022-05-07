@@ -20,14 +20,17 @@ from django.db.models import (
     Model, CharField, ForeignKey, IntegerField, BooleanField, DateTimeField,
     URLField, SET_NULL, ManyToManyField, CASCADE, DecimalField, DateField, PROTECT,
     OneToOneField,
-    EmailField, TextField)
+    EmailField, TextField, FloatField)
 from django.db.models.signals import post_save, post_delete, pre_delete, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.datetime_safe import date
 from django.utils.encoding import force_bytes
+from sequences import get_next_value
+from short_stuff import gen_shortcode
+from short_stuff.django.models import ShortCodeField
 
-from apps.lib.abstract_models import GENERAL, RATINGS, ImageModel, thumbnail_hook, HitsMixin
+from apps.lib.abstract_models import GENERAL, RATINGS, ImageModel, thumbnail_hook, HitsMixin, ReorderableMixin
 from apps.lib.models import (
     Comment, Subscription, FAVORITE, SYSTEM_ANNOUNCEMENT, DISPUTE, REFUND, Event,
     SUBMISSION_CHAR_TAG, CHAR_TAG, COMMENT, Tag, SUBMISSION_SHARED, CHAR_SHARED,
@@ -376,6 +379,13 @@ def sync_escrow_status(sender, instance, **kwargs):
             instance.escrow_disabled = False
 
 
+def get_next_submission_position():
+    """
+    Must be defined in root for migrations.
+    """
+    return get_next_value('submission_position')
+
+
 class Submission(ImageModel, HitsMixin):
     """
     Uploaded submission
@@ -383,7 +393,7 @@ class Submission(ImageModel, HitsMixin):
     title = CharField(blank=True, default='', max_length=100)
     caption = CharField(blank=True, default='', max_length=2000)
     private = BooleanField(default=False, help_text="Only show this to people I have explicitly shared it to.")
-    characters = ManyToManyField('Character', related_name='submissions', blank=True)
+    characters = ManyToManyField('Character', related_name='submissions_new', blank=True, through='CharacterTag')
     characters__max = 50
     tags = ManyToManyField('lib.Tag', related_name='submissions', blank=True)
     tags__max = 200
@@ -391,7 +401,7 @@ class Submission(ImageModel, HitsMixin):
         Comment, related_query_name='order', content_type_field='content_type', object_id_field='object_id'
     )
     comments_disabled = BooleanField(default=False)
-    artists = ManyToManyField('User', related_name='art', blank=True)
+    artists = ManyToManyField('User', related_name='art', blank=True, through='ArtistTag')
     artists__max = 10
     deliverable = ForeignKey('sales.Deliverable', null=True, blank=True, on_delete=SET_NULL, related_name='outputs')
     revision = ForeignKey('sales.Revision', null=True, blank=True, on_delete=SET_NULL, related_name='submissions')
@@ -403,6 +413,7 @@ class Submission(ImageModel, HitsMixin):
         related_query_name='hit_counter')
     shared_with = ManyToManyField('User', related_name='shared_submissions', blank=True)
     shared_with__max = 150  # Dunbar limit
+    display_position = FloatField(db_index=True, default=get_next_submission_position)
 
     comment_view_permissions = [SubmissionViewPermission]
     watch_permissions = {'SubmissionSerializer': [SubmissionViewPermission]}
@@ -471,6 +482,31 @@ def auto_remove_image_subscriptions(sender, instance, **kwargs):
 
 remove_submission_events = receiver(pre_delete, sender=Submission)(clear_events)
 submission_thumbnailer = receiver(post_save, sender=Submission)(thumbnail_hook)
+
+
+def get_next_artist_position():
+    """
+    Must be defined in root for migrations.
+    """
+    return get_next_value('artist_position')
+
+
+class ArtistTag(Model):
+    id = ShortCodeField(default=gen_shortcode, db_index=True, primary_key=True)
+    user = ForeignKey('User', on_delete=CASCADE)
+    submission = ForeignKey('Submission', on_delete=CASCADE)
+    display_position = FloatField(db_index=True, default=get_next_artist_position)
+    hidden = BooleanField(default=False, db_index=True)
+
+    class Meta:
+        ordering = ('-display_position', 'id')
+
+
+def get_next_character_position():
+    """
+    Must be defined in root for migrations.
+    """
+    return get_next_value('character_position')
 
 
 class Character(Model, HitsMixin):
@@ -550,6 +586,18 @@ class Character(Model, HitsMixin):
 
 
 Character_shared_with = Character.shared_with.through
+
+
+class CharacterTag(Model):
+    id = ShortCodeField(default=gen_shortcode, db_index=True, primary_key=True)
+    character = ForeignKey('Character', on_delete=CASCADE)
+    submission = ForeignKey('Submission', on_delete=CASCADE)
+    display_position = FloatField(db_index=True, default=get_next_character_position)
+    hidden = BooleanField(default=False, db_index=True)
+    reference = BooleanField(default=False, db_index=True)
+
+    class Meta:
+        ordering = ('-display_position', 'id')
 
 
 class Attribute(Model):
