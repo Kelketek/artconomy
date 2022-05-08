@@ -393,7 +393,7 @@ class Submission(ImageModel, HitsMixin):
     title = CharField(blank=True, default='', max_length=100)
     caption = CharField(blank=True, default='', max_length=2000)
     private = BooleanField(default=False, help_text="Only show this to people I have explicitly shared it to.")
-    characters = ManyToManyField('Character', related_name='submissions_new', blank=True, through='CharacterTag')
+    characters = ManyToManyField('Character', related_name='submissions', blank=True, through='CharacterTag')
     characters__max = 50
     tags = ManyToManyField('lib.Tag', related_name='submissions', blank=True)
     tags__max = 200

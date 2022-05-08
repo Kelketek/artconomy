@@ -34,4 +34,9 @@ class Migration(migrations.Migration):
             name='artists',
             field=models.ManyToManyField(blank=True, related_name='art', through='profiles.ArtistTag', to=settings.AUTH_USER_MODEL),
         ),
+        migrations.AlterField(
+            model_name='submission',
+            name='characters',
+            field=models.ManyToManyField(blank=True, related_name='submissions', through='profiles.CharacterTag', to='profiles.Character'),
+        ),
     ]
