@@ -26,5 +26,4 @@ test_frontend:
 	${APP_COMMAND} "npm run test:unit"
 
 test_backend:
-	# TODO: Remove fixtures optimization-- it is always needed at this point, so it's no longer saving time.
-	${APP_COMMAND} "./manage.py test --parallel=${TEST_THREADS} --rebuild-fixtures"
+	${APP_COMMAND} "./manage.py test --parallel=${TEST_THREADS}"

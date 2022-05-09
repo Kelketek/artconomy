@@ -636,6 +636,7 @@ export function newUploadSchema(userHandler: SingleController<TerseUser|User|Ano
       characters: {value: [], step: 1},
       artists: {value: [], step: 1},
     },
+    reset: false,
   }
 }
 

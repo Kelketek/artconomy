@@ -14,6 +14,7 @@ export default interface Submission extends Asset {
   favorites: boolean,
   subscribed: boolean,
   hits: number,
+  display_position: number,
   commission_link: RawLocation|null,
   comments_disabled: boolean,
 }

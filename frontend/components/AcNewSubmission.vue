@@ -84,6 +84,7 @@
     <template slot="bottom-buttons">
       <v-card-actions row wrap>
         <v-spacer></v-spacer>
+        <v-checkbox v-model="multiple" label="Keep uploading" v-if="allowMultiple" class="px-2" />
         <v-btn @click.prevent="toggle(false)">Cancel</v-btn>
         <v-btn @click.prevent="newUpload.step -= 1" v-if="newUpload.step > 1" color="secondary">Previous</v-btn>
         <v-btn @click.prevent="newUpload.step += 1" v-if="newUpload.step < 2" color="primary">Next</v-btn>
@@ -129,11 +130,28 @@ export default class AcNewSubmission extends mixins(Subjective, Upload) {
     @Prop({required: true})
     public value!: boolean
 
+    @Prop({default: false})
+    public allowMultiple!: boolean
+
+    @Prop({default: () => undefined})
+    public postAdd!: (submission: Submission) => any
+
     public newUpload: FormController = null as unknown as FormController
 
     public addThumbnail = false
 
+    public multiple = false
+
     public get success() {
+      if (this.multiple) {
+        return (submission: Submission) => {
+          const isArtist = this.isArtist
+          this.newUpload.reset()
+          this.postAdd(submission)
+          this.$nextTick(() => { this.isArtist = isArtist })
+        }
+      }
+      this.newUpload.reset()
       return this.$listeners.success || this.goToSubmission
     }
 

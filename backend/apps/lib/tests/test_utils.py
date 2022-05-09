@@ -1,3 +1,4 @@
+import ddt
 from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
 from django.utils import timezone
@@ -7,7 +8,7 @@ from apps.lib.models import FAVORITE, Notification, SYSTEM_ANNOUNCEMENT, Event, 
 from apps.lib.test_resources import SignalsDisabledMixin
 from apps.lib.tests.factories_interdepend import CommentFactory
 from apps.lib.utils import notify, recall_notification, send_transaction_email, subscribe, mark_read, check_read, \
-    mark_modified, clear_events_subscriptions_and_comments
+    mark_modified, clear_events_subscriptions_and_comments, shift_position
 from apps.profiles.models import Submission, ArtconomyAnonymousUser
 from apps.profiles.tests.factories import SubmissionFactory, UserFactory
 from apps.sales.models import ServicePlan
@@ -300,3 +301,43 @@ class EnsurePlansMixin:
         self.landscape = ServicePlan.objects.get_or_create(name='Landscape')[0]
         self.free = ServicePlan.objects.get_or_create(name='Free')[0]
         super().setUp()
+
+
+@ddt.ddt
+class TestPositionShifts(TestCase):
+    @ddt.unpack
+    @ddt.data((1, 1), (-1, -1))
+    def test_single_entry_shift(self, delta, result):
+        submission = SubmissionFactory.create(display_position=0)
+        shift_position(submission, 'display_position', delta)
+        try:
+            self.assertEqual(submission.display_position, result)
+        except AssertionError as err:
+            raise AssertionError(f'Expected delta of {delta} to result in position value of {result}. {err}')
+
+    @ddt.unpack
+    @ddt.data((1, 1, 2), (-1, -1, -2), (1, 3, 4), (-1, -4, -5))
+    def test_other_entry_place_ahead(self, delta, other, result):
+        SubmissionFactory.create(display_position=other)
+        submission = SubmissionFactory.create(display_position=0)
+        shift_position(submission, 'display_position', delta)
+        try:
+            self.assertEqual(submission.display_position, result)
+        except AssertionError as err:
+            raise AssertionError(
+                f'Expected delta of {delta} to result in position value of {result} with existing entry {other}. {err}',
+            )
+
+    @ddt.unpack
+    @ddt.data((1, 0, (1 + 2) / 2), (1, 2, (3 + 4) / 2), (-1, 0, (-1 + -2) / 2), (-1, -2, (-3 + -4) / 2))
+    def test_move_in_group(self, delta, start, result):
+        [SubmissionFactory.create(display_position=i) for i in range(-5, 6)]
+        submission = Submission.objects.get(display_position=start)
+        shift_position(submission, 'display_position', delta)
+        try:
+            self.assertEqual(submission.display_position, result)
+        except AssertionError as err:
+            raise AssertionError(
+                f'Expected delta of {delta} to result in position value of {result} with initial '
+                f'position {start}. {err}',
+            )

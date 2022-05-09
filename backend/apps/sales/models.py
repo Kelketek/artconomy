@@ -27,13 +27,12 @@ from django.dispatch import receiver
 from django.utils import timezone
 from djmoney.models.fields import MoneyField
 from moneyed import Money
-from sequences import get_next_value
 from short_stuff import gen_shortcode
 from short_stuff.django.models import ShortCodeField
 
 from apps.lib.models import Comment, Subscription, SALE_UPDATE, ORDER_UPDATE, REVISION_UPLOADED, COMMENT, NEW_PRODUCT, \
     Event, ref_for_instance, REFERENCE_UPLOADED
-from apps.lib.abstract_models import ImageModel, thumbnail_hook, HitsMixin, RATINGS, GENERAL
+from apps.lib.abstract_models import ImageModel, thumbnail_hook, HitsMixin, RATINGS, GENERAL, get_next_increment
 from apps.lib.permissions import Any, IsStaff
 from apps.lib.utils import (
     clear_events, recall_notification,
@@ -406,21 +405,21 @@ def get_next_order_position():
     """
     Must be defined in root for migrations.
     """
-    return get_next_value('order_position')
+    return get_next_increment(Order, 'order_display_position')
 
 
 def get_next_sale_position():
     """
     Must be defined in root for migrations.
     """
-    return get_next_value('sale_position')
+    return get_next_increment(Order, 'sale_display_position')
 
 
 def get_next_case_position():
     """
     Must be defined in root for migrations.
     """
-    return get_next_value('case_position')
+    return get_next_increment(Order, 'case_display_position')
 
 
 class Order(Model):

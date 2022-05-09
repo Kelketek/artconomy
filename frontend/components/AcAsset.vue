@@ -21,10 +21,11 @@
       <v-img :src="displayImage" :aspect-ratio="ratio" :contain="contain" v-if="renderImage && isImage"
              max-height="90vh" max-width="100%" class="asset-image" ref="imgContainer"
              itemprop="image"
-             @click="fullscreen=true"
+             @click="() => {if (allowPreview) fullscreen=true}"
       />
       <v-col class="text-center" v-else-if="renderImage && !isImage" cols="12" >
-        <a :href="fullUrl" download><img :src="displayImage" alt="" ref="imgContainer"></a>
+        <a :href="fullUrl" download v-if="allowPreview"><img :src="displayImage" alt="" ref="imgContainer"></a>
+        <img v-else :src="displayImage" alt="" ref="imgContainer">
       </v-col>
       <component :asset="asset" :compact="compact" :pop-out="popOut" v-else-if="asset && canDisplay"
                  :is="displayComponent" />
@@ -159,6 +160,9 @@ export default class AcAsset extends mixins(AssetBase) {
 
     @Prop({default: true})
     public text!: boolean
+
+    @Prop({default: true})
+    public allowPreview!: boolean
 
     public fullscreen = false
 

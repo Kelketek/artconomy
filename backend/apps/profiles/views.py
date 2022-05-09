@@ -54,7 +54,7 @@ from apps.lib.serializers import (
 )
 from apps.lib.utils import (
     recall_notification, notify, demark, preview_rating,
-    add_check, count_hit)
+    add_check, count_hit, shift_position)
 from apps.lib.views import BasePreview
 from apps.profiles.models import (
     User, Character, Submission, RefColor, Attribute, Conversation,
@@ -78,7 +78,8 @@ from apps.profiles.serializers import (
     ArtistProfileSerializer,
     CharacterSharedSerializer,
     SubmissionArtistTagSerializer, SubmissionCharacterTagSerializer,
-    SubmissionSharedSerializer, AttributeListSerializer, CharacterManagementSerializer, DeleteUserSerializer)
+    SubmissionSharedSerializer, AttributeListSerializer, CharacterManagementSerializer, DeleteUserSerializer,
+    PositionShiftSerializer, ArtistTagSerializer)
 from apps.profiles.tasks import mailchimp_subscribe
 from apps.profiles.utils import (
     available_chars, char_ordering, available_submissions,
@@ -107,7 +108,7 @@ def user_submissions(user: User, request, is_artist: bool):
         qs = Submission.objects.filter(id__in=Subquery(qs))
     else:
         qs = qs.filter(owner=user).exclude(artists=user)
-    return qs.order_by('-created_on')
+    return qs
 
 
 def character_submissions(char: Character, request):
@@ -1087,7 +1088,88 @@ class FilteredSubmissionList(ListAPIView):
 
     def get_queryset(self):
         user = get_object_or_404(User, username=self.kwargs['username'])
-        return user_submissions(user, self.request, self.kwargs.get('is_artist', False))
+        return user_submissions(user, self.request, self.kwargs.get('is_artist', False)).order_by('-display_position')
+
+
+class CollectionManagementList(ListAPIView):
+    """
+    Shows all items which are uploaded by the user but in which they are not tagged as the artist.
+    The creation function for this list is actually handled by GalleryList, since they are so similar.
+    """
+    serializer_class = SubmissionSerializer
+    permission_classes = [ObjectControls]
+
+    def get_queryset(self):
+        user = get_object_or_404(User, username=self.kwargs['username'])
+        self.check_object_permissions(self.request, user)
+        return user.owned_profiles_submission.exclude(artists=user)
+
+
+class PositionShift(GenericAPIView):
+    field = 'display_position'
+
+    def post(self, *args, **kwargs):
+        target = self.get_object()
+        self.check_object_permissions(self.request, target)
+        serializer = PositionShiftSerializer(data=self.request.data)
+        serializer.is_valid(raise_exception=True)
+        relative_to = serializer.validated_data.get('relative_to', None)
+        if relative_to is not None:
+            relative_to = get_object_or_404(target.__class__, pk=relative_to)
+        current_value = serializer.validated_data.get('current_value', None)
+        shift_position(
+            target, self.field, self.kwargs['delta'], relative_to=relative_to,
+            current_value=current_value,
+        )
+        return Response(
+            status=status.HTTP_200_OK,
+            data=self.get_serializer(instance=target, context=self.get_serializer_context()).data,
+        )
+
+
+class ArtRelationList(ListAPIView):
+    """
+    Gets all submissions for which the user is marked as an artist via the through table.
+    """
+    serializer_class = ArtistTagSerializer
+    permission_classes = [ObjectControls]
+
+    def get_queryset(self) -> QuerySet:
+        user = get_object_or_404(User, username=self.kwargs['username'])
+        self.check_object_permissions(self.request, user)
+        qs = ArtistTag.objects.filter(user=user)
+        if self.request.GET.get('show_all') and (self.request.user.is_staff or (self.request.user == user)):
+            return qs
+        return qs.filter(hidden=False)
+
+
+class ArtRelationManager(RetrieveUpdateDestroyAPIView):
+    """
+    View for modifying the relationship of an artist to their submission.
+    """
+    serializer_class = ArtistTagSerializer
+    permission_classes = [ObjectControls]
+
+    def get_object(self) -> Any:
+        tag = get_object_or_404(ArtistTag, user__username=self.kwargs['username'], id=self.kwargs['tag_id'])
+        self.check_object_permissions(self.request, tag)
+        return tag
+
+
+class ArtRelationShift(PositionShift):
+    serializer_class = ArtistTagSerializer
+    permission_classes = [ObjectControls]
+
+    def get_object(self) -> Any:
+        return get_object_or_404(ArtistTag, user__username=self.kwargs['username'], id=self.kwargs['tag_id'])
+
+
+class CollectionShift(PositionShift):
+    serializer_class = SubmissionSerializer
+    permission_classes = [ObjectControls]
+
+    def get_object(self) -> Any:
+        return get_object_or_404(Submission, id=self.kwargs['submission_id'])
 
 
 class SubmissionSharedList(ListCreateAPIView):
@@ -1440,7 +1522,7 @@ class ArtPreview(BasePreview):
         else:
             art_context['title'] = f"{user.username}'s collection"
         art_context['description'] = f"See the work of {demark(user.username)}"
-        submissions = user_submissions(user, self.request, self.is_artist)[:24]
+        submissions = user_submissions(user, self.request, self.is_artist).order_by('-display_position')[:24]
         art_context['image_links'] = [user.avatar_url] + [
             submission.preview_link for submission in submissions
         ]

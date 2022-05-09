@@ -227,6 +227,7 @@ describe('Enumerators', () => {
     const handler = wrapper.vm.$getProfile('person', {})
     expect(newUploadSchema(handler.user)).toEqual({
       endpoint: '/api/profiles/v1/account/person/submissions/',
+      reset: false,
       fields: {
         title: {value: '', step: 2},
         caption: {value: '', step: 2},

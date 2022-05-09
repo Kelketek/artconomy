@@ -71,8 +71,38 @@ urlpatterns = [
         name='art_list',
     ),
     path(
+        'v1/account/<username>/submissions/art/management/', views.ArtRelationList.as_view(), name='art_relation_list',
+    ),
+    path(
+        'v1/account/<username>/submissions/art/management/<short_code:tag_id>/', views.ArtRelationManager.as_view(),
+        name='art_relation_manager',
+    ),
+    path(
+        'v1/account/<username>/submissions/art/management/<short_code:tag_id>/up/', views.ArtRelationShift.as_view(),
+        kwargs={'delta': 1}, name='art_relation_shift_up',
+    ),
+    path(
+        'v1/account/<username>/submissions/art/management/<short_code:tag_id>/down/', views.ArtRelationShift.as_view(),
+        kwargs={'delta': -1}, name='art_relation_shift_down',
+    ),
+    path(
         'v1/account/<username>/submissions/collection/', views.FilteredSubmissionList.as_view(),
         kwargs={'is_artist': False}, name='collection_list',
+    ),
+    path(
+        'v1/account/<username>/submissions/collection/management/', views.FilteredSubmissionList.as_view(),
+        kwargs={'is_artist': False}, name='collection_list',
+    ),
+    path(
+        'v1/account/<username>/submissions/collection/management/<int:submission_id>/', views.SubmissionManager.as_view(),
+    ),
+    path(
+        'v1/account/<username>/submissions/collection/management/<int:submission_id>/up/', views.CollectionShift.as_view(),
+        kwargs={'delta': 1}, name='collection_shift_up',
+    ),
+    path(
+        'v1/account/<username>/submissions/collection/management/<int:submission_id>/down/', views.CollectionShift.as_view(),
+        kwargs={'delta': -1}, name='collection_shift_down',
     ),
     path('v1/account/<username>/conversations/', views.Conversations.as_view(), name='conversations'),
     path(

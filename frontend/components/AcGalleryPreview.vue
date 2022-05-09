@@ -5,7 +5,7 @@
         <v-row no-gutters>
           <v-col cols="8" offset="2">
             <ac-link :to="submissionLink">
-              <ac-asset :text="false" :asset="submission" thumb-name="thumbnail" />
+              <ac-asset :text="false" :asset="submission" thumb-name="thumbnail" :allow-preview="false"/>
             </ac-link>
           </v-col>
         </v-row>
@@ -32,6 +32,7 @@
         :compact="compact"
         :text="text"
         :aspect-ratio="aspectRatio"
+        :allow-preview="allowPreview"
       />
     </ac-link>
     <ac-link :to="submissionLink" v-if="showFooter">
@@ -85,9 +86,18 @@ export default {
     text: {
       default: true,
     },
+    linked: {
+      default: true,
+    },
+    allowPreview: {
+      default: false,
+    },
   },
   computed: {
     submissionLink() {
+      if (!this.linked) {
+        return null
+      }
       return {name: 'Submission', params: {submissionId: this.submission.id}}
     },
     unavailable() {

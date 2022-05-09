@@ -10,7 +10,6 @@ from easy_thumbnails.exceptions import InvalidImageFormatError
 from easy_thumbnails.fields import ThumbnailerImageField
 from easy_thumbnails.files import ThumbnailerImageFieldFile, get_thumbnailer
 from hitcount.models import HitCount
-from sequences import get_next_value
 
 from shortcuts import disable_on_load, make_url
 
@@ -184,16 +183,8 @@ class HitsMixin:
         return hit_counter.hits
 
 
-def get_next_display_position():
-    return get_next_value('display_position')
-
-
-class ReorderableMixin(models.Model):
-    """
-    Add to any tag through model or any model which may be ordered and hidden without a tag association.
-    """
-    display_position = FloatField(db_index=True, default=get_next_display_position)
-
-    class Meta:
-        abstract = True
-        ordering = ('-display_position', 'id')
+def get_next_increment(model, field_name):
+    results = model.objects.order_by(f'-{field_name}')[:1].values_list(field_name, flat=True)
+    if not results:
+        return 0
+    return results[0] + 1

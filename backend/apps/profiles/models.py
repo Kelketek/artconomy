@@ -26,11 +26,10 @@ from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.datetime_safe import date
 from django.utils.encoding import force_bytes
-from sequences import get_next_value
 from short_stuff import gen_shortcode
 from short_stuff.django.models import ShortCodeField
 
-from apps.lib.abstract_models import GENERAL, RATINGS, ImageModel, thumbnail_hook, HitsMixin, ReorderableMixin
+from apps.lib.abstract_models import GENERAL, RATINGS, ImageModel, thumbnail_hook, HitsMixin, get_next_increment
 from apps.lib.models import (
     Comment, Subscription, FAVORITE, SYSTEM_ANNOUNCEMENT, DISPUTE, REFUND, Event,
     SUBMISSION_CHAR_TAG, CHAR_TAG, COMMENT, Tag, SUBMISSION_SHARED, CHAR_SHARED,
@@ -383,7 +382,7 @@ def get_next_submission_position():
     """
     Must be defined in root for migrations.
     """
-    return get_next_value('submission_position')
+    return get_next_increment(Submission, 'display_position')
 
 
 class Submission(ImageModel, HitsMixin):
@@ -488,7 +487,7 @@ def get_next_artist_position():
     """
     Must be defined in root for migrations.
     """
-    return get_next_value('artist_position')
+    return get_next_increment(ArtistTag, 'display_position')
 
 
 class ArtistTag(Model):
@@ -506,7 +505,7 @@ def get_next_character_position():
     """
     Must be defined in root for migrations.
     """
-    return get_next_value('character_position')
+    return get_next_increment(CharacterTag, 'display_position')
 
 
 class Character(Model, HitsMixin):
