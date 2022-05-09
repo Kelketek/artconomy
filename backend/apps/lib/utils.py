@@ -930,3 +930,35 @@ def purge_asset(asset):
     asset.file.delete_thumbnails()
     asset.file.delete()
     asset.delete(cleanup=True)
+
+
+def shift_position(instance, field_name: str, delta: int):
+    """
+    Takes an instance with a positioning field, and bumps it up or down one spot.
+    """
+    if abs(delta) != 1:
+        raise ValueError('This function may only be used to shift one place.')
+    params = {}
+    current_value = getattr(instance, field_name)
+    if delta > 0:
+        params[f'{field_name}__gt'] = current_value
+        order = f'{field_name}'
+        min_change = 1
+    else:
+        params[f'{field_name}__lt'] = current_value
+        order = f'-{field_name}'
+        min_change = -1
+    results = instance.__class__.objects.filter(**params).order_by(order)[:2]
+    if len(results) == 0:
+        # Small chance that there could be entries with exactly the same value-- bump in the direction needed.
+        setattr(instance, field_name, current_value + min_change)
+        instance.save()
+    elif len(results) == 1:
+        setattr(instance, field_name, getattr(results[0], field_name) + min_change)
+        instance.save()
+    elif len(results) == 2:
+        upper = getattr(results[0], field_name)
+        lower = getattr(results[1], field_name)
+        setattr(instance, field_name, (upper + lower) / 2)
+        instance.save()
+    return

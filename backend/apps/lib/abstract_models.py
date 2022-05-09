@@ -186,14 +186,3 @@ class HitsMixin:
 
 def get_next_display_position():
     return get_next_value('display_position')
-
-
-class ReorderableMixin(models.Model):
-    """
-    Add to any tag through model or any model which may be ordered and hidden without a tag association.
-    """
-    display_position = FloatField(db_index=True, default=get_next_display_position)
-
-    class Meta:
-        abstract = True
-        ordering = ('-display_position', 'id')
