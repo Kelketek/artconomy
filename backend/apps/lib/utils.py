@@ -10,7 +10,6 @@ import markdown
 from asgiref.sync import async_to_sync
 from bs4 import BeautifulSoup
 from channels.layers import get_channel_layer
-from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.mail import EmailMultiAlternatives

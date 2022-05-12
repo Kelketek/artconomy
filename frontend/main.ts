@@ -28,6 +28,8 @@ import '@stripe/stripe-js'
 // eslint-disable-next-line import/no-duplicates
 import {StripeConstructor, Stripe} from '@stripe/stripe-js'
 import {PROCESSORS} from '@/types/PROCESSORS'
+import AcPaginated from '@/components/wrappers/AcPaginated.vue'
+import {VCol, VRow} from 'vuetify/lib/components'
 
 declare global {
   interface Window {
@@ -55,6 +57,8 @@ Vue.use(Singles)
 Vue.use(Characters)
 Vue.use(Profiles)
 Vue.use(VueObserveVisibility)
+Vue.component('VCol', VCol)
+Vue.component('VRow', VRow)
 Vue.config.productionTip = false
 
 Vue.filter('formatSize', formatSize)
@@ -180,7 +184,7 @@ window.artconomy = new Vue({
   render: (h) => h(App),
   // @ts-ignore
   vuetify: new Vuetify(vuetifySettings),
-  components: {App}, // , NavBar},
+  components: {App},
 })
 
 window.artconomy.$mount('#app')

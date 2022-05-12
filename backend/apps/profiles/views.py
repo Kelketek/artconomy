@@ -107,7 +107,7 @@ def user_submissions(user: User, request, is_artist: bool):
         qs = Submission.objects.filter(id__in=Subquery(qs))
     else:
         qs = qs.filter(owner=user).exclude(artists=user)
-    return qs.order_by('-created_on')
+    return qs
 
 
 def character_submissions(char: Character, request):
@@ -1087,7 +1087,7 @@ class FilteredSubmissionList(ListAPIView):
 
     def get_queryset(self):
         user = get_object_or_404(User, username=self.kwargs['username'])
-        return user_submissions(user, self.request, self.kwargs.get('is_artist', False))
+        return user_submissions(user, self.request, self.kwargs.get('is_artist', False)).order_by('-display_position')
 
 
 class SubmissionSharedList(ListCreateAPIView):
@@ -1440,7 +1440,7 @@ class ArtPreview(BasePreview):
         else:
             art_context['title'] = f"{user.username}'s collection"
         art_context['description'] = f"See the work of {demark(user.username)}"
-        submissions = user_submissions(user, self.request, self.is_artist)[:24]
+        submissions = user_submissions(user, self.request, self.is_artist).order_by('-display_position')[:24]
         art_context['image_links'] = [user.avatar_url] + [
             submission.preview_link for submission in submissions
         ]

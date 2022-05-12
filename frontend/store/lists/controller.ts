@@ -33,6 +33,10 @@ export class ListController<T> extends BaseController<ListModuleOpts, ListState<
     this.commit('replace', item)
   }
 
+  public unshift(...args: T[]) {
+    this.commit('unshift', args)
+  }
+
   public push(...args: T[]) {
     this.commit('push', args)
   }

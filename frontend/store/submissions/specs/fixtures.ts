@@ -30,6 +30,7 @@ export function genSubmission(overrides?: Partial<Submission>): Submission {
     comment_count: 0,
     favorite_count: 0,
     comments_disabled: false,
+    display_position: 0,
     tags: [
       'red_panda', 'wah', 'cool', 'nosings', 'awesome', 'stuff', 'floofy',
       'feets', 'female', 'notable', 'fuzzy', 'fuckable', 'soft_paws',

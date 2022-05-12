@@ -74,6 +74,10 @@ urlpatterns = [
         'v1/account/<username>/submissions/collection/', views.FilteredSubmissionList.as_view(),
         kwargs={'is_artist': False}, name='collection_list',
     ),
+    # TODO: Replace this with something a bit more context-semantic.
+    path(
+        'v1/account/<username>/submissions/collection/<int:submission_id>/', views.SubmissionManager.as_view(),
+    ),
     path('v1/account/<username>/conversations/', views.Conversations.as_view(), name='conversations'),
     path(
         'v1/account/<username>/conversations/<int:message_id>/', views.ConversationManager.as_view(),

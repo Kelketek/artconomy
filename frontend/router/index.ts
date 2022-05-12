@@ -82,6 +82,7 @@ const CharacterGallery = () => import('@/components/views/character/CharacterGal
 const NotFound = () => import('@/components/views/NotFound.vue')
 const ConversationDetail = () => import('@/components/views/ConversationDetail.vue')
 const SubmissionList = () => import('@/components/views/profile/SubmissionList.vue')
+const ManageSubmissionList = () => import('@/components/views/profile/ManageSubmissionList.vue')
 const Queue = () => import('@/components/views/Queue.vue')
 const InvoiceDetail = () => import('@/components/views/invoice/InvoiceDetail.vue')
 const TableDashboard = () => import('@/components/views/table/TableDashboard.vue')
@@ -498,6 +499,18 @@ export const routes = [
           path: 'collection',
           name: 'Collection',
           component: SubmissionList,
+          props(route: Route) {
+            return {
+              ...route.params,
+              listName: 'collection',
+              endpoint: `/api/profiles/v1/account/${route.params.username}/submissions/collection/`,
+              trackPages: true,
+            }
+          },
+        }, {
+          path: 'collection/manage',
+          name: 'ManageCollection',
+          component: ManageSubmissionList,
           props(route: Route) {
             return {
               ...route.params,

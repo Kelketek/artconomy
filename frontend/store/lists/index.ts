@@ -116,6 +116,10 @@ export class ListModule<T extends {}> {
         // Other data is sent along. Drop it.
         state.response = {size: response.size, count: response.count}
       },
+      unshift(state, items) {
+        const entries = registerItems(this as unknown as Store<any>, state, items)
+        state.refs.unshift(...entries)
+      },
       push(state, items) {
         const entries = registerItems(this as unknown as Store<any>, state, items)
         state.refs.push(...entries)

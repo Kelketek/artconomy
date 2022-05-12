@@ -139,7 +139,7 @@ class SubmissionSerializer(IdWritable, RelatedAtomicMixin, serializers.ModelSeri
         model = Submission
         fields = (
             'id', 'title', 'caption', 'rating', 'file', 'private', 'created_on', 'owner', 'comment_count',
-            'favorite_count', 'comments_disabled', 'tags', 'characters', 'artists', 'subscribed',
+            'favorite_count', 'comments_disabled', 'tags', 'characters', 'artists', 'subscribed', 'display_position',
             'preview'
         )
         read_only_fields = (
@@ -388,7 +388,7 @@ class SubmissionManagementSerializer(RelatedAtomicMixin, SubmissionMixin, serial
         fields = (
             'id', 'title', 'caption', 'rating', 'file', 'private', 'created_on', 'order', 'owner', 'characters',
             'comments_disabled', 'favorite_count', 'favorites', 'artists', 'tags', 'subscribed', 'shared_with',
-            'preview', 'product', 'hits', 'commission_link',
+            'preview', 'product', 'hits', 'commission_link', 'display_position',
         )
 
 

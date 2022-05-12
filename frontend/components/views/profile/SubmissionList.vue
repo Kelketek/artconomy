@@ -21,10 +21,11 @@ import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import {flatten} from '@/lib/lib'
 import {Ratings} from '@/store/profiles/types/Ratings'
+import Editable from '@/mixins/editable'
   @Component({
     components: {AcPaginated, AcGalleryPreview, AcLoadSection},
   })
-export default class SubmissionList extends mixins(Subjective) {
+export default class SubmissionList extends mixins(Subjective, Editable) {
     @Prop()
     public listName!: string
 
