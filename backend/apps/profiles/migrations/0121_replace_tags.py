@@ -30,7 +30,6 @@ def transpose_tags(apps, schema):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('sequences', '0001_initial'),
         ('profiles', '0120_auto_20220507_0409'),
     ]
 

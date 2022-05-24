@@ -781,3 +781,8 @@ class DeleteUserSerializer(serializers.Serializer):
         if not verify:
             raise ValidationError('You must give final confirmation.')
         return verify
+
+
+class PositionShiftSerializer(serializers.Serializer):
+    relative_to = serializers.CharField(required=False)
+    current_value = serializers.FloatField(required=False)

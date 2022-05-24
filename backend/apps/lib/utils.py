@@ -931,14 +931,40 @@ def purge_asset(asset):
     asset.delete(cleanup=True)
 
 
-def shift_position(instance, field_name: str, delta: int):
+def _get_relative_position_value(instance, field_name: str, delta: int, relative_to):
+    """
+    Used by shift_position to find the correct target value relative to another positioned instance.
+
+    This is useful when moving an object to the first or last position on a page, where the frontend does not have
+    access to the instance just over the page boundary.
+    """
+    params = {}
+    current_value = getattr(relative_to, field_name)
+    if delta > 0:
+        params[f'{field_name}__lt'] = current_value
+        order = f'-{field_name}'
+        min_change = -1
+    else:
+        params[f'{field_name}__gt'] = current_value
+        order = f'{field_name}'
+        min_change = 1
+    result = relative_to.__class__.objects.filter(**params).order_by(order).first()
+    if not result:
+        return current_value + min_change
+    return getattr(result, field_name)
+
+
+def shift_position(instance, field_name: str, delta: int, current_value: Optional[int]=None, relative_to=None):
     """
     Takes an instance with a positioning field, and bumps it up or down one spot.
     """
     if abs(delta) != 1:
         raise ValueError('This function may only be used to shift one place.')
     params = {}
-    current_value = getattr(instance, field_name)
+    if relative_to:
+        current_value = _get_relative_position_value(instance, field_name, delta, relative_to)
+    elif current_value is None:
+        current_value = getattr(instance, field_name)
     if delta > 0:
         params[f'{field_name}__gt'] = current_value
         order = f'{field_name}'

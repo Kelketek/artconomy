@@ -54,7 +54,7 @@ from apps.lib.serializers import (
 )
 from apps.lib.utils import (
     recall_notification, notify, demark, preview_rating,
-    add_check, count_hit)
+    add_check, count_hit, shift_position)
 from apps.lib.views import BasePreview
 from apps.profiles.models import (
     User, Character, Submission, RefColor, Attribute, Conversation,
@@ -78,7 +78,8 @@ from apps.profiles.serializers import (
     ArtistProfileSerializer,
     CharacterSharedSerializer,
     SubmissionArtistTagSerializer, SubmissionCharacterTagSerializer,
-    SubmissionSharedSerializer, AttributeListSerializer, CharacterManagementSerializer, DeleteUserSerializer)
+    SubmissionSharedSerializer, AttributeListSerializer, CharacterManagementSerializer, DeleteUserSerializer,
+    PositionShiftSerializer)
 from apps.profiles.tasks import mailchimp_subscribe
 from apps.profiles.utils import (
     available_chars, char_ordering, available_submissions,
@@ -1088,6 +1089,36 @@ class FilteredSubmissionList(ListAPIView):
     def get_queryset(self):
         user = get_object_or_404(User, username=self.kwargs['username'])
         return user_submissions(user, self.request, self.kwargs.get('is_artist', False)).order_by('-display_position')
+
+
+class PositionShift(GenericAPIView):
+    field = 'display_position'
+
+    def post(self, *args, **kwargs):
+        target = self.get_object()
+        self.check_object_permissions(self.request, target)
+        serializer = PositionShiftSerializer(data=self.request.data)
+        serializer.is_valid(raise_exception=True)
+        relative_to = serializer.validated_data.get('relative_to', None)
+        if relative_to is not None:
+            relative_to = get_object_or_404(target.__class__, pk=relative_to)
+        current_value = serializer.validated_data.get('current_value', None)
+        shift_position(
+            target, self.field, self.kwargs['delta'], relative_to=relative_to,
+            current_value=current_value,
+        )
+        return Response(
+            status=status.HTTP_200_OK,
+            data=self.get_serializer(instance=target, context=self.get_serializer_context()).data,
+        )
+
+
+class CollectionShift(PositionShift):
+    serializer_class = SubmissionSerializer
+    permission_classes = [ObjectControls]
+
+    def get_object(self) -> Any:
+        return get_object_or_404(Submission, id=self.kwargs['submission_id'])
 
 
 class SubmissionSharedList(ListCreateAPIView):

@@ -78,6 +78,14 @@ urlpatterns = [
     path(
         'v1/account/<username>/submissions/collection/<int:submission_id>/', views.SubmissionManager.as_view(),
     ),
+    path(
+        'v1/account/<username>/submissions/collection/<int:submission_id>/up/', views.CollectionShift.as_view(),
+        kwargs={'delta': 1}, name='collection_shift_up',
+    ),
+    path(
+        'v1/account/<username>/submissions/collection/<int:submission_id>/down/', views.CollectionShift.as_view(),
+        kwargs={'delta': -1}, name='collection_shift_down',
+    ),
     path('v1/account/<username>/conversations/', views.Conversations.as_view(), name='conversations'),
     path(
         'v1/account/<username>/conversations/<int:message_id>/', views.ConversationManager.as_view(),
