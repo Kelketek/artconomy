@@ -10,6 +10,14 @@
         <v-btn @click="showUpload = true" color="green"><v-icon left>add</v-icon>New Submission</v-btn>
       </v-col>
     </v-row>
+    <v-row class="d-flex d-md-none" v-if="controls">
+      <v-col class="text-center">
+        <v-btn @click="managing = !managing" color="primary"><v-icon left>settings</v-icon>
+          <span v-if="managing">Finish</span>
+          <span v-else>Manage</span>
+        </v-btn>
+      </v-col>
+    </v-row>
     <router-view class="pa-0 pt-3" v-if="subject" :key="`${username}-${$route.name}`"></router-view>
     <ac-add-button v-model="showUpload" v-if="controls">New Submission</ac-add-button>
     <ac-new-submission
