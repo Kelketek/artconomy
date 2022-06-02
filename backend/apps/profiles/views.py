@@ -79,7 +79,7 @@ from apps.profiles.serializers import (
     CharacterSharedSerializer,
     SubmissionArtistTagSerializer, SubmissionCharacterTagSerializer,
     SubmissionSharedSerializer, AttributeListSerializer, CharacterManagementSerializer, DeleteUserSerializer,
-    PositionShiftSerializer)
+    PositionShiftSerializer, ArtistTagSerializer)
 from apps.profiles.tasks import mailchimp_subscribe
 from apps.profiles.utils import (
     available_chars, char_ordering, available_submissions,
@@ -1111,6 +1111,43 @@ class PositionShift(GenericAPIView):
             status=status.HTTP_200_OK,
             data=self.get_serializer(instance=target, context=self.get_serializer_context()).data,
         )
+
+
+class ArtRelationList(ListAPIView):
+    """
+    Gets all submissions for which the user is marked as an artist via the through table.
+    """
+    serializer_class = ArtistTagSerializer
+    permission_classes = [ObjectControls]
+
+    def get_queryset(self) -> QuerySet:
+        user = get_object_or_404(User, username=self.kwargs['username'])
+        self.check_object_permissions(self.request, user)
+        qs = ArtistTag.objects.filter(user=user)
+        if self.request.GET.get('show_all') and (self.request.user.is_staff or (self.request.user == user)):
+            return qs
+        return qs.filter(hidden=False)
+
+
+class ArtRelationManager(RetrieveUpdateDestroyAPIView):
+    """
+    View for modifying the relationship of an artist to their submission.
+    """
+    serializer_class = ArtistTagSerializer
+    permission_classes = [ObjectControls]
+
+    def get_object(self) -> Any:
+        tag = get_object_or_404(ArtistTag, user__username=self.kwargs['username'], id=self.kwargs['tag_id'])
+        self.check_object_permissions(self.request, tag)
+        return tag
+
+
+class ArtRelationShift(PositionShift):
+    serializer_class = ArtistTagSerializer
+    permission_classes = [ObjectControls]
+
+    def get_object(self) -> Any:
+        return get_object_or_404(ArtistTag, user__username=self.kwargs['username'], id=self.kwargs['tag_id'])
 
 
 class CollectionShift(PositionShift):

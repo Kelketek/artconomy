@@ -10,10 +10,10 @@
     <v-col cols="12">
       <ac-draggable-list :list="list">
         <template v-slot:default="{sortableList}">
-          <v-col cols="4" sm="3" lg="2" v-for="submission in sortableList" :key="submission.x.id">
+          <v-col cols="4" sm="3" lg="2" v-for="tag in sortableList" :key="tag.x.id">
             <ac-gallery-preview class="pa-1" @click.capture.stop.prevent="() => false"
                                 :linked="false"
-                                :submission="submission.x" :show-footer="true">
+                                :submission="tag.x.submission" :show-footer="true">
             </ac-gallery-preview>
           </v-col>
         </template>
@@ -52,6 +52,7 @@ import {Ratings} from '@/store/profiles/types/Ratings'
 import Editable from '@/mixins/editable'
 import AcDraggableNavs from '@/components/AcDraggableNavs.vue'
 import AcDraggableList from '@/components/AcDraggableList.vue'
+import ArtistTag from '@/types/ArtistTag'
 
 @Component({
   components: {
@@ -70,21 +71,14 @@ export default class ManageSubmissionList extends mixins(Subjective, Editable) {
     @Prop()
     public endpoint!: string
 
-    @Watch('rawRating')
-    public refreshListing(newValue: Ratings, oldValue: Ratings|undefined) {
-      if (oldValue === undefined) {
-        return
-      }
-      this.list.get()
-    }
-
-    public list: ListController<Submission> = null as unknown as ListController<Submission>
+    public list: ListController<ArtistTag> = null as unknown as ListController<ArtistTag>
     public created() {
       let listName = this.listName
       if (this.username) {
         listName = `${flatten(this.username)}-${listName}-management`
       }
       this.list = this.$getList(listName, {endpoint: this.endpoint})
+      this.list.firstRun()
     }
 }
 </script>

@@ -83,6 +83,7 @@ const NotFound = () => import('@/components/views/NotFound.vue')
 const ConversationDetail = () => import('@/components/views/ConversationDetail.vue')
 const SubmissionList = () => import('@/components/views/profile/SubmissionList.vue')
 const ManageSubmissionList = () => import('@/components/views/profile/ManageSubmissionList.vue')
+const ManageArtList = () => import('@/components/views/profile/ManageArtList.vue')
 const Queue = () => import('@/components/views/Queue.vue')
 const InvoiceDetail = () => import('@/components/views/invoice/InvoiceDetail.vue')
 const TableDashboard = () => import('@/components/views/table/TableDashboard.vue')
@@ -492,6 +493,18 @@ export const routes = [
               ...route.params,
               listName: 'art',
               endpoint: `/api/profiles/v1/account/${route.params.username}/submissions/art/`,
+              trackPages: true,
+            }
+          },
+        }, {
+          path: 'art/manage',
+          name: 'ManageArt',
+          component: ManageArtList,
+          props(route: Route) {
+            return {
+              ...route.params,
+              listName: 'art',
+              endpoint: `/api/profiles/v1/account/${route.params.username}/submissions/art-relations/`,
               trackPages: true,
             }
           },

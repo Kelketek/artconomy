@@ -71,10 +71,25 @@ urlpatterns = [
         name='art_list',
     ),
     path(
+        'v1/account/<username>/submissions/art-relations/', views.ArtRelationList.as_view(), name='art_relation_list',
+    ),
+    path(
+        'v1/account/<username>/submissions/art-relations/<short_code:tag_id>/', views.ArtRelationManager.as_view(),
+        name='art_relation_manager',
+    ),
+    path(
+        'v1/account/<username>/submissions/art-relations/<short_code:tag_id>/up/', views.ArtRelationShift.as_view(),
+        kwargs={'delta': 1}, name='art_relation_shift_up',
+    ),
+    path(
+        'v1/account/<username>/submissions/art-relations/<short_code:tag_id>/down/', views.ArtRelationShift.as_view(),
+        kwargs={'delta': -1}, name='art_relation_shift_down',
+    ),
+    # TODO: Needs to be replaced with unfiltered so numbers are accurate.
+    path(
         'v1/account/<username>/submissions/collection/', views.FilteredSubmissionList.as_view(),
         kwargs={'is_artist': False}, name='collection_list',
     ),
-    # TODO: Replace this with something a bit more context-semantic.
     path(
         'v1/account/<username>/submissions/collection/<int:submission_id>/', views.SubmissionManager.as_view(),
     ),

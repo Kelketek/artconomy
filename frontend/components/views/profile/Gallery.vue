@@ -1,13 +1,13 @@
 <template>
   <v-container fluid class="pa-0" :id="id">
     <ac-tab-nav :items="items" label="Select gallery"></ac-tab-nav>
-    <v-row class="d-none d-md-flex" v-if="controls">
+    <v-row class="d-none d-md-flex align-content-end" v-if="controls">
       <v-col class="text-right">
+        <v-btn @click="showUpload = true" v-if="artPage || collectionPage" color="green" class="mx-2"><v-icon left>add</v-icon>New Submission</v-btn>
         <v-btn @click="managing = !managing" color="primary"><v-icon left>settings</v-icon>
           <span v-if="managing">Finish</span>
           <span v-else>Manage</span>
         </v-btn>
-        <v-btn @click="showUpload = true" color="green"><v-icon left>add</v-icon>New Submission</v-btn>
       </v-col>
     </v-row>
     <v-row class="d-flex d-md-none" v-if="controls">
@@ -19,7 +19,7 @@
       </v-col>
     </v-row>
     <router-view class="pa-0 pt-3" v-if="subject" :key="`${username}-${$route.name}`"></router-view>
-    <ac-add-button v-model="showUpload" v-if="controls">New Submission</ac-add-button>
+    <ac-add-button v-model="showUpload" v-if="controls && (artPage || collectionPage)">New Submission</ac-add-button>
     <ac-new-submission
         ref="newSubmissionForm"
         :username="username"
@@ -50,10 +50,12 @@ import AcNewSubmission from '@/components/AcNewSubmission.vue'
 import {Watch} from 'vue-property-decorator'
 import AcTabNav from '@/components/navigation/AcTabNav.vue'
 import Editable from '@/mixins/editable'
+import ArtistTag from '@/types/ArtistTag'
 @Component({
   components: {AcTabNav, AcNewSubmission, AcAddButton, AcTab},
 })
 export default class Gallery extends mixins(Subjective, Upload) {
+  public artManagement: ListController<ArtistTag> = null as unknown as ListController<ArtistTag>
   public art: ListController<Submission> = null as unknown as ListController<Submission>
   public collection: ListController<Submission> = null as unknown as ListController<Submission>
   public newSubmission: FormController = null as unknown as FormController
@@ -71,7 +73,7 @@ export default class Gallery extends mixins(Subjective, Upload) {
   public postAdd(submission: Submission) {
     const routeName = this.$route.name + ''
     for (const group of (['collection', 'art'] as Array<keyof Gallery>)) {
-      if (routeName.toLowerCase().includes(group)) {
+      if (routeName.toLowerCase().includes(group) && this[group].currentPage === 1) {
         this[group].unshift(submission)
       }
     }

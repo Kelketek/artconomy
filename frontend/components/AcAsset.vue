@@ -24,7 +24,7 @@
              @click="() => {if (allowPreview) fullscreen=true}"
       />
       <v-col class="text-center" v-else-if="renderImage && !isImage" cols="12" >
-        <a :href="fullUrl" download v-if="allowPreview"></a>
+        <a :href="fullUrl" download v-if="allowPreview"><img :src="displayImage" alt="" ref="imgContainer"></a>
         <img v-else :src="displayImage" alt="" ref="imgContainer">
       </v-col>
       <component :asset="asset" :compact="compact" :pop-out="popOut" v-else-if="asset && canDisplay"

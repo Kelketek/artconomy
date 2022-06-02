@@ -786,3 +786,11 @@ class DeleteUserSerializer(serializers.Serializer):
 class PositionShiftSerializer(serializers.Serializer):
     relative_to = serializers.CharField(required=False)
     current_value = serializers.FloatField(required=False)
+
+
+class ArtistTagSerializer(serializers.ModelSerializer):
+    submission = SubmissionSerializer(read_only=True)
+
+    class Meta:
+        model = ArtistTag
+        fields = ('id', 'submission', 'display_position', 'hidden')

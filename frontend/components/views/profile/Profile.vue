@@ -46,7 +46,7 @@ export default class Profile extends mixins(Subjective) {
 
     public get needsSpace() {
       return [
-        'Gallery', 'Art', 'Collection', 'Watchers', 'Watching', 'Watchlists',
+        'Gallery', 'Art', 'ManageArt', 'Collection', 'ManageCollection', 'Watchers', 'Watching', 'Watchlists',
       ].indexOf(this.$route.name + '') === -1
     }
 
