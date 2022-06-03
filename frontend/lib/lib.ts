@@ -916,9 +916,10 @@ export const log = {
   },
 }
 
-const startValue = localStorage.getItem('drawerOpen')
-export let initDrawerValue: boolean|null = null
-/* istanbul ignore next */
-if (startValue !== null) {
-  initDrawerValue = JSON.parse(startValue) as boolean
+export const initDrawerValue = () => {
+  const startValue = localStorage.getItem('drawerOpen')
+  if (startValue !== null) {
+    return JSON.parse(startValue) as boolean
+  }
+  return null
 }

@@ -16,7 +16,7 @@ import {
   getCookie,
   getExt,
   getHeaders,
-  guestName,
+  guestName, initDrawerValue,
   isImage,
   log,
   makeQueryParams,
@@ -247,8 +247,13 @@ describe('HTTP Helpers', () => {
   it('Constructs the appropriate headers for a POST request', () => {
     setCookie('csrftoken', 'Stuff')
     setCookie('referredBy', 'Jimmy')
+    window.windowId = 'Blabla'
     expect(getHeaders('post', '/test/')).toEqual(
-      {'Content-Type': 'application/json; charset=utf-8', 'X-CSRFToken': 'Stuff', 'X-Referred-By': 'Jimmy'},
+      {
+        'Content-Type': 'application/json; charset=utf-8',
+        'X-CSRFToken': 'Stuff', 'X-Referred-By': 'Jimmy',
+        'X-Window-ID': 'Blabla',
+      },
     )
   })
   it('Constructs the appropriate headers for an outside POST request', () => {
@@ -700,5 +705,15 @@ describe('Logger', () => {
     expect(info).not.toHaveBeenCalled()
     expect(warn).not.toHaveBeenCalled()
     expect(debug).not.toHaveBeenCalled()
+  })
+})
+
+describe('initDrawerValue', () => {
+  it('Handles a blank initial value', () => {
+    expect(initDrawerValue()).toBe(null)
+  })
+  it('Handles a set initial value', () => {
+    localStorage.setItem('drawerOpen', 'true')
+    expect(initDrawerValue()).toBe(true)
   })
 })

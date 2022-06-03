@@ -3,10 +3,6 @@
   <v-app dark>
     <nav-bar v-if="showNav"/>
     <v-main class="main-content">
-      <v-alert v-model="showPaymentNotification" type="info" dismissible class="ma-2">
-        Artconomy now supports international payouts for Art Commissions!
-        <a href="https://artconomy.com/blog/posts/2021/11/19/international-payments-for-art-commissions-are-on-artconomy/">Click here to learn more.</a>
-      </v-alert>
       <ac-error/>
       <router-view v-if="displayRoute" :key="routeKey"/>
       <ac-form-dialog
@@ -431,23 +427,6 @@ export default class App extends mixins(Viewer, Nav, PrerenderMixin, RatingRefre
         this.alertDismissed = false
       })
     }
-  }
-
-  public set showPaymentNotification(val: boolean) {
-    if (val) {
-      localStorage.removeItem('hidePaymentNotification')
-    } else {
-      localStorage.setItem('hidePaymentNotification', '1')
-    }
-    this.forceRecompute += 1
-  }
-
-  public get showPaymentNotification() {
-    // Accessing a property registers that property as a listener. Even if we do nothing with it, changing its value
-    // will force recomputation of this value.
-    // eslint-disable-next-line no-unused-expressions
-    this.forceRecompute
-    return !localStorage.getItem('hidePaymentNotification')
   }
 
   // To make testing easier via spies without doing anything to the environment.

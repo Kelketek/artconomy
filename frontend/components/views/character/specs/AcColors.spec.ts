@@ -1,4 +1,4 @@
-import Vue from 'vue'
+import Vue, {VueConstructor} from 'vue'
 import {ArtStore, createStore} from '@/store'
 import {Wrapper} from '@vue/test-utils'
 import {genCharacter} from '@/store/characters/specs/fixtures'
@@ -9,7 +9,7 @@ import AcColors from '@/components/views/character/AcColors.vue'
 import {Character} from '@/store/characters/types/Character'
 import Vuetify from 'vuetify/lib'
 
-const localVue = vueSetup()
+let localVue: VueConstructor
 let vuetify: Vuetify
 
 describe('AcColors.vue', () => {
@@ -17,6 +17,7 @@ describe('AcColors.vue', () => {
   let wrapper: Wrapper<Vue>
   let character: Character
   beforeEach(() => {
+    localVue = vueSetup()
     store = createStore()
     character = genCharacter()
     vuetify = createVuetify()
@@ -58,7 +59,6 @@ describe('AcColors.vue', () => {
         propsData: {username: 'Fox', characterName: 'Kai'},
         mocks: {$route: {name: 'Character', params: {username: 'Fox', characterName: 'Kai'}, query: {}}},
         stubs: ['router-link'],
-
       })
     const vm = wrapper.vm as any
     vm.character.profile.setX(character)

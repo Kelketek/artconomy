@@ -133,7 +133,7 @@ export default class AcNewSubmission extends mixins(Subjective, Upload) {
     @Prop({default: false})
     public allowMultiple!: boolean
 
-    @Prop({default: () => undefined})
+    @Prop({default: () => () => undefined})
     public postAdd!: (submission: Submission) => any
 
     public newUpload: FormController = null as unknown as FormController
@@ -143,7 +143,7 @@ export default class AcNewSubmission extends mixins(Subjective, Upload) {
     public multiple = false
 
     public get success() {
-      if (this.multiple) {
+      if (this.allowMultiple && this.multiple) {
         return (submission: Submission) => {
           const isArtist = this.isArtist
           this.newUpload.reset()

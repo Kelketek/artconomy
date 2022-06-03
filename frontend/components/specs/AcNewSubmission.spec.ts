@@ -99,6 +99,38 @@ describe('AcNewSubmission.vue', () => {
       name: 'Submission', params: {submissionId: '3'}, query: {editing: 'true'},
     })
   })
+  it('Submits and resets if multi-upload is enabled', async() => {
+    const user = genUser()
+    user.id = 1
+    setViewer(store, user)
+    const mockPush = jest.fn()
+    wrapper = mount(DummySubmit, {
+      localVue,
+      store,
+      vuetify,
+      propsData: {username: 'Fox', allowMultiple: true},
+      mocks: {
+        $route: {name: 'Profile', params: {username: 'Fox'}, query: {editing: false}},
+        $router: {push: mockPush},
+      },
+      attachTo: docTarget(),
+    })
+    const vm = wrapper.vm as any
+    await vm.$nextTick()
+    mockAxios.reset()
+    vm.$refs.submissionForm.multiple = true
+    const form = vm.$getForm('newUpload')
+    form.step = 2
+    await vm.$nextTick()
+    wrapper.find('.submit-button').trigger('click')
+    expect(mockAxios.request).toHaveBeenCalled()
+    const submission = genSubmission()
+    mockAxios.mockResponse(rs(submission))
+    await flushPromises()
+    await vm.$nextTick()
+    expect(mockPush).not.toHaveBeenCalled()
+    expect(form.step).toBe(1)
+  })
   it('Shows the upload form based on vuex state', async() => {
     // v-dialog__content--active
     const user = genUser()
@@ -114,7 +146,6 @@ describe('AcNewSubmission.vue', () => {
         $route: {name: 'Profile', params: {username: 'Fox'}, query: {editing: false}},
         $router: {push: mockPush},
       },
-
       attachTo: docTarget(),
     })
     await wrapper.vm.$nextTick()

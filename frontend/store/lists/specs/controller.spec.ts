@@ -171,6 +171,16 @@ describe('List controller', () => {
     controller.push(item4)
     expect(state.example.refs).toEqual(['1', '2', '3', '4'])
   })
+  it('Unshifts onto the beginning of the list', () => {
+    const controller = makeController()
+    const item1 = {id: 2, test: 'Hello'}
+    const item2 = {id: 3, test: 'Goodbye'}
+    const item3 = {id: 4, test: 'Aloha'}
+    store.commit('lists/example/setList', [item1, item2, item3])
+    const item4 = {id: 1, test: 'Surprise, Mothafucka'}
+    controller.unshift(item4)
+    expect(state.example.refs).toEqual(['1', '2', '3', '4'])
+  })
   it('Does nothing if attempting to remove a non-existent item', () => {
     const controller = makeController()
     const item1 = {id: 1}

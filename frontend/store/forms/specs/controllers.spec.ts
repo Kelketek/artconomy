@@ -691,6 +691,27 @@ describe('Form and field controllers', () => {
     await flushPromises()
     expect(controller.errors).toEqual(['Too low.', 'You\'ve got to be at least 25.'])
   })
+  it('Returns validators', async() => {
+    formRegistry.validators.min = min
+    const validators = [
+      {name: 'min', args: [30]},
+      {name: 'min', args: [25, 'You\'ve got to be at least 25.']},
+    ]
+    store.commit('forms/initForm', {
+      name: 'example',
+      fields: {
+        name: {value: 'Fox', disabled: true},
+        age: {
+          value: 20,
+          validators,
+          errors: ['Old error'],
+        },
+      },
+      endpoint: '/test/endpoint/',
+    })
+    const controller = new FieldController({store, propsData: {formName: 'example', fieldName: 'age'}})
+    expect(controller.validators).toEqual(validators)
+  })
   it('Updates a field without validation', () => {
     formRegistry.validators.min = min
     store.commit('forms/initForm', {

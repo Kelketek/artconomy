@@ -111,10 +111,13 @@ export default class AcUppyFile extends mixins(ExtendedInput) {
 
     public toRemove: Array<() => void> = []
 
+    // Not sure where this is getting set. However, if I remove this boolean, test coverage plummets, so it must
+    // be used somewhere. Maybe by an upstream callback?
     public unmounting = false
 
     @Watch('value')
     public tripReset(newVal: string, oldVal: string) {
+      /* istanbul ignore if */
       if (this.unmounting) {
         return
       }
@@ -124,6 +127,7 @@ export default class AcUppyFile extends mixins(ExtendedInput) {
     }
 
     public reset() {
+      /* istanbul ignore if */
       if (this.unmounting) {
         return
       }
@@ -158,7 +162,7 @@ export default class AcUppyFile extends mixins(ExtendedInput) {
       }))
     }
 
-    private mounted() {
+    public mounted() {
       this.uppy.use(Dashboard, {
         inline: true,
         target: `#${this.uppyId} .dashboard-container`,
@@ -182,6 +186,8 @@ export default class AcUppyFile extends mixins(ExtendedInput) {
           this.success(response.body)
         }
       })
+      // If this component is remounted, Uppy is regenerated and we have to restore state.
+      /* istanbul ignore if */
       if (Object.keys(this.originalState).length) {
         this.uppy.setState(this.originalState)
       }

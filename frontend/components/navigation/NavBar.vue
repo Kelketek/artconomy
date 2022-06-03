@@ -188,7 +188,6 @@ import {NavSettings} from '@/types/NavSettings'
 })
 export default class NavBar extends mixins(Viewer, Nav, PrerenderMixin) {
   @State('iFrame') public iFrame!: boolean
-  public drawerStore: null|boolean = null
   public searchForm: FormController = null as unknown as FormController
   public navSettings = null as unknown as SingleController<NavSettings>
 

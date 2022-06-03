@@ -1,4 +1,4 @@
-import Vue from 'vue'
+import Vue, {VueConstructor} from 'vue'
 import Vuetify from 'vuetify/lib'
 import {shallowMount, Wrapper} from '@vue/test-utils'
 import NavBar from '../NavBar.vue'
@@ -17,9 +17,10 @@ import {
 } from '@/specs/helpers'
 import mockAxios from '@/specs/helpers/mock-axios'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
+import {initDrawerValue} from '@/lib/lib'
 
 // Must use it directly, due to issues with package imports upstream.
-const localVue = vueSetup()
+let localVue: VueConstructor
 let wrapper: Wrapper<Vue>
 let empty: Wrapper<Vue>
 let vuetify: Vuetify
@@ -28,8 +29,9 @@ describe('NavBar.vue', () => {
   let store: ArtStore
   beforeEach(() => {
     mockAxios.reset()
-    store = createStore()
     jest.useFakeTimers()
+    localVue = vueSetup()
+    store = createStore()
     vuetify = createVuetify()
     empty = mount(Empty, {localVue, store})
     empty.vm.$getForm('search', {endpoint: '/', fields: {q: {value: ''}}})
@@ -115,6 +117,7 @@ describe('NavBar.vue', () => {
     expect(dispatch).toHaveBeenCalledWith('notifications/stopLoop')
   })
   it('Handles the drawer preference via local storage', async() => {
+    expect(initDrawerValue()).toBe(null)
     wrapper = shallowMount(NavBar, {
       store,
       localVue,
@@ -126,10 +129,30 @@ describe('NavBar.vue', () => {
     const vm = wrapper.vm as any
     vm.navSettings.patchers.drawer.model = false
     expect(vm.navSettings.patchers.drawer.model).toBe(false)
+    await wrapper.vm.$nextTick()
+    expect(initDrawerValue()).toBe(false)
     vm.navSettings.patchers.drawer.model = null
     await wrapper.vm.$nextTick()
     expect(vm.navSettings.patchers.drawer.model).toBe(true)
+    expect(initDrawerValue()).toBe(true)
     wrapper.destroy()
+  })
+  it('Loads the previous preference from localStorage', async() => {
+    expect(initDrawerValue()).toBe(null)
+    localStorage.setItem('drawerOpen', 'false');
+    (window as any).innerWidth = 1500
+    dispatchEvent(new Event('resize'))
+    wrapper = shallowMount(NavBar, {
+      store,
+      localVue,
+      vuetify,
+      mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}},
+      attachTo: docTarget(),
+    })
+    await wrapper.vm.$nextTick()
+    const vm = wrapper.vm as any
+    expect(vm.navSettings.patchers.drawer.model).toBe(false)
+    expect(initDrawerValue()).toBe(false)
   })
   it('Generates a profile link', async() => {
     const user = genUser()
