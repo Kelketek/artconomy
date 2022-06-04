@@ -7,9 +7,9 @@ su dev
 if [[ ! -d node_modules ]]
    then
    cp -a /root/node_modules /app/
-   ./manage.py collectstatic -v0 --noinput
 fi
 ./manage.py migrate
 npm run serve &
+./manage.py collectstatic -v0 --noinput
 ./manage.py tg_bot &
 exec "$@"

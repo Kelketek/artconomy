@@ -92,6 +92,9 @@ export default {
     allowPreview: {
       default: false,
     },
+    forceHidden: {
+      default: false,
+    }
   },
   computed: {
     submissionLink() {
@@ -101,7 +104,7 @@ export default {
       return {name: 'Submission', params: {submissionId: this.submission.id}}
     },
     unavailable() {
-      return this.submission.private
+      return this.submission.private || this.forceHidden
     },
   },
 }

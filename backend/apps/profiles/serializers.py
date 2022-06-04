@@ -790,7 +790,8 @@ class PositionShiftSerializer(serializers.Serializer):
 
 class ArtistTagSerializer(serializers.ModelSerializer):
     submission = SubmissionSerializer(read_only=True)
+    user = RelatedUserSerializer(read_only=True)
 
     class Meta:
         model = ArtistTag
-        fields = ('id', 'submission', 'display_position', 'hidden')
+        fields = ('id', 'submission', 'user', 'display_position', 'hidden')

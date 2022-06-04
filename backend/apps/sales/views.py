@@ -49,7 +49,7 @@ from apps.lib.serializers import CommentSerializer
 from apps.lib.utils import notify, recall_notification, demark, preview_rating, send_transaction_email, create_comment, \
     mark_modified, mark_read
 from apps.lib.views import BasePreview
-from apps.profiles.models import User, Submission, IN_SUPPORTED_COUNTRY, trigger_reconnect
+from apps.profiles.models import User, Submission, IN_SUPPORTED_COUNTRY, trigger_reconnect, ArtistTag
 from apps.profiles.permissions import ObjectControls, UserControls, IsUser, IsSuperuser, IsRegistered
 from apps.profiles.serializers import UserSerializer, SubmissionSerializer
 from apps.profiles.tasks import create_or_update_stripe_user
@@ -66,7 +66,7 @@ from apps.sales.permissions import (
     OrderViewPermission, OrderSellerPermission, OrderBuyerPermission,
     OrderPlacePermission, EscrowPermission, EscrowDisabledPermission, RevisionsVisible,
     BankingConfigured,
-    DeliverableStatusPermission, HasRevisionsPermission, OrderTimeUpPermission, NoOrderOutput, PaidOrderPermission,
+    DeliverableStatusPermission, HasRevisionsPermission, OrderTimeUpPermission, PaidOrderPermission,
     LineItemTypePermission, DeliverableNoProduct, LandscapeSellerPermission, PublicQueue, InvoiceStatus)
 from apps.sales.serializers import (
     ProductSerializer, ProductNewOrderSerializer, DeliverableViewSerializer, CardSerializer,
@@ -2428,6 +2428,10 @@ class DeliverableOutputs(ListCreateAPIView):
                 character.save()
         if deliverable.product and (request.user == deliverable.order.seller) and is_final:
             deliverable.product.samples.add(instance)
+        if instance.owner == deliverable.order.seller:
+            # Hide the customer's copy if we make one of our own.
+            submissions = Submission.objects.filter(deliverable=deliverable, revision=revision).exclude(id=instance.id)
+            ArtistTag.objects.filter(submission__in=submissions, user=deliverable.order.seller).update(hidden=True)
         return Response(
             data=SubmissionSerializer(instance=instance, context=self.get_serializer_context()).data,
             status=status.HTTP_201_CREATED,

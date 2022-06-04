@@ -12,7 +12,7 @@
         <slot :sortableList="sortableList" />
       </draggable>
     </v-col>
-    <ac-draggable-navs :list="list" :sortable-list="sortableList" position-field="display_position" />
+    <ac-draggable-navs :list="list" :sortable-list="sortableList" position-field="display_position" class="pt-5"/>
     <v-col class="text-center" slot="failure" v-if="okStatuses"><p>{{failureMessage}}</p></v-col>
     <v-col class="text-center" slot="empty" v-if="emptyMessage"><p>{{emptyMessage}}</p></v-col>
   </ac-paginated>

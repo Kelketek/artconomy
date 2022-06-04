@@ -11,10 +11,7 @@
       <ac-draggable-list :list="list">
         <template v-slot:default="{sortableList}">
           <v-col cols="4" sm="3" lg="2" v-for="tag in sortableList" :key="tag.x.id">
-            <ac-gallery-preview class="pa-1" @click.capture.stop.prevent="() => false"
-                                :linked="false"
-                                :submission="tag.x.submission" :show-footer="true">
-            </ac-gallery-preview>
+            <artist-tag-manager :tag="tag" :username="username" />
           </v-col>
         </template>
       </ac-draggable-list>
@@ -35,6 +32,9 @@
 .page-setter .sortable-ghost + .v-card.disabled {
   filter: brightness(100%);
 }
+.unavailable {
+  opacity: .5;
+}
 </style>
 
 <script lang="ts">
@@ -53,9 +53,11 @@ import Editable from '@/mixins/editable'
 import AcDraggableNavs from '@/components/AcDraggableNavs.vue'
 import AcDraggableList from '@/components/AcDraggableList.vue'
 import ArtistTag from '@/types/ArtistTag'
+import ArtistTagManager from '@/components/views/profile/ArtistTagManager.vue'
 
 @Component({
   components: {
+    ArtistTagManager,
     AcDraggableList,
     AcDraggableNavs,
     AcPaginated,

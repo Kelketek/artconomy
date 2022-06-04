@@ -99,13 +99,7 @@ def user_submissions(user: User, request, is_artist: bool):
         request, request.user,
     )
     if is_artist:
-        qs = qs.filter(artists=user)
-        qs = qs.annotate(all_mine=Case(
-            When(owner=user, then=0),
-            default=1,
-            output_field=IntegerField()))
-        qs = qs.order_by('file', 'all_mine').distinct('file').values('id')
-        qs = Submission.objects.filter(id__in=Subquery(qs))
+        qs = qs.filter(artists=user, artisttag__hidden=False)
     else:
         qs = qs.filter(owner=user).exclude(artists=user)
     return qs
@@ -1137,10 +1131,7 @@ class ArtRelationList(ListAPIView):
     def get_queryset(self) -> QuerySet:
         user = get_object_or_404(User, username=self.kwargs['username'])
         self.check_object_permissions(self.request, user)
-        qs = ArtistTag.objects.filter(user=user)
-        if self.request.GET.get('show_all') and (self.request.user.is_staff or (self.request.user == user)):
-            return qs
-        return qs.filter(hidden=False)
+        return ArtistTag.objects.filter(user=user)
 
 
 class ArtRelationManager(RetrieveUpdateDestroyAPIView):

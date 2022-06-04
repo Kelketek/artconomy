@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="toggle" :width="width" :transition="transition" :fullscreen="fullscreen" :eager="true">
+  <v-dialog v-model="toggle" :width="width" :transition="transition" :fullscreen="fullscreen" :eager="eager">
     <v-card tile>
       <v-toolbar flat dark color="secondary" :dense="$vuetify.breakpoint.mdAndUp">
         <v-toolbar-title><slot name="title" /></v-toolbar-title>
@@ -29,9 +29,13 @@
 import Component, {mixins} from 'vue-class-component'
 import Dialog from '@/mixins/dialog'
 import AcForm from '@/components/wrappers/AcForm.vue'
+import {Prop} from 'vue-property-decorator'
+
 @Component({
   components: {AcForm},
 })
 export default class AcExpandedProperty extends mixins(Dialog) {
+  @Prop({default: true})
+  public eager!: boolean
 }
 </script>
