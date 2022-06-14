@@ -155,8 +155,8 @@ export default class AcAttributes extends mixins(Subjective, CharacterCentric, E
       this.newAttribute = this.$getForm(`${this.character.attributes.name}__newAttribute`, {
         endpoint: this.character.attributes.endpoint,
         fields: {
-          key: {value: '', validators: [{name: 'required'}]},
-          value: {value: '', validators: [{name: 'required'}]},
+          key: {value: ''},
+          value: {value: ''},
         },
       })
       this.character.attributes.firstRun().then()
