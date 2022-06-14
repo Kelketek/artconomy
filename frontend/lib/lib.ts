@@ -712,6 +712,7 @@ export function baseCardSchema(endpoint: string): NamelessFormSchema {
       make_primary: {value: true},
       save_card: {value: true},
       card_id: {value: null},
+      use_reader: {value: false},
     },
   }
 }

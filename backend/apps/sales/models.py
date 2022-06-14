@@ -1,9 +1,10 @@
+import enum
 import re
 from contextlib import contextmanager
 from dataclasses import dataclass
 from decimal import Decimal
 from itertools import chain
-from typing import Union, List
+from typing import Union, List, Optional, Sequence
 from warnings import warn
 
 from django.core.exceptions import ValidationError
@@ -296,7 +297,7 @@ DELIVERABLE_STATUSES = (
 
 class Deliverable(Model):
     preserve_comments = True
-    post_pay_hook = 'apps.sales.views.deliverable_charge'
+    post_pay_hook = 'apps.sales.views.helpers.deliverable_charge'
     comment_permissions = [OrderViewPermission]
     watch_permissions = {'DeliverableViewSerializer': [OrderViewPermission], None: [OrderViewPermission]}
     processor = models.CharField(choices=PROCESSOR_CHOICES, db_index=True, max_length=24)
@@ -910,9 +911,9 @@ class TransactionRecord(Model):
     Model for tracking the movement of money.
     """
     # Status types
-    SUCCESS = 0
-    FAILURE = 1
-    PENDING = 2
+    SUCCESS = 1
+    FAILURE = 2
+    PENDING = 3
 
     TRANSACTION_STATUSES = (
         (SUCCESS, 'Successful'),
@@ -1490,7 +1491,7 @@ class ServicePlan(models.Model):
     """
     Service plans describe levels of service for users.
     """
-    post_pay_hook = 'apps.sales.views.service_charge'
+    post_pay_hook = 'apps.sales.views.helpers.service_charge'
     name = models.CharField(max_length=100, db_index=True, unique=True)
     description = models.CharField(max_length=1000)
     features = JSONField(default=list)
@@ -1522,6 +1523,92 @@ class ServicePlan(models.Model):
 
     def __str__(self):
         return f'{self.name} (#{self.id})'
+
+
+class StripeLocation(models.Model):
+    """
+    Model to represent a location in the Stripe API
+    """
+    id = ShortCodeField(primary_key=True, default=gen_shortcode)
+    name = CharField(max_length=150)
+    stripe_token = CharField(max_length=50, default='', blank=True)
+    line1 = CharField(max_length=250)
+    line2 = CharField(max_length=250, default='', blank=True)
+    city = CharField(max_length=250, default='', blank=True)
+    state = CharField(max_length=5, default='', blank=True)
+    postal_code = CharField(max_length=20, default='', blank=True)
+    country = CharField(max_length=2)
+
+    def __str__(self):
+        return self.name
+
+    def save(self, *args, **kwargs) -> None:
+        with stripe as stripe_api:
+            address = {'line1': self.line1, 'country': self.country}
+            for field in ['city', 'state', 'postal_code', 'line2']:
+                if value := getattr(self, field):
+                    address[field] = value
+            if self.stripe_token:
+                stripe_api.terminal.Location.modify(
+                    self.stripe_token,
+                    display_name=self.name,
+                    address=address,
+                )
+            else:
+                location = stripe_api.terminal.Location.create(
+                    display_name=self.name,
+                    address=address,
+                )
+                self.stripe_token = location.id
+            super().save()
+
+    def delete(self, *args, **kwargs):
+        with stripe as stripe_api:
+            stripe_api.terminal.Location.delete(self.stripe_token)
+        super().delete(*args, **kwargs)
+
+
+class StripeReader(models.Model):
+    """
+    Model to represent terminals in the API.
+    """
+    registration_code = ''
+    id = ShortCodeField(primary_key=True, default=gen_shortcode)
+    name = CharField(max_length=150, db_index=True)
+    stripe_token = CharField(max_length=50)
+    virtual = BooleanField()
+    location = ForeignKey(
+        StripeLocation,
+        on_delete=CASCADE,
+        help_text='Primary location where reader will be used. Cannot be changed after it is initially set. '
+                  'You must delete the reader and recreate it to change its location.'
+    )
+
+    def __str__(self):
+        return f'{self.name} at {self.location and self.location.name} (#{self.id})'
+
+    def save(self, *args, **kwargs) -> None:
+        with stripe as stripe_api:
+            if not self.stripe_token:
+                reader = stripe_api.terminal.Reader.create(
+                    label=self.name,
+                    location=self.location.stripe_token,
+                    registration_code=self.registration_code,
+                )
+                if self.registration_code.startswith('simulated'):
+                    self.virtual = True
+                self.stripe_token = reader.id
+            else:
+                stripe_api.terminal.Reader.modify(
+                    self.stripe_token,
+                    label=self.name,
+                )
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        with stripe as stripe_api:
+            stripe_api.terminal.Reader.delete(self.stripe_token)
+        super().delete(*args, **kwargs)
 
 
 # Force load of registrations for serializers.

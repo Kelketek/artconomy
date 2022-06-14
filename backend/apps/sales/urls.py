@@ -4,7 +4,10 @@ from django.urls import path, register_converter
 from django.views.decorators.csrf import csrf_exempt
 from short_stuff.django.converters import ShortCodeConverter
 
-from apps.sales import views
+import apps.sales.views.stripe_views
+from apps.sales.views import views
+from apps.sales.views import stripe_views
+from apps.sales.views import webhooks
 
 app_name = 'sales'
 
@@ -23,15 +26,16 @@ urlpatterns = [
     path('v1/who-is-open/', views.WhoIsOpen.as_view(), name='who_is_open'),
     path('v1/pricing-info/', views.PremiumInfo.as_view(), name='pricing_info'),
     path('v1/premium/', views.Premium.as_view(), name='premium'),
-    path('v1/premium/intent/', views.PremiumPaymentIntent.as_view(), name='premium_intent'),
+    path('v1/premium/intent/', stripe_views.PremiumPaymentIntent.as_view(), name='premium_intent'),
     path('v1/recent-invoices/', views.TableInvoices.as_view(), name='recent_invoice'),
     path('v1/references/', views.References.as_view(), name='references'),
     path('v1/table/products/', views.TableProducts.as_view(), name='table_products'),
     path('v1/table/orders/', views.TableOrders.as_view(), name='table_orders'),
-    path('v1/stripe-webhooks/', csrf_exempt(views.StripeWebhooks.as_view()), name='stripe_webhooks', kwargs={'connect': False}),
+    path('v1/stripe-webhooks/', csrf_exempt(webhooks.StripeWebhooks.as_view()), name='stripe_webhooks', kwargs={'connect': False}),
     path('v1/create-anonymous-invoice/', views.CreateAnonymousInvoice.as_view(), name='create_anonymous_invoice'),
-    path('v1/stripe-webhooks/connect/', csrf_exempt(views.StripeWebhooks.as_view()), name='stripe_webhooks_connect', kwargs={'connect': True}),
-    path('v1/stripe-countries/', views.StripeCountries.as_view(), name='stripe_countries'),
+    path('v1/stripe-webhooks/connect/', csrf_exempt(webhooks.StripeWebhooks.as_view()), name='stripe_webhooks_connect', kwargs={'connect': True}),
+    path('v1/stripe-readers/', apps.sales.views.stripe_views.StripeReaders.as_view(), name='stripe_readers'),
+    path('v1/stripe-countries/', stripe_views.StripeCountries.as_view(), name='stripe_countries'),
     # Pinterest requires the file name to have .csv on the end of it. We should see about doing a batch processing job
     # to dump completed files in a consistent place instead.
     path('v1/pinterest-catalog/', views.PinterestCatalog.as_view(), name='pinterest_catalog'),
@@ -123,12 +127,12 @@ urlpatterns = [
     path('v1/account/<username>/cards/stripe/<int:card_id>/', views.CardManager.as_view(), name='card_manager'),
     path('v1/account/<username>/cards/authorize/', views.CardList.as_view(), name='list_cards', kwargs={'authorize': True}),
     path('v1/account/<username>/cards/authorize/<int:card_id>/', views.CardManager.as_view(), name='card_manager'),
-    path('v1/account/<username>/cards/setup-intent/', views.SetupIntent.as_view(), name='setup_intent'),
+    path('v1/account/<username>/cards/setup-intent/', stripe_views.SetupIntent.as_view(), name='setup_intent'),
     path('v1/account/<username>/cards/<int:card_id>/', views.CardManager.as_view(), name='card_manager'),
     path('v1/account/<username>/cards/<int:card_id>/primary/', views.MakePrimary.as_view(), name='card_primary'),
     path('v1/account/<username>/balance/', views.AccountBalance.as_view(), name='account_balance'),
-    path('v1/account/<username>/stripe-accounts/', views.StripeAccounts.as_view(), name='stripe_account_list'),
-    path('v1/account/<username>/stripe-accounts/link/', views.StripeAccountLink.as_view(), name='stripe_account_link'),
+    path('v1/account/<username>/stripe-accounts/', stripe_views.StripeAccounts.as_view(), name='stripe_account_list'),
+    path('v1/account/<username>/stripe-accounts/link/', stripe_views.StripeAccountLink.as_view(), name='stripe_account_link'),
     path('v1/account/<username>/banks/', views.BankAccounts.as_view(), name='bank_list'),
     path('v1/account/<username>/banks/fee-check/', views.WillIncurBankFee.as_view(), name='bank_fee_check'),
     path('v1/account/<username>/banks/<int:account>/', views.BankManager.as_view(), name='bank_manager'),
@@ -144,7 +148,12 @@ urlpatterns = [
     path('v1/invoices/<short_code:invoice>/pay/', views.InvoicePayment.as_view(), name='invoice_payment'),
     path('v1/invoices/<short_code:invoice>/finalize/', views.FinalizeInvoice.as_view(), name='invoice_finalize'),
     path('v1/invoices/<short_code:invoice>/void/', views.VoidInvoice.as_view(), name='invoice_void'),
-    path('v1/invoices/<short_code:invoice>/payment-intent/', views.InvoicePaymentIntent.as_view(), name='invoice_detail'),
+    path('v1/invoices/<short_code:invoice>/payment-intent/', apps.sales.views.stripe_views.InvoicePaymentIntent.as_view(), name='invoice_detail'),
+    path(
+        'v1/invoices/<short_code:invoice>/stripe-process-present-card/',
+        apps.sales.views.stripe_views.ProcessPresentCard.as_view(),
+        name='invoice_stripe_process_present_card',
+    ),
     path('v1/invoices/<short_code:invoice>/line-items/', views.InvoiceLineItems.as_view(), name='invoice_payment_intent'),
     path('v1/invoices/<short_code:invoice>/line-items/<int:line_item>/', views.InvoiceLineItemManager.as_view(), name='line_item_manager'),
     path('v1/order-auth/', views.OrderAuth.as_view(), name='order_auth'),

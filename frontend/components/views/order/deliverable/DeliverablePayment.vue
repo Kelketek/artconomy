@@ -24,7 +24,7 @@
                 <span v-if="isSeller">Slots taken: <strong>{{taskWeight}}</strong></span>
               </div>
             </v-col>
-            <v-col cols="12" sm="6" v-if="(is(NEW) || is(PAYMENT_PENDING) || is(WAITING)) && isSeller">
+            <v-col cols="12" sm="6" v-if="(is(NEW) || is(PAYMENT_PENDING) || is(WAITING)) && (isSeller || isStaff)">
               <v-row no-gutters  >
                 <v-col cols="12">
                   <ac-patch-field
@@ -52,7 +52,7 @@
                   />
                 </v-col>
                 <v-col class="text-center" cols="12" >
-                  <ac-confirmation :action="statusEndpoint('accept')" v-if="is(NEW) || is(WAITING)">
+                  <ac-confirmation :action="statusEndpoint('accept')" v-if="(is(NEW) || is(WAITING)) && isSeller">
                     <template v-slot:default="{on}">
                       <v-btn v-on="on" color="green" class="accept-order">Accept Order</v-btn>
                     </template>
@@ -63,6 +63,9 @@
                     <span slot="title">Accept Order</span>
                     <span slot="confirm-text">I agree</span>
                   </ac-confirmation>
+                  <v-btn color="green" class="accept-order" @click="statusEndpoint('accept')()" v-else-if="(is(NEW) || is(WAITING)) && isStaff">
+                    Accept Order
+                  </v-btn>
                 </v-col>
                 <v-col cols="12">
                   <ac-escrow-label :escrow="escrow" name="order" />
@@ -105,38 +108,78 @@
                       </template>
                     </ac-confirmation>
                   </v-col>
-                  <v-col class="text-center payment-section" v-if="is(PAYMENT_PENDING) && isBuyer && !deliverable.x.escrow_disabled" cols="12" >
-                    <v-col v-if="is(PAYMENT_PENDING) && isStaff" class="text-center" cols="12">
-                      <v-btn @click="showManualTransaction = true">Transaction Input</v-btn>
-                      <ac-form-dialog v-model="showManualTransaction" @submit.prevent="paymentForm.submitThen(updateDeliverable)" v-bind="paymentForm.bind" title="Enter transaction ID">
-                        <v-row>
-                          <v-col cols="6">
-                            <ac-bound-field :field="paymentForm.fields.cash" label="Cash transaction" hint="Tick this box if the customer has handed you cash." field-type="ac-checkbox" />
-                          </v-col>
-                        </v-row>
-                      </ac-form-dialog>
-                    </v-col>
+                  <v-col class="text-center payment-section" v-if="is(PAYMENT_PENDING) && (isBuyer || isStaff) && !deliverable.x.escrow_disabled" cols="12" >
                     <v-btn color="green" @click="showPayment = true" class="payment-button">Send Payment</v-btn>
                     <ac-form-dialog
                         v-model="showPayment" @submit.prevent="paymentSubmit"
                         :large="true" v-bind="paymentForm.bind"
+                        :show-submit="showSubmit"
                     >
                         <v-row>
                           <v-col class="text-center" cols="12" >Total Charge: <strong>${{totalCharge.toFixed(2)}}</strong></v-col>
                           <v-col cols="12">
                             <ac-load-section :controller="deliverable">
                               <template v-slot:default>
-                                <ac-card-manager
-                                  ref="cardManager"
-                                  :payment="true"
-                                  :username="buyer.username"
-                                  :processor="deliverable.x.processor"
-                                  :cc-form="paymentForm"
-                                  :field-mode="true"
-                                  :client-secret="(clientSecret.x && clientSecret.x.secret) || ''"
-                                  v-model="paymentForm.fields.card_id.model"
-                                  @paymentSent="hideForm"
-                                />
+                                <v-tabs fixed-tabs class="mb-2" v-model="cardTabs" v-if="isStaff">
+                                  <v-tab>Manual Entry</v-tab>
+                                  <v-tab>Terminal</v-tab>
+                                  <v-tab>Cash</v-tab>
+                                </v-tabs>
+                                <v-tabs-items v-model="cardTabs">
+                                  <v-tab-item>
+                                    <ac-card-manager
+                                        ref="cardManager"
+                                        :payment="true"
+                                        :username="buyer.username"
+                                        :processor="deliverable.x.processor"
+                                        :cc-form="paymentForm"
+                                        :field-mode="true"
+                                        :client-secret="(clientSecret.x && clientSecret.x.secret) || ''"
+                                        v-model="paymentForm.fields.card_id.model"
+                                        @paymentSent="hideForm"
+                                    />
+                                  </v-tab-item>
+                                  <v-tab-item>
+                                    <ac-paginated :list="readers">
+                                      <template v-slot:default>
+                                        <ac-form-container v-bind="readerForm.bind">
+                                          <v-row no-gutters>
+                                            <v-col cols="12" md="6" offset-md="3">
+                                              <v-card elevation="10">
+                                                <v-card-text>
+                                                  <v-row>
+                                                    <v-col v-for="reader in readers.list" :key="reader.x.id" cols="12">
+                                                      <v-radio-group v-model="readerForm.fields.reader.model">
+                                                        <ac-bound-field
+                                                            field-type="v-radio"
+                                                            :field="readerForm.fields.reader"
+                                                            :value="reader.x.id"
+                                                            :label="reader.x.name"
+                                                        />
+                                                      </v-radio-group>
+                                                    </v-col>
+                                                    <v-col cols="12" @click="readerForm.submit()">
+                                                      <v-btn color="green" block>Activate Reader</v-btn>
+                                                    </v-col>
+                                                  </v-row>
+                                                </v-card-text>
+                                              </v-card>
+                                            </v-col>
+                                          </v-row>
+                                        </ac-form-container>
+                                      </template>
+                                    </ac-paginated>
+                                  </v-tab-item>
+                                  <v-tab-item>
+                                    <v-row>
+                                      <v-col cols="12" md="6" offset-md="3" class="pa-5">
+                                        <v-btn color="primary" block @click="paymentForm.submitThen(updateDeliverable)">
+                                          Mark Paid by Cash
+                                        </v-btn>
+                                      </v-col>
+                                    </v-row>
+                                  </v-tab-item>
+                                </v-tabs-items>
                               </template>
                             </ac-load-section>
                           </v-col>
@@ -239,9 +282,13 @@ import {PROCESSORS} from '@/types/PROCESSORS'
 import AcStripeCharge from '@/components/AcStripeCharge.vue'
 import {SocketState} from '@/types/SocketState'
 import StripeHostMixin from '@/components/views/order/mixins/StripeHostMixin'
+import StripeMixin from '../mixins/StripeMixin'
+import AcPaginated from '@/components/wrappers/AcPaginated.vue'
+import { FormController } from '@/store/forms/form-controller'
 
 @Component({
   components: {
+    AcPaginated,
     AcStripeCharge,
     AcBoundField,
     AcPatchField,
@@ -256,20 +303,33 @@ import StripeHostMixin from '@/components/views/order/mixins/StripeHostMixin'
     AcRendered,
   },
 })
-export default class DeliverablePayment extends mixins(DeliverableMixin, Formatting, StripeHostMixin) {
+export default class DeliverablePayment extends mixins(DeliverableMixin, Formatting, StripeHostMixin, StripeMixin) {
   public showPayment = false
-  public showManualTransaction = false
   public clientSecret = null as unknown as SingleController<ClientSecret>
+  public readerForm = null as unknown as FormController
   public PROCESSORS = PROCESSORS
   public socketState = null as unknown as SingleController<SocketState>
   public oldTotal: null | Big = null
   // Setting this false to avoid calling for the secret until we have the invoice ID.
   public canUpdateStorage = false
+  public cardTabs = 0
 
-  @Watch('showManualTransaction')
-  public clearManualTransactionSettings() {
-    this.paymentForm.fields.cash.update(false)
-    this.paymentForm.fields.remote_id.update('')
+  @Watch('cardTabs')
+  public clearManualTransactionSettings(tabValue: number) {
+    if (tabValue === 2) {
+      this.paymentForm.fields.cash.update(true)
+    } else {
+      this.paymentForm.fields.cash.update(false)
+    }
+    if ((tabValue === 1) && this.readers.list.length) {
+      if (!this.readerForm.fields.reader.value) {
+        this.readerForm.fields.reader.update(this.readers.list[0].x!.id)
+      }
+      this.paymentForm.fields.use_reader.update(true)
+    } else {
+      this.paymentForm.fields.use_reader.update(false)
+    }
+    this.updateIntent()
   }
 
   @Watch('proxyTotalCharge')
@@ -293,12 +353,17 @@ export default class DeliverablePayment extends mixins(DeliverableMixin, Formatt
     return this.canUpdateStorage
   }
 
+  public get showSubmit() {
+    return this.cardTabs !== 1
+  }
+
   @Watch('deliverable.x.invoice')
   public updateSecretEndpoint(val: string | undefined) {
     if (!val) {
       return
     }
-    this.clientSecret.endpoint = `/api/sales/v1/invoices/${val}/payment-intent/`
+    this.clientSecret.endpoint = `${this.invoiceUrl}payment-intent/`
+    this.readerForm.endpoint = this.readerFormUrl
     this.canUpdateStorage = true
     this.updateIntent()
   }
@@ -308,12 +373,40 @@ export default class DeliverablePayment extends mixins(DeliverableMixin, Formatt
     this.paymentForm.sending = false
   }
 
+  public get invoiceUrl() {
+    return `/api/sales/v1/invoices/${this.deliverable.x?.invoice}/`
+  }
+
+  public get readerFormUrl() {
+    return `${this.invoiceUrl}stripe-process-present-card/`
+  }
+
   @Watch('isBuyer', {immediate: false})
   public fetchSecret(isBuyer: boolean) {
     if (!isBuyer) {
       return
     }
     this.updateIntent()
+  }
+
+  @Watch('isStaff')
+  public triggerFetchReaders(isStaff: boolean, oldVal: boolean) {
+    if (!isStaff) {
+      this.cardTabs = 0
+      this.paymentForm.fields.use_terminal.update(false)
+      this.paymentForm.fields.cash.update(false)
+      this.updateIntent()
+      return
+    }
+    if (!oldVal && !(this.readers.ready || this.readers.fetching)) {
+      if (!this.stripe()) {
+        setTimeout(() => {
+          this.triggerFetchReaders(isStaff, oldVal)
+        }, 500)
+        return
+      }
+      this.fetchReaders()
+    }
   }
 
   public get priceData(): LineAccumulator {
@@ -411,6 +504,13 @@ export default class DeliverablePayment extends mixins(DeliverableMixin, Formatt
         `${this.prefix}__clientSecret`, {
           endpoint: `${this.url}payment-intent/`,
         })
+    this.readerForm = this.$getForm('stripeReader', {
+      endpoint: `${this.readerFormUrl}`,
+      reset: false,
+      fields: {
+        reader: {value: null}
+      }
+    })
   }
 }
 </script>

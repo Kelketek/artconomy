@@ -6,11 +6,15 @@ import {FormController} from '@/store/forms/form-controller'
 import {SingleController} from '@/store/singles/controller'
 import ClientSecret from '@/types/ClientSecret'
 import debounce from 'lodash/debounce'
+import {ListController} from '@/store/lists/controller'
+import StripeReader from '@/types/StripeReader'
 
 @Component
 export default class StripeHostMixin extends Vue {
   public paymentForm!: FormController
   public clientSecret!: SingleController<ClientSecret>
+  public readers = null as unknown as ListController<StripeReader>
+  public reader = null as unknown as SingleController<StripeReader>
 
   // Override this if fetching the secret isn't immediately possible.
   public get canUpdate() {
@@ -56,5 +60,16 @@ export default class StripeHostMixin extends Vue {
   @Watch('paymentForm.fields.make_primary.value')
   public makePrimaryUpdate() {
     this.updateIntent()
+  }
+
+  public fetchReaders() {
+    this.readers.fetching = true
+  }
+
+  public created() {
+    this.readers = this.$getList(
+      'stripeReaders', {endpoint: '/api/sales/v1/stripe-readers/'},
+    )
+    this.readers.firstRun()
   }
 }

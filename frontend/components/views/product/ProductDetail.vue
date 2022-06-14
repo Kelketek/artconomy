@@ -364,6 +364,9 @@
                 <v-col class="text-center" cols="12" v-if="isStaff" v-show="editing" >
                   <ac-patch-field :patcher="product.patchers.catalog_enabled" field-type="v-switch" label="Catalog Enabled" />
                 </v-col>
+                <v-col class="text-center" cols="12" v-if="isStaff" v-show="editing" >
+                  <ac-patch-field :patcher="product.patchers.table_product" field-type="v-switch" label="Table Product" />
+                </v-col>
               </v-row>
             </v-card-text>
           </v-card>

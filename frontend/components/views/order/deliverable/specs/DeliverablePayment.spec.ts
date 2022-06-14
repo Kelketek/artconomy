@@ -244,7 +244,7 @@ describe('DeliverablePayment.vue', () => {
     expect(vm.buyerSubmission.x.id).toBe(398)
     expect(vm.sellerSubmission.x.id).toBe(409)
   })
-  it('Clears the remote ID and cash flag when the manual transaction menu is toggled', async() => {
+  it('Clears the cash flag when navigating off the cash tab', async() => {
     const fox = genUser({is_staff: true})
     fox.username = 'Fox'
     setViewer(store, fox)
@@ -264,25 +264,12 @@ describe('DeliverablePayment.vue', () => {
     vm.deliverable.setX(deliverable)
     vm.deliverable.ready = true
     mockAxios.reset()
-    await vm.$nextTick()
-    vm.paymentForm.fields.cash.update(true)
-    vm.paymentForm.fields.remote_id.update('1234')
+    vm.cardTabs = 2
     await vm.$nextTick()
     expect(vm.paymentForm.fields.cash.value).toBe(true)
-    expect(vm.paymentForm.fields.remote_id.value).toBe('1234')
-    vm.showManualTransaction = true
+    vm.cardTabs = 1
     await vm.$nextTick()
     expect(vm.paymentForm.fields.cash.value).toBe(false)
-    expect(vm.paymentForm.fields.remote_id.value).toBe('')
-    vm.paymentForm.fields.cash.update(true)
-    vm.paymentForm.fields.remote_id.update('1234')
-    await vm.$nextTick()
-    expect(vm.paymentForm.fields.cash.value).toBe(true)
-    expect(vm.paymentForm.fields.remote_id.value).toBe('1234')
-    vm.showManualTransaction = false
-    await vm.$nextTick()
-    expect(vm.paymentForm.fields.cash.value).toBe(false)
-    expect(vm.paymentForm.fields.remote_id.value).toBe('')
   })
   it('Generates tip line item', async() => {
     const fox = genUser()

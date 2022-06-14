@@ -1,15 +1,17 @@
 from uuid import UUID
 
+from django import forms
 from django.conf import settings
 from django.contrib import admin
 
 # Register your models here.
+from django.forms import ModelForm
 from django.urls import reverse
 from django.utils.html import format_html
 
 from apps.lib.admin import CommentInline
 from apps.sales.models import Product, Order, Revision, Promo, TransactionRecord, Rating, Deliverable, LineItem, \
-    Invoice, WebhookRecord, LineItemAnnotation, ServicePlan
+    Invoice, WebhookRecord, LineItemAnnotation, ServicePlan, StripeLocation, StripeReader
 
 
 class ProductAdmin(admin.ModelAdmin):
@@ -32,7 +34,7 @@ class DeliverableAdmin(admin.ModelAdmin):
         CommentInline
     ]
     raw_id_fields = ['arbitrator', 'characters', 'product', 'order', 'invoice']
-    list_display = ('id', 'name', 'product', 'buyer', 'seller', 'shield_protected', 'status', 'link')
+    list_display = ('id', 'name', 'product', 'buyer', 'seller', 'created_on', 'shield_protected', 'status', 'link')
     list_filter = ('escrow_disabled', 'status', 'processor')
 
     def buyer(self, obj):
@@ -124,6 +126,38 @@ class RevisionAdmin(admin.ModelAdmin):
     raw_id_fields = ['owner', 'deliverable', 'file', 'preview']
 
 
+class StripeLocationAdmin(admin.ModelAdmin):
+    readonly_fields = ['stripe_token']
+
+
+class StripeReaderForm(ModelForm):
+    registration_code = forms.CharField(
+        max_length=250,
+        help_text="Pairing code given by reader. Only needed on initial creation, and not stored.",
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.stripe_token:
+            self.fields['location'].disabled = True
+            self.fields['registration_code'].disabled = True
+            self.fields['registration_code'].required = False
+
+    def save(self, commit: bool = ...):
+        self.instance.registration_code = self.cleaned_data['registration_code']
+        return super().save(commit=commit)
+
+    class Meta:
+        model = StripeReader
+        fields = ['id', 'name', 'location', 'virtual']
+        readonly_fields = ['id', 'stripe_token']
+
+
+class StripeReaderAdmin(admin.ModelAdmin):
+    readonly_fields = ('stripe_token',)
+    form = StripeReaderForm
+
+
 admin.site.register(Product, ProductAdmin)
 admin.site.register(Order, OrderAdmin)
 admin.site.register(Deliverable, DeliverableAdmin)
@@ -135,3 +169,5 @@ admin.site.register(TransactionRecord, TransactionRecordAdmin)
 admin.site.register(Rating, RatingAdmin)
 admin.site.register(WebhookRecord, WebhookRecordAdmin)
 admin.site.register(ServicePlan)
+admin.site.register(StripeLocation, StripeLocationAdmin)
+admin.site.register(StripeReader, StripeReaderAdmin)

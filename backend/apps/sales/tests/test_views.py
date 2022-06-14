@@ -22,10 +22,10 @@ from apps.profiles.tests.factories import UserFactory, SubmissionFactory, Charac
 from apps.sales.models import (
     Order, Product, TransactionRecord, ADD_ON, BASE_PRICE, NEW, COMPLETED, IN_PROGRESS,
     PAYMENT_PENDING,
-    REVIEW, QUEUED, DISPUTED, CANCELLED, DELIVERABLE_STATUSES, REFUNDED, Deliverable, WAITING, ServicePlan)
+    REVIEW, QUEUED, DISPUTED, CANCELLED, DELIVERABLE_STATUSES, REFUNDED, Deliverable, WAITING)
 from apps.sales.tests.factories import DeliverableFactory, CreditCardTokenFactory, ProductFactory, RevisionFactory, \
     RatingFactory, ReferenceFactory, ServicePlanFactory, InvoiceFactory
-from apps.sales.views import (
+from apps.sales.views.views import (
     CurrentOrderList, CurrentSalesList, CurrentCasesList,
     CancelledOrderList,
     ArchivedOrderList,

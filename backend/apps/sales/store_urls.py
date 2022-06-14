@@ -2,7 +2,7 @@
 """
 from django.urls import path
 
-from apps.sales.views import ProductPreview, StorePreview
+from apps.sales.views.views import ProductPreview, StorePreview
 
 app_name = "sales"
 

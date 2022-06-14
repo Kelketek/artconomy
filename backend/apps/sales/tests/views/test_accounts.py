@@ -8,7 +8,7 @@ from apps.profiles.tests.factories import UserFactory
 from apps.sales.models import TransactionRecord
 from apps.sales.tests.factories import CreditCardTokenFactory, TransactionRecordFactory, BankAccountFactory
 from apps.sales.utils import PENDING
-from apps.sales.views import AccountHistory
+from apps.sales.views.views import AccountHistory
 
 history_passes = {**MethodAccessMixin.passes, 'get': ['user', 'staff']}
 
@@ -127,7 +127,7 @@ class TestBankManager(APITestCase):
         self.user = UserFactory.create()
         self.account = BankAccountFactory.create(user=self.user)
 
-    @patch('apps.sales.views.destroy_bank_account')
+    @patch('apps.sales.views.views.destroy_bank_account')
     def test_bank_account_destroy(self, _mock_destroy_account):
         self.login(self.user)
         response = self.client.delete('/api/sales/v1/account/{}/banks/{}/'.format(self.user.username, self.account.id))
@@ -139,7 +139,7 @@ class TestBankManager(APITestCase):
         response = self.client.delete('/api/sales/v1/account/{}/banks/{}/'.format(self.user.username, self.account.id))
         self.assertEqual(response.status_code, 403)
 
-    @patch('apps.sales.views.destroy_bank_account')
+    @patch('apps.sales.views.views.destroy_bank_account')
     def test_bank_account_destroy_staffer(self, _mock_destroy_account):
         staffer = UserFactory.create(is_staff=True)
         self.login(staffer)

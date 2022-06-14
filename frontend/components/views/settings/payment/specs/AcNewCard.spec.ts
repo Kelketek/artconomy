@@ -76,12 +76,12 @@ describe('AcNewCard.vue', () => {
     )
     // Doesn't show 'make primary' when there are no cards.
     Object.values(ccForm.fields).filter(
-      (field) => ['make_primary', 'card_id'].indexOf(field.fieldName) === -1,
+      (field) => !['make_primary', 'card_id', 'use_reader'].includes(field.fieldName),
     ).map((field: FieldController) => fieldEl(wrapper, field))
     expect(wrapper.find('#' + ccForm.fields.make_primary.id).exists()).toBe(false)
     wrapper.setProps({firstCard: false})
     await wrapper.vm.$nextTick()
-    Object.values(ccForm.fields).filter((field) => field.fieldName !== 'card_id').map(
+    Object.values(ccForm.fields).filter((field) => !['card_id', 'use_reader'].includes(field.fieldName)).map(
       (field: FieldController) => fieldEl(wrapper, field),
     )
   })

@@ -1,9 +1,11 @@
+import stripe as stripe_api
+
 from django.core.management import BaseCommand
 from django.urls import reverse
 
-from apps.sales.stripe import stripe, stripe_api
+from apps.sales.stripe import stripe
 from apps.sales.models import WebhookRecord
-from apps.sales.views import STRIPE_DIRECT_WEBHOOK_ROUTES, STRIPE_CONNECT_WEBHOOK_ROUTES
+from apps.sales.views.webhooks import STRIPE_DIRECT_WEBHOOK_ROUTES, STRIPE_CONNECT_WEBHOOK_ROUTES
 from shortcuts import make_url
 
 
@@ -11,14 +13,14 @@ def setup_webhook(url: str, connect: bool, api: stripe_api):
     routes = STRIPE_CONNECT_WEBHOOK_ROUTES if connect else STRIPE_DIRECT_WEBHOOK_ROUTES
     try:
         webhook = WebhookRecord.objects.get(connect=connect)
-        stripe_api.WebhookEndpoint.modify(
+        api.WebhookEndpoint.modify(
             webhook.key,
             url=url,
             enabled_events=list(routes.keys())
         )
     except WebhookRecord.DoesNotExist:
         webhook = None
-        for hook in stripe_api.WebhookEndpoint.list()['data']:
+        for hook in api.WebhookEndpoint.list()['data']:
             if hook['url'] == url:
                 webhook = WebhookRecord.objects.create(key=hook['id'], connect=connect, secret='')
                 print("WARNING: Created webhook from API lookup. "

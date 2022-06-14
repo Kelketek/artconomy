@@ -6,7 +6,7 @@ If enough code has to be repeated between the two bases it may be worth looking 
 import json
 import logging
 from collections import defaultdict
-from decimal import Decimal, InvalidOperation, ROUND_HALF_EVEN, localcontext, ROUND_FLOOR, ROUND_DOWN, ROUND_CEILING
+from decimal import Decimal, InvalidOperation, ROUND_HALF_EVEN, localcontext, ROUND_FLOOR, ROUND_CEILING
 from functools import reduce
 from itertools import chain
 from urllib.parse import quote
@@ -190,7 +190,6 @@ UPDATING = {}
 
 
 def update_availability(seller, load, current_closed_status):
-    from apps.sales.models import NEW
     global UPDATING
     if seller in UPDATING:
         return
@@ -919,7 +918,6 @@ def from_remote_id(
     """
     Mark this as paid via remote transaction ID from the card processor.
     """
-    from apps.sales.models import TransactionRecord
     # This may not work if charging via stripe terminal.
     # We'll be checking this elsewhere if the stripe event is provided.
     details = {'auth_amount': attempt['amount']}
@@ -996,11 +994,15 @@ def mark_successful(
 
 
 @ceiling_context
-def initialize_stripe_charge_fees(amount: Money):
+def initialize_stripe_charge_fees(amount: Money, stripe_event: dict):
     """Return a set of initialized transactions that mark what fees we paid to stripe for a card charge."""
     from apps.sales.models import TransactionRecord
-    fee = (amount * (settings.STRIPE_CHARGE_PERCENTAGE / 100)).round(2)
-    fee += settings.STRIPE_CHARGE_STATIC
+    if 'card_present' in stripe_event['payment_method_details']:
+        fee = (amount * (settings.STRIPE_CARD_PRESENT_PERCENTAGE / 100)).round(2)
+        fee += settings.STRIPE_CARD_PRESENT_STATIC
+    else:
+        fee = (amount * (settings.STRIPE_CHARGE_PERCENTAGE / 100)).round(2)
+        fee += settings.STRIPE_CHARGE_STATIC
     return [
         TransactionRecord(
             source=TransactionRecord.UNPROCESSED_EARNINGS,
@@ -1035,7 +1037,7 @@ def deliverable_initialize_transactions(
         ) for ((destination_user, destination_account, category), value) in transaction_specs.items()
     ]
     if deliverable.processor == STRIPE and source == TransactionRecord.CARD:
-        transactions.extend(initialize_stripe_charge_fees(amount=amount))
+        transactions.extend(initialize_stripe_charge_fees(amount=amount, stripe_event=attempt['stripe_event']))
     return transactions
 
 
@@ -1218,7 +1220,7 @@ def hacky_invoice_initiate_transactions(
 
 
 def hacky_transaction_creation(invoice: 'Invoice', context: dict):
-    from apps.sales.views import remote_ids_from_charge
+    from apps.sales.views.helpers import remote_ids_from_charge
     attempt = context.get('attempt')
     if not attempt:
         charge_event = context['stripe_event']['data']['object']

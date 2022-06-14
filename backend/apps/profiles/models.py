@@ -617,7 +617,6 @@ def remove_if_primary(sender, instance, **kwargs):
         instance.character.save()
 
 
-
 class Attribute(Model):
     key = CharField(max_length=50, db_index=True)
     value = CharField(max_length=100, default='')

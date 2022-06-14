@@ -25,6 +25,7 @@ function emptyForm() {
     number: '',
     save_card: true,
     zip: '',
+    use_reader: false,
   }
 }
 

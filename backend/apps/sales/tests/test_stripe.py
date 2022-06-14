@@ -18,24 +18,24 @@ from apps.lib.test_resources import APITestCase
 from apps.profiles.tests.factories import UserFactory
 from apps.sales.apis import STRIPE
 from apps.sales.models import PAYMENT_PENDING, QUEUED, CreditCardToken, TransactionRecord, REVIEW, IN_PROGRESS, \
-    ServicePlan, OPEN
+    OPEN
 from apps.sales.stripe import money_to_stripe
 from apps.sales.tests.factories import DeliverableFactory, CreditCardTokenFactory, WebhookRecordFactory, InvoiceFactory, \
     LineItemFactory, ServicePlanFactory, add_adjustment, RevisionFactory
 from apps.sales.tests.test_utils import TransactionCheckMixin
 from apps.sales.utils import UserPaymentException
-from apps.sales.views import StripeWebhooks
+from apps.sales.views.webhooks import StripeWebhooks
 
 
 class TestInvoicePaymentIntent(APITestCase):
     def setUp(self) -> None:
-        self.patcher = patch('apps.sales.views.create_or_update_stripe_user')
+        self.patcher = patch('apps.sales.views.stripe_views.create_or_update_stripe_user')
         self.patcher.start()
 
     def tearDown(self) -> None:
         self.patcher.stop()
 
-    @patch('apps.sales.views.stripe')
+    @patch('apps.sales.views.stripe_views.stripe')
     def test_create_payment_intent(self, mock_stripe):
         mock_api = Mock()
         mock_stripe.__enter__.return_value = mock_api
@@ -61,7 +61,7 @@ class TestInvoicePaymentIntent(APITestCase):
         self.assertEqual(params['transfer_group'], f'ACInvoice#{deliverable.invoice.id}')
         mock_api.PaymentIntent.modify.assert_not_called()
 
-    @patch('apps.sales.views.stripe')
+    @patch('apps.sales.views.stripe_views.stripe')
     def test_modify_payment_intent(self, mock_stripe):
         mock_api = Mock()
         mock_stripe.__enter__.return_value = mock_api
@@ -94,7 +94,7 @@ class TestInvoicePaymentIntent(APITestCase):
         self.assertEqual(params['payment_method_types'], ['card'])
         self.assertEqual(params['transfer_group'], f'ACInvoice#{deliverable.invoice.id}')
 
-    @patch('apps.sales.views.stripe')
+    @patch('apps.sales.views.stripe_views.stripe')
     def test_use_specific_card(self, mock_stripe):
         mock_api = Mock()
         mock_stripe.__enter__.return_value = mock_api
@@ -111,7 +111,7 @@ class TestInvoicePaymentIntent(APITestCase):
         params = mock_api.PaymentIntent.create.call_args_list[0][1]
         self.assertEqual(params['payment_method'], 'butts')
 
-    @patch('apps.sales.views.stripe')
+    @patch('apps.sales.views.stripe_views.stripe')
     def test_fail_wrong_card_user(self, mock_stripe):
         mock_api = Mock()
         mock_stripe.__enter__.return_value = mock_api
@@ -125,7 +125,7 @@ class TestInvoicePaymentIntent(APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    @patch('apps.sales.views.stripe')
+    @patch('apps.sales.views.stripe_views.stripe')
     def test_use_default_card(self, mock_stripe):
         mock_api = Mock()
         mock_stripe.__enter__.return_value = mock_api

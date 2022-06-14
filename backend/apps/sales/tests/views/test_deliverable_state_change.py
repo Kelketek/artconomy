@@ -21,7 +21,7 @@ from apps.sales.tests.factories import DeliverableFactory, RevisionFactory, Line
     CreditCardTokenFactory
 
 
-@patch('apps.sales.views.notify')
+@patch('apps.sales.views.views.notify')
 class TestDeliverableStateChange(SignalsDisabledMixin, APITestCase):
     fixture_list = ['deliverable-state-change']
 

@@ -18,6 +18,7 @@ import * as VTextField from 'vuetify/es5/components/VTextField'
 import * as VAutocomplete from 'vuetify/es5/components/VAutocomplete'
 import * as VSlider from 'vuetify/es5/components/VSlider'
 import * as VSelect from 'vuetify/es5/components/VSelect'
+import * as VRadio from 'vuetify/es5/components/VRadioGroup/VRadio'
 
 // Any components that might be used as a field and which aren't in Vuetify must be added here to resolve.
 @Component({
@@ -38,6 +39,7 @@ import * as VSelect from 'vuetify/es5/components/VSelect'
     ...VAutocomplete,
     ...VSlider,
     ...VSelect,
+    VRadio: VRadio.default,
   },
 })
 export default class AcBoundField extends Vue {

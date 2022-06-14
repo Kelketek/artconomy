@@ -1,24 +1,18 @@
-import csv
 import logging
 from _csv import QUOTE_ALL
 from datetime import datetime
 from decimal import Decimal
 from functools import lru_cache
-from io import StringIO
-from pprint import pformat
-from typing import Union, Optional, Dict, List
+from typing import Union, Optional, Dict
 from uuid import uuid4
 
-import dateutil
-import requests
 from dateutil.parser import parse, ParserError
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.auth import login
 from django.contrib.contenttypes.models import ContentType
-from django.db import transaction, IntegrityError
+from django.db import transaction
 from django.db.models import When, F, Case, BooleanField, Q, Count, QuerySet, IntegerField
-from django.db.transaction import atomic
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -29,8 +23,7 @@ from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.static import serve
 from hitcount.models import HitCount
 from hitcount.views import HitCountMixin
-from moneyed import Money, get_currency
-from requests.auth import HTTPBasicAuth
+from moneyed import Money
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, RetrieveAPIView, \
@@ -43,7 +36,7 @@ from rest_framework_csv.renderers import CSVRenderer
 
 from apps.lib.abstract_models import GENERAL
 from apps.lib.models import DISPUTE, REFUND, COMMENT, Subscription, ORDER_UPDATE, SALE_UPDATE, REVISION_UPLOADED, \
-    NEW_PRODUCT, STREAMING, REFERENCE_UPLOADED, Comment, WAITLIST_UPDATED, ref_for_instance, TRANSFER_FAILED
+    NEW_PRODUCT, STREAMING, REFERENCE_UPLOADED, Comment, WAITLIST_UPDATED, ref_for_instance
 from apps.lib.permissions import IsStaff, IsSafeMethod, Any, All, IsMethod
 from apps.lib.serializers import CommentSerializer
 from apps.lib.utils import notify, recall_notification, demark, preview_rating, send_transaction_email, create_comment, \
@@ -52,16 +45,14 @@ from apps.lib.views import BasePreview
 from apps.profiles.models import User, Submission, IN_SUPPORTED_COUNTRY, trigger_reconnect, ArtistTag
 from apps.profiles.permissions import ObjectControls, UserControls, IsUser, IsSuperuser, IsRegistered
 from apps.profiles.serializers import UserSerializer, SubmissionSerializer
-from apps.profiles.tasks import create_or_update_stripe_user
 from apps.profiles.utils import create_guest_user, empty_user, get_anonymous_user
 from apps.sales.apis import STRIPE
-from apps.sales.stripe import stripe, create_stripe_account, create_account_link, get_country_list
 from apps.sales.dwolla import destroy_bank_account
 from apps.sales.models import Product, Order, CreditCardToken, Revision, BankAccount, \
     WEIGHTED_STATUSES, Rating, TransactionRecord, BASE_PRICE, ADD_ON, TAX, EXTRA, \
     TABLE_SERVICE, TIP, LineItem, inventory_change, InventoryError, InventoryTracker, NEW, PAYMENT_PENDING, \
     QUEUED, COMPLETED, IN_PROGRESS, DISPUTED, REVIEW, CANCELLED, REFUNDED, Deliverable, Reference, WAITING, \
-    PREMIUM_SUBSCRIPTION, StripeAccount, WebhookRecord, Invoice, ServicePlan, OPEN, DRAFT, SALE, PAID, VOID
+    PREMIUM_SUBSCRIPTION, Invoice, ServicePlan, OPEN, DRAFT, SALE, PAID, VOID
 from apps.sales.permissions import (
     OrderViewPermission, OrderSellerPermission, OrderBuyerPermission,
     OrderPlacePermission, EscrowPermission, EscrowDisabledPermission, RevisionsVisible,
@@ -78,14 +69,12 @@ from apps.sales.serializers import (
     AccountQuerySerializer, DeliverableCharacterTagSerializer, SubmissionFromOrderSerializer, OrderAuthSerializer,
     LineItemSerializer, DeliverableValuesSerializer, SimpleTransactionSerializer, InventorySerializer,
     PayoutTransactionSerializer, OrderViewSerializer, ReferenceSerializer, DeliverableReferenceSerializer,
-    NewDeliverableSerializer, PinSerializer, PaymentIntentSettings, PremiumIntentSettings, StripeAccountSerializer,
-    StripeBankSetupSerializer, UserPayoutTransactionSerializer, InvoiceSerializer, UnaffiliatedInvoiceSerializer)
-from apps.sales.tasks import withdraw_all
+    NewDeliverableSerializer, PinSerializer, UserPayoutTransactionSerializer, InvoiceSerializer, UnaffiliatedInvoiceSerializer)
 from apps.sales.utils import available_products, set_premium, \
     check_charge_required, available_products_by_load, finalize_deliverable, account_balance, \
     POSTED_ONLY, PENDING, transfer_order, early_finalize, cancel_deliverable, \
     verify_total, issue_refund, ensure_buyer, perform_charge, premium_post_success, premium_initiate_transactions, \
-    UserPaymentException, pay_deliverable, get_term_invoice, get_intent_card_token, premium_post_save, \
+    UserPaymentException, pay_deliverable, get_term_invoice, premium_post_save, \
     invoice_post_payment
 from shortcuts import make_url
 
@@ -1300,25 +1289,6 @@ class CancelledCasesList(CancelledMixin, CasesListBase):
     pass
 
 
-class SetupIntent(APIView):
-    permission_classes = [UserControls]
-
-    def get_object(self):
-        user = get_object_or_404(User, username=self.kwargs['username'])
-        self.check_object_permissions(self.request, user)
-        return user
-
-    def post(self, request, *args, **kwargs):
-        user = self.get_object()
-        create_or_update_stripe_user(user.id)
-        user.refresh_from_db()
-        with stripe as stripe_api:
-            return Response({'secret': stripe_api.SetupIntent.create(
-                payment_method_types=["card"],
-                customer=user.stripe_token,
-            )['client_secret']})
-
-
 class CardList(ListAPIView):
     permission_classes = [
         Any(
@@ -1758,53 +1728,6 @@ class Premium(GenericAPIView):
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'detail': str(err)})
         response_data = UserSerializer(instance=request.user, context=self.get_serializer_context()).data
         return Response(data=response_data)
-
-
-class PremiumPaymentIntent(APIView):
-    permission_classes = [IsRegistered]
-
-    def post(self, *args, **kwargs):
-        card = get_intent_card_token(self.request.user, self.kwargs.get('card_id'))
-        serializer = PremiumIntentSettings(data=self.request.data)
-        serializer.is_valid(raise_exception=True)
-        make_primary = serializer.validated_data['make_primary']
-        service_plan = ServicePlan.objects.get(name='Landscape')
-        # In case the initial creation failed for some reason.
-        create_or_update_stripe_user(self.request.user.id)
-        self.request.user.refresh_from_db()
-        invoice = get_term_invoice(self.request.user)
-        amount = service_plan.monthly_charge
-        item, _created = invoice.line_items.update_or_create(
-            defaults={'amount': amount, 'description': service_plan.name},
-            destination_account=TransactionRecord.UNPROCESSED_EARNINGS,
-            type=PREMIUM_SUBSCRIPTION,
-            destination_user=None,
-        )
-        item.targets.add(ref_for_instance(service_plan))
-        with stripe as stripe_api:
-            # Can only do string values, so won't be json true value.
-            metadata = {'make_primary': make_primary, 'save_card': True, 'invoice_id': invoice.id}
-            intent_kwargs = {
-                # Need to figure out how to do this per-currency.
-                'amount': int(amount.amount * amount.currency.sub_unit),
-                'currency': str(amount.currency).lower(),
-                'customer': self.request.user.stripe_token,
-                # Note: If we expand the payment types, we may need to take into account that linking the
-                # charge_id to the source_transaction field of the payout transfer could cause problems. See:
-                # https://stripe.com/docs/connect/charges-transfers#transfer-availability
-                'payment_method_types': ['card'],
-                'payment_method': card,
-                'metadata': metadata,
-                'receipt_email': self.request.user.email,
-                'setup_future_usage': 'off_session',
-            }
-            if invoice.current_intent:
-                intent = stripe_api.PaymentIntent.modify(invoice.current_intent, **intent_kwargs)
-                return Response({'secret': intent['client_secret']})
-            intent = stripe_api.PaymentIntent.create(**intent_kwargs)
-            invoice.current_intent = intent['id']
-            invoice.save()
-            return Response({'secret': intent['client_secret']})
 
 
 class CancelPremium(APIView):
@@ -2570,62 +2493,6 @@ class PinterestCatalog(ListAPIView):
         return context
 
 
-class InvoicePaymentIntent(APIView):
-    """
-    Creates a payment intent for an invoice. Right now this only works for table
-    invoices-- Fixes for permissions will need to be made to make sure someone
-    doesn't pay for a deliverable in the wrong status.
-    """
-    permission_classes = [UserControls, InvoiceStatus(OPEN)]
-
-    def get_object(self):
-        invoice = get_object_or_404(
-            Invoice.objects.select_for_update(), id=self.kwargs['invoice'],
-            status__in=[OPEN, DRAFT], record_only=False,
-        )
-        self.check_object_permissions(self.request, invoice)
-        return invoice
-
-    @transaction.atomic
-    def post(self, *args, **kwargs):
-        invoice = self.get_object()
-        if invoice.bill_to.is_registered:
-            create_or_update_stripe_user(invoice.bill_to.id)
-            invoice.bill_to.refresh_from_db()
-        stripe_token = get_intent_card_token(invoice.bill_to, self.request.data.get('card_id'))
-        serializer = PaymentIntentSettings(data=self.request.data)
-        serializer.is_valid(raise_exception=True)
-        save_card = serializer.validated_data['save_card'] and not invoice.bill_to.guest
-        make_primary = (save_card and serializer.validated_data['make_primary']) and not invoice.bill_to.guest
-        total = invoice.total()
-        with stripe as stripe_api:
-            # Can only do string values, so won't be json true value.
-            metadata = {'invoice_id': invoice.id, 'make_primary': make_primary, 'save_card': save_card}
-            intent_kwargs = {
-                # Need to figure out how to do this per-currency.
-                'amount': int(total.amount * total.currency.sub_unit),
-                'currency': str(total.currency).lower(),
-                'customer': invoice.bill_to.stripe_token or None,
-                # Note: If we expand the payment types, we may need to take into account that linking the
-                # charge_id to the source_transaction field of the payout transfer could cause problems. See:
-                # https://stripe.com/docs/connect/charges-transfers#transfer-availability
-                'payment_method_types': ['card'],
-                'payment_method': stripe_token,
-                'transfer_group': f'ACInvoice#{invoice.id}',
-                'metadata': metadata,
-                'receipt_email': invoice.bill_to.guest_email or invoice.bill_to.email,
-            }
-            if save_card:
-                intent_kwargs['setup_future_usage'] = 'off_session'
-            if invoice.current_intent:
-                intent = stripe_api.PaymentIntent.modify(invoice.current_intent, **intent_kwargs)
-                return Response({'secret': intent['client_secret']})
-            intent = stripe_api.PaymentIntent.create(**intent_kwargs)
-            invoice.current_intent = intent['id']
-            invoice.save()
-            return Response({'secret': intent['client_secret']})
-
-
 class InvoiceDetail(RetrieveUpdateAPIView):
     permission_classes = [
         UserControls,
@@ -2652,389 +2519,6 @@ class WillIncurBankFee(GenericAPIView):
         if user.banks.all().exists():
             return Response(data={'value': False})
         return Response(data={'value': True})
-
-
-def create_account(*, user: User, country: str):
-    """
-    Create a stripe account for a user.
-    Note: The account might already exist and be the wrong country code. In this case we need to delete the existing
-    account.
-
-    But in doing so, we'll need to start a new transaction to begin again, so we call this function one more time.
-    """
-    restart = False
-    with transaction.atomic(), stripe as api:
-        account, created = StripeAccount.objects.get_or_create(
-            user=user, defaults={'token': 'XXX', 'country': country},
-        )
-        if not account.active and account.country != country:
-            account.delete()
-            restart = True
-        if created:
-            account_data = create_stripe_account(api=api, country=country)
-            account.token = account_data['id']
-            account.save()
-    if restart:
-        return create_account(user=user, country=country)
-    return account
-
-
-class StripeAccountLink(GenericAPIView):
-    permission_classes = [UserControls]
-    serializer_class = StripeBankSetupSerializer
-
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        with stripe as api:
-            countries = tuple(
-                (item['value'], item['text']) for item in get_country_list(api=api)
-            )
-            context['countries'] = countries
-        return context
-
-    def get_object(self):
-        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
-        self.check_object_permissions(self.request, user)
-        return user
-
-    def post(self, *_args, **_kwargs):
-        user = self.get_object()
-        serializer = self.get_serializer(data=self.request.data)
-        serializer.is_valid(raise_exception=True)
-        country = serializer.validated_data['country']
-        try:
-            account = create_account(user=user, country=country)
-        except IntegrityError as err:
-            return Response(status=status.HTTP_400_BAD_REQUEST, data={'detail': str(err)})
-        url = serializer.validated_data['url']
-        with stripe as api:
-            account_link = create_account_link(
-                api=api,
-                token=account.token,
-                refresh_url=url,
-                return_url=url,
-            )
-        return Response(status=200, data={'link': account_link['url']})
-
-
-class StripeAccounts(ListAPIView):
-    """
-    StripeAccount is actually one-to-one, but we want to subscribe to this object being created, so we're piggy-backing
-    on list creation for our websockets' sake.
-
-    If we have many more singletons like this, it will be worth making a new websocket command.
-    """
-    permission_classes = [UserControls]
-    serializer_class = StripeAccountSerializer
-    pagination_class = None
-
-    def get_object(self):
-        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
-        self.check_object_permissions(self.request, user)
-        return user
-
-    def get_queryset(self):
-        return StripeAccount.objects.filter(user=self.get_object())
-
-
-class StripeCountries(APIView):
-    def get(self, _request):
-        with stripe as api:
-            return Response(data={'countries': get_country_list(api=api)})
-
-
-def remote_ids_from_charge(charge_event):
-    return [charge_event["payment_intent"], charge_event["id"]]
-
-
-def service_charge(*, billable: Union[LineItem, Invoice], target: ServicePlan, context: dict):
-    charge_event = context['stripe_event']['data']['object']
-    user = User.objects.get(stripe_token=charge_event['customer'])
-    invoice = get_term_invoice(user)
-    amount = context['amount']
-    _, transactions, __ = perform_charge(
-        attempt={
-            'stripe_event': charge_event,
-            'amount': amount,
-            'service': target,
-            'remote_ids': [charge_event["payment_intent"], charge_event["id"]],
-        },
-        amount=amount,
-        user=user,
-        requesting_user=user,
-        post_success=premium_post_success(invoice, target),
-        post_save=premium_post_save(invoice, remote_ids_from_charge(charge_event)),
-        context={},
-        initiate_transactions=premium_initiate_transactions,
-    )
-    return transactions
-
-
-def deliverable_charge(*, billable: Union[LineItem, Invoice], target: Deliverable, context: dict) -> List['TransactionRecord']:
-    if isinstance(billable, LineItem):
-        # As of yet, we don't have anything special here, but we may eventually.
-        return []
-    amount = context['amount']
-    charge_event = context['stripe_event']['data']['object']
-    deliverable = target
-    # TODO: Unify handling of success flag to make this more consistent.
-    _, records, message = pay_deliverable(
-        attempt={
-            'stripe_event': charge_event,
-            'amount': amount,
-            'remote_ids': remote_ids_from_charge(charge_event),
-        },
-        requesting_user=deliverable.order.buyer,
-        deliverable=deliverable,
-    )
-    return records
-
-
-@transaction.atomic
-def handle_charge_event(event, successful=True):
-    charge_event = event['data']['object']
-    metadata = charge_event['metadata']
-    amount = Money(
-        (Decimal(charge_event['amount']) / Decimal('100')).quantize(Decimal('0.00')),
-        charge_event['currency'].upper(),
-    )
-    if 'invoice_id' in metadata:
-        invoice = Invoice.objects.get(id=metadata['invoice_id'])
-        if successful:
-            if invoice.current_intent != charge_event['payment_intent']:
-                raise UserPaymentException(
-                    f'Mismatched intent ID! What happened? Received ID was '
-                    f'{charge_event["payment_intent"]} while current intent is {invoice.current_intent}'
-                )
-
-        if successful and (amount != invoice.total()):
-            raise UserPaymentException(
-                f'Mismatched amount! Customer paid {amount} while total was {invoice.total()}',
-            )
-        records = invoice_post_payment(
-            invoice, {
-                'amount': amount,
-                'successful': successful,
-                'stripe_event': event,
-            },
-        )
-    else:
-        logger.warning('Charge for unknown item:')
-        logger.warning(pformat(event))
-        return
-    if successful and metadata.get('save_card') == 'True':
-        user = User.objects.get(stripe_token=charge_event['customer'])
-        details = charge_event['payment_method_details']['card']
-        card, _created = CreditCardToken.objects.get_or_create(
-            user=user, last_four=details['last4'],
-            stripe_token=charge_event['payment_method'],
-            type=CreditCardToken.TYPE_TRANSLATION[details['brand']],
-            cvv_verified=True,
-        )
-        if not user.primary_card or (metadata.get('make_primary') == 'True'):
-            user.primary_card_id = card.id
-            user.save(update_fields=['primary_card'])
-        TransactionRecord.objects.filter(id__in=[record.id for record in records]).update(card=card)
-
-
-def charge_succeeded(event):
-    handle_charge_event(event, successful=True)
-
-
-def charge_failed(event):
-    try:
-        handle_charge_event(event, successful=False)
-    except UserPaymentException:
-        pass
-
-
-@transaction.atomic
-def account_updated(event):
-    account_data = event['data']['object']
-    account = StripeAccount.objects.get(token=account_data['id'])
-    account.active = account_data['payouts_enabled']
-    account.save()
-    if account.active:
-        Deliverable.objects.filter(
-            order__seller=account.user, status__in=[NEW, PAYMENT_PENDING],
-        ).update(processor=STRIPE)
-        account.user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
-        account.user.artist_profile.save()
-        withdraw_all.delay(account.user.id)
-
-
-@atomic
-def pull_and_reconcile_report(report):
-    """
-    Given a Stripe ReportRun object as specified by payout_paid,
-    fetch the report file and then update our database with the transfer information.
-    """
-    result = requests.get(report.result['url'], auth=HTTPBasicAuth(settings.STRIPE_KEY, ''))
-    result.raise_for_status()
-    reader = csv.DictReader(StringIO(result.content.decode('utf-8')))
-    for row in reader:
-        # In reality, this should only ever be one row.
-        if not row['source_id']:
-            raise RuntimeError('No source ID!')
-        record = TransactionRecord.objects.get(
-            remote_ids__contains=row['source_id'] + '', source=TransactionRecord.HOLDINGS,
-            destination=TransactionRecord.BANK,
-        )
-        if row['automatic_payout_effective_at_utc']:
-            timestamp = dateutil.parser.isoparse(row['automatic_payout_effective_at_utc'])
-            timestamp = timestamp.replace(tzinfo=dateutil.tz.UTC)
-        else:
-            timestamp = timezone.now()
-        record.finalized_on = timestamp
-        record.status = TransactionRecord.SUCCESS
-        record.save()
-        currency = get_currency(row['currency'].upper())
-        amount = Money(Decimal(row['gross']), currency)
-        new_record = TransactionRecord.objects.get_or_create(
-            remote_ids=record.remote_ids, amount=amount,
-            payer=record.payer, payee=record.payee, source=TransactionRecord.PAYOUT_MIRROR_SOURCE,
-            destination=TransactionRecord.PAYOUT_MIRROR_DESTINATION, status=TransactionRecord.SUCCESS,
-            category=TransactionRecord.CASH_WITHDRAW,
-            created_on=record.created_on, finalized_on=timestamp,
-        )[0]
-        new_record.targets.add(*record.targets.all())
-        new_record.targets.add(ref_for_instance(record))
-
-
-@atomic
-def payout_paid(event):
-    """
-    Stripe webhook for the payout.paid event. Unfortunately the payout information does not give us a full enough
-    picture for what we want. So we force a report generation, and then fetch the result of this information to get
-    the remaining info.
-    """
-    payout_data = event['data']['object']
-    with stripe as stripe_api:
-        report = stripe_api.reporting.ReportRun.create(
-            report_type='connected_account_payout_reconciliation.by_id.itemized.4',
-            parameters={
-                'payout': payout_data['id'],
-                'connected_account': event['account'],
-                'columns': [
-                    'source_id',
-                    'gross',
-                    'net',
-                    'fee',
-                    'currency',
-                    'automatic_payout_effective_at_utc',
-                ]
-            }
-        )
-        if report.result:
-            # This might happen if the request appeared to fail but actually succeeded silently.
-            pull_and_reconcile_report(report)
-
-
-def transfer_failed(event):
-    """
-    Webhook for the transfer failed event from Stripe.
-    """
-    transfer = event['data']['object']['id']
-    records = TransactionRecord.objects.filter(
-        remote_ids=transfer,
-    )
-    records.update(status=TransactionRecord.FAILURE)
-    record = records.order_by('created_on')[0]
-    notify(
-        TRANSFER_FAILED,
-        record.payer,
-        data={
-            'error': 'The bank rejected the transfer. Please try again, update your account information, '
-                     'or contact support.'
-        }
-    )
-
-
-def reconcile_payout_report(event):
-    """
-    This event handles a webhook for the specific report type we run to reconcile payouts with our own reporting.
-    """
-    pull_and_reconcile_report(event['data']['object'])
-
-
-@transaction.atomic
-def payment_method_attached(event):
-    card_info = event['data']['object']
-    if not card_info['type'] == 'card':
-        logger.warning('Attached unknown payment type:', card_info['type'])
-        logger.warning(pformat(event))
-        raise NotImplementedError
-    user = User.objects.get(stripe_token=card_info['customer'])
-    card, _created = CreditCardToken.objects.get_or_create(
-        user=user,
-        stripe_token=card_info['id'],
-        last_four=card_info['card']['last4'],
-        type=CreditCardToken.TYPE_TRANSLATION[card_info['card']['brand']],
-        defaults={'cvv_verified': True},
-    )
-    if not user.primary_card:
-        user.primary_card = card
-        user.save(update_fields=['primary_card'])
-
-
-REPORT_ROUTES = {
-    'connected_account_payout_reconciliation.by_id.itemized.4': reconcile_payout_report,
-}
-
-
-def reporting_report_run_succeeded(event):
-    report_type = event['data']['object']['report_type']
-    if report_type in REPORT_ROUTES:
-        REPORT_ROUTES[report_type](event)
-        return
-
-
-def spy_failure(event):
-    raise NotImplementedError('Bogus failure to trap real-world webhook.')
-
-
-STRIPE_DIRECT_WEBHOOK_ROUTES = {
-    'charge.succeeded': charge_succeeded,
-    'charge.failed': charge_failed,
-    'transfer.failed': transfer_failed,
-    'reporting.report_run.succeeded': reporting_report_run_succeeded,
-    'payment_method.attached': payment_method_attached,
-}
-
-
-STRIPE_CONNECT_WEBHOOK_ROUTES = {
-    'account.updated': account_updated,
-    'payout.paid': payout_paid,
-    'payout.failed': spy_failure,
-}
-
-
-class StripeWebhooks(APIView):
-    """
-    Function for processing stripe webhook events.
-    """
-    permission_classes = []
-
-    def post(self, request, connect):
-        with stripe as stripe_api:
-            try:
-                sig_header = request.META['HTTP_STRIPE_SIGNATURE']
-                secret = WebhookRecord.objects.get(connect=connect).secret
-                # If the secret is missing, we cannot verify the signature. Die dramatically until an admin fixes.
-                assert secret
-                event = stripe_api.Webhook.construct_event(request.body, sig_header, secret)
-            except ValueError as err:
-                return Response(status=status.HTTP_400_BAD_REQUEST, data={'detail': str(err)})
-            routes = STRIPE_CONNECT_WEBHOOK_ROUTES if connect else STRIPE_DIRECT_WEBHOOK_ROUTES
-            handler = routes.get(event['type'], None)
-            if not handler:
-                logger.warning('Unsupported event "%s" received from Stripe. Connect is %s', event['type'], connect)
-                return Response(
-                    status=status.HTTP_400_BAD_REQUEST,
-                    data={'detail': f'Unsupported command "{event["type"]}"'}
-                )
-            handler(event)
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class TableProducts(ListAPIView):

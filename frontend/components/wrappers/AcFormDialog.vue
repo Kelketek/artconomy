@@ -43,11 +43,11 @@
             <slot/>
           </ac-form-container>
           <slot name="footer"/>
-          <slot name="bottom-buttons">
+          <slot name="bottom-buttons" :show-submit="showSubmit">
             <v-card-actions row wrap class="hidden-sm-and-down">
                 <v-spacer></v-spacer>
                 <v-btn @click.native="toggle=false">Cancel</v-btn>
-                <v-btn color="primary" type="submit" :disabled="disabled" class="dialog-submit">{{ submitText }}
+                <v-btn color="primary" type="submit" :disabled="disabled" class="dialog-submit" v-if="showSubmit">{{ submitText }}
                 </v-btn>
             </v-card-actions>
           </slot>
@@ -101,6 +101,9 @@ export default class AcFormDialog extends mixins(Dialog) {
 
     @Prop({default: false})
     public eager!: boolean
+
+    @Prop({default: true})
+    public showSubmit!: boolean
 
     public reSend(event: Event) {
       // Re-emit form so that we can use semantic Vue @event directives without the browser

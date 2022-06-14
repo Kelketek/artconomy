@@ -35,7 +35,7 @@ from apps.sales.models import (
     Product, Order, CreditCardToken, Revision, BankAccount,
     LineItemSim, Rating, TransactionRecord, LineItem, ADD_ON, TIP, BASE_PRICE, InventoryTracker,
     EXTRA, PAYMENT_PENDING, NEW, Deliverable, Reference,
-    WAITING, StripeAccount, Invoice,
+    WAITING, StripeAccount, Invoice, StripeReader,
 )
 from apps.sales.stripe import stripe
 from apps.sales.utils import account_balance, PENDING, POSTED_ONLY, AVAILABLE, get_totals, order_context, \
@@ -88,6 +88,7 @@ class ProductSerializer(ProductMixin, RelatedAtomicMixin, serializers.ModelSeria
         if request.user.is_staff:
             self.fields['featured'].read_only = False
             self.fields['catalog_enabled'].read_only = False
+            self.fields['table_product'].read_only = False
         subject = getattr(request, 'subject', None)
         if subject and subject.is_registered and subject.landscape:
             self.fields['wait_list'].read_only = False
@@ -1336,6 +1337,21 @@ class DeliverableReferenceSerializer(serializers.ModelSerializer):
 class PaymentIntentSettings(serializers.Serializer):
     make_primary = serializers.BooleanField(default=False)
     save_card = serializers.BooleanField(default=False)
+    card_id = serializers.IntegerField(required=False, allow_null=True)
+    use_reader = serializers.BooleanField(default=False)
+
+
+class TerminalProcessSerializer(serializers.Serializer):
+    reader = serializers.CharField()
+
+
+class StripeReaderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StripeReader
+        fields = (
+            'id', 'name',
+        )
+        read_only_fields = fields
 
 
 class PremiumIntentSettings(serializers.Serializer):

@@ -4,7 +4,7 @@ from django.core.management import BaseCommand
 from django.test import RequestFactory
 
 from apps.sales.utils import half_even_context
-from apps.sales.views import PinterestCatalog
+from apps.sales.views.views import PinterestCatalog
 
 
 class Command(BaseCommand):

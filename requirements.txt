@@ -45,7 +45,7 @@ psycopg2-binary>=2.8.6,<2.9
 python-telegram-bot==12.7
 pytz>=2019.3
 requests==2.22.0
-stripe==2.56.0
+stripe==3.5.0
 tblib==1.6.0
 luhn==0.2.0
 django-webpack-loader>=1.1.0,<1.2.0
