@@ -79,7 +79,7 @@ export default class Profile extends mixins(Subjective) {
       this.$listenForList(`${flatten(this.username)}-characters`)
       this.$listenForList(`${flatten(this.username)}-journals`)
       this.$listenForForm(`${flatten(this.username)}-newJournal`)
-      this.$listenForForm(`${flatten(this.username)}-newSubmission`)
+      this.$listenForForm('newUpload')
       this.$listenForProfile('.*')
     }
 }

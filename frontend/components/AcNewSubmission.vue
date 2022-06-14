@@ -151,8 +151,15 @@ export default class AcNewSubmission extends mixins(Subjective, Upload) {
           this.$nextTick(() => { this.isArtist = isArtist })
         }
       }
-      this.newUpload.reset()
-      return this.$listeners.success || this.goToSubmission
+      return (submission: Submission) => {
+        this.newUpload.reset()
+        let func = this.$listeners.success || this.goToSubmission
+        /* istanbul ignore if */
+        if (Array.isArray(func)) {
+          func = func[0]
+        }
+        return func(submission)
+      }
     }
 
     public get isArtist() {

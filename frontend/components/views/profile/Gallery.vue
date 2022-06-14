@@ -55,10 +55,8 @@ import ArtistTag from '@/types/ArtistTag'
   components: {AcTabNav, AcNewSubmission, AcAddButton, AcTab},
 })
 export default class Gallery extends mixins(Subjective, Upload) {
-  public artManagement: ListController<ArtistTag> = null as unknown as ListController<ArtistTag>
   public art: ListController<Submission> = null as unknown as ListController<Submission>
   public collection: ListController<Submission> = null as unknown as ListController<Submission>
-  public newSubmission: FormController = null as unknown as FormController
   public id = genId()
 
   @Watch('showUpload')
@@ -129,7 +127,6 @@ export default class Gallery extends mixins(Subjective, Upload) {
   }
 
   public created() {
-    this.newSubmission = this.$getForm(`${flatten(this.username)}-newSubmission`, newUploadSchema(this.subjectHandler.user))
     this.art = this.$getList(`${this.username}-art`, {
       endpoint: `/api/profiles/v1/account/${this.username}/submissions/art/`,
     })
