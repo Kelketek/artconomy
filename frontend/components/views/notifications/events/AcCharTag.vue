@@ -1,53 +1,39 @@
 <template>
-  <v-list-item>
-    <router-link v-if="event.data.submission" :to="{name: 'Submission', params: {submissionId: event.data.submission.id}}">
-      <v-badge left overlap :value="!notification.read">
-        <span slot="badge">*</span>
-        <v-list-item-avatar>
-          <img :src="$img(event.target.primary_submission, 'notification', true)" alt="">
-        </v-list-item-avatar>
-      </v-badge>
-    </router-link>
-    <v-badge left v-else overlap :value="!notification.read">
-      <span slot="badge">*</span>
-      <v-list-item-avatar>
-        <img :src="$img(event.target.primary_submission, 'notification', true)" alt="">
-      </v-list-item-avatar>
-    </v-badge>
-    <v-list-item-content>
-      <v-list-item-title>{{event.target.name}} was tagged in a submission</v-list-item-title>
-      <v-list-item-subtitle>
-        <span v-if="event.data.user">by {{event.data.user.username}}</span>
-        <span v-else>by a removed user</span>
-        <span v-if="event.data.submission">titled
-          <router-link
-              :to="{name: 'Submission', params: {submissionId: event.data.submission.id}}">'{{event.data.submission.title}}'.</router-link>
-        </span>
-        <span v-else> but the submission was removed.</span>
-      </v-list-item-subtitle>
-    </v-list-item-content>
-    <v-list-item-action>
-      <router-link :to="{name: 'Submission', params: {submissionId: event.data.submission.id}}" v-if="event.data.submission">
-        <v-avatar>
-          <img :src="$img(event.data.submission, 'notification', true)" alt="">
-        </v-avatar>
-      </router-link>
-    </v-list-item-action>
-  </v-list-item>
+  <ac-base-notification :notification="notification" :asset-link="characterLink">
+    <span slot="title"><ac-link :to="characterLink">{{ character.name }}</ac-link> was tagged by <ac-link :to="userLink">{{user.username}}</ac-link></span>
+    <span slot="subtitle">in <ac-link :to="submissionLink">"{{submission.title}}"</ac-link></span>
+  </ac-base-notification>
 </template>
-
-<style scoped>
-  .notification-preview {
-    width: 80px;
-    height: 80px;
-  }
-</style>
 
 <script>
 import Notification from '../mixins/notification'
+import AcLink from '@/components/wrappers/AcLink'
+import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification'
+import {profileLink} from '@/lib/lib'
 
 export default {
   name: 'ac-char-tag',
+  components: {AcBaseNotification, AcLink},
   mixins: [Notification],
+  computed: {
+    user() {
+      return this.notification.event.data.user
+    },
+    userLink() {
+      return profileLink(this.user)
+    },
+    submissionLink() {
+      return {name: 'Submission', params: {submissionId: this.submission.id}}
+    },
+    submission() {
+      return this.notification.event.data.submission
+    },
+    character() {
+      return this.notification.event.data.character
+    },
+    characterLink() {
+      return {name: 'Character', params: {username: this.character.user.username, characterName: this.character.name}}
+    }
+  }
 }
 </script>

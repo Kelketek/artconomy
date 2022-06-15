@@ -294,27 +294,40 @@ def get_user(user_id):
 
 def char_tag(obj, context):
     value = obj.data
-    from apps.profiles.serializers import SubmissionSerializer
+    from apps.profiles.serializers import CharacterSerializer, SubmissionSerializer
     try:
-        submission = SubmissionSerializer(instance=Submission.objects.get(id=value['submission']), context=context).data
-    except Submission.DoesNotExist:
-        submission = None
-    try:
-        user = RelatedUserSerializer(instance=User.objects.get(id=value['user']), context=context).data
-    except User.DoesNotExist:
-        user = None
-    return {'user': user, 'submission': submission}
+        submission = Submission.objects.get(id=value['submission'])
+        submission_serialized = SubmissionSerializer(instance=submission, context=context).data
+        display = submission_serialized
+    except Character.DoesNotExist:
+        display = None
+        submission_serialized = None
+    user = get_user(value['user'])
+    return {
+        'character': CharacterSerializer(instance=obj.target, context=context).data,
+        'user': user,
+        'submission': submission_serialized,
+        'display': display,
+    }
 
 
 def submission_char_tag(obj, context):
     value = obj.data
-    from apps.profiles.serializers import CharacterSerializer
+    from apps.profiles.serializers import CharacterSerializer, SubmissionSerializer
     try:
-        character = CharacterSerializer(instance=Character.objects.get(id=value['character']), context=context).data
+        character = Character.objects.get(id=value['character'])
+        character_serialized = CharacterSerializer(instance=character, context=context).data
+        display = notification_display(character, context)['primary_submission']
     except Character.DoesNotExist:
-        character = None
+        display = None
+        character_serialized = None
     user = get_user(value['user'])
-    return {'character': character, 'user': user}
+    return {
+        'character': character_serialized,
+        'user': user,
+        'submission': SubmissionSerializer(instance=obj.target, context=context).data,
+        'display': display,
+    }
 
 
 def revision_uploaded(obj, context):

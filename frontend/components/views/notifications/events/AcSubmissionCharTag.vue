@@ -1,44 +1,39 @@
 <template>
-  <v-list-item>
-    <router-link v-if="event.data.character" :to="{name: 'Submission', params: {assetID: event.target.id}}">
-      <v-badge left overlap :value="!notification.read">
-        <span slot="badge" v-if="!notification.read">*</span>
-        <v-list-item-avatar>
-          <img :src="$img(event.target, 'notification', true)" alt="">
-        </v-list-item-avatar>
-      </v-badge>
-    </router-link>
-    <v-badge left v-else overlap>
-      <span slot="badge" v-if="!notification.read">*</span>
-      <v-list-item-avatar>
-        <img :src="$img(event.target.primary_submission, 'notification', true)" alt="">
-      </v-list-item-avatar>
-    </v-badge>
-    <v-list-item-content>
-      <v-list-item-title>
-        <span v-if="event.data.character">{{event.data.character.name}}</span>
-        <span v-else>A removed character</span>
-      </v-list-item-title>
-      <v-list-item-subtitle>
-        was tagged in your submission titled '{{event.target.title}}'
-      </v-list-item-subtitle>
-    </v-list-item-content>
-    <v-list-item-action>
-      <router-link
-          :to="{name: 'Character', params: {character: event.data.character.name, username: event.data.character.user.username}}">
-        <v-avatar>
-          <img :src="$img(event.data.character.primary_submission, 'notification', true)" alt="">
-        </v-avatar>
-      </router-link>
-    </v-list-item-action>
-  </v-list-item>
+  <ac-base-notification :notification="notification" :asset-link="characterLink">
+    <span slot="title"><ac-link :to="characterLink">{{ character.name }}</ac-link> was tagged by <ac-link :to="userLink">{{user.username}}</ac-link></span>
+    <span slot="subtitle">in <ac-link :to="submissionLink">"{{submission.title}}"</ac-link></span>
+  </ac-base-notification>
 </template>
 
 <script>
 import Notification from '../mixins/notification'
+import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification'
+import AcLink from '@/components/wrappers/AcLink'
+import {profileLink} from '@/lib/lib'
 
 export default {
   name: 'ac-submission-char-tag',
+  components: {AcLink, AcBaseNotification},
   mixins: [Notification],
+  computed: {
+    user() {
+      return this.notification.event.data.user
+    },
+    userLink() {
+      return profileLink(this.user)
+    },
+    submissionLink() {
+      return {name: 'Submission', params: {submissionId: this.submission.id}}
+    },
+    submission() {
+      return this.notification.event.data.submission
+    },
+    character() {
+      return this.notification.event.data.character
+    },
+    characterLink() {
+      return {name: 'Character', params: {username: this.character.user.username, characterName: this.character.name}}
+    }
+  }
 }
 </script>
