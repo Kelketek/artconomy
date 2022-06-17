@@ -54,7 +54,7 @@
               </v-btn>
             </v-col>
             <v-col class="shrink">
-              <v-btn color="grey darken-4" fab small :href="`https://www.tumblr.com/share/link?url=${location()}&name=${titleText}`"
+              <v-btn color="grey darken-4" fab small :href="`http://tumblr.com/widgets/share/tool?canonicalUrl=${location()}&title=${titleText}`"
                      target="_blank"
                      rel="nofollow noopener">
                 <v-icon>fa-tumblr</v-icon>

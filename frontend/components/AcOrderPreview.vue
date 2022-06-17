@@ -2,7 +2,11 @@
   <v-col v-if="order.x.seller">
       <v-card>
         <ac-link :to="order.x.default_path">
-          <ac-asset :asset="order.x.display" thumb-name="thumbnail" />
+          <ac-asset
+              :asset="order.x.display"
+              thumb-name="thumbnail"
+              :allow-preview="false"
+          />
         </ac-link>
         <v-card-text>
           <v-row dense>

@@ -7,7 +7,12 @@
             <v-row no-gutters  >
               <v-col cols="8" offset="2">
                 <ac-link :to="characterLink">
-                  <ac-asset :text="false" :asset="character.primary_submission" thumb-name="thumbnail" />
+                  <ac-asset
+                      :text="false"
+                      :asset="character.primary_submission"
+                      thumb-name="thumbnail"
+                      :allow-preview="false"
+                  />
                 </ac-link>
               </v-col>
             </v-row>
@@ -31,6 +36,7 @@
             thumb-name="thumbnail"
             :terse="true"
             :aspect-ratio="1"
+            :allow-preview="false"
         />
     </router-link>
     <v-card-title>
@@ -51,7 +57,6 @@
 <script>
 import AcAsset from './AcAsset'
 import Viewer from '../mixins/viewer'
-import {artCall} from '../lib/lib'
 import AcLink from '@/components/wrappers/AcLink'
 
 export default {

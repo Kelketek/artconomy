@@ -2,7 +2,11 @@
   <v-col>
     <v-card>
       <ac-link :to="deliverableLink">
-        <ac-asset :asset="deliverable.display" thumb-name="thumbnail" />
+        <ac-asset
+            :asset="deliverable.display"
+            thumb-name="thumbnail"
+            :allow-preview="false"
+        />
       </ac-link>
       <v-card-text>
         <v-row dense>

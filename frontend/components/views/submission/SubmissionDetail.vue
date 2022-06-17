@@ -69,7 +69,7 @@
                     </v-btn>
                   </v-col>
                   <v-col cols="12">
-                    <ac-share-button block :title="windowTitle" :media-url="shareMediaUrl" :clean="shareMediaClean">
+                    <ac-share-button block :title="title" :media-url="shareMediaUrl" :clean="shareMediaClean">
                       <span slot="title">Share {{submission.x.title}}</span>
                       <template v-slot:footer v-if="controls">
                         <ac-load-section :controller="sharedWith">
@@ -351,7 +351,7 @@ export default class SubmissionDetail extends mixins(Viewer, Formatting, Editabl
       return this.isStaff || (this.submission.x.owner.username === this.rawViewerName)
     }
 
-    public get windowTitle() {
+    public get title() {
       // istanbul ignore if
       if (!this.submission.x) {
         return ''
@@ -373,6 +373,11 @@ export default class SubmissionDetail extends mixins(Viewer, Formatting, Editabl
       } else {
         title += `Submitted by ${this.submission.x.owner.username}`
       }
+      return title
+    }
+
+    public get windowTitle() {
+      let title = this.title
       title += ' - (Artconomy.com)'
       return title
     }
