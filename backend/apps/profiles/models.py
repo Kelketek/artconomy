@@ -599,6 +599,25 @@ class CharacterTag(Model):
         ordering = ('-display_position', 'id')
 
 
+@receiver(post_save, sender=CharacterTag)
+@disable_on_load
+def set_primary_if_first(sender, instance, created=False, **kwargs):
+    if not created:
+        return
+    if not instance.character.primary_submission:
+        instance.character.primary_submission = instance.submission
+        instance.character.save()
+
+
+@receiver(post_delete, sender=CharacterTag)
+@disable_on_load
+def remove_if_primary(sender, instance, **kwargs):
+    if instance.submission == instance.character.primary_submission:
+        instance.character.primary_submission = None
+        instance.character.save()
+
+
+
 class Attribute(Model):
     key = CharField(max_length=50, db_index=True)
     value = CharField(max_length=100, default='')
