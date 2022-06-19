@@ -158,6 +158,7 @@ export default class AcNewSubmission extends mixins(Subjective, Upload) {
         if (Array.isArray(func)) {
           func = func[0]
         }
+        this.postAdd(submission)
         return func(submission)
       }
     }

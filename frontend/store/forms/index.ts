@@ -121,6 +121,12 @@ const mutations: MutationTree<RootFormState> = {
       Vue.set(state[payload.name].fields[key], 'value', payload.data[key])
     }
   },
+  updateInitialData(state: RootFormState, payload: { name: string, data: RawData }) {
+    // Updates the data to contain whatever additional information is given.
+    for (const key of Object.keys(payload.data)) {
+      Vue.set(state[payload.name].fields[key], 'initialData', payload.data[key])
+    }
+  },
   addField(state: RootFormState, payload: {
              name: string, field: { name: string, schema: FieldSchema },
            },

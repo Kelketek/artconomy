@@ -54,6 +54,16 @@ export class FieldController extends Vue {
     this.update(value)
   }
 
+  public get initialData() {
+    return this.attr('initialData')
+  }
+
+  public set initialData(value: any) {
+    const data: RawData = {}
+    data[this.fieldName] = cloneDeep(value)
+    this.$store.commit('forms/updateInitialData', {name: this.formName, data})
+  }
+
   @Watch('value', {immediate: true})
   public syncCache(val: any) {
     if (val === undefined) {

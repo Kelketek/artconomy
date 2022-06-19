@@ -15,10 +15,14 @@
           </template>
         </ac-share-button>
         <v-btn color="green" @click="showUpload = true" v-if="controls"><v-icon left>fa-upload</v-icon> Upload</v-btn>
-        <ac-new-submission :show-characters="character.profile.x" :character-init-items="preloadedCharacter"
+        <ac-new-submission :show-characters="character.profile.x"
+                           :character-init-items="preloadedCharacter"
                            v-model="showUpload"
                            :username="username"
                            v-if="controls"
+                           :allow-multiple="true"
+                           :post-add="postAdd"
+                           @success="success"
         />
         <v-menu offset-x left v-if="controls" :close-on-content-click="false">
           <template v-slot:activator="{on}">
@@ -81,6 +85,7 @@ import AcMiniCharacter from '@/components/AcMiniCharacter.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import Editable from '@/mixins/editable'
 import Sharable from '@/mixins/sharable'
+import Submission from '@/types/Submission'
 
 @Component({
   components: {
@@ -106,9 +111,16 @@ export default class AcCharacterToolbar extends mixins(CharacterCentric, Upload,
     @Prop({default: false})
     public showEdit!: boolean
 
-    public newShare: FormController = null as unknown as FormController
+    @Prop({default: undefined})
+    public postAdd?: (submission: Submission) => void
+
     public newUpload: FormController = null as unknown as FormController
     public step = 1
+
+    public success(submission: Submission) {
+      this.showUpload = false
+      this.$emit('success', submission)
+    }
 
     public deleteCharacter() {
       this.character.profile.delete().then(() => {
@@ -128,6 +140,7 @@ export default class AcCharacterToolbar extends mixins(CharacterCentric, Upload,
       this.newUpload.fields.tags.model = val.tags
       if (this.newUpload.fields.characters.model.indexOf(val.id) === -1) {
         this.newUpload.fields.characters.model.push(val.id)
+        this.newUpload.fields.characters.initialData = [val.id]
       }
     }
 

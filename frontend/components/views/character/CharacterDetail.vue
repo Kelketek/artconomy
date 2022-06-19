@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <ac-character-toolbar :username="username" :character-name="characterName" :character-avatar="false" :show-edit="true" />
+    <ac-character-toolbar :username="username" :character-name="characterName" :character-avatar="false" :show-edit="true" ref="toolbar" :post-add="addSubmission" @success="submissionSuccess" />
     <ac-load-section :controller="character.profile" tag="v-layout" class="mt-3">
       <template v-slot:default>
         <v-card class="mb-2">
@@ -38,14 +38,20 @@
                         <template slot="edit-menu">
                           <ac-expanded-property v-model="showChangePrimary" :large="true">
                             <span slot="title">Change Showcase Submission</span>
-                            <ac-patch-field
-                                field-type="ac-submission-select"
-                                :patcher="character.profile.patchers.primary_submission"
-                                :query-endpoint="character.submissions.endpoint"
-                                :save-comparison="character.profile.x.primary_submission"
-                                :show-progress="true"
-                            >
-                            </ac-patch-field>
+                            <v-row>
+                              <v-col cols="12" class="text-center">
+                                <v-btn color="green" @click="$refs.toolbar.showUpload = true"><v-icon left>upload</v-icon>Upload new Submission</v-btn>
+                              </v-col>
+                              <v-col cols="12">
+                                <ac-patch-field
+                                    field-type="ac-submission-select"
+                                    :patcher="character.profile.patchers.primary_submission"
+                                    :list="submissionList"
+                                    :save-comparison="character.profile.x.primary_submission"
+                                    :show-progress="true"
+                                />
+                              </v-col>
+                            </v-row>
                             <template v-slot:actions>
                               <v-spacer />
                               <v-btn color="danger" v-if="character.profile.x.primary_submission" @click="character.profile.patch({primary_submission: null})">Clear Showcased Image</v-btn>
@@ -167,6 +173,7 @@ import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
 import {Watch} from 'vue-property-decorator'
 import {setMetaContent, textualize, updateTitle} from '@/lib/lib'
 import AcCharacterPreview from '@/components/AcCharacterPreview.vue'
+import { ListController } from '@/store/lists/controller'
 
 @Component({
   components: {
@@ -194,6 +201,7 @@ export default class CharacterDetail extends mixins(Subjective, CharacterCentric
     public newShare: FormController = null as unknown as FormController
     public name: Patch = null as unknown as Patch
     public showChangePrimary = false
+    public submissionList = null as unknown as ListController<Submission>
 
     public get primarySubmissionLink() {
       if (this.editing) {
@@ -209,6 +217,23 @@ export default class CharacterDetail extends mixins(Subjective, CharacterCentric
     @Watch('character.profile.x.primary_submission.id')
     public closeSubmissionDialog() {
       this.showChangePrimary = false
+    }
+
+    public addSubmission(submission: Submission) {
+      if (this.showChangePrimary) {
+        if (this.submissionList.empty) {
+          this.character.profile.patchers.primary_submission.model = submission.id
+        }
+        this.submissionList.unshift(submission)
+        this.character.submissions.unshift(submission)
+      }
+    }
+
+    public submissionSuccess(submission: Submission) {
+      if (this.showChangePrimary) {
+        return
+      }
+      this.$router.push({name: 'Submission', params: {submissionId: submission.id + ''}})
     }
 
     @Watch('character.profile.x', {deep: true, immediate: true})
@@ -235,6 +260,7 @@ export default class CharacterDetail extends mixins(Subjective, CharacterCentric
       this.character.colors.firstRun().then()
       this.character.sharedWith.firstRun().catch(this.statusOk(403))
       this.character.recommended.firstRun().then()
+      this.submissionList = this.$getList('characterSubmissions', {endpoint: this.character.submissions.endpoint})
     }
 }
 </script>
