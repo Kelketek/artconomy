@@ -1304,6 +1304,7 @@ class Conversations(ListCreateAPIView):
             return ConversationManagementSerializer
 
     def perform_create(self, serializer: ConversationSerializer):
+        raise ValidationError({'participants': 'This feature is temporarily disabled.'})
         target_participants = set(serializer.validated_data['participants'])
         conversations = Conversation.objects.annotate(
             num_participants=Count('participants'),

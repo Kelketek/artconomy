@@ -208,3 +208,7 @@ def InvoiceStatus(*statuses):
             return invoice.status in statuses
 
     return InnerInvoiceStatus
+
+
+class SpamDisabled(BasePermission):
+    message = 'This feature has been temporarily disabled to combat spam.'
