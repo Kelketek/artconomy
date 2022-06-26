@@ -1,5 +1,4 @@
 import logging
-from unittest import expectedFailure
 from unittest.mock import patch
 from uuid import UUID
 
@@ -1289,7 +1288,6 @@ class TestFavorite(APITestCase):
 
 
 class TestConversations(APITestCase):
-    @expectedFailure
     def test_create_conversation(self):
         user = UserFactory.create()
         user2 = UserFactory.create()
@@ -1333,7 +1331,6 @@ class TestConversations(APITestCase):
         self.assertTrue(subscriptions.filter(subscriber=user).exists())
         self.assertTrue(subscriptions.filter(subscriber=user2).exists())
 
-    @expectedFailure
     def test_singleton_conversation(self):
         user = UserFactory.create()
         user2 = UserFactory.create()
@@ -1366,7 +1363,6 @@ class TestConversations(APITestCase):
         conversation3_id = response.data['id']
         self.assertNotEqual(conversation2_id, conversation3_id)
 
-    @expectedFailure
     def test_conversation_no_delete_others(self):
         # Apparently one of my serializers had a terrible side effect of deleting all other conversations when a new
         # one was created.
