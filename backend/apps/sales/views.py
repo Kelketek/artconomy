@@ -2752,7 +2752,7 @@ def service_charge(*, billable: Union[LineItem, Invoice], target: ServicePlan, c
     user = User.objects.get(stripe_token=charge_event['customer'])
     invoice = get_term_invoice(user)
     amount = context['amount']
-    transactions = perform_charge(
+    _, transactions, __ = perform_charge(
         attempt={
             'stripe_event': charge_event,
             'amount': amount,
