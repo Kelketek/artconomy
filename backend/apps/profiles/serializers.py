@@ -586,13 +586,19 @@ class ReadMarkerField(serializers.Field):
 
 
 class ConversationSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
+    captcha = ReCaptchaField(write_only=True)
     read = ReadMarkerField(read_only=True)
     participants = UserListField(model=ConversationParticipant, back_name='conversation', add_self=True, min_length=2)
+
+    def create(self, validated_data):
+        data = {**validated_data}
+        data.pop('captcha')
+        return super().create(data)
 
     class Meta:
         model = Conversation
         fields = (
-            'id', 'participants', 'created_on', 'read',
+            'id', 'participants', 'created_on', 'read', 'captcha'
         )
 
 

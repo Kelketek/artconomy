@@ -1,4 +1,8 @@
+from dateutil.relativedelta import relativedelta
+from django.utils import timezone
+from django.views import View
 from rest_framework.permissions import BasePermission
+from rest_framework.request import Request
 
 
 class ObjectControls(BasePermission):
@@ -208,3 +212,14 @@ class IsRegistered(BasePermission):
 
     def has_permission(self, request, view):
         return request.user.is_registered
+
+
+def AccountAge(delta: relativedelta):
+    class AccountAgePermission(BasePermission):
+        message = 'Your account is too new. Please try again later.'
+
+        def has_permission(self, request: Request, view: View) -> bool:
+            if not request.user.is_registered:
+                return False
+            return request.user.date_joined < (timezone.now() - delta)
+    return AccountAgePermission

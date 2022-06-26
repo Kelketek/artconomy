@@ -65,7 +65,7 @@ from apps.profiles.permissions import (
     ObjectControls, UserControls, SubmissionViewPermission, SubmissionControls,
     ColorControls, ColorLimit, ViewFavorites, SharedWith, MessageReadPermission, IsUser,
     IsSubject,
-    SubmissionTagPermission, IsRegistered)
+    SubmissionTagPermission, IsRegistered, AccountAge)
 from apps.profiles.serializers import (
     CharacterSerializer, SubmissionSerializer, UserSerializer,
     RegisterSerializer, SubmissionManagementSerializer, CredentialsSerializer, RefColorSerializer,
@@ -1294,7 +1294,7 @@ class Watching(ListAPIView):
 
 
 class Conversations(ListCreateAPIView):
-    permission_classes = [IsSubject]
+    permission_classes = [IsSubject, Any(AccountAge(relativedelta(days=5)), IsSafeMethod)]
     serializer_class = ConversationSerializer
 
     def get_serializer_class(self):

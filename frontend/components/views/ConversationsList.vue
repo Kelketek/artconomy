@@ -9,14 +9,18 @@
           <v-col cols="12">
             <ac-paginated :list="conversations" :auto-run="false" :track-pages="true">
               <template v-slot:empty>
-                <v-card>
-                  <v-card-text>
-                    <v-col class="text-center" >
-                      <p>You have no conversations at this time.</p>
-                      <v-btn color="primary" v-if="isCurrent" @click="showNew = true">Start a Conversation</v-btn>
-                    </v-col>
-                  </v-card-text>
-                </v-card>
+                <v-row>
+                  <v-col cols="12">
+                    <v-card>
+                      <v-card-text>
+                        <v-col class="text-center" >
+                          <p>You have no conversations at this time.</p>
+                          <v-btn color="primary" v-if="isCurrent" @click="showNew = true">Start a Conversation</v-btn>
+                        </v-col>
+                      </v-card-text>
+                    </v-card>
+                  </v-col>
+                </v-row>
               </template>
               <template v-slot:default>
                 <v-col>
@@ -49,9 +53,18 @@
           title="Start a New Conversation"
       >
         <v-col cols="12" sm="10" offset-sm="1" offset-md="2" md="8">
-          <ac-bound-field
-              field-type="ac-user-select" :field="newConversation.fields.participants" label="Start conversation with..." autofocus
-          ></ac-bound-field>
+          <v-row>
+            <v-col cols="12">
+              <ac-bound-field
+                  field-type="ac-user-select" :field="newConversation.fields.participants" label="Start conversation with..." autofocus
+              />
+            </v-col>
+            <v-col cols="12">
+              <ac-bound-field
+                  field-type="ac-captcha-field" :field="newConversation.fields.captcha" label="Prove you are human"
+              />
+            </v-col>
+          </v-row>
         </v-col>
       </ac-form-dialog>
     </v-col>
@@ -125,7 +138,7 @@ export default class ConversationsList extends mixins(Subjective, Formatting) {
         endpoint: `/api/profiles/v1/account/${this.username}/conversations/`,
       })
       this.newConversation = this.$getForm('new-conversation', {
-        fields: {participants: {value: []}},
+        fields: {participants: {value: []}, captcha: {value: ''}},
         endpoint: `/api/profiles/v1/account/${this.rawViewerName}/conversations/`,
       })
       this.conversations.firstRun().catch(this.setError)

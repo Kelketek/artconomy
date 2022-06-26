@@ -2,9 +2,11 @@ import logging
 from unittest.mock import patch
 from uuid import UUID
 
+from dateutil.relativedelta import relativedelta
 from ddt import ddt, data, unpack
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils import timezone
 from hitcount.models import HitCount, Hit
 from rest_framework import status
 
@@ -1287,15 +1289,18 @@ class TestFavorite(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
+
 class TestConversations(APITestCase):
-    def test_create_conversation(self):
-        user = UserFactory.create()
+    @patch('recaptcha.fields.ReCaptchaField.to_internal_value')
+    def test_create_conversation(self, _mock_captcha):
+        user = UserFactory.create(date_joined=timezone.now() - relativedelta(days=10))
         user2 = UserFactory.create()
         self.login(user)
         response = self.client.post(
             '/api/profiles/v1/account/{}/conversations/'.format(user.username),
             {
-                'participants': [user2.id]
+                'participants': [user2.id],
+                'captcha': 'dummy',
             },
             format='json',
         )
@@ -1331,14 +1336,32 @@ class TestConversations(APITestCase):
         self.assertTrue(subscriptions.filter(subscriber=user).exists())
         self.assertTrue(subscriptions.filter(subscriber=user2).exists())
 
-    def test_singleton_conversation(self):
+    @patch('recaptcha.fields.ReCaptchaField.to_internal_value')
+    def test_no_new_user_conversation(self, _mock_captcha):
         user = UserFactory.create()
         user2 = UserFactory.create()
         self.login(user)
         response = self.client.post(
             '/api/profiles/v1/account/{}/conversations/'.format(user.username),
             {
-                'participants': [user2.id]
+                'participants': [user2.id],
+                'captcha': 'dummy',
+            },
+            format='json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.data['detail'], 'Your account is too new. Please try again later.')
+
+    @patch('recaptcha.fields.ReCaptchaField.to_internal_value')
+    def test_singleton_conversation(self, _mock_captcha):
+        user = UserFactory.create(date_joined=timezone.now() - relativedelta(days=10))
+        user2 = UserFactory.create()
+        self.login(user)
+        response = self.client.post(
+            '/api/profiles/v1/account/{}/conversations/'.format(user.username),
+            {
+                'participants': [user2.id],
+                'captcha': 'dummy',
             },
             format='json',
         )
@@ -1346,7 +1369,8 @@ class TestConversations(APITestCase):
         response = self.client.post(
             '/api/profiles/v1/account/{}/conversations/'.format(user.username),
             {
-                'participants': [user2.id]
+                'participants': [user2.id],
+                'captcha': 'dummy',
             },
             format='json',
         )
@@ -1356,24 +1380,27 @@ class TestConversations(APITestCase):
         response = self.client.post(
             '/api/profiles/v1/account/{}/conversations/'.format(user.username),
             {
-                'participants': [user3.id]
+                'participants': [user3.id],
+                'captcha': 'dummy',
             },
             format='json',
         )
         conversation3_id = response.data['id']
         self.assertNotEqual(conversation2_id, conversation3_id)
 
-    def test_conversation_no_delete_others(self):
+    @patch('recaptcha.fields.ReCaptchaField.to_internal_value')
+    def test_conversation_no_delete_others(self, _mock_captcha):
         # Apparently one of my serializers had a terrible side effect of deleting all other conversations when a new
         # one was created.
         relation = ConversationParticipantFactory.create()
-        user = UserFactory.create()
+        user = UserFactory.create(date_joined=timezone.now() - relativedelta(days=10))
         user2 = UserFactory.create()
         self.login(user)
         response = self.client.post(
             '/api/profiles/v1/account/{}/conversations/'.format(user.username),
             {
-                'participants': [user2.id]
+                'participants': [user2.id],
+                'captcha': 'dummy',
             },
             format='json',
         )
