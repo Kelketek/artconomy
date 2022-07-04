@@ -1373,6 +1373,7 @@ class TestOrderAuth(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         order.refresh_from_db()
         self.assertEqual(order.buyer, user)
+        self.assertEqual(order.deliverables.first().invoice.bill_to, user)
         self.assertIsNone(order.claim_token)
         self.assertEqual(order.customer_email, '')
 

@@ -365,6 +365,10 @@ def transfer_order(order, old_buyer, new_buyer, force=False):
     if (old_buyer == new_buyer) and not force:
         raise AssertionError("Tried to claim an order, but it was already claimed!")
     order.buyer = new_buyer
+    for deliverable in order.deliverables.all():
+        if deliverable.invoice:
+            deliverable.invoice.bill_to = new_buyer
+            deliverable.invoice.save()
     order.customer_email = ''
     order.claim_token = None
     order.save()
