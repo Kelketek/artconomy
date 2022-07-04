@@ -293,7 +293,7 @@ export default class DeliverablePayment extends mixins(DeliverableMixin, Formatt
     return this.canUpdateStorage
   }
 
-  @Watch('deliverable.x.invoice')
+  @Watch('deliverable.x.invoice', {immediate: true})
   public updateSecretEndpoint(val: string | undefined) {
     if (!val) {
       return
