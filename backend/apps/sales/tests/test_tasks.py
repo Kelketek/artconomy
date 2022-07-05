@@ -3,9 +3,7 @@ from decimal import Decimal
 from multiprocessing.pool import ThreadPool
 from time import sleep
 from unittest.mock import patch, call, PropertyMock, Mock
-from uuid import uuid4
 
-from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
 from django.core import mail
 from django.db import connection
@@ -18,10 +16,10 @@ from apps.lib.models import SUBSCRIPTION_DEACTIVATED, Notification, RENEWAL_FAIL
     ref_for_instance
 from apps.profiles.tests.factories import UserFactory
 from apps.sales.models import TransactionRecord, REVIEW, PAYMENT_PENDING, NEW, CANCELLED, IN_PROGRESS, Deliverable
-from apps.sales.tasks import run_billing, renew, update_transfer_status, remind_sales, remind_sale, check_transactions, \
-    withdraw_all, auto_finalize_run, auto_finalize, get_transaction_fees, clear_cancelled_deliverables, \
-    clear_deliverable, recover_returned_balance, annotate_connect_fees_for_year_month, annotate_connect_fees
-from apps.sales.tests.factories import CreditCardTokenFactory, TransactionRecordFactory, DeliverableFactory, \
+from apps.sales.tasks import run_billing, update_transfer_status, remind_sales, remind_sale, \
+    withdraw_all, auto_finalize_run, auto_finalize, clear_cancelled_deliverables, \
+    clear_deliverable, annotate_connect_fees_for_year_month, annotate_connect_fees
+from apps.sales.tests.factories import TransactionRecordFactory, DeliverableFactory, \
     StripeAccountFactory, ServicePlanFactory
 
 
@@ -109,11 +107,6 @@ class TestUpdateTransaction(TestCase):
         self.assertEqual(additional_record.destination, TransactionRecord.PAYOUT_MIRROR_DESTINATION)
         self.assertEqual(additional_record.payee, self.record.payee)
         self.assertEqual(additional_record.payer, self.record.payer)
-
-    @patch('apps.sales.tasks.update_transfer_status')
-    def test_update_transactions(self, mock_update_transfer_status, _mock_api):
-        check_transactions()
-        mock_update_transfer_status.delay.assert_called_with(self.record.id)
 
 
 class TestFinalizers(TestCase):
@@ -280,60 +273,6 @@ def gen_dwolla_balance(amount: Money):
     }
 
 
-@patch('apps.sales.apis.DwollaContext.dwolla_api', new_callable=PropertyMock)
-class TestGetTransactionFees(TestCase):
-    def test_get_transaction_fee(self, mock_api):
-        mock_api.return_value.get.return_value.body = gen_dwolla_response()
-        record = TransactionRecordFactory.create(remote_ids=[str(uuid4())])
-        get_transaction_fees(str(record.id))
-        mock_api.return_value.get.assert_called_with(f'transfers/{record.remote_ids[0]}/fees')
-        results = TransactionRecord.objects.filter(targets=ref_for_instance(record))
-        self.assertEqual(results.count(), 1)
-        fee_record = results[0]
-        self.assertEqual(fee_record.amount, Money('.12', 'USD'))
-        self.assertEqual(fee_record.status, TransactionRecord.SUCCESS)
-        self.assertIsNone(fee_record.payer)
-        self.assertIsNone(fee_record.payee)
-        self.assertEqual(fee_record.category, TransactionRecord.THIRD_PARTY_FEE)
-        self.assertTrue(fee_record.created_on)
-        self.assertEqual(fee_record.destination, TransactionRecord.ACH_TRANSACTION_FEES)
-        self.assertEqual(fee_record.remote_ids, ['c4ded785-d753-45e8-b225-1ec88c321a46'])
-        self.assertEqual(fee_record.created_on, parse('2018-09-26T06:59:25.597Z'))
-
-    def test_get_transaction_fee_multiple(self, mock_api):
-        response = gen_dwolla_response()
-        response['transactions'].append({
-            'id': 'sdvibnwer98',
-            'status': 'pending',
-            'amount': {'value': '5.00', 'currency': 'USD'},
-            'created': '2019-09-26T06:59:25.597Z'
-        })
-        mock_api.return_value.get.return_value.body = response
-        record = TransactionRecordFactory.create(remote_ids=[str(uuid4())])
-        get_transaction_fees(str(record.id))
-        mock_api.return_value.get.assert_called_with(f'transfers/{record.remote_ids[0]}/fees')
-        results = TransactionRecord.objects.filter(targets=ref_for_instance(record))
-        self.assertEqual(results.count(), 2)
-        fee_record = results.get(status=TransactionRecord.SUCCESS)
-        self.assertEqual(fee_record.amount, Money('.12', 'USD'))
-        self.assertEqual(fee_record.status, TransactionRecord.SUCCESS)
-        self.assertIsNone(fee_record.payer)
-        self.assertIsNone(fee_record.payee)
-        self.assertEqual(fee_record.category, TransactionRecord.THIRD_PARTY_FEE)
-        self.assertEqual(fee_record.destination, TransactionRecord.ACH_TRANSACTION_FEES)
-        self.assertEqual(fee_record.remote_ids, ['c4ded785-d753-45e8-b225-1ec88c321a46'])
-        self.assertEqual(fee_record.created_on, parse('2018-09-26T06:59:25.597Z'))
-        pending_fee_record = results.get(status=TransactionRecord.PENDING)
-        self.assertEqual(pending_fee_record.amount, Money('5', 'USD'))
-        self.assertEqual(pending_fee_record.status, TransactionRecord.PENDING)
-        self.assertIsNone(pending_fee_record.payer)
-        self.assertIsNone(pending_fee_record.payee)
-        self.assertEqual(pending_fee_record.category, TransactionRecord.THIRD_PARTY_FEE)
-        self.assertEqual(pending_fee_record.destination, TransactionRecord.ACH_TRANSACTION_FEES)
-        self.assertEqual(pending_fee_record.remote_ids, ['sdvibnwer98'])
-        self.assertEqual(pending_fee_record.created_on, parse('2019-09-26T06:59:25.597Z'))
-
-
 class TestDeliverableClear(TestCase):
     @patch('apps.sales.tasks.clear_deliverable')
     def test_clear_deliverables(self, mock_clear):
@@ -356,70 +295,6 @@ class TestDeliverableClear(TestCase):
         relevent = DeliverableFactory(status=CANCELLED)
         clear_deliverable(relevent.id)
         mock_destroy.assert_called_with(relevent)
-
-
-@patch('apps.sales.apis.DwollaContext.dwolla_api', new_callable=PropertyMock)
-class TestRecoverReturnedBalance(TestCase):
-    @override_settings(DWOLLA_MASTER_BALANCE_KEY='', DWOLLA_FUNDING_SOURCE_KEY='')
-    def test_bail_no_keys_set(self, mock_dwolla):
-        recover_returned_balance()
-        mock_dwolla.return_value.get.assert_not_called()
-        mock_dwolla.return_value.post.assert_not_called()
-
-    @override_settings(DWOLLA_MASTER_BALANCE_KEY='', DWOLLA_FUNDING_SOURCE_KEY='https://example.com/')
-    def test_bail_no_funding_key(self, mock_dwolla):
-        recover_returned_balance()
-        mock_dwolla.return_value.get.assert_not_called()
-        mock_dwolla.return_value.post.assert_not_called()
-
-    @override_settings(DWOLLA_MASTER_BALANCE_KEY='https://example.com/', DWOLLA_FUNDING_SOURCE_KEY='')
-    def test_bail_no_balance_key(self, mock_dwolla):
-        recover_returned_balance()
-        mock_dwolla.return_value.get.assert_not_called()
-        mock_dwolla.return_value.post.assert_not_called()
-
-    @override_settings(
-        DWOLLA_MASTER_BALANCE_KEY='https://example.com/master-balance/',
-        DWOLLA_FUNDING_SOURCE_KEY='https://example.com/funding-source/',
-    )
-    def test_retrieve_negative_balance(self, mock_dwolla):
-        mock_dwolla.return_value.get.return_value.body = gen_dwolla_balance(Money('-5', 'USD'))
-        recover_returned_balance()
-        mock_dwolla.return_value.get.assert_called_with('https://example.com/master-balance/')
-        mock_dwolla.return_value.post.assert_not_called()
-
-    @override_settings(
-        DWOLLA_MASTER_BALANCE_KEY='https://example.com/master-balance/',
-        DWOLLA_FUNDING_SOURCE_KEY='https://example.com/funding-source/',
-    )
-    def test_retrieve_zero_balance(self, mock_dwolla):
-        mock_dwolla.return_value.get.return_value.body = gen_dwolla_balance(Money('0', 'USD'))
-        recover_returned_balance()
-        mock_dwolla.return_value.get.assert_called_with('https://example.com/master-balance/')
-        mock_dwolla.return_value.post.assert_not_called()
-
-    @override_settings(
-        DWOLLA_MASTER_BALANCE_KEY='https://example.com/master-balance/',
-        DWOLLA_FUNDING_SOURCE_KEY='https://example.com/funding-source/',
-    )
-    def test_retrieve_positive_balance(self, mock_dwolla):
-        mock_dwolla.return_value.get.return_value.body = gen_dwolla_balance(Money('5', 'USD'))
-        recover_returned_balance()
-        mock_dwolla.return_value.get.assert_called_with('https://example.com/master-balance/')
-        mock_dwolla.return_value.post.assert_called_with('transfers', {
-            '_links': {
-                'source': {
-                    'href': 'https://example.com/master-balance/',
-                },
-                'destination': {
-                    'href': 'https://example.com/funding-source/',
-                }
-            },
-            'amount': {
-                'currency': 'USD',
-                'value': '5',
-            },
-        })
 
 @override_settings(
     STRIPE_PAYOUT_STATIC=Money('0.25', 'USD'),

@@ -342,8 +342,6 @@ DWOLLA_PERCENTAGE_FEE = Decimal(get_env('DWOLLA_MIN_FEE', '.5'))
 assert PREMIUM_STATIC_BONUS < SERVICE_STATIC_FEE
 # Applied to the fee amount.
 
-LANDSCAPE_PRICE = Decimal(get_env('LANDSCAPE_PRICE', '5.00'))
-
 HIDE_TEST_BROWSER = bool(int(get_env('HIDE_TEST_BROWSER', '1')))
 
 CARD_TEST = bool(int(get_env('CARD_TEST', '1')))
@@ -491,17 +489,9 @@ CELERYBEAT_SCHEDULE = {
         'task': 'apps.sales.tasks.run_billing',
         'schedule': crontab(minute=0, hour=0),
     },
-    'check_transactions': {
-        'task': 'apps.sales.tasks.check_transactions',
-        'schedule': crontab(minute=30),
-    },
     'auto_finalize_run': {
         'task': 'apps.sales.tasks.auto_finalize_run',
         'schedule': crontab(hour=1, minute=0),
-    },
-    'recover_returned_balance': {
-        'task': 'apps.sales.tasks.recover_returned_balance',
-        'schedule': crontab(minute='*/30'),
     },
     'remind_sales': {
         'task': 'apps.sales.tasks.remind_sales',

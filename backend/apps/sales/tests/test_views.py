@@ -1290,6 +1290,7 @@ class TestSalesStats(APITestCase):
 class TestPremiumInfo(APITestCase):
     @override_settings(PREMIUM_PERCENTAGE_BONUS=Decimal('69'))
     def test_premium_info(self):
+        self.landscape = ServicePlanFactory.create(name='Landscape')
         response = self.client.get(f'/api/sales/v1/pricing-info/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['premium_percentage_bonus'], Decimal('69'))

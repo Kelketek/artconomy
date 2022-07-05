@@ -25,7 +25,7 @@ from apps.sales.models import CreditCardToken, TransactionRecord, REVIEW, NEW, D
     PREMIUM_SUBSCRIPTION, COMPLETED, StripeAccount, ServicePlan
 from apps.sales.stripe import stripe, money_to_stripe
 from apps.sales.utils import finalize_deliverable, account_balance, destroy_deliverable, \
-    get_term_invoice, fetch_prefixed, divide_amount, AccountMutex
+    get_term_invoice, fetch_prefixed, divide_amount
 from conf.celery_config import celery_app
 
 
@@ -130,7 +130,9 @@ def run_billing():
     for user in users:
         logger.info('Deactivated {}({})'.format(user.username, user.id))
         notify(SUBSCRIPTION_DEACTIVATED, user, unique=True)
+        default_plan = ServicePlan.objects.get(name=settings.DEFAULT_SERVICE_PLAN_NAME, hidden=False)
         user.service_plan = ServicePlan.objects.get(name=settings.DEFAULT_SERVICE_PLAN_NAME, hidden=False)
+        user.next_service_plan = default_plan
         user.save()
         # TODO: What other effects should happen if the user hasn't paid their dues?
     users = User.objects.filter(
@@ -138,19 +140,6 @@ def run_billing():
     ).exclude(Q(service_plan__name=settings.DEFAULT_SERVICE_PLAN_NAME) & Q(service_plan__hidden=False))
     for user in users:
         renew.delay(user.id)
-
-
-@celery_app.task
-def check_transactions():
-    """
-    Task to be run periodically to update the status of transfers on Dwolla.
-    """
-    records = TransactionRecord.objects.filter(
-        status=TransactionRecord.PENDING, destination=TransactionRecord.BANK,
-        source=TransactionRecord.HOLDINGS,
-    )
-    for record in records:
-        update_transfer_status.delay(record.id)
 
 
 @celery_app.task
@@ -504,31 +493,3 @@ def clear_cancelled_deliverables():
     to_destroy = Deliverable.objects.filter(status=CANCELLED, cancelled_on__lte=timezone.now() - relativedelta(weeks=2))
     for deliverable in to_destroy:
         clear_deliverable(deliverable.id)
-
-
-@celery_app.task
-def recover_returned_balance():
-    if not (settings.DWOLLA_MASTER_BALANCE_KEY and settings.DWOLLA_FUNDING_SOURCE_KEY):
-        return
-    with dwolla as api:
-        response = api.get(settings.DWOLLA_MASTER_BALANCE_KEY)
-        balance = Money(response.body['balance']['value'], response.body['balance']['currency'])
-        if balance <= Money('0', 'USD'):
-            return
-
-    transfer_request = {
-        '_links': {
-            'source': {
-                'href': settings.DWOLLA_MASTER_BALANCE_KEY
-            },
-            'destination': {
-                'href': settings.DWOLLA_FUNDING_SOURCE_KEY
-            }
-        },
-        'amount': {
-            'currency': str(balance.currency),
-            'value': str(balance.amount),
-        },
-    }
-    with dwolla as api:
-        api.post('transfers', transfer_request)

@@ -1701,12 +1701,13 @@ class RatingList(ListAPIView):
 class PremiumInfo(APIView):
     # noinspection PyMethodMayBeStatic
     def get(self, _request):
+        landscape = ServicePlan.objects.get(name='Landscape')
         return Response(
             status=status.HTTP_200_OK,
             data={
                 'premium_percentage_bonus': settings.PREMIUM_PERCENTAGE_BONUS,
                 'premium_static_bonus': settings.PREMIUM_STATIC_BONUS,
-                'landscape_price': settings.LANDSCAPE_PRICE,
+                'landscape_price': landscape.monthly_charge.amount,
                 'standard_percentage': settings.SERVICE_PERCENTAGE_FEE,
                 'standard_static': settings.SERVICE_STATIC_FEE,
                 'minimum_price': settings.MINIMUM_PRICE,
@@ -1767,13 +1768,12 @@ class PremiumPaymentIntent(APIView):
         serializer = PremiumIntentSettings(data=self.request.data)
         serializer.is_valid(raise_exception=True)
         make_primary = serializer.validated_data['make_primary']
-        total = Money(settings.LANDSCAPE_PRICE, 'USD')
+        service_plan = ServicePlan.objects.get(name='Landscape')
         # In case the initial creation failed for some reason.
         create_or_update_stripe_user(self.request.user.id)
         self.request.user.refresh_from_db()
         invoice = get_term_invoice(self.request.user)
-        service_plan = ServicePlan.objects.get(name='Landscape')
-        amount = Money(settings.LANDSCAPE_PRICE, 'USD')
+        amount = Money(service_plan.monthly_charge, 'USD')
         item, _created = invoice.line_items.update_or_create(
             defaults={'amount': amount, 'description': service_plan.name},
             destination_account=TransactionRecord.UNPROCESSED_EARNINGS,
@@ -1786,8 +1786,8 @@ class PremiumPaymentIntent(APIView):
             metadata = {'make_primary': make_primary, 'save_card': True, 'invoice_id': invoice.id}
             intent_kwargs = {
                 # Need to figure out how to do this per-currency.
-                'amount': int(total.amount * total.currency.sub_unit),
-                'currency': str(total.currency).lower(),
+                'amount': int(amount.amount * amount.currency.sub_unit),
+                'currency': str(amount.currency).lower(),
                 'customer': self.request.user.stripe_token,
                 # Note: If we expand the payment types, we may need to take into account that linking the
                 # charge_id to the source_transaction field of the payout transfer could cause problems. See:
