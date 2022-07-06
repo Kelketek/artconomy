@@ -1514,11 +1514,14 @@ class ServicePlan(models.Model):
                                                 'price on shield orders.',
         max_digits=5, decimal_places=2,
     )
-    shield_percentage_price = MoneyField(
+    shield_percentage_price = DecimalField(
         default=Decimal('8'), help_text='Percentage amount applied to shield orders.',
         max_digits=5, decimal_places=2,
     )
     hidden = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f'{self.name} (#{self.id})'
 
 
 # Force load of registrations for serializers.

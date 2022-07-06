@@ -1773,7 +1773,7 @@ class PremiumPaymentIntent(APIView):
         create_or_update_stripe_user(self.request.user.id)
         self.request.user.refresh_from_db()
         invoice = get_term_invoice(self.request.user)
-        amount = Money(service_plan.monthly_charge, 'USD')
+        amount = service_plan.monthly_charge
         item, _created = invoice.line_items.update_or_create(
             defaults={'amount': amount, 'description': service_plan.name},
             destination_account=TransactionRecord.UNPROCESSED_EARNINGS,

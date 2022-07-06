@@ -21,7 +21,7 @@ def build_initial_plans():
         """,
         sort_value=0,
         max_simultaneous_orders=2,
-        shield_static_price=Money('3.00'),
+        shield_static_price=Money('3.00', 'USD'),
         shield_percentage_price=Decimal('5.50'),
         features=[
             "Slick, mobile-friendly storefront",
@@ -44,7 +44,7 @@ def build_initial_plans():
         # Zero means 'infinite'
         max_simultaneous_orders=0,
         per_deliverable_price=Money('1.50', 'USD'),
-        shield_static_price=Money('3.00'),
+        shield_static_price=Money('3.00', 'USD'),
         shield_percentage_price=Decimal('5.50'),
         sort_value=1,
         features=[
@@ -69,8 +69,9 @@ def build_initial_plans():
         """,
         max_simultaneous_orders=0,
         per_deliverable_price=Money('.50', 'USD'),
-        shield_static_price=Money('0.75'),
+        shield_static_price=Money('0.75', 'USD'),
         shield_percentage_price=Decimal('5.00'),
+        monthly_charge=Money('8.00', 'USD'),
         features=[
             "Slick, mobile-friendly storefront",
             "Built-in order forms",
