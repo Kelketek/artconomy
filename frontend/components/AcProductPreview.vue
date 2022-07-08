@@ -10,7 +10,7 @@
           <v-col cols="6" sm="12" lg="8">
             <ac-link :to="{name: 'Product', params: {productId: product.id, username: product.user.username}}">
               <ac-hidden-flag :value="product.table_product || product.hidden" />
-              <ac-asset :asset="product.primary_submission" thumb-name="thumbnail" />
+              <ac-asset :asset="product.primary_submission" thumb-name="thumbnail" :allow-preview="false" />
             </ac-link>
           </v-col>
         </v-row>
@@ -88,7 +88,7 @@
           <v-col cols="8" offset="2">
             <ac-link :to="productLink">
               <ac-hidden-flag :value="product.table_product || product.hidden" />
-              <ac-asset :text="false" :asset="product.primary_submission" thumb-name="thumbnail" />
+              <ac-asset :text="false" :asset="product.primary_submission" thumb-name="thumbnail" :allow-preview="false" />
             </ac-link>
           </v-col>
         </v-row>
@@ -116,7 +116,7 @@
   <v-card class="product-preview" :class="{unavailable}" v-else>
     <ac-link :to="productLink">
       <ac-hidden-flag :value="product.table_product || product.hidden" />
-      <ac-asset :asset="product.primary_submission" thumb-name="thumbnail" />
+      <ac-asset :asset="product.primary_submission" thumb-name="thumbnail" :allow-preview="false" />
     </ac-link>
     <v-card-text class="pt-2">
       <v-row no-gutters >
