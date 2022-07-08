@@ -94,7 +94,7 @@ export default {
     },
     forceHidden: {
       default: false,
-    }
+    },
   },
   computed: {
     submissionLink() {

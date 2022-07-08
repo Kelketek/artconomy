@@ -1215,7 +1215,7 @@ def hacky_invoice_initiate_transactions(
         ) for ((destination_user, destination_account, category), value) in transaction_specs.items()
     ]
     if attempt.get('stripe_event'):
-        transactions.extend(initialize_stripe_charge_fees(amount=amount))
+        transactions.extend(initialize_stripe_charge_fees(amount=amount, stripe_event=attempt.get('stripe_event')))
     return transactions
 
 

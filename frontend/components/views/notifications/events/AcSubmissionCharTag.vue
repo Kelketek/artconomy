@@ -33,7 +33,7 @@ export default {
     },
     characterLink() {
       return {name: 'Character', params: {username: this.character.user.username, characterName: this.character.name}}
-    }
-  }
+    },
+  },
 }
 </script>

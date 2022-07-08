@@ -92,7 +92,7 @@ import Submission from '@/types/Submission'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
 @Component({
-  components: {AcConfirmation, AcPatchField, AcExpandedProperty, AcGalleryPreview}
+  components: {AcConfirmation, AcPatchField, AcExpandedProperty, AcGalleryPreview},
 })
 export default class ArtistTagManager extends mixins(Subjective) {
   @Prop({required: true})

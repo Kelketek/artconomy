@@ -135,67 +135,73 @@ import {PROCESSORS} from '@/types/PROCESSORS'
   components: {AcForm, AcFormContainer, AcCardManager, AcLoadSection},
 })
 export default class Upgrade extends mixins(Viewer, StripeHostMixin) {
-    public pricing: SingleController<Pricing> = null as unknown as SingleController<Pricing>
-    public paymentForm: FormController = null as unknown as FormController
-    public selection: null|string = null
-    public paid = false
+  public pricing: SingleController<Pricing> = null as unknown as SingleController<Pricing>
+  public paymentForm: FormController = null as unknown as FormController
+  public selection: null|string = null
+  public paid = false
 
-    public get tab() {
-      if (this.selection === null) {
-        return 'selection'
-      } else if (this.paid) {
-        return 'completed'
-      } else {
-        return 'payment'
-      }
+  public get tab() {
+    if (this.selection === null) {
+      return 'selection'
+    } else if (this.paid) {
+      return 'completed'
+    } else {
+      return 'payment'
     }
+  }
 
-    public get price() {
-      if (!this.pricing.x) {
-        return
-      }
-      // @ts-ignore
-      return this.pricing.x[this.selection + '_price']
+  public get price() {
+    if (!this.pricing.x) {
+      return
     }
+    // @ts-ignore
+    return this.pricing.x[this.selection + '_price']
+  }
 
-    public get processor() {
-      return window.DEFAULT_CARD_PROCESSOR
-    }
+  public get processor() {
+    return window.DEFAULT_CARD_PROCESSOR
+  }
 
-    @Watch('selection')
-    public setSelection(value: string) {
-      if (!value) {
-        return
-      }
-      this.paymentForm.fields.service.update(value)
-      this.updateIntent()
-    }
+  public get readerFormUrl() {
+    // TODO: Refactor to use standard invoices so we can return a URL here and subscribe someone in person,
+    //  if we wamted.
+    return '#'
+  }
 
-    public paymentSubmit() {
-      const cardManager = this.$refs.cardManager as any
-      cardManager.stripeSubmit()
+  @Watch('selection')
+  public setSelection(value: string) {
+    if (!value) {
+      return
     }
+    this.paymentForm.fields.service.update(value)
+    this.updateIntent()
+  }
 
-    public postPay() {
-      this.paid = true
-    }
+  public paymentSubmit() {
+    const cardManager = this.$refs.cardManager as any
+    cardManager.stripeSubmit()
+  }
 
-    public created() {
-      this.pricing = this.$getSingle('pricing', {endpoint: '/api/sales/v1/pricing-info/'})
-      this.pricing.get()
-      const schema = baseCardSchema('/api/sales/v1/premium/')
-      schema.fields = {
-        ...schema.fields,
-        card_id: {value: null},
-        service: {value: null},
-      }
-      this.paymentForm = this.$getForm('serviceUpgrade', schema)
-      this.clientSecret = this.$getSingle(
-        'upgrade__clientSecret', {
-          endpoint: '/api/sales/v1/premium/intent/',
-          params: {service: this.selection || 'landscape'},
-        })
+  public postPay() {
+    this.paid = true
+  }
+
+  public created() {
+    this.pricing = this.$getSingle('pricing', {endpoint: '/api/sales/v1/pricing-info/'})
+    this.pricing.get()
+    const schema = baseCardSchema('/api/sales/v1/premium/')
+    schema.fields = {
+      ...schema.fields,
+      card_id: {value: null},
+      service: {value: null},
     }
+    this.paymentForm = this.$getForm('serviceUpgrade', schema)
+    this.clientSecret = this.$getSingle(
+      'upgrade__clientSecret', {
+        endpoint: '/api/sales/v1/premium/intent/',
+        params: {service: this.selection || 'landscape'},
+      })
+  }
 }
 </script>
 

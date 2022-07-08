@@ -284,7 +284,6 @@ import {SocketState} from '@/types/SocketState'
 import StripeHostMixin from '@/components/views/order/mixins/StripeHostMixin'
 import StripeMixin from '../mixins/StripeMixin'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
-import { FormController } from '@/store/forms/form-controller'
 
 @Component({
   components: {
@@ -306,7 +305,6 @@ import { FormController } from '@/store/forms/form-controller'
 export default class DeliverablePayment extends mixins(DeliverableMixin, Formatting, StripeHostMixin, StripeMixin) {
   public showPayment = false
   public clientSecret = null as unknown as SingleController<ClientSecret>
-  public readerForm = null as unknown as FormController
   public PROCESSORS = PROCESSORS
   public socketState = null as unknown as SingleController<SocketState>
   public oldTotal: null | Big = null
@@ -379,6 +377,13 @@ export default class DeliverablePayment extends mixins(DeliverableMixin, Formatt
 
   public get readerFormUrl() {
     return `${this.invoiceUrl}stripe-process-present-card/`
+  }
+
+  @Watch('readers.ready')
+  public setTab(val: boolean) {
+    if (val && this.isStaff && this.readers.list.length) {
+      this.cardTabs = 1
+    }
   }
 
   @Watch('isBuyer', {immediate: false})
@@ -504,13 +509,6 @@ export default class DeliverablePayment extends mixins(DeliverableMixin, Formatt
         `${this.prefix}__clientSecret`, {
           endpoint: `${this.url}payment-intent/`,
         })
-    this.readerForm = this.$getForm('stripeReader', {
-      endpoint: `${this.readerFormUrl}`,
-      reset: false,
-      fields: {
-        reader: {value: null}
-      }
-    })
   }
 }
 </script>

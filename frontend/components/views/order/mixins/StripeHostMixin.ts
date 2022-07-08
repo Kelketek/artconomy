@@ -15,6 +15,7 @@ export default class StripeHostMixin extends Vue {
   public clientSecret!: SingleController<ClientSecret>
   public readers = null as unknown as ListController<StripeReader>
   public reader = null as unknown as SingleController<StripeReader>
+  public readerForm = null as unknown as FormController
 
   // Override this if fetching the secret isn't immediately possible.
   public get canUpdate() {
@@ -66,10 +67,21 @@ export default class StripeHostMixin extends Vue {
     this.readers.fetching = true
   }
 
+  public get readerFormUrl(): string {
+    throw Error('Not implemented')
+  }
+
   public created() {
     this.readers = this.$getList(
-      'stripeReaders', {endpoint: '/api/sales/v1/stripe-readers/'},
+      'stripeReaders', {endpoint: '/api/sales/v1/stripe-readers/', persistent: true},
     )
     this.readers.firstRun()
+    this.readerForm = this.$getForm('stripeReader', {
+      endpoint: `${this.readerFormUrl}`,
+      reset: false,
+      fields: {
+        reader: {value: null},
+      },
+    })
   }
 }

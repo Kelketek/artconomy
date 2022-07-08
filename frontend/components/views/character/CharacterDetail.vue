@@ -173,7 +173,7 @@ import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
 import {Watch} from 'vue-property-decorator'
 import {setMetaContent, textualize, updateTitle} from '@/lib/lib'
 import AcCharacterPreview from '@/components/AcCharacterPreview.vue'
-import { ListController } from '@/store/lists/controller'
+import {ListController} from '@/store/lists/controller'
 
 @Component({
   components: {

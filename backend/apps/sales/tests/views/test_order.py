@@ -207,7 +207,6 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.assertEqual(response.data['detail'], 'This product is not in stock.')
         self.assertEqual(Order.objects.all().count(), 0)
 
-    @expectedFailure
     def test_place_order_own_product(self):
         product = ProductFactory.create()
         self.login(product.user)

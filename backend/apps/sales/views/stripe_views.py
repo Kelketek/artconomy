@@ -5,6 +5,7 @@ from rest_framework import status
 from rest_framework.generics import GenericAPIView, ListAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from stripe.error import InvalidRequestError
 
 from apps.lib.models import ref_for_instance
 from apps.lib.permissions import IsStaff
@@ -242,7 +243,14 @@ class InvoicePaymentIntent(APIView):
             if save_card:
                 intent_kwargs['setup_future_usage'] = 'off_session'
             if invoice.current_intent:
-                intent = stripe_api.PaymentIntent.modify(invoice.current_intent, **intent_kwargs)
+                try:
+                    intent = stripe_api.PaymentIntent.modify(invoice.current_intent, **intent_kwargs)
+                except InvalidRequestError as err:
+                    if err.code == 'payment_intent_unexpected_state':
+                        return Response({
+                            'detail': 'Payment intent not in expected state. '
+                                      'Likely, it has been paid and we are waiting on webhooks.',
+                        }, status=status.HTTP_400_BAD_REQUEST)
                 return Response({'secret': intent['client_secret']})
             intent = stripe_api.PaymentIntent.create(**intent_kwargs)
             invoice.current_intent = intent['id']

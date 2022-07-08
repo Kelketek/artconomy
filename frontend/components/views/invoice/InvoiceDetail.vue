@@ -66,31 +66,68 @@
             <v-col cols="12">
               <ac-load-section :controller="invoice">
                 <template v-slot:default>
-                  <ac-card-manager
-                      ref="cardManager"
-                      :payment="true"
-                      :username="invoice.x.bill_to.username"
-                      processor="stripe"
-                      :cc-form="paymentForm"
-                      :field-mode="true"
-                      :show-save="false"
-                      :client-secret="(clientSecret.x && clientSecret.x.secret) || ''"
-                      v-model="paymentForm.fields.card_id.model"
-                      @paymentSent="() => showPayment = false"
-                      v-if="!paymentForm.fields.cash.value"
-                  />
-                  <v-row>
-                    <v-col>
-                      <ac-bound-field
-                          :field="paymentForm.fields.cash"
-                          v-if="isStaff"
-                          label="Cash transaction"
-                          hint="Tick this box if the customer has handed you cash."
-                          :persistent-hint="true"
-                          field-type="ac-checkbox"
+                  <v-tabs v-model="cardTabs" class="mb-2" fixed-tabs>
+                    <v-tab>Manual Entry</v-tab>
+                    <v-tab>Terminal</v-tab>
+                    <v-tab>Cash</v-tab>
+                  </v-tabs>
+                  <v-tabs-items v-model="cardTabs">
+                    <v-tab-item>
+                      <ac-card-manager
+                          ref="cardManager"
+                          :payment="true"
+                          :username="invoice.x.bill_to.username"
+                          processor="stripe"
+                          :cc-form="paymentForm"
+                          :field-mode="true"
+                          :show-save="false"
+                          :client-secret="(clientSecret.x && clientSecret.x.secret) || ''"
+                          v-model="paymentForm.fields.card_id.model"
+                          @paymentSent="() => showPayment = false"
+                          v-if="!paymentForm.fields.cash.value"
                       />
-                    </v-col>
-                  </v-row>
+                    </v-tab-item>
+                    <v-tab-item>
+                      <ac-paginated :list="readers">
+                        <template v-slot:default>
+                          <ac-form-container v-bind="readerForm.bind">
+                            <v-row no-gutters>
+                              <v-col cols="12" md="6" offset-md="3">
+                                <v-card elevation="10">
+                                  <v-card-text>
+                                    <v-row>
+                                      <v-col v-for="reader in readers.list" :key="reader.x.id" cols="12">
+                                        <v-radio-group v-model="readerForm.fields.reader.model">
+                                          <ac-bound-field
+                                              field-type="v-radio"
+                                              :field="readerForm.fields.reader"
+                                              :value="reader.x.id"
+                                              :label="reader.x.name"
+                                          />
+                                        </v-radio-group>
+                                      </v-col>
+                                      <v-col cols="12" @click="readerForm.submit()">
+                                        <v-btn color="green" block>Activate Reader</v-btn>
+                                      </v-col>
+                                    </v-row>
+                                  </v-card-text>
+                                </v-card>
+                              </v-col>
+                            </v-row>
+                          </ac-form-container>
+                        </template>
+                      </ac-paginated>
+                    </v-tab-item>
+                    <v-tab-item>
+                      <v-row>
+                        <v-col cols="12" md="6" offset-md="3" class="pa-5">
+                          <v-btn color="primary" block @click="paymentSubmit">
+                            Mark Paid by Cash
+                          </v-btn>
+                        </v-col>
+                      </v-row>
+                    </v-tab-item>
+                  </v-tabs-items>
                 </template>
               </ac-load-section>
             </v-col>
@@ -124,9 +161,11 @@ import {baseCardSchema} from '@/lib/lib'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import AcCardManager from '@/components/views/settings/payment/AcCardManager.vue'
 import AcBoundField from '@/components/fields/AcBoundField'
+import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 
 @Component({
   components: {
+    AcPaginated,
     AcBoundField,
     AcCardManager,
     AcFormDialog,
@@ -144,9 +183,29 @@ export default class InvoiceDetail extends mixins(Subjective, Viewer, Formatting
   public lineItems = null as unknown as ListController<LineItem>
   public stateChange = null as unknown as FormController
   public showPayment = false
+  public cardTabs = 0
 
   DRAFT = InvoiceStatus.DRAFT
   OPEN = InvoiceStatus.OPEN
+
+  @Watch('cardTabs')
+  public clearManualTransactionSettings(tabValue: number) {
+    // TODO: Find a good way to deduplicate this code fragment from DeliverablePayment
+    if (tabValue === 2) {
+      this.paymentForm.fields.cash.update(true)
+    } else {
+      this.paymentForm.fields.cash.update(false)
+    }
+    if ((tabValue === 1) && this.readers.list.length) {
+      if (!this.readerForm.fields.reader.value) {
+        this.readerForm.fields.reader.update(this.readers.list[0].x!.id)
+      }
+      this.paymentForm.fields.use_reader.update(true)
+    } else {
+      this.paymentForm.fields.use_reader.update(false)
+    }
+    this.updateIntent()
+  }
 
   public get editable() {
     return this.isStaff && this.invoice.x!.status === InvoiceStatus.DRAFT
@@ -199,9 +258,22 @@ export default class InvoiceDetail extends mixins(Subjective, Viewer, Formatting
     }
   }
 
+  public get readerFormUrl() {
+    return `${this.invoice?.endpoint}stripe-process-present-card/`
+  }
+
+  @Watch('readers.ready')
+  public setTab(val: boolean) {
+    if (val && this.isStaff && this.readers.list.length) {
+      this.cardTabs = 1
+    }
+  }
+
   public paymentSubmit() {
     if (this.paymentForm.fields.cash.value) {
       this.paymentForm.submit()
+    } else if (this.paymentForm.fields.use_reader) {
+      this.readerForm.submit()
     } else {
       const cardManager = this.$refs.cardManager as any
       cardManager.stripeSubmit()
@@ -236,6 +308,8 @@ export default class InvoiceDetail extends mixins(Subjective, Viewer, Formatting
         serializer: 'InvoiceSerializer',
       },
     })
+    // Fix the form, since it will be null on upstream's creation.
+    this.readerForm.endpoint = this.readerFormUrl
     this.invoice.get()
     this.lineItems = this.$getList(`${this.prefix}__line_items`, {
       endpoint: `/api/sales/v1/invoices/${this.invoiceId}/line-items/`,

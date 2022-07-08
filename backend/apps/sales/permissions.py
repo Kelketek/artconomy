@@ -58,6 +58,9 @@ class OrderPlacePermission(BasePermission):
     def has_object_permission(self, request, view, obj):
         if not available_products_from_user(obj.user.artist_profile).filter(id=obj.id).exists():
             return False
+        if obj.user == request.user and not obj.user.is_staff:
+            self.message = 'You may not order your own product.'
+            return False
         if not request.user.is_authenticated:
             return True
         # Need something a bit more robust here for guest checkout.
