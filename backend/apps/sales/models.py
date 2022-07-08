@@ -911,9 +911,9 @@ class TransactionRecord(Model):
     Model for tracking the movement of money.
     """
     # Status types
-    SUCCESS = 1
-    FAILURE = 2
-    PENDING = 3
+    SUCCESS = 0
+    FAILURE = 1
+    PENDING = 2
 
     TRANSACTION_STATUSES = (
         (SUCCESS, 'Successful'),
