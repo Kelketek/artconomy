@@ -30,6 +30,7 @@ import {StripeConstructor, Stripe} from '@stripe/stripe-js'
 import {PROCESSORS} from '@/types/PROCESSORS'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import {VCol, VRow} from 'vuetify/lib/components'
+import {AnonUser} from '@/store/profiles/types/AnonUser'
 
 declare global {
   interface Window {
@@ -37,7 +38,7 @@ declare global {
     PRERENDERING: number,
     pintrk: PinterestQueue,
     windowId: string,
-    USER_PRELOAD: User|undefined,
+    USER_PRELOAD: User|AnonUser,
     RECAPTCHA_SITE_KEY: string,
     STRIPE_PUBLIC_KEY: string,
     DEFAULT_CARD_PROCESSOR: PROCESSORS,

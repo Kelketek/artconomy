@@ -60,9 +60,9 @@ export default class ClaimOrder extends mixins(Viewer) {
   public failed = false
 
   public visitOrder(user: User) {
+    this.$sock.socket?.reconnect()
     const route: Location = {}
     if (this.next) {
-      console.log('Next is', this.next)
       Object.assign(route, JSON.parse(this.next) as Location)
       if (route.query === undefined) {
         route.query = {}
@@ -98,18 +98,23 @@ export default class ClaimOrder extends mixins(Viewer) {
     this.claimForm.submitThen(this.visitOrder)
   }
 
+  public sendForm() {
+    if (!this.isRegistered) {
+      this.claimForm.submitThen(this.visitOrder)
+    }
+  }
+
   public created() {
     this.claimForm = this.$getForm('orderClaim', {
       endpoint: '/api/sales/v1/order-auth/',
+      reset: false,
       fields: {
         id: {value: this.orderId},
         claim_token: {value: this.token},
         chown: {value: false},
       },
     })
-    if (!this.isRegistered) {
-      this.claimForm.submitThen(this.visitOrder)
-    }
+    this.$sock.connectListeners.ClaimOrder = this.sendForm
   }
 }
 </script>

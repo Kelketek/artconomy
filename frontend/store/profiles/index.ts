@@ -16,7 +16,7 @@ export class ProfileModule {
     const defaults = {viewer: false, persistent: false}
     this.mutations = {}
     this.actions = {}
-    // Actual creation of the relevant singles will happen outside of this module.
+    // Actual creation of the relevant singles will happen outside this module.
     this.state = {...defaults, ...schema} as ProfileState
     this.getters = {}
   }

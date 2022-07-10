@@ -2415,6 +2415,7 @@ class OrderAuth(GenericAPIView):
 
         ensure_buyer(order)
         login(request, order.buyer)
+        trigger_reconnect(self.request, include_current=True)
         order.claim_token = uuid4()
         order.save()
         return Response(status=status.HTTP_200_OK, data=self.user_info(order.buyer))
