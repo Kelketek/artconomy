@@ -1,11 +1,8 @@
-import enum
 import re
 from contextlib import contextmanager
 from dataclasses import dataclass
 from decimal import Decimal
-from itertools import chain
-from typing import Union, List, Optional, Sequence
-from warnings import warn
+from typing import Union, List
 
 from django.core.exceptions import ValidationError
 from django.db import transaction, models, IntegrityError
@@ -820,8 +817,10 @@ class CreditCardToken(Model):
     user = ForeignKey(User, related_name='credit_cards', on_delete=CASCADE)
     type = IntegerField(choices=CARD_TYPES, default=VISA)
     last_four = CharField(max_length=4)
+    # Field for deprecated service, authorize.net. To be removed eventually.
     token = CharField(max_length=50, blank=True, default='')
-    stripe_token = CharField(max_length=50, blank=True, default='', db_index=True)
+    # Must have null available for unique to be True with blank entries.
+    stripe_token = CharField(max_length=50, blank=True, default=None, null=True, db_index=True, unique=True)
     active = BooleanField(default=True, db_index=True)
     cvv_verified = BooleanField(default=False, db_index=True)
     created_on = DateTimeField(auto_now_add=True, db_index=True)

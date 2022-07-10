@@ -67,7 +67,7 @@ def handle_charge_event(event, successful=True):
             user=user, last_four=details['last4'],
             stripe_token=charge_event['payment_method'],
             type=CreditCardToken.TYPE_TRANSLATION[details['brand']],
-            cvv_verified=True,
+            defaults={'cvv_verified': True},
         )
         if not user.primary_card or (metadata.get('make_primary') == 'True'):
             user.primary_card_id = card.id

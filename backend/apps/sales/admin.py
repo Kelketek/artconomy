@@ -11,7 +11,7 @@ from django.utils.html import format_html
 
 from apps.lib.admin import CommentInline
 from apps.sales.models import Product, Order, Revision, Promo, TransactionRecord, Rating, Deliverable, LineItem, \
-    Invoice, WebhookRecord, LineItemAnnotation, ServicePlan, StripeLocation, StripeReader
+    Invoice, WebhookRecord, LineItemAnnotation, ServicePlan, StripeLocation, StripeReader, CreditCardToken
 
 
 class ProductAdmin(admin.ModelAdmin):
@@ -158,6 +158,10 @@ class StripeReaderAdmin(admin.ModelAdmin):
     form = StripeReaderForm
 
 
+class CreditCardTokenAdmin(admin.ModelAdmin):
+    raw_id_fields = ['user']
+
+
 admin.site.register(Product, ProductAdmin)
 admin.site.register(Order, OrderAdmin)
 admin.site.register(Deliverable, DeliverableAdmin)
@@ -171,3 +175,4 @@ admin.site.register(WebhookRecord, WebhookRecordAdmin)
 admin.site.register(ServicePlan)
 admin.site.register(StripeLocation, StripeLocationAdmin)
 admin.site.register(StripeReader, StripeReaderAdmin)
+admin.site.register(CreditCardToken, CreditCardTokenAdmin)
