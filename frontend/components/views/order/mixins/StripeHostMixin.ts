@@ -1,5 +1,4 @@
-import Component from 'vue-class-component'
-import Vue from 'vue'
+import Component, {mixins} from 'vue-class-component'
 import {CreditCardToken} from '@/types/CreditCardToken'
 import {Watch} from 'vue-property-decorator'
 import {FormController} from '@/store/forms/form-controller'
@@ -8,9 +7,10 @@ import ClientSecret from '@/types/ClientSecret'
 import debounce from 'lodash/debounce'
 import {ListController} from '@/store/lists/controller'
 import StripeReader from '@/types/StripeReader'
+import ErrorHandling from '@/mixins/ErrorHandling'
 
 @Component
-export default class StripeHostMixin extends Vue {
+export default class StripeHostMixin extends mixins(ErrorHandling) {
   public paymentForm!: FormController
   public clientSecret!: SingleController<ClientSecret>
   public readers = null as unknown as ListController<StripeReader>
@@ -75,7 +75,9 @@ export default class StripeHostMixin extends Vue {
     this.readers = this.$getList(
       'stripeReaders', {endpoint: '/api/sales/v1/stripe-readers/', persistent: true},
     )
-    this.readers.firstRun()
+    if (!(this.readers.ready || this.readers.fetching || this.readers.failed)) {
+      this.readers.get().catch(this.statusOk(403))
+    }
     this.readerForm = this.$getForm('stripeReader', {
       endpoint: `${this.readerFormUrl}`,
       reset: false,
