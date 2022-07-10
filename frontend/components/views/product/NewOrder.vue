@@ -3,7 +3,7 @@
     <template v-slot:default>
       <v-row>
         <v-col cols="12" md="8" offset-lg="1" >
-          <ac-form @submit.prevent="orderForm.submitThen(goToOrder)">
+          <ac-form @submit.prevent="submitAction">
             <ac-form-container
                 :errors="orderForm.errors"
                 :sending="orderForm.sending"
@@ -264,6 +264,14 @@ export default class NewOrder extends mixins(ProductCentric, Formatting) {
     @Watch('orderForm.step')
     public updateRoute(val: number) {
       this.$router.replace({params: {stepId: `${val}`}})
+    }
+
+    public submitAction() {
+      if (this.orderForm.step < 3) {
+        this.orderForm.step += 1
+        return
+      }
+      this.orderForm.submitThen(this.goToOrder)
     }
 
     public sendEvent() {
