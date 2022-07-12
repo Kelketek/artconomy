@@ -2,6 +2,7 @@ import logging
 import uuid
 from datetime import date
 from functools import lru_cache
+from textwrap import shorten
 from typing import Dict
 
 from avatar.models import Avatar
@@ -1495,7 +1496,7 @@ class CharacterPreview(BasePreview):
         if not self.check_object_permissions(self.request, character):
             return char_context
         char_context['title'] = f'{demark(character.name)} - {character.user.username} on Artconomy.com'
-        char_context['description'] = demark(character.description)[:160]
+        char_context['description'] = shorten(demark(character.description), 160)
         submissions = character_submissions(character, self.request)
         char_context['image_links'] = [character.preview_image(self.request)] + [
             submission.preview_link for submission in submissions[:24]
@@ -1504,7 +1505,11 @@ class CharacterPreview(BasePreview):
 
 
 class ArtPreview(BasePreview):
+    """
+    Loads the meta tags for an artist's art.
+    """
     is_artist = True
+
     def context(self, username):
         art_context = {}
         user = get_object_or_404(User, username__iexact=self.kwargs['username'])
@@ -1514,6 +1519,24 @@ class ArtPreview(BasePreview):
             art_context['title'] = f"{user.username}'s collection"
         art_context['description'] = f"See the work of {demark(user.username)}"
         submissions = user_submissions(user, self.request, self.is_artist).order_by('-display_position')[:24]
+        art_context['image_links'] = [user.avatar_url] + [
+            submission.preview_link for submission in submissions
+        ]
+        return art_context
+
+
+class ProfilePreview(BasePreview):
+    """
+    Loads the meta tags for a user's profile.
+    """
+
+    def context(self, username):
+        art_context = {}
+        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        is_artist = user.artist_mode
+        art_context['title'] = f"{user.username} on Artconomy.com"
+        art_context['description'] = shorten(demark(user.biography), 160)
+        submissions = user_submissions(user, self.request, is_artist).order_by('-display_position')[:24]
         art_context['image_links'] = [user.avatar_url] + [
             submission.preview_link for submission in submissions
         ]

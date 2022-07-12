@@ -245,7 +245,7 @@ class NPMBuildTestRunner(DiscoverRunner):
             call(['cp', 'webpack-stats-bak.json', 'webpack-stats.json'])
             call(['./manage.py', 'collectstatic', '--noinput', '-v0'])
         settings.WEBPACK_LOADER['DEFAULT']['STATS_FILE'] = os.path.join(
-            settings.BASE_DIR, 'webpack-stats-saved.json'
+            settings.BASE_DIR, 'webpack-stats.json'
         )
         settings.MEDIA_ROOT = self.media_root.name
         settings.STATIC_ROOT = self.static_root.name

@@ -1728,3 +1728,11 @@ class TestDestroyUser(EnsurePlansMixin, APITestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         user.refresh_from_db()
         self.assertFalse(user.is_active)
+
+
+class TestProfilePreview(EnsurePlansMixin, APITestCase):
+    def test_profile_preview(self):
+        user = UserFactory.create(biography='Beep boop')
+        response = self.client.get(f'/profile/{user.username}/about')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn(b'Beep boop', response.content)
