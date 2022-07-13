@@ -90,7 +90,7 @@ from apps.sales.serializers import SearchQuerySerializer
 from apps.sales.utils import claim_order_by_token
 from apps.sales.tasks import withdraw_all
 from apps.tg_bot.models import TelegramDevice
-from shortcuts import gen_textifier
+from shortcuts import gen_textifier, make_url
 
 logger = logging.getLogger(__name__)
 
@@ -1519,7 +1519,7 @@ class ArtPreview(BasePreview):
             art_context['title'] = f"{user.username}'s collection"
         art_context['description'] = f"See the work of {demark(user.username)}"
         submissions = user_submissions(user, self.request, self.is_artist).order_by('-display_position')[:24]
-        art_context['image_links'] = [user.avatar_url] + [
+        art_context['image_links'] = [make_url(user.avatar_url)] + [
             submission.preview_link for submission in submissions
         ]
         return art_context
@@ -1537,7 +1537,7 @@ class ProfilePreview(BasePreview):
         art_context['title'] = f"{user.username} on Artconomy.com"
         art_context['description'] = shorten(demark(user.biography), 160)
         submissions = user_submissions(user, self.request, is_artist).order_by('-display_position')[:24]
-        art_context['image_links'] = [user.avatar_url] + [
+        art_context['image_links'] = [make_url(user.avatar_url)] + [
             submission.preview_link for submission in submissions
         ]
         return art_context

@@ -12,6 +12,9 @@ app_name = "sales"
 
 urlpatterns = [
     path('<username>', StorePreview.as_view(), name='store_preview'),
+    path('<username>/', StorePreview.as_view(), name='store_preview'),
     path('<username>/iframe', StorePreview.as_view(), name='store_preview_iframe'),
+    path('<username>/iframe/', StorePreview.as_view(), name='store_preview_iframe'),
     path('<username>/product/<int:product_id>', ProductPreview.as_view(), name='product_preview'),
+    path('<username>/product/<int:product_id>/', ProductPreview.as_view(), name='product_preview'),
 ]
