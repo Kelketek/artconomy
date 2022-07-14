@@ -253,7 +253,6 @@ STRIPE_DIRECT_WEBHOOK_ROUTES = {
 STRIPE_CONNECT_WEBHOOK_ROUTES = {
     'account.updated': account_updated,
     'payout.paid': payout_paid,
-    'payout.failed': spy_failure,
 }
 
 
