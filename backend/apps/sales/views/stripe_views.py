@@ -2,7 +2,6 @@ from django.db import transaction, IntegrityError
 from django.db.models import QuerySet
 from django.shortcuts import get_object_or_404
 from rest_framework import status
-from rest_framework.exceptions import ValidationError
 from rest_framework.generics import GenericAPIView, ListAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -210,6 +209,13 @@ class InvoicePaymentIntent(APIView):
         use_terminal = serializer.validated_data['use_reader']
         save_card = serializer.validated_data['save_card'] and not invoice.bill_to.guest
         make_primary = (save_card and serializer.validated_data['make_primary']) and not invoice.bill_to.guest
+        total = invoice.total()
+        amount = int(total.amount * total.currency.sub_unit)
+        if not amount:
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST,
+                data={'detail': 'Cannot create a payment intent for a zero invoice.'},
+            )
         if use_terminal:
             # We set card here as well to prevent a transaction issue on Stripe's side where
             # We can't unset the payment method at the same time as changing the payment method
@@ -222,7 +228,6 @@ class InvoicePaymentIntent(APIView):
         else:
             payment_method_types = ['card']
             capture_method = 'automatic'
-        total = invoice.total()
         with stripe as stripe_api:
             # Can only do string values, so won't be json true value.
             metadata = {'invoice_id': invoice.id, 'make_primary': make_primary, 'save_card': save_card}
@@ -295,7 +300,6 @@ class ProcessPresentCard(APIView):
                     payment_intent=invoice.current_intent,
                 )
             except InvalidRequestError as err:
-                print(str(err))
                 if 'Reader is currently unreachable' in str(err):
                     return Response(
                         status=status.HTTP_400_BAD_REQUEST,

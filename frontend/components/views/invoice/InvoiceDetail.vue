@@ -106,7 +106,7 @@
                                           />
                                         </v-radio-group>
                                       </v-col>
-                                      <v-col cols="12" @click="readerForm.submit()">
+                                      <v-col cols="12" @click="paymentSubmit">
                                         <v-btn color="green" block>Activate Reader</v-btn>
                                       </v-col>
                                     </v-row>
@@ -244,10 +244,7 @@ export default class InvoiceDetail extends mixins(Subjective, Viewer, Formatting
     if (!invoice) {
       return false
     }
-    if (invoice.status !== InvoiceStatus.OPEN) {
-      return false
-    }
-    return true
+    return invoice.status === InvoiceStatus.OPEN
   }
 
   @Watch('invoice.x')
@@ -270,10 +267,13 @@ export default class InvoiceDetail extends mixins(Subjective, Viewer, Formatting
   }
 
   public paymentSubmit() {
+    this.paymentForm.clearErrors()
     if (this.paymentForm.fields.cash.value) {
       this.paymentForm.submit()
     } else if (this.paymentForm.fields.use_reader) {
-      this.readerForm.submit()
+      this.readerForm.submit().catch((error) => {
+        this.readerForm.setErrors(error)
+      })
     } else {
       const cardManager = this.$refs.cardManager as any
       cardManager.stripeSubmit()
