@@ -34,6 +34,7 @@ class OrderFactory(DjangoModelFactory):
 
 
 class InvoiceFactory(DjangoModelFactory):
+    bill_to = SubFactory(UserFactory)
     class Meta:
         model = Invoice
 

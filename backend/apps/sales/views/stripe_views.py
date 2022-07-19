@@ -2,6 +2,7 @@ from django.db import transaction, IntegrityError
 from django.db.models import QuerySet
 from django.shortcuts import get_object_or_404
 from rest_framework import status
+from rest_framework.exceptions import ValidationError
 from rest_framework.generics import GenericAPIView, ListAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -277,6 +278,8 @@ class ProcessPresentCard(APIView):
 
     def post(self, *args, **kwargs):
         invoice = self.get_object()
+        if not invoice.current_intent:
+            raise ValidationError('This invoice does not have a generated payment intent.')
         serializer = TerminalProcessSerializer(data=self.request.data)
         serializer.is_valid(raise_exception=True)
         reader = get_object_or_404(StripeReader, id=serializer.validated_data['reader'])

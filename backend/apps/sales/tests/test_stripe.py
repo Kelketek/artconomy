@@ -144,6 +144,17 @@ class TestInvoicePaymentIntent(APITestCase):
         self.assertEqual(params['payment_method'], 'butts')
 
 
+@patch('apps.sales.views.stripe_views.stripe')
+class TestStripePresentCard(APITestCase):
+    def test_no_invoice_intent(self, mock_stripe):
+        invoice = InvoiceFactory.create(status=OPEN)
+        invoice.current_intent = ''
+        invoice.save()
+        self.login(invoice.bill_to)
+        response = self.client.post(f'/api/sales/v1/invoices/{invoice.id}/stripe-process-present-card/')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+
 def base_charge_succeeded_event():
     return {
         "id": "evt_1Icyh5AhlvPza3BKV9A13pSj",
