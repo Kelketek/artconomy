@@ -7,7 +7,8 @@ from apps.profiles.tests.factories import UserFactory
 from apps.sales.models import (
     Order, Product, CreditCardToken, Revision, BankAccount,
     Promo, Rating,
-    TransactionRecord, LineItem, ADD_ON, Deliverable, Reference, Invoice, WebhookRecord, StripeAccount, ServicePlan)
+    TransactionRecord, LineItem, ADD_ON, Deliverable, Reference, Invoice, WebhookRecord, StripeAccount, ServicePlan,
+    StripeReader, StripeLocation)
 
 
 class ProductFactory(DjangoModelFactory):
@@ -35,8 +36,25 @@ class OrderFactory(DjangoModelFactory):
 
 class InvoiceFactory(DjangoModelFactory):
     bill_to = SubFactory(UserFactory)
+
     class Meta:
         model = Invoice
+
+
+class StripeLocationFactory(DjangoModelFactory):
+    stripe_token = Sequence(lambda x: f'{x}')
+
+    class Meta:
+        model = StripeLocation
+
+
+class StripeReaderFactory(DjangoModelFactory):
+    location = SubFactory(StripeLocationFactory)
+    stripe_token = Sequence(lambda x: f'{x}')
+    virtual = True
+
+    class Meta:
+        model = StripeReader
 
 
 class DeliverableFactory(DjangoModelFactory):

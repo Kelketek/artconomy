@@ -279,15 +279,33 @@ class ProcessPresentCard(APIView):
     def post(self, *args, **kwargs):
         invoice = self.get_object()
         if not invoice.current_intent:
-            raise ValidationError('This invoice does not have a generated payment intent.')
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST,
+                data={
+                    'detail': 'This invoice does not have a generated payment intent.',
+                }
+            )
         serializer = TerminalProcessSerializer(data=self.request.data)
         serializer.is_valid(raise_exception=True)
         reader = get_object_or_404(StripeReader, id=serializer.validated_data['reader'])
         with stripe as stripe_api:
-            stripe_api.terminal.Reader.process_payment_intent(
-                reader.stripe_token,
-                payment_intent=invoice.current_intent,
-            )
+            try:
+                stripe_api.terminal.Reader.process_payment_intent(
+                    reader.stripe_token,
+                    payment_intent=invoice.current_intent,
+                )
+            except InvalidRequestError as err:
+                print(str(err))
+                if 'Reader is currently unreachable' in str(err):
+                    return Response(
+                        status=status.HTTP_400_BAD_REQUEST,
+                        data={
+                            'detail': 'Could not reach the card reader. Make sure it is on and connected '
+                                      'to the Internet.'
+                        },
+                    )
+                else:
+                    raise
             if reader.virtual:
                 stripe_api.terminal.Reader.TestHelpers.present_payment_method(
                     reader.stripe_token,

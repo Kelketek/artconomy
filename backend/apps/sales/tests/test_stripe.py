@@ -12,6 +12,7 @@ from freezegun import freeze_time
 from moneyed import Money
 from rest_framework import status
 import stripe as stripe_api
+from stripe.error import InvalidRequestError
 
 from apps.lib.models import ref_for_instance, Subscription, SALE_UPDATE
 from apps.lib.test_resources import APITestCase
@@ -21,7 +22,7 @@ from apps.sales.models import PAYMENT_PENDING, QUEUED, CreditCardToken, Transact
     OPEN
 from apps.sales.stripe import money_to_stripe
 from apps.sales.tests.factories import DeliverableFactory, CreditCardTokenFactory, WebhookRecordFactory, InvoiceFactory, \
-    LineItemFactory, ServicePlanFactory, add_adjustment, RevisionFactory
+    LineItemFactory, ServicePlanFactory, add_adjustment, RevisionFactory, StripeReaderFactory
 from apps.sales.tests.test_utils import TransactionCheckMixin
 from apps.sales.utils import UserPaymentException
 from apps.sales.views.webhooks import StripeWebhooks
@@ -144,15 +145,40 @@ class TestInvoicePaymentIntent(APITestCase):
         self.assertEqual(params['payment_method'], 'butts')
 
 
+@patch('apps.sales.models.stripe')
 @patch('apps.sales.views.stripe_views.stripe')
 class TestStripePresentCard(APITestCase):
-    def test_no_invoice_intent(self, mock_stripe):
+    def test_no_invoice_intent(self, _mock_stripe, _mock_model_stripe):
         invoice = InvoiceFactory.create(status=OPEN)
         invoice.current_intent = ''
         invoice.save()
         self.login(invoice.bill_to)
         response = self.client.post(f'/api/sales/v1/invoices/{invoice.id}/stripe-process-present-card/')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['detail'], 'This invoice does not have a generated payment intent.')
+
+    def test_no_connection(self, mock_stripe, _mock_model_stripe):
+        mock_api = Mock()
+        mock_api.terminal.Reader.process_payment_intent.side_effect = InvalidRequestError(
+            'Reader is currently unreachable, please ensure the reader is '
+            'powered on and connected to the internet before retrying your request.',
+            'Request'
+        )
+        mock_stripe.__enter__.return_value = mock_api
+        reader = StripeReaderFactory.create()
+        invoice = InvoiceFactory.create(status=OPEN)
+        invoice.current_intent = 'beep'
+        invoice.save()
+        self.login(invoice.bill_to)
+        response = self.client.post(
+            f'/api/sales/v1/invoices/{invoice.id}/stripe-process-present-card/',
+            {'reader': reader.id},
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.data['detail'],
+            'Could not reach the card reader. Make sure it is on and connected to the Internet.',
+        )
 
 
 def base_charge_succeeded_event():
