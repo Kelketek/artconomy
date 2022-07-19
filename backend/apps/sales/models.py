@@ -1034,7 +1034,7 @@ class TransactionRecord(Model):
     card = ForeignKey(CreditCardToken, null=True, blank=True, on_delete=SET_NULL)
     created_on = DateTimeField(db_index=True, default=timezone.now)
     finalized_on = DateTimeField(db_index=True, default=None, null=True, blank=True)
-    amount = MoneyField(max_digits=6, decimal_places=2, default_currency='USD')
+    amount = MoneyField(max_digits=8, decimal_places=2, default_currency='USD')
     targets = ManyToManyField(to='lib.GenericReference', related_name='referencing_transactions', blank=True)
     auth_code = CharField(max_length=6, default='', db_index=True, blank=True)
     remote_ids = JSONField(default=list)

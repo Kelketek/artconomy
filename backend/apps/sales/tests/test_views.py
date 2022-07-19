@@ -297,8 +297,8 @@ class TestCardManagement(APITestCase):
     def test_card_listing_stripe(self):
         user = UserFactory.create()
         self.login(user)
-        _authorize_cards = [CreditCardTokenFactory(user=user, token='boop', stripe_token='') for __ in range(3)]
-        stripe_cards = [CreditCardTokenFactory(user=user, token='', stripe_token='boop') for __ in range(2)]
+        _authorize_cards = [CreditCardTokenFactory(user=user, token='boop', stripe_token=None) for __ in range(3)]
+        stripe_cards = [CreditCardTokenFactory(user=user, token='', stripe_token=f'{i}') for i in range(2)]
         response = self.client.get('/api/sales/v1/account/{}/cards/stripe/'.format(user.username))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         for card in stripe_cards:

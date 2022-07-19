@@ -1304,7 +1304,7 @@ class CardList(ListAPIView):
         self.check_object_permissions(self.request, user)
         qs = user.credit_cards.filter(active=True)
         if self.kwargs.get('stripe'):
-            qs = qs.exclude(stripe_token='')
+            qs = qs.exclude(stripe_token=None)
         elif self.kwargs.get('authorize'):
             qs = qs.exclude(token='')
         # Primary card should always be listed first.
