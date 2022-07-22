@@ -2,7 +2,6 @@
   <ac-base-notification :notification="notification" :href-link="streamLink">
     <span slot="title"><a :href="streamLink"
                           target="_blank">{{ event.data.order.seller.username }} is streaming!</a></span>
-    <span slot="avatar"><img :src="event.data.order.seller.avatar_url"/></span>
   </ac-base-notification>
 </template>
 

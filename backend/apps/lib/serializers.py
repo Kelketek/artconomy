@@ -20,7 +20,7 @@ from apps.lib.models import (
     DISPUTE, REFERENCE_UPLOADED, WAITLIST_UPDATED)
 from apps.lib.utils import tag_list_cleaner, add_check, set_tags
 from apps.profiles.models import User, Submission, Character, Journal, Conversation
-from apps.sales.models import Revision, Product, Order, WAITING
+from apps.sales.models import Revision, Product, Order, WAITING, Deliverable
 from shortcuts import make_url
 
 
@@ -472,14 +472,17 @@ def new_product(obj, context):
 
 
 def streaming(obj, context):
-    order = Order.objects.get(id=obj.data['order'])
-    user_data = notification_display(order.seller, context)
+    # Maybe some day we'll update all the entries in the DB for this, but for now, 'order' actually points to
+    # Deliverable.
+    deliverable = Deliverable.objects.get(id=obj.data['order'])
+    user_data = notification_display(deliverable.order.seller, context)
     # Don't want to use full order here, would have too much info sent.
     return {
         'order': {
-            'stream_link': order.stream_link,
+            'stream_link': deliverable.stream_link,
             'seller': user_data,
-        }
+        },
+        'display': user_data,
     }
 
 
