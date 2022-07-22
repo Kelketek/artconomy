@@ -106,7 +106,7 @@
                   :patcher="artistProfile.patchers.artist_of_color"
                   field-type="ac-checkbox"
                   :save-indicator="false"
-                  label="An Artist of Color"
+                  label="A BIPOC Artist"
                  />
               </v-col>
               <v-col cols="12" sm="6">

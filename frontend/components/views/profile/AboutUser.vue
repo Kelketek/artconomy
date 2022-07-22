@@ -111,7 +111,7 @@ export default class AboutUser extends mixins(Subjective, Editable) {
       badges.push({label: 'LGBTQ+', color: 'purple', light: false})
     }
     if (this.subjectHandler.artistProfile.x.artist_of_color) {
-      badges.push({label: 'Artist of Color', color: 'orange', light: true})
+      badges.push({label: 'BIPOC Artist', color: 'orange', light: true})
     }
     return badges
   }

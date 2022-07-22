@@ -65,9 +65,9 @@
                   <ac-bound-field
                     :field="searchForm.fields.artists_of_color"
                     field-type="ac-checkbox"
-                    label="Artists of Color"
+                    label="BIPOC Artists"
                     :persistent-hint="true"
-                    hint="Find products from Artists of Color."
+                    hint="Find products from BIPOC Artists."
                   />
                 </v-col>
                 <v-col cols="12" sm="6" md="4">
