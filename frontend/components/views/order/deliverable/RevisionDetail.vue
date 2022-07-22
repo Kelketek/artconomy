@@ -14,7 +14,7 @@
                 <v-btn fab small color="green" :href="revision.x.file.full" download><v-icon>cloud_download</v-icon></v-btn>
               </v-col>
               <v-col class="text-center" cols="6" lg="3" v-if="isSeller && isLast && !archived">
-                <v-btn fab small color="danger" @click="revision.delete().then(() => $router.replace(backUrl))"><v-icon>delete</v-icon></v-btn>
+                <v-btn fab small color="danger" @click="handleDelete"><v-icon>delete</v-icon></v-btn>
               </v-col>
               <v-col class="text-center" cols="12" lg="6" v-if="isSeller && isLast &&! isFinal && !archived">
                 <v-btn color="primary" @click="statusEndpoint('complete')()">Mark Final</v-btn>
@@ -124,6 +124,14 @@ export default class RevisionDetail extends mixins(DeliverableMixin) {
   public prepSubmission() {
     this.addSubmission.fields.revision.update(this.revisionId)
     this.viewSettings.patchers.showAddSubmission.model = true
+  }
+
+  public handleDelete() {
+    const revision = this.revision.x!
+    this.revision.delete().then(() => {
+      this.revisions.remove(revision)
+      this.$router.replace(this.backUrl)
+    })
   }
 
   created() {
