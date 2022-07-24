@@ -46,8 +46,11 @@ class MailchimpTaskTestCase(SignalsDisabledMixin, TestCase):
 
     @override_settings(MAILCHIMP_LIST_SECRET='9999')
     def test_send_useful_call(self):
-        user = UserFactory.create(artist_mode=False, mailchimp_id='wat')
+        user = UserFactory.create(artist_mode=False, mailchimp_id='wat', email='goober@example.com')
         mailchimp_tag(user.id)
         chimp.lists.members.tags.update.assert_called_with(
             list_id='9999', subscriber_hash='wat', data={'tags': [{'name': 'artist', 'status': 'inactive'}]},
+        )
+        chimp.lists.members.update.assert_called_with(
+            list_id='9999', subscriber_hash='wat', data={'email_address': 'goober@example.com'},
         )

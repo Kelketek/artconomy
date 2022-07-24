@@ -21,6 +21,9 @@ def mailchimp_tag(user_id):
         return
     chimp.lists.members.tags.update(
         list_id=settings.MAILCHIMP_LIST_SECRET, subscriber_hash=user.mailchimp_id, data={'tags': derive_tags(user)})
+    chimp.lists.members.update(
+        list_id=settings.MAILCHIMP_LIST_SECRET, subscriber_hash=user.mailchimp_id, data={'email_address': user.email},
+    )
 
 
 @celery_app.task
