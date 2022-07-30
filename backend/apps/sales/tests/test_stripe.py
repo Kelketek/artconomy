@@ -19,7 +19,7 @@ from apps.lib.test_resources import APITestCase
 from apps.profiles.tests.factories import UserFactory
 from apps.sales.apis import STRIPE
 from apps.sales.models import PAYMENT_PENDING, QUEUED, CreditCardToken, TransactionRecord, REVIEW, IN_PROGRESS, \
-    OPEN
+    OPEN, PAID
 from apps.sales.stripe import money_to_stripe
 from apps.sales.tests.factories import DeliverableFactory, CreditCardTokenFactory, WebhookRecordFactory, InvoiceFactory, \
     LineItemFactory, ServicePlanFactory, add_adjustment, RevisionFactory, StripeReaderFactory
@@ -452,7 +452,9 @@ class TestStripeWebhook(TransactionCheckMixin, APITestCase):
 
     def test_service_extension(self):
         event = base_charge_succeeded_event()
-        user = UserFactory.create(stripe_token='burp')
+        current_date = timezone.now().date()
+        user = UserFactory.create(stripe_token='burp', service_plan_paid_through=current_date)
+        self.assertEqual(user.service_plan_paid_through, current_date)
         self.assertIsNone(user.service_plan)
         CreditCardToken.objects.all().delete()
         invoice = InvoiceFactory(bill_to=user, current_intent=event['data']['object']['payment_intent'])
@@ -466,7 +468,10 @@ class TestStripeWebhook(TransactionCheckMixin, APITestCase):
         response = self.view(self.gen_request(event), False)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         user.refresh_from_db()
+        invoice.refresh_from_db()
+        self.assertEqual(invoice.status, PAID)
         self.assertEqual(user.service_plan, service_plan)
+        self.assertEqual(user.service_plan_paid_through, current_date + relativedelta(months=1))
 
     # These tests have been migrated over from the code that checked authorize transactions.
     # Eventually, they need to be made independent of the code checking stripe transactions and only

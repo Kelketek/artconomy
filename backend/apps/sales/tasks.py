@@ -42,7 +42,7 @@ def renew_stripe_card(*, invoice, price, user, card):
             'customer': user.stripe_token,
             'confirm': True,
             'off_session': True,
-            'metadata': {'service': 'landscape'}
+            'metadata': {'service': 'landscape', 'invoice_id': invoice.id}
         }
         try:
             stripe_api.PaymentIntent.create(

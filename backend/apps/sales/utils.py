@@ -1074,7 +1074,7 @@ def premium_post_success(invoice, service_plan):
     def wrapped(transactions: List['TransactionRecord'], data: PaymentAttempt, user: User, context: dict):
         for transaction in transactions:
             transaction.response_message = 'Upgraded to landscape'
-        set_premium(user, service_plan, target_date=date.today() + relativedelta(months=1))
+        set_premium(user, service_plan, target_date=timezone.now().date() + relativedelta(months=1))
         invoice.paid_on = timezone.now()
         invoice.status = PAID
         invoice.save()
