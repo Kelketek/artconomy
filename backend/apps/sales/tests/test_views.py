@@ -17,7 +17,7 @@ from apps.lib.models import Comment, Subscription, COMMENT
 from apps.lib.test_resources import APITestCase, PermissionsTestCase, MethodAccessMixin
 from apps.lib.tests.factories import TagFactory, AssetFactory
 from apps.lib.tests.test_utils import EnsurePlansMixin
-from apps.profiles.models import User, IN_SUPPORTED_COUNTRY, NO_SUPPORTED_COUNTRY, UNSET
+from apps.profiles.models import User, IN_SUPPORTED_COUNTRY, NO_SUPPORTED_COUNTRY, UNSET, ArtistTag
 from apps.profiles.tests.factories import UserFactory, SubmissionFactory, CharacterFactory
 from apps.sales.models import (
     Order, Product, TransactionRecord, ADD_ON, BASE_PRICE, NEW, COMPLETED, IN_PROGRESS,
@@ -1450,6 +1450,9 @@ class TestOrderOutputs(APITestCase):
         self.assertEqual(deliverable.outputs.all().count(), 1)
         output = deliverable.outputs.all()[0]
         self.assertEqual(output.deliverable, deliverable)
+        self.assertIn(deliverable.order.seller, output.artists.all())
+        tag = ArtistTag.objects.get(user=deliverable.order.seller, submission=output)
+        self.assertFalse(tag.hidden)
 
     def test_order_outputs_post_specific_revision(self):
         product = ProductFactory.create()
@@ -1470,6 +1473,36 @@ class TestOrderOutputs(APITestCase):
         self.assertEqual(output.deliverable, deliverable)
         self.assertEqual(output.revision, revision_1)
         self.assertNotIn(output, product.samples.all())
+
+    def test_order_outputs_post_hidden_details_buyer(self):
+        deliverable = DeliverableFactory.create(status=COMPLETED, final_uploaded=True, order__hide_details=True)
+        RevisionFactory.create(deliverable=deliverable)
+        self.login(deliverable.order.buyer)
+        response = self.client.post(
+            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/outputs/', {
+                'caption': 'Stuff',
+                'tags': ['Things', 'wat'],
+                'title': 'Hi!'
+            })
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        output = deliverable.outputs.all()[0]
+        tag = ArtistTag.objects.get(user=deliverable.order.seller, submission=output)
+        self.assertTrue(tag.hidden)
+
+    def test_order_outputs_post_hidden_details_seller(self):
+        deliverable = DeliverableFactory.create(status=COMPLETED, final_uploaded=True, order__hide_details=True)
+        RevisionFactory.create(deliverable=deliverable)
+        self.login(deliverable.order.seller)
+        response = self.client.post(
+            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/outputs/', {
+                'caption': 'Stuff',
+                'tags': ['Things', 'wat'],
+                'title': 'Hi!'
+            })
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        output = deliverable.outputs.all()[0]
+        tag = ArtistTag.objects.get(user=deliverable.order.seller, submission=output)
+        self.assertFalse(tag.hidden)
 
     def test_order_outputs_post_nonspecific_revision_buyer(self):
         product = ProductFactory.create()

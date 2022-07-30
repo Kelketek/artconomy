@@ -28,14 +28,26 @@
           <v-card :color="$vuetify.theme.currentTheme.darkBase.darken2">
             <v-card-text>
               <v-row dense>
-                <v-col align-self="center">
+                <v-col cols="12" md="9" order="1">
                   <h2><span v-if="isSeller">Sale</span>
                     <span v-else-if="isArbitrator">Case</span>
                     <span v-else>Order</span>
                     #{{order.x.id}} <span v-if="!isSeller || !(is(NEW) || is(PAYMENT_PENDING))">- [{{deliverable.x.name}}] Details:</span></h2>
                   <ac-patch-field :patcher="deliverable.patchers.name" label="Deliverable Name" v-if="isSeller && (is(NEW) || is(PAYMENT_PENDING))"></ac-patch-field>
                 </v-col>
-                <v-col class="text-right" align-self="center">
+                <v-col cols="12" md="12" order="2" order-md="3" v-if="isSeller">
+                  <ac-patch-field
+                      :patcher="order.patchers.hide_details"
+                      field-type="v-checkbox"
+                      label="Hide Details"
+                      :disabled="order.x.private"
+                      :persistent-hint="true"
+                      hint="If your public queue is enabled in your Artist Settings,
+                            hides the details of this order as if it were a private order.
+                            Automatically enabled if this order is a private one."
+                  />
+                </v-col>
+                <v-col cols="12" md="3" class="text-md-right text-center" order="3" order-md="2" align-self="center">
                   <v-chip color="white" light v-if="order.x.private" class="ma-1">
                     <v-icon left>visibility_off</v-icon>
                     Private
@@ -86,7 +98,19 @@
                   <v-btn color="primary" :to="{name: baseName, params: {orderId, username: $route.params.username}}">See All Deliverables</v-btn>
                 </v-col>
               </v-row>
-              <ac-rendered :value="deliverable.x.details" />
+              <v-card-text>
+                <v-row dense>
+                  <v-col cols="12">
+                    <v-divider />
+                  </v-col>
+                  <v-col cols="12">
+                    <h2>Details:</h2>
+                  </v-col>
+                  <v-col cols="12">
+                    <ac-rendered :value="deliverable.x.details" />
+                  </v-col>
+                </v-row>
+              </v-card-text>
             </v-card-text>
           </v-card>
         </v-col>

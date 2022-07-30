@@ -434,6 +434,7 @@ class Order(Model):
     customer_email = EmailField(blank=True)
     created_on = DateTimeField(db_index=True, default=timezone.now)
     private = BooleanField(default=False)
+    hide_details = BooleanField(default=False)
     order_display_position = FloatField(db_index=True, default=get_next_order_position)
     sale_display_position = FloatField(db_index=True, default=get_next_sale_position)
     # Note: This will affect all arbitrators across all deliverables for this order.
@@ -457,6 +458,14 @@ class Order(Model):
         if request.user == self.seller:
             return "Sale #{}".format(self.id)
         return "Order #{}".format(self.id)
+
+    def save(
+        self,
+        *args, **kwargs,
+    ) -> None:
+        if self.private:
+            self.hide_details = True
+        super().save(*args, **kwargs)
 
     class Meta:
         ordering = ['created_on']

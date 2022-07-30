@@ -232,6 +232,7 @@ export function genOrder(overrides?: Partial<Order>): Order {
     guest_email: '',
     claim_token: null,
     private: false,
+    hide_details: false,
     product_name: 'Test product',
     deliverable_count: 1,
     read: true,

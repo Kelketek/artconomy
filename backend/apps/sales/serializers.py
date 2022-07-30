@@ -232,6 +232,7 @@ class OrderViewSerializer(ProductNameMixin, RelatedAtomicMixin, serializers.Mode
         if self.is_seller:
             if (not self.instance.buyer) or self.instance.buyer.guest and not self.instance.deliverables.filter():
                 self.fields['customer_email'].read_only = False
+            self.fields['hide_details'].read_only = False
         if not self.instance.buyer:
             self.fields['customer_email'].allow_blank = True
 
@@ -254,7 +255,7 @@ class OrderViewSerializer(ProductNameMixin, RelatedAtomicMixin, serializers.Mode
     class Meta:
         model = Order
         fields = (
-            'id', 'seller', 'buyer', 'private', 'customer_email', 'claim_token',
+            'id', 'seller', 'buyer', 'private', 'hide_details', 'customer_email', 'claim_token',
             'deliverable_count', 'product_name',
         )
 
@@ -509,15 +510,15 @@ class OrderPreviewSerializer(ProductNameMixin, serializers.ModelSerializer):
 
     def to_representation(self, instance):
         checks = self.can_view(instance)
-        if instance.private and not checks:
+        if (instance.private or instance.hide_details) and not checks:
             return {'private': True, 'id': instance.id}
         return super().to_representation(instance)
 
     class Meta:
         model = Order
         fields = (
-            'id', 'created_on', 'seller', 'buyer', 'private', 'display', 'default_path', 'read', 'product_name',
-            'status', 'guest_email',
+            'id', 'created_on', 'seller', 'buyer', 'private', 'hide_details', 'display', 'default_path', 'read',
+            'product_name', 'status', 'guest_email',
         )
         read_only_fields = [field for field in fields]
 

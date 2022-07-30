@@ -12,6 +12,7 @@ export default interface Order {
   // This one's read only, available on the preview serializer to help sellers pick out guest users.
   guest_email: string,
   private: boolean,
+  hide_details: boolean,
   claim_token: string|null,
   product_name: string,
   display: {file: FileSpec, preview: FileSpec|null}|null,

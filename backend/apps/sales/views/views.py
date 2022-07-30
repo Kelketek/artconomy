@@ -2343,7 +2343,8 @@ class DeliverableOutputs(ListCreateAPIView):
             revision=revision,
         )
         instance.characters.set(deliverable.characters.all())
-        instance.artists.add(deliverable.order.seller)
+        hidden = deliverable.order.hide_details and instance.owner != deliverable.order.seller
+        ArtistTag(submission=instance, user=deliverable.order.seller, hidden=hidden).save()
         is_final = last_revision == revision
         for character in instance.characters.all():
             if request.user == character.user and not character.primary_submission and is_final:

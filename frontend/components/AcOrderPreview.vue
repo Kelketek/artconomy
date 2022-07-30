@@ -2,6 +2,7 @@
   <v-col v-if="order.x.seller">
       <v-card>
         <ac-link :to="order.x.default_path">
+          <ac-hidden-flag :value="order.x.private || order.x.hide_details" />
           <ac-asset
               :asset="order.x.display"
               thumb-name="thumbnail"
@@ -56,8 +57,9 @@ import Order from '@/types/Order'
 import Subjective from '@/mixins/subjective'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import AcDeliverableStatus from '@/components/AcDeliverableStatus.vue'
+import AcHiddenFlag from '@/components/AcHiddenFlag.vue'
   @Component({
-    components: {AcDeliverableStatus, AcLink, AcAsset},
+    components: {AcHiddenFlag, AcDeliverableStatus, AcLink, AcAsset},
   })
 export default class AcOrderPreview extends mixins(Subjective, Formatting) {
     @Prop({required: true})
