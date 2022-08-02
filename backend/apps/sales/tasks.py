@@ -33,6 +33,7 @@ logger = logging.getLogger(__name__)
 
 
 def renew_stripe_card(*, invoice, price, user, card):
+    from apps.sales.models import Invoice
     with stripe as stripe_api:
         amount, currency = money_to_stripe(price)
         kwargs = {
@@ -45,9 +46,12 @@ def renew_stripe_card(*, invoice, price, user, card):
             'metadata': {'service': 'landscape', 'invoice_id': invoice.id}
         }
         try:
-            stripe_api.PaymentIntent.create(
-                **kwargs,
-            )
+            # This... might cause a race condition? Seems unlikely, but if we have a bug later, it would be because
+            # the webhook was contacted before we set the current_intent on the invoice.
+            #
+            # Using the update method here to be absolutely certain we don't change anything else about the invoice
+            # that might clobber what the webhook is doing.
+            Invoice.objects.filter(id=invoice.id).update(current_intent=stripe_api.PaymentIntent.create(**kwargs)['id'])
             return True
         except stripe_api.error.CardError as err:
             notify(
