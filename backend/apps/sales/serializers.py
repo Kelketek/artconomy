@@ -6,7 +6,7 @@ from urllib.parse import urlparse
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.validators import RegexValidator, EmailValidator, MinValueValidator
-from django.db.models import Sum, QuerySet
+from django.db.models import Sum, QuerySet, Q
 from django.urls import reverse
 from django.utils.datetime_safe import datetime, date
 from luhn import verify
@@ -988,13 +988,18 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
 
     def get_our_fees(self, obj):
         destinations = [TransactionRecord.UNPROCESSED_EARNINGS]
-        if obj.status == None:
+        if obj.status is None:
             destinations.append(TransactionRecord.RESERVE)
         transactions = TransactionRecord.objects.filter(
-            payer=obj.order.buyer, payee=None, status=TransactionRecord.SUCCESS,
-            source__in=[TransactionRecord.CARD, TransactionRecord.CASH_DEPOSIT],
-            destination__in=[TransactionRecord.UNPROCESSED_EARNINGS],
-            **self.qs_kwargs(obj),
+            status=TransactionRecord.SUCCESS,
+        ).filter(**self.qs_kwargs(obj)).filter(
+            Q(payer=obj.order.buyer, payee=None,
+              source__in=[TransactionRecord.CARD, TransactionRecord.CASH_DEPOSIT],
+              destination__in=[TransactionRecord.UNPROCESSED_EARNINGS]) |
+            Q(
+                payer=None, payee=None, source=TransactionRecord.RESERVE,
+                destination=TransactionRecord.UNPROCESSED_EARNINGS,
+            )
         )
         return transactions.aggregate(total=Sum('amount'))['total']
 
