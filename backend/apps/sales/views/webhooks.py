@@ -219,7 +219,7 @@ def reconcile_payout_report(event):
     """
     This event handles a webhook for the specific report type we run to reconcile payouts with our own reporting.
     """
-    pull_and_reconcile_report(event['data']['object'])
+    pull_and_reconcile_report(event, event['data']['object'])
 
 
 @transaction.atomic
