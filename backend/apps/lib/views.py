@@ -129,6 +129,7 @@ class Comments(UniversalViewMixin, ListCreateAPIView):
 
 
 class MarkRead(UniversalViewMixin, GenericAPIView):
+    permission_classes = [IsAuthenticated]
     def post(self, *args, **kwargs):
         target = self.get_object()
         mark_read(obj=target, user=self.request.user)
