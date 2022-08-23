@@ -1010,8 +1010,9 @@ class TransactionRecord(Model):
     # For things like inventory items sold at tables alongside the commission, like a pop socket.
     EXTRA_ITEM = 415
     # For times when we're manually sending money to others-- such as cases where we don't yet have code to manage
-    # something but we need to be able to pay using Dwolla.
+    # something, but we need to be able to pay using Dwolla.
     MANUAL_PAYOUT = 416
+    PAYOUT_REVERSAL = 417
 
     CATEGORIES = (
         (SHIELD_FEE, 'Artconomy Service Fee'),
@@ -1029,7 +1030,8 @@ class TransactionRecord(Model):
         (CORRECTION, 'Correction'),
         (TABLE_SERVICE, 'Table Service'),
         (TAX, 'Tax'),
-        (MANUAL_PAYOUT, 'Manual Payout')
+        (MANUAL_PAYOUT, 'Manual Payout'),
+        (PAYOUT_REVERSAL, 'Payout Reversal'),
     )
 
     id = ShortCodeField(primary_key=True, db_index=True, default=gen_shortcode)

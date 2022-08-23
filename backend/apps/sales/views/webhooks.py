@@ -114,7 +114,7 @@ def account_updated(event):
 
 
 @atomic
-def pull_and_reconcile_report(report):
+def pull_and_reconcile_report(event, report):
     """
     Given a Stripe ReportRun object as specified by payout_paid,
     fetch the report file and then update our database with the transfer information.
@@ -126,10 +126,18 @@ def pull_and_reconcile_report(report):
         # In reality, this should only ever be one row.
         if not row['source_id']:
             raise RuntimeError('No source ID!')
-        record = TransactionRecord.objects.get(
-            remote_ids__contains=row['source_id'] + '', source=TransactionRecord.HOLDINGS,
-            destination=TransactionRecord.BANK,
-        )
+        try:
+            record = TransactionRecord.objects.get(
+                remote_ids__contains=row['source_id'] + '', source=TransactionRecord.HOLDINGS,
+                destination=TransactionRecord.BANK,
+            )
+        except TransactionRecord.DoesNotExist:
+            parameters = event["data"]["object"]["parameters"]
+            raise TransactionRecord.DoesNotExist(
+                f'Could not find corresponding record for {row["source_id"]}.'
+                f' It may need to be added manually or may be malformed. Please check '
+                f'https://dashboard.stripe.com/{parameters["connected_account"]}/payouts/'
+                f'{parameters["payout"]}')
         if row['automatic_payout_effective_at_utc']:
             timestamp = dateutil.parser.isoparse(row['automatic_payout_effective_at_utc'])
             timestamp = timestamp.replace(tzinfo=dateutil.tz.UTC)
@@ -140,10 +148,17 @@ def pull_and_reconcile_report(report):
         record.save()
         currency = get_currency(row['currency'].upper())
         amount = Money(Decimal(row['gross']), currency)
+        source = TransactionRecord.PAYOUT_MIRROR_SOURCE
+        destination = TransactionRecord.PAYOUT_MIRROR_DESTINATION
+        category = TransactionRecord.CASH_WITHDRAW
+        if amount < Money('0', currency):
+            source, destination = destination, source
+            amount = abs(amount)
+            category = TransactionRecord.PAYOUT_REVERSAL
         new_record = TransactionRecord.objects.get_or_create(
             remote_ids=record.remote_ids, amount=amount,
-            payer=record.payer, payee=record.payee, source=TransactionRecord.PAYOUT_MIRROR_SOURCE,
-            destination=TransactionRecord.PAYOUT_MIRROR_DESTINATION, status=TransactionRecord.SUCCESS,
+            payer=record.payer, payee=record.payee, source=source,
+            destination=destination, status=TransactionRecord.SUCCESS,
             category=TransactionRecord.CASH_WITHDRAW,
             created_on=record.created_on, finalized_on=timestamp,
         )[0]
@@ -177,7 +192,7 @@ def payout_paid(event):
         )
         if report.result:
             # This might happen if the request appeared to fail but actually succeeded silently.
-            pull_and_reconcile_report(report)
+            pull_and_reconcile_report(event, report)
 
 
 def transfer_failed(event):
@@ -293,7 +308,7 @@ class StripeWebhooks(APIView):
                 secret = WebhookRecord.objects.get(connect=connect).secret
                 # If the secret is missing, we cannot verify the signature. Die dramatically until an admin fixes.
                 assert secret
-                stripe_api.Webhook.construct_event(request.body, sig_header, secret)
+                event = stripe_api.Webhook.construct_event(request.body, sig_header, secret)
             except ValueError as err:
                 return Response(status=status.HTTP_400_BAD_REQUEST, data={'detail': str(err)})
-            return handle_stripe_event(request.body, connect)
+            return handle_stripe_event(connect=connect, event=event)
