@@ -53,6 +53,7 @@ DWOLLA_SECRET=secret-for-dwolla-api
 # this funding source created and verified, you will need to post the API URL link here. This is the account that payments will go out from. It should be the account Authorize.net payments deposit to, unless you want to run out of money.
 DWOLLA_FUNDING_SOURCE_KEY=https://api-sandbox.dwolla.com/funding-sources/uuid-goes-here
 # Create a bot in Telegram using @BotFather, and generate an API token for it. This is used for 2FA and availability announcements.
+TELEGRAM_BOT_USERNAME=YourBotName
 TELEGRAM_BOT_KEY=token-goes-here
 ```
 
