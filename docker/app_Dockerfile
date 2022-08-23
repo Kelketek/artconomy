@@ -1,5 +1,5 @@
 # specify the node base image with your desired version node:<version>
-FROM ubuntu
+FROM ubuntu:focal
 # replace this with your application's default port
 EXPOSE 8001
 EXPOSE 8002
