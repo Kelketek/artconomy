@@ -159,7 +159,7 @@ def pull_and_reconcile_report(event, report):
             remote_ids=record.remote_ids, amount=amount,
             payer=record.payer, payee=record.payee, source=source,
             destination=destination, status=TransactionRecord.SUCCESS,
-            category=TransactionRecord.CASH_WITHDRAW,
+            category=category,
             created_on=record.created_on, finalized_on=timestamp,
         )[0]
         new_record.targets.add(*record.targets.all())
