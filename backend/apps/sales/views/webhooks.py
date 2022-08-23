@@ -1,4 +1,5 @@
 import csv
+import json
 from decimal import Decimal
 from io import StringIO
 from pprint import pformat
@@ -256,6 +257,29 @@ STRIPE_CONNECT_WEBHOOK_ROUTES = {
 }
 
 
+def handle_stripe_event(*, body: str = None, connect: bool, event: dict = None):
+    """
+    Stripe event handler. This does not validate the request is brought from stripe--
+    that's handled by the StripeWebhooks view. This function allows an event to be
+    run as blessed even without verification, which is useful for testing.
+    """
+    routes = STRIPE_CONNECT_WEBHOOK_ROUTES if connect else STRIPE_DIRECT_WEBHOOK_ROUTES
+    if event is None:
+        if body is None:
+            raise TypeError('Neither event nor body provided. Both are None.')
+        event = json.loads(body)
+    handler = routes.get(event['type'], None)
+    if not handler:
+        logger.warning('Unsupported event "%s" received from Stripe. Connect is %s', event['type'], connect)
+        return Response(
+            status=status.HTTP_400_BAD_REQUEST,
+            data={'detail': f'Unsupported command "{event["type"]}"'}
+        )
+    handler(event)
+
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 class StripeWebhooks(APIView):
     """
     Function for processing stripe webhook events.
@@ -269,16 +293,7 @@ class StripeWebhooks(APIView):
                 secret = WebhookRecord.objects.get(connect=connect).secret
                 # If the secret is missing, we cannot verify the signature. Die dramatically until an admin fixes.
                 assert secret
-                event = stripe_api.Webhook.construct_event(request.body, sig_header, secret)
+                stripe_api.Webhook.construct_event(request.body, sig_header, secret)
             except ValueError as err:
                 return Response(status=status.HTTP_400_BAD_REQUEST, data={'detail': str(err)})
-            routes = STRIPE_CONNECT_WEBHOOK_ROUTES if connect else STRIPE_DIRECT_WEBHOOK_ROUTES
-            handler = routes.get(event['type'], None)
-            if not handler:
-                logger.warning('Unsupported event "%s" received from Stripe. Connect is %s', event['type'], connect)
-                return Response(
-                    status=status.HTTP_400_BAD_REQUEST,
-                    data={'detail': f'Unsupported command "{event["type"]}"'}
-                )
-            handler(event)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+            return handle_stripe_event(request.body, connect)
