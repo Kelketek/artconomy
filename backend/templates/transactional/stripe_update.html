@@ -1,0 +1,16 @@
+{% extends 'email_base.html' %}
+{% load md2 %}
+{% block header_message %}Stripe has updated their Terms of Service{% endblock %}
+{% block message %}
+<p>Stripe is updating the Stripe Services Agreement and related terms. You can
+    read the entire Stripe Services Agreement <a href="http://stripe.com/us/legal/ssa">here</a>.
+    The updates to the Stripe Services Agreement will take effect on October 1, 2022.
+    No action is needed from you, but by continuing to use Stripe’s services on or
+    after October 1, 2022, you are agreeing to the updated Stripe Services Agreement.</p>
+<p>For your convenience, Stripe has an FAQ page which covers the changes in
+    plain language, available <a href="https://support.stripe.com/questions/stripe-user-terms-update-august-22-2022">here.</a></p>
+{% endblock message %}
+
+{% block action %}
+<a href="/profile/{user.username}/settings/payment/payout">View your payout settings here.</a>
+{% endblock %}

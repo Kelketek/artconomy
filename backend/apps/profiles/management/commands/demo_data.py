@@ -7,7 +7,7 @@ from django.conf import settings
 
 
 class Command(BaseCommand):
-    help = 'Runs update availability on all users.'
+    help = 'Builds demo user data.'
 
     def handle(self, *args, **options):
         if not settings.DEBUG:
