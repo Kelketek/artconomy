@@ -48,31 +48,35 @@
     >
       Artconomy uses cookies to help improve our service.
       <template v-slot:action="{ attrs }">
-        <v-btn
-            text
-            v-bind="attrs"
-            @click="onlyEssential"
-            class="essential-cookies-button"
-        >
-          Decline Non-essential
-        </v-btn>
-        <v-btn
-            text
-            v-bind="attrs"
-            @click="showDialog = true"
-            class="customize-cookies-button"
-        >
-          Customize
-        </v-btn>
-        <v-btn
-            color="green"
-            text
-            v-bind="attrs"
-            @click="acceptAll"
-            class="accept-cookies-button"
-        >
-          Accept All
-        </v-btn>
+        <v-row>
+          <v-col class="text-center">
+            <v-btn
+                text
+                v-bind="attrs"
+                @click="onlyEssential"
+                class="essential-cookies-button"
+            >
+              Decline Non-essential
+            </v-btn>
+            <v-btn
+                text
+                v-bind="attrs"
+                @click="showDialog = true"
+                class="customize-cookies-button"
+            >
+              Customize
+            </v-btn>
+            <v-btn
+                color="green"
+                text
+                v-bind="attrs"
+                @click="acceptAll"
+                class="accept-cookies-button"
+            >
+              Accept All
+            </v-btn>
+          </v-col>
+        </v-row>
       </template>
     </v-snackbar>
   </div>
