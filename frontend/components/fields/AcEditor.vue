@@ -147,6 +147,28 @@ export default class AcEditor extends Vue {
       }
     }
 
+    public triggerResize() {
+      // Only reliable way to trigger a resize is to tell the internal text element that an input event has occurred.
+      const inputElement = this.$refs.input as Vue
+      inputElement.$el.querySelector('textarea')!.dispatchEvent(new Event('input'))
+    }
+
+    @Watch('$route.query.editing')
+    public editingResize() {
+      // Most cases where we need to have a text area hidden, we use v-show, which makes calculation of field height
+      // impossible.
+      //
+      // In those cases, watch for the editing flag to be flipped and resize if so.
+      this.triggerResize()
+    }
+
+    @Watch('autoGrow')
+    public autoGrowResize() {
+      // Hacky workaround for v-show. Use the same boolean for v-show as for this to force a recalculation when
+      // changed.
+      this.triggerResize()
+    }
+
     public get inputAttrs() {
       const attrs: any = {...this.$attrs}
       attrs.disabled = this.disabled

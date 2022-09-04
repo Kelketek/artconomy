@@ -57,6 +57,7 @@
               <ac-patch-field
                   v-show="editing"
                   field-type="ac-editor"
+                  :auto-grow="editing"
                   :patcher="commentText"
                   :auto-save="false"
                   v-if="controls"
