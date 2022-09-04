@@ -2091,6 +2091,7 @@ class OrderValues(CSVReport, ListAPIView, DateConstrained):
             'ach_fees',
             'profit',
             'refunded_on',
+            'remote_ids',
         ]
         return context
 
@@ -2137,6 +2138,7 @@ class UnaffiliatedSaleReportCSV(CSVReport, ListAPIView, DateConstrained):
             'card_fees',
             'net',
             'source',
+            'remote_ids',
         ]
         return context
 

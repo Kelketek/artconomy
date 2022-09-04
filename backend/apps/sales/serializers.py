@@ -1,5 +1,6 @@
 from decimal import Decimal
 from functools import lru_cache
+from itertools import chain
 from typing import List
 from urllib.parse import urlparse
 
@@ -914,6 +915,7 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
     profit = serializers.SerializerMethodField()
     refunded_on = serializers.SerializerMethodField()
     extra = serializers.SerializerMethodField()
+    remote_ids = serializers.SerializerMethodField()
 
     def get_status(self, obj):
         return obj.get_status_display()
@@ -1056,12 +1058,17 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
         ).first():
             return refund.created_on
 
+    def get_remote_ids(self, obj):
+        records = TransactionRecord.objects.filter(**self.qs_kwargs(obj))
+        remote_ids = set(list(chain(*(record.remote_ids for record in records))))
+        return ', '.join(sorted(list(remote_ids)))
+
     class Meta:
         model = Deliverable
         fields = (
             'id', 'created_on', 'status', 'seller', 'buyer', 'price', 'charged_on', 'payment_type', 'still_in_escrow',
             'artist_earnings', 'in_reserve', 'sales_tax_collected', 'refunded_on', 'extra', 'ach_fees', 'our_fees',
-            'card_fees', 'profit',
+            'card_fees', 'profit', 'remote_ids',
         )
 
 
@@ -1073,12 +1080,16 @@ class PayoutTransactionSerializer(serializers.ModelSerializer):
     fees = serializers.SerializerMethodField()
     total_drafted = serializers.SerializerMethodField()
     targets = serializers.SerializerMethodField()
+    remote_ids = serializers.SerializerMethodField()
 
     def get_category(self, obj: TransactionRecord):
         return obj.get_category_display()
 
     def get_status(self, obj: TransactionRecord):
         return obj.get_status_display()
+
+    def get_remote_ids(self, obj: TransactionRecord):
+        return ', '.join(sorted(obj.remote_ids))
 
     @lru_cache
     def get_fees(self, obj):
@@ -1236,12 +1247,16 @@ class SimpleTransactionSerializer(serializers.ModelSerializer):
     category = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
     amount = MoneyToFloatField()
+    remote_ids = serializers.SerializerMethodField()
 
     def get_category(self, obj):
         return obj.get_category_display()
 
     def get_status(self, obj):
         return obj.get_status_display()
+
+    def get_remote_ids(self, obj: TransactionRecord):
+        return ', '.join(sorted(obj.remote_ids))
 
     class Meta:
         model = TransactionRecord
@@ -1261,6 +1276,7 @@ class UnaffiliatedInvoiceSerializer(serializers.ModelSerializer):
     tax = serializers.SerializerMethodField()
     card_fees = serializers.SerializerMethodField()
     net = serializers.SerializerMethodField()
+    remote_ids = serializers.SerializerMethodField()
 
     def get_source(self, obj):
         records = TransactionRecord.objects.filter(targets=ref_for_instance(obj), status=TransactionRecord.SUCCESS)
@@ -1287,6 +1303,14 @@ class UnaffiliatedInvoiceSerializer(serializers.ModelSerializer):
             destination=TransactionRecord.CARD_TRANSACTION_FEES,
         ).aggregate(total=Sum('amount'))['total'] or Decimal('0.00'))
 
+    def get_remote_ids(self, obj):
+        records = TransactionRecord.objects.filter(
+            status=TransactionRecord.SUCCESS,
+            targets=ref_for_instance(obj),
+        )
+        remote_ids = set(list(chain(*(record.remote_ids for record in records))))
+        return ', '.join(sorted(list(remote_ids)))
+
     def get_net(self, obj):
         return str(obj.total().amount - Decimal(self.get_card_fees(obj)) - Decimal(self.get_tax(obj)))
 
@@ -1294,7 +1318,7 @@ class UnaffiliatedInvoiceSerializer(serializers.ModelSerializer):
         model = TransactionRecord
         fields = (
             'id', 'source', 'status', 'total', 'card_fees', 'tax', 'net',
-            'created_on',
+            'created_on', 'remote_ids',
         )
         read_only_fields = fields
 
