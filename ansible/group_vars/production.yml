@@ -6,7 +6,6 @@ cron_enabled: true
 admin_email: fox@vulpinity.com
 domains:
  - artconomy.com
- - beta.artconomy.com
  - www.artconomy.com
  - outbound.artconomy.com
 mail_domain: outbound.artconomy.com
