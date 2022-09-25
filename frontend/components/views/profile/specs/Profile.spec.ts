@@ -105,30 +105,4 @@ describe('Profile.vue', () => {
     await flushPromises()
     expect(wrapper.vm.$route.name).toBe('AboutUser')
   })
-  it('Sends a message', async() => {
-    setViewer(store, vulpes)
-    wrapper = mount(Profile, {
-      localVue,
-      store,
-      router,
-      vuetify,
-      propsData: {username: 'Fox'},
-
-      attachTo: docTarget(),
-      stubs: ['ac-journals'],
-    },
-    )
-    mockAxios.mockResponse(rs(genUser()))
-    await wrapper.vm.$nextTick()
-    mockAxios.reset()
-    wrapper.find('.message-button').trigger('click')
-    await wrapper.vm.$nextTick()
-    expect(mockAxios.request).toHaveBeenCalledWith(
-      rq('/api/profiles/v1/account/Vulpes/conversations/', 'post',
-        {participants: [1]}, {}),
-    )
-    mockAxios.mockResponse(rs(genConversation()))
-    await flushPromises()
-    await wrapper.vm.$nextTick()
-  })
 })

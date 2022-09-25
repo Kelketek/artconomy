@@ -7,7 +7,7 @@
       <v-btn color="secondary" @click="showMenu=true" v-if="isStaff">
         <v-icon left>menu</v-icon> Menu
       </v-btn>
-      <v-btn color="primary" class="message-button" @click="startConversation">
+      <v-btn color="primary" class="message-button" @click="showNew = true">
         <v-icon left>message</v-icon> Message
       </v-btn>
       <v-btn color="grey darken-2" @click="subjectHandler.user.patch({watching: !subject.watching})">
@@ -41,6 +41,25 @@
           </v-btn>
         </template>
       </ac-confirmation>
+      <ac-form-dialog
+          v-model="showNew"
+          v-bind="newConversation.bind"
+          @submit="newConversation.submitThen(visitConversation)"
+          title="Start a New Conversation"
+      >
+        <v-col cols="12" sm="10" offset-sm="1" offset-md="2" md="8">
+          <v-row>
+            <v-col cols="12" class="text-center">
+              <span class="title">Quick check!</span>
+            </v-col>
+            <v-col cols="12">
+              <ac-bound-field
+                  field-type="ac-captcha-field" :field="newConversation.fields.captcha" label="Prove you are human"
+              />
+            </v-col>
+          </v-row>
+        </v-col>
+      </ac-form-dialog>
     </v-toolbar-items>
     <v-menu offset-y v-else-if="subject && showActions">
       <template v-slot:activator="{on}">
@@ -55,7 +74,7 @@
           </v-list-item-action>
           <v-list-item-title>Menu</v-list-item-title>
         </v-list-item>
-        <v-list-item class="message-button" @click="startConversation">
+        <v-list-item class="message-button" @click="showNew = true">
           <v-list-item-action><v-icon>message</v-icon></v-list-item-action>
           <v-list-item-title>Message</v-list-item-title>
         </v-list-item>
@@ -138,15 +157,26 @@ import Subjective from '@/mixins/subjective'
 import {artCall} from '@/lib/lib'
 import {Conversation} from '@/types/Conversation'
 import {User} from '@/store/profiles/types/User'
-import {Prop} from 'vue-property-decorator'
+import {Prop, Watch} from 'vue-property-decorator'
 import AcNavLinks from '@/components/navigation/AcNavLinks.vue'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import Formatting from '@/mixins/formatting'
 import Editable from '@/mixins/editable'
+import { FormController } from '@/store/forms/form-controller'
+import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
+import AcBoundField from '@/components/fields/AcBoundField'
 
   @Component({
-    components: {AcLink, AcExpandedProperty, AcNavLinks, AcAvatar, AcConfirmation},
+    components: {
+      AcBoundField,
+      AcFormDialog,
+      AcLink,
+      AcExpandedProperty,
+      AcNavLinks,
+      AcAvatar,
+      AcConfirmation,
+    },
   })
 export default class AcProfileHeader extends mixins(Subjective, Formatting, Editable) {
     @Prop({default: false})
@@ -155,21 +185,32 @@ export default class AcProfileHeader extends mixins(Subjective, Formatting, Edit
     @Prop({default: false})
     public showEdit!: boolean
 
+    public showNew = false
+
+    public newConversation = null as unknown as FormController
+
     public showMenu = false
     public get showActions() {
       return !this.isCurrent && this.isRegistered
     }
 
-    public startConversation() {
-      artCall({
-        url: `/api/profiles/v1/account/${this.viewerName}/conversations/`,
-        method: 'post',
-        data: {participants: [(this.subject as User).id]},
-      }).then(this.visitConversation)
-    }
-
     public visitConversation(response: Conversation) {
       this.$router.push({name: 'Conversation', params: {username: this.rawViewerName, conversationId: response.id + ''}})
+    }
+
+    @Watch('subject')
+    public populateRecepient(value: User) {
+      if (!value) {
+        return
+      }
+      this.newConversation.fields.participants.model = [value.id]
+    }
+
+    public created() {
+      this.newConversation = this.$getForm('new-conversation', {
+        fields: {participants: {value: []}, captcha: {value: ''}},
+        endpoint: `/api/profiles/v1/account/${this.rawViewerName}/conversations/`,
+      })
     }
 }
 </script>
