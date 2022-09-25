@@ -926,6 +926,7 @@ class TestCreateInvoice(APITestCase):
         self.assertEqual(item.destination_account, TransactionRecord.ESCROW)
         self.assertEqual(item.percentage, 0)
         self.assertIsNone(order.claim_token)
+        self.assertFalse(deliverable.invoice.record_only)
 
     def test_create_invoice_table_product(self):
         user = UserFactory.create()
@@ -980,6 +981,7 @@ class TestCreateInvoice(APITestCase):
         self.assertEqual(item.destination_account, TransactionRecord.ESCROW)
         self.assertEqual(item.percentage, 0)
         self.assertIsNone(order.claim_token)
+        self.assertFalse(deliverable.invoice.record_only)
 
     def test_create_invoice_email(self):
         user = UserFactory.create()

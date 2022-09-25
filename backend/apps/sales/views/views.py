@@ -1960,15 +1960,18 @@ class CreateInvoice(GenericAPIView):
                     commission_info=request.subject.artist_profile.commission_info,
                     **deliverable_facts,
                 )
-                deliverable.invoice.line_items.get_or_create(
+                deliverable_target = ref_for_instance(deliverable)
+                item, _ = deliverable.invoice.line_items.get_or_create(
                     type=BASE_PRICE, amount=facts['price'], priority=0, destination_account=TransactionRecord.ESCROW,
                     destination_user=order.seller,
                 )
+                item.targets.add(deliverable_target)
                 if facts['adjustment']:
-                    deliverable.invoice.line_items.get_or_create(
+                    item, _ = deliverable.invoice.line_items.get_or_create(
                         type=ADD_ON, amount=facts['adjustment'], priority=1, destination_account=TransactionRecord.ESCROW,
                         destination_user=order.seller,
                     )
+                    item.targets.add(deliverable_target)
                 # Trigger line item creation.
                 deliverable.save()
                 notify(ORDER_UPDATE, deliverable, unique=True, mark_unread=True)
