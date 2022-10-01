@@ -524,7 +524,6 @@ export default class ProductDetail extends mixins(ProductCentric, Formatting, Ed
       }
       if (product && !oldProduct) {
         this.shown = product.primary_submission
-        this.trackPageView()
       }
       updateTitle(`${product.name} by ${product.user.username} -- Artconomy`)
       let prefix: string
@@ -724,17 +723,6 @@ export default class ProductDetail extends mixins(ProductCentric, Formatting, Ed
         )
       }
       return submissions.slice(0, 4)
-    }
-
-    public trackPageView() {
-      const product = this.product.x as Product
-      window.pintrk('track', 'pagevisit', {
-        product_id: product.id,
-        product_brand: product.user.username,
-        product_name: product.name,
-        product_price: product.starting_price,
-        currency: 'USD',
-      })
     }
 
     public deleteProduct() {

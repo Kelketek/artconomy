@@ -36,8 +36,6 @@ describe('NewOrder.vue', () => {
     })
     router.push({name: 'NewOrder', params: {productId: '1', username: 'Fox', stepId: '1'}})
     window.scrollTo = jest.fn()
-    // @ts-ignore
-    window.pintrk = jest.fn()
   })
   afterEach(() => {
     cleanUp(wrapper)

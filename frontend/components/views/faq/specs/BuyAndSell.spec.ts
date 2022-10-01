@@ -9,7 +9,6 @@ import {cleanUp, createVuetify, docTarget, setPricing, vueSetup, mount} from '@/
 import searchSchema from '@/components/views/search/specs/fixtures'
 import {FormController} from '@/store/forms/form-controller'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
-import {createPinterestQueue} from '@/lib/lib'
 import {SingleController} from '@/store/singles/controller'
 import StripeCountryList from '@/types/StripeCountryList'
 
@@ -32,7 +31,6 @@ describe('About.vue', () => {
       x: {countries: [{value: 'stuff', text: 'things'}]},
       endpoint: '/stuff/',
     })
-    window.pintrk = createPinterestQueue()
   })
   afterEach(() => {
     cleanUp(wrapper)

@@ -2459,47 +2459,6 @@ class Broadcast(CreateAPIView):
             raise Http404
 
 
-class PinterestCatalog(ListAPIView):
-    renderer_classes = [CSVRenderer]
-    serializer_class = PinSerializer
-    pagination_class = None
-
-    def get_queryset(self):
-        return Product.objects.filter(
-            primary_submission__rating=GENERAL,
-            catalog_enabled=True,
-            hidden=False,
-            user__is_active=True,
-        )
-
-    def finalize_response(self, request, response, *args, **kwargs):
-        response = super().finalize_response(request, response, *args, **kwargs)
-        name = f'pinterest-catalog-{timezone.now()}'
-        name = name.replace(':', '__').replace('+', '_').replace(' ', '_').replace('.', '_')
-        name = name + '.csv'
-        response['Content-Disposition'] = f'attachment; filename={name}'
-        return response
-
-    def get_renderer_context(self):
-        context = super().get_renderer_context()
-        context['header'] = [
-            'id',
-            'title',
-            'description',
-            'link',
-            'image_link',
-            'price',
-            'availability',
-            'additional_image_link',
-            'brand',
-        ]
-        context['writer_opts'] = {
-            'quoting': QUOTE_ALL,
-            'dialect': 'unix',
-        }
-        return context
-
-
 class InvoiceDetail(RetrieveUpdateAPIView):
     permission_classes = [
         UserControls,

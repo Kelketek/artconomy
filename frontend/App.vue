@@ -326,7 +326,6 @@ export default class App extends mixins(Viewer, Nav, PrerenderMixin, RatingRefre
         referring_url: {value: this.$route.fullPath},
       },
     })
-    window.pintrk('load', '2614118947445')
     this.socketState = this.$getSingle('socketState', {
       endpoint: '#',
       persist: true,
@@ -488,11 +487,6 @@ export default class App extends mixins(Viewer, Nav, PrerenderMixin, RatingRefre
         return
       }
       window._paq.push(['trackPageView'])
-      window.pintrk('page')
-      // For products, we need to track this elsewhere.
-      if (!this.$route.params.productId) {
-        window.pintrk('track', 'pagevisit')
-      }
     })
   }
 

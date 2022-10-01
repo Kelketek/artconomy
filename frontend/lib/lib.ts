@@ -880,18 +880,6 @@ export function updateLinked(options: LinkUpdateOptions) {
   updateItems.map(options.list.replace)
 }
 
-export function createPinterestQueue(): PinterestQueue {
-  const pintrkBase = (...args: any) => {
-    pintrk.queue.push(Array.prototype.slice.call(args))
-  }
-
-  const pintrk = pintrkBase as PinterestQueue
-
-  pintrk.queue = []
-  pintrk.version = '3.0'
-  return pintrk
-}
-
 export const log = {
   // Eventually I want to filter log statements based on their label.
   filter: [],

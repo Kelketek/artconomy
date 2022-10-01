@@ -227,12 +227,3 @@
 
 - name: Start daphne service
   service: name=artconomy-daphne state=started
-
-- name: Set up pinterest cron job
-  template:
-    src: "cron/pinterest"
-    dest: "/etc/cron.d/pinterest"
-    mode: 0755
-  tags:
-    # Not needed until Pinterest supports services.
-    - never

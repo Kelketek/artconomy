@@ -6,7 +6,6 @@ import {Wrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
 import About from '@/components/views/faq/About.vue'
 import {cleanUp, createVuetify, docTarget, vueSetup, mount} from '@/specs/helpers'
-import {createPinterestQueue} from '@/lib/lib'
 
 const localVue = vueSetup()
 localVue.use(Router)
@@ -20,7 +19,6 @@ describe('About.vue', () => {
     router = new Router(faqRoutes)
     store = createStore()
     vuetify = createVuetify()
-    window.pintrk = createPinterestQueue()
   })
   afterEach(() => {
     cleanUp(wrapper)

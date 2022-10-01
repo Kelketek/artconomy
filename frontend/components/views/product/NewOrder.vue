@@ -246,15 +246,6 @@ export default class NewOrder extends mixins(ProductCentric, Formatting) {
 
     @Watch('product.x')
     public trackCart(newProduct: null|Product, oldProduct: null|Product) {
-      if (newProduct && !oldProduct) {
-        window.pintrk('track', 'addtocart', {
-          product_id: newProduct.id,
-          product_brand: newProduct.user.username,
-          product_name: newProduct.name,
-          product_price: newProduct.starting_price,
-          currency: 'USD',
-        })
-      }
       if (!newProduct) {
         return
       }
@@ -274,20 +265,6 @@ export default class NewOrder extends mixins(ProductCentric, Formatting) {
       this.orderForm.submitThen(this.goToOrder)
     }
 
-    public sendEvent() {
-      const product = this.product.x as Product
-      window.pintrk(
-        'track',
-        'checkout', {
-          product_id: product.id,
-          product_brand: product.user.username,
-          product_name: product.name,
-          product_price: product.starting_price,
-          currency: 'USD',
-        },
-      )
-    }
-
     public goToOrder(order: Order) {
       // Could take a while. Let's not make it look like we're done.
       this.orderForm.sending = true
@@ -297,12 +274,10 @@ export default class NewOrder extends mixins(ProductCentric, Formatting) {
         link.params!.username = this.rawViewerName
         this.viewerHandler.refresh().then(() => {
           this.$router.push(link)
-          this.sendEvent()
           this.orderForm.sending = false
         })
         return
       }
-      this.sendEvent()
       // Special case override for table events.
       if (this.product.x?.table_product && this.isStaff) { // eslint-disable-line camelcase
         link.query.view_as = 'Seller'

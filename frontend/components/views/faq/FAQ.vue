@@ -40,8 +40,6 @@ export default class FAQ extends mixins(Viewer) {
       return
     }
     window._paq.push(['trackPageView'])
-    window.pintrk('page')
-    window.pintrk('track', 'pagevisit')
   }
 
   public created() {

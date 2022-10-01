@@ -13,7 +13,7 @@ import {FormControllers} from '@/store/forms/registry'
 import {Shortcuts} from './plugins/shortcuts'
 import Bowser from 'bowser'
 import Big from 'big.js'
-import {createPinterestQueue, formatSize, genId} from './lib/lib'
+import {formatSize, genId} from './lib/lib'
 import {Lists} from '@/store/lists/registry'
 import {Singles} from '@/store/singles/registry'
 import colors from 'vuetify/es5/util/colors'
@@ -21,7 +21,6 @@ import {Profiles} from '@/store/profiles/registry'
 import {Characters} from '@/store/characters/registry'
 import VueObserveVisibility from 'vue-observe-visibility'
 import {VueSocket} from '@/plugins/socket'
-import {PinterestQueue} from '@/types/PinterestQueue'
 import {User} from '@/store/profiles/types/User'
 // eslint-disable-next-line import/no-duplicates
 import '@stripe/stripe-js'
@@ -36,7 +35,6 @@ declare global {
   interface Window {
     artconomy: Vue,
     PRERENDERING: number,
-    pintrk: PinterestQueue,
     windowId: string,
     USER_PRELOAD: User|AnonUser,
     RECAPTCHA_SITE_KEY: string,
@@ -152,8 +150,6 @@ https://discord.gg/4nWK9mf
 `
   console.log(splash)
 }
-
-window.pintrk = createPinterestQueue()
 
 const vuetifySettings = {
   icons: {

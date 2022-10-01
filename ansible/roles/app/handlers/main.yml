@@ -32,8 +32,6 @@
     # Memory leak somewhere? This is enough for this task for now.
     NODE_OPTIONS: --max-old-space-size=6144
   register: result
-  notify:
-    - rebuild pinterest
 
 - name: restart uwsgi
   service: name=uwsgi state=restarted
@@ -47,16 +45,6 @@
   shell: "source ~/.profile && source ~/bin/activate && cd ~/artconomy && ./manage.py set_webhook"
   args:
     executable: "/bin/bash"
-
-- name: rebuild pinterest
-  become: yes
-  become_user: "{{ env_prefix }}"
-  shell: "source ~/.profile && source ~/bin/activate && cd ~/artconomy  && mkdir -p ~/artconomy/public/dist/csv/ && ./manage.py pinterest_catalog > ~/artconomy/public/dist/csv/pinterest.csv"
-  args:
-    executable: "/bin/bash"
-  tags:
-    # Disabling since Pinterest doesn't support our catalog.
-    - never
 
 - name: Set up stripe users
   become: yes

@@ -8,7 +8,6 @@ import {genUser} from './helpers/fixtures'
 import {FormController} from '@/store/forms/form-controller'
 import {cleanUp, createVuetify, dialogExpects, docTarget, genAnon, rq, rs, vueSetup, mount, setViewer} from './helpers'
 import Vuetify from 'vuetify/lib'
-import {createPinterestQueue} from '@/lib/lib'
 import {WS} from 'jest-websocket-mock'
 import {socketNameSpace} from '@/plugins/socket'
 
@@ -27,7 +26,6 @@ describe('App.vue', () => {
     store = createStore()
     vuetify = createVuetify()
     jest.useFakeTimers()
-    window.pintrk = createPinterestQueue()
   })
   afterEach(() => {
     cleanUp(wrapper)
@@ -402,41 +400,5 @@ describe('App.vue', () => {
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
     expect(vm.socketState.x.serverVersion).toEqual('beep')
-  })
-  it('Sends tracking data', async() => {
-    wrapper = mount(App, {
-      store,
-      localVue,
-      vuetify,
-      mocks: {$route: {fullPath: '/', params: {stuff: 'things'}, query: {}}},
-      stubs: ['router-link', 'router-view', 'nav-bar'],
-      attachTo: docTarget(),
-    })
-    await wrapper.vm.$nextTick()
-    expect(window.pintrk.queue).toEqual([['load', expect.any(String)], ['page'], ['track', 'pagevisit']])
-  })
-  it('Does not send tracking data for special pages', async() => {
-    wrapper = mount(App, {
-      store,
-      localVue,
-      vuetify,
-      mocks: {$route: {fullPath: '/', params: {stuff: 'things'}, query: {}, name: 'FAQ'}},
-      stubs: ['router-link', 'router-view', 'nav-bar'],
-      attachTo: docTarget(),
-    })
-    await wrapper.vm.$nextTick()
-    expect(window.pintrk.queue).toEqual([['load', expect.any(String)]])
-  })
-  it('Sends partial tracking info for product oriented pages.', async() => {
-    wrapper = mount(App, {
-      store,
-      localVue,
-      vuetify,
-      mocks: {$route: {fullPath: '/', params: {productId: '42'}, query: {}, name: 'Wat'}},
-      stubs: ['router-link', 'router-view', 'nav-bar'],
-      attachTo: docTarget(),
-    })
-    await wrapper.vm.$nextTick()
-    expect(window.pintrk.queue).toEqual([['load', expect.any(String)], ['page']])
   })
 })
