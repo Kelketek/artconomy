@@ -32,7 +32,23 @@ export class LocalStorageMock {
     }
 }
 
+export class IntersectionObserverMock {
+  callback: any
+  options: any
+  observe: any
+  unobserve: any
+  disconnect: any
+  constructor(callback: any, options: any) {
+    this.callback = callback
+    this.options = options
+    this.observe = jest.fn()
+    this.unobserve = jest.fn()
+    this.disconnect = jest.fn()
+  }
+}
+
 Object.defineProperty(window, 'localStorage', {value: new LocalStorageMock()})
+Object.defineProperty(window, 'IntersectionObserver', {value: IntersectionObserverMock})
 
 // @ts-ignore
 window.ResizeObserver = window.ResizeObserver || jest.fn().mockImplementation(() => ({

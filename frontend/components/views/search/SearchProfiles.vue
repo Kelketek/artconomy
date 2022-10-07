@@ -1,5 +1,5 @@
 <template>
-  <ac-paginated :list="list" :track-pages="true" :auto-run="false">
+  <ac-paginated :list="list" :auto-run="false" :show-pagination="false">
     <v-col cols="4" sm="3" md="2" lg="1" v-for="user in list.list" :key="user.x.id">
       <ac-avatar :user="user.x"></ac-avatar>
     </v-col>
@@ -21,6 +21,7 @@ export default class SearchProfiles extends mixins(SearchList) {
       this.list = this.$getList('searchProfiles', {
         endpoint: '/api/profiles/v1/search/user/',
         persistent: true,
+        grow: true,
       })
     }
 }

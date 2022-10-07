@@ -1,6 +1,6 @@
 <template>
   <v-container v-if="searchForm">
-    <v-row no-gutters  >
+    <v-row no-gutters  v-observe-visibility="(val) => {showUp = !val}">
       <v-col cols="12" sm="6" md="3" lg="4" order="1" order-sm="1">
         <ac-bound-field :field="searchForm.fields.q" label="I'm looking for..." :autofocus="true" />
       </v-col>
@@ -37,6 +37,7 @@
         </v-col>
       </v-col>
     </v-row>
+    <v-btn color="primary" fab bottom right fixed v-if="showUp" @click="scrollUp"><v-icon>arrow_upward</v-icon></v-btn>
     <router-view name="extra" />
     <router-view class="pt-3" />
   </v-container>
@@ -52,6 +53,11 @@ import AcBoundField from '@/components/fields/AcBoundField'
   })
 export default class Search extends mixins(Viewer) {
     public searchForm: FormController = null as unknown as FormController
+    public showUp = false
+
+    public scrollUp() {
+      window.scrollTo(0, 0)
+    }
 
     public created() {
       this.searchForm = this.$getForm('search')
