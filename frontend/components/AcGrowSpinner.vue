@@ -1,5 +1,5 @@
 <template>
-  <v-col v-observe-visibility="grower">
+  <v-col v-observe-visibility="{callback: grower, intersection: {rootMargin}}">
     <ac-loading-spinner :min-height="minHeight" v-if="list.fetching && list.currentPage > 1" />
   </v-col>
 </template>
@@ -34,6 +34,10 @@ export default class AcGrowSpinner extends Vue {
       if (val) {
         this.list.grower(this.visible)
       }
+    }
+
+    public get rootMargin() {
+      return `0px 0px ${window.innerHeight * 1.5}px 0px`
     }
 
     public grower(val: boolean) {
