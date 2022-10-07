@@ -35,7 +35,6 @@ import {HttpVerbs} from '@/store/forms/types/HttpVerbs'
 import {Shortcuts} from '@/plugins/shortcuts'
 import {VueSocket} from '@/plugins/socket'
 import WS from 'jest-websocket-mock'
-import VueObserveVisibility from 'vue-observe-visibility'
 
 export interface ExtraData {
   status?: number,
@@ -162,7 +161,6 @@ export function vueSetup() {
   localVue.use(FormControllers)
   localVue.use(Characters)
   localVue.use(Shortcuts)
-  localVue.use(VueObserveVisibility)
   vuetifySetup()
   // We won't use the Router in all tests, but we always have these modifications when we do.
   // @ts-ignore

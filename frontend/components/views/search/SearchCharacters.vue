@@ -1,5 +1,5 @@
 <template>
-  <ac-paginated :list="list" :auto-run="false" :show-pagination="false">
+  <ac-paginated :list="list" :track-pages="true" :auto-run="false">
     <template v-slot:default>
       <v-col class="pa-2" sm="6" md="4" lg="3" xl="2" v-for="character in list.list" :key="character.x.id">
         <ac-character-preview :character="character.x"></ac-character-preview>
@@ -30,7 +30,6 @@ export default class SearchCharacters extends mixins(SearchList) {
       this.list = this.$getList('searchCharacters', {
         endpoint: '/api/profiles/v1/search/character/',
         persistent: true,
-        grow: true,
       })
     }
 }

@@ -351,22 +351,18 @@ export default class App extends mixins(Viewer, Nav, PrerenderMixin, RatingRefre
     this.submissionSearch = this.$getList('searchSubmissions', {
       endpoint: '/api/profiles/v1/search/submission/',
       persistent: true,
-      grow: true,
     })
     this.productSearch = this.$getList('searchProducts', {
       endpoint: '/api/sales/v1/search/product/',
       persistent: true,
-      grow: true,
     })
     this.characterSearch = this.$getList('searchCharacters', {
       endpoint: '/api/profiles/v1/search/character/',
       persistent: true,
-      grow: true,
     })
     this.profileSearch = this.$getList('searchProfiles', {
       endpoint: '/api/profiles/v1/search/user/',
       persistent: true,
-      grow: true,
     })
   }
 
