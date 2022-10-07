@@ -37,7 +37,7 @@ export default class AcGrowSpinner extends Vue {
     }
 
     public get rootMargin() {
-      return `${window.innerHeight * 1.5}px 0px 0px 0px`
+      return `0px 0px ${window.innerHeight * 1.5}px 0px`
     }
 
     public grower(val: boolean) {
