@@ -74,7 +74,7 @@ def available_artists(requester):
     return qs
 
 
-def available_submissions(request, requester):
+def available_submissions(request, requester, show_all=False):
     exclude = Q(private=True)
     exclude |= Q(owner__is_active=False)
     if not request.user.is_staff and request.user.is_authenticated:
@@ -82,7 +82,7 @@ def available_submissions(request, requester):
         exclude |= Q(owner__blocked_by=requester)
         exclude |= Q(artists__blocking=requester)
         exclude |= Q(artists__blocked_by=requester)
-    if request.user.is_authenticated:
+    if request.user.is_authenticated and show_all:
         exclude &= ~(Q(owner=requester) | Q(shared_with=requester))
     return Submission.objects.exclude(exclude).exclude(
         rating__gt=request.max_rating

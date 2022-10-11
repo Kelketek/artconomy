@@ -5,7 +5,7 @@
         <v-row no-gutters>
           <v-col cols="8" offset="2">
             <ac-link :to="submissionLink">
-              <ac-asset :text="false" :asset="submission" thumb-name="thumbnail" :allow-preview="false"/>
+              <ac-asset :text="false" :asset="submission" thumb-name="thumbnail" :allow-preview="false" :class="{fade: unavailable}"/>
             </ac-link>
           </v-col>
         </v-row>
@@ -51,6 +51,12 @@
   }
   .submission a {
     text-decoration: none !important;
+  }
+</style>
+
+<style scoped>
+  .unavailable {
+    opacity: .5;
   }
 </style>
 

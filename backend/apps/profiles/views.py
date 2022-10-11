@@ -98,6 +98,7 @@ logger = logging.getLogger(__name__)
 def user_submissions(user: User, request, is_artist: bool):
     qs = available_submissions(
         request, request.user,
+        show_all=True,
     )
     if is_artist:
         qs = qs.filter(artists=user, artisttag__hidden=False)
@@ -106,8 +107,8 @@ def user_submissions(user: User, request, is_artist: bool):
     return qs
 
 
-def character_submissions(char: Character, request):
-    qs = char.submissions.filter(rating__lte=request.max_rating).exclude(tags__in=request.blacklist)
+def character_submissions(char: Character, request, show_all=False):
+    qs = available_submissions(request, request.user, show_all=show_all).filter(characters=char)
     return qs.order_by('-created_on')
 
 
@@ -941,7 +942,7 @@ class WatchListSubmissions(ListAPIView):
 
     def get_queryset(self):
         return available_submissions(self.request, self.request.user).filter(
-            artists__in=self.request.user.watching.all()
+            artists__in=self.request.user.watching.all(), show_all=True,
         ).order_by('-created_on')
 
 
@@ -1056,7 +1057,7 @@ class FavoritesList(ListAPIView):
     def get_queryset(self):
         user = get_object_or_404(User, username=self.kwargs['username'])
         self.check_object_permissions(self.request, user)
-        return available_submissions(self.request, user).filter(favorites=user)
+        return available_submissions(self.request, user, show_all=True).filter(favorites=user)
 
 
 class SubmissionList(ListCreateAPIView):
