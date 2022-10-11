@@ -30,9 +30,13 @@
                 </v-card-text>
               </v-col>
               <v-col cols="12" order="4">
-zc
+                <v-alert type="warning" class="my-2" v-if="patchers.rating.model === EXTREME">
+                  What has been seen cannot be unseen. By selecting this rating you are willingly engaging with this content.
+                </v-alert>
               </v-col>
-              <v-col cols="12" sm="6" order="5">
+              <v-col cols="12" order="5">
+              </v-col>
+              <v-col cols="12" sm="6" order="6">
                 <ac-patch-field field-type="v-switch" label="SFW Mode"
                                 :patcher="patchers.sfw_mode"
                                 :instant="true"
@@ -41,17 +45,17 @@ zc
                                 :save-indicator="false"
                                 persistent-hint />
               </v-col>
-              <v-col class="pa-2 text-center" cols="12" sm="6" order="6">
+              <v-col class="pa-2 text-center" cols="12" sm="6" order="7">
                 <p class="title">Register, and get access to more cool features like:</p>
               </v-col>
-              <v-col class="d-flex" cols="12" sm="6" order="7">
+              <v-col class="d-flex" cols="12" sm="6" order="8">
                 <v-row no-gutters class="justify-content d-flex"  align="center" >
                   <v-col>
                     <v-img src="/static/images/laptop.png" max-height="30vh" :contain="true"></v-img>
                   </v-col>
                 </v-row>
               </v-col>
-              <v-col class="d-flex" cols="12" sm="6" order="8">
+              <v-col class="d-flex" cols="12" sm="6" order="9">
                 <v-row no-gutters class="justify-content"  align="center">
                   <v-spacer />
                   <v-col>
@@ -76,7 +80,7 @@ zc
                   <v-spacer />
                 </v-row>
               </v-col>
-              <v-col class="text-center pt-2" cols="12" order="8">
+              <v-col class="text-center pt-2" cols="12" order="10">
                 <v-btn color="primary" :to="{name: 'Login', params: {tabName: 'register'}}">Sign up for FREE!</v-btn>
               </v-col>
             </v-row>
