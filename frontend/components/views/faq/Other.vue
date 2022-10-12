@@ -62,6 +62,42 @@
       </v-expansion-panel-content>
     </v-expansion-panel>
     <v-expansion-panel>
+      <v-expansion-panel-header>What is your content policy?</v-expansion-panel-header>
+      <v-expansion-panel-content>
+        In general, the policy is 'nothing illegal.' We don't believe in telling you what you can and can't draw. The
+        requirement we have is that content must be properly tagged, especially NSFW content. If users cannot
+        <router-link :to="{name: 'Other', params: {question: 'blacklist'}}">blacklist</router-link>
+        your content by tag (and by
+        <router-link :to="{name: 'Other', params: {question: 'content-ratings'}}">rating</router-link>
+        as applicable) your account may be subject to disciplinary action.
+
+        There is some content which is legal but which is also not permitted:
+
+        <ul>
+          <li>Explicit photos of humans</li>
+          <li>Photographs of humans uploaded without consent</li>
+          <li>Photomanipulations of humans which are explicit</li>
+          <li>Computer generated explicit content of humans which is indistinguishable from photographs.</li>
+          <li>Non-art content-- such as datasets or programs that aren't reasonably understood by our staff to have
+            artistic purpose or merit.</li>
+        </ul>
+
+        Artconomy is hosted in the state of Texas and is subject to the laws of it and the United States of America.
+        Some examples of content which is illegal here include:
+
+        <ul>
+          <li>Criminal Threats</li>
+          <li>Content which violates Intellectual Property laws-- such as content you did not create and don't have
+            permission to upload</li>
+          <li>Incitement to imminent lawless action</li>
+        </ul>
+
+        This is not an exhaustive list. If you are unsure if your content is illegal, please consult with your
+        attorney. You may also check our <router-link :to="{name: 'TermsOfService'}">Terms of Service</router-link>
+        for more information.
+      </v-expansion-panel-content>
+    </v-expansion-panel>
+    <v-expansion-panel>
       <v-expansion-panel-header>
         <strong>How do I use the Blacklist?</strong>
       </v-expansion-panel-header>
@@ -94,14 +130,15 @@
               their pieces, since this may result in disturbing content being shown to users who do not desire it.
             </p>
             <p>
-              Artconomy does not actively police content on the platform, and cannot prevent all disturbing or
-              offensive imagery from being uploaded, especially since pieces may be marked private. We prefer to
-              give each customer the power to customize his or her viewing experience using the rating and blacklist
-              tools.
+              Artconomy's
+              <router-link :to="{name: 'Other', params: {question: 'content-policy'}}">content policy</router-link>
+              is very permissive, and does not prevent disturbing or offensive imagery from being uploaded,
+              especially since pieces may be marked private. We prefer to give each customer the power to customize his
+              or her viewing experience using the rating and blacklist tools.
             </p>
             <p>
               Artconomy does, however, respond to legal requests to remove unlawful content, and does not permit
-              unlawful content on its platforms.
+              unlawful content on its platform.
             </p>
           </v-card-text>
         </v-card>
@@ -197,7 +234,7 @@ import {paramHandleArray} from '@/lib/lib'
 import QuestionSet from '@/components/views/faq/mixins/question-set'
 
 const other = [
-  'content-ratings', 'blacklist', 'watching', 'blocking', 'file-formats',
+  'content-ratings', 'content-policy', 'blacklist', 'watching', 'blocking', 'file-formats',
 ]
   @Component
 export default class Other extends mixins(Viewer, QuestionSet) {
