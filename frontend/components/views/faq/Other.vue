@@ -62,7 +62,9 @@
       </v-expansion-panel-content>
     </v-expansion-panel>
     <v-expansion-panel>
-      <v-expansion-panel-header>What is your content policy?</v-expansion-panel-header>
+      <v-expansion-panel-header>
+        <strong>What is your content policy?</strong>
+      </v-expansion-panel-header>
       <v-expansion-panel-content>
         In general, the policy is 'nothing illegal.' We don't believe in telling you what you can and can't draw. The
         requirement we have is that content must be properly tagged, especially NSFW content. If users cannot
