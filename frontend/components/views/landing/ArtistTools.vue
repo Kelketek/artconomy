@@ -101,8 +101,9 @@
         <v-img src="/static/images/403.png" max-height="30vh" contain :aspect-ratio="1" />
         <p>With <router-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">Artconomy Shield</router-link>, payment is guaranteed, and deposited right into your bank account.</p>
         <v-icon color="green">fa-shield</v-icon>
-        <p><small>Artconomy shield currently only available to those with US Bank accounts.
-          You can still handle orders through Artconomy if you do not have one, but will have to take payment from an outside source.</small></p>
+        <p><small>Artconomy shield currently available
+          <router-link :to="{name: 'BuyAndSell', params: {question: 'bank-accounts'}}">in many countries</router-link>. However, some countries may not support shield.
+          You can still handle orders through Artconomy if you are not in a supported country, but will have to take payment from an outside source.</small></p>
         <v-btn x-large color="green" :to="url" :block="block" class="commission-cta"><v-icon left>lock</v-icon>Get Protected</v-btn>
       </v-col>
       <v-col cols="12">
