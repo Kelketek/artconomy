@@ -161,6 +161,10 @@ class ImageModel(AssetThumbnailMixin, models.Model):
                 return None
             except ValueError:
                 return None
+            except KeyError:
+                # Sometimes PIL can recognize and read a format but not write to it.
+                # In this case it will raise a KeyError when looking for the save function.
+                return None
         return make_url(self.file.file.url)
 
     def ref_name(self, field_name):

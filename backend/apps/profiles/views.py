@@ -1538,9 +1538,11 @@ class ProfilePreview(BasePreview):
         art_context['title'] = f"{user.username} on Artconomy.com"
         art_context['description'] = shorten(demark(user.biography), 160)
         submissions = user_submissions(user, self.request, is_artist).order_by('-display_position')[:24]
-        art_context['image_links'] = [make_url(user.avatar_url)] + [
+        links = [make_url(user.avatar_url)] + [
             submission.preview_link for submission in submissions
         ]
+        links = [link for link in links if link]
+        art_context['image_links'] = links
         return art_context
 
 
