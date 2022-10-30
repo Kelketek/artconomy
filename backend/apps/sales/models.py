@@ -507,6 +507,8 @@ def idempotent_lines(instance: Deliverable):
     if instance.status not in [WAITING, NEW, PAYMENT_PENDING]:
         return
     main_qs = instance.invoice.lines_for(instance)
+    if instance.status == PAYMENT_PENDING and instance.invoice.status == DRAFT:
+        instance.invoice.status = OPEN
     if instance.product:
         line = main_qs.update_or_create(
             defaults={'amount': instance.product.base_price},

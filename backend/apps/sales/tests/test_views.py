@@ -22,7 +22,7 @@ from apps.profiles.tests.factories import UserFactory, SubmissionFactory, Charac
 from apps.sales.models import (
     Order, Product, TransactionRecord, ADD_ON, BASE_PRICE, NEW, COMPLETED, IN_PROGRESS,
     PAYMENT_PENDING,
-    REVIEW, QUEUED, DISPUTED, CANCELLED, DELIVERABLE_STATUSES, REFUNDED, Deliverable, WAITING)
+    REVIEW, QUEUED, DISPUTED, CANCELLED, DELIVERABLE_STATUSES, REFUNDED, Deliverable, WAITING, OPEN)
 from apps.sales.tests.factories import DeliverableFactory, CreditCardTokenFactory, ProductFactory, RevisionFactory, \
     RatingFactory, ReferenceFactory, ServicePlanFactory, InvoiceFactory
 from apps.sales.views.views import (
@@ -913,6 +913,7 @@ class TestCreateInvoice(APITestCase):
         self.assertEqual(response.data['product']['id'], product.id)
 
         deliverable = Deliverable.objects.get(id=response.data['id'])
+        self.assertEqual(deliverable.invoice.status, OPEN)
         item = deliverable.invoice.line_items.get(type=ADD_ON)
         self.assertEqual(item.amount, Money('2.00', 'USD'))
         self.assertEqual(item.priority, 100)
