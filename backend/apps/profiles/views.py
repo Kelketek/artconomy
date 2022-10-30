@@ -188,9 +188,9 @@ class ArtistProfileSettings(RetrieveUpdateAPIView):
         return self.base_update('put', *args, **kwargs)
 
     def get(self, *args, **kwargs):
-        user = self.get_object()
-        self.check_object_permissions(self.request, user)
-        count_hit(self.request, user)
+        profile = self.get_object()
+        self.check_object_permissions(self.request, profile)
+        count_hit(self.request, profile.user)
         return super().get(*args, **kwargs)
 
 
