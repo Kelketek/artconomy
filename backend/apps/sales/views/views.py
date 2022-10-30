@@ -40,7 +40,7 @@ from apps.lib.models import DISPUTE, REFUND, COMMENT, Subscription, ORDER_UPDATE
 from apps.lib.permissions import IsStaff, IsSafeMethod, Any, All, IsMethod
 from apps.lib.serializers import CommentSerializer
 from apps.lib.utils import notify, recall_notification, demark, preview_rating, send_transaction_email, create_comment, \
-    mark_modified, mark_read
+    mark_modified, mark_read, count_hit
 from apps.lib.views import BasePreview
 from apps.profiles.models import User, Submission, IN_SUPPORTED_COUNTRY, trigger_reconnect, ArtistTag
 from apps.profiles.permissions import ObjectControls, UserControls, IsUser, IsSuperuser, IsRegistered
@@ -1746,6 +1746,7 @@ class CancelPremium(APIView):
 class StorePreview(BasePreview):
     def context(self, username):
         user = get_object_or_404(User, username__iexact=username)
+        count_hit(self.request, user)
         avatar_url = user.avatar_url
         if avatar_url.startswith('/'):
             avatar_url = make_url(avatar_url)
@@ -1768,6 +1769,8 @@ class StorePreview(BasePreview):
 class ProductPreview(BasePreview):
     def context(self, username, product_id):
         product = get_object_or_404(Product, id=product_id, active=True, hidden=False)
+        hit_count = HitCount.objects.get_for_object(product)
+        HitCountMixin.hit_count(self.request, hit_count)
         image = preview_rating(self.request, product.rating, product.preview_link)
         data = {
             'title': demark(product.name),

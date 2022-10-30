@@ -1534,6 +1534,7 @@ class ProfilePreview(BasePreview):
     def context(self, username):
         art_context = {}
         user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        count_hit(self.request, user)
         is_artist = user.artist_mode
         art_context['title'] = f"{user.username} on Artconomy.com"
         art_context['description'] = shorten(demark(user.biography), 160)
@@ -1557,6 +1558,7 @@ class SubmissionPreview(BasePreview):
         submission = get_object_or_404(Submission, id=submission_id)
         if not self.check_object_permissions(self.request, submission):
             return {}
+        count_hit(self.request, submission)
         try:
             image = preview_rating(self.request, submission.rating, submission.preview_link)
         except Exception as err:
