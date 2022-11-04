@@ -427,15 +427,16 @@ class DeliverableViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer)
 class LineItemSerializer(serializers.ModelSerializer):
     percentage = serializers.FloatField()
     amount = MoneyToFloatField()
+    frozen_value = MoneyToFloatField(read_only=True)
     targets = EventTargetRelatedField(read_only=True, many=True)
 
     class Meta:
         model = LineItem
         fields = (
-            'id', 'priority', 'percentage', 'amount', 'type', 'destination_account', 'destination_user',
+            'id', 'priority', 'percentage', 'amount', 'frozen_value', 'type', 'destination_account', 'destination_user',
             'description', 'cascade_percentage', 'cascade_amount', 'back_into_percentage', 'targets',
         )
-        read_only_fields = ['id', 'priority', 'destination_account', 'destination_user', 'targets']
+        read_only_fields = ('id', 'priority', 'destination_account', 'destination_user', 'targets')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

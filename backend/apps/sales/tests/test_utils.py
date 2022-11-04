@@ -15,12 +15,12 @@ from apps.lib.test_resources import SignalsDisabledMixin
 from apps.lib.tests.test_utils import EnsurePlansMixin
 from apps.profiles.models import User
 from apps.profiles.tests.factories import UserFactory
-from apps.sales.models import TransactionRecord, LineItemSim, CANCELLED, IN_PROGRESS
+from apps.sales.models import TransactionRecord, LineItemSim, CANCELLED, IN_PROGRESS, SHIELD
 from apps.sales.tests.factories import TransactionRecordFactory, OrderFactory, ProductFactory, DeliverableFactory, \
-    RevisionFactory, ReferenceFactory
+    RevisionFactory, ReferenceFactory, InvoiceFactory, LineItemFactory
 from apps.sales.utils import claim_order_by_token, \
     check_charge_required, available_products, set_premium, account_balance, POSTED_ONLY, PENDING, lines_by_priority, \
-    get_totals, reckon_lines, destroy_deliverable, divide_amount
+    get_totals, reckon_lines, destroy_deliverable, divide_amount, freeze_line_items
 
 
 class BalanceTestCase(SignalsDisabledMixin, TestCase):
@@ -599,6 +599,37 @@ class TestLineCalculations(TestCase):
                 }
             )
         )
+
+
+class TestFreezeLineItems(TestCase):
+    def test_freezes_values(self):
+        invoice = InvoiceFactory.create()
+        source = [
+            LineItemFactory.create(amount=Money('0.01', 'USD'), priority=0, invoice=invoice),
+            LineItemFactory.create(amount=Money('0.01', 'USD'), priority=100, invoice=invoice),
+            LineItemFactory.create(amount=Money('0.01', 'USD'), priority=100, invoice=invoice),
+            LineItemFactory.create(amount=Money('-5.00', 'USD'), priority=100, invoice=invoice),
+            LineItemFactory.create(amount=Money('10.00', 'USD'), priority=100, invoice=invoice),
+            LineItemFactory.create(
+                amount=Money('.75', 'USD'),
+                percentage=Decimal('8'),
+                cascade_percentage=True,
+                cascade_amount=True,
+                priority=300,
+                invoice=invoice,
+                # Priority will be overwritten by post-save action if not explicitly set.
+                type=SHIELD,
+            ),
+        ]
+        freeze_line_items(invoice)
+        for line_item in source:
+            line_item.refresh_from_db()
+        self.assertEqual(source[0].frozen_value, Money('0.01', 'USD'))
+        self.assertEqual(source[1].frozen_value, Money('0.01', 'USD'))
+        self.assertEqual(source[2].frozen_value, Money('0.01', 'USD'))
+        self.assertEqual(source[3].frozen_value, Money('-5.00', 'USD'))
+        self.assertEqual(source[4].frozen_value, Money('8.85', 'USD'))
+        self.assertEqual(source[5].frozen_value, Money('1.15', 'USD'))
 
 
 class TestMoneyHelpers(TestCase):

@@ -100,6 +100,7 @@ export default class LineItemMixin extends Vue {
     return {
       id: -105,
       amount: parseFloat(this.addOnForm.fields.amount.value),
+      frozen_value: null,
       cascade_amount: false,
       cascade_percentage: false,
       back_into_percentage: false,
@@ -114,6 +115,7 @@ export default class LineItemMixin extends Vue {
     return {
       id: -106,
       amount: parseFloat(this.extraForm.fields.amount.value),
+      frozen_value: null,
       cascade_amount: false,
       cascade_percentage: false,
       back_into_percentage: false,

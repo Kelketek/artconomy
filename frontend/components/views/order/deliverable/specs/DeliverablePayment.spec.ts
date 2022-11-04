@@ -348,6 +348,7 @@ describe('DeliverablePayment.vue', () => {
     const sourceLine = {
       id: -20,
       amount: 5,
+      frozen_value: null,
       percentage: 0,
       type: LineTypes.TIP,
       priority: 200,

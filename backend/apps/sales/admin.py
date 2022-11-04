@@ -59,7 +59,7 @@ class LineItemAnnotationInline(admin.TabularInline):
 
 
 line_fields = (
-    'type', 'priority', 'amount', 'percentage', 'cascade_percentage', 'cascade_amount', 'back_into_percentage',
+    'type', 'priority', 'amount', 'frozen_value', 'percentage', 'cascade_percentage', 'cascade_amount', 'back_into_percentage',
     'destination_user', 'destination_account', 'description',
 )
 
@@ -85,7 +85,8 @@ class LineItemInline(admin.StackedInline):
 
 class InvoiceAdmin(admin.ModelAdmin):
     raw_id_fields = ['bill_to', 'targets']
-    list_display = ('id', 'bill_to', 'link')
+    list_display = ('id', 'bill_to', 'status', 'total', 'link')
+    list_filter = ['status']
     inlines = [LineItemInline]
 
     def link(self, obj):

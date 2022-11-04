@@ -206,6 +206,7 @@ export function invoiceLines(
       cascade_amount: true,
       back_into_percentage: false,
       amount: pricing.standard_static,
+      frozen_value: null,
       percentage: pricing.standard_percentage,
       description: '',
     }, {
@@ -216,6 +217,7 @@ export function invoiceLines(
       cascade_amount: true,
       back_into_percentage: false,
       amount: pricing.premium_static_bonus,
+      frozen_value: null,
       percentage: pricing.premium_percentage_bonus,
       description: '',
     },
@@ -226,6 +228,7 @@ export function invoiceLines(
       priority: 0,
       type: LineTypes.BASE_PRICE,
       amount: product.base_price,
+      frozen_value: null,
       percentage: 0,
       description: '',
       cascade_amount: false,
@@ -239,6 +242,7 @@ export function invoiceLines(
         priority: 100,
         type: LineTypes.ADD_ON,
         amount: addOnPrice,
+        frozen_value: null,
         percentage: 0,
         description: '',
         cascade_amount: false,
@@ -255,6 +259,7 @@ export function invoiceLines(
         cascade_amount: false,
         back_into_percentage: false,
         amount: pricing.table_static,
+        frozen_value: null,
         percentage: pricing.table_percentage,
         description: '',
       }, {
@@ -267,6 +272,7 @@ export function invoiceLines(
         percentage: pricing.table_tax,
         description: '',
         amount: 0,
+        frozen_value: null,
       })
     } else if (!escrowDisabled) {
       lines.push(...shieldLines)
@@ -277,6 +283,7 @@ export function invoiceLines(
       priority: 0,
       type: LineTypes.BASE_PRICE,
       amount: addOnPrice,
+      frozen_value: null,
       percentage: 0,
       description: '',
       cascade_amount: false,

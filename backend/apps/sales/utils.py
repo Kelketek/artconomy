@@ -1238,6 +1238,17 @@ def hacky_transaction_creation(invoice: 'Invoice', context: dict):
     return records
 
 
+def freeze_line_items(invoice: 'Invoice'):
+    """
+    Freezes the calculated values of line items on an invoice so that they'll no longer be dynamically handled
+    """
+    line_items = list(invoice.line_items.all())
+    _, __, results = get_totals(line_items)
+    for line_item in line_items:
+        line_item.frozen_value = results[line_item]
+        line_item.save()
+
+
 @transaction.atomic
 def invoice_post_payment(invoice: 'Invoice', context: dict) -> List['TransactionRecord']:
     """
@@ -1270,6 +1281,7 @@ def invoice_post_payment(invoice: 'Invoice', context: dict) -> List['Transaction
         invoice.paid_on = timezone.now()
         invoice.status = PAID
         invoice.save()
+        freeze_line_items(invoice)
     return records
 
 

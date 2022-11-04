@@ -211,6 +211,7 @@ export default class AcNewProduct extends Subjective {
         priority: 0,
         type: LineTypes.BASE_PRICE,
         amount: basePrice,
+        frozen_value: null,
         percentage: 0,
         description: '',
         cascade_amount: false,
@@ -225,6 +226,7 @@ export default class AcNewProduct extends Subjective {
           cascade_percentage: true,
           cascade_amount: false,
           amount: this.pricing.x.table_static,
+          frozen_value: null,
           percentage: this.pricing.x.table_percentage,
           back_into_percentage: false,
           description: '',
@@ -238,6 +240,7 @@ export default class AcNewProduct extends Subjective {
           percentage: this.pricing.x.table_tax,
           description: '',
           amount: 0,
+          frozen_value: null,
         })
       } else if (this.escrow && basePrice > 0) {
         lines.push({
@@ -247,6 +250,7 @@ export default class AcNewProduct extends Subjective {
           cascade_percentage: true,
           cascade_amount: true,
           amount: this.pricing.x.standard_static,
+          frozen_value: null,
           percentage: this.pricing.x.standard_percentage,
           back_into_percentage: false,
           description: '',
@@ -258,6 +262,7 @@ export default class AcNewProduct extends Subjective {
           cascade_amount: true,
           back_into_percentage: false,
           amount: this.pricing.x.premium_static_bonus,
+          frozen_value: null,
           percentage: this.pricing.x.premium_percentage_bonus,
           description: '',
         })

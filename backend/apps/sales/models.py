@@ -1215,6 +1215,13 @@ class LineItem(Model):
         max_digits=6, decimal_places=2, default_currency='USD',
         blank=True, default=0,
     )
+    frozen_value = MoneyField(
+        max_digits=6, decimal_places=2, default_currency='USD',
+        blank=True, null=True, default=None,
+        help_text='Snapshotted amount after calculations have been completed and the relevant '
+                  'invoice is paid. This helps keep historical record in case the line item calculation '
+                  'algorithms change.'
+    )
     percentage = DecimalField(max_digits=5, db_index=True, decimal_places=3, default=0)
     # Line items will be run in layers to get our totals/subtotals. Higher numbers will be run after lower numbers.
     # If two items have the same priority, they will both be run as if the other had not been run.

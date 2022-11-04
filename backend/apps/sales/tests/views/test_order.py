@@ -1,5 +1,4 @@
 from decimal import Decimal
-from unittest import expectedFailure
 from unittest.mock import patch
 
 from dateutil.relativedelta import relativedelta

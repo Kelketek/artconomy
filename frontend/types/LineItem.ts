@@ -2,6 +2,7 @@ export default interface LineItem {
   id: number,
   priority: number,
   amount: number,
+  frozen_value: number|null,
   percentage: number,
   cascade_percentage: boolean,
   cascade_amount: boolean,

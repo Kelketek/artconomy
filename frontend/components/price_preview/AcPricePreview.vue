@@ -79,7 +79,6 @@ import AcNewLineItem from '@/components/price_preview/AcNewLineItem.vue'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import Big from 'big.js'
-import {flatten} from '@/lib/lib'
 
 @Component({
   components: {AcForm, AcFormContainer, AcNewLineItem, AcLineItemEditor, AcLineItemPreview, AcLoadSection},
@@ -178,9 +177,15 @@ export default class AcPricePreview extends mixins(Subjective) {
       (line: LineItem) => (![LineTypes.SHIELD, LineTypes.BONUS].includes(line.type)),
     )
     if (toConsolidate.length) {
+      let frozenValue: number|null = null
+      const frozenItems = toConsolidate.filter((line: LineItem) => line.frozen_value !== null)
+      if (frozenItems.length === toConsolidate.length) {
+        frozenValue = parseFloat(sum(toConsolidate.map((line: LineItem) => Big(line.frozen_value as number))).toFixed(2))
+      }
       const consolidated = {
         id: -10,
         amount: parseFloat(sum(toConsolidate.map((line: LineItem) => Big(line.amount))).toFixed(2)),
+        frozen_value: frozenValue,
         percentage: parseFloat(sum(toConsolidate.map((line: LineItem) => Big(line.percentage))).toFixed(2)),
         type: LineTypes.SHIELD,
         priority: 300,
@@ -198,6 +203,7 @@ export default class AcPricePreview extends mixins(Subjective) {
     return {
       id: -105,
       amount: parseFloat(this.addOnForm.fields.amount.value),
+      frozen_value: null,
       cascade_amount: false,
       cascade_percentage: false,
       back_into_percentage: false,
@@ -212,6 +218,7 @@ export default class AcPricePreview extends mixins(Subjective) {
     return {
       id: -106,
       amount: parseFloat(this.extraForm.fields.amount.value),
+      frozen_value: null,
       cascade_amount: false,
       cascade_percentage: false,
       back_into_percentage: false,
