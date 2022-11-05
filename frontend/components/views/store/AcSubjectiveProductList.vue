@@ -12,7 +12,7 @@
         </v-col>
       </template>
     </ac-product-list>
-    <ac-add-button v-model="showNew" v-if="controls && !iFrame">New Product</ac-add-button>
+    <ac-add-button v-model="showNew" v-if="controls && !iFrame && !hideNewButton">New Product</ac-add-button>
     <ac-new-product :username="username" v-model="showNew" v-if="controls && !iFrame"></ac-new-product>
     <v-row no-gutters v-if="firstProduct">
       <v-col class="pa-2" cols="12" :lg="mini ? 12 : 8" :offset-lg="mini ? 0 : 2" >
