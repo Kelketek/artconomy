@@ -70,11 +70,11 @@ window.windowId = genId()
 
 const browser = Bowser.getParser(window.navigator.userAgent)
 const isValidBrowser = browser.satisfies({
-  chrome: '>=70',
-  firefox: '>=68.3',
-  opera: '>=22',
-  safari: '>=12',
-  edge: '>=16',
+  chrome: '>=100',
+  firefox: '>=100',
+  opera: '>=90',
+  safari: '>=15',
+  edge: '>=100',
 })
 
 const productionMode = process.env.NODE_ENV === 'production'
