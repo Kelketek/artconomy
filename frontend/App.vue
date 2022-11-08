@@ -276,7 +276,7 @@ export default class App extends mixins(Viewer, Nav, PrerenderMixin, RatingRefre
 
   @Watch('viewer.username')
   public sendHome(newName: string, oldName: string) {
-    if (oldName && (oldName !== '_') && newName === '_') {
+    if (oldName && (oldName !== '_') && (newName === '_')) {
       this.$router.push('/')
     }
   }
@@ -372,7 +372,9 @@ export default class App extends mixins(Viewer, Nav, PrerenderMixin, RatingRefre
     this.$sock.addListener('error', 'App', console.error)
     this.$sock.addListener('reset', 'App', (payload: {exclude?: string[]}) => {
       this.$sock.socket!.close()
-      this.$sock.socket!.reconnect()
+      // Wait a second to reconnect to give a chance for all outstanding requests to complete.
+      // We'll probably want to find a better way to handle this later.
+      setTimeout(() => { this.$sock.socket!.reconnect() }, 2000)
     })
     this.$sock.connectListeners.initialize = () => {
       this.socketState.updateX({status: ConnectionStatus.CONNECTED})

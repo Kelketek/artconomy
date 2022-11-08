@@ -215,17 +215,18 @@ class PlaceOrder(CreateAPIView):
         product = self.get_object()
         self.check_object_permissions(self.request, product)
         user = self.request.user
+        reconnect = False
         if user.is_staff and product.table_product:
             user = create_guest_user(serializer.validated_data['email'])
         elif not user.is_authenticated:
             user = create_guest_user(serializer.validated_data['email'])
             login(self.request, user)
-            trigger_reconnect(self.request, include_current=True)
+            reconnect = True
         elif not user.is_registered:
             if self.request.user.guest_email != serializer.validated_data['email']:
                 user = create_guest_user(serializer.validated_data['email'])
                 login(self.request, user)
-                trigger_reconnect(self.request, include_current=True)
+                reconnect = True
         order = serializer.save(
             buyer=user, seller=product.user,
         )
@@ -259,6 +260,8 @@ class PlaceOrder(CreateAPIView):
         else:
             notify(SALE_UPDATE, deliverable, unique=True, mark_unread=True)
         notify(ORDER_UPDATE, deliverable, unique=True, mark_unread=True)
+        if reconnect:
+            trigger_reconnect(self.request, include_current=True)
         return order
 
     def create(self, request, *args, **kwargs):

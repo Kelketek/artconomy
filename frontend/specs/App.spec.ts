@@ -363,6 +363,7 @@ describe('App.vue', () => {
     server.send({command: 'reset', payload: {}})
     await wrapper.vm.$nextTick()
     expect(mockClose).toHaveBeenCalledTimes(1)
+    await new Promise((resolve) => setTimeout(resolve, 3000))
     expect(mockReconnect).toHaveBeenCalledTimes(1)
   })
   it('Sets the viewer', async() => {
