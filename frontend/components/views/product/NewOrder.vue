@@ -105,7 +105,7 @@
                               field-type="ac-uppy-file"
                               uppy-id="uppy-new-order"
                               :field="orderForm.fields.references"
-                              :max-number-of-files="5"
+                              :max-number-of-files="10"
                               label="(Optional) Add some reference images!"
                               :persistent-hint="true"
                               :persist="true"
