@@ -1,6 +1,8 @@
 from hashlib import sha256
 
 import json
+from typing import List
+
 from django.conf import settings
 from django.shortcuts import render
 from rest_framework import status
@@ -12,6 +14,14 @@ from apps.lib.utils import default_context
 from apps.profiles.serializers import UserSerializer
 from apps.profiles.utils import empty_user
 from shortcuts import make_url
+
+
+def mastodon_profiles_for_routes(path: str) -> List[str]:
+    if path == '/':
+        return settings.MASTODON_PROFILES
+    # We may add code later to allow users to verify their mastodon accounts. Maybe not, though-- hard
+    # to count us as authoritative for anyone but ourselves.
+    return []
 
 
 def base_template(request, extra=None):
@@ -28,7 +38,8 @@ def base_template(request, extra=None):
         'env_file': 'envs/{}.html'.format(settings.ENV_NAME),
         'base_url': make_url(''),
         'recaptcha_key': settings.GR_CAPTCHA_PUBLIC_KEY,
-        'user_serialized': json.dumps(user_data)
+        'user_serialized': json.dumps(user_data),
+        'mastodon_profiles': mastodon_profiles_for_routes(request.path),
     }
     if request.user.is_authenticated:
         context['user_email'] = request.user.guest_email or request.user.email

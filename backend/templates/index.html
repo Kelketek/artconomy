@@ -57,5 +57,8 @@
 <noscript>
   <p>Hey, we're one of those newfangled single page apps, so please enable JavaScript or the site won't work!</p>
 </noscript>
+{% for mastodon in mastodon_profiles %}
+<a rel="me" aria-hidden="true" class="d-none" href="{{mastodon}}"></a>
+{% endfor %}
 </body>
 </html>

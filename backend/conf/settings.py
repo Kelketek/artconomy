@@ -555,3 +555,13 @@ ANONYMOUS_USER_USERNAME = get_env('ANONYMOUS_USER_USERNAME', 'Anonymous')
 ANONYMOUS_USER_EMAIL = get_env('ANONYMOUS_USER_EMAIL', 'anonymous@artconomy.com')
 
 HITCOUNT_KEEP_HIT_IN_DATABASE = {'days': int(get_env('HITCOUNT_KEEP_HIT_IN_DATABASE', '30'))}
+
+MASTODON_PROFILES = get_env(
+    'MASTODON_PROFILES',
+    [
+        'https://yiff.life/@Vulpes_Veritas',
+        'https://yiff.life/@Artconomy',
+        'https://bytetower.social/@Artconomy',
+    ],
+    unpack=True,
+)
