@@ -706,6 +706,9 @@ def ensure_buyer(order: 'Order'):
     order.save()
     for deliverable in order.deliverables.all():
         Subscription.objects.bulk_create(buyer_subscriptions(deliverable), ignore_conflicts=True)
+        if deliverable.invoice:
+            deliverable.invoice.bill_to = user
+            deliverable.invoice.save()
 
 
 def update_order_payments(deliverable: 'Deliverable'):
