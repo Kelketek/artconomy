@@ -12,10 +12,10 @@ from shortcuts import gen_textifier
 
 
 class Command(BaseCommand):
-    help = 'Runs update availability on all users.'
+    help = 'Sends updated privacy policy information to all active users.'
 
     def handle(self, *args, **options):
-        users = User.objects.exclude(stripe_account__isnull=True)
+        users = User.objects.exclude(stripe_account__isnull=True).exclude(is_active=False)
         template_path = Path(settings.BACKEND_ROOT) / 'templates' / 'transactional' / 'stripe_update.html'
         for user in users:
             subject = 'Update to Stripe Terms of Service'
