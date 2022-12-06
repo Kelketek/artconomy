@@ -605,8 +605,8 @@
             </p>
             <p>
               However, Artconomy takes security seriously. We do not allow unencrypted connections to our site.
-              Payment information is handled only long enough to process it and to store it offsite in secure data
-              stores so that even if we are hacked, hackers will have limited ability to steal your information.
+              Payments are processed through Stripe, with card data sent directly to their servers rather than ours.
+              If someone were to hack in to our servers, they would not be able to retrieve your card number.
             </p>
             <p>
               Passwords are not stored in plain text, but are hashed to prevent release of your raw password.
