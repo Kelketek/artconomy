@@ -1309,3 +1309,38 @@ class AccountMutex:
         for lock in self.acquired:
             result.append(lock.__exit__(exc_type, exc_val, exc_tb))
         return all(result)
+
+
+def reverse_record(record: 'TransactionRecord') -> (bool, 'TransactionRecord'):
+    """
+    Creates an inverse record from an existing record. Note: This does NOT perform any particular API
+    requests needed to support the reversal outside the system, such as refunding credit cards.
+
+    This function might be moved to utils if given a few more guards so it can be used safely, but since
+    """
+    from apps.sales.models import TransactionRecord
+    if record.status != TransactionRecord.SUCCESS:
+        raise ValueError('Transactions may not be reversed if they have not succeeded.')
+    ref = ref_for_instance(record)
+    old_record = TransactionRecord.objects.filter(
+        targets=ref_for_instance(record), amount=record.amount, destination=record.source,
+        source=record.destination, status__in=[TransactionRecord.SUCCESS, TransactionRecord.PENDING],
+    ).first()
+    if old_record:
+        return False, old_record
+    new_record = TransactionRecord.objects.create(
+        status=TransactionRecord.SUCCESS,
+        source=record.destination,
+        destination=record.source,
+        category=record.category,
+        amount=record.amount,
+        payer=record.payee,
+        payee=record.payer,
+        card=record.card,
+        auth_code=record.auth_code,
+        remote_ids=record.remote_ids,
+        note=f'Reversal for {record.id}'
+    )
+    new_record.targets.set(record.targets.all())
+    new_record.targets.add(ref)
+    return True, new_record

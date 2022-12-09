@@ -2,16 +2,20 @@ from uuid import UUID
 
 from django import forms
 from django.conf import settings
-from django.contrib import admin
+from django.contrib import admin, messages
+from django.db.transaction import atomic
 
 # Register your models here.
 from django.forms import ModelForm
 from django.urls import reverse
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 
 from apps.lib.admin import CommentInline
+from apps.lib.models import ref_for_instance
 from apps.sales.models import Product, Order, Revision, Promo, TransactionRecord, Rating, Deliverable, LineItem, \
     Invoice, WebhookRecord, LineItemAnnotation, ServicePlan, StripeLocation, StripeReader, CreditCardToken
+from apps.sales.utils import reverse_record
 
 
 class ProductAdmin(admin.ModelAdmin):
@@ -97,9 +101,68 @@ class InvoiceAdmin(admin.ModelAdmin):
         )
 
 
+def safe_display(record):
+    """
+    Safely render a transaction name such that no user-written characters are shown and it
+    can be HTML embedded in a message with a link.
+    """
+    return (
+        f'<a href="{reverse("admin:sales_transactionrecord_change", args=[record.id])}">{record.id}</a> '
+        f'{record.get_category_display()} for {record.amount} from {record.get_source_display()} '
+        f'to {record.get_destination_display()}'
+    )
+
+
+def reverse_message(source: TransactionRecord, destination: TransactionRecord):
+    return (
+        f'<p>{safe_display(source)} was reversed in '
+        f'<a href="{reverse("admin:sales_transactionrecord_change", args=[destination.id])}">{destination.id}</a></p>'
+    )
+
+
+@admin.action(description='Reverse these transactions')
+@atomic
+def reverse_transactions(modeladmin, request, queryset):
+    existing = {}
+    wrong_status = []
+    created = {}
+    for record in queryset.order_by('created_on'):
+        try:
+            new, new_record = reverse_record(record)
+            if new:
+                created[record] = new_record
+            else:
+                existing[record] = new_record
+        except ValueError:
+            wrong_status.append(record)
+    if created:
+        entries = [
+            reverse_message(source, destination) for source, destination in created.items()
+        ]
+        message = f'<p>The following reversions were created successfully:</p>{"".join(entries)}'
+        modeladmin.message_user(request, mark_safe(message), level=messages.SUCCESS, extra_tags='safe')
+    if existing:
+        entries = [
+            reverse_message(source, destination) for source, destination in existing.items()
+        ]
+        message = f'<p>The following reversions already existed:</p>{"".join(entries)}'
+        modeladmin.message_user(request, mark_safe(message), level=messages.WARNING, extra_tags='safe')
+    if wrong_status:
+        entries = [
+            f'<p>{safe_display(record)} (status was: {record.get_status_display()})</p>'
+            for record in wrong_status
+        ]
+        message = f'<p>The following records could not be reversed, ' \
+                  f'as they were in the wrong status:</p>{"".join(entries)}'
+        modeladmin.message_user(request, mark_safe(message), level=messages.ERROR)
+
+
 class TransactionRecordAdmin(admin.ModelAdmin):
-    raw_id_fields = ['payer', 'payee', 'targets']
-    list_display = ('id', 'status', 'category', 'created_on', 'paid_by', 'source', 'paid_to', 'destination', 'amount')
+    actions = [reverse_transactions]
+    search_fields = ('id', 'payee__username', 'payer__username')
+    raw_id_fields = ('payer', 'payee', 'targets')
+    list_filter = ('category', 'status', 'source', 'destination')
+    list_display = ('id', 'status', 'category', 'created_on', 'finalized_on', 'paid_by', 'source', 'paid_to', 'destination', 'amount')
     ordering = ('-created_on',)
 
     def paid_by(self, obj):
