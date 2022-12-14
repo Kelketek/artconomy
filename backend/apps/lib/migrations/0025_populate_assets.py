@@ -3,6 +3,7 @@
 from django.db import migrations
 from django.db.models import Exists, OuterRef
 from easy_thumbnails.alias import aliases
+from easy_thumbnails.engine import NoSourceGenerator
 from easy_thumbnails.exceptions import InvalidImageFormatError
 from easy_thumbnails.files import get_thumbnailer, generate_all_aliases
 
@@ -31,7 +32,7 @@ def gen_subjective_thumbnails(cls, field_name, asset):
         options['ALIAS'] = key
         try:
             thumbnailer.get_thumbnail(options)
-        except (OSError, InvalidImageFormatError) as err:
+        except (OSError, InvalidImageFormatError, NoSourceGenerator) as err:
             print(f'Could not generate for {asset.file}: {err}')
 
 migrated = []

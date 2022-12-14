@@ -6,6 +6,7 @@ from django.db import models
 from django.db.models import DateTimeField, ForeignKey, CASCADE, FloatField
 from django.utils import timezone
 from easy_thumbnails.alias import aliases
+from easy_thumbnails.engine import NoSourceGenerator
 from easy_thumbnails.exceptions import InvalidImageFormatError
 from easy_thumbnails.fields import ThumbnailerImageField
 from easy_thumbnails.files import ThumbnailerImageFieldFile, get_thumbnailer
@@ -147,7 +148,7 @@ class ImageModel(AssetThumbnailMixin, models.Model):
             options = aliases.get('thumbnail', target=self.ref_name('preview'))
             try:
                 return make_url(self.preview.file.get_thumbnail(options).url)
-            except (OSError, InvalidImageFormatError):
+            except (OSError, InvalidImageFormatError, NoSourceGenerator):
                 pass
         for thumb in ['gallery', 'preview', 'thumbnail']:
             try:
@@ -157,13 +158,7 @@ class ImageModel(AssetThumbnailMixin, models.Model):
                 return make_url(self.file.file.get_thumbnail(options).url)
             except OSError:
                 break
-            except InvalidImageFormatError:
-                return None
-            except ValueError:
-                return None
-            except KeyError:
-                # Sometimes PIL can recognize and read a format but not write to it.
-                # In this case it will raise a KeyError when looking for the save function.
+            except (InvalidImageFormatError, ValueError, NoSourceGenerator, KeyError):
                 return None
         return make_url(self.file.file.url)
 
