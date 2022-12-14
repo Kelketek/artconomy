@@ -27,3 +27,7 @@ test_frontend:
 
 test_backend:
 	${APP_COMMAND} "./manage.py test --parallel=${TEST_THREADS}"
+
+upgrade:
+	${APP_COMMAND} "pip-compile requirements.in"
+	${APP_COMMAND} "pip-compile deploy_requirements.in"

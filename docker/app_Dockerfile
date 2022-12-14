@@ -38,6 +38,7 @@ ADD . .
 RUN pyenv virtualenv system artconomy
 RUN echo artconomy > /app/.python-version
 RUN pip install --upgrade pip
+RUN pip install pip-tools
 RUN pip install -r requirements.txt
 # More modificiations need to be done to this dockerfile to make it production-ready. Right now containers aren't
 # used for deployment, only dev.

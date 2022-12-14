@@ -1,0 +1,113 @@
+# Library for asynchronous handling of files.
+aiofile
+# BeautifulSoup is an HTML/XML processing library which we primarily use to manipulate HTML structures before
+# extracting their text for the text version of emails
+bs4
+# Celery is our asynchronus task queue library. Tasks that shouldn't interrupt the current
+# request, but should be handled in the background (or periodically, like cron), are scheduled
+# and handled by celery.
+celery
+# Channels handles async connections to Django that can be subscribed and published to.
+# This is used for managing websockets.
+channels
+# Uses Redis as the backend for Channels
+channels-redis
+# Checks how many lines are run during tests
+coverage
+# Base websocket server used by Django-channels in dev/testing
+daphne
+# DDT 'Data Driven Tests'-- allows us to parameterize tests so we can write them once with several different inputs.
+ddt
+# Used to generate thumbnails for submissions.
+easy_thumbnails
+# The Django web framework is Artconomy's base web framework.
+Django>=3.2.16,<3.3.0
+# Application which handles avatars for users, including default avatars.
+django-avatar>=5.0.0,<6
+# Allows emails to be sent asynchronously via celery
+django-celery-email
+# Model base for our custom Django user model, allowing email login.
+django-custom-user
+# Hitcount application-- helps users know many views their submissions are getting, for instance.
+git+https://github.com/Artconomy/django-hitcount.git@fox/ipv6-compatibility#egg=django-hitcount
+# Django removed the included markdown processing functionality in templates and this library picks
+# up where it left off.
+django-markdown2
+# Adds model fields for tracking money, creating a composite field that has both a currency column and an amount colum
+# under the hood transparently.
+django-money
+# Allows for some preprocessing of emails being sent out to do neat things like adjust URLs and CSS classes
+django-premailer
+# Library for providing One Time Passwords for 2FA apps
+django-otp
+# Redis support for Django's caching system
+django-redis
+# The Django REST Framework is the primary library for constructing our API endpoints and handling their serialization
+djangorestframework==3.12.4
+# Extension for Django REST Framework to allow bulk updates of items
+djangorestframework-bulk
+# Django REST field for completing a recaptcha-compatible captcha
+django-rest-recaptcha
+# Allows for Django REST endpoints to respond in CSV format when enabled
+djangorestframework-csv
+# Stores old versions of a model in the database so they can be reverted or reviewed. We use this on order comments
+# to make sure no one is pulling a sneaky during disputes, for instance.
+django-reversion
+# Sendgrid support for sending email. I'm not entirely sure we're actually using this yet, but we might be.
+django-sendgrid-v5
+# Allows us to disable Django's signal feature-- useful sometimes during tests.
+django-signal-disabler
+# Allows us to read and parse a webpack manifest in order to render the correct script/link tags in the index HTML
+django-webpack-loader
+# Library for calling Dwolla services. Deprecated since we no longer use Dwolla.
+dwollav2
+# Factories for testing-- allowing us to create users, submissions, etc on the fly to test something.
+factory-boy
+# Freezes time. Or rather, freezes the output of time libraries such that you can depend on them to return a particular
+# value during tests.
+freezegun
+# After using bs4 to massage the markup, we use html2text to convert a section of HTML to markdown-style text.
+html2text
+# Not actually used by the project itself, but helpful anywhere we're using the Django console-- iPython is a massively
+# improved Python REPL. Django replaces the standard interactive Python interface with this when present.
+ipython
+# Utilities for lazy evaluation of properties on an object.
+lazy
+# The Luhn algorithm is used to check that a credit card number is technically valid. This is no longer used,
+# but code depending on it has not been removed.
+luhn
+# A non-Django specific library for markdown processing. TODO: Investigate if we can remove this library since
+# django-markdown2 doubtless has a markdown processor inside of it.
+markdown
+# Library for contacting mailchimp and subscribing folks who want to follow our mailing list.
+mailchimp3
+# pandas-- data analysis and manipulation library. At the time of writing we're only using it to handle 'Business Day'
+# calendar calculations, but we're liable to use it for more in time.
+pandas
+# Django uses this driver for communicating with the PostgreSQL database.
+psycopg2-binary>=2.8.6,<2.9
+# Library which contains ISO-standard information about all countries on earth. Needed for address handling.
+pycountry
+# Awesome library for date manipulation. I have no idea why it isn't in the standard library. Allows for things
+# like 'relative deltas' so you can do things like add x number of months to a date.
+python-dateutil
+# Python library for the Telegram bot, used for 2FA
+python-telegram-bot
+# Used for handling Time Zone data in Python and imbuing naiive datetimes with TZ information.
+pytz
+# Used to generate QR codes
+qrcode
+# The requests library is the most useful HTTP library in the Python ecosystem. It should probably be in the standard
+# library, and I think they were considering this at one point.
+requests
+# Library for generating shortcodes, built atop UUIDs but serializable to ASCII strings. Includes Django model and REST
+# framework fields
+short-stuff
+# Library for interacting with Stripe's API
+stripe
+# Library for working with tracebacks. Used for testing.
+tblib
+# ASGI webserver for Python. Used for the production ASGI server, which handles websocket requests.
+uvicorn
+# uWSGI webserver for Python. Handles standard HTTP requests in production.
+uWSGI
