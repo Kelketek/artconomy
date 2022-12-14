@@ -16,6 +16,7 @@ asgiref==3.5.2
     #   channels-redis
     #   daphne
     #   django
+    #   uvicorn
 asttokens==2.2.1
     # via stack-data
 async-timeout==4.0.2
@@ -338,7 +339,7 @@ unicodecsv==0.14.1
     # via djangorestframework-csv
 urllib3==1.26.13
     # via requests
-uvicorn==0.20.0
+uvicorn==0.14.0
     # via -r requirements.in
 uwsgi==2.0.21
     # via -r requirements.in

@@ -108,6 +108,6 @@ stripe
 # Library for working with tracebacks. Used for testing.
 tblib
 # ASGI webserver for Python. Used for the production ASGI server, which handles websocket requests.
-uvicorn
+uvicorn>=0.13.4,<=0.14
 # uWSGI webserver for Python. Handles standard HTTP requests in production.
 uWSGI
