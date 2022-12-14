@@ -18,3 +18,7 @@ jobs:
         uses: actions/checkout@v3
       - name: 'Dependency Review'
         uses: actions/dependency-review-action@v2
+      - name: 'Dependency security audit'
+        uses: pypa/gh-action-pip-audit@v1.0.2
+        with:
+          inputs: requirements.txt deploy_requirements.txt
