@@ -10,7 +10,7 @@ RUN apt-get update --fix-missing
 RUN apt-get install software-properties-common apt-utils -y
 RUN add-apt-repository ppa:deadsnakes/ppa -y
 RUN apt-get update --fix-missing
-RUN apt-get install --no-install-recommends python3-venv python3-pip python3.8 python3.8-dev build-essential npm curl git wget postgresql-client psmisc libpq-dev -y
+RUN apt-get install --no-install-recommends python3-venv python3-pip python3.8 python3.8-dev build-essential npm curl git wget postgresql-client psmisc libpq-dev vim -y
 RUN apt-get upgrade -y
 RUN apt-get autoremove -y
 RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
@@ -24,6 +24,7 @@ RUN groupadd -g 1000 dev
 RUN useradd -u 1000 -d /home/dev -g dev dev
 RUN chown -R 1000:1000 /app
 RUN chown -R 1000:1000 /home/dev
+RUN echo artconomy > /.python-version
 USER 1000
 WORKDIR /home/dev
 # Master at the time of coding.
@@ -36,7 +37,6 @@ ENV PATH $PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH;$HOME/.local/bin
 WORKDIR /app
 ADD . .
 RUN pyenv virtualenv system artconomy
-RUN echo artconomy > /app/.python-version
 RUN pip install --upgrade pip
 RUN pip install pip-tools
 RUN pip install -r requirements.txt

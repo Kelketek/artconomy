@@ -57,7 +57,7 @@ certifi==2022.12.7
     #   requests
 cffi==1.15.1
     # via cryptography
-channels==4.0.0
+channels==3.0.5
     # via
     #   -r requirements.in
     #   channels-redis
@@ -91,8 +91,10 @@ cssselect==1.2.0
     # via premailer
 cssutils==2.6.0
     # via premailer
-daphne==4.0.0
-    # via -r requirements.in
+daphne==3.0.2
+    # via
+    #   -r requirements.in
+    #   channels
 ddt==1.6.0
     # via -r requirements.in
 decorator==5.1.1

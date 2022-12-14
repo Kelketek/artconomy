@@ -9,7 +9,7 @@ bs4
 celery
 # Channels handles async connections to Django that can be subscribed and published to.
 # This is used for managing websockets.
-channels
+channels==3.0.5
 # Uses Redis as the backend for Channels
 channels-redis
 # Checks how many lines are run during tests
