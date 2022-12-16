@@ -66,15 +66,17 @@
         <strong>What is your content policy?</strong>
       </v-expansion-panel-header>
       <v-expansion-panel-content>
-        In general, the policy is 'nothing illegal.' We don't believe in telling you what you can and can't draw. The
-        requirement we have is that content must be properly tagged, especially NSFW content. If users cannot
-        <router-link :to="{name: 'Other', params: {question: 'blacklist'}}">blacklist</router-link>
-        your content by tag (and by
-        <router-link :to="{name: 'Other', params: {question: 'content-ratings'}}">rating</router-link>
-        as applicable) your account may be subject to disciplinary action.
-
-        There is some content which is legal but which is also not permitted:
-
+        <p>
+          In general, the policy is 'nothing illegal.' We don't believe in telling you what you can and can't draw. The
+          requirement we have is that content must be properly tagged, especially NSFW content. If users cannot
+          <router-link :to="{name: 'Other', params: {question: 'blacklist'}}">blacklist</router-link>
+          your content by tag (and by
+          <router-link :to="{name: 'Other', params: {question: 'content-ratings'}}">rating</router-link>
+          as applicable) your account may be subject to disciplinary action.
+        </p>
+        <p>
+          There is some content which is legal but which is also not permitted:
+        </p>
         <ul>
           <li>Explicit photos of humans</li>
           <li>Photographs of humans uploaded without consent</li>
@@ -97,6 +99,89 @@
         This is not an exhaustive list. If you are unsure if your content is illegal, please consult with your
         attorney. You may also check our <router-link :to="{name: 'TermsOfService'}">Terms of Service</router-link>
         for more information.
+      </v-expansion-panel-content>
+    </v-expansion-panel>
+    <v-expansion-panel>
+      <v-expansion-panel-header>
+        <strong>What is your tagging policy?</strong>
+      </v-expansion-panel-header>
+      <v-expansion-panel-content>
+        <p>Artconomy has
+          <router-link :to="{name: 'Other', params: {question: 'content-policy'}}">very few restrictions</router-link>
+          on what content may be posted, but with this freedom comes a responsibility to tag content effectively.
+          Tagging content serves the following purposes:
+        </p>
+        <ul>
+          <li>It makes products, submissions, and characters easy for visitors to find via search. Customers interested
+            in your content may not be able to find it if it is not properly tagged.</li>
+          <li>It makes such content easy to <router-link :to="{name: 'Other', params: {}}">blacklist</router-link> for
+            those who do not wish to see it.</li>
+        </ul>
+        <p>
+          In sum, tagging allows viewers of the site to have control over their experience, and tagging allows artists
+          to find their audience. This, in combination with
+          <router-link :to="{name: 'Other', params: {question: 'content-policy'}}">content ratings</router-link>
+          allows Artconomy to serve a wide, often disparate range of content without telling artists what they may or
+          may not create.
+        </p>
+        <p>These purposes guide tagging-- which means that
+          <strong>appearances are more important than lore-based truth</strong> for content. This is commonly referred
+          to as a <strong>tag what you see</strong> policy. Tag what you see is the first priority, but you may also
+          tag for lore accuracy when it's in conflict with what's visible 'in frame' for a piece.</p>
+        <p>
+          At the time of writing, minimum tag requirements are not technically enforced, but will be eventually.
+          However, even with a minimum number of tags, it is not always clear what kind of content warrants tagging,
+          or how to go about it. We therefore offer the following guidelines:
+        </p>
+        <ul>
+          <li>
+            Always seek to use existing tags rather than creating new ones. If one does not exist for the thing you are
+            tagging, only then should you create one.
+          </li>
+          <li>
+            Character species should always be tagged. If a species is not a real-world species, but based on a
+            real-world species, it is recommended to at least tag the real-world species, and preferably the name of the
+            fantasy species as well. For example, a 'human' tag is best applied to drawings featuring elves, because
+            even though elves are not human, they are substantially based upon them. In such cases the 'human' tag
+            should be applied, and preferably 'elf' as well.
+          </li>
+          <li>
+            Apparent character sex should always be tagged-- if actual sex is different from apparent sex, that should
+            be tagged as well. You are encouraged to tag a character's gender. If a character is sexless and/or
+            genderless, you should tag to this effect.
+          </li>
+          <li>
+            Kinks depicted in a piece must be tagged, as should any body parts that are the focus of a piece, or any
+            fetish gear/accessories featured in a piece.
+          </li>
+          <li>
+            If a piece is within a specific genre or style, that should be tagged. Examples include 'furry', 'anime',
+            'manga', 'cubism', etc.
+          </li>
+          <li>
+            If a piece utilizes a specific technique or discipline, that should be tagged. Examples include
+            'lines', 'watercolor', 'traditional', 'digital', 'sketch', 'origami', etc.
+          </li>
+          <li>
+            If an automated tool significantly contributes to the creation of a piece, that tool and its general
+            category must be tagged. Examples include 'AI Assisted', 'AI Generated', 'Stable Diffusion', etc.
+          </li>
+        </ul>
+        <p>
+          Tagging is an art in and of itself. We have expectation that users provide a best effort at tagging. To help
+          keep tag quality high, some pages allow for all users to contribute and modify tags. If you see a submission
+          which is not tagged properly, you are encouraged to tag it. If users are tagging your work inappropriately,
+          you may disable public tagging in your
+          <router-link
+              :to="{name: 'Settings', params: {username: viewer.username, tabName: 'options'}}"
+              v-if="isRegistered"
+          >
+            settings</router-link><span v-else>settings</span>.
+        </p>
+        <p>
+          Users who repeatedly fail to observe tagging guidelines, especially those who do not tag content that is
+          considered extreme or offensive by most viewers, will have their account subject to disciplinary action.
+        </p>
       </v-expansion-panel-content>
     </v-expansion-panel>
     <v-expansion-panel>
@@ -236,7 +321,7 @@ import {paramHandleArray} from '@/lib/lib'
 import QuestionSet from '@/components/views/faq/mixins/question-set'
 
 const other = [
-  'content-ratings', 'content-policy', 'blacklist', 'watching', 'blocking', 'file-formats',
+  'content-ratings', 'content-policy', 'tagging', 'blacklist', 'watching', 'blocking', 'file-formats',
 ]
   @Component
 export default class Other extends mixins(Viewer, QuestionSet) {
