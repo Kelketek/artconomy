@@ -122,12 +122,12 @@
                       </v-col>
                     </v-row>
                   </v-col>
-                  <v-col class="ml-auto hidden-xs-only shrink" align-self="center">
+                  <v-col class="ml-auto shrink" align-self="center">
                     <v-row dense class="flex-nowrap">
-                      <v-col class="shrink" align-self="center">
+                      <v-col class="shrink hidden-xs-only " align-self="center">
                         <ac-avatar :user="submission.x.owner" :show-name="false"/>
                       </v-col>
-                      <v-col class="shrink" align-self="center">
+                      <v-col class="shrink hidden-xs-only " align-self="center">
                         <v-toolbar-title class="ml-1"><ac-link :to="profileLink(submission.x.owner)">{{submission.x.owner.username}}</ac-link></v-toolbar-title>
                       </v-col>
                       <v-col class="shrink" align-self="center">
