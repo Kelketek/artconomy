@@ -97,6 +97,7 @@ INSTALLED_APPS = [
     'apps.sales.apps.SalesConfig',
     'apps.lib',
     'apps.tg_bot.apps.TGBotConfig',
+    'django_cleanup.apps.CleanupConfig',
 ]
 
 MIDDLEWARE = [
