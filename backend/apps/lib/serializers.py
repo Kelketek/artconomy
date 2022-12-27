@@ -177,7 +177,7 @@ class RelatedAssetField(serializers.UUIDField):
                 val['size'][1],
                 85,
                 '_crop-{}'.format(val.get('crop')) if val.get('crop') else '',
-                thumb_extension,
+                thumb_extension.lower(),
             ))
         values['full'] = make_url(settings.MEDIA_URL + value.name)
         values['__type__'] = 'data:image'
