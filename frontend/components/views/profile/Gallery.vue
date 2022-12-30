@@ -55,8 +55,8 @@ import ArtistTag from '@/types/ArtistTag'
   components: {AcTabNav, AcNewSubmission, AcAddButton, AcTab},
 })
 export default class Gallery extends mixins(Subjective, Upload) {
-  public art: ListController<Submission> = null as unknown as ListController<Submission>
-  public collection: ListController<Submission> = null as unknown as ListController<Submission>
+  public art = null as unknown as ListController<ArtistTag>
+  public collection = null as unknown as ListController<Submission>
   public id = genId()
 
   @Watch('showUpload')

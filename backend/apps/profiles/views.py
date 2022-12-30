@@ -1128,12 +1128,16 @@ class ArtRelationList(ListAPIView):
     Gets all submissions for which the user is marked as an artist via the through table.
     """
     serializer_class = ArtistTagSerializer
-    permission_classes = [ObjectControls]
 
     def get_queryset(self) -> QuerySet:
         user = get_object_or_404(User, username=self.kwargs['username'])
         self.check_object_permissions(self.request, user)
-        return ArtistTag.objects.filter(user=user)
+        manage = self.kwargs.get('manage') and (self.request.user.is_staff or self.request.user == user)
+        if manage:
+            return ArtistTag.objects.filter(user=user)
+        return ArtistTag.objects.filter(
+            user=user, submission_id__in=Subquery(user_submissions(user, self.request, is_artist=True).values('pk')),
+        ).order_by('-display_position')
 
 
 class ArtRelationManager(RetrieveUpdateDestroyAPIView):

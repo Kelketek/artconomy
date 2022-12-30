@@ -67,11 +67,14 @@ urlpatterns = [
         'v1/account/<username>/submissions/', views.SubmissionList.as_view(), name='art_list',
     ),
     path(
-        'v1/account/<username>/submissions/art/', views.FilteredSubmissionList.as_view(), kwargs={'is_artist': True},
+        'v1/account/<username>/submissions/art/', views.ArtRelationList.as_view(), kwargs={'is_artist': True},
         name='art_list',
     ),
     path(
-        'v1/account/<username>/submissions/art/management/', views.ArtRelationList.as_view(), name='art_relation_list',
+        'v1/account/<username>/submissions/art/management/',
+        views.ArtRelationList.as_view(),
+        kwargs={'manage': True},
+        name='art_relation_list',
     ),
     path(
         'v1/account/<username>/submissions/art/management/<short_code:tag_id>/', views.ArtRelationManager.as_view(),

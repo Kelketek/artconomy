@@ -1500,7 +1500,7 @@ class ListTestCase(APITestCase):
             {'is_artist': True}
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIDInList(submission, response.data['results'])
+        self.assertIDInList(submission, [item['submission'] for item in response.data['results']])
         self.assertEqual(1, len(response.data['results']))
 
 
