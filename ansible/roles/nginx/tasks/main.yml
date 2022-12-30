@@ -56,6 +56,7 @@
   template: src=templates/conf.d/{{ item }}.conf dest=/etc/nginx/conf.d/{{ item }}.conf
   with_items:
     - pci
+    - logging
   notify:
     - reload nginx
 
