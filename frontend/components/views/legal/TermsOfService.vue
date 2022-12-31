@@ -11,7 +11,7 @@
         </div>
       </v-col>
       <v-col cols="12">
-        <p><strong>Last updated: December 16, 2022</strong></p>
+        <p><strong>Last updated: December 31, 2022</strong></p>
 
         <p>Please read these Terms of Service ("Terms", "Terms of Service") carefully before using
           the https://artconomy.com/ website (the "Service") operated by
