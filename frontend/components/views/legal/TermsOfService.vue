@@ -11,7 +11,7 @@
         </div>
       </v-col>
       <v-col cols="12">
-        <p><strong>Last updated: November 29, 2019</strong></p>
+        <p><strong>Last updated: December 31, 2022</strong></p>
 
         <p>Please read these Terms of Service ("Terms", "Terms of Service") carefully before using
           the https://artconomy.com/ website (the "Service") operated by
@@ -174,9 +174,41 @@
           law enforcement if it deems necessary.
         </p>
 
-        <h2>Bank Transfers</h2>
-        <p>You expressly authorize Artconomy's service provider, Dwolla, Inc. to originate credit transfers
-          to your financial institution account.</p>
+        <h3>Scope, Intent, and Responsibilities</h3>
+
+        <p>
+          Artconomy's purpose is to provide a marketplace and set of tools to improve the business viability of artists
+          creating custom commission work. As a marketplace, it intends also to connect commissioners with artists.
+          In order to provide this service, users are expected to observe the following:
+        </p>
+
+        <ul>
+          <li>
+            Users offering products for sale of art created by another entity must include that entity's trade name
+            in the relevant product descriptions. This includes human artists, artist collectives, and AI programs which
+            contribute substantially to the final products being delivered.
+          </li>
+          <li>
+            Users are expected to make a best effort to rate and tag content according to the content ratings as
+            described on the relevant FAQ pages. These pages are available at
+            <a href="https://artconomy.com/faq/other/content-ratings">https://artconomy.com/faq/other/content-ratings</a>
+            and
+            <a href="https://artconomy.com/faq/other/tagging">https://artconomy.com/faq/other/tagging</a>.
+          </li>
+          <li>
+            Galleries are intended for the purposes of showcasing the capabilities
+            of artists offering their work, and for showcasing work that users have received from artists. Galleries
+            may not be in conflict with this purpose, nor exhaust resources unreasonably.
+            Examples of galleries in conflict with these principle include unreasonably large galleries, or galleries
+            substantially filled by AI generated content beyond what is needed to demonstrate applicability as a
+            product example or character reference.
+          </li>
+        </ul>
+
+        <p>
+          Accounts in violation of these principles may be subject to disciplinary action,
+          including account suspension and closure.
+        </p>
 
         <h2>Arbitration</h2>
         <p>
