@@ -199,7 +199,7 @@ export default class AcSampleEditor extends mixins(Subjective) {
       })
       this.newSubmission = this.$getForm(`${flatten(this.username)}-newSubmission`, newUploadSchema(this.subjectHandler.user))
       this.art = this.$getList(`${flatten(this.username)}-art`, {
-        endpoint: `/api/profiles/v1/account/${this.username}/submissions/art/`,
+        endpoint: `/api/profiles/v1/account/${this.username}/submissions/sample-options/`,
       })
       this.art.firstRun().catch(() => {})
     }

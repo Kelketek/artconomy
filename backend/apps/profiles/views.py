@@ -1087,6 +1087,10 @@ class FilteredSubmissionList(ListAPIView):
         return user_submissions(user, self.request, self.kwargs.get('is_artist', False)).order_by('-display_position')
 
 
+class RawArtistSubmissionList(FilteredSubmissionList):
+    permission_classes = [ObjectControls]
+
+
 class CollectionManagementList(ListAPIView):
     """
     Shows all items which are uploaded by the user but in which they are not tagged as the artist.
