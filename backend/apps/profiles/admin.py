@@ -9,7 +9,7 @@ from apps.profiles.models import User, Submission, RefColor, ArtistProfile, Char
 
 class ArtconomyUserAdmin(EmailUserAdmin):
     fieldsets = (
-        (None, {'fields': ('username', 'email', 'password', 'guest_email')}),
+        (None, {'fields': ('username', 'email', 'password', 'guest_email', 'notes')}),
         ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser',
                                     'groups', 'user_permissions', 'guest')}),
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
