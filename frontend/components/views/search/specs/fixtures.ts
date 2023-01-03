@@ -15,6 +15,7 @@ export default function searchSchema() {
       minimum_content_rating: {value: 0, omitIf: 0},
       max_price: {value: '', omitIf: ''},
       min_price: {value: '', omitIf: ''},
+      max_turnaround: {value: '', omitIf: ''},
       size: {value: 24},
       page: {value: 1},
     },

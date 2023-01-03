@@ -657,6 +657,7 @@ export function searchSchema() {
       minimum_content_rating: {value: 0, omitIf: 0},
       max_price: {value: '', omitIf: ''},
       min_price: {value: '', omitIf: ''},
+      max_turnaround: {value: '', omitIf: ''},
       page: {value: 1},
       size: {value: 24},
     },

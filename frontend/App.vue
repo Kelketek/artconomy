@@ -307,6 +307,7 @@ export default class App extends mixins(Viewer, Nav, PrerenderMixin, RatingRefre
     this.searchForm.fields.lgbt.update(fallbackBoolean(query, 'lgbt', false))
     this.searchForm.fields.max_price.update(fallback(query, 'max_price', ''))
     this.searchForm.fields.min_price.update(fallback(query, 'min_price', ''))
+    this.searchForm.fields.max_turnaround.update(fallback(query, 'max_turnaround', ''))
     this.searchForm.fields.page.update(fallback(query, 'page', 1))
     this.$store.commit('setSearchInitialized', true)
     // Make damn sure that the NavBar doesn't load before we have fully initialized search.

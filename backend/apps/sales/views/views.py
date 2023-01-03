@@ -1469,6 +1469,7 @@ class ProductSearch(ListAPIView):
         query = search_serializer.validated_data.get('q', '')
         max_price = search_serializer.validated_data.get('max_price', None)
         min_price = search_serializer.validated_data.get('min_price', None)
+        max_turnaround = search_serializer.validated_data.get('max_turnaround', None)
         shield_only = search_serializer.validated_data.get('shield_only', False)
         by_rating = search_serializer.validated_data.get('rating', False)
         featured = search_serializer.validated_data.get('featured', False)
@@ -1489,6 +1490,8 @@ class ProductSearch(ListAPIView):
             products = products.filter(starting_price__lte=max_price)
         if min_price:
             products = products.filter(starting_price__gte=min_price)
+        if max_turnaround:
+            products = products.filter(expected_turnaround__lte=max_turnaround)
         if watchlist_only:
             products = products.filter(user__in=self.request.user.watching.all())
         if shield_only:

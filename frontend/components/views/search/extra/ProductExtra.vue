@@ -13,6 +13,7 @@
                 <v-chip v-if="searchForm.fields.rating.value" color="yellow" class="mx-1" light>high rated</v-chip>
                 <v-chip v-if="searchForm.fields.max_price.value" color="red" class="mx-1">max price</v-chip>
                 <v-chip v-if="searchForm.fields.min_price.value" color="black" class="mx-1">min price</v-chip>
+                <v-chip v-if="searchForm.fields.max_turnaround.value" color="teal" class="mx-1">max turnaround</v-chip>
                 <v-chip v-if="searchForm.fields.artists_of_color.value" color="orange" class="mx-1" light>Artists of Color</v-chip>
                 <v-chip v-if="searchForm.fields.lgbt.value" color="purple" class="mx-1">LGBT+</v-chip>
                 <v-chip v-if="searchForm.fields.minimum_content_rating.value" color="white" light class="mx-1">Content
@@ -79,7 +80,7 @@
                     hint="Find products from LGBTQ+ artists."
                   />
                 </v-col>
-                <v-col cols="12" sm="6" :md="showRatings ? 4 : 6">
+                <v-col cols="12" sm="6" md="4">
                   <ac-bound-field
                     :field="searchForm.fields.max_price"
                     label="Max Price"
@@ -87,7 +88,7 @@
                     hint="Only show products with a price equal to or lower than this amount."
                   />
                 </v-col>
-                <v-col cols="12" sm="6" :md="showRatings ? 4 : 6">
+                <v-col cols="12" sm="6" md="4">
                   <ac-bound-field
                     :field="searchForm.fields.min_price"
                     label="Min Price"
@@ -95,7 +96,17 @@
                     hint="Only show products with a price equal to or higher than this amount."
                   />
                 </v-col>
-                <v-col cols="12" sm="6" md="4" v-if="showRatings">
+                <v-col cols="12" sm="6" md="4">
+                  <ac-bound-field
+                    :field="searchForm.fields.max_turnaround"
+                    label="Max Turnaround"
+                    :persistent-hint="true"
+                    hint="Only show products with an estimated turnaround, in days, at or lower than this."
+                  />
+                </v-col>
+              </v-row>
+              <v-row v-if="showRatings">
+                <v-col sm="10" md="10" offset-lg="1" offset-sm="1">
                   <ac-bound-field
                       :field="searchForm.fields.minimum_content_rating"
                       field-type="v-select"
