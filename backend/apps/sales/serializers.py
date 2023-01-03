@@ -775,6 +775,7 @@ class SearchQuerySerializer(serializers.Serializer):
     lgbt = serializers.BooleanField(required=False)
     min_price = serializers.DecimalField(decimal_places=2, max_digits=6, required=False)
     max_price = serializers.DecimalField(decimal_places=2, max_digits=6, required=False)
+    max_turnaround = serializers.DecimalField(decimal_places=2, max_digits=6, required=False)
 
     def validate_content_ratings(self, value):
         return [int(val) for val in value.split(',')]
