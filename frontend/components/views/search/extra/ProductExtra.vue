@@ -13,7 +13,7 @@
                 <v-chip v-if="searchForm.fields.rating.value" color="yellow" class="mx-1" light>high rated</v-chip>
                 <v-chip v-if="searchForm.fields.max_price.value" color="red" class="mx-1">max price</v-chip>
                 <v-chip v-if="searchForm.fields.min_price.value" color="black" class="mx-1">min price</v-chip>
-                <v-chip v-if="searchForm.fields.max_turnaround.value" color="red" class="mx-1">max turnaround</v-chip>
+                <v-chip v-if="searchForm.fields.max_turnaround.value" color="teal" class="mx-1">max turnaround</v-chip>
                 <v-chip v-if="searchForm.fields.artists_of_color.value" color="orange" class="mx-1" light>Artists of Color</v-chip>
                 <v-chip v-if="searchForm.fields.lgbt.value" color="purple" class="mx-1">LGBT+</v-chip>
                 <v-chip v-if="searchForm.fields.minimum_content_rating.value" color="white" light class="mx-1">Content

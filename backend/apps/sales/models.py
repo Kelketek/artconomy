@@ -319,7 +319,7 @@ class Deliverable(Model):
         validators=[MinValueValidator(settings.MINIMUM_TURNAROUND)],
         help_text="Number of days completion is expected to take.",
         max_digits=5, decimal_places=2,
-        default=0,
+        default=0, db_index=True
     )
     created_on = DateTimeField(db_index=True, default=timezone.now)
     disputed_on = DateTimeField(blank=True, null=True, db_index=True)
