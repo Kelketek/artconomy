@@ -94,6 +94,7 @@ class Product(ImageModel, HitsMixin):
     track_inventory = BooleanField(default=False, db_index=True)
     catalog_enabled = BooleanField(default=False, db_index=True)
     revisions = IntegerField(validators=[MinValueValidator(0), MaxValueValidator(10)])
+    international = BooleanField(default=False, db_index=True)
     max_parallel = IntegerField(
         validators=[MinValueValidator(0)], help_text="How many of these you are willing to have in your "
                                                      "backlog at one time.",
@@ -146,6 +147,9 @@ class Product(ImageModel, HitsMixin):
                 ),
             ])
         elif self.base_price and not self.escrow_disabled:
+            percentage_price = plan.shield_percentage_price
+            if self.international:
+                percentage_price += settings.INTERNATIONAL_CONVERSION_PERCENTAGE
             lines.extend([
                 LineItemSim(
                     id=200,
@@ -206,6 +210,9 @@ class Product(ImageModel, HitsMixin):
     def save(self, *args, **kwargs):
         self.starting_price = self.get_starting_price()
         self.owner = self.user
+        self.international = StripeAccount.objects.filter(
+            user=self.user,
+        ).exclude(country=settings.SOURCE_COUNTRY).exists()
         result = self.wrap_operation(super().save, *args, **kwargs)
         if self.primary_submission:
             self.samples.add(self.primary_submission)
@@ -299,6 +306,7 @@ class Deliverable(Model):
     trust_finalized = BooleanField(default=False, db_index=True)
     cascade_fees = BooleanField(default=True)
     table_order = BooleanField(default=False, db_index=True)
+    international = BooleanField(default=False)
     service_invoice_marked = BooleanField(default=False, db_index=True)
     expected_turnaround = DecimalField(
         validators=[MinValueValidator(settings.MINIMUM_TURNAROUND)],
@@ -381,6 +389,10 @@ class Deliverable(Model):
     def save(self, *args, **kwargs):
         if self.table_order:
             self.escrow_disabled = False
+        if self.status in [NEW, PAYMENT_PENDING, WAITING]:
+            self.international = StripeAccount.objects.filter(
+                user=self.order.seller,
+            ).exclude(country=settings.SOURCE_COUNTRY).exists()
         super().save(*args, **kwargs)
 
 
@@ -538,7 +550,7 @@ def idempotent_lines(instance: Deliverable):
         instance.invoice.record_only = False
     elif escrow_enabled:
         percentage = plan.shield_percentage_price
-        if StripeAccount.objects.filter(user=instance.order.seller).exclude(country=settings.SOURCE_COUNTRY).exists():
+        if instance.international:
             percentage += settings.INTERNATIONAL_CONVERSION_PERCENTAGE
         line = main_qs.update_or_create(
             defaults={
@@ -546,7 +558,7 @@ def idempotent_lines(instance: Deliverable):
                 'amount': plan.shield_static_price,
                 'cascade_percentage': instance.cascade_fees,
                 'cascade_amount': instance.cascade_fees,
-                'back_into_percentage': not cascade,
+                'back_into_percentage': not instance.cascade_fees,
             },
             invoice=instance.invoice,
             destination_user=None, destination_account=UNPROCESSED_EARNINGS, type=SHIELD,
@@ -710,6 +722,7 @@ def update_deliverable_line_items(sender, instance, **kwargs):
 @disable_on_load
 def update_tracker_availability(sender, instance, **kwargs):
     update_product_availability(sender, instance.product, **kwargs)
+
 
 @receiver(post_delete, sender=InventoryTracker)
 @disable_on_load
@@ -1219,6 +1232,15 @@ class StripeAccount(Model):
         with stripe as api:
             api.Account.delete(self.token)
         return super(StripeAccount, self).delete()
+
+
+@receiver(post_save, sender=StripeAccount)
+def update_stripe_products(instance, *args, **kwargs):
+    international = instance.country != settings.SOURCE_COUNTRY
+    # Need to invoke post_save hooks on the products
+    for product in instance.user.products.all():
+        product.international = international
+        product.save()
 
 
 class ServicePlan(models.Model):

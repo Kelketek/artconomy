@@ -35,6 +35,7 @@ export default interface Deliverable {
   escrow_disabled: boolean,
   revisions_hidden: boolean,
   table_order: boolean,
+  international: boolean,
   final_uploaded: boolean,
   rating: Ratings,
   processor: PROCESSORS,

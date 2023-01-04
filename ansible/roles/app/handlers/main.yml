@@ -66,6 +66,16 @@
     warn: false
 
 
+- name: Set international product flags
+  become: yes
+  become_user: "{{ env_prefix }}"
+  shell: "source ~/.profile && source ~/bin/activate && cd ~/artconomy && ./manage.py set_international_flags && touch {{home}}/.international-product-flags-set"
+  args:
+    executable: "/bin/bash"
+    creates: "{{ home }}/.international-product-flags-set"
+    warn: false
+
+
 - name: Create anonymous user
   become: yes
   become_user: "{{ env_prefix }}"

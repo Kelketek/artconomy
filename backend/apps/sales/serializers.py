@@ -6,11 +6,8 @@ from urllib.parse import urlparse
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
-from django.core.validators import RegexValidator, EmailValidator, MinValueValidator
+from django.core.validators import EmailValidator, MinValueValidator
 from django.db.models import Sum, QuerySet, Q
-from django.urls import reverse
-from django.utils.datetime_safe import datetime, date
-from luhn import verify
 from moneyed import Money
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -27,7 +24,7 @@ from apps.lib.serializers import (
     RelatedUserSerializer, RelatedAssetField, EventTargetRelatedField, SubscribedField,
     TagListField, RelatedAtomicMixin,
     MoneyToFloatField)
-from apps.lib.utils import country_choices, add_check, check_read, demark, FakeRequest
+from apps.lib.utils import add_check, check_read
 from apps.profiles.models import User, Submission, Character
 from apps.profiles.serializers import CharacterSerializer, SubmissionSerializer
 from apps.profiles.utils import available_users
@@ -40,11 +37,9 @@ from apps.sales.models import (
     Deliverable, Reference,
     StripeAccount, Invoice, StripeReader, ServicePlan,
 )
-from apps.sales.stripe import stripe
 from apps.sales.utils import account_balance, PENDING, POSTED_ONLY, AVAILABLE, order_context, \
     order_context_to_link
 from apps.sales.line_item_funcs import get_totals
-from shortcuts import make_url
 
 
 class ProductMixin:
@@ -97,9 +92,9 @@ class ProductSerializer(ProductMixin, RelatedAtomicMixin, serializers.ModelSeria
             'id', 'name', 'description', 'revisions', 'hidden', 'max_parallel', 'max_rating', 'task_weight',
             'expected_turnaround', 'user', 'base_price', 'starting_price', 'tags', 'available', 'primary_submission',
             'featured', 'hits', 'escrow_disabled', 'table_product', 'track_inventory', 'wait_list', 'catalog_enabled',
-            'cascade_fees',
+            'cascade_fees', 'international',
         )
-        read_only_fields = ('tags', 'featured', 'table_product', 'starting_price')
+        read_only_fields = ('tags', 'featured', 'table_product', 'starting_price', 'international')
         extra_kwargs = {'price': {'required': True}}
 
 
@@ -385,7 +380,7 @@ class DeliverableSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
             'auto_finalize_on', 'started_on', 'escrow_disabled', 'revisions_hidden', 'final_uploaded', 'arbitrator',
             'display', 'rating', 'commission_info', 'adjustment_revisions',
             'table_order', 'trust_finalized', 'order', 'name', 'product', 'read', 'processor',
-            'invoice', 'cascade_fees',
+            'invoice', 'cascade_fees', 'international',
         )
         read_only_fields = [field for field in fields if field != 'subscribed']
         extra_kwargs = {

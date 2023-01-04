@@ -19,6 +19,7 @@ export default interface Product {
   tags: string[],
   available: boolean,
   featured: boolean,
+  international: boolean,
   track_inventory: boolean,
   table_product: boolean,
   primary_submission: null|Submission,

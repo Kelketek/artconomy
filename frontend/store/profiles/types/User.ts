@@ -23,6 +23,7 @@ export interface User {
   stars: number | null,
   rating_count: number,
   landscape: boolean,
+  international: boolean,
   landscape_enabled: boolean,
   offered_mailchimp: boolean,
   artist_mode: boolean,

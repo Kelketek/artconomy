@@ -47,7 +47,9 @@
   {% for file in app_js_files %}
     <script type=module src="{{file.url}}"></script>
   {% endfor %}
-  {% get_files 'app' 'js' config='LEGACY' as app_legacy_js_files %}
+  {%  if render_legacy %}
+    {% get_files 'app' 'js' config='LEGACY' as app_legacy_js_files %}
+  {% endif %}
   {% for file in app_legacy_js_files %}
     <script src="{{file.url}}" nomodule></script>
   {% endfor %}

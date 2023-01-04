@@ -603,12 +603,14 @@ export default class ProductDetail extends mixins(ProductCentric, Formatting, Ed
       const basePrice = parseFloat(this.product.patchers.base_price.model)
       // eslint-disable-next-line camelcase
       const planName = this.subject?.service_plan
+      const international = this.product.x.international
       const cascade = this.product.x.cascade_fees
       const escrowDisabled = this.product.x.escrow_disabled
       const tableProduct = this.product.x.table_product
       const lines = deliverableLines({
         basePrice,
         cascade,
+        international,
         planName,
         pricing,
         escrowDisabled,

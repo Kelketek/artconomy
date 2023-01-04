@@ -201,12 +201,13 @@ export function invoiceLines(
     planName: string|null|undefined,
     pricing: Pricing|null,
     value: string,
+    international: boolean,
     escrowDisabled: boolean,
     product: Product|null,
     cascade: boolean,
   },
 ) {
-  const {planName, pricing, value, escrowDisabled, product, cascade} = options
+  const {planName, pricing, value, international, escrowDisabled, product, cascade} = options
   const extraLines = []
   let addOnPrice = parseFloat(value)
   let basePrice: number
@@ -237,120 +238,21 @@ export function invoiceLines(
     basePrice,
     planName,
     pricing,
+    international,
     escrowDisabled,
     tableProduct,
     cascade,
     extraLines,
   })
-  // const shieldLines: LineItem[] = [
-  //   {
-  //     id: -5,
-  //     priority: 300,
-  //     type: LineTypes.SHIELD,
-  //     cascade_percentage: true,
-  //     cascade_amount: cascade,
-  //     back_into_percentage: false,
-  //     amount: plan.shield_static_price,
-  //     frozen_value: null,
-  //     percentage: plan.shield_percentage_price,
-  //     description: '',
-  //   },
-  // ]
-  // if (product) {
-  //   lines.push({
-  //     id: -1,
-  //     priority: 0,
-  //     type: LineTypes.BASE_PRICE,
-  //     amount: product.base_price,
-  //     frozen_value: null,
-  //     percentage: 0,
-  //     description: '',
-  //     cascade_amount: false,
-  //     cascade_percentage: false,
-  //     back_into_percentage: false,
-  //   })
-  //   addOnPrice = addOnPrice - product.starting_price
-  //   if (!isNaN(addOnPrice) && addOnPrice) {
-  //     lines.push({
-  //       id: -2,
-  //       priority: 100,
-  //       type: LineTypes.ADD_ON,
-  //       amount: addOnPrice,
-  //       frozen_value: null,
-  //       percentage: 0,
-  //       description: '',
-  //       cascade_amount: false,
-  //       cascade_percentage: false,
-  //       back_into_percentage: false,
-  //     })
-  //   }
-  //   if (product.table_product) {
-  //     lines.push({
-  //       id: -3,
-  //       priority: 400,
-  //       type: LineTypes.TABLE_SERVICE,
-  //       cascade_percentage: cascade,
-  //       cascade_amount: false,
-  //       back_into_percentage: false,
-  //       amount: pricing.table_static,
-  //       frozen_value: null,
-  //       percentage: pricing.table_percentage,
-  //       description: '',
-  //     }, {
-  //       id: -4,
-  //       priority: 700,
-  //       type: LineTypes.TAX,
-  //       cascade_percentage: cascade,
-  //       cascade_amount: cascade,
-  //       back_into_percentage: true,
-  //       percentage: pricing.table_tax,
-  //       description: '',
-  //       amount: 0,
-  //       frozen_value: null,
-  //     })
-  //   } else if (!escrowDisabled) {
-  //     lines.push(...shieldLines)
-  //   }
-  // } else if (!isNaN(addOnPrice)) {
-  //   lines.push({
-  //     id: -1,
-  //     priority: 0,
-  //     type: LineTypes.BASE_PRICE,
-  //     amount: addOnPrice,
-  //     frozen_value: null,
-  //     percentage: 0,
-  //     description: '',
-  //     cascade_amount: false,
-  //     cascade_percentage: false,
-  //     back_into_percentage: false,
-  //   })
-  //   if (!escrowDisabled) {
-  //     lines.push(...shieldLines)
-  //   }
-  // }
-  // if (escrowDisabled && plan.per_deliverable_price && (!(product && product.table_product))) {
-  //   lines.push({
-  //     id: -6,
-  //     priority: 115,
-  //     type: LineTypes.DELIVERABLE_TRACKING,
-  //     cascade_percentage: true,
-  //     cascade_amount: cascade,
-  //     back_into_percentage: false,
-  //     amount: plan.per_deliverable_price,
-  //     frozen_value: null,
-  //     percentage: 0,
-  //     description: '',
-  //   })
-  // }
-  // return lines
 }
 
 export const deliverableLines = ({
-  basePrice, tableProduct, cascade, pricing, planName, escrowDisabled, extraLines,
+  basePrice, tableProduct, cascade, international, pricing, planName, escrowDisabled, extraLines,
 }: {
   basePrice: number,
   escrowDisabled: boolean,
   tableProduct: boolean,
+  international: boolean,
   cascade: boolean,
   planName: string|null|undefined,
   pricing: Pricing|null,
@@ -405,6 +307,10 @@ export const deliverableLines = ({
       frozen_value: null,
     })
   } else if (!escrowDisabled) {
+    let percentagePrice = plan.shield_percentage_price
+    if (international) {
+      percentagePrice += pricing.international_conversion_percentage
+    }
     lines.push({
       id: -4,
       priority: 300,
@@ -413,12 +319,11 @@ export const deliverableLines = ({
       cascade_amount: cascade,
       amount: plan.shield_static_price,
       frozen_value: null,
-      percentage: plan.shield_percentage_price,
+      percentage: percentagePrice,
       back_into_percentage: !cascade,
       description: '',
     })
   }
   lines.push(...extraLines)
-  console.log(lines)
   return lines
 }

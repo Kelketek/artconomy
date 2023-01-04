@@ -179,13 +179,11 @@ import {Prop} from 'vue-property-decorator'
 import AcPricePreview from '@/components/price_preview/AcPricePreview.vue'
 import {FormController} from '@/store/forms/form-controller'
 import Product from '@/types/Product'
-import LineItem from '@/types/LineItem'
-import {LineTypes} from '@/types/LineTypes'
 import {SingleController} from '@/store/singles/controller'
 import Pricing from '@/types/Pricing'
 import {flatten} from '@/lib/lib'
 import {Ratings} from '@/store/profiles/types/Ratings'
-import { deliverableLines } from '@/lib/lineItemFunctions'
+import {deliverableLines} from '@/lib/lineItemFunctions'
 
 @Component({components: {AcPricePreview, AcBoundField, AcPatchField, AcLoadSection, AcFormDialog}})
 export default class AcNewProduct extends Subjective {
@@ -212,12 +210,14 @@ export default class AcNewProduct extends Subjective {
       const basePrice = parseFloat(this.newProduct.fields.base_price.value)
       // eslint-disable-next-line camelcase
       const planName = this.subject?.service_plan
+      const international = !!this.subject?.international
       const cascade = this.newProduct.fields.cascade_fees.value
       const escrowDisabled = !this.escrow
       const tableProduct = this.newProduct.fields.table_product.value
       const lines = deliverableLines({
         basePrice,
         cascade,
+        international,
         planName,
         pricing,
         escrowDisabled,

@@ -549,6 +549,14 @@ export default class DeliverableDetail extends mixins(
     )
   }
 
+  public get international() {
+    // Note: This flag is currently used for new invoices based on the current deliverable-- I.E.,
+    // multi-stage orders. This assumes the artist has not migrated to or from the US between creating
+    // and issuing the next stage. This is such an edge case that I'm leaving this bug in for now,
+    // however, it should be addressed when we refactor multi-stage orders to be more intuitive.
+    return !!this.deliverable.x?.international
+  }
+
   public get invoiceEscrowDisabled() {
     if (!this.sellerHandler.artistProfile.x) {
       return true

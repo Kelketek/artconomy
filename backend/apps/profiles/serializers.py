@@ -490,7 +490,7 @@ class UserSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
 
     def get_international(self, obj):
         from apps.sales.models import StripeAccount
-        return StripeAccount.objects.filter(user=obj, country=settings.SOURCE_COUNTRY).exists()
+        return StripeAccount.objects.filter(user=obj).exclude(country=settings.SOURCE_COUNTRY).exists()
 
     def get_service_plan(self, obj):
         return obj.service_plan.name

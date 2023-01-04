@@ -73,6 +73,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'daphne',
     'django.contrib.staticfiles',
     'django_premailer',
     'djcelery_email',
@@ -100,6 +101,7 @@ INSTALLED_APPS = [
     'django_cleanup.apps.CleanupConfig',
     'apps.discord_bot.apps.DiscordBotConfig'
 ]
+
 
 MIDDLEWARE = [
     'apps.lib.middleware.GlobalRequestMiddleware',
@@ -216,11 +218,15 @@ WEBPACK_LOADER = {
         'STATS_FILE': os.path.join(BASE_DIR, pack_file_name),
         'CACHE': not DEBUG
     },
-    'LEGACY': {
+}
+
+if not (DEBUG or TESTING):
+    # Legacy bundle only produced in production/stage environments.
+    WEBPACK_LOADER['LEGACY'] = {
         'BUNDLE_DIR_NAME': '',
         'STATS_FILE': os.path.join(BASE_DIR, 'webpack-stats-legacy.json'),
     }
-}
+
 
 THUMBNAIL_ALIASES = {
     'profiles.Submission.file': {

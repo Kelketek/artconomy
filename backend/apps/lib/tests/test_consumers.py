@@ -80,7 +80,7 @@ class TestConsumer(EnsurePlansMixin, TransactionTestCase):
         await com.receive_nothing()
         deliverable.details = 'boop'
         await SA(deliverable.save)()
-        updated = await com.receive_json_from()
+        updated = await com.receive_json_from(timeout=1)
         self.assertEqual(updated['command'], f'sales.Deliverable.update.DeliverableSerializer.{deliverable.id}')
         self.assertEqual(updated['payload']['details'], 'boop')
 
@@ -140,7 +140,7 @@ class TestConsumer(EnsurePlansMixin, TransactionTestCase):
         )
         await com.receive_nothing()
         line_item = await SA(LineItemFactory.create)(invoice=deliverable.invoice)
-        new_item = await com.receive_json_from()
+        new_item = await com.receive_json_from(timeout=1)
         self.assertEqual(new_item['command'], f'sales.Deliverable.pk.{deliverable.id}.line_items.LineItemSerializer.new')
         self.assertEqual(new_item['payload']['id'], line_item.id)
 
@@ -164,5 +164,5 @@ class TestConsumer(EnsurePlansMixin, TransactionTestCase):
         # This will disappear when we delete.
         deliverable_id = deliverable.id
         await SA(deliverable.delete)()
-        delete_command = await com.receive_json_from()
+        delete_command = await com.receive_json_from(timeout=1)
         self.assertEqual(delete_command['command'], f'sales.Deliverable.delete.{deliverable_id}')

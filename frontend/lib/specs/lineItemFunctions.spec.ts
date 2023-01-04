@@ -531,6 +531,7 @@ describe('lineItemFunctions.ts', () => {
       value: '25.00',
       product: null,
       cascade: true,
+      international: false,
       planName: 'Basic',
     })).toEqual([
       {
@@ -566,6 +567,7 @@ describe('lineItemFunctions.ts', () => {
       value: '25.00',
       product: genProduct(),
       cascade: true,
+      international: false,
       planName: 'Basic',
     })).toEqual([
       {
@@ -613,6 +615,7 @@ describe('lineItemFunctions.ts', () => {
       value: '25.00',
       product: genProduct({table_product: true}),
       cascade: true,
+      international: false,
       planName: 'Basic',
     })).toEqual([
       {
@@ -672,6 +675,7 @@ describe('lineItemFunctions.ts', () => {
       value: '25.00',
       product: null,
       cascade: true,
+      international: false,
       planName: 'Basic',
     })).toEqual([
       {
@@ -707,6 +711,7 @@ describe('lineItemFunctions.ts', () => {
       value: '25.00',
       product: genProduct(),
       cascade: true,
+      international: false,
       planName: 'Basic',
     })).toEqual([
       {
@@ -754,6 +759,7 @@ describe('lineItemFunctions.ts', () => {
       value: 'boop',
       product: genProduct(),
       cascade: true,
+      international: false,
       planName: 'Basic',
     })).toEqual([
       {
@@ -789,6 +795,7 @@ describe('lineItemFunctions.ts', () => {
       value: 'boop',
       product: null,
       cascade: true,
+      international: false,
       planName: 'Basic',
     })).toEqual([{
       amount: 1.35,

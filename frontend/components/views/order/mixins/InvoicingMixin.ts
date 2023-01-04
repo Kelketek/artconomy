@@ -13,6 +13,7 @@ export default class InvoicingMixin extends Vue {
   public newInvoice!: FormController
   public sellerName!: string
   public invoiceEscrowDisabled!: boolean
+  public international!: boolean
 
   public invoiceProduct: SingleController<Product> = null as unknown as SingleController<Product>
   public pricing: SingleController<Pricing> = null as unknown as SingleController<Pricing>
@@ -65,6 +66,7 @@ export default class InvoicingMixin extends Vue {
       planName: this.planName,
       cascade: this.newInvoice.fields.cascade_fees.value,
       pricing: (this.pricing.x || null),
+      international: this.international,
       escrowDisabled: this.invoiceEscrowDisabled,
       product: (this.invoiceProduct.x || null),
       value: this.newInvoice.fields.price.value,

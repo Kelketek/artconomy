@@ -28,6 +28,10 @@ export default class DummyInvoice extends mixins(InvoicingMixin) {
     return this.username
   }
 
+  public get international() {
+    return false
+  }
+
   public get planName() {
     return 'Basic'
   }

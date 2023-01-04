@@ -38,6 +38,7 @@ export function genUser(overrides?: Partial<User>): User {
     telegram_link: 'https://t.me/ArtconomyDevBot/?start=Fox_a0b1a06d-7f8d-4294-96d9-4e3713',
     offered_mailchimp: true,
     artist_mode: true,
+    international: false,
     hits: 1,
     watches: 0,
     guest_email: '',
@@ -124,6 +125,7 @@ export function genProduct(overrides?: Partial<Product>): Product {
     expected_turnaround: 3.00,
     track_inventory: false,
     table_product: false,
+    international: false,
     escrow_disabled: false,
     user: {
       id: 1,
@@ -167,6 +169,7 @@ export function genDeliverable(overrides?: Partial<Deliverable>): Deliverable {
     outputs: [],
     subscribed: true,
     table_order: false,
+    international: false,
     adjustment_task_weight: 0,
     adjustment_expected_turnaround: 0,
     expected_turnaround: 1,

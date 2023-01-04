@@ -11,13 +11,13 @@ bs4
 celery
 # Channels handles async connections to Django that can be subscribed and published to.
 # This is used for managing websockets.
-channels==3.0.5
+channels>=4.0.0,<5.0.0
 # Uses Redis as the backend for Channels
 channels-redis
 # Checks how many lines are run during tests
 coverage
-# Base websocket server used by Django-channels in dev/testing
-daphne
+# Base websocket server used by Django-channels
+channels[daphne]
 # DDT 'Data Driven Tests'-- allows us to parameterize tests so we can write them once with several different inputs.
 ddt
 # The library we use for our Discord bot
