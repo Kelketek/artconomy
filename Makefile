@@ -29,5 +29,5 @@ test_backend:
 	${APP_COMMAND} "./manage.py test --parallel=${TEST_THREADS}"
 
 upgrade:
-	${APP_COMMAND} "pip-compile requirements.in"
-	${APP_COMMAND} "pip-compile deploy_requirements.in"
+	${APP_COMMAND} "pip-compile --resolver=backtracking requirements.in"
+	${APP_COMMAND} "pip-compile --resolver=backtracking deploy_requirements.in"

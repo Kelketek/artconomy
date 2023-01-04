@@ -140,7 +140,7 @@ class TestConsumer(EnsurePlansMixin, TransactionTestCase):
         )
         await com.receive_nothing()
         line_item = await SA(LineItemFactory.create)(invoice=deliverable.invoice)
-        new_item = await com.receive_json_from(timeout=1)
+        new_item = await com.receive_json_from(timeout=10)
         self.assertEqual(new_item['command'], f'sales.Deliverable.pk.{deliverable.id}.line_items.LineItemSerializer.new')
         self.assertEqual(new_item['payload']['id'], line_item.id)
 

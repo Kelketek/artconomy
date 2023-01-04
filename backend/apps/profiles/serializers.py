@@ -338,7 +338,7 @@ class SubmissionMixin:
         return ProductSerializer(instance=obj.deliverable.product, context=self.context).data
 
     def get_thumbnail_url(self, obj):
-        return self.context['request'].build_absolute_uri(obj.file.file.url)
+        return self.context['request'].build_absolute_uri(obj.file.file.re_path)
 
 
 class SubmissionManagementSerializer(RelatedAtomicMixin, SubmissionMixin, serializers.ModelSerializer):

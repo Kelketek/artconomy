@@ -486,6 +486,10 @@ AVATAR_EXPOSE_USERNAMES = False
 
 AVATAR_THUMB_FORMAT = 'PNG'
 
+# Django-avatar chokes when deleting files in a test environment
+if TESTING:
+    AVATAR_CLEANUP_DELETED = False
+
 # Default: one year.
 SESSION_COOKIE_AGE = int(get_env('SESSION_COOKIE_AGE', str(60 * 60 * 24 * 365)))
 
@@ -583,4 +587,5 @@ MASTODON_PROFILES = get_env(
 DISCORD_BOT_KEY = get_env('DISCORD_BOT_KEY', 'fake-bot-key')
 DISCORD_CLIENT_KEY = get_env('DISCORD_CLIENT_KEY', 'discord-client-key')
 DISCORD_CLIENT_SECRET = get_env('DISCORD_CLIENT_SECRET', 'discord-client-secret')
-DISCORD_GUILD_ID = int(get_env('DISCORD_GUILD_ID', '12345678'))
+# Explicitly set to empty string if not filled out in .env file by docker-compose
+DISCORD_GUILD_ID = int(get_env('DISCORD_GUILD_ID', '12345678') or '0')

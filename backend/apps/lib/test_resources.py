@@ -1,14 +1,10 @@
 import ctypes
-import inspect
-import json
 import multiprocessing
 import os
 import platform
 import time
 from decimal import Decimal
-from io import StringIO
 from multiprocessing import Queue
-from pathlib import Path
 from pprint import pformat
 from subprocess import call
 from tempfile import TemporaryDirectory
@@ -149,7 +145,7 @@ class CoveredParallelTestSuite(ParallelTestSuite):
             initargs=[counter],
         )
         args = [
-            (self.runner_class, index, subsuite, self.failfast)
+            (self.runner_class, index, subsuite, self.failfast, self.buffer)
             for index, subsuite in enumerate(self.subsuites)
         ]
         test_results = pool.imap_unordered(self.run_subsuite.__func__, args)

@@ -13,7 +13,6 @@ from apps.lib.tests.factories_interdepend import CommentFactory
 from apps.profiles.models import ArtconomyAnonymousUser
 from apps.profiles.tests.factories import UserFactory, SubmissionFactory, CharacterFactory, AvatarFactory
 from apps.profiles.utils import extend_landscape, empty_user, clear_user, UserClearException
-from apps.sales.models import TransactionRecord
 from apps.sales.constants import WAITING, NEW, PAYMENT_PENDING, IN_PROGRESS, CANCELLED, HOLDINGS, SUCCESS, PENDING
 from apps.sales.tests.factories import DeliverableFactory, TransactionRecordFactory, ProductFactory, BankAccountFactory
 

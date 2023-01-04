@@ -86,7 +86,7 @@ class AttributeFactory(DjangoModelFactory):
 
 class AvatarFactory(DjangoModelFactory):
     user = SubFactory(UserFactory)
-    avatar = ImageField(color='blue')
+    avatar = ImageField(color='blue', name=Sequence(lambda x: f'{x}.pg'))
     primary = True
 
     class Meta:

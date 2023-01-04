@@ -25,9 +25,9 @@ discord-py-interactions
 # Used to generate thumbnails for submissions.
 easy_thumbnails
 # The Django web framework is Artconomy's base web framework.
-Django>=3.2.16,<3.3.0
+Django>=4.1,<=4.2
 # Application which handles avatars for users, including default avatars.
-django-avatar>=5.0.0,<6
+django-avatar>=7.0.0,<8.0.0
 # Allows emails to be sent asynchronously via celery
 django-celery-email
 # Utilities for deleting orphaned files. Django doesn't delete files from the HD automatically
@@ -54,7 +54,7 @@ djangorestframework==3.12.4
 # Extension for Django REST Framework to allow bulk updates of items
 djangorestframework-bulk
 # Django REST field for completing a recaptcha-compatible captcha
-django-rest-recaptcha
+git+https://github.com/Artconomy/django-rest-recaptcha.git@django-4.0#egg=django-rest-recaptcha
 # Allows for Django REST endpoints to respond in CSV format when enabled
 djangorestframework-csv
 # Stores old versions of a model in the database so they can be reverted or reviewed. We use this on order comments
