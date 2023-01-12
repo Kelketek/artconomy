@@ -413,11 +413,14 @@ describe('ProductDetail.vue', () => {
     expect(totalForTypes(getTotals(vm.lineItems.list.map(
       (x: SingleController<LineItem>) => x.x)),
     [LineTypes.TABLE_SERVICE]),
-    ).toEqual(Big('5.46'))
+    ).toEqual(Big('5.54'))
     expect(totalForTypes(getTotals(vm.lineItems.list.map(
       (x: SingleController<LineItem>) => x.x)),
-    [LineTypes.SHIELD, LineTypes.BONUS]),
+    [LineTypes.SHIELD, LineTypes.BONUS, LineTypes.DELIVERABLE_TRACKING]),
     ).toEqual(Big('0'))
+    expect(getTotals(vm.lineItems.list.map(
+      (x: SingleController<LineItem>) => x.x)).total,
+    ).toEqual(Big('15'))
   })
   it('Handles a shield product', async() => {
     prepData()

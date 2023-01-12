@@ -71,7 +71,7 @@ from apps.sales.utils import available_products, \
     POSTED_ONLY, PENDING, transfer_order, early_finalize, cancel_deliverable, \
     verify_total, ensure_buyer, \
     pay_deliverable, \
-    invoice_post_payment, refund_deliverable, get_term_invoice, add_deliverable_tracking_fee
+    invoice_post_payment, refund_deliverable
 from shortcuts import make_url
 
 
@@ -469,7 +469,6 @@ class MarkPaid(GenericAPIView):
         deliverable.invoice.status = PAID
         deliverable.invoice.paid_on = timezone.now()
         deliverable.invoice.save()
-        add_deliverable_tracking_fee(deliverable)
         data = self.serializer_class(instance=deliverable, context=self.get_serializer_context()).data
         notify(ORDER_UPDATE, deliverable, unique=True, mark_unread=True)
         return Response(data)
@@ -1913,8 +1912,7 @@ class CreateInvoice(GenericAPIView):
                     item.targets.add(deliverable_target)
                 # Trigger line item creation.
                 deliverable.save()
-                if deliverable.status in (QUEUED, IN_PROGRESS):
-                    add_deliverable_tracking_fee(deliverable)
+
                 notify(ORDER_UPDATE, deliverable, unique=True, mark_unread=True)
         except InventoryError:
             return Response(data={'detail': 'This product is out of stock.'}, status=status.HTTP_400_BAD_REQUEST)

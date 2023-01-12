@@ -1227,20 +1227,3 @@ def reverse_record(record: 'TransactionRecord') -> (bool, 'TransactionRecord'):
     new_record.targets.set(record.targets.all())
     new_record.targets.add(ref)
     return True, new_record
-
-
-@atomic
-def add_deliverable_tracking_fee(deliverable: 'Deliverable'):
-    from apps.sales.models import Invoice, LineItem
-    plan = deliverable.order.seller.service_plan
-    if plan.per_deliverable_price:
-        invoice = get_term_invoice(deliverable.order.seller)
-        # Lock the invoice row while we do this, so we know we're not adding for this deliverable more
-        # than once.
-        invoice = Invoice.objects.select_for_update().get(id=invoice.id)
-        if not invoice.lines_for(deliverable):
-            line = LineItem.objects.create(
-                invoice=invoice, amount=plan.per_deliverable_price, type=DELIVERABLE_TRACKING,
-                destination_account=UNPROCESSED_EARNINGS, destination_user=None,
-            )
-            line.targets.add(ref_for_instance(deliverable))

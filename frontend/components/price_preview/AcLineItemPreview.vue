@@ -75,8 +75,11 @@ export default class AcLineItemPreview extends Vue {
       5: 'Table service',
       6: 'Tax',
       7: 'Accessory item',
+      8: 'Premium Subscription',
+      9: 'Other Fee',
+      10: 'Order Tracking',
     }
-    return BASIC_TYPES[this.line.type]
+    return BASIC_TYPES[this.line.type] || 'Unknown'
   }
 }
 </script>

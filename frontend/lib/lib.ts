@@ -17,7 +17,6 @@ import {NamelessFormSchema} from '@/store/forms/types/NamelessFormSchema'
 import {HttpVerbs} from '@/store/forms/types/HttpVerbs'
 import {ListController} from '@/store/lists/controller'
 import cloneDeep from 'lodash/cloneDeep'
-import {PinterestQueue} from '@/types/PinterestQueue'
 import {LogLevels} from '@/types/LogLevels'
 import {format, parseISO as upstreamParseISO} from 'date-fns'
 

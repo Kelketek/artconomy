@@ -580,7 +580,7 @@ def idempotent_lines(instance: Deliverable):
         ).delete()
         main_qs.filter(type=TAX).delete()
         if plan.per_deliverable_price:
-            main_qs.update_or_create(
+            line = main_qs.update_or_create(
                 defaults={
                     'amount': plan.per_deliverable_price,
                     'cascade_amount': instance.cascade_fees,
@@ -589,7 +589,8 @@ def idempotent_lines(instance: Deliverable):
                 destination_user=None,
                 type=DELIVERABLE_TRACKING,
                 destination_account=UNPROCESSED_EARNINGS,
-            )
+            )[0]
+            line.annotate(instance)
         instance.invoice.record_only = True
     instance.invoice.save()
 

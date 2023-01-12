@@ -63,7 +63,11 @@ DEBUG = bool(int(get_env('DEBUG', 1)))
 
 ALLOWED_HOSTS = get_env('ALLOWED_HOSTS', ['artconomy.vulpinity.com', 'localhost'], unpack=True)
 if TESTING or DEBUG:
-    ALLOWED_HOSTS = ['*']
+    ALLOWED_HOSTS += ['*']
+
+ALLOWED_HOSTS
+
+CSRF_TRUSTED_ORIGINS = [f'https://{source}' for source in ALLOWED_HOSTS]
 
 # Application definition
 

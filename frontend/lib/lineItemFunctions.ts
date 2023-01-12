@@ -29,15 +29,21 @@ export function linesByPriority(lines: LineItem[]): Array<LineItem[]> {
 
 export function distributeReduction(total: Big, distributedAmount: Big, lineValues: LineMoneyMap): LineMoneyMap {
   const reductions: LineMoneyMap = new Map()
-  if (total.eq(Big('0'))) {
-    return reductions
-  }
+  const lineCount = Big([...lineValues.keys()].length)
   for (const line of lineValues.keys()) {
     const originalValue = lineValues.get(line) as Big
+    // Don't apply reductions to discounts, as that would be nonsense.
     if (originalValue.lt(Big(0))) {
       continue
     }
-    const multiplier = originalValue.div(total)
+    let multiplier: Big
+    if (total.eq(Big('0'))) {
+      // If our total is zero, our inputs are zero, and we have to apportion evenly, not
+      // proportionally.
+      multiplier = Big('1').div(lineCount)
+    } else {
+      multiplier = originalValue.div(total)
+    }
     reductions.set(line, distributedAmount.times(multiplier))
   }
   return reductions
@@ -116,13 +122,7 @@ export function priorityTotal(current: LineAccumulator, prioritySet: LineItem[])
 export function toDistribute(total: Big, map: LineMoneyMap): Big {
   const values = [...map.values()]
   const combinedSum = sum(values.map((value: Big) => value.round(2, 0)))
-  const difference = total.round(2, 0).minus(combinedSum)
-  const upperBound = Big(values.length).times(Big('0.01'))
-  /* istanbul ignore if */
-  if (difference.gt(upperBound)) {
-    throw Error(`Too many fractions! ${difference} > {upperBound}`)
-  }
-  return difference
+  return total.round(2, 0).minus(combinedSum)
 }
 
 export function biggestFirst(a: [LineItem, Big], b: [LineItem, Big]): number {
@@ -148,15 +148,28 @@ export function distributeDifference(difference: Big, map: LineMoneyMap): LineMo
     testMap.set(key, amount.minus(amount.round(2, 0)))
   }
   const sortedValues = [...testMap].sort(biggestFirst)
+  let currentValues = [...sortedValues]
   let remaining = difference
   for (const key of updatedMap.keys()) {
     updatedMap.set(key, updatedMap.get(key)!.round(2, 0))
   }
-  while (remaining.gt(Big('0'))) {
-    const amount = Big('0.01')
-    const key = sortedValues.shift()![0]
-    updatedMap.set(key, updatedMap.get(key)!.plus(amount))
-    remaining = remaining.minus(amount)
+  if (remaining.eq(Big('0'))) {
+    return updatedMap
+  }
+  let delta: Big
+  if (remaining.gt(Big('0'))) {
+    delta = Big('0.01')
+  } else {
+    delta = Big('-0.01')
+  }
+  while (!remaining.eq(Big('0'))) {
+    if (!currentValues.length) {
+      // If we've gone through all the items, start over.
+      currentValues = [...sortedValues]
+    }
+    const key = currentValues.shift()![0]
+    updatedMap.set(key, updatedMap.get(key)!.plus(delta))
+    remaining = remaining.minus(delta)
   }
   return updatedMap
 }
@@ -166,7 +179,7 @@ export function normalizedLines(prioritySets: Array<LineItem[]>) {
     priorityTotal, {total: Big(0), discount: Big(0), subtotals: new Map() as LineMoneyMap} as LineAccumulator)
   baseSet.total = baseSet.total.round(2, 0)
   const difference = toDistribute(baseSet.total, baseSet.subtotals)
-  if (difference.gt(Big('0'))) {
+  if (!difference.eq(Big('0'))) {
     baseSet.subtotals = distributeDifference(difference, baseSet.subtotals)
   }
   return baseSet
@@ -283,7 +296,7 @@ export const deliverableLines = ({
   })
   if (tableProduct) {
     lines.push({
-      id: -2,
+      id: -3,
       priority: 400,
       type: LineTypes.TABLE_SERVICE,
       cascade_percentage: cascade,
@@ -295,7 +308,7 @@ export const deliverableLines = ({
       back_into_percentage: !cascade,
       description: '',
     }, {
-      id: -3,
+      id: -4,
       priority: 700,
       type: LineTypes.TAX,
       cascade_percentage: cascade,
@@ -312,7 +325,7 @@ export const deliverableLines = ({
       percentagePrice += pricing.international_conversion_percentage
     }
     lines.push({
-      id: -4,
+      id: -5,
       priority: 300,
       type: LineTypes.SHIELD,
       cascade_percentage: cascade,
@@ -320,6 +333,19 @@ export const deliverableLines = ({
       amount: plan.shield_static_price,
       frozen_value: null,
       percentage: percentagePrice,
+      back_into_percentage: !cascade,
+      description: '',
+    })
+  } else {
+    lines.push({
+      id: -6,
+      priority: 300,
+      type: LineTypes.DELIVERABLE_TRACKING,
+      cascade_percentage: cascade,
+      cascade_amount: cascade,
+      amount: plan.per_deliverable_price,
+      frozen_value: null,
+      percentage: 0,
       back_into_percentage: !cascade,
       description: '',
     })

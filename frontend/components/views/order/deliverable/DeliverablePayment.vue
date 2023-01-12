@@ -13,16 +13,22 @@
           </v-row>
           <v-row>
             <v-col cols="6" class="text-center text-md-left">
-              Placed on: {{formatDateTime(deliverable.x.created_on)}}<br />
-              <span v-if="revisionCount">
-                    <strong>{{revisionCount}}</strong> revision<span v-if="revisionCount > 1">s</span> included.
-              </span>
-            </v-col>
-            <v-col cols="6" class="text-center text-md-left">
               <div>
+                <span>Placed on: {{formatDateTime(deliverable.x.created_on)}}</span><br />
+                <span v-if="revisionCount">
+                    <strong>{{revisionCount}}</strong> revision<span v-if="revisionCount > 1">s</span> included.
+                </span><br />
                 <span>Estimated completion: <strong>{{formatDateTerse(deliveryDate)}}</strong></span><br />
                 <span v-if="isSeller">Slots taken: <strong>{{taskWeight}}</strong></span>
               </div>
+            </v-col>
+            <v-col cols="6">
+              <ac-patch-field
+                  :patcher="deliverable.patchers.cascade_fees" field-type="v-switch" label="Absorb fees" :persistent-hint="true"
+                  hint="If turned on, the price you set is the price your commissioner will see, and you
+                            will pay all fees from that price. If turned off, the price you set is the amount you
+                            take home, and the total the customer pays includes the fees."
+              />
             </v-col>
             <v-col cols="12" sm="6" v-if="(is(NEW) || is(PAYMENT_PENDING) || is(WAITING)) && (isSeller || isStaff)">
               <v-row no-gutters  >

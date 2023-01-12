@@ -281,7 +281,7 @@ class NewDeliverableSerializer(
         model = Deliverable
         fields = (
             'name', 'characters', 'price', 'revisions', 'details', 'details', 'hold', 'expected_turnaround',
-            'completed', 'paid', 'task_weight', 'references', 'rating', 'product',
+            'completed', 'paid', 'task_weight', 'references', 'rating', 'product', 'cascade_fees',
         )
 
 

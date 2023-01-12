@@ -77,7 +77,7 @@
                   </v-col>
                   <v-col cols="12" sm="6" >
                     <ac-price-preview
-                      :username="username" :line-items="lineItems" v-if="escrow"
+                      :username="username" :line-items="lineItems"
                     />
                   </v-col>
                   <v-col cols="12" sm="6" >

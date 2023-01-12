@@ -136,7 +136,7 @@ export default class AcPricePreview extends mixins(Subjective) {
     return this.moddedItems.filter(
       // We include tips here since we will handle that with a different interface.
       (line: LineItem) => [
-        LineTypes.TIP, LineTypes.SHIELD, LineTypes.BONUS, LineTypes.TABLE_SERVICE,
+        LineTypes.TIP, LineTypes.SHIELD, LineTypes.BONUS, LineTypes.TABLE_SERVICE, LineTypes.DELIVERABLE_TRACKING,
       ].includes(line.type))
   }
 

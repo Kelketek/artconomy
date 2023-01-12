@@ -57,9 +57,13 @@ def distribute_reduction(
     if total.amount == 0:
         return reductions
     for line, original_value in line_values.items():
+        # Don't apply reductions to discounts, as that would be nonsense.
         if original_value < Money(0, total.currency):
             continue
-        multiplier = original_value / total
+        if original_value.amount == Decimal('0'):
+            multiplier = Decimal('1.00') / len(line_values)
+        else:
+            multiplier = original_value / total
         reductions[line] = Money(distributed_amount.amount * multiplier, total.currency)
     return reductions
 
@@ -151,8 +155,11 @@ def distribute_difference(difference: Money, money_map: 'LineMoneyMap') -> 'Line
     sorted_values = [(key, value) for key, value in test_map.items()]
     sorted_values.sort(key=biggest_first)
     remaining = difference
-    amount = Money('0.01', remaining.currency)
-    while remaining > Money('0.00', remaining.currency):
+    if remaining > Money('0', remaining.currency):
+        amount = Money('0.01', remaining.currency)
+    else:
+        amount = Money('-0.01', remaining.currency)
+    while remaining != Money('0.00', remaining.currency):
         key = sorted_values.pop(0)[0]
         updated_map[key] += amount
         remaining -= amount
