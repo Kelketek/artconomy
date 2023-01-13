@@ -71,7 +71,7 @@ from apps.sales.utils import available_products, \
     POSTED_ONLY, PENDING, transfer_order, early_finalize, cancel_deliverable, \
     verify_total, ensure_buyer, \
     pay_deliverable, \
-    invoice_post_payment, refund_deliverable
+    invoice_post_payment, refund_deliverable, get_term_invoice
 from shortcuts import make_url
 
 
@@ -448,6 +448,7 @@ class MarkPaid(GenericAPIView):
     def get_object(self):
         return get_object_or_404(Deliverable, order_id=self.kwargs['order_id'], id=self.kwargs['deliverable_id'])
 
+    @transaction.atomic
     def post(self, request, **_kwargs):
         deliverable = self.get_object()
         self.check_object_permissions(request, deliverable)
@@ -469,6 +470,17 @@ class MarkPaid(GenericAPIView):
         deliverable.invoice.status = PAID
         deliverable.invoice.paid_on = timezone.now()
         deliverable.invoice.save()
+        plan = deliverable.order.seller.service_plan
+        if plan.per_deliverable_price:
+            term_invoice = get_term_invoice(deliverable.order.seller)
+            if not term_invoice.lines_for(deliverable).exists():
+                line = LineItem.objects.create(
+                    invoice=term_invoice,
+                    amount=plan.per_deliverable_price,
+                    destination_account=UNPROCESSED_EARNINGS,
+                    type=DELIVERABLE_TRACKING,
+                )
+                line.targets.add(ref_for_instance(deliverable))
         data = self.serializer_class(instance=deliverable, context=self.get_serializer_context()).data
         notify(ORDER_UPDATE, deliverable, unique=True, mark_unread=True)
         return Response(data)
