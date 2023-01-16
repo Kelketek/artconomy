@@ -126,12 +126,7 @@ def priority_total(
 
 @floor_context
 def to_distribute(total: Money, money_map: 'LineMoneyMap') -> Money:
-    combined_sum = sum([value.round(2) for value in money_map.values()])
-    difference = total - combined_sum
-    upper_bound = Money(Decimal(len(money_map)) * Decimal('0.01'), total.currency)
-    if difference > upper_bound:
-        raise ValueError(f'Too many fractions! {difference} > {upper_bound}')
-    return difference
+    return sum([value.round(2) for value in money_map.values()])
 
 
 def biggest_first(item: Tuple['LineItem', Decimal]) -> Tuple[Decimal, int]:
@@ -154,13 +149,16 @@ def distribute_difference(difference: Money, money_map: 'LineMoneyMap') -> 'Line
     test_map = {key: value - value.round(2) for key, value in money_map.items()}
     sorted_values = [(key, value) for key, value in test_map.items()]
     sorted_values.sort(key=biggest_first)
+    current_values = [*sorted_values]
     remaining = difference
     if remaining > Money('0', remaining.currency):
         amount = Money('0.01', remaining.currency)
     else:
         amount = Money('-0.01', remaining.currency)
     while remaining != Money('0.00', remaining.currency):
-        key = sorted_values.pop(0)[0]
+        if not len(current_values):
+            current_values = [*sorted_values]
+        key = current_values.pop(0)[0]
         updated_map[key] += amount
         remaining -= amount
     return updated_map

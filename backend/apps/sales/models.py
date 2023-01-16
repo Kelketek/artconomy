@@ -500,6 +500,11 @@ def auto_subscribe_deliverable(sender, instance, created=False, **_kwargs):
     Subscription.objects.bulk_create(subscriptions, ignore_conflicts=True)
 
 
+def delete(queryset):
+    for item in queryset:
+        item.delete()
+
+
 def idempotent_lines(instance: Deliverable):
     if instance.status not in [WAITING, NEW, PAYMENT_PENDING]:
         return
@@ -521,7 +526,7 @@ def idempotent_lines(instance: Deliverable):
     plan = instance.order.seller.service_plan
     # Once this is in production long enough and all lines for existing deliverables have been recalculated,
     # this line can be removed.
-    main_qs.filter(type=BONUS).delete()
+    delete(main_qs.filter(type=BONUS))
     if instance.table_order:
         line = main_qs.update_or_create(
             defaults={
@@ -546,7 +551,7 @@ def idempotent_lines(instance: Deliverable):
             type=TAX,
         )[0]
         line.annotate(instance)
-        main_qs.filter(type__in=[BONUS, SHIELD]).delete()
+        delete(main_qs.filter(type__in=[BONUS, SHIELD]))
         instance.invoice.record_only = False
     elif escrow_enabled:
         percentage = plan.shield_percentage_price
@@ -564,21 +569,21 @@ def idempotent_lines(instance: Deliverable):
             destination_user=None, destination_account=UNPROCESSED_EARNINGS, type=SHIELD,
         )[0]
         line.annotate(instance)
-        main_qs.filter(
+        delete(main_qs.filter(
             type=EXTRA,
             destination_account=RESERVE,
             description='Table Service',
             invoice=instance.invoice,
-        ).delete()
-        main_qs.filter(type=TAX).delete()
+        ))
+        delete(main_qs.filter(type__in=[TAX, DELIVERABLE_TRACKING]))
         instance.invoice.record_only = False
     else:
-        main_qs.filter(type__in=[BONUS, SHIELD]).delete()
-        main_qs.filter(
+        delete(main_qs.filter(type__in=[BONUS, SHIELD]))
+        delete(main_qs.filter(
             type=EXTRA, destination_account=RESERVE, description='Table Service',
             invoice=instance.invoice,
-        ).delete()
-        main_qs.filter(type=TAX).delete()
+        ))
+        delete(main_qs.filter(type=TAX))
         if plan.per_deliverable_price:
             line = main_qs.update_or_create(
                 defaults={
