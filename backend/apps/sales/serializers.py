@@ -369,7 +369,7 @@ class DeliverableViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer)
     def validate_adjustment_expected_turnaround(self, val):
         adjustment_expected_turnaround = Decimal(val)
         if (
-                self.instance.product.expected_turnaround
+                (self.instance.product and self.instance.product.expected_turnaround) or 0
                 + adjustment_expected_turnaround < settings.MINIMUM_TURNAROUND
         ):
             raise ValidationError('Expected turnaround may not be less than {}'.format(
