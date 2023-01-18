@@ -668,10 +668,12 @@ class DeliverableLineItems(ListCreateAPIView):
             serializer.instance = tip
             return
         with transaction.atomic():
-            serializer.save(
+            line = serializer.save(
                 destination_user=destination_user, destination_account=destination_account,
                 invoice=deliverable.invoice,
             )
+            line.annotate(deliverable)
+            deliverable.save()
             verify_total(deliverable)
 
 
@@ -707,6 +709,11 @@ class DeliverableLineItemManager(RetrieveUpdateDestroyAPIView):
 
     def get_serializer_context(self):
         return {**super().get_serializer_context(), 'deliverable': self.get_object()}
+
+    def perform_destroy(self, instance):
+        instance.delete()
+        deliverable = get_object_or_404(Deliverable, id=self.kwargs['deliverable_id'])
+        deliverable.save()
 
     def perform_update(self, serializer):
         serializer.save()

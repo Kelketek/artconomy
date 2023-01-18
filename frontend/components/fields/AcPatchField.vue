@@ -106,6 +106,7 @@ export default class AcPatchField extends Vue {
     public id!: string
 
     // This will update the field from upstream pushes instantly. You don't want this for text. You do for booleans.
+    // For sanity between tabs, this is counted as true if the window is not focused either way.
     @Prop({default: false})
     public instant!: boolean
 
@@ -130,7 +131,7 @@ export default class AcPatchField extends Vue {
 
     @Watch('patcher.model')
     public watchModel(val: any) {
-      if (this.instant) {
+      if (this.processInstantly) {
         return
       }
       if (this.autoSave || this.handlesSaving) {
@@ -140,7 +141,7 @@ export default class AcPatchField extends Vue {
 
     @Watch('patcher.rawValue')
     public watchRawValue(val: any) {
-      if (!this.instant) {
+      if (!this.processInstantly) {
         return
       }
       this.scratch = val
@@ -195,6 +196,10 @@ export default class AcPatchField extends Vue {
 
     public get disabled() {
       return Boolean(this.$attrs.disabled || (!this.autoSave && this.patcher.patching))
+    }
+
+    public get processInstantly() {
+      return this.instant || !document.hasFocus()
     }
 
     public get loading() {

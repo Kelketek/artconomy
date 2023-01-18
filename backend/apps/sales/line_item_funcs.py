@@ -126,7 +126,7 @@ def priority_total(
 
 @floor_context
 def to_distribute(total: Money, money_map: 'LineMoneyMap') -> Money:
-    return sum([value.round(2) for value in money_map.values()])
+    return sum([value.round(2) for value in money_map.values()]) or Money('0', total.currency)
 
 
 def biggest_first(item: Tuple['LineItem', Decimal]) -> Tuple[Decimal, int]:

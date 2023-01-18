@@ -339,18 +339,6 @@ export default class DeliverablePayment extends mixins(DeliverableMixin, Formatt
   @Watch('proxyTotalCharge')
   public updateAmount(newValue: Big, oldValue: Big|undefined) {
     this.paymentForm.fields.amount.update(this.totalCharge)
-    /* istanbul ignore if */
-    if (oldValue === undefined) {
-      return
-    }
-    if (newValue.eq(oldValue)) {
-      // Vue can't quite tell when these are equal otherwise.
-      return
-    }
-    if (newValue.eq(Big('0')) || oldValue.eq(Big('0'))) {
-      // Refresh the line items, since if it's newly 0, or no longer 0, upstream may have changed.
-      this.lineItems.get()
-    }
   }
 
   public get canUpdate() {

@@ -88,7 +88,6 @@ def send_deleted(model, instance, pk=None):
     layer = get_channel_layer()
     app_label = model._meta.app_label
     model_name = model.__name__
-    print(f'Sending deletion! {app_label}.{model_name}.delete.{pk or instance.pk}')
     async_to_sync(layer.group_send)(
         f'{app_label}.{model_name}.delete.{pk or instance.pk}',
         {
@@ -280,7 +279,6 @@ async def watch(consumer, payload: Dict):
             f'{app_label}.{model_name}.update.{serializer_name}.{instance.pk}',
             consumer.channel_name,
         )
-        await aprint(f'Registering deletion handler! {app_label}.{model_name}.delete.{instance.pk}')
         await consumer.channel_layer.group_add(
             f'{app_label}.{model_name}.delete.{instance.pk}',
             consumer.channel_name,

@@ -6,7 +6,7 @@ from django.contrib import admin, messages
 from django.db.transaction import atomic
 
 # Register your models here.
-from django.forms import ModelForm
+from django.forms import ModelForm, TextInput
 from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
@@ -182,8 +182,17 @@ class RatingAdmin(admin.ModelAdmin):
     raw_id_fields = ['rater', 'target']
 
 
+class WebhookRecordAdminForm(forms.ModelForm):
+    class Meta:
+        model = WebhookRecord
+        exclude = []
+        widgets = {
+            'secret': TextInput(attrs={'type': 'password'})
+        }
+
+
 class WebhookRecordAdmin(admin.ModelAdmin):
-    pass
+    form = WebhookRecordAdminForm
 
 
 class RevisionAdmin(admin.ModelAdmin):
