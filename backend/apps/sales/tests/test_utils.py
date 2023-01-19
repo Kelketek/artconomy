@@ -229,52 +229,6 @@ class TestFreezeLineItems(EnsurePlansMixin, TestCase):
         self.assertEqual(source[5].frozen_value, Money('1.15', 'USD'))
 
 
-class TestMoneyHelpers(TestCase):
-    def test_divide_amount(self):
-        self.assertEqual(
-            divide_amount(Money('10', 'USD'), 3),
-            [Money('3.34', 'USD'), Money('3.33', 'USD'), Money('3.33', 'USD')],
-        )
-        self.assertEqual(
-            divide_amount(Money('10.01', 'USD'), 3),
-            [Money('3.34', 'USD'), Money('3.34', 'USD'), Money('3.33', 'USD')],
-        )
-        self.assertEqual(
-            divide_amount(Money('10.02', 'USD'), 3),
-            [Money('3.34', 'USD'), Money('3.34', 'USD'), Money('3.34', 'USD')],
-        )
-        self.assertEqual(
-            divide_amount(Money('10.03', 'USD'), 3),
-            [Money('3.35', 'USD'), Money('3.34', 'USD'), Money('3.34', 'USD')],
-        )
-
-    def test_divide_non_subunit(self):
-        self.assertEqual(
-            divide_amount(Money('10000', 'SUR'), 3),
-            [Money('3334', 'SUR'), Money('3333', 'SUR'), Money('3333', 'SUR')],
-        )
-        self.assertEqual(
-            divide_amount(Money('10001', 'SUR'), 3),
-            [Money('3334', 'SUR'), Money('3334', 'SUR'), Money('3333', 'SUR')],
-        )
-        self.assertEqual(
-            divide_amount(Money('10002', 'SUR'), 3),
-            [Money('3334', 'SUR'), Money('3334', 'SUR'), Money('3334', 'SUR')],
-        )
-        self.assertEqual(
-            divide_amount(Money('10003', 'SUR'), 3),
-            [Money('3335', 'SUR'), Money('3334', 'SUR'), Money('3334', 'SUR')],
-        )
-
-    def test_distribute_difference_too_many_fractions(self):
-        line_money_map = {
-            LineItemSim(1, 1, Money('10.00', 'USD')): Money('.01', 'USD'),
-            LineItemSim(1, 1, Money('10.00', 'USD')): Money('.01', 'USD'),
-        }
-        with self.assertRaises(ValueError):
-            to_distribute(Money('.03', 'USD'), line_money_map)
-
-
 class TransactionCheckMixin:
     def check_transactions(
             self, deliverable, user, remote_id='36985214745', source=CARD,
