@@ -18,8 +18,7 @@ from rest_framework.serializers import ModelSerializer, Serializer
 
 from apps.lib.consumer_serializers import WatchSpecSerializer, ViewerParamsSerializer, EmptySerializer, \
     WatchNewSpecSerializer
-from apps.lib.middleware import get_request
-from apps.lib.utils import FakeRequest, exclude_request
+from apps.lib.utils import FakeRequest
 from apps.profiles.models import User
 from apps.profiles.utils import empty_user
 
