@@ -13,7 +13,7 @@
             <template v-if="editable">
               <ac-line-item-editor :line="line" v-for="line in addOns" :key="line.x.id" :price-data="priceData" :editing="editable" />
               <ac-form-container v-bind="addOnForm.bind">
-                <ac-form @submit.prevent="addOnForm.submitThen(lineItems.push)">
+                <ac-form @submit.prevent="postSubmitAdd">
                   <ac-new-line-item :form="addOnForm" :price="priceData.subtotals.get(addOnFormItem) || 0" />
                 </ac-form>
               </ac-form-container>
@@ -221,6 +221,16 @@ export default class AcPricePreview extends mixins(Subjective) {
       return false
     }
     return true
+  }
+
+  public postSubmitAdd(lineItem: LineItem) {
+    this.addOnForm.submitThen(this.lineItems.push).then(() => {
+      const line = this.lineItems.list[this.lineItems.list.length - 1]
+      this.$nextTick(() => {
+        const element = this.$el.querySelector(`#lineItem-${line.x!.id}-description`) as HTMLElement
+        element.focus()
+      })
+    })
   }
 
   public created() {

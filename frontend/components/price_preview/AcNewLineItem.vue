@@ -1,11 +1,8 @@
 <template>
   <v-row no-gutters>
-    <v-col class="text-right pr-1" cols="4"><ac-bound-field :field="form.fields.description" :placeholder="placeholder" /></v-col>
-    <v-col class="text-left pl-1" cols="4"></v-col>
-    <v-col class="text-left pl-1" cols="2"></v-col>
-    <v-col cols="2" align-self="center" class="text-center">
-      <v-btn x-small fab color="primary" type="submit">
-        <v-icon color="yellow">add</v-icon>
+    <v-col class="text-left pa-1" cols="12">
+      <v-btn type="submit" small>
+        <v-icon left color="yellow">add</v-icon>{{ placeholder }}
       </v-btn>
     </v-col>
   </v-row>

@@ -1,13 +1,13 @@
 <template>
   <v-row no-gutters>
-    <v-col class="text-right pr-1" cols="4"><ac-patch-field :patcher="line.patchers.description" :placeholder="placeholder"/></v-col>
-    <v-col class="text-left pl-1" cols="4"><ac-patch-field :patcher="line.patchers.amount" field-type="ac-price-field"/></v-col>
-    <v-col class="text-left pl-1" cols="2"><v-text-field :disabled="true" :value="'$' + price.toFixed(2)" /></v-col>
     <v-col cols="2" align-self="center" class="text-center">
       <v-btn x-small fab color="red" @click.prevent="line.delete" v-if="deletable">
         <v-icon>delete</v-icon>
       </v-btn>
     </v-col>
+    <v-col class="text-right pr-1" cols="4"><ac-patch-field :patcher="line.patchers.description" :id="`lineItem-${line.x.id}-description`" :placeholder="placeholder"/></v-col>
+    <v-col class="text-left pl-1" cols="4"><ac-patch-field :patcher="line.patchers.amount" :id="`lineItem-${line.x.id}-amount`" field-type="ac-price-field"/></v-col>
+    <v-col class="text-left pl-1" cols="2"><v-text-field :disabled="true" :value="'$' + price.toFixed(2)" /></v-col>
   </v-row>
 </template>
 
