@@ -5,15 +5,29 @@
         <ac-load-section :controller="lineItems" v-if="validPrice" class="compact-fields">
           <template v-slot:default>
             <template v-if="editable && editBase">
-              <ac-line-item-editor :line="line" v-for="line in baseItems" :key="line.x.id" :price-data="priceData" :editing="editable" />
+              <ac-line-item-editor
+                  :line="line" v-for="(line, index) in baseItems"
+                  :key="line.x.id"
+                  :price-data="priceData"
+                  :editing="editable"
+                  :new-line="postSubmitAdd(addOnForm)"
+                  :enable-new-line="(index === baseItems.length - 1) && !addOns.length"
+              />
             </template>
             <template v-else>
               <ac-line-item-preview :line="line.x" v-for="line in baseItems" :key="line.x.id" :price-data="priceData" :editing="editable" />
             </template>
             <template v-if="editable">
-              <ac-line-item-editor :line="line" v-for="line in addOns" :key="line.x.id" :price-data="priceData" :editing="editable" />
+              <ac-line-item-editor
+                  :line="line" v-for="(line, index) in addOns"
+                  :key="line.x.id"
+                  :price-data="priceData"
+                  :editing="editable"
+                  :new-line="postSubmitAdd(addOnForm)"
+                  :enable-new-line="index === addOns.length - 1"
+              />
               <ac-form-container v-bind="addOnForm.bind">
-                <ac-form @submit.prevent="postSubmitAdd">
+                <ac-form @submit.prevent="postSubmitAdd(addOnForm)">
                   <ac-new-line-item :form="addOnForm" :price="priceData.subtotals.get(addOnFormItem) || 0" />
                 </ac-form>
               </ac-form-container>
@@ -23,7 +37,14 @@
             </template>
             <ac-line-item-preview :line="line" v-for="line in modifiers" :key="line.id" :price-data="priceData" :editing="editable" />
             <template v-if="editable && isStaff">
-              <ac-line-item-editor :line="line" v-for="line in extras" :key="line.x.id" :price-data="priceData" :editing="editable" />
+              <ac-line-item-editor
+                  :line="line"
+                  v-for="(line, index) in extras"
+                  :key="line.x.id"
+                  :price-data="priceData"
+                  :editing="editable"
+                  :new-line="postSubmitAdd(extraForm)"
+                  :enable-new-line="index === extras.length - 1"  />
               <ac-form-container v-bind="extraForm.bind">
                 <ac-form @submit.prevent="extraForm.submitThen(lineItems.push)">
                   <ac-new-line-item :form="extraForm" :price="priceData.subtotals.get(extraFormItem) || 0" />
@@ -223,14 +244,16 @@ export default class AcPricePreview extends mixins(Subjective) {
     return true
   }
 
-  public postSubmitAdd(lineItem: LineItem) {
-    this.addOnForm.submitThen(this.lineItems.push).then(() => {
-      const line = this.lineItems.list[this.lineItems.list.length - 1]
-      this.$nextTick(() => {
-        const element = this.$el.querySelector(`#lineItem-${line.x!.id}-description`) as HTMLElement
-        element.focus()
+  public postSubmitAdd(form: FormController) {
+    return () => {
+      form.submitThen(this.lineItems.push).then(() => {
+        const line = this.lineItems.list[this.lineItems.list.length - 1]
+        this.$nextTick(() => {
+          const element = this.$el.querySelector(`#lineItem-${line.x!.id}-description`) as HTMLElement
+          element.focus()
+        })
       })
-    })
+    }
   }
 
   public created() {
