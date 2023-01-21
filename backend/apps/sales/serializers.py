@@ -327,6 +327,8 @@ class DeliverableSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
                     'name', 'cascade_fees',
                 ]:
                     self.fields[field_name].read_only = False
+                if (not self.instance.table_order) and self.instance.order.seller.escrow_available:
+                    self.fields['escrow_disabled'].read_only = False
             # Should never be harmful. Helpful in many statuses.
             self.fields['stream_link'].read_only = False
 

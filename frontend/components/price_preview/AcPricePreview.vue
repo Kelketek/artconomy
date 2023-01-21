@@ -35,7 +35,7 @@
             </template>
             <ac-line-item-preview :line="line" v-for="line in taxes" :key="line.id" :price-data="priceData" :editing="editable" />
             <v-row no-gutters>
-              <v-col class="text-right pr-1" cols="6" ><strong>Total Price:</strong></v-col>
+              <v-col class="text-right pr-1" cols="6"><strong>Total Price:</strong></v-col>
               <v-col class="text-left pl-1" cols="6" >${{rawPrice.toFixed(2)}}</v-col>
             </v-row>
             <v-row>

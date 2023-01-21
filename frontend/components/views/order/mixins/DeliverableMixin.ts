@@ -314,6 +314,10 @@ export default class DeliverableMixin extends mixins(Viewer) {
     return this.isBuyer || this.isSeller || this.isArbitrator
   }
 
+  public get editable() {
+    return (this.is(this.NEW) || this.is(this.PAYMENT_PENDING) || this.is(this.WAITING))
+  }
+
   public updateDeliverable(deliverable: Deliverable) {
     this.deliverable.updateX(deliverable)
     this.viewSettings.patchers.showPayment.model = false

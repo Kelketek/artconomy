@@ -1,11 +1,11 @@
 <template>
   <v-row no-gutters>
     <v-col class="text-right pr-1" cols="4"><ac-bound-field :field="form.fields.description" :placeholder="placeholder" /></v-col>
-    <v-col class="text-left pl-1" cols="4"><ac-bound-field :field="form.fields.amount" field-type="ac-price-field" /></v-col>
-    <v-col class="text-left pl-1" cols="2"><v-text-field :value="'$' + price.toFixed(2)" :disabled="true"></v-text-field></v-col>
+    <v-col class="text-left pl-1" cols="4"></v-col>
+    <v-col class="text-left pl-1" cols="2"></v-col>
     <v-col cols="2" align-self="center" class="text-center">
-      <v-btn x-small fab color="black" type="submit" :class="{glowing: worthSaving}">
-        <v-icon color="yellow">save</v-icon>
+      <v-btn x-small fab color="primary" type="submit">
+        <v-icon color="yellow">add</v-icon>
       </v-btn>
     </v-col>
   </v-row>

@@ -3,124 +3,128 @@
     <template v-slot:default>
       <ac-load-section :controller="lineItems">
         <template v-slot:default>
-          <v-row v-if="is(NEW) && isBuyer">
-            <v-col>
-              <v-alert type="info">
-                  This order is pending approval. The artist may adjust pricing depending on the piece's requirements.
-                  You can send payment once the order is approved.
-              </v-alert>
-            </v-col>
-          </v-row>
           <v-row>
-            <v-col cols="6" class="text-center text-md-left">
-              <div>
-                <span>Placed on: {{formatDateTime(deliverable.x.created_on)}}</span><br />
-                <span v-if="revisionCount">
+            <v-col cols="12" md="6">
+              <v-col cols="12" class="text-center text-md-left">
+                <div>
+                  <span>Placed on: {{formatDateTime(deliverable.x.created_on)}}</span><br />
+                  <span v-if="revisionCount">
                     <strong>{{revisionCount}}</strong> revision<span v-if="revisionCount > 1">s</span> included.
                 </span><br />
-                <span>Estimated completion: <strong>{{formatDateTerse(deliveryDate)}}</strong></span><br />
-                <span v-if="isSeller">Slots taken: <strong>{{taskWeight}}</strong></span>
-              </div>
-            </v-col>
-            <v-col cols="6">
-              <ac-patch-field
-                  :patcher="deliverable.patchers.cascade_fees" field-type="v-switch" label="Absorb fees" :persistent-hint="true"
-                  hint="If turned on, the price you set is the price your commissioner will see, and you
+                  <span>Estimated completion: <strong>{{formatDateTerse(deliveryDate)}}</strong></span><br />
+                  <span v-if="isSeller">Slots taken: <strong>{{taskWeight}}</strong></span>
+                </div>
+              </v-col>
+              <v-col cols="12" v-if="is(NEW) && isBuyer">
+                <v-alert type="info">
+                  This order is pending approval. The artist may adjust pricing depending on the piece's requirements.
+                  You can send payment once the order is approved.
+                </v-alert>
+              </v-col>
+              <v-col cols="12" v-if="isSeller && editable">
+                <v-row no-gutters  >
+                  <v-col cols="12">
+                    <ac-patch-field
+                        :patcher="deliverable.patchers.adjustment"
+                        field-type="ac-price-field"
+                        label="Surcharges/Discounts (USD)"
+                    />
+                  </v-col>
+                  <v-col cols="12">
+                    <ac-patch-field
+                        :patcher="deliverable.patchers.adjustment_expected_turnaround"
+                        label="Additional Days Required"
+                    />
+                  </v-col>
+                  <v-col cols="12">
+                    <ac-patch-field
+                        :patcher="deliverable.patchers.adjustment_revisions"
+                        label="Additional Revisions Offered"
+                    />
+                  </v-col>
+                  <v-col cols="12">
+                    <ac-patch-field
+                        :patcher="deliverable.patchers.adjustment_task_weight"
+                        label="Additional slots consumed"
+                    />
+                  </v-col>
+                </v-row>
+              </v-col>
+              <v-col cols="12" v-if="isSeller && editable">
+                <ac-patch-field
+                    :patcher="deliverable.patchers.escrow_disabled" field-type="v-switch" label="Disable Shield" :persistent-hint="true"
+                    hint="If turned on, disables shield protection. In this case, you
+                  will have to handle payment using a third party service, or collecting it in person."
+                />
+              </v-col>
+              <v-col cols="12" v-if="isSeller && editable">
+                <ac-patch-field
+                    :patcher="deliverable.patchers.cascade_fees" field-type="v-switch" label="Absorb fees" :persistent-hint="true"
+                    hint="If turned on, the price you set is the price your commissioner will see, and you
                             will pay all fees from that price. If turned off, the price you set is the amount you
                             take home, and the total the customer pays includes the fees."
-              />
+                />
+              </v-col>
             </v-col>
-            <v-col cols="12" sm="6" v-if="(is(NEW) || is(PAYMENT_PENDING) || is(WAITING)) && (isSeller || isStaff)">
-              <v-row no-gutters  >
-                <v-col cols="12">
-                  <ac-patch-field
-                    :patcher="deliverable.patchers.adjustment"
-                    field-type="ac-price-field"
-                    label="Surcharges/Discounts (USD)"
-                  />
-                </v-col>
-                <v-col cols="12">
-                  <ac-patch-field
-                    :patcher="deliverable.patchers.adjustment_expected_turnaround"
-                    label="Additional Days Required"
-                  />
-                </v-col>
-                <v-col cols="12">
-                  <ac-patch-field
-                    :patcher="deliverable.patchers.adjustment_revisions"
-                    label="Additional Revisions Offered"
-                  />
-                </v-col>
-                <v-col cols="12">
-                  <ac-patch-field
-                    :patcher="deliverable.patchers.adjustment_task_weight"
-                    label="Additional slots consumed"
-                  />
-                </v-col>
-                <v-col class="text-center" cols="12" >
-                  <ac-confirmation :action="statusEndpoint('accept')" v-if="(is(NEW) || is(WAITING)) && isSeller">
-                    <template v-slot:default="{on}">
-                      <v-btn v-on="on" color="green" class="accept-order">Accept Order</v-btn>
-                    </template>
-                    <v-col slot="confirmation-text">
-                      I understand the commissioner's requirements, and I agree to be bound by the
-                      <router-link :to="{name: 'CommissionAgreement'}">Commission agreement</router-link>.
+            <v-col cols="12" md="6">
+              <v-col cols="12">
+                <v-card>
+                  <v-card-text>
+                    <ac-price-preview
+                        :price="deliverable.x.price"
+                        :line-items="lineItems"
+                        :username="order.x.seller.username"
+                        :is-seller="isSeller"
+                        :editable="(is(NEW) || is(PAYMENT_PENDING) || is(WAITING)) && (isSeller || isArbitrator)"
+                        :editBase="!product"
+                        :escrow="!deliverable.x.escrow_disabled"
+                    />
+                    <v-row v-if="deliverable.x.paid_on">
+                      <v-col class="text-center">
+                        <v-icon left color="green">check_circle</v-icon> Paid on {{formatDate(deliverable.x.paid_on)}}
+                      </v-col>
+                    </v-row>
+                    <v-row v-if="isBuyer && is(NEW)">
+                      <v-col class="text-center">
+                        <p><strong>Note:</strong> The artist may adjust the above price based on the requirements you have given before accepting it.</p>
+                      </v-col>
+                    </v-row>
+                    <ac-escrow-label :escrow="escrow" name="order" />
+                    <v-col class="text-center" cols="12" v-if="isSeller && editable">
+                      <ac-confirmation :action="statusEndpoint('accept')" v-if="(is(NEW) || is(WAITING)) && isSeller">
+                        <template v-slot:default="{on}">
+                          <v-btn v-on="on" color="green" class="accept-order">Accept Order</v-btn>
+                        </template>
+                        <template v-slot:confirmation-text>
+                          <v-col>
+                            I understand the commissioner's requirements, and I agree to be bound by the
+                            <router-link :to="{name: 'CommissionAgreement'}">Commission agreement</router-link>.
+                          </v-col>
+                        </template>
+                        <span slot="title">Accept Order</span>
+                        <span slot="confirm-text">I agree</span>
+                      </ac-confirmation>
+                      <v-btn color="green" class="accept-order" @click="statusEndpoint('accept')()" v-else-if="(is(NEW) || is(WAITING)) && isStaff">
+                        Accept Order
+                      </v-btn>
                     </v-col>
-                    <span slot="title">Accept Order</span>
-                    <span slot="confirm-text">I agree</span>
-                  </ac-confirmation>
-                  <v-btn color="green" class="accept-order" @click="statusEndpoint('accept')()" v-else-if="(is(NEW) || is(WAITING)) && isStaff">
-                    Accept Order
-                  </v-btn>
-                </v-col>
-                <v-col cols="12">
-                  <ac-escrow-label :escrow="escrow" name="order" />
-                </v-col>
-              </v-row>
-            </v-col>
-            <v-col v-else cols="12" sm="6">
-              <ac-escrow-label :escrow="escrow" name="order" />
-            </v-col>
-            <v-col cols="12" sm="6">
-              <v-card>
-                <v-card-text>
-                  <ac-price-preview
-                    :price="deliverable.x.price"
-                    :line-items="lineItems"
-                    :username="order.x.seller.username"
-                    :is-seller="isSeller"
-                    :editable="(is(NEW) || is(PAYMENT_PENDING) || is(WAITING)) && (isSeller || isArbitrator)"
-                    :editBase="!product"
-                    :escrow="!deliverable.x.escrow_disabled"
-                  />
-                  <v-row v-if="deliverable.x.paid_on">
-                    <v-col class="text-center">
-                      <v-icon left color="green">check_circle</v-icon> Paid on {{formatDate(deliverable.x.paid_on)}}
+                    <v-col class="text-center" v-if="(isSeller || isArbitrator) && (is(QUEUED) || is(IN_PROGRESS) || is(REVIEW) || is(DISPUTED))" cols="12" >
+                      <ac-confirmation :action="statusEndpoint('refund')">
+                        <template v-slot:default="{on}">
+                          <v-btn v-on="on">
+                            <span v-if="escrow">Refund</span>
+                            <span v-else>Mark Refunded</span>
+                          </v-btn>
+                        </template>
+                      </ac-confirmation>
                     </v-col>
-                  </v-row>
-                  <v-row v-if="isBuyer && is(NEW)">
-                    <v-col class="text-center">
-                      <p><strong>Note:</strong> The artist may adjust the above price based on the requirements you have given before accepting it.</p>
-                    </v-col>
-                  </v-row>
-                  <ac-escrow-label :escrow="escrow" name="order" v-if="$vuetify.breakpoint.smAndDown" />
-                  <v-col class="text-center" v-if="(isSeller || isArbitrator) && (is(QUEUED) || is(IN_PROGRESS) || is(REVIEW) || is(DISPUTED))" cols="12" >
-                    <ac-confirmation :action="statusEndpoint('refund')">
-                      <template v-slot:default="{on}">
-                        <v-btn v-on="on">
-                          <span v-if="escrow">Refund</span>
-                          <span v-else>Mark Refunded</span>
-                        </v-btn>
-                      </template>
-                    </ac-confirmation>
-                  </v-col>
-                  <v-col class="text-center payment-section" v-if="is(PAYMENT_PENDING) && (isBuyer || isStaff) && !deliverable.x.escrow_disabled" cols="12" >
-                    <v-btn color="green" @click="viewSettings.patchers.showPayment.model = true" class="payment-button">Send Payment</v-btn>
-                    <ac-form-dialog
-                        v-model="viewSettings.patchers.showPayment.model" @submit.prevent="paymentSubmit"
-                        :large="true" v-bind="paymentForm.bind"
-                        :show-submit="showSubmit"
-                    >
+                    <v-col class="text-center payment-section" v-if="is(PAYMENT_PENDING) && (isBuyer || isStaff) && !deliverable.x.escrow_disabled" cols="12" >
+                      <v-btn color="green" @click="viewSettings.patchers.showPayment.model = true" class="payment-button">Send Payment</v-btn>
+                      <ac-form-dialog
+                          v-model="viewSettings.patchers.showPayment.model" @submit.prevent="paymentSubmit"
+                          :large="true" v-bind="paymentForm.bind"
+                          :show-submit="showSubmit"
+                      >
                         <v-row>
                           <v-col class="text-center" cols="12" >Total Charge: <strong>${{totalCharge.toFixed(2)}}</strong></v-col>
                           <v-col cols="12">
@@ -211,9 +215,9 @@
                                       </v-col>
                                       <v-col cols="12" v-if="tip">
                                         <ac-patch-field
-                                          :patcher="tip.patchers.amount"
-                                          field-type="ac-price-field"
-                                          label="Tip"
+                                            :patcher="tip.patchers.amount"
+                                            field-type="ac-price-field"
+                                            label="Tip"
                                         />
                                       </v-col>
                                       <v-col cols="12" v-else class="text-center">
@@ -227,11 +231,11 @@
                           </v-col>
                           <v-col class="text-center" cols="12" v-if="tip">
                             <ac-price-preview
-                              :price="deliverable.x.price"
-                              :line-items="lineItems"
-                              :username="order.x.seller.username"
-                              :is-seller="isSeller"
-                              :escrow="!order.x.escrow_disabled"
+                                :price="deliverable.x.price"
+                                :line-items="lineItems"
+                                :username="order.x.seller.username"
+                                :is-seller="isSeller"
+                                :escrow="!order.x.escrow_disabled"
                             />
                           </v-col>
                           <v-col class="text-center" cols="12" >
@@ -241,10 +245,11 @@
                               Artconomy is based in the United States of America.</p>
                           </v-col>
                         </v-row>
-                    </ac-form-dialog>
-                  </v-col>
-                </v-card-text>
-              </v-card>
+                      </ac-form-dialog>
+                    </v-col>
+                  </v-card-text>
+                </v-card>
+              </v-col>
             </v-col>
             <v-col cols="12">
               <v-card>

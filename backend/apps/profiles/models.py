@@ -224,6 +224,13 @@ class User(AbstractEmailUser, HitsMixin):
     def __str__(self):
         return self.username
 
+    @property
+    def escrow_available(self):
+        try:
+            return self.artist_profile.bank_account_status == IN_SUPPORTED_COUNTRY
+        except ArtistProfile.DoesNotExist:
+            return False
+
     def notification_serialize(self, context):
         from .serializers import RelatedUserSerializer
         return RelatedUserSerializer(instance=self, context=context).data
