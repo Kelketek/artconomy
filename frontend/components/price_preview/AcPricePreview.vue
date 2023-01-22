@@ -10,7 +10,7 @@
                   :key="line.x.id"
                   :price-data="priceData"
                   :editing="editable"
-                  :new-line="postSubmitAdd(addOnForm)"
+                  @new-line="postSubmitAdd(addOnForm)"
                   :enable-new-line="(index === baseItems.length - 1) && !addOns.length"
               />
             </template>
@@ -23,7 +23,7 @@
                   :key="line.x.id"
                   :price-data="priceData"
                   :editing="editable"
-                  :new-line="postSubmitAdd(addOnForm)"
+                  @new-line="postSubmitAdd(addOnForm)"
                   :enable-new-line="index === addOns.length - 1"
               />
               <ac-new-line-skeleton v-if="addOnForm.sending" />
@@ -44,7 +44,7 @@
                   :key="line.x.id"
                   :price-data="priceData"
                   :editing="editable"
-                  :new-line="postSubmitAdd(extraForm)"
+                  @new-line="postSubmitAdd(extraForm)"
                   :enable-new-line="index === extras.length - 1"  />
               <ac-new-line-skeleton v-if="extraForm.sending" />
               <ac-form-container v-bind="extraForm.bind" :show-spinner="false">
@@ -85,7 +85,7 @@ import {SingleController} from '@/store/singles/controller'
 import Pricing from '@/types/Pricing'
 import Component, {mixins} from 'vue-class-component'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import {getTotals, sum, totalForTypes} from '@/lib/lineItemFunctions'
+import {getTotals, totalForTypes} from '@/lib/lineItemFunctions'
 import LineItem from '@/types/LineItem'
 import AcLineItemPreview from '@/components/price_preview/AcLineItemPreview.vue'
 import {LineTypes} from '@/types/LineTypes'
@@ -256,15 +256,13 @@ export default class AcPricePreview extends mixins(Subjective) {
   }
 
   public postSubmitAdd(form: FormController) {
-    return () => {
-      form.submitThen(this.lineItems.push).then(() => {
-        const line = this.lineItems.list[this.lineItems.list.length - 1]
-        this.$nextTick(() => {
-          const element = this.$el.querySelector(`#lineItem-${line.x!.id}-description`) as HTMLElement
-          element.focus()
-        })
+    form.submitThen(this.lineItems.push).then(() => {
+      const line = this.lineItems.list[this.lineItems.list.length - 1]
+      this.$nextTick(() => {
+        const element = this.$el.querySelector(`#lineItem-${line.x!.id}-description`) as HTMLElement
+        element.focus()
       })
-    }
+    })
   }
 
   public created() {

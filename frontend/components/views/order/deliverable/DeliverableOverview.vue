@@ -53,9 +53,13 @@
                     Private
                   </v-chip>
                   <ac-deliverable-status :deliverable="deliverable.x" class="ma-1" />
-                  <v-btn class="ma-1 rating-button pa-1" small :color="ratingColor[deliverable.x.rating]" :ripple="false">
+                  <v-btn class="ma-1 rating-button pa-1" small :color="ratingColor[deliverable.x.rating]" @click="showRating" :ripple="editable">
+                    <v-icon left v-if="editable">edit</v-icon>
                     {{ratingsShort[deliverable.x.rating]}}
                   </v-btn>
+                  <ac-expanded-property v-model="ratingDialog">
+                    <ac-patch-field field-type="ac-rating-field" :patcher="deliverable.patchers.rating" />
+                  </ac-expanded-property>
                 </v-col>
               </v-row>
               <v-col v-if="isSeller && (!buyer || buyer.guest) && !(is(COMPLETED) || is(DISPUTED) || is(REFUNDED) || is(CANCELLED))" cols="12">
@@ -104,10 +108,17 @@
                     <v-divider />
                   </v-col>
                   <v-col cols="12">
-                    <h2>Details:</h2>
+                    <h2>Details:<v-btn v-show="(!editDetails) && editable" icon color="primary" @click="editDetails = true">
+                      <v-icon>edit</v-icon>
+                    </v-btn></h2>
                   </v-col>
                   <v-col cols="12">
-                    <ac-rendered :value="deliverable.x.details" />
+                    <ac-patch-field
+                        :patcher="deliverable.patchers.details"
+                        field-type="ac-editor"
+                        v-if="editable && editDetails"
+                    />
+                    <ac-rendered v-else :value="deliverable.x.details" />
                   </v-col>
                 </v-row>
               </v-card-text>
@@ -187,10 +198,26 @@ import AcAvatar from '@/components/AcAvatar.vue'
 export default class DeliverableOverview extends mixins(DeliverableMixin, Formatting, Ratings) {
   public showConfirm = false
   public inviteSent = false
+  public editDetails = false
+  public ratingDialog = false
 
   @Watch('order.patchers.customer_email.model')
   public resetSent() {
     this.inviteSent = false
+  }
+
+  @Watch('editable')
+  public stopEditing(val: boolean) {
+    if (!val) {
+      this.editDetails = false
+      this.ratingDialog = false
+    }
+  }
+
+  public showRating() {
+    if (this.editable) {
+      this.ratingDialog = true
+    }
   }
 
   public get inviteDisabled() {

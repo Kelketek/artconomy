@@ -81,7 +81,7 @@ export default class DeliverableMixin extends mixins(Viewer) {
 
   public is(status: number) {
     /* istanbul ignore if */
-    if (!this.deliverable.x) {
+    if (!(this.deliverable && this.deliverable.x)) {
       return false
     }
     return this.deliverable.x.status === status
@@ -315,7 +315,7 @@ export default class DeliverableMixin extends mixins(Viewer) {
   }
 
   public get editable() {
-    return (this.is(this.NEW) || this.is(this.PAYMENT_PENDING) || this.is(this.WAITING))
+    return (this.is(this.NEW) || this.is(this.WAITING))
   }
 
   public updateDeliverable(deliverable: Deliverable) {

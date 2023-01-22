@@ -609,7 +609,7 @@ class DeliverableLineItems(ListCreateAPIView):
                     IsSafeMethod,
                     All(
                         IsMethod('POST'), DeliverableStatusPermission(
-                            NEW, PAYMENT_PENDING, WAITING,
+                            NEW, WAITING,
                         )
                     )
                 ),
@@ -683,7 +683,7 @@ class DeliverableLineItemManager(RetrieveUpdateDestroyAPIView):
             All(IsSafeMethod, OrderViewPermission),
             All(
                 IsMethod('PATCH', 'DELETE'),
-                DeliverableStatusPermission(NEW, PAYMENT_PENDING, WAITING),
+                DeliverableStatusPermission(NEW, WAITING),
                 Any(
                     All(
                         OrderSellerPermission, Any(

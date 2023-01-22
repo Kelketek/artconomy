@@ -8,22 +8,6 @@
   </v-row>
 </template>
 
-<style>
-  @keyframes shadow-pulse
-  {
-    0% {
-      box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.5);
-    }
-    100% {
-      box-shadow: 0 0 0 35px rgba(0, 0, 0, 0);
-    }
-  }
-
-  .glowing {
-    animation: shadow-pulse 1s infinite;
-  }
-</style>
-
 <script lang="ts">
 import Vue from 'vue'
 import {Prop} from 'vue-property-decorator'
@@ -40,10 +24,6 @@ export default class AcNewLineItem extends Vue {
 
   @Prop({required: true})
   public price!: number
-
-  public get worthSaving() {
-    return ![NaN, Infinity, 0].includes(parseFloat(this.form.fields.amount.value))
-  }
 
   public get placeholder() {
     if (this.form.fields.type.value === LineTypes.ADD_ON) {

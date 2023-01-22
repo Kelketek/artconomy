@@ -321,10 +321,10 @@ class DeliverableSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
         except (KeyError, AttributeError):  # pragma: no cover
             return
         if self.is_seller:
-            if self.instance.status in [NEW, PAYMENT_PENDING, WAITING]:
+            if self.instance.status in [NEW, WAITING]:
                 for field_name in [
                     'adjustment_expected_turnaround', 'adjustment_task_weight', 'adjustment_revisions',
-                    'name', 'cascade_fees',
+                    'name', 'cascade_fees', 'rating', 'details',
                 ]:
                     self.fields[field_name].read_only = False
                 if (not self.instance.table_order) and self.instance.order.seller.escrow_available:

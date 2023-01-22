@@ -5,8 +5,21 @@
         <v-icon>delete</v-icon>
       </v-btn>
     </v-col>
-    <v-col class="text-right pr-1" cols="4"><ac-patch-field :patcher="line.patchers.description" :id="`lineItem-${line.x.id}-description`" :placeholder="placeholder"/></v-col>
-    <v-col class="text-left pl-1" cols="4"><ac-patch-field :patcher="line.patchers.amount" :id="`lineItem-${line.x.id}-amount`" field-type="ac-price-field" @keydown.enter.native="newLineFunc"/></v-col>
+    <v-col class="text-right pr-1" cols="4">
+      <ac-patch-field
+          :patcher="line.patchers.description"
+          :id="`lineItem-${line.x.id}-description`"
+          :placeholder="placeholder"
+      />
+    </v-col>
+    <v-col class="text-left pl-1" cols="4">
+      <ac-patch-field
+          :patcher="line.patchers.amount"
+          :id="`lineItem-${line.x.id}-amount`"
+          field-type="ac-price-field"
+          @keydown.enter.native="newLineFunc"
+      />
+    </v-col>
     <v-col class="text-left pl-1" cols="2"><v-text-field :disabled="true" :value="'$' + price.toFixed(2)" /></v-col>
   </v-row>
 </template>
@@ -31,9 +44,6 @@ export default class AcLineItemEditor extends Vue {
   @Prop({required: true})
   public priceData!: LineAccumulator
 
-  @Prop({default: () => () => undefined})
-  public newLine!: () => undefined
-
   @Prop({default: false})
   public enableNewLine!: boolean
 
@@ -47,7 +57,7 @@ export default class AcLineItemEditor extends Vue {
 
   public newLineFunc() {
     if (this.enableNewLine) {
-      this.newLine()
+      this.$emit('new-line')
     }
   }
 

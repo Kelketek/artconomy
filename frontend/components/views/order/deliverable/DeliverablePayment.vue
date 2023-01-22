@@ -75,7 +75,7 @@
                         :line-items="lineItems"
                         :username="order.x.seller.username"
                         :is-seller="isSeller"
-                        :editable="(is(NEW) || is(PAYMENT_PENDING) || is(WAITING)) && (isSeller || isArbitrator)"
+                        :editable="editable && (isSeller || isArbitrator)"
                         :editBase="!product"
                         :escrow="!deliverable.x.escrow_disabled"
                     />
