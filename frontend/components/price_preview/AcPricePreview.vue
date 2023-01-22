@@ -26,7 +26,8 @@
                   :new-line="postSubmitAdd(addOnForm)"
                   :enable-new-line="index === addOns.length - 1"
               />
-              <ac-form-container v-bind="addOnForm.bind">
+              <ac-new-line-skeleton v-if="addOnForm.sending" />
+              <ac-form-container v-bind="addOnForm.bind" :show-spinner="false">
                 <ac-form @submit.prevent="postSubmitAdd(addOnForm)">
                   <ac-new-line-item :form="addOnForm" :price="priceData.subtotals.get(addOnFormItem) || 0" />
                 </ac-form>
@@ -45,7 +46,8 @@
                   :editing="editable"
                   :new-line="postSubmitAdd(extraForm)"
                   :enable-new-line="index === extras.length - 1"  />
-              <ac-form-container v-bind="extraForm.bind">
+              <ac-new-line-skeleton v-if="extraForm.sending" />
+              <ac-form-container v-bind="extraForm.bind" :show-spinner="false">
                 <ac-form @submit.prevent="extraForm.submitThen(lineItems.push)">
                   <ac-new-line-item :form="extraForm" :price="priceData.subtotals.get(extraFormItem) || 0" />
                 </ac-form>
@@ -94,9 +96,18 @@ import AcNewLineItem from '@/components/price_preview/AcNewLineItem.vue'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import Big from 'big.js'
+import AcNewLineSkeleton from '@/components/price_preview/AcNewLineSkeleton.vue'
 
 @Component({
-  components: {AcForm, AcFormContainer, AcNewLineItem, AcLineItemEditor, AcLineItemPreview, AcLoadSection},
+  components: {
+    AcNewLineSkeleton,
+    AcForm,
+    AcFormContainer,
+    AcNewLineItem,
+    AcLineItemEditor,
+    AcLineItemPreview,
+    AcLoadSection,
+  },
 })
 export default class AcPricePreview extends mixins(Subjective) {
   public pricing: SingleController<Pricing> = null as unknown as SingleController<Pricing>

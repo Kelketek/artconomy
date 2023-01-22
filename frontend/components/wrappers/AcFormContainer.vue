@@ -6,6 +6,7 @@
           :size="70"
           :width="7"
           color="purple"
+          v-if="showSpinner"
       />
     </div>
     <v-col :class="{'form-sending': sending}" cols="12">
@@ -62,6 +63,9 @@ export default class AcFormContainer extends Vue {
 
     @Prop({default: () => []})
     public errors!: string[]
+
+    @Prop({default: true})
+    public showSpinner!: boolean
 
     public savedErrors: string[] = []
 
