@@ -44,6 +44,7 @@ from apps.lib.utils import (
     watch_subscriptions,
     remove_watch_subscriptions, websocket_send, exclude_request, clear_events_subscriptions_and_comments
 )
+from apps.profiles.constants import UNSET, INCLUDED_IN_ALL, SHIELD_DISABLED, SHIELD_STATUS_CHOICES
 from apps.profiles.permissions import (
     SubmissionViewPermission, SubmissionCommentPermission, MessageReadPermission,
     JournalCommentPermission,
@@ -94,24 +95,6 @@ def default_plan():
         return None
 
 
-UNSET = 0
-IN_SUPPORTED_COUNTRY = 1
-NO_SUPPORTED_COUNTRY = 2
-BANK_STATUS_CHOICES = (
-    (UNSET, "Unset"),
-    (IN_SUPPORTED_COUNTRY, "In supported country"),
-    (NO_SUPPORTED_COUNTRY, "No supported country")
-)
-
-NORMAL = 0
-VERIFIED = 1
-
-TRUST_LEVELS = (
-    (NORMAL, 'Normal'),
-    (VERIFIED, 'Verified'),
-)
-
-
 class User(AbstractEmailUser, HitsMixin):
     """
     User model for Artconomy.
@@ -149,7 +132,6 @@ class User(AbstractEmailUser, HitsMixin):
     discord_id = CharField(db_index=True, default='', max_length=30)
     guest_email = EmailField(db_index=True, default='', blank=True)
     avatar_url = URLField(blank=True)
-    trust_level = IntegerField(choices=TRUST_LEVELS, default=NORMAL, db_index=True)
     rating = IntegerField(
         choices=RATINGS, db_index=True, default=GENERAL,
         help_text="Shows the maximum rating to display. By setting this to anything other than general, you certify "
@@ -227,7 +209,7 @@ class User(AbstractEmailUser, HitsMixin):
     @property
     def escrow_available(self):
         try:
-            return self.artist_profile.bank_account_status == IN_SUPPORTED_COUNTRY
+            return self.artist_profile.shield_option == INCLUDED_IN_ALL
         except ArtistProfile.DoesNotExist:
             return False
 
@@ -366,7 +348,7 @@ class ArtistProfile(Model):
         validators=[MinValueValidator(1)], default=10,
         help_text="How much work you're willing to take on at once (for artists)"
     )
-    bank_account_status = IntegerField(choices=BANK_STATUS_CHOICES, db_index=True, default=UNSET, blank=True)
+    shield_option = IntegerField(choices=SHIELD_STATUS_CHOICES, db_index=True, default=UNSET, blank=True)
     commissions_closed = BooleanField(
         default=False, db_index=True,
         help_text="When enabled, no one may commission you."
@@ -395,9 +377,9 @@ class ArtistProfile(Model):
 @receiver(pre_save, sender=ArtistProfile)
 def sync_escrow_status(sender, instance, **kwargs):
     from apps.sales.models import StripeAccount
-    if instance.bank_account_status == IN_SUPPORTED_COUNTRY:
+    if instance.shield_option == INCLUDED_IN_ALL:
         instance.escrow_disabled = False
-    elif instance.bank_account_status == NO_SUPPORTED_COUNTRY:
+    elif instance.shield_option == SHIELD_DISABLED:
         if not StripeAccount.objects.filter(user=instance.user, active=True):
             instance.escrow_disabled = True
         else:

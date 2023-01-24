@@ -6,7 +6,8 @@ from django.views import View
 from rest_framework.permissions import BasePermission
 from rest_framework.request import Request
 
-from apps.profiles.models import UNSET, User
+from apps.profiles.models import User
+from apps.profiles.constants import UNSET
 from apps.sales.utils import available_products_from_user
 
 
@@ -95,7 +96,7 @@ class BankingConfigured(BasePermission):
     message = 'You must have your banking settings configured before you can issue an invoice.'
 
     def has_object_permission(self, request, view, obj):
-        return obj.artist_profile.bank_account_status is not UNSET
+        return obj.artist_profile.shield_option is not UNSET
 
 
 def DeliverableStatusPermission(*args, error_message='The deliverable is not in the right status for that.'):

@@ -11,7 +11,7 @@ from apps.lib.models import NEW_PRODUCT, ref_for_instance, ModifiedMarker, Subsc
 from apps.lib.test_resources import EnsurePlansMixin
 from apps.lib.tests.factories_interdepend import CommentFactory
 from apps.lib.utils import FakeRequest
-from apps.profiles.models import NO_SUPPORTED_COUNTRY, IN_SUPPORTED_COUNTRY
+from apps.profiles.constants import INCLUDED_IN_ALL, SHIELD_DISABLED
 from apps.profiles.tests.factories import UserFactory, SubmissionFactory
 from apps.sales.models import Product, InventoryTracker, deliverable_from_context, StripeLocation, StripeReader
 from apps.sales.constants import BASE_PRICE, SHIELD, BONUS, TABLE_SERVICE, TAX, COMPLETED, NEW, QUEUED, CANCELLED, \
@@ -97,7 +97,7 @@ class TestProduct(EnsurePlansMixin, TestCase):
     @unpack
     @data(*DESCRIPTION_VALUES)
     def test_preview_description(self, price: Decimal, prefix: str, escrow_disabled: bool):
-        account_status = NO_SUPPORTED_COUNTRY if escrow_disabled else IN_SUPPORTED_COUNTRY
+        account_status = SHIELD_DISABLED if escrow_disabled else INCLUDED_IN_ALL
         product = ProductFactory.create(
             base_price=price, description='Test **Test** *Test*',
         )

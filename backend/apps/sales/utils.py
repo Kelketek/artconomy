@@ -32,12 +32,12 @@ from short_stuff import gen_shortcode
 from apps.lib.models import Subscription, COMMISSIONS_OPEN, Event, DISPUTE, SALE_UPDATE, Notification, \
     Comment, ORDER_UPDATE, COMMENT, ref_for_instance, REFUND
 from apps.lib.utils import notify, recall_notification
-from apps.profiles.models import User, VERIFIED
+from apps.profiles.models import User
 from apps.sales.constants import STRIPE, BASE_PRICE, ADD_ON, SHIELD, BONUS, TIP, TABLE_SERVICE, TAX, EXTRA, OPEN, PAID, \
     VOID, SUBSCRIPTION, COMPLETED, PAYMENT_PENDING, QUEUED, IN_PROGRESS, REVIEW, CANCELLED, DISPUTED, FAILURE, CARD, \
     RESERVE, UNPROCESSED_EARNINGS, SUCCESS, MONEY_HOLE_STAGE, MONEY_HOLE, ESCROW, HOLDINGS, ESCROW_RELEASE, SHIELD_FEE, \
     ESCROW_HOLD, EXTRA_ITEM, CASH_DEPOSIT, THIRD_PARTY_FEE, CARD_TRANSACTION_FEES, SUBSCRIPTION_DUES, TABLE_HANDLING, \
-    TAXES, PREMIUM_SUBSCRIPTION, REFUNDED, ESCROW_REFUND, TERM, DRAFT, DELIVERABLE_TRACKING
+    TAXES, PREMIUM_SUBSCRIPTION, REFUNDED, ESCROW_REFUND, TERM, DRAFT
 from apps.sales.line_item_funcs import floor_context, ceiling_context, lines_by_priority, \
     normalized_lines, get_totals
 from apps.sales.stripe import refund_payment_intent, stripe
@@ -935,7 +935,6 @@ def pay_deliverable(*, attempt: PaymentAttempt, deliverable: 'Deliverable', requ
     if deliverable.final_uploaded:
         deliverable.status = REVIEW
         deliverable.auto_finalize_on = (timezone.now() + relativedelta(days=2)).date()
-        early_finalize(deliverable, requesting_user)
     elif deliverable.revision_set.all().exists():
         deliverable.status = IN_PROGRESS
     else:

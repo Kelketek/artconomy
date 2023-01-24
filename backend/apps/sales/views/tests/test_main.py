@@ -16,7 +16,8 @@ from apps.lib.abstract_models import ADULT, GENERAL, EXTREME
 from apps.lib.models import Comment, Subscription, COMMENT
 from apps.lib.test_resources import APITestCase, PermissionsTestCase, MethodAccessMixin
 from apps.lib.tests.factories import TagFactory, AssetFactory
-from apps.profiles.models import User, IN_SUPPORTED_COUNTRY, NO_SUPPORTED_COUNTRY, UNSET, ArtistTag
+from apps.profiles.models import User, ArtistTag
+from apps.profiles.constants import UNSET, INCLUDED_IN_ALL, SHIELD_DISABLED
 from apps.profiles.tests.factories import UserFactory, SubmissionFactory, CharacterFactory
 from apps.sales.models import Order, Product, Reference, Deliverable
 from apps.sales.constants import BASE_PRICE, ADD_ON, DELIVERABLE_STATUSES, REFUNDED, COMPLETED, WAITING, NEW, \
@@ -1085,9 +1086,9 @@ class TestProductSearch(APITestCase):
         self.assertIDInList(featured, response.data['results'])
 
     def test_shielded(self):
-        shielded = ProductFactory.create(user__artist_profile__bank_account_status=IN_SUPPORTED_COUNTRY)
+        shielded = ProductFactory.create(user__artist_profile__shield_option=INCLUDED_IN_ALL)
         # Non-featured
-        ProductFactory.create(user__artist_profile__bank_account_status=NO_SUPPORTED_COUNTRY)
+        ProductFactory.create(user__artist_profile__shield_option=SHIELD_DISABLED)
         response = self.client.get('/api/sales/v1/search/product/', {'shield_only': True})
         self.assertIDInList(shielded, response.data['results'])
 
@@ -1111,7 +1112,7 @@ class TestCreateInvoice(APITestCase):
     def test_create_invoice_no_bank_configured(self):
         user = UserFactory.create()
         self.login(user)
-        user.artist_profile.bank_account_status = UNSET
+        user.artist_profile.shield_option = UNSET
         user.artist_profile.save()
         response = self.client.post(f'/api/sales/v1/account/{user.username}/create-invoice/', {})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -1120,7 +1121,7 @@ class TestCreateInvoice(APITestCase):
         user = UserFactory.create()
         user2 = UserFactory.create()
         self.login(user)
-        user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
+        user.artist_profile.shield_option = INCLUDED_IN_ALL
         user.artist_profile.save()
         product = ProductFactory.create(
             user=user, base_price=Money('3.00', 'USD'), task_weight=5, expected_turnaround=2,
@@ -1176,7 +1177,7 @@ class TestCreateInvoice(APITestCase):
         user = UserFactory.create()
         user2 = UserFactory.create()
         self.login(user)
-        user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
+        user.artist_profile.shield_option = INCLUDED_IN_ALL
         user.artist_profile.save()
         product = ProductFactory.create(
             user=user, base_price=Money('3.00', 'USD'), task_weight=5, expected_turnaround=2,
@@ -1231,7 +1232,7 @@ class TestCreateInvoice(APITestCase):
     def test_create_invoice_email(self):
         user = UserFactory.create()
         self.login(user)
-        user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
+        user.artist_profile.shield_option = INCLUDED_IN_ALL
         user.artist_profile.save()
         product = ProductFactory.create(
             user=user, base_price=Money('3.00', 'USD'), task_weight=5, expected_turnaround=2,
@@ -1268,7 +1269,7 @@ class TestCreateInvoice(APITestCase):
         user = UserFactory.create()
         user2 = UserFactory.create()
         self.login(user)
-        user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
+        user.artist_profile.shield_option = INCLUDED_IN_ALL
         user.artist_profile.save()
         product = ProductFactory.create(
             user=user, base_price=Money('3.00', 'USD'), task_weight=5, expected_turnaround=2,
@@ -1304,7 +1305,7 @@ class TestCreateInvoice(APITestCase):
     def test_create_invoice_no_buyer(self):
         user = UserFactory.create()
         self.login(user)
-        user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
+        user.artist_profile.shield_option = INCLUDED_IN_ALL
         user.artist_profile.save()
         product = ProductFactory.create(
             user=user, base_price=Money('3.00', 'USD'), task_weight=5, expected_turnaround=2,
@@ -1339,7 +1340,7 @@ class TestCreateInvoice(APITestCase):
     def test_create_invoice_self_send_fails(self):
         user = UserFactory.create()
         self.login(user)
-        user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
+        user.artist_profile.shield_option = INCLUDED_IN_ALL
         user.artist_profile.save()
         product = ProductFactory.create(
             user=user, base_price=Money('3.00', 'USD'), task_weight=5, expected_turnaround=2,
@@ -1368,7 +1369,7 @@ class TestCreateInvoice(APITestCase):
         user2 = UserFactory.create()
         user2.blocking.add(user)
         self.login(user)
-        user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
+        user.artist_profile.shield_option = INCLUDED_IN_ALL
         user.artist_profile.save()
         product = ProductFactory.create(
             user=user, base_price=Money('3.00', 'USD'), task_weight=5, expected_turnaround=2,
@@ -1397,7 +1398,7 @@ class TestCreateInvoice(APITestCase):
         user2 = UserFactory.create()
         user2.blocking.add(user)
         self.login(user)
-        user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
+        user.artist_profile.shield_option = INCLUDED_IN_ALL
         user.artist_profile.save()
         product = ProductFactory.create(
             user=user, base_price=Money('3.00', 'USD'), task_weight=5, expected_turnaround=2,
@@ -1424,7 +1425,7 @@ class TestCreateInvoice(APITestCase):
     def test_create_invoice_no_inventory(self):
         user = UserFactory.create()
         self.login(user)
-        user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
+        user.artist_profile.shield_option = INCLUDED_IN_ALL
         user.artist_profile.save()
         product = ProductFactory.create(
             user=user, base_price=Money('3.00', 'USD'), task_weight=5, expected_turnaround=2,
@@ -1451,7 +1452,7 @@ class TestCreateInvoice(APITestCase):
     def test_create_invoice_wrong_product(self):
         user = UserFactory.create()
         self.login(user)
-        user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
+        user.artist_profile.shield_option = INCLUDED_IN_ALL
         user.artist_profile.save()
         product = ProductFactory.create(base_price=Money('3.00', 'USD'))
         response = self.client.post(f'/api/sales/v1/account/{user.username}/create-invoice/', {
@@ -1476,7 +1477,7 @@ class TestCreateInvoice(APITestCase):
     def test_create_invoice_bad_price(self):
         user = UserFactory.create()
         self.login(user)
-        user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
+        user.artist_profile.shield_option = INCLUDED_IN_ALL
         user.artist_profile.save()
         response = self.client.post(f'/api/sales/v1/account/{user.username}/create-invoice/', {
             'completed': False,
@@ -1499,7 +1500,7 @@ class TestCreateInvoice(APITestCase):
     def test_create_invoice_completed(self):
         user = UserFactory.create()
         self.login(user)
-        user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
+        user.artist_profile.shield_option = INCLUDED_IN_ALL
         user.artist_profile.save()
         product = ProductFactory.create(
             user=user, base_price=Money('3.00', 'USD'), task_weight=5, expected_turnaround=2,
@@ -1536,7 +1537,7 @@ class TestCreateInvoice(APITestCase):
     def test_create_invoice_hold(self):
         user = UserFactory.create()
         self.login(user)
-        user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
+        user.artist_profile.shield_option = INCLUDED_IN_ALL
         user.artist_profile.save()
         product = ProductFactory.create(
             user=user, base_price=Money('3.00', 'USD'), task_weight=5, expected_turnaround=2,
@@ -1571,7 +1572,7 @@ class TestCreateInvoice(APITestCase):
     def test_create_invoice_no_product(self):
         user = UserFactory.create()
         self.login(user)
-        user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
+        user.artist_profile.shield_option = INCLUDED_IN_ALL
         user.artist_profile.save()
         response = self.client.post(f'/api/sales/v1/account/{user.username}/create-invoice/', {
             'completed': False,
@@ -1608,7 +1609,7 @@ class TestCreateInvoice(APITestCase):
     def test_create_invoice_no_product_nonsheild(self):
         user = UserFactory.create()
         self.login(user)
-        user.artist_profile.bank_account_status = NO_SUPPORTED_COUNTRY
+        user.artist_profile.shield_option = SHIELD_DISABLED
         user.artist_profile.save()
         response = self.client.post(f'/api/sales/v1/account/{user.username}/create-invoice/', {
             'completed': False,
@@ -1646,7 +1647,7 @@ class TestCreateInvoice(APITestCase):
         user = UserFactory.create(artist_mode=True)
         user2 = UserFactory.create()
         self.login(user)
-        user.artist_profile.bank_account_status = NO_SUPPORTED_COUNTRY
+        user.artist_profile.shield_option = SHIELD_DISABLED
         user.artist_profile.save()
         product = ProductFactory.create(
             user=user, base_price=Money('3.00', 'USD'), task_weight=5, expected_turnaround=2,
@@ -1684,7 +1685,7 @@ class TestCreateInvoice(APITestCase):
         user = UserFactory.create()
         user2 = UserFactory.create()
         self.login(user)
-        user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
+        user.artist_profile.shield_option = INCLUDED_IN_ALL
         user.artist_profile.save()
         product = ProductFactory.create(
             user=user, base_price=Money('3.00', 'USD'), task_weight=5, expected_turnaround=2,
@@ -1724,7 +1725,7 @@ class TestCreateInvoice(APITestCase):
         user = UserFactory.create()
         user2 = UserFactory.create()
         self.login(user)
-        user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
+        user.artist_profile.shield_option = INCLUDED_IN_ALL
         user.artist_profile.save()
         product = ProductFactory.create(
             user=user, base_price=Money('3.00', 'USD'), task_weight=5, expected_turnaround=2,
@@ -2289,7 +2290,7 @@ class TestOrderDeliverables(APITestCase):
 
     def test_create_deliverable(self):
         old_deliverable = DeliverableFactory.create(
-            order__seller__artist_profile__bank_account_status=IN_SUPPORTED_COUNTRY,
+            order__seller__artist_profile__shield_option=INCLUDED_IN_ALL,
             order__seller__service_plan=self.landscape,
             order__seller__service_plan_paid_through=(timezone.now() + relativedelta(days=5)).date(),
         )
@@ -2344,7 +2345,7 @@ class TestOrderDeliverables(APITestCase):
 
     def test_create_deliverable_with_references(self):
         old_deliverable = DeliverableFactory.create(
-            order__seller__artist_profile__bank_account_status=IN_SUPPORTED_COUNTRY,
+            order__seller__artist_profile__shield_option=INCLUDED_IN_ALL,
             order__seller__service_plan=self.landscape,
             order__seller__service_plan_paid_through=(timezone.now() + relativedelta(days=5)).date(),
         )
@@ -2375,7 +2376,7 @@ class TestOrderDeliverables(APITestCase):
             product__task_weight=5,
             product__revisions=1,
             product__base_price=Money('3.00', 'USD'),
-            product__user__artist_profile__bank_account_status=IN_SUPPORTED_COUNTRY,
+            product__user__artist_profile__shield_option=INCLUDED_IN_ALL,
             product__user__service_plan_paid_through=timezone.now() - relativedelta(days=5),
             product__user__service_plan=self.landscape,
         )
@@ -2400,7 +2401,7 @@ class TestOrderDeliverables(APITestCase):
             product__task_weight=5,
             product__revisions=1,
             product__base_price=Money('3.00', 'USD'),
-            product__user__artist_profile__bank_account_status=IN_SUPPORTED_COUNTRY,
+            product__user__artist_profile__shield_option=INCLUDED_IN_ALL,
             product__user__landscape_paid_through=timezone.now() + relativedelta(days=5),
         )
         self.login(old_deliverable.order.buyer)

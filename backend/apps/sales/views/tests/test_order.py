@@ -18,7 +18,7 @@ from apps.lib.abstract_models import ADULT, MATURE, GENERAL
 from apps.lib.models import Event, SALE_UPDATE, ORDER_UPDATE, WAITLIST_UPDATED, Subscription, COMMENT
 from apps.lib.test_resources import APITestCase
 from apps.lib.tests.factories import AssetFactory
-from apps.profiles.models import VERIFIED, User
+from apps.profiles.models import User
 from apps.profiles.tests.factories import UserFactory, CharacterFactory, SubmissionFactory
 from apps.profiles.utils import create_guest_user
 from apps.sales.models import Deliverable, Order, Revision
@@ -805,24 +805,6 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         deliverable.refresh_from_db()
         self.assertEqual(deliverable.status, REVIEW)
-        self.assertEqual(deliverable.auto_finalize_on, date(2012, 8, 3))
-        self.assertTrue(deliverable.final_uploaded)
-
-    @freeze_time('2012-08-01 12:00:00')
-    @patch('apps.sales.utils.finalize_deliverable')
-    def test_order_mark_complete_trusted_finalize(self, mock_finalize):
-        user = UserFactory.create(service_plan_paid_through=timezone.now() + relativedelta(months=1), trust_level=VERIFIED, service_plan=self.landscape)
-        self.login(user)
-        deliverable = DeliverableFactory.create(order__seller=user, status=IN_PROGRESS, revisions=1)
-        RevisionFactory.create(deliverable=deliverable)
-        deliverable.refresh_from_db()
-        self.assertEqual(deliverable.status, IN_PROGRESS)
-        response = self.client.post(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/complete/'
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        deliverable.refresh_from_db()
-        self.assertTrue(deliverable.trust_finalized)
         self.assertEqual(deliverable.auto_finalize_on, date(2012, 8, 3))
         self.assertTrue(deliverable.final_uploaded)
 

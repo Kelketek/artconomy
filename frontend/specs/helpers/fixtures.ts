@@ -1,7 +1,7 @@
 import {rs} from './index'
 import {User} from '@/store/profiles/types/User'
 import {ArtistProfile} from '@/store/profiles/types/ArtistProfile'
-import {BANK_STATUSES} from '@/store/profiles/types/BANK_STATUSES'
+import {SHIELD_STATUSES} from '@/store/profiles/types/SHIELD_STATUSES'
 import {CreditCardToken} from '@/types/CreditCardToken'
 import Revision from '@/types/Revision'
 import Order from '@/types/Order'
@@ -70,7 +70,7 @@ export function genArtistProfile(overrides?: Partial<ArtistProfile>): ArtistProf
     lgbt: false,
     artist_of_color: false,
     escrow_disabled: false,
-    bank_account_status: 0 as BANK_STATUSES.UNSET,
+    shield_option: 0 as SHIELD_STATUSES.UNSET,
     public_queue: true,
     ...overrides,
   }

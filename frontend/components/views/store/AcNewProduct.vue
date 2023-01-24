@@ -12,9 +12,9 @@
     <ac-load-section :controller="subjectHandler.artistProfile">
       <template v-slot:default>
         <v-col>
-          <v-row no-gutters v-if="subjectHandler.artistProfile.x.bank_account_status === 0">
+          <v-row no-gutters v-if="subjectHandler.artistProfile.x.shield_option === 0">
             <v-col class="pt-2" cols="12" md="8" offset-md="2" >
-              <ac-patch-field :patcher="subjectHandler.artistProfile.patchers.bank_account_status" field-type="ac-bank-toggle" :username="username" />
+              <ac-patch-field :patcher="subjectHandler.artistProfile.patchers.shield_option" field-type="ac-bank-toggle" :username="username" />
             </v-col>
           </v-row>
           <v-stepper v-model="newProduct.step" class="submission-stepper" v-else>
@@ -154,7 +154,7 @@
       </template>
     </ac-load-section>
     <template slot="bottom-buttons">
-      <v-card-actions row wrap v-if="subjectHandler.artistProfile.x && subjectHandler.artistProfile.x.bank_account_status !== 0">
+      <v-card-actions row wrap v-if="subjectHandler.artistProfile.x && subjectHandler.artistProfile.x.shield_option !== 0">
         <v-spacer />
         <v-btn @click.prevent="toggle(false)">Cancel</v-btn>
         <v-btn @click.prevent="newProduct.step -= 1" v-if="newProduct.step > 1" color="secondary">Previous</v-btn>
@@ -239,7 +239,7 @@ export default class AcNewProduct extends Subjective {
 
     public get escrow() {
       const profile = this.subjectHandler.artistProfile.x
-      return profile && profile.bank_account_status === 1
+      return profile && profile.shield_option === 1
     }
 
     public get priceHint() {

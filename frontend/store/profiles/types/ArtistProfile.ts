@@ -1,4 +1,4 @@
-import {BANK_STATUSES} from '@/store/profiles/types/BANK_STATUSES'
+import {SHIELD_STATUSES} from '@/store/profiles/types/SHIELD_STATUSES'
 
 export interface ArtistProfile {
   dwolla_configured: boolean,
@@ -11,5 +11,5 @@ export interface ArtistProfile {
   escrow_disabled: boolean,
   lgbt: boolean,
   artist_of_color: boolean,
-  bank_account_status: BANK_STATUSES,
+  shield_option: SHIELD_STATUSES,
 }

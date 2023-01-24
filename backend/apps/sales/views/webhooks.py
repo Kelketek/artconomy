@@ -20,7 +20,8 @@ from stripe.error import SignatureVerificationError
 
 from apps.lib.models import ref_for_instance, TRANSFER_FAILED
 from apps.lib.utils import notify
-from apps.profiles.models import User, IN_SUPPORTED_COUNTRY
+from apps.profiles.models import User
+from apps.profiles.constants import INCLUDED_IN_ALL
 from apps.sales.constants import STRIPE, NEW, PAYMENT_PENDING, TYPE_TRANSLATION, FAILURE, SUCCESS, PAYOUT_REVERSAL, \
     CASH_WITHDRAW, PAYOUT_MIRROR_DESTINATION, PAYOUT_MIRROR_SOURCE, BANK, HOLDINGS
 from apps.sales.models import Invoice, Deliverable, TransactionRecord, CreditCardToken, \
@@ -103,7 +104,7 @@ def account_updated(event):
         Deliverable.objects.filter(
             order__seller=account.user, status__in=[NEW, PAYMENT_PENDING],
         ).update(processor=STRIPE)
-        account.user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
+        account.user.artist_profile.shield_option = INCLUDED_IN_ALL
         account.user.artist_profile.save()
         withdraw_all.delay(account.user.id)
 

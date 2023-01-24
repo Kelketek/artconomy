@@ -4,7 +4,7 @@ import {Wrapper} from '@vue/test-utils'
 import Vuetify from 'vuetify/lib'
 import {ArtStore, createStore} from '@/store'
 import {genArtistProfile, genUser} from '@/specs/helpers/fixtures'
-import {BANK_STATUSES} from '@/store/profiles/types/BANK_STATUSES'
+import {SHIELD_STATUSES} from '@/store/profiles/types/SHIELD_STATUSES'
 import {cleanUp, createVuetify, vueSetup, mount} from '@/specs/helpers'
 
 const localVue = vueSetup()
@@ -69,7 +69,7 @@ describe('AcSettingNav.vue', () => {
     user.artist_mode = false
     vm.subjectHandler.user.setX(user)
     const profile = genArtistProfile()
-    profile.bank_account_status = 1 as BANK_STATUSES
+    profile.shield_option = 1 as SHIELD_STATUSES
     vm.subjectHandler.artistProfile.setX(profile)
     await wrapper.vm.$nextTick()
     expect(wrapper.find('.payout-link').exists()).toBe(true)

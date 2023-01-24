@@ -36,7 +36,8 @@ from apps.lib.serializers import CommentSerializer
 from apps.lib.utils import notify, recall_notification, demark, preview_rating, send_transaction_email, create_comment, \
     mark_modified, mark_read, count_hit
 from apps.lib.views import BasePreview
-from apps.profiles.models import User, Submission, IN_SUPPORTED_COUNTRY, trigger_reconnect, ArtistTag
+from apps.profiles.models import User, Submission, trigger_reconnect, ArtistTag
+from apps.profiles.constants import INCLUDED_IN_ALL
 from apps.profiles.permissions import ObjectControls, UserControls, IsUser, IsSuperuser, IsRegistered, BillTo, IssuedBy
 from apps.profiles.serializers import UserSerializer, SubmissionSerializer
 from apps.profiles.utils import create_guest_user, empty_user, get_anonymous_user
@@ -68,7 +69,7 @@ from apps.sales.serializers import (
 )
 from apps.sales.utils import available_products, \
     available_products_by_load, finalize_deliverable, account_balance, \
-    POSTED_ONLY, PENDING, transfer_order, early_finalize, cancel_deliverable, \
+    POSTED_ONLY, PENDING, transfer_order, cancel_deliverable, \
     verify_total, ensure_buyer, \
     pay_deliverable, \
     invoice_post_payment, refund_deliverable, get_term_invoice
@@ -771,7 +772,6 @@ class DeliverableRevisions(ListCreateAPIView):
             elif deliverable.status == IN_PROGRESS:
                 deliverable.status = REVIEW
                 deliverable.auto_finalize_on = (timezone.now() + relativedelta(days=5)).date()
-                early_finalize(deliverable, self.request.user)
             deliverable.save()
             notify(ORDER_UPDATE, deliverable, unique=True, mark_unread=True)
         else:
@@ -987,7 +987,6 @@ class MarkComplete(GenericAPIView):
         else:
             deliverable.status = REVIEW
             deliverable.auto_finalize_on = (timezone.now() + relativedelta(days=2)).date()
-            early_finalize(deliverable, self.request.user)
         deliverable.save()
         notify(ORDER_UPDATE, deliverable, unique=True, mark_unread=True)
         serializer = self.get_serializer(instance=deliverable)
@@ -1851,7 +1850,7 @@ def get_order_facts(product: Optional[Product], serializer, seller: User):
         facts['adjustment'] = Money('0.00', 'USD')
     facts['paid'] = serializer.validated_data['paid'] or ((facts['price'] + facts['adjustment']) == Money('0', 'USD'))
     facts['escrow_disabled'] = (
-            facts['paid'] or ((seller.artist_profile.bank_account_status != IN_SUPPORTED_COUNTRY)
+            facts['paid'] or ((seller.artist_profile.shield_option != INCLUDED_IN_ALL)
                               and not (product and product.table_product))
     )
     if facts['paid']:
