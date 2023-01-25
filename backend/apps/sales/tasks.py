@@ -181,7 +181,7 @@ def record_to_deliverable_map(user, bank: StripeAccount, amount: Money) -> Recor
     deliverables = Deliverable.objects.select_for_update(skip_locked=True).filter(
         order__seller=user,
         payout_sent=False,
-        escrow_disabled=False,
+        escrow_enabled=True,
         status=COMPLETED,
     )
     record_map: RecordMap = {}

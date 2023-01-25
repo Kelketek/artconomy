@@ -58,6 +58,10 @@
               <v-radio label="Enable Shield by Default, allow downgrade" :value="DEFAULT_SHIELD_ALLOW_DOWNGRADE" />
               <v-radio label="Shield Disabled" :value="SHIELD_DISABLED" />
             </v-radio-group>
+            <p>
+              Changing this value will not affect existing orders. If shield is enabled, products with 'absorb fees'
+              set will be brought up to the minimum price if they are set below this price.
+            </p>
           </v-card-text>
         </v-card>
       </v-container>

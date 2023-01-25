@@ -146,7 +146,7 @@ class Product(ImageModel, HitsMixin):
                     back_into_percentage=True,
                 ),
             ])
-        elif self.base_price and not self.escrow_disabled:
+        elif self.base_price and self.escrow_disabled:
             percentage_price = plan.shield_percentage_price
             if self.international:
                 percentage_price += settings.INTERNATIONAL_CONVERSION_PERCENTAGE
@@ -302,7 +302,7 @@ class Deliverable(Model):
     adjustment_task_weight = IntegerField(default=0)
     adjustment_revisions = IntegerField(default=0)
     task_weight = IntegerField(default=0)
-    escrow_disabled = BooleanField(default=False, db_index=True)
+    escrow_enabled = BooleanField(default=False, db_index=True)
     trust_finalized = BooleanField(default=False, db_index=True)
     cascade_fees = BooleanField(default=True)
     table_order = BooleanField(default=False, db_index=True)
@@ -388,7 +388,7 @@ class Deliverable(Model):
 
     def save(self, *args, **kwargs):
         if self.table_order:
-            self.escrow_disabled = False
+            self.escrow_enabled = True
         if self.status in [NEW, PAYMENT_PENDING, WAITING]:
             self.international = StripeAccount.objects.filter(
                 user=self.order.seller,
@@ -522,7 +522,7 @@ def idempotent_lines(instance: Deliverable):
         )[0]
         line.annotate(instance)
     total = reckon_lines(main_qs.filter(priority__lt=PRIORITY_MAP[SHIELD]))
-    escrow_enabled = (not instance.escrow_disabled) and total
+    escrow_enabled = instance.escrow_enabled and total
     plan = instance.order.seller.service_plan
     # Once this is in production long enough and all lines for existing deliverables have been recalculated,
     # this line can be removed.

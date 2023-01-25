@@ -242,7 +242,7 @@ class PlaceOrder(CreateAPIView):
             status=order_status,
             table_order=product.table_product,
             name='Main',
-            escrow_disabled=product.user.artist_profile.escrow_disabled,
+            escrow_enabled=serializer.validated_data['escrow_enabled'],
             rating=serializer.validated_data['rating'],
             processor=STRIPE,
             details=serializer.validated_data['details'],

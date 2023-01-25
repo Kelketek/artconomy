@@ -371,7 +371,8 @@ BANNED_USERNAMES = get_env('BANNED_USERNAMES', ['artconomy'], unpack=True)
 # Special username that is used by the frontend to indicate user is not logged in.
 BANNED_USERNAMES += ['_']
 
-MINIMUM_PRICE = Decimal(get_env('MINIMUM_PRICE', '1.00'))
+# The minimum price for a product/order with integrated shield fees.
+MINIMUM_PRICE = Decimal(get_env('MINIMUM_PRICE', '5.00'))
 MINIMUM_TURNAROUND = Decimal(get_env('MINIMUM_TURNAROUND', '.01'))
 
 REFUND_FEE = Decimal(get_env('REFUND_FEE', '2.00'))

@@ -324,7 +324,7 @@ class TestDeliverable(EnsurePlansMixin, TestCase):
         self.assertEqual(deliverable.invoice.line_items.all().count(), 2)
 
     def test_create_line_items_non_escrow_free(self):
-        deliverable = DeliverableFactory.create(product__base_price=Money('15.00', 'USD'), escrow_disabled=True)
+        deliverable = DeliverableFactory.create(product__base_price=Money('15.00', 'USD'), escrow_enabled=False)
         base_price = deliverable.invoice.line_items.get(type=BASE_PRICE)
         self.assertEqual(base_price.amount, Money('15.00', 'USD'))
         self.assertEqual(base_price.percentage, 0)
@@ -336,7 +336,7 @@ class TestDeliverable(EnsurePlansMixin, TestCase):
         plan = ServicePlanFactory.create(per_deliverable_price=Money('2.00', 'USD'))
         deliverable = DeliverableFactory.create(
             product__base_price=Money('15.00', 'USD'),
-            escrow_disabled=True,
+            escrow_enabled=False,
             order__seller__service_plan=plan,
             cascade_fees=cascade_fees,
         )

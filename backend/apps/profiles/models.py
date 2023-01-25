@@ -362,7 +362,6 @@ class ArtistProfile(Model):
         help_text='Allow people to see your queue.',
     )
     has_products = BooleanField(default=False, db_index=True)
-    escrow_disabled = BooleanField(default=False, db_index=True)
     artist_of_color = BooleanField(default=False, db_index=True)
     lgbt = BooleanField(default=False, db_index=True)
     auto_withdraw = BooleanField(default=True)
@@ -372,18 +371,6 @@ class ArtistProfile(Model):
 
     def __str__(self):
         return f'Artist profile for {self.user and self.user.username}'
-
-
-@receiver(pre_save, sender=ArtistProfile)
-def sync_escrow_status(sender, instance, **kwargs):
-    from apps.sales.models import StripeAccount
-    if instance.shield_option == INCLUDED_IN_ALL:
-        instance.escrow_disabled = False
-    elif instance.shield_option == SHIELD_DISABLED:
-        if not StripeAccount.objects.filter(user=instance.user, active=True):
-            instance.escrow_disabled = True
-        else:
-            instance.escrow_disabled = False
 
 
 def get_next_submission_position():

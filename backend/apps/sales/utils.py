@@ -227,17 +227,6 @@ def update_availability(seller, load, current_closed_status):
         del UPDATING[seller]
 
 
-def early_finalize(deliverable: 'Deliverable', user: User):
-    if (
-            deliverable.final_uploaded
-            and deliverable.order.seller.landscape
-            and deliverable.order.seller.trust_level == VERIFIED
-            and not deliverable.escrow_disabled
-    ):
-        deliverable.trust_finalized = True
-        finalize_deliverable(deliverable, user)
-
-
 def finalize_table_fees(deliverable: 'Deliverable'):
     from apps.sales.models import TransactionRecord, ref_for_instance
     ref = ref_for_instance(deliverable)
@@ -434,7 +423,7 @@ def verify_total(deliverable: 'Deliverable'):
         raise ValidationError({'amount': ['Total cannot end up less than $0.']})
     if total == Money(0, 'USD'):
         return
-    if (not deliverable.escrow_disabled) and total < Money(settings.MINIMUM_PRICE, 'USD'):
+    if deliverable.escrow_enabled and total < Money(settings.MINIMUM_PRICE, 'USD'):
         raise ValidationError({'amount': [f'Total cannot end up less than ${settings.MINIMUM_PRICE}.']})
 
 
@@ -1161,7 +1150,7 @@ def invoice_post_payment(invoice: 'Invoice', context: dict) -> List['Transaction
 def refund_deliverable(deliverable: 'Deliverable', requesting_user=None) -> (bool, str):
     from apps.sales.models import TransactionRecord
     assert deliverable.status in [QUEUED, IN_PROGRESS, DISPUTED, REVIEW]
-    if deliverable.escrow_disabled:
+    if not deliverable.escrow_enabled:
         deliverable.status = REFUNDED
         deliverable.save()
         notify(ORDER_UPDATE, deliverable, unique=True, mark_unread=True)

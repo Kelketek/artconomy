@@ -107,7 +107,7 @@ class OrderValues(CSVReport, ListAPIView, DateConstrained):
     report_name = 'order-report'
 
     def get_queryset(self):
-        return Deliverable.objects.filter(escrow_disabled=False, **self.date_kwargs).exclude(
+        return Deliverable.objects.filter(escrow_enabled=True, **self.date_kwargs).exclude(
             status__in=[CANCELLED, NEW, PAYMENT_PENDING, WAITING],
         ).order_by('created_on')
 
