@@ -927,6 +927,9 @@ def from_remote_id(
     # Bogus auth code so things don't break. Need to remove this eventually-- it's a holdover from Authorize.net.
     auth_code = '******'
     stripe_event = attempt['stripe_event']
+    remote_ids = [*remote_ids]
+    if stripe_event['balance_transaction']:
+        remote_ids.append(stripe_event['balance_transaction'])
     if stripe_event['status'] not in ['succeeded', 'failed']:
         error = f'Unhandled charge status, {stripe_event["status"]} for remote_ids {remote_ids}'
         return False, annotate_error(

@@ -382,6 +382,7 @@ class TestStripeWebhook(TransactionCheckMixin, APITestCase):
         self.assertIn(ref_for_instance(deliverable), targets)
         self.assertIn(ref_for_instance(deliverable.invoice), targets)
         self.assertEqual(transaction.targets.count(), 2)
+        self.assertIn('txn_1Icyh5AhlvPza3BKKv8oUs3e', transaction.remote_ids)
 
     def test_deliverable_payment_failed(self):
         event = base_charge_succeeded_event()
