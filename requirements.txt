@@ -34,10 +34,6 @@ babel==2.11.0
     # via py-moneyed
 backcall==0.2.0
     # via ipython
-backports-zoneinfo==0.2.1
-    # via
-    #   pytz-deprecation-shim
-    #   tzlocal
 beautifulsoup4==4.11.1
     # via bs4
 billiard==3.6.4.0
@@ -100,7 +96,7 @@ ddt==1.6.0
     # via -r requirements.in
 decorator==5.1.1
     # via ipython
-django==3.2.16
+django==3.2.17
     # via
     #   -r requirements.in
     #   channels
@@ -188,8 +184,6 @@ idna==3.4
     #   hyperlink
     #   requests
     #   twisted
-importlib-metadata==5.1.0
-    # via markdown
 incremental==22.10.0
     # via twisted
 ipython==8.7.0
@@ -352,8 +346,6 @@ vine==5.0.0
     #   kombu
 wcwidth==0.2.5
     # via prompt-toolkit
-zipp==3.11.0
-    # via importlib-metadata
 zope-interface==5.5.2
     # via twisted
 
