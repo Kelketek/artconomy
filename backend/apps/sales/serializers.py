@@ -906,7 +906,6 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
     seller = serializers.SerializerMethodField()
     price = serializers.SerializerMethodField()
     payment_type = serializers.SerializerMethodField()
-    charged_on = serializers.SerializerMethodField()
     still_in_escrow = serializers.SerializerMethodField()
     artist_earnings = serializers.SerializerMethodField()
     in_reserve = serializers.SerializerMethodField()
@@ -954,9 +953,6 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
 
     def get_payment_type(self, obj):
         return self.charge_transactions(obj)[0].get_source_display()
-
-    def get_charged_on(self, obj):
-        return self.charge_transactions(obj)[0].created_on
 
     def get_sales_tax_collected(self, obj):
         return account_balance(
@@ -1068,7 +1064,7 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Deliverable
         fields = (
-            'id', 'created_on', 'status', 'seller', 'buyer', 'price', 'charged_on', 'payment_type', 'still_in_escrow',
+            'id', 'created_on', 'status', 'seller', 'buyer', 'price', 'paid_on', 'payment_type', 'still_in_escrow',
             'artist_earnings', 'in_reserve', 'sales_tax_collected', 'refunded_on', 'extra', 'ach_fees', 'our_fees',
             'card_fees', 'profit', 'remote_ids',
         )
@@ -1319,8 +1315,8 @@ class UnaffiliatedInvoiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = TransactionRecord
         fields = (
-            'id', 'source', 'status', 'total', 'card_fees', 'tax', 'net',
-            'created_on', 'remote_ids',
+            'id', 'created_on', 'total', 'source', 'status', 'card_fees', 'tax', 'net',
+            'remote_ids',
         )
         read_only_fields = fields
 

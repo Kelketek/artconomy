@@ -2072,6 +2072,7 @@ class CSVReport:
 
 
 class OrderValues(CSVReport, ListAPIView, DateConstrained):
+    date_field = 'paid_on'
     serializer_class = DeliverableValuesSerializer
     permission_classes = [IsSuperuser]
     pagination_class = None
@@ -2080,19 +2081,19 @@ class OrderValues(CSVReport, ListAPIView, DateConstrained):
     def get_queryset(self):
         return Deliverable.objects.filter(escrow_disabled=False, **self.date_kwargs).exclude(
             status__in=[CANCELLED, NEW, PAYMENT_PENDING, WAITING],
-        ).order_by('created_on')
+        ).order_by('paid_on')
 
     def get_renderer_context(self):
         context = super().get_renderer_context()
         context['header'] = [
             'id',
-            'created_on',
+            'paid_on',
             'status',
             'seller',
             'buyer',
             'price',
             'payment_type',
-            'charged_on',
+            'created_on',
             'still_in_escrow',
             'artist_earnings',
             'in_reserve',
@@ -2112,14 +2113,17 @@ class SubscriptionReportCSV(CSVReport, ListAPIView, DateConstrained):
     serializer_class = SimpleTransactionSerializer
     permission_classes = [IsSuperuser]
     pagination_class = None
+    date_field = 'finalized_on'
     report_name = 'subscription-report'
 
     def get_renderer_context(self):
         context = super().get_renderer_context()
         context['header'] = [
             'id',
+            'finalized_on',
             'status',
             'payer',
+            'blank',
             'amount',
             'created_on',
             'remote_ids',
@@ -2130,21 +2134,23 @@ class SubscriptionReportCSV(CSVReport, ListAPIView, DateConstrained):
         return TransactionRecord.objects.filter(
             category__in=[TransactionRecord.SUBSCRIPTION_DUES, TransactionRecord.SUBSCRIPTION_REFUND],
             **self.date_kwargs,
-        ).exclude(status=TransactionRecord.FAILURE).order_by('created_on')
+        ).exclude(status=TransactionRecord.FAILURE).order_by('finalized_on')
 
 
 class UnaffiliatedSaleReportCSV(CSVReport, ListAPIView, DateConstrained):
     serializer_class = UnaffiliatedInvoiceSerializer
     permission_classes = [IsSuperuser]
     pagination_class = None
+    date_field = 'paid_on'
     report_name = 'unaffiliated-sales-report'
 
     def get_renderer_context(self):
         context = super().get_renderer_context()
         context['header'] = [
             'id',
-            'status',
+            'paid_on',
             'total',
+            'status',
             'created_on',
             'tax',
             'card_fees',
@@ -2161,7 +2167,7 @@ class UnaffiliatedSaleReportCSV(CSVReport, ListAPIView, DateConstrained):
             type=SALE,
             targets__isnull=True,
             deliverables__isnull=True,
-        ).order_by('created_on')
+        ).order_by('paid_on')
         return result
 
 
