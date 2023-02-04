@@ -4,9 +4,9 @@
 #
 #    pip-compile --resolver=backtracking deploy_requirements.in
 #
-ansible==6.7.0
+ansible==7.0.0
     # via -r deploy_requirements.in
-ansible-core==2.13.7
+ansible-core==2.14.2
     # via ansible
 cffi==1.15.1
     # via cryptography
