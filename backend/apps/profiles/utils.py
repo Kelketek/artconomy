@@ -116,7 +116,7 @@ def credit_referral(deliverable):
         deliverable.order.buyer.bought_shield_on = timezone.now()
         deliverable.order.buyer.save()
     if seller_credit and deliverable.order.seller.referred_by:
-        extend_landscape(deliverable.order.seller, months=1)
+        extend_landscape(deliverable.order.seller.referred_by, months=1)
         notify(REFERRAL_LANDSCAPE_CREDIT, deliverable.order.seller.referred_by, unique=False)
 
 
