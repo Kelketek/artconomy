@@ -1,20 +1,17 @@
 {% extends 'email_base.html' %}
 {% load md2 %}
-{% block header_message %}We have updated our terms of service{% endblock %}
+{% block header_message %}We are updating our terms of service{% endblock %}
 {% block message %}
-<p>We are reaching out to let you know that we have updated our terms of service. You may read the specific changes,
-    in context, by <a href="https://github.com/Kelketek/artconomy/pull/30">visiting the link here.</a>
-    These changes apply to all new accounts and will apply to your account thirty days from this notice
-    (January 30, 2023.) No action is needed from you, but by continuing to use Artconomy’s services on or after that
-    date, you are agreeing to the updated terms.
+<p>We are reaching out to let you know that we are updating our terms of service effective April 1st, 2023. You may read
+    the specific changes, in context, by <a href="https://github.com/Kelketek/artconomy/pull/40">visiting the link here.</a>
+    The changes are available for public comment at the provided link, and may be modified based on those comments.
 </p>
-<p>We strive to make our changes as transparent as possible and incorporate community feedback. The changes were
-    proposed to and reviewed first by artists and commissioners on our <a href="https://discord.gg/4nWK9mf">Discord</a>
-    and following us on <a href="https://twitter.com/ArtconomyArt/">Twitter</a>. We encourage you to join the
-    conversation!
+<p>If you are OK with these changes, you need not do anything-- they will automatically take effect April 1st, 2023.
+    However, if you do not wish to accept these changes, you may close your account using the
+    <a href="/my/Login%20Details">'Delete my account' button in your control panel here.</a>
 </p>
 {% endblock message %}
 
 {% block action %}
-<a href="/legal-and-policies/terms-of-service">View the full terms of service here.</a>
+<a href="https://github.com/Kelketek/artconomy/pull/40">View the changes here.</a>
 {% endblock %}
