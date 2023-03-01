@@ -57,6 +57,15 @@
           Artconomy subscription services may be refunded if a refund is requested within three business days of
           purchase or renewal.
         </p>
+        <p>
+          If a subscription service changes its features or pricing relevant to your activity (such as fees on
+          transactions) during your current billing cycle, or within three days of a billing cycle, you may cancel your
+          subscription service and receive a refund for any monthly dues for that period. Any usage fees incurred during
+          that period will either be removed or adjusted to their previous values for the cycle, at the
+          discretion of Artconomy. For the purposes of this clause, a billing cycle will be considered monthly, even if
+          the client has agreed to a longer cycle. Cancellation of service in these cases will result in
+          prorated refunds for the remaining time.
+        </p>
         <h2>Refund Fees</h2>
         <p>
           As Artconomy does not control the refund policy of artists on the platform, Artconomy will always be entitled
@@ -66,8 +75,9 @@
           No fees are required for refunding of Artconomy Subscription services.
         </p>
         <p>
-          Artconomy does not collect fees on commissions not covered by Artconomy Shield, but fees may be assessed
-          according to the terms of any payment processor the commissioner and artist agree to use.
+          Artconomy does not collect fees from commissioners on commissions not covered by Artconomy Shield, but fees
+          may be assessed according to the terms of any payment processor the commissioner and artist agree to use.
+          Artconomy does not offer any refunds for non-shield commissions.
         </p>
       </v-col>
     </v-row>
