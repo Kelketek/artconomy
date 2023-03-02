@@ -11,7 +11,7 @@
         </div>
       </v-col>
       <v-col cols="12">
-        <p><strong>Last updated: November 29, 2019</strong></p>
+        <p><strong>Last updated: April 1, 2023</strong></p>
         <p>
           Artconomy endeavors to satisfy all of its customers of any issues they have with products purchased through
           our platform. However, due to the nature of services rendered, this is not always possible. This document lays
