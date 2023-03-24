@@ -1608,6 +1608,7 @@ class SalesStats(APIView):
             'delinquent': user.delinquent,
             'active_orders': Deliverable.objects.filter(status__in=WEIGHTED_STATUSES, order__seller=user).count(),
             'new_orders': Deliverable.objects.filter(status=NEW, order__seller=user).count(),
+            'escrow_enabled': user.artist_profile.escrow_enabled,
         }
         return Response(status=status.HTTP_200_OK, data=data)
 

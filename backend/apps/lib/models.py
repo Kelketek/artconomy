@@ -114,11 +114,12 @@ REFERENCE_UPLOADED = 35
 WAITLIST_UPDATED = 36
 TIP_RECEIVED = 37
 AUTO_CLOSED = 38
+REVISION_APPROVED = 39
 
 ORDER_NOTIFICATION_TYPES = (
     DISPUTE, SALE_UPDATE, ORDER_UPDATE, RENEWAL_FIXED, RENEWAL_FAILURE, SUBSCRIPTION_DEACTIVATED,
     REVISION_UPLOADED, TRANSFER_FAILED, REFUND, REFERENCE_UPLOADED, WAITLIST_UPDATED, TIP_RECEIVED,
-    AUTO_CLOSED,
+    AUTO_CLOSED, REVISION_APPROVED,
 )
 
 EVENT_TYPES = (
@@ -149,6 +150,7 @@ EVENT_TYPES = (
     (WAITLIST_UPDATED, 'Wait list updated'),
     (TIP_RECEIVED, 'Tip Received'),
     (AUTO_CLOSED, 'Commissions automatically closed'),
+    (REVISION_APPROVED, 'WIP Approved'),
 )
 
 EMAIL_SUBJECTS = {
@@ -166,7 +168,8 @@ EMAIL_SUBJECTS = {
     TRANSFER_FAILED: 'Bank transfer failed.',
     REFERRAL_LANDSCAPE_CREDIT: "One of your referrals just made a sale!",
     WAITLIST_UPDATED: "A new order has been added to your waitlist!",
-    AUTO_CLOSED: "Your commissions have been automatically closed."
+    AUTO_CLOSED: "Your commissions have been automatically closed.",
+    REVISION_APPROVED: "Your WIP/Revision has been approved!",
 }
 
 

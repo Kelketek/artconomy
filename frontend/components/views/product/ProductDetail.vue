@@ -346,6 +346,23 @@
                         <p><strong>If you're not sure what to do here, or would like to set these settings later, the defaults should be safe.</strong></p>
                       </v-col>
                       <v-col cols="12" sm="6">
+                        <v-checkbox v-model="limitAtOnce" :persistent-hint="true"
+                                    label="Limit Availability"
+                                    :disabled="product.patchers.wait_list.model"
+                                    hint="If you would like to make sure you're never doing more than a few of these at a time, check this box."
+                        />
+                      </v-col>
+                      <v-col cols="12" sm="6">
+                        <ac-patch-field :persistent-hint="true"
+                                        :patcher="product.patchers.max_parallel"
+                                        label="Maximum at Once"
+                                        min="1"
+                                        v-if="limitAtOnce"
+                                        :disabled="product.patchers.wait_list.model"
+                                        hint="If you already have this many orders of this product, don't allow customers to order any more."
+                        />
+                      </v-col>
+                      <v-col cols="12" sm="6">
                         <ac-patch-field :patcher="product.patchers.wait_list"
                                         label="Wait List Product"
                                         field-type="ac-checkbox"
@@ -362,28 +379,11 @@
                       </v-col>
                       <v-col cols="12" sm="6">
                         <ac-patch-field :patcher="product.patchers.task_weight" number
-                                        label="Slots consumed by each order"
+                                        label="Workload Points"
                                         :disabled="product.patchers.wait_list.model"
                                         hint="How many slots an order of this product should take up. If this task is
                                         particularly big, you may want it to take up more than one slot."
                                         :persistent-hint="true"
-                        />
-                      </v-col>
-                      <v-col cols="12" sm="6">
-                        <v-checkbox v-model="limitAtOnce" :persistent-hint="true"
-                                    label="Limit Availability"
-                                    :disabled="product.patchers.wait_list.model"
-                                    hint="If you would like to make sure you're never doing more than a few of these at a time, check this box."
-                        />
-                      </v-col>
-                      <v-col cols="12" sm="6" v-if="limitAtOnce">
-                        <ac-patch-field :persistent-hint="true"
-                                        :patcher="product.patchers.max_parallel"
-                                        type="number"
-                                        label="Maximum at Once"
-                                        min="1"
-                                        :disabled="product.patchers.wait_list.model"
-                                        hint="If you already have this many orders of this product, don't allow customers to order any more."
                         />
                       </v-col>
                     </v-row>

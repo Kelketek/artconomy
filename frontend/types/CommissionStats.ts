@@ -7,4 +7,5 @@ export default interface CommissionStats {
   products_available: number,
   active_orders: number,
   new_orders: number,
+  escrow_enabled: boolean,
 }

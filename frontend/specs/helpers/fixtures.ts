@@ -277,6 +277,7 @@ export function genCommissionStats(overrides?: Partial<CommissionStats>): Commis
     products_available: 2,
     active_orders: 1,
     new_orders: 2,
+    escrow_enabled: true,
     ...overrides,
   }
 }

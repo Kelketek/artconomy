@@ -45,7 +45,7 @@
             <v-col cols="12">
               <h2>Your bank account is configured, and you can now list products!</h2>
               <p>Your products will be protected by <router-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">Artconomy Shield</router-link>.</p>
-              <p>If you need to update your bank settings, visit your <a target="_blank" rel="noopener" href="https://connect.stripe.com/express_login">Stripe Dashboard.</a></p>
+              <p>If you need to update your bank settings, visit your <a target="_blank" rel="noopener" href="https://connect.stripe.com/express_login">Stripe Express Dashboard.</a></p>
             </v-col>
             <v-col cols="12">
               <v-btn color="primary" :to="{name: 'Store', params: {username}}">Go to my Store</v-btn>

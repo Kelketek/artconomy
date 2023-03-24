@@ -2,7 +2,7 @@
   <v-container fluid class="pa-0">
     <div class="px-3" v-if="isRegistered">
       <v-img :src="`/static/images/${randomBanner.src}`" aspect-ratio="7.2" />
-      <div class="text-right pr-2">
+      <div class="text-right pr-2 elevation-2 credit-overlay">
         <small>
           <ac-link :to="{name: 'AboutUser', params: {username: randomBanner.artist}}">Art by {{randomBanner.artist}}</ac-link>
         </small>
@@ -101,7 +101,7 @@
         </v-col>
       </v-row>
     </v-container>
-    <v-container fluid>
+    <v-container fluid :class="{'pt-0': isRegistered}">
       <v-row no-gutters>
         <v-col cols="12" :order="featuredOrder">
           <ac-tabs :items="mainSectionItems" v-model="mainSection" label="Categories" />
@@ -128,7 +128,7 @@
             </v-tab-item>
           </v-tabs-items>
         </v-col>
-        <v-col cols="12" md="12" :lg="isRegistered ? 12 : 6" class="py-2 px-1" :order="isRegistered ? 1 : 5" :order-lg="isRegistered ? 1 : 2">
+        <v-col cols="12" md="12" :lg="isRegistered ? 12 : 6" :class="{'py-2': !isRegistered, 'px-1': true}" :order="isRegistered ? 1 : 5" :order-lg="isRegistered ? 1 : 2">
           <v-card :color="$vuetify.theme.currentTheme.darkBase.darken4">
             <v-toolbar dense color="secondary">
               <v-toolbar-title>Recent Commissions</v-toolbar-title>
@@ -306,6 +306,15 @@
     </v-container>
   </v-container>
 </template>
+
+<style scoped>
+  .credit-overlay {
+    margin-top: -1.5rem;
+    position: relative;
+    z-index: 1;
+    text-shadow: -1px -2px 3px black;
+  }
+</style>
 
 <script lang="ts">
 

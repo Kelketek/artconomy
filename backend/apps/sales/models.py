@@ -31,7 +31,7 @@ from short_stuff import gen_shortcode
 from short_stuff.django.models import ShortCodeField
 
 from apps.lib.models import Comment, Subscription, SALE_UPDATE, ORDER_UPDATE, REVISION_UPLOADED, COMMENT, NEW_PRODUCT, \
-    Event, ref_for_instance, REFERENCE_UPLOADED, TIP_RECEIVED
+    Event, ref_for_instance, REFERENCE_UPLOADED, TIP_RECEIVED, REVISION_APPROVED
 from apps.lib.abstract_models import ImageModel, thumbnail_hook, HitsMixin, RATINGS, GENERAL, get_next_increment
 from apps.lib.permissions import Any, IsStaff
 from apps.lib.utils import (
@@ -1077,6 +1077,7 @@ class Revision(ImageModel):
     comment_permissions = [OrderViewPermission]
     preserve_comments = True
     deliverable = ForeignKey(Deliverable, on_delete=CASCADE)
+    approved_on = DateTimeField(default=None, blank=True, null=True)
     comments = GenericRelation(
         Comment, related_query_name='revisions', content_type_field='content_type', object_id_field='object_id'
     )
@@ -1117,6 +1118,18 @@ class Revision(ImageModel):
 
 revision_thumbnailer = receiver(post_save, sender=Revision)(thumbnail_hook)
 revision_clear = receiver(post_delete, sender=Revision)(clear_markers)
+
+
+@receiver(post_save, sender=Revision)
+def create_revision_subscription(sender, instance, created, **kwargs):
+    if not created:
+        return
+    Subscription.objects.create(
+        content_type_id=ContentType.objects.get_for_model(instance).id,
+        object_id=instance.id,
+        user=instance.owner,
+        type=REVISION_APPROVED,
+    )
 
 
 def deliverable_from_context(context, check_request=True):

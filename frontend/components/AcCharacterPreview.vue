@@ -84,7 +84,7 @@ export default {
     },
     showFooter: {
       default: true,
-    }
+    },
   },
 }
 </script>
