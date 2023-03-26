@@ -169,7 +169,7 @@ EMAIL_SUBJECTS = {
     REFERRAL_LANDSCAPE_CREDIT: "One of your referrals just made a sale!",
     WAITLIST_UPDATED: "A new order has been added to your waitlist!",
     AUTO_CLOSED: "Your commissions have been automatically closed.",
-    REVISION_APPROVED: "Your WIP/Revision has been approved!",
+    REVISION_APPROVED: "Your WIP/Revision for Sale #{{ target.deliverable.order.id }} [{{target.deliverable.name}}] has been approved!",
 }
 
 

@@ -632,8 +632,10 @@ class RevisionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Revision
-        fields = ('id', 'rating', 'file', 'created_on', 'owner', 'deliverable', 'final', 'read', 'submissions')
-        read_only_fields = ('id', 'deliverable', 'owner', 'read')
+        fields = (
+            'id', 'rating', 'file', 'created_on', 'approved_on', 'owner', 'deliverable', 'final', 'read', 'submissions',
+        )
+        read_only_fields = ('id', 'deliverable', 'owner', 'read', 'approved_on')
 
 
 # noinspection PyMethodMayBeStatic

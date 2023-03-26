@@ -1105,6 +1105,12 @@ class Revision(ImageModel):
             ),
         )
 
+    def notification_serialize(self, context):
+        from apps.sales.serializers import RevisionSerializer
+        if context['request'].user == self.owner:
+            return RevisionSerializer(instance=self, context=context).data
+        return {'id': self.id}
+
     def notification_display(self, context):
         from apps.sales.serializers import RevisionSerializer
         return RevisionSerializer(instance=self, context=context).data
@@ -1127,8 +1133,9 @@ def create_revision_subscription(sender, instance, created, **kwargs):
     Subscription.objects.create(
         content_type_id=ContentType.objects.get_for_model(instance).id,
         object_id=instance.id,
-        user=instance.owner,
+        subscriber=instance.owner,
         type=REVISION_APPROVED,
+        email=True,
     )
 
 

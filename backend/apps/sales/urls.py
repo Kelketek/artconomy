@@ -50,6 +50,11 @@ urlpatterns = [
         name='delete_revision'
     ),
     path(
+        'v1/order/<int:order_id>/deliverables/<int:deliverable_id>/revisions/<int:revision_id>/approve/',
+        main.ApproveRevision.as_view(),
+        name='approve_revision'
+    ),
+    path(
         'v1/order/<int:order_id>/deliverables/<int:deliverable_id>/references/',
         main.DeliverableReferences.as_view(),
         name='deliverable_references'

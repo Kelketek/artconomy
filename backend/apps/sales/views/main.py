@@ -30,7 +30,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.lib.models import DISPUTE, COMMENT, Subscription, ORDER_UPDATE, SALE_UPDATE, REVISION_UPLOADED, \
-    NEW_PRODUCT, STREAMING, REFERENCE_UPLOADED, Comment, WAITLIST_UPDATED, ref_for_instance
+    NEW_PRODUCT, STREAMING, REFERENCE_UPLOADED, Comment, WAITLIST_UPDATED, ref_for_instance, REVISION_APPROVED
 from apps.lib.permissions import IsStaff, IsSafeMethod, Any, All, IsMethod
 from apps.lib.serializers import CommentSerializer
 from apps.lib.utils import notify, recall_notification, demark, preview_rating, send_transaction_email, create_comment, \
@@ -48,7 +48,7 @@ from apps.sales.constants import STRIPE, BASE_PRICE, ADD_ON, TIP, TABLE_SERVICE,
     MISSED
 from apps.sales.models import Product, Order, CreditCardToken, Revision, \
     Rating, TransactionRecord, LineItem, inventory_change, InventoryError, InventoryTracker, \
-    Deliverable, Reference, Invoice, ServicePlan
+    Deliverable, Reference, Invoice, ServicePlan, StripeAccount
 from apps.sales.permissions import (
     OrderViewPermission, OrderSellerPermission, OrderBuyerPermission,
     OrderPlacePermission, EscrowPermission, EscrowDisabledPermission, RevisionsVisible,
@@ -1109,6 +1109,40 @@ class DeliverableRefund(GenericAPIView):
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
 
+class ApproveRevision(GenericAPIView):
+    permission_classes = [
+        DeliverableStatusPermission(
+            QUEUED, IN_PROGRESS, REVIEW, DISPUTED, error_message='Revisions are finalized for this deliverable.',
+        ),
+        OrderBuyerPermission,
+        RevisionsVisible,
+    ]
+    serializer_class = RevisionSerializer
+
+    def get_object(self):
+        deliverable = get_object_or_404(Deliverable, order_id=self.kwargs['order_id'], id=self.kwargs['deliverable_id'])
+        revision = get_object_or_404(
+            Revision, id=self.kwargs['revision_id'], deliverable_id=self.kwargs['deliverable_id'],
+        )
+        self.check_object_permissions(self.request, deliverable)
+        return revision
+
+    def post(self, request, *_args, **_kwargs):
+        revision = self.get_object()
+        if revision.approved_on:
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST, data={'detail': 'This revision has already been approved.'},
+            )
+        revision.approved_on = timezone.now()
+        revision.save()
+        notify(REVISION_APPROVED, revision)
+        return Response(
+            status=status.HTTP_200_OK,
+            data=RevisionSerializer(instance=revision, context=self.get_serializer_context()).data
+        )
+
+
+
 class ApproveFinal(GenericAPIView):
     permission_classes = [
         OrderBuyerPermission, EscrowPermission,
@@ -1599,6 +1633,7 @@ class SalesStats(APIView):
         user = get_object_or_404(User, username__iexact=self.kwargs['username'])
         self.check_object_permissions(request, user)
         products_available = available_products_by_load(user.artist_profile).count()
+        escrow_enabled = StripeAccount.objects.filter(active=True, user=user).exists()
         data = {
             'load': user.artist_profile.load,
             'max_load': user.artist_profile.max_load,
@@ -1608,7 +1643,7 @@ class SalesStats(APIView):
             'delinquent': user.delinquent,
             'active_orders': Deliverable.objects.filter(status__in=WEIGHTED_STATUSES, order__seller=user).count(),
             'new_orders': Deliverable.objects.filter(status=NEW, order__seller=user).count(),
-            'escrow_enabled': user.artist_profile.escrow_enabled,
+            'escrow_enabled': escrow_enabled,
         }
         return Response(status=status.HTTP_200_OK, data=data)
 

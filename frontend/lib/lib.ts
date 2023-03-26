@@ -335,6 +335,7 @@ export const NOTIFICATION_MAPPING: TypeToValue = {
   36: 'ac-waitlist-updated',
   37: 'ac-tip-received',
   38: 'ac-auto-closed',
+  39: 'ac-revision-approved',
 }
 
 export const ORDER_STATUSES: TypeToValue = {

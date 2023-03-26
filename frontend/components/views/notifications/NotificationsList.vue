@@ -64,6 +64,7 @@ import AcSubmissionShared from '@/components/views/notifications/events/AcSubmis
 import AcWaitlistUpdated from '@/components/views/notifications/events/AcWaitlistUpdated.vue'
 import AcTipReceived from '@/components/views/notifications/events/AcTipReceived.vue'
 import AcAutoClosed from '@/components/views/notifications/events/AcAutoClosed.vue'
+import AcRevisionApproved from '@/components/views/notifications/events/AcRevisionApproved.vue'
 
 @Component({
   components: {
@@ -97,6 +98,7 @@ import AcAutoClosed from '@/components/views/notifications/events/AcAutoClosed.v
     AcNewCharacter,
     AcNewProduct,
     AcTipReceived,
+    AcRevisionApproved,
   },
 })
 export default class NotificationsList extends mixins(NotificationsListBase) {

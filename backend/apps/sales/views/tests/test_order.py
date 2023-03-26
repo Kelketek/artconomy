@@ -1081,6 +1081,19 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         deliverable.refresh_from_db()
         self.assertEqual(deliverable.revision_set.all().count(), 0)
 
+    @freeze_time()
+    def test_approve_revision(self):
+        deliverable = DeliverableFactory.create(status=IN_PROGRESS, revisions_hidden=False)
+        revision = RevisionFactory.create(deliverable=deliverable)
+        self.assertEqual(deliverable.revision_set.all().count(), 1)
+        self.login(deliverable.order.buyer)
+        response = self.client.post(
+            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/{revision.id}/approve/',
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        revision.refresh_from_db()
+        self.assertEqual(revision.approved_on, timezone.now())
+
     def test_list_revisions_hidden(self):
         user = UserFactory.create()
         self.login(user)

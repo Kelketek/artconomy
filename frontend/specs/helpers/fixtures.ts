@@ -112,6 +112,7 @@ export function genRevision(overrides?: Partial<Revision>): Revision {
     },
     read: true,
     submissions: [],
+    approved_on: '2023-03-26T09:15:03.507123-05:00',
     ...overrides,
   }
 }

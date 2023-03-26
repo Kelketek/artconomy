@@ -17,7 +17,7 @@ from apps.lib.models import (
     ORDER_UPDATE, SALE_UPDATE, COMMENT, Subscription, SUBMISSION_SHARED, CHAR_SHARED, NEW_CHARACTER,
     NEW_PRODUCT, STREAMING, NEW_JOURNAL, FAVORITE, SUBMISSION_ARTIST_TAG,
     Asset,
-    DISPUTE, REFERENCE_UPLOADED, WAITLIST_UPDATED, TIP_RECEIVED)
+    DISPUTE, REFERENCE_UPLOADED, WAITLIST_UPDATED, TIP_RECEIVED, REVISION_APPROVED)
 from apps.lib.utils import tag_list_cleaner, add_check, set_tags
 from apps.profiles.models import User, Submission, Character, Journal, Conversation
 from apps.sales.models import Revision, Product, Order, Deliverable
@@ -354,6 +354,14 @@ def revision_uploaded(obj, context):
     return {'revision': revision, 'display': revision or notification_display(obj.target, context=context)}
 
 
+def revision_approved(obj, context):
+    from apps.sales.serializers import RevisionSerializer, DeliverableSerializer
+    return {
+        'deliverable': DeliverableSerializer(instance=obj.target.deliverable, context=context).data,
+        'display': RevisionSerializer(instance=obj.target, context=context).data,
+    }
+
+
 def reference_uploaded(obj, context):
     value = obj.data
     from apps.sales.serializers import ReferenceSerializer
@@ -548,6 +556,7 @@ NOTIFICATION_TYPE_MAP = {
     SUBMISSION_ARTIST_TAG: submission_artist_tag,
     WAITLIST_UPDATED: waitlist_updated,
     TIP_RECEIVED: order_update,
+    REVISION_APPROVED: revision_approved,
 }
 
 

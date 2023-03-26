@@ -106,6 +106,7 @@ class EscrowDisabledPermission(BasePermission):
 
 
 class RevisionsVisible(BasePermission):
+    message = 'Revisions are not visible yet.'
     def has_object_permission(self, request, view, obj):
         return not obj.revisions_hidden
 

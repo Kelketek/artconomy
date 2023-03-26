@@ -6,35 +6,41 @@
         <ac-load-section :controller="revision">
           <template v-slot:default>
             <ac-asset thumb-name="gallery" :asset="revision.x" :contain="true" />
-            <v-row>
-              <v-col class="text-center" cols="12" :lg="(!escrow && isSeller) ? '6' : '12'" v-if="isBuyer || archived">
-                <v-btn color="green" :href="revision.x.file.full" download><v-icon>cloud_download</v-icon>Download</v-btn>
-              </v-col>
-              <v-col class="text-center" cols="6" lg="3" v-else>
-                <v-btn fab small color="green" :href="revision.x.file.full" download><v-icon>cloud_download</v-icon></v-btn>
-              </v-col>
-              <v-col class="text-center" cols="6" lg="3" v-if="isSeller && isLast && !archived">
-                <v-btn fab small color="danger" class="delete-revision" @click="handleDelete"><v-icon>delete</v-icon></v-btn>
-              </v-col>
-              <v-col class="text-center" cols="12" lg="6" v-if="isSeller && isLast &&! isFinal && !archived">
-                <v-btn color="primary" @click="statusEndpoint('complete')()">Mark Final</v-btn>
-              </v-col>
-              <v-col class="text-center" cols="12" lg="6" v-if="isSeller && isFinal && !(archived && escrow)">
-                <v-btn color="primary" @click="statusEndpoint('reopen')()">Unmark Final</v-btn>
-              </v-col>
-              <v-col class="'text-center" cols="12" v-if="galleryLink">
-                <v-btn color="green" block :to="galleryLink">
-                  <v-icon>upload</v-icon>
-                  <span v-if="isSeller">View in Gallery</span><span v-else>View in Collection</span>
-                </v-btn>
-              </v-col>
-              <v-col class="text-center mb-2" cols="12" lg="12" v-else-if="isSeller || (is(COMPLETED) && isRegistered)">
-                <v-btn color="green" block @click="prepSubmission" class="prep-submission-button">
-                  <v-icon>upload</v-icon>
-                  <span v-if="isSeller">Add to Gallery</span><span v-else>Add to Collection</span>
-                </v-btn>
-              </v-col>
-            </v-row>
+            <ac-form-container v-bind="approveForm.bind">
+              <v-row>
+                <v-col class="text-center" cols="12" :lg="isBuyer ? '6' : '12'" v-if="isBuyer || archived">
+                  <v-btn color="green" :href="revision.x.file.full" download><v-icon left>cloud_download</v-icon>Download</v-btn>
+                </v-col>
+                <v-col class="text-center" cols="12" :lg="6" v-if="isBuyer && (!archived || revision.x.approved_on)">
+                  <v-btn @click="approveForm.submitThen(revision.updateX)" color="primary" v-if="!revision.x.approved_on"><v-icon left>check_circle</v-icon>Approve</v-btn>
+                  <span v-else>Approved on {{formatDateTime(revision.x.approved_on)}}</span>
+                </v-col>
+                <v-col class="text-center" cols="6" lg="3" v-else>
+                  <v-btn fab small color="green" :href="revision.x.file.full" download><v-icon>cloud_download</v-icon></v-btn>
+                </v-col>
+                <v-col class="text-center" cols="6" lg="3" v-if="isSeller && isLast && !archived">
+                  <v-btn fab small color="danger" class="delete-revision" @click="handleDelete"><v-icon>delete</v-icon></v-btn>
+                </v-col>
+                <v-col class="text-center" cols="12" lg="6" v-if="isSeller && isLast &&! isFinal && !archived">
+                  <v-btn color="primary" @click="statusEndpoint('complete')()">Mark Final</v-btn>
+                </v-col>
+                <v-col class="text-center" cols="12" lg="6" v-if="isSeller && isFinal && !(archived && escrow)">
+                  <v-btn color="primary" @click="statusEndpoint('reopen')()">Unmark Final</v-btn>
+                </v-col>
+                <v-col class="'text-center" cols="12" v-if="galleryLink">
+                  <v-btn color="green" block :to="galleryLink">
+                    <v-icon>upload</v-icon>
+                    <span v-if="isSeller">View in Gallery</span><span v-else>View in Collection</span>
+                  </v-btn>
+                </v-col>
+                <v-col class="text-center mb-2" cols="12" lg="12" v-else-if="isSeller || (is(COMPLETED) && isRegistered)">
+                  <v-btn color="green" block @click="prepSubmission" class="prep-submission-button">
+                    <v-icon>upload</v-icon>
+                    <span v-if="isSeller">Add to Gallery</span><span v-else>Add to Collection</span>
+                  </v-btn>
+                </v-col>
+              </v-row>
+            </ac-form-container>
           </template>
         </ac-load-section>
       </v-col>
@@ -56,16 +62,25 @@ import {ListController} from '@/store/lists/controller'
 import Deliverable from '@/types/Deliverable'
 import {markRead} from '@/lib/lib'
 import {User} from '@/store/profiles/types/User'
+import {FormController} from '@/store/forms/form-controller'
+import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
+import Formatting from '@/mixins/formatting'
 
 @Component({
-  components: {AcCommentSection, AcLoadSection, AcAsset},
+  components: {
+    AcFormContainer,
+    AcCommentSection,
+    AcLoadSection,
+    AcAsset,
+  },
 })
-export default class RevisionDetail extends mixins(DeliverableMixin) {
+export default class RevisionDetail extends mixins(DeliverableMixin, Formatting) {
   @Prop()
   public revisionId!: string
 
   public revision!: SingleController<Revision>
   public revisionComments!: ListController<Comment>
+  public approveForm!: FormController
 
   public get isLast() {
     if (!this.revision.x) {
@@ -142,6 +157,10 @@ export default class RevisionDetail extends mixins(DeliverableMixin) {
       () => markRead(this.revision, 'sales.Revision')).then(
       () => this.revisions.replace(this.revision.x as Revision),
     )
+    this.approveForm = this.$getForm(`${this.prefix}__approve${this.revisionId}`, {
+      endpoint: `${this.url}revisions/${this.revisionId}/approve/`,
+      fields: {},
+    })
     this.revisions.firstRun()
     this.revisionComments = this.$getList(`${this.prefix}__revision${this.deliverableId}__comments`, {
       endpoint: `/api/lib/v1/comments/sales.Revision/${this.revisionId}/`,
