@@ -19,8 +19,6 @@ asgiref==3.5.2
     #   uvicorn
 asttokens==2.2.1
     # via stack-data
-async-timeout==4.0.2
-    # via redis
 attrs==22.1.0
     # via
     #   automat
@@ -34,10 +32,6 @@ babel==2.11.0
     # via py-moneyed
 backcall==0.2.0
     # via ipython
-backports-zoneinfo==0.2.1
-    # via
-    #   pytz-deprecation-shim
-    #   tzlocal
 beautifulsoup4==4.11.1
     # via bs4
 billiard==3.6.4.0
@@ -188,8 +182,6 @@ idna==3.4
     #   hyperlink
     #   requests
     #   twisted
-importlib-metadata==6.0.0
-    # via markdown
 incremental==22.10.0
     # via twisted
 ipython==8.7.0
@@ -281,7 +273,7 @@ pytz-deprecation-shim==0.1.0.post0
     # via tzlocal
 qrcode==7.3.1
     # via -r requirements.in
-redis==4.4.0
+redis==4.5.3
     # via
     #   channels-redis
     #   django-redis
@@ -352,8 +344,6 @@ vine==5.0.0
     #   kombu
 wcwidth==0.2.5
     # via prompt-toolkit
-zipp==3.12.0
-    # via importlib-metadata
 zope-interface==5.5.2
     # via twisted
 
