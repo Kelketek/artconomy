@@ -9,9 +9,11 @@
   args:
     creates: "/etc/letsencrypt/live/*"
   register: certgen
+  when: gen_certificates
 
 - name: Set up cron job
   template:
     src: "letsencrypt"
     dest: "/etc/cron.weekly/letsencrypt"
     mode: 0755
+  when: gen_certificates

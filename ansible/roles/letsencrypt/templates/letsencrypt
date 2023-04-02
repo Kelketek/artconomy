@@ -1,3 +1,4 @@
 #! /bin/bash
 letsencrypt --agree-tos --webroot --force-renewal --webroot-path /home/{{ env_prefix }}/artconomy/ {% for name in domains %}-d {{ name }} {% endfor %} --email {{ admin_email }} certonly &> /dev/null
 /etc/init.d/nginx reload &> /dev/null
+/etc/init.d/postgresql reload &> /dev/null

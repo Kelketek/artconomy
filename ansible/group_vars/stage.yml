@@ -11,3 +11,5 @@ app_version: plan_refactor
 host_color: green
 password_protect: false
 swap_kilo_size: 8388608
+create_webhooks: true
+gen_certificates: true

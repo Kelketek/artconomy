@@ -15,7 +15,7 @@
     - Set up initial service plans
     - Create anonymous user
     - Set international product flags
-    - Enforce minimum price
+    - Bump all prices
     - Ensure invoice annotations
 
 - name: stripe webhooks
@@ -24,6 +24,7 @@
   shell: "source ~/.profile && source ~/bin/activate && cd ~/artconomy && ./manage.py stripe_webhooks"
   args:
     executable: "/bin/bash"
+  when: create_webhooks
 
 - name: collect static assets
   become: yes
@@ -64,6 +65,14 @@
   args:
     executable: "/bin/bash"
     creates: "{{ home }}/.ensure-invoice-annotations"
+
+- name: Bump all prices
+  become: yes
+  become_user: "{{ env_prefix }}"
+  shell: "source ~/.profile && source ~/bin/activate && cd ~/artconomy && ./manage.py ensure_invoice_annotations && touch {{home}}/.q1-2023-price-bump"
+  args:
+    executable: "/bin/bash"
+    creates: "{{ home }}/.q1-2023-price-bump"
 
 - name: Set up initial service plans
   become: yes
