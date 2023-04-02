@@ -18,7 +18,7 @@
   nocompress
   nocreate
   postrotate
-  ln /var/lib/postgresql/backup/hourly/{{ db_name }}.sql.gz /var/lib/postgresql/backup/daily/{{ db_name }}.sql.gz
+  cp /var/lib/postgresql/backup/hourly/{{ db_name }}.sql.gz /var/lib/postgresql/backup/daily/{{ db_name }}.sql.gz
   endscript
 }
 /var/lib/postgresql/backup/weekly/{{ db_name }}.sql.gz {
@@ -28,6 +28,6 @@
   nocompress
   nocreate
   postrotate
-  ln /var/lib/postgresql/backup/hourly/{{ db_name }}.sql.gz /var/lib/postgresql/backup/weekly/{{ db_name }}.sql.gz
+  cp /var/lib/postgresql/backup/hourly/{{ db_name }}.sql.gz /var/lib/postgresql/backup/weekly/{{ db_name }}.sql.gz
   endscript
 }
