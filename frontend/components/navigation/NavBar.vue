@@ -92,7 +92,7 @@
         </v-toolbar-title>
       </v-row>
       <v-spacer />
-      <div class="hidden-sm-and-down d-flex pr-2"  justify="center">
+      <div class="d-flex pr-2" v-if="fullInterface">
         <v-btn text class="pa-0 mr-1" :to="{name: 'SearchProducts'}" aria-label="Search">
           <v-icon large>search</v-icon>
         </v-btn>
@@ -106,7 +106,6 @@
               color="white"
               hide-details
               field-id="nav-bar-search"
-              v-if="fullInterface"
           />
         </div>
       </div>
@@ -124,9 +123,6 @@
         </v-switch>
       </v-card>
       <v-toolbar-items v-if="fullInterface">
-        <v-btn text class="hidden-md-and-up px-1" icon :to="{name: 'SearchProducts'}" aria-label="Search">
-          <v-icon large>search</v-icon>
-        </v-btn>
         <v-btn icon v-if="isRegistered" @click="notificationLoad" class="notifications-button">
           <v-badge overlap right color="red" :value="counts.count">
             <template v-slot:badge>
