@@ -1092,6 +1092,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         revision.refresh_from_db()
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].subject, f'Your WIP/Revision for Sale #{deliverable.order.id} [{deliverable.name}] has been approved!')
         self.assertEqual(revision.approved_on, timezone.now())
 
     def test_list_revisions_hidden(self):

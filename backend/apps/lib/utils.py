@@ -331,7 +331,8 @@ def notify(
             req_context = {'request': FakeRequest(subscription.subscriber)}
             ctx = {
                 'data': NOTIFICATION_TYPE_MAP.get(event_type, lambda x, _: x.data)(event, req_context),
-                'target': notification_serialize(event.target, req_context), 'user': subscription.subscriber
+                'target': notification_serialize(event.target, req_context), 'user': subscription.subscriber,
+                'raw_target': event.target,
             }
             subject = Template(subject).render(Context(ctx))
             to = [subscription.subscriber.guest_email or subscription.subscriber.email]
