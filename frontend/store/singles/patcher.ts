@@ -86,7 +86,7 @@ export class Patch extends Vue {
     this.errors = []
     this.patching = true
     if (handler.endpoint === '#') {
-      // This is an a special case where we're just using the single as scaffolding for Vuex storage.
+      // This is a special case where we're just using the single as scaffolding for Vuex storage.
       handler.updateX(data)
       return
     }
@@ -108,7 +108,7 @@ export class Patch extends Vue {
   }
 
   public setValue(val: any) {
-    // Broken out into its own function so we can force retry as needed.
+    // Broken out into its own function so that we can force retry as needed.
     this.cached = val
     if (this.cached === this.rawValue) {
       this.dirty = false

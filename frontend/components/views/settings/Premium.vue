@@ -12,6 +12,16 @@
           <v-subheader>Landscape settings</v-subheader>
           <p>There are no special settings to configure for Landscape at this time. Your commission bonuses will be applied automatically!</p>
         </v-col>
+        <v-col class="text-center" cols="2">
+          <v-icon x-large>{{discordPath}}</v-icon>
+        </v-col>
+        <v-col class="text-center" cols="10">
+          To get your special Discord role, <a href="https://discord.gg/4nWK9mf">join the Discord</a>, follow the
+          instructions in the Welcome room, and, after admission, give Fox this URL: <br />
+        </v-col>
+        <v-col cols="12">
+          <v-text-field :disabled="true" :value="adminPath" />
+        </v-col>
       </v-row>
       <v-row no-gutters   v-if="(subject.landscape)">
         <v-col class="text-center" cols="12" >
@@ -49,17 +59,25 @@ import AcPatchField from '@/components/fields/AcPatchField.vue'
 import AcCardManager from '@/components/views/settings/payment/AcCardManager.vue'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
 import {artCall} from '@/lib/lib'
-import {User} from '@/store/profiles/types/User'
+import {mdiDiscord} from '@mdi/js'
 import Formatting from '@/mixins/formatting'
 
 @Component({
   components: {AcConfirmation, AcCardManager, AcTagField, AcLoadingSpinner, AcPatchField},
 })
 export default class Premium extends mixins(Viewer, Subjective, Formatting) {
+  public discordPath = mdiDiscord
   public cancelSubscription() {
     artCall({url: `/api/sales/v1/account/${this.username}/cancel-premium/`, method: 'post'}).then(
       this.subjectHandler.user.setX,
     )
+  }
+
+  public get adminPath() {
+    if (!this.subject) {
+      return ''
+    }
+    return `${location.protocol}//${location.host}/admin/profiles/user/${this.subject.id}/`
   }
 }
 </script>

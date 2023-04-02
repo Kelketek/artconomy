@@ -4,8 +4,8 @@ import Vue from 'vue'
 import {Wrapper} from '@vue/test-utils'
 import {cleanUp, createVuetify, docTarget, vueSetup, mount} from '@/specs/helpers'
 import flushPromises from 'flush-promises'
-import {UppyFile} from '@uppy/core'
 import {ArtStore, createStore} from '@/store'
+import {UppyFile} from '@uppy/core'
 
 const localVue = vueSetup()
 let wrapper: Wrapper<Vue>
@@ -82,6 +82,8 @@ describe('ac-uppy-file.vue', () => {
       meta: {name: 'test.jpg'},
       size: 100,
       name: 'test.jpg',
+      providerName: 'URL',
+      remote: {host: 'example.com', url: 'https://example.com/example.jpg'},
       progress: {
         uploadStarted: 1, uploadComplete: true, bytesTotal: 100, percentage: 100, bytesUploaded: 100,
       },
@@ -94,7 +96,7 @@ describe('ac-uppy-file.vue', () => {
     wrapper = makeUppy({maxNumberOfFiles: 3, value: ['wat']})
     await wrapper.vm.$nextTick()
     const spyEmit = jest.spyOn(wrapper.vm, '$emit')
-    const file = {
+    const file: UppyFile = {
       data: new Blob(),
       extension: 'jpg',
       isRemote: false,
@@ -102,6 +104,7 @@ describe('ac-uppy-file.vue', () => {
       meta: {name: 'test2.jpg'},
       size: 100,
       name: 'test2.jpg',
+      remote: {host: 'example.com', url: 'https://example.com/example.jpg'},
       progress: {
         uploadStarted: 1, uploadComplete: true, bytesTotal: 100, percentage: 100, bytesUploaded: 100,
       },
@@ -116,7 +119,7 @@ describe('ac-uppy-file.vue', () => {
     wrapper = makeUppy({success: mockSuccess, uppyId: 'uppyTest'})
     await wrapper.vm.$nextTick() // Created
     // await wrapper.vm.$nextTick() // Mounted
-    const file: UppyFile = {
+    const file = {
       data: new Blob(),
       extension: 'jpg',
       isRemote: false,
@@ -124,6 +127,7 @@ describe('ac-uppy-file.vue', () => {
       meta: {name: 'test.jpg'},
       size: 100,
       name: 'test.jpg',
+      remote: {host: 'example.com', url: 'https://example.com/example.jpg'},
       progress: {
         uploadStarted: 1, uploadComplete: true, bytesTotal: 100, percentage: 100, bytesUploaded: 100,
       },

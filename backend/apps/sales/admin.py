@@ -6,7 +6,7 @@ from django.contrib import admin, messages
 from django.db.transaction import atomic
 
 # Register your models here.
-from django.forms import ModelForm
+from django.forms import ModelForm, TextInput
 from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
@@ -29,26 +29,20 @@ class OrderAdmin(admin.ModelAdmin):
     raw_id_fields = ['buyer', 'seller']
     list_display = ('buyer', 'seller')
 
-    def shield_protected(self, obj):
-        return not obj.escrow_disabled
-
 
 class DeliverableAdmin(admin.ModelAdmin):
     inlines = [
         CommentInline
     ]
     raw_id_fields = ['arbitrator', 'characters', 'product', 'order', 'invoice']
-    list_display = ('id', 'name', 'product', 'buyer', 'seller', 'created_on', 'shield_protected', 'status', 'link')
-    list_filter = ('escrow_disabled', 'status', 'processor')
+    list_display = ('id', 'name', 'product', 'buyer', 'seller', 'created_on', 'escrow_enabled', 'status', 'link')
+    list_filter = ('escrow_enabled', 'status', 'processor')
 
     def buyer(self, obj):
         return obj.order.buyer
 
     def seller(self, obj):
         return obj.order.seller
-
-    def shield_protected(self, obj):
-        return not obj.escrow_disabled
 
     def link(self, obj):
         return format_html(
@@ -63,8 +57,8 @@ class LineItemAnnotationInline(admin.TabularInline):
 
 
 line_fields = (
-    'type', 'priority', 'amount', 'frozen_value', 'percentage', 'cascade_percentage', 'cascade_amount', 'back_into_percentage',
-    'destination_user', 'destination_account', 'description',
+    'type', 'priority', 'amount', 'frozen_value', 'percentage', 'cascade_percentage', 'back_into_percentage',
+    'cascade_amount', 'destination_user', 'destination_account', 'description',
 )
 
 
@@ -88,7 +82,7 @@ class LineItemInline(admin.StackedInline):
 
 
 class InvoiceAdmin(admin.ModelAdmin):
-    raw_id_fields = ['bill_to', 'targets']
+    raw_id_fields = ['bill_to', 'issued_by', 'targets']
     list_display = ('id', 'bill_to', 'status', 'total', 'link')
     list_filter = ['status']
     inlines = [LineItemInline]
@@ -97,7 +91,7 @@ class InvoiceAdmin(admin.ModelAdmin):
         from apps.profiles.models import User
         target_user = obj.bill_to or User.objects.first()
         return format_html(
-            f'<a href="/profile/{target_user.username}/invoices/{obj.id}/">visit</a>',
+            f'<a href="/profile/{target_user.username}/invoice/{obj.id}/">visit</a>',
         )
 
 
@@ -182,8 +176,17 @@ class RatingAdmin(admin.ModelAdmin):
     raw_id_fields = ['rater', 'target']
 
 
+class WebhookRecordAdminForm(forms.ModelForm):
+    class Meta:
+        model = WebhookRecord
+        exclude = []
+        widgets = {
+            'secret': TextInput(attrs={'type': 'password'})
+        }
+
+
 class WebhookRecordAdmin(admin.ModelAdmin):
-    pass
+    form = WebhookRecordAdminForm
 
 
 class RevisionAdmin(admin.ModelAdmin):

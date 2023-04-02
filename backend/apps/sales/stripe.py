@@ -90,3 +90,7 @@ def get_country_list(*, api: stripe_api) -> List[CountrySpec]:
     countries.sort(key=lambda country: country['text'])
     COUNTRY_CACHE['cache'] = countries
     return COUNTRY_CACHE['cache']
+
+
+def remote_ids_from_charge(charge_event):
+    return [charge_event["payment_intent"], charge_event["id"]]

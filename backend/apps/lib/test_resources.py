@@ -1,13 +1,10 @@
 import ctypes
-import inspect
-import json
 import multiprocessing
 import os
 import platform
 import time
-from io import StringIO
+from decimal import Decimal
 from multiprocessing import Queue
-from pathlib import Path
 from pprint import pformat
 from subprocess import call
 from tempfile import TemporaryDirectory
@@ -20,10 +17,12 @@ from ddt import ddt, data
 from django.conf import settings
 from django.db import connections
 from django.test.runner import DiscoverRunner, ParallelTestSuite
+from moneyed import Money
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import GenericAPIView
 from rest_framework.test import APITestCase as BaseAPITestCase, APIRequestFactory
 
+from apps.sales.models import ServicePlan
 
 MIDDLEWARE = ['apps.lib.test_resources.DisableCSRF'] + settings.MIDDLEWARE
 
@@ -33,7 +32,21 @@ class memoized_property(property):
     pass
 
 
-class APITestCase(BaseAPITestCase):
+class EnsurePlansMixin:
+    def setUp(self):
+        super().setUp()
+        self.landscape = ServicePlan.objects.get_or_create(
+            name='Landscape', sort_value=1, monthly_charge=Money('8.00', 'USD'),
+            tipping=True,
+            shield_static_price=Money('.50', 'USD'), shield_percentage_price=Decimal('4')
+        )[0]
+        self.free = ServicePlan.objects.get_or_create(
+            name='Free', sort_value=0, shield_static_price=Money('.75', 'USD'),
+            shield_percentage_price=Decimal('8'), max_simultaneous_orders=1,
+        )[0]
+
+
+class APITestCase(EnsurePlansMixin, BaseAPITestCase):
     def login(self, user):
         result = self.client.login(email=user.email, password='Test')
         self.assertIs(result, True)
@@ -133,7 +146,7 @@ class CoveredParallelTestSuite(ParallelTestSuite):
             initargs=[counter],
         )
         args = [
-            (self.runner_class, index, subsuite, self.failfast)
+            (self.runner_class, index, subsuite, self.failfast, self.buffer)
             for index, subsuite in enumerate(self.subsuites)
         ]
         test_results = pool.imap_unordered(self.run_subsuite.__func__, args)
@@ -198,7 +211,6 @@ class NPMBuildTestRunner(DiscoverRunner):
         self.class_time_reports.cancel_join_thread()
         self.coverage_reporter = None
         self.media_root = TemporaryDirectory()
-        self.static_root = TemporaryDirectory()
 
     def instrument_time_checks(self):
         from unittest import TestCase
@@ -248,13 +260,11 @@ class NPMBuildTestRunner(DiscoverRunner):
             settings.BASE_DIR, 'webpack-stats.json'
         )
         settings.MEDIA_ROOT = self.media_root.name
-        settings.STATIC_ROOT = self.static_root.name
         if self.time:
             self.instrument_time_checks()
 
     def teardown_test_environment(self, **kwargs: dict) -> None:
         self.media_root.cleanup()
-        self.static_root.cleanup()
 
     def run_time_report(self):
         def queue_yield():
@@ -282,9 +292,9 @@ class NPMBuildTestRunner(DiscoverRunner):
         # Prevents writing of additional coverage file on process exit.
         # This is not a public interface, so be warned-- it might break some day.
         coverage.process_startup.coverage._auto_save = False
-        call(['coverage', 'combine'])
-        call(['coverage', 'html'])
-        return code + call(['coverage', 'report'])
+        call(['python', '-m', 'coverage', 'combine'])
+        call(['python', '-m', 'coverage', 'html'])
+        return code + call(['python', '-m', 'coverage', 'report'])
 
     @classmethod
     def add_arguments(cls, parser):

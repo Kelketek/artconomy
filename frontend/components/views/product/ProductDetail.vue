@@ -201,19 +201,68 @@
             <v-card-text>
               <v-row dense>
                 <v-col class="title" cols="12">
-                  <span itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+                  <span itemprop="offers" itemscope itemtype="http://schema.org/Offer" v-if="forceShield && !product.x.escrow_enabled && product.x.escrow_upgradable">
+                    <span itemprop="priceCurrency" content="USD">$</span><span itemprop="price" :content="product.x.shield_price.toFixed(2)">{{product.x.shield_price.toFixed(2)}}</span>
+                  </span>
+                  <span itemprop="offers" itemscope itemtype="http://schema.org/Offer" v-else>
                     <span itemprop="priceCurrency" content="USD">$</span><span itemprop="price" :content="product.x.starting_price.toFixed(2)">{{product.x.starting_price.toFixed(2)}}</span>
                   </span>
                   <v-btn v-show="editing" icon color="primary" @click="showTerms = true"><v-icon>edit</v-icon></v-btn>
                   <ac-expanded-property v-model="showTerms" :large="true">
                     <span slot="title">Edit Terms</span>
-                    <v-row no-gutters  >
-                      <v-col cols="12" sm="6">
-                        <ac-patch-field :patcher="product.patchers.base_price" field-type="ac-price-field" :save-comparison="product.x.base_price" />
+                    <v-row>
+                      <v-col cols="6">
+                        <v-row>
+                          <v-col cols="12" sm="6">
+                            <ac-patch-field :patcher="product.patchers.base_price" :label="basePriceLabel"
+                                            field-type="ac-price-field"
+                                            :hint="priceHint"
+                            />
+                          </v-col>
+                          <v-col cols="12" sm="6">
+                            <ac-patch-field
+                                :patcher="product.patchers.cascade_fees" field-type="v-switch" label="Absorb fees" :persistent-hint="true"
+                                hint="If turned on, the price you set is the price your commissioner will see, and you
+                          will pay all fees from that price. If turned off, the price you set is the amount you
+                          take home, and the total the customer pays includes the fees."
+                                :true-value="true"
+                                :false-value="false"
+                            />
+                          </v-col>
+                          <v-col cols="12" sm="6" v-if="escrow">
+                            <ac-patch-field
+                                :patcher="product.patchers.escrow_enabled"
+                                field-type="v-switch"
+                                label="Shield enabled"
+                                :persistent-hint="true"
+                                hint="Enable shield protection for this product."
+                                :true-value="true"
+                                :false-value="false"
+                            />
+                          </v-col>
+                          <v-col cols="12" sm="6" v-if="escrow">
+                            <ac-patch-field
+                                :patcher="product.patchers.escrow_upgradable"
+                                field-type="v-switch"
+                                label="Allow Shield Upgrade"
+                                :persistent-hint="true"
+                                :disabled="product.patchers.escrow_enabled.model"
+                                :false-value="false"
+                                :true-value="true"
+                                hint="Allow user to upgrade to shield at their option, rather than requiring it. When upgrading, fee absorption is always off."
+                            />
+                          </v-col>
+                        </v-row>
                       </v-col>
-                      <v-col cols="12" sm="6">
-                        <ac-price-preview :line-items="lineItems" :username="username" />
+                      <v-col>
+                        <v-col cols="12">
+                          <ac-price-comparison
+                              :username="username" :line-item-set-maps="lineItemSetMaps"
+                          />
+                        </v-col>
                       </v-col>
+                    </v-row>
+                    <v-row>
                       <v-col cols="12" sm="6">
                         <ac-patch-field :patcher="product.patchers.expected_turnaround" number
                                         label="Expected Days Turnaround"
@@ -233,6 +282,12 @@
                   </ac-expanded-property>
                 </v-col>
                 <v-col>
+                  <p v-if="forceShield && product.x.escrow_upgradable && !product.x.escrow_enabled">
+                    <strong>${{product.x.starting_price.toFixed(2)}}</strong> without Artconomy Shield
+                  </p>
+                  <p v-else-if="product.x.escrow_upgradable && !product.x.escrow_enabled">
+                    <strong>${{product.x.shield_price.toFixed(2)}}</strong> with Artconomy Shield
+                  </p>
                   <p v-if="product.x.revisions">
                     <strong>{{product.x.revisions}}</strong> revision<span v-if="product.x.revisions > 1">s</span> included.
                   </p>
@@ -241,7 +296,7 @@
                 <v-col class="text-center" cols="12" >
                   <ac-load-section :controller="subjectHandler.artistProfile">
                     <template v-slot:default>
-                      <ac-escrow-label :escrow="!escrowDisabled" name="product" />
+                      <ac-escrow-label :escrow="product.x.escrow_enabled" :upgrade-available="product.x.escrow_upgradable" name="product" />
                     </template>
                   </ac-load-section>
                 </v-col>
@@ -255,7 +310,7 @@
                       </p>
                     </div>
                     <v-alert v-if="product.x.wait_list" :value="true" type="info">This product is waitlisted.</v-alert>
-                    <v-btn color="green" block :to="{name: 'NewOrder', params: {username, productId, stepId: 1}}" v-if="!product.x.table_product">
+                    <v-btn color="green" block :to="orderLink" v-if="!product.x.table_product">
                       <v-icon left>shopping_basket</v-icon>
                       Order
                     </v-btn>
@@ -267,8 +322,8 @@
                   <ac-share-button :title="product.x.name" :block="true" :media-url="shareMediaUrl" :clean="shareMediaClean" />
                 </v-col>
                 <v-col class="text-center" cols="12" >
-                  <v-col v-if="escrowDisabled">
-                    <p>Artconomy gives no guarantees on products ordered without Artconomy Shield, and <em><strong>ordering is
+                  <v-col v-if="!product.x.escrow_enabled">
+                    <p>Artconomy gives no guarantees on products ordered without Artconomy Shield, and <em><strong>ordering without Shield is
                       at your own
                       risk</strong></em>. Your artist will instruct you on how to pay them.</p>
                   </v-col>
@@ -291,6 +346,23 @@
                         <p><strong>If you're not sure what to do here, or would like to set these settings later, the defaults should be safe.</strong></p>
                       </v-col>
                       <v-col cols="12" sm="6">
+                        <v-checkbox v-model="limitAtOnce" :persistent-hint="true"
+                                    label="Limit Availability"
+                                    :disabled="product.patchers.wait_list.model"
+                                    hint="If you would like to make sure you're never doing more than a few of these at a time, check this box."
+                        />
+                      </v-col>
+                      <v-col cols="12" sm="6">
+                        <ac-patch-field :persistent-hint="true"
+                                        :patcher="product.patchers.max_parallel"
+                                        label="Maximum at Once"
+                                        min="1"
+                                        v-if="limitAtOnce"
+                                        :disabled="product.patchers.wait_list.model"
+                                        hint="If you already have this many orders of this product, don't allow customers to order any more."
+                        />
+                      </v-col>
+                      <v-col cols="12" sm="6">
                         <ac-patch-field :patcher="product.patchers.wait_list"
                                         label="Wait List Product"
                                         field-type="ac-checkbox"
@@ -307,28 +379,11 @@
                       </v-col>
                       <v-col cols="12" sm="6">
                         <ac-patch-field :patcher="product.patchers.task_weight" number
-                                        label="Slots consumed by each order"
+                                        label="Workload Points"
                                         :disabled="product.patchers.wait_list.model"
                                         hint="How many slots an order of this product should take up. If this task is
                                         particularly big, you may want it to take up more than one slot."
                                         :persistent-hint="true"
-                        />
-                      </v-col>
-                      <v-col cols="12" sm="6">
-                        <v-checkbox v-model="limitAtOnce" :persistent-hint="true"
-                                    label="Limit Availability"
-                                    :disabled="product.patchers.wait_list.model"
-                                    hint="If you would like to make sure you're never doing more than a few of these at a time, check this box."
-                        />
-                      </v-col>
-                      <v-col cols="12" sm="6" v-if="limitAtOnce">
-                        <ac-patch-field :persistent-hint="true"
-                                        :patcher="product.patchers.max_parallel"
-                                        type="number"
-                                        label="Maximum at Once"
-                                        min="1"
-                                        :disabled="product.patchers.wait_list.model"
-                                        hint="If you already have this many orders of this product, don't allow customers to order any more."
                         />
                       </v-col>
                     </v-row>
@@ -445,20 +500,22 @@ import {Fragment} from 'vue-frag'
 import AcSampleEditor from '@/components/views/product/AcSampleEditor.vue'
 import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
 import AcProductPreview from '@/components/AcProductPreview.vue'
-import {RawLocation} from 'vue-router'
+import {RawLocation, Location} from 'vue-router'
 import LinkedSubmission from '@/types/LinkedSubmission'
 import ProductCentric from '@/components/views/product/mixins/ProductCentric'
 import AcEscrowLabel from '@/components/AcEscrowLabel.vue'
 import {RATING_COLOR, RATINGS_SHORT, setMetaContent, textualize, updateTitle} from '@/lib/lib'
 import AcShareButton from '@/components/AcShareButton.vue'
-import LineItem from '@/types/LineItem'
 import Pricing from '@/types/Pricing'
 import Inventory from '@/types/Inventory'
-import {LineTypes} from '@/types/LineTypes'
 import Sharable from '@/mixins/sharable'
+import {deliverableLines} from '@/lib/lineItemFunctions'
+import {LineItemSetMap} from '@/types/LineItemSetMap'
+import AcPriceComparison from '@/components/price_preview/AcPriceComparison.vue'
 
 @Component({
   components: {
+    AcPriceComparison,
     AcShareButton,
     AcEscrowLabel,
     AcProductPreview,
@@ -493,20 +550,6 @@ export default class ProductDetail extends mixins(ProductCentric, Formatting, Ed
     public ratingsShort = RATINGS_SHORT
     public ratingColor = RATING_COLOR
 
-    public get escrowDisabled() {
-      /* istanbul ignore if */
-      if (!this.product.x) {
-        return true
-      }
-      if (this.product.x.table_product) {
-        return false
-      }
-      if (!this.subjectHandler.artistProfile.x) {
-        return true
-      }
-      return this.subjectHandler.artistProfile.x.escrow_disabled
-    }
-
     public get shownSubmissionLink(): RawLocation|null {
       if (!this.shown) {
         return null
@@ -515,6 +558,19 @@ export default class ProductDetail extends mixins(ProductCentric, Formatting, Ed
         return null
       }
       return {name: 'Submission', params: {submissionId: this.shown.id + ''}}
+    }
+
+    public get forceShield() {
+      return !!({...this.$route.query}.forceShield)
+    }
+
+    public get orderLink(): Location {
+      const path: Location = {
+        name: 'NewOrder',
+        params: {username: this.username, productId: `${this.productId}`, stepId: '1'},
+      }
+      path.query = {...this.$route.query}
+      return path
     }
 
     @Watch('product.x', {deep: true})
@@ -584,81 +640,56 @@ export default class ProductDetail extends mixins(ProductCentric, Formatting, Ed
       }
     }
 
-    public get lineItems(): ListController<LineItem> {
-      const linesController = this.$getList(`product${this.productId}_previewLines`, {endpoint: '????', paginated: false})
-      linesController.ready = true
-      if (!(this.pricing.x && this.product.x)) {
-        linesController.setList([])
-        return linesController
+    public get lineItemSetMaps(): LineItemSetMap[] {
+      const sets = []
+      const product = this.product
+      if (!product.x) {
+        return []
       }
-      const basePrice = parseFloat(this.product.patchers.base_price.model)
-      if (isNaN(basePrice)) {
-        linesController.setList([])
-        return linesController
-      }
-      const lines: LineItem[] = [{
-        id: -1,
-        priority: 0,
-        type: LineTypes.BASE_PRICE,
-        amount: basePrice,
-        frozen_value: null,
-        percentage: 0,
-        description: '',
-        cascade_amount: false,
-        cascade_percentage: false,
-        back_into_percentage: false,
-      }]
-      if (this.product.x.table_product) {
-        lines.push({
-          id: -2,
-          priority: 400,
-          type: LineTypes.TABLE_SERVICE,
-          cascade_percentage: true,
-          cascade_amount: false,
-          amount: this.pricing.x.table_static,
-          frozen_value: null,
-          percentage: this.pricing.x.table_percentage,
-          back_into_percentage: false,
-          description: '',
-        }, {
-          id: -3,
-          priority: 700,
-          type: LineTypes.TAX,
-          cascade_percentage: true,
-          cascade_amount: true,
-          percentage: this.pricing.x.table_tax,
-          back_into_percentage: false,
-          description: '',
-          amount: 0,
-          frozen_value: null,
+      const escrowLinesController = this.$getList(`product${product.x.id}LinesEscrow`, {
+        endpoint: '#',
+        paginated: false,
+      })
+      const nonEscrowLinesController = this.$getList(`product${product.x.id}LinesNonEscrow`, {
+        endpoint: '#',
+        paginated: false,
+      })
+      const pricing = this.pricing.x
+      const basePrice = product.x.base_price
+      // eslint-disable-next-line camelcase
+      const planName = this.subject?.service_plan
+      const international = !!this.subject?.international
+      const cascade = product.x.cascade_fees
+      const tableProduct = product.x.table_product
+      if (this.escrow && (product.x.escrow_enabled || product.x.escrow_upgradable)) {
+        const escrowLines = deliverableLines({
+          basePrice,
+          cascade: cascade && (product.x.escrow_enabled),
+          international,
+          planName,
+          pricing,
+          escrowEnabled: true,
+          tableProduct,
+          extraLines: [],
         })
-      } else if (!this.escrowDisabled) {
-        lines.push({
-          id: -4,
-          priority: 300,
-          type: LineTypes.SHIELD,
-          cascade_percentage: true,
-          cascade_amount: true,
-          amount: this.pricing.x.standard_static,
-          frozen_value: null,
-          percentage: this.pricing.x.standard_percentage,
-          back_into_percentage: false,
-          description: '',
-        }, {
-          id: -5,
-          priority: 300,
-          type: LineTypes.BONUS,
-          cascade_percentage: true,
-          cascade_amount: true,
-          amount: this.pricing.x.premium_static_bonus,
-          frozen_value: null,
-          percentage: this.pricing.x.premium_percentage_bonus,
-          back_into_percentage: false,
-          description: '',
-        })
+        escrowLinesController.makeReady(escrowLines)
+        sets.push({name: 'Shield Protected', lineItems: escrowLinesController})
       }
-      linesController.setList(lines)
-      return linesController
+      if (!this.escrow || !product.x.escrow_enabled) {
+        const nonEscrowLines = deliverableLines({
+          basePrice,
+          cascade,
+          international,
+          planName,
+          pricing,
+          escrowEnabled: false,
+          tableProduct,
+          extraLines: [],
+        })
+        nonEscrowLinesController.makeReady(nonEscrowLines)
+        sets.push({name: 'Unprotected', lineItems: nonEscrowLinesController})
+      }
+      return sets
     }
 
     public get shareMedia() {
@@ -685,6 +716,30 @@ export default class ProductDetail extends mixins(ProductCentric, Formatting, Ed
 
     public get showExtra() {
       return this.prunedSubmissions.length
+    }
+
+    public get basePriceLabel() {
+      if (this.product.patchers.cascade_fees.model) {
+        return 'List Price'
+      } else {
+        return 'Take home amount'
+      }
+    }
+
+    public get escrow() {
+      const profile = this.subjectHandler.artistProfile.x
+      return !!(profile && profile.escrow_enabled)
+    }
+
+    public get priceHint() {
+      if (this.escrow) {
+        return `Enter the listing price you want to present to the user. We will calculate what
+                  their fees will be for you. Adjust this number until you're happy with your cut and
+                  the total price. You will be able to adjust this
+                  price per-order if the client has special requests.`
+      }
+      return `Enter the listing price you want to present to the user. You will be able to adjust this
+                price per-order if the client has special requests.`
     }
 
     public get slides() {

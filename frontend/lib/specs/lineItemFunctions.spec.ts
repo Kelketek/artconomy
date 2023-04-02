@@ -1,10 +1,13 @@
 import {genLineItem, genPricing} from '@/lib/specs/helpers'
-import {getTotals, invoiceLines, linesByPriority, reckonLines, sum} from '@/lib/lineItemFunctions'
-import Big from 'big.js'
+import {getTotals, invoiceLines, linesByPriority, reckonLines} from '@/lib/lineItemFunctions'
+import {Decimal} from 'decimal.js'
 import {genProduct} from '@/specs/helpers/fixtures'
 
 describe('lineItemFunctions.ts', () => {
+  // NOTE: Comment under each test label the name of its
+  // matching backend test so that we can easily keep them in sync.
   it('Sorts by priority', () => {
+    // test_line_sort
     const lines = [
       genLineItem({amount: 5, priority: 0}),
       genLineItem({amount: 6, priority: 1}),
@@ -29,18 +32,20 @@ describe('lineItemFunctions.ts', () => {
     expect(prioritySet).toEqual(expectedResult)
   })
   it('Gets the total for a single line', () => {
+    // test_get_totals_single_line
     const source = [genLineItem({amount: 10, priority: 0})]
     const result = getTotals(source)
     expect(result).toEqual(
       {
-        total: Big('10'),
-        discount: Big('0'),
-        map: new Map([
-          [genLineItem({amount: 10, priority: 0}), Big('10')],
+        total: new Decimal('10'),
+        discount: new Decimal('0'),
+        subtotals: new Map([
+          [genLineItem({amount: 10, priority: 0}), new Decimal('10')],
         ]),
       })
   })
   it('Gets the totals for a percentage modifier', () => {
+    // test_get_totals_percentage_line
     const source = [
       genLineItem({amount: 10, priority: 0}),
       genLineItem({percentage: 10, priority: 1}),
@@ -48,99 +53,105 @@ describe('lineItemFunctions.ts', () => {
     const result = getTotals(source)
     expect(result).toEqual(
       {
-        total: Big('11'),
-        discount: Big('0'),
-        map: new Map([
-          [genLineItem({amount: 10, priority: 0}), Big('10')],
-          [genLineItem({percentage: 10, priority: 1}), Big('1')],
+        total: new Decimal('11'),
+        discount: new Decimal('0'),
+        subtotals: new Map([
+          [genLineItem({amount: 10, priority: 0}), new Decimal('10')],
+          [genLineItem({percentage: 10, priority: 1}), new Decimal('1')],
         ]),
       },
     )
   })
   it('Gets the total with a cascading percentage modifier', () => {
+    // test_get_totals_percentage_cascade
     const source = [
       genLineItem({amount: 10, priority: 0}),
       genLineItem({percentage: 10, priority: 1, cascade_percentage: true}),
     ]
     const result = getTotals(source)
     expect(result).toEqual({
-      total: Big('10'),
-      discount: Big('0'),
-      map: new Map([
-        [genLineItem({amount: 10, priority: 0}), Big('9')],
-        [genLineItem({percentage: 10, priority: 1, cascade_percentage: true}), Big('1')],
+      total: new Decimal('10'),
+      discount: new Decimal('0'),
+      subtotals: new Map([
+        [genLineItem({amount: 10, priority: 0}), new Decimal('9')],
+        [genLineItem({percentage: 10, priority: 1, cascade_percentage: true}), new Decimal('1')],
       ]),
     })
   })
   it('Gets the total with a backed in, cascading percentage modifier', () => {
+    // test_get_totals_percentage_backed_in_cascade
     const source = [
       genLineItem({amount: 10, priority: 0}),
       genLineItem({percentage: 10, priority: 1, cascade_percentage: true, back_into_percentage: true}),
     ]
     const result = getTotals(source)
     expect(result).toEqual({
-      total: Big('10'),
-      discount: Big('0'),
-      map: new Map([
-        [genLineItem({amount: 10, priority: 0}), Big('9.09')],
+      total: new Decimal('10'),
+      discount: new Decimal('0'),
+      subtotals: new Map([
+        [genLineItem({amount: 10, priority: 0}), new Decimal('9.09')],
         [
           genLineItem(
             {percentage: 10, priority: 1, cascade_percentage: true, back_into_percentage: true},
           ),
-          Big('.91')],
+          new Decimal('.91')],
       ]),
     })
   })
   it('Gets totals with a line item that has both percentage and static modifiers', () => {
+    // test_get_totals_percentage_with_static
     const source = [
       genLineItem({amount: 10, priority: 0}),
       genLineItem({amount: 0.25, percentage: 10, priority: 1}),
     ]
     const results = getTotals(source)
     expect(results).toEqual({
-      total: Big('11.25'),
-      discount: Big('0'),
-      map: new Map([
-        [genLineItem({amount: 10, priority: 0}), Big('10.00')],
-        [genLineItem({percentage: 10, amount: 0.25, priority: 1}), Big('1.25')],
+      total: new Decimal('11.25'),
+      discount: new Decimal('0'),
+      subtotals: new Map([
+        [genLineItem({amount: 10, priority: 0}), new Decimal('10.00')],
+        [genLineItem({percentage: 10, amount: 0.25, priority: 1}), new Decimal('1.25')],
       ]),
     })
   })
   it('Handles a cascading static+percentage modifier', () => {
+    // test_get_totals_percentage_with_static_cascade
     const source = [
       genLineItem({amount: 10, priority: 0}),
       genLineItem({percentage: 10, amount: 0.25, priority: 1, cascade_percentage: true, cascade_amount: true}),
     ]
     const result = getTotals(source)
     expect(result).toEqual({
-      total: Big('10'),
-      discount: Big('0'),
-      map: new Map([
-        [genLineItem({amount: 10, priority: 0}), Big('8.75')],
+      total: new Decimal('10'),
+      discount: new Decimal('0'),
+      subtotals: new Map([
+        [genLineItem({amount: 10, priority: 0}), new Decimal('8.75')],
         [genLineItem({
           percentage: 10, amount: 0.25, priority: 1, cascade_percentage: true, cascade_amount: true,
-        }), Big('1.25')],
+        }), new Decimal('1.25')],
       ]),
     })
   })
   it('Handles cascading percentage along a stacked static amount', () => {
+    // test_get_totals_percentage_no_cascade_amount
     const source = [
       genLineItem({amount: 10, priority: 0}),
       genLineItem({percentage: 10, amount: 0.25, priority: 1, cascade_amount: false, cascade_percentage: true}),
     ]
     const result = getTotals(source)
     expect(result).toEqual({
-      total: Big('10.25'),
-      discount: Big('0'),
-      map: new Map([
-        [genLineItem({amount: 10, priority: 0}), Big('9')],
+      total: new Decimal('10.25'),
+      discount: new Decimal('0'),
+      subtotals: new Map([
+        [genLineItem({amount: 10, priority: 0}), new Decimal('9')],
         [genLineItem({
           percentage: 10, amount: 0.25, priority: 1, cascade_amount: false, cascade_percentage: true,
-        }), Big('1.25')],
+        }), new Decimal('1.25')],
       ]),
     })
   })
   it('Handles lines with concurrent priorities', () => {
+    // test_get_totals_concurrent_priorities
     const source = [
       genLineItem({amount: 10, priority: 0}),
       genLineItem({percentage: 10, priority: 1}),
@@ -148,16 +159,17 @@ describe('lineItemFunctions.ts', () => {
     ]
     const result = getTotals(source)
     expect(result).toEqual({
-      total: Big('11.50'),
-      discount: Big('0'),
-      map: new Map([
-        [genLineItem({amount: 10, priority: 0}), Big('10')],
-        [genLineItem({percentage: 10, priority: 1}), Big('1')],
-        [genLineItem({percentage: 5, priority: 1}), Big('0.5')],
+      total: new Decimal('11.50'),
+      discount: new Decimal('0'),
+      subtotals: new Map([
+        [genLineItem({amount: 10, priority: 0}), new Decimal('10')],
+        [genLineItem({percentage: 10, priority: 1}), new Decimal('1')],
+        [genLineItem({percentage: 5, priority: 1}), new Decimal('0.5')],
       ]),
     })
   })
   it('Handles cascading concurrent priorities', () => {
+    // test_get_totals_concurrent_priorities_cascade
     const source = [
       genLineItem({amount: 10, priority: 0}),
       genLineItem({percentage: 10, priority: 1, cascade_percentage: true, cascade_amount: true}),
@@ -165,16 +177,17 @@ describe('lineItemFunctions.ts', () => {
     ]
     const result = getTotals(source)
     expect(result).toEqual({
-      total: Big('10'),
-      discount: Big('0'),
-      map: new Map([
-        [genLineItem({amount: 10, priority: 0}), Big('8.5')],
-        [genLineItem({percentage: 10, priority: 1, cascade_percentage: true, cascade_amount: true}), Big('1')],
-        [genLineItem({percentage: 5, priority: 1, cascade_percentage: true, cascade_amount: true}), Big('0.5')],
+      total: new Decimal('10'),
+      discount: new Decimal('0'),
+      subtotals: new Map([
+        [genLineItem({amount: 10, priority: 0}), new Decimal('8.5')],
+        [genLineItem({percentage: 10, priority: 1, cascade_percentage: true, cascade_amount: true}), new Decimal('1')],
+        [genLineItem({percentage: 5, priority: 1, cascade_percentage: true, cascade_amount: true}), new Decimal('0.5')],
       ]),
     })
   })
   it('Handles multi-priority cascading', () => {
+    // test_get_totals_multi_priority_cascade
     const source = [
       genLineItem({amount: 10, priority: 0}),
       genLineItem({percentage: 20, priority: 1, cascade_percentage: true}),
@@ -182,16 +195,17 @@ describe('lineItemFunctions.ts', () => {
     ]
     const result = getTotals(source)
     expect(result).toEqual({
-      total: Big('10'),
-      discount: Big('0'),
-      map: new Map([
-        [genLineItem({amount: 10, priority: 0}), Big('7.2')],
-        [genLineItem({percentage: 20, priority: 1, cascade_percentage: true}), Big('1.8')],
-        [genLineItem({percentage: 10, priority: 2, cascade_percentage: true}), Big('1')],
+      total: new Decimal('10'),
+      discount: new Decimal('0'),
+      subtotals: new Map([
+        [genLineItem({amount: 10, priority: 0}), new Decimal('7.2')],
+        [genLineItem({percentage: 20, priority: 1, cascade_percentage: true}), new Decimal('1.8')],
+        [genLineItem({percentage: 10, priority: 2, cascade_percentage: true}), new Decimal('1')],
       ]),
     })
   })
   it('Handles multi-cascading on concurrent lower priority items', () => {
+    // test_get_totals_multi_priority_cascade_on_concurrent_priority
     const source = [
       genLineItem({amount: 8, priority: 0}),
       genLineItem({amount: 2, priority: 0}),
@@ -200,25 +214,27 @@ describe('lineItemFunctions.ts', () => {
     ]
     const result = getTotals(source)
     expect(result).toEqual({
-      total: Big('10'),
-      discount: Big('0'),
-      map: new Map([
-        [genLineItem({amount: 8, priority: 0}), Big('5.76')],
-        [genLineItem({amount: 2, priority: 0}), Big('1.44')],
-        [genLineItem({percentage: 20, priority: 1, cascade_percentage: true}), Big('1.8')],
-        [genLineItem({percentage: 10, priority: 2, cascade_percentage: true}), Big('1.00')],
+      total: new Decimal('10'),
+      discount: new Decimal('0'),
+      subtotals: new Map([
+        [genLineItem({amount: 8, priority: 0}), new Decimal('5.76')],
+        [genLineItem({amount: 2, priority: 0}), new Decimal('1.44')],
+        [genLineItem({percentage: 20, priority: 1, cascade_percentage: true}), new Decimal('1.8')],
+        [genLineItem({percentage: 10, priority: 2, cascade_percentage: true}), new Decimal('1.00')],
       ]),
     })
   })
   it('Reckons lines', () => {
+    // test_reckon_lines
     const source = [
       genLineItem({amount: 1, priority: 0}),
       genLineItem({amount: 5, priority: 1}),
       genLineItem({amount: 4, priority: 2}),
     ]
-    expect(reckonLines(source)).toEqual(Big('10'))
+    expect(reckonLines(source)).toEqual(new Decimal('10'))
   })
   it('Handles fixed-point calculations sanely', () => {
+    // test_fixed_point_decisions
     const source = [
       genLineItem({amount: 100, priority: 0}),
       genLineItem({amount: 5.0, priority: 100}),
@@ -227,36 +243,38 @@ describe('lineItemFunctions.ts', () => {
     ]
     const result = getTotals(source)
     expect(result).toEqual({
-      total: Big('110.00'),
-      discount: Big('0'),
-      map: new Map([
-        [genLineItem({amount: 100.0, priority: 0, percentage: 0.0}), Big('82.58')],
-        [genLineItem({amount: 5.0, priority: 100}), Big('4.13')],
-        [genLineItem({amount: 5.0, percentage: 10.0, cascade_percentage: true, cascade_amount: false, priority: 300}), Big('14.22')],
-        [genLineItem({amount: 0.0, percentage: 8.25, cascade_percentage: true, cascade_amount: true, priority: 600}), Big('9.07')],
+      total: new Decimal('110.00'),
+      discount: new Decimal('0'),
+      subtotals: new Map([
+        [genLineItem({amount: 100.0, priority: 0, percentage: 0.0}), new Decimal('82.57')],
+        [genLineItem({amount: 5.0, priority: 100}), new Decimal('4.12')],
+        [genLineItem({amount: 5.0, percentage: 10.0, cascade_percentage: true, cascade_amount: false, priority: 300}), new Decimal('14.23')],
+        [genLineItem({amount: 0.0, percentage: 8.25, cascade_percentage: true, cascade_amount: true, priority: 600}), new Decimal('9.08')],
       ]),
     })
   })
   it('Handles fixed-point calculation scenario 2 sanely', () => {
+    // test_fixed_point_calculations_2
     const source = [
-      genLineItem({amount: 20, priority: 0}),
-      genLineItem({amount: 10, priority: 100}),
-      genLineItem({amount: 5.0, percentage: 10.0, cascade_percentage: true, cascade_amount: false, priority: 300}),
-      genLineItem({amount: 0, percentage: 8.25, cascade_percentage: true, cascade_amount: true, priority: 600}),
+      genLineItem({amount: 20, priority: 0, id: 1}),
+      genLineItem({amount: 10, priority: 100, id: 2}),
+      genLineItem({amount: 5.0, percentage: 10.0, cascade_percentage: true, cascade_amount: false, priority: 300, id: 3}),
+      genLineItem({amount: 0, percentage: 8.25, cascade_percentage: true, cascade_amount: true, priority: 600, id: 4}),
     ]
     const result = getTotals(source)
     expect(result).toEqual({
-      total: Big('35.00'),
-      discount: Big('0'),
-      map: new Map([
-        [genLineItem({amount: 20, priority: 0}), Big('16.51')],
-        [genLineItem({amount: 10, priority: 100}), Big('8.26')],
-        [genLineItem({amount: 5.0, percentage: 10.0, cascade_percentage: true, cascade_amount: false, priority: 300}), Big('7.34')],
-        [genLineItem({amount: 0.0, percentage: 8.25, cascade_percentage: true, cascade_amount: true, priority: 600}), Big('2.89')],
+      total: new Decimal('35.00'),
+      discount: new Decimal('0'),
+      subtotals: new Map([
+        [genLineItem({amount: 20, priority: 0, id: 1}), new Decimal('16.51')],
+        [genLineItem({amount: 10, priority: 100, id: 2}), new Decimal('8.25')],
+        [genLineItem({amount: 5.0, percentage: 10.0, cascade_percentage: true, cascade_amount: false, priority: 300, id: 3}), new Decimal('7.35')],
+        [genLineItem({amount: 0.0, percentage: 8.25, cascade_percentage: true, cascade_amount: true, priority: 600, id: 4}), new Decimal('2.89')],
       ]),
     })
   })
   it('Handles fixed-point calculation scenario 3 sanely', () => {
+    // test_fixed_point_calculations_3
     const source = [
       genLineItem({amount: 20, priority: 0}),
       genLineItem({amount: 5, priority: 100}),
@@ -265,17 +283,18 @@ describe('lineItemFunctions.ts', () => {
     ]
     const result = getTotals(source)
     expect(result).toEqual({
-      total: Big('30.00'),
-      discount: Big('0'),
-      map: new Map([
-        [genLineItem({amount: 20, priority: 0}), Big('16.52')],
-        [genLineItem({amount: 5, priority: 100}), Big('4.13')],
-        [genLineItem({amount: 5.0, percentage: 10.0, cascade_percentage: true, cascade_amount: false, priority: 300}), Big('6.88')],
-        [genLineItem({amount: 0.0, percentage: 8.25, cascade_percentage: true, cascade_amount: true, priority: 600}), Big('2.47')],
+      total: new Decimal('30.00'),
+      discount: new Decimal('0'),
+      subtotals: new Map([
+        [genLineItem({amount: 20, priority: 0}), new Decimal('16.51')],
+        [genLineItem({amount: 5, priority: 100}), new Decimal('4.12')],
+        [genLineItem({amount: 5.0, percentage: 10.0, cascade_percentage: true, cascade_amount: false, priority: 300}), new Decimal('6.89')],
+        [genLineItem({amount: 0.0, percentage: 8.25, cascade_percentage: true, cascade_amount: true, priority: 600}), new Decimal('2.48')],
       ]),
     })
   })
   it('Handles a complex discount scenario', () => {
+    // test_complex_discount
     const source = [
       genLineItem({amount: 0.01, priority: 0, id: 1}),
       genLineItem({amount: 0.01, priority: 100, id: 2}),
@@ -288,40 +307,82 @@ describe('lineItemFunctions.ts', () => {
     ]
     const result = getTotals(source)
     expect(result).toEqual({
-      total: Big('5.03'),
-      discount: Big('-5'),
-      map: new Map([
-        [genLineItem({amount: 0.01, priority: 0, id: 1}), Big('0.01')],
-        [genLineItem({amount: 0.01, priority: 100, id: 2}), Big('0.01')],
-        [genLineItem({amount: 0.01, priority: 100, id: 3}), Big('0.01')],
-        [genLineItem({amount: -5.00, priority: 100, id: 4}), Big('-5.00')],
-        [genLineItem({amount: 10.00, priority: 100, id: 5}), Big('8.85')],
+      total: new Decimal('5.03'),
+      discount: new Decimal('-5'),
+      subtotals: new Map([
+        [genLineItem({amount: 0.01, priority: 0, id: 1}), new Decimal('0.00')],
+        [genLineItem({amount: 0.01, priority: 100, id: 2}), new Decimal('0.00')],
+        [genLineItem({amount: 0.01, priority: 100, id: 3}), new Decimal('0.01')],
+        [genLineItem({amount: -5.00, priority: 100, id: 4}), new Decimal('-5.00')],
+        [genLineItem({amount: 10.00, priority: 100, id: 5}), new Decimal('8.86')],
         [genLineItem({
           amount: 0.75,
           percentage: 8.0,
           cascade_percentage: true,
           cascade_amount: true,
           priority: 300,
-        }), Big('1.15')],
+        }), new Decimal('1.16')],
       ]),
     })
   })
   it('Handles a zero total', () => {
+    // test_zero_total
     const source = [
       genLineItem({amount: 0, priority: 0}),
       genLineItem({amount: 8, cascade_percentage: true, cascade_amount: true, priority: 600}),
     ]
     const result = getTotals(source)
     expect(result).toEqual({
-      total: Big('0'),
-      discount: Big('0'),
-      map: new Map([
-        [genLineItem({amount: 0, priority: 0}), Big('0')],
-        [genLineItem({amount: 8, cascade_percentage: true, cascade_amount: true, priority: 600}), Big('8')],
+      total: new Decimal('0'),
+      discount: new Decimal('0'),
+      subtotals: new Map([
+        [genLineItem({amount: 0, priority: 0}), new Decimal('-8')],
+        [genLineItem({amount: 8, cascade_percentage: true, cascade_amount: true, priority: 600}), new Decimal('8')],
+      ]),
+    })
+  })
+  it('Handles negative distribution', () => {
+    // test_negative_distribution
+    const source = [
+      genLineItem({amount: 1, priority: 0, id: 1}),
+      genLineItem({amount: 1, priority: 1, id: 2}),
+      genLineItem({amount: 4, priority: 1, id: 3}),
+      genLineItem({amount: 8, cascade_amount: true, priority: 100, id: 4}),
+    ]
+    const result = getTotals(source)
+    expect(result).toEqual({
+      total: new Decimal('6'),
+      discount: new Decimal('0'),
+      subtotals: new Map([
+        [genLineItem({amount: 1, priority: 0, id: 1}), new Decimal('-0.34')],
+        [genLineItem({amount: 1, priority: 1, id: 2}), new Decimal('-0.33')],
+        [genLineItem({amount: 4, priority: 1, id: 3}), new Decimal('-1.33')],
+        [genLineItem({amount: 8, cascade_amount: true, priority: 100, id: 4}), new Decimal('8.00')],
+      ]),
+    })
+  })
+  it('Handles non-cascaded percentages', () => {
+    // test_non_cascading_percentage
+    const source = [
+      genLineItem({amount: 5, priority: 0, id: 1}),
+      genLineItem({amount: 1, priority: 1, id: 2}),
+      genLineItem({amount: 4, priority: 1, id: 3}),
+      genLineItem({percentage: 5, back_into_percentage: true, priority: 100, id: 4}),
+    ]
+    const result = getTotals(source)
+    expect(result).toEqual({
+      total: new Decimal('10.52'),
+      discount: new Decimal('0'),
+      subtotals: new Map([
+        [genLineItem({amount: 5, priority: 0, id: 1}), new Decimal('5')],
+        [genLineItem({amount: 1, priority: 1, id: 2}), new Decimal('1')],
+        [genLineItem({amount: 4, priority: 1, id: 3}), new Decimal('4')],
+        [genLineItem({percentage: 5, back_into_percentage: true, priority: 100, id: 4}), new Decimal('.52')],
       ]),
     })
   })
   it('Handles many transactions divvied up for fees', () => {
+    // test_handles_many_transactions_divvied_up_for_fees
     const source = [
       genLineItem({amount: 25.00, priority: 0, cascade_amount: false, id: 1}),
       genLineItem({amount: 25.00, priority: 0, cascade_amount: false, id: 2}),
@@ -342,7 +403,7 @@ describe('lineItemFunctions.ts', () => {
     ]
     const result = getTotals(source)
     expect(result).toEqual({
-      map: new Map([
+      subtotals: new Map([
         [genLineItem({
           amount: 25,
           back_into_percentage: false,
@@ -353,7 +414,7 @@ describe('lineItemFunctions.ts', () => {
           percentage: 0,
           priority: 0,
           type: 0,
-        }), Big('24.2')],
+        }), new Decimal('24.2')],
         [genLineItem({
           amount: 25,
           back_into_percentage: false,
@@ -364,7 +425,7 @@ describe('lineItemFunctions.ts', () => {
           percentage: 0,
           priority: 0,
           type: 0,
-        }), Big('24.2')],
+        }), new Decimal('24.2')],
         [genLineItem({
           amount: 35,
           back_into_percentage: false,
@@ -375,7 +436,7 @@ describe('lineItemFunctions.ts', () => {
           percentage: 0,
           priority: 0,
           type: 0,
-        }), Big('33.88')],
+        }), new Decimal('33.89')],
         [genLineItem({
           amount: 55,
           back_into_percentage: false,
@@ -386,7 +447,7 @@ describe('lineItemFunctions.ts', () => {
           percentage: 0,
           priority: 0,
           type: 0,
-        }), Big('53.24')],
+        }), new Decimal('53.25')],
         [genLineItem({
           amount: 10,
           back_into_percentage: false,
@@ -397,7 +458,7 @@ describe('lineItemFunctions.ts', () => {
           percentage: 0,
           priority: 0,
           type: 0,
-        }), Big('9.68')],
+        }), new Decimal('9.68')],
         [genLineItem({
           amount: 5,
           back_into_percentage: false,
@@ -408,7 +469,7 @@ describe('lineItemFunctions.ts', () => {
           percentage: 0,
           priority: 0,
           type: 0,
-        }), Big('4.84')],
+        }), new Decimal('4.84')],
         [genLineItem({
           amount: 30,
           back_into_percentage: false,
@@ -419,7 +480,7 @@ describe('lineItemFunctions.ts', () => {
           percentage: 0,
           priority: 0,
           type: 0,
-        }), Big('29.04')],
+        }), new Decimal('29.04')],
         [genLineItem({
           amount: 55,
           back_into_percentage: false,
@@ -430,7 +491,7 @@ describe('lineItemFunctions.ts', () => {
           percentage: 0,
           priority: 0,
           type: 0,
-        }), Big('53.25')],
+        }), new Decimal('53.25')],
         [genLineItem({
           amount: 25,
           back_into_percentage: false,
@@ -441,7 +502,7 @@ describe('lineItemFunctions.ts', () => {
           percentage: 0,
           priority: 0,
           type: 0,
-        }), Big('24.2')],
+        }), new Decimal('24.2')],
         [genLineItem({
           amount: 5,
           back_into_percentage: false,
@@ -452,7 +513,7 @@ describe('lineItemFunctions.ts', () => {
           percentage: 0,
           priority: 0,
           type: 0,
-        }), Big('4.84')],
+        }), new Decimal('4.84')],
         [genLineItem({
           amount: 6,
           back_into_percentage: false,
@@ -463,7 +524,7 @@ describe('lineItemFunctions.ts', () => {
           percentage: 0,
           priority: 0,
           type: 0,
-        }), Big('5.81')],
+        }), new Decimal('5.80')],
         [genLineItem({
           amount: 25,
           back_into_percentage: false,
@@ -474,7 +535,7 @@ describe('lineItemFunctions.ts', () => {
           percentage: 0,
           priority: 0,
           type: 0,
-        }), Big('24.2')],
+        }), new Decimal('24.2')],
         [genLineItem({
           amount: 6,
           back_into_percentage: false,
@@ -485,7 +546,7 @@ describe('lineItemFunctions.ts', () => {
           percentage: 0,
           priority: 0,
           type: 0,
-        }), Big('5.81')],
+        }), new Decimal('5.80')],
         [genLineItem({
           amount: 3,
           back_into_percentage: false,
@@ -496,7 +557,7 @@ describe('lineItemFunctions.ts', () => {
           percentage: 0,
           priority: 0,
           type: 0,
-        }), Big('2.91')],
+        }), new Decimal('2.90')],
         [genLineItem({
           amount: 5,
           back_into_percentage: false,
@@ -507,7 +568,7 @@ describe('lineItemFunctions.ts', () => {
           percentage: 0,
           priority: 0,
           type: 0,
-        }), Big('4.84')],
+        }), new Decimal('4.84')],
         [genLineItem({
           amount: 10.06,
           back_into_percentage: false,
@@ -518,14 +579,22 @@ describe('lineItemFunctions.ts', () => {
           percentage: 0,
           priority: 1,
           type: 0,
-        }), Big('10.06')],
+        }), new Decimal('10.07')],
       ]),
-      total: Big('315'),
-      discount: Big('0.00'),
+      total: new Decimal('315'),
+      discount: new Decimal('0.00'),
     })
   })
   it('Generates preview line items for a null product', async() => {
-    expect(invoiceLines({escrowDisabled: false, pricing: genPricing(), value: '25.00', product: null})).toEqual([
+    expect(invoiceLines({
+      escrowEnabled: true,
+      pricing: genPricing(),
+      value: '25.00',
+      product: null,
+      cascade: true,
+      international: false,
+      planName: 'Basic',
+    })).toEqual([
       {
         id: -1,
         priority: 0,
@@ -536,7 +605,7 @@ describe('lineItemFunctions.ts', () => {
         description: '',
         cascade_amount: false,
         cascade_percentage: false,
-        back_into_percentage: true,
+        back_into_percentage: false,
       },
       {
         id: -5,
@@ -545,83 +614,22 @@ describe('lineItemFunctions.ts', () => {
         cascade_percentage: true,
         cascade_amount: true,
         back_into_percentage: false,
-        amount: 0.5,
+        amount: 3.5,
         frozen_value: null,
-        percentage: 4,
-        description: '',
-      },
-      {
-        id: -6,
-        priority: 300,
-        type: 3,
-        cascade_percentage: true,
-        cascade_amount: true,
-        back_into_percentage: false,
-        amount: 0.25,
-        frozen_value: null,
-        percentage: 4,
+        percentage: 5,
         description: '',
       },
     ])
   })
   it('Generates preview line items for a product', async() => {
-    expect(invoiceLines({escrowDisabled: false, pricing: genPricing(), value: '25.00', product: genProduct()})).toEqual([
-      {
-        id: -1,
-        priority: 0,
-        type: 0,
-        amount: 10,
-        frozen_value: null,
-        percentage: 0,
-        description: '',
-        cascade_amount: false,
-        cascade_percentage: false,
-        back_into_percentage: false,
-      },
-      {
-        id: -2,
-        priority: 100,
-        type: 1,
-        amount: 15,
-        frozen_value: null,
-        percentage: 0,
-        description: '',
-        cascade_amount: false,
-        cascade_percentage: false,
-        back_into_percentage: false,
-      },
-      {
-        id: -5,
-        priority: 300,
-        type: 2,
-        cascade_percentage: true,
-        cascade_amount: true,
-        back_into_percentage: false,
-        amount: 0.5,
-        frozen_value: null,
-        percentage: 4,
-        description: '',
-      },
-      {
-        id: -6,
-        priority: 300,
-        type: 3,
-        cascade_percentage: true,
-        cascade_amount: true,
-        back_into_percentage: false,
-        amount: 0.25,
-        frozen_value: null,
-        percentage: 4,
-        description: '',
-      },
-    ])
-  })
-  it('Generates preview for a table product', async() => {
     expect(invoiceLines({
-      escrowDisabled: false,
+      escrowEnabled: true,
       pricing: genPricing(),
       value: '25.00',
-      product: genProduct({table_product: true}),
+      product: genProduct(),
+      cascade: true,
+      international: false,
+      planName: 'Basic',
     })).toEqual([
       {
         id: -1,
@@ -636,10 +644,94 @@ describe('lineItemFunctions.ts', () => {
         back_into_percentage: false,
       },
       {
+        id: -5,
+        priority: 300,
+        type: 2,
+        cascade_percentage: true,
+        cascade_amount: true,
+        back_into_percentage: false,
+        amount: 3.5,
+        frozen_value: null,
+        percentage: 5,
+        description: '',
+      },
+      {
         id: -2,
         priority: 100,
         type: 1,
         amount: 15,
+        frozen_value: null,
+        percentage: 0,
+        description: '',
+        cascade_amount: false,
+        cascade_percentage: false,
+        back_into_percentage: false,
+      },
+    ])
+  })
+  it('Generates preview line items for an international product', async() => {
+    expect(invoiceLines({
+      escrowEnabled: true,
+      pricing: genPricing(),
+      value: '25.00',
+      product: genProduct(),
+      cascade: true,
+      international: true,
+      planName: 'Basic',
+    })).toEqual([
+      {
+        id: -1,
+        priority: 0,
+        type: 0,
+        amount: 10,
+        frozen_value: null,
+        percentage: 0,
+        description: '',
+        cascade_amount: false,
+        cascade_percentage: false,
+        back_into_percentage: false,
+      },
+      {
+        id: -5,
+        priority: 300,
+        type: 2,
+        cascade_percentage: true,
+        cascade_amount: true,
+        back_into_percentage: false,
+        amount: 3.5,
+        frozen_value: null,
+        percentage: 6,
+        description: '',
+      },
+      {
+        id: -2,
+        priority: 100,
+        type: 1,
+        amount: 15,
+        frozen_value: null,
+        percentage: 0,
+        description: '',
+        cascade_amount: false,
+        cascade_percentage: false,
+        back_into_percentage: false,
+      },
+    ])
+  })
+  it('Generates preview for a table product', async() => {
+    expect(invoiceLines({
+      escrowEnabled: true,
+      pricing: genPricing(),
+      value: '25.00',
+      product: genProduct({table_product: true}),
+      cascade: true,
+      international: false,
+      planName: 'Basic',
+    })).toEqual([
+      {
+        id: -1,
+        priority: 0,
+        type: 0,
+        amount: 10,
         frozen_value: null,
         percentage: 0,
         description: '',
@@ -671,10 +763,30 @@ describe('lineItemFunctions.ts', () => {
         amount: 0,
         frozen_value: null,
       },
+      {
+        id: -2,
+        priority: 100,
+        type: 1,
+        amount: 15,
+        frozen_value: null,
+        percentage: 0,
+        description: '',
+        cascade_amount: false,
+        cascade_percentage: false,
+        back_into_percentage: false,
+      },
     ])
   })
   it('Generates preview line items for a null product with no escrow', async() => {
-    expect(invoiceLines({escrowDisabled: true, pricing: genPricing(), value: '25.00', product: null})).toEqual([
+    expect(invoiceLines({
+      escrowEnabled: false,
+      pricing: genPricing(),
+      value: '25.00',
+      product: null,
+      cascade: true,
+      international: false,
+      planName: 'Basic',
+    })).toEqual([
       {
         id: -1,
         priority: 0,
@@ -685,12 +797,32 @@ describe('lineItemFunctions.ts', () => {
         description: '',
         cascade_amount: false,
         cascade_percentage: false,
-        back_into_percentage: true,
+        back_into_percentage: false,
+      },
+      {
+        amount: 1.35,
+        back_into_percentage: false,
+        cascade_amount: true,
+        cascade_percentage: true,
+        description: '',
+        frozen_value: null,
+        id: -6,
+        percentage: 0,
+        priority: 300,
+        type: 10,
       },
     ])
   })
   it('Generates preview line items for a product with no escrow', async() => {
-    expect(invoiceLines({escrowDisabled: true, pricing: genPricing(), value: '25.00', product: genProduct()})).toEqual([
+    expect(invoiceLines({
+      escrowEnabled: false,
+      pricing: genPricing(),
+      value: '25.00',
+      product: genProduct(),
+      cascade: true,
+      international: false,
+      planName: 'Basic',
+    })).toEqual([
       {
         id: -1,
         priority: 0,
@@ -702,6 +834,18 @@ describe('lineItemFunctions.ts', () => {
         cascade_amount: false,
         cascade_percentage: false,
         back_into_percentage: false,
+      },
+      {
+        amount: 1.35,
+        back_into_percentage: false,
+        cascade_amount: true,
+        cascade_percentage: true,
+        description: '',
+        frozen_value: null,
+        id: -6,
+        percentage: 0,
+        priority: 300,
+        type: 10,
       },
       {
         id: -2,
@@ -718,7 +862,15 @@ describe('lineItemFunctions.ts', () => {
     ])
   })
   it('Handles line items for a product with no escrow and a nonsense value', async() => {
-    expect(invoiceLines({escrowDisabled: true, pricing: genPricing(), value: 'boop', product: genProduct()})).toEqual([
+    expect(invoiceLines({
+      escrowEnabled: false,
+      pricing: genPricing(),
+      value: 'boop',
+      product: genProduct(),
+      cascade: true,
+      international: false,
+      planName: 'Basic',
+    })).toEqual([
       {
         id: -1,
         priority: 0,
@@ -731,9 +883,51 @@ describe('lineItemFunctions.ts', () => {
         cascade_percentage: false,
         back_into_percentage: false,
       },
+      {
+        amount: 1.35,
+        back_into_percentage: false,
+        cascade_amount: true,
+        cascade_percentage: true,
+        description: '',
+        frozen_value: null,
+        id: -6,
+        percentage: 0,
+        priority: 300,
+        type: 10,
+      },
     ])
   })
   it('Handles line item for no product, no escrow and a nonsense value', async() => {
-    expect(invoiceLines({escrowDisabled: true, pricing: genPricing(), value: 'boop', product: null})).toEqual([])
+    expect(invoiceLines({
+      escrowEnabled: false,
+      pricing: genPricing(),
+      value: 'boop',
+      product: null,
+      cascade: true,
+      international: false,
+      planName: 'Basic',
+    })).toEqual([])
+  })
+  it('Bails if the pricing is not available', async() => {
+    expect(invoiceLines({
+      escrowEnabled: false,
+      pricing: null,
+      value: 'boop',
+      product: genProduct(),
+      cascade: true,
+      international: false,
+      planName: 'Basic',
+    })).toEqual([])
+  })
+  it('Bails if the plan is unknown', async() => {
+    expect(invoiceLines({
+      escrowEnabled: false,
+      pricing: genPricing(),
+      value: 'boop',
+      product: genProduct(),
+      cascade: true,
+      international: false,
+      planName: 'Backup',
+    })).toEqual([])
   })
 })

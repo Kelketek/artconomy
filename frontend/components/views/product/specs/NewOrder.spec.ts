@@ -29,6 +29,7 @@ describe('NewOrder.vue', () => {
         {path: '/user/:username/about/', name: 'AboutUser', component: Empty},
         {path: '/orders/:username/order/:orderId', name: 'Order', component: Empty},
         {path: '/auth/login', name: 'Login', component: Empty},
+        {path: '/faq/buy-and-sell/', name: 'BuyAndSell', component: Empty},
         {path: '/orders/:username/order/:orderId/:deliverableId', name: 'Deliverable', component: Empty},
         {path: '/orders/:username/order/:orderId/:deliverableId/payment', name: 'SaleDeliverablePayment', component: Empty},
         {path: '/store/:username/products/:productId/order/:stepId?/', name: 'NewOrder', component: Empty},
@@ -103,7 +104,7 @@ describe('NewOrder.vue', () => {
         params: {
           orderId: '1',
           deliverableId: '1',
-          username: 'Fox'
+          username: 'Fox',
         },
       },
     })), submitted)
@@ -255,5 +256,21 @@ describe('NewOrder.vue', () => {
     const vm = wrapper.vm as any
     await vm.$nextTick()
     expect(mockReplace).toHaveBeenCalledWith({params: {stepId: '3'}})
+  })
+  it('Does not submit if the last step is not selected.', async() => {
+    const user = genAnon()
+    setViewer(store, user)
+    router.replace({name: 'NewOrder', params: {username: 'Fox', productId: '1', stepId: '2'}})
+    const mockReplace = jest.spyOn(router, 'replace')
+    wrapper = mount(NewOrder, {localVue, store, vuetify, router, propsData: {productId: '1', username: 'Fox'}})
+    const vm = wrapper.vm as any
+    vm.product.makeReady(genProduct())
+    await vm.$nextTick()
+    mockReplace.mockReset()
+    const mockSubmitThen = jest.spyOn(vm.orderForm, 'submitThen')
+    wrapper.find('input').trigger('submit')
+    await vm.$nextTick()
+    expect(mockReplace).toHaveBeenCalledWith({params: {stepId: '3'}})
+    expect(mockSubmitThen).not.toHaveBeenCalled()
   })
 })

@@ -1,0 +1,9 @@
+{% extends 'email_base.html' %}
+{% block header_message %}Commissions closed.{% endblock %}
+{% block message %}
+Your commissions have been automatically closed due to non-responsiveness on an order.
+{% endblock message %}
+
+{% block action %}
+<a href="/my/Sales">View your AWOO sales panel here!</a>
+{% endblock %}

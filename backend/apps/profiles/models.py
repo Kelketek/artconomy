@@ -13,9 +13,10 @@ from django.contrib.auth.models import AnonymousUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.postgres.fields import CICharField
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, RegexValidator
-from django.db import models
+from django.db import models, ProgrammingError
 from django.db.models import (
     Model, CharField, ForeignKey, IntegerField, BooleanField, DateTimeField,
     URLField, SET_NULL, ManyToManyField, CASCADE, DecimalField, DateField, PROTECT,
@@ -36,7 +37,7 @@ from apps.lib.models import (
     NEW_CHARACTER, RENEWAL_FAILURE, SUBSCRIPTION_DEACTIVATED, RENEWAL_FIXED, NEW_JOURNAL,
     TRANSFER_FAILED, SUBMISSION_ARTIST_TAG, REFERRAL_LANDSCAPE_CREDIT,
     WATCHING,
-    Notification, WAITLIST_UPDATED)
+    Notification, WAITLIST_UPDATED, AUTO_CLOSED)
 from apps.lib.utils import (
     clear_events, tag_list_cleaner, notify, recall_notification, preview_rating,
     send_transaction_email,
@@ -47,7 +48,7 @@ from apps.profiles.permissions import (
     SubmissionViewPermission, SubmissionCommentPermission, MessageReadPermission,
     JournalCommentPermission,
     IsRegistered, UserControls)
-from apps.sales.apis import PROCESSOR_CHOICES
+from apps.sales.constants import PROCESSOR_CHOICES
 from shortcuts import make_url, disable_on_load
 
 
@@ -81,6 +82,18 @@ def set_avatar_url(user):
     user.save(update_fields=['avatar_url'])
 
 
+def default_plan():
+    from apps.sales.models import ServicePlan
+    try:
+        return ServicePlan.objects.filter(name=settings.DEFAULT_SERVICE_PLAN_NAME).first()
+    except ProgrammingError:
+        # During initialization, as Django is checking for common issues, it instantiates a copy of the User
+        # model to verify that certain attributes are defined correctly. Of course, instantiating before migrations
+        # have been run means that the tables for ServicePlan have not yet been created, so we have to catch
+        # the resulting exception in order to move forward.
+        return None
+
+
 UNSET = 0
 IN_SUPPORTED_COUNTRY = 1
 NO_SUPPORTED_COUNTRY = 2
@@ -90,20 +103,12 @@ BANK_STATUS_CHOICES = (
     (NO_SUPPORTED_COUNTRY, "No supported country")
 )
 
-NORMAL = 0
-VERIFIED = 1
-
-TRUST_LEVELS = (
-    (NORMAL, 'Normal'),
-    (VERIFIED, 'Verified'),
-)
-
 
 class User(AbstractEmailUser, HitsMixin):
     """
     User model for Artconomy.
     """
-    username = CharField(
+    username = CICharField(
         max_length=40, unique=True, db_index=True, validators=[
             UnicodeUsernameValidator(), banned_named_validator, banned_prefix_validator,
         ]
@@ -123,7 +128,7 @@ class User(AbstractEmailUser, HitsMixin):
     landscape_enabled = BooleanField(default=False, db_index=True, null=True)
     landscape_paid_through = DateField(null=True, default=None, blank=True, db_index=True)
     next_service_plan = ForeignKey('sales.ServicePlan', related_name='future_users', null=True, blank=True, on_delete=SET_NULL)
-    service_plan = ForeignKey('sales.ServicePlan', related_name='current_users', null=True, blank=True, on_delete=SET_NULL)
+    service_plan = ForeignKey('sales.ServicePlan', related_name='current_users', null=True, blank=True, on_delete=SET_NULL, default=default_plan)
     service_plan_paid_through = DateField(null=True, default=None, blank=True)
     registration_code = ForeignKey('sales.Promo', null=True, blank=True, on_delete=SET_NULL)
     # Whether the user's been offered the mailing list
@@ -133,9 +138,9 @@ class User(AbstractEmailUser, HitsMixin):
     referred_by = ForeignKey('User', related_name='referrals', blank=True, on_delete=PROTECT, null=True)
     tg_key = CharField(db_index=True, default=tg_key_gen, max_length=30)
     tg_chat_id = CharField(db_index=True, default='', max_length=30)
+    discord_id = CharField(db_index=True, default='', max_length=30, blank=True)
     guest_email = EmailField(db_index=True, default='', blank=True)
     avatar_url = URLField(blank=True)
-    trust_level = IntegerField(choices=TRUST_LEVELS, default=NORMAL, db_index=True)
     rating = IntegerField(
         choices=RATINGS, db_index=True, default=GENERAL,
         help_text="Shows the maximum rating to display. By setting this to anything other than general, you certify "
@@ -152,6 +157,10 @@ class User(AbstractEmailUser, HitsMixin):
         blank=True,
         help_text="Enable Artist functionality"
     )
+    delinquent = BooleanField(
+        default=False, db_index=True,
+        help_text="Enabled when a user's account is in arrears beyond the grace period."
+    )
     blacklist = ManyToManyField('lib.Tag', blank=True)
     blacklist__max = 500
     biography = CharField(max_length=5000, blank=True, default='')
@@ -164,9 +173,12 @@ class User(AbstractEmailUser, HitsMixin):
     notifications = ManyToManyField('lib.Event', through='lib.Notification')
     # Random default value to make extra sure it will never be invoked by mistake.
     reset_token = CharField(max_length=36, blank=True, default=uuid.uuid4)
+    # Currently only used to make sure sellers can't change the email on an order which a buyer has
+    # logged into via email link.
+    verified_email = BooleanField(default=False, db_index=True)
     # Auto now add to avoid problems when filtering where 'null' is considered less than something else.
     token_expiry = DateTimeField(auto_now_add=True)
-    notes = TextField(default='')
+    notes = TextField(default='', blank=True)
     hit_counter = GenericRelation(
         'hitcount.HitCount', object_id_field='object_pk',
         related_query_name='hit_counter')
@@ -204,10 +216,18 @@ class User(AbstractEmailUser, HitsMixin):
 
     def save(self, *args, **kwargs):
         self.email = self.email and self.email.lower()
+        self.next_service_plan = self.next_service_plan or self.service_plan
         super().save(*args, **kwargs)
 
     def __str__(self):
         return self.username
+
+    @property
+    def escrow_available(self):
+        try:
+            return self.artist_profile.bank_account_status == IN_SUPPORTED_COUNTRY
+        except ArtistProfile.DoesNotExist:
+            return False
 
     def notification_serialize(self, context):
         from .serializers import RelatedUserSerializer
@@ -262,10 +282,14 @@ user_logged_out.connect(signal_trigger_reconnect)
 @disable_on_load
 def reg_code_action(sender, instance, **_kwargs):
     from apps.sales.models import ServicePlan
-    if instance.id is None and instance.registration_code:
-        instance.service_plan = ServicePlan.objects.get(name='Landscape')
-        instance.service_plan_paid_through = timezone.now().date() + relativedelta(months=1)
-        send_transaction_email('Welcome to Landscape.', 'registration_code.html', instance, {})
+    if instance.service_plan is None and instance.id is None:
+        if instance.registration_code:
+            instance.service_plan = ServicePlan.objects.get(name='Landscape')
+            instance.service_plan_paid_through = timezone.now().date() + relativedelta(months=1)
+            send_transaction_email('Welcome to Landscape.', 'registration_code.html', instance, {})
+        else:
+            instance.service_plan = ServicePlan.objects.get(name=settings.DEFAULT_SERVICE_PLAN_NAME)
+            instance.service_plan_paid_through = timezone.now().date()
 
 
 def create_user_subscriptions(instance):
@@ -282,7 +306,7 @@ def create_user_subscriptions(instance):
             (SUBMISSION_SHARED, False), (CHAR_SHARED, False), (RENEWAL_FAILURE, True),
             (SUBSCRIPTION_DEACTIVATED, True), (RENEWAL_FIXED, True),
             (TRANSFER_FAILED, True), (REFERRAL_LANDSCAPE_CREDIT, True),
-            (WAITLIST_UPDATED, True),
+            (WAITLIST_UPDATED, True), (AUTO_CLOSED, True)
         ]],
         ignore_conflicts=True,
     )
@@ -354,7 +378,7 @@ class ArtistProfile(Model):
         help_text='Allow people to see your queue.',
     )
     has_products = BooleanField(default=False, db_index=True)
-    escrow_disabled = BooleanField(default=False, db_index=True)
+    escrow_enabled = BooleanField(default=True, db_index=True)
     artist_of_color = BooleanField(default=False, db_index=True)
     lgbt = BooleanField(default=False, db_index=True)
     auto_withdraw = BooleanField(default=True)
@@ -370,12 +394,9 @@ class ArtistProfile(Model):
 def sync_escrow_status(sender, instance, **kwargs):
     from apps.sales.models import StripeAccount
     if instance.bank_account_status == IN_SUPPORTED_COUNTRY:
-        instance.escrow_disabled = False
+        instance.escrow_enabled = True
     elif instance.bank_account_status == NO_SUPPORTED_COUNTRY:
-        if not StripeAccount.objects.filter(user=instance.user, active=True):
-            instance.escrow_disabled = True
-        else:
-            instance.escrow_disabled = False
+        instance.escrow_enabled = StripeAccount.objects.filter(user=instance.user, active=True).exists()
 
 
 def get_next_submission_position():

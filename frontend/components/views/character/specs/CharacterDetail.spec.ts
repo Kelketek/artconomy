@@ -56,6 +56,12 @@ describe('CharacterDetail.vue', () => {
           component: Empty,
           props: true,
         },
+        {
+          path: '/profile/:username/characters/:characterName',
+          name: 'Character',
+          component: Empty,
+          props: true,
+        },
       ],
     })
     mount(Empty, {localVue, store}).vm.$getForm('search', searchSchema())
@@ -139,5 +145,97 @@ describe('CharacterDetail.vue', () => {
     const vm = wrapper.vm as any
     vm.character.profile.setX(character)
     await wrapper.vm.$nextTick()
+  })
+  it('Handles a new submission when the primary is being changed', async() => {
+    setViewer(store, vulpes)
+    wrapper = mount(CharacterDetail, {
+      localVue,
+      store,
+      router,
+      vuetify,
+      propsData: {username: 'Vulpes', characterName: 'Kai'},
+      attachTo: docTarget(),
+    },
+    )
+    const character = genCharacter()
+    character.primary_submission = null
+    const vm = wrapper.vm as any
+    vm.character.profile.setX(character)
+    vm.submissionList.makeReady([])
+    vm.showChangePrimary = true
+    await wrapper.vm.$nextTick()
+    expect(vm.character.profile.patchers.primary_submission.model).toBe(null)
+    const submission = genSubmission({id: 343})
+    vm.addSubmission(submission)
+    expect(vm.character.profile.patchers.primary_submission.model).toBe(submission.id)
+    expect(vm.submissionList.list[0].x.id).toBe(submission.id)
+    expect(vm.character.submissions.list[0].x.id).toBe(submission.id)
+  })
+  it('Handles a new submission when the primary is not being changed', async() => {
+    setViewer(store, vulpes)
+    wrapper = mount(CharacterDetail, {
+      localVue,
+      store,
+      router,
+      vuetify,
+      propsData: {username: 'Vulpes', characterName: 'Kai'},
+      attachTo: docTarget(),
+    },
+    )
+    const character = genCharacter()
+    character.primary_submission = null
+    const vm = wrapper.vm as any
+    vm.character.profile.setX(character)
+    vm.submissionList.makeReady([])
+    await wrapper.vm.$nextTick()
+    expect(vm.character.profile.patchers.primary_submission.model).toBe(null)
+    const submission = genSubmission({id: 343})
+    vm.addSubmission(submission)
+    expect(vm.character.profile.patchers.primary_submission.model).toBe(null)
+  })
+  it('Does not change the route if the primary submission is being changed', async() => {
+    setViewer(store, vulpes)
+    router.replace({name: 'Character', params: {username: 'Fox', characterName: 'Kai'}})
+    wrapper = mount(CharacterDetail, {
+      localVue,
+      store,
+      router,
+      vuetify,
+      propsData: {username: 'Vulpes', characterName: 'Kai'},
+      attachTo: docTarget(),
+    },
+    )
+    const character = genCharacter()
+    character.primary_submission = null
+    const vm = wrapper.vm as any
+    vm.showChangePrimary = true
+    vm.character.profile.setX(character)
+    await wrapper.vm.$nextTick()
+    const submission = genSubmission({id: 343})
+    vm.submissionSuccess(submission)
+    await vm.$nextTick()
+    expect(router.currentRoute.name).toBe('Character')
+  })
+  it('Change the routes after submission success', async() => {
+    setViewer(store, vulpes)
+    router.replace({name: 'Character', params: {username: 'Fox', characterName: 'Kai'}})
+    wrapper = mount(CharacterDetail, {
+      localVue,
+      store,
+      router,
+      vuetify,
+      propsData: {username: 'Vulpes', characterName: 'Kai'},
+      attachTo: docTarget(),
+    },
+    )
+    const character = genCharacter()
+    character.primary_submission = null
+    const vm = wrapper.vm as any
+    vm.character.profile.setX(character)
+    await wrapper.vm.$nextTick()
+    const submission = genSubmission({id: 343})
+    vm.submissionSuccess(submission)
+    await vm.$nextTick()
+    expect(router.currentRoute.name).toBe('Submission')
   })
 })

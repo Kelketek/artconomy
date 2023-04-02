@@ -1,6 +1,14 @@
 <template>
   <v-container fluid class="pa-0">
-    <v-container>
+    <div class="px-3" v-if="isRegistered">
+      <v-img :src="`/static/images/${randomBanner.src}`" aspect-ratio="7.2" />
+      <div class="text-right pr-2 elevation-2 credit-overlay">
+        <small>
+          <ac-link :to="{name: 'AboutUser', params: {username: randomBanner.artist}}">Art by {{randomBanner.artist}}</ac-link>
+        </small>
+      </div>
+    </div>
+    <v-container v-if="!isRegistered">
       <v-row no-gutters  >
         <v-col class="text-center px-2" cols="12" >
           <h1>Your ideas. <br class="hidden-sm-and-up" /> Your characters. Realized.</h1>
@@ -93,9 +101,9 @@
         </v-col>
       </v-row>
     </v-container>
-    <v-container fluid>
+    <v-container fluid :class="{'pt-0': isRegistered}">
       <v-row no-gutters>
-        <v-col cols="12" order="1">
+        <v-col cols="12" :order="featuredOrder">
           <ac-tabs :items="mainSectionItems" v-model="mainSection" label="Categories" />
           <v-tabs-items :value="mainSection">
             <v-tab-item>
@@ -120,7 +128,7 @@
             </v-tab-item>
           </v-tabs-items>
         </v-col>
-        <v-col cols="12" md="12" lg="6" class="py-2 px-1" order="5" order-lg="2">
+        <v-col cols="12" md="12" :lg="isRegistered ? 12 : 6" :class="{'py-2': !isRegistered, 'px-1': true}" :order="isRegistered ? 1 : 5" :order-lg="isRegistered ? 1 : 2">
           <v-card :color="$vuetify.theme.currentTheme.darkBase.darken4">
             <v-toolbar dense color="secondary">
               <v-toolbar-title>Recent Commissions</v-toolbar-title>
@@ -133,14 +141,14 @@
             <ac-load-section :controller="commissions">
               <template v-slot:default>
                 <v-row dense>
-                  <v-col cols="6" sm="4" md="3" lg="4" v-for="submission in commissionsList" :key="submission.id">
+                  <v-col cols="6" sm="4" md="3" :lg="isRegistered ? 2 : 4" v-for="submission in commissionsList" :key="submission.id">
                     <ac-gallery-preview :submission="submission.x" :show-footer="false"/>
                   </v-col>
                 </v-row>
               </template>
               <template v-slot:loading-spinner>
                 <v-row dense>
-                  <v-col cols="6" sm="4" md="3" lg="4" v-for="i in Array(listSizer(true)).keys()" :key="i">
+                  <v-col cols="6" sm="4" md="3" :lg="isRegistered ? 2 : 4" v-for="i in Array(listSizer(true)).keys()" :key="i">
                     <v-responsive aspect-ratio="1" max-height="100%" max-width="100%">
                       <v-skeleton-loader
                         max-height="100%"
@@ -153,7 +161,7 @@
             </ac-load-section>
           </v-card>
         </v-col>
-        <v-col cols="12" md="12" lg="6" class="px-1 py-2 fill-height" order="2" order-lg="3">
+        <v-col cols="12" md="12" :lg="6" class="px-1 py-2 fill-height" order="2" order-lg="3">
           <v-card :color="$vuetify.theme.currentTheme.darkBase.darken4">
             <v-toolbar dense color="secondary">
               <v-toolbar-title>Community Resources</v-toolbar-title>
@@ -208,7 +216,7 @@
             </v-row>
           </v-card>
         </v-col>
-        <v-col cols="12" class="text-center" order="3" order-lg="4">
+        <v-col cols="12" class="text-center" order="3" :order-lg="isRegistered ? 5 : 4">
           <v-card color="secondary">
             <v-card-text class="text-center">
               <h2>Find Your Community</h2>
@@ -228,7 +236,7 @@
             </v-tab-item>
           </v-tabs-items>
         </v-col>
-        <v-col cols="12" md="6" class="px-1 py-2" order="6">
+        <v-col cols="12" md="6" class="px-1 py-2" :order="isRegistered ? 4 : 6">
           <v-card :color="$vuetify.theme.currentTheme.darkBase.darken4">
             <v-toolbar dense color="secondary">
               <v-toolbar-title>Recent Submissions</v-toolbar-title>
@@ -261,7 +269,7 @@
             </ac-load-section>
           </v-card>
         </v-col>
-        <v-col cols="12" md="6" class="px-1 py-2" order="7">
+        <v-col cols="12" :md="isRegistered ? 12 : 6" class="px-1 py-2" order="7">
           <v-card :color="$vuetify.theme.currentTheme.darkBase.darken4">
             <v-toolbar dense color="secondary">
               <v-toolbar-title>New Characters</v-toolbar-title>
@@ -274,14 +282,14 @@
             <ac-load-section :controller="characters">
               <template v-slot:default>
                 <v-row dense>
-                  <v-col cols="6" sm="4" v-for="character in charactersList" :key="character.id">
+                  <v-col cols="6" sm="4" :lg="isRegistered ? 2 : 4" v-for="character in charactersList" :key="character.id">
                     <ac-character-preview :character="character.x" :show-footer="false" />
                   </v-col>
                 </v-row>
               </template>
               <template v-slot:loading-spinner>
                 <v-row dense>
-                  <v-col cols="6" sm="4" v-for="i in Array(listSizer()).keys()" :key="i">
+                  <v-col cols="6" sm="4" :lg="isRegistered ? 2 : 4" v-for="i in Array(listSizer()).keys()" :key="i">
                     <v-responsive aspect-ratio="1" max-height="100%" max-width="100%">
                       <v-skeleton-loader
                         max-height="100%"
@@ -298,6 +306,15 @@
     </v-container>
   </v-container>
 </template>
+
+<style scoped>
+  .credit-overlay {
+    margin-top: -1.5rem;
+    position: relative;
+    z-index: 1;
+    text-shadow: -1px -2px 3px black;
+  }
+</style>
 
 <script lang="ts">
 
@@ -322,7 +339,10 @@ import Formatting from '@/mixins/formatting'
 import AcAvatar from '@/components/AcAvatar.vue'
 import PrerenderMixin from '@/mixins/PrerenderMixin'
 import AcProductSlider from '@/components/AcProductSlider.vue'
-import {Ratings} from '@/store/profiles/types/Ratings'
+
+// Cannot compile when importing Ratings in tests, for some reason, but these constants are in
+// frontend/store/profiles/types/Ratings.ts
+const ADULT = 2
 
 @Component({
   components: {
@@ -408,9 +428,76 @@ export default class Home extends mixins(Viewer, Formatting, PrerenderMixin) {
       },
     ]
 
+    public banners = [
+      {
+        artist: 'Halcyon',
+        src: 'halcy0n-artconomy-banner-A1-1440x200.png',
+      },
+      {
+        artist: 'Halcyon',
+        src: 'halcy0n-artconomy-banner-A2-1440x200.png',
+      },
+      {
+        artist: 'Halcyon',
+        src: 'halcy0n-artconomy-banner-A3-1440x200.png',
+      },
+      {
+        artist: 'Halcyon',
+        src: 'halcy0n-artconomy-banner-A4-1440x200.png',
+      },
+      {
+        artist: 'Halcyon',
+        src: 'halcy0n-artconomy-banner-B1-1440x200.png',
+      },
+      {
+        artist: 'Halcyon',
+        src: 'halcy0n-artconomy-banner-B2-1440x200.png',
+      },
+      {
+        artist: 'Halcyon',
+        src: 'halcy0n-artconomy-banner-B3-1440x200.png',
+      },
+      {
+        artist: 'Halcyon',
+        src: 'halcy0n-artconomy-banner-B4-1440x200.png',
+      },
+      {
+        artist: 'Halcyon',
+        src: 'halcy0n-artconomy-banner-C1-1440x200.png',
+      },
+      {
+        artist: 'Halcyon',
+        src: 'halcy0n-artconomy-banner-C2-1440x200.png',
+      },
+      {
+        artist: 'Halcyon',
+        src: 'halcy0n-artconomy-banner-C3-1440x200.png',
+      },
+      {
+        artist: 'Halcyon',
+        src: 'halcy0n-artconomy-banner-C4-1440x200.png',
+      },
+      {
+        artist: 'Halcyon',
+        src: 'halcy0n-artconomy-banner-D1-1440x200.png',
+      },
+      {
+        artist: 'Halcyon',
+        src: 'halcy0n-artconomy-banner-D2-1440x200.png',
+      },
+      {
+        artist: 'Halcyon',
+        src: 'halcy0n-artconomy-banner-D3-1440x200.png',
+      },
+      {
+        artist: 'Halcyon',
+        src: 'halcy0n-artconomy-banner-D4-1440x200.png',
+      },
+    ]
+
     public get articles() {
       const sourceArticles = [...this.blogEntries]
-      if (this.rating >= Ratings.ADULT) {
+      if (this.rating >= ADULT) {
         // Remove some clean articles at random to make the NSFW articles more probable, since there
         // are far less of them.
         for (let i = 0; i < (this.nsfwBlogEntries.length * 2); i++) {
@@ -501,7 +588,17 @@ export default class Home extends mixins(Viewer, Formatting, PrerenderMixin) {
     }
 
     public get charactersList() {
-      return this.listPreview(this.characters)
+      return this.listPreview(this.characters, this.isRegistered)
+    }
+
+    public get featuredOrder() {
+      return (this.isRegistered ? 2 : 1)
+    }
+
+    public get randomBanner() {
+      // Remember: Computed properties are cached, so even if we access this
+      // multiple times in one render, it will be the same value.
+      return this.banners[Math.floor(Math.random() * this.banners.length)]
     }
 
     public created() {

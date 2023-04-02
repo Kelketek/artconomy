@@ -26,11 +26,10 @@
     state: present
   with_items:
     - unzip
-    - python-mysqldb
     - python3-mysqldb
     - php-fpm
-    - php7.2-mysql
-    - php7.2-gd
+    - php8.1-mysql
+    - php8.1-gd
 
 - name: Create application dir
   file:
@@ -91,9 +90,9 @@
     dest: "{{item.dest}}"
   with_items:
     - src: "files/php.ini"
-      dest: "/etc/php/7.2/fpm/php.ini"
+      dest: "/etc/php/8.1/fpm/php.ini"
     - src: "files/www.conf"
-      dest: "/etc/php/7.2/fpm/pool.d/www.conf"
+      dest: "/etc/php/8.1/fpm/pool.d/www.conf"
   notify:
     - restart php-fpm
 

@@ -4,7 +4,7 @@
     name:
       - nginx
       - nginx-extras
-      - python-requests
+      - python3-requests
     state: present
 
 - name: Link ssl certs

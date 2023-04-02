@@ -12,7 +12,7 @@ from shortcuts import gen_textifier
 
 
 class Command(BaseCommand):
-    help = 'Sends updated privacy policy information to all active users.'
+    help = 'Sends updated Stripe information to all active users.'
 
     def handle(self, *args, **options):
         users = User.objects.exclude(stripe_account__isnull=True).exclude(is_active=False)

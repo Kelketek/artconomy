@@ -19,7 +19,14 @@
         </ac-load-section>
       </v-col>
     </v-row>
-    <ac-comment-section :commentList="referenceComments" :nesting="false" :locked="!isInvolved" :guest-ok="true" :show-history="isArbitrator" :extra-data="{deliverable: deliverableId}" />
+    <ac-comment-section
+        :commentList="referenceComments"
+        :nesting="false"
+        :locked="!isInvolved || is(MISSED) || is(LIMBO)"
+        :guest-ok="true"
+        :show-history="isArbitrator"
+        :extra-data="{deliverable: deliverableId}"
+    />
   </v-container>
 </template>
 

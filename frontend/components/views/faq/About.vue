@@ -18,9 +18,9 @@
             <ul>
               <li>Character Profiles</li>
               <li>Stores for artists to sell commissions</li>
-              <li>Workload management through
+              <li>Order and workload management through
                 <router-link
-                    :to="{name: 'BuyAndSell', params: {question: 'awoo-workload-management'}}">
+                    :to="{name: 'BuyAndSell', params: {question: 'workload-management'}}">
                   AWOO
                 </router-link>
               </li>
@@ -54,23 +54,16 @@
         <div slot="header"></div>
         <v-card>
           <v-card-text>
-            <p>Artconomy is <strong>FREE</strong> to use. Your character gallery is <strong>FREE</strong>, running a
+            <p>Signup for Artconomy is <strong>FREE</strong>. Your character gallery is <strong>FREE</strong>, running a
               shop as an artist is <strong>FREE</strong>.</p>
-            <p>Artconomy only collects fees for premium services and from orders using
+            <p>Artconomy makes its fees when it helps you with an order. For instance, with escrow protection via
               <router-link
                   :to="{name: 'BuyAndSell', params: {question: 'shield'}}"
               >
                 Artconomy Shield.
               </router-link>
-            </p>
-            <p>Sales without
-              <router-link
-                  :to="{name: 'BuyAndSell', params: {question: 'shield'}}"
-              >
-                Artconomy Shield
-              </router-link>
-              may be supported by ad revenue or by other means to be determined.
-            </p>
+            </p>Tracking orders without Artconomy shield also incur a fee (if you're not using the
+            <router-link :to="{name: 'BuyAndSell', params: {question: 'compare-and-contrast-plans'}}">Free plan.</router-link>)
             <p>Our money is made in helping commissioners and artists connect. This gives us an incentive to
               help both groups achieve their goals.</p>
           </v-card-text>

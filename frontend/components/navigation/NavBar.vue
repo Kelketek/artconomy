@@ -92,22 +92,24 @@
         </v-toolbar-title>
       </v-row>
       <v-spacer />
-      <v-row no-gutters class="hidden-sm-and-down"  justify="center">
-        <!--suppress CheckEmptyScriptTag -->
-        <ac-bound-field
-            :field="searchForm.fields.q"
-            placeholder="Search..."
-            single-line
-            @keyup="runSearch"
-            prepend-icon="search"
-            @click:append="runSearch"
-            color="white"
-            hide-details
-            field-id="nav-bar-search"
-            v-if="fullInterface"
-        />
-      </v-row>
-      <v-spacer />
+      <div class="hidden-sm-and-down d-flex pr-2"  justify="center">
+        <v-btn text class="pa-0 mr-1" :to="{name: 'SearchProducts'}" aria-label="Search">
+          <v-icon large>search</v-icon>
+        </v-btn>
+        <div class="d-flex">
+          <ac-bound-field
+              :field="searchForm.fields.q"
+              placeholder="Search..."
+              single-line
+              @keyup="runSearch"
+              @click:append="runSearch"
+              color="white"
+              hide-details
+              field-id="nav-bar-search"
+              v-if="fullInterface"
+          />
+        </div>
+      </div>
       <v-card class="px-2 py-1 hidden-xs-only"
               :color="sfwMode.model? 'blue darken-3' : 'black'"
               v-if="viewer && viewer.rating > 0 && fullInterface"

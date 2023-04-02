@@ -13,11 +13,11 @@
         </v-list>
       </v-navigation-drawer>
       <v-container>
-        <v-toolbar v-if="!isCurrent" color="red">
+        <v-toolbar v-if="!isCurrent" color="red" class="settings-nav-toolbar">
           <v-toolbar-title>Settings for <ac-link :to="profileLink(subject)">{{username}}</ac-link></v-toolbar-title><v-spacer />
           <ac-avatar :username="username" :show-name="false" />
         </v-toolbar>
-        <v-toolbar color="secondary">
+        <v-toolbar color="secondary" class="settings-nav-toolbar">
           <v-toolbar-title>{{$route.name}}</v-toolbar-title>
           <v-spacer />
           <v-toolbar-items>

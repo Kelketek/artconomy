@@ -11,7 +11,7 @@
         </div>
       </v-col>
       <v-col cols="12">
-        <p><strong>Last updated: December 31, 2022</strong></p>
+        <p><strong>Last updated: April 1, 2023</strong></p>
 
         <p>Please read these Terms of Service ("Terms", "Terms of Service") carefully before using
           the https://artconomy.com/ website (the "Service") operated by
@@ -114,10 +114,10 @@
           assigns damages as a result of a dispute arising from the sale.</p>
 
         <p>
-          Subscription services will provide features such as notification of artist availability, but will not be
-          warranted for any particular use, and are provided AS IS. No guarantee is given that artists will accept
-          orders placed by subscription holders, or that artists will be timely in their workload management or
-          responses to subscription holders. Each Artist is responsible for their own performance.
+          Subscription services will be billed monthly, or at another explicitly agreed upon interval. The specific
+          features of subscription tiers are subject to change without notice. You agree that your subscription may be
+          terminated, and your account limited or suspended for failure to pay any fees associated with your
+          subscription.
         </p>
 
         <p>Refunds are covered by our
@@ -225,9 +225,15 @@
           be made after two years from when the aggrieved party knew or should have
           known of the controversy, claim, dispute or breach.
         </p>
-
+        <p>
+          Prevailing party means the party in whose favor final judgment after appeal (if any) is rendered with
+          respect to the claims asserted in the Complaint. "Reasonable attorneys' fees" are those reasonable attorneys'
+          fees actually incurred in obtaining a judgment in favor of the prevailing party.
+        </p>
+        <p>
+          The prevailing party will be entitled to Reasonable attorneys' fees.
+        </p>
         <h2>Contact Us</h2>
-
         <p>If you have any questions about these Terms, please contact us at info@artconomy.com.</p>
       </v-col>
     </v-row>

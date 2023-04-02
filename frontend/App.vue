@@ -195,7 +195,7 @@
     display: flex;
     justify-content: center;
     align-content: center;
-    opacity: .25;
+    opacity: .1;
     pointer-events: none;
   }
 </style>
@@ -480,7 +480,7 @@ export default class App extends mixins(Viewer, Nav, PrerenderMixin, RatingRefre
   private trackPage(newPath: string, oldPath: string|undefined) {
     // Let's do next tick since sometimes meta information is modified on route load.
     this.$nextTick(() => {
-      window._paq.push(['setCustomUrl', window.location + ''])
+      window._paq.push(['setCustomUrl', window.location.origin + newPath])
       window._paq.push(['setDocumentTitle', document.title])
       if (oldPath) {
         window._paq.push(['setReferrerUrl', window.location.origin + oldPath])

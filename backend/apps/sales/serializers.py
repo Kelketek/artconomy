@@ -1,3 +1,4 @@
+from collections import defaultdict
 from decimal import Decimal
 from functools import lru_cache
 from itertools import chain
@@ -6,16 +7,14 @@ from urllib.parse import urlparse
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
-from django.core.validators import RegexValidator, EmailValidator, MinValueValidator
+from django.core.validators import EmailValidator, MinValueValidator
 from django.db.models import Sum, QuerySet, Q
-from django.urls import reverse
-from django.utils.datetime_safe import datetime, date
-from luhn import verify
+from dotted_dict import DottedDict
 from moneyed import Money
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import SerializerMethodField, DecimalField, IntegerField, FloatField, EmailField, ModelField, \
-    ListField
+    ListField, BooleanField
 from short_stuff import unslugify
 from short_stuff.django.serializers import ShortCodeField
 
@@ -27,57 +26,32 @@ from apps.lib.serializers import (
     RelatedUserSerializer, RelatedAssetField, EventTargetRelatedField, SubscribedField,
     TagListField, RelatedAtomicMixin,
     MoneyToFloatField)
-from apps.lib.utils import country_choices, add_check, check_read, demark, FakeRequest
+from apps.lib.utils import add_check, check_read
 from apps.profiles.models import User, Submission, Character
 from apps.profiles.serializers import CharacterSerializer, SubmissionSerializer
 from apps.profiles.utils import available_users
-from apps.sales.apis import AUTHORIZE, STRIPE
+from apps.sales.constants import STRIPE, AUTHORIZE, BASE_PRICE, ADD_ON, TIP, EXTRA, WAITING, NEW, PAYMENT_PENDING, \
+    ESCROW, HOLDINGS, BANK, UNPROCESSED_EARNINGS, SUCCESS, CARD_TRANSACTION_FEES, RESERVE, CARD, CASH_DEPOSIT, \
+    MONEY_HOLE, ACH_TRANSACTION_FEES, TIPPING, LIMBO
 from apps.sales.models import (
     Product, Order, CreditCardToken, Revision, BankAccount,
-    LineItemSim, Rating, TransactionRecord, LineItem, ADD_ON, TIP, BASE_PRICE, InventoryTracker,
-    EXTRA, PAYMENT_PENDING, NEW, Deliverable, Reference,
-    WAITING, StripeAccount, Invoice, StripeReader,
+    LineItemSim, Rating, TransactionRecord, LineItem, InventoryTracker,
+    Deliverable, Reference,
+    StripeAccount, Invoice, StripeReader, ServicePlan,
 )
-from apps.sales.stripe import stripe
-from apps.sales.utils import account_balance, PENDING, POSTED_ONLY, AVAILABLE, get_totals, order_context, \
-    order_context_to_link
-from shortcuts import make_url
+from apps.sales.utils import account_balance, PENDING, POSTED_ONLY, AVAILABLE, order_context, \
+    order_context_to_link, lines_for_product
+from apps.sales.line_item_funcs import get_totals, reckon_lines
 
 
-class ProductMixin:
-    def get_thumbnail_url(self, obj):
-        return self.context['request'].build_absolute_uri(obj.file.file.url)
-
-    def validate_base_price(self, value):
-        if not self.context['request'].subject.artist_profile.escrow_disabled:
-            if value and (value < settings.MINIMUM_PRICE):
-                raise ValidationError('Must be at least ${}'.format(settings.MINIMUM_PRICE))
-        return value
-
-    def validate_primary_submission_id(self, value):
-        if value is None:
-            return None
-        try:
-            Submission.objects.get(id=value, artist=self.instance.user)
-        except Submission.DoesNotExist:
-            raise ValidationError("That submission does not exist, or you cannot use it as your sample.")
-        return value
-
-    def validate_tags(self, value):
-        add_check(self.instance, 'tags', replace=True, *value)
-        return value
-
-    def mod_instance(self, instance, value):
-        setattr(instance, self.field_name, value)
-
-
-class ProductSerializer(ProductMixin, RelatedAtomicMixin, serializers.ModelSerializer):
+class ProductSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
     save_related = True
     user = RelatedUserSerializer(read_only=True)
     primary_submission = SubmissionSerializer(required=False, allow_null=True)
     tags = TagListField(required=False)
     base_price = MoneyToFloatField()
     starting_price = MoneyToFloatField(read_only=True)
+    shield_price = MoneyToFloatField(read_only=True)
     expected_turnaround = FloatField()
 
     def __init__(self, *args, **kwargs):
@@ -90,18 +64,69 @@ class ProductSerializer(ProductMixin, RelatedAtomicMixin, serializers.ModelSeria
             self.fields['featured'].read_only = False
             self.fields['catalog_enabled'].read_only = False
             self.fields['table_product'].read_only = False
-        subject = getattr(request, 'subject', None)
-        if subject and subject.is_registered and subject.landscape:
+        self.subject = getattr(request, 'subject', None)
+        if self.subject and self.subject.is_registered and self.subject.landscape:
             self.fields['wait_list'].read_only = False
+
+    def validate_base_price(self, value):
+        if value < 0:
+            raise ValidationError('Price cannot be negative.')
+        return Money(value, settings.DEFAULT_CURRENCY)
+
+    def validate_primary_submission(self, value):
+        if value is None:
+            return None
+        try:
+            Submission.objects.get(id=value.id, artists=self.instance.user)
+        except Submission.DoesNotExist:
+            raise ValidationError("That submission does not exist, or you cannot use it as your sample.")
+        return value
+
+    def validate_tags(self, value):
+        add_check(self.instance, 'tags', replace=True, *value)
+        return value
+
+    def validate(self, data):
+        errors = defaultdict(list)
+        instance = self.instance or DottedDict(**data)
+        revised = DottedDict()
+        for field in self.fields:
+            setattr(revised, field, getattr(instance, field, None))
+        revised.update(data)
+        if not getattr(revised, 'user', None):
+            revised.user = self.context['request'].subject
+        escrow_enabled = revised.escrow_enabled and self.context['request'].subject.artist_profile.escrow_enabled
+        data.escrow_enabled = escrow_enabled
+        minimum = settings.MINIMUM_PRICE
+        total = reckon_lines(lines_for_product(revised))
+        if escrow_enabled and (total < minimum):
+            errors['escrow_enabled'].append(
+                f'Cannot have shield enabled on products whose total is less than {minimum}'
+            )
+            errors['base_price'].append(
+                f'Value too small to have shield enabled. Raise until the total is at least {minimum}.'
+            )
+        shield_total = reckon_lines(lines_for_product(revised, force_shield=True))
+        if revised.escrow_upgradable and (shield_total < minimum):
+            errors['escrow_enabled'].append(
+                f'Cannot have shield enabled on products whose total would be less than {minimum}'
+            )
+            errors['base_price'].append(
+                f'Value too small to have shield upgrade available. Raise until the total is at least {minimum}.'
+            )
+        if errors:
+            raise ValidationError(errors)
+        return data
 
     class Meta:
         model = Product
         fields = (
             'id', 'name', 'description', 'revisions', 'hidden', 'max_parallel', 'max_rating', 'task_weight',
-            'expected_turnaround', 'user', 'base_price', 'starting_price', 'tags', 'available', 'primary_submission',
-            'featured', 'hits', 'escrow_disabled', 'table_product', 'track_inventory', 'wait_list', 'catalog_enabled',
+            'expected_turnaround', 'user', 'base_price', 'starting_price', 'shield_price', 'tags', 'available',
+            'primary_submission', 'featured', 'hits', 'escrow_enabled', 'table_product', 'track_inventory', 'wait_list',
+            'catalog_enabled', 'cascade_fees', 'escrow_upgradable', 'international',
         )
-        read_only_fields = ('tags', 'featured', 'table_product', 'starting_price')
+        read_only_fields = ('tags', 'featured', 'table_product', 'starting_price', 'shield_price', 'international')
         extra_kwargs = {'price': {'required': True}}
 
 
@@ -132,9 +157,9 @@ class ProductValidationMixin:
 
 class PriceValidationMixin:
     def validate_price(self, value):
-        if not self.context['seller'].artist_profile.escrow_disabled:
-            if value and (value < settings.MINIMUM_PRICE):
-                raise ValidationError('Must be $0 or at least ${}'.format(settings.MINIMUM_PRICE))
+        if self.context['seller'].artist_profile.escrow_enabled:
+            if value and (value < settings.MINIMUM_PRICE.amount):
+                raise ValidationError('Must be $0 or at least ${}'.format(settings.MINIMUM_PRICE.amount))
         return value
 
 
@@ -161,7 +186,7 @@ class ProductNewOrderSerializer(ProductNameMixin, serializers.ModelSerializer, C
     )
     rating = ModelField(model_field=Deliverable()._meta.get_field('rating'))
     details = ModelField(model_field=Deliverable()._meta.get_field('details'), max_length=5000)
-    default_path = serializers.SerializerMethodField()
+    escrow_upgrade = BooleanField()
     product_name = serializers.SerializerMethodField()
 
     def __init__(self, *args, **kwargs):
@@ -174,9 +199,6 @@ class ProductNewOrderSerializer(ProductNameMixin, serializers.ModelSerializer, C
             del self.fields['characters']
             self.fields['email'].required = True
             self.fields['email'].allow_blank = False
-
-    def get_default_path(self, order):
-        return order.notification_link(context=self.context)
 
     def validate_references(self, value):
         value = set(value)
@@ -195,6 +217,7 @@ class ProductNewOrderSerializer(ProductNameMixin, serializers.ModelSerializer, C
         data = {
             key: value for key, value in validated_data.items() if key not in (
                 'characters', 'references', 'details', 'rating', 'email',
+                'escrow_upgrade',
             )}
         return super().create(data)
 
@@ -202,7 +225,7 @@ class ProductNewOrderSerializer(ProductNameMixin, serializers.ModelSerializer, C
         model = Order
         fields = (
             'id', 'created_on', 'rating', 'details', 'seller', 'buyer', 'private',
-            'email', 'characters', 'references', 'default_path', 'product_name',
+            'email', 'characters', 'references', 'product_name', 'escrow_upgrade',
         )
         extra_kwargs = {
             'characters': {'required': False},
@@ -224,14 +247,16 @@ class OrderViewSerializer(ProductNameMixin, RelatedAtomicMixin, serializers.Mode
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if 'instance' not in kwargs:
+        if not hasattr(self, 'instance'):  # pragma: no cover
             return
         try:
             self.is_seller
-        except (KeyError, AttributeError):
+        except (KeyError, AttributeError) as err:  # pragma: no cover
+            # Can happen if the instance property is a queryset/list, which can happen
+            # on list endpoints.
             return
         if self.is_seller:
-            if (not self.instance.buyer) or self.instance.buyer.guest and not self.instance.deliverables.filter():
+            if (not self.instance.buyer) or (self.instance.buyer.guest and not self.instance.buyer.verified_email):
                 self.fields['customer_email'].read_only = False
             self.fields['hide_details'].read_only = False
         if not self.instance.buyer:
@@ -241,11 +266,6 @@ class OrderViewSerializer(ProductNameMixin, RelatedAtomicMixin, serializers.Mode
     def is_seller(self):
         user = self.context['request'].user
         return (user == self.instance.seller) or user.is_staff
-
-    @property
-    def is_buyer(self):
-        user = self.context['request'].user
-        return (user == self.instance.buyer) or user.is_staff
 
     def get_claim_token(self, order):
         user = self.context['request'].user
@@ -259,6 +279,7 @@ class OrderViewSerializer(ProductNameMixin, RelatedAtomicMixin, serializers.Mode
             'id', 'seller', 'buyer', 'private', 'hide_details', 'customer_email', 'claim_token',
             'deliverable_count', 'product_name',
         )
+        read_only_fields = fields
 
 
 class NewDeliverableSerializer(
@@ -295,57 +316,68 @@ class NewDeliverableSerializer(
         model = Deliverable
         fields = (
             'name', 'characters', 'price', 'revisions', 'details', 'details', 'hold', 'expected_turnaround',
-            'completed', 'paid', 'task_weight', 'references', 'rating', 'product',
+            'completed', 'paid', 'task_weight', 'references', 'rating', 'product', 'cascade_fees',
         )
 
 
 @register_serializer
-class DeliverableViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
+class DeliverableSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
     arbitrator = RelatedUserSerializer(read_only=True)
     outputs = SubmissionSerializer(many=True, read_only=True)
     product = ProductSerializer(read_only=True)
     subscribed = SubscribedField(required=False)
     expected_turnaround = FloatField(read_only=True)
-    tip = MoneyToFloatField(read_only=True, validators=[MinValueValidator(0)])
     adjustment_expected_turnaround = FloatField(read_only=True, max_value=1000, min_value=-1000)
     display = serializers.SerializerMethodField()
     processor = serializers.CharField(read_only=True)
     order = OrderViewSerializer(read_only=True)
     read = serializers.SerializerMethodField()
     invoice = serializers.SerializerMethodField()
+    tip_invoice = serializers.SerializerMethodField()
 
     def get_read(self, obj):
         return check_read(obj=obj, user=self.context['request'].user)
 
-    def get_invoice(self, obj):
+    def invoice_field(self, obj, key):
         # Can get triggered when loaded with a list. In that case there is no sensible answer.
-        if not isinstance(obj, Deliverable):
+        if not isinstance(obj, Deliverable):  # pragma: no cover
             return ''
-        if self.is_buyer or self.context['request'].user.is_staff:
-            return obj.invoice.id
+        if self.is_buyer or self.is_seller or self.context['request'].user.is_staff:
+            return getattr(getattr(obj, key, None), 'id', None)
         return None
+
+    def get_invoice(self, obj):
+        return self.invoice_field(obj, 'invoice')
+
+    def get_tip_invoice(self, obj):
+        return self.invoice_field(obj, 'tip_invoice')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if not (args or kwargs):
-            # We're in the class definition.
+        if not (args or kwargs):  # pragma: no cover
+            # We're in the class definition. I can't remember when and where (nor why) this happens,
+            # so I don't have a test for it, but it does.
             return
         try:
             self.is_seller
-        except (KeyError, AttributeError):
+        except (KeyError, AttributeError):  # pragma: no cover
             return
+        if self.is_buyer and self.instance.status in [NEW, WAITING, LIMBO]:
+            for field_name in [
+                'details', 'rating',
+            ]:
+                self.fields[field_name].read_only = False
         if self.is_seller:
-            if self.instance.status in [NEW, PAYMENT_PENDING, WAITING]:
+            if self.instance.status in [NEW, WAITING]:
                 for field_name in [
                     'adjustment_expected_turnaround', 'adjustment_task_weight', 'adjustment_revisions',
-                    'name'
+                    'name', 'cascade_fees', 'rating', 'details',
                 ]:
                     self.fields[field_name].read_only = False
+                if (not self.instance.table_order) and self.instance.order.seller.escrow_available:
+                    self.fields['escrow_enabled'].read_only = False
             # Should never be harmful. Helpful in many statuses.
             self.fields['stream_link'].read_only = False
-        elif self.is_buyer:
-            if self.instance.status == PAYMENT_PENDING and self.instance.order.seller.landscape:
-                self.fields['tip'].read_only = False
 
     def validate_adjustment_revisions(self, val):
         base = self.instance.product or self.instance
@@ -360,18 +392,11 @@ class DeliverableViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer)
             raise ValidationError('Task weight may not be less than 1.')
         return adjustment_task_weight
 
-    def validate_customer_email(self, val):
-        user = self.instance.order.seller
-        if val.lower() == user.email.lower():
-            raise ValidationError('You cannot set yourself as the customer.')
-        return val
-
     def validate_adjustment_expected_turnaround(self, val):
         adjustment_expected_turnaround = Decimal(val)
-        if (
-                (self.instance.product and self.instance.product.expected_turnaround) or 0
-                + adjustment_expected_turnaround < settings.MINIMUM_TURNAROUND
-        ):
+        base_turnaround = (self.instance.product and self.instance.product.expected_turnaround) or 0
+        adjusted_turnaround = base_turnaround + adjustment_expected_turnaround
+        if adjusted_turnaround < settings.MINIMUM_TURNAROUND:
             raise ValidationError('Expected turnaround may not be less than {}'.format(
                 settings.MINIMUM_TURNAROUND
             ))
@@ -391,17 +416,6 @@ class DeliverableViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer)
         user = self.context['request'].user
         return (user == self.instance.order.buyer) or user.is_staff
 
-    def validate(self, attrs):
-        # We're going to assume that tip is only edited on its own.
-        tip = attrs.get('tip', None)
-        if tip is None:
-            return attrs
-        current_total = self.instance.invoice.total()
-        current_total -= self.instance.tip
-        if (current_total.amount / 2) < tip:
-            raise ValidationError({'tip': 'Tip should not be more than half of the original price.'})
-        return attrs
-
     def get_display(self, obj):
         return obj.notification_display(context=self.context)
 
@@ -411,10 +425,10 @@ class DeliverableViewSerializer(RelatedAtomicMixin, serializers.ModelSerializer)
             'id', 'created_on', 'status', 'details',
             'stream_link', 'revisions', 'outputs', 'subscribed', 'adjustment_task_weight',
             'adjustment_expected_turnaround', 'expected_turnaround', 'task_weight', 'paid_on', 'dispute_available_on',
-            'auto_finalize_on', 'started_on', 'escrow_disabled', 'revisions_hidden', 'final_uploaded', 'arbitrator',
+            'auto_finalize_on', 'started_on', 'escrow_enabled', 'revisions_hidden', 'final_uploaded', 'arbitrator',
             'display', 'rating', 'commission_info', 'adjustment_revisions',
-            'tip', 'table_order', 'trust_finalized', 'order', 'name', 'product', 'read', 'processor',
-            'invoice',
+            'table_order', 'trust_finalized', 'order', 'name', 'product', 'read', 'processor',
+            'invoice', 'tip_invoice', 'cascade_fees', 'international',
         )
         read_only_fields = [field for field in fields if field != 'subscribed']
         extra_kwargs = {
@@ -441,34 +455,41 @@ class LineItemSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if getattr(self, 'instance') and not isinstance(self.instance, QuerySet):
-            if self.instance.type == BASE_PRICE:
+            if self.instance.type in [BASE_PRICE, TIP]:
                 self.fields['percentage'].read_only = True
             if self.instance.id:
                 self.fields['type'].read_only = True
 
     def validate_type(self, value):
         deliverable = self.context.get('deliverable')
+        invoice = self.context.get('invoice')
         user = self.context['request'].user
         if user.is_staff:
             permitted_types = [EXTRA, ADD_ON, TIP]
         elif deliverable and user == deliverable.order.seller:
             permitted_types = [ADD_ON]
-            if deliverable.product is None:
-                permitted_types.append(BASE_PRICE)
-        elif deliverable and user == deliverable.order.buyer:
-            permitted_types = [TIP]
-        else:
+        else:  # pragma: no cover
+            # This should never happen (security should filter this out) but included for completeness.
             permitted_types = []
         if value not in permitted_types:
             raise ValidationError('You do not have permission to create/modify line items of this type.')
         return value
 
-    def validate_minimum(self, value):
-        deliverable = self.context['order']
-        user = self.context['request'].user
-        if (not (user == deliverable.seller) or user.is_staff) and value < 0:
-            raise ValidationError('Cannot be less than 0.')
-        return value
+    def validate(self, data):
+        errors = defaultdict(list)
+        instance = self.instance or DottedDict(**data)
+        revised = DottedDict()
+        for field in self.fields:
+            setattr(revised, field, getattr(instance, field, None))
+        revised.update(data)
+        if revised.type == TIP:
+            if revised.amount < settings.MINIMUM_TIP.amount:
+                errors['amount'].append(f'Tip may not be less than {settings.MINIMUM_TIP}.')
+            if revised.amount > settings.MAXIMUM_TIP.amount:
+                errors['amount'].append(f'Tip may not be more than {settings.MAXIMUM_TIP}.')
+        if errors:
+            raise ValidationError(errors)
+        return data
 
 
 class OrderPreviewSerializer(ProductNameMixin, serializers.ModelSerializer):
@@ -494,7 +515,7 @@ class OrderPreviewSerializer(ProductNameMixin, serializers.ModelSerializer):
 
     def can_view(self, order):
         requester = self.context['request'].user
-        return order.buyer == requester or order.seller == requester or requester.is_staff
+        return (order.buyer == requester) or (order.seller == requester) or requester.is_staff
 
     def get_status(self, order):
         last_order = order.deliverables.all().order_by('created_on').last()
@@ -549,48 +570,8 @@ class NewCardSerializer(serializers.Serializer):
     """
     Form for getting and saving a credit card.
     """
-    first_name = serializers.CharField(max_length=50)
-    last_name = serializers.CharField(max_length=50)
-    country = serializers.ChoiceField(choices=country_choices())
-    number = serializers.CharField(max_length=25)
-    exp_date = serializers.CharField(max_length=7, min_length=4)
-    zip = serializers.CharField(max_length=20, required=False)
-    cvv = serializers.CharField(max_length=4, min_length=3, validators=[RegexValidator(r'^[0-9]{3,4}$')])
     make_primary = serializers.BooleanField(default=False)
     save_card = serializers.BooleanField(default=False)
-
-    # noinspection PyMethodMayBeStatic
-    def validate_exp_date(self, value):
-        value = value.replace('/', '')
-        params = [val for val in [value[:2], value[2:]] if val]
-        if len(params) != 2:
-            raise serializers.ValidationError("Date must be in the format MM/YY.")
-        try:
-            # Avoid Y3K problem while still supporting two digit year.
-            month = int(params[0])
-            year = int(params[1])
-            if year < 100:
-                hundreds = datetime.today().year // 100
-                year = hundreds * 100 + year
-            if year > 9999 or year < 1000:
-                raise TypeError
-            exp_date = date(month=month, year=year, day=1)
-        except ValueError:
-            raise serializers.ValidationError("That is not a valid date.")
-        except TypeError:
-            raise serializers.ValidationError("Date must be in the format MM/YY. For example, 12/22")
-        if exp_date < date.today().replace(day=1):
-            raise serializers.ValidationError("This card has expired.")
-        return exp_date
-
-    # noinspection PyMethodMayBeStatic
-    def validate_number(self, value):
-        value = value.replace(' ', '')
-        if 13 <= len(value) <= 19:
-            if not verify(value):
-                raise serializers.ValidationError("Please check the card number.")
-            return value
-        raise serializers.ValidationError("A card number must be at least 13 digits long and at most 19.")
 
 
 class MakePaymentMixin:
@@ -598,15 +579,11 @@ class MakePaymentMixin:
         super().__init__(*args, **kwargs)
         cash = kwargs['data'].get('cash')
         card_id = kwargs['data'].get('card_id', None)
-        remote_id = kwargs['data'].get('remote_id', '')
         is_staff = kwargs['context']['request'].user.is_staff
-        if 'data' in kwargs and (card_id or ((remote_id and is_staff) or (cash and is_staff))):
-            for field_name in ['first_name', 'last_name', 'country', 'number', 'exp_date', 'zip', 'make_primary']:
-                del self.fields[field_name]
-            if (remote_id and is_staff) or (cash and is_staff):
+        if 'data' in kwargs and (card_id or (cash and is_staff)):
+            del self.fields['make_primary']
+            if cash and is_staff:
                 del self.fields['card_id']
-            self.fields['cvv'].allow_blank = True
-            self.fields['cvv'].required = False
 
 
 # noinspection PyAbstractClass
@@ -614,22 +591,12 @@ class PaymentSerializer(MakePaymentMixin, NewCardSerializer):
     """
     Serializer for taking payments
     """
-    remote_id = serializers.CharField(required=False, allow_blank=True)
     cash = serializers.BooleanField(default=False)
     card_id = IntegerField(allow_null=True)
-    amount = DecimalField(max_digits=6, min_value=settings.MINIMUM_PRICE, decimal_places=2)
-
-    def validate_remote_id(self, value: str):
-        if not value:
-            return value
-        if not value.isnumeric():
-            raise ValidationError('Authorize.net transaction IDs are numeric.')
-        if not len(value) >= 10:
-            raise ValidationError('Authorize.net transaction IDs are 10 or more digits in length.')
-        return value
+    amount = DecimalField(max_digits=6, min_value=settings.MINIMUM_PRICE.amount, decimal_places=2)
 
     def validate_amount(self, value: Decimal):
-        return Money(value, 'USD')
+        return Money(value, settings.DEFAULT_CURRENCY)
 
 
 # noinspection PyAbstractClass
@@ -660,16 +627,15 @@ class RevisionSerializer(serializers.ModelSerializer):
     def get_read(self, obj):
         return check_read(obj=obj, user=self.context['request'].user)
 
-    def get_thumbnail_url(self, obj):
-        return self.context['request'].build_absolute_uri(obj.file.file.url)
-
     def get_submissions(self, obj):
         return list(obj.submissions.all().values('owner_id', 'id'))
 
     class Meta:
         model = Revision
-        fields = ('id', 'rating', 'file', 'created_on', 'owner', 'deliverable', 'final', 'read', 'submissions')
-        read_only_fields = ('id', 'deliverable', 'owner', 'read')
+        fields = (
+            'id', 'rating', 'file', 'created_on', 'approved_on', 'owner', 'deliverable', 'final', 'read', 'submissions',
+        )
+        read_only_fields = ('id', 'deliverable', 'owner', 'read', 'approved_on')
 
 
 # noinspection PyMethodMayBeStatic
@@ -679,13 +645,13 @@ class AccountBalanceSerializer(serializers.ModelSerializer):
     pending = serializers.SerializerMethodField()
 
     def get_escrow(self, obj):
-        return str(account_balance(obj, TransactionRecord.ESCROW))
+        return str(account_balance(obj, ESCROW))
 
     def get_available(self, obj):
-        return str(account_balance(obj, TransactionRecord.HOLDINGS))
+        return str(account_balance(obj, HOLDINGS))
 
     def get_pending(self, obj):
-        return str(account_balance(obj, TransactionRecord.BANK, PENDING))
+        return str(account_balance(obj, BANK, PENDING))
 
     class Meta:
         model = User
@@ -796,6 +762,7 @@ class NewInvoiceSerializer(serializers.Serializer, PriceValidationMixin, Product
     details = serializers.CharField(max_length=5000)
     paid = serializers.BooleanField()
     hold = serializers.BooleanField()
+    cascade_fees = serializers.BooleanField()
     expected_turnaround = serializers.DecimalField(
         max_digits=5, decimal_places=2, min_value=settings.MINIMUM_TURNAROUND,
     )
@@ -824,10 +791,10 @@ class HoldingsSummarySerializer(serializers.ModelSerializer):
     holdings = serializers.SerializerMethodField()
 
     def get_escrow(self, obj):
-        return str(account_balance(obj, TransactionRecord.ESCROW))
+        return str(account_balance(obj, ESCROW))
 
     def get_holdings(self, obj):
-        return str(account_balance(obj, TransactionRecord.HOLDINGS, POSTED_ONLY))
+        return str(account_balance(obj, HOLDINGS, POSTED_ONLY))
 
     class Meta:
         model = User
@@ -838,12 +805,10 @@ class ProductSampleSerializer(serializers.ModelSerializer):
     submission = SubmissionSerializer(read_only=True)
     submission_id = serializers.IntegerField(write_only=True)
 
-    def validate_product_id(self, val):
-        error = 'Either this character does not exist, or you are not allowed to tag them.'
-        if self.context['request'].user.blocked_by.filter(id=val):
-            raise ValidationError(error)
-        if not Submission.objects.filter(id=val, user__taggable=True):
-            raise ValidationError(error)
+    def validate_submission_id(self, val):
+        user = self.context['product'].user
+        if not Submission.objects.filter(id=val, artists=user):
+            raise ValidationError('Either this submission does not exist, or you are not tagged as the artist in it.')
         return val
 
     class Meta:
@@ -860,14 +825,6 @@ class AccountQuerySerializer(serializers.Serializer):
 class DeliverableCharacterTagSerializer(serializers.ModelSerializer):
     character = CharacterSerializer(read_only=True)
     character_id = serializers.IntegerField(write_only=True)
-
-    def validate_character_id(self, val):
-        error = 'Either this character does not exist, or you are not allowed to tag them.'
-        if self.context['request'].user.blocked_by.filter(id=val):
-            raise ValidationError(error)
-        if not Character.objects.filter(id=val, user__taggable=True):
-            raise ValidationError(error)
-        return val
 
     class Meta:
         fields = (
@@ -923,10 +880,11 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
 
     def get_buyer(self, obj):
         if obj.order.buyer and obj.order.buyer.guest:
-            return f'Guest #{obj.id}'
+            return f'Guest #{obj.order.buyer.id}'
         elif obj.order.buyer:
             return obj.order.buyer.username
-        else:
+        else:  # pragma: no cover
+            # Should never occur, since the sales are always attached to some user.
             return '(Empty)'
 
     def get_seller(self, obj):
@@ -935,9 +893,9 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
     @lru_cache(4)
     def charge_transactions(self, obj):
         return TransactionRecord.objects.filter(
-            status=TransactionRecord.SUCCESS,
+            status=SUCCESS,
             # Will need this to expand to cash or similar?
-            source__in=[TransactionRecord.CARD, TransactionRecord.CASH_DEPOSIT],
+            source__in=[CARD, CASH_DEPOSIT],
             **self.qs_kwargs(obj),
         )
 
@@ -956,7 +914,7 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
 
     def get_sales_tax_collected(self, obj):
         return account_balance(
-            None, TransactionRecord.MONEY_HOLE, AVAILABLE, qs_kwargs=self.qs_kwargs(obj)
+            None, MONEY_HOLE, AVAILABLE, qs_kwargs=self.qs_kwargs(obj)
         )
 
     def get_extra(self, obj):
@@ -965,40 +923,37 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
 
     def get_still_in_escrow(self, obj):
         return account_balance(
-            obj.order.seller, TransactionRecord.ESCROW, AVAILABLE, qs_kwargs=self.qs_kwargs(obj)
+            obj.order.seller, ESCROW, AVAILABLE, qs_kwargs=self.qs_kwargs(obj)
         )
 
     def get_artist_earnings(self, obj):
         return TransactionRecord.objects.filter(
-            source=TransactionRecord.ESCROW, destination=TransactionRecord.HOLDINGS, **self.qs_kwargs(obj),
+            source=ESCROW, destination=HOLDINGS, **self.qs_kwargs(obj),
         ).aggregate(total=Sum('amount'))['total']
 
     def get_in_reserve(self, obj):
         return account_balance(
-            None, TransactionRecord.RESERVE, AVAILABLE, qs_kwargs=self.qs_kwargs(obj)
+            None, RESERVE, AVAILABLE, qs_kwargs=self.qs_kwargs(obj)
         )
 
     @lru_cache(4)
     def get_card_fees(self, obj):
         return TransactionRecord.objects.filter(
-            payer=None, payee=None, status=TransactionRecord.SUCCESS,
-            source=TransactionRecord.UNPROCESSED_EARNINGS, destination=TransactionRecord.CARD_TRANSACTION_FEES,
+            payer=None, payee=None, status=SUCCESS,
+            source=UNPROCESSED_EARNINGS, destination=CARD_TRANSACTION_FEES,
             **self.qs_kwargs(obj),
         ).aggregate(total=Sum('amount'))['total']
 
     def get_our_fees(self, obj):
-        destinations = [TransactionRecord.UNPROCESSED_EARNINGS]
-        if obj.status is None:
-            destinations.append(TransactionRecord.RESERVE)
         transactions = TransactionRecord.objects.filter(
-            status=TransactionRecord.SUCCESS,
+            status=SUCCESS,
         ).filter(**self.qs_kwargs(obj)).filter(
             Q(payer=obj.order.buyer, payee=None,
-              source__in=[TransactionRecord.CARD, TransactionRecord.CASH_DEPOSIT],
-              destination__in=[TransactionRecord.UNPROCESSED_EARNINGS]) |
+              source__in=[CARD, CASH_DEPOSIT],
+              destination__in=[UNPROCESSED_EARNINGS]) |
             Q(
-                payer=None, payee=None, source=TransactionRecord.RESERVE,
-                destination=TransactionRecord.UNPROCESSED_EARNINGS,
+                payer=None, payee=None, source=RESERVE,
+                destination=UNPROCESSED_EARNINGS,
             )
         )
         return transactions.aggregate(total=Sum('amount'))['total']
@@ -1006,33 +961,33 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
     @lru_cache(4)
     def get_ach_fees(self, obj):
         transaction = TransactionRecord.objects.filter(
-            payer=obj.order.seller, payee=obj.order.seller, status=TransactionRecord.SUCCESS,
-            source=TransactionRecord.HOLDINGS, destination=TransactionRecord.BANK,
+            payer=obj.order.seller, payee=obj.order.seller, status=SUCCESS,
+            source=HOLDINGS, destination=BANK,
             **self.qs_kwargs(obj),
         ).first()
         if not transaction:
             return None
         fee = TransactionRecord.objects.filter(
-            payer=None, payee=None, status=TransactionRecord.SUCCESS,
-            source=TransactionRecord.UNPROCESSED_EARNINGS, destination=TransactionRecord.ACH_TRANSACTION_FEES,
+            payer=None, payee=None, status=SUCCESS,
+            source=UNPROCESSED_EARNINGS, destination=ACH_TRANSACTION_FEES,
             targets__content_type=ContentType.objects.get_for_model(transaction),
             targets__object_id=unslugify(transaction.id),
         ).first()
         if not fee:
             # Something's wrong here. Will need to find out why this transaction was not annotated.
             return
-        deliverables = []
-        deliverable_type = ContentType.objects.get_for_model(Deliverable)
+        invoices = []
+        invoice_type = ContentType.objects.get_for_model(Deliverable)
         for target in transaction.targets.all():
-            if target.content_type == deliverable_type:
-                deliverables.append(target.target)
+            if target.content_type == invoice_type:
+                invoices.append(target.target)
         lines = {}
-        for order in deliverables:
-            lines[order] = LineItemSim(
-                id=order.id,
+        for invoice in invoices:
+            lines[invoice] = LineItemSim(
+                id=invoice.id,
                 amount=Money(TransactionRecord.objects.filter(
-                    source=TransactionRecord.ESCROW, destination=TransactionRecord.HOLDINGS, **self.qs_kwargs(obj),
-                ).aggregate(total=Sum('amount'))['total'], 'USD'),
+                    destination=HOLDINGS, **self.qs_kwargs(obj),
+                ).aggregate(total=Sum('amount'))['total'], settings.DEFAULT_CURRENCY),
                 priority=0,
             )
         lines[None] = LineItemSim(id=-1, amount=fee.amount, cascade_amount=True, priority=1)
@@ -1041,16 +996,17 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
 
     def get_profit(self, obj):
         base = self.get_our_fees(obj)
-        ach_fees = self.get_ach_fees(obj)
+        ach_fees = self.get_ach_fees(obj) or Decimal('0')
         card_fees = self.get_card_fees(obj)
-        if not all([base, ach_fees, card_fees]):
+        refunded = self.get_refunded_on(obj)
+        if not all([base, (ach_fees or refunded), card_fees]):
             return
         return base - ach_fees - card_fees
 
     @lru_cache
     def get_refunded_on(self, obj):
         if refund := TransactionRecord.objects.filter(
-                source=TransactionRecord.ESCROW, payer=obj.order.seller, status=TransactionRecord.SUCCESS,
+                source=ESCROW, payer=obj.order.seller, status=SUCCESS,
                 payee=obj.order.buyer,
                 **self.qs_kwargs(obj),
         ).first():
@@ -1070,6 +1026,133 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
         )
 
 
+class TipValuesSerializer(serializers.ModelSerializer):
+    """
+    Tracks all relevant finance info from a tip invoice.
+    """
+    status = serializers.SerializerMethodField()
+    bill_to = serializers.SerializerMethodField()
+    issued_by = serializers.CharField(source='issued_by.username', read_only=True)
+    payment_type = serializers.SerializerMethodField()
+    artist_earnings = serializers.SerializerMethodField()
+    our_fees = serializers.SerializerMethodField()
+    card_fees = serializers.SerializerMethodField()
+    ach_fees = serializers.SerializerMethodField()
+    profit = serializers.SerializerMethodField()
+    remote_ids = serializers.SerializerMethodField()
+
+    def get_status(self, obj):
+        return obj.get_status_display()
+
+    def get_bill_to(self, obj):
+        if obj.bill_to and obj.bill_to.guest:
+            return f'Guest #{obj.bill_to.id}'
+        elif obj.bill_to:
+            return obj.bill_to.username
+        else:  # pragma: no cover
+            # Should never occur, since the tips are always attached to some user.
+            return '(Empty)'
+
+    @lru_cache(4)
+    def charge_transactions(self, obj):
+        return TransactionRecord.objects.filter(
+            status=SUCCESS,
+            # Will need this to expand to cash or similar?
+            source__in=[CARD, CASH_DEPOSIT],
+            **self.qs_kwargs(obj),
+        )
+
+    @lru_cache(4)
+    def qs_kwargs(self, obj):
+        return {
+            'targets__content_type': ContentType.objects.get_for_model(obj),
+            'targets__object_id': unslugify(obj.id),
+        }
+
+    def get_payment_type(self, obj):
+        return self.charge_transactions(obj)[0].get_source_display()
+
+    def get_artist_earnings(self, obj):
+        return TransactionRecord.objects.filter(
+            destination=HOLDINGS, **self.qs_kwargs(obj),
+        ).aggregate(total=Sum('amount'))['total']
+
+    @lru_cache(4)
+    def get_card_fees(self, obj):
+        return TransactionRecord.objects.filter(
+            payer=None, payee=None, status=SUCCESS,
+            source=UNPROCESSED_EARNINGS, destination=CARD_TRANSACTION_FEES,
+            **self.qs_kwargs(obj),
+        ).aggregate(total=Sum('amount'))['total']
+
+    def get_our_fees(self, obj):
+        transactions = TransactionRecord.objects.filter(
+            status=SUCCESS,
+        ).filter(**self.qs_kwargs(obj)).filter(
+            payer=obj.bill_to, payee=None,
+            source__in=[CARD, CASH_DEPOSIT],
+            destination__in=[UNPROCESSED_EARNINGS],
+        )
+        return transactions.aggregate(total=Sum('amount'))['total']
+
+    @lru_cache(4)
+    def get_ach_fees(self, obj):
+        transaction = TransactionRecord.objects.filter(
+            payer=obj.issued_by, payee=obj.issued_by, status=SUCCESS,
+            source=HOLDINGS, destination=BANK,
+            **self.qs_kwargs(obj),
+        ).first()
+        if not transaction:
+            return None
+        fee = TransactionRecord.objects.filter(
+            payer=None, payee=None, status=SUCCESS,
+            source=UNPROCESSED_EARNINGS, destination=ACH_TRANSACTION_FEES,
+            targets__content_type=ContentType.objects.get_for_model(transaction),
+            targets__object_id=unslugify(transaction.id),
+        ).first()
+        if not fee:
+            # Something's wrong here. Will need to find out why this transaction was not annotated.
+            return
+        invoices = []
+        invoice_type = ContentType.objects.get_for_model(Invoice)
+        for target in transaction.targets.all():
+            if target.content_type == invoice_type:
+                invoices.append(target.target)
+        lines = {}
+        for invoice in invoices:
+            lines[invoice] = LineItemSim(
+                id=invoice.id,
+                amount=Money(TransactionRecord.objects.filter(
+                    destination=HOLDINGS, **self.qs_kwargs(obj),
+                ).aggregate(total=Sum('amount'))['total'], settings.DEFAULT_CURRENCY),
+                priority=0,
+            )
+        lines[None] = LineItemSim(id=-1, amount=fee.amount, cascade_amount=True, priority=1)
+        _total, _discount, subtotals = get_totals(lines.values())
+        return (lines[obj].amount - subtotals[lines[obj]]).amount
+
+    def get_profit(self, obj):
+        base = self.get_our_fees(obj)
+        ach_fees = self.get_ach_fees(obj) or Decimal('0')
+        card_fees = self.get_card_fees(obj)
+        if not all([base, ach_fees, card_fees]):
+            return
+        return base - ach_fees - card_fees
+
+    def get_remote_ids(self, obj):
+        records = TransactionRecord.objects.filter(**self.qs_kwargs(obj))
+        remote_ids = set(list(chain(*(record.remote_ids for record in records))))
+        return ', '.join(sorted(list(remote_ids)))
+
+    class Meta:
+        model = Invoice
+        fields = (
+            'id', 'created_on', 'status', 'issued_by', 'bill_to', 'total', 'paid_on', 'payment_type',
+            'artist_earnings', 'ach_fees', 'our_fees',
+            'card_fees', 'profit', 'remote_ids',
+        )
+
+
 class PayoutTransactionSerializer(serializers.ModelSerializer):
     id = ShortCodeField()
     payee = serializers.StringRelatedField(read_only=True)
@@ -1079,9 +1162,6 @@ class PayoutTransactionSerializer(serializers.ModelSerializer):
     total_drafted = serializers.SerializerMethodField()
     targets = serializers.SerializerMethodField()
     remote_ids = serializers.SerializerMethodField()
-
-    def get_category(self, obj: TransactionRecord):
-        return obj.get_category_display()
 
     def get_status(self, obj: TransactionRecord):
         return obj.get_status_display()
@@ -1094,9 +1174,9 @@ class PayoutTransactionSerializer(serializers.ModelSerializer):
         return (
                 TransactionRecord.objects.filter(
                     targets=ref_for_instance(obj),
-                    source=TransactionRecord.UNPROCESSED_EARNINGS,
-                    status=TransactionRecord.SUCCESS,
-                    destination=TransactionRecord.ACH_TRANSACTION_FEES).aggregate(total=Sum('amount'))['total']
+                    source=UNPROCESSED_EARNINGS,
+                    status=SUCCESS,
+                    destination=ACH_TRANSACTION_FEES).aggregate(total=Sum('amount'))['total']
                 or Decimal('0')
         )
 
@@ -1104,11 +1184,11 @@ class PayoutTransactionSerializer(serializers.ModelSerializer):
         targets = obj.targets.order_by('content_type_id').all()
         items: List[str] = []
         for target in targets:
-            if not target:
+            if not target.target:
                 continue
             base = f'{target.target.__class__.__name__} #{target.target.id}'
-            if target.content_type.model_class == TransactionRecord:
-                base += f' ({target.target.amount.amount})'
+            if target.content_type.model_class() == TransactionRecord:
+                base += f' ({target.target.amount})'
             items.append(base)
         return ', '.join(items)
 
@@ -1138,9 +1218,6 @@ class UserPayoutTransactionSerializer(serializers.ModelSerializer):
     def get_currency(self, obj: TransactionRecord):
         return str(obj.amount.currency.code)
 
-    def get_category(self, obj: TransactionRecord):
-        return obj.get_category_display()
-
     def get_status(self, obj: TransactionRecord):
         return obj.get_status_display()
 
@@ -1162,7 +1239,7 @@ class UserPayoutTransactionSerializer(serializers.ModelSerializer):
             if model_class == Deliverable:
                 base = target.target.notification_name(self.context)
             if target.content_type.model_class() == TransactionRecord:
-                base += f' ({target.target.amount.amount})'
+                base += f' ({target.target.amount})'
             items.append(base)
         return ', '.join(items)
 
@@ -1175,93 +1252,41 @@ class UserPayoutTransactionSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
-def pin_link(url):
-    return f'{url}?mtm_campaign=Pinterest&mtm_source=Pin'
-
-
-def ad_link(url):
-    return f'{url}?mtm_campaign=Pinterest&mtm_source=Ad'
-
-
-def product_link(product):
-    return make_url(
-        reverse('store:product_preview', kwargs={'product_id': product.id, 'username': product.user.username}),
-    )
-
-
-class PinSerializer(serializers.ModelSerializer):
-    availability = serializers.SerializerMethodField()
-    price = serializers.SerializerMethodField()
-    description = serializers.SerializerMethodField()
-    image_link = serializers.SerializerMethodField()
-    additional_image_link = serializers.SerializerMethodField()
-    title = serializers.SerializerMethodField()
-    link = serializers.SerializerMethodField()
-    brand = serializers.StringRelatedField(source='user.username', read_only=True)
-
-    def get_link(self, product):
-        return pin_link(product_link(product))
-
-    def get_price(self, product):
-        return f'{product.starting_price.amount}{product.starting_price.currency}'
-
-    def get_ad_link(self, product):
-        return ad_link(product_link(product))
-
-    def get_image_link(self, product):
-        return product.preview_link
-
-    def get_description(self, product):
-        return demark(product.description)
-
-    def get_title(self, product):
-        return demark(product.name)
-
-    def get_additional_image_link(self, product):
-        return ','.join(
-            make_url(sample.preview_link) for sample in product.samples.filter(rating=GENERAL, private=False)[:10]
-            if sample.preview_link
-        )
-
-    def get_availability(self, product):
-        if product.available:
-            if product.wait_list:
-                return 'preorder'
-            return 'in stock'
-        return 'out of stock'
-
-    class Meta:
-        model = Product
-        fields = (
-            'id', 'title', 'price', 'availability', 'description', 'link', 'image_link', 'brand',
-            'additional_image_link',
-        )
-
-
-class SimpleTransactionSerializer(serializers.ModelSerializer):
+class SubscriptionInvoiceSerializer(serializers.ModelSerializer):
     id = ShortCodeField()
-    payer = serializers.StringRelatedField(read_only=True)
-    payee = serializers.StringRelatedField(read_only=True)
-    category = serializers.SerializerMethodField()
+    type = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
-    amount = MoneyToFloatField()
+    bill_to = serializers.CharField(read_only=True, source='bill_to.username')
+    source = serializers.SerializerMethodField()
+    total = MoneyToFloatField()
     remote_ids = serializers.SerializerMethodField()
 
-    def get_category(self, obj):
-        return obj.get_category_display()
+    def get_type(self, obj):
+        return obj.get_type_display()
 
     def get_status(self, obj):
         return obj.get_status_display()
 
+    def get_source(self, obj):
+        record = TransactionRecord.objects.filter(targets=ref_for_instance(obj), status=SUCCESS).first()
+        if not record:  # pragma: no cover
+            # Should never happen in the reports we're doing.
+            return ''
+        return record.get_source_display()
+
     def get_remote_ids(self, obj: TransactionRecord):
-        return ', '.join(sorted(obj.remote_ids))
+        ids = set()
+        records = TransactionRecord.objects.filter(targets=ref_for_instance(obj), status=SUCCESS)
+        for record in records:
+            ids |= set(record.remote_ids)
+        ids = list(ids)
+        return ', '.join(sorted(ids))
 
     class Meta:
-        model = TransactionRecord
+        model = Invoice
         fields = (
-            'id', 'source', 'status', 'payer', 'payee', 'amount', 'remote_ids',
-            'category',
-            'created_on', 'finalized_on',
+            'id', 'source', 'status', 'bill_to', 'total', 'remote_ids',
+            'type', 'created_on', 'paid_on',
         )
         read_only_fields = fields
 
@@ -1277,10 +1302,10 @@ class UnaffiliatedInvoiceSerializer(serializers.ModelSerializer):
     remote_ids = serializers.SerializerMethodField()
 
     def get_source(self, obj):
-        records = TransactionRecord.objects.filter(targets=ref_for_instance(obj), status=TransactionRecord.SUCCESS)
-        if records.filter(source=TransactionRecord.CASH_DEPOSIT).exists():
+        records = TransactionRecord.objects.filter(targets=ref_for_instance(obj), status=SUCCESS)
+        if records.filter(source=CASH_DEPOSIT).exists():
             return 'Cash'
-        if records.filter(source=TransactionRecord.CARD).exists():
+        if records.filter(source=CARD).exists():
             return 'Card'
         return '????'
 
@@ -1290,20 +1315,20 @@ class UnaffiliatedInvoiceSerializer(serializers.ModelSerializer):
     def get_tax(self, obj):
         return str(TransactionRecord.objects.filter(
             targets=ref_for_instance(obj),
-            status=TransactionRecord.SUCCESS,
-            destination=TransactionRecord.MONEY_HOLE,
+            status=SUCCESS,
+            destination=MONEY_HOLE,
         ).aggregate(total=Sum('amount'))['total'] or Decimal('0.00'))
 
     def get_card_fees(self, obj):
         return str(TransactionRecord.objects.filter(
             targets=ref_for_instance(obj),
-            status=TransactionRecord.SUCCESS,
-            destination=TransactionRecord.CARD_TRANSACTION_FEES,
+            status=SUCCESS,
+            destination=CARD_TRANSACTION_FEES,
         ).aggregate(total=Sum('amount'))['total'] or Decimal('0.00'))
 
     def get_remote_ids(self, obj):
         records = TransactionRecord.objects.filter(
-            status=TransactionRecord.SUCCESS,
+            status=SUCCESS,
             targets=ref_for_instance(obj),
         )
         remote_ids = set(list(chain(*(record.remote_ids for record in records))))
@@ -1337,9 +1362,6 @@ class ReferenceSerializer(serializers.ModelSerializer):
 
     def get_read(self, obj):
         return check_read(obj=obj, user=self.context['request'].user)
-
-    def get_thumbnail_url(self, obj):
-        return self.context['request'].build_absolute_uri(obj.file.file.url)
 
     class Meta:
         model = Reference
@@ -1385,6 +1407,13 @@ class StripeReaderSerializer(serializers.ModelSerializer):
 class PremiumIntentSettings(serializers.Serializer):
     make_primary = serializers.BooleanField(default=False)
     save_card = serializers.BooleanField(default=False)
+    service = serializers.CharField()
+    card_id = serializers.IntegerField(required=False, allow_null=True)
+    use_reader = serializers.BooleanField(default=False)
+
+
+class SetServiceSerializer(serializers.Serializer):
+    service = serializers.CharField()
 
 
 @register_serializer
@@ -1398,17 +1427,13 @@ class StripeAccountSerializer(serializers.ModelSerializer):
 class StripeBankSetupSerializer(serializers.Serializer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        with stripe as api:
-            self.fields['country'].choices = self.context.get('countries')
+        self.fields['country'].choices = self.context.get('countries')
     country = serializers.ChoiceField(choices=[])
     url = serializers.URLField()
 
     def validate_url(self, value):
-        try:
-            parsed = urlparse(value)
-        except ValueError as err:
-            raise ValidationError(str(err))
-        # * should only be in settings.ALLOWED_HOSTS in debug environments where someone may have stood up a random
+        parsed = urlparse(value)
+        # '*' should only be in settings.ALLOWED_HOSTS in debug environments where someone may have stood up a random
         # external domain name, like with Ngrok.
         if parsed.hostname not in settings.ALLOWED_HOSTS and '*' not in settings.ALLOWED_HOSTS:
             raise ValidationError('Unrecognized domain.')
@@ -1419,12 +1444,32 @@ class StripeBankSetupSerializer(serializers.Serializer):
 class InvoiceSerializer(serializers.ModelSerializer):
     id = ShortCodeField()
     bill_to = RelatedUserSerializer()
+    issued_by = RelatedUserSerializer()
     total = serializers.SerializerMethodField()
+    targets = EventTargetRelatedField(read_only=True, many=True)
 
     def get_total(self, invoice):
         return str(invoice.total())
 
     class Meta:
-        fields = ('id', 'status', 'type', 'bill_to', 'created_on', 'paid_on', 'total', 'record_only')
+        fields = (
+            'id', 'status', 'type', 'bill_to', 'issued_by', 'created_on', 'paid_on', 'total', 'targets', 'record_only',
+        )
         read_only_fields = fields
         model = Invoice
+
+
+class ServicePlanSerializer(serializers.ModelSerializer):
+    monthly_charge = MoneyToFloatField()
+    per_deliverable_price = MoneyToFloatField()
+    shield_static_price = MoneyToFloatField()
+    shield_percentage_price = serializers.FloatField()
+
+    class Meta:
+        fields = (
+            'id', 'name', 'description', 'features', 'monthly_charge', 'per_deliverable_price',
+            'max_simultaneous_orders', 'tipping', 'shield_static_price', 'shield_percentage_price',
+            'waitlisting',
+        )
+        read_only_fields = fields
+        model = ServicePlan

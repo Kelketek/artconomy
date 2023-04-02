@@ -44,6 +44,10 @@ services:
       - GR_CAPTCHA_PUBLIC_KEY=${GR_CAPTCHA_PUBLIC_KEY}
       - TELEGRAM_BOT_KEY=${TELEGRAM_BOT_KEY}
       - TELEGRAM_BOT_USERNAME=${TELEGRAM_BOT_USERNAME}
+      - DISCORD_BOT_KEY=${DISCORD_BOT_KEY}
+      - DISCORD_CLIENT_KEY=${DISCORD_CLIENT_KEY}
+      - DISCORD_CLIENT_SECRET=${DISCORD_CLIENT_SECRET}
+      - DISCORD_GUILD_ID=${DISCORD_GUILD_ID}
       - HTTPS=1
       - CELERY_ALWAYS_EAGER=1
       - CELERY_BROKER_CONNECTION_RETRY=1
@@ -54,10 +58,11 @@ services:
       - LANDSCAPE_PRICE=8
       - ENV_NAME=dev
       - CHANNELS_HOST=redis
-      - STRIPE_PUBLIC_KEY=pk_test_5lB4V6MnoGYhtEuL0iEVa7Xu00oT23zRr5
-      - STRIPE_KEY=sk_test_tgpnmm2xxdzgMkv5KeZ3LT0200clEdHF8X
+      - STRIPE_PUBLIC_KEY=${STRIPE_PUBLIC_KEY}
+      - STRIPE_WEBHOOKS_DOMAIN=${STRIPE_WEBHOOKS_DOMAIN}
+      - STRIPE_KEY=${STRIPE_KEY}
       - DEFAULT_CARD_PROCESSOR=stripe
-    command: /usr/bin/python3.8 manage.py runserver 0.0.0.0:8002
+    command: /home/dev/.pyenv/versions/artconomy/bin/python manage.py runserver 0.0.0.0:8002
     ports:
       - "8001:8001"
       - "8002:8002"

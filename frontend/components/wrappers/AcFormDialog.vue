@@ -46,7 +46,7 @@
           <slot name="bottom-buttons" :show-submit="showSubmit">
             <v-card-actions row wrap class="hidden-sm-and-down">
                 <v-spacer></v-spacer>
-                <v-btn @click.native="toggle=false">Cancel</v-btn>
+                <v-btn @click.native="toggle=false">{{ cancelText }}</v-btn>
                 <v-btn color="primary" type="submit" :disabled="disabled" class="dialog-submit" v-if="showSubmit">{{ submitText }}
                 </v-btn>
             </v-card-actions>
@@ -86,6 +86,9 @@ export default class AcFormDialog extends mixins(Dialog) {
 
     @Prop({default: 'Submit'})
     public submitText!: string
+
+    @Prop({default: 'Cancel'})
+    public cancelText!: string
 
     @Prop({default: ''})
     public title!: string

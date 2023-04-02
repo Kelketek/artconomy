@@ -4,7 +4,7 @@ from django.db import migrations
 from django.utils import timezone
 from moneyed import Money
 
-from apps.sales.utils import get_totals
+from apps.sales.line_item_funcs import get_totals
 
 QUEUED = 3
 IN_PROGRESS = 4

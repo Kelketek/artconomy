@@ -32,7 +32,7 @@ from apps.profiles.models import (
     banned_prefix_validator,
     ArtistProfile, ArtistTag
 )
-from apps.sales.apis import STRIPE
+from apps.sales.constants import STRIPE
 from apps.sales.models import Promo, ServicePlan
 from apps.tg_bot.models import TelegramDevice
 
@@ -338,7 +338,7 @@ class SubmissionMixin:
         return ProductSerializer(instance=obj.deliverable.product, context=self.context).data
 
     def get_thumbnail_url(self, obj):
-        return self.context['request'].build_absolute_uri(obj.file.file.url)
+        return self.context['request'].build_absolute_uri(obj.file.file.re_path)
 
 
 class SubmissionManagementSerializer(RelatedAtomicMixin, SubmissionMixin, serializers.ModelSerializer):
@@ -394,16 +394,11 @@ class SubmissionManagementSerializer(RelatedAtomicMixin, SubmissionMixin, serial
 
 @register_serializer
 class ArtistProfileSerializer(serializers.ModelSerializer):
-
-    @staticmethod
-    def dwolla_configured(obj):
-        return bool(obj.dwolla_url)
-
     class Meta:
         model = ArtistProfile
         fields = (
             'commissions_closed', 'max_load', 'commission_info', 'public_queue',
-            'auto_withdraw', 'escrow_disabled', 'bank_account_status',
+            'auto_withdraw', 'escrow_enabled', 'bank_account_status',
             'artist_of_color', 'lgbt', 'id',
         )
         extra_kwargs = {field: {'required': False} for field in fields}
@@ -484,6 +479,19 @@ class UserSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
     blacklist = TagListField(required=False)
     stars = serializers.FloatField(required=False)
     processor = serializers.SerializerMethodField()
+    service_plan = serializers.SerializerMethodField()
+    next_service_plan = serializers.SerializerMethodField()
+    international = serializers.SerializerMethodField()
+
+    def get_international(self, obj):
+        from apps.sales.models import StripeAccount
+        return StripeAccount.objects.filter(user=obj).exclude(country=settings.SOURCE_COUNTRY).exists()
+
+    def get_service_plan(self, obj):
+        return obj.service_plan.name
+
+    def get_next_service_plan(self, obj):
+        return obj.next_service_plan.name
 
     def get_landscape_paid_through(self, obj):
         if not (obj.service_plan and obj.service_plan.name == 'Landscape'):
@@ -518,7 +526,7 @@ class UserSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
             'blacklist', 'biography', 'taggable', 'watching', 'blocking',
             'stars', 'landscape', 'landscape_enabled', 'landscape_paid_through', 'telegram_link', 'sfw_mode',
             'offered_mailchimp', 'guest', 'artist_mode', 'hits', 'watches', 'guest_email', 'rating_count',
-            'birthday', 'processor',
+            'birthday', 'processor', 'service_plan', 'next_service_plan', 'international', 'verified_email',
         )
         read_only_fields = [field for field in fields if field not in [
             'rating', 'sfw_mode', 'taggable',

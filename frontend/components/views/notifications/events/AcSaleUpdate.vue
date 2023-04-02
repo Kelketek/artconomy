@@ -2,7 +2,8 @@
   <ac-base-notification :asset-link="assetLink" :notification="notification">
     <span slot="title">
       <router-link :to="assetLink">
-        Sale #{{event.target.order.id}} [{{event.target.name}}]
+        <span v-if="event.target.status === 10">New Order in Limbo</span>
+        <span v-else>Sale #{{event.target.order.id}} [{{event.target.name}}]</span>
       </router-link>
     </span>
     <span slot="subtitle">
@@ -33,6 +34,7 @@ const ORDER_STATUSES = {
   7: 'has been placed under dispute.',
   8: 'has been completed!',
   9: 'has been refunded.',
+  10: 'Click here to upgrade and view your order!',
 }
 
 export default {
@@ -44,7 +46,7 @@ export default {
   },
   computed: {
     assetLink() {
-      return {
+      const deliverableLink = {
         name: 'SaleDeliverableOverview',
         params: {
           orderId: this.event.target.order.id,
@@ -52,6 +54,14 @@ export default {
           deliverableId: this.event.target.id,
         },
       }
+      if (this.event.target.status === 10) {
+        return {
+          name: 'Upgrade',
+          params: {username: this.viewer.username},
+          query: {next: this.$router.resolve(deliverableLink).href},
+        }
+      }
+      return deliverableLink
     },
     message() {
       return ORDER_STATUSES[this.event.target.status]

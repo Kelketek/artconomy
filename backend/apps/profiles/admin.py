@@ -16,12 +16,13 @@ class ArtconomyUserAdmin(EmailUserAdmin):
         ('Premium Info', {'fields': (
             'service_plan', 'service_plan_paid_through',
             'next_service_plan',
-            'registration_code', 'trust_level',
+            'registration_code',
+            'discord_id',
         )}),
         ('Preferences', {'fields': ('primary_card', 'processor_override')})
     )
     list_display = ('username', 'email', 'is_staff', 'is_superuser')
-    list_filter = ['guest', 'artist_mode', 'trust_level']
+    list_filter = ['guest', 'artist_mode', 'is_staff', 'is_superuser']
     search_fields = ['username', 'email']
     raw_id_fields = ['primary_card']
 

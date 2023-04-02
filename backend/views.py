@@ -35,6 +35,7 @@ def base_template(request, extra=None):
         user_data = empty_user(session=request.session, user=request.user)
     context = {
         'debug': settings.DEBUG,
+        'render_legacy': not (settings.DEBUG or settings.TESTING),
         'env_file': 'envs/{}.html'.format(settings.ENV_NAME),
         'base_url': make_url(''),
         'recaptcha_key': settings.GR_CAPTCHA_PUBLIC_KEY,

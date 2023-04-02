@@ -1,0 +1,9 @@
+{% extends 'email_base.html' %}
+{% block header_message %}Update!{% endblock %}
+{% block message %}
+Your WIP/Revision on Sale #{{ target.deliverable.order.id }} [{{target.deliverable.name}}] has been approved by the commissioner!
+{% endblock message %}
+
+{% block action %}
+<a href="/orders/{{target.order.buyer.username}}/order/{{target.order.id}}/deliverables/{{target.id}}/revisions">View the revision/WIP here!</a>
+{% endblock %}

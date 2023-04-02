@@ -4,7 +4,7 @@ from django.test import TestCase
 
 from apps.lib.models import Notification, NEW_PRODUCT, Event
 from apps.lib.serializers import comment_made, new_product
-from apps.lib.test_resources import APITestCase
+from apps.lib.test_resources import APITestCase, EnsurePlansMixin
 from apps.lib.tests.factories_interdepend import CommentFactory
 from apps.profiles.tests.factories import SubmissionFactory, UserFactory
 from apps.sales.tests.factories import ProductFactory
@@ -31,7 +31,7 @@ class TestComments(APITestCase):
         )
 
 
-class TestNotificationSerializers(TestCase):
+class TestNotificationSerializers(EnsurePlansMixin, TestCase):
     def test_new_product(self):
         user = UserFactory.create()
         product = ProductFactory.create(user=user, primary_submission=SubmissionFactory.create())

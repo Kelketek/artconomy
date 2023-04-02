@@ -2,18 +2,21 @@
 {% load md2 %}
 {% block header_message %}{% if target.status == 1 %}New Sale!{% else %}Sale update!{% endif %} #{{target.id}} (From order #{{target.order.id}}){% endblock %}
 {% block message %}
-{% if target.status == 1 or target.status == 0 %}
-<p>You have a new sale of your product, "{{target.product.name}}" to {%if target.order.buyer.guest %}{% if target.order.buyer.guest_email %}{{target.order.buyer.guest_email}}{% else %}{{target.order.customer_email}}{% endif %}!{% else %}}<a href="/profile/{{target.order.buyer.username}}/">{{target.order.buyer.username}}</a>.</p>{% endif %}
+{% if target.status == 1 or target.status == 0 or target.status == 10 %}
+<p>You have a new sale of your product, "{{target.product.name}}"{% if target.status != 10 %} to {%if target.order.buyer.guest %}{% if target.order.buyer.guest_email %}{{target.order.buyer.guest_email}}{% else %}{{target.order.customer_email}}{% endif %}!{% else %}}<a href="/profile/{{target.order.buyer.username}}/">{{target.order.buyer.username}}</a>.{% endif %}</p>{% endif %}
 
 {% if target.status == 0 %}
 <p><strong>NOTE: THIS IS A WAITLISTED ORDER.</strong></p>
+{% elif target.status == 10 %}
+<p><strong>NOTE: THIS ORDER IS IN LIMBO. ACTION REQUIRED.</strong></p>
 {% endif %}
-
+{% if target.status != 10 %}
 <p>Here's a preview of their order description:</p>
 
 <div class="message-preview">
   {{target.details|markdown:"safe"}}
 </div>
+{% endif %}
 {% elif target.status == 3 %}
 The buyer has submitted payment and the sale has been added to your queue.
 {% elif target.status == 6 %}
@@ -24,11 +27,16 @@ This sale has been disputed!
 This sale has been finalized! Congratulations!
 {% elif target.status == 9 %}
 This sale has been refunded.
+{% elif target.status == 10 %}
+This sale is in limbo. To get the order details and contact your commissioner,
+you will need to upgrade your service plan. Otherwise, this order will be cancelled within a few days.
+{% elif target.status == 11 %}
+A sale which was in limbo has been auto-cancelled.
 {% else %}
 Your sale has been updated!
 {% endif %}
 {% endblock message %}
 
 {% block action %}
-<a href="/sales/{{target.order.seller.username}}/sale/{{target.order.id}}/deliverables/{{target.id}}">View your sale here!</a>
+{% if target.status != 10 and target.status != 11 %}<a href="/sales/{{target.order.seller.username}}/sale/{{target.order.id}}/deliverables/{{target.id}}">View your sale here!</a>{% elif target.status == 10 %}<a href="/profile/Fox/upgrade?next=%2Fsales%2F{{ target.order.seller.username|urlencode:'' }}%2F{{ target.order.id }}%2Fdeliverables%2F{{ target.id}}">Upgrade to view your order here!</a>{% else %}<a href="/sales/{{target.order.seller.username}}/">View your remaining sales</a>{% endif %}
 {% endblock %}

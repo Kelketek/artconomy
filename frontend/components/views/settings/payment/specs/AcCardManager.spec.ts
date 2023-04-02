@@ -11,10 +11,13 @@ import {genCard, genUser} from '@/specs/helpers/fixtures'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import {baseCardSchema} from '@/lib/lib'
 import {PROCESSORS} from '@/types/PROCESSORS'
+import {FormController} from '@/store/forms/form-controller'
 
 const localVue = vueSetup()
 let store: ArtStore
 let wrapper: Wrapper<Vue>
+let vm: any
+let ccForm: FormController
 let cards: ListController<CreditCardToken>
 let vuetify: Vuetify
 
@@ -26,7 +29,7 @@ function genList() {
   ]
 }
 
-describe('AcCardManager.vue', () => {
+describe('AcCardManager.vue Authorize', () => {
   beforeEach(() => {
     store = createStore()
     vuetify = createVuetify()
@@ -96,5 +99,59 @@ describe('AcCardManager.vue', () => {
     const vm = wrapper.vm as any
     await vm.$nextTick()
     expect(vm.url).toBe('/api/sales/v1/account/Fox/cards/')
+  })
+})
+
+describe('AcCardManager.vue Stripe', () => {
+  beforeEach(() => {
+    store = createStore()
+    vuetify = createVuetify()
+    setViewer(store, genUser())
+    ccForm = mount(Empty, {localVue, store}).vm.$getForm('newCard', baseCardSchema('/test/'))
+    wrapper = mount(
+      AcCardManager, {
+        localVue,
+        store,
+        vuetify,
+        attachTo: docTarget(),
+        propsData: {username: 'Fox', ccForm, processor: PROCESSORS.STRIPE},
+      })
+    vm = wrapper.vm
+    vm.stripe().setupValue = {}
+    cards = (wrapper.vm as any).cards
+  })
+  afterEach(() => {
+    cleanUp(wrapper)
+  })
+  it('Fetches the initial data', async() => {
+    expect(mockAxios.request.mock.calls[0][0]).toEqual(
+      rq('/api/sales/v1/account/Fox/cards/stripe/', 'get', undefined, {cancelToken: expect.any(Object)}),
+    )
+  })
+  it('Handles cleanup after saving a card', async() => {
+    wrapper.setProps({saveOnly: true, clientSecret: 'Beep'})
+    vm.tab = 'new-card'
+    vm.stripe().setupValue = {}
+    await vm.$nextTick()
+    expect(ccForm.errors).toEqual([])
+    vm.stripeSubmit()
+    await flushPromises()
+    await vm.$nextTick()
+    expect(ccForm.errors).toEqual([])
+    expect(vm.tab).toBe('saved-cards')
+  })
+  it('Handles a stripe error when saving a card', async() => {
+    wrapper.setProps({saveOnly: true, clientSecret: 'Beep'})
+    vm.tab = 'new-card'
+    vm.stripe().setupValue = {
+      error: {code: 'Failure', message: 'Shit broke.'},
+    }
+    await vm.$nextTick()
+    expect(ccForm.errors).toEqual([])
+    vm.stripeSubmit()
+    await flushPromises()
+    await vm.$nextTick()
+    expect(ccForm.errors).toEqual(['Shit broke.'])
+    expect(vm.tab).toBe('new-card')
   })
 })

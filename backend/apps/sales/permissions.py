@@ -7,6 +7,8 @@ from rest_framework.permissions import BasePermission
 from rest_framework.request import Request
 
 from apps.profiles.models import UNSET, User
+from apps.profiles.permissions import derive_user
+from apps.sales.constants import MISSED, LIMBO, CONCURRENCY_STATUSES
 from apps.sales.utils import available_products_from_user
 
 
@@ -15,18 +17,32 @@ def derive_order(instance):
     if isinstance(instance, Order):
         return instance
     if isinstance(instance, LineItem):
-        instance = instance.invoice.deliverables.get()
-    if not isinstance(instance, Deliverable):
+        try:
+            instance = instance.invoice.deliverables.get()
+        except Deliverable.DoesNotExist:  # pragma: no cover
+            return None
+    if not isinstance(instance, Deliverable):  # pragma: no cover
         instance = instance.deliverable
     return instance.order
 
 
+def derive_deliverable(instance):
+    from apps.sales.models import Deliverable, LineItem
+    if isinstance(instance, LineItem):
+        try:
+            instance = instance.invoice.deliverables.get()
+        except Deliverable.DoesNotExist:  # pragma: no cover
+            return None
+    if not isinstance(instance, Deliverable):  # pragma: no cover
+        instance = instance.deliverable
+    return instance
+
+
 class OrderViewPermission(BasePermission):
     def has_object_permission(self, request, view, obj):
-        from apps.sales.models import Order
         obj = derive_order(obj)
-        if not isinstance(obj, Order):
-            obj = obj.order
+        if not obj:  # pragma: no cover
+            return False
         if request.user.is_staff:
             return True
         if request.user == obj.buyer:
@@ -38,6 +54,8 @@ class OrderViewPermission(BasePermission):
 class OrderSellerPermission(BasePermission):
     def has_object_permission(self, request, view, obj):
         obj = derive_order(obj)
+        if not obj:  # pragma: no cover
+            return False
         if request.user.is_staff:
             return True
         if request.user == obj.seller:
@@ -47,6 +65,8 @@ class OrderSellerPermission(BasePermission):
 class OrderBuyerPermission(BasePermission):
     def has_object_permission(self, request, view, obj):
         obj = derive_order(obj)
+        if not obj:  # pragma: no cover
+            return False
         if request.user.is_staff:
             return True
         if request.user == obj.buyer:
@@ -74,9 +94,7 @@ class EscrowPermission(BasePermission):
     Only allow if Escrow is enabled on this order.
     """
     def has_object_permission(self, request, view, obj):
-        if obj.escrow_disabled:
-            return False
-        return True
+        return obj.escrow_enabled
 
 
 class EscrowDisabledPermission(BasePermission):
@@ -84,12 +102,11 @@ class EscrowDisabledPermission(BasePermission):
     Only allow if Escrow is disabled on this order.
     """
     def has_object_permission(self, request, view, obj):
-        if obj.escrow_disabled:
-            return True
-        return False
+        return not obj.escrow_enabled
 
 
 class RevisionsVisible(BasePermission):
+    message = 'Revisions are not visible yet.'
     def has_object_permission(self, request, view, obj):
         return not obj.revisions_hidden
 
@@ -102,13 +119,13 @@ class BankingConfigured(BasePermission):
 
 
 def DeliverableStatusPermission(*args, error_message='The deliverable is not in the right status for that.'):
-    from apps.sales.models import Deliverable, LineItem
     class StatusCheckPermission(BasePermission):
         message = error_message
         def has_object_permission(self, request, view, obj):
+            from apps.sales.models import Deliverable, LineItem
             if isinstance(obj, LineItem):
                 obj = obj.invoice.deliverables.get()
-            if not isinstance(obj, Deliverable):
+            if not isinstance(obj, Deliverable):  # pragma: no cover
                 obj = obj.deliverable
             if obj.status in args:
                 return True
@@ -128,27 +145,8 @@ class OrderTimeUpPermission(BasePermission):
         if obj.dispute_available_on and (obj.dispute_available_on > timezone.now().date()):
             self.message = f'This order is not old enough to dispute. You can dispute it on {obj.dispute_available_on}.'
             return False
-        if not obj.dispute_available_on:
-            return False
-        return True
-
-
-class NoOrderOutput(BasePermission):
-    message = 'You may not create a submission based on this deliverable.'
-    def has_object_permission(self, request, view, obj):
-        assert request.user
-        if request.user not in [obj.order.seller, obj.order.buyer]:
-            return False
-        if obj.outputs.filter(owner=request.user).exists():
-            self.message = 'You have already created a submission based on this deliverable.'
-            return False
-        return True
-
-
-class PaidOrderPermission(BasePermission):
-    message = 'You may not rate an order which was free.'
-    def has_object_permission(self, request, view, obj):
-        if obj.invoice.total().amount <= 0:
+        if not obj.dispute_available_on:  # pragma: no cover
+            # Should never happen, because if this is a disputable status, this timestamp should be set.
             return False
         return True
 
@@ -169,12 +167,8 @@ def LineItemTypePermission(*args, error_message='You are not permitted to edit l
 class DeliverableNoProduct(BasePermission):
     message = 'You may only perform this action on deliverables without an associated product.'
     def has_object_permission(self, request, view, obj):
-        from apps.sales.models import Deliverable, LineItem
-        if isinstance(obj, LineItem):
-            obj = obj.invoice.deliverables.get()
-        if not isinstance(obj, Deliverable):
-            obj = obj.deliverable
-        if obj.product:
+        deliverable = derive_deliverable(obj)
+        if deliverable.product:
             return False
         return True
 
@@ -188,7 +182,10 @@ class ReferenceViewPermission(BasePermission):
 class LandscapeSellerPermission(BasePermission):
     message = 'This feature only available to Landscape subscribers.'
     def has_object_permission(self, request, view, obj):
-        return derive_order(obj).seller.landscape
+        order = derive_order(obj)
+        if not order:  # pragma: no cover
+            return False
+        return order.seller.landscape
 
 
 class PublicQueue(BasePermission):
@@ -208,3 +205,45 @@ def InvoiceStatus(*statuses):
             return invoice.status in statuses
 
     return InnerInvoiceStatus
+
+
+def InvoiceType(*types):
+
+    class InnerInvoiceType(BasePermission):
+        message = 'You may not perform this action on invoices of this type.'
+
+        def has_object_permission(self, request: Request, view: View, obj: Any) -> bool:
+            invoice = getattr(obj, 'invoice', obj)
+            return invoice.type in types
+
+    return InnerInvoiceType
+
+
+class LimboCheck(BasePermission):
+    message = 'This deliverable is obscured from your view.'
+
+    def has_object_permission(self, request, view, obj):
+        deliverable = derive_deliverable(obj)
+        if not deliverable:  # pragma: no cover
+            return False
+        # This permission acts as a passthrough unless the user is the seller and this is in limbo or
+        # missed.
+        if not request.user == deliverable.order.seller:
+            return True
+        if deliverable.status in [LIMBO, MISSED]:
+            return False
+        return True
+
+
+class PlanDeliverableAddition(BasePermission):
+    message = 'Your current service plan does not support tracking more invoices. Please upgrade.'
+
+    def has_object_permission(self, request, view, obj):
+        from apps.sales.models import Deliverable
+        user = derive_user(obj)
+        max_orders = user.service_plan.max_simultaneous_orders
+        if not user.service_plan.max_simultaneous_orders:
+            return True
+        if Deliverable.objects.filter(order__seller=user, status__in=CONCURRENCY_STATUSES).count() >= max_orders:
+            return False
+        return True

@@ -90,6 +90,7 @@ const TableDashboard = () => import('@/components/views/table/TableDashboard.vue
 const TableProducts = () => import('@/components/views/table/TableProducts.vue')
 const TableOrders = () => import('@/components/views/table/TableOrders.vue')
 const TableInvoices = () => import('@/components/views/table/TableInvoices.vue')
+const Invoices = () => import('@/components/views/settings/payment/Invoices.vue')
 
 function orderViews() {
   const orderRoutes: RouteConfig[] = []
@@ -302,12 +303,6 @@ export const routes = [
     },
   },
   {
-    path: '/upgrade/',
-    name: 'Upgrade',
-    component: Upgrade,
-    props: true,
-  },
-  {
     path: '/faq/',
     name: 'FAQ',
     component: FAQ,
@@ -381,6 +376,20 @@ export const routes = [
             props: true,
           },
           {
+            name: 'Invoices',
+            path: 'invoices',
+            component: Invoices,
+            props: true,
+            children: [
+              {
+                path: ':invoiceId/',
+                name: 'Invoice',
+                component: InvoiceDetail,
+                props: true,
+              },
+            ],
+          },
+          {
             name: 'TransactionHistory',
             path: 'transactions',
             component: TransactionHistory,
@@ -403,6 +412,12 @@ export const routes = [
     ],
   },
   {
+    path: '/profile/:username/upgrade/',
+    name: 'Upgrade',
+    component: Upgrade,
+    props: true,
+  },
+  {
     path: '/profile/:username/ratings/',
     name: 'Ratings',
     component: Ratings,
@@ -415,7 +430,7 @@ export const routes = [
     props: true,
   },
   {
-    path: '/profile/:username/invoices/:invoiceId/',
+    path: '/profile/:username/invoice/:invoiceId/',
     name: 'InvoiceDetail',
     component: InvoiceDetail,
     props: true,

@@ -7,8 +7,9 @@ from apps.profiles.tests.factories import UserFactory
 from apps.sales.models import (
     Order, Product, CreditCardToken, Revision, BankAccount,
     Promo, Rating,
-    TransactionRecord, LineItem, ADD_ON, Deliverable, Reference, Invoice, WebhookRecord, StripeAccount, ServicePlan,
-    StripeReader, StripeLocation)
+    TransactionRecord, LineItem, Deliverable, Reference, Invoice, WebhookRecord, StripeAccount, ServicePlan,
+    StripeReader, StripeLocation, InventoryTracker)
+from apps.sales.constants import ADD_ON, SUCCESS, CARD, ESCROW, ESCROW_HOLD
 
 
 class ProductFactory(DjangoModelFactory):
@@ -60,7 +61,9 @@ class StripeReaderFactory(DjangoModelFactory):
 class DeliverableFactory(DjangoModelFactory):
     name = Sequence(lambda x: 'Stage {}'.format(x))
     order = SubFactory(OrderFactory)
-    invoice = SubFactory(InvoiceFactory, bill_to=SelfAttribute('..order.buyer'))
+    invoice = SubFactory(
+        InvoiceFactory, bill_to=SelfAttribute('..order.buyer'), issued_by=SelfAttribute('..order.seller'),
+    )
     product = SubFactory(ProductFactory, user=SelfAttribute('..order.seller'))
 
     class Meta:
@@ -94,13 +97,13 @@ class RevisionFactory(DjangoModelFactory):
 
 
 class TransactionRecordFactory(DjangoModelFactory):
-    status = TransactionRecord.SUCCESS
-    remote_ids = Sequence(lambda x: ['{}'.format(x)])
-    source = TransactionRecord.CARD
-    destination = TransactionRecord.ESCROW
+    status = SUCCESS
+    remote_ids = Sequence(lambda _: [])
+    source = CARD
+    destination = ESCROW
     payer = SubFactory(UserFactory)
     payee = SubFactory(UserFactory)
-    category = TransactionRecord.ESCROW_HOLD
+    category = ESCROW_HOLD
     amount = Money('10.00', 'USD')
 
     class Meta:
@@ -139,7 +142,7 @@ class LineItemFactory(DjangoModelFactory):
     priority = 1
     amount = Money('15.00', 'USD')
     destination_user = None
-    destination_account = TransactionRecord.ESCROW
+    destination_account = ESCROW
 
     class Meta:
         model = LineItem
@@ -170,6 +173,6 @@ class ServicePlanFactory(DjangoModelFactory):
 def add_adjustment(deliverable, amount: Money):
     return LineItem.objects.create(
         invoice=deliverable.invoice, destination_user=deliverable.order.seller,
-        destination_account=TransactionRecord.ESCROW,
+        destination_account=ESCROW,
         amount=amount, type=ADD_ON,
     )

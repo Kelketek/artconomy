@@ -17,6 +17,10 @@ Your order has been cancelled.
 Your order has been completed!
 {% elif target.status == 9 %}
 Your order has been refunded.
+{% elif target.status == 10 %}
+Your order is in a waitlist, pending the artist's availability.
+{% elif target.status == 11 %}
+Your order has been cancelled.
 {% else %}
 Your order has been updated!
 {% endif %}

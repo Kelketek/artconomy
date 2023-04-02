@@ -66,7 +66,7 @@ from apps.profiles.permissions import (
     ObjectControls, UserControls, SubmissionViewPermission, SubmissionControls,
     ColorControls, ColorLimit, ViewFavorites, SharedWith, MessageReadPermission, IsUser,
     IsSubject,
-    SubmissionTagPermission, IsRegistered, AccountAge)
+    SubmissionTagPermission, IsRegistered, AccountAge, AccountCurrentPermission)
 from apps.profiles.serializers import (
     CharacterSerializer, SubmissionSerializer, UserSerializer,
     RegisterSerializer, SubmissionManagementSerializer, CredentialsSerializer, RefColorSerializer,
@@ -1062,7 +1062,7 @@ class FavoritesList(ListAPIView):
 
 class SubmissionList(ListCreateAPIView):
     serializer_class = SubmissionSerializer
-    permission_classes = [UserControls]
+    permission_classes = [UserControls, AccountCurrentPermission]
 
     def perform_create(self, serializer):
         self.check_object_permissions(self.request, self.request.subject)
@@ -1435,7 +1435,7 @@ class PasswordReset(GenericAPIView):
             )
         except User.DoesNotExist:
             raise ValidationError(
-                {'detail': ['This user does not exist or the token has expired. Please request a new reset link.']}
+                {'detail': 'This user does not exist or the token has expired. Please request a new reset link.'}
             )
         return user
 

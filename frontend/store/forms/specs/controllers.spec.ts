@@ -244,6 +244,28 @@ describe('Form and field controllers', () => {
     expect(controller.fields.age.errors).toEqual([])
     expect(controller.errors).toEqual(['This is a thing.'])
   })
+  it('Sets a general errors upon array error messages', async() => {
+    const success = jest.fn()
+    const controller = new FormController({
+      store,
+      propsData: {
+        initName: 'example',
+        schema: {
+          endpoint: '/endpoint/',
+          fields: {name: {value: 'Fox'}, age: {value: 20}},
+        },
+      },
+    },
+    )
+    controller.submitThen(success).then()
+    store.dispatch('forms/submit', {name: 'example'}).then()
+    mockAxios.mockError!({response: {data: ['This is a thing.']}})
+    await flushPromises()
+    expect(success).toHaveBeenCalledTimes(0)
+    expect(controller.fields.age.value).toBe(20)
+    expect(controller.fields.age.errors).toEqual([])
+    expect(controller.errors).toEqual(['This is a thing.'])
+  })
   it('Sets general errors upon a non-json error response', async() => {
     const success = jest.fn()
     const controller = new FormController({
@@ -769,6 +791,24 @@ describe('Form and field controllers', () => {
     controller.forceValidate()
     await flushPromises()
     expect(controller.errors).toEqual(['Too low.', 'You\'ve got to be at least 25.', 'I failed!'])
+  })
+  it('Gets and sets initial data on a field', async() => {
+    formRegistry.validators.min = min
+    formRegistry.asyncValidators.alwaysFail = alwaysFail
+    store.commit('forms/initForm', {
+      name: 'example',
+      fields: {
+        name: {value: 'Fox'},
+        age: {
+          value: 20,
+        },
+      },
+      endpoint: '/test/endpoint/',
+    })
+    const controller = new FieldController({store, propsData: {formName: 'example', fieldName: 'age'}})
+    expect(controller.initialData).toBe(20)
+    controller.initialData = 15
+    expect(state.example.fields.age.initialData).toBe(15)
   })
   it('Gives useful error message on unknown sync validator', async() => {
     store.commit('forms/initForm', {

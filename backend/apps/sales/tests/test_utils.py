@@ -1,38 +1,51 @@
 import uuid
-from datetime import date
 from decimal import Decimal
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
+import ddt
+from dateutil.relativedelta import relativedelta
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError
-from django.db.models import Sum
-from django.test import TestCase
+from django.db.models import Sum, Q
+from django.test import TestCase, override_settings
+from django.utils import timezone
 from freezegun import freeze_time
 from moneyed import Money
+from rest_framework.exceptions import ValidationError
+from short_stuff import gen_shortcode
 
-from apps.lib.models import Notification, ORDER_UPDATE, Subscription, COMMISSIONS_OPEN
-from apps.lib.test_resources import SignalsDisabledMixin
-from apps.lib.tests.test_utils import EnsurePlansMixin
+from apps.lib.models import Notification, ORDER_UPDATE, Subscription, ref_for_instance
+from apps.lib.test_resources import SignalsDisabledMixin, EnsurePlansMixin
 from apps.profiles.models import User
 from apps.profiles.tests.factories import UserFactory
-from apps.sales.models import TransactionRecord, LineItemSim, CANCELLED, IN_PROGRESS, SHIELD
-from apps.sales.tests.factories import TransactionRecordFactory, OrderFactory, ProductFactory, DeliverableFactory, \
-    RevisionFactory, ReferenceFactory, InvoiceFactory, LineItemFactory
+from apps.sales.constants import IN_PROGRESS, CANCELLED, SUCCESS, UNPROCESSED_EARNINGS, ESCROW, CARD, ACH_MISC_FEES, \
+    RESERVE, FAILURE, SHIELD, COMPLETED, VOID, PROCESSING, LIMBO, NEW, HOLDINGS
+from apps.sales.models import TransactionRecord, LineItemSim
+from apps.sales.tests.factories import InvoiceFactory, ServicePlanFactory
+from apps.sales.tests.factories import TransactionRecordFactory, ProductFactory, DeliverableFactory, \
+    RevisionFactory, ReferenceFactory, OrderFactory, LineItemFactory
 from apps.sales.utils import claim_order_by_token, \
-    check_charge_required, available_products, set_premium, account_balance, POSTED_ONLY, PENDING, lines_by_priority, \
-    get_totals, reckon_lines, destroy_deliverable, divide_amount, freeze_line_items
+    available_products, account_balance, POSTED_ONLY, PENDING, destroy_deliverable, get_claim_token, fetch_prefixed, \
+    verify_total, \
+    default_deliverable, from_remote_id, credit_referral, initialize_tip_invoice, invoice_post_payment, \
+    update_downstream_pricing, set_service_plan, reverse_record
+from apps.sales.line_item_funcs import to_distribute, divide_amount
+from apps.sales.utils import freeze_line_items
+from apps.sales.views.tests.fixtures.stripe_fixtures import base_charge_succeeded_event
 
 
-class BalanceTestCase(SignalsDisabledMixin, TestCase):
+class BalanceTestCase(EnsurePlansMixin, SignalsDisabledMixin, TestCase):
     def setUp(self):
+        super().setUp()
         user1 = UserFactory.create(username='Fox')
         user2 = UserFactory.create(username='Cat')
         transaction = TransactionRecordFactory.create(
             card=None,
             payer=user1,
             payee=user2,
-            source=TransactionRecord.CARD,
-            destination=TransactionRecord.ESCROW,
+            source=CARD,
+            destination=ESCROW,
             amount=Money('10.00', 'USD')
         )
         user1, user2 = transaction.payer, transaction.payee
@@ -41,65 +54,98 @@ class BalanceTestCase(SignalsDisabledMixin, TestCase):
             payer=user1,
             payee=user2,
             amount=Money('5.00', 'USD'),
-            source=TransactionRecord.RESERVE,
-            destination=TransactionRecord.ESCROW,
+            source=RESERVE,
+            destination=ESCROW,
         )
         TransactionRecordFactory.create(
             card=None,
             payer=user2,
             payee=user1,
-            source=TransactionRecord.ESCROW,
-            destination=TransactionRecord.ACH_MISC_FEES,
+            source=ESCROW,
+            destination=ACH_MISC_FEES,
             amount=Money('3.00', 'USD'),
-            status=TransactionRecord.PENDING,
+            status=PENDING,
         )
         TransactionRecordFactory.create(
             card=None,
             payer=user2,
             payee=user1,
-            source=TransactionRecord.ESCROW,
-            destination=TransactionRecord.ACH_MISC_FEES,
+            source=ESCROW,
+            destination=ACH_MISC_FEES,
             amount=Money('3.00', 'USD'),
-            status=TransactionRecord.FAILURE,
+            status=FAILURE,
         )
         TransactionRecordFactory.create(
             card=None,
             payer=user2,
             payee=None,
-            source=TransactionRecord.ESCROW,
-            destination=TransactionRecord.ACH_MISC_FEES,
+            source=ESCROW,
+            destination=ACH_MISC_FEES,
             amount=Money('0.50', 'USD'),
-            status=TransactionRecord.SUCCESS,
+            status=SUCCESS,
         )
         self.user1 = User.objects.get(username='Fox')
         self.user2 = User.objects.get(username='Cat')
-        super().setUp()
 
     def test_account_balance_available(self):
-        self.assertEqual(account_balance(self.user2, TransactionRecord.ESCROW), Decimal('11.50'))
-        self.assertEqual(account_balance(self.user1, TransactionRecord.RESERVE), Decimal('-5.00'))
-        self.assertEqual(account_balance(None, TransactionRecord.ACH_MISC_FEES), Decimal('0.50'))
+        self.assertEqual(account_balance(self.user2, ESCROW), Decimal('11.50'))
+        self.assertEqual(account_balance(self.user1, RESERVE), Decimal('-5.00'))
+        self.assertEqual(account_balance(None, ACH_MISC_FEES), Decimal('0.50'))
 
     def test_account_balance_posted(self):
-        self.assertEqual(account_balance(self.user2, TransactionRecord.ESCROW, POSTED_ONLY), Decimal('14.50'))
-        self.assertEqual(account_balance(self.user1, TransactionRecord.RESERVE, POSTED_ONLY), Decimal('-5.00'))
-        self.assertEqual(account_balance(None, TransactionRecord.ACH_MISC_FEES, POSTED_ONLY), Decimal('0.50'))
+        self.assertEqual(account_balance(self.user2, ESCROW, POSTED_ONLY), Decimal('14.50'))
+        self.assertEqual(account_balance(self.user1, RESERVE, POSTED_ONLY), Decimal('-5.00'))
+        self.assertEqual(account_balance(None, ACH_MISC_FEES, POSTED_ONLY), Decimal('0.50'))
 
     def test_account_balance_pending(self):
-        self.assertEqual(account_balance(self.user2, TransactionRecord.ESCROW, PENDING), Decimal('-3.00'))
-        self.assertEqual(account_balance(self.user1, TransactionRecord.RESERVE, PENDING), Decimal('0.00'))
-        self.assertEqual(account_balance(None, TransactionRecord.ACH_MISC_FEES, PENDING), Decimal('0.00'))
-        self.assertEqual(account_balance(self.user1, TransactionRecord.ACH_MISC_FEES, PENDING), Decimal('3.00'))
+        self.assertEqual(account_balance(self.user2, ESCROW, PENDING), Decimal('-3.00'))
+        self.assertEqual(account_balance(self.user1, RESERVE, PENDING), Decimal('0.00'))
+        self.assertEqual(account_balance(None, ACH_MISC_FEES, PENDING), Decimal('0.00'))
+        self.assertEqual(account_balance(self.user1, ACH_MISC_FEES, PENDING), Decimal('3.00'))
+
+    def test_nonsense_balance(self):
+        with self.assertRaises(TypeError):
+            account_balance(self.user2, ESCROW, 50)
 
 
-class TestClaim(TestCase):
-    def test_order_claim(self):
+class TestClaim(EnsurePlansMixin, TestCase):
+    def test_order_claim_no_token(self):
         user = UserFactory.create()
         order = DeliverableFactory.create(order__buyer=None).order
         claim_order_by_token(str(order.claim_token), user)
         order.refresh_from_db()
         self.assertEqual(order.buyer, user)
         self.assertIsNone(order.claim_token)
+
+    def test_order_claim_already_claimed_and_registered(self):
+        user = UserFactory.create()
+        order = DeliverableFactory.create(order__buyer=user).order
+        order.claim_token = gen_shortcode()
+        order.save()
+        with self.assertRaises(AssertionError):
+            claim_order_by_token(str(order.claim_token), user)
+        order.refresh_from_db()
+        self.assertEqual(order.buyer, user)
+        self.assertIsNone(order.claim_token)
+
+    def test_order_claim_from_guest(self):
+        guest = UserFactory.create(guest=True)
+        user = UserFactory.create()
+        order = DeliverableFactory.create(order__buyer=guest).order
+        claim_order_by_token(str(order.claim_token), user)
+        order.refresh_from_db()
+        self.assertEqual(order.buyer, user)
+        self.assertIsNone(order.claim_token)
+
+    def test_force_claim(self):
+        user = UserFactory.create()
+        order = DeliverableFactory.create(order__buyer=user, order__claim_token=gen_shortcode()).order
+        Subscription.objects.filter(content_type=ContentType.objects.get_for_model(order), object_id=order.id).delete()
+        claim_order_by_token(str(order.claim_token), user, force=True)
+        order.refresh_from_db()
+        self.assertEqual(order.buyer, user)
+        self.assertIsNone(order.claim_token)
+        Subscription.objects.filter(content_type=ContentType.objects.get_for_model(order), object_id=order.id).exists()
 
     def test_order_claim_fail_self(self):
         user = UserFactory.create()
@@ -144,14 +190,7 @@ class TestClaim(TestCase):
         self.assertEqual(notification.event.target, deliverable)
 
 
-class TestCheckChargeRequired(EnsurePlansMixin, TestCase):
-    @freeze_time('2018-02-10 12:00:00')
-    def test_check_charge_not_required_landscape(self):
-        user = UserFactory.create(service_plan_paid_through=date(2018, 2, 12), service_plan=self.landscape)
-        self.assertEqual(check_charge_required(user), (False, date(2018, 2, 12)))
-
-
-class TestAvailableProducts(TestCase):
+class TestAvailableProducts(EnsurePlansMixin, TestCase):
     # Basic smoke tests. Can be expanded if stuff breaks, but most of this functionality is tested elsewhere.
     def test_available_products(self):
         user = UserFactory.create()
@@ -164,444 +203,7 @@ class TestAvailableProducts(TestCase):
         self.assertIn('ORDER BY', str(available_products(user).query))
 
 
-class TestLineCalculations(TestCase):
-    maxDiff = None
-
-    def test_line_sort(self):
-        lines = [
-            LineItemSim(amount=Money('5', 'USD'), priority=0, id=1),
-            LineItemSim(amount=Money('6', 'USD'), priority=1, id=2),
-            LineItemSim(amount=Money('7', 'USD'), priority=2, id=3),
-            LineItemSim(amount=Money('8', 'USD'), priority=2, id=4),
-            LineItemSim(amount=Money('9', 'USD'), priority=1, id=5),
-            LineItemSim(amount=Money('10', 'USD'), priority=-1, id=6),
-        ]
-        priority_set = lines_by_priority(lines)
-        expected_result = [
-            [LineItemSim(amount=Money('10', 'USD'), priority=-1, id=6)],
-            [LineItemSim(amount=Money('5', 'USD'), priority=0, id=1)],
-            [
-                LineItemSim(amount=Money('6', 'USD'), priority=1, id=2),
-                LineItemSim(amount=Money('9', 'USD'), priority=1, id=5),
-            ],
-            [
-                LineItemSim(amount=Money('7', 'USD'), priority=2, id=3),
-                LineItemSim(amount=Money('8', 'USD'), priority=2, id=4),
-            ],
-        ]
-        self.assertEqual(
-            priority_set,
-            expected_result,
-        )
-
-    def test_get_totals_single_line(self):
-        source = [LineItemSim(amount=Money('10.00', 'USD'), priority=0, id=1)]
-        result = get_totals(source)
-        self.assertEqual(
-            result,
-            (
-                Money('10.00', 'USD'),
-                Money('0.00', 'USD'),
-                {LineItemSim(amount=Money('10.00', 'USD'), priority=0, id=1): Money('10.00', 'USD')},
-            ),
-        )
-        self.assertEqual(result[0], sum(result[2].values()))
-
-    def test_get_totals_percentage_line(self):
-        source = [
-            LineItemSim(amount=Money('10.00', 'USD'), priority=0, id=1),
-            LineItemSim(percentage=Decimal(10), priority=1, id=2),
-        ]
-        result = get_totals(source)
-        self.assertEqual(
-            result,
-            (
-                Money('11.00', 'USD'),
-                Money('0.00', 'USD'),
-                {
-                    LineItemSim(amount=Money('10.00', 'USD'), priority=0, id=1): Money('10.00', 'USD'),
-                    LineItemSim(percentage=Decimal(10), priority=1, id=2): Money('1.00', 'USD'),
-                },
-            ),
-        )
-        self.assertEqual(result[0], sum(result[2].values()))
-
-    def test_get_totals_percentage_cascade(self):
-        source = [
-            LineItemSim(amount=Money('10.00', 'USD'), priority=0, id=1),
-            LineItemSim(percentage=Decimal(10), priority=1, cascade_percentage=True, id=2),
-        ]
-        result = get_totals(source)
-        self.assertEqual(
-            result,
-            (
-                Money('10.00', 'USD'),
-                Money('0.00', 'USD'),
-                {
-                    LineItemSim(amount=Money('10.00', 'USD'), priority=0, id=1): Money('9.00', 'USD'),
-                    LineItemSim(
-                        percentage=Decimal(10), priority=1, cascade_percentage=True, id=2,
-                    ): Money('1.00', 'USD'),
-                },
-            ),
-        )
-        self.assertEqual(result[0], sum(result[2].values()))
-
-    def test_get_totals_percentage_backed_in_cascade(self):
-        source = [
-            LineItemSim(amount=Money('10.00', 'USD'), priority=0, id=1),
-            LineItemSim(percentage=Decimal(10), priority=1, cascade_percentage=True, back_into_percentage=True, id=2),
-        ]
-        result = get_totals(source)
-        self.assertEqual(
-            result,
-            (
-                Money('10.00', 'USD'),
-                Money('0.00', 'USD'),
-                {
-                    LineItemSim(amount=Money('10.00', 'USD'), priority=0, id=1): Money('9.09', 'USD'),
-                    LineItemSim(
-                        percentage=Decimal(10), priority=1, cascade_percentage=True, back_into_percentage=True, id=2,
-                    ):
-                        Money('0.91', 'USD'),
-                },
-            ),
-        )
-        self.assertEqual(result[0], sum(result[2].values()))
-
-    def test_get_totals_percentage_with_static(self):
-        source = [
-            LineItemSim(amount=Money('10.00', 'USD'), priority=0, id=1),
-            LineItemSim(percentage=Decimal(10), amount=Money('.25', 'USD'), priority=1, id=2),
-        ]
-        result = get_totals(source)
-        self.assertEqual(
-            result,
-            (
-                Money('11.25', 'USD'),
-                Money('0.00', 'USD'),
-                {
-                    LineItemSim(amount=Money('10.00', 'USD'), priority=0, id=1): Money('10.00', 'USD'),
-                    LineItemSim(
-                        percentage=Decimal(10), amount=Money('.25', 'USD'), priority=1,
-                        id=2,
-                    ): Money('1.25', 'USD'),
-                },
-            ),
-        )
-        self.assertEqual(result[0], sum(result[2].values()))
-
-    def test_get_totals_percentage_with_static_cascade(self):
-        source = [
-            LineItemSim(amount=Money('10.00', 'USD'), priority=0, id=1),
-            LineItemSim(
-                percentage=Decimal(10), amount=Money('.25', 'USD'), priority=1, cascade_percentage=True,
-                cascade_amount=True, id=2,
-            ),
-        ]
-        result = get_totals(source)
-        self.assertEqual(
-            result,
-            (
-                Money('10.00', 'USD'),
-                Money('0.00', 'USD'),
-                {
-                    LineItemSim(amount=Money('10.00', 'USD'), priority=0, id=1): Money('8.75', 'USD'),
-                    LineItemSim(
-                        percentage=Decimal(10), amount=Money('.25', 'USD'), priority=1, cascade_percentage=True,
-                        cascade_amount=True, id=2,
-                    ): Money('1.25', 'USD'),
-                },
-            ),
-        )
-        self.assertEqual(result[0], sum(result[2].values()))
-
-    def test_get_totals_percentage_no_cascade_amount(self):
-        source = [
-            LineItemSim(amount=Money('10.00', 'USD'), priority=0, id=1),
-            LineItemSim(
-                percentage=Decimal(10), amount=Money('.25', 'USD'), priority=1, cascade_percentage=True,
-                cascade_amount=False, id=2,
-            ),
-        ]
-        result = get_totals(source)
-        self.assertEqual(
-            result,
-            (
-                Money('10.25', 'USD'),
-                Money('0.00', 'USD'),
-                {
-                    LineItemSim(amount=Money('10.00', 'USD'), priority=0, id=1): Money('9.00', 'USD'),
-                    LineItemSim(
-                        percentage=Decimal(10), amount=Money('.25', 'USD'), priority=1, cascade_percentage=True,
-                        cascade_amount=False, id=2,
-                    ): Money('1.25', 'USD'),
-                },
-            ),
-        )
-        self.assertEqual(result[0], sum(result[2].values()))
-
-    def test_get_totals_concurrent_priorities(self):
-        source = [
-            LineItemSim(amount=Money('10.00', 'USD'), priority=0, id=1),
-            LineItemSim(percentage=Decimal(10), priority=1, id=2),
-            LineItemSim(percentage=Decimal(5), priority=1, id=3),
-        ]
-        result = get_totals(source)
-        self.assertEqual(
-            result,
-            (
-                Money('11.50', 'USD'),
-                Money('0.00', 'USD'),
-                {
-                    LineItemSim(amount=Money('10.00', 'USD'), priority=0, id=1): Money('10.00', 'USD'),
-                    LineItemSim(percentage=Decimal(10), priority=1, id=2): Money('1.00', 'USD'),
-                    LineItemSim(percentage=Decimal(5), priority=1, id=3): Money('.50', 'USD'),
-                },
-            ),
-        )
-        self.assertEqual(result[0], sum(result[2].values()))
-
-    def test_get_totals_concurrent_priorities_cascade(self):
-        source = [
-            LineItemSim(amount=Money('10.00', 'USD'), priority=0, id=1),
-            LineItemSim(percentage=Decimal(10), priority=1, cascade_percentage=True, id=2),
-            LineItemSim(percentage=Decimal(5), priority=1, cascade_percentage=True, id=3),
-        ]
-        result = get_totals(source)
-        self.assertEqual(
-            result,
-            (
-                Money('10.00', 'USD'),
-                Money('0.00', 'USD'),
-                {
-                    LineItemSim(amount=Money('10.00', 'USD'), priority=0, id=1): Money('8.50', 'USD'),
-                    LineItemSim(
-                        percentage=Decimal(10), priority=1, cascade_percentage=True, id=2,
-                    ): Money('1.00', 'USD'),
-                    LineItemSim(percentage=Decimal(5), priority=1, cascade_percentage=True, id=3): Money('.50', 'USD'),
-                },
-            ),
-        )
-        self.assertEqual(result[0], sum(result[2].values()))
-
-    def test_get_totals_multi_priority_cascade(self):
-        source = [
-            LineItemSim(amount=Money('10.00', 'USD'), priority=0, id=1),
-            LineItemSim(percentage=Decimal(20), priority=1, cascade_percentage=True, id=2),
-            LineItemSim(percentage=Decimal(10), priority=2, cascade_percentage=True, id=3),
-        ]
-        result = get_totals(source)
-        self.assertEqual(
-            result,
-            (
-                Money('10.00', 'USD'),
-                Money('0.00', 'USD'),
-                {
-                    LineItemSim(amount=Money('10.00', 'USD'), priority=0, id=1): Money('7.20', 'USD'),
-                    LineItemSim(
-                        percentage=Decimal(20), priority=1, cascade_percentage=True, id=2,
-                    ): Money('1.80', 'USD'),
-                    # Level 2 pulls from both lower levels to get its total.
-                    LineItemSim(
-                        percentage=Decimal(10), priority=2, cascade_percentage=True, id=3,
-                    ): Money('1.00', 'USD'),
-                },
-            ),
-        )
-        self.assertEqual(result[0], sum(result[2].values()))
-
-    def test_get_totals_multi_priority_cascade_on_concurrent_priority(self):
-        source = [
-            LineItemSim(amount=Money('2.00', 'USD'), priority=0, id=1),
-            LineItemSim(amount=Money('8.00', 'USD'), priority=0, id=2),
-            LineItemSim(percentage=Decimal(20), priority=1, cascade_percentage=True, id=3),
-            LineItemSim(percentage=Decimal(10), priority=2, cascade_percentage=True, id=4),
-        ]
-        result = get_totals(source)
-        self.assertEqual(
-            result,
-            (
-                Money('10.00', 'USD'),
-                Money('0.00', 'USD'),
-                {
-                    LineItemSim(amount=Money('2.00', 'USD'), priority=0, id=1): Money('1.44', 'USD'),
-                    LineItemSim(amount=Money('8.00', 'USD'), priority=0, id=2): Money('5.76', 'USD'),
-                    LineItemSim(
-                        percentage=Decimal(20), priority=1, cascade_percentage=True, id=3,
-                    ): Money('1.80', 'USD'),
-                    LineItemSim(
-                        percentage=Decimal(10), priority=2, cascade_percentage=True, id=4,
-                    ): Money('1.00', 'USD'),
-                },
-            ),
-        )
-        self.assertEqual(result[0], sum(result[2].values()))
-
-    def test_fixed_point_decisions(self):
-        source = [
-            LineItemSim(amount=Money('100', 'USD'), priority=0, id=1),
-            LineItemSim(amount=Money('5.00', 'USD'), priority=100, id=2),
-            LineItemSim(
-                amount=Money('5.00', 'USD'), percentage=Decimal(10), cascade_percentage=True, priority=300, id=3,
-            ),
-            LineItemSim(percentage=Decimal('8.25'), cascade_percentage=True, priority=600, id=4)
-        ]
-        result = get_totals(source)
-        self.assertEqual(
-            result,
-            (
-                Money('110.00', 'USD'),
-                Money('0.00', 'USD'),
-                {
-                    LineItemSim(amount=Money('100', 'USD'), priority=0, id=1): Money('82.58', 'USD'),
-                    LineItemSim(amount=Money('5.00', 'USD'), priority=100, id=2): Money('4.13', 'USD'),
-                    LineItemSim(
-                        amount=Money('5.00', 'USD'), percentage=Decimal(10), cascade_percentage=True, priority=300,
-                        id=3,
-                    ): Money('14.22', 'USD'),
-                    LineItemSim(
-                        percentage=Decimal('8.25'), cascade_percentage=True, priority=600, id=4,
-                    ): Money('9.07', 'USD'),
-                }
-            )
-        )
-        self.assertEqual(result[0], sum(result[2].values()))
-
-    def test_fixed_point_calculations_2(self):
-        source = [
-            LineItemSim(amount=Money('20', 'USD'), priority=0, id=1),
-            LineItemSim(amount=Money('10.00', 'USD'), priority=100, id=2),
-            LineItemSim(
-                amount=Money('5.00', 'USD'), percentage=Decimal(10), cascade_percentage=True, priority=300, id=3,
-            ),
-            LineItemSim(percentage=Decimal('8.25'), cascade_percentage=True, priority=600, id=4)
-        ]
-        result = get_totals(source)
-        self.assertEqual(
-            result,
-            (
-                Money('35.00', 'USD'),
-                Money('0.00', 'USD'),
-                {
-                    LineItemSim(amount=Money('20', 'USD'), priority=0, id=1): Money('16.51', 'USD'),
-                    LineItemSim(amount=Money('10.00', 'USD'), priority=100, id=2): Money('8.26', 'USD'),
-                    LineItemSim(
-                        amount=Money('5.00', 'USD'), percentage=Decimal(10), cascade_percentage=True, priority=300, id=3,
-                    ): Money('7.34', 'USD'),
-                    LineItemSim(
-                        percentage=Decimal('8.25'), cascade_percentage=True, priority=600, id=4,
-                    ): Money('2.89', 'USD'),
-                }
-            )
-        )
-        self.assertEqual(result[0], sum(result[2].values()))
-
-    def test_fixed_point_calculations_3(self):
-        source = [
-            LineItemSim(amount=Money('20', 'USD'), priority=0, id=1),
-            LineItemSim(amount=Money('5.00', 'USD'), priority=100, id=2),
-            LineItemSim(
-                amount=Money('5.00', 'USD'), percentage=Decimal(10), cascade_percentage=True, priority=300, id=3,
-            ),
-            LineItemSim(percentage=Decimal('8.25'), cascade_percentage=True, priority=600, id=4)
-        ]
-        result = get_totals(source)
-        self.assertEqual(
-            result,
-            (
-                Money('30.00', 'USD'),
-                Money('0.00', 'USD'),
-                {
-                    LineItemSim(amount=Money('20', 'USD'), priority=0, id=1): Money('16.52', 'USD'),
-                    LineItemSim(amount=Money('5.00', 'USD'), priority=100, id=2): Money('4.13', 'USD'),
-                    LineItemSim(
-                        amount=Money('5.00', 'USD'), percentage=Decimal(10), cascade_percentage=True, priority=300, id=3,
-                    ): Money('6.88', 'USD'),
-                    LineItemSim(
-                        percentage=Decimal('8.25'), cascade_percentage=True, priority=600, id=4,
-                    ): Money('2.47', 'USD'),
-                }
-            )
-        )
-        self.assertEqual(result[0], sum(result[2].values()))
-
-    def test_reckon_lines(self):
-        source = [
-            LineItemSim(amount=Money('1.00', 'USD'), priority=0, id=1),
-            LineItemSim(amount=Money('5.00', 'USD'), priority=1, id=2),
-            LineItemSim(amount=Money('4.00', 'USD'), priority=2, id=3),
-        ]
-        self.assertEqual(reckon_lines(source), Money('10.00', 'USD'))
-
-    def test_complex_discount(self):
-        source = [
-            LineItemSim(amount=Money('0.01', 'USD'), priority=0, id=1),
-            LineItemSim(amount=Money('0.01', 'USD'), priority=100, id=2),
-            LineItemSim(amount=Money('0.01', 'USD'), priority=100, id=3),
-            LineItemSim(amount=Money('-5.00', 'USD'), priority=100, id=4),
-            LineItemSim(amount=Money('10.00', 'USD'), priority=100, id=5),
-            LineItemSim(
-                amount=Money('.75', 'USD'),
-                percentage=Decimal('8'),
-                cascade_percentage=True,
-                cascade_amount=True,
-                priority=300,
-                id=6,
-            ),
-        ]
-        result = get_totals(source)
-        result = list(result)
-        result[2] = list(sorted(result[2].items(), key=lambda x: x[0].id))
-        self.assertEqual(
-            result,
-            [
-                Money('5.03', 'USD'),
-                Money('-5.00', 'USD'),
-                [
-                    (LineItemSim(amount=Money('0.01', 'USD'), priority=0, id=1), Money('0.01', 'USD')),
-                    (LineItemSim(amount=Money('0.01', 'USD'), priority=100, id=2), Money('0.01', 'USD')),
-                    (LineItemSim(amount=Money('0.01', 'USD'), priority=100, id=3), Money('0.01', 'USD')),
-                    (LineItemSim(amount=Money('-5.00', 'USD'), priority=100, id=4), Money('-5.00', 'USD')),
-                    (LineItemSim(amount=Money('10.00', 'USD'), priority=100, id=5), Money('8.85', 'USD')),
-                    (LineItemSim(
-                        amount=Money('.75', 'USD'),
-                        percentage=Decimal('8'),
-                        priority=300,
-                        cascade_amount=True,
-                        cascade_percentage=True,
-                        id=6,
-                    ), Money('1.15', 'USD')),
-                ]
-            ]
-        )
-
-    def test_zero_total(self):
-        source = [
-            LineItemSim(amount=Money('0', 'USD'), priority=0, id=1),
-            LineItemSim(amount=Money('8', 'USD'), cascade_percentage=True, cascade_amount=True, priority=100, id=2),
-        ]
-        result = get_totals(source)
-        self.assertEqual(
-            result,
-            (
-                Money('0.00', 'USD'),
-                Money('0.00', 'USD'),
-                {
-                    LineItemSim(amount=Money('0', 'USD'), priority=0, id=1): Money('0', 'USD'),
-                    LineItemSim(
-                        amount=Money('8.00', 'USD'),
-                        cascade_percentage=True,
-                        cascade_amount=True,
-                        priority=100,
-                        id=2,
-                    ): Money('8.00', 'USD'),
-                }
-            )
-        )
-
-
-class TestFreezeLineItems(TestCase):
+class TestFreezeLineItems(EnsurePlansMixin, TestCase):
     def test_freezes_values(self):
         invoice = InvoiceFactory.create()
         source = [
@@ -624,99 +226,64 @@ class TestFreezeLineItems(TestCase):
         freeze_line_items(invoice)
         for line_item in source:
             line_item.refresh_from_db()
-        self.assertEqual(source[0].frozen_value, Money('0.01', 'USD'))
-        self.assertEqual(source[1].frozen_value, Money('0.01', 'USD'))
+        self.assertEqual(source[0].frozen_value, Money('0.00', 'USD'))
+        self.assertEqual(source[1].frozen_value, Money('0.00', 'USD'))
         self.assertEqual(source[2].frozen_value, Money('0.01', 'USD'))
         self.assertEqual(source[3].frozen_value, Money('-5.00', 'USD'))
-        self.assertEqual(source[4].frozen_value, Money('8.85', 'USD'))
-        self.assertEqual(source[5].frozen_value, Money('1.15', 'USD'))
-
-
-class TestMoneyHelpers(TestCase):
-    def test_divide_amount(self):
-        self.assertEqual(
-            divide_amount(Money('10', 'USD'), 3),
-            [Money('3.34', 'USD'), Money('3.33', 'USD'), Money('3.33', 'USD')],
-        )
-        self.assertEqual(
-            divide_amount(Money('10.01', 'USD'), 3),
-            [Money('3.34', 'USD'), Money('3.34', 'USD'), Money('3.33', 'USD')],
-        )
-        self.assertEqual(
-            divide_amount(Money('10.02', 'USD'), 3),
-            [Money('3.34', 'USD'), Money('3.34', 'USD'), Money('3.34', 'USD')],
-        )
-        self.assertEqual(
-            divide_amount(Money('10.03', 'USD'), 3),
-            [Money('3.35', 'USD'), Money('3.34', 'USD'), Money('3.34', 'USD')],
-        )
-
-    def test_divide_non_subunit(self):
-        self.assertEqual(
-            divide_amount(Money('10000', 'SUR'), 3),
-            [Money('3334', 'SUR'), Money('3333', 'SUR'), Money('3333', 'SUR')],
-        )
-        self.assertEqual(
-            divide_amount(Money('10001', 'SUR'), 3),
-            [Money('3334', 'SUR'), Money('3334', 'SUR'), Money('3333', 'SUR')],
-        )
-        self.assertEqual(
-            divide_amount(Money('10002', 'SUR'), 3),
-            [Money('3334', 'SUR'), Money('3334', 'SUR'), Money('3334', 'SUR')],
-        )
-        self.assertEqual(
-            divide_amount(Money('10003', 'SUR'), 3),
-            [Money('3335', 'SUR'), Money('3334', 'SUR'), Money('3334', 'SUR')],
-        )
+        self.assertEqual(source[4].frozen_value, Money('8.86', 'USD'))
+        self.assertEqual(source[5].frozen_value, Money('1.16', 'USD'))
 
 
 class TransactionCheckMixin:
     def check_transactions(
-            self, deliverable, user, remote_id='36985214745', source=TransactionRecord.CARD,
+            self, deliverable, user, remote_id='36985214745', source=CARD,
             landscape=False,
     ):
         escrow_transactions = TransactionRecord.objects.filter(
-            source=source, destination=TransactionRecord.ESCROW,
+            source=source, destination=ESCROW,
         )
         if remote_id:
             escrow_transactions = escrow_transactions.filter(remote_ids__contains=remote_id)
         else:
             escrow_transactions = escrow_transactions.filter(remote_ids=[])
-        if landscape:
-            bonus, escrow = escrow_transactions.order_by('amount')
-            self.assertEqual(bonus.status, TransactionRecord.SUCCESS)
-            self.assertEqual(bonus.amount, Money('.73', 'USD'))
-            self.assertEqual(bonus.payee, deliverable.order.seller)
-            self.assertEqual(bonus.payer, user)
-        else:
-            escrow = escrow_transactions.get()
+        escrow = escrow_transactions.get()
         self.assertEqual(escrow.targets.filter(content_type__model='deliverable').get().target, deliverable)
         self.assertEqual(escrow.targets.filter(content_type__model='invoice').get().target, deliverable.invoice)
-        self.assertEqual(escrow.amount, Money('10.29', 'USD'))
+        if landscape:
+            self.assertEqual(escrow.amount, Money('11.01', 'USD'))
+        else:
+            self.assertEqual(escrow.amount, Money('10.28', 'USD'))
         self.assertEqual(escrow.payer, user)
         self.assertEqual(escrow.payee, deliverable.order.seller)
 
-        fee_candidates = TransactionRecord.objects.filter(
+        shield_fee_candidates = TransactionRecord.objects.filter(
             source=source,
-            destination=TransactionRecord.UNPROCESSED_EARNINGS,
+            destination=UNPROCESSED_EARNINGS,
         )
         if remote_id:
-            fee_candidates = fee_candidates.filter(remote_ids__contains=remote_id)
+            shield_fee_candidates = shield_fee_candidates.filter(remote_ids__contains=remote_id)
         else:
-            fee_candidates = fee_candidates.filter(remote_ids=[])
-        fee = fee_candidates.get()
-        self.assertEqual(fee.status, TransactionRecord.SUCCESS)
-        self.assertEqual(fee.targets.filter(content_type__model='deliverable').get().target, deliverable)
-        self.assertEqual(fee.targets.filter(content_type__model='invoice').get().target, deliverable.invoice)
+            shield_fee_candidates = shield_fee_candidates.filter(remote_ids=[])
+        shield_fee = shield_fee_candidates.get()
+        self.assertEqual(shield_fee.status, SUCCESS)
+        self.assertEqual(shield_fee.targets.filter(content_type__model='deliverable').get().target, deliverable)
+        self.assertEqual(shield_fee.targets.filter(content_type__model='invoice').get().target, deliverable.invoice)
         if landscape:
-            self.assertEqual(fee.amount, Money('0.98', 'USD'))
+            self.assertEqual(shield_fee.amount, Money('0.99', 'USD'))
         else:
-            self.assertEqual(fee.amount, Money('1.71', 'USD'))
-        self.assertEqual(fee.payer, user)
-        self.assertIsNone(fee.payee)
-        self.assertEqual(TransactionRecord.objects.all().aggregate(total=Sum('amount'))['total'], Decimal('12.00'))
+            self.assertEqual(shield_fee.amount, Money('1.72', 'USD'))
+        if source == CARD:
+            card_fee = TransactionRecord.objects.get(payer=None, payee=None)
+            self.assertEqual(card_fee.amount, Money('.65', 'USD'))
+        self.assertEqual(shield_fee.payer, user)
+        self.assertIsNone(shield_fee.payee)
+        self.assertEqual(
+            TransactionRecord.objects.all().exclude(
+                Q(payer=None) & Q(payee=None)).aggregate(total=Sum('amount'))['total'], Decimal('12.00'),
+        )
 
-class TestDestroyDeliverable(TestCase):
+
+class TestDestroyDeliverable(EnsurePlansMixin, TestCase):
     def test_destroy_deliverable_fail_not_cancelled(self):
         deliverable = DeliverableFactory(status=IN_PROGRESS)
         self.assertRaises(IntegrityError, destroy_deliverable, deliverable)
@@ -759,3 +326,264 @@ class TestDestroyDeliverable(TestCase):
                 raise AssertionError(f'{name} was preserved when it should not have been!')
             except ObjectDoesNotExist:
                 continue
+
+
+class TestGetClaimToken(EnsurePlansMixin, TestCase):
+    def test_retrieve_existing(self):
+        uid = gen_shortcode()
+        order = OrderFactory.create(claim_token=uid)
+        get_claim_token(order)
+        self.assertEqual(uid, order.claim_token)
+
+    def test_no_generate_irrelevant_token(self):
+        order = OrderFactory.create()
+        self.assertIsNone(order.claim_token)
+        self.assertIsNone(get_claim_token(order))
+        order.refresh_from_db()
+        self.assertIsNone(order.claim_token)
+
+    def test_generate_token(self):
+        order = OrderFactory.create(buyer__guest=True)
+        self.assertIsNone(order.claim_token)
+        uid = get_claim_token(order)
+        self.assertIsNotNone(uid)
+        order.refresh_from_db()
+        self.assertEqual(order.claim_token, uid)
+
+
+FETCH_SCENARIOS = (
+    ('test_item', 'stuff_things', 'wat_do'),
+    ('test_item', 'test_things', 'wat_do'),
+    ('wat_do', 'test_item', 'test_things'),
+)
+
+
+@ddt.ddt
+class TestFetchPrefix(TestCase):
+    @ddt.data(*FETCH_SCENARIOS)
+    def test_prefix_fetched(self, id_list):
+        self.assertEqual(fetch_prefixed('test_', id_list), 'test_item')
+
+    def test_prefix_not_found(self):
+        with self.assertRaises(ValueError):
+            fetch_prefixed('wat', ['test_thing', 'wot'])
+
+
+class TestVerifyTotal(EnsurePlansMixin, TestCase):
+    def test_negative(self):
+        deliverable = DeliverableFactory.create(product__base_price=Money('5.00', 'USD'))
+        LineItemFactory.create(invoice=deliverable.invoice, amount=Money('-6.00', 'USD'))
+        with self.assertRaises(ValidationError):
+            verify_total(deliverable)
+
+    @override_settings(MINIMUM_PRICE=Money('100.00', 'USD'))
+    def test_below_minimum(self):
+        deliverable = DeliverableFactory.create(product__base_price=Money('5.00', 'USD'))
+        with self.assertRaises(ValidationError):
+            verify_total(deliverable)
+
+    @override_settings(MINIMUM_PRICE=Money('1.00', 'USD'))
+    def test_above_minimum(self):
+        deliverable = DeliverableFactory.create(product__base_price=Money('5.00', 'USD'))
+        verify_total(deliverable)
+
+    def test_zero(self):
+        deliverable = DeliverableFactory.create(product__base_price=Money('0.00', 'USD'))
+        self.assertEqual(deliverable.invoice.total(), Money('0.00', 'USD'))
+        verify_total(deliverable)
+
+
+class TestDefaultDeliverable(EnsurePlansMixin, TestCase):
+    def test_get_default_deliverable(self):
+        deliverable = DeliverableFactory.create()
+        self.assertEqual(default_deliverable(deliverable.order), deliverable)
+
+    def test_get_default_deliverable_multiple(self):
+        deliverable = DeliverableFactory.create()
+        DeliverableFactory.create(order=deliverable.order)
+        self.assertIsNone(default_deliverable(deliverable.order))
+
+
+class TestFromRemoteID(EnsurePlansMixin, TestCase):
+    # Most cases are covered in other tests, so we'll just check this one here:
+    def test_unsupported_status(self):
+        event = base_charge_succeeded_event()['data']['object']
+        event['status'] = 'pending'
+        post_success = MagicMock()
+        post_save = MagicMock()
+        initiate_transactions = MagicMock()
+        attempt = {'stripe_event': event, 'amount': Money('10.00', 'USD')}
+        success, transactions, message = from_remote_id(
+            amount=Money('10.00', 'USD'), attempt=attempt, context={}, remote_ids=['1234'],
+            user=UserFactory.create(), post_success=post_success, post_save=post_save,
+            initiate_transactions=initiate_transactions,
+        )
+        self.assertFalse(success)
+        self.assertEqual(transactions, [])
+        self.assertEqual(
+            message,
+            'Unhandled charge status, pending for remote_ids [\'1234\', \'txn_1Icyh5AhlvPza3BKKv8oUs3e\']',
+        )
+        post_success.assert_not_called()
+        initiate_transactions.assert_not_called()
+
+
+class TestCreditReferral(EnsurePlansMixin, TestCase):
+    def test_credit_referral_from_free(self):
+        user = UserFactory.create()
+        self.assertEqual(user.service_plan, self.free)
+        self.assertIsNone(user.service_plan_paid_through)
+        user2 = UserFactory.create(referred_by=user)
+        deliverable = DeliverableFactory.create(order__seller=user2)
+        deliverable.escrow_enabled = True
+        deliverable.save()
+        self.assertTrue(deliverable.escrow_enabled)
+        credit_referral(deliverable)
+        user.refresh_from_db()
+        self.assertEqual(user.service_plan, self.landscape)
+        self.assertTrue(user.service_plan_paid_through)
+        self.assertEqual(user.next_service_plan, self.free)
+
+    @freeze_time('2023-01-01')
+    def test_credit_referral_extends_landscape(self):
+        user = UserFactory.create(
+            service_plan=self.landscape, service_plan_paid_through=timezone.now().date(), next_service_plan=self.free,
+        )
+        # Quick sanity check.
+        self.assertEqual(user.service_plan, self.landscape)
+        self.assertEqual(user.next_service_plan, self.free)
+        user2 = UserFactory.create(referred_by=user)
+        deliverable = DeliverableFactory.create(order__seller=user2)
+        deliverable.escrow_enabled = True
+        deliverable.save()
+        credit_referral(deliverable)
+        user.refresh_from_db()
+        self.assertEqual(user.service_plan, self.landscape)
+        self.assertEqual(user.service_plan_paid_through, timezone.now().date() + relativedelta(months=1))
+        # Shouldn't affect next service plan.
+        self.assertEqual(user.next_service_plan, self.free)
+
+
+class TestInitializeTipInvoice(EnsurePlansMixin, TestCase):
+    @override_settings(PROCESSING_PERCENTAGE=Decimal('5'), INTERNATIONAL_CONVERSION_PERCENTAGE=Decimal('2'))
+    def test_issue_invoice_idempotent(self):
+        deliverable = DeliverableFactory.create(status=COMPLETED, finalized_on=timezone.now())
+        deliverable.order.seller.service_plan = self.landscape
+        deliverable.order.seller.save()
+        invoice = initialize_tip_invoice(deliverable)
+        self.assertTrue(invoice.id)
+        self.assertEqual(initialize_tip_invoice(deliverable), invoice)
+        line = invoice.line_items.filter(type=PROCESSING).get()
+        self.assertEqual(line.percentage, Decimal('5'))
+
+    def test_reissue_voice(self):
+        deliverable = DeliverableFactory.create(status=COMPLETED, finalized_on=timezone.now())
+        deliverable.order.seller.service_plan = self.landscape
+        deliverable.order.seller.save()
+        invoice = initialize_tip_invoice(deliverable)
+        invoice.status = VOID
+        invoice.save()
+        self.assertNotEqual(invoice, initialize_tip_invoice(deliverable))
+
+    @override_settings(PROCESSING_PERCENTAGE=Decimal('5'), INTERNATIONAL_CONVERSION_PERCENTAGE=Decimal('2'))
+    def test_international(self):
+        deliverable = DeliverableFactory.create(status=COMPLETED, finalized_on=timezone.now(), international=True)
+        deliverable.order.seller.service_plan = self.landscape
+        deliverable.order.seller.save()
+        invoice = initialize_tip_invoice(deliverable)
+        line = invoice.line_items.filter(type=PROCESSING).get()
+        self.assertEqual(line.percentage, Decimal('7'))
+
+
+class TestInvoicePostPayment(EnsurePlansMixin, TestCase):
+    def test_invoice_post_pay_wrong_amount(self):
+        deliverable = DeliverableFactory.create()
+        with self.assertRaises(AssertionError):
+            invoice_post_payment(deliverable.invoice, {'successful': True, 'amount': Money('100', 'USD')})
+
+
+class TestUpdateDownstreamPricing(EnsurePlansMixin, TestCase):
+    def test_product_and_deliverable_order(self):
+        product = ProductFactory.create(cascade_fees=False, escrow_enabled=True)
+        deliverable = DeliverableFactory.create(product=product, order__seller=product.user, cascade_fees=False)
+        original_product_price = product.starting_price
+        original_deliverable_price = deliverable.invoice.total()
+        service_plan = ServicePlanFactory(per_deliverable_price=Money('1.00', 'USD'))
+        product.user.service_plan = service_plan
+        product.user.save()
+        update_downstream_pricing(product.user)
+        product.refresh_from_db()
+        deliverable.refresh_from_db()
+        product_difference = product.starting_price - original_product_price
+        deliverable_difference = deliverable.invoice.total() - original_deliverable_price
+        self.assertTrue(product_difference)
+        self.assertTrue(deliverable_difference)
+
+
+class TestSetServicePlan(EnsurePlansMixin, TestCase):
+    def test_upgrade_makes_limbo_visible(self):
+        deliverable = DeliverableFactory.create(status=LIMBO)
+        visible_deliverable = DeliverableFactory.create(status=NEW, order__seller=deliverable.order.seller)
+        # Should make no change.
+        set_service_plan(deliverable.order.seller, self.free)
+        deliverable.refresh_from_db()
+        visible_deliverable.refresh_from_db()
+        self.assertEqual(deliverable.status, LIMBO)
+        self.assertEqual(visible_deliverable.status, NEW)
+        # Landscape has no order limit.
+        set_service_plan(deliverable.order.seller, self.landscape)
+        deliverable.refresh_from_db()
+        visible_deliverable.refresh_from_db()
+        self.assertEqual(deliverable.status, NEW)
+        self.assertEqual(visible_deliverable.status, NEW)
+
+    def test_upgrade_makes_limited_limbo_visible(self):
+        deliverable = DeliverableFactory.create(status=NEW)
+        second_deliverable = DeliverableFactory.create(status=LIMBO, order__seller=deliverable.order.seller)
+        third_deliverable = DeliverableFactory.create(status=LIMBO, order__seller=deliverable.order.seller)
+        set_service_plan(deliverable.order.seller, ServicePlanFactory.create(max_simultaneous_orders=2))
+        deliverable.refresh_from_db()
+        second_deliverable.refresh_from_db()
+        third_deliverable.refresh_from_db()
+        visible = [item for item in [deliverable, second_deliverable, third_deliverable] if item.status == NEW]
+        self.assertEqual(len(visible), 2)
+
+
+class TestReverseRecord(EnsurePlansMixin, TestCase):
+    def test_reverse_record(self):
+        initial_record = TransactionRecordFactory.create(
+            source=ESCROW,
+            destination=HOLDINGS,
+            amount=Money('10', 'USD'),
+            remote_ids=['beep', 'boop']
+        )
+        user = UserFactory.create()
+        initial_record.targets.add(ref_for_instance(user))
+        created, new_record = reverse_record(initial_record)
+        # Sanity check
+        self.assertTrue(initial_record.payer)
+        self.assertTrue(initial_record.payee)
+        self.assertTrue(created)
+        self.assertEqual(initial_record.amount, new_record.amount)
+        self.assertEqual(initial_record.source, new_record.destination)
+        self.assertEqual(initial_record.destination, new_record.source)
+        self.assertEqual(initial_record.payer, new_record.payee)
+        self.assertEqual(initial_record.payee, new_record.payer)
+        self.assertEqual(initial_record.remote_ids, new_record.remote_ids)
+        targets = [target.target for target in new_record.targets.all()]
+        self.assertIn(user, targets)
+        self.assertIn(initial_record, targets)
+        created, again_record = reverse_record(initial_record)
+        self.assertEqual(again_record, new_record)
+        self.assertFalse(created)
+
+    def test_success_only(self):
+        initial_record = TransactionRecordFactory.create(
+            status=FAILURE,
+            source=ESCROW,
+            destination=HOLDINGS,
+            amount=Money('10', 'USD'),
+            remote_ids=['beep', 'boop'],
+        )
+        with self.assertRaises(ValueError):
+            reverse_record(initial_record)

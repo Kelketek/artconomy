@@ -1,6 +1,7 @@
 <template>
   <ac-form-dialog :value="value" @input="toggle" :large="true" @submit.prevent="newUpload.submitThen(success)"
                   v-bind="newUpload.bind"
+                  class="submission-uploader"
                   :fluid="true" v-if="isRegistered" :title="title"
   >
     <template slot="top-buttons" />

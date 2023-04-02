@@ -4,7 +4,7 @@ from django.test import TestCase
 from rest_framework import status
 
 from apps.lib.models import Notification, Asset
-from apps.lib.test_resources import APITestCase
+from apps.lib.test_resources import APITestCase, EnsurePlansMixin
 from apps.lib.tests.factories import AssetFactory
 from apps.lib.tests.factories_interdepend import CommentFactory
 from apps.lib.utils import FakeRequest, related_iterable_from_field, replace_foreign_references
@@ -79,7 +79,7 @@ class TestComments(APITestCase):
         self.assertEqual(new_notification.event.data['comments'], [new_comment['id'], last_comment['id']])
 
 
-class TestAsset(TestCase):
+class TestAsset(EnsurePlansMixin, TestCase):
     def test_can_reference_uploaded(self):
         asset = AssetFactory.create(uploaded_by=UserFactory.create())
         self.assertTrue(asset.can_reference(FakeRequest(asset.uploaded_by)))
@@ -110,7 +110,7 @@ class TestAsset(TestCase):
             asset.refresh_from_db()
 
 
-class Test(TestCase):
+class Test(EnsurePlansMixin, TestCase):
     def test_related_iterable_from_field(self):
         user = UserFactory.create()
         related_values = list(related_iterable_from_field(user, User.artist_profile))

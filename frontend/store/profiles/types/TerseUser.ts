@@ -4,12 +4,10 @@ export interface TerseUser {
   avatar_url: string,
   biography: string,
   has_products: boolean,
-  faborites_hidden: boolean,
+  favorites_hidden: boolean,
   watching: boolean,
   blocked: boolean,
-  commission_info: string,
   stars: string|null,
-  escrow_disabled: boolean,
   is_staff: boolean,
   is_superuser: boolean,
   artist_mode: boolean|null,
@@ -19,4 +17,5 @@ export interface TerseUser {
   guest: boolean,
   // Not actually here, but avoids issues with compatibility elsewhere.
   sfw_mode: boolean,
+  verified_email: boolean,
 }

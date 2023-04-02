@@ -1,8 +1,8 @@
 import {LineMoneyMap} from '@/types/LineMoneyMap'
-import Big from 'big.js'
+import {Decimal} from 'decimal.js'
 
 export default interface LineAccumulator {
-  total: Big,
-  map: LineMoneyMap,
-  discount: Big,
+  total: Decimal,
+  subtotals: LineMoneyMap,
+  discount: Decimal,
 }

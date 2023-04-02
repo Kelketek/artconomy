@@ -27,7 +27,7 @@ import {getTotals, totalForTypes} from '@/lib/lineItemFunctions'
 import {LineTypes} from '@/types/LineTypes'
 import {SingleController} from '@/store/singles/controller'
 import LineItem from '@/types/LineItem'
-import Big from 'big.js'
+import {Decimal} from 'decimal.js'
 import {Ratings} from '@/store/profiles/types/Ratings'
 
 let localVue: VueConstructor
@@ -122,7 +122,6 @@ describe('ProductDetail.vue', () => {
     router = new Router(routes)
     form = mount(Empty, {localVue, router, store}).vm.$getForm('search', searchSchema())
     setPricing(store, localVue)
-    Big.DP = 2
   })
   afterEach(() => {
     cleanUp(wrapper)
@@ -262,7 +261,7 @@ describe('ProductDetail.vue', () => {
     vm.$router.replace({query: {editing: true}})
     expect(vm.shownSubmissionLink).toBeNull()
   })
-  it('Checks escrow disabled', async() => {
+  it('Checks escrow availability', async() => {
     prepData()
     wrapper = mount(ProductDetail, {
       localVue,
@@ -276,17 +275,18 @@ describe('ProductDetail.vue', () => {
     const vm = wrapper.vm as any
     await vm.$nextTick()
     // No profile loaded yet.
-    expect(vm.escrowDisabled).toBe(true)
-    vm.product.updateX({table_product: true})
-    await vm.$nextTick()
-    expect(vm.escrowDisabled).toBe(false)
+    expect(vm.escrow).toBe(false)
+    // This property is checking whether the user has access to escrow, not whether the particular product is escrow
+    // enabled. So this change shouldn't affect anythigng.
     vm.product.updateX({table_product: false})
     await vm.$nextTick()
-    expect(vm.escrowDisabled).toBe(true)
-    vm.subjectHandler.artistProfile.setX(genArtistProfile())
-    vm.subjectHandler.artistProfile.ready = true
+    expect(vm.escrow).toBe(false)
+    vm.subjectHandler.artistProfile.makeReady(genArtistProfile({escrow_enabled: false}))
     await vm.$nextTick()
-    expect(vm.escrowDisabled).toBe(false)
+    expect(vm.escrow).toBe(false)
+    vm.subjectHandler.artistProfile.updateX({escrow_enabled: true})
+    await vm.$nextTick()
+    expect(vm.escrow).toBe(true)
   })
   it('Handles meta content', async() => {
     const data = prepData()
@@ -310,26 +310,6 @@ describe('ProductDetail.vue', () => {
     expect(description).toBeTruthy()
     expect(description!.textContent).toBe('[Starts at FREE] - This is a test product')
   })
-  it('Clears the fake line item list if the price is nonsense', async() => {
-    prepData()
-    wrapper = mount(ProductDetail, {
-      localVue,
-      router,
-      store,
-      vuetify,
-      attachTo: docTarget(),
-      propsData: {username: 'Fox', productId: 1},
-      stubs: ['ac-sample-editor', 'v-carousel', 'v-carousel-item'],
-    })
-    const vm = wrapper.vm as any
-    await vm.$nextTick()
-    const product = genProduct()
-    vm.product.setX(product)
-    vm.product.ready = true
-    vm.product.patchers.base_price.model = NaN
-    await vm.$nextTick()
-    expect(vm.lineItems.list).toEqual([])
-  })
   it('Gives a clear list if pricing info is not yet gathered', async() => {
     prepData()
     wrapper = mount(ProductDetail, {
@@ -348,7 +328,8 @@ describe('ProductDetail.vue', () => {
     vm.product.setX(product)
     vm.product.ready = true
     await vm.$nextTick()
-    expect(vm.lineItems.list).toEqual([])
+    expect(vm.lineItemSetMaps.length).toBe(1)
+    expect(vm.lineItemSetMaps[0].lineItems.list).toMatchObject([])
   })
   it('Refreshes the product after closing out the workload settings', async() => {
     prepData()
@@ -409,14 +390,18 @@ describe('ProductDetail.vue', () => {
       stubs: ['ac-sample-editor', 'v-carousel', 'v-carousel-item'],
     })
     const vm = wrapper.vm as any
-    expect(totalForTypes(getTotals(vm.lineItems.list.map(
+    vm.subjectHandler.user.makeReady(genUser())
+    expect(totalForTypes(getTotals(vm.lineItemSetMaps[0].lineItems.list.map(
       (x: SingleController<LineItem>) => x.x)),
     [LineTypes.TABLE_SERVICE]),
-    ).toEqual(Big('5.50'))
-    expect(totalForTypes(getTotals(vm.lineItems.list.map(
+    ).toEqual(new Decimal('5.54'))
+    expect(totalForTypes(getTotals(vm.lineItemSetMaps[0].lineItems.list.map(
       (x: SingleController<LineItem>) => x.x)),
-    [LineTypes.SHIELD, LineTypes.BONUS]),
-    ).toEqual(Big('0'))
+    [LineTypes.SHIELD, LineTypes.BONUS, LineTypes.DELIVERABLE_TRACKING]),
+    ).toEqual(new Decimal('0'))
+    expect(getTotals(vm.lineItemSetMaps[0].lineItems.list.map(
+      (x: SingleController<LineItem>) => x.x)).total,
+    ).toEqual(new Decimal('15'))
   })
   it('Handles a shield product', async() => {
     prepData()
@@ -430,16 +415,39 @@ describe('ProductDetail.vue', () => {
       stubs: ['ac-sample-editor', 'v-carousel', 'v-carousel-item'],
     })
     const vm = wrapper.vm as any
+    vm.subjectHandler.user.makeReady(genUser())
     vm.subjectHandler.artistProfile.setX(genArtistProfile())
     vm.subjectHandler.artistProfile.ready = true
     await vm.$nextTick()
-    expect(totalForTypes(getTotals(vm.lineItems.list.map(
+    expect(totalForTypes(getTotals(vm.lineItemSetMaps[0].lineItems.list.map(
       (x: SingleController<LineItem>) => x.x)),
     [LineTypes.TABLE_SERVICE]),
-    ).toEqual(Big('0'))
-    expect(totalForTypes(getTotals(vm.lineItems.list.map(
+    ).toEqual(new Decimal('0'))
+    expect(totalForTypes(getTotals(vm.lineItemSetMaps[0].lineItems.list.map(
       (x: SingleController<LineItem>) => x.x)),
-    [LineTypes.SHIELD, LineTypes.BONUS]),
-    ).toEqual(Big('6.8'))
+    [LineTypes.SHIELD]),
+    ).toEqual(new Decimal('4.05'))
+  })
+  it('Shows the rating modal only when editing', async() => {
+    prepData()
+    wrapper = mount(ProductDetail, {
+      localVue,
+      router,
+      store,
+      vuetify,
+      attachTo: docTarget(),
+      propsData: {username: 'Fox', productId: 1},
+      stubs: ['ac-sample-editor', 'v-carousel', 'v-carousel-item'],
+    })
+    const vm = wrapper.vm as any
+    await router.replace({query: {}})
+    vm.subjectHandler.artistProfile.makeReady(genArtistProfile())
+    await vm.$nextTick()
+    expect(vm.ratingDialog).toBe(false)
+    vm.showRating()
+    expect(vm.ratingDialog).toBe(false)
+    router.replace({query: {editing: 'true'}})
+    vm.showRating()
+    expect(vm.ratingDialog).toBe(true)
   })
 })

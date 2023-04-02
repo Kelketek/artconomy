@@ -227,8 +227,8 @@ export class SingleController<T extends {}> extends BaseController<SingleModuleO
     this.$sock.addListener(
       this.updateLabel,
       `${this.socketLabelBase}.update`,
-      // Use update to update in place so we don't have to recompute everything. Also because some weirdness happens
-      // with reference changes.
+      // Use update to update in place so that we don't have to recompute everything.
+      // Also because some weirdness happens with reference changes.
       this.updateX,
     )
     this.$sock.addListener(

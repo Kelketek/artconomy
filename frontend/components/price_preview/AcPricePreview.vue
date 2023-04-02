@@ -5,53 +5,80 @@
         <ac-load-section :controller="lineItems" v-if="validPrice" class="compact-fields">
           <template v-slot:default>
             <template v-if="editable && editBase">
-              <ac-line-item-editor :line="line" v-for="line in baseItems" :key="line.x.id" :price-data="priceData" :editing="editable" />
+              <ac-line-item-editor
+                  :line="line" v-for="(line, index) in baseItems"
+                  :key="line.x.id"
+                  :price-data="priceData"
+                  :editing="editable"
+                  @new-line="postSubmitAdd(addOnForm)"
+                  :enable-new-line="(index === baseItems.length - 1) && !addOns.length"
+              />
             </template>
             <template v-else>
-              <ac-line-item-preview :line="line.x" v-for="line in baseItems" :key="line.x.id" :price-data="priceData" :editing="editable" />
+              <ac-line-item-preview :line="line.x" v-for="line in baseItems" :key="line.x.id" :price-data="priceData" :editing="editable" :transfer="transfer" />
             </template>
             <template v-if="editable">
-              <ac-line-item-editor :line="line" v-for="line in addOns" :key="line.x.id" :price-data="priceData" :editing="editable" />
-              <ac-form-container v-bind="addOnForm.bind">
-                <ac-form @submit.prevent="addOnForm.submitThen(lineItems.push)">
-                  <ac-new-line-item :form="addOnForm" :price="priceData.map.get(addOnFormItem) || 0" />
+              <ac-line-item-editor
+                  :line="line" v-for="(line, index) in addOns"
+                  :key="line.x.id"
+                  :price-data="priceData"
+                  :editing="editable"
+                  @new-line="postSubmitAdd(addOnForm)"
+                  :enable-new-line="index === addOns.length - 1"
+              />
+              <ac-new-line-skeleton v-if="addOnForm.sending" />
+              <ac-form-container v-bind="addOnForm.bind" :show-spinner="false">
+                <ac-form @submit.prevent="postSubmitAdd(addOnForm)">
+                  <ac-new-line-item :form="addOnForm" :price="priceData.subtotals.get(addOnFormItem) || 0" />
                 </ac-form>
               </ac-form-container>
             </template>
             <template v-else>
-              <ac-line-item-preview :line="line.x" v-for="line in addOns" :key="line.x.id" :price-data="priceData" />
+              <ac-line-item-preview :line="line.x" v-for="line in addOns" :key="line.x.id" :price-data="priceData" :transfer="transfer" />
             </template>
-            <ac-line-item-preview :line="line" v-for="line in modifiers" :key="line.id" :price-data="priceData" :editing="editable" />
+            <ac-line-item-preview :line="line" v-for="line in modifiers" :key="line.id" :price-data="priceData" :editing="editable" :transfer="transfer" />
             <template v-if="editable && isStaff">
-              <ac-line-item-editor :line="line" v-for="line in extras" :key="line.x.id" :price-data="priceData" :editing="editable" />
-              <ac-form-container v-bind="extraForm.bind">
+              <ac-line-item-editor
+                  :line="line"
+                  v-for="(line, index) in extras"
+                  :key="line.x.id"
+                  :price-data="priceData"
+                  :editing="editable"
+                  @new-line="postSubmitAdd(extraForm)"
+                  :enable-new-line="index === extras.length - 1"  />
+              <ac-new-line-skeleton v-if="extraForm.sending" />
+              <ac-form-container v-bind="extraForm.bind" :show-spinner="false">
                 <ac-form @submit.prevent="extraForm.submitThen(lineItems.push)">
-                  <ac-new-line-item :form="extraForm" :price="priceData.map.get(extraFormItem) || 0" />
+                  <ac-new-line-item :form="extraForm" :price="priceData.subtotals.get(extraFormItem) || 0" />
                 </ac-form>
               </ac-form-container>
             </template>
             <template v-else>
               <ac-line-item-preview :line="line.x" v-for="line in extras" :key="line.x.id" :price-data="priceData" />
             </template>
-            <ac-line-item-preview :line="line" v-for="line in taxes" :key="line.id" :price-data="priceData" :editing="editable" />
+            <ac-line-item-preview :line="line" v-for="line in taxes" :key="line.id" :price-data="priceData" :editing="editable" :transfer="transfer" />
             <v-row no-gutters>
-              <v-col class="text-right pr-1" cols="6" ><strong>Total Price:</strong></v-col>
-              <v-col class="text-left pl-1" cols="6" >${{rawPrice.toFixed(2)}}</v-col>
+              <v-col class="text-right pr-1" cols="6">
+                <strong v-if="transfer">Total Charge:</strong>
+                <strong v-else>Total Price:</strong>
+              </v-col>
+              <v-col class="text-left pl-1" cols="6">
+                <v-chip color="blue" v-if="isSeller">${{rawPrice.toFixed(2)}}</v-chip>
+                <span v-else>${{rawPrice.toFixed(2)}}</span>
+              </v-col>
             </v-row>
             <v-row>
-              <v-col class="text-right pr-1" cols="6" v-if="isSeller && escrow"><strong>Your Payout:</strong></v-col>
-              <v-col class="text-left pl-1" align-self="center" cols="6" v-if="isSeller && escrow"><strong>${{payout.toFixed(2)}}</strong></v-col>
-              <v-col v-if="isSeller" cols="12" md="6">
-                <v-text-field v-model="hours" type="number" label="If I worked for this many hours..." min="0" step="1"></v-text-field>
+              <v-col class="text-right pr-1" cols="6" v-if="isSeller && escrow">
+                <strong>Your Payout:</strong>
               </v-col>
-              <v-col v-if="isSeller && hourly" cols="12" md="6">
+              <v-col class="text-left pl-1" align-self="center" cols="6" v-if="isSeller && escrow">
+                <v-chip color="green"><strong>${{payout.toFixed(2)}}</strong></v-chip>
+              </v-col>
+              <v-col cols="12" md="6" v-if="isSeller && !hideHourlyForm">
+                <ac-bound-field :field="hourlyForm.fields.hours" type="number" label="If I worked for this many hours..." min="0" step="1" />
+              </v-col>
+              <v-col v-if="isSeller" cols="12" :class="{transparent: !hourly}" :aria-hidden="!hourly">
                 I would earn <strong>${{hourly}}/hour.</strong>
-              </v-col>
-            </v-row>
-            <v-row v-if="isSeller && escrow && !subject.landscape">
-              <v-col class="text-center" cols="12">
-                You could earn <strong>${{bonus.toFixed(2)}}</strong> more with
-                <router-link :to="{name: 'Upgrade'}">Artconomy Landscape</router-link>!
               </v-col>
             </v-row>
           </template>
@@ -61,6 +88,12 @@
   </ac-load-section>
 </template>
 
+<style scoped>
+.transparent {
+  opacity: 0;
+}
+</style>
+
 <script lang="ts">
 import Subjective from '../../mixins/subjective'
 import {Prop} from 'vue-property-decorator'
@@ -68,7 +101,7 @@ import {SingleController} from '@/store/singles/controller'
 import Pricing from '@/types/Pricing'
 import Component, {mixins} from 'vue-class-component'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import {getTotals, sum, totalForTypes} from '@/lib/lineItemFunctions'
+import {getTotals, totalForTypes} from '@/lib/lineItemFunctions'
 import LineItem from '@/types/LineItem'
 import AcLineItemPreview from '@/components/price_preview/AcLineItemPreview.vue'
 import {LineTypes} from '@/types/LineTypes'
@@ -78,13 +111,25 @@ import {FormController} from '@/store/forms/form-controller'
 import AcNewLineItem from '@/components/price_preview/AcNewLineItem.vue'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcForm from '@/components/wrappers/AcForm.vue'
-import Big from 'big.js'
+import {Decimal} from 'decimal.js'
+import AcNewLineSkeleton from '@/components/price_preview/AcNewLineSkeleton.vue'
+import AcBoundField from '@/components/fields/AcBoundField'
 
 @Component({
-  components: {AcForm, AcFormContainer, AcNewLineItem, AcLineItemEditor, AcLineItemPreview, AcLoadSection},
+  components: {
+    AcBoundField,
+    AcNewLineSkeleton,
+    AcForm,
+    AcFormContainer,
+    AcNewLineItem,
+    AcLineItemEditor,
+    AcLineItemPreview,
+    AcLoadSection,
+  },
 })
 export default class AcPricePreview extends mixins(Subjective) {
   public pricing: SingleController<Pricing> = null as unknown as SingleController<Pricing>
+  public hourlyForm: FormController = null as unknown as FormController
   public addOnForm: FormController = null as unknown as FormController
   public extraForm: FormController = null as unknown as FormController
   @Prop({required: true})
@@ -102,6 +147,12 @@ export default class AcPricePreview extends mixins(Subjective) {
   @Prop({default: false})
   public editBase!: boolean
 
+  @Prop({default: false})
+  public hideHourlyForm!: boolean
+
+  @Prop({default: false})
+  public transfer!: boolean
+
   public hours = null
 
   public get rawPrice() {
@@ -114,20 +165,17 @@ export default class AcPricePreview extends mixins(Subjective) {
 
   public get payout() {
     const types = [LineTypes.BASE_PRICE, LineTypes.ADD_ON, LineTypes.TIP]
-    if (this.subject!.landscape) {
-      types.push(LineTypes.BONUS)
-    }
     return totalForTypes(this.priceData, types)
   }
 
   public get hourly() {
-    const hours = this.hours || 0
+    const hours = this.hourlyForm.fields.hours.model || 0
     let currentPrice = this.rawPrice
     if (this.escrow) {
       currentPrice = this.payout
     }
     try {
-      return currentPrice.div(Big(hours)).round(2, 0) + ''
+      return currentPrice.div(new Decimal(hours)).toDP(2, Decimal.ROUND_DOWN) + ''
     } catch {
       return ''
     }
@@ -135,10 +183,6 @@ export default class AcPricePreview extends mixins(Subjective) {
 
   public get rawLineItems() {
     return this.lineItems.list.map((item) => item.x as LineItem)
-  }
-
-  public get bonus() {
-    return totalForTypes(getTotals(this.rawPlusForms), [LineTypes.BONUS])
   }
 
   public get baseItems() {
@@ -149,7 +193,8 @@ export default class AcPricePreview extends mixins(Subjective) {
     return this.moddedItems.filter(
       // We include tips here since we will handle that with a different interface.
       (line: LineItem) => [
-        LineTypes.TIP, LineTypes.SHIELD, LineTypes.BONUS, LineTypes.TABLE_SERVICE,
+        LineTypes.TIP, LineTypes.SHIELD, LineTypes.BONUS, LineTypes.TABLE_SERVICE, LineTypes.PROCESSING,
+        LineTypes.DELIVERABLE_TRACKING,
       ].includes(line.type))
   }
 
@@ -167,36 +212,14 @@ export default class AcPricePreview extends mixins(Subjective) {
 
   public get moddedItems() {
     // Modify the items for user-facing calculation.
-    if (this.isSeller && this.subject!.landscape) {
+    if (this.isSeller) {
       return this.rawLineItems
     }
-    const toConsolidate = this.rawLineItems.filter(
-      (line: LineItem) => [LineTypes.SHIELD, LineTypes.BONUS].includes(line.type),
+    // We eliminate the Deliverable tracking fee since that's just for the artist's reference-- it doesn't affect
+    // the price charged. It just tells the artist what they will be charged later.
+    return this.rawLineItems.filter(
+      (line: LineItem) => (![LineTypes.DELIVERABLE_TRACKING].includes(line.type)),
     )
-    const modded = this.rawLineItems.filter(
-      (line: LineItem) => (![LineTypes.SHIELD, LineTypes.BONUS].includes(line.type)),
-    )
-    if (toConsolidate.length) {
-      let frozenValue: number|null = null
-      const frozenItems = toConsolidate.filter((line: LineItem) => line.frozen_value !== null)
-      if (frozenItems.length === toConsolidate.length) {
-        frozenValue = parseFloat(sum(toConsolidate.map((line: LineItem) => Big(line.frozen_value as number))).toFixed(2))
-      }
-      const consolidated = {
-        id: -10,
-        amount: parseFloat(sum(toConsolidate.map((line: LineItem) => Big(line.amount))).toFixed(2)),
-        frozen_value: frozenValue,
-        percentage: parseFloat(sum(toConsolidate.map((line: LineItem) => Big(line.percentage))).toFixed(2)),
-        type: LineTypes.SHIELD,
-        priority: 300,
-        description: '',
-        back_into_percentage: false,
-        cascade_percentage: true,
-        cascade_amount: true,
-      }
-      modded.push(consolidated)
-    }
-    return modded
   }
 
   public get addOnFormItem(): LineItem {
@@ -258,6 +281,16 @@ export default class AcPricePreview extends mixins(Subjective) {
     return true
   }
 
+  public postSubmitAdd(form: FormController) {
+    form.submitThen(this.lineItems.push).then(() => {
+      const line = this.lineItems.list[this.lineItems.list.length - 1]
+      this.$nextTick(() => {
+        const element = this.$el.querySelector(`#lineItem-${line.x!.id}-description`) as HTMLElement
+        element.focus()
+      })
+    })
+  }
+
   public created() {
     this.pricing = this.$getSingle('pricing', {endpoint: '/api/sales/v1/pricing-info/'})
     this.pricing.get()
@@ -279,6 +312,7 @@ export default class AcPricePreview extends mixins(Subjective) {
         percentage: {value: 0},
       },
     })
+    this.hourlyForm = this.$getForm('hourly', {endpoint: '#', fields: {hours: {value: null}}})
   }
 }
 </script>

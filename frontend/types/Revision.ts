@@ -7,4 +7,5 @@ export default interface Revision {
   rating: Ratings,
   read: boolean,
   submissions: {owner_id: number, id: number}[],
+  approved_on: string,
 }

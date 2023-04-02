@@ -57,7 +57,9 @@ export default class Subjective extends mixins(Viewer) {
   }
 
   public created() {
-    if (this.privateView && !this.controls) {
+    if (this.privateView && !this.isRegistered) {
+      this.$router.replace({name: 'Login', query: {next: this.$route.fullPath}})
+    } else if (this.privateView && !this.controls) {
       this.$store.commit('errors/setError', {response: {status: 403}})
     }
     this.rebuildHandler()

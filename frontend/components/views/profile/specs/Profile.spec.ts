@@ -7,9 +7,9 @@ import {genArtistProfile, genUser} from '@/specs/helpers/fixtures'
 import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import Router from 'vue-router'
 import mockAxios from '@/__mocks__/axios'
-import {genConversation} from '@/components/views/specs/fixtures'
 import Profile from '@/components/views/profile/Profile.vue'
 import {User} from '@/store/profiles/types/User'
+import {genConversation} from '@/components/views/specs/fixtures'
 
 const localVue = vueSetup()
 localVue.use(Router)
@@ -90,8 +90,7 @@ describe('Profile.vue', () => {
     const fox = genUser()
     fox.artist_mode = true
     router.push({name: 'Profile', params: {username: fox.username}})
-    wrapper = mount(Profile, {localVue, store, router, vuetify, propsData: {username: 'Fox'}, attachTo: docTarget()},
-    )
+    wrapper = mount(Profile, {localVue, store, router, vuetify, propsData: {username: 'Fox'}, attachTo: docTarget()})
     expect(mockAxios.request).toHaveBeenCalledWith(rq('/api/profiles/v1/account/Fox/', 'get'))
     mockAxios.mockResponse(rs(fox))
     expect(mockAxios.request).toHaveBeenCalledWith(
@@ -104,5 +103,23 @@ describe('Profile.vue', () => {
     await wrapper.vm.$nextTick()
     await flushPromises()
     expect(wrapper.vm.$route.name).toBe('AboutUser')
+  })
+  it('Starts a conversation', async() => {
+    setViewer(store, vulpes)
+    const fox = genUser()
+    fox.artist_mode = false
+    router.push({name: 'Profile', params: {username: fox.username}})
+    wrapper = mount(Profile, {localVue, store, router, vuetify, propsData: {username: 'Fox'}, attachTo: docTarget()})
+    mockAxios.mockResponse(rs(fox))
+    mockAxios.reset()
+    await wrapper.vm.$nextTick()
+    wrapper.find('.message-button').trigger('click')
+    await wrapper.vm.$nextTick()
+    wrapper.find('.dialog-submit').trigger('click')
+    const response = genConversation()
+    mockAxios.mockResponse(rs(response))
+    await wrapper.vm.$nextTick()
+    await flushPromises()
+    expect(router.currentRoute.name).toBe('Conversation')
   })
 })

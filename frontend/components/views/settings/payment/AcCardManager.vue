@@ -209,6 +209,7 @@ export default class AcCardManager extends mixins(Subjective, Alerts, StripeMixi
     public stripeSubmit() {
       const stripe = this.stripe()
       const secret = this.clientSecret
+      /* istanbul ignore if */
       if (!(stripe && secret)) {
         return
       }
@@ -222,7 +223,8 @@ export default class AcCardManager extends mixins(Subjective, Alerts, StripeMixi
               billing_details: {},
             },
           },
-        ).then((result:StripeError | any) => {
+        ).then((response:StripeError | any) => {
+          const result = response || {}
           this.ccForm.sending = false
           if (result.error) {
             this.handleStripeError(result)

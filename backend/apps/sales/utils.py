@@ -6,45 +6,47 @@ If enough code has to be repeated between the two bases it may be worth looking 
 import json
 import logging
 from collections import defaultdict
-from decimal import Decimal, InvalidOperation, ROUND_HALF_EVEN, localcontext, ROUND_FLOOR, ROUND_CEILING
-from functools import reduce
+from decimal import Decimal, InvalidOperation
 from itertools import chain
 from urllib.parse import quote
 
 from django.utils.module_loading import import_string
-from math import ceil
 from typing import Union, Type, TYPE_CHECKING, List, Dict, Iterator, Callable, Tuple, TypedDict, Optional, Any
 
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
-from django.core.cache import cache
 from django.core.exceptions import MultipleObjectsReturned
 from django.db import IntegrityError, transaction
 from django.db.models import Sum, Q, IntegerField, Case, When, F, Model
 from django.db.transaction import atomic
-from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.datetime_safe import date
-from moneyed import Money, Currency
-from pandas.tseries.offsets import BDay
+from moneyed import Money
 from rest_framework.exceptions import ValidationError
 from short_stuff import gen_shortcode
+from stripe.error import InvalidRequestError
 
 from apps.lib.models import Subscription, COMMISSIONS_OPEN, Event, DISPUTE, SALE_UPDATE, Notification, \
-    Comment, ORDER_UPDATE, COMMENT, ref_for_instance
+    Comment, ORDER_UPDATE, COMMENT, ref_for_instance, REFUND, REFERRAL_LANDSCAPE_CREDIT
 from apps.lib.utils import notify, recall_notification
-from apps.profiles.models import User, VERIFIED
-from apps.sales.apis import STRIPE
-from apps.sales.stripe import refund_payment_intent, stripe
+from apps.profiles.models import User
+from apps.profiles.tasks import create_or_update_stripe_user
+from apps.sales.constants import STRIPE, BASE_PRICE, ADD_ON, SHIELD, BONUS, TIP, TABLE_SERVICE, TAX, EXTRA, OPEN, PAID, \
+    VOID, SUBSCRIPTION, COMPLETED, PAYMENT_PENDING, QUEUED, IN_PROGRESS, REVIEW, CANCELLED, DISPUTED, FAILURE, CARD, \
+    RESERVE, UNPROCESSED_EARNINGS, SUCCESS, MONEY_HOLE_STAGE, MONEY_HOLE, ESCROW, HOLDINGS, ESCROW_RELEASE, SHIELD_FEE, \
+    ESCROW_HOLD, EXTRA_ITEM, CASH_DEPOSIT, THIRD_PARTY_FEE, CARD_TRANSACTION_FEES, TABLE_HANDLING, \
+    TAXES, PREMIUM_SUBSCRIPTION, REFUNDED, ESCROW_REFUND, TERM, DRAFT, TIPPING, PROCESSING, SUBSCRIPTION_DUES, \
+    PROCESSING_FEE, NEW, WAITING, LIMBO, DELIVERABLE_TRACKING, CONCURRENCY_STATUSES, MISSED, TIP_SEND
+from apps.sales.line_item_funcs import down_context, ceiling_context, lines_by_priority, \
+    normalized_lines, get_totals
+from apps.sales.stripe import refund_payment_intent, stripe, remote_ids_from_charge
 
-if TYPE_CHECKING:
-    from apps.sales.models import LineItemSim, LineItem, TransactionRecord, Deliverable, Revision, CreditCardToken, \
-    Invoice, ServicePlan, VOID
+if TYPE_CHECKING:  # pragma: no cover
+    from apps.sales.models import LineItem, TransactionRecord, Deliverable, Revision, CreditCardToken, \
+        Invoice, ServicePlan, Order
 
-    Line = Union[LineItem, LineItemSim]
-    LineMoneyMap = Dict[Line, Money]
     TransactionSpecKey = (Union[User, None], int, int)
     TransactionSpecMap = Dict[TransactionSpecKey, Money]
 
@@ -53,9 +55,13 @@ logger = logging.getLogger(__name__)
 
 
 class ALL:
-    def __init__(self):
+    """
+    Uniquely defined symbol for use as a constant to indicate 'All users'.
+    This is to allow for account queries intended to give summary information,
+    like 'what is the total amount in Escrow right now?'
+    """
+    def __init__(self):  # pragma: no cover
         raise RuntimeError('This class used as unique enum, not to be instantiated.')
-    pass
 
 
 AVAILABLE = 0
@@ -69,11 +75,11 @@ def account_balance(
     qs_kwargs = qs_kwargs or {}
     from apps.sales.models import TransactionRecord
     if balance_type == PENDING:
-        statuses = [TransactionRecord.PENDING]
+        statuses = [PENDING]
     elif balance_type == POSTED_ONLY:
-        statuses = [TransactionRecord.SUCCESS]
+        statuses = [SUCCESS]
     elif balance_type == AVAILABLE:
-        statuses = [TransactionRecord.SUCCESS, TransactionRecord.PENDING]
+        statuses = [SUCCESS, PENDING]
     else:
         raise TypeError(f'Invalid balance type: {balance_type}')
     kwargs = {
@@ -136,7 +142,7 @@ def available_products(requester, query='', ordering=True):
     qs = qs.exclude(active=False)
     qs = qs.exclude(table_product=True)
     # TODO: Recheck this for basic/free plan when we have orders that have been placed but they haven't upgraded.
-    qs = qs.exclude((Q(user__service_plan_paid_through__lte=timezone.now()) | ~Q(user__service_plan__name='Landscape')), wait_list=True)
+    qs = qs.exclude((Q(user__service_plan_paid_through__lte=timezone.now()) | ~Q(user__service_plan__waitlisting=True)), wait_list=True)
     if requester.is_authenticated:
         if not requester.is_staff:
             qs = qs.exclude(user__blocking=requester)
@@ -147,36 +153,70 @@ def available_products(requester, query='', ordering=True):
     return qs
 
 
-def service_price(user, service):
-    price = Money(getattr(settings, service.upper() + '_PRICE'), 'USD')
-    return price
+def term_charge(deliverable: 'Deliverable'):
+    """Add a deliverable's charge to a user's term invoice if applicable. WARNING: Does not save the deliverable."""
+    from apps.sales.models import LineItem
+    plan = deliverable.order.seller.service_plan
+    if plan.per_deliverable_price:
+        term_invoice = get_term_invoice(deliverable.order.seller)
+        if not term_invoice.lines_for(deliverable).exists():
+            line = LineItem.objects.create(
+                invoice=term_invoice,
+                amount=plan.per_deliverable_price,
+                destination_account=UNPROCESSED_EARNINGS,
+                type=DELIVERABLE_TRACKING,
+            )
+            line.targets.add(ref_for_instance(deliverable))
+    deliverable.term_billed = True
 
 
-def set_premium(user, service_plan, target_date=None):
+def set_service_plan(user, service_plan, next_plan=None, target_date=None):
+    from apps.sales.models import Deliverable
+    fields = ['service_plan', 'service_plan_paid_through']
+    changed = user.service_plan != service_plan
     user.service_plan = service_plan
-    user.next_service_plan = service_plan
+    if next_plan:
+        user.next_service_plan = next_plan
+        fields.append('next_service_plan')
     if target_date:
         user.service_plan_paid_through = target_date
     user.save(
-        update_fields=['service_plan', 'service_plan_paid_through', 'next_service_plan'],
+        update_fields=fields,
     )
+    if changed:
+        if not service_plan.max_simultaneous_orders:
+            for deliverable in Deliverable.objects.filter(status=LIMBO, order__seller=user):
+                term_charge(deliverable)
+                deliverable.status = NEW
+                deliverable.auto_close_on = timezone.now() + relativedelta(days=settings.AUTO_CANCEL_DAYS)
+                deliverable.save()
+        else:
+            maximum = service_plan.max_simultaneous_orders
+            current_count = Deliverable.objects.filter(status__in=CONCURRENCY_STATUSES).count()
+            if current_count < maximum:
+                to_reveal = Deliverable.objects.filter(status=LIMBO, order__seller=user)[
+                          :maximum - current_count
+                ]
+                for deliverable in to_reveal:
+                    term_charge(deliverable)
+                    deliverable.status = NEW
+                    deliverable.auto_close_on = timezone.now() + relativedelta(days=settings.AUTO_CANCEL_DAYS)
+                    deliverable.save()
 
-
-def check_charge_required(user):
-    if user.landscape_paid_through:
-        if user.landscape_paid_through >= date.today():
-            return False, user.landscape_paid_through
-    return True, None
+        update_downstream_pricing(user)
 
 
 def available_products_by_load(seller_profile, load=None):
     from apps.sales.models import Product
     if load is None:
         load = seller_profile.load
+    if seller_profile.user.service_plan.waitlisting:
+        exclude_extra = Q(wait_list=False)
+    else:
+        exclude_extra = Q()
     return Product.objects.filter(user_id=seller_profile.user_id, active=True, hidden=False).exclude(
-        task_weight__gt=seller_profile.max_load - load, wait_list=False,
+        Q(task_weight__gt=seller_profile.max_load - load) & exclude_extra,
     ).exclude(Q(parallel__gte=F('max_parallel')) & ~Q(max_parallel=0))
-
 
 def available_products_from_user(seller_profile):
     from apps.sales.models import Product
@@ -197,7 +237,9 @@ def update_availability(seller, load, current_closed_status):
     seller_profile = seller.artist_profile
     try:
         products = available_products_by_load(seller_profile, load)
-        if seller_profile.commissions_closed:
+        if seller.delinquent:
+            seller_profile.commissions_disabled = True
+        elif seller_profile.commissions_closed:
             seller_profile.commissions_disabled = True
         elif not products.exists():
             seller_profile.commissions_disabled = True
@@ -210,9 +252,13 @@ def update_availability(seller, load, current_closed_status):
         products.update(available=True, edited_on=timezone.now())
         # Sanity setting.
         max_size = seller_profile.max_load - load
+        if seller.service_plan.waitlisting:
+            extra_exclude = Q(wait_list=True)
+        else:
+            extra_exclude = Q()
         seller.products.filter(
             Q(hidden=True) | Q(active=False) | Q(inventory__count=0) | Q(task_weight__gt=max_size)
-        ).exclude(wait_list=True).update(
+        ).exclude(extra_exclude).update(
             available=False, edited_on=timezone.now(),
         )
         if current_closed_status and not seller_profile.commissions_disabled:
@@ -231,80 +277,94 @@ def update_availability(seller, load, current_closed_status):
         del UPDATING[seller]
 
 
-def early_finalize(deliverable: 'Deliverable', user: User):
-    if (
-            deliverable.final_uploaded
-            and deliverable.order.seller.landscape
-            and deliverable.order.seller.trust_level == VERIFIED
-            and not deliverable.escrow_disabled
-    ):
-        deliverable.trust_finalized = True
-        finalize_deliverable(deliverable, user)
-
-
-def floor_context(wrapped: Callable):
-    def wrapper(*args, **kwargs):
-        with localcontext() as ctx:
-            ctx.rounding = ROUND_FLOOR
-            return wrapped(*args, **kwargs)
-    return wrapper
-
-
-def ceiling_context(wrapped: Callable):
-    def wrapper(*args, **kwargs):
-        with localcontext() as ctx:
-            ctx.rounding = ROUND_CEILING
-            return wrapped(*args, **kwargs)
-    return wrapper
-
-
-def half_even_context(wrapped: Callable):
-    def wrapper(*args, **kwargs):
-        with localcontext() as ctx:
-            ctx.rounding = ROUND_HALF_EVEN
-            return wrapped(*args, **kwargs)
-    return wrapper
-
-
 def finalize_table_fees(deliverable: 'Deliverable'):
     from apps.sales.models import TransactionRecord, ref_for_instance
-    ref = ref_for_instance(deliverable)
+    deliverable_ref = ref_for_instance(deliverable)
+    invoice_ref = ref_for_instance(deliverable.invoice)
     record = TransactionRecord.objects.get(
-        payee=None, destination=TransactionRecord.RESERVE,
-        status=TransactionRecord.SUCCESS,
-        targets=ref,
+        payee=None, destination=RESERVE,
+        status=SUCCESS,
+        targets=invoice_ref,
     )
     service_fee = TransactionRecord.objects.create(
-        source=TransactionRecord.RESERVE,
-        destination=TransactionRecord.UNPROCESSED_EARNINGS,
+        source=RESERVE,
+        destination=UNPROCESSED_EARNINGS,
         amount=record.amount,
         payer=None, payee=None,
-        status=TransactionRecord.SUCCESS,
-        category=TransactionRecord.TABLE_SERVICE,
+        status=SUCCESS,
+        category=TABLE_HANDLING,
         remote_ids=record.remote_ids,
         auth_code=record.auth_code,
     )
-    service_fee.targets.add(ref)
+    service_fee.targets.add(invoice_ref, deliverable_ref)
     tax_record = TransactionRecord.objects.get(
-        payee=None, destination=TransactionRecord.MONEY_HOLE_STAGE,
-        status=TransactionRecord.SUCCESS,
-        targets=ref,
+        payee=None, destination=MONEY_HOLE_STAGE,
+        status=SUCCESS,
+        targets=invoice_ref,
     )
     tax_burned = TransactionRecord.objects.create(
-        source=TransactionRecord.MONEY_HOLE_STAGE,
-        destination=TransactionRecord.MONEY_HOLE,
+        source=MONEY_HOLE_STAGE,
+        destination=MONEY_HOLE,
         amount=tax_record.amount,
         payer=None, payee=None,
-        status=TransactionRecord.SUCCESS,
-        category=TransactionRecord.TAX,
+        status=SUCCESS,
+        category=TAX,
         remote_ids=tax_record.remote_ids,
         auth_code=tax_record.auth_code,
     )
-    tax_burned.targets.add(ref)
+    tax_burned.targets.add(invoice_ref, deliverable_ref)
+
+
+def initialize_tip_invoice(deliverable):
+    from apps.sales.models import Invoice, LineItem
+    if not deliverable.order.seller.service_plan.tipping:
+        return
+    expires_on = deliverable.finalized_on + relativedelta(days=settings.TIP_DAYS)
+    if expires_on <= timezone.now():
+        return None
+    if deliverable.tip_invoice:
+        invoice = deliverable.tip_invoice
+        if invoice.status != VOID:
+            # Don't make a new invoice, just return the old one.
+            return invoice
+        invoice.delete()
+
+    invoice = Invoice.objects.create(
+        type=TIPPING, bill_to=deliverable.order.buyer, issued_by=deliverable.order.seller,
+        expires_on=expires_on, payout_available=True,
+    )
+    percentage = settings.PROCESSING_PERCENTAGE
+    if deliverable.international:
+        percentage += settings.INTERNATIONAL_CONVERSION_PERCENTAGE
+    LineItem.objects.create(
+        type=PROCESSING,
+        percentage=percentage,
+        amount=settings.PROCESSING_STATIC,
+        cascade_amount=True,
+        cascade_percentage=True,
+        invoice=invoice,
+        destination_user=None,
+        destination_account=UNPROCESSED_EARNINGS,
+    )
+    amount = max(deliverable.invoice.total() * Decimal('.10'), settings.MINIMUM_TIP)
+    line = LineItem.objects.create(
+        type=TIP,
+        percentage=0,
+        amount=amount,
+        cascade_amount=False,
+        cascade_percentage=False,
+        invoice=invoice,
+        destination_user=deliverable.order.seller,
+        destination_account=HOLDINGS,
+    )
+    line.targets.add(ref_for_instance(deliverable))
+    deliverable.tip_invoice = invoice
+    deliverable.save()
+    return invoice
 
 
 def finalize_deliverable(deliverable, user=None):
-    from apps.sales.models import TransactionRecord, COMPLETED, DISPUTED, ref_for_instance
+    from apps.sales.models import TransactionRecord, ref_for_instance
     from apps.sales.tasks import withdraw_all
     with atomic():
         if deliverable.status == DISPUTED and user == deliverable.order.buyer:
@@ -313,11 +373,13 @@ def finalize_deliverable(deliverable, user=None):
             # We'll pretend this never happened.
             deliverable.disputed_on = None
         deliverable.status = COMPLETED
+        deliverable.finalized_on = timezone.now()
         deliverable.save()
-        notify(SALE_UPDATE, deliverable, unique=True, mark_unread=True)
+        deliverable.invoice.payout_available = True
+        deliverable.invoice.save(update_fields=['payout_available'])
         records = TransactionRecord.objects.filter(
-            payee=deliverable.order.seller, destination=TransactionRecord.ESCROW,
-            status=TransactionRecord.SUCCESS,
+            payee=deliverable.order.seller, destination=ESCROW,
+            status=SUCCESS,
             targets__object_id=deliverable.id, targets__content_type=ContentType.objects.get_for_model(deliverable),
         )
         # There will always be at least one.
@@ -326,16 +388,18 @@ def finalize_deliverable(deliverable, user=None):
             payer=deliverable.order.seller,
             payee=deliverable.order.seller,
             amount=sum((item.amount for item in records)),
-            source=TransactionRecord.ESCROW,
-            destination=TransactionRecord.HOLDINGS,
-            category=TransactionRecord.ESCROW_RELEASE,
-            status=TransactionRecord.SUCCESS,
+            source=ESCROW,
+            destination=HOLDINGS,
+            category=ESCROW_RELEASE,
+            status=SUCCESS,
             remote_ids=record.remote_ids,
             auth_code=record.auth_code,
         )
-        to_holdings.targets.add(ref_for_instance(deliverable))
+        to_holdings.targets.add(ref_for_instance(deliverable), ref_for_instance(deliverable.invoice))
         if deliverable.table_order:
             finalize_table_fees(deliverable)
+        initialize_tip_invoice(deliverable)
+        notify(SALE_UPDATE, deliverable, unique=True, mark_unread=True)
     # Don't worry about whether it's time to withdraw or not. This will make sure that an attempt is made in case
     # there's money to withdraw that hasn't been taken yet, and another process will try again if it settles later.
     # It will also ignore if the seller has auto_withdraw disabled.
@@ -354,12 +418,19 @@ def claim_order_by_token(order_claim, user, force=False):
         logger.warning("Seller %s attempted to claim their own order token, %s", user, order_claim)
         return
     if order.buyer == user and user.is_registered:
+        # This should never happen, but just in case...
         order.claim_token = None
-        order.save()
+        order.save(update_fields=['claim_token'])
     transfer_order(order, order.buyer, user, force=force)
 
 
 def transfer_order(order, old_buyer, new_buyer, force=False):
+    """
+    Sets the buyer from one user (or None) to a new buyer.
+
+    The force flag exists in case this needs to be done within a script
+    to fix something.
+    """
     from apps.sales.models import buyer_subscriptions, CreditCardToken, Revision, ORDER_UPDATE
     if (old_buyer == new_buyer) and not force:
         raise AssertionError("Tried to claim an order, but it was already claimed!")
@@ -370,7 +441,7 @@ def transfer_order(order, old_buyer, new_buyer, force=False):
             deliverable.invoice.save()
     order.customer_email = ''
     order.claim_token = None
-    order.save()
+    order.save(update_fields=['buyer', 'customer_email', 'claim_token'])
     for deliverable in order.deliverables.all():
         Subscription.objects.bulk_create(buyer_subscriptions(deliverable), ignore_conflicts=True)
         notify(ORDER_UPDATE, deliverable, unique=True, mark_unread=True)
@@ -396,8 +467,13 @@ def transfer_order(order, old_buyer, new_buyer, force=False):
 
 
 def cancel_deliverable(deliverable, requested_by):
-    from apps.sales.models import CANCELLED, VOID
-    deliverable.status = CANCELLED
+    """
+    Marks a deliverable as cancelled, sending relevant notifications.
+    """
+    if deliverable.status == LIMBO:
+        deliverable.status = MISSED
+    else:
+        deliverable.status = CANCELLED
     deliverable.cancelled_on = timezone.now()
     deliverable.save()
     deliverable.invoice.status = VOID
@@ -407,194 +483,20 @@ def cancel_deliverable(deliverable, requested_by):
         notify(ORDER_UPDATE, deliverable, unique=True, mark_unread=True)
 
 
-def lines_by_priority(
-        lines: Iterator[Union['LineItem', 'LineItemSim']]) -> List[List[Union['LineItem', 'LineItemSim']]]:
-    """
-    Groups line items by priority.
-    """
-    priority_sets = defaultdict(list)
-    for line in lines:
-        priority_sets[line.priority].append(line)
-    return [priority_set for _, priority_set in sorted(priority_sets.items())]
-
-
-def distribute_reduction(
-        *, total: Money, distributed_amount: Money, line_values: 'LineMoneyMap'
-) -> 'LineMoneyMap':
-    reductions = {}
-    if total.amount == 0:
-        return reductions
-    for line, original_value in line_values.items():
-        if original_value < Money(0, total.currency):
-            continue
-        multiplier = original_value / total
-        reductions[line] = Money(distributed_amount.amount * multiplier, total.currency)
-    return reductions
-
-
-@half_even_context
-def priority_total(
-        current: (Money, Money, 'LineMoneyMap'), priority_set: List['Line']
-) -> (Money, 'LineMoneyMap'):
-    """
-    Get the effect on the total of a priority set. First runs any percentage increase, then
-    adds in the static amount. Calculates the difference of each separately to make sure they're not affecting each
-    other.
-    """
-    current_total, discount, subtotals = current
-    working_subtotals = {}
-    summable_totals = {}
-    reductions: List['LineMoneyMap'] = []
-    for line in priority_set:
-        cascaded_amount = Money(0, current_total.currency)
-        added_amount = Money(0, current_total.currency)
-        # Percentages with equal priorities should not stack.
-        multiplier = (Decimal('.01') * line.percentage)
-        if line.back_into_percentage:
-            working_amount = (current_total / (multiplier + Decimal('1.00'))) * multiplier
-        else:
-            working_amount = current_total * (Decimal('.01') * line.percentage)
-        if line.cascade_percentage:
-            cascaded_amount += working_amount
-        else:
-            added_amount += working_amount
-        if line.cascade_amount:
-            cascaded_amount += line.amount
-        else:
-            added_amount += line.amount
-        working_amount += line.amount
-        if cascaded_amount:
-            reductions.append(distribute_reduction(
-                total=current_total - discount, distributed_amount=cascaded_amount, line_values={
-                    key: value for key, value in subtotals.items() if key.priority < line.priority
-                }))
-        if added_amount:
-            summable_totals[line] = added_amount
-        working_subtotals[line] = working_amount
-        if working_amount < Money(0, working_amount.currency):
-            discount += working_amount
-    new_subtotals = {**subtotals}
-    for reduction_set in reductions:
-        for line, reduction in reduction_set.items():
-            new_subtotals[line] -= reduction
-    return current_total + sum(summable_totals.values()), discount, {**new_subtotals, **working_subtotals}
-
-
-@floor_context
-def to_distribute(total: Money, money_map: 'LineMoneyMap') -> Money:
-    combined_sum = sum([value.round(2) for value in money_map.values()])
-    difference = total - combined_sum
-    upper_bound = Money(Decimal(len(money_map)) * Decimal('0.01'), total.currency)
-    if difference > upper_bound:
-        raise ValueError(f'Too many fractions! {difference} > {upper_bound}')
-    return difference
-
-
-def biggest_first(item: Tuple['LineItem', Decimal]) -> Tuple[Decimal, int]:
-    return -item[1], item[0].id
-
-
-@floor_context
-def distribute_difference(difference: Money, money_map: 'LineMoneyMap') -> 'LineMoneyMap':
-    """
-    So. We have a few leftover pennies. To figure out where we should allocate them,
-    we need to zero out everything but the remainder (that is, everything but what's beyond
-    the cents place), and then compare what remains. The largest numbers are the numbers that
-    were closest to rolling over into another penny, so we put them there first.
-
-    We also floor all of the amounts to make sure that the discrete total of all values will be
-    the correct target, and each value will be representable as a real monetary value-- that is,
-    something no more fractionalized than cents.
-    """
-    updated_map = {key: value.round(2) for key, value in money_map.items()}
-    test_map = {key: value - value.round(2) for key, value in money_map.items()}
-    sorted_values = [(key, value) for key, value in test_map.items()]
-    sorted_values.sort(key=biggest_first)
-    remaining = difference
-    amount = Money('0.01', remaining.currency)
-    while remaining > Money('0.00', remaining.currency):
-        key = sorted_values.pop(0)[0]
-        updated_map[key] += amount
-        remaining -= amount
-    return updated_map
-
-
-def normalized_lines(priority_sets: List[List[Union['LineItem', 'LineItemSim']]]):
-    total, discount, subtotals = reduce(
-        priority_total, priority_sets, (Money('0.00', 'USD'), Money('0.00', 'USD'), {}),
-    )
-    total = total.round(2)
-    difference = to_distribute(total, subtotals)
-    if difference > Money('0', difference.currency):
-        subtotals = distribute_difference(difference, subtotals)
-    else:
-        subtotals = {key: value.round(2) for key, value in subtotals.items()}
-    return total, discount, subtotals
-
-
-@floor_context
-def get_totals(lines: Iterator['Line']) -> (Money, Money, 'LineMoneyMap'):
-    priority_sets = lines_by_priority(lines)
-    return normalized_lines(priority_sets)
-
-
-def reckon_lines(lines) -> Money:
-    """
-    Reckons all line items to produce a total value.
-    """
-    value, discount, _subtotals = get_totals(lines)
-    return value.round(2)
-
-
-def digits(currency: Currency) -> int:
-    return len(str(currency.sub_unit)) - 1
-
-
-@floor_context
-def divide_amount(amount: Money, divisor: int) -> List[Money]:
-    """
-    Takes an amount of money, and divides it as evenly as possible according to divisor.
-    Then, allocate remaining 'pennies' of the currency to the entries until the total number of discrete values
-    is accounted for.
-
-    TODO: Replicate in JS version
-    """
-    assert amount == amount.round(digits(amount.currency))
-    target_amount = amount / divisor
-    target_amount = target_amount.round(digits(amount.currency))
-    difference = amount - (target_amount * divisor).round(digits(amount.currency))
-    difference *= target_amount.currency.sub_unit
-    difference = int(difference.amount)
-    result = [target_amount] * divisor
-    if digits(target_amount.currency):
-        penny_amount = Money(Decimal('0.' + ('0' * (digits(target_amount.currency) - 1)) + '1'), target_amount.currency)
-    else:
-        penny_amount = Money('1', target_amount.currency)
-    assert difference >= 0
-    # It's probably not possible for it to loop around again, but I'm not a confident
-    # enough mathematician to disprove it, especially since I'm unsure how having discrete values factors in for edge
-    # cases. If someone else can be more assured, I'm good with simplifying this loop.
-    while difference:
-        for index, item in enumerate(result):
-            result[index] += penny_amount
-            difference -= 1
-            if not difference:
-                break
-    return result
-
-
-@floor_context
+@down_context
 def lines_to_transaction_specs(lines: Iterator['LineItem']) -> 'TransactionSpecMap':
-    from apps.sales.models import BONUS, SHIELD, ADD_ON, BASE_PRICE, TABLE_SERVICE, TAX, EXTRA, TIP, TransactionRecord
     type_map = {
-        BONUS: TransactionRecord.SHIELD_FEE,
-        SHIELD: TransactionRecord.SHIELD_FEE,
-        TABLE_SERVICE: TransactionRecord.TABLE_SERVICE,
-        TAX: TransactionRecord.TAX,
-        ADD_ON: TransactionRecord.ESCROW_HOLD,
-        BASE_PRICE: TransactionRecord.ESCROW_HOLD,
-        TIP: TransactionRecord.ESCROW_HOLD,
-        EXTRA: TransactionRecord.EXTRA_ITEM,
+        BONUS: SHIELD_FEE,
+        SHIELD: SHIELD_FEE,
+        PROCESSING: PROCESSING_FEE,
+        TABLE_SERVICE: TABLE_HANDLING,
+        TAX: TAXES,
+        ADD_ON: ESCROW_HOLD,
+        BASE_PRICE: ESCROW_HOLD,
+        TIP: TIP_SEND,
+        EXTRA: EXTRA_ITEM,
+        PREMIUM_SUBSCRIPTION: SUBSCRIPTION_DUES,
+        DELIVERABLE_TRACKING: SUBSCRIPTION_DUES,
     }
     priority_sets = lines_by_priority(lines)
     total, __, subtotals = normalized_lines(priority_sets)
@@ -606,11 +508,12 @@ def lines_to_transaction_specs(lines: Iterator['LineItem']) -> 'TransactionSpecM
     return transaction_specs
 
 
-if TYPE_CHECKING:
-    from apps.sales.models import Order, Deliverable
-
-
-def fetch_prefixed(prefix: str, values: List[str]) -> str:
+def fetch_prefixed(prefix: str, values: Iterator[str]) -> str:
+    """
+    Stripe transaction IDs all have prefixes like 'py_', or 'ch_'.
+    Given a list of transaction ID strings, find the first with
+    a relevant prefix and return it. Raise ValueError if none exists.
+    """
     for entry in values:
         if entry.startswith(prefix):
             return entry
@@ -618,76 +521,88 @@ def fetch_prefixed(prefix: str, values: List[str]) -> str:
 
 
 def verify_total(deliverable: 'Deliverable'):
+    """
+    Verifies the total amount on a deliverable is within permitted ranges.
+
+     We can't have negative values, or a value which costs more to pay for in fees
+     than would be paid out to anyone.
+    """
     total = deliverable.invoice.total()
     if total < Money(0, 'USD'):
         raise ValidationError({'amount': ['Total cannot end up less than $0.']})
     if total == Money(0, 'USD'):
         return
-    if (not deliverable.escrow_disabled) and total < Money(settings.MINIMUM_PRICE, 'USD'):
-        raise ValidationError({'amount': [f'Total cannot end up less than ${settings.MINIMUM_PRICE}.']})
+    if deliverable.escrow_enabled and total < settings.MINIMUM_PRICE:
+        raise ValidationError({'amount': [f'Total cannot end up less than ${settings.MINIMUM_PRICE.amount}.']})
 
 
 def issue_refund(transaction_set: Iterator['TransactionRecord'], category: int, processor: str) -> List['TransactionRecord']:
+    """
+    Performs all accounting and API calls to refund a set of transactions.
+    """
     from apps.sales.models import TransactionRecord
     last_four = None
+    remote_ids = []
     transactions = [*transaction_set]
     cash_transactions = [
-        transaction for transaction in transaction_set if transaction.source == TransactionRecord.CASH_DEPOSIT
+        record for record in transaction_set if record.source == CASH_DEPOSIT
     ]
-    card_transactions = [transaction for transaction in transaction_set if transaction.source == TransactionRecord.CARD]
-    for transaction in card_transactions:
-        remote_ids = transaction.remote_ids
-        last_four = transaction.card and transaction.card.last_four
-        break
+    card_transactions = [record for record in transaction_set if record.source == CARD]
+    for record in card_transactions:
+        remote_ids.extend(record.remote_ids)
+        if last_four is None:
+            last_four = record.card and record.card.last_four
     if not len(cash_transactions) == len(transactions):
         assert remote_ids, 'Could not find a remote transaction ID to refund.'
         assert (processor == STRIPE) or last_four, 'Could not determine the last four digits of the relevant card.'
     refund_transactions = []
-    for transaction in transactions:
-        record = TransactionRecord.objects.create(
-            source=transaction.destination,
-            destination=transaction.source,
-            status=TransactionRecord.FAILURE,
+    for record in transactions:
+        new_record = TransactionRecord.objects.create(
+            source=record.destination,
+            destination=record.source,
+            status=FAILURE,
             category=category,
-            payer=transaction.payee,
-            payee=transaction.payer,
-            card=transaction.card,
-            amount=transaction.amount,
-            remote_ids=transaction.remote_ids,
+            payer=record.payee,
+            payee=record.payer,
+            card=record.card,
+            amount=record.amount,
+            remote_ids=record.remote_ids,
             response_message="Failed when contacting payment processor.",
         )
-        record.targets.set(transaction.targets.all())
-        refund_transactions.append(record)
-    amount = sum(transaction.amount for transaction in card_transactions)
+        new_record.targets.set(record.targets.all())
+        refund_transactions.append(new_record)
+    amount = sum(record.amount for record in card_transactions)
     if card_transactions:
         try:
             auth_code = '******'
             try:
                 intent_token = fetch_prefixed('pi_', remote_ids)
-            except ValueError:
+            except ValueError:  # pragma: no cover
                 raise ValueError('Invalid Stripe payment ID. Please contact support!')
             with stripe as stripe_api:
                 # Note: We will assume success here. If there is a refund failure we'll have to dive into it
                 # manually anyway and will find it during the accounting rounds.
                 # TODO: Fix this.
-                refund_payment_intent(amount=amount, api=stripe_api, intent_token=intent_token)['id']
-            for transaction in refund_transactions:
-                transaction.status = TransactionRecord.SUCCESS
-                if transaction.destination == TransactionRecord.CARD:
-                    transaction.remote_ids = remote_ids
-                    transaction.auth_code = auth_code
-                transaction.response_message = ''
+                remote_id = refund_payment_intent(amount=amount, api=stripe_api, intent_token=intent_token)['id']
+                remote_ids.append(remote_id)
+            for record in refund_transactions:
+                record.status = SUCCESS
+                if record.destination == CARD:
+                    record.remote_ids = remote_ids
+                    record.auth_code = auth_code
+                record.response_message = ''
         except Exception as err:
-            for transaction in refund_transactions:
-                transaction.response_message = str(err)
+            for record in refund_transactions:
+                record.response_message = str(err)
         finally:
-            for transaction in refund_transactions:
-                transaction.save()
-    else:
-        for transaction in refund_transactions:
-            transaction.status = TransactionRecord.SUCCESS
-            transaction.response_message = ''
-            transaction.save()
+            for record in refund_transactions:
+                record.save()
+    # TODO: Return the value of cash to refund so we can show it to the operator.
+    cash_refund_transactions = [record for record in refund_transactions if record.destination == CASH_DEPOSIT]
+    for record in cash_refund_transactions:
+        record.status = SUCCESS
+        record.response_message = ''
+        record.save()
     return refund_transactions
 
 
@@ -718,7 +633,7 @@ def update_order_payments(deliverable: 'Deliverable'):
     """
     from apps.sales.models import TransactionRecord
     TransactionRecord.objects.filter(
-        source__in=[TransactionRecord.CARD, TransactionRecord.CASH_DEPOSIT],
+        source__in=[CARD, CASH_DEPOSIT],
         targets__object_id=deliverable.id, targets__content_type=ContentType.objects.get_for_model(deliverable),
     ).update(payer=deliverable.order.buyer)
 
@@ -730,7 +645,7 @@ def get_claim_token(order: 'Order') -> Union[str, None]:
     if order.buyer and order.buyer.guest:
         if not order.claim_token:
             order.claim_token = gen_shortcode()
-            order.save()
+            order.save(update_fields=['claim_token'])
     return order.claim_token
 
 
@@ -748,7 +663,6 @@ def get_view_name(deliverable: 'Deliverable') -> str:
     a prefix, so if this returns 'DeliverablePayment', then the view on the frontend might be 'OrderDeliverablePayment',
     'SaleDeliverablePayment', or 'CaseDeliverablePayment'.
     """
-    from apps.sales.models import IN_PROGRESS, QUEUED, PAYMENT_PENDING, REVIEW
     if deliverable.status in [IN_PROGRESS, QUEUED, REVIEW]:
         return 'DeliverableRevisions'
     if deliverable.status == PAYMENT_PENDING:
@@ -819,7 +733,6 @@ def order_context_to_link(context: OrderContext):
 
 @atomic
 def destroy_deliverable(deliverable: 'Deliverable'):
-    from apps.sales.models import CANCELLED
     if deliverable.status != CANCELLED:
         raise IntegrityError('Can only destroy cancelled orders!')
     references = list(deliverable.reference_set.all())
@@ -877,7 +790,7 @@ def perform_charge(
     Convenience function for web-facing charges. Takes a payment data dictionary and determines which kind of payment
     is being submitted from the client, then routes the payment according to permissions and payment type.
     """
-    if attempt.get('cash', False) and requesting_user.is_staff:
+    if attempt.get('cash', False) and (requesting_user.is_staff or not amount):
         return from_cash(
             attempt=attempt, amount=amount, user=user, initiate_transactions=initiate_transactions,
             post_save=post_save, post_success=post_success, context=context,
@@ -888,7 +801,7 @@ def perform_charge(
             initiate_transactions=initiate_transactions, post_save=post_save, post_success=post_success,
             context=context,
         )
-    else:
+    else:  # pragma: no cover
         raise RuntimeError('Could not identify the right way to perform this charge.')
 
 
@@ -901,11 +814,10 @@ def from_cash(
     channels because we're essentially telling the system 'trust me, this has been paid for' and to just move the
     transaction along.
     """
-    from apps.sales.models import TransactionRecord
     transactions = initiate_transactions(attempt, amount, user, context)
     for transaction in transactions:
-        transaction.status = TransactionRecord.SUCCESS
-        transaction.source = TransactionRecord.CASH_DEPOSIT
+        transaction.status = SUCCESS
+        transaction.source = CASH_DEPOSIT
     post_success(transactions, attempt, user, context)
     for transaction in transactions:
         transaction.save()
@@ -952,7 +864,9 @@ def from_remote_id(
             post_save=post_save,
             context=context,
         ), error
-    # We're assuming we'll not be encountering 'pending' here. We have no card transactions which should require it.
+    # We don't support the 'pending' status because we don't record the transaction on our side until
+    # we actually run the charge-- earlier code should filter it out. Maybe we'll add it in the future,
+    # but it's not complexity we need right now.
     mark_successful(
         transactions=transactions, remote_ids=remote_ids, auth_code=auth_code, post_success=post_success,
         post_save=post_save, context=context, attempt=attempt, user=user,
@@ -967,12 +881,11 @@ def annotate_error(
     """
     Annotates a set of transactions with an error and then returns the appropriate status code.
     """
-    from apps.sales.models import TransactionRecord
     response_message = error
-    for transaction in transactions:
-        transaction.status = TransactionRecord.FAILURE
-        transaction.response_message = response_message
-        transaction.save()
+    for record in transactions:
+        record.status = FAILURE
+        record.response_message = response_message
+        record.save()
     post_save(transactions, attempt, user, context)
     return transactions
 
@@ -985,17 +898,16 @@ def mark_successful(
     """
     Marks a set of transactions as successful.
     """
-    from apps.sales.models import TransactionRecord
-    for transaction in transactions:
-        transaction.status = TransactionRecord.SUCCESS
-        transaction.remote_ids.extend(remote_ids)
-        transaction.remote_ids = list(set(transaction.remote_ids))
-        transaction.auth_code = auth_code
+    for record in transactions:
+        record.status = SUCCESS
+        record.remote_ids.extend(remote_ids)
+        record.remote_ids = list(set(record.remote_ids))
+        record.auth_code = auth_code
         # We have a failure message that gets set here by default. Clear it.
-        transaction.response_message = ''
+        record.response_message = ''
     post_success(transactions, attempt, user, context)
-    for transaction in transactions:
-        transaction.save()
+    for record in transactions:
+        record.save()
     post_save(transactions, attempt, user, context)
 
 
@@ -1003,153 +915,68 @@ def mark_successful(
 def initialize_stripe_charge_fees(amount: Money, stripe_event: dict):
     """Return a set of initialized transactions that mark what fees we paid to stripe for a card charge."""
     from apps.sales.models import TransactionRecord
+    base_percentage = Decimal('0')
+    if stripe_event['payment_method_details']['card']['country'] != settings.SOURCE_COUNTRY:
+        base_percentage += settings.STRIPE_INTERNATIONAL_PERCENTAGE_ADDITION
     if 'card_present' in stripe_event['payment_method_details']:
-        fee = (amount * (settings.STRIPE_CARD_PRESENT_PERCENTAGE / 100)).round(2)
+        percentage = base_percentage + settings.STRIPE_CARD_PRESENT_PERCENTAGE
+        fee = (amount * (percentage / 100)).round(2)
         fee += settings.STRIPE_CARD_PRESENT_STATIC
     else:
-        fee = (amount * (settings.STRIPE_CHARGE_PERCENTAGE / 100)).round(2)
+        percentage = base_percentage + settings.STRIPE_CHARGE_PERCENTAGE
+        fee = (amount * (percentage / 100)).round(2)
         fee += settings.STRIPE_CHARGE_STATIC
     return [
         TransactionRecord(
-            source=TransactionRecord.UNPROCESSED_EARNINGS,
-            destination=TransactionRecord.CARD_TRANSACTION_FEES,
-            category=TransactionRecord.THIRD_PARTY_FEE,
+            source=UNPROCESSED_EARNINGS,
+            destination=CARD_TRANSACTION_FEES,
+            category=THIRD_PARTY_FEE,
             amount=fee,
         )
     ]
 
 
-def deliverable_initialize_transactions(
-        attempt: PaymentAttempt, amount: Money, user: User, context: dict,
-) -> List['TransactionRecord']:
-    from apps.sales.models import TransactionRecord
-    deliverable = context['deliverable']
-    transaction_specs = lines_to_transaction_specs(deliverable.invoice.line_items.all())
-    # TODO: This should probably be decided some other way/earlier in the process.
-    if attempt.get('cash'):
-        source = TransactionRecord.CASH_DEPOSIT
-    else:
-        source = TransactionRecord.CARD
-    transactions = [
-        TransactionRecord(
-            payer=deliverable.order.buyer,
-            status=TransactionRecord.FAILURE,
-            category=category,
-            source=source,
-            payee=destination_user,
-            destination=destination_account,
-            amount=value,
-            response_message="Failed when contacting payment processor.",
-        ) for ((destination_user, destination_account, category), value) in transaction_specs.items()
-    ]
-    if deliverable.processor == STRIPE and source == TransactionRecord.CARD:
-        transactions.extend(initialize_stripe_charge_fees(amount=amount, stripe_event=attempt['stripe_event']))
-    return transactions
-
-
-def deliverable_post_save(transactions: List['TransactionRecord'], attempt: PaymentAttempt, user: User, context: dict):
+def get_subscription_invoice(user: User) -> 'Invoice':
     """
-    Post-save perform_charge hook for deliverable.
+    This grabs an invoice for upgrading the user's service plan. This prevents us from having multiple
+    such invoices for a user.
     """
-    deliverable = context['deliverable']
-    deliverable_ref = ref_for_instance(deliverable)
-    invoice_ref = ref_for_instance(deliverable.invoice)
-    for transaction in transactions:
-        transaction.targets.add(invoice_ref, deliverable_ref)
-
-
-def premium_initiate_transactions(
-        data: PaymentAttempt, amount: Money, user: User, context: dict,
-) -> List['TransactionRecord']:
-    from apps.sales.models import TransactionRecord
-    return [TransactionRecord.objects.create(
-        payer=user,
-        payee=None,
-        source=TransactionRecord.CARD,
-        destination=TransactionRecord.UNPROCESSED_EARNINGS,
-        category=TransactionRecord.SUBSCRIPTION_DUES,
-        status=TransactionRecord.FAILURE,
-        amount=amount,
-        response_message='Failed when contacting payment processor.',
-    )]
-
-
-def premium_post_success(invoice, service_plan):
-    from apps.sales.models import PAID
-
-    def wrapped(transactions: List['TransactionRecord'], data: PaymentAttempt, user: User, context: dict):
-        for transaction in transactions:
-            transaction.response_message = 'Upgraded to landscape'
-        set_premium(user, service_plan, target_date=timezone.now().date() + relativedelta(months=1))
-        invoice.paid_on = timezone.now()
-        invoice.status = PAID
-        invoice.save()
-        user.current_intent = ''
-        user.save(update_fields=['current_intent'])
-    return wrapped
-
-
-def premium_post_save(invoice, remote_ids=None):
-    def wrapped(transactions: List['TransactionRecord'], data: PaymentAttempt, user: User, context: dict):
-        invoice_ref = ref_for_instance(invoice)
-        for transaction in transactions:
-            transaction.targets.add(invoice_ref)
-            if remote_ids:
-                transaction.remote_ids = list(set(transaction.remote_ids + remote_ids))
-    return wrapped
-
-
-def pay_deliverable(*, attempt: PaymentAttempt, deliverable: 'Deliverable', requesting_user: User) -> Tuple[bool, List['TransactionRecord'], str]:
-    from apps.sales.models import IN_PROGRESS, QUEUED, REVIEW
-    from apps.profiles.utils import credit_referral
-    if attempt['amount'] != deliverable.invoice.total():
-        return False, [], 'The price has changed. Please refresh.'
-    try:
-        ensure_buyer(deliverable.order)
-    except AssertionError:
-        return False, [], 'No buyer is set for this order, nor is there a customer email set.'
-    success, records, message = perform_charge(
-        attempt=attempt, amount=attempt['amount'], user=deliverable.order.buyer,
-        requesting_user=requesting_user, post_save=deliverable_post_save,
-        context={'deliverable': deliverable}, initiate_transactions=deliverable_initialize_transactions,
-    )
-    if not success:
-        return success, records, message
-    if deliverable.final_uploaded:
-        deliverable.status = REVIEW
-        deliverable.auto_finalize_on = (timezone.now() + relativedelta(days=2)).date()
-        early_finalize(deliverable, requesting_user)
-    elif deliverable.revision_set.all().exists():
-        deliverable.status = IN_PROGRESS
-    else:
-        deliverable.status = QUEUED
-    deliverable.revisions_hidden = False
-    # Save the original turnaround/weight.
-    deliverable.task_weight = (
-            (deliverable.product and deliverable.product.task_weight)
-            or deliverable.task_weight
-    )
-    deliverable.expected_turnaround = (
-            (deliverable.product and deliverable.product.expected_turnaround)
-            or deliverable.expected_turnaround
-    )
-    deliverable.dispute_available_on = (
-        timezone.now() + BDay(
-            ceil(
-                ceil(deliverable.expected_turnaround + deliverable.adjustment_expected_turnaround) * 1.25))
-    ).date()
-    deliverable.paid_on = timezone.now()
-    # Preserve this so it can't be changed during disputes.
-    deliverable.commission_info = deliverable.order.seller.artist_profile.commission_info
-    deliverable.save()
-    notify(SALE_UPDATE, deliverable, unique=True, mark_unread=True)
-    credit_referral(deliverable)
-    return success, records, message
+    from apps.sales.models import Invoice
+    return Invoice.objects.get_or_create(status=OPEN, bill_to=user, type=SUBSCRIPTION)[0]
 
 
 def get_term_invoice(user: User) -> 'Invoice':
-    from apps.sales.models import Invoice, OPEN, SUBSCRIPTION
-    return Invoice.objects.get_or_create(status=OPEN, bill_to=user, type=SUBSCRIPTION)[0]
+    """
+    This grabs the term invoice for a user. A term invoice handles all the monthly billing-- things
+    like tracking non-shielded transactions. This prevents us from having multiple
+    such invoices for a user.
+    """
+    from apps.sales.models import Invoice
+    invoice = Invoice.objects.update_or_create(
+        status__in=[DRAFT, OPEN], bill_to=user, type=TERM, due_date=user.service_plan_paid_through,
+        defaults={'status': DRAFT}
+    )[0]
+    return invoice
+
+
+def add_service_plan_line(invoice: 'Invoice', service_plan: 'ServicePlan'):
+    amount = service_plan.monthly_charge
+    item, _created = invoice.line_items.update_or_create(
+        defaults={
+            'amount': amount,
+            'description': f'{service_plan.name} plan monthly dues',
+        },
+        destination_account=UNPROCESSED_EARNINGS,
+        type=PREMIUM_SUBSCRIPTION,
+        destination_user=None,
+    )
+    item.targets.set([ref_for_instance(service_plan)])
+
+
+def subscription_invoice_for_service(user: User, service_plan: 'ServicePlan'):
+    invoice = get_subscription_invoice(user)
+    add_service_plan_line(invoice, service_plan)
+    return invoice
 
 
 def get_intent_card_token(user: User, card_id: Optional[str]):
@@ -1157,14 +984,23 @@ def get_intent_card_token(user: User, card_id: Optional[str]):
     if card_id:
         stripe_token = get_object_or_404(CreditCardToken, id=card_id, user=user).stripe_token
         if not stripe_token:
-            raise Http404('That card ID is not a stripe card.')
+            raise ValidationError({'card_id': 'That card ID is not a stripe card.'})
         return stripe_token
     if user.primary_card and user.primary_card.stripe_token:
         return user.primary_card.stripe_token
     return None
 
 
-def default_callable(target: Model):
+def default_pre_pay_callable(target: Model):
+    """
+    We'll determine what the default callable for this model is. For the moment, we're storing this value
+    as a property on the model, but we may eventually want to create some sort of registry if we end up factoring
+    this out.
+    """
+    return getattr(target, 'pre_pay_hook', None)
+
+
+def default_post_pay_callable(target: Model):
     """
     We'll determine what the default callable for this model is. For the moment, we're storing this value
     as a property on the model, but we may eventually want to create some sort of registry if we end up factoring
@@ -1173,15 +1009,31 @@ def default_callable(target: Model):
     return getattr(target, 'post_pay_hook', None)
 
 
-def post_pay_hook(*, billable: Union['Invoice', 'LineItem'], target: Model, context: dict) -> List['TransactionRecord']:
+def pre_pay_hook(*, billable: Union['Invoice', 'LineItem'], target: Model, context: dict) -> dict:
+    """
+    Determine the appropriate preflight function call for a billable. These functions should always return a dictionary
+    which will be merged into the context given to the post_pay hooks. Care should be taken to avoid clobbering
+    where possible, as execution order is not guaranteed.
+    """
+    import_spec = context.get('__callable__', default_pre_pay_callable(target))
+    if not import_spec:
+        return {}
+    to_call = import_string(import_spec)
+    return to_call(billable=billable, target=target, context=context)
+
+
+def post_pay_hook(
+        *, billable: Union['Invoice', 'LineItem'], target: Model, context: dict, records: List['TransactionRecord'],
+) -> List['TransactionRecord']:
     """
     Determine the appropriate function call for a billable. These functions should always return a list of
     TransactionRecords.
     """
-    to_call = import_string(context.get('__callable__', default_callable(target)))
-    if not to_call:
-        return []
-    return to_call(billable=billable, target=target, context=context)
+    import_spec = context.get('__callable__', default_post_pay_callable(target))
+    if not import_spec:
+        return records
+    to_call = import_string(import_spec)
+    return to_call(billable=billable, target=target, context=context, records=records)
 
 
 def paired_iterator(always: Any, iterator: Iterator):
@@ -1192,9 +1044,9 @@ def paired_iterator(always: Any, iterator: Iterator):
         yield always, item
 
 
-def hacky_invoice_post_save(transactions: List['TransactionRecord'], attempt: PaymentAttempt, user: User, context: dict):
+def invoice_post_save(transactions: List['TransactionRecord'], attempt: PaymentAttempt, user: User, context: dict):
     """
-    Post-save perform_charge hook for deliverable.
+    Post-save perform_charge hook for invoices.
     """
     invoice = context['invoice']
     invoice_ref = ref_for_instance(invoice)
@@ -1202,31 +1054,40 @@ def hacky_invoice_post_save(transactions: List['TransactionRecord'], attempt: Pa
         transaction.targets.add(invoice_ref)
 
 
-def hacky_invoice_initiate_transactions(
+def invoice_initiate_transactions(
         attempt: PaymentAttempt, amount: Money, user: User, context: dict,
 ) -> List['TransactionRecord']:
     from apps.sales.models import TransactionRecord
     invoice = context['invoice']
     transaction_specs = lines_to_transaction_specs(invoice.line_items.all())
+    if attempt.get('cash'):
+        source = CASH_DEPOSIT
+    else:
+        source = CARD
     transactions = [
         TransactionRecord(
             payer=invoice.bill_to,
-            status=TransactionRecord.FAILURE,
+            status=FAILURE,
             category=category,
-            source=TransactionRecord.CARD,
+            source=source,
             payee=destination_user,
             destination=destination_account,
             amount=value,
             response_message="Failed when contacting payment processor.",
-        ) for ((destination_user, destination_account, category), value) in transaction_specs.items()
+        ) for ((destination_user, destination_account, category), value) in transaction_specs.items() if value
     ]
     if attempt.get('stripe_event'):
-        transactions.extend(initialize_stripe_charge_fees(amount=amount, stripe_event=attempt.get('stripe_event')))
+        transactions.extend(initialize_stripe_charge_fees(amount=amount, stripe_event=attempt['stripe_event']))
     return transactions
 
 
-def hacky_transaction_creation(invoice: 'Invoice', context: dict):
-    from apps.sales.views.helpers import remote_ids_from_charge
+def post_payment_transaction_creator(invoice: 'Invoice', context: dict):
+    """
+    After an invoice is paid, the line items on the invoice tell us where to send
+    the money. We create transactions for all of these based on the data given.
+
+    The resulting transactions are later modified by the relevant post_pay hooks.
+    """
     attempt = context.get('attempt')
     if not attempt:
         charge_event = context['stripe_event']['data']['object']
@@ -1238,8 +1099,8 @@ def hacky_transaction_creation(invoice: 'Invoice', context: dict):
         }
     success, records, message = perform_charge(
         attempt=attempt, amount=attempt['amount'], user=invoice.bill_to,
-        requesting_user=context.get('requesting_user', invoice.bill_to), post_save=hacky_invoice_post_save,
-        context={'invoice': invoice}, initiate_transactions=hacky_invoice_initiate_transactions,
+        requesting_user=context.get('requesting_user', invoice.bill_to), post_save=invoice_post_save,
+        context={'invoice': invoice}, initiate_transactions=invoice_initiate_transactions,
     )
     return records
 
@@ -1260,13 +1121,16 @@ def invoice_post_payment(invoice: 'Invoice', context: dict) -> List['Transaction
     """
     Post-pay hook. This iterates through all targets and all targets on all line items, and then runs hooks for
     each. Any asynchronous operations that should occur should be scheduled tasks that can verify finished state
-    and start afterwards. Otherwise they might run with a DB that failed the transaction.
+    and start afterwards. Otherwise, they might run with a DB that failed the transaction.
 
     Note that a payment may be 'failed.' We still call the post-payment hooks as they may need to perform some task
     like creating failed transaction records for reference. Payments that have failed will have successful=False in
     the context dictionary.
     """
-    from apps.sales.models import PAID
+    from apps.sales.tasks import withdraw_all
+    from apps.sales.models import Invoice
+    if context['successful'] and context['amount'] != invoice.total():
+        raise AssertionError('The amount paid does not match the invoice total!')
     all_targets = (
         paired_iterator(invoice, invoice.targets.all()),
         *(
@@ -1274,44 +1138,81 @@ def invoice_post_payment(invoice: 'Invoice', context: dict) -> List['Transaction
             for line_item in invoice.line_items.all().prefetch_related('targets')
         ),
     )
-    records = []
-    for billable, target in chain(*all_targets):
-        if not target.target:
+    all_targets = list(chain(*all_targets))
+    for billable, target in all_targets:
+        if not target.target:  # pragma: no cover
             raise IntegrityError(
                 f'{target.__class__.__name__} for deleted item paid: #{invoice.id}, GenericReference {target.id}',
             )
-        records.extend(post_pay_hook(billable=billable, target=target.target, context={**context, **billable.context_for(target)}))
-    if invoice.creates_own_transactions:
-        records.extend(hacky_transaction_creation(invoice, context))
+        context.update(
+            pre_pay_hook(billable=billable, target=target.target, context={**context, **billable.context_for(target)}),
+        )
+    # The pre-pay hooks may modify the invoice somewhat.
+    invoice.refresh_from_db()
+    records = post_payment_transaction_creator(invoice, context)
+    for billable, target in all_targets:
+        initial_records = records
+        records = post_pay_hook(
+            billable=billable, target=target.target, context={**context, **billable.context_for(target)},
+            records=records,
+        )
+        if initial_records and not records:  # pragma: no cover
+            raise RuntimeError('Failed to return records from post_pay hook. Aborting to avoid data loss!')
     if context['successful']:
         invoice.paid_on = timezone.now()
         invoice.status = PAID
         invoice.save()
         freeze_line_items(invoice)
+        if invoice.issued_by:
+            # Make (pretty) sure we've closed out the transaction first. This won't work right in testing, of course,
+            # since celery is always eager.
+            withdraw_all.apply_async((invoice.issued_by_id,), countdown=1)
+    # Remove a user's delinquency status if they've paid off everything that is due.
+    outstanding = Invoice.objects.filter(
+        bill_to=invoice.bill_to,
+        due_date__isnull=False,
+        due_date__lte=timezone.now(),
+        status=OPEN,
+    ).count()
+    if not outstanding:
+        invoice.bill_to.delinquent = False
+        invoice.bill_to.save()
     return records
 
 
-class AccountMutex:
-    def __init__(self, users: List[User]):
-        # Not 100% sure on this, but I think we can avoid deadlocks if we always lock users in the same order, even if
-        # there are multiple, since one thread will always be ahead of the other.
-        self.users = sorted(list(set(users)))
-        self.mutexes = []
-        self.acquired = []
-
-    def __enter__(self):
-        for user in self.users:
-            lock_name = f'account_mutex__{user.id}'
-            self.mutexes.append(cache.lock(lock_name))
-        for lock in self.mutexes:
-            lock.__enter__()
-            self.acquired.append(lock)
-
-    def __exit__(self, exc_type=None, exc_val=None, exc_tb=None):
-        result = []
-        for lock in self.acquired:
-            result.append(lock.__exit__(exc_type, exc_val, exc_tb))
-        return all(result)
+def refund_deliverable(deliverable: 'Deliverable', requesting_user=None) -> (bool, str):
+    from apps.sales.models import TransactionRecord
+    assert deliverable.status in [QUEUED, IN_PROGRESS, DISPUTED, REVIEW]
+    if not deliverable.escrow_enabled:
+        deliverable.status = REFUNDED
+        deliverable.save()
+        notify(ORDER_UPDATE, deliverable, unique=True, mark_unread=True)
+        return True, ''
+    target = ref_for_instance(deliverable)
+    # Sanity check. Should only return one transaction.
+    TransactionRecord.objects.get(
+        source__in=[CARD, CASH_DEPOSIT],
+        targets=target,
+        payer=deliverable.order.buyer,
+        payee=deliverable.order.seller,
+        destination=ESCROW,
+        status=SUCCESS,
+    )
+    transaction_set = TransactionRecord.objects.filter(
+        source__in=[CARD, CASH_DEPOSIT],
+        targets=target,
+        status=SUCCESS,
+    ).exclude(category=SHIELD_FEE)
+    record = issue_refund(transaction_set, ESCROW_REFUND, processor=deliverable.processor)[0]
+    if record.status == FAILURE:
+        return False, record.response_message
+    deliverable.status = REFUNDED
+    deliverable.save()
+    notify(REFUND, deliverable, unique=True, mark_unread=True)
+    notify(ORDER_UPDATE, deliverable, unique=True, mark_unread=True)
+    if requesting_user != deliverable.order.seller:
+        notify(SALE_UPDATE, deliverable, unique=True, mark_unread=True)
+    return True, ''
 
 
 def reverse_record(record: 'TransactionRecord') -> (bool, 'TransactionRecord'):
@@ -1322,17 +1223,17 @@ def reverse_record(record: 'TransactionRecord') -> (bool, 'TransactionRecord'):
     This function might be moved to utils if given a few more guards so it can be used safely, but since
     """
     from apps.sales.models import TransactionRecord
-    if record.status != TransactionRecord.SUCCESS:
+    if record.status != SUCCESS:
         raise ValueError('Transactions may not be reversed if they have not succeeded.')
     ref = ref_for_instance(record)
     old_record = TransactionRecord.objects.filter(
         targets=ref_for_instance(record), amount=record.amount, destination=record.source,
-        source=record.destination, status__in=[TransactionRecord.SUCCESS, TransactionRecord.PENDING],
+        source=record.destination, status__in=[SUCCESS, PENDING],
     ).first()
     if old_record:
         return False, old_record
     new_record = TransactionRecord.objects.create(
-        status=TransactionRecord.SUCCESS,
+        status=SUCCESS,
         source=record.destination,
         destination=record.source,
         category=record.category,
@@ -1347,3 +1248,150 @@ def reverse_record(record: 'TransactionRecord') -> (bool, 'TransactionRecord'):
     new_record.targets.set(record.targets.all())
     new_record.targets.add(ref)
     return True, new_record
+
+
+def lines_for_product(product: 'Product', force_shield=False) -> List['LineItemSim']:
+    from apps.sales.models import LineItemSim
+    lines = [
+        LineItemSim(amount=product.base_price, priority=0, type=BASE_PRICE, id=0),
+    ]
+    plan = product.user.service_plan
+    if product.table_product:
+        lines.extend([
+            LineItemSim(
+                id=300,
+                percentage=settings.TABLE_PERCENTAGE_FEE,
+                priority=300,
+                amount=settings.TABLE_STATIC_FEE,
+                type=TABLE_SERVICE,
+                cascade_percentage=product.cascade_fees,
+                cascade_amount=False,
+                back_into_percentage=not product.cascade_fees,
+            ),
+            LineItemSim(
+                id=600,
+                percentage=settings.TABLE_TAX,
+                priority=600,
+                type=TAX,
+                cascade_percentage=product.cascade_fees,
+                cascade_amount=product.cascade_fees,
+                back_into_percentage=True,
+            ),
+        ])
+    elif product.escrow_enabled or force_shield:
+        percentage_price = plan.shield_percentage_price
+        if product.international:
+            percentage_price += settings.INTERNATIONAL_CONVERSION_PERCENTAGE
+        if (not product.escrow_enabled) and force_shield:
+            cascade_fees = False
+        else:
+            cascade_fees = product.cascade_fees
+        lines.extend([
+            LineItemSim(
+                id=200,
+                amount=plan.shield_static_price,
+                percentage=plan.shield_percentage_price,
+                priority=300,
+                type=SHIELD,
+                cascade_percentage=cascade_fees,
+                cascade_amount=cascade_fees,
+                back_into_percentage=not cascade_fees,
+            ),
+        ])
+    return lines
+
+
+class PaymentIntentSettingsData(TypedDict):
+    card_id: Optional[int]
+    use_reader: bool
+    save_card: bool
+    make_primary: bool
+
+
+def get_invoice_intent(invoice: 'Invoice', payment_settings: PaymentIntentSettingsData):
+    if invoice.bill_to.is_registered:
+        create_or_update_stripe_user(invoice.bill_to.id)
+        invoice.bill_to.refresh_from_db()
+    stripe_token = get_intent_card_token(invoice.bill_to, payment_settings.get('card_id'))
+    use_terminal = payment_settings['use_reader']
+    save_card = payment_settings['save_card'] and not invoice.bill_to.guest
+    make_primary = (save_card and payment_settings['make_primary']) and not invoice.bill_to.guest
+    total = invoice.total()
+    amount = int(total.amount * total.currency.sub_unit)
+    if not amount:
+        raise ValidationError('Cannot create a payment intent for a zero invoice.')
+    if use_terminal:
+        # We set card here as well to prevent a transaction issue on Stripe's side where
+        # We can't unset the payment method at the same time as changing the payment method
+        # types to just card_present.
+        payment_method_types = ['card_present', 'card']
+        capture_method = 'manual'
+        save_card = False
+        make_primary = False
+        stripe_token = None
+    else:
+        payment_method_types = ['card']
+        capture_method = 'automatic'
+    with stripe as stripe_api:
+        # Can only do string values, so won't be json true value.
+        metadata = {'invoice_id': invoice.id, 'make_primary': make_primary, 'save_card': save_card}
+        intent_kwargs = {
+            # Need to figure out how to do this per-currency.
+            'amount': int(total.amount * total.currency.sub_unit),
+            'currency': str(total.currency).lower(),
+            'customer': invoice.bill_to.stripe_token or None,
+            # Note: If we expand the payment types, we may need to take into account that linking the
+            # charge_id to the source_transaction field of the payout transfer could cause problems. See:
+            # https://stripe.com/docs/connect/charges-transfers#transfer-availability
+            'payment_method_types': payment_method_types,
+            'payment_method': stripe_token,
+            'capture_method': capture_method,
+            'transfer_group': f'ACInvoice#{invoice.id}',
+            'metadata': metadata,
+            'receipt_email': invoice.bill_to.guest_email or invoice.bill_to.email,
+        }
+        if save_card:
+            intent_kwargs['setup_future_usage'] = 'off_session'
+        if invoice.current_intent:
+            try:
+                intent = stripe_api.PaymentIntent.modify(invoice.current_intent, **intent_kwargs)
+            except InvalidRequestError as err:
+                if err.code == 'payment_intent_unexpected_state':
+                    raise ValidationError(
+                        'Payment intent not in expected state. '
+                        'Likely, it has been paid and we are waiting on webhooks.',
+                    )
+            return intent['client_secret']
+        intent = stripe_api.PaymentIntent.create(**intent_kwargs)
+        invoice.current_intent = intent['id']
+        invoice.save()
+        return intent['client_secret']
+
+
+def update_downstream_pricing(user):
+    """
+    Updates the pricing on all items a user has. Especially useful when performing plan switches.
+    """
+    from apps.sales.models import Deliverable, update_user_availability
+    for product in user.products.filter(active=True):
+        product.save()
+    for deliverable in Deliverable.objects.filter(
+            order__seller=user, status__in=[LIMBO, NEW, WAITING, PAYMENT_PENDING],
+    ):
+        deliverable.save()
+    update_user_availability(None, user.artist_profile)
+
+
+def credit_referral(deliverable):
+    from apps.profiles.utils import extend_landscape
+    seller_credit = False
+    if not deliverable.order.seller.sold_shield_on:
+        seller_credit = True
+        deliverable.order.seller.sold_shield_on = timezone.now()
+        deliverable.order.seller.save()
+    if deliverable.order.buyer and not deliverable.order.buyer.bought_shield_on:
+        deliverable.order.buyer.bought_shield_on = timezone.now()
+        deliverable.order.buyer.save()
+    if seller_credit and deliverable.order.seller.referred_by:
+        extend_landscape(deliverable.order.seller.referred_by, months=1)
+        notify(REFERRAL_LANDSCAPE_CREDIT, deliverable.order.seller.referred_by, unique=False)

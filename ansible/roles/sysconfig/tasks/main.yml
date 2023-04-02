@@ -11,9 +11,17 @@
     line: "127.0.0.1 {{ inventory_hostname.split('.')[0] }}"
     path: /etc/hosts
 
-- name: Add redis PPA
-  apt_repository:
-    repo: ppa:chris-lea/redis-server
+- name: Import redis gpg key
+  shell: 'curl -fsSL https://packages.redis.io/gpg | sudo gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg'
+  args:
+    creates: "/usr/share/keyrings/redis-archive-keyring.gpg"
+    executable: "/bin/bash"
+
+- name: Add redis apt repository
+  shell: 'echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/redis.list'
+  args:
+    creates: "/etc/apt/sources.list.d/redis.list"
+    executable: "/bin/bash"
 
 
 - name: Update Packages
@@ -46,3 +54,41 @@
     mode: '0777'
   notify:
     force_disable_hugepages
+
+- name: Build swap file
+  shell: 'dd if=/dev/zero of=/swapfile bs=1024 count={{ swap_kilo_size }}'
+  args:
+    executable: '/bin/bash'
+    creates: '/swapfile'
+  register: build_swap
+
+- name: Format swap file
+  shell: 'mkswap /swapfile'
+  args:
+    executable: '/bin/bash'
+  when: build_swap.changed
+
+- name: Disable current swaps
+  shell: 'swapoff -a'
+  args:
+    executable: '/bin/bash'
+  when: build_swap.changed
+
+- name: Set swap permissions
+  file:
+    path: '/swapfile'
+    owner: root
+    group: root
+    mode: '0600'
+
+- name: No other swaps in fstab
+  lineinfile:
+    path: /etc/fstab
+    regexp: 'swap'
+    line: '/swapfile    none    swap    sw    0    0'
+
+- name: Enable swap
+  shell: 'swapon -a'
+  args:
+    executable: '/bin/bash'
+  when: build_swap.changed

@@ -35,6 +35,7 @@ import {HttpVerbs} from '@/store/forms/types/HttpVerbs'
 import {Shortcuts} from '@/plugins/shortcuts'
 import {VueSocket} from '@/plugins/socket'
 import WS from 'jest-websocket-mock'
+import {genPricing} from '@/lib/specs/helpers'
 
 export interface ExtraData {
   status?: number,
@@ -66,7 +67,12 @@ export function rq(url: string, method: HttpVerbs, data?: any, config?: AxiosReq
     starterHeaders['X-CSRFToken'] = token
   }
   config.headers = {...starterHeaders, ...config.headers}
-  return {url, data, method, ...config}
+  return {
+    url,
+    data,
+    method,
+    ...config,
+  }
 }
 
 export function dialogExpects(spec: { wrapper: any, formName: string, fields: string[] }) {
@@ -105,16 +111,22 @@ export function expectFields(fieldSet: FieldBank, names: string[]) {
 
 export const flushPromises = flushPromisesUpstream
 
-export function setViewer(store: Store<any>, user: User|AnonUser|TerseUser) {
+export function setViewer(store: Store<any>, user: User | AnonUser | TerseUser) {
   const username = user.username
   store.registerModule(pathFor(username), new ProfileModule({viewer: true}))
   store.registerModule(
     userPathFor(username),
-    new SingleModule<User|AnonUser|TerseUser>({x: user, endpoint: endpointFor(username)}),
+    new SingleModule<User | AnonUser | TerseUser>({
+      x: user,
+      endpoint: endpointFor(username),
+    }),
   )
   store.registerModule(
     artistProfilePathFor(username),
-    new SingleModule<User|AnonUser|TerseUser>({x: null, endpoint: artistProfileEndpointFor(username)}),
+    new SingleModule<User | AnonUser | TerseUser>({
+      x: null,
+      endpoint: artistProfileEndpointFor(username),
+    }),
   )
   store.commit('profiles/setViewerUsername', username)
   store.commit(`userModules/${username}/user/setReady`, true)
@@ -216,19 +228,10 @@ export function cleanUp(wrapper?: Wrapper<Vue>) {
 
 export function setPricing(store: ArtStore, localVue: VueConstructor<Vue>) {
   const pricing = mount(Empty, {
-    localVue, store,
+    localVue,
+    store,
   }).vm.$getSingle('pricing', {endpoint: '/pricing/'})
-  pricing.setX({
-    premium_percentage_bonus: 50,
-    premium_static_bonus: 0.25,
-    landscape_price: 5.00,
-    standard_percentage: 8,
-    standard_static: 0.75,
-    minimum_price: 1.10,
-    table_percentage: 10,
-    table_static: 5,
-    table_tax: 8.25,
-  })
+  pricing.setX(genPricing())
   pricing.ready = true
   return pricing
 }
@@ -291,6 +294,14 @@ export const mockStripe = () => {
     confirmCardPayment: async() => {
       return immediate(stripeInstance.paymentValue)
     },
+    confirmCardSetup: async() => {
+      return immediate(stripeInstance.setupValue)
+    },
+    reset() {
+      stripeInstance.setupValue = null
+      stripeInstance.paymentValue = null
+    },
+    setupValue: null as any,
     // Set this to whatever you want confirmCardPayment to return.
     paymentValue: null as any,
   }

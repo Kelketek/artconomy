@@ -9,4 +9,5 @@ export interface RelatedUser {
   artist_mode: boolean|null,
   guest: boolean,
   taggable: boolean,
+  verified_email: boolean,
 }

@@ -17,6 +17,7 @@ import {Prop} from 'vue-property-decorator'
 export default class DummySubmit extends mixins(Subjective, Upload) {
   @Prop({default: false})
   public allowMultiple!: boolean
+
   public created() {
     this.showUpload = true
   }

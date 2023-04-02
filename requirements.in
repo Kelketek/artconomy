@@ -1,5 +1,7 @@
 # Library for asynchronous handling of files.
 aiofile
+# OAuth2 library used for our custom Discord Integration-- the non-bot part
+authlib
 # BeautifulSoup is an HTML/XML processing library which we primarily use to manipulate HTML structures before
 # extracting their text for the text version of emails
 bs4
@@ -9,21 +11,23 @@ bs4
 celery
 # Channels handles async connections to Django that can be subscribed and published to.
 # This is used for managing websockets.
-channels==3.0.5
+channels>=4.0.0,<5.0.0
 # Uses Redis as the backend for Channels
 channels-redis
 # Checks how many lines are run during tests
 coverage
-# Base websocket server used by Django-channels in dev/testing
-daphne
+# Base websocket server used by Django-channels
+channels[daphne]
 # DDT 'Data Driven Tests'-- allows us to parameterize tests so we can write them once with several different inputs.
 ddt
-# Used to generate thumbnails for submissions.
-easy_thumbnails
+# The library we use for our Discord bot
+discord-py-interactions
+# A class type that allows you to access keys in a dictionary as though they're props. Useful for duck-typing tricks.
+dotted-dict
 # The Django web framework is Artconomy's base web framework.
-Django>=3.2.16,<3.3.0
+Django>=4.1.7,<=4.2
 # Application which handles avatars for users, including default avatars.
-django-avatar>=5.0.0,<6
+django-avatar>=7.0.0,<8.0.0
 # Allows emails to be sent asynchronously via celery
 django-celery-email
 # Utilities for deleting orphaned files. Django doesn't delete files from the HD automatically
@@ -32,7 +36,7 @@ django_cleanup
 # Model base for our custom Django user model, allowing email login.
 django-custom-user
 # Hitcount application-- helps users know many views their submissions are getting, for instance.
-git+https://github.com/Artconomy/django-hitcount.git@fox/ipv6-compatibility#egg=django-hitcount
+git+https://github.com/thornomad/django-hitcount.git@fcf399698455d656810a9456ccd0b42a8290969f#egg=django-hitcount
 # Django removed the included markdown processing functionality in templates and this library picks
 # up where it left off.
 django-markdown2
@@ -50,7 +54,7 @@ djangorestframework==3.12.4
 # Extension for Django REST Framework to allow bulk updates of items
 djangorestframework-bulk
 # Django REST field for completing a recaptcha-compatible captcha
-django-rest-recaptcha
+git+https://github.com/Artconomy/django-rest-recaptcha.git@django-4.0#egg=django-rest-recaptcha
 # Allows for Django REST endpoints to respond in CSV format when enabled
 djangorestframework-csv
 # Stores old versions of a model in the database so they can be reverted or reviewed. We use this on order comments
@@ -64,6 +68,8 @@ django-signal-disabler
 django-webpack-loader
 # Library for calling Dwolla services. Deprecated since we no longer use Dwolla.
 dwollav2
+# Used to generate thumbnails for submissions.
+easy_thumbnails
 # Factories for testing-- allowing us to create users, submissions, etc on the fly to test something.
 factory-boy
 # Freezes time. Or rather, freezes the output of time libraries such that you can depend on them to return a particular
@@ -88,14 +94,14 @@ mailchimp3
 # calendar calculations, but we're liable to use it for more in time.
 pandas
 # Django uses this driver for communicating with the PostgreSQL database.
-psycopg2-binary>=2.8.6,<2.9
+psycopg2
 # Library which contains ISO-standard information about all countries on earth. Needed for address handling.
 pycountry
 # Awesome library for date manipulation. I have no idea why it isn't in the standard library. Allows for things
 # like 'relative deltas' so you can do things like add x number of months to a date.
 python-dateutil
 # Python library for the Telegram bot, used for 2FA
-python-telegram-bot
+python-telegram-bot>=13.0.0,<14.0.0
 # Used for handling Time Zone data in Python and imbuing naiive datetimes with TZ information.
 pytz
 # Used to generate QR codes
@@ -111,6 +117,6 @@ stripe
 # Library for working with tracebacks. Used for testing.
 tblib
 # ASGI webserver for Python. Used for the production ASGI server, which handles websocket requests.
-uvicorn>=0.13.4,<=0.14
+uvicorn[standard]
 # uWSGI webserver for Python. Handles standard HTTP requests in production.
 uWSGI

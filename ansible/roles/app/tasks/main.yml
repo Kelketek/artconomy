@@ -7,18 +7,19 @@
 - name: Install base requirements
   apt:
     name:
-      - python3.8
-      - python3.8-dev
+      - python3.11
+      - python3.11-dev
       - autoconf
       - libtool
       - python3-pip
-      - python-virtualenv
+      - python3-virtualenv
       - uwsgi
       - git
       - uwsgi-plugin-python3
       - libpq-dev
       - software-properties-common
       - redis-server
+      - unzip
 
 - name: Enable redis service
   service: name=redis-server enabled=true
@@ -30,17 +31,16 @@
   include_vars: "keys/{{env_prefix}}/app_settings.yml"
 
 - name: Install NPM repos
-  shell: "curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -"
+  shell: "curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -"
   args:
     creates: /etc/apt/sources.list.d/nodesource.list
-    warn: false
 
 - name: Install NPM
   apt:
     name: nodejs
     state: present
 
-- name: Install node version manager
+- name: Set NPM Registry to authoritative version
   npm:
     registry: http://registry.npmjs.org/
     global: yes
@@ -51,8 +51,8 @@
   register: node_version
 
 - name: Ensure correct version of node
-  shell: n 14.17.2
-  when: node_version.stdout != "v14.17.2"
+  shell: n 18.13.0
+  when: node_version.stdout != "v18.13.0"
 
 - name: Add app user
   user:
@@ -99,28 +99,10 @@
 - name: Initialize virtual environment
   become: yes
   become_user: "{{ env_prefix }}"
-  shell: "rm -rvf {{home}}/bin && /usr/bin/virtualenv -p /usr/bin/python3.8 {{home}} && touch {{home}}/.3-8-upgrade"
+  shell: "rm -rvf {{home}}/bin && /usr/bin/virtualenv -p /usr/bin/python3.11 {{home}} && touch {{home}}/.3-11-upgrade"
   args:
     executable: "/bin/bash"
-    creates: "{{ home }}/.3-8-upgrade"
-    warn: false
-
-- name: Drop in verified pip
-  become_user: "{{ env_prefix }}"
-  template:
-    src: "templates/bash/pip"
-    dest: "{{home}}/bin/pip"
-    mode: 0755
-
-- name: Ensure default python link
-  file:
-    src: "{{home}}/bin/python3.8"
-    dest: "{{home}}/bin/python"
-
-- name: Ensure default python3 link
-  file:
-    src: "{{home}}/bin/python3.8"
-    dest: "{{home}}/bin/python3"
+    creates: "{{ home }}/.3-11-upgrade"
 
 - name: Install NPM packages
   become: yes
@@ -227,3 +209,4 @@
 
 - name: Start daphne service
   service: name=artconomy-daphne state=started
+

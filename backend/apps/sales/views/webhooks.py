@@ -16,17 +16,19 @@ from requests.auth import HTTPBasicAuth
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from stripe.error import SignatureVerificationError
 
 from apps.lib.models import ref_for_instance, TRANSFER_FAILED
 from apps.lib.utils import notify
 from apps.profiles.models import User, IN_SUPPORTED_COUNTRY
-from apps.sales.apis import STRIPE
+from apps.sales.constants import STRIPE, NEW, PAYMENT_PENDING, TYPE_TRANSLATION, FAILURE, SUCCESS, PAYOUT_REVERSAL, \
+    CASH_WITHDRAW, PAYOUT_MIRROR_DESTINATION, PAYOUT_MIRROR_SOURCE, BANK, HOLDINGS
 from apps.sales.models import Invoice, Deliverable, TransactionRecord, CreditCardToken, \
-    StripeAccount, NEW, PAYMENT_PENDING, WebhookRecord
+    StripeAccount, WebhookRecord
 from apps.sales.stripe import stripe
 from apps.sales.tasks import withdraw_all
 from apps.sales.utils import UserPaymentException, invoice_post_payment
-from apps.sales.views.views import logger
+from apps.sales.views.main import logger
 
 
 @transaction.atomic
@@ -67,7 +69,7 @@ def handle_charge_event(event, successful=True):
         card, _created = CreditCardToken.objects.get_or_create(
             user=user, last_four=details['last4'],
             stripe_token=charge_event['payment_method'],
-            type=CreditCardToken.TYPE_TRANSLATION[details['brand']],
+            type=TYPE_TRANSLATION[details['brand']],
             defaults={'cvv_verified': True},
         )
         if not user.primary_card or (metadata.get('make_primary') == 'True'):
@@ -88,14 +90,7 @@ def charge_succeeded(event):
 
 
 def charge_failed(event):
-    try:
-        handle_charge_event(event, successful=False)
-    except UserPaymentException:
-        pass
-
-
-def charge_captured(event):
-    charge_succeeded(event)
+    handle_charge_event(event, successful=False)
 
 
 @transaction.atomic
@@ -114,25 +109,35 @@ def account_updated(event):
 
 
 @atomic
-def pull_and_reconcile_report(event, report):
+def pull_and_reconcile_payout_report(event, report):
     """
     Given a Stripe ReportRun object as specified by payout_paid,
     fetch the report file and then update our database with the transfer information.
     """
-    result = requests.get(report.result['url'], auth=HTTPBasicAuth(settings.STRIPE_KEY, ''))
+    result = requests.get(report['result']['url'], auth=HTTPBasicAuth(settings.STRIPE_KEY, ''))
     result.raise_for_status()
     reader = csv.DictReader(StringIO(result.content.decode('utf-8')))
+    # In reality, this should only ever be one row.
     for row in reader:
-        # In reality, this should only ever be one row.
-        if not row['source_id']:
-            raise RuntimeError('No source ID!')
+        parameters = event["data"]["object"]["parameters"]
+        currency = get_currency(row['currency'].upper())
+        amount = Money(Decimal(row['gross']), currency)
+        old_source = HOLDINGS
+        old_destination = BANK
+        new_source = PAYOUT_MIRROR_SOURCE
+        new_destination = PAYOUT_MIRROR_DESTINATION
+        category = CASH_WITHDRAW
+        if amount < Money('0', currency):
+            new_source, new_destination = new_destination, new_source
+            old_source, old_destination = old_destination, old_source
+            amount = abs(amount)
+            category = PAYOUT_REVERSAL
         try:
             record = TransactionRecord.objects.get(
-                remote_ids__contains=row['source_id'] + '', source=TransactionRecord.HOLDINGS,
-                destination=TransactionRecord.BANK,
+                remote_ids__contains=row['source_id'] + '', source=old_source,
+                destination=old_destination,
             )
         except TransactionRecord.DoesNotExist:
-            parameters = event["data"]["object"]["parameters"]
             raise TransactionRecord.DoesNotExist(
                 f'Could not find corresponding record for {row["source_id"]}.'
                 f' It may need to be added manually or may be malformed. Please check '
@@ -144,26 +149,29 @@ def pull_and_reconcile_report(event, report):
         else:
             timestamp = timezone.now()
         record.finalized_on = timestamp
-        record.status = TransactionRecord.SUCCESS
+        record.status = SUCCESS
+        record.remote_ids.append(parameters['payout'])
+        record.remote_ids = list(set(record.remote_ids))
         record.save()
-        currency = get_currency(row['currency'].upper())
-        amount = Money(Decimal(row['gross']), currency)
-        source = TransactionRecord.PAYOUT_MIRROR_SOURCE
-        destination = TransactionRecord.PAYOUT_MIRROR_DESTINATION
-        category = TransactionRecord.CASH_WITHDRAW
-        if amount < Money('0', currency):
-            source, destination = destination, source
-            amount = abs(amount)
-            category = TransactionRecord.PAYOUT_REVERSAL
         new_record = TransactionRecord.objects.get_or_create(
             remote_ids=record.remote_ids, amount=amount,
-            payer=record.payer, payee=record.payee, source=source,
-            destination=destination, status=TransactionRecord.SUCCESS,
+            payer=record.payer, payee=record.payee, source=new_source,
+            destination=new_destination, status=SUCCESS,
             category=category,
             created_on=record.created_on, finalized_on=timestamp,
         )[0]
         new_record.targets.add(*record.targets.all())
         new_record.targets.add(ref_for_instance(record))
+
+
+def reconcile_payout_report(event):
+    """
+    This event handles a webhook for the specific report type we run to reconcile payouts with our own reporting.
+
+    This function might seem redundant, but it's possible for a report not attached to an event to call it. An
+    example of this is found in payout_paid.
+    """
+    pull_and_reconcile_payout_report(event, event['data']['object'])
 
 
 @atomic
@@ -175,7 +183,7 @@ def payout_paid(event):
     """
     payout_data = event['data']['object']
     with stripe as stripe_api:
-        report = stripe_api.reporting.ReportRun.create(
+        stripe_api.reporting.ReportRun.create(
             report_type='connected_account_payout_reconciliation.by_id.itemized.4',
             parameters={
                 'payout': payout_data['id'],
@@ -190,9 +198,6 @@ def payout_paid(event):
                 ]
             }
         )
-        if report.result:
-            # This might happen if the request appeared to fail but actually succeeded silently.
-            pull_and_reconcile_report(event, report)
 
 
 def transfer_failed(event):
@@ -201,9 +206,9 @@ def transfer_failed(event):
     """
     transfer = event['data']['object']['id']
     records = TransactionRecord.objects.filter(
-        remote_ids=transfer,
+        remote_ids__contains=transfer,
     )
-    records.update(status=TransactionRecord.FAILURE)
+    records.update(status=FAILURE)
     record = records.order_by('created_on')[0]
     notify(
         TRANSFER_FAILED,
@@ -213,13 +218,6 @@ def transfer_failed(event):
                      'or contact support.'
         }
     )
-
-
-def reconcile_payout_report(event):
-    """
-    This event handles a webhook for the specific report type we run to reconcile payouts with our own reporting.
-    """
-    pull_and_reconcile_report(event, event['data']['object'])
 
 
 @transaction.atomic
@@ -234,7 +232,7 @@ def payment_method_attached(event):
         user=user,
         stripe_token=card_info['id'],
         last_four=card_info['card']['last4'],
-        type=CreditCardToken.TYPE_TRANSLATION[card_info['card']['brand']],
+        type=TYPE_TRANSLATION[card_info['card']['brand']],
         defaults={'cvv_verified': True},
     )
     if not user.primary_card:
@@ -254,12 +252,50 @@ def reporting_report_run_succeeded(event):
         return
 
 
-def spy_failure(event):
-    raise NotImplementedError('Bogus failure to trap real-world webhook.')
+def mockable_dummy_event(event):
+    """
+    Mockable function for automated tests.
+    """
+
+
+def dummy_event(event):
+    """
+    Fake Stripe event type used in automated tests. We don't mock this directly since it's root level and a dict value
+    at once.
+    """
+    mockable_dummy_event(event)
+
+
+def mockable_dummy_connect_event(event):
+    """
+    Mockable function for automated tests.
+    """
+
+
+def dummy_connect_event(event):
+    """
+    Fake Stripe event used in automated tests. We don't mock this directly since it's root level and a dict value
+    at once.
+    """
+    mockable_dummy_connect_event(event)
+
+
+def mockable_dummy_report_processor(event):
+    """
+    Mockable function for automated tests.
+    """
+
+
+def dummy_report_processor(event):
+    """
+    Fake report processor function used in automated tests. We don't mock this directly since it's root level and a dict
+    value at once.
+    """
+    mockable_dummy_report_processor(event)
 
 
 STRIPE_DIRECT_WEBHOOK_ROUTES = {
-    'charge.captured': charge_captured,
+    'charge.captured': charge_succeeded,
     'charge.succeeded': charge_succeeded,
     'charge.failed': charge_failed,
     'transfer.failed': transfer_failed,
@@ -270,6 +306,12 @@ STRIPE_CONNECT_WEBHOOK_ROUTES = {
     'account.updated': account_updated,
     'payout.paid': payout_paid,
 }
+
+
+if settings.TESTING:
+    STRIPE_DIRECT_WEBHOOK_ROUTES['dummy_event'] = dummy_event
+    STRIPE_CONNECT_WEBHOOK_ROUTES['dummy_connect_event'] = dummy_connect_event
+    REPORT_ROUTES['dummy_report'] = dummy_report_processor
 
 
 def handle_stripe_event(*, body: str = None, connect: bool, event: dict = None):
@@ -309,6 +351,6 @@ class StripeWebhooks(APIView):
                 # If the secret is missing, we cannot verify the signature. Die dramatically until an admin fixes.
                 assert secret
                 event = stripe_api.Webhook.construct_event(request.body, sig_header, secret)
-            except ValueError as err:
+            except SignatureVerificationError as err:
                 return Response(status=status.HTTP_400_BAD_REQUEST, data={'detail': str(err)})
             return handle_stripe_event(connect=connect, event=event)

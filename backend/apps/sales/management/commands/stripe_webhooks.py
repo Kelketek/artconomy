@@ -52,7 +52,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         overrides = {}
-        if options.get('domain'):
+        if options.get('domain') is not None:
             overrides['domain'] = options['domain']
         connect_url = make_url(reverse('sales:stripe_webhooks_connect'), overrides=overrides)
         account_url = make_url(reverse('sales:stripe_webhooks'), overrides=overrides)

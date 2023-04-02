@@ -1,4 +1,4 @@
 import LineItem from '@/types/LineItem'
-import Big from 'big.js'
+import Decimal from 'decimal.js'
 
-export type LineMoneyMap = Map<LineItem, Big>
+export type LineMoneyMap = Map<LineItem, Decimal>

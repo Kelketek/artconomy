@@ -31,6 +31,7 @@ function genTransaction(): Transaction {
       guest: false,
       artist_mode: true,
       taggable: true,
+      verified_email: false,
     },
     payee: {
       id: 1,
@@ -43,6 +44,7 @@ function genTransaction(): Transaction {
       guest: false,
       artist_mode: true,
       taggable: true,
+      verified_email: false,
     },
     amount: 14.0,
     remote_id: '72e6aab4-44ff-e911-811e-c292460a9c6d',

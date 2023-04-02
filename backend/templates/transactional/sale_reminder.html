@@ -8,6 +8,7 @@
   {{deliverable.details|markdown:"safe"}}
 </div>
 <p>If you are unable to take orders at this time, you may also decline this order and then set your commissions to closed in your settings.</p>
+<p><strong>If you do not respond to this order by {{deliverable.auto_close_on|date:"SHORT_DATE_FORMAT" }}, the order will automatically be cancelled.</strong></p>
 {% endblock message %}
 
 {% block action %}

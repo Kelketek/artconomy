@@ -2,7 +2,7 @@
   <v-container>
     <v-card color="grey darken-3">
       <v-card-text>
-        <v-row no-gutters  >
+        <v-row no-gutters>
           <v-col>
             <h1>Upgrade Your Account</h1>
           </v-col>
@@ -12,53 +12,79 @@
     <v-tabs-items v-model="tab">
       <v-tab-item value="selection">
         <ac-load-section :controller="pricing">
-          <template v-slot:default>
-            <v-row no-gutters   class="mt-3" v-if="selection === null">
-              <v-col cols="12" md="6" offset-md="3">
-                <v-card style="height: 100%">
-                  <v-card-title text-center>
-                    <v-col class="text-center" >
-                      <v-icon>landscape</v-icon>&nbsp;Artconomy Landscape
-                    </v-col>
-                  </v-card-title>
-                  <v-card-text class="mb-5">
-                    <v-row no-gutters class="fill-height" >
-                      <v-col>
+          <template v-slot:default v-if="selection === null">
+            <v-row>
+              <v-col cols="12" md="4" class="mt-3" v-for="(plan, index) in plans" :key="plan.id">
+                <v-card style="height: 100%" :color="$vuetify.theme.currentTheme.darkBase.darken2" class="d-flex flex-column">
+                  <v-card-text>
+                    <v-row>
+                      <v-col class="text-center" cols="12">
+                        <v-card>
+                          <v-card-title class="d-block text-center">{{plan.name}}</v-card-title>
+                          <v-card-text>{{plan.description}}</v-card-text>
+                        </v-card>
+                      </v-col>
+                    </v-row>
+                  </v-card-text>
+                  <v-card-text class="flex-fill align-self-baseline align-content-start">
+                    <v-row class="fill-height" no-gutters>
+                      <v-col cols="12">
                         <v-list two-line>
-                          <v-list-item>
+                          <v-list-item v-if="features[plan.id].length && plans.length > 1 && index !== 0">
                             <v-list-item-content>
-                              Receive Notifications when your favorite artists become available
+                              <strong>...All that, plus:</strong>
                             </v-list-item-content>
                           </v-list-item>
-                          <v-divider/>
-                          <v-list-item>
-                            <v-list-item-content>
-                              Get the opportunity to try experimental new features first!
-                            </v-list-item-content>
-                          </v-list-item>
-                          <v-divider/>
-                          <v-list-item>
-                            <v-list-item-content class="item-flatten">
-                              Get <strong>Bonus Cash</strong> for every Shield-protected commission you complete!
-                            </v-list-item-content>
-                          </v-list-item>
-                          <v-divider/>
-                          <v-list-item>
-                            <v-list-item-content>
-                              ...All for ${{pricing.x.landscape_price}}/Month!
-                            </v-list-item-content>
-                          </v-list-item>
+                          <template v-for="(feature, index) in features[plan.id]">
+                            <v-list-item :key="feature">
+                              <v-list-item-content>
+                                {{ feature }}
+                              </v-list-item-content>
+                            </v-list-item>
+                            <v-divider :key="`divider-${feature}`" v-if="index !== (features[plan.id].length - 1)"/>
+                          </template>
                         </v-list>
                       </v-col>
                     </v-row>
                   </v-card-text>
-                  <v-card-text class="card-bottom text-center">
-                    <v-btn color="primary" v-if="!viewer.landscape_enabled" @click="selection='landscape'">Get Landscape!
-                    </v-btn>
-                    <v-btn v-else :to="{name: 'Premium', params: {username: viewer.username}}">Manage
-                      Landscape
-                    </v-btn>
-                  </v-card-text>
+                  <v-card-actions class="justify-center align-self-end text-center" style="width: 100%">
+                    <v-row>
+                      <v-col cols="12">
+                        <v-card>
+                          <v-card-text class="text-center">
+                            <div>
+                              <span class="text-h4" v-if="!plan.max_simultaneous_orders">${{plan.monthly_charge}} Monthly</span>
+                              <span v-else-if="!plan.monthly_charge">
+                                <span class="text-h4">FREE</span>
+                              </span>
+                            </div>
+                            <div>Shield fee: {{plan.shield_percentage_price}}%<sup v-if="pricing.x.international_conversion_percentage">*</sup> <span v-if="plan.shield_static_price">+ ${{plan.shield_static_price.toFixed(2)}}</span></div>
+                            <div v-if="plan.per_deliverable_price">Non-shield order tracking fee: ${{plan.per_deliverable_price.toFixed(2)}}</div>
+                            <div>
+                              <div v-if="plan.max_simultaneous_orders">
+                                Up to {{plan.max_simultaneous_orders}} order<span v-if="!(plan.max_simultaneous_orders === 1)">s</span> per month
+                              </div>
+                              <div v-else-if="!plan.per_deliverable_price">
+                                Track Unlimited Orders
+                              </div>
+                            </div>
+                            <div v-if="pricing.x.international_conversion_percentage">
+                              <sup>* Transfers outside the US include an additional {{pricing.x.international_conversion_percentage}}% conversion fee.</sup>
+                            </div>
+                          </v-card-text>
+                        </v-card>
+                      </v-col>
+                      <v-col cols="12">
+                        <v-chip color="gray" light v-if="plan.name === viewer.next_service_plan && !plan.monthly_charge"><strong>Your Current Plan</strong></v-chip>
+                        <template v-else>
+                          <v-btn color="primary" v-if="!(plan.name === viewer.next_service_plan)" @click="selection=plan.name">
+                            Switch to {{ plan.name }}!
+                          </v-btn>
+                          <v-btn v-else :to="{name: 'Premium', params: {username: viewer.username}}">Manage {{  plan.name }}</v-btn>
+                        </template>
+                      </v-col>
+                    </v-row>
+                  </v-card-actions>
                 </v-card>
               </v-col>
             </v-row>
@@ -66,10 +92,10 @@
         </ac-load-section>
       </v-tab-item>
       <v-tab-item value="payment">
-        <v-card>
+        <v-card v-if="selectedPlan && nonFree">
           <ac-form @submit.prevent="paymentSubmit">
             <ac-form-container v-bind="paymentForm.bind">
-              <v-row class="mt-3" v-if="selection !== null">
+              <v-row class="mt-3" v-if="selection">
                 <v-col cols="12">
                   <ac-card-manager
                       ref="cardManager"
@@ -81,11 +107,17 @@
                       :show-save="false"
                       :processor="processor"
                       @paymentSent="postPay"
+                      @cardAdded="setPlan"
+                      :save-only="!selectedPlan.monthly_charge"
                       :client-secret="(clientSecret.x && clientSecret.x.secret) || ''"
                   />
                 </v-col>
                 <v-col cols="12" class="pricing-container text-center" >
-                  <strong>Monthly charge: ${{price}}</strong> <br/>
+                  <strong>Monthly charge: ${{selectedPlan.monthly_charge}}</strong> <br/>
+                  <div v-if="selectedPlan.per_deliverable_price">
+                    Any orders tracked which aren't covered by shield protection will be billed at
+                    ${{selectedPlan.per_deliverable_price.toFixed(2)}} at the end of your billing cycle.
+                  </div>
                   <div class="mt-2 text-center">
                     <v-btn @click="selection=null" class="mx-1">Go back</v-btn>
                     <v-btn type="submit" color="primary" class="mx-1">
@@ -103,13 +135,21 @@
         </v-card>
       </v-tab-item>
       <v-tab-item value="completed">
-        <v-col cols="12" class="mt-4 text-center">
+        <v-col cols="12" class="mt-4 text-center" v-if="selectedPlan">
           <i class="fa fa-5x fa-check-circle" /><br/>
-          <p><strong>Your payment has been received!</strong></p>
-          <p>We've received your payment and your account has been upgraded! Visit your
-            <router-link :to="{name: 'Premium', params: {username: viewer.username}}">premium settings page</router-link>
-            to view and manage your upgraded account settings.
-          </p>
+          <div v-if="selectedPlan.monthly_charge">
+            <p><strong>Your payment has been received!</strong></p>
+            <p>We've received your payment and your account has been upgraded! Visit your
+              <router-link :to="{name: 'Premium', params: {username: viewer.username}}">premium settings page</router-link>
+              to view and manage your upgraded account settings.
+            </p>
+          </div>
+          <div v-else>
+            <p><strong>You're all set!</strong></p>
+            <p>Thank you for using Artconomy!</p>
+            <div v-if="nextUrl"><v-btn color="primary" :to="nextUrl">Onward!</v-btn></div>
+            <div v-else><v-btn :to="{name: 'Profile', params: {username: subject.username}}">Return to my Profile</v-btn></div>
+          </div>
         </v-col>
       </v-tab-item>
     </v-tabs-items>
@@ -117,26 +157,30 @@
 </template>
 
 <script lang="ts">
-import Viewer from '@/mixins/viewer'
-import {SingleController} from '@/store/singles/controller'
-import Pricing from '@/types/Pricing'
 import Component, {mixins} from 'vue-class-component'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcCardManager from '@/components/views/settings/payment/AcCardManager.vue'
 import {FormController} from '@/store/forms/form-controller'
-import {baseCardSchema} from '@/lib/lib'
+import {baseCardSchema, artCall} from '@/lib/lib'
 import {Watch} from 'vue-property-decorator'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import StripeHostMixin from '@/components/views/order/mixins/StripeHostMixin'
-import {PROCESSORS} from '@/types/PROCESSORS'
+import {ListController} from '@/store/lists/controller'
+import {ServicePlan} from '@/types/ServicePlan'
+import Formatting from '@/mixins/formatting'
+import Subjective from '@/mixins/subjective'
+import {User} from '@/store/profiles/types/User'
+import {SingleController} from '@/store/singles/controller'
+import Pricing from '@/types/Pricing'
 
 @Component({
   components: {AcForm, AcFormContainer, AcCardManager, AcLoadSection},
 })
-export default class Upgrade extends mixins(Viewer, StripeHostMixin) {
-  public pricing: SingleController<Pricing> = null as unknown as SingleController<Pricing>
-  public paymentForm: FormController = null as unknown as FormController
+export default class Upgrade extends mixins(Subjective, StripeHostMixin, Formatting) {
+  public privateView = true
+  public pricing = null as unknown as SingleController<Pricing>
+  public paymentForm = null as unknown as FormController
   public selection: null|string = null
   public paid = false
 
@@ -150,22 +194,90 @@ export default class Upgrade extends mixins(Viewer, StripeHostMixin) {
     }
   }
 
-  public get price() {
-    if (!this.pricing.x) {
-      return
-    }
-    // @ts-ignore
-    return this.pricing.x[this.selection + '_price']
-  }
-
   public get processor() {
     return window.DEFAULT_CARD_PROCESSOR
   }
 
   public get readerFormUrl() {
     // TODO: Refactor to use standard invoices so we can return a URL here and subscribe someone in person,
-    //  if we wamted.
+    //  if we wanted.
     return '#'
+  }
+
+  public get selectedPlan() {
+    if (!this.plans) {
+      return null
+    }
+    return this.plans.filter((plan) => plan.name === this.selection)[0]
+  }
+
+  public get plans() {
+    if (!(this.pricing && this.pricing.x)) {
+      return []
+    }
+    return this.pricing.x.plans
+  }
+
+  public get features() {
+    const featureMap: {[key: number]: string[]} = {}
+    const existingFeatures: {[key: string]: boolean} = {}
+    for (const plan of this.plans) {
+      const planFeatures = []
+      for (const feature of plan.features) {
+        if (!existingFeatures[feature]) {
+          planFeatures.push(feature)
+          existingFeatures[feature] = true
+        }
+      }
+      featureMap[plan.id] = planFeatures
+    }
+    return featureMap
+  }
+
+  public setPlan() {
+    return artCall({
+      url: `/api/sales/v1/account/${this.username}/set-plan/`,
+      data: {service: this.selection},
+      method: 'post',
+    })
+  }
+
+  public get nonFree() {
+    return this.selectedPlan && (this.selectedPlan.monthly_charge || this.selectedPlan.per_deliverable_price)
+  }
+
+  @Watch('selectedPlan.monthly_charge')
+  public setEndpoint(value: undefined|number) {
+    if (value === undefined) {
+      return
+    }
+    if (!value) {
+      this.clientSecret.endpoint = `/api/sales/v1/account/${this.username}/cards/setup-intent/`
+    } else {
+      this.clientSecret.endpoint = `/api/sales/v1/account/${this.username}/premium/intent/`
+    }
+  }
+
+  public get nextUrl() {
+    const query = this.$route.query
+    if (!(query && query.next && !Array.isArray(query.next))) {
+      return false
+    }
+    const resolved = this.$router.resolve(query.next).resolved
+    if (resolved.name === 'NotFound') {
+      return false
+    }
+    return resolved
+  }
+
+  public get switchIsFree() {
+    if (!this.selectedPlan) {
+      return false
+    }
+    if (this.selectedPlan.name === (this.viewer as User).service_plan) {
+      return true
+    }
+    return !this.selectedPlan.monthly_charge && !this.selectedPlan.per_deliverable_price
   }
 
   @Watch('selection')
@@ -174,20 +286,32 @@ export default class Upgrade extends mixins(Viewer, StripeHostMixin) {
       return
     }
     this.paymentForm.fields.service.update(value)
+    this.clientSecret.params = {...this.clientSecret.params, service: value}
     this.updateIntent()
+    if (this.switchIsFree) {
+      this.paymentForm.sending = true
+      this.setPlan().then(this.postPay)
+    }
   }
 
   public paymentSubmit() {
     const cardManager = this.$refs.cardManager as any
-    cardManager.stripeSubmit()
+    if (!this.selectedPlan!.monthly_charge && this.paymentForm.fields.card_id.value) {
+      this.setPlan().then(this.postPay)
+    } else {
+      cardManager.stripeSubmit()
+    }
   }
 
   public postPay() {
+    this.paymentForm.sending = false
     this.paid = true
   }
 
   public created() {
-    this.pricing = this.$getSingle('pricing', {endpoint: '/api/sales/v1/pricing-info/'})
+    // @ts-ignore
+    window.payment = this
+    this.pricing = this.$getSingle('pricing', {endpoint: '/api/sales/v1/pricing-info/', persist: true})
     this.pricing.get()
     const schema = baseCardSchema('/api/sales/v1/premium/')
     schema.fields = {
@@ -199,7 +323,7 @@ export default class Upgrade extends mixins(Viewer, StripeHostMixin) {
     this.clientSecret = this.$getSingle(
       'upgrade__clientSecret', {
         endpoint: '/api/sales/v1/premium/intent/',
-        params: {service: this.selection || 'landscape'},
+        params: {service: this.selection},
       })
   }
 }

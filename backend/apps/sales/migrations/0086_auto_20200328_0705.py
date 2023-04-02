@@ -77,7 +77,7 @@ THIRD_PARTY_REFUND = 411
 # For when we make a mistake and need to correct it somehow.
 CORRECTION = 412
 # For fees levied at conventions
-TABLE_SERVICE = 413
+TABLE_HANDLING = 413
 TAX = 414
 # For things like inventory items sold at tables alongside the commission, like a pop socket.
 EXTRA_ITEM = 415

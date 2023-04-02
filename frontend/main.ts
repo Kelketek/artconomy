@@ -12,7 +12,7 @@ import {configureHooks, router} from './router'
 import {FormControllers} from '@/store/forms/registry'
 import {Shortcuts} from './plugins/shortcuts'
 import Bowser from 'bowser'
-import Big from 'big.js'
+import {Decimal} from 'decimal.js'
 import {formatSize, genId} from './lib/lib'
 import {Lists} from '@/store/lists/registry'
 import {Singles} from '@/store/singles/registry'
@@ -40,6 +40,7 @@ declare global {
     RECAPTCHA_SITE_KEY: string,
     STRIPE_PUBLIC_KEY: string,
     DEFAULT_CARD_PROCESSOR: PROCESSORS,
+    DEFAULT_SERVICE_PLAN_NAME: string,
     Stripe?: StripeConstructor,
     StripeInstance: Stripe,
   }
@@ -63,7 +64,7 @@ Vue.config.productionTip = false
 Vue.filter('formatSize', formatSize)
 
 // @ts-ignore
-window.Big = Big
+window.Decimal = Decimal
 // The 'window ID' is used to distinguish one tab from another when making requests to the server. This is useful for
 // some websocket activities where one tab is the originator of a change and others need to pick it up.
 window.windowId = genId()

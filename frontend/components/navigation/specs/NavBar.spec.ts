@@ -272,12 +272,11 @@ describe('NavBar.vue', () => {
       vuetify,
       mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}, $router: {push: mockPush}},
       stubs: ['router-link'],
-
       attachTo: docTarget(),
     })
     await wrapper.vm.$nextTick()
     wrapper.find('.who-is-open').trigger('click')
-    expect(mockPush).toHaveBeenCalledWith({name: 'SearchProducts'})
+    expect(mockPush).toHaveBeenCalledWith({name: 'SearchProducts', query: {q: ''}})
   })
   it('Sends you to the search page for recent art', async() => {
     setViewer(store, genUser())
@@ -288,12 +287,11 @@ describe('NavBar.vue', () => {
       vuetify,
       mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}, $router: {push: mockPush}},
       stubs: ['router-link'],
-
       attachTo: docTarget(),
     })
     await wrapper.vm.$nextTick()
     wrapper.find('.recent-art').trigger('click')
-    expect(mockPush).toHaveBeenCalledWith({name: 'SearchSubmissions'})
+    expect(mockPush).toHaveBeenCalledWith({name: 'SearchSubmissions', query: {q: ''}})
   })
   it('Does not alter the route if we are already on a search page', async() => {
     const mockPush = jest.fn()
