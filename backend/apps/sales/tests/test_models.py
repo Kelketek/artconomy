@@ -10,7 +10,7 @@ from django.utils import timezone
 from freezegun import freeze_time
 from moneyed import Money
 
-from apps.lib.models import NEW_PRODUCT, ref_for_instance, ModifiedMarker, Subscription, COMMENT
+from apps.lib.models import NEW_PRODUCT, ref_for_instance, ModifiedMarker, Subscription, COMMENT, REVISION_APPROVED
 from apps.lib.test_resources import EnsurePlansMixin
 from apps.lib.tests.factories_interdepend import CommentFactory
 from apps.lib.utils import FakeRequest
@@ -482,9 +482,10 @@ class TestRevision(EnsurePlansMixin, TestCase):
         deliverable = DeliverableFactory.create()
         Subscription.objects.all().delete()
         revision = RevisionFactory.create(owner=deliverable.order.seller, deliverable=deliverable)
-        seller_subscription = Subscription.objects.get(subscriber=revision.owner)
-        self.assertEqual(seller_subscription.type, COMMENT)
-        self.assertEqual(seller_subscription.target, revision)
+        seller_comment_subscription = Subscription.objects.get(subscriber=revision.owner, type=COMMENT)
+        self.assertEqual(seller_comment_subscription.target, revision)
+        seller_approval_subscription = Subscription.objects.get(subscriber=revision.owner, type=REVISION_APPROVED)
+        self.assertEqual(seller_approval_subscription.target, revision)
         buyer_subscription = Subscription.objects.get(subscriber=deliverable.order.buyer)
         self.assertEqual(buyer_subscription.type, COMMENT)
         self.assertEqual(buyer_subscription.target, revision)
@@ -493,18 +494,18 @@ class TestRevision(EnsurePlansMixin, TestCase):
         deliverable = DeliverableFactory.create(order__buyer=None)
         Subscription.objects.all().delete()
         revision = RevisionFactory.create(owner=deliverable.order.seller, deliverable=deliverable)
-        subscription = Subscription.objects.get()
-        self.assertEqual(subscription.type, COMMENT)
-        self.assertEqual(subscription.target, revision)
+        seller_comment_subscription = Subscription.objects.get(subscriber=revision.owner, type=COMMENT)
+        self.assertEqual(seller_comment_subscription.target, revision)
+        seller_approval_subscription = Subscription.objects.get(subscriber=revision.owner, type=REVISION_APPROVED)
+        self.assertEqual(seller_approval_subscription.target, revision)
 
     def test_subscription_created_once(self):
         deliverable = DeliverableFactory.create(order__buyer=None)
         Subscription.objects.all().delete()
         revision = RevisionFactory.create(owner=deliverable.order.seller, deliverable=deliverable)
-        Subscription.objects.get()
+        self.assertEqual(Subscription.objects.all().count(), 2)
         revision.save()
-        # Should not raise, as there should be only one.
-        Subscription.objects.get()
+        self.assertEqual(Subscription.objects.all().count(), 2)
 
 
 class TestLoadAdjustment(EnsurePlansMixin, TestCase):
