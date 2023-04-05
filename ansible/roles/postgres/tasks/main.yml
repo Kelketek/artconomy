@@ -57,6 +57,14 @@
   command: mv /etc/cron.daily/logrotate /etc/cron.hourly/logrotate
   when: log_stat.stat.exists
 
+- name: Update logrotate systemd timer to hourly
+  lineinfile:
+      path: /etc/systemd/system/timers.target.wants/logrotate.timer
+      regexp: '^OnCalendar='
+      line: 'OnCalendar=hourly'
+      state: present
+  notify: reload systemd
+
 - name: Check for initial backup
   stat:
     path: "/var/lib/postgresql/backup/{{ db_name }}.sql.gz"

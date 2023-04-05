@@ -1,0 +1,5 @@
+---
+- name: reload systemd
+  shell: "systemctl daemon-reload"
+  args:
+    executable: "/bin/bash"
