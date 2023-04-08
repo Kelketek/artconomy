@@ -237,11 +237,13 @@ def update_availability(seller, load, current_closed_status):
     seller_profile = seller.artist_profile
     try:
         products = available_products_by_load(seller_profile, load)
-        if seller.delinquent:
-            seller_profile.commissions_disabled = True
-        elif seller_profile.commissions_closed:
-            seller_profile.commissions_disabled = True
-        elif not products.exists():
+        failure_modes = [
+            seller.delinquent,
+            not seller.is_active,
+            seller_profile.commissions_closed,
+            not products.exists(),
+        ]
+        if any(failure_modes):
             seller_profile.commissions_disabled = True
         else:
             seller_profile.commissions_disabled = False

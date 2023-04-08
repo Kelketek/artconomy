@@ -16,7 +16,7 @@ def derive_tags(user: User):
 
 @celery_app.task
 def mailchimp_tag(user_id):
-    user = User.objects.filter(id=user_id).exclude(mailchimp_id='').first()
+    user = User.objects.filter(id=user_id).exclude(mailchimp_id='', is_active=True, guest=True).first()
     if not user:
         return
     chimp.lists.members.tags.update(
@@ -53,6 +53,8 @@ def create_or_update_stripe_user(user_id, force=False):
     if user.stripe_token and not force:
         return
     if user.guest:
+        return
+    if not user.is_active:
         return
     kwargs = {'email': user.email, 'metadata': {'user_id': user.id}}
     with stripe as stripe_api:
