@@ -4,7 +4,7 @@
       multiple
       v-model="tags"
       autocomplete
-      v-bind:search-input.sync="query"
+      :search-input.sync="query"
       :items="items"
       auto-select-first
       deletable-chips
@@ -46,6 +46,13 @@ export default class AcTagField extends Vue {
         {url: '/api/profiles/v1/search/tag/', params: {q: val}, method: 'get', cancelToken: this.cancelSource.token},
       ).then(
         (response) => { this.items = response },
+      ).catch(
+        (error) => {
+          if (axios.isCancel(error)) {
+            return
+          }
+          console.error(error)
+        },
       )
     }
 
@@ -66,19 +73,30 @@ export default class AcTagField extends Vue {
       return debounce(this._searchTags, 100, {trailing: true})
     }
 
-    private get query() {
+    public get query() {
       return this.queryStore
     }
 
-    private set query(val: string) {
+    public set query(val: string) {
       val = val || ''
-      if (val.endsWith(' ') && val.trim()) {
-        this.queryStore = ''
-        val = val.replace(/\s+/g, '')
-        val = val.replace(/,/g, '')
-        if (this.tags.indexOf(val) === -1) {
-          this.tags.push(val)
+      val = val.replace(/,/g, ' ')
+      val = val.replace(/\s+/g, ' ')
+      const input = this.$refs.input as any
+      if (val && val.split(' ').length > 1) {
+        const currentSet = [...this.tags].map((item) => item.toLowerCase())
+        const initialTerms = val.split(' ').filter((term) => term && !currentSet.includes(term.toLowerCase()))
+        const terms: string[] = []
+        const seen: {[key: string]: boolean} = {}
+        for (const term of initialTerms) {
+          if (seen[term.toLowerCase()]) {
+            continue
+          }
+          seen[term.toLowerCase()] = true
+          terms.push(term)
         }
+        this.queryStore = ''
+        input.internalSearch = ''
+        this.tags.push(...terms)
         return
       }
       this.queryStore = val
