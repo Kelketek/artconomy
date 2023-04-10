@@ -22,6 +22,7 @@ module.exports = {
     config.plugins.push(new webpack.DefinePlugin({
       __COMMIT_HASH__: JSON.stringify(commitHash),
     }))
+    config.devtool = 'source-map'
     if (process.env.NODE_ENV === 'production' && process.env.SENTRY_ORG) {
       if (process.env.SENTRY_ORG) {
         config.plugins.push(new SentryWebpackPlugin({
