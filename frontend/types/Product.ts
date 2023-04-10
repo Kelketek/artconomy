@@ -28,4 +28,5 @@ export default interface Product {
   catalog_enabled: boolean,
   cascade_fees: boolean,
   escrow_upgradable: boolean,
+  display_position: number,
 }

@@ -35,7 +35,7 @@ from apps.lib.permissions import IsStaff, IsSafeMethod, Any, All, IsMethod
 from apps.lib.serializers import CommentSerializer
 from apps.lib.utils import notify, recall_notification, demark, preview_rating, send_transaction_email, create_comment, \
     mark_modified, mark_read, count_hit
-from apps.lib.views import BasePreview
+from apps.lib.views import BasePreview, PositionShift
 from apps.profiles.models import User, Submission, IN_SUPPORTED_COUNTRY, trigger_reconnect, ArtistTag
 from apps.profiles.permissions import ObjectControls, UserControls, IsSuperuser, IsRegistered, BillTo, IssuedBy, \
     AccountCurrentPermission
@@ -73,18 +73,18 @@ from apps.sales.utils import available_products, \
     available_products_by_load, finalize_deliverable, account_balance, \
     POSTED_ONLY, PENDING, transfer_order, cancel_deliverable, \
     verify_total, ensure_buyer, \
-    invoice_post_payment, refund_deliverable, get_term_invoice, initialize_tip_invoice, term_charge, set_service_plan
+    invoice_post_payment, refund_deliverable, initialize_tip_invoice, term_charge, set_service_plan
 from shortcuts import make_url
 
 
 logger = logging.getLogger(__name__)
 
 
-def user_products(username: str, requester: User):
+def user_products(username: str, requester: User, show_hidden=False):
     qs = Product.objects.filter(user__username__iexact=username, active=True)
-    if not (requester.username.lower() == username.lower() or requester.is_staff):
+    if not ((requester.username.lower() == username.lower() or requester.is_staff) and show_hidden):
         qs = qs.filter(hidden=False, table_product=False)
-    qs = qs.order_by('-created_on')
+    qs = qs.order_by('-display_position')
     return qs
 
 
@@ -107,7 +107,7 @@ class ProductList(ListCreateAPIView):
         return product
 
     def get_queryset(self):
-        return user_products(self.kwargs['username'], self.request.user)
+        return user_products(self.kwargs['username'], self.request.user, show_hidden=self.kwargs.get('manage'))
 
 
 class ProductManager(RetrieveUpdateDestroyAPIView):
@@ -2383,3 +2383,11 @@ class IssueTipInvoice(GenericAPIView):
             data=InvoiceSerializer(instance=invoice, context=self.get_serializer_context()).data,
             status=status.HTTP_201_CREATED,
         )
+
+
+class StoreShift(PositionShift):
+    serializer_class = ProductSerializer
+    permission_classes = [ObjectControls]
+
+    def get_object(self) -> Any:
+        return get_object_or_404(Product, id=self.kwargs['product'])

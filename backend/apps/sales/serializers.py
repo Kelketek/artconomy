@@ -124,7 +124,7 @@ class ProductSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
             'id', 'name', 'description', 'revisions', 'hidden', 'max_parallel', 'max_rating', 'task_weight',
             'expected_turnaround', 'user', 'base_price', 'starting_price', 'shield_price', 'tags', 'available',
             'primary_submission', 'featured', 'hits', 'escrow_enabled', 'table_product', 'track_inventory', 'wait_list',
-            'catalog_enabled', 'cascade_fees', 'escrow_upgradable', 'international',
+            'catalog_enabled', 'cascade_fees', 'escrow_upgradable', 'international', 'display_position',
         )
         read_only_fields = ('tags', 'featured', 'table_product', 'starting_price', 'shield_price', 'international')
         extra_kwargs = {'price': {'required': True}}

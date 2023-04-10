@@ -76,6 +76,7 @@ const Profile = () => import('@/components/views/profile/Profile.vue')
 const Policies = () => import('@/components/views/legal/Policies.vue')
 const Contact = () => import('@/components/views/Contact.vue')
 const Store = () => import('@/components/views/store/Store.vue')
+const ManageProducts = () => import('@/components/views/store/ManageProducts.vue')
 const Reports = () => import('@/components/views/reports/Reports.vue')
 const Journal = () => import('@/components/views/Journal.vue')
 const CharacterGallery = () => import('@/components/views/character/CharacterGallery.vue')
@@ -487,6 +488,12 @@ export const routes = [
         name: 'Products',
         component: Products,
         props: true,
+        children: [{
+          name: 'ManageProducts',
+          path: 'manage/',
+          component: ManageProducts,
+          props: true,
+        }],
       },
       {
         path: 'characters',

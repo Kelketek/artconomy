@@ -55,8 +55,8 @@ from apps.lib.serializers import (
 )
 from apps.lib.utils import (
     recall_notification, notify, demark, preview_rating,
-    add_check, count_hit, shift_position)
-from apps.lib.views import BasePreview
+    add_check, count_hit)
+from apps.lib.views import BasePreview, PositionShift
 from apps.profiles.models import (
     User, Character, Submission, RefColor, Attribute, Conversation,
     ConversationParticipant, Journal,
@@ -80,7 +80,7 @@ from apps.profiles.serializers import (
     CharacterSharedSerializer,
     SubmissionArtistTagSerializer, SubmissionCharacterTagSerializer,
     SubmissionSharedSerializer, AttributeListSerializer, CharacterManagementSerializer, DeleteUserSerializer,
-    PositionShiftSerializer, ArtistTagSerializer)
+    ArtistTagSerializer)
 from apps.profiles.tasks import mailchimp_subscribe
 from apps.profiles.utils import (
     available_chars, char_ordering, available_submissions,
@@ -1103,28 +1103,6 @@ class CollectionManagementList(ListAPIView):
         user = get_object_or_404(User, username=self.kwargs['username'])
         self.check_object_permissions(self.request, user)
         return user.owned_profiles_submission.exclude(artists=user)
-
-
-class PositionShift(GenericAPIView):
-    field = 'display_position'
-
-    def post(self, *args, **kwargs):
-        target = self.get_object()
-        self.check_object_permissions(self.request, target)
-        serializer = PositionShiftSerializer(data=self.request.data)
-        serializer.is_valid(raise_exception=True)
-        relative_to = serializer.validated_data.get('relative_to', None)
-        if relative_to is not None:
-            relative_to = get_object_or_404(target.__class__, pk=relative_to)
-        current_value = serializer.validated_data.get('current_value', None)
-        shift_position(
-            target, self.field, self.kwargs['delta'], relative_to=relative_to,
-            current_value=current_value,
-        )
-        return Response(
-            status=status.HTTP_200_OK,
-            data=self.get_serializer(instance=target, context=self.get_serializer_context()).data,
-        )
 
 
 class ArtRelationList(ListAPIView):

@@ -2,19 +2,24 @@
   <ac-load-section :controller="products">
     <v-row class="d-none d-md-flex" v-if="controls && !iFrame && !firstProduct && !hideNewButton">
       <v-col class="text-right">
-        <v-btn color="green" @click="showNew = true"><v-icon left>add</v-icon>New Product</v-btn>
+        <v-btn color="green" @click="showNew = true" class="mx-2" v-if="!managing"><v-icon left>add</v-icon>New Product</v-btn>
+        <v-btn @click="managing = !managing" color="primary"><v-icon left>settings</v-icon>
+            <span v-if="managing">Finish</span>
+            <span v-else>Manage</span>
+        </v-btn>
       </v-col>
     </v-row>
-    <ac-product-list :products="products" v-show="!firstProduct" :show-username="false" :mini="mini" >
+    <router-view v-if="managing" />
+    <ac-product-list :products="products" v-show="!firstProduct" :show-username="false" :mini="mini" v-else>
       <template slot="empty">
         <v-col class="text-center pt-5">
           {{username}} has no available products.
         </v-col>
       </template>
     </ac-product-list>
-    <ac-add-button v-model="showNew" v-if="controls && !iFrame && !hideNewButton">New Product</ac-add-button>
-    <ac-new-product :username="username" v-model="showNew" v-if="controls && !iFrame"></ac-new-product>
-    <v-row no-gutters v-if="firstProduct">
+    <ac-add-button v-model="showNew" v-if="!managing && controls && !iFrame && !hideNewButton">New Product</ac-add-button>
+    <ac-new-product :username="username" v-model="showNew" v-if="!managing && controls && !iFrame"></ac-new-product>
+    <v-row no-gutters v-if="firstProduct && !managing">
       <v-col class="pa-2" cols="12" :lg="mini ? 12 : 8" :offset-lg="mini ? 0 : 2" >
         <v-card>
           <v-responsive min-height="25vh">
@@ -56,6 +61,7 @@ import {Prop} from 'vue-property-decorator'
 export default class AcSubjectiveProductList extends mixins(Subjective) {
     @State('iFrame') public iFrame!: boolean
     public products: ListController<Product> = null as unknown as ListController<Product>
+    public manageProducts: ListController<Product> = null as unknown as ListController<Product>
     @Prop({default: false})
     public mini!: boolean
 
@@ -76,6 +82,22 @@ export default class AcSubjectiveProductList extends mixins(Subjective) {
       this.$router.replace({query})
     }
 
+    public get managing() {
+      return !!this.$route.name?.includes('Manage')
+    }
+
+    public set managing(val) {
+      const route = {name: this.$route.name + '', params: this.$route.params, query: this.$route.query}
+      if (val && !this.managing) {
+        route.name = 'ManageProducts'
+        console.log(route.name)
+      } else if (!val && this.managing) {
+        this.products.get()
+        route.name = route.name.replace('Manage', '')
+      }
+      this.$router.replace(route)
+    }
+
     public get firstProduct() {
       return (
         this.isCurrent &&
@@ -90,6 +112,7 @@ export default class AcSubjectiveProductList extends mixins(Subjective) {
     public created() {
       this.products = this.$getList(`${flatten(this.username)}-products`, {endpoint: this.url})
       this.products.firstRun()
+      this.manageProducts = this.$getList(`${flatten(this.username)}-products-manage`, {endpoint: `${this.url}manage/`})
       this.subjectHandler.artistProfile.get()
     }
 }

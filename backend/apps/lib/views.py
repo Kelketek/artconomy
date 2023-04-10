@@ -7,6 +7,7 @@ from django.core.mail import EmailMessage
 from django.db.models.query import ModelIterable
 
 from django.http import Http404
+from django.shortcuts import get_object_or_404
 from django.template.loader import get_template
 from django.views import View
 from rest_framework import status
@@ -32,10 +33,10 @@ from apps.lib.serializers import CommentSerializer, CommentSubscriptionSerialize
 from apps.lib.utils import (
     countries_tweaked, safe_add, default_context,
     get_client_ip,
-    destroy_comment, create_comment, mark_read, digest_for_file)
+    destroy_comment, create_comment, mark_read, digest_for_file, shift_position)
 from apps.profiles.models import User
 from apps.profiles.permissions import ObjectControls, IsRegistered
-from apps.profiles.serializers import ContactSerializer
+from apps.profiles.serializers import ContactSerializer, PositionShiftSerializer
 from views import bad_request, base_template
 
 
@@ -379,3 +380,25 @@ class NoOp(APIView):
 
     def get(self, *args, **kwargs):
         return Response({})
+
+
+class PositionShift(GenericAPIView):
+    field = 'display_position'
+
+    def post(self, *args, **kwargs):
+        target = self.get_object()
+        self.check_object_permissions(self.request, target)
+        serializer = PositionShiftSerializer(data=self.request.data)
+        serializer.is_valid(raise_exception=True)
+        relative_to = serializer.validated_data.get('relative_to', None)
+        if relative_to is not None:
+            relative_to = get_object_or_404(target.__class__, pk=relative_to)
+        current_value = serializer.validated_data.get('current_value', None)
+        shift_position(
+            target, self.field, self.kwargs['delta'], relative_to=relative_to,
+            current_value=current_value,
+        )
+        return Response(
+            status=status.HTTP_200_OK,
+            data=self.get_serializer(instance=target, context=self.get_serializer_context()).data,
+        )

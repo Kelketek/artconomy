@@ -3,7 +3,7 @@
     <router-view v-if="!currentRoute" />
     <v-container v-else>
       <ac-profile-header :username="username" v-if="!iFrame" />
-      <ac-subjective-product-list :username="username" />
+      <ac-subjective-product-list :username="username"/>
     </v-container>
   </v-container>
 </template>
@@ -36,8 +36,9 @@ import {State} from 'vuex-class'
   })
 export default class Store extends mixins(Subjective) {
     @State('iFrame') public iFrame!: boolean
+
     public get currentRoute() {
-      return ['Store', 'StoreiFrame'].indexOf(this.$route.name + '') !== -1
+      return ['Store', 'StoreiFrame', 'ManageStore'].indexOf(this.$route.name + '') !== -1
     }
 }
 </script>

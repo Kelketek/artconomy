@@ -8,7 +8,7 @@
       <v-col cols="12" sm="4">
         <v-row no-gutters align-content="center" justify="center">
           <v-col cols="6" sm="12" lg="8">
-            <ac-link :to="{name: 'Product', params: {productId: product.id, username: product.user.username}}">
+            <ac-link :to="{name: 'Product', params: {productId: `${product.id}`, username: product.user.username}}">
               <ac-hidden-flag :value="product.table_product || product.hidden" />
               <ac-asset :asset="product.primary_submission" thumb-name="thumbnail" :allow-preview="false" />
             </ac-link>
@@ -127,7 +127,6 @@
             <ac-link :to="{name: 'Products', params: {username: product.user.username}}">{{product.user.username}}</ac-link>
           </span>
         </v-col>
-        <v-spacer />
       </v-row>
       <v-row no-gutters>
         <v-col>
@@ -229,6 +228,9 @@ export default class AcProductPreview extends mixins(Formatting) {
     @Prop({default: false})
     public forceShield!: boolean
 
+    @Prop({default: true})
+    public linked!: boolean
+
     public get startingPrice() {
       if (this.forceShield) {
         return this.product.shield_price.toFixed(2)
@@ -247,6 +249,9 @@ export default class AcProductPreview extends mixins(Formatting) {
     }
 
     public get productLink() {
+      if (!this.linked) {
+        return undefined
+      }
       const path: Location = {
         name: 'Product',
         params: {username: this.product.user.username, productId: `${this.product.id}`},

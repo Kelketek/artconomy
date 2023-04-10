@@ -478,13 +478,13 @@ class TestProductListPermissions(PermissionsTestCase, MethodAccessMixin):
 
 
 class TestProduct(APITestCase):
-    def test_product_listing_logged_in(self):
+    def test_product_listing_managed(self):
         user = UserFactory.create()
         self.login(user)
         products = [ProductFactory.create(user=user) for __ in range(3)]
         hidden = ProductFactory.create(user=user, hidden=True)
         ProductFactory.create(user=user, active=False)
-        response = self.client.get('/api/sales/v1/account/{}/products/'.format(user.username))
+        response = self.client.get('/api/sales/v1/account/{}/products/manage/'.format(user.username))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['results']), 4)
         for product in products:
@@ -722,7 +722,7 @@ class TestProduct(APITestCase):
         products = [ProductFactory.create(user=user) for __ in range(3)]
         ProductFactory.create(user=user, hidden=True)
         ProductFactory.create(user=user, active=False)
-        response = self.client.get('/api/sales/v1/account/{}/products/'.format(user.username))
+        response = self.client.get('/api/sales/v1/account/{}/products/manage/'.format(user.username))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['results']), 3)
         for product in products:
@@ -735,7 +735,7 @@ class TestProduct(APITestCase):
         products = [ProductFactory.create(user=user) for __ in range(3)]
         ProductFactory.create(user=user, hidden=True)
         ProductFactory.create(user=user, active=False)
-        response = self.client.get('/api/sales/v1/account/{}/products/'.format(user.username))
+        response = self.client.get('/api/sales/v1/account/{}/products/manage/'.format(user.username))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['results']), 3)
         for product in products:
@@ -786,7 +786,7 @@ class TestProduct(APITestCase):
         products = [ProductFactory.create(user=user) for __ in range(3)]
         hidden = ProductFactory.create(user=user, hidden=True)
         ProductFactory.create(user=user, active=False)
-        response = self.client.get('/api/sales/v1/account/{}/products/'.format(user.username))
+        response = self.client.get('/api/sales/v1/account/{}/products/manage/'.format(user.username))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['results']), 4)
         for product in products:

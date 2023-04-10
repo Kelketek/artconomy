@@ -54,6 +54,13 @@ from apps.sales.line_item_funcs import reckon_lines
 from shortcuts import disable_on_load
 
 
+def get_next_product_position():
+    """
+    Must be defined in root for migrations.
+    """
+    return get_next_increment(Product, 'display_position')
+
+
 class Product(ImageModel, HitsMixin):
     """
     Product on offer by an art seller.
@@ -119,6 +126,7 @@ class Product(ImageModel, HitsMixin):
     task_weight = IntegerField(
         validators=[MinValueValidator(1)]
     )
+    display_position = FloatField(db_index=True, default=get_next_product_position)
 
     @property
     def preview_link(self):

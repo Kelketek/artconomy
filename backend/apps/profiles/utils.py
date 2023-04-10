@@ -201,7 +201,6 @@ def clear_user(user: User):
     user.next_service_plan = default_plan()
     user.subscription_set.all().delete()
     for avatar in Avatar.objects.filter(user=user):
-        avatar.avatar.delete()
         avatar.delete()
     user.avatar_url = avatar_url(user)
     user.save()

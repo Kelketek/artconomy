@@ -89,6 +89,19 @@ urlpatterns = [
     path('v1/account/<username>/cancel-premium/', main.CancelPremium.as_view(), name='cancel_premium'),
     path('v1/account/<username>/products/', main.ProductList.as_view(), name='product_list'),
     path('v1/account/<username>/products/<int:product>/', main.ProductManager.as_view(), name='product_manager'),
+    path(
+        'v1/account/<username>/products/manage/', main.ProductList.as_view(), kwargs={'manage': True},
+        name='product_list',
+    ),
+    path('v1/account/<username>/products/manage/<int:product>/', main.ProductManager.as_view(), name='product_manager'),
+    path(
+        'v1/account/<username>/products/manage/<int:product>/up/', main.StoreShift.as_view(),
+        kwargs={'delta': 1}, name='store_shift_up',
+    ),
+    path(
+        'v1/account/<username>/products/manage/<int:product>/down/', main.StoreShift.as_view(),
+        kwargs={'delta': -1}, name='store_shift_down',
+    ),
     path('v1/account/<username>/products/<int:product>/clear-waitlist/', main.ClearWaitlist.as_view(), name='clear_waitlist'),
     path('v1/account/<username>/products/<int:product>/feature/', main.FeatureProduct.as_view(),
          name='feature_product'),
