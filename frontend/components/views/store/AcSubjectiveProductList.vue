@@ -1,8 +1,8 @@
 <template>
   <ac-load-section :controller="products">
-    <v-row class="d-none d-md-flex" v-if="controls && !iFrame && !firstProduct && !hideNewButton">
-      <v-col class="text-right">
-        <v-btn color="green" @click="showNew = true" class="mx-2" v-if="!managing"><v-icon left>add</v-icon>New Product</v-btn>
+    <v-row class="d-flex" v-if="controls && !iFrame && !firstProduct && !hideNewButton">
+      <v-col class="text-md-right text-center">
+        <v-btn color="green" @click="showNew = true" class="mx-2 d-none d-md-inline-block" v-if="!managing"><v-icon left>add</v-icon>New Product</v-btn>
         <v-btn @click="managing = !managing" color="primary"><v-icon left>settings</v-icon>
             <span v-if="managing">Finish</span>
             <span v-else>Manage</span>
