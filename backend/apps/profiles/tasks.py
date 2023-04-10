@@ -16,7 +16,7 @@ def derive_tags(user: User):
 
 @celery_app.task
 def mailchimp_tag(user_id):
-    user = User.objects.filter(id=user_id).exclude(mailchimp_id='', is_active=True, guest=True).first()
+    user = User.objects.filter(id=user_id).exclude(mailchimp_id='').exclude(is_active=True).exclude(guest=True).first()
     if not user:
         return
     chimp.lists.members.tags.update(
