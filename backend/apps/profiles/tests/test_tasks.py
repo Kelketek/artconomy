@@ -38,6 +38,11 @@ class MessageClearTestCase(EnsurePlansMixin, TestCase):
 
 
 class MailchimpTaskTestCase(EnsurePlansMixin, TestCase):
+    def setUp(self):
+        super().setUp()
+        chimp.lists.members.tags.update.reset_mock()
+        chimp.lists.members.update.reset_mock()
+
     def test_derive_tags(self):
         user = UserFactory.create(artist_mode=False)
         self.assertEqual(derive_tags(user), [{'name': 'artist', 'status': 'inactive'}])
@@ -54,3 +59,16 @@ class MailchimpTaskTestCase(EnsurePlansMixin, TestCase):
         chimp.lists.members.update.assert_called_with(
             list_id='9999', subscriber_hash='wat', data={'email_address': 'goober@example.com'},
         )
+
+    @override_settings(MAILCHIMP_LIST_SECRET='9999')
+    def test_skip_disqualified(self):
+        guest = UserFactory.create(artist_mode=False, mailchimp_id='wat', guest=True)
+        deactivated = UserFactory.create(
+            artist_mode=False, mailchimp_id='wat', is_active=False,
+        )
+        no_entry = UserFactory.create(artist_mode=False, mailchimp_id='')
+        mailchimp_tag(guest.id)
+        mailchimp_tag(deactivated.id)
+        mailchimp_tag(no_entry.id)
+        chimp.lists.members.tags.update.assert_not_called()
+        chimp.lists.members.update.assert_not_called()
