@@ -23,3 +23,11 @@
     read_priv: ".*"
     write_priv: ".*"
     state: present
+
+- name: Remove timeout for queue
+  lineinfile:
+    dest: /etc/rabbitmq/rabbitmq-env.conf
+    regexp: 'consumer_timeout'
+    # Something else will fix this issue even if rabbitMQ is stuck waiting a while.
+    line: 'consumer_timeout=false'
+    state: present
