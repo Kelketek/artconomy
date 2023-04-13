@@ -47,7 +47,12 @@ class RegisterSerializer(serializers.ModelSerializer):
         data = {key: value for key, value in validated_data.items() if key not in [
             'recaptcha', 'mail', 'order_claim'
         ]}
-        return super(RegisterSerializer, self).create(data)
+        user = super(RegisterSerializer, self).create(data)
+        if user.registration_code:
+            user.service_plan = ServicePlan.objects.get(name='Landscape')
+            user.service_plan_paid_through = (timezone.now() + relativedelta(months=1)).date()
+            user.save()
+        return user
 
     @staticmethod
     def validate_registration_code(value):

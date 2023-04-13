@@ -6,6 +6,7 @@ from ddt import ddt, data, unpack
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
+from freezegun import freeze_time
 from hitcount.models import HitCount, Hit
 from rest_framework import status
 
@@ -1516,6 +1517,7 @@ class TestRegister(APITestCase):
         self.assertEqual(user.email, 'test@example.com')
         self.assertTrue(user.check_password('test_password'))
 
+    @freeze_time('2020-01-01')
     def test_user_promo_code(self, _mock_captcha):
         promo = PromoFactory.create()
         self.client.post('/api/profiles/v1/register/', {
@@ -1527,6 +1529,9 @@ class TestRegister(APITestCase):
         })
         user = User.objects.get(username='Goober')
         self.assertEqual(promo, user.registration_code)
+        self.assertEqual(user.service_plan, self.landscape)
+        self.assertEqual(user.next_service_plan, self.free)
+        self.assertEqual(user.service_plan_paid_through, timezone.now().replace(month=2).date())
 
     @patch('apps.profiles.views.claim_order_by_token')
     def test_claim_order(self, mock_claim, _mock_captcha):
