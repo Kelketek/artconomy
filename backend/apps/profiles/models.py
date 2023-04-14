@@ -108,11 +108,10 @@ class User(AbstractEmailUser, HitsMixin):
     """
     User model for Artconomy.
     """
-    username = CharField(
+    username = CICharField(
         max_length=40, unique=True, db_index=True, validators=[
             UnicodeUsernameValidator(), banned_named_validator, banned_prefix_validator,
         ],
-        db_collation='case_insensitive',
     )
     primary_character = ForeignKey('Character', blank=True, null=True, related_name='+', on_delete=SET_NULL)
     primary_card = ForeignKey('sales.CreditCardToken', null=True, blank=True, related_name='+', on_delete=SET_NULL)
