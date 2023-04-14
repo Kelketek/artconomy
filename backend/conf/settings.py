@@ -324,6 +324,8 @@ CELERY_EMAIL_TASK_CONFIG = {
     'ignore_result': True,
 }
 
+CELERY_IGNORE_RESULT = True
+
 SENDGRID_API_KEY = get_env('SENDGRID_API_KEY', '')
 
 SANDBOX_APIS = bool(int(get_env('SANDBOX_APIS', '1')))
