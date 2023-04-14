@@ -50,7 +50,7 @@ django-otp
 # Redis support for Django's caching system
 django-redis
 # The Django REST Framework is the primary library for constructing our API endpoints and handling their serialization
-djangorestframework==3.12.4
+djangorestframework
 # Extension for Django REST Framework to allow bulk updates of items
 djangorestframework-bulk
 # Django REST field for completing a recaptcha-compatible captcha
@@ -94,7 +94,7 @@ mailchimp3
 # calendar calculations, but we're liable to use it for more in time.
 pandas
 # Django uses this driver for communicating with the PostgreSQL database.
-psycopg2
+psycopg[binary]
 # Library which contains ISO-standard information about all countries on earth. Needed for address handling.
 pycountry
 # Awesome library for date manipulation. I have no idea why it isn't in the standard library. Allows for things

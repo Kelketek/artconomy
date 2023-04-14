@@ -1,3 +1,2 @@
 # Requirements constraints file-- used for indirect requirements we need
-# to pin to higher versions for security patch reasons.
-redis>=4.5.4
+# to constrain versions for security patch reasons.

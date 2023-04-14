@@ -321,6 +321,7 @@ SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 CELERY_EMAIL_TASK_CONFIG = {
     'rate_limit': '50/m',
+    'ignore_result': True,
 }
 
 SENDGRID_API_KEY = get_env('SENDGRID_API_KEY', '')

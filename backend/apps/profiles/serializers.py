@@ -108,7 +108,9 @@ class SubmissionSerializer(IdWritable, RelatedAtomicMixin, serializers.ModelSeri
         thumbnail_namespace='profiles.Submission.preview', required=False, allow_null=True,
     )
     artists = UserListField(tag_check=True, block_check=True, back_name='art', write_only=True, required=False)
-    characters = CharacterListField(tag_check=True, back_name='submissions', write_only=True, required=False)
+    characters = CharacterListField(
+        tag_check=True, back_name='submissions', write_only=True, required=False, min_length=0,
+    )
     subscribed = SubscribedField(required=False)
     tags = TagListField(required=False)
     private = serializers.BooleanField(default=False)
@@ -413,12 +415,15 @@ class CorrectPasswordValidator(object):
     """
     Validates that the correct password was entered.
     """
+
+    requires_context = True
+
     def set_context(self, serializer_field):
         # noinspection PyAttributeOutsideInit
         self.instance = serializer_field.parent.instance
 
-    def __call__(self, value):
-        if not self.instance.check_password(value):
+    def __call__(self, value, serializer_field):
+        if not serializer_field.parent.instance.check_password(value):
             raise ValidationError("That is not the correct password for this account.")
 
 
@@ -426,6 +431,8 @@ class FieldUniqueValidator(object):
     """
     Validates that a field is unique. Model field name can be a Django queryset API keyword, such as username__iexact.
     """
+
+    requires_context = True
 
     def __init__(self, model_field_name, error_msg, model=None):
         self.model = model
@@ -436,8 +443,8 @@ class FieldUniqueValidator(object):
         # noinspection PyAttributeOutsideInit
         self.instance = serializer_field.parent.instance
 
-    def __call__(self, value):
-        kwargs = {'pk': self.instance.pk, self.model_field_name: value}
+    def __call__(self, value, serializer_field):
+        kwargs = {'pk': serializer_field.parent.instance.pk, self.model_field_name: value}
         if self.model.objects.filter(**kwargs).exists():
             # This is already the current value.
             return

@@ -475,7 +475,7 @@ def ensure_tags(tag_list):
         # Bulk get or create
         # Django's query prepper automatically wraps our arrays in parens, but we need to have them
         # act as individual values, so we have to custom build our placeholders here.
-        formatted_list = ('%s, ' * len(tag_list)).rsplit(',', 1)[0]
+        formatted_list = ('(%s), ' * len(tag_list)).rsplit(',', 1)[0]
         # noinspection SqlType
         statement = f"""
                     INSERT INTO lib_tag (name)
@@ -487,7 +487,7 @@ def ensure_tags(tag_list):
                              WHERE existing.name IS NULL
                     )
                     """
-        cursor.execute(statement, [*tuple((tag,) for tag in tag_list)])
+        cursor.execute(statement, tag_list)
 
 
 def tag_list_cleaner(tag_list):

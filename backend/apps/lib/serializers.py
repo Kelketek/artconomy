@@ -709,7 +709,6 @@ class UserListField(RelatedSetMixin, serializers.ListSerializer):
 
     def __init__(
             self, *args, block_check=True, tag_check=False, back_name=None, model=None, add_self=False,
-            min_length=0,
             **kwargs,
     ):
         kwargs['child'] = serializers.IntegerField()
@@ -718,7 +717,6 @@ class UserListField(RelatedSetMixin, serializers.ListSerializer):
         self.back_name = back_name
         self.model = model
         self.add_self = add_self
-        self.min_length = min_length
         if back_name is None and model is not None:
             raise TypeError(
                 "You must specify a 'back_name' for the through table the model the users will be tied to.",
@@ -751,7 +749,7 @@ class UserListField(RelatedSetMixin, serializers.ListSerializer):
             qs = qs.filter(Q(taggable=True) | Q(id=self.context.get('request').user.id))
 
         data = qs.values_list('id', flat=True)
-        if not len(data) >= self.min_length:
+        if not len(data) >= (self.min_length or 0):
             error = f'Minimum number of users is {self.min_length}'
             if self.add_self:
                 error += ', including yourself.'
@@ -765,7 +763,6 @@ class UserListField(RelatedSetMixin, serializers.ListSerializer):
 class CharacterListField(RelatedSetMixin, serializers.ListSerializer):
     def __init__(
             self, *args, tag_check=False, back_name=None, model=None, add_self=False,
-            min_length=0,
             **kwargs,
     ):
         kwargs['child'] = serializers.IntegerField()
@@ -773,7 +770,6 @@ class CharacterListField(RelatedSetMixin, serializers.ListSerializer):
         self.back_name = back_name
         self.model = model
         self.add_self = add_self
-        self.min_length = min_length
         if back_name is None and model is not None:
             raise TypeError(
                 "You must specify a 'back_name' for the through table to the model the users will be tied to.",

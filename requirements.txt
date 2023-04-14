@@ -4,9 +4,9 @@
 #
 #    pip-compile --output-file=requirements.txt --resolver=backtracking constraints.in requirements.in
 #
-aiofile==3.8.1
+aiofile==3.8.5
     # via -r requirements.in
-aiohttp==3.8.3
+aiohttp==3.8.4
     # via discord-py-interactions
 aiosignal==1.3.1
     # via aiohttp
@@ -41,11 +41,11 @@ autobahn==23.1.2
     # via daphne
 automat==22.10.0
     # via twisted
-babel==2.11.0
+babel==2.12.1
     # via py-moneyed
 backcall==0.2.0
     # via ipython
-beautifulsoup4==4.11.2
+beautifulsoup4==4.12.2
     # via bs4
 billiard==3.6.4.0
     # via celery
@@ -53,7 +53,7 @@ bs4==0.0.1
     # via -r requirements.in
 cachetools==4.2.2
     # via python-telegram-bot
-caio==0.9.11
+caio==0.9.12
     # via aiofile
 celery==5.2.7
     # via
@@ -69,9 +69,9 @@ channels[daphne]==4.0.0
     # via
     #   -r requirements.in
     #   channels-redis
-channels-redis==4.0.0
+channels-redis==4.1.0
     # via -r requirements.in
-charset-normalizer==2.1.1
+charset-normalizer==3.1.0
     # via
     #   aiohttp
     #   requests
@@ -90,9 +90,9 @@ click-repl==0.2.0
     # via celery
 constantly==15.1.0
     # via twisted
-coverage==7.1.0
+coverage==7.2.3
     # via -r requirements.in
-cryptography==39.0.1
+cryptography==40.0.2
     # via
     #   authlib
     #   autobahn
@@ -108,9 +108,11 @@ ddt==1.6.0
     # via -r requirements.in
 decorator==5.1.1
     # via ipython
-discord-py-interactions==4.3.4
+discord-py-interactions==5.0.1
     # via -r requirements.in
-django==4.1.7
+discord-typings==0.5.1
+    # via discord-py-interactions
+django==4.2
     # via
     #   -r requirements.in
     #   channels
@@ -130,11 +132,11 @@ django-appconf==1.0.5
     # via
     #   django-avatar
     #   django-celery-email
-django-avatar==7.0.1
+django-avatar==7.1.1
     # via -r requirements.in
 django-celery-email==3.0.0
     # via -r requirements.in
-django-cleanup==6.0.0
+django-cleanup==7.0.0
     # via -r requirements.in
 django-custom-user==1.1
     # via -r requirements.in
@@ -146,7 +148,7 @@ django-markdown2==0.3.1
     # via -r requirements.in
 django-money==3.0.0
     # via -r requirements.in
-django-otp==1.1.4
+django-otp==1.1.6
     # via -r requirements.in
 django-premailer==0.2.0
     # via -r requirements.in
@@ -162,7 +164,7 @@ django-signal-disabler==0.1.1
     # via -r requirements.in
 django-webpack-loader==1.8.1
     # via -r requirements.in
-djangorestframework==3.12.4
+djangorestframework==3.14.0
     # via
     #   -r requirements.in
     #   djangorestframework-bulk
@@ -171,17 +173,21 @@ djangorestframework-bulk==0.2.1
     # via -r requirements.in
 djangorestframework-csv==2.1.1
     # via -r requirements.in
+dnspython==2.3.0
+    # via django-avatar
 dotted-dict==1.1.3
     # via -r requirements.in
 dwollav2==2.2.1
     # via -r requirements.in
 easy-thumbnails==2.8.5
     # via -r requirements.in
+emoji==2.2.0
+    # via discord-py-interactions
 executing==1.2.0
     # via stack-data
 factory-boy==3.2.1
     # via -r requirements.in
-faker==16.8.1
+faker==18.4.0
     # via factory-boy
 freezegun==1.2.2
     # via -r requirements.in
@@ -210,7 +216,7 @@ idna==3.4
     #   yarl
 incremental==22.10.0
     # via twisted
-ipython==8.10.0
+ipython==8.12.0
     # via -r requirements.in
 jedi==0.18.2
     # via ipython
@@ -224,13 +230,13 @@ lxml==4.9.2
     # via premailer
 mailchimp3==3.0.17
     # via -r requirements.in
-markdown==3.4.1
+markdown==3.4.3
     # via -r requirements.in
-markdown2==2.4.7
+markdown2==2.4.8
     # via django-markdown2
 matplotlib-inline==0.1.6
     # via ipython
-msgpack==1.0.4
+msgpack==1.0.5
     # via channels-redis
 multidict==6.0.4
     # via
@@ -238,7 +244,7 @@ multidict==6.0.4
     #   yarl
 numpy==1.24.2
     # via pandas
-pandas==1.5.3
+pandas==2.0.0
     # via -r requirements.in
 parso==0.8.3
     # via jedi
@@ -246,17 +252,17 @@ pexpect==4.8.0
     # via ipython
 pickleshare==0.7.5
     # via ipython
-pillow==9.4.0
+pillow==9.5.0
     # via
     #   django-avatar
     #   easy-thumbnails
 premailer==3.0.0
     # via django-premailer
-prompt-toolkit==3.0.36
+prompt-toolkit==3.0.38
     # via
     #   click-repl
     #   ipython
-psycopg2==2.9.5
+psycopg2==2.9.6
     # via -r requirements.in
 ptyprocess==0.7.0
     # via pexpect
@@ -274,9 +280,9 @@ pycountry==22.3.5
     # via -r requirements.in
 pycparser==2.21
     # via cffi
-pygments==2.14.0
+pygments==2.15.0
     # via ipython
-pyopenssl==23.0.0
+pyopenssl==23.1.1
     # via twisted
 pypng==0.20220715.0
     # via qrcode
@@ -286,7 +292,7 @@ python-dateutil==2.8.2
     #   faker
     #   freezegun
     #   pandas
-python-dotenv==0.21.1
+python-dotenv==1.0.0
     # via uvicorn
 python-http-client==3.3.7
     # via
@@ -294,12 +300,12 @@ python-http-client==3.3.7
     #   sendgrid
 python-telegram-bot==13.15
     # via -r requirements.in
-pytz==2022.7.1
+pytz==2023.3
     # via
     #   -r requirements.in
     #   apscheduler
-    #   babel
     #   celery
+    #   djangorestframework
     #   pandas
     #   python-telegram-bot
 pytz-deprecation-shim==0.1.0.post0
@@ -310,7 +316,6 @@ qrcode==7.4.2
     # via -r requirements.in
 redis==4.5.4
     # via
-    #   -r constraints.in
     #   channels-redis
     #   django-redis
 requests==2.28.2
@@ -320,7 +325,7 @@ requests==2.28.2
     #   mailchimp3
     #   premailer
     #   stripe
-sendgrid==6.9.7
+sendgrid==6.10.0
     # via django-sendgrid-v5
 service-identity==21.1.0
     # via twisted
@@ -337,7 +342,7 @@ six==1.16.0
     #   service-identity
 sniffio==1.3.0
     # via anyio
-soupsieve==2.3.2.post1
+soupsieve==2.4
     # via beautifulsoup4
 sqlparse==0.4.3
     # via django
@@ -345,10 +350,12 @@ stack-data==0.6.2
     # via ipython
 starkbank-ecdsa==2.2.0
     # via sendgrid
-stripe==5.1.1
+stripe==5.4.0
     # via -r requirements.in
 tblib==1.7.0
     # via -r requirements.in
+tomli==2.0.1
+    # via discord-py-interactions
 tornado==6.1
     # via python-telegram-bot
 traitlets==5.9.0
@@ -359,20 +366,23 @@ twisted[tls]==22.10.0
     # via daphne
 txaio==23.1.1
     # via autobahn
-typing-extensions==4.4.0
+typing-extensions==4.5.0
     # via
+    #   discord-typings
     #   py-moneyed
     #   qrcode
     #   twisted
-tzdata==2022.7
-    # via pytz-deprecation-shim
-tzlocal==4.2
+tzdata==2023.3
+    # via
+    #   pandas
+    #   pytz-deprecation-shim
+tzlocal==4.3
     # via apscheduler
 unicodecsv==0.14.1
     # via djangorestframework-csv
-urllib3==1.26.14
+urllib3==1.26.15
     # via requests
-uvicorn[standard]==0.20.0
+uvicorn[standard]==0.21.1
     # via -r requirements.in
 uvloop==0.17.0
     # via uvicorn
@@ -383,15 +393,15 @@ vine==5.0.0
     #   amqp
     #   celery
     #   kombu
-watchfiles==0.18.1
+watchfiles==0.19.0
     # via uvicorn
 wcwidth==0.2.6
     # via prompt-toolkit
-websockets==10.4
+websockets==11.0.1
     # via uvicorn
 yarl==1.8.2
     # via aiohttp
-zope-interface==5.5.2
+zope-interface==6.0
     # via twisted
 
 # The following packages are considered to be unsafe in a requirements file:
