@@ -12,6 +12,4 @@
     - letsencrypt
     - nginx
     - app
-    - blog
-    - rabbitmq
     - celery
