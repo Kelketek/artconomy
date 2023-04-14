@@ -64,7 +64,6 @@ services:
       - "8002:8002"
     depends_on:
       - db
-      - rabbit
       - redis
     volumes:
       - ./:/app

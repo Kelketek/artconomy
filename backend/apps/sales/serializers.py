@@ -780,7 +780,7 @@ class NewInvoiceSerializer(serializers.Serializer, PriceValidationMixin, Product
                     raise ValidationError('You cannot send yourself an invoice.')
                 return user
             return User.objects.filter(email=value).first() or value
-        user = available_users(self.context['request'].user).filter(username__iexact=value).first()
+        user = available_users(self.context['request'].user).filter(username=value).first()
         if not user:
             raise ValidationError("User with that username not found, or they are blocking you.")
         return user

@@ -75,7 +75,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def validate_username(value):
-        if User.objects.filter(username__iexact=value).exists():
+        if User.objects.filter(username=value).exists():
             raise ValidationError("An account with this username already exists.")
         return value
 
@@ -429,7 +429,7 @@ class CorrectPasswordValidator(object):
 
 class FieldUniqueValidator(object):
     """
-    Validates that a field is unique. Model field name can be a Django queryset API keyword, such as username__iexact.
+    Validates that a field is unique. Model field name can be a Django queryset API keyword, such as username.
     """
 
     requires_context = True
@@ -454,7 +454,7 @@ class FieldUniqueValidator(object):
 
 class CredentialsSerializer(serializers.ModelSerializer):
     username = serializers.SlugField(
-        validators=[FieldUniqueValidator('username__iexact', 'This username is already taken.', User)],
+        validators=[FieldUniqueValidator('username', 'This username is already taken.', User)],
         required=False
     )
     # Confirmation of new password should be done on client-side and refuse to send unless verified.

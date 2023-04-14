@@ -59,4 +59,4 @@ class SubjectMiddleware:
     # noinspection PyUnusedLocal,PyMethodMayBeStatic
     def process_view(self, request, view_func, view_args, view_kwargs):
         if 'username' in view_kwargs:
-            request.subject = get_object_or_404(User, username__iexact=view_kwargs['username'])
+            request.subject = get_object_or_404(User, username=view_kwargs['username'])

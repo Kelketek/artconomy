@@ -26,7 +26,7 @@ def start(update, context):
         )
         return
     try:
-        user = User.objects.get(username__iexact=args[0], tg_key=args[1])
+        user = User.objects.get(username=args[0], tg_key=args[1])
     except User.DoesNotExist:
         context.bot.send_message(
             chat_id=update.message.chat_id,

@@ -81,7 +81,7 @@ logger = logging.getLogger(__name__)
 
 
 def user_products(username: str, requester: User, show_hidden=False):
-    qs = Product.objects.filter(user__username__iexact=username, active=True)
+    qs = Product.objects.filter(user__username=username, active=True)
     if not ((requester.username.lower() == username.lower() or requester.is_staff) and show_hidden):
         qs = qs.filter(hidden=False, table_product=False)
     qs = qs.order_by('-display_position')
@@ -1302,7 +1302,7 @@ class SearchWaiting(ListAPIView):
         if not query:
             return qs.distinct().order_by('created_on')
         return qs.filter(
-            Q(buyer__username__istartswith=query)
+            Q(buyer__username__startswith=query)
             | Q(buyer__email__istartswith=query)
             | Q(customer_email__istartswith=query)
             | Q(buyer__guest=True, buyer__guest_email__istartswith=query)
@@ -1630,7 +1630,7 @@ class SalesStats(APIView):
 
     # noinspection PyUnusedLocal
     def get(self, request, **kwargs):
-        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        user = get_object_or_404(User, username=self.kwargs['username'])
         self.check_object_permissions(request, user)
         products_available = available_products_by_load(user.artist_profile).count()
         escrow_enabled = StripeAccount.objects.filter(active=True, user=user).exists()
@@ -1714,7 +1714,7 @@ class RatingList(ListAPIView):
     serializer_class = RatingSerializer
 
     def get_queryset(self):
-        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        user = get_object_or_404(User, username=self.kwargs['username'])
         return user.ratings.all().order_by('-created_on')
 
 
@@ -1750,7 +1750,7 @@ class CancelPremium(APIView):
 
 class StorePreview(BasePreview):
     def context(self, username):
-        user = get_object_or_404(User, username__iexact=username)
+        user = get_object_or_404(User, username=username)
         count_hit(self.request, user)
         avatar_url = user.avatar_url
         if avatar_url.startswith('/'):
@@ -1793,7 +1793,7 @@ class ProductPreview(BasePreview):
 class CommissionStatusImage(View):
     # noinspection PyMethodMayBeStatic
     def get(self, request, username):
-        user = get_object_or_404(User, username__iexact=username)
+        user = get_object_or_404(User, username=username)
         if user.artist_profile.commissions_disabled:
             return serve(request, '/images/commissions-closed.png', document_root=settings.STATIC_ROOT)
         else:

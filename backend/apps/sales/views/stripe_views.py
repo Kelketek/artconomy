@@ -59,7 +59,7 @@ class StripeAccountLink(GenericAPIView):
         return context
 
     def get_object(self):
-        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        user = get_object_or_404(User, username=self.kwargs['username'])
         self.check_object_permissions(self.request, user)
         return user
 
@@ -95,7 +95,7 @@ class StripeAccounts(ListAPIView):
     pagination_class = None
 
     def get_object(self):
-        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        user = get_object_or_404(User, username=self.kwargs['username'])
         self.check_object_permissions(self.request, user)
         return user
 
@@ -121,7 +121,7 @@ class PremiumPaymentIntent(APIView):
     def post(self, *args, **kwargs):
         serializer = PremiumIntentSettings(data=self.request.data)
         serializer.is_valid(raise_exception=True)
-        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        user = get_object_or_404(User, username=self.kwargs['username'])
         service_plan = get_object_or_404(ServicePlan, name=serializer.validated_data['service'])
         invoice = subscription_invoice_for_service(user, service_plan)
         return Response(

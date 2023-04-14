@@ -131,7 +131,7 @@ class Register(CreateAPIView):
 
         referrer = self.request.META.get('HTTP_X_REFERRED_BY', None)
         if referrer:
-            instance.referred_by = User.objects.filter(username__iexact=referrer).first()
+            instance.referred_by = User.objects.filter(username=referrer).first()
         # Specific fields here since other background operations may be happening in the interim.
         # Most relevant during dev since celery is always eager and doesn't refresh the current object.
         instance.save(update_fields=['offered_mailchimp', 'rating', 'sfw_mode', 'birthday', 'referred_by', 'password'])
@@ -168,7 +168,7 @@ class ArtistProfileSettings(RetrieveUpdateAPIView):
 
     @lru_cache()
     def get_object(self):
-        user = get_object_or_404(User, username__iexact=self.kwargs['username'], guest=False)
+        user = get_object_or_404(User, username=self.kwargs['username'], guest=False)
         self.check_object_permissions(self.request, user)
         return user.artist_profile
 
@@ -199,7 +199,7 @@ class CredentialsAPI(GenericAPIView):
     permission_classes = [UserControls]
 
     def get_object(self):
-        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        user = get_object_or_404(User, username=self.kwargs['username'])
         self.check_object_permissions(self.request, user)
         return user
 
@@ -226,12 +226,12 @@ class TOTPDeviceList(ListCreateAPIView):
     serializer_class = TwoFactorTimerSerializer
 
     def get_queryset(self):
-        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        user = get_object_or_404(User, username=self.kwargs['username'])
         self.check_object_permissions(self.request, user)
         return user.totpdevice_set.all().order_by('-id')
 
     def perform_create(self, serializer):
-        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        user = get_object_or_404(User, username=self.kwargs['username'])
         self.check_object_permissions(self.request, user)
         return serializer.save(user=user, confirmed=False)
 
@@ -242,7 +242,7 @@ class TOTPDeviceManager(RetrieveUpdateDestroyAPIView):
 
     def get_object(self):
         device = get_object_or_404(
-            TOTPDevice, user__username__iexact=self.kwargs['username'], id=self.kwargs['totp_id']
+            TOTPDevice, user__username=self.kwargs['username'], id=self.kwargs['totp_id']
         )
         self.check_object_permissions(self.request, device.user)
         return device
@@ -256,18 +256,18 @@ class Telegram2FA(RetrieveUpdateDestroyAPIView):
         return get_object_or_404(TelegramDevice, user__username=self.kwargs['username'])
 
     def get(self, request, *args, **kwargs):
-        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        user = get_object_or_404(User, username=self.kwargs['username'])
         self.check_object_permissions(request, user)
         return super().get(request, *args, **kwargs)
 
     # noinspection PyUnusedLocal,PyMethodOverriding
     def put(self, request, username):
-        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        user = get_object_or_404(User, username=self.kwargs['username'])
         device = TelegramDevice.objects.get_or_create(user=user)
         return Response(status=status.HTTP_201_CREATED, data=self.get_serializer(instance=device).data)
 
     def delete(self, request, *args, **kwargs):
-        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        user = get_object_or_404(User, username=self.kwargs['username'])
         self.check_object_permissions(request, user)
         return super().delete(request, *args, **kwargs)
 
@@ -283,7 +283,7 @@ class CharacterListAPI(ListCreateAPIView):
 
     def get_queryset(self):
         username = self.kwargs['username']
-        user = get_object_or_404(User, username__iexact=username)
+        user = get_object_or_404(User, username=username)
         if self.request.user.is_staff:
             requester = user
         else:
@@ -294,7 +294,7 @@ class CharacterListAPI(ListCreateAPIView):
         return qs
 
     def perform_create(self, serializer):
-        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        user = get_object_or_404(User, username=self.kwargs['username'])
         if not (self.request.user.is_staff or self.request.user == user):
             raise PermissionDenied("You do not have permission to create characters for that user.")
         if user.characters.all().count() >= settings.MAX_CHARACTER_COUNT:
@@ -315,7 +315,7 @@ class CharacterSubmissions(ListAPIView):
 
     def get_queryset(self):
         char = get_object_or_404(
-            Character, user__username__iexact=self.kwargs['username'], name=self.kwargs['character']
+            Character, user__username=self.kwargs['username'], name=self.kwargs['character']
         )
         self.check_object_permissions(self.request, char)
         return character_submissions(char, self.request)
@@ -430,7 +430,7 @@ class UserInfo(APIView):
             extra = Q()
         else:
             extra = Q(is_active=True)
-        user = get_object_or_404(User, extra, username__iexact=self.kwargs.get('username'))
+        user = get_object_or_404(User, extra, username=self.kwargs.get('username'))
         return user
 
     def get_serializer_context(self):
@@ -542,7 +542,7 @@ class UserSearch(ListAPIView):
         tagging = self.request.GET.get('tagging', False)
         if not query:
             return User.objects.none()
-        qs = User.objects.filter(username__istartswith=query, is_active=True, guest=False)
+        qs = User.objects.filter(username__startswith=query, is_active=True, guest=False)
         if tagging and self.request.user.is_authenticated:
             qs = qs.filter(Q(taggable=True) | Q(id=self.request.user.id))
         elif tagging:
@@ -1269,7 +1269,7 @@ class Watchers(ListAPIView):
     serializer_class = RelatedUserSerializer
 
     def get_queryset(self):
-        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        user = get_object_or_404(User, username=self.kwargs['username'])
         return user.watched_by.all().order_by('username')
 
 
@@ -1277,7 +1277,7 @@ class Watching(ListAPIView):
     serializer_class = RelatedUserSerializer
 
     def get_queryset(self):
-        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        user = get_object_or_404(User, username=self.kwargs['username'])
         return user.watching.all().order_by('username')
 
 
@@ -1305,7 +1305,7 @@ class Conversations(ListCreateAPIView):
         serializer.save()
 
     def get_queryset(self):
-        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        user = get_object_or_404(User, username=self.kwargs['username'])
         self.check_object_permissions(self.request, user)
         return user.conversations.all().exclude(last_activity=None).order_by('-last_activity')
 
@@ -1362,7 +1362,7 @@ class StartPasswordReset(APIView):
             user = User.objects.exclude(guest=True).get(email__iexact=identifier)
         except User.DoesNotExist:
             try:
-                user = User.objects.exclude(guest=True).get(username__iexact=identifier)
+                user = User.objects.exclude(guest=True).get(username=identifier)
             except User.DoesNotExist:
                 return Response(
                     status=status.HTTP_400_BAD_REQUEST,
@@ -1398,7 +1398,7 @@ class StartPasswordReset(APIView):
 class TokenValidator(APIView):
     # noinspection PyUnusedLocal,PyMethodMayBeStatic
     def get(self, request, username, reset_token):
-        get_object_or_404(User, username__iexact=username, reset_token=reset_token, token_expiry__gte=timezone.now())
+        get_object_or_404(User, username=username, reset_token=reset_token, token_expiry__gte=timezone.now())
         return Response(status=status.HTTP_200_OK, data={'success': True})
 
 
@@ -1408,7 +1408,7 @@ class PasswordReset(GenericAPIView):
     def get_object(self):
         try:
             user = User.objects.get(
-                username__iexact=self.kwargs['username'], reset_token=self.kwargs['reset_token'],
+                username=self.kwargs['username'], reset_token=self.kwargs['reset_token'],
                 token_expiry__gte=timezone.now()
             )
         except User.DoesNotExist:
@@ -1438,11 +1438,11 @@ class Journals(ListCreateAPIView):
     serializer_class = JournalSerializer
 
     def get_queryset(self):
-        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        user = get_object_or_404(User, username=self.kwargs['username'])
         return Journal.objects.filter(user=user).order_by('-created_on')
 
     def perform_create(self, serializer):
-        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        user = get_object_or_404(User, username=self.kwargs['username'])
         if self.request.user != user:
             raise ValidationError({'errors': ['You may not speak for someone else. Are you still logged in?']})
         journal = serializer.save(user=user)
@@ -1454,7 +1454,7 @@ class JournalManager(RetrieveUpdateDestroyAPIView):
     permission_classes = [Any(IsSafeMethod, All(IsMethod('PUT'), IsRegistered), All(IsRegistered, ObjectControls))]
 
     def get_object(self):
-        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        user = get_object_or_404(User, username=self.kwargs['username'])
         return get_object_or_404(Journal, user=user, id=self.kwargs['journal_id'])
 
     def put(self, request, *args, **kwargs):
@@ -1499,7 +1499,7 @@ class ArtPreview(BasePreview):
 
     def context(self, username):
         art_context = {}
-        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        user = get_object_or_404(User, username=self.kwargs['username'])
         if self.is_artist:
             art_context['title'] = f"{user.username}'s art gallery"
         else:
@@ -1519,7 +1519,7 @@ class ProfilePreview(BasePreview):
 
     def context(self, username):
         art_context = {}
-        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        user = get_object_or_404(User, username=self.kwargs['username'])
         count_hit(self.request, user)
         is_artist = user.artist_mode
         art_context['title'] = f"{user.username} on Artconomy.com"
@@ -1564,7 +1564,7 @@ class ReferralStats(APIView):
 
     # noinspection PyUnusedLocal
     def get(self, request, **kwargs):
-        user = get_object_or_404(User, username__iexact=kwargs.get('username'))
+        user = get_object_or_404(User, username=kwargs.get('username'))
         self.check_object_permissions(self.request, user)
         return Response(status=status.HTTP_200_OK, data=ReferralStatsSerializer(user).data)
 

@@ -297,7 +297,7 @@ class UserPayoutReportCSV(CSVReport, ListAPIView, DateConstrained):
         return context
 
     def get_queryset(self):
-        user = get_object_or_404(User, username__iexact=self.kwargs['username'])
+        user = get_object_or_404(User, username=self.kwargs['username'])
         self.check_object_permissions(self.request, user)
         return TransactionRecord.objects.filter(
             payer=user,
