@@ -55,7 +55,7 @@ cachetools==4.2.2
     # via python-telegram-bot
 caio==0.9.12
     # via aiofile
-celery==5.2.7
+celery[redis]==5.2.7
     # via
     #   -r requirements.in
     #   django-celery-email
@@ -262,8 +262,10 @@ prompt-toolkit==3.0.38
     # via
     #   click-repl
     #   ipython
-psycopg2==2.9.6
+psycopg[binary]==3.1.8
     # via -r requirements.in
+psycopg-binary==3.1.8
+    # via psycopg
 ptyprocess==0.7.0
     # via pexpect
 pure-eval==0.2.2
@@ -316,6 +318,7 @@ qrcode==7.4.2
     # via -r requirements.in
 redis==4.5.4
     # via
+    #   celery
     #   channels-redis
     #   django-redis
 requests==2.28.2
@@ -369,6 +372,7 @@ txaio==23.1.1
 typing-extensions==4.5.0
     # via
     #   discord-typings
+    #   psycopg
     #   py-moneyed
     #   qrcode
     #   twisted
