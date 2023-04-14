@@ -20,10 +20,6 @@ services:
       - ./:/var/www
     depends_on:
       - web
-  rabbit:
-    image: rabbitmq
-    ports:
-      - "5672:5672"
   redis:
     image: redis
     ports:
@@ -57,7 +53,7 @@ services:
       - PREMIUM_PERCENTAGE_BONUS=3
       - LANDSCAPE_PRICE=8
       - ENV_NAME=dev
-      - CHANNELS_HOST=redis
+      - REDIS_HOST=redis
       - STRIPE_PUBLIC_KEY=${STRIPE_PUBLIC_KEY}
       - STRIPE_WEBHOOKS_DOMAIN=${STRIPE_WEBHOOKS_DOMAIN}
       - STRIPE_KEY=${STRIPE_KEY}

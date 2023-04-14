@@ -159,13 +159,18 @@ DATABASES = {
     },
 }
 
+# Redis settings
+
+REDIS_HOST = get_env('REDIS_HOST', '127.0.0.1')
+REDIS_PORT = int(get_env('REDIS_PORT', '6379'))
+
 # Channels
 
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': get_env('CHANNELS_BACKEND', 'channels_redis.core.RedisChannelLayer'),
         'CONFIG': {
-            "hosts": [(get_env('CHANNELS_HOST', '127.0.0.1'), int(get_env('CHANNELS_PORT', '6379')))]
+            "hosts": [(REDIS_HOST, REDIS_PORT)]
         }
     }
 }
@@ -323,8 +328,6 @@ CELERY_EMAIL_TASK_CONFIG = {
     'rate_limit': '50/m',
     'ignore_result': True,
 }
-
-CELERY_IGNORE_RESULT = True
 
 SENDGRID_API_KEY = get_env('SENDGRID_API_KEY', '')
 
@@ -580,7 +583,7 @@ AUTH_PASSWORD_VALIDATORS = [
 CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': f'redis://{get_env("CHANNELS_HOST", "127.0.0.1")}:{get_env("CHANNELS_PORT", "6379")}/1',
+        'LOCATION': f'redis://{REDIS_HOST}:{REDIS_PORT}/1',
     },
 }
 

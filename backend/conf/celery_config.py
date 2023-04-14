@@ -11,6 +11,6 @@ sys.path.insert(0, SITE_ROOT)
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'conf.settings')
 
-celery_app = Celery('apps', broker='amqp://guest:guest@{}:{}//'.format(settings.RABBIT_HOST, settings.RABBIT_PORT))
+celery_app = Celery('apps', broker=f'redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}')
 celery_app.config_from_object('django.conf:settings')
 celery_app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)

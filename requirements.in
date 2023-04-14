@@ -8,7 +8,7 @@ bs4
 # Celery is our asynchronus task queue library. Tasks that shouldn't interrupt the current
 # request, but should be handled in the background (or periodically, like cron), are scheduled
 # and handled by celery.
-celery
+celery[redis]
 # Channels handles async connections to Django that can be subscribed and published to.
 # This is used for managing websockets.
 channels>=4.0.0,<5.0.0
