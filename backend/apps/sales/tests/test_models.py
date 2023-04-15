@@ -388,6 +388,16 @@ class TestDeliverable(EnsurePlansMixin, TestCase):
 
     @override_settings(AUTO_CANCEL_DAYS=5)
     @freeze_time('2023-01-01')
+    def test_no_set_auto_cancel_on_secondary_deliverables(self):
+        initial_deliverable = DeliverableFactory.create(status=NEW)
+        second_deliverable = DeliverableFactory.create(status=NEW, order=initial_deliverable.order)
+        # Re-saving shouldn't break the first, though.
+        initial_deliverable.save()
+        self.assertEqual(initial_deliverable.auto_cancel_on, timezone.now().replace(day=6))
+        self.assertIsNone(second_deliverable.auto_cancel_on)
+
+    @override_settings(AUTO_CANCEL_DAYS=5)
+    @freeze_time('2023-01-01')
     def test_auto_cancel_cleared_on_response(self):
         deliverable = DeliverableFactory.create(status=NEW)
         self.assertEqual(deliverable.auto_cancel_on, timezone.now().replace(day=6))

@@ -378,7 +378,11 @@ class Deliverable(Model):
 
     def save(self, *args, **kwargs):
         if self.status == NEW and not self.id and not self.auto_cancel_on:
-            self.auto_cancel_on = timezone.now() + relativedelta(days=settings.AUTO_CANCEL_DAYS)
+            if self.order.deliverables.all().count() == 0:
+                # This is the first deliverable. Set the auto-cancel date.
+                self.auto_cancel_on = timezone.now() + relativedelta(days=settings.AUTO_CANCEL_DAYS)
+            else:
+                self.auto_cancel_on = None
         elif self.status is not NEW:
             self.auto_cancel_on = None
         if self.table_order:
