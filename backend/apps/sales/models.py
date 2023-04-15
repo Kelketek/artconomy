@@ -31,7 +31,7 @@ from short_stuff import gen_shortcode
 from short_stuff.django.models import ShortCodeField
 
 from apps.lib.models import Comment, Subscription, SALE_UPDATE, ORDER_UPDATE, REVISION_UPLOADED, COMMENT, NEW_PRODUCT, \
-    Event, ref_for_instance, REFERENCE_UPLOADED, TIP_RECEIVED, REVISION_APPROVED
+    Event, ref_for_instance, REFERENCE_UPLOADED, TIP_RECEIVED, REVISION_APPROVED, note_for_text
 from apps.lib.abstract_models import ImageModel, thumbnail_hook, HitsMixin, RATINGS, GENERAL, get_next_increment
 from apps.lib.permissions import Any, IsStaff
 from apps.lib.utils import (
@@ -312,7 +312,7 @@ class Deliverable(Model):
         choices=RATINGS, db_index=True, default=GENERAL,
         help_text="The desired content rating of this piece.",
     )
-    commission_info = TextField(blank=True, default='')
+    commission_info = ForeignKey('lib.Note', null=True, blank=True, on_delete=SET_NULL)
     subscriptions = GenericRelation('lib.Subscription')
     name = CharField(default='', max_length=150)
     current_intent = CharField(max_length=30, db_index=True, default='', blank=True)
@@ -387,6 +387,8 @@ class Deliverable(Model):
             self.international = StripeAccount.objects.filter(
                 user=self.order.seller,
             ).exclude(country=settings.SOURCE_COUNTRY).exists()
+        if not self.commission_info:
+            self.commission_info = note_for_text(self.order.seller.artist_profile.commission_info)
         super().save(*args, **kwargs)
 
 
@@ -441,8 +443,6 @@ def deliverable_post_pay(
             ceil(deliverable.expected_turnaround + deliverable.adjustment_expected_turnaround) * 1.25))
     ).date()
     deliverable.paid_on = timezone.now()
-    # Preserve this so that it can't be changed during disputes.
-    deliverable.commission_info = deliverable.order.seller.artist_profile.commission_info
     deliverable.save()
     credit_referral(deliverable)
     notify(SALE_UPDATE, deliverable, unique=True, mark_unread=True)

@@ -383,7 +383,7 @@ class ArtistProfile(Model):
     lgbt = BooleanField(default=False, db_index=True)
     auto_withdraw = BooleanField(default=True)
     dwolla_url = URLField(blank=True, default='')
-    commission_info = CharField(max_length=5000, blank=True, default='')
+    commission_info = CharField(max_length=14000, blank=True, default='')
     watch_permissions = {'ArtistProfileSerializer': []}
 
     def __str__(self):

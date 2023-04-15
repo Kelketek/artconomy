@@ -1,3 +1,5 @@
+from hashlib import sha256
+
 import reversion
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
@@ -393,3 +395,22 @@ def cleanup_old_asset(sender, instance, created=False, **kwargs):
         return
     # Assets will expire after an hour of non-reference.
     check_asset_associations.apply_async(countdown=60 * 60, args=[str(instance.id)])
+
+
+class Note(Model):
+    created_on = DateTimeField(default=timezone.now, db_index=True)
+    text = models.TextField()
+    hash = models.BinaryField(max_length=32, default=b'', db_index=True, unique=True)
+
+    def save(
+        self, **kwargs,
+    ):
+        if not self.hash:
+            self.hash = sha256(self.text.encode('utf-8')).digest()
+        super().save(
+            **kwargs,
+        )
+
+
+def note_for_text(text):
+    return Note.objects.get_or_create(hash=sha256(text.encode('utf-8')).digest(), defaults={'text': text})[0]

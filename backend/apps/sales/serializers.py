@@ -334,6 +334,10 @@ class DeliverableSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
     read = serializers.SerializerMethodField()
     invoice = serializers.SerializerMethodField()
     tip_invoice = serializers.SerializerMethodField()
+    commission_info = serializers.SerializerMethodField()
+
+    def get_commission_info(self, obj):
+        return obj.commission_info.text
 
     def get_read(self, obj):
         return check_read(obj=obj, user=self.context['request'].user)

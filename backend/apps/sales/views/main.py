@@ -30,7 +30,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.lib.models import DISPUTE, COMMENT, Subscription, ORDER_UPDATE, SALE_UPDATE, REVISION_UPLOADED, \
-    NEW_PRODUCT, STREAMING, REFERENCE_UPLOADED, Comment, WAITLIST_UPDATED, ref_for_instance, REVISION_APPROVED
+    NEW_PRODUCT, STREAMING, REFERENCE_UPLOADED, Comment, WAITLIST_UPDATED, ref_for_instance, REVISION_APPROVED, \
+    note_for_text
 from apps.lib.permissions import IsStaff, IsSafeMethod, Any, All, IsMethod
 from apps.lib.serializers import CommentSerializer
 from apps.lib.utils import notify, recall_notification, demark, preview_rating, send_transaction_email, create_comment, \
@@ -348,7 +349,6 @@ class OrderDeliverables(ListCreateAPIView):
         )}
         deliverable = serializer.save(
             order=order,
-            commission_info=order.seller.artist_profile.commission_info,
             **deliverable_facts,
         )
         deliverable.invoice.line_items.get_or_create(
@@ -499,7 +499,6 @@ class MarkPaid(GenericAPIView):
             deliverable.expected_turnaround = deliverable.product.expected_turnaround
             deliverable.revisions = deliverable.product.revisions
         deliverable.revisions_hidden = False
-        deliverable.commission_info = deliverable.order.seller.artist_profile.commission_info
         deliverable.escrow_enabled = False
         deliverable.save()
         deliverable.invoice.record_only = True
@@ -1875,6 +1874,8 @@ def get_order_facts(product: Optional[Product], serializer, seller: User):
         'rating': serializer.validated_data.get('rating', 0),
         'cascade_fees': serializer.validated_data.get('cascade_fees', False),
     }
+    if serializer.validated_data['completed'] or not serializer.validated_data['hold']:
+        facts['commission_info'] = note_for_text(seller.artist_profile.commission_info)
     if serializer.validated_data['completed']:
         raw_task_weight = 0
         raw_expected_turnaround = 0
@@ -1969,7 +1970,6 @@ class CreateInvoice(GenericAPIView):
                     details=serializer.validated_data['details'],
                     product=product,
                     processor=STRIPE,
-                    commission_info=request.subject.artist_profile.commission_info,
                     **deliverable_facts,
                 )
                 deliverable_target = ref_for_instance(deliverable)
