@@ -2111,6 +2111,9 @@ class DeliverableOutputs(ListCreateAPIView):
             # Hide the customer's copy if we make one of our own.
             submissions = Submission.objects.filter(deliverable=deliverable, revision=revision).exclude(id=instance.id)
             ArtistTag.objects.filter(submission__in=submissions, user=deliverable.order.seller).update(hidden=True)
+        elif Submission.objects.filter(deliverable=deliverable, revision=revision).exclude(id=instance.id).exists():
+            # If we are not the artist, and there is already a copy, hide this one.
+            ArtistTag.objects.filter(submission=instance, user=deliverable.order.seller).update(hidden=True)
         return Response(
             data=SubmissionSerializer(instance=instance, context=self.get_serializer_context()).data,
             status=status.HTTP_201_CREATED,
