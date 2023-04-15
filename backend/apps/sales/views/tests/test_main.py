@@ -2471,6 +2471,7 @@ class TestOrderDeliverables(APITestCase):
         self.assertEqual(item.destination_account, ESCROW)
         self.assertEqual(item.percentage, 0)
         self.assertIsNone(order.claim_token)
+        self.assertFalse(deliverable.invoice.record_only)
 
     def test_create_deliverable_with_references(self):
         old_deliverable = DeliverableFactory.create(

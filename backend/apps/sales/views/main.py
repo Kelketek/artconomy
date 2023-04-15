@@ -351,15 +351,17 @@ class OrderDeliverables(ListCreateAPIView):
             order=order,
             **deliverable_facts,
         )
-        deliverable.invoice.line_items.get_or_create(
+        line, _ = deliverable.invoice.line_items.get_or_create(
             type=BASE_PRICE, amount=facts['price'], priority=0, destination_account=ESCROW,
             destination_user=order.seller,
         )
+        line.annotate(deliverable)
         if facts['adjustment']:
-            deliverable.invoice.line_items.get_or_create(
+            line, _ = deliverable.invoice.line_items.get_or_create(
                 type=ADD_ON, amount=facts['adjustment'], priority=1, destination_account=ESCROW,
                 destination_user=order.seller,
             )
+            line.annotate(deliverable)
         # Trigger line item creation.
         deliverable.save()
         deliverable.characters.set(serializer.validated_data.get('characters', []))

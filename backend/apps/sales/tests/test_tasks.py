@@ -341,12 +341,12 @@ class TestWithdrawAll(EnsurePlansMixin, TransactionTestCase):
     def test_withdraw_amount_matches(self, stripe_transfer):
         user = UserFactory.create()
         account = StripeAccountFactory(user=user)
-        record = TransactionRecordFactory(payee=user, destination=HOLDINGS, amount=Money('10.00', 'USD'))
         deliverable = DeliverableFactory.create(order__seller=user, status=COMPLETED, invoice__payout_sent=False)
-        record.targets.add(ref_for_instance(deliverable), ref_for_instance(deliverable.invoice))
         deliverable.invoice.payout_available = True
         deliverable.invoice.status = PAID
         deliverable.invoice.save()
+        record = TransactionRecordFactory(payee=user, destination=HOLDINGS, amount=Money('10.00', 'USD'))
+        record.targets.add(ref_for_instance(deliverable), ref_for_instance(deliverable.invoice))
         withdraw_all(user.id)
         transfer = TransactionRecord.objects.get(destination=BANK)
         self.assertCountEqual(

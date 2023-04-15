@@ -398,6 +398,11 @@ def sync_escrow_status(sender, instance, **kwargs):
     elif instance.bank_account_status == NO_SUPPORTED_COUNTRY:
         instance.escrow_enabled = StripeAccount.objects.filter(user=instance.user, active=True).exists()
 
+@receiver(post_save, sender=ArtistProfile)
+def auto_withdraw(sender, instance, created=False, **kwargs):
+    from apps.sales.tasks import withdraw_all
+    withdraw_all.delay(instance.user.id)
+
 
 def get_next_submission_position():
     """
