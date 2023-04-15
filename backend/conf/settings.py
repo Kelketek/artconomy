@@ -382,7 +382,7 @@ LIMBO_DAYS = int(get_env('LIMBO_DAYS', '10'))
 
 # Number of days until an order marked 'NEW' will automatically cancel and close the artist's commissions.
 # NOTE: This will only affect new/newly commented on orders.
-AUTO_CANCEL_DAYS = int(get_env('AUTO_CLOSE_DAYS', '20'))
+AUTO_CANCEL_DAYS = int(get_env('AUTO_CLOSE_DAYS', '14'))
 
 # Grace period for paying term invoices before new orders are disabled.
 TERM_GRACE_DAYS = int(get_env('TERM_GRACE_DAYS', '7'))
