@@ -157,7 +157,7 @@ def term_charge(deliverable: 'Deliverable'):
     """Add a deliverable's charge to a user's term invoice if applicable. WARNING: Does not save the deliverable."""
     from apps.sales.models import LineItem
     plan = deliverable.order.seller.service_plan
-    if plan.per_deliverable_price:
+    if plan.per_deliverable_price and not deliverable.escrow_enabled:
         term_invoice = get_term_invoice(deliverable.order.seller)
         if not term_invoice.lines_for(deliverable).exists():
             line = LineItem.objects.create(

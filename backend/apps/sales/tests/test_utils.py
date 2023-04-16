@@ -20,17 +20,16 @@ from apps.lib.test_resources import SignalsDisabledMixin, EnsurePlansMixin
 from apps.profiles.models import User
 from apps.profiles.tests.factories import UserFactory
 from apps.sales.constants import IN_PROGRESS, CANCELLED, SUCCESS, UNPROCESSED_EARNINGS, ESCROW, CARD, ACH_MISC_FEES, \
-    RESERVE, FAILURE, SHIELD, COMPLETED, VOID, PROCESSING, LIMBO, NEW, HOLDINGS
-from apps.sales.models import TransactionRecord, LineItemSim
-from apps.sales.tests.factories import InvoiceFactory, ServicePlanFactory
+    RESERVE, FAILURE, SHIELD, COMPLETED, VOID, PROCESSING, LIMBO, NEW, HOLDINGS, DELIVERABLE_TRACKING
+from apps.sales.models import TransactionRecord, LineItemSim, LineItem
+from apps.sales.tests.factories import InvoiceFactory, ServicePlanFactory, StripeAccountFactory
 from apps.sales.tests.factories import TransactionRecordFactory, ProductFactory, DeliverableFactory, \
     RevisionFactory, ReferenceFactory, OrderFactory, LineItemFactory
 from apps.sales.utils import claim_order_by_token, \
     available_products, account_balance, POSTED_ONLY, PENDING, destroy_deliverable, get_claim_token, fetch_prefixed, \
     verify_total, \
     default_deliverable, from_remote_id, credit_referral, initialize_tip_invoice, invoice_post_payment, \
-    update_downstream_pricing, set_service_plan, reverse_record
-from apps.sales.line_item_funcs import to_distribute, divide_amount
+    update_downstream_pricing, set_service_plan, reverse_record, term_charge
 from apps.sales.utils import freeze_line_items
 from apps.sales.views.tests.fixtures.stripe_fixtures import base_charge_succeeded_event
 
@@ -587,3 +586,27 @@ class TestReverseRecord(EnsurePlansMixin, TestCase):
         )
         with self.assertRaises(ValueError):
             reverse_record(initial_record)
+
+
+class TestTermCharge(EnsurePlansMixin, TestCase):
+    def test_term_charge(self):
+        user = UserFactory.create()
+        plan = ServicePlanFactory.create(per_deliverable_price=Money('1.00', 'USD'))
+        StripeAccountFactory.create(user=user, active=True)
+        user.service_plan = plan
+        user.save()
+        deliverable = DeliverableFactory.create(order__seller=user, escrow_enabled=False)
+        term_charge(deliverable)
+        line = LineItem.objects.get(invoice=deliverable.invoice, type=DELIVERABLE_TRACKING)
+        self.assertEqual(line.amount, Money('1.00', 'USD'))
+        self.assertEqual(line.targets.first(), ref_for_instance(deliverable))
+
+    def test_term_charge_skips_escrow(self):
+        user = UserFactory.create()
+        plan = ServicePlanFactory.create(per_deliverable_price=Money('1.00', 'USD'))
+        StripeAccountFactory.create(user=user, active=True)
+        user.service_plan = plan
+        user.save()
+        deliverable = DeliverableFactory.create(order__seller=user, escrow_enabled=True)
+        term_charge(deliverable)
+        self.assertFalse(LineItem.objects.filter(invoice=deliverable.invoice, type=DELIVERABLE_TRACKING).exists())
