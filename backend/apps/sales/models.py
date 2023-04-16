@@ -304,7 +304,9 @@ class Deliverable(Model):
     auto_finalize_on = DateField(blank=True, null=True, db_index=True)
     finalized_on = DateTimeField(blank=True, null=True, db_index=True)
     auto_cancel_on = DateTimeField(blank=True, null=True, db_index=True)
-    tip_invoice = models.ForeignKey('Invoice', null=True, on_delete=SET_NULL, related_name='tipped_deliverables')
+    tip_invoice = models.ForeignKey(
+        'Invoice', null=True, on_delete=SET_NULL, blank=True, related_name='tipped_deliverables',
+    )
     arbitrator = ForeignKey(User, related_name='cases', null=True, blank=True, on_delete=SET_NULL)
     stream_link = URLField(blank=True, default='')
     characters = ManyToManyField('profiles.Character', blank=True)

@@ -34,7 +34,7 @@ class DeliverableAdmin(admin.ModelAdmin):
     inlines = [
         CommentInline
     ]
-    raw_id_fields = ['arbitrator', 'characters', 'product', 'order', 'invoice']
+    raw_id_fields = ['arbitrator', 'characters', 'product', 'order', 'invoice', 'tip_invoice']
     list_display = ('id', 'name', 'product', 'buyer', 'seller', 'created_on', 'escrow_enabled', 'status', 'link')
     list_filter = ('escrow_enabled', 'status', 'processor')
 
