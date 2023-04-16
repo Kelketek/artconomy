@@ -170,6 +170,9 @@ export default class AcPricePreview extends mixins(Subjective) {
 
   public get hourly() {
     const hours = this.hourlyForm.fields.hours.model || 0
+    if (hours === 0) {
+      return ''
+    }
     let currentPrice = this.rawPrice
     if (this.escrow) {
       currentPrice = this.payout
