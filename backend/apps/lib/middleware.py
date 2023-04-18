@@ -103,3 +103,15 @@ class GlobalRequestMiddleware:
         response = self.get_response(request)
         _requests.pop(currentThread())
         return response
+
+path_re = re.compile(r"/api/([^/]+)([/]v1[/])")
+
+
+class VersionShimMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        request.path = path_re.sub(r"/api/\1/", request.path)
+        request.path_info = request.path
+        return self.get_response(request)
