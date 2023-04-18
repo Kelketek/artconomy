@@ -26,7 +26,7 @@ from apps.sales.tasks import run_billing, remind_sales, remind_sale, \
     stripe_transfer, destroy_expired_invoices, cancel_abandoned_orders
 from apps.sales.tests.factories import TransactionRecordFactory, DeliverableFactory, \
     StripeAccountFactory, ServicePlanFactory, CreditCardTokenFactory, LineItemFactory, InvoiceFactory
-from apps.sales.utils import get_subscription_invoice, get_term_invoice, \
+from apps.sales.utils import get_term_invoice, \
     add_service_plan_line
 
 
@@ -111,6 +111,21 @@ class TestRenew(EnsurePlansMixin, TestCase):
         user.refresh_from_db()
         self.assertEqual(user.service_plan, self.free)
         mock_renew_stripe_card.assert_not_called()
+
+    def test_renew_basic_plan(self, mock_renew_stripe_card):
+        basic = ServicePlanFactory.create(
+            monthly_charge=Money('0.00', 'USD'), name='Basic', per_deliverable_price=Money('1.35', 'USD'),
+        )
+        user = UserFactory.create(
+            service_plan=basic,
+            next_service_plan=basic,
+            service_plan_paid_through=date.today(),
+        )
+        renew(user.id)
+        user.refresh_from_db()
+        self.assertEqual(user.service_plan, basic)
+        mock_renew_stripe_card.assert_not_called()
+        self.assertEqual(user.service_plan_paid_through, date.today() + relativedelta(months=1))
 
     @freeze_time('2022-05-01')
     def test_no_card_specified(self, mock_renew_stripe_card):
